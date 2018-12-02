@@ -1,0 +1,4 @@
+(executable
+  (name Compiler)
+  (public_name Compiler.exe)
+  (libraries lib))

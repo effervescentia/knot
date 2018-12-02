@@ -1,0 +1,30 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@0.0.5
+
+jobs:
+  test_compiler:
+    docker:
+      - image: circleci/node
+    steps:
+      - node/with-cache:
+          dir: ~/compiler/node_modules
+          cache-key: ~/compiler/package.json
+          steps:
+            - run:
+                name: 'Install Build Tools'
+                command: yarn global add esy@latest
+            - run:
+                name: 'Install Dependencies'
+                command: esy install
+      - run:
+          name: 'Build Compiler'
+          command: esy build
+      - run:
+          name: 'Test Compiler'
+          command: esy x Compiler.exe
+workflows:
+  build_and_test:
+    jobs:
+      - test_compiler
