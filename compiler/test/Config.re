@@ -1,0 +1,1 @@
+let resource_dir = "./test/resources";

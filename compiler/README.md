@@ -1,51 +1,50 @@
-# hello-reason
-
-[![Build status](https://ci.appveyor.com/api/projects/status/clqxyx5ohadbjkcw/branch/master?svg=true)](https://ci.appveyor.com/project/esy/hello-reason/branch/master)
-[![Build Status](https://travis-ci.org/esy-ocaml/hello-reason.svg?branch=master)](https://travis-ci.org/esy-ocaml/hello-reason)
-
-A project which demonstrates a Reason workflow with [Esy][].
-
-[Esy]: https://github.com/esy-ocaml/esy
+# tigris
 
 
-## Usage
-
-You need Esy, you can install the beta using [npm][]:
-
-    % npm install -g esy@latest
-
-Then you can install the project dependencies using:
-
-    % esy install
-
-Then build the project dependencies along with the project itself:
-
-    % esy build
-
-Now you can run your editor within the environment (which also includes merlin):
-
-    % esy $EDITOR
-    % esy vim
-
-After you make some changes to source code, you can re-run project's build
-using:
-
-    % esy build
-
-And test compiled executable:
-
-    % esy ./_build/default/bin/Hello.exe
-
-Shell into environment:
-
-    % esy shell
+[![CircleCI](https://circleci.com/gh/yourgithubhandle/tigris/tree/master.svg?style=svg)](https://circleci.com/gh/yourgithubhandle/tigris/tree/master)
 
 
-## Create Prebuilt Release:
+**Contains the following libraries and executables:**
 
-`esy` allows creating prebuilt binary packages for your current platform, with
-no dependencies.
+```
+tigris@0.0.0
+│
+├─test/
+│   name:    TestTigris.exe
+│   main:    TestTigris
+│   require: tigris.lib
+│
+├─library/
+│   library name: tigris.lib
+│   namespace:    Tigris
+│   require:
+│
+└─executable/
+    name:    TigrisApp.exe
+    main:    TigrisApp
+    require: tigris.lib
+```
 
-    % esy release
-    % cd _release
-    % npm publish
+## Developing:
+
+```
+npm install -g esy
+git clone <this-repo>
+esy install
+esy build
+```
+
+## Running Binary:
+
+After building the project, you can run the main binary that is produced.
+
+```
+esy x TigrisApp.exe 
+```
+
+## Running Tests:
+
+```
+# Runs the "test" command in `package.json`.
+esy test
+```
