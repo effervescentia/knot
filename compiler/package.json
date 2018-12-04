@@ -37,10 +37,10 @@
     "@opam/ounit": "2.0.8",
     "ocaml": "^4.4.0",
     "pesy": "*",
-    "refmterr": "*"
+    "refmterr": "*",
+    "sane": "^4.0.2"
   },
   "devDependencies": {
-    "@opam/merlin": "*",
-    "sane": "^4.0.2"
+    "@opam/merlin": "*"
   }
 }
