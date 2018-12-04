@@ -11,6 +11,12 @@ type file_cursor = {
   column: int,
 };
 
+let rec _next_valid_char = channel =>
+  switch (input_char(channel)) {
+  | '\r' => _next_valid_char(channel)
+  | _ as ch => ch
+  };
+
 let load = path =>
   open_in(path)
   |> (
@@ -25,6 +31,8 @@ let load = path =>
 let close = ({channel}) => close_in(channel);
 
 let count = ({channel}) => pos_in(channel);
+
+let length = ({channel}) => in_channel_length(channel);
 
 let rec next = ({channel} as stream) =>
   try (Some(advance(stream))) {
@@ -52,7 +60,52 @@ and advance = ({channel, row, column} as stream) => {
 
 let junk = stream => next(stream) |> ignore;
 
-let rec reposition = ({channel} as stream, {index, row, column}) => {
+let rec njunk = (n, stream) =>
+  if (n == 0) {
+    ();
+  } else {
+    junk(stream);
+    njunk(n - 1, stream);
+  };
+
+let peek = ({channel}) =>
+  try (
+    Some(
+      {
+        let index = pos_in(channel);
+        let char = _next_valid_char(channel);
+
+        seek_in(channel, index);
+        char;
+      },
+    )
+  ) {
+  | _ => None
+  };
+
+let npeek = (n, {channel}) =>
+  try (
+    {
+      let index = pos_in(channel);
+
+      let rec loop = (chs, i) =>
+        if (i == 0) {
+          Some(Util.chs_to_string(chs));
+        } else {
+          try (loop([_next_valid_char(channel), ...chs], i - 1)) {
+          | _ => loop(chs, 0)
+          };
+        };
+      let string = loop([], n);
+
+      seek_in(channel, index);
+      string;
+    }
+  ) {
+  | _ => None
+  };
+
+let reposition = ({channel} as stream, {index, row, column}) => {
   seek_in(channel, index - 1);
 
   switch (input_char(channel)) {

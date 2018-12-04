@@ -1,12 +1,12 @@
-open Tigris;
 open OUnit2;
 open Assert;
+
+module FileStream = Knot.FileStream;
 
 let __unix_file = "unix_file.txt";
 let __windows_file = "windows_file.txt";
 let __raw_text = "abcde fgh ijklm\n123\n456 7890-_\n\n135\n3ADLKFnn\ncnm, dlkqwe=31 4/123.,e \n\n  f l;k\n  ";
 
-let _load = file => FileStream.load(Config.resource_dir ++ "/" ++ file);
 let _next_or_error = stream =>
   switch (FileStream.next(stream)) {
   | Some(x) => x
@@ -34,7 +34,7 @@ let _assert_cursor =
 };
 
 let test_read_fully = (file, _) => {
-  let stream = _load(file);
+  let stream = Util.load_resource(file);
 
   let rec next = s =>
     switch (FileStream.next(stream)) {
@@ -49,7 +49,7 @@ let test_read_fully = (file, _) => {
 };
 
 let test_cursor_information = (file, char, position, index, row, column) => {
-  let stream = _load(file);
+  let stream = Util.load_resource(file);
 
   _assert_cursor(_cursor_from(stream, position), char, index, row, column);
 
@@ -58,7 +58,7 @@ let test_cursor_information = (file, char, position, index, row, column) => {
 
 let test_reposition = (file, position) => {
   Random.self_init();
-  let stream = _load(file);
+  let stream = Util.load_resource(file);
   let channel_length = in_channel_length(stream.channel);
   let extra_reads = Random.int(channel_length - position - 1);
 
@@ -93,13 +93,36 @@ let test_reposition = (file, position) => {
   FileStream.close(stream);
 };
 
+let test_peek = (file, junk_count, expected_ch) => {
+  let stream = Util.load_resource(file);
+
+  let rec junk = count =>
+    if (count > 1) {
+      FileStream.junk(stream);
+      junk(count - 1);
+    } else {
+      ();
+    };
+  junk(junk_count);
+
+  let actual_ch =
+    switch (FileStream.peek(stream)) {
+    | Some(ch) => ch
+    | None => assert_failure("peeked the EOF")
+    };
+  assert_char_eql(actual_ch, expected_ch);
+  assert_char_eql(_next_or_error(stream) |> fst, expected_ch);
+
+  FileStream.close(stream);
+};
+
 let () =
   run_test_tt_main(
     "FileStream"
     >::: [
-      "read file with unix endlines" >:: test_read_fully(__unix_file),
-      "read file with windows endlines" >:: test_read_fully(__windows_file),
-      "read file and check cursor with unix endlines"
+      "read unix file" >:: test_read_fully(__unix_file),
+      "read windows file" >:: test_read_fully(__windows_file),
+      "read unix file and check cursor"
       >:: (
         _ => {
           test_cursor_information(__unix_file, 'c', 3, 3, 1, 3);
@@ -108,7 +131,7 @@ let () =
           test_cursor_information(__unix_file, '\n', 31, 31, 3, 11);
         }
       ),
-      "read file and check cursor with windows endlines"
+      "read windows file and check cursor"
       >:: (
         _ => {
           test_cursor_information(__windows_file, 'c', 3, 3, 1, 3);
@@ -117,7 +140,7 @@ let () =
           test_cursor_information(__windows_file, '\n', 31, 34, 3, 12);
         }
       ),
-      "read file and reposition cursor with unix endlines"
+      "read unix file and reposition cursor"
       >:: (
         _ => {
           test_reposition(__unix_file, 4);
@@ -126,7 +149,7 @@ let () =
           test_reposition(__unix_file, 79);
         }
       ),
-      "read file and reposition cursor with windows endlines"
+      "read windows file and reposition cursor"
       >:: (
         _ => {
           test_reposition(__windows_file, 4);
@@ -135,5 +158,9 @@ let () =
           test_reposition(__windows_file, 80);
         }
       ),
+      "read unix file and peek the next character"
+      >:: (_ => test_peek(__unix_file, 29, '-')),
+      "read windows file and peek the next character"
+      >:: (_ => test_peek(__windows_file, 29, '-')),
     ],
   );

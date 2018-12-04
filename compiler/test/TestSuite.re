@@ -1,1 +1,2 @@
 open FileStreamTest;
+open TokenStreamTest;

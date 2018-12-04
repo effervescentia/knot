@@ -1,5 +1,5 @@
 {
-  "name": "tigris",
+  "name": "knot",
   "version": "0.0.0",
   "description": "My Project",
   "esy": {
@@ -10,17 +10,17 @@
   },
   "buildDirs": {
     "test": {
-      "require": ["tigris.lib", "ounit"],
+      "require": ["knot.lib", "ounit"],
       "main": "TestSuite",
       "name": "TestSuite.exe"
     },
     "library": {
       "require": ["angstrom"],
-      "name": "tigris.lib",
-      "namespace": "Tigris"
+      "name": "knot.lib",
+      "namespace": "Knot"
     },
     "executable": {
-      "require": ["tigris.lib"],
+      "require": ["knot.lib"],
       "main": "Compiler",
       "name": "Compiler.exe"
     }
@@ -28,7 +28,8 @@
   "scripts": {
     "dev": "sane 'esy build' ./library",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
-    "test": "esy x TestSuite.exe"
+    "test": "esy x TestSuite.exe",
+    "tdd": "sane 'esy test' ./test"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
