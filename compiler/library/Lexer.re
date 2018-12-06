@@ -61,7 +61,7 @@ type context =
 
 let print_tkn =
   fun
-  | Space => " "
+  | Space => "space( )"
   | Tab => "tab(\\t)"
   | Newline => "newline(\\n)"
   | Assign => "="
@@ -93,7 +93,20 @@ let print_tkn =
   | JSXOpenEnd => "</"
   | LogicalOr => "||"
   | LogicalAnd => "&&"
-  | Keyword(kwd) => "keyword"
+  | Keyword(kwd) =>
+    switch (kwd) {
+    | Main => "keyword(main)"
+    | Import => "keyword(import)"
+    | Const => "keyword(const)"
+    | Let => "keyword(let)"
+    | State => "keyword(state)"
+    | View => "keyword(view)"
+    | Func => "keyword(func)"
+    | If => "keyword(if)"
+    | Else => "keyword(else)"
+    | Get => "keyword(get)"
+    | Mut => "keyword(mut)"
+    }
   | Identifier(s) => Printf.sprintf("identifier(%s)", s)
   | Number(n) => Printf.sprintf("number(%d)", n)
   | JSXTextNode(s) => Printf.sprintf("jsx_text_node(%s)", s)
@@ -164,13 +177,21 @@ let rec lex_keyword = (matches, chs, stream) =>
       List.mapi((i, (s, _)) => (s.[0], i), matches)
       |> List.filter(((char, _)) => char == ch)
       |> List.map(((_, i)) => List.nth(matches, i));
+
     if (List.length(next_matches) == 1
         && fst(List.hd(next_matches))
         |> String.length == 0) {
-      Keyword(snd(List.hd(next_matches)));
+      FileStream.junk(stream);
+      switch (FileStream.peek(stream)) {
+      | Some('_' | 'a'..'z' | 'A'..'Z' | '0'..'9') =>
+        FileStream.junk(stream);
+        Identifier(lex_identifier([ch, ...chs], stream));
+      | _ => Keyword(snd(List.hd(next_matches)))
+      };
     } else if (List.length(next_matches) == 0) {
-      Identifier(Util.chs_to_string(chs));
+      Identifier(lex_identifier(chs, stream));
     } else {
+      FileStream.junk(stream);
       lex_keyword(next_matches, [ch, ...chs], stream);
     };
   | None => Identifier(Util.chs_to_string(chs))

@@ -6,3 +6,5 @@
 ///~||&&<==/>
 
 / >| |< / &  &
+main import const let state view func if else get mut
+mainer importest constant letter stated viewing functor iffer elsern getting mutter igloo moron

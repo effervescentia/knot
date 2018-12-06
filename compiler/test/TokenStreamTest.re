@@ -2,10 +2,6 @@ open OUnit2;
 open Assert;
 open Knot.Lexer;
 
-module TokenStream = Knot.TokenStream;
-
-let __unix_file = "unix_tokens.txt";
-let __windows_file = "windows_tokens.txt";
 let __all_tokens = [
   Plus,
   ForwardSlash,
@@ -71,13 +67,61 @@ let __all_tokens = [
   JSXOpenEnd,
   Space,
   LogicalAnd,
+  Newline,
+  Keyword(Main),
+  Space,
+  Keyword(Import),
+  Space,
+  Keyword(Const),
+  Space,
+  Keyword(Let),
+  Space,
+  Keyword(State),
+  Space,
+  Keyword(View),
+  Space,
+  Keyword(Func),
+  Space,
+  Keyword(If),
+  Space,
+  Keyword(Else),
+  Space,
+  Keyword(Get),
+  Space,
+  Keyword(Mut),
+  Newline,
+  Identifier("mainer"),
+  Space,
+  Identifier("importest"),
+  Space,
+  Identifier("constant"),
+  Space,
+  Identifier("letter"),
+  Space,
+  Identifier("stated"),
+  Space,
+  Identifier("viewing"),
+  Space,
+  Identifier("functor"),
+  Space,
+  Identifier("iffer"),
+  Space,
+  Identifier("elsern"),
+  Space,
+  Identifier("getting"),
+  Space,
+  Identifier("mutter"),
+  Space,
+  Identifier("igloo"),
+  Space,
+  Identifier("moron"),
 ];
 
 let test_read_fully = (file, expected_tkns, _) => {
-  let stream = Util.load_resource(file) |> TokenStream.load;
+  let stream = Util.load_resource(file) |> Knot.TokenStream.load;
 
   let rec loop = tkns =>
-    switch (TokenStream.next(stream)) {
+    switch (Knot.TokenStream.next(stream)) {
     | Some(tkn) => loop([tkn, ...tkns])
     | None => tkns
     };
@@ -90,7 +134,11 @@ let test_read_fully = (file, expected_tkns, _) => {
       ();
     } else {
       assert_bool(
-        "expected tokens to match",
+        Printf.sprintf(
+          "expected tokens { %s } and { %s } to match",
+          print_tkn(List.nth(actual_tkns, i - 1)),
+          print_tkn(List.nth(expected_tkns, i - 1)),
+        ),
         List.nth(actual_tkns, i - 1) == List.nth(expected_tkns, i - 1),
       );
       assert_loop(i - 1);
@@ -100,11 +148,11 @@ let test_read_fully = (file, expected_tkns, _) => {
 
 let () =
   run_test_tt_main(
-    "TokenStream"
+    "Knot.TokenStream"
     >::: [
       "read unix file token stream"
-      >:: test_read_fully(__unix_file, __all_tokens),
+      >:: test_read_fully(Config.unix_tokens_file, __all_tokens),
       "read windows file token stream"
-      >:: test_read_fully(__windows_file, __all_tokens),
+      >:: test_read_fully(Config.windows_tokens_file, __all_tokens),
     ],
   );

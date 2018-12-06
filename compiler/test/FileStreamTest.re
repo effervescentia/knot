@@ -3,8 +3,6 @@ open Assert;
 
 module FileStream = Knot.FileStream;
 
-let __unix_file = "unix_file.txt";
-let __windows_file = "windows_file.txt";
 let __raw_text = "abcde fgh ijklm\n123\n456 7890-_\n\n135\n3ADLKFnn\ncnm, dlkqwe=31 4/123.,e \n\n  f l;k\n  ";
 
 let _next_or_error = stream =>
@@ -120,47 +118,57 @@ let () =
   run_test_tt_main(
     "FileStream"
     >::: [
-      "read unix file" >:: test_read_fully(__unix_file),
-      "read windows file" >:: test_read_fully(__windows_file),
+      "read unix file" >:: test_read_fully(Config.unix_file),
+      "read windows file" >:: test_read_fully(Config.windows_file),
       "read unix file and check cursor"
       >:: (
         _ => {
-          test_cursor_information(__unix_file, 'c', 3, 3, 1, 3);
-          test_cursor_information(__unix_file, '2', 18, 18, 2, 2);
-          test_cursor_information(__unix_file, '_', 30, 30, 3, 10);
-          test_cursor_information(__unix_file, '\n', 31, 31, 3, 11);
+          test_cursor_information(Config.unix_file, 'c', 3, 3, 1, 3);
+          test_cursor_information(Config.unix_file, '2', 18, 18, 2, 2);
+          test_cursor_information(Config.unix_file, '_', 30, 30, 3, 10);
+          test_cursor_information(Config.unix_file, '\n', 31, 31, 3, 11);
         }
       ),
       "read windows file and check cursor"
       >:: (
         _ => {
-          test_cursor_information(__windows_file, 'c', 3, 3, 1, 3);
-          test_cursor_information(__windows_file, '2', 18, 19, 2, 2);
-          test_cursor_information(__windows_file, '_', 30, 32, 3, 10);
-          test_cursor_information(__windows_file, '\n', 31, 34, 3, 12);
+          test_cursor_information(Config.windows_file, 'c', 3, 3, 1, 3);
+          test_cursor_information(Config.windows_file, '2', 18, 19, 2, 2);
+          test_cursor_information(Config.windows_file, '_', 30, 32, 3, 10);
+          test_cursor_information(Config.windows_file, '\n', 31, 34, 3, 12);
         }
       ),
       "read unix file and reposition cursor"
       >:: (
         _ => {
-          test_reposition(__unix_file, 4);
-          test_reposition(__unix_file, 19);
-          test_reposition(__unix_file, 20);
-          test_reposition(__unix_file, 79);
+          test_reposition(Config.unix_file, 4);
+          test_reposition(Config.unix_file, 19);
+          test_reposition(Config.unix_file, 20);
+          test_reposition(Config.unix_file, 79);
         }
       ),
       "read windows file and reposition cursor"
       >:: (
         _ => {
-          test_reposition(__windows_file, 4);
-          test_reposition(__windows_file, 19);
-          test_reposition(__windows_file, 20);
-          test_reposition(__windows_file, 80);
+          test_reposition(Config.windows_file, 4);
+          test_reposition(Config.windows_file, 19);
+          test_reposition(Config.windows_file, 20);
+          test_reposition(Config.windows_file, 80);
         }
       ),
       "read unix file and peek the next character"
-      >:: (_ => test_peek(__unix_file, 29, '-')),
+      >:: (
+        _ => {
+          test_peek(Config.unix_file, 0, 'a');
+          test_peek(Config.unix_file, 29, '-');
+        }
+      ),
       "read windows file and peek the next character"
-      >:: (_ => test_peek(__windows_file, 29, '-')),
+      >:: (
+        _ => {
+          test_peek(Config.windows_file, 0, 'a');
+          test_peek(Config.windows_file, 29, '-');
+        }
+      ),
     ],
   );
