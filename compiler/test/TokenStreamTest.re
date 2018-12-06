@@ -41,6 +41,7 @@ let __all_tokens = [
   Space,
   Number(300),
   Assign,
+  DollarSign,
   Newline,
   Number(5),
   Space,

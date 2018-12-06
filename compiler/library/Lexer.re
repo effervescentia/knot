@@ -1,3 +1,16 @@
+type keyword =
+  | Main
+  | Import
+  | Const
+  | Let
+  | State
+  | View
+  | Func
+  | If
+  | Else
+  | Get
+  | Mut;
+
 type token =
   | Space
   | Tab
@@ -8,6 +21,7 @@ type token =
   | Colon
   | Semicolon
   | Tilde
+  | DollarSign
   | Plus
   | Minus
   | Asterisk
@@ -30,13 +44,20 @@ type token =
   | JSXOpenEnd /* </ */
   | LogicalOr
   | LogicalAnd
+  | Keyword(keyword)
+  | Identifier(string)
   | Number(int)
   | String(string)
+  | JSXTextNode(string)
   | LineComment(string)
   | BlockComment(string)
   | Unexpected(char);
 
-let (%) = (f, g, x) => f(x) |> g;
+type context =
+  | Normal
+  | JSXStartTag
+  | JSXEndTag
+  | JSXContent;
 
 let print_tkn =
   fun
@@ -49,6 +70,7 @@ let print_tkn =
   | Colon => ":"
   | Semicolon => ";"
   | Tilde => "~"
+  | DollarSign => "$"
   | Plus => "+"
   | Minus => "-"
   | Asterisk => "*"
@@ -71,7 +93,10 @@ let print_tkn =
   | JSXOpenEnd => "</"
   | LogicalOr => "||"
   | LogicalAnd => "&&"
+  | Keyword(kwd) => "keyword"
+  | Identifier(s) => Printf.sprintf("identifier(%s)", s)
   | Number(n) => Printf.sprintf("number(%d)", n)
+  | JSXTextNode(s) => Printf.sprintf("jsx_text_node(%s)", s)
   | String(s) => Printf.sprintf("string(%s)", s)
   | LineComment(s) => Printf.sprintf("line_comment(%s)", s)
   | BlockComment(s) => Printf.sprintf("block_comment(%s)", s)
@@ -80,9 +105,6 @@ let print_tkn =
 exception UnclosedString;
 exception UnclosedBlockComment;
 
-let _is_number = ch =>
-  int_of_char(ch) >= int_of_char('0')
-  && int_of_char(ch) <= int_of_char('9');
 let rec _next_non_space = stream =>
   switch (FileStream.peek(stream)) {
   | Some(' ' | '\t' | '\n') =>
@@ -113,23 +135,61 @@ let lex_right_chevron = _lex_pair('=', GreaterThanOrEqual, RightChevron);
 let lex_assign = _lex_pair('=', Equals, Assign);
 let lex_ampersand = _lex_pair('&', LogicalAnd, Ampersand);
 let lex_vertical_bar = _lex_pair('|', LogicalOr, VerticalBar);
+let lex_jsx_self_close = _lex_pair('>', JSXSelfClose, Unexpected('/'));
 
-let lex_left_chevron = (stream, cursor) =>
-  switch (_peek_next_non_space(stream, cursor)) {
-  | Some('=') =>
+let lex_left_chevron = (stream, cursor, ctx) =>
+  switch (_peek_next_non_space(stream, cursor), ctx) {
+  | (Some('='), Normal) =>
     _junk_non_space(stream);
     LessThanOrEqual;
-  | Some('/') =>
+  | (Some('/'), Normal | JSXContent) =>
     _junk_non_space(stream);
     JSXOpenEnd;
   | _ => LeftChevron
+  };
+
+let rec lex_identifier = (chs, stream) =>
+  switch (FileStream.peek(stream)) {
+  | Some(('_' | 'a'..'z' | 'A'..'Z' | '0'..'9') as ch) =>
+    FileStream.junk(stream);
+    lex_identifier([ch, ...chs], stream);
+  | Some(_)
+  | None => Util.chs_to_string(chs)
+  };
+
+let rec lex_keyword = (matches, chs, stream) =>
+  switch (FileStream.peek(stream)) {
+  | Some(ch) =>
+    let next_matches =
+      List.mapi((i, (s, _)) => (s.[0], i), matches)
+      |> List.filter(((char, _)) => char == ch)
+      |> List.map(((_, i)) => List.nth(matches, i));
+    if (List.length(next_matches) == 1
+        && fst(List.hd(next_matches))
+        |> String.length == 0) {
+      Keyword(snd(List.hd(next_matches)));
+    } else if (List.length(next_matches) == 0) {
+      Identifier(Util.chs_to_string(chs));
+    } else {
+      lex_keyword(next_matches, [ch, ...chs], stream);
+    };
+  | None => Identifier(Util.chs_to_string(chs))
+  };
+
+let rec lex_jsx_text_node = (chs, stream) =>
+  switch (FileStream.peek(stream)) {
+  | None
+  | Some('<' | '{') => Util.chs_to_string(chs)
+  | Some(ch) =>
+    FileStream.junk(stream);
+    lex_jsx_text_node([ch, ...chs], stream);
   };
 
 let rec lex_number = (chs, stream) =>
   switch (FileStream.peek(stream)) {
   | Some(ch) =>
     switch (ch) {
-    | _ when _is_number(ch) =>
+    | '0'..'9' =>
       FileStream.junk(stream);
       lex_number([ch, ...chs], stream);
     | _ => Util.chs_to_number(chs)
@@ -198,33 +258,55 @@ and _read_until_end_block = (chs, stream) =>
   | None => raise(UnclosedBlockComment)
   };
 
-let lex = ((ch, cursor), stream) =>
-  switch (ch) {
-  | ' ' => Space
-  | '\t' => Tab
-  | '\n' => Newline
-  | '.' => Period
-  | ',' => Comma
-  | ':' => Colon
-  | ';' => Semicolon
-  | '~' => Tilde
-  | '+' => Plus
-  | '*' => Asterisk
-  | '(' => LeftParenthese
-  | ')' => RightParenthese
-  | '{' => LeftBrace
-  | '}' => RightBrace
-  | '[' => LeftBracket
-  | ']' => RightBracket
-  | '|' => lex_vertical_bar(stream, cursor)
-  | '&' => lex_ampersand(stream, cursor)
-  | '-' => lex_minus(stream, cursor)
-  | '<' => lex_left_chevron(stream, cursor)
-  | '>' => lex_right_chevron(stream, cursor)
-  | '=' => lex_assign(stream, cursor)
-  | '/' => lex_forward_slash(stream, cursor)
-  | '"' => String(lex_string([], stream))
-  | _ when _is_number(ch) => Number(lex_number([ch], stream))
+let lex = ((ch, cursor), ctx, stream) =>
+  switch (ch, List.length(ctx^) != 0 ? List.nth(ctx^, 0) : Normal) {
+  | (' ', Normal) => Space
+  | ('\t', Normal) => Tab
+  | ('\n', Normal) => Newline
+  | ('.', Normal) => Period
+  | (',', Normal) => Comma
+  | (':', Normal) => Colon
+  | (';', Normal) => Semicolon
+  | ('~', Normal) => Tilde
+  | ('$', Normal) => DollarSign
+  | ('+', Normal) => Plus
+  | ('*', Normal) => Asterisk
+  | ('(', Normal) => LeftParenthese
+  | (')', Normal) => RightParenthese
+  | ('[', Normal) => LeftBracket
+  | (']', Normal) => RightBracket
+  | ('|', Normal) => lex_vertical_bar(stream, cursor)
+  | ('&', Normal) => lex_ampersand(stream, cursor)
+  | ('-', Normal) => lex_minus(stream, cursor)
+  | ('>', Normal) => lex_right_chevron(stream, cursor)
+  | ('=', Normal) => lex_assign(stream, cursor)
+  | ('0'..'9', Normal) => Number(lex_number([ch], stream))
+
+  | ('m', Normal) =>
+    lex_keyword([("ain", Main), ("ut", Mut)], [ch], stream)
+  | ('i', Normal) =>
+    lex_keyword([("mport", Import), ("f", If)], [ch], stream)
+  | ('c', Normal) => lex_keyword([("onst", Const)], [ch], stream)
+  | ('l', Normal) => lex_keyword([("et", Let)], [ch], stream)
+  | ('s', Normal) => lex_keyword([("tate", State)], [ch], stream)
+  | ('v', Normal) => lex_keyword([("iew", View)], [ch], stream)
+  | ('f', Normal) => lex_keyword([("unc", Func)], [ch], stream)
+  | ('e', Normal) => lex_keyword([("lse", Else)], [ch], stream)
+  | ('g', Normal) => lex_keyword([("et", Get)], [ch], stream)
+
+  | ('_' | 'a'..'z' | 'A'..'Z', _) =>
+    Identifier(lex_identifier([ch], stream))
+
+  | ('=', JSXStartTag) => Equals
+  | ('>', JSXStartTag | JSXEndTag) => RightChevron
+  | ('"', Normal | JSXStartTag) => String(lex_string([], stream))
+
+  | ('<', _) as res => lex_left_chevron(stream, cursor, snd(res))
+  | (_, JSXContent) => JSXTextNode(lex_jsx_text_node([], stream))
+
+  | ('{', _) => LeftBrace
+  | ('}', _) => RightBrace
+  | ('/', _) => lex_forward_slash(stream, cursor)
   | _ => Unexpected(ch)
   };
 /* |> (
