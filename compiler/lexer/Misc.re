@@ -4,20 +4,12 @@ module FileStream = Knot.FileStream;
 
 exception UnclosedBlockComment;
 
-let _lex_pair = (ch, match, no_match, stream, cursor) =>
-  switch (Util.peek_next_non_space(stream, cursor)) {
-  | Some(c) when c == ch =>
-    Util.junk_non_space(stream);
-    match;
-  | _ => no_match
-  };
-
-let lex_minus = _lex_pair('>', Lambda, Minus);
-let lex_right_chevron = _lex_pair('=', GreaterThanOrEqual, RightChevron);
-let lex_assign = _lex_pair('=', Equals, Assign);
-let lex_ampersand = _lex_pair('&', LogicalAnd, Ampersand);
-let lex_vertical_bar = _lex_pair('|', LogicalOr, VerticalBar);
-let lex_jsx_self_close = _lex_pair('>', JSXSelfClose, Unexpected('/'));
+let lex_minus = Util.lex_pair('>', Lambda, Minus);
+let lex_right_chevron = Util.lex_pair('=', GreaterThanOrEqual, RightChevron);
+let lex_assign = Util.lex_pair('=', Equals, Assign);
+let lex_ampersand = Util.lex_pair('&', LogicalAnd, Ampersand);
+let lex_vertical_bar = Util.lex_pair('|', LogicalOr, VerticalBar);
+let lex_jsx_self_close = Util.lex_pair('>', JSXSelfClose, Unexpected('/'));
 
 let rec lex_jsx_text_node = (chs, stream) =>
   switch (FileStream.peek(stream)) {
@@ -35,7 +27,7 @@ let rec lex_forward_slash = (stream, cursor) =>
     | '/' =>
       FileStream.junk(stream);
       lex_block_comment(stream);
-    | _ => _lex_pair('>', JSXSelfClose, ForwardSlash, stream, cursor)
+    | _ => Util.lex_pair('>', JSXSelfClose, ForwardSlash, stream, cursor)
     }
   | None => ForwardSlash
   }

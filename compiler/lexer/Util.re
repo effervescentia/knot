@@ -23,3 +23,11 @@ let junk_non_space = stream => {
   next_non_space(stream) |> ignore;
   FileStream.junk(stream);
 };
+
+let lex_pair = (ch, match, no_match, stream, cursor) =>
+  switch (peek_next_non_space(stream, cursor)) {
+  | Some(c) when c == ch =>
+    junk_non_space(stream);
+    match;
+  | _ => no_match
+  };

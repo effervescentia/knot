@@ -4,6 +4,7 @@ open Knot.Token;
 
 module TokenStream = KnotLex.TokenStream;
 module Lexer = KnotLex.Lexer;
+module Debug = KnotLex.Debug;
 
 let __all_tokens = [
   Plus,
@@ -139,8 +140,8 @@ let test_read_fully = (file, expected_tkns, _) => {
       assert_bool(
         Printf.sprintf(
           "expected tokens { %s } and { %s } to match",
-          Lexer.print_tkn(List.nth(actual_tkns, i - 1)),
-          Lexer.print_tkn(List.nth(expected_tkns, i - 1)),
+          Debug.print_tkn(List.nth(actual_tkns, i - 1)),
+          Debug.print_tkn(List.nth(expected_tkns, i - 1)),
         ),
         List.nth(actual_tkns, i - 1) == List.nth(expected_tkns, i - 1),
       );
