@@ -8,7 +8,7 @@ type token_ref = {
 type token_stream = {
   file_stream: FileStream.file_stream,
   curr: ref(option((char, FileStream.file_cursor))),
-  ctx: ref(list(Lexer.context)),
+  ctx: ref(list(Core.context)),
 };
 
 let load = file_stream => {file_stream, curr: ref(None), ctx: ref([])};

@@ -23,3 +23,20 @@ let assert_int_eql = (actual, expected) =>
     Printf.sprintf("expected %d to equal %d", actual, expected),
     expected == actual,
   );
+
+let assert_cursor =
+    ((actual_ch, actual_cursor), (expected_ch, expected_cursor)) =>
+  assert_bool(
+    Printf.sprintf(
+      "expected '%c' at [%d:%d] to match '%c' at [%d:%d]",
+      actual_ch,
+      fst(actual_cursor),
+      snd(actual_cursor),
+      expected_ch,
+      fst(expected_cursor),
+      snd(expected_cursor),
+    ),
+    actual_ch == expected_ch
+    && fst(actual_cursor) == fst(expected_cursor)
+    && snd(actual_cursor) == snd(expected_cursor),
+  );

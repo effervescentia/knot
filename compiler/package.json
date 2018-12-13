@@ -35,6 +35,7 @@
     }
   },
   "scripts": {
+    "build_test": "esy build && esy test",
     "dev": "sane 'esy build' ./library",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "test": "esy x TestSuite.exe",

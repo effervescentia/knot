@@ -1,10 +1,5 @@
+open Core;
 open Knot.Token;
-
-type context =
-  | Normal
-  | JSXStartTag
-  | JSXEndTag
-  | JSXContent;
 
 let lex_left_chevron = (stream, cursor, ctx) =>
   switch (Util.peek_next_non_space(stream, cursor), ctx) {
