@@ -1,27 +1,10 @@
 open Parsing;
 
-type import_target =
-  | MainExport(option(string))
-  | NamedExport(string, option(string));
+/* let prog = stream => (Module.body << eof())(stream); */
+let prog = stream => Module.body(stream);
 
-type declaration =
-  | /**
-   * @param
-   */
-    ConstDecl(string)
-  | StateDecl(string)
-  | ViewDecl(string)
-  | FunctionDecl(string);
-
-type module_ =
-  | Statements(list(module_))
-  | Import(string, list(import_target))
-  | Declaration(declaration);
-
-let prog = input => (Module.body << eof())(input);
-
-let parse = input =>
-  switch (prog(input)) {
+let parse = stream =>
+  switch (prog(stream)) {
   | Some((res, _)) => Some(res)
   | None => None
   };

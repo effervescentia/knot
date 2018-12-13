@@ -1,12 +1,18 @@
+module TokenStream = KnotLex.TokenStream;
+
 let return = (x, stream) => Some((x, stream));
 let mzero = _ => None;
 
-let any = x => x;
-
-let eof = x =>
+let any =
   fun
-  | None => Some((x, None))
-  | _ => None;
+  | Some((res, input)) => Some((res, TokenStream.next(input)))
+  | None => None;
+
+let eof = (x, input) =>
+  switch (TokenStream.next(input)) {
+  | None => Some((x, input))
+  | _ => None
+  };
 
 let (>>=) = (x, y, input) =>
   switch (x(input)) {
@@ -37,3 +43,8 @@ let satisfy = test =>
   );
 
 let exactly = x => satisfy(y => y == x);
+
+let opt = (default, x) => x <|> return(default);
+
+let rec many = x =>
+  opt([], x >>= (r => many(x) >>= (rs => return([r, ...rs]))));

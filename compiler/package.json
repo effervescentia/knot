@@ -19,7 +19,7 @@
       "namespace": "KnotLex"
     },
     "parser": {
-      "require": ["knot.lib"],
+      "require": ["knot.lib", "knot.lex"],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
