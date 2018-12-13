@@ -1,6 +1,9 @@
 open OUnit2;
 open Assert;
-open Knot.Lexer;
+open Knot.Token;
+
+module TokenStream = KnotLex.TokenStream;
+module Lexer = KnotLex.Lexer;
 
 let __all_tokens = [
   Plus,
@@ -118,10 +121,10 @@ let __all_tokens = [
 ];
 
 let test_read_fully = (file, expected_tkns, _) => {
-  let stream = Util.load_resource(file) |> Knot.TokenStream.load;
+  let stream = Util.load_resource(file) |> TokenStream.load;
 
   let rec loop = tkns =>
-    switch (Knot.TokenStream.next(stream)) {
+    switch (TokenStream.next(stream)) {
     | Some(tkn) => loop([tkn, ...tkns])
     | None => tkns
     };
@@ -136,8 +139,8 @@ let test_read_fully = (file, expected_tkns, _) => {
       assert_bool(
         Printf.sprintf(
           "expected tokens { %s } and { %s } to match",
-          print_tkn(List.nth(actual_tkns, i - 1)),
-          print_tkn(List.nth(expected_tkns, i - 1)),
+          Lexer.print_tkn(List.nth(actual_tkns, i - 1)),
+          Lexer.print_tkn(List.nth(expected_tkns, i - 1)),
         ),
         List.nth(actual_tkns, i - 1) == List.nth(expected_tkns, i - 1),
       );

@@ -90,7 +90,7 @@ let npeek = (n, {channel}) =>
 
       let rec loop = (chs, i) =>
         if (i == 0) {
-          Some(Util.chs_to_string(chs));
+          Some(chs);
         } else {
           try (loop([_next_valid_char(channel), ...chs], i - 1)) {
           | _ => loop(chs, 0)

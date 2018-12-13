@@ -1,3 +1,10 @@
+module FileStream = Knot.FileStream;
+
+type token_ref = {
+  cursor: FileStream.file_cursor,
+  length: int,
+};
+
 type token_stream = {
   file_stream: FileStream.file_stream,
   curr: ref(option((char, FileStream.file_cursor))),

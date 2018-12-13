@@ -9,20 +9,29 @@
     }
   },
   "buildDirs": {
-    "test": {
-      "require": ["knot.lib", "ounit"],
-      "main": "TestSuite",
-      "name": "TestSuite.exe"
-    },
     "library": {
-      "require": ["angstrom"],
       "name": "knot.lib",
       "namespace": "Knot"
     },
-    "executable": {
+    "lexer": {
       "require": ["knot.lib"],
+      "name": "knot.lex",
+      "namespace": "KnotLex"
+    },
+    "parser": {
+      "require": ["knot.lib"],
+      "name": "knot.parse",
+      "namespace": "KnotParse"
+    },
+    "executable": {
+      "require": ["knot.lib", "knot.lex", "knot.parse"],
       "main": "Compiler",
       "name": "Compiler.exe"
+    },
+    "test": {
+      "require": ["knot.lib", "knot.lex", "knot.parse", "ounit"],
+      "main": "TestSuite",
+      "name": "TestSuite.exe"
     }
   },
   "scripts": {
