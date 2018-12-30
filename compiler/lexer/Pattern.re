@@ -1,13 +1,10 @@
 open Core;
 open Knot.Token;
 
-let whitespace = [' ', '\t', '\n'];
+let whitespace = [Char(' '), Char('\t'), Char('\n')];
 
 let permiss = (lexer, chs) =>
-  Lexers([
-    lexer,
-    ...List.map(ch => Lexer(Char(ch), Any, lazy lexer), chs),
-  ]);
+  Lexers([lexer, Lexer(Either(chs), Any, lazy lexer)]);
 
 let rec (==>) = (p, t) => {
   let next = () =>
