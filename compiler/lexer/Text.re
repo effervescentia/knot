@@ -1,17 +1,18 @@
+open Core;
 open Knot.Token;
-
-module FileStream = Knot.FileStream;
 
 exception UnclosedString;
 
-let rec lex = (chs, stream) =>
-  switch (FileStream.next(stream)) {
-  | Some((ch, _)) =>
-    switch (ch) {
-    | '"' =>
-      List.rev(chs)
-      |> List.fold_left((acc, c) => acc ++ String.make(1, c), "")
-    | _ => lex([ch, ...chs], stream)
-    }
-  | None => raise(UnclosedString)
-  };
+let quote = Char('"');
+
+let rec lex_string = () =>
+  Lexers([
+    Lexer(
+      quote,
+      Any,
+      lazy (Result(s => String(String.sub(s, 1, String.length(s) - 2)))),
+    ),
+    Lexer(Except([quote]), Any, lazy (lex_string())),
+  ]);
+
+let lexer = Lexer(quote, Any, lazy (lex_string()));

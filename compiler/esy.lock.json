@@ -1,5 +1,5 @@
 {
-  "hash": "8ecb1743a4abc2f0e8796adca5ce0a07",
+  "hash": "71faa92eb4aa0e07338f4f4d0e1d02ea",
   "root": "root@path:./package.json",
   "node": {
     "wrappy@1.0.2": {
@@ -367,8 +367,8 @@
       },
       "dependencies": [
         "@esy-ocaml/reason@3.3.7", "@opam/angstrom@opam:0.10.0",
-        "@opam/dune@opam:1.6.0", "@opam/merlin@opam:3.2.2",
-        "@opam/ounit@opam:2.0.8", "ocaml@4.7.1003", "pesy@0.3.16",
+        "@opam/dune@opam:1.6.2", "@opam/merlin@opam:3.2.2",
+        "@opam/ounit@opam:2.0.8", "ocaml@4.7.1003", "pesy@0.4.0",
         "refmterr@3.1.10", "sane@4.0.2"
       ]
     },
@@ -448,7 +448,7 @@
         "opam": null
       },
       "dependencies": [
-        "@esy-ocaml/reason@3.3.7", "@opam/dune@opam:1.6.0",
+        "@esy-ocaml/reason@3.3.7", "@opam/dune@opam:1.6.2",
         "@opam/re@opam:1.8.0", "ocaml@4.7.1003"
       ]
     },
@@ -474,12 +474,12 @@
       },
       "dependencies": []
     },
-    "pesy@0.3.16": {
+    "pesy@0.4.0": {
       "record": {
         "name": "pesy",
-        "version": "0.3.16",
+        "version": "0.4.0",
         "source":
-          "archive:https://registry.npmjs.org/pesy/-/pesy-0.3.16.tgz#sha1:3db39714ea90a300000b30c49887a2c25fba8a0e",
+          "archive:https://registry.npmjs.org/pesy/-/pesy-0.4.0.tgz#sha1:494d423d7cf63017007be7ff53e6ab9b82b6d8dc",
         "files": [],
         "opam": null
       },
@@ -927,7 +927,7 @@
         "name": "is-data-descriptor",
         "version": "0.1.4",
         "source":
-          "archive:https://registry.npmjs.org/is-data-descriptor/-/is-data-descriptor-0.1.4.tgz#sha1:0b5ee648388e2c860282e793f1856fec3f301b56",
+          "archive:http://registry.npmjs.org/is-data-descriptor/-/is-data-descriptor-0.1.4.tgz#sha1:0b5ee648388e2c860282e793f1856fec3f301b56",
         "files": [],
         "opam": null
       },
@@ -960,7 +960,7 @@
         "name": "is-accessor-descriptor",
         "version": "0.1.6",
         "source":
-          "archive:https://registry.npmjs.org/is-accessor-descriptor/-/is-accessor-descriptor-0.1.6.tgz#sha1:a9e12cb3ae8d876727eeef3843f8a0897b5c98d6",
+          "archive:http://registry.npmjs.org/is-accessor-descriptor/-/is-accessor-descriptor-0.1.6.tgz#sha1:a9e12cb3ae8d876727eeef3843f8a0897b5c98d6",
         "files": [],
         "opam": null
       },
@@ -1446,25 +1446,25 @@
       },
       "dependencies": [ "micromatch@3.1.10", "normalize-path@2.1.1" ]
     },
-    "@opam/yojson@opam:1.4.1": {
+    "@opam/yojson@opam:1.5.0": {
       "record": {
         "name": "@opam/yojson",
-        "version": "opam:1.4.1",
+        "version": "opam:1.5.0",
         "source":
-          "archive:https://github.com/mjambon/yojson/archive/v1.4.1.tar.gz#md5:3ea6e36422dd670e8ab880710d5f7398",
+          "archive:https://github.com/ocaml-community/yojson/releases/download/1.5.0/yojson-1.5.0.tbz#md5:d80de1bacdde292af42f7c78b323da7b",
         "files": [],
         "opam": {
           "name": "yojson",
-          "version": "1.4.1",
+          "version": "1.5.0",
           "opam":
-            "opam-version: \"2.0\"\nname: \"yojson\"\nversion: \"1.4.1\"\nsynopsis:\n  \"Yojson is an optimized parsing and printing library for the JSON format\"\ndescription: \"\"\"\nIt addresses a few shortcomings of json-wheel including 2x speedup,\npolymorphic variants and optional syntax for tuples and variants.\n\nydump is a pretty-printing command-line program provided with the\nyojson package.\n\nThe program atdgen can be used to derive OCaml-JSON serializers and\ndeserializers from type definitions.\"\"\"\nmaintainer: \"martin@mjambon.com\"\nauthors: \"Martin Jambon\"\nhomepage: \"http://mjambon.com/yojson.html\"\nbug-reports: \"https://github.com/mjambon/yojson/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"jbuilder\" {build}\n  \"cppo\" {build}\n  \"easy-format\"\n  \"biniou\" {>= \"1.2.0\"}\n]\nbuild: [\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/mjambon/yojson.git\"\nurl {\n  src: \"https://github.com/mjambon/yojson/archive/v1.4.1.tar.gz\"\n  checksum: \"md5=3ea6e36422dd670e8ab880710d5f7398\"\n}",
+            "opam-version: \"2.0\"\nname: \"yojson\"\nversion: \"1.5.0\"\nsynopsis:\n  \"Yojson is an optimized parsing and printing library for the JSON format\"\ndescription: \"\"\"\nYojson is an optimized parsing and printing library for the JSON format.\n\nIt addresses a few shortcomings of json-wheel including 2x speedup,\npolymorphic variants and optional syntax for tuples and variants.\n\nydump is a pretty-printing command-line program provided with the\nyojson package.\n\nThe program atdgen can be used to derive OCaml-JSON serializers and\ndeserializers from type definitions.\"\"\"\nmaintainer: \"martin@mjambon.com\"\nauthors: \"Martin Jambon\"\nhomepage: \"https://github.com/ocaml-community/yojson\"\ndoc: \"https://ocaml-community.github.io/yojson/\"\nbug-reports: \"https://github.com/ocaml-community/yojson/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.3\"}\n  \"dune\" {build}\n  \"cppo\" {build}\n  \"easy-format\"\n  \"biniou\" {>= \"1.2.0\"}\n]\nbuild: [\n  [\"dune\" \"subst\"] {pinned}\n  [\"dune\" \"build\" \"-p\" name \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml-community/yojson.git\"\nurl {\n  src:\n    \"https://github.com/ocaml-community/yojson/releases/download/1.5.0/yojson-1.5.0.tbz\"\n  checksum: \"md5=d80de1bacdde292af42f7c78b323da7b\"\n}",
           "override": null
         }
       },
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/biniou@opam:1.2.0",
-        "@opam/cppo@opam:1.6.5", "@opam/easy-format@opam:1.3.1",
-        "@opam/jbuilder@opam:transition", "ocaml@4.7.1003"
+        "@opam/cppo@opam:1.6.5", "@opam/dune@opam:1.6.2",
+        "@opam/easy-format@opam:1.3.1", "ocaml@4.7.1003"
       ]
     },
     "@opam/seq@opam:base": {
@@ -1669,17 +1669,34 @@
         "version": "opam:1.1.0",
         "source":
           "archive:https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.1.0/ocaml-migrate-parsetree-1.1.0.tbz#md5:7dd4808e27af98065f63604c9658d311",
-        "files": [],
+        "files": [
+          {
+            "name": "ocaml-migrate-parsetree.1.1.0.patch",
+            "content":
+              "--- ./src/migrate_parsetree_driver.ml\n+++ ./src/migrate_parsetree_driver.ml\n@@ -371,9 +371,14 @@ let load_file file =\n       | Intf fn ->\n         (fn, Intf (Parse.interface lexbuf)))\n \n-let with_output output ~f =\n+let with_output ?bin output ~f =\n   match output with\n-  | None -> f stdout\n+  | None ->\n+      begin match bin with\n+      | Some bin -> set_binary_mode_out stdout bin\n+      | None -> ()\n+      end;\n+      f stdout\n   | Some fn -> with_file_out fn ~f\n \n type output_mode =\n@@ -416,7 +421,7 @@ let process_file ~config ~output ~output_mode ~embed_errors file =\n   in\n   match output_mode with\n   | Dump_ast ->\n-    with_output output ~f:(fun oc ->\n+    with_output ~bin:true output ~f:(fun oc ->\n       let ast =\n         match ast with\n         | Intf (_, sg) -> Ast_io.Intf ((module OCaml_current), sg)\n"
+          }
+        ],
         "opam": {
           "name": "ocaml-migrate-parsetree",
           "version": "1.1.0",
           "opam":
             "opam-version: \"2.0\"\nname: \"ocaml-migrate-parsetree\"\nversion: \"1.1.0\"\nsynopsis: \"\"\ndescription: \"\"\"\nConvert OCaml parsetrees between different versions \n\nThis library converts parsetrees, outcometree and ast mappers between different OCaml versions.\nHigh-level functions help making PPX rewriters independent of a compiler version.\"\"\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Jérémie Dimino <jeremie@dimino.org>\"\n]\nlicense: \"LGPL-2.1\"\ntags: [\"syntax\" \"org:ocamllabs\"]\nhomepage: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree\"\ndoc: \"https://ocaml-ppx.github.io/ocaml-migrate-parsetree/\"\nbug-reports: \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/issues\"\ndepends: [\n  \"result\"\n  \"dune\" {build}\n  \"ocaml\" {>= \"4.02.0\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocaml-ppx/ocaml-migrate-parsetree.git\"\nurl {\n  src:\n    \"https://github.com/ocaml-ppx/ocaml-migrate-parsetree/releases/download/v1.1.0/ocaml-migrate-parsetree-1.1.0.tbz\"\n  checksum: \"md5=7dd4808e27af98065f63604c9658d311\"\n}",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < ocaml-migrate-parsetree.1.1.0.patch' : 'true'}"
+              ],
+              [
+                "jbuilder", "build", "-p", "ocaml-migrate-parsetree", "-j",
+                "4"
+              ]
+            ]
+          }
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.6.0",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.6.2",
         "@opam/result@opam:1.3", "ocaml@4.7.1003"
       ]
     },
@@ -1733,8 +1750,8 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.6.0",
-        "@opam/ocamlfind@opam:1.8.0", "@opam/yojson@opam:1.4.1",
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.6.2",
+        "@opam/ocamlfind@opam:1.8.0", "@opam/yojson@opam:1.5.0",
         "ocaml@4.7.1003"
       ]
     },
@@ -1773,7 +1790,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.6.0", "ocaml@4.7.1003"
+        "@esy-ocaml/substs@0.0.1", "@opam/dune@opam:1.6.2", "ocaml@4.7.1003"
       ]
     },
     "@opam/easy-format@opam:1.3.1": {
@@ -1796,18 +1813,18 @@
         "ocaml@4.7.1003"
       ]
     },
-    "@opam/dune@opam:1.6.0": {
+    "@opam/dune@opam:1.6.2": {
       "record": {
         "name": "@opam/dune",
-        "version": "opam:1.6.0",
+        "version": "opam:1.6.2",
         "source":
-          "archive:https://github.com/ocaml/dune/releases/download/1.6.0/dune-1.6.0.tbz#md5:ac99a0ece781c84117772219f5a39007",
+          "archive:https://github.com/ocaml/dune/releases/download/1.6.2/dune-1.6.2.tbz#md5:e628e3903d2418d410e058ca49938a5d",
         "files": [],
         "opam": {
           "name": "dune",
-          "version": "1.6.0",
+          "version": "1.6.2",
           "opam":
-            "opam-version: \"2.0\"\nname: \"dune\"\nversion: \"1.6.0\"\nsynopsis: \"Fast, portable and opinionated build system\"\ndescription: \"\"\"\ndune is a build system that was designed to simplify the release of\nJane Street packages. It reads metadata from \"dune\" files following a\nvery simple s-expression syntax.\n\ndune is fast, it has very low-overhead and support parallel builds on\nall platforms. It has no system dependencies, all you need to build\ndune and packages using dune is OCaml. You don't need or make or bash\nas long as the packages themselves don't use bash explicitly.\n\ndune supports multi-package development by simply dropping multiple\nrepositories into the same directory.\n\nIt also supports multi-context builds, such as building against\nseveral opam roots/switches simultaneously. This helps maintaining\npackages across several versions of OCaml and gives cross-compilation\nfor free.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n  \"base-unix\"\n  \"base-threads\"\n]\nconflicts: [\n  \"jbuilder\" {!= \"transition\"}\n  \"odoc\" {< \"1.3.0\"}\n]\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib] {opam-version < \"2\"}\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--release\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"--release\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"\nurl {\n  src: \"https://github.com/ocaml/dune/releases/download/1.6.0/dune-1.6.0.tbz\"\n  checksum: \"md5=ac99a0ece781c84117772219f5a39007\"\n}",
+            "opam-version: \"2.0\"\nname: \"dune\"\nversion: \"1.6.2\"\nsynopsis: \"Fast, portable and opinionated build system\"\ndescription: \"\"\"\ndune is a build system that was designed to simplify the release of\nJane Street packages. It reads metadata from \"dune\" files following a\nvery simple s-expression syntax.\n\ndune is fast, it has very low-overhead and support parallel builds on\nall platforms. It has no system dependencies, all you need to build\ndune and packages using dune is OCaml. You don't need or make or bash\nas long as the packages themselves don't use bash explicitly.\n\ndune supports multi-package development by simply dropping multiple\nrepositories into the same directory.\n\nIt also supports multi-context builds, such as building against\nseveral opam roots/switches simultaneously. This helps maintaining\npackages across several versions of OCaml and gives cross-compilation\nfor free.\"\"\"\nmaintainer: \"opensource@janestreet.com\"\nauthors: \"Jane Street Group, LLC <opensource@janestreet.com>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/ocaml/dune\"\nbug-reports: \"https://github.com/ocaml/dune/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02\"}\n  \"base-unix\"\n  \"base-threads\"\n]\nconflicts: [\n  \"jbuilder\" {!= \"transition\"}\n  \"odoc\" {< \"1.3.0\"}\n]\nbuild: [\n  [\"ocaml\" \"configure.ml\" \"--libdir\" lib] {opam-version < \"2\"}\n  [\"ocaml\" \"bootstrap.ml\"]\n  [\"./boot.exe\" \"--release\" \"--subst\"] {pinned}\n  [\"./boot.exe\" \"--release\" \"-j\" jobs]\n]\ndev-repo: \"git+https://github.com/ocaml/dune.git\"\nurl {\n  src: \"https://github.com/ocaml/dune/releases/download/1.6.2/dune-1.6.2.tbz\"\n  checksum: \"md5=e628e3903d2418d410e058ca49938a5d\"\n}",
           "override": {
             "build": [
               [ "ocaml", "bootstrap.ml" ],
@@ -1851,7 +1868,7 @@
           "name": "conf-which",
           "version": "1",
           "opam":
-            "opam-version: \"2.0\"\nname: \"conf-which\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on which\"\ndescription:\n  \"This package can only install if the which program is installed on the system.\"\nmaintainer: \"unixjunkie@sdf.org\"\nauthors: \"Carlo Wood\"\nlicense: \"GPL-2+\"\nhomepage: \"http://www.gnu.org/software/which/\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nflags: conf\nbuild: [\"which\" \"which\"]\ndepexts: [\n  [\"which\"] {os-distribution = \"centos\"}\n  [\"which\"] {os-distribution = \"fedora\"}\n  [\"which\"] {os-distribution = \"opensuse\"}\n  [\"debianutils\"] {os-distribution = \"debian\"}\n  [\"debianutils\"] {os-distribution = \"ubuntu\"}\n  [\"which\"] {os-distribution = \"nixos\"}\n  [\"which\"] {os-distribution = \"archlinux\"}\n]",
+            "opam-version: \"2.0\"\nname: \"conf-which\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on which\"\ndescription:\n  \"This package can only install if the which program is installed on the system.\"\nmaintainer: \"unixjunkie@sdf.org\"\nauthors: \"Carlo Wood\"\nlicense: \"GPL-2+\"\nhomepage: \"http://www.gnu.org/software/which/\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nflags: conf\nbuild: [\"which\" \"which\"]\ndepexts: [\n  [\"which\"] {os-distribution = \"centos\"}\n  [\"which\"] {os-distribution = \"fedora\"}\n  [\"which\"] {os-family = \"suse\"}\n  [\"debianutils\"] {os-distribution = \"debian\"}\n  [\"debianutils\"] {os-distribution = \"ubuntu\"}\n  [\"which\"] {os-distribution = \"nixos\"}\n  [\"which\"] {os-distribution = \"archlinux\"}\n]",
           "override": null
         }
       },
@@ -1867,7 +1884,7 @@
           "name": "conf-m4",
           "version": "1",
           "opam":
-            "opam-version: \"2.0\"\nname: \"conf-m4\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on m4\"\ndescription:\n  \"This package can only install if the m4 binary is installed on the system.\"\nmaintainer: \"tim@gfxmonk.net\"\nauthors: \"GNU Project\"\nlicense: \"GPL-3\"\nhomepage: \"http://www.gnu.org/software/m4/m4.html\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nflags: conf\nbuild: [\"sh\" \"-exc\" \"echo | m4\"]\ndepexts: [\n  [\"m4\"] {os-distribution = \"debian\"}\n  [\"m4\"] {os-distribution = \"ubuntu\"}\n  [\"m4\"] {os-distribution = \"fedora\"}\n  [\"m4\"] {os-distribution = \"rhel\"}\n  [\"m4\"] {os-distribution = \"centos\"}\n  [\"m4\"] {os-distribution = \"alpine\"}\n  [\"m4\"] {os-distribution = \"nixos\"}\n  [\"m4\"] {os-distribution = \"opensuse\"}\n  [\"m4\"] {os-distribution = \"oraclelinux\"}\n  [\"m4\"] {os-distribution = \"archlinux\"}\n]",
+            "opam-version: \"2.0\"\nname: \"conf-m4\"\nversion: \"1\"\nsynopsis: \"Virtual package relying on m4\"\ndescription:\n  \"This package can only install if the m4 binary is installed on the system.\"\nmaintainer: \"tim@gfxmonk.net\"\nauthors: \"GNU Project\"\nlicense: \"GPL-3\"\nhomepage: \"http://www.gnu.org/software/m4/m4.html\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nflags: conf\nbuild: [\"sh\" \"-exc\" \"echo | m4\"]\ndepexts: [\n  [\"m4\"] {os-distribution = \"debian\"}\n  [\"m4\"] {os-distribution = \"ubuntu\"}\n  [\"m4\"] {os-distribution = \"fedora\"}\n  [\"m4\"] {os-distribution = \"rhel\"}\n  [\"m4\"] {os-distribution = \"centos\"}\n  [\"m4\"] {os-distribution = \"alpine\"}\n  [\"m4\"] {os-distribution = \"nixos\"}\n  [\"m4\"] {os-family = \"suse\"}\n  [\"m4\"] {os-distribution = \"oraclelinux\"}\n  [\"m4\"] {os-distribution = \"archlinux\"}\n]",
           "override": null
         }
       },
@@ -2023,7 +2040,7 @@
         "opam": null
       },
       "dependencies": [
-        "@opam/dune@opam:1.6.0", "@opam/menhir@opam:20181113",
+        "@opam/dune@opam:1.6.2", "@opam/menhir@opam:20181113",
         "@opam/merlin-extend@opam:0.3",
         "@opam/ocaml-migrate-parsetree@opam:1.1.0",
         "@opam/ocamlfind@opam:1.8.0", "@opam/result@opam:1.3",

@@ -1,10 +1,7 @@
 open OUnit2;
-open Assert;
 open Knot.Token;
 
-module TokenStream = KnotLex.TokenStream;
-module Lexer = KnotLex.Lexer;
-module Debug = KnotLex.Debug;
+module LexTable = KnotLex.LexTable;
 
 let __all_tokens = [
   Plus,
@@ -120,43 +117,29 @@ let __all_tokens = [
   Space,
   Identifier("moron"),
 ];
-/*
- let test_read_fully = (file, expected_tkns, _) => {
-   let stream = Util.load_resource(file) |> TokenStream.load;
 
-   let rec loop = tkns =>
-     switch (TokenStream.next(stream)) {
-     | Some(tkn) => loop([tkn, ...tkns])
-     | None => tkns
-     };
-   let actual_tkns = loop([]) |> List.rev;
+let test_lex_tokens = (file, _) => {
+  let channel = Util.load_resource(file);
+  let input = Knot.FileStream.of_channel(channel);
 
-   assert_int_eql(List.length(actual_tkns), List.length(expected_tkns));
+  let rec next = (tkns, stream) =>
+    switch (LexTable.next_token(stream), tkns) {
+    | (Some((x, next_stream)), [t, ...ts]) =>
+      Printf.sprintf("'%s'", KnotLex.Debug.print_tkn(x)) |> print_endline;
+      assert_bool("should match expected token", x == t);
+      next(ts, next_stream);
+    | (None, [t, ...ts]) =>
+      assert_failure("lexer did not detect all tokens")
+    | (Some(_), []) =>
+      assert_failure("lexer detected more tokens than expected")
+    | (None, []) => ()
+    };
 
-   let rec assert_loop = i =>
-     if (i == 0) {
-       ();
-     } else {
-       assert_bool(
-         Printf.sprintf(
-           "expected tokens { %s } and { %s } to match",
-           Debug.print_tkn(List.nth(actual_tkns, i - 1)),
-           Debug.print_tkn(List.nth(expected_tkns, i - 1)),
-         ),
-         List.nth(actual_tkns, i - 1) == List.nth(expected_tkns, i - 1),
-       );
-       assert_loop(i - 1);
-     };
-   assert_loop(List.length(actual_tkns));
- };
+  next(__all_tokens, input);
+};
 
- let () =
-   run_test_tt_main(
-     "Knot.TokenStream"
-     >::: [
-       "read unix file token stream"
-       >:: test_read_fully(Config.unix_tokens_file, __all_tokens),
-       "read windows file token stream"
-       >:: test_read_fully(Config.windows_tokens_file, __all_tokens),
-     ],
-   ); */
+let () =
+  run_test_tt_main(
+    "LexTable"
+    >::: ["lex unix file" >:: test_lex_tokens(Config.unix_tokens_file)],
+  );

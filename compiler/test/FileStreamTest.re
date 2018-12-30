@@ -2,116 +2,78 @@ open OUnit2;
 open Assert;
 
 module FileStream = Knot.FileStream;
+module LazyStream = Knot.LazyStream;
 
 let __raw_text = "abcde fgh ijklm\n123\n456 7890-_\n\n135\n3ADLKFnn\ncnm, dlkqwe=31 4/123.,e \n\n  f l;k\n  ";
 
-let _next_or_error = stream =>
-  switch (FileStream.next(stream)) {
-  | Some(x) => x
-  | None => assert_failure("stream empty")
+let _next_or_error = input =>
+  switch (input) {
+  | LazyStream.Cons(x, lz) => (x, Lazy.force(lz))
+  | LazyStream.Nil => assert_failure("stream empty")
   };
-let rec _cursor_from = (stream, count) =>
-  if (count > 1) {
-    FileStream.junk(stream);
-    _cursor_from(stream, count - 1);
-  } else {
-    _next_or_error(stream);
+let rec _cursor_from = (input, count) =>
+  switch (input) {
+  | LazyStream.Cons(res, lz) =>
+    if (count > 1) {
+      _cursor_from(Lazy.force(lz), count - 1);
+    } else {
+      (res, Lazy.force(lz));
+    }
+  | LazyStream.Nil => ((char_of_int(0), ((-1), (-1))), LazyStream.Nil)
   };
 let _assert_cursor =
-    (
-      (ch, {index, row, column}): (char, FileStream.file_cursor),
-      expected_char,
-      expected_index,
-      expected_row,
-      expected_column,
-    ) => {
-  assert_char_eql(ch, expected_char);
-  assert_int_eql(index, expected_index);
-  assert_int_eql(row, expected_row);
-  assert_int_eql(column, expected_column);
-};
+    ((actual, _), expected_ch, expected_row, expected_column) =>
+  Assert.assert_cursor(
+    actual,
+    (expected_ch, (expected_row, expected_column)),
+  );
 
 let test_read_fully = (file, _) => {
-  let stream = Util.load_resource(file);
+  let channel = Util.load_resource(file);
+  let input = FileStream.of_channel(channel);
 
-  let rec next = s =>
-    switch (FileStream.next(stream)) {
-    | Some((ch, _)) => next(s ++ String.make(1, ch))
-    | None => s
+  let rec next = (s, x) =>
+    switch (x) {
+    | LazyStream.Cons((ch, _), lz) =>
+      next(s ++ String.make(1, ch), Lazy.force(lz))
+    | LazyStream.Nil => s
     };
-  let full_text = next("");
+  let full_text = next("", input);
+
+  close_in(channel);
 
   assert_string_eql(full_text, __raw_text);
-
-  FileStream.close(stream);
 };
 
-let test_cursor_information = (file, char, position, index, row, column) => {
-  let stream = Util.load_resource(file);
+let test_cursor_information = (file, char, position, row, column) => {
+  let channel = Util.load_resource(file);
 
-  _assert_cursor(_cursor_from(stream, position), char, index, row, column);
+  _assert_cursor(
+    _cursor_from(FileStream.of_channel(channel), position),
+    char,
+    row,
+    column,
+  );
 
-  FileStream.close(stream);
+  close_in(channel);
 };
 
 let test_reposition = (file, position) => {
   Random.self_init();
-  let stream = Util.load_resource(file);
-  let channel_length = in_channel_length(stream.channel);
+  let channel = Util.load_resource(file);
+  let input = FileStream.of_channel(channel);
+  let channel_length = in_channel_length(channel);
   let extra_reads = Random.int(channel_length - position - 1);
 
-  let rec next = count =>
-    if (count > 1) {
-      FileStream.junk(stream);
-      next(count - 1);
-    } else {
-      _next_or_error(stream);
-    };
+  let ((_, target_ref), target_input) = _cursor_from(input, position);
+  let (expected, input) = _next_or_error(target_input);
 
-  let (_, target_cursor) = next(position);
-  let (expected_ch, expected_cursor) = _next_or_error(stream);
+  ignore(_cursor_from(input, extra_reads));
 
-  let rec junk = count =>
-    if (count > 1) {
-      FileStream.junk(stream);
-      junk(count - 1);
-    } else {
-      ();
-    };
-  junk(extra_reads);
+  let (actual, _) = _next_or_error(target_input);
+  Assert.assert_cursor(actual, expected);
 
-  FileStream.reposition(stream, target_cursor);
-
-  let (actual_ch, actual_cursor) = _next_or_error(stream);
-  assert_char_eql(actual_ch, expected_ch);
-  assert_int_eql(actual_cursor.index, expected_cursor.index);
-  assert_int_eql(actual_cursor.row, expected_cursor.row);
-  assert_int_eql(actual_cursor.column, expected_cursor.column);
-
-  FileStream.close(stream);
-};
-
-let test_peek = (file, junk_count, expected_ch) => {
-  let stream = Util.load_resource(file);
-
-  let rec junk = count =>
-    if (count > 1) {
-      FileStream.junk(stream);
-      junk(count - 1);
-    } else {
-      ();
-    };
-  junk(junk_count);
-
-  let actual_ch =
-    switch (FileStream.peek(stream)) {
-    | Some(ch) => ch
-    | None => assert_failure("peeked the EOF")
-    };
-  assert_char_eql(actual_ch, expected_ch);
-  assert_char_eql(_next_or_error(stream) |> fst, expected_ch);
-
-  FileStream.close(stream);
+  close_in(channel);
 };
 
 let () =
@@ -123,19 +85,19 @@ let () =
       "read unix file and check cursor"
       >:: (
         _ => {
-          test_cursor_information(Config.unix_file, 'c', 3, 3, 1, 3);
-          test_cursor_information(Config.unix_file, '2', 18, 18, 2, 2);
-          test_cursor_information(Config.unix_file, '_', 30, 30, 3, 10);
-          test_cursor_information(Config.unix_file, '\n', 31, 31, 3, 11);
+          test_cursor_information(Config.unix_file, 'c', 3, 1, 3);
+          test_cursor_information(Config.unix_file, '2', 18, 2, 2);
+          test_cursor_information(Config.unix_file, '_', 30, 3, 10);
+          test_cursor_information(Config.unix_file, '\n', 31, 3, 11);
         }
       ),
       "read windows file and check cursor"
       >:: (
         _ => {
-          test_cursor_information(Config.windows_file, 'c', 3, 3, 1, 3);
-          test_cursor_information(Config.windows_file, '2', 18, 19, 2, 2);
-          test_cursor_information(Config.windows_file, '_', 30, 32, 3, 10);
-          test_cursor_information(Config.windows_file, '\n', 31, 34, 3, 12);
+          test_cursor_information(Config.windows_file, 'c', 3, 1, 3);
+          test_cursor_information(Config.windows_file, '2', 18, 2, 2);
+          test_cursor_information(Config.windows_file, '_', 30, 3, 10);
+          test_cursor_information(Config.windows_file, '\n', 31, 3, 11);
         }
       ),
       "read unix file and reposition cursor"
@@ -153,21 +115,7 @@ let () =
           test_reposition(Config.windows_file, 4);
           test_reposition(Config.windows_file, 19);
           test_reposition(Config.windows_file, 20);
-          test_reposition(Config.windows_file, 80);
-        }
-      ),
-      "read unix file and peek the next character"
-      >:: (
-        _ => {
-          test_peek(Config.unix_file, 0, 'a');
-          test_peek(Config.unix_file, 29, '-');
-        }
-      ),
-      "read windows file and peek the next character"
-      >:: (
-        _ => {
-          test_peek(Config.windows_file, 0, 'a');
-          test_peek(Config.windows_file, 29, '-');
+          test_reposition(Config.windows_file, 79);
         }
       ),
     ],

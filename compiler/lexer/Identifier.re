@@ -1,10 +1,33 @@
-module FileStream = Knot.FileStream;
+open Core;
+open Knot.Token;
 
-let rec lex = (chs, stream) =>
-  switch (FileStream.peek(stream)) {
-  | Some(('_' | 'a'..'z' | 'A'..'Z' | '0'..'9') as ch) =>
-    FileStream.junk(stream);
-    lex([ch, ...chs], stream);
-  | Some(_)
-  | None => Util.chs_to_string(chs)
-  };
+let underscore = Char('_');
+let identifier_matchers = [underscore, AlphaNumeric];
+
+let rec lex_subsequent_chars = () =>
+  Lexers([
+    Lexer(
+      Either(identifier_matchers),
+      Either(identifier_matchers),
+      lazy (lex_subsequent_chars()),
+    ),
+    Lexer(
+      Either(identifier_matchers),
+      Except(identifier_matchers),
+      lazy (Result(s => Identifier(s))),
+    ),
+  ]);
+
+let lexer =
+  Lexers([
+    Lexer(
+      Either([underscore, Alpha]),
+      Except(identifier_matchers),
+      lazy (Result(s => Identifier(s))),
+    ),
+    Lexer(
+      Either([underscore, Alpha]),
+      Either(identifier_matchers),
+      lazy (lex_subsequent_chars()),
+    ),
+  ]);

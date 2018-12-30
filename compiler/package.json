@@ -36,7 +36,7 @@
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' ./library",
+    "dev": "sane 'esy build' --glob='(library|parser|lexer)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "test": "esy x TestSuite.exe",
     "tdd": "sane 'esy test' ./test"

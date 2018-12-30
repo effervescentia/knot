@@ -1,32 +1,30 @@
 open Knot.Token;
+open Core;
 
 module FileStream = Knot.FileStream;
 
-let rec lex = (matches, chs, stream) =>
-  switch (FileStream.peek(stream)) {
-  | Some(ch) =>
-    let next_matches =
-      List.mapi((i, (s, _)) => (s.[0], i), matches)
-      |> List.filter(((char, _)) => char == ch)
-      |> List.map(((_, i)) =>
-           List.nth(matches, i)
-           |> (((s, x)) => (String.sub(s, 1, String.length(s) - 1), x))
-         );
-
-    if (List.length(next_matches) == 1
-        && fst(List.hd(next_matches))
-        |> String.length == 0) {
-      FileStream.junk(stream);
-      switch (FileStream.peek(stream)) {
-      | Some('_' | 'a'..'z' | 'A'..'Z' | '0'..'9') =>
-        Identifier(Identifier.lex([ch, ...chs], stream))
-      | _ => Keyword(snd(List.hd(next_matches)))
-      };
-    } else if (List.length(next_matches) == 0) {
-      Identifier(Identifier.lex(chs, stream));
+let rec (==>) = (s, t) => {
+  let next = () =>
+    if (String.length(s) == 1) {
+      Result(_ => Keyword(t));
     } else {
-      FileStream.junk(stream);
-      lex(next_matches, [ch, ...chs], stream);
+      String.sub(s, 1, String.length(s) - 1) ==> t;
     };
-  | None => Identifier(Util.chs_to_string(chs))
-  };
+
+  Lexer(Char(s.[0]), Any, lazy (next()));
+};
+
+let lexer =
+  Lexers([
+    "import" ==> Import,
+    "const" ==> Const,
+    "let" ==> Let,
+    "state" ==> State,
+    "view" ==> View,
+    "func" ==> Func,
+    "else" ==> Else,
+    "if" ==> If,
+    "mut" ==> Mut,
+    "get" ==> Get,
+    "main" ==> Main,
+  ]);

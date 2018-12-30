@@ -3,10 +3,7 @@ type import_target =
   | NamedExport(string, option(string));
 
 type declaration =
-  | /**
-   * @param
-   */
-    ConstDecl(string)
+  | ConstDecl(string)
   | StateDecl(string)
   | ViewDecl(string)
   | FunctionDecl(string);
