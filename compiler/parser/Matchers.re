@@ -2,7 +2,7 @@ open Core;
 open Parsing;
 open Knot.Token;
 
-let kwd = (x, input) => (skip_many(spaces) >> exactly(Keyword(x)))(input);
+let kwd = (x, input) => (exactly(Keyword(x)) |> lexeme)(input);
 
 let import = kwd(Import)
 and from = kwd(From);

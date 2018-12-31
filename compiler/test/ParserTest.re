@@ -2,6 +2,7 @@ open OUnit2;
 open Knot.Token;
 open KnotParse.AST;
 
+
 let to_token_stream = tkns => {
   let remaining = ref(tkns);
   let next = ts =>
@@ -22,26 +23,30 @@ let test_parse_ast = ((tkns, ast)) =>
   | None => assert_failure("no AST found")
   };
 
-let test_parse_asts = (xs, _) => List.iter(test_parse_ast, xs);
+let test_parse_asts = xs => List.iter(test_parse_ast, xs);
 
 let tests =
   "KnotParse.Parser"
   >::: [
-    "parse import statement"
+    "parse main import statement"
     >:: (
-      _ =>
-        test_parse_ast((
-          [
-            Keyword(Import),
-            Space,
-            Identifier("Table"),
-            Space,
-            Keyword(From),
-            Space,
-            String("table"),
-            Semicolon,
-          ],
-          Statements([Import("table", [MainExport("Table")])]),
-        ))
+      _ => {
+        let stmt = [
+          Keyword(Import),
+          Space,
+          Identifier("Table"),
+          Space,
+          Keyword(From),
+          Space,
+          String("table"),
+        ];
+        let expected =
+          Statements([Import("table", [MainExport("Table")])]);
+
+        test_parse_asts([
+          (stmt, expected),
+          (stmt @ [Space, Semicolon], expected),
+        ]);
+      }
     ),
   ];
