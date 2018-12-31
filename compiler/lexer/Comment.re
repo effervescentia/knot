@@ -17,15 +17,7 @@ let rec lex_comment_line = _ =>
     Lexer(
       Except([Char('\n')]),
       Char('\n'),
-      s =>
-        Result(
-          /* Printf.sprintf("found comment line '%s'", s)
-             |> String.escaped
-             |> print_endline; */
-          LineComment(
-            String.sub(s, 2, String.length(s) - 2),
-          ),
-        ),
+      s => Result(LineComment(String.sub(s, 2, String.length(s) - 2))),
     ),
   ]);
 

@@ -69,5 +69,6 @@ let next_token = input => {
       | None => None
       }
     };
+
   find_token("", root, input);
 };

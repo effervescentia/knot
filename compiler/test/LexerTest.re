@@ -102,5 +102,16 @@ let () =
             ("impor", Identifier("impor")),
             ("mainline", Identifier("mainline")),
           ]),
+      "lex comments"
+      >:: test_lex_tokens([
+            (
+              "// 0dl123jfl dqlkqwe[ e1kme\n",
+              LineComment(" 0dl123jfl dqlkqwe[ e1kme"),
+            ),
+            (
+              "///931lkj das\n e1;lk312///",
+              BlockComment("931lkj das\n e1;lk312"),
+            ),
+          ]),
     ],
   );
