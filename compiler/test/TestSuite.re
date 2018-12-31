@@ -1,3 +1,3 @@
 open FileStreamTest;
-open LexTableTest;
+open LexerTest;
 open TokenStreamTest;

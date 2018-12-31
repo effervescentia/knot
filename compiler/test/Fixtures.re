@@ -1,9 +1,6 @@
-open OUnit2;
 open Knot.Token;
 
-module LexTable = KnotLex.LexTable;
-
-let __all_tokens = [
+let all_tokens = [
   Plus,
   ForwardSlash,
   Plus,
@@ -117,29 +114,3 @@ let __all_tokens = [
   Space,
   Identifier("moron"),
 ];
-
-let test_lex_tokens = (file, _) => {
-  let channel = Util.load_resource(file);
-  let input = Knot.FileStream.of_channel(channel);
-
-  let rec next = (tkns, stream) =>
-    switch (LexTable.next_token(stream), tkns) {
-    | (Some((x, next_stream)), [t, ...ts]) =>
-      Printf.sprintf("'%s'", KnotLex.Debug.print_tkn(x)) |> print_endline;
-      assert_bool("should match expected token", x == t);
-      next(ts, next_stream);
-    | (None, [t, ...ts]) =>
-      assert_failure("lexer did not detect all tokens")
-    | (Some(_), []) =>
-      assert_failure("lexer detected more tokens than expected")
-    | (None, []) => ()
-    };
-
-  next(__all_tokens, input);
-};
-
-let () =
-  run_test_tt_main(
-    "LexTable"
-    >::: ["lex unix file" >:: test_lex_tokens(Config.unix_tokens_file)],
-  );

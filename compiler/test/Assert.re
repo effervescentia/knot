@@ -24,6 +24,16 @@ let assert_int_eql = (actual, expected) =>
     expected == actual,
   );
 
+let assert_tkn_eql = (actual, expected) =>
+  assert_bool(
+    Printf.sprintf(
+      "expected '%s' to equal '%s'",
+      KnotLex.Debug.print_tkn(actual),
+      KnotLex.Debug.print_tkn(expected),
+    ),
+    expected == actual,
+  );
+
 let assert_cursor =
     ((actual_ch, actual_cursor), (expected_ch, expected_cursor)) =>
   assert_bool(

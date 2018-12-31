@@ -1,71 +1,73 @@
 open Core;
 open Knot.Token;
-/*
- let lex_left_chevron = (stream, cursor, ctx) =>
-   switch (Util.peek_next_non_space(stream, cursor), ctx) {
-   | (Some('='), Normal) =>
-     Util.junk_non_space(stream);
-     LessThanOrEqual;
-   | (Some('/'), Normal | JSXContent) =>
-     Util.junk_non_space(stream);
-     JSXOpenEnd;
-   | _ => LeftChevron
-   };
 
- let lex = ((ch, cursor), ctx, stream) =>
-   switch (ch, List.length(ctx^) != 0 ? List.nth(ctx^, 0) : Normal) {
-   | (' ', Normal) => Space
-   | ('\t', Normal) => Tab
-   | ('\n', Normal) => Newline
-   | ('.', Normal) => Period
-   | (',', Normal) => Comma
-   | (':', Normal) => Colon
-   | (';', Normal) => Semicolon
-   | ('~', Normal) => Tilde
-   | ('$', Normal) => DollarSign
-   | ('+', Normal) => Plus
-   | ('*', Normal) => Asterisk
-   | ('(', Normal) => LeftParenthese
-   | (')', Normal) => RightParenthese
-   | ('[', Normal) => LeftBracket
-   | (']', Normal) => RightBracket
-   | ('|', Normal) => Misc.lex_vertical_bar(stream, cursor)
-   | ('&', Normal) => Misc.lex_ampersand(stream, cursor)
-   | ('-', Normal) => Misc.lex_minus(stream, cursor)
-   | ('>', Normal) => Misc.lex_right_chevron(stream, cursor)
-   | ('=', Normal) => Misc.lex_assign(stream, cursor)
-   | ('0'..'9', Normal) => Number(Number.lex([ch], stream))
+module LazyStream = Knot.LazyStream;
 
-   | ('m', Normal) =>
-     Keyword.lex([("ain", Main), ("ut", Mut)], [ch], stream)
-   | ('i', Normal) =>
-     Keyword.lex([("mport", Import), ("f", If)], [ch], stream)
-   | ('c', Normal) => Keyword.lex([("onst", Const)], [ch], stream)
-   | ('l', Normal) => Keyword.lex([("et", Let)], [ch], stream)
-   | ('s', Normal) => Keyword.lex([("tate", State)], [ch], stream)
-   | ('v', Normal) => Keyword.lex([("iew", View)], [ch], stream)
-   | ('f', Normal) => Keyword.lex([("unc", Func)], [ch], stream)
-   | ('e', Normal) => Keyword.lex([("lse", Else)], [ch], stream)
-   | ('g', Normal) => Keyword.lex([("et", Get)], [ch], stream)
+let root =
+  Lexers([
+    Character.lexer,
+    Keyword.lexer,
+    Pattern.lexer,
+    Text.lexer,
+    Identifier.lexer,
+    Number.lexer,
+    Comment.lexer,
+  ])
+  |> Util.normalize_lexers;
 
-   | ('_' | 'a'..'z' | 'A'..'Z', _) =>
-     Identifier(Identifier.lex([ch], stream))
+let next_token = input => {
+  let results = ref([]);
 
-   | ('=', JSXStartTag) => Equals
-   | ('>', JSXStartTag | JSXEndTag) => RightChevron
-   | ('"', Normal | JSXStartTag) => String(Text.lex([], stream))
+  let rec exec_lexer = (s, lex, stream) =>
+    switch (lex) {
+    | Lexers(ls) =>
+      Lexers(
+        List.fold_left(
+          (acc, l) =>
+            switch (exec_lexer(s, l, stream)) {
+            | Some(r) => [r, ...acc]
+            | None => acc
+            },
+          [],
+          ls,
+        ),
+      )
+      |> Util.normalize_lexers
+    | Lexer(m, nm, t) =>
+      Util.test_match(m, stream, next_stream =>
+        Util.test_match(nm, next_stream, _ => t(s) |> Util.normalize_lexers)
+      )
+    | Result(tkn) =>
+      results := [(tkn, stream), ...results^];
+      None;
+    }
+  and find_token = (s, lex, stream) =>
+    switch (lex, stream) {
+    /* found a single longest result */
+    | (Some(Result(tkn)), _) => Some((tkn, stream))
+    /* found a lexer */
+    | (Some(l), LazyStream.Cons((ch, _), next_stream)) =>
+      let next_string = s ++ String.make(1, ch);
 
-   | ('<', _) as res => lex_left_chevron(stream, cursor, snd(res))
-   | (_, JSXContent) => JSXTextNode(Misc.lex_jsx_text_node([], stream))
-
-   | ('{', _) => LeftBrace
-   | ('}', _) => RightBrace
-   | ('/', _) => Misc.lex_forward_slash(stream, cursor)
-   | _ => Unexpected(ch)
-   };
- /* |> (
-      tkn => {
-        print_tkn(tkn) |> print_endline;
-        tkn;
+      switch (exec_lexer(next_string, l, stream)) {
+      /* remaining lexers */
+      | Some(_) as res =>
+        find_token(next_string, res, Lazy.force(next_stream))
+      /* no remaining lexers */
+      | None => find_token(s, None, stream)
+      };
+    /* ran out of lexers */
+    | (None, _) =>
+      switch (results^) {
+      | [x, ...xs] => Some(x)
+      | [] => None
       }
-    ); */ */
+    /* hit EOF */
+    | (Some(l), LazyStream.Nil) =>
+      switch (Util.find_result(None, l)) {
+      | Some(r) => Some((r, stream))
+      | None => None
+      }
+    };
+  find_token("", root, input);
+};

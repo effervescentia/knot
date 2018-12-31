@@ -1,17 +1,15 @@
 open Knot.Token;
 open Core;
 
-module FileStream = Knot.FileStream;
-
 let rec (==>) = (s, t) => {
-  let next = () =>
+  let next = _ =>
     if (String.length(s) == 1) {
-      Result(_ => Keyword(t));
+      Result(Keyword(t));
     } else {
       String.sub(s, 1, String.length(s) - 1) ==> t;
     };
 
-  Lexer(Char(s.[0]), Any, lazy (next()));
+  Lexer(Char(s.[0]), Any, next);
 };
 
 let lexer =

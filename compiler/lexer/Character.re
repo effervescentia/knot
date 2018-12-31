@@ -1,7 +1,7 @@
 open Knot.Token;
 open Core;
 
-let (==>) = (c, t) => Lexer(Char(c), Any, lazy (Result(_ => t)));
+let (==>) = (c, t) => Lexer(Char(c), Any, _ => Result(t));
 
 let lexer =
   Lexers([
