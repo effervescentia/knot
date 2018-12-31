@@ -1,5 +1,6 @@
 type import_target =
-  | MainExport(option(string))
+  | MainExport(string)
+  | ModuleExport(string)
   | NamedExport(string, option(string));
 
 type declaration =

@@ -5,9 +5,9 @@ open Knot.Token;
 let print_tkn =
   (
     fun
-    | Space => " "
-    | Tab => "tab(\\t)"
-    | Newline => "newline(\\n)"
+    | Space => "space( )"
+    | Tab => "tab(\t)"
+    | Newline => "newline(\n)"
     | Assign => "="
     | Period => "."
     | Comma => ","
@@ -38,19 +38,23 @@ let print_tkn =
     | LogicalOr => "||"
     | LogicalAnd => "&&"
     | Keyword(kwd) =>
-      switch (kwd) {
-      | Main => "keyword(main)"
-      | Import => "keyword(import)"
-      | Const => "keyword(const)"
-      | Let => "keyword(let)"
-      | State => "keyword(state)"
-      | View => "keyword(view)"
-      | Func => "keyword(func)"
-      | If => "keyword(if)"
-      | Else => "keyword(else)"
-      | Get => "keyword(get)"
-      | Mut => "keyword(mut)"
-      }
+      (
+        switch (kwd) {
+        | Main => "main"
+        | From => "from"
+        | Import => "import"
+        | Const => "const"
+        | Let => "let"
+        | State => "state"
+        | View => "view"
+        | Func => "func"
+        | If => "if"
+        | Else => "else"
+        | Get => "get"
+        | Mut => "mut"
+        }
+      )
+      |> Printf.sprintf("keyword(%s)")
     | Identifier(s) => Printf.sprintf("identifier(%s)", s)
     | Number(n) => Printf.sprintf("number(%d)", n)
     | JSXTextNode(s) => Printf.sprintf("jsx_text_node(%s)", s)

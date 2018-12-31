@@ -19,8 +19,11 @@ type lex_result('a) =
   | Lexer(lex_match, lex_match, string => lex_result('a))
   | Result('a);
 
+let newline = Char('\n');
+
 let reserved = [
   "import",
+  "from",
   "const",
   "let",
   "state",

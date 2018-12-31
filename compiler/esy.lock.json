@@ -1,5 +1,5 @@
 {
-  "hash": "71faa92eb4aa0e07338f4f4d0e1d02ea",
+  "hash": "104a4ce99d1ea773c6527a386a239c22",
   "root": "root@path:./package.json",
   "node": {
     "wrappy@1.0.2": {
@@ -366,10 +366,10 @@
         "opam": null
       },
       "dependencies": [
-        "@esy-ocaml/reason@3.3.7", "@opam/angstrom@opam:0.10.0",
-        "@opam/dune@opam:1.6.2", "@opam/merlin@opam:3.2.2",
-        "@opam/ounit@opam:2.0.8", "ocaml@4.7.1003", "pesy@0.4.0",
-        "refmterr@3.1.10", "sane@4.0.2"
+        "@esy-ocaml/reason@3.3.7", "@opam/ANSITerminal@opam:0.8.1",
+        "@opam/angstrom@opam:0.10.0", "@opam/dune@opam:1.6.2",
+        "@opam/merlin@opam:3.2.2", "@opam/ounit@opam:2.0.8",
+        "ocaml@4.7.1003", "pesy@0.4.0", "refmterr@3.1.10", "sane@4.0.2"
       ]
     },
     "ret@0.1.15": {
@@ -2016,6 +2016,27 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/bigstringaf@opam:0.4.0",
         "@opam/jbuilder@opam:transition", "@opam/result@opam:1.3",
+        "ocaml@4.7.1003"
+      ]
+    },
+    "@opam/ANSITerminal@opam:0.8.1": {
+      "record": {
+        "name": "@opam/ANSITerminal",
+        "version": "opam:0.8.1",
+        "source":
+          "archive:https://github.com/Chris00/ANSITerminal/releases/download/0.8.1/ANSITerminal-0.8.1.tbz#md5:d9909496b5e47c75227453256198d1ae",
+        "files": [],
+        "opam": {
+          "name": "ANSITerminal",
+          "version": "0.8.1",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"ANSITerminal\"\nversion: \"0.8.1\"\nsynopsis: \"Basic control of ANSI compliant terminals and the windows shell\"\ndescription: \"\"\"\nANSITerminal is a module allowing to use the colors and cursor\nmovements on ANSI terminals. It also works on the windows shell (but\nthis part is currently work in progress).\"\"\"\nmaintainer: \"Christophe Troestler <Christophe.Troestler@umons.ac.be>\"\nauthors: [\"Christophe Troestler\" \"Vincent Hugot\"]\nlicense: \"LGPL-3.0 with OCaml linking exception\"\ntags: \"terminal\"\nhomepage: \"https://github.com/Chris00/ANSITerminal\"\ndoc: \"https://Chris00.github.io/ANSITerminal/doc\"\nbug-reports: \"https://github.com/Chris00/ANSITerminal/issues\"\ndepends: [\n  \"ocaml\"\n  \"dune\" {build}\n  \"base-bytes\"\n  \"base-unix\"\n]\nbuild: [\n  [\"dune\" \"subst\"] {pinned}\n  [\"dune\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"dune\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git+https://github.com/Chris00/ANSITerminal.git\"\nurl {\n  src:\n    \"https://github.com/Chris00/ANSITerminal/releases/download/0.8.1/ANSITerminal-0.8.1.tbz\"\n  checksum: \"md5=d9909496b5e47c75227453256198d1ae\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
+        "@opam/base-unix@opam:base", "@opam/dune@opam:1.6.2",
         "ocaml@4.7.1003"
       ]
     },

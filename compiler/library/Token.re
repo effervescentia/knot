@@ -1,6 +1,7 @@
 type keyword =
   | Main
   | Import
+  | From
   | Const
   | Let
   | State

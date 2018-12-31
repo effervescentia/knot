@@ -23,12 +23,9 @@ let rec _cursor_from = (input, count) =>
   };
 let _assert_cursor =
     ((actual, _), expected_ch, expected_row, expected_column) =>
-  Assert.assert_cursor(
-    actual,
-    (expected_ch, (expected_row, expected_column)),
-  );
+  assert_cursor_eql(actual, (expected_ch, (expected_row, expected_column)));
 
-let test_read_fully = (file, _) => {
+let test_read_fully = (file, ctx) => {
   let channel = Util.load_resource(file);
   let input = FileStream.of_channel(channel);
 
@@ -71,52 +68,50 @@ let test_reposition = (file, position) => {
   ignore(_cursor_from(input, extra_reads));
 
   let (actual, _) = _next_or_error(target_input);
-  Assert.assert_cursor(actual, expected);
+  assert_cursor_eql(actual, expected);
 
   close_in(channel);
 };
 
-let () =
-  run_test_tt_main(
-    "FileStream"
-    >::: [
-      "read unix file" >:: test_read_fully(Config.unix_file),
-      "read windows file" >:: test_read_fully(Config.windows_file),
-      "read unix file and check cursor"
-      >:: (
-        _ => {
-          test_cursor_information(Config.unix_file, 'c', 3, 1, 3);
-          test_cursor_information(Config.unix_file, '2', 18, 2, 2);
-          test_cursor_information(Config.unix_file, '_', 30, 3, 10);
-          test_cursor_information(Config.unix_file, '\n', 31, 3, 11);
-        }
-      ),
-      "read windows file and check cursor"
-      >:: (
-        _ => {
-          test_cursor_information(Config.windows_file, 'c', 3, 1, 3);
-          test_cursor_information(Config.windows_file, '2', 18, 2, 2);
-          test_cursor_information(Config.windows_file, '_', 30, 3, 10);
-          test_cursor_information(Config.windows_file, '\n', 31, 3, 11);
-        }
-      ),
-      "read unix file and reposition cursor"
-      >:: (
-        _ => {
-          test_reposition(Config.unix_file, 4);
-          test_reposition(Config.unix_file, 19);
-          test_reposition(Config.unix_file, 20);
-          test_reposition(Config.unix_file, 79);
-        }
-      ),
-      "read windows file and reposition cursor"
-      >:: (
-        _ => {
-          test_reposition(Config.windows_file, 4);
-          test_reposition(Config.windows_file, 19);
-          test_reposition(Config.windows_file, 20);
-          test_reposition(Config.windows_file, 79);
-        }
-      ),
-    ],
-  );
+let tests =
+  "Knot.FileStream"
+  >::: [
+    "read unix file" >:: test_read_fully(Config.unix_file),
+    "read windows file" >:: test_read_fully(Config.windows_file),
+    "read unix file and check cursor"
+    >:: (
+      _ => {
+        test_cursor_information(Config.unix_file, 'c', 3, 1, 3);
+        test_cursor_information(Config.unix_file, '2', 18, 2, 2);
+        test_cursor_information(Config.unix_file, '_', 30, 3, 10);
+        test_cursor_information(Config.unix_file, '\n', 31, 3, 11);
+      }
+    ),
+    "read windows file and check cursor"
+    >:: (
+      _ => {
+        test_cursor_information(Config.windows_file, 'c', 3, 1, 3);
+        test_cursor_information(Config.windows_file, '2', 18, 2, 2);
+        test_cursor_information(Config.windows_file, '_', 30, 3, 10);
+        test_cursor_information(Config.windows_file, '\n', 31, 3, 11);
+      }
+    ),
+    "read unix file and reposition cursor"
+    >:: (
+      _ => {
+        test_reposition(Config.unix_file, 4);
+        test_reposition(Config.unix_file, 19);
+        test_reposition(Config.unix_file, 20);
+        test_reposition(Config.unix_file, 79);
+      }
+    ),
+    "read windows file and reposition cursor"
+    >:: (
+      _ => {
+        test_reposition(Config.windows_file, 4);
+        test_reposition(Config.windows_file, 19);
+        test_reposition(Config.windows_file, 20);
+        test_reposition(Config.windows_file, 79);
+      }
+    ),
+  ];

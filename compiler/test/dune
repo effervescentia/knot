@@ -7,5 +7,5 @@
    (name TestSuite)  ;  From package.json main field
    ; The name of the executable (runnable via esy x TestSuite.exe) 
    (public_name TestSuite.exe)  ;  From package.json name field
-   (libraries  knot.lib knot.lex knot.parse ounit ) ;  From package.json require field (array of strings)
+   (libraries  knot.lib knot.lex knot.parse ounit ansiterminal ) ;  From package.json require field (array of strings)
 )

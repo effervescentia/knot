@@ -15,6 +15,7 @@ let rec (==>) = (s, t) => {
 let lexer =
   Lexers([
     "import" ==> Import,
+    "from" ==> From,
     "const" ==> Const,
     "let" ==> Let,
     "state" ==> State,
