@@ -1,7 +1,9 @@
-open OUnit2;
+open Core;
 
 let () = {
   let failed = ref(false);
+
+  Random.self_init();
 
   run_test_tt_main(
     ~exit=
@@ -25,10 +27,8 @@ let () = {
   failed^ ?
     () :
     ANSITerminal.(
-      Printf.sprintf(
-        "\n[%s] Test suite successful!",
-        sprintf([green], "✓"),
-      )
+      sprintf([green], "✓")
+      |> Printf.sprintf("\n[%s] Test suite successful!")
       |> print_endline
     );
 };

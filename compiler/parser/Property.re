@@ -1,14 +1,12 @@
 open Core;
 
-let definition = M.colon >> M.identifier ==> (t => Some(t));
 let assignment = M.assign >> Expression.expr ==> (e => Some(e));
 
 let prop =
   M.identifier
   >>= (
     k =>
-      definition
-      |= None
+      M.type_def
       >>= (
         type_def =>
           assignment

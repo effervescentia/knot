@@ -1,6 +1,4 @@
-open OUnit2;
-open Assert;
-open Knot.Token;
+open Core;
 
 let to_file_stream = s => {
   let remaining = ref(s);
@@ -13,11 +11,11 @@ let to_file_stream = s => {
       Some((ch, (0, 0)));
     };
 
-  Opal.LazyStream.of_function(() => next(remaining^));
+  LazyStream.of_function(() => next(remaining^));
 };
 
 let test_lex_token = ((s, tkn)) =>
-  switch (KnotLex.Lexer.next_token(to_file_stream(s))) {
+  switch (Lexer.next_token(to_file_stream(s))) {
   | Some((t, _)) => assert_tkn_eql(t, tkn)
   | None => assert_failure("no token found")
   };

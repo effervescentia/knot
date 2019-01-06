@@ -1,12 +1,10 @@
-open OUnit2;
-open Knot.Token;
-open KnotParse.AST;
-
-module Parser = KnotParse.Parser;
+open Core;
 
 let tests =
   "KnotParse.Parser"
   >::: [
+    "parse empty module"
+    >:: (_ => Util.test_parse_ast(Parser.prog, ([], Statements([])))),
     "parse main import statement"
     >:: (
       _ => {
@@ -36,42 +34,40 @@ let tests =
         );
       }
     ),
-    "parse state declaration"
-    >:: (
-      _ => {
-        let stmt = [
-          Keyword(State),
-          Space,
-          Identifier("abc"),
-          Space,
-          Assign,
-          Space,
-          String("table"),
-        ];
-        let expected = Statements([Declaration(StateDecl("abc"))]);
-
-        Util.test_many(
-          Util.test_parse_ast(Parser.prog),
-          [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
-        );
-      }
-    ),
     "parse function declaration"
     >:: (
       _ => {
-        let name = "abc";
-        let stmt = FunctionParserTest.simple_func_decl(name);
+        let name = "myFunc";
+        let stmt = FunctionParserTest.empty_func_decl(name);
         let expected =
-          Statements([Declaration(FunctionDecl("abc", [], []))]);
+          Statements([Declaration(FunctionDecl(name, [], []))]);
 
-        Util.test_many(
-          Util.test_parse_ast(Parser.prog),
-          [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
-        );
+        Util.test_parse_ast(Parser.prog, (stmt, expected));
+      }
+    ),
+    "parse view declaration"
+    >:: (
+      _ => {
+        let name = "MyView";
+        let stmt = ViewParserTest.empty_view_decl(name);
+        let expected = Statements([Declaration(ViewDecl(name, []))]);
+
+        Util.test_parse_ast(Parser.prog, (stmt, expected));
+      }
+    ),
+    "parse state declaration"
+    >:: (
+      _ => {
+        let name = "MyState";
+        let stmt = StateParserTest.empty_state_decl(name);
+        let expected = Statements([Declaration(StateDecl(name))]);
+
+        Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
     ),
     ImportParserTest.tests,
     ConstParserTest.tests,
     FunctionParserTest.tests,
     ViewParserTest.tests,
+    StateParserTest.tests,
   ];

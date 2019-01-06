@@ -1,14 +1,10 @@
-open OUnit2;
-open Assert;
-open Knot.Token;
-
-module LazyStream = Opal.LazyStream;
+open Core;
 
 let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =
     Util.load_resource(file)
-    |> Knot.FileStream.of_channel
-    |> KnotLex.TokenStream.of_file_stream;
+    |> FileStream.of_channel
+    |> TokenStream.of_file_stream;
 
   let rec loop = (stream, tkns) =>
     switch (stream, tkns) {

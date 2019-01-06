@@ -37,7 +37,11 @@ and print_decl =
   | ConstDecl(name, expr) =>
     print_expr(expr) |> Printf.sprintf("const(%s, %s)", name)
   | StateDecl(name) => Printf.sprintf("state(%s)", name)
-  | ViewDecl(name) => Printf.sprintf("view(%s)", name)
+  | ViewDecl(name, params) => {
+      let params_str = print_comma_separated(print_param, params);
+
+      Printf.sprintf("view(%s, [%s])", name, params_str);
+    }
   | FunctionDecl(name, params, exprs) => {
       let params_str = print_comma_separated(print_param, params);
       let exprs_str = print_comma_separated(print_expr, exprs);

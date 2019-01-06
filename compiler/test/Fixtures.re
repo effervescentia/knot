@@ -1,4 +1,4 @@
-open Knot.Token;
+open Core;
 
 let all_tokens = [
   Plus,

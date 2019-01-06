@@ -30,7 +30,7 @@ type state_prop =
 type declaration =
   | ConstDecl(string, expression)
   | StateDecl(string)
-  | ViewDecl(string)
+  | ViewDecl(string, list(param))
   | FunctionDecl(string, list(param), list(expression));
 
 type module_ =

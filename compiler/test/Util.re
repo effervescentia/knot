@@ -1,5 +1,18 @@
-open Knot;
-open OUnit2;
+open Core;
+
+let spacemaker = () =>
+  List.init(Random.int(20), _ =>
+    switch (Random.int(3)) {
+    | 0 => Knot.Token.Space
+    | 1 => Knot.Token.Tab
+    | _ => Knot.Token.Newline
+    }
+  );
+let rec drift =
+  fun
+  | [x] => [x]
+  | [x, ...xs] => [x] @ spacemaker() @ drift(xs)
+  | [] => [];
 
 let load_resource = file => open_in(Config.resource_dir ++ "/" ++ file);
 
@@ -14,17 +27,17 @@ let to_token_stream = tkns => {
       Some(t);
     };
 
-  Opal.LazyStream.of_function(() => next(remaining^));
+  LazyStream.of_function(() => next(remaining^));
 };
 
 let test_parse_ast = (prog, (tkns, ast)) =>
-  switch (KnotParse.Parser.parse(prog, to_token_stream(tkns))) {
+  switch (Parser.parse(prog, to_token_stream(tkns))) {
   | Some(res) => Assert.assert_ast_eql(ast, res)
   | None => assert_failure("no AST found")
   };
 
 let test_parse_decl = (decl, (tkns, ast)) =>
-  switch (KnotParse.Parser.parse(decl, to_token_stream(tkns))) {
+  switch (Parser.parse(decl, to_token_stream(tkns))) {
   | Some(res) => Assert.assert_decl_eql(ast, res)
   | None => assert_failure("no declaration found")
   };

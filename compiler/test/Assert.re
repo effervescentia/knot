@@ -8,24 +8,6 @@ let assert_string_eql = (actual, expected) =>
     expected,
   );
 
-/* let assert_char_eql = (actual, expected) =>
-   assert_bool(
-     Printf.sprintf(
-       "expected '%c' (%d) to equal '%c'",
-       actual,
-       int_of_char(actual),
-       expected,
-     )
-     |> String.escaped,
-     expected == actual,
-   ); */
-
-/* let assert_int_eql = (actual, expected) =>
-   assert_bool(
-     Printf.sprintf("expected %d to equal %d", actual, expected),
-     expected == actual,
-   ); */
-
 let assert_tkn_eql = (actual, expected) =>
   assert_equal(
     ~msg="token match",
@@ -36,7 +18,7 @@ let assert_tkn_eql = (actual, expected) =>
 
 let assert_ast_eql = (actual, expected) =>
   assert_equal(
-    ~msg="ast match",
+    ~msg="AST match",
     ~printer=KnotParse.Debug.print_ast,
     actual,
     expected,
@@ -44,7 +26,7 @@ let assert_ast_eql = (actual, expected) =>
 
 let assert_decl_eql = (actual, expected) =>
   assert_equal(
-    ~msg="ast match",
+    ~msg="declaration match",
     ~printer=KnotParse.Debug.print_decl,
     actual,
     expected,

@@ -23,9 +23,12 @@ let get_stmt =
   );
 
 let stmt = mut_stmt <|> get_stmt <|> prop_stmt;
-let stmts = many1(stmt);
 
 let decl =
   M.decl(M.state)
-  >>= (s => M.assign >> Expression.expr >> return(StateDecl(s)))
-  |> M.terminated;
+  >>= (
+    name =>
+      Parameter.params
+      |= []
+      >>= (params => many(stmt) |> M.braces ==> (stmts => StateDecl(name)))
+  );
