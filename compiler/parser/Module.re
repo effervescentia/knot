@@ -1,11 +1,8 @@
 open Core;
-open AST;
 
 module M = Matchers;
 
-let rec stmts = input => (many(stmt) ==> (l => Statements(l)))(input)
-and stmt = input => (_import <|> _decl)(input)
-and _import =
+let import =
   M.import
   >> M.identifier
   >>= (
@@ -14,8 +11,8 @@ and _import =
       >> M.string
       >>= (s => return(Import(s, [MainExport(main)])))
       << optional(M.semicolon)
-  )
-and _decl = input =>
+  );
+let decl = input =>
   (
     Const.decl
     <|> State.decl
@@ -25,3 +22,6 @@ and _decl = input =>
   )(
     input,
   );
+let stmt = input => (import <|> decl)(input);
+
+let stmts = input => (many(stmt) ==> (l => Statements(l)))(input);

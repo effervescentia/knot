@@ -9,7 +9,9 @@ and from = kwd(From)
 and const = kwd(Const)
 and state = kwd(State)
 and func = kwd(Func)
-and view = kwd(View);
+and view = kwd(View)
+and get = kwd(Get)
+and mut = kwd(Mut);
 
 /* characters */
 let assign = token(Assign)
@@ -30,10 +32,16 @@ and l_brace = token(LeftBrace)
 and l_brack = token(LeftBracket)
 and r_paren = token(RightParenthese)
 and r_brace = token(RightBrace)
-and r_brack = token(RightBracket);
+and r_brack = token(RightBracket)
+and l_chev = token(LeftChevron)
+and r_chev = token(RightChevron);
 
 /* patterns */
-let lambda = token(Lambda);
+let lambda = token(Lambda)
+and less_than_or_equal = token(LessThanOrEqual)
+and greater_than_or_equal = token(GreaterThanOrEqual)
+and logical_and = token(LogicalAnd)
+and logical_or = token(LogicalOr);
 
 let identifier =
   (
@@ -52,6 +60,33 @@ let string =
   )
   |> lexeme;
 
+let number =
+  (
+    fun
+    | LazyStream.Cons(Number(n), next_in) => Some((n, Lazy.force(next_in)))
+    | _ => None
+  )
+  |> lexeme;
+
+let number =
+  (
+    fun
+    | LazyStream.Cons(Number(n), next_in) => Some((n, Lazy.force(next_in)))
+    | _ => None
+  )
+  |> lexeme;
+
+let boolean =
+  (
+    fun
+    | LazyStream.Cons(Boolean(b), next_in) => Some((b, Lazy.force(next_in)))
+    | _ => None
+  )
+  |> lexeme;
+
 let parentheses = input => between(l_paren, r_paren, input);
 let braces = input => between(l_brace, r_brace, input);
 let brackets = input => between(l_brack, r_brack, input);
+let decl = x => x >> identifier;
+let terminated = x => x << optional(semicolon);
+let type_def = colon >> identifier ==> (t => Some(t)) |= None;

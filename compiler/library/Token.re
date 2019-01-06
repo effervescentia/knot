@@ -49,6 +49,7 @@ type token =
   | Identifier(string)
   | Number(int)
   | String(string)
+  | Boolean(bool)
   | JSXTextNode(string)
   | LineComment(string)
   | BlockComment(string)

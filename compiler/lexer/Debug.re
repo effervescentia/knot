@@ -55,6 +55,7 @@ let print_tkn =
       |> Printf.sprintf("keyword(%s)")
     | Identifier(s) => Printf.sprintf("identifier(%s)", s)
     | Number(n) => Printf.sprintf("number(%d)", n)
+    | Boolean(b) => Printf.sprintf("boolean(%b)", b)
     | JSXTextNode(s) => Printf.sprintf("jsx_text_node(%s)", s)
     | String(s) => Printf.sprintf("string(%s)", s)
     | LineComment(s) => Printf.sprintf("line_comment(%s)", s)

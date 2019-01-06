@@ -1,30 +1,36 @@
 open Core;
-open AST;
 
 module M = Matchers;
 
-let rec decl = input =>
+let inheritance = M.colon >> M.identifier ==> (name => Some(name));
+let mixins = M.tilde >> comma_separated(M.identifier);
+
+/* let rec decl = input =>
+   (
+     M.decl(M.view)
+     >>= (
+       name =>
+         inheritance
+         |= None
+         >>= (
+           inh =>
+             mixins
+             |= []
+             >>= (mix => Function.body ==> (exprs => ViewDecl(name)))
+         )
+     )
+   )(
+     input,
+   ) */
+let decl = input =>
   (
-    M.view
-    >> M.identifier
+    M.decl(M.view)
     >>= (
-      s =>
-        _inheritance
+      name =>
+        inheritance
         |= None
-        >>= (
-          inh =>
-            _mixins
-            |= []
-            >>= (
-              m =>
-                Expression.expr
-                >> return(ViewDecl(s))
-                << optional(M.semicolon)
-            )
-        )
+        >>= (inh => mixins |= [] >>= (mix => any >> return(ViewDecl(name))))
     )
   )(
     input,
-  )
-and _inheritance = M.colon >> M.identifier ==> (name => Some(name))
-and _mixins = M.tilde >> comma_separated(M.identifier);
+  );

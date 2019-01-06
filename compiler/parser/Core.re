@@ -1,6 +1,7 @@
 include Knot.Globals;
 include Knot.Fiber;
 include Knot.Token;
+include AST;
 
 let (|=) = (x, default) => opt(default, x);
 

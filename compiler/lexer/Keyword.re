@@ -1,15 +1,8 @@
 open Core;
 
-let rec (==>) = (s, t) => {
-  let next = _ =>
-    if (String.length(s) == 1) {
-      Result(Keyword(t));
-    } else {
-      String.sub(s, 1, String.length(s) - 1) ==> t;
-    };
+let (===>) = Util.(===>);
 
-  Lexer(Char(s.[0]), Any, next);
-};
+let rec (==>) = (s, t) => s ===> Keyword(t);
 
 let lexer =
   Lexers([

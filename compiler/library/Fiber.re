@@ -1,3 +1,7 @@
+/**
+ * This file repackages parser combinators from the OCaml library Opal.
+ * The original code can be found here: https://github.com/pyrocat101/opal
+ */
 open Globals;
 
 let return = Opal.return;
@@ -25,8 +29,11 @@ let between = Opal.between;
 let skip_many = Opal.skip_many;
 
 let many = Opal.many;
+let many1 = Opal.many1;
 
 let sep_by1 = Opal.sep_by1;
 let sep_by = Opal.sep_by;
 
 let one_of = Opal.one_of;
+
+let chainl1 = Opal.chainl1;

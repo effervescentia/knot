@@ -1,5 +1,16 @@
 open Core;
 
+let rec (===>) = (s, t) => {
+  let next = _ =>
+    if (String.length(s) == 1) {
+      Result(t);
+    } else {
+      String.sub(s, 1, String.length(s) - 1) ===> t;
+    };
+
+  Lexer(Char(s.[0]), Any, next);
+};
+
 let flatten_lexers =
   fun
   | [] => None

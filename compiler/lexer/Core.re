@@ -23,18 +23,3 @@ type lex_result('a) =
   | Result('a);
 
 let newline = Char('\n');
-
-let reserved = [
-  "import",
-  "from",
-  "const",
-  "let",
-  "state",
-  "view",
-  "func",
-  "else",
-  "if",
-  "mut",
-  "get",
-  "main",
-];

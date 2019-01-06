@@ -1,12 +1,10 @@
 open Core;
-open AST;
 
 module M = Matchers;
 
 let decl = input =>
   (
-    M.const
-    >> M.identifier
+    M.decl(M.const)
     >>= (
       s =>
         M.assign

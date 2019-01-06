@@ -8,6 +8,7 @@ let root =
     Text.lexer,
     Identifier.lexer,
     Number.lexer,
+    Boolean.lexer,
     Comment.lexer,
   ])
   |> Util.normalize_lexers;

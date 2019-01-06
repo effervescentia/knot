@@ -1,5 +1,4 @@
-open Knot.Globals;
-open AST;
+open Core;
 
 let rec repeat = (s, n) =>
   if (n == 0) {
@@ -20,14 +19,12 @@ let rec print_ast = (~depth=0) =>
       |> Printf.sprintf("STATEMENTS:\n↳%s\n")
     | Import(module_, _) => Printf.sprintf("IMPORT FROM %s", module_)
     | Declaration(decl) =>
-      (
-        switch (decl) {
-        | ConstDecl(s) => Printf.sprintf("const(%s)", s)
-        | StateDecl(s) => Printf.sprintf("state(%s)", s)
-        | ViewDecl(s) => Printf.sprintf("view(%s)", s)
-        | FunctionDecl(s) => Printf.sprintf("function(%s)", s)
-        }
-      )
-      |> Printf.sprintf("DECLARATION %s")
+      print_decl(decl) |> Printf.sprintf("DECLARATION %s")
   )
-  % Printf.sprintf("%s%s", repeat("\t", depth));
+  % Printf.sprintf("%s%s%s", depth == 0 ? "\n" : "", repeat("\t", depth))
+and print_decl =
+  fun
+  | ConstDecl(s) => Printf.sprintf("const(%s)", s)
+  | StateDecl(s) => Printf.sprintf("state(%s)", s)
+  | ViewDecl(s) => Printf.sprintf("view(%s)", s)
+  | FunctionDecl(s) => Printf.sprintf("function(%s)", s);

@@ -2,27 +2,13 @@ open OUnit2;
 open Knot.Token;
 open KnotParse.AST;
 
-let to_token_stream = tkns => {
-  let remaining = ref(tkns);
-  let next = ts =>
-    if (List.length(ts) == 0) {
-      None;
-    } else {
-      let t = List.nth(ts, 0);
-      remaining := List.tl(ts);
-      Some(t);
-    };
-
-  Opal.LazyStream.of_function(() => next(remaining^));
-};
+module Parser = KnotParse.Parser;
 
 let test_parse_ast = ((tkns, ast)) =>
-  switch (KnotParse.Parser.parse(to_token_stream(tkns))) {
+  switch (Parser.parse(Parser.prog, Util.to_token_stream(tkns))) {
   | Some(res) => Assert.assert_ast_eql(ast, res)
   | None => assert_failure("no AST found")
   };
-
-let test_parse_asts = xs => List.iter(test_parse_ast, xs);
 
 let tests =
   "KnotParse.Parser"
@@ -42,10 +28,10 @@ let tests =
         let expected =
           Statements([Import("table", [MainExport("Table")])]);
 
-        test_parse_asts([
-          (stmt, expected),
-          (stmt @ [Space, Semicolon], expected),
-        ]);
+        Util.test_many(
+          test_parse_ast,
+          [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
+        );
       }
     ),
     "parse const declaration"
@@ -62,10 +48,10 @@ let tests =
         ];
         let expected = Statements([Declaration(ConstDecl("abc"))]);
 
-        test_parse_asts([
-          (stmt, expected),
-          (stmt @ [Space, Semicolon], expected),
-        ]);
+        Util.test_many(
+          test_parse_ast,
+          [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
+        );
       }
     ),
     "parse state declaration"
@@ -82,10 +68,10 @@ let tests =
         ];
         let expected = Statements([Declaration(StateDecl("abc"))]);
 
-        test_parse_asts([
-          (stmt, expected),
-          (stmt @ [Space, Semicolon], expected),
-        ]);
+        Util.test_many(
+          test_parse_ast,
+          [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
+        );
       }
     ),
     "parse function declaration"
@@ -102,30 +88,11 @@ let tests =
         ];
         let expected = Statements([Declaration(FunctionDecl("abc"))]);
 
-        test_parse_asts([
-          (stmt, expected),
-          (stmt @ [Space, Semicolon], expected),
-        ]);
+        Util.test_many(
+          test_parse_ast,
+          [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
+        );
       }
     ),
-    "parse view declaration"
-    >:: (
-      _ => {
-        let stmt = [
-          Keyword(View),
-          Space,
-          Identifier("abc"),
-          Space,
-          Assign,
-          Space,
-          String("table"),
-        ];
-        let expected = Statements([Declaration(ViewDecl("abc"))]);
-
-        test_parse_asts([
-          (stmt, expected),
-          (stmt @ [Space, Semicolon], expected),
-        ]);
-      }
-    ),
+    ViewParserTest.tests,
   ];

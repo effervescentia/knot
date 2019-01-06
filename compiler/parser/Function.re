@@ -1,12 +1,20 @@
 open Core;
-open AST;
 
 module M = Matchers;
 
+let closure = input =>
+  (many(Expression.expr) |> M.terminated |> M.braces)(input);
+let lambda = input =>
+  (Expression.expr ==> (expr => [expr]) |> M.terminated)(input);
+let body = input => (M.lambda >> (closure <|> lambda))(input);
+let expr = input =>
+  (Parameter.params >>= (params => body ==> (exprs => (params, exprs))))(
+    input,
+  );
+
 let rec decl = input =>
   (
-    M.func
-    >> M.identifier
+    M.decl(M.func)
     >>= (
       s =>
         M.assign
@@ -16,13 +24,4 @@ let rec decl = input =>
     )
   )(
     input,
-  )
-/* and expr = input =>
-   (Parameter.params >>= (params => body ==> (exprs => (params, exprs))))(
-     input,
-   ) */
-and body = input => (M.lambda >> (closure <|> lambda))(input)
-and closure = input =>
-  (many(Expression.expr << optional(M.semicolon)) |> M.braces)(input)
-and lambda = input =>
-  (Expression.expr ==> (expr => [expr]) << optional(M.semicolon))(input);
+  );
