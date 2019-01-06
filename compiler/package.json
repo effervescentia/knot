@@ -15,12 +15,12 @@
       "namespace": "Knot"
     },
     "lexer": {
-      "require": ["knot.lib", "opal"],
+      "require": ["knot.lib"],
       "name": "knot.lex",
       "namespace": "KnotLex"
     },
     "parser": {
-      "require": ["knot.lib", "knot.lex", "opal"],
+      "require": ["knot.lib", "knot.lex"],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },

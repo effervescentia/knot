@@ -7,5 +7,5 @@
    (name KnotParse)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.parse)
-   (libraries  knot.lib knot.lex opal )
+   (libraries  knot.lib knot.lex )
 )

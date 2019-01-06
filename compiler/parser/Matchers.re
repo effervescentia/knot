@@ -1,5 +1,4 @@
 open Core;
-open Knot.Token;
 
 let token = (x, input) => (exactly(x) |> lexeme)(input);
 let kwd = x => token(Keyword(x));

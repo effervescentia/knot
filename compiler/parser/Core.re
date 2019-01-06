@@ -1,6 +1,6 @@
 include Knot.Globals;
-include Parsing;
-open Knot.Token;
+include Knot.Fiber;
+include Knot.Token;
 
 let (|=) = (x, default) => opt(default, x);
 
