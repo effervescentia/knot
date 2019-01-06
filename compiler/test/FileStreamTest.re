@@ -1,8 +1,8 @@
 open OUnit2;
 open Assert;
 
+module LazyStream = Opal.LazyStream;
 module FileStream = Knot.FileStream;
-module LazyStream = Knot.LazyStream;
 
 let __raw_text = "abcde fgh ijklm\n123\n456 7890-_\n\n135\n3ADLKFnn\ncnm, dlkqwe=31 4/123.,e \n\n  f l;k\n  ";
 

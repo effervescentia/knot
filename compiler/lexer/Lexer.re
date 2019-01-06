@@ -1,7 +1,4 @@
 open Core;
-open Knot.Token;
-
-module LazyStream = Knot.LazyStream;
 
 let root =
   Lexers([

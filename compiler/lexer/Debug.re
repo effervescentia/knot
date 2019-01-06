@@ -1,6 +1,4 @@
 open Core;
-open Knot.Globals;
-open Knot.Token;
 
 let print_tkn =
   (

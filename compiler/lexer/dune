@@ -5,8 +5,7 @@
 (library
    ; The namespace that other packages/libraries will access this library through
    (name KnotLex)
-   ; Other libraries list this name in their package.json 'requires' field to use this library.
+   ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lex)
-   (libraries  knot.lib )
-   (c_names )  ; From package.json cNames field
+   (libraries  knot.lib opal )
 )

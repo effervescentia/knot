@@ -1,17 +1,27 @@
-open Parsing;
+open Core;
 open AST;
 
+module M = Matchers;
+
 let rec stmts = input => (many(stmt) ==> (l => Statements(l)))(input)
-and stmt = input => _import(input)
+and stmt = input => (_import <|> _decl)(input)
 and _import =
-  Matchers.import
-  >> Matchers.identifier
+  M.import
+  >> M.identifier
   >>= (
     main =>
-      Matchers.from
-      >> Matchers.string
+      M.from
+      >> M.string
       >>= (s => return(Import(s, [MainExport(main)])))
-      << optional(Matchers.semicolon)
+      << optional(M.semicolon)
+  )
+and _decl = input =>
+  (
+    Const.decl
+    <|> State.decl
+    <|> Function.decl
+    <|> View.decl
+    ==> (d => Declaration(d))
+  )(
+    input,
   );
-/* and _decl = input =>
-   (Matchers.import_ >> return(Import("sads", [])))(input); */

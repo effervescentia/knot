@@ -1,4 +1,8 @@
-module LazyStream = Knot.LazyStream;
+/**
+ * This file is largely copied from the OCaml parsing library Opal.
+ * The original code can be found here: https://github.com/pyrocat101/opal
+ */
+open Knot.Globals;
 
 let return = (x, stream) => Some((x, stream));
 let mzero = _ => None;
@@ -46,10 +50,14 @@ let exactly = x => satisfy(y => y == x);
 
 let opt = (default, x) => x <|> return(default);
 let optional = x => opt((), x >> return());
+let between = (op, ed, x) => op >> x << ed;
 
 let rec skip_many = x => opt((), x >>= (_ => skip_many(x)));
 
 let rec many = x =>
   opt([], x >>= (r => many(x) >>= (rs => return([r, ...rs]))));
+
+let sep_by1 = (x, sep) => x <~> many(sep >> x);
+let sep_by = (x, sep) => sep_by1(x, sep) <|> return([]);
 
 let one_of = l => satisfy(x => List.mem(x, l));

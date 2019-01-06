@@ -1,5 +1,4 @@
 open Core;
-open Knot.Token;
 
 let triple_slash = Token("///");
 

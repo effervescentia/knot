@@ -2,7 +2,7 @@ open OUnit2;
 open Assert;
 open Knot.Token;
 
-module LazyStream = Knot.LazyStream;
+module LazyStream = Opal.LazyStream;
 
 let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =

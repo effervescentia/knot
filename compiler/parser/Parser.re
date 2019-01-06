@@ -1,4 +1,4 @@
-open Parsing;
+open Core;
 
 /* let prog = stream => (Module.body << eof())(stream); */
 let prog = stream => Module.stmts(stream);

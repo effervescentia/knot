@@ -1,4 +1,4 @@
-open Knot;
+open Core;
 
 let of_file_stream = file_stream => {
   let stream = ref(file_stream);

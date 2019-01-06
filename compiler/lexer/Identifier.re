@@ -1,5 +1,4 @@
 open Core;
-open Knot.Token;
 
 let underscore = Char('_');
 let identifier_matchers = [underscore, AlphaNumeric];

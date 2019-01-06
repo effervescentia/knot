@@ -1,5 +1,5 @@
 {
-  "hash": "104a4ce99d1ea773c6527a386a239c22",
+  "hash": "af753232ea6390e81fae7fc87fc99d55",
   "root": "root@path:./package.json",
   "node": {
     "wrappy@1.0.2": {
@@ -145,7 +145,7 @@
         "name": "strip-eof",
         "version": "1.0.0",
         "source":
-          "archive:http://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz#sha1:bb43ff5598a6eb05d89b59fcd129c983313606bf",
+          "archive:https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz#sha1:bb43ff5598a6eb05d89b59fcd129c983313606bf",
         "files": [],
         "opam": null
       },
@@ -340,7 +340,7 @@
         "name": "safe-regex",
         "version": "1.1.0",
         "source":
-          "archive:http://registry.npmjs.org/safe-regex/-/safe-regex-1.1.0.tgz#sha1:40a3669f3b077d1e943d44629e157dd48023bf2e",
+          "archive:https://registry.npmjs.org/safe-regex/-/safe-regex-1.1.0.tgz#sha1:40a3669f3b077d1e943d44629e157dd48023bf2e",
         "files": [],
         "opam": null
       },
@@ -368,8 +368,9 @@
       "dependencies": [
         "@esy-ocaml/reason@3.3.7", "@opam/ANSITerminal@opam:0.8.1",
         "@opam/angstrom@opam:0.10.0", "@opam/dune@opam:1.6.2",
-        "@opam/merlin@opam:3.2.2", "@opam/ounit@opam:2.0.8",
-        "ocaml@4.7.1003", "pesy@0.4.0", "refmterr@3.1.10", "sane@4.0.2"
+        "@opam/merlin@opam:3.2.2", "@opam/opal@opam:0.1.1",
+        "@opam/ounit@opam:2.0.8", "ocaml@4.7.1003", "pesy@0.4.1",
+        "refmterr@3.1.10", "sane@4.0.2"
       ]
     },
     "ret@0.1.15": {
@@ -474,12 +475,12 @@
       },
       "dependencies": []
     },
-    "pesy@0.4.0": {
+    "pesy@0.4.1": {
       "record": {
         "name": "pesy",
-        "version": "0.4.0",
+        "version": "0.4.1",
         "source":
-          "archive:https://registry.npmjs.org/pesy/-/pesy-0.4.0.tgz#sha1:494d423d7cf63017007be7ff53e6ab9b82b6d8dc",
+          "archive:https://registry.npmjs.org/pesy/-/pesy-0.4.1.tgz#sha1:37b3faccb3ecdb37f4bf3d95d04ffbd2633247af",
         "files": [],
         "opam": null
       },
@@ -662,7 +663,7 @@
         "name": "minimist",
         "version": "1.2.0",
         "source":
-          "archive:http://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz#sha1:a35008b20f41383eec1fb914f4cd5df79a264284",
+          "archive:https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz#sha1:a35008b20f41383eec1fb914f4cd5df79a264284",
         "files": [],
         "opam": null
       },
@@ -927,7 +928,7 @@
         "name": "is-data-descriptor",
         "version": "0.1.4",
         "source":
-          "archive:http://registry.npmjs.org/is-data-descriptor/-/is-data-descriptor-0.1.4.tgz#sha1:0b5ee648388e2c860282e793f1856fec3f301b56",
+          "archive:https://registry.npmjs.org/is-data-descriptor/-/is-data-descriptor-0.1.4.tgz#sha1:0b5ee648388e2c860282e793f1856fec3f301b56",
         "files": [],
         "opam": null
       },
@@ -960,7 +961,7 @@
         "name": "is-accessor-descriptor",
         "version": "0.1.6",
         "source":
-          "archive:http://registry.npmjs.org/is-accessor-descriptor/-/is-accessor-descriptor-0.1.6.tgz#sha1:a9e12cb3ae8d876727eeef3843f8a0897b5c98d6",
+          "archive:https://registry.npmjs.org/is-accessor-descriptor/-/is-accessor-descriptor-0.1.6.tgz#sha1:a9e12cb3ae8d876727eeef3843f8a0897b5c98d6",
         "files": [],
         "opam": null
       },
@@ -1551,6 +1552,26 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base-bytes@opam:base",
         "@opam/ocamlbuild@opam:0.12.0", "@opam/ocamlfind@opam:1.8.0",
+        "ocaml@4.7.1003"
+      ]
+    },
+    "@opam/opal@opam:0.1.1": {
+      "record": {
+        "name": "@opam/opal",
+        "version": "opam:0.1.1",
+        "source":
+          "archive:https://github.com/pyrocat101/opal/archive/v0.1.1.tar.gz#md5:d294e29242d9ac2204dc95bb8d73e61b",
+        "files": [],
+        "opam": {
+          "name": "opal",
+          "version": "0.1.1",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"opal\"\nversion: \"0.1.1\"\nsynopsis: \"Self-contained monadic parser combinators for OCaml\"\ndescription:\n  \"Opal is a minimum collection of useful parsers and combinators (~150 loc of OCaml) that makes writing parsers easier. It is designed to be small, self-contained, pure-functional, and only includes most essential parsers, so that one could include single file in the project or just embed it in other OCaml source code files.\"\nmaintainer: \"Linjie Ding <i@pyroc.at>\"\nauthors: \"Linjie Ding <i@pyroc.at>\"\nlicense: \"MIT\"\nhomepage: \"https://github.com/pyrocat101/opal\"\nbug-reports: \"https://github.com/pyrocat101/opal/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.01.0\"}\n  \"ocamlfind\" {build}\n]\nflags: light-uninstall\nbuild: [make \"ncl\" \"bcl\"]\ninstall: [make \"libinstall\"]\nremove: [\"ocamlfind\" \"remove\" \"opal\"]\ndev-repo: \"git+https://github.com/pyrocat101/opal.git\"\nurl {\n  src: \"https://github.com/pyrocat101/opal/archive/v0.1.1.tar.gz\"\n  checksum: \"md5=d294e29242d9ac2204dc95bb8d73e61b\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/ocamlfind@opam:1.8.0",
         "ocaml@4.7.1003"
       ]
     },

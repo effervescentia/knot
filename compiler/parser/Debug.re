@@ -19,6 +19,15 @@ let rec print_ast = (~depth=0) =>
       )
       |> Printf.sprintf("STATEMENTS:\n↳%s\n")
     | Import(module_, _) => Printf.sprintf("IMPORT FROM %s", module_)
-    | Declaration(_) => ""
+    | Declaration(decl) =>
+      (
+        switch (decl) {
+        | ConstDecl(s) => Printf.sprintf("const(%s)", s)
+        | StateDecl(s) => Printf.sprintf("state(%s)", s)
+        | ViewDecl(s) => Printf.sprintf("view(%s)", s)
+        | FunctionDecl(s) => Printf.sprintf("function(%s)", s)
+        }
+      )
+      |> Printf.sprintf("DECLARATION %s")
   )
   % Printf.sprintf("%s%s", repeat("\t", depth));

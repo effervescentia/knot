@@ -1,3 +1,5 @@
+open Globals;
+
 exception InvalidLineEncoding;
 
 let of_channel = channel => {

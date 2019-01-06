@@ -1,7 +1,5 @@
 open Core;
 
-module LazyStream = Knot.LazyStream;
-
 let flatten_lexers =
   fun
   | [] => None

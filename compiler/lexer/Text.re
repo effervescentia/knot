@@ -1,5 +1,4 @@
 open Core;
-open Knot.Token;
 
 exception UnclosedString;
 

@@ -1,4 +1,3 @@
-open Knot.Token;
 open Core;
 
 let (==>) = (c, t) => Lexer(Char(c), Any, _ => Result(t));

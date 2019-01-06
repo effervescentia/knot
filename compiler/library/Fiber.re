@@ -1,3 +1,5 @@
+open Globals;
+
 let return = (x, stream) => Some((x, stream));
 let mzero = _ => None;
 

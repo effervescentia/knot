@@ -1,3 +1,6 @@
+include Knot.Globals;
+include Knot.Token;
+
 type context =
   | Normal
   | JSXStartTag

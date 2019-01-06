@@ -10,16 +10,17 @@
   },
   "buildDirs": {
     "library": {
+      "require": ["opal"],
       "name": "knot.lib",
       "namespace": "Knot"
     },
     "lexer": {
-      "require": ["knot.lib"],
+      "require": ["knot.lib", "opal"],
       "name": "knot.lex",
       "namespace": "KnotLex"
     },
     "parser": {
-      "require": ["knot.lib", "knot.lex"],
+      "require": ["knot.lib", "knot.lex", "opal"],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
@@ -29,7 +30,9 @@
       "name": "Compiler.exe"
     },
     "test": {
-      "require": ["knot.lib", "knot.lex", "knot.parse", "ounit", "ansiterminal"],
+      "require": [
+        "knot.lib", "knot.lex", "knot.parse", "ounit", "ansiterminal"
+      ],
       "main": "TestSuite",
       "name": "TestSuite.exe"
     }
@@ -46,6 +49,7 @@
     "@opam/ANSITerminal": "0.8.1",
     "@opam/angstrom": "0.10.0",
     "@opam/dune": "*",
+    "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
     "ocaml": "^4.4.0",
     "pesy": "*",

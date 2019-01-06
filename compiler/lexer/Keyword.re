@@ -1,4 +1,3 @@
-open Knot.Token;
 open Core;
 
 let rec (==>) = (s, t) => {

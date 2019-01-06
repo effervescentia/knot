@@ -13,7 +13,7 @@ let to_file_stream = s => {
       Some((ch, (0, 0)));
     };
 
-  Knot.LazyStream.of_function(() => next(remaining^));
+  Opal.LazyStream.of_function(() => next(remaining^));
 };
 
 let test_lex_token = ((s, tkn)) =>
