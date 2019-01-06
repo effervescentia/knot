@@ -1,6 +1,5 @@
 open Core;
 
-module M = Matchers;
 module Op = Operator;
 
 let rec expr = input => (chainl1(logical, Op.or_))(input)

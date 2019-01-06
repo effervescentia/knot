@@ -17,8 +17,14 @@ let to_token_stream = tkns => {
   Opal.LazyStream.of_function(() => next(remaining^));
 };
 
-let test_parse_decl = ((tkns, ast)) =>
-  switch (KnotParse.Parser.parse(KnotParse.View.decl, to_token_stream(tkns))) {
+let test_parse_ast = (prog, (tkns, ast)) =>
+  switch (KnotParse.Parser.parse(prog, to_token_stream(tkns))) {
+  | Some(res) => Assert.assert_ast_eql(ast, res)
+  | None => assert_failure("no AST found")
+  };
+
+let test_parse_decl = (decl, (tkns, ast)) =>
+  switch (KnotParse.Parser.parse(decl, to_token_stream(tkns))) {
   | Some(res) => Assert.assert_decl_eql(ast, res)
   | None => assert_failure("no declaration found")
   };

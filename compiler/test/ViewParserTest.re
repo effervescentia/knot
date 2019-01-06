@@ -26,7 +26,10 @@ let tests =
         let name = "myView";
         let expected = ViewDecl(name);
 
-        Util.test_parse_decl((simple_view_decl(name), expected));
+        Util.test_parse_decl(
+          KnotParse.View.decl,
+          (simple_view_decl(name), expected),
+        );
       }
     ),
   ];

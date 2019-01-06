@@ -1,7 +1,5 @@
 open Core;
 
-module M = Matchers;
-
 let add = M.plus >> return((x, y) => AddExpr(x, y))
 and sub = M.minus >> return((x, y) => SubExpr(x, y))
 and mul = M.asterisk >> return((x, y) => MulExpr(x, y))

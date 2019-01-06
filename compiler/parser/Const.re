@@ -1,17 +1,6 @@
 open Core;
 
-module M = Matchers;
-
-let decl = input =>
-  (
-    M.decl(M.const)
-    >>= (
-      s =>
-        M.assign
-        >> Expression.expr
-        >> return(ConstDecl(s))
-        << optional(M.semicolon)
-    )
-  )(
-    input,
-  );
+let decl =
+  M.decl(M.const)
+  >>= (s => M.assign >> Expression.expr ==> (expr => ConstDecl(s, expr)))
+  |> M.terminated;

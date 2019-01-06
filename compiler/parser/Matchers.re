@@ -1,4 +1,14 @@
-open Core;
+open Knot.Globals;
+open Knot.Fiber;
+open Knot.Token;
+open AST;
+
+let space = one_of([Space, Tab, Newline]);
+let spaces = skip_many(space);
+
+let comma_separated = s => sep_by(s, exactly(Comma));
+
+let lexeme = x => spaces >> x;
 
 let token = (x, input) => (exactly(x) |> lexeme)(input);
 let kwd = x => token(Keyword(x));
@@ -89,4 +99,4 @@ let braces = input => between(l_brace, r_brace, input);
 let brackets = input => between(l_brack, r_brack, input);
 let decl = x => x >> identifier;
 let terminated = x => x << optional(semicolon);
-let type_def = colon >> identifier ==> (t => Some(t)) |= None;
+let type_def = opt(None, colon >> identifier ==> (t => Some(t)));

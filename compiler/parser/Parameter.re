@@ -1,7 +1,5 @@
 open Core;
 
-module M = Matchers;
-
 let assignment = M.assign >> Expression.expr ==> (e => Some(e));
 let param =
   M.identifier
@@ -16,4 +14,4 @@ let param =
       )
   );
 
-let params = M.parentheses(comma_separated(param));
+let params = M.comma_separated(param) |> M.parentheses;

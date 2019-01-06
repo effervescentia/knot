@@ -28,10 +28,10 @@ type state_prop =
   | Getter(string, list(param), list(expression));
 
 type declaration =
-  | ConstDecl(string)
+  | ConstDecl(string, expression)
   | StateDecl(string)
   | ViewDecl(string)
-  | FunctionDecl(string);
+  | FunctionDecl(string, list(param), list(expression));
 
 type module_ =
   | Statements(list(module_))

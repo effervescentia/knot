@@ -4,32 +4,20 @@ open KnotParse.AST;
 
 module Parser = KnotParse.Parser;
 
-let test_parse_ast = ((tkns, ast)) =>
-  switch (Parser.parse(Parser.prog, Util.to_token_stream(tkns))) {
-  | Some(res) => Assert.assert_ast_eql(ast, res)
-  | None => assert_failure("no AST found")
-  };
-
 let tests =
   "KnotParse.Parser"
   >::: [
     "parse main import statement"
     >:: (
       _ => {
-        let stmt = [
-          Keyword(Import),
-          Space,
-          Identifier("Table"),
-          Space,
-          Keyword(From),
-          Space,
-          String("table"),
-        ];
+        let name = "MyImport";
+        let module_name = "table";
+        let stmt = ImportParserTest.main_import_stmt(name, module_name);
         let expected =
-          Statements([Import("table", [MainExport("Table")])]);
+          Statements([Import(module_name, [MainExport(name)])]);
 
         Util.test_many(
-          test_parse_ast,
+          Util.test_parse_ast(Parser.prog),
           [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
         );
       }
@@ -37,19 +25,13 @@ let tests =
     "parse const declaration"
     >:: (
       _ => {
-        let stmt = [
-          Keyword(Const),
-          Space,
-          Identifier("abc"),
-          Space,
-          Assign,
-          Space,
-          String("table"),
-        ];
-        let expected = Statements([Declaration(ConstDecl("abc"))]);
+        let name = "myConst";
+        let stmt = ConstParserTest.const_decl(name, Number(5));
+        let expected =
+          Statements([Declaration(ConstDecl(name, NumericLit(5)))]);
 
         Util.test_many(
-          test_parse_ast,
+          Util.test_parse_ast(Parser.prog),
           [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
         );
       }
@@ -69,7 +51,7 @@ let tests =
         let expected = Statements([Declaration(StateDecl("abc"))]);
 
         Util.test_many(
-          test_parse_ast,
+          Util.test_parse_ast(Parser.prog),
           [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
         );
       }
@@ -77,22 +59,19 @@ let tests =
     "parse function declaration"
     >:: (
       _ => {
-        let stmt = [
-          Keyword(Func),
-          Space,
-          Identifier("abc"),
-          Space,
-          Assign,
-          Space,
-          String("table"),
-        ];
-        let expected = Statements([Declaration(FunctionDecl("abc"))]);
+        let name = "abc";
+        let stmt = FunctionParserTest.simple_func_decl(name);
+        let expected =
+          Statements([Declaration(FunctionDecl("abc", [], []))]);
 
         Util.test_many(
-          test_parse_ast,
+          Util.test_parse_ast(Parser.prog),
           [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
         );
       }
     ),
+    ImportParserTest.tests,
+    ConstParserTest.tests,
+    FunctionParserTest.tests,
     ViewParserTest.tests,
   ];
