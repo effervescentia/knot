@@ -20,20 +20,17 @@ jobs:
       - restore_cache:
           <<: *esy_cache_keys
       - run:
-          name: Setup Environment
-          command: npm install --global esy
-      - run:
           name: Install
           working_directory: ~/project/compiler
-          command: esy install
+          command: npx esy install
       - run:
           name: Build
           working_directory: ~/project/compiler
-          command: esy build
+          command: npx esy build
       - run:
           name: Test
           working_directory: ~/project/compiler
-          command: esy test
+          command: npx esy test
       - save_cache:
           <<: *esy_cache
           paths:
