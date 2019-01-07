@@ -1,0 +1,16 @@
+{
+  "name": "knot",
+  "version": "1.0.0",
+  "description": "Knot Language Tools",
+  "main": "index.js",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "author": "Ben Teichman <ben.l.teichman@gmail.com>",
+  "license": "MIT",
+  "lint-staged": {
+    "compiler/{library,lexer,parser,executable,test}/**/*.re": ["refmt --in-place", "git add"]
+  },
+  "devDependencies": {
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.0"
+  }
+}
