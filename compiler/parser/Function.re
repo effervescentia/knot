@@ -1,8 +1,8 @@
 open Core;
 
-let closure = many(Expression.expr |> M.terminated) |> M.braces;
 let lambda = Expression.expr ==> (expr => [expr]) |> M.terminated;
-let body = M.lambda >> (closure <|> lambda);
+let body =
+  M.lambda >> (Expression.expr |> M.terminated |> M.closure <|> lambda);
 let expr =
   Parameter.params >>= (params => body ==> (exprs => (params, exprs)));
 

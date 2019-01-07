@@ -30,5 +30,8 @@ let decl =
     name =>
       Parameter.params
       |= []
-      >>= (params => many(stmt) |> M.braces ==> (stmts => StateDecl(name)))
+      >>= (
+        params =>
+          M.closure(stmt) ==> (stmts => StateDecl(name, params, stmts))
+      )
   );

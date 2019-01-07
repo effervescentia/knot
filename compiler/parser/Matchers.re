@@ -99,4 +99,5 @@ let braces = input => between(l_brace, r_brace, input);
 let brackets = input => between(l_brack, r_brack, input);
 let decl = x => x >> identifier;
 let terminated = x => x << optional(semicolon);
+let closure = x => many(x) |> braces;
 let type_def = opt(None, colon >> identifier ==> (t => Some(t)));

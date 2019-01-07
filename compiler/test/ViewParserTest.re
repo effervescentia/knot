@@ -24,11 +24,18 @@ let tests =
   >::: [
     "parse empty"
     >:: (
-      _ => test_parse_view((empty_view_decl(__name), ViewDecl(__name, [])))
+      _ =>
+        test_parse_view((
+          empty_view_decl(__name),
+          ViewDecl(__name, None, [], [], []),
+        ))
     ),
     "parse no params"
     >:: (
       _ =>
-        test_parse_view((no_params_view_decl(__name), ViewDecl(__name, [])))
+        test_parse_view((
+          no_params_view_decl(__name),
+          ViewDecl(__name, None, [], [], []),
+        ))
     ),
   ];

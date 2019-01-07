@@ -15,7 +15,11 @@ let decl =
             inh =>
               mixins
               |= []
-              >>= (mix => Function.body ==> (exprs => ViewDecl(name, params)))
+              >>= (
+                mix =>
+                  Function.body
+                  ==> (exprs => ViewDecl(name, inh, mix, params, exprs))
+              )
           )
       )
   );

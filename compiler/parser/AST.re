@@ -9,8 +9,7 @@ type expression =
   | GTEExpr(expression, expression)
   | AndExpr(expression, expression)
   | OrExpr(expression, expression)
-  | Constant(string, expression)
-  | Variable(string, expression)
+  | Variable(string)
   | NumericLit(int)
   | BooleanLit(bool)
   | StringLit(string);
@@ -29,8 +28,14 @@ type state_prop =
 
 type declaration =
   | ConstDecl(string, expression)
-  | StateDecl(string)
-  | ViewDecl(string, list(param))
+  | StateDecl(string, list(param), list(state_prop))
+  | ViewDecl(
+      string,
+      option(string),
+      list(string),
+      list(param),
+      list(expression),
+    )
   | FunctionDecl(string, list(param), list(expression));
 
 type module_ =
