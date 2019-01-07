@@ -4,9 +4,10 @@ type keyword =
   | From
   | Const
   | Let
-  | State
-  | View
   | Func
+  | View
+  | State
+  | Style
   | If
   | Else
   | Get
@@ -23,6 +24,7 @@ type token =
   | Semicolon
   | Tilde
   | DollarSign
+  | NumberSign
   | Plus
   | Minus
   | Asterisk
