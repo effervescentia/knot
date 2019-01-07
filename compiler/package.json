@@ -31,7 +31,7 @@
     },
     "test": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "ounit", "ansiterminal"
+        "knot.lib", "knot.lex", "knot.parse", "oUnit", "ANSITerminal"
       ],
       "main": "TestSuite",
       "name": "TestSuite.exe"

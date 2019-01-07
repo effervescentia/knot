@@ -1,13 +1,13 @@
 version: 2.1
 
 defaults:
-  yarn_cache: &yarn_cache
-    key: yarn_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
-  yarn_cache_keys: &yarn_cache_keys
+  esy_cache: &esy_cache
+    key: esy_cache-v2-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+  esy_cache_keys: &esy_cache_keys
     keys:
-      - yarn_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
-      - yarn_cache-v1-{{ checksum "yarn.lock" }}
-      - yarn_cache-v1
+      - esy_cache-v2-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+      - esy_cache-v2-{{ checksum "compiler/esy.lock.json" }}
+      - esy_cache-v2
 
 orbs:
   node: circleci/node@0.0.6
@@ -18,29 +18,23 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          <<: *yarn_cache_keys
-      - run:
-          name: Setup Environment
-          command: yarn global add esy
+          <<: *esy_cache_keys
       - run:
           name: Install
-          command: |
-            cd compiler
-            esy install
+          working_directory: ~/project/compiler
+          command: npx esy install
       - run:
           name: Build
-          command: |
-            cd compiler
-            esy build
+          working_directory: ~/project/compiler
+          command: npx esy build
       - run:
           name: Test
-          command: |
-            cd compiler
-            esy test
+          working_directory: ~/project/compiler
+          command: npx esy test
       - save_cache:
-          <<: *yarn_cache
+          <<: *esy_cache
           paths:
-            - ~/.cache/yarn
+            - ~/.esy/3_____________________________________________________________/i
 
 workflows:
   test:
