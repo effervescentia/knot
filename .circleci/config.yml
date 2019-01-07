@@ -2,12 +2,12 @@ version: 2.1
 
 defaults:
   esy_cache: &esy_cache
-    key: esy_cache-v1-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+    key: esy_cache-v2-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
   esy_cache_keys: &esy_cache_keys
     keys:
-      - esy_cache-v1-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
-      - esy_cache-v1-{{ checksum "compiler/esy.lock.json" }}
-      - esy_cache-v1
+      - esy_cache-v2-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+      - esy_cache-v2-{{ checksum "compiler/esy.lock.json" }}
+      - esy_cache-v2
 
 orbs:
   node: circleci/node@0.0.6
@@ -34,7 +34,7 @@ jobs:
       - save_cache:
           <<: *esy_cache
           paths:
-            - ~/.esy
+            - ~/.esy/3_____________________________________________________________/i
 
 workflows:
   test:
