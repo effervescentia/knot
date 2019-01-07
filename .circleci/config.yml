@@ -1,30 +1,48 @@
 version: 2.1
 
+defaults:
+  yarn_cache: &yarn_cache
+    key: yarn_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
+  yarn_cache_keys: &yarn_cache_keys
+    keys:
+      - yarn_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
+      - yarn_cache-v1-{{ checksum "yarn.lock" }}
+      - yarn_cache-v1
+
 orbs:
-  node: circleci/node@0.0.5
+  node: circleci/node@0.0.6
 
 jobs:
   test_compiler:
-    docker:
-      - image: circleci/node
+    executor: node/node
     steps:
-      - node/with-cache:
-          dir: ~/compiler/node_modules
-          cache-key: ~/compiler/package.json
-          steps:
-            - run:
-                name: 'Install Build Tools'
-                command: yarn global add esy@latest
-            - run:
-                name: 'Install Dependencies'
-                command: esy install
+      - checkout
+      - restore_cache:
+          <<: *yarn_cache_keys
       - run:
-          name: 'Build Compiler'
-          command: esy build
+          name: Setup Environment
+          command: yarn global add esy
       - run:
-          name: 'Test Compiler'
-          command: esy x Compiler.exe
+          name: Install
+          command: |
+            cd compiler
+            esy install
+      - run:
+          name: Build
+          command: |
+            cd compiler
+            esy build
+      - run:
+          name: Test
+          command: |
+            cd compiler
+            esy test
+      - save_cache:
+          <<: *yarn_cache
+          paths:
+            - ~/.cache/yarn
+
 workflows:
-  build_and_test:
+  test:
     jobs:
       - test_compiler
