@@ -1,13 +1,11 @@
-module FileStream = Knot.FileStream;
+open Core;
 
-let rec lex = (chs, stream) =>
-  switch (FileStream.peek(stream)) {
-  | Some(ch) =>
-    switch (ch) {
-    | '0'..'9' =>
-      FileStream.junk(stream);
-      lex([ch, ...chs], stream);
-    | _ => Util.chs_to_number(chs)
-    }
-  | None => Util.chs_to_number(chs)
-  };
+let rec lexer =
+  Lexers([
+    Lexer(
+      Numeric,
+      Except([Numeric]),
+      s => Result(Number(int_of_string(s))),
+    ),
+    Lexer(Numeric, Numeric, _ => lexer),
+  ]);

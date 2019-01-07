@@ -1,11 +1,13 @@
 type keyword =
   | Main
   | Import
+  | From
   | Const
   | Let
-  | State
-  | View
   | Func
+  | View
+  | State
+  | Style
   | If
   | Else
   | Get
@@ -22,6 +24,7 @@ type token =
   | Semicolon
   | Tilde
   | DollarSign
+  | NumberSign
   | Plus
   | Minus
   | Asterisk
@@ -48,6 +51,7 @@ type token =
   | Identifier(string)
   | Number(int)
   | String(string)
+  | Boolean(bool)
   | JSXTextNode(string)
   | LineComment(string)
   | BlockComment(string)

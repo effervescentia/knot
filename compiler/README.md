@@ -1,28 +1,26 @@
-# tigris
+# knot
 
-
-[![CircleCI](https://circleci.com/gh/yourgithubhandle/tigris/tree/master.svg?style=svg)](https://circleci.com/gh/yourgithubhandle/tigris/tree/master)
-
+[![CircleCI](https://circleci.com/gh/effervescentia/knot/tree/master.svg?style=svg)](https://circleci.com/gh/effervescentia/knot/tree/master)
 
 **Contains the following libraries and executables:**
 
 ```
-tigris@0.0.0
+knot@0.0.0
 │
 ├─test/
-│   name:    TestTigris.exe
-│   main:    TestTigris
-│   require: tigris.lib
+│   name:    TestKnot.exe
+│   main:    TestKnot
+│   require: knot.lib
 │
 ├─library/
-│   library name: tigris.lib
-│   namespace:    Tigris
+│   library name: knot.lib
+│   namespace:    Knot
 │   require:
 │
 └─executable/
-    name:    TigrisApp.exe
-    main:    TigrisApp
-    require: tigris.lib
+    name:    KnotApp.exe
+    main:    KnotApp
+    require: knot.lib
 ```
 
 ## Developing:
@@ -39,7 +37,7 @@ esy build
 After building the project, you can run the main binary that is produced.
 
 ```
-esy x TigrisApp.exe 
+esy x KnotApp.exe
 ```
 
 ## Running Tests:

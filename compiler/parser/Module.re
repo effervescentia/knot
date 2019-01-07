@@ -1,10 +1,12 @@
-open Parsing;
-open AST;
+open Core;
 
-let rec body = input =>
-  (Matchers.import_ >> return(Import("sads", [])))(input);
-/* and stmt = input => (_import <|> _decl)(input) */
-/* and _import = input =>
-     (Matchers.import_ >> return(Import("sads", [])))(input)
-   and _decl = input =>
-     (Matchers.import_ >> return(Import("sads", [])))(input); */
+let decl =
+  Const.decl
+  <|> State.decl
+  <|> Function.decl
+  <|> View.decl
+  <|> Style.decl
+  ==> (d => Declaration(d));
+let stmt = Import.stmt <|> decl;
+
+let stmts = many(stmt) ==> (l => Statements(l));

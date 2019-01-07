@@ -10,6 +10,7 @@
   },
   "buildDirs": {
     "library": {
+      "require": ["opal"],
       "name": "knot.lib",
       "namespace": "Knot"
     },
@@ -29,21 +30,26 @@
       "name": "Compiler.exe"
     },
     "test": {
-      "require": ["knot.lib", "knot.lex", "knot.parse", "ounit"],
+      "require": [
+        "knot.lib", "knot.lex", "knot.parse", "ounit", "ansiterminal"
+      ],
       "main": "TestSuite",
       "name": "TestSuite.exe"
     }
   },
   "scripts": {
-    "dev": "sane 'esy build' ./library",
+    "build_test": "esy build && esy test",
+    "dev": "sane 'esy build' --glob='(library|parser|lexer)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "test": "esy x TestSuite.exe",
-    "tdd": "sane 'esy test' ./test"
+    "tdd": "sane 'esy build && esy test' --glob='(library|parser|lexer|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
+    "@opam/ANSITerminal": "0.8.1",
     "@opam/angstrom": "0.10.0",
     "@opam/dune": "*",
+    "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
     "ocaml": "^4.4.0",
     "pesy": "*",

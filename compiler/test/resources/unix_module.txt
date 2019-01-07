@@ -1,0 +1,77 @@
+// this comment should be ignored
+
+///
+this multi-line comment should also be ignored
+///
+
+const numericConst = 8;
+const additionConst = 1 + 10;
+const subtractionConst = 8 - 2;
+const multiplicationConst = 2 * 3;
+const divisionConst = 4 / 2;
+
+const stringConst = "Hello, World!";
+
+const trueConst = true;
+const falseConst = false;
+const lessThanConst = 7 < 9;
+const lessThanEqualConst = 8 <= 2;
+const greaterThanConst = 2 > 4;
+const greaterThanEqualConst = 9 >= 1;
+
+const closureConst = (3 * 2) + (1 + 6 / (2 - 5) * 3);
+
+func compactFunc() -> 4;
+func compactExprFunc() -> A + B;
+func multiExprFunc() -> {
+  e + f;
+  j;
+}
+
+state NoParamsState { }
+state EmptyState () { }
+// state XrayCannon3 ($z: m) { }
+state DefaultParamState (z = 30) { }
+// state XrayCannon5 (x: y, $z: m) { }
+// state XrayCannon6 (x: y = 4, $z: m) { }
+state ComplexState {
+  a: b;
+  _c: d;
+
+  get e -> 4;
+  get f() -> 5;
+  get g(h: j, k = 2, l: m = 20) -> 5;
+  get n() -> {
+    3;
+    A + m;
+  }
+}
+
+// view NoParamsView -> <abc></abc>;
+view NoParamsView -> { }
+view ParamView (m) -> { }
+view TypedParamView (a: b) -> { }
+view DefaultParamView (a = 4) -> { }
+view MultiParamView (m: n, a: b = 2) -> { }
+view InheritingView : SuperView -> {
+  a + b;
+  8;
+}
+view MixinView () ~ MyMixin -> {}
+view InheritingMixinView () : SuperView ~ MyMixin -> {}
+view ComplexView () : SuperView ~ MyMixin, OtherMixin -> {
+  e + f;
+}
+
+style ClassStyle {
+  .root {
+    fontSize: px(20);
+    backgroundColor: red;
+  }
+}
+style IdStyle {
+  #login {
+    visibility: hidden;
+    display: flex;
+  }
+}
