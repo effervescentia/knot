@@ -1,6 +1,6 @@
 open Core;
 
-let prog = stream => (Module.stmts << eof())(stream);
+let prog = stream => (Module.stmts << M.eof)(stream);
 
 let parse = (prog, stream) =>
   switch (prog(stream)) {

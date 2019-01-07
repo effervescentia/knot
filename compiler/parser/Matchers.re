@@ -101,3 +101,4 @@ let decl = x => x >> identifier;
 let terminated = x => x << optional(semicolon);
 let closure = x => many(x) |> braces;
 let type_def = opt(None, colon >> identifier ==> (t => Some(t)));
+let eof = spaces >> Knot.Fiber.eof();
