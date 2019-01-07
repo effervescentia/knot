@@ -158,6 +158,36 @@ let __full_ast =
         [AddExpr(Variable("e"), Variable("f"))],
       ),
     ),
+    Declaration(
+      StyleDecl(
+        "ClassStyle",
+        [],
+        [
+          (
+            ClassKey("root"),
+            [
+              ("fontSize", Protocol("px", [NumericLit(20)])),
+              ("backgroundColor", Preset("red")),
+            ],
+          ),
+        ],
+      ),
+    ),
+    Declaration(
+      StyleDecl(
+        "IdStyle",
+        [],
+        [
+          (
+            IdKey("login"),
+            [
+              ("visibility", Preset("hidden")),
+              ("display", Preset("flex")),
+            ],
+          ),
+        ],
+      ),
+    ),
   ]);
 
 let tests =

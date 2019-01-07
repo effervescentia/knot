@@ -51,16 +51,18 @@ and print_decl =
       "VIEW %s%s%s = %s",
       name,
       print_optional(Printf.sprintf(" extends %s"), super),
-      print_comma_separated(x => x, mixins)
-      |> (
-        fun
-        | "" => ""
-        | _ as res => Printf.sprintf(" mixes %s", res)
-      ),
+      print_mixins(mixins),
       print_lambda(params, exprs),
     )
   | FunctionDecl(name, params, exprs) =>
     Printf.sprintf("FUNCTION %s = %s", name, print_lambda(params, exprs))
+  | StyleDecl(name, params, rule_sets) =>
+    Printf.sprintf(
+      "STYLE %s = ([%s]) -> [%s]",
+      name,
+      print_comma_separated(print_param, params),
+      print_comma_separated(print_style_rule_set, rule_sets),
+    )
 and print_param = ((name, type_def, default_val)) =>
   Printf.sprintf(
     "%s%s%s",
@@ -102,6 +104,28 @@ and print_state_prop =
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
   | Mutator(name, params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("mutator(%s = %s)", name)
+and print_mixins = mixins =>
+  print_comma_separated(x => x, mixins)
+  |> (
+    fun
+    | "" => ""
+    | _ as res => Printf.sprintf(" mixes %s", res)
+  )
+and print_style_value =
+  fun
+  | Preset(name) => name
+  | Protocol(name, exprs) =>
+    print_comma_separated(print_expr, exprs)
+    |> Printf.sprintf("%s(%s)", name)
+and print_style_rule = ((name, value)) =>
+  Printf.sprintf("rule(%s = %s)", name, print_style_value(value))
+and print_style_key =
+  fun
+  | ClassKey(name) => Printf.sprintf("class(%s)", name)
+  | IdKey(name) => Printf.sprintf("id(%s)", name)
+and print_style_rule_set = ((key, rules)) =>
+  print_comma_separated(print_style_rule, rules)
+  |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))
 and print_type_def = print_optional(Printf.sprintf(": %s"))
 and print_assign = x =>
   print_optional(print_expr % Printf.sprintf(" = %s"), x)

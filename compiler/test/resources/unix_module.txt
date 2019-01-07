@@ -63,11 +63,15 @@ view ComplexView () : SuperView ~ MyMixin, OtherMixin -> {
   e + f;
 }
 
-///
-view App(title) -> (
-  <main>
-    <h1 id={someValue}>{title}</h1>
-    <p>{"This is some content"}</p>
-  </main>
-)
-///
+style ClassStyle {
+  .root {
+    fontSize: px(20);
+    backgroundColor: red;
+  }
+}
+style IdStyle {
+  #login {
+    visibility: hidden;
+    display: flex;
+  }
+}

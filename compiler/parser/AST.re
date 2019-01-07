@@ -26,6 +26,17 @@ type state_prop =
   | Mutator(string, list(param), list(expression))
   | Getter(string, list(param), list(expression));
 
+type style_value =
+  | Preset(string)
+  | Protocol(string, list(expression));
+
+type style_key =
+  | ClassKey(string)
+  | IdKey(string);
+
+type style_rule = (string, style_value);
+type style_rule_set = (style_key, list(style_rule));
+
 type declaration =
   | ConstDecl(string, expression)
   | StateDecl(string, list(param), list(state_prop))
@@ -36,7 +47,8 @@ type declaration =
       list(param),
       list(expression),
     )
-  | FunctionDecl(string, list(param), list(expression));
+  | FunctionDecl(string, list(param), list(expression))
+  | StyleDecl(string, list(param), list(style_rule_set));
 
 type module_ =
   | Statements(list(module_))

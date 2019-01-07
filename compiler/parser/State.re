@@ -2,7 +2,8 @@ open Core;
 
 let prop_stmt =
   Property.prop
-  ==> (((name, (type_def, expr))) => Property(name, type_def, expr));
+  ==> (((name, type_def, expr)) => Property(name, type_def, expr))
+  |> M.terminated;
 let mut_stmt =
   M.decl(M.mut)
   >>= (
