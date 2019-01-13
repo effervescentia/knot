@@ -102,6 +102,12 @@ and print_ref = reference =>
   | Variable(name) => Printf.sprintf("variable(%s)", name)
   | DotAccess(source, property) =>
     Printf.sprintf("(%s.%s)", print_ref(source), print_ref(property))
+  | Execution(source, exprs) =>
+    Printf.sprintf(
+      "exec %s(%s)",
+      print_ref(source),
+      print_comma_separated(print_expr, exprs),
+    )
   }
 and print_state_prop =
   fun
@@ -118,14 +124,8 @@ and print_mixins = mixins =>
     | "" => ""
     | _ as res => Printf.sprintf(" mixes %s", res)
   )
-and print_style_value =
-  fun
-  | Preset(refr) => print_ref(refr)
-  | Protocol(refr, exprs) =>
-    print_comma_separated(print_expr, exprs)
-    |> Printf.sprintf("%s(%s)", print_ref(refr))
 and print_style_rule = ((name, value)) =>
-  Printf.sprintf("rule(%s = %s)", print_ref(name), print_style_value(value))
+  Printf.sprintf("rule(%s = %s)", print_ref(name), print_ref(value))
 and print_style_key =
   fun
   | ClassKey(name) => Printf.sprintf("class(%s)", name)

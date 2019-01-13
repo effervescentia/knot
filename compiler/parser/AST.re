@@ -1,7 +1,3 @@
-type reference =
-  | Variable(string)
-  | DotAccess(reference, reference);
-
 type expression =
   | AddExpr(expression, expression)
   | SubExpr(expression, expression)
@@ -16,7 +12,11 @@ type expression =
   | Reference(reference)
   | NumericLit(int)
   | BooleanLit(bool)
-  | StringLit(string);
+  | StringLit(string)
+and reference =
+  | Variable(string)
+  | DotAccess(reference, reference)
+  | Execution(reference, list(expression));
 
 type import_target =
   | MainExport(string)
@@ -30,15 +30,11 @@ type state_prop =
   | Mutator(string, list(param), list(expression))
   | Getter(string, list(param), list(expression));
 
-type style_value =
-  | Preset(reference)
-  | Protocol(reference, list(expression));
-
 type style_key =
   | ClassKey(string)
   | IdKey(string);
 
-type style_rule = (reference, style_value);
+type style_rule = (reference, reference);
 type style_rule_set = (style_key, list(style_rule));
 
 type declaration =
