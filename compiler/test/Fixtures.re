@@ -183,6 +183,25 @@ let full_ast =
         ),
       ),
     ),
+    Declaration(
+      ConstDecl(
+        "executionConst",
+        Reference(
+          Execution(
+            DotAccess(
+              DotAccess(Variable("d"), Variable("e")),
+              Variable("f"),
+            ),
+            [
+              NumericLit(4),
+              Reference(DotAccess(Variable("a"), Variable("x"))),
+              MulExpr(NumericLit(20), NumericLit(3)),
+              Reference(Execution(Variable("m"), [])),
+            ],
+          ),
+        ),
+      ),
+    ),
     Declaration(FunctionDecl("compactFunc", [], [NumericLit(4)])),
     Declaration(
       FunctionDecl(
@@ -303,9 +322,9 @@ let full_ast =
             [
               (
                 Variable("fontSize"),
-                Protocol(Variable("px"), [NumericLit(20)]),
+                Execution(Variable("px"), [NumericLit(20)]),
               ),
-              (Variable("backgroundColor"), Preset(Variable("red"))),
+              (Variable("backgroundColor"), Variable("red")),
             ],
           ),
         ],
@@ -319,8 +338,8 @@ let full_ast =
           (
             IdKey("login"),
             [
-              (Variable("visibility"), Preset(Variable("hidden"))),
-              (Variable("display"), Preset(Variable("flex"))),
+              (Variable("visibility"), Variable("hidden")),
+              (Variable("display"), Variable("flex")),
             ],
           ),
         ],

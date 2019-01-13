@@ -23,6 +23,8 @@ const closureConst = (3 * 2) + (1 + 6 / (2 - 5) * 3);
 
 const dotAccessConst = a.b.c;
 
+const executionConst = d.e.f(4, a.x, 20 * 3, m());
+
 func compactFunc() -> 4;
 func compactExprFunc() -> A + B;
 func multiExprFunc() -> {
