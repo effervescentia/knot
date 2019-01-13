@@ -21,6 +21,8 @@ const greaterThanEqualConst = 9 >= 1;
 
 const closureConst = (3 * 2) + (1 + 6 / (2 - 5) * 3);
 
+const dotAccessConst = a.b.c;
+
 func compactFunc() -> 4;
 func compactExprFunc() -> A + B;
 func multiExprFunc() -> {

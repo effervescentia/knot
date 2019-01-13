@@ -9,4 +9,5 @@ and lte = M.less_than_or_equal >> return((x, y) => LTEExpr(x, y))
 and gt = M.r_chev >> return((x, y) => GTExpr(x, y))
 and gte = M.greater_than_or_equal >> return((x, y) => GTEExpr(x, y))
 and or_ = M.logical_or >> return((x, y) => OrExpr(x, y))
-and and_ = M.logical_and >> return((x, y) => AndExpr(x, y));
+and and_ = M.logical_and >> return((x, y) => AndExpr(x, y))
+and dot = M.period >> return((x, y) => DotAccess(x, y));

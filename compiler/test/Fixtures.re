@@ -114,3 +114,216 @@ let all_tokens = [
   Space,
   Identifier("moron"),
 ];
+
+let full_ast =
+  Statements([
+    Declaration(ConstDecl("numericConst", NumericLit(8))),
+    Declaration(
+      ConstDecl("additionConst", AddExpr(NumericLit(1), NumericLit(10))),
+    ),
+    Declaration(
+      ConstDecl("subtractionConst", SubExpr(NumericLit(8), NumericLit(2))),
+    ),
+    Declaration(
+      ConstDecl(
+        "multiplicationConst",
+        MulExpr(NumericLit(2), NumericLit(3)),
+      ),
+    ),
+    Declaration(
+      ConstDecl("divisionConst", DivExpr(NumericLit(4), NumericLit(2))),
+    ),
+    Declaration(ConstDecl("stringConst", StringLit("Hello, World!"))),
+    Declaration(ConstDecl("trueConst", BooleanLit(true))),
+    Declaration(ConstDecl("falseConst", BooleanLit(false))),
+    Declaration(
+      ConstDecl("lessThanConst", LTExpr(NumericLit(7), NumericLit(9))),
+    ),
+    Declaration(
+      ConstDecl(
+        "lessThanEqualConst",
+        LTEExpr(NumericLit(8), NumericLit(2)),
+      ),
+    ),
+    Declaration(
+      ConstDecl("greaterThanConst", GTExpr(NumericLit(2), NumericLit(4))),
+    ),
+    Declaration(
+      ConstDecl(
+        "greaterThanEqualConst",
+        GTEExpr(NumericLit(9), NumericLit(1)),
+      ),
+    ),
+    Declaration(
+      ConstDecl(
+        "closureConst",
+        AddExpr(
+          MulExpr(NumericLit(3), NumericLit(2)),
+          AddExpr(
+            NumericLit(1),
+            MulExpr(
+              DivExpr(
+                NumericLit(6),
+                SubExpr(NumericLit(2), NumericLit(5)),
+              ),
+              NumericLit(3),
+            ),
+          ),
+        ),
+      ),
+    ),
+    Declaration(
+      ConstDecl(
+        "dotAccessConst",
+        Reference(
+          DotAccess(
+            DotAccess(Variable("a"), Variable("b")),
+            Variable("c"),
+          ),
+        ),
+      ),
+    ),
+    Declaration(FunctionDecl("compactFunc", [], [NumericLit(4)])),
+    Declaration(
+      FunctionDecl(
+        "compactExprFunc",
+        [],
+        [AddExpr(Reference(Variable("A")), Reference(Variable("B")))],
+      ),
+    ),
+    Declaration(
+      FunctionDecl(
+        "multiExprFunc",
+        [],
+        [
+          AddExpr(Reference(Variable("e")), Reference(Variable("f"))),
+          Reference(Variable("j")),
+        ],
+      ),
+    ),
+    Declaration(StateDecl("NoParamsState", [], [])),
+    Declaration(StateDecl("EmptyState", [], [])),
+    Declaration(
+      StateDecl(
+        "DefaultParamState",
+        [("z", None, Some(NumericLit(30)))],
+        [],
+      ),
+    ),
+    Declaration(
+      StateDecl(
+        "ComplexState",
+        [],
+        [
+          Property("a", Some("b"), None),
+          Property("_c", Some("d"), None),
+          Getter("e", [], [NumericLit(4)]),
+          Getter("f", [], [NumericLit(5)]),
+          Getter(
+            "g",
+            [
+              ("h", Some("j"), None),
+              ("k", None, Some(NumericLit(2))),
+              ("l", Some("m"), Some(NumericLit(20))),
+            ],
+            [NumericLit(5)],
+          ),
+          Getter(
+            "n",
+            [],
+            [
+              NumericLit(3),
+              AddExpr(Reference(Variable("A")), Reference(Variable("m"))),
+            ],
+          ),
+        ],
+      ),
+    ),
+    Declaration(ViewDecl("NoParamsView", None, [], [], [])),
+    Declaration(ViewDecl("ParamView", None, [], [("m", None, None)], [])),
+    Declaration(
+      ViewDecl("TypedParamView", None, [], [("a", Some("b"), None)], []),
+    ),
+    Declaration(
+      ViewDecl(
+        "DefaultParamView",
+        None,
+        [],
+        [("a", None, Some(NumericLit(4)))],
+        [],
+      ),
+    ),
+    Declaration(
+      ViewDecl(
+        "MultiParamView",
+        None,
+        [],
+        [("m", Some("n"), None), ("a", Some("b"), Some(NumericLit(2)))],
+        [],
+      ),
+    ),
+    Declaration(
+      ViewDecl(
+        "InheritingView",
+        Some("SuperView"),
+        [],
+        [],
+        [
+          AddExpr(Reference(Variable("a")), Reference(Variable("b"))),
+          NumericLit(8),
+        ],
+      ),
+    ),
+    Declaration(ViewDecl("MixinView", None, ["MyMixin"], [], [])),
+    Declaration(
+      ViewDecl(
+        "InheritingMixinView",
+        Some("SuperView"),
+        ["MyMixin"],
+        [],
+        [],
+      ),
+    ),
+    Declaration(
+      ViewDecl(
+        "ComplexView",
+        Some("SuperView"),
+        ["MyMixin", "OtherMixin"],
+        [],
+        [AddExpr(Reference(Variable("e")), Reference(Variable("f")))],
+      ),
+    ),
+    Declaration(
+      StyleDecl(
+        "ClassStyle",
+        [],
+        [
+          (
+            ClassKey("root"),
+            [
+              (
+                Variable("fontSize"),
+                Protocol(Variable("px"), [NumericLit(20)]),
+              ),
+              (Variable("backgroundColor"), Preset(Variable("red"))),
+            ],
+          ),
+        ],
+      ),
+    ),
+    Declaration(
+      StyleDecl(
+        "IdStyle",
+        [],
+        [
+          (
+            IdKey("login"),
+            [
+              (Variable("visibility"), Preset(Variable("hidden"))),
+              (Variable("display"), Preset(Variable("flex"))),
+            ],
+          ),
+        ],
+      ),
+    ),
+  ]);

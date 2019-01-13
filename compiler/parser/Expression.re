@@ -14,8 +14,8 @@ and term = input =>
     /* JSX.expr(expr)
        ==> (j => JSX(j))
        <|>  */
-    M.identifier
-    ==> (s => Variable(s))
+    Reference.expr
+    ==> (r => Reference(r))
     <|> (M.string ==> (s => StringLit(s)))
     <|> (M.number ==> (x => NumericLit(x)))
     <|> (M.boolean ==> (b => BooleanLit(b)))
