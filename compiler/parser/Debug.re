@@ -75,7 +75,8 @@ and print_expr =
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
   | StringLit(s) => s
-  | Variable(name) => Printf.sprintf("variable(%s)", name)
+  | Reference(reference) =>
+    print_ref(reference) |> Printf.sprintf("reference(%s)")
   | AddExpr(lhs, rhs) =>
     Printf.sprintf("(%s + %s)", print_expr(lhs), print_expr(rhs))
   | SubExpr(lhs, rhs) =>
@@ -96,6 +97,12 @@ and print_expr =
     Printf.sprintf("(%s && %s)", print_expr(lhs), print_expr(rhs))
   | OrExpr(lhs, rhs) =>
     Printf.sprintf("(%s || %s)", print_expr(lhs), print_expr(rhs))
+and print_ref = reference =>
+  switch (reference) {
+  | Variable(name) => Printf.sprintf("variable(%s)", name)
+  | DotAccess(source, property) =>
+    Printf.sprintf("(%s.%s)", print_ref(source), print_ref(property))
+  }
 and print_state_prop =
   fun
   | Property(name, type_def, default_val) =>
@@ -113,12 +120,12 @@ and print_mixins = mixins =>
   )
 and print_style_value =
   fun
-  | Preset(name) => name
-  | Protocol(name, exprs) =>
+  | Preset(refr) => print_ref(refr)
+  | Protocol(refr, exprs) =>
     print_comma_separated(print_expr, exprs)
-    |> Printf.sprintf("%s(%s)", name)
+    |> Printf.sprintf("%s(%s)", print_ref(refr))
 and print_style_rule = ((name, value)) =>
-  Printf.sprintf("rule(%s = %s)", name, print_style_value(value))
+  Printf.sprintf("rule(%s = %s)", print_ref(name), print_style_value(value))
 and print_style_key =
   fun
   | ClassKey(name) => Printf.sprintf("class(%s)", name)

@@ -1,20 +1,20 @@
 open Core;
 
 let protocol =
-  M.identifier
+  Reference.expr
   >>= (
-    name =>
+    refr =>
       Expression.expr
       |> M.comma_separated
       |> M.parentheses
-      ==> (exprs => Protocol(name, exprs))
+      ==> (exprs => Protocol(refr, exprs))
   );
-let preset = M.identifier ==> (name => Preset(name));
+let preset = Reference.expr ==> (refr => Preset(refr));
 let style_value = protocol <|> preset;
 
 let rule =
-  M.identifier
-  >>= (name => M.colon >> style_value ==> (value => (name, value)));
+  Reference.expr
+  >>= (refr => M.colon >> style_value ==> (value => (refr, value)));
 
 let class_ = M.period >> M.identifier ==> (s => ClassKey(s));
 let id = M.number_sign >> M.identifier ==> (s => IdKey(s));

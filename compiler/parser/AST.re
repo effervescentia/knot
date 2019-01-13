@@ -1,3 +1,7 @@
+type reference =
+  | Variable(string)
+  | DotAccess(reference, reference);
+
 type expression =
   | AddExpr(expression, expression)
   | SubExpr(expression, expression)
@@ -9,7 +13,7 @@ type expression =
   | GTEExpr(expression, expression)
   | AndExpr(expression, expression)
   | OrExpr(expression, expression)
-  | Variable(string)
+  | Reference(reference)
   | NumericLit(int)
   | BooleanLit(bool)
   | StringLit(string);
@@ -27,14 +31,14 @@ type state_prop =
   | Getter(string, list(param), list(expression));
 
 type style_value =
-  | Preset(string)
-  | Protocol(string, list(expression));
+  | Preset(reference)
+  | Protocol(reference, list(expression));
 
 type style_key =
   | ClassKey(string)
   | IdKey(string);
 
-type style_rule = (string, style_value);
+type style_rule = (reference, style_value);
 type style_rule_set = (style_key, list(style_rule));
 
 type declaration =
