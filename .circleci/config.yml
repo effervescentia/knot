@@ -22,7 +22,7 @@ jobs:
       - run:
           name: Install
           working_directory: ~/project/compiler
-          command: npx esy install --cache-tarballs-path=~/_esyinstall
+          command: npx esy install --cache-tarballs-path=./_esyinstall
       - run:
           name: Build
           working_directory: ~/project/compiler
@@ -36,11 +36,11 @@ jobs:
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            mv ./_build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
+            mv _esy/default/build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
       - save_cache:
           <<: *esy_cache
           paths:
-            - ~/_esyinstall
+            - ~/project/compiler/_esyinstall
 
   test_webpack_react:
     executor: node/node
