@@ -1,1 +1,1 @@
-Knot.Util.foo();
+let () = ();

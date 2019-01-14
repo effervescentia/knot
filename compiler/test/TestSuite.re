@@ -21,6 +21,7 @@ let () = {
       LexerTest.tests,
       TokenStreamTest.tests,
       ParserTest.tests,
+      GeneratorTest.tests,
     ],
   );
 

@@ -7,15 +7,8 @@ let rec repeat = (s, n) =>
     s ++ repeat(s, n - 1);
   };
 
-let print_comma_separated = (printer, xs) => {
-  let rec next =
-    fun
-    | [x] => printer(x)
-    | [x, ...xs] => printer(x) ++ ", " ++ next(xs)
-    | [] => "";
-
-  next(xs);
-};
+let print_comma_separated = printer =>
+  Knot.Util.print_separated(", ", printer);
 
 let print_optional = printer =>
   fun

@@ -24,14 +24,19 @@
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
+    "generator": {
+      "require": ["knot.lib", "knot.lex", "knot.parse", "str"],
+      "name": "knot.gen",
+      "namespace": "KnotGen"
+    },
     "executable": {
-      "require": ["knot.lib", "knot.lex", "knot.parse"],
+      "require": ["knot.lib", "knot.lex", "knot.parse", "knot.gen"],
       "main": "Compiler",
       "name": "Compiler.exe"
     },
     "test": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "oUnit", "ANSITerminal"
+        "knot.lib", "knot.lex", "knot.parse", "knot.gen", "oUnit", "ANSITerminal"
       ],
       "main": "TestSuite",
       "name": "TestSuite.exe"
@@ -39,10 +44,10 @@
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' --glob='(library|parser|lexer)/**/*.re'",
+    "dev": "sane 'esy build' --glob='(library|parser|lexer|generator)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "test": "esy x TestSuite.exe",
-    "tdd": "sane 'esy build && esy test' --glob='(library|parser|lexer|test)/**/*.re'"
+    "tdd": "sane 'esy build && esy test' --glob='(library|parser|lexer|generator|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
