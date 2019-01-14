@@ -12,6 +12,14 @@ defaults:
 orbs:
   node: circleci/node@0.0.6
 
+commands:
+  setup_yarn:
+    - run:
+        name: Setup Yarn
+        command: |
+          echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
+          yarn global add esy
+
 jobs:
   test_compiler:
     executor: node/node
@@ -19,9 +27,7 @@ jobs:
       - checkout
       - restore_cache:
           <<: *esy_cache_keys
-      - run:
-          name: Setup Yarn
-          command: echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
+      - setup_yarn
       - run:
           name: Install
           working_directory: ~/project/compiler
@@ -60,9 +66,7 @@ jobs:
 
       - attach_workspace:
           at: /tmp/workspace
-      - run:
-          name: Setup Yarn
-          command: echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
+      - setup_yarn
       # - restore_cache:
       #     <<: *esy_cache_keys
       - run:
