@@ -1,10 +1,8 @@
 include Knot.Globals;
 include KnotParse.AST;
 
-let module_map = "__knot_modules__";
-
-let gen_string =
-  Str.global_replace(Str.regexp_string("'"), "\'") % Printf.sprintf("'%s'");
+let module_map = "$$knot_modules$$";
+let export_map = "$$knot_exports$$";
 
 let gen_list = printer => Knot.Util.print_separated(",", printer);
 

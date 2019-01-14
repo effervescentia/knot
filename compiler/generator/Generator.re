@@ -1,7 +1,12 @@
 open Core;
 
-let rec generate = (printer, ast) => {
-  Printf.sprintf("module.exports=(function(%s){", module_map) |> printer;
+let generate = (printer, ast) => {
+  Printf.sprintf(
+    "module.exports=(function(%s){var %s={};",
+    module_map,
+    export_map,
+  )
+  |> printer;
   Module.generate(printer, ast);
-  Printf.sprintf("})(%s);", module_map) |> printer;
+  Printf.sprintf("return %s;})(%s);", export_map, module_map) |> printer;
 };
