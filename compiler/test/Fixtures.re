@@ -357,9 +357,29 @@ let full_ast =
 
 let with_export = (name, s) =>
   s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
+let expand_arg = (index, name) =>
+  Printf.sprintf(
+    "var %s=%s.arg(arguments,%n,'%s');",
+    name,
+    KnotGen.Core.util_map,
+    index,
+    name,
+  );
+let expand_default_arg = (index, name) =>
+  Printf.sprintf(
+    "var %s=%s.arg(arguments,%n,'%s',%s);",
+    name,
+    KnotGen.Core.util_map,
+    index,
+    name,
+  );
 
 let full_generated =
-  Printf.sprintf("function(%s){", KnotGen.Core.module_map)
+  Printf.sprintf(
+    "function(%s,%s){",
+    KnotGen.Core.module_map,
+    KnotGen.Core.util_map,
+  )
   ++ Printf.sprintf("var %s={};", KnotGen.Core.export_map)
   ++ Printf.sprintf("var ABC=%s.abc.main;", KnotGen.Core.module_map)
   ++ with_export("numericConst", "var numericConst=8;")
@@ -386,93 +406,84 @@ let full_generated =
        "executionConst",
        "var executionConst=d.e.f(4,a.x,(20*3),m());",
      )
-  ++ with_export("compactFunc", "function compactFunc(args){return 4;}")
+  ++ with_export("compactFunc", "function compactFunc(){return 4;}")
   ++ with_export(
        "compactExprFunc",
-       "function compactExprFunc(args){return (A+B);}",
+       "function compactExprFunc(){return (A+B);}",
      )
   ++ with_export(
        "multiExprFunc",
-       "function multiExprFunc(args){"
-       ++ /**/ "(e+f);"
-       ++ /**/ "return j;"
-       ++ "}",
+       "function multiExprFunc(){" ++ /**/ "(e+f);" ++ /**/ "return j;" ++ "}",
      )
   ++ with_export(
        "paramFunc",
-       "function paramFunc(args){"
-       ++ /**/ "var a=args.a;"
+       "function paramFunc(){"
+       ++ /**/ expand_arg(0, "a")
        ++ /**/ "return a;"
        ++ "}",
      )
-  ++ with_export("NoParamsState", "function NoParamsState(args){return {};}")
-  ++ with_export("EmptyState", "function EmptyState(args){return {};}")
+  ++ with_export("NoParamsState", "function NoParamsState(){return {};}")
+  ++ with_export("EmptyState", "function EmptyState(){return {};}")
   ++ with_export(
        "DefaultParamState",
-       "function DefaultParamState(args){"
-       ++ /**/ "var z='z' in args?args.z:30;"
+       "function DefaultParamState(){"
+       ++ /**/ expand_default_arg(0, "z", "30")
        ++ /**/ "return {};"
        ++ "}",
      )
   ++ with_export(
        "ComplexState",
-       "function ComplexState(args){"
+       "function ComplexState(){"
        ++ /**/ "return {"
        ++ /*  */ "a:undefined,"
        ++ /*  */ "_c:undefined,"
-       ++ /*  */ "e:function(args){return 4;},"
-       ++ /*  */ "f:function(args){return 5;},"
-       ++ /*  */ "g:function(args){"
-       ++ /*    */ "var h=args.h;"
-       ++ /*    */ "var k='k' in args?args.k:2;"
-       ++ /*    */ "var l='l' in args?args.l:20;"
+       ++ /*  */ "e:function(){return 4;},"
+       ++ /*  */ "f:function(){return 5;},"
+       ++ /*  */ "g:function(){"
+       ++ /*    */ expand_arg(0, "h")
+       ++ /*    */ expand_default_arg(1, "k", "2")
+       ++ /*    */ expand_default_arg(2, "l", "20")
        ++ /*    */ "return 5;"
        ++ /*  */ "},"
-       ++ /*  */ "n:function(args){"
+       ++ /*  */ "n:function(){"
        ++ /*    */ "3;"
        ++ /*    */ "return (A+m);"
        ++ /*  */ "}"
        ++ /**/ "};"
        ++ "}",
      )
-  ++ with_export("NoParamsView", "function NoParamsView(args){}")
+  ++ with_export("NoParamsView", "function NoParamsView(){}")
   ++ with_export(
        "ParamView",
-       "function ParamView(args){" ++ /**/ "var m=args.m;" ++ "}",
+       "function ParamView(){" ++ /**/ expand_arg(0, "m") ++ "}",
      )
   ++ with_export(
        "TypedParamView",
-       "function TypedParamView(args){" ++ /**/ "var a=args.a;" ++ "}",
+       "function TypedParamView(){" ++ /**/ expand_arg(0, "a") ++ "}",
      )
   ++ with_export(
        "DefaultParamView",
-       "function DefaultParamView(args){"
-       ++ /**/ "var a='a' in args?args.a:4;"
+       "function DefaultParamView(){"
+       ++ /**/ expand_default_arg(0, "a", "4")
        ++ "}",
      )
   ++ with_export(
        "MultiParamView",
-       "function MultiParamView(args){"
-       ++ /**/ "var m=args.m;"
-       ++ /**/ "var a='a' in args?args.a:2;"
+       "function MultiParamView(){"
+       ++ /**/ expand_arg(0, "m")
+       ++ /**/ expand_default_arg(1, "a", "2")
        ++ "}",
      )
   ++ with_export(
        "InheritingView",
-       "function InheritingView(args){"
-       ++ /**/ "(a+b);"
-       ++ /**/ "return 8;"
-       ++ "}",
+       "function InheritingView(){" ++ /**/ "(a+b);" ++ /**/ "return 8;" ++ "}",
      )
-  ++ with_export("MixinView", "function MixinView(args){}")
-  ++ with_export(
-       "InheritingMixinView",
-       "function InheritingMixinView(args){}",
-     )
-  ++ with_export("ComplexView", "function ComplexView(args){return (e+f);}")
+  ++ with_export("MixinView", "function MixinView(){}")
+  ++ with_export("InheritingMixinView", "function InheritingMixinView(){}")
+  ++ with_export("ComplexView", "function ComplexView(){return (e+f);}")
   ++ with_export(
        "ClassStyle",
-       "function ClassStyle(args){"
+       "function ClassStyle(){"
        ++ /**/ "return {"
        ++ /*  */ "['.root']:{"
        ++ /*    */ "[fontSize]:px(20),"
@@ -483,7 +494,7 @@ let full_generated =
      )
   ++ with_export(
        "IdStyle",
-       "function IdStyle(args){"
+       "function IdStyle(){"
        ++ /**/ "return {"
        ++ /*  */ "['#login']:{"
        ++ /*    */ "[visibility]:hidden,"
