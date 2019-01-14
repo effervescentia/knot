@@ -2,12 +2,12 @@ version: 2.1
 
 defaults:
   esy_cache: &esy_cache
-    key: esy_cache-v3-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+    key: esy_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
   esy_cache_keys: &esy_cache_keys
     keys:
-      - esy_cache-v3-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
-      - esy_cache-v3-{{ checksum "compiler/esy.lock.json" }}
-      - esy_cache-v3
+      - esy_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+      - esy_cache-v4-{{ checksum "compiler/esy.lock.json" }}
+      - esy_cache-v4
 
 orbs:
   node: circleci/node@0.0.6
