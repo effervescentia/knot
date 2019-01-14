@@ -25,7 +25,11 @@ and gen_reference =
   fun
   | Variable(name) => name
   | DotAccess(lhs, rhs) =>
-    Printf.sprintf("%s['%s']", gen_reference(lhs), gen_reference(rhs))
+    Printf.sprintf(
+      "%s%s",
+      gen_reference(lhs),
+      gen_reference(rhs) |> Property.gen_access,
+    )
   | Execution(target, args) =>
     Printf.sprintf(
       "%s(%s)",
