@@ -10,9 +10,6 @@
     "start:hidden": "npm run start -- --no-open",
     "test": "npm run test:e2e",
     "test:e2e": "start-server-and-test start:hidden http://localhost:1337 cypress:run",
-    "test:ci": "npm run test:e2e:ci",
-    "test:e2e:ci": "start-server-and-test start:hidden:ci http://localhost:1337 cypress:run",
-    "start:hidden:ci": "cross-env KNOT_BINARY=/tmp/workspace/Compiler.exe npm run start -- --no-open",
     "cypress": "cypress open",
     "cypress:run": "cypress run"
   },

@@ -1,13 +1,20 @@
 version: 2.1
 
 defaults:
-  esy_cache: &esy_cache
-    key: esy_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
-  esy_cache_keys: &esy_cache_keys
+  compiler_cache: &compiler_cache
+    key: compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+  compiler_cache_keys: &compiler_cache_keys
     keys:
-      - esy_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
-      - esy_cache-v4-{{ checksum "compiler/esy.lock.json" }}
-      - esy_cache-v4
+      - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+      - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}
+      - compiler_cache-v4
+  webpack_loader_cache: &webpack_loader_cache
+    key: webpack_loader_cache-v1-{{ checksum "webpack-loader/yarn.lock" }}-{{ .Branch }}
+  webpack_loader_cache_keys: &webpack_loader_cache_keys
+    keys:
+      - webpack_loader_cache-v1-{{ checksum "webpack-loader/yarn.lock" }}-{{ .Branch }}
+      - webpack_loader_cache-v1-{{ checksum "webpack-loader/yarn.lock" }}
+      - webpack_loader_cache-v1
 
 orbs:
   node: circleci/node@0.0.6
@@ -27,7 +34,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          <<: *esy_cache_keys
+          <<: *compiler_cache_keys
       - setup_esy
       - run:
           name: Install
@@ -51,7 +58,7 @@ jobs:
           working_directory: ~/project/compiler
           command: esy export-dependencies
       - save_cache:
-          <<: *esy_cache
+          <<: *compiler_cache
           paths:
             - ~/project/compiler/_export
       - run:
@@ -66,28 +73,32 @@ jobs:
             - Compiler.exe
 
   test_webpack_react:
-    executor: node/node
+    docker:
+      - image: cypress/base:8
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/Compiler.exe
+    working_directory: ~/app
     steps:
       - checkout
+      - restore_cache:
+          <<: *webpack_loader_cache_keys
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
-      # - restore_cache:
-      #     <<: *esy_cache_keys
       - run:
           name: Install
-          working_directory: ~/project/examples/webpack-react
-          command: yarn install
+          working_directory: ./examples/webpack-react
+          command: yarn install --frozen-lockfile
       - run:
           name: Test
-          working_directory: ~/project/examples/webpack-react
-          environment:
-            KNOT_BINARY: /tmp/workspace/Compiler.exe
-          command: yarn test:ci
-      # - save_cache:
-      #     <<: *esy_cache
-      #     paths:
-      #       - ~/.esy/3_____________________________________________________________/i
+          working_directory: ./examples/webpack-react
+          command: yarn test
+      - save_cache:
+          <<: *webpack_loader_cache
+          paths:
+            - ~/.cache
 
 workflows:
   test:
