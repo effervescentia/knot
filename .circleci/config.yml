@@ -32,7 +32,7 @@ jobs:
       - run:
           name: Install
           working_directory: ~/project/compiler
-          command: esy install --cache-tarballs-path=./_esyinstall
+          command: esy install
       - run:
           name: Build
           working_directory: ~/project/compiler
@@ -53,7 +53,6 @@ jobs:
       - save_cache:
           <<: *esy_cache
           paths:
-            - ~/project/compiler/_esyinstall
             - ~/project/compiler/_export
       - run:
           name: Populate Workspace
