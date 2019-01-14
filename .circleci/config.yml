@@ -20,23 +20,26 @@ jobs:
       - restore_cache:
           <<: *esy_cache_keys
       - run:
+          name: Setup Yarn
+          command: echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
+      - run:
           name: Install
           working_directory: ~/project/compiler
-          command: npx esy install
+          command: esy install
       - run:
           name: Build
           working_directory: ~/project/compiler
-          command: npx esy build
+          command: esy build
       - run:
           name: Test
           working_directory: ~/project/compiler
-          command: npx -p esy npm run test
+          command: esy npm run test
       - run:
           name: Populate Workspace
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            mv _esy/default/build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
+            mv _build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -54,8 +57,12 @@ jobs:
     executor: node/node
     steps:
       - checkout
+
       - attach_workspace:
           at: /tmp/workspace
+      - run:
+          name: Setup Yarn
+          command: echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
       # - restore_cache:
       #     <<: *esy_cache_keys
       - run:
