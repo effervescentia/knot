@@ -22,7 +22,7 @@ jobs:
       - run:
           name: Install
           working_directory: ~/project/compiler
-          command: npx esy install --cache-tarballs-path=./_esyinstall
+          command: npx esy install
       - run:
           name: Build
           working_directory: ~/project/compiler
@@ -37,6 +37,14 @@ jobs:
           command: |
             mkdir -p /tmp/workspace
             mv _esy/default/build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - Compiler.exe
+      - run:
+          name: Generate Cache
+          working_directory: ~/project/compiler
+          command: npx esy install --cache-tarballs-path=./_esyinstall
       - save_cache:
           <<: *esy_cache
           paths:
