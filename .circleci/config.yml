@@ -13,10 +13,10 @@ orbs:
   node: circleci/node@0.0.6
 
 commands:
-  setup_yarn:
+  setup_esy:
     steps:
       - run:
-          name: Setup Yarn
+          name: Setup Esy
           command: |
             echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
             yarn global add esy
@@ -28,7 +28,7 @@ jobs:
       - checkout
       - restore_cache:
           <<: *esy_cache_keys
-      - setup_yarn
+      - setup_esy
       - run:
           name: Install
           working_directory: ~/project/compiler
@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Test
           working_directory: ~/project/compiler
-          command: esy npm run test
+          command: yarn test
       - run:
           name: Populate Workspace
           working_directory: ~/project/compiler
@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Generate Cache
           working_directory: ~/project/compiler
-          command: npx esy install --cache-tarballs-path=./_esyinstall
+          command: esy install --cache-tarballs-path=./_esyinstall
       - save_cache:
           <<: *esy_cache
           paths:
@@ -67,7 +67,7 @@ jobs:
 
       - attach_workspace:
           at: /tmp/workspace
-      - setup_yarn
+      - setup_esy
       # - restore_cache:
       #     <<: *esy_cache_keys
       - run:
