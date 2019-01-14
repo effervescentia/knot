@@ -20,7 +20,10 @@ module.exports = {
   module: {
     rules: [{
       test: /\.kn$/,
-      loader: '@knot/webpack-loader'
+      loader: '@knot/webpack-loader',
+      options: {
+        knot: process.env.KNOT_BINARY
+      }
     }]
   },
 

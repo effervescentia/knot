@@ -7,7 +7,7 @@
     "build": "webpack --mode development",
     "dev": "webpack --watch --mode development",
     "start": "webpack-dev-server --mode development",
-    "start:hidden": "npm run start -- --open=false",
+    "start:hidden": "npm run start -- --no-open",
     "test": "npm run test:e2e",
     "test:e2e": "start-server-and-test start:hidden http://localhost:1337 cypress:run",
     "cypress": "cypress open",
