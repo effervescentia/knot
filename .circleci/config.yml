@@ -32,23 +32,29 @@ jobs:
       - run:
           name: Install
           working_directory: ~/project/compiler
-          command: esy install
+          command: esy install --cache-tarballs-path=./_esyinstall
       - run:
           name: Build
           working_directory: ~/project/compiler
-          command: esy build
+          command: |
+            if [ -e ./_export ]; then
+              esy import-build ./_export/*.tar.gz
+            fi
+
+            esy build
       - run:
           name: Test
           working_directory: ~/project/compiler
           command: yarn test
       - run:
-          name: Generate Cache
+          name: Export Dependencies
           working_directory: ~/project/compiler
-          command: esy install --cache-tarballs-path=./_esyinstall
+          command: esy export-dependencies
       - save_cache:
           <<: *esy_cache
           paths:
             - ~/project/compiler/_esyinstall
+            - ~/project/compiler/_export
       - run:
           name: Populate Workspace
           working_directory: ~/project/compiler
@@ -64,7 +70,6 @@ jobs:
     executor: node/node
     steps:
       - checkout
-
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
