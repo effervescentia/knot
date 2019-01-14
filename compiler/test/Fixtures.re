@@ -348,7 +348,7 @@ let full_ast =
   ]);
 
 let with_export = (name, s) =>
-  s ++ Printf.sprintf("%s['%s']=%s;", KnotGen.Core.export_map, name, name);
+  s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
 
 let full_generated =
   Printf.sprintf("module.exports=(function(%s){", KnotGen.Core.module_map)
@@ -372,10 +372,10 @@ let full_generated =
        "closureConst",
        "var closureConst=((3*2)+(1+((6/(2-5))*3)));",
      )
-  ++ with_export("dotAccessConst", "var dotAccessConst=a['b']['c'];")
+  ++ with_export("dotAccessConst", "var dotAccessConst=a.b.c;")
   ++ with_export(
        "executionConst",
-       "var executionConst=d['e']['f'](4,a['x'],(20*3),m());",
+       "var executionConst=d.e.f(4,a.x,(20*3),m());",
      )
   ++ with_export("compactFunc", "function compactFunc(args){return 4;}")
   ++ with_export(
@@ -394,7 +394,7 @@ let full_generated =
   ++ with_export(
        "DefaultParamState",
        "function DefaultParamState(args){"
-       ++ /**/ "var z='z' in args?args['z']:30;"
+       ++ /**/ "var z='z' in args?args.z:30;"
        ++ /**/ "return {};"
        ++ "}",
      )
@@ -402,17 +402,17 @@ let full_generated =
        "ComplexState",
        "function ComplexState(args){"
        ++ /**/ "return {"
-       ++ /*  */ "['a']:undefined,"
-       ++ /*  */ "['_c']:undefined,"
-       ++ /*  */ "['e']:function(args){return 4;},"
-       ++ /*  */ "['f']:function(args){return 5;},"
-       ++ /*  */ "['g']:function(args){"
-       ++ /*    */ "var h=args['h'];"
-       ++ /*    */ "var k='k' in args?args['k']:2;"
-       ++ /*    */ "var l='l' in args?args['l']:20;"
+       ++ /*  */ "a:undefined,"
+       ++ /*  */ "_c:undefined,"
+       ++ /*  */ "e:function(args){return 4;},"
+       ++ /*  */ "f:function(args){return 5;},"
+       ++ /*  */ "g:function(args){"
+       ++ /*    */ "var h=args.h;"
+       ++ /*    */ "var k='k' in args?args.k:2;"
+       ++ /*    */ "var l='l' in args?args.l:20;"
        ++ /*    */ "return 5;"
        ++ /*  */ "},"
-       ++ /*  */ "['n']:function(args){"
+       ++ /*  */ "n:function(args){"
        ++ /*    */ "3;"
        ++ /*    */ "return (A+m);"
        ++ /*  */ "}"
@@ -422,23 +422,23 @@ let full_generated =
   ++ with_export("NoParamsView", "function NoParamsView(args){}")
   ++ with_export(
        "ParamView",
-       "function ParamView(args){" ++ /**/ "var m=args['m'];" ++ "}",
+       "function ParamView(args){" ++ /**/ "var m=args.m;" ++ "}",
      )
   ++ with_export(
        "TypedParamView",
-       "function TypedParamView(args){" ++ /**/ "var a=args['a'];" ++ "}",
+       "function TypedParamView(args){" ++ /**/ "var a=args.a;" ++ "}",
      )
   ++ with_export(
        "DefaultParamView",
        "function DefaultParamView(args){"
-       ++ /**/ "var a='a' in args?args['a']:4;"
+       ++ /**/ "var a='a' in args?args.a:4;"
        ++ "}",
      )
   ++ with_export(
        "MultiParamView",
        "function MultiParamView(args){"
-       ++ /**/ "var m=args['m'];"
-       ++ /**/ "var a='a' in args?args['a']:2;"
+       ++ /**/ "var m=args.m;"
+       ++ /**/ "var a='a' in args?args.a:2;"
        ++ "}",
      )
   ++ with_export(

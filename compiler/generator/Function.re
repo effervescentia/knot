@@ -13,16 +13,16 @@ let gen_param =
   fun
   | (name, _, Some(default_val)) =>
     Printf.sprintf(
-      "var %s='%s' in %s?%s['%s']:%s",
+      "var %s='%s' in %s?%s%s:%s",
       name,
       name,
       args_map,
       args_map,
-      name,
+      Property.gen_access(name),
       Expression.generate(default_val),
     )
   | (name, _, None) =>
-    Printf.sprintf("var %s=%s['%s']", name, args_map, name);
+    Printf.sprintf("var %s=%s%s", name, args_map, Property.gen_access(name));
 
 let gen_body = (params, exprs) =>
   Printf.sprintf(

@@ -1,7 +1,7 @@
 open Core;
 
 let gen_export = name =>
-  Printf.sprintf("%s['%s']=%s;", export_map, name, name);
+  Printf.sprintf("%s%s=%s;", export_map, Property.gen_access(name), name);
 
 let generate = printer =>
   (

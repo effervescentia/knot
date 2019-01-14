@@ -9,10 +9,10 @@ let gen_import = (printer, module_name, imports) =>
          fun
          | MainExport(export_name) =>
            Printf.sprintf(
-             "var %s=%s['%s']",
+             "var %s=%s%s",
              export_name,
              module_map,
-             module_name,
+             Property.gen_access(module_name),
            )
          | ModuleExport(export_name) =>
            Printf.sprintf(
@@ -24,14 +24,17 @@ let gen_import = (printer, module_name, imports) =>
            )
          | NamedExport(export_name, original_name) =>
            Printf.sprintf(
-             "var %s=%s['%s']['%s']",
+             "var %s=%s%s%s",
              export_name,
              module_map,
-             module_name,
-             switch (original_name) {
-             | Some(s) => s
-             | None => export_name
-             },
+             Property.gen_access(module_name),
+             (
+               switch (original_name) {
+               | Some(s) => s
+               | None => export_name
+               }
+             )
+             |> Property.gen_access,
            )
        )
        % Printf.sprintf("%s;")
