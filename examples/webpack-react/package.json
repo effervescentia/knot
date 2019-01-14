@@ -6,18 +6,25 @@
   "scripts": {
     "build": "webpack --mode development",
     "dev": "webpack --watch --mode development",
-    "start": "webpack-dev-server --mode development"
+    "start": "webpack-dev-server --mode development",
+    "start:hidden": "npm run start -- --open=false",
+    "test": "npm run test:e2e",
+    "test:e2e": "start-server-and-test start:hidden http://localhost:1337 cypress:run",
+    "cypress": "cypress open",
+    "cypress:run": "cypress run"
   },
   "devDependencies": {
     "@knot/webpack-loader": "file:../../webpack-loader",
+    "cypress": "^3.1.4",
     "html-webpack-plugin": "^3.2.0",
+    "start-server-and-test": "^1.7.11",
     "webpack": "^4.26.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
     "@knot/css-plugin": "file:../../plugins/css",
-    "@knot/react-plugin": "file:../../plugins/react",
-    "@knot/javascript-utils": "file:../../utils/javascript"
+    "@knot/javascript-utils": "file:../../utils/javascript",
+    "@knot/react-plugin": "file:../../plugins/react"
   }
 }

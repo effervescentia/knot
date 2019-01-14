@@ -36,7 +36,27 @@ jobs:
           paths:
             - ~/.esy/3_____________________________________________________________/i
 
+  test_webpack_react:
+    executor: node/node
+    steps:
+      - checkout
+      # - restore_cache:
+      #     <<: *esy_cache_keys
+      - run:
+          name: Install
+          working_directory: ~/project/examples/webpack-react
+          command: yarn install
+      - run:
+          name: Test
+          working_directory: ~/project/examples/webpack-react
+          command: yarn test
+      # - save_cache:
+      #     <<: *esy_cache
+      #     paths:
+      #       - ~/.esy/3_____________________________________________________________/i
+
 workflows:
   test:
     jobs:
       - test_compiler
+      - test_webpack_react
