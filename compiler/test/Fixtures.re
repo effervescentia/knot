@@ -117,6 +117,7 @@ let all_tokens = [
 
 let full_ast =
   Statements([
+    Import("abc", [MainExport("ABC")]),
     Declaration(ConstDecl("numericConst", NumericLit(8))),
     Declaration(
       ConstDecl("additionConst", AddExpr(NumericLit(1), NumericLit(10))),
@@ -218,6 +219,13 @@ let full_ast =
           AddExpr(Reference(Variable("e")), Reference(Variable("f"))),
           Reference(Variable("j")),
         ],
+      ),
+    ),
+    Declaration(
+      FunctionDecl(
+        "paramFunc",
+        [("a", None, None)],
+        [Reference(Variable("a"))],
       ),
     ),
     Declaration(StateDecl("NoParamsState", [], [])),
@@ -351,8 +359,9 @@ let with_export = (name, s) =>
   s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
 
 let full_generated =
-  Printf.sprintf("module.exports=(function(%s){", KnotGen.Core.module_map)
+  Printf.sprintf("function(%s){", KnotGen.Core.module_map)
   ++ Printf.sprintf("var %s={};", KnotGen.Core.export_map)
+  ++ Printf.sprintf("var ABC=%s.abc.main;", KnotGen.Core.module_map)
   ++ with_export("numericConst", "var numericConst=8;")
   ++ with_export("additionConst", "var additionConst=(1+10);")
   ++ with_export("subtractionConst", "var subtractionConst=(8-2);")
@@ -387,6 +396,13 @@ let full_generated =
        "function multiExprFunc(args){"
        ++ /**/ "(e+f);"
        ++ /**/ "return j;"
+       ++ "}",
+     )
+  ++ with_export(
+       "paramFunc",
+       "function paramFunc(args){"
+       ++ /**/ "var a=args.a;"
+       ++ /**/ "return a;"
        ++ "}",
      )
   ++ with_export("NoParamsState", "function NoParamsState(args){return {};}")
@@ -477,4 +493,4 @@ let full_generated =
        ++ "}",
      )
   ++ Printf.sprintf("return %s;", KnotGen.Core.export_map)
-  ++ Printf.sprintf("})(%s);", KnotGen.Core.module_map);
+  ++ "}";

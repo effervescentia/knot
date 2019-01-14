@@ -9,25 +9,35 @@ let rec gen_exprs =
     (Expression.generate(x) |> Printf.sprintf("%s;")) ++ gen_exprs(xs)
   | [] => "";
 
-let gen_param =
+let gen_param = index =>
   fun
-  | (name, _, Some(default_val)) =>
+  | (name, _, default_val) =>
     Printf.sprintf(
-      "var %s='%s' in %s?%s%s:%s",
+      "var %s=%s.arg(arguments,%n,%s%s)",
       name,
+      util_map,
+      index,
       name,
-      args_map,
-      args_map,
-      Property.gen_access(name),
-      Expression.generate(default_val),
-    )
-  | (name, _, None) =>
-    Printf.sprintf("var %s=%s%s", name, args_map, Property.gen_access(name));
+      switch (default_val) {
+      | Some(v) => Expression.generate(v) |> Printf.sprintf(",%s")
+      | None => ""
+      },
+    );
+
+let rec gen_params = params => {
+  let rec next = index =>
+    index < List.length(params) ?
+      (gen_param(index, List.nth(params, index)) |> Printf.sprintf("%s;"))
+      ++ next(index + 1) :
+      "";
+
+  next(0);
+};
 
 let gen_body = (params, exprs) =>
   Printf.sprintf(
     "(%s){%s%s}",
     args_map,
-    gen_terminated(gen_param, params),
+    gen_params(params),
     gen_exprs(exprs),
   );

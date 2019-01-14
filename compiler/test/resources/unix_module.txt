@@ -1,3 +1,5 @@
+import ABC from "abc";
+
 // this comment should be ignored
 
 ///
@@ -31,6 +33,7 @@ func multiExprFunc() -> {
   e + f;
   j;
 }
+func paramFunc(a) -> a;
 
 state NoParamsState { }
 state EmptyState () { }
