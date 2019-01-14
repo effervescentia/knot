@@ -30,11 +30,11 @@ jobs:
       - run:
           name: Unit Test
           working_directory: ~/project/compiler
-          command: esy test:unit
+          command: npx esy test:unit
       - run:
           name: E2E Test
           working_directory: ~/project/compiler
-          command: esy test:e2e
+          command: npx esy test:e2e
       - save_cache:
           <<: *esy_cache
           paths:
