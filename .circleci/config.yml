@@ -14,11 +14,12 @@ orbs:
 
 commands:
   setup_yarn:
-    - run:
-        name: Setup Yarn
-        command: |
-          echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
-          yarn global add esy
+    steps:
+      - run:
+          name: Setup Yarn
+          command: |
+            echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
+            yarn global add esy
 
 jobs:
   test_compiler:
