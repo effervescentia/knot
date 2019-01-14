@@ -28,13 +28,9 @@ jobs:
           working_directory: ~/project/compiler
           command: npx esy build
       - run:
-          name: Unit Test
+          name: Test
           working_directory: ~/project/compiler
-          command: npx esy test:unit
-      - run:
-          name: E2E Test
-          working_directory: ~/project/compiler
-          command: npx esy test:e2e
+          command: npx -p esy npm run test
       - save_cache:
           <<: *esy_cache
           paths:
