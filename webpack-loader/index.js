@@ -11,10 +11,9 @@ module.exports = function loader(source) {
   const file = tmp.fileSync();
   fs.writeFileSync(file.name, source);
 
-  const opts = {
+  const result = options.knot ? execa.sync(options.knot, [file.name]) : execa.sync('esy', ['x', 'Compiler.exe', file.name], {
     cwd: __dirname + '/../compiler'
-  };
-  const result = options.knot ? execa.sync(options.knot, [file.name], opts) : execa.sync('esy', ['x', 'Compiler.exe', file.name], opts);
+  });
 
   console.log(result.stdout);
   console.error(result.stderr);

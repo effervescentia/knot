@@ -83,7 +83,7 @@ jobs:
           working_directory: ~/project/examples/webpack-react
           environment:
             KNOT_BINARY: /tmp/workspace/Compiler.exe
-          command: yarn test
+          command: yarn test:ci
       # - save_cache:
       #     <<: *esy_cache
       #     paths:
