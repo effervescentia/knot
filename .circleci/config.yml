@@ -36,7 +36,7 @@ jobs:
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            mv _build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
+            mv ./_build/default/executable/Compiler.exe /tmp/workspace/Compiler.exe
       - save_cache:
           <<: *esy_cache
           paths:
