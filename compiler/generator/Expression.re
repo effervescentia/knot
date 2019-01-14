@@ -1,5 +1,8 @@
 open Core;
 
+let gen_string =
+  Str.global_replace(Str.regexp_string("'"), "\'") % Printf.sprintf("'%s'");
+
 let rec generate =
   fun
   | AddExpr(lhs, rhs) => gen_binary("+", lhs, rhs)
@@ -22,11 +25,7 @@ and gen_reference =
   fun
   | Variable(name) => name
   | DotAccess(lhs, rhs) =>
-    Printf.sprintf(
-      "%s[%s]",
-      gen_reference(lhs),
-      gen_reference(rhs) |> gen_string,
-    )
+    Printf.sprintf("%s['%s']", gen_reference(lhs), gen_reference(rhs))
   | Execution(target, args) =>
     Printf.sprintf(
       "%s(%s)",
