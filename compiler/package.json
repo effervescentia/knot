@@ -46,8 +46,10 @@
     "build_test": "esy build && esy test",
     "dev": "sane 'esy build' --glob='(library|parser|lexer|generator)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
-    "test": "esy x TestSuite.exe",
-    "tdd": "sane 'esy build && esy test' --glob='(library|parser|lexer|generator|test)/**/*.re'"
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "esy x TestSuite.exe",
+    "test:e2e": "esy x Compiler.exe ./test/resources/unix_module.txt 1> /dev/null",
+    "tdd": "sane 'esy build && npm run test' --glob='(library|parser|lexer|generator|executable|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",

@@ -95,3 +95,14 @@ let rec print_lex_table = l =>
     Printf.sprintf("%s >> %s\n", print_matcher(m), print_matcher(nm))
   | Result(x) => "RESULT!\n"
   };
+
+let print_token_stream = token_stream => {
+  let rec loop = stream =>
+    switch (stream) {
+    | LazyStream.Cons(tkn, next_stream) =>
+      print_tkn(tkn) ++ loop(Lazy.force(next_stream))
+    | LazyStream.Nil => ""
+    };
+
+  loop(token_stream);
+};
