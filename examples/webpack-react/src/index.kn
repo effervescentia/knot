@@ -1,0 +1,5 @@
+import JSX from "@knot/jsx";
+
+view App -> "Hello, World!";
+
+func render(id: a) -> JSX.render(JSX.createElement(App), id);

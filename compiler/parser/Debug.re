@@ -25,7 +25,12 @@ let rec print_ast = (~depth=0) =>
         stmts,
       )
       |> Printf.sprintf("STATEMENTS:\n↳%s\n")
-    | Import(module_, _) => Printf.sprintf("IMPORT FROM %s", module_)
+    | Import(module_, imports) =>
+      Printf.sprintf(
+        "IMPORT %s FROM %s",
+        print_comma_separated(print_import, imports),
+        module_,
+      )
     | Declaration(decl) => print_decl(decl)
   )
   % Printf.sprintf("\n%s%s", repeat("\t", depth))
@@ -56,6 +61,13 @@ and print_decl =
       print_comma_separated(print_param, params),
       print_comma_separated(print_style_rule_set, rule_sets),
     )
+and print_import =
+  fun
+  | MainExport(name) => Printf.sprintf("MAIN AS %s", name)
+  | NamedExport(name, Some(new_name)) =>
+    Printf.sprintf("%s AS %s", name, new_name)
+  | NamedExport(name, None) => name
+  | ModuleExport(name) => Printf.sprintf("* AS %s", name)
 and print_param = ((name, type_def, default_val)) =>
   Printf.sprintf(
     "%s%s%s",
@@ -94,7 +106,7 @@ and print_ref = reference =>
   switch (reference) {
   | Variable(name) => Printf.sprintf("variable(%s)", name)
   | DotAccess(source, property) =>
-    Printf.sprintf("(%s.%s)", print_ref(source), print_ref(property))
+    Printf.sprintf("%s.%s", print_ref(source), print_ref(property))
   | Execution(source, exprs) =>
     Printf.sprintf(
       "exec %s(%s)",

@@ -22,10 +22,9 @@ let generate = printer =>
       )
     | StateDecl(name, params, props) =>
       Printf.sprintf(
-        "function %s(%s){%s%s}%s",
+        "function %s(){%s%s}%s",
         name,
-        Function.args_map,
-        gen_terminated(Function.gen_param, params),
+        Function.gen_params(params),
         gen_list(State.gen_prop, props) |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )
@@ -38,10 +37,9 @@ let generate = printer =>
       )
     | StyleDecl(name, params, rule_sets) =>
       Printf.sprintf(
-        "function %s(%s){%s%s}%s",
+        "function %s(){%s%s}%s",
         name,
-        Function.args_map,
-        gen_terminated(Function.gen_param, params),
+        Function.gen_params(params),
         gen_list(Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),

@@ -26,6 +26,8 @@ let () =
   |> Parser.parse(Parser.prog)
   |> (
     fun
-    | Some(ast) => Generator.generate(print_string, ast)
+    | Some(ast) =>
+      /* KnotParse.Debug.print_ast(ast) |> prerr_endline; */
+      Generator.generate(print_string, ast)
     | None => raise(InvalidProgram)
   );
