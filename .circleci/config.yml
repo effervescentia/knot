@@ -59,7 +59,7 @@ jobs:
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            mv _esy/default/store/i/knot-*/bin/Compiler.exe /tmp/workspace/Compiler.exe
+            cp -L _esy/default/store/i/knot-*/bin/Compiler.exe /tmp/workspace/Compiler.exe
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
