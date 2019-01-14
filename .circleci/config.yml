@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Test
           working_directory: ~/project/compiler
-          command: npx esy test
+          command: npx -p esy npm run test
       - save_cache:
           <<: *esy_cache
           paths:
