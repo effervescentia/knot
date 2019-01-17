@@ -5,13 +5,13 @@ module Op = Operator;
 let variable = M.identifier ==> (s => Variable(s));
 let dot_access = chainl1(variable, Op.dot);
 
-let rec expr =
+let refr = x =>
   dot_access
   <|> variable
   >>= (
-    x =>
-      M.comma_separated(Expression.expr)
+    refr =>
+      M.comma_separated(x)
       |> M.parentheses
-      ==> (exprs => Execution(x, exprs))
-      <|> return(x)
+      ==> (exprs => Execution(refr, exprs))
+      |= refr
   );

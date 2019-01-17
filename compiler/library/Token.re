@@ -45,6 +45,8 @@ type token =
   | LessThanOrEqual
   | JSXSelfClose /* /> */
   | JSXOpenEnd /* </ */
+  | JSXStartFragment /* <> */
+  | JSXEndFragment /* </> */
   | LogicalOr
   | LogicalAnd
   | Keyword(keyword)

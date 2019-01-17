@@ -4,32 +4,32 @@ let assert_string_eql = (actual, expected) =>
   assert_equal(
     ~msg="string match",
     ~printer=String.escaped,
-    actual,
     expected,
+    actual,
   );
 
 let assert_tkn_eql = (actual, expected) =>
   assert_equal(
     ~msg="token match",
     ~printer=KnotLex.Debug.print_tkn,
-    actual,
     expected,
+    actual,
   );
 
 let assert_ast_eql = (actual, expected) =>
   assert_equal(
     ~msg="AST match",
     ~printer=KnotParse.Debug.print_ast,
-    actual,
     expected,
+    actual,
   );
 
 let assert_decl_eql = (actual, expected) =>
   assert_equal(
     ~msg="declaration match",
     ~printer=KnotParse.Debug.print_decl,
-    actual,
     expected,
+    actual,
   );
 
 let assert_cursor_eql = (actual, expected) =>
@@ -43,6 +43,6 @@ let assert_cursor_eql = (actual, expected) =>
         fst(lhs) == fst(rhs)
         && fst(snd(lhs)) == fst(snd(rhs))
         && snd(snd(lhs)) == snd(snd(rhs)),
-    actual,
     expected,
+    actual,
   );

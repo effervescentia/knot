@@ -82,6 +82,7 @@ and print_expr =
   | StringLit(s) => s
   | Reference(reference) =>
     print_ref(reference) |> Printf.sprintf("reference(%s)")
+  | JSX(jsx) => print_jsx(jsx)
   | AddExpr(lhs, rhs) =>
     Printf.sprintf("(%s + %s)", print_expr(lhs), print_expr(rhs))
   | SubExpr(lhs, rhs) =>
@@ -102,8 +103,8 @@ and print_expr =
     Printf.sprintf("(%s && %s)", print_expr(lhs), print_expr(rhs))
   | OrExpr(lhs, rhs) =>
     Printf.sprintf("(%s || %s)", print_expr(lhs), print_expr(rhs))
-and print_ref = reference =>
-  switch (reference) {
+and print_ref =
+  fun
   | Variable(name) => Printf.sprintf("variable(%s)", name)
   | DotAccess(source, property) =>
     Printf.sprintf("%s.%s", print_ref(source), print_ref(property))
@@ -113,7 +114,29 @@ and print_ref = reference =>
       print_ref(source),
       print_comma_separated(print_expr, exprs),
     )
-  }
+and print_jsx =
+  fun
+  | Element(name, props, children) =>
+    Printf.sprintf(
+      "<%s%s>%s</%s>",
+      name,
+      Knot.Util.print_separated(
+        "",
+        print_jsx_prop % Printf.sprintf(" %s"),
+        props,
+      ),
+      Knot.Util.print_separated("", print_jsx, children),
+      name,
+    )
+  | Fragment(children) =>
+    Printf.sprintf(
+      "<>%s</>",
+      Knot.Util.print_separated("", print_jsx, children),
+    )
+  | TextNode(s) => s
+  | EvalNode(expr) => print_expr(expr)
+and print_jsx_prop = ((name, expr)) =>
+  Printf.sprintf("%s={%s}", name, print_expr(expr))
 and print_state_prop =
   fun
   | Property(name, type_def, default_val) =>
