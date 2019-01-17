@@ -4,11 +4,11 @@ let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =
     Util.load_resource(file)
     |> FileStream.of_channel
-    |> TokenStream.of_file_stream;
+    |> TokenStream.of_file_stream2;
 
   let rec loop = (stream, tkns) =>
     switch (stream, tkns) {
-    | (LazyStream.Cons(tkn, next_stream), [x, ...xs]) =>
+    | (LazyStream.Cons((tkn, _), next_stream), [x, ...xs]) =>
       assert_tkn_eql(tkn, x);
       loop(Lazy.force(next_stream), xs);
     | (LazyStream.Cons(_, _), _) =>

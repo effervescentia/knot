@@ -1,17 +1,24 @@
 open Core;
 
 let root =
-  Lexers([
-    Character.lexer,
-    Keyword.lexer,
-    Pattern.lexer,
-    Text.lexer,
-    Identifier.lexer,
-    Number.lexer,
-    Boolean.lexer,
-    Comment.lexer,
-  ])
-  |> Util.normalize_lexers;
+  (
+    fun
+    | Some(JSXStartTag) => JSX.start_tag_lexer
+    | Some(JSXEndTag) => JSX.end_tag_lexer
+    | Some(JSXContent) => JSX.content_lexer
+    | _ =>
+      Lexers([
+        Character.lexer,
+        Keyword.lexer,
+        Pattern.lexer,
+        Text.lexer,
+        Identifier.lexer,
+        Number.lexer,
+        Boolean.lexer,
+        Comment.lexer,
+      ])
+  )
+  % Util.normalize_lexers;
 
 let rec exec_lexer = (results, s, lex, stream) =>
   switch (lex) {
@@ -65,8 +72,12 @@ and find_token = (results, s, lex, stream) =>
     }
   };
 
-let next_token = input => {
+let next_token = (input, context) => {
   let results = ref([]);
+  let curr_ctx =
+    try (Some(List.hd(context))) {
+    | _ => None
+    };
 
-  find_token(results, "", root, input);
+  find_token(results, "", root(curr_ctx), input);
 };

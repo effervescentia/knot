@@ -15,7 +15,7 @@ let to_file_stream = s => {
 };
 
 let test_lex_token = ((s, tkn)) =>
-  switch (Lexer.next_token(to_file_stream(s))) {
+  switch (Lexer.next_token(to_file_stream(s), [])) {
   | Some((t, _)) => assert_tkn_eql(t, tkn)
   | None => assert_failure("no token found")
   };

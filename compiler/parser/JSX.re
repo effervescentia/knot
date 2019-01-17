@@ -4,7 +4,7 @@ open Core;
 let close_tag = name =>
   M.jsx_open_end >> M.exact_identifier(name) >> M.r_chev;
 
-let rec expr = x => fragment(x) <|> element(x)
+let rec expr = (x, input) => (fragment(x) <|> element(x))(input)
 /* should figure out why `fragment` cannot appear in `nested_expr` */
 and nested_expr = x => eval_node(x) <|> element(x)
 and nested_exprs = x => nested_expr(x) |> many
