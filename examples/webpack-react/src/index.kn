@@ -1,5 +1,5 @@
 import JSX from "@knot/jsx";
 
-view App -> "Hello, World!";
+view App(props) -> "Hello, " + props.name + "!";
 
-func render(id: a) -> JSX.render(<App />, id);
+func render(id: a) -> JSX.render(<App name="World" />, id);
