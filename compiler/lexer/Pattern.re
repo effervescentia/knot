@@ -26,4 +26,6 @@ let lexer =
     ">=" ==> GreaterThanOrEqual,
     "/>" ==> JSXSelfClose,
     "</" ==> JSXOpenEnd,
+    "<>" ==> JSXStartFragment,
+    "</>" ==> JSXEndFragment,
   ]);

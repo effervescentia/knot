@@ -34,6 +34,8 @@ let print_tkn =
     | LessThanOrEqual => "<="
     | JSXSelfClose => "/>"
     | JSXOpenEnd => "</"
+    | JSXStartFragment => "<>"
+    | JSXEndFragment => "</>"
     | LogicalOr => "||"
     | LogicalAnd => "&&"
     | Keyword(kwd) =>

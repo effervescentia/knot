@@ -1,8 +1,11 @@
 open Core;
 
 let rule =
-  Reference.expr
-  >>= (refr => M.colon >> Expression.reference ==> (value => (refr, value)));
+  Reference.refr(Expression.expr)
+  >>= (
+    refr =>
+      M.colon >> Reference.refr(Expression.expr) ==> (value => (refr, value))
+  );
 
 let class_ = M.period >> M.identifier ==> (s => ClassKey(s));
 let id = M.number_sign >> M.identifier ==> (s => IdKey(s));

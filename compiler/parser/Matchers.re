@@ -53,7 +53,11 @@ let lambda = token(Lambda)
 and less_than_or_equal = token(LessThanOrEqual)
 and greater_than_or_equal = token(GreaterThanOrEqual)
 and logical_and = token(LogicalAnd)
-and logical_or = token(LogicalOr);
+and logical_or = token(LogicalOr)
+and jsx_self_close = token(JSXSelfClose)
+and jsx_open_end = token(JSXOpenEnd)
+and jsx_start_frag = token(JSXStartFragment)
+and jsx_end_frag = token(JSXEndFragment);
 
 let identifier =
   (
@@ -63,6 +67,11 @@ let identifier =
     | _ => None
   )
   |> lexeme;
+let exact_identifier = (match, input) =>
+  switch (identifier(input)) {
+  | Some((s, _)) as res when s == match => res
+  | _ => None
+  };
 
 let string =
   (

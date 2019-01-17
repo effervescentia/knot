@@ -10,13 +10,19 @@ type expression =
   | AndExpr(expression, expression)
   | OrExpr(expression, expression)
   | Reference(reference)
+  | JSX(jsx)
   | NumericLit(int)
   | BooleanLit(bool)
   | StringLit(string)
 and reference =
   | Variable(string)
   | DotAccess(reference, reference)
-  | Execution(reference, list(expression));
+  | Execution(reference, list(expression))
+and jsx =
+  | Element(string, list((string, expression)), list(jsx))
+  | Fragment(list(jsx))
+  | TextNode(string)
+  | EvalNode(expression);
 
 type import_target =
   | MainExport(string)

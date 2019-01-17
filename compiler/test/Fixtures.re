@@ -203,6 +203,71 @@ let full_ast =
         ),
       ),
     ),
+    Declaration(ConstDecl("jsxConst", JSX(Element("abc", [], [])))),
+    Declaration(
+      ConstDecl(
+        "jsxWithPropsConst",
+        JSX(
+          Element(
+            "def",
+            [
+              ("num", AddExpr(NumericLit(8), NumericLit(9))),
+              ("bool", BooleanLit(false)),
+              ("first", StringLit("look")),
+              ("under", StringLit("there")),
+            ],
+            [],
+          ),
+        ),
+      ),
+    ),
+    Declaration(
+      ConstDecl(
+        "nestedJSXConst",
+        JSX(
+          Element(
+            "parent",
+            [("justMade", StringLit("you say"))],
+            [
+              Element(
+                "child",
+                [("variable", Reference(Variable("variable")))],
+                [
+                  Element("grandchild", [("under", StringLit("wear"))], []),
+                ],
+              ),
+              Element("sibling", [], []),
+            ],
+          ),
+        ),
+      ),
+    ),
+    Declaration(
+      ConstDecl(
+        "nestedExprJSXConst",
+        JSX(
+          Element(
+            "container",
+            [],
+            [
+              EvalNode(
+                AddExpr(Reference(Variable("value")), NumericLit(20)),
+              ),
+              Element("middle", [], []),
+              EvalNode(
+                AddExpr(Reference(Variable("another")), StringLit("one")),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+    Declaration(
+      ConstDecl(
+        "fragmentJSXConst",
+        JSX(Fragment([Element("div", [], []), Element("span", [], [])])),
+      ),
+    ),
     Declaration(FunctionDecl("compactFunc", [], [NumericLit(4)])),
     Declaration(
       FunctionDecl(
@@ -357,6 +422,8 @@ let full_ast =
 
 let with_export = (name, s) =>
   s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
+let var_with_export = (name, s) =>
+  Printf.sprintf("var %s=%s;", name, s) |> with_export(name);
 let expand_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s');",
@@ -382,29 +449,49 @@ let full_generated =
   )
   ++ Printf.sprintf("var %s={};", KnotGen.Core.export_map)
   ++ Printf.sprintf("var ABC=%s.abc.main;", KnotGen.Core.module_map)
-  ++ with_export("numericConst", "var numericConst=8;")
-  ++ with_export("additionConst", "var additionConst=(1+10);")
-  ++ with_export("subtractionConst", "var subtractionConst=(8-2);")
-  ++ with_export("multiplicationConst", "var multiplicationConst=(2*3);")
-  ++ with_export("divisionConst", "var divisionConst=(4/2);")
-  ++ with_export("stringConst", "var stringConst='Hello, World!';")
-  ++ with_export("trueConst", "var trueConst=true;")
-  ++ with_export("falseConst", "var falseConst=false;")
-  ++ with_export("lessThanConst", "var lessThanConst=(7<9);")
-  ++ with_export("lessThanEqualConst", "var lessThanEqualConst=(8<=2);")
-  ++ with_export("greaterThanConst", "var greaterThanConst=(2>4);")
-  ++ with_export(
-       "greaterThanEqualConst",
-       "var greaterThanEqualConst=(9>=1);",
+  ++ var_with_export("numericConst", "8")
+  ++ var_with_export("additionConst", "(1+10)")
+  ++ var_with_export("subtractionConst", "(8-2)")
+  ++ var_with_export("multiplicationConst", "(2*3)")
+  ++ var_with_export("divisionConst", "(4/2)")
+  ++ var_with_export("stringConst", "'Hello, World!'")
+  ++ var_with_export("trueConst", "true")
+  ++ var_with_export("falseConst", "false")
+  ++ var_with_export("lessThanConst", "(7<9)")
+  ++ var_with_export("lessThanEqualConst", "(8<=2)")
+  ++ var_with_export("greaterThanConst", "(2>4)")
+  ++ var_with_export("greaterThanEqualConst", "(9>=1)")
+  ++ var_with_export("closureConst", "((3*2)+(1+((6/(2-5))*3)))")
+  ++ var_with_export("dotAccessConst", "a.b.c")
+  ++ var_with_export("executionConst", "d.e.f(4,a.x,(20*3),m())")
+  ++ var_with_export("jsxConst", "JSX.createElement('abc')")
+  ++ var_with_export(
+       "jsxWithPropsConst",
+       "JSX.createElement('def',{num:(8+9),bool:false,first:'look',under:'there'})",
      )
-  ++ with_export(
-       "closureConst",
-       "var closureConst=((3*2)+(1+((6/(2-5))*3)));",
+  ++ var_with_export(
+       "nestedJSXConst",
+       "JSX.createElement('parent',{justMade:'you say'},"
+       ++ /**/ "JSX.createElement('child',{variable:variable},"
+       ++ /*  */ "JSX.createElement('grandchild',{under:'wear'})"
+       ++ /**/ "),"
+       ++ /**/ "JSX.createElement('sibling')"
+       ++ ")",
      )
-  ++ with_export("dotAccessConst", "var dotAccessConst=a.b.c;")
-  ++ with_export(
-       "executionConst",
-       "var executionConst=d.e.f(4,a.x,(20*3),m());",
+  ++ var_with_export(
+       "nestedExprJSXConst",
+       "JSX.createElement('container',null,"
+       ++ /**/ "(value+20),"
+       ++ /**/ "JSX.createElement('middle'),"
+       ++ /**/ "(another+'one')"
+       ++ ")",
+     )
+  ++ var_with_export(
+       "fragmentJSXConst",
+       "JSX.createFragment("
+       ++ /**/ "JSX.createElement('div'),"
+       ++ /**/ "JSX.createElement('span')"
+       ++ ")",
      )
   ++ with_export("compactFunc", "function compactFunc(){return 4;}")
   ++ with_export(
