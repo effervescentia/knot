@@ -20,6 +20,7 @@ let () = {
       FileStreamTest.tests,
       LexerTest.tests,
       TokenStreamTest.tests,
+      ContextualTokenStreamTest.tests,
       ParserTest.tests,
       GeneratorTest.tests,
     ],

@@ -16,6 +16,20 @@ let rec drift =
 
 let load_resource = file => open_in(Config.resource_dir ++ "/" ++ file);
 
+let to_file_stream = s => {
+  let remaining = ref(s);
+  let next = s =>
+    if (String.length(s) == 0) {
+      None;
+    } else {
+      let ch = s.[0];
+      remaining := String.sub(s, 1, String.length(s) - 1);
+      Some((ch, (0, 0)));
+    };
+
+  LazyStream.of_function(() => next(remaining^));
+};
+
 let to_token_stream = tkns => {
   let remaining = ref(tkns);
   let next = ts =>

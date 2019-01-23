@@ -4,7 +4,7 @@ let of_file_stream = file_stream => {
   let stream = ref(file_stream);
 
   let next = () =>
-    switch (Lexer.next_token(stream^)) {
+    switch (Lexer.next_token(Normal, stream^)) {
     | Some((tkn, next_stream)) =>
       stream := next_stream;
       Some(tkn);
