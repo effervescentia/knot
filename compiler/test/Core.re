@@ -5,6 +5,7 @@ include Assert;
 
 module LazyStream = Opal.LazyStream;
 module FileStream = Knot.FileStream;
+module ContextualStream = Knot.ContextualStream;
 module TokenStream = KnotLex.TokenStream;
 
 module Lexer = KnotLex.Lexer;

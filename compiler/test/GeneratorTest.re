@@ -10,8 +10,7 @@ let tests =
 
         Util.load_resource(Config.unix_module_file)
         |> FileStream.of_channel
-        |> TokenStream.of_file_stream
-        |> TokenStream.without_comments
+        |> TokenStream.of_file_stream("", _ => true)
         |> Parser.parse(Parser.prog)
         |> (
           fun

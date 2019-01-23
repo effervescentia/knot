@@ -128,4 +128,4 @@ let rec find_result = r =>
       ls,
     )
   | Result(res) => Some(res)
-  | Lexer(_, _, _) => None;
+  | Lexer(_) => None;

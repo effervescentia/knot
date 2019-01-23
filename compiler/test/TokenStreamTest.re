@@ -4,18 +4,18 @@ let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =
     Util.load_resource(file)
     |> FileStream.of_channel
-    |> TokenStream.of_file_stream;
+    |> TokenStream.of_file_stream("", _ => true);
 
   let rec loop = (stream, tkns) =>
     switch (stream, tkns) {
-    | (LazyStream.Cons(tkn, next_stream), [x, ...xs]) =>
+    | (ContextualStream.Cons(tkn, next_stream, _, _), [x, ...xs]) =>
       assert_tkn_eql(tkn, x);
       loop(Lazy.force(next_stream), xs);
-    | (LazyStream.Cons(_, _), _) =>
+    | (ContextualStream.Cons(_), _) =>
       assert_failure("lexer detected more tokens than expected")
-    | (LazyStream.Nil, [x, ...xs]) =>
+    | (ContextualStream.Nil, [x, ...xs]) =>
       assert_failure("lexer did not detect all tokens")
-    | (LazyStream.Nil, []) => ()
+    | (ContextualStream.Nil, []) => ()
     };
 
   loop(token_stream, expected_tkns);

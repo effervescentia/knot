@@ -9,8 +9,7 @@ let tests =
         let token_stream =
           Util.load_resource(Config.unix_module_file)
           |> FileStream.of_channel
-          |> TokenStream.of_file_stream
-          |> TokenStream.without_comments;
+          |> TokenStream.of_file_stream("", _ => true);
 
         switch (Parser.parse(Parser.prog, token_stream)) {
         | Some(res) => Assert.assert_ast_eql(Fixtures.full_ast, res)
