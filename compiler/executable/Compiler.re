@@ -1,5 +1,6 @@
 module FileStream = Knot.FileStream;
 module TokenStream = KnotLex.TokenStream;
+module ContextualTokenStream = KnotLex.ContextualTokenStream;
 module Parser = KnotParse.Parser;
 module Generator = KnotGen.Generator;
 
@@ -21,8 +22,9 @@ let in_path =
 let () =
   open_in(in_path)
   |> FileStream.of_channel
-  |> TokenStream.of_file_stream
-  |> TokenStream.without_comments
+  |> ContextualTokenStream.of_file_stream(
+       ~filter=ContextualTokenStream.filter_comments,
+     )
   |> Parser.parse(Parser.prog)
   |> (
     fun

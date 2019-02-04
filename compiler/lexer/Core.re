@@ -10,8 +10,10 @@ type context =
 type context_action =
   | NoOp
   | PushContext(context)
-  | SwitchContext(context)
+  | SwapContext(context)
   | PopContext;
+
+type context_mutator = context_action => unit;
 
 type lex_match =
   | Any

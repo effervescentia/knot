@@ -67,11 +67,11 @@ let tests =
                 PopContext;
               } else {
                 start_tag_finished := true;
-                SwitchContext(JSXContent);
+                SwapContext(JSXContent);
               }
             | LeftBrace => PushContext(Normal)
             | RightBrace => PopContext
-            | JSXOpenEnd => SwitchContext(JSXEndTag)
+            | JSXOpenEnd => SwapContext(JSXEndTag)
             | _ => NoOp;
           },
           [

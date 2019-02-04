@@ -32,6 +32,22 @@ let assert_decl_eql = (actual, expected) =>
     actual,
   );
 
+let assert_expr_eql = (actual, expected) =>
+  assert_equal(
+    ~msg="expression match",
+    ~printer=KnotParse.Debug.print_expr,
+    expected,
+    actual,
+  );
+
+let assert_jsx_eql = (actual, expected) =>
+  assert_equal(
+    ~msg="JSX match",
+    ~printer=KnotParse.Debug.print_jsx,
+    expected,
+    actual,
+  );
+
 let assert_cursor_eql = (actual, expected) =>
   assert_equal(
     ~msg="file cursor match",

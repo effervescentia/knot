@@ -20,9 +20,9 @@ module Content = {
 
   let lexer =
     Lexers([
-      lex_text_node,
-      Pattern.jsx_content_lexer,
       Character.jsx_content_lexer,
+      Pattern.jsx_content_lexer,
+      lex_text_node,
     ]);
 };
 
