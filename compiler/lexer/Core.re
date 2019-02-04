@@ -7,6 +7,14 @@ type context =
   | JSXEndTag
   | JSXContent;
 
+type context_action =
+  | NoOp
+  | PushContext(context)
+  | SwapContext(context)
+  | PopContext;
+
+type context_mutator = context_action => unit;
+
 type lex_match =
   | Any
   | Alpha

@@ -1,16 +1,17 @@
 open Knot.Globals;
 open Knot.Fiber;
 open Knot.Token;
+open KnotLex.ExtraFiber;
 open AST;
 
-let space = one_of([Space, Tab, Newline]);
+let space = tuple_one_of([Space, Tab, Newline]);
 let spaces = skip_many(space);
 
-let comma_separated = s => sep_by(s, exactly(Comma));
+let comma_separated = s => sep_by(s, tuple_exactly(Comma));
 
 let lexeme = x => spaces >> x;
 
-let token = (x, input) => (exactly(x) |> lexeme)(input);
+let token = x => tuple_exactly(x) |> lexeme;
 let kwd = x => token(Keyword(x));
 
 /* keywords */
@@ -62,7 +63,7 @@ and jsx_end_frag = token(JSXEndFragment);
 let identifier =
   (
     fun
-    | LazyStream.Cons(Identifier(s), next_in) =>
+    | LazyStream.Cons((Identifier(s), _), next_in) =>
       Some((s, Lazy.force(next_in)))
     | _ => None
   )
@@ -76,7 +77,8 @@ let exact_identifier = (match, input) =>
 let string =
   (
     fun
-    | LazyStream.Cons(String(s), next_in) => Some((s, Lazy.force(next_in)))
+    | LazyStream.Cons((String(s), _), next_in) =>
+      Some((s, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;
@@ -84,7 +86,8 @@ let string =
 let number =
   (
     fun
-    | LazyStream.Cons(Number(n), next_in) => Some((n, Lazy.force(next_in)))
+    | LazyStream.Cons((Number(n), _), next_in) =>
+      Some((n, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;
@@ -92,7 +95,8 @@ let number =
 let number =
   (
     fun
-    | LazyStream.Cons(Number(n), next_in) => Some((n, Lazy.force(next_in)))
+    | LazyStream.Cons((Number(n), _), next_in) =>
+      Some((n, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;
@@ -100,7 +104,8 @@ let number =
 let boolean =
   (
     fun
-    | LazyStream.Cons(Boolean(b), next_in) => Some((b, Lazy.force(next_in)))
+    | LazyStream.Cons((Boolean(b), _), next_in) =>
+      Some((b, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;

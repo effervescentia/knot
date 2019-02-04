@@ -108,3 +108,17 @@ let print_token_stream = token_stream => {
 
   loop(token_stream);
 };
+
+let print_context =
+  fun
+  | Normal => "normal"
+  | JSXContent => "JSX content"
+  | JSXStartTag => "JSX start tag"
+  | JSXEndTag => "JSX end tag";
+
+let print_action =
+  fun
+  | NoOp => "no-op"
+  | PushContext(ctx) => print_context(ctx) |> Printf.sprintf("push(%s)")
+  | SwapContext(ctx) => print_context(ctx) |> Printf.sprintf("swap(%s)")
+  | PopContext => "pop";

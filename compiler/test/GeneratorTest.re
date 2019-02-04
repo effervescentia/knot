@@ -10,8 +10,9 @@ let tests =
 
         Util.load_resource(Config.unix_module_file)
         |> FileStream.of_channel
-        |> TokenStream.of_file_stream
-        |> TokenStream.without_comments
+        |> ContextualTokenStream.of_file_stream(
+             ~filter=ContextualTokenStream.filter_comments,
+           )
         |> Parser.parse(Parser.prog)
         |> (
           fun

@@ -16,6 +16,11 @@ let rec (==>) = (p, t) => {
   Lexer(Char(p.[0]), Any, next);
 };
 
+let lex_jsx_self_close = "/>" ==> JSXSelfClose;
+let lex_jsx_open_end = "</" ==> JSXOpenEnd;
+let lex_jsx_start_fragment = "<>" ==> JSXStartFragment;
+let lex_jsx_start_end = "</>" ==> JSXEndFragment;
+
 let lexer =
   Lexers([
     "&&" ==> LogicalAnd,
@@ -24,8 +29,13 @@ let lexer =
     "==" ==> Equals,
     "<=" ==> LessThanOrEqual,
     ">=" ==> GreaterThanOrEqual,
-    "/>" ==> JSXSelfClose,
-    "</" ==> JSXOpenEnd,
-    "<>" ==> JSXStartFragment,
-    "</>" ==> JSXEndFragment,
+    lex_jsx_self_close,
+    lex_jsx_open_end,
+    lex_jsx_start_fragment,
+    lex_jsx_start_end,
   ]);
+
+let jsx_start_tag_lexer = lex_jsx_self_close;
+
+let jsx_content_lexer =
+  Lexers([lex_jsx_open_end, lex_jsx_start_fragment, lex_jsx_start_end]);

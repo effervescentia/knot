@@ -1,21 +1,9 @@
 open Core;
 
-let to_file_stream = s => {
-  let remaining = ref(s);
-  let next = s =>
-    if (String.length(s) == 0) {
-      None;
-    } else {
-      let ch = s.[0];
-      remaining := String.sub(s, 1, String.length(s) - 1);
-      Some((ch, (0, 0)));
-    };
-
-  LazyStream.of_function(() => next(remaining^));
-};
+open KnotLex.Core;
 
 let test_lex_token = ((s, tkn)) =>
-  switch (Lexer.next_token(to_file_stream(s))) {
+  switch (Lexer.next_token(Normal, Util.to_file_stream(s))) {
   | Some((t, _)) => assert_tkn_eql(t, tkn)
   | None => assert_failure("no token found")
   };

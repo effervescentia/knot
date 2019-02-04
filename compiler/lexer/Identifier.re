@@ -3,22 +3,22 @@ open Core;
 let underscore = Char('_');
 let identifier_matchers = [underscore, AlphaNumeric];
 
-let rec lex_subsequent_chars = () =>
+let rec lex_subsequent_chars = reserved =>
   Lexers([
     Lexer(
       Either(identifier_matchers),
       Either(identifier_matchers),
-      _ => lex_subsequent_chars(),
+      _ => lex_subsequent_chars(reserved),
     ),
     Lexer(
       Either(identifier_matchers),
       Except(identifier_matchers),
       /* only needed here as there are no 1-character reserved tokens */
-      s => List.mem(s, Core.reserved) ? Lexers([]) : Result(Identifier(s)),
+      s => List.mem(s, reserved) ? Lexers([]) : Result(Identifier(s)),
     ),
   ]);
 
-let lexer =
+let lexer = (~reserved=Core.reserved, ()) =>
   Lexers([
     Lexer(
       Either([underscore, Alpha]),
@@ -28,6 +28,6 @@ let lexer =
     Lexer(
       Either([underscore, Alpha]),
       Either(identifier_matchers),
-      _ => lex_subsequent_chars(),
+      _ => lex_subsequent_chars(reserved),
     ),
   ]);

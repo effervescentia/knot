@@ -1,17 +1,24 @@
 open Core;
 
 let root =
-  Lexers([
-    Character.lexer,
-    Keyword.lexer,
-    Pattern.lexer,
-    Text.lexer,
-    Identifier.lexer,
-    Number.lexer,
-    Boolean.lexer,
-    Comment.lexer,
-  ])
-  |> Util.normalize_lexers;
+  (
+    fun
+    | JSXStartTag => JSX.StartTag.lexer
+    | JSXEndTag => JSX.EndTag.lexer
+    | JSXContent => JSX.Content.lexer
+    | Normal =>
+      Lexers([
+        Character.lexer,
+        Keyword.lexer,
+        Pattern.lexer,
+        Text.lexer,
+        Identifier.lexer(),
+        Number.lexer,
+        Boolean.lexer,
+        Comment.lexer,
+      ])
+  )
+  % Util.normalize_lexers;
 
 let rec exec_lexer = (results, s, lex, stream) =>
   switch (lex) {
@@ -36,20 +43,25 @@ let rec exec_lexer = (results, s, lex, stream) =>
     results := [(tkn, stream), ...results^];
     None;
   }
-and find_token = (results, s, lex, stream) =>
+and find_token = (~results=ref([]), ~token_str="", lex, stream) =>
   switch (lex, stream) {
   /* found a single longest result */
   | (Some(Result(tkn)), _) => Some((tkn, stream))
   /* found a lexer */
   | (Some(l), LazyStream.Cons((ch, _), next_stream)) =>
-    let next_string = s ++ String.make(1, ch);
+    let next_string = token_str ++ String.make(1, ch);
 
     switch (exec_lexer(results, next_string, l, stream)) {
     /* remaining lexers */
     | Some(_) as res =>
-      find_token(results, next_string, res, Lazy.force(next_stream))
+      find_token(
+        ~results,
+        ~token_str=next_string,
+        res,
+        Lazy.force(next_stream),
+      )
     /* no remaining lexers */
-    | None => find_token(results, s, None, stream)
+    | None => find_token(~results, ~token_str, None, stream)
     };
   /* ran out of lexers */
   | (None, _) =>
@@ -65,8 +77,4 @@ and find_token = (results, s, lex, stream) =>
     }
   };
 
-let next_token = input => {
-  let results = ref([]);
-
-  find_token(results, "", root, input);
-};
+let next_token = ctx => find_token(root(ctx));

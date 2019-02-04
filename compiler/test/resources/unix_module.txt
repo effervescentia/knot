@@ -31,9 +31,9 @@ const jsxConst = <abc />;
 const jsxWithPropsConst = <def num={8 + 9} bool={false} first="look" under="there" />;
 const nestedJSXConst = 
   <parent justMade={"you say"}>
-    <child variable>
+    <main variable>
       <grandchild under="wear" />
-    </child>
+    </main>
     <sibling />
   </parent>;
 const nestedExprJSXConst = <container>{value + 20}<middle />{another + "one"}</container>;
