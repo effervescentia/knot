@@ -21,8 +21,7 @@ let in_path =
 let () =
   open_in(in_path)
   |> FileStream.of_channel
-  |> TokenStream.of_file_stream
-  |> TokenStream.without_comments
+  |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
   |> Parser.parse(Parser.prog)
   |> (
     fun
