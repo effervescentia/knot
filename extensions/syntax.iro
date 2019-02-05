@@ -1,0 +1,440 @@
+#################################################################
+## Iro
+################################################################ 
+##
+## * Press Ctrl + '+'/'-' To Zoom in
+## * Press Ctrl + S to save and recalculate... 
+## * Documents are saved to web storage.
+## * Only one save slot supported.
+## * Matches cannot span lines.
+## * Unicode chars must be defined in \u0000 to \uffff format.
+## * All matches must be contained by a single group ( ... )
+## * Look behinds not permitted, (?<= or (?<!
+## * Look forwards are permitted (?= or (?!
+## * Constants are defined as __my_const = (......)
+## * The \= format allows unescaped regular expressions
+## * Constants referenced by match \= $${__my_const}
+## * Constants can reference other constants
+## * You are free to delete all the default scopes.
+## * Twitter : ainslec , Web: http://eeyo.io/iro
+##
+################################################################
+
+name                = knot
+file_extensions []  = kn, knot;
+
+################################################################
+## Constants
+################################################################
+
+__ENTITY      \= const|view|func|state|style|let
+__IDENTIFIER \= \w[\w]*
+__KEYWORDS    \= (import|from|main|as)
+__OPERATORS \= (->|==|!=|\|\||&&|[=.+\-*/~!])
+__PUNCTUATION \= (</|/>|[:;,<>])
+
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.comment : style {
+   color          = grey
+   italic         = true
+   ace_scope      = comment
+   textmate_scope = comment
+   pygments_scope = Comment
+}
+
+.keyword : style {
+   color          = red
+   ace_scope      = keyword
+   textmate_scope = keyword
+   pygments_scope = Keyword
+}
+
+.operator : style {
+   color          = red
+   ace_scope      = keyword.operator
+   textmate_scope = keyword.operator
+   pygments_scope = Operator
+}
+
+.numeric : style {
+   color          = pink
+   ace_scope      = constant.numeric
+   textmate_scope = constant.numeric
+   pygments_scope = Number
+}
+
+.boolean : style {
+   color          = pink
+   ace_scope      = constant.language.boolean
+   textmate_scope = constant.language.boolean
+   pygments_scope = Name.Builtin
+}
+
+.punctuation : style {
+   color          = white
+   ace_scope      = keyword punctuation
+   textmate_scope = keyword punctuation
+   pygments_scope = Punctuation
+}
+
+.text : style {
+   color          = yellow
+   ace_scope      = string.quoted.double
+   textmate_scope = string.quoted.double
+   pygments_scope = String
+}
+
+.entity : style {
+   color          = green
+   ace_scope      = entity.name
+   textmate_scope = entity.name
+   pygments_scope = Name.Entity
+}
+
+.identifier : style {
+   color          = green
+   ace_scope      = variable
+   textmate_scope = variable
+   pygments_scope = Name.Variable
+}
+
+.injected : style {
+   color          = orange
+   ace_scope      = variable.parameter.injected
+   textmate_scope = variable.parameter.injected
+   pygments_scope = Name.Attribute
+}
+
+.type : style {
+   color          = cyan
+   ace_scope      = entity.name.type
+   textmate_scope = entity.name.type
+   pygments_scope = Keyword.Type
+}
+
+.function : style {
+   color          = light_green
+   ace_scope      = meta.function-call
+   textmate_scope = meta.function-call
+   pygments_scope = Name.Function
+}
+
+.jsx_tag : style {
+   color          = red
+   ace_scope      = entity.name.tag
+   textmate_scope = entity.name.tag
+   pygments_scope = Name.Tag
+}
+
+.jsx_property : style {
+   color          = light_blue
+   ace_scope      = entity.other.attribute-name
+   textmate_scope = entity.other.attribute-name
+   pygments_scope = Name.Attribute
+}
+
+.whitespace : style ;
+
+.illegal : style {
+   color            = white
+   background_color = red
+   ace_scope        = invalid
+   textmate_scope   = invalid
+   pygments_scope   = Generic.Error
+}
+
+}
+
+#################################################
+## Parse contexts
+#################################################
+
+contexts [] {
+
+##############################################
+## Main Context - Entry point context
+##############################################
+
+main : context {
+
+   : pattern {
+      regex     \= $${__KEYWORDS}
+      styles [] = .keyword;
+   }
+   
+   : include "entity" ;
+   
+   : include "closure" ;
+   
+   : include "catch_all" ;
+   
+}
+
+###########################################
+## Closure Context
+###########################################
+
+closure : context {
+   : inline_push {
+      uid = uid_braces_closure
+      regex         \= (\{)
+      styles []     = .punctuation;
+      
+      : pop {  
+         regex      \= (\})
+         styles []  = .punctuation;
+      }
+      
+      : include "main" ;
+   }
+   
+   : inline_push {
+      uid = uid_parentheses_closure
+      regex         \= (\()
+      styles []     = .punctuation;
+      
+      : pop {
+         regex      \= (\))
+         styles []  = .punctuation;
+      }
+      
+      : include "closure_list" ;
+   }
+}
+
+closure_list : context {
+   : include "closure" ;
+   : include "catch_all" ;
+   
+   : pattern {
+      regex      \= (,)
+      styles []  = .punctuation;
+   }
+}
+
+###########################################
+## Catch All Context
+###########################################
+
+catch_all : context {
+   : include "expression" ;
+   : include "comment" ;
+   : include "operator" ;
+   : include "punctuation" ;
+   
+   : pattern {
+      regex     \= ([^\s])
+      styles [] = .illegal;
+   }
+}
+
+###########################################
+## Operator Context
+###########################################
+
+operator : context {
+   : pattern {
+      regex     \= $${__OPERATORS}
+      styles [] = .operator;
+   }
+}
+
+###########################################
+## Punctuation Context
+###########################################
+
+punctuation : context {
+   : pattern {
+      regex     \= $${__PUNCTUATION}
+      styles [] = .punctuation;
+   }
+}
+
+###########################################
+## Expression Context
+###########################################
+
+expression : context {
+   : include "string" ;
+   : include "numeric" ;
+   : include "boolean" ;
+   : include "function_call" ;
+   : include "identifier" ;
+   : include "jsx" ;
+   : include "type_definition" ;
+}
+
+###########################################
+## Numeric Context
+###########################################
+
+numeric : context {
+   : pattern {
+      regex     \= (\B-\d+)|(\b\d+)
+      styles [] = .numeric;
+   }
+}
+
+###########################################
+## Boolean Context
+###########################################
+
+boolean : context {
+   : pattern {
+      regex     \= (true|false)
+      styles [] = .boolean;
+   }
+}
+
+###########################################
+## String Context
+###########################################
+
+string : context {
+   : inline_push {
+      regex         \= (\")
+      styles []     = .text;
+      default_style = .text
+      
+      : pop {
+         regex      \= (\")
+         styles []  = .text;
+      }
+   }
+}
+
+###########################################
+## Type Definition Context
+###########################################
+
+type_definition : context {
+   : pattern {
+      regex     \= (:)(\s*)($${__IDENTIFIER})
+      styles [] = .punctuation, .whitespace, .type;
+   }
+}
+
+###########################################
+## Function Call Context
+###########################################
+
+function_call : context {
+   : inline_push {
+      regex     \= ($${__IDENTIFIER})(\s*)(\()
+      styles [] = .function, .whitespace, .punctuation;
+      
+      : pop {
+         regex \= (\))
+         styles [] = .punctuation;
+      }
+      
+      : include "closure_list" ;
+   }
+}
+
+###########################################
+## Entity Context
+###########################################
+
+entity : context {
+   : pattern {
+      regex       \= \b($${__ENTITY})(\s*)($${__IDENTIFIER})
+      styles []   = .keyword, .whitespace, .entity;
+   }
+}
+
+###########################################
+## Identifier Context
+###########################################
+
+identifier : context {
+   : pattern {
+      regex     \= (\B\$$${__IDENTIFIER})
+      styles [] = .injected;
+   }
+   
+   : pattern {
+      regex     \= (\b$${__IDENTIFIER})
+      styles [] = .identifier;
+   }
+}
+
+###########################################
+## JSX Context
+###########################################
+
+jsx : context {
+   : pattern {
+      uid = uid_end_tag_jsx
+      regex \= (</)(\s*)($${__IDENTIFIER})(\s*)(>)
+      styles [] = .punctuation, .whitespace, .jsx_tag, .whitespace, .punctuation;
+   }
+
+   : inline_push {
+      uid = uid_self_closing_jsx
+      regex     \= (<)(\s*)($${__IDENTIFIER})
+      styles [] = .punctuation, .whitespace, .jsx_tag;
+      
+      : pop {
+         regex \= (/>|>)
+         styles [] = .punctuation;
+      }
+      
+      : pattern {
+         regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)(\"[^"]*\")
+         styles [] = .jsx_property, .whitespace, .punctuation, .whitespace, .text;
+      }
+      
+      : inline_push {
+         regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)({)
+         styles [] = .jsx_property, .whitespace, .punctuation, .whitespace, .punctuation;
+         
+         : pop {
+            regex \= (})
+            styles [] = .punctuation;
+         }
+         
+         : include "main";
+      }
+      
+      : pattern {
+         regex \= (\b$${__IDENTIFIER})
+         styles [] = .jsx_property;
+      }
+   }
+}
+
+###########################################
+## Multi Line Comment Context
+###########################################
+
+comment : context {
+   : inline_push {
+      uid = uid_block_comment
+      regex         \= (///)
+      styles []     = .comment;
+      default_style = .comment
+      
+      : pop {
+         regex      \= (///)
+         styles []  = .comment;
+      }
+   }
+
+   : pattern {
+      uid = uid_line_comment
+      regex     \= (//.*)
+      styles [] = .comment;
+   }
+}
+
+}
+
+#################################################
+## End of Contexts
+#################################################
