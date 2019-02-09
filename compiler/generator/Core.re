@@ -1,5 +1,5 @@
 include Knot.Globals;
-include KnotParse.AST;
+include Knot.AST;
 
 let module_map = "$$knot_modules$$";
 let util_map = "$$knot_utils$$";

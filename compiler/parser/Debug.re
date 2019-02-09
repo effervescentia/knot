@@ -157,7 +157,6 @@ and print_style_rule = ((name, value)) =>
 and print_style_key =
   fun
   | ClassKey(name) => Printf.sprintf("class(%s)", name)
-  | IdKey(name) => Printf.sprintf("id(%s)", name)
 and print_style_rule_set = ((key, rules)) =>
   print_comma_separated(print_style_rule, rules)
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))

@@ -45,8 +45,7 @@ type state_prop =
   | Getter(string, list(param), list(expression));
 
 type style_key =
-  | ClassKey(string)
-  | IdKey(string);
+  | ClassKey(string);
 
 type style_rule = (reference, reference);
 type style_rule_set = (style_key, list(style_rule));

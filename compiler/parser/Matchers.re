@@ -1,7 +1,7 @@
 open Knot.Globals;
 open Knot.Fiber;
 open Knot.Token;
-open AST;
+open Knot.AST;
 
 let space = one_of([Space, Tab, Newline]);
 let spaces = skip_many(space);

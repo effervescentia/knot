@@ -1,6 +1,6 @@
 include OUnit2;
 include Knot.Token;
-include KnotParse.AST;
+include Knot.AST;
 include Assert;
 
 module LazyStream = Opal.LazyStream;

@@ -417,27 +417,14 @@ let full_ast =
         ],
       ),
     ),
-    Declaration(
-      StyleDecl(
-        "IdStyle",
-        [],
-        [
-          (
-            IdKey("login"),
-            [
-              (Variable("visibility"), Variable("hidden")),
-              (Variable("display"), Variable("flex")),
-            ],
-          ),
-        ],
-      ),
-    ),
   ]);
 
 let with_export = (name, s) =>
   s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
 let var_with_export = (name, s) =>
   Printf.sprintf("var %s=%s;", name, s) |> with_export(name);
+let memoized =
+  Printf.sprintf("%s.memo(function(){%s});", KnotGen.Core.util_map);
 let expand_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s');",
@@ -582,27 +569,16 @@ let full_generated =
   ++ with_export("MixinView", "function MixinView(){}")
   ++ with_export("InheritingMixinView", "function InheritingMixinView(){}")
   ++ with_export("ComplexView", "function ComplexView(){return (e+f);}")
-  ++ with_export(
+  ++ var_with_export(
        "ClassStyle",
-       "function ClassStyle(){"
-       ++ /**/ "return {"
-       ++ /*  */ "['.root']:{"
-       ++ /*    */ "[fontSize]:px(20),"
-       ++ /*    */ "[backgroundColor]:red"
-       ++ /*  */ "}"
-       ++ /**/ "};"
-       ++ "}",
-     )
-  ++ with_export(
-       "IdStyle",
-       "function IdStyle(){"
-       ++ /**/ "return {"
-       ++ /*  */ "['#login']:{"
-       ++ /*    */ "[visibility]:hidden,"
-       ++ /*    */ "[display]:flex"
-       ++ /*  */ "}"
-       ++ /**/ "};"
-       ++ "}",
+       memoized(
+         "return {"
+         ++ /**/ "['.root']:{"
+         ++ /*  */ "[fontSize]:px(20),"
+         ++ /*  */ "[backgroundColor]:red"
+         ++ /**/ "}"
+         ++ "};",
+       ),
      )
   ++ Printf.sprintf("return %s;", KnotGen.Core.export_map)
   ++ "}";

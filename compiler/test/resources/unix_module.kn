@@ -88,9 +88,3 @@ style ClassStyle {
     backgroundColor: red;
   }
 }
-style IdStyle {
-  #login {
-    visibility: hidden;
-    display: flex;
-  }
-}
