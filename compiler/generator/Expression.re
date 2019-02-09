@@ -1,5 +1,20 @@
 open Core;
 
+let rec extract_props_from_tags =
+  fun
+  | [] => []
+  | [x, ...xs] =>
+    switch (x) {
+    | ElementClass(clazz) => [
+        (
+          "className",
+          Reference(DotAccess(Variable(class_map), Variable(clazz))),
+        ),
+        ...extract_props_from_tags(xs),
+      ]
+    | _ => extract_props_from_tags(xs)
+    };
+
 let rec generate =
   fun
   | AddExpr(lhs, rhs) => gen_binary("+", lhs, rhs)
@@ -36,8 +51,8 @@ and gen_reference =
     )
 and gen_jsx =
   fun
-  | Element(name, props, children) =>
-    switch (props, children) {
+  | Element(name, tags, props, children) =>
+    switch (props @ extract_props_from_tags(tags), children) {
     | ([], []) => Printf.sprintf("JSX.createElement(%s)", gen_tag(name))
     | ([], _) =>
       Printf.sprintf(
@@ -45,11 +60,11 @@ and gen_jsx =
         gen_tag(name),
         gen_list(gen_jsx, children),
       )
-    | _ =>
+    | (ps, _) =>
       Printf.sprintf(
         "JSX.createElement(%s,%s%s)",
         gen_tag(name),
-        Knot.Util.print_separated(",", gen_jsx_prop, props)
+        Knot.Util.print_separated(",", gen_jsx_prop, ps)
         |> Printf.sprintf("{%s}"),
         gen_rest(gen_jsx, children),
       )

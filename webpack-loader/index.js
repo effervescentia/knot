@@ -15,11 +15,11 @@ module.exports = function loader(source) {
     cwd: __dirname + '/../compiler'
   });
 
-  console.log(result.stdout);
   console.error(result.stderr);
 
-  return 'module.exports=(' + result.stdout + ')({' + //
+  return 'var stylePlugin = require("@knot/css-plugin");' + //
+    'module.exports=(' + result.stdout + ')({' + //
     '["@knot/jsx"]:require("@knot/react-plugin"),' + //
-    '["@knot/style"]:require("@knot/css-plugin")' + //
-    '},require("@knot/javascript-utils"))';
+    '["@knot/style"]:stylePlugin' + //
+    '},require("@knot/javascript-utils")(stylePlugin));';
 }

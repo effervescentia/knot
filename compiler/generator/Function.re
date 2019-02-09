@@ -32,5 +32,10 @@ let rec gen_params = params => {
   next(0);
 };
 
-let gen_body = (params, exprs) =>
-  Printf.sprintf("(){%s%s}", gen_params(params), gen_exprs(exprs));
+let gen_body = (~preamble="", params, exprs) =>
+  Printf.sprintf(
+    "(){%s%s%s}",
+    preamble,
+    gen_params(params),
+    gen_exprs(exprs),
+  );

@@ -2,5 +2,8 @@
   "name": "@knot/javascript-utils",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "moize": "^5.4.1"
+  }
 }

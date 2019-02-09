@@ -13,13 +13,18 @@ and element = x =>
   >> M.identifier
   >>= (
     name =>
-      jsx_property(x)
-      |> many
+      jsx_tags
+      |= []
       >>= (
-        props =>
-          container_element(x, name)
-          <|> self_closing_element
-          ==> (children => Element(name, props, children))
+        tags =>
+          jsx_property(x)
+          |> many
+          >>= (
+            props =>
+              container_element(x, name)
+              <|> self_closing_element
+              ==> (children => Element(name, tags, props, children))
+          )
       )
   )
 and container_element = (x, name) =>
@@ -33,6 +38,10 @@ and fragment = x =>
 and eval_node = x => M.braces(x) ==> (ex => EvalNode(ex))
 /* figure out how to do this */
 and text_node = any
+and jsx_tags = input => M.parentheses(jsx_tag |> many, input)
+and jsx_tag = input => (jsx_key_tag <|> jsx_class_prop_tag)(input)
+and jsx_key_tag = M.identifier ==> (s => ElementKey(s))
+and jsx_class_prop_tag = M.period >> M.identifier ==> (s => ElementClass(s))
 and jsx_property = x =>
   M.identifier
   >>= (

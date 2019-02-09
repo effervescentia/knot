@@ -2,3 +2,26 @@
 # yarn lockfile v1
 
 
+fast-equals@^1.6.0:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/fast-equals/-/fast-equals-1.6.2.tgz#f1762bde0d571b5e9d4e1c4ae0599792f6a6df5f"
+  integrity sha512-6FiKwHkrHIqdvo9I92yzCR/zuWE6iy5ldcOszStPbmo7Zzj3OoVeng++GE//JqO4i6JQ4vH/BVAfCmUCki+C3g==
+
+fast-stringify@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/fast-stringify/-/fast-stringify-1.1.1.tgz#7abaff0e0ba09193a23cae940d6680f0c6f79e55"
+  integrity sha512-2oYQip2IKpGNOvVNhv5w6r3pI9BRSgoKZNsBnKCDXlc7envYhT2kYSejz11UZHVstGVCrUb6TWeENa4H1W5hwg==
+
+micro-memoize@^2.1.1:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/micro-memoize/-/micro-memoize-2.1.2.tgz#0787eeb1a12b4033a0fe162dfc9df4280291cee4"
+  integrity sha512-COjNutiFgnDHXZEIM/jYuZPwq2h8zMUeScf6Sh6so98a+REqdlpaNS7Cb2ffGfK5I+xfgoA3Rx49NGuNJTJq3w==
+
+moize@^5.4.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/moize/-/moize-5.4.1.tgz#664a1a6856bd8dfe0ceda72f17e6765ff5910243"
+  integrity sha512-wRVMg+7tOBOkcoDI5MS+mReO4oI7pd6LshRR4l9AdRY49vCC3v6xzgo2bUjHDZzU0FyG35rmTFs+csGbfpwk6w==
+  dependencies:
+    fast-equals "^1.6.0"
+    fast-stringify "^1.1.0"
+    micro-memoize "^2.1.1"

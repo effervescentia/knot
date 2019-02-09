@@ -19,10 +19,18 @@ and reference =
   | DotAccess(reference, reference)
   | Execution(reference, list(expression))
 and jsx =
-  | Element(string, list((string, expression)), list(jsx))
+  | Element(
+      string,
+      list(element_tag),
+      list((string, expression)),
+      list(jsx),
+    )
   | Fragment(list(jsx))
   | TextNode(string)
-  | EvalNode(expression);
+  | EvalNode(expression)
+and element_tag =
+  | ElementKey(string)
+  | ElementClass(string);
 
 type import_target =
   | MainExport(string)

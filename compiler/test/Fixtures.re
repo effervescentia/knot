@@ -203,13 +203,14 @@ let full_ast =
         ),
       ),
     ),
-    Declaration(ConstDecl("jsxConst", JSX(Element("abc", [], [])))),
+    Declaration(ConstDecl("jsxConst", JSX(Element("abc", [], [], [])))),
     Declaration(
       ConstDecl(
         "jsxWithPropsConst",
         JSX(
           Element(
             "def",
+            [],
             [
               ("num", AddExpr(NumericLit(8), NumericLit(9))),
               ("bool", BooleanLit(false)),
@@ -227,16 +228,23 @@ let full_ast =
         JSX(
           Element(
             "parent",
+            [],
             [("justMade", StringLit("you say"))],
             [
               Element(
                 "child",
+                [],
                 [("variable", Reference(Variable("variable")))],
                 [
-                  Element("grandchild", [("under", StringLit("wear"))], []),
+                  Element(
+                    "grandchild",
+                    [],
+                    [("under", StringLit("wear"))],
+                    [],
+                  ),
                 ],
               ),
-              Element("sibling", [], []),
+              Element("sibling", [], [], []),
             ],
           ),
         ),
@@ -249,11 +257,12 @@ let full_ast =
           Element(
             "container",
             [],
+            [],
             [
               EvalNode(
                 AddExpr(Reference(Variable("value")), NumericLit(20)),
               ),
-              Element("middle", [], []),
+              Element("middle", [], [], []),
               EvalNode(
                 AddExpr(Reference(Variable("another")), StringLit("one")),
               ),
@@ -265,7 +274,12 @@ let full_ast =
     Declaration(
       ConstDecl(
         "fragmentJSXConst",
-        JSX(Fragment([Element("div", [], []), Element("span", [], [])])),
+        JSX(
+          Fragment([
+            Element("div", [], [], []),
+            Element("span", [], [], []),
+          ]),
+        ),
       ),
     ),
     Declaration(FunctionDecl("compactFunc", [], [NumericLit(4)])),

@@ -116,7 +116,7 @@ and print_ref =
     )
 and print_jsx =
   fun
-  | Element(name, props, children) =>
+  | Element(name, tags, props, children) =>
     Printf.sprintf(
       "<%s%s>%s</%s>",
       name,

@@ -2,5 +2,9 @@
   "name": "@knot/css-plugin",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "jss": "^9.8.7",
+    "jss-preset-default": "^10.0.0-alpha.7"
+  }
 }

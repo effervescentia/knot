@@ -1,5 +1,14 @@
 import JSX from "@knot/jsx";
+import Style from "@knot/style";
 
-view App(props) -> "Hello, " + props.name + "!";
+view Para(props) ~ AppStyle -> <p(.welcome)>{props.children}</p>;
+
+view App(props) -> <Para>{"Hello, " + props.name + "!"}</Para>;
 
 func render(id: a) -> JSX.render(<App name="World" />, id);
+
+style AppStyle {
+  .welcome {
+    Style.color: Style.red;
+  }
+}
