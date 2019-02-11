@@ -14,6 +14,8 @@ let () = {
           Printf.sprintf("\n[%s] suite failed!\n", sprintf([red], "x"))
           |> print_endline
         );
+
+        exit(-1);
       },
     "Knot"
     >::: [

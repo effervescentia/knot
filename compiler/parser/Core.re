@@ -1,7 +1,5 @@
-include Knot.Globals;
+include Knot.Core;
 include Knot.Fiber;
-include Knot.Token;
-include AST;
 
 module M = Matchers;
 

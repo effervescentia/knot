@@ -1,0 +1,25 @@
+/* type a_expression =
+     | AddExpr(a_expression, a_expression)
+     | SubExpr(a_expression, a_expression)
+     | MulExpr(a_expression, a_expression)
+     | DivExpr(a_expression, a_expression)
+     | LTExpr(a_expression, a_expression)
+     | GTExpr(a_expression, a_expression)
+     | LTEExpr(a_expression, a_expression)
+     | GTEExpr(a_expression, a_expression)
+     | AndExpr(a_expression, a_expression)
+     | OrExpr(a_expression, a_expression)
+     | Reference(reference)
+     | JSX(jsx)
+     | NumericLit(int)
+     | BooleanLit(bool)
+     | StringLit(string)
+   and reference =
+     | Variable(string)
+     | DotAccess(reference, reference)
+     | Execution(reference, list(expression))
+   and jsx =
+     | Element(string, list((string, expression)), list(jsx))
+     | Fragment(list(jsx))
+     | TextNode(string)
+     | EvalNode(expression); */
