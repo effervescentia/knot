@@ -14,3 +14,5 @@ let prop =
           ==> (default_val => (name, type_def, default_val))
       )
   );
+
+let list = prop |> M.comma_separated |> M.parentheses;

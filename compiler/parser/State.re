@@ -1,14 +1,12 @@
 open Core;
 
 let prop_stmt =
-  Property.prop
-  ==> (((name, type_def, expr)) => Property(name, type_def, expr))
-  |> M.terminated;
+  Property.prop ==> (property => Property(property)) |> M.terminated;
 let mut_stmt =
   M.decl(M.mut)
   >>= (
     name =>
-      Parameter.params
+      Property.list
       |= []
       >>= (
         params => Function.body ==> (exprs => Mutator(name, params, exprs))
@@ -18,7 +16,7 @@ let get_stmt =
   M.decl(M.get)
   >>= (
     name =>
-      Parameter.params
+      Property.list
       |= []
       >>= (params => Function.body ==> (exprs => Getter(name, params, exprs)))
   );
@@ -29,7 +27,7 @@ let decl =
   M.decl(M.state)
   >>= (
     name =>
-      Parameter.params
+      Property.list
       |= []
       >>= (
         params =>

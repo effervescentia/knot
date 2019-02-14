@@ -71,7 +71,7 @@ let tests =
           StateDecl(
             __name,
             [],
-            [Property("initial", None, Some(NumericLit(4)))],
+            [Property(("initial", None, Some(NumericLit(4))))],
           ),
         ))
     ),

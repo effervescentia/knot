@@ -9,7 +9,7 @@ let gen_prop =
       Property.gen_key(name),
       Function.gen_body(params, exprs),
     )
-  | Property(name, _, default_val) =>
+  | Property((name, _, default_val)) =>
     Printf.sprintf(
       "%s:%s",
       Property.gen_key(name),

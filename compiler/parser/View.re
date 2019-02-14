@@ -6,7 +6,7 @@ let decl =
   M.decl(M.view)
   >>= (
     name =>
-      Parameter.params
+      Property.list
       |= []
       >>= (
         params =>

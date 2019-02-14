@@ -307,8 +307,8 @@ let full_ast =
         "ComplexState",
         [],
         [
-          Property("a", Some("b"), None),
-          Property("_c", Some("d"), None),
+          Property(("a", Some("b"), None)),
+          Property(("_c", Some("d"), None)),
           Getter("e", [], [NumericLit(4)]),
           Getter("f", [], [NumericLit(5)]),
           Getter(

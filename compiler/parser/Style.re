@@ -20,7 +20,7 @@ let rec decl = input =>
     M.decl(M.style)
     >>= (
       name =>
-        Parameter.params
+        Property.list
         |= []
         >>= (
           params =>

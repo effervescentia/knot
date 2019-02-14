@@ -29,12 +29,12 @@ type import_target =
   | ModuleExport(string)
   | NamedExport(string, option(string));
 
-type param = (string, option(string), option(expression));
+type property = (string, option(string), option(expression));
 
 type state_prop =
-  | Property(string, option(string), option(expression))
-  | Mutator(string, list(param), list(expression))
-  | Getter(string, list(param), list(expression));
+  | Property(property)
+  | Mutator(string, list(property), list(expression))
+  | Getter(string, list(property), list(expression));
 
 type style_key =
   | ClassKey(string)
@@ -45,16 +45,16 @@ type style_rule_set = (style_key, list(style_rule));
 
 type declaration =
   | ConstDecl(string, expression)
-  | StateDecl(string, list(param), list(state_prop))
+  | StateDecl(string, list(property), list(state_prop))
   | ViewDecl(
       string,
       option(string),
       list(string),
-      list(param),
+      list(property),
       list(expression),
     )
-  | FunctionDecl(string, list(param), list(expression))
-  | StyleDecl(string, list(param), list(style_rule_set));
+  | FunctionDecl(string, list(property), list(expression))
+  | StyleDecl(string, list(property), list(style_rule_set));
 
 type module_ =
   | Statements(list(module_))

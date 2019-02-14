@@ -39,7 +39,7 @@ and print_decl =
   | ConstDecl(name, expr) =>
     print_expr(expr) |> Printf.sprintf("CONST %s = %s", name)
   | StateDecl(name, params, props) => {
-      let params_str = print_comma_separated(print_param, params);
+      let params_str = print_comma_separated(print_property, params);
       let props_str = print_comma_separated(print_state_prop, props);
 
       Printf.sprintf("STATE (%s, [%s], [%s])", name, params_str, props_str);
@@ -58,7 +58,7 @@ and print_decl =
     Printf.sprintf(
       "STYLE %s = ([%s]) -> [%s]",
       name,
-      print_comma_separated(print_param, params),
+      print_comma_separated(print_property, params),
       print_comma_separated(print_style_rule_set, rule_sets),
     )
 and print_import =
@@ -68,7 +68,7 @@ and print_import =
     Printf.sprintf("%s AS %s", name, new_name)
   | NamedExport(name, None) => name
   | ModuleExport(name) => Printf.sprintf("* AS %s", name)
-and print_param = ((name, type_def, default_val)) =>
+and print_property = ((name, type_def, default_val)) =>
   Printf.sprintf(
     "%s%s%s",
     name,
@@ -139,8 +139,9 @@ and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, print_expr(expr))
 and print_state_prop =
   fun
-  | Property(name, type_def, default_val) =>
-    print_param((name, type_def, default_val)) |> Printf.sprintf("prop(%s)")
+  | Property((name, type_def, default_val)) =>
+    print_property((name, type_def, default_val))
+    |> Printf.sprintf("prop(%s)")
   | Getter(name, params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
   | Mutator(name, params, exprs) =>
@@ -165,7 +166,7 @@ and print_type_def = print_optional(Printf.sprintf(": %s"))
 and print_assign = x =>
   print_optional(print_expr % Printf.sprintf(" = %s"), x)
 and print_lambda = (params, exprs) => {
-  let params_str = print_comma_separated(print_param, params);
+  let params_str = print_comma_separated(print_property, params);
   let exprs_str = print_comma_separated(print_expr, exprs);
 
   Printf.sprintf("([%s]) -> [%s]", params_str, exprs_str);
