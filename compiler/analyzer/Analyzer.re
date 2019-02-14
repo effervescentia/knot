@@ -1,4 +1,6 @@
 open Core;
 
-let rec analyze = (~global_scope=Hashtbl.create(24)) =>
-  Module.analyze(Scope.create(global_scope));
+let analyze = (~global_scope=Hashtbl.create(24)) =>
+  fun
+  | Some(ast) => Some(Module.analyze(Scope.create(global_scope), ast))
+  | None => None;

@@ -17,7 +17,7 @@ let gen_param = index =>
       index,
       name,
       switch (default_val) {
-      | Some(v) => Expression.generate(v) |> Printf.sprintf(",%s")
+      | Some(v) => unwrap(v) |> Expression.generate |> Printf.sprintf(",%s")
       | None => ""
       },
     );
@@ -33,4 +33,8 @@ let rec gen_params = params => {
 };
 
 let gen_body = (params, exprs) =>
-  Printf.sprintf("(){%s%s}", gen_params(params), gen_exprs(exprs));
+  Printf.sprintf(
+    "(){%s%s}",
+    List.map(unwrap, params) |> gen_params,
+    List.map(unwrap, exprs) |> gen_exprs,
+  );

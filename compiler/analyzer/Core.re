@@ -1,5 +1,4 @@
 include Knot.Core;
-include AnnotatedAST;
 
 type member_type =
   | Number

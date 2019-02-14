@@ -44,7 +44,7 @@ and ctxl_state_prop = ctxl(a_state_prop);
 
 type a_style_rule = (ctxl_reference, ctxl_reference)
 and ctxl_style_rule = ctxl(a_style_rule);
-type a_style_rule_set = (ctxl(Knot.AST.style_key), list(ctxl_style_rule))
+type a_style_rule_set = (ctxl(AST.style_key), list(ctxl_style_rule))
 and ctxl_style_rule_set = ctxl(a_style_rule_set);
 
 type a_declaration =
@@ -63,6 +63,6 @@ and ctxl_declaration = ctxl(a_declaration);
 
 type a_module =
   | A_Statements(list(ctxl_module))
-  | A_Import(string, list(ctxl(Knot.AST.import_target)))
+  | A_Import(string, list(ctxl(AST.import_target)))
   | A_Declaration(ctxl_declaration)
 and ctxl_module = ctxl(a_module);

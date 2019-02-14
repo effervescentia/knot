@@ -35,13 +35,13 @@
       "namespace": "KnotGen"
     },
     "executable": {
-      "require": ["knot.lib", "knot.lex", "knot.parse", "knot.gen"],
+      "require": ["knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen"],
       "main": "Compiler",
       "name": "Compiler.exe"
     },
     "test": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "knot.gen", "oUnit", "ANSITerminal"
+        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen", "oUnit", "ANSITerminal"
       ],
       "main": "TestSuite",
       "name": "TestSuite.exe"

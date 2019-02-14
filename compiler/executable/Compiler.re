@@ -1,6 +1,7 @@
 module FileStream = Knot.FileStream;
 module TokenStream = KnotLex.TokenStream;
 module Parser = KnotParse.Parser;
+module Analyzer = KnotAnalyze.Analyzer;
 module Generator = KnotGen.Generator;
 
 exception InvalidProgram;
@@ -23,6 +24,7 @@ let () =
   |> FileStream.of_channel
   |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
   |> Parser.parse(Parser.prog)
+  |> Analyzer.analyze
   |> (
     fun
     | Some(ast) =>

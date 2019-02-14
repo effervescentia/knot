@@ -8,9 +8,13 @@ let gen_key =
 let gen_rule = ((name, value)) =>
   Printf.sprintf(
     "[%s]:%s",
-    Expression.gen_reference(name),
-    Expression.gen_reference(value),
+    unwrap(name) |> Reference.generate(Expression.generate),
+    unwrap(value) |> Reference.generate(Expression.generate),
   );
 
 let gen_rule_set = ((key, rules)) =>
-  Printf.sprintf("['%s']:{%s}", gen_key(key), gen_list(gen_rule, rules));
+  Printf.sprintf(
+    "['%s']:{%s}",
+    unwrap(key) |> gen_key,
+    gen_list(unwrap % gen_rule, rules),
+  );

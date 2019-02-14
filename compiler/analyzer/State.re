@@ -1,5 +1,4 @@
 open Core;
-open AnnotatedAST;
 
 let analyze_prop = scope =>
   fun
@@ -9,5 +8,15 @@ let analyze_prop = scope =>
       type_def,
       wrap_and_trfm_opt(Expression.analyze(scope), default_val),
     ))
-  | Mutator(name, params, exprs) => A_Mutator(name, [], [])
-  | Getter(name, params, exprs) => A_Getter(name, [], []);
+  | Mutator(name, params, exprs) =>
+    A_Mutator(
+      name,
+      analyze_list(Property.analyze(scope), params),
+      analyze_list(Expression.analyze(scope), exprs),
+    )
+  | Getter(name, params, exprs) =>
+    A_Getter(
+      name,
+      analyze_list(Property.analyze(scope), params),
+      analyze_list(Expression.analyze(scope), exprs),
+    );

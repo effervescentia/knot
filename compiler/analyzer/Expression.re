@@ -23,7 +23,7 @@ let rec analyze = scope =>
   | OrExpr(lhs, rhs) =>
     A_OrExpr(analyze(scope, lhs) |> wrap, analyze(scope, rhs) |> wrap)
   | Reference(x) => A_Reference(Reference.analyze(analyze, scope, x) |> wrap)
-  | JSX(x) => A_JSX(JSX.analyze(scope, x) |> wrap)
+  | JSX(x) => A_JSX(JSX.analyze(analyze, scope, x) |> wrap)
   | NumericLit(x) => A_NumericLit(x)
   | BooleanLit(x) => A_BooleanLit(x)
   | StringLit(x) => A_StringLit(x);

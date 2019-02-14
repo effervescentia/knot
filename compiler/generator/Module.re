@@ -1,48 +1,7 @@
 open Core;
 
-let main_export = "main";
-
-let gen_import = (printer, module_name, imports) =>
-  imports
-  |> List.iter(
-       (
-         fun
-         | MainExport(export_name) =>
-           Printf.sprintf(
-             "var %s=%s%s%s",
-             export_name,
-             module_map,
-             Property.gen_access(module_name),
-             Property.gen_access(main_export),
-           )
-         | ModuleExport(export_name) =>
-           Printf.sprintf(
-             "var %s=%s%s",
-             export_name,
-             module_map,
-             Property.gen_access(module_name),
-           )
-         | NamedExport(export_name, original_name) =>
-           Printf.sprintf(
-             "var %s=%s%s%s",
-             export_name,
-             module_map,
-             Property.gen_access(module_name),
-             (
-               switch (original_name) {
-               | Some(s) => s
-               | None => export_name
-               }
-             )
-             |> Property.gen_access,
-           )
-       )
-       % Printf.sprintf("%s;")
-       % printer,
-     );
-
 let rec generate = printer =>
   fun
-  | Statements(stmts) => stmts |> List.iter(generate(printer))
-  | Import(name, imports) => gen_import(printer, name, imports)
-  | Declaration(decl) => Declaration.generate(printer, decl);
+  | A_Statements(stmts) => stmts |> List.iter(unwrap % generate(printer))
+  | A_Import(name, imports) => Import.generate(printer, name, imports)
+  | A_Declaration(decl) => Declaration.generate(printer, decl);
