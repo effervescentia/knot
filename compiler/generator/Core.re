@@ -5,10 +5,10 @@ let util_map = "$$knot_utils$$";
 let export_map = "$$knot_exports$$";
 let main_export = "main";
 
-let gen_list = printer => Knot.Util.print_separated(",", printer);
+let gen_list = printer => Knot.Util.print_sequential(~separator=",", printer);
 
 let gen_rest = printer =>
-  Knot.Util.print_separated("", printer % Printf.sprintf(",%s"));
+  Knot.Util.print_sequential(printer % Printf.sprintf(",%s"));
 
 let gen_terminated = (generator, items) =>
   List.fold_left(

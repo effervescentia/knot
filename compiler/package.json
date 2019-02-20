@@ -54,6 +54,7 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "esy x TestSuite.exe",
     "test:e2e": "esy x Compiler.exe ./test/resources/unix_module.txt 1> /dev/null",
+    "test:e2e:debug": "esy x Compiler.exe ./test/resources/unix_module.txt",
     "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|analyzer|generator|executable|test)/**/*.re'"
   },
   "dependencies": {

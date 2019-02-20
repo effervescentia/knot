@@ -1,14 +1,22 @@
 include Knot.Core;
 
+type resolve_target =
+  | ModuleScope(ctxl_module)
+  | DeclarationScope(ctxl_declaration)
+  | ImportScope(ctxl_import)
+  | ExpressionScope(ctxl_expression)
+  | ReferenceScope(ctxl_reference)
+  | JSXScope(ctxl_jsx);
+
 type member_type =
-  | Number
-  | String
-  | Boolean
-  | Function
-  | View
-  | State
-  | Style
-  | Module;
+  | Number_t
+  | String_t
+  | Boolean_t
+  | Function_t
+  | View_t
+  | State_t
+  | Style_t
+  | Module_t;
 
 type member_locality =
   | External(string)
@@ -19,16 +27,4 @@ type scope_member = {
   locality: member_locality,
 };
 
-let wrap = x => ref(Pending(x));
-
-let wrap_opt =
-  fun
-  | Some(x) => Some(wrap(x))
-  | None => None;
-
-let wrap_and_trfm_opt = transform =>
-  fun
-  | Some(x) => Some(transform(x) |> wrap)
-  | None => None;
-
-let analyze_list = analyze => List.map(analyze % wrap);
+let analyze_list = analyze => List.map(analyze % await_ctx);

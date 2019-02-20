@@ -1,8 +1,4 @@
-type eventual('a, 'b) =
-  | Pending('a)
-  | Resolved('a, 'b);
-
-type ctxl('a) = ref(eventual('a, unit));
+open Globals;
 
 type a_expression =
   | A_AddExpr(ctxl_expression, ctxl_expression)
@@ -29,23 +25,23 @@ and a_jsx =
   | A_Fragment(list(ctxl_jsx))
   | A_TextNode(string)
   | A_EvalNode(ctxl_expression)
-and ctxl_expression = ctxl(a_expression)
-and ctxl_reference = ctxl(a_reference)
-and ctxl_jsx = ctxl(a_jsx);
+and ctxl_expression = ctxl_promise(a_expression)
+and ctxl_reference = ctxl_promise(a_reference)
+and ctxl_jsx = ctxl_promise(a_jsx);
 
 type a_property = (string, option(string), option(ctxl_expression))
-and ctxl_property = ctxl(a_property);
+and ctxl_property = ctxl_promise(a_property);
 
 type a_state_prop =
   | A_Property(a_property)
   | A_Mutator(string, list(ctxl_property), list(ctxl_expression))
   | A_Getter(string, list(ctxl_property), list(ctxl_expression))
-and ctxl_state_prop = ctxl(a_state_prop);
+and ctxl_state_prop = ctxl_promise(a_state_prop);
 
 type a_style_rule = (ctxl_reference, ctxl_reference)
-and ctxl_style_rule = ctxl(a_style_rule);
-type a_style_rule_set = (ctxl(AST.style_key), list(ctxl_style_rule))
-and ctxl_style_rule_set = ctxl(a_style_rule_set);
+and ctxl_style_rule = ctxl_promise(a_style_rule);
+type a_style_rule_set = (ctxl_promise(AST.style_key), list(ctxl_style_rule))
+and ctxl_style_rule_set = ctxl_promise(a_style_rule_set);
 
 type a_declaration =
   | A_ConstDecl(string, ctxl_expression)
@@ -59,10 +55,12 @@ type a_declaration =
     )
   | A_FunctionDecl(string, list(ctxl_property), list(ctxl_expression))
   | A_StyleDecl(string, list(ctxl_property), list(ctxl_style_rule_set))
-and ctxl_declaration = ctxl(a_declaration);
+and ctxl_declaration = ctxl_promise(a_declaration);
+
+type ctxl_import = ctxl_promise(AST.import_target);
 
 type a_module =
   | A_Statements(list(ctxl_module))
-  | A_Import(string, list(ctxl(AST.import_target)))
+  | A_Import(string, list(ctxl_import))
   | A_Declaration(ctxl_declaration)
-and ctxl_module = ctxl(a_module);
+and ctxl_module = ctxl_promise(a_module);

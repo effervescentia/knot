@@ -30,7 +30,7 @@ let rec generate = gen_expression =>
       Printf.sprintf(
         "JSX.createElement(%s,%s%s)",
         gen_tag(name),
-        Knot.Util.print_separated(",", gen_jsx_prop(gen_expression), props)
+        gen_list(gen_jsx_prop(gen_expression), props)
         |> Printf.sprintf("{%s}"),
         gen_rest(unwrap % generate(gen_expression), children),
       )
