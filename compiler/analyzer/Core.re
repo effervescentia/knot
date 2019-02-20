@@ -8,16 +8,6 @@ type resolve_target =
   | ReferenceScope(ctxl_reference)
   | JSXScope(ctxl_jsx);
 
-type member_type =
-  | Number_t
-  | String_t
-  | Boolean_t
-  | Function_t
-  | View_t
-  | State_t
-  | Style_t
-  | Module_t;
-
 type member_locality =
   | External(string)
   | Module;

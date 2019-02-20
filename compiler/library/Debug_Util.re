@@ -5,7 +5,7 @@ let (|~>) = (x, f) =>
   |> f
   % (
     switch (x^) {
-    | Pending(res) => Printf.sprintf("PENDING(%s)")
-    | Resolved(res, _) => Printf.sprintf("RESOLVED(%s)")
+    | Pending(res) => Printf.sprintf("Promise.pending(%s)")
+    | Resolved(res, _) => Printf.sprintf("Promise.resolved(%s)")
     }
   );

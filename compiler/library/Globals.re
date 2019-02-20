@@ -1,12 +1,25 @@
 module LazyStream = Opal.LazyStream;
 
+exception NotImplemented;
+
 let (%) = (f, g, x) => f(x) |> g;
+
+type member_type =
+  | Number_t
+  | String_t
+  | Boolean_t
+  | JSX_t
+  | Function_t
+  | View_t
+  | State_t
+  | Style_t
+  | Module_t;
 
 type eventual_ctx('a, 'b) =
   | Pending('a)
   | Resolved('a, 'b);
 
-type ctxl_promise('a) = ref(eventual_ctx('a, unit));
+type ctxl_promise('a) = ref(eventual_ctx('a, member_type));
 
 let opt_transform = transform =>
   fun

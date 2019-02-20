@@ -4,6 +4,7 @@ type t('a, 'b) = {
   add: ('a, 'b) => unit,
   is_complete: unit => bool,
   resolve: resolve_target => unit,
+  pending: unit => list(resolve_target),
   nest: (~size: int=?, unit) => t('a, 'b),
 };
 
@@ -14,6 +15,7 @@ let rec create = (~resolver=Resolver.create(), ~parent=?, symbol_tbl) => {
     add: (key, value) => Hashtbl.add(symbol_tbl, key, value),
     is_complete: resolver.is_complete,
     resolve: resolver.resolve,
+    pending: resolver.pending,
     nest: (~size=8, ()) => {
       let nested_scope =
         create(~resolver, ~parent=scope, Hashtbl.create(size));
