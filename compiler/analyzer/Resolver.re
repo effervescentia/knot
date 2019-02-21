@@ -34,6 +34,6 @@ let create = () => {
         dynamic_resolve(x);
       };
     },
-    pending: () => attempted_queue^,
+    pending: () => attempted_queue^ @ resolve_queue^,
   };
 };

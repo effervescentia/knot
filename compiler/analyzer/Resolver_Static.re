@@ -17,6 +17,8 @@ let typeof =
 
 let rec resolve =
   fun
+  | ModuleScope({contents: Pending(modul)} as promise) =>
+    check_resolution(resolve_module, promise, modul)
   | DeclarationScope({contents: Pending(decl)} as promise) =>
     check_resolution(resolve_decl, promise, decl)
   | ExpressionScope({contents: Pending(expr)} as promise) =>
@@ -26,9 +28,22 @@ let rec resolve =
   | JSXScope({contents: Pending(jsx)} as promise) =>
     check_resolution(resolve_jsx, promise, jsx)
   | _ => false
+and resolve_module = promise =>
+  fun
+  | A_Declaration(decl) => typeof(decl)
+  | _ => None
 and resolve_decl = promise =>
   fun
   | A_ConstDecl(_, expr) => typeof(expr)
+  | A_FunctionDecl(_, params, exprs) =>
+    if (List.length(exprs) == 0) {
+      Some(Nil_t);
+    } else {
+      switch (typeof(List.nth(exprs, List.length(exprs) - 1))) {
+      | Some(t) => Some(Function_t([], t))
+      | None => None
+      };
+    }
   | _ => None
 and resolve_expr = promise =>
   fun
