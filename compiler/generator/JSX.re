@@ -1,5 +1,9 @@
 open Core;
 
+let jsxGlobal = Printf.sprintf("%s.jsx", globals_map);
+let createEl = Printf.sprintf("%s.createElement(%s)", jsxGlobal);
+let createFrag = Printf.sprintf("%s.createFragment(%s)", jsxGlobal);
+
 /**
  * improve this to be based on semantics
  */
@@ -19,24 +23,25 @@ let rec generate = gen_expression =>
   fun
   | A_Element(name, props, children) =>
     switch (props, children) {
-    | ([], []) => Printf.sprintf("JSX.createElement(%s)", gen_tag(name))
+    | ([], []) => gen_tag(name) |> createEl
     | ([], _) =>
       Printf.sprintf(
-        "JSX.createElement(%s,null,%s)",
+        "%s,null,%s",
         gen_tag(name),
         gen_list(unwrap % generate(gen_expression), children),
       )
+      |> createEl
     | _ =>
       Printf.sprintf(
-        "JSX.createElement(%s,%s%s)",
+        "%s,%s%s",
         gen_tag(name),
         gen_list(gen_jsx_prop(gen_expression), props)
         |> Printf.sprintf("{%s}"),
         gen_rest(unwrap % generate(gen_expression), children),
       )
+      |> createEl
     }
   | A_Fragment(children) =>
-    gen_list(unwrap % generate(gen_expression), children)
-    |> Printf.sprintf("JSX.createFragment(%s)")
+    gen_list(unwrap % generate(gen_expression), children) |> createFrag
   | A_TextNode(s) => s |> gen_string
   | A_EvalNode(expr) => unwrap(expr) |> gen_expression;

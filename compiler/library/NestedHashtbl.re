@@ -18,32 +18,32 @@ let rec create = (~label="anonymous", ~parent=?, size) => {
 
   let rec scope = {
     label: real_label,
-    add: (key, value) => {
-      Printf.sprintf("Adding '%s' to scope '%s'.", key, real_label)
-      |> print_endline;
-
-      Hashtbl.add(symbol_tbl, key, value);
-    },
+    add: (key, value) =>
+      /* Printf.sprintf("Adding '%s' to scope '%s'.", key, real_label)
+         |> print_endline; */
+      Hashtbl.add(
+        symbol_tbl,
+        key,
+        value,
+      ),
     nest: (~label="anonymous", ~size=8, ()) =>
       create(~label, ~parent=scope, size),
-    find: key => {
-      Printf.sprintf("Looking for '%s' in scope '%s'", key, real_label)
-      |> print_endline;
-
+    find: key =>
+      /* Printf.sprintf("Looking for '%s' in scope '%s'", key, real_label)
+         |> print_endline; */
       switch (Some(Hashtbl.find(symbol_tbl, key))) {
       | res =>
-        Printf.sprintf("found in scope '%s'!", real_label) |> print_endline;
+        /* Printf.sprintf("found in scope '%s'!", real_label) |> print_endline; */
 
-        res;
+        res
       | exception Not_found =>
         switch (parent) {
         | Some(tbl) => tbl.find(key)
         | None =>
-          print_endline("not found...");
-          None;
+          /* print_endline("not found..."); */
+          None
         }
-      };
-    },
+      },
   };
 
   scope;

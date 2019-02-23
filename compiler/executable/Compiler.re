@@ -1,34 +1,25 @@
-module FileStream = Knot.FileStream;
-module TokenStream = KnotLex.TokenStream;
-module Parser = KnotParse.Parser;
-module Analyzer = KnotAnalyze.Analyzer;
+open Core;
+
 module Generator = KnotGen.Generator;
+module Scope = KnotAnalyze.Scope;
 
-exception InvalidProgram;
-
+let working_dir = Unix.getcwd();
 let in_path =
   switch (Sys.argv) {
-  | [|_, path|] => path
+  | [|_, path|] => Util.normalize_path(working_dir, path)
   | _ => raise(Arg.Bad("must provide the path to a source file"))
   };
+let config_file = Util.find_config_file(in_path);
+let root_dir = Filename.dirname(config_file);
 
-/* let execute = prog => {
-     let env: Hashtbl.t(string, Globals.env_value) = Hashtbl.create(16);
-     Evaluator.eval(prog, env);
+let () = {
+  Printf.printf("root dir: %s\n", root_dir);
+  /* normalize_path(in_path) |> Printf.sprintf("loading %s") |> print_endline; */
+  let global_scope = Scope.create(~label="global", ());
+  let loaded = Loader.load(~global_scope, in_path);
 
-     Debug.print_env(env);
-   }; */
+  List.map(Util.real_path(root_dir), loaded.deps)
+  |> List.iter(Loader.load(~global_scope) % ignore);
 
-let () =
-  open_in(in_path)
-  |> FileStream.of_channel
-  |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
-  |> Parser.parse(Parser.prog)
-  |> Analyzer.analyze
-  |> (
-    fun
-    | Some(ast) =>
-      /* KnotParse.Debug.print_ast(ast) |> prerr_endline; */
-      Generator.generate(print_string, ast)
-    | None => raise(InvalidProgram)
-  );
+  Generator.generate(print_string, loaded.ast);
+};

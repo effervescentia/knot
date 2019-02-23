@@ -12,7 +12,7 @@ let tests =
         |> FileStream.of_channel
         |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
         |> Parser.parse(Parser.prog)
-        |> Analyzer.analyze
+        |> Analyzer.analyze()
         |> (
           fun
           | Some(res) =>
