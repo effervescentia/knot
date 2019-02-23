@@ -9,5 +9,7 @@ let print_resolve_target =
   | DeclarationScope(decl) => decl |~> print_a_decl
   | ImportScope(import) => import |~> print_import
   | ExpressionScope(expr) => expr |~> print_a_expr
+  | ParameterScope(p)
+  | PropertyScope(p) => p |~> print_a_property
   | ReferenceScope(rf) => rf |~> print_a_ref
   | JSXScope(jsx) => jsx |~> print_a_jsx;

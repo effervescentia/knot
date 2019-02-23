@@ -15,7 +15,8 @@ type member_type =
   | View_t
   | State_t
   | Style_t
-  | Module_t
+  | Module_t(option(member_type), Hashtbl.t(string, member_type))
+  | Any_t(int)
   | Nil_t;
 
 type eventual_ctx('a, 'b) =

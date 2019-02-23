@@ -1,9 +1,9 @@
 open Core;
 
-let analyze = (~global_scope=Hashtbl.create(24)) =>
+let analyze =
   fun
   | Some(ast) => {
-      let scope = Scope.create(global_scope);
+      let scope = Scope.create(~label="module", ());
       let a_ast = Module.analyze(scope, ast);
 
       if (scope.is_complete()) {

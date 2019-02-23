@@ -29,7 +29,7 @@ and ctxl_expression = ctxl_promise(a_expression)
 and ctxl_reference = ctxl_promise(a_reference)
 and ctxl_jsx = ctxl_promise(a_jsx);
 
-type a_property = (string, option(string), option(ctxl_expression))
+type a_property = (string, option(member_type), option(ctxl_expression))
 and ctxl_property = ctxl_promise(a_property);
 
 type a_state_prop =

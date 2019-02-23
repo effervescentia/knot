@@ -2,13 +2,15 @@ open Core;
 
 type t = {
   is_complete: unit => bool,
-  resolve: resolve_target => unit,
+  resolve: (NestedHashtbl.t(string, member_type), resolve_target) => unit,
   pending: unit => list(resolve_target),
 };
 
 let of_module = m => ModuleScope(m);
 let of_declaration = d => DeclarationScope(d);
 let of_import = i => ImportScope(i);
+let of_parameter = p => ParameterScope(p);
+let of_property = p => PropertyScope(p);
 let of_expression = e => ExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
 let of_jsx = j => JSXScope(j);
@@ -21,17 +23,21 @@ let create = () => {
   {
     is_complete: () =>
       List.length(resolve_queue^) == 0 && List.length(attempted_queue^) == 0,
-    resolve: x => {
-      let dynamic_resolve =
-        Resolver_Dynamic.create(resolve_queue, attempted_queue, is_resolving);
+    resolve: (symbol_tbl, x) => {
+      let implicit_resolve =
+        Resolver_Implicit.create(
+          resolve_queue,
+          attempted_queue,
+          is_resolving,
+        );
 
-      if (Resolver_Static.resolve(x)) {
+      if (Resolver_Explicit.resolve(symbol_tbl, x)) {
         ();
       } else if (is_resolving^) {
         resolve_queue := [x, ...resolve_queue^];
       } else {
         is_resolving := true;
-        dynamic_resolve(x);
+        implicit_resolve(x);
       };
     },
     pending: () => attempted_queue^ @ resolve_queue^,

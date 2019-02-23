@@ -6,19 +6,19 @@ let analyze_prop = scope =>
     | Property((name, type_def, default_val)) =>
       A_Property((
         name,
-        type_def,
+        Property.analyze_type_def(type_def),
         opt_transform(Expression.analyze(scope), default_val),
       ))
     | Mutator(name, params, exprs) =>
       A_Mutator(
         name,
-        List.map(Property.analyze(scope), params),
+        List.map(Property.analyze(Expression.analyze, scope), params),
         List.map(Expression.analyze(scope), exprs),
       )
     | Getter(name, params, exprs) =>
       A_Getter(
         name,
-        List.map(Property.analyze(scope), params),
+        List.map(Property.analyze(Expression.analyze, scope), params),
         List.map(Expression.analyze(scope), exprs),
       )
   )

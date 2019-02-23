@@ -66,7 +66,7 @@ and print_a_property = ((name, type_def, default_val)) =>
   Printf.sprintf(
     "%s%s%s",
     name,
-    print_a_type_def(type_def),
+    Util.print_optional(print_a_type_def, type_def),
     print_a_assign(default_val),
   )
 and print_a_expr =
@@ -150,7 +150,31 @@ and print_a_style_rule = ((name, value)) =>
 and print_a_style_rule_set = ((key, rules)) =>
   Util.print_comma_separated(with_ctx(print_a_style_rule), rules)
   |> Printf.sprintf("ruleset(%s, [%s])", key |~> Debug_AST.print_style_key)
-and print_a_type_def = Util.print_optional(Printf.sprintf(": %s"))
+and print_a_type_def = type_def =>
+  (
+    switch (type_def) {
+    | Boolean_t => "boolean"
+    | Number_t => "number"
+    | String_t => "string"
+    | Array_t(typ) => print_a_type_def(typ) |> Printf.sprintf("%s[]")
+    | Object_t(props) =>
+      /* let rec next = s => switch() */
+      Hashtbl.fold(
+        (key, value, acc) =>
+          acc
+          ++ Printf.sprintf(
+               "%s%s",
+               String.length(acc) == 0 ? "" : ",",
+               print_a_type_def(value),
+             ),
+        props,
+        "",
+      )
+      |> Printf.sprintf("{ %s }")
+    | _ => ""
+    }
+  )
+  |> Printf.sprintf(": %s")
 and print_a_assign = x =>
   Util.print_optional(with_ctx(print_a_expr % Printf.sprintf(" = %s")), x)
 and print_ctxl_lambda = (params, exprs) => {
