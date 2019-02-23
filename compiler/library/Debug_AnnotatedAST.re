@@ -4,16 +4,14 @@ open Debug_Util;
 
 let with_ctx = (f, x) => x |~> f;
 
-let rec print_a_ast = (~depth=0) =>
+let rec print_a_ast =
+  fun
+  | A_Module(stmts) =>
+    List.fold_left((acc, s) => acc ++ (s |~> print_a_stmt), "", stmts)
+    |> Printf.sprintf("STATEMENTS:\n↳%s\n")
+and print_a_stmt = stmt =>
   (
-    fun
-    | A_Statements(stmts) =>
-      List.fold_left(
-        (acc, s) => acc ++ (s |~> print_a_ast(~depth=depth + 1)),
-        "",
-        stmts,
-      )
-      |> Printf.sprintf("STATEMENTS:\n↳%s\n")
+    switch (stmt) {
     | A_Import(module_, imports) =>
       Printf.sprintf(
         "IMPORT %s FROM %s",
@@ -24,8 +22,10 @@ let rec print_a_ast = (~depth=0) =>
         module_,
       )
     | A_Declaration(decl) => decl |~> print_a_decl
+    | A_Main(decl) => decl |~> print_a_decl |> Printf.sprintf("MAIN %s")
+    }
   )
-  % Printf.sprintf("\n%s%s", Util.repeat("\t", depth))
+  |> Printf.sprintf("\n%s")
 and print_a_decl =
   fun
   | A_ConstDecl(name, expr) =>

@@ -36,6 +36,12 @@ let test_parse_ast = (prog, (tkns, ast)) =>
   | None => assert_failure("no AST found")
   };
 
+let test_parse_stmt = (prog, (tkns, stmt)) =>
+  switch (Parser.parse(prog, to_token_stream(tkns))) {
+  | Some(res) => Assert.assert_stmt_eql(stmt, res)
+  | None => assert_failure("no statment found")
+  };
+
 let test_parse_decl = (decl, (tkns, ast)) =>
   switch (Parser.parse(decl, to_token_stream(tkns))) {
   | Some(res) => Assert.assert_decl_eql(ast, res)

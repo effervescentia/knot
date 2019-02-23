@@ -19,7 +19,14 @@ let () = {
   let loaded = Loader.load(~global_scope, in_path);
 
   List.map(Util.real_path(root_dir), loaded.deps)
-  |> List.iter(Loader.load(~global_scope) % ignore);
+  |> List.iter(dep =>
+       (
+         try (Loader.load(~global_scope, dep)) {
+         | _ => Printf.sprintf("%sot", dep) |> Loader.load(~global_scope)
+         }
+       )
+       |> ignore
+     );
 
   Generator.generate(print_string, loaded.ast);
 };

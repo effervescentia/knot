@@ -4,7 +4,7 @@ let main_import_stmt = (name, module_name) =>
   [Keyword(Import), Identifier(name), Keyword(From), String(module_name)]
   |> Util.drift;
 
-let test_parse_import = Util.test_parse_ast(KnotParse.Import.stmt);
+let test_parse_import = Util.test_parse_stmt(KnotParse.Import.stmt);
 
 let __main_import = "MyImport";
 let __module = "MyModule";

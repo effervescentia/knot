@@ -59,8 +59,12 @@ and ctxl_declaration = ctxl_promise(a_declaration);
 
 type ctxl_import = ctxl_promise(AST.import_target);
 
-type a_module =
-  | A_Statements(list(ctxl_module))
+type a_statement =
   | A_Import(string, list(ctxl_import))
   | A_Declaration(ctxl_declaration)
+  | A_Main(ctxl_declaration)
+and ctxl_statement = ctxl_promise(a_statement);
+
+type a_module =
+  | A_Module(list(ctxl_statement))
 and ctxl_module = ctxl_promise(a_module);

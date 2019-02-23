@@ -16,13 +16,15 @@ let analyze = (~scope=Scope.create(~label="module", ()), ()) =>
 
 let rec analyze_dependencies =
   fun
-  | A_Statements(xs) =>
+  | A_Module(xs) =>
     List.fold_left(
-      (acc, x) => (abandon_ctx(x) |> analyze_dependencies) @ acc,
+      (acc, x) =>
+        switch (abandon_ctx(x)) {
+        | A_Import(module_, imports) => [module_, ...acc]
+        | _ => acc
+        },
       [],
       xs,
     )
     |> List.map(String.trim)
-    |> List.filter(x => x != "")
-  | A_Import(module_, imports) => [module_]
-  | _ => [];
+    |> List.filter(x => x != "");

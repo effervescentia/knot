@@ -116,7 +116,7 @@ let all_tokens = [
 ];
 
 let full_ast =
-  Statements([
+  Module([
     Import("abc", [MainExport("ABC")]),
     Declaration(ConstDecl("numericConst", NumericLit(8))),
     Declaration(

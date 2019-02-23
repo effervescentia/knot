@@ -39,6 +39,10 @@ let rec resolve = symbol_tbl =>
   | _ => false
 and resolve_module = promise =>
   fun
+  | A_Module(stmts) => None
+  | _ => None
+and resolve_stmt = promise =>
+  fun
   | A_Declaration(decl) => typeof(decl)
   | _ => None
 and resolve_decl = (symbol_tbl, promise) =>

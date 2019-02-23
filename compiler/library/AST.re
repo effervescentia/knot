@@ -56,7 +56,10 @@ type declaration =
   | FunctionDecl(string, list(property), list(expression))
   | StyleDecl(string, list(property), list(style_rule_set));
 
-type module_ =
-  | Statements(list(module_))
+type statement =
   | Import(string, list(import_target))
-  | Declaration(declaration);
+  | Declaration(declaration)
+  | Main(declaration);
+
+type module_ =
+  | Module(list(statement));

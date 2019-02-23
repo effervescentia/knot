@@ -2,15 +2,17 @@ open Globals;
 open AST;
 
 let rec print_ast = (~depth=0) =>
+  fun
+  | Module(stmts) =>
+    List.fold_left(
+      (acc, s) => acc ++ print_stmt(~depth=depth + 1, s),
+      "",
+      stmts,
+    )
+    |> Printf.sprintf("STATEMENTS:\n↳%s\n")
+and print_stmt = (~depth=0) =>
   (
     fun
-    | Statements(stmts) =>
-      List.fold_left(
-        (acc, s) => acc ++ print_ast(~depth=depth + 1, s),
-        "",
-        stmts,
-      )
-      |> Printf.sprintf("STATEMENTS:\n↳%s\n")
     | Import(module_, imports) =>
       Printf.sprintf(
         "IMPORT %s FROM %s",
@@ -18,8 +20,9 @@ let rec print_ast = (~depth=0) =>
         module_,
       )
     | Declaration(decl) => print_decl(decl)
+    | Main(decl) => print_decl(decl) |> Printf.sprintf("MAIN %s")
   )
-  % Printf.sprintf("\n%s%s", Util.repeat("\t", depth))
+  % Printf.sprintf("\n%s")
 and print_decl =
   fun
   | ConstDecl(name, expr) =>

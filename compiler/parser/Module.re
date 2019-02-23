@@ -9,4 +9,4 @@ let decl =
   ==> (d => Declaration(d));
 let stmt = Import.stmt <|> decl;
 
-let stmts = many(stmt) ==> (l => Statements(l));
+let stmts = many(stmt) ==> (l => Module(l));
