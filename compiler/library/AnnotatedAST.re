@@ -18,7 +18,7 @@ type a_expression =
   | A_StringLit(string)
 and a_reference =
   | A_Variable(string)
-  | A_DotAccess(ctxl_reference, ctxl_reference)
+  | A_DotAccess(ctxl_reference, string)
   | A_Execution(ctxl_reference, list(ctxl_expression))
 and a_jsx =
   | A_Element(string, list((string, ctxl_expression)), list(ctxl_jsx))

@@ -16,7 +16,7 @@ type expression =
   | StringLit(string)
 and reference =
   | Variable(string)
-  | DotAccess(reference, reference)
+  | DotAccess(reference, string)
   | Execution(reference, list(expression))
 and jsx =
   | Element(string, list((string, expression)), list(jsx))

@@ -155,11 +155,9 @@ and resolve_ref = (symbol_tbl, promise) =>
   | A_Variable(name) => symbol_tbl.find(name)
   | A_DotAccess(lhs, rhs) =>
     switch (typeof(lhs), rhs) {
-    | (Some(Object_t(props)), {contents: Pending(A_Variable(name))})
-        when Hashtbl.mem(props, name) =>
+    | (Some(Object_t(props)), name) when Hashtbl.mem(props, name) =>
       Some(Hashtbl.find(props, name))
     | (None, _) => None
-    | (_, r) when typeof(r) == None => None
     | _ => raise(InvalidDotAccess)
     }
   | A_Execution(refr, args) =>

@@ -1,15 +1,12 @@
 open Core;
 open Scope;
 
-let rec analyze = (~resolve=true, analyze_expr, scope) =>
+let rec analyze = (analyze_expr, scope) =>
   (
     fun
     | Variable(name) => A_Variable(name)
     | DotAccess(lhs, rhs) =>
-      A_DotAccess(
-        analyze(analyze_expr, scope, lhs),
-        analyze(~resolve=false, analyze_expr, scope, rhs),
-      )
+      A_DotAccess(analyze(analyze_expr, scope, lhs), rhs)
     | Execution(target, args) =>
       A_Execution(
         analyze(analyze_expr, scope, target),
@@ -19,9 +16,7 @@ let rec analyze = (~resolve=true, analyze_expr, scope) =>
   % await_ctx
   % (
     x => {
-      if (resolve) {
-        Resolver.of_reference(x) |> scope.resolve;
-      };
+      Resolver.of_reference(x) |> scope.resolve;
 
       x;
     }

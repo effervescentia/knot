@@ -7,7 +7,7 @@ let rec generate = gen_expression =>
     Printf.sprintf(
       "%s%s",
       unwrap(lhs) |> generate(gen_expression),
-      unwrap(rhs) |> generate(gen_expression) |> Property.gen_access,
+      rhs |> Property.gen_access,
     )
   | A_Execution(target, args) =>
     Printf.sprintf(

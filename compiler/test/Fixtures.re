@@ -176,12 +176,7 @@ let full_ast =
     Declaration(
       ConstDecl(
         "dotAccessConst",
-        Reference(
-          DotAccess(
-            DotAccess(Variable("a"), Variable("b")),
-            Variable("c"),
-          ),
-        ),
+        Reference(DotAccess(DotAccess(Variable("a"), "b"), "c")),
       ),
     ),
     Declaration(
@@ -189,13 +184,10 @@ let full_ast =
         "executionConst",
         Reference(
           Execution(
-            DotAccess(
-              DotAccess(Variable("d"), Variable("e")),
-              Variable("f"),
-            ),
+            DotAccess(DotAccess(Variable("d"), "e"), "f"),
             [
               NumericLit(4),
-              Reference(DotAccess(Variable("a"), Variable("x"))),
+              Reference(DotAccess(Variable("a"), "x")),
               MulExpr(NumericLit(20), NumericLit(3)),
               Reference(Execution(Variable("m"), [])),
             ],

@@ -101,7 +101,7 @@ and print_a_ref =
   fun
   | A_Variable(name) => Printf.sprintf("variable(%s)", name)
   | A_DotAccess(source, property) =>
-    Printf.sprintf("%s.%s", source |~> print_a_ref, property |~> print_a_ref)
+    Printf.sprintf("%s.%s", source |~> print_a_ref, property)
   | A_Execution(source, exprs) =>
     Printf.sprintf(
       "exec %s(%s)",

@@ -1,1 +1,1 @@
-view App(props) -> "Hello, " + props.name + "!";
+func greet(name: string) -> "Hello, " + name + "!";
