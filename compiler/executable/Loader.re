@@ -49,7 +49,7 @@ let cache_as_tmp = file =>
     }
   );
 
-let load = (~global_scope=Scope.create(~label="global", ()), file) => {
+let load = (~module_tbl=Hashtbl.create(24), file) => {
   Printf.printf("loading %s\n", file);
 
   let in_channel = cache_as_tmp(file);
@@ -64,7 +64,11 @@ let load = (~global_scope=Scope.create(~label="global", ()), file) => {
   )
   |> Analyzer.analyze(
        ~scope=
-         global_scope.nest(~label=Printf.sprintf("module(%s)", file), ()),
+         Scope.create(
+           ~label=Printf.sprintf("module(%s)", file),
+           ~module_tbl,
+           (),
+         ),
        (),
      )
   |> (

@@ -24,6 +24,7 @@ let rec resolve = symbol_tbl =>
   fun
   | ModuleScope({contents: Pending(modul)} as promise) =>
     check_resolution(resolve_module, promise, modul)
+  | ImportScope({contents: Pending(import)} as promise) => false
   | DeclarationScope({contents: Pending(decl)} as promise) =>
     check_resolution(resolve_decl(symbol_tbl), promise, decl)
   | ExpressionScope({contents: Pending(expr)} as promise) =>
@@ -40,11 +41,6 @@ let rec resolve = symbol_tbl =>
 and resolve_module = promise =>
   fun
   | A_Module(stmts) => None
-  | _ => None
-and resolve_stmt = promise =>
-  fun
-  | A_Declaration(decl) => typeof(decl)
-  | _ => None
 and resolve_decl = (symbol_tbl, promise) =>
   fun
   | A_ConstDecl(name, expr) =>

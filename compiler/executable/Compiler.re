@@ -15,14 +15,14 @@ let root_dir = Filename.dirname(config_file);
 let () = {
   Printf.printf("root dir: %s\n", root_dir);
   /* normalize_path(in_path) |> Printf.sprintf("loading %s") |> print_endline; */
-  let global_scope = Scope.create(~label="global", ());
-  let loaded = Loader.load(~global_scope, in_path);
+  let module_tbl = Hashtbl.create(64);
+  let loaded = Loader.load(~module_tbl, in_path);
 
   List.map(Util.real_path(root_dir), loaded.deps)
   |> List.iter(dep =>
        (
-         try (Loader.load(~global_scope, dep)) {
-         | _ => Printf.sprintf("%sot", dep) |> Loader.load(~global_scope)
+         try (Loader.load(~module_tbl, dep)) {
+         | _ => Printf.sprintf("%sot", dep) |> Loader.load(~module_tbl)
          }
        )
        |> ignore

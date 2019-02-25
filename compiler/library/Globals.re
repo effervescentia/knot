@@ -15,7 +15,11 @@ type member_type =
   | View_t
   | State_t
   | Style_t
-  | Module_t(option(member_type), Hashtbl.t(string, member_type))
+  | Module_t(
+      list(string),
+      Hashtbl.t(string, member_type),
+      option(member_type),
+    )
   | Any_t(int)
   | Nil_t;
 

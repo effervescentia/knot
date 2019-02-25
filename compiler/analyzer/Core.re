@@ -12,13 +12,4 @@ type resolve_target =
   | ReferenceScope(ctxl_reference)
   | JSXScope(ctxl_jsx);
 
-type member_locality =
-  | External(string)
-  | Module;
-
-type scope_member = {
-  type_: member_type,
-  locality: member_locality,
-};
-
 let analyze_list = analyze => List.map(analyze % await_ctx);

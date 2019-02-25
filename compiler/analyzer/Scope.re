@@ -12,6 +12,7 @@ let rec create =
           ~label="anonymous",
           ~resolver=Resolver.create(),
           ~symbol_tbl=NestedHashtbl.create(~label, 24),
+          ~module_tbl=Hashtbl.create(24),
           (),
         ) => {
   let rec scope = {
@@ -19,7 +20,12 @@ let rec create =
     resolve: resolver.resolve(symbol_tbl),
     pending: resolver.pending,
     nest: (~label="anonymous", ~size=8, ()) =>
-      create(~resolver, ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()), ()),
+      create(
+        ~resolver,
+        ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
+        ~module_tbl,
+        (),
+      ),
   };
 
   scope;
