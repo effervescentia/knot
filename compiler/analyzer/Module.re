@@ -9,12 +9,17 @@ let analyze_stmt = scope =>
 
       A_Import(module_, wrapped);
     }
-  | Declaration(decl)
-  | Main(decl) => {
+  | Declaration(decl) => {
       let wrapped = Declaration.analyze(scope, decl) |> await_ctx;
       Resolver.of_declaration(wrapped) |> scope.resolve;
 
       A_Declaration(wrapped);
+    }
+  | Main(decl) => {
+      let wrapped = Declaration.analyze(scope, decl) |> await_ctx;
+      Resolver.of_declaration(wrapped) |> scope.resolve;
+
+      A_Main(wrapped);
     };
 
 let rec analyze =

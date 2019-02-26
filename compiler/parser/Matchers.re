@@ -20,7 +20,8 @@ and view = kwd(View)
 and state = kwd(State)
 and style = kwd(Style)
 and get = kwd(Get)
-and mut = kwd(Mut);
+and mut = kwd(Mut)
+and main = kwd(Main);
 
 /* characters */
 let assign = token(Assign)
