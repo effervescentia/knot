@@ -35,15 +35,13 @@ let rec resolve = symbol_tbl =>
     check_resolution(resolve_prop, promise, prop)
   | ReferenceScope({contents: Pending(refr, _)} as promise) =>
     check_resolution(resolve_ref(symbol_tbl), promise, refr)
-  | JSXScope({contents: Pending(jsx, _)} as promise) =>
-    check_resolution(resolve_jsx, promise, jsx)
   | _ => false
 and resolve_module = promise =>
   fun
-  | A_Module(stmts) => None
+  | Module(stmts) => None
 and resolve_decl = (symbol_tbl, promise) =>
   fun
-  | A_ConstDecl(name, expr) =>
+  | ConstDecl(name, expr) =>
     switch (typeof(expr)) {
     | Some(typ) as res =>
       switch (symbol_tbl.find(name)) {
@@ -54,7 +52,7 @@ and resolve_decl = (symbol_tbl, promise) =>
       }
     | None => None
     }
-  | A_FunctionDecl(name, params, exprs) => {
+  | FunctionDecl(name, params, exprs) => {
       let param_types =
         List.map(
           typeof
@@ -83,12 +81,13 @@ and resolve_decl = (symbol_tbl, promise) =>
   | _ => None
 and resolve_expr = promise =>
   fun
-  | A_BooleanLit(_) => Some(Boolean_t)
-  | A_NumericLit(_) => Some(Number_t)
-  | A_StringLit(_) => Some(String_t)
+  | BooleanLit(_) => Some(Boolean_t)
+  | NumericLit(_) => Some(Number_t)
+  | StringLit(_) => Some(String_t)
+  | JSX(jsx) => Some(JSX_t)
 
-  | A_AddExpr(lhs, rhs)
-  | A_SubExpr(lhs, rhs) =>
+  | AddExpr(lhs, rhs)
+  | SubExpr(lhs, rhs) =>
     switch (typeof(lhs), typeof(rhs)) {
     | (Some(Number_t), Some(Number_t)) => Some(Number_t)
     | (Some(String_t), Some(String_t)) => Some(String_t)
@@ -97,8 +96,8 @@ and resolve_expr = promise =>
     | _ => raise(OperatorTypeMismatch)
     }
 
-  | A_MulExpr(lhs, rhs)
-  | A_DivExpr(lhs, rhs) =>
+  | MulExpr(lhs, rhs)
+  | DivExpr(lhs, rhs) =>
     switch (typeof(lhs), typeof(rhs)) {
     | (Some(Number_t), Some(Number_t)) => Some(Number_t)
     | (None, _)
@@ -106,10 +105,10 @@ and resolve_expr = promise =>
     | _ => raise(OperatorTypeMismatch)
     }
 
-  | A_LTExpr(lhs, rhs)
-  | A_GTExpr(lhs, rhs)
-  | A_LTEExpr(lhs, rhs)
-  | A_GTEExpr(lhs, rhs) =>
+  | LTExpr(lhs, rhs)
+  | GTExpr(lhs, rhs)
+  | LTEExpr(lhs, rhs)
+  | GTEExpr(lhs, rhs) =>
     switch (typeof(lhs), typeof(rhs)) {
     | (Some(Number_t), Some(Number_t)) => Some(Boolean_t)
     | (None, _)
@@ -117,8 +116,8 @@ and resolve_expr = promise =>
     | _ => raise(OperatorTypeMismatch)
     }
 
-  | A_AndExpr(lhs, rhs)
-  | A_OrExpr(lhs, rhs) =>
+  | AndExpr(lhs, rhs)
+  | OrExpr(lhs, rhs) =>
     switch (typeof(lhs), typeof(rhs)) {
     | (Some(Boolean_t), Some(Boolean_t)) => Some(Boolean_t)
     | (None, _)
@@ -126,8 +125,7 @@ and resolve_expr = promise =>
     | _ => raise(OperatorTypeMismatch)
     }
 
-  | A_JSX(jsx) => typeof(jsx)
-  | A_Reference(refr) => typeof(refr)
+  | Reference(refr) => typeof(refr)
 and resolve_param = (symbol_tbl, promise, (name, _, _) as param) =>
   resolve_prop(promise, param)
   |> (
@@ -141,31 +139,31 @@ and resolve_param = (symbol_tbl, promise, (name, _, _) as param) =>
   )
 and resolve_prop = (promise, (name, type_def, default_val)) =>
   switch (type_def, default_val) {
-  | (Some(l_type), Some({contents: Resolved(_, r_type)}))
+  | (
+      Some({contents: Resolved(_, l_type)}),
+      Some({contents: Resolved(_, r_type)}),
+    )
       when l_type !== r_type =>
     raise(DefaultValueTypeMismatch)
   /* TODO: should have a unique ID within scope */
   | (None, None) => Some(Any_t(0))
-  | (Some(typ), _)
+  | (Some({contents: Resolved(_, typ)}), _)
   | (_, Some({contents: Resolved(_, typ)})) => Some(typ)
   | _ => None
   }
 and resolve_ref = (symbol_tbl, promise) =>
   fun
-  | A_Variable(name) => symbol_tbl.find(name)
-  | A_DotAccess(lhs, rhs) =>
+  | Variable(name) => symbol_tbl.find(name)
+  | DotAccess(lhs, rhs) =>
     switch (typeof(lhs), rhs) {
     | (Some(Object_t(props)), name) when Hashtbl.mem(props, name) =>
       Some(Hashtbl.find(props, name))
     | (None, _) => None
     | _ => raise(InvalidDotAccess)
     }
-  | A_Execution(refr, args) =>
+  | Execution(refr, args) =>
     switch (typeof(refr)) {
     | Some(Function_t(arg_types, return_type)) => Some(return_type)
     | None => None
     | _ => raise(ExecutingNonFunction)
-    }
-and resolve_jsx = promise =>
-  fun
-  | _ => Some(JSX_t);
+    };

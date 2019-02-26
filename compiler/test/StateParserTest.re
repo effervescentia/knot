@@ -71,7 +71,13 @@ let tests =
           StateDecl(
             __name,
             [],
-            [Property(("initial", None, Some(NumericLit(4))))],
+            [
+              no_ctx(
+                Property(
+                  no_ctx(("initial", None, Some(no_ctx(NumericLit(4))))),
+                ),
+              ),
+            ],
           ),
         ))
     ),
@@ -83,7 +89,7 @@ let tests =
           StateDecl(
             __name,
             [],
-            [Getter("title", [], [StringLit("Apple")])],
+            [no_ctx(Getter("title", [], [no_ctx(StringLit("Apple"))]))],
           ),
         ))
     ),

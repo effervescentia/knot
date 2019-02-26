@@ -7,21 +7,21 @@ let generate = printer =>
   abandon_ctx
   % (
     fun
-    | A_ConstDecl(name, expr) =>
+    | ConstDecl(name, expr) =>
       Printf.sprintf(
         "var %s=%s;%s",
         name,
         abandon_ctx(expr) |> Expression.generate,
         gen_export(name),
       )
-    | A_FunctionDecl(name, params, exprs) =>
+    | FunctionDecl(name, params, exprs) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
         Function.gen_body(params, exprs),
         gen_export(name),
       )
-    | A_StateDecl(name, params, props) =>
+    | StateDecl(name, params, props) =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
@@ -30,19 +30,19 @@ let generate = printer =>
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )
-    | A_ViewDecl(name, _, _, params, exprs) =>
+    | ViewDecl(name, _, _, params, exprs) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
         Function.gen_body(params, exprs),
         gen_export(name),
       )
-    | A_StyleDecl(name, params, rule_sets) =>
+    | StyleDecl(name, params, rule_sets) =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
         List.map(abandon_ctx, params) |> Function.gen_params,
-        gen_list(abandon_ctx % Style.gen_rule_set, rule_sets)
+        gen_list(Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )

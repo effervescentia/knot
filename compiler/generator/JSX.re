@@ -21,14 +21,14 @@ let gen_jsx_prop = (gen_expression, (name, value)) =>
 
 let rec generate = gen_expression =>
   fun
-  | A_Element(name, props, children) =>
+  | Element(name, props, children) =>
     switch (props, children) {
     | ([], []) => gen_tag(name) |> createEl
     | ([], _) =>
       Printf.sprintf(
         "%s,null,%s",
         gen_tag(name),
-        gen_list(abandon_ctx % generate(gen_expression), children),
+        gen_list(generate(gen_expression), children),
       )
       |> createEl
     | _ =>
@@ -37,11 +37,11 @@ let rec generate = gen_expression =>
         gen_tag(name),
         gen_list(gen_jsx_prop(gen_expression), props)
         |> Printf.sprintf("{%s}"),
-        gen_rest(abandon_ctx % generate(gen_expression), children),
+        gen_rest(generate(gen_expression), children),
       )
       |> createEl
     }
-  | A_Fragment(children) =>
-    gen_list(abandon_ctx % generate(gen_expression), children) |> createFrag
-  | A_TextNode(s) => s |> gen_string
-  | A_EvalNode(expr) => abandon_ctx(expr) |> gen_expression;
+  | Fragment(children) =>
+    gen_list(generate(gen_expression), children) |> createFrag
+  | TextNode(s) => s |> gen_string
+  | EvalNode(expr) => abandon_ctx(expr) |> gen_expression;

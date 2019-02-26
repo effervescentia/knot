@@ -1,23 +1,17 @@
 open Core;
 open Scope;
 
-let rec analyze = (analyze_expr, scope) =>
-  (
+let rec analyze = (analyze_expr, scope, refr) => {
+  abandon_ctx(refr)
+  |> (
     fun
-    | Variable(name) => A_Variable(name)
-    | DotAccess(lhs, rhs) =>
-      A_DotAccess(analyze(analyze_expr, scope, lhs), rhs)
-    | Execution(target, args) =>
-      A_Execution(
-        analyze(analyze_expr, scope, target),
-        List.map(analyze_expr(scope), args),
-      )
-  )
-  % await_ctx
-  % (
-    x => {
-      Resolver.of_reference(x) |> scope.resolve;
-
-      x;
-    }
+    | Variable(name) => ()
+    | DotAccess(lhs, rhs) => analyze(analyze_expr, scope, lhs)
+    | Execution(target, args) => {
+        analyze(analyze_expr, scope, target);
+        List.iter(analyze_expr(scope), args);
+      }
   );
+
+  Resolver.of_reference(refr) |> scope.resolve;
+};

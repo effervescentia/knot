@@ -13,7 +13,6 @@ let of_parameter = p => ParameterScope(p);
 let of_property = p => PropertyScope(p);
 let of_expression = e => ExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
-let of_jsx = j => JSXScope(j);
 
 let create = () => {
   let resolve_queue = ref([]);

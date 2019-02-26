@@ -8,7 +8,7 @@ exception InvalidProgram;
 exception ParsingFailed;
 
 type loaded_module = {
-  ast: Knot.AnnotatedAST.a_module,
+  ast: Knot.AST.module_,
   deps: list(string),
 };
 

@@ -110,5 +110,6 @@ let brackets = input => between(l_brack, r_brack, input);
 let decl = x => x >> identifier;
 let terminated = x => x << optional(semicolon);
 let closure = x => many(x) |> braces;
-let type_def = opt(None, colon >> identifier ==> (t => Some(t)));
+let type_def = input =>
+  (opt(None, colon >> identifier ==> no_ctx % (t => Some(t))))(input);
 let eof = spaces >> Knot.Fiber.eof();

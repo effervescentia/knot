@@ -16,7 +16,8 @@ let tests =
     >:: (
       _ => {
         let stmt = main_import_stmt(__main_import, __module);
-        let expected = Import(__module, [MainExport(__main_import)]);
+        let expected =
+          Import(__module, [no_ctx(MainExport(__main_import))]);
 
         Util.test_many(
           test_parse_import,

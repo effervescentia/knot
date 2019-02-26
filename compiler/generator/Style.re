@@ -13,8 +13,4 @@ let gen_rule = ((name, value)) =>
   );
 
 let gen_rule_set = ((key, rules)) =>
-  Printf.sprintf(
-    "['%s']:{%s}",
-    abandon_ctx(key) |> gen_key,
-    gen_list(abandon_ctx % gen_rule, rules),
-  );
+  Printf.sprintf("['%s']:{%s}", gen_key(key), gen_list(gen_rule, rules));

@@ -25,7 +25,8 @@ let tests =
         let name = "MyImport";
         let module_name = "table";
         let stmt = ImportParserTest.main_import_stmt(name, module_name);
-        let expected = Module([Import(module_name, [MainExport(name)])]);
+        let expected =
+          Module([Import(module_name, [no_ctx(MainExport(name))])]);
 
         Util.test_many(
           Util.test_parse_ast(Parser.prog),
@@ -39,7 +40,9 @@ let tests =
         let name = "myConst";
         let stmt = ConstParserTest.const_decl(name, Number(5));
         let expected =
-          Module([Declaration(ConstDecl(name, NumericLit(5)))]);
+          Module([
+            Declaration(no_ctx(ConstDecl(name, no_ctx(NumericLit(5))))),
+          ]);
 
         Util.test_many(
           Util.test_parse_ast(Parser.prog),
@@ -52,7 +55,8 @@ let tests =
       _ => {
         let name = "myFunc";
         let stmt = FunctionParserTest.empty_func_decl(name);
-        let expected = Module([Declaration(FunctionDecl(name, [], []))]);
+        let expected =
+          Module([Declaration(no_ctx(FunctionDecl(name, [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
@@ -63,7 +67,7 @@ let tests =
         let name = "MyView";
         let stmt = ViewParserTest.empty_view_decl(name);
         let expected =
-          Module([Declaration(ViewDecl(name, None, [], [], []))]);
+          Module([Declaration(no_ctx(ViewDecl(name, None, [], [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
@@ -73,7 +77,8 @@ let tests =
       _ => {
         let name = "MyState";
         let stmt = StateParserTest.empty_state_decl(name);
-        let expected = Module([Declaration(StateDecl(name, [], []))]);
+        let expected =
+          Module([Declaration(no_ctx(StateDecl(name, [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }

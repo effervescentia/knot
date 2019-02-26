@@ -34,7 +34,11 @@ type import_target =
   | NamedExport(string, option(string))
 and ast_import_target = ctxl_promise(import_target);
 
-type property = (string, option(string), option(ast_expression))
+type property = (
+  string,
+  option(ctxl_promise(string)),
+  option(ast_expression),
+)
 and ast_property = ctxl_promise(property);
 
 type state_prop =
@@ -55,8 +59,8 @@ type declaration =
   | StateDecl(string, list(ast_property), list(ast_state_prop))
   | ViewDecl(
       string,
-      option(string),
-      list(string),
+      option(ctxl_promise(string)),
+      list(ctxl_promise(string)),
       list(ast_property),
       list(ast_expression),
     )
@@ -70,4 +74,5 @@ type statement =
   | Main(ast_declaration);
 
 type module_ =
-  | Module(list(statement));
+  | Module(list(statement))
+and ast_module = ctxl_promise(module_);

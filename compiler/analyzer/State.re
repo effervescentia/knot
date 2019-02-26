@@ -1,25 +1,24 @@
 open Core;
 
 let analyze_prop = scope =>
-  (
+  abandon_ctx
+  % (
     fun
-    | Property((name, type_def, default_val)) =>
-      A_Property((
-        name,
-        Property.analyze_type_def(type_def),
-        opt_transform(Expression.analyze(scope), default_val),
-      ))
-    | Mutator(name, params, exprs) =>
-      A_Mutator(
-        name,
-        List.map(Property.analyze(Expression.analyze, scope), params),
-        List.map(Expression.analyze(scope), exprs),
-      )
-    | Getter(name, params, exprs) =>
-      A_Getter(
-        name,
-        List.map(Property.analyze(Expression.analyze, scope), params),
-        List.map(Expression.analyze(scope), exprs),
-      )
-  )
-  % await_ctx;
+    | Property(prop) => {
+        let (name, type_def, default_val) = abandon_ctx(prop);
+
+        Property.analyze_type_def(type_def) |> ignore;
+        switch (default_val) {
+        | Some(expr) => Expression.analyze(scope, expr)
+        | None => ()
+        };
+      }
+    | Mutator(name, params, exprs) => {
+        List.iter(Property.analyze(Expression.analyze, scope), params);
+        List.iter(Expression.analyze(scope), exprs);
+      }
+    | Getter(name, params, exprs) => {
+        List.iter(Property.analyze(Expression.analyze, scope), params);
+        List.iter(Expression.analyze(scope), exprs);
+      }
+  );

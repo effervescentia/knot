@@ -42,7 +42,7 @@ and print_decl =
     Printf.sprintf(
       "VIEW %s%s%s = %s",
       name,
-      Util.print_optional(Printf.sprintf(" extends %s"), super),
+      Util.print_optional(Printf.sprintf(" extends %s") |> with_ctx, super),
       print_mixins(mixins),
       print_lambda(params, exprs),
     )
@@ -133,7 +133,7 @@ and print_state_prop =
   | Mutator(name, params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("mutator(%s = %s)", name)
 and print_mixins = mixins =>
-  Util.print_comma_separated(x => x, mixins)
+  Util.print_comma_separated(with_ctx(x => x), mixins)
   |> (
     fun
     | "" => ""
@@ -148,7 +148,8 @@ and print_style_key =
 and print_style_rule_set = ((key, rules)) =>
   Util.print_comma_separated(print_style_rule, rules)
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))
-and print_type_def = Util.print_optional(Printf.sprintf(": %s"))
+and print_type_def =
+  Util.print_optional(abandon_ctx % Printf.sprintf(": %s"))
 and print_assign = x =>
   Util.print_optional(with_ctx(print_expr % Printf.sprintf(" = %s")), x)
 and print_lambda = (params, exprs) => {

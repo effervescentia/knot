@@ -3,13 +3,12 @@ include Knot.Core;
 module NestedHashtbl = Knot.NestedHashtbl;
 
 type resolve_target =
-  | ModuleScope(ctxl_module)
-  | DeclarationScope(ctxl_declaration)
-  | ImportScope(ctxl_import)
-  | ParameterScope(ctxl_property)
-  | PropertyScope(ctxl_property)
-  | ExpressionScope(ctxl_expression)
-  | ReferenceScope(ctxl_reference)
-  | JSXScope(ctxl_jsx);
+  | ModuleScope(ast_module)
+  | DeclarationScope(ast_declaration)
+  | ImportScope(ast_import_target)
+  | ParameterScope(ast_property)
+  | PropertyScope(ast_property)
+  | ExpressionScope(ast_expression)
+  | ReferenceScope(ast_reference);
 
 let analyze_list = analyze => List.map(analyze % await_ctx);

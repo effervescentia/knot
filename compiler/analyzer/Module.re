@@ -3,32 +3,22 @@ open Scope;
 
 let analyze_stmt = scope =>
   fun
-  | Import(module_, imports) => {
-      let wrapped = List.map(await_ctx, imports);
-      List.iter(Resolver.of_import % scope.resolve, wrapped);
-
-      A_Import(module_, wrapped);
-    }
+  | Import(module_, imports) =>
+    List.iter(Resolver.of_import % scope.resolve, imports)
   | Declaration(decl) => {
-      let wrapped = Declaration.analyze(scope, decl) |> await_ctx;
-      Resolver.of_declaration(wrapped) |> scope.resolve;
+      Declaration.analyze(scope, decl);
 
-      A_Declaration(wrapped);
+      Resolver.of_declaration(decl) |> scope.resolve;
     }
   | Main(decl) => {
-      let wrapped = Declaration.analyze(scope, decl) |> await_ctx;
-      Resolver.of_declaration(wrapped) |> scope.resolve;
+      Declaration.analyze(scope, decl);
 
-      A_Main(wrapped);
+      Resolver.of_declaration(decl) |> scope.resolve;
     };
 
 let rec analyze =
   Knot.AST.(
     scope =>
       fun
-      | Module(stmts) => {
-          let wrapped = List.map(analyze_stmt(scope) % await_ctx, stmts);
-
-          A_Module(wrapped);
-        }
+      | Module(stmts) => List.iter(analyze_stmt(scope), stmts)
   );
