@@ -14,7 +14,7 @@ let gen_prop =
       "%s:%s",
       Property.gen_key(name),
       switch (default_val) {
-      | Some(expr) => unwrap(expr) |> Expression.generate
+      | Some(expr) => abandon_ctx(expr) |> Expression.generate
       | None => "undefined"
       },
     );

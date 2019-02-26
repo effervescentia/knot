@@ -1,5 +1,8 @@
 open Globals;
 open AST;
+open Debug_Util;
+
+let with_ctx = (f, x) => x |~> f;
 
 let rec print_ast = (~depth=0) =>
   fun
@@ -26,7 +29,7 @@ and print_stmt = (~depth=0) =>
 and print_decl =
   fun
   | ConstDecl(name, expr) =>
-    print_expr(expr) |> Printf.sprintf("CONST %s = %s", name)
+    expr |~> print_expr |> Printf.sprintf("CONST %s = %s", name)
   | StateDecl(name, params, props) => {
       let params_str = Util.print_comma_separated(print_property, params);
       let props_str = Util.print_comma_separated(print_state_prop, props);
@@ -73,25 +76,25 @@ and print_expr =
     print_ref(reference) |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
   | AddExpr(lhs, rhs) =>
-    Printf.sprintf("(%s + %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s + %s)", lhs |~> print_expr, rhs |~> print_expr)
   | SubExpr(lhs, rhs) =>
-    Printf.sprintf("(%s - %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s - %s)", lhs |~> print_expr, rhs |~> print_expr)
   | MulExpr(lhs, rhs) =>
-    Printf.sprintf("(%s * %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s * %s)", lhs |~> print_expr, rhs |~> print_expr)
   | DivExpr(lhs, rhs) =>
-    Printf.sprintf("(%s / %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s / %s)", lhs |~> print_expr, rhs |~> print_expr)
   | LTExpr(lhs, rhs) =>
-    Printf.sprintf("(%s < %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s < %s)", lhs |~> print_expr, rhs |~> print_expr)
   | LTEExpr(lhs, rhs) =>
-    Printf.sprintf("(%s <= %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s <= %s)", lhs |~> print_expr, rhs |~> print_expr)
   | GTExpr(lhs, rhs) =>
-    Printf.sprintf("(%s > %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s > %s)", lhs |~> print_expr, rhs |~> print_expr)
   | GTEExpr(lhs, rhs) =>
-    Printf.sprintf("(%s >= %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s >= %s)", lhs |~> print_expr, rhs |~> print_expr)
   | AndExpr(lhs, rhs) =>
-    Printf.sprintf("(%s && %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s && %s)", lhs |~> print_expr, rhs |~> print_expr)
   | OrExpr(lhs, rhs) =>
-    Printf.sprintf("(%s || %s)", print_expr(lhs), print_expr(rhs))
+    Printf.sprintf("(%s || %s)", lhs |~> print_expr, rhs |~> print_expr)
 and print_ref =
   fun
   | Variable(name) => Printf.sprintf("variable(%s)", name)
@@ -101,7 +104,7 @@ and print_ref =
     Printf.sprintf(
       "exec %s(%s)",
       print_ref(source),
-      Util.print_comma_separated(print_expr, exprs),
+      Util.print_comma_separated(with_ctx(print_expr), exprs),
     )
 and print_jsx =
   fun
@@ -116,9 +119,9 @@ and print_jsx =
   | Fragment(children) =>
     Printf.sprintf("<>%s</>", Util.print_sequential(print_jsx, children))
   | TextNode(s) => s
-  | EvalNode(expr) => print_expr(expr)
+  | EvalNode(expr) => expr |~> print_expr
 and print_jsx_prop = ((name, expr)) =>
-  Printf.sprintf("%s={%s}", name, print_expr(expr))
+  Printf.sprintf("%s={%s}", name, expr |~> print_expr)
 and print_state_prop =
   fun
   | Property((name, type_def, default_val)) =>
@@ -146,10 +149,10 @@ and print_style_rule_set = ((key, rules)) =>
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))
 and print_type_def = Util.print_optional(Printf.sprintf(": %s"))
 and print_assign = x =>
-  Util.print_optional(print_expr % Printf.sprintf(" = %s"), x)
+  Util.print_optional(with_ctx(print_expr % Printf.sprintf(" = %s")), x)
 and print_lambda = (params, exprs) => {
   let params_str = Util.print_comma_separated(print_property, params);
-  let exprs_str = Util.print_comma_separated(print_expr, exprs);
+  let exprs_str = Util.print_comma_separated(with_ctx(print_expr), exprs);
 
   Printf.sprintf("([%s]) -> [%s]", params_str, exprs_str);
 };

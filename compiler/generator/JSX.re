@@ -16,7 +16,7 @@ let gen_jsx_prop = (gen_expression, (name, value)) =>
   Printf.sprintf(
     "%s:%s",
     Property.gen_key(name),
-    unwrap(value) |> gen_expression,
+    abandon_ctx(value) |> gen_expression,
   );
 
 let rec generate = gen_expression =>
@@ -28,7 +28,7 @@ let rec generate = gen_expression =>
       Printf.sprintf(
         "%s,null,%s",
         gen_tag(name),
-        gen_list(unwrap % generate(gen_expression), children),
+        gen_list(abandon_ctx % generate(gen_expression), children),
       )
       |> createEl
     | _ =>
@@ -37,11 +37,11 @@ let rec generate = gen_expression =>
         gen_tag(name),
         gen_list(gen_jsx_prop(gen_expression), props)
         |> Printf.sprintf("{%s}"),
-        gen_rest(unwrap % generate(gen_expression), children),
+        gen_rest(abandon_ctx % generate(gen_expression), children),
       )
       |> createEl
     }
   | A_Fragment(children) =>
-    gen_list(unwrap % generate(gen_expression), children) |> createFrag
+    gen_list(abandon_ctx % generate(gen_expression), children) |> createFrag
   | A_TextNode(s) => s |> gen_string
-  | A_EvalNode(expr) => unwrap(expr) |> gen_expression;
+  | A_EvalNode(expr) => abandon_ctx(expr) |> gen_expression;

@@ -15,18 +15,14 @@ let rec create =
           ~module_tbl=Hashtbl.create(24),
           (),
         ) => {
-  let rec scope = {
-    is_complete: resolver.is_complete,
-    resolve: resolver.resolve(symbol_tbl),
-    pending: resolver.pending,
-    nest: (~label="anonymous", ~size=8, ()) =>
-      create(
-        ~resolver,
-        ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
-        ~module_tbl,
-        (),
-      ),
-  };
-
-  scope;
+  is_complete: resolver.is_complete,
+  resolve: resolver.resolve(symbol_tbl),
+  pending: resolver.pending,
+  nest: (~label="anonymous", ~size=8, ()) =>
+    create(
+      ~resolver,
+      ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
+      ~module_tbl,
+      (),
+    ),
 };

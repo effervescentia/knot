@@ -3,7 +3,7 @@ open Core;
 let generate = (printer, module_name, imports) =>
   imports
   |> List.iter(
-       unwrap
+       abandon_ctx
        % (
          fun
          | MainExport(export_name) =>

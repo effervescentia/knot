@@ -5,7 +5,7 @@ let close_tag = name =>
   M.jsx_open_end >> M.exact_identifier(name) >> M.r_chev;
 
 let rec expr = x => fragment(x) <|> element(x)
-/* should figure out why `fragment` cannot appear in `nested_expr` */
+/* TODO: should figure out why `fragment` cannot appear in `nested_expr` */
 and nested_expr = x => eval_node(x) <|> element(x)
 and nested_exprs = x => nested_expr(x) |> many
 and element = x =>
@@ -30,7 +30,7 @@ and fragment = x =>
   >> nested_exprs(x)
   << M.jsx_end_frag
   ==> (children => Fragment(children))
-and eval_node = x => M.braces(x) ==> (ex => EvalNode(ex))
+and eval_node = x => M.braces(x) ==> no_ctx % (ex => EvalNode(ex))
 /* figure out how to do this */
 and text_node = any
 and jsx_property = x =>
@@ -40,6 +40,7 @@ and jsx_property = x =>
       M.assign
       >> (string_prop <|> M.braces(x))
       |= Reference(Variable(name))
-      ==> (value => (name, value))
+      ==> no_ctx
+      % (value => (name, value))
   )
 and string_prop = M.string ==> (s => StringLit(s));

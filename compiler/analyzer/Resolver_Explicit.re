@@ -17,25 +17,25 @@ let check_resolution = (resolver, promise, expr) =>
 
 let typeof =
   fun
-  | {contents: Pending(_)} => None
-  | {contents: Resolved(_, t)} => Some(t);
+  | {contents: Resolved(_, t)} => Some(t)
+  | _ => None;
 
 let rec resolve = symbol_tbl =>
   fun
-  | ModuleScope({contents: Pending(modul)} as promise) =>
+  | ModuleScope({contents: Pending(modul, _)} as promise) =>
     check_resolution(resolve_module, promise, modul)
-  | ImportScope({contents: Pending(import)} as promise) => false
-  | DeclarationScope({contents: Pending(decl)} as promise) =>
+  | ImportScope({contents: Pending(import, _)} as promise) => false
+  | DeclarationScope({contents: Pending(decl, _)} as promise) =>
     check_resolution(resolve_decl(symbol_tbl), promise, decl)
-  | ExpressionScope({contents: Pending(expr)} as promise) =>
+  | ExpressionScope({contents: Pending(expr, _)} as promise) =>
     check_resolution(resolve_expr, promise, expr)
-  | ParameterScope({contents: Pending(prop)} as promise) =>
+  | ParameterScope({contents: Pending(prop, _)} as promise) =>
     check_resolution(resolve_param(symbol_tbl), promise, prop)
-  | PropertyScope({contents: Pending(prop)} as promise) =>
+  | PropertyScope({contents: Pending(prop, _)} as promise) =>
     check_resolution(resolve_prop, promise, prop)
-  | ReferenceScope({contents: Pending(refr)} as promise) =>
+  | ReferenceScope({contents: Pending(refr, _)} as promise) =>
     check_resolution(resolve_ref(symbol_tbl), promise, refr)
-  | JSXScope({contents: Pending(jsx)} as promise) =>
+  | JSXScope({contents: Pending(jsx, _)} as promise) =>
     check_resolution(resolve_jsx, promise, jsx)
   | _ => false
 and resolve_module = promise =>

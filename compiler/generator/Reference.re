@@ -6,12 +6,12 @@ let rec generate = gen_expression =>
   | A_DotAccess(lhs, rhs) =>
     Printf.sprintf(
       "%s%s",
-      unwrap(lhs) |> generate(gen_expression),
+      abandon_ctx(lhs) |> generate(gen_expression),
       rhs |> Property.gen_access,
     )
   | A_Execution(target, args) =>
     Printf.sprintf(
       "%s(%s)",
-      unwrap(target) |> generate(gen_expression),
-      gen_list(unwrap % gen_expression, args),
+      abandon_ctx(target) |> generate(gen_expression),
+      gen_list(abandon_ctx % gen_expression, args),
     );

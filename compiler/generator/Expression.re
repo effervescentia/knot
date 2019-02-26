@@ -13,15 +13,15 @@ let rec generate =
   | A_AndExpr(lhs, rhs) => gen_binary("&&", lhs, rhs)
   | A_OrExpr(lhs, rhs) => gen_binary("||", lhs, rhs)
   | A_Reference(reference) =>
-    unwrap(reference) |> Reference.generate(generate)
-  | A_JSX(jsx) => unwrap(jsx) |> JSX.generate(generate)
+    abandon_ctx(reference) |> Reference.generate(generate)
+  | A_JSX(jsx) => abandon_ctx(jsx) |> JSX.generate(generate)
   | A_NumericLit(n) => string_of_int(n)
   | A_BooleanLit(b) => string_of_bool(b)
   | A_StringLit(s) => gen_string(s)
 and gen_binary = (divider, lhs, rhs) =>
   Printf.sprintf(
     "(%s%s%s)",
-    unwrap(lhs) |> generate,
+    abandon_ctx(lhs) |> generate,
     divider,
-    unwrap(rhs) |> generate,
+    abandon_ctx(rhs) |> generate,
   );

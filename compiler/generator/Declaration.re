@@ -4,14 +4,14 @@ let gen_export = name =>
   Printf.sprintf("%s%s=%s;", export_map, Property.gen_access(name), name);
 
 let generate = printer =>
-  unwrap
+  abandon_ctx
   % (
     fun
     | A_ConstDecl(name, expr) =>
       Printf.sprintf(
         "var %s=%s;%s",
         name,
-        unwrap(expr) |> Expression.generate,
+        abandon_ctx(expr) |> Expression.generate,
         gen_export(name),
       )
     | A_FunctionDecl(name, params, exprs) =>
@@ -25,8 +25,8 @@ let generate = printer =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(unwrap, params) |> Function.gen_params,
-        gen_list(unwrap % State.gen_prop, props)
+        List.map(abandon_ctx, params) |> Function.gen_params,
+        gen_list(abandon_ctx % State.gen_prop, props)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )
@@ -41,8 +41,8 @@ let generate = printer =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(unwrap, params) |> Function.gen_params,
-        gen_list(unwrap % Style.gen_rule_set, rule_sets)
+        List.map(abandon_ctx, params) |> Function.gen_params,
+        gen_list(abandon_ctx % Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )

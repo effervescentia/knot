@@ -24,27 +24,31 @@ type member_type =
   | Nil_t;
 
 type eventual_ctx('a, 'b) =
-  | Pending('a)
+  | Unanalyzed('a)
+  | Pending('a, list(('a, 'b) => unit))
   | Resolved('a, 'b);
 
 type ctxl_promise('a) = ref(eventual_ctx('a, member_type));
 
-let opt_transform = transform =>
-  fun
-  | Some(x) => Some(transform(x))
-  | None => None;
+let no_ctx = x => ref(Unanalyzed(x));
 
-let await_ctx = x => ref(Pending(x));
+let await_ctx = x => ref(Pending(x, []));
 
 let abandon_ctx = x =>
   switch (x^) {
-  | Pending(res) => res
+  | Unanalyzed(res)
+  | Pending(res, _)
   | Resolved(res, _) => res
   };
 
 let opt_abandon_ctx =
   fun
   | Some(x) => Some(abandon_ctx(x))
+  | None => None;
+
+let opt_transform = transform =>
+  fun
+  | Some(x) => Some(transform(x))
   | None => None;
 
 let reserved = [

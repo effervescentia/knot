@@ -20,9 +20,3 @@ let gen_terminated = (generator, items) =>
 
 let gen_string =
   Str.global_replace(Str.regexp_string("'"), "\'") % Printf.sprintf("'%s'");
-
-let unwrap = x =>
-  switch (x^) {
-  | Pending(y) => y
-  | Resolved(y, _) => y
-  };
