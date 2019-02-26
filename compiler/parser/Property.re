@@ -20,4 +20,5 @@ let prop = input =>
     input,
   );
 
-let list = input => (prop |> M.comma_separated |> M.parentheses)(input);
+let list = input =>
+  (prop ==> no_ctx |> M.comma_separated |> M.parentheses)(input);

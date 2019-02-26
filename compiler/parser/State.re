@@ -1,7 +1,7 @@
 open Core;
 
 let prop_stmt =
-  Property.prop ==> (property => Property(property)) |> M.terminated;
+  Property.prop ==> no_ctx % (property => Property(property)) |> M.terminated;
 let mut_stmt =
   M.decl(M.mut)
   >>= (
@@ -31,6 +31,9 @@ let decl =
       |= []
       >>= (
         params =>
-          M.closure(stmt) ==> (stmts => StateDecl(name, params, stmts))
+          stmt
+          ==> no_ctx
+          |> M.closure
+          ==> (stmts => StateDecl(name, params, stmts))
       )
   );

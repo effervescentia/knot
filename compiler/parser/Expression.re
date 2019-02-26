@@ -17,7 +17,7 @@ and term = input =>
   (
     JSX.expr(expr)
     ==> (jsx => JSX(jsx))
-    <|> (Reference.refr(expr) ==> (r => Reference(r)))
+    <|> (Reference.refr(expr) ==> no_ctx % (r => Reference(r)))
     <|> string_lit
     <|> numeric_lit
     <|> boolean_lit

@@ -19,11 +19,11 @@ and print_stmt = (~depth=0) =>
     | Import(module_, imports) =>
       Printf.sprintf(
         "IMPORT %s FROM %s",
-        Util.print_comma_separated(print_import, imports),
+        Util.print_comma_separated(with_ctx(print_import), imports),
         module_,
       )
-    | Declaration(decl) => print_decl(decl)
-    | Main(decl) => print_decl(decl) |> Printf.sprintf("MAIN %s")
+    | Declaration(decl) => decl |~> print_decl
+    | Main(decl) => decl |~> print_decl |> Printf.sprintf("MAIN %s")
   )
   % Printf.sprintf("\n%s")
 and print_decl =
@@ -31,8 +31,10 @@ and print_decl =
   | ConstDecl(name, expr) =>
     expr |~> print_expr |> Printf.sprintf("CONST %s = %s", name)
   | StateDecl(name, params, props) => {
-      let params_str = Util.print_comma_separated(print_property, params);
-      let props_str = Util.print_comma_separated(print_state_prop, props);
+      let params_str =
+        Util.print_comma_separated(with_ctx(print_property), params);
+      let props_str =
+        Util.print_comma_separated(with_ctx(print_state_prop), props);
 
       Printf.sprintf("STATE (%s, [%s], [%s])", name, params_str, props_str);
     }
@@ -50,7 +52,7 @@ and print_decl =
     Printf.sprintf(
       "STYLE %s = ([%s]) -> [%s]",
       name,
-      Util.print_comma_separated(print_property, params),
+      Util.print_comma_separated(with_ctx(print_property), params),
       Util.print_comma_separated(print_style_rule_set, rule_sets),
     )
 and print_import =
@@ -73,7 +75,7 @@ and print_expr =
   | BooleanLit(b) => string_of_bool(b)
   | StringLit(s) => s
   | Reference(reference) =>
-    print_ref(reference) |> Printf.sprintf("reference(%s)")
+    reference |~> print_ref |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
   | AddExpr(lhs, rhs) =>
     Printf.sprintf("(%s + %s)", lhs |~> print_expr, rhs |~> print_expr)
@@ -99,11 +101,11 @@ and print_ref =
   fun
   | Variable(name) => Printf.sprintf("variable(%s)", name)
   | DotAccess(source, property) =>
-    Printf.sprintf("%s.%s", print_ref(source), property)
+    Printf.sprintf("%s.%s", source |~> print_ref, property)
   | Execution(source, exprs) =>
     Printf.sprintf(
       "exec %s(%s)",
-      print_ref(source),
+      source |~> print_ref,
       Util.print_comma_separated(with_ctx(print_expr), exprs),
     )
 and print_jsx =
@@ -124,9 +126,8 @@ and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, expr |~> print_expr)
 and print_state_prop =
   fun
-  | Property((name, type_def, default_val)) =>
-    print_property((name, type_def, default_val))
-    |> Printf.sprintf("prop(%s)")
+  | Property(prop) =>
+    abandon_ctx(prop) |> print_property |> Printf.sprintf("prop(%s)")
   | Getter(name, params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
   | Mutator(name, params, exprs) =>
@@ -139,7 +140,7 @@ and print_mixins = mixins =>
     | _ as res => Printf.sprintf(" mixes %s", res)
   )
 and print_style_rule = ((name, value)) =>
-  Printf.sprintf("rule(%s = %s)", print_ref(name), print_ref(value))
+  Printf.sprintf("rule(%s = %s)", name |~> print_ref, value |~> print_ref)
 and print_style_key =
   fun
   | ClassKey(name) => Printf.sprintf("class(%s)", name)
@@ -151,7 +152,8 @@ and print_type_def = Util.print_optional(Printf.sprintf(": %s"))
 and print_assign = x =>
   Util.print_optional(with_ctx(print_expr % Printf.sprintf(" = %s")), x)
 and print_lambda = (params, exprs) => {
-  let params_str = Util.print_comma_separated(print_property, params);
+  let params_str =
+    Util.print_comma_separated(with_ctx(print_property), params);
   let exprs_str = Util.print_comma_separated(with_ctx(print_expr), exprs);
 
   Printf.sprintf("([%s]) -> [%s]", params_str, exprs_str);

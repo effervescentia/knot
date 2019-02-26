@@ -13,6 +13,6 @@ let refr = x =>
       M.comma_separated(x)
       |> M.parentheses
       ==> List.map(no_ctx)
-      % (exprs => Execution(refr, exprs))
+      % (exprs => Execution(no_ctx(refr), exprs))
       |= refr
   );

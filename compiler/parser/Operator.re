@@ -20,6 +20,6 @@ and dot =
   M.period
   >> return(x =>
        fun
-       | Variable(y) => DotAccess(x, y)
+       | Variable(y) => DotAccess(no_ctx(x), y)
        | _ => raise(InvalidDotAccess)
      );

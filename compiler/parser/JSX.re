@@ -39,7 +39,7 @@ and jsx_property = x =>
     name =>
       M.assign
       >> (string_prop <|> M.braces(x))
-      |= Reference(Variable(name))
+      |= Reference(no_ctx(Variable(name)))
       ==> no_ctx
       % (value => (name, value))
   )

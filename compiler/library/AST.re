@@ -11,58 +11,63 @@ type expression =
   | GTEExpr(ast_expression, ast_expression)
   | AndExpr(ast_expression, ast_expression)
   | OrExpr(ast_expression, ast_expression)
-  | Reference(reference)
+  | Reference(ast_reference)
   | JSX(jsx)
   | NumericLit(int)
   | BooleanLit(bool)
   | StringLit(string)
+and ast_expression = ctxl_promise(expression)
 and reference =
   | Variable(string)
-  | DotAccess(reference, string)
-  | Execution(reference, list(ast_expression))
+  | DotAccess(ast_reference, string)
+  | Execution(ast_reference, list(ast_expression))
+and ast_reference = ctxl_promise(reference)
 and jsx =
   | Element(string, list((string, ast_expression)), list(jsx))
   | Fragment(list(jsx))
   | TextNode(string)
-  | EvalNode(ast_expression)
-and ast_expression = ctxl_promise(expression);
+  | EvalNode(ast_expression);
 
 type import_target =
   | MainExport(string)
   | ModuleExport(string)
-  | NamedExport(string, option(string));
+  | NamedExport(string, option(string))
+and ast_import_target = ctxl_promise(import_target);
 
-type property = (string, option(string), option(ast_expression));
+type property = (string, option(string), option(ast_expression))
+and ast_property = ctxl_promise(property);
 
 type state_prop =
-  | Property(property)
-  | Mutator(string, list(property), list(ast_expression))
-  | Getter(string, list(property), list(ast_expression));
+  | Property(ast_property)
+  | Mutator(string, list(ast_property), list(ast_expression))
+  | Getter(string, list(ast_property), list(ast_expression))
+and ast_state_prop = ctxl_promise(state_prop);
 
 type style_key =
   | ClassKey(string)
   | IdKey(string);
 
-type style_rule = (reference, reference);
+type style_rule = (ast_reference, ast_reference);
 type style_rule_set = (style_key, list(style_rule));
 
 type declaration =
   | ConstDecl(string, ast_expression)
-  | StateDecl(string, list(property), list(state_prop))
+  | StateDecl(string, list(ast_property), list(ast_state_prop))
   | ViewDecl(
       string,
       option(string),
       list(string),
-      list(property),
+      list(ast_property),
       list(ast_expression),
     )
-  | FunctionDecl(string, list(property), list(ast_expression))
-  | StyleDecl(string, list(property), list(style_rule_set));
+  | FunctionDecl(string, list(ast_property), list(ast_expression))
+  | StyleDecl(string, list(ast_property), list(style_rule_set))
+and ast_declaration = ctxl_promise(declaration);
 
 type statement =
-  | Import(string, list(import_target))
-  | Declaration(declaration)
-  | Main(declaration);
+  | Import(string, list(ast_import_target))
+  | Declaration(ast_declaration)
+  | Main(ast_declaration);
 
 type module_ =
   | Module(list(statement));
