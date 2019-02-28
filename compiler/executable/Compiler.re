@@ -1,7 +1,6 @@
 open Core;
 
-module Generator = KnotGen.Generator;
-module Scope = KnotAnalyze.Scope;
+exception EntryPointOutsideBuildContext;
 
 let working_dir = Unix.getcwd();
 let in_path =
@@ -11,30 +10,30 @@ let in_path =
   };
 let config_file = Util.find_config_file(in_path);
 let root_dir = Filename.dirname(config_file);
+let source_dir = Filename.concat(root_dir, "src");
+let build_dir = Filename.concat(root_dir, "dist");
 
-let rec add_to_execution_context = (module_tbl, path) => {
-  let loaded = Loader.load(~module_tbl, path);
+let rec add_to_compilation_context = (global_scope, path) => {
+  let loaded = Linker.link(global_scope, path);
 
   List.map(Util.real_path(root_dir), loaded.deps)
   |> List.iter(dep =>
-       (
-         try (add_to_execution_context(module_tbl, dep)) {
-         | _ =>
-           Printf.sprintf("%sot", dep)
-           |> add_to_execution_context(module_tbl)
-         }
-       )
-       |> ignore
+       try (add_to_compilation_context(global_scope, dep)) {
+       | _ =>
+         Printf.sprintf("%sot", dep)
+         |> add_to_compilation_context(global_scope)
+       }
      );
-
-  loaded;
 };
 
 let () = {
-  Printf.printf("root dir: %s\n", root_dir);
-  /* normalize_path(in_path) |> Printf.sprintf("loading %s") |> print_endline; */
-  let module_tbl = Hashtbl.create(64);
-  let loaded = add_to_execution_context(module_tbl, in_path);
+  if (String.sub(in_path, 0, String.length(source_dir)) != source_dir) {
+    raise(EntryPointOutsideBuildContext);
+  };
 
-  Generator.generate(print_string, loaded.ast);
+  let module_tbl = Hashtbl.create(24);
+  let global_scope = Scope.create(~label="global", ~module_tbl, ());
+
+  add_to_compilation_context(global_scope, in_path);
+  /* Generator.generate(print_string, loaded.ast); */
 };

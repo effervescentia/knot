@@ -1,16 +1,6 @@
-module FileStream = Knot.FileStream;
-module TokenStream = KnotLex.TokenStream;
-module Parser = KnotParse.Parser;
-module Analyzer = KnotAnalyze.Analyzer;
-module Scope = KnotAnalyze.Scope;
+open Core;
 
-exception InvalidProgram;
 exception ParsingFailed;
-
-type loaded_module = {
-  ast: Knot.AST.module_,
-  deps: list(string),
-};
 
 let buffer_size = 1000;
 
@@ -49,7 +39,7 @@ let cache_as_tmp = file =>
     }
   );
 
-let load = (~module_tbl=Hashtbl.create(24), file) => {
+let load = file => {
   Printf.printf("loading %s\n", file);
 
   let in_channel = cache_as_tmp(file);
@@ -59,24 +49,10 @@ let load = (~module_tbl=Hashtbl.create(24), file) => {
   |> Parser.parse(Parser.prog)
   |> (
     fun
-    | Some(_) as res => res
-    | None => raise(ParsingFailed)
-  )
-  |> Analyzer.analyze(
-       ~scope=
-         Scope.create(
-           ~label=Printf.sprintf("module(%s)", file),
-           ~module_tbl,
-           (),
-         ),
-       (),
-     )
-  |> (
-    fun
-    | Some(ast) => {
+    | Some(_) as res => {
         close_in(in_channel);
-        {ast, deps: Analyzer.analyze_dependencies(ast)};
+        res;
       }
-    | None => raise(InvalidProgram)
+    | None => raise(ParsingFailed)
   );
 };
