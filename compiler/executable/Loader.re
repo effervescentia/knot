@@ -1,4 +1,4 @@
-open Core;
+open Kore;
 
 exception ParsingFailed;
 

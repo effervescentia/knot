@@ -5,45 +5,129 @@ exception OperatorTypeMismatch;
 exception InvalidDotAccess;
 exception ExecutingNonFunction;
 exception DefaultValueTypeMismatch;
+exception InvalidTypeReference;
 exception NameInUse(string);
 
-let check_resolution = (resolver, promise, expr) =>
+/* TODO: give these unique IDs within the scope */
+let generate_any_type = () => Any_t(0);
+
+let check_resolution = (resolver, promise) => {
+  let expr = abandon_ctx(promise);
+
   switch (resolver(promise, expr)) {
   | Some(t) =>
     promise := Resolved(expr, t);
     true;
   | None => false
   };
+};
 
 let typeof =
   fun
   | {contents: Resolved(_, t)} => Some(t)
   | _ => None;
 
+let is_resolved = target =>
+  typeof(target)
+  |> (
+    fun
+    | Some(_) => true
+    | None => false
+  );
+
 let rec resolve = (module_tbl, symbol_tbl) =>
   fun
-  | ModuleScope({contents: Unanalyzed(modul)} as promise) =>
-    check_resolution(resolve_module, promise, modul)
-  | ImportScope(module_, {contents: Unanalyzed(import)} as promise) =>
-    check_resolution(resolve_import(module_tbl, module_), promise, import)
-  | DeclarationScope({contents: Unanalyzed(decl)} as promise) =>
-    check_resolution(resolve_decl(symbol_tbl), promise, decl)
-  | ExpressionScope({contents: Unanalyzed(expr)} as promise) =>
-    check_resolution(resolve_expr, promise, expr)
-  | ParameterScope({contents: Unanalyzed(prop)} as promise) =>
-    check_resolution(resolve_param(symbol_tbl), promise, prop)
-  | PropertyScope({contents: Unanalyzed(prop)} as promise) =>
-    check_resolution(resolve_prop, promise, prop)
-  | ReferenceScope({contents: Unanalyzed(refr)} as promise) =>
-    check_resolution(resolve_ref(symbol_tbl), promise, refr)
-  | _ => false
+  | ModuleScope(promise) => check_resolution(resolve_module, promise)
+  | ImportScope(module_, promise) =>
+    check_resolution(
+      resolve_import(module_tbl, symbol_tbl, module_),
+      promise,
+    )
+  | DeclarationScope(promise) =>
+    check_resolution(resolve_decl(symbol_tbl), promise)
+  | ExpressionScope(promise) => check_resolution(resolve_expr, promise)
+  | ParameterScope(promise) =>
+    check_resolution(resolve_param(symbol_tbl), promise)
+  | PropertyScope(promise) => check_resolution(resolve_prop, promise)
+  | ReferenceScope(promise) =>
+    check_resolution(resolve_ref(symbol_tbl), promise)
+  | TypeScope(promise) =>
+    check_resolution(resolve_type(symbol_tbl), promise)
+and resolve_type = (symbol_tbl, promise) =>
+  fun
+  | "string" => Some(String_t)
+  | "number" => Some(Number_t)
+  | "boolean" => Some(Number_t)
+  | _ => raise(InvalidTypeReference)
 and resolve_module = promise =>
   fun
-  | Module(stmts) => None
-and resolve_import = (module_tbl, module_, promise) =>
+  | Module(stmts) => {
+      let dependencies = ref([]);
+      let declarations = Hashtbl.create(8);
+      let main_declaration = ref(None);
+
+      if (List.for_all(
+            fun
+            | Import(module_, imports) => {
+                dependencies := [module_, ...dependencies^];
+
+                List.for_all(is_resolved, imports);
+              }
+            | Declaration(decl) =>
+              switch (typeof(decl)) {
+              | Some(typ) =>
+                Hashtbl.add(
+                  declarations,
+                  abandon_ctx(decl) |> Util.extract_decl_name,
+                  typ,
+                );
+
+                true;
+              | None => false
+              }
+            | Main(decl) =>
+              switch (typeof(decl)) {
+              | Some(typ) =>
+                Hashtbl.add(
+                  declarations,
+                  abandon_ctx(decl) |> Util.extract_decl_name,
+                  typ,
+                );
+                main_declaration := Some(typ);
+
+                true;
+              | None => false
+              },
+            stmts,
+          )) {
+        Some(Module_t(dependencies^, declarations, main_declaration^));
+      } else {
+        None;
+      };
+    }
+and resolve_import = (module_tbl, symbol_tbl, module_, promise) =>
   fun
-  | MainExport(_) => None
-  | _ => None
+  | ModuleExport(name) => {
+      symbol_tbl.add(name, generate_any_type());
+
+      None;
+    }
+  | MainExport(name) => {
+      symbol_tbl.add(name, generate_any_type());
+
+      None;
+    }
+  | NamedExport(name, alias) => {
+      (
+        switch (alias) {
+        | Some(s) => s
+        | None => name
+        }
+      )
+      |> (s => symbol_tbl.add(s, generate_any_type()));
+
+      None;
+    }
 and resolve_decl = (symbol_tbl, promise) =>
   fun
   | ConstDecl(name, expr) =>
@@ -64,8 +148,7 @@ and resolve_decl = (symbol_tbl, promise) =>
           % (
             fun
             | Some(typ) => typ
-            /* TODO: give these unique IDs within the scope */
-            | None => Any_t(0)
+            | None => generate_any_type()
           ),
           params,
         );
@@ -131,9 +214,7 @@ and resolve_expr = promise =>
     }
 
   | Reference(refr) => typeof(refr)
-and resolve_param = (symbol_tbl, promise, (name, _, _) as param) => {
-  print_endline("resolving param!!");
-
+and resolve_param = (symbol_tbl, promise, (name, _, _) as param) =>
   resolve_prop(promise, param)
   |> (
     fun
@@ -143,8 +224,7 @@ and resolve_param = (symbol_tbl, promise, (name, _, _) as param) => {
         res;
       }
     | None => None
-  );
-}
+  )
 and resolve_prop = (promise, (name, type_def, default_val)) =>
   switch (type_def, default_val) {
   | (
@@ -153,8 +233,7 @@ and resolve_prop = (promise, (name, type_def, default_val)) =>
     )
       when l_type !== r_type =>
     raise(DefaultValueTypeMismatch)
-  /* TODO: should have a unique ID within scope */
-  | (None, None) => Some(Any_t(0))
+  | (None, None) => Some(generate_any_type())
   | (Some({contents: Resolved(_, typ)}), _)
   | (_, Some({contents: Resolved(_, typ)})) => Some(typ)
   | _ => None
@@ -172,6 +251,8 @@ and resolve_ref = (symbol_tbl, promise) =>
   | Execution(refr, args) =>
     switch (typeof(refr)) {
     | Some(Function_t(arg_types, return_type)) => Some(return_type)
+    /* TODO: handle this properly */
+    | Some(Any_t(_)) => Some(generate_any_type())
     | None => None
     | _ => raise(ExecutingNonFunction)
     };

@@ -32,8 +32,6 @@ type ctxl_promise('a) = ref(eventual_ctx('a, member_type));
 
 let no_ctx = x => ref(Unanalyzed(x));
 
-let await_ctx = x => ref(Pending(x, []));
-
 let abandon_ctx = x =>
   switch (x^) {
   | Unanalyzed(res)

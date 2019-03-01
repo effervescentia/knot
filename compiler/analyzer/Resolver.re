@@ -13,6 +13,7 @@ let of_parameter = p => ParameterScope(p);
 let of_property = p => PropertyScope(p);
 let of_expression = e => ExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
+let of_type = t => TypeScope(t);
 
 let create = module_tbl => {
   let resolve_queue = ref([]);
@@ -30,9 +31,9 @@ let create = module_tbl => {
           is_resolving,
         );
 
-      Debug.print_resolve_target(x)
-      |> Printf.sprintf("resolving : %s")
-      |> print_endline;
+      /* Debug.print_resolve_target(x)
+         |> Printf.sprintf("resolving : %s")
+         |> print_endline; */
 
       if (Resolver_Explicit.resolve(module_tbl, symbol_tbl, x)) {
         ();

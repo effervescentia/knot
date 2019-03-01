@@ -1,5 +1,7 @@
-open Core;
+open Kore;
 open KnotAnalyze.Core;
+
+exception ModuleNotLoaded(string);
 
 let working_dir = Unix.getcwd();
 let in_path =
@@ -31,38 +33,41 @@ let () = {
     raise(InvalidEntryPoint(in_path))
   };
 
-  global_scope.pending()
-  |> List.iter(Debug.print_resolve_target % print_endline);
+  if (global_scope.is_resolved()) {
+    Printf.sprintf("cleaning build directory: %s", build_dir) |> print_endline;
+
+    Util.clean_directory(build_dir);
+
+    Hashtbl.iter(
+      key =>
+        fun
+        | NotLoaded(_) => raise(ModuleNotLoaded(key))
+        | Loaded(s, ast) when Util.is_source_module(key) =>
+          Writer.write(config, Util.to_path_segment(key), ast)
+        | Loaded(s, ast) when key == in_path => {
+            let source_dir_path_length = String.length(source_dir);
+            Writer.write(
+              config,
+              String.sub(
+                key,
+                source_dir_path_length + 1,
+                String.length(key) - source_dir_path_length - 1,
+              )
+              |> Filename.chop_extension,
+              ast,
+            );
+          }
+        | _ => Printf.sprintf("ignoring %s", key) |> print_endline,
+      module_tbl,
+    );
+  } else {
+    print_endline(
+      "failed to compile, the following statements could not be resolved:",
+    );
+
+    global_scope.pending()
+    |> List.iter(Debug.print_resolve_target % print_endline);
+
+    exit(-1);
+  };
 };
-
-/* let config = {config_file, root_dir, source_dir, build_dir};
-
-   let rec build_compilation_context = global_scope =>
-     Linker.link(
-       config,
-       global_scope,
-       Resolver.simple(root_dir, build_compilation_context(global_scope)),
-     );
-
-   let () = {
-     if (String.sub(in_path, 0, String.length(source_dir)) != source_dir) {
-       raise(EntryPointOutsideBuildContext);
-     };
-
-     let module_tbl = Hashtbl.create(24);
-     let global_scope = Scope.create(~label="global", ~module_tbl, ());
-
-     build_compilation_context(global_scope, in_path);
-
-     Hashtbl.iter(
-       key =>
-         (
-           fun
-           | NotLoaded(_) => "NOT LOADED"
-           | Loaded(_) => "LOADED"
-         )
-         % Printf.sprintf("module(%s): %s", key)
-         % print_endline,
-       global_scope.module_tbl,
-     );
-   }; */

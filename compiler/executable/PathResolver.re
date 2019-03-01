@@ -1,15 +1,11 @@
-open Core;
+open Kore;
 
 let simple = (config, target) =>
   (
     switch (target) {
     | res when String.length(res) == 0 => raise(InvalidPathFormat(res))
-    | res when res.[0] == '.' =>
-      Str.global_replace(
-        Str.regexp("\\."),
-        Filename.dir_sep,
-        String.sub(res, 1, String.length(res) - 1),
-      )
+    | res when Util.is_source_module(res) =>
+      Util.to_path_segment(res)
       |> Printf.sprintf("%s.kn")
       |> Filename.concat(config.source_dir)
     | res when res.[0] == '@' =>

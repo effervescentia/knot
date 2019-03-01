@@ -1,4 +1,4 @@
-open Core;
+open Kore;
 
 let rec find_config_file = entry => {
   let dir = Filename.dirname(entry);
@@ -82,3 +82,21 @@ let cache_as_tmp = (buffer_size, file) =>
       open_in(tmp_file);
     }
   );
+
+let is_source_module = path => String.length(path) != 0 && path.[0] == '.';
+
+let to_path_segment = path =>
+  Str.global_replace(
+    Str.regexp("\\."),
+    Filename.dir_sep,
+    String.sub(path, 1, String.length(path) - 1),
+  );
+
+let rec clean_directory =
+  fun
+  | res when Sys.is_directory(res) => {
+      Sys.readdir(res) |> Array.iter(Filename.concat(res) % clean_directory);
+
+      Unix.rmdir(res);
+    }
+  | res => Unix.unlink(res);

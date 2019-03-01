@@ -1,4 +1,4 @@
-open Core;
+open Kore;
 open KnotAnalyze.Scope;
 
 exception InvalidProgram(string);
@@ -22,8 +22,11 @@ let link = (path_resolver, global_scope, notify, target) =>
     % (
       fun
       | Some(ast) => {
-          print_endline("got an AST!!!!!!!!!");
-          Hashtbl.add(global_scope.module_tbl, target, Loaded(ast));
+          Hashtbl.add(
+            global_scope.module_tbl,
+            target,
+            Loaded(absolute_path, ast),
+          );
 
           switch (ast^) {
           | Resolved(_, Module_t(deps, _, _)) => List.iter(notify, deps)

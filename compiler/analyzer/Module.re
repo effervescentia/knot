@@ -23,7 +23,7 @@ let rec analyze =
       | Module(stmts) as res => {
           List.iter(analyze_stmt(scope), stmts);
 
-          let wrapped = await_ctx(res);
+          let wrapped = no_ctx(res);
 
           Resolver.of_module(wrapped) |> scope.resolve;
 

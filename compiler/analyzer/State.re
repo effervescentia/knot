@@ -7,7 +7,7 @@ let analyze_prop = scope =>
     | Property(prop) => {
         let (name, type_def, default_val) = abandon_ctx(prop);
 
-        Property.analyze_type_def(type_def) |> ignore;
+        Property.analyze_type_def(scope, type_def);
         switch (default_val) {
         | Some(expr) => Expression.analyze(scope, expr)
         | None => ()

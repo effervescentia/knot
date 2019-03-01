@@ -21,7 +21,6 @@ let rec create =
     | Some(r) => r
     | None => Resolver.create(module_tbl)
     };
-
   {
     module_tbl,
     is_resolved: real_resolver.is_complete,
