@@ -8,13 +8,13 @@ type t = {
 
 let of_module = m => ModuleScope(m);
 let of_declaration = d => DeclarationScope(d);
-let of_import = i => ImportScope(i);
+let of_import = (module_, i) => ImportScope(module_, i);
 let of_parameter = p => ParameterScope(p);
 let of_property = p => PropertyScope(p);
 let of_expression = e => ExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
 
-let create = () => {
+let create = module_tbl => {
   let resolve_queue = ref([]);
   let attempted_queue = ref([]);
   let is_resolving = ref(false);
@@ -30,7 +30,11 @@ let create = () => {
           is_resolving,
         );
 
-      if (Resolver_Explicit.resolve(symbol_tbl, x)) {
+      Debug.print_resolve_target(x)
+      |> Printf.sprintf("resolving : %s")
+      |> print_endline;
+
+      if (Resolver_Explicit.resolve(module_tbl, symbol_tbl, x)) {
         ();
       } else if (is_resolving^) {
         resolve_queue := [x, ...resolve_queue^];

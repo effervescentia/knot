@@ -22,5 +22,8 @@ let analyze = (~resolve=true, analyze_expr, scope, prop) => {
 
   analyze_type_def(type_def) |> ignore;
   opt_transform(analyze_expr(scope), default_val) |> ignore;
-  Resolver.of_property(prop) |> scope.resolve;
+
+  if (resolve) {
+    Resolver.of_property(prop) |> scope.resolve;
+  };
 };

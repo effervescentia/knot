@@ -1,19 +1,5 @@
 open Core;
 
-let analyze = (~scope=Scope.create(~label="module", ()), ()) =>
-  fun
-  | Some(ast) => {
-      Module.analyze(scope, ast);
-
-      if (!scope.is_complete()) {
-        scope.pending()
-        |> List.iter(Debug.print_resolve_target % print_endline);
-      };
-
-      Some(ast);
-    }
-  | None => None;
-
 let rec analyze_dependencies =
   fun
   | Module(xs) =>
@@ -27,3 +13,8 @@ let rec analyze_dependencies =
     )
     |> List.map(String.trim)
     |> List.filter(x => x != "");
+
+let analyze = (~scope=Scope.create(~label="module", ()), ()) =>
+  fun
+  | Some(ast) => Some(Module.analyze(scope, ast))
+  | None => None;

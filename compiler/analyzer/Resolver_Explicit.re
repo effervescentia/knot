@@ -20,25 +20,30 @@ let typeof =
   | {contents: Resolved(_, t)} => Some(t)
   | _ => None;
 
-let rec resolve = symbol_tbl =>
+let rec resolve = (module_tbl, symbol_tbl) =>
   fun
-  | ModuleScope({contents: Pending(modul, _)} as promise) =>
+  | ModuleScope({contents: Unanalyzed(modul)} as promise) =>
     check_resolution(resolve_module, promise, modul)
-  | ImportScope({contents: Pending(import, _)} as promise) => false
-  | DeclarationScope({contents: Pending(decl, _)} as promise) =>
+  | ImportScope(module_, {contents: Unanalyzed(import)} as promise) =>
+    check_resolution(resolve_import(module_tbl, module_), promise, import)
+  | DeclarationScope({contents: Unanalyzed(decl)} as promise) =>
     check_resolution(resolve_decl(symbol_tbl), promise, decl)
-  | ExpressionScope({contents: Pending(expr, _)} as promise) =>
+  | ExpressionScope({contents: Unanalyzed(expr)} as promise) =>
     check_resolution(resolve_expr, promise, expr)
-  | ParameterScope({contents: Pending(prop, _)} as promise) =>
+  | ParameterScope({contents: Unanalyzed(prop)} as promise) =>
     check_resolution(resolve_param(symbol_tbl), promise, prop)
-  | PropertyScope({contents: Pending(prop, _)} as promise) =>
+  | PropertyScope({contents: Unanalyzed(prop)} as promise) =>
     check_resolution(resolve_prop, promise, prop)
-  | ReferenceScope({contents: Pending(refr, _)} as promise) =>
+  | ReferenceScope({contents: Unanalyzed(refr)} as promise) =>
     check_resolution(resolve_ref(symbol_tbl), promise, refr)
   | _ => false
 and resolve_module = promise =>
   fun
   | Module(stmts) => None
+and resolve_import = (module_tbl, module_, promise) =>
+  fun
+  | MainExport(_) => None
+  | _ => None
 and resolve_decl = (symbol_tbl, promise) =>
   fun
   | ConstDecl(name, expr) =>
@@ -126,7 +131,9 @@ and resolve_expr = promise =>
     }
 
   | Reference(refr) => typeof(refr)
-and resolve_param = (symbol_tbl, promise, (name, _, _) as param) =>
+and resolve_param = (symbol_tbl, promise, (name, _, _) as param) => {
+  print_endline("resolving param!!");
+
   resolve_prop(promise, param)
   |> (
     fun
@@ -136,7 +143,8 @@ and resolve_param = (symbol_tbl, promise, (name, _, _) as param) =>
         res;
       }
     | None => None
-  )
+  );
+}
 and resolve_prop = (promise, (name, type_def, default_val)) =>
   switch (type_def, default_val) {
   | (
