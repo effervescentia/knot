@@ -13,9 +13,9 @@ let tests =
               |> Analyzer.analyze()
               |> (
                 fun
-                | Some(res) =>
+                | Some({contents: Resolved(res, _)}) =>
                   KnotGen.Generator.generate(s => generated := generated^ ++ s, res)
-                | None => assert_failure("no AST found")
+                | _ => assert_failure("no AST found")
               );
 
               Assert.assert_string_eql(generated^, Fixtures.full_generated);
