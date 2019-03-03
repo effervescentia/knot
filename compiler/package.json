@@ -20,23 +20,32 @@
       "namespace": "KnotLex"
     },
     "parser": {
-      "require": ["knot.lib", "knot.lex"],
+      "require": ["knot.lib"],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
+    "analyzer": {
+      "require": ["knot.lib"],
+      "name": "knot.analyze",
+      "namespace": "KnotAnalyze"
+    },
     "generator": {
-      "require": ["knot.lib", "knot.lex", "knot.parse", "str"],
+      "require": ["knot.lib", "str"],
       "name": "knot.gen",
       "namespace": "KnotGen"
     },
     "executable": {
-      "require": ["knot.lib", "knot.lex", "knot.parse", "knot.gen"],
+      "require": [
+        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen",
+        "unix", "core", "httpaf", "dolog", "emoji"
+      ],
       "main": "Compiler",
       "name": "Compiler.exe"
     },
     "test": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "knot.gen", "oUnit", "ANSITerminal"
+        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen",
+        "oUnit", "ANSITerminal"
       ],
       "main": "TestSuite",
       "name": "TestSuite.exe"
@@ -44,18 +53,25 @@
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' --glob='(library|parser|lexer|generator)/**/*.re'",
+    "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|generator)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:e2e:simple:debug",
     "test:unit": "esy x TestSuite.exe",
-    "test:e2e": "esy x Compiler.exe ./test/resources/unix_module.txt 1> /dev/null",
-    "tdd": "sane 'esy build && npm run test' --glob='(library|parser|lexer|generator|executable|test)/**/*.re'"
+    "test:e2e": "esy x Compiler.exe ./test/resources/project/src/index.kn 1> /dev/null",
+    "test:e2e:debug": "esy x Compiler.exe ./test/resources/project/src/index.kn",
+    "test:e2e:simple": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
+    "test:e2e:simple:debug": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn",
+    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|analyzer|generator|executable|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.1",
     "@opam/angstrom": "0.10.0",
+    "@opam/core": "v0.12.0",
+    "@opam/dolog": "3.0",
     "@opam/dune": "*",
+    "@opam/emoji": "1.1.0",
+    "@opam/httpaf": "0.5.0",
     "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
     "ocaml": "^4.4.0",

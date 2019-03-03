@@ -5,8 +5,17 @@ const execa = require('execa');
 const tmp = require('tmp');
 const fs = require('fs');
 
+const GLOBALS = '$$knot_globals$$'
+const DEFAULT_OPTIONS = {
+  plugins: {
+    jsx: '@knot/react-plugin',
+    style: '@knot/css-plugin',
+    utils: '@knot/javascript-utils'
+  }
+};
+
 module.exports = function loader(source) {
-  const options = getOptions(this);
+  const options = Object.assign({}, DEFAULT_OPTIONS, getOptions(this));
 
   const file = tmp.fileSync();
   fs.writeFileSync(file.name, source);
@@ -19,7 +28,11 @@ module.exports = function loader(source) {
   console.error(result.stderr);
 
   return 'module.exports=(' + result.stdout + ')({' + //
-    '["@knot/jsx"]:require("@knot/react-plugin"),' + //
-    '["@knot/style"]:require("@knot/css-plugin")' + //
-    '},require("@knot/javascript-utils"))';
+    '["' + GLOBALS + '"]:{' + //
+    'jsx:require("' + options.plugins.jsx + '"),' + //
+    'style:require("' + options.plugins.style + '")' + //
+    '},' + //
+    '["@knot/jsx"]:require("' + options.plugins.jsx + '"),' + //
+    '["@knot/style"]:require("' + options.plugins.style + '")' + //
+    '},require("' + options.plugins.utils + '"))';
 }

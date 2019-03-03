@@ -61,7 +61,7 @@ let tests =
       _ =>
         test_parse_func((
           compact_func_decl(__name, Number(3)),
-          FunctionDecl(__name, [], [NumericLit(3)]),
+          FunctionDecl(__name, [], [no_ctx(NumericLit(3))]),
         ))
     ),
     "parse mult-expression"
@@ -73,9 +73,11 @@ let tests =
             __name,
             [],
             [
-              NumericLit(8),
-              AddExpr(NumericLit(7), NumericLit(2)),
-              StringLit("palatial"),
+              no_ctx(NumericLit(8)),
+              no_ctx(
+                AddExpr(no_ctx(NumericLit(7)), no_ctx(NumericLit(2))),
+              ),
+              no_ctx(StringLit("palatial")),
             ],
           ),
         ))

@@ -1,2 +1,5 @@
 node_modules
 *.log
+*.install
+*.cache
+.DS_Store

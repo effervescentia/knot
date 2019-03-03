@@ -24,6 +24,14 @@ let assert_ast_eql = (actual, expected) =>
     actual,
   );
 
+let assert_stmt_eql = (actual, expected) =>
+  assert_equal(
+    ~msg="statement match",
+    ~printer=KnotParse.Debug.print_stmt,
+    expected,
+    actual,
+  );
+
 let assert_decl_eql = (actual, expected) =>
   assert_equal(
     ~msg="declaration match",

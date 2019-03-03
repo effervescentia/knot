@@ -2,9 +2,13 @@ open Core;
 
 let rule =
   Reference.refr(Expression.expr)
+  ==> no_ctx
   >>= (
     refr =>
-      M.colon >> Reference.refr(Expression.expr) ==> (value => (refr, value))
+      M.colon
+      >> Reference.refr(Expression.expr)
+      ==> no_ctx
+      ==> (value => (refr, value))
   );
 
 let class_ = M.period >> M.identifier ==> (s => ClassKey(s));
@@ -20,7 +24,7 @@ let rec decl = input =>
     M.decl(M.style)
     >>= (
       name =>
-        Parameter.params
+        Property.list
         |= []
         >>= (
           params =>

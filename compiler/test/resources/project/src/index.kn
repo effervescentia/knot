@@ -1,0 +1,3 @@
+import greet from ".components.App";
+
+const ABC = <div>{greet("World")}</div>;

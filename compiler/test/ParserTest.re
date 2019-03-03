@@ -18,7 +18,7 @@ let tests =
       }
     ),
     "parse empty module"
-    >:: (_ => Util.test_parse_ast(Parser.prog, ([], Statements([])))),
+    >:: (_ => Util.test_parse_ast(Parser.prog, ([], Module([])))),
     "parse main import statement"
     >:: (
       _ => {
@@ -26,7 +26,7 @@ let tests =
         let module_name = "table";
         let stmt = ImportParserTest.main_import_stmt(name, module_name);
         let expected =
-          Statements([Import(module_name, [MainExport(name)])]);
+          Module([Import(module_name, [no_ctx(MainExport(name))])]);
 
         Util.test_many(
           Util.test_parse_ast(Parser.prog),
@@ -40,7 +40,9 @@ let tests =
         let name = "myConst";
         let stmt = ConstParserTest.const_decl(name, Number(5));
         let expected =
-          Statements([Declaration(ConstDecl(name, NumericLit(5)))]);
+          Module([
+            Declaration(no_ctx(ConstDecl(name, no_ctx(NumericLit(5))))),
+          ]);
 
         Util.test_many(
           Util.test_parse_ast(Parser.prog),
@@ -54,7 +56,7 @@ let tests =
         let name = "myFunc";
         let stmt = FunctionParserTest.empty_func_decl(name);
         let expected =
-          Statements([Declaration(FunctionDecl(name, [], []))]);
+          Module([Declaration(no_ctx(FunctionDecl(name, [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
@@ -65,7 +67,7 @@ let tests =
         let name = "MyView";
         let stmt = ViewParserTest.empty_view_decl(name);
         let expected =
-          Statements([Declaration(ViewDecl(name, None, [], [], []))]);
+          Module([Declaration(no_ctx(ViewDecl(name, None, [], [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
@@ -75,7 +77,8 @@ let tests =
       _ => {
         let name = "MyState";
         let stmt = StateParserTest.empty_state_decl(name);
-        let expected = Statements([Declaration(StateDecl(name, [], []))]);
+        let expected =
+          Module([Declaration(no_ctx(StateDecl(name, [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }

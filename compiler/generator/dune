@@ -7,5 +7,5 @@
    (name KnotGen)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.gen)
-   (libraries  knot.lib knot.lex knot.parse str )
+   (libraries  knot.lib str )
 )

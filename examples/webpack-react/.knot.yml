@@ -1,0 +1,6 @@
+name: knot-webpack-react-example
+
+files:
+  source: src
+  modules: node_modules
+  build: build

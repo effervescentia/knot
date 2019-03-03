@@ -1,7 +1,5 @@
-open Knot.Globals;
+open Knot.Core;
 open Knot.Fiber;
-open Knot.Token;
-open AST;
 
 let space = one_of([Space, Tab, Newline]);
 let spaces = skip_many(space);
@@ -22,7 +20,8 @@ and view = kwd(View)
 and state = kwd(State)
 and style = kwd(Style)
 and get = kwd(Get)
-and mut = kwd(Mut);
+and mut = kwd(Mut)
+and main = kwd(Main);
 
 /* characters */
 let assign = token(Assign)
@@ -111,5 +110,6 @@ let brackets = input => between(l_brack, r_brack, input);
 let decl = x => x >> identifier;
 let terminated = x => x << optional(semicolon);
 let closure = x => many(x) |> braces;
-let type_def = opt(None, colon >> identifier ==> (t => Some(t)));
+let type_def = input =>
+  (opt(None, colon >> identifier ==> no_ctx % (t => Some(t))))(input);
 let eof = spaces >> Knot.Fiber.eof();

@@ -8,8 +8,8 @@ let gen_key =
 let gen_rule = ((name, value)) =>
   Printf.sprintf(
     "[%s]:%s",
-    Expression.gen_reference(name),
-    Expression.gen_reference(value),
+    abandon_ctx(name) |> Reference.generate(Expression.generate),
+    abandon_ctx(value) |> Reference.generate(Expression.generate),
   );
 
 let gen_rule_set = ((key, rules)) =>
