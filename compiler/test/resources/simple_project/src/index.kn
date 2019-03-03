@@ -14,3 +14,24 @@ const greaterThanConst = 2 > 4;
 const greaterThanEqualConst = 9 >= 1;
 
 const closureConst = (3 * 2) + (1 + 6 / (2 - 5) * 3);
+
+const jsxConst = <abc />;
+const jsxWithPropsConst = <def num={8 + 9} bool={false} first="look" under="there" />;
+const punnedVariable = "something";
+const nestedJSXConst =
+  <parent justMade={"you say"}>
+    <child punnedVariable>
+      <grandchild under="wear" />
+    </child>
+    <sibling />
+  </parent>;
+const nestedExprJSXConst = <container>{numericConst + 20}<middle />{stringConst + "one"}</container>;
+const fragmentJSXConst = <><div /><span /></>;
+
+func compactFunc() -> 4;
+func compactExprFunc() -> numericConst + subtractionConst;
+func multiExprFunc() -> {
+  divisionConst + multiplicationConst;
+  stringConst;
+}
+func paramFunc(a) -> a;

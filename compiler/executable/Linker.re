@@ -30,19 +30,33 @@ let link = (path_resolver, global_scope, notify, target) =>
     Analyzer.analyze(~scope, (), loaded)
     |> (
       fun
-      | Some(ast) => {
+      | Some(ast) =>
+        switch (ast^) {
+        | Resolved(_, Module_t(deps, _, _)) =>
+          Log.info(
+            "%s  %s (%s)",
+            Emoji.heavy_check_mark,
+            pretty_path,
+            relative_path,
+          );
+
           Hashtbl.add(
             global_scope.module_tbl,
             target,
             Loaded(absolute_path, ast),
           );
 
-          switch (ast^) {
-          | Resolved(_, Module_t(deps, _, _)) => List.iter(notify, deps)
-          | Pending(ast, _) =>
-            Analyzer.analyze_dependencies(ast) |> List.iter(notify)
-          | _ => Log.error("%s", "...but it was unresolved :(")
-          };
+          List.iter(notify, deps);
+        | Pending(ast, _) =>
+          Log.info(
+            "%s  %s (%s)",
+            Emoji.hourglass_with_flowing_sand,
+            pretty_path,
+            relative_path,
+          );
+
+          Analyzer.analyze_dependencies(ast) |> List.iter(notify);
+        | _ => raise(InvalidProgram(target))
         }
       | None => raise(InvalidProgram(target))
     );

@@ -11,6 +11,12 @@ exception NameInUse(string);
 /* TODO: give these unique IDs within the scope */
 let generate_any_type = () => Any_t(0);
 
+let set_pending = promise =>
+  switch (promise^) {
+  | Unanalyzed(expr) => promise := Pending(expr, [])
+  | _ => ()
+  };
+
 let check_resolution = (resolver, promise) => {
   let expr = abandon_ctx(promise);
 
@@ -18,7 +24,9 @@ let check_resolution = (resolver, promise) => {
   | Some(t) =>
     promise := Resolved(expr, t);
     true;
-  | None => false
+  | None =>
+    set_pending(promise);
+    false;
   };
 };
 
@@ -108,7 +116,27 @@ and resolve_module = promise =>
 and resolve_import = (module_tbl, symbol_tbl, module_, promise) =>
   fun
   | ModuleExport(name) => {
-      symbol_tbl.add(name, generate_any_type());
+      switch (Hashtbl.find(module_tbl, module_)) {
+      | Loaded(_, ast) =>
+        let export_tbl =
+          typeof(ast)
+          |> (
+            fun
+            | Some(Module_t(_, x, _)) => x
+            | _ => raise(InvalidTypeReference)
+          );
+
+        (
+          try (Hashtbl.find(export_tbl, name)) {
+          | Not_found => raise(InvalidTypeReference)
+          }
+        )
+        |> symbol_tbl.add(name);
+      | NotLoaded(_) => symbol_tbl.add(name, generate_any_type())
+      | exception Not_found =>
+        Hashtbl.add(module_tbl, module_, NotLoaded([]));
+        symbol_tbl.add(name, generate_any_type());
+      };
 
       None;
     }
