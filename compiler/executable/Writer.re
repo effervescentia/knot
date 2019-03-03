@@ -4,7 +4,9 @@ let clean_build_dir = () => {
   let {paths: {build_dir}} = Config.get();
   Config.root_path(build_dir) |> Log.info("%s  (%s)", Emoji.sparkles);
 
-  Util.clean_directory(build_dir);
+  if (Sys.file_exists(build_dir)) {
+    Util.clean_directory(build_dir);
+  };
 };
 
 let write = (path, (module_name, ast)) => {
