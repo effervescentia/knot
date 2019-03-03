@@ -37,7 +37,7 @@
     "executable": {
       "require": [
         "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen",
-        "unix", "core"
+        "unix", "core", "httpaf", "dolog", "emoji"
       ],
       "main": "Compiler",
       "name": "Compiler.exe"
@@ -67,7 +67,10 @@
     "@opam/ANSITerminal": "0.8.1",
     "@opam/angstrom": "0.10.0",
     "@opam/core": "v0.12.0",
+    "@opam/dolog": "3.0",
     "@opam/dune": "*",
+    "@opam/emoji": "1.1.0",
+    "@opam/httpaf": "0.5.0",
     "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
     "ocaml": "^4.4.0",

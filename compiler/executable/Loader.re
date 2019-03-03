@@ -5,8 +5,6 @@ exception ParsingFailed;
 let buffer_size = 1000;
 
 let load = file => {
-  Printf.printf("loading %s\n", file);
-
   let in_channel = Util.cache_as_tmp(buffer_size, file);
 
   FileStream.of_channel(in_channel)

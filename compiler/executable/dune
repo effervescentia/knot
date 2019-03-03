@@ -7,5 +7,5 @@
    (name Compiler)  ;  From package.json main field
    ; The name of the executable (runnable via esy x Compiler.exe) 
    (public_name Compiler.exe)  ;  From package.json name field
-   (libraries  knot.lib knot.lex knot.parse knot.analyze knot.gen unix core ) ;  From package.json require field (array of strings)
+   (libraries  knot.lib knot.lex knot.parse knot.analyze knot.gen unix core httpaf dolog emoji ) ;  From package.json require field (array of strings)
 )

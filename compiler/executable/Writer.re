@@ -1,15 +1,26 @@
 open Kore;
 
-let write = (config, path, ast) => {
-  let path =
-    Printf.sprintf("%s.js", path) |> Filename.concat(config.build_dir);
+let clean_build_dir = () => {
+  let {paths: {build_dir}} = Config.get();
+  Config.root_path(build_dir) |> Log.info("%s  (%s)", Emoji.sparkles);
+
+  Util.clean_directory(build_dir);
+};
+
+let write = (path, (module_name, ast)) => {
+  let {paths: {build_dir}} = Config.get();
+  let path = Printf.sprintf("%s.js", path) |> Filename.concat(build_dir);
 
   Filename.dirname(path) |> Core.Unix.mkdir_p;
 
-  Printf.sprintf("writing to %s", path) |> print_endline;
+  Config.root_path(path)
+  |> Log.info("%s  %s (%s)", Emoji.printer, module_name);
 
   let out_channel = open_out(path);
-  Generator.generate(output_string(out_channel), abandon_ctx(ast));
+  let write_out = output_string(out_channel);
+
+  write_out("module.exports=");
+  Generator.generate(write_out, abandon_ctx(ast));
 
   close_out(out_channel);
 };

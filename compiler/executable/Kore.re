@@ -1,4 +1,4 @@
-include Knot.Globals;
+include Knot.Core;
 
 module Debug = Knot.Debug;
 module FileStream = Knot.FileStream;
@@ -8,7 +8,11 @@ module Analyzer = KnotAnalyze.Analyzer;
 module Scope = KnotAnalyze.Scope;
 module Generator = KnotGen.Generator;
 
-type inner_configuration = {
+type config = {
+  main: string,
+  paths: paths_config,
+}
+and paths_config = {
   config_file: string,
   root_dir: string,
   source_dir: string,
@@ -21,3 +25,5 @@ exception InvalidPathFormat(string);
 exception ModuleDoesNotExist(string, string);
 exception InvalidEntryPoint(string);
 exception EntryPointOutsideBuildContext(string);
+
+let main_alias = "[main]";
