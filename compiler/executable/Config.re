@@ -85,5 +85,9 @@ let set_from_args = cwd => {
     |> Util.normalize_path(cwd);
   let config = {main: in_path, paths: generate_paths(in_path)};
 
+  if (!Util.is_within_dir(config.paths.source_dir, in_path)) {
+    raise(EntryPointOutsideBuildContext(in_path));
+  };
+
   global := Some(config);
 };

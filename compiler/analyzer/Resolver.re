@@ -31,10 +31,6 @@ let create = module_tbl => {
           is_resolving,
         );
 
-      /* Debug.print_resolve_target(x)
-         |> Printf.sprintf("resolving : %s")
-         |> print_endline; */
-
       if (Resolver_Explicit.resolve(module_tbl, symbol_tbl, x)) {
         ();
       } else if (is_resolving^) {

@@ -55,7 +55,7 @@ let from_option = exn =>
 let is_source_module = path => String.length(path) != 0 && path.[0] == '.';
 
 let is_within_dir = (parent_dir, path) =>
-  String.sub(path, 0, String.length(parent_dir)) != parent_dir;
+  String.sub(path, 0, String.length(parent_dir)) == parent_dir;
 
 let chop_path_prefix = (prefix, path) => {
   let prefix_length = String.length(prefix);

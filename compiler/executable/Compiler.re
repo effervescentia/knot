@@ -46,6 +46,8 @@ let () = {
 
     Writer.clean_build_dir();
     Hashtbl.iter(Writer.write, build_tbl);
+
+    Log.info("%s  done!", Emoji.confetti_ball);
   } else {
     Log.error(
       "%s",
