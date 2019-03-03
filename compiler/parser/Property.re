@@ -21,4 +21,4 @@ let prop = input =>
   );
 
 let list = input =>
-  (prop ==> no_ctx |> M.comma_separated |> M.parentheses)(input);
+  (M.comma_separated(prop) |> M.parentheses ==> List.map(no_ctx))(input);

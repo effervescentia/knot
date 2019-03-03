@@ -55,10 +55,11 @@
     "build_test": "esy build && esy test",
     "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|generator)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:e2e:simple:debug",
     "test:unit": "esy x TestSuite.exe",
     "test:e2e": "esy x Compiler.exe ./test/resources/project/src/index.kn 1> /dev/null",
     "test:e2e:debug": "esy x Compiler.exe ./test/resources/project/src/index.kn",
+    "test:e2e:simple": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
     "test:e2e:simple:debug": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn",
     "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|analyzer|generator|executable|test)/**/*.re'"
   },
