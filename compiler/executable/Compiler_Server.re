@@ -1,5 +1,7 @@
-let run = config => {
-  let server = Server.create(1337);
+open Kore;
+
+let run = ({port}) => {
+  let server = Server.create(port);
 
   server.start();
 };

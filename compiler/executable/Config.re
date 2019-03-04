@@ -31,7 +31,9 @@ let module_name = module_ => is_main(module_) ? main_alias : module_;
 
 let rec find_file2 = entry => ();
 
-let rec find_file = entry =>
+let rec find_file = entry => {
+  let dir = Filename.dirname(entry);
+
   if (Sys.file_exists(entry) && Sys.is_directory(entry)) {
     let dir_handle = Unix.opendir(entry);
 
@@ -50,16 +52,16 @@ let rec find_file = entry =>
       fun
       | Some(res) => res
       | None =>
-        if (Filename.dirname(entry) == entry) {
+        if (dir == entry) {
           raise(MissingRootDirectory);
         } else {
-          find_file(entry);
+          find_file(dir);
         }
     );
   } else {
-    find_file(Filename.dirname(entry));
+    find_file(dir);
   };
-
+};
 let generate_paths = config_file => {
   let root_dir = Filename.dirname(config_file);
 
@@ -76,6 +78,7 @@ let set_from_args = cwd => {
   let is_server = ref(false);
   let config_file = ref("");
   let main = ref("");
+  let port = ref(1338);
 
   Arg.parse(
     [
@@ -89,6 +92,7 @@ let set_from_args = cwd => {
         Arg.Set_string(config_file),
         "path to the directory containing your .knot.yml file",
       ),
+      ("-port", Arg.Set_int(port), "the port to run on when in server mode"),
     ],
     x =>
       if (main^ == "") {
@@ -102,6 +106,7 @@ let set_from_args = cwd => {
   let config = {
     main: main^,
     is_server: is_server^,
+    port: port^,
     paths:
       find_file(is_server^ ? Util.normalize_path(cwd, config_file^) : main^)
       |> generate_paths,

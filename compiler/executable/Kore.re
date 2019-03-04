@@ -11,6 +11,7 @@ module Generator = KnotGen.Generator;
 type config = {
   main: string,
   is_server: bool,
+  port: int,
   paths: paths_config,
 }
 and paths_config = {
