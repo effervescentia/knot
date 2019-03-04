@@ -11,7 +11,7 @@ let run = () => {
   Log.set_output(stdout);
   Log.color_on();
 
-  let {paths: {config_file}} = Config.get();
+  let {is_server, paths: {config_file}} = Config.get();
   let pretty_config_file =
     Util.is_within_dir(cwd, config_file) ?
       Util.chop_path_prefix(cwd, config_file) : config_file;

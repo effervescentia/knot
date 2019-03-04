@@ -1,5 +1,5 @@
 {
-  "hash": "ac3439a5b6afa50fd6b93b15411cbab8",
+  "hash": "94b29629d67a97732c24ef43e86c4152",
   "root": "root@path:./package.json",
   "node": {
     "wrappy@1.0.2": {
@@ -356,12 +356,12 @@
       },
       "dependencies": [
         "@esy-ocaml/reason@3.4.0", "@opam/ANSITerminal@opam:0.8.1",
-        "@opam/angstrom@opam:0.10.0", "@opam/core@opam:v0.12.0",
-        "@opam/dolog@opam:3.0", "@opam/dune@opam:1.7.3",
-        "@opam/emoji@opam:1.1.0", "@opam/httpaf@opam:0.5.0",
-        "@opam/merlin@opam:3.2.2", "@opam/opal@opam:0.1.1",
-        "@opam/ounit@opam:2.0.8", "ocaml@4.7.1004", "pesy@0.4.1",
-        "refmterr@3.1.10", "sane@4.0.3"
+        "@opam/core@opam:v0.12.0", "@opam/dolog@opam:3.0",
+        "@opam/dune@opam:1.7.3", "@opam/emoji@opam:1.1.0",
+        "@opam/faraday-lwt-unix@opam:0.7.0", "@opam/httpaf@opam:0.5.0",
+        "@opam/lwt@opam:4.1.0", "@opam/merlin@opam:3.2.2",
+        "@opam/opal@opam:0.1.1", "@opam/ounit@opam:2.0.8", "ocaml@4.7.1004",
+        "pesy@0.4.1", "refmterr@3.1.10", "sane@4.0.3"
       ]
     },
     "ret@0.1.15": {
@@ -2755,6 +2755,27 @@
         "@opam/ocamlfind@opam:1.8.0", "ocaml@4.7.1004"
       ]
     },
+    "@opam/lwt@opam:4.1.0": {
+      "record": {
+        "name": "@opam/lwt",
+        "version": "opam:4.1.0",
+        "source":
+          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7",
+        "files": [],
+        "opam": {
+          "name": "lwt",
+          "version": "4.1.0",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"lwt\"\nversion: \"4.1.0\"\nsynopsis: \"Promises, concurrency, and parallelized I/O\"\ndescription: \"\"\"\nA promise is a value that may become determined in the future.\n\nLwt provides typed, composable promises. Promises that are resolved by I/O are\nresolved by Lwt in parallel.\n\nMeanwhile, OCaml code, including code creating and waiting on promises, runs in\na single thread by default. This reduces the need for locks or other\nsynchronization primitives. Code can be run in parallel on an opt-in basis.\"\"\"\nmaintainer: [\n  \"Anton Bachin <antonbachin@yahoo.com>\"\n  \"Mauricio Fernandez <mfp@acm.org>\"\n  \"Simon Cruanes <simon.cruanes.2007@m4x.org>\"\n]\nauthors: [\"Jérôme Vouillon\" \"Jérémie Dimino\"]\nlicense: \"LGPL with OpenSSL linking exception\"\nhomepage: \"https://github.com/ocsigen/lwt\"\ndoc: \"https://ocsigen.org/lwt/manual/\"\nbug-reports: \"https://github.com/ocsigen/lwt/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"cppo\" {build & >= \"1.1.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta14\"}\n  \"ocamlfind\" {build & >= \"1.7.3-1\"}\n  \"result\"\n]\ndepopts: [\"base-threads\" \"base-unix\" \"conf-libev\"]\nconflicts: [\n  \"ocaml-variants\" {= \"4.02.1+BER\"}\n]\nbuild: [\n  [\"ocaml\" \"src/util/configure.ml\" \"-use-libev\" \"%{conf-libev:installed}%\"]\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nmessages: [\n  \"For the PPX, please install package lwt_ppx\" {!lwt_ppx:installed}\n  \"For the Camlp4 syntax, please install package lwt_camlp4\"\n    {camlp4:installed & !lwt_camlp4:installed}\n  \"For Lwt_log and Lwt_daemon, please install package lwt_log\"\n    {!lwt_log:installed}\n]\ndev-repo: \"git+https://github.com/ocsigen/lwt.git\"\nurl {\n  src: \"https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz\"\n  checksum: \"md5=e919bee206f18b3d49250ecf9584fde7\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/cppo@opam:1.6.5",
+        "@opam/jbuilder@opam:transition", "@opam/ocamlfind@opam:1.8.0",
+        "@opam/result@opam:1.3", "ocaml@4.7.1004"
+      ]
+    },
     "@opam/jst-config@opam:v0.12.0": {
       "record": {
         "name": "@opam/jst-config",
@@ -2829,7 +2850,7 @@
         }
       },
       "dependencies": [
-        "@esy-ocaml/substs@0.0.1", "@opam/angstrom@opam:0.10.0",
+        "@esy-ocaml/substs@0.0.1", "@opam/angstrom@opam:0.11.0",
         "@opam/faraday@opam:0.7.0", "@opam/jbuilder@opam:transition",
         "@opam/result@opam:1.3", "ocaml@4.7.1004"
       ]
@@ -2852,6 +2873,48 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/base@opam:v0.12.0",
         "@opam/dune@opam:1.7.3", "ocaml@4.7.1004"
+      ]
+    },
+    "@opam/faraday-lwt-unix@opam:0.7.0": {
+      "record": {
+        "name": "@opam/faraday-lwt-unix",
+        "version": "opam:0.7.0",
+        "source":
+          "archive:https://github.com/inhabitedtype/faraday/archive/0.7.0.tar.gz#md5:d37a5f1663570f9c75f0b4b4cdb7ec9c",
+        "files": [],
+        "opam": {
+          "name": "faraday-lwt-unix",
+          "version": "0.7.0",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"faraday-lwt-unix\"\nversion: \"0.7.0\"\nsynopsis: \"Lwt_unix support for Faraday\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/faraday\"\nbug-reports: \"https://github.com/inhabitedtype/faraday/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"faraday-lwt\"\n  \"lwt\" {>= \"2.7.0\"}\n  \"base-unix\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/faraday.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/faraday/archive/0.7.0.tar.gz\"\n  checksum: \"md5=d37a5f1663570f9c75f0b4b4cdb7ec9c\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/base-unix@opam:base",
+        "@opam/faraday-lwt@opam:0.7.0", "@opam/jbuilder@opam:transition",
+        "@opam/lwt@opam:4.1.0", "ocaml@4.7.1004"
+      ]
+    },
+    "@opam/faraday-lwt@opam:0.7.0": {
+      "record": {
+        "name": "@opam/faraday-lwt",
+        "version": "opam:0.7.0",
+        "source":
+          "archive:https://github.com/inhabitedtype/faraday/archive/0.7.0.tar.gz#md5:d37a5f1663570f9c75f0b4b4cdb7ec9c",
+        "files": [],
+        "opam": {
+          "name": "faraday-lwt",
+          "version": "0.7.0",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"faraday-lwt\"\nversion: \"0.7.0\"\nsynopsis: \"Lwt support for Faraday\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/faraday\"\nbug-reports: \"https://github.com/inhabitedtype/faraday/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"faraday\" {>= \"0.5.0\"}\n  \"lwt\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/faraday.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/faraday/archive/0.7.0.tar.gz\"\n  checksum: \"md5=d37a5f1663570f9c75f0b4b4cdb7ec9c\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/faraday@opam:0.7.0",
+        "@opam/jbuilder@opam:transition", "@opam/lwt@opam:4.1.0",
+        "ocaml@4.7.1004"
       ]
     },
     "@opam/faraday@opam:0.7.0": {
@@ -3263,18 +3326,18 @@
         "@opam/sexplib0@opam:v0.12.0", "ocaml@4.7.1004"
       ]
     },
-    "@opam/angstrom@opam:0.10.0": {
+    "@opam/angstrom@opam:0.11.0": {
       "record": {
         "name": "@opam/angstrom",
-        "version": "opam:0.10.0",
+        "version": "opam:0.11.0",
         "source":
-          "archive:https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz#md5:51e2d9a272314671eb5fa3fb3fd5171f",
+          "archive:https://github.com/inhabitedtype/angstrom/archive/0.11.0.tar.gz#md5:f28ef135ecf1c7b5683d9d482528699a",
         "files": [],
         "opam": {
           "name": "angstrom",
-          "version": "0.10.0",
+          "version": "0.11.0",
           "opam":
-            "opam-version: \"2.0\"\nname: \"angstrom\"\nversion: \"0.10.0\"\nsynopsis: \"Parser combinators built for speed and memory-efficiency\"\ndescription: \"\"\"\nAngstrom is a parser-combinator library that makes it easy to write efficient,\nexpressive, and reusable parsers suitable for high-performance applications. It\nexposes monadic and applicative interfaces for composition, and supports\nincremental input through buffered and unbuffered interfaces. Both interfaces\ngive the user total control over the blocking behavior of their application,\nwith the unbuffered interface enabling zero-copy IO. Parsers are backtracking by\ndefault and support unbounded lookahead.\"\"\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/angstrom\"\nbug-reports: \"https://github.com/inhabitedtype/angstrom/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"alcotest\" {with-test & >= \"0.8.1\"}\n  \"bigstringaf\"\n  \"result\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/angstrom.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/angstrom/archive/0.10.0.tar.gz\"\n  checksum: \"md5=51e2d9a272314671eb5fa3fb3fd5171f\"\n}",
+            "opam-version: \"2.0\"\nname: \"angstrom\"\nversion: \"0.11.0\"\nsynopsis: \"Parser combinators built for speed and memory-efficiency\"\ndescription: \"\"\"\nAngstrom is a parser-combinator library that makes it easy to write efficient,\nexpressive, and reusable parsers suitable for high-performance applications. It\nexposes monadic and applicative interfaces for composition, and supports\nincremental input through buffered and unbuffered interfaces. Both interfaces\ngive the user total control over the blocking behavior of their application,\nwith the unbuffered interface enabling zero-copy IO. Parsers are backtracking by\ndefault and support unbounded lookahead.\"\"\"\nmaintainer: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nauthors: \"Spiros Eliopoulos <spiros@inhabitedtype.com>\"\nlicense: \"BSD-3-clause\"\nhomepage: \"https://github.com/inhabitedtype/angstrom\"\nbug-reports: \"https://github.com/inhabitedtype/angstrom/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.03.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta10\"}\n  \"alcotest\" {with-test & >= \"0.8.1\"}\n  \"bigstringaf\"\n  \"result\"\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name] {with-test}\n]\ndev-repo: \"git+https://github.com/inhabitedtype/angstrom.git\"\nurl {\n  src: \"https://github.com/inhabitedtype/angstrom/archive/0.11.0.tar.gz\"\n  checksum: \"md5=f28ef135ecf1c7b5683d9d482528699a\"\n}",
           "override": null
         }
       },

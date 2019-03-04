@@ -10,6 +10,7 @@ module Generator = KnotGen.Generator;
 
 type config = {
   main: string,
+  is_server: bool,
   paths: paths_config,
 }
 and paths_config = {
@@ -25,5 +26,6 @@ exception InvalidPathFormat(string);
 exception ModuleDoesNotExist(string, string);
 exception InvalidEntryPoint(string);
 exception EntryPointOutsideBuildContext(string);
+exception ModuleNotLoaded(string);
 
 let main_alias = "[main]";
