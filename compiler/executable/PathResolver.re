@@ -1,11 +1,12 @@
 open Kore;
+open KnotCompile.Util;
 
 let simple = (config, target) =>
   (
     switch (target) {
     | res when String.length(res) == 0 => raise(InvalidPathFormat(res))
-    | res when Util.is_source_module(res) =>
-      Util.to_path_segment(res)
+    | res when is_source_module(res) =>
+      to_path_segment(res)
       |> Printf.sprintf("%s.kn")
       |> Filename.concat(config.source_dir)
     | res when res.[0] == '@' =>

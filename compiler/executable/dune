@@ -4,8 +4,8 @@
 ; !!!! If you want to stop using pesy and manage this file by hand, change pacakge.json's 'esy.build' command to: refmterr dune build -p  knot
 (executable
    ; The entrypoint module
-   (name Compiler)  ;  From package.json main field
+   (name Main)  ;  From package.json main field
    ; The name of the executable (runnable via esy x Compiler.exe) 
    (public_name Compiler.exe)  ;  From package.json name field
-   (libraries  knot.lib knot.lex knot.parse knot.analyze knot.gen unix core dolog emoji httpaf lwt lwt.unix faraday-lwt-unix uri ) ;  From package.json require field (array of strings)
+   (libraries  knot.lib knot.generate knot.compile unix core httpaf lwt lwt.unix faraday-lwt-unix uri ) ;  From package.json require field (array of strings)
 )

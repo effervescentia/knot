@@ -1,5 +1,7 @@
 open Kore;
 
+module Generator = KnotGenerate.Generator;
+
 let clean_build_dir = () => {
   let {paths: {build_dir}} = Config.get();
   Config.root_path(build_dir) |> Log.info("%s  (%s)", Emoji.sparkles);

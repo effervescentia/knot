@@ -1,4 +1,6 @@
 module LazyStream = Opal.LazyStream;
+module Log = Log;
+module Emoji = Emoji;
 
 exception NotImplemented;
 
@@ -66,3 +68,5 @@ let reserved = [
   "true",
   "false",
 ];
+
+let main_alias = "[main]";

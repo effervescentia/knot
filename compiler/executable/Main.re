@@ -12,10 +12,10 @@ let () = {
       config.port,
     );
 
-    Compiler_Server.run(config);
+    Main_Server.run(config);
   } else {
     Log.info("%s  running stand-alone", Emoji.rocket);
 
-    Compiler_StandAlone.run(config);
+    Main_StandAlone.run(config);
   };
 };

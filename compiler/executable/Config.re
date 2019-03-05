@@ -1,4 +1,5 @@
 open Kore;
+open KnotCompile.Util;
 
 exception ConfigurationNotInitialized;
 
@@ -12,7 +13,7 @@ let get = () =>
 
 let relative_path = (extract, absolute_path) => {
   let {paths} = get();
-  Util.chop_path_prefix(extract(paths), absolute_path);
+  chop_path_prefix(extract(paths), absolute_path);
 };
 
 let is_config_file =
@@ -28,8 +29,6 @@ let source_path = relative_path(({source_dir}) => source_dir);
 let root_path = relative_path(({root_dir}) => root_dir);
 let is_main = path => path == get().main;
 let module_name = module_ => is_main(module_) ? main_alias : module_;
-
-let rec find_file2 = entry => ();
 
 let rec find_file = entry => {
   let dir = Filename.dirname(entry);
@@ -62,6 +61,7 @@ let rec find_file = entry => {
     find_file(dir);
   };
 };
+
 let generate_paths = config_file => {
   let root_dir = Filename.dirname(config_file);
 
@@ -71,6 +71,17 @@ let generate_paths = config_file => {
     source_dir: Filename.concat(root_dir, "src"),
     build_dir: Filename.concat(root_dir, "dist"),
     module_dir: Filename.concat(root_dir, ".knot"),
+  };
+};
+
+let create_descriptor = (path_resolver, target) => {
+  let absolute_path = path_resolver(target);
+
+  KnotCompile.Core.{
+    target,
+    absolute_path,
+    relative_path: source_path(absolute_path),
+    pretty_path: module_name(target),
   };
 };
 

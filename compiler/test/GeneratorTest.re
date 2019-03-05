@@ -1,7 +1,7 @@
 open Core;
 
 let tests =
-  "KnotGen.Generator"  /* "generate module"
+  "KnotGenerate.Generator"  /* "generate module"
           >:: (
             _ => {
               let generated = ref("");
@@ -14,7 +14,7 @@ let tests =
               |> (
                 fun
                 | Some({contents: Resolved(res, _)}) =>
-                  KnotGen.Generator.generate(s => generated := generated^ ++ s, res)
+                  KnotGenerate.Generator.generate(s => generated := generated^ ++ s, res)
                 | _ => assert_failure("no AST found")
               );
 

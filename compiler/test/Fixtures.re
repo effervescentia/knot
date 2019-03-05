@@ -1,4 +1,5 @@
 open Core;
+open KnotGenerate.Core;
 
 let all_tokens = [
   Plus,
@@ -642,14 +643,14 @@ let full_ast =
   ]);
 
 let with_export = (name, s) =>
-  s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
+  s ++ Printf.sprintf("%s.%s=%s;", export_map, name, name);
 let var_with_export = (name, s) =>
   Printf.sprintf("var %s=%s;", name, s) |> with_export(name);
 let expand_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s');",
     name,
-    KnotGen.Core.util_map,
+    util_map,
     index,
     name,
   );
@@ -657,19 +658,15 @@ let expand_default_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s',%s);",
     name,
-    KnotGen.Core.util_map,
+    util_map,
     index,
     name,
   );
 
 let full_generated =
-  Printf.sprintf(
-    "function(%s,%s){",
-    KnotGen.Core.module_map,
-    KnotGen.Core.util_map,
-  )
-  ++ Printf.sprintf("var %s={};", KnotGen.Core.export_map)
-  ++ Printf.sprintf("var ABC=%s.abc.main;", KnotGen.Core.module_map)
+  Printf.sprintf("function(%s,%s){", module_map, util_map)
+  ++ Printf.sprintf("var %s={};", export_map)
+  ++ Printf.sprintf("var ABC=%s.abc.main;", module_map)
   ++ var_with_export("numericConst", "8")
   ++ var_with_export("additionConst", "(1+10)")
   ++ var_with_export("subtractionConst", "(8-2)")
@@ -811,5 +808,5 @@ let full_generated =
        ++ /**/ "};"
        ++ "}",
      )
-  ++ Printf.sprintf("return %s;", KnotGen.Core.export_map)
+  ++ Printf.sprintf("return %s;", export_map)
   ++ "}";

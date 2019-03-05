@@ -1,4 +1,5 @@
 open Kore;
+open KnotCompile.Util;
 
 let run = () => {
   let cwd = Unix.getcwd();
@@ -14,7 +15,7 @@ let run = () => {
   let {is_server, paths: {config_file}} = Config.get();
   let pretty_config_file =
     Util.is_within_dir(cwd, config_file) ?
-      Util.chop_path_prefix(cwd, config_file) : config_file;
+      chop_path_prefix(cwd, config_file) : config_file;
 
   Log.info("%s  (%s)", Emoji.gear, pretty_config_file);
 };

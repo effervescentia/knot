@@ -1,4 +1,8 @@
-open Kore;
+open Core;
+
+module FileStream = Knot.FileStream;
+module TokenStream = KnotLex.TokenStream;
+module Parser = KnotParse.Parser;
 
 exception ParsingFailed;
 
