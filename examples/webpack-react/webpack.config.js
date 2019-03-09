@@ -1,4 +1,5 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlPlugin = require('html-webpack-plugin');
+const KnotPlugin = require('@knot/webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
@@ -12,20 +13,13 @@ module.exports = {
   },
 
   plugins: [
-    new HtmlWebpackPlugin({
+    new HtmlPlugin({
       template: 'index.html'
+    }),
+    new KnotPlugin({
+      knot: process.env.KNOT_BINARY
     })
   ],
-
-  module: {
-    rules: [{
-      test: /\.kn$/,
-      loader: '@knot/webpack-loader',
-      options: {
-        knot: process.env.KNOT_BINARY
-      }
-    }]
-  },
 
   devServer: {
     historyApiFallback: true,

@@ -14,7 +14,7 @@
     "cypress:run": "cypress run"
   },
   "devDependencies": {
-    "@knot/webpack-loader": "file:../../webpack-loader",
+    "@knot/webpack-plugin": "file:../../webpack-plugin",
     "cross-env": "^5.2.0",
     "cypress": "^3.1.4",
     "html-webpack-plugin": "^3.2.0",

@@ -1,10 +1,7 @@
 open Kore;
+open Kore.Compiler;
 
-module Compiler = KnotCompile.Compiler;
-
-let run = ({paths, main as in_path}) => {
-  let desc_creator = PathResolver.simple(paths) |> Config.create_descriptor;
-  let compiler = Compiler.create(desc_creator);
+let run = ({paths, main as in_path}, compiler) => {
   let rec compile = input => compiler.add(input) |> List.iter(compile);
 
   try (compile(in_path)) {

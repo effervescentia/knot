@@ -1,0 +1,17 @@
+{
+  "type": "object",
+
+  "properties": {
+    "port": {
+      "type": ["boolean"]
+    },
+    "config": {
+      "type": ["string"]
+    },
+    "knot": {
+      "type": ["string"]
+    }
+  },
+
+  "additionalProperties": false
+}

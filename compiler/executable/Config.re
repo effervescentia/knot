@@ -1,5 +1,4 @@
 open Kore;
-open KnotCompile.Util;
 
 exception ConfigurationNotInitialized;
 
@@ -13,7 +12,7 @@ let get = () =>
 
 let relative_path = (extract, absolute_path) => {
   let {paths} = get();
-  chop_path_prefix(extract(paths), absolute_path);
+  Util.chop_path_prefix(extract(paths), absolute_path);
 };
 
 let is_config_file =

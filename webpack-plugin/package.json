@@ -1,0 +1,16 @@
+{
+  "name": "@knot/webpack-plugin",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "src/index.js",
+  "dependencies": {
+    "cross-fetch": "^3.0.1",
+    "execa": "^1.0.0",
+    "javascript-stringify": "^2.0.0",
+    "loader-utils": "^1.2.3",
+    "schema-utils": "^1.0.0",
+    "tapable": "^1.1.1",
+    "tmp": "^0.0.33"
+  },
+  "devDependencies": {}
+}

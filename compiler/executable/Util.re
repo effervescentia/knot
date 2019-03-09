@@ -1,5 +1,7 @@
 open Kore;
 
+include KnotCompile.Util;
+
 let normalize_path = (root_dir, file) =>
   if (Filename.is_relative(file)) {
     Filename.concat(root_dir, file);

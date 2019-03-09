@@ -1,6 +1,7 @@
 include Knot.Core;
 
 module Debug = Knot.Debug;
+module Compiler = KnotCompile.Compiler;
 
 type config = {
   main: string,

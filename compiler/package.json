@@ -46,7 +46,7 @@
         "faraday-lwt-unix", "uri"
       ],
       "main": "Main",
-      "name": "Compiler.exe"
+      "name": "knotc.exe"
     },
     "test": {
       "require": [
@@ -61,13 +61,13 @@
     "build_test": "esy build && esy test",
     "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|generator|compiler|executable)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
-    "server:simple": "esy x Compiler.exe -server -config ./test/resources/simple_project",
+    "server:simple": "esy x knotc.exe -server -config ./test/resources/simple_project",
     "test": "npm run test:unit && npm run test:e2e:simple:debug",
     "test:unit": "esy x TestSuite.exe",
-    "test:e2e": "esy x Compiler.exe ./test/resources/project/src/index.kn 1> /dev/null",
-    "test:e2e:debug": "esy x Compiler.exe ./test/resources/project/src/index.kn",
-    "test:e2e:simple": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
-    "test:e2e:simple:debug": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn",
+    "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn 1> /dev/null",
+    "test:e2e:debug": "esy x knotc.exe ./test/resources/project/src/index.kn",
+    "test:e2e:simple": "esy x knotc.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
+    "test:e2e:simple:debug": "esy x knotc.exe ./test/resources/simple_project/src/index.kn",
     "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|analyzer|generator|compiler|executable|test)/**/*.re'"
   },
   "dependencies": {
