@@ -14,7 +14,9 @@ let () = {
       config.port,
     );
 
-    Main_Server.run(config, compiler);
+    try (Main_Server.run(config, compiler)) {
+    | Lwt.Canceled => Log.info("%s  shutting down", Emoji.robot_face)
+    };
   } else {
     Log.info("%s  running stand-alone", Emoji.rocket);
 

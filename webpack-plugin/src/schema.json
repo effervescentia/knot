@@ -5,6 +5,9 @@
     "port": {
       "type": ["boolean"]
     },
+    "debug": {
+      "type": ["boolean"]
+    },
     "config": {
       "type": ["string"]
     },

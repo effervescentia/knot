@@ -1,10 +1,17 @@
+// const {
+//   render
+// } = require("./index.kn");
 const {
-  render
-} = require("./index.kn");
+  greet
+} = require('./index.kn');
 
-render('app');
+// render('app');
+
+console.log(greet("World"));
 
 // const React = require('react');
 // const ReactDOM = require('react-dom');
 
-// ReactDOM.render(React.createElement('div'), document.getElementById('app'));
+// ReactDOM.render(React.createElement(App, {
+//   name: 'World'
+// }), document.getElementById('app'));

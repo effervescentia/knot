@@ -6,6 +6,7 @@ module Compiler = KnotCompile.Compiler;
 type config = {
   main: string,
   is_server: bool,
+  is_debug: bool,
   port: int,
   paths: paths_config,
 }

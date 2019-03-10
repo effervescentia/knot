@@ -86,12 +86,14 @@ let create_descriptor = (path_resolver, target) => {
 
 let set_from_args = cwd => {
   let is_server = ref(false);
+  let is_debug = ref(false);
   let config_file = ref("");
   let main = ref("");
   let port = ref(1338);
 
   Arg.parse(
     [
+      ("-debug", Arg.Set(is_debug), "enable a higher level of logging"),
       (
         "-server",
         Arg.Set(is_server),
@@ -116,6 +118,7 @@ let set_from_args = cwd => {
   let config = {
     main: main^,
     is_server: is_server^,
+    is_debug: is_debug^,
     port: port^,
     paths:
       find_file(is_server^ ? Util.normalize_path(cwd, config_file^) : main^)

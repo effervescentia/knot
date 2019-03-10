@@ -15,17 +15,16 @@
   },
   "devDependencies": {
     "@knot/webpack-plugin": "file:../../webpack-plugin",
+    "@types/node": "^11.11.0",
     "cross-env": "^5.2.0",
     "cypress": "^3.1.4",
     "html-webpack-plugin": "^3.2.0",
     "start-server-and-test": "^1.7.11",
+    "ts-node": "^8.0.3",
+    "typescript": "^3.3.3333",
     "webpack": "^4.26.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.14"
   },
-  "dependencies": {
-    "@knot/css-plugin": "file:../../plugins/css",
-    "@knot/javascript-utils": "file:../../utils/javascript",
-    "@knot/react-plugin": "file:../../plugins/react"
-  }
+  "dependencies": {}
 }

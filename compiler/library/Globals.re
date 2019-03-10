@@ -6,6 +6,15 @@ exception NotImplemented;
 
 let (%) = (f, g, x) => f(x) |> g;
 
+let (|-) = (f, g, x) =>
+  f(x)
+  |> (
+    y => {
+      g(x);
+      y;
+    }
+  );
+
 type member_type =
   | Number_t
   | String_t

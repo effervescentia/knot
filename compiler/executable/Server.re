@@ -6,7 +6,7 @@ module Response = Server_Response;
 
 type t = {
   start: unit => unit,
-  close: unit => Lwt.t(unit),
+  close: unit => unit,
 };
 
 let request_handler = (route_mapper, addr, req_d) => {
@@ -51,19 +51,26 @@ let connection_handler = route_mapper =>
 
 let create = (port, route_mapper) => {
   let listen_address = Unix.(ADDR_INET(inet_addr_loopback, port));
-  let server =
+  let main_task = ref(None);
+  let close_server = () =>
+    switch (main_task^) {
+    | Some(task) => Lwt.cancel(task)
+    | None => Log.error("server is not running")
+    };
+  let server_lwt =
     Lwt_io.establish_server_with_client_socket(
       listen_address,
-      connection_handler(route_mapper),
+      connection_handler(route_mapper(close_server)),
     );
 
   {
     start: () => {
-      Lwt.async(() => server >>= (_ => Lwt.return_unit));
+      Lwt.async(() => server_lwt >>= (_ => Lwt.return_unit));
 
-      let (forever, _) = Lwt.wait();
+      let (forever, _) = Lwt.task();
+      main_task := Some(forever);
       Lwt_main.run(forever);
     },
-    close: () => Lwt.bind(server, Lwt_io.shutdown_server),
+    close: close_server,
   };
 };

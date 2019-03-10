@@ -1,1 +1,1 @@
-main view App(props) -> "Hello, " + props.name + "!";
+view App(props) -> "Hello, " + props.name + "!";
