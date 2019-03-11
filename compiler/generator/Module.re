@@ -8,6 +8,4 @@ let generate_stmt = printer =>
 
 let generate = printer =>
   fun
-  | Module(stmts) =>
-    /* stmts |> List.iter(abandon_ctx % generate_stmt(printer)); */
-    stmts |> List.iter(generate_stmt(printer));
+  | Module(stmts) => stmts |> List.iter(generate_stmt(printer));

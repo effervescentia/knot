@@ -4,8 +4,6 @@ module FileStream = Knot.FileStream;
 module TokenStream = KnotLex.TokenStream;
 module Parser = KnotParse.Parser;
 
-exception ParsingFailed;
-
 let buffer_size = 1000;
 
 let load = file => {

@@ -5,6 +5,18 @@ open Kore.Compiler;
 module Response = Server_Response;
 module Generator = KnotGenerate.Generator;
 
+let log_incoming = (~addon=?, ~emoji=Emoji.chequered_flag, req_d, uri) =>
+  Log.info(
+    "%s  [%s %s]%s",
+    emoji,
+    Reqd.request(req_d).meth |> Method.to_string,
+    Uri.to_string(uri),
+    switch (addon) {
+    | Some(str) => Printf.sprintf(" (%s)", str)
+    | None => ""
+    },
+  );
+
 let read_to_string = (req_d, f) => {
   let req_body = Reqd.request_body(req_d);
   let str = ref("");
@@ -30,20 +42,31 @@ let put_module = (compiler, req_d, uri) =>
   read_to_string(
     req_d,
     module_path => {
-      Log.info(
-        "%s  [PUT %s] (%s)",
-        Emoji.right_arrow,
-        Uri.to_string(uri),
-        module_path,
-      );
+      log_incoming(~addon=module_path, req_d, uri);
 
-      Reqd.respond_with_string(
-        req_d,
-        Response.ok(),
-        "module added to context",
-      );
+      switch (compiler.add_rec(module_path)) {
+      | _ =>
+        Reqd.respond_with_string(
+          req_d,
+          Response.ok(),
+          "module added to context",
+        )
+      | exception exn =>
+        switch (exn) {
+        | ParsingFailed => Log.error("parsing failed")
+        | InvalidProgram(_) => Log.error("invalid program: %s", module_path)
+        | ExecutingNonFunction => Log.error("executing non-function")
+        | DefaultValueTypeMismatch => Log.error("default value type mismatch")
+        | InvalidTypeReference => Log.error("invalid type reference")
+        | exn => Printexc.to_string(exn) |> Log.error("module failed: %s")
+        };
 
-      compiler.add_rec(module_path);
+        Reqd.respond_with_string(
+          req_d,
+          Response.not_found(),
+          Printf.sprintf("failed to add %s to context", module_path),
+        );
+      };
     },
   );
 
@@ -51,28 +74,22 @@ let get_module = (compiler, req_d, uri) =>
   read_to_string(
     req_d,
     module_path => {
-      Log.info(
-        "%s  [GET %s] (%s)",
-        Emoji.left_arrow,
-        Uri.to_string(uri),
-        module_path,
-      );
+      log_incoming(~addon=module_path, req_d, uri);
 
       compiler.find(module_path)
       |> (
         fun
         | Some(ast) => {
-            /* let res_body =
-               Response.ok() |> Reqd.respond_with_streaming(req_d); */
+            let res_body =
+              Response.ok() |> Reqd.respond_with_streaming(req_d);
 
-            let body = ref("");
-            Generator.generate(str => body := body^ ++ str, ast);
+            Generator.generate(
+              str =>
+                Bigstring.of_string(str) |> Body.write_bigstring(res_body),
+              ast,
+            );
 
-            /* Body.close_writer(res_body); */
-
-            Log.info("%s  (%s)", Emoji.right_arrow, body^);
-
-            Reqd.respond_with_string(req_d, Response.ok(), body^);
+            Body.close_writer(res_body);
           }
         | None =>
           Reqd.respond_with_string(
@@ -88,12 +105,7 @@ let invalidate_module = (compiler, req_d, uri) =>
   read_to_string(
     req_d,
     module_path => {
-      Log.info(
-        "%s  [DELETE %s] (%s)",
-        Emoji.cross_mark,
-        Uri.to_string(uri),
-        module_path,
-      );
+      log_incoming(~addon=module_path, ~emoji=Emoji.cross_mark, req_d, uri);
 
       compiler.invalidate(module_path);
 
@@ -102,11 +114,7 @@ let invalidate_module = (compiler, req_d, uri) =>
   );
 
 let invalidate_context = (compiler, req_d, uri) => {
-  Log.info(
-    "%s  [DELETE %s]",
-    Emoji.skull_and_crossbones,
-    Uri.to_string(uri),
-  );
+  log_incoming(~emoji=Emoji.skull_and_crossbones, req_d, uri);
 
   compiler.reset();
 
@@ -114,7 +122,7 @@ let invalidate_context = (compiler, req_d, uri) => {
 };
 
 let get_status = (compiler, req_d, uri) => {
-  Log.info("%s  [GET %s]", Emoji.left_arrow, Uri.to_string(uri));
+  log_incoming(req_d, uri);
 
   let status =
     switch (compiler.status()) {
@@ -123,13 +131,38 @@ let get_status = (compiler, req_d, uri) => {
     | Complete => "complete"
     };
 
-  Log.info("%s  (%s)", Emoji.vertical_traffic_light, status);
+  Log.info("%s  [%s]", Emoji.vertical_traffic_light, status);
 
   Reqd.respond_with_string(req_d, Response.ok(), status);
 };
 
+let get_module_status = (compiler, req_d, uri) =>
+  read_to_string(
+    req_d,
+    module_path => {
+      log_incoming(~addon=module_path, req_d, uri);
+
+      let status =
+        compiler.find(module_path)
+        |> (
+          fun
+          | Some(_) => "complete"
+          | None => "pending"
+        );
+
+      Log.info(
+        "%s  [%s] (%s)",
+        Emoji.vertical_traffic_light,
+        status,
+        module_path,
+      );
+
+      Reqd.respond_with_string(req_d, Response.ok(), status);
+    },
+  );
+
 let kill_server = (close_server, req_d, uri) => {
-  Log.info("%s  [POST %s]", Emoji.skull_and_crossbones, Uri.to_string(uri));
+  log_incoming(~emoji=Emoji.skull_and_crossbones, req_d, uri);
 
   Reqd.respond_with_string(req_d, Response.ok(), "killed");
 
@@ -141,6 +174,7 @@ let route_mapper = (compiler, close_server) =>
   | (`PUT, "module") => Some(put_module(compiler))
   | (`POST, "module") => Some(get_module(compiler))
   | (`DELETE, "module") => Some(invalidate_module(compiler))
+  | (`POST, "module/status") => Some(get_module_status(compiler))
   | (`DELETE, "context") => Some(invalidate_context(compiler))
   | (`GET, "status") => Some(get_status(compiler))
   | (`POST, "kill") => Some(kill_server(close_server))

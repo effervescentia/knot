@@ -1,13 +1,6 @@
 open Core;
 open NestedHashtbl;
 
-exception OperatorTypeMismatch;
-exception InvalidDotAccess;
-exception ExecutingNonFunction;
-exception DefaultValueTypeMismatch;
-exception InvalidTypeReference;
-exception NameInUse(string);
-
 /* TODO: give these unique IDs within the scope */
 let generate_any_type = () => Any_t(0);
 

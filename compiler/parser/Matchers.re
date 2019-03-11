@@ -19,6 +19,7 @@ and func = kwd(Func)
 and view = kwd(View)
 and state = kwd(State)
 and style = kwd(Style)
+and as_ = kwd(As)
 and get = kwd(Get)
 and mut = kwd(Mut)
 and main = kwd(Main);

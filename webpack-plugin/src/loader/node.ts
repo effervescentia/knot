@@ -1,26 +1,15 @@
-import { GLOBALS } from '../constants';
+import { GLOBALS, MODULES, UTILS } from '../constants';
+import { InternalOptions } from '../types';
 
-export default function wrapResult(result: string, { debug, plugins }) {
-  if (debug) {
-    return `
-      var jsxPlugin = require("${plugins.jsx}");
-      var stylePlugin = require("${plugins.style}");
-      var jsUtils = require("${plugins.utils}");
-
-      module.exports = (${result})({
-        "${GLOBALS}": {
-          jsx: jsxPlugin,
-          style: stylePlugin
-        },
-        "@knot/jsx": jsxPlugin,
-        "@knot/style": stylePlugin
-      }, jsUtils);
-    `;
-  } else {
-    return `var jsxPlugin=require("${plugins.jsx}");var stylePlugin=require("${
-      plugins.style
-    }");var jsUtils=require("${
-      plugins.utils
-    }");module.exports=(${result})({"${GLOBALS}":{jsx:jsxPlugin,style:stylePlugin},"@knot/jsx":jsxPlugin,"@knot/style":stylePlugin},jsUtils);`;
-  }
+export default function wrapResult(
+  result: string,
+  { plugins }: InternalOptions
+): string {
+  return `import * as $$_jsxPlugin from '${
+    plugins.jsx
+  }';import * as $$_stylePlugin from '${
+    plugins.style
+  }';import * as ${UTILS} from '${
+    plugins.utils
+  }';var ${MODULES}={'${GLOBALS}':{jsx:$$_jsxPlugin,style:$$_stylePlugin},'@knot/jsx':$$_jsxPlugin,'@knot/style':$$_stylePlugin};${result}`;
 }

@@ -71,6 +71,7 @@ let reserved = [
   "style",
   "else",
   "if",
+  "as",
   "mut",
   "get",
   "main",

@@ -77,6 +77,8 @@ let create = create_desc => {
 
   let rec compiler = {
     add: path => {
+      Log.info("AFSLDASKD %s", path);
+
       if (status^ != Running) {
         status := Running;
       };

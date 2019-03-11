@@ -1,6 +1,7 @@
 // import JSX from "@knot/jsx";
 // import App from ".components.App";
+import { excite } from ".utils";
 
 // func render(id: string) -> JSX.render(<App name="World" />, id);
 
-func greet(name: string) -> "Hello, " + name + "!";
+func greet(name: string) -> "Bello, " + excite(name);

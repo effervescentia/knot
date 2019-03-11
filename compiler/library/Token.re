@@ -9,6 +9,7 @@ type keyword =
   | State
   | Style
   | If
+  | As
   | Else
   | Get
   | Mut;

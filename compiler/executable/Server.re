@@ -21,7 +21,12 @@ let request_handler = (route_mapper, addr, req_d) => {
     fun
     | Some(f) => f(req_d, uri)
     | None => {
-        Log.info("%s  failed (%s)", Emoji.cross_mark, Uri.to_string(uri));
+        Log.info(
+          "%s  failed [%s %s]",
+          Emoji.cross_mark,
+          Httpaf.Method.to_string(req.meth),
+          Uri.to_string(uri),
+        );
         Reqd.respond_with_string(req_d, Response.not_allowed(), "");
       }
   );

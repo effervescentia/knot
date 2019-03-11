@@ -1,5 +1,6 @@
 import * as HtmlPlugin from 'html-webpack-plugin';
 import KnotPlugin from '@knot/webpack-plugin';
+// import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
 export default {
   entry: './src/index.js',
@@ -20,6 +21,7 @@ export default {
       knot: process.env.KNOT_BINARY,
       debug: true,
     }),
+    // new BundleAnalyzerPlugin(),
   ],
 
   devServer: {

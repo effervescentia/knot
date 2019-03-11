@@ -1,7 +1,6 @@
 open Core;
 
-let gen_export = name =>
-  Printf.sprintf("%s%s=%s;", export_map, Property.gen_access(name), name);
+let gen_export = name => Printf.sprintf("export {%s};", name);
 
 let generate = printer =>
   abandon_ctx

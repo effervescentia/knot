@@ -3,7 +3,7 @@
 
   "properties": {
     "port": {
-      "type": ["boolean"]
+      "type": ["number"]
     },
     "debug": {
       "type": ["boolean"]

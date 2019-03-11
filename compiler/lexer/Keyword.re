@@ -16,6 +16,7 @@ let lexer =
     "style" ==> Style,
     "else" ==> Else,
     "if" ==> If,
+    "as" ==> As,
     "mut" ==> Mut,
     "get" ==> Get,
     "main" ==> Main,

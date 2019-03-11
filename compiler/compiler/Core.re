@@ -1,9 +1,7 @@
 include Knot.Core;
+include Exception;
 
 module Debug = Knot.Debug;
-
-exception InvalidProgram(string);
-exception ModuleNotLoaded(string);
 
 type link_descriptor = {
   target: string,

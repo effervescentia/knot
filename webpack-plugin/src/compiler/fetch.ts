@@ -1,7 +1,9 @@
 import baseFetch from 'cross-fetch';
 import { ArgumentTypes } from '../types';
 
-export default async function fetch(...args: ArgumentTypes<typeof baseFetch>) {
+export default async function fetch(
+  ...args: ArgumentTypes<typeof baseFetch>
+): ReturnType<typeof baseFetch> {
   const res = await baseFetch(...args);
 
   if (res.status >= 400) {

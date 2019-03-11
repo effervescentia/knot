@@ -37,15 +37,17 @@ let create = module_tbl => {
           is_resolving,
         );
 
-      /* Debug.print_resolve_target(x)
-         |> Printf.sprintf("RESOLVING %s")
-         |> print_endline; */
-
       if (Resolver_Explicit.resolve(module_tbl, symbol_tbl, x)) {
         ();
       } else if (is_resolving^) {
+        Debug.print_resolve_target(x)
+        |> Printf.sprintf("RESOLVING %s")
+        |> print_endline;
         resolve_queue := [x, ...resolve_queue^];
       } else {
+        Debug.print_resolve_target(x)
+        |> Printf.sprintf("RESOLVING %s")
+        |> print_endline;
         is_resolving := true;
         implicit_resolve(x);
       };

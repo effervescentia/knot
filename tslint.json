@@ -21,14 +21,13 @@
     "no-method-signature": true,
 
     // Functional style rules
-    "no-this": true,
-    "no-class": true,
     "no-mixed-interface": true,
     "no-expression-statement": [
       true,
-      { "ignore-prefix": ["console.", "process.exit"] }
-    ],
-    "no-if-statement": true
+      {
+        "ignore-prefix": ["console.", "process.exit"]
+      }
+    ]
     /* end tslint-immutable rules */
   }
 }
