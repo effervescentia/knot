@@ -1,7 +1,5 @@
 open Globals;
 
-exception InvalidLineEncoding;
-
 let of_channel = channel => {
   let row = ref(1);
   let column = ref(1);

@@ -53,11 +53,6 @@ let put_module = (compiler, req_d, uri) =>
         )
       | exception exn =>
         switch (exn) {
-        | ParsingFailed => Log.error("parsing failed")
-        | InvalidProgram(_) => Log.error("invalid program: %s", module_path)
-        | ExecutingNonFunction => Log.error("executing non-function")
-        | DefaultValueTypeMismatch => Log.error("default value type mismatch")
-        | InvalidTypeReference => Log.error("invalid type reference")
         | exn => Printexc.to_string(exn) |> Log.error("module failed: %s")
         };
 

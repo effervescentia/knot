@@ -1,5 +1,6 @@
 include Knot.Globals;
 include Knot.Token;
+include Exception;
 
 type context =
   | Normal

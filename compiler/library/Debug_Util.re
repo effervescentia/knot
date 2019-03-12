@@ -1,4 +1,5 @@
 open Globals;
+open AnalysisContext;
 
 let (|~>) = (x, f) =>
   abandon_ctx(x)

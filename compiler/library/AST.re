@@ -1,4 +1,5 @@
 open Globals;
+open AnalysisContext;
 
 type expression =
   | AddExpr(ast_expression, ast_expression)

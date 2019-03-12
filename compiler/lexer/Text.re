@@ -1,7 +1,5 @@
 open Core;
 
-exception UnclosedString;
-
 let quote = Char('"');
 
 let rec lex_string = _ =>

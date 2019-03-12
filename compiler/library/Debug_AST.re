@@ -1,5 +1,6 @@
 open Globals;
 open AST;
+open AnalysisContext;
 open Debug_Util;
 
 let with_ctx = (f, x) => x |~> f;
