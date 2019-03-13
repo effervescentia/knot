@@ -28,7 +28,8 @@ let rec decl = input =>
         |= []
         >>= (
           params =>
-            M.closure(rule_set) ==> (rules => StyleDecl(name, params, rules))
+            M.closure(rule_set)
+            ==> (rules => (name, StyleDecl(params, rules)))
         )
     )
   )(

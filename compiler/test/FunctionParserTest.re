@@ -53,7 +53,7 @@ let tests =
       _ =>
         test_parse_func((
           empty_func_decl(__name),
-          FunctionDecl(__name, [], []),
+          (__name, FunctionDecl([], [])),
         ))
     ),
     "parse compact"
@@ -61,7 +61,7 @@ let tests =
       _ =>
         test_parse_func((
           compact_func_decl(__name, Number(3)),
-          FunctionDecl(__name, [], [no_ctx(NumericLit(3))]),
+          (__name, FunctionDecl([], [no_ctx(NumericLit(3))])),
         ))
     ),
     "parse mult-expression"
@@ -69,16 +69,18 @@ let tests =
       _ =>
         test_parse_func((
           multi_expr_func_decl(__name),
-          FunctionDecl(
+          (
             __name,
-            [],
-            [
-              no_ctx(NumericLit(8)),
-              no_ctx(
-                AddExpr(no_ctx(NumericLit(7)), no_ctx(NumericLit(2))),
-              ),
-              no_ctx(StringLit("palatial")),
-            ],
+            FunctionDecl(
+              [],
+              [
+                no_ctx(NumericLit(8)),
+                no_ctx(
+                  AddExpr(no_ctx(NumericLit(7)), no_ctx(NumericLit(2))),
+                ),
+                no_ctx(StringLit("palatial")),
+              ],
+            ),
           ),
         ))
     ),

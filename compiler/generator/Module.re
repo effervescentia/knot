@@ -3,8 +3,8 @@ open Core;
 let generate_stmt = printer =>
   fun
   | Import(name, imports) => Import.generate(printer, name, imports)
-  | Declaration(decl)
-  | Main(decl) => Declaration.generate(printer, decl);
+  | Declaration(name, decl)
+  | Main(name, decl) => Declaration.generate(printer, name, decl);
 
 let generate = printer =>
   fun

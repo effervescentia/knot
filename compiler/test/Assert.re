@@ -32,13 +32,15 @@ let assert_stmt_eql = (actual, expected) =>
     actual,
   );
 
-let assert_decl_eql = (actual, expected) =>
+let assert_decl_eql = (actual, expected) => {
+  assert_equal(~msg="declaration name match", fst(expected), fst(actual));
   assert_equal(
     ~msg="declaration match",
-    ~printer=KnotParse.Debug.print_decl,
-    expected,
-    actual,
+    ~printer=KnotParse.Debug.print_decl(fst(actual)),
+    snd(expected),
+    snd(actual),
   );
+};
 
 let assert_cursor_eql = (actual, expected) =>
   assert_equal(

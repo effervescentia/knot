@@ -6,7 +6,7 @@ open Debug_AST;
 let print_resolve_target =
   fun
   | ModuleScope(module_) => module_ |~> print_ast
-  | DeclarationScope(decl) => decl |~> print_decl
+  | DeclarationScope(name, decl) => decl |~> print_decl(name)
   | ImportScope(module_, import) => import |~> print_import
   | ExpressionScope(expr) => expr |~> print_expr
   | ParameterScope(p)

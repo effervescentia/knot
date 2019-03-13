@@ -1,16 +1,16 @@
 open Core;
 open Scope;
 
-let analyze = scope =>
+let analyze = (scope, name) =>
   fst
   % (
     fun
-    | ConstDecl(name, expr) => Expression.analyze(scope, expr)
-    | StateDecl(name, params, props) => {
+    | ConstDecl(expr) => Expression.analyze(scope, expr)
+    | StateDecl(params, props) => {
         List.iter(Property.analyze(Expression.analyze, scope), params);
         List.iter(State.analyze_prop(scope), props);
       }
-    | ViewDecl(name, super, mixins, params, exprs) => {
+    | ViewDecl(super, mixins, params, exprs) => {
         let nested_scope =
           scope.nest(~label=Printf.sprintf("view(%s)", name), ());
 
@@ -20,7 +20,7 @@ let analyze = scope =>
         );
         List.iter(Expression.analyze(nested_scope), exprs);
       }
-    | FunctionDecl(name, params, exprs) => {
+    | FunctionDecl(params, exprs) => {
         let nested_scope =
           scope.nest(~label=Printf.sprintf("function(%s)", name), ());
 
@@ -38,7 +38,7 @@ let analyze = scope =>
         );
         List.iter(Expression.analyze(nested_scope), exprs);
       }
-    | StyleDecl(name, params, rules) => {
+    | StyleDecl(params, rules) => {
         List.iter(Property.analyze(Expression.analyze, scope), params);
         List.iter(Style.analyze_rule_set(scope), rules);
       }

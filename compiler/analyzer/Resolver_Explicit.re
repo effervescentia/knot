@@ -41,8 +41,8 @@ let rec resolve = (module_tbl, symbol_tbl) =>
       resolve_import(module_tbl, symbol_tbl, module_),
       promise,
     )
-  | DeclarationScope(promise) =>
-    check_resolution(resolve_decl(symbol_tbl), promise)
+  | DeclarationScope(name, promise) =>
+    check_resolution(resolve_decl(symbol_tbl, name), promise)
   | ExpressionScope(promise) => check_resolution(resolve_expr, promise)
   | ParameterScope(promise) =>
     check_resolution(resolve_param(symbol_tbl), promise)
@@ -71,26 +71,18 @@ and resolve_module = promise =>
 
                 List.for_all(is_resolved, imports);
               }
-            | Declaration(decl) =>
+            | Declaration(name, decl) =>
               switch (typeof(decl)) {
               | Some(typ) =>
-                Hashtbl.add(
-                  declarations,
-                  fst(decl) |> Util.extract_decl_name,
-                  typ,
-                );
+                Hashtbl.add(declarations, name, typ);
 
                 true;
               | None => false
               }
-            | Main(decl) =>
+            | Main(name, decl) =>
               switch (typeof(decl)) {
               | Some(typ) =>
-                Hashtbl.add(
-                  declarations,
-                  fst(decl) |> Util.extract_decl_name,
-                  typ,
-                );
+                Hashtbl.add(declarations, name, typ);
                 main_declaration := Some(typ);
 
                 true;
@@ -146,9 +138,9 @@ and resolve_import = (module_tbl, symbol_tbl, module_, promise) =>
 
       None;
     }
-and resolve_decl = (symbol_tbl, promise) =>
+and resolve_decl = (symbol_tbl, name, promise) =>
   fun
-  | ConstDecl(name, expr) =>
+  | ConstDecl(expr) =>
     switch (typeof(expr)) {
     | Some(typ) as res =>
       switch (symbol_tbl.find(name)) {
@@ -159,7 +151,7 @@ and resolve_decl = (symbol_tbl, promise) =>
       }
     | None => None
     }
-  | FunctionDecl(name, params, exprs) => {
+  | FunctionDecl(params, exprs) => {
       let param_types =
         List.map(
           typeof

@@ -23,15 +23,16 @@ and print_stmt = (~depth=0) =>
         Util.print_comma_separated(with_ctx(print_import), imports),
         module_,
       )
-    | Declaration(decl) => decl |~> print_decl
-    | Main(decl) => decl |~> print_decl |> Printf.sprintf("MAIN %s")
+    | Declaration(name, decl) => decl |~> print_decl(name)
+    | Main(name, decl) =>
+      decl |~> print_decl(name) |> Printf.sprintf("MAIN %s")
   )
   % Printf.sprintf("\n%s")
-and print_decl =
+and print_decl = name =>
   fun
-  | ConstDecl(name, expr) =>
+  | ConstDecl(expr) =>
     expr |~> print_expr |> Printf.sprintf("CONST %s = %s", name)
-  | StateDecl(name, params, props) => {
+  | StateDecl(params, props) => {
       let params_str =
         Util.print_comma_separated(with_ctx(print_property), params);
       let props_str =
@@ -39,7 +40,7 @@ and print_decl =
 
       Printf.sprintf("STATE (%s, [%s], [%s])", name, params_str, props_str);
     }
-  | ViewDecl(name, super, mixins, params, exprs) =>
+  | ViewDecl(super, mixins, params, exprs) =>
     Printf.sprintf(
       "VIEW %s%s%s = %s",
       name,
@@ -47,9 +48,9 @@ and print_decl =
       print_mixins(mixins),
       print_lambda(params, exprs),
     )
-  | FunctionDecl(name, params, exprs) =>
+  | FunctionDecl(params, exprs) =>
     Printf.sprintf("FUNCTION %s = %s", name, print_lambda(params, exprs))
-  | StyleDecl(name, params, rule_sets) =>
+  | StyleDecl(params, rule_sets) =>
     Printf.sprintf(
       "STYLE %s = ([%s]) -> [%s]",
       name,

@@ -7,7 +7,7 @@ type t = {
 };
 
 let of_module = m => ModuleScope(m);
-let of_declaration = d => DeclarationScope(d);
+let of_declaration = (name, d) => DeclarationScope(name, d);
 let of_import = (module_, i) => ImportScope(module_, i);
 let of_parameter = p => ParameterScope(p);
 let of_property = p => PropertyScope(p);

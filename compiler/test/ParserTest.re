@@ -41,7 +41,7 @@ let tests =
         let stmt = ConstParserTest.const_decl(name, Number(5));
         let expected =
           Module([
-            Declaration(no_ctx(ConstDecl(name, no_ctx(NumericLit(5))))),
+            Declaration(name, no_ctx(ConstDecl(no_ctx(NumericLit(5))))),
           ]);
 
         Util.test_many(
@@ -56,7 +56,7 @@ let tests =
         let name = "myFunc";
         let stmt = FunctionParserTest.empty_func_decl(name);
         let expected =
-          Module([Declaration(no_ctx(FunctionDecl(name, [], [])))]);
+          Module([Declaration(name, no_ctx(FunctionDecl([], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
@@ -67,7 +67,7 @@ let tests =
         let name = "MyView";
         let stmt = ViewParserTest.empty_view_decl(name);
         let expected =
-          Module([Declaration(no_ctx(ViewDecl(name, None, [], [], [])))]);
+          Module([Declaration(name, no_ctx(ViewDecl(None, [], [], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
@@ -78,7 +78,7 @@ let tests =
         let name = "MyState";
         let stmt = StateParserTest.empty_state_decl(name);
         let expected =
-          Module([Declaration(no_ctx(StateDecl(name, [], [])))]);
+          Module([Declaration(name, no_ctx(StateDecl([], [])))]);
 
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
