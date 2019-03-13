@@ -2,7 +2,7 @@
 //   render
 // } = require("./index.kn");
 const {
-  greet
+  greeting
 } = require('./index.kn');
 
 // render('app');

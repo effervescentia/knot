@@ -23,10 +23,9 @@ let create = module_tbl => {
   {
     is_complete: () =>
       List.length(resolve_queue^) == 0 && List.length(attempted_queue^) == 0,
-    resolve: (symbol_tbl, x) => {
-      let implicit_resolve =
-        Resolver_Dynamic.create(resolve_queue, attempted_queue, is_resolving);
-
+    resolve: (symbol_tbl, x) =>
+      /* let implicit_resolve =
+         Resolver_Dynamic.create(resolve_queue, attempted_queue, is_resolving); */
       if (Resolver_Static.resolve(module_tbl, symbol_tbl, x)) {
         ();
       } else if (is_resolving^) {
@@ -38,10 +37,9 @@ let create = module_tbl => {
         Debug.print_resolve_target(x)
         |> Printf.sprintf("RESOLVING %s")
         |> print_endline;
-        is_resolving := true;
-        implicit_resolve(x);
-      };
-    },
+                        /* is_resolving := true;
+                           implicit_resolve(x);  */
+      },
     pending: () => attempted_queue^ @ resolve_queue^,
   };
 };

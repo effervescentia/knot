@@ -1,12 +1,15 @@
 open Core;
 
-/* TODO: give these unique IDs within the scope */
-let generate_any_type = () => Any_t(0);
-
 let typeof =
   fun
-  | (_, {contents: Resolved(t)}) => Some(t)
+  | (_, {contents: Resolved(t) | Synthetic(t, _)}) => Some(t)
   | _ => None;
+
+let get_type = x =>
+  switch (typeof(x)) {
+  | Some(t) => t
+  | None => raise(TypeNotSet)
+  };
 
 let is_resolved = prom =>
   typeof(prom)

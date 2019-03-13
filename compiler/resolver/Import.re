@@ -2,8 +2,9 @@ open Core;
 open NestedHashtbl;
 
 let resolve = (module_tbl, symbol_tbl, module_, promise) =>
-  fun
-  | ModuleExport(name) => {
+  (
+    switch (fst(promise)) {
+    | ModuleExport(name) =>
       switch (Hashtbl.find(module_tbl, module_)) {
       | Loaded(_, ast) =>
         let export_tbl =
@@ -20,27 +21,20 @@ let resolve = (module_tbl, symbol_tbl, module_, promise) =>
           }
         )
         |> symbol_tbl.add(name);
-      | NotLoaded(_) => symbol_tbl.add(name, Util.generate_any_type())
+      | NotLoaded(_) => symbol_tbl.add(name, Any_t)
       | exception Not_found =>
         Hashtbl.add(module_tbl, module_, NotLoaded([]));
-        symbol_tbl.add(name, Util.generate_any_type());
-      };
-
-      None;
-    }
-  | MainExport(name) => {
-      symbol_tbl.add(name, Util.generate_any_type());
-
-      None;
-    }
-  | NamedExport(name, alias) => {
+        symbol_tbl.add(name, Any_t);
+      }
+    | MainExport(name) => symbol_tbl.add(name, Any_t)
+    | NamedExport(name, alias) =>
       (
         switch (alias) {
         | Some(s) => s
         | None => name
         }
       )
-      |> (s => symbol_tbl.add(s, Util.generate_any_type()));
-
-      None;
-    };
+      |> (s => symbol_tbl.add(s, Any_t))
+    }
+  )
+  |> (_ => false);

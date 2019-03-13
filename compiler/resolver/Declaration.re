@@ -2,30 +2,39 @@ open Core;
 open NestedHashtbl;
 
 let resolve = (symbol_tbl, name, promise) =>
-  fun
+  switch (fst(promise)) {
   | ConstDecl(expr) =>
     switch (Util.typeof(expr)) {
-    | Some(typ) as res =>
+    | Some(typ) =>
       switch (symbol_tbl.find(name)) {
       | Some(_) => raise(NameInUse(name))
       | None =>
         symbol_tbl.add(name, typ);
-        res;
-      }
-    | None => None
-    }
-  | FunctionDecl(params, exprs) => {
-      let param_types =
-        List.map(
-          Util.typeof
-          % (
-            fun
-            | Some(typ) => typ
-            | None => Util.generate_any_type()
-          ),
-          params,
-        );
 
+        snd(promise) := Resolved(typ);
+
+        true;
+      }
+    | None => false
+    }
+  | FunctionDecl(params, exprs) =>
+    let synthetic = ref(false);
+
+    let param_types =
+      List.map(
+        Util.typeof
+        % (
+          fun
+          | Some(typ) => typ
+          | None => {
+              synthetic := true;
+              Any_t;
+            }
+        ),
+        params,
+      );
+
+    (
       if (List.length(exprs) == 0) {
         Some(Function_t(param_types, Nil_t));
       } else {
@@ -37,6 +46,15 @@ let resolve = (symbol_tbl, name, promise) =>
           Some(typ);
         | None => None
         };
-      };
-    }
-  | _ => None;
+      }
+    )
+    |> (
+      fun
+      | Some(typ) => {
+          snd(promise) := synthetic^ ? Synthetic(typ, []) : Resolved(typ);
+          true;
+        }
+      | None => false
+    );
+  | _ => false
+  };

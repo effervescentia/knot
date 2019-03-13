@@ -14,5 +14,5 @@ type member_type =
       Hashtbl.t(string, member_type),
       option(member_type),
     )
-  | Any_t(int)
+  | Any_t
   | Nil_t;

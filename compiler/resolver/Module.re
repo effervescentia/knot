@@ -1,8 +1,9 @@
 open Core;
 
 let resolve = promise =>
-  fun
-  | Module(stmts) => {
+  (
+    switch (fst(promise)) {
+    | Module(stmts) =>
       let dependencies = ref([]);
       let declarations = Hashtbl.create(8);
       let main_declaration = ref(None);
@@ -37,4 +38,6 @@ let resolve = promise =>
       } else {
         None;
       };
-    };
+    }
+  )
+  |%> resolve_iff(promise);

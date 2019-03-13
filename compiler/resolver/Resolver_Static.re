@@ -1,43 +1,29 @@
 open Core;
 open NestedHashtbl;
 
-let set_pending = promise =>
+let set_pending = ((_, promise)) => {
   switch (promise^) {
   | Unanalyzed => promise := Pending([])
   | _ => ()
   };
-
-let check_resolution = (resolver, (expr, promise)) =>
-  switch (resolver(promise, expr)) {
-  | Some(t) =>
-    promise := Resolved(t);
-    true;
-  | None =>
-    set_pending(promise);
-    false;
-  };
+  false;
+};
 
 let rec resolve = (module_tbl, symbol_tbl) =>
   fun
-  | ModuleScope(promise) => check_resolution(Module.resolve, promise)
+  | ModuleScope(promise) => Module.resolve(promise) || set_pending(promise)
   | ImportScope(module_, promise) =>
-    check_resolution(
-      Import.resolve(module_tbl, symbol_tbl, module_),
-      promise,
-    )
+    Import.resolve(module_tbl, symbol_tbl, module_, promise)
+    || set_pending(promise)
   | DeclarationScope(name, promise) =>
-    check_resolution(Declaration.resolve(symbol_tbl, name), promise)
-  | ExpressionScope(promise) => check_resolution(Expression.resolve, promise)
+    Declaration.resolve(symbol_tbl, name, promise) || set_pending(promise)
+  | ExpressionScope(promise) =>
+    Expression.resolve(promise) || set_pending(promise)
   | ParameterScope(promise) =>
-    check_resolution(Property.resolve_param(symbol_tbl), promise)
-  | PropertyScope(promise) => check_resolution(Property.resolve, promise)
+    Property.resolve_param(symbol_tbl, promise) || set_pending(promise)
+  | PropertyScope(promise) =>
+    Property.resolve(promise) || set_pending(promise)
   | ReferenceScope(promise) =>
-    check_resolution(Reference.resolve(symbol_tbl), promise)
+    Reference.resolve(symbol_tbl, promise) || set_pending(promise)
   | TypeScope(promise) =>
-    check_resolution(resolve_type(symbol_tbl), promise)
-and resolve_type = (symbol_tbl, promise) =>
-  fun
-  | "string" => Some(String_t)
-  | "number" => Some(Number_t)
-  | "boolean" => Some(Number_t)
-  | _ => raise(InvalidTypeReference);
+    Type.resolve(symbol_tbl, promise) || set_pending(promise);
