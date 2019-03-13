@@ -4,8 +4,8 @@
 ; !!!! If you want to stop using pesy and manage this file by hand, change pacakge.json's 'esy.build' command to: refmterr dune build -p  knot
 (library
    ; The namespace that other packages/libraries will access this library through
-   (name KnotAnalyze)
+   (name KnotResolve)
    ; Other libraries list this name in their package.json 'require' field to use this library.
-   (public_name knot.analyze)
-   (libraries  knot.lib knot.resolve )
+   (public_name knot.resolve)
+   (libraries  knot.lib )
 )

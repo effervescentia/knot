@@ -1,3 +1,3 @@
 include KnotLex.Exception;
-include KnotAnalyze.Exception;
+include KnotResolve.Exception;
 include KnotCompile.Exception;

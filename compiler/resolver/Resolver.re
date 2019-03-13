@@ -25,13 +25,9 @@ let create = module_tbl => {
       List.length(resolve_queue^) == 0 && List.length(attempted_queue^) == 0,
     resolve: (symbol_tbl, x) => {
       let implicit_resolve =
-        Resolver_Implicit.create(
-          resolve_queue,
-          attempted_queue,
-          is_resolving,
-        );
+        Resolver_Dynamic.create(resolve_queue, attempted_queue, is_resolving);
 
-      if (Resolver_Explicit.resolve(module_tbl, symbol_tbl, x)) {
+      if (Resolver_Static.resolve(module_tbl, symbol_tbl, x)) {
         ();
       } else if (is_resolving^) {
         Debug.print_resolve_target(x)
