@@ -6,12 +6,12 @@ let analyze_stmt = scope =>
   | Import(module_, imports) =>
     List.iter(Resolver.of_import(module_) % scope.resolve, imports)
   | Declaration(name, decl) => {
-      Declaration.analyze(scope, name, decl);
+      Declaration.analyze(scope, name, fst(decl));
 
       Resolver.of_declaration(name, decl) |> scope.resolve;
     }
   | Main(name, decl) => {
-      Declaration.analyze(scope, name, decl);
+      Declaration.analyze(scope, name, fst(decl));
 
       Resolver.of_declaration(name, decl) |> scope.resolve;
     };
