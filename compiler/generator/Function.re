@@ -22,7 +22,7 @@ let gen_param = index =>
       },
     );
 
-let rec gen_params = params => {
+let gen_params = params => {
   let rec next = index =>
     index < List.length(params) ?
       (gen_param(index, List.nth(params, index)) |> Printf.sprintf("%s;"))

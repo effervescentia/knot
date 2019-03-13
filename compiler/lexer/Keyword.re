@@ -2,7 +2,7 @@ open Core;
 
 let (===>) = Util.(===>);
 
-let rec (==>) = (s, t) => s ===> Keyword(t);
+let (==>) = (s, t) => s ===> Keyword(t);
 
 let lexer =
   Lexers([

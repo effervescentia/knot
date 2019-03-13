@@ -19,7 +19,7 @@ let rule_set =
   <|> id
   >>= (key => M.closure(rule |> M.terminated) ==> (rules => (key, rules)));
 
-let rec decl = input =>
+let decl = input =>
   (
     M.decl(M.style)
     >>= (

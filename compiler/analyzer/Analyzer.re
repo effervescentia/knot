@@ -1,6 +1,6 @@
 open Core;
 
-let rec analyze_dependencies =
+let analyze_dependencies =
   fun
   | Module(xs) =>
     List.fold_left(

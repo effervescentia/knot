@@ -16,7 +16,7 @@ let analyze_stmt = scope =>
       Resolver.of_declaration(name, decl) |> scope.resolve;
     };
 
-let rec analyze =
+let analyze =
   Knot.AST.(
     scope =>
       fun
