@@ -109,7 +109,7 @@ let create = create_desc => {
     find: path =>
       if (Hashtbl.mem(global_scope^.module_tbl, path)) {
         switch (Hashtbl.find(global_scope^.module_tbl, path)) {
-        | Loaded(_, ast) => Some(abandon_ctx(ast))
+        | Loaded(_, (ast, _)) => Some(ast)
         | NotLoaded(_) => None
         };
       } else {

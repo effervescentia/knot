@@ -12,16 +12,10 @@ let rec generate =
   | GTEExpr(lhs, rhs) => gen_binary(">=", lhs, rhs)
   | AndExpr(lhs, rhs) => gen_binary("&&", lhs, rhs)
   | OrExpr(lhs, rhs) => gen_binary("||", lhs, rhs)
-  | Reference(reference) =>
-    abandon_ctx(reference) |> Reference.generate(generate)
+  | Reference(reference) => fst(reference) |> Reference.generate(generate)
   | JSX(jsx) => JSX.generate(generate, jsx)
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
   | StringLit(s) => gen_string(s)
-and gen_binary = (divider, lhs, rhs) =>
-  Printf.sprintf(
-    "(%s%s%s)",
-    abandon_ctx(lhs) |> generate,
-    divider,
-    abandon_ctx(rhs) |> generate,
-  );
+and gen_binary = (divider, (lhs, _), (rhs, _)) =>
+  Printf.sprintf("(%s%s%s)", generate(lhs), divider, generate(rhs));

@@ -127,8 +127,8 @@ and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, expr |~> print_expr)
 and print_state_prop =
   fun
-  | Property(prop) =>
-    abandon_ctx(prop) |> print_property |> Printf.sprintf("prop(%s)")
+  | Property((prop, _)) =>
+    print_property(prop) |> Printf.sprintf("prop(%s)")
   | Getter(name, params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
   | Mutator(name, params, exprs) =>
@@ -149,8 +149,7 @@ and print_style_key =
 and print_style_rule_set = ((key, rules)) =>
   Util.print_comma_separated(print_style_rule, rules)
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))
-and print_type_def =
-  Util.print_optional(abandon_ctx % Printf.sprintf(": %s"))
+and print_type_def = Util.print_optional(fst % Printf.sprintf(": %s"))
 and print_assign = x =>
   Util.print_optional(with_ctx(print_expr % Printf.sprintf(" = %s")), x)
 and print_lambda = (params, exprs) => {

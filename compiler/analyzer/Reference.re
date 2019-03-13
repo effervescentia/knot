@@ -2,7 +2,7 @@ open Core;
 open Scope;
 
 let rec analyze = (analyze_expr, scope, refr) => {
-  abandon_ctx(refr)
+  fst(refr)
   |> (
     fun
     | Variable(name) => ()

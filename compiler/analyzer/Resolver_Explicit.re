@@ -6,26 +6,23 @@ let generate_any_type = () => Any_t(0);
 
 let set_pending = promise =>
   switch (promise^) {
-  | Unanalyzed(expr) => promise := Pending(expr, [])
+  | Unanalyzed => promise := Pending([])
   | _ => ()
   };
 
-let check_resolution = (resolver, promise) => {
-  let expr = abandon_ctx(promise);
-
+let check_resolution = (resolver, (expr, promise)) =>
   switch (resolver(promise, expr)) {
   | Some(t) =>
-    promise := Resolved(expr, t);
+    promise := Resolved(t);
     true;
   | None =>
     set_pending(promise);
     false;
   };
-};
 
 let typeof =
   fun
-  | {contents: Resolved(_, t)} => Some(t)
+  | (_, {contents: Resolved(t)}) => Some(t)
   | _ => None;
 
 let is_resolved = target =>
@@ -79,7 +76,7 @@ and resolve_module = promise =>
               | Some(typ) =>
                 Hashtbl.add(
                   declarations,
-                  abandon_ctx(decl) |> Util.extract_decl_name,
+                  fst(decl) |> Util.extract_decl_name,
                   typ,
                 );
 
@@ -91,7 +88,7 @@ and resolve_module = promise =>
               | Some(typ) =>
                 Hashtbl.add(
                   declarations,
-                  abandon_ctx(decl) |> Util.extract_decl_name,
+                  fst(decl) |> Util.extract_decl_name,
                   typ,
                 );
                 main_declaration := Some(typ);
@@ -249,14 +246,14 @@ and resolve_param = (symbol_tbl, promise, (name, _, _) as param) =>
 and resolve_prop = (promise, (name, type_def, default_val)) =>
   switch (type_def, default_val) {
   | (
-      Some({contents: Resolved(_, l_type)}),
-      Some({contents: Resolved(_, r_type)}),
+      Some((_, {contents: Resolved(l_type)})),
+      Some((_, {contents: Resolved(r_type)})),
     )
       when l_type !== r_type =>
     raise(DefaultValueTypeMismatch)
   | (None, None) => Some(generate_any_type())
-  | (Some({contents: Resolved(_, typ)}), _)
-  | (_, Some({contents: Resolved(_, typ)})) => Some(typ)
+  | (Some((_, {contents: Resolved(typ)})), _)
+  | (_, Some((_, {contents: Resolved(typ)}))) => Some(typ)
   | _ => None
   }
 and resolve_ref = (symbol_tbl, promise) =>

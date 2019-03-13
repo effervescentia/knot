@@ -15,12 +15,6 @@ let of_expression = e => ExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
 let of_type = t => TypeScope(t);
 
-let set_pending = promise =>
-  switch (promise^) {
-  | Unanalyzed(expr) => promise := Pending(expr, [])
-  | _ => ()
-  };
-
 let create = module_tbl => {
   let resolve_queue = ref([]);
   let attempted_queue = ref([]);

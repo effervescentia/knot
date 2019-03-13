@@ -2,7 +2,7 @@ open Core;
 open Scope;
 
 let analyze = scope =>
-  abandon_ctx
+  fst
   % (
     fun
     | ConstDecl(name, expr) => Expression.analyze(scope, expr)

@@ -3,14 +3,14 @@ open Core;
 let gen_export = name => Printf.sprintf("export {%s};", name);
 
 let generate = printer =>
-  abandon_ctx
+  fst
   % (
     fun
-    | ConstDecl(name, expr) =>
+    | ConstDecl(name, (expr, _)) =>
       Printf.sprintf(
         "var %s=%s;%s",
         name,
-        abandon_ctx(expr) |> Expression.generate,
+        Expression.generate(expr),
         gen_export(name),
       )
     | FunctionDecl(name, params, exprs) =>
@@ -24,8 +24,8 @@ let generate = printer =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(abandon_ctx, params) |> Function.gen_params,
-        gen_list(abandon_ctx % State.gen_prop, props)
+        List.map(fst, params) |> Function.gen_params,
+        gen_list(fst % State.gen_prop, props)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )
@@ -40,7 +40,7 @@ let generate = printer =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(abandon_ctx, params) |> Function.gen_params,
+        List.map(fst, params) |> Function.gen_params,
         gen_list(Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),

@@ -4,7 +4,7 @@ let generate = (printer, module_name, imports) =>
   imports
   |> List.fold_left(
        acc =>
-         abandon_ctx
+         fst
          % (
            fun
            | MainExport(export_name) =>

@@ -24,7 +24,7 @@ let write = (path, (module_name, ast)) => {
   let write_out = output_string(out_channel);
 
   write_out("module.exports=");
-  Generator.generate(write_out, abandon_ctx(ast));
+  Generator.generate(write_out, fst(ast));
 
   close_out(out_channel);
 };
