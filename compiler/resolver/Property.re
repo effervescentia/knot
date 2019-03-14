@@ -4,17 +4,17 @@ open NestedHashtbl;
 let resolve = (((name, type_def, default_val), _) as promise) =>
   switch (type_def, default_val) {
   | (
-      Some((_, {contents: Resolved(l_type)})),
-      Some((_, {contents: Resolved(r_type)})),
+      Some((_, {contents: {contents: Resolved(l_type)}})),
+      Some((_, {contents: {contents: Resolved(r_type)}})),
     )
       when l_type !== r_type =>
     raise(DefaultValueTypeMismatch)
   | (None, None) =>
-    snd(promise) := Synthetic(Any_t, []);
+    snd(promise) := ref(Synthetic(Any_t, []));
     true;
-  | (Some((_, {contents: Resolved(typ)})), _)
-  | (_, Some((_, {contents: Resolved(typ)}))) =>
-    snd(promise) := Resolved(typ);
+  | (Some((_, {contents: {contents: Resolved(typ)}})), _)
+  | (_, Some((_, {contents: {contents: Resolved(typ)}}))) =>
+    snd(promise) := ref(Resolved(typ));
     true;
   | _ => false
   };

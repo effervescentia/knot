@@ -1,9 +1,12 @@
 type eventual_ctx('a) =
   | Unanalyzed
-  | Pending(list('a => unit))
-  | Synthetic('a, list(unit))
+  | Pending(list('a => unit)) /* for type inheritance */
+  | Synthetic('a, list(unit)) /* for type casting */
   | Resolved('a);
 
-type ctxl_promise('a) = ('a, ref(eventual_ctx(MemberType.member_type)));
+type ctxl_promise('a) = (
+  'a,
+  ref(ref(eventual_ctx(MemberType.member_type))),
+);
 
-let no_ctx = x => (x, ref(Unanalyzed));
+let no_ctx = x => (x, ref(ref(Unanalyzed)));

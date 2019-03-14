@@ -20,7 +20,7 @@ let link =
       |> (
         fun
         | Some(ast) =>
-          switch ((snd(ast))^) {
+          switch ((snd(ast))^ ^) {
           | Resolved(Module_t(deps, _, _)) => (deps, Some(ast))
           | Pending(_) => (Analyzer.analyze_dependencies(fst(ast)), None)
           | _ => raise(InvalidProgram(target))

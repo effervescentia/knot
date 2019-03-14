@@ -11,7 +11,7 @@ let resolve = (symbol_tbl, name, promise) =>
       | None =>
         symbol_tbl.add(name, typ);
 
-        snd(promise) := Resolved(typ);
+        snd(promise) := ref(Resolved(typ));
 
         true;
       }
@@ -51,7 +51,8 @@ let resolve = (symbol_tbl, name, promise) =>
     |> (
       fun
       | Some(typ) => {
-          snd(promise) := synthetic^ ? Synthetic(typ, []) : Resolved(typ);
+          snd(promise) :=
+            ref(synthetic^ ? Synthetic(typ, []) : Resolved(typ));
           true;
         }
       | None => false

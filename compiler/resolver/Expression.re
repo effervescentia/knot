@@ -15,16 +15,16 @@ let resolve = promise =>
       | (Some(Number_t), Some(Number_t)) => Some(Resolved(Number_t))
       | (Some(String_t), Some(String_t)) => Some(Resolved(String_t))
       | (Some(Number_t), Some(Any_t)) =>
-        snd(rhs) := Synthetic(Number_t, []);
+        snd(rhs) := ref(Synthetic(Number_t, []));
         Some(Resolved(Number_t));
       | (Some(Any_t), Some(Number_t)) =>
-        snd(lhs) := Synthetic(Number_t, []);
+        snd(lhs) := ref(Synthetic(Number_t, []));
         Some(Resolved(Number_t));
       | (Some(String_t), Some(Any_t)) =>
-        snd(rhs) := Synthetic(String_t, []);
+        snd(rhs) := ref(Synthetic(String_t, []));
         Some(Resolved(String_t));
       | (Some(Any_t), Some(String_t)) =>
-        snd(lhs) := Synthetic(String_t, []);
+        snd(lhs) := ref(Synthetic(String_t, []));
         Some(Resolved(String_t));
       | (None, _)
       | (_, None) => None
@@ -36,10 +36,10 @@ let resolve = promise =>
       switch (Util.typeof(lhs), Util.typeof(rhs)) {
       | (Some(Number_t), Some(Number_t)) => Some(Resolved(Number_t))
       | (Some(Number_t), Some(Any_t)) =>
-        snd(rhs) := Synthetic(Number_t, []);
+        snd(rhs) := ref(Synthetic(Number_t, []));
         Some(Resolved(Number_t));
       | (Some(Any_t), Some(Number_t)) =>
-        snd(lhs) := Synthetic(Number_t, []);
+        snd(lhs) := ref(Synthetic(Number_t, []));
         Some(Resolved(Number_t));
       | (None, _)
       | (_, None) => None
@@ -53,10 +53,10 @@ let resolve = promise =>
       switch (Util.typeof(lhs), Util.typeof(rhs)) {
       | (Some(Number_t), Some(Number_t)) => Some(Resolved(Boolean_t))
       | (Some(Number_t), Some(Any_t)) =>
-        snd(rhs) := Synthetic(Number_t, []);
+        snd(rhs) := ref(Synthetic(Number_t, []));
         Some(Resolved(Boolean_t));
       | (Some(Any_t), Some(Number_t)) =>
-        snd(lhs) := Synthetic(Number_t, []);
+        snd(lhs) := ref(Synthetic(Number_t, []));
         Some(Resolved(Boolean_t));
       | (None, _)
       | (_, None) => None
@@ -68,10 +68,10 @@ let resolve = promise =>
       switch (Util.typeof(lhs), Util.typeof(rhs)) {
       | (Some(Boolean_t), Some(Boolean_t)) => Some(Resolved(Boolean_t))
       | (Some(Boolean_t), Some(Any_t)) =>
-        snd(rhs) := Synthetic(Boolean_t, []);
+        snd(rhs) := ref(Synthetic(Boolean_t, []));
         Some(Resolved(Boolean_t));
       | (Some(Any_t), Some(Boolean_t)) =>
-        snd(lhs) := Synthetic(Boolean_t, []);
+        snd(lhs) := ref(Synthetic(Boolean_t, []));
         Some(Resolved(Boolean_t));
       | (None, _)
       | (_, None) => None
@@ -79,10 +79,10 @@ let resolve = promise =>
       }
 
     | Reference((_, typ)) =>
-      switch (typ^) {
+      switch (typ^ ^) {
       | Unanalyzed => None
       | res => Some(res)
       }
     }
   )
-  |%> (x => snd(promise) := x);
+  |%> (x => snd(promise) := ref(x));
