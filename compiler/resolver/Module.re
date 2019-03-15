@@ -15,25 +15,26 @@ let resolve = ((value, promise)) =>
         | Import(module_, imports) =>
           dependencies := [module_, ...dependencies^]
 
-        | Declaration(name, (_, {contents: decl})) =>
-          switch (decl^) {
-          | Resolved(_) => Hashtbl.add(members, name, decl)
+        | Declaration(name, (_, decl)) =>
+          switch (decl^ ^) {
+          | Resolved(_) => Hashtbl.add(members, name, decl^)
           | _ => raise(ModuleTypeIncomplete)
           }
 
-        | Main(name, (_, {contents: decl})) =>
-          switch (decl^) {
+        | Main(name, (_, decl)) =>
+          switch (decl^ ^) {
           | Resolved(_)
           | Synthetic(_) =>
-            Hashtbl.add(members, name, decl);
-            main_declaration := Some(decl);
+            Hashtbl.add(members, name, decl^);
+            main_declaration := Some(decl^);
 
           | _ => raise(ModuleTypeIncomplete)
           },
         stmts,
       );
 
-      resolved(Module_t(dependencies^, members, main_declaration^));
+      let typ = Module_t(dependencies^, members, main_declaration^);
+      Some(resolved(typ));
     }
   )
   |::> promise;

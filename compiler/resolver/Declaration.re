@@ -42,7 +42,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
         /* TODO: check symbol table to see if type meets expectations */
         raise(InvalidTypeReference)
       | None =>
-        let typ = ref(Resolved(Function_t(param_types, return_type)));
+        let typ = resolved(Function_t(param_types, return_type));
         symbol_tbl.add(name, typ);
 
         Some(typ);

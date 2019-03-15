@@ -11,14 +11,14 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol does not exist, add a synthetic type reference */
       | _ =>
-        let typ = ref(Synthetic(Generic_t(None)));
+        let typ = synthetic(any);
         symbol_tbl.add(name, typ);
 
         Some(typ);
       }
 
-    | DotAccess((_, {contents: obj}), key) =>
-      switch (typeof(obj^)) {
+    | DotAccess(obj, key) =>
+      switch (t_of(obj)) {
       /* symbol exists in object or module */
       | Object_t(members)
       | Module_t(_, members, _) when Hashtbl.mem(members, key) =>
@@ -30,7 +30,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol is generic and may allow the property to be declared */
       | Generic_t(t) =>
-        let prop_typ = ref(Resolved(Generic_t(None)));
+        let prop_typ = resolved(any);
 
         (
           switch (t) {
@@ -45,8 +45,8 @@ let resolve = (symbol_tbl, (value, promise)) =>
       | _ => raise(InvalidDotAccess)
       }
 
-    | Execution((_, {contents: refr}), args) =>
-      switch (typeof(refr^)) {
+    | Execution(refr, args) =>
+      switch (t_of(refr)) {
       /* symbol exists, using return type */
       | Function_t(_, return_type) => Some(return_type)
 
@@ -57,18 +57,17 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol could be a function */
       | Generic_t(None) =>
-        let typ = ref(Synthetic(Generic_t(None)));
+        let typ = synthetic(any);
 
-        refr :=
-          Synthetic(
-            Generic_t(
+        refr
+        =.= Generic_t(
               Some(
                 Callable_t(
                   List.map(
-                    ((_, {contents: arg_type})) =>
-                      switch (arg_type^) {
+                    ((_, arg_type)) =>
+                      switch (arg_type^ ^) {
                       | Resolved(_)
-                      | Synthetic(_) => arg_type
+                      | Synthetic(_) => arg_type^
                       | _ => raise(InvalidTypeReference)
                       },
                     args,
@@ -76,8 +75,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
                   typ,
                 ),
               ),
-            ),
-          );
+            );
 
         Some(typ);
 

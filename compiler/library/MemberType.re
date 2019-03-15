@@ -14,15 +14,15 @@ type member_type =
       Hashtbl.t(string, member_ref),
       option(member_ref),
     )
+  /* Generic(None) for "any", otherwise can only be keyed or callable */
   | Generic_t(option(generic_type))
   | Nil_t
 and generic_type =
+  /* could be a Module or an Object */
   | Keyed_t(Hashtbl.t(string, member_ref))
+  /* could be a function (or a view???) */
   | Callable_t(list(member_ref), member_ref)
 and member_ref = ref(eventual_type)
-and member_rule =
-  | HasProperty(string, member_ref)
-  | HasCallSignature(list(member_ref), member_ref)
 and eventual_type =
   | Unanalyzed
   | Synthetic(member_type) /* for early type enforcement */

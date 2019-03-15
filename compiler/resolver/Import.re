@@ -26,17 +26,17 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
       | NotLoaded(_) =>
         /* symbol_tbl.add(name, Any_t); */
 
-        resolved(Generic_t(None))
+        Some(resolved(any))
       | exception Not_found =>
         /* Hashtbl.add(module_tbl, module_, NotLoaded([])); */
         /* symbol_tbl.add(name, Any_t); */
 
-        resolved(Generic_t(None))
+        Some(resolved(any))
       }
     | MainExport(name) =>
       /* symbol_tbl.add(name, Any_t); */
 
-      resolved(Generic_t(None))
+      Some(resolved(any))
     | NamedExport(name, alias) =>
       (
         switch (alias) {
@@ -47,7 +47,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
       |> (
         s =>
           /* symbol_tbl.add(s, Any_t); */
-          resolved(Generic_t(None))
+          Some(resolved(any))
       )
     }
   )
