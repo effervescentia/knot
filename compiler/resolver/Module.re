@@ -1,45 +1,49 @@
 open Core;
 
 let resolve = ((value, promise)) =>
-  switch (value) {
-  | Module(stmts) =>
-    let dependencies = ref([]);
-    let declarations = Hashtbl.create(8);
-    let main_declaration = ref(None);
+  (
+    switch (value) {
+    | Module(stmts) =>
+      let dependencies = ref([]);
+      let declarations = Hashtbl.create(8);
+      let main_declaration = ref(None);
 
-    if (List.for_all(
-          fun
-          | Import(module_, imports) => {
-              dependencies := [module_, ...dependencies^];
+      if (List.for_all(
+            fun
+            | Import(module_, imports) => {
+                dependencies := [module_, ...dependencies^];
 
-              List.for_all(Util.is_resolved, imports);
-            }
-          | Declaration(name, decl) =>
-            switch (Util.typeof(decl)) {
-            | Some(typ) =>
-              Hashtbl.add(declarations, name, typ);
+                List.for_all(Util.is_resolved, imports);
+              }
+            | Declaration(name, decl) =>
+              switch (Util.typeof(decl)) {
+              | Some(typ) =>
+                Hashtbl.add(declarations, name, typ);
 
-              true;
-            | None => false
-            }
-          | Main(name, decl) =>
-            switch (Util.typeof(decl)) {
-            | Some(typ) =>
-              Hashtbl.add(declarations, name, typ);
-              main_declaration := Some(typ);
+                true;
+              | None => false
+              }
+            | Main(name, decl) =>
+              switch (Util.typeof(decl)) {
+              | Some(typ) =>
+                Hashtbl.add(declarations, name, typ);
+                main_declaration := Some(typ);
 
-              true;
-            | None => false
-            },
-          stmts,
-        )) {
-      promise :=
-        ref(
-          Resolved(Module_t(dependencies^, declarations, main_declaration^)),
+                true;
+              | None => false
+              },
+            stmts,
+          )) {
+        Some(
+          ref(
+            Resolved(
+              Module_t(dependencies^, declarations, main_declaration^),
+            ),
+          ),
         );
-
-      true;
-    } else {
-      false;
-    };
-  };
+      } else {
+        None;
+      };
+    }
+  )
+  |::> promise;

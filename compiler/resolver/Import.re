@@ -20,13 +20,27 @@ let resolve = (module_tbl, symbol_tbl, module_, promise) =>
           | Not_found => raise(InvalidTypeReference)
           }
         )
-        |> symbol_tbl.add(name);
-      | NotLoaded(_) => symbol_tbl.add(name, Any_t)
+        |> (
+          typ => {
+            symbol_tbl.add(name, typ);
+
+            Some(ref(Resolved(typ)));
+          }
+        );
+      | NotLoaded(_) =>
+        symbol_tbl.add(name, Any_t);
+
+        Some(ref(Resolved(Any_t)));
       | exception Not_found =>
         Hashtbl.add(module_tbl, module_, NotLoaded([]));
         symbol_tbl.add(name, Any_t);
+
+        Some(ref(Resolved(Any_t)));
       }
-    | MainExport(name) => symbol_tbl.add(name, Any_t)
+    | MainExport(name) =>
+      symbol_tbl.add(name, Any_t);
+
+      Some(ref(Resolved(Any_t)));
     | NamedExport(name, alias) =>
       (
         switch (alias) {
@@ -34,7 +48,13 @@ let resolve = (module_tbl, symbol_tbl, module_, promise) =>
         | None => name
         }
       )
-      |> (s => symbol_tbl.add(s, Any_t))
+      |> (
+        s => {
+          symbol_tbl.add(s, Any_t);
+
+          Some(ref(Resolved(Any_t)));
+        }
+      )
     }
   )
-  |> (_ => false);
+  |::> snd(promise);

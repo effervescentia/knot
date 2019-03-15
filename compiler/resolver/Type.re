@@ -4,14 +4,14 @@ open NestedHashtbl;
 let resolve = (symbol_tbl, promise) =>
   (
     switch (fst(promise)) {
-    | "string" => Some(String_t)
-    | "number" => Some(Number_t)
-    | "boolean" => Some(Number_t)
+    | "string" => Some(ref(Resolved(String_t)))
+    | "number" => Some(ref(Resolved(Number_t)))
+    | "boolean" => Some(ref(Resolved(Number_t)))
     | type_ =>
       switch (symbol_tbl.find(type_)) {
       | None => raise(InvalidTypeReference)
-      | res => res
+      | Some(typ) => Some(ref(Resolved(typ)))
       }
     }
   )
-  |%> resolve_iff(promise);
+  |::> snd(promise);

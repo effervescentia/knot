@@ -1,6 +1,5 @@
 type eventual_ctx('a) =
   | Unanalyzed
-  | Pending(list('a => unit)) /* for type inheritance */
   | Synthetic('a, list(unit)) /* for type casting */
   | Resolved('a);
 
