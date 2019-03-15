@@ -34,9 +34,9 @@ let resolve = (((name, type_def, default_val), promise)) =>
   )
   |::> promise;
 
-let resolve_param = (symbol_tbl, ((name, _, _), _) as promise) =>
-  if (resolve(promise)) {
-    symbol_tbl.add(name, snd(promise));
+let resolve_param = (symbol_tbl, ((name, _, _), promise) as prop) =>
+  if (resolve(prop)) {
+    symbol_tbl.add(name, promise^);
 
     true;
   } else {

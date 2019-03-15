@@ -11,10 +11,9 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
 
       /* add to scope as normal */
       | None =>
-        let typ = synthetic();
-        symbol_tbl.add(name, typ);
+        symbol_tbl.add(name, expr);
 
-        Some(typ);
+        Some(expr);
       }
     | FunctionDecl(params, exprs) =>
       let param_types =
@@ -26,30 +25,28 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
             },
           params,
         );
-
-      (
+      let return_type =
         if (List.length(exprs) == 0) {
-          resolved(Function_t(param_types, ref(Resolved(Nil_t))));
+          ref(Resolved(Nil_t));
         } else {
           let (_, last_expr) = List.nth(exprs, List.length(exprs) - 1);
 
           switch (last_expr^) {
-          | {contents: Resolved(_) | Synthetic(_)} as return_typ =>
-            let typ = ref(Resolved(Function_t(param_types, return_typ)));
-            symbol_tbl.add(name, typ);
-
-            Some(typ);
+          | {contents: Resolved(_) | Synthetic(_)} as typ => typ
           | _ => raise(InvalidTypeReference)
           };
-        }
-      )
-      |> (
-        fun
-        | Some(typ) as res =>
-          /* TODO: check symbol table to see if type meets expectations */
-          res
-        | None => None
-      );
+        };
+
+      switch (symbol_tbl.find(name)) {
+      | Some(typ) =>
+        /* TODO: check symbol table to see if type meets expectations */
+        raise(InvalidTypeReference)
+      | None =>
+        let typ = ref(Resolved(Function_t(param_types, return_type)));
+        symbol_tbl.add(name, typ);
+
+        Some(typ);
+      };
     | _ => None
     }
   )

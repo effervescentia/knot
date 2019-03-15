@@ -23,6 +23,7 @@ let enforces_callable =
   | _ => false;
 
 let is_callable = List.exists(enforces_callable);
+let allows_callable = x => x == [];
 let has_key = (rules, key) => List.exists(enforces_key(key), rules);
 let allows_key = (rules, key) =>
   List.for_all(

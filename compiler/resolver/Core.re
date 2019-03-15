@@ -17,7 +17,6 @@ let (|::>) = (x, promise) =>
     false;
   };
 
-/* let (=:=) = (x, y) => x^ := Synthetic(y, []); */
 let (=?>) = (x, y) =>
   switch (x, y) {
   | (_, _) when x == y => true

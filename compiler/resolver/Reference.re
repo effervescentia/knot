@@ -38,15 +38,23 @@ let resolve = (symbol_tbl, (value, promise)) =>
       | _ => raise(InvalidDotAccess)
       }
 
-    | Execution((_, refr), args) =>
-      switch (refr^ ^) {
+    | Execution((_, {contents: refr}), args) =>
+      switch (refr^) {
       /* symbol exists, using return type */
       | Resolved(Function_t(_, return_type)) => Some(return_type)
+
+      /* symbol is a function */
       | Synthetic(rules) when V.is_callable(rules) =>
         /* TODO check arg types against rules */
         Some(V.get_return_type(rules))
-      /* TODO: handle this properly */
-      /* | Synthetic(typ) when deep_type_match(typ, Function_t) */
+
+      /* symbol could be a function */
+      | Synthetic(rules) when V.allows_callable(rules) =>
+        let typ = synthetic();
+        refr := Synthetic([HasCallSignature([], typ), ...rules]);
+
+        /* TODO check arg types against rules */
+        Some(typ);
       | _ => raise(ExecutingNonFunction)
       }
     }
