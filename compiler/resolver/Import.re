@@ -1,19 +1,17 @@
 open Core;
 open NestedHashtbl;
 
-let resolve = (module_tbl, symbol_tbl, module_, promise) =>
+let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
   (
-    switch (fst(promise)) {
+    switch (value) {
     | ModuleExport(name) =>
       switch (Hashtbl.find(module_tbl, module_)) {
-      | Loaded(_, ast) =>
+      | Loaded(_, (_, ast)) =>
         let export_tbl =
-          Util.typeof(ast)
-          |> (
-            fun
-            | Some(Module_t(_, x, _)) => x
-            | _ => raise(InvalidTypeReference)
-          );
+          switch (ast^ ^) {
+          | Resolved(Module_t(_, x, _)) => x
+          | _ => raise(InvalidTypeReference)
+          };
 
         (
           try (Hashtbl.find(export_tbl, name)) {
@@ -21,26 +19,24 @@ let resolve = (module_tbl, symbol_tbl, module_, promise) =>
           }
         )
         |> (
-          typ => {
-            symbol_tbl.add(name, typ);
-
-            Some(ref(Resolved(typ)));
-          }
+          typ =>
+            /* symbol_tbl.add(name, typ); */
+            Some(typ)
         );
       | NotLoaded(_) =>
-        symbol_tbl.add(name, Any_t);
+        /* symbol_tbl.add(name, Any_t); */
 
-        Some(ref(Resolved(Any_t)));
+        resolved(Any_t)
       | exception Not_found =>
-        Hashtbl.add(module_tbl, module_, NotLoaded([]));
-        symbol_tbl.add(name, Any_t);
+        /* Hashtbl.add(module_tbl, module_, NotLoaded([])); */
+        /* symbol_tbl.add(name, Any_t); */
 
-        Some(ref(Resolved(Any_t)));
+        resolved(Any_t)
       }
     | MainExport(name) =>
-      symbol_tbl.add(name, Any_t);
+      /* symbol_tbl.add(name, Any_t); */
 
-      Some(ref(Resolved(Any_t)));
+      resolved(Any_t)
     | NamedExport(name, alias) =>
       (
         switch (alias) {
@@ -49,12 +45,10 @@ let resolve = (module_tbl, symbol_tbl, module_, promise) =>
         }
       )
       |> (
-        s => {
-          symbol_tbl.add(s, Any_t);
-
-          Some(ref(Resolved(Any_t)));
-        }
+        s =>
+          /* symbol_tbl.add(s, Any_t); */
+          resolved(Any_t)
       )
     }
   )
-  |::> snd(promise);
+  |::> promise;

@@ -2,11 +2,10 @@ include Knot.Core;
 include Exception;
 
 module NestedHashtbl = Knot.NestedHashtbl;
+module V = Validators;
 
-let resolve_iff = (promise, x) => snd(promise) := ref(Resolved(x));
-
-let any_cast = () => Synthetic(Any_t, []);
-let any_cast2 = promise => promise := ref(Synthetic(Any_t, []));
+let resolved = x => Some(ref(Resolved(x)));
+let synthetic = () => ref(Synthetic([]));
 
 let (|::>) = (x, promise) =>
   switch (x) {
@@ -14,6 +13,15 @@ let (|::>) = (x, promise) =>
     promise := typ;
     true;
   | None =>
-    promise := ref(any_cast());
+    promise := synthetic();
     false;
+  };
+
+/* let (=:=) = (x, y) => x^ := Synthetic(y, []); */
+let (=?>) = (x, y) =>
+  switch (x, y) {
+  | (_, _) when x == y => true
+  | (Any_t, _)
+  | (_, Any_t) => true
+  | _ => false
   };

@@ -1,17 +1,17 @@
 open Core;
 open NestedHashtbl;
 
-let resolve = (symbol_tbl, promise) =>
+let resolve = (symbol_tbl, (value, promise)) =>
   (
-    switch (fst(promise)) {
-    | "string" => Some(ref(Resolved(String_t)))
-    | "number" => Some(ref(Resolved(Number_t)))
-    | "boolean" => Some(ref(Resolved(Number_t)))
+    switch (value) {
+    | "string" => resolved(String_t)
+    | "number" => resolved(Number_t)
+    | "boolean" => resolved(Number_t)
     | type_ =>
       switch (symbol_tbl.find(type_)) {
+      | Some(_) as res => res
       | None => raise(InvalidTypeReference)
-      | Some(typ) => Some(ref(Resolved(typ)))
       }
     }
   )
-  |::> snd(promise);
+  |::> promise;

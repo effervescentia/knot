@@ -6,33 +6,47 @@ let resolve = (symbol_tbl, (value, promise)) =>
     switch (value) {
     | Variable(name) =>
       switch (symbol_tbl.find(name)) {
-      | None =>
-        let typ = any_cast();
-        Some(ref(typ));
-      /* symbol_tbl.add(name, snd(promise)s); */
-      /* | Some({contents: {contents: Synthetic(typ, _)}} as res) =>
-           /* do type inference here */
-           true
-         | Some({contents: {contents: Resolved(_)} as res}) =>
-           snd(promise) := res;
+      /* symbol exists, return the type reference */
+      | Some({contents: Resolved(_) | Synthetic(_)}) as res => res
 
-           true; */
-      | _ => None
+      /* symbol does not exist, add a synthetic type reference */
+      | _ =>
+        let typ = ref(Synthetic([]));
+        symbol_tbl.add(name, typ);
+
+        Some(typ);
       }
-    | DotAccess(lhs, rhs) =>
-      switch (Util.typeof(lhs), rhs) {
-      | (Some(Object_t(props)), name) when Hashtbl.mem(props, name) =>
-        Some(ref(Resolved(Hashtbl.find(props, name))))
-      | (None, _) => None
+
+    | DotAccess((_, {contents: obj}), key) =>
+      switch (obj^) {
+      /* symbol exists in object or module */
+      | Resolved(Object_t(members) | Module_t(_, members, _))
+          when Hashtbl.mem(members, key) =>
+        Some(Hashtbl.find(members, key))
+
+      /* symbol is synthetic and declares the property */
+      | Synthetic(rules) when V.has_key(rules, key) =>
+        Some(V.get_prop_type(rules, key))
+
+      /* symbol is synthetic and allows the property to be declared */
+      | Synthetic(rules) when V.allows_key(rules, key) =>
+        let prop_typ = ref(Synthetic([]));
+
+        obj := Synthetic([HasProperty(key, prop_typ), ...rules]);
+
+        Some(prop_typ);
       | _ => raise(InvalidDotAccess)
       }
-    | Execution(refr, args) =>
-      switch (Util.typeof(refr)) {
-      | Some(Function_t(arg_types, return_type)) =>
-        Some(ref(Resolved(return_type)))
+
+    | Execution((_, refr), args) =>
+      switch (refr^ ^) {
+      /* symbol exists, using return type */
+      | Resolved(Function_t(_, return_type)) => Some(return_type)
+      | Synthetic(rules) when V.is_callable(rules) =>
+        /* TODO check arg types against rules */
+        Some(V.get_return_type(rules))
       /* TODO: handle this properly */
-      | Some(Any_t) => Some((snd(refr))^)
-      | None => None
+      /* | Synthetic(typ) when deep_type_match(typ, Function_t) */
       | _ => raise(ExecutingNonFunction)
       }
     }

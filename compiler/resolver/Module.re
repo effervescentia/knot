@@ -1,49 +1,39 @@
 open Core;
 
+exception ModuleTypeIncomplete;
+
 let resolve = ((value, promise)) =>
   (
     switch (value) {
     | Module(stmts) =>
       let dependencies = ref([]);
-      let declarations = Hashtbl.create(8);
+      let members = Hashtbl.create(8);
       let main_declaration = ref(None);
 
-      if (List.for_all(
-            fun
-            | Import(module_, imports) => {
-                dependencies := [module_, ...dependencies^];
+      List.iter(
+        fun
+        | Import(module_, imports) =>
+          dependencies := [module_, ...dependencies^]
 
-                List.for_all(Util.is_resolved, imports);
-              }
-            | Declaration(name, decl) =>
-              switch (Util.typeof(decl)) {
-              | Some(typ) =>
-                Hashtbl.add(declarations, name, typ);
+        | Declaration(name, (_, {contents: decl})) =>
+          switch (decl^) {
+          | Resolved(_) => Hashtbl.add(members, name, decl)
+          | _ => raise(ModuleTypeIncomplete)
+          }
 
-                true;
-              | None => false
-              }
-            | Main(name, decl) =>
-              switch (Util.typeof(decl)) {
-              | Some(typ) =>
-                Hashtbl.add(declarations, name, typ);
-                main_declaration := Some(typ);
+        | Main(name, (_, {contents: decl})) =>
+          switch (decl^) {
+          | Resolved(_)
+          | Synthetic(_) =>
+            Hashtbl.add(members, name, decl);
+            main_declaration := Some(decl);
 
-                true;
-              | None => false
-              },
-            stmts,
-          )) {
-        Some(
-          ref(
-            Resolved(
-              Module_t(dependencies^, declarations, main_declaration^),
-            ),
-          ),
-        );
-      } else {
-        None;
-      };
+          | _ => raise(ModuleTypeIncomplete)
+          },
+        stmts,
+      );
+
+      resolved(Module_t(dependencies^, members, main_declaration^));
     }
   )
   |::> promise;

@@ -11,7 +11,7 @@ let pipe = (buffer_size, in_channel, out_channel) => {
     let read = input(in_channel, buf, 0, buf_length);
     output(out_channel, buf, 0, read);
 
-    if (remaining !== 0) {
+    if (remaining != 0) {
       write();
     };
   };

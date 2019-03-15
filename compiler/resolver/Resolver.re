@@ -2,7 +2,12 @@ open Core;
 
 type t = {
   is_complete: unit => bool,
-  resolve: (NestedHashtbl.t(string, member_type), resolve_target) => unit,
+  resolve:
+    (
+      NestedHashtbl.t(string, ref(eventual_ctx(member_type))),
+      resolve_target
+    ) =>
+    unit,
   pending: unit => list(resolve_target),
 };
 
