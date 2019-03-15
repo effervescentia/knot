@@ -11,50 +11,76 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol does not exist, add a synthetic type reference */
       | _ =>
-        let typ = ref(Synthetic([]));
+        let typ = ref(Synthetic(Generic_t(None)));
         symbol_tbl.add(name, typ);
 
         Some(typ);
       }
 
     | DotAccess((_, {contents: obj}), key) =>
-      switch (obj^) {
+      switch (typeof(obj^)) {
       /* symbol exists in object or module */
-      | Resolved(Object_t(members) | Module_t(_, members, _))
-          when Hashtbl.mem(members, key) =>
+      | Object_t(members)
+      | Module_t(_, members, _) when Hashtbl.mem(members, key) =>
         Some(Hashtbl.find(members, key))
 
-      /* symbol is synthetic and declares the property */
-      | Synthetic(rules) when V.has_key(rules, key) =>
-        Some(V.get_prop_type(rules, key))
+      /* symbol is generic and declares the property */
+      | Generic_t(Some(Keyed_t(members))) when Hashtbl.mem(members, key) =>
+        Some(Hashtbl.find(members, key))
 
-      /* symbol is synthetic and allows the property to be declared */
-      | Synthetic(rules) when V.allows_key(rules, key) =>
-        let prop_typ = ref(Synthetic([]));
+      /* symbol is generic and may allow the property to be declared */
+      | Generic_t(t) =>
+        let prop_typ = ref(Resolved(Generic_t(None)));
 
-        obj := Synthetic([HasProperty(key, prop_typ), ...rules]);
+        (
+          switch (t) {
+          | None => Hashtbl.create(4)
+          | Some(Keyed_t(members)) => members
+          | _ => raise(InvalidDotAccess)
+          }
+        )
+        |> (tbl => Hashtbl.add(tbl, key, prop_typ));
 
         Some(prop_typ);
       | _ => raise(InvalidDotAccess)
       }
 
     | Execution((_, {contents: refr}), args) =>
-      switch (refr^) {
+      switch (typeof(refr^)) {
       /* symbol exists, using return type */
-      | Resolved(Function_t(_, return_type)) => Some(return_type)
+      | Function_t(_, return_type) => Some(return_type)
 
       /* symbol is a function */
-      | Synthetic(rules) when V.is_callable(rules) =>
+      | Generic_t(Some(Callable_t(_, return_type))) =>
         /* TODO check arg types against rules */
-        Some(V.get_return_type(rules))
+        Some(return_type)
 
       /* symbol could be a function */
-      | Synthetic(rules) when V.allows_callable(rules) =>
-        let typ = synthetic();
-        refr := Synthetic([HasCallSignature([], typ), ...rules]);
+      | Generic_t(None) =>
+        let typ = ref(Synthetic(Generic_t(None)));
 
-        /* TODO check arg types against rules */
+        refr :=
+          Synthetic(
+            Generic_t(
+              Some(
+                Callable_t(
+                  List.map(
+                    ((_, {contents: arg_type})) =>
+                      switch (arg_type^) {
+                      | Resolved(_)
+                      | Synthetic(_) => arg_type
+                      | _ => raise(InvalidTypeReference)
+                      },
+                    args,
+                  ),
+                  typ,
+                ),
+              ),
+            ),
+          );
+
         Some(typ);
+
       | _ => raise(ExecutingNonFunction)
       }
     }

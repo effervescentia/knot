@@ -27,7 +27,7 @@ let resolve = (((name, type_def, default_val), promise)) =>
       Some(typ)
 
     /* no type declaration or default value */
-    | (None, None) => Some(synthetic())
+    | (None, None) => Some(ref(Resolved(Generic_t(None))))
 
     | _ => raise(InvalidTypeReference)
     }
