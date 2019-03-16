@@ -19,16 +19,16 @@ let resolve: ast_property => unit =
         let typ_ref = typ^;
 
         if (is_declared(typ_ref)) {
-          Some(typ_ref);
+          typ_ref;
         } else {
           raise(InvalidTypeReference);
         };
 
       /* no type declaration or default value */
-      | (None, None) => Some(declared(any))
+      | (None, None) => declared(any)
       }
     )
-    |::> promise;
+    |:> promise;
 
 let resolve_param = (symbol_tbl, ((name, _, _), promise) as prop) => {
   resolve(prop);

@@ -33,8 +33,7 @@ let resolve = ((value, promise)) =>
         stmts,
       );
 
-      let typ = Module_t(dependencies^, members, main_declaration^);
-      Some(declared(typ));
+      declared(Module_t(dependencies^, members, main_declaration^));
     }
   )
-  |::> promise;
+  |:> promise;

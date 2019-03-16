@@ -46,11 +46,6 @@ let allows_type = (x, target) =>
   | _ => false
   };
 
-let (|::>) = (x, promise) =>
-  switch (x) {
-  | Some(typ) => promise := typ
-  | None => raise(InvalidTypeReference)
-  };
+let (|:>) = (x, promise) => promise := x;
 
-let (=:=) = ((_, x), y) => x^ := Declared(y);
 let (=.=) = ((_, x), y) => x^ := Inferred(y);

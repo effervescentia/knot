@@ -7,8 +7,6 @@ let (=..=) = (x, y) => {
   y;
 };
 
-let declare_some = x => Some(declared(x));
-
 let allows_boolean = x => allows_type(x, Boolean_t);
 let allows_numeric = x => allows_type(x, Number_t);
 let allows_string = x => allows_type(x, String_t);
@@ -30,10 +28,10 @@ let operands_match = (lhs, rhs, x) =>
 let resolve = ((value, promise)) =>
   (
     switch (value) {
-    | BooleanLit(_) => Some(declared(Boolean_t))
-    | NumericLit(_) => Some(declared(Number_t))
-    | StringLit(_) => Some(declared(String_t))
-    | JSX(jsx) => Some(declared(JSX_t))
+    | BooleanLit(_) => declared(Boolean_t)
+    | NumericLit(_) => declared(Number_t)
+    | StringLit(_) => declared(String_t)
+    | JSX(jsx) => declared(JSX_t)
 
     /* (number, number) => number */
     /* (string, string) => string */
@@ -41,7 +39,7 @@ let resolve = ((value, promise)) =>
     | SubExpr(lhs, rhs) =>
       (
         switch ((t_ref(lhs))^, (t_ref(rhs))^) {
-        /* ~~~ Integer Addition ~~~ */
+        /* ~~~ Numeric Addition ~~~ */
 
         /* both of acceptable types */
         | (lhs, rhs) when operands_match(lhs, rhs, Number_t) => Number_t
@@ -74,7 +72,7 @@ let resolve = ((value, promise)) =>
         | _ => raise(OperatorTypeMismatch)
         }
       )
-      |> declare_some
+      |> declared
 
     /* (number, number) => number */
     | MulExpr(lhs, rhs)
@@ -96,7 +94,7 @@ let resolve = ((value, promise)) =>
       | _ => raise(OperatorTypeMismatch)
       };
 
-      declare_some(Number_t);
+      declared(Number_t);
 
     /* (number, number) => boolean */
     | LTExpr(lhs, rhs)
@@ -120,7 +118,7 @@ let resolve = ((value, promise)) =>
       | _ => raise(OperatorTypeMismatch)
       };
 
-      declare_some(Boolean_t);
+      declared(Boolean_t);
 
     /* (boolean, boolean) => boolean */
     | AndExpr(lhs, rhs)
@@ -142,15 +140,15 @@ let resolve = ((value, promise)) =>
       | _ => raise(OperatorTypeMismatch)
       };
 
-      declare_some(Boolean_t);
+      declared(Boolean_t);
 
     | Reference(refr) =>
       let refr_ref = t_ref(refr);
 
       switch (refr_ref^) {
       | Unanalyzed => raise(InvalidTypeReference)
-      | res => Some(refr_ref)
+      | res => refr_ref
       };
     }
   )
-  |::> promise;
+  |:> promise;

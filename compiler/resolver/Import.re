@@ -22,27 +22,27 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
         |> (
           typ =>
             /* symbol_tbl.add(name, typ); */
-            Some(typ)
+            typ
         );
 
       /* module is not loaded but has callbacks registered */
       | NotLoaded(_) =>
         /* symbol_tbl.add(name, Any_t); */
 
-        Some(declared(any))
+        declared(any)
 
       /* module has not been registered */
       | exception Not_found =>
         /* Hashtbl.add(module_tbl, module_, NotLoaded([])); */
         /* symbol_tbl.add(name, Any_t); */
 
-        Some(declared(any))
+        declared(any)
       }
 
     | MainExport(name) =>
       /* symbol_tbl.add(name, Any_t); */
 
-      Some(declared(any))
+      declared(any)
 
     | NamedExport(name, alias) =>
       (
@@ -54,8 +54,8 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
       |> (
         s =>
           /* symbol_tbl.add(s, Any_t); */
-          Some(declared(any))
+          declared(any)
       )
     }
   )
-  |::> promise;
+  |:> promise;

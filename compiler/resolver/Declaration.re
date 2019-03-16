@@ -6,7 +6,7 @@ open NestedHashtbl;
 let (=<<) = (x, y) => {
   y(x);
 
-  Some(x);
+  x;
 };
 
 /* let func_type_matches = */
@@ -54,5 +54,5 @@ let resolve = (symbol_tbl, name, (value, promise)) => {
     | _ => raise(TypeResolutionNotSupported)
     }
   )
-  |::> promise;
+  |:> promise;
 };
