@@ -1,9 +1,7 @@
 open Core;
 
 type t = {
-  is_resolved: unit => bool,
   resolve: resolve_target => unit,
-  pending: unit => list(resolve_target),
   nest: (~label: string=?, ~size: int=?, unit) => t,
   module_tbl: Hashtbl.t(string, linked_module),
 };
@@ -23,9 +21,7 @@ let rec create =
     };
   {
     module_tbl,
-    is_resolved: real_resolver.is_complete,
     resolve: real_resolver.resolve(symbol_tbl),
-    pending: real_resolver.pending,
     nest: (~label="anonymous", ~size=8, ()) =>
       create(
         ~resolver=real_resolver,

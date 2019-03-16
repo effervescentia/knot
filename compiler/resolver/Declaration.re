@@ -1,53 +1,58 @@
 open Core;
 open NestedHashtbl;
 
-let resolve = (symbol_tbl, name, (value, promise)) =>
+/* HAS TODOS!!! */
+
+let (=<<) = (x, y) => {
+  y(x);
+
+  Some(x);
+};
+
+/* let func_type_matches = */
+
+let resolve = (symbol_tbl, name, (value, promise)) => {
+  /* fail if any previous value declared by the same name */
+  switch (symbol_tbl.find(name)) {
+  | Some(typ) when is_declared(typ) => raise(NameInUse(name))
+  | Some(_) => ()
+  | _ => ()
+  };
+
   (
     switch (value) {
-    | ConstDecl((_, {contents: expr})) =>
+    | ConstDecl(expr) =>
       switch (symbol_tbl.find(name)) {
       /* should not be used by anything by the time it's declared */
-      | Some(_) => raise(NameInUse(name))
+      | Some(_) => raise(UsedBeforeDeclaration(name))
 
-      /* add to scope as normal */
-      | None =>
-        symbol_tbl.add(name, expr);
-
-        Some(expr);
+      /* add to scope */
+      | None => t_ref(expr) =<< symbol_tbl.add(name)
       }
+
     | FunctionDecl(params, exprs) =>
-      let param_types =
-        List.map(
-          ((_, typ)) =>
-            switch (typ^) {
-            | {contents: Resolved(_) | Synthetic(_)} as res => res
-            | _ => raise(InvalidTypeReference)
-            },
-          params,
-        );
+      let param_types = List.map(extract_ref, params);
       let return_type =
         if (List.length(exprs) == 0) {
-          ref(Resolved(Nil_t));
+          declared(Nil_t);
         } else {
-          let (_, last_expr) = List.nth(exprs, List.length(exprs) - 1);
-
-          switch (last_expr^) {
-          | {contents: Resolved(_) | Synthetic(_)} as typ => typ
-          | _ => raise(InvalidTypeReference)
-          };
+          List.nth(exprs, List.length(exprs) - 1) |> extract_ref;
         };
 
+      /* checking to see if function has been called already */
+      /* TODO: have to hoist synthetic members of scopes */
       switch (symbol_tbl.find(name)) {
-      | Some(typ) =>
+      | Some({contents: Declared(typ) | Inferred(typ)}) =>
         /* TODO: check symbol table to see if type meets expectations */
         raise(InvalidTypeReference)
+      | Some(_) => raise(InvalidTypeReference)
       | None =>
-        let typ = resolved(Function_t(param_types, return_type));
-        symbol_tbl.add(name, typ);
-
-        Some(typ);
+        declared(Function_t(param_types, return_type))
+        =<< symbol_tbl.add(name)
       };
-    | _ => None
+
+    | _ => raise(TypeResolutionNotSupported)
     }
   )
   |::> promise;
+};

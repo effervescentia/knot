@@ -1,44 +1,36 @@
 open Core;
 open NestedHashtbl;
 
-let resolve = (((name, type_def, default_val), promise)) =>
-  (
-    switch (type_def, default_val) {
-    /* type declaration and default value do not match */
-    | (
-        Some((_, {contents: {contents: Resolved(l_type)}})),
-        Some((_, {contents: {contents: Resolved(r_type)}})),
-      )
-        when l_type != r_type =>
-      raise(DefaultValueTypeMismatch)
+let resolve: ast_property => unit =
+  (((name, type_def, default_val), promise)) =>
+    (
+      switch (type_def, default_val) {
+      /* type declaration and default value do not match */
+      | (
+          Some((_, {contents: {contents: Declared(l_type)}})),
+          Some((_, {contents: {contents: Declared(r_type)}})),
+        )
+          when l_type != r_type =>
+        raise(DefaultValueTypeMismatch)
 
-    /* either type declaration or default value available */
-    | (
-        Some((_, {contents: {contents: Resolved(_) | Synthetic(_)} as typ})),
-        _,
-      )
-    | (
-        _,
-        Some((
-          _,
-          {contents: {contents: Resolved(_) | Synthetic(_)} as typ},
-        )),
-      ) =>
-      Some(typ)
+      /* either type declaration or default value available */
+      | (Some((_, typ)), _)
+      | (_, Some((_, typ))) =>
+        let typ_ref = typ^;
 
-    /* no type declaration or default value */
-    | (None, None) => Some(resolved(any))
+        if (is_declared(typ_ref)) {
+          Some(typ_ref);
+        } else {
+          raise(InvalidTypeReference);
+        };
 
-    | _ => raise(InvalidTypeReference)
-    }
-  )
-  |::> promise;
+      /* no type declaration or default value */
+      | (None, None) => Some(declared(any))
+      }
+    )
+    |::> promise;
 
-let resolve_param = (symbol_tbl, ((name, _, _), promise) as prop) =>
-  if (resolve(prop)) {
-    symbol_tbl.add(name, promise^);
-
-    true;
-  } else {
-    false;
-  };
+let resolve_param = (symbol_tbl, ((name, _, _), promise) as prop) => {
+  resolve(prop);
+  symbol_tbl.add(name, promise^);
+};

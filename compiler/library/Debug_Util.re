@@ -6,7 +6,7 @@ let (|~>) = ((x, y), f) =>
   |> (
     switch (y^ ^) {
     | Unanalyzed => Printf.sprintf("Unanalyzed(%s)")
-    | Synthetic(_) => Printf.sprintf("Synthetic(%s)")
-    | Resolved(_) => Printf.sprintf("Resolved(%s)")
+    | Inferred(_) => Printf.sprintf("Inferred(%s)")
+    | Declared(_) => Printf.sprintf("Declared(%s)")
     }
   );

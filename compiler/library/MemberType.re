@@ -25,8 +25,8 @@ and generic_type =
 and member_ref = ref(eventual_type)
 and eventual_type =
   | Unanalyzed
-  | Synthetic(member_type) /* for early type enforcement */
-  | Resolved(member_type);
+  | Inferred(member_type)
+  | Declared(member_type);
 
 type ctxl_promise('a) = ('a, ref(ref(eventual_type)));
 

@@ -21,8 +21,7 @@ let link =
         fun
         | Some(ast) =>
           switch ((snd(ast))^ ^) {
-          | Resolved(Module_t(deps, _, _)) => (deps, Some(ast))
-          | Synthetic(_) => (Analyzer.analyze_dependencies(fst(ast)), None)
+          | Declared(Module_t(deps, _, _)) => (deps, Some(ast))
           | _ => raise(InvalidProgram(target))
           }
         | None => raise(InvalidProgram(target))

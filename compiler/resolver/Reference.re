@@ -7,11 +7,11 @@ let resolve = (symbol_tbl, (value, promise)) =>
     | Variable(name) =>
       switch (symbol_tbl.find(name)) {
       /* symbol exists, return the type reference */
-      | Some({contents: Resolved(_) | Synthetic(_)}) as res => res
+      | Some(typ) as res when is_analyzed(typ) => res
 
-      /* symbol does not exist, add a synthetic type reference */
+      /* symbol does not exist, add an inferred type reference */
       | _ =>
-        let typ = synthetic(any);
+        let typ = inferred(any);
         symbol_tbl.add(name, typ);
 
         Some(typ);
@@ -30,7 +30,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol is generic and may allow the property to be declared */
       | Generic_t(t) =>
-        let prop_typ = resolved(any);
+        let prop_typ = declared(any);
 
         (
           switch (t) {
@@ -57,27 +57,12 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol could be a function */
       | Generic_t(None) =>
-        let typ = synthetic(any);
+        let arg_types = List.map(extract_ref, args);
+        let typ = Callable_t(arg_types, inferred(any));
 
-        refr
-        =.= Generic_t(
-              Some(
-                Callable_t(
-                  List.map(
-                    ((_, arg_type)) =>
-                      switch (arg_type^ ^) {
-                      | Resolved(_)
-                      | Synthetic(_) => arg_type^
-                      | _ => raise(InvalidTypeReference)
-                      },
-                    args,
-                  ),
-                  typ,
-                ),
-              ),
-            );
+        refr =.= Generic_t(Some(typ));
 
-        Some(typ);
+        Some(t_ref(refr));
 
       | _ => raise(ExecutingNonFunction)
       }

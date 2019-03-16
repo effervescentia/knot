@@ -8,20 +8,13 @@ let run = ({paths, main as in_path}, compiler) => {
     raise(InvalidEntryPoint(in_path))
   };
 
-  if (compiler.is_complete()) {
-    Writer.clean_build_dir();
+  compiler.complete();
 
-    compiler.iter(in_path, paths.source_dir, Writer.write);
+  Log.info("%s  compiled!", Emoji.input_numbers);
 
-    Log.info("%s  done!", Emoji.confetti_ball);
-  } else {
-    Log.error(
-      "%s",
-      "failed to compile, the following statements could not be resolved:",
-    );
+  Writer.clean_build_dir();
 
-    compiler.iter_pending(Debug.print_resolve_target % Log.error("%s"));
+  compiler.iter(in_path, paths.source_dir, Writer.write);
 
-    exit(-1);
-  };
+  Log.info("%s  done!", Emoji.confetti_ball);
 };

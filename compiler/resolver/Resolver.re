@@ -1,10 +1,8 @@
 open Core;
 
 type t = {
-  is_complete: unit => bool,
   resolve:
     (NestedHashtbl.t(string, ref(eventual_type)), resolve_target) => unit,
-  pending: unit => list(resolve_target),
 };
 
 let of_module = m => ModuleScope(m);
@@ -16,31 +14,30 @@ let of_expression = e => ExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
 let of_type = t => TypeScope(t);
 
-let create = module_tbl => {
-  let resolve_queue = ref([]);
-  let attempted_queue = ref([]);
-  let is_resolving = ref(false);
-
-  {
-    is_complete: () =>
-      List.length(resolve_queue^) == 0 && List.length(attempted_queue^) == 0,
-    resolve: (symbol_tbl, x) =>
-      /* let implicit_resolve =
-         Resolver_Dynamic.create(resolve_queue, attempted_queue, is_resolving); */
-      if (Resolver_Static.resolve(module_tbl, symbol_tbl, x)) {
-        ();
-      } else if (is_resolving^) {
-        Debug.print_resolve_target(x)
-        |> Printf.sprintf("RESOLVING %s")
-        |> print_endline;
-        resolve_queue := [x, ...resolve_queue^];
-      } else {
-        Debug.print_resolve_target(x)
-        |> Printf.sprintf("RESOLVING %s")
-        |> print_endline;
-                        /* is_resolving := true;
-                           implicit_resolve(x);  */
-      },
-    pending: () => attempted_queue^ @ resolve_queue^,
+let (>=>) = (promise, resolver) =>
+  if (!(t_ref(promise) |> is_declared)) {
+    resolver(promise);
   };
-};
+
+let rec create = module_tbl => {
+  resolve: (symbol_tbl, x) => resolve(module_tbl, symbol_tbl, x),
+}
+and resolve = (module_tbl, symbol_tbl) =>
+  fun
+  | ModuleScope(promise) => promise >=> Module.resolve
+
+  | ImportScope(module_, promise) =>
+    promise >=> Import.resolve(module_tbl, symbol_tbl, module_)
+
+  | DeclarationScope(name, promise) =>
+    promise >=> Declaration.resolve(symbol_tbl, name)
+
+  | ExpressionScope(promise) => promise >=> Expression.resolve
+
+  | ParameterScope(promise) => promise >=> Property.resolve_param(symbol_tbl)
+
+  | PropertyScope(promise) => promise >=> Property.resolve
+
+  | ReferenceScope(promise) => promise >=> Reference.resolve(symbol_tbl)
+
+  | TypeScope(promise) => promise >=> Type.resolve(symbol_tbl);

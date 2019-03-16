@@ -3,19 +3,42 @@ include Exception;
 
 module NestedHashtbl = Knot.NestedHashtbl;
 
-let resolved = x => ref(Resolved(x));
-let synthetic = x => ref(Synthetic(x));
+let declared = x => ref(Declared(x));
+let inferred = x => ref(Inferred(x));
 let any = Generic_t(None);
 
-let typeof =
-  fun
-  | Resolved(t)
-  | Synthetic(t) => t
-  | _ => raise(InvalidTypeReference);
+let t_ref = x => (snd(x))^;
+let t_of = x =>
+  (t_ref(x))^
+  |> (
+    fun
+    | Declared(t)
+    | Inferred(t) => t
+    | _ => raise(InvalidTypeReference)
+  );
 
-let t_of = x => typeof((snd(x))^ ^);
+let is_analyzed = promise =>
+  switch (promise^) {
+  | Declared(_)
+  | Inferred(_) => true
+  | _ => false
+  };
 
-let resolve_ref = x => Some(resolved(x));
+let is_declared = promise =>
+  switch (promise^) {
+  | Declared(_) => true
+  | _ => false
+  };
+
+let extract_ref = x => {
+  let x_ref = t_ref(x);
+
+  if (is_analyzed(x_ref)) {
+    x_ref;
+  } else {
+    raise(InvalidTypeReference);
+  };
+};
 
 let allows_type = (x, target) =>
   switch (x, target) {
@@ -25,11 +48,9 @@ let allows_type = (x, target) =>
 
 let (|::>) = (x, promise) =>
   switch (x) {
-  | Some(typ) =>
-    promise := typ;
-    true;
+  | Some(typ) => promise := typ
   | None => raise(InvalidTypeReference)
   };
 
-let (=:=) = ((_, x), y) => x^ := Resolved(y);
-let (=.=) = ((_, x), y) => x^ := Synthetic(y);
+let (=:=) = ((_, x), y) => x^ := Declared(y);
+let (=.=) = ((_, x), y) => x^ := Inferred(y);

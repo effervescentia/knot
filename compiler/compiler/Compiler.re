@@ -11,11 +11,10 @@ type status =
 type t = {
   add: string => list(string),
   add_rec: string => unit,
-  is_complete: unit => bool,
   status: unit => status,
+  complete: unit => unit,
   iter: (string, string, (string, (string, ast_module)) => unit) => unit,
   iter_modules: (string => unit) => unit,
-  iter_pending: (resolve_target => unit) => unit,
   find: string => option(module_),
   invalidate: string => unit,
   reset: unit => unit,
@@ -89,23 +88,14 @@ let create = create_desc => {
         create_desc(path) |> add(global_scope^);
       };
     },
-    add_rec: path => {
-      compiler.add(path) |> List.iter(compiler.add_rec);
-
-      if (compiler.is_complete()) {
-        status := Complete;
-
-        Log.info("%s  compiled!", Emoji.input_numbers);
-      };
-    },
+    add_rec: path => compiler.add(path) |> List.iter(compiler.add_rec),
     status: () => status^,
-    is_complete: global_scope^.is_resolved,
+    complete: () => status := Complete,
     iter: (entry, source_dir, f) =>
       BuildTbl.extract(entry, source_dir, global_scope^.module_tbl)
       |> Hashtbl.iter(f),
     iter_modules: f =>
       Hashtbl.iter((key, _) => f(key), global_scope^.module_tbl),
-    iter_pending: f => global_scope^.pending() |> List.iter(f),
     find: path =>
       if (Hashtbl.mem(global_scope^.module_tbl, path)) {
         switch (Hashtbl.find(global_scope^.module_tbl, path)) {
