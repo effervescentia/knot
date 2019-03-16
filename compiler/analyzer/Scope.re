@@ -1,15 +1,19 @@
 open Core;
 
+exception InvalidScope;
+
 type t = {
   resolve: resolve_target => unit,
   nest: (~label: string=?, ~size: int=?, unit) => t,
   module_tbl: Hashtbl.t(string, linked_module),
+  validate: unit => unit,
 };
 
 let rec create =
         (
           ~label="anonymous",
-          ~symbol_tbl=NestedHashtbl.create(~label, 24),
+          ~boundary=false,
+          ~symbol_tbl=NestedHashtbl.create(~label, ~boundary, 24),
           ~module_tbl=Hashtbl.create(24),
           ~resolver=?,
           (),
@@ -28,6 +32,13 @@ let rec create =
         ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
         ~module_tbl,
         (),
+      ),
+    validate: () =>
+      symbol_tbl.iter_local((key, typ) =>
+        switch (typ^) {
+        | Inferred(_) => raise(InvalidScope)
+        | _ => ()
+        }
       ),
   };
 };

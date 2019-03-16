@@ -9,12 +9,8 @@ let resolve = (symbol_tbl, (value, promise)) =>
       /* symbol exists, return the type reference */
       | Some(typ) when is_analyzed(typ) => typ
 
-      /* symbol does not exist, add an inferred type reference */
-      | _ =>
-        let typ = inferred(any);
-        symbol_tbl.add(name, typ);
-
-        typ;
+      /* symbol does not exist */
+      | _ => raise(InvalidTypeReference)
       }
 
     | DotAccess(obj, key) =>

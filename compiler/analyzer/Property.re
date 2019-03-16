@@ -15,3 +15,9 @@ let analyze = (~resolve=true, analyze_expr, scope, prop) => {
     Resolver.of_property(prop) |> scope.resolve;
   };
 };
+
+let analyze_param = (analyze_expr, scope, prop) => {
+  analyze(~resolve=false, analyze_expr, scope, prop);
+
+  Resolver.of_parameter(prop) |> scope.resolve;
+};

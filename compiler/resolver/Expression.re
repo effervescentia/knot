@@ -16,12 +16,7 @@ let operands_match = (lhs, rhs, x) =>
   | (Declared(lhs) | Inferred(lhs), Declared(rhs) | Inferred(rhs))
       when lhs == x && rhs == x =>
     true
-  | (Declared(t), Declared(Generic_t(gen_t)))
-      when t == x && allows_type(gen_t, x) =>
-    true
-  | (Declared(Generic_t(gen_t)), Declared(t))
-      when t == x && allows_type(gen_t, x) =>
-    true
+  | (Declared(lhs), Declared(rhs)) when lhs =?? x && rhs =?? x => true
   | _ => false
   };
 

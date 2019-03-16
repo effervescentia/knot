@@ -11,5 +11,5 @@ let print_resolve_target =
   | ExpressionScope(expr) => expr |~> print_expr
   | ParameterScope(p)
   | PropertyScope(p) => p |~> print_property
-  | ReferenceScope(rf) => rf |~> print_ref
-  | TypeScope(tp) => tp |~> Printf.sprintf("type(%s)");
+  | ReferenceScope(refr) => refr |~> print_ref
+  | TypeScope(type_) => type_ |~> Printf.sprintf("type(%s)");

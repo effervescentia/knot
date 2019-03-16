@@ -7,15 +7,13 @@ let declared = x => ref(Declared(x));
 let inferred = x => ref(Inferred(x));
 let any = Generic_t(None);
 
+let get_t =
+  fun
+  | Declared(t)
+  | Inferred(t) => t
+  | _ => raise(InvalidTypeReference);
 let t_ref = x => (snd(x))^;
-let t_of = x =>
-  (t_ref(x))^
-  |> (
-    fun
-    | Declared(t)
-    | Inferred(t) => t
-    | _ => raise(InvalidTypeReference)
-  );
+let t_of = x => (t_ref(x))^ |> get_t;
 
 let is_analyzed = promise =>
   switch (promise^) {
@@ -49,3 +47,31 @@ let allows_type = (x, target) =>
 let (|:>) = (x, promise) => promise := x;
 
 let (=.=) = ((_, x), y) => x^ := Inferred(y);
+
+let rec (=??) = (x, y) =>
+  switch (x, y) {
+  /* both of same type */
+  | _ when x == y => true
+
+  /* either is any typed */
+  | (_, Generic_t(None))
+  | (Generic_t(None), _) => true
+
+  /* callable types are comparable */
+  | (
+      Generic_t(Some(Callable_t(lhs_args, lhs_ret))) |
+      Function_t(lhs_args, lhs_ret),
+      Generic_t(Some(Callable_t(rhs_args, rhs_ret))) |
+      Function_t(rhs_args, rhs_ret),
+    ) =>
+    List.length(lhs_args) == List.length(rhs_args)
+    && get_t(lhs_ret^)
+    =?? get_t(rhs_ret^)
+    && List.for_all2(
+         (lhs, rhs) => get_t(lhs^) =?? get_t(rhs^),
+         lhs_args,
+         rhs_args,
+       )
+
+  | _ => false
+  };

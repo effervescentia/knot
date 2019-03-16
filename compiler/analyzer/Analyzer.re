@@ -14,7 +14,7 @@ let analyze_dependencies =
     |> List.map(String.trim)
     |> List.filter(x => x != "");
 
-let analyze = (~scope=Scope.create(~label="module", ()), ()) =>
+let analyze = (~scope=Scope.create(~label="module", ~boundary=true, ()), ()) =>
   fun
   | Some(ast) => Some(Module.analyze(scope, ast))
   | None => None;

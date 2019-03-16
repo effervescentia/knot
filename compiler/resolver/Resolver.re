@@ -25,19 +25,12 @@ let rec create = module_tbl => {
 and resolve = (module_tbl, symbol_tbl) =>
   fun
   | ModuleScope(promise) => promise >=> Module.resolve
-
   | ImportScope(module_, promise) =>
     promise >=> Import.resolve(module_tbl, symbol_tbl, module_)
-
   | DeclarationScope(name, promise) =>
     promise >=> Declaration.resolve(symbol_tbl, name)
-
   | ExpressionScope(promise) => promise >=> Expression.resolve
-
   | ParameterScope(promise) => promise >=> Property.resolve_param(symbol_tbl)
-
-  | PropertyScope(promise) => promise >=> Property.resolve
-
+  | PropertyScope(promise) => promise >=> Property.resolve(symbol_tbl)
   | ReferenceScope(promise) => promise >=> Reference.resolve(symbol_tbl)
-
   | TypeScope(promise) => promise >=> Type.resolve(symbol_tbl);
