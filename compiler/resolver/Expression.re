@@ -1,11 +1,17 @@
 open Core;
 open NestedHashtbl;
 
-let (=..=) = (x, y) => {
+let (=..=) = ((_, x), y) => {
   x =.= y;
 
   y;
 };
+
+let allows_type = (x, target) =>
+  switch (x, target) {
+  | (None, Number_t | String_t | Boolean_t | Nil_t) => true
+  | _ => false
+  };
 
 let allows_boolean = x => allows_type(x, Boolean_t);
 let allows_numeric = x => allows_type(x, Number_t);
@@ -33,7 +39,7 @@ let resolve = ((value, promise)) =>
     | AddExpr(lhs, rhs)
     | SubExpr(lhs, rhs) =>
       (
-        switch ((t_ref(lhs))^, (t_ref(rhs))^) {
+        switch ((opt_type_ref(lhs))^, (opt_type_ref(rhs))^) {
         /* ~~~ Numeric Addition ~~~ */
 
         /* both of acceptable types */
@@ -72,19 +78,19 @@ let resolve = ((value, promise)) =>
     /* (number, number) => number */
     | MulExpr(lhs, rhs)
     | DivExpr(lhs, rhs) =>
-      switch ((t_ref(lhs))^, (t_ref(rhs))^) {
+      switch ((opt_type_ref(lhs))^, (opt_type_ref(rhs))^) {
       /* both of acceptable types */
       | (lhs, rhs) when operands_match(lhs, rhs, Number_t) => ()
 
       /* rhs type inferred */
       | (Declared(Number_t), Inferred(Generic_t(gen_t)))
           when allows_numeric(gen_t) =>
-        rhs =.= Number_t
+        snd(rhs) =.= Number_t
 
       /* lhs type inferred */
       | (Inferred(Generic_t(gen_t)), Declared(Number_t))
           when allows_numeric(gen_t) =>
-        lhs =.= Number_t
+        snd(lhs) =.= Number_t
 
       | _ => raise(OperatorTypeMismatch)
       };
@@ -96,19 +102,19 @@ let resolve = ((value, promise)) =>
     | GTExpr(lhs, rhs)
     | LTEExpr(lhs, rhs)
     | GTEExpr(lhs, rhs) =>
-      switch ((t_ref(lhs))^, (t_ref(rhs))^) {
+      switch ((opt_type_ref(lhs))^, (opt_type_ref(rhs))^) {
       /* both of acceptable types */
       | (lhs, rhs) when operands_match(lhs, rhs, Number_t) => ()
 
       /* rhs type inferred */
       | (Declared(Number_t), Inferred(Generic_t(gen_t)))
           when allows_numeric(gen_t) =>
-        rhs =.= Number_t
+        snd(rhs) =.= Number_t
 
       /* lhs type inferred */
       | (Inferred(Generic_t(gen_t)), Declared(Number_t))
           when allows_numeric(gen_t) =>
-        lhs =.= Number_t
+        snd(lhs) =.= Number_t
 
       | _ => raise(OperatorTypeMismatch)
       };
@@ -118,32 +124,26 @@ let resolve = ((value, promise)) =>
     /* (boolean, boolean) => boolean */
     | AndExpr(lhs, rhs)
     | OrExpr(lhs, rhs) =>
-      switch ((t_ref(lhs))^, (t_ref(rhs))^) {
+      switch ((opt_type_ref(lhs))^, (opt_type_ref(rhs))^) {
       /* both of acceptable types */
       | (lhs, rhs) when operands_match(lhs, rhs, Boolean_t) => ()
 
       /* rhs type inferred */
       | (Declared(Boolean_t), Inferred(Generic_t(gen_t)))
           when allows_boolean(gen_t) =>
-        rhs =.= Boolean_t
+        snd(rhs) =.= Boolean_t
 
       /* lhs type inferred */
       | (Inferred(Generic_t(gen_t)), Declared(Boolean_t))
           when allows_boolean(gen_t) =>
-        rhs =.= Boolean_t
+        snd(rhs) =.= Boolean_t
 
       | _ => raise(OperatorTypeMismatch)
       };
 
       declared(Boolean_t);
 
-    | Reference(refr) =>
-      let refr_ref = t_ref(refr);
-
-      switch (refr_ref^) {
-      | Unanalyzed => raise(InvalidTypeReference)
-      | res => refr_ref
-      };
+    | Reference(refr) => opt_type_ref(refr)
     }
   )
-  |:> promise;
+  <:= promise;

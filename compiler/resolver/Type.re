@@ -17,4 +17,4 @@ let resolve = (symbol_tbl, (value, promise)) =>
        } */
     }
   )
-  |:> promise;
+  <:= promise;

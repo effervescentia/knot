@@ -7,14 +7,14 @@ let resolve = (symbol_tbl, (value, promise)) =>
     | Variable(name) =>
       switch (symbol_tbl.find(name)) {
       /* symbol exists, return the type reference */
-      | Some(typ) when is_analyzed(typ) => typ
+      | Some(typ) => typ
 
       /* symbol does not exist */
       | _ => raise(InvalidTypeReference)
       }
 
     | DotAccess(obj, key) =>
-      switch (t_of(obj)) {
+      switch ((opt_type_ref(obj))^ |> typeof) {
       /* symbol exists in object or module */
       | Object_t(members)
       | Module_t(_, members, _) when Hashtbl.mem(members, key) =>
@@ -42,7 +42,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
       }
 
     | Execution(refr, args) =>
-      switch (t_of(refr)) {
+      switch ((opt_type_ref(refr))^ |> typeof) {
       /* symbol exists, using return type */
       | Function_t(_, return_type) => return_type
 
@@ -53,15 +53,15 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol could be a function */
       | Generic_t(None) =>
-        let arg_types = List.map(extract_ref, args);
+        let arg_types = List.map(opt_type_ref, args);
         let typ = Callable_t(arg_types, inferred(any));
 
-        refr =.= Generic_t(Some(typ));
+        snd(refr) =.= generic(typ);
 
-        t_ref(refr);
+        opt_type_ref(refr);
 
       | _ => raise(ExecutingNonFunction)
       }
     }
   )
-  |:> promise;
+  <:= promise;

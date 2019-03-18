@@ -9,7 +9,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
       /* module has been loaded and linked */
       | Loaded(_, ast) =>
         let export_tbl =
-          switch ((t_ref(ast))^) {
+          switch ((opt_type_ref(ast))^) {
           | Declared(Module_t(_, x, _)) => x
           | _ => raise(InvalidTypeReference)
           };
@@ -58,4 +58,4 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) =>
       )
     }
   )
-  |:> promise;
+  <:= promise;

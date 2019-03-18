@@ -1,8 +1,7 @@
 open Core;
 
 type t = {
-  resolve:
-    (NestedHashtbl.t(string, ref(eventual_type)), resolve_target) => unit,
+  resolve: (NestedHashtbl.t(string, member_ref), resolve_target) => unit,
 };
 
 let of_module = m => ModuleScope(m);
@@ -15,7 +14,7 @@ let of_reference = r => ReferenceScope(r);
 let of_type = t => TypeScope(t);
 
 let (>=>) = (promise, resolver) =>
-  if (!(t_ref(promise) |> is_declared)) {
+  if ((snd(promise))^ == None) {
     resolver(promise);
   };
 

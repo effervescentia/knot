@@ -24,10 +24,9 @@ and generic_type =
   | Callable_t(list(member_ref), member_ref)
 and member_ref = ref(eventual_type)
 and eventual_type =
-  | Unanalyzed
   | Inferred(member_type)
   | Declared(member_type);
 
-type ctxl_promise('a) = ('a, ref(ref(eventual_type)));
+type ctxl_promise('a) = ('a, ref(option(member_ref)));
 
-let no_ctx = x => (x, ref(ref(Unanalyzed)));
+let no_ctx = x => (x, ref(None));

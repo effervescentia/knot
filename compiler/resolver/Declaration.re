@@ -21,24 +21,24 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
 
     /* not in scope already */
     | None =>
-      let expr_ref = t_ref(expr);
+      let expr_ref = opt_type_ref(expr);
 
-      switch (get_t(expr_ref^)) {
+      switch (typeof_ref(expr_ref)) {
       /* expr returns a generic value */
       | Generic_t(_) => raise(GenericConstant)
 
       /* add value to symbol table */
-      | _ => expr_ref =<< symbol_tbl.add(name) |:> promise
+      | _ => expr_ref =<< symbol_tbl.add(name) <:= promise
       };
     }
 
   | FunctionDecl(params, exprs) =>
-    let param_types = List.map(extract_ref, params);
+    let param_types = List.map(opt_type_ref, params);
     let return_type =
       if (List.length(exprs) == 0) {
         declared(Nil_t);
       } else {
-        List.nth(exprs, List.length(exprs) - 1) |> extract_ref;
+        List.nth(exprs, List.length(exprs) - 1) |> opt_type_ref;
       };
     let typ = Function_t(param_types, return_type);
 
@@ -58,14 +58,13 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
         when t =?? typ =>
       /* update any reference to the return type of this function */
       ret_type := return_type^;
-      promise^ := Declared(typ);
+      promise =:= typ;
 
     /* function matches its inferred type, replace inferred type */
-    | Some({contents: Inferred(t)}) when t =?? typ =>
-      promise^ := Declared(typ)
+    | Some({contents: Inferred(t)}) when t =?? typ => promise =:= typ
 
     /* function not in scope */
-    | None => declared(typ) =<< symbol_tbl.add(name) |:> promise
+    | None => declared(typ) =<< symbol_tbl.add(name) <:= promise
 
     | _ => raise(InvalidTypeReference)
     };

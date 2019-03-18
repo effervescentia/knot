@@ -14,7 +14,7 @@ let resolve = ((value, promise)) =>
       | Import(module_, _) => dependencies := [module_, ...dependencies^]
 
       | Declaration(name, decl) => {
-          let decl_ref = t_ref(decl);
+          let decl_ref = opt_type_ref(decl);
 
           switch (decl_ref^) {
           | Declared(_) => Hashtbl.add(members, name, decl_ref)
@@ -23,7 +23,7 @@ let resolve = ((value, promise)) =>
         }
 
       | Main(name, decl) => {
-          let arg_ref = extract_ref(decl);
+          let arg_ref = opt_type_ref(decl);
 
           Hashtbl.add(members, name, arg_ref);
           main_declaration := Some(arg_ref);
@@ -31,5 +31,5 @@ let resolve = ((value, promise)) =>
       stmts,
     );
 
-    declared(Module_t(dependencies^, members, main_declaration^)) |:> promise;
+    declared(Module_t(dependencies^, members, main_declaration^)) <:= promise;
   };

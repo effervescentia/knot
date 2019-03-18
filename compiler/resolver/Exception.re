@@ -7,5 +7,6 @@ exception NameInUse(string);
 exception UsedBeforeDeclaration(string);
 exception PropLookupFailed;
 exception ResultLookupFailed;
+exception UnanalyzedTypeReference;
 
 exception TypeResolutionNotSupported;
