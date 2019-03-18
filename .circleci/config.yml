@@ -88,6 +88,12 @@ jobs:
           at: /tmp/workspace
       - setup_esy
       - run:
+          name: Install Webpack Plugin
+          working_directory: ./webpack-plugin
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
           name: Install
           working_directory: ./examples/webpack-react
           command: yarn install --frozen-lockfile
