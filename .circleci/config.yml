@@ -66,11 +66,11 @@ jobs:
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            cp -L _esy/default/store/i/knot-*/bin/Compiler.exe /tmp/workspace/Compiler.exe
+            cp -L _esy/default/store/i/knot-*/bin/knotc.exe /tmp/workspace/knotc.exe
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - Compiler.exe
+            - knotc.exe
 
   test_webpack_react:
     docker:
@@ -78,7 +78,7 @@ jobs:
         environment:
           ## this enables colors in the output
           TERM: xterm
-          KNOT_BINARY: /tmp/workspace/Compiler.exe
+          KNOT_BINARY: /tmp/workspace/knotc.exe
     working_directory: ~/app
     steps:
       - checkout
