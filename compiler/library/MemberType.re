@@ -30,3 +30,8 @@ and eventual_type =
 type ctxl_promise('a) = ('a, ref(option(member_ref)));
 
 let no_ctx = x => (x, ref(None));
+
+let typeof =
+  fun
+  | Declared(t)
+  | Inferred(t) => t;

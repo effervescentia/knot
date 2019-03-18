@@ -75,7 +75,7 @@ and print_expr =
   fun
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
-  | StringLit(s) => s
+  | StringLit(s) => Printf.sprintf("\"%s\"", s)
   | Reference(reference) =>
     reference |~> print_ref |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
