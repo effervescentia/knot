@@ -1,5 +1,6 @@
 open Globals;
 open MemberType;
+open Debug_MemberType;
 
 let (|~>) = ((x, y), f) =>
   f(x)
@@ -8,8 +9,14 @@ let (|~>) = ((x, y), f) =>
     | None => Printf.sprintf("Unanalyzed(%s)")
     | Some(res) =>
       switch (res^) {
-      | Inferred(_) => Printf.sprintf("Inferred(%s)")
-      | Declared(_) => Printf.sprintf("Declared(%s)")
+      | Inferred(t) => (
+          s =>
+            print_member_type(t) |> Printf.sprintf("Inferred(%s := %s)", s)
+        )
+      | Declared(t) => (
+          s =>
+            print_member_type(t) |> Printf.sprintf("Declared(%s := %s)", s)
+        )
       }
     }
   );

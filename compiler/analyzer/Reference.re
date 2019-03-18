@@ -8,7 +8,11 @@ let rec analyze = (analyze_expr, scope, refr) => {
     | Variable(name) => ()
     | DotAccess(lhs, rhs) => analyze(analyze_expr, scope, lhs)
     | Execution(target, args) => {
-        analyze(analyze_expr, scope, target);
+        switch (fst(target)) {
+        | Variable(_) => ()
+        | _ => analyze(analyze_expr, scope, target)
+        };
+
         List.iter(analyze_expr(scope), args);
       }
   );

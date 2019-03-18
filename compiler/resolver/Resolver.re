@@ -19,10 +19,13 @@ let (>=>) = (promise, resolver) =>
   };
 
 let rec create = module_tbl => {
-  resolve: (symbol_tbl, x) => {
-    Debug.print_resolve_target(x) |> Log.info("RESOLVING: %s");
-    resolve(module_tbl, symbol_tbl, x);
-  },
+  resolve: (symbol_tbl, x) =>
+    /* Debug.print_resolve_target(x) |> Log.info("RESOLVING: %s"); */
+    resolve(
+      module_tbl,
+      symbol_tbl,
+      x,
+    ),
 }
 and resolve = (module_tbl, symbol_tbl) =>
   fun

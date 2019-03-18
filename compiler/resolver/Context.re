@@ -24,7 +24,11 @@ let typeof_ref = x => x^ |> typeof;
 let typeof_member = x => opt_type_ref(x) |> typeof_ref;
 
 let (<:=) = (x, y) => {
-  typeof(x^) |> Knot.Debug.print_member_type |> Log.info("RESOLVED: %s");
+  switch (typeof_ref(x)) {
+  | Module_t(_) as res =>
+    Knot.Debug.print_member_type(res) |> Log.info("RESOLVED: %s")
+  | _ => ()
+  };
   y := Some(x);
 };
 

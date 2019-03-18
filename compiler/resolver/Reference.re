@@ -14,7 +14,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
       }
 
     | DotAccess(obj, key) =>
-      switch ((opt_type_ref(obj))^ |> typeof) {
+      switch (opt_type_ref(obj) |> typeof_ref) {
       /* symbol exists in object or module */
       | Object_t(members)
       | Module_t(_, members, _) when Hashtbl.mem(members, key) =>
@@ -30,38 +30,60 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
         (
           switch (t) {
+          /* symbol is currently of type any */
           | None => Hashtbl.create(4)
+
+          /* symbol is a keyed type */
           | Some(Keyed_t(members)) => members
+
+          /* type does not support property access */
           | _ => raise(InvalidDotAccess)
           }
         )
         |> (tbl => Hashtbl.add(tbl, key, prop_typ));
 
         prop_typ;
+
       | _ => raise(InvalidDotAccess)
       }
 
     | Execution(refr, args) =>
-      switch ((opt_type_ref(refr))^ |> typeof) {
-      /* symbol exists, using return type */
-      | Function_t(_, return_type) => return_type
+      (
+        switch ((snd(refr))^) {
+        /* symbol has been analyzed */
+        | Some(x) =>
+          switch (typeof_ref(x)) {
+          /* symbol is a function */
+          | Function_t(_, return_type) => Some(return_type)
 
-      /* symbol is a function */
-      | Generic_t(Some(Callable_t(_, return_type))) =>
-        /* TODO check arg types against rules */
-        return_type
+          /* symbol is callable */
+          | Generic_t(Some(Callable_t(_, return_type))) =>
+            /* TODO check arg types against rules */
+            Some(return_type)
 
-      /* symbol could be a function */
-      | Generic_t(None) =>
-        let arg_types = List.map(opt_type_ref, args);
-        let typ = Callable_t(arg_types, inferred(any));
+          /* symbol could be a function */
+          | Generic_t(None) => None
 
-        snd(refr) =.= generic(typ);
+          | _ => raise(ExecutingNonFunction)
+          }
 
-        opt_type_ref(refr);
+        /* symbol has not been analyzed */
+        | None => None
+        }
+      )
+      |> (
+        fun
+        | Some(res) => res
+        | None => {
+            let arg_types = List.map(opt_type_ref, args);
+            let ret_type = inferred(any);
+            let typ = Callable_t(arg_types, ret_type);
 
-      | _ => raise(ExecutingNonFunction)
-      }
+            snd(refr) =.= generic(typ);
+
+            ret_type;
+          }
+      )
     }
   )
   <:= promise;
