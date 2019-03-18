@@ -6,6 +6,11 @@ let (=..=) = ((_, x), y) => {
 
   y;
 };
+let (=**=) = ((_, x), y) => {
+  x =*= y;
+
+  y;
+};
 
 let allows_type = (x, target) =>
   switch (x, target) {
@@ -19,9 +24,7 @@ let allows_string = x => allows_type(x, String_t);
 
 let operands_match = (lhs, rhs, x) =>
   switch (lhs, rhs) {
-  | (Declared(lhs) | Inferred(lhs), Declared(rhs) | Inferred(rhs))
-      when lhs == x && rhs == x =>
-    true
+  | (lhs, rhs) when typeof(lhs) == x && typeof(rhs) == x => true
   | (Declared(lhs), Declared(rhs)) when lhs =?? x && rhs =?? x => true
   | _ => false
   };
@@ -45,11 +48,19 @@ let resolve = ((value, promise)) =>
         /* both of acceptable types */
         | (lhs, rhs) when operands_match(lhs, rhs, Number_t) => Number_t
 
+        /* rhs type defined */
+        | (Declared(Number_t), Defined(Generic_t(gen_t)))
+            when allows_numeric(gen_t) =>
+          rhs =**= Number_t
         /* rhs type inferred */
         | (Declared(Number_t), Inferred(Generic_t(gen_t)))
             when allows_numeric(gen_t) =>
           rhs =..= Number_t
 
+        /* lhs type defined */
+        | (Defined(Generic_t(gen_t)), Declared(Number_t))
+            when allows_numeric(gen_t) =>
+          lhs =**= Number_t
         /* lhs type inferred */
         | (Inferred(Generic_t(gen_t)), Declared(Number_t))
             when allows_numeric(gen_t) =>
@@ -60,11 +71,19 @@ let resolve = ((value, promise)) =>
         /* both of acceptable types */
         | (lhs, rhs) when operands_match(lhs, rhs, String_t) => String_t
 
+        /* rhs type defined */
+        | (Declared(String_t), Defined(Generic_t(gen_t)))
+            when allows_string(gen_t) =>
+          rhs =**= String_t
         /* rhs type inferred */
         | (Declared(String_t), Inferred(Generic_t(gen_t)))
             when allows_string(gen_t) =>
           rhs =..= String_t
 
+        /* lhs type defined */
+        | (Defined(Generic_t(gen_t)), Declared(String_t))
+            when allows_string(gen_t) =>
+          lhs =**= String_t
         /* lhs type inferred */
         | (Inferred(Generic_t(gen_t)), Declared(String_t))
             when allows_string(gen_t) =>
@@ -82,11 +101,19 @@ let resolve = ((value, promise)) =>
       /* both of acceptable types */
       | (lhs, rhs) when operands_match(lhs, rhs, Number_t) => ()
 
+      /* rhs type defined */
+      | (Declared(Number_t), Defined(Generic_t(gen_t)))
+          when allows_numeric(gen_t) =>
+        snd(rhs) =*= Number_t
       /* rhs type inferred */
       | (Declared(Number_t), Inferred(Generic_t(gen_t)))
           when allows_numeric(gen_t) =>
         snd(rhs) =.= Number_t
 
+      /* lhs type defined */
+      | (Defined(Generic_t(gen_t)), Declared(Number_t))
+          when allows_numeric(gen_t) =>
+        snd(lhs) =*= Number_t
       /* lhs type inferred */
       | (Inferred(Generic_t(gen_t)), Declared(Number_t))
           when allows_numeric(gen_t) =>
@@ -106,11 +133,19 @@ let resolve = ((value, promise)) =>
       /* both of acceptable types */
       | (lhs, rhs) when operands_match(lhs, rhs, Number_t) => ()
 
+      /* rhs type defined */
+      | (Declared(Number_t), Defined(Generic_t(gen_t)))
+          when allows_numeric(gen_t) =>
+        snd(rhs) =*= Number_t
       /* rhs type inferred */
       | (Declared(Number_t), Inferred(Generic_t(gen_t)))
           when allows_numeric(gen_t) =>
         snd(rhs) =.= Number_t
 
+      /* lhs type defined */
+      | (Defined(Generic_t(gen_t)), Declared(Number_t))
+          when allows_numeric(gen_t) =>
+        snd(lhs) =*= Number_t
       /* lhs type inferred */
       | (Inferred(Generic_t(gen_t)), Declared(Number_t))
           when allows_numeric(gen_t) =>
@@ -128,11 +163,19 @@ let resolve = ((value, promise)) =>
       /* both of acceptable types */
       | (lhs, rhs) when operands_match(lhs, rhs, Boolean_t) => ()
 
+      /* rhs type defined */
+      | (Declared(Boolean_t), Defined(Generic_t(gen_t)))
+          when allows_boolean(gen_t) =>
+        snd(rhs) =*= Boolean_t
       /* rhs type inferred */
       | (Declared(Boolean_t), Inferred(Generic_t(gen_t)))
           when allows_boolean(gen_t) =>
         snd(rhs) =.= Boolean_t
 
+      /* lhs type defined */
+      | (Defined(Generic_t(gen_t)), Declared(Boolean_t))
+          when allows_boolean(gen_t) =>
+        snd(rhs) =*= Boolean_t
       /* lhs type inferred */
       | (Inferred(Generic_t(gen_t)), Declared(Boolean_t))
           when allows_boolean(gen_t) =>

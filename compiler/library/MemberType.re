@@ -6,7 +6,7 @@ type member_type =
   | Object_t(Hashtbl.t(string, member_ref))
   | Function_t(list(member_ref), member_ref)
   | JSX_t
-  | View_t
+  | View_t(list(member_ref), member_ref)
   | State_t
   | Style_t
   | Module_t(
@@ -24,6 +24,7 @@ and generic_type =
   | Callable_t(list(member_ref), member_ref)
 and member_ref = ref(eventual_type)
 and eventual_type =
+  | Defined(member_type)
   | Inferred(member_type)
   | Declared(member_type);
 
@@ -33,5 +34,6 @@ let no_ctx = x => (x, ref(None));
 
 let typeof =
   fun
+  | Defined(t)
   | Declared(t)
   | Inferred(t) => t;

@@ -50,7 +50,7 @@ let add =
 
         Hashtbl.add(
           global_scope.module_tbl,
-          target,
+          absolute_path,
           Loaded(absolute_path, x),
         );
       | None =>
@@ -76,16 +76,17 @@ let create = create_desc => {
 
   let rec compiler = {
     add: path => {
-      Log.info("AFSLDASKD %s", path);
-
       if (status^ != Running) {
         status := Running;
       };
 
-      if (Hashtbl.mem(global_scope^.module_tbl, path)) {
+      let desc = create_desc(path);
+      let absolute_path = desc.absolute_path;
+
+      if (Hashtbl.mem(global_scope^.module_tbl, absolute_path)) {
         [];
       } else {
-        create_desc(path) |> add(global_scope^);
+        add(global_scope^, desc);
       };
     },
     add_rec: path => compiler.add(path) |> List.iter(compiler.add_rec),

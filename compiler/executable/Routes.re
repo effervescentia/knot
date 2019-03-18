@@ -4,6 +4,7 @@ open Kore.Compiler;
 
 module Response = Server_Response;
 module Generator = KnotGenerate.Generator;
+module CompilerUtil = KnotCompile.Util;
 
 let log_incoming = (~addon=?, ~emoji=Emoji.chequered_flag, req_d, uri) =>
   Log.info(
@@ -65,7 +66,7 @@ let put_module = (compiler, req_d, uri) =>
     },
   );
 
-let get_module = (compiler, req_d, uri) =>
+let get_module = ({source_dir}, compiler, req_d, uri) =>
   read_to_string(
     req_d,
     module_path => {
@@ -81,6 +82,7 @@ let get_module = (compiler, req_d, uri) =>
             Generator.generate(
               str =>
                 Bigstring.of_string(str) |> Body.write_bigstring(res_body),
+              Util.normalize_module(source_dir),
               ast,
             );
 
@@ -164,10 +166,10 @@ let kill_server = (close_server, req_d, uri) => {
   close_server();
 };
 
-let route_mapper = (compiler, close_server) =>
+let route_mapper = (paths, compiler, close_server) =>
   fun
   | (`PUT, "module") => Some(put_module(compiler))
-  | (`POST, "module") => Some(get_module(compiler))
+  | (`POST, "module") => Some(get_module(paths, compiler))
   | (`DELETE, "module") => Some(invalidate_module(compiler))
   | (`POST, "module/status") => Some(get_module_status(compiler))
   | (`DELETE, "context") => Some(invalidate_context(compiler))

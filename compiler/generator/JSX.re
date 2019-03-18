@@ -1,6 +1,6 @@
 open Core;
 
-let jsxGlobal = Printf.sprintf("%s.jsx", globals_map);
+let jsxGlobal = "$$_jsxPlugin.main";
 let createEl = Printf.sprintf("%s.createElement(%s)", jsxGlobal);
 let createFrag = Printf.sprintf("%s.createFragment(%s)", jsxGlobal);
 

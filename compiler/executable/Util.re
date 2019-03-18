@@ -9,6 +9,15 @@ let normalize_path = (root_dir, file) =>
     file;
   };
 
+let normalize_module = (source_dir, path) =>
+  if (String.length(path) == 0) {
+    raise(InvalidModule);
+  } else if (is_source_module(path)) {
+    to_path_segment(path) |> Filename.concat(source_dir);
+  } else {
+    path;
+  };
+
 let is_within_dir = (parent_dir, path) =>
   String.sub(path, 0, String.length(parent_dir)) == parent_dir;
 
@@ -19,4 +28,5 @@ let rec clean_directory =
 
       Unix.rmdir(res);
     }
+
   | res => Unix.unlink(res);
