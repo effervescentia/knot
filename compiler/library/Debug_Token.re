@@ -43,6 +43,7 @@ let print_tkn =
       (
         switch (kwd) {
         | Main => "main"
+        | Module => "module"
         | From => "from"
         | Import => "import"
         | Const => "const"

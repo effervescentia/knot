@@ -1,5 +1,6 @@
 type keyword =
   | Main
+  | Module
   | Import
   | From
   | Const

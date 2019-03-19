@@ -147,6 +147,8 @@ let get_module_status = (compiler, req_d, uri) =>
           | None => "pending"
         );
 
+      compiler.iter_modules(Log.info("MODULE: %s"));
+
       Log.info(
         "%s  [%s] (%s)",
         Emoji.vertical_traffic_light,

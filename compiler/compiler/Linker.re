@@ -16,7 +16,7 @@ let link =
           (),
         );
 
-      Analyzer.analyze(~scope, (), loaded_module)
+      Analyzer.analyze(~scope, loaded_module)
       |> (
         fun
         | Some(ast) =>
@@ -27,4 +27,19 @@ let link =
         | None => raise(InvalidProgram(target))
       );
     }
+  );
+
+let link_defn =
+  KnotAnalyze.Scope.(
+    (
+      global_scope,
+      {target, absolute_path, relative_path, pretty_path},
+      loaded_module,
+    ) =>
+      Analyzer.analyze_defn(global_scope, loaded_module)
+      |> (
+        fun
+        | Some(type_) => type_
+        | None => raise(InvalidProgram(target))
+      )
   );

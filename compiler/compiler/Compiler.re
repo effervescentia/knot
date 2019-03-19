@@ -2,6 +2,7 @@ open Core;
 open KnotAnalyze.Scope;
 
 module Scope = KnotAnalyze.Scope;
+module Parser = KnotParse.Parser;
 
 type status =
   | Idle
@@ -10,6 +11,7 @@ type status =
 
 type t = {
   add: string => list(string),
+  inject: (string, string) => unit,
   add_rec: string => unit,
   status: unit => status,
   complete: unit => unit,
@@ -27,7 +29,7 @@ let add =
     ) => {
   Log.info("%s  %s (%s)", Emoji.link, pretty_path, relative_path);
 
-  let loaded = Loader.load(absolute_path);
+  let loaded = Loader.load(Parser.prog, absolute_path);
 
   Log.info(
     "%s  %s (%s)",
@@ -67,6 +69,33 @@ let add =
   );
 };
 
+let inject =
+    (
+      global_scope,
+      {target, absolute_path, relative_path, pretty_path} as desc,
+      name,
+    ) => {
+  Log.info("%s  %s (%s)", Emoji.syringe, pretty_path, name);
+
+  let loaded = Loader.load(Parser.defn, absolute_path);
+
+  Log.info(
+    "%s  %s (%s)",
+    Emoji.left_pointing_magnifying_glass,
+    pretty_path,
+    name,
+  );
+
+  Linker.link_defn(global_scope, desc, loaded)
+  |> (
+    type_ => {
+      Log.info("%s  %s (%s)", Emoji.heavy_check_mark, pretty_path, name);
+
+      Hashtbl.add(global_scope.module_tbl, name, Injected(type_));
+    }
+  );
+};
+
 let create_scope = () =>
   Scope.create(~label="global", ~module_tbl=Hashtbl.create(24), ());
 
@@ -75,6 +104,14 @@ let create = create_desc => {
   let global_scope = ref(create_scope());
 
   let rec compiler = {
+    inject: (path, name) => {
+      let desc = create_desc(path);
+      let absolute_path = desc.absolute_path;
+
+      if (Filename.extension(absolute_path) == ".kd") {
+        inject(global_scope^, desc, name);
+      };
+    },
     add: path => {
       if (status^ != Running) {
         status := Running;
@@ -101,7 +138,7 @@ let create = create_desc => {
       if (Hashtbl.mem(global_scope^.module_tbl, path)) {
         switch (Hashtbl.find(global_scope^.module_tbl, path)) {
         | Loaded(_, (ast, _)) => Some(ast)
-        | NotLoaded(_) => None
+        | _ => None
         };
       } else {
         Hashtbl.to_seq_keys(global_scope^.module_tbl)

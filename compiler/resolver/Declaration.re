@@ -3,12 +3,6 @@ open NestedHashtbl;
 
 exception GenericConstant;
 
-let (=<<) = (x, y) => {
-  y(x);
-
-  x;
-};
-
 let resolve_callable = (params, exprs) => {
   let param_types = List.map(opt_type_ref, params);
   let return_type =

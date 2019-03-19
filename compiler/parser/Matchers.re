@@ -12,6 +12,7 @@ let token = (x, input) => (exactly(x) |> lexeme)(input);
 let kwd = x => token(Keyword(x));
 
 /* keywords */
+let module_ = kwd(Module);
 let import = kwd(Import)
 and from = kwd(From)
 and const = kwd(Const)

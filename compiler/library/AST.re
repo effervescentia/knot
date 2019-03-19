@@ -76,4 +76,5 @@ type module_ =
 and ast_module = ctxl_promise(module_)
 and linked_module =
   | NotLoaded(list(unit => unit))
-  | Loaded(string, ast_module);
+  | Loaded(string, ast_module)
+  | Injected(member_type);

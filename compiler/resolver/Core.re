@@ -4,6 +4,12 @@ include Context;
 
 module NestedHashtbl = Knot.NestedHashtbl;
 
+let (=<<) = (x, y) => {
+  y(x);
+
+  x;
+};
+
 let rec (=??) = (x, y) =>
   switch (x, y) {
   /* both of same type */

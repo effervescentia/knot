@@ -15,6 +15,7 @@ let rec print_member_type =
   | Generic_t(Some(Callable_t(args, ret)))
   | View_t(args, ret) => print_callable(args, ret)
   | Generic_t(None) => "any"
+  | Object_t(members)
   | Generic_t(Some(Keyed_t(members)))
   | Module_t(_, members, _) =>
     print_members(members) |> Printf.sprintf("{%s}")

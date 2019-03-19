@@ -7,6 +7,11 @@ let () = {
   let desc_creator = PathResolver.simple(paths) |> Config.create_descriptor;
   let compiler = Compiler.create(desc_creator);
 
+  compiler.inject(
+    Filename.concat(Unix.getcwd(), "definitions/jsx.kd"),
+    "@knot/jsx",
+  );
+
   if (config.is_server) {
     Log.info(
       "%s  running server (:%i)",

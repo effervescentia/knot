@@ -7,6 +7,7 @@ let (==>) = (s, t) => s ===> Keyword(t);
 let lexer =
   Lexers([
     "import" ==> Import,
+    "module" ==> Module,
     "from" ==> From,
     "const" ==> Const,
     "let" ==> Let,

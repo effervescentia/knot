@@ -5,9 +5,9 @@ export default function wrapResult(
   result: string,
   { plugins }: InternalOptions
 ): string {
-  return `import * as $$_jsxPlugin from '${
+  return `import {main as $$_jsxPlugin} from '${
     plugins.jsx
-  }';import * as $$_stylePlugin from '${
+  }';import {main as $$_stylePlugin} from '${
     plugins.style
   }';import * as ${UTILS} from '${
     plugins.utils
