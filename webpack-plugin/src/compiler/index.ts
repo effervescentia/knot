@@ -5,9 +5,6 @@ import { Compiler, Options } from '../types';
 import * as Tasks from './tasks';
 
 export default function createCompiler(options: Options): Compiler {
-  const execaOpts = {
-    cwd: knotBinary.path
-  };
   const knotArgs: ReadonlyArray<any> = [
     '-server',
     '-port',
@@ -17,8 +14,10 @@ export default function createCompiler(options: Options): Compiler {
     ...(options.debug ? ['-debug'] : [])
   ];
   const proc = options.knot
-    ? execa(options.knot, [...knotArgs], execaOpts)
-    : execa('esy', ['x', 'knotc.exe', ...knotArgs], execaOpts);
+    ? execa(options.knot, [...knotArgs])
+    : execa('esy', ['x', 'knotc.exe', ...knotArgs], {
+        cwd: knotBinary.path
+      });
   const baseUrl = `http://localhost:${options.port}`;
 
   // tslint:disable-next-line:no-console

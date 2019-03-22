@@ -66,7 +66,7 @@ jobs:
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            cp -L _esy/default/store/i/knot-*/bin/knotc.exe /tmp/workspace/knotc.exe
+            cp -RL _esy/default/store/i/knot-* /tmp/workspace/knot
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -78,7 +78,7 @@ jobs:
         environment:
           ## this enables colors in the output
           TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knotc.exe
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
     working_directory: ~/app
     steps:
       - checkout
