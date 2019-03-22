@@ -99,6 +99,13 @@ and print_expr =
     Printf.sprintf("(%s && %s)", lhs |~> print_expr, rhs |~> print_expr)
   | OrExpr(lhs, rhs) =>
     Printf.sprintf("(%s || %s)", lhs |~> print_expr, rhs |~> print_expr)
+  | TernaryExpr(predicate, if_expr, else_expr) =>
+    Printf.sprintf(
+      "(%s ? %s : %s)",
+      predicate |~> print_expr,
+      if_expr |~> print_expr,
+      else_expr |~> print_expr,
+    )
 and print_ref =
   fun
   | Variable(name) => Printf.sprintf("variable(%s)", name)

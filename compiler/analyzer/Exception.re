@@ -1,0 +1,2 @@
+exception InvalidScope;
+exception MultipleMainDefinitions;

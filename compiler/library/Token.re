@@ -27,6 +27,7 @@ type token =
   | Tilde
   | DollarSign
   | NumberSign
+  | QuestionMark
   | Plus
   | Minus
   | Asterisk

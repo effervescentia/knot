@@ -1,8 +1,6 @@
 open Core;
 open Scope;
 
-exception MultipleMainDefinitions;
-
 let rec analyze_type =
   fun
   | BooleanDefn => Boolean_t
