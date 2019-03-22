@@ -1,14 +1,14 @@
 main view TodoList(props) -> {
-  <section class="main">
+  <section className="main">
     <input
       id="toggle-all"
-      class="toggle-all"
+      className="toggle-all"
       type="checkbox"
       // onChange={$toggleAll}
       // checked={$activeCount == 0}
     />
     <label for="toggle-all" />
-    <ul class="todo-list">
+    <ul className="todo-list">
       // {$filteredTodos(filter).map((todo, index) -> (
       //   <TodoItem
       //     todo

@@ -6,11 +6,11 @@ main view TodoFooter() -> {
   //   </button>
   // ) : nil;
 
-  <footer class="footer">
-    <span class="todo-count">
+  <footer className="footer">
+    <span className="todo-count">
       // <strong>{$activeCount}</strong> {"item" | pluralize($activeCount)} left
     </span>
-    <ul class="filters">
+    <ul className="filters">
       <FilterItem path="" selected={true}>
         {"All"}
       </FilterItem>

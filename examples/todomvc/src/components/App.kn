@@ -7,16 +7,14 @@ main view App() -> {
       <h1>{"todos"}</h1>
       <input
         placeholder="What needs to be done?"
-        autofocus={true}
+        autoFocus={true}
       />
       // <input(.newTodo)
-      //   placeholder="What needs to be done?"
       //   // value={$formValue}
       //   // onChange={(value) -> $formValue = value}
-      //   autofocus={true}
       // />
     </header>
     // {content}
-    <TodoFooter />
+    {true ? <TodoFooter /> : <span />}
   </div>
 }
