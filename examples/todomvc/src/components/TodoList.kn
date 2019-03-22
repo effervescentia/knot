@@ -1,0 +1,23 @@
+main view TodoList(props) -> {
+  <section class="main">
+    <input
+      id="toggle-all"
+      class="toggle-all"
+      type="checkbox"
+      // onChange={$toggleAll}
+      // checked={$activeCount == 0}
+    />
+    <label for="toggle-all" />
+    <ul class="todo-list">
+      // {$filteredTodos(filter).map((todo, index) -> (
+      //   <TodoItem
+      //     todo
+      //     index
+      //     editing={editingIndex == index}
+      //     onEdit={() -> editingIndex = index}
+      //     onCancel={() -> editingIndex = -1}
+      //   />
+      // ))}
+    </ul>
+  </section>
+}

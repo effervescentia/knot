@@ -1,0 +1,22 @@
+import TodoList from ".components.TodoList";
+import TodoFooter from ".components.TodoFooter";
+
+main view App() -> {
+  <div>
+    <header>
+      <h1>{"todos"}</h1>
+      <input
+        placeholder="What needs to be done?"
+        autofocus={true}
+      />
+      // <input(.newTodo)
+      //   placeholder="What needs to be done?"
+      //   // value={$formValue}
+      //   // onChange={(value) -> $formValue = value}
+      //   autofocus={true}
+      // />
+    </header>
+    // {content}
+    <TodoFooter />
+  </div>
+}

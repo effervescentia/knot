@@ -1,0 +1,4 @@
+import JSX from "@knot/jsx";
+import App from ".components.App";
+
+main func render(id: string) -> JSX.render(<App />, id);
