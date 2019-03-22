@@ -70,7 +70,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - knotc.exe
+            - knot
 
   test_webpack_react:
     docker:
