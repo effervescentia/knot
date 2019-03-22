@@ -63,9 +63,13 @@ type declaration =
       list(ast_property),
       list(ast_expression),
     )
-  | FunctionDecl(list(ast_property), list(ast_expression))
+  | FunctionDecl(list(ast_property), list(ast_function_expression))
   | StyleDecl(list(ast_property), list(style_rule_set))
-and ast_declaration = ctxl_promise(declaration);
+and ast_declaration = ctxl_promise(declaration)
+and function_expression =
+  | ExpressionStatement(ast_expression)
+  | VariableDeclaration(string, ast_expression)
+and ast_function_expression = ctxl_promise(function_expression);
 
 type statement =
   | Import(string, list(ast_import_target))

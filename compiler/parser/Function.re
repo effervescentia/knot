@@ -1,14 +1,23 @@
 open Core;
 
-let lambda = Expression.expr ==> no_ctx % (expr => [expr]) |> M.terminated;
+let lambda =
+  Expression.expr
+  ==> no_ctx
+  % (expr => [ExpressionStatement(expr)])
+  |> M.terminated;
 let body =
   M.lambda
   >> (
     Expression.expr
     |> M.terminated
-    |> M.closure
-    ==> List.map(no_ctx)
-    <|> lambda
+    ==> (
+      expr =>
+        ExpressionStatement(expr)
+        <|> Variable.decl
+        |> M.closure
+        ==> List.map(no_ctx)
+        <|> lambda
+    )
   );
 let expr = input =>
   (Property.list >>= (params => body ==> (exprs => (params, exprs))))(input);
