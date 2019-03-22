@@ -51,7 +51,13 @@
         "faraday-lwt-unix", "uri"
       ],
       "main": "Main",
-      "name": "knotc.exe"
+      "name": "knotc.exe",
+      "rawBuildConfigFooter": [
+        "(install",
+        "  (section share_root)",
+        "  (files (definitions/jsx.kd as knot/definitions/jsx.kd) )",
+        ")"
+      ]
     },
     "test": {
       "require": [

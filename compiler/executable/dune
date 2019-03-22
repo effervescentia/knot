@@ -9,3 +9,8 @@
    (public_name knotc.exe)  ;  From package.json name field
    (libraries  knot.lib knot.generate knot.compile unix core httpaf lwt lwt.unix faraday-lwt-unix uri ) ;  From package.json require field (array of strings)
 )
+ 
+ (install
+   (section share_root)
+   (files (definitions/jsx.kd as knot/definitions/jsx.kd) )
+ )

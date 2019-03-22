@@ -8,7 +8,10 @@ let () = {
   let compiler = Compiler.create(desc_creator);
 
   compiler.inject(
-    Filename.concat(Unix.getcwd(), "definitions/jsx.kd"),
+    Filename.concat(
+      Sys.argv[0] |> Filename.dirname |> Filename.dirname,
+      "share/knot/definitions/jsx.kd",
+    ),
     "@knot/jsx",
   );
 
