@@ -12,6 +12,13 @@ let rec generate =
   | GTEExpr(lhs, rhs) => gen_binary(">=", lhs, rhs)
   | AndExpr(lhs, rhs) => gen_binary("&&", lhs, rhs)
   | OrExpr(lhs, rhs) => gen_binary("||", lhs, rhs)
+  | TernaryExpr((pred, _), (if_expr, _), (else_expr, _)) =>
+    Printf.sprintf(
+      "%s?%s:%s",
+      generate(pred),
+      generate(if_expr),
+      generate(else_expr),
+    )
   | Reference(reference) => fst(reference) |> Reference.generate(generate)
   | JSX(jsx) => JSX.generate(generate, jsx)
   | NumericLit(n) => string_of_int(n)

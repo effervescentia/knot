@@ -18,9 +18,16 @@ let rec analyze = (scope, expr) => {
         analyze(scope, lhs);
         analyze(scope, rhs);
       }
+    | TernaryExpr(pred, if_expr, else_expr) => {
+        analyze(scope, pred);
+        analyze(scope, if_expr);
+        analyze(scope, else_expr);
+      }
     | Reference(x) => Reference.analyze(analyze, scope, x)
     | JSX(x) => JSX.analyze(analyze, scope, x)
-    | _ => ()
+    | NumericLit(_)
+    | BooleanLit(_)
+    | StringLit(_) => ()
   );
 
   Resolver.of_expression(expr) |> scope.resolve;

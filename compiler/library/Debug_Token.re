@@ -15,6 +15,7 @@ let print_tkn =
     | Tilde => "~"
     | DollarSign => "$"
     | NumberSign => "#"
+    | QuestionMark => "?"
     | Plus => "+"
     | Minus => "-"
     | Asterisk => "*"

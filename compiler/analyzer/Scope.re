@@ -1,7 +1,5 @@
 open Core;
 
-exception InvalidScope;
-
 type t = {
   resolve: resolve_target => unit,
   nest: (~label: string=?, ~size: int=?, unit) => t,

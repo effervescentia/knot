@@ -12,6 +12,7 @@ type expression =
   | GTEExpr(ast_expression, ast_expression)
   | AndExpr(ast_expression, ast_expression)
   | OrExpr(ast_expression, ast_expression)
+  | TernaryExpr(ast_expression, ast_expression, ast_expression)
   | Reference(ast_reference)
   | JSX(jsx)
   | NumericLit(int)

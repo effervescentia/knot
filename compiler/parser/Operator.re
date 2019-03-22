@@ -14,6 +14,8 @@ and gte =
   >> return((x, y) => GTEExpr(no_ctx(x), no_ctx(y)))
 and or_ = M.logical_or >> return((x, y) => OrExpr(no_ctx(x), no_ctx(y)))
 and and_ = M.logical_and >> return((x, y) => AndExpr(no_ctx(x), no_ctx(y)))
+and ternary_ =
+  M.question_mark >> return((x, y) => AndExpr(no_ctx(x), no_ctx(y)))
 and dot =
   M.period
   >> return(x =>
