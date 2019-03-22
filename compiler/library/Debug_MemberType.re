@@ -16,16 +16,28 @@ let rec print_member_type =
   | View_t(args, ret) => print_callable(args, ret)
   | Generic_t(None) => "any"
   | Object_t(members)
-  | Generic_t(Some(Keyed_t(members)))
-  | Module_t(_, members, _) =>
+  | Generic_t(Some(Keyed_t(members))) =>
     print_members(members) |> Printf.sprintf("{%s}")
+  | Module_t(_, members, main_export) =>
+    print_members(members)
+    |> (
+      s =>
+        Printf.sprintf(
+          "{%s%s}",
+          s,
+          switch (main_export) {
+          | Some(t) => print_type_ref(t) |> Printf.sprintf("\n\t$main: %s\n")
+          | None => ""
+          },
+        )
+    )
   | _ => raise(DebugTypeNotSupported)
 and print_type_ref = t => typeof(t^) |> print_member_type
 and print_callable = (arg_types, return_type) =>
   Printf.sprintf(
     "(%s) -> %s",
     Util.print_comma_separated(print_type_ref, arg_types),
-    typeof(return_type^) |> print_member_type,
+    print_type_ref(return_type),
   )
 and print_members = members =>
   Hashtbl.fold(

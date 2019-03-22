@@ -50,11 +50,7 @@ let add =
           relative_path,
         );
 
-        Hashtbl.add(
-          global_scope.module_tbl,
-          absolute_path,
-          Loaded(absolute_path, x),
-        );
+        Hashtbl.add(global_scope.module_tbl, absolute_path, Loaded(x));
       | None =>
         Log.info(
           "%s  %s (%s)",
@@ -117,13 +113,19 @@ let create = create_desc => {
         status := Running;
       };
 
-      let desc = create_desc(path);
-      let absolute_path = desc.absolute_path;
-
-      if (Hashtbl.mem(global_scope^.module_tbl, absolute_path)) {
+      if (String.length(path) != 0
+          && path.[0] == '@'
+          && Hashtbl.mem(global_scope^.module_tbl, path)) {
         [];
       } else {
-        add(global_scope^, desc);
+        let desc = create_desc(path);
+        let absolute_path = desc.absolute_path;
+
+        if (Hashtbl.mem(global_scope^.module_tbl, absolute_path)) {
+          [];
+        } else {
+          add(global_scope^, desc);
+        };
       };
     },
     add_rec: path => compiler.add(path) |> List.iter(compiler.add_rec),
@@ -137,7 +139,7 @@ let create = create_desc => {
     find: path =>
       if (Hashtbl.mem(global_scope^.module_tbl, path)) {
         switch (Hashtbl.find(global_scope^.module_tbl, path)) {
-        | Loaded(_, (ast, _)) => Some(ast)
+        | Loaded((ast, _)) => Some(ast)
         | _ => None
         };
       } else {

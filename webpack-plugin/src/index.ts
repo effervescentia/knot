@@ -77,6 +77,24 @@ export default class KnotWebpackPlugin {
       invalidateModule(knotCompiler, kill)
     );
 
+    compiler.hooks.normalModuleFactory.tap(KnotWebpackPlugin.name, nmf => {
+      nmf.hooks.beforeResolve.tap(KnotWebpackPlugin.name, module => {
+        if (!module) {
+          return;
+        }
+
+        if (module.request.startsWith('@knot/')) {
+          const [, plugin] = module.request.split('/');
+
+          if (plugin in options.plugins) {
+            module.request = options.plugins[plugin];
+          }
+        }
+
+        return module;
+      });
+    });
+
     compiler.hooks.compilation.tap(KnotWebpackPlugin.name, compilation => {
       compilation.hooks.succeedModule.tap(
         KnotWebpackPlugin.name,

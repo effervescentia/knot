@@ -8,7 +8,7 @@ let generate_stmt = (printer, to_module_name) =>
   | Main(name, decl) => {
       Declaration.generate(printer, name, decl);
 
-      Printf.sprintf("export {%s as main}", name) |> printer;
+      Printf.sprintf("export {%s as main};", name) |> printer;
     };
 
 let generate = (printer, to_module_name) =>

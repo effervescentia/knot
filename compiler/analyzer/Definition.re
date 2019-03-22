@@ -5,6 +5,11 @@ exception MultipleMainDefinitions;
 
 let rec analyze_type =
   fun
+  | BooleanDefn => Boolean_t
+  | NumberDefn => Number_t
+  | StringDefn => String_t
+  | JSXDefn => JSX_t
+  | NilDefn => Nil_t
   | ObjectDefn(members) =>
     Object_t(
       Hashtbl.fold(
@@ -16,7 +21,11 @@ let rec analyze_type =
         Hashtbl.create(Hashtbl.length(members)),
       ),
     )
-  | _ => raise(NotImplemented);
+  | FunctionDefn(args, ret) =>
+    Function_t(
+      List.map(x => ref(Declared(analyze_type(x))), args),
+      ref(Declared(analyze_type(ret))),
+    );
 
 let analyze_stmt = (tbl, main_defn) =>
   fun

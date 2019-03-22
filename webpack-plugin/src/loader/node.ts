@@ -1,4 +1,4 @@
-import { GLOBALS, MODULES, UTILS } from '../constants';
+import { UTILS } from '../constants';
 import { InternalOptions } from '../types';
 
 export default function wrapResult(
@@ -9,7 +9,5 @@ export default function wrapResult(
     plugins.jsx
   }';import {main as $$_stylePlugin} from '${
     plugins.style
-  }';import * as ${UTILS} from '${
-    plugins.utils
-  }';var ${MODULES}={'${GLOBALS}':{jsx:$$_jsxPlugin,style:$$_stylePlugin},'@knot/jsx':$$_jsxPlugin,'@knot/style':$$_stylePlugin};${result}`;
+  }';import * as ${UTILS} from '${plugins.utils}';${result}`;
 }

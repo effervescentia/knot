@@ -29,7 +29,7 @@ and object_defn = input =>
           props,
         )
     )
-    ==> (_ => ObjectDefn(Hashtbl.create(3)))
+    ==> (tbl => ObjectDefn(tbl))
   )(
     input,
   )

@@ -20,7 +20,9 @@ let (>=>) = (promise, resolver) =>
 
 let rec create = module_tbl => {
   resolve: (symbol_tbl, x) => {
-    Debug.print_resolve_target(x) |> Log.info("RESOLVING: %s");
+    Debug.print_resolve_target(x)
+    |> Log.debug("resolving  %s\n%s", Emoji.hourglass_with_flowing_sand);
+
     resolve(module_tbl, symbol_tbl, x);
   },
 }

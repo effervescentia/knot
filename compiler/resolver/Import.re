@@ -1,15 +1,22 @@
 open Core;
 open NestedHashtbl;
 
+exception InferredModuleType;
+
 let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   let module_type =
     switch (Hashtbl.find(module_tbl, module_)) {
-    /* module has been loaded and linked */
-    | Loaded(_, ast) => Some(opt_type_ref(ast))
+    | Loaded(ast) =>
+      let ast_ref = opt_type_ref(ast);
+      switch (ast_ref^) {
+      /* inferred module types are not allowed */
+      | Inferred(_) => raise(InferredModuleType)
 
-    /* module is not loaded but has callbacks registered */
-    | NotLoaded(_) => Some(declared(any))
+      /* module has been loaded and linked */
+      | _ => Some(ast_ref)
+      };
 
+    /* module definition has been injected by the compiler */
     | Injected(type_) => Some(declared(type_))
 
     /* module has not been registered */
@@ -41,13 +48,15 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       (
         switch (main_export) {
         | Some(typ) => typ
-
         | None => raise(InvalidTypeReference)
         }
       )
       =<< symbol_tbl.add(name)
 
-    | (_, NamedExport(name, alias)) =>
+    | (
+        Some({contents: Declared(Module_t(_, export_tbl, _))}),
+        NamedExport(name, alias),
+      ) =>
       (
         switch (alias) {
         | Some(s) => s
@@ -56,11 +65,15 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       )
       |> (
         s =>
-          /* symbol_tbl.add(s, Any_t); */
-          declared(any)
+          (
+            try (Hashtbl.find(export_tbl, name)) {
+            | Not_found => inferred(any) =<< Hashtbl.add(export_tbl, name)
+            }
+          )
+          =<< symbol_tbl.add(s)
       )
 
-    | _ => inferred(any)
+    | _ => defined(any)
     }
   )
   <:= promise;
