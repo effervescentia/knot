@@ -14,6 +14,16 @@ let relative_path = (extract, absolute_path) => {
   let {paths} = get();
   Util.chop_path_prefix(extract(paths), absolute_path);
 };
+
+let is_config_file =
+  String.lowercase_ascii
+  % (
+    fun
+    | ".knot.yml"
+    | ".knot.yaml" => true
+    | _ => false
+  );
+
 let source_path = relative_path(({source_dir}) => source_dir);
 let root_path = relative_path(({root_dir}) => root_dir);
 let is_main = path => path == get().main;
@@ -21,37 +31,37 @@ let module_name = module_ => is_main(module_) ? main_alias : module_;
 
 let rec find_file = entry => {
   let dir = Filename.dirname(entry);
-  let dir_handle = Unix.opendir(dir);
 
-  let rec find = () =>
-    switch (Unix.readdir(dir_handle)) {
-    | name =>
-      switch (String.lowercase_ascii(name)) {
-      | ".knot.yml"
-      | ".knot.yaml" => Some(Filename.concat(dir, name))
-      | _ => find()
-      }
-    | exception End_of_file =>
-      Unix.closedir(dir_handle);
+  if (Sys.file_exists(entry) && Sys.is_directory(entry)) {
+    let dir_handle = Unix.opendir(entry);
 
-      None;
-    };
+    let rec find = () =>
+      switch (Unix.readdir(dir_handle)) {
+      | name =>
+        is_config_file(name) ? Some(Filename.concat(entry, name)) : find()
+      | exception End_of_file =>
+        Unix.closedir(dir_handle);
 
-  find()
-  |> (
-    fun
-    | Some(res) => res
-    | None =>
-      if (Filename.dirname(dir) == dir) {
-        raise(MissingRootDirectory);
-      } else {
-        find_file(dir);
-      }
-  );
+        None;
+      };
+
+    find()
+    |> (
+      fun
+      | Some(res) => res
+      | None =>
+        if (dir == entry) {
+          raise(MissingRootDirectory);
+        } else {
+          find_file(dir);
+        }
+    );
+  } else {
+    find_file(dir);
+  };
 };
 
-let generate_paths = in_path => {
-  let config_file = find_file(in_path);
+let generate_paths = config_file => {
   let root_dir = Filename.dirname(config_file);
 
   {
@@ -63,30 +73,66 @@ let generate_paths = in_path => {
   };
 };
 
+let create_descriptor = (path_resolver, target) => {
+  let absolute_path = path_resolver(target);
+
+  KnotCompile.Core.{
+    target,
+    absolute_path,
+    relative_path: source_path(absolute_path),
+    pretty_path: module_name(target),
+  };
+};
+
 let set_from_args = cwd => {
-  let main = ref(None);
+  let is_server = ref(false);
+  let is_debug = ref(false);
+  let config_file = ref("");
+  let main = ref("");
+  let port = ref(1338);
 
   Arg.parse(
-    [],
+    [
+      ("-debug", Arg.Set(is_debug), "enable a higher level of logging"),
+      (
+        "-server",
+        Arg.Set(is_server),
+        "run the compiler as a server for incremental or lazily-evaluated builds",
+      ),
+      (
+        "-config",
+        Arg.Set_string(config_file),
+        "path to the directory containing your .knot.yml file",
+      ),
+      ("-port", Arg.Set_int(port), "the port to run on when in server mode"),
+    ],
     x =>
-      if (main^ == None) {
-        main := Some(x);
+      if (main^ == "") {
+        main := Util.normalize_path(cwd, x);
       } else {
         raise(Arg.Bad(Printf.sprintf("unexpected argument: %s", x)));
       },
     "knotc <entrypoint>",
   );
 
-  let in_path =
-    Util.from_option(
-      Arg.Bad("must provide the path to a source file"),
-      main^,
-    )
-    |> Util.normalize_path(cwd);
-  let config = {main: in_path, paths: generate_paths(in_path)};
+  let config = {
+    main: main^,
+    is_server: is_server^,
+    is_debug: is_debug^,
+    port: port^,
+    paths:
+      find_file(is_server^ ? Util.normalize_path(cwd, config_file^) : main^)
+      |> generate_paths,
+  };
 
-  if (!Util.is_within_dir(config.paths.source_dir, in_path)) {
-    raise(EntryPointOutsideBuildContext(in_path));
+  if (!config.is_server) {
+    if (main^ == "") {
+      raise(Arg.Bad("must provide the path to a source file"));
+    };
+
+    if (!Util.is_within_dir(config.paths.source_dir, main^)) {
+      raise(EntryPointOutsideBuildContext(main^));
+    };
   };
 
   global := Some(config);

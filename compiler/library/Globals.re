@@ -1,53 +1,33 @@
-module LazyStream = Opal.LazyStream;
+include Exception;
 
-exception NotImplemented;
+module LazyStream = Opal.LazyStream;
+module Log = Log;
+module Emoji = Emoji;
 
 let (%) = (f, g, x) => f(x) |> g;
 
-type member_type =
-  | Number_t
-  | String_t
-  | Boolean_t
-  | Array_t(member_type)
-  | Object_t(Hashtbl.t(string, member_type))
-  | Function_t(list(member_type), member_type)
-  | JSX_t
-  | View_t
-  | State_t
-  | Style_t
-  | Module_t(
-      list(string),
-      Hashtbl.t(string, member_type),
-      option(member_type),
-    )
-  | Any_t(int)
-  | Nil_t;
-
-type eventual_ctx('a, 'b) =
-  | Unanalyzed('a)
-  | Pending('a, list(('a, 'b) => unit))
-  | Resolved('a, 'b);
-
-type ctxl_promise('a) = ref(eventual_ctx('a, member_type));
-
-let no_ctx = x => ref(Unanalyzed(x));
-
-let abandon_ctx = x =>
-  switch (x^) {
-  | Unanalyzed(res)
-  | Pending(res, _)
-  | Resolved(res, _) => res
+let some = x => Some(x);
+let w_opt = (x, g, f) =>
+  switch (f) {
+  | Some(y) => g(y)
+  | None => x
   };
+let iff = (a, x, y) => w_opt(y, _ => x, a);
+let is_some = a => iff(a, true, false);
 
-let opt_abandon_ctx =
-  fun
-  | Some(x) => Some(abandon_ctx(x))
-  | None => None;
+let (|?>) = (f, g) => w_opt(None, g % some, f);
+let (|!>) = (f, g) => w_opt((), g, f);
+let (|^>) = (f, g) => w_opt(f, g % (_ => f), f);
+let (|%>) = (f, g) => w_opt(false, g % (_ => true), f);
 
-let opt_transform = transform =>
-  fun
-  | Some(x) => Some(transform(x))
-  | None => None;
+let (|-) = (f, g, x) =>
+  f(x)
+  |> (
+    y => {
+      g(x);
+      y;
+    }
+  );
 
 let reserved = [
   "import",
@@ -60,9 +40,12 @@ let reserved = [
   "style",
   "else",
   "if",
+  "as",
   "mut",
   "get",
   "main",
   "true",
   "false",
 ];
+
+let main_alias = "[main]";

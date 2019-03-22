@@ -1,5 +1,3 @@
-const {
-  render
-} = require("./index.kn");
+const render = require('./index.kn').main;
 
-render("app");
+render('app');

@@ -6,8 +6,11 @@ let decl =
   <|> Function.decl
   <|> View.decl
   <|> Style.decl
-  ==> no_ctx;
-let main_decl = M.main >> decl ==> (d => Main(d));
-let stmt = Import.stmt <|> main_decl <|> (decl ==> (d => Declaration(d)));
+  ==> (((name, decl)) => (name, no_ctx(decl)));
+let main_decl = M.main >> decl ==> (((name, decl)) => Main(name, decl));
+let stmt =
+  Import.stmt
+  <|> main_decl
+  <|> (decl ==> (((name, decl)) => Declaration(name, decl)));
 
 let stmts = many(stmt) ==> (l => Module(l));

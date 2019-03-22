@@ -1,7 +1,5 @@
 open Core;
 
-exception InvalidDotAccess;
-
 let add = M.plus >> return((x, y) => AddExpr(no_ctx(x), no_ctx(y)))
 and sub = M.minus >> return((x, y) => SubExpr(no_ctx(x), no_ctx(y)))
 and mul = M.asterisk >> return((x, y) => MulExpr(no_ctx(x), no_ctx(y)))
@@ -21,5 +19,6 @@ and dot =
   >> return(x =>
        fun
        | Variable(y) => DotAccess(no_ctx(x), y)
+
        | _ => raise(InvalidDotAccess)
      );

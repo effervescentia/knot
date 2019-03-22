@@ -1,4 +1,7 @@
 node_modules
+build
+dist
+.nyc_output
 *.log
 *.install
 *.cache

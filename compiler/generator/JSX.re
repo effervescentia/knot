@@ -1,6 +1,6 @@
 open Core;
 
-let jsxGlobal = Printf.sprintf("%s.jsx", globals_map);
+let jsxGlobal = "$$_jsxPlugin";
 let createEl = Printf.sprintf("%s.createElement(%s)", jsxGlobal);
 let createFrag = Printf.sprintf("%s.createFragment(%s)", jsxGlobal);
 
@@ -16,7 +16,7 @@ let gen_jsx_prop = (gen_expression, (name, value)) =>
   Printf.sprintf(
     "%s:%s",
     Property.gen_key(name),
-    abandon_ctx(value) |> gen_expression,
+    fst(value) |> gen_expression,
   );
 
 let rec generate = gen_expression =>
@@ -44,4 +44,4 @@ let rec generate = gen_expression =>
   | Fragment(children) =>
     gen_list(generate(gen_expression), children) |> createFrag
   | TextNode(s) => s |> gen_string
-  | EvalNode(expr) => abandon_ctx(expr) |> gen_expression;
+  | EvalNode((expr, _)) => gen_expression(expr);

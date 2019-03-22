@@ -17,5 +17,5 @@ let decl =
   M.decl(M.func)
   >>= (
     name =>
-      expr ==> (((params, exprs)) => FunctionDecl(name, params, exprs))
+      expr ==> (((params, exprs)) => (name, FunctionDecl(params, exprs)))
   );

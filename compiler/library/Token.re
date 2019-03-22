@@ -1,5 +1,6 @@
 type keyword =
   | Main
+  | Module
   | Import
   | From
   | Const
@@ -9,6 +10,7 @@ type keyword =
   | State
   | Style
   | If
+  | As
   | Else
   | Get
   | Mut;

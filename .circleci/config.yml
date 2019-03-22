@@ -8,13 +8,13 @@ defaults:
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}
       - compiler_cache-v4
-  webpack_loader_cache: &webpack_loader_cache
-    key: webpack_loader_cache-v1-{{ checksum "webpack-loader/yarn.lock" }}-{{ .Branch }}
-  webpack_loader_cache_keys: &webpack_loader_cache_keys
+  webpack_react_cache: &webpack_react_cache
+    key: webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
+  webpack_react_cache_keys: &webpack_react_cache_keys
     keys:
-      - webpack_loader_cache-v1-{{ checksum "webpack-loader/yarn.lock" }}-{{ .Branch }}
-      - webpack_loader_cache-v1-{{ checksum "webpack-loader/yarn.lock" }}
-      - webpack_loader_cache-v1
+      - webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
+      - webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
+      - webpack_react_cache-v1
 
 orbs:
   node: circleci/node@0.0.6
@@ -66,11 +66,11 @@ jobs:
           working_directory: ~/project/compiler
           command: |
             mkdir -p /tmp/workspace
-            cp -L _esy/default/store/i/knot-*/bin/Compiler.exe /tmp/workspace/Compiler.exe
+            cp -RL _esy/default/store/i/knot-* /tmp/workspace/knot
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - Compiler.exe
+            - knot
 
   test_webpack_react:
     docker:
@@ -78,15 +78,33 @@ jobs:
         environment:
           ## this enables colors in the output
           TERM: xterm
-          KNOT_BINARY: /tmp/workspace/Compiler.exe
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
     working_directory: ~/app
     steps:
       - checkout
       - restore_cache:
-          <<: *webpack_loader_cache_keys
+          <<: *webpack_react_cache_keys
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
+      - run:
+          name: Install React Plugin
+          working_directory: ./plugins/react
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
+          name: Install CSS Plugin
+          working_directory: ./plugins/css
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
+          name: Install Webpack Plugin
+          working_directory: ./webpack-plugin
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
       - run:
           name: Install
           working_directory: ./examples/webpack-react
@@ -96,7 +114,7 @@ jobs:
           working_directory: ./examples/webpack-react
           command: yarn test
       - save_cache:
-          <<: *webpack_loader_cache
+          <<: *webpack_react_cache
           paths:
             - ~/.cache
 

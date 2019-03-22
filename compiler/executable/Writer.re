@@ -1,5 +1,8 @@
 open Kore;
 
+module Generator = KnotGenerate.Generator;
+module CompilerUtil = KnotCompile.Util;
+
 let clean_build_dir = () => {
   let {paths: {build_dir}} = Config.get();
   Config.root_path(build_dir) |> Log.info("%s  (%s)", Emoji.sparkles);
@@ -10,7 +13,7 @@ let clean_build_dir = () => {
 };
 
 let write = (path, (module_name, ast)) => {
-  let {paths: {build_dir}} = Config.get();
+  let {paths: {build_dir, source_dir}} = Config.get();
   let path = Printf.sprintf("%s.js", path) |> Filename.concat(build_dir);
 
   Filename.dirname(path) |> Core.Unix.mkdir_p;
@@ -22,7 +25,11 @@ let write = (path, (module_name, ast)) => {
   let write_out = output_string(out_channel);
 
   write_out("module.exports=");
-  Generator.generate(write_out, abandon_ctx(ast));
+  Generator.generate(
+    write_out,
+    Util.normalize_module(source_dir),
+    fst(ast),
+  );
 
   close_out(out_channel);
 };

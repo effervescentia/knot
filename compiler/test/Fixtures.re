@@ -1,4 +1,5 @@
 open Core;
+open KnotGenerate.Core;
 
 let all_tokens = [
   Plus,
@@ -118,82 +119,84 @@ let all_tokens = [
 let full_ast =
   Module([
     Import("abc", [no_ctx(MainExport("ABC"))]),
-    Declaration(no_ctx(ConstDecl("numericConst", no_ctx(NumericLit(8))))),
+    Declaration("numericConst", no_ctx(ConstDecl(no_ctx(NumericLit(8))))),
     Declaration(
+      "additionConst",
       no_ctx(
         ConstDecl(
-          "additionConst",
           no_ctx(AddExpr(no_ctx(NumericLit(1)), no_ctx(NumericLit(10)))),
         ),
       ),
     ),
     Declaration(
+      "subtractionConst",
       no_ctx(
         ConstDecl(
-          "subtractionConst",
           no_ctx(SubExpr(no_ctx(NumericLit(8)), no_ctx(NumericLit(2)))),
         ),
       ),
     ),
     Declaration(
+      "multiplicationConst",
       no_ctx(
         ConstDecl(
-          "multiplicationConst",
           no_ctx(MulExpr(no_ctx(NumericLit(2)), no_ctx(NumericLit(3)))),
         ),
       ),
     ),
     Declaration(
+      "divisionConst",
       no_ctx(
         ConstDecl(
-          "divisionConst",
           no_ctx(DivExpr(no_ctx(NumericLit(4)), no_ctx(NumericLit(2)))),
         ),
       ),
     ),
     Declaration(
-      no_ctx(ConstDecl("stringConst", no_ctx(StringLit("Hello, World!")))),
+      "stringConst",
+      no_ctx(ConstDecl(no_ctx(StringLit("Hello, World!")))),
     ),
-    Declaration(no_ctx(ConstDecl("trueConst", no_ctx(BooleanLit(true))))),
+    Declaration("trueConst", no_ctx(ConstDecl(no_ctx(BooleanLit(true))))),
     Declaration(
-      no_ctx(ConstDecl("falseConst", no_ctx(BooleanLit(false)))),
+      "falseConst",
+      no_ctx(ConstDecl(no_ctx(BooleanLit(false)))),
     ),
     Declaration(
+      "lessThanConst",
       no_ctx(
         ConstDecl(
-          "lessThanConst",
           no_ctx(LTExpr(no_ctx(NumericLit(7)), no_ctx(NumericLit(9)))),
         ),
       ),
     ),
     Declaration(
+      "lessThanEqualConst",
       no_ctx(
         ConstDecl(
-          "lessThanEqualConst",
           no_ctx(LTEExpr(no_ctx(NumericLit(8)), no_ctx(NumericLit(2)))),
         ),
       ),
     ),
     Declaration(
+      "greaterThanConst",
       no_ctx(
         ConstDecl(
-          "greaterThanConst",
           no_ctx(GTExpr(no_ctx(NumericLit(2)), no_ctx(NumericLit(4)))),
         ),
       ),
     ),
     Declaration(
+      "greaterThanEqualConst",
       no_ctx(
         ConstDecl(
-          "greaterThanEqualConst",
           no_ctx(GTEExpr(no_ctx(NumericLit(9)), no_ctx(NumericLit(1)))),
         ),
       ),
     ),
     Declaration(
+      "closureConst",
       no_ctx(
         ConstDecl(
-          "closureConst",
           no_ctx(
             AddExpr(
               no_ctx(
@@ -226,9 +229,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "dotAccessConst",
       no_ctx(
         ConstDecl(
-          "dotAccessConst",
           no_ctx(
             Reference(
               no_ctx(
@@ -243,9 +246,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "executionConst",
       no_ctx(
         ConstDecl(
-          "executionConst",
           no_ctx(
             Reference(
               no_ctx(
@@ -283,12 +286,13 @@ let full_ast =
       ),
     ),
     Declaration(
-      no_ctx(ConstDecl("jsxConst", no_ctx(JSX(Element("abc", [], []))))),
+      "jsxConst",
+      no_ctx(ConstDecl(no_ctx(JSX(Element("abc", [], []))))),
     ),
     Declaration(
+      "jsxWithPropsConst",
       no_ctx(
         ConstDecl(
-          "jsxWithPropsConst",
           no_ctx(
             JSX(
               Element(
@@ -315,9 +319,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "nestedJSXConst",
       no_ctx(
         ConstDecl(
-          "nestedJSXConst",
           no_ctx(
             JSX(
               Element(
@@ -349,9 +353,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "nestedExprJSXConst",
       no_ctx(
         ConstDecl(
-          "nestedExprJSXConst",
           no_ctx(
             JSX(
               Element(
@@ -383,9 +387,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "fragmentJSXConst",
       no_ctx(
         ConstDecl(
-          "fragmentJSXConst",
           no_ctx(
             JSX(
               Fragment([Element("div", [], []), Element("span", [], [])]),
@@ -395,12 +399,13 @@ let full_ast =
       ),
     ),
     Declaration(
-      no_ctx(FunctionDecl("compactFunc", [], [no_ctx(NumericLit(4))])),
+      "compactFunc",
+      no_ctx(FunctionDecl([], [no_ctx(NumericLit(4))])),
     ),
     Declaration(
+      "compactExprFunc",
       no_ctx(
         FunctionDecl(
-          "compactExprFunc",
           [],
           [
             no_ctx(
@@ -414,9 +419,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "multiExprFunc",
       no_ctx(
         FunctionDecl(
-          "multiExprFunc",
           [],
           [
             no_ctx(
@@ -431,29 +436,29 @@ let full_ast =
       ),
     ),
     Declaration(
+      "paramFunc",
       no_ctx(
         FunctionDecl(
-          "paramFunc",
           [no_ctx(("a", None, None))],
           [no_ctx(Reference(no_ctx(Variable("a"))))],
         ),
       ),
     ),
-    Declaration(no_ctx(StateDecl("NoParamsState", [], []))),
-    Declaration(no_ctx(StateDecl("EmptyState", [], []))),
+    Declaration("NoParamsState", no_ctx(StateDecl([], []))),
+    Declaration("EmptyState", no_ctx(StateDecl([], []))),
     Declaration(
+      "DefaultParamState",
       no_ctx(
         StateDecl(
-          "DefaultParamState",
           [no_ctx(("z", None, Some(no_ctx(NumericLit(30)))))],
           [],
         ),
       ),
     ),
     Declaration(
+      "ComplexState",
       no_ctx(
         StateDecl(
-          "ComplexState",
           [],
           [
             no_ctx(Property(no_ctx(("a", Some(no_ctx("b")), None)))),
@@ -494,27 +499,21 @@ let full_ast =
         ),
       ),
     ),
-    Declaration(no_ctx(ViewDecl("NoParamsView", None, [], [], []))),
+    Declaration("NoParamsView", no_ctx(ViewDecl(None, [], [], []))),
     Declaration(
+      "ParamView",
+      no_ctx(ViewDecl(None, [], [no_ctx(("m", None, None))], [])),
+    ),
+    Declaration(
+      "TypedParamView",
       no_ctx(
-        ViewDecl("ParamView", None, [], [no_ctx(("m", None, None))], []),
+        ViewDecl(None, [], [no_ctx(("a", Some(no_ctx("b")), None))], []),
       ),
     ),
     Declaration(
+      "DefaultParamView",
       no_ctx(
         ViewDecl(
-          "TypedParamView",
-          None,
-          [],
-          [no_ctx(("a", Some(no_ctx("b")), None))],
-          [],
-        ),
-      ),
-    ),
-    Declaration(
-      no_ctx(
-        ViewDecl(
-          "DefaultParamView",
           None,
           [],
           [no_ctx(("a", None, Some(no_ctx(NumericLit(4)))))],
@@ -523,9 +522,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "MultiParamView",
       no_ctx(
         ViewDecl(
-          "MultiParamView",
           None,
           [],
           [
@@ -541,9 +540,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "InheritingView",
       no_ctx(
         ViewDecl(
-          "InheritingView",
           Some(no_ctx("SuperView")),
           [],
           [],
@@ -560,23 +559,19 @@ let full_ast =
       ),
     ),
     Declaration(
-      no_ctx(ViewDecl("MixinView", None, [no_ctx("MyMixin")], [], [])),
+      "MixinView",
+      no_ctx(ViewDecl(None, [no_ctx("MyMixin")], [], [])),
     ),
     Declaration(
+      "InheritingMixinView",
       no_ctx(
-        ViewDecl(
-          "InheritingMixinView",
-          Some(no_ctx("SuperView")),
-          [no_ctx("MyMixin")],
-          [],
-          [],
-        ),
+        ViewDecl(Some(no_ctx("SuperView")), [no_ctx("MyMixin")], [], []),
       ),
     ),
     Declaration(
+      "ComplexView",
       no_ctx(
         ViewDecl(
-          "ComplexView",
           Some(no_ctx("SuperView")),
           [no_ctx("MyMixin"), no_ctx("OtherMixin")],
           [],
@@ -592,9 +587,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "ClassStyle",
       no_ctx(
         StyleDecl(
-          "ClassStyle",
           [],
           [
             (
@@ -620,9 +615,9 @@ let full_ast =
       ),
     ),
     Declaration(
+      "IdStyle",
       no_ctx(
         StyleDecl(
-          "IdStyle",
           [],
           [
             (
@@ -642,14 +637,14 @@ let full_ast =
   ]);
 
 let with_export = (name, s) =>
-  s ++ Printf.sprintf("%s.%s=%s;", KnotGen.Core.export_map, name, name);
+  s ++ Printf.sprintf("%s.%s=%s;", export_map, name, name);
 let var_with_export = (name, s) =>
   Printf.sprintf("var %s=%s;", name, s) |> with_export(name);
 let expand_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s');",
     name,
-    KnotGen.Core.util_map,
+    util_map,
     index,
     name,
   );
@@ -657,19 +652,15 @@ let expand_default_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s',%s);",
     name,
-    KnotGen.Core.util_map,
+    util_map,
     index,
     name,
   );
 
 let full_generated =
-  Printf.sprintf(
-    "function(%s,%s){",
-    KnotGen.Core.module_map,
-    KnotGen.Core.util_map,
-  )
-  ++ Printf.sprintf("var %s={};", KnotGen.Core.export_map)
-  ++ Printf.sprintf("var ABC=%s.abc.main;", KnotGen.Core.module_map)
+  Printf.sprintf("function(%s,%s){", module_map, util_map)
+  ++ Printf.sprintf("var %s={};", export_map)
+  ++ Printf.sprintf("var ABC=%s.abc.main;", module_map)
   ++ var_with_export("numericConst", "8")
   ++ var_with_export("additionConst", "(1+10)")
   ++ var_with_export("subtractionConst", "(8-2)")
@@ -811,5 +802,5 @@ let full_generated =
        ++ /**/ "};"
        ++ "}",
      )
-  ++ Printf.sprintf("return %s;", KnotGen.Core.export_map)
+  ++ Printf.sprintf("return %s;", export_map)
   ++ "}";

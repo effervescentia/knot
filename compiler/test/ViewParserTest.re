@@ -27,7 +27,7 @@ let tests =
       _ =>
         test_parse_view((
           empty_view_decl(__name),
-          ViewDecl(__name, None, [], [], []),
+          (__name, ViewDecl(None, [], [], [])),
         ))
     ),
     "parse no params"
@@ -35,7 +35,7 @@ let tests =
       _ =>
         test_parse_view((
           no_params_view_decl(__name),
-          ViewDecl(__name, None, [], [], []),
+          (__name, ViewDecl(None, [], [], [])),
         ))
     ),
   ];

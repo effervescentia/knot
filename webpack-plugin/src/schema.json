@@ -1,0 +1,20 @@
+{
+  "type": "object",
+
+  "properties": {
+    "port": {
+      "type": ["number"]
+    },
+    "debug": {
+      "type": ["boolean"]
+    },
+    "config": {
+      "type": ["string"]
+    },
+    "knot": {
+      "type": ["string"]
+    }
+  },
+
+  "additionalProperties": false
+}

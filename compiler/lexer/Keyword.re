@@ -2,11 +2,12 @@ open Core;
 
 let (===>) = Util.(===>);
 
-let rec (==>) = (s, t) => s ===> Keyword(t);
+let (==>) = (s, t) => s ===> Keyword(t);
 
 let lexer =
   Lexers([
     "import" ==> Import,
+    "module" ==> Module,
     "from" ==> From,
     "const" ==> Const,
     "let" ==> Let,
@@ -16,6 +17,7 @@ let lexer =
     "style" ==> Style,
     "else" ==> Else,
     "if" ==> If,
+    "as" ==> As,
     "mut" ==> Mut,
     "get" ==> Get,
     "main" ==> Main,

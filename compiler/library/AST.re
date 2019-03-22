@@ -1,4 +1,5 @@
 open Globals;
+open MemberType;
 
 type expression =
   | AddExpr(ast_expression, ast_expression)
@@ -53,27 +54,26 @@ type style_rule = (ast_reference, ast_reference);
 type style_rule_set = (style_key, list(style_rule));
 
 type declaration =
-  | ConstDecl(string, ast_expression)
-  | StateDecl(string, list(ast_property), list(ast_state_prop))
+  | ConstDecl(ast_expression)
+  | StateDecl(list(ast_property), list(ast_state_prop))
   | ViewDecl(
-      string,
       option(ast_type),
       list(ast_type),
       list(ast_property),
       list(ast_expression),
     )
-  | FunctionDecl(string, list(ast_property), list(ast_expression))
-  | StyleDecl(string, list(ast_property), list(style_rule_set))
+  | FunctionDecl(list(ast_property), list(ast_expression))
+  | StyleDecl(list(ast_property), list(style_rule_set))
 and ast_declaration = ctxl_promise(declaration);
 
 type statement =
   | Import(string, list(ast_import_target))
-  | Declaration(ast_declaration)
-  | Main(ast_declaration);
+  | Declaration(string, ast_declaration)
+  | Main(string, ast_declaration);
 
 type module_ =
   | Module(list(statement))
 and ast_module = ctxl_promise(module_)
 and linked_module =
-  | NotLoaded(list(unit => unit))
-  | Loaded(string, ast_module);
+  | Loaded(ast_module)
+  | Injected(member_type);

@@ -1,47 +1,46 @@
 open Core;
 
-let gen_export = name =>
-  Printf.sprintf("%s%s=%s;", export_map, Property.gen_access(name), name);
+let gen_export = name => Printf.sprintf("export {%s};", name);
 
-let generate = printer =>
-  abandon_ctx
+let generate = (printer, name) =>
+  fst
   % (
     fun
-    | ConstDecl(name, expr) =>
+    | ConstDecl((expr, _)) =>
       Printf.sprintf(
         "var %s=%s;%s",
         name,
-        abandon_ctx(expr) |> Expression.generate,
+        Expression.generate(expr),
         gen_export(name),
       )
-    | FunctionDecl(name, params, exprs) =>
+    | FunctionDecl(params, exprs) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
         Function.gen_body(params, exprs),
         gen_export(name),
       )
-    | StateDecl(name, params, props) =>
+    | StateDecl(params, props) =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(abandon_ctx, params) |> Function.gen_params,
-        gen_list(abandon_ctx % State.gen_prop, props)
+        List.map(fst, params) |> Function.gen_params,
+        gen_list(fst % State.gen_prop, props)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )
-    | ViewDecl(name, _, _, params, exprs) =>
+    | ViewDecl(_, _, params, exprs) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
         Function.gen_body(params, exprs),
         gen_export(name),
       )
-    | StyleDecl(name, params, rule_sets) =>
+    | StyleDecl(params, rule_sets) =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(abandon_ctx, params) |> Function.gen_params,
+        List.map(fst, params) |> Function.gen_params,
         gen_list(Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),

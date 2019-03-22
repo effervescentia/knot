@@ -34,6 +34,6 @@ let decl =
           stmt
           ==> no_ctx
           |> M.closure
-          ==> (stmts => StateDecl(name, params, stmts))
+          ==> (stmts => (name, StateDecl(params, stmts)))
       )
   );

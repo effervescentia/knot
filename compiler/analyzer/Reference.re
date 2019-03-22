@@ -2,13 +2,17 @@ open Core;
 open Scope;
 
 let rec analyze = (analyze_expr, scope, refr) => {
-  abandon_ctx(refr)
+  fst(refr)
   |> (
     fun
     | Variable(name) => ()
     | DotAccess(lhs, rhs) => analyze(analyze_expr, scope, lhs)
     | Execution(target, args) => {
-        analyze(analyze_expr, scope, target);
+        switch (fst(target)) {
+        | Variable(_) => ()
+        | _ => analyze(analyze_expr, scope, target)
+        };
+
         List.iter(analyze_expr(scope), args);
       }
   );

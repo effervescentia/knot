@@ -10,7 +10,7 @@
   },
   "buildDirs": {
     "library": {
-      "require": ["opal"],
+      "require": ["opal", "dolog", "emoji"],
       "name": "knot.lib",
       "namespace": "Knot"
     },
@@ -24,27 +24,44 @@
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
-    "analyzer": {
+    "resolver": {
       "require": ["knot.lib"],
+      "name": "knot.resolve",
+      "namespace": "KnotResolve"
+    },
+    "analyzer": {
+      "require": ["knot.lib", "knot.resolve"],
       "name": "knot.analyze",
       "namespace": "KnotAnalyze"
     },
     "generator": {
       "require": ["knot.lib", "str"],
-      "name": "knot.gen",
-      "namespace": "KnotGen"
+      "name": "knot.generate",
+      "namespace": "KnotGenerate"
+    },
+    "compiler": {
+      "require": ["knot.lib", "knot.lex", "knot.parse", "knot.analyze"],
+      "name": "knot.compile",
+      "namespace": "KnotCompile"
     },
     "executable": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen",
-        "unix", "core", "httpaf", "dolog", "emoji"
+        "knot.lib", "knot.generate", "knot.compile",
+        "unix", "core", "httpaf", "lwt", "lwt.unix",
+        "faraday-lwt-unix", "uri"
       ],
-      "main": "Compiler",
-      "name": "Compiler.exe"
+      "main": "Main",
+      "name": "knotc.exe",
+      "rawBuildConfigFooter": [
+        "(install",
+        "  (section share_root)",
+        "  (files (definitions/jsx.kd as knot/definitions/jsx.kd) )",
+        ")"
+      ]
     },
     "test": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.gen",
+        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.generate",
         "oUnit", "ANSITerminal"
       ],
       "main": "TestSuite",
@@ -53,27 +70,30 @@
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|generator)/**/*.re'",
+    "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
-    "test": "npm run test:unit && npm run test:e2e:simple:debug",
+    "server:simple": "esy x knotc.exe -server -config ./test/resources/simple_project",
+    "test": "npm run test:unit && npm run test:e2e:simple",
     "test:unit": "esy x TestSuite.exe",
-    "test:e2e": "esy x Compiler.exe ./test/resources/project/src/index.kn 1> /dev/null",
-    "test:e2e:debug": "esy x Compiler.exe ./test/resources/project/src/index.kn",
-    "test:e2e:simple": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
-    "test:e2e:simple:debug": "esy x Compiler.exe ./test/resources/simple_project/src/index.kn",
-    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|analyzer|generator|executable|test)/**/*.re'"
+    "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn 1> /dev/null",
+    "test:e2e:debug": "esy x knotc.exe -debug ./test/resources/project/src/index.kn",
+    "test:e2e:simple": "esy x knotc.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
+    "test:e2e:simple:debug": "esy x knotc.exe -debug ./test/resources/simple_project/src/index.kn",
+    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.1",
-    "@opam/angstrom": "0.10.0",
     "@opam/core": "v0.12.0",
     "@opam/dolog": "3.0",
     "@opam/dune": "*",
     "@opam/emoji": "1.1.0",
+    "@opam/faraday-lwt-unix": "0.7.0",
     "@opam/httpaf": "0.5.0",
+    "@opam/lwt": "4.1.0",
     "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
+    "@opam/uri": "2.2.0",
     "ocaml": "^4.4.0",
     "pesy": "*",
     "refmterr": "*",

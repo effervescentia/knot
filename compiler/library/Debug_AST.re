@@ -1,5 +1,6 @@
 open Globals;
 open AST;
+open MemberType;
 open Debug_Util;
 
 let with_ctx = (f, x) => x |~> f;
@@ -22,15 +23,16 @@ and print_stmt = (~depth=0) =>
         Util.print_comma_separated(with_ctx(print_import), imports),
         module_,
       )
-    | Declaration(decl) => decl |~> print_decl
-    | Main(decl) => decl |~> print_decl |> Printf.sprintf("MAIN %s")
+    | Declaration(name, decl) => decl |~> print_decl(name)
+    | Main(name, decl) =>
+      decl |~> print_decl(name) |> Printf.sprintf("MAIN %s")
   )
   % Printf.sprintf("\n%s")
-and print_decl =
+and print_decl = name =>
   fun
-  | ConstDecl(name, expr) =>
+  | ConstDecl(expr) =>
     expr |~> print_expr |> Printf.sprintf("CONST %s = %s", name)
-  | StateDecl(name, params, props) => {
+  | StateDecl(params, props) => {
       let params_str =
         Util.print_comma_separated(with_ctx(print_property), params);
       let props_str =
@@ -38,7 +40,7 @@ and print_decl =
 
       Printf.sprintf("STATE (%s, [%s], [%s])", name, params_str, props_str);
     }
-  | ViewDecl(name, super, mixins, params, exprs) =>
+  | ViewDecl(super, mixins, params, exprs) =>
     Printf.sprintf(
       "VIEW %s%s%s = %s",
       name,
@@ -46,9 +48,9 @@ and print_decl =
       print_mixins(mixins),
       print_lambda(params, exprs),
     )
-  | FunctionDecl(name, params, exprs) =>
+  | FunctionDecl(params, exprs) =>
     Printf.sprintf("FUNCTION %s = %s", name, print_lambda(params, exprs))
-  | StyleDecl(name, params, rule_sets) =>
+  | StyleDecl(params, rule_sets) =>
     Printf.sprintf(
       "STYLE %s = ([%s]) -> [%s]",
       name,
@@ -73,7 +75,7 @@ and print_expr =
   fun
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
-  | StringLit(s) => s
+  | StringLit(s) => Printf.sprintf("\"%s\"", s)
   | Reference(reference) =>
     reference |~> print_ref |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
@@ -126,8 +128,8 @@ and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, expr |~> print_expr)
 and print_state_prop =
   fun
-  | Property(prop) =>
-    abandon_ctx(prop) |> print_property |> Printf.sprintf("prop(%s)")
+  | Property((prop, _)) =>
+    print_property(prop) |> Printf.sprintf("prop(%s)")
   | Getter(name, params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
   | Mutator(name, params, exprs) =>
@@ -148,8 +150,7 @@ and print_style_key =
 and print_style_rule_set = ((key, rules)) =>
   Util.print_comma_separated(print_style_rule, rules)
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))
-and print_type_def =
-  Util.print_optional(abandon_ctx % Printf.sprintf(": %s"))
+and print_type_def = Util.print_optional(fst % Printf.sprintf(": %s"))
 and print_assign = x =>
   Util.print_optional(with_ctx(print_expr % Printf.sprintf(" = %s")), x)
 and print_lambda = (params, exprs) => {

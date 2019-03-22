@@ -5,18 +5,18 @@ let analyze_stmt = scope =>
   fun
   | Import(module_, imports) =>
     List.iter(Resolver.of_import(module_) % scope.resolve, imports)
-  | Declaration(decl) => {
-      Declaration.analyze(scope, decl);
+  | Declaration(name, decl) => {
+      Declaration.analyze(scope, name, fst(decl));
 
-      Resolver.of_declaration(decl) |> scope.resolve;
+      Resolver.of_declaration(name, decl) |> scope.resolve;
     }
-  | Main(decl) => {
-      Declaration.analyze(scope, decl);
+  | Main(name, decl) => {
+      Declaration.analyze(scope, name, fst(decl));
 
-      Resolver.of_declaration(decl) |> scope.resolve;
+      Resolver.of_declaration(name, decl) |> scope.resolve;
     };
 
-let rec analyze =
+let analyze =
   Knot.AST.(
     scope =>
       fun

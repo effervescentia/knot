@@ -9,15 +9,12 @@ let gen_prop =
       Property.gen_key(name),
       Function.gen_body(params, exprs),
     )
-  | Property(prop) => {
-      let (name, type_def, default_val) = abandon_ctx(prop);
-
-      Printf.sprintf(
-        "%s:%s",
-        Property.gen_key(name),
-        switch (default_val) {
-        | Some(expr) => abandon_ctx(expr) |> Expression.generate
-        | None => "undefined"
-        },
-      );
-    };
+  | Property(((name, type_def, default_val), _)) =>
+    Printf.sprintf(
+      "%s:%s",
+      Property.gen_key(name),
+      switch (default_val) {
+      | Some((expr, _)) => Expression.generate(expr)
+      | None => "undefined"
+      },
+    );

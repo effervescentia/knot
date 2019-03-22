@@ -1,15 +1,14 @@
 include Knot.Core;
+include Exception;
 
 module Debug = Knot.Debug;
-module FileStream = Knot.FileStream;
-module TokenStream = KnotLex.TokenStream;
-module Parser = KnotParse.Parser;
-module Analyzer = KnotAnalyze.Analyzer;
-module Scope = KnotAnalyze.Scope;
-module Generator = KnotGen.Generator;
+module Compiler = KnotCompile.Compiler;
 
 type config = {
   main: string,
+  is_server: bool,
+  is_debug: bool,
+  port: int,
   paths: paths_config,
 }
 and paths_config = {
@@ -25,5 +24,3 @@ exception InvalidPathFormat(string);
 exception ModuleDoesNotExist(string, string);
 exception InvalidEntryPoint(string);
 exception EntryPointOutsideBuildContext(string);
-
-let main_alias = "[main]";

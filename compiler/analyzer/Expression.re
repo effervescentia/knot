@@ -2,7 +2,7 @@ open Core;
 open Scope;
 
 let rec analyze = (scope, expr) => {
-  abandon_ctx(expr)
+  fst(expr)
   |> (
     fun
     | AddExpr(lhs, rhs)
@@ -20,9 +20,6 @@ let rec analyze = (scope, expr) => {
       }
     | Reference(x) => Reference.analyze(analyze, scope, x)
     | JSX(x) => JSX.analyze(analyze, scope, x)
-    /* | NumericLit(x) => A_NumericLit(x)
-       | BooleanLit(x) => A_BooleanLit(x)
-       | StringLit(x) => A_StringLit(x) */
     | _ => ()
   );
 

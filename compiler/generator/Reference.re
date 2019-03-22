@@ -3,15 +3,15 @@ open Core;
 let rec generate = gen_expression =>
   fun
   | Variable(name) => name
-  | DotAccess(lhs, rhs) =>
+  | DotAccess((lhs, _), rhs) =>
     Printf.sprintf(
       "%s%s",
-      abandon_ctx(lhs) |> generate(gen_expression),
+      generate(gen_expression, lhs),
       rhs |> Property.gen_access,
     )
-  | Execution(target, args) =>
+  | Execution((target, _), args) =>
     Printf.sprintf(
       "%s(%s)",
-      abandon_ctx(target) |> generate(gen_expression),
-      gen_list(abandon_ctx % gen_expression, args),
+      generate(gen_expression, target),
+      gen_list(fst % gen_expression, args),
     );

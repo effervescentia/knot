@@ -12,7 +12,7 @@ let tests =
         let name = "myConst";
         let value = "table";
         let stmt = const_decl(name, String(value));
-        let expected = ConstDecl(name, no_ctx(StringLit(value)));
+        let expected = (name, ConstDecl(no_ctx(StringLit(value))));
 
         Util.test_many(
           Util.test_parse_decl(KnotParse.Const.decl),

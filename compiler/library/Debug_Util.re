@@ -1,13 +1,25 @@
 open Globals;
+open MemberType;
+open Debug_MemberType;
 
-let (|~>) = (x, f) =>
-  abandon_ctx(x)
-  |> f
-  % (
-    switch (x^) {
-    | Unanalyzed(_) => Printf.sprintf("unanalyzed(%s)")
-    | Pending(_, ls) =>
-      Printf.sprintf("Promise.pending(%d, %s)", List.length(ls))
-    | Resolved(_, _) => Printf.sprintf("Promise.resolved(%s)")
+let (|~>) = ((x, y), f) =>
+  f(x)
+  |> (
+    switch (y^) {
+    | None => Printf.sprintf("Unanalyzed(%s)")
+    | Some(res) =>
+      switch (res^) {
+      | Defined(t) => (
+          s => print_member_type(t) |> Printf.sprintf("Defined(%s := %s)", s)
+        )
+      | Inferred(t) => (
+          s =>
+            print_member_type(t) |> Printf.sprintf("Inferred(%s := %s)", s)
+        )
+      | Declared(t) => (
+          s =>
+            print_member_type(t) |> Printf.sprintf("Declared(%s := %s)", s)
+        )
+      }
     }
   );

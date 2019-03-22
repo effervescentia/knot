@@ -52,7 +52,7 @@ let tests =
       _ =>
         test_parse_state((
           empty_state_decl(__name),
-          StateDecl(__name, [], []),
+          (__name, StateDecl([], [])),
         ))
     ),
     "parse no params"
@@ -60,7 +60,7 @@ let tests =
       _ =>
         test_parse_state((
           no_params_state_decl(__name),
-          StateDecl(__name, [], []),
+          (__name, StateDecl([], [])),
         ))
     ),
     "parse with property"
@@ -68,16 +68,18 @@ let tests =
       _ =>
         test_parse_state((
           state_prop_decl(__name),
-          StateDecl(
+          (
             __name,
-            [],
-            [
-              no_ctx(
-                Property(
-                  no_ctx(("initial", None, Some(no_ctx(NumericLit(4))))),
+            StateDecl(
+              [],
+              [
+                no_ctx(
+                  Property(
+                    no_ctx(("initial", None, Some(no_ctx(NumericLit(4))))),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ))
     ),
@@ -86,10 +88,14 @@ let tests =
       _ =>
         test_parse_state((
           state_getter_decl(__name),
-          StateDecl(
+          (
             __name,
-            [],
-            [no_ctx(Getter("title", [], [no_ctx(StringLit("Apple"))]))],
+            StateDecl(
+              [],
+              [
+                no_ctx(Getter("title", [], [no_ctx(StringLit("Apple"))])),
+              ],
+            ),
           ),
         ))
     ),

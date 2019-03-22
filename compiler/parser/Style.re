@@ -19,7 +19,7 @@ let rule_set =
   <|> id
   >>= (key => M.closure(rule |> M.terminated) ==> (rules => (key, rules)));
 
-let rec decl = input =>
+let decl = input =>
   (
     M.decl(M.style)
     >>= (
@@ -28,7 +28,8 @@ let rec decl = input =>
         |= []
         >>= (
           params =>
-            M.closure(rule_set) ==> (rules => StyleDecl(name, params, rules))
+            M.closure(rule_set)
+            ==> (rules => (name, StyleDecl(params, rules)))
         )
     )
   )(

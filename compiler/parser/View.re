@@ -18,7 +18,7 @@ let decl =
               >>= (
                 mix =>
                   Function.body
-                  ==> (exprs => ViewDecl(name, inh, mix, params, exprs))
+                  ==> (exprs => (name, ViewDecl(inh, mix, params, exprs)))
               )
           )
       )
