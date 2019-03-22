@@ -1,13 +1,6 @@
 view Greeting(props) -> "Hello, " + props.name + "!";
 
-view Checkbox(props) ->
-  <div>
-    {props.checked ? "ON" : "OFF"}
-    <input type="checkbox" checked={props.checked} />
-  </div>;
-
 main view App(props) ->
   <div>
     <Greeting name={props.name} />
-    <Checkbox checked={false} />
   </div>;
