@@ -10,5 +10,3 @@ let not_allowed = () =>
   Response.create(~headers=std_headers, `Method_not_allowed);
 
 let not_found = () => Response.create(~headers=std_headers, `Not_found);
-
-let failed = () => Response.create(~headers=std_headers, `Expectation_failed);
