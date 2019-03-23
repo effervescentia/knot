@@ -8,6 +8,27 @@ defaults:
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}
       - compiler_cache-v4
+  react_plugin_cache: &react_plugin_cache
+    key: react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}-{{ .Branch }}
+  react_plugin_cache_keys: &react_plugin_cache_keys
+    keys:
+      - react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}-{{ .Branch }}
+      - react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}
+      - react_plugin_cache-v1
+  css_plugin_cache: &css_plugin_cache
+    key: css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
+  css_plugin_cache_keys: &css_plugin_cache_keys
+    keys:
+      - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
+      - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}
+      - css_plugin_cache-v1
+  webpack_plugin_cache: &webpack_plugin_cache
+    key: webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
+  webpack_plugin_cache_keys: &webpack_plugin_cache_keys
+    keys:
+      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
+      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
+      - webpack_plugin_cache-v1
   webpack_react_cache: &webpack_react_cache
     key: webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
   webpack_react_cache_keys: &webpack_react_cache_keys
@@ -72,6 +93,105 @@ jobs:
           paths:
             - knot
 
+  test_react_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *react_plugin_cache_keys
+      - run:
+          name: Install
+          working_directory: ./plugins/react
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
+          name: Test
+          working_directory: ./plugins/react
+          command: yarn test
+      - save_cache:
+          <<: *react_plugin_cache
+          paths:
+            - ~/.cache
+      - run:
+          name: Populate Workspace
+          working_directory: ~/project/plugins/react
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL build /tmp/workspace/react-plugin
+            cp -RL node_modules /tmp/workspace/react-plugin__modules
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - react-plugin
+            - react-plugin__modules
+
+  test_css_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *css_plugin_cache_keys
+      - run:
+          name: Install
+          working_directory: ./plugins/css
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
+          name: Test
+          working_directory: ./plugins/css
+          command: yarn test
+      - save_cache:
+          <<: *css_plugin_cache
+          paths:
+            - ~/.cache
+      - run:
+          name: Populate Workspace
+          working_directory: ~/project/plugins/css
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL build /tmp/workspace/css-plugin
+            cp -RL node_modules /tmp/workspace/css-plugin__modules
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - css-plugin
+            - css-plugin__modules
+
+  test_webpack_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *webpack_plugin_cache_keys
+      - run:
+          name: Install
+          working_directory: ./webpack-plugin
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
+          name: Test
+          working_directory: ./webpack-plugin
+          command: yarn test
+      - save_cache:
+          <<: *webpack_plugin_cache
+          paths:
+            - ~/.cache
+      - run:
+          name: Populate Workspace
+          working_directory: ~/project/webpack-plugin
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL build /tmp/workspace/webpack-plugin
+            cp -RL node_modules /tmp/workspace/webpack-plugin__modules
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - webpack-plugin
+            - webpack-plugin__modules
+
   test_webpack_react:
     docker:
       - image: cypress/base:8
@@ -88,23 +208,23 @@ jobs:
           at: /tmp/workspace
       - setup_esy
       - run:
-          name: Install React Plugin
+          name: Restore React Plugin
           working_directory: ./plugins/react
           command: |
-            yarn install --frozen-lockfile
-            yarn build
+            mv /tmp/workspace/react-plugin build
+            mv /tmp/workspace/react-plugin__modules node_modules
       - run:
-          name: Install CSS Plugin
+          name: Restore CSS Plugin
           working_directory: ./plugins/css
           command: |
-            yarn install --frozen-lockfile
-            yarn build
+            mv /tmp/workspace/css-plugin build
+            mv /tmp/workspace/css-plugin__modules node_modules
       - run:
-          name: Install Webpack Plugin
+          name: Restore Webpack Plugin
           working_directory: ./webpack-plugin
           command: |
-            yarn install --frozen-lockfile
-            yarn build
+            mv /tmp/workspace/webpack-plugin build
+            mv /tmp/workspace/webpack-plugin__modules node_modules
       - run:
           name: Install
           working_directory: ./examples/webpack-react
@@ -122,6 +242,12 @@ workflows:
   test:
     jobs:
       - test_compiler
+      - test_react_plugin
+      - test_css_plugin
+      - test_webpack_plugin
       - test_webpack_react:
           requires:
             - test_compiler
+            - test_react_plugin
+            - test_css_plugin
+            - test_webpack_plugin

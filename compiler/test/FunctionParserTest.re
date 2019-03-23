@@ -29,6 +29,11 @@ let multi_expr_func_decl = name =>
     RightParenthese,
     Lambda,
     LeftBrace,
+    Keyword(Let),
+    Identifier("variable"),
+    Assign,
+    Boolean(true),
+    Semicolon,
     Number(8),
     Semicolon,
     Number(7),
@@ -80,6 +85,9 @@ let tests =
             FunctionDecl(
               [],
               [
+                no_ctx(
+                  VariableDeclaration("variable", no_ctx(BooleanLit(true))),
+                ),
                 no_ctx(ExpressionStatement(no_ctx(NumericLit(8)))),
                 no_ctx(
                   ExpressionStatement(

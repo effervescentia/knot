@@ -10,6 +10,7 @@ import { Compiler, Options } from './types';
 
 import WebpackCompiler = Webpack.Compiler;
 import WebpackCompilation = Webpack.compilation.Compilation;
+import WebpackModule = Webpack.loader.LoaderContext;
 
 // tslint:disable-next-line:no-object-literal-type-assertion
 export const DEFAULT_OPTIONS = {
@@ -83,21 +84,10 @@ export default class KnotWebpackPlugin {
     );
 
     compiler.hooks.normalModuleFactory.tap(KnotWebpackPlugin.name, nmf => {
-      nmf.hooks.beforeResolve.tap(KnotWebpackPlugin.name, mod => {
-        if (!mod) {
-          return;
-        }
-
-        if (mod.request.startsWith('@knot/')) {
-          const [, plugin] = mod.request.split('/');
-
-          if (plugin in options.plugins) {
-            mod.request = options.plugins[plugin];
-          }
-        }
-
-        return mod;
-      });
+      nmf.hooks.beforeResolve.tap(
+        KnotWebpackPlugin.name,
+        resolveLibrary(options)
+      );
     });
 
     compiler.hooks.compilation.tap(
@@ -117,7 +107,28 @@ export default class KnotWebpackPlugin {
   }
 }
 
-function invalidateModule(
+export function resolveLibrary(
+  options: Options
+): (mod: WebpackModule) => WebpackModule {
+  return mod => {
+    if (!mod) {
+      return mod;
+    }
+
+    if (mod.request.startsWith('@knot/')) {
+      const [, plugin] = mod.request.split('/');
+
+      if (plugin in options.plugins) {
+        // tslint:disable-next-line:no-object-mutation
+        mod.request = options.plugins[plugin];
+      }
+    }
+
+    return mod;
+  };
+}
+
+export function invalidateModule(
   knotCompiler: Compiler,
   kill: () => Promise<void>
 ): (path: string) => void {
@@ -126,7 +137,9 @@ function invalidateModule(
     knotCompiler.invalidate(invalidPath).catch(kill);
 }
 
-function addModuleLoader(knotLoader): (_: any, mod: any) => void {
+export function addModuleLoader(
+  knotLoader: Webpack.Loader
+): (_: any, mod: WebpackModule) => void {
   return (_, mod) => {
     if (
       KNOT_SOURCE_PATTERN.test(mod.request) &&
@@ -137,21 +150,27 @@ function addModuleLoader(knotLoader): (_: any, mod: any) => void {
   };
 }
 
-function discoverDependencies(
+export function discoverDependencies(
   knotCompiler: Compiler,
   kill: (e: Error) => void
-): (mod: any) => void {
-  return mod => {
+): (mod: any) => Promise<any> {
+  return async mod => {
     const knotDeps = mod.dependencies.filter(({ request }) =>
       KNOT_SOURCE_PATTERN.test(request)
     );
 
-    if (knotDeps.length !== 0) {
-      knotDeps.forEach(({ request }) =>
-        knotCompiler
-          .add(path.resolve(path.dirname(mod.resource), request))
-          .catch(kill)
+    if (knotDeps.length === 0) {
+      return Promise.resolve();
+    }
+
+    try {
+      return Promise.all(
+        knotDeps.map(({ request }) =>
+          knotCompiler.add(path.resolve(path.dirname(mod.resource), request))
+        )
       );
+    } catch (e) {
+      return kill(e);
     }
   };
 }

@@ -18,3 +18,7 @@ test('includes keys', t => {
     'px'
   ].forEach(key => t.true(keys.includes(key)));
 });
+
+test('px()', t => {
+  t.is('28px', main.px(28));
+});

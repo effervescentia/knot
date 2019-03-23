@@ -1,3 +1,4 @@
+// tslint:disable:object-literal-sort-keys
 export const main = {
   fontSize: 'fontSize',
   backgroundColor: 'backgroundColor',
@@ -10,7 +11,7 @@ export const main = {
 
   red: 'red',
 
-  px: function(num) {
+  px(num: number): string {
     return String(num) + 'px';
   }
 };
