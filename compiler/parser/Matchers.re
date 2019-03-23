@@ -16,6 +16,7 @@ let module_ = kwd(Module);
 let import = kwd(Import)
 and from = kwd(From)
 and const = kwd(Const)
+and let_ = kwd(Let)
 and func = kwd(Func)
 and view = kwd(View)
 and state = kwd(State)

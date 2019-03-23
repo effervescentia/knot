@@ -15,10 +15,10 @@ let analyze_prop = scope =>
       }
     | Mutator(name, params, exprs) => {
         List.iter(Property.analyze(Expression.analyze, scope), params);
-        List.iter(Expression.analyze(scope), exprs);
+        List.iter(Function.analyze_scoped_expr(scope), exprs);
       }
     | Getter(name, params, exprs) => {
         List.iter(Property.analyze(Expression.analyze, scope), params);
-        List.iter(Expression.analyze(scope), exprs);
+        List.iter(Function.analyze_scoped_expr(scope), exprs);
       }
   );

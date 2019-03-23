@@ -41,10 +41,15 @@ type ast_type = ctxl_promise(string);
 type property = (string, option(ast_type), option(ast_expression))
 and ast_property = ctxl_promise(property);
 
+type scoped_expression =
+  | ExpressionStatement(ast_expression)
+  | VariableDeclaration(string, ast_expression)
+and ast_scoped_expression = ctxl_promise(scoped_expression);
+
 type state_prop =
   | Property(ast_property)
-  | Mutator(string, list(ast_property), list(ast_expression))
-  | Getter(string, list(ast_property), list(ast_expression))
+  | Mutator(string, list(ast_property), list(ast_scoped_expression))
+  | Getter(string, list(ast_property), list(ast_scoped_expression))
 and ast_state_prop = ctxl_promise(state_prop);
 
 type style_key =
@@ -61,9 +66,9 @@ type declaration =
       option(ast_type),
       list(ast_type),
       list(ast_property),
-      list(ast_expression),
+      list(ast_scoped_expression),
     )
-  | FunctionDecl(list(ast_property), list(ast_expression))
+  | FunctionDecl(list(ast_property), list(ast_scoped_expression))
   | StyleDecl(list(ast_property), list(style_rule_set))
 and ast_declaration = ctxl_promise(declaration);
 
