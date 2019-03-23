@@ -118,7 +118,7 @@ jobs:
           working_directory: ~/project/plugins/react
           command: |
             mkdir -p /tmp/workspace
-            cp -RL dist /tmp/workspace/react-plugin
+            cp -RL build /tmp/workspace/react-plugin
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -149,7 +149,7 @@ jobs:
           working_directory: ~/project/plugins/css
           command: |
             mkdir -p /tmp/workspace
-            cp -RL dist /tmp/workspace/css-plugin
+            cp -RL build /tmp/workspace/css-plugin
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -180,7 +180,7 @@ jobs:
           working_directory: ~/project/webpack-plugin
           command: |
             mkdir -p /tmp/workspace
-            cp -RL dist /tmp/workspace/webpack-plugin
+            cp -RL build /tmp/workspace/webpack-plugin
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -204,15 +204,15 @@ jobs:
       - run:
           name: Install React Plugin
           working_directory: ./plugins/react
-          command: mv /tmp/workspace/react-plugin dist
+          command: mv /tmp/workspace/react-plugin build
       - run:
           name: Restore CSS Plugin
           working_directory: ./plugins/css
-          command: mv /tmp/workspace/css-plugin dist
+          command: mv /tmp/workspace/css-plugin build
       - run:
           name: Restore Webpack Plugin
           working_directory: ./webpack-plugin
-          command: mv /tmp/workspace/webpack-plugin dist
+          command: mv /tmp/workspace/webpack-plugin build
       - run:
           name: Install
           working_directory: ./examples/webpack-react
