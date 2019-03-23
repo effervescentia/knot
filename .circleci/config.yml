@@ -22,6 +22,13 @@ defaults:
       - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
       - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}
       - css_plugin_cache-v1
+  webpack_plugin_cache: &webpack_plugin_cache
+    key: webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
+  webpack_plugin_cache_keys: &webpack_plugin_cache_keys
+    keys:
+      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
+      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
+      - webpack_plugin_cache-v1
   webpack_react_cache: &webpack_react_cache
     key: webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
   webpack_react_cache_keys: &webpack_react_cache_keys
@@ -91,7 +98,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          <<: *react_plugin_cache
+          <<: *react_plugin_cache_keys
       - run:
           name: Install
           working_directory: ./plugins/react
@@ -112,7 +119,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          <<: *css_plugin_cache
+          <<: *css_plugin_cache_keys
       - run:
           name: Install
           working_directory: ./plugins/css
@@ -125,6 +132,27 @@ jobs:
           command: yarn test
       - save_cache:
           <<: *css_plugin_cache
+          paths:
+            - ~/.cache
+
+  test_webpack_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *webpack_plugin_cache_keys
+      - run:
+          name: Install
+          working_directory: ./webpack-plugin
+          command: |
+            yarn install --frozen-lockfile
+            yarn build
+      - run:
+          name: Test
+          working_directory: ./webpack-plugin
+          command: yarn test
+      - save_cache:
+          <<: *webpack_plugin_cache
           paths:
             - ~/.cache
 
@@ -180,8 +208,10 @@ workflows:
       - test_compiler
       - test_react_plugin
       - test_css_plugin
+      - test_webpack_plugin
       - test_webpack_react:
           requires:
             - test_compiler
             - test_react_plugin
             - test_css_plugin
+            - test_webpack_plugin
