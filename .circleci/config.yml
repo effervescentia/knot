@@ -119,10 +119,12 @@ jobs:
           command: |
             mkdir -p /tmp/workspace
             cp -RL build /tmp/workspace/react-plugin
+            cp -RL node_modules /tmp/workspace/react-plugin__modules
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - react-plugin
+            - react-plugin__modules
 
   test_css_plugin:
     executor: node/node
@@ -150,10 +152,12 @@ jobs:
           command: |
             mkdir -p /tmp/workspace
             cp -RL build /tmp/workspace/css-plugin
+            cp -RL node_modules /tmp/workspace/css-plugin__modules
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - css-plugin
+            - css-plugin__modules
 
   test_webpack_plugin:
     executor: node/node
@@ -181,10 +185,12 @@ jobs:
           command: |
             mkdir -p /tmp/workspace
             cp -RL build /tmp/workspace/webpack-plugin
+            cp -RL node_modules /tmp/workspace/webpack-plugin__modules
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - webpack-plugin
+            - webpack-plugin__modules
 
   test_webpack_react:
     docker:
@@ -204,15 +210,21 @@ jobs:
       - run:
           name: Install React Plugin
           working_directory: ./plugins/react
-          command: mv /tmp/workspace/react-plugin build
+          command: |
+            mv /tmp/workspace/react-plugin build
+            mv /tmp/workspace/react-plugin__modules node_modules
       - run:
           name: Restore CSS Plugin
           working_directory: ./plugins/css
-          command: mv /tmp/workspace/css-plugin build
+          command: |
+            mv /tmp/workspace/css-plugin build
+            mv /tmp/workspace/css-plugin__modules node_modules
       - run:
           name: Restore Webpack Plugin
           working_directory: ./webpack-plugin
-          command: mv /tmp/workspace/webpack-plugin build
+          command: |
+            mv /tmp/workspace/webpack-plugin build
+            mv /tmp/workspace/webpack-plugin__modules node_modules
       - run:
           name: Install
           working_directory: ./examples/webpack-react
