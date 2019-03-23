@@ -38,6 +38,13 @@ export default class KnotWebpackPlugin {
   public apply(compiler: WebpackCompiler): void {
     const options = this.options;
     const knotCompiler = createCompiler(options);
+    const knotLoader = {
+      loader: path.resolve(__dirname, './loader'),
+      options: {
+        ...options,
+        compiler: knotCompiler
+      }
+    };
     // tslint:disable-next-line:no-let
     let successiveRun = false;
     // tslint:disable-next-line:no-let
@@ -96,18 +103,6 @@ export default class KnotWebpackPlugin {
     compiler.hooks.compilation.tap(
       KnotWebpackPlugin.name,
       (compilation: WebpackCompilation) => {
-        const addError = (err: Error) => {
-          compilation.errors.push(err);
-        };
-        const knotLoader = {
-          loader: path.resolve(__dirname, './loader'),
-          options: {
-            ...options,
-            addError,
-            compiler: knotCompiler
-          }
-        };
-
         compilation.hooks.succeedModule.tap(
           KnotWebpackPlugin.name,
           discoverDependencies(knotCompiler, kill)
@@ -126,13 +121,9 @@ function invalidateModule(
   knotCompiler: Compiler,
   kill: () => Promise<void>
 ): (path: string) => void {
-  // tslint:disable-next-line:typedef
-  return invalidPath => {
-    return (
-      KNOT_SOURCE_PATTERN.test(invalidPath) &&
-      knotCompiler.invalidate(invalidPath).catch(kill)
-    );
-  };
+  return invalidPath =>
+    KNOT_SOURCE_PATTERN.test(invalidPath) &&
+    knotCompiler.invalidate(invalidPath).catch(kill);
 }
 
 function addModuleLoader(knotLoader): (_: any, mod: any) => void {

@@ -36,8 +36,6 @@ export interface Options {
 
 export interface InternalOptions extends Options {
   readonly compiler: Compiler;
-  // tslint:disable-next-line:no-mixed-interface
-  readonly addError: (err: Error) => void;
 }
 
 export interface Plugins {

@@ -67,45 +67,36 @@ let put_module = (compiler, req_d, uri) =>
   );
 
 let get_module = ({source_dir}, compiler, req_d, uri) =>
-  try (
-    read_to_string(
-      req_d,
-      module_path => {
-        log_incoming(~addon=module_path, req_d, uri);
+  read_to_string(
+    req_d,
+    module_path => {
+      log_incoming(~addon=module_path, req_d, uri);
 
-        compiler.find(module_path)
-        |> (
-          fun
-          | Some(ast) => {
-              let res_body =
-                Response.ok() |> Reqd.respond_with_streaming(req_d);
+      compiler.find(module_path)
+      |> (
+        fun
+        | Some(ast) => {
+            let res_body =
+              Response.ok() |> Reqd.respond_with_streaming(req_d);
 
-              Generator.generate(
-                str =>
-                  Bigstring.of_string(str) |> Body.write_bigstring(res_body),
-                Util.normalize_module(source_dir),
-                ast,
-              );
+            Generator.generate(
+              str =>
+                Bigstring.of_string(str) |> Body.write_bigstring(res_body),
+              Util.normalize_module(source_dir),
+              ast,
+            );
 
-              Body.close_writer(res_body);
-            }
-          | None =>
-            Reqd.respond_with_string(
-              req_d,
-              Response.not_found(),
-              "no compiled module found",
-            )
-        );
-      },
-    )
-  ) {
-  | InvalidModule =>
-    Reqd.respond_with_string(
-      req_d,
-      Response.failed(),
-      "module failed to compile",
-    )
-  };
+            Body.close_writer(res_body);
+          }
+        | None =>
+          Reqd.respond_with_string(
+            req_d,
+            Response.not_found(),
+            "no compiled module found",
+          )
+      );
+    },
+  );
 
 let invalidate_module = (compiler, req_d, uri) =>
   read_to_string(
