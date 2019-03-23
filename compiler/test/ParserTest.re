@@ -24,7 +24,14 @@ let tests =
       _ => {
         let name = "MyImport";
         let module_name = "table";
-        let stmt = ImportParserTest.main_import_stmt(name, module_name);
+        let stmt =
+          [
+            Keyword(Import),
+            Identifier(name),
+            Keyword(From),
+            String(module_name),
+          ]
+          |> Util.drift;
         let expected =
           Module([Import(module_name, [no_ctx(MainExport(name))])]);
 

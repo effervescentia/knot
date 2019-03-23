@@ -208,7 +208,7 @@ jobs:
           at: /tmp/workspace
       - setup_esy
       - run:
-          name: Install React Plugin
+          name: Restore React Plugin
           working_directory: ./plugins/react
           command: |
             mv /tmp/workspace/react-plugin build
