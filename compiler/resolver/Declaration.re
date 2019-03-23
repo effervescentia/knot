@@ -1,8 +1,6 @@
 open Core;
 open NestedHashtbl;
 
-exception GenericConstant;
-
 let resolve_callable = (params, exprs) => {
   let param_types = List.map(opt_type_ref, params);
   let return_type =

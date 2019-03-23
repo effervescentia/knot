@@ -105,7 +105,9 @@ let create = create_desc => {
       let absolute_path = desc.absolute_path;
 
       if (Filename.extension(absolute_path) == ".kd") {
-        inject(global_scope^, desc, name);
+        try (inject(global_scope^, desc, name)) {
+        | _ => Hashtbl.add(global_scope^.module_tbl, name, Failed)
+        };
       };
     },
     add: path => {
@@ -124,7 +126,12 @@ let create = create_desc => {
         if (Hashtbl.mem(global_scope^.module_tbl, absolute_path)) {
           [];
         } else {
-          add(global_scope^, desc);
+          try (add(global_scope^, desc)) {
+          | _ =>
+            Hashtbl.add(global_scope^.module_tbl, absolute_path, Failed);
+
+            [];
+          };
         };
       };
     },
@@ -140,6 +147,7 @@ let create = create_desc => {
       if (Hashtbl.mem(global_scope^.module_tbl, path)) {
         switch (Hashtbl.find(global_scope^.module_tbl, path)) {
         | Loaded((ast, _)) => Some(ast)
+        | Failed => raise(InvalidModule)
         | _ => None
         };
       } else {
@@ -148,17 +156,14 @@ let create = create_desc => {
 
         None;
       },
-    invalidate: module_ => {
+    invalidate: module_ =>
       if (Hashtbl.mem(global_scope^.module_tbl, module_)) {
         if (status^ != Running) {
           status := Running;
         };
 
         Hashtbl.remove(global_scope^.module_tbl, module_);
-      };
-
-      compiler.add_rec(module_);
-    },
+      },
     reset: () =>
       if (status^ != Idle) {
         status := Idle;

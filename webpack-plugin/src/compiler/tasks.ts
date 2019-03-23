@@ -5,6 +5,11 @@ const MAX_ATTEMPTS = 10;
 const INFINITE_ATTEMPTS = 100;
 const ATTEMPT_TIMEOUT = 1000;
 
+export interface ErrorHandler {
+  readonly handle: () => void;
+  readonly shouldHandle: (err: Error) => boolean;
+}
+
 export function awaitServerIdle({ baseUrl }): () => Promise<void> {
   return () => new Promise(awaitStatus(ServerStatus.IDLE, baseUrl));
 }
@@ -64,16 +69,24 @@ function awaitModuleStatus(
   baseUrl: string
 ): (resolve: () => void, reject: (err: any) => void) => void {
   return awaitPromise(
-    (resolve, reject) =>
+    (resolve, reject, fail) =>
       fetch(`${baseUrl}/module/status`, {
         body: path,
         method: 'POST'
-      })
-        .then(res => res.text())
-        .then(status =>
-          status === ModuleStatus.COMPLETE ? resolve() : reject()
-        ),
-    INFINITE_ATTEMPTS
+      }).then(res =>
+        res.text().then(status => {
+          switch (status) {
+            case ModuleStatus.COMPLETE:
+              return resolve();
+            case ModuleStatus.FAILED:
+              return fail(new Error(`module "${path}" failed to compile`));
+            default:
+              return reject();
+          }
+        })
+      ),
+    INFINITE_ATTEMPTS,
+    50
   );
 }
 
@@ -93,8 +106,13 @@ function awaitStatus(
 
 // tslint:disable:no-expression-statement
 function awaitPromise(
-  createPromise: (resolve: () => void, reject: () => void) => Promise<void>,
-  maxAttempts: number
+  createPromise: (
+    resolve: () => void,
+    reject: (err?: Error) => void,
+    fail: (err?: Error) => void
+  ) => Promise<void>,
+  maxAttempts: number,
+  timeout = ATTEMPT_TIMEOUT
 ): (resolve: () => void, reject: (err: any) => void) => void {
   const errorMsg = 'knot compiler did not return a healthy response';
   // tslint:disable-next-line:no-let
@@ -104,18 +122,42 @@ function awaitPromise(
     setTimeout(() => {
       attempts += 1;
 
-      function handleFailure(): void {
+      function retry(): void {
         if (maxAttempts !== 0 && attempts === maxAttempts) {
           reject(errorMsg);
+          // } else if (customHandler && customHandler.shouldHandle(err)) {
+          //   customHandler.handle();
         } else {
           tryMatchStatus(resolve, reject);
         }
       }
 
-      createPromise(resolve, handleFailure).catch(handleFailure);
-    }, ATTEMPT_TIMEOUT);
+      createPromise(resolve, retry, reject).catch(retry);
+    }, timeout);
   };
 }
+
+// function tryMatchStatus(
+//   createPromise: (onFail: () => void) => Promise<void>,
+//   onAttempt: () => void,
+//   shouldAttempt: () => boolean,
+//   reject: () => void
+// ): void {
+//   return () =>
+//     setTimeout(() => {
+//       onAttempt();
+
+//       const handleFailure = () => {
+//         if (shouldAttempt()) {
+//           reject();
+//         } else {
+//           tryMatchStatus(createPromise, onAttempt, shouldAttempt, reject);
+//         }
+//       };
+
+//       createPromise(handleFailure).catch(handleFailure);
+//     }, ATTEMPT_TIMEOUT);
+// }
 
 function handleError(errMsg: string): (e: Error) => void {
   return e => {

@@ -1,7 +1,5 @@
 open Core;
 
-exception ModuleTypeIncomplete;
-
 let resolve = ((value, promise)) =>
   switch (value) {
   | Module(stmts) =>
