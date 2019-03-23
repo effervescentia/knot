@@ -113,6 +113,16 @@ jobs:
           <<: *react_plugin_cache
           paths:
             - ~/.cache
+      - run:
+          name: Populate Workspace
+          working_directory: ~/project/plugins/react
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL dist /tmp/workspace/react-plugin
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - react-plugin
 
   test_css_plugin:
     executor: node/node
@@ -134,6 +144,16 @@ jobs:
           <<: *css_plugin_cache
           paths:
             - ~/.cache
+      - run:
+          name: Populate Workspace
+          working_directory: ~/project/plugins/css
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL dist /tmp/workspace/css-plugin
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - css-plugin
 
   test_webpack_plugin:
     executor: node/node
@@ -155,6 +175,16 @@ jobs:
           <<: *webpack_plugin_cache
           paths:
             - ~/.cache
+      - run:
+          name: Populate Workspace
+          working_directory: ~/project/webpack-plugin
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL dist /tmp/workspace/webpack-plugin
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - webpack-plugin
 
   test_webpack_react:
     docker:
@@ -174,21 +204,15 @@ jobs:
       - run:
           name: Install React Plugin
           working_directory: ./plugins/react
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
+          command: mv /tmp/workspace/react-plugin dist
       - run:
-          name: Install CSS Plugin
+          name: Restore CSS Plugin
           working_directory: ./plugins/css
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
+          command: mv /tmp/workspace/css-plugin dist
       - run:
-          name: Install Webpack Plugin
+          name: Restore Webpack Plugin
           working_directory: ./webpack-plugin
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
+          command: mv /tmp/workspace/webpack-plugin dist
       - run:
           name: Install
           working_directory: ./examples/webpack-react
