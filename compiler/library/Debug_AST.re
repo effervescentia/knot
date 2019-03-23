@@ -49,11 +49,7 @@ and print_decl = name =>
       print_lambda(params, exprs),
     )
   | FunctionDecl(params, exprs) =>
-    Printf.sprintf(
-      "FUNCTION %s = %s",
-      name,
-      print_func_lambda(params, exprs),
-    )
+    Printf.sprintf("FUNCTION %s = %s", name, print_lambda(params, exprs))
   | StyleDecl(params, rule_sets) =>
     Printf.sprintf(
       "STYLE %s = ([%s]) -> [%s]",
@@ -75,19 +71,11 @@ and print_property = ((name, type_def, default_val)) =>
     print_type_def(type_def),
     print_assign(default_val),
   )
-and print_func_expr =
+and print_scoped_expr =
   fun
   | ExpressionStatement(expr) => expr |~> print_expr
   | VariableDeclaration(name, expr) =>
     expr |~> print_expr |> Printf.sprintf("variable(%s = %s)", name)
-and print_func_lambda = (params, exprs) => {
-  let params_str =
-    Util.print_comma_separated(with_ctx(print_property), params);
-  let exprs_str =
-    Util.print_comma_separated(with_ctx(print_func_expr), exprs);
-
-  Printf.sprintf("([%s]) -> [%s]", params_str, exprs_str);
-}
 and print_expr =
   fun
   | NumericLit(n) => string_of_int(n)
@@ -180,7 +168,8 @@ and print_assign = x =>
 and print_lambda = (params, exprs) => {
   let params_str =
     Util.print_comma_separated(with_ctx(print_property), params);
-  let exprs_str = Util.print_comma_separated(with_ctx(print_expr), exprs);
+  let exprs_str =
+    Util.print_comma_separated(with_ctx(print_scoped_expr), exprs);
 
   Printf.sprintf("([%s]) -> [%s]", params_str, exprs_str);
 };

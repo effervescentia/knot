@@ -93,7 +93,17 @@ let tests =
             StateDecl(
               [],
               [
-                no_ctx(Getter("title", [], [no_ctx(StringLit("Apple"))])),
+                no_ctx(
+                  Getter(
+                    "title",
+                    [],
+                    [
+                      no_ctx(
+                        ExpressionStatement(no_ctx(StringLit("Apple"))),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

@@ -400,7 +400,12 @@ let full_ast =
     ),
     Declaration(
       "compactFunc",
-      no_ctx(FunctionDecl([], [no_ctx(NumericLit(4))])),
+      no_ctx(
+        FunctionDecl(
+          [],
+          [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
+        ),
+      ),
     ),
     Declaration(
       "compactExprFunc",
@@ -409,9 +414,13 @@ let full_ast =
           [],
           [
             no_ctx(
-              AddExpr(
-                no_ctx(Reference(no_ctx(Variable("A")))),
-                no_ctx(Reference(no_ctx(Variable("B")))),
+              ExpressionStatement(
+                no_ctx(
+                  AddExpr(
+                    no_ctx(Reference(no_ctx(Variable("A")))),
+                    no_ctx(Reference(no_ctx(Variable("B")))),
+                  ),
+                ),
               ),
             ),
           ],
@@ -425,12 +434,20 @@ let full_ast =
           [],
           [
             no_ctx(
-              AddExpr(
-                no_ctx(Reference(no_ctx(Variable("e")))),
-                no_ctx(Reference(no_ctx(Variable("f")))),
+              ExpressionStatement(
+                no_ctx(
+                  AddExpr(
+                    no_ctx(Reference(no_ctx(Variable("e")))),
+                    no_ctx(Reference(no_ctx(Variable("f")))),
+                  ),
+                ),
               ),
             ),
-            no_ctx(Reference(no_ctx(Variable("j")))),
+            no_ctx(
+              ExpressionStatement(
+                no_ctx(Reference(no_ctx(Variable("j")))),
+              ),
+            ),
           ],
         ),
       ),
@@ -440,7 +457,13 @@ let full_ast =
       no_ctx(
         FunctionDecl(
           [no_ctx(("a", None, None))],
-          [no_ctx(Reference(no_ctx(Variable("a"))))],
+          [
+            no_ctx(
+              ExpressionStatement(
+                no_ctx(Reference(no_ctx(Variable("a")))),
+              ),
+            ),
+          ],
         ),
       ),
     ),
@@ -463,8 +486,20 @@ let full_ast =
           [
             no_ctx(Property(no_ctx(("a", Some(no_ctx("b")), None)))),
             no_ctx(Property(no_ctx(("_c", Some(no_ctx("d")), None)))),
-            no_ctx(Getter("e", [], [no_ctx(NumericLit(4))])),
-            no_ctx(Getter("f", [], [no_ctx(NumericLit(5))])),
+            no_ctx(
+              Getter(
+                "e",
+                [],
+                [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
+              ),
+            ),
+            no_ctx(
+              Getter(
+                "f",
+                [],
+                [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+              ),
+            ),
             no_ctx(
               Getter(
                 "g",
@@ -477,7 +512,7 @@ let full_ast =
                     Some(no_ctx(NumericLit(20))),
                   )),
                 ],
-                [no_ctx(NumericLit(5))],
+                [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
               ),
             ),
             no_ctx(
@@ -485,11 +520,15 @@ let full_ast =
                 "n",
                 [],
                 [
-                  no_ctx(NumericLit(3)),
+                  no_ctx(ExpressionStatement(no_ctx(NumericLit(3)))),
                   no_ctx(
-                    AddExpr(
-                      no_ctx(Reference(no_ctx(Variable("A")))),
-                      no_ctx(Reference(no_ctx(Variable("m")))),
+                    ExpressionStatement(
+                      no_ctx(
+                        AddExpr(
+                          no_ctx(Reference(no_ctx(Variable("A")))),
+                          no_ctx(Reference(no_ctx(Variable("m")))),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -548,12 +587,16 @@ let full_ast =
           [],
           [
             no_ctx(
-              AddExpr(
-                no_ctx(Reference(no_ctx(Variable("a")))),
-                no_ctx(Reference(no_ctx(Variable("b")))),
+              ExpressionStatement(
+                no_ctx(
+                  AddExpr(
+                    no_ctx(Reference(no_ctx(Variable("a")))),
+                    no_ctx(Reference(no_ctx(Variable("b")))),
+                  ),
+                ),
               ),
             ),
-            no_ctx(NumericLit(8)),
+            no_ctx(ExpressionStatement(no_ctx(NumericLit(8)))),
           ],
         ),
       ),
@@ -577,9 +620,13 @@ let full_ast =
           [],
           [
             no_ctx(
-              AddExpr(
-                no_ctx(Reference(no_ctx(Variable("e")))),
-                no_ctx(Reference(no_ctx(Variable("f")))),
+              ExpressionStatement(
+                no_ctx(
+                  AddExpr(
+                    no_ctx(Reference(no_ctx(Variable("e")))),
+                    no_ctx(Reference(no_ctx(Variable("f")))),
+                  ),
+                ),
               ),
             ),
           ],

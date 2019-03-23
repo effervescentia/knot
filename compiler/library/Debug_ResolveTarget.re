@@ -11,6 +11,7 @@ let print_resolve_target =
   | ImportScope(module_, import) =>
     import |~> print_import % (s => Printf.sprintf("%s FROM %s", s, module_))
   | ExpressionScope(expr) => expr |~> print_expr
+  | ScopedExpressionScope(expr) => expr |~> print_scoped_expr
   | ParameterScope(p)
   | PropertyScope(p) => p |~> print_property
   | ReferenceScope(refr) => refr |~> print_ref

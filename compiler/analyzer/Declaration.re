@@ -13,7 +13,7 @@ let analyze = (scope, name) =>
         Property.analyze_param(Expression.analyze, nested_scope),
         params,
       );
-      List.iter(Expression.analyze(nested_scope), exprs);
+      List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
 
       nested_scope.validate();
     }
@@ -26,7 +26,7 @@ let analyze = (scope, name) =>
         Property.analyze_param(Expression.analyze, nested_scope),
         params,
       );
-      List.iter(Expression.analyze(nested_scope), exprs);
+      List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
 
       nested_scope.validate();
     }

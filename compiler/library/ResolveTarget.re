@@ -7,5 +7,6 @@ type resolve_target =
   | ParameterScope(ast_property)
   | PropertyScope(ast_property)
   | ExpressionScope(ast_expression)
+  | ScopedExpressionScope(ast_scoped_expression)
   | ReferenceScope(ast_reference)
   | TypeScope(ast_type);

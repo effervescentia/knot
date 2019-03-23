@@ -1,10 +1,20 @@
 open Core;
 
+let gen_expr =
+  fun
+  | ExpressionStatement((x, _)) =>
+    Expression.generate(x) |> Printf.sprintf("%s;")
+  | VariableDeclaration(name, (x, _)) =>
+    Expression.generate(x) |> Printf.sprintf("var %s=%s;", name);
+
 let rec gen_exprs =
   fun
-  | [x] => Expression.generate(x) |> Printf.sprintf("return %s;")
-  | [x, ...xs] =>
-    (Expression.generate(x) |> Printf.sprintf("%s;")) ++ gen_exprs(xs)
+  | [x] =>
+    switch (x) {
+    | VariableDeclaration(_) => gen_expr(x) |> Printf.sprintf("%sreturn;")
+    | ExpressionStatement(_) => gen_expr(x) |> Printf.sprintf("return %s")
+    }
+  | [x, ...xs] => gen_expr(x) ++ gen_exprs(xs)
   | [] => "";
 
 let gen_param = index =>
