@@ -107,6 +107,8 @@ let invalidate_module = (compiler, req_d, uri) =>
       compiler.invalidate(module_path);
 
       Reqd.respond_with_string(req_d, Response.ok(), "module invalidated");
+
+      compiler.add_rec(module_path);
     },
   );
 
@@ -140,12 +142,16 @@ let get_module_status = (compiler, req_d, uri) =>
       log_incoming(~addon=module_path, req_d, uri);
 
       let status =
-        compiler.find(module_path)
-        |> (
-          fun
-          | Some(_) => "complete"
-          | None => "pending"
-        );
+        try (
+          compiler.find(module_path)
+          |> (
+            fun
+            | Some(_) => "complete"
+            | None => "pending"
+          )
+        ) {
+        | _ => "failed"
+        };
 
       compiler.iter_modules(Log.info("MODULE: %s"));
 

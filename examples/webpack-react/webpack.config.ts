@@ -5,8 +5,8 @@ import * as HtmlPlugin from 'html-webpack-plugin';
 export default {
   entry: './src/index.js',
   output: {
-    path: __dirname + '/dist',
     filename: 'app.js',
+    path: __dirname + '/dist',
   },
 
   resolve: {
@@ -18,8 +18,8 @@ export default {
       template: 'index.html',
     }),
     new KnotPlugin({
-      knot: process.env.KNOT_BINARY,
       // debug: true,
+      knot: process.env.KNOT_BINARY,
     }),
     // new BundleAnalyzerPlugin(),
   ],

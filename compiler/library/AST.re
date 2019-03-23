@@ -77,4 +77,5 @@ type module_ =
 and ast_module = ctxl_promise(module_)
 and linked_module =
   | Loaded(ast_module)
-  | Injected(member_type);
+  | Injected(member_type)
+  | Failed;

@@ -8,5 +8,9 @@ exception UsedBeforeDeclaration(string);
 exception PropLookupFailed;
 exception ResultLookupFailed;
 exception UnanalyzedTypeReference;
+exception GenericConstant;
+exception InferredModuleType;
+exception InvalidImport;
+exception ModuleTypeIncomplete;
 
 exception TypeResolutionNotSupported;

@@ -12,7 +12,8 @@ export enum ServerStatus {
 
 export enum ModuleStatus {
   PENDING = 'pending',
-  COMPLETE = 'complete'
+  COMPLETE = 'complete',
+  FAILED = 'failed'
 }
 
 export interface Compiler {

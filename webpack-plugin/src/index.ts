@@ -1,10 +1,15 @@
 // tslint:disable:no-expression-statement
 import * as path from 'path';
 import validateOptions from 'schema-utils';
+// tslint:disable-next-line:no-implicit-dependencies
+import * as Webpack from 'webpack';
 import createCompiler from './compiler';
 import { KNOT_SOURCE_PATTERN } from './constants';
 import schema from './schema.json';
 import { Compiler, Options } from './types';
+
+import WebpackCompiler = Webpack.Compiler;
+import WebpackCompilation = Webpack.compilation.Compilation;
 
 // tslint:disable-next-line:no-object-literal-type-assertion
 export const DEFAULT_OPTIONS = {
@@ -30,7 +35,7 @@ export default class KnotWebpackPlugin {
     };
   }
 
-  public apply(compiler): void {
+  public apply(compiler: WebpackCompiler): void {
     const options = this.options;
     const knotCompiler = createCompiler(options);
     const knotLoader = {
@@ -45,11 +50,11 @@ export default class KnotWebpackPlugin {
     // tslint:disable-next-line:no-let
     let watching = false;
 
-    async function kill(): Promise<void> {
+    const kill = async (): Promise<void> => {
       await knotCompiler.close();
 
       process.exit(-1);
-    }
+    };
 
     compiler.hooks.watchRun.tapPromise(KnotWebpackPlugin.name, () =>
       (successiveRun
@@ -78,34 +83,37 @@ export default class KnotWebpackPlugin {
     );
 
     compiler.hooks.normalModuleFactory.tap(KnotWebpackPlugin.name, nmf => {
-      nmf.hooks.beforeResolve.tap(KnotWebpackPlugin.name, module => {
-        if (!module) {
+      nmf.hooks.beforeResolve.tap(KnotWebpackPlugin.name, mod => {
+        if (!mod) {
           return;
         }
 
-        if (module.request.startsWith('@knot/')) {
-          const [, plugin] = module.request.split('/');
+        if (mod.request.startsWith('@knot/')) {
+          const [, plugin] = mod.request.split('/');
 
           if (plugin in options.plugins) {
-            module.request = options.plugins[plugin];
+            mod.request = options.plugins[plugin];
           }
         }
 
-        return module;
+        return mod;
       });
     });
 
-    compiler.hooks.compilation.tap(KnotWebpackPlugin.name, compilation => {
-      compilation.hooks.succeedModule.tap(
-        KnotWebpackPlugin.name,
-        discoverDependencies(knotCompiler, kill)
-      );
+    compiler.hooks.compilation.tap(
+      KnotWebpackPlugin.name,
+      (compilation: WebpackCompilation) => {
+        compilation.hooks.succeedModule.tap(
+          KnotWebpackPlugin.name,
+          discoverDependencies(knotCompiler, kill)
+        );
 
-      compilation.hooks.normalModuleLoader.tap(
-        KnotWebpackPlugin.name,
-        addModuleLoader(knotLoader)
-      );
-    });
+        compilation.hooks.normalModuleLoader.tap(
+          KnotWebpackPlugin.name,
+          addModuleLoader(knotLoader)
+        );
+      }
+    );
   }
 }
 

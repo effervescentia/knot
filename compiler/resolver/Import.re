@@ -1,8 +1,6 @@
 open Core;
 open NestedHashtbl;
 
-exception InferredModuleType;
-
 let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   let module_type =
     switch (Hashtbl.find(module_tbl, module_)) {
@@ -18,6 +16,8 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
 
     /* module definition has been injected by the compiler */
     | Injected(type_) => Some(declared(type_))
+
+    | Failed => raise(InvalidImport)
 
     /* module has not been registered */
     | exception Not_found =>
