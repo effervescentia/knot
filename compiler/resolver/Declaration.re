@@ -13,7 +13,7 @@ let resolve_callable = (params, exprs) => {
   (param_types, return_type);
 };
 
-let resolver_inferrable = (symbol_tbl, name, typ, promise, f) =>
+let resolve_inferrable = (symbol_tbl, name, typ, promise, f) =>
   switch (symbol_tbl.find(name)) {
   /* fail if any previous value declared by the same name */
   | Some(t) when is_declared(t) => raise(NameInUse(name))
@@ -37,11 +37,8 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
   switch (value) {
   | ConstDecl(expr) =>
     switch (symbol_tbl.find(name)) {
-    /* fail if any previous value declared by the same name */
-    | Some(typ) when is_declared(typ) => raise(NameInUse(name))
-
-    /* should not be used by anything by the time it's declared */
-    | Some(_) => raise(UsedBeforeDeclaration(name))
+    /* fail if any previous value exists by the same name */
+    | Some(typ) => raise(NameInUse(name))
 
     /* not in scope already */
     | None =>
@@ -74,7 +71,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
       | _ => raise(InvalidTypeReference)
     )
     /* checking to see if function has been called already */
-    |> resolver_inferrable(symbol_tbl, name, typ, promise);
+    |> resolve_inferrable(symbol_tbl, name, typ, promise);
 
   | ViewDecl(_, _, params, exprs) =>
     let (param_types, return_type) = resolve_callable(params, exprs);
@@ -104,7 +101,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
 
       | _ => raise(InvalidTypeReference)
     )
-    |> resolver_inferrable(symbol_tbl, name, typ, promise);
+    |> resolve_inferrable(symbol_tbl, name, typ, promise);
 
   | _ => raise(TypeResolutionNotSupported)
   };

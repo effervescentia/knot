@@ -23,6 +23,7 @@ let () = {
       LexerTest.tests,
       TokenStreamTest.tests,
       ParserTest.tests,
+      ResolverTest.tests,
       GeneratorTest.tests,
     ],
   );

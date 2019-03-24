@@ -9,7 +9,7 @@ let tests =
         let generated = ref("");
         let scope = KnotAnalyze.Scope.create();
 
-        Util.load_resource(Config.unix_source_file)
+        Util.load_resource(Config.sample_snippet)
         |> FileStream.of_channel
         |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
         |> Parser.parse(Parser.prog)

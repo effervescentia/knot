@@ -1,4 +1,5 @@
 open OUnit2;
+open Knot.Globals;
 
 let assert_string_eql = (actual, expected) =>
   assert_equal(
@@ -20,6 +21,15 @@ let assert_ast_eql = (actual, expected) =>
   assert_equal(
     ~msg="AST match",
     ~printer=KnotParse.Debug.print_ast,
+    expected,
+    actual,
+  );
+
+let assert_annotated_ast_eql = (actual, expected) =>
+  assert_equal(
+    ~msg="AST match",
+    ~printer=fst % KnotParse.Debug.print_ast,
+    ~cmp=Compare.compare_modules,
     expected,
     actual,
   );

@@ -10,17 +10,47 @@ knot@0.0.0
 ├─test/
 │   name:    TestKnot.exe
 │   main:    TestKnot
-│   require: knot.lib
+│   require: knot.lib, knot.lex, knot.parse, knot.analyze, knot.generate
 │
 ├─library/
 │   library name: knot.lib
 │   namespace:    Knot
 │   require:
 │
+├─lexer/
+│   library name: knot.lex
+│   namespace:    KnotLex
+│   require:      knot.lib
+│
+├─parser/
+│   library name: knot.parse
+│   namespace:    KnotParse
+│   require:      knot.lib
+│
+├─resolver/
+│   library name: knot.resolve
+│   namespace:    KnotResolve
+│   require:      knot.lib
+│
+├─analyzer/
+│   library name: knot.analyze
+│   namespace:    KnotAnalayze
+│   require:      knot.lib, knot.resolve
+│
+├─generator/
+│   library name: knot.generate
+│   namespace:    KnotGenerate
+│   require:      knot.lib
+│
+├─compiler/
+│   library name: knot.compile
+│   namespace:    KnotCompile
+│   require:      knot.lib, knot.lex, knot.parse, knot.analyze
+│
 └─executable/
-    name:    KnotApp.exe
-    main:    KnotApp
-    require: knot.lib
+    name:    knotc.exe
+    main:    Main
+    require: knot.lib, knot.generate, knot.compile
 ```
 
 ## Developing:
@@ -37,7 +67,7 @@ esy build
 After building the project, you can run the main binary that is produced.
 
 ```
-esy x KnotApp.exe
+esy x knotc.exe
 ```
 
 ## Running Tests:
@@ -45,4 +75,14 @@ esy x KnotApp.exe
 ```
 # Runs the "test" command in `package.json`.
 esy test
+```
+
+```
+Expected (state, view, style, func) vs Declared (const, let, <props>, <args>)
+
+Concrete (arg with type declared) vs Mutable (arg without type or default value)
+
+where are the boundaries for type propagation?
+
+pack resolution into Expected to ensure?
 ```

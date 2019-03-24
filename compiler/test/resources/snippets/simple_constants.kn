@@ -1,0 +1,4 @@
+const numericConst = 8;
+const booleanConst = true;
+const stringConst = "abc";
+const jsxConst = <div />;

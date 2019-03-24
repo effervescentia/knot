@@ -61,6 +61,7 @@ type style_rule_set = (style_key, list(style_rule));
 
 type declaration =
   | ConstDecl(ast_expression)
+  | FunctionDecl(list(ast_property), list(ast_scoped_expression))
   | StateDecl(list(ast_property), list(ast_state_prop))
   | ViewDecl(
       option(ast_type),
@@ -68,7 +69,6 @@ type declaration =
       list(ast_property),
       list(ast_scoped_expression),
     )
-  | FunctionDecl(list(ast_property), list(ast_scoped_expression))
   | StyleDecl(list(ast_property), list(style_rule_set))
 and ast_declaration = ctxl_promise(declaration);
 
