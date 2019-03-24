@@ -35,7 +35,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
       | Some(typ) => typ
 
       /* symbol does not exist */
-      | _ => raise(InvalidTypeReference)
+      | _ => raise(UsedBeforeDeclaration(name))
       }
 
     | DotAccess(obj, key) =>

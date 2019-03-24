@@ -9,4 +9,4 @@ let windows_tokens_file = "windows_tokens.txt";
 let unix_module_file = "unix_module.txt";
 let windows_module_file = "windows_module.txt";
 
-let unix_source_file = "unix_source_code.kn";
+let sample_snippet = "snippets/sample.kn";

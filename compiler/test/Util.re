@@ -16,6 +16,13 @@ let rec drift =
 
 let load_resource = file => open_in(Config.resource_dir ++ "/" ++ file);
 
+let analyze_resource = (scope, file) =>
+  load_resource(file)
+  |> FileStream.of_channel
+  |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
+  |> Parser.parse(Parser.prog)
+  |> Analyzer.analyze(~scope);
+
 let to_token_stream = tkns => {
   let remaining = ref(tkns);
   let next = ts =>
