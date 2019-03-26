@@ -1,5 +1,11 @@
 open Core;
 
+let resolve_delc = (add, name, decl_ref) =>
+  switch (decl_ref^) {
+  | (_, Declared(_)) => add(name, decl_ref)
+  | _ => raise(DeclarationNotFound(name))
+  };
+
 let resolve = ((value, promise)) =>
   switch (value) {
   | Module(stmts) =>
@@ -14,17 +20,14 @@ let resolve = ((value, promise)) =>
       | Declaration(name, decl) => {
           let decl_ref = opt_type_ref(decl);
 
-          switch (decl_ref^) {
-          | Declared(_) => Hashtbl.add(members, name, decl_ref)
-          | _ => raise(ModuleTypeIncomplete)
-          };
+          resolve_delc(Hashtbl.add(members), name, decl_ref);
         }
 
       | Main(name, decl) => {
-          let arg_ref = opt_type_ref(decl);
+          let decl_ref = opt_type_ref(decl);
 
-          Hashtbl.add(members, name, arg_ref);
-          main_declaration := Some(arg_ref);
+          resolve_delc(Hashtbl.add(members), name, decl_ref);
+          main_declaration := Some(decl_ref);
         },
       stmts,
     );

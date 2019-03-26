@@ -5,7 +5,7 @@ let as_t = x => ref(Some(x));
 let rec compare_types = (lhs, rhs) =>
   switch (lhs^, rhs^) {
   | (Some(lhs), Some(rhs)) =>
-    switch (typeof(lhs^), typeof(rhs^)) {
+    switch (fst(lhs^), fst(rhs^)) {
     | (Array_t(lhs), Array_t(rhs)) => compare_types(as_t(lhs), as_t(rhs))
     | (Function_t(lhs_args, lhs_ret), Function_t(rhs_args, rhs_ret))
     | (View_t(lhs_args, lhs_ret), View_t(rhs_args, rhs_ret)) =>

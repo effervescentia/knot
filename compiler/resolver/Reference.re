@@ -43,28 +43,18 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       switch (obj_ref^) {
       /* symbol exists in object or module */
-      | Defined(Object_t(members))
-      | Declared(Object_t(members))
-      | Inferred(Object_t(members))
-      | Defined(Module_t(_, members, _))
-      | Declared(Module_t(_, members, _))
-      | Inferred(Module_t(_, members, _)) when Hashtbl.mem(members, key) =>
+      | (Object_t(members), _)
+      | (Module_t(_, members, _), _) when Hashtbl.mem(members, key) =>
         Hashtbl.find(members, key)
 
       /* symbol is generic and declares the property */
-      | Defined(Generic_t(Some(Keyed_t(members))))
-      | Declared(Generic_t(Some(Keyed_t(members))))
-      | Inferred(Generic_t(Some(Keyed_t(members))))
+      | (Generic_t(Some(Keyed_t(members))), _)
           when Hashtbl.mem(members, key) =>
         Hashtbl.find(members, key)
 
-      /* symbol is defined as generic and may allow the type to change */
-      | Defined(Generic_t(t)) =>
-        resolve_keyed_generic(obj_ref, key, t, x => Defined(x))
-
-      /* symbol is inferred as generic and may allow the type to change */
-      | Inferred(Generic_t(t)) =>
-        resolve_keyed_generic(obj_ref, key, t, x => Inferred(x))
+      /* symbol is generic and allows the type to change */
+      | (Generic_t(t), Declared(true) as t_ctx | Expected as t_ctx) =>
+        resolve_keyed_generic(obj_ref, key, t, x => (x, t_ctx))
 
       | _ => raise(InvalidDotAccess)
       };
@@ -74,7 +64,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
         switch ((snd(refr))^) {
         /* symbol has been analyzed */
         | Some(x) =>
-          switch (typeof_ref(x)) {
+          switch (fst(x^)) {
           /* symbol is a function */
           | Function_t(_, return_type) => Some(return_type)
 
@@ -98,10 +88,10 @@ let resolve = (symbol_tbl, (value, promise)) =>
         | Some(res) => res
         | None => {
             let arg_types = List.map(opt_type_ref, args);
-            let ret_type = inferred(any);
+            let ret_type = declared_mut(any);
             let typ = Callable_t(arg_types, ret_type);
 
-            snd(refr) =.= generic(typ);
+            snd(refr) =@= (generic(typ), Expected);
 
             ret_type;
           }

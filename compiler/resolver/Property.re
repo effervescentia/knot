@@ -20,7 +20,7 @@ let resolve: (NestedHashtbl.t(string, member_ref), ast_property) => unit =
       | (_, Some((_, typ))) => upwrap_type(typ^)
 
       /* no type declaration or default value */
-      | (None, None) => defined(any)
+      | (None, None) => declared_mut(any)
       }
     )
     <:= promise;

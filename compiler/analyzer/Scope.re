@@ -34,7 +34,7 @@ let rec create =
     validate: () =>
       symbol_tbl.iter_local((key, typ) =>
         switch (typ^) {
-        | Inferred(_) => raise(InvalidScope)
+        | (_, Expected) => raise(InvalidScope)
         | _ => ()
         }
       ),

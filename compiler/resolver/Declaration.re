@@ -21,10 +21,10 @@ let resolve_inferrable = (symbol_tbl, name, typ, promise, f) =>
   | Some(t) =>
     switch (t^) {
     /* type is inferred as any, replace inferred type */
-    | Inferred(Generic_t(None)) => promise =:= typ
+    | (Generic_t(None), Expected) => promise =@= (typ, Declared(false))
 
     /* use type handler */
-    | Inferred(res) => f(res)
+    | (res, Expected) => f(res)
 
     | _ => raise(InvalidTypeReference)
     }
@@ -44,7 +44,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
     | None =>
       let expr_ref = opt_type_ref(expr);
 
-      switch (typeof_ref(expr_ref)) {
+      switch (fst(expr_ref^)) {
       /* expr returns a generic value */
       | Generic_t(_) => raise(GenericConstant)
 
@@ -65,7 +65,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
           /* update any references to this function */
           List.iteri((i, arg) => arg := (List.nth(param_types, i))^, args);
           ret := return_type^;
-          promise =:= t;
+          promise =@= (t, Declared(false));
         }
 
       | _ => raise(InvalidTypeReference)
@@ -77,7 +77,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
     let (param_types, return_type) = resolve_callable(params, exprs);
 
     /* only allow certain return types */
-    switch (typeof(return_type^)) {
+    switch (fst(return_type^)) {
     | Number_t
     | String_t
     | Boolean_t
@@ -96,7 +96,7 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
           /* update any reference to the return type of this view */
           List.iteri((i, arg) => arg := (List.nth(param_types, i))^, args);
           ret := return_type^;
-          promise =:= t;
+          promise =@= (t, Declared(false));
         }
 
       | _ => raise(InvalidTypeReference)

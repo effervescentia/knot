@@ -20,20 +20,13 @@ type member_type =
 and generic_type =
   /* could be a Module or an Object */
   | Keyed_t(Hashtbl.t(string, member_ref))
-  /* could be a function (or a view???) */
+  /* could be a function (or a view??? <- no, just a function) */
   | Callable_t(list(member_ref), member_ref)
-and member_ref = ref(eventual_type)
+and member_ref = ref((member_type, eventual_type))
 and eventual_type =
-  | Defined(member_type)
-  | Inferred(member_type)
-  | Declared(member_type);
+  | Expected
+  | Declared(bool);
 
 type ctxl_promise('a) = ('a, ref(option(member_ref)));
 
 let no_ctx = x => (x, ref(None));
-
-let typeof =
-  fun
-  | Defined(t)
-  | Declared(t)
-  | Inferred(t) => t;

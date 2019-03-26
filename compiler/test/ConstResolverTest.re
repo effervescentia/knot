@@ -1,7 +1,7 @@
 open Core;
 open KnotResolve.Exception;
 
-let __declared = x => ref(Declared(x));
+let __declared = x => ref((x, Declared(false)));
 let __declared_ref = x => ref(Some(__declared(x)));
 
 let tests =
@@ -60,19 +60,17 @@ let tests =
                 ]),
                 ref(
                   Some(
-                    ref(
-                      Declared(
-                        Module_t(
-                          [],
-                          List.to_seq([
-                            ("numericConst", __declared(Number_t)),
-                            ("booleanConst", __declared(Boolean_t)),
-                            ("stringConst", __declared(String_t)),
-                            ("jsxConst", __declared(JSX_t)),
-                          ])
-                          |> Hashtbl.of_seq,
-                          None,
-                        ),
+                    __declared(
+                      Module_t(
+                        [],
+                        List.to_seq([
+                          ("numericConst", __declared(Number_t)),
+                          ("booleanConst", __declared(Boolean_t)),
+                          ("stringConst", __declared(String_t)),
+                          ("jsxConst", __declared(JSX_t)),
+                        ])
+                        |> Hashtbl.of_seq,
+                        None,
                       ),
                     ),
                   ),

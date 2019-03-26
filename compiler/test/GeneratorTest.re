@@ -18,7 +18,7 @@ let tests =
           fun
           | Some(ast) =>
             switch ((KnotResolve.Core.opt_type_ref(ast))^) {
-            | Declared(_) =>
+            | (_, Declared(false)) =>
               KnotGenerate.Generator.generate(
                 s => generated := generated^ ++ s,
                 s => s,

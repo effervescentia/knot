@@ -12,7 +12,8 @@ let rec analyze_type =
     Object_t(
       Hashtbl.fold(
         (key, value, tbl) => {
-          ref(Declared(analyze_type(value))) |> Hashtbl.add(tbl, key);
+          ref((analyze_type(value), Declared(false)))
+          |> Hashtbl.add(tbl, key);
           tbl;
         },
         members,
@@ -21,8 +22,8 @@ let rec analyze_type =
     )
   | FunctionDefn(args, ret) =>
     Function_t(
-      List.map(x => ref(Declared(analyze_type(x))), args),
-      ref(Declared(analyze_type(ret))),
+      List.map(x => ref((analyze_type(x), Declared(false))), args),
+      ref((analyze_type(ret), Declared(false))),
     );
 
 let analyze_stmt = (tbl, main_defn) =>
@@ -30,7 +31,7 @@ let analyze_stmt = (tbl, main_defn) =>
   | MainDefn(defn) =>
     switch (main_defn^) {
     | Some(_) => raise(MultipleMainDefinitions)
-    | None => main_defn := Some(ref(Declared(analyze_type(defn))))
+    | None => main_defn := Some(ref((analyze_type(defn), Declared(false))))
     };
 
 let analyze =

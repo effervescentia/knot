@@ -27,10 +27,10 @@ let rec (=??) = (x, y) =>
       Function_t(rhs_args, rhs_ret),
     ) =>
     List.length(lhs_args) == List.length(rhs_args)
-    && typeof_ref(lhs_ret)
-    =?? typeof_ref(rhs_ret)
+    && fst(lhs_ret^)
+    =?? fst(rhs_ret^)
     && List.for_all2(
-         (lhs, rhs) => typeof_ref(lhs) =?? typeof_ref(rhs),
+         (lhs, rhs) => fst(lhs^) =?? fst(rhs^),
          lhs_args,
          rhs_args,
        )

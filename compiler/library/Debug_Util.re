@@ -9,16 +9,18 @@ let (|~>) = ((x, y), f) =>
     | None => Printf.sprintf("Unanalyzed(%s)")
     | Some(res) =>
       switch (res^) {
-      | Defined(t) => (
-          s => print_member_type(t) |> Printf.sprintf("Defined(%s := %s)", s)
-        )
-      | Inferred(t) => (
+      | (t, Expected) => (
           s =>
-            print_member_type(t) |> Printf.sprintf("Inferred(%s := %s)", s)
+            print_member_type(t) |> Printf.sprintf("Expected(%s := %s)", s)
         )
-      | Declared(t) => (
+      | (t, Declared(is_mutable)) => (
           s =>
-            print_member_type(t) |> Printf.sprintf("Declared(%s := %s)", s)
+            print_member_type(t)
+            |> Printf.sprintf(
+                 "Declared%s(%s := %s)",
+                 is_mutable ? "?" : "",
+                 s,
+               )
         )
       }
     }

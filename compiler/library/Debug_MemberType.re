@@ -32,7 +32,7 @@ let rec print_member_type =
         )
     )
   | _ => raise(DebugTypeNotSupported)
-and print_type_ref = t => typeof(t^) |> print_member_type
+and print_type_ref = t => fst(t^) |> print_member_type
 and print_callable = (arg_types, return_type) =>
   Printf.sprintf(
     "(%s) -> %s",

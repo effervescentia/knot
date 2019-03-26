@@ -8,7 +8,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       let ast_ref = opt_type_ref(ast);
       switch (ast_ref^) {
       /* inferred module types are not allowed */
-      | Inferred(_) => raise(InferredModuleType)
+      | (_, Expected) => raise(InferredModuleType)
 
       /* module has been loaded and linked */
       | _ => Some(ast_ref)
@@ -31,7 +31,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   (
     switch (module_type, value) {
     | (
-        Some({contents: Declared(Module_t(_, export_tbl, _))}),
+        Some({contents: (Module_t(_, export_tbl, _), _)}),
         ModuleExport(name),
       ) =>
       (
@@ -42,7 +42,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       =<< symbol_tbl.add(name)
 
     | (
-        Some({contents: Declared(Module_t(_, _, main_export))}),
+        Some({contents: (Module_t(_, _, main_export), _)}),
         MainExport(name),
       ) =>
       (
@@ -54,7 +54,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       =<< symbol_tbl.add(name)
 
     | (
-        Some({contents: Declared(Module_t(_, export_tbl, _))}),
+        Some({contents: (Module_t(_, export_tbl, _), _)}),
         NamedExport(name, alias),
       ) =>
       (
@@ -67,13 +67,13 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
         s =>
           (
             try (Hashtbl.find(export_tbl, name)) {
-            | Not_found => inferred(any) =<< Hashtbl.add(export_tbl, name)
+            | Not_found => expected(any) =<< Hashtbl.add(export_tbl, name)
             }
           )
           =<< symbol_tbl.add(s)
       )
 
-    | _ => defined(any)
+    | _ => declared_mut(any)
     }
   )
   <:= promise;
