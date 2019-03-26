@@ -6,8 +6,11 @@ let simple = (config, target) =>
     | res when String.length(res) == 0 => raise(InvalidPathFormat(res))
     | res when Util.is_source_module(res) =>
       Util.to_path_segment(res)
-      |> Printf.sprintf("%s.kn")
-      |> Filename.concat(config.source_dir)
+      |> (
+        s =>
+          Printf.sprintf("%s%s", s, knot_source_file_ext)
+          |> Filename.concat(config.source_dir)
+      )
     | res when res.[0] == '@' =>
       let parts = String.split_on_char('/', res);
 

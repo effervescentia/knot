@@ -104,7 +104,7 @@ let create = create_desc => {
       let desc = create_desc(path);
       let absolute_path = desc.absolute_path;
 
-      if (Filename.extension(absolute_path) == ".kd") {
+      if (Filename.extension(absolute_path) == knot_types_file_ext) {
         try (inject(global_scope^, desc, name)) {
         | _ => Hashtbl.add(global_scope^.module_tbl, name, Failed)
         };

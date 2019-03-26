@@ -29,6 +29,10 @@ let (|-) = (f, g, x) =>
     }
   );
 
+let knot_source_file_ext = ".kn";
+let knot_types_file_ext = ".kd";
+let knot_config_file = ".knot.yaml";
+
 let reserved = [
   "import",
   "from",

@@ -19,8 +19,8 @@ let is_config_file =
   String.lowercase_ascii
   % (
     fun
-    | ".knot.yml"
-    | ".knot.yaml" => true
+    | s when s == knot_config_file => true
+    | ".knot.yml" => true
     | _ => false
   );
 
