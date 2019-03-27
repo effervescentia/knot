@@ -43,6 +43,12 @@ let test_parse_ast = (prog, (tkns, ast)) =>
   | None => assert_failure("no AST found")
   };
 
+let test_parse_import = (prog, (tkns, import)) =>
+  switch (Parser.parse(prog, to_token_stream(tkns))) {
+  | Some(res) => Assert.assert_import_eql(import, res)
+  | None => assert_failure("no import found")
+  };
+
 let test_parse_stmt = (prog, (tkns, stmt)) =>
   switch (Parser.parse(prog, to_token_stream(tkns))) {
   | Some(res) => Assert.assert_stmt_eql(stmt, res)

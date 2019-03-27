@@ -117,164 +117,285 @@ let all_tokens = [
 ];
 
 let full_ast =
-  Module([
-    Import("abc", [no_ctx(MainExport("ABC"))]),
-    Declaration("numericConst", no_ctx(ConstDecl(no_ctx(NumericLit(8))))),
-    Declaration(
-      "additionConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(AddExpr(no_ctx(NumericLit(1)), no_ctx(NumericLit(10)))),
+  Module(
+    [Import("abc", [no_ctx(MainExport("ABC"))])],
+    [
+      Declaration(
+        "numericConst",
+        no_ctx(ConstDecl(no_ctx(NumericLit(8)))),
+      ),
+      Declaration(
+        "additionConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              AddExpr(no_ctx(NumericLit(1)), no_ctx(NumericLit(10))),
+            ),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "subtractionConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(SubExpr(no_ctx(NumericLit(8)), no_ctx(NumericLit(2)))),
+      Declaration(
+        "subtractionConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              SubExpr(no_ctx(NumericLit(8)), no_ctx(NumericLit(2))),
+            ),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "multiplicationConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(MulExpr(no_ctx(NumericLit(2)), no_ctx(NumericLit(3)))),
+      Declaration(
+        "multiplicationConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              MulExpr(no_ctx(NumericLit(2)), no_ctx(NumericLit(3))),
+            ),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "divisionConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(DivExpr(no_ctx(NumericLit(4)), no_ctx(NumericLit(2)))),
+      Declaration(
+        "divisionConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              DivExpr(no_ctx(NumericLit(4)), no_ctx(NumericLit(2))),
+            ),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "stringConst",
-      no_ctx(ConstDecl(no_ctx(StringLit("Hello, World!")))),
-    ),
-    Declaration("trueConst", no_ctx(ConstDecl(no_ctx(BooleanLit(true))))),
-    Declaration(
-      "falseConst",
-      no_ctx(ConstDecl(no_ctx(BooleanLit(false)))),
-    ),
-    Declaration(
-      "lessThanConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(LTExpr(no_ctx(NumericLit(7)), no_ctx(NumericLit(9)))),
+      Declaration(
+        "stringConst",
+        no_ctx(ConstDecl(no_ctx(StringLit("Hello, World!")))),
+      ),
+      Declaration(
+        "trueConst",
+        no_ctx(ConstDecl(no_ctx(BooleanLit(true)))),
+      ),
+      Declaration(
+        "falseConst",
+        no_ctx(ConstDecl(no_ctx(BooleanLit(false)))),
+      ),
+      Declaration(
+        "lessThanConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(LTExpr(no_ctx(NumericLit(7)), no_ctx(NumericLit(9)))),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "lessThanEqualConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(LTEExpr(no_ctx(NumericLit(8)), no_ctx(NumericLit(2)))),
+      Declaration(
+        "lessThanEqualConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              LTEExpr(no_ctx(NumericLit(8)), no_ctx(NumericLit(2))),
+            ),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "greaterThanConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(GTExpr(no_ctx(NumericLit(2)), no_ctx(NumericLit(4)))),
+      Declaration(
+        "greaterThanConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(GTExpr(no_ctx(NumericLit(2)), no_ctx(NumericLit(4)))),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "greaterThanEqualConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(GTEExpr(no_ctx(NumericLit(9)), no_ctx(NumericLit(1)))),
+      Declaration(
+        "greaterThanEqualConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              GTEExpr(no_ctx(NumericLit(9)), no_ctx(NumericLit(1))),
+            ),
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "closureConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            AddExpr(
-              no_ctx(
-                MulExpr(no_ctx(NumericLit(3)), no_ctx(NumericLit(2))),
-              ),
-              no_ctx(
-                AddExpr(
-                  no_ctx(NumericLit(1)),
-                  no_ctx(
-                    MulExpr(
-                      no_ctx(
-                        DivExpr(
-                          no_ctx(NumericLit(6)),
-                          no_ctx(
-                            SubExpr(
-                              no_ctx(NumericLit(2)),
-                              no_ctx(NumericLit(5)),
+      Declaration(
+        "closureConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              AddExpr(
+                no_ctx(
+                  MulExpr(no_ctx(NumericLit(3)), no_ctx(NumericLit(2))),
+                ),
+                no_ctx(
+                  AddExpr(
+                    no_ctx(NumericLit(1)),
+                    no_ctx(
+                      MulExpr(
+                        no_ctx(
+                          DivExpr(
+                            no_ctx(NumericLit(6)),
+                            no_ctx(
+                              SubExpr(
+                                no_ctx(NumericLit(2)),
+                                no_ctx(NumericLit(5)),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      no_ctx(NumericLit(3)),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-    Declaration(
-      "dotAccessConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            Reference(
-              no_ctx(
-                DotAccess(
-                  no_ctx(DotAccess(no_ctx(Variable("a")), "b")),
-                  "c",
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-    Declaration(
-      "executionConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            Reference(
-              no_ctx(
-                Execution(
-                  no_ctx(
-                    DotAccess(
-                      no_ctx(DotAccess(no_ctx(Variable("d")), "e")),
-                      "f",
-                    ),
-                  ),
-                  [
-                    no_ctx(NumericLit(4)),
-                    no_ctx(
-                      Reference(
-                        no_ctx(DotAccess(no_ctx(Variable("a")), "x")),
-                      ),
-                    ),
-                    no_ctx(
-                      MulExpr(
-                        no_ctx(NumericLit(20)),
                         no_ctx(NumericLit(3)),
                       ),
                     ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      Declaration(
+        "dotAccessConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              Reference(
+                no_ctx(
+                  DotAccess(
+                    no_ctx(DotAccess(no_ctx(Variable("a")), "b")),
+                    "c",
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      Declaration(
+        "executionConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              Reference(
+                no_ctx(
+                  Execution(
                     no_ctx(
-                      Reference(
-                        no_ctx(Execution(no_ctx(Variable("m")), [])),
+                      DotAccess(
+                        no_ctx(DotAccess(no_ctx(Variable("d")), "e")),
+                        "f",
+                      ),
+                    ),
+                    [
+                      no_ctx(NumericLit(4)),
+                      no_ctx(
+                        Reference(
+                          no_ctx(DotAccess(no_ctx(Variable("a")), "x")),
+                        ),
+                      ),
+                      no_ctx(
+                        MulExpr(
+                          no_ctx(NumericLit(20)),
+                          no_ctx(NumericLit(3)),
+                        ),
+                      ),
+                      no_ctx(
+                        Reference(
+                          no_ctx(Execution(no_ctx(Variable("m")), [])),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      Declaration(
+        "jsxConst",
+        no_ctx(ConstDecl(no_ctx(JSX(Element("abc", [], []))))),
+      ),
+      Declaration(
+        "jsxWithPropsConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              JSX(
+                Element(
+                  "def",
+                  [
+                    (
+                      "num",
+                      no_ctx(
+                        AddExpr(
+                          no_ctx(NumericLit(8)),
+                          no_ctx(NumericLit(9)),
+                        ),
+                      ),
+                    ),
+                    ("bool", no_ctx(BooleanLit(false))),
+                    ("first", no_ctx(StringLit("look"))),
+                    ("under", no_ctx(StringLit("there"))),
+                  ],
+                  [],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      Declaration(
+        "nestedJSXConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              JSX(
+                Element(
+                  "parent",
+                  [("justMade", no_ctx(StringLit("you say")))],
+                  [
+                    Element(
+                      "child",
+                      [
+                        (
+                          "variable",
+                          no_ctx(Reference(no_ctx(Variable("variable")))),
+                        ),
+                      ],
+                      [
+                        Element(
+                          "grandchild",
+                          [("under", no_ctx(StringLit("wear")))],
+                          [],
+                        ),
+                      ],
+                    ),
+                    Element("sibling", [], []),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      Declaration(
+        "nestedExprJSXConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              JSX(
+                Element(
+                  "container",
+                  [],
+                  [
+                    EvalNode(
+                      no_ctx(
+                        AddExpr(
+                          no_ctx(Reference(no_ctx(Variable("value")))),
+                          no_ctx(NumericLit(20)),
+                        ),
+                      ),
+                    ),
+                    Element("middle", [], []),
+                    EvalNode(
+                      no_ctx(
+                        AddExpr(
+                          no_ctx(Reference(no_ctx(Variable("another")))),
+                          no_ctx(StringLit("one")),
+                        ),
                       ),
                     ),
                   ],
@@ -284,404 +405,313 @@ let full_ast =
           ),
         ),
       ),
-    ),
-    Declaration(
-      "jsxConst",
-      no_ctx(ConstDecl(no_ctx(JSX(Element("abc", [], []))))),
-    ),
-    Declaration(
-      "jsxWithPropsConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            JSX(
-              Element(
-                "def",
-                [
-                  (
-                    "num",
-                    no_ctx(
-                      AddExpr(
-                        no_ctx(NumericLit(8)),
-                        no_ctx(NumericLit(9)),
-                      ),
-                    ),
-                  ),
-                  ("bool", no_ctx(BooleanLit(false))),
-                  ("first", no_ctx(StringLit("look"))),
-                  ("under", no_ctx(StringLit("there"))),
-                ],
-                [],
+      Declaration(
+        "fragmentJSXConst",
+        no_ctx(
+          ConstDecl(
+            no_ctx(
+              JSX(
+                Fragment([Element("div", [], []), Element("span", [], [])]),
               ),
             ),
           ),
         ),
       ),
-    ),
-    Declaration(
-      "nestedJSXConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            JSX(
-              Element(
-                "parent",
-                [("justMade", no_ctx(StringLit("you say")))],
-                [
-                  Element(
-                    "child",
-                    [
-                      (
-                        "variable",
-                        no_ctx(Reference(no_ctx(Variable("variable")))),
-                      ),
-                    ],
-                    [
-                      Element(
-                        "grandchild",
-                        [("under", no_ctx(StringLit("wear")))],
-                        [],
-                      ),
-                    ],
-                  ),
-                  Element("sibling", [], []),
-                ],
-              ),
-            ),
+      Declaration(
+        "compactFunc",
+        no_ctx(
+          FunctionDecl(
+            [],
+            [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
           ),
         ),
       ),
-    ),
-    Declaration(
-      "nestedExprJSXConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            JSX(
-              Element(
-                "container",
-                [],
-                [
-                  EvalNode(
-                    no_ctx(
-                      AddExpr(
-                        no_ctx(Reference(no_ctx(Variable("value")))),
-                        no_ctx(NumericLit(20)),
-                      ),
-                    ),
-                  ),
-                  Element("middle", [], []),
-                  EvalNode(
-                    no_ctx(
-                      AddExpr(
-                        no_ctx(Reference(no_ctx(Variable("another")))),
-                        no_ctx(StringLit("one")),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-    Declaration(
-      "fragmentJSXConst",
-      no_ctx(
-        ConstDecl(
-          no_ctx(
-            JSX(
-              Fragment([Element("div", [], []), Element("span", [], [])]),
-            ),
-          ),
-        ),
-      ),
-    ),
-    Declaration(
-      "compactFunc",
-      no_ctx(
-        FunctionDecl(
-          [],
-          [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
-        ),
-      ),
-    ),
-    Declaration(
-      "compactExprFunc",
-      no_ctx(
-        FunctionDecl(
-          [],
-          [
-            no_ctx(
-              ExpressionStatement(
-                no_ctx(
-                  AddExpr(
-                    no_ctx(Reference(no_ctx(Variable("A")))),
-                    no_ctx(Reference(no_ctx(Variable("B")))),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Declaration(
-      "multiExprFunc",
-      no_ctx(
-        FunctionDecl(
-          [],
-          [
-            no_ctx(
-              ExpressionStatement(
-                no_ctx(
-                  AddExpr(
-                    no_ctx(Reference(no_ctx(Variable("e")))),
-                    no_ctx(Reference(no_ctx(Variable("f")))),
-                  ),
-                ),
-              ),
-            ),
-            no_ctx(
-              ExpressionStatement(
-                no_ctx(Reference(no_ctx(Variable("j")))),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Declaration(
-      "paramFunc",
-      no_ctx(
-        FunctionDecl(
-          [no_ctx(("a", None, None))],
-          [
-            no_ctx(
-              ExpressionStatement(
-                no_ctx(Reference(no_ctx(Variable("a")))),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Declaration("NoParamsState", no_ctx(StateDecl([], []))),
-    Declaration("EmptyState", no_ctx(StateDecl([], []))),
-    Declaration(
-      "DefaultParamState",
-      no_ctx(
-        StateDecl(
-          [no_ctx(("z", None, Some(no_ctx(NumericLit(30)))))],
-          [],
-        ),
-      ),
-    ),
-    Declaration(
-      "ComplexState",
-      no_ctx(
-        StateDecl(
-          [],
-          [
-            no_ctx(Property(no_ctx(("a", Some(no_ctx("b")), None)))),
-            no_ctx(Property(no_ctx(("_c", Some(no_ctx("d")), None)))),
-            no_ctx(
-              Getter(
-                "e",
-                [],
-                [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
-              ),
-            ),
-            no_ctx(
-              Getter(
-                "f",
-                [],
-                [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
-              ),
-            ),
-            no_ctx(
-              Getter(
-                "g",
-                [
-                  no_ctx(("h", Some(no_ctx("j")), None)),
-                  no_ctx(("k", None, Some(no_ctx(NumericLit(2))))),
-                  no_ctx((
-                    "l",
-                    Some(no_ctx("m")),
-                    Some(no_ctx(NumericLit(20))),
-                  )),
-                ],
-                [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
-              ),
-            ),
-            no_ctx(
-              Getter(
-                "n",
-                [],
-                [
-                  no_ctx(ExpressionStatement(no_ctx(NumericLit(3)))),
+      Declaration(
+        "compactExprFunc",
+        no_ctx(
+          FunctionDecl(
+            [],
+            [
+              no_ctx(
+                ExpressionStatement(
                   no_ctx(
-                    ExpressionStatement(
-                      no_ctx(
-                        AddExpr(
-                          no_ctx(Reference(no_ctx(Variable("A")))),
-                          no_ctx(Reference(no_ctx(Variable("m")))),
+                    AddExpr(
+                      no_ctx(Reference(no_ctx(Variable("A")))),
+                      no_ctx(Reference(no_ctx(Variable("B")))),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Declaration(
+        "multiExprFunc",
+        no_ctx(
+          FunctionDecl(
+            [],
+            [
+              no_ctx(
+                ExpressionStatement(
+                  no_ctx(
+                    AddExpr(
+                      no_ctx(Reference(no_ctx(Variable("e")))),
+                      no_ctx(Reference(no_ctx(Variable("f")))),
+                    ),
+                  ),
+                ),
+              ),
+              no_ctx(
+                ExpressionStatement(
+                  no_ctx(Reference(no_ctx(Variable("j")))),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Declaration(
+        "paramFunc",
+        no_ctx(
+          FunctionDecl(
+            [no_ctx(("a", None, None))],
+            [
+              no_ctx(
+                ExpressionStatement(
+                  no_ctx(Reference(no_ctx(Variable("a")))),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Declaration("NoParamsState", no_ctx(StateDecl([], []))),
+      Declaration("EmptyState", no_ctx(StateDecl([], []))),
+      Declaration(
+        "DefaultParamState",
+        no_ctx(
+          StateDecl(
+            [no_ctx(("z", None, Some(no_ctx(NumericLit(30)))))],
+            [],
+          ),
+        ),
+      ),
+      Declaration(
+        "ComplexState",
+        no_ctx(
+          StateDecl(
+            [],
+            [
+              no_ctx(Property(no_ctx(("a", Some(no_ctx("b")), None)))),
+              no_ctx(Property(no_ctx(("_c", Some(no_ctx("d")), None)))),
+              no_ctx(
+                Getter(
+                  "e",
+                  [],
+                  [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
+                ),
+              ),
+              no_ctx(
+                Getter(
+                  "f",
+                  [],
+                  [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+                ),
+              ),
+              no_ctx(
+                Getter(
+                  "g",
+                  [
+                    no_ctx(("h", Some(no_ctx("j")), None)),
+                    no_ctx(("k", None, Some(no_ctx(NumericLit(2))))),
+                    no_ctx((
+                      "l",
+                      Some(no_ctx("m")),
+                      Some(no_ctx(NumericLit(20))),
+                    )),
+                  ],
+                  [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+                ),
+              ),
+              no_ctx(
+                Getter(
+                  "n",
+                  [],
+                  [
+                    no_ctx(ExpressionStatement(no_ctx(NumericLit(3)))),
+                    no_ctx(
+                      ExpressionStatement(
+                        no_ctx(
+                          AddExpr(
+                            no_ctx(Reference(no_ctx(Variable("A")))),
+                            no_ctx(Reference(no_ctx(Variable("m")))),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    Declaration("NoParamsView", no_ctx(ViewDecl(None, [], [], []))),
-    Declaration(
-      "ParamView",
-      no_ctx(ViewDecl(None, [], [no_ctx(("m", None, None))], [])),
-    ),
-    Declaration(
-      "TypedParamView",
-      no_ctx(
-        ViewDecl(None, [], [no_ctx(("a", Some(no_ctx("b")), None))], []),
-      ),
-    ),
-    Declaration(
-      "DefaultParamView",
-      no_ctx(
-        ViewDecl(
-          None,
-          [],
-          [no_ctx(("a", None, Some(no_ctx(NumericLit(4)))))],
-          [],
-        ),
-      ),
-    ),
-    Declaration(
-      "MultiParamView",
-      no_ctx(
-        ViewDecl(
-          None,
-          [],
-          [
-            no_ctx(("m", Some(no_ctx("n")), None)),
-            no_ctx((
-              "a",
-              Some(no_ctx("b")),
-              Some(no_ctx(NumericLit(2))),
-            )),
-          ],
-          [],
-        ),
-      ),
-    ),
-    Declaration(
-      "InheritingView",
-      no_ctx(
-        ViewDecl(
-          Some(no_ctx("SuperView")),
-          [],
-          [],
-          [
-            no_ctx(
-              ExpressionStatement(
-                no_ctx(
-                  AddExpr(
-                    no_ctx(Reference(no_ctx(Variable("a")))),
-                    no_ctx(Reference(no_ctx(Variable("b")))),
-                  ),
+                  ],
                 ),
               ),
-            ),
-            no_ctx(ExpressionStatement(no_ctx(NumericLit(8)))),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "MixinView",
-      no_ctx(ViewDecl(None, [no_ctx("MyMixin")], [], [])),
-    ),
-    Declaration(
-      "InheritingMixinView",
-      no_ctx(
-        ViewDecl(Some(no_ctx("SuperView")), [no_ctx("MyMixin")], [], []),
+      Declaration("NoParamsView", no_ctx(ViewDecl(None, [], [], []))),
+      Declaration(
+        "ParamView",
+        no_ctx(ViewDecl(None, [], [no_ctx(("m", None, None))], [])),
       ),
-    ),
-    Declaration(
-      "ComplexView",
-      no_ctx(
-        ViewDecl(
-          Some(no_ctx("SuperView")),
-          [no_ctx("MyMixin"), no_ctx("OtherMixin")],
-          [],
-          [
-            no_ctx(
-              ExpressionStatement(
-                no_ctx(
-                  AddExpr(
-                    no_ctx(Reference(no_ctx(Variable("e")))),
-                    no_ctx(Reference(no_ctx(Variable("f")))),
-                  ),
-                ),
-              ),
-            ),
-          ],
+      Declaration(
+        "TypedParamView",
+        no_ctx(
+          ViewDecl(
+            None,
+            [],
+            [no_ctx(("a", Some(no_ctx("b")), None))],
+            [],
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "ClassStyle",
-      no_ctx(
-        StyleDecl(
-          [],
-          [
-            (
-              ClassKey("root"),
-              [
-                (
-                  no_ctx(Variable("fontSize")),
+      Declaration(
+        "DefaultParamView",
+        no_ctx(
+          ViewDecl(
+            None,
+            [],
+            [no_ctx(("a", None, Some(no_ctx(NumericLit(4)))))],
+            [],
+          ),
+        ),
+      ),
+      Declaration(
+        "MultiParamView",
+        no_ctx(
+          ViewDecl(
+            None,
+            [],
+            [
+              no_ctx(("m", Some(no_ctx("n")), None)),
+              no_ctx((
+                "a",
+                Some(no_ctx("b")),
+                Some(no_ctx(NumericLit(2))),
+              )),
+            ],
+            [],
+          ),
+        ),
+      ),
+      Declaration(
+        "InheritingView",
+        no_ctx(
+          ViewDecl(
+            Some(no_ctx("SuperView")),
+            [],
+            [],
+            [
+              no_ctx(
+                ExpressionStatement(
                   no_ctx(
-                    Execution(
-                      no_ctx(Variable("px")),
-                      [no_ctx(NumericLit(20))],
+                    AddExpr(
+                      no_ctx(Reference(no_ctx(Variable("a")))),
+                      no_ctx(Reference(no_ctx(Variable("b")))),
                     ),
                   ),
                 ),
-                (
-                  no_ctx(Variable("backgroundColor")),
-                  no_ctx(Variable("red")),
-                ),
-              ],
-            ),
-          ],
+              ),
+              no_ctx(ExpressionStatement(no_ctx(NumericLit(8)))),
+            ],
+          ),
         ),
       ),
-    ),
-    Declaration(
-      "IdStyle",
-      no_ctx(
-        StyleDecl(
-          [],
-          [
-            (
-              IdKey("login"),
-              [
-                (
-                  no_ctx(Variable("visibility")),
-                  no_ctx(Variable("hidden")),
-                ),
-                (no_ctx(Variable("display")), no_ctx(Variable("flex"))),
-              ],
-            ),
-          ],
+      Declaration(
+        "MixinView",
+        no_ctx(ViewDecl(None, [no_ctx("MyMixin")], [], [])),
+      ),
+      Declaration(
+        "InheritingMixinView",
+        no_ctx(
+          ViewDecl(
+            Some(no_ctx("SuperView")),
+            [no_ctx("MyMixin")],
+            [],
+            [],
+          ),
         ),
       ),
-    ),
-  ]);
+      Declaration(
+        "ComplexView",
+        no_ctx(
+          ViewDecl(
+            Some(no_ctx("SuperView")),
+            [no_ctx("MyMixin"), no_ctx("OtherMixin")],
+            [],
+            [
+              no_ctx(
+                ExpressionStatement(
+                  no_ctx(
+                    AddExpr(
+                      no_ctx(Reference(no_ctx(Variable("e")))),
+                      no_ctx(Reference(no_ctx(Variable("f")))),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Declaration(
+        "ClassStyle",
+        no_ctx(
+          StyleDecl(
+            [],
+            [
+              (
+                ClassKey("root"),
+                [
+                  (
+                    no_ctx(Variable("fontSize")),
+                    no_ctx(
+                      Execution(
+                        no_ctx(Variable("px")),
+                        [no_ctx(NumericLit(20))],
+                      ),
+                    ),
+                  ),
+                  (
+                    no_ctx(Variable("backgroundColor")),
+                    no_ctx(Variable("red")),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      Declaration(
+        "IdStyle",
+        no_ctx(
+          StyleDecl(
+            [],
+            [
+              (
+                IdKey("login"),
+                [
+                  (
+                    no_ctx(Variable("visibility")),
+                    no_ctx(Variable("hidden")),
+                  ),
+                  (no_ctx(Variable("display")), no_ctx(Variable("flex"))),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
 
 let with_export = (name, s) => s ++ Printf.sprintf("export {%s};", name);
 let var_with_export = (name, s) =>

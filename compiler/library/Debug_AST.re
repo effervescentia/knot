@@ -7,25 +7,40 @@ let with_ctx = (f, x) => x |~> f;
 
 let rec print_ast = (~depth=0) =>
   fun
-  | Module(stmts) =>
-    List.fold_left(
-      (acc, s) => acc ++ print_stmt(~depth=depth + 1, s),
-      "",
-      stmts,
+  | Module(imports, stmts) =>
+    (
+      List.fold_left(
+        (acc, s) => acc ++ print_module_import(~depth=depth + 1, s),
+        "",
+        imports,
+      )
+      |> Printf.sprintf("IMPORTS:\n↳%s\n")
     )
-    |> Printf.sprintf("STATEMENTS:\n↳%s\n")
-and print_stmt = (~depth=0) =>
+    ++ (
+      List.fold_left(
+        (acc, s) => acc ++ print_module_stmt(~depth=depth + 1, s),
+        "",
+        stmts,
+      )
+      |> Printf.sprintf("STATEMENTS:\n↳%s\n")
+    )
+and print_module_stmt = (~depth=0) =>
+  (
+    fun
+    | Declaration(name, decl) => decl |~> print_decl(name)
+    | Main(name, decl) =>
+      decl |~> print_decl(name) |> Printf.sprintf("MAIN %s")
+  )
+  % Printf.sprintf("\n%s")
+and print_module_import = (~depth=0) =>
   (
     fun
     | Import(module_, imports) =>
       Printf.sprintf(
         "IMPORT %s FROM %s",
-        Util.print_comma_separated(with_ctx(print_import), imports),
+        Util.print_comma_separated(with_ctx(print_import_target), imports),
         module_,
       )
-    | Declaration(name, decl) => decl |~> print_decl(name)
-    | Main(name, decl) =>
-      decl |~> print_decl(name) |> Printf.sprintf("MAIN %s")
   )
   % Printf.sprintf("\n%s")
 and print_decl = name =>
@@ -57,7 +72,7 @@ and print_decl = name =>
       Util.print_comma_separated(with_ctx(print_property), params),
       Util.print_comma_separated(print_style_rule_set, rule_sets),
     )
-and print_import =
+and print_import_target =
   fun
   | MainExport(name) => Printf.sprintf("MAIN AS %s", name)
   | NamedExport(name, Some(new_name)) =>

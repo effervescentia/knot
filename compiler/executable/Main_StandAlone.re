@@ -2,7 +2,7 @@ open Kore;
 open Kore.Compiler;
 
 let run = ({paths, main as in_path}, compiler) => {
-  try (compiler.add_rec(in_path)) {
+  try (compiler.add(in_path)) {
   | InvalidPathFormat(s)
   | ModuleDoesNotExist(_, s) when s == in_path =>
     raise(InvalidEntryPoint(in_path))

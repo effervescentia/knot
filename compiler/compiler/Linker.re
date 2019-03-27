@@ -20,9 +20,8 @@ let link =
       |> (
         fun
         | Some(ast) =>
-          switch ((KnotResolve.Core.opt_type_ref(ast))^) {
-          | (Module_t(deps, _, _), Declared(false)) => (deps, Some(ast))
-          | _ => raise(InvalidProgram(target))
+          switch (KnotResolve.Core.opt_type_ref(ast)) {
+          | _ => ast
           }
         | None => raise(InvalidProgram(target))
       );

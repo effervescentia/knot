@@ -11,6 +11,7 @@ exception UnanalyzedTypeReference;
 exception GenericConstant;
 exception InferredModuleType;
 exception InvalidImport;
+exception ImportedModuleDoesNotExist;
 exception DeclarationNotFound(string);
 
 exception TypeResolutionNotSupported;

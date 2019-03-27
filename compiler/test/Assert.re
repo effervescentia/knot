@@ -34,10 +34,18 @@ let assert_annotated_ast_eql = (actual, expected) =>
     actual,
   );
 
+let assert_import_eql = (actual, expected) =>
+  assert_equal(
+    ~msg="import match",
+    ~printer=KnotParse.Debug.print_module_import,
+    expected,
+    actual,
+  );
+
 let assert_stmt_eql = (actual, expected) =>
   assert_equal(
     ~msg="statement match",
-    ~printer=KnotParse.Debug.print_stmt,
+    ~printer=KnotParse.Debug.print_module_stmt,
     expected,
     actual,
   );

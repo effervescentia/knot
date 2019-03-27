@@ -29,11 +29,11 @@ let generate = (printer, name) =>
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
       )
-    | ViewDecl(_, _, params, exprs) =>
+    | ViewDecl(_, _, props, exprs) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
-        Function.gen_body(params, exprs),
+        View.generate(props, exprs),
         gen_export(name),
       )
     | StyleDecl(params, rule_sets) =>

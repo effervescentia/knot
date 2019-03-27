@@ -8,20 +8,8 @@ let (|~>) = ((x, y), f) =>
     switch (y^) {
     | None => Printf.sprintf("Unanalyzed(%s)")
     | Some(res) =>
-      switch (res^) {
-      | (t, Expected) => (
-          s =>
-            print_member_type(t) |> Printf.sprintf("Expected(%s := %s)", s)
-        )
-      | (t, Declared(is_mutable)) => (
-          s =>
-            print_member_type(t)
-            |> Printf.sprintf(
-                 "Declared%s(%s := %s)",
-                 is_mutable ? "?" : "",
-                 s,
-               )
-        )
+      switch (res) {
+      | t => print_member_type(t) |> Printf.sprintf("Typed(%s := %s)")
       }
     }
   );

@@ -1,7 +1,7 @@
 open Core;
 
 type t = {
-  resolve: (NestedHashtbl.t(string, member_ref), resolve_target) => unit,
+  resolve: (NestedHashtbl.t(string, member_type), resolve_target) => unit,
 };
 
 let of_module = m => ModuleScope(m);

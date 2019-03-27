@@ -31,12 +31,12 @@ let rec create =
         ~module_tbl,
         (),
       ),
-    validate: () =>
-      symbol_tbl.iter_local((key, typ) =>
-        switch (typ^) {
-        | (_, Expected) => raise(InvalidScope)
-        | _ => ()
-        }
-      ),
+    validate: () => (),
+    /* symbol_tbl.iter_local((key, typ) =>
+         switch (typ^) {
+         | (_, Expected) => raise(InvalidScope)
+         | _ => ()
+         }
+       ), */
   };
 };

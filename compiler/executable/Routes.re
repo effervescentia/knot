@@ -45,7 +45,7 @@ let put_module = (compiler, req_d, uri) =>
     module_path => {
       log_incoming(~addon=module_path, req_d, uri);
 
-      switch (compiler.add_rec(module_path)) {
+      switch (compiler.add(module_path)) {
       | _ =>
         Reqd.respond_with_string(
           req_d,
@@ -54,7 +54,9 @@ let put_module = (compiler, req_d, uri) =>
         )
       | exception exn =>
         switch (exn) {
-        | exn => Printexc.to_string(exn) |> Log.error("module failed: %s")
+        | exn =>
+          Printexc.to_string(exn) |> Log.error("module failed: %s");
+          Printexc.print_backtrace(stdout);
         };
 
         Reqd.respond_with_string(
@@ -108,7 +110,7 @@ let invalidate_module = (compiler, req_d, uri) =>
 
       Reqd.respond_with_string(req_d, Response.ok(), "module invalidated");
 
-      compiler.add_rec(module_path);
+      compiler.add(module_path);
     },
   );
 
@@ -153,7 +155,7 @@ let get_module_status = (compiler, req_d, uri) =>
         | _ => "failed"
         };
 
-      compiler.iter_modules(Log.info("MODULE: %s"));
+      /* compiler.debug_modules(); */
 
       Log.info(
         "%s  [%s] (%s)",

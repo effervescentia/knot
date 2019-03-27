@@ -2,14 +2,13 @@ open Core;
 
 let analyze_dependencies =
   fun
-  | Module(xs) =>
+  | Module(imports, _) =>
     List.fold_left(
       acc =>
         fun
-        | Import(module_, imports) => [module_, ...acc]
-        | _ => acc,
+        | Import(module_, imports) => [module_, ...acc],
       [],
-      xs,
+      imports,
     )
     |> List.map(String.trim)
     |> List.filter(x => x != "");
