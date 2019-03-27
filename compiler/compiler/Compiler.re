@@ -4,15 +4,16 @@ open KnotAnalyze.Scope;
 module Scope = KnotAnalyze.Scope;
 module Parser = KnotParse.Parser;
 
+exception CircularDependencyDetected;
+
 type status =
   | Idle
   | Running
   | Complete;
 
 type t = {
-  add: string => list(string),
+  add: string => unit,
   inject: (string, string) => unit,
-  add_rec: string => unit,
   status: unit => status,
   complete: unit => unit,
   iter: (string, string, (string, (string, ast_module)) => unit) => unit,
@@ -20,16 +21,63 @@ type t = {
   find: string => option(module_),
   invalidate: string => unit,
   reset: unit => unit,
+  debug_modules: unit => unit,
 };
+
+let is_loaded = (tbl, key) =>
+  Hashtbl.mem(tbl, key)
+  && (
+    switch (Hashtbl.find(tbl, key)) {
+    | Loaded(_) => true
+    | _ => false
+    }
+  );
+let is_injected = (tbl, key) =>
+  Hashtbl.mem(tbl, key)
+  && (
+    switch (Hashtbl.find(tbl, key)) {
+    | Injected(_) => true
+    | _ => false
+    }
+  );
+let is_resolving = (tbl, key) =>
+  Hashtbl.mem(tbl, key)
+  && (
+    switch (Hashtbl.find(tbl, key)) {
+    | Resolving => true
+    | _ => false
+    }
+  );
+let map_imports = map_name =>
+  fun
+  | Module(imports, stmts) => {
+      let mapped_imports =
+        List.map(
+          fun
+          | Import(module_, targets) => {
+              let alias = map_name(module_);
+              Import(alias, targets);
+            },
+          imports,
+        );
+
+      Module(mapped_imports, stmts);
+    };
 
 let add =
     (
       global_scope,
       {target, absolute_path, relative_path, pretty_path} as desc,
+      create_desc,
+      add_more,
     ) => {
   Log.info("%s  %s (%s)", Emoji.link, pretty_path, relative_path);
 
-  let loaded = Loader.load(Parser.prog, absolute_path);
+  if (is_resolving(global_scope.module_tbl, absolute_path)) {
+    raise(CircularDependencyDetected);
+  };
+
+  let loaded = ref(Loader.load(Parser.prog, absolute_path));
 
   Log.info(
     "%s  %s (%s)",
@@ -38,31 +86,61 @@ let add =
     relative_path,
   );
 
-  Linker.link(global_scope, desc, loaded)
-  |> (
-    ((deps, ast)) => {
-      switch (ast) {
-      | Some(x) =>
-        Log.info(
-          "%s  %s (%s)",
-          Emoji.heavy_check_mark,
-          pretty_path,
-          relative_path,
-        );
+  switch (loaded^) {
+  | Some(x) =>
+    Hashtbl.add(global_scope.module_tbl, absolute_path, Resolving);
+    let module_alias_tbl =
+      (
+        switch (x) {
+        | Module(x, _) => List.length(x)
+        }
+      )
+      |> Hashtbl.create;
 
-        Hashtbl.add(global_scope.module_tbl, absolute_path, Loaded(x));
-      | None =>
-        Log.info(
-          "%s  %s (%s)",
-          Emoji.hourglass_with_flowing_sand,
-          pretty_path,
-          relative_path,
-        )
-      };
+    let mapped_loaded =
+      map_imports(
+        name =>
+          if (is_injected(global_scope.module_tbl, name)) {
+            Hashtbl.add(module_alias_tbl, name, name);
+            name;
+          } else {
+            add_more(name);
+            create_desc(name)
+            |> (
+              ({absolute_path}) => {
+                Hashtbl.add(module_alias_tbl, absolute_path, name);
 
-      deps;
-    }
-  );
+                absolute_path;
+              }
+            );
+          },
+        x,
+      );
+
+    let linked = Linker.link(global_scope, desc, Some(mapped_loaded));
+
+    let mapped_linked = (
+      map_imports(
+        name => Hashtbl.find(module_alias_tbl, name),
+        fst(linked),
+      ),
+      snd(linked),
+    );
+
+    Log.info(
+      "%s  %s (%s)",
+      Emoji.heavy_check_mark,
+      pretty_path,
+      relative_path,
+    );
+
+    Hashtbl.replace(
+      global_scope.module_tbl,
+      absolute_path,
+      Loaded(mapped_linked),
+    );
+  | _ => raise(InvalidProgram(target))
+  };
 };
 
 let inject =
@@ -104,9 +182,12 @@ let create = create_desc => {
       let desc = create_desc(path);
       let absolute_path = desc.absolute_path;
 
-      if (Filename.extension(absolute_path) == ".kd") {
+      if (Filename.extension(absolute_path) == knot_types_file_ext) {
         try (inject(global_scope^, desc, name)) {
-        | _ => Hashtbl.add(global_scope^.module_tbl, name, Failed)
+        | exn =>
+          Printexc.to_string(exn) |> Log.error("%s");
+          Printexc.print_backtrace(stdout);
+          Hashtbl.replace(global_scope^.module_tbl, name, Failed);
         };
       };
     },
@@ -115,27 +196,20 @@ let create = create_desc => {
         status := Running;
       };
 
-      if (String.length(path) != 0
-          && path.[0] == '@'
-          && Hashtbl.mem(global_scope^.module_tbl, path)) {
-        [];
-      } else {
+      if (!is_injected(global_scope^.module_tbl, path)) {
         let desc = create_desc(path);
         let absolute_path = desc.absolute_path;
 
-        if (Hashtbl.mem(global_scope^.module_tbl, absolute_path)) {
-          [];
-        } else {
-          try (add(global_scope^, desc)) {
-          | _ =>
-            Hashtbl.add(global_scope^.module_tbl, absolute_path, Failed);
-
-            [];
+        if (!is_loaded(global_scope^.module_tbl, absolute_path)) {
+          try (add(global_scope^, desc, create_desc, compiler.add)) {
+          | exn =>
+            Printexc.to_string(exn) |> Log.error("%s");
+            Printexc.print_backtrace(stdout);
+            Hashtbl.replace(global_scope^.module_tbl, absolute_path, Failed);
           };
         };
       };
     },
-    add_rec: path => compiler.add(path) |> List.iter(compiler.add_rec),
     status: () => status^,
     complete: () => status := Complete,
     iter: (entry, source_dir, f) =>
@@ -170,6 +244,19 @@ let create = create_desc => {
 
         global_scope := create_scope();
       },
+    debug_modules: () =>
+      Hashtbl.iter(
+        key =>
+          (
+            fun
+            | Loaded(_) => Printf.sprintf("Loaded(%s)", key)
+            | Resolving => Printf.sprintf("Resolving(%s)", key)
+            | Failed => Printf.sprintf("Failed(%s)", key)
+            | Injected(_) => Printf.sprintf("Injected(%s)", key)
+          )
+          % Log.info("MODULE: %s"),
+        global_scope^.module_tbl,
+      ),
   };
 
   compiler;

@@ -11,7 +11,7 @@ let resolve_scoped_expr = (symbol_tbl, (value, promise)) =>
       | None =>
         opt_type_ref(expr) |> symbol_tbl.add(name);
 
-        declared(Nil_t);
+        Nil_t;
       }
     }
   )

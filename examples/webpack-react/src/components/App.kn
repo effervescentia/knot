@@ -1,9 +1,6 @@
-view Greeting(props) -> "Hello, " + props.name;
+view Greeting(name: string) -> "Hello, " + name + "!";
 
-main view App(props) -> {
-  let name = props.name + "!";
-
+main view App(name: string) ->
   <div>
     <Greeting name />
-  </div>
-}
+  </div>;

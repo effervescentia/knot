@@ -5,7 +5,7 @@ let as_t = x => ref(Some(x));
 let rec compare_types = (lhs, rhs) =>
   switch (lhs^, rhs^) {
   | (Some(lhs), Some(rhs)) =>
-    switch (typeof(lhs^), typeof(rhs^)) {
+    switch (lhs, rhs) {
     | (Array_t(lhs), Array_t(rhs)) => compare_types(as_t(lhs), as_t(rhs))
     | (Function_t(lhs_args, lhs_ret), Function_t(rhs_args, rhs_ret))
     | (View_t(lhs_args, lhs_ret), View_t(rhs_args, rhs_ret)) =>
@@ -30,7 +30,6 @@ let rec compare_types = (lhs, rhs) =>
         | _ => false
         }
       )
-    | (Generic_t(_), Generic_t(_)) => raise(NotImplemented)
     | (lhs, rhs) => lhs == rhs
     }
   | (None, None) => true
@@ -54,10 +53,15 @@ let rec compare_modules = ((lhs, lhs_t), (rhs, rhs_t)) =>
   compare_types(lhs_t, rhs_t)
   && (
     switch (lhs, rhs) {
-    | (Module(lhs_stmts), Module(rhs_stmts)) =>
-      List.for_all2(compare_stmts, lhs_stmts, rhs_stmts)
+    | (Module(lhs_imports, lhs_stmts), Module(rhs_imports, rhs_stmts)) =>
+      List.for_all2(compare_imports, lhs_imports, rhs_imports)
+      && List.for_all2(compare_stmts, lhs_stmts, rhs_stmts)
     }
   )
+and compare_imports = (lhs, rhs) =>
+  switch (lhs, rhs) {
+  | _ => raise(NotImplemented)
+  }
 and compare_stmts = (lhs, rhs) =>
   switch (lhs, rhs) {
   | (Declaration(lhs_name, lhs_decl), Declaration(rhs_name, rhs_decl)) =>

@@ -1,6 +1,6 @@
 open Core;
 
-let test_parse_import = Util.test_parse_stmt(KnotParse.Import.stmt);
+let test_parse_import = Util.test_parse_import(KnotParse.Import.stmt);
 
 let __import_name = "MyImport";
 let __module = "MyModule";

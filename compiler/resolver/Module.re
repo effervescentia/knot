@@ -2,32 +2,33 @@ open Core;
 
 let resolve = ((value, promise)) =>
   switch (value) {
-  | Module(stmts) =>
+  | Module(imports, stmts) =>
     let dependencies = ref([]);
     let members = Hashtbl.create(8);
     let main_declaration = ref(None);
 
     List.iter(
       fun
-      | Import(module_, _) => dependencies := [module_, ...dependencies^]
+      | Import(module_, _) => dependencies := [module_, ...dependencies^],
+      imports,
+    );
 
+    List.iter(
+      fun
       | Declaration(name, decl) => {
           let decl_ref = opt_type_ref(decl);
 
-          switch (decl_ref^) {
-          | Declared(_) => Hashtbl.add(members, name, decl_ref)
-          | _ => raise(ModuleTypeIncomplete)
-          };
+          Hashtbl.add(members, name, decl_ref);
         }
 
       | Main(name, decl) => {
-          let arg_ref = opt_type_ref(decl);
+          let decl_ref = opt_type_ref(decl);
 
-          Hashtbl.add(members, name, arg_ref);
-          main_declaration := Some(arg_ref);
+          Hashtbl.add(members, name, decl_ref);
+          main_declaration := Some(decl_ref);
         },
       stmts,
     );
 
-    declared(Module_t(dependencies^, members, main_declaration^)) <:= promise;
+    Module_t(dependencies^, members, main_declaration^) <:= promise;
   };

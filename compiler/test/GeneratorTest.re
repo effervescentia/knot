@@ -17,14 +17,13 @@ let tests =
         |> (
           fun
           | Some(ast) =>
-            switch ((KnotResolve.Core.opt_type_ref(ast))^) {
-            | Declared(_) =>
+            switch (KnotResolve.Core.opt_type_ref(ast)) {
+            | _ =>
               KnotGenerate.Generator.generate(
                 s => generated := generated^ ++ s,
                 s => s,
                 fst(ast),
               )
-            | _ => assert_failure("unable to resolve AST")
             }
           | None => assert_failure("no AST found")
         );

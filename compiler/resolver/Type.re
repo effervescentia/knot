@@ -4,9 +4,9 @@ open NestedHashtbl;
 let resolve = (symbol_tbl, (value, promise)) =>
   (
     switch (value) {
-    | "string" => declared(String_t)
-    | "number" => declared(Number_t)
-    | "boolean" => declared(Boolean_t)
+    | "string" => String_t
+    | "number" => Number_t
+    | "boolean" => Boolean_t
 
     /* TODO: support user-defined types */
     | _ => raise(InvalidTypeReference)

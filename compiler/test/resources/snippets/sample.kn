@@ -46,7 +46,7 @@ func multiExprFunc() -> {
   divisionConst + multiplicationConst;
   stringConst;
 }
-func paramFunc(a) -> a;
+func paramFunc(a: number) -> a;
 
 // state NoParamsState { }
 // state EmptyState () { }

@@ -72,15 +72,18 @@ type declaration =
   | StyleDecl(list(ast_property), list(style_rule_set))
 and ast_declaration = ctxl_promise(declaration);
 
-type statement =
-  | Import(string, list(ast_import_target))
+type module_import =
+  | Import(string, list(ast_import_target));
+
+type module_statement =
   | Declaration(string, ast_declaration)
   | Main(string, ast_declaration);
 
 type module_ =
-  | Module(list(statement))
+  | Module(list(module_import), list(module_statement))
 and ast_module = ctxl_promise(module_)
 and linked_module =
   | Loaded(ast_module)
+  | Resolving
   | Injected(member_type)
   | Failed;

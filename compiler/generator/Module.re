@@ -1,9 +1,12 @@
 open Core;
 
-let generate_stmt = (printer, to_module_name) =>
+let generate_import = (printer, to_module_name) =>
   fun
   | Import(name, imports) =>
-    Import.generate(printer, to_module_name(name), imports)
+    Import.generate(printer, to_module_name(name), imports);
+
+let generate_stmt = printer =>
+  fun
   | Declaration(name, decl) => Declaration.generate(printer, name, decl)
   | Main(name, decl) => {
       Declaration.generate(printer, name, decl);
@@ -13,5 +16,7 @@ let generate_stmt = (printer, to_module_name) =>
 
 let generate = (printer, to_module_name) =>
   fun
-  | Module(stmts) =>
-    stmts |> List.iter(generate_stmt(printer, to_module_name));
+  | Module(imports, stmts) => {
+      imports |> List.iter(generate_import(printer, to_module_name));
+      stmts |> List.iter(generate_stmt(printer));
+    };
