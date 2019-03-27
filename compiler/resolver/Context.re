@@ -1,10 +1,6 @@
 open Knot.Core;
 open Exception;
 
-/* let declared = x => ref((x, Declared(false)));
-   let declared_mut = x => ref((x, Declared(true)));
-   let expected = x => ref((x, Expected)); */
-
 let upwrap_type =
   fun
   | Some(t) => t
