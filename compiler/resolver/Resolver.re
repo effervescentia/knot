@@ -1,14 +1,19 @@
 open Core;
 
-type t = {
-  resolve: (NestedHashtbl.t(string, member_type), resolve_target) => unit,
+type t = {resolve: (context_t, resolve_target) => unit}
+and context_t = {
+  symbol_tbl: NestedHashtbl.t(string, member_type),
+  sidecar: option(Hashtbl.t(string, member_type)),
 };
+
+exception MissingSidecarScope;
 
 let of_module = m => ModuleScope(m);
 let of_declaration = (name, d) => DeclarationScope(name, d);
 let of_import = (module_, i) => ImportScope(module_, i);
 let of_parameter = p => ParameterScope(p);
 let of_property = p => PropertyScope(p);
+let of_state_property = (name, p) => StatePropertyScope(name, p);
 let of_expression = e => ExpressionScope(e);
 let of_scoped_expression = e => ScopedExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
@@ -20,14 +25,14 @@ let (>=>) = (promise, resolver) =>
   };
 
 let rec create = module_tbl => {
-  resolve: (symbol_tbl, x) => {
+  resolve: (ctx, x) => {
     Debug.print_resolve_target(x)
     |> Log.debug("resolving  %s\n%s", Emoji.hourglass_with_flowing_sand);
 
-    resolve(module_tbl, symbol_tbl, x);
+    resolve(module_tbl, ctx, x);
   },
 }
-and resolve = (module_tbl, symbol_tbl) =>
+and resolve = (module_tbl, {symbol_tbl, sidecar}) =>
   fun
   | ModuleScope(promise) => promise >=> Module.resolve
   | ImportScope(module_, promise) =>
@@ -39,5 +44,10 @@ and resolve = (module_tbl, symbol_tbl) =>
     promise >=> Function.resolve_scoped_expr(symbol_tbl)
   | ParameterScope(promise) => promise >=> Property.resolve_param(symbol_tbl)
   | PropertyScope(promise) => promise >=> Property.resolve(symbol_tbl)
+  | StatePropertyScope(name, promise) =>
+    switch (sidecar) {
+    | Some(x) => promise >=> State.resolve_prop(x, name)
+    | None => raise(MissingSidecarScope)
+    }
   | ReferenceScope(promise) => promise >=> Reference.resolve(symbol_tbl)
   | TypeScope(promise) => promise >=> Type.resolve(symbol_tbl);

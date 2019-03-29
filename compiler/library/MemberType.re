@@ -7,7 +7,7 @@ type member_type =
   | Function_t(list(member_type), member_type)
   | JSX_t
   | View_t(list(member_type), member_type)
-  | State_t
+  | State_t(list(member_type), Hashtbl.t(string, member_type))
   | Style_t
   | Module_t(
       list(string),

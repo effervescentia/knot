@@ -73,10 +73,9 @@ let tests =
             StateDecl(
               [],
               [
-                no_ctx(
-                  Property(
-                    no_ctx(("initial", None, Some(no_ctx(NumericLit(4))))),
-                  ),
+                (
+                  "initial",
+                  no_ctx(`Property((None, Some(no_ctx(NumericLit(4)))))),
                 ),
               ],
             ),
@@ -93,15 +92,17 @@ let tests =
             StateDecl(
               [],
               [
-                no_ctx(
-                  Getter(
-                    "title",
-                    [],
-                    [
-                      no_ctx(
-                        ExpressionStatement(no_ctx(StringLit("Apple"))),
-                      ),
-                    ],
+                (
+                  "title",
+                  no_ctx(
+                    `Getter((
+                      [],
+                      [
+                        no_ctx(
+                          ExpressionStatement(no_ctx(StringLit("Apple"))),
+                        ),
+                      ],
+                    )),
                   ),
                 ),
               ],

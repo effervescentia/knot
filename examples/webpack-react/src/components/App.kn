@@ -4,3 +4,7 @@ main view App(name: string) ->
   <div>
     <Greeting name />
   </div>;
+
+state X {
+  value: string = "abc";
+}

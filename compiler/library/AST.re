@@ -46,11 +46,19 @@ type scoped_expression =
   | VariableDeclaration(string, ast_expression)
 and ast_scoped_expression = ctxl_promise(scoped_expression);
 
-type state_prop =
-  | Property(ast_property)
-  | Mutator(string, list(ast_property), list(ast_scoped_expression))
-  | Getter(string, list(ast_property), list(ast_scoped_expression))
-and ast_state_prop = ctxl_promise(state_prop);
+type state_property = [
+  | `Property(option(ast_type), option(ast_expression))
+]
+and ast_state_property = ctxl_promise(state_property);
+
+type state_method = [
+  | `Mutator(list(ast_property), list(ast_scoped_expression))
+  | `Getter(list(ast_property), list(ast_scoped_expression))
+]
+and ast_state_method = ctxl_promise(state_method);
+
+type state_member = [ state_property | state_method]
+and ast_state_member = ctxl_promise(state_member);
 
 type style_key =
   | ClassKey(string)
@@ -62,7 +70,7 @@ type style_rule_set = (style_key, list(style_rule));
 type declaration =
   | ConstDecl(ast_expression)
   | FunctionDecl(list(ast_property), list(ast_scoped_expression))
-  | StateDecl(list(ast_property), list(ast_state_prop))
+  | StateDecl(list(ast_property), list((string, ast_state_member)))
   | ViewDecl(
       option(ast_type),
       list(ast_type),

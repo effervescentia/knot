@@ -52,5 +52,15 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
     View_t(param_types, return_type)
     |> resolve_declaration(symbol_tbl, name, promise);
 
+  | StateDecl(params, props) =>
+    let param_types = List.map(opt_type_ref, params);
+    let props_tbl =
+      List.map(((name, prop)) => (name, opt_type_ref(prop)), props)
+      |> List.to_seq
+      |> Hashtbl.of_seq;
+
+    State_t(param_types, props_tbl)
+    |> resolve_declaration(symbol_tbl, name, promise);
+
   | _ => raise(TypeResolutionNotSupported)
   };

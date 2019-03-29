@@ -14,8 +14,6 @@ let analyze = (scope, name) =>
         params,
       );
       List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
-
-      nested_scope.validate();
     }
 
   | ViewDecl(super, mixins, params, exprs) => {
@@ -27,23 +25,28 @@ let analyze = (scope, name) =>
         params,
       );
       List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
+    }
 
-      nested_scope.validate();
+  | StateDecl(params, props) => {
+      let nested_scope =
+        scope.nest(
+          ~label=Printf.sprintf("state(%s)", name),
+          ~sidecar=Hashtbl.create(List.length(props)),
+          (),
+        );
+
+      List.iter(
+        Property.analyze_param(Expression.analyze, nested_scope),
+        params,
+      );
+      List.iter(
+        ((name, prop)) => State.analyze_prop(nested_scope, name, prop),
+        props,
+      );
     }
 
   | _ => raise(NotImplemented);
 /*
-
- | StateDecl(params, props) => {
-     let nested_scope =
-       scope.nest(~label=Printf.sprintf("state(%s)", name), ());
-
-     List.iter(
-       Property.analyze_param(Expression.analyze, nested_scope),
-       params,
-     );
-     List.iter(State.analyze_prop(nested_scope), props);
-   }
 
  | StyleDecl(params, rules) => {
      List.iter(Property.analyze_param(Expression.analyze, scope), params);

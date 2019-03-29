@@ -6,6 +6,7 @@ type resolve_target =
   | ImportScope(string, ast_import_target)
   | ParameterScope(ast_property)
   | PropertyScope(ast_property)
+  | StatePropertyScope(string, ast_state_property)
   | ExpressionScope(ast_expression)
   | ScopedExpressionScope(ast_scoped_expression)
   | ReferenceScope(ast_reference)

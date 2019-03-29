@@ -1,15 +1,15 @@
 open Core;
 
-let gen_prop =
+let gen_member = name =>
   fun
-  | Mutator(name, params, exprs)
-  | Getter(name, params, exprs) =>
+  | `Mutator(params, exprs)
+  | `Getter(params, exprs) =>
     Printf.sprintf(
       "%s:function%s",
       Property.gen_key(name),
       Function.gen_body(params, exprs),
     )
-  | Property(((name, type_def, default_val), _)) =>
+  | `Property(type_def, default_val) =>
     Printf.sprintf(
       "%s:%s",
       Property.gen_key(name),

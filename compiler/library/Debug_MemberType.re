@@ -18,6 +18,12 @@ let rec print_member_type =
       Util.print_comma_separated(print_member_type, args),
       print_member_type(ret),
     )
+  | State_t(params, props) =>
+    Printf.sprintf(
+      "(%s) -> {%s}",
+      Util.print_comma_separated(print_member_type, params),
+      print_members(props),
+    )
   | Object_t(members) => print_members(members) |> Printf.sprintf("{%s}")
   | Module_t(_, members, main_export) =>
     print_members(members)

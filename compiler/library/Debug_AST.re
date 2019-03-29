@@ -51,7 +51,10 @@ and print_decl = name =>
       let params_str =
         Util.print_comma_separated(with_ctx(print_property), params);
       let props_str =
-        Util.print_comma_separated(with_ctx(print_state_prop), props);
+        Util.print_comma_separated(
+          ((name, prop)) => prop |~> print_state_member(name),
+          props,
+        );
 
       Printf.sprintf("STATE (%s, [%s], [%s])", name, params_str, props_str);
     }
@@ -86,6 +89,11 @@ and print_property = ((name, type_def, default_val)) =>
     print_type_def(type_def),
     print_assign(default_val),
   )
+and print_state_property = name =>
+  fun
+  | `Property(type_def, default_val) =>
+    print_property((name, type_def, default_val))
+    |> Printf.sprintf("StateProperty(%s)")
 and print_scoped_expr =
   fun
   | ExpressionStatement(expr) => expr |~> print_expr
@@ -153,13 +161,13 @@ and print_jsx =
   | EvalNode(expr) => expr |~> print_expr
 and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, expr |~> print_expr)
-and print_state_prop =
+and print_state_member = name =>
   fun
-  | Property((prop, _)) =>
-    print_property(prop) |> Printf.sprintf("prop(%s)")
-  | Getter(name, params, exprs) =>
+  | `Property(type_def, default_val) as res =>
+    print_state_property(name, res)
+  | `Getter(params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
-  | Mutator(name, params, exprs) =>
+  | `Mutator(params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("mutator(%s = %s)", name)
 and print_mixins = mixins =>
   Util.print_comma_separated(with_ctx(x => x), mixins)
