@@ -137,6 +137,7 @@ and print_expr =
 and print_ref =
   fun
   | Variable(name) => Printf.sprintf("variable(%s)", name)
+  | SidecarVariable(name) => Printf.sprintf("sidecar_variable(%s)", name)
   | DotAccess(source, property) =>
     Printf.sprintf("%s.%s", source |~> print_ref, property)
   | Execution(source, exprs) =>

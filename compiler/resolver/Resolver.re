@@ -6,8 +6,6 @@ and context_t = {
   sidecar: option(Hashtbl.t(string, member_type)),
 };
 
-exception MissingSidecarScope;
-
 let of_module = m => ModuleScope(m);
 let of_declaration = (name, d) => DeclarationScope(name, d);
 let of_import = (module_, i) => ImportScope(module_, i);
@@ -18,6 +16,7 @@ let of_expression = e => ExpressionScope(e);
 let of_scoped_expression = e => ScopedExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
 let of_type = t => TypeScope(t);
+let of_mixin = t => MixinScope(t);
 
 let (>=>) = (promise, resolver) =>
   if ((snd(promise))^ == None) {
@@ -49,5 +48,11 @@ and resolve = (module_tbl, {symbol_tbl, sidecar}) =>
     | Some(x) => promise >=> State.resolve_prop(x, name)
     | None => raise(MissingSidecarScope)
     }
-  | ReferenceScope(promise) => promise >=> Reference.resolve(symbol_tbl)
-  | TypeScope(promise) => promise >=> Type.resolve(symbol_tbl);
+  | ReferenceScope(promise) =>
+    promise >=> Reference.resolve(symbol_tbl, sidecar)
+  | TypeScope(promise) => promise >=> Type.resolve(symbol_tbl)
+  | MixinScope(promise) =>
+    switch (sidecar) {
+    | Some(x) => promise >=> Type.resolve_mixin(symbol_tbl, x)
+    | None => raise(MissingSidecarScope)
+    };

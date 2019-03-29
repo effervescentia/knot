@@ -10,4 +10,5 @@ type resolve_target =
   | ExpressionScope(ast_expression)
   | ScopedExpressionScope(ast_scoped_expression)
   | ReferenceScope(ast_reference)
-  | TypeScope(ast_type);
+  | TypeScope(ast_type)
+  | MixinScope(ast_type);

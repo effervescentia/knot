@@ -24,11 +24,17 @@ let generate = (printer, name) =>
 
     | StateDecl(params, props) =>
       Printf.sprintf(
-        "function %s(){%s%s}%s",
+        "function %s(){%s%s%s}%s",
         name,
         List.map(fst, params) |> Function.gen_params,
+        gen_terminated(
+          ((name, (prop, _))) =>
+            State.gen_member(prop) |> Printf.sprintf("var $%s=%s", name),
+          props,
+        ),
         gen_list(
-          ((name, (prop, _))) => State.gen_member(name, prop),
+          ((name, (prop, _))) =>
+            Printf.sprintf("%s:$%s", Property.gen_key(name), name),
           props,
         )
         |> Printf.sprintf(
@@ -37,11 +43,11 @@ let generate = (printer, name) =>
         gen_export(name),
       )
 
-    | ViewDecl(_, _, props, exprs) =>
+    | ViewDecl(_, mixins, props, exprs) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
-        View.generate(props, exprs),
+        View.generate(mixins, props, exprs),
         gen_export(name),
       )
 

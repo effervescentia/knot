@@ -6,7 +6,7 @@ let root =
     Keyword.lexer,
     Pattern.lexer,
     Text.lexer,
-    Identifier.lexer(),
+    Identifier.lexer,
     Number.lexer,
     Boolean.lexer,
     Comment.lexer,

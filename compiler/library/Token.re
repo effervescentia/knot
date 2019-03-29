@@ -54,6 +54,7 @@ type token =
   | LogicalAnd
   | Keyword(keyword)
   | Identifier(string)
+  | SidecarIdentifier(string)
   | Number(int)
   | String(string)
   | Boolean(bool)

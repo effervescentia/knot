@@ -1,7 +1,7 @@
 open Core;
 open NestedHashtbl;
 
-let resolve = (symbol_tbl, (value, promise)) =>
+let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
   (
     switch (value) {
     | Variable(name) =>
@@ -11,6 +11,22 @@ let resolve = (symbol_tbl, (value, promise)) =>
 
       /* symbol does not exist */
       | _ => raise(UsedBeforeDeclaration(name))
+      }
+
+    | SidecarVariable(name) =>
+      switch (sidecar_tbl) {
+      | Some(tbl) =>
+        if (Hashtbl.mem(tbl, name)) {
+          /* symbol exists, return the type reference */
+          Hashtbl.find(
+            tbl,
+            name,
+          );
+        } else {
+          /* symbol does not exist */
+          raise(UsedBeforeDeclaration(name));
+        }
+      | None => raise(MissingSidecarScope)
       }
 
     | DotAccess(obj, key) =>

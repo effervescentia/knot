@@ -21,6 +21,7 @@ type expression =
 and ast_expression = ctxl_promise(expression)
 and reference =
   | Variable(string)
+  | SidecarVariable(string)
   | DotAccess(ast_reference, string)
   | Execution(ast_reference, list(ast_expression))
 and ast_reference = ctxl_promise(reference)

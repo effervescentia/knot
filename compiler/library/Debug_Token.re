@@ -62,6 +62,7 @@ let print_tkn =
       )
       |> Printf.sprintf("keyword(%s)")
     | Identifier(s) => Printf.sprintf("identifier(%s)", s)
+    | SidecarIdentifier(s) => Printf.sprintf("sidecar_identifier(%s)", s)
     | Number(n) => Printf.sprintf("number(%d)", n)
     | Boolean(b) => Printf.sprintf("boolean(%b)", b)
     | JSXTextNode(s) => Printf.sprintf("jsx_text_node(%s)", s)

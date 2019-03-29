@@ -18,7 +18,13 @@ let analyze = (scope, name) =>
 
   | ViewDecl(super, mixins, params, exprs) => {
       let nested_scope =
-        scope.nest(~label=Printf.sprintf("view(%s)", name), ());
+        scope.nest(
+          ~label=Printf.sprintf("view(%s)", name),
+          ~sidecar=Hashtbl.create(List.length(mixins)),
+          (),
+        );
+
+      List.iter(Resolver.of_mixin % nested_scope.resolve, mixins);
 
       List.iter(
         Property.analyze_param(Expression.analyze, nested_scope),
@@ -46,9 +52,3 @@ let analyze = (scope, name) =>
     }
 
   | _ => raise(NotImplemented);
-/*
-
- | StyleDecl(params, rules) => {
-     List.iter(Property.analyze_param(Expression.analyze, scope), params);
-     List.iter(Style.analyze_rule_set(scope), rules);
-   }; */

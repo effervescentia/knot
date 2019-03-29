@@ -76,6 +76,15 @@ let exact_identifier = (match, input) =>
   | _ => None
   };
 
+let sidecar_identifier =
+  (
+    fun
+    | LazyStream.Cons(SidecarIdentifier(s), next_in) =>
+      Some((s, Lazy.force(next_in)))
+    | _ => None
+  )
+  |> lexeme;
+
 let string =
   (
     fun

@@ -5,6 +5,11 @@ main view App(name: string) ->
     <Greeting name />
   </div>;
 
-state X {
+state SimpleState {
   value: string = "abc";
+  other = $value;
+}
+
+view OtherView ~ SimpleState -> {
+  <div>{$value + "def"}</div>
 }
