@@ -8,11 +8,13 @@ let analyze_prop = (scope, name, promise) =>
 
     Resolver.of_state_property(name, (res, snd(promise))) |> scope.resolve;
 
-  | `Mutator(params, exprs) =>
+  | `Mutator(params, exprs) as res =>
     let nested_scope = scope.nest();
 
     List.iter(Property.analyze(Expression.analyze, nested_scope), params);
     List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
+
+    Resolver.of_state_method(name, (res, snd(promise))) |> scope.resolve;
 
   | `Getter(params, exprs) =>
     let nested_scope = scope.nest();

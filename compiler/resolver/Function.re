@@ -1,6 +1,18 @@
 open Core;
 open NestedHashtbl;
 
+let resolve_callable = (params, exprs) => {
+  let param_types = List.map(opt_type_ref, params);
+  let return_type =
+    if (List.length(exprs) == 0) {
+      Nil_t;
+    } else {
+      List.nth(exprs, List.length(exprs) - 1) |> opt_type_ref;
+    };
+
+  (param_types, return_type);
+};
+
 let resolve_scoped_expr = (symbol_tbl, (value, promise)) =>
   (
     switch (value) {

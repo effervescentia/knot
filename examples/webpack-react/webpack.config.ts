@@ -18,7 +18,7 @@ export default {
       template: 'index.html',
     }),
     new KnotPlugin({
-      // debug: true,
+      debug: true,
       knot: process.env.KNOT_BINARY,
     }),
     // new BundleAnalyzerPlugin(),

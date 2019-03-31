@@ -12,6 +12,7 @@ let rec print_member_type =
   | Nil_t => "nil"
   | Array_t(t) => print_member_type(t) |> Printf.sprintf("%s[]")
   | Function_t(args, ret)
+  | Mutator_t(args, ret)
   | View_t(args, ret) =>
     Printf.sprintf(
       "(%s) -> %s",

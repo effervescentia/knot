@@ -89,11 +89,6 @@ and print_property = ((name, type_def, default_val)) =>
     print_type_def(type_def),
     print_assign(default_val),
   )
-and print_state_property = name =>
-  fun
-  | `Property(type_def, default_val) =>
-    print_property((name, type_def, default_val))
-    |> Printf.sprintf("StateProperty(%s)")
 and print_scoped_expr =
   fun
   | ExpressionStatement(expr) => expr |~> print_expr
@@ -166,6 +161,15 @@ and print_state_member = name =>
   fun
   | `Property(type_def, default_val) as res =>
     print_state_property(name, res)
+  | `Getter(params, exprs) as res
+  | `Mutator(params, exprs) as res => print_state_method(name, res)
+and print_state_property = name =>
+  fun
+  | `Property(type_def, default_val) =>
+    print_property((name, type_def, default_val))
+    |> Printf.sprintf("StateProperty(%s)")
+and print_state_method = name =>
+  fun
   | `Getter(params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
   | `Mutator(params, exprs) =>

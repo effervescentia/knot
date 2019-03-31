@@ -8,8 +8,12 @@ main view App(name: string) ->
 state SimpleState {
   value: string = "abc";
   other = $value;
+
+  mut setValue() -> {
+    "def"
+  }
 }
 
 view OtherView ~ SimpleState -> {
-  <div>{$value + "def"}</div>
+  <div>{$value + "def"}<button onClick={$setValue}>{"wooooah"}</button></div>
 }

@@ -7,6 +7,7 @@ type member_type =
   | Array_t(member_type)
   | Object_t(Hashtbl.t(string, member_type))
   | Function_t(list(member_type), member_type)
+  | Mutator_t(list(member_type), member_type)
   | JSX_t
   | View_t(list(member_type), member_type)
   | State_t(list(member_type), Hashtbl.t(string, member_type))

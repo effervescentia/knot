@@ -12,6 +12,7 @@ let of_import = (module_, i) => ImportScope(module_, i);
 let of_parameter = p => ParameterScope(p);
 let of_property = p => PropertyScope(p);
 let of_state_property = (name, p) => StatePropertyScope(name, p);
+let of_state_method = (name, m) => StateMethodScope(name, m);
 let of_expression = e => ExpressionScope(e);
 let of_scoped_expression = e => ScopedExpressionScope(e);
 let of_reference = r => ReferenceScope(r);
@@ -46,6 +47,11 @@ and resolve = (module_tbl, {symbol_tbl, sidecar}) =>
   | StatePropertyScope(name, promise) =>
     switch (sidecar) {
     | Some(x) => promise >=> State.resolve_prop(x, name)
+    | None => raise(MissingSidecarScope)
+    }
+  | StateMethodScope(name, promise) =>
+    switch (sidecar) {
+    | Some(x) => promise >=> State.resolve_method(x, name)
     | None => raise(MissingSidecarScope)
     }
   | ReferenceScope(promise) =>

@@ -38,7 +38,7 @@ let generate = (printer, name) =>
           props,
         )
         |> Printf.sprintf(
-             "var $$_state={%s};return {get:function(){return $$_state;}};",
+             "var $$_self={get:function(){return {%s};}};function $$_update(){console.log({state:$$_self.get()});};return $$_self;",
            ),
         gen_export(name),
       )
