@@ -1,8 +1,11 @@
+import Counter from ".components.Counter";
+
 view Greeting(name: string) -> "Hello, " + name + "!";
 
 main view App(name: string) ->
   <div>
-    <Greeting name />
+    // <Greeting name />
+    <Counter />
   </div>;
 
 state SimpleState {
@@ -10,7 +13,7 @@ state SimpleState {
   other = $value;
 
   mut setValue() -> {
-    "def"
+    $value = "def";
   }
 }
 

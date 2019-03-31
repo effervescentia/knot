@@ -23,7 +23,8 @@ let generate = (printer, module_name, imports) => {
     fst
     % (
       fun
-      | MainExport(export_name) => Printf.sprintf("main as %s", export_name)
+      | MainExport(export_name) =>
+        Printf.sprintf("%s as %s", main_export, export_name)
       | NamedExport(export_name, original_name) =>
         Printf.sprintf(
           "%s%s",

@@ -1,22 +1,15 @@
 open Core;
 
-let props_map = "$$_props";
-
 let gen_mixin = name =>
   fun
   | State_t(_, props) =>
-    Printf.sprintf(
-      "var $$_%s=%s();var $$_%s_state=$$_%s.get();",
-      name,
-      name,
-      name,
-      name,
+    Hashtbl.fold(
+      (key, _, acc) =>
+        acc
+        ++ Printf.sprintf("var $%s=%s.%s.%s;", key, props_map, state_map, key),
+      props,
+      "",
     )
-    |> Hashtbl.fold(
-         (key, _, acc) =>
-           acc ++ Printf.sprintf("var $%s=$$_%s_state.%s;", key, name, key),
-         props,
-       )
 
   | _ => "";
 
@@ -50,11 +43,24 @@ let gen_props = props => {
   next(0);
 };
 
-let generate = (mixins, props, exprs) =>
+let rec gen_with_hocs =
+  fun
+  | [(name, type_), ...xs] =>
+    switch (unwrap_type(type_^)) {
+    | State_t(_) =>
+      Printf.sprintf("%s.withState(%s, %s)", jsxGlobal, name)
+      % gen_with_hocs(xs)
+    | _ => (x => x)
+    }
+  | [] => (x => x);
+
+let generate = (name, mixins, props, exprs) =>
   Printf.sprintf(
-    "(%s){%s%s%s}",
+    "function(%s){%s%s%s}",
     props_map,
     gen_mixins(mixins),
     List.map(fst, props) |> gen_props,
     List.map(fst, exprs) |> Function.gen_exprs,
-  );
+  )
+  |> gen_with_hocs(mixins)
+  |> Printf.sprintf("var %s=%s;", name);

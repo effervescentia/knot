@@ -4,8 +4,9 @@ let gen_member =
   fun
   | `Mutator(params, exprs) =>
     Printf.sprintf(
-      "function(){function $$_mutator%s$$_mutator.apply(null, arguments);$$_update();}",
+      "function(){(function %s).apply(null, arguments);%s();}",
       Function.gen_body(params, exprs),
+      update_handler,
     )
   | `Getter(params, exprs) =>
     Printf.sprintf("function%s", Function.gen_body(params, exprs))

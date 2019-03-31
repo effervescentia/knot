@@ -1,0 +1,73 @@
+func append(input: number, value: number) -> input * 10 + value;
+
+state Calculator {
+  value = 0;
+  input = 0;
+
+  mut clear -> $input = 0;
+  mut clearAll -> {
+    $clear();
+    $value = 0;
+  }
+  mut add -> {
+    $value = $value + $input;
+    $clear();
+  }
+  mut subtract -> {
+    $value = $value - $input;
+    $clear();
+  }
+  mut multiply -> {
+    $value = $value * $input;
+    $clear();
+  }
+  mut divide -> {
+    $value = $value / $input;
+    $clear();
+  }
+
+  mut append1 -> $input = append($input, 1);
+  mut append2 -> $input = append($input, 2);
+  mut append3 -> $input = append($input, 3);
+  mut append4 -> $input = append($input, 4);
+  mut append5 -> $input = append($input, 5);
+  mut append6 -> $input = append($input, 6);
+  mut append7 -> $input = append($input, 7);
+  mut append8 -> $input = append($input, 8);
+  mut append9 -> $input = append($input, 9);
+  mut append0 -> $input = append($input, 0);
+}
+
+main view Counter ~ Calculator ->
+  <div>
+    <h1>{"Calculator"}</h1>
+    <div>
+      <div>
+        {"Sum: "}
+        <span>{$value}</span>
+      </div>
+      <div>
+        {"Input: "}
+        <span>{$input}</span>
+      </div>
+      <div>
+        <button onClick={$add}>{"ADD"}</button>
+        <button onClick={$subtract}>{"SUBTRACT"}</button>
+        <button onClick={$multiply}>{"MULTIPLY"}</button>
+        <button onClick={$divide}>{"DIVIDE"}</button>
+        <button onClick={$clearAll}>{"CLEAR"}</button>
+      </div>
+      <div>
+        <button onClick={$append1}>{1}</button>
+        <button onClick={$append2}>{2}</button>
+        <button onClick={$append3}>{3}</button>
+        <button onClick={$append4}>{4}</button>
+        <button onClick={$append5}>{5}</button>
+        <button onClick={$append6}>{6}</button>
+        <button onClick={$append7}>{7}</button>
+        <button onClick={$append8}>{8}</button>
+        <button onClick={$append9}>{9}</button>
+        <button onClick={$append0}>{0}</button>
+      </div>
+    </div>
+  </div>;

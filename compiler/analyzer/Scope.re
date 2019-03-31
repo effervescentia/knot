@@ -32,7 +32,7 @@ let rec create =
   {
     module_tbl,
     resolve: real_resolver.resolve({symbol_tbl, sidecar}),
-    nest: (~label="anonymous", ~size=8, ~sidecar=?, ()) =>
+    nest: (~label="anonymous", ~size=8, ~sidecar as nested_sidecar=?, ()) =>
       create(
         ~resolver=real_resolver,
         ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
@@ -40,9 +40,13 @@ let rec create =
       )
       |> (
         f =>
-          switch (sidecar) {
+          switch (nested_sidecar) {
           | Some(x) => f(~sidecar=x, ())
-          | None => f()
+          | None =>
+            switch (sidecar) {
+            | Some(x) => f(~sidecar=x, ())
+            | None => f()
+            }
           }
       ),
   };

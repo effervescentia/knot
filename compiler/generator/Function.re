@@ -5,13 +5,20 @@ let gen_expr =
   | ExpressionStatement((x, _)) =>
     Expression.generate(x) |> Printf.sprintf("%s;")
   | VariableDeclaration(name, (x, _)) =>
-    Expression.generate(x) |> Printf.sprintf("var %s=%s;", name);
+    Expression.generate(x) |> Printf.sprintf("var %s=%s;", name)
+  | VariableAssignment(refr, (x, _)) =>
+    Printf.sprintf(
+      "%s=%s;",
+      Reference.generate(Expression.generate, fst(refr)),
+      Expression.generate(x),
+    );
 
 let rec gen_exprs =
   fun
   | [x] =>
     switch (x) {
-    | VariableDeclaration(_) => gen_expr(x) |> Printf.sprintf("%sreturn;")
+    | VariableDeclaration(_)
+    | VariableAssignment(_) => gen_expr(x) |> Printf.sprintf("%sreturn;")
     | ExpressionStatement(_) => gen_expr(x) |> Printf.sprintf("return %s")
     }
   | [x, ...xs] => gen_expr(x) ++ gen_exprs(xs)

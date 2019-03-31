@@ -42,7 +42,8 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
     | Execution(refr, args) =>
       switch (opt_type_ref(refr)) {
       /* symbol is a function */
-      | Function_t(_, return_type) => return_type
+      | Function_t(_, return_type)
+      | Mutator_t(_, return_type) => return_type
 
       | _ => raise(ExecutingNonFunction)
       }

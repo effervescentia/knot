@@ -45,6 +45,7 @@ and ast_property = ctxl_promise(property);
 type scoped_expression =
   | ExpressionStatement(ast_expression)
   | VariableDeclaration(string, ast_expression)
+  | VariableAssignment(ast_reference, ast_expression)
 and ast_scoped_expression = ctxl_promise(scoped_expression);
 
 type state_property = [

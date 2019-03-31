@@ -25,6 +25,12 @@ let resolve_scoped_expr = (symbol_tbl, (value, promise)) =>
 
         Nil_t;
       }
+    | VariableAssignment(refr, expr) =>
+      if (opt_type_ref(refr) != opt_type_ref(expr)) {
+        raise(OperatorTypeMismatch);
+      };
+
+      Nil_t;
     }
   )
   <:= promise;

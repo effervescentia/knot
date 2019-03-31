@@ -24,8 +24,9 @@ let generate = (printer, name) =>
 
     | StateDecl(params, props) =>
       Printf.sprintf(
-        "function %s(){%s%s%s}%s",
+        "function %s(%s){%s%s%s}%s",
         name,
+        update_handler,
         List.map(fst, params) |> Function.gen_params,
         gen_terminated(
           ((name, (prop, _))) =>
@@ -37,17 +38,14 @@ let generate = (printer, name) =>
             Printf.sprintf("%s:$%s", Property.gen_key(name), name),
           props,
         )
-        |> Printf.sprintf(
-             "var $$_self={get:function(){return {%s};}};function $$_update(){console.log({state:$$_self.get()});};return $$_self;",
-           ),
+        |> Printf.sprintf("return {get:function(){return {%s};}};"),
         gen_export(name),
       )
 
     | ViewDecl(_, mixins, props, exprs) =>
       Printf.sprintf(
-        "function %s%s%s",
-        name,
-        View.generate(mixins, props, exprs),
+        "%s%s",
+        View.generate(name, mixins, props, exprs),
         gen_export(name),
       )
 

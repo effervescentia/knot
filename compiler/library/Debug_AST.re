@@ -94,6 +94,8 @@ and print_scoped_expr =
   | ExpressionStatement(expr) => expr |~> print_expr
   | VariableDeclaration(name, expr) =>
     expr |~> print_expr |> Printf.sprintf("variable(%s = %s)", name)
+  | VariableAssignment(refr, expr) =>
+    Printf.sprintf("assign(%s = %s)", refr |~> print_ref, expr |~> print_expr)
 and print_expr =
   fun
   | NumericLit(n) => string_of_int(n)
