@@ -12,7 +12,7 @@ export const main = {
   withState(
     createState: (update: () => void) => { readonly get: () => any },
     component: React.ComponentType
-  ): React.ComponentType {
+  ): React.ComponentClass {
     class State<T extends { readonly $$_state?: any }> extends React.Component<
       T
     > {
@@ -20,7 +20,7 @@ export const main = {
       public readonly _state = createState(this.forceUpdate.bind(this));
 
       public render(): JSX.Element {
-        return React.createElement(component, {
+        return main.createElement(component, {
           ...this.props,
 
           $$_state: {
