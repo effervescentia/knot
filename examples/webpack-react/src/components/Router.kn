@@ -10,7 +10,7 @@ state RouteState {
 
 main view Router ~ RouteState -> {
   let setActive = (value: string) -> () -> $setActive(value);
-  let el = $active == "greeting"
+  let element = $active == "greeting"
     ? <Greeting name="World" />
     : $active == "calculator"
       ? <Calculator />
@@ -28,6 +28,6 @@ main view Router ~ RouteState -> {
         <a href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
       </li>
     </ul>
-    <div id="router__content">{el}</div>
+    <div id="router__content">{element}</div>
   </div>
 }

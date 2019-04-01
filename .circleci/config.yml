@@ -237,6 +237,10 @@ jobs:
           <<: *webpack_react_cache
           paths:
             - ~/.cache
+      - store_artifacts:
+          path: ./examples/webpack-react/cypress/screenshots
+      - store_artifacts:
+          path: ./examples/webpack-react/cypress/videos
 
 workflows:
   test:
