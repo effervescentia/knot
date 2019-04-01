@@ -28,6 +28,6 @@ main view Router ~ RouteState -> {
         <a href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
       </li>
     </ul>
-    <div>{el}</div>
+    <div id="router__content">{el}</div>
   </div>
 }

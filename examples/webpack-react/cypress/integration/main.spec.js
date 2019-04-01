@@ -6,7 +6,7 @@ context('Main', () => {
   })
 
   it('check webpack output', () => {
-    cy.get('#app')
+    cy.get('#router__content')
       .should('have.text', 'Hello, World!');
   })
 })
