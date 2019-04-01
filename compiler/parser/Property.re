@@ -1,9 +1,9 @@
 open Core;
 
-let assignment = input =>
-  (M.assign >> Expression.expr ==> no_ctx ==> (e => Some(e)))(input);
+let assignment = (parse_expr, input) =>
+  (M.assign >> parse_expr ==> no_ctx ==> (e => Some(e)))(input);
 
-let prop = input =>
+let prop = (parse_expr, input) =>
   (
     M.identifier
     >>= (
@@ -11,7 +11,7 @@ let prop = input =>
         M.type_def
         >>= (
           type_def =>
-            assignment
+            assignment(parse_expr)
             |= None
             ==> (default_val => (name, type_def, default_val))
         )
@@ -20,5 +20,12 @@ let prop = input =>
     input,
   );
 
-let list = input =>
-  (M.comma_separated(prop) |> M.parentheses ==> List.map(no_ctx))(input);
+let list = (parse_expr, input) =>
+  (
+    prop(parse_expr)
+    |> M.comma_separated
+    |> M.parentheses
+    ==> List.map(no_ctx)
+  )(
+    input,
+  );

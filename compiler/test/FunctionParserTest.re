@@ -46,7 +46,8 @@ let multi_expr_func_decl = name =>
   ]
   |> Util.drift;
 
-let test_parse_func = Util.test_parse_decl(KnotParse.Function.decl);
+let test_parse_func =
+  Util.test_parse_decl(KnotParse.Function.decl(KnotParse.Expression.expr));
 
 let __name = "myFunction";
 

@@ -9,6 +9,28 @@ let resolve = ((value, promise)) =>
     | StringLit(_) => String_t
     | JSX(_) => JSX_t
 
+    | FunctionLit(params, exprs) =>
+      let (param_types, return_type) =
+        Function.resolve_callable(params, exprs);
+
+      Function_t(param_types, return_type);
+
+    /* (number, number) => number */
+    /* (string, string) => string */
+    | EqualsExpr(lhs, rhs) =>
+      switch (opt_type_ref(lhs), opt_type_ref(rhs)) {
+      /* ~~~ Numeric Equality ~~~ */
+      | (Number_t, Number_t)
+      /* ~~~ String Equality ~~~ */
+      | (String_t, String_t)
+      /* ~~~ Boolean Equality ~~~ */
+      | (Boolean_t, Boolean_t) => Boolean_t
+      /* ~~~ Other Equality ~~~ */
+      | (lhs, rhs) when lhs == rhs => raise(NotImplemented)
+
+      | _ => raise(OperatorTypeMismatch)
+      }
+
     /* (number, number) => number */
     /* (string, string) => string */
     | AddExpr(lhs, rhs)

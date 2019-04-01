@@ -3,7 +3,7 @@ open Core;
 let decl =
   Const.decl
   <|> State.decl
-  <|> Function.decl
+  <|> Function.decl(Expression.expr)
   <|> View.decl
   <|> Style.decl
   ==> (((name, decl)) => (name, no_ctx(decl)));

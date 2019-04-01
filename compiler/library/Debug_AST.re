@@ -101,9 +101,12 @@ and print_expr =
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
   | StringLit(s) => Printf.sprintf("\"%s\"", s)
+  | FunctionLit(params, exprs) => print_lambda(params, exprs)
   | Reference(reference) =>
     reference |~> print_ref |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
+  | EqualsExpr(lhs, rhs) =>
+    Printf.sprintf("(%s == %s)", lhs |~> print_expr, rhs |~> print_expr)
   | AddExpr(lhs, rhs) =>
     Printf.sprintf("(%s + %s)", lhs |~> print_expr, rhs |~> print_expr)
   | SubExpr(lhs, rhs) =>

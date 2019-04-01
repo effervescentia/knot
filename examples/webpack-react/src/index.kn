@@ -1,5 +1,4 @@
 import JSX from "@knot/jsx";
-import App, { OtherView } from ".components.App";
+import Router from ".components.Router";
 
-main func render(id: string) -> JSX.render(<div><App name="World" /></div>, id);
-// main func render(id: string) -> JSX.render(<div><App name="World" /><OtherView /></div>, id);
+main func render(id: string) -> JSX.render(<Router />, id);

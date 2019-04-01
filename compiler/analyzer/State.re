@@ -12,14 +12,13 @@ let analyze_prop = (scope, name, promise) =>
     let nested_scope =
       scope.nest(~label=Printf.sprintf("mut(%s)", name), ());
 
-    List.iter(Property.analyze(Expression.analyze, nested_scope), params);
-    List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
+    Function.analyze(Expression.analyze, nested_scope, params, exprs);
 
     Resolver.of_state_method(name, (res, snd(promise))) |> scope.resolve;
 
   | `Getter(params, exprs) =>
-    let nested_scope = scope.nest();
+    let nested_scope =
+      scope.nest(~label=Printf.sprintf("get(%s)", name), ());
 
-    List.iter(Property.analyze(Expression.analyze, nested_scope), params);
-    List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
+    Function.analyze(Expression.analyze, nested_scope, params, exprs);
   };

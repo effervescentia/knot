@@ -5,6 +5,7 @@ let rec analyze = (scope, expr) => {
   fst(expr)
   |> (
     fun
+    | EqualsExpr(lhs, rhs)
     | AddExpr(lhs, rhs)
     | SubExpr(lhs, rhs)
     | MulExpr(lhs, rhs)
@@ -28,6 +29,11 @@ let rec analyze = (scope, expr) => {
     | NumericLit(_)
     | BooleanLit(_)
     | StringLit(_) => ()
+    | FunctionLit(params, exprs) => {
+        let nested_scope = scope.nest(~label="function(?)", ());
+
+        Function.analyze(analyze, nested_scope, params, exprs);
+      }
   );
 
   Resolver.of_expression(expr) |> scope.resolve;

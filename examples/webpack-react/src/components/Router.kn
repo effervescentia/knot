@@ -1,0 +1,33 @@
+import Greeting from ".components.Greeting";
+import Calculator from ".components.Calculator";
+import Toggle from ".components.Toggle";
+
+state RouteState {
+  active = "greeting";
+
+  mut setActive(value: string) -> $active = value;
+}
+
+main view Router ~ RouteState -> {
+  let setActive = (value: string) -> () -> $setActive(value);
+  let el = $active == "greeting"
+    ? <Greeting name="World" />
+    : $active == "calculator"
+      ? <Calculator />
+      : <Toggle />;
+
+  <div>
+    <ul>
+      <li>
+        <a href="#greeting" onClick={setActive("greeting")}>{"hello world"}</a>
+      </li>
+      <li>
+        <a href="#toggle" onClick={setActive("toggle")}>{"toggle"}</a>
+      </li>
+      <li>
+        <a href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
+      </li>
+    </ul>
+    <div>{el}</div>
+  </div>
+}

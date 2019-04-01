@@ -2,6 +2,7 @@ open Globals;
 open MemberType;
 
 type expression =
+  | EqualsExpr(ast_expression, ast_expression)
   | AddExpr(ast_expression, ast_expression)
   | SubExpr(ast_expression, ast_expression)
   | MulExpr(ast_expression, ast_expression)
@@ -15,6 +16,7 @@ type expression =
   | TernaryExpr(ast_expression, ast_expression, ast_expression)
   | Reference(ast_reference)
   | JSX(jsx)
+  | FunctionLit(list(ast_property), list(ast_scoped_expression))
   | NumericLit(int)
   | BooleanLit(bool)
   | StringLit(string)
@@ -29,24 +31,21 @@ and jsx =
   | Element(string, list((string, ast_expression)), list(jsx))
   | Fragment(list(jsx))
   | TextNode(string)
-  | EvalNode(ast_expression);
+  | EvalNode(ast_expression)
+and ast_type = ctxl_promise(string)
+and property = (string, option(ast_type), option(ast_expression))
+and ast_property = ctxl_promise(property)
+and scoped_expression =
+  | ExpressionStatement(ast_expression)
+  | VariableDeclaration(string, ast_expression)
+  | VariableAssignment(ast_reference, ast_expression)
+and ast_scoped_expression = ctxl_promise(scoped_expression);
 
 type import_target =
   | MainExport(string)
   | ModuleExport(string)
   | NamedExport(string, option(string))
 and ast_import_target = ctxl_promise(import_target);
-
-type ast_type = ctxl_promise(string);
-
-type property = (string, option(ast_type), option(ast_expression))
-and ast_property = ctxl_promise(property);
-
-type scoped_expression =
-  | ExpressionStatement(ast_expression)
-  | VariableDeclaration(string, ast_expression)
-  | VariableAssignment(ast_reference, ast_expression)
-and ast_scoped_expression = ctxl_promise(scoped_expression);
 
 type state_property = [
   | `Property(option(ast_type), option(ast_expression))

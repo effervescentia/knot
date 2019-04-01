@@ -1,0 +1,12 @@
+state Toggleable {
+  on = true;
+
+  mut toggle -> $on = $on ? false : true;
+}
+
+main view Toggle ~ Toggleable ->
+  <div>
+    <button onClick={$toggle}>{"toggle"}</button>
+    {":"}
+    {$on ? "ON" : "OFF"}
+  </div>;

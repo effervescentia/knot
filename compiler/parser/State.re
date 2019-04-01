@@ -1,7 +1,7 @@
 open Core;
 
 let prop_stmt =
-  Property.prop
+  Property.prop(Expression.expr)
   ==> (
     ((name, type_def, default_value)) => (
       name,
@@ -13,11 +13,11 @@ let mut_stmt =
   M.decl(M.mut)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
       >>= (
         params =>
-          Function.body
+          Function.body(Expression.expr)
           ==> (exprs => (name, no_ctx(`Mutator((params, exprs)))))
       )
   );
@@ -25,11 +25,11 @@ let get_stmt =
   M.decl(M.get)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
       >>= (
         params =>
-          Function.body
+          Function.body(Expression.expr)
           ==> (exprs => (name, no_ctx(`Getter((params, exprs)))))
       )
   );
@@ -40,7 +40,7 @@ let decl =
   M.decl(M.state)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
       >>= (
         params =>

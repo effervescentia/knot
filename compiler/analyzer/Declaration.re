@@ -9,11 +9,7 @@ let analyze = (scope, name) =>
       let nested_scope =
         scope.nest(~label=Printf.sprintf("function(%s)", name), ());
 
-      List.iter(
-        Property.analyze_param(Expression.analyze, nested_scope),
-        params,
-      );
-      List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
+      Function.analyze(Expression.analyze, nested_scope, params, exprs);
     }
 
   | ViewDecl(super, mixins, params, exprs) => {
@@ -26,11 +22,7 @@ let analyze = (scope, name) =>
 
       List.iter(Resolver.of_mixin % nested_scope.resolve, mixins);
 
-      List.iter(
-        Property.analyze_param(Expression.analyze, nested_scope),
-        params,
-      );
-      List.iter(Function.analyze_scoped_expr(nested_scope), exprs);
+      Function.analyze(Expression.analyze, nested_scope, params, exprs);
     }
 
   | StateDecl(params, props) => {

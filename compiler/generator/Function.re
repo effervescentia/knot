@@ -1,30 +1,31 @@
 open Core;
 
-let gen_expr =
+let gen_expr = generate_expr =>
   fun
-  | ExpressionStatement((x, _)) =>
-    Expression.generate(x) |> Printf.sprintf("%s;")
+  | ExpressionStatement((x, _)) => generate_expr(x) |> Printf.sprintf("%s;")
   | VariableDeclaration(name, (x, _)) =>
-    Expression.generate(x) |> Printf.sprintf("var %s=%s;", name)
+    generate_expr(x) |> Printf.sprintf("var %s=%s;", name)
   | VariableAssignment(refr, (x, _)) =>
     Printf.sprintf(
       "%s=%s;",
-      Reference.generate(Expression.generate, fst(refr)),
-      Expression.generate(x),
+      Reference.generate(generate_expr, fst(refr)),
+      generate_expr(x),
     );
 
-let rec gen_exprs =
+let rec gen_exprs = generate_expr =>
   fun
   | [x] =>
     switch (x) {
     | VariableDeclaration(_)
-    | VariableAssignment(_) => gen_expr(x) |> Printf.sprintf("%sreturn;")
-    | ExpressionStatement(_) => gen_expr(x) |> Printf.sprintf("return %s")
+    | VariableAssignment(_) =>
+      gen_expr(generate_expr, x) |> Printf.sprintf("%sreturn;")
+    | ExpressionStatement(_) =>
+      gen_expr(generate_expr, x) |> Printf.sprintf("return %s")
     }
-  | [x, ...xs] => gen_expr(x) ++ gen_exprs(xs)
+  | [x, ...xs] => gen_expr(generate_expr, x) ++ gen_exprs(generate_expr, xs)
   | [] => "";
 
-let gen_param = index =>
+let gen_param = (generate_expr, index) =>
   fun
   | (name, _, default_val) =>
     Printf.sprintf(
@@ -34,24 +35,27 @@ let gen_param = index =>
       index,
       name,
       switch (default_val) {
-      | Some((v, _)) => Expression.generate(v) |> Printf.sprintf(",%s")
+      | Some((v, _)) => generate_expr(v) |> Printf.sprintf(",%s")
       | None => ""
       },
     );
 
-let gen_params = params => {
+let gen_params = (generate_expr, params) => {
   let rec next = index =>
     index < List.length(params) ?
-      (gen_param(index, List.nth(params, index)) |> Printf.sprintf("%s;"))
+      (
+        gen_param(generate_expr, index, List.nth(params, index))
+        |> Printf.sprintf("%s;")
+      )
       ++ next(index + 1) :
       "";
 
   next(0);
 };
 
-let gen_body = (params, exprs) =>
+let gen_body = (generate_expr, params, exprs) =>
   Printf.sprintf(
     "(){%s%s}",
-    List.map(fst, params) |> gen_params,
-    List.map(fst, exprs) |> gen_exprs,
+    List.map(fst, params) |> gen_params(generate_expr),
+    List.map(fst, exprs) |> gen_exprs(generate_expr),
   );

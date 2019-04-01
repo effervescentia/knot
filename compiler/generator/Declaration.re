@@ -18,7 +18,7 @@ let generate = (printer, name) =>
       Printf.sprintf(
         "function %s%s%s",
         name,
-        Function.gen_body(params, exprs),
+        Function.gen_body(Expression.generate, params, exprs),
         gen_export(name),
       )
 
@@ -27,7 +27,7 @@ let generate = (printer, name) =>
         "function %s(%s){%s%s%s}%s",
         name,
         update_handler,
-        List.map(fst, params) |> Function.gen_params,
+        List.map(fst, params) |> Function.gen_params(Expression.generate),
         gen_terminated(
           ((name, (prop, _))) =>
             State.gen_member(prop) |> Printf.sprintf("var $%s=%s", name),
@@ -53,7 +53,7 @@ let generate = (printer, name) =>
       Printf.sprintf(
         "function %s(){%s%s}%s",
         name,
-        List.map(fst, params) |> Function.gen_params,
+        List.map(fst, params) |> Function.gen_params(Expression.generate),
         gen_list(Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
         gen_export(name),
