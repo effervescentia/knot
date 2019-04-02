@@ -1,12 +1,11 @@
 /// <reference types="Cypress" />
 
 context('Main', () => {
-  // beforeEach(() => {
-  // });
+  beforeEach(() => {
+    cy.visit('/');
+  });
 
   it('check webpack output', () => {
-    cy.visit('/');
-
     cy.get('#router__content')
       .should('have.text', 'Hello, World!');
   });
