@@ -503,54 +503,62 @@ let full_ast =
           StateDecl(
             [],
             [
-              no_ctx(Property(no_ctx(("a", Some(no_ctx("b")), None)))),
-              no_ctx(Property(no_ctx(("_c", Some(no_ctx("d")), None)))),
-              no_ctx(
-                Getter(
-                  "e",
-                  [],
-                  [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
+              ("a", no_ctx(`Property((Some(no_ctx("b")), None)))),
+              ("_c", no_ctx(`Property((Some(no_ctx("d")), None)))),
+              (
+                "e",
+                no_ctx(
+                  `Getter((
+                    [],
+                    [no_ctx(ExpressionStatement(no_ctx(NumericLit(4))))],
+                  )),
                 ),
               ),
-              no_ctx(
-                Getter(
-                  "f",
-                  [],
-                  [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+              (
+                "f",
+                no_ctx(
+                  `Getter((
+                    [],
+                    [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+                  )),
                 ),
               ),
-              no_ctx(
-                Getter(
-                  "g",
-                  [
-                    no_ctx(("h", Some(no_ctx("j")), None)),
-                    no_ctx(("k", None, Some(no_ctx(NumericLit(2))))),
-                    no_ctx((
-                      "l",
-                      Some(no_ctx("m")),
-                      Some(no_ctx(NumericLit(20))),
-                    )),
-                  ],
-                  [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+              (
+                "g",
+                no_ctx(
+                  `Getter((
+                    [
+                      no_ctx(("h", Some(no_ctx("j")), None)),
+                      no_ctx(("k", None, Some(no_ctx(NumericLit(2))))),
+                      no_ctx((
+                        "l",
+                        Some(no_ctx("m")),
+                        Some(no_ctx(NumericLit(20))),
+                      )),
+                    ],
+                    [no_ctx(ExpressionStatement(no_ctx(NumericLit(5))))],
+                  )),
                 ),
               ),
-              no_ctx(
-                Getter(
-                  "n",
-                  [],
-                  [
-                    no_ctx(ExpressionStatement(no_ctx(NumericLit(3)))),
-                    no_ctx(
-                      ExpressionStatement(
-                        no_ctx(
-                          AddExpr(
-                            no_ctx(Reference(no_ctx(Variable("A")))),
-                            no_ctx(Reference(no_ctx(Variable("m")))),
+              (
+                "n",
+                no_ctx(
+                  `Getter((
+                    [],
+                    [
+                      no_ctx(ExpressionStatement(no_ctx(NumericLit(3)))),
+                      no_ctx(
+                        ExpressionStatement(
+                          no_ctx(
+                            AddExpr(
+                              no_ctx(Reference(no_ctx(Variable("A")))),
+                              no_ctx(Reference(no_ctx(Variable("m")))),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  )),
                 ),
               ),
             ],

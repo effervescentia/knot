@@ -6,10 +6,11 @@ let string_lit = M.string ==> (s => StringLit(s));
 let numeric_lit = M.number ==> (x => NumericLit(x));
 let boolean_lit = M.boolean ==> (b => BooleanLit(b));
 
-let rec expr = input => (ternary_expr <|> determinate_expr)(input)
+let rec expr = input =>
+  (ternary_expr <|> function_lit <|> chained_expr)(input)
 and ternary_expr = input =>
   (
-    determinate_expr
+    chained_expr
     >>= (
       pred =>
         M.question_mark
@@ -31,7 +32,9 @@ and ternary_expr = input =>
   )(
     input,
   )
-and determinate_expr = input => (chainl1(comparative, Op.and_))(input)
+and chained_expr = input => (chainl1(or_expr, Op.equals))(input)
+and or_expr = input => (chainl1(and_expr, Op.or_))(input)
+and and_expr = input => (chainl1(comparative, Op.and_))(input)
 and comparative = input =>
   (chainl1(add_or_sub, Op.lte <|> Op.gte <|> Op.lt <|> Op.gt))(input)
 and add_or_sub = input => (chainl1(mul_or_div, Op.add <|> Op.sub))(input)
@@ -45,6 +48,13 @@ and term = input =>
     <|> string_lit
     <|> numeric_lit
     <|> boolean_lit
+  )(
+    input,
+  )
+and function_lit = input =>
+  (
+    Function.expr(expr)
+    ==> (((params, exprs)) => FunctionLit(params, exprs))
   )(
     input,
   );

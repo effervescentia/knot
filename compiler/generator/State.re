@@ -1,20 +1,20 @@
 open Core;
 
-let gen_prop =
+let gen_member =
   fun
-  | Mutator(name, params, exprs)
-  | Getter(name, params, exprs) =>
+  | `Mutator(params, exprs) =>
     Printf.sprintf(
-      "%s:function%s",
-      Property.gen_key(name),
-      Function.gen_body(params, exprs),
+      "function(){(function %s).apply(null, arguments);%s();}",
+      Function.gen_body(Expression.generate, params, exprs),
+      update_handler,
     )
-  | Property(((name, type_def, default_val), _)) =>
+  | `Getter(params, exprs) =>
     Printf.sprintf(
-      "%s:%s",
-      Property.gen_key(name),
-      switch (default_val) {
-      | Some((expr, _)) => Expression.generate(expr)
-      | None => "undefined"
-      },
-    );
+      "function%s",
+      Function.gen_body(Expression.generate, params, exprs),
+    )
+  | `Property(type_def, default_val) =>
+    switch (default_val) {
+    | Some((expr, _)) => Expression.generate(expr)
+    | None => "undefined"
+    };

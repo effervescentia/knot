@@ -1,3 +1,5 @@
+open Exception;
+
 type member_type =
   | Number_t
   | String_t
@@ -5,9 +7,10 @@ type member_type =
   | Array_t(member_type)
   | Object_t(Hashtbl.t(string, member_type))
   | Function_t(list(member_type), member_type)
+  | Mutator_t(list(member_type), member_type)
   | JSX_t
   | View_t(list(member_type), member_type)
-  | State_t
+  | State_t(list(member_type), Hashtbl.t(string, member_type))
   | Style_t
   | Module_t(
       list(string),
@@ -19,3 +22,10 @@ type member_type =
 type ctxl_promise('a) = ('a, ref(option(member_type)));
 
 let no_ctx = x => (x, ref(None));
+
+let unwrap_type =
+  fun
+  | Some(t) => t
+  | None => raise(UnanalyzedTypeReference);
+
+let opt_type_ref = ((_, x)) => unwrap_type(x^);

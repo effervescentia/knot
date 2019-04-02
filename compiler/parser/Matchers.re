@@ -57,6 +57,7 @@ and less_than_or_equal = token(LessThanOrEqual)
 and greater_than_or_equal = token(GreaterThanOrEqual)
 and logical_and = token(LogicalAnd)
 and logical_or = token(LogicalOr)
+and equals = token(Equals)
 and jsx_self_close = token(JSXSelfClose)
 and jsx_open_end = token(JSXOpenEnd)
 and jsx_start_frag = token(JSXStartFragment)
@@ -75,6 +76,15 @@ let exact_identifier = (match, input) =>
   | Some((s, _)) as res when s == match => res
   | _ => None
   };
+
+let sidecar_identifier =
+  (
+    fun
+    | LazyStream.Cons(SidecarIdentifier(s), next_in) =>
+      Some((s, Lazy.force(next_in)))
+    | _ => None
+  )
+  |> lexeme;
 
 let string =
   (

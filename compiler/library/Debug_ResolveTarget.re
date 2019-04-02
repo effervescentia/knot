@@ -16,5 +16,8 @@ let print_resolve_target =
   | ScopedExpressionScope(expr) => expr |~> print_scoped_expr
   | ParameterScope(p)
   | PropertyScope(p) => p |~> print_property
+  | StatePropertyScope(name, p) => p |~> print_state_property(name)
+  | StateMethodScope(name, m) => m |~> print_state_method(name)
   | ReferenceScope(refr) => refr |~> print_ref
-  | TypeScope(type_) => type_ |~> Printf.sprintf("type(%s)");
+  | TypeScope(type_)
+  | MixinScope(type_) => type_ |~> Printf.sprintf("type(%s)");

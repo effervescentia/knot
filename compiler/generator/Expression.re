@@ -2,6 +2,7 @@ open Core;
 
 let rec generate =
   fun
+  | EqualsExpr(lhs, rhs) => gen_binary("===", lhs, rhs)
   | AddExpr(lhs, rhs) => gen_binary("+", lhs, rhs)
   | SubExpr(lhs, rhs) => gen_binary("-", lhs, rhs)
   | MulExpr(lhs, rhs) => gen_binary("*", lhs, rhs)
@@ -24,5 +25,8 @@ let rec generate =
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
   | StringLit(s) => gen_string(s)
+  | FunctionLit(params, exprs) =>
+    Function.gen_body(generate, params, exprs)
+    |> Printf.sprintf("function %s")
 and gen_binary = (divider, (lhs, _), (rhs, _)) =>
   Printf.sprintf("(%s%s%s)", generate(lhs), divider, generate(rhs));

@@ -3,6 +3,7 @@ open Core;
 let rec generate = gen_expression =>
   fun
   | Variable(name) => name
+  | SidecarVariable(name) => Printf.sprintf("$%s", name)
   | DotAccess((lhs, _), rhs) =>
     Printf.sprintf(
       "%s%s",

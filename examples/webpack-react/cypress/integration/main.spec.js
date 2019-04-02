@@ -2,11 +2,11 @@
 
 context('Main', () => {
   beforeEach(() => {
-    cy.visit('/')
-  })
+    cy.visit('/');
+  });
 
   it('check webpack output', () => {
-    cy.get('#app')
+    cy.get('#router__content')
       .should('have.text', 'Hello, World!');
-  })
-})
+  });
+});

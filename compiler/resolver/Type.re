@@ -1,6 +1,27 @@
 open Core;
 open NestedHashtbl;
 
+let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
+  (
+    switch (value) {
+    | "string"
+    | "number"
+    | "boolean" => raise(InvalidMixinReference)
+
+    | type_ =>
+      Log.info("resolving mixin: %s", value);
+      switch (symbol_tbl.find(type_)) {
+      | Some(State_t(_, props) as res) =>
+        Hashtbl.to_seq(props) |> Hashtbl.add_seq(sidecar_tbl);
+
+        res;
+      | None => raise(InvalidTypeReference)
+      | _ => raise(InvalidMixinReference)
+      };
+    }
+  )
+  <:= promise;
+
 let resolve = (symbol_tbl, (value, promise)) =>
   (
     switch (value) {
@@ -8,13 +29,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
     | "number" => Number_t
     | "boolean" => Boolean_t
 
-    /* TODO: support user-defined types */
     | _ => raise(InvalidTypeReference)
-    /* | type_ =>
-       switch (symbol_tbl.find(type_)) {
-       | Some(res) => res
-       | None => raise(InvalidTypeReference)
-       } */
     }
   )
   <:= promise;

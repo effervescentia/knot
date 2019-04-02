@@ -12,11 +12,18 @@ let rec print_member_type =
   | Nil_t => "nil"
   | Array_t(t) => print_member_type(t) |> Printf.sprintf("%s[]")
   | Function_t(args, ret)
+  | Mutator_t(args, ret)
   | View_t(args, ret) =>
     Printf.sprintf(
       "(%s) -> %s",
       Util.print_comma_separated(print_member_type, args),
       print_member_type(ret),
+    )
+  | State_t(params, props) =>
+    Printf.sprintf(
+      "(%s) -> {%s}",
+      Util.print_comma_separated(print_member_type, params),
+      print_members(props),
     )
   | Object_t(members) => print_members(members) |> Printf.sprintf("{%s}")
   | Module_t(_, members, main_export) =>

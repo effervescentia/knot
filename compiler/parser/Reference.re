@@ -3,10 +3,12 @@ open Core;
 module Op = Operator;
 
 let variable = M.identifier ==> (s => Variable(s));
-let dot_access = chainl1(variable, Op.dot);
+let sidecar_variable = M.sidecar_identifier ==> (s => SidecarVariable(s));
+let dot_access = chainl1(sidecar_variable <|> variable, Op.dot);
 
 let refr = x =>
   dot_access
+  <|> sidecar_variable
   <|> variable
   >>= (
     refr =>

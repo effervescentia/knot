@@ -4,6 +4,10 @@ let module_map = "$$knot_modules$$";
 let util_map = "$$knot_utils$$";
 let export_map = "$$knot_exports$$";
 let globals_map = "$$knot_globals$$";
+let props_map = "$$_props";
+let state_map = "$$_state";
+let update_handler = "$$_update";
+let jsxGlobal = "$$_jsxPlugin";
 let main_export = "main";
 
 let gen_list = printer => Knot.Util.print_sequential(~separator=",", printer);

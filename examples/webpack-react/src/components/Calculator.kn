@@ -1,0 +1,53 @@
+state CalculatorState {
+  result = 0;
+  input = 0;
+
+  mut clear -> $input = 0;
+  mut setResult(result: number) -> {
+    $result = result;
+    $clear();
+  }
+  mut clearAll -> $setResult(0);
+  mut add -> $setResult($result + $input);
+  mut subtract -> $setResult($result - $input);
+  mut multiply -> $setResult($result * $input);
+  mut divide -> $setResult($result / $input);
+
+  mut append(value: number) -> $input = $input * 10 + value;
+}
+
+main view Calculator ~ CalculatorState -> {
+  let append = (value: number) -> () -> $append(value);
+
+  <div>
+    <div>
+      <div>
+        {"Sum: "}
+        <span>{$result}</span>
+      </div>
+      <div>
+        {"Input: "}
+        <span>{$input}</span>
+      </div>
+      <div>
+        <button onClick={$add}>{"ADD"}</button>
+        <button onClick={$subtract}>{"SUBTRACT"}</button>
+        <button onClick={$multiply}>{"MULTIPLY"}</button>
+        <button onClick={$divide}>{"DIVIDE"}</button>
+        <button onClick={$clearAll}>{"CLEAR"}</button>
+      </div>
+      <div>
+        <button onClick={append(1)}>{1}</button>
+        <button onClick={append(2)}>{2}</button>
+        <button onClick={append(3)}>{3}</button>
+        <button onClick={append(4)}>{4}</button>
+        <button onClick={append(5)}>{5}</button>
+        <button onClick={append(6)}>{6}</button>
+        <button onClick={append(7)}>{7}</button>
+        <button onClick={append(8)}>{8}</button>
+        <button onClick={append(9)}>{9}</button>
+        <button onClick={append(0)}>{0}</button>
+      </div>
+    </div>
+  </div>
+}

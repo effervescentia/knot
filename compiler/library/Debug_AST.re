@@ -51,7 +51,10 @@ and print_decl = name =>
       let params_str =
         Util.print_comma_separated(with_ctx(print_property), params);
       let props_str =
-        Util.print_comma_separated(with_ctx(print_state_prop), props);
+        Util.print_comma_separated(
+          ((name, prop)) => prop |~> print_state_member(name),
+          props,
+        );
 
       Printf.sprintf("STATE (%s, [%s], [%s])", name, params_str, props_str);
     }
@@ -91,14 +94,19 @@ and print_scoped_expr =
   | ExpressionStatement(expr) => expr |~> print_expr
   | VariableDeclaration(name, expr) =>
     expr |~> print_expr |> Printf.sprintf("variable(%s = %s)", name)
+  | VariableAssignment(refr, expr) =>
+    Printf.sprintf("assign(%s = %s)", refr |~> print_ref, expr |~> print_expr)
 and print_expr =
   fun
   | NumericLit(n) => string_of_int(n)
   | BooleanLit(b) => string_of_bool(b)
   | StringLit(s) => Printf.sprintf("\"%s\"", s)
+  | FunctionLit(params, exprs) => print_lambda(params, exprs)
   | Reference(reference) =>
     reference |~> print_ref |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
+  | EqualsExpr(lhs, rhs) =>
+    Printf.sprintf("(%s == %s)", lhs |~> print_expr, rhs |~> print_expr)
   | AddExpr(lhs, rhs) =>
     Printf.sprintf("(%s + %s)", lhs |~> print_expr, rhs |~> print_expr)
   | SubExpr(lhs, rhs) =>
@@ -129,6 +137,7 @@ and print_expr =
 and print_ref =
   fun
   | Variable(name) => Printf.sprintf("variable(%s)", name)
+  | SidecarVariable(name) => Printf.sprintf("sidecar_variable(%s)", name)
   | DotAccess(source, property) =>
     Printf.sprintf("%s.%s", source |~> print_ref, property)
   | Execution(source, exprs) =>
@@ -153,13 +162,22 @@ and print_jsx =
   | EvalNode(expr) => expr |~> print_expr
 and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, expr |~> print_expr)
-and print_state_prop =
+and print_state_member = name =>
   fun
-  | Property((prop, _)) =>
-    print_property(prop) |> Printf.sprintf("prop(%s)")
-  | Getter(name, params, exprs) =>
+  | `Property(type_def, default_val) as res =>
+    print_state_property(name, res)
+  | `Getter(params, exprs) as res
+  | `Mutator(params, exprs) as res => print_state_method(name, res)
+and print_state_property = name =>
+  fun
+  | `Property(type_def, default_val) =>
+    print_property((name, type_def, default_val))
+    |> Printf.sprintf("StateProperty(%s)")
+and print_state_method = name =>
+  fun
+  | `Getter(params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("getter(%s = %s)", name)
-  | Mutator(name, params, exprs) =>
+  | `Mutator(params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("mutator(%s = %s)", name)
 and print_mixins = mixins =>
   Util.print_comma_separated(with_ctx(x => x), mixins)

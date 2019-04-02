@@ -1,6 +1,0 @@
-view Greeting(name: string) -> "Hello, " + name + "!";
-
-main view App(name: string) ->
-  <div>
-    <Greeting name />
-  </div>;

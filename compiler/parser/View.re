@@ -6,7 +6,7 @@ let decl =
   M.decl(M.view)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
       >>= (
         params =>
@@ -17,7 +17,7 @@ let decl =
               |= []
               >>= (
                 mix =>
-                  Function.body
+                  Function.body(Expression.expr)
                   ==> (exprs => (name, ViewDecl(inh, mix, params, exprs)))
               )
           )

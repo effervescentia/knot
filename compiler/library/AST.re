@@ -2,6 +2,7 @@ open Globals;
 open MemberType;
 
 type expression =
+  | EqualsExpr(ast_expression, ast_expression)
   | AddExpr(ast_expression, ast_expression)
   | SubExpr(ast_expression, ast_expression)
   | MulExpr(ast_expression, ast_expression)
@@ -15,12 +16,14 @@ type expression =
   | TernaryExpr(ast_expression, ast_expression, ast_expression)
   | Reference(ast_reference)
   | JSX(jsx)
+  | FunctionLit(list(ast_property), list(ast_scoped_expression))
   | NumericLit(int)
   | BooleanLit(bool)
   | StringLit(string)
 and ast_expression = ctxl_promise(expression)
 and reference =
   | Variable(string)
+  | SidecarVariable(string)
   | DotAccess(ast_reference, string)
   | Execution(ast_reference, list(ast_expression))
 and ast_reference = ctxl_promise(reference)
@@ -28,7 +31,15 @@ and jsx =
   | Element(string, list((string, ast_expression)), list(jsx))
   | Fragment(list(jsx))
   | TextNode(string)
-  | EvalNode(ast_expression);
+  | EvalNode(ast_expression)
+and ast_type = ctxl_promise(string)
+and property = (string, option(ast_type), option(ast_expression))
+and ast_property = ctxl_promise(property)
+and scoped_expression =
+  | ExpressionStatement(ast_expression)
+  | VariableDeclaration(string, ast_expression)
+  | VariableAssignment(ast_reference, ast_expression)
+and ast_scoped_expression = ctxl_promise(scoped_expression);
 
 type import_target =
   | MainExport(string)
@@ -36,21 +47,19 @@ type import_target =
   | NamedExport(string, option(string))
 and ast_import_target = ctxl_promise(import_target);
 
-type ast_type = ctxl_promise(string);
+type state_property = [
+  | `Property(option(ast_type), option(ast_expression))
+]
+and ast_state_property = ctxl_promise(state_property);
 
-type property = (string, option(ast_type), option(ast_expression))
-and ast_property = ctxl_promise(property);
+type state_method = [
+  | `Mutator(list(ast_property), list(ast_scoped_expression))
+  | `Getter(list(ast_property), list(ast_scoped_expression))
+]
+and ast_state_method = ctxl_promise(state_method);
 
-type scoped_expression =
-  | ExpressionStatement(ast_expression)
-  | VariableDeclaration(string, ast_expression)
-and ast_scoped_expression = ctxl_promise(scoped_expression);
-
-type state_prop =
-  | Property(ast_property)
-  | Mutator(string, list(ast_property), list(ast_scoped_expression))
-  | Getter(string, list(ast_property), list(ast_scoped_expression))
-and ast_state_prop = ctxl_promise(state_prop);
+type state_member = [ state_property | state_method]
+and ast_state_member = ctxl_promise(state_member);
 
 type style_key =
   | ClassKey(string)
@@ -62,7 +71,7 @@ type style_rule_set = (style_key, list(style_rule));
 type declaration =
   | ConstDecl(ast_expression)
   | FunctionDecl(list(ast_property), list(ast_scoped_expression))
-  | StateDecl(list(ast_property), list(ast_state_prop))
+  | StateDecl(list(ast_property), list((string, ast_state_member)))
   | ViewDecl(
       option(ast_type),
       list(ast_type),

@@ -1,10 +1,17 @@
 open Core;
+open Resolver;
 
 type t = {
   resolve: resolve_target => unit,
-  nest: (~label: string=?, ~size: int=?, unit) => t,
+  nest:
+    (
+      ~label: string=?,
+      ~size: int=?,
+      ~sidecar: Hashtbl.t(string, member_type)=?,
+      unit
+    ) =>
+    t,
   module_tbl: Hashtbl.t(string, linked_module),
-  validate: unit => unit,
 };
 
 let rec create =
@@ -14,6 +21,7 @@ let rec create =
           ~symbol_tbl=NestedHashtbl.create(~label, ~boundary, 24),
           ~module_tbl=Hashtbl.create(24),
           ~resolver=?,
+          ~sidecar=?,
           (),
         ) => {
   let real_resolver =
@@ -23,20 +31,23 @@ let rec create =
     };
   {
     module_tbl,
-    resolve: real_resolver.resolve(symbol_tbl),
-    nest: (~label="anonymous", ~size=8, ()) =>
+    resolve: real_resolver.resolve({symbol_tbl, sidecar}),
+    nest: (~label="anonymous", ~size=8, ~sidecar as nested_sidecar=?, ()) =>
       create(
         ~resolver=real_resolver,
         ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
         ~module_tbl,
-        (),
+      )
+      |> (
+        f =>
+          switch (nested_sidecar) {
+          | Some(x) => f(~sidecar=x, ())
+          | None =>
+            switch (sidecar) {
+            | Some(x) => f(~sidecar=x, ())
+            | None => f()
+            }
+          }
       ),
-    validate: () => (),
-    /* symbol_tbl.iter_local((key, typ) =>
-         switch (typ^) {
-         | (_, Expected) => raise(InvalidScope)
-         | _ => ()
-         }
-       ), */
   };
 };

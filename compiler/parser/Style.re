@@ -24,7 +24,7 @@ let decl = input =>
     M.decl(M.style)
     >>= (
       name =>
-        Property.list
+        Property.list(Expression.expr)
         |= []
         >>= (
           params =>

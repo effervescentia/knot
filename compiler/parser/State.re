@@ -1,24 +1,37 @@
 open Core;
 
 let prop_stmt =
-  Property.prop ==> no_ctx % (property => Property(property)) |> M.terminated;
+  Property.prop(Expression.expr)
+  ==> (
+    ((name, type_def, default_value)) => (
+      name,
+      no_ctx(`Property((type_def, default_value))),
+    )
+  )
+  |> M.terminated;
 let mut_stmt =
   M.decl(M.mut)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
       >>= (
-        params => Function.body ==> (exprs => Mutator(name, params, exprs))
+        params =>
+          Function.body(Expression.expr)
+          ==> (exprs => (name, no_ctx(`Mutator((params, exprs)))))
       )
   );
 let get_stmt =
   M.decl(M.get)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
-      >>= (params => Function.body ==> (exprs => Getter(name, params, exprs)))
+      >>= (
+        params =>
+          Function.body(Expression.expr)
+          ==> (exprs => (name, no_ctx(`Getter((params, exprs)))))
+      )
   );
 
 let stmt = mut_stmt <|> get_stmt <|> prop_stmt;
@@ -27,13 +40,10 @@ let decl =
   M.decl(M.state)
   >>= (
     name =>
-      Property.list
+      Property.list(Expression.expr)
       |= []
       >>= (
         params =>
-          stmt
-          ==> no_ctx
-          |> M.closure
-          ==> (stmts => (name, StateDecl(params, stmts)))
+          stmt |> M.closure ==> (stmts => (name, StateDecl(params, stmts)))
       )
   );
