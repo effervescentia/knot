@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.module.json",
   "compilerOptions": {
     "outDir": "build/module",
-    "rootDir": "src"
+    "rootDir": "src",
+    "lib": ["es2017", "dom"]
   },
   "exclude": ["node_modules/**"]
 }
