@@ -6,7 +6,7 @@ let analyze_prop = (analyze_expr, scope, (_, expr)) =>
 
 let rec analyze = (analyze_expr, scope) =>
   fun
-  | Element(_, props, children) => {
+  | Element(_, _, props, children) => {
       List.iter(analyze_prop(analyze_expr, scope), props);
       List.iter(analyze(analyze_expr, scope), children);
     }

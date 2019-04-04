@@ -55,7 +55,10 @@
       "rawBuildConfigFooter": [
         "(install",
         "  (section share_root)",
-        "  (files (definitions/jsx.kd as knot/definitions/jsx.kd) )",
+        "  (files",
+        "    (definitions/jsx.kd as knot/definitions/jsx.kd)",
+        "    (definitions/style.kd as knot/definitions/style.kd)",
+        "  )",
         ")"
       ]
     },

@@ -1,6 +1,7 @@
 import Greeting from ".components.Greeting";
 import Calculator from ".components.Calculator";
 import Toggle from ".components.Toggle";
+import Stylish from ".components.Stylish";
 
 state RouteState {
   active = "greeting";
@@ -14,7 +15,9 @@ main view Router ~ RouteState -> {
     ? <Greeting name="World" />
     : $active == "calculator"
       ? <Calculator />
-      : <Toggle />;
+      : $active == "toggle"
+        ? <Toggle />
+        : <Stylish />;
 
   <div>
     <ul>
@@ -26,6 +29,9 @@ main view Router ~ RouteState -> {
       </li>
       <li>
         <a href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
+      </li>
+      <li>
+        <a href="#stylish" onClick={setActive("stylish")}>{"stylish"}</a>
       </li>
     </ul>
     <div id="router__content">{element}</div>

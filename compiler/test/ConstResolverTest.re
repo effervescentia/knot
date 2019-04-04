@@ -46,7 +46,7 @@ let tests =
                       "jsxConst",
                       (
                         ConstDecl((
-                          JSX(Element("div", [], [])),
+                          JSX(Element("div", [], [], [])),
                           __some_ref(JSX_t),
                         )),
                         __some_ref(JSX_t),

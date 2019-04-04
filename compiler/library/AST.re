@@ -28,10 +28,18 @@ and reference =
   | Execution(ast_reference, list(ast_expression))
 and ast_reference = ctxl_promise(reference)
 and jsx =
-  | Element(string, list((string, ast_expression)), list(jsx))
+  | Element(
+      string,
+      list(element_tag),
+      list((string, ast_expression)),
+      list(jsx),
+    )
   | Fragment(list(jsx))
   | TextNode(string)
   | EvalNode(ast_expression)
+and element_tag =
+  | ElementKey(string)
+  | ElementClass(string)
 and ast_type = ctxl_promise(string)
 and property = (string, option(ast_type), option(ast_expression))
 and ast_property = ctxl_promise(property)
@@ -62,8 +70,7 @@ type state_member = [ state_property | state_method]
 and ast_state_member = ctxl_promise(state_member);
 
 type style_key =
-  | ClassKey(string)
-  | IdKey(string);
+  | ClassKey(string);
 
 type style_rule = (ast_reference, ast_reference);
 type style_rule_set = (style_key, list(style_rule));

@@ -15,6 +15,7 @@ let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
         Hashtbl.to_seq(props) |> Hashtbl.add_seq(sidecar_tbl);
 
         res;
+      | Some(Style_t(_) as res) => res
       | None => raise(InvalidTypeReference)
       | _ => raise(InvalidMixinReference)
       };

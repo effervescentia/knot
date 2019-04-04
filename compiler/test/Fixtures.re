@@ -306,7 +306,7 @@ let full_ast =
       ),
       Declaration(
         "jsxConst",
-        no_ctx(ConstDecl(no_ctx(JSX(Element("abc", [], []))))),
+        no_ctx(ConstDecl(no_ctx(JSX(Element("abc", [], [], []))))),
       ),
       Declaration(
         "jsxWithPropsConst",
@@ -316,6 +316,7 @@ let full_ast =
               JSX(
                 Element(
                   "def",
+                  [],
                   [
                     (
                       "num",
@@ -345,10 +346,12 @@ let full_ast =
               JSX(
                 Element(
                   "parent",
+                  [],
                   [("justMade", no_ctx(StringLit("you say")))],
                   [
                     Element(
                       "child",
+                      [],
                       [
                         (
                           "variable",
@@ -358,12 +361,13 @@ let full_ast =
                       [
                         Element(
                           "grandchild",
+                          [],
                           [("under", no_ctx(StringLit("wear")))],
                           [],
                         ),
                       ],
                     ),
-                    Element("sibling", [], []),
+                    Element("sibling", [], [], []),
                   ],
                 ),
               ),
@@ -380,6 +384,7 @@ let full_ast =
                 Element(
                   "container",
                   [],
+                  [],
                   [
                     EvalNode(
                       no_ctx(
@@ -389,7 +394,7 @@ let full_ast =
                         ),
                       ),
                     ),
-                    Element("middle", [], []),
+                    Element("middle", [], [], []),
                     EvalNode(
                       no_ctx(
                         AddExpr(
@@ -411,7 +416,10 @@ let full_ast =
           ConstDecl(
             no_ctx(
               JSX(
-                Fragment([Element("div", [], []), Element("span", [], [])]),
+                Fragment([
+                  Element("div", [], [], []),
+                  Element("span", [], [], []),
+                ]),
               ),
             ),
           ),
@@ -692,26 +700,6 @@ let full_ast =
                     no_ctx(Variable("backgroundColor")),
                     no_ctx(Variable("red")),
                   ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      Declaration(
-        "IdStyle",
-        no_ctx(
-          StyleDecl(
-            [],
-            [
-              (
-                IdKey("login"),
-                [
-                  (
-                    no_ctx(Variable("visibility")),
-                    no_ctx(Variable("hidden")),
-                  ),
-                  (no_ctx(Variable("display")), no_ctx(Variable("flex"))),
                 ],
               ),
             ],

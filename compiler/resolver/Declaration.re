@@ -52,5 +52,18 @@ let resolve = (symbol_tbl, name, (value, promise)) =>
     State_t(param_types, props_tbl)
     |> resolve_declaration(symbol_tbl, name, promise);
 
-  | _ => raise(TypeResolutionNotSupported)
+  | StyleDecl(params, rule_sets) =>
+    let param_types = List.map(opt_type_ref, params);
+    let classes =
+      List.map(
+        fst
+        % (
+          fun
+          | ClassKey(s) => s
+        ),
+        rule_sets,
+      );
+
+    Style_t(param_types, classes)
+    |> resolve_declaration(symbol_tbl, name, promise);
   };
