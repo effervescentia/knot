@@ -1,7 +1,7 @@
 state Toggleable {
   on = true;
 
-  mut toggle -> $on = $on ? false : true;
+  mut toggle -> $on = !$on;
 }
 
 main view Toggle ~ Toggleable ->

@@ -2,6 +2,12 @@ open Core;
 
 let rec generate =
   fun
+  | NegatedExpr((expr, _)) =>
+    switch (expr) {
+    | EqualsExpr(lhs, rhs) => gen_binary("!==", lhs, rhs)
+    | NegatedExpr((expr, _)) => generate(expr)
+    | _ => generate(expr) |> Printf.sprintf("!(%s)")
+    }
   | EqualsExpr(lhs, rhs) => gen_binary("===", lhs, rhs)
   | AddExpr(lhs, rhs) => gen_binary("+", lhs, rhs)
   | SubExpr(lhs, rhs) => gen_binary("-", lhs, rhs)

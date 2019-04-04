@@ -15,6 +15,13 @@ let resolve = ((value, promise)) =>
 
       Function_t(param_types, return_type);
 
+    /* (boolean) => boolean */
+    | NegatedExpr(expr) =>
+      switch (opt_type_ref(expr)) {
+      | Boolean_t => Boolean_t
+      | _ => raise(OperatorTypeMismatch)
+      }
+
     /* (number, number) => number */
     /* (string, string) => string */
     | EqualsExpr(lhs, rhs) =>

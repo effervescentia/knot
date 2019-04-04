@@ -105,6 +105,7 @@ and print_expr =
   | Reference(reference) =>
     reference |~> print_ref |> Printf.sprintf("reference(%s)")
   | JSX(jsx) => print_jsx(jsx)
+  | NegatedExpr(expr) => expr |~> print_expr |> Printf.sprintf("!(%s)")
   | EqualsExpr(lhs, rhs) =>
     Printf.sprintf("(%s == %s)", lhs |~> print_expr, rhs |~> print_expr)
   | AddExpr(lhs, rhs) =>

@@ -5,6 +5,7 @@ let rec analyze = (scope, expr) => {
   fst(expr)
   |> (
     fun
+    | NegatedExpr(expr) => analyze(scope, expr)
     | EqualsExpr(lhs, rhs)
     | AddExpr(lhs, rhs)
     | SubExpr(lhs, rhs)
