@@ -6,7 +6,7 @@ state Toggleable {
 
 main view Toggle ~ Toggleable ->
   <div>
-    <button onClick={$toggle}>{"toggle"}</button>
+    <button id="button--toggle" onClick={$toggle}>{"toggle"}</button>
     {":"}
     {$on ? "ON" : "OFF"}
   </div>;

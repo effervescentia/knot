@@ -1,24 +1,32 @@
 import Style from "@knot/style";
 
+const height = Style.height;
+const width = Style.width;
+const backgroundColor = Style.backgroundColor;
+const red = Style.red;
+const thistle = Style.thistle;
+const pink = Style.pink;
+const px = Style.px;
+
 style FancyStyle {
   .root {
-    Style.height: Style.px(200);
-    Style.backgroundColor: Style.red;
+    height: px(200);
+    backgroundColor: red;
   }
   .child {
-    Style.height: Style.px(100);
-    Style.width: Style.px(200);
+    height: px(100);
+    width: px(200);
   }
   .lhs {
-    Style.backgroundColor: Style.thistle;
+    backgroundColor: thistle;
   }
   .rhs {
-    Style.backgroundColor: Style.pink;
+    backgroundColor: pink;
   }
 }
 
 main view StyledView ~ FancyStyle ->
-  <div(.root)>
-    <div(.child.lhs) />
-    <div(.child.rhs) />
+  <div(.root) id="stylish">
+    <div(.child.lhs) id="stylish__child--top" />
+    <div(.child.rhs) id="stylish__child--bottom" />
   </div>;

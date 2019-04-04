@@ -20,18 +20,18 @@ main view Router ~ RouteState -> {
         : <Stylish />;
 
   <div>
-    <ul>
+    <ul id="route-list">
       <li>
-        <a href="#greeting" onClick={setActive("greeting")}>{"hello world"}</a>
+        <a id="route--greeting" href="#greeting" onClick={setActive("greeting")}>{"hello world"}</a>
       </li>
       <li>
-        <a href="#toggle" onClick={setActive("toggle")}>{"toggle"}</a>
+        <a id="route--toggle" href="#toggle" onClick={setActive("toggle")}>{"toggle"}</a>
       </li>
       <li>
-        <a href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
+        <a id="route--calculator" href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
       </li>
       <li>
-        <a href="#stylish" onClick={setActive("stylish")}>{"stylish"}</a>
+        <a id="route--stylish" href="#stylish" onClick={setActive("stylish")}>{"stylish"}</a>
       </li>
     </ul>
     <div id="router__content">{element}</div>
