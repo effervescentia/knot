@@ -29,7 +29,7 @@ const executionConst = d.e.f(4, a.x, 20 * 3, m());
 
 const jsxConst = <abc />;
 const jsxWithPropsConst = <def num={8 + 9} bool={false} first="look" under="there" />;
-const nestedJSXConst = 
+const nestedJSXConst =
   <parent justMade={"you say"}>
     <child variable>
       <grandchild under="wear" />
@@ -86,11 +86,5 @@ style ClassStyle {
   .root {
     fontSize: px(20);
     backgroundColor: red;
-  }
-}
-style IdStyle {
-  #login {
-    visibility: hidden;
-    display: flex;
   }
 }

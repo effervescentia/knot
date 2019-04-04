@@ -148,10 +148,14 @@ and print_ref =
     )
 and print_jsx =
   fun
-  | Element(name, props, children) =>
+  | Element(name, tags, props, children) =>
     Printf.sprintf(
-      "<%s%s>%s</%s>",
+      "<%s%s%s>%s</%s>",
       name,
+      List.length(tags) == 0 ?
+        "" :
+        Util.print_comma_separated(print_element_tag, tags)
+        |> Printf.sprintf("(%s)"),
       Util.print_sequential(print_jsx_prop % Printf.sprintf(" %s"), props),
       Util.print_sequential(print_jsx, children),
       name,
@@ -160,6 +164,10 @@ and print_jsx =
     Printf.sprintf("<>%s</>", Util.print_sequential(print_jsx, children))
   | TextNode(s) => s
   | EvalNode(expr) => expr |~> print_expr
+and print_element_tag =
+  fun
+  | ElementClass(s)
+  | ElementKey(s) => s
 and print_jsx_prop = ((name, expr)) =>
   Printf.sprintf("%s={%s}", name, expr |~> print_expr)
 and print_state_member = name =>
@@ -191,7 +199,6 @@ and print_style_rule = ((name, value)) =>
 and print_style_key =
   fun
   | ClassKey(name) => Printf.sprintf("class(%s)", name)
-  | IdKey(name) => Printf.sprintf("id(%s)", name)
 and print_style_rule_set = ((key, rules)) =>
   Util.print_comma_separated(print_style_rule, rules)
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))

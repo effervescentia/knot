@@ -1,17 +1,31 @@
 // tslint:disable:object-literal-sort-keys
-export const main = {
-  fontSize: 'fontSize',
-  backgroundColor: 'backgroundColor',
-  visibility: 'visibility',
-  display: 'display',
+import JSS, { Styles } from 'jss';
+import jssPreset from 'jss-preset-default';
+import colors from './colors';
+import properties from './properties';
+import units from './units';
 
+// tslint:disable-next-line:no-expression-statement
+JSS.setup(jssPreset());
+
+export const main = {
+  ...properties,
+
+  visibility: 'visibility',
   hidden: 'hidden',
 
-  flex: 'flex',
+  ...colors,
 
-  red: 'red',
+  ...units,
 
-  px(num: number): string {
-    return String(num) + 'px';
+  resolve(styles: Styles): Record<any, string> {
+    const attached = JSS.createStyleSheet(styles).attach();
+
+    return attached.classes;
+  },
+
+  // tslint:disable-next-line:readonly-array
+  classes(...classNames: string[]): string {
+    return classNames.join(' ');
   }
 };

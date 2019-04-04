@@ -19,6 +19,12 @@ let rec print_member_type =
       Util.print_comma_separated(print_member_type, args),
       print_member_type(ret),
     )
+  | Style_t(params, rules) =>
+    Printf.sprintf(
+      "(%s) -> {%s}",
+      Util.print_comma_separated(print_member_type, params),
+      Util.print_comma_separated(x => x, rules),
+    )
   | State_t(params, props) =>
     Printf.sprintf(
       "(%s) -> {%s}",
@@ -40,7 +46,6 @@ let rec print_member_type =
           },
         )
     )
-  | _ => raise(DebugTypeNotSupported)
 and print_members = members =>
   Hashtbl.fold(
     (key, value, acc) =>

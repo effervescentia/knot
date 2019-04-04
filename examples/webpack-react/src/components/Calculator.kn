@@ -19,34 +19,34 @@ state CalculatorState {
 main view Calculator ~ CalculatorState -> {
   let append = (value: number) -> () -> $append(value);
 
-  <div>
+  <div id="calculator">
     <div>
       <div>
         {"Sum: "}
-        <span>{$result}</span>
+        <span id="calculator__result">{$result}</span>
       </div>
       <div>
         {"Input: "}
-        <span>{$input}</span>
+        <span id="calculator__input">{$input}</span>
       </div>
       <div>
-        <button onClick={$add}>{"ADD"}</button>
-        <button onClick={$subtract}>{"SUBTRACT"}</button>
-        <button onClick={$multiply}>{"MULTIPLY"}</button>
-        <button onClick={$divide}>{"DIVIDE"}</button>
-        <button onClick={$clearAll}>{"CLEAR"}</button>
+        <button id="button--add" id="button--add" onClick={$add}>{"ADD"}</button>
+        <button id="button--subtract" onClick={$subtract}>{"SUBTRACT"}</button>
+        <button id="button--multiply" onClick={$multiply}>{"MULTIPLY"}</button>
+        <button id="button--divide" onClick={$divide}>{"DIVIDE"}</button>
+        <button id="button--clear" onClick={$clearAll}>{"CLEAR"}</button>
       </div>
       <div>
-        <button onClick={append(1)}>{1}</button>
-        <button onClick={append(2)}>{2}</button>
-        <button onClick={append(3)}>{3}</button>
-        <button onClick={append(4)}>{4}</button>
-        <button onClick={append(5)}>{5}</button>
-        <button onClick={append(6)}>{6}</button>
-        <button onClick={append(7)}>{7}</button>
-        <button onClick={append(8)}>{8}</button>
-        <button onClick={append(9)}>{9}</button>
-        <button onClick={append(0)}>{0}</button>
+        <button id="button--1" onClick={append(1)}>{1}</button>
+        <button id="button--2" onClick={append(2)}>{2}</button>
+        <button id="button--3" onClick={append(3)}>{3}</button>
+        <button id="button--4" onClick={append(4)}>{4}</button>
+        <button id="button--5" onClick={append(5)}>{5}</button>
+        <button id="button--6" onClick={append(6)}>{6}</button>
+        <button id="button--7" onClick={append(7)}>{7}</button>
+        <button id="button--8" onClick={append(8)}>{8}</button>
+        <button id="button--9" onClick={append(9)}>{9}</button>
+        <button id="button--0" onClick={append(0)}>{0}</button>
       </div>
     </div>
   </div>

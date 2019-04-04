@@ -11,7 +11,7 @@ type member_type =
   | JSX_t
   | View_t(list(member_type), member_type)
   | State_t(list(member_type), Hashtbl.t(string, member_type))
-  | Style_t
+  | Style_t(list(member_type), list(string))
   | Module_t(
       list(string),
       Hashtbl.t(string, member_type),

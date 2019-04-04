@@ -43,4 +43,13 @@ let analyze = (scope, name) =>
       );
     }
 
-  | _ => raise(NotImplemented);
+  | StyleDecl(params, rule_sets) => {
+      let nested_scope =
+        scope.nest(~label=Printf.sprintf("style(%s)", name), ());
+
+      List.iter(
+        Property.analyze_param(Expression.analyze, nested_scope),
+        params,
+      );
+      List.iter(Style.analyze_rule_set(nested_scope), rule_sets);
+    };

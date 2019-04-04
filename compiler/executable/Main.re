@@ -6,14 +6,16 @@ let () = {
   let {paths} as config = Config.get();
   let desc_creator = PathResolver.simple(paths) |> Config.create_descriptor;
   let compiler = Compiler.create(desc_creator);
+  let inject_definition = file =>
+    compiler.inject(
+      Filename.concat(
+        Sys.argv[0] |> Filename.dirname |> Filename.dirname,
+        "share/knot/definitions/" ++ file,
+      ),
+    );
 
-  compiler.inject(
-    Filename.concat(
-      Sys.argv[0] |> Filename.dirname |> Filename.dirname,
-      "share/knot/definitions/jsx.kd",
-    ),
-    "@knot/jsx",
-  );
+  inject_definition("jsx.kd", "@knot/jsx");
+  inject_definition("style.kd", "@knot/style");
 
   if (config.is_server) {
     Log.info(

@@ -1,0 +1,22 @@
+export default {
+  font: 'font',
+  fontFamily: 'fontFamily',
+  fontFeatureSettings: 'fontFeatureSettings',
+  fontKerning: 'fontKerning',
+  fontLanguageOverride: 'fontLanguageOverride',
+  fontOpticalSizing: 'fontOpticalSizing',
+  fontSize: 'fontSize',
+  fontSizeAdjust: 'fontSizeAdjust',
+  fontStretch: 'fontStretch',
+  fontStyle: 'fontStyle',
+  fontSynthesis: 'fontSynthesis',
+  fontVariant: 'fontVariant',
+  fontVariantAlternates: 'fontVariantAlternates',
+  fontVariantCaps: 'fontVariantCaps',
+  fontVariantEastAsian: 'fontVariantEastAsian',
+  fontVariantLigatures: 'fontVariantLigatures',
+  fontVariantNumeric: 'fontVariantNumeric',
+  fontVariantPosition: 'fontVariantPosition',
+  fontVariantSettings: 'fontVariantSettings',
+  fontWeight: 'fontWeight'
+};

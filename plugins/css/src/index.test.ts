@@ -1,6 +1,9 @@
 // tslint:disable:no-expression-statement
 import test from 'ava';
 import { main } from '.';
+import colors from './colors';
+import properties from './properties';
+import units from './units';
 
 test('includes keys', t => {
   const keys = Object.keys(main);
@@ -8,17 +11,13 @@ test('includes keys', t => {
   t.plan(keys.length);
 
   [
-    'fontSize',
-    'backgroundColor',
-    'visibility',
-    'display',
-    'hidden',
-    'flex',
-    'red',
-    'px'
-  ].forEach(key => t.true(keys.includes(key)));
-});
+    ...Object.keys(properties),
+    ...Object.keys(colors),
+    ...Object.keys(units),
 
-test('px()', t => {
-  t.is('28px', main.px(28));
+    'visibility',
+    'hidden',
+    'resolve',
+    'classes'
+  ].forEach(key => t.true(keys.includes(key)));
 });

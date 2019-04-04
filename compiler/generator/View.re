@@ -11,6 +11,20 @@ let gen_mixin = name =>
       "",
     )
 
+  | Style_t(_, classes) =>
+    Knot.Util.print_sequential(
+      x => Printf.sprintf("var $$_class_%s=%s_%s.%s;", x, class_map, name, x),
+      classes,
+    )
+    |> Printf.sprintf(
+         "var %s_%s=%s.style(%s,%s(%s));%s",
+         class_map,
+         name,
+         util_map,
+         style_plugin,
+         name,
+         props_map,
+       )
   | _ => "";
 
 let gen_mixins =
@@ -48,7 +62,7 @@ let rec gen_with_hocs =
   | [(name, type_), ...xs] =>
     switch (unwrap_type(type_^)) {
     | State_t(_) =>
-      Printf.sprintf("%s.withState(%s, %s)", jsxGlobal, name)
+      Printf.sprintf("%s.withState(%s, %s)", jsx_plugin, name)
       % gen_with_hocs(xs)
     | _ => (x => x)
     }
