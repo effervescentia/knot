@@ -22,6 +22,7 @@ let lexer =
     "||" ==> LogicalOr,
     "->" ==> Lambda,
     "==" ==> Equals,
+    "!=" ==> NotEquals,
     "<=" ==> LessThanOrEqual,
     ">=" ==> GreaterThanOrEqual,
     "/>" ==> JSXSelfClose,

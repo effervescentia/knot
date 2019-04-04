@@ -16,6 +16,7 @@ let lexer =
     '$' ==> DollarSign,
     '#' ==> NumberSign,
     '?' ==> QuestionMark,
+    '!' ==> ExclamationMark,
     '-' ==> Minus,
     '+' ==> Plus,
     '*' ==> Asterisk,

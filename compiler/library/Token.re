@@ -28,6 +28,7 @@ type token =
   | DollarSign
   | NumberSign
   | QuestionMark
+  | ExclamationMark
   | Plus
   | Minus
   | Asterisk
@@ -44,6 +45,7 @@ type token =
   | RightChevron
   | Lambda
   | Equals
+  | NotEquals
   | GreaterThanOrEqual
   | LessThanOrEqual
   | JSXSelfClose /* /> */

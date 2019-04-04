@@ -3,6 +3,7 @@ open MemberType;
 
 type expression =
   | EqualsExpr(ast_expression, ast_expression)
+  | NegatedExpr(ast_expression)
   | AddExpr(ast_expression, ast_expression)
   | SubExpr(ast_expression, ast_expression)
   | MulExpr(ast_expression, ast_expression)

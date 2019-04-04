@@ -15,6 +15,11 @@ and gte =
 and or_ = M.logical_or >> return((x, y) => OrExpr(no_ctx(x), no_ctx(y)))
 and and_ = M.logical_and >> return((x, y) => AndExpr(no_ctx(x), no_ctx(y)))
 and equals = M.equals >> return((x, y) => EqualsExpr(no_ctx(x), no_ctx(y)))
+and not_equals =
+  M.not_equals
+  >> return((x, y) =>
+       NegatedExpr(no_ctx(EqualsExpr(no_ctx(x), no_ctx(y))))
+     )
 and ternary_ =
   M.question_mark >> return((x, y) => AndExpr(no_ctx(x), no_ctx(y)))
 and dot =

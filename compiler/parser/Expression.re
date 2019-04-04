@@ -7,7 +7,9 @@ let numeric_lit = M.number ==> (x => NumericLit(x));
 let boolean_lit = M.boolean ==> (b => BooleanLit(b));
 
 let rec expr = input =>
-  (ternary_expr <|> function_lit <|> chained_expr)(input)
+  (negated_expr <|> ternary_expr <|> function_lit <|> chained_expr)(input)
+and negated_expr = input =>
+  (M.exclamation_mark >> expr ==> (x => NegatedExpr(no_ctx(x))))(input)
 and ternary_expr = input =>
   (
     chained_expr
