@@ -1,0 +1,43 @@
+import S from "@knot/style";
+import Item from ".components.Item";
+
+style ItemsStyle {
+  .root {
+    S.position: S.relative;
+    S.zIndex: S.num(2);
+    S.borderTopWidth: S.px(1);
+    S.borderTopStyle: S.str("solid");
+    S.borderTopColor: S.str("#e6e6e6");
+  }
+  .toggleAll {
+    S.textAlign: S.str("center");
+    S.border: S.str("none");
+    S.opacity: S.num(0);
+    S.position: S.absolute;
+  }
+  .toggleAllLabel {
+    S.width: S.px(60);
+    S.height: S.px(34);
+    S.fontSize: S.num(0);
+    S.position: S.absolute;
+    S.top: S.px(0 - 52);
+    S.left: S.px(0 - 13);
+    S.transform: S.str("rotate(90deg)");
+  }
+  .list {
+    S.margin: S.num(0);
+    S.padding: S.num(0);
+    S.listStyle: S.none;
+  }
+}
+
+main view TodoItems ~ ItemsStyle -> {
+  <section(.root)>
+    <input(.toggleAll) id="toggle-all" type="checkbox" />
+    <label(.toggleAllLabel) htmlFor="toggle-all" />
+    <ul(.list)>
+      <Item>{"asd"}</Item>
+      <Item>{"saD"}</Item>
+    </ul>
+  </section>
+}

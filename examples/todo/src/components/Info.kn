@@ -1,0 +1,33 @@
+import S from "@knot/style";
+
+style InfoStyle {
+  .root {
+    S.margin: S.str("65px auto 0");
+    S.color: S.str("#bfbfbf");
+    S.fontSize: S.px(10);
+    S.textShadow: S.str("0 1px 0 rgba(255, 255, 255, 0.5)");
+    S.textAlign: S.str("center");
+  }
+  .text {
+    S.lineHeight: S.num(1);
+  }
+  .link {
+    S.color: S.str("inherit");
+    S.textDecoration: S.str("none");
+    S.fontWeight: S.num(400);
+  }
+}
+
+main view Info ~ InfoStyle -> {
+  <footer(.root)>
+    <p(.text)>{"Double click to edit a todo."}</p>
+    <p(.text)>
+      {"Created by "}
+      <a(.link) href="https://github.com/effervescentia">{"ben teichman"}</a>
+    </p>
+    <p(.text)>
+      {"Part of "}
+      <a(.link) href="http://todomvc.com">{"TodoMVC"}</a>
+    </p>
+  </footer>
+}

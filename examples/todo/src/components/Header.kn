@@ -1,0 +1,40 @@
+import S from "@knot/style";
+import TodoStyle from ".styles.Todo";
+
+style HeaderStyle {
+  .title {
+    S.position: S.absolute;
+    S.top: S.px(0 - 155);
+    S.width: S.percent(100);
+    S.fontSize: S.px(100);
+    S.textAlign: S.str("center");
+    S.fontWeight: S.num(100);
+    S.color: S.rgba(175, 47, 47, 3 / 20);
+    S.textRendering: S.str("optimizeLegibility");
+  }
+  .newTodo {
+    S.paddingTop: S.px(16);
+    S.paddingRight: S.px(16);
+    S.paddingBottom: S.px(16);
+    S.paddingLeft: S.px(60);
+    S.border: S.none;
+    S.backgroundColor: S.rgba(0, 0, 0, 1 / 300);
+    S.boxShadow: S.str("inset 0 -2px 1px rgba(0,0,0,0.03)");
+    S.position: S.relative;
+    S.margin: S.num(0);
+    S.width: S.percent(100);
+    S.fontSize: S.px(24);
+    S.fontFamily: S.str("inherit");
+    S.fontWeight: S.str("inherit");
+    S.color: S.str("inherit");
+    S.lineHeight: S.num(7 / 5);
+    S.boxSizing: S.str("border-box");
+  }
+}
+
+main view TodoHeader ~ HeaderStyle, TodoStyle -> {
+  <header>
+    <h1(.title)>{"todos"}</h1>
+    <input(.newTodo.todo) placeholder="What needs to be done?" />
+  </header>
+}
