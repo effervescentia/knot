@@ -1,3 +1,4 @@
+// tslint:disable:object-literal-sort-keys
 import animationProperties from './animation';
 import backgroundProperties from './background';
 import borderProperties from './border';
@@ -161,7 +162,14 @@ export default {
   placeSelf: 'placeSelf',
 
   pointerEvents: 'pointerEvents',
+
   position: 'position',
+  static: 'static',
+  relative: 'relative',
+  absolute: 'absolute',
+  sticky: 'sticky',
+  fixed: 'fixed',
+
   prefix: 'prefix',
   quotes: 'quotes',
   rad: 'rad',

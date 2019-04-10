@@ -1,12 +1,430 @@
 main {
-  fontSize: string;
+  // ~~~ Animation ~~~
+
+  animation: string;
+  animationDelay: string;
+  animationDirection: string;
+  animationDuration: string;
+  animationFillMode: string;
+  animationIterationCount: string;
+  animationName: string;
+  animationPlayState: string;
+  animationTimingFunction: string;
+
+  // ~~~ Background ~~~
+
+  background: string;
+  backgroundAttachment: string;
+  backgroundBlendMode: string;
+  backgroundClip: string;
   backgroundColor: string;
-  visibility: string;
+  backgroundImage: string;
+  backgroundOrigin: string;
+  backgroundPosition: string;
+  backgroundRepeat: string;
+  backgroundSize: string;
+
+  // ~~~ Border ~~~
+
+  border: string;
+  borderBlock: string;
+  borderBlockEnd: string;
+  borderBlockEndColor: string;
+  borderBlockEndStyle: string;
+  borderBlockEndWidth: string;
+  borderBlockStart: string;
+  borderBlockStartColor: string;
+  borderBlockStartStyle: string;
+  borderBlockStartWidth: string;
+  borderBlockStyle: string;
+  borderBlockWidth: string;
+  borderBottom: string;
+  borderBottomColor: string;
+  borderBottomLeftRadius: string;
+  borderBottomRightRadius: string;
+  borderBottomStyle: string;
+  borderBottomWidth: string;
+  borderCollapse: string;
+  borderColor: string;
+  borderEndEndRadius: string;
+  borderEndStartRadius: string;
+  borderImageOutset: string;
+  borderImageRepeat: string;
+  borderImageSlice: string;
+  borderImageSource: string;
+  borderImageWidth: string;
+  borderInline: string;
+  borderInlineColor: string;
+  borderInlineEnd: string;
+  borderInlineEndColor: string;
+  borderInlineEndStyle: string;
+  borderInlineEndWidth: string;
+  borderInlineStart: string;
+  borderInlineStartColor: string;
+  borderInlineStartWidth: string;
+  borderInlineStyle: string;
+  borderInlineWidth: string;
+  borderLeft: string;
+  borderLeftColor: string;
+  borderLeftStyle: string;
+  borderLeftWidth: string;
+  borderRadius: string;
+  borderRight: string;
+  borderRightColor: string;
+  borderRightStyle: string;
+  borderRightWidth: string;
+  borderSpacing: string;
+  borderStartEndRadius: string;
+  borderStartStartRadius: string;
+  borderStyle: string;
+  borderTop: string;
+  borderTopColor: string;
+  borderTopLeftRadius: string;
+  borderTopRightRadius: string;
+  borderTopStyle: string;
+  borderTopWidth: string;
+  borderWidth: string;
+
+  // ~~~ Font ~~~
+
+  font: string;
+  fontFamily: string;
+  fontFeatureSettings: string;
+  fontKerning: string;
+  fontLanguageOverride: string;
+  fontOpticalSizing: string;
+  fontSize: string;
+  fontSizeAdjust: string;
+  fontStretch: string;
+  fontStyle: string;
+  fontSynthesis: string;
+  fontVariant: string;
+  fontVariantAlternates: string;
+  fontVariantCaps: string;
+  fontVariantEastAsian: string;
+  fontVariantLigatures: string;
+  fontVariantNumeric: string;
+  fontVariantPosition: string;
+  fontVariantSettings: string;
+  fontWeight: string;
+
+  // ~~~ Grid ~~~
+
+  grid: string;
+  gridArea: string;
+  gridAutoColumns: string;
+  gridAutoFlow: string;
+  gridAutoRows: string;
+  gridColumn: string;
+  gridColumnEnd: string;
+  gridColumnStart: string;
+  gridRow: string;
+  gridRowEnd: string;
+  gridRowStart: string;
+  gridTemplate: string;
+  gridTemplateAreas: string;
+  gridTemplateColumns: string;
+  gridTemplateRows: string;
+
+  // ~~~ Inset ~~~
+
+  inset: string;
+  insetBlock: string;
+  insetBlockEnd: string;
+  insetBlockStart: string;
+  insetInline: string;
+  insetInlineEnd: string;
+  insetInlineStart: string;
+
+  // ~~~ Margin ~~~
+
+  margin: string;
+  marginBlock: string;
+  marginBlockEnd: string;
+  marginBlockStart: string;
+  marginBottom: string;
+  marginInline: string;
+  marginInlineEnd: string;
+  marginInlineStart: string;
+  marginLeft: string;
+  marginRight: string;
+  marginTop: string;
+
+  // ~~~ Mask ~~~
+
+  mask: string;
+  maskClip: string;
+  maskComposite: string;
+  maskImage: string;
+  maskMode: string;
+  maskOrigin: string;
+  maskPosition: string;
+  maskRepeat: string;
+  maskSize: string;
+  maskType: string;
+
+  // ~~~ Outline ~~~
+
+  outline: string;
+  outlineColor: string;
+  outlineOffset: string;
+  outlineStyle: string;
+  outlineWidth: string;
+
+  // ~~~ Padding ~~~
+
+  padding: string;
+  paddingBlock: string;
+  paddingBlockEnd: string;
+  paddingBlockStart: string;
+  paddingBottom: string;
+  paddingInline: string;
+  paddingInlineEnd: string;
+  paddingInlineStart: string;
+  paddingLeft: string;
+  paddingRight: string;
+  paddingTop: string;
+
+  // ~~~ Position ~~~
+  position: string;
+  static: string;
+  relative: string;
+  absolute: string;
+  sticky: string;
+  fixed: string;
+
+  // ~~~ Scroll ~~~
+
+  scrollBehavior: string;
+  scrollMargin: string;
+  scrollMarginBlock: string;
+  scrollMarginBlockEnd: string;
+  scrollMarginBlockStart: string;
+  scrollMarginBottom: string;
+  scrollMarginInline: string;
+  scrollMarginInlineEnd: string;
+  scrollMarginInlineStart: string;
+  scrollPaddingLeft: string;
+  scrollPaddingRight: string;
+  scrollPaddingTop: string;
+  scrollSnapAlign: string;
+  scrollSnapStop: string;
+  scrollSnapType: string;
+
+  // ~~~ Text ~~~
+
+  textAlign: string;
+  textAlignLast: string;
+  textCombineUpright: string;
+  textDecoration: string;
+  textDecorationColor: string;
+  textDecorationLine: string;
+  textDecorationStyle: string;
+  textEmphasis: string;
+  textEmphasisColor: string;
+  textEmphasisPosition: string;
+  textEmphasisStyle: string;
+  textIndent: string;
+  textJustify: string;
+  textOrientation: string;
+  textOverflow: string;
+  textRendering: string;
+  textShadow: string;
+  textTransform: string;
+  textUnderlinePosition: string;
+
+  // ~~~ Transform ~~~
+
+  transform: string;
+  transformBox: string;
+  transformOrigin: string;
+  transformStyle: string;
+
+  // ~~~ Transition ~~~
+
+  transition: string;
+  transitionDelay: string;
+  transitionDuration: string;
+  transitionProperty: string;
+  transitionTimingFunction: string;
+
+  // ~~~ Other ~~~
+
+  alignContent: string;
+  alignItems: string;
+  alignSelf: string;
+
+  all: string;
+
+  blockSize: string;
+
+  bottom: string;
+
+  boxDecorationBreak: string;
+  boxShadow: string;
+  boxSizing: string;
+
+  breakAfter: string;
+  breakBefore: string;
+  breakInside: string;
+
+  captionSide: string;
+  caretColor: string;
+  clear: string;
+
+  clip: string;
+  clipPath: string;
+
+  color: string;
+  colorAdjust: string;
+
+  columnCount: string;
+  columnFill: string;
+  columnGap: string;
+  columnRule: string;
+  columnRuleColor: string;
+  columnRuleStyle: string;
+  columnRuleWidth: string;
+  columns: string;
+
+  content: string;
+
+  counterIncrement: string;
+  counterReset: string;
+
+  cursor: string;
+  direction: string;
   display: string;
-  height: string;
-  width: string;
-  hidden: string;
+  emptyCells: string;
+  filter: string;
+
   flex: string;
+  flexBasis: string;
+  flexDirection: string;
+  flexFlow: string;
+  flexGrow: string;
+  flexShrink: string;
+  flexWrap: string;
+
+  float: string;
+
+  gap: string;
+  grad: string;
+
+  hangingPunctuation: string;
+  height: string;
+  hyphens: string;
+
+  imageOrientation: string;
+  imageRendering: string;
+
+  inherit: string;
+  initial: string;
+  inlineSize: string;
+
+  isolation: string;
+
+  justifyContent: string;
+  justifyItems: string;
+  justifySelf: string;
+
+  left: string;
+  letterSpacing: string;
+
+  lineBreak: string;
+  lineHeight: string;
+
+  listStyle: string;
+  listStyleImage: string;
+  listStylePosition: string;
+  listStyleType: string;
+
+  maxHeight: string;
+  maxWidth: string;
+  maxZoom: string;
+  minBlockSize: string;
+  minHeight: string;
+  minInlineSize: string;
+  minWidth: string;
+  minZoom: string;
+  mixBlendMode: string;
+  negative: string;
+
+  objectFit: string;
+  objectPosition: string;
+
+  opacity: string;
+  order: string;
+  orientation: string;
+  orphans: string;
+
+  overflow: string;
+  overflowWrap: string;
+  overflowX: string;
+  overflowY: string;
+
+  pad: string;
+
+  pageBreakAfter: string;
+  pageBreakAfterBefore: string;
+  pageBreakAfterInside: string;
+
+  perspective: string;
+  perspectiveOrigin: string;
+
+  placeContent: string;
+  placeItems: string;
+  placeSelf: string;
+
+  pointerEvents: string;
+  prefix: string;
+  quotes: string;
+  rad: string;
+  range: string;
+  resize: string;
+  revert: string;
+  right: string;
+  rotate: string;
+  rowGap: string;
+  scale: string;
+
+  shapeImageThreshold: string;
+  shapeMargin: string;
+  shapeOutside: string;
+
+  src: string;
+  suffix: string;
+  symbols: string;
+  system: string;
+  tabSize: string;
+  tableLayout: string;
+
+  top: string;
+  touchAction: string;
+
+  translate: string;
+  turn: string;
+  unicodeBidi: string;
+  unicodeRange: string;
+  unset: string;
+  userZoom: string;
+  verticalAlign: string;
+  vmax: string;
+  vmin: string;
+  whiteSpace: string;
+  widows: string;
+  width: string;
+  willChange: string;
+
+  wordBreak: string;
+  wordSpacing: string;
+  wordWrap: string;
+
+  writingMode: string;
+  zIndex: string;
+
+  // @experimental
+  backfaceVisibility: string;
 
   // ~~~ Colors ~~~
 
@@ -166,6 +584,10 @@ main {
   // CSS Level 4
   rebeccapurple: string;
 
+  // factories
+  rgb: (number, number, number) -> string;
+  rgba: (number, number, number, number) -> string;
+
   // ~~~ Units ~~~
   ch: (number) -> string;
   cm: (number) -> string;
@@ -182,6 +604,7 @@ main {
   mm: (number) -> string;
   ms: (number) -> string;
   pc: (number) -> string;
+  percent: (number) -> string;
   pt: (number) -> string;
   px: (number) -> string;
   rem: (number) -> string;
@@ -189,4 +612,13 @@ main {
   vh: (number) -> string;
   vw: (number) -> string;
   x: (number) -> string;
+
+  // ~~~ Things ~~~
+
+  visibility: string;
+  hidden: string;
+  none: string;
+
+  num: (number) -> number;
+  str: (string) -> string;
 }

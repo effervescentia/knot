@@ -13,6 +13,11 @@ export const main = {
 
   visibility: 'visibility',
   hidden: 'hidden',
+  none: 'none',
+
+  // utilities
+  num: (num: number) => num,
+  str: (str: string) => str,
 
   ...colors,
 

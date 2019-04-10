@@ -15,6 +15,7 @@ export default {
   mm: unit('mm'),
   ms: unit('ms'),
   pc: unit('pc'),
+  percent: unit('%'),
   pt: unit('pt'),
   px: unit('px'),
   rem: unit('rem'),
