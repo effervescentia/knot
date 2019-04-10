@@ -15,7 +15,7 @@ function hasKeys<T extends object>(
 }
 
 test('includes keys', t =>
-  hasKeys(t, main, ['createElement', 'render', 'withState']));
+  hasKeys(t, main, ['createElement', 'createFragment', 'render', 'withState']));
 
 test('createElement()', t => {
   t.is(main.createElement, React.createElement);

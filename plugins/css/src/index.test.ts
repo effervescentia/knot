@@ -17,6 +17,11 @@ test('includes keys', t => {
 
     'visibility',
     'hidden',
+    'none',
+
+    'num',
+    'str',
+
     'resolve',
     'classes'
   ].forEach(key => t.true(keys.includes(key)));

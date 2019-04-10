@@ -155,6 +155,9 @@ test('includes keys', t => {
     'wheat',
     'whitesmoke',
     'yellowgreen',
-    'rebeccapurple'
+    'rebeccapurple',
+
+    'rgb',
+    'rgba'
   ].forEach(key => t.true(keys.includes(key)));
 });
