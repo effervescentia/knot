@@ -1,0 +1,21 @@
+import S from "@knot/style";
+
+main style Todo {
+  .todo {
+    S.position: S.relative;
+    S.margin: S.num(0);
+    S.width: S.percent(100);
+    S.fontSize: S.px(24);
+    S.fontFamily: S.str("inherit");
+    S.fontWeight: S.str("inherit");
+    S.lineHeight: S.em(7 / 5);
+    S.border: S.num(0);
+    S.color: S.str("inherit");
+    S.padding: S.px(6);
+    S.borderWidth: S.px(1);
+    S.borderStyle: S.str("solid");
+    S.borderColor: S.str("#999");
+    S.boxShadow: S.str("inset 0 -1px 5px 0 rgba(0, 0, 0, 0.2)");
+    S.boxSizing: S.str("border-box");
+  }
+}

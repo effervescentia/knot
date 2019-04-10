@@ -1,0 +1,6 @@
+name: knot-todomvc
+
+files:
+  source: src
+  modules: node_modules
+  build: build

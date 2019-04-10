@@ -1,0 +1,78 @@
+import S from "@knot/style";
+
+style ItemStyle {
+  .root {
+    S.position: S.relative;
+    S.fontSize: S.px(24);
+    S.borderBottomStyle: S.str("solid");
+    S.borderBottomColor: S.str("#ededed");
+    S.borderBottomWidth: S.px(1);
+  }
+  .toggle {
+    S.opacity: S.num(0);
+    S.textAlign: S.str("center");
+    S.height: S.px(40);
+    S.width: S.px(40);
+    S.position: S.absolute;
+    S.top: S.num(0);
+    S.bottom: S.num(0);
+    S.opacity: S.num(0);
+    S.margin: S.str("auto 0");
+    S.border: S.str("none");
+    S.background: S.str("none");
+    S.str("appearance"): S.str("none");
+  }
+  .label {
+    S.backgroundImage: S.str("url(data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22…2none%22%20stroke%3D%22%23ededed%22%20stroke-width%3D%223%22/%3E%3C/svg%3E)");
+    S.backgroundRepeat: S.str("no-repeat");
+    S.backgroundPosition: S.str("center left");
+    S.wordBreak: S.str("break-all");
+    S.paddingTop: S.px(15);
+    S.paddingBottom: S.px(15);
+    S.paddingLeft: S.px(60);
+    S.paddingRight: S.px(15);
+    S.display: S.str("block");
+    S.lineHeight: S.num(6 / 5);
+    S.transition: S.str("color 0.4s");
+  }
+  .destroyButton {
+    S.display: S.str("none");
+    S.position: S.absolute;
+    S.top: S.num(0);
+    S.bottom: S.num(0);
+    S.right: S.px(10);
+    S.width: S.px(40);
+    S.height: S.px(40);
+    S.margin: S.str("auto 0");
+    S.fontSize: S.px(30);
+    S.marginBottom: S.px(11);
+    S.transition: S.str("color 0.2s ease-out");
+  }
+  .edit {
+    S.display: S.str("none");
+    S.position: S.relative;
+    S.margin: S.num(0);
+    S.width: S.percent(100);
+    S.fontSize: S.px(24);
+    S.fontFamily: S.str("inherit");
+    S.fontWeight: S.str("inherit");
+    S.lineHeight: S.em(7 / 5);
+    S.borderWidth: S.px(1);
+    S.borderStyle: S.str("solid");
+    S.borderColor: S.str("#999");
+    S.color: S.str("inherit");
+    S.padding: S.px(6);
+    S.boxSizing: S.str("border-box");
+  }
+}
+
+main view TodoItem(children: string) ~ ItemStyle -> {
+  <li(.root)>
+    <div>
+      <input(.toggle) />
+      <label(.label)>{children}</label>
+      <button(.destroyButton) />
+    </div>
+    <input(.edit) />
+  </li>
+}

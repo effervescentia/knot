@@ -1,0 +1,66 @@
+import S from "@knot/style";
+
+style FooterStyle {
+  .root {
+    S.color: S.str("#777");
+    S.paddingTop: S.px(10);
+    S.paddingBottom: S.px(10);
+    S.paddingLeft: S.px(15);
+    S.paddingRight: S.px(15);
+    S.textAlign: S.str("center");
+  }
+  .count {
+    S.float: S.str("left");
+    S.textAlign: S.str("left");
+  }
+  .number {
+    S.fontWeight: S.num(300);
+  }
+  .filters {
+    S.margin: S.num(0);
+    S.padding: S.num(0);
+    S.right: S.num(0);
+    S.left: S.num(0);
+    S.listStyle: S.str("none");
+    S.position: S.absolute;
+  }
+  .listItem {
+    S.display: S.str("inline");
+  }
+  .filter {
+    S.color: S.str("inherit");
+    S.margin: S.px(3);
+    S.paddingTop: S.px(3);
+    S.paddingBottom: S.px(3);
+    S.paddingLeft: S.px(7);
+    S.paddingRight: S.px(7);
+    S.textDecoration: S.str("none");
+    S.borderWidth: S.px(1);
+    S.borderStyle: S.str("solid");
+    S.borderColor: S.str("transparent");
+    S.borderRadius: S.px(3);
+  }
+  .selected {
+    S.color: S.rgba(175, 47, 47, 1 / 5);
+  }
+}
+
+main view TodoFooter ~ FooterStyle -> {
+  <footer(.root) id="info">
+    <span(.count)>
+      <strong(.number)>{2}</strong>
+      {" items left"}
+    </span>
+    <ul(.filters)>
+      <li(.listItem)>
+        <a(.filter) href="#/">{"All"}</a>
+      </li>
+      <li(.listItem)>
+        <a(.filter) href="#/active">{"Active"}</a>
+      </li>
+      <li(.listItem)>
+        <a(.filter) href="#/completed">{"Completed"}</a>
+      </li>
+    </ul>
+  </footer>
+}
