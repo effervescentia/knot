@@ -3,6 +3,9 @@ import * as ReactDOM from 'react-dom';
 
 export const main = {
   createElement: React.createElement,
+  // tslint:disable-next-line:readonly-array
+  createFragment: (...children: JSX.Element[]) =>
+    React.createElement(React.Fragment, null, ...children),
   render(app: JSX.Element, id: string): void {
     // tslint:disable-next-line:no-expression-statement
     ReactDOM.render(app, document.getElementById(id));

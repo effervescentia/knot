@@ -23,6 +23,7 @@ test('includes keys', t => {
     'mm',
     'ms',
     'pc',
+    'percent',
     'pt',
     'px',
     'rem',
@@ -39,7 +40,13 @@ test('adds appropriate suffix', t => {
   keys.forEach(key => {
     const value = Math.round(Math.random() * 20);
 
-    t.is(units[key](value), `${value}${key}`);
+    switch (key) {
+      case 'percent':
+        t.is(units[key](value), `${value}%`);
+        return;
+      default:
+        t.is(units[key](value), `${value}${key}`);
+    }
   });
 });
 

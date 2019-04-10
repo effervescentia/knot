@@ -132,7 +132,14 @@ test('includes keys', t => {
     'placeItems',
     'placeSelf',
     'pointerEvents',
+
     'position',
+    'static',
+    'relative',
+    'absolute',
+    'sticky',
+    'fixed',
+
     'prefix',
     'quotes',
     'rad',

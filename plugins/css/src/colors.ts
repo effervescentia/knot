@@ -154,5 +154,10 @@ export default {
   yellowgreen: 'yellowgreen',
 
   // CSS Level 4
-  rebeccapurple: 'rebeccapurple'
+  rebeccapurple: 'rebeccapurple',
+
+  // factories
+  rgb: (r: number, g: number, b: number) => `rgb(${r},${g},${b})`,
+  rgba: (r: number, g: number, b: number, a: number) =>
+    `rgba(${r},${g},${b},${a})`
 };
