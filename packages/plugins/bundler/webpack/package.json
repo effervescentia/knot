@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@knot/compiler": "file:../../../binaries/compiler",
-    "@knot/javascript-plugin": "file:../../compiler/javascript",
+    "@knot/browser-plugin": "file:../../compiler/browser",
     "@knot/jss-plugin": "file:../../compiler/jss",
     "@knot/react-plugin": "file:../../compiler/react",
     "cross-fetch": "^3.0.1",
