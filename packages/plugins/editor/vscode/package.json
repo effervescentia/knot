@@ -1,5 +1,5 @@
 {
-  "name": "knot-language",
+  "name": "@knot/vscode-plugin",
   "displayName": "Knot Language",
   "description": "Knot language support.",
   "version": "0.0.1",

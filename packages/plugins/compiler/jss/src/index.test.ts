@@ -1,6 +1,6 @@
 // tslint:disable:no-expression-statement
 import test from 'ava';
-import { main } from '.';
+import { main } from '../src';
 import colors from './colors';
 import properties from './properties';
 import units from './units';

@@ -1,6 +1,6 @@
 // tslint:disable:no-expression-statement
 import test from 'ava';
-import properties from '.';
+import properties from '../properties';
 import animationProperties from './animation';
 import backgroundProperties from './background';
 import borderProperties from './border';
