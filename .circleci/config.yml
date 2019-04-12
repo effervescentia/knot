@@ -1,6 +1,13 @@
 version: 2.1
 
 defaults:
+  node_cache: &node_cache
+    key: node_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
+  node_cache_keys: &node_cache_keys
+    keys:
+      - node_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
+      - node_cache-v1-{{ checksum "yarn.lock" }}
+      - node_cache-v1
   compiler_cache: &compiler_cache
     key: compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
   compiler_cache_keys: &compiler_cache_keys
@@ -50,6 +57,29 @@ commands:
             yarn global add esy
 
 jobs:
+  install_node:
+    executor: node/node
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *node_cache_keys
+      - run:
+          name: Install
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          <<: *node_cache
+          paths:
+            - ~/.cache
+      - run:
+          name: Populate Workspace
+          command: |
+            mkdir -p /tmp/workspace
+            cp -RL node_modules /tmp/workspace/node_modules
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - node_modules
+
   test_compiler:
     executor: node/node
     steps:
@@ -59,11 +89,11 @@ jobs:
       - setup_esy
       - run:
           name: Install
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: esy install
       - run:
           name: Build
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: |
             if [ -e ./_export ]; then
               esy import-build ./_export/*.tar.gz
@@ -72,11 +102,11 @@ jobs:
             esy build
       - run:
           name: Test
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: yarn test
       - run:
           name: Export Dependencies
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: esy export-dependencies
       - save_cache:
           <<: *compiler_cache
@@ -84,7 +114,7 @@ jobs:
             - ~/project/compiler/_export
       - run:
           name: Populate Workspace
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: |
             mkdir -p /tmp/workspace
             cp -RL _esy/default/store/i/knot-* /tmp/workspace/knot
@@ -98,99 +128,84 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          <<: *react_plugin_cache_keys
+          <<: *node_cache_keys
       - run:
           name: Install
-          working_directory: ./plugins/react
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Build
+          working_directory: ./packages/plugins/compiler/react
+          command: yarn build
       - run:
           name: Test
-          working_directory: ./plugins/react
+          working_directory: ./packages/plugins/compiler/react
           command: yarn test
-      - save_cache:
-          <<: *react_plugin_cache
-          paths:
-            - ~/.cache
       - run:
           name: Populate Workspace
-          working_directory: ~/project/plugins/react
+          working_directory: ./packages/plugins/compiler/react
           command: |
             mkdir -p /tmp/workspace
             cp -RL build /tmp/workspace/react-plugin
-            cp -RL node_modules /tmp/workspace/react-plugin__modules
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - react-plugin
-            - react-plugin__modules
 
-  test_css_plugin:
+  test_jss_plugin:
     executor: node/node
     steps:
       - checkout
       - restore_cache:
-          <<: *css_plugin_cache_keys
+          <<: *node_cache_keys
       - run:
           name: Install
-          working_directory: ./plugins/css
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Build
+          working_directory: ./packages/plugins/compiler/jss
+          command: yarn build
       - run:
           name: Test
-          working_directory: ./plugins/css
+          working_directory: ./packages/plugins/compiler/jss
           command: yarn test
-      - save_cache:
-          <<: *css_plugin_cache
-          paths:
-            - ~/.cache
       - run:
           name: Populate Workspace
-          working_directory: ~/project/plugins/css
+          working_directory: ./packages/plugins/compiler/jss
           command: |
             mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/css-plugin
-            cp -RL node_modules /tmp/workspace/css-plugin__modules
+            cp -RL build /tmp/workspace/jss-plugin
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - css-plugin
-            - css-plugin__modules
 
   test_webpack_plugin:
     executor: node/node
     steps:
       - checkout
       - restore_cache:
-          <<: *webpack_plugin_cache_keys
+          <<: *node_cache_keys
       - run:
           name: Install
-          working_directory: ./webpack-plugin
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Build
+          working_directory: ./packages/plugins/bundler/webpack
+          command: yarn build
       - run:
           name: Test
-          working_directory: ./webpack-plugin
+          working_directory: ./packages/plugins/bundler/webpack
           command: yarn test
-      - save_cache:
-          <<: *webpack_plugin_cache
-          paths:
-            - ~/.cache
       - run:
           name: Populate Workspace
-          working_directory: ~/project/webpack-plugin
+          working_directory: ./packages/plugins/bundler/webpack
           command: |
             mkdir -p /tmp/workspace
             cp -RL build /tmp/workspace/webpack-plugin
-            cp -RL node_modules /tmp/workspace/webpack-plugin__modules
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - webpack-plugin
-            - webpack-plugin__modules
 
   test_webpack_react:
     docker:
@@ -203,55 +218,65 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          <<: *webpack_react_cache_keys
+          <<: *node_cache_keys
+      - run:
+          name: Install
+          command: yarn install --frozen-lockfile
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
       - run:
           name: Restore React Plugin
-          working_directory: ./plugins/react
+          working_directory: ./packages/plugins/compiler/react
           command: |
             mv /tmp/workspace/react-plugin build
-            mv /tmp/workspace/react-plugin__modules node_modules
       - run:
-          name: Restore CSS Plugin
-          working_directory: ./plugins/css
+          name: Restore JSS Plugin
+          working_directory: ./packages/plugins/compiler/jss
           command: |
-            mv /tmp/workspace/css-plugin build
-            mv /tmp/workspace/css-plugin__modules node_modules
+            mv /tmp/workspace/jss-plugin build
       - run:
           name: Restore Webpack Plugin
-          working_directory: ./webpack-plugin
+          working_directory: ./packages/plugins/bundler/webpack
           command: |
             mv /tmp/workspace/webpack-plugin build
-            mv /tmp/workspace/webpack-plugin__modules node_modules
-      - run:
-          name: Install
-          working_directory: ./examples/webpack-react
-          command: yarn install --frozen-lockfile
       - run:
           name: Test
           working_directory: ./examples/webpack-react
           command: yarn test
-      - save_cache:
-          <<: *webpack_react_cache
-          paths:
-            - ~/.cache
       - store_artifacts:
           path: ./examples/webpack-react/cypress/screenshots
       - store_artifacts:
           path: ./examples/webpack-react/cypress/videos
 
+  release:
+    executor: node/node
+    steps:
+      - checkout
+      - run:
+          name: Release
+          command: yarn release
+
 workflows:
-  test:
+  test_release:
     jobs:
+      - install_node
       - test_compiler
-      - test_react_plugin
-      - test_css_plugin
-      - test_webpack_plugin
+      - test_react_plugin:
+          requires:
+            - install_node
+      - test_jss_plugin:
+          requires:
+            - install_node
+      - test_webpack_plugin:
+          requires:
+            - install_node
       - test_webpack_react:
           requires:
             - test_compiler
             - test_react_plugin
-            - test_css_plugin
+            - test_jss_plugin
             - test_webpack_plugin
+      - release:
+          requires:
+            - test_webpack_react
