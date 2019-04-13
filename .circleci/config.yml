@@ -148,7 +148,7 @@ jobs:
           paths:
             - ~/project/compiler/_export
       - persist:
-          path: _esy/default/store/i/knot-*
+          path: compiler/_esy/default/store/i/knot-*
           to: knot
 
   test_react_plugin:
