@@ -1,6 +1,13 @@
 version: 2.1
 
 defaults:
+  node_cache: &node_cache
+    key: node_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
+  node_cache_keys: &node_cache_keys
+    keys:
+      - node_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
+      - node_cache-v1-{{ checksum "yarn.lock" }}
+      - node_cache-v1
   compiler_cache: &compiler_cache
     key: compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
   compiler_cache_keys: &compiler_cache_keys
@@ -8,62 +15,120 @@ defaults:
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}
       - compiler_cache-v4
-  react_plugin_cache: &react_plugin_cache
-    key: react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}-{{ .Branch }}
-  react_plugin_cache_keys: &react_plugin_cache_keys
-    keys:
-      - react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}-{{ .Branch }}
-      - react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}
-      - react_plugin_cache-v1
-  css_plugin_cache: &css_plugin_cache
-    key: css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
-  css_plugin_cache_keys: &css_plugin_cache_keys
-    keys:
-      - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
-      - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}
-      - css_plugin_cache-v1
-  webpack_plugin_cache: &webpack_plugin_cache
-    key: webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-  webpack_plugin_cache_keys: &webpack_plugin_cache_keys
-    keys:
-      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
-      - webpack_plugin_cache-v1
-  webpack_react_cache: &webpack_react_cache
-    key: webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-  webpack_react_cache_keys: &webpack_react_cache_keys
-    keys:
-      - webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-      - webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
-      - webpack_react_cache-v1
 
 orbs:
   node: circleci/node@0.0.6
 
 commands:
+  setup_yarn:
+    description: restore node cache and add yarn globals to the PATH
+    steps:
+      - restore_cache:
+          <<: *node_cache_keys
+      - run:
+          name: Setup Yarn
+          command: echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
   setup_esy:
+    description: install esy
     steps:
       - run:
           name: Setup Esy
+          command: yarn global add esy
+  setup_lerna:
+    description: install lerna
+    steps:
+      - run:
+          name: Setup Lerna
+          command: yarn global add lerna
+  persist:
+    description: persist a directory to the workspace
+    parameters:
+      to:
+        type: string
+      path:
+        type: string
+    steps:
+      - run:
+          name: Populate Workspace
           command: |
-            echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
-            yarn global add esy
+            mkdir -p /tmp/workspace
+            cp -RL << parameters.path >> /tmp/workspace/<< parameters.to >>
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - << parameters.to >>
+  lerna_install:
+    description: install dependencies for a particular package
+    parameters:
+      pkg:
+        type: string
+    steps:
+      - run:
+          name: Install
+          command: lerna bootstrap --scope=@knot/<< parameters.pkg >>
+  lerna_exec:
+    description: execute a command on a particular package
+    parameters:
+      pkg:
+        type: string
+      command:
+        type: string
+    steps:
+      - run:
+          name: Execute Lerna Command
+          command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
+  build_plugin:
+    description: build @knot/*-plugin, run its tests and store the resulting built version
+    parameters:
+      pkg:
+        type: string
+      path:
+        type: string
+    steps:
+      - setup_yarn
+      - setup_lerna
+      - lerna_install:
+          pkg: << parameters.pkg >>-plugin
+      - lerna_exec:
+          pkg: << parameters.pkg >>-plugin
+          command: yarn build
+      - lerna_exec:
+          pkg: << parameters.pkg >>-plugin
+          command: yarn test
+      - persist:
+          path: << parameters.path >>/build
+          to: << parameters.pkg >>-plugin
 
 jobs:
+  install_node:
+    executor: node/node
+    steps:
+      - checkout
+      - setup_yarn
+      - setup_lerna
+      - run:
+          name: Install
+          command: lerna bootstrap
+      - save_cache:
+          <<: *node_cache
+          paths:
+            - ~/.cache
+
   test_compiler:
     executor: node/node
     steps:
       - checkout
       - restore_cache:
           <<: *compiler_cache_keys
+      - setup_yarn
       - setup_esy
       - run:
           name: Install
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: esy install
       - run:
           name: Build
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: |
             if [ -e ./_export ]; then
               esy import-build ./_export/*.tar.gz
@@ -72,125 +137,43 @@ jobs:
             esy build
       - run:
           name: Test
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: yarn test
       - run:
           name: Export Dependencies
-          working_directory: ~/project/compiler
+          working_directory: ./compiler
           command: esy export-dependencies
       - save_cache:
           <<: *compiler_cache
           paths:
             - ~/project/compiler/_export
-      - run:
-          name: Populate Workspace
-          working_directory: ~/project/compiler
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL _esy/default/store/i/knot-* /tmp/workspace/knot
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - knot
+      - persist:
+          path: compiler/_esy/default/store/i/knot-*
+          to: knot
 
   test_react_plugin:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *react_plugin_cache_keys
-      - run:
-          name: Install
-          working_directory: ./plugins/react
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
-      - run:
-          name: Test
-          working_directory: ./plugins/react
-          command: yarn test
-      - save_cache:
-          <<: *react_plugin_cache
-          paths:
-            - ~/.cache
-      - run:
-          name: Populate Workspace
-          working_directory: ~/project/plugins/react
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/react-plugin
-            cp -RL node_modules /tmp/workspace/react-plugin__modules
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - react-plugin
-            - react-plugin__modules
+      - build_plugin:
+          pkg: react
+          path: packages/plugins/compiler/react
 
-  test_css_plugin:
+  test_jss_plugin:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *css_plugin_cache_keys
-      - run:
-          name: Install
-          working_directory: ./plugins/css
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
-      - run:
-          name: Test
-          working_directory: ./plugins/css
-          command: yarn test
-      - save_cache:
-          <<: *css_plugin_cache
-          paths:
-            - ~/.cache
-      - run:
-          name: Populate Workspace
-          working_directory: ~/project/plugins/css
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/css-plugin
-            cp -RL node_modules /tmp/workspace/css-plugin__modules
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - css-plugin
-            - css-plugin__modules
+      - build_plugin:
+          pkg: jss
+          path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *webpack_plugin_cache_keys
-      - run:
-          name: Install
-          working_directory: ./webpack-plugin
-          command: |
-            yarn install --frozen-lockfile
-            yarn build
-      - run:
-          name: Test
-          working_directory: ./webpack-plugin
-          command: yarn test
-      - save_cache:
-          <<: *webpack_plugin_cache
-          paths:
-            - ~/.cache
-      - run:
-          name: Populate Workspace
-          working_directory: ~/project/webpack-plugin
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/webpack-plugin
-            cp -RL node_modules /tmp/workspace/webpack-plugin__modules
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - webpack-plugin
-            - webpack-plugin__modules
+      - build_plugin:
+          pkg: webpack
+          path: packages/plugins/bundler/webpack
 
   test_webpack_react:
     docker:
@@ -202,56 +185,61 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - restore_cache:
-          <<: *webpack_react_cache_keys
+      - setup_yarn
+      - setup_lerna
+      - lerna_install:
+          pkg: webpack-react-example
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
       - run:
-          name: Restore React Plugin
-          working_directory: ./plugins/react
+          name: Restore Plugins
+          working_directory: ./packages/plugins
           command: |
-            mv /tmp/workspace/react-plugin build
-            mv /tmp/workspace/react-plugin__modules node_modules
-      - run:
-          name: Restore CSS Plugin
-          working_directory: ./plugins/css
-          command: |
-            mv /tmp/workspace/css-plugin build
-            mv /tmp/workspace/css-plugin__modules node_modules
-      - run:
-          name: Restore Webpack Plugin
-          working_directory: ./webpack-plugin
-          command: |
-            mv /tmp/workspace/webpack-plugin build
-            mv /tmp/workspace/webpack-plugin__modules node_modules
-      - run:
-          name: Install
-          working_directory: ./examples/webpack-react
-          command: yarn install --frozen-lockfile
-      - run:
-          name: Test
-          working_directory: ./examples/webpack-react
+            mv /tmp/workspace/react-plugin compiler/react/build
+            mv /tmp/workspace/jss-plugin compiler/jss/build
+            mv /tmp/workspace/webpack-plugin bundler/webpack/build
+      - lerna_exec:
+          pkg: webpack-react-example
           command: yarn test
-      - save_cache:
-          <<: *webpack_react_cache
-          paths:
-            - ~/.cache
       - store_artifacts:
           path: ./examples/webpack-react/cypress/screenshots
       - store_artifacts:
           path: ./examples/webpack-react/cypress/videos
 
+  release:
+    executor: node/node
+    steps:
+      - checkout
+      - setup_yarn
+      - setup_lerna
+      - run:
+          name: Install
+          command: lerna bootstrap
+      - run:
+          name: Release
+          command: yarn release
+
 workflows:
-  test:
+  test_release:
     jobs:
+      - install_node
       - test_compiler
-      - test_react_plugin
-      - test_css_plugin
-      - test_webpack_plugin
+      - test_react_plugin:
+          requires:
+            - install_node
+      - test_jss_plugin:
+          requires:
+            - install_node
+      - test_webpack_plugin:
+          requires:
+            - install_node
       - test_webpack_react:
           requires:
             - test_compiler
             - test_react_plugin
-            - test_css_plugin
+            - test_jss_plugin
             - test_webpack_plugin
+      - release:
+          requires:
+            - test_webpack_react

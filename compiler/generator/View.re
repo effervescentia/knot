@@ -20,7 +20,7 @@ let gen_mixin = name =>
          "var %s_%s=%s.style(%s,%s(%s));%s",
          class_map,
          name,
-         util_map,
+         platform_plugin,
          style_plugin,
          name,
          props_map,
@@ -38,7 +38,7 @@ let gen_prop = index =>
     Printf.sprintf(
       "var %s=%s.prop(%s,'%s'%s)",
       name,
-      util_map,
+      platform_plugin,
       props_map,
       name,
       switch (default_val) {

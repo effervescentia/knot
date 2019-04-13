@@ -31,7 +31,7 @@ let gen_param = (generate_expr, index) =>
     Printf.sprintf(
       "var %s=%s.arg(arguments,%n,'%s'%s)",
       name,
-      util_map,
+      platform_plugin,
       index,
       name,
       switch (default_val) {
