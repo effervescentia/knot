@@ -1,5 +1,5 @@
 // tslint:disable:no-expression-statement
-import * as knotBinary from '@knot/binary';
+import * as KnotCompiler from '@knot/compiler';
 import execa from 'execa';
 import { Compiler, Options } from '../types';
 import * as Tasks from './tasks';
@@ -16,7 +16,7 @@ export default function createCompiler(options: Options): Compiler {
   const proc = options.knot
     ? execa(options.knot, [...knotArgs])
     : execa('esy', ['x', 'knotc.exe', ...knotArgs], {
-        cwd: knotBinary.path
+        cwd: KnotCompiler.path
       });
   const baseUrl = `http://localhost:${options.port}`;
 
