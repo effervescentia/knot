@@ -211,6 +211,8 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - setup_yarn
+      - setup_lerna
       - run:
           name: Release
           command: yarn release
