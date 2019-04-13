@@ -60,27 +60,27 @@ commands:
   lerna_install:
     description: install dependencies for a particular package
     parameters:
-      name:
+      pkg:
         type: string
     steps:
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/<< parameters.name >>
+          command: lerna bootstrap --scope=@knot/<< parameters.pkg >>
   lerna_exec:
     description: execute a command on a particular package
     parameters:
-      name:
+      pkg:
         type: string
       command:
         type: string
     steps:
       - run:
           name: Execute Lerna Command
-          command: lerna exec --scope=@knot/<< parameters.name >> -- << parameters.command >>
+          command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
   build_plugin:
     description: build @knot/*-plugin, run its tests and store the resulting built version
     parameters:
-      name:
+      pkg:
         type: string
       path:
         type: string
@@ -88,16 +88,16 @@ commands:
       - setup_yarn
       - setup_lerna
       - lerna_install:
-          name: << parameters.name >>-plugin
+          name: << parameters.pkg >>-plugin
       - lerna_exec:
-          name: << parameters.name >>-plugin
+          name: << parameters.pkg >>-plugin
           command: yarn build
       - lerna_exec:
-          name: << parameters.name >>-plugin
+          name: << parameters.pkg >>-plugin
           command: yarn test
       - persist:
           path: << parameters.path >>/build
-          to: << parameters.name >>-plugin
+          to: << parameters.pkg >>-plugin
 
 jobs:
   install_node:
@@ -156,7 +156,7 @@ jobs:
     steps:
       - checkout
       - build_plugin:
-          name: react
+          pkg: react
           path: packages/plugins/compiler/react
 
   test_jss_plugin:
@@ -164,7 +164,7 @@ jobs:
     steps:
       - checkout
       - build_plugin:
-          name: jss
+          pkg: jss
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
@@ -172,7 +172,7 @@ jobs:
     steps:
       - checkout
       - build_plugin:
-          name: webpack
+          pkg: webpack
           path: packages/plugins/bundler/webpack
 
   test_webpack_react:
@@ -188,7 +188,7 @@ jobs:
       - setup_yarn
       - setup_lerna
       - lerna_install:
-          name: webpack-react-example
+          pkg: webpack-react-example
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
@@ -200,7 +200,7 @@ jobs:
             mv /tmp/workspace/jss-plugin compiler/jss/build
             mv /tmp/workspace/webpack-plugin bundler/webpack/build
       - lerna_exec:
-          name: webpack-react-example
+          pkg: webpack-react-example
           command: yarn test
       - store_artifacts:
           path: ./examples/webpack-react/cypress/screenshots
