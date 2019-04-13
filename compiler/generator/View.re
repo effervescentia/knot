@@ -20,7 +20,7 @@ let gen_mixin = name =>
          "var %s_%s=%s.style(%s,%s(%s));%s",
          class_map,
          name,
-         util_map,
+         platform_plugin,
          style_plugin,
          name,
          props_map,

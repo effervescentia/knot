@@ -716,7 +716,7 @@ let expand_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s');",
     name,
-    util_map,
+    platform_plugin,
     index,
     name,
   );
