@@ -771,8 +771,8 @@ let full_generated =
      )
   ++ var_with_export(
        "fragmentJSXConst",
-       "$$_jsxPlugin.createFragment("
-       ++ /**/ "$$_jsxPlugin.createElement('div'),"
+       "$$knot_jsx$$.createFragment("
+       ++ /**/ "$$knot_jsx$$.createElement('div'),"
        ++ /**/ "$$knot_jsx$$.createElement('span')"
        ++ ")",
      )
