@@ -2,8 +2,9 @@
   "name": "@knot/vscode-plugin",
   "displayName": "Knot Language",
   "description": "Knot language support.",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "publisher": "effervescentia",
+  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/editor/vscode",
   "engines": {
     "vscode": "^1.30.2"
   },
@@ -25,5 +26,8 @@
       "scopeName": "source.knot",
       "path": "./syntaxes/knot.tmLanguage"
     }]
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

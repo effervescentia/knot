@@ -1,9 +1,10 @@
 {
   "name": "@knot/webpack-plugin",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "license": "MIT",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
+  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/bundler/webpack",
   "scripts": {
     "describe": "npm-scripts-info",
     "build": "run-s clean && run-s build:main",
@@ -46,15 +47,18 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "@knot/browser-plugin": "1.0.0",
-    "@knot/compiler": "1.0.0",
-    "@knot/jss-plugin": "1.0.0",
-    "@knot/react-plugin": "1.0.0",
+    "@knot/browser-plugin": "0.0.0",
+    "@knot/compiler": "0.0.0",
+    "@knot/jss-plugin": "0.0.0",
+    "@knot/react-plugin": "0.0.0",
     "cross-fetch": "^3.0.1",
     "enhanced-resolve": "^4.1.0",
     "execa": "^1.0.0",
     "loader-utils": "^1.2.3",
     "schema-utils": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "ava": {
     "failFast": true,

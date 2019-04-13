@@ -1,6 +1,10 @@
 {
   "name": "@knot/browser-plugin",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/compiler/browser",
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -1,11 +1,11 @@
 {
   "name": "@knot/react-plugin",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "React plugin to translate jsx for the knot language.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/effervescentia/knot",
+  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/compiler/react",
   "license": "MIT",
   "scripts": {
     "describe": "npm-scripts-info",
@@ -54,6 +54,9 @@
     "@types/react-dom": "^16.8.2",
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "ava": {
     "failFast": true,

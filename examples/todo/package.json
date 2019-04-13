@@ -1,9 +1,10 @@
 {
   "name": "@knot/todomvc-example",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "main": "index.js",
   "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot/tree/master/examples/todo",
   "scripts": {
     "build": "webpack --mode development",
     "dev": "webpack --watch --mode development",
@@ -11,6 +12,6 @@
     "start:hidden": "npm run start -- --no-open"
   },
   "devDependencies": {
-    "@knot/webpack-plugin": "1.0.0"
+    "@knot/webpack-plugin": "0.0.0"
   }
 }

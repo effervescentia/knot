@@ -1,11 +1,11 @@
 {
   "name": "@knot/jss-plugin",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "JSS plugin to translate styles for the knot language.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/effervescentia/knot",
+  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/compiler/jss",
   "license": "MIT",
   "scripts": {
     "describe": "npm-scripts-info",
@@ -53,6 +53,9 @@
     "@types/jss": "^9.5.8",
     "jss": "^9.8.7",
     "jss-preset-default": "^4.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "ava": {
     "failFast": true,

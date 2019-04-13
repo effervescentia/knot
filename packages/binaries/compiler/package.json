@@ -1,7 +1,11 @@
 {
   "name": "@knot/compiler",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "license": "MIT",
   "main": "index.js",
-  "typings": "index.d.ts"
+  "typings": "index.d.ts",
+  "repository": "https://github.com/effervescentia/knot/tree/master/packages/binaries/compiler",
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -1,9 +1,10 @@
 {
   "name": "@knot/webpack-react-example",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "private": true,
   "main": "index.js",
   "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot/tree/master/examples/webpack-react",
   "scripts": {
     "build": "webpack --mode development",
     "dev": "webpack --watch --mode development",
