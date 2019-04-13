@@ -20,37 +20,99 @@ orbs:
   node: circleci/node@0.0.6
 
 commands:
+  setup_yarn:
+    description: restore node cache and add yarn globals to the PATH
+    steps:
+      - restore_cache:
+          <<: *node_cache_keys
+      - run:
+          name: Setup Yarn
+          command: echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
   setup_esy:
+    description: install esy
     steps:
       - run:
           name: Setup Esy
+          command: yarn global add esy
+  setup_lerna:
+    description: install lerna
+    steps:
+      - run:
+          name: Setup Lerna
+          command: yarn global add lerna
+  persist:
+    description: persist a directory to the workspace
+    parameters:
+      to:
+        type: string
+      path:
+        type: string
+    steps:
+      - run:
+          name: Populate Workspace
           command: |
-            echo 'export PATH="$(yarn global bin):$PATH"' >> $BASH_ENV
-            yarn global add esy
+            mkdir -p /tmp/workspace
+            cp -RL << parameters.path >> /tmp/workspace/<< parameters.to >>
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - << parameters.to >>
+  lerna_install:
+    description: install dependencies for a particular package
+    parameters:
+      name:
+        type: string
+    steps:
+      - run:
+          name: Install
+          command: lerna bootstrap --scope=@knot/<< parameters.name >>
+  lerna_exec:
+    description: execute a command on a particular package
+    parameters:
+      name:
+        type: string
+      command:
+        type: string
+    steps:
+      - run:
+          name: Execute Lerna Command
+          command: lerna exec --scope=@knot/<< parameters.name >> -- << parameters.command >>
+  build_plugin:
+    description: build @knot/*-plugin, run its tests and store the resulting built version
+    parameters:
+      name:
+        type: string
+      path:
+        type: string
+    steps:
+      - setup_yarn
+      - setup_lerna
+      - lerna_install:
+          name: << parameters.name >>-plugin
+      - lerna_exec:
+          name: << parameters.name >>-plugin
+          command: yarn build
+      - lerna_exec:
+          name: << parameters.name >>-plugin
+          command: yarn test
+      - persist:
+          path: << parameters.path >>/build
+          to: << parameters.name >>-plugin
 
 jobs:
   install_node:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *node_cache_keys
+      - setup_yarn
+      - setup_lerna
       - run:
           name: Install
-          command: npx lerna bootstrap
+          command: lerna bootstrap
       - save_cache:
           <<: *node_cache
           paths:
             - ~/.cache
-      - run:
-          name: Populate Workspace
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL node_modules /tmp/workspace/node_modules
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - node_modules
 
   test_compiler:
     executor: node/node
@@ -58,6 +120,7 @@ jobs:
       - checkout
       - restore_cache:
           <<: *compiler_cache_keys
+      - setup_yarn
       - setup_esy
       - run:
           name: Install
@@ -84,94 +147,33 @@ jobs:
           <<: *compiler_cache
           paths:
             - ~/project/compiler/_export
-      - run:
-          name: Populate Workspace
-          working_directory: ./compiler
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL _esy/default/store/i/knot-* /tmp/workspace/knot
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - knot
+      - persist:
+          path: _esy/default/store/i/knot-*
+          to: knot
 
   test_react_plugin:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *node_cache_keys
-      - run:
-          name: Install
-          command: npx lerna bootstrap --scope=@knot/react-plugin
-      - run:
-          name: Build
-          command: npx lerna exec --scope=@knot/react-plugin -- yarn build
-      - run:
-          name: Test
-          command: npx lerna exec --scope=@knot/react-plugin -- yarn test
-      - run:
-          name: Populate Workspace
-          working_directory: ./packages/plugins/compiler/react
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/react-plugin
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - react-plugin
+      - build_plugin:
+          name: react
+          path: packages/plugins/compiler/react
 
   test_jss_plugin:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *node_cache_keys
-      - run:
-          name: Install
-          command: npx lerna bootstrap --scope=@knot/jss-plugin
-      - run:
-          name: Build
-          command: npx lerna exec --scope=@knot/jss-plugin -- yarn build
-      - run:
-          name: Test
-          command: npx lerna exec --scope=@knot/jss-plugin -- yarn test
-      - run:
-          name: Populate Workspace
-          working_directory: ./packages/plugins/compiler/jss
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/jss-plugin
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - jss-plugin
+      - build_plugin:
+          name: jss
+          path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
     executor: node/node
     steps:
       - checkout
-      - restore_cache:
-          <<: *node_cache_keys
-      - run:
-          name: Install
-          command: npx lerna bootstrap --scope=@knot/webpack-plugin
-      - run:
-          name: Build
-          command: npx lerna exec --scope=@knot/webpack-plugin -- yarn build
-      - run:
-          name: Test
-          command: npx lerna exec --scope=@knot/webpack-plugin -- yarn test
-      - run:
-          name: Populate Workspace
-          working_directory: ./packages/plugins/bundler/webpack
-          command: |
-            mkdir -p /tmp/workspace
-            cp -RL build /tmp/workspace/webpack-plugin
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - webpack-plugin
+      - build_plugin:
+          name: webpack
+          path: packages/plugins/bundler/webpack
 
   test_webpack_react:
     docker:
@@ -183,33 +185,23 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - restore_cache:
-          <<: *node_cache_keys
-      - run:
-          name: Install
-          command: npx lerna bootstrap --scope=@knot/webpack-react-example
+      - setup_yarn
+      - setup_lerna
+      - lerna_install:
+          name: webpack-react-example
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
       - run:
-          name: Restore React Plugin
-          working_directory: ./packages/plugins/compiler/react
+          name: Restore Plugins
+          working_directory: ./packages/plugins
           command: |
-            mv /tmp/workspace/react-plugin build
-      - run:
-          name: Restore JSS Plugin
-          working_directory: ./packages/plugins/compiler/jss
-          command: |
-            mv /tmp/workspace/jss-plugin build
-      - run:
-          name: Restore Webpack Plugin
-          working_directory: ./packages/plugins/bundler/webpack
-          command: |
-            mv /tmp/workspace/webpack-plugin build
-      - run:
-          name: Test
-          working_directory: ./examples/webpack-react
-          command: npx lerna exec --scope=@knot/webpack-react-example -- yarn test
+            mv /tmp/workspace/react-plugin compiler/react/build
+            mv /tmp/workspace/jss-plugin compiler/jss/build
+            mv /tmp/workspace/webpack-plugin bundler/webpack/build
+      - lerna_exec:
+          name: webpack-react-example
+          command: yarn test
       - store_artifacts:
           path: ./examples/webpack-react/cypress/screenshots
       - store_artifacts:

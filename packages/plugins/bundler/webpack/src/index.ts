@@ -1,7 +1,6 @@
 // tslint:disable:no-expression-statement
 import * as path from 'path';
 import validateOptions from 'schema-utils';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as Webpack from 'webpack';
 import createCompiler from './compiler';
 import { KNOT_SOURCE_PATTERN } from './constants';

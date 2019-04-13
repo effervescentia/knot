@@ -478,10 +478,10 @@
 "@knot/webpack-plugin@file:packages/plugins/bundler/webpack":
   version "1.0.0"
   dependencies:
-    "@knot/browser-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a1ce42c5-14cd-4829-ba43-12fed23eecb8-1555079441396/node_modules/compiler/browser"
-    "@knot/compiler" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a1ce42c5-14cd-4829-ba43-12fed23eecb8-1555079441396/binaries/compiler"
-    "@knot/jss-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a1ce42c5-14cd-4829-ba43-12fed23eecb8-1555079441396/node_modules/compiler/jss"
-    "@knot/react-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a1ce42c5-14cd-4829-ba43-12fed23eecb8-1555079441396/node_modules/compiler/react"
+    "@knot/browser-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/node_modules/compiler/browser"
+    "@knot/compiler" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/binaries/compiler"
+    "@knot/jss-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/node_modules/compiler/jss"
+    "@knot/react-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/node_modules/compiler/react"
     cross-fetch "^3.0.1"
     enhanced-resolve "^4.1.0"
     execa "^1.0.0"
@@ -1266,6 +1266,13 @@
   resolved "https://registry.yarnpkg.com/@types/anymatch/-/anymatch-1.3.1.tgz#336badc1beecb9dacc38bea2cf32adf627a8421a"
   integrity sha512-/+CRPXpBDpo2RK9C68N3b2cOvO0Cf5B9aPijHsoDQTHivnGSObdOF2BRQOYjojWTDy6nQvMjmqRXIxH55VjxxA==
 
+"@types/clean-css@*":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@types/clean-css/-/clean-css-4.2.1.tgz#cb0134241ec5e6ede1b5344bc829668fd9871a8d"
+  integrity sha512-A1HQhQ0hkvqqByJMgg+Wiv9p9XdoYEzuwm11SVo1mX2/4PSdhjcrUlilJQoqLscIheC51t1D5g+EFWCXZ2VTQQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/events@*":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-3.0.0.tgz#2862f3f58a9a7f7c3e78d79f130dd4d71c25c2a7"
@@ -1305,6 +1312,24 @@
   version "9.12.3"
   resolved "https://registry.yarnpkg.com/@types/highlight.js/-/highlight.js-9.12.3.tgz#b672cfaac25cbbc634a0fd92c515f66faa18dbca"
   integrity sha512-pGF/zvYOACZ/gLGWdQH8zSwteQS1epp68yRcVLJMgUck/MjEn/FBYmPub9pXT8C1e4a8YZfHo1CKyV8q1vKUnQ==
+
+"@types/html-minifier@*":
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/@types/html-minifier/-/html-minifier-3.5.3.tgz#5276845138db2cebc54c789e0aaf87621a21e84f"
+  integrity sha512-j1P/4PcWVVCPEy5lofcHnQ6BtXz9tHGiFPWzqm7TtGuWZEfCHEP446HlkSNc9fQgNJaJZ6ewPtp2aaFla/Uerg==
+  dependencies:
+    "@types/clean-css" "*"
+    "@types/relateurl" "*"
+    "@types/uglify-js" "*"
+
+"@types/html-webpack-plugin@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@types/html-webpack-plugin/-/html-webpack-plugin-3.2.0.tgz#26b20854124bbcccbc22ccec715a1ba74583526c"
+  integrity sha512-in9rViBsTRB4ZApndZ12It68nGzSMHVK30JD7c49iLIHMFeTPbP7I7wevzMv7re2o0k5TlU6Ry/beyrmgWX7Bg==
+  dependencies:
+    "@types/html-minifier" "*"
+    "@types/tapable" "*"
+    "@types/webpack" "*"
 
 "@types/jss@^9.5.8":
   version "9.5.8"
@@ -1368,6 +1393,11 @@
   dependencies:
     "@types/prop-types" "*"
     csstype "^2.2.0"
+
+"@types/relateurl@*":
+  version "0.2.28"
+  resolved "https://registry.yarnpkg.com/@types/relateurl/-/relateurl-0.2.28.tgz#6bda7db8653fa62643f5ee69e9f69c11a392e3a6"
+  integrity sha1-a9p9uGU/piZD9e5p6facEaOS46Y=
 
 "@types/shelljs@^0.8.0":
   version "0.8.4"
