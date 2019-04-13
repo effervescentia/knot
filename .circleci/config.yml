@@ -103,7 +103,7 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/react-plugin
+          command: npx lerna bootstrap --scope=@knot/react-plugin
       - run:
           name: Build
           command: lerna exec --scope=@knot/react-plugin -- yarn build
@@ -129,7 +129,7 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/jss-plugin
+          command: npx lerna bootstrap --scope=@knot/jss-plugin
       - run:
           name: Build
           command: lerna exec --scope=@knot/jss-plugin -- yarn build
@@ -155,7 +155,7 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/webpack-plugin
+          command: npx lerna bootstrap --scope=@knot/webpack-plugin
       - run:
           name: Build
           command: lerna exec --scope=@knot/webpack-plugin -- yarn build
@@ -187,7 +187,7 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/webpack-react-example
+          command: npx lerna bootstrap --scope=@knot/webpack-react-example
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
