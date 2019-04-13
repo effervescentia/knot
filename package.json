@@ -63,15 +63,5 @@
     "webpack-bundle-analyzer": "^3.1.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.14"
-  },
-  "dependencies": {
-    "@knot/browser-plugin": "file:packages/plugins/compiler/browser",
-    "@knot/compiler": "file:packages/binaries/compiler",
-    "@knot/jss-plugin": "file:packages/plugins/compiler/jss",
-    "@knot/react-plugin": "file:packages/plugins/compiler/react",
-    "@knot/todomvc-example": "file:examples/todo",
-    "@knot/vscode-plugin": "file:packages/plugins/editor/vscode",
-    "@knot/webpack-plugin": "file:packages/plugins/bundler/webpack",
-    "@knot/webpack-react-example": "file:examples/webpack-react"
   }
 }

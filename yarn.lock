@@ -448,49 +448,6 @@
     log-update "^2.3.0"
     strip-ansi "^3.0.1"
 
-"@knot/browser-plugin@file:packages/plugins/compiler/browser":
-  version "1.0.0"
-
-"@knot/compiler@file:packages/binaries/compiler":
-  version "1.0.0"
-
-"@knot/jss-plugin@file:packages/plugins/compiler/jss":
-  version "1.0.0"
-  dependencies:
-    "@types/jss" "^9.5.8"
-    jss "^9.8.7"
-    jss-preset-default "^4.5.0"
-
-"@knot/react-plugin@file:packages/plugins/compiler/react":
-  version "1.0.0"
-  dependencies:
-    "@types/react" "^16.8.7"
-    "@types/react-dom" "^16.8.2"
-    react "^16.7.0"
-    react-dom "^16.7.0"
-
-"@knot/todomvc-example@file:examples/todo":
-  version "1.0.0"
-
-"@knot/vscode-plugin@file:packages/plugins/editor/vscode":
-  version "0.0.1"
-
-"@knot/webpack-plugin@file:packages/plugins/bundler/webpack":
-  version "1.0.0"
-  dependencies:
-    "@knot/browser-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/node_modules/compiler/browser"
-    "@knot/compiler" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/binaries/compiler"
-    "@knot/jss-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/node_modules/compiler/jss"
-    "@knot/react-plugin" "file:../../Library/Caches/Yarn/v4/npm-@knot-webpack-plugin-1.0.0-a448009d-bd3d-442a-93b8-857fdcaa4c6d-1555124433737/node_modules/compiler/react"
-    cross-fetch "^3.0.1"
-    enhanced-resolve "^4.1.0"
-    execa "^1.0.0"
-    loader-utils "^1.2.3"
-    schema-utils "^1.0.0"
-
-"@knot/webpack-react-example@file:examples/webpack-react":
-  version "1.0.0"
-
 "@lerna/add@3.13.1":
   version "3.13.1"
   resolved "https://registry.yarnpkg.com/@lerna/add/-/add-3.13.1.tgz#2cd7838857edb3b43ed73e3c21f69a20beb9b702"

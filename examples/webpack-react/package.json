@@ -15,6 +15,6 @@
     "cypress:run": "cypress run"
   },
   "devDependencies": {
-    "@knot/webpack-plugin": "file:../../packages/plugins/bundler/webpack"
+    "@knot/webpack-plugin": "1.0.0"
   }
 }
