@@ -15,34 +15,6 @@ defaults:
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}
       - compiler_cache-v4
-  react_plugin_cache: &react_plugin_cache
-    key: react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}-{{ .Branch }}
-  react_plugin_cache_keys: &react_plugin_cache_keys
-    keys:
-      - react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}-{{ .Branch }}
-      - react_plugin_cache-v1-{{ checksum "plugins/react/yarn.lock" }}
-      - react_plugin_cache-v1
-  css_plugin_cache: &css_plugin_cache
-    key: css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
-  css_plugin_cache_keys: &css_plugin_cache_keys
-    keys:
-      - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}-{{ .Branch }}
-      - css_plugin_cache-v1-{{ checksum "plugins/css/yarn.lock" }}
-      - css_plugin_cache-v1
-  webpack_plugin_cache: &webpack_plugin_cache
-    key: webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-  webpack_plugin_cache_keys: &webpack_plugin_cache_keys
-    keys:
-      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-      - webpack_plugin_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
-      - webpack_plugin_cache-v1
-  webpack_react_cache: &webpack_react_cache
-    key: webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-  webpack_react_cache_keys: &webpack_react_cache_keys
-    keys:
-      - webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}-{{ .Branch }}
-      - webpack_react_cache-v1-{{ checksum "webpack-plugin/yarn.lock" }}
-      - webpack_react_cache-v1
 
 orbs:
   node: circleci/node@0.0.6
@@ -131,15 +103,13 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: yarn install --frozen-lockfile
+          command: lerna bootstrap --scope=@knot/react-plugin
       - run:
           name: Build
-          working_directory: ./packages/plugins/compiler/react
-          command: yarn build
+          command: lerna exec --scope=@knot/react-plugin -- yarn build
       - run:
           name: Test
-          working_directory: ./packages/plugins/compiler/react
-          command: yarn test
+          command: lerna exec --scope=@knot/react-plugin -- yarn test
       - run:
           name: Populate Workspace
           working_directory: ./packages/plugins/compiler/react
@@ -159,15 +129,13 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: yarn install --frozen-lockfile
+          command: lerna bootstrap --scope=@knot/jss-plugin
       - run:
           name: Build
-          working_directory: ./packages/plugins/compiler/jss
-          command: yarn build
+          command: lerna exec --scope=@knot/jss-plugin -- yarn build
       - run:
           name: Test
-          working_directory: ./packages/plugins/compiler/jss
-          command: yarn test
+          command: lerna exec --scope=@knot/jss-plugin -- yarn test
       - run:
           name: Populate Workspace
           working_directory: ./packages/plugins/compiler/jss
@@ -177,7 +145,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - css-plugin
+            - jss-plugin
 
   test_webpack_plugin:
     executor: node/node
@@ -187,15 +155,13 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: yarn install --frozen-lockfile
+          command: lerna bootstrap --scope=@knot/webpack-plugin
       - run:
           name: Build
-          working_directory: ./packages/plugins/bundler/webpack
-          command: yarn build
+          command: lerna exec --scope=@knot/webpack-plugin -- yarn build
       - run:
           name: Test
-          working_directory: ./packages/plugins/bundler/webpack
-          command: yarn test
+          command: lerna exec --scope=@knot/webpack-plugin -- yarn test
       - run:
           name: Populate Workspace
           working_directory: ./packages/plugins/bundler/webpack
@@ -221,7 +187,7 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: yarn install --frozen-lockfile
+          command: lerna bootstrap --scope=@knot/webpack-react-example
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy

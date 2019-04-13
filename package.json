@@ -12,7 +12,6 @@
     "packages/**"
   ],
   "scripts": {
-    "postinstall": "lerna bootstrap",
     "release": "exit -1"
   },
   "lint-staged": {
