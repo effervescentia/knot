@@ -37,7 +37,7 @@ jobs:
           <<: *node_cache_keys
       - run:
           name: Install
-          command: yarn install --frozen-lockfile
+          command: npx lerna bootstrap
       - save_cache:
           <<: *node_cache
           paths:
@@ -106,10 +106,10 @@ jobs:
           command: npx lerna bootstrap --scope=@knot/react-plugin
       - run:
           name: Build
-          command: lerna exec --scope=@knot/react-plugin -- yarn build
+          command: npx lerna exec --scope=@knot/react-plugin -- yarn build
       - run:
           name: Test
-          command: lerna exec --scope=@knot/react-plugin -- yarn test
+          command: npx lerna exec --scope=@knot/react-plugin -- yarn test
       - run:
           name: Populate Workspace
           working_directory: ./packages/plugins/compiler/react
@@ -132,10 +132,10 @@ jobs:
           command: npx lerna bootstrap --scope=@knot/jss-plugin
       - run:
           name: Build
-          command: lerna exec --scope=@knot/jss-plugin -- yarn build
+          command: npx lerna exec --scope=@knot/jss-plugin -- yarn build
       - run:
           name: Test
-          command: lerna exec --scope=@knot/jss-plugin -- yarn test
+          command: npx lerna exec --scope=@knot/jss-plugin -- yarn test
       - run:
           name: Populate Workspace
           working_directory: ./packages/plugins/compiler/jss
@@ -158,10 +158,10 @@ jobs:
           command: npx lerna bootstrap --scope=@knot/webpack-plugin
       - run:
           name: Build
-          command: lerna exec --scope=@knot/webpack-plugin -- yarn build
+          command: npx lerna exec --scope=@knot/webpack-plugin -- yarn build
       - run:
           name: Test
-          command: lerna exec --scope=@knot/webpack-plugin -- yarn test
+          command: npx lerna exec --scope=@knot/webpack-plugin -- yarn test
       - run:
           name: Populate Workspace
           working_directory: ./packages/plugins/bundler/webpack
@@ -209,7 +209,7 @@ jobs:
       - run:
           name: Test
           working_directory: ./examples/webpack-react
-          command: yarn test
+          command: npx lerna exec --scope=@knot/webpack-react-example -- yarn test
       - store_artifacts:
           path: ./examples/webpack-react/cypress/screenshots
       - store_artifacts:
