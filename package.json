@@ -12,7 +12,7 @@
     "packages/**"
   ],
   "scripts": {
-    "release": "exit -1"
+    "release": "lerna exec --concurrency 1 -- npx --no-install semantic-release -e semantic-release-monorepo"
   },
   "lint-staged": {
     "compiler/{library,lexer,parser,resolver,analyzer,generator,compiler,executable,test}/**/*.re": [
