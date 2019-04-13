@@ -88,12 +88,12 @@ commands:
       - setup_yarn
       - setup_lerna
       - lerna_install:
-          name: << parameters.pkg >>-plugin
+          pkg: << parameters.pkg >>-plugin
       - lerna_exec:
-          name: << parameters.pkg >>-plugin
+          pkg: << parameters.pkg >>-plugin
           command: yarn build
       - lerna_exec:
-          name: << parameters.pkg >>-plugin
+          pkg: << parameters.pkg >>-plugin
           command: yarn test
       - persist:
           path: << parameters.path >>/build
