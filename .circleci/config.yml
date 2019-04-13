@@ -214,6 +214,9 @@ jobs:
       - setup_yarn
       - setup_lerna
       - run:
+          name: Install
+          command: lerna bootstrap
+      - run:
           name: Release
           command: yarn release
 
