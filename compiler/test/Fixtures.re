@@ -724,7 +724,7 @@ let expand_default_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s',%s);",
     name,
-    util_map,
+    platform_plugin,
     index,
     name,
   );
@@ -745,27 +745,27 @@ let full_generated =
   ++ var_with_export("closureConst", "((3*2)+(1+((6/(2-5))*3)))")
   /* ++ var_with_export("dotAccessConst", "a.b.c") */
   /* ++ var_with_export("executionConst", "d.e.f(4,a.x,(20*3),m())") */
-  ++ var_with_export("jsxConst", "$$_jsxPlugin.createElement('abc')")
+  ++ var_with_export("jsxConst", "$$knot_jsx$$.createElement('abc')")
   ++ var_with_export(
        "jsxWithPropsConst",
-       "$$_jsxPlugin.createElement('def',{num:(8+9),bool:false,first:'look',under:'there'})",
+       "$$knot_jsx$$.createElement('def',{num:(8+9),bool:false,first:'look',under:'there'})",
      )
   ++ var_with_export("punnedVariable", "'something'")
   ++ var_with_export(
        "nestedJSXConst",
-       "$$_jsxPlugin.createElement('parent',{justMade:'you say'},"
+       "$$knot_jsx$$.createElement('parent',{justMade:'you say'},"
        ++ /**/
-          "$$_jsxPlugin.createElement('child',{punnedVariable:punnedVariable},"
-       ++ /*  */ "$$_jsxPlugin.createElement('grandchild',{under:'wear'})"
+          "$$knot_jsx$$.createElement('child',{punnedVariable:punnedVariable},"
+       ++ /*  */ "$$knot_jsx$$.createElement('grandchild',{under:'wear'})"
        ++ /**/ "),"
-       ++ /**/ "$$_jsxPlugin.createElement('sibling')"
+       ++ /**/ "$$knot_jsx$$.createElement('sibling')"
        ++ ")",
      )
   ++ var_with_export(
        "nestedExprJSXConst",
-       "$$_jsxPlugin.createElement('container',null,"
+       "$$knot_jsx$$.createElement('container',null,"
        ++ /**/ "(numericConst+20),"
-       ++ /**/ "$$_jsxPlugin.createElement('middle'),"
+       ++ /**/ "$$knot_jsx$$.createElement('middle'),"
        ++ /**/ "(stringConst+'one')"
        ++ ")",
      )
@@ -773,7 +773,7 @@ let full_generated =
        "fragmentJSXConst",
        "$$_jsxPlugin.createFragment("
        ++ /**/ "$$_jsxPlugin.createElement('div'),"
-       ++ /**/ "$$_jsxPlugin.createElement('span')"
+       ++ /**/ "$$knot_jsx$$.createElement('span')"
        ++ ")",
      )
   ++ with_export("compactFunc", "function compactFunc(){return 4;}")

@@ -17,8 +17,8 @@ export const DEFAULT_OPTIONS = {
   debug: false,
   plugins: {
     jsx: '@knot/react-plugin',
-    style: '@knot/css-plugin',
-    utils: '@knot/javascript-utils'
+    platform: '@knot/browser-plugin',
+    style: '@knot/jss-plugin'
   },
   port: 1338
 } as Options;

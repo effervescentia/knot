@@ -1,4 +1,4 @@
-import { JSX_PLUGIN, STYLE_PLUGIN, UTILS } from '../constants';
+import { JSX_PLUGIN, PLATFORM_PLUGIN, STYLE_PLUGIN } from '../constants';
 import { InternalOptions } from '../types';
 
 export default function wrapResult(
@@ -8,7 +8,7 @@ export default function wrapResult(
   return [
     genMainImport(JSX_PLUGIN, plugins.jsx),
     genMainImport(STYLE_PLUGIN, plugins.style),
-    genModuleImport(UTILS, plugins.utils),
+    genModuleImport(PLATFORM_PLUGIN, plugins.platform),
     result
   ].join('');
 }

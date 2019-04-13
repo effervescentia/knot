@@ -38,7 +38,7 @@ let gen_prop = index =>
     Printf.sprintf(
       "var %s=%s.prop(%s,'%s'%s)",
       name,
-      util_map,
+      platform_plugin,
       props_map,
       name,
       switch (default_val) {

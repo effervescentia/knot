@@ -41,5 +41,5 @@ export interface InternalOptions extends Options {
 export interface Plugins {
   readonly jsx: string;
   readonly style: string;
-  readonly utils: string;
+  readonly platform: string;
 }
