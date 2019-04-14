@@ -1,6 +1,6 @@
 {
   "name": "@knot/webpack-plugin",
-  "version": "0.0.0",
+  "version": "1.0.2",
   "license": "MIT",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
