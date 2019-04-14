@@ -2,7 +2,7 @@
   "name": "@knot/vscode-plugin",
   "displayName": "Knot Language",
   "description": "Knot language support.",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "publisher": "effervescentia",
   "repository": "https://github.com/effervescentia/knot.git",
   "engines": {

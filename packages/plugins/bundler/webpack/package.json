@@ -47,10 +47,10 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "@knot/browser-plugin": "0.0.0",
+    "@knot/browser-plugin": "1.0.0",
     "@knot/compiler": "1.0.0",
     "@knot/jss-plugin": "1.1.0",
-    "@knot/react-plugin": "0.0.0",
+    "@knot/react-plugin": "1.0.1",
     "cross-fetch": "^3.0.1",
     "enhanced-resolve": "^4.1.0",
     "execa": "^1.0.0",
