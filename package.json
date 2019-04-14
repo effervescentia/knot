@@ -12,7 +12,7 @@
     "packages/**"
   ],
   "scripts": {
-    "release": "lerna exec --concurrency 1 -- npx --no-install semantic-release -e semantic-release-monorepo"
+    "release": "lerna exec --concurrency 1 -- 'npx --no-install semantic-release -e semantic-release-monorepo' && node -e 'require(\"semantic-release-monorepo-hooks\").hookAfterAll()'"
   },
   "lint-staged": {
     "compiler/{library,lexer,parser,resolver,analyzer,generator,compiler,executable,test}/**/*.re": [
@@ -26,6 +26,12 @@
     }
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^3.0.2",
+    "@semantic-release/commit-analyzer": "^6.1.0",
+    "@semantic-release/git": "^7.0.8",
+    "@semantic-release/github": "^5.2.10",
+    "@semantic-release/npm": "^5.1.4",
+    "@semantic-release/release-notes-generator": "^7.1.4",
     "@types/execa": "^0.9.0",
     "@types/html-webpack-plugin": "^3.2.0",
     "@types/loader-utils": "^1.1.3",
@@ -48,8 +54,10 @@
     "nyc": "^13.1.0",
     "opn-cli": "^4.0.0",
     "prettier": "^1.15.2",
-    "semantic-release": "15.9.x",
-    "semantic-release-monorepo": "^6.1.1",
+    "semantic-release": "15.10.6",
+    "semantic-release-monorepo": "6.1.1",
+    "semantic-release-monorepo-hooks": "^2.9.1",
+    "semantic-release-plugin-decorators": "^2.0.0",
     "standard-version": "^4.4.0",
     "start-server-and-test": "^1.7.11",
     "trash-cli": "^1.4.0",
