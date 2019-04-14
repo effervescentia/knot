@@ -4,7 +4,7 @@
   "private": true,
   "main": "index.js",
   "license": "MIT",
-  "repository": "https://github.com/effervescentia/knot/tree/master/examples/todo",
+  "repository": "https://github.com/effervescentia/knot.git",
   "scripts": {
     "build": "webpack --mode development",
     "dev": "webpack --watch --mode development",

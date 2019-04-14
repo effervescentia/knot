@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "index.js",
   "license": "MIT",
-  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/compiler/browser",
+  "repository": "https://github.com/effervescentia/knot.git",
   "publishConfig": {
     "access": "public"
   }

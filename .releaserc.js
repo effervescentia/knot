@@ -1,7 +1,8 @@
 const hooks = require('semantic-release-monorepo-hooks');
-const outpute = hooks();
+const output = hooks();
 
 module.exports = {
+  tagFormat: 'v${version}-dev',
   prepare: [
     '@semantic-release/changelog',
     '@semantic-release/npm',

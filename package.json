@@ -8,11 +8,11 @@
   "license": "MIT",
   "workspaces": [
     "examples/*",
-    "extensions/*",
     "packages/**"
   ],
   "scripts": {
-    "release": "lerna exec --concurrency 1 -- 'npx --no-install semantic-release -e semantic-release-monorepo' && node -e 'require(\"semantic-release-monorepo-hooks\").hookAfterAll()'"
+    "release": "lerna exec --concurrency 1 -- 'npx --no-install semantic-release -e semantic-release-monorepo' && node -e 'require(\"semantic-release-monorepo-hooks\").hookAfterAll()'",
+    "release:dry-run": "lerna exec --concurrency 1 -- 'npx --no-install semantic-release --no-ci --dry-run -e semantic-release-monorepo'"
   },
   "lint-staged": {
     "compiler/{library,lexer,parser,resolver,analyzer,generator,compiler,executable,test}/**/*.re": [

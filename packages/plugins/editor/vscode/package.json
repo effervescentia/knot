@@ -4,7 +4,7 @@
   "description": "Knot language support.",
   "version": "0.0.0",
   "publisher": "effervescentia",
-  "repository": "https://github.com/effervescentia/knot/tree/master/packages/plugins/editor/vscode",
+  "repository": "https://github.com/effervescentia/knot.git",
   "engines": {
     "vscode": "^1.30.2"
   },
