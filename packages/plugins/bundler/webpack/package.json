@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@knot/browser-plugin": "0.0.0",
-    "@knot/compiler": "0.0.0",
+    "@knot/compiler": "1.0.0",
     "@knot/jss-plugin": "1.1.0",
     "@knot/react-plugin": "0.0.0",
     "cross-fetch": "^3.0.1",
