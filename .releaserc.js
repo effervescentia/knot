@@ -1,15 +1,9 @@
-const hooks = require('semantic-release-monorepo-hooks');
-const output = hooks();
-
 module.exports = {
   tagFormat: 'v${version}-dev',
   prepare: [
     '@semantic-release/changelog',
     '@semantic-release/npm',
-    {
-      'path': '@semantic-release/git',
-      'message': `chore(${output.package}): release \${nextRelease.version} [skip ci]\n\n\${nextRelease.notes}`
-    }
+    '@semantic-release/git'
   ],
   publish: [
     '@semantic-release/npm'

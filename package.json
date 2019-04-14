@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "release": "lerna exec --concurrency 1 -- 'npx --no-install semantic-release -e semantic-release-monorepo'",
-    "release2": "lerna-semantic-release pre"
+    "release:pre": "lerna-semantic-release pre"
   },
   "lint-staged": {
     "compiler/{library,lexer,parser,resolver,analyzer,generator,compiler,executable,test}/**/*.re": [
