@@ -2020,7 +2020,7 @@ async@^1.5.2:
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
   integrity sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo=
 
-async@^2.0.1, async@^2.6.1:
+async@^2.0.1, async@^2.6.1, async@^2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/async/-/async-2.6.2.tgz#18330ea7e6e313887f5d2f2a904bac6fe4dd5381"
   integrity sha512-H1qVYh1MYhEEFLsP97cVKqCGo7KfCyTt6uEWqsTBr9SO84oK9Uwbyd/yCW+6rKJLHksBNUVWZDAjfS+Ccx0Bbg==
@@ -3342,7 +3342,7 @@ conventional-changelog@0.0.17:
     lodash "^3.6.0"
     normalize-package-data "^1.0.3"
 
-conventional-changelog@^1.1.0, conventional-changelog@~1.1.0:
+conventional-changelog@^1.1.0, conventional-changelog@^1.1.24, conventional-changelog@~1.1.0:
   version "1.1.24"
   resolved "https://registry.yarnpkg.com/conventional-changelog/-/conventional-changelog-1.1.24.tgz#3d94c29c960f5261c002678315b756cdd3d7d1f0"
   integrity sha512-2WcSUst4Y3Z4hHvoMTWXMJr/DmgVdLiMOVY1Kak2LfFz+GIz2KDp5naqbFesYbfXPmaZ5p491dO0FWZIJoJw1Q==
@@ -3810,7 +3810,7 @@ date-time@^2.1.0:
   dependencies:
     time-zone "^1.0.0"
 
-dateformat@^1.0.11, dateformat@~1.0.0:
+dateformat@^1.0.11, dateformat@^1.0.12, dateformat@~1.0.0:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-1.0.12.tgz#9f124b67594c937ff706932e4a642cca8dbbfee9"
   integrity sha1-nxJLZ1lMk3/3BpMuSmQsyo27/uk=
@@ -5278,7 +5278,7 @@ git-head@1.14.0:
   dependencies:
     git-refs "^1.1.3"
 
-git-head@^1.2.1:
+git-head@^1.14.0, git-head@^1.2.1:
   version "1.20.1"
   resolved "https://registry.yarnpkg.com/git-head/-/git-head-1.20.1.tgz#036d16a4b374949e4e3daf15827903686d3ccd52"
   integrity sha1-A20WpLN0lJ5OPa8VgnkDaG08zVI=
@@ -7037,6 +7037,91 @@ lerna-semantic-release-utils@^4.0.0:
     shelljs "^0.7.0"
     winston "^2.2.0"
 
+lerna-semantic-release-v3-analyze-commits@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-analyze-commits/-/lerna-semantic-release-v3-analyze-commits-1.0.0.tgz#a5fbb64a53e4e50a8a5f06d7c947195ca6f8e961"
+  integrity sha512-ejCy5qu+6D9S9KUsaMa8qQMLMgakArQRwcZHN/u/iHDb6XT6auUdKJYw8D+/7EhqbsViMLg1cyZYI+DnrzxnjA==
+  dependencies:
+    "@semantic-release/commit-analyzer" "^2.0.0"
+    lerna-semantic-release-v3-utils "^1.0.1"
+
+lerna-semantic-release-v3-get-last-release@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-get-last-release/-/lerna-semantic-release-v3-get-last-release-1.0.0.tgz#bdf4e1ec92e7ec14bfdb38e2e25dad7c2c0e8c93"
+  integrity sha512-Ox/Pj8ksxCpEUr/SwrZG+6ayWpr6AzR2r969HLdg3Kv4U19Bgju9o7YKPS/rUEfrv7vWL53FUjXxp7b/23G/uQ==
+  dependencies:
+    lerna-semantic-release-v3-utils "^1.0.1"
+
+lerna-semantic-release-v3-io@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-io/-/lerna-semantic-release-v3-io-1.0.1.tgz#1610200fe13833ac5013cba041d493040c7ca7cd"
+  integrity sha512-R4MnPUEbqgmoos5Dnii5bNJiB+vBn0RgGUVpo0IqPlAix5B9FJqyN65Hf2jFcnzND97BAnXPeuaDvIDn8iPEzQ==
+  dependencies:
+    "@semantic-release/last-release-npm" "^1.2.1"
+    git-head "^1.14.0"
+    lerna-semantic-release-v3-analyze-commits "^1.0.0"
+    lerna-semantic-release-v3-get-last-release "^1.0.0"
+    lerna-semantic-release-v3-utils "^1.0.1"
+    mock-fs "^3.11.0"
+    mockery "^1.7.0"
+    semantic-release "^6.3.6"
+    shelljs "^0.7.8"
+    simple-git "^1.48.0"
+    sinon "^1.17.7"
+
+lerna-semantic-release-v3-perform@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-perform/-/lerna-semantic-release-v3-perform-1.0.2.tgz#aa6b3d8c48260bba0e111a5b181c8cd999e0079c"
+  integrity sha512-6so9B8Yq2ZQL7YU97YAlk1PxjeTwiqFQcDBBMcXdy/3duUvK3vQu2bv8cRGoI6X+YLC13sY5AsibANs2LHANGQ==
+  dependencies:
+    async "^2.6.2"
+    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-utils "^1.0.1"
+
+lerna-semantic-release-v3-post@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-post/-/lerna-semantic-release-v3-post-1.0.1.tgz#9f0ff510ff6004633d685ee56298b4ef424e96b4"
+  integrity sha512-mB3Zin8z+6vL/IqTIYRFD3WLbeNl6/vDa9jwKBvrmk2J2UCNWgS+iQrxTq/wz2ctSMxl8+4nN9GASR6DI99bMA==
+  dependencies:
+    conventional-changelog "^1.1.24"
+    dateformat "^1.0.12"
+    lerna-semantic-release-v3-analyze-commits "^1.0.0"
+    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-utils "^1.0.1"
+
+lerna-semantic-release-v3-pre@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-pre/-/lerna-semantic-release-v3-pre-1.0.1.tgz#c1129beb6fa3cd20001f26837df65b405b268452"
+  integrity sha512-h7bSMhpJN65MNVKMM+/IuRNnb437MQwKl7YJOIeE6B/9sLwDxUdWDXhuPBLuMz6Q4YBJveH3zQBC8Q745RBSug==
+  dependencies:
+    async "^2.0.1"
+    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-utils "^1.0.1"
+    npmconf "^2.1.3"
+    rc "^1.1.7"
+    semantic-release "^6.3.6"
+
+lerna-semantic-release-v3-utils@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-utils/-/lerna-semantic-release-v3-utils-1.0.1.tgz#f820ac10fd1ea6119161037e1ddb5cae9bd276a4"
+  integrity sha512-p5770dXGMH0860hdP64exDr7zih3cLR+D2cUg4FvAlfR3PRV1wvygs8hSh6dFrQqns1VtXx4ELCUpFQ1gkU76w==
+  dependencies:
+    async "^2.6.2"
+    shelljs "^0.7.8"
+    winston "^2.4.4"
+
+lerna-semantic-release-v3@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3/-/lerna-semantic-release-v3-1.0.0.tgz#1700f92426521a01f9d4ea98d5969657cb1a6f8a"
+  integrity sha512-LZfX2Q18WD+5MfUE5Nh7hYt5X856r8VznphaQ3EILZ39EABACnIlPUfGnLq2k7uV3nqruQVIZOep+3bs7N+eSg==
+  dependencies:
+    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-perform "^1.0.2"
+    lerna-semantic-release-v3-post "^1.0.1"
+    lerna-semantic-release-v3-pre "^1.0.1"
+    lerna-semantic-release-v3-utils "^1.0.1"
+    meow "^3.7.0"
+
 lerna-semantic-release@^9.1.0:
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/lerna-semantic-release/-/lerna-semantic-release-9.1.0.tgz#bc92ddd386f7992a4e57751c70fa982bd5c2c50b"
@@ -8129,6 +8214,14 @@ mkdirp@0.5.1, mkdirp@0.5.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdirp@^0.5.1, mkdi
   dependencies:
     minimist "0.0.8"
 
+mock-fs@^3.11.0:
+  version "3.12.1"
+  resolved "https://registry.yarnpkg.com/mock-fs/-/mock-fs-3.12.1.tgz#ff27824cd6ab263a7eb05a115239d41d3631f5f8"
+  integrity sha1-/yeCTNarJjp+sFoRUjnUHTYx9fg=
+  dependencies:
+    rewire "2.5.2"
+    semver "5.3.0"
+
 mock-fs@~3.11.0:
   version "3.11.0"
   resolved "https://registry.yarnpkg.com/mock-fs/-/mock-fs-3.11.0.tgz#096f21dfe985189a0a6efc4b38ceb404ee8e8911"
@@ -8137,7 +8230,7 @@ mock-fs@~3.11.0:
     rewire "2.5.2"
     semver "5.1.1"
 
-mockery@~1.7.0:
+mockery@^1.7.0, mockery@~1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/mockery/-/mockery-1.7.0.tgz#f4ede0d8750c1c9727c272ea2c60629e2c9a1c4f"
   integrity sha1-9O3g2HUMHJcnwnLqLGBiniyaHE8=
@@ -8776,7 +8869,7 @@ npm@6.5.0:
     worker-farm "^1.6.0"
     write-file-atomic "^2.3.0"
 
-npmconf@^2.1.2, npmconf@~2.1.0:
+npmconf@^2.1.2, npmconf@^2.1.3, npmconf@~2.1.0:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/npmconf/-/npmconf-2.1.3.tgz#1cbe5dd02e899d365fed7260b54055473f90a15c"
   integrity sha512-iTK+HI68GceCoGOHAQiJ/ik1iDfI7S+cgyG8A+PP18IU3X83kRhQIRhAUNj4Bp2JMx6Zrt5kCiozYa9uGWTjhA==
@@ -9894,7 +9987,7 @@ raw-body@2.3.3:
     iconv-lite "0.4.23"
     unpipe "1.0.0"
 
-rc@^1.0.1, rc@^1.1.6, rc@^1.2.7, rc@^1.2.8:
+rc@^1.0.1, rc@^1.1.6, rc@^1.1.7, rc@^1.2.7, rc@^1.2.8:
   version "1.2.8"
   resolved "https://registry.yarnpkg.com/rc/-/rc-1.2.8.tgz#cd924bf5200a075b83c188cd6b9e211b7fc0d3ed"
   integrity sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==
@@ -10706,6 +10799,11 @@ semver@5.1.1:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.1.1.tgz#a3292a373e6f3e0798da0b20641b9a9c5bc47e19"
   integrity sha1-oykqNz5vPgeY2gsgZBuanFvEfhk=
 
+semver@5.3.0, semver@~5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
+  integrity sha1-myzl094C0XxgEq0yaqa00M9U+U8=
+
 semver@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.0.0.tgz#05e359ee571e5ad7ed641a6eec1e547ba52dea65"
@@ -10715,11 +10813,6 @@ semver@~5.0.1:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.0.3.tgz#77466de589cd5d3c95f138aa78bc569a3cb5d27a"
   integrity sha1-d0Zt5YnNXTyV8TiqeLxWmjy10no=
-
-semver@~5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-5.3.0.tgz#9b2ce5d3de02d17c6012ad326aa6b4d0cf54f94f"
-  integrity sha1-myzl094C0XxgEq0yaqa00M9U+U8=
 
 send@0.16.2:
   version "0.16.2"
@@ -10855,7 +10948,7 @@ shelljs@0.7.0:
     interpret "^1.0.0"
     rechoir "^0.6.2"
 
-shelljs@^0.7.0, shelljs@~0.7.0:
+shelljs@^0.7.0, shelljs@^0.7.8, shelljs@~0.7.0:
   version "0.7.8"
   resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.8.tgz#decbcf874b0d1e5fb72e14b164a9683048e9acb3"
   integrity sha1-3svPh0sNHl+3LhSxZKloMEjprLM=
@@ -10887,6 +10980,13 @@ signale@^1.2.1:
     figures "^2.0.0"
     pkg-conf "^2.1.0"
 
+simple-git@^1.48.0:
+  version "1.110.0"
+  resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-1.110.0.tgz#54eb179089d055a7783d32399246cebc9d9933e9"
+  integrity sha512-UYY0rQkknk0P5eb+KW+03F4TevZ9ou0H+LoGaj7iiVgpnZH4wdj/HTViy/1tNNkmIPcmtxuBqXWiYt2YwlRKOQ==
+  dependencies:
+    debug "^4.0.1"
+
 simple-git@^1.85.0:
   version "1.107.0"
   resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-1.107.0.tgz#12cffaf261c14d6f450f7fdb86c21ccee968b383"
@@ -10899,7 +10999,7 @@ simple-git@~1.48.0:
   resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-1.48.0.tgz#6219b3a6ea5d30e397210f45f26a1cd4ec55b799"
   integrity sha1-YhmzpupdMOOXIQ9F8moc1OxVt5k=
 
-sinon@~1.17.0:
+sinon@^1.17.7, sinon@~1.17.0:
   version "1.17.7"
   resolved "https://registry.yarnpkg.com/sinon/-/sinon-1.17.7.tgz#4542a4f49ba0c45c05eb2e9dd9d203e2b8efe0bf"
   integrity sha1-RUKk9JugxFwF6y6d2dID4rjv4L8=
@@ -12697,7 +12797,7 @@ winston@2.1.0:
     pkginfo "0.3.x"
     stack-trace "0.0.x"
 
-winston@^2.2.0:
+winston@^2.2.0, winston@^2.4.4:
   version "2.4.4"
   resolved "https://registry.yarnpkg.com/winston/-/winston-2.4.4.tgz#a01e4d1d0a103cf4eada6fc1f886b3110d71c34b"
   integrity sha512-NBo2Pepn4hK4V01UfcWcDlmiVTs7VTB1h7bgnB0rgP146bYhMxX0ypCz3lBOfNxCO4Zuek7yeT+y/zM1OfMw4Q==
