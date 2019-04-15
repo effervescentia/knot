@@ -7069,33 +7069,50 @@ lerna-semantic-release-v3-io@^1.0.1:
     simple-git "^1.48.0"
     sinon "^1.17.7"
 
-lerna-semantic-release-v3-perform@^1.0.2:
+lerna-semantic-release-v3-io@^1.0.2:
   version "1.0.2"
-  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-perform/-/lerna-semantic-release-v3-perform-1.0.2.tgz#aa6b3d8c48260bba0e111a5b181c8cd999e0079c"
-  integrity sha512-6so9B8Yq2ZQL7YU97YAlk1PxjeTwiqFQcDBBMcXdy/3duUvK3vQu2bv8cRGoI6X+YLC13sY5AsibANs2LHANGQ==
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-io/-/lerna-semantic-release-v3-io-1.0.2.tgz#c081822c85e3860005ba5ae26ef29e65082d4f80"
+  integrity sha512-kH5KZJDjlgQQm/M1L6phdrgAvpoHQfTVeFOb7MFKbzbJ99tWMEB0sYi/rw2Hcww7y6oEJpx3qpPApO+zPr3pnA==
+  dependencies:
+    "@semantic-release/last-release-npm" "^1.2.1"
+    git-head "^1.14.0"
+    lerna-semantic-release-v3-analyze-commits "^1.0.0"
+    lerna-semantic-release-v3-get-last-release "^1.0.0"
+    lerna-semantic-release-v3-utils "^1.0.1"
+    mock-fs "^3.11.0"
+    mockery "^1.7.0"
+    semantic-release "^6.3.6"
+    shelljs "^0.7.8"
+    simple-git "^1.48.0"
+    sinon "^1.17.7"
+
+lerna-semantic-release-v3-perform@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-perform/-/lerna-semantic-release-v3-perform-1.0.3.tgz#dc695083ce8b81ed775e39f028282fe83f93d313"
+  integrity sha512-ZKYseQc5Glno5LEvl0JE0ahNeLNf3lva6w2GJ/cx5+0tIgIGUvShMwjfIiMidNDJFPPQ8RBwe4CSSzFsVfZOow==
   dependencies:
     async "^2.6.2"
-    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-io "^1.0.2"
     lerna-semantic-release-v3-utils "^1.0.1"
 
-lerna-semantic-release-v3-post@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-post/-/lerna-semantic-release-v3-post-1.0.1.tgz#9f0ff510ff6004633d685ee56298b4ef424e96b4"
-  integrity sha512-mB3Zin8z+6vL/IqTIYRFD3WLbeNl6/vDa9jwKBvrmk2J2UCNWgS+iQrxTq/wz2ctSMxl8+4nN9GASR6DI99bMA==
+lerna-semantic-release-v3-post@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-post/-/lerna-semantic-release-v3-post-1.0.2.tgz#9bbfd18a6af47e431fb2d294c7989ed105ffd149"
+  integrity sha512-8Jy+1XiYMscW3UnEWKapcxNUZlQOJ/0aW+xmJBVsQw3PONCE/aLZlss4R3iTEp2C0lJpdjR6Ex9HIU/VQ9HH7Q==
   dependencies:
     conventional-changelog "^1.1.24"
     dateformat "^1.0.12"
     lerna-semantic-release-v3-analyze-commits "^1.0.0"
-    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-io "^1.0.2"
     lerna-semantic-release-v3-utils "^1.0.1"
 
-lerna-semantic-release-v3-pre@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-pre/-/lerna-semantic-release-v3-pre-1.0.1.tgz#c1129beb6fa3cd20001f26837df65b405b268452"
-  integrity sha512-h7bSMhpJN65MNVKMM+/IuRNnb437MQwKl7YJOIeE6B/9sLwDxUdWDXhuPBLuMz6Q4YBJveH3zQBC8Q745RBSug==
+lerna-semantic-release-v3-pre@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-pre/-/lerna-semantic-release-v3-pre-1.0.2.tgz#67d340e7a573ca09b0c07462bbb2b5b16c2b9b42"
+  integrity sha512-mZbEV7L2e0qEVESmtApsJdA+/GHnPfhLgNQhOIGoohv3pTiFg8jxqRiXDPDN9ko1g8+PHXv1OeTMRHzANmIrrg==
   dependencies:
     async "^2.0.1"
-    lerna-semantic-release-v3-io "^1.0.1"
+    lerna-semantic-release-v3-io "^1.0.2"
     lerna-semantic-release-v3-utils "^1.0.1"
     npmconf "^2.1.3"
     rc "^1.1.7"
@@ -7110,15 +7127,15 @@ lerna-semantic-release-v3-utils@^1.0.1:
     shelljs "^0.7.8"
     winston "^2.4.4"
 
-lerna-semantic-release-v3@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3/-/lerna-semantic-release-v3-1.0.0.tgz#1700f92426521a01f9d4ea98d5969657cb1a6f8a"
-  integrity sha512-LZfX2Q18WD+5MfUE5Nh7hYt5X856r8VznphaQ3EILZ39EABACnIlPUfGnLq2k7uV3nqruQVIZOep+3bs7N+eSg==
+lerna-semantic-release-v3@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3/-/lerna-semantic-release-v3-1.0.1.tgz#baa76e99ae33b4e124d22a250440fbf12a87666f"
+  integrity sha512-otgKFMmdL4XQXDNoEpiKqNiDqpns6irI4mUB/mT2T2qWifqTZjNVcaMoa25veNZ1vehPeuA67QnsbcPytEcdIg==
   dependencies:
     lerna-semantic-release-v3-io "^1.0.1"
-    lerna-semantic-release-v3-perform "^1.0.2"
-    lerna-semantic-release-v3-post "^1.0.1"
-    lerna-semantic-release-v3-pre "^1.0.1"
+    lerna-semantic-release-v3-perform "^1.0.3"
+    lerna-semantic-release-v3-post "^1.0.2"
+    lerna-semantic-release-v3-pre "^1.0.2"
     lerna-semantic-release-v3-utils "^1.0.1"
     meow "^3.7.0"
 
