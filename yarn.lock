@@ -7052,24 +7052,7 @@ lerna-semantic-release-v3-get-last-release@^1.0.0:
   dependencies:
     lerna-semantic-release-v3-utils "^1.0.1"
 
-lerna-semantic-release-v3-io@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-io/-/lerna-semantic-release-v3-io-1.0.1.tgz#1610200fe13833ac5013cba041d493040c7ca7cd"
-  integrity sha512-R4MnPUEbqgmoos5Dnii5bNJiB+vBn0RgGUVpo0IqPlAix5B9FJqyN65Hf2jFcnzND97BAnXPeuaDvIDn8iPEzQ==
-  dependencies:
-    "@semantic-release/last-release-npm" "^1.2.1"
-    git-head "^1.14.0"
-    lerna-semantic-release-v3-analyze-commits "^1.0.0"
-    lerna-semantic-release-v3-get-last-release "^1.0.0"
-    lerna-semantic-release-v3-utils "^1.0.1"
-    mock-fs "^3.11.0"
-    mockery "^1.7.0"
-    semantic-release "^6.3.6"
-    shelljs "^0.7.8"
-    simple-git "^1.48.0"
-    sinon "^1.17.7"
-
-lerna-semantic-release-v3-io@^1.0.2:
+lerna-semantic-release-v3-io@1.0.2, lerna-semantic-release-v3-io@^1.0.1, lerna-semantic-release-v3-io@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-io/-/lerna-semantic-release-v3-io-1.0.2.tgz#c081822c85e3860005ba5ae26ef29e65082d4f80"
   integrity sha512-kH5KZJDjlgQQm/M1L6phdrgAvpoHQfTVeFOb7MFKbzbJ99tWMEB0sYi/rw2Hcww7y6oEJpx3qpPApO+zPr3pnA==

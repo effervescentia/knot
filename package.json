@@ -28,6 +28,9 @@
       "path": "./node_modules/cz-lerna-changelog"
     }
   },
+  "resolutions": {
+    "lerna-semantic-release-v3-io": "1.0.2"
+  },
   "devDependencies": {
     "@semantic-release/changelog": "^3.0.2",
     "@semantic-release/commit-analyzer": "^6.1.0",
