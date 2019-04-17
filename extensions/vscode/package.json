@@ -3,6 +3,7 @@
   "displayName": "Knot Language",
   "description": "Knot language support.",
   "version": "1.0.0",
+  "private": true,
   "publisher": "effervescentia",
   "repository": "https://github.com/effervescentia/knot.git",
   "engines": {
@@ -26,8 +27,5 @@
       "scopeName": "source.knot",
       "path": "./syntaxes/knot.tmLanguage"
     }]
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

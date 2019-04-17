@@ -98,6 +98,13 @@ commands:
       - persist:
           path: << parameters.path >>/build
           to: << parameters.pkg >>-plugin
+  store_cypress_artifacts:
+    description: store artifacts from cypress tests
+    steps:
+      - store_artifacts:
+          path: ./examples/webpack-react/cypress/screenshots
+      - store_artifacts:
+          path: ./examples/webpack-react/cypress/videos
 
 jobs:
   install_node:
@@ -202,10 +209,7 @@ jobs:
       - lerna_exec:
           pkg: webpack-react-example
           command: yarn test
-      - store_artifacts:
-          path: ./examples/webpack-react/cypress/screenshots
-      - store_artifacts:
-          path: ./examples/webpack-react/cypress/videos
+      - store_cypress_artifacts
 
   release:
     executor: node/node
@@ -219,6 +223,30 @@ jobs:
       - run:
           name: Release
           command: yarn release
+
+  validate_webpack_react:
+    docker:
+      - image: cypress/base:8
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_yarn
+      - setup_lerna
+      - run:
+          name: Install
+          working_directory: ./examples/webpack-react
+          command: yarn install
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_esy
+      - lerna_exec:
+          pkg: webpack-react-example
+          command: yarn test
+      - store_cypress_artifacts
 
 workflows:
   test_release:
@@ -243,3 +271,12 @@ workflows:
       - release:
           requires:
             - test_webpack_react
+          filters:
+            branches:
+              only: master
+      - validate_webpack_react:
+          requires:
+            - release
+          filters:
+            branches:
+              only: master
