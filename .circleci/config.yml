@@ -223,6 +223,14 @@ jobs:
       - run:
           name: Release
           command: yarn release
+      - run:
+          name: Commit Changelog
+          command: |
+            if [[ -e .released-packages ]]; then
+              git add "**/CHANGELOG.md"
+
+              git commit -m "chore(changelog): update changelog [skip ci]"
+            fi
 
   validate_webpack_react:
     docker:
