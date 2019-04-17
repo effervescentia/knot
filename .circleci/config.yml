@@ -253,7 +253,9 @@ jobs:
       - run:
           name: Install
           working_directory: ./examples/webpack-react
-          command: yarn install
+          ## avoids using the existing yarn workspaces when installing
+          ## should be a better indication of the external usability
+          command: npm install
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
