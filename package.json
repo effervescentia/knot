@@ -15,7 +15,8 @@
     "release": "npm run release:pre && npm run release:post && npm run release:perform",
     "release:pre": "lerna-semantic-release-v3 pre",
     "release:perform": "lerna-semantic-release-v3 perform",
-    "release:post": "lerna-semantic-release-v3 post"
+    "release:post": "lerna-semantic-release-v3 post",
+    "iolaus": "iolaus"
   },
   "lint-staged": {
     "compiler/{library,lexer,parser,resolver,analyzer,generator,compiler,executable,test}/**/*.re": [
@@ -25,7 +26,7 @@
   },
   "config": {
     "commitizen": {
-      "path": "./node_modules/cz-lerna-changelog"
+      "path": "cz-lerna-changelog"
     }
   },
   "resolutions": {
