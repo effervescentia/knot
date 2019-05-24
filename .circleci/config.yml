@@ -284,15 +284,15 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
-      - release:
-          requires:
-            - test_webpack_react
-          filters:
-            branches:
-              only: master
-      - validate_webpack_react:
-          requires:
-            - release
-          filters:
-            branches:
-              only: master
+      # - release:
+      #     requires:
+      #       - test_webpack_react
+      #     filters:
+      #       branches:
+      #         only: master
+      # - validate_webpack_react:
+      #     requires:
+      #       - release
+      #     filters:
+      #       branches:
+      #         only: master
