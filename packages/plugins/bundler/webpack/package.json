@@ -4,6 +4,9 @@
   "license": "MIT",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
+  "files": [
+    "build"
+  ],
   "repository": "https://github.com/effervescentia/knot.git",
   "scripts": {
     "describe": "npm-scripts-info",
@@ -47,7 +50,7 @@
   },
   "dependencies": {
     "@knot/browser-plugin": "1.1.0",
-    "@knot/compiler": "1.1.1-dev-1",
+    "@knot/compiler": "1.1.1-dev-2",
     "@knot/jss-plugin": "1.1.0",
     "@knot/react-plugin": "1.1.0",
     "cross-fetch": "^3.0.1",

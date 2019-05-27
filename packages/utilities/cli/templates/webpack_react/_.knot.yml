@@ -1,0 +1,6 @@
+name: #{projectName}
+
+files:
+  source: src
+  modules: node_modules
+  build: build

@@ -1,20 +1,20 @@
 {
-  "name": "@knot/jss-plugin",
-  "version": "1.1.1-dev-1",
-  "description": "JSS plugin to translate styles for the knot language.",
-  "main": "build/main/index.js",
-  "typings": "build/main/index.d.ts",
-  "module": "build/module/index.js",
+  "name": "@knot/cli",
+  "version": "1.0.0-dev-2",
+  "license": "MIT",
+  "bin": {
+    "knot": "index.js"
+  },
   "files": [
-    "build"
+    "build",
+    "templates"
   ],
   "repository": "https://github.com/effervescentia/knot.git",
-  "license": "MIT",
   "scripts": {
     "describe": "npm-scripts-info",
-    "build": "run-s clean && run-p build:*",
+    "start": "node build/main/index.js",
+    "build": "run-s clean && run-p build:main",
     "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:tslint": "tslint --fix --project .",
@@ -52,9 +52,18 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "@types/jss": "^9.5.8",
-    "jss": "^9.8.7",
-    "jss-preset-default": "^4.5.0"
+    "@types/commander": "^2.12.2",
+    "@types/gulp": "^4.0.6",
+    "@types/gulp-rename": "^0.0.33",
+    "@types/gulp-template": "^5.0.1",
+    "@types/inquirer": "^6.0.3",
+    "chalk": "^2.4.2",
+    "commander": "^2.20.0",
+    "gulp": "^4.0.2",
+    "gulp-conflict": "^0.4.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-template": "^5.0.0",
+    "inquirer": "^6.3.1"
   },
   "publishConfig": {
     "access": "public"
