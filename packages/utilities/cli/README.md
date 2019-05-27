@@ -1,9 +1,8 @@
-# knot-cli
+# @knot/cli
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-TODO: Put more badges here.
 
-> A command-line tool for simplifying creating and maintaining knot projects.
+> A command-line tool for simplifying the creation and maintainance of knot projects.
 
 TODO: Fill out this long description.
 
@@ -18,11 +17,15 @@ TODO: Fill out this long description.
 ## Install
 
 ```
+npm install -g @knot/cli
+# or
+yarn global add @knot/cli
 ```
 
 ## Usage
 
 ```
+knot init [target_dir]
 ```
 
 ## Maintainers
