@@ -418,6 +418,15 @@
   resolved "https://registry.yarnpkg.com/@knot/compiler/-/compiler-1.1.0.tgz#6de7801a6b0dfafb1b52d9853012f52d375362fd"
   integrity sha512-E4B8eDOW74WHdFxSLuESnBYCwC1K+VX8mewWv4gILz2yvyXae+AKlLSymNCfoxA582RBqfWJOPApAp+SAqEoPQ==
 
+"@knot/jss-plugin@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@knot/jss-plugin/-/jss-plugin-1.1.0.tgz#57ab2b16a39b70e5b56b00c28b4f3e3def9c0c8b"
+  integrity sha512-/6SSS/xeASFUNChDaq9wPqMBwMhHb5XOmO104cm+mQ7DH9dpt2Wuf68f10aTwdLSMAYnmoOSjVYNQZKv0XCFVg==
+  dependencies:
+    "@types/jss" "^9.5.8"
+    jss "^9.8.7"
+    jss-preset-default "^4.5.0"
+
 "@knot/webpack-plugin@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@knot/webpack-plugin/-/webpack-plugin-1.1.0.tgz#ebf247e83a24a279c3800bf8dbf9ca9037ac4718"
@@ -7761,7 +7770,7 @@ lerna-semantic-release-v3-get-last-release@^1.0.0:
   dependencies:
     lerna-semantic-release-v3-utils "^1.0.1"
 
-lerna-semantic-release-v3-io@^1.0.1, lerna-semantic-release-v3-io@^1.0.2:
+lerna-semantic-release-v3-io@1.0.2, lerna-semantic-release-v3-io@^1.0.1, lerna-semantic-release-v3-io@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/lerna-semantic-release-v3-io/-/lerna-semantic-release-v3-io-1.0.2.tgz#c081822c85e3860005ba5ae26ef29e65082d4f80"
   integrity sha512-kH5KZJDjlgQQm/M1L6phdrgAvpoHQfTVeFOb7MFKbzbJ99tWMEB0sYi/rw2Hcww7y6oEJpx3qpPApO+zPr3pnA==

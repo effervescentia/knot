@@ -15,7 +15,7 @@
   ],
   "repository": "https://github.com/effervescentia/knot.git",
   "scripts": {
-    "postinstall": "path-exists esyInstallRelease.js && node ./esyInstallRelease.js"
+    "postinstall": "node ./esyInstallRelease.js"
   },
   "publishConfig": {
     "access": "public"
