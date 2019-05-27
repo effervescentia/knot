@@ -6,3 +6,4 @@ dist
 *.install
 *.cache
 .DS_Store
+_esy

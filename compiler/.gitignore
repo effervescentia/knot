@@ -2,3 +2,4 @@
 _build
 _release
 _esy/
+esy.lock

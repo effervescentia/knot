@@ -42,7 +42,8 @@ let cache_as_tmp = (buffer_size, file) =>
     }
   );
 
-let is_source_module = path => String.length(path) != 0 && path.[0] == '.';
+let is_source_module = path =>
+  String.length(path) > 1 && path.[0] == '.' && path.[1] != '/';
 
 let chop_path_prefix = (prefix, path) => {
   let prefix_length = String.length(prefix);

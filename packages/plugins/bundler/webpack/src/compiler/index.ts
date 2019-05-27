@@ -13,11 +13,7 @@ export default function createCompiler(options: Options): Compiler {
     options.config,
     ...(options.debug ? ['-debug'] : [])
   ];
-  const proc = options.knot
-    ? execa(options.knot, [...knotArgs])
-    : execa('esy', ['x', 'knotc.exe', ...knotArgs], {
-        cwd: KnotCompiler.path
-      });
+  const proc = execa(options.knot || KnotCompiler.path, [...knotArgs]);
   const baseUrl = `http://localhost:${options.port}`;
 
   // tslint:disable-next-line:no-console

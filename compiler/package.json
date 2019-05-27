@@ -1,54 +1,84 @@
 {
   "name": "knot",
-  "version": "0.0.0",
+  "version": "1.1.1",
   "description": "My Project",
   "esy": {
     "build": "pesy",
     "release": {
-      "releasedBinaries": ["Compiler.exe"]
+      "bin": [
+        "knotc.exe"
+      ]
     }
   },
   "buildDirs": {
     "library": {
-      "require": ["opal", "dolog", "emoji"],
+      "require": [
+        "opal",
+        "dolog",
+        "emoji"
+      ],
       "name": "knot.lib",
       "namespace": "Knot"
     },
     "lexer": {
-      "require": ["knot.lib"],
+      "require": [
+        "knot.lib"
+      ],
       "name": "knot.lex",
       "namespace": "KnotLex"
     },
     "parser": {
-      "require": ["knot.lib"],
+      "require": [
+        "knot.lib"
+      ],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
     "resolver": {
-      "require": ["knot.lib"],
+      "require": [
+        "knot.lib"
+      ],
       "name": "knot.resolve",
       "namespace": "KnotResolve"
     },
     "analyzer": {
-      "require": ["knot.lib", "knot.resolve"],
+      "require": [
+        "knot.lib",
+        "knot.resolve"
+      ],
       "name": "knot.analyze",
       "namespace": "KnotAnalyze"
     },
     "generator": {
-      "require": ["knot.lib", "str"],
+      "require": [
+        "knot.lib",
+        "str"
+      ],
       "name": "knot.generate",
       "namespace": "KnotGenerate"
     },
     "compiler": {
-      "require": ["knot.lib", "knot.lex", "knot.parse", "knot.analyze"],
+      "require": [
+        "knot.lib",
+        "knot.lex",
+        "knot.parse",
+        "knot.analyze"
+      ],
       "name": "knot.compile",
       "namespace": "KnotCompile"
     },
     "executable": {
       "require": [
-        "knot.lib", "knot.generate", "knot.compile",
-        "unix", "core", "httpaf", "lwt", "lwt.unix",
-        "faraday-lwt-unix", "uri"
+        "knot.lib",
+        "knot.generate",
+        "knot.compile",
+        "unix",
+        "core",
+        "httpaf",
+        "lwt",
+        "lwt.unix",
+        "faraday-lwt-unix",
+        "uri"
       ],
       "main": "Main",
       "name": "knotc.exe",
@@ -64,8 +94,13 @@
     },
     "test": {
       "require": [
-        "knot.lib", "knot.lex", "knot.parse", "knot.analyze", "knot.generate",
-        "oUnit", "ANSITerminal"
+        "knot.lib",
+        "knot.lex",
+        "knot.parse",
+        "knot.analyze",
+        "knot.generate",
+        "oUnit",
+        "ANSITerminal"
       ],
       "main": "TestSuite",
       "name": "TestSuite.exe"
