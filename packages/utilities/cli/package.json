@@ -1,16 +1,19 @@
 {
-  "name": "@knot/webpack-plugin",
-  "version": "1.1.1-dev-1",
+  "name": "@knot/cli",
+  "version": "1.0.0-dev-2",
   "license": "MIT",
-  "main": "build/main/index.js",
-  "typings": "build/main/index.d.ts",
+  "bin": {
+    "knot": "index.js"
+  },
   "files": [
-    "build"
+    "build",
+    "templates"
   ],
   "repository": "https://github.com/effervescentia/knot.git",
   "scripts": {
     "describe": "npm-scripts-info",
-    "build": "run-s clean && run-s build:main",
+    "start": "node build/main/index.js",
+    "build": "run-s clean && run-p build:main",
     "build:main": "tsc -p tsconfig.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
@@ -49,15 +52,18 @@
     "node": ">=8.9"
   },
   "dependencies": {
-    "@knot/browser-plugin": "1.1.0",
-    "@knot/compiler": "1.1.1-dev-2",
-    "@knot/jss-plugin": "1.1.1-dev-1",
-    "@knot/react-plugin": "1.1.0",
-    "cross-fetch": "^3.0.1",
-    "enhanced-resolve": "^4.1.0",
-    "execa": "^1.0.0",
-    "loader-utils": "^1.2.3",
-    "schema-utils": "^1.0.0"
+    "@types/commander": "^2.12.2",
+    "@types/gulp": "^4.0.6",
+    "@types/gulp-rename": "^0.0.33",
+    "@types/gulp-template": "^5.0.1",
+    "@types/inquirer": "^6.0.3",
+    "chalk": "^2.4.2",
+    "commander": "^2.20.0",
+    "gulp": "^4.0.2",
+    "gulp-conflict": "^0.4.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-template": "^5.0.0",
+    "inquirer": "^6.3.1"
   },
   "publishConfig": {
     "access": "public"

@@ -1,0 +1,4 @@
+import JSX from "@knot/jsx";
+import Greeting from ".components.Greeting";
+
+main func render(id: string) -> JSX.render(<Greeting name="My Friend" />, id);
