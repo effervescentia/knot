@@ -30,7 +30,8 @@
     }
   },
   "resolutions": {
-    "lerna-semantic-release-v3-io": "1.0.2"
+    "lerna-semantic-release-v3-io": "1.0.2",
+    "fsevents": "^1.2.9"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^3.0.2",

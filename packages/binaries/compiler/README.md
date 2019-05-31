@@ -1,11 +1,10 @@
-# @knot/cli
+# @knot/compiler
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
-> A command-line tool for simplifying the creation and maintainance of knot projects.
+> A command-line wrapper for knot's compiler, the node module only exports the path to the `knotc` binary.
 
-Created both as a new project generator, and eventual single-entrypoint for interacting with knot code and tooling.
-Additional commands will be introduced for improving the ease of maintaining a knot project through adding or modifying elements of the codebase.
+TODO: Fill out this long description.
 
 ## Table of Contents
 
@@ -18,15 +17,17 @@ Additional commands will be introduced for improving the ease of maintaining a k
 ## Install
 
 ```sh
-npm install -g @knot/cli
+npm install @knot/compiler
 # or
-yarn global add @knot/cli
+yarn add @knot/compiler
 ```
 
 ## Usage
 
-```sh
-knot init [target_dir]
+```ts
+import * as knotc from '@knot/compiler';
+
+knotc.path; // <path to the knotc binary>
 ```
 
 ## Maintainers

@@ -1,16 +1,14 @@
-# @knot/cli
+# @knot/browser-plugin
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
-> A command-line tool for simplifying the creation and maintainance of knot projects.
+> A browser utility plugin for the knot compiler.
 
-Created both as a new project generator, and eventual single-entrypoint for interacting with knot code and tooling.
-Additional commands will be introduced for improving the ease of maintaining a knot project through adding or modifying elements of the codebase.
+This module is designed to be used by compiled knot code to provide runtime utilities.
 
 ## Table of Contents
 
 - [Install](#install)
-- [Usage](#usage)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
@@ -18,15 +16,9 @@ Additional commands will be introduced for improving the ease of maintaining a k
 ## Install
 
 ```sh
-npm install -g @knot/cli
+npm install @knot/browser-plugin
 # or
-yarn global add @knot/cli
-```
-
-## Usage
-
-```sh
-knot init [target_dir]
+yarn add @knot/browser-plugin
 ```
 
 ## Maintainers
