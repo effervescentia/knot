@@ -1,6 +1,6 @@
 {
   "name": "@knot/cli",
-  "version": "1.0.0-dev-2",
+  "version": "1.0.0-dev-3",
   "license": "MIT",
   "bin": {
     "knot": "index.js"
@@ -63,7 +63,8 @@
     "gulp-conflict": "^0.4.0",
     "gulp-rename": "^1.4.0",
     "gulp-template": "^5.0.0",
-    "inquirer": "^6.3.1"
+    "inquirer": "^6.3.1",
+    "latest-version": "^5.1.0"
   },
   "publishConfig": {
     "access": "public"
