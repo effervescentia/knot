@@ -11,11 +11,13 @@
     "private",
 
     "author",
+    "publisher",
     "license",
     "repository",
 
     "bin",
     "main",
+    "module",
     "typings",
 
     "esy",
@@ -24,6 +26,7 @@
     "contributes",
 
     "scripts",
+    "scripts-info",
 
     "resolutions",
     "dependencies",
