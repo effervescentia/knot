@@ -1,15 +1,14 @@
 {
   "name": "@knot/cli",
   "version": "1.0.0-dev-3",
+  "engines": {
+    "node": ">=8.9"
+  },
   "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
   "bin": {
     "knot": "index.js"
   },
-  "files": [
-    "build",
-    "templates"
-  ],
-  "repository": "https://github.com/effervescentia/knot.git",
   "scripts": {
     "describe": "npm-scripts-info",
     "start": "node build/main/index.js",
@@ -35,22 +34,6 @@
     "all": "run-s reset test cov:check doc:html",
     "prepare-release": "run-s all version doc:publish"
   },
-  "scripts-info": {
-    "info": "Display information about the package scripts",
-    "build": "Clean and rebuild the project",
-    "fix": "Try to automatically fix any linting problems",
-    "test": "Lint and unit test the project",
-    "watch": "Watch and rebuild the project on save, then rerun relevant tests",
-    "cov": "Rebuild, run tests, then create and open the coverage report",
-    "doc": "Generate HTML API documentation and open it in a browser",
-    "doc:json": "Generate API documentation in typedoc JSON format",
-    "version": "Bump package.json version, update CHANGELOG.md, tag release",
-    "reset": "Delete all untracked files and reset the repo to the last commit",
-    "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
-  },
-  "engines": {
-    "node": ">=8.9"
-  },
   "dependencies": {
     "@types/commander": "^2.12.2",
     "@types/gulp": "^4.0.6",
@@ -66,8 +49,10 @@
     "inquirer": "^6.3.1",
     "latest-version": "^5.1.0"
   },
-  "publishConfig": {
-    "access": "public"
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   },
   "ava": {
     "failFast": true,
@@ -78,17 +63,32 @@
       "build/main/**/*.js"
     ]
   },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "prettier": {
-    "singleQuote": true
-  },
+  "files": [
+    "build",
+    "templates"
+  ],
   "nyc": {
     "exclude": [
       "**/*.test.js"
     ]
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts-info": {
+    "info": "Display information about the package scripts",
+    "build": "Clean and rebuild the project",
+    "fix": "Try to automatically fix any linting problems",
+    "test": "Lint and unit test the project",
+    "watch": "Watch and rebuild the project on save, then rerun relevant tests",
+    "cov": "Rebuild, run tests, then create and open the coverage report",
+    "doc": "Generate HTML API documentation and open it in a browser",
+    "doc:json": "Generate API documentation in typedoc JSON format",
+    "version": "Bump package.json version, update CHANGELOG.md, tag release",
+    "reset": "Delete all untracked files and reset the repo to the last commit",
+    "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
   }
 }

@@ -2,9 +2,9 @@
   "name": "@knot/todomvc-example",
   "version": "1.1.0",
   "private": true,
-  "main": "index.js",
   "license": "MIT",
   "repository": "https://github.com/effervescentia/knot.git",
+  "main": "index.js",
   "scripts": {
     "build": "webpack --mode development",
     "dev": "webpack --watch --mode development",

@@ -1,7 +1,7 @@
 {
   "name": "knot",
-  "version": "1.1.1",
   "description": "My Project",
+  "version": "1.1.1",
   "esy": {
     "build": "pesy",
     "release": {

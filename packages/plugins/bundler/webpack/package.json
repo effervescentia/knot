@@ -1,13 +1,13 @@
 {
   "name": "@knot/webpack-plugin",
   "version": "1.1.1-dev-1",
+  "engines": {
+    "node": ">=8.9"
+  },
   "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
-  "files": [
-    "build"
-  ],
-  "repository": "https://github.com/effervescentia/knot.git",
   "scripts": {
     "describe": "npm-scripts-info",
     "build": "run-s clean && run-s build:main",
@@ -32,6 +32,45 @@
     "all": "run-s reset test cov:check doc:html",
     "prepare-release": "run-s all version doc:publish"
   },
+  "dependencies": {
+    "@knot/browser-plugin": "1.1.0",
+    "@knot/compiler": "1.1.1-dev-2",
+    "@knot/jss-plugin": "1.1.1-dev-1",
+    "@knot/react-plugin": "1.1.0",
+    "cross-fetch": "^3.0.1",
+    "enhanced-resolve": "^4.1.0",
+    "execa": "^1.0.0",
+    "loader-utils": "^1.2.3",
+    "schema-utils": "^1.0.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "ava": {
+    "failFast": true,
+    "files": [
+      "build/main/**/*.test.js"
+    ],
+    "sources": [
+      "build/main/**/*.js"
+    ]
+  },
+  "files": [
+    "build"
+  ],
+  "nyc": {
+    "exclude": [
+      "**/*.test.js"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts-info": {
     "info": "Display information about the package scripts",
     "build": "Clean and rebuild the project",
@@ -44,44 +83,5 @@
     "version": "Bump package.json version, update CHANGELOG.md, tag release",
     "reset": "Delete all untracked files and reset the repo to the last commit",
     "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
-  },
-  "engines": {
-    "node": ">=8.9"
-  },
-  "dependencies": {
-    "@knot/browser-plugin": "1.1.0",
-    "@knot/compiler": "1.1.1-dev-2",
-    "@knot/jss-plugin": "1.1.1-dev-1",
-    "@knot/react-plugin": "1.1.0",
-    "cross-fetch": "^3.0.1",
-    "enhanced-resolve": "^4.1.0",
-    "execa": "^1.0.0",
-    "loader-utils": "^1.2.3",
-    "schema-utils": "^1.0.0"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "ava": {
-    "failFast": true,
-    "files": [
-      "build/main/**/*.test.js"
-    ],
-    "sources": [
-      "build/main/**/*.js"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "prettier": {
-    "singleQuote": true
-  },
-  "nyc": {
-    "exclude": [
-      "**/*.test.js"
-    ]
   }
 }

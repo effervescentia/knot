@@ -1,17 +1,27 @@
 {
   "sortToTop": [
     "name",
+    "displayName",
     "description",
     "keywords",
+    "categories",
 
     "version",
+    "engines",
     "private",
 
     "author",
     "license",
     "repository",
 
+    "bin",
     "main",
+    "typings",
+
+    "esy",
+    "buildDirs",
+
+    "contributes",
 
     "scripts",
 
