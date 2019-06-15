@@ -7,6 +7,6 @@
     "lib": ["es2017", "dom"],
     "types": ["@types/node-fetch"]
   },
-  "include": ["src/**/*.ts", "src/**/*.json"],
+  "include": ["src/**/*.ts", "src/**/*.json", "typings/**/*.d.ts"],
   "exclude": ["node_modules/**"]
 }

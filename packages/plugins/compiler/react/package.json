@@ -54,34 +54,9 @@
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
   },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "ava": {
-    "failFast": true,
-    "files": [
-      "build/main/**/*.test.js"
-    ],
-    "sources": [
-      "build/main/**/*.js"
-    ],
-    "require": [
-      "./ava-setup.js"
-    ]
-  },
   "files": [
     "build"
   ],
-  "nyc": {
-    "exclude": [
-      "**/*.test.js"
-    ]
-  },
-  "prettier": {
-    "singleQuote": true
-  },
   "publishConfig": {
     "access": "public"
   }

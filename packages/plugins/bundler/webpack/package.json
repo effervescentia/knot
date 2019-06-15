@@ -56,31 +56,9 @@
     "loader-utils": "^1.2.3",
     "schema-utils": "^1.0.0"
   },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "ava": {
-    "failFast": true,
-    "files": [
-      "build/main/**/*.test.js"
-    ],
-    "sources": [
-      "build/main/**/*.js"
-    ]
-  },
   "files": [
     "build"
   ],
-  "nyc": {
-    "exclude": [
-      "**/*.test.js"
-    ]
-  },
-  "prettier": {
-    "singleQuote": true
-  },
   "publishConfig": {
     "access": "public"
   }

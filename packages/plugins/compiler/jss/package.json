@@ -53,31 +53,9 @@
     "jss": "^9.8.7",
     "jss-preset-default": "^4.5.0"
   },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "ava": {
-    "failFast": true,
-    "files": [
-      "build/main/**/*.test.js"
-    ],
-    "sources": [
-      "build/main/**/*.js"
-    ]
-  },
   "files": [
     "build"
   ],
-  "nyc": {
-    "exclude": [
-      "**/*.test.js"
-    ]
-  },
-  "prettier": {
-    "singleQuote": true
-  },
   "publishConfig": {
     "access": "public"
   }

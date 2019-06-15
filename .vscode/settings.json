@@ -2,6 +2,7 @@
   "files.associations": {
     ".fixpackrc": "json",
     ".czrc": "json",
+    ".nyrc": "json",
     ".huskyrc": "json",
     ".lintstagedrc": "json"
   }

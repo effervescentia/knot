@@ -62,32 +62,10 @@
     "inquirer": "^6.3.1",
     "latest-version": "^5.1.0"
   },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "ava": {
-    "failFast": true,
-    "files": [
-      "build/main/**/*.test.js"
-    ],
-    "sources": [
-      "build/main/**/*.js"
-    ]
-  },
   "files": [
     "build",
     "templates"
   ],
-  "nyc": {
-    "exclude": [
-      "**/*.test.js"
-    ]
-  },
-  "prettier": {
-    "singleQuote": true
-  },
   "publishConfig": {
     "access": "public"
   }

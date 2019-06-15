@@ -38,6 +38,21 @@ export interface InternalOptions extends Options {
   readonly compiler: Compiler;
 }
 
+export interface Context {
+  // tslint:disable: readonly-keyword
+  successiveRun: boolean;
+  watching: boolean;
+  // tslint:enable: readonly-keyword
+
+  readonly name: string;
+  readonly options: Options;
+  readonly knotCompiler: Compiler;
+  readonly knotLoader: {
+    readonly loader: string;
+    readonly options: InternalOptions;
+  };
+}
+
 export interface Plugins {
   readonly jsx: string;
   readonly style: string;
