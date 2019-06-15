@@ -1,11 +1,21 @@
 {
   "name": "knot",
   "description": "Knot Language Tools",
+  "private": true,
   "author": "Ben Teichman <ben.l.teichman@gmail.com>",
-  "config": {
-    "commitizen": {
-      "path": "cz-lerna-changelog"
-    }
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "main": "index.js",
+  "scripts": {
+    "iolaus": "iolaus",
+    "release": "npm run release:pre && npm run release:post && npm run release:perform",
+    "release:perform": "lerna-semantic-release-v3 perform",
+    "release:post": "lerna-semantic-release-v3 post",
+    "release:pre": "lerna-semantic-release-v3 pre",
+    "setup": "lerna bootstrap"
+  },
+  "resolutions": {
+    "lerna-semantic-release-v3-io": "1.0.2"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^3.0.2",
@@ -57,20 +67,10 @@
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.14"
   },
-  "license": "MIT",
-  "main": "index.js",
-  "private": true,
-  "repository": "https://github.com/effervescentia/knot.git",
-  "resolutions": {
-    "lerna-semantic-release-v3-io": "1.0.2"
-  },
-  "scripts": {
-    "iolaus": "iolaus",
-    "release": "npm run release:pre && npm run release:post && npm run release:perform",
-    "release:perform": "lerna-semantic-release-v3 perform",
-    "release:post": "lerna-semantic-release-v3 post",
-    "release:pre": "lerna-semantic-release-v3 pre",
-    "setup": "lerna bootstrap"
+  "config": {
+    "commitizen": {
+      "path": "cz-lerna-changelog"
+    }
   },
   "workspaces": [
     "examples/*",

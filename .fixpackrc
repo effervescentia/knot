@@ -1,0 +1,35 @@
+{
+  "sortToTop": [
+    "name",
+    "description",
+    "keywords",
+
+    "version",
+    "private",
+
+    "author",
+    "license",
+    "repository",
+
+    "main",
+
+    "scripts",
+
+    "resolutions",
+    "dependencies",
+    "peerDependencies",
+    "optionalDependencies",
+    "devDependencies",
+
+    "config"
+  ],
+  "sortedSubItems": [
+    "resolutions",
+    "dependencies",
+    "peerDependencies",
+    "optionalDependencies",
+    "devDependencies",
+
+    "config"
+  ]
+}
