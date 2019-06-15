@@ -33,6 +33,7 @@
     "ava": "1.4.1",
     "browser-env": "^3.2.6",
     "codecov": "^3.1.0",
+    "commitizen": "^3.1.1",
     "cross-env": "^5.2.0",
     "cypress": "^3.1.4",
     "cz-conventional-changelog": "^2.1.0",
@@ -66,11 +67,6 @@
     "webpack-bundle-analyzer": "^3.1.0",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.14"
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-lerna-changelog"
-    }
   },
   "workspaces": [
     "examples/*",

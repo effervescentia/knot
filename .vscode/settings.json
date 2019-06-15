@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    ".fixpackrc": "json",
+    ".czrc": "json",
+    ".huskyrc": "json",
+    ".lintstagedrc": "json"
+  }
+}
