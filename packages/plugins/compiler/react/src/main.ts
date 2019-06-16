@@ -3,7 +3,10 @@ import * as ReactDOM from 'react-dom';
 
 export const createElement = React.createElement;
 
-export function createFragment(...children: readonly JSX.Element[]): ReturnType<typeof React.createElement> {
+export function createFragment(
+  // tslint:disable-next-line: readonly-array
+  ...children: Readonly<JSX.Element[]>
+): ReturnType<typeof React.createElement> {
   return React.createElement(React.Fragment, null, ...children);
 }
 
@@ -14,9 +17,9 @@ export function render(app: JSX.Element, id: string): void {
 
 // @hidden
 export function withState(
-    createState: (update: () => void) => { readonly get: () => any },
-    component: React.ComponentType
-  ): React.ComponentClass {
+  createState: (update: () => void) => { readonly get: () => any },
+  component: React.ComponentType
+): React.ComponentClass {
   class State<T extends { readonly $$_state?: any }> extends React.Component<
     T
   > {
