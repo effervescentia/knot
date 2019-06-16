@@ -5,6 +5,8 @@ export type ArgumentTypes<F extends Function> = F extends (
   ? A
   : never;
 
+export type Kill = (err: Error) => Promise<void>;
+
 export enum ServerStatus {
   IDLE = 'idle',
   COMPLETE = 'complete'
@@ -24,6 +26,11 @@ export interface Compiler {
   readonly add: (path: string) => Promise<void | Response>;
   readonly invalidate: (path: string) => Promise<void | Response>;
   readonly close: () => Promise<void | Response>;
+}
+
+export interface Loader {
+  readonly loader: string;
+  readonly options: InternalOptions;
 }
 
 export interface Options {
@@ -47,10 +54,7 @@ export interface Context {
   readonly name: string;
   readonly options: Options;
   readonly knotCompiler: Compiler;
-  readonly knotLoader: {
-    readonly loader: string;
-    readonly options: InternalOptions;
-  };
+  readonly knotLoader: Loader;
 }
 
 export interface Plugins {

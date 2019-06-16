@@ -5,7 +5,8 @@ import * as Webpack from 'webpack';
 import createCompiler from './compiler';
 import HOOKS from './hooks';
 import schema from './schema.json';
-import { Options } from './types';
+import { Compiler, Context, Options } from './types';
+import { createTerminator } from './utils';
 
 import WebpackCompiler = Webpack.Compiler;
 
@@ -35,29 +36,28 @@ export default class KnotWebpackPlugin {
 
   public apply(compiler: WebpackCompiler): void {
     const options = this.options;
+
     const knotCompiler = createCompiler(options);
-    const knotLoader = {
+    const context = createContext(options, knotCompiler);
+    const kill = createTerminator(knotCompiler);
+
+    HOOKS.forEach(hook => hook(compiler, context, kill));
+  }
+}
+
+function createContext(options: Options, knotCompiler: Compiler): Context {
+  return {
+    knotCompiler,
+    knotLoader: {
       loader: path.resolve(__dirname, './loader'),
       options: {
         ...options,
         compiler: knotCompiler
       }
-    };
-    const context = {
-      knotCompiler,
-      knotLoader,
-      name: KnotWebpackPlugin.name,
-      options,
-      successiveRun: false,
-      watching: false
-    };
-
-    const kill = async (): Promise<void> => {
-      await knotCompiler.close();
-
-      process.exit(-1);
-    };
-
-    HOOKS.forEach(hook => hook(compiler, context, kill));
-  }
+    },
+    name: KnotWebpackPlugin.name,
+    options,
+    successiveRun: false,
+    watching: false
+  };
 }

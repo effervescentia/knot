@@ -1,6 +1,6 @@
 // tslint:disable:no-expression-statement
 import * as Webpack from 'webpack';
-import { Context } from './types';
+import { Context, Kill } from './types';
 import {
   addModuleLoader,
   discoverDependencies,
@@ -11,14 +11,16 @@ import {
 import WebpackCompiler = Webpack.Compiler;
 import WebpackCompilation = Webpack.compilation.Compilation;
 
-export interface Hook {
-  (compiler: WebpackCompiler, context: Context, kill: () => Promise<void>);
-}
+export type Hook = (
+  compiler: WebpackCompiler,
+  context: Context,
+  kill: Kill
+) => void;
 
 export function watchCompilationHook(
   compiler: WebpackCompiler,
   context: Context,
-  kill: () => Promise<void>
+  kill: Kill
 ): void {
   compiler.hooks.watchRun.tapPromise(context.name, () =>
     (context.successiveRun
@@ -32,7 +34,7 @@ export function watchCompilationHook(
 export function awaitCompilerHook(
   compiler: WebpackCompiler,
   context: Context,
-  kill: () => Promise<void>
+  kill: Kill
 ): void {
   compiler.hooks.beforeRun.tapPromise(context.name, () =>
     context.watching
@@ -60,7 +62,7 @@ export function terminationHook(
 export function invalidationHook(
   compiler: WebpackCompiler,
   { name, knotCompiler }: Context,
-  kill: () => Promise<void>
+  kill: Kill
 ): void {
   compiler.hooks.invalid.tap(name, invalidateModule(knotCompiler, kill));
 }
@@ -77,7 +79,7 @@ export function resolutionHook(
 export function compilationHook(
   compiler: WebpackCompiler,
   { name, knotCompiler, knotLoader }: Context,
-  kill: () => Promise<void>
+  kill: Kill
 ): void {
   compiler.hooks.compilation.tap(name, (compilation: WebpackCompilation) => {
     compilation.hooks.succeedModule.tap(
@@ -90,7 +92,7 @@ export function compilationHook(
 }
 
 // tslint:disable-next-line: readonly-array
-const HOOKS: Hook[] = [
+const HOOKS: Readonly<Hook[]> = [
   watchCompilationHook,
   awaitCompilerHook,
   terminationHook,

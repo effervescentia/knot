@@ -16,8 +16,12 @@ export const main = {
   none: 'none',
 
   // utilities
-  num: (num: number) => num,
-  str: (str: string) => str,
+  num(num: number): number {
+    return num;
+  },
+  str(str: string): string {
+    return str;
+  },
 
   ...colors,
 

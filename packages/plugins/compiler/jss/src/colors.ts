@@ -157,7 +157,10 @@ export default {
   rebeccapurple: 'rebeccapurple',
 
   // factories
-  rgb: (r: number, g: number, b: number) => `rgb(${r},${g},${b})`,
-  rgba: (r: number, g: number, b: number, a: number) =>
-    `rgba(${r},${g},${b},${a})`
+  rgb(r: number, g: number, b: number): string {
+    return `rgb(${r},${g},${b})`;
+  },
+  rgba(r: number, g: number, b: number, a: number): string {
+    return `rgba(${r},${g},${b},${a})`;
+  }
 };

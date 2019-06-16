@@ -2,9 +2,24 @@
 import * as path from 'path';
 import * as Webpack from 'webpack';
 import { KNOT_SOURCE_PATTERN } from './constants';
-import { Compiler, Options } from './types';
+import { Compiler, Kill, Options } from './types';
 
 import WebpackModule = Webpack.loader.LoaderContext;
+
+export function createTerminator(
+  knotCompiler: Compiler
+): (err: Error) => Promise<void> {
+  return async err => {
+    // tslint:disable: no-console
+    console.error('compilation failed with error: ', err);
+    console.log('waiting for compiler to shut down...');
+    await knotCompiler.close();
+    console.log('compiler shut down successfully');
+    // tslint:enable: no-console
+
+    process.exit(-1);
+  };
+}
 
 export function resolveLibrary(
   options: Options
@@ -29,7 +44,7 @@ export function resolveLibrary(
 
 export function invalidateModule(
   knotCompiler: Compiler,
-  kill: () => Promise<void>
+  kill: Kill
 ): (path: string) => void {
   return invalidPath =>
     KNOT_SOURCE_PATTERN.test(invalidPath) &&
@@ -51,7 +66,7 @@ export function addModuleLoader(
 
 export function discoverDependencies(
   knotCompiler: Compiler,
-  kill: (e: Error) => void
+  kill: Kill
 ): (mod: any) => Promise<any> {
   return async mod => {
     const knotDeps = mod.dependencies.filter(({ request }) =>
