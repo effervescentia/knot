@@ -3,6 +3,7 @@
     ".fixpackrc": "json",
     ".czrc": "json",
     ".nyrc": "json",
+    ".npsrc": "json",
     ".huskyrc": "json",
     ".lintstagedrc": "json"
   }

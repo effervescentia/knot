@@ -42,6 +42,7 @@ program
       type: 'input'
     });
 
+    // tslint:disable-next-line: no-console
     console.log(
       `${chalk.blue(
         '!'
@@ -62,6 +63,7 @@ program
       .pipe(
         rename(file => {
           if (file.basename.startsWith('_')) {
+            // tslint:disable-next-line: no-object-mutation
             file.basename = file.basename.slice(1);
           }
         })
@@ -80,3 +82,7 @@ program
   });
 
 program.parse(process.argv);
+
+if (!program.args.length) {
+  program.help();
+}
