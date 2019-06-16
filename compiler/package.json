@@ -128,11 +128,11 @@
     "@opam/emoji": "1.1.0",
     "@opam/faraday-lwt-unix": "0.7.0",
     "@opam/httpaf": "0.5.0",
-    "@opam/lwt": "4.1.0",
+    "@opam/lwt": "4.2.1",
     "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
     "@opam/uri": "2.2.0",
-    "ocaml": "^4.4.0",
+    "ocaml": "4.7.1004",
     "pesy": "*",
     "refmterr": "*",
     "sane": "^4.0.2"
