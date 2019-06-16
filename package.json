@@ -11,6 +11,7 @@
     "setup": "nps setup",
     "build": "nps build",
     "test": "nps test",
+    "commit": "git cz",
     "release": "nps release",
     "usage": "nps help"
   },
