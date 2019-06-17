@@ -132,7 +132,7 @@ jobs:
       - run:
           name: Install
           working_directory: ./compiler
-          command: esy install || esy pesy
+          command: esy install && esy pesy
       - run:
           name: Build
           working_directory: ./compiler
