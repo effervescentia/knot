@@ -211,33 +211,6 @@ jobs:
           command: yarn test
       - store_cypress_artifacts
 
-  release:
-    executor: node/node
-    steps:
-      - checkout
-      - setup_yarn
-      - setup_lerna
-      - run:
-          name: Install
-          command: yarn install
-      - run:
-          name: Release
-          command: yarn release
-      - run:
-          name: Commit Changelog
-          command: |
-            if [[ -e .released-packages ]]; then
-              git add "**/CHANGELOG.md"
-
-              if ! git diff-index --quiet --cached HEAD --
-              then
-                git config --global user.name semantic-release-bot
-                git config --global user.email 'semantic-release-bot@martynus.net'
-                git commit -m "chore(changelog): update changelog [skip ci]"
-                git push
-              fi
-            fi
-
   validate_webpack_react:
     docker:
       - image: cypress/base:8
@@ -284,15 +257,4 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
-      # - release:
-      #     requires:
-      #       - test_webpack_react
-      #     filters:
-      #       branches:
-      #         only: master
-      # - validate_webpack_react:
-      #     requires:
-      #       - release
-      #     filters:
-      #       branches:
-      #         only: master
+
