@@ -9,7 +9,7 @@ defaults:
       - node_cache-v1-{{ checksum "yarn.lock" }}
       - node_cache-v1
   compiler_cache: &compiler_cache
-    key: compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
+    key: compiler_cache-v4-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
   compiler_cache_keys: &compiler_cache_keys
     keys:
       - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
@@ -257,4 +257,3 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
-
