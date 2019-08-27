@@ -1,11 +1,12 @@
 {
   "name": "knot",
-  "description": "My Project",
-  "version": "1.1.1",
+  "description": "Compiler for the Knot programming language",
+  "version": "0.0.0",
   "esy": {
-    "build": "pesy",
+    "build": "dune build -p <PACKAGE_NAME>",
+    "buildDev": "pesy",
     "release": {
-      "bin": [
+      "releasedBinaries": [
         "knotc.exe"
       ]
     }
@@ -120,24 +121,24 @@
     "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
   },
   "dependencies": {
-    "@esy-ocaml/reason": "3.4.0",
+    "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.1",
-    "@opam/core": "v0.12.0",
+    "@opam/core": "v0.12.3",
     "@opam/dolog": "3.0",
-    "@opam/dune": "1.10.0",
+    "@opam/dune": ">=1.6.0",
     "@opam/emoji": "1.1.0",
     "@opam/faraday-lwt-unix": "0.7.0",
-    "@opam/httpaf": "0.5.0",
-    "@opam/lwt": "4.2.1",
+    "@opam/httpaf": "0.6.0",
+    "@opam/lwt": "4.3.0",
     "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
-    "@opam/uri": "2.2.0",
-    "ocaml": "4.7.1004",
-    "pesy": "0.4.1",
-    "refmterr": "3.1.10",
-    "sane": "^4.0.2"
+    "@opam/uri": "3.0.0",
+    "ocaml": "^4.4.0"
   },
   "devDependencies": {
-    "@opam/merlin": "3.3.0"
+    "@opam/merlin": "*",
+    "ocaml": "4.7.1004",
+    "pesy": "*",
+    "refmterr": "*"
   }
 }

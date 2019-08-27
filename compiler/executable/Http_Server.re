@@ -5,7 +5,7 @@ module HTTP = Httpaf.Server_connection;
 
 let create_connection_handler =
     (
-      ~config=HTTP.Config.default,
+      ~config=Httpaf.Config.default,
       ~request_handler,
       ~error_handler,
       client_addr,

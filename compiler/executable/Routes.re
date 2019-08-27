@@ -28,7 +28,7 @@ let read_to_string = (req_d, f) => {
       ~on_eof=() => f(str^),
       ~on_read=
         (data, ~off, ~len) => {
-          let str_part = Bigstring.to_string(~off, ~len, data);
+          let str_part = Bigstringaf.substring(~off, ~len, data);
           str := str^ ++ str_part;
 
           /* continue to read until body is empty */
@@ -83,7 +83,8 @@ let get_module = ({source_dir}, compiler, req_d, uri) =>
 
             Generator.generate(
               str =>
-                Bigstring.of_string(str) |> Body.write_bigstring(res_body),
+                Bigstringaf.of_string(~off=0, ~len=String.length(str), str)
+                |> Body.write_bigstring(res_body),
               Util.normalize_module(source_dir),
               ast,
             );

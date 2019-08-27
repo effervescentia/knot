@@ -1,6 +1,6 @@
 open Lwt.Infix;
 
-module Config = Httpaf.Server_connection.Config;
+module Config = Httpaf.Config;
 
 module Buffer = {
   type t = {
