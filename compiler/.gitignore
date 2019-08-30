@@ -7,4 +7,3 @@ _release
 _esy/
 .DS_Store
 *.install
-esy.lock
