@@ -211,6 +211,21 @@ jobs:
           command: yarn test
       - store_cypress_artifacts
 
+  release:
+    executor: node/node
+    steps:
+      - checkout
+      - setup_yarn
+      - run:
+          name: Install
+          command: yarn install
+      - run:
+          name: Build
+          command: yarn build
+      - run:
+          name: Release
+          command: yarn release
+
   validate_webpack_react:
     docker:
       - image: cypress/base:8
@@ -257,3 +272,9 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
+      - release:
+          requires:
+            - test_webpack_react
+          filters:
+            branches:
+              only: master
