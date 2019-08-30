@@ -44,7 +44,7 @@ export default {
     release: {
       description:
         'release all packages in repo, auto version and update interdependencies',
-      script: 'iolaus --dry-run'
+      script: 'iolaus'
     }
   }
 };
