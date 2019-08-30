@@ -671,6 +671,16 @@
     jss "^9.8.7"
     jss-preset-default "^4.5.0"
 
+"@knot/react-plugin@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@knot/react-plugin/-/react-plugin-1.1.0.tgz#da57a1dd53fbbd68b576e48d1f55aaf8c73b82a3"
+  integrity sha512-LsRhSKjpYzNmkHEFk6LbdGTqjeVnyRdi0TfWeu73emBbLdwKp1QtrL4H2qnruwUAtG8GNZqa0/HpBoSa0tc+Vw==
+  dependencies:
+    "@types/react" "^16.8.7"
+    "@types/react-dom" "^16.8.2"
+    react "^16.7.0"
+    react-dom "^16.7.0"
+
 "@knot/webpack-plugin@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@knot/webpack-plugin/-/webpack-plugin-1.1.0.tgz#ebf247e83a24a279c3800bf8dbf9ca9037ac4718"
@@ -7415,7 +7425,7 @@ invert-kv@^2.0.0:
   resolved "https://registry.yarnpkg.com/invert-kv/-/invert-kv-2.0.0.tgz#7393f5afa59ec9ff5f67a27620d11c226e3eec02"
   integrity sha512-wPVv/y/QQ/Uiirj/vh3oP+1Ww+AWehmi1g5fFWGPF6IpCBCDVrhgHRMvrLfdYcwDh3QJbGXDW4JAuzxElLSqKA==
 
-iolaus@^1.3.1:
+iolaus@^1.3.4:
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/iolaus/-/iolaus-1.3.4.tgz#a32962843c1451148e2c3d8a3021bf24bee9ea7e"
   integrity sha512-R9Y0O24L1z40bV+JvA+e9ov3gB2ekWBQ+CHW6EUSCKPLHQfC5VckP3iI792Nv60ES3Kpj2TKomQQd2bVi8hRKA==
