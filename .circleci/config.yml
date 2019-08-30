@@ -12,8 +12,8 @@ defaults:
     key: compiler_cache-v4-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
   compiler_cache_keys: &compiler_cache_keys
     keys:
-      - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}-{{ .Branch }}
-      - compiler_cache-v4-{{ checksum "compiler/esy.lock.json" }}
+      - compiler_cache-v4-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
+      - compiler_cache-v4-{{ checksum "compiler/esy.lock/index.json" }}
       - compiler_cache-v4
 
 orbs:
