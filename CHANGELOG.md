@@ -2,6 +2,20 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.2.1`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.1), [`@knot/webpack-plugin-v1.2.1`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.1) (2019-8-31)
+
+### `@knot/compiler`
+
+#### :bug: Bug Fixes
+
+- **npm**: fix compiler package to include compiled binaries ([c0bb5d0c](https://github.com/effervescentia/knot/commit/c0bb5d0cecf0c9912c122a698e4b2e8c72932634))
+
+### `@knot/webpack-plugin`
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.2.0` -> `v1.2.1`
+
 ## [`@knot/compiler-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.0), [`@knot/webpack-plugin-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.0), [`@knot/browser-plugin-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.2.0), [`@knot/jss-plugin-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/jss-plugin-v1.2.0), [`@knot/react-plugin-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/react-plugin-v1.2.0), [`@knot/cli-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.0.0) (2019-08-30)
 
 ### `@knot/compiler`
