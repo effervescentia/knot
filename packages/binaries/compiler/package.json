@@ -9,7 +9,8 @@
   "main": "index.js",
   "typings": "index.d.ts",
   "scripts": {
-    "postinstall": "node ./esyInstallRelease.js"
+    "postinstall": "node ./esyInstallRelease.js",
+    "prepublishOnly": "npm run compile --prefix ../../../compiler && cp -R ../../../compiler/_release/{_export,bin,esyInstallRelease.js} ."
   },
   "files": [
     "bin",

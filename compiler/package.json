@@ -3,7 +3,7 @@
   "description": "Compiler for the Knot programming language",
   "version": "0.0.0",
   "esy": {
-    "build": "dune build -p <PACKAGE_NAME>",
+    "build": "dune build -p knot",
     "buildDev": "pesy",
     "release": {
       "releasedBinaries": [
@@ -118,7 +118,8 @@
     "test:e2e:debug": "esy x knotc.exe -debug ./test/resources/project/src/index.kn",
     "test:e2e:simple": "esy x knotc.exe ./test/resources/simple_project/src/index.kn 1> /dev/null",
     "test:e2e:simple:debug": "esy x knotc.exe -debug ./test/resources/simple_project/src/index.kn",
-    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
+    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'",
+    "compile": "esy release"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
