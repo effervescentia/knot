@@ -1,7 +1,7 @@
 {
   "name": "@knot/react-plugin",
   "description": "React plugin to translate jsx for the knot language.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "engines": {
     "node": ">=8.9"
   },
