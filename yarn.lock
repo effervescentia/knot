@@ -630,10 +630,10 @@
   resolved "https://registry.yarnpkg.com/@iolaus/common/-/common-1.1.2.tgz#d1c7c6d3900aa11e5424db58b2889769bb43fd54"
   integrity sha512-pFPMLfolLbLbHaSudKwJT+Dwcp2NTfNPQOk9aqLjNg0JfxQ4W1+YY4eyZwDe16279V39YqPbogIBwc3nuWzPrA==
 
-"@iolaus/core@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@iolaus/core/-/core-1.4.0.tgz#d65be0ee56e764fec79f6522b88f0eef684d2134"
-  integrity sha512-Pj6ja0c2W5aNsocsmD78J9exOxD0JKilpOAOqfGbiB+1iageZ8YqF5P28CPXgNzKNnV/niqd75nt4lZRRfHDvg==
+"@iolaus/core@1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@iolaus/core/-/core-1.4.1.tgz#1b3c073ea30c0fa1eb8c5df6fbc172ae811f67c2"
+  integrity sha512-YYLzRWx8WwcZWo/u/DsPlc+eZddMAjmHSd0g0eOb/s1fXvduQy5pEpavelCQAgPE5QZR0L+BUqtOw133TxC/1w==
   dependencies:
     "@iolaus/common" "1.1.2"
     "@semantic-release/changelog" "^3.0.2"
@@ -7426,11 +7426,11 @@ invert-kv@^2.0.0:
   integrity sha512-wPVv/y/QQ/Uiirj/vh3oP+1Ww+AWehmi1g5fFWGPF6IpCBCDVrhgHRMvrLfdYcwDh3QJbGXDW4JAuzxElLSqKA==
 
 iolaus@^1.3.4:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/iolaus/-/iolaus-1.4.0.tgz#46bc879953c4a9e938b9eaef21b40b7898ffd388"
-  integrity sha512-jO5KKCMpEV1OQJ8TLmxNfL+vpk9HNXb8zWu9y+8S823KJWmyuxcf5tFZyyyb8Hd/1W2weCVqa2Unq+AK1iOokw==
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/iolaus/-/iolaus-1.4.1.tgz#4df96bd6e5e7fb1893647c1355523a1b710d0883"
+  integrity sha512-QtB6igbW5xmwaNPnq679GiyQ0npgsDZ/g7zS2lf9zT0UHVIPKENc4qMpWPpse/FPt3dQ8oJF9dZm72dSFsSN/A==
   dependencies:
-    "@iolaus/core" "1.4.0"
+    "@iolaus/core" "1.4.1"
     commander "^2.20.0"
     cosmiconfig "^5.2.1"
     read-pkg "^5.1.1"
@@ -10042,9 +10042,9 @@ npm-path@^2.0.2:
     which "^1.2.10"
 
 npm-pick-manifest@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/npm-pick-manifest/-/npm-pick-manifest-3.0.1.tgz#19c350ffbe42e0c3c054dcd50dd5760556a98bd8"
-  integrity sha512-QsJY1LuN6vuGg2BDnteeWGYODOYWZZwbW/YyCKHK4tt9uE+k2d70eg+Kr1CSLbX157Nu8UtY/Afdv884RnJSrQ==
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/npm-pick-manifest/-/npm-pick-manifest-3.0.2.tgz#f4d9e5fd4be2153e5f4e5f9b7be8dc419a99abb7"
+  integrity sha512-wNprTNg+X5nf+tDi+hbjdHhM4bX+mKqv6XmPh7B5eG+QY9VARfQPfCEH013H5GqfNj6ee8Ij2fg8yk0mzps1Vw==
   dependencies:
     figgy-pudding "^3.5.1"
     npm-package-arg "^6.0.0"
