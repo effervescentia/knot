@@ -77,6 +77,25 @@ commands:
       - run:
           name: Execute Lerna Command
           command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
+  esy_build:
+    description: use esy to build an ocaml project
+    parameters:
+      dir:
+        type: string
+    steps:
+      - run:
+          name: OCaml Install
+          working_directory: << parameters.dir >>
+          command: esy install && esy pesy
+      - run:
+          name: OCaml Build
+          working_directory: << parameters.dir >>
+          command: |
+            if [ -e ./_export ]; then
+              esy import-build ./_export/*.tar.gz
+            fi
+
+            esy build
   build_plugin:
     description: build @knot/*-plugin, run its tests and store the resulting built version
     parameters:
@@ -129,19 +148,8 @@ jobs:
           <<: *compiler_cache_keys
       - setup_yarn
       - setup_esy
-      - run:
-          name: Install
-          working_directory: ./compiler
-          command: esy install && esy pesy
-      - run:
-          name: Build
-          working_directory: ./compiler
-          command: |
-            if [ -e ./_export ]; then
-              esy import-build ./_export/*.tar.gz
-            fi
-
-            esy build
+      - esy_build:
+          dir: ./compiler
       - run:
           name: Test
           working_directory: ./compiler
@@ -215,13 +223,18 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - restore_cache:
+          <<: *compiler_cache_keys
       - setup_yarn
+      - setup_esy
       - run:
           name: Install
           command: yarn install
       - run:
           name: Build
           command: yarn build
+      - esy_build:
+          dir: ./compiler
       - run:
           name: Release
           command: yarn release
