@@ -77,8 +77,8 @@ commands:
       - run:
           name: Execute Lerna Command
           command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
-  esy_build:
-    description: use esy to build an ocaml project
+  esy_install:
+    description: use esy to install OCaml project dependencies
     parameters:
       dir:
         type: string
@@ -87,15 +87,6 @@ commands:
           name: OCaml Install
           working_directory: << parameters.dir >>
           command: esy install && esy pesy
-      - run:
-          name: OCaml Build
-          working_directory: << parameters.dir >>
-          command: |
-            if [ -e ./_export ]; then
-              esy import-build ./_export/*.tar.gz
-            fi
-
-            esy build
   build_plugin:
     description: build @knot/*-plugin, run its tests and store the resulting built version
     parameters:
@@ -148,8 +139,17 @@ jobs:
           <<: *compiler_cache_keys
       - setup_yarn
       - setup_esy
-      - esy_build:
+      - esy_install:
           dir: ./compiler
+      - run:
+          name: Build
+          working_directory: ./compiler
+          command: |
+            if [ -e ./_export ]; then
+              esy import-build ./_export/*.tar.gz
+            fi
+
+            esy build
       - run:
           name: Test
           working_directory: ./compiler
@@ -233,8 +233,15 @@ jobs:
       - run:
           name: Build
           command: yarn build
-      - esy_build:
+      - esy_install:
           dir: ./compiler
+      - run:
+          name: Generate Artifacts
+          working_directory: ./compiler
+          command: yarn compile
+      - run:
+          name: Copy Artifacts
+          command: cp -R ./compiler/_release/{_export,bin,esyInstallRelease.js} ./packages/binaries/compiler
       - run:
           name: Release
           command: yarn release
