@@ -2,6 +2,20 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.2.4`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.4), [`@knot/webpack-plugin-v1.2.4`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.4) (2019-9-3)
+
+### `@knot/compiler`
+
+#### :bug: Bug Fixes
+
+- **pkg**: remove prepublishOnly lifecycle hook from compiler ([009fef73](https://github.com/effervescentia/knot/commit/009fef73da1596aab6159fe7389165bee3ad1959))
+
+### `@knot/webpack-plugin`
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.2.3` -> `v1.2.4`
+
 ## [`@knot/compiler-v1.2.3`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.3), [`@knot/webpack-plugin-v1.2.3`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.3) (2019-9-3)
 
 ### `@knot/compiler`
