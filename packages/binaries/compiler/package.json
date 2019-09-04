@@ -9,15 +9,18 @@
   "main": "index.js",
   "typings": "index.d.ts",
   "scripts": {
-    "postinstall": "node ./esyInstallRelease.js"
+    "postinstall": "./install.js"
   },
   "files": [
-    "bin",
-    "_export",
-    "esyInstallRelease.js",
+    "platforms",
+    "install.js",
     "index.d.ts"
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "execa": "^2.0.4",
+    "fs-extra": "^8.1.0"
   }
 }

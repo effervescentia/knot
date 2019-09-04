@@ -219,7 +219,25 @@ jobs:
           command: yarn test
       - store_cypress_artifacts
 
-  release:
+  compile_macos:
+    macos:
+      xcode: "11.0.0"
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *compiler_cache_keys
+      - setup_yarn
+      - setup_esy
+      - esy_install:
+          dir: ./compiler
+      - run:
+          name: Build Compiler
+          command: yarn x build.compiler
+      - persist:
+          path: ./compiler/_release
+          to: compiler_macos
+
+  compile_linux:
     executor: node/node
     steps:
       - checkout
@@ -227,17 +245,36 @@ jobs:
           <<: *compiler_cache_keys
       - setup_yarn
       - setup_esy
-      - run:
-          name: Install
-          command: yarn install
       - esy_install:
           dir: ./compiler
       - run:
-          name: Build
-          command: yarn build
+          name: Build Compiler
+          command: yarn x build.compiler
+      - persist:
+          path: ./compiler/_release
+          to: compiler_linux
+
+  release:
+    executor: node/node
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *compiler_cache_keys
+      - setup_yarn
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
-          name: Copy Artifacts
-          command: cp -R ./compiler/_release/{_export,bin,esyInstallRelease.js} ./packages/binaries/compiler
+          name: Retrieve Compiler Artifacts
+          working_directory: ./packages/binaries/compiler
+          command: |
+            mv /tmp/workspace/compiler_macos platforms/macos
+            mv /tmp/workspace/compiler_linux platforms/linux
+      - run:
+          name: Install
+          command: yarn install
+      - run:
+          name: Build Packages
+          command: yarn x build.packages
       - run:
           name: Release
           command: yarn release
@@ -288,9 +325,22 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
-      - release:
+      - compile_macos:
           requires:
             - test_webpack_react
+          filters:
+            branches:
+              only: master
+      - compile_linux:
+          requires:
+            - test_webpack_react
+          filters:
+            branches:
+              only: master
+      - release:
+          requires:
+            - compile_macos
+            - compile_linux
           filters:
             branches:
               only: master
