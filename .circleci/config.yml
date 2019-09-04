@@ -230,15 +230,11 @@ jobs:
       - run:
           name: Install
           command: yarn install
-      - run:
-          name: Build
-          command: yarn build
       - esy_install:
           dir: ./compiler
       - run:
-          name: Generate Artifacts
-          working_directory: ./compiler
-          command: yarn compile
+          name: Build
+          command: yarn build
       - run:
           name: Copy Artifacts
           command: cp -R ./compiler/_release/{_export,bin,esyInstallRelease.js} ./packages/binaries/compiler

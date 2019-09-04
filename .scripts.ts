@@ -1,7 +1,7 @@
 // tslint:disable: no-reference object-literal-sort-keys
 /// <reference path="./scripts/nps-utils.d.ts" />
 
-import { series } from 'nps-utils';
+import { concurrent, series } from 'nps-utils';
 import { DEFAULT_OPTIONS } from './scripts';
 
 const PKG_FILTER = '--ignore=@knot/*-example';
@@ -21,8 +21,19 @@ export default {
     },
 
     build: {
-      description: 'build all packages in repo',
-      script: pkgRun('build')
+      default: {
+        description: 'build all projects in repo',
+        script: concurrent.nps('build.packages', 'build.compiler')
+      },
+
+      packages: {
+        description: 'build all packages in repo',
+        script: pkgRun('build')
+      },
+      compiler: {
+        description: 'build compiler',
+        script: '(cd compiler && esy release)'
+      },
     },
 
     test: {
