@@ -77,16 +77,22 @@ commands:
       - run:
           name: Execute Lerna Command
           command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
-  esy_install:
-    description: use esy to install OCaml project dependencies
+  compiler_install:
+    description: use esy to install Compiler OCaml dependencies
     parameters:
       dir:
         type: string
     steps:
       - run:
-          name: OCaml Install
-          working_directory: << parameters.dir >>
+          name: Install Compiler Dependencies
+          working_directory: ./compiler
           command: esy install && esy pesy
+  node_install:
+    description: use yarn to install Node project dependencies
+    steps:
+      - run:
+          name: Node Install Node Dependencies
+          command: yarn install
   build_plugin:
     description: build @knot/*-plugin, run its tests and store the resulting built version
     parameters:
@@ -139,8 +145,7 @@ jobs:
           <<: *compiler_cache_keys
       - setup_yarn
       - setup_esy
-      - esy_install:
-          dir: ./compiler
+      - compiler_install
       - run:
           name: Build
           working_directory: ./compiler
@@ -228,8 +233,8 @@ jobs:
           <<: *compiler_cache_keys
       - setup_yarn
       - setup_esy
-      - esy_install:
-          dir: ./compiler
+      - node_install
+      - compiler_install
       - run:
           name: Build Compiler
           command: yarn x build.compiler
@@ -245,8 +250,8 @@ jobs:
           <<: *compiler_cache_keys
       - setup_yarn
       - setup_esy
-      - esy_install:
-          dir: ./compiler
+      - node_install
+      - compiler_install
       - run:
           name: Build Compiler
           command: yarn x build.compiler
@@ -269,9 +274,7 @@ jobs:
           command: |
             mv /tmp/workspace/compiler_macos platforms/macos
             mv /tmp/workspace/compiler_linux platforms/linux
-      - run:
-          name: Install
-          command: yarn install
+      - node_install
       - run:
           name: Build Packages
           command: yarn x build.packages
