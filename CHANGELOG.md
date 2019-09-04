@@ -2,6 +2,20 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.2.5`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.5), [`@knot/webpack-plugin-v1.2.5`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.5) (2019-9-4)
+
+### `@knot/compiler`
+
+#### :bug: Bug Fixes
+
+- **pkg**: build npm release of compiler properly ([8129db9b](https://github.com/effervescentia/knot/commit/8129db9bd56f65a748366aabdb3784cbb1524e46))
+
+### `@knot/webpack-plugin`
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.2.4` -> `v1.2.5`
+
 ## [`@knot/compiler-v1.2.4`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.4), [`@knot/webpack-plugin-v1.2.4`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.4) (2019-9-3)
 
 ### `@knot/compiler`
