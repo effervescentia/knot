@@ -79,9 +79,6 @@ commands:
           command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
   compiler_install:
     description: use esy to install Compiler OCaml dependencies
-    parameters:
-      dir:
-        type: string
     steps:
       - run:
           name: Install Compiler Dependencies
