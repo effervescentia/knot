@@ -5,7 +5,7 @@
   "repository": "https://github.com/effervescentia/knot.git",
   "main": "index.js",
   "files": [
-    "index.js"
+    "utils.js"
   ],
   "publishConfig": {
     "access": "public"
