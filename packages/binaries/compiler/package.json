@@ -1,6 +1,6 @@
 {
   "name": "@knot/compiler",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "license": "MIT",
   "repository": "https://github.com/effervescentia/knot.git",
   "bin": {

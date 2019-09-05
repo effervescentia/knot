@@ -2,6 +2,37 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.2.7`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.7), [`@knot/cli-v1.1.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.1.0), [`@knot/browser-plugin-v1.2.1`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.2.1), [`@knot/webpack-plugin-v1.2.7`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.7) (2019-9-5)
+
+### `@knot/compiler`
+
+#### :bug: Bug Fixes
+
+- **pkg**: fix installing compiler binaries ([b0a837b5](https://github.com/effervescentia/knot/commit/b0a837b5e8317c8efa8d4ffcd59dd409d224acdd))
+- **pkg**: install binaries in production but not locally ([4c384747](https://github.com/effervescentia/knot/commit/4c38474705b66b3d6e5c263b686d90d624f32837))
+
+### `@knot/cli`
+
+#### :sparkles: New Features
+
+- **https**: add default support for local https ([e361c327](https://github.com/effervescentia/knot/commit/e361c3276a4671b98a7714562226d86e3127d9dd))
+#### :bug: Bug Fixes
+
+- add missing template folder ([3d37ef11](https://github.com/effervescentia/knot/commit/3d37ef1146b3b391d954280ac35b002e4e30aeb4))
+
+### `@knot/browser-plugin`
+
+#### :bug: Bug Fixes
+
+- **pkg**: include utils module in released package ([3ddf4fb1](https://github.com/effervescentia/knot/commit/3ddf4fb14b43c38ae7da8d8a6d5ecafc2fb12a90))
+
+### `@knot/webpack-plugin`
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/browser-plugin` from `v1.2.0` -> `v1.2.1`
+- **automatic**: upgrade `@knot/compiler` from `v1.2.6` -> `v1.2.7`
+
 ## [`@knot/compiler-v1.2.6`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.6), [`@knot/webpack-plugin-v1.2.6`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.6) (2019-9-5)
 
 ### `@knot/compiler`

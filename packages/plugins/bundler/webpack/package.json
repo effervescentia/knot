@@ -1,6 +1,6 @@
 {
   "name": "@knot/webpack-plugin",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "engines": {
     "node": ">=8.9"
   },
@@ -16,8 +16,8 @@
     "usage": "nps help"
   },
   "dependencies": {
-    "@knot/browser-plugin": "1.2.0",
-    "@knot/compiler": "1.2.6",
+    "@knot/browser-plugin": "1.2.1",
+    "@knot/compiler": "1.2.7",
     "@knot/jss-plugin": "1.2.0",
     "@knot/react-plugin": "1.2.0",
     "cross-fetch": "^3.0.1",
