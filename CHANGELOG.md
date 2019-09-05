@@ -2,6 +2,14 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/cli-v1.1.1`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.1.1) (2019-9-5)
+
+### `@knot/cli`
+
+#### :bug: Bug Fixes
+
+- include dotfiles for project generation ([ba5b4397](https://github.com/effervescentia/knot/commit/ba5b43975f2e4bb25a51c2f0a4a9a99065899e46))
+
 ## [`@knot/compiler-v1.2.7`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.7), [`@knot/cli-v1.1.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.1.0), [`@knot/browser-plugin-v1.2.1`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.2.1), [`@knot/webpack-plugin-v1.2.7`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.7) (2019-9-5)
 
 ### `@knot/compiler`
