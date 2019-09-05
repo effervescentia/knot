@@ -110,7 +110,7 @@ commands:
     description: use yarn to install Node project dependencies
     steps:
       - run:
-          name: Node Install Node Dependencies
+          name: Install Node Dependencies
           command: yarn install
   build_plugin:
     description: build @knot/*-plugin, run its tests and store the resulting built version
@@ -303,8 +303,8 @@ jobs:
           name: Retrieve Compiler Artifacts
           working_directory: ./packages/binaries/compiler
           command: |
-            mv /tmp/workspace/compiler_macos platforms/macos
-            mv /tmp/workspace/compiler_linux platforms/linux
+            mv /tmp/workspace/compiler_macos/* platforms/macos
+            mv /tmp/workspace/compiler_linux/* platforms/linux
       - node_install
       - run:
           name: Build Packages
