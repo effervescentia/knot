@@ -1,11 +1,16 @@
 import KnotPlugin from '@knot/webpack-plugin';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as HtmlPlugin from 'html-webpack-plugin';
+
+const BUILD_DIR = path.join(__dirname, 'dist');
+const CERTS_DIR = path.join(__dirname, 'certs');
 
 export default {
   entry: './src/index.js',
   output: {
     filename: 'app.js',
-    path: __dirname + '/dist'
+    path: BUILD_DIR
   },
 
   resolve: {
@@ -22,6 +27,11 @@ export default {
   devServer: {
     historyApiFallback: true,
     open: true,
-    port: 1337
+    port: 1337,
+
+    https: {
+      key: fs.readFileSync(path.join(CERTS_DIR, 'localhost.key')),
+      cert: fs.readFileSync(path.join(CERTS_DIR, 'localhost.crt'))
+    }
   }
 };
