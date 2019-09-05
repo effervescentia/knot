@@ -14,10 +14,10 @@ const copyArtifacts = platform => fs.copy(path.join(PLATFORMS_DIR, platform), __
 
 async function installPlatformArtifacts() {
   try {
-    await fs.ensureFile(ENTRYPOINT);
+    await fs.access(ENTRYPOINT, fs.constants.F_OK);
     console.log('binary already installed');
     return;
-  } catch {
+  } catch (e) {
     // install binaries if they do not exist
   }
 
