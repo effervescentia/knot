@@ -2,6 +2,26 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.2.8`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.2.8), [`@knot/cli-v1.1.2`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.1.2), [`@knot/webpack-plugin-v1.2.8`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.2.8) (2019-9-7)
+
+### `@knot/compiler`
+
+#### :bug: Bug Fixes
+
+- **binary**: use placeholder to install binary properly ([e3638403](https://github.com/effervescentia/knot/commit/e36384034dea300cb31225e51b7c2ffcb05aaa03))
+
+### `@knot/cli`
+
+#### :bug: Bug Fixes
+
+- **binary**: use placeholder to install binary properly ([e3638403](https://github.com/effervescentia/knot/commit/e36384034dea300cb31225e51b7c2ffcb05aaa03))
+
+### `@knot/webpack-plugin`
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.2.7` -> `v1.2.8`
+
 ## [`@knot/cli-v1.1.1`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.1.1) (2019-9-5)
 
 ### `@knot/cli`
