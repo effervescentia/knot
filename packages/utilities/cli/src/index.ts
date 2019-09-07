@@ -59,7 +59,7 @@ program
     const webpackPluginVersion = await latestVersion('@knot/webpack-plugin');
 
     gulp
-      .src(`${sourceDir}/**`, { dot: true })
+      .src(`${sourceDir}/**`)
       .pipe(
         rename(file => {
           if (file.basename.startsWith('_')) {
