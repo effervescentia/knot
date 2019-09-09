@@ -12,6 +12,9 @@ jobs:
   checkout:
     name: Checkout
     runs-on: ubuntu-latest
+    container:
+      volumes:
+        - /tmp/workspace:/tmp/workspace
     steps:
       - name: Checkout Code
         uses: actions/checkout@v1
@@ -21,11 +24,16 @@ jobs:
           touch SOME_FILE
           touch "${GITHUB_WORKSPACE}/OTHER_FILE"
           touch "/home/runner/work/LAST_FILE"
+          touch /tmp/workspace/PERSISTENT_FILE
+          ls -al /tmp/workspace
 
   test_compiler:
     name: Build and Test Compiler
     needs: checkout
     runs-on: ubuntu-latest
+    container:
+      volumes:
+        - /tmp/workspace:/tmp/workspace
     steps:
       # - name: Setup Node
       #   uses: actions/setup-node@v1
@@ -38,6 +46,7 @@ jobs:
           ls -al /home/runner/work/_temp
           ls -al /home/runner/work/_temp/_github_workflow
           ls -al /home/runner/work/knot
+          ls -al /tmp/workspace
   #     - name: Install OCaml Dependencies
   #       run: esy install && esy pesy
   #       working-directory: compiler
