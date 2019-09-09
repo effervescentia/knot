@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       volumes:
-        - /tmp/workspace: /tmp/workspace
+        - '/tmp/workspace:/tmp/workspace'
     steps:
       # - name: Setup Node
       #   uses: actions/setup-node@v1
