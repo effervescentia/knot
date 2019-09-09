@@ -25,7 +25,7 @@ jobs:
       #   uses: actions/setup-node@v1
 
       - name: Test
-        run: ls -al
+        run: ls -al ${GITHUB_WORKSPACE}
   #     - name: Install OCaml Dependencies
   #       run: esy install && esy pesy
   #       working-directory: compiler
