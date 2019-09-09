@@ -16,6 +16,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v1
 
+      - name: Make Stuff
+        run: |
+          touch SOME_FILE
+          touch "${GITHUB_WORKSPACE}/OTHER_FILE"
+          touch "/home/runner/work/LAST_FILE"
+
   test_compiler:
     name: Build and Test Compiler
     needs: checkout
@@ -29,6 +35,8 @@ jobs:
           echo ${GITHUB_WORKSPACE}
           ls -al ${GITHUB_WORKSPACE}
           ls -al /home/runner/work
+          ls -al /home/runner/work/_temp
+          ls -al /home/runner/work/knot
   #     - name: Install OCaml Dependencies
   #       run: esy install && esy pesy
   #       working-directory: compiler
