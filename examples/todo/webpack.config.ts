@@ -2,31 +2,31 @@ import KnotPlugin from '@knot/webpack-plugin';
 import * as HtmlPlugin from 'html-webpack-plugin';
 import * as path from 'path';
 
-export default {
+export default env => ({
   entry: './src/index.js',
 
   output: {
     filename: 'app.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'dist')
   },
 
   resolve: {
-    extensions: ['.kn', '.js', '.json'],
+    extensions: ['.kn', '.js', '.json']
   },
 
   plugins: [
     new HtmlPlugin({
-      template: 'index.html',
+      template: 'index.html'
     }),
     new KnotPlugin({
       // debug: true,
-      knot: process.env.KNOT_BINARY,
-    }),
+      knot: env && env.knotc
+    })
   ],
 
   devServer: {
     historyApiFallback: true,
     open: true,
-    port: 1337,
-  },
-};
+    port: 1337
+  }
+});

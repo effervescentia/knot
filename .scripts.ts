@@ -7,7 +7,8 @@ import { DEFAULT_OPTIONS } from './scripts';
 const PKG_FILTER = '--ignore=@knot/*-example';
 const EXAMPLE_FILTER = '--scope=@knot/*-example';
 
-const run = (args: string) => `lerna run ${args}`;
+const run = (args: string, filter?: string) =>
+  `lerna run ${filter ? `--scope=${filter} ` : ''}${args}`;
 const pkgRun = (task: string) => run(`${PKG_FILTER} ${task}`);
 const exampleRun = (task: string) => run(`${EXAMPLE_FILTER} ${task}`);
 
@@ -33,7 +34,26 @@ export default {
       compiler: {
         description: 'build compiler',
         script: '(cd compiler && esy release)'
-      },
+      }
+    },
+
+    start: {
+      example: {
+        webpack_react: {
+          description: 'run the "webpack + react" example',
+          script: run(
+            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+            '@knot/webpack-react-example'
+          )
+        },
+        todo: {
+          description: 'run the "todo" example',
+          script: run(
+            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+            '@knot/todomvc-example'
+          )
+        }
+      }
     },
 
     test: {
