@@ -22,14 +22,22 @@ let load = (prog, file) => {
       | None => raise(ParsingFailed)
     )
   ) {
-  | InvalidCharacter(ch, cursor) =>
-    Printf.printf(
-      "failed to parse file '%s'\nencountered unexpected character '%s' at [%d, %d]",
-      file,
-      print_uchar(ch),
-      fst(cursor),
-      snd(cursor),
-    );
+  | err =>
+    Printf.sprintf("failed to parse file '%s'", file) |> print_endline;
+
+    switch (err) {
+    | InvalidCharacter(ch, cursor) =>
+      Printf.sprintf(
+        "encountered unexpected character '%s' at [%d, %d]",
+        print_uchar(ch),
+        fst(cursor),
+        snd(cursor),
+      )
+      |> print_endline
+    | _ =>
+      /* unexpected exception was caught */
+      ()
+    };
 
     raise(LexingFailed);
   };
