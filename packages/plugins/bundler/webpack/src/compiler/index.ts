@@ -1,6 +1,6 @@
 // tslint:disable:no-expression-statement
-import * as KnotCompiler from '@knot/compiler';
 import execa from 'execa';
+import { KNOT_BINARY } from '../config';
 import { Compiler, Options } from '../types';
 import * as Tasks from './tasks';
 
@@ -13,7 +13,13 @@ export default function createCompiler(options: Options): Compiler {
     options.config,
     ...(options.debug ? ['-debug'] : [])
   ];
-  const proc = execa(options.knot || KnotCompiler.path, [...knotArgs]);
+  const [cmd, ...args] = (options.knot || KNOT_BINARY).split(/\s+/);
+  // tslint:disable-next-line: no-console
+  console.log(
+    `running knot using the command "${[cmd, ...args, ...knotArgs].join(' ')}"`
+  );
+
+  const proc = execa(cmd, [...args, ...knotArgs]);
   const baseUrl = `http://localhost:${options.port}`;
 
   // tslint:disable-next-line:no-console
