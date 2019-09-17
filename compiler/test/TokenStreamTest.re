@@ -3,7 +3,7 @@ open Core;
 let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =
     Util.load_resource(file)
-    |> FileStream.of_channel
+    |> UnicodeFileStream.of_channel
     |> TokenStream.of_file_stream;
 
   let rec loop = (stream, tkns) =>

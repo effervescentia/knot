@@ -15,7 +15,7 @@ let rec _cursor_from = (input, count) =>
     } else {
       (res, Lazy.force(lz));
     }
-  | LazyStream.Nil => ((char_of_int(0), ((-1), (-1))), LazyStream.Nil)
+  | LazyStream.Nil => ((Uchar.of_int(0), ((-1), (-1))), LazyStream.Nil)
   };
 let _assert_cursor =
     ((actual, _), expected_ch, expected_row, expected_column) =>
@@ -23,15 +23,16 @@ let _assert_cursor =
 
 let test_read_fully = (file, ctx) => {
   let channel = Util.load_resource(file);
-  let input = FileStream.of_channel(channel);
+  let input = UnicodeFileStream.of_channel(channel);
 
-  let rec next = (s, x) =>
+  let rec next = (buf, x) =>
     switch (x) {
     | LazyStream.Cons((ch, _), lz) =>
-      next(s ++ String.make(1, ch), Lazy.force(lz))
-    | LazyStream.Nil => s
+      Buffer.add_utf_8_uchar(buf, ch);
+      next(buf, Lazy.force(lz));
+    | LazyStream.Nil => Buffer.contents(buf)
     };
-  let full_text = next("", input);
+  let full_text = next(Buffer.create(512), input);
 
   close_in(channel);
 
@@ -42,8 +43,8 @@ let test_cursor_information = (file, char, position, row, column) => {
   let channel = Util.load_resource(file);
 
   _assert_cursor(
-    _cursor_from(FileStream.of_channel(channel), position),
-    char,
+    _cursor_from(UnicodeFileStream.of_channel(channel), position),
+    Uchar.of_char(char),
     row,
     column,
   );
@@ -53,7 +54,7 @@ let test_cursor_information = (file, char, position, row, column) => {
 
 let test_reposition = (file, position) => {
   let channel = Util.load_resource(file);
-  let input = FileStream.of_channel(channel);
+  let input = UnicodeFileStream.of_channel(channel);
   let channel_length = in_channel_length(channel);
   let extra_reads = Random.int(channel_length - position - 1);
 
@@ -79,7 +80,7 @@ let tests =
         test_cursor_information(Config.unix_file, 'c', 3, 1, 3);
         test_cursor_information(Config.unix_file, '2', 18, 2, 2);
         test_cursor_information(Config.unix_file, '_', 30, 3, 10);
-        test_cursor_information(Config.unix_file, '\n', 31, 3, 11);
+        test_cursor_information(Config.unix_file, '\n', 31, 4, 0);
       }
     ),
     "read windows file and check cursor"
@@ -88,7 +89,7 @@ let tests =
         test_cursor_information(Config.windows_file, 'c', 3, 1, 3);
         test_cursor_information(Config.windows_file, '2', 18, 2, 2);
         test_cursor_information(Config.windows_file, '_', 30, 3, 10);
-        test_cursor_information(Config.windows_file, '\n', 31, 3, 11);
+        test_cursor_information(Config.windows_file, '\n', 31, 4, 0);
       }
     ),
     "read unix file and reposition cursor"

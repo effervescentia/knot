@@ -65,10 +65,10 @@ let assert_cursor_eql = (actual, expected) =>
     ~msg="file cursor match",
     ~printer=
       ((ch, (row, col))) =>
-        Printf.sprintf("'%c' at [%d:%d]", ch, row, col),
+        Printf.sprintf("'%s' at [%d:%d]", print_uchar(ch), row, col),
     ~cmp=
       (lhs, rhs) =>
-        fst(lhs) == fst(rhs)
+        Uchar.equal(fst(lhs), fst(rhs))
         && fst(snd(lhs)) == fst(snd(rhs))
         && snd(snd(lhs)) == snd(snd(rhs)),
     expected,

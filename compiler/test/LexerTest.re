@@ -1,17 +1,17 @@
 open Core;
 
 let to_file_stream = s => {
-  let remaining = ref(s);
-  let next = s =>
-    if (String.length(s) == 0) {
-      None;
-    } else {
-      let ch = s.[0];
-      remaining := String.sub(s, 1, String.length(s) - 1);
-      Some((ch, (0, 0)));
+  let decoder = Uutf.decoder(`String(s));
+  let next = () =>
+    switch (Uutf.decode(decoder)) {
+    | `End => None
+    | `Uchar(ch) =>
+      Some((ch, (Uutf.decoder_line(decoder), Uutf.decoder_col(decoder))))
+    | `Malformed(_) => None
+    | `Await => assert(false)
     };
 
-  LazyStream.of_function(() => next(remaining^));
+  LazyStream.of_function(next);
 };
 
 let test_lex_token = ((s, tkn)) =>
@@ -24,6 +24,15 @@ let test_lex_tokens = (xs, _) => List.iter(test_lex_token, xs);
 let tests =
   "KnotLex.Lexer"
   >::: [
+    "lex invalid character"
+    >:: (
+      _ =>
+        switch (Lexer.next_token(to_file_stream("∑"))) {
+        | _ => assert_failure("accepted invalid character")
+        | exception (InvalidCharacter(ch, cursor)) =>
+          assert_cursor_eql((ch, cursor), (Uchar.of_int(8721), (1, 1)))
+        }
+    ),
     "lex characters"
     >:: test_lex_tokens([
           (" ", Space),
