@@ -15,6 +15,13 @@ let w_opt = (x, g, f) =>
 let iff = (a, x, y) => w_opt(y, _ => x, a);
 let is_some = a => iff(a, true, false);
 
+let print_uchar = ch => {
+  let buf = Buffer.create(128);
+  Buffer.add_utf_8_uchar(buf, ch);
+
+  Buffer.contents(buf);
+};
+
 let (|?>) = (f, g) => w_opt(None, g % some, f);
 let (|!>) = (f, g) => w_opt((), g, f);
 let (|^>) = (f, g) => w_opt(f, g % (_ => f), f);

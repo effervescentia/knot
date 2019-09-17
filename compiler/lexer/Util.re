@@ -1,5 +1,23 @@
 open Core;
 
+let num_0_uchar = Uchar.of_char('0');
+let num_9_uchar = Uchar.of_char('9');
+let lowercase_a_uchar = Uchar.of_char('a');
+let uppercase_a_uchar = Uchar.of_char('A');
+let lowercase_z_uchar = Uchar.of_char('z');
+let uppercase_z_uchar = Uchar.of_char('Z');
+
+let is_uchar_between = ((start_ch, end_ch), ch) =>
+  Uchar.compare(ch, start_ch) >= 0 && Uchar.compare(ch, end_ch) <= 0;
+let is_uchar_lowercase_alpha =
+  is_uchar_between((lowercase_a_uchar, lowercase_z_uchar));
+let is_uchar_uppercase_alpha =
+  is_uchar_between((uppercase_a_uchar, uppercase_z_uchar));
+let is_uchar_alpha = ch =>
+  is_uchar_lowercase_alpha(ch) || is_uchar_uppercase_alpha(ch);
+let is_uchar_numeric = is_uchar_between((num_0_uchar, num_9_uchar));
+let is_uchar_alphanumeric = ch => is_uchar_alpha(ch) || is_uchar_numeric(ch);
+
 let rec (===>) = (s, t) => {
   let next = _ =>
     if (String.length(s) == 1) {
@@ -51,13 +69,15 @@ let rec normalize_lexers =
 let rec test_match = (m, stream, x) =>
   switch (stream) {
   | LazyStream.Cons((c, _), next_stream) =>
-    switch (m, c) {
-    | (Char(ch), _) when ch == c => x(Lazy.force(next_stream))
-    | (Alpha, 'a'..'z' | 'A'..'Z')
-    | (Numeric, '0'..'9')
-    | (AlphaNumeric, 'a'..'z' | 'A'..'Z' | '0'..'9')
-    | (Any, _) => x(Lazy.force(next_stream))
-    | (Either(ms), _) =>
+    switch (m) {
+    | Char(ch) when Uchar.equal(Uchar.of_char(ch), c) =>
+      x(Lazy.force(next_stream))
+    | Alpha when is_uchar_alpha(c) => x(Lazy.force(next_stream))
+    | Numeric when is_uchar_numeric(c) => x(Lazy.force(next_stream))
+    | AlphaNumeric when is_uchar_alphanumeric(c) =>
+      x(Lazy.force(next_stream))
+    | Any => x(Lazy.force(next_stream))
+    | Either(ms) =>
       let rec first_match = (
         fun
         | [m, ...ms] =>
@@ -69,7 +89,7 @@ let rec test_match = (m, stream, x) =>
       );
 
       first_match(ms);
-    | (Except(ms), _) =>
+    | Except(ms) =>
       let has_matches =
         List.fold_left(
           (acc, m) =>
@@ -89,10 +109,11 @@ let rec test_match = (m, stream, x) =>
       } else {
         None;
       };
-    | (Token(s), _) =>
+    | Token(s) =>
       let rec next = (s, input) =>
         switch (input) {
-        | LazyStream.Cons((c, _), next_input) when c == s.[0] =>
+        | LazyStream.Cons((c, _), next_input)
+            when Uchar.equal(c, Uchar.of_char(s.[0])) =>
           if (String.length(s) == 1) {
             x(Lazy.force(next_input));
           } else {

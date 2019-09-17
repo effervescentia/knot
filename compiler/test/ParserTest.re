@@ -8,7 +8,7 @@ let tests =
       _ => {
         let token_stream =
           Util.load_resource(Config.unix_module_file)
-          |> FileStream.of_channel
+          |> UnicodeFileStream.of_channel
           |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments);
 
         switch (Parser.parse(Parser.prog, token_stream)) {

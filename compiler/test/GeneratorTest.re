@@ -10,7 +10,7 @@ let tests =
         let scope = KnotAnalyze.Scope.create();
 
         Util.load_resource(Config.sample_snippet)
-        |> FileStream.of_channel
+        |> UnicodeFileStream.of_channel
         |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
         |> Parser.parse(Parser.prog)
         |> Analyzer.analyze(~scope)

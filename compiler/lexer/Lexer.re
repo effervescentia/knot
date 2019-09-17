@@ -1,5 +1,7 @@
 open Core;
 
+let token_buffer_size = 512;
+
 let root =
   Lexers([
     Character.lexer,
@@ -13,13 +15,13 @@ let root =
   ])
   |> Util.normalize_lexers;
 
-let rec exec_lexer = (results, s, lex, stream) =>
+let rec exec_lexer = (results, buf, lex, stream) =>
   switch (lex) {
   | Lexers(ls) =>
     Lexers(
       List.fold_left(
         (acc, l) =>
-          switch (exec_lexer(results, s, l, stream)) {
+          switch (exec_lexer(results, buf, l, stream)) {
           | Some(r) => [r, ...acc]
           | None => acc
           },
@@ -30,32 +32,39 @@ let rec exec_lexer = (results, s, lex, stream) =>
     |> Util.normalize_lexers
   | Lexer(m, nm, t) =>
     Util.test_match(m, stream, next_stream =>
-      Util.test_match(nm, next_stream, _ => t(s) |> Util.normalize_lexers)
+      Util.test_match(nm, next_stream, _ =>
+        t(Buffer.contents(buf)) |> Util.normalize_lexers
+      )
     )
   | Result(tkn) =>
     results := [(tkn, stream), ...results^];
     None;
   }
-and find_token = (results, s, lex, stream) =>
+and find_token = (results, buf, lex, stream) =>
   switch (lex, stream) {
   /* found a single longest result */
   | (Some(Result(tkn)), _) => Some((tkn, stream))
   /* found a lexer */
   | (Some(l), LazyStream.Cons((ch, _), next_stream)) =>
-    let next_string = s ++ String.make(1, ch);
+    Buffer.add_utf_8_uchar(buf, ch);
 
-    switch (exec_lexer(results, next_string, l, stream)) {
+    switch (exec_lexer(results, buf, l, stream)) {
     /* remaining lexers */
     | Some(_) as res =>
-      find_token(results, next_string, res, Lazy.force(next_stream))
+      find_token(results, buf, res, Lazy.force(next_stream))
     /* no remaining lexers */
-    | None => find_token(results, s, None, stream)
+    | None => find_token(results, buf, None, stream)
     };
   /* ran out of lexers */
-  | (None, _) =>
+  | (None, curr) =>
     switch (results^) {
     | [x, ...xs] => Some(x)
-    | [] => None
+    | [] =>
+      switch (curr) {
+      | LazyStream.Cons((ch, cursor), _) =>
+        raise(InvalidCharacter(ch, cursor))
+      | _ => None
+      }
     }
   /* hit EOF */
   | (Some(l), LazyStream.Nil) =>
@@ -68,5 +77,5 @@ and find_token = (results, s, lex, stream) =>
 let next_token = input => {
   let results = ref([]);
 
-  find_token(results, "", root, input);
+  find_token(results, Buffer.create(token_buffer_size), root, input);
 };
