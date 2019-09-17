@@ -23,14 +23,13 @@ let load = (prog, file) => {
     )
   ) {
   | InvalidCharacter(ch, cursor) =>
-    Printf.sprintf(
+    Printf.printf(
       "failed to parse file '%s'\nencountered unexpected character '%s' at [%d, %d]",
       file,
       print_uchar(ch),
       fst(cursor),
       snd(cursor),
-    )
-    |> print_endline;
+    );
 
     raise(LexingFailed);
   };
