@@ -38,7 +38,7 @@ let cache_as_tmp = (buffer_size, file) =>
       close_out(tmp_channel);
       close_in(in_channel);
 
-      open_in(tmp_file);
+      tmp_file;
     }
   );
 

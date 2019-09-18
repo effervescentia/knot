@@ -18,7 +18,8 @@
         "opal",
         "dolog",
         "emoji",
-        "uutf"
+        "uutf",
+        "ANSITerminal"
       ],
       "name": "knot.lib",
       "namespace": "Knot"

@@ -77,7 +77,7 @@ let add =
     raise(CircularDependencyDetected);
   };
 
-  let loaded = ref(Loader.load(Parser.prog, absolute_path));
+  let loaded = ref(Loader.load(Parser.prog, absolute_path, relative_path));
 
   Log.info(
     "%s  %s (%s)",
@@ -151,7 +151,7 @@ let inject =
     ) => {
   Log.info("%s  %s (%s)", Emoji.syringe, pretty_path, name);
 
-  let loaded = Loader.load(Parser.defn, absolute_path);
+  let loaded = Loader.load(Parser.defn, absolute_path, relative_path);
 
   Log.info(
     "%s  %s (%s)",
