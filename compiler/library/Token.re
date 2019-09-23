@@ -62,5 +62,4 @@ type token =
   | Boolean(bool)
   | JSXTextNode(string)
   | LineComment(string)
-  | BlockComment(string)
-  | Unexpected(char);
+  | BlockComment(string);

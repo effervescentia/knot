@@ -71,6 +71,5 @@ let print_tkn =
     | String(s) => Printf.sprintf("string(%s)", s)
     | LineComment(s) => Printf.sprintf("line_comment(%s)", s)
     | BlockComment(s) => Printf.sprintf("block_comment(%s)", s)
-    | Unexpected(c) => Printf.sprintf("UNEXPECTED(%c)", c)
   )
   % String.escaped;

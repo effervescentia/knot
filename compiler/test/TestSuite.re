@@ -12,8 +12,8 @@ let () = {
 
         ANSITerminal.(
           Printf.sprintf("\n[%s] suite failed!\n", sprintf([red], "x"))
-          |> print_endline
-        );
+        )
+        |> print_endline;
 
         exit(-1);
       },
@@ -30,9 +30,7 @@ let () = {
 
   failed^ ?
     () :
-    ANSITerminal.(
-      sprintf([green], "✓")
-      |> Printf.sprintf("\n[%s] Test suite successful!")
-      |> print_endline
-    );
+    ANSITerminal.(sprintf([green], "✓"))
+    |> Printf.sprintf("\n[%s] Test suite successful!")
+    |> print_endline;
 };
