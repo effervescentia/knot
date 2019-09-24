@@ -10,10 +10,7 @@ let of_file_stream = (~filter=?, file_stream) => {
 
       switch (filter) {
       | Some(f) when !f(tkn) => next()
-      | _ =>
-        /* Debug.print_tkn(tkn) |> Log.warn("TOKEN: %s"); */
-
-        Some(tkn)
+      | _ => Some(tkn)
       };
     | None => None
     };

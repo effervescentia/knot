@@ -1,5 +1,4 @@
 open Core;
-open Util;
 
 let (==>) = (s, t) => s ===> Keyword(t);
 

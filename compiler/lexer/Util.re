@@ -1,33 +1,22 @@
 open Core;
 
-let num_0_uchar = Uchar.of_char('0');
-let num_9_uchar = Uchar.of_char('9');
-let lowercase_a_uchar = Uchar.of_char('a');
-let uppercase_a_uchar = Uchar.of_char('A');
-let lowercase_z_uchar = Uchar.of_char('z');
-let uppercase_z_uchar = Uchar.of_char('Z');
+let _num_0_uchar = Uchar.of_char('0');
+let _num_9_uchar = Uchar.of_char('9');
+let _lowercase_a_uchar = Uchar.of_char('a');
+let _uppercase_a_uchar = Uchar.of_char('A');
+let _lowercase_z_uchar = Uchar.of_char('z');
+let _uppercase_z_uchar = Uchar.of_char('Z');
 
 let is_uchar_between = ((start_ch, end_ch), ch) =>
   Uchar.compare(ch, start_ch) >= 0 && Uchar.compare(ch, end_ch) <= 0;
 let is_uchar_lowercase_alpha =
-  is_uchar_between((lowercase_a_uchar, lowercase_z_uchar));
+  is_uchar_between((_lowercase_a_uchar, _lowercase_z_uchar));
 let is_uchar_uppercase_alpha =
-  is_uchar_between((uppercase_a_uchar, uppercase_z_uchar));
+  is_uchar_between((_uppercase_a_uchar, _uppercase_z_uchar));
 let is_uchar_alpha = ch =>
   is_uchar_lowercase_alpha(ch) || is_uchar_uppercase_alpha(ch);
-let is_uchar_numeric = is_uchar_between((num_0_uchar, num_9_uchar));
+let is_uchar_numeric = is_uchar_between((_num_0_uchar, _num_9_uchar));
 let is_uchar_alphanumeric = ch => is_uchar_alpha(ch) || is_uchar_numeric(ch);
-
-let rec (===>) = (s, t) => {
-  let next = _ =>
-    if (String.length(s) == 1) {
-      Result(t);
-    } else {
-      String.sub(s, 1, String.length(s) - 1) ===> t;
-    };
-
-  Lexer(Char(s.[0]), Any, next);
-};
 
 let flatten_lexers =
   fun
@@ -77,38 +66,9 @@ let rec test_match = (m, stream, x) =>
     | AlphaNumeric when is_uchar_alphanumeric(c) =>
       x(Lazy.force(next_stream))
     | Any => x(Lazy.force(next_stream))
-    | Either(ms) =>
-      let rec first_match = (
-        fun
-        | [m, ...ms] =>
-          switch (test_match(m, stream, x)) {
-          | Some(_) as res => res
-          | None => first_match(ms)
-          }
-        | [] => None
-      );
-
-      first_match(ms);
+    | Either(ms) => _first_match(stream, x, ms)
     | Except(ms) =>
-      let has_matches =
-        List.fold_left(
-          (acc, m) =>
-            acc
-            && (
-              switch (test_match(m, stream, x)) {
-              | Some(v) => false
-              | None => true
-              }
-            ),
-          true,
-          ms,
-        );
-
-      if (has_matches) {
-        x(Lazy.force(next_stream));
-      } else {
-        None;
-      };
+      _has_matches(stream, x, ms) ? x(Lazy.force(next_stream)) : None
     | Token(s) =>
       let rec next = (s, input) =>
         switch (input) {
@@ -134,7 +94,27 @@ let rec test_match = (m, stream, x) =>
     | Any => x(stream)
     | _ => None
     }
-  };
+  }
+and _first_match = (stream, x) =>
+  fun
+  | [m, ...ms] =>
+    switch (test_match(m, stream, x)) {
+    | Some(_) as res => res
+    | None => _first_match(stream, x, ms)
+    }
+  | [] => None
+and _has_matches = (stream, x) =>
+  List.fold_left(
+    (acc, m) =>
+      acc
+      && (
+        switch (test_match(m, stream, x)) {
+        | Some(v) => false
+        | None => true
+        }
+      ),
+    true,
+  );
 
 let rec find_result = r =>
   fun
