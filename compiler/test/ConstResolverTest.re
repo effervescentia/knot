@@ -1,5 +1,4 @@
 open Core;
-open KnotResolve.Exception;
 
 let __some_ref = x => ref(Some(x));
 
@@ -83,7 +82,8 @@ let tests =
         switch (
           Util.analyze_resource(scope, "snippets/err_same_name.kn") |> ignore
         ) {
-        | exception (NameInUse(name)) => assert_string_eql(name, "variable")
+        | exception (CompilationError(NameInUse(name))) =>
+          assert_string_eql(name, "variable")
         | _ => assert_failure("NameInUse not thrown")
         };
       }
@@ -97,7 +97,7 @@ let tests =
           Util.analyze_resource(scope, "snippets/err_early_refer.kn")
           |> ignore
         ) {
-        | exception (UsedBeforeDeclaration(name)) =>
+        | exception (CompilationError(UsedBeforeDeclaration(name))) =>
           assert_string_eql(name, "second")
         | _ => assert_failure("UsedBeforeDeclaration not thrown")
         };

@@ -29,7 +29,7 @@ let tests =
       _ =>
         switch (Lexer.next_token(to_file_stream("∑"))) {
         | _ => assert_failure("accepted invalid character")
-        | exception (InvalidCharacter(ch, cursor)) =>
+        | exception (CompilationError(InvalidCharacter(ch, cursor))) =>
           assert_cursor_eql((ch, cursor), (Uchar.of_int(8721), (1, 1)))
         }
     ),

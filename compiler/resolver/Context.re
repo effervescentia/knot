@@ -1,5 +1,4 @@
 open Knot.Core;
-open Exception;
 
 let (<:=) = (x, y) => {
   Knot.Debug.print_member_type(x)

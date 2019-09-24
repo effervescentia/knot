@@ -30,7 +30,8 @@ let rec _exec_lexer = (results, buf, lex, stream) =>
       );
 
     (Util.normalize_lexers(Lexers(lexers)), next_results);
-  | Lexer(m, nm, t) => (
+  | Lexer(m, nm, t)
+  | FailingLexer(_, m, nm, t) => (
       Util.test_match(m, stream, next_stream =>
         Util.test_match(nm, next_stream, _ =>
           t(Buffer.contents(buf)) |> Util.normalize_lexers
@@ -68,14 +69,16 @@ let rec _find_token = (results, buf, lexer, stream) =>
       switch (curr) {
       /* has unmatched character */
       | LazyStream.Cons((ch, cursor), _) =>
-        raise(InvalidCharacter(ch, cursor))
+        throw(InvalidCharacter(ch, cursor))
       | _ => None
       }
     }
 
   /* hit EOF */
   | (Some(l), LazyStream.Nil) =>
-    Util.find_result(None, l) |?> (r => Some((r, stream)))
+    Util.find_error(None, l) |*> throw;
+
+    Util.find_result(None, l) |?> (r => Some((r, stream)));
   };
 
 let next_token = input =>

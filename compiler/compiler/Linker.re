@@ -17,7 +17,8 @@ let link =
           (),
         );
 
-      Analyzer.analyze(~scope, loaded_module) |!> InvalidProgram(target);
+      Analyzer.analyze(~scope, loaded_module)
+      |!> CompilationError(InvalidProgram(target));
     }
   );
 
@@ -29,5 +30,5 @@ let link_defn =
       loaded_module,
     ) =>
       Analyzer.analyze_defn(global_scope, loaded_module)
-      |!> InvalidProgram(target)
+      |!> CompilationError(InvalidProgram(target))
   );

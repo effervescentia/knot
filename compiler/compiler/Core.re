@@ -1,5 +1,4 @@
 include Knot.Core;
-include Exception;
 
 module Debug = Knot.Debug;
 

@@ -1,5 +1,4 @@
 include Knot.Core;
-include Exception;
 include Context;
 
 module NestedHashtbl = Knot.NestedHashtbl;

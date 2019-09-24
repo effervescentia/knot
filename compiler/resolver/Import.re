@@ -9,10 +9,10 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
     | Injected(type_) => Some(type_)
 
     | Failed
-    | Resolving => raise(InvalidImport)
+    | Resolving => throw(InvalidImport)
 
     /* module has not been registered */
-    | exception Not_found => raise(ImportedModuleDoesNotExist)
+    | exception Not_found => throw(ImportedModuleDoesNotExist)
     };
 
   let add_symbol = NestedHashtbl.add(symbol_tbl);
@@ -22,7 +22,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
     | (Some(Module_t(_, export_tbl, _)), ModuleExport(name)) =>
       (
         try (Hashtbl.find(export_tbl, name)) {
-        | Not_found => raise(InvalidTypeReference)
+        | Not_found => throw(InvalidTypeReference)
         }
       )
       =<< add_symbol(name)
@@ -31,7 +31,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       (
         switch (main_export) {
         | Some(typ) => typ
-        | None => raise(InvalidTypeReference)
+        | None => throw(InvalidTypeReference)
         }
       )
       =<< add_symbol(name)
@@ -47,13 +47,13 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
         s =>
           (
             try (Hashtbl.find(export_tbl, name)) {
-            | Not_found => raise(InvalidTypeReference)
+            | Not_found => throw(InvalidTypeReference)
             }
           )
           =<< add_symbol(s)
       )
 
-    | _ => raise(InvalidTypeReference)
+    | _ => throw(InvalidTypeReference)
     }
   )
   <:= promise;

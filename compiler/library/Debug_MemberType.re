@@ -1,8 +1,6 @@
 open MemberType;
 open Globals;
 
-exception DebugTypeNotSupported;
-
 let rec print_member_type =
   fun
   | Number_t => "number"

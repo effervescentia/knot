@@ -1,7 +1,30 @@
+type compilation_error =
+  | LexingFailed
+  | ParsingFailed
+  | InvalidDotAccess
+  | InvalidTypeReference
+  | UnclosedCommentBlock
+  | InvalidCharacter(Uchar.t, (int, int))
+  | MultipleMainDefinitions
+  | MissingSidecarScope
+  | CircularDependencyDetected
+  | InvalidProgram(string)
+  | UsedBeforeDeclaration(string)
+  | NameInUse(string)
+  | UnrenderableReturnType
+  | OperatorTypeMismatch
+  | ExecutingNonFunction
+  | InvalidMixinReference
+  | DefaultValueTypeMismatch
+  | ImportedModuleDoesNotExist
+  | InvalidImport
+  | UnanalyzedTypeReference
+  | InvalidModule;
+
+exception CompilationError(compilation_error);
 exception NotImplemented;
-exception InvalidDotAccess;
-exception UnanalyzedTypeReference;
-exception InvalidCharacter(Uchar.t, (int, int));
+
+let throw = e => raise(CompilationError(e));
 
 let print_err = (file, error) =>
   ANSITerminal.(

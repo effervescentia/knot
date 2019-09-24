@@ -24,6 +24,20 @@ let flatten_lexers =
   | [x] => Some(x)
   | ls => Some(Lexers(ls));
 
+let rec expand_lexer = (matchers, tag, tag_lexer, s) =>
+  if (String.length(s) == 1) {
+    tag_lexer(Char(s.[0]), matchers, tag);
+  } else {
+    tag_lexer(Char(s.[0]), Char(s.[1]), _ =>
+      expand_lexer(
+        matchers,
+        tag,
+        tag_lexer,
+        String.sub(s, 1, String.length(s) - 1),
+      )
+    );
+  };
+
 let rec normalize_lexers =
   fun
   /* flatten nested lexers */
@@ -40,19 +54,18 @@ let rec normalize_lexers =
     )
     |> flatten_lexers
   /* expand token matchers */
-  | Lexer(Token(s), nm, t) => {
-      let rec next = s =>
-        if (String.length(s) == 1) {
-          Lexer(Char(s.[0]), nm, t);
-        } else {
-          Lexer(
-            Char(s.[0]),
-            Char(s.[1]),
-            (_ => next(String.sub(s, 1, String.length(s) - 1))),
-          );
-        };
-      Some(next(s));
-    }
+  | Lexer(Token(tkn_str), nm, t) =>
+    Some(expand_lexer(nm, t, (m1, m2, tag) => Lexer(m1, m2, tag), tkn_str))
+  /* expand token matchers */
+  | FailingLexer(e, Token(tkn_str), nm, t) =>
+    Some(
+      expand_lexer(
+        nm,
+        t,
+        (m1, m2, tag) => FailingLexer(e, m1, m2, tag),
+        tkn_str,
+      ),
+    )
   | _ as res => Some(res);
 
 let rec test_match = (m, stream, x) =>
@@ -116,6 +129,21 @@ and _has_matches = (stream, x) =>
     true,
   );
 
+let rec find_error = r =>
+  fun
+  | Lexers(ls) =>
+    List.fold_left(
+      (acc, l) =>
+        switch (acc) {
+        | Some(_) as res => res
+        | None => find_error(r, l)
+        },
+      None,
+      ls,
+    )
+  | FailingLexer(e, _, _, _) => Some(e)
+  | _ => None;
+
 let rec find_result = r =>
   fun
   | Lexers(ls) =>
@@ -129,4 +157,4 @@ let rec find_result = r =>
       ls,
     )
   | Result(res) => Some(res)
-  | Lexer(_, _, _) => None;
+  | _ => None;

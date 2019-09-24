@@ -14,6 +14,12 @@ type lex_match =
 type lex_result('a) =
   | Lexers(list(lex_result('a)))
   | Lexer(lex_match, lex_match, string => lex_result('a))
+  | FailingLexer(
+      Knot.Exception.compilation_error,
+      lex_match,
+      lex_match,
+      string => lex_result('a),
+    )
   | Result('a);
 
 let newline = Char('\n');

@@ -27,7 +27,8 @@ let rec print_lex_table = l =>
   switch (l) {
   | Lexers(ls) =>
     List.fold_left((acc, l) => acc ++ print_lex_table(l), "", ls)
-  | Lexer(m, nm, _) =>
+  | Lexer(m, nm, _)
+  | FailingLexer(_, m, nm, _) =>
     Printf.sprintf("%s >> %s\n", print_matcher(m), print_matcher(nm))
   | Result(x) => "RESULT!\n"
   };

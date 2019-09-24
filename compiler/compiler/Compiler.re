@@ -67,7 +67,7 @@ let add =
   Log.info("%s  %s (%s)", Emoji.link, pretty_path, relative_path);
 
   if (is_resolving(global_scope.module_tbl, absolute_path)) {
-    raise(CircularDependencyDetected);
+    throw(CircularDependencyDetected);
   };
 
   let loaded = ref(Loader.load(Parser.prog, absolute_path, relative_path));
@@ -132,7 +132,7 @@ let add =
       absolute_path,
       Loaded(mapped_linked),
     );
-  | _ => raise(InvalidProgram(target))
+  | _ => throw(InvalidProgram(target))
   };
 };
 
@@ -214,7 +214,7 @@ let create = create_desc => {
       if (Hashtbl.mem(global_scope^.module_tbl, path)) {
         switch (Hashtbl.find(global_scope^.module_tbl, path)) {
         | Loaded((ast, _)) => Some(ast)
-        | Failed => raise(InvalidModule)
+        | Failed => throw(InvalidModule)
         | _ => None
         };
       } else {

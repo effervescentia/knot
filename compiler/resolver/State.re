@@ -4,7 +4,7 @@ let resolve_prop = (sidecar_tbl, name, (value, promise)) =>
   switch (value) {
   | `Property(type_def, default_value) =>
     if (Hashtbl.mem(sidecar_tbl, name)) {
-      raise(NameInUse(name));
+      throw(NameInUse(name));
     } else {
       Property.resolve_expr(type_def, default_value, promise);
 
@@ -17,7 +17,7 @@ let resolve_method = (sidecar_tbl, name, (value, promise)) =>
   | `Getter(params, exprs)
   | `Mutator(params, exprs) =>
     if (Hashtbl.mem(sidecar_tbl, name)) {
-      raise(NameInUse(name));
+      throw(NameInUse(name));
     } else {
       let (param_types, return_type) =
         Function.resolve_callable(params, exprs);

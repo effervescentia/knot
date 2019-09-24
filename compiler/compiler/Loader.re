@@ -8,7 +8,7 @@ let buffer_size = 1000;
 
 let handle_error = (file, pretty_path) =>
   fun
-  | InvalidCharacter(ch, cursor) => {
+  | CompilationError(InvalidCharacter(ch, cursor)) => {
       print_err(
         pretty_path,
         Printf.sprintf(
@@ -20,9 +20,8 @@ let handle_error = (file, pretty_path) =>
       );
       Knot.CodeFrame.print(file, cursor) |> print_endline;
     }
-  | _ =>
-    ();
-      /* unexpected exception was caught */
+  /* unexpected exception was caught */
+  | _ => ();
 
 let load = (prog, file, pretty_path) => {
   let tmp_file = Util.cache_as_tmp(buffer_size, file);
@@ -36,13 +35,13 @@ let load = (prog, file, pretty_path) => {
       |> (
         fun
         | Some(_) as res => res
-        | None => raise(ParsingFailed)
+        | None => throw(ParsingFailed)
       )
     ) {
     | err =>
       handle_error(tmp_file, pretty_path, err);
 
-      raise(LexingFailed);
+      throw(LexingFailed);
     };
 
   close_in(in_channel);

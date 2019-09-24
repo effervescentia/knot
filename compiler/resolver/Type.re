@@ -5,7 +5,7 @@ let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
     switch (value) {
     | "string"
     | "number"
-    | "boolean" => raise(InvalidMixinReference)
+    | "boolean" => throw(InvalidMixinReference)
 
     | type_ =>
       Log.info("resolving mixin: %s", value);
@@ -15,8 +15,8 @@ let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
 
         res;
       | Some(Style_t(_) as res) => res
-      | None => raise(InvalidTypeReference)
-      | _ => raise(InvalidMixinReference)
+      | None => throw(InvalidTypeReference)
+      | _ => throw(InvalidMixinReference)
       };
     }
   )
@@ -29,7 +29,7 @@ let resolve = (symbol_tbl, (value, promise)) =>
     | "number" => Number_t
     | "boolean" => Boolean_t
 
-    | _ => raise(InvalidTypeReference)
+    | _ => throw(InvalidTypeReference)
     }
   )
   <:= promise;
