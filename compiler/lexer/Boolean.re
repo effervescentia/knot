@@ -1,6 +1,5 @@
 open Core;
-
-let (===>) = Util.(===>);
+open Util;
 
 let lexer =
   Lexers(["true" ===> Boolean(true), "false" ===> Boolean(false)]);

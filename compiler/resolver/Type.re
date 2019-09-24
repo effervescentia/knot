@@ -1,5 +1,4 @@
 open Core;
-open NestedHashtbl;
 
 let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
   (
@@ -10,7 +9,7 @@ let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
 
     | type_ =>
       Log.info("resolving mixin: %s", value);
-      switch (symbol_tbl.find(type_)) {
+      switch (NestedHashtbl.find(symbol_tbl, type_)) {
       | Some(State_t(_, props) as res) =>
         Hashtbl.to_seq(props) |> Hashtbl.add_seq(sidecar_tbl);
 

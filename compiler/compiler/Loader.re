@@ -6,6 +6,24 @@ module Parser = KnotParse.Parser;
 
 let buffer_size = 1000;
 
+let handle_error = (file, pretty_path) =>
+  fun
+  | InvalidCharacter(ch, cursor) => {
+      print_err(
+        pretty_path,
+        Printf.sprintf(
+          "encountered unexpected character '%s' at [%d, %d]",
+          Knot.Util.print_uchar(ch),
+          fst(cursor),
+          snd(cursor),
+        ),
+      );
+      Knot.CodeFrame.print(file, cursor) |> print_endline;
+    }
+  | _ =>
+    ();
+      /* unexpected exception was caught */
+
 let load = (prog, file, pretty_path) => {
   let tmp_file = Util.cache_as_tmp(buffer_size, file);
   let in_channel = open_in(tmp_file);
@@ -22,22 +40,7 @@ let load = (prog, file, pretty_path) => {
       )
     ) {
     | err =>
-      switch (err) {
-      | InvalidCharacter(ch, cursor) =>
-        print_err(
-          pretty_path,
-          Printf.sprintf(
-            "encountered unexpected character '%s' at [%d, %d]",
-            print_uchar(ch),
-            fst(cursor),
-            snd(cursor),
-          ),
-        );
-        Knot.CodeFrame.print(tmp_file, cursor) |> print_endline;
-      | _ =>
-        /* unexpected exception was caught */
-        ()
-      };
+      handle_error(tmp_file, pretty_path, err);
 
       raise(LexingFailed);
     };

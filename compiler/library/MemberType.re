@@ -1,4 +1,5 @@
 open Exception;
+open Globals;
 
 type member_type =
   | Number_t
@@ -23,9 +24,6 @@ type ctxl_promise('a) = ('a, ref(option(member_type)));
 
 let no_ctx = x => (x, ref(None));
 
-let unwrap_type =
-  fun
-  | Some(t) => t
-  | None => raise(UnanalyzedTypeReference);
+let unwrap_type = type_ => type_ |!> UnanalyzedTypeReference;
 
 let opt_type_ref = ((_, x)) => unwrap_type(x^);

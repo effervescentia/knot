@@ -1,5 +1,4 @@
 open Core;
-open NestedHashtbl;
 
 let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   let module_type =
@@ -16,6 +15,8 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
     | exception Not_found => raise(ImportedModuleDoesNotExist)
     };
 
+  let add_symbol = NestedHashtbl.add(symbol_tbl);
+
   (
     switch (module_type, value) {
     | (Some(Module_t(_, export_tbl, _)), ModuleExport(name)) =>
@@ -24,7 +25,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
         | Not_found => raise(InvalidTypeReference)
         }
       )
-      =<< symbol_tbl.add(name)
+      =<< add_symbol(name)
 
     | (Some(Module_t(_, _, main_export)), MainExport(name)) =>
       (
@@ -33,7 +34,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
         | None => raise(InvalidTypeReference)
         }
       )
-      =<< symbol_tbl.add(name)
+      =<< add_symbol(name)
 
     | (Some(Module_t(_, export_tbl, _)), NamedExport(name, alias)) =>
       (
@@ -49,7 +50,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
             | Not_found => raise(InvalidTypeReference)
             }
           )
-          =<< symbol_tbl.add(s)
+          =<< add_symbol(s)
       )
 
     | _ => raise(InvalidTypeReference)

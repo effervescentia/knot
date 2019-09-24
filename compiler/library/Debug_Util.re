@@ -2,6 +2,7 @@ open Globals;
 open MemberType;
 open Debug_MemberType;
 
+/** print type as string */
 let (|~>) = ((x, y), f) =>
   f(x)
   |> (

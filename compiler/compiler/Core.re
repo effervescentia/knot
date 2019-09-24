@@ -3,6 +3,11 @@ include Exception;
 
 module Debug = Knot.Debug;
 
+type status =
+  | Idle
+  | Running
+  | Complete;
+
 type link_descriptor = {
   target: string,
   absolute_path: string,

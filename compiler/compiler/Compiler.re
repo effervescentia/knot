@@ -4,13 +4,6 @@ open KnotAnalyze.Scope;
 module Scope = KnotAnalyze.Scope;
 module Parser = KnotParse.Parser;
 
-exception CircularDependencyDetected;
-
-type status =
-  | Idle
-  | Running
-  | Complete;
-
 type t = {
   add: string => unit,
   inject: (string, string) => unit,
@@ -182,7 +175,7 @@ let create = create_desc => {
       let desc = create_desc(path);
       let absolute_path = desc.absolute_path;
 
-      if (Filename.extension(absolute_path) == knot_types_file_ext) {
+      if (Filename.extension(absolute_path) == Knot.Constants.typedef_file_ext) {
         try (inject(global_scope^, desc, name)) {
         | exn =>
           Printexc.to_string(exn) |> Log.error("%s");

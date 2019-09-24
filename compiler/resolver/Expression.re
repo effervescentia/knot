@@ -1,5 +1,4 @@
 open Core;
-open NestedHashtbl;
 
 let resolve = ((value, promise)) =>
   (

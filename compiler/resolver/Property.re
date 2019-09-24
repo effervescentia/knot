@@ -1,5 +1,4 @@
 open Core;
-open NestedHashtbl;
 
 let resolve_expr = (type_def, default_val, promise) =>
   (
@@ -21,7 +20,7 @@ let resolve_expr = (type_def, default_val, promise) =>
 
 let resolve: (NestedHashtbl.t(string, member_type), ast_property) => unit =
   (symbol_tbl, ((name, type_def, default_val), promise)) => {
-    switch (symbol_tbl.find_local(name)) {
+    switch (NestedHashtbl.find_local(symbol_tbl, name)) {
     | Some(_) => raise(NameInUse(name))
     | None => ()
     };
@@ -32,5 +31,5 @@ let resolve: (NestedHashtbl.t(string, member_type), ast_property) => unit =
 let resolve_param = (symbol_tbl, ((name, _, _), promise) as prop) => {
   resolve(symbol_tbl, prop);
 
-  symbol_tbl.add(name, unwrap_type(promise^));
+  NestedHashtbl.add(symbol_tbl, name, unwrap_type(promise^));
 };

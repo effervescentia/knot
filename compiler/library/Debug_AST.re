@@ -5,23 +5,18 @@ open Debug_Util;
 
 let with_ctx = (f, x) => x |~> f;
 
+let print_each = printer =>
+  List.fold_left((acc, s) => acc ++ printer(s), "");
+
 let rec print_ast = (~depth=0) =>
   fun
   | Module(imports, stmts) =>
     (
-      List.fold_left(
-        (acc, s) => acc ++ print_module_import(~depth=depth + 1, s),
-        "",
-        imports,
-      )
+      print_each(print_module_import(~depth=depth + 1), imports)
       |> Printf.sprintf("IMPORTS:\n↳%s\n")
     )
     ++ (
-      List.fold_left(
-        (acc, s) => acc ++ print_module_stmt(~depth=depth + 1, s),
-        "",
-        stmts,
-      )
+      print_each(print_module_stmt(~depth=depth + 1), stmts)
       |> Printf.sprintf("STATEMENTS:\n↳%s\n")
     )
 and print_module_stmt = (~depth=0) =>

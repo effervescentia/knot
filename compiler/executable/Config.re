@@ -19,7 +19,7 @@ let is_config_file =
   String.lowercase_ascii
   % (
     fun
-    | s when s == knot_config_file => true
+    | s when s == Knot.Constants.config_file => true
     | ".knot.yml" => true
     | _ => false
   );
@@ -27,7 +27,8 @@ let is_config_file =
 let source_path = relative_path(({source_dir}) => source_dir);
 let root_path = relative_path(({root_dir}) => root_dir);
 let is_main = path => path == get().main;
-let module_name = module_ => is_main(module_) ? main_alias : module_;
+let module_name = module_ =>
+  is_main(module_) ? Knot.Constants.main_module_alias : module_;
 
 let rec find_file = entry => {
   let dir = Filename.dirname(entry);

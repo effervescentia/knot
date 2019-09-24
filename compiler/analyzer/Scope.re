@@ -35,7 +35,7 @@ let rec create =
     nest: (~label="anonymous", ~size=8, ~sidecar as nested_sidecar=?, ()) =>
       create(
         ~resolver=real_resolver,
-        ~symbol_tbl=symbol_tbl.nest(~label, ~size, ()),
+        ~symbol_tbl=NestedHashtbl.nest(~label, ~size, symbol_tbl),
         ~module_tbl,
       )
       |> (

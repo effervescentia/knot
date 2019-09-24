@@ -18,7 +18,7 @@ let rec lex_subsequent_chars = (f, reserved) =>
     ),
   ]);
 
-let identifier_lexer = (~reserved=Core.reserved, ()) =>
+let identifier_lexer = (~reserved=Knot.Constants.reserved_keywords, ()) =>
   Lexers([
     Lexer(
       Either([underscore, Alpha]),

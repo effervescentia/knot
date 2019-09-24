@@ -1,15 +1,14 @@
 open Core;
-open NestedHashtbl;
 
 exception UnrenderableReturnType;
 
 let resolve_declaration = (symbol_tbl, name, promise, typ) =>
-  switch (symbol_tbl.find(name)) {
+  switch (NestedHashtbl.find(symbol_tbl, name)) {
   /* fail if any previous value declared by the same name */
   | Some(_) => raise(NameInUse(name))
 
   /* function not in scope */
-  | None => typ =<< symbol_tbl.add(name) <:= promise
+  | None => typ =<< NestedHashtbl.add(symbol_tbl, name) <:= promise
   };
 
 let resolve = (symbol_tbl, name, (value, promise)) =>

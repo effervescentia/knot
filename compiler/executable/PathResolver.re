@@ -8,7 +8,7 @@ let simple = (config, target) =>
       Util.to_path_segment(res)
       |> (
         s =>
-          Printf.sprintf("%s%s", s, knot_source_file_ext)
+          Printf.sprintf("%s%s", s, Knot.Constants.source_file_ext)
           |> Filename.concat(config.source_dir)
       )
     | res when res.[0] == '@' =>

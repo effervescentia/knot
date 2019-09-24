@@ -1,11 +1,10 @@
 open Core;
-open NestedHashtbl;
 
 let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
   (
     switch (value) {
     | Variable(name) =>
-      switch (symbol_tbl.find(name)) {
+      switch (NestedHashtbl.find(symbol_tbl, name)) {
       /* symbol exists, return the type reference */
       | Some(typ) => typ
 

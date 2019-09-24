@@ -6,27 +6,25 @@ module Emoji = Emoji;
 
 let (%) = (f, g, x) => f(x) |> g;
 
-let some = x => Some(x);
-let w_opt = (x, g, f) =>
-  switch (f) {
-  | Some(y) => g(y)
-  | None => x
-  };
-let iff = (a, x, y) => w_opt(y, _ => x, a);
-let is_some = a => iff(a, true, false);
+/* option utilities */
 
-let print_uchar = ch => {
-  let buf = Buffer.create(128);
-  Buffer.add_utf_8_uchar(buf, ch);
+let with_option = (x, f) =>
+  fun
+  | Some(y) => f(y)
+  | None => x;
+let with_no_option = f =>
+  fun
+  | Some(y) => y
+  | None => f();
 
-  Buffer.contents(buf);
-};
+/** optionally pipe to transformer */
+let (|?>) = (x, f) => with_option(None, f, x);
+/** perform side effect if value found */
+let (|*>) = (x, f) => with_option((), f, x);
+/** unwrap, raise exception on no value */
+let (|!>) = (x, e) => with_no_option(() => raise(e), x);
 
-let (|?>) = (f, g) => w_opt(None, g % some, f);
-let (|!>) = (f, g) => w_opt((), g, f);
-let (|^>) = (f, g) => w_opt(f, g % (_ => f), f);
-let (|%>) = (f, g) => w_opt(false, g % (_ => true), f);
-
+/** perform side effect g(f(x)) and return f(x) */
 let (|-) = (f, g, x) =>
   f(x)
   |> (
@@ -35,28 +33,3 @@ let (|-) = (f, g, x) =>
       y;
     }
   );
-
-let knot_source_file_ext = ".kn";
-let knot_types_file_ext = ".kd";
-let knot_config_file = ".knot.yaml";
-
-let reserved = [
-  "import",
-  "from",
-  "const",
-  "let",
-  "func",
-  "view",
-  "state",
-  "style",
-  "else",
-  "if",
-  "as",
-  "mut",
-  "get",
-  "main",
-  "true",
-  "false",
-];
-
-let main_alias = "[main]";

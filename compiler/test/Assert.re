@@ -65,7 +65,12 @@ let assert_cursor_eql = (actual, expected) =>
     ~msg="file cursor match",
     ~printer=
       ((ch, (row, col))) =>
-        Printf.sprintf("'%s' at [%d:%d]", print_uchar(ch), row, col),
+        Printf.sprintf(
+          "'%s' at [%d:%d]",
+          Knot.Util.print_uchar(ch),
+          row,
+          col,
+        ),
     ~cmp=
       (lhs, rhs) =>
         Uchar.equal(fst(lhs), fst(rhs))
