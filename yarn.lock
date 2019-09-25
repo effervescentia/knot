@@ -11655,11 +11655,6 @@ readline2@^0.1.1:
     mute-stream "0.0.4"
     strip-ansi "^2.0.1"
 
-reason-cli@^3.3.3-macos-1:
-  version "3.3.3-macos-1"
-  resolved "https://registry.yarnpkg.com/reason-cli/-/reason-cli-3.3.3-macos-1.tgz#b847a614144b3c68d8dbf4972df6bb93bc857032"
-  integrity sha512-YdX54+bG2qjwlKYpgttfdhUIpKvkxBMY4x530GOyvSNNMU7pSzuc2H5x6Bt8pxKOyq0Kz/NQk/TMXT5AITdFcg==
-
 rechoir@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/rechoir/-/rechoir-0.6.2.tgz#85204b54dba82d5742e28c96756ef43af50e3384"

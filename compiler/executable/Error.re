@@ -24,6 +24,8 @@ let _print_syntax_error = (file, print) =>
   | UnclosedCommentBlock =>
     "no closing tag (///) found for comment block" |> print
 
+  | UnclosedString => "no closing quote (\") found for string" |> print
+
   | InvalidDotAccess =>
     "dot operator was not followed by a valid property name" |> print;
 
