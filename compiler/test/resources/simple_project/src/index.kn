@@ -34,4 +34,4 @@ func multiExprFunc() -> {
   divisionConst + multiplicationConst;
   stringConst;
 }
-func paramFunc(a) -> a;
+func paramFunc(a: string) -> a;
