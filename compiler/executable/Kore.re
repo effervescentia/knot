@@ -18,9 +18,3 @@ and paths_config = {
   build_dir: string,
   module_dir: string,
 };
-
-exception MissingRootDirectory;
-exception InvalidPathFormat(string);
-exception ModuleDoesNotExist(string, string);
-exception InvalidEntryPoint(string);
-exception EntryPointOutsideBuildContext(string);

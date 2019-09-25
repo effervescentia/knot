@@ -53,11 +53,8 @@ let put_module = (compiler, req_d, uri) =>
           "module added to context",
         )
       | exception exn =>
-        switch (exn) {
-        | exn =>
-          Printexc.to_string(exn) |> Log.error("module failed: %s");
-          Printexc.print_backtrace(stdout);
-        };
+        Printexc.to_string(exn) |> Log.error("module failed: %s");
+        Printexc.print_backtrace(stdout);
 
         Reqd.respond_with_string(
           req_d,
@@ -129,7 +126,8 @@ let get_status = (compiler, req_d, uri) => {
   let status =
     switch (compiler.status()) {
     | Idle => "idle"
-    | Running => "running"
+    | Running
+    | Failing(_) => "running"
     | Complete => "complete"
     };
 

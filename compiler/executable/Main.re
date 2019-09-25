@@ -1,6 +1,6 @@
 open Kore;
 
-let () = {
+let run = () => {
   Setup.run();
 
   let {paths} as config = Config.get();
@@ -33,3 +33,30 @@ let () = {
     Main_StandAlone.run(config, compiler);
   };
 };
+
+let () =
+  try (run()) {
+  | err =>
+    switch (err) {
+    /* already handled, only to force a non-zero exit */
+    | InternalCompilationError => ()
+    | ExecutionError(e) =>
+      Log.error("%s  knot encountered an error", Emoji.red_paper_lantern);
+      Error.print_execution_error(e);
+    | Invariant(inv) =>
+      Log.error(
+        "%s  invariant violated, this should never happen",
+        Emoji.upside_down_face,
+      );
+      print_invariant(inv);
+    | _ =>
+      Log.error(
+        "%s  knot encountered an unexpected error '%s'",
+        Emoji.thinking_face,
+        Printexc.to_string(err),
+      );
+      Printexc.print_backtrace(stderr);
+    };
+
+    exit(-1);
+  };

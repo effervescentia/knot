@@ -3,12 +3,12 @@ open Kore;
 let simple = (config, target) =>
   (
     switch (target) {
-    | res when String.length(res) == 0 => raise(InvalidPathFormat(res))
+    | res when String.length(res) == 0 => throw_exec(InvalidPathFormat(res))
     | res when Util.is_source_module(res) =>
       Util.to_path_segment(res)
       |> (
         s =>
-          Printf.sprintf("%s%s", s, knot_source_file_ext)
+          Printf.sprintf("%s%s", s, Knot.Constants.source_file_ext)
           |> Filename.concat(config.source_dir)
       )
     | res when res.[0] == '@' =>
@@ -24,7 +24,7 @@ let simple = (config, target) =>
         )
         |> Filename.concat(config.module_dir);
       } else {
-        raise(InvalidPathFormat(target));
+        throw_exec(InvalidPathFormat(target));
       };
     | res when Filename.is_implicit(res) =>
       Filename.concat(config.module_dir, res)
@@ -38,6 +38,6 @@ let simple = (config, target) =>
       } else if (Printf.sprintf("%sot", s) |> Sys.file_exists) {
         Printf.sprintf("%sot", s);
       } else {
-        raise(ModuleDoesNotExist(target, s));
+        throw_exec(ModuleDoesNotExist(target, s));
       }
   );

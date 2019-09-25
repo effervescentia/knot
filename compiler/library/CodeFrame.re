@@ -1,7 +1,9 @@
-let frame_padding_size = 4;
+let _buffer_size = 512;
+let _padding_width = 4;
 
-let add_line_number = (buf, row, margin_size) => {
+let _add_line_number = (buf, margin_size, row) => {
   let line_number = string_of_int(row);
+
   Printf.sprintf(
     "%s%s",
     ANSITerminal.(sprintf([blue], "%s", line_number)),
@@ -13,7 +15,7 @@ let add_line_number = (buf, row, margin_size) => {
 let print = (file, cursor) => {
   let in_channel = open_in(file);
   let read_char = UnicodeFileReader.of_channel(in_channel);
-  let start_row = max(1, fst(cursor) - frame_padding_size);
+  let start_row = max(1, fst(cursor) - _padding_width);
   let end_row = fst(cursor) + 1;
   let margin_size = (string_of_int(end_row) |> String.length) + 1;
 
@@ -26,9 +28,11 @@ let print = (file, cursor) => {
     skip();
   };
 
-  let buf = Buffer.create(512);
+  let buf = Buffer.create(_buffer_size);
+  let add_line_number = _add_line_number(buf, margin_size);
+
   Buffer.add_char(buf, '\n');
-  add_line_number(buf, start_row, margin_size);
+  add_line_number(start_row);
 
   let indicator_added = ref(false);
   let add_indicator = () => {
@@ -46,8 +50,7 @@ let print = (file, cursor) => {
 
   let rec loop = () =>
     switch (read_char()) {
-    | Newline((row, _)) when row == fst(cursor) + frame_padding_size + 1 =>
-      ()
+    | Newline((row, _)) when row == fst(cursor) + _padding_width + 1 => ()
     | Newline(ch_cursor) =>
       Buffer.add_char(buf, '\n');
 
@@ -55,7 +58,7 @@ let print = (file, cursor) => {
         add_indicator();
       };
 
-      add_line_number(buf, fst(ch_cursor), margin_size);
+      add_line_number(fst(ch_cursor));
 
       loop();
     | Character(ch, (row, col)) =>

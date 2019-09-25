@@ -1,5 +1,4 @@
 open Core;
-open NestedHashtbl;
 
 let resolve_callable = (params, exprs) => {
   let param_types = List.map(opt_type_ref, params);
@@ -18,16 +17,16 @@ let resolve_scoped_expr = (symbol_tbl, (value, promise)) =>
     switch (value) {
     | ExpressionStatement(expr) => opt_type_ref(expr)
     | VariableDeclaration(name, expr) =>
-      switch (symbol_tbl.find_local(name)) {
-      | Some(_) => raise(NameInUse(name))
+      switch (NestedHashtbl.find_local(symbol_tbl, name)) {
+      | Some(_) => throw_semantic(NameInUse(name))
       | None =>
-        opt_type_ref(expr) |> symbol_tbl.add(name);
+        opt_type_ref(expr) |> NestedHashtbl.add(symbol_tbl, name);
 
         Nil_t;
       }
     | VariableAssignment(refr, expr) =>
       if (opt_type_ref(refr) != opt_type_ref(expr)) {
-        raise(OperatorTypeMismatch);
+        throw_semantic(OperatorTypeMismatch);
       };
 
       Nil_t;

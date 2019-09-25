@@ -47,12 +47,12 @@ and resolve = (module_tbl, {symbol_tbl, sidecar}) =>
   | StatePropertyScope(name, promise) =>
     switch (sidecar) {
     | Some(x) => promise >=> State.resolve_prop(x, name)
-    | None => raise(MissingSidecarScope)
+    | None => invariant(MissingSidecarScope)
     }
   | StateMethodScope(name, promise) =>
     switch (sidecar) {
     | Some(x) => promise >=> State.resolve_method(x, name)
-    | None => raise(MissingSidecarScope)
+    | None => invariant(MissingSidecarScope)
     }
   | ReferenceScope(promise) =>
     promise >=> Reference.resolve(symbol_tbl, sidecar)
@@ -60,5 +60,5 @@ and resolve = (module_tbl, {symbol_tbl, sidecar}) =>
   | MixinScope(promise) =>
     switch (sidecar) {
     | Some(x) => promise >=> Type.resolve_mixin(symbol_tbl, x)
-    | None => raise(MissingSidecarScope)
+    | None => invariant(MissingSidecarScope)
     };

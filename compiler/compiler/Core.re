@@ -1,7 +1,12 @@
 include Knot.Core;
-include Exception;
 
 module Debug = Knot.Debug;
+
+type status =
+  | Idle
+  | Running
+  | Complete
+  | Failing(list((compilation_error, string, string)));
 
 type link_descriptor = {
   target: string,

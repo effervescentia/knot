@@ -28,5 +28,5 @@ and dot =
        fun
        | Variable(y) => DotAccess(no_ctx(x), y)
 
-       | _ => raise(InvalidDotAccess)
+       | _ => throw_syntax(InvalidDotAccess)
      );

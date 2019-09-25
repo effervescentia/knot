@@ -9,6 +9,7 @@ let link =
       {target, absolute_path, relative_path, pretty_path},
       loaded_module,
     ) => {
+      /* create a module-level scope */
       let scope =
         global_scope.nest(
           ~label=Printf.sprintf("module(%s)", target),
@@ -17,28 +18,8 @@ let link =
         );
 
       Analyzer.analyze(~scope, loaded_module)
-      |> (
-        fun
-        | Some(ast) =>
-          switch (KnotResolve.Core.opt_type_ref(ast)) {
-          | _ => ast
-          }
-        | None => raise(InvalidProgram(target))
-      );
+      |!> CompilationError(AnalysisFailed(target));
     }
   );
 
-let link_defn =
-  KnotAnalyze.Scope.(
-    (
-      global_scope,
-      {target, absolute_path, relative_path, pretty_path},
-      loaded_module,
-    ) =>
-      Analyzer.analyze_defn(global_scope, loaded_module)
-      |> (
-        fun
-        | Some(type_) => type_
-        | None => raise(InvalidProgram(target))
-      )
-  );
+let link_defn = Analyzer.analyze_defn;

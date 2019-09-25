@@ -56,7 +56,12 @@ knot@0.0.0
 ## Developing:
 
 ```
+brew install opam
+opam init
+opam install reason
+
 npm install -g esy
+
 git clone <this-repo>
 esy install
 esy build

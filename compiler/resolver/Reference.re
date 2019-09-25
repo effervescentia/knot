@@ -1,16 +1,15 @@
 open Core;
-open NestedHashtbl;
 
 let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
   (
     switch (value) {
     | Variable(name) =>
-      switch (symbol_tbl.find(name)) {
+      switch (NestedHashtbl.find(symbol_tbl, name)) {
       /* symbol exists, return the type reference */
       | Some(typ) => typ
 
       /* symbol does not exist */
-      | _ => raise(UsedBeforeDeclaration(name))
+      | _ => throw_semantic(UsedBeforeDeclaration(name))
       }
 
     | SidecarVariable(name) =>
@@ -24,9 +23,11 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
           );
         } else {
           /* symbol does not exist */
-          raise(UsedBeforeDeclaration(name));
+          throw_semantic(
+            UsedBeforeDeclaration(name),
+          );
         }
-      | None => raise(MissingSidecarScope)
+      | None => invariant(MissingSidecarScope)
       }
 
     | DotAccess(obj, key) =>
@@ -36,7 +37,7 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
       | Module_t(_, members, _) when Hashtbl.mem(members, key) =>
         Hashtbl.find(members, key)
 
-      | _ => raise(InvalidDotAccess)
+      | _ => throw_semantic(PropertyDoesNotExist(key))
       }
 
     | Execution(refr, args) =>
@@ -45,7 +46,7 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
       | Function_t(_, return_type)
       | Mutator_t(_, return_type) => return_type
 
-      | _ => raise(ExecutingNonFunction)
+      | _ => throw_semantic(ExecutingNonFunction)
       }
     }
   )

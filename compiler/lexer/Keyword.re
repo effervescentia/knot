@@ -1,7 +1,5 @@
 open Core;
 
-let (===>) = Util.(===>);
-
 let (==>) = (s, t) => s ===> Keyword(t);
 
 let lexer =

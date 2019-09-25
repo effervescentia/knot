@@ -1,12 +1,14 @@
 open Core;
 
-let triple_slash = Token("///");
+let _double_slash = Token("//");
+let _triple_slash = Token("///");
 
 let rec lex_comment_block = _ =>
   Lexers([
-    Lexer(Except([triple_slash]), Any, lex_comment_block),
-    Lexer(
-      triple_slash,
+    Lexer(Except([_triple_slash]), Any, lex_comment_block),
+    FailingLexer(
+      UnclosedCommentBlock,
+      _triple_slash,
       Any,
       s => Result(BlockComment(String.sub(s, 3, String.length(s) - 6))),
     ),
@@ -24,6 +26,6 @@ let rec lex_comment_line = _ =>
 
 let lexer =
   Lexers([
-    Lexer(triple_slash, Any, lex_comment_block),
-    Lexer(Token("//"), Any, lex_comment_line),
+    Lexer(_triple_slash, Any, lex_comment_block),
+    Lexer(_double_slash, Any, lex_comment_line),
   ]);

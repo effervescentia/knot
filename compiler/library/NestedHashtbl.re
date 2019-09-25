@@ -1,56 +1,51 @@
 open Core;
 
-exception BoundaryScopeMissing;
-
 type t('a, 'b) = {
+  boundary: bool,
   label: string,
-  add: ('a, 'b) => unit,
-  expect: ('a, 'b) => unit,
-  nest: (~label: string=?, ~size: int=?, unit) => t('a, 'b),
-  find: 'a => option('b),
-  find_local: 'a => option('b),
-  iter_local: (('a, 'b) => unit) => unit,
+  parent: option(t('a, 'b)),
+  tbl: Hashtbl.t('a, 'b),
 };
 
-let nested_name = s =>
-  fun
-  | Some({label}) => Printf.sprintf("%s.%s", label, s)
-  | None => s;
+let _anon_scope = "anonymous";
 
-let rec create = (~label="anonymous", ~parent=?, ~boundary=false, size) => {
-  let symbol_tbl = Hashtbl.create(size);
-  let real_label = nested_name(label, parent);
+let _nested_name = s =>
+  with_option(s, ({label}) => Printf.sprintf("%s.%s", label, s));
 
-  let rec scope = {
-    label: real_label,
-    add: (key, value) => Hashtbl.add(symbol_tbl, key, value),
-    expect: (key, value) =>
-      boundary ?
-        Hashtbl.add(symbol_tbl, key, value) :
-        (
-          switch (parent) {
-          | Some(tbl) => tbl.expect(key, value)
-          | _ => raise(BoundaryScopeMissing)
-          }
-        ),
-    nest: (~label="anonymous", ~size=8, ()) =>
-      create(~label, ~parent=scope, size),
-    find_local: key =>
-      switch (Some(Hashtbl.find(symbol_tbl, key))) {
-      | res => res
-      | exception Not_found => None
-      },
-    find: key =>
-      switch (scope.find_local(key)) {
-      | None =>
-        switch (parent) {
-        | Some(tbl) => tbl.find(key)
-        | None => None
-        }
-      | res => res
-      },
-    iter_local: f => Hashtbl.iter(f, symbol_tbl),
+/** create a new table */
+let create = (~label=_anon_scope, ~parent=?, ~boundary=false, size) => {
+  boundary,
+  parent,
+  label: _nested_name(label, parent),
+  tbl: Hashtbl.create(size),
+};
+
+/** add an entry to the table */
+let add = ({tbl}) => Hashtbl.add(tbl);
+
+let rec expect = ({boundary, tbl, parent}, key, value) =>
+  boundary ?
+    Hashtbl.add(tbl, key, value) :
+    (
+      switch (parent) {
+      | Some(p_tbl) => expect(p_tbl, key, value)
+      | _ => invariant(BoundaryScopeMissing)
+      }
+    );
+
+/** create a child table */
+let nest = (~label=_anon_scope, ~size=8, tbl) =>
+  create(~label, ~parent=tbl, size);
+
+/** find a value without checking ancestor tables */
+let find_local = ({tbl}, key) =>
+  try (Some(Hashtbl.find(tbl, key))) {
+  | Not_found => None
   };
 
-  scope;
-};
+/** find a value and fallback to checking ancestor tables */;
+let rec find = (tbl, key) =>
+  switch (find_local(tbl, key)) {
+  | None => tbl.parent |?> (p_tbl => find(p_tbl, key))
+  | res => res
+  };

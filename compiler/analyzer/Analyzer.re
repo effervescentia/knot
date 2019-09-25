@@ -18,7 +18,4 @@ let analyze = (~scope=Scope.create(~label="module", ~boundary=true, ())) =>
   | Some(ast) => Some(Module.analyze(scope, ast))
   | None => None;
 
-let analyze_defn = scope =>
-  fun
-  | Some(defn_ast) => Some(Definition.analyze(defn_ast))
-  | None => None;
+let analyze_defn = Definition.analyze;

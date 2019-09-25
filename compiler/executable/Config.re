@@ -1,13 +1,11 @@
 open Kore;
 
-exception ConfigurationNotInitialized;
-
 let global = ref(None);
 
 let get = () =>
   switch (global^) {
   | Some(cfg) => cfg
-  | None => raise(ConfigurationNotInitialized)
+  | None => invariant(ConfigurationNotInitialized)
   };
 
 let relative_path = (extract, absolute_path) => {
@@ -19,7 +17,7 @@ let is_config_file =
   String.lowercase_ascii
   % (
     fun
-    | s when s == knot_config_file => true
+    | s when s == Knot.Constants.config_file => true
     | ".knot.yml" => true
     | _ => false
   );
@@ -27,7 +25,8 @@ let is_config_file =
 let source_path = relative_path(({source_dir}) => source_dir);
 let root_path = relative_path(({root_dir}) => root_dir);
 let is_main = path => path == get().main;
-let module_name = module_ => is_main(module_) ? main_alias : module_;
+let module_name = module_ =>
+  is_main(module_) ? Knot.Constants.main_module_alias : module_;
 
 let rec find_file = entry => {
   let dir = Filename.dirname(entry);
@@ -51,7 +50,7 @@ let rec find_file = entry => {
       | Some(res) => res
       | None =>
         if (dir == entry) {
-          raise(MissingRootDirectory);
+          throw_exec(MissingRootDirectory);
         } else {
           find_file(dir);
         }
@@ -131,7 +130,9 @@ let set_from_args = cwd => {
     };
 
     if (!Util.is_within_dir(config.paths.source_dir, main^)) {
-      raise(EntryPointOutsideBuildContext(main^));
+      throw_exec(
+        EntryPointOutsideBuildContext(main^, config.paths.source_dir),
+      );
     };
   };
 
