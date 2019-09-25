@@ -126,7 +126,8 @@ let get_status = (compiler, req_d, uri) => {
   let status =
     switch (compiler.status()) {
     | Idle => "idle"
-    | Running => "running"
+    | Running
+    | Failing(_) => "running"
     | Complete => "complete"
     };
 
