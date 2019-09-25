@@ -18,7 +18,7 @@ let resolve = ((value, promise)) =>
     | NegatedExpr(expr) =>
       switch (opt_type_ref(expr)) {
       | Boolean_t => Boolean_t
-      | _ => throw(OperatorTypeMismatch)
+      | _ => throw_semantic(OperatorTypeMismatch)
       }
 
     /* (number, number) => number */
@@ -34,7 +34,7 @@ let resolve = ((value, promise)) =>
       /* ~~~ Other Equality ~~~ */
       | (lhs, rhs) when lhs == rhs => raise(NotImplemented)
 
-      | _ => throw(OperatorTypeMismatch)
+      | _ => throw_semantic(OperatorTypeMismatch)
       }
 
     /* (number, number) => number */
@@ -48,7 +48,7 @@ let resolve = ((value, promise)) =>
       /* ~~~ String Addition ~~~ */
       | (String_t, String_t) => String_t
 
-      | _ => throw(OperatorTypeMismatch)
+      | _ => throw_semantic(OperatorTypeMismatch)
       }
 
     /* (number, number) => number */
@@ -57,7 +57,7 @@ let resolve = ((value, promise)) =>
       switch (opt_type_ref(lhs), opt_type_ref(rhs)) {
       | (Number_t, Number_t) => Number_t
 
-      | _ => throw(OperatorTypeMismatch)
+      | _ => throw_semantic(OperatorTypeMismatch)
       }
 
     /* (number, number) => boolean */
@@ -68,7 +68,7 @@ let resolve = ((value, promise)) =>
       switch (opt_type_ref(lhs), opt_type_ref(rhs)) {
       | (Number_t, Number_t) => Boolean_t
 
-      | _ => throw(OperatorTypeMismatch)
+      | _ => throw_semantic(OperatorTypeMismatch)
       }
 
     /* (boolean, boolean) => boolean */
@@ -77,7 +77,7 @@ let resolve = ((value, promise)) =>
       switch (opt_type_ref(lhs), opt_type_ref(rhs)) {
       | (Boolean_t, Boolean_t) => Boolean_t
 
-      | _ => throw(OperatorTypeMismatch)
+      | _ => throw_semantic(OperatorTypeMismatch)
       }
 
     | TernaryExpr(predicate, if_expression, else_expression) =>
@@ -85,11 +85,11 @@ let resolve = ((value, promise)) =>
       let else_type = opt_type_ref(else_expression);
 
       if (opt_type_ref(predicate) != Boolean_t) {
-        throw(OperatorTypeMismatch);
+        throw_semantic(OperatorTypeMismatch);
       };
 
       if (if_type != else_type) {
-        throw(OperatorTypeMismatch);
+        throw_semantic(OperatorTypeMismatch);
       };
 
       if_type;

@@ -69,14 +69,14 @@ let rec _find_token = (results, buf, lexer, stream) =>
       switch (curr) {
       /* has unmatched character */
       | LazyStream.Cons((ch, cursor), _) =>
-        throw(InvalidCharacter(ch, cursor))
+        throw_syntax(InvalidCharacter(ch, cursor))
       | _ => None
       }
     }
 
   /* hit EOF */
   | (Some(l), LazyStream.Nil) =>
-    Util.find_error(None, l) |*> throw;
+    Util.find_error(None, l) |*> throw_syntax;
 
     Util.find_result(None, l) |?> (r => Some((r, stream)));
   };

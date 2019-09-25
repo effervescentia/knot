@@ -1,7 +1,5 @@
 open Core;
 
-exception BoundaryScopeMissing;
-
 type t('a, 'b) = {
   boundary: bool,
   label: string,
@@ -31,7 +29,7 @@ let rec expect = ({boundary, tbl, parent}, key, value) =>
     (
       switch (parent) {
       | Some(p_tbl) => expect(p_tbl, key, value)
-      | _ => raise(BoundaryScopeMissing)
+      | _ => invariant(BoundaryScopeMissing)
       }
     );
 

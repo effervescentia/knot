@@ -1,13 +1,11 @@
 open Kore;
 
-exception ConfigurationNotInitialized;
-
 let global = ref(None);
 
 let get = () =>
   switch (global^) {
   | Some(cfg) => cfg
-  | None => raise(ConfigurationNotInitialized)
+  | None => invariant(ConfigurationNotInitialized)
   };
 
 let relative_path = (extract, absolute_path) => {
@@ -52,7 +50,7 @@ let rec find_file = entry => {
       | Some(res) => res
       | None =>
         if (dir == entry) {
-          raise(MissingRootDirectory);
+          throw_exec(MissingRootDirectory);
         } else {
           find_file(dir);
         }
@@ -132,7 +130,9 @@ let set_from_args = cwd => {
     };
 
     if (!Util.is_within_dir(config.paths.source_dir, main^)) {
-      raise(EntryPointOutsideBuildContext(main^));
+      throw_exec(
+        EntryPointOutsideBuildContext(main^, config.paths.source_dir),
+      );
     };
   };
 

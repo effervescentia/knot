@@ -3,40 +3,40 @@ open Core;
 let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   let module_type =
     switch (Hashtbl.find(module_tbl, module_)) {
-    | Loaded(ast) => Some(opt_type_ref(ast))
+    | Loaded(ast) => opt_type_ref(ast)
 
     /* module definition has been injected by the compiler */
-    | Injected(type_) => Some(type_)
+    | Injected(type_) => type_
 
     | Failed
-    | Resolving => throw(InvalidImport)
+    | Resolving => throw(InvalidImportTarget(module_))
 
     /* module has not been registered */
-    | exception Not_found => throw(ImportedModuleDoesNotExist)
+    | exception Not_found => invariant(ImportedModuleDoesNotExist(module_))
     };
 
   let add_symbol = NestedHashtbl.add(symbol_tbl);
 
   (
     switch (module_type, value) {
-    | (Some(Module_t(_, export_tbl, _)), ModuleExport(name)) =>
+    | (Module_t(_, export_tbl, _), ModuleExport(name)) =>
       (
-        try (Hashtbl.find(export_tbl, name)) {
-        | Not_found => throw(InvalidTypeReference)
-        }
+        Hashtbl.length(export_tbl) == 0 ?
+          throw_semantic(ModuleDoesNotContainExports(module_)) :
+          Object_t(export_tbl)
       )
       =<< add_symbol(name)
 
-    | (Some(Module_t(_, _, main_export)), MainExport(name)) =>
+    | (Module_t(_, _, main_export), MainExport(name)) =>
       (
         switch (main_export) {
         | Some(typ) => typ
-        | None => throw(InvalidTypeReference)
+        | None => throw_semantic(MainExportDoesNotExist(module_))
         }
       )
       =<< add_symbol(name)
 
-    | (Some(Module_t(_, export_tbl, _)), NamedExport(name, alias)) =>
+    | (Module_t(_, export_tbl, _), NamedExport(name, alias)) =>
       (
         switch (alias) {
         | Some(s) => s
@@ -47,13 +47,13 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
         s =>
           (
             try (Hashtbl.find(export_tbl, name)) {
-            | Not_found => throw(InvalidTypeReference)
+            | Not_found => throw_semantic(ExportDoesNotExist(module_, name))
             }
           )
           =<< add_symbol(s)
       )
 
-    | _ => throw(InvalidTypeReference)
+    | _ => invariant(InvalidModuleType(module_))
     }
   )
   <:= promise;

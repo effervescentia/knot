@@ -1,5 +1,11 @@
-exception MissingRootDirectory;
-exception InvalidPathFormat(string);
-exception ModuleDoesNotExist(string, string);
-exception InvalidEntryPoint(string);
-exception EntryPointOutsideBuildContext(string);
+type execution_error =
+  | MissingRootDirectory
+  | InvalidPathFormat(string)
+  | InvalidEntryPoint(string)
+  | ModuleDoesNotExist(string, string)
+  | EntryPointOutsideBuildContext(string, string);
+
+exception ExecutionError(execution_error);
+exception InternalCompilationError;
+
+let throw_exec = e => raise(ExecutionError(e));

@@ -5,7 +5,8 @@ module Debug = Knot.Debug;
 type status =
   | Idle
   | Running
-  | Complete;
+  | Complete
+  | Failing(list((compilation_error, string, string)));
 
 type link_descriptor = {
   target: string,

@@ -3,18 +3,31 @@ open Kore.Compiler;
 
 let run = ({paths, main as in_path}, compiler) => {
   try (compiler.add(in_path)) {
-  | InvalidPathFormat(s)
-  | ModuleDoesNotExist(_, s) when s == in_path =>
-    raise(InvalidEntryPoint(in_path))
+  | ExecutionError(InvalidPathFormat(s) | ModuleDoesNotExist(_, s))
+      when s == in_path =>
+    throw_exec(InvalidEntryPoint(in_path))
   };
 
-  compiler.complete();
+  switch (compiler.status()) {
+  | Failing(errors) =>
+    Log.error("%s  compilation failed!", Emoji.red_paper_lantern);
 
-  Log.info("%s  compiled!", Emoji.input_numbers);
+    List.iter(
+      ((err, file, pretty_path)) =>
+        Error.print_compilation_error(file, pretty_path, err),
+      errors,
+    );
 
-  Writer.clean_build_dir();
+    raise(InternalCompilationError);
+  | _ =>
+    compiler.complete();
 
-  compiler.iter(in_path, paths.source_dir, Writer.write);
+    Log.info("%s  compiled!", Emoji.input_numbers);
 
-  Log.info("%s  done!", Emoji.confetti_ball);
+    Writer.clean_build_dir();
+
+    compiler.iter(in_path, paths.source_dir, Writer.write);
+
+    Log.info("%s  done!", Emoji.confetti_ball);
+  };
 };

@@ -9,7 +9,7 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
       | Some(typ) => typ
 
       /* symbol does not exist */
-      | _ => throw(UsedBeforeDeclaration(name))
+      | _ => throw_semantic(UsedBeforeDeclaration(name))
       }
 
     | SidecarVariable(name) =>
@@ -23,9 +23,11 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
           );
         } else {
           /* symbol does not exist */
-          throw(UsedBeforeDeclaration(name));
+          throw_semantic(
+            UsedBeforeDeclaration(name),
+          );
         }
-      | None => throw(MissingSidecarScope)
+      | None => invariant(MissingSidecarScope)
       }
 
     | DotAccess(obj, key) =>
@@ -35,7 +37,7 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
       | Module_t(_, members, _) when Hashtbl.mem(members, key) =>
         Hashtbl.find(members, key)
 
-      | _ => throw(InvalidDotAccess)
+      | _ => throw_semantic(PropertyDoesNotExist(key))
       }
 
     | Execution(refr, args) =>
@@ -44,7 +46,7 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
       | Function_t(_, return_type)
       | Mutator_t(_, return_type) => return_type
 
-      | _ => throw(ExecutingNonFunction)
+      | _ => throw_semantic(ExecutingNonFunction)
       }
     }
   )

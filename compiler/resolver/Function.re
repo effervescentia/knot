@@ -18,7 +18,7 @@ let resolve_scoped_expr = (symbol_tbl, (value, promise)) =>
     | ExpressionStatement(expr) => opt_type_ref(expr)
     | VariableDeclaration(name, expr) =>
       switch (NestedHashtbl.find_local(symbol_tbl, name)) {
-      | Some(_) => throw(NameInUse(name))
+      | Some(_) => throw_semantic(NameInUse(name))
       | None =>
         opt_type_ref(expr) |> NestedHashtbl.add(symbol_tbl, name);
 
@@ -26,7 +26,7 @@ let resolve_scoped_expr = (symbol_tbl, (value, promise)) =>
       }
     | VariableAssignment(refr, expr) =>
       if (opt_type_ref(refr) != opt_type_ref(expr)) {
-        throw(OperatorTypeMismatch);
+        throw_semantic(OperatorTypeMismatch);
       };
 
       Nil_t;

@@ -24,7 +24,6 @@ type ctxl_promise('a) = ('a, ref(option(member_type)));
 
 let no_ctx = x => (x, ref(None));
 
-let unwrap_type = type_ =>
-  type_ |!> CompilationError(UnanalyzedTypeReference);
+let unwrap_type = type_ => type_ |!> Invariant(UnanalyzedTypeReference);
 
 let opt_type_ref = ((_, x)) => unwrap_type(x^);

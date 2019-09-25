@@ -11,7 +11,7 @@ let normalize_path = (root_dir, file) =>
 
 let normalize_module = (source_dir, path) =>
   if (String.length(path) == 0) {
-    throw(InvalidModule);
+    invariant(EmptyModulePath);
   } else if (is_source_module(path)) {
     to_path_segment(path) |> Filename.concat(source_dir);
   } else {

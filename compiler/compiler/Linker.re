@@ -18,17 +18,8 @@ let link =
         );
 
       Analyzer.analyze(~scope, loaded_module)
-      |!> CompilationError(InvalidProgram(target));
+      |!> CompilationError(AnalysisFailed(target));
     }
   );
 
-let link_defn =
-  KnotAnalyze.Scope.(
-    (
-      global_scope,
-      {target, absolute_path, relative_path, pretty_path},
-      loaded_module,
-    ) =>
-      Analyzer.analyze_defn(global_scope, loaded_module)
-      |!> CompilationError(InvalidProgram(target))
-  );
+let link_defn = Analyzer.analyze_defn;

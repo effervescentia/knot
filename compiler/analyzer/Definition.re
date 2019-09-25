@@ -26,7 +26,7 @@ let analyze_stmt = (tbl, main_defn) =>
   fun
   | MainDefn(defn) =>
     switch (main_defn^) {
-    | Some(_) => throw(MultipleMainDefinitions)
+    | Some(_) => throw_semantic(MultipleMainDefinitions)
     | None => main_defn := Some(analyze_type(defn))
     };
 

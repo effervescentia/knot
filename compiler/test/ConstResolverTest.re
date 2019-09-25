@@ -82,7 +82,7 @@ let tests =
         switch (
           Util.analyze_resource(scope, "snippets/err_same_name.kn") |> ignore
         ) {
-        | exception (CompilationError(NameInUse(name))) =>
+        | exception (CompilationError(SemanticError(NameInUse(name)))) =>
           assert_string_eql(name, "variable")
         | _ => assert_failure("NameInUse not thrown")
         };
@@ -97,7 +97,11 @@ let tests =
           Util.analyze_resource(scope, "snippets/err_early_refer.kn")
           |> ignore
         ) {
-        | exception (CompilationError(UsedBeforeDeclaration(name))) =>
+        | exception (
+                      CompilationError(
+                        SemanticError(UsedBeforeDeclaration(name)),
+                      )
+                    ) =>
           assert_string_eql(name, "second")
         | _ => assert_failure("UsedBeforeDeclaration not thrown")
         };

@@ -15,7 +15,7 @@ type lex_result('a) =
   | Lexers(list(lex_result('a)))
   | Lexer(lex_match, lex_match, string => lex_result('a))
   | FailingLexer(
-      Knot.Exception.compilation_error,
+      Knot.Exception.syntax_error,
       lex_match,
       lex_match,
       string => lex_result('a),
