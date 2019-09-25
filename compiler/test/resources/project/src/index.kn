@@ -1,3 +1,11 @@
 import greet from ".components.App";
+import * as Utils from ".utils"
 
 const ABC = <div>{greet("World")}</div>;
+
+view SimpleView -> (
+  <div>
+    {ABC}
+    {Utils.foo}
+  </div>
+);

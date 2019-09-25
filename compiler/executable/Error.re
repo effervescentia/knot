@@ -30,7 +30,7 @@ let _print_syntax_error = (file, print) =>
 let _print_semantic_error =
   fun
   | PropertyDoesNotExist(name) =>
-    Printf.sprintf("attempted to access non-existent property %s", name)
+    Printf.sprintf("attempted to access non-existent property '%s'", name)
 
   | MultipleMainDefinitions => "multiple entities tagged with the 'main' keyword"
 
