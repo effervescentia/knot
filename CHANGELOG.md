@@ -2,6 +2,38 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.5.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.5.0), [`@knot/webpack-plugin-v1.5.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.5.0), [`@knot/todomvc-example-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/todomvc-example-v1.0.0), [`@knot/webpack-react-example-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-react-example-v1.0.0) (2019-9-25)
+
+### `@knot/compiler`
+
+
+#### :sparkles: New Features
+
+- add improved error handling (#79) ([7fada0fc](https://github.com/effervescentia/knot/commit/7fada0fcd9d88096595cfa0ae250913e2b4cf596))
+
+### `@knot/webpack-plugin`
+
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.4.0` -> `v1.5.0`
+
+### `@knot/todomvc-example`
+
+:rocket: **Initial Release** :rocket:
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/webpack-plugin` from `v1.4.0` -> `v1.5.0`
+
+### `@knot/webpack-react-example`
+
+:rocket: **Initial Release** :rocket:
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/webpack-plugin` from `v1.4.0` -> `v1.5.0`
+
 ## [`@knot/compiler-v1.4.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.4.0), [`@knot/webpack-plugin-v1.4.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.4.0), [`@knot/todomvc-example-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/todomvc-example-v1.0.0), [`@knot/webpack-react-example-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-react-example-v1.0.0) (2019-9-23)
 
 ### `@knot/compiler`
