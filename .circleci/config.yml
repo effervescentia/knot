@@ -198,7 +198,7 @@ jobs:
       - checkout
       - build_pkg:
           pkg: compiler
-          path: packages/plugins/compiler/browser
+          path: packages/binaries/compiler
 
   test_browser_plugin:
     executor: node/node
