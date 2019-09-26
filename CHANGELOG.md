@@ -2,6 +2,30 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.5.1`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.5.1), [`@knot/browser-plugin-v1.2.2`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.2.2), [`@knot/webpack-plugin-v1.5.1`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.5.1) (2019-9-26)
+
+### `@knot/compiler`
+
+
+#### :bug: Bug Fixes
+
+- upgrade JavaScript projects to TypeScript (#80) ([83331431](https://github.com/effervescentia/knot/commit/833314314e0193b46d16a4b76c79ed0331ac2642))
+
+### `@knot/browser-plugin`
+
+
+#### :bug: Bug Fixes
+
+- upgrade JavaScript projects to TypeScript (#80) ([83331431](https://github.com/effervescentia/knot/commit/833314314e0193b46d16a4b76c79ed0331ac2642))
+
+### `@knot/webpack-plugin`
+
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/browser-plugin` from `v1.2.1` -> `v1.2.2`
+- **automatic**: upgrade `@knot/compiler` from `v1.5.0` -> `v1.5.1`
+
 ## [`@knot/compiler-v1.5.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.5.0), [`@knot/webpack-plugin-v1.5.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.5.0) (2019-9-25)
 
 ### `@knot/compiler`
