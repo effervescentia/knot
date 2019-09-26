@@ -1,11 +1,23 @@
 {
   "name": "@knot/browser-plugin",
   "version": "1.2.1",
+  "engines": {
+    "node": ">=8.9"
+  },
   "license": "MIT",
   "repository": "https://github.com/effervescentia/knot.git",
-  "main": "index.js",
+  "main": "build/main/index.js",
+  "module": "build/module/index.js",
+  "typings": "build/main/index.d.ts",
+  "scripts": {
+    "x": "nps",
+    "build": "nps build",
+    "test": "nps test",
+    "cov": "nps cov",
+    "usage": "nps help"
+  },
   "files": [
-    "utils.js"
+    "build"
   ],
   "publishConfig": {
     "access": "public"

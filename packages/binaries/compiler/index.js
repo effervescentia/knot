@@ -1,3 +1,5 @@
+const nodePath = require('path');
+
 module.exports = {
-  path: 'knotc'
+  path: nodePath.join(__dirname, 'bin', 'knotc.exe')
 };

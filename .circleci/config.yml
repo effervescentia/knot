@@ -112,8 +112,8 @@ commands:
       - run:
           name: Install Node Dependencies
           command: yarn install
-  build_plugin:
-    description: build @knot/*-plugin, run its tests and store the resulting built version
+  build_pkg:
+    description: build @knot/*, run its tests and store the resulting built version
     parameters:
       pkg:
         type: string
@@ -124,16 +124,16 @@ commands:
       - setup_yarn
       - setup_lerna
       - lerna_install:
-          pkg: << parameters.pkg >>-plugin
+          pkg: << parameters.pkg >>
       - lerna_exec:
-          pkg: << parameters.pkg >>-plugin
+          pkg: << parameters.pkg >>
           command: yarn build
       - lerna_exec:
-          pkg: << parameters.pkg >>-plugin
+          pkg: << parameters.pkg >>
           command: yarn test
       - persist:
           path: << parameters.path >>/build
-          to: << parameters.pkg >>-plugin
+          to: << parameters.pkg >>
   store_cypress_artifacts:
     description: store artifacts from cypress tests
     steps:
@@ -192,28 +192,44 @@ jobs:
           path: compiler/_esy/default/store/i/knot-*
           to: knot
 
+  test_compiler_binary:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: compiler
+          path: packages/binaries/compiler
+
+  test_browser_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: browser-plugin
+          path: packages/plugins/compiler/browser
+
   test_react_plugin:
     executor: node/node
     steps:
       - checkout
-      - build_plugin:
-          pkg: react
+      - build_pkg:
+          pkg: react-plugin
           path: packages/plugins/compiler/react
 
   test_jss_plugin:
     executor: node/node
     steps:
       - checkout
-      - build_plugin:
-          pkg: jss
+      - build_pkg:
+          pkg: jss-plugin
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
     executor: node/node
     steps:
       - checkout
-      - build_plugin:
-          pkg: webpack
+      - build_pkg:
+          pkg: webpack-plugin
           path: packages/plugins/bundler/webpack
 
   test_webpack_react:
@@ -236,11 +252,13 @@ jobs:
       - setup_esy
       - run:
           name: Restore Plugins
-          working_directory: ./packages/plugins
+          working_directory: ./packages
           command: |
-            mv /tmp/workspace/react-plugin compiler/react/build
-            mv /tmp/workspace/jss-plugin compiler/jss/build
-            mv /tmp/workspace/webpack-plugin bundler/webpack/build
+            mv /tmp/workspace/compiler binaries/compiler/build
+            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
+            mv /tmp/workspace/react-plugin plugins/compiler/react/build
+            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
+            mv /tmp/workspace/webpack-plugin plugins/bundler/webpack/build
       - lerna_exec:
           pkg: webpack-react-example
           command: yarn test
@@ -248,7 +266,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: "11.0.0"
+      xcode: '11.0.0'
     steps:
       - checkout
       - restore_cache:
@@ -344,6 +362,12 @@ workflows:
     jobs:
       - install_node
       - test_compiler
+      - test_compiler_binary:
+          requires:
+            - install_node
+      - test_browser_plugin:
+          requires:
+            - install_node
       - test_react_plugin:
           requires:
             - install_node
@@ -356,6 +380,8 @@ workflows:
       - test_webpack_react:
           requires:
             - test_compiler
+            - test_compiler_binary
+            - test_browser_plugin
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
