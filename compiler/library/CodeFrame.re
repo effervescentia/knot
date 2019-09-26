@@ -16,7 +16,7 @@ let print = (file, cursor) => {
   let in_channel = open_in(file);
   let read_char = UnicodeFileReader.of_channel(in_channel);
   let start_row = max(1, fst(cursor) - _padding_width);
-  let end_row = fst(cursor) + 1;
+  let end_row = fst(cursor) + _padding_width;
   let margin_size = (string_of_int(end_row) |> String.length) + 1;
 
   if (start_row != 1) {

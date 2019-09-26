@@ -266,14 +266,13 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: '11.0.0'
+      xcode: "11.0.0"
     steps:
       - checkout
       - restore_cache:
           <<: *macos_compiler_cache_keys
       - restore_cache:
           <<: *macos_node_cache_keys
-      - setup_yarn
       - setup_esy
       - node_install
       - compiler_install
