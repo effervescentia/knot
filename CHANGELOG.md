@@ -2,6 +2,22 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.5.2`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.5.2), [`@knot/webpack-plugin-v1.5.2`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.5.2) (2019-9-26)
+
+### `@knot/compiler`
+
+
+#### :bug: Bug Fixes
+
+- **codeframe**: correct spacing for line numbers ([c65ab402](https://github.com/effervescentia/knot/commit/c65ab402b1be3b2f181adfb74af8f0509fef723d))
+
+### `@knot/webpack-plugin`
+
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.5.1` -> `v1.5.2`
+
 ## [`@knot/compiler-v1.5.1`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.5.1), [`@knot/browser-plugin-v1.2.2`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.2.2), [`@knot/webpack-plugin-v1.5.1`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.5.1) (2019-9-26)
 
 ### `@knot/compiler`
