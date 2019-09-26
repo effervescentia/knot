@@ -21,19 +21,15 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
     switch (module_type, value) {
     | (Module_t(_, export_tbl, _), ModuleExport(name)) =>
       (
-        Hashtbl.length(export_tbl) == 0 ?
-          throw_semantic(ModuleDoesNotContainExports(module_)) :
-          Object_t(export_tbl)
+        Hashtbl.length(export_tbl) == 0
+          ? throw_semantic(ModuleDoesNotContainExports(module_))
+          : Object_t(export_tbl)
       )
       =<< add_symbol(name)
 
     | (Module_t(_, _, main_export), MainExport(name)) =>
-      (
-        switch (main_export) {
-        | Some(typ) => typ
-        | None => throw_semantic(MainExportDoesNotExist(module_))
-        }
-      )
+      main_export
+      |!> CompilationError(SemanticError(MainExportDoesNotExist(module_)))
       =<< add_symbol(name)
 
     | (Module_t(_, export_tbl, _), NamedExport(name, alias)) =>
@@ -46,7 +42,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       |> (
         s =>
           (
-            try (Hashtbl.find(export_tbl, name)) {
+            try(Hashtbl.find(export_tbl, name)) {
             | Not_found => throw_semantic(ExportDoesNotExist(module_, name))
             }
           )

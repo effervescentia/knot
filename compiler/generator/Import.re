@@ -29,10 +29,7 @@ let generate = (printer, module_name, imports) => {
         Printf.sprintf(
           "%s%s",
           export_name,
-          switch (original_name) {
-          | Some(s) => Printf.sprintf(" as %s", s)
-          | None => ""
-          },
+          Knot.Util.print_optional(Printf.sprintf(" as %s"), original_name),
         )
       | _ => ""
     ),

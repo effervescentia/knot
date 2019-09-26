@@ -41,18 +41,18 @@ let gen_prop = index =>
       platform_plugin,
       props_map,
       name,
-      switch (default_val) {
-      | Some((v, _)) => Expression.generate(v) |> Printf.sprintf(",%s")
-      | None => ""
-      },
+      Knot.Util.print_optional(
+        fst % Expression.generate % Printf.sprintf(",%s"),
+        default_val,
+      ),
     );
 
 let gen_props = props => {
   let rec next = index =>
-    index < List.length(props) ?
-      (gen_prop(index, List.nth(props, index)) |> Printf.sprintf("%s;"))
-      ++ next(index + 1) :
-      "";
+    index < List.length(props)
+      ? (gen_prop(index, List.nth(props, index)) |> Printf.sprintf("%s;"))
+        ++ next(index + 1)
+      : "";
 
   next(0);
 };

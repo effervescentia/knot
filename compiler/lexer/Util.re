@@ -111,10 +111,7 @@ let rec test_match = (m, stream, x) =>
 and _first_match = (stream, x) =>
   fun
   | [m, ...ms] =>
-    switch (test_match(m, stream, x)) {
-    | Some(_) as res => res
-    | None => _first_match(stream, x, ms)
-    }
+    test_match(m, stream, x) |=> (() => _first_match(stream, x, ms))
   | [] => None
 and _has_matches = (stream, x) =>
   List.fold_left(
@@ -132,29 +129,13 @@ and _has_matches = (stream, x) =>
 let rec find_error = r =>
   fun
   | Lexers(ls) =>
-    List.fold_left(
-      (acc, l) =>
-        switch (acc) {
-        | Some(_) as res => res
-        | None => find_error(r, l)
-        },
-      None,
-      ls,
-    )
+    List.fold_left((acc, l) => acc |=> (() => find_error(r, l)), None, ls)
   | FailingLexer(e, _, _, _) => Some(e)
   | _ => None;
 
 let rec find_result = r =>
   fun
   | Lexers(ls) =>
-    List.fold_left(
-      (acc, l) =>
-        switch (acc) {
-        | Some(_) as res => res
-        | None => find_result(r, l)
-        },
-      None,
-      ls,
-    )
+    List.fold_left((acc, l) => acc |=> (() => find_result(r, l)), None, ls)
   | Result(res) => Some(res)
   | _ => None;

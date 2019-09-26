@@ -2,22 +2,32 @@
 let (%) = (f, g, x) => f(x) |> g;
 
 /* option operators */
+let some = x => Some(x);
 
-let with_option = (x, f) =>
-  fun
+/** if value found, pipe to transformer */
+let (|?>) = (x, f) =>
+  switch (x) {
   | Some(y) => f(y)
-  | None => x;
-let with_no_option = f =>
-  fun
+  | None => None
+  };
+/** if value found, perform side effect */
+let (|*>) = (x, f) =>
+  switch (x) {
+  | Some(y) => f(y)
+  | None => ()
+  };
+/** unwrap, raise exception if no value found */
+let (|!>) = (x, e) =>
+  switch (x) {
   | Some(y) => y
-  | None => f();
-
-/** optionally pipe to transformer */
-let (|?>) = (x, f) => with_option(None, f, x);
-/** perform side effect if value found */
-let (|*>) = (x, f) => with_option((), f, x);
-/** unwrap, raise exception on no value */
-let (|!>) = (x, e) => with_no_option(() => raise(e), x);
+  | None => raise(e)
+  };
+/** check option and generate new option if no value found */
+let (|=>) = (x, f) =>
+  switch (x) {
+  | Some(_) as res => res
+  | None => f()
+  };
 
 /** perform side effect g(f(x)) and return f(x) */
 let (|-) = (f, g, x) =>

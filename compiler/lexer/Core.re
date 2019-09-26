@@ -24,6 +24,7 @@ type lex_result('a) =
 
 let newline = Char('\n');
 
+/** lexer matcher for a contiguous set of characters*/
 let rec (===>) = (s, t) => {
   let next = _ =>
     if (String.length(s) == 1) {

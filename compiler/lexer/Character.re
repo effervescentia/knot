@@ -1,5 +1,6 @@
 open Core;
 
+/** character lexer matcher */
 let (==>) = (c, t) => Lexer(Char(c), Any, _ => Result(t));
 
 let lexer =

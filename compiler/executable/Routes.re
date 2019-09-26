@@ -12,10 +12,7 @@ let log_incoming = (~addon=?, ~emoji=Emoji.chequered_flag, req_d, uri) =>
     emoji,
     Reqd.request(req_d).meth |> Method.to_string,
     Uri.to_string(uri),
-    switch (addon) {
-    | Some(str) => Printf.sprintf(" (%s)", str)
-    | None => ""
-    },
+    Knot.Util.print_optional(Printf.sprintf(" (%s)"), addon),
   );
 
 let read_to_string = (req_d, f) => {
@@ -143,7 +140,7 @@ let get_module_status = (compiler, req_d, uri) =>
       log_incoming(~addon=module_path, req_d, uri);
 
       let status =
-        try (
+        try(
           compiler.find(module_path)
           |> (
             fun

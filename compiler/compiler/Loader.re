@@ -14,11 +14,7 @@ let load = (prog, file) => {
     UnicodeFileStream.of_channel(in_channel)
     |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
     |> Parser.parse(prog)
-    |> (
-      fun
-      | Some(res) => res
-      | None => throw(ParsingFailed)
-    );
+    |> (x => x |!> CompilationError(ParsingFailed));
 
   close_in(in_channel);
 

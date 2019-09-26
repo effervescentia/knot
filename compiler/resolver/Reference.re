@@ -4,29 +4,15 @@ let resolve = (symbol_tbl, sidecar_tbl, (value, promise)) =>
   (
     switch (value) {
     | Variable(name) =>
-      switch (NestedHashtbl.find(symbol_tbl, name)) {
-      /* symbol exists, return the type reference */
-      | Some(typ) => typ
-
-      /* symbol does not exist */
-      | _ => throw_semantic(UsedBeforeDeclaration(name))
-      }
+      NestedHashtbl.find(symbol_tbl, name)
+      |!> CompilationError(SemanticError(UsedBeforeDeclaration(name)))
 
     | SidecarVariable(name) =>
       switch (sidecar_tbl) {
-      | Some(tbl) =>
-        if (Hashtbl.mem(tbl, name)) {
-          /* symbol exists, return the type reference */
-          Hashtbl.find(
-            tbl,
-            name,
-          );
-        } else {
-          /* symbol does not exist */
-          throw_semantic(
-            UsedBeforeDeclaration(name),
-          );
-        }
+      /* symbol exists, return the type reference */
+      | Some(tbl) when Hashtbl.mem(tbl, name) => Hashtbl.find(tbl, name)
+      /* symbol does not exist */
+      | Some(_) => throw_semantic(UsedBeforeDeclaration(name))
       | None => invariant(MissingSidecarScope)
       }
 

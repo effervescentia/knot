@@ -1,14 +1,10 @@
 open Core;
 open Scope;
 
-let analyze_type_def = scope =>
-  fun
-  | Some(type_def) => Resolver.of_type(type_def) |> scope.resolve
-  | None => ();
-let analyze_default_value = analyze_expr =>
-  fun
-  | Some(value) => analyze_expr(value)
-  | None => ();
+let analyze_type_def = (scope, ast) =>
+  ast |*> (type_def => Resolver.of_type(type_def) |> scope.resolve);
+
+let analyze_default_value = (analyze_expr, expr) => expr |*> analyze_expr;
 
 let analyze = (~resolve=true, analyze_expr, scope, prop) => {
   let (_, type_def, default_val) = fst(prop);

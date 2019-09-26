@@ -10,7 +10,9 @@ type t('a, 'b) = {
 let _anon_scope = "anonymous";
 
 let _nested_name = s =>
-  with_option(s, ({label}) => Printf.sprintf("%s.%s", label, s));
+  fun
+  | Some({label}) => Printf.sprintf("%s.%s", label, s)
+  | None => s;
 
 /** create a new table */
 let create = (~label=_anon_scope, ~parent=?, ~boundary=false, size) => {
@@ -24,9 +26,9 @@ let create = (~label=_anon_scope, ~parent=?, ~boundary=false, size) => {
 let add = ({tbl}) => Hashtbl.add(tbl);
 
 let rec expect = ({boundary, tbl, parent}, key, value) =>
-  boundary ?
-    Hashtbl.add(tbl, key, value) :
-    (
+  boundary
+    ? Hashtbl.add(tbl, key, value)
+    : (
       switch (parent) {
       | Some(p_tbl) => expect(p_tbl, key, value)
       | _ => invariant(BoundaryScopeMissing)
@@ -39,7 +41,7 @@ let nest = (~label=_anon_scope, ~size=8, tbl) =>
 
 /** find a value without checking ancestor tables */
 let find_local = ({tbl}, key) =>
-  try (Some(Hashtbl.find(tbl, key))) {
+  try(Some(Hashtbl.find(tbl, key))) {
   | Not_found => None
   };
 

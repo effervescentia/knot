@@ -15,7 +15,10 @@ let print_sequential = (~separator="", printer, xs) => {
 let print_comma_separated = printer =>
   print_sequential(~separator=", ", printer);
 
-let print_optional = printer => with_option("", printer);
+let print_optional = printer =>
+  fun
+  | Some(x) => printer(x)
+  | None => "";
 
 let print_uchar = ch => {
   let buf = Buffer.create(_uchar_buffer_size);

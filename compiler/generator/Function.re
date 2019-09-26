@@ -34,21 +34,21 @@ let gen_param = (generate_expr, index) =>
       platform_plugin,
       index,
       name,
-      switch (default_val) {
-      | Some((v, _)) => generate_expr(v) |> Printf.sprintf(",%s")
-      | None => ""
-      },
+      Knot.Util.print_optional(
+        fst % generate_expr % Printf.sprintf(",%s"),
+        default_val,
+      ),
     );
 
 let gen_params = (generate_expr, params) => {
   let rec next = index =>
-    index < List.length(params) ?
-      (
-        gen_param(generate_expr, index, List.nth(params, index))
-        |> Printf.sprintf("%s;")
-      )
-      ++ next(index + 1) :
-      "";
+    index < List.length(params)
+      ? (
+          gen_param(generate_expr, index, List.nth(params, index))
+          |> Printf.sprintf("%s;")
+        )
+        ++ next(index + 1)
+      : "";
 
   next(0);
 };

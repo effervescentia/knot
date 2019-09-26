@@ -20,10 +20,8 @@ let resolve_expr = (name, type_def, default_val, promise) =>
 
 let resolve: (NestedHashtbl.t(string, member_type), ast_property) => unit =
   (symbol_tbl, ((name, type_def, default_val), promise)) => {
-    switch (NestedHashtbl.find_local(symbol_tbl, name)) {
-    | Some(_) => throw_semantic(NameInUse(name))
-    | None => ()
-    };
+    NestedHashtbl.find_local(symbol_tbl, name)
+    |*> (_ => throw_semantic(NameInUse(name)));
 
     resolve_expr(name, type_def, default_val, promise);
   };

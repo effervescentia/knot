@@ -33,16 +33,11 @@ let rec print_member_type =
   | Module_t(_, members, main_export) =>
     print_members(members)
     |> (
-      s =>
-        Printf.sprintf(
-          "{%s%s}",
-          s,
-          switch (main_export) {
-          | Some(t) =>
-            print_member_type(t) |> Printf.sprintf("\n\t$main: %s\n")
-          | None => ""
-          },
-        )
+      Util.print_optional(
+        print_member_type % Printf.sprintf("\n\t$main: %s\n"),
+        main_export,
+      )
+      |> Printf.sprintf("{%s%s}")
     )
 and print_members = members =>
   Hashtbl.fold(
