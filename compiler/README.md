@@ -1,7 +1,5 @@
 # knot
 
-[![CircleCI](https://circleci.com/gh/effervescentia/knot/tree/master.svg?style=svg)](https://circleci.com/gh/effervescentia/knot/tree/master)
-
 **Contains the following libraries and executables:**
 
 ```
@@ -80,14 +78,4 @@ esy x knotc.exe
 ```
 # Runs the "test" command in `package.json`.
 esy test
-```
-
-```
-Expected (state, view, style, func) vs Declared (const, let, <props>, <args>)
-
-Concrete (arg with type declared) vs Mutable (arg without type or default value)
-
-where are the boundaries for type propagation?
-
-pack resolution into Expected to ensure?
 ```

@@ -1,6 +1,6 @@
-# @knot/todomvc-example
+# @knot/webpack-react-example
 
-> A knot example project based on [`TodoMVC`](http://todomvc.com/).
+> A knot example project using `react` and `webpack`.
 
 ## Table of Contents
 
@@ -29,6 +29,16 @@ Start `webpack` and launch browser
 npm start
 # or
 yarn start
+```
+
+### Test
+
+Run ui regression tests with `cypress`
+
+```sh
+npm test
+# or
+yarn test
 ```
 
 ### Build

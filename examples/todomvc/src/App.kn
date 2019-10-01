@@ -1,56 +1,25 @@
-// only for use to check syntax highlighting
+import S from "@knot/style";
+import Header from ".components.Header";
+import Items from ".components.Items";
+import Footer from ".components.Footer";
+import Info from ".components.Info";
 
-import HTML from "html";
-
-import { FilterType, Todos } from "./State";
-
-view TodoList(filter, editingIndex) ~ Todos {
-  <section class="main">
-    <input
-      id="toggle-all"
-      class="toggle-all"
-      type="checkbox"
-      onChange={$toggleAll}
-      checked={$activeCount == 0}
-    />
-    <label for="toggle-all" />
-    <ul class="todo-list">
-      {$filteredTodos(filter).map((todo, index) -> (
-        <TodoItem
-          todo
-          index
-          editing={editingIndex == index}
-          onEdit={() -> editingIndex = index}
-          onCancel={() -> editingIndex = -1}
-        />
-      ))}
-    </ul>
-  </section>
+style AppStyle {
+  .root {
+    S.position: S.relative;
+    S.marginTop: S.px(130);
+    S.marginBottom: S.px(40);
+    S.backgroundColor: S.white;
+  }
 }
 
-view App
-  ~ Todos,
-    FilterType.None as $filter,
-    "" as $formValue,
-    -1 as $editingIndex
-{
-  let showFooter = $activeCount != 0 || $inactiveCount != 0;
-  let content = !$todos.isEmpty() && <TodoList filter={$filter} editingIndex={$editingIndex} />;
-  let footer = showFooter && <TodoFooter filter={$filter} />;
-
-  <div>
-    <header class="header">
-      <h1>todos</h1>
-      <input
-        class="new-todo"
-        placeholder="What needs to be done?"
-        value={$formValue}
-        onChange={(value) -> $formValue = value}
-        autofocus={true}
-      />
-    </header>
-    {content}
-  </div>
+main view App ~ AppStyle -> {
+  <>
+    <section(.root)>
+      <Header />
+      <Items />
+      <Footer />
+    </section>
+    <Info />
+  </>
 }
-
-main func mountApp() -> HTML.mount(<App />, "#todoapp");
