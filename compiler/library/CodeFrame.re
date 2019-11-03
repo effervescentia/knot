@@ -76,3 +76,73 @@ let print = (file, cursor) => {
 
   Buffer.contents(buf);
 };
+
+let print_range = (file, start_cursor, end_cursor) => {
+  let in_channel = open_in(file);
+  let read_char = UnicodeFileReader.of_channel(in_channel);
+  let start_row = max(1, fst(start_cursor) - _padding_width);
+  let end_row = fst(end_cursor) + _padding_width;
+  let margin_size = (string_of_int(end_row) |> String.length) + 1;
+
+  if (start_row != 1) {
+    let rec skip = () =>
+      switch (read_char()) {
+      | Newline((curr_row, _)) when curr_row == start_row => ()
+      | _ => skip()
+      };
+    skip();
+  };
+
+  let buf = Buffer.create(_buffer_size);
+  let add_line_number = _add_line_number(buf, margin_size);
+
+  Buffer.add_char(buf, '\n');
+  add_line_number(start_row);
+
+  let indicator_added = ref(false);
+  let add_indicator = () =>
+    if (! indicator_added^) {
+      indicator_added := true;
+
+      ANSITerminal.(
+        Printf.sprintf(
+          "%s%s\n",
+          String.make(snd(start_cursor) - 1 + margin_size, ' '),
+          sprintf([red, Bold], "^"),
+        )
+      )
+      |> Buffer.add_string(buf);
+    };
+
+  let rec loop = () =>
+    switch (read_char()) {
+    /* end loop after extra padding */
+    | Newline((row, _)) when row == fst(end_cursor) + _padding_width + 1 =>
+      ()
+
+    | Newline(ch_cursor) =>
+      Buffer.add_char(buf, '\n');
+
+      if (fst(ch_cursor) >= fst(start_cursor)
+          + 1
+          && fst(ch_cursor) <= fst(end_cursor)) {
+        add_indicator();
+      };
+
+      add_line_number(fst(ch_cursor));
+
+      loop();
+
+    | Character(ch, (row, col)) =>
+      Buffer.add_utf_8_uchar(buf, ch);
+      loop();
+
+    | EndOfFile => add_indicator()
+    };
+  loop();
+
+  close_in(in_channel);
+  Buffer.add_char(buf, '\n');
+
+  Buffer.contents(buf);
+};

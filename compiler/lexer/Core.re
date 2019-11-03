@@ -1,37 +1,61 @@
 include Knot.Globals;
 include Knot.Token;
 
-type lex_match =
-  | Any
+type char_pointer = Knot.UnicodeFileStream.char_pointer;
+
+type match_pattern =
   | Alpha
   | Numeric
   | AlphaNumeric
   | Char(char)
   | Token(string)
-  | Either(list(lex_match))
-  | Except(list(lex_match));
+  /* pattern combinators */
+  | Any
+  | Either(list(match_pattern))
+  | Except(list(match_pattern));
 
-type lex_result('a) =
-  | Lexers(list(lex_result('a)))
-  | Lexer(lex_match, lex_match, string => lex_result('a))
-  | FailingLexer(
-      Knot.Exception.syntax_error,
-      lex_match,
-      lex_match,
-      string => lex_result('a),
+type matcher =
+  | Matcher(
+      match_pattern,
+      (string, LazyStream.t(char_pointer)) => match_result,
     )
-  | Result('a);
+  | LookaheadMatcher(
+      match_pattern,
+      match_pattern,
+      (string, LazyStream.t(char_pointer)) => match_result,
+    )
+  | TerminalMatcher(
+      Knot.Exception.syntax_error,
+      match_pattern,
+      (string, LazyStream.t(char_pointer)) => match_result,
+    )
+and match_result = (
+  option(Knot.Core.token),
+  list(matcher),
+  LazyStream.t(char_pointer),
+);
 
-let newline = Char('\n');
+let result = (res, stream) => (Some(res), [], stream);
 
-/** lexer matcher for a contiguous set of characters*/
-let rec (===>) = (s, t) => {
+let matcher_list = (ms, stream) => (None, ms, stream);
+
+let single_matcher = m => matcher_list([m]);
+
+let empty_matchers = str => matcher_list([], str);
+
+let rec match_contiguous = (s, t, f) => {
+  // Printf.sprintf("CONTIGUOUS: %s", s) |> print_endline;
+
   let next = _ =>
     if (String.length(s) == 1) {
-      Result(t);
+      result(t);
     } else {
-      String.sub(s, 1, String.length(s) - 1) ===> t;
+      String.sub(s, 1, String.length(s) - 1) |> f;
     };
 
-  Lexer(Char(s.[0]), Any, next);
+  Matcher(Char(s.[0]), next);
 };
+
+/* lexer matcher for a contiguous set of characters */
+let rec (===>) = (s, t) =>
+  match_contiguous(s, t, ss => single_matcher(ss ===> t));

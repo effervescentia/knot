@@ -1,16 +1,14 @@
 open Core;
 
-let _quote = Char('"');
-
-let rec lex_string = _ =>
-  Lexers([
-    FailingLexer(
+let rec match_string = _ =>
+  [
+    TerminalMatcher(
       UnclosedString,
-      _quote,
-      Any,
-      s => Result(String(String.sub(s, 1, String.length(s) - 2))),
+      Constants.quote,
+      s => result(String(String.sub(s, 1, String.length(s) - 2))),
     ),
-    FailingLexer(UnclosedString, Except([_quote]), Any, lex_string),
-  ]);
+    TerminalMatcher(UnclosedString, Except([Constants.quote]), match_string),
+  ]
+  |> matcher_list;
 
-let lexer = Lexer(_quote, Any, lex_string);
+let matchers = [Matcher(Constants.quote, match_string)];

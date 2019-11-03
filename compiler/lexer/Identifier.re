@@ -1,49 +1,48 @@
 open Core;
 
-let _underscore = Char('_');
-let _identifier_matchers = [_underscore, AlphaNumeric];
+let _identifier_matchers = [Constants.underscore, AlphaNumeric];
 
-let rec lex_subsequent_chars = (f, reserved) =>
-  Lexers([
-    Lexer(
+let rec _match_subsequent_chars = (f, reserved) =>
+  [
+    LookaheadMatcher(
       Either(_identifier_matchers),
       Either(_identifier_matchers),
-      _ => lex_subsequent_chars(f, reserved),
+      _ => _match_subsequent_chars(f, reserved),
     ),
-    Lexer(
+    LookaheadMatcher(
       Either(_identifier_matchers),
       Except(_identifier_matchers),
       /* only needed here as there are no 1-character reserved tokens */
-      s => List.mem(s, reserved) ? Lexers([]) : f(s),
+      s => List.mem(s, reserved) ? empty_matchers : f(s),
     ),
-  ]);
+  ]
+  |> matcher_list;
 
-let identifier_lexer = (~reserved=Knot.Constants.reserved_keywords, ()) =>
-  Lexers([
-    Lexer(
-      Either([_underscore, Alpha]),
-      Except(_identifier_matchers),
-      s => Result(Identifier(s)),
-    ),
-    Lexer(
-      Either([_underscore, Alpha]),
-      Either(_identifier_matchers),
-      _ => lex_subsequent_chars(x => Result(Identifier(x)), reserved),
-    ),
-  ]);
+let identifier_matcher = (~reserved=Knot.Constants.reserved_keywords, ()) => [
+  LookaheadMatcher(
+    Either([Constants.underscore, Alpha]),
+    Except(_identifier_matchers),
+    s => result(Identifier(s)),
+  ),
+  LookaheadMatcher(
+    Either([Constants.underscore, Alpha]),
+    Either(_identifier_matchers),
+    _ => _match_subsequent_chars(x => result(Identifier(x)), reserved),
+  ),
+];
 
-let sidecar_lexer =
-  Lexer(
-    Char('$'),
+let sidecar_matcher =
+  LookaheadMatcher(
+    Constants.dollar_sign,
     Either(_identifier_matchers),
     _ =>
-      lex_subsequent_chars(
+      _match_subsequent_chars(
         x =>
-          Result(
+          result(
             SidecarIdentifier(String.sub(x, 1, String.length(x) - 1)),
           ),
         [],
       ),
   );
 
-let lexer = Lexers([sidecar_lexer, identifier_lexer()]);
+let matchers = [sidecar_matcher, ...identifier_matcher()];

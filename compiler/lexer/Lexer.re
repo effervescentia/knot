@@ -2,84 +2,82 @@ open Core;
 
 let _token_buffer_size = 512;
 
-let _root =
-  Lexers([
-    Character.lexer,
-    Keyword.lexer,
-    Pattern.lexer,
-    Text.lexer,
-    Identifier.lexer,
-    Number.lexer,
-    Boolean.lexer,
-    Comment.lexer,
-  ])
-  |> Util.normalize_lexers;
+/**
+ * 1. have a single stream to keep track of
+ * 2. take a list of matchers and either return a result or a list of matchers for the next char
+ */
 
-let rec _exec_lexer = (results, buf, lex, stream) =>
-  switch (lex) {
-  | Lexers(ls) =>
-    let (lexers, next_results) =
-      List.fold_left(
-        ((acc, res), l) =>
-          switch (_exec_lexer(res, buf, l, stream)) {
-          | (Some(r), nres) => ([r, ...acc], nres)
-          | (None, nres) => (acc, nres)
-          },
-        ([], results),
-        ls,
-      );
+let _root_matchers =
+  Character.matchers
+  @ Keyword.matchers
+  @ Pattern.matchers
+  @ Text.matchers
+  // @ Identifier.matchers
+  @ Number.matchers
+  @ Boolean.matchers
+  @ Comment.matchers;
 
-    (Util.normalize_lexers(Lexers(lexers)), next_results);
-  | Lexer(m, nm, t)
-  | FailingLexer(_, m, nm, t) => (
-      Util.test_match(m, stream, next_stream =>
-        Util.test_match(nm, next_stream, _ =>
-          t(Buffer.contents(buf)) |> Util.normalize_lexers
-        )
-      ),
-      results,
-    )
-  | Result(tkn) => (None, [(tkn, stream), ...results])
-  };
+let rec _find_token =
+        (
+          ~result=None,
+          ~buf=Buffer.create(_token_buffer_size),
+          matchers,
+          stream,
+        ) =>
+  if (List.length(matchers) == 0) {
+    print_endline("RAN OUT OF LEXERS");
 
-let rec _find_token = (results, buf, lexer, stream) =>
-  switch (lexer, stream) {
-  /* found a single longest result */
-  | (Some(Result(tkn)), _) => Some((tkn, stream))
+    switch (result, stream) {
+    /* result found */
+    | (Some(tkn), _) =>
+      Printf.sprintf(
+        "RESULT: %s",
+        Knot.Util.print_optional(Debug.print_tkn, result),
+      )
+      |> print_endline;
+      switch (stream) {
+      | LazyStream.Cons((x, _), _) =>
+        Knot.Util.print_uchar(x)
+        |> Printf.sprintf("NEXT STREAM CHAR: %s")
+        |> print_endline
+      | LazyStream.Nil => print_endline("STREAM FINISHED")
+      };
+      Printf.sprintf(
+        "RESULT: %s",
+        Knot.Util.print_optional(Debug.print_tkn, result),
+      )
+      |> print_endline;
+      Some((tkn, stream));
 
-  /* found a lexer */
-  | (Some(l), LazyStream.Cons((ch, _), next_stream)) =>
-    Buffer.add_utf_8_uchar(buf, ch);
+    /* reached the EOF */
+    | (None, LazyStream.Nil) => None
 
-    switch (_exec_lexer(results, buf, l, stream)) {
-    /* remaining lexers */
-    | (Some(_) as res, n_results) =>
-      _find_token(n_results, buf, res, Lazy.force(next_stream))
-
-    /* no remaining lexers */
-    | (None, n_results) => _find_token(n_results, buf, None, stream)
+    /* unmatched character found */
+    | (None, LazyStream.Cons((ch, cursor), _)) =>
+      throw_syntax(InvalidCharacter(ch, cursor))
     };
+  } else {
+    switch (stream) {
+    /* has remaining characters */
+    | LazyStream.Cons((ch, _), next_stream) =>
+      Buffer.add_utf_8_uchar(buf, ch);
 
-  /* ran out of lexers */
-  | (None, curr) =>
-    switch (results) {
-    /* return the longest result */
-    | [x, ...xs] => Some(x)
-    | [] =>
-      switch (curr) {
-      /* has unmatched character */
-      | LazyStream.Cons((ch, cursor), _) =>
-        throw_syntax(InvalidCharacter(ch, cursor))
-      | _ => None
-      }
-    }
+      let (next_result, next_ms) =
+        Matcher.execute_each(result, buf, stream, matchers);
 
-  /* hit EOF */
-  | (Some(l), LazyStream.Nil) =>
-    Util.find_error(None, l) |*> throw_syntax;
+      _find_token(
+        ~result=next_result,
+        ~buf,
+        next_ms,
+        List.length(next_ms) == 0 ? stream : Lazy.force(next_stream),
+      );
+    /* reached the EOF */
+    | LazyStream.Nil =>
+      /* throw errors for unclosed matchers */
+      Matcher.find_unclosed(matchers) |*> throw_syntax;
 
-    Util.find_result(None, l) |?> (r => Some((r, stream)));
+      result |?> (r => Some((r, LazyStream.Nil)));
+    };
   };
 
-let next_token = input =>
-  _find_token([], Buffer.create(_token_buffer_size), _root, input);
+let next_token = _find_token(_root_matchers);

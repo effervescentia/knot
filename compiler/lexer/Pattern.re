@@ -1,34 +1,33 @@
 open Core;
 
-let _space = Char(' ');
-let _tab = Char('\t');
-let _whitespace = [_space, _tab, newline];
-
-let rec _permiss = (lexer, chs) =>
-  Lexers([lexer, Lexer(Either(chs), Any, _ => _permiss(lexer, chs))]);
+let rec _permiss = (matcher, match_skip) =>
+  [matcher, Matcher(match_skip, _ => _permiss(matcher, match_skip))]
+  |> matcher_list;
 
 let rec (==>) = (p, t) => {
   let next = _ =>
     if (String.length(p) == 1) {
-      Result(t);
+      result(t);
     } else {
-      _permiss(String.sub(p, 1, String.length(p) - 1) ==> t, _whitespace);
+      _permiss(
+        String.sub(p, 1, String.length(p) - 1) ==> t,
+        Constants.whitespace,
+      );
     };
 
-  Lexer(Char(p.[0]), Any, next);
+  Matcher(Char(p.[0]), next);
 };
 
-let lexer =
-  Lexers([
-    "&&" ==> LogicalAnd,
-    "||" ==> LogicalOr,
-    "->" ==> Lambda,
-    "==" ==> Equals,
-    "!=" ==> NotEquals,
-    "<=" ==> LessThanOrEqual,
-    ">=" ==> GreaterThanOrEqual,
-    "/>" ==> JSXSelfClose,
-    "</" ==> JSXOpenEnd,
-    "<>" ==> JSXStartFragment,
-    "</>" ==> JSXEndFragment,
-  ]);
+let matchers = [
+  "&&" ==> LogicalAnd,
+  "||" ==> LogicalOr,
+  "->" ==> Lambda,
+  "==" ==> Equals,
+  "!=" ==> NotEquals,
+  "<=" ==> LessThanOrEqual,
+  ">=" ==> GreaterThanOrEqual,
+  "/>" ==> JSXSelfClose,
+  "</" ==> JSXOpenEnd,
+  "<>" ==> JSXStartFragment,
+  "</>" ==> JSXEndFragment,
+];

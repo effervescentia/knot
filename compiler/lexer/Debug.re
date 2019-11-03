@@ -12,26 +12,19 @@ let rec print_matcher = m =>
   | AlphaNumeric => "ALPHA_NUMERIC"
   | Any => "ANY"
   | Either(ms) =>
-    Printf.sprintf(
-      "EITHER(%s)",
-      List.fold_left((acc, m) => acc ++ "|" ++ print_matcher(m), "", ms),
-    )
+    Knot.Util.print_sequential(~separator="|", print_matcher, ms)
+    |> Printf.sprintf("EITHER(%s)")
   | Except(ms) =>
-    Printf.sprintf(
-      "EXCEPT(%s)",
-      List.fold_left((acc, m) => acc ++ "|" ++ print_matcher(m), "", ms),
-    )
+    Knot.Util.print_sequential(~separator="|", print_matcher, ms)
+    |> Printf.sprintf("EXCEPT(%s)")
   };
 
-let rec print_lex_table = l =>
-  switch (l) {
-  | Lexers(ls) =>
-    List.fold_left((acc, l) => acc ++ print_lex_table(l), "", ls)
-  | Lexer(m, nm, _)
-  | FailingLexer(_, m, nm, _) =>
-    Printf.sprintf("%s >> %s\n", print_matcher(m), print_matcher(nm))
-  | Result(x) => "RESULT!\n"
-  };
+let rec print_lex_matcher =
+  fun
+  | Matcher(m, _)
+  | TerminalMatcher(_, m, _) => Printf.sprintf("%s", print_matcher(m))
+  | LookaheadMatcher(m, nm, _) =>
+    Printf.sprintf("%s >> %s", print_matcher(m), print_matcher(nm));
 
 let print_token_stream = token_stream => {
   let rec loop = stream =>

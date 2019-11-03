@@ -26,6 +26,6 @@ let tests =
   >::: [
     "read unix file token stream"
     >:: test_read_fully(Config.unix_tokens_file, Fixtures.all_tokens),
-    "read windows file token stream"
-    >:: test_read_fully(Config.windows_tokens_file, Fixtures.all_tokens),
+    // "read windows file token stream"
+    // >:: test_read_fully(Config.windows_tokens_file, Fixtures.all_tokens),
   ];

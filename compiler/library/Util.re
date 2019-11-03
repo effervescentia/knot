@@ -2,6 +2,13 @@ open Globals;
 
 let _uchar_buffer_size = 128;
 
+let rec range = (start, end_) =>
+  if (start >= end_) {
+    [];
+  } else {
+    [start, ...range(start + 1, end_)];
+  };
+
 let print_sequential = (~separator="", printer, xs) => {
   let rec next =
     fun

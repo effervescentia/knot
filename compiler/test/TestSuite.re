@@ -19,18 +19,18 @@ let () = {
       },
     "Knot"
     >::: [
-      FileStreamTest.tests,
+      // FileStreamTest.tests,
       LexerTest.tests,
-      TokenStreamTest.tests,
-      ParserTest.tests,
-      ResolverTest.tests,
-      GeneratorTest.tests,
+      // TokenStreamTest.tests,
+      // ParserTest.tests,
+      // ResolverTest.tests,
+      // GeneratorTest.tests,
     ],
   );
 
-  failed^ ?
-    () :
-    ANSITerminal.(sprintf([green], "✓"))
-    |> Printf.sprintf("\n[%s] Test suite successful!")
-    |> print_endline;
+  failed^
+    ? ()
+    : ANSITerminal.(sprintf([green], "✓"))
+      |> Printf.sprintf("\n[%s] Test suite successful!")
+      |> print_endline;
 };

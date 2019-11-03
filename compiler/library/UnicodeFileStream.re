@@ -1,5 +1,7 @@
 open Globals;
 
+type char_pointer = (Uchar.t, (int, int));
+
 let of_channel = channel => {
   let read_char = UnicodeFileReader.of_channel(channel);
 

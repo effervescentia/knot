@@ -2,7 +2,7 @@ type syntax_error =
   | /** found an unexpected character */
     InvalidCharacter(Uchar.t, (int, int))
   | /** comment block without closing tag */
-    UnclosedCommentBlock
+    UnclosedCommentBlock((int, int))
   | /** string missing the closing quote */
     UnclosedString
   | /** dot operator was not followed by a valid property name */
