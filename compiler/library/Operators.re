@@ -52,7 +52,7 @@ let (|-) = (f, g, x) =>
 
 /** generate range of numbers */
 let rec (<::>) = (start, end_) =>
-  if (start >= end_) {
+  if (start > end_) {
     [];
   } else {
     [start, ...start + 1 <::> end_];

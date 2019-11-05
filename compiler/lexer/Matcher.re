@@ -1,236 +1,216 @@
-open Core;
+open Knot.Core;
 
-let rec test_match = (stream, matcher) =>
-  switch (stream) {
-  | LazyStream.Cons((c, _), next_stream) =>
-    switch (matcher) {
-    | Char(ch) when Uchar.equal(Uchar.of_char(ch), c) =>
-      Some(Lazy.force(next_stream))
-    | Alpha when Util.is_uchar_alpha(c) => Some(Lazy.force(next_stream))
-    | Numeric when Util.is_uchar_numeric(c) => Some(Lazy.force(next_stream))
-    | AlphaNumeric when Util.is_uchar_alphanumeric(c) =>
-      Some(Lazy.force(next_stream))
-    | Any => Some(Lazy.force(next_stream))
-    | Either(ms) => _first_match(test_match(stream), ms)
-    | Except(ms) =>
-      _has_matches(test_match(stream), ms)
-        ? None : Some(Lazy.force(next_stream))
-    | Token(s) =>
-      let rec next = (s, input) =>
-        switch (input) {
-        | LazyStream.Cons((c, _), next_input)
-            when Uchar.equal(c, Uchar.of_char(s.[0])) =>
-          if (String.length(s) == 1) {
-            Some(Lazy.force(next_input));
-          } else {
-            next(
-              String.sub(s, 1, String.length(s) - 1),
-              Lazy.force(next_input),
-            );
-          }
-        | _ => None
-        };
+type t =
+  | Matcher(Match.t, string => match_result, option(syntax_error))
+  | LookaheadMatcher(
+      Match.t,
+      list(Match.t),
+      string => match_result,
+      option(syntax_error),
+    )
+and match_result = (option(token), list(t));
 
-      next(s, stream);
-    | _ => None
-    }
-  | LazyStream.Nil =>
-    switch (matcher) {
-    | Except(_)
-    | Any => Some(stream)
-    | _ => None
-    }
-  }
-and _first_match = test =>
-  fun
-  | [m, ...ms] => test(m) |=> (() => _first_match(test, ms))
-  | [] => None
-and _has_matches = test => List.exists(m => has_opt(test(m)));
+let result = r => (Some(r), []);
 
-// let rec test_match = (stream, matcher) => {
-//   // switch (stream) {
-//   // | LazyStream.Cons((c, _), _) =>
-//   //   print_endline(Printf.sprintf("CHAR: %s", Knot.Util.print_uchar(c)))
-//   // | _ => ()
-//   // };
-//   // Debug.print_matcher(matcher)
-//   // |> Printf.sprintf("MATCHER: %s")
-//   // |> print_endline;
-//   switch (stream, matcher) {
-//   /* match character */
-//   | (LazyStream.Cons((c, _), next_stream), Char(ch))
-//       when Uchar.equal(Uchar.of_char(ch), c) =>
-//     Some(Lazy.force(next_stream))
+let many = ms => (None, ms);
 
-//   /* match alpha */
-//   | (LazyStream.Cons((c, _), next_stream), Alpha)
-//       when Util.is_uchar_alpha(c) =>
-//     Some(Lazy.force(next_stream))
+let single = m => many([m]);
 
-//   /* match alphanumeric */
-//   | (LazyStream.Cons((c, _), next_stream), AlphaNumeric)
-//       when Util.is_uchar_alphanumeric(c) =>
-//     Some(Lazy.force(next_stream))
+let empty = () => many([]);
 
-//   /* match token */
-//   | (LazyStream.Cons(_), Token(pattern)) =>
-//     let rec next = (s, input) =>
-//       switch (input) {
-//       | LazyStream.Cons((c, _), next_input)
-//           when Uchar.equal(c, Uchar.of_char(s.[0])) =>
-//         if (String.length(s) == 1) {
-//           Some(Lazy.force(next_input));
-//         } else {
-//           next(
-//             String.sub(s, 1, String.length(s) - 1),
-//             Lazy.force(next_input),
-//           );
-//         }
-//       | _ => None
-//       };
+let null = t => Matcher(Not(All), t, None);
 
-//     next(pattern, stream);
+let lookahead = (~error=None, match, next_matches, evaluate) =>
+  LookaheadMatcher(match, next_matches, evaluate, error);
 
-//   /* match any */
-//   | (LazyStream.Cons(_, next_stream), Any) => Some(Lazy.force(next_stream))
+/** tokens must be a contiguous set of characters */
+let rec token = (~err=None, s, t) =>
+  switch (String.length(s)) {
+  | 0 => null(t)
+  | 1 => Matcher(Exactly(s.[0]), t, err)
+  | len =>
+    let substring = String.sub(s, 1, len - 1);
 
-//   /* match whitelist */
-//   | (LazyStream.Cons(_), Either(ms)) => _first_match(test_match(stream), ms)
+    LookaheadMatcher(
+      Exactly(s.[0]),
+      String.to_seq(substring)
+      |> List.of_seq
+      |> List.map(c => Match.Exactly(c)),
+      _ => token(~err, substring, t) |> single,
+      err,
+    );
+  };
 
-//   /* match blacklist */
-//   | (LazyStream.Cons(_, next_stream), Except(ms)) =>
-//     _has_matches(test_match(stream), ms)
-//       ? None : Some(Lazy.force(next_stream))
+/** glyphs can contain whitespace */
+let glyph = (s, t) => {
+  let rec next_matchers = ss =>
+    if (String.length(ss) == 1) {
+      let end_match = Match.Exactly(ss.[0]);
+      let rec end_matchers = [
+        Matcher(end_match, t, None),
+        LookaheadMatcher(
+          Match.whitespace,
+          [Any([Match.whitespace, end_match])],
+          _ => many(end_matchers),
+          None,
+        ),
+      ];
 
-//   /* lenient matchers */
-//   | (LazyStream.Nil, Any | Except(_)) => Some(LazyStream.Nil)
+      end_matchers;
+    } else {
+      let substring = String.sub(ss, 1, String.length(ss) - 1);
+      let lookahead =
+        String.to_seq(substring)
+        |> List.of_seq
+        |> List.map(c => Match.Any([Match.whitespace, Exactly(c)]));
+      let rec contd_matchers = [
+        LookaheadMatcher(
+          Exactly(ss.[0]),
+          lookahead,
+          _ => next_matchers(substring) |> many,
+          None,
+        ),
+        LookaheadMatcher(
+          Match.whitespace,
+          lookahead,
+          _ => many(contd_matchers),
+          None,
+        ),
+      ];
 
-//   | _ => None
-//   };
-// }
-// and _first_match = test =>
-//   fun
-//   | [m, ...ms] => test(m) |=> (() => _first_match(test, ms))
-//   | [] => None
-// and _has_matches = test => List.exists(test % has_opt);
-
-let rec execute = (result, buf, stream, matcher) => {
-  // (
-  //   switch (stream) {
-  //   | LazyStream.Cons((c, (row, col)), _) =>
-  //     Printf.sprintf(
-  //       "char(%s) at [%d:%d]",
-  //       Knot.Util.print_uchar(c),
-  //       row,
-  //       col,
-  //     )
-  //   | _ => ""
-  //   }
-  // )
-  // |> print_endline;
-  // Knot.Util.print_optional(
-  //   Debug.print_tkn % Printf.sprintf("CURR RESULT: %s\n"),
-  //   result,
-  // )
-  // |> print_string;
-  // Debug.print_lex_matcher(matcher)
-  // |> Printf.sprintf("TEST: %s\n")
-  // |> print_string;
-  (
-    fun
-    /* simple match of current character */
-    | Matcher(m, t)
-    | TerminalMatcher(_, m, t) => {
-        switch (test_match(stream, m)) {
-        | Some(str) =>
-          // print_endline(
-          //   Printf.sprintf("MATCHED: %s", Debug.print_matcher(m)),
-          // );
-          t(Buffer.contents(buf), str)
-        | None =>
-          // print_endline(
-          //   Printf.sprintf("DID NOT MATCH: %s", Debug.print_matcher(m)),
-          // );
-          (result, [], stream)
-        };
-      }
-
-    /* match current and next character */
-    | LookaheadMatcher(m, nm, t) =>
-      switch (test_match(stream, m)) {
-      | Some(next_stream) =>
-        // print_endline(
-        //   Printf.sprintf("MATCHED LOOKAHEAD: %s", Debug.print_matcher(m)),
-        // );
-        execute(result, buf, next_stream, Matcher(nm, t))
-      | None => (result, [], stream)
-      }
-  )(
-    matcher,
-  );
-};
-
-let rec execute_each = (result, buf, stream) =>
-  fun
-  /* no matchers */
-  | [] => {
-      (
-        // Printf.sprintf(
-        //   " RESULT: %s",
-        //   Knot.Util.print_optional(Debug.print_tkn, result),
-        // )
-        // |> print_endline;
-        result,
-        [],
-      );
-    }
-
-  /* execute each matcher */
-  | ms => {
-      // Printf.sprintf(
-      //   "POTENTIAL RESULT: %s",
-      //   Knot.Util.print_optional(Debug.print_tkn, result),
-      // )
-      // |> print_endline;
-      // print_endline("MATCHERS");
-      // Knot.Util.print_sequential(~separator="\n", Debug.print_lex_matcher, ms)
-      // |> print_endline;
-      let (n_res, n_ms) =
-        List.fold_left(
-          ((res, acc), m) => {
-            let (next_res, next_matchers, next_stream) =
-              execute(res, buf, stream, m);
-
-            // Printf.sprintf(
-            //   "  INNER RESULT: %s",
-            //   Knot.Util.print_optional(Debug.print_tkn, next_res),
-            // )
-            // |> print_endline;
-            (
-              next_res |=> (() => res),
-              List.length(next_matchers) === 0 ? acc : next_matchers @ acc,
-            );
-          },
-          (result, []),
-          ms,
-        );
-
-      // Printf.sprintf(
-      //   "RESULT: %s",
-      //   Knot.Util.print_optional(Debug.print_tkn, n_res),
-      // )
-      // |> print_endline;
-
-      (n_res, n_ms);
+      contd_matchers;
     };
 
-let rec find_unclosed =
-  fun
-  | [] => None
-  | [TerminalMatcher(e, _, _)] => Some(e)
-  | ms =>
-    List.fold_left(
-      (acc, m) => acc |=> (() => find_unclosed([m])),
+  switch (String.length(s)) {
+  | 0 => null(t)
+  | 1 => Matcher(Exactly(s.[0]), t, None)
+  | len =>
+    let substring = String.sub(s, 1, len - 1);
+
+    LookaheadMatcher(
+      Exactly(s.[0]),
+      String.to_seq(substring)
+      |> List.of_seq
+      |> List.map(c => Match.Any([Match.whitespace, Exactly(c)])),
+      _ => next_matchers(substring) |> many,
       None,
-      ms,
     );
+  };
+};
+
+let bounded = (start, ~end_=start, t, error) => {
+  let rec match_content = (boundary, _) =>
+    (
+      switch (String.length(boundary)) {
+      | 0 => [null(t)]
+      | 1 => [
+          token(~err=Some(error), boundary, t),
+          Matcher(
+            Not(Exactly(boundary.[0])),
+            match_content(boundary),
+            Some(error),
+          ),
+        ]
+      | len =>
+        let substring = String.sub(boundary, 1, len - 1);
+        let rec gen_matchers = (~index=1, ()) =>
+          if (index == len) {
+            [];
+          } else {
+            [
+              LookaheadMatcher(
+                Exactly(boundary.[0]),
+                String.to_seq(substring)
+                |> List.of_seq
+                |> Knot.Util.slice(0, index)
+                |> List.mapi((i, c) =>
+                     i === index ? Match.Not(Exactly(c)) : Match.Exactly(c)
+                   ),
+                t,
+                None,
+              ),
+              ...gen_matchers(~index=index + 1, ()),
+            ];
+          };
+
+        [
+          token(~err=Some(error), boundary, t),
+          Matcher(
+            Not(Exactly(boundary.[0])),
+            match_content(boundary),
+            None,
+          ),
+          ...gen_matchers(),
+        ];
+      }
+    )
+    |> many;
+
+  token(start, match_content(end_));
+};
+
+let prefixed_line = (prefix, t) => {
+  let rec match_line = _ =>
+    [
+      lookahead(Not(Match.end_of_line), [Match.end_of_line], t),
+      lookahead(
+        Not(Match.end_of_line),
+        [Not(Match.end_of_line)],
+        match_line,
+      ),
+    ]
+    |> many;
+
+  token(prefix, match_line);
+};
+
+let _exec = matcher =>
+  fun
+  | LazyStream.Cons((c, _), next_stream) =>
+    switch (matcher) {
+    | Matcher(match, evaluate, _)
+    | LookaheadMatcher(match, [], evaluate, _) when Match.test(c, match) =>
+      Some(evaluate)
+    | LookaheadMatcher(match, next_match, evaluate, _)
+        when
+          Match.test(c, match)
+          && Match.test_lookahead(next_match, Lazy.force(next_stream)) =>
+      Some(evaluate)
+    | _ => None
+    }
+  | LazyStream.Nil => None;
+
+let _resolve = (curr_token, matcher, stream) => {
+  switch (_exec(matcher, stream)) {
+  | Some(t) => Some(t(curr_token))
+  | None => None
+  };
+};
+
+let resolve_many = (curr_result, curr_token, matchers, stream) =>
+  List.fold_left(
+    ((result_acc, matcher_acc), matcher) => {
+      switch (_resolve(curr_token, matcher, stream)) {
+      | Some((next_result, next_matchers)) => (
+          next_result ||> result_acc,
+          matcher_acc @ next_matchers,
+        )
+      | None => (result_acc, matcher_acc)
+      }
+    },
+    (curr_result, []),
+    matchers,
+  );
+
+let rec find_error =
+  List.fold_left(
+    (acc, matcher) =>
+      acc
+      ||> (
+        switch (matcher) {
+        | Matcher(_, _, error)
+        | LookaheadMatcher(_, _, _, error) => error
+        }
+      ),
+    None,
+  );

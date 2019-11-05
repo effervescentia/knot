@@ -19,12 +19,12 @@ let () = {
       },
     "Knot"
     >::: [
-      // FileStreamTest.tests,
+      FileStreamTest.tests,
       LexerTest.tests,
-      // TokenStreamTest.tests,
-      // ParserTest.tests,
-      // ResolverTest.tests,
-      // GeneratorTest.tests,
+      TokenStreamTest.tests,
+      ParserTest.tests,
+      ResolverTest.tests,
+      GeneratorTest.tests,
     ],
   );
 

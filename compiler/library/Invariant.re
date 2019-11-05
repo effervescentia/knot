@@ -8,10 +8,14 @@ type invariant =
     )
   | /** found a type reference whose value has not been determined */
     UnanalyzedTypeReference
-  | /** module resolved to an invalid type */ InvalidModuleType(string)
-  | /** module path was blank */ EmptyModulePath
-  | /** sidecar scope was not provided */ MissingSidecarScope
-  | /** configuration has not been initialized */ ConfigurationNotInitialized
+  | /** module resolved to an invalid type */
+    InvalidModuleType(string)
+  | /** module path was blank */
+    EmptyModulePath
+  | /** sidecar scope was not provided */
+    MissingSidecarScope
+  | /** configuration has not been initialized */
+    ConfigurationNotInitialized
   | /** did not find a boundary scope for NestedHashtbl */
     BoundaryScopeMissing;
 

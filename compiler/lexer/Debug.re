@@ -2,29 +2,33 @@ open Core;
 
 include Knot.Debug;
 
-let rec print_matcher = m =>
-  switch (m) {
-  | Char(c) =>
-    Printf.sprintf("CHAR('%s')", String.make(1, c)) |> String.escaped
-  | Token(s) => Printf.sprintf("TOKEN(%s)", s) |> String.escaped
-  | Alpha => "ALPHA"
-  | Numeric => "NUMERIC"
-  | AlphaNumeric => "ALPHA_NUMERIC"
-  | Any => "ANY"
-  | Either(ms) =>
-    Knot.Util.print_sequential(~separator="|", print_matcher, ms)
-    |> Printf.sprintf("EITHER(%s)")
-  | Except(ms) =>
-    Knot.Util.print_sequential(~separator="|", print_matcher, ms)
-    |> Printf.sprintf("EXCEPT(%s)")
-  };
+let rec print_match =
+  Match.(
+    m =>
+      switch (m) {
+      | Exactly(c) =>
+        Printf.sprintf("CHAR('%s')", String.make(1, c)) |> String.escaped
+      | Any(ms) =>
+        Knot.Util.print_sequential(~separator="|", print_match, ms)
+        |> Printf.sprintf("ANY(%s)")
+      | Not(m) => print_match(m) |> Printf.sprintf("NOT(%s)")
+      | All => "ALL"
+      | EOF => "EOF"
+      }
+  );
 
-let rec print_lex_matcher =
-  fun
-  | Matcher(m, _)
-  | TerminalMatcher(_, m, _) => Printf.sprintf("%s", print_matcher(m))
-  | LookaheadMatcher(m, nm, _) =>
-    Printf.sprintf("%s >> %s", print_matcher(m), print_matcher(nm));
+let rec print_matcher =
+  Matcher.(
+    fun
+    | Matcher(m, _, _)
+    | LookaheadMatcher(m, [], _, _) => print_match(m)
+    | LookaheadMatcher(m, [nm, ...nms], evaluate, error) =>
+      Printf.sprintf(
+        "%s >> %s",
+        print_match(m),
+        LookaheadMatcher(nm, nms, evaluate, error) |> print_matcher,
+      )
+  );
 
 let print_token_stream = token_stream => {
   let rec loop = stream =>

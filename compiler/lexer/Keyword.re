@@ -1,6 +1,5 @@
 open Core;
 
-/** keyword lexer matcher */
 let (==>) = (s, t) => s ===> Keyword(t);
 
 let matchers = [

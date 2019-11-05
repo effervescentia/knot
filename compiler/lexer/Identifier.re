@@ -1,48 +1,54 @@
 open Core;
 
-let _identifier_matchers = [Constants.underscore, AlphaNumeric];
+let _first_char_pattern = Match.(Any([underscore, alphanumeric]));
+let _subsequent_char_pattern = Match.(Any([underscore, alpha]));
 
-let rec _match_subsequent_chars = (f, reserved) =>
-  [
-    LookaheadMatcher(
-      Either(_identifier_matchers),
-      Either(_identifier_matchers),
-      _ => _match_subsequent_chars(f, reserved),
-    ),
-    LookaheadMatcher(
-      Either(_identifier_matchers),
-      Except(_identifier_matchers),
-      /* only needed here as there are no 1-character reserved tokens */
-      s => List.mem(s, reserved) ? empty_matchers : f(s),
-    ),
-  ]
-  |> matcher_list;
+let rec _match_subsequent_chars =
+  Matcher.(
+    (f, reserved, _) =>
+      [
+        lookahead(
+          _first_char_pattern,
+          [_first_char_pattern],
+          _match_subsequent_chars(f, reserved),
+        ),
+        lookahead(
+          _first_char_pattern,
+          [Not(_first_char_pattern)],
+          /* only needed here as there are no 1-character reserved tokens */
+          s =>
+          List.mem(s, reserved) ? empty() : f(s)
+        ),
+      ]
+      |> many
+  );
 
-let identifier_matcher = (~reserved=Knot.Constants.reserved_keywords, ()) => [
-  LookaheadMatcher(
-    Either([Constants.underscore, Alpha]),
-    Except(_identifier_matchers),
-    s => result(Identifier(s)),
-  ),
-  LookaheadMatcher(
-    Either([Constants.underscore, Alpha]),
-    Either(_identifier_matchers),
-    _ => _match_subsequent_chars(x => result(Identifier(x)), reserved),
-  ),
-];
+let identifier_matcher =
+  Matcher.(
+    (~reserved=Knot.Constants.reserved_keywords, ()) => [
+      lookahead(_subsequent_char_pattern, [Not(_first_char_pattern)], s =>
+        Identifier(s) |> result
+      ),
+      lookahead(
+        _subsequent_char_pattern,
+        [_first_char_pattern],
+        _match_subsequent_chars(x => Identifier(x) |> result, reserved),
+      ),
+    ]
+  );
 
 let sidecar_matcher =
-  LookaheadMatcher(
-    Constants.dollar_sign,
-    Either(_identifier_matchers),
-    _ =>
+  Matcher.(
+    lookahead(
+      Match.dollar_sign,
+      [_first_char_pattern],
       _match_subsequent_chars(
         x =>
-          result(
-            SidecarIdentifier(String.sub(x, 1, String.length(x) - 1)),
-          ),
+          SidecarIdentifier(String.sub(x, 1, String.length(x) - 1))
+          |> Matcher.result,
         [],
       ),
+    )
   );
 
 let matchers = [sidecar_matcher, ...identifier_matcher()];

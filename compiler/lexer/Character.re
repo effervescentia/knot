@@ -1,7 +1,6 @@
 open Core;
 
-/** character lexer matcher */
-let (==>) = (c, t) => Matcher(Char(c), _ => result(t));
+let (==>) = Matcher.((c, t) => Matcher(Exactly(c), _ => result(t), None));
 
 let matchers = [
   ' ' ==> Space,
