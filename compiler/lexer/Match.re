@@ -42,15 +42,19 @@ let rec test = c =>
 
 let rec test_lookahead = (matches, stream) =>
   switch (matches) {
+  /* no matches remaining */
   | [] => true
+  /* has matches remaining */
   | [match, ...ms] =>
     switch (match, stream) {
+    /* empty match set, always false */
+    | (Not(All), _) => false
+    /* test lookahead with current character */
     | (_, LazyStream.Cons((c, _), next_stream)) =>
       test(c, match) && test_lookahead(ms, Lazy.force(next_stream))
-    /* empty match set */
-    | (Not(All), _) => false
     /* can match EOF */
-    | (EOF | All | Not(_), LazyStream.Nil) when List.length(ms) === 0 => true
+    | (EOF | All | Not(_), LazyStream.Nil) when List.length(ms) == 0 => true
+    /* does not match */
     | _ => false
     }
   };

@@ -124,7 +124,7 @@ let bounded = (start, ~end_=start, t, error) => {
                 |> List.of_seq
                 |> Knot.Util.slice(0, index)
                 |> List.mapi((i, c) =>
-                     i === index ? Match.Not(Exactly(c)) : Match.Exactly(c)
+                     i == index ? Match.Not(Exactly(c)) : Match.Exactly(c)
                    ),
                 t,
                 None,
@@ -168,24 +168,23 @@ let _exec = matcher =>
   fun
   | LazyStream.Cons((c, _), next_stream) =>
     switch (matcher) {
+    /* test matcher */
     | Matcher(match, evaluate, _)
     | LookaheadMatcher(match, [], evaluate, _) when Match.test(c, match) =>
       Some(evaluate)
+    /* test matcher with lookahead check */
     | LookaheadMatcher(match, next_match, evaluate, _)
         when
           Match.test(c, match)
           && Match.test_lookahead(next_match, Lazy.force(next_stream)) =>
       Some(evaluate)
+    /* no matcher was successful */
     | _ => None
     }
   | LazyStream.Nil => None;
 
-let _resolve = (curr_token, matcher, stream) => {
-  switch (_exec(matcher, stream)) {
-  | Some(t) => Some(t(curr_token))
-  | None => None
-  };
-};
+let _resolve = (curr_token, matcher, stream) =>
+  _exec(matcher, stream) |?> (t => Some(t(curr_token)));
 
 let resolve_many = (curr_result, curr_token, matchers, stream) =>
   List.fold_left(

@@ -179,6 +179,6 @@ let tests =
             "///931lkj das\n e1;lk312///",
             BlockComment("931lkj das\n e1;lk312"),
           ),
-          // ("//////", BlockComment("")),
+          ("//////", BlockComment("")),
         ]),
   ];

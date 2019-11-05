@@ -15,29 +15,31 @@ let _root_matchers =
 let rec find_token =
         (~buf=Buffer.create(1024), ~result=None, matchers, stream) => {
   switch (result, matchers, stream) {
-  /* ran out of stream with ongoing matches */
-  | (_, ms, LazyStream.Nil) when List.length(ms) !== 0 =>
-    Matcher.find_error(ms) |*> throw_syntax;
-
-    switch (result) {
-    | Some(res) => Some((res, stream))
-    | None => None
-    };
+  /* ran out of matchers with no result */
+  | (None, [], LazyStream.Nil) => None
 
   /* has a final result */
-  | (Some(res), [], _)
-  | (Some(res), _, LazyStream.Nil) => Some((res, stream))
+  | (Some(res), [], _) => Some((res, stream))
+
+  /* ran out of stream with remaining matchers */
+  | (_, ms, LazyStream.Nil) =>
+    /* check for matchers that throw errors */
+    Matcher.find_error(ms) |*> throw_syntax;
+
+    /* check for a result */
+    result |?> (res => Some((res, stream)));
 
   /* has remaining matchers and stream */
-  | (_, ms, LazyStream.Cons((c, cursor), next_stream))
-      when List.length(ms) !== 0 =>
+  | (_, ms, LazyStream.Cons((c, cursor), next_stream)) =>
     Buffer.add_utf_8_uchar(buf, c);
 
     let match_result =
       Matcher.resolve_many(result, Buffer.contents(buf), ms, stream);
 
     switch (match_result) {
+    /* did not match the character with no further matchers */
     | (None, []) => throw_syntax(InvalidCharacter(c, cursor))
+    /* has a result or remaining matchers */
     | (next_result, next_matchers) =>
       find_token(
         ~buf,
@@ -46,8 +48,6 @@ let rec find_token =
         Lazy.force(next_stream),
       )
     };
-
-  | _ => None
   };
 };
 
