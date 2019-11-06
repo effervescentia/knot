@@ -34,7 +34,6 @@ let tests =
           |> Util.drift;
         let expected =
           Module([Import(module_name, [no_ctx(MainExport(name))])], []);
-
         Util.test_many(
           Util.test_parse_ast(Parser.prog),
           [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
@@ -53,7 +52,6 @@ let tests =
               Declaration(name, no_ctx(ConstDecl(no_ctx(NumericLit(5))))),
             ],
           );
-
         Util.test_many(
           Util.test_parse_ast(Parser.prog),
           [(stmt, expected), (stmt @ [Space, Semicolon], expected)],
@@ -67,7 +65,6 @@ let tests =
         let stmt = FunctionParserTest.empty_func_decl(name);
         let expected =
           Module([], [Declaration(name, no_ctx(FunctionDecl([], [])))]);
-
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
     ),
@@ -81,7 +78,6 @@ let tests =
             [],
             [Declaration(name, no_ctx(ViewDecl(None, [], [], [])))],
           );
-
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
     ),
@@ -92,7 +88,6 @@ let tests =
         let stmt = StateParserTest.empty_state_decl(name);
         let expected =
           Module([], [Declaration(name, no_ctx(StateDecl([], [])))]);
-
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
     ),

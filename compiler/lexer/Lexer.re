@@ -33,21 +33,20 @@ let rec find_token =
   | (_, ms, LazyStream.Cons((c, cursor), next_stream)) =>
     Buffer.add_utf_8_uchar(buf, c);
 
-    let match_result =
-      Matcher.resolve_many(result, Buffer.contents(buf), ms, stream);
-
-    switch (match_result) {
-    /* did not match the character with no further matchers */
-    | (None, []) => throw_syntax(InvalidCharacter(c, cursor))
-    /* has a result or remaining matchers */
-    | (next_result, next_matchers) =>
-      find_token(
-        ~buf,
-        ~result=next_result,
-        next_matchers,
-        Lazy.force(next_stream),
-      )
-    };
+    Matcher.resolve_many(result, Buffer.contents(buf), ms, stream)
+    |> (
+      fun
+      /* did not match the character with no further matchers */
+      | (None, []) => throw_syntax(InvalidCharacter(c, cursor))
+      /* has a result or remaining matchers */
+      | (next_result, next_matchers) =>
+        find_token(
+          ~buf,
+          ~result=next_result,
+          next_matchers,
+          Lazy.force(next_stream),
+        )
+    );
   };
 };
 

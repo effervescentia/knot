@@ -18,22 +18,6 @@ let test_lex_token = ((s, tkn)) => {
   switch (KnotLex.Lexer.next_token(to_file_stream(s))) {
   | Some((t, _)) => assert_tkn_eql(t, tkn)
   | None => assert_failure("no token found")
-  | exception (Knot.Core.CompilationError(e)) =>
-    switch (e) {
-    | ParsingFailed => print_endline("PARSING FAILED")
-    | AnalysisFailed(_) => print_endline("ANALYSIS FAILED")
-    | CircularDependencyDetected => print_endline("CIRCULAR DEP")
-    | InvalidImportTarget(_) => print_endline("INVALID IMPORT")
-    | SyntaxError(InvalidCharacter(ch, _)) =>
-      Knot.Util.print_uchar(ch)
-      |> Printf.sprintf("INVALID CHAR: %s")
-      |> print_endline
-    | SyntaxError(UnclosedCommentBlock(_)) =>
-      print_endline("UNCLOSED COMMENT")
-    | SyntaxError(UnclosedString) => print_endline("UNCLOSED STRING")
-    | SyntaxError(InvalidDotAccess) => print_endline("INVALID DOT ACCESS")
-    | SemanticError(_) => print_endline("SEMANTIC ERROR")
-    }
   };
 };
 let test_lex_tokens = (xs, _) => List.iter(test_lex_token, xs);
@@ -172,9 +156,9 @@ let tests =
             "// 0dl123jfl dqlkqwe[ e1kme\n",
             LineComment(" 0dl123jfl dqlkqwe[ e1kme"),
           ),
-          // ("// comment with eof", LineComment("comment with eof")),
-          // ("//\n", LineComment("")),
-          // ("//", LineComment("")),
+          ("// comment with eof", LineComment(" comment with eof")),
+          ("//\n", LineComment("")),
+          ("//", LineComment("")),
           (
             "///931lkj das\n e1;lk312///",
             BlockComment("931lkj das\n e1;lk312"),

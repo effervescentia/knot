@@ -26,7 +26,6 @@ let newline = Exactly('\n');
 let tab = Exactly('\t');
 let underscore = Exactly('_');
 let space = Exactly(' ');
-let quote = Exactly('"');
 let dollar_sign = Exactly('$');
 
 let whitespace = Any([space, tab, newline]);
@@ -40,20 +39,37 @@ let rec test = c =>
   | All => true
   | EOF => false;
 
-let rec test_lookahead = (matches, stream) =>
+let rec test_eof =
+  fun
+  | EOF => true
+  | Any(matches) => List.exists(match => test_eof(match), matches)
+  | Not(match) => !test_eof(match)
+  | All => true
+  | _ => false;
+
+let rec test_lookahead = (~skip_match=?, matches, stream) =>
   switch (matches) {
   /* no matches remaining */
   | [] => true
   /* has matches remaining */
   | [match, ...ms] =>
-    switch (match, stream) {
+    switch (match, stream, skip_match) {
     /* empty match set, always false */
-    | (Not(All), _) => false
+    | (Not(All), _, _) => false
     /* test lookahead with current character */
-    | (_, LazyStream.Cons((c, _), next_stream)) =>
+    | (_, LazyStream.Cons((c, _), next_stream), None) =>
       test(c, match) && test_lookahead(ms, Lazy.force(next_stream))
+    /* test permissive lookahead with current character */
+    | (_, LazyStream.Cons((c, _), next_stream), Some(skip_m)) =>
+      if (test(c, skip_m)) {
+        test_lookahead(~skip_match=skip_m, matches, Lazy.force(next_stream));
+      } else {
+        test(c, match)
+        && test_lookahead(~skip_match=skip_m, ms, Lazy.force(next_stream));
+      }
+
     /* can match EOF */
-    | (EOF | All | Not(_), LazyStream.Nil) when List.length(ms) == 0 => true
+    | (_, LazyStream.Nil, _) when test_eof(match) => true
     /* does not match */
     | _ => false
     }

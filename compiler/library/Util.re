@@ -25,6 +25,8 @@ let rec take = (count, ls) =>
 
 let slice = (start, length) => drop(start) % take(length);
 
+let split = String.to_seq % List.of_seq;
+
 let print_sequential = (~separator="", printer, xs) => {
   let rec next =
     fun

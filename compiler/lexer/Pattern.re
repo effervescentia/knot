@@ -1,6 +1,7 @@
 open Core;
+open Matcher;
 
-let (==>) = Matcher.((s, t) => glyph(s, _ => result(t)));
+let (==>) = (s, t) => glyph(s, _ => result(t));
 
 let matchers = [
   "&&" ==> LogicalAnd,
