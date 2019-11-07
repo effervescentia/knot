@@ -1,101 +1,99 @@
 open Knot.Core;
-open Match;
 
 type t =
-  | Matcher(Match.t, string => match_result, option(syntax_error))
-  | LookaheadMatcher(
-      Match.t,
-      list(Match.t),
-      string => match_result,
-      option(syntax_error),
-    )
-  | PermissiveLookaheadMatcher(
-      Match.t,
-      Match.t,
-      list(Match.t),
-      string => match_result,
-    )
-and match_result = (option(token), list(t));
+  | Matcher(Match.t, evaluator)
+  | LookaheadMatcher(Match.t, list(Match.t), evaluator)
+  | BoundaryError(Match.t, ((int, int)) => syntax_error)
+and evaluator = (unit => string) => (option(token), list(t));
 
-let result = r => (Some(r), []);
+type uchar_stream = LazyStream.t((Uchar.t, (int, int)));
 
-let many = ms => (None, ms);
+type active_matcher = {
+  matcher: t,
+  initial: uchar_stream,
+  current: uchar_stream,
+  length: int,
+};
 
-let single = m => many([m]);
+let _initial_token_buffer_size = 128;
 
-let empty = () => many([]);
-
-let null = t => Matcher(Not(All), t, None);
-
-let lookahead = (~error=None, match, next_matches, evaluate) =>
-  LookaheadMatcher(match, next_matches, evaluate, error);
-
-let _exec = matcher =>
+let rec _generate_token =
+        (~buf=Buffer.create(_initial_token_buffer_size), stream) =>
   fun
-  | LazyStream.Cons((c, _), next_stream) =>
-    switch (matcher) {
-    /* test matcher */
-    | Matcher(match, evaluate, _)
-    | LookaheadMatcher(match, [], evaluate, _)
-    | PermissiveLookaheadMatcher(match, _, [], evaluate)
-        when Match.test(c, match) =>
-      Some(evaluate)
-    /* test matcher with lookahead check */
-    | LookaheadMatcher(match, next_match, evaluate, _)
-        when
-          Match.test(c, match)
-          && Match.test_lookahead(next_match, Lazy.force(next_stream)) =>
-      Some(evaluate)
-    /* test matcher with permissive lookahead check */
-    | PermissiveLookaheadMatcher(match, skip_match, next_match, evaluate)
-        when
-          Match.test(c, match)
-          && Match.test_lookahead(
-               ~skip_match,
-               next_match,
-               Lazy.force(next_stream),
-             ) =>
-      Some(evaluate)
-    /* no matcher was successful */
-    | _ => None
-    }
+  | 0 => Buffer.contents(buf)
+  | len =>
+    switch (stream) {
+    | LazyStream.Cons((c, _), next_stream) =>
+      Buffer.add_utf_8_uchar(buf, c);
 
-  | LazyStream.Nil =>
-    switch (matcher) {
-    | Matcher(match, evaluate, _)
-    | LookaheadMatcher(match, [], evaluate, _) when Match.test_eof(match) =>
-      Some(evaluate)
-    | _ => None
+      _generate_token(~buf, Lazy.force(next_stream), len - 1);
+    | LazyStream.Nil => invariant(CannotGenerateToken)
     };
 
-let _resolve = (curr_token, matcher, stream) =>
-  _exec(matcher, stream) |?> (t => Some(t(curr_token)));
-
-let resolve_many = (curr_result, curr_token, matchers, stream) =>
-  List.fold_left(
-    ((result_acc, matcher_acc), matcher) => {
-      switch (_resolve(curr_token, matcher, stream)) {
-      | Some((next_result, next_matchers)) => (
-          next_result ||> result_acc,
-          matcher_acc @ next_matchers,
-        )
-      | None => (result_acc, matcher_acc)
+let resolve = result =>
+  fun
+  | {
+      matcher: Matcher(match, t) | LookaheadMatcher(match, [], t),
+      initial,
+      length,
+      current: stream,
+    }
+      when Match.test_match_stream(stream, match) =>
+    (
+      switch (stream) {
+      | LazyStream.Cons(_, next_stream) => Lazy.force(next_stream)
+      | _ => stream
       }
-    },
-    (curr_result, []),
-    matchers,
-  );
+    )
+    |> (
+      next_stream => {
+        let (next_result, next_matchers) =
+          t(() => _generate_token(initial, length));
 
-let rec find_error =
-  List.fold_left(
-    (acc, matcher) =>
-      acc
-      ||> (
-        switch (matcher) {
-        | Matcher(_, _, error)
-        | LookaheadMatcher(_, _, _, error) => error
-        | PermissiveLookaheadMatcher(_) => None
-        }
-      ),
-    None,
-  );
+        (
+          next_result |?> (res => Some((res, next_stream))) ||> result,
+          next_matchers
+          |> List.map(matcher =>
+               {matcher, initial, current: next_stream, length: length + 1}
+             ),
+        );
+      }
+    )
+
+  | {
+      matcher: LookaheadMatcher(match, lookahead, t),
+      initial,
+      length,
+      current: LazyStream.Cons((c, _), next_stream),
+    }
+      when
+        Match.test_match(c, match)
+        && Match.test_lookahead(lookahead, Lazy.force(next_stream)) => {
+      let (next_result, next_matchers) =
+        t(() => _generate_token(initial, length));
+
+      (
+        next_result
+        |?> (res => Some((res, Lazy.force(next_stream))))
+        ||> result,
+        next_matchers
+        |> List.map(matcher =>
+             {
+               matcher,
+               initial,
+               current: Lazy.force(next_stream),
+               length: length + 1,
+             }
+           ),
+      );
+    }
+
+  | {
+      matcher: BoundaryError(match, err),
+      initial: LazyStream.Cons((_, cursor), _),
+      current: stream,
+    }
+      when Match.test_match_stream(stream, match) =>
+    throw_syntax(err(cursor))
+
+  | _ => (result, []);

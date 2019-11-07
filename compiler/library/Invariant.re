@@ -17,7 +17,13 @@ type invariant =
   | /** configuration has not been initialized */
     ConfigurationNotInitialized
   | /** did not find a boundary scope for NestedHashtbl */
-    BoundaryScopeMissing;
+    BoundaryScopeMissing
+  | /** failed to generate token for lexer matcher */
+    CannotGenerateToken
+  | /** glyphs must be at least 2 characters in length */
+    InvalidGlyph
+  | /** tokens must be at least 1 character in length */
+    InvalidToken;
 
 exception Invariant(invariant);
 
@@ -45,5 +51,8 @@ let print_invariant =
     | MissingSidecarScope => "unable to find sidecar scope"
     | ConfigurationNotInitialized => "singleton configuration has not been initialized"
     | BoundaryScopeMissing => "NestedHashtbl did not contain a boundary scope"
+    | CannotGenerateToken => "unable to generate token from stream and offset"
+    | InvalidGlyph => "glyphs must be at least 2 characters in length"
+    | InvalidToken => "tokens must be at least 1 character in length"
   )
   % _print_inv;

@@ -1,6 +1,6 @@
 open Core;
 
-let (==>) = (s, t) => s ===> Keyword(t);
+let (==>) = (s, t) => token(s, _ => Keyword(t) |> result);
 
 let matchers = [
   "import" ==> Import,

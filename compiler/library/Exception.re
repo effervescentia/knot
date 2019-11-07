@@ -4,7 +4,7 @@ type syntax_error =
   | /** comment block without closing tag */
     UnclosedCommentBlock((int, int))
   | /** string missing the closing quote */
-    UnclosedString
+    UnclosedString((int, int))
   | /** dot operator was not followed by a valid property name */
     InvalidDotAccess;
 

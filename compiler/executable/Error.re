@@ -31,7 +31,15 @@ let _print_syntax_error = (file, print) =>
       Knot.CodeFrame.print(file, cursor) |> print_endline;
     }
 
-  | UnclosedString => "no closing quote (\") found for string" |> print
+  | UnclosedString(cursor) => {
+      Printf.sprintf(
+        "no closing quote (\") found for string starting at [%d:%d]",
+        fst(cursor),
+        snd(cursor),
+      )
+      |> print;
+      Knot.CodeFrame.print(file, cursor) |> print_endline;
+    }
 
   | InvalidDotAccess =>
     "dot operator was not followed by a valid property name" |> print;

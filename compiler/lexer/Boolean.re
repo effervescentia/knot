@@ -1,3 +1,5 @@
 open Core;
 
-let matchers = ["true" ===> Boolean(true), "false" ===> Boolean(false)];
+let (==>) = (s, t) => token(s, _ => Boolean(t) |> result);
+
+let matchers = ["true" ==> true, "false" ==> false];

@@ -18,22 +18,15 @@ let rec print_match = m =>
 
 let rec print_matcher =
   fun
-  | Matcher(m, _, _)
-  | LookaheadMatcher(m, [], _, _)
-  | PermissiveLookaheadMatcher(m, _, [], _) => print_match(m)
-  | LookaheadMatcher(m, [nm, ...nms], evaluate, error) =>
+  | Matcher(m, _)
+  | LookaheadMatcher(m, [], _) => print_match(m)
+  | LookaheadMatcher(m, [nm, ...nms], evaluate) =>
     Printf.sprintf(
       "%s >> %s",
       print_match(m),
-      LookaheadMatcher(nm, nms, evaluate, error) |> print_matcher,
+      LookaheadMatcher(nm, nms, evaluate) |> print_matcher,
     )
-  | PermissiveLookaheadMatcher(m, b, [nm, ...nms], evaluate) =>
-    Printf.sprintf(
-      "%s >(%s)> %s",
-      print_match(m),
-      print_match(b),
-      PermissiveLookaheadMatcher(nm, b, nms, evaluate) |> print_matcher,
-    );
+  | BoundaryError(_) => "boundary error";
 
 let print_token_stream = token_stream => {
   let rec loop = stream =>

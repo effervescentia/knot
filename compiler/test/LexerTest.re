@@ -15,7 +15,7 @@ let to_file_stream = s => {
 };
 
 let test_lex_token = ((s, tkn)) => {
-  switch (KnotLex.Lexer.next_token(to_file_stream(s))) {
+  switch (Lexer.next_token(to_file_stream(s))) {
   | Some((t, _)) => assert_tkn_eql(t, tkn)
   | None => assert_failure("no token found")
   };
@@ -52,7 +52,8 @@ let tests =
           )
         ) {
         | _ => assert_failure("accepted unclosed string")
-        | exception (CompilationError(SyntaxError(UnclosedString))) => ()
+        | exception (CompilationError(SyntaxError(UnclosedString(cursor)))) =>
+          assert_cursor_eql(cursor, (1, 1))
         }
     ),
     "lex unclosed comment"
@@ -71,7 +72,7 @@ let tests =
                         SyntaxError(UnclosedCommentBlock(cursor)),
                       )
                     ) =>
-          assert_cursor_eql(cursor, (2, 2))
+          assert_cursor_eql(cursor, (1, 1))
         }
     ),
     "lex characters"

@@ -3,8 +3,10 @@ open Match;
 open Matcher;
 
 let rec matchers = [
-  lookahead(numeric, [Not(numeric)], s =>
-    Number(int_of_string(s)) |> result
+  LookaheadMatcher(
+    numeric,
+    [Not(numeric)],
+    get_string => Number(int_of_string(get_string())) |> result,
   ),
-  LookaheadMatcher(numeric, [numeric], _ => many(matchers), None),
+  LookaheadMatcher(numeric, [numeric], _ => many(matchers)),
 ];

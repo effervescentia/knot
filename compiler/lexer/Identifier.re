@@ -2,46 +2,44 @@ open Core;
 open Match;
 open Matcher;
 
-let _first_char_pattern = Any([underscore, alphanumeric]);
-let _subsequent_char_pattern = Any([underscore, alpha]);
+let _first_char = Any([underscore, alpha]);
+let _subsequent_char = Any([underscore, alphanumeric]);
 
-let rec _match_subsequent_chars = (f, reserved, _) =>
-  [
-    lookahead(
-      _first_char_pattern,
-      [_first_char_pattern],
-      _match_subsequent_chars(f, reserved),
-    ),
-    lookahead(
-      _first_char_pattern,
-      [Not(_first_char_pattern)],
-      /* only needed here as there are no 1-character reserved tokens */
-      s =>
-      List.mem(s, reserved) ? empty() : f(s)
-    ),
-  ]
-  |> many;
+let _match_subsequent_chars = Util.match_while(_subsequent_char);
 
-let identifier_matcher = (~reserved=Knot.Constants.reserved_keywords, ()) => [
-  lookahead(_subsequent_char_pattern, [Not(_first_char_pattern)], s =>
-    Identifier(s) |> result
-  ),
-  lookahead(
-    _subsequent_char_pattern,
-    [_first_char_pattern],
-    _match_subsequent_chars(x => Identifier(x) |> result, reserved),
-  ),
-];
-
-let sidecar_matcher =
-  lookahead(
-    dollar_sign,
-    [_first_char_pattern],
-    _match_subsequent_chars(
-      x =>
-        SidecarIdentifier(String.sub(x, 1, String.length(x) - 1)) |> result,
-      [],
-    ),
+let _single_char_identifier_matcher =
+  LookaheadMatcher(
+    _first_char,
+    [Not(_subsequent_char)],
+    get_string => Identifier(get_string()) |> result,
   );
 
-let matchers = [sidecar_matcher, ...identifier_matcher()];
+let _identifier_matcher =
+  LookaheadMatcher(
+    _first_char,
+    [_subsequent_char],
+    _match_subsequent_chars(get_string => {
+      let string = get_string();
+
+      List.mem(string, Knot.Constants.reserved_keywords)
+        ? empty : Identifier(string) |> result;
+    }),
+  );
+
+let _sidecar_matcher =
+  LookaheadMatcher(
+    dollar_sign,
+    [_subsequent_char],
+    _match_subsequent_chars(get_string => {
+      let string = get_string();
+
+      SidecarIdentifier(String.sub(string, 1, String.length(string) - 1))
+      |> result;
+    }),
+  );
+
+let matchers = [
+  _sidecar_matcher,
+  _single_char_identifier_matcher,
+  _identifier_matcher,
+];

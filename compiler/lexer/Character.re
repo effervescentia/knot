@@ -1,7 +1,7 @@
 open Core;
 open Matcher;
 
-let (==>) = (c, t) => Matcher(Exactly(c), _ => result(t), None);
+let (==>) = (c, t) => Matcher(Exactly(c), _ => result(t));
 
 let matchers = [
   ' ' ==> Space,
