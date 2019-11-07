@@ -62,6 +62,15 @@ let assert_decl_eql = (actual, expected) => {
 
 let assert_cursor_eql = (actual, expected) =>
   assert_equal(
+    ~msg="cursor match",
+    ~printer=((row, col)) => Printf.sprintf("[%d:%d]", row, col),
+    ~cmp=(lhs, rhs) => fst(lhs) == fst(rhs) && snd(lhs) == snd(rhs),
+    expected,
+    actual,
+  );
+
+let assert_single_char_cursor_eql = (actual, expected) =>
+  assert_equal(
     ~msg="file cursor match",
     ~printer=
       ((ch, (row, col))) =>

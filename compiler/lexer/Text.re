@@ -1,16 +1,18 @@
 open Core;
+open Match;
+open Matcher;
 
-let _quote = Char('"');
+let matchers = [
+  Matcher(
+    quote,
+    Util.match_until_char(
+      quote,
+      cursor => UnclosedString(cursor),
+      get_string => {
+        let string = get_string();
 
-let rec lex_string = _ =>
-  Lexers([
-    FailingLexer(
-      UnclosedString,
-      _quote,
-      Any,
-      s => Result(String(String.sub(s, 1, String.length(s) - 2))),
+        String(String.sub(string, 1, String.length(string) - 2)) |> result;
+      },
     ),
-    FailingLexer(UnclosedString, Except([_quote]), Any, lex_string),
-  ]);
-
-let lexer = Lexer(_quote, Any, lex_string);
+  ),
+];

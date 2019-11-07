@@ -1,49 +1,45 @@
 open Core;
+open Match;
+open Matcher;
 
-let _underscore = Char('_');
-let _identifier_matchers = [_underscore, AlphaNumeric];
+let _first_char = Any([underscore, alpha]);
+let _subsequent_char = Any([underscore, alphanumeric]);
 
-let rec lex_subsequent_chars = (f, reserved) =>
-  Lexers([
-    Lexer(
-      Either(_identifier_matchers),
-      Either(_identifier_matchers),
-      _ => lex_subsequent_chars(f, reserved),
-    ),
-    Lexer(
-      Either(_identifier_matchers),
-      Except(_identifier_matchers),
-      /* only needed here as there are no 1-character reserved tokens */
-      s => List.mem(s, reserved) ? Lexers([]) : f(s),
-    ),
-  ]);
+let _match_subsequent_chars = Util.match_while(_subsequent_char);
 
-let identifier_lexer = (~reserved=Knot.Constants.reserved_keywords, ()) =>
-  Lexers([
-    Lexer(
-      Either([_underscore, Alpha]),
-      Except(_identifier_matchers),
-      s => Result(Identifier(s)),
-    ),
-    Lexer(
-      Either([_underscore, Alpha]),
-      Either(_identifier_matchers),
-      _ => lex_subsequent_chars(x => Result(Identifier(x)), reserved),
-    ),
-  ]);
-
-let sidecar_lexer =
-  Lexer(
-    Char('$'),
-    Either(_identifier_matchers),
-    _ =>
-      lex_subsequent_chars(
-        x =>
-          Result(
-            SidecarIdentifier(String.sub(x, 1, String.length(x) - 1)),
-          ),
-        [],
-      ),
+let _single_char_identifier_matcher =
+  LookaheadMatcher(
+    _first_char,
+    [Not(_subsequent_char)],
+    get_string => Identifier(get_string()) |> result,
   );
 
-let lexer = Lexers([sidecar_lexer, identifier_lexer()]);
+let _identifier_matcher =
+  LookaheadMatcher(
+    _first_char,
+    [_subsequent_char],
+    _match_subsequent_chars(get_string => {
+      let string = get_string();
+
+      List.mem(string, Knot.Constants.reserved_keywords)
+        ? empty : Identifier(string) |> result;
+    }),
+  );
+
+let _sidecar_matcher =
+  LookaheadMatcher(
+    dollar_sign,
+    [_subsequent_char],
+    _match_subsequent_chars(get_string => {
+      let string = get_string();
+
+      SidecarIdentifier(String.sub(string, 1, String.length(string) - 1))
+      |> result;
+    }),
+  );
+
+let matchers = [
+  _sidecar_matcher,
+  _single_char_identifier_matcher,
+  _identifier_matcher,
+];

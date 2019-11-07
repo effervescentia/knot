@@ -19,7 +19,10 @@ let rec _cursor_from = (input, count) =>
   };
 let _assert_cursor =
     ((actual, _), expected_ch, expected_row, expected_column) =>
-  assert_cursor_eql(actual, (expected_ch, (expected_row, expected_column)));
+  assert_single_char_cursor_eql(
+    actual,
+    (expected_ch, (expected_row, expected_column)),
+  );
 
 let test_read_fully = (file, ctx) => {
   let channel = Util.load_resource(file);
@@ -64,7 +67,7 @@ let test_reposition = (file, position) => {
   ignore(_cursor_from(input, extra_reads));
 
   let (actual, _) = _next_or_error(target_input);
-  assert_cursor_eql(actual, expected);
+  assert_single_char_cursor_eql(actual, expected);
 
   close_in(channel);
 };

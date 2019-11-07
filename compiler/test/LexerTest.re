@@ -14,11 +14,12 @@ let to_file_stream = s => {
   LazyStream.of_function(next);
 };
 
-let test_lex_token = ((s, tkn)) =>
+let test_lex_token = ((s, tkn)) => {
   switch (Lexer.next_token(to_file_stream(s))) {
   | Some((t, _)) => assert_tkn_eql(t, tkn)
   | None => assert_failure("no token found")
   };
+};
 let test_lex_tokens = (xs, _) => List.iter(test_lex_token, xs);
 
 let tests =
@@ -34,7 +35,44 @@ let tests =
                         SyntaxError(InvalidCharacter(ch, cursor)),
                       )
                     ) =>
-          assert_cursor_eql((ch, cursor), (Uchar.of_int(8721), (1, 1)))
+          assert_single_char_cursor_eql(
+            (ch, cursor),
+            (Uchar.of_int(8721), (1, 1)),
+          )
+        }
+    ),
+    "lex unclosed string"
+    >:: (
+      _ =>
+        switch (
+          Lexer.next_token(
+            to_file_stream(
+              "\" this is an unclosed string \nwith new \nlines in it",
+            ),
+          )
+        ) {
+        | _ => assert_failure("accepted unclosed string")
+        | exception (CompilationError(SyntaxError(UnclosedString(cursor)))) =>
+          assert_cursor_eql(cursor, (1, 1))
+        }
+    ),
+    "lex unclosed comment"
+    >:: (
+      _ =>
+        switch (
+          Lexer.next_token(
+            to_file_stream(
+              "/// this is an unclosed comment block \nwith new \nlines in it",
+            ),
+          )
+        ) {
+        | _ => assert_failure("accepted unclosed comment")
+        | exception (
+                      CompilationError(
+                        SyntaxError(UnclosedCommentBlock(cursor)),
+                      )
+                    ) =>
+          assert_cursor_eql(cursor, (1, 1))
         }
     ),
     "lex characters"
@@ -84,6 +122,11 @@ let tests =
           ("2", Number(2)),
           ("0412", Number(412)),
         ]),
+    "lex boolean"
+    >:: test_lex_tokens([
+          ("true", Boolean(true)),
+          ("false", Boolean(false)),
+        ]),
     "lex strings"
     >:: test_lex_tokens([
           ("\"\"", String("")),
@@ -114,9 +157,13 @@ let tests =
             "// 0dl123jfl dqlkqwe[ e1kme\n",
             LineComment(" 0dl123jfl dqlkqwe[ e1kme"),
           ),
+          ("// comment with eof", LineComment(" comment with eof")),
+          ("//\n", LineComment("")),
+          ("//", LineComment("")),
           (
             "///931lkj das\n e1;lk312///",
             BlockComment("931lkj das\n e1;lk312"),
           ),
+          ("//////", BlockComment("")),
         ]),
   ];

@@ -9,7 +9,6 @@ let tests =
     >:: (
       _ => {
         let scope = KnotAnalyze.Scope.create();
-
         Util.analyze_resource(scope, "snippets/simple_constants.kn")
         |> (
           fun
@@ -78,7 +77,6 @@ let tests =
     >:: (
       _ => {
         let scope = KnotAnalyze.Scope.create();
-
         switch (
           Util.analyze_resource(scope, "snippets/err_same_name.kn") |> ignore
         ) {
@@ -103,6 +101,7 @@ let tests =
                       )
                     ) =>
           assert_string_eql(name, "second")
+
         | _ => assert_failure("UsedBeforeDeclaration not thrown")
         };
       }

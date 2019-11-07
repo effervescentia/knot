@@ -1,11 +1,12 @@
 open Core;
+open Match;
+open Matcher;
 
-let rec lexer =
-  Lexers([
-    Lexer(
-      Numeric,
-      Except([Numeric]),
-      s => Result(Number(int_of_string(s))),
-    ),
-    Lexer(Numeric, Numeric, _ => lexer),
-  ]);
+let rec matchers = [
+  LookaheadMatcher(
+    numeric,
+    [Not(numeric)],
+    get_string => Number(int_of_string(get_string())) |> result,
+  ),
+  LookaheadMatcher(numeric, [numeric], _ => many(matchers)),
+];

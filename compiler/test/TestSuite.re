@@ -28,9 +28,9 @@ let () = {
     ],
   );
 
-  failed^ ?
-    () :
-    ANSITerminal.(sprintf([green], "✓"))
-    |> Printf.sprintf("\n[%s] Test suite successful!")
-    |> print_endline;
+  failed^
+    ? ()
+    : ANSITerminal.(sprintf([green], "✓"))
+      |> Printf.sprintf("\n[%s] Test suite successful!")
+      |> print_endline;
 };

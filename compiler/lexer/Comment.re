@@ -1,31 +1,39 @@
 open Core;
+open Match;
+open Matcher;
 
-let _double_slash = Token("//");
-let _triple_slash = Token("///");
+let _triple_slash = "///";
 
-let rec lex_comment_block = _ =>
-  Lexers([
-    Lexer(Except([_triple_slash]), Any, lex_comment_block),
-    FailingLexer(
-      UnclosedCommentBlock,
-      _triple_slash,
-      Any,
-      s => Result(BlockComment(String.sub(s, 3, String.length(s) - 6))),
-    ),
-  ]);
+let _prefixed_line_matcher = t =>
+  Matcher(
+    forward_slash,
+    _ =>
+      [
+        LookaheadMatcher(forward_slash, [end_of_line], t),
+        LookaheadMatcher(
+          forward_slash,
+          [Not(Any([forward_slash, end_of_line]))],
+          Util.match_until_eol(t),
+        ),
+      ]
+      |> many,
+  );
 
-let rec lex_comment_line = _ =>
-  Lexers([
-    Lexer(Except([newline]), Any, lex_comment_line),
-    Lexer(
-      Except([newline]),
-      newline,
-      s => Result(LineComment(String.sub(s, 2, String.length(s) - 2))),
-    ),
-  ]);
+let matchers = [
+  Util.match_bounded(
+    _triple_slash,
+    cursor => UnclosedCommentBlock(cursor),
+    get_string => {
+      let string = get_string();
 
-let lexer =
-  Lexers([
-    Lexer(_triple_slash, Any, lex_comment_block),
-    Lexer(_double_slash, Any, lex_comment_line),
-  ]);
+      BlockComment(String.sub(string, 3, String.length(string) - 6))
+      |> result;
+    },
+  ),
+  _prefixed_line_matcher(get_string => {
+    let string = get_string();
+    let comment = String.sub(string, 2, String.length(string) - 2);
+
+    LineComment(comment) |> result;
+  }),
+];
