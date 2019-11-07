@@ -2,6 +2,22 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.6.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.6.0), [`@knot/webpack-plugin-v1.6.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.6.0) (2019-11-7)
+
+### `@knot/compiler`
+
+
+#### :sparkles: New Features
+
+- **lexer**: add codeframe to syntax exceptions ([086442c0](https://github.com/effervescentia/knot/commit/086442c002798abfb02246a91fa3a695192f61fd))
+
+### `@knot/webpack-plugin`
+
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.5.2` -> `v1.6.0`
+
 ## [`@knot/compiler-v1.5.2`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.5.2), [`@knot/webpack-plugin-v1.5.2`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.5.2) (2019-9-26)
 
 ### `@knot/compiler`

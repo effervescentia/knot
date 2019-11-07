@@ -16,7 +16,7 @@
     "cypress:run": "cypress run"
   },
   "devDependencies": {
-    "@knot/webpack-plugin": "1.5.2",
+    "@knot/webpack-plugin": "1.6.0",
     "cypress": "^3.2.0",
     "html-webpack-plugin": "^3.2.0",
     "start-server-and-test": "^1.7.13",

@@ -12,6 +12,6 @@
     "start:hidden": "npm run start -- --no-open"
   },
   "devDependencies": {
-    "@knot/webpack-plugin": "1.5.2"
+    "@knot/webpack-plugin": "1.6.0"
   }
 }
