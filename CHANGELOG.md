@@ -2,6 +2,22 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.7.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.7.0), [`@knot/webpack-plugin-v1.7.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.7.0) (2019-11-9)
+
+### `@knot/compiler`
+
+
+#### :sparkles: New Features
+
+- **comments**: change comment syntax (#83) ([7f133e2c](https://github.com/effervescentia/knot/commit/7f133e2c550371bd020a6b70a2942056aee2db89))
+
+### `@knot/webpack-plugin`
+
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.6.0` -> `v1.7.0`
+
 ## [`@knot/compiler-v1.6.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.6.0), [`@knot/webpack-plugin-v1.6.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.6.0) (2019-11-7)
 
 ### `@knot/compiler`
