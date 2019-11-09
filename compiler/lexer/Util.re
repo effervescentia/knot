@@ -9,36 +9,39 @@ let rec match_until_eol = (t, _) =>
   ]
   |> many;
 
+let rec match_until_char = (match, err, t) => [
+  Matcher(match, t),
+  Matcher(Not(match), _ => match_until_char(match, err, t) |> many),
+  BoundaryError(EOF, err),
+];
+
 let rec match_until = (t, s, err, _) =>
   switch (String.length(s)) {
   | 0 => invariant(InvalidToken)
   | len =>
-    let match_contd =
-      Matcher(Not(Exactly(s.[0])), match_until(t, s, err) % many);
-
-    [
+    let rec match_rest = ss => [
+      // continue the match
       Matcher(
-        Exactly(s.[0]),
-        len == 1
+        Exactly(ss.[0]),
+        String.length(ss) == 1
           ? t
-          : match_until(t, String.sub(s, 1, len - 1), err)
-            % (matchers => matchers @ [match_contd] |> many),
+          : (
+            _ =>
+              match_rest(String.sub(ss, 1, String.length(ss) - 1)) |> many
+          ),
       ),
-      match_contd,
+      // restart the match
+      Matcher(Not(Exactly(ss.[0])), match_until(t, s, err) % many),
       BoundaryError(EOF, err),
     ];
+
+    match_until_char(Exactly(s.[0]), err, _ =>
+      match_rest(String.sub(s, 1, len - 1)) |> many
+    );
   };
 
-let rec match_until_char = (match, err, t, _) =>
-  [
-    Matcher(match, t),
-    Matcher(Not(match), match_until_char(match, err, t)),
-    BoundaryError(EOF, err),
-  ]
-  |> many;
-
-let match_bounded = (boundary, err, t) =>
-  token(boundary, match_until(t, boundary, err) % many);
+let match_bounded = (start, end_, err, t) =>
+  token(start, match_until(t, end_, err) % many);
 
 let rec match_tentative = t =>
   fun
@@ -56,9 +59,7 @@ let rec match_tentative = t =>
     )
   | _ => (_ => empty);
 
-let rec match_while = (match, t, _) =>
-  [
-    LookaheadMatcher(match, [Not(match)], t),
-    LookaheadMatcher(match, [match], match_while(match, t)),
-  ]
-  |> many;
+let rec match_while = (match, t) => [
+  LookaheadMatcher(match, [Not(match)], t),
+  LookaheadMatcher(match, [match], _ => match_while(match, t) |> many),
+];

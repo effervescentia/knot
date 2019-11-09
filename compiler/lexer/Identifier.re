@@ -5,7 +5,8 @@ open Matcher;
 let _first_char = Any([underscore, alpha]);
 let _subsequent_char = Any([underscore, alphanumeric]);
 
-let _match_subsequent_chars = Util.match_while(_subsequent_char);
+let _match_subsequent_chars = (t, _) =>
+  Util.match_while(_subsequent_char, t) |> many;
 
 let _single_char_identifier_matcher =
   LookaheadMatcher(

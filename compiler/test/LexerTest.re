@@ -62,7 +62,7 @@ let tests =
         switch (
           Lexer.next_token(
             to_file_stream(
-              "/// this is an unclosed comment block \nwith new \nlines in it",
+              "/* this is an unclosed comment block \nwith new \nlines in it",
             ),
           )
         ) {
@@ -161,9 +161,9 @@ let tests =
           ("//\n", LineComment("")),
           ("//", LineComment("")),
           (
-            "///931lkj das\n e1;lk312///",
+            "/*931lkj das\n e1;lk312*/",
             BlockComment("931lkj das\n e1;lk312"),
           ),
-          ("//////", BlockComment("")),
+          ("/**/", BlockComment("")),
         ]),
   ];

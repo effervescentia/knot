@@ -1,9 +1,9 @@
 #################################################################
 ## Iro
-################################################################ 
+################################################################
 ##
 ## * Press Ctrl + '+'/'-' To Zoom in
-## * Press Ctrl + S to save and recalculate... 
+## * Press Ctrl + S to save and recalculate...
 ## * Documents are saved to web storage.
 ## * Only one save slot supported.
 ## * Matches cannot span lines.
@@ -166,13 +166,13 @@ main : context {
       regex     \= $${__KEYWORDS}
       styles [] = .keyword;
    }
-   
+
    : include "entity" ;
-   
+
    : include "closure" ;
-   
+
    : include "catch_all" ;
-   
+
 }
 
 ###########################################
@@ -184,25 +184,25 @@ closure : context {
       uid = uid_braces_closure
       regex         \= (\{)
       styles []     = .punctuation;
-      
-      : pop {  
+
+      : pop {
          regex      \= (\})
          styles []  = .punctuation;
       }
-      
+
       : include "main" ;
    }
-   
+
    : inline_push {
       uid = uid_parentheses_closure
       regex         \= (\()
       styles []     = .punctuation;
-      
+
       : pop {
          regex      \= (\))
          styles []  = .punctuation;
       }
-      
+
       : include "closure_list" ;
    }
 }
@@ -210,7 +210,7 @@ closure : context {
 closure_list : context {
    : include "closure" ;
    : include "catch_all" ;
-   
+
    : pattern {
       regex      \= (,)
       styles []  = .punctuation;
@@ -226,7 +226,7 @@ catch_all : context {
    : include "comment" ;
    : include "operator" ;
    : include "punctuation" ;
-   
+
    : pattern {
       regex     \= ([^\s])
       styles [] = .illegal;
@@ -300,7 +300,7 @@ string : context {
       regex         \= (\")
       styles []     = .text;
       default_style = .text
-      
+
       : pop {
          regex      \= (\")
          styles []  = .text;
@@ -327,12 +327,12 @@ function_call : context {
    : inline_push {
       regex     \= ($${__IDENTIFIER})(\s*)(\()
       styles [] = .function, .whitespace, .punctuation;
-      
+
       : pop {
          regex \= (\))
          styles [] = .punctuation;
       }
-      
+
       : include "closure_list" ;
    }
 }
@@ -357,7 +357,7 @@ identifier : context {
       regex     \= (\B\$$${__IDENTIFIER})
       styles [] = .injected;
    }
-   
+
    : pattern {
       regex     \= (\b$${__IDENTIFIER})
       styles [] = .identifier;
@@ -379,29 +379,29 @@ jsx : context {
       uid = uid_self_closing_jsx
       regex     \= (<)(\s*)($${__IDENTIFIER})
       styles [] = .punctuation, .whitespace, .jsx_tag;
-      
+
       : pop {
          regex \= (/>|>)
          styles [] = .punctuation;
       }
-      
+
       : pattern {
          regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)(\"[^"]*\")
          styles [] = .jsx_property, .whitespace, .punctuation, .whitespace, .text;
       }
-      
+
       : inline_push {
          regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)({)
          styles [] = .jsx_property, .whitespace, .punctuation, .whitespace, .punctuation;
-         
+
          : pop {
             regex \= (})
             styles [] = .punctuation;
          }
-         
+
          : include "main";
       }
-      
+
       : pattern {
          regex \= (\b$${__IDENTIFIER})
          styles [] = .jsx_property;
@@ -416,12 +416,12 @@ jsx : context {
 comment : context {
    : inline_push {
       uid = uid_block_comment
-      regex         \= (///)
+      regex         \= (/*)
       styles []     = .comment;
       default_style = .comment
-      
+
       : pop {
-         regex      \= (///)
+         regex      \= (*/)
          styles []  = .comment;
       }
    }
