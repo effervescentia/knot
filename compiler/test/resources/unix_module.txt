@@ -2,9 +2,9 @@ import ABC from "abc";
 
 // this comment should be ignored
 
-///
+/*
 this multi-line comment should also be ignored
-///
+*/
 
 const numericConst = 8;
 const additionConst = 1 + 10;

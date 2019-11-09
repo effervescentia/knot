@@ -23,7 +23,7 @@ let _print_syntax_error = (file, print) =>
 
   | UnclosedCommentBlock(cursor) => {
       Printf.sprintf(
-        "no closing tag (///) found for comment block starting at [%d:%d]",
+        "no closing tag (*/) found for comment block starting at [%d:%d]",
         fst(cursor),
         snd(cursor),
       )

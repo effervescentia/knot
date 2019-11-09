@@ -3,6 +3,10 @@ import * as Utils from ".utils"
 
 const ABC = <div>{greet("World")}</div>;
 
+/*
+this is a comment
+*/
+
 view SimpleView -> (
   <div>
     {ABC}

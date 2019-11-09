@@ -2,9 +2,9 @@
 
 // this comment should be ignored
 
-///
+/*
 this multi-line comment should also be ignored
-///
+*/
 
 const numericConst = 8;
 const additionConst = 1 + 10;
@@ -73,19 +73,19 @@ func paramFunc(a: number) -> a;
 // view TypedParamView (a: boolean) -> { }
 // view DefaultParamView (a = 4) -> { }
 // view MultiParamView (m: boolean, a: number = 2) -> { }
-///
+/*
 view InheritingView : SuperView -> {
   a + b;
   8;
 }
-///
+*/
 // view MixinView () ~ MyMixin -> {}
 // view InheritingMixinView () : SuperView ~ MyMixin -> {}
-///
+/*
 view ComplexView () : SuperView ~ MyMixin, OtherMixin -> {
   e + f;
 }
-///
+*/
 
 // style ClassStyle {
 //   .root {

@@ -2,7 +2,8 @@ open Core;
 open Match;
 open Matcher;
 
-let _triple_slash = "///";
+let _comment_start = "/*";
+let _comment_end = "*/";
 
 let _prefixed_line_matcher = t =>
   Matcher(
@@ -12,7 +13,7 @@ let _prefixed_line_matcher = t =>
         LookaheadMatcher(forward_slash, [end_of_line], t),
         LookaheadMatcher(
           forward_slash,
-          [Not(Any([forward_slash, end_of_line]))],
+          [Not(end_of_line)],
           Util.match_until_eol(t),
         ),
       ]
@@ -21,12 +22,13 @@ let _prefixed_line_matcher = t =>
 
 let matchers = [
   Util.match_bounded(
-    _triple_slash,
+    _comment_start,
+    _comment_end,
     cursor => UnclosedCommentBlock(cursor),
     get_string => {
       let string = get_string();
 
-      BlockComment(String.sub(string, 3, String.length(string) - 6))
+      BlockComment(String.sub(string, 2, String.length(string) - 4))
       |> result;
     },
   ),

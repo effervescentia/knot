@@ -4,14 +4,14 @@
 <!-- Generated via Iro -->
 <dict>
   <key>fileTypes</key>
-  <array> 
+  <array>
     <string>kn</string>
     <string>knot</string>
    </array>
   <key>name</key>
   <string>knot</string>
   <key>patterns</key>
-  <array> 
+  <array>
     <dict>
       <key>include</key>
       <string>#main</string>
@@ -26,7 +26,7 @@
     <key>main</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#keyword</string>
@@ -48,7 +48,7 @@
     <key>boolean</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(true|false)</string>
@@ -60,7 +60,7 @@
     <key>catch_all</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#expression</string>
@@ -88,7 +88,7 @@
     <key>closure</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>begin</key>
           <string>(\{)</string>
@@ -101,7 +101,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#uid_braces_closure</string>
@@ -130,7 +130,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#uid_parentheses_closure</string>
@@ -159,7 +159,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#uid_brackets_closure</string>
@@ -181,7 +181,7 @@
     <key>closure_list</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#closure</string>
@@ -201,10 +201,10 @@
     <key>comment</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>begin</key>
-          <string>(///)</string>
+          <string>(/*)</string>
           <key>beginCaptures</key>
           <dict>
             <key>1</key>
@@ -216,7 +216,7 @@
           <key>contentName</key>
           <string>comment.knot</string>
           <key>end</key>
-          <string>(///)</string>
+          <string>(*/)</string>
           <key>endCaptures</key>
           <dict>
             <key>1</key>
@@ -237,7 +237,7 @@
     <key>entity</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#state</string>
@@ -269,7 +269,7 @@
     <key>expression</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#string</string>
@@ -303,7 +303,7 @@
     <key>function_call</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>begin</key>
           <string>(\w[\w]*)(\s*)(\()</string>
@@ -326,7 +326,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#function_call__1</string>
@@ -348,7 +348,7 @@
     <key>function_call__1</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#closure_list</string>
@@ -358,7 +358,7 @@
     <key>identifier</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(\B\$\w[\w]*)</string>
@@ -376,7 +376,7 @@
     <key>jsx</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(&lt;/)(\s*)(\w[\w]*)(\s*)(&gt;)</string>
@@ -431,7 +431,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#uid_self_closing_jsx</string>
@@ -453,7 +453,7 @@
     <key>jsx__2</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#main</string>
@@ -463,7 +463,7 @@
     <key>keyword</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(import|from|main|as)</string>
@@ -475,7 +475,7 @@
     <key>numeric</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(\B-\d+)|(\b\d+)</string>
@@ -487,7 +487,7 @@
     <key>operator</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(-&gt;|==|!=|\|\||&amp;&amp;|[\x{003d}.\x{002b}\-\x{002a}\x{002f}\x{007e}\x{0021}])</string>
@@ -499,7 +499,7 @@
     <key>punctuation</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(&lt;/|/&gt;|[\x{003a}\x{003b}\x{002c}\x{003c}\x{003e}])</string>
@@ -511,7 +511,7 @@
     <key>state</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>begin</key>
           <string>\b(state)(\s*)(\w[\w]*)(\s*)({)</string>
@@ -544,7 +544,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#state__1</string>
@@ -566,7 +566,7 @@
     <key>state__1</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#state_property</string>
@@ -580,7 +580,7 @@
     <key>state_property</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>\b(mut|get)(\s*)(\w[\w]*)</string>
@@ -625,7 +625,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#state_property__1</string>
@@ -654,7 +654,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#state_property__2</string>
@@ -682,7 +682,7 @@
     <key>state_property__1</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#main</string>
@@ -692,7 +692,7 @@
     <key>state_property__2</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#main</string>
@@ -702,7 +702,7 @@
     <key>string</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>begin</key>
           <string>(\&quot;)</string>
@@ -732,13 +732,13 @@
     <key>string__1</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
        </array>
     </dict>
     <key>type_definition</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(:)(\s*)(\w[\w]*)</string>
@@ -766,13 +766,13 @@
     <key>uid_block_comment</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
        </array>
     </dict>
     <key>uid_braces_closure</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#main</string>
@@ -782,7 +782,7 @@
     <key>uid_brackets_closure</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#closure_list</string>
@@ -792,7 +792,7 @@
     <key>uid_parentheses_closure</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>include</key>
           <string>#closure_list</string>
@@ -802,7 +802,7 @@
     <key>uid_self_closing_jsx</key>
     <dict>
       <key>patterns</key>
-      <array> 
+      <array>
         <dict>
           <key>match</key>
           <string>(\b\w[\w]*)(\s*)(=)(\s*)(\&quot;[^\x{0022}]*\&quot;)</string>
@@ -867,7 +867,7 @@
             </dict>
           </dict>
           <key>patterns</key>
-          <array> 
+          <array>
             <dict>
               <key>include</key>
               <string>#jsx__2</string>
