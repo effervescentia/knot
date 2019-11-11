@@ -1,5 +1,7 @@
 import greet from ".components.App";
-import * as Utils from ".utils"
+import * as Constants from ".constants";
+import * as Functions from ".functions"
+import * as JSX from ".jsx";
 
 const ABC = <div>{greet("World")}</div>;
 
@@ -10,6 +12,6 @@ this is a comment
 view SimpleView -> (
   <div>
     {ABC}
-    {Utils.foo}
+    {Constants.numericConst}
   </div>
 );
