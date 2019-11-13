@@ -358,6 +358,10 @@
         </dict>
         <dict>
           <key>include</key>
+          <string>#variable_entity</string>
+        </dict>
+        <dict>
+          <key>include</key>
           <string>#function_entity</string>
         </dict>
         <dict>
@@ -371,28 +375,6 @@
         <dict>
           <key>include</key>
           <string>#style_entity</string>
-        </dict>
-        <dict>
-          <key>match</key>
-          <string>(\blet\b)(\s*)([_a-zA-Z]\w*\b)</string>
-          <key>captures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>storage.type.knot</string>
-            </dict>
-            <key>2</key>
-            <dict>
-              <key>name</key>
-              <string>text.knot</string>
-            </dict>
-            <key>3</key>
-            <dict>
-              <key>name</key>
-              <string>variable.other.knot</string>
-            </dict>
-          </dict>
         </dict>
         <dict>
           <key>match</key>
@@ -896,6 +878,38 @@
       <array>
         <dict>
           <key>match</key>
+          <string>(&lt;/)(\s*)([A-Z][a-zA-Z]\w*\b)(\s*)(&gt;)</string>
+          <key>captures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.definition.tag.begin.knot</string>
+            </dict>
+            <key>2</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>3</key>
+            <dict>
+              <key>name</key>
+              <string>support.class.view.knot</string>
+            </dict>
+            <key>4</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>5</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.definition.tag.end.knot</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
+          <key>match</key>
           <string>(&lt;/)(\s*)([a-zA-Z]\w*\b)(\s*)(&gt;)</string>
           <key>captures</key>
           <dict>
@@ -920,6 +934,45 @@
               <string>text.knot</string>
             </dict>
             <key>5</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.definition.tag.end.knot</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
+          <key>begin</key>
+          <string>(&lt;)(\s*)([A-Z][a-zA-Z]\w*\b)</string>
+          <key>beginCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.definition.tag.begin.knot</string>
+            </dict>
+            <key>2</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>3</key>
+            <dict>
+              <key>name</key>
+              <string>support.class.view.knot</string>
+            </dict>
+          </dict>
+          <key>patterns</key>
+          <array>
+            <dict>
+              <key>include</key>
+              <string>#uid_self_closing_jsx</string>
+            </dict>
+           </array>
+          <key>end</key>
+          <string>(/\s*&gt;|&gt;)</string>
+          <key>endCaptures</key>
+          <dict>
+            <key>1</key>
             <dict>
               <key>name</key>
               <string>punctuation.definition.tag.end.knot</string>
@@ -1011,7 +1064,141 @@
         </dict>
        </array>
     </dict>
-    <key>jsx__2</key>
+    <key>jsx_tag_attributes</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>match</key>
+          <string>(\b[_a-zA-Z]\w*\b)(\s*)(=)(\s*)(\&quot;[^\x{0022}]*\&quot;)</string>
+          <key>captures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>entity.other.attribute-name.knot</string>
+            </dict>
+            <key>2</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>3</key>
+            <dict>
+              <key>name</key>
+              <string>keyword.operator.assignment.knot</string>
+            </dict>
+            <key>4</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>5</key>
+            <dict>
+              <key>name</key>
+              <string>string.quoted.double.knot</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
+          <key>begin</key>
+          <string>(\()</string>
+          <key>beginCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>meta.brace.round.knot</string>
+            </dict>
+          </dict>
+          <key>patterns</key>
+          <array>
+            <dict>
+              <key>include</key>
+              <string>#jsx_tag_attributes__1</string>
+            </dict>
+           </array>
+          <key>end</key>
+          <string>(\))</string>
+          <key>endCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>meta.brace.round.knot</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
+          <key>begin</key>
+          <string>(\b[_a-zA-Z]\w*\b)(\s*)(=)(\s*)({)</string>
+          <key>beginCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>entity.other.attribute-name.knot</string>
+            </dict>
+            <key>2</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>3</key>
+            <dict>
+              <key>name</key>
+              <string>keyword.operator.assignment.knot</string>
+            </dict>
+            <key>4</key>
+            <dict>
+              <key>name</key>
+              <string>text.knot</string>
+            </dict>
+            <key>5</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.section.embedded.begin.knot</string>
+            </dict>
+          </dict>
+          <key>patterns</key>
+          <array>
+            <dict>
+              <key>include</key>
+              <string>#jsx_tag_attributes__2</string>
+            </dict>
+           </array>
+          <key>end</key>
+          <string>(})</string>
+          <key>endCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>punctuation.section.embedded.nd.knot</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
+          <key>match</key>
+          <string>(\b[_a-zA-Z]\w*\b)</string>
+          <key>name</key>
+          <string>entity.other.attribute-name.knot</string>
+        </dict>
+       </array>
+    </dict>
+    <key>jsx_tag_attributes__1</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>match</key>
+          <string>(\.[_a-zA-Z]\w*\b)</string>
+          <key>name</key>
+          <string>entity.other.attribute-name.style-rule.knot</string>
+        </dict>
+       </array>
+    </dict>
+    <key>jsx_tag_attributes__2</key>
     <dict>
       <key>patterns</key>
       <array>
@@ -1675,14 +1862,24 @@
       <key>patterns</key>
       <array>
         <dict>
+          <key>include</key>
+          <string>#jsx_tag_attributes</string>
+        </dict>
+       </array>
+    </dict>
+    <key>variable_entity</key>
+    <dict>
+      <key>patterns</key>
+      <array>
+        <dict>
           <key>match</key>
-          <string>(\b[_a-zA-Z]\w*\b)(\s*)(=)(\s*)(\&quot;[^\x{0022}]*\&quot;)</string>
+          <string>(\blet\b)(\s*)([_a-zA-Z]\w*\b)</string>
           <key>captures</key>
           <dict>
             <key>1</key>
             <dict>
               <key>name</key>
-              <string>entity.other.attribute-name.knot</string>
+              <string>storage.type.knot</string>
             </dict>
             <key>2</key>
             <dict>
@@ -1692,74 +1889,9 @@
             <key>3</key>
             <dict>
               <key>name</key>
-              <string>keyword.operator.assignment.knot</string>
-            </dict>
-            <key>4</key>
-            <dict>
-              <key>name</key>
-              <string>text.knot</string>
-            </dict>
-            <key>5</key>
-            <dict>
-              <key>name</key>
-              <string>string.quoted.double.knot</string>
+              <string>variable.other.knot</string>
             </dict>
           </dict>
-        </dict>
-        <dict>
-          <key>begin</key>
-          <string>(\b[_a-zA-Z]\w*\b)(\s*)(=)(\s*)({)</string>
-          <key>beginCaptures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>entity.other.attribute-name.knot</string>
-            </dict>
-            <key>2</key>
-            <dict>
-              <key>name</key>
-              <string>text.knot</string>
-            </dict>
-            <key>3</key>
-            <dict>
-              <key>name</key>
-              <string>keyword.operator.assignment.knot</string>
-            </dict>
-            <key>4</key>
-            <dict>
-              <key>name</key>
-              <string>text.knot</string>
-            </dict>
-            <key>5</key>
-            <dict>
-              <key>name</key>
-              <string>punctuation.section.embedded.begin.knot</string>
-            </dict>
-          </dict>
-          <key>patterns</key>
-          <array>
-            <dict>
-              <key>include</key>
-              <string>#jsx__2</string>
-            </dict>
-           </array>
-          <key>end</key>
-          <string>(})</string>
-          <key>endCaptures</key>
-          <dict>
-            <key>1</key>
-            <dict>
-              <key>name</key>
-              <string>punctuation.section.embedded.nd.knot</string>
-            </dict>
-          </dict>
-        </dict>
-        <dict>
-          <key>match</key>
-          <string>(\b[_a-zA-Z]\w*\b)</string>
-          <key>name</key>
-          <string>entity.other.attribute-name.knot</string>
         </dict>
        </array>
     </dict>

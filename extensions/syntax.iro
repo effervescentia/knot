@@ -366,6 +366,12 @@ styles [] {
    textmate_scope = entity.name.tag
 }
 
+.jsx_component : style {
+   color          = cyan
+   ace_scope      = support.class.view
+   textmate_scope = support.class.view
+}
+
 .jsx_property : style {
    color          = light_blue
    ace_scope      = entity.other.attribute-name
@@ -802,6 +808,8 @@ entity_parameters : context {
 entity : context {
    : include "constant_entity";
 
+   : include "variable_entity";
+
    : include "function_entity";
 
    : include "view_entity";
@@ -809,11 +817,6 @@ entity : context {
    : include "state_entity";
 
    : include "style_entity";
-
-   : pattern {
-      regex       \= ($${__LET})(\s*)($${__IDENTIFIER})
-      styles []   = .storage, .whitespace, .variable_name;
-   }
 
    : pattern {
       regex       \= $${__ENTITY}(\s*)($${__IDENTIFIER})
@@ -829,6 +832,17 @@ constant_entity : context {
    : pattern {
       regex       \= ($${__CONST})(\s*)($${__IDENTIFIER})
       styles []   = .storage, .whitespace, .constant_name;
+   }
+}
+
+###########################################
+## Variable Context
+###########################################
+
+variable_entity : context {
+   : pattern {
+      regex       \= ($${__LET})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .variable_name;
    }
 }
 
@@ -997,11 +1011,69 @@ identifier : context {
 ## JSX Context
 ###########################################
 
+jsx_tag_attributes : context {
+   : pattern {
+      regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)(\"[^"]*\")
+      styles [] = .jsx_property, .whitespace, .assignment_operator, .whitespace, .text;
+   }
+
+   : inline_push {
+      regex       \= (\()
+      styles []   = .parenthese_punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []   = .parenthese_punctuation;
+      }
+
+      : pattern {
+         regex       \= (\.$${__IDENTIFIER})
+         styles []   = .style_rule;
+      }
+   }
+
+   : inline_push {
+      regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)({)
+      styles [] = .jsx_property, .whitespace, .assignment_operator, .whitespace, .embed_start_punctuation;
+
+      : pop {
+         regex \= (})
+         styles [] = .embed_end_punctuation;
+      }
+
+      : include "main";
+   }
+
+   : pattern {
+      regex \= (\b$${__IDENTIFIER})
+      styles [] = .jsx_property;
+   }
+}
+
 jsx : context {
+   : pattern {
+      uid = uid_end_component_jsx
+      regex \= (</)(\s*)([A-Z]$${__JSX_IDENTIFIER})(\s*)(>)
+      styles [] = .tag_start_punctuation, .whitespace, .jsx_component, .whitespace, .tag_end_punctuation;
+   }
+
    : pattern {
       uid = uid_end_tag_jsx
       regex \= (</)(\s*)($${__JSX_IDENTIFIER})(\s*)(>)
       styles [] = .tag_start_punctuation, .whitespace, .jsx_tag, .whitespace, .tag_end_punctuation;
+   }
+
+   : inline_push {
+      uid = uid_self_closing_jsx
+      regex     \= (<)(\s*)([A-Z]$${__JSX_IDENTIFIER})
+      styles [] = .tag_start_punctuation, .whitespace, .jsx_component;
+
+      : pop {
+         regex \= (/\s*>|>)
+         styles [] = .tag_end_punctuation;
+      }
+
+      : include "jsx_tag_attributes";
    }
 
    : inline_push {
@@ -1014,27 +1086,7 @@ jsx : context {
          styles [] = .tag_end_punctuation;
       }
 
-      : pattern {
-         regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)(\"[^"]*\")
-         styles [] = .jsx_property, .whitespace, .assignment_operator, .whitespace, .text;
-      }
-
-      : inline_push {
-         regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)({)
-         styles [] = .jsx_property, .whitespace, .assignment_operator, .whitespace, .embed_start_punctuation;
-
-         : pop {
-            regex \= (})
-            styles [] = .embed_end_punctuation;
-         }
-
-         : include "main";
-      }
-
-      : pattern {
-         regex \= (\b$${__IDENTIFIER})
-         styles [] = .jsx_property;
-      }
+      : include "jsx_tag_attributes";
    }
 
    : pattern {
