@@ -1,24 +1,6 @@
 #################################################################
 ## Iro
-################################################################
-##
-## * Press Ctrl + '+'/'-' To Zoom in
-## * Press Ctrl + S to save and recalculate...
-## * Documents are saved to web storage.
-## * Only one save slot supported.
-## * Matches cannot span lines.
-## * Unicode chars must be defined in \u0000 to \uffff format.
-## * All matches must be contained by a single group ( ... )
-## * Look behinds not permitted, (?<= or (?<!
-## * Look forwards are permitted (?= or (?!
-## * Constants are defined as __my_const = (......)
-## * The \= format allows unescaped regular expressions
-## * Constants referenced by match \= $${__my_const}
-## * Constants can reference other constants
-## * You are free to delete all the default scopes.
-## * Twitter : ainslec , Web: http://eeyo.io/iro
-##
-################################################################
+#################################################################
 
 name                = knot
 file_extensions []  = kn, knot;
@@ -27,11 +9,31 @@ file_extensions []  = kn, knot;
 ## Constants
 ################################################################
 
-__ENTITY      \= const|view|func|state|style|let
-__IDENTIFIER \= \w[\w]*
-__KEYWORDS    \= (import|from|main|as)
-__OPERATORS \= (->|==|!=|\|\||&&|[=.+\-*/~!])
-__PUNCTUATION \= (</|/>|[:;,<>])
+__IDENTIFIER      \= [_a-zA-Z]\w*\b
+__JSX_IDENTIFIER  \= [a-zA-Z]\w*\b
+__FUNC            \= \bfunc\b
+__CONST           \= \bconst\b
+__LET             \= \blet\b
+__VIEW            \= \bview\b
+__STATE           \= \bstate\b
+__STYLE           \= \bstyle\b
+__ENTITY          \= ($${__CONST}|$${__VIEW}|$${__FUNC}|$${__STATE}|$${__STYLE}|$${__LET})
+__IMPORT          \= \bimport\b
+__FROM            \= \bfrom\b
+__AS              \= \bas\b
+__MAIN            \= \bmain\b
+__TRUE            \= \btrue\b
+__FALSE           \= \bfalse\b
+__KEYWORDS        \= ($${__IMPORT}|$${__FROM}|$${__AS}|$${__MAIN})
+__PRIMITIVE_TYPE  \= (\bstring\b|\bnumber\b|\bboolean\b)
+__MUT             \= \bmut\b
+__GET             \= \bget\b
+__MODIFIERS       \= ($${__MUT}|$${__GET})
+__LOGIC           \= (\|\||&&|!)
+__ARITHMETIC      \= ([+\-*/])
+__RELATIONAL      \= (<=|>=|<|>)
+__OPERATORS       \= (==|!=|[=~])
+__PUNCTUATION     \= (</|/>|[:;<>])
 
 ################################################################
 ## Styles
@@ -44,98 +46,336 @@ styles [] {
    italic         = true
    ace_scope      = comment
    textmate_scope = comment
-   pygments_scope = Comment
 }
 
 .keyword : style {
+   color          = pink
+   ace_scope      = keyword.control
+   textmate_scope = keyword.control
+}
+
+.main_keyword : style {
+   color          = pink
+   ace_scope      = keyword.control.main
+   textmate_scope = keyword.control.main
+}
+
+.import_keyword : style {
+   color          = pink
+   ace_scope      = keyword.control.import
+   textmate_scope = keyword.control.import
+}
+
+.from_keyword : style {
+   color          = pink
+   ace_scope      = keyword.control.from
+   textmate_scope = keyword.control.from
+}
+
+.as_keyword : style {
+   color          = pink
+   ace_scope      = keyword.control.as
+   textmate_scope = keyword.control.as
+}
+
+.storage : style {
    color          = red
-   ace_scope      = keyword
-   textmate_scope = keyword
-   pygments_scope = Keyword
+   ace_scope      = storage.type
+   textmate_scope = storage.type
+}
+
+.property_storage : style {
+   color          = red
+   ace_scope      = storage.type.property
+   textmate_scope = storage.type.property
+}
+
+.arrow : style {
+   color          = red
+   ace_scope      = storage.type.function.arrow
+   textmate_scope = storage.type.function.arrow
 }
 
 .operator : style {
    color          = red
    ace_scope      = keyword.operator
    textmate_scope = keyword.operator
-   pygments_scope = Operator
+}
+
+.logical_operator : style {
+   color          = red
+   ace_scope      = keyword.operator.logical
+   textmate_scope = keyword.operator.logical
+}
+
+.arithmetic_operator : style {
+   color          = red
+   ace_scope      = keyword.operator.arithmetic
+   textmate_scope = keyword.operator.arithmetic
+}
+
+.relational_operator : style {
+   color          = red
+   ace_scope      = keyword.operator.relational
+   textmate_scope = keyword.operator.relational
+}
+
+.assignment_operator : style {
+   color          = red
+   ace_scope      = keyword.operator.assignment
+   textmate_scope = keyword.operator.assignment
 }
 
 .numeric : style {
-   color          = pink
-   ace_scope      = constant.numeric
-   textmate_scope = constant.numeric
-   pygments_scope = Number
+   color          = purple
+   ace_scope      = constant.numeric.decimal
+   textmate_scope = constant.numeric.decimal
 }
 
-.boolean : style {
-   color          = pink
-   ace_scope      = constant.language.boolean
-   textmate_scope = constant.language.boolean
-   pygments_scope = Name.Builtin
+.boolean_true : style {
+   color          = purple
+   ace_scope      = constant.language.boolean.true
+   textmate_scope = constant.language.boolean.true
+}
+
+.boolean_false : style {
+   color          = purple
+   ace_scope      = constant.language.boolean.false
+   textmate_scope = constant.language.boolean.false
 }
 
 .punctuation : style {
    color          = white
-   ace_scope      = keyword punctuation
-   textmate_scope = keyword punctuation
-   pygments_scope = Punctuation
+   ace_scope      = punctuation
+   textmate_scope = punctuation
+}
+
+.import_all_punctuation : style {
+   color          = white
+   ace_scope      = constant.language.import-all
+   textmate_scope = constant.language.import-all
+}
+
+.terminal_punctuation : style {
+   color          = white
+   ace_scope      = punctuation.terminal.statement
+   textmate_scope = punctuation.terminal.statement
+}
+
+.separator_punctuation : style {
+   color          = white
+   ace_scope      = punctuation.separator.comma
+   textmate_scope = punctuation.separator.comma
+}
+
+.key_value_punctuation : style {
+   color          = white
+   ace_scope      = punctuation.separator.key-value
+   textmate_scope = punctuation.separator.key-value
+}
+
+.string_start_punctuation : style {
+   color          = yellow
+   ace_scope      = punctuation.definition.string.begin
+   textmate_scope = punctuation.definition.string.begin
+}
+
+.string_end_punctuation : style {
+   color          = yellow
+   ace_scope      = punctuation.definition.string.end
+   textmate_scope = punctuation.definition.string.end
+}
+
+.tag_start_punctuation : style {
+   color          = grey
+   ace_scope      = punctuation.definition.tag.begin
+   textmate_scope = punctuation.definition.tag.begin
+}
+
+.tag_end_punctuation : style {
+   color          = grey
+   ace_scope      = punctuation.definition.tag.end
+   textmate_scope = punctuation.definition.tag.end
+}
+
+.param_start_punctuation : style {
+   color          = grey
+   ace_scope      = punctuation.definition.parameters.begin
+   textmate_scope = punctuation.definition.parameters.begin
+}
+
+.param_end_punctuation : style {
+   color          = grey
+   ace_scope      = punctuation.definition.parameters.end
+   textmate_scope = punctuation.definition.parameters.end
+}
+
+.embed_start_punctuation : style {
+   color          = grey
+   ace_scope      = punctuation.section.embedded.begin
+   textmate_scope = punctuation.section.embedded.begin
+}
+
+.embed_end_punctuation : style {
+   color          = grey
+   ace_scope      = punctuation.section.embedded.end
+   textmate_scope = punctuation.section.embedded.nd
+}
+
+.parenthese_punctuation : style {
+   color          = white
+   ace_scope      = meta.brace.round
+   textmate_scope = meta.brace.round
+}
+
+.block_punctuation : style {
+   color          = white
+   ace_scope      = punctuation.definition.block
+   textmate_scope = punctuation.definition.block
+}
+
+.access_punctuation : style {
+   color          = white
+   ace_scope      = punctuation.accessor
+   textmate_scope = punctuation.accessor
+}
+
+.typedef_punctuation : style {
+   color          = white
+   ace_scope      = keyword.operator.type.annotation
+   textmate_scope = keyword.operator.type.annotation
 }
 
 .text : style {
-   color          = yellow
+   color          = gold
    ace_scope      = string.quoted.double
    textmate_scope = string.quoted.double
-   pygments_scope = String
 }
 
-.entity : style {
+.entity_name : style {
    color          = green
    ace_scope      = entity.name
    textmate_scope = entity.name
-   pygments_scope = Name.Entity
+}
+
+.constant_name : style {
+   color          = orange
+   ace_scope      = variable.other.constant
+   textmate_scope = variable.other.constant
+}
+
+.variable_name : style {
+   color          = green
+   ace_scope      = variable.other
+   textmate_scope = variable.other
+}
+
+.function_name : style {
+   color          = green
+   ace_scope      = entity.name.function
+   textmate_scope = entity.name.function
+}
+
+.view_name : style {
+   color          = green
+   ace_scope      = entity.name.view
+   textmate_scope = entity.name.view
+}
+
+.state_name : style {
+   color          = green
+   ace_scope      = entity.name.state
+   textmate_scope = entity.name.state
+}
+
+.style_name : style {
+   color          = green
+   ace_scope      = entity.name.style
+   textmate_scope = entity.name.style
+}
+
+.import_name : style {
+   color          = green
+   ace_scope      = variable.other.alias
+   textmate_scope = variable.other.alias
+}
+
+.module_name : style {
+   color          = green
+   ace_scope      = entity.name.type.module
+   textmate_scope = entity.name.type.module
 }
 
 .identifier : style {
    color          = green
    ace_scope      = variable
    textmate_scope = variable
-   pygments_scope = Name.Variable
+}
+
+.parameter : style {
+   color          = green
+   ace_scope      = variable.parameter
+   textmate_scope = variable.parameter
+}
+
+.state_property : style {
+   color          = orange
+   ace_scope      = variable.object.property.state
+   textmate_scope = variable.object.property.state
+}
+
+.style_rule : style {
+   color          = orange
+   ace_scope      = entity.other.attribute-name.style-rule
+   textmate_scope = entity.other.attribute-name.style-rule
+}
+
+.variable_property : style {
+   color          = blue
+   ace_scope      = variable.other.object.property
+   textmate_scope = variable.other.object.property
+}
+
+.injected_punctuation : style {
+   color          = navy
+   ace_scope      = punctuation.accessor.injected
+   textmate_scope = punctuation.accessor.injected
 }
 
 .injected : style {
    color          = orange
-   ace_scope      = variable.parameter.injected
-   textmate_scope = variable.parameter.injected
-   pygments_scope = Name.Attribute
+   ace_scope      = variable.other.member.injected
+   textmate_scope = variable.other.member.injected
 }
 
 .type : style {
    color          = cyan
    ace_scope      = entity.name.type
    textmate_scope = entity.name.type
-   pygments_scope = Keyword.Type
 }
 
-.function : style {
-   color          = light_green
-   ace_scope      = meta.function-call
-   textmate_scope = meta.function-call
-   pygments_scope = Name.Function
+.primitive_type : style {
+   color          = cyan
+   ace_scope      = support.type.primitive
+   textmate_scope = support.type.primitive
 }
 
 .jsx_tag : style {
-   color          = red
+   color          = light_green
    ace_scope      = entity.name.tag
    textmate_scope = entity.name.tag
-   pygments_scope = Name.Tag
+}
+
+.jsx_component : style {
+   color          = cyan
+   ace_scope      = support.class.view
+   textmate_scope = support.class.view
 }
 
 .jsx_property : style {
    color          = light_blue
    ace_scope      = entity.other.attribute-name
    textmate_scope = entity.other.attribute-name
-   pygments_scope = Name.Attribute
 }
 
 .whitespace : style ;
@@ -145,7 +385,6 @@ styles [] {
    background_color = red
    ace_scope        = invalid
    textmate_scope   = invalid
-   pygments_scope   = Generic.Error
 }
 
 }
@@ -162,10 +401,9 @@ contexts [] {
 
 main : context {
 
-   : pattern {
-      regex     \= $${__KEYWORDS}
-      styles [] = .keyword;
-   }
+   : include "main_keyword" ;
+
+   : include "import" ;
 
    : include "entity" ;
 
@@ -183,11 +421,11 @@ closure : context {
    : inline_push {
       uid = uid_braces_closure
       regex         \= (\{)
-      styles []     = .punctuation;
+      styles []     = .block_punctuation;
 
       : pop {
          regex      \= (\})
-         styles []  = .punctuation;
+         styles []  = .block_punctuation;
       }
 
       : include "main" ;
@@ -196,11 +434,11 @@ closure : context {
    : inline_push {
       uid = uid_parentheses_closure
       regex         \= (\()
-      styles []     = .punctuation;
+      styles []     = .parenthese_punctuation;
 
       : pop {
          regex      \= (\))
-         styles []  = .punctuation;
+         styles []  = .parenthese_punctuation;
       }
 
       : include "closure_list" ;
@@ -213,7 +451,7 @@ closure_list : context {
 
    : pattern {
       regex      \= (,)
-      styles []  = .punctuation;
+      styles []  = .separator_punctuation;
    }
 }
 
@@ -222,7 +460,10 @@ closure_list : context {
 ###########################################
 
 catch_all : context {
+   : include "keyword" ;
    : include "expression" ;
+   : include "jsx" ;
+   : include "type_definition" ;
    : include "comment" ;
    : include "operator" ;
    : include "punctuation" ;
@@ -234,10 +475,79 @@ catch_all : context {
 }
 
 ###########################################
+## Keyword Context
+###########################################
+
+main_keyword : context {
+   : pattern {
+      regex     \= ($${__MAIN})
+      styles [] = .main_keyword;
+   }
+}
+
+###########################################
+## Keyword Context
+###########################################
+
+keyword : context {
+   : inline_push {
+      regex       \= ($${__MUT})(\s*)(\b$${__IDENTIFIER})(\s*)(\()
+      styles []   = .property_storage, .whitespace, .function_name, .whitespace, .param_start_punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []   = .param_end_punctuation;
+      }
+
+      : include "entity_parameters";
+   }
+
+   : pattern {
+      regex       \= ($${__MUT})(\s*)(\b$${__IDENTIFIER})
+      styles []   = .property_storage, .whitespace, .function_name;
+   }
+
+   : pattern {
+      regex       \= $${__MODIFIERS}
+      styles []   = .property_storage;
+   }
+
+   : pattern {
+      regex       \= $${__KEYWORDS}
+      styles []   = .keyword;
+   }
+}
+
+###########################################
 ## Operator Context
 ###########################################
 
 operator : context {
+   : pattern {
+      regex       \= (-\s*>)
+      styles []   = .arrow;
+   }
+
+   : pattern {
+      regex     \= $${__RELATIONAL}
+      styles [] = .relational_operator;
+   }
+
+   : pattern {
+      regex     \= $${__ARITHMETIC}
+      styles [] = .arithmetic_operator;
+   }
+
+   : pattern {
+      regex     \= $${__LOGIC}
+      styles [] = .logical_operator;
+   }
+
+   : pattern {
+      regex    \= (=)
+      styles []   = .assignment_operator;
+   }
+
    : pattern {
       regex     \= $${__OPERATORS}
       styles [] = .operator;
@@ -249,6 +559,25 @@ operator : context {
 ###########################################
 
 punctuation : context {
+   : pattern {
+      regex     \= (;)
+      styles [] = .terminal_punctuation;
+   }
+
+   : pattern {
+      regex     \= (,)
+      styles [] = .separator_punctuation;
+   }
+
+   : pattern {
+      regex     \= (\(|\))
+      styles [] = .parenthese_punctuation;
+   }
+   : pattern {
+      regex     \= (\{|\})
+      styles [] = .block_punctuation;
+   }
+
    : pattern {
       regex     \= $${__PUNCTUATION}
       styles [] = .punctuation;
@@ -264,9 +593,8 @@ expression : context {
    : include "numeric" ;
    : include "boolean" ;
    : include "function_call" ;
+   : include "dot_access" ;
    : include "identifier" ;
-   : include "jsx" ;
-   : include "type_definition" ;
 }
 
 ###########################################
@@ -286,8 +614,13 @@ numeric : context {
 
 boolean : context {
    : pattern {
-      regex     \= (true|false)
-      styles [] = .boolean;
+      regex     \= ($${__TRUE})
+      styles [] = .boolean_true;
+   }
+
+   : pattern {
+      regex     \= ($${__FALSE})
+      styles [] = .boolean_false;
    }
 }
 
@@ -298,12 +631,12 @@ boolean : context {
 string : context {
    : inline_push {
       regex         \= (\")
-      styles []     = .text;
+      styles []     = .string_start_punctuation;
       default_style = .text
 
       : pop {
          regex      \= (\")
-         styles []  = .text;
+         styles []  = .string_end_punctuation;
       }
    }
 }
@@ -314,8 +647,41 @@ string : context {
 
 type_definition : context {
    : pattern {
+      regex     \= (:)(\s*)$${__PRIMITIVE_TYPE}
+      styles [] = .typedef_punctuation, .whitespace, .primitive_type;
+   }
+
+   : pattern {
       regex     \= (:)(\s*)($${__IDENTIFIER})
-      styles [] = .punctuation, .whitespace, .type;
+      styles [] = .typedef_punctuation, .whitespace, .type;
+   }
+}
+
+###########################################
+## Dot Access Context
+###########################################
+
+dot_access : context {
+   : inline_push {
+      regex     \= (\.)(\s*)(\b$${__IDENTIFIER})(\s*)(\()
+      styles [] = .access_punctuation, .whitespace, .function_name, .whitespace, .punctuation;
+
+      : pop {
+         regex \= (\))
+         styles [] = .punctuation;
+      }
+
+      : include "closure_list" ;
+   }
+
+   : pattern {
+      regex     \= (\.)(\s*)($${__IDENTIFIER})
+      styles [] = .access_punctuation, .whitespace, .variable_property;
+   }
+
+   : pattern {
+      regex     \= (\.)
+      styles [] = .access_punctuation;
    }
 }
 
@@ -325,8 +691,8 @@ type_definition : context {
 
 function_call : context {
    : inline_push {
-      regex     \= ($${__IDENTIFIER})(\s*)(\()
-      styles [] = .function, .whitespace, .punctuation;
+      regex     \= (\b$${__IDENTIFIER})(\s*)(\()
+      styles [] = .function_name, .whitespace, .punctuation;
 
       : pop {
          regex \= (\))
@@ -338,13 +704,280 @@ function_call : context {
 }
 
 ###########################################
+## Import Context
+###########################################
+
+
+import_closure : context {
+   : inline_push {
+      uid = uid_parentheses_import_closure
+      regex         \= ($${__IMPORT})(\s*)(\{)
+      styles []     = .import_keyword, .whitespace, .block_punctuation;
+
+      : pop {
+         regex      \= (\})
+         styles []  = .block_punctuation;
+      }
+
+      : include "import_closure_list" ;
+   }
+}
+
+import_closure_list : context {
+   : pattern {
+      regex      \= (,)
+      styles []  = .separator_punctuation;
+   }
+
+   : pattern {
+      regex       \= (\b$${__IDENTIFIER})
+      styles []   = .import_name;
+   }
+
+   : include "main" ;
+}
+
+
+import : context {
+   : pattern {
+      regex       \= ($${__IMPORT})(\s*)(\*)
+      styles []   = .import_keyword, .whitespace, .import_all_punctuation;
+   }
+
+   : pattern {
+      regex       \= ($${__IMPORT})
+      styles []   = .import_keyword;
+   }
+
+   : pattern {
+      regex       \= ($${__FROM})
+      styles []   = .from_keyword;
+   }
+
+   : pattern {
+      regex       \= ($${__AS})(\s*)(\b$${__IDENTIFIER})
+      styles []   = .as_keyword, .whitespace, .import_name;
+   }
+
+   : pattern {
+      regex       \= ($${__AS})
+      styles []   = .as_keyword;
+   }
+
+   : pattern {
+      regex       \= (\b$${__IDENTIFIER})(\s*)($${__FROM})
+      styles []   = .import_name, .whitespace, .from_keyword;
+   }
+
+   : pattern {
+      regex       \= (\b$${__IDENTIFIER})(\s*)($${__AS})
+      styles []   = .import_name, .whitespace, .as_keyword;
+   }
+
+   : pattern {
+      regex       \= (\b$${__IDENTIFIER})(\s*)($${__AS})(\s*)(\b$${__IDENTIFIER})
+      styles []   = .import_name, .whitespace, .as_keyword, .whitespace, .import_name;
+   }
+
+   : pattern {
+      regex       \= (\*)(\s*)($${__AS})
+      styles []   = .import_all_punctuation, .whitespace, .as_keyword;
+   }
+
+   : include "import_closure";
+}
+
+###########################################
 ## Entity Context
 ###########################################
 
-entity : context {
+entity_parameters : context {
    : pattern {
-      regex       \= \b($${__ENTITY})(\s*)($${__IDENTIFIER})
-      styles []   = .keyword, .whitespace, .entity;
+      regex      \= (,)
+      styles []  = .separator_punctuation;
+   }
+
+   : pattern {
+      regex       \= (\b$${__IDENTIFIER})
+      styles []   = .parameter;
+   }
+
+   : include "catch_all";
+}
+
+entity : context {
+   : include "constant_entity";
+
+   : include "variable_entity";
+
+   : include "function_entity";
+
+   : include "view_entity";
+
+   : include "state_entity";
+
+   : include "style_entity";
+
+   : pattern {
+      regex       \= $${__ENTITY}(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .entity_name;
+   }
+}
+
+###########################################
+## Constant Context
+###########################################
+
+constant_entity : context {
+   : pattern {
+      regex       \= ($${__CONST})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .constant_name;
+   }
+}
+
+###########################################
+## Variable Context
+###########################################
+
+variable_entity : context {
+   : pattern {
+      regex       \= ($${__LET})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .variable_name;
+   }
+}
+
+###########################################
+## Function Context
+###########################################
+
+function_entity : context {
+   : inline_push {
+      regex       \= ($${__FUNC})(\s*)($${__IDENTIFIER})(\s*)(\()
+      styles []   = .storage, .whitespace, .function_name, .whitespace, .param_start_punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []   = .param_end_punctuation;
+      }
+
+      : include "entity_parameters";
+   }
+
+   : pattern {
+      regex       \= ($${__FUNC})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .function_name;
+   }
+}
+
+###########################################
+## View Context
+###########################################
+
+view_entity : context {
+   : inline_push {
+      regex       \= ($${__VIEW})(\s*)($${__IDENTIFIER})(\s*)(\()
+      styles []   = .storage, .whitespace, .view_name, .whitespace, .param_start_punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []   = .param_end_punctuation;
+      }
+
+      : include "entity_parameters";
+   }
+
+   : pattern {
+      regex       \= ($${__VIEW})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .view_name;
+   }
+}
+
+###########################################
+## State Context
+###########################################
+
+state_entity : context {
+   : inline_push {
+      regex       \= ($${__STATE})(\s*)($${__IDENTIFIER})(\s*)(\()
+      styles []   = .storage, .whitespace, .state_name, .whitespace, .param_start_punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []   = .param_end_punctuation;
+      }
+
+      : include "entity_parameters";
+   }
+
+   : inline_push {
+      regex       \= ($${__STATE})(\s*)($${__IDENTIFIER})(\s*)(\{)
+      styles []   = .storage, .whitespace, .state_name, .whitespace, .block_punctuation;
+
+      : pop {
+         regex       \= (\})
+         styles []   = .block_punctuation;
+      }
+
+      : pattern {
+         regex       \= (\b$${__IDENTIFIER})(\s*)(=)
+         styles []   = .state_property, .whitespace, .assignment_operator;
+      }
+
+      : include "main";
+   }
+
+   : pattern {
+      regex       \= ($${__STATE})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .state_name;
+   }
+}
+
+###########################################
+## Style Context
+###########################################
+
+style_rule : context {
+   : inline_push {
+      regex       \= (\.$${__IDENTIFIER})(\s*)(\{)
+      styles []   = .style_rule, .whitespace, .block_punctuation;
+
+      : pop {
+         regex       \= (\})
+         styles []   = .block_punctuation;
+      }
+
+      : pattern {
+         regex       \= (:)
+         styles []   = .key_value_punctuation;
+      }
+
+      : include "catch_all";
+   }
+
+   : pattern {
+      regex       \= (\.$${__IDENTIFIER})
+      styles []   = .style_rule;
+   }
+
+   : include "catch_all";
+}
+
+style_entity : context {
+   : inline_push {
+      regex       \= ($${__STYLE})(\s*)($${__IDENTIFIER})(\s*)(\{)
+      styles []   = .storage, .whitespace, .style_name, .whitespace, .block_punctuation;
+
+      : pop {
+         regex       \= (\})
+         styles []   = .block_punctuation;
+      }
+
+      : include "style_rule";
+   }
+
+   : pattern {
+      regex       \= ($${__STYLE})(\s*)($${__IDENTIFIER})
+      styles []   = .storage, .whitespace, .style_name;
    }
 }
 
@@ -354,8 +987,18 @@ entity : context {
 
 identifier : context {
    : pattern {
-      regex     \= (\B\$$${__IDENTIFIER})
-      styles [] = .injected;
+      regex     \= (\b[A-Z][_0-9A-Z]*\b)
+      styles [] = .constant_name;
+   }
+
+   : pattern {
+      regex     \= (\b[A-Z]\w*\b)
+      styles [] = .module_name;
+   }
+
+   : pattern {
+      regex     \= (\B\$)($${__IDENTIFIER})
+      styles [] = .injected_punctuation, .injected;
    }
 
    : pattern {
@@ -368,44 +1011,92 @@ identifier : context {
 ## JSX Context
 ###########################################
 
+jsx_tag_attributes : context {
+   : pattern {
+      regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)(\"[^"]*\")
+      styles [] = .jsx_property, .whitespace, .assignment_operator, .whitespace, .text;
+   }
+
+   : inline_push {
+      regex       \= (\()
+      styles []   = .parenthese_punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []   = .parenthese_punctuation;
+      }
+
+      : pattern {
+         regex       \= (\.$${__IDENTIFIER})
+         styles []   = .style_rule;
+      }
+   }
+
+   : inline_push {
+      regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)({)
+      styles [] = .jsx_property, .whitespace, .assignment_operator, .whitespace, .embed_start_punctuation;
+
+      : pop {
+         regex \= (})
+         styles [] = .embed_end_punctuation;
+      }
+
+      : include "main";
+   }
+
+   : pattern {
+      regex \= (\b$${__IDENTIFIER})
+      styles [] = .jsx_property;
+   }
+}
+
 jsx : context {
    : pattern {
+      uid = uid_end_component_jsx
+      regex \= (</)(\s*)([A-Z]$${__JSX_IDENTIFIER})(\s*)(>)
+      styles [] = .tag_start_punctuation, .whitespace, .jsx_component, .whitespace, .tag_end_punctuation;
+   }
+
+   : pattern {
       uid = uid_end_tag_jsx
-      regex \= (</)(\s*)($${__IDENTIFIER})(\s*)(>)
-      styles [] = .punctuation, .whitespace, .jsx_tag, .whitespace, .punctuation;
+      regex \= (</)(\s*)($${__JSX_IDENTIFIER})(\s*)(>)
+      styles [] = .tag_start_punctuation, .whitespace, .jsx_tag, .whitespace, .tag_end_punctuation;
    }
 
    : inline_push {
       uid = uid_self_closing_jsx
-      regex     \= (<)(\s*)($${__IDENTIFIER})
-      styles [] = .punctuation, .whitespace, .jsx_tag;
+      regex     \= (<)(\s*)([A-Z]$${__JSX_IDENTIFIER})
+      styles [] = .tag_start_punctuation, .whitespace, .jsx_component;
 
       : pop {
-         regex \= (/>|>)
-         styles [] = .punctuation;
+         regex \= (/\s*>|>)
+         styles [] = .tag_end_punctuation;
       }
 
-      : pattern {
-         regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)(\"[^"]*\")
-         styles [] = .jsx_property, .whitespace, .punctuation, .whitespace, .text;
+      : include "jsx_tag_attributes";
+   }
+
+   : inline_push {
+      uid = uid_self_closing_jsx
+      regex     \= (<)(\s*)($${__JSX_IDENTIFIER})
+      styles [] = .tag_start_punctuation, .whitespace, .jsx_tag;
+
+      : pop {
+         regex \= (/\s*>|>)
+         styles [] = .tag_end_punctuation;
       }
 
-      : inline_push {
-         regex \= (\b$${__IDENTIFIER})(\s*)(=)(\s*)({)
-         styles [] = .jsx_property, .whitespace, .punctuation, .whitespace, .punctuation;
+      : include "jsx_tag_attributes";
+   }
 
-         : pop {
-            regex \= (})
-            styles [] = .punctuation;
-         }
+   : pattern {
+      regex       \= (<)(\s*)(>)
+      styles []   = .tag_start_punctuation, .whitespace, .tag_end_punctuation;
+   }
 
-         : include "main";
-      }
-
-      : pattern {
-         regex \= (\b$${__IDENTIFIER})
-         styles [] = .jsx_property;
-      }
+   : pattern {
+      regex       \= (<\s*/)(\s*)(>)
+      styles []   = .tag_start_punctuation, .whitespace, .tag_end_punctuation;
    }
 }
 
@@ -416,12 +1107,12 @@ jsx : context {
 comment : context {
    : inline_push {
       uid = uid_block_comment
-      regex         \= (/*)
+      regex         \= (/\*)
       styles []     = .comment;
       default_style = .comment
 
       : pop {
-         regex      \= (*/)
+         regex      \= (\*/)
          styles []  = .comment;
       }
    }
