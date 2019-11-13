@@ -19,6 +19,7 @@ Inspired by [`react`](https://reactjs.org), [`redux`](https://redux.js.org), [`e
 - [Usage](#usage)
 - [Examples](#examples)
 - [Packages](#packages)
+- [Editors](#editors)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
@@ -49,6 +50,12 @@ These packages are intended to be used internally by `knot`.
 - [`@knot/jss-plugin`](http://npm.im/@knot/jss-plugin): A `style` plugin for `knot`
 - [`@knot/react-plugin`](http://npm.im/@knot/react-plugin): A `jsx` plugin for `knot`
 - [`@knot/browser-plugin`](http://npm.im/@knot/browser-plugin): A browser utility plugin for `knot`
+
+## Editors
+
+### VS Code
+
+- [`knot-vscode-plugin`](https://marketplace.visualstudio.com/items?itemName=knot-lang.knot-vscode-plugin): Provides syntax highlighting
 
 ## Maintainers
 

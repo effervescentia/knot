@@ -1,6 +1,8 @@
 # Knot Language
 
-This extension provides support for the [Knot Language](https://github.com/effervescentia/knot) with the following features:
+![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/knot-lang.knot-vscode-plugin?style=flat-square)
+
+This extension provides support for the [knot](https://github.com/effervescentia/knot) language with the following features:
 
 ## Syntax Highlighting
 
