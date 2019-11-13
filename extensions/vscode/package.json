@@ -1,5 +1,5 @@
 {
-  "name": "@knot/vscode-plugin",
+  "name": "knot-vscode-plugin",
   "displayName": "Knot Language",
   "description": "Knot language support.",
   "categories": [
@@ -11,6 +11,7 @@
   },
   "private": true,
   "repository": "https://github.com/effervescentia/knot.git",
+  "homepage": "https://github.com/effervescentia/knot/blob/master/extensions/vscode/README.md",
   "contributes": {
     "languages": [
       {
@@ -33,6 +34,11 @@
         "path": "./syntaxes/knot.tmLanguage"
       }
     ]
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#2d3bcc",
+    "theme": "dark"
   },
   "publisher": "effervescentia"
 }
