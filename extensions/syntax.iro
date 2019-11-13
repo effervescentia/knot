@@ -691,6 +691,18 @@ dot_access : context {
 
 function_call : context {
    : inline_push {
+      regex       \= (\B\$)($${__IDENTIFIER})(\s*)(\()
+      styles      [] = .injected_punctuation, .function_name, .whitespace, .punctuation;
+
+      : pop {
+         regex \= (\))
+         styles [] = .punctuation;
+      }
+
+      : include "closure_list" ;
+   }
+   
+   : inline_push {
       regex     \= (\b$${__IDENTIFIER})(\s*)(\()
       styles [] = .function_name, .whitespace, .punctuation;
 
