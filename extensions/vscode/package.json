@@ -5,7 +5,7 @@
   "categories": [
     "Programming Languages"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.30.2"
   },
@@ -37,7 +37,7 @@
   },
   "icon": "images/icon.png",
   "galleryBanner": {
-    "color": "#2d3bcc",
+    "color": "#31717b",
     "theme": "dark"
   },
   "publisher": "knot-lang"
