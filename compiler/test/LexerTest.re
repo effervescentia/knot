@@ -14,9 +14,9 @@ let to_file_stream = s => {
   LazyStream.of_function(next);
 };
 
-let test_lex_token = ((s, tkn)) => {
+let test_lex_token = ((s, expected_token)) => {
   switch (Lexer.next_token(to_file_stream(s))) {
-  | Some((t, _)) => assert_tkn_eql(t, tkn)
+  | Some(({token}, _)) => assert_tkn_eql(token, expected_token)
   | None => assert_failure("no token found")
   };
 };

@@ -1,6 +1,9 @@
 open Knot.Core;
 open Knot.Fiber;
 
+let exactly = x => satisfy(({token}) => token == x);
+let one_of = l => satisfy(({token}) => List.mem(token, l));
+
 let space = one_of([Space, Tab, Newline]);
 let spaces = skip_many(space);
 
@@ -68,7 +71,7 @@ and jsx_end_frag = token(JSXEndFragment);
 let identifier =
   (
     fun
-    | LazyStream.Cons(Identifier(s), next_in) =>
+    | LazyStream.Cons({token: Identifier(s)}, next_in) =>
       Some((s, Lazy.force(next_in)))
     | _ => None
   )
@@ -82,7 +85,7 @@ let exact_identifier = (match, input) =>
 let sidecar_identifier =
   (
     fun
-    | LazyStream.Cons(SidecarIdentifier(s), next_in) =>
+    | LazyStream.Cons({token: SidecarIdentifier(s)}, next_in) =>
       Some((s, Lazy.force(next_in)))
     | _ => None
   )
@@ -91,7 +94,8 @@ let sidecar_identifier =
 let string =
   (
     fun
-    | LazyStream.Cons(String(s), next_in) => Some((s, Lazy.force(next_in)))
+    | LazyStream.Cons({token: String(s)}, next_in) =>
+      Some((s, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;
@@ -99,7 +103,8 @@ let string =
 let number =
   (
     fun
-    | LazyStream.Cons(Number(n), next_in) => Some((n, Lazy.force(next_in)))
+    | LazyStream.Cons({token: Number(n)}, next_in) =>
+      Some((n, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;
@@ -107,7 +112,8 @@ let number =
 let number =
   (
     fun
-    | LazyStream.Cons(Number(n), next_in) => Some((n, Lazy.force(next_in)))
+    | LazyStream.Cons({token: Number(n)}, next_in) =>
+      Some((n, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;
@@ -115,7 +121,8 @@ let number =
 let boolean =
   (
     fun
-    | LazyStream.Cons(Boolean(b), next_in) => Some((b, Lazy.force(next_in)))
+    | LazyStream.Cons({token: Boolean(b)}, next_in) =>
+      Some((b, Lazy.force(next_in)))
     | _ => None
   )
   |> lexeme;

@@ -20,6 +20,5 @@ let of_file_stream = (~filter=?, file_stream) => {
 
 let filter_comments =
   fun
-  | LineComment(_)
-  | BlockComment(_) => false
+  | {token: LineComment(_) | BlockComment(_)} => false
   | _ => true;

@@ -20,8 +20,6 @@ let (<~>) = Opal.(<~>);
 
 let satisfy = Opal.satisfy;
 
-let exactly = x => satisfy(y => y == x);
-
 let opt = Opal.option;
 let optional = Opal.optional;
 let between = Opal.between;
@@ -33,7 +31,5 @@ let many1 = Opal.many1;
 
 let sep_by1 = Opal.sep_by1;
 let sep_by = Opal.sep_by;
-
-let one_of = Opal.one_of;
 
 let chainl1 = Opal.chainl1;
