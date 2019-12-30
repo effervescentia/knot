@@ -2,6 +2,15 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/cli-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.2.0) (2019-12-30)
+
+### `@knot/cli`
+
+
+#### :sparkles: New Features
+
+- make HTTPS configuration optional (#87) ([33c583ed](https://github.com/effervescentia/knot/commit/33c583ed7a21fb14c8de9b7b390a2cfb5cbcdebd))
+
 ## [`@knot/compiler-v1.7.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.7.0), [`@knot/webpack-plugin-v1.7.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.7.0) (2019-11-9)
 
 ### `@knot/compiler`
