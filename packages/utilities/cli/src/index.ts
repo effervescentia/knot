@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import gulp from 'gulp';
 import conflict from 'gulp-conflict';
+import filter from 'gulp-filter';
 import rename from 'gulp-rename';
 import template from 'gulp-template';
 import inquirer from 'inquirer';
@@ -34,6 +35,15 @@ program
       type: 'list'
     });
 
+    const { isHTTPS } = await inquirer.prompt<{
+      readonly isHTTPS: boolean;
+    }>({
+      default: true,
+      message: 'Do you want to use HTTPS when running locally?',
+      name: 'isHTTPS',
+      type: 'confirm'
+    });
+
     const { projectName } = await inquirer.prompt<{
       readonly projectName: string;
     }>({
@@ -60,6 +70,7 @@ program
 
     gulp
       .src(`${sourceDir}/**`)
+      .pipe(filter(file => isHTTPS || file.basename !== 'certs'))
       .pipe(
         rename(file => {
           if (file.basename.startsWith('_')) {
@@ -71,6 +82,7 @@ program
       .pipe(
         template(
           {
+            isHTTPS,
             projectName,
             webpackPluginVersion
           },
