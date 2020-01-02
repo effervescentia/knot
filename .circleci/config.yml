@@ -405,10 +405,10 @@ workflows:
             - install_node
       - test_webpack_plugin:
           requires:
-            - install_node
+            - test_compiler
       - test_browserify_plugin:
           requires:
-            - install_node
+            - test_compiler
       - test_webpack_react:
           requires:
             - test_compiler
