@@ -315,9 +315,10 @@ jobs:
             mv /tmp/workspace/browserify-plugin plugins/bundler/browserify/build
       - lerna_exec:
           pkg: browserify-react-example
-          command: |
-            yarn build
-            yarn test
+          command: yarn build
+      - lerna_exec:
+          pkg: browserify-react-example
+          command: yarn test
       - store_cypress_artifacts
 
   compile_macos:
