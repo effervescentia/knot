@@ -34,6 +34,7 @@ Otherwise, check the `README` of the package for specific documentation.
 This repository contains a number of example projects to help you get started quickly.
 
 - [`@knot/webpack-react-example`](https://github.com/effervescentia/knot/tree/master/examples/webpack-react): An example using `webpack` and `react`
+- [`@knot/browserify-react-example`](https://github.com/effervescentia/knot/tree/master/examples/browserify-react): An example using `browserify` and `react`
 - [`@knot/todomvc-example`](https://github.com/effervescentia/knot/tree/master/examples/todomvc): An example based on TodoMVC
 
 ## Packages
