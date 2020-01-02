@@ -232,6 +232,14 @@ jobs:
           pkg: webpack-plugin
           path: packages/plugins/bundler/webpack
 
+  test_browserify_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: browserify-plugin
+          path: packages/plugins/bundler/browserify
+
   test_webpack_react:
     docker:
       - image: cypress/base:8
@@ -262,6 +270,40 @@ jobs:
       - lerna_exec:
           pkg: webpack-react-example
           command: yarn test
+      - store_cypress_artifacts
+
+  test_browserify_react:
+    docker:
+      - image: cypress/base:8
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - restore_linux_node_cache
+      - setup_yarn
+      - setup_lerna
+      - lerna_install:
+          pkg: browserify-react-example
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_esy
+      - run:
+          name: Restore Plugins
+          working_directory: ./packages
+          command: |
+            mv /tmp/workspace/compiler binaries/compiler/build
+            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
+            mv /tmp/workspace/react-plugin plugins/compiler/react/build
+            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
+            mv /tmp/workspace/browserify-plugin plugins/bundler/browserify/build
+      - lerna_exec:
+          pkg: browserify-react-example
+          command: |
+            yarn build
+            yarn test
       - store_cypress_artifacts
 
   compile_macos:
@@ -330,32 +372,6 @@ jobs:
           name: Release
           command: yarn release
 
-  validate_webpack_react:
-    docker:
-      - image: cypress/base:8
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
-    working_directory: ~/app
-    steps:
-      - checkout
-      - setup_yarn
-      - setup_lerna
-      - run:
-          name: Install
-          working_directory: ./examples/webpack-react
-          ## avoids using the existing yarn workspaces when installing
-          ## should be a better indication of the external usability
-          command: npm install
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_esy
-      - lerna_exec:
-          pkg: webpack-react-example
-          command: yarn test
-      - store_cypress_artifacts
-
 workflows:
   test_release:
     jobs:
@@ -376,6 +392,9 @@ workflows:
       - test_webpack_plugin:
           requires:
             - install_node
+      - test_browserify_plugin:
+          requires:
+            - install_node
       - test_webpack_react:
           requires:
             - test_compiler
@@ -384,15 +403,25 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
+      - test_browserify_react:
+          requires:
+            - test_compiler
+            - test_compiler_binary
+            - test_browser_plugin
+            - test_react_plugin
+            - test_jss_plugin
+            - test_browserify_plugin
       - compile_macos:
           requires:
             - test_webpack_react
+            - test_browserify_react
           filters:
             branches:
               only: master
       - compile_linux:
           requires:
             - test_webpack_react
+            - test_browserify_react
           filters:
             branches:
               only: master
