@@ -21,9 +21,19 @@ npm install
 yarn install
 ```
 
+### Build
+
+Run `rollup` and generate a browser-ready `bundle.js`
+
+```sh
+npm build
+# or
+yarn build
+```
+
 ### Start
 
-Start `rollup` and launch browser
+Start `http-server` to serve the built files and launch browser
 
 ```sh
 npm start
@@ -39,16 +49,6 @@ Run ui regression tests with `cypress`
 npm test
 # or
 yarn test
-```
-
-### Build
-
-Compiled code will be placed in a `dist/` directory
-
-```sh
-npm build
-# or
-yarn build
 ```
 
 ## Maintainers
