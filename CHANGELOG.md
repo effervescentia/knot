@@ -2,6 +2,49 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.9.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.9.0), [`@knot/browserify-plugin-v1.1.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browserify-plugin-v1.1.0), [`@knot/rollup-plugin-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/rollup-plugin-v1.0.0), [`@knot/webpack-plugin-v1.9.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.9.0) (2020-1-2)
+
+### `@knot/compiler`
+
+
+#### :sparkles: New Features
+
+- add rollup plugin package (#90) ([7b3ee6cd](https://github.com/effervescentia/knot/commit/7b3ee6cd19a5d58b6e62e1d6c05323e5a142cf3a))
+
+### `@knot/browserify-plugin`
+
+
+#### :sparkles: New Features
+
+- add rollup plugin package (#90) ([7b3ee6cd](https://github.com/effervescentia/knot/commit/7b3ee6cd19a5d58b6e62e1d6c05323e5a142cf3a))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.8.0` -> `v1.9.0`
+
+### `@knot/rollup-plugin`
+
+:rocket: **Initial Release** :rocket:
+
+#### :sparkles: New Features
+
+- add rollup plugin package (#90) ([7b3ee6cd](https://github.com/effervescentia/knot/commit/7b3ee6cd19a5d58b6e62e1d6c05323e5a142cf3a))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.8.0` -> `v1.9.0`
+
+### `@knot/webpack-plugin`
+
+
+#### :sparkles: New Features
+
+- add rollup plugin package (#90) ([7b3ee6cd](https://github.com/effervescentia/knot/commit/7b3ee6cd19a5d58b6e62e1d6c05323e5a142cf3a))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.8.0` -> `v1.9.0`
+
 ## [`@knot/compiler-v1.8.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.8.0), [`@knot/browserify-plugin-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browserify-plugin-v1.0.0), [`@knot/webpack-plugin-v1.8.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.8.0), [`@knot/react-plugin-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/react-plugin-v1.3.0) (2020-1-2)
 
 ### `@knot/compiler`
