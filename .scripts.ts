@@ -68,11 +68,25 @@ export default {
           }
         },
         rollup_react: {
-          description: 'run the "rollup + react" example',
-          script: run(
-            "start -- --configKnotc='esy x -P ../../compiler knotc.exe'",
-            '@knot/rollup-react-example'
-          )
+          default: {
+            description: 'run the "rollup + react" example',
+            script: series.nps(
+              'start.example.rollup_react.build',
+              'start.example.rollup_react.serve'
+            )
+          },
+
+          build: {
+            description: 'build the "rollup + react" example',
+            script: run(
+              "build -- --configKnotc='esy x -P ../../compiler knotc.exe'",
+              '@knot/rollup-react-example'
+            )
+          },
+          serve: {
+            description: 'serve the "rollup + react" example',
+            script: run('start', '@knot/rollup-react-example')
+          }
         },
         todo: {
           description: 'run the "todo" example',

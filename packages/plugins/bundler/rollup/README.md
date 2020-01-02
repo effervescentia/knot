@@ -31,27 +31,19 @@ yarn add @knot/rollup-plugin
 
 ## Usage
 
-In order to use knot modules with rollup, add the plugin to your build command.
-
-```sh
-browserify main.kn -p [ @knot/browserify-plugin ] > bundle.js
-# optionally print an exhaustive log of the operation of the compiler
-browserify main.kn -p [ @knot/browserify-plugin --debug ] > bundle.js
-```
-
-### Usage with programmatic API
+In order to use knot modules with rollup, add the plugin to your existing configuration.
 
 ```js
-// browserify.js
-import browserify from 'browserify';
-import knotify from '@knot/browserify-plugin';
+// rollup.config.js
+import rollup from 'rollup';
+import knotPlugin from '@knot/rollup-plugin';
 
-browserify()
-  // add the plugin to your exsiting configuration
-  .plugin(knotify, {
-    // optionally print an exhaustive log of the operation of the compiler
-    // debug: true,
-  });
+export default {
+  plugins: [
+    // add the knot plugin to your existing configuration
+    knotPlugin()
+  ]
+};
 ```
 
 You will now be able to import a `.kn` file from any normal javascript file.

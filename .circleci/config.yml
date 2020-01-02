@@ -134,13 +134,62 @@ commands:
       - persist:
           path: << parameters.path >>/build
           to: << parameters.pkg >>
+  test_bundler_plugin:
+    description: run tests for bundle plugin package
+    parameters:
+      bundler:
+        type: string
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Restore Compiler
+          working_directory: ./packages
+          command: |
+            mv /tmp/workspace/compiler binaries/compiler/build
+      - build_pkg:
+          pkg: << parameters.bundler >>-plugin
+          path: packages/plugins/bundler/<< parameters.bundler >>
+  test_example:
+    description: run tests for example project
+    parameters:
+      bundler:
+        type: string
+      framework:
+        type: string
+    steps:
+      - restore_linux_node_cache
+      - setup_yarn
+      - setup_lerna
+      - lerna_install:
+          pkg: << parameters.bundler >>-<< parameters.framework >>-example
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_esy
+      - run:
+          name: Restore Plugins
+          working_directory: ./packages
+          command: |
+            mv /tmp/workspace/compiler binaries/compiler/build
+            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
+            mv /tmp/workspace/react-plugin plugins/compiler/react/build
+            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
+            mv /tmp/workspace/<< parameters.bundler >>-plugin plugins/bundler/<< parameters.bundler >>/build
+      - lerna_exec:
+          pkg: << parameters.bundler >>-<< parameters.framework >>-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: << parameters.bundler >>-<< parameters.framework >>
   store_cypress_artifacts:
     description: store artifacts from cypress tests
+    parameters:
+      example:
+        type: string
     steps:
       - store_artifacts:
-          path: ./examples/webpack-react/cypress/screenshots
+          path: ./examples/<< parameters.pkg >>/cypress/screenshots
       - store_artifacts:
-          path: ./examples/webpack-react/cypress/videos
+          path: ./examples/<< parameters.pkg >>/cypress/videos
 
 jobs:
   install_node:
@@ -228,31 +277,22 @@ jobs:
     executor: node/node
     steps:
       - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Restore Plugins
-          working_directory: ./packages
-          command: |
-            mv /tmp/workspace/compiler binaries/compiler/build
-      - build_pkg:
-          pkg: webpack-plugin
-          path: packages/plugins/bundler/webpack
+      - test_bundler_plugin:
+          bundler: webpack
 
   test_browserify_plugin:
     executor: node/node
     steps:
       - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Restore Plugins
-          working_directory: ./packages
-          command: |
-            mv /tmp/workspace/compiler binaries/compiler/build
-      - build_pkg:
-          pkg: browserify-plugin
-          path: packages/plugins/bundler/browserify
+      - test_bundler_plugin:
+          bundler: browserify
+
+  test_rollup_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - test_bundler_plugin:
+          bundler: rollup
 
   test_webpack_react:
     docker:
@@ -264,27 +304,9 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - restore_linux_node_cache
-      - setup_yarn
-      - setup_lerna
-      - lerna_install:
-          pkg: webpack-react-example
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_esy
-      - run:
-          name: Restore Plugins
-          working_directory: ./packages
-          command: |
-            mv /tmp/workspace/compiler binaries/compiler/build
-            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
-            mv /tmp/workspace/react-plugin plugins/compiler/react/build
-            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
-            mv /tmp/workspace/webpack-plugin plugins/bundler/webpack/build
-      - lerna_exec:
-          pkg: webpack-react-example
-          command: yarn test
-      - store_cypress_artifacts
+      - test_example:
+          bundler: webpack
+          framework: react
 
   test_browserify_react:
     docker:
@@ -296,30 +318,23 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - restore_linux_node_cache
-      - setup_yarn
-      - setup_lerna
-      - lerna_install:
-          pkg: browserify-react-example
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_esy
-      - run:
-          name: Restore Plugins
-          working_directory: ./packages
-          command: |
-            mv /tmp/workspace/compiler binaries/compiler/build
-            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
-            mv /tmp/workspace/react-plugin plugins/compiler/react/build
-            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
-            mv /tmp/workspace/browserify-plugin plugins/bundler/browserify/build
-      - lerna_exec:
-          pkg: browserify-react-example
-          command: yarn build
-      - lerna_exec:
-          pkg: browserify-react-example
-          command: yarn test
-      - store_cypress_artifacts
+      - test_example:
+          bundler: browserify
+          framework: react
+
+  test_rollup_react:
+    docker:
+      - image: cypress/base:8
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - test_example:
+          bundler: rollup
+          framework: react
 
   compile_macos:
     macos:
@@ -410,6 +425,9 @@ workflows:
       - test_browserify_plugin:
           requires:
             - test_compiler
+      - test_rollup_plugin:
+          requires:
+            - test_compiler
       - test_webpack_react:
           requires:
             - test_compiler_binary
@@ -424,10 +442,18 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_browserify_plugin
+      - test_rollup_react:
+          requires:
+            - test_compiler_binary
+            - test_browser_plugin
+            - test_react_plugin
+            - test_jss_plugin
+            - test_rollup_plugin
       - compile_macos:
           requires:
             - test_webpack_react
             - test_browserify_react
+            - test_rollup_react
           filters:
             branches:
               only: master
@@ -435,6 +461,7 @@ workflows:
           requires:
             - test_webpack_react
             - test_browserify_react
+            - test_rollup_react
           filters:
             branches:
               only: master

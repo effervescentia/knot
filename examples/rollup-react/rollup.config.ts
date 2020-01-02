@@ -1,9 +1,9 @@
 import knotPlugin from '@knot/rollup-plugin';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import * as path from 'path';
+import nodeGlobals from 'rollup-plugin-node-globals';
 
-export default commandLineArgs => ({
+export default args => ({
   input: 'src/index.js',
   output: {
     file: 'bundle.js',
@@ -12,11 +12,15 @@ export default commandLineArgs => ({
   plugins: [
     knotPlugin({
       // WARNING: providing an override path for the knot compiler is not recommended
-      knot: commandLineArgs.configKnotc
+      knot: args.configKnotc
     }),
-    resolve({
-      modulesOnly: true
+    resolve(),
+    commonjs({
+      namedExports: {
+        react: ['createElement', 'Component', 'Fragment'],
+        'react-dom': ['render']
+      }
     }),
-    commonjs()
+    nodeGlobals()
   ]
 });

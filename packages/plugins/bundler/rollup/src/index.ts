@@ -1,35 +1,50 @@
 // tslint:disable: no-expression-statement
 import KnotCompiler, { isKnot, Options, resolveLibrary } from '@knot/compiler';
-// import KnotCompiler, { isKnot, Options } from '@knot/compiler';
-import nodeResolve from '@rollup/plugin-node-resolve';
-import { Plugin } from 'rollup';
+import nodeResolve from 'resolve';
+import { Plugin, ResolveIdResult } from 'rollup';
 
 function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
   const compiler = new KnotCompiler(options);
-  const knotResolver = nodeResolve({ extensions: ['.kn'] });
 
   return {
     name: 'knot',
 
+    // tslint:disable-next-line: typedef
     async buildStart() {
       await compiler.awaitReady();
     },
 
+    // tslint:disable-next-line: typedef
     async resolveId(id, importer) {
       const resolved = resolveLibrary(id, compiler.options);
       if (resolved) {
-        return this.resolve(resolved, importer, { skipSelf: true });
+        return this.resolve(resolved, importer, { skipSelf: true }).then(
+          result => {
+            if (!result) {
+              return { id: resolved };
+            }
+
+            return result;
+          }
+        );
       }
 
       if (!id.startsWith('@knot/') && isKnot(importer)) {
-        return knotResolver.resolveId.call(this, id, importer, {
-          skipSelf: true
-        });
+        return new Promise<ResolveIdResult>((resolve, reject) =>
+          nodeResolve(
+            id,
+            {
+              extensions: ['.kn']
+            },
+            (err, result) => (err ? reject(err) : resolve(result))
+          )
+        );
       }
 
       return null;
     },
 
+    // tslint:disable-next-line: typedef
     async transform(_, id) {
       if (isKnot(id)) {
         await compiler.add(id);
@@ -37,7 +52,6 @@ function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
 
         const compiled = await compiler.generate(id);
         if (compiled) {
-          console.log(compiled);
           return {
             code: compiled,
             map: null
@@ -48,6 +62,7 @@ function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
       return null;
     },
 
+    // tslint:disable-next-line: typedef
     async buildEnd() {
       await compiler.close();
     }
