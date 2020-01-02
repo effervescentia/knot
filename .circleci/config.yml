@@ -150,7 +150,7 @@ commands:
       - build_pkg:
           pkg: << parameters.bundler >>-plugin
           path: packages/plugins/bundler/<< parameters.bundler >>
-  test_example:
+  setup_test_example:
     description: run tests for example project
     parameters:
       bundler:
@@ -175,11 +175,6 @@ commands:
             mv /tmp/workspace/react-plugin plugins/compiler/react/build
             mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
             mv /tmp/workspace/<< parameters.bundler >>-plugin plugins/bundler/<< parameters.bundler >>/build
-      - lerna_exec:
-          pkg: << parameters.bundler >>-<< parameters.framework >>-example
-          command: yarn test
-      - store_cypress_artifacts:
-          example: << parameters.bundler >>-<< parameters.framework >>
   store_cypress_artifacts:
     description: store artifacts from cypress tests
     parameters:
@@ -304,9 +299,14 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - test_example:
+      - setup_test_example:
           bundler: webpack
           framework: react
+      - lerna_exec:
+          pkg: webpack-react-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: webpack-react
 
   test_browserify_react:
     docker:
@@ -318,9 +318,17 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - test_example:
+      - setup_test_example:
           bundler: browserify
           framework: react
+      - lerna_exec:
+          pkg: browserify-react-example
+          command: yarn build
+      - lerna_exec:
+          pkg: browserify-react-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: browserify-react
 
   test_rollup_react:
     docker:
@@ -332,9 +340,17 @@ jobs:
     working_directory: ~/app
     steps:
       - checkout
-      - test_example:
+      - setup_test_example:
           bundler: rollup
           framework: react
+      - lerna_exec:
+          pkg: rollup-react-example
+          command: yarn build
+      - lerna_exec:
+          pkg: rollup-react-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: rollup-react
 
   compile_macos:
     macos:
