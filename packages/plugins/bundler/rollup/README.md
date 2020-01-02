@@ -35,7 +35,6 @@ In order to use knot modules with rollup, add the plugin to your existing config
 
 ```js
 // rollup.config.js
-import rollup from 'rollup';
 import knotPlugin from '@knot/rollup-plugin';
 
 export default {
