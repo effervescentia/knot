@@ -27,7 +27,7 @@ module resolution to parallelized transcompilation.
 ```sh
 npm install @knot/webpack-plugin
 # or
-yarn global add @knot/webpack-plugin
+yarn add @knot/webpack-plugin
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ In order to use knot modules with webpack only requires 2 pieces of configuratio
 1. Add `'.kn'` to the list of extensions to consider when resolving modules
 1. Add an instance of the `KnotPlugin` to the list of plugins
 
-```ts
+```js
 // webpack.config.js
 import KnotPlugin from '@knot/webpack-plugin';
 
@@ -58,7 +58,7 @@ module.exports = {
 ```
 
 You will now be able to import a `.kn` file from any normal javascript file.
-When running webpack, these files will be automatically converted into native javascript modules
+When running webpack, these files will be automatically converted into native javascript modules.
 
 There is also [a more robust example](https://github.com/effervescentia/knot/tree/master/examples/webpack-react).
 

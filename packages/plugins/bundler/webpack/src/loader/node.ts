@@ -1,7 +1,7 @@
-import { JSX_PLUGIN, PLATFORM_PLUGIN, STYLE_PLUGIN } from '../constants';
+import { JSX_PLUGIN, PLATFORM_PLUGIN, STYLE_PLUGIN } from '@knot/compiler';
 import { InternalOptions } from '../types';
 
-export default function wrapResult(
+export default function nodeTransformer(
   result: string,
   { plugins }: InternalOptions
 ): string {
@@ -14,9 +14,9 @@ export default function wrapResult(
 }
 
 function genMainImport(name: string, mod: string): string {
-  return `import {main as ${name}} from '${mod}';`;
+  return `import {main as ${name}} from "${mod}";`;
 }
 
 function genModuleImport(name: string, mod: string): string {
-  return `import * as ${name} from '${mod}';`;
+  return `import * as ${name} from "${mod}";`;
 }

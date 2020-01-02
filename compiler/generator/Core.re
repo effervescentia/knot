@@ -1,5 +1,13 @@
 include Knot.Core;
 
+type generator_core = {
+  to_module_name: string => string,
+  to_import_statement:
+    (string, option(string), list((string, option(string)))) => string,
+  to_export_statement: (string, option(string)) => string,
+};
+
+let injected_variable = "$$knot_injected$$";
 let module_map = "$$knot_modules$$";
 let export_map = "$$knot_exports$$";
 let globals_map = "$$knot_globals$$";

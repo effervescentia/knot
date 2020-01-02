@@ -709,7 +709,7 @@ let full_ast =
     ],
   );
 
-let with_export = (name, s) => s ++ Printf.sprintf("export {%s};", name);
+let with_export = (name, s) => s ++ Printf.sprintf("EXPORT %s;", name);
 let var_with_export = (name, s) =>
   Printf.sprintf("var %s=%s;", name, s) |> with_export(name);
 let expand_arg = (index, name) =>
@@ -743,8 +743,6 @@ let full_generated =
   ++ var_with_export("greaterThanConst", "(2>4)")
   ++ var_with_export("greaterThanEqualConst", "(9>=1)")
   ++ var_with_export("closureConst", "((3*2)+(1+((6/(2-5))*3)))")
-  /* ++ var_with_export("dotAccessConst", "a.b.c") */
-  /* ++ var_with_export("executionConst", "d.e.f(4,a.x,(20*3),m())") */
   ++ var_with_export("jsxConst", "$$knot_jsx$$.createElement('abc')")
   ++ var_with_export(
        "jsxWithPropsConst",
@@ -795,84 +793,3 @@ let full_generated =
        ++ /**/ "return a;"
        ++ "}",
      );
-/* ++ with_export("NoParamsState", "function NoParamsState(){return {};}")
-   ++ with_export("EmptyState", "function EmptyState(){return {};}")
-   ++ with_export(
-        "DefaultParamState",
-        "function DefaultParamState(){"
-        ++ /**/ expand_default_arg(0, "z", "30")
-        ++ /**/ "return {};"
-        ++ "}",
-      )
-   ++ with_export(
-        "ComplexState",
-        "function ComplexState(){"
-        ++ /**/ "return {"
-        ++ /*  */ "a:undefined,"
-        ++ /*  */ "_c:undefined,"
-        ++ /*  */ "e:function(){return 4;},"
-        ++ /*  */ "f:function(){return 5;},"
-        ++ /*  */ "g:function(){"
-        ++ /*    */ expand_arg(0, "h")
-        ++ /*    */ expand_default_arg(1, "k", "2")
-        ++ /*    */ expand_default_arg(2, "l", "20")
-        ++ /*    */ "return 5;"
-        ++ /*  */ "},"
-        ++ /*  */ "n:function(){"
-        ++ /*    */ "3;"
-        ++ /*    */ "return (A+m);"
-        ++ /*  */ "}"
-        ++ /**/ "};"
-        ++ "}",
-      ) */
-/* ++ with_export("NoParamsView", "function NoParamsView(){}")
-   ++ with_export(
-        "ParamView",
-        "function ParamView(){" ++ /**/ expand_arg(0, "m") ++ "}",
-      )
-   ++ with_export(
-        "TypedParamView",
-        "function TypedParamView(){" ++ /**/ expand_arg(0, "a") ++ "}",
-      )
-   ++ with_export(
-        "DefaultParamView",
-        "function DefaultParamView(){"
-        ++ /**/ expand_default_arg(0, "a", "4")
-        ++ "}",
-      )
-   ++ with_export(
-        "MultiParamView",
-        "function MultiParamView(){"
-        ++ /**/ expand_arg(0, "m")
-        ++ /**/ expand_default_arg(1, "a", "2")
-        ++ "}",
-      ) */
-/* ++ with_export(
-     "InheritingView",
-     "function InheritingView(){" ++ /**/ "(a+b);" ++ /**/ "return 8;" ++ "}",
-   ) */
-/* ++ with_export("MixinView", "function MixinView(){}")
-   ++ with_export("InheritingMixinView", "function InheritingMixinView(){}") */
-/* ++ with_export("ComplexView", "function ComplexView(){return (e+f);}"); */
-/* ++ with_export(
-        "ClassStyle",
-        "function ClassStyle(){"
-        ++ /**/ "return {"
-        ++ /*  */ "['.root']:{"
-        ++ /*    */ "[fontSize]:px(20),"
-        ++ /*    */ "[backgroundColor]:red"
-        ++ /*  */ "}"
-        ++ /**/ "};"
-        ++ "}",
-      )
-   ++ with_export(
-        "IdStyle",
-        "function IdStyle(){"
-        ++ /**/ "return {"
-        ++ /*  */ "['#login']:{"
-        ++ /*    */ "[visibility]:hidden,"
-        ++ /*    */ "[display]:flex"
-        ++ /*  */ "}"
-        ++ /**/ "};"
-        ++ "}",
-      ) */

@@ -1,48 +1,14 @@
-// tslint:disable-next-line:ban-types
-export type ArgumentTypes<F extends Function> = F extends (
-  ...args: infer A
-) => any
-  ? A
-  : never;
+import KnotCompiler, { Options } from '@knot/compiler';
 
 export type Kill = (err: Error) => Promise<void>;
-
-export enum ServerStatus {
-  IDLE = 'idle',
-  COMPLETE = 'complete'
-}
-
-export enum ModuleStatus {
-  PENDING = 'pending',
-  COMPLETE = 'complete',
-  FAILED = 'failed'
-}
-
-export interface Compiler {
-  readonly await: () => Promise<void>;
-  readonly awaitComplete: () => Promise<void>;
-  readonly awaitModule: (path: string) => Promise<void>;
-  readonly generate: (path: string) => Promise<void | string>;
-  readonly add: (path: string) => Promise<void | Response>;
-  readonly invalidate: (path: string) => Promise<void | Response>;
-  readonly close: () => Promise<void | Response>;
-}
 
 export interface Loader {
   readonly loader: string;
   readonly options: InternalOptions;
 }
 
-export interface Options {
-  readonly port: number;
-  readonly debug: boolean;
-  readonly knot: string;
-  readonly config: string;
-  readonly plugins: Plugins;
-}
-
 export interface InternalOptions extends Options {
-  readonly compiler: Compiler;
+  readonly compilerInstance: KnotCompiler;
 }
 
 export interface Context {
@@ -53,12 +19,6 @@ export interface Context {
 
   readonly name: string;
   readonly options: Options;
-  readonly knotCompiler: Compiler;
+  readonly knotCompiler: KnotCompiler;
   readonly knotLoader: Loader;
-}
-
-export interface Plugins {
-  readonly jsx: string;
-  readonly style: string;
-  readonly platform: string;
 }

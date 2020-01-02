@@ -4,12 +4,12 @@ import { Context, Kill } from './types';
 import {
   addModuleLoader,
   discoverDependencies,
-  invalidateModule,
-  resolveLibrary
+  invalidateModule
 } from './utils';
 
 import WebpackCompiler = Webpack.Compiler;
 import WebpackCompilation = Webpack.compilation.Compilation;
+import { resolveLibrary } from '@knot/compiler';
 
 export type Hook = (
   compiler: WebpackCompiler,
@@ -26,7 +26,7 @@ export function watchCompilationHook(
     (context.successiveRun
       ? Promise.resolve()
       : // tslint:disable-next-line: ban-comma-operator no-object-mutation
-        ((context.watching = true), context.knotCompiler.await())
+        ((context.watching = true), context.knotCompiler.awaitReady())
     ).catch(kill)
   );
 }
@@ -39,7 +39,7 @@ export function awaitCompilerHook(
   compiler.hooks.beforeRun.tapPromise(context.name, () =>
     context.watching
       ? Promise.resolve()
-      : context.knotCompiler.await().catch(kill)
+      : context.knotCompiler.awaitReady().catch(kill)
   );
 }
 
@@ -72,7 +72,15 @@ export function resolutionHook(
   { name, options }: Context
 ): void {
   compiler.hooks.normalModuleFactory.tap(name, nmf => {
-    nmf.hooks.beforeResolve.tap(name, resolveLibrary(options));
+    nmf.hooks.beforeResolve.tap(name, mod => {
+      const resolved = resolveLibrary(mod.request, options);
+      if (resolved) {
+        // tslint:disable-next-line: no-object-mutation
+        mod.request = resolved;
+      }
+
+      return mod;
+    });
   });
 }
 

@@ -4,8 +4,13 @@ include Exception;
 module Debug = Knot.Debug;
 module Compiler = KnotCompile.Compiler;
 
+type module_type =
+  | ES6
+  | Common;
+
 type config = {
   main: string,
+  module_type,
   is_server: bool,
   is_debug: bool,
   port: int,

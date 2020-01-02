@@ -1,9 +1,14 @@
 import KnotPlugin from '@knot/webpack-plugin';
 import * as HtmlPlugin from 'html-webpack-plugin';
 import * as path from 'path';
-// import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
-export default env => ({
+interface Environment {
+  readonly knotc?: string;
+  readonly analyze?: boolean;
+}
+
+export default (env: Environment = {}) => ({
   entry: './src/index.js',
 
   output: {
@@ -21,9 +26,10 @@ export default env => ({
     }),
     new KnotPlugin({
       // debug: true,
+      // WARNING: providing an override path for the knot compiler is not recommended
       knot: env && env.knotc
-    })
-    // new BundleAnalyzerPlugin(),
+    }),
+    ...(env.analyze ? [new BundleAnalyzerPlugin()] : [])
   ],
 
   devServer: {

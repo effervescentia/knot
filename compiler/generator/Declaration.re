@@ -1,8 +1,6 @@
 open Core;
 
-let gen_export = name => Printf.sprintf("export {%s};", name);
-
-let generate = (printer, name) =>
+let generate = (printer, core, name) =>
   fst
   % (
     fun
@@ -11,7 +9,7 @@ let generate = (printer, name) =>
         "var %s=%s;%s",
         name,
         Expression.generate(expr),
-        gen_export(name),
+        core.to_export_statement(name, None),
       )
 
     | FunctionDecl(params, exprs) =>
@@ -19,7 +17,7 @@ let generate = (printer, name) =>
         "function %s%s%s",
         name,
         Function.gen_body(Expression.generate, params, exprs),
-        gen_export(name),
+        core.to_export_statement(name, None),
       )
 
     | StateDecl(params, props) =>
@@ -39,14 +37,14 @@ let generate = (printer, name) =>
           props,
         )
         |> Printf.sprintf("return {get:function(){return {%s};}};"),
-        gen_export(name),
+        core.to_export_statement(name, None),
       )
 
     | ViewDecl(_, mixins, props, exprs) =>
       Printf.sprintf(
         "%s%s",
         View.generate(name, mixins, props, exprs),
-        gen_export(name),
+        core.to_export_statement(name, None),
       )
 
     | StyleDecl(params, rule_sets) =>
@@ -56,7 +54,7 @@ let generate = (printer, name) =>
         List.map(fst, params) |> Function.gen_params(Expression.generate),
         gen_list(Style.gen_rule_set, rule_sets)
         |> Printf.sprintf("return {%s};"),
-        gen_export(name),
+        core.to_export_statement(name, None),
       )
   )
   % printer;

@@ -62,7 +62,7 @@ let put_module = (compiler, req_d, uri) =>
     },
   );
 
-let get_module = ({source_dir}, compiler, req_d, uri) =>
+let get_module = ({paths: {source_dir}, module_type}, compiler, req_d, uri) =>
   read_to_string(
     req_d,
     module_path => {
@@ -79,7 +79,19 @@ let get_module = ({source_dir}, compiler, req_d, uri) =>
               str =>
                 Bigstringaf.of_string(~off=0, ~len=String.length(str), str)
                 |> Body.write_bigstring(res_body),
-              Util.normalize_module(source_dir),
+              {
+                to_module_name: Util.normalize_module(source_dir),
+                to_import_statement:
+                  switch (module_type) {
+                  | Common => Generator.generate_common_import_statement
+                  | ES6 => Generator.generate_es6_import_statement
+                  },
+                to_export_statement:
+                  switch (module_type) {
+                  | Common => Generator.generate_common_export_statement
+                  | ES6 => Generator.generate_es6_export_statement
+                  },
+              },
               ast,
             );
 
@@ -172,10 +184,10 @@ let kill_server = (close_server, req_d, uri) => {
   close_server();
 };
 
-let route_mapper = (paths, compiler, close_server) =>
+let route_mapper = (config, compiler, close_server) =>
   fun
   | (`PUT, "module") => Some(put_module(compiler))
-  | (`POST, "module") => Some(get_module(paths, compiler))
+  | (`POST, "module") => Some(get_module(config, compiler))
   | (`DELETE, "module") => Some(invalidate_module(compiler))
   | (`POST, "module/status") => Some(get_module_status(compiler))
   | (`DELETE, "context") => Some(invalidate_context(compiler))
