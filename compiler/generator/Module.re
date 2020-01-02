@@ -1,22 +1,23 @@
 open Core;
 
-let generate_import = (printer, to_module_name) =>
+let generate_import = (printer, core) =>
   fun
   | Import(name, imports) =>
-    Import.generate(printer, to_module_name(name), imports);
+    Import.generate(printer, core, core.to_module_name(name), imports);
 
-let generate_stmt = printer =>
+let generate_stmt = (printer, core) =>
   fun
-  | Declaration(name, decl) => Declaration.generate(printer, name, decl)
+  | Declaration(name, decl) =>
+    Declaration.generate(printer, core, name, decl)
   | Main(name, decl) => {
-      Declaration.generate(printer, name, decl);
+      Declaration.generate(printer, core, name, decl);
 
-      Printf.sprintf("export {%s as %s};", name, main_export) |> printer;
+      core.to_export_statement(name, Some(main_export)) |> printer;
     };
 
-let generate = (printer, to_module_name) =>
+let generate = (printer, core) =>
   fun
   | Module(imports, stmts) => {
-      imports |> List.iter(generate_import(printer, to_module_name));
-      stmts |> List.iter(generate_stmt(printer));
+      imports |> List.iter(generate_import(printer, core));
+      stmts |> List.iter(generate_stmt(printer, core));
     };

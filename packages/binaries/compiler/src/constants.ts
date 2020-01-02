@@ -1,4 +1,5 @@
-export const KNOT_SOURCE_PATTERN = /.*\.kn(ot)?$/;
+export const KNOT_EXTENSION_PATTERN = /\.kn(ot)?$/i;
+
 export const GLOBALS = '$$knot_globals$$';
 export const MODULES = '$$knot_modules$$';
 export const EXPORTS = '$$knot_exports$$';

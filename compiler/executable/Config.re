@@ -84,6 +84,7 @@ let create_descriptor = (path_resolver, target) => {
 };
 
 let set_from_args = cwd => {
+  let module_type = ref(ES6);
   let is_server = ref(false);
   let is_debug = ref(false);
   let config_file = ref("");
@@ -104,6 +105,21 @@ let set_from_args = cwd => {
         "path to the directory containing your .knot.yml file",
       ),
       ("-port", Arg.Set_int(port), "the port to run on when in server mode"),
+      (
+        "-compiler.module",
+        Arg.Symbol(
+          ["common", "es6"],
+          choice =>
+            module_type :=
+              (
+                switch (choice) {
+                | "common" => Common
+                | _ => ES6
+                }
+              ),
+        ),
+        "the module type to generate (es6 or common)",
+      ),
     ],
     x =>
       if (main^ == "") {
@@ -116,6 +132,7 @@ let set_from_args = cwd => {
 
   let config = {
     main: main^,
+    module_type: module_type^,
     is_server: is_server^,
     is_debug: is_debug^,
     port: port^,

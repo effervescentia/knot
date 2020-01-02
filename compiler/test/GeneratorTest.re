@@ -21,7 +21,11 @@ let tests =
             | _ =>
               KnotGenerate.Generator.generate(
                 s => generated := generated^ ++ s,
-                s => s,
+                {
+                  to_module_name: s => s,
+                  to_import_statement: (_, _, _) => "",
+                  to_export_statement: (_, _) => "",
+                },
                 fst(ast),
               )
             }

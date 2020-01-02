@@ -46,6 +46,13 @@ export default {
             '@knot/webpack-react-example'
           )
         },
+        browserify_react: {
+          description: 'run the "browserify + react" example',
+          script: run(
+            "start -- --knotc='esy x -P ../../compiler knotc.exe'",
+            '@knot/browserify-react-example'
+          )
+        },
         todo: {
           description: 'run the "todo" example',
           script: run(

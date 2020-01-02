@@ -1,0 +1,38 @@
+{
+  "name": "@knot/browserify-plugin",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=8.9"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "main": "index.js",
+  "typings": "build/main/index.d.ts",
+  "scripts": {
+    "x": "nps",
+    "build": "nps build",
+    "test": "nps test",
+    "cov": "nps cov",
+    "usage": "nps help"
+  },
+  "dependencies": {
+    "@knot/browser-plugin": "1.2.2",
+    "@knot/compiler": "1.7.0",
+    "@knot/jss-plugin": "1.2.0",
+    "@knot/react-plugin": "1.2.0",
+    "@types/browserify": "^12.0.36",
+    "@types/module-deps": "^6.1.0",
+    "@types/through2": "^2.0.34",
+    "through2": "^3.0.1"
+  },
+  "peerDependencies": {
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0"
+  },
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -9,8 +9,8 @@
   "bin": {
     "knotc": "bin/knotc.exe"
   },
-  "main": "index.js",
-  "typings": "index.d.ts",
+  "main": "build/main/index.js",
+  "typings": "build/main/index.d.ts",
   "scripts": {
     "x": "nps",
     "build": "nps build",
@@ -29,7 +29,10 @@
     "access": "public"
   },
   "dependencies": {
+    "@types/yargs": "^13.0.4",
+    "cross-fetch": "^3.0.4",
     "execa": "^2.0.4",
-    "fs-extra": "^8.1.0"
+    "fs-extra": "^8.1.0",
+    "yargs": "^15.0.2"
   }
 }

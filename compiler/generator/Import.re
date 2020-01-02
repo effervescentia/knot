@@ -1,43 +1,43 @@
 open Core;
 
-let generate = (printer, module_name, imports) => {
-  imports
-  |> List.fold_left(
-       acc =>
-         fst
-         % (
-           fun
-           | ModuleExport(export_name) =>
-             Printf.sprintf("* as %s", export_name)
-           | _ => acc
-         ),
-       "",
-     )
-  |> (
-    s =>
-      s == "" ? s : Printf.sprintf("import %s from \"%s\";", s, module_name)
-  )
-  |> printer;
+let generate = (printer, core, module_name, imports) => {
+  let module_import =
+    imports
+    |> List.fold_left(
+         acc =>
+           fst
+           % (
+             fun
+             | ModuleExport(export_name) => Some(export_name)
+             | _ => acc
+           ),
+         None,
+       );
 
-  gen_list(
-    fst
-    % (
-      fun
-      | MainExport(export_name) =>
-        Printf.sprintf("%s as %s", main_export, export_name)
-      | NamedExport(export_name, original_name) =>
-        Printf.sprintf(
-          "%s%s",
-          export_name,
-          Knot.Util.print_optional(Printf.sprintf(" as %s"), original_name),
-        )
-      | _ => ""
-    ),
-    imports,
-  )
-  |> (
-    s =>
-      s == "" ? s : Printf.sprintf("import {%s} from \"%s\";", s, module_name)
-  )
-  |> printer;
+  let named_imports =
+    imports
+    |> List.fold_left(
+         acc =>
+           fst
+           % (
+             fun
+             | MainExport(export_name) => [
+                 (main_export, Some(export_name)),
+                 ...acc,
+               ]
+             | NamedExport(original_name, alias_name) => [
+                 (original_name, alias_name),
+                 ...acc,
+               ]
+             | _ => acc
+           ),
+         [],
+       );
+
+  switch (module_import, named_imports) {
+  | (None, []) => ()
+  | _ =>
+    core.to_import_statement(module_name, module_import, named_imports)
+    |> printer
+  };
 };

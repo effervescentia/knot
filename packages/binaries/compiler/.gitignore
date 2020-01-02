@@ -1,2 +1,4 @@
 platforms
 */
+!src/
+!src/**

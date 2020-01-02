@@ -1,5 +1,9 @@
 import baseFetch from 'cross-fetch';
-import { ArgumentTypes } from '../types';
+
+// tslint:disable-next-line: ban-types
+type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any
+  ? A
+  : never;
 
 export class NetworkError extends Error {
   constructor(msg: string, public statusCode: number) {

@@ -1,13 +1,13 @@
 // tslint:disable:no-expression-statement
+import KnotCompiler, { isKnot, Options } from '@knot/compiler';
 import * as path from 'path';
 import * as Webpack from 'webpack';
-import { KNOT_SOURCE_PATTERN } from './constants';
-import { Compiler, Kill, Options } from './types';
+import { Kill } from './types';
 
 import WebpackModule = Webpack.loader.LoaderContext;
 
 export function createTerminator(
-  knotCompiler: Compiler
+  knotCompiler: KnotCompiler
 ): (err: Error) => Promise<void> {
   return async err => {
     // tslint:disable: no-console
@@ -43,35 +43,29 @@ export function resolveLibrary(
 }
 
 export function invalidateModule(
-  knotCompiler: Compiler,
+  knotCompiler: KnotCompiler,
   kill: Kill
 ): (path: string) => void {
   return invalidPath =>
-    KNOT_SOURCE_PATTERN.test(invalidPath) &&
-    knotCompiler.invalidate(invalidPath).catch(kill);
+    isKnot(invalidPath) && knotCompiler.invalidate(invalidPath).catch(kill);
 }
 
 export function addModuleLoader(
   knotLoader: Webpack.Loader
 ): (_: any, mod: WebpackModule) => void {
   return (_, mod) => {
-    if (
-      KNOT_SOURCE_PATTERN.test(mod.request) &&
-      !mod.loaders.includes(knotLoader)
-    ) {
+    if (isKnot(mod.request) && !mod.loaders.includes(knotLoader)) {
       mod.loaders.unshift(knotLoader);
     }
   };
 }
 
 export function discoverDependencies(
-  knotCompiler: Compiler,
+  knotCompiler: KnotCompiler,
   kill: Kill
 ): (mod: any) => Promise<any> {
   return async mod => {
-    const knotDeps = mod.dependencies.filter(({ request }) =>
-      KNOT_SOURCE_PATTERN.test(request)
-    );
+    const knotDeps = mod.dependencies.filter(({ request }) => isKnot(request));
 
     if (knotDeps.length === 0) {
       return Promise.resolve();

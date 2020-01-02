@@ -73,8 +73,8 @@ and print_decl = name =>
 and print_import_target =
   fun
   | MainExport(name) => Printf.sprintf("MAIN AS %s", name)
-  | NamedExport(name, Some(new_name)) =>
-    Printf.sprintf("%s AS %s", name, new_name)
+  | NamedExport(name, Some(alias_name)) =>
+    Printf.sprintf("%s AS %s", name, alias_name)
   | NamedExport(name, None) => name
   | ModuleExport(name) => Printf.sprintf("* AS %s", name)
 and print_property = ((name, type_def, default_val)) =>
@@ -148,10 +148,10 @@ and print_jsx =
     Printf.sprintf(
       "<%s%s%s>%s</%s>",
       name,
-      List.length(tags) == 0 ?
-        "" :
-        Util.print_comma_separated(print_element_tag, tags)
-        |> Printf.sprintf("(%s)"),
+      List.length(tags) == 0
+        ? ""
+        : Util.print_comma_separated(print_element_tag, tags)
+          |> Printf.sprintf("(%s)"),
       Util.print_sequential(print_jsx_prop % Printf.sprintf(" %s"), props),
       Util.print_sequential(print_jsx, children),
       name,

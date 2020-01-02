@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@types/react": "^16.8.7",
-    "@types/react-dom": "^16.8.2",
+    "@types/react-dom": "^16.8.2"
+  },
+  "peerDependencies": {
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
   },

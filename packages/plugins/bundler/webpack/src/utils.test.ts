@@ -1,9 +1,9 @@
 // tslint:disable:no-expression-statement no-object-literal-type-assertion
+import KnotCompiler from '@knot/compiler';
 import test from 'ava';
 import * as path from 'path';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as Webpack from 'webpack';
-import { Compiler } from './types';
 import {
   addModuleLoader,
   discoverDependencies,
@@ -26,7 +26,7 @@ test('invalidateModule() - path does match regex', async t => {
 
       return Promise.resolve();
     }
-  } as Compiler;
+  } as KnotCompiler;
   const kill = () => null;
 
   const onInvalidate = invalidateModule(compiler, kill);
@@ -37,7 +37,7 @@ test('invalidateModule() - invalidation fails', async t => {
   t.plan(1);
   const compiler = {
     invalidate: _ => Promise.reject()
-  } as Compiler;
+  } as KnotCompiler;
   const kill = () => Promise.resolve(t.pass());
 
   const onInvalidate = invalidateModule(compiler, kill);
@@ -82,7 +82,7 @@ test('addModuleLoader() - called with the same module multiple times', t => {
 test('discoverDependencies() - no matching dependencies', async t => {
   t.plan(0);
 
-  const compiler = { add: _ => t.fail() } as Compiler;
+  const compiler = { add: _ => t.fail() } as KnotCompiler;
 
   const onDiscover = discoverDependencies(compiler, null);
 
@@ -119,7 +119,7 @@ test('discoverDependencies() - some matching dependencies', async t => {
           return t.fail();
       }
     }
-  } as Compiler;
+  } as KnotCompiler;
 
   const onDiscover = discoverDependencies(compiler, null);
   await onDiscover({
