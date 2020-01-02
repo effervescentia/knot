@@ -3,7 +3,12 @@ import * as HtmlPlugin from 'html-webpack-plugin';
 import * as path from 'path';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
-export default env => ({
+interface Environment {
+  readonly knotc?: string;
+  readonly analyze?: boolean;
+}
+
+export default (env: Environment = {}) => ({
   entry: './src/index.js',
 
   output: {
