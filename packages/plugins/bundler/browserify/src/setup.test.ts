@@ -8,7 +8,7 @@ test('addExtension(): add extensions', t => {
 
   addExtension(bundle);
 
-  t.deepEqual(bundle._extensions, ['.kn', '.knot', '.js']);
+  t.deepEqual(bundle._extensions, ['.knot', '.kn', '.js']);
 });
 
 test('addExtension(): skip adding existing extension', t => {
