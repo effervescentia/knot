@@ -228,6 +228,13 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Restore Plugins
+          working_directory: ./packages
+          command: |
+            mv /tmp/workspace/compiler binaries/compiler/build
       - build_pkg:
           pkg: webpack-plugin
           path: packages/plugins/bundler/webpack
@@ -236,6 +243,13 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Restore Plugins
+          working_directory: ./packages
+          command: |
+            mv /tmp/workspace/compiler binaries/compiler/build
       - build_pkg:
           pkg: browserify-plugin
           path: packages/plugins/bundler/browserify

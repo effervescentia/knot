@@ -1,13 +1,13 @@
 // tslint:disable: no-expression-statement
-import { Options, resolveLibrary } from '@knot/compiler';
+import { FILE_EXTENSIONS, Options, resolveLibrary } from '@knot/compiler';
 import { BrowserifyObject } from 'browserify';
 
-const FILE_EXTENSION = '.kn';
-
-function addExtension(bundle: BrowserifyObject): void {
-  if (!bundle._extensions.includes(FILE_EXTENSION)) {
-    bundle._extensions.unshift(FILE_EXTENSION);
-  }
+export function addExtension(bundle: BrowserifyObject): void {
+  FILE_EXTENSIONS.forEach(extension => {
+    if (!bundle._extensions.includes(extension)) {
+      bundle._extensions.unshift(extension);
+    }
+  });
 }
 
 function extendModuleResolution(
