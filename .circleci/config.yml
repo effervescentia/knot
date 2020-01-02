@@ -158,7 +158,7 @@ jobs:
           paths:
             - ~/.cache
 
-  test_compiler:
+  test_compiler_binary:
     executor: node/node
     steps:
       - checkout
@@ -192,7 +192,7 @@ jobs:
           path: compiler/_esy/default/store/i/knot-*
           to: knot
 
-  test_compiler_binary:
+  test_compiler:
     executor: node/node
     steps:
       - checkout
@@ -390,8 +390,8 @@ workflows:
   test_release:
     jobs:
       - install_node
-      - test_compiler
-      - test_compiler_binary:
+      - test_compiler_binary
+      - test_compiler:
           requires:
             - install_node
       - test_browser_plugin:
@@ -411,7 +411,6 @@ workflows:
             - test_compiler
       - test_webpack_react:
           requires:
-            - test_compiler
             - test_compiler_binary
             - test_browser_plugin
             - test_react_plugin
@@ -419,7 +418,6 @@ workflows:
             - test_webpack_plugin
       - test_browserify_react:
           requires:
-            - test_compiler
             - test_compiler_binary
             - test_browser_plugin
             - test_react_plugin
