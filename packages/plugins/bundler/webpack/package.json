@@ -1,6 +1,6 @@
 {
   "name": "@knot/webpack-plugin",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "engines": {
     "node": ">=8.9"
   },
@@ -17,9 +17,9 @@
   },
   "dependencies": {
     "@knot/browser-plugin": "1.2.2",
-    "@knot/compiler": "1.7.0",
+    "@knot/compiler": "1.8.0",
     "@knot/jss-plugin": "1.2.0",
-    "@knot/react-plugin": "1.2.0",
+    "@knot/react-plugin": "1.3.0",
     "cross-fetch": "^3.0.1",
     "enhanced-resolve": "^4.1.0",
     "execa": "^1.0.0",

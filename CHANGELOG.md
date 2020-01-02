@@ -2,6 +2,47 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.8.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.8.0), [`@knot/browserify-plugin-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browserify-plugin-v1.0.0), [`@knot/webpack-plugin-v1.8.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.8.0), [`@knot/react-plugin-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/react-plugin-v1.3.0) (2020-1-2)
+
+### `@knot/compiler`
+
+
+#### :sparkles: New Features
+
+- add browserify plugin (#89) ([e743100e](https://github.com/effervescentia/knot/commit/e743100e6962797f00e13b735c08c407c8b9d5e7))
+
+### `@knot/browserify-plugin`
+
+:rocket: **Initial Release** :rocket:
+
+#### :sparkles: New Features
+
+- add browserify plugin (#89) ([e743100e](https://github.com/effervescentia/knot/commit/e743100e6962797f00e13b735c08c407c8b9d5e7))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.7.0` -> `v1.8.0`
+- **automatic**: upgrade `@knot/react-plugin` from `v1.2.0` -> `v1.3.0`
+
+### `@knot/webpack-plugin`
+
+
+#### :sparkles: New Features
+
+- add browserify plugin (#89) ([e743100e](https://github.com/effervescentia/knot/commit/e743100e6962797f00e13b735c08c407c8b9d5e7))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/compiler` from `v1.7.0` -> `v1.8.0`
+- **automatic**: upgrade `@knot/react-plugin` from `v1.2.0` -> `v1.3.0`
+
+### `@knot/react-plugin`
+
+
+#### :sparkles: New Features
+
+- add browserify plugin (#89) ([e743100e](https://github.com/effervescentia/knot/commit/e743100e6962797f00e13b735c08c407c8b9d5e7))
+
 ## [`@knot/cli-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.2.0) (2019-12-30)
 
 ### `@knot/cli`
