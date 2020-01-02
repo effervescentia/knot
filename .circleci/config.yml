@@ -187,9 +187,9 @@ commands:
         type: string
     steps:
       - store_artifacts:
-          path: ./examples/<< parameters.pkg >>/cypress/screenshots
+          path: ./examples/<< parameters.example >>/cypress/screenshots
       - store_artifacts:
-          path: ./examples/<< parameters.pkg >>/cypress/videos
+          path: ./examples/<< parameters.example >>/cypress/videos
 
 jobs:
   install_node:
