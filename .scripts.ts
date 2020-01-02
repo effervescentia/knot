@@ -47,10 +47,31 @@ export default {
           )
         },
         browserify_react: {
-          description: 'run the "browserify + react" example',
+          default: {
+            description: 'run the "browserify + react" example',
+            script: series.nps(
+              'start.example.browserify_react.build',
+              'start.example.browserify_react.serve'
+            )
+          },
+
+          build: {
+            description: 'build the "browserify + react" example',
+            script: run(
+              "build -- --knotc='esy x -P ../../compiler knotc.exe'",
+              '@knot/browserify-react-example'
+            )
+          },
+          serve: {
+            description: 'serve the "browserify + react" example',
+            script: run('start', '@knot/browserify-react-example')
+          }
+        },
+        rollup_react: {
+          description: 'run the "rollup + react" example',
           script: run(
-            "start -- --knotc='esy x -P ../../compiler knotc.exe'",
-            '@knot/browserify-react-example'
+            "start -- --configKnotc='esy x -P ../../compiler knotc.exe'",
+            '@knot/rollup-react-example'
           )
         },
         todo: {

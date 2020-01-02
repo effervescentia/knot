@@ -2,7 +2,6 @@
 import KnotCompiler, { isKnot } from '@knot/compiler';
 import stream from 'stream';
 import through, { FlushCallback, TransformCallback } from 'through2';
-import nodeTransformer from './node';
 
 function flushTransformed(compiler: KnotCompiler, file: string): FlushCallback {
   return async function(next: TransformCallback): Promise<void> {
@@ -13,7 +12,7 @@ function flushTransformed(compiler: KnotCompiler, file: string): FlushCallback {
       const compiled = await compiler.generate(file);
 
       if (compiled) {
-        this.push(nodeTransformer(compiled, compiler.options));
+        this.push(compiled);
       }
 
       this.push(null);

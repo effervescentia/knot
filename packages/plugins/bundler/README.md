@@ -1,3 +1,3 @@
 # Knot Bundler Plugins
 
-Support modules compilation by third-party bundlers.
+Support module compilation with third-party bundlers.

@@ -1,6 +1,6 @@
-# @knot/browserify-react-example
+# @knot/rollup-react-example
 
-> A knot example project using `react` and `browserify`.
+> A knot example project using `react` and `rollup`.
 
 ## Table of Contents
 
@@ -21,19 +21,9 @@ npm install
 yarn install
 ```
 
-### Build
-
-Run `browserify` and generate a browser-ready `bundle.js`
-
-```sh
-npm build
-# or
-yarn build
-```
-
 ### Start
 
-Start `http-server` to serve the built files and launch browser
+Start `rollup` and launch browser
 
 ```sh
 npm start
@@ -49,6 +39,16 @@ Run ui regression tests with `cypress`
 npm test
 # or
 yarn test
+```
+
+### Build
+
+Compiled code will be placed in a `dist/` directory
+
+```sh
+npm build
+# or
+yarn build
 ```
 
 ## Maintainers
