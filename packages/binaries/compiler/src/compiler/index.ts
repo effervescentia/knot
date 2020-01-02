@@ -2,6 +2,7 @@
 import execa from 'execa';
 import { KNOT_BINARY } from '../config';
 import { Options } from '../types';
+import wrapModule from '../wrapper';
 import { DEFAULT_OPTIONS } from './constants';
 import * as Tasks from './tasks';
 
@@ -90,8 +91,14 @@ class Compiler {
     return Tasks.killServer(this.options);
   }
 
-  public generate(path: string): Promise<void | string> {
-    return Tasks.generateModule(this.options, path);
+  public async generate(path: string): Promise<void | string> {
+    const generated = await Tasks.generateModule(this.options, path);
+
+    if (generated) {
+      return wrapModule(generated, this.options);
+    }
+
+    return generated;
   }
 
   public invalidate(path: string): Promise<void | Response> {

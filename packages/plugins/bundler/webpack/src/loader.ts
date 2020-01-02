@@ -1,7 +1,6 @@
 // tslint:disable:no-expression-statement
 import { getOptions } from 'loader-utils';
-import { InternalOptions } from '../types';
-import nodeTransformer from './node';
+import { InternalOptions } from './types';
 
 export = function loader(): void {
   const callback = this.async();
@@ -11,7 +10,6 @@ export = function loader(): void {
   options.compilerInstance
     .awaitModule(path)
     .then(() => options.compilerInstance.generate(path))
-    .then((result: string) => nodeTransformer(result, options))
     .then(result => callback(null, result))
     .catch(callback);
 };

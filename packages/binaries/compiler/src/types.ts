@@ -25,3 +25,9 @@ export interface Plugins {
   readonly style: string;
   readonly platform: string;
 }
+
+export interface ModuleWrapper {
+  readonly genMainImport: (name: string, mod: string) => string;
+
+  readonly genModuleImport: (name: string, mod: string) => string;
+}

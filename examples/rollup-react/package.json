@@ -1,0 +1,34 @@
+{
+  "name": "@knot/rollup-react-example",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup --config rollup.config.ts",
+    "start": "http-server -p 1337 -o",
+    "start:hidden": "http-server -p 1337",
+    "test": "npm run test:e2e",
+    "test:e2e": "start-server-and-test start:hidden http://localhost:1337 cypress:run",
+    "cypress": "cypress open",
+    "cypress:run": "cypress run"
+  },
+  "dependencies": {
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0"
+  },
+  "devDependencies": {
+    "@knot/rollup-plugin": "1.0.0",
+    "@rollup/plugin-commonjs": "^11.0.0",
+    "@rollup/plugin-node-resolve": "^6.0.0",
+    "@types/rollup-plugin-node-globals": "^1.4.0",
+    "cypress": "^3.2.0",
+    "http-server": "^0.12.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "start-server-and-test": "^1.7.13",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.3"
+  }
+}
