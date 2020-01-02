@@ -11,8 +11,7 @@
 
 > A webpack plugin to automatically handle parsing and transforming knot code.
 
-Integrate knot into your existing webpack build easily using this plugin to automatically inject everything from
-module resolution to parallelized transcompilation.
+Integrate knot into your existing webpack build easily using this plugin.
 
 ## Table of Contents
 

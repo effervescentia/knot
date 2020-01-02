@@ -11,8 +11,7 @@
 
 > A browserify plugin to automatically handle parsing and transforming knot code.
 
-Integrate knot into your existing browserify build easily using this plugin to automatically inject everything from
-module resolution to parallelized transcompilation.
+Integrate knot into your existing browserify build easily using this plugin.
 
 ## Table of Contents
 
@@ -56,7 +55,7 @@ browserify()
 ```
 
 You will now be able to import a `.kn` file from any normal javascript file.
-When running webpack, these files will be automatically converted into native javascript modules.
+When running browserify, these files will be automatically converted into native javascript modules.
 
 There is also [a more robust example](https://github.com/effervescentia/knot/tree/master/examples/browserify-react).
 

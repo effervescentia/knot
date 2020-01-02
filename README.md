@@ -44,6 +44,7 @@ This repository contains a number of example projects to help you get started qu
 These packages are meant to integrate with existing tools and workflows.
 
 - [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): A `webpack` plugin to support `knot` files
+- [`@knot/browserify-plugin`](http://npm.im/@knot/browserify-plugin): A `browserify` plugin to support `knot` files
 
 These packages are intended to be used internally by `knot`.
 
