@@ -4,7 +4,6 @@
   "private": true,
   "license": "MIT",
   "repository": "https://github.com/effervescentia/knot.git",
-  "main": "index.js",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --watch --mode development",

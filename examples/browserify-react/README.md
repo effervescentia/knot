@@ -1,6 +1,6 @@
 # @knot/browserify-react-example
 
-> A knot example project using `react` and `browserify`.
+> A `knot` example project using `react` and `browserify`.
 
 ## Table of Contents
 

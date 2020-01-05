@@ -1,6 +1,6 @@
 # @knot/webpack-react-example
 
-> A knot example project using `react` and `webpack`.
+> A `knot` example project using `react` and `webpack`.
 
 ## Table of Contents
 

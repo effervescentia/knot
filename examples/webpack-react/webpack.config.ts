@@ -27,7 +27,7 @@ export default (env: Environment = {}) => ({
     new KnotPlugin({
       // debug: true,
       // WARNING: providing an override path for the knot compiler is not recommended
-      knot: env && env.knotc
+      knot: env.knotc
     }),
     ...(env.analyze ? [new BundleAnalyzerPlugin()] : [])
   ],
