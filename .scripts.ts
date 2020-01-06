@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/camelcase */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./scripts/nps-utils.d.ts" />
 
 import { concurrent, series } from 'nps-utils';
+
 import { DEFAULT_OPTIONS } from './scripts';
 
 const PKG_FILTER = '--ignore=@knot/*-example';

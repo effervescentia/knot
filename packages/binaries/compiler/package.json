@@ -17,6 +17,7 @@
     "test": "nps test",
     "cov": "nps cov",
     "usage": "nps help",
+    "docs": "nps docs",
     "postinstall": "./install.js"
   },
   "files": [
@@ -34,5 +35,8 @@
     "execa": "^2.0.4",
     "fs-extra": "^8.1.0",
     "yargs": "^15.0.2"
+  },
+  "devDependencies": {
+    "@knot/typedoc-plugin": "1.0.0"
   }
 }

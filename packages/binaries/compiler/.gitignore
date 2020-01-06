@@ -1,4 +1,5 @@
 platforms
 */
+docs.json
 !src/
 !src/**

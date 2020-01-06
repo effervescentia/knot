@@ -20,7 +20,9 @@ The Knot Language compiler can be run as both:
 
 To get started using it in a project you will probably want to use one of the bundler plugins:
 
-- [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): The official knot plugin for `webpack`
+- [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): The official knot plugin for [`webpack`](https://webpack.js.org/)
+- [`@knot/browserify-plugin`](http://npm.im/@knot/browserify-plugin): The official knot plugin for [`browserify`](http://browserify.org/)
+- [`@knot/rollup-plugin`](http://npm.im/@knot/rollup-plugin): The official knot plugin for [`rollup`](https://rollupjs.org/)
 
 Or you can use the `knot` CLI tool ([`@knot/cli`](http://npm.im/@knot/cli)) to generate a new project with the minimum required boilerplate.
 
@@ -46,7 +48,7 @@ yarn add @knot/compiler
 
 ### Node.js Usage
 
-#### path: _string_
+#### `path: _string_`
 
 The path to the installed binary.
 
@@ -56,7 +58,7 @@ import { path } from '@knot/compiler';
 path; // path to the knotc binary
 ```
 
-#### isKnot: _(fileName: string) => boolean_
+#### `isKnot: _(fileName: string) => boolean_`
 
 Test whether a file has the file extension `.kn` or `.knot`.
 
@@ -68,7 +70,7 @@ isKnot('knotFile.kn'); // true
 isKnot('otherFile.knot'); // true
 ```
 
-#### Compiler: _class KnotCompiler_
+#### `Compiler: _class KnotCompiler_`
 
 A client for connecting to and managing an instance of the `knot` compiler.
 

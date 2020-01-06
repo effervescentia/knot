@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "build/main",
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "lib": ["es2017", "dom"],
+    "types": ["@types/node-fetch"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.json", "typings/**/*.d.ts"],
+  "exclude": ["node_modules/**"]
+}
