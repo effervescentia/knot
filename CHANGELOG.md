@@ -2,6 +2,15 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/cli-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.3.0) (2020-1-6)
+
+### `@knot/cli`
+
+
+#### :sparkles: New Features
+
+- **project generator**: add support for rollup and browserify (#92) ([0467bcd2](https://github.com/effervescentia/knot/commit/0467bcd2df32aadcfca5106d6d52678d33003e72))
+
 ## [`@knot/compiler-v1.9.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.9.0), [`@knot/browserify-plugin-v1.1.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browserify-plugin-v1.1.0), [`@knot/rollup-plugin-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/rollup-plugin-v1.0.0), [`@knot/webpack-plugin-v1.9.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.9.0) (2020-1-2)
 
 ### `@knot/compiler`
