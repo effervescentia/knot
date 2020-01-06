@@ -1,5 +1,5 @@
-// tslint:disable:no-expression-statement
 import { getOptions } from 'loader-utils';
+
 import { InternalOptions } from './types';
 
 export = function loader(): void {

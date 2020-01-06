@@ -9,9 +9,9 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
 
-> A browserify plugin to automatically handle parsing and transforming knot code.
+> A `browserify` plugin to automatically handle parsing and transforming `knot` code.
 
-Integrate knot into your existing browserify build easily using this plugin.
+Integrate `knot` into your existing `browserify` build easily using this plugin.
 
 ## Table of Contents
 
@@ -31,7 +31,7 @@ yarn add @knot/browserify-plugin
 
 ## Usage
 
-In order to use knot modules with browserify, add the plugin to your build command.
+In order to use `knot` modules with `browserify`, add the plugin to your build command.
 
 ```sh
 browserify main.kn -p [ @knot/browserify-plugin ] > bundle.js
@@ -55,7 +55,7 @@ browserify()
 ```
 
 You will now be able to import a `.kn` file from any normal javascript file.
-When running browserify, these files will be automatically converted into native javascript modules.
+When running `browserify`, these files will be automatically converted into native javascript modules.
 
 There is also [a more robust example](https://github.com/effervescentia/knot/tree/master/examples/browserify-react).
 

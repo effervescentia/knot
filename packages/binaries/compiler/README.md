@@ -46,12 +46,48 @@ yarn add @knot/compiler
 
 ### Node.js Usage
 
-To access the path of the installed binary:
+#### path: _string_
+
+The path to the installed binary.
 
 ```ts
-import * as knotc from '@knot/compiler';
+import { path } from '@knot/compiler';
 
-knotc.path; // <path to the knotc binary>
+path; // path to the knotc binary
+```
+
+#### isKnot: _(fileName: string) => boolean_
+
+Test whether a file has the file extension `.kn` or `.knot`.
+
+```ts
+import { isKnot } from '@knot/compiler';
+
+isKnot('someFile.js'); // false
+isKnot('knotFile.kn'); // true
+isKnot('otherFile.knot'); // true
+```
+
+#### Compiler: _class KnotCompiler_
+
+A client for connecting to and managing an instance of the `knot` compiler.
+
+```ts
+import Compiler from '@knot/compiler';
+
+const compiler = new Compiler({});
+
+// add a file to the compiler
+await compiler.add('./someFile.kn');
+
+// wait for the file to be compiled
+await compiler.awaitModule('./someFile.kn');
+
+// receive the comiled file contents
+const compiled = await compiler.generate('./someFile.kn');
+
+// kill the compiler server and end the connection
+await compiler.close();
 ```
 
 ### CLI Usage

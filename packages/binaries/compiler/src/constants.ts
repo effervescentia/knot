@@ -1,5 +1,4 @@
 export const KNOT_EXTENSION_PATTERN = /\.kn(ot)?$/i;
-// tslint:disable-next-line: readonly-array
 export const FILE_EXTENSIONS = ['.kn', '.knot'];
 
 export const GLOBALS = '$$knot_globals$$';

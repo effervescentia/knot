@@ -1,4 +1,3 @@
-// tslint:disable:object-literal-sort-keys
 export default {
   // CSS Level 1
   black: 'black',

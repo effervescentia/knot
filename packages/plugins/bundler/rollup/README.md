@@ -9,9 +9,9 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
 
-> A rollup plugin to automatically handle parsing and transforming knot code.
+> A `rollup` plugin to automatically handle parsing and transforming `knot` code.
 
-Integrate knot into your existing rollup build easily using this plugin.
+Integrate `knot` into your existing `rollup` build easily using this plugin.
 
 ## Table of Contents
 
@@ -31,7 +31,7 @@ yarn add @knot/rollup-plugin
 
 ## Usage
 
-In order to use knot modules with rollup, add the plugin to your existing configuration.
+In order to use `knot` modules with `rollup`, add the plugin to your existing configuration.
 
 ```js
 // rollup.config.js
@@ -46,7 +46,7 @@ export default {
 ```
 
 You will now be able to import a `.kn` file from any normal javascript file.
-When running rollup, these files will be automatically converted into native javascript modules.
+When running `rollup`, these files will be automatically converted into native javascript modules.
 
 There is also [a more robust example](https://github.com/effervescentia/knot/tree/master/examples/rollup-react).
 

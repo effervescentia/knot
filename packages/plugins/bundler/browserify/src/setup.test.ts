@@ -1,6 +1,6 @@
-// tslint:disable:no-expression-statement no-object-literal-type-assertion
 import test from 'ava';
 import { BrowserifyObject } from 'browserify';
+
 import { addExtension } from './setup';
 
 test('addExtension(): add extensions', t => {

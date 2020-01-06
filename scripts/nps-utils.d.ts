@@ -1,5 +1,3 @@
-// tslint:disable: readonly-array
-
 declare module 'nps-utils' {
   export interface Options {
     readonly helpStyle: 'scripts';

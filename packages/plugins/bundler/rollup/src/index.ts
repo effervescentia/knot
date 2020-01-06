@@ -1,4 +1,3 @@
-// tslint:disable: no-expression-statement
 import KnotCompiler, { isKnot, Options, resolveLibrary } from '@knot/compiler';
 import nodeResolve from 'resolve';
 import { Plugin, ResolveIdResult } from 'rollup';
@@ -9,12 +8,10 @@ function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
   return {
     name: 'knot',
 
-    // tslint:disable-next-line: typedef
     async buildStart() {
       await compiler.awaitReady();
     },
 
-    // tslint:disable-next-line: typedef
     async resolveId(id, importer) {
       const resolved = resolveLibrary(id, compiler.options);
       if (resolved) {
@@ -44,7 +41,6 @@ function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
       return null;
     },
 
-    // tslint:disable-next-line: typedef
     async transform(_, id) {
       if (isKnot(id)) {
         await compiler.add(id);
@@ -62,7 +58,6 @@ function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
       return null;
     },
 
-    // tslint:disable-next-line: typedef
     async buildEnd() {
       await compiler.close();
     }

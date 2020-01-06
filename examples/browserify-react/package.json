@@ -4,7 +4,6 @@
   "private": true,
   "license": "MIT",
   "repository": "https://github.com/effervescentia/knot.git",
-  "main": "index.js",
   "scripts": {
     "build": "ts-node browserify.ts",
     "start": "http-server -p 1337 -o",

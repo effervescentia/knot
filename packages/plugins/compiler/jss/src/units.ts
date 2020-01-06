@@ -1,4 +1,7 @@
-// tslint:disable:object-literal-sort-keys
+export function unit(value: string): (num: number) => string {
+  return (num: number) => String(num) + value;
+}
+
 export default {
   ch: unit('ch'),
   cm: unit('cm'),
@@ -24,7 +27,3 @@ export default {
   vw: unit('vw'),
   x: unit('x')
 };
-
-export function unit(value: string): (num: number) => string {
-  return (num: number) => String(num) + value;
-}

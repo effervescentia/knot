@@ -9,7 +9,7 @@ export default {
   lint: {
     description: 'run code linters',
     script: series(
-      'tslint --project .',
+      'eslint --quiet "src/**/*.ts"',
       'prettier "src/**/*.ts" --list-different'
     )
   },

@@ -1,4 +1,3 @@
-// tslint:disable: no-reference object-literal-sort-keys
 /// <reference path="./scripts/nps-utils.d.ts" />
 
 import { concurrent, series } from 'nps-utils';

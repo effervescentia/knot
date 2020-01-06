@@ -1,5 +1,5 @@
-// tslint:disable:no-expression-statement
 import test from 'ava';
+
 import units, { unit } from './units';
 
 test('includes keys', t => {
@@ -40,6 +40,7 @@ test('adds appropriate suffix', t => {
   keys.forEach(key => {
     const value = Math.round(Math.random() * 20);
 
+    // eslint-disable-next-line sonarjs/no-small-switch
     switch (key) {
       case 'percent':
         t.is(units[key](value), `${value}%`);

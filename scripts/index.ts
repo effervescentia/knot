@@ -1,4 +1,3 @@
-// tslint:disable object-literal-sort-keys
 import { Options } from 'nps-utils';
 
 import build from './build';

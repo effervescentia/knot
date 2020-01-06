@@ -1,4 +1,3 @@
-// tslint:disable:no-expression-statement
 import chalk from 'chalk';
 import { Command } from 'commander';
 import gulp from 'gulp';
@@ -9,6 +8,8 @@ import template from 'gulp-template';
 import inquirer from 'inquirer';
 import latestVersion from 'latest-version';
 import path from 'path';
+
+const INTERPOLATION_PATTERN = /#{([\S\s]+?)}/g;
 
 const program = new Command('knot');
 
@@ -52,7 +53,6 @@ program
       type: 'input'
     });
 
-    // tslint:disable-next-line: no-console
     console.log(
       `${chalk.blue(
         '!'
@@ -74,7 +74,6 @@ program
       .pipe(
         rename(file => {
           if (file.basename.startsWith('_')) {
-            // tslint:disable-next-line: no-object-mutation
             file.basename = file.basename.slice(1);
           }
         })
@@ -86,7 +85,7 @@ program
             projectName,
             webpackPluginVersion
           },
-          { interpolate: /#{([\s\S]+?)}/g }
+          { interpolate: INTERPOLATION_PATTERN }
         )
       )
       .pipe(conflict(targetDir))

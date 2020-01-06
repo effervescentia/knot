@@ -1,8 +1,8 @@
-// tslint:disable:no-expression-statement
 import KnotCompiler, { Options } from '@knot/compiler';
 import * as path from 'path';
 import validateOptions from 'schema-utils';
 import * as Webpack from 'webpack';
+
 import HOOKS from './hooks';
 import schema from './schema.json';
 import { Context } from './types';
@@ -17,6 +17,7 @@ export default class KnotWebpackPlugin {
 
   public apply(compiler: WebpackCompiler): void {
     const knotCompiler = new KnotCompiler(this.options);
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const context = createContext(knotCompiler);
     const kill = createTerminator(knotCompiler);
 

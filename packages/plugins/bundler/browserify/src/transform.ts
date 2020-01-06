@@ -1,4 +1,3 @@
-// tslint:disable: no-expression-statement
 import KnotCompiler, { isKnot } from '@knot/compiler';
 import stream from 'stream';
 import through, { FlushCallback, TransformCallback } from 'through2';

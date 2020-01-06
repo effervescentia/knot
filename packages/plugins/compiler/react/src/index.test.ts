@@ -1,6 +1,6 @@
-// tslint:disable:no-expression-statement
 import test, { ExecutionContext } from 'ava';
 import * as React from 'react';
+
 import { main } from '.';
 
 function hasKeys<T extends object>(
