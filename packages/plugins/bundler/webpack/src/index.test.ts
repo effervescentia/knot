@@ -1,6 +1,6 @@
-// tslint:disable:no-expression-statement no-object-literal-type-assertion
 import { Options } from '@knot/compiler';
 import test from 'ava';
+
 import KnotCompilerPlugin from '.';
 
 test('construct', t => {

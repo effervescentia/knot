@@ -1,6 +1,6 @@
-// tslint:disable: no-expression-statement
 import KnotCompiler, { Options } from '@knot/compiler';
 import { BrowserifyObject } from 'browserify';
+
 import setupPipeline from './setup';
 import transformFile from './transform';
 

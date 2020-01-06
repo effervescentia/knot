@@ -1,11 +1,10 @@
-// tslint:disable:object-literal-sort-keys
 import JSS, { Styles } from 'jss';
 import jssPreset from 'jss-preset-default';
+
 import colors from './colors';
 import properties from './properties';
 import units from './units';
 
-// tslint:disable-next-line:no-expression-statement
 JSS.setup(jssPreset());
 
 export const main = {
@@ -33,7 +32,6 @@ export const main = {
     return attached.classes;
   },
 
-  // tslint:disable-next-line:readonly-array
   classes(...classNames: string[]): string {
     return classNames.join(' ');
   }

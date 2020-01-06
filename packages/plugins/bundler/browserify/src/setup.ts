@@ -1,4 +1,3 @@
-// tslint:disable: no-expression-statement
 import { FILE_EXTENSIONS, Options, resolveLibrary } from '@knot/compiler';
 import { BrowserifyObject } from 'browserify';
 
@@ -16,7 +15,6 @@ function extendModuleResolution(
 ): void {
   const originalResolve = bundle._mdeps.resolve.bind(bundle._mdeps);
 
-  // tslint:disable-next-line: no-object-mutation
   bundle._mdeps.resolve = function knotResolve(id, parent, next): any {
     const resolved = resolveLibrary(id, options) || id;
 

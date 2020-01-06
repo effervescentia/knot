@@ -4,7 +4,6 @@ export const MAX_ATTEMPTS = 10;
 export const INFINITE_ATTEMPTS = 100;
 export const ATTEMPT_TIMEOUT = 1000;
 
-// tslint:disable-next-line: no-object-literal-type-assertion
 export const DEFAULT_OPTIONS = {
   compiler: {
     module: 'es6'

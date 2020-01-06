@@ -1,5 +1,5 @@
-// tslint:disable:no-expression-statement
 import execa from 'execa';
+
 import { KNOT_BINARY } from '../config';
 import { Options } from '../types';
 import wrapModule from '../wrapper';
@@ -22,25 +22,20 @@ function startCompiler(options: FullOptions): void {
     ...(options.debug ? ['-debug'] : [])
   ];
   const [cmd, ...args] = (options.knot || KNOT_BINARY).split(/\s+/);
-  // tslint:disable-next-line: no-console
   console.log(
     `running knot using the command "${[cmd, ...args, ...knotArgs].join(' ')}"`
   );
 
   const proc = execa(cmd, [...args, ...knotArgs]);
 
-  // tslint:disable-next-line:no-console
   proc.stdout.on('data', data => console.log(data.toString()));
-  // tslint:disable-next-line:no-console
   proc.stderr.on('data', data => console.error(data.toString()));
 }
 
 class Compiler {
-  // tslint:disable: readonly-keyword
   public options: FullOptions;
   public isReady = false;
   public isRunning = false;
-  // tslint:enable: readonly-keyword
 
   constructor(options: Partial<Options>) {
     const mergedOptions: Options = {
@@ -85,7 +80,6 @@ class Compiler {
       return Promise.resolve();
     }
 
-    // tslint:disable-next-line: no-object-mutation
     this.isRunning = false;
 
     return Tasks.killServer(this.options);
@@ -113,7 +107,6 @@ class Compiler {
     if (!this.isReady) {
       await this.awaitIdle();
 
-      // tslint:disable-next-line: no-object-mutation
       this.isReady = true;
     }
   }

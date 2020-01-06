@@ -1,4 +1,3 @@
-/* tslint:disable no-expression-statement */
 import execa from 'execa';
 import fs from 'fs-extra';
 import path from 'path';
@@ -13,7 +12,6 @@ export default async function installPlatformArtifacts(
 
   try {
     await fs.access(entrypoint, fs.constants.F_OK);
-    // tslint:disable-next-line no-console
     console.log('binary already installed');
     return;
   } catch (e) {
@@ -33,7 +31,6 @@ export default async function installPlatformArtifacts(
       await copyArtifacts('linux');
       break;
     default:
-      // tslint:disable-next-line no-console
       console.error(
         'This platform (' + process.platform + ') is not supported yet.'
       );
@@ -48,6 +45,5 @@ export default async function installPlatformArtifacts(
       ESY_RELEASE_REWRITE_PREFIX: 'true'
     }
   });
-  // tslint:disable-next-line no-console
   console.log(stdout);
 }

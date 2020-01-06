@@ -2,6 +2,35 @@ import { ModuleStatus, ServerStatus } from '../types';
 import { ATTEMPT_TIMEOUT, INFINITE_ATTEMPTS, MAX_ATTEMPTS } from './constants';
 import fetch from './fetch';
 
+export function awaitPromise(
+  createPromise: (
+    resolve: () => void,
+    reject: (err?: Error) => void,
+    fail: (err?: Error) => void
+  ) => Promise<void>,
+  maxAttempts: number,
+  timeout = ATTEMPT_TIMEOUT
+): (resolve: () => void, reject: (err: any) => void) => void {
+  const errorMsg = 'knot compiler did not return a healthy response';
+  let attempts = 0;
+
+  return function tryMatchStatus(resolve, reject): void {
+    setTimeout(() => {
+      attempts += 1;
+
+      function retry(): void {
+        if (maxAttempts !== 0 && attempts === maxAttempts) {
+          reject(errorMsg);
+        } else {
+          tryMatchStatus(resolve, reject);
+        }
+      }
+
+      createPromise(resolve, retry, reject).catch(retry);
+    }, timeout);
+  };
+}
+
 export function awaitModuleStatus(
   path: string,
   baseUrl: string
@@ -42,40 +71,8 @@ export function awaitStatus(
   );
 }
 
-// tslint:disable:no-expression-statement
-export function awaitPromise(
-  createPromise: (
-    resolve: () => void,
-    reject: (err?: Error) => void,
-    fail: (err?: Error) => void
-  ) => Promise<void>,
-  maxAttempts: number,
-  timeout = ATTEMPT_TIMEOUT
-): (resolve: () => void, reject: (err: any) => void) => void {
-  const errorMsg = 'knot compiler did not return a healthy response';
-  // tslint:disable-next-line:no-let
-  let attempts = 0;
-
-  return function tryMatchStatus(resolve, reject): void {
-    setTimeout(() => {
-      attempts += 1;
-
-      function retry(): void {
-        if (maxAttempts !== 0 && attempts === maxAttempts) {
-          reject(errorMsg);
-        } else {
-          tryMatchStatus(resolve, reject);
-        }
-      }
-
-      createPromise(resolve, retry, reject).catch(retry);
-    }, timeout);
-  };
-}
-
 export function handleError(errMsg: string): (e: Error) => void {
   return e => {
-    // tslint:disable-next-line:no-console
     console.error(errMsg, e);
 
     throw new Error(errMsg);

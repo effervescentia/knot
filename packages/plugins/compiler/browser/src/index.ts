@@ -46,13 +46,11 @@ export function style(
 ): Record<string, string> {
   const jss = {};
 
-  // tslint:disable-next-line no-expression-statement
   Object.keys(styles).forEach(key => {
     if (key[0] !== '.') {
       return;
     }
 
-    // tslint:disable-next-line no-object-mutation no-expression-statement
     jss[key.slice(1)] = styles[key];
   });
 

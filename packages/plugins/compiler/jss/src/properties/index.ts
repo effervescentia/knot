@@ -1,4 +1,3 @@
-// tslint:disable:object-literal-sort-keys
 import animationProperties from './animation';
 import backgroundProperties from './background';
 import borderProperties from './border';

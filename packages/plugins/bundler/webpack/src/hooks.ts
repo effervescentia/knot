@@ -1,5 +1,6 @@
-// tslint:disable:no-expression-statement
+import { resolveLibrary } from '@knot/compiler';
 import * as Webpack from 'webpack';
+
 import { Context, Kill } from './types';
 import {
   addModuleLoader,
@@ -9,7 +10,6 @@ import {
 
 import WebpackCompiler = Webpack.Compiler;
 import WebpackCompilation = Webpack.compilation.Compilation;
-import { resolveLibrary } from '@knot/compiler';
 
 export type Hook = (
   compiler: WebpackCompiler,
@@ -25,8 +25,7 @@ export function watchCompilationHook(
   compiler.hooks.watchRun.tapPromise(context.name, () =>
     (context.successiveRun
       ? Promise.resolve()
-      : // tslint:disable-next-line: ban-comma-operator no-object-mutation
-        ((context.watching = true), context.knotCompiler.awaitReady())
+      : ((context.watching = true), context.knotCompiler.awaitReady())
     ).catch(kill)
   );
 }
@@ -49,7 +48,6 @@ export function terminationHook(
 ): void {
   compiler.hooks.done.tapPromise(context.name, () => {
     if (context.watching) {
-      // tslint:disable-next-line: no-object-mutation
       context.successiveRun = true;
 
       return Promise.resolve();
@@ -75,7 +73,6 @@ export function resolutionHook(
     nmf.hooks.beforeResolve.tap(name, mod => {
       const resolved = resolveLibrary(mod.request, options);
       if (resolved) {
-        // tslint:disable-next-line: no-object-mutation
         mod.request = resolved;
       }
 
@@ -99,7 +96,6 @@ export function compilationHook(
   });
 }
 
-// tslint:disable-next-line: readonly-array
 const HOOKS: Readonly<Hook[]> = [
   watchCompilationHook,
   awaitCompilerHook,

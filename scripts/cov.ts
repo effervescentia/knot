@@ -1,4 +1,3 @@
-// tslint:disable object-literal-sort-keys
 import { open, series } from 'nps-utils';
 
 const nycReport = (reporter: 'html' | 'lcov') =>

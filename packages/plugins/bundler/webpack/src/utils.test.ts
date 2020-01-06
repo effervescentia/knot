@@ -1,9 +1,8 @@
-// tslint:disable:no-expression-statement no-object-literal-type-assertion
 import KnotCompiler from '@knot/compiler';
 import test from 'ava';
 import * as path from 'path';
-// tslint:disable-next-line:no-implicit-dependencies
 import * as Webpack from 'webpack';
+
 import {
   addModuleLoader,
   discoverDependencies,
@@ -104,7 +103,6 @@ test('discoverDependencies() - some matching dependencies', async t => {
   const matchesRequest = (target: string, dep) =>
     t.is(target, path.resolve(__dirname, `../../${sourceDir}/${dep.request}`));
 
-  // tslint:disable-next-line:no-let
   let attempts = 0;
   const compiler = {
     add: async target => {

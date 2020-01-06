@@ -12,10 +12,8 @@ export interface InternalOptions extends Options {
 }
 
 export interface Context {
-  // tslint:disable: readonly-keyword
   successiveRun: boolean;
   watching: boolean;
-  // tslint:enable: readonly-keyword
 
   readonly name: string;
   readonly options: Options;

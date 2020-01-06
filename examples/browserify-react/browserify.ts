@@ -1,4 +1,3 @@
-// tslint:disable: no-expression-statement
 import knotify from '@knot/browserify-plugin';
 import * as browserify from 'browserify';
 import * as fs from 'fs';
@@ -12,6 +11,5 @@ browserify('src/index.js')
     knot: argv.knotc as string
   })
   .bundle()
-  // tslint:disable-next-line: no-console
   .on('error', error => console.error(error.toString()))
   .pipe(fs.createWriteStream(path.join(__dirname, 'bundle.js')));

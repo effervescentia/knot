@@ -1,7 +1,7 @@
-// tslint:disable:no-expression-statement
 import KnotCompiler, { isKnot, Options } from '@knot/compiler';
 import * as path from 'path';
 import * as Webpack from 'webpack';
+
 import { Kill } from './types';
 
 import WebpackModule = Webpack.loader.LoaderContext;
@@ -10,12 +10,10 @@ export function createTerminator(
   knotCompiler: KnotCompiler
 ): (err: Error) => Promise<void> {
   return async err => {
-    // tslint:disable: no-console
     console.error('compilation failed with error: ', err);
     console.log('waiting for compiler to shut down...');
     await knotCompiler.close();
     console.log('compiler shut down successfully');
-    // tslint:enable: no-console
 
     process.exit(-1);
   };
@@ -33,7 +31,6 @@ export function resolveLibrary(
       const [, plugin] = mod.request.split('/');
 
       if (plugin in options.plugins) {
-        // tslint:disable-next-line:no-object-mutation
         mod.request = options.plugins[plugin];
       }
     }
