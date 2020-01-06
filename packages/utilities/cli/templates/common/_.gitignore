@@ -1,3 +1,4 @@
 node_modules/
 certs/
 dist/
+bundle.js

@@ -2,7 +2,6 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import gulp from 'gulp';
 import conflict from 'gulp-conflict';
-import filter from 'gulp-filter';
 import rename from 'gulp-rename';
 import template from 'gulp-template';
 import inquirer from 'inquirer';
@@ -13,13 +12,15 @@ const INTERPOLATION_PATTERN = /#{([\S\s]+?)}/g;
 
 const program = new Command('knot');
 
-enum ProjectType {
-  WEBPACK_REACT = 'webpack + react'
+enum BundlerType {
+  WEBPACK = 'webpack',
+  ROLLUP = 'rollup',
+  BROWSERIFY = 'browserify'
 }
 
-const PROJECT_DIRS: Record<ProjectType, string> = {
-  [ProjectType.WEBPACK_REACT]: 'webpack_react'
-};
+enum FrameworkType {
+  REACT = 'react'
+}
 
 program.version('1.0.0');
 
@@ -27,12 +28,25 @@ program
   .command('init [target_dir]')
   .description('Setup a new knot project')
   .action(async (targetDir = '.') => {
-    const { projectType } = await inquirer.prompt<{
-      readonly projectType: string;
+    const { frameworkType } = await inquirer.prompt<{
+      readonly frameworkType: string;
     }>({
-      choices: [ProjectType.WEBPACK_REACT],
-      message: 'What type of project do you want to create?',
-      name: 'projectType',
+      choices: [FrameworkType.REACT],
+      message: 'Which rendering library do you want to use?',
+      name: 'frameworkType',
+      type: 'list'
+    });
+
+    const { bundlerType } = await inquirer.prompt<{
+      readonly bundlerType: string;
+    }>({
+      choices: [
+        BundlerType.WEBPACK,
+        BundlerType.BROWSERIFY,
+        BundlerType.ROLLUP
+      ],
+      message: 'Which bundler do you want to use?',
+      name: 'bundlerType',
       type: 'list'
     });
 
@@ -50,27 +64,39 @@ program
     }>({
       message: 'What is the name of your project?',
       name: 'projectName',
-      type: 'input'
+      type: 'input',
+      filter: value => value.trim(),
+      validate: value =>
+        value.trim().length !== 0 || 'Project name must not be empty'
     });
 
     console.log(
       `${chalk.blue(
         '!'
-      )} Thank you! Generating files for a knot project (${projectName}) with "${projectType}" now...`
+      )} Thank you! Generating files for a knot project (${projectName}) with "${frameworkType} + ${bundlerType}" now...`
     );
 
-    const sourceDir = path.resolve(
-      __dirname,
-      '../..',
-      'templates',
-      PROJECT_DIRS[projectType]
-    );
+    const templatesDir = path.resolve(__dirname, '../..', 'templates');
+    const commonDir = path.resolve(templatesDir, 'common');
+    const httpsDir = path.resolve(templatesDir, 'https');
+    const frameworkDir = path.resolve(templatesDir, frameworkType);
+    const bundlerDir = path.resolve(templatesDir, bundlerType);
 
     const webpackPluginVersion = await latestVersion('@knot/webpack-plugin');
+    const rollupPluginVersion = await latestVersion('@knot/rollup-plugin');
+    const browserifyPluginVersion = await latestVersion(
+      '@knot/browserify-plugin'
+    );
 
     gulp
-      .src(`${sourceDir}/**`)
-      .pipe(filter(file => isHTTPS || file.basename !== 'certs'))
+      .src(
+        [
+          commonDir,
+          frameworkDir,
+          bundlerDir,
+          ...(isHTTPS ? [httpsDir] : [])
+        ].map(dir => `${dir}/**`)
+      )
       .pipe(
         rename(file => {
           if (file.basename.startsWith('_')) {
@@ -83,7 +109,13 @@ program
           {
             isHTTPS,
             projectName,
-            webpackPluginVersion
+            bundlerType,
+            frameworkType,
+            pluginVersions: {
+              browserify: browserifyPluginVersion,
+              webpack: webpackPluginVersion,
+              rollup: rollupPluginVersion
+            }
           },
           { interpolate: INTERPOLATION_PATTERN }
         )

@@ -27,7 +27,7 @@ To build a bundled version of the `knot` app:
 yarn build
 ```
 
-To run a local dev server at `https://localhost:1337`:
+To run a local dev server at `http<% if (isHTTPS) { %>s<% } %>://localhost:1337`:
 
 ```sh
 yarn start
