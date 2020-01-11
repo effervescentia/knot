@@ -1,0 +1,59 @@
+import Style from "@knot/style";
+import Greeting from ".components.Greeting";
+import Calculator from ".components.Calculator";
+import Toggle from ".components.Toggle";
+import Stylish from ".components.Stylish";
+
+style RouterStyle {
+  .list {
+    Style.listStyle: Style.str("none");
+    Style.display: Style.str("flex");
+  }
+  .listItem {
+    Style.padding: Style.px(8);
+  }
+  .link {
+    Style.textDecoration: Style.none;
+    Style.fontSize: Style.em(6 / 5);
+    Style.textTransform: Style.str("uppercase");
+    Style.fontFamily: Style.str("Helvetica, sans-serif");
+    Style.borderBottomStyle: Style.str("solid");
+    Style.borderBottomColor: Style.str("#edaded");
+    Style.borderBottomWidth: Style.px(4);
+  }
+}
+
+state RouteState {
+  active = "greeting";
+
+  mut setActive(value: string) -> $active = value;
+}
+
+main view Router ~ RouteState, RouterStyle -> {
+    let setActive = (value: string) -> () -> $setActive(value);
+    let element = $active == "greeting"
+      ? <Greeting name="World" />
+      : $active == "calculator"
+        ? <Calculator />
+        : $active == "toggle"
+          ? <Toggle />
+          : <Stylish />;
+
+  <div>
+    <ul(.list) id="route-list">
+      <li(.listItem)>
+        <a(.link) id="route--greeting" href="#greeting" onClick={setActive("greeting")}>{"hello world"}</a>
+      </li>
+      <li(.listItem)>
+        <a(.link) id="route--toggle" href="#toggle" onClick={setActive("toggle")}>{"toggle"}</a>
+      </li>
+      <li(.listItem)>
+        <a(.link) id="route--calculator" href="#calculator" onClick={setActive("calculator")}>{"calculator"}</a>
+      </li>
+      <li(.listItem)>
+        <a(.link) id="route--stylish" href="#stylish" onClick={setActive("stylish")}>{"stylish"}</a>
+      </li>
+    </ul>
+    <div id="router__content">{element}</div>
+  </div>
+}

@@ -3,16 +3,38 @@
 
   "properties": {
     "port": {
-      "type": ["number"]
+      "type": "number"
     },
     "debug": {
-      "type": ["boolean"]
+      "type": "boolean"
     },
     "config": {
-      "type": ["string"]
+      "type": "string"
     },
     "knot": {
-      "type": ["string"]
+      "type": "string"
+    },
+    "compiler": {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string"
+        }
+      }
+    },
+    "plugins": {
+      "type": "object",
+      "properties": {
+        "jsx": {
+          "type": "string"
+        },
+        "style": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        }
+      }
     }
   },
 

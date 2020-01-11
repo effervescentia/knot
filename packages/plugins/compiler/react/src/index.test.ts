@@ -34,7 +34,10 @@ test('render()', t => {
 });
 
 test('withState()', t => {
-  const Component = main.withState(() => null, () => null);
+  const Component = main.withState(
+    () => ({ get: () => null }),
+    () => null
+  ) as any;
   const instance = new Component({});
 
   t.true(instance instanceof React.Component);

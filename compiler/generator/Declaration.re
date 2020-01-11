@@ -24,11 +24,12 @@ let generate = (printer, core, name) =>
       Printf.sprintf(
         "function %s(%s){%s%s%s}%s",
         name,
-        update_handler,
+        state_factory,
         List.map(fst, params) |> Function.gen_params(Expression.generate),
         gen_terminated(
           ((name, (prop, _))) =>
-            State.gen_member(prop) |> Printf.sprintf("var $%s=%s", name),
+            State.gen_member(name, prop)
+            |> Printf.sprintf("var $%s=%s", name),
           props,
         ),
         gen_list(
@@ -36,7 +37,10 @@ let generate = (printer, core, name) =>
             Printf.sprintf("%s:$%s", Property.gen_key(name), name),
           props,
         )
-        |> Printf.sprintf("return {get:function(){return {%s};}};"),
+        |> Printf.sprintf(
+             "return {get:function(){return %s({%s});}};",
+             factory_constructor,
+           ),
         core.to_export_statement(name, None),
       )
 

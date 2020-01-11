@@ -1,8 +1,12 @@
-import KnotCompiler, { isKnot, Options, resolveLibrary } from '@knot/compiler';
+import KnotCompiler, {
+  isKnot,
+  OptionOverrides,
+  resolveLibrary
+} from '@knot/compiler';
 import nodeResolve from 'resolve';
 import { Plugin, ResolveIdResult } from 'rollup';
 
-function knotRollupPlugin(options: Partial<Options> = {}): Plugin {
+function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
   const compiler = new KnotCompiler(options);
 
   return {

@@ -1,3 +1,5 @@
+import { DeepPartial } from 'utility-types';
+
 export enum ServerStatus {
   IDLE = 'idle',
   COMPLETE = 'complete'
@@ -19,6 +21,8 @@ export interface Options {
     readonly module: 'es6' | 'common';
   };
 }
+
+export type OptionOverrides = DeepPartial<Options>;
 
 export interface Plugins {
   readonly jsx: string;

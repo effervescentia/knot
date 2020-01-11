@@ -1,12 +1,13 @@
 open Core;
 
-let gen_member =
+let gen_member = name =>
   fun
   | `Mutator(params, exprs) =>
     Printf.sprintf(
-      "function(){(function %s).apply(null, arguments);%s();}",
+      "%s(\"%s\", (function %s))",
+      mutator_factory,
+      name,
       Function.gen_body(Expression.generate, params, exprs),
-      update_handler,
     )
   | `Getter(params, exprs) =>
     Printf.sprintf(
@@ -15,6 +16,8 @@ let gen_member =
     )
   | `Property(type_def, default_val) =>
     switch (default_val) {
-    | Some((expr, _)) => Expression.generate(expr)
+    | Some((expr, _)) =>
+      Expression.generate(expr)
+      |> Printf.sprintf("%s(\"%s\", %s)", property_factory, name)
     | None => "undefined"
     };

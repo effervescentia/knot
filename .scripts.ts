@@ -45,6 +45,13 @@ export default {
             '@knot/webpack-react-example'
           )
         },
+        webpack_vue: {
+          description: 'run the "webpack + vue" example',
+          script: run(
+            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+            '@knot/webpack-vue-example'
+          )
+        },
         browserify_react: {
           default: {
             description: 'run the "browserify + react" example',

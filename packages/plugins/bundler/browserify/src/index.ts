@@ -1,4 +1,4 @@
-import KnotCompiler, { Options } from '@knot/compiler';
+import KnotCompiler, { OptionOverrides } from '@knot/compiler';
 import { BrowserifyObject } from 'browserify';
 
 import setupPipeline from './setup';
@@ -6,9 +6,9 @@ import transformFile from './transform';
 
 function browserifyKnot(
   browser: BrowserifyObject,
-  options: Partial<Options>
+  options: OptionOverrides = {}
 ): void {
-  const configuredOptions: Partial<Options> = {
+  const configuredOptions: OptionOverrides = {
     ...options,
     compiler: {
       ...options.compiler,

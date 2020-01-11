@@ -1,7 +1,7 @@
 {
-  "name": "@knot/react-plugin",
-  "description": "React plugin to translate jsx for the knot language.",
-  "version": "1.3.0",
+  "name": "@knot/vue-plugin",
+  "description": "Vue plugin to translate jsx for the knot language.",
+  "version": "1.0.0",
   "engines": {
     "node": ">=8.9"
   },
@@ -18,13 +18,10 @@
     "usage": "nps help"
   },
   "dependencies": {
-    "@knot/plugin-utils": "1.0.0",
-    "@types/react": "^16.8.7",
-    "@types/react-dom": "^16.8.2"
+    "@knot/plugin-utils": "1.0.0"
   },
   "peerDependencies": {
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "vue": "^2.6.11"
   },
   "files": [
     "build"
