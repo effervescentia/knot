@@ -1,3 +1,10 @@
+export interface PropsType {
+  className?: string;
+
+  // knot internal types
+  $$_state?: any;
+}
+
 export interface StateFactory<S extends object = {}> {
   prop<K extends keyof S>(name: K, property: S[K]): S[K];
 
@@ -12,7 +19,7 @@ export interface StateFactory<S extends object = {}> {
 export interface JSXPlugin<T, R> {
   createElement(
     element: string | T,
-    props?: object | null,
+    props?: PropsType | null,
     ...children: R[]
   ): R;
 

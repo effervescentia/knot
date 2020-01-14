@@ -2,57 +2,23 @@
 import { JSXPlugin, PluginError } from '@knot/plugin-utils';
 import Vue from 'vue';
 
+import createElement from './element';
 import StateFactory from './state';
-
-type ElementFactory = (
-  tagName: string,
-  props?: object,
-  children?: Vue.VNode[]
-) => Vue.VNode;
-
-type VueElement = (createElement: ElementFactory) => Vue.VNode;
-
-type VueComponent = (props: { $$_state?: any }) => VueElement;
+import { VueComponent, VueElement } from './types';
 
 const Plugin: JSXPlugin<string | VueComponent, VueElement> = {
-  createElement: (element, rawProps, ...children) => createElement => {
+  createElement: (element, rawProps, ...children) => factory => {
     const props = rawProps || {};
 
-    if (typeof element === 'function') {
-      return element(props)(createElement);
+    if (props.$$_state) {
+      console.log('state', props.$$_state);
     }
 
-    const attrs = Object.entries(props)
-      .filter(([, value]) => typeof value !== 'function')
-      .reduce((acc, [key, value]) => Object.assign(acc, { [key]: value }), {});
+    if (typeof element === 'function') {
+      return element(props)(factory);
+    }
 
-    const eventHandlers = Object.keys(props)
-      .filter(key => {
-        console.log('prop', key);
-        return key.startsWith('on') && typeof props[key] === 'function';
-      })
-      .reduce(
-        (acc, key) =>
-          Object.assign(acc, { [key.substr(2).toLowerCase()]: props[key] }),
-        {}
-      );
-
-    console.log(eventHandlers);
-
-    return createElement(
-      element,
-      {
-        attrs,
-        on: eventHandlers
-      },
-      children.map(child => {
-        if (typeof child === 'function') {
-          return child(createElement);
-        }
-
-        return child;
-      })
-    );
+    return createElement(factory, element, props, children);
   },
 
   createFragment: _ => {

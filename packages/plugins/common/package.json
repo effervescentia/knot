@@ -1,6 +1,6 @@
 {
-  "name": "@knot/vue-plugin",
-  "description": "Vue plugin to translate jsx for the knot language.",
+  "name": "@knot/common",
+  "description": "Common utilities and types for knot packages.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9"
@@ -16,13 +16,6 @@
     "test": "nps test",
     "cov": "nps cov",
     "usage": "nps help"
-  },
-  "dependencies": {
-    "@knot/common": "1.0.0",
-    "@knot/plugin-utils": "1.0.0"
-  },
-  "peerDependencies": {
-    "vue": "^2.6.11"
   },
   "files": [
     "build"
