@@ -709,10 +709,10 @@ let full_ast =
     ],
   );
 
-let with_export = (name, s) => s ++ Printf.sprintf("EXPORT %s;", name);
-let var_with_export = (name, s) =>
-  Printf.sprintf("var %s=%s;", name, s) |> with_export(name);
-let expand_arg = (index, name) =>
+let _with_export = (name, s) => s ++ Printf.sprintf("EXPORT %s;", name);
+let _var_with_export = (name, s) =>
+  Printf.sprintf("var %s=%s;", name, s) |> _with_export(name);
+let _expand_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s');",
     name,
@@ -720,7 +720,7 @@ let expand_arg = (index, name) =>
     index,
     name,
   );
-let expand_default_arg = (index, name) =>
+let _expand_default_arg = (index, name) =>
   Printf.sprintf(
     "var %s=%s.arg(arguments,%n,'%s',%s);",
     name,
@@ -730,26 +730,26 @@ let expand_default_arg = (index, name) =>
   );
 
 let full_generated =
-  var_with_export("numericConst", "8")
-  ++ var_with_export("additionConst", "(1+10)")
-  ++ var_with_export("subtractionConst", "(8-2)")
-  ++ var_with_export("multiplicationConst", "(2*3)")
-  ++ var_with_export("divisionConst", "(4/2)")
-  ++ var_with_export("stringConst", "'Hello, World!'")
-  ++ var_with_export("trueConst", "true")
-  ++ var_with_export("falseConst", "false")
-  ++ var_with_export("lessThanConst", "(7<9)")
-  ++ var_with_export("lessThanEqualConst", "(8<=2)")
-  ++ var_with_export("greaterThanConst", "(2>4)")
-  ++ var_with_export("greaterThanEqualConst", "(9>=1)")
-  ++ var_with_export("closureConst", "((3*2)+(1+((6/(2-5))*3)))")
-  ++ var_with_export("jsxConst", "$$knot_jsx$$.createElement('abc')")
-  ++ var_with_export(
+  _var_with_export("numericConst", "8")
+  ++ _var_with_export("additionConst", "(1+10)")
+  ++ _var_with_export("subtractionConst", "(8-2)")
+  ++ _var_with_export("multiplicationConst", "(2*3)")
+  ++ _var_with_export("divisionConst", "(4/2)")
+  ++ _var_with_export("stringConst", "'Hello, World!'")
+  ++ _var_with_export("trueConst", "true")
+  ++ _var_with_export("falseConst", "false")
+  ++ _var_with_export("lessThanConst", "(7<9)")
+  ++ _var_with_export("lessThanEqualConst", "(8<=2)")
+  ++ _var_with_export("greaterThanConst", "(2>4)")
+  ++ _var_with_export("greaterThanEqualConst", "(9>=1)")
+  ++ _var_with_export("closureConst", "((3*2)+(1+((6/(2-5))*3)))")
+  ++ _var_with_export("jsxConst", "$$knot_jsx$$.createElement('abc')")
+  ++ _var_with_export(
        "jsxWithPropsConst",
        "$$knot_jsx$$.createElement('def',{num:(8+9),bool:false,first:'look',under:'there'})",
      )
-  ++ var_with_export("punnedVariable", "'something'")
-  ++ var_with_export(
+  ++ _var_with_export("punnedVariable", "'something'")
+  ++ _var_with_export(
        "nestedJSXConst",
        "$$knot_jsx$$.createElement('parent',{justMade:'you say'},"
        ++ /**/
@@ -759,7 +759,7 @@ let full_generated =
        ++ /**/ "$$knot_jsx$$.createElement('sibling')"
        ++ ")",
      )
-  ++ var_with_export(
+  ++ _var_with_export(
        "nestedExprJSXConst",
        "$$knot_jsx$$.createElement('container',null,"
        ++ /**/ "(numericConst+20),"
@@ -767,29 +767,73 @@ let full_generated =
        ++ /**/ "(stringConst+'one')"
        ++ ")",
      )
-  ++ var_with_export(
+  ++ _var_with_export(
        "fragmentJSXConst",
        "$$knot_jsx$$.createFragment("
        ++ /**/ "$$knot_jsx$$.createElement('div'),"
        ++ /**/ "$$knot_jsx$$.createElement('span')"
        ++ ")",
      )
-  ++ with_export("compactFunc", "function compactFunc(){return 4;}")
-  ++ with_export(
+  ++ _with_export("compactFunc", "function compactFunc(){return 4;}")
+  ++ _with_export(
        "compactExprFunc",
        "function compactExprFunc(){return (numericConst+subtractionConst);}",
      )
-  ++ with_export(
+  ++ _with_export(
        "multiExprFunc",
        "function multiExprFunc(){"
        ++ /**/ "(divisionConst+multiplicationConst);"
        ++ /**/ "return stringConst;"
        ++ "}",
      )
-  ++ with_export(
+  ++ _with_export(
        "paramFunc",
        "function paramFunc(){"
-       ++ /**/ expand_arg(0, "a")
+       ++ /**/ _expand_arg(0, "a")
        ++ /**/ "return a;"
        ++ "}",
+     )
+  ++ _with_export(
+       "NoParamsState",
+       "function NoParamsState($_state_factory){"
+       ++ /**/ "return {"
+       ++ /*  */ "get:function(){"
+       ++ /*    */ "return $_state_factory.build({});"
+       ++ /*  */ "}"
+       ++ /**/ "};"
+       ++ "}",
+     )
+  ++ _with_export(
+       "DefaultParamState",
+       "function DefaultParamState($_state_factory){"
+       ++ /**/ "var z=$$knot_platform$$.arg(arguments,0,'z',30);"
+       ++ /**/ "return {"
+       ++ /*  */ "get:function(){"
+       ++ /*    */ "return $_state_factory.build({});"
+       ++ /*  */ "}"
+       ++ /**/ "};"
+       ++ "}",
+     )
+  ++ _with_export(
+       "ComplexState",
+       "function ComplexState($_state_factory){"
+       ++ /**/ "var $a=undefined;"
+       ++ /**/ "var $setA=$_state_factory.mut("
+       ++ /*  */ "\"setA\", "
+       ++ /*  */ "(function (){"
+       ++ /*    */ "var a1=$$knot_platform$$.arg(arguments,0,'a1');"
+       ++ /*    */ "$a=a1;"
+       ++ /*    */ "return;"
+       ++ /*  */ "})"
+       ++ /**/ ");"
+       ++ /**/ "return {"
+       ++ /*  */ "get:function(){"
+       ++ /*    */ "return $_state_factory.build({a:$a,setA:$setA});"
+       ++ /*  */ "}"
+       ++ /**/ "};"
+       ++ "}",
+     )
+  ++ _with_export(
+       "ClassStyle",
+       "function ClassStyle(){" ++ "return {['.root']:{}};" ++ "}",
      );
