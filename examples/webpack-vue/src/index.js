@@ -1,3 +1,3 @@
-const render = require('./vue').main;
+const render = require('./index.kn').main;
 
 render('app');

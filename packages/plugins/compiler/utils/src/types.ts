@@ -17,6 +17,8 @@ export interface StateFactory<S extends object = {}> {
 }
 
 export interface JSXPlugin<T, R> {
+  createComponent(name: string, component: (props: PropsType) => R): T;
+
   createElement(
     element: string | T,
     props?: PropsType | null,

@@ -1,4 +1,5 @@
 import JSX from "@knot/jsx";
-import Router from ".components.Router";
+// import Router from ".components.Router";
+import Greeting from ".components.Greeting";
 
-main func render(id: string) -> JSX.render(<Router />, id);
+main func render(id: string) -> JSX.render(<Greeting name="World" />, id);

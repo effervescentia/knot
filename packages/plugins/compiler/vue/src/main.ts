@@ -2,49 +2,69 @@
 import { JSXPlugin, PluginError } from '@knot/plugin-utils';
 import Vue from 'vue';
 
-import createElement from './element';
-import StateFactory from './state';
-import { VueComponent, VueElement } from './types';
+import createData from './data';
+// import StateFactory from './state';
+import { ElementFactory, VueComponent, VueElement } from './types';
 
-const Plugin: JSXPlugin<string | VueComponent, VueElement> = {
-  createElement: (element, rawProps, ...children) => factory => {
-    const props = rawProps || {};
+const wrapFactory = (factory: ElementFactory) => {
+  const render = (element: VueElement | string) => {
+    console.log('rendering', element);
 
-    if (props.$$_state) {
-      console.log('state', props.$$_state);
+    if (typeof element === 'string') {
+      return element;
     }
 
-    if (typeof element === 'function') {
-      return element(props)(factory);
+    const data = createData(element.props);
+    const children = element.children.map(render);
+
+    console.log('with data', data);
+
+    return factory(element.type, data, children);
+  };
+
+  return render;
+};
+
+const Plugin: JSXPlugin<VueComponent, VueElement> = {
+  createComponent: (_name, component) => ({
+    inheritAttrs: false,
+    render(factory) {
+      const element = component(this.$attrs);
+      const render = wrapFactory(factory);
+
+      return render(element);
     }
+  }),
 
-    return createElement(factory, element, props, children);
-  },
+  createElement: (element, props, ...children) => ({
+    type: element,
+    props: props || {},
+    children
+  }),
 
-  createFragment: _ => {
-    throw new PluginError('Vue.js does not support fragments');
+  createFragment: () => {
+    throw new PluginError('Vue.js does not yet support fragments');
   },
 
   render: (app, id) =>
     new Vue({
       el: `#${id}`,
-      render(createElement) {
-        return app(createElement);
+      render(factory) {
+        const render = wrapFactory(factory);
+
+        return render(app);
       }
     }),
 
-  withState: (createState, component: VueComponent) => {
-    const observable = Vue.observable({});
-    const state = createState(new StateFactory(observable));
+  withState: (createState, component) => {
+    // const observable = Vue.observable({});
+    // const state = createState(new StateFactory(observable));
 
-    return props => createElement =>
-      component({
-        ...props,
-        $$_state: {
-          ...props?.$$_state,
-          ...state.get()
-        }
-      })(createElement);
+    console.warn('withState', createState, component);
+
+    return {
+      ...component
+    };
   }
 };
 

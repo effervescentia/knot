@@ -5,6 +5,8 @@ import * as ReactDOM from 'react-dom';
 import StateFactory from './state';
 
 const Plugin: JSXPlugin<React.ComponentType, JSX.Element> = {
+  createComponent: (_name, component) => component as any,
+
   createElement: React.createElement,
 
   createFragment: (...children) =>

@@ -1,5 +1,8 @@
 open Core;
 
+let create_component =
+  Printf.sprintf("%s.createComponent('%s',%s)", jsx_plugin);
+
 let gen_mixin = name =>
   fun
   | State_t(_, props) =>
@@ -77,4 +80,5 @@ let generate = (name, mixins, props, exprs) =>
     List.map(fst, exprs) |> Function.gen_exprs(Expression.generate),
   )
   |> gen_with_hocs(mixins)
+  |> create_component(name)
   |> Printf.sprintf("var %s=%s;", name);

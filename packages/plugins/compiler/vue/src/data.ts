@@ -1,16 +1,18 @@
 import { filterKeys, groupEntries, mapKeys } from '@knot/common';
 import { PropsType } from '@knot/plugin-utils';
+import * as Vue from 'vue';
 
 const IGNORE_PROPS = ['className'];
 
 const GROUP_PREDICATES = {
-  attrs: ([, value]) => typeof value !== 'function',
+  props: ([, value]) => typeof value !== 'function',
   on: ([key, value]) => typeof value === 'function' && key.startsWith('on')
 };
 
-const createNodeData = (props: PropsType) => {
-  const staticClass = props.className;
-
+const createData = ({
+  className: staticClass,
+  ...props
+}: PropsType = {}): Vue.VNodeData => {
   const filteredProps = filterKeys(props, key => !IGNORE_PROPS.includes(key));
 
   const groupedProps = groupEntries(filteredProps, GROUP_PREDICATES);
@@ -22,9 +24,9 @@ const createNodeData = (props: PropsType) => {
 
   return {
     staticClass,
-    attrs: groupedProps.attrs,
+    attrs: groupedProps.props,
     on: eventHandlers
   };
 };
 
-export default createNodeData;
+export default createData;

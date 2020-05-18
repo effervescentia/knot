@@ -1,5 +1,6 @@
 import { getOptions } from 'loader-utils';
 
+import log from './logger';
 import { InternalOptions } from './types';
 
 export = function loader(): void {
@@ -10,6 +11,10 @@ export = function loader(): void {
   options.compilerInstance
     .awaitModule(path)
     .then(() => options.compilerInstance.generate(path))
-    .then(result => callback(null, result))
+    .then(result => {
+      log.error('%s: %s', path, result);
+
+      return callback(null, result);
+    })
     .catch(callback);
 };
