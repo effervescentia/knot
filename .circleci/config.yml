@@ -516,11 +516,12 @@ workflows:
             - install_node
       - test_react_plugin:
           requires:
+            - test_common
             - test_plugin_utils
       - test_vue_plugin:
           requires:
-            - test_plugin_utils
             - test_common
+            - test_plugin_utils
       - test_jss_plugin:
           requires:
             - install_node
