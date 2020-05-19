@@ -8,7 +8,7 @@ export interface PropsType {
 export interface StateFactory<S extends object = {}> {
   prop<K extends keyof S>(name: K, property: S[K]): S[K];
 
-  mut<K extends keyof S, T extends S[K] & ((value: any) => void)>(
+  mut<K extends keyof S, T extends S[K] & ((...args: any[]) => void)>(
     name: K,
     mutator: T
   ): T;

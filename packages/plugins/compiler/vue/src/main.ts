@@ -28,8 +28,7 @@ const Plugin: JSXPlugin<VueComponent, VueElement> = {
     render(factory) {
       const element = component({
         ...this.$attrs,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        $$_state: this.$options[STATE_KEY]?.get()
+        [STATE_KEY]: this.$options[STATE_KEY]?.get()
       });
       const render = wrapFactory(factory);
 
@@ -57,20 +56,13 @@ const Plugin: JSXPlugin<VueComponent, VueElement> = {
       }
     }),
 
-  withState: (createState, component) => {
-    return {
-      ...component,
-      data: () => ({
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        knot_id: Date.now()
-      }),
-      beforeCreate() {
-        const state = createState(new StateFactory(() => this.$forceUpdate()));
-
-        this.$options[STATE_KEY] = state;
-      }
-    };
-  }
+  withState: (createState, component) => ({
+    ...component,
+    beforeCreate() {
+      const state = createState(new StateFactory(() => this.$forceUpdate()));
+      this.$options[STATE_KEY] = state;
+    }
+  })
 };
 
 export default Plugin;

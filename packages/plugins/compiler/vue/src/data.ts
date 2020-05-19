@@ -5,7 +5,7 @@ import * as Vue from 'vue';
 const IGNORE_PROPS = ['className'];
 
 const GROUP_PREDICATES = {
-  props: ([, value]) => typeof value !== 'function',
+  attrs: ([, value]) => typeof value !== 'function',
   on: ([key, value]) => typeof value === 'function' && key.startsWith('on')
 };
 
@@ -21,7 +21,7 @@ const createData = (props: PropsType = {}): Vue.VNodeData => {
 
   return {
     staticClass: props.className,
-    attrs: groupedProps.props,
+    attrs: groupedProps.attrs,
     on: eventHandlers
   };
 };

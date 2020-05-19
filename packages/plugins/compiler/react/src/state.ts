@@ -12,19 +12,16 @@ class ReactStateFactory<S extends object> implements StateFactory<S> {
     return property;
   }
 
-  mut<K extends keyof S, T extends S[K] & ((value: any) => void)>(
+  mut<K extends keyof S, T extends S[K] & ((...args: any[]) => void)>(
     name: K,
     mutator: T
   ) {
-    const forceUpdate = this.forceUpdate;
-
     this.mutators.push(name);
 
-    return function() {
-      // eslint-disable-next-line prefer-spread, prefer-rest-params
-      mutator.apply(null, arguments);
-      forceUpdate();
-    } as any;
+    return ((...args) => {
+      mutator(...args);
+      this.forceUpdate();
+    }) as T;
   }
 
   build(state: S) {
