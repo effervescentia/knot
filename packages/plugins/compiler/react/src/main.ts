@@ -1,4 +1,4 @@
-import { JSXPlugin } from '@knot/plugin-utils';
+import { JSXPlugin, PropsType, STATE_MAP_KEY } from '@knot/plugin-utils';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
@@ -15,9 +15,7 @@ const Plugin: JSXPlugin<React.ComponentType, JSX.Element> = {
   render: (app, id) => ReactDOM.render(app, document.getElementById(id)),
 
   withState: (createState, component) => {
-    class State<T extends { readonly $$_state?: any }> extends React.Component<
-      T
-    > {
+    class State<P extends PropsType> extends React.Component<P> {
       public readonly _state = createState(
         new StateFactory(this.forceUpdate.bind(this))
       );
@@ -26,9 +24,8 @@ const Plugin: JSXPlugin<React.ComponentType, JSX.Element> = {
         return React.createElement(component, {
           ...this.props,
 
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          $$_state: {
-            ...this.props.$$_state,
+          [STATE_MAP_KEY]: {
+            ...this.props[STATE_MAP_KEY],
             ...this._state.get()
           }
         } as any);

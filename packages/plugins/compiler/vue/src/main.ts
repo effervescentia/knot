@@ -1,11 +1,9 @@
-import { JSXPlugin, PluginError } from '@knot/plugin-utils';
+import { JSXPlugin, PluginError, STATE_MAP_KEY } from '@knot/plugin-utils';
 import Vue from 'vue';
 
 import createData from './data';
 import StateFactory from './state';
 import { ElementFactory, VueComponent, VueElement } from './types';
-
-const STATE_KEY = '$$_state';
 
 const wrapFactory = (factory: ElementFactory) => {
   const render = (element: VueElement | string | number | undefined | null) => {
@@ -28,7 +26,7 @@ const Plugin: JSXPlugin<VueComponent, VueElement> = {
     render(factory) {
       const element = component({
         ...this.$attrs,
-        [STATE_KEY]: this.$options[STATE_KEY]?.get()
+        [STATE_MAP_KEY]: this.$options[STATE_MAP_KEY]?.get()
       });
       const render = wrapFactory(factory);
 
@@ -60,7 +58,7 @@ const Plugin: JSXPlugin<VueComponent, VueElement> = {
     ...component,
     beforeCreate() {
       const state = createState(new StateFactory(() => this.$forceUpdate()));
-      this.$options[STATE_KEY] = state;
+      this.$options[STATE_MAP_KEY] = state;
     }
   })
 };
