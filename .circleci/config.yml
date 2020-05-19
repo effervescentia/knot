@@ -351,7 +351,7 @@ jobs:
 
   test_webpack_react:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -370,7 +370,7 @@ jobs:
 
   test_browserify_react:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -392,7 +392,7 @@ jobs:
 
   test_rollup_react:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -414,7 +414,7 @@ jobs:
 
   test_webpack_vue:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
