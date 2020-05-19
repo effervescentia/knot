@@ -87,6 +87,8 @@ commands:
       to:
         type: string
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
           name: Restore from Workspace
           working_directory: ./packages
