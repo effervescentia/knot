@@ -297,6 +297,9 @@ jobs:
     steps:
       - checkout
       - restore:
+          from: common
+          to: plugins/common
+      - restore:
           from: plugin-utils
           to: plugins/compiler/utils
       - build_pkg:
@@ -308,11 +311,11 @@ jobs:
     steps:
       - checkout
       - restore:
-          from: plugin-utils
-          to: plugins/compiler/utils
-      - restore:
           from: common
           to: plugins/common
+      - restore:
+          from: plugin-utils
+          to: plugins/compiler/utils
       - build_pkg:
           pkg: vue-plugin
           path: packages/plugins/compiler/vue
@@ -430,7 +433,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: "11.0.0"
+      xcode: '11.0.0'
     steps:
       - checkout
       - restore_cache:
