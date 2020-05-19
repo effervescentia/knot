@@ -24,12 +24,12 @@ Inspired by [`react`](https://reactjs.org), [`redux`](https://redux.js.org), [`e
 - [Contributing](#contributing)
 - [License](#license)
 
-## Usage
+## ❓ Usage
 
 Documentation for the Knot Language can be found [on gitbook](https://knot.gitbook.io/language).
 Otherwise, check the `README` of the package for specific documentation.
 
-## Examples
+## 🎁 Examples
 
 This repository contains a number of example projects to help you get started quickly.
 
@@ -39,14 +39,14 @@ This repository contains a number of example projects to help you get started qu
 - [`@knot/rollup-react-example`](https://github.com/effervescentia/knot/tree/master/examples/rollup-react): An example using [`rollup`](https://rollupjs.org/) and [`react`](https://reactjs.org)
 - [`@knot/todomvc-example`](https://github.com/effervescentia/knot/tree/master/examples/todomvc): An example based on [TodoMVC](http://todomvc.com/)
 
-## Packages
+## 📦 Packages
 
 Plugins and tools for developing with `knot`.
 
 - [`@knot/cli`](http://npm.im/@knot/cli): A project generator for creating new `knot` projects
 - [`@knot/compiler`](http://npm.im/@knot/compiler): A module which downloads and wraps platform-specific version of the compiler
 
-### Build Tools
+### 🗜 Build Tools
 
 These packages are meant to integrate with existing tools and workflows.
 
@@ -54,7 +54,7 @@ These packages are meant to integrate with existing tools and workflows.
 - [`@knot/browserify-plugin`](http://npm.im/@knot/browserify-plugin): A [`browserify`](http://browserify.org/) plugin to support `knot` files
 - [`@knot/rollup-plugin`](http://npm.im/@knot/rollup-plugin): A [`rollup`](https://rollupjs.org/) plugin to support `knot` files
 
-### Runtime
+### ☢️ Runtime
 
 These packages are intended to be used by `knot` to provide runtime functionality.
 
@@ -77,7 +77,7 @@ Plugins to provide a JSX runtime.
 - [`@knot/react-plugin`](http://npm.im/@knot/react-plugin): A `jsx` runtime plugin for [`react`](https://reactjs.org)
 - [`@knot/vue-plugin`](http://npm.im/@knot/vue-plugin): A `jsx` runtime plugin for [`vue`](https://vuejs.org/)
 
-## Editors
+## 💾 Editors
 
 Integrate with the IDE of your choice.
 
