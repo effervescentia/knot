@@ -432,9 +432,53 @@ jobs:
       - store_cypress_artifacts:
           example: webpack-vue
 
+  test_browserify_vue:
+    docker:
+      - image: cypress/base:10
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_test_example:
+          bundler: browserify
+          framework: vue
+      - lerna_exec:
+          pkg: browserify-vue-example
+          command: yarn build
+      - lerna_exec:
+          pkg: browserify-vue-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: browserify-vue
+
+  test_rollup_vue:
+    docker:
+      - image: cypress/base:10
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_test_example:
+          bundler: rollup
+          framework: vue
+      - lerna_exec:
+          pkg: rollup-vue-example
+          command: yarn build
+      - lerna_exec:
+          pkg: rollup-vue-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: rollup-vue
+
   compile_macos:
     macos:
-      xcode: '11.0.0'
+      xcode: "11.0.0"
     steps:
       - checkout
       - restore_cache:
@@ -563,12 +607,28 @@ workflows:
             - test_vue_plugin
             - test_jss_plugin
             - test_webpack_plugin
+      - test_browserify_vue:
+          requires:
+            - test_compiler_binary
+            - test_browser_plugin
+            - test_vue_plugin
+            - test_jss_plugin
+            - test_browserify_plugin
+      - test_rollup_vue:
+          requires:
+            - test_compiler_binary
+            - test_browser_plugin
+            - test_vue_plugin
+            - test_jss_plugin
+            - test_rollup_plugin
       - compile_macos:
           requires:
             - test_webpack_react
             - test_browserify_react
             - test_rollup_react
             - test_webpack_vue
+            - test_browserify_vue
+            - test_rollup_vue
           filters:
             branches:
               only: master
@@ -578,6 +638,8 @@ workflows:
             - test_browserify_react
             - test_rollup_react
             - test_webpack_vue
+            - test_browserify_vue
+            - test_rollup_vue
           filters:
             branches:
               only: master
