@@ -192,7 +192,7 @@ commands:
           to: plugins/compiler/<< parameters.framework >>
       - restore_pkg:
           from: << parameters.bundler >>-plugin
-          to: plugins/compiler/<< parameters.bundler >>
+          to: plugins/bundler/<< parameters.bundler >>
   store_cypress_artifacts:
     description: store artifacts from cypress tests
     parameters:
