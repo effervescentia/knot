@@ -710,6 +710,14 @@ let full_ast =
   );
 
 let _with_export = (name, s) => s ++ Printf.sprintf("EXPORT %s;", name);
+let _component_with_export = (name, s) =>
+  Printf.sprintf(
+    "var %s=$$knot_jsx$$.createComponent('%s',%s);",
+    name,
+    name,
+    s,
+  )
+  |> _with_export(name);
 let _var_with_export = (name, s) =>
   Printf.sprintf("var %s=%s;", name, s) |> _with_export(name);
 let _expand_arg = (index, name) =>
@@ -831,6 +839,25 @@ let full_generated =
        ++ /*    */ "return $_state_factory.build({a:$a,setA:$setA});"
        ++ /*  */ "}"
        ++ /**/ "};"
+       ++ "}",
+     )
+  ++ _component_with_export(
+       "TypedParamView",
+       "function($_props){"
+       ++ /**/ "var a=$$knot_platform$$.prop($_props,'a');"
+       ++ "}",
+     )
+  ++ _component_with_export(
+       "DefaultParamView",
+       "function($_props){"
+       ++ /**/ "var a=$$knot_platform$$.prop($_props,'a',4);"
+       ++ "}",
+     )
+  ++ _component_with_export(
+       "MultiParamView",
+       "function($_props){"
+       ++ /**/ "var m=$$knot_platform$$.prop($_props,'m');"
+       ++ /**/ "var a=$$knot_platform$$.prop($_props,'a',2);"
        ++ "}",
      )
   ++ _with_export(

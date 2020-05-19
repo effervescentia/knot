@@ -61,9 +61,9 @@ state ComplexState {
 // view NoParamsView -> <abc></abc>;
 // view NoParamsView -> { }
 // view ParamView (m) -> { }
-// view TypedParamView (a: boolean) -> { }
-// view DefaultParamView (a = 4) -> { }
-// view MultiParamView (m: boolean, a: number = 2) -> { }
+view TypedParamView (a: boolean) -> { }
+view DefaultParamView (a = 4) -> { }
+view MultiParamView (m: boolean, a: number = 2) -> { }
 /*
 view InheritingView : SuperView -> {
   a + b;
@@ -82,3 +82,4 @@ style ClassStyle {
   .root {
   }
 }
+
