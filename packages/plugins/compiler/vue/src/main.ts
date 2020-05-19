@@ -1,23 +1,20 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { JSXPlugin, PluginError } from '@knot/plugin-utils';
 import Vue from 'vue';
 
 import createData from './data';
-// import StateFactory from './state';
+import StateFactory from './state';
 import { ElementFactory, VueComponent, VueElement } from './types';
 
-const wrapFactory = (factory: ElementFactory) => {
-  const render = (element: VueElement | string) => {
-    console.log('rendering', element);
+const STATE_KEY = '$$_state';
 
-    if (typeof element === 'string') {
+const wrapFactory = (factory: ElementFactory) => {
+  const render = (element: VueElement | string | number | undefined | null) => {
+    if (!element || typeof element !== 'object') {
       return element;
     }
 
     const data = createData(element.props);
     const children = element.children.map(render);
-
-    console.log('with data', data);
 
     return factory(element.type, data, children);
   };
@@ -29,7 +26,11 @@ const Plugin: JSXPlugin<VueComponent, VueElement> = {
   createComponent: (_name, component) => ({
     inheritAttrs: false,
     render(factory) {
-      const element = component(this.$attrs);
+      const element = component({
+        ...this.$attrs,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        $$_state: this.$options[STATE_KEY]?.get()
+      });
       const render = wrapFactory(factory);
 
       return render(element);
@@ -57,13 +58,17 @@ const Plugin: JSXPlugin<VueComponent, VueElement> = {
     }),
 
   withState: (createState, component) => {
-    // const observable = Vue.observable({});
-    // const state = createState(new StateFactory(observable));
-
-    console.warn('withState', createState, component);
-
     return {
-      ...component
+      ...component,
+      data: () => ({
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        knot_id: Date.now()
+      }),
+      beforeCreate() {
+        const state = createState(new StateFactory(() => this.$forceUpdate()));
+
+        this.$options[STATE_KEY] = state;
+      }
     };
   }
 };

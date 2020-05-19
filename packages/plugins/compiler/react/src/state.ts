@@ -16,15 +16,14 @@ class ReactStateFactory<S extends object> implements StateFactory<S> {
     name: K,
     mutator: T
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
+    const forceUpdate = this.forceUpdate;
 
     this.mutators.push(name);
 
     return function() {
       // eslint-disable-next-line prefer-spread, prefer-rest-params
       mutator.apply(null, arguments);
-      self.forceUpdate();
+      forceUpdate();
     } as any;
   }
 

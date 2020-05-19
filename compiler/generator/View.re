@@ -79,6 +79,6 @@ let generate = (name, mixins, props, exprs) =>
     List.map(fst, props) |> gen_props,
     List.map(fst, exprs) |> Function.gen_exprs(Expression.generate),
   )
-  |> gen_with_hocs(mixins)
   |> create_component(name)
+  |> gen_with_hocs(mixins)
   |> Printf.sprintf("var %s=%s;", name);

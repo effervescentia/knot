@@ -30,14 +30,14 @@ state RouteState {
 }
 
 main view Router ~ RouteState, RouterStyle -> {
-    let setActive = (value: string) -> () -> $setActive(value);
-    let element = $active == "greeting"
-      ? <Greeting name="World" />
-      : $active == "calculator"
-        ? <Calculator />
-        : $active == "toggle"
-          ? <Toggle />
-          : <Stylish />;
+  let setActive = (value: string) -> () -> $setActive(value);
+  let element = $active == "greeting"
+    ? <Greeting name="World" />
+    : $active == "calculator"
+      ? <Calculator />
+      : $active == "toggle"
+        ? <Toggle />
+        : <Stylish />;
 
   <div>
     <ul(.list) id="route-list">

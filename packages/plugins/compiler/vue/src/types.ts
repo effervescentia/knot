@@ -8,11 +8,9 @@ export type ElementFactory = (
 ) => Vue.VNode;
 
 export type VueComponent = {
-  render: (
-    this: Vue,
-    factory: ElementFactory,
-    context: Vue.RenderContext
-  ) => Vue.VNode;
+  render(this: Vue, factory: ElementFactory): Vue.VNode;
+  beforeCreate?(this: Vue): void;
+  inheritAttrs?: boolean;
 };
 
 export type VueElement = {
