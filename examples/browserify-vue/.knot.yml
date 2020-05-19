@@ -1,0 +1,6 @@
+name: knot-browserify-react-example
+
+files:
+  source: src
+  modules: node_modules
+  build: build

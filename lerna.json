@@ -2,6 +2,10 @@
   "version": "independent",
   "npmClient": "yarn",
   "command": {},
-  "packages": ["packages/*/*", "packages/*/*/*", "examples/*"],
+  "packages": [
+    "examples/*",
+    "packages/*/*",
+    "packages/*/*/*"
+  ],
   "useWorkspaces": true
 }

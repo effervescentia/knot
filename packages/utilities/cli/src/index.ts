@@ -30,7 +30,7 @@ const FRAMEWORK_BUNDLERS = {
     BundlerType.BROWSERIFY,
     BundlerType.ROLLUP
   ],
-  [FrameworkType.VUE]: [BundlerType.WEBPACK]
+  [FrameworkType.VUE]: [BundlerType.WEBPACK, BundlerType.ROLLUP]
 };
 
 program.version('1.0.0');
@@ -89,6 +89,8 @@ program
     const frameworkDir = path.resolve(templatesDir, frameworkType);
     const bundlerDir = path.resolve(templatesDir, bundlerType);
 
+    const reactPluginVersion = await latestVersion('@knot/react-plugin');
+    const vuePluginVersion = await latestVersion('@knot/vue-plugin');
     const webpackPluginVersion = await latestVersion('@knot/webpack-plugin');
     const rollupPluginVersion = await latestVersion('@knot/rollup-plugin');
     const browserifyPluginVersion = await latestVersion(
@@ -119,6 +121,8 @@ program
             bundlerType,
             frameworkType,
             pluginVersions: {
+              react: reactPluginVersion,
+              vue: vuePluginVersion,
               browserify: browserifyPluginVersion,
               webpack: webpackPluginVersion,
               rollup: rollupPluginVersion

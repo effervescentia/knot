@@ -1,6 +1,7 @@
 {
   "name": "@knot/cli",
   "description": "A command-line tool for simplifying the creation and maintainance of knot projects.",
+  "version": "1.4.0",
   "engines": {
     "node": ">=8.9"
   },

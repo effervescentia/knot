@@ -11,6 +11,58 @@ const run = (args: string, filter?: string) =>
 const pkgRun = (task: string) => run(`${PKG_FILTER} ${task}`);
 const exampleRun = (task: string) => run(`${EXAMPLE_FILTER} ${task}`);
 
+const webpackExample = (framework: string) => ({
+  description: `run the "webpack + ${framework}" example`,
+  script: run(
+    "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+    `@knot/webpack-${framework}-example`
+  )
+});
+
+const browserifyExample = (framework: string) => ({
+  default: {
+    description: `run the "browserify + ${framework}" example`,
+    script: series.nps(
+      `start.example.browserify_${framework}.build`,
+      `start.example.browserify_${framework}.serve`
+    )
+  },
+
+  build: {
+    description: `build the "browserify + ${framework}" example`,
+    script: run(
+      "build -- --knotc='esy x -P ../../compiler knotc.exe'",
+      `@knot/browserify-${framework}-example`
+    )
+  },
+  serve: {
+    description: `serve the "browserify + ${framework}" example`,
+    script: run('start', `@knot/browserify-${framework}-example`)
+  }
+});
+
+const rollupExample = (framework: string) => ({
+  default: {
+    description: `run the "rollup + ${framework}" example`,
+    script: series.nps(
+      `start.example.rollup_${framework}.build`,
+      `start.example.rollup_${framework}.serve`
+    )
+  },
+
+  build: {
+    description: `build the "rollup + ${framework}" example`,
+    script: run(
+      "build -- --configKnotc='esy x -P ../../compiler knotc.exe'",
+      `@knot/rollup-${framework}-example`
+    )
+  },
+  serve: {
+    description: `serve the "rollup + ${framework}" example`,
+    script: run('start', `@knot/rollup-${framework}-example`)
+  }
+});
+
 export default {
   options: DEFAULT_OPTIONS,
 
@@ -50,62 +102,12 @@ export default {
 
     start: {
       example: {
-        webpack_react: {
-          description: 'run the "webpack + react" example',
-          script: run(
-            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
-            '@knot/webpack-react-example'
-          )
-        },
-        webpack_vue: {
-          description: 'run the "webpack + vue" example',
-          script: run(
-            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
-            '@knot/webpack-vue-example'
-          )
-        },
-        browserify_react: {
-          default: {
-            description: 'run the "browserify + react" example',
-            script: series.nps(
-              'start.example.browserify_react.build',
-              'start.example.browserify_react.serve'
-            )
-          },
-
-          build: {
-            description: 'build the "browserify + react" example',
-            script: run(
-              "build -- --knotc='esy x -P ../../compiler knotc.exe'",
-              '@knot/browserify-react-example'
-            )
-          },
-          serve: {
-            description: 'serve the "browserify + react" example',
-            script: run('start', '@knot/browserify-react-example')
-          }
-        },
-        rollup_react: {
-          default: {
-            description: 'run the "rollup + react" example',
-            script: series.nps(
-              'start.example.rollup_react.build',
-              'start.example.rollup_react.serve'
-            )
-          },
-
-          build: {
-            description: 'build the "rollup + react" example',
-            script: run(
-              "build -- --configKnotc='esy x -P ../../compiler knotc.exe'",
-              '@knot/rollup-react-example'
-            )
-          },
-          serve: {
-            description: 'serve the "rollup + react" example',
-            script: run('start', '@knot/rollup-react-example')
-          }
-        },
+        webpack_react: webpackExample('react'),
+        webpack_vue: webpackExample('vue'),
+        browserify_react: browserifyExample('react'),
+        browserify_vue: browserifyExample('vue'),
+        rollup_react: rollupExample('react'),
+        rollup_vue: rollupExample('vue'),
         todo: {
           description: 'run the "todo" example',
           script: run(

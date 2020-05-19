@@ -10,9 +10,14 @@
   "dependencies": {
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
+  }<% } else if (frameworkType === 'vue') { %>,
+  "dependencies": {
+    "vue": "^2.6.11"
   }<% } %>,
   "devDependencies": {
-    "@knot/rollup-plugin": "#{pluginVersions.rollup}",
+    "@knot/rollup-plugin": "#{pluginVersions.rollup}",<% if (frameworkType === 'react') { %>
+    "@knot/react-plugin": "#{pluginVersions.react}",<% } else if (frameworkType === 'vue') { %>
+    "@knot/vue-plugin": "#{pluginVersions.vue}",<% } %>
     "@rollup/plugin-commonjs": "^11.0.0",
     "@rollup/plugin-node-resolve": "^6.0.0",
     "@types/rollup-plugin-node-globals": "^1.4.0",
