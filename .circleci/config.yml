@@ -172,8 +172,8 @@ commands:
           command: |
             mv /tmp/workspace/compiler binaries/compiler/build
             mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
-            mv /tmp/workspace/react-plugin plugins/compiler/react/build
             mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
+            mv /tmp/workspace/<< parameters.framework >>-plugin plugins/compiler/<< parameters.framework >>/build
             mv /tmp/workspace/<< parameters.bundler >>-plugin plugins/bundler/<< parameters.bundler >>/build
   store_cypress_artifacts:
     description: store artifacts from cypress tests
@@ -259,6 +259,14 @@ jobs:
       - build_pkg:
           pkg: react-plugin
           path: packages/plugins/compiler/react
+
+  test_vue_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: vue-plugin
+          path: packages/plugins/compiler/vue
 
   test_jss_plugin:
     executor: node/node
@@ -352,6 +360,25 @@ jobs:
       - store_cypress_artifacts:
           example: rollup-react
 
+  test_webpack_vue:
+    docker:
+      - image: cypress/base:8
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_test_example:
+          bundler: webpack
+          framework: vue
+      - lerna_exec:
+          pkg: webpack-vue-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: webpack-vue
+
   compile_macos:
     macos:
       xcode: "11.0.0"
@@ -432,6 +459,9 @@ workflows:
       - test_react_plugin:
           requires:
             - install_node
+      - test_vue_plugin:
+          requires:
+            - install_node
       - test_jss_plugin:
           requires:
             - install_node
@@ -465,11 +495,19 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_rollup_plugin
+      - test_webpack_vue:
+          requires:
+            - test_compiler_binary
+            - test_browser_plugin
+            - test_vue_plugin
+            - test_jss_plugin
+            - test_webpack_plugin
       - compile_macos:
           requires:
             - test_webpack_react
             - test_browserify_react
             - test_rollup_react
+            - test_webpack_vue
           filters:
             branches:
               only: master
@@ -478,6 +516,7 @@ workflows:
             - test_webpack_react
             - test_browserify_react
             - test_rollup_react
+            - test_webpack_vue
           filters:
             branches:
               only: master
