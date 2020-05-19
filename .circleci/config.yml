@@ -185,6 +185,9 @@ commands:
           from: jss-plugin
           to: plugins/compiler/jss
       - restore_pkg:
+          from: common
+          to: plugins/common
+      - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
       - restore_pkg:
