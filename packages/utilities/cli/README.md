@@ -11,6 +11,8 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
 
+> A command-line tool for simplifying the creation and maintainance of [`knot`](https://github.com/effervescentia/knot) projects.
+
 Created both as a new project generator, and eventual single-entrypoint for interacting with knot code and tooling.
 Additional commands will be introduced for improving the ease of maintaining a knot project through adding or modifying elements of the codebase.
 

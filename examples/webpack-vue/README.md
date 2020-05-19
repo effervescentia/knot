@@ -1,6 +1,11 @@
 # @knot/webpack-vue-example
 
-> A `knot` example project using `vue` and `webpack`.
+[![knot platform](https://img.shields.io/static/v1?label=platform&message=@knot/browser-plugin&color=blue&style=flat-square)](http://npm.im/@knot/browser-plugin)
+[![knot jsx](https://img.shields.io/static/v1?label=jsx&message=@knot/vue-plugin&color=28a745&style=flat-square)](http://npm.im/@knot/vue-plugin)
+[![knot style](https://img.shields.io/static/v1?label=style&message=@knot/jss-plugin&color=ff69b4&style=flat-square)](http://npm.im/@knot/jss-plugin)
+[![knot bundler](https://img.shields.io/static/v1?label=bundler&message=@knot/webpack-plugin&color=blueviolet&style=flat-square)](http://npm.im/@knot/webpack-plugin)
+
+> A [`knot`](https://github.com/effervescentia/knot) example project using [`vue`](https://vuejs.org/) and [`webpack`](https://webpack.js.org/).
 
 ## Table of Contents
 

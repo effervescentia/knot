@@ -1,6 +1,6 @@
 # @knot/todomvc-example
 
-> A knot example project based on [`TodoMVC`](http://todomvc.com/).
+> A [`knot`](https://github.com/effervescentia/knot) example project based on [`TodoMVC`](http://todomvc.com/).
 
 ## Table of Contents
 

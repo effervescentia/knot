@@ -9,7 +9,7 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
 
-> A styling plugin for the knot compiler.
+> A [`JSS`](https://cssinjs.org/) `style` plugin for the [`knot`](https://github.com/effervescentia/knot) compiler.
 
 This module is designed to be used by compiled knot code to handle styling.
 
