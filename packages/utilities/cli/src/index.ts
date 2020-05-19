@@ -19,8 +19,19 @@ enum BundlerType {
 }
 
 enum FrameworkType {
-  REACT = 'react'
+  REACT = 'react',
+  VUE = 'vue'
 }
+
+const FRAMEWORKS = [FrameworkType.REACT, FrameworkType.VUE];
+const FRAMEWORK_BUNDLERS = {
+  [FrameworkType.REACT]: [
+    BundlerType.WEBPACK,
+    BundlerType.BROWSERIFY,
+    BundlerType.ROLLUP
+  ],
+  [FrameworkType.VUE]: [BundlerType.WEBPACK]
+};
 
 program.version('1.0.0');
 
@@ -29,22 +40,18 @@ program
   .description('Setup a new knot project')
   .action(async (targetDir = '.') => {
     const { frameworkType } = await inquirer.prompt<{
-      readonly frameworkType: string;
+      readonly frameworkType: FrameworkType;
     }>({
-      choices: [FrameworkType.REACT],
+      choices: FRAMEWORKS,
       message: 'Which rendering library do you want to use?',
       name: 'frameworkType',
       type: 'list'
     });
 
     const { bundlerType } = await inquirer.prompt<{
-      readonly bundlerType: string;
+      readonly bundlerType: BundlerType;
     }>({
-      choices: [
-        BundlerType.WEBPACK,
-        BundlerType.BROWSERIFY,
-        BundlerType.ROLLUP
-      ],
+      choices: FRAMEWORK_BUNDLERS[frameworkType],
       message: 'Which bundler do you want to use?',
       name: 'bundlerType',
       type: 'list'

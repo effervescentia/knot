@@ -10,6 +10,9 @@
   "dependencies": {
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
+  }<% } else if (frameworkType === 'vue') { %>,
+  "dependencies": {
+    "vue": "^2.6.11"
   }<% } %>,
   "devDependencies": {
     "@knot/webpack-plugin": "#{pluginVersions.webpack}",
