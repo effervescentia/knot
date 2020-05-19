@@ -79,21 +79,18 @@ commands:
           root: /tmp/workspace
           paths:
             - << parameters.to >>
-  restore:
-    description: restore a persisted directory
+  restore_pkg:
+    description: restore a built package
     parameters:
       from:
         type: string
       to:
         type: string
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
       - run:
-          name: Restore from Workspace
-          working_directory: ./packages
+          name: Restore << parameters.from >> from Workspace
           command: |
-            mv /tmp/workspace/<< parameters.from >> << parameters.to >>/build
+            mv /tmp/workspace/<< parameters.from >> packages/<< parameters.to >>/build
   lerna_install:
     description: install dependencies for a particular package
     parameters:
@@ -181,22 +178,22 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
-      - restore:
+      - restore_pkg:
           from: compiler
           to: binaries/compiler
-      - restore:
+      - restore_pkg:
           from: browser-plugin
           to: plugins/compiler/browser
-      - restore:
+      - restore_pkg:
           from: jss-plugin
           to: plugins/compiler/jss
-      - restore:
+      - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
-      - restore:
+      - restore_pkg:
           from: << parameters.framework >>-plugin
           to: plugins/compiler/<< parameters.framework >>
-      - restore:
+      - restore_pkg:
           from: << parameters.bundler >>-plugin
           to: plugins/compiler/<< parameters.bundler >>
   store_cypress_artifacts:
@@ -296,10 +293,12 @@ jobs:
     executor: node/node
     steps:
       - checkout
-      - restore:
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
           from: common
           to: plugins/common
-      - restore:
+      - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
       - build_pkg:
@@ -310,10 +309,12 @@ jobs:
     executor: node/node
     steps:
       - checkout
-      - restore:
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
           from: common
           to: plugins/common
-      - restore:
+      - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
       - build_pkg:
