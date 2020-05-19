@@ -65,20 +65,33 @@ commands:
   persist:
     description: persist a directory to the workspace
     parameters:
-      to:
+      from:
         type: string
-      path:
+      to:
         type: string
     steps:
       - run:
           name: Populate Workspace
           command: |
             mkdir -p /tmp/workspace
-            cp -RL << parameters.path >> /tmp/workspace/<< parameters.to >>
+            cp -RL << parameters.from >> /tmp/workspace/<< parameters.to >>
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - << parameters.to >>
+  restore:
+    description: restore a persisted directory
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+    steps:
+      - run:
+          name: Restore from Workspace
+          working_directory: ./packages
+          command: |
+            mv /tmp/workspace/<< parameters.from >> << parameters.to >>/build
   lerna_install:
     description: install dependencies for a particular package
     parameters:
@@ -132,7 +145,7 @@ commands:
           pkg: << parameters.pkg >>
           command: yarn test
       - persist:
-          path: << parameters.path >>/build
+          from: << parameters.path >>/build
           to: << parameters.pkg >>
   test_bundler_plugin:
     description: run tests for bundle plugin package
@@ -166,15 +179,24 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
-      - run:
-          name: Restore Plugins
-          working_directory: ./packages
-          command: |
-            mv /tmp/workspace/compiler binaries/compiler/build
-            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
-            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
-            mv /tmp/workspace/<< parameters.framework >>-plugin plugins/compiler/<< parameters.framework >>/build
-            mv /tmp/workspace/<< parameters.bundler >>-plugin plugins/bundler/<< parameters.bundler >>/build
+      - restore:
+          from: compiler
+          to: binaries/compiler
+      - restore:
+          from: browser-plugin
+          to: plugins/compiler/browser
+      - restore:
+          from: jss-plugin
+          to: plugins/compiler/jss
+      - restore:
+          from: plugin-utils
+          to: plugins/compiler/utils
+      - restore:
+          from: << parameters.framework >>-plugin
+          to: plugins/compiler/<< parameters.framework >>
+      - restore:
+          from: << parameters.bundler >>-plugin
+          to: plugins/compiler/<< parameters.bundler >>
   store_cypress_artifacts:
     description: store artifacts from cypress tests
     parameters:
@@ -233,7 +255,7 @@ jobs:
           paths:
             - ~/project/compiler/_export
       - persist:
-          path: compiler/_esy/default/store/i/knot-*
+          from: compiler/_esy/default/store/i/knot-*
           to: knot
 
   test_compiler:
@@ -243,6 +265,22 @@ jobs:
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
+
+  test_common:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: common
+          path: packages/plugins/common
+
+  test_plugin_utils:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: plugin-utils
+          path: packages/plugins/compiler/utils
 
   test_browser_plugin:
     executor: node/node
@@ -256,6 +294,9 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - restore:
+          from: plugin-utils
+          to: plugins/compiler/utils
       - build_pkg:
           pkg: react-plugin
           path: packages/plugins/compiler/react
@@ -264,6 +305,12 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - restore:
+          from: plugin-utils
+          to: plugins/compiler/utils
+      - restore:
+          from: common
+          to: plugins/common
       - build_pkg:
           pkg: vue-plugin
           path: packages/plugins/compiler/vue
@@ -395,7 +442,7 @@ jobs:
           name: Build Compiler
           command: yarn x build.compiler
       - persist:
-          path: ./compiler/_release
+          from: ./compiler/_release
           to: compiler_macos
       - save_cache:
           <<: *macos_compiler_cache
@@ -420,7 +467,7 @@ jobs:
           name: Build Compiler
           command: yarn x build.compiler
       - persist:
-          path: ./compiler/_release
+          from: ./compiler/_release
           to: compiler_linux
 
   release:
@@ -453,15 +500,22 @@ workflows:
       - test_compiler:
           requires:
             - install_node
+      - test_common:
+          requires:
+            - install_node
+      - test_plugin_utils:
+          requires:
+            - install_node
       - test_browser_plugin:
           requires:
             - install_node
       - test_react_plugin:
           requires:
-            - install_node
+            - test_plugin_utils
       - test_vue_plugin:
           requires:
-            - install_node
+            - test_plugin_utils
+            - test_common
       - test_jss_plugin:
           requires:
             - install_node
