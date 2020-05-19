@@ -9,10 +9,7 @@ const GROUP_PREDICATES = {
   on: ([key, value]) => typeof value === 'function' && key.startsWith('on')
 };
 
-const createData = ({
-  className: staticClass,
-  ...props
-}: PropsType = {}): Vue.VNodeData => {
+const createData = (props: PropsType = {}): Vue.VNodeData => {
   const filteredProps = filterKeys(props, key => !IGNORE_PROPS.includes(key));
 
   const groupedProps = groupEntries(filteredProps, GROUP_PREDICATES);
@@ -23,7 +20,7 @@ const createData = ({
   );
 
   return {
-    staticClass,
+    staticClass: props.className,
     attrs: groupedProps.props,
     on: eventHandlers
   };

@@ -12,7 +12,9 @@ export = function loader(): void {
     .awaitModule(path)
     .then(() => options.compilerInstance.generate(path))
     .then(result => {
-      log.error('%s: %s', path, result);
+      if (options.debug) {
+        log.debug('%s: %s', path, result);
+      }
 
       return callback(null, result);
     })
