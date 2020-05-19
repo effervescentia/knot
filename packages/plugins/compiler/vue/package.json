@@ -1,6 +1,6 @@
 {
   "name": "@knot/vue-plugin",
-  "description": "Vue plugin to translate jsx for the knot language.",
+  "description": "A vue jsx plugin for the knot compiler.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9"

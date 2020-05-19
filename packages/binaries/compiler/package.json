@@ -1,5 +1,6 @@
 {
   "name": "@knot/compiler",
+  "description": "A command-line wrapper for the knot compiler",
   "version": "1.10.0",
   "engines": {
     "node": ">=8.9"

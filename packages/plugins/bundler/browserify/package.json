@@ -1,5 +1,6 @@
 {
   "name": "@knot/browserify-plugin",
+  "description": "A browserify plugin to automatically handle parsing and transforming knot code.",
   "version": "1.2.0",
   "engines": {
     "node": ">=8.9"

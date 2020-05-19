@@ -1,6 +1,6 @@
 {
   "name": "@knot/common",
-  "description": "Common utilities and types for knot packages.",
+  "description": "A library for constants, utilities and types common to all knot packages.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9"
