@@ -2,6 +2,106 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/compiler-v1.10.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.10.0), [`@knot/common-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/common-v1.0.0), [`@knot/cli-v1.4.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.4.0), [`@knot/browserify-plugin-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browserify-plugin-v1.2.0), [`@knot/rollup-plugin-v1.1.0`](https://github.com/effervescentia/knot/releases/tag/@knot/rollup-plugin-v1.1.0), [`@knot/webpack-plugin-v1.10.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.10.0), [`@knot/browser-plugin-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.3.0), [`@knot/jss-plugin-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/jss-plugin-v1.3.0), [`@knot/react-plugin-v1.4.0`](https://github.com/effervescentia/knot/releases/tag/@knot/react-plugin-v1.4.0), [`@knot/plugin-utils-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/plugin-utils-v1.0.0), [`@knot/vue-plugin-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/vue-plugin-v1.0.0) (2020-5-19)
+
+### `@knot/compiler`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/common`
+
+:rocket: **Initial Release** :rocket:
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/cli`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/browserify-plugin`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/browser-plugin` from `v1.2.2` -> `v1.3.0`
+- **automatic**: upgrade `@knot/compiler` from `v1.9.0` -> `v1.10.0`
+- **automatic**: upgrade `@knot/jss-plugin` from `v1.2.0` -> `v1.3.0`
+
+### `@knot/rollup-plugin`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/browser-plugin` from `v1.2.2` -> `v1.3.0`
+- **automatic**: upgrade `@knot/compiler` from `v1.9.0` -> `v1.10.0`
+- **automatic**: upgrade `@knot/jss-plugin` from `v1.2.0` -> `v1.3.0`
+
+### `@knot/webpack-plugin`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+#### :link: Dependency Updates
+
+- **automatic**: upgrade `@knot/browser-plugin` from `v1.2.2` -> `v1.3.0`
+- **automatic**: upgrade `@knot/compiler` from `v1.9.0` -> `v1.10.0`
+- **automatic**: upgrade `@knot/jss-plugin` from `v1.2.0` -> `v1.3.0`
+
+### `@knot/browser-plugin`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/jss-plugin`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/react-plugin`
+
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/plugin-utils`
+
+:rocket: **Initial Release** :rocket:
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
+### `@knot/vue-plugin`
+
+:rocket: **Initial Release** :rocket:
+
+#### :sparkles: New Features
+
+- **vue**: add support for Vue.js (#93) ([fce8a1d9](https://github.com/effervescentia/knot/commit/fce8a1d97ec82f0db6d99901a2e55173a33316ef))
+
 ## [`@knot/cli-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.3.0) (2020-1-6)
 
 ### `@knot/cli`

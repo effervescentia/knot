@@ -18,8 +18,8 @@
     "react-dom": "^16.7.0"
   },
   "devDependencies": {
-    "@knot/react-plugin": "1.3.0",
-    "@knot/rollup-plugin": "1.0.0",
+    "@knot/react-plugin": "1.4.0",
+    "@knot/rollup-plugin": "1.1.0",
     "@rollup/plugin-commonjs": "^11.0.0",
     "@rollup/plugin-node-resolve": "^6.0.0",
     "@types/rollup-plugin-node-globals": "^1.4.0",
