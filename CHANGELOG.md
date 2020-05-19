@@ -2,6 +2,15 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/cli-v1.5.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.5.0) (2020-5-19)
+
+### `@knot/cli`
+
+
+#### :sparkles: New Features
+
+- **template**: add vue templates and examples (#98) ([e22ec88e](https://github.com/effervescentia/knot/commit/e22ec88ec0c449058fac9b00984cafd130356a45))
+
 ## [`@knot/compiler-v1.10.0`](https://github.com/effervescentia/knot/releases/tag/@knot/compiler-v1.10.0), [`@knot/common-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/common-v1.0.0), [`@knot/cli-v1.4.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.4.0), [`@knot/browserify-plugin-v1.2.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browserify-plugin-v1.2.0), [`@knot/rollup-plugin-v1.1.0`](https://github.com/effervescentia/knot/releases/tag/@knot/rollup-plugin-v1.1.0), [`@knot/webpack-plugin-v1.10.0`](https://github.com/effervescentia/knot/releases/tag/@knot/webpack-plugin-v1.10.0), [`@knot/browser-plugin-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/browser-plugin-v1.3.0), [`@knot/jss-plugin-v1.3.0`](https://github.com/effervescentia/knot/releases/tag/@knot/jss-plugin-v1.3.0), [`@knot/react-plugin-v1.4.0`](https://github.com/effervescentia/knot/releases/tag/@knot/react-plugin-v1.4.0), [`@knot/plugin-utils-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/plugin-utils-v1.0.0), [`@knot/vue-plugin-v1.0.0`](https://github.com/effervescentia/knot/releases/tag/@knot/vue-plugin-v1.0.0) (2020-5-19)
 
 ### `@knot/compiler`
