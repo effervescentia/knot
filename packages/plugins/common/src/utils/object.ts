@@ -7,7 +7,10 @@ type GroupPredicateMap<T extends object> = Record<
   (entry: Entry<T>) => boolean
 >;
 
-const addEntry = <T extends object>(acc: T, [key, value]: Entry<T>): T => {
+export const addEntry = <T extends object>(
+  acc: T,
+  [key, value]: Entry<T>
+): T => {
   acc[key] = value;
 
   return acc;
