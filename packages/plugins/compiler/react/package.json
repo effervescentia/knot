@@ -18,6 +18,8 @@
     "usage": "nps help"
   },
   "dependencies": {
+    "@knot/common": "1.0.0",
+    "@knot/plugin-utils": "1.0.0",
     "@types/react": "^16.8.7",
     "@types/react-dom": "^16.8.2"
   },

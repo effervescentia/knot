@@ -7,17 +7,25 @@ type generator_core = {
   to_export_statement: (string, option(string)) => string,
 };
 
-let injected_variable = "$$knot_injected$$";
+let _local_prop = Printf.sprintf("$_%s");
+
+let globals_map = "$$knot_globals$$";
 let module_map = "$$knot_modules$$";
 let export_map = "$$knot_exports$$";
-let globals_map = "$$knot_globals$$";
+
+let injected_variable = "$$knot_injected$$";
 let class_map = "$$knot_classes$$";
-let props_map = "$$_props";
 let state_map = "$$_state";
-let update_handler = "$$_update";
+let props_map = _local_prop("props");
+let state_factory = _local_prop("state_factory");
+let mutator_factory = state_factory ++ ".mut";
+let property_factory = state_factory ++ ".prop";
+let factory_constructor = state_factory ++ ".build";
+
 let platform_plugin = "$$knot_platform$$";
 let jsx_plugin = "$$knot_jsx$$";
 let style_plugin = "$$knot_style$$";
+
 let main_export = "main";
 
 let gen_list = printer => Knot.Util.print_sequential(~separator=",", printer);

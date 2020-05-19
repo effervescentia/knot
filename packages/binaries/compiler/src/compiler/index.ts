@@ -1,7 +1,7 @@
 import execa from 'execa';
 
 import { KNOT_BINARY } from '../config';
-import { Options } from '../types';
+import { OptionOverrides, Options } from '../types';
 import wrapModule from '../wrapper';
 import { DEFAULT_OPTIONS } from './constants';
 import * as Tasks from './tasks';
@@ -37,7 +37,7 @@ class Compiler {
   public isReady = false;
   public isRunning = false;
 
-  constructor(options: Partial<Options>) {
+  constructor(options: OptionOverrides) {
     const mergedOptions: Options = {
       ...DEFAULT_OPTIONS,
       ...options,

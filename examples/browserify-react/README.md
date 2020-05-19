@@ -1,6 +1,11 @@
 # @knot/browserify-react-example
 
-> A `knot` example project using `react` and `browserify`.
+[![knot platform](https://img.shields.io/static/v1?label=platform&message=@knot/browser-plugin&color=blue&style=flat-square)](http://npm.im/@knot/browser-plugin)
+[![knot jsx](https://img.shields.io/static/v1?label=jsx&message=@knot/react-plugin&color=28a745&style=flat-square)](http://npm.im/@knot/react-plugin)
+[![knot style](https://img.shields.io/static/v1?label=style&message=@knot/jss-plugin&color=ff69b4&style=flat-square)](http://npm.im/@knot/jss-plugin)
+[![knot bundler](https://img.shields.io/static/v1?label=bundler&message=@knot/browserify-plugin&color=blueviolet&style=flat-square)](http://npm.im/@knot/browserify-plugin)
+
+> A [`knot`](https://github.com/effervescentia/knot) example project using [`react`](https://reactjs.org) and [`browserify`](http://browserify.org/).
 
 ## Table of Contents
 

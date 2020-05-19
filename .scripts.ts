@@ -33,6 +33,18 @@ export default {
       compiler: {
         description: 'build compiler',
         script: '(cd compiler && esy release)'
+      },
+      utils: {
+        description: 'build plugin utils',
+        script: run('build', '@knot/plugin-utils')
+      },
+      react: {
+        description: 'build react plugin',
+        script: run('build', '@knot/react-plugin')
+      },
+      vue: {
+        description: 'build vue plugin',
+        script: run('build', '@knot/vue-plugin')
       }
     },
 
@@ -43,6 +55,13 @@ export default {
           script: run(
             "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
             '@knot/webpack-react-example'
+          )
+        },
+        webpack_vue: {
+          description: 'run the "webpack + vue" example',
+          script: run(
+            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+            '@knot/webpack-vue-example'
           )
         },
         browserify_react: {

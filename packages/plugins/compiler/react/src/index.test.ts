@@ -1,3 +1,4 @@
+import { isMultisetEqual } from '@knot/common';
 import test, { ExecutionContext } from 'ava';
 import * as React from 'react';
 
@@ -6,16 +7,24 @@ import { main } from '.';
 function hasKeys<T extends object>(
   t: ExecutionContext,
   actual: T,
-  expected: ReadonlyArray<keyof T | string>
+  expected: (keyof T | string)[]
 ): void {
   const keys = Object.keys(actual);
 
-  keys.forEach(key => t.true(expected.includes(key as any)));
-  t.is(keys.length, expected.length);
+  t.true(
+    isMultisetEqual(keys, expected),
+    `${keys} did not contain the same members as ${expected}`
+  );
 }
 
 test('includes keys', t =>
-  hasKeys(t, main, ['createElement', 'createFragment', 'render', 'withState']));
+  hasKeys(t, main, [
+    'createComponent',
+    'createElement',
+    'createFragment',
+    'render',
+    'withState'
+  ]));
 
 test('createElement()', t => {
   t.is(main.createElement, React.createElement);
@@ -34,7 +43,10 @@ test('render()', t => {
 });
 
 test('withState()', t => {
-  const Component = main.withState(() => null, () => null);
+  const Component = main.withState(
+    () => ({ get: () => null }),
+    () => null
+  ) as any;
   const instance = new Component({});
 
   t.true(instance instanceof React.Component);

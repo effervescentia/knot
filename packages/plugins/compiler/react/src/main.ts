@@ -1,40 +1,39 @@
+import { JSXPlugin, PropsType, STATE_MAP_KEY } from '@knot/plugin-utils';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-export const createElement = React.createElement;
+import StateFactory from './state';
 
-export function createFragment(
-  ...children: Readonly<JSX.Element[]>
-): ReturnType<typeof React.createElement> {
-  return React.createElement(React.Fragment, null, ...children);
-}
+const Plugin: JSXPlugin<React.ComponentType, JSX.Element> = {
+  createComponent: (_name, component) => component as any,
 
-export function render(app: JSX.Element, id: string): void {
-  ReactDOM.render(app, document.getElementById(id));
-}
+  createElement: React.createElement,
 
-// @hidden
-export function withState(
-  createState: (update: () => void) => { readonly get: () => any },
-  component: React.ComponentType
-): React.ComponentClass {
-  class State<T extends { readonly $$_state?: any }> extends React.Component<
-    T
-  > {
-    public readonly _state = createState(this.forceUpdate.bind(this));
+  createFragment: (...children) =>
+    React.createElement(React.Fragment, null, ...children),
 
-    public render(): JSX.Element {
-      return createElement(component, {
-        ...this.props,
+  render: (app, id) => ReactDOM.render(app, document.getElementById(id)),
 
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        $$_state: {
-          ...this.props.$$_state,
-          ...this._state.get()
-        }
-      } as any);
+  withState: (createState, component) => {
+    class State<P extends PropsType> extends React.Component<P> {
+      public readonly _state = createState(
+        new StateFactory(this.forceUpdate.bind(this))
+      );
+
+      public render(): JSX.Element {
+        return React.createElement(component, {
+          ...this.props,
+
+          [STATE_MAP_KEY]: {
+            ...this.props[STATE_MAP_KEY],
+            ...this._state.get()
+          }
+        } as any);
+      }
     }
-  }
 
-  return State;
-}
+    return State;
+  }
+};
+
+export default Plugin;

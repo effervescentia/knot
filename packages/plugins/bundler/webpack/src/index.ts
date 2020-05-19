@@ -1,4 +1,4 @@
-import KnotCompiler, { Options } from '@knot/compiler';
+import KnotCompiler, { OptionOverrides } from '@knot/compiler';
 import * as path from 'path';
 import validateOptions from 'schema-utils';
 import * as Webpack from 'webpack';
@@ -11,7 +11,7 @@ import { createTerminator } from './utils';
 import WebpackCompiler = Webpack.Compiler;
 
 export default class KnotWebpackPlugin {
-  constructor(public options: Partial<Options>) {
+  constructor(public options: OptionOverrides = {}) {
     validateOptions(schema, options, KnotWebpackPlugin.name);
   }
 

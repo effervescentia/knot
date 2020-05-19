@@ -48,31 +48,22 @@ func multiExprFunc() -> {
 }
 func paramFunc(a: number) -> a;
 
-// state NoParamsState { }
-// state EmptyState () { }
-// state XrayCannon3 ($z: m) { }
-// state DefaultParamState (z = 30) { }
-// state XrayCannon5 (x: y, $z: m) { }
-// state XrayCannon6 (x: y = 4, $z: m) { }
-// state ComplexState {
-//   a: b;
-//   _c: d;
+state NoParamsState { }
+state DefaultParamState (z = 30) { }
+state ComplexState {
+  a: boolean;
 
-//   get e -> 4;
-//   get f() -> 5;
-//   get g(h: j, k = 2, l: m = 20) -> 5;
-//   get n() -> {
-//     3;
-//     A + m;
-//   }
-// }
+  mut setA(a1: boolean) -> {
+    $a = a1;
+  }
+}
 
 // view NoParamsView -> <abc></abc>;
 // view NoParamsView -> { }
 // view ParamView (m) -> { }
-// view TypedParamView (a: boolean) -> { }
-// view DefaultParamView (a = 4) -> { }
-// view MultiParamView (m: boolean, a: number = 2) -> { }
+view TypedParamView (a: boolean) -> { }
+view DefaultParamView (a = 4) -> { }
+view MultiParamView (m: boolean, a: number = 2) -> { }
 /*
 view InheritingView : SuperView -> {
   a + b;
@@ -87,15 +78,8 @@ view ComplexView () : SuperView ~ MyMixin, OtherMixin -> {
 }
 */
 
-// style ClassStyle {
-//   .root {
-//     fontSize: px(20);
-//     backgroundColor: red;
-//   }
-// }
-// style IdStyle {
-//   #login {
-//     visibility: hidden;
-//     display: flex;
-//   }
-// }
+style ClassStyle {
+  .root {
+  }
+}
+

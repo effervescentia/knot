@@ -11,7 +11,7 @@
 
 > A programming language, its compiler and supporting tooling.
 
-A functional language with touches of imperative sugar, designed to make building interfaces simple and portable.
+A functional language with touches of imperative sugar; designed to make building interfaces simple and portable.
 Inspired by [`react`](https://reactjs.org), [`redux`](https://redux.js.org), [`elm`](https://elm-lang.org) and many others.
 
 ## Table of Contents
@@ -24,38 +24,62 @@ Inspired by [`react`](https://reactjs.org), [`redux`](https://redux.js.org), [`e
 - [Contributing](#contributing)
 - [License](#license)
 
-## Usage
+## ❓ Usage
 
 Documentation for the Knot Language can be found [on gitbook](https://knot.gitbook.io/language).
 Otherwise, check the `README` of the package for specific documentation.
 
-## Examples
+## 🎁 Examples
 
 This repository contains a number of example projects to help you get started quickly.
 
-- [`@knot/webpack-react-example`](https://github.com/effervescentia/knot/tree/master/examples/webpack-react): An example using `webpack` and `react`
-- [`@knot/browserify-react-example`](https://github.com/effervescentia/knot/tree/master/examples/browserify-react): An example using `browserify` and `react`
-- [`@knot/rollup-react-example`](https://github.com/effervescentia/knot/tree/master/examples/rollup-react): An example using `rollup` and `react`
-- [`@knot/todomvc-example`](https://github.com/effervescentia/knot/tree/master/examples/todomvc): An example based on TodoMVC
+- [`@knot/webpack-react-example`](https://github.com/effervescentia/knot/tree/master/examples/webpack-react): An example using [`webpack`](https://webpack.js.org/) and [`react`](https://reactjs.org)
+- [`@knot/webpack-vue-example`](https://github.com/effervescentia/knot/tree/master/examples/webpack-vue): An example using [`webpack`](https://webpack.js.org/) and [`vue`](https://vuejs.org/)
+- [`@knot/browserify-react-example`](https://github.com/effervescentia/knot/tree/master/examples/browserify-react): An example using [`browserify`](http://browserify.org/) and [`react`](https://reactjs.org)
+- [`@knot/rollup-react-example`](https://github.com/effervescentia/knot/tree/master/examples/rollup-react): An example using [`rollup`](https://rollupjs.org/) and [`react`](https://reactjs.org)
+- [`@knot/todomvc-example`](https://github.com/effervescentia/knot/tree/master/examples/todomvc): An example based on [TodoMVC](http://todomvc.com/)
 
-## Packages
+## 📦 Packages
+
+Plugins and tools for developing with `knot`.
 
 - [`@knot/cli`](http://npm.im/@knot/cli): A project generator for creating new `knot` projects
-- [`@knot/compiler`](http://npm.im/@knot/compiler): A module which downloads a platform-specific version of the compiler
+- [`@knot/compiler`](http://npm.im/@knot/compiler): A module which downloads and wraps platform-specific version of the compiler
+
+### 🗜 Build Tools
 
 These packages are meant to integrate with existing tools and workflows.
 
-- [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): A `webpack` plugin to support `knot` files
-- [`@knot/browserify-plugin`](http://npm.im/@knot/browserify-plugin): A `browserify` plugin to support `knot` files
-- [`@knot/rollup-plugin`](http://npm.im/@knot/rollup-plugin): A `rollup` plugin to support `knot` files
+- [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): A [`webpack`](https://webpack.js.org/) plugin to support `knot` files
+- [`@knot/browserify-plugin`](http://npm.im/@knot/browserify-plugin): A [`browserify`](http://browserify.org/) plugin to support `knot` files
+- [`@knot/rollup-plugin`](http://npm.im/@knot/rollup-plugin): A [`rollup`](https://rollupjs.org/) plugin to support `knot` files
 
-These packages are intended to be used internally by `knot`.
+### ☢️ Runtime
 
-- [`@knot/jss-plugin`](http://npm.im/@knot/jss-plugin): A `style` plugin for `knot`
-- [`@knot/react-plugin`](http://npm.im/@knot/react-plugin): A `jsx` plugin for `knot`
-- [`@knot/browser-plugin`](http://npm.im/@knot/browser-plugin): A browser utility plugin for `knot`
+These packages are intended to be used by `knot` to provide runtime functionality.
 
-## Editors
+#### Platform
+
+Plugins to provide a platform runtime.
+
+- [`@knot/browser-plugin`](http://npm.im/@knot/browser-plugin): A `platform` runtime plugin for the web
+
+#### Style
+
+Plugins to provide a styling runtime.
+
+- [`@knot/jss-plugin`](http://npm.im/@knot/jss-plugin): A `style` runtime plugin for [`JSS`](https://cssinjs.org/)
+
+#### JSX
+
+Plugins to provide a JSX runtime.
+
+- [`@knot/react-plugin`](http://npm.im/@knot/react-plugin): A `jsx` runtime plugin for [`react`](https://reactjs.org)
+- [`@knot/vue-plugin`](http://npm.im/@knot/vue-plugin): A `jsx` runtime plugin for [`vue`](https://vuejs.org/)
+
+## 💾 Editors
+
+Integrate with the IDE of your choice.
 
 ### VS Code
 

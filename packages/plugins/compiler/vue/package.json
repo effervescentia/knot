@@ -1,0 +1,33 @@
+{
+  "name": "@knot/vue-plugin",
+  "description": "Vue plugin to translate jsx for the knot language.",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=8.9"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "main": "build/main/index.js",
+  "module": "build/module/index.js",
+  "typings": "build/main/index.d.ts",
+  "scripts": {
+    "x": "nps",
+    "build": "nps build",
+    "test": "nps test",
+    "cov": "nps cov",
+    "usage": "nps help"
+  },
+  "dependencies": {
+    "@knot/common": "1.0.0",
+    "@knot/plugin-utils": "1.0.0"
+  },
+  "peerDependencies": {
+    "vue": "^2.6.11"
+  },
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

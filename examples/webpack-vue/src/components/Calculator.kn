@@ -1,0 +1,129 @@
+import Style from "@knot/style";
+
+const px = Style.px;
+const em = Style.em;
+const display = Style.display;
+const paddingLeft = Style.paddingLeft;
+const paddingRight = Style.paddingRight;
+const paddingTop = Style.paddingTop;
+const paddingBottom = Style.paddingBottom;
+const width = Style.width;
+const height = Style.height;
+const fontSize = Style.fontSize;
+const color = Style.color;
+const alignItems = Style.alignItems;
+const justifyContent = Style.justifyContent;
+const flexDirection = Style.flexDirection;
+const hidden = Style.hidden;
+const overflowX = Style.overflowX;
+const backgroundColor = Style.backgroundColor;
+const borderColor = Style.borderColor;
+const margin = Style.margin;
+const flex = Style.flex;
+const flexWrap = Style.flexWrap;
+const textOverflow = Style.textOverflow;
+const textTransform = Style.textTransform;
+const fontFamily = Style.fontFamily;
+const slategrey = Style.slategrey;
+
+style CalculatorStyle {
+  .flex {
+    display: flex;
+  }
+  .root {
+    flexDirection: Style.str("column");
+    alignItems: Style.str("center");
+  }
+  .header {
+    width: Style.percent(100);
+  }
+  .headerLabel {
+    color: slategrey;
+    Style.marginRight: px(10);
+  }
+  .headerItem {
+    justifyContent: Style.str("space-between");
+    paddingLeft: px(16);
+    paddingRight: px(16);
+    flex: Style.num(1);
+    fontSize: em(2);
+    textTransform: Style.str("uppercase");
+    fontFamily: Style.str("Helvetica, sans-serif");
+    overflowX: hidden;
+  }
+  .value {
+    overflowX: hidden;
+    textOverflow: Style.str("ellipsis");
+  }
+  .section {
+    paddingTop: px(24);
+    paddingBottom: px(24);
+  }
+  .numbers {
+    width: px(250);
+    flexWrap: Style.str("wrap");
+    justifyContent: Style.str("center");
+  }
+  .button {
+    width: px(60);
+    height: px(60);
+    fontSize: em(3 / 2);
+    backgroundColor: Style.str("unset");
+    borderColor: slategrey;
+    margin: px(2);
+  }
+}
+
+state CalculatorState {
+  result = 0;
+  input = 0;
+
+  mut clear -> $input = 0;
+  mut setResult(result: number) -> {
+    $result = result;
+    $clear();
+  }
+  mut clearAll -> $setResult(0);
+  mut add -> $setResult($result + $input);
+  mut subtract -> $setResult($result - $input);
+  mut multiply -> $setResult($result * $input);
+  mut divide -> $setResult($result / $input);
+
+  mut append(value: number) -> $input = $input * 10 + value;
+}
+
+main view Calculator ~ CalculatorState, CalculatorStyle -> {
+  let append = (value: number) -> () -> $append(value);
+
+  <div(.root.flex) id="calculator">
+    <div(.header.section.flex)>
+      <div(.headerItem.flex)>
+        <span(.headerLabel)>{"sum: "}</span>
+        <span(.value) id="calculator__result">{$result}</span>
+      </div>
+      <div(.headerItem.flex)>
+        <span(.headerLabel)>{"input: "}</span>
+        <span(.value) id="calculator__input">{$input}</span>
+      </div>
+    </div>
+    <div(.section)>
+      <button(.button) id="button--add" id="button--add" onClick={$add}>{"+"}</button>
+      <button(.button) id="button--subtract" onClick={$subtract}>{"-"}</button>
+      <button(.button) id="button--multiply" onClick={$multiply}>{"×"}</button>
+      <button(.button) id="button--divide" onClick={$divide}>{"÷"}</button>
+      <button(.button) id="button--clear" onClick={$clearAll}>{"CLR"}</button>
+    </div>
+    <div(.numbers.section.flex)>
+      <button(.button) id="button--1" onClick={append(1)}>{1}</button>
+      <button(.button) id="button--2" onClick={append(2)}>{2}</button>
+      <button(.button) id="button--3" onClick={append(3)}>{3}</button>
+      <button(.button) id="button--4" onClick={append(4)}>{4}</button>
+      <button(.button) id="button--5" onClick={append(5)}>{5}</button>
+      <button(.button) id="button--6" onClick={append(6)}>{6}</button>
+      <button(.button) id="button--7" onClick={append(7)}>{7}</button>
+      <button(.button) id="button--8" onClick={append(8)}>{8}</button>
+      <button(.button) id="button--9" onClick={append(9)}>{9}</button>
+      <button(.button) id="button--0" onClick={append(0)}>{0}</button>
+    </div>
+  </div>
+}

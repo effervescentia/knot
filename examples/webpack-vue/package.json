@@ -1,0 +1,34 @@
+{
+  "name": "@knot/webpack-vue-example",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --watch --mode development",
+    "start": "webpack-dev-server --mode development",
+    "start:hidden": "npm run start -- --no-open",
+    "analyze": "npm run build -- --env.analyze",
+    "test": "npm run test:e2e",
+    "test:e2e": "start-server-and-test start:hidden http://localhost:1337 cypress:run",
+    "cypress": "cypress open",
+    "cypress:run": "cypress run"
+  },
+  "dependencies": {
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {
+    "@knot/vue-plugin": "1.0.0",
+    "@knot/webpack-plugin": "1.9.0",
+    "cypress": "^3.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "start-server-and-test": "^1.7.13",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.3",
+    "webpack": "^4.30.0",
+    "webpack-bundle-analyzer": "^3.3.2",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.3.1"
+  }
+}

@@ -9,7 +9,7 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
 
-> A `rollup` plugin to automatically handle parsing and transforming `knot` code.
+> A [`rollup`](https://rollupjs.org/) plugin to automatically handle parsing and transforming [`knot`](https://github.com/effervescentia/knot) code.
 
 Integrate `knot` into your existing `rollup` build easily using this plugin.
 

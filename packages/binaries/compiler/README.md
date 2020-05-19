@@ -9,18 +9,21 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
 
-> A command-line wrapper for knot's compiler, the node module only exports the path to the `knotc` binary.
+> A command-line wrapper for the [`knot`](https://github.com/effervescentia/knot) compiler.
 > The version of this package aligns with the version of the compiler binary that is downloaded.
+> Exports the path to the downloaded `knotc` binary.
 > Currently the compiler only supports Windows and MacOS.
 
 The Knot Language compiler can be run as both:
 
 - a stand-alone static compiler that scans a project directory structure and outputs
-- a serve which can dynamically re-compile modules within a project, but depends on a client to control it
+- a server which can dynamically re-compile modules within a project, but depends on a client to control it
 
-To get started using it in a project you will probably want to use one of the bundler plugins:
+To get started using it in a project you will probably want to use one of the provided bundler plugins:
 
-- [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): The official knot plugin for `webpack`
+- [`@knot/webpack-plugin`](http://npm.im/@knot/webpack-plugin): The official `knot` plugin for [`webpack`](https://webpack.js.org/)
+- [`@knot/rollup-plugin`](http://npm.im/@knot/rollup-plugin): The official `knot` plugin for [`rollup`](https://rollupjs.org/)
+- [`@knot/browserify-plugin`](http://npm.im/@knot/browserify-plugin): The official `knot` plugin for [`browserify`](http://browserify.org/)
 
 Or you can use the `knot` CLI tool ([`@knot/cli`](http://npm.im/@knot/cli)) to generate a new project with the minimum required boilerplate.
 

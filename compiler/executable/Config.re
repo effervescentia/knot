@@ -93,18 +93,22 @@ let set_from_args = cwd => {
 
   Arg.parse(
     [
-      ("-debug", Arg.Set(is_debug), "enable a higher level of logging"),
+      ("-debug", Arg.Set(is_debug), " Enable a higher level of logging"),
       (
         "-server",
         Arg.Set(is_server),
-        "run the compiler as a server for incremental or lazily-evaluated builds",
+        " Run the compiler as a server for incremental or lazily-evaluated builds",
       ),
       (
         "-config",
         Arg.Set_string(config_file),
-        "path to the directory containing your .knot.yml file",
+        " Path to the directory containing your .knot.yml file",
       ),
-      ("-port", Arg.Set_int(port), "the port to run on when in server mode"),
+      (
+        "-port",
+        Arg.Set_int(port),
+        " The port to run on when in server mode",
+      ),
       (
         "-compiler.module",
         Arg.Symbol(
@@ -118,7 +122,7 @@ let set_from_args = cwd => {
                 }
               ),
         ),
-        "the module type to generate (es6 or common)",
+        "  The module type to generate",
       ),
     ],
     x =>

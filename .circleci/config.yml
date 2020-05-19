@@ -65,20 +65,32 @@ commands:
   persist:
     description: persist a directory to the workspace
     parameters:
-      to:
+      from:
         type: string
-      path:
+      to:
         type: string
     steps:
       - run:
           name: Populate Workspace
           command: |
             mkdir -p /tmp/workspace
-            cp -RL << parameters.path >> /tmp/workspace/<< parameters.to >>
+            cp -RL << parameters.from >> /tmp/workspace/<< parameters.to >>
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
             - << parameters.to >>
+  restore_pkg:
+    description: restore a built package
+    parameters:
+      from:
+        type: string
+      to:
+        type: string
+    steps:
+      - run:
+          name: Restore << parameters.from >> from Workspace
+          command: |
+            mv /tmp/workspace/<< parameters.from >> packages/<< parameters.to >>/build
   lerna_install:
     description: install dependencies for a particular package
     parameters:
@@ -127,12 +139,9 @@ commands:
           pkg: << parameters.pkg >>
       - lerna_exec:
           pkg: << parameters.pkg >>
-          command: yarn build
-      - lerna_exec:
-          pkg: << parameters.pkg >>
           command: yarn test
       - persist:
-          path: << parameters.path >>/build
+          from: << parameters.path >>/build
           to: << parameters.pkg >>
   test_bundler_plugin:
     description: run tests for bundle plugin package
@@ -166,15 +175,27 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
-      - run:
-          name: Restore Plugins
-          working_directory: ./packages
-          command: |
-            mv /tmp/workspace/compiler binaries/compiler/build
-            mv /tmp/workspace/browser-plugin plugins/compiler/browser/build
-            mv /tmp/workspace/react-plugin plugins/compiler/react/build
-            mv /tmp/workspace/jss-plugin plugins/compiler/jss/build
-            mv /tmp/workspace/<< parameters.bundler >>-plugin plugins/bundler/<< parameters.bundler >>/build
+      - restore_pkg:
+          from: compiler
+          to: binaries/compiler
+      - restore_pkg:
+          from: browser-plugin
+          to: plugins/compiler/browser
+      - restore_pkg:
+          from: jss-plugin
+          to: plugins/compiler/jss
+      - restore_pkg:
+          from: common
+          to: plugins/common
+      - restore_pkg:
+          from: plugin-utils
+          to: plugins/compiler/utils
+      - restore_pkg:
+          from: << parameters.framework >>-plugin
+          to: plugins/compiler/<< parameters.framework >>
+      - restore_pkg:
+          from: << parameters.bundler >>-plugin
+          to: plugins/bundler/<< parameters.bundler >>
   store_cypress_artifacts:
     description: store artifacts from cypress tests
     parameters:
@@ -233,7 +254,7 @@ jobs:
           paths:
             - ~/project/compiler/_export
       - persist:
-          path: compiler/_esy/default/store/i/knot-*
+          from: compiler/_esy/default/store/i/knot-*
           to: knot
 
   test_compiler:
@@ -243,6 +264,22 @@ jobs:
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
+
+  test_common:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: common
+          path: packages/plugins/common
+
+  test_plugin_utils:
+    executor: node/node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: plugin-utils
+          path: packages/plugins/compiler/utils
 
   test_browser_plugin:
     executor: node/node
@@ -256,9 +293,33 @@ jobs:
     executor: node/node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
+      - restore_pkg:
+          from: plugin-utils
+          to: plugins/compiler/utils
       - build_pkg:
           pkg: react-plugin
           path: packages/plugins/compiler/react
+
+  test_vue_plugin:
+    executor: node/node
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
+      - restore_pkg:
+          from: plugin-utils
+          to: plugins/compiler/utils
+      - build_pkg:
+          pkg: vue-plugin
+          path: packages/plugins/compiler/vue
 
   test_jss_plugin:
     executor: node/node
@@ -291,7 +352,7 @@ jobs:
 
   test_webpack_react:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -310,7 +371,7 @@ jobs:
 
   test_browserify_react:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -332,7 +393,7 @@ jobs:
 
   test_rollup_react:
     docker:
-      - image: cypress/base:8
+      - image: cypress/base:10
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -352,9 +413,28 @@ jobs:
       - store_cypress_artifacts:
           example: rollup-react
 
+  test_webpack_vue:
+    docker:
+      - image: cypress/base:10
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    working_directory: ~/app
+    steps:
+      - checkout
+      - setup_test_example:
+          bundler: webpack
+          framework: vue
+      - lerna_exec:
+          pkg: webpack-vue-example
+          command: yarn test
+      - store_cypress_artifacts:
+          example: webpack-vue
+
   compile_macos:
     macos:
-      xcode: "11.0.0"
+      xcode: '11.0.0'
     steps:
       - checkout
       - restore_cache:
@@ -368,7 +448,7 @@ jobs:
           name: Build Compiler
           command: yarn x build.compiler
       - persist:
-          path: ./compiler/_release
+          from: ./compiler/_release
           to: compiler_macos
       - save_cache:
           <<: *macos_compiler_cache
@@ -393,7 +473,7 @@ jobs:
           name: Build Compiler
           command: yarn x build.compiler
       - persist:
-          path: ./compiler/_release
+          from: ./compiler/_release
           to: compiler_linux
 
   release:
@@ -426,12 +506,23 @@ workflows:
       - test_compiler:
           requires:
             - install_node
+      - test_common:
+          requires:
+            - install_node
+      - test_plugin_utils:
+          requires:
+            - install_node
       - test_browser_plugin:
           requires:
             - install_node
       - test_react_plugin:
           requires:
-            - install_node
+            - test_common
+            - test_plugin_utils
+      - test_vue_plugin:
+          requires:
+            - test_common
+            - test_plugin_utils
       - test_jss_plugin:
           requires:
             - install_node
@@ -465,11 +556,19 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_rollup_plugin
+      - test_webpack_vue:
+          requires:
+            - test_compiler_binary
+            - test_browser_plugin
+            - test_vue_plugin
+            - test_jss_plugin
+            - test_webpack_plugin
       - compile_macos:
           requires:
             - test_webpack_react
             - test_browserify_react
             - test_rollup_react
+            - test_webpack_vue
           filters:
             branches:
               only: master
@@ -478,6 +577,7 @@ workflows:
             - test_webpack_react
             - test_browserify_react
             - test_rollup_react
+            - test_webpack_vue
           filters:
             branches:
               only: master
