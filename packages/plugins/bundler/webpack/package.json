@@ -1,5 +1,6 @@
 {
   "name": "@knot/webpack-plugin",
+  "description": "A webpack plugin to automatically handle parsing and transforming knot code.",
   "version": "1.10.0",
   "engines": {
     "node": ">=8.9"

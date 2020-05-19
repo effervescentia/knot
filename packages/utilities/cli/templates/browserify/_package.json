@@ -10,9 +10,14 @@
   "dependencies": {
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
+  }<% } else if (frameworkType === 'vue') { %>,
+  "dependencies": {
+    "vue": "^2.6.11"
   }<% } %>,
   "devDependencies": {
-    "@knot/browserify-plugin": "#{pluginVersions.browserify}",
+    "@knot/browserify-plugin": "#{pluginVersions.browserify}",<% if (frameworkType === 'react') { %>
+    "@knot/react-plugin": "#{pluginVersions.react}",<% } else if (frameworkType === 'vue') { %>
+    "@knot/vue-plugin": "#{pluginVersions.vue}",<% } %>
     "browserify": "^16.5.0",
     "http-server": "^0.12.0",
     "ts-node": "^8.1.0",

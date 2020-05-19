@@ -1,5 +1,6 @@
 {
   "name": "@knot/browser-plugin",
+  "description": "A browser platform plugin for the knot compiler.",
   "version": "1.3.0",
   "engines": {
     "node": ">=8.9"

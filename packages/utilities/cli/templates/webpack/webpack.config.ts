@@ -21,7 +21,11 @@ export default {
     new HtmlPlugin({
       template: 'index.html'
     }),
-    new KnotPlugin({})
+    new KnotPlugin({
+      plugins: {
+        jsx: '@knot/#{frameworkType}-plugin'
+      }
+    })
   ],
 
   devServer: {

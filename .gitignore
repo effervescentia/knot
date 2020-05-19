@@ -2,6 +2,7 @@ node_modules
 build
 dist
 coverage
+package-lock.json
 .nyc_output
 *.log
 *.install

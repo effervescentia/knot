@@ -1,6 +1,6 @@
 {
   "name": "@knot/plugin-utils",
-  "description": "Utilities for knot compiler plugins.",
+  "description": "A utility library for creating plugins for the knot compiler.",
   "version": "1.0.0",
   "engines": {
     "node": ">=8.9"

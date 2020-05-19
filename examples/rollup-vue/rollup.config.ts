@@ -11,17 +11,15 @@ export default args => ({
   },
   plugins: [
     knotPlugin({
+      // WARNING: providing an override path for the knot compiler is not recommended
+      knot: args.configKnotc,
       plugins: {
-        jsx: '@knot/#{frameworkType}-plugin'
+        jsx: '@knot/vue-plugin'
       }
     }),
     resolve(),
-    commonjs({<% if (frameworkType === 'react') { %>
-      namedExports: {
-        react: ['createElement', 'Component', 'Fragment'],
-        'react-dom': ['render']
-      } <% } else if (frameworkType === 'vue') { %>
-      exclude: ['node_modules/symbol-observable/es/*.js']<% } %>
+    commonjs({
+      exclude: ['node_modules/symbol-observable/es/*.js']
     }),
     nodeGlobals()
   ]

@@ -1,6 +1,6 @@
 {
   "name": "@knot/jss-plugin",
-  "description": "JSS plugin to translate styles for the knot language.",
+  "description": "A JSS style plugin for the knot compiler.",
   "version": "1.3.0",
   "engines": {
     "node": ">=8.9"
