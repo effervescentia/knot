@@ -9,10 +9,13 @@ import { Context } from './types';
 import { createTerminator } from './utils';
 
 import WebpackCompiler = Webpack.Compiler;
+import { JSONSchema7 } from 'schema-utils/declarations/validate';
 
 export default class KnotWebpackPlugin {
   constructor(public options: OptionOverrides = {}) {
-    validateOptions(schema, options, KnotWebpackPlugin.name);
+    validateOptions(schema as JSONSchema7, options, {
+      name: KnotWebpackPlugin.name
+    });
   }
 
   public apply(compiler: WebpackCompiler): void {
