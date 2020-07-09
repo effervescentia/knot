@@ -19,7 +19,7 @@ export default {
   },
   lcov: {
     description: 'generate LCOV formatted coverage report',
-    script: `${nycReport('lcov')} > coverage/lcov.info`
+    script: `${nycReport('lcov')} > coverage.lcov`
   },
   check: {
     description: 'test report for 100% coverage',

@@ -3,47 +3,47 @@ coverage:
     project:
       default:
         target: auto
-      "@knot/compiler":
+      '@knot/compiler':
         target: auto
         flags:
           - compiler
-      "@knot/browserify":
+      '@knot/browserify':
         target: auto
         flags:
           - browserify-plugin
-      "@knot/rollup":
+      '@knot/rollup':
         target: auto
         flags:
           - rollup-pluging
-      "@knot/webpack":
+      '@knot/webpack':
         target: auto
         flags:
           - webpack-plugin
-      "@knot/common":
+      '@knot/common':
         target: auto
         flags:
           - common
-      "@knot/plugin-utils":
+      '@knot/plugin-utils':
         target: auto
         flags:
           - plugin-utils
-      "@knot/browser-plugin":
+      '@knot/browser-plugin':
         target: auto
         flags:
           - browser-plugin
-      "@knot/jss-plugin":
+      '@knot/jss-plugin':
         target: auto
         flags:
           - jss-plugin
-      "@knot/react-plugin":
+      '@knot/react-plugin':
         target: auto
         flags:
           - react-plugin
-      "@knot/vue-plugin":
+      '@knot/vue-plugin':
         target: auto
         flags:
           - vue-plugin
-      "@knot/cli":
+      '@knot/cli':
         target: auto
         flags:
           - cli
@@ -51,34 +51,34 @@ coverage:
 flags:
   compiler:
     paths:
-      - packages/binaries/compiler/coverage/lcov.info
+      - packages/binaries/compiler/coverage.lcov
   browserify-plugin:
     paths:
-      - packages/plugins/bundler/browserify/coverage/lcov.info
+      - packages/plugins/bundler/browserify/coverage.lcov
   rollup-plugin:
     paths:
-      - packages/plugins/bundler/rollup/coverage/lcov.info
+      - packages/plugins/bundler/rollup/coverage.lcov
   webpack-plugin:
     paths:
-      - packages/plugins/bundler/webpack/coverage/lcov.info
+      - packages/plugins/bundler/webpack/coverage.lcov
   common:
     paths:
-      - packages/plugins/common/coverage/lcov.info
+      - packages/plugins/common/coverage.lcov
   plugin-utils:
     paths:
-      - packages/plugins/compiler/utils/coverage/lcov.info
+      - packages/plugins/compiler/utils/coverage.lcov
   browser-plugin:
     paths:
-      - packages/plugins/compiler/browser/coverage/lcov.info
+      - packages/plugins/compiler/browser/coverage.lcov
   jss-plugin:
     paths:
-      - packages/plugins/compiler/jss/coverage/lcov.info
+      - packages/plugins/compiler/jss/coverage.lcov
   react-plugin:
     paths:
-      - packages/plugins/compiler/react/coverage/lcov.info
+      - packages/plugins/compiler/react/coverage.lcov
   vue-plugin:
     paths:
-      - packages/plugins/compiler/vue/coverage/lcov.info
+      - packages/plugins/compiler/vue/coverage.lcov
   cli:
     paths:
-      - packages/utilities/cli/coverage/lcov.info
+      - packages/utilities/cli/coverage.lcov
