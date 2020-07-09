@@ -151,7 +151,7 @@ commands:
           pkg: << parameters.pkg >>
           command: |
             yarn x test.ci
-            yarn x cov.send -F << parameters.pkg>>
+            yarn x cov.send -- -F << parameters.pkg>>
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
@@ -484,7 +484,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: "11.0.0"
+      xcode: '11.0.0'
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
