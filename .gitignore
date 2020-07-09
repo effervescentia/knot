@@ -9,3 +9,5 @@ package-lock.json
 *.cache
 .DS_Store
 _esy
+lcov.info
+coverage.lcov
