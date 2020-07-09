@@ -1,0 +1,84 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+      "@knot/compiler":
+        target: auto
+        flags:
+          - compiler
+      "@knot/browserify":
+        target: auto
+        flags:
+          - browserify-plugin
+      "@knot/rollup":
+        target: auto
+        flags:
+          - rollup-pluging
+      "@knot/webpack":
+        target: auto
+        flags:
+          - webpack-plugin
+      "@knot/common":
+        target: auto
+        flags:
+          - common
+      "@knot/plugin-utils":
+        target: auto
+        flags:
+          - plugin-utils
+      "@knot/browser-plugin":
+        target: auto
+        flags:
+          - browser-plugin
+      "@knot/jss-plugin":
+        target: auto
+        flags:
+          - jss-plugin
+      "@knot/react-plugin":
+        target: auto
+        flags:
+          - react-plugin
+      "@knot/vue-plugin":
+        target: auto
+        flags:
+          - vue-plugin
+      "@knot/cli":
+        target: auto
+        flags:
+          - cli
+
+flags:
+  compiler:
+    paths:
+      - packages/binaries/compiler/coverage/lcov.info
+  browserify-plugin:
+    paths:
+      - packages/plugins/bundler/browserify/coverage/lcov.info
+  rollup-plugin:
+    paths:
+      - packages/plugins/bundler/rollup/coverage/lcov.info
+  webpack-plugin:
+    paths:
+      - packages/plugins/bundler/webpack/coverage/lcov.info
+  common:
+    paths:
+      - packages/plugins/common/coverage/lcov.info
+  plugin-utils:
+    paths:
+      - packages/plugins/compiler/utils/coverage/lcov.info
+  browser-plugin:
+    paths:
+      - packages/plugins/compiler/browser/coverage/lcov.info
+  jss-plugin:
+    paths:
+      - packages/plugins/compiler/jss/coverage/lcov.info
+  react-plugin:
+    paths:
+      - packages/plugins/compiler/react/coverage/lcov.info
+  vue-plugin:
+    paths:
+      - packages/plugins/compiler/vue/coverage/lcov.info
+  cli:
+    paths:
+      - packages/utilities/cli/coverage/lcov.info
