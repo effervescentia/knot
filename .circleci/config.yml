@@ -151,7 +151,7 @@ commands:
           pkg: << parameters.pkg >>
           command: |
             yarn x test.ci
-            yarn x cov.send -- -F << parameters.pkg>>
+            yarn exec 'codecov -F << parameters.pkg>>'
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
