@@ -30,6 +30,7 @@
     "lib": [
       "es2017"
     ],
+    "rootDir": ".",
     "baseUrl": "./packages",
     "paths": {
       "@knot/compiler": [
@@ -67,5 +68,8 @@
       ]
     }
   },
-  "compileOnSave": false
+  "compileOnSave": false,
+  "exclude": [
+    "node_modules/**"
+  ]
 }

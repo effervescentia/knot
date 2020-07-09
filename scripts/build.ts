@@ -12,7 +12,7 @@ export function configureBuild(buildModule?: boolean): object {
     },
     main: {
       description: 'generate an es5 compatible node.js module',
-      script: 'tsc -p tsconfig.json'
+      script: 'tsc -p tsconfig.main.json'
     },
     module: {
       description: 'generate an esnext module',
