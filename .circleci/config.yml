@@ -33,6 +33,16 @@ defaults:
 orbs:
   node: circleci/node@0.0.6
 
+executors:
+  node-cypress:
+    docker:
+      - image: cypress/base:10
+        environment:
+          ## this enables colors in the output
+          TERM: xterm
+          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+          NODE_OPTIONS: --max_old_space_size=4096
+
 commands:
   restore_linux_node_cache:
     description: restore linux node cache
@@ -210,6 +220,8 @@ commands:
 jobs:
   install_node:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_node_cache
@@ -225,6 +237,8 @@ jobs:
 
   test_compiler_binary:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -259,6 +273,8 @@ jobs:
 
   test_compiler:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -267,6 +283,8 @@ jobs:
 
   test_common:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -275,6 +293,8 @@ jobs:
 
   test_plugin_utils:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -283,6 +303,8 @@ jobs:
 
   test_browser_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -291,6 +313,8 @@ jobs:
 
   test_react_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - attach_workspace:
@@ -307,6 +331,8 @@ jobs:
 
   test_vue_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - attach_workspace:
@@ -323,6 +349,8 @@ jobs:
 
   test_jss_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -331,6 +359,8 @@ jobs:
 
   test_webpack_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - test_bundler_plugin:
@@ -338,6 +368,8 @@ jobs:
 
   test_browserify_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - test_bundler_plugin:
@@ -345,18 +377,15 @@ jobs:
 
   test_rollup_plugin:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - test_bundler_plugin:
           bundler: rollup
 
   test_webpack_react:
-    docker:
-      - image: cypress/base:10
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    executor: node-cypress
     working_directory: ~/app
     steps:
       - checkout
@@ -370,12 +399,7 @@ jobs:
           example: webpack-react
 
   test_browserify_react:
-    docker:
-      - image: cypress/base:10
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    executor: node-cypress
     working_directory: ~/app
     steps:
       - checkout
@@ -392,12 +416,7 @@ jobs:
           example: browserify-react
 
   test_rollup_react:
-    docker:
-      - image: cypress/base:10
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    executor: node-cypress
     working_directory: ~/app
     steps:
       - checkout
@@ -414,12 +433,7 @@ jobs:
           example: rollup-react
 
   test_webpack_vue:
-    docker:
-      - image: cypress/base:10
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    executor: node-cypress
     working_directory: ~/app
     steps:
       - checkout
@@ -433,12 +447,7 @@ jobs:
           example: webpack-vue
 
   test_browserify_vue:
-    docker:
-      - image: cypress/base:10
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    executor: node-cypress
     working_directory: ~/app
     steps:
       - checkout
@@ -455,12 +464,7 @@ jobs:
           example: browserify-vue
 
   test_rollup_vue:
-    docker:
-      - image: cypress/base:10
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+    executor: node-cypress
     working_directory: ~/app
     steps:
       - checkout
@@ -479,6 +483,8 @@ jobs:
   compile_macos:
     macos:
       xcode: "11.0.0"
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_cache:
@@ -505,6 +511,8 @@ jobs:
 
   compile_linux:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -522,6 +530,8 @@ jobs:
 
   release:
     executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_node_cache

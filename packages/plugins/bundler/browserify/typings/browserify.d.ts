@@ -1,4 +1,5 @@
-import { BrowserifyObject } from 'browserify';
+import 'browserify';
+
 import { ModuleDepsObject } from 'module-deps';
 
 declare module 'browserify' {

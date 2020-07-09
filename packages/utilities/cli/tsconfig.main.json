@@ -1,8 +1,7 @@
 {
-  "extends": "../../../../tsconfig.module.json",
+  "extends": "../../../tsconfig.main.json",
   "compilerOptions": {
-    "target": "es5",
-    "outDir": "build/module",
+    "outDir": "build/main",
     "rootDir": "src",
     "lib": [
       "es2017",
@@ -10,7 +9,8 @@
     ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "typings/**/*.d.ts"
   ],
   "exclude": [
     "node_modules/**"
