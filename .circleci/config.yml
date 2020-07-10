@@ -243,6 +243,24 @@ jobs:
           <<: *linux_node_cache
           paths:
             - ~/.cache/yarn
+            - node_modules
+            - packages/utilities/cli/node_modules
+            - packages/binaries/compiler/node_modules
+            - packages/plugins/bundler/webpack/node_modules
+            - packages/plugins/bundler/rollup/node_modules
+            - packages/plugins/bundler/browserify/node_modules
+            - packages/plugins/common/node_modules
+            - packages/plugins/compiler/browser/node_modules
+            - packages/plugins/compiler/jss/node_modules
+            - packages/plugins/compiler/react/node_modules
+            - packages/plugins/compiler/utils/node_modules
+            - packages/plugins/compiler/vue/node_modules
+            - packages/examples/browserify-react/node_modules
+            - packages/examples/browserify-vue/node_modules
+            - packages/examples/rollup-react/node_modules
+            - packages/examples/rollup-vue/node_modules
+            - packages/examples/webpack-react/node_modules
+            - packages/examples/webpack-vue/node_modules
 
   test_compiler_binary:
     executor: node/node
