@@ -12,7 +12,7 @@
   },
   "scripts": {
     "x": "nps",
-    "start": "node build/main/index.js",
+    "start": "node index.js",
     "build": "nps build",
     "test": "nps test",
     "cov": "nps cov",
@@ -39,5 +39,8 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "execa": "^4.0.3"
   }
 }

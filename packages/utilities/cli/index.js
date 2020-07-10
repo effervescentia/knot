@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require('./build/main');
+require('./build/main/src');
