@@ -154,10 +154,9 @@ commands:
           desc: Run Tests
           pkg: << parameters.pkg >>
           command: yarn x test.ci
-      - lerna_exec:
-          desc: Upload Coverage
-          pkg: << parameters.pkg >>
-          command: yarn x cov.send -- -F << parameters.pkg >>
+      - run:
+          name: Upload Coverage
+          command: bash <(curl -s https://codecov.io/bash) -F << parameters.pkg >>
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
@@ -245,8 +244,9 @@ jobs:
 
   test_compiler_binary:
     executor: node/node
+    resource_class: large
     environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+      NODE_OPTIONS: --max_old_space_size=8192
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -491,8 +491,9 @@ jobs:
   compile_macos:
     macos:
       xcode: '11.0.0'
+    resource_class: large
     environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+      NODE_OPTIONS: --max_old_space_size=8192
     steps:
       - checkout
       - restore_cache:
@@ -519,8 +520,9 @@ jobs:
 
   compile_linux:
     executor: node/node
+    resource_class: large
     environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+      NODE_OPTIONS: --max_old_space_size=8192
     steps:
       - checkout
       - restore_linux_compiler_cache

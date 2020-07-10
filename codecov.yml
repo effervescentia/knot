@@ -14,7 +14,7 @@ coverage:
       rollup:
         target: auto
         flags:
-          - rollup-pluging
+          - rollup-plugin
       webpack:
         target: auto
         flags:
