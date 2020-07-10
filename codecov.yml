@@ -51,34 +51,34 @@ coverage:
 flags:
   compiler:
     paths:
-      - packages/binaries/compiler/coverage.lcov
+      - packages/binaries/compiler/coverage/lcov.info
   browserify-plugin:
     paths:
-      - packages/plugins/bundler/browserify/coverage.lcov
+      - packages/plugins/bundler/browserify/coverage/lcov.info
   rollup-plugin:
     paths:
-      - packages/plugins/bundler/rollup/coverage.lcov
+      - packages/plugins/bundler/rollup/coverage/lcov.info
   webpack-plugin:
     paths:
-      - packages/plugins/bundler/webpack/coverage.lcov
+      - packages/plugins/bundler/webpack/coverage/lcov.info
   common:
     paths:
-      - packages/plugins/common/coverage.lcov
+      - packages/plugins/common/coverage/lcov.info
   plugin-utils:
     paths:
-      - packages/plugins/compiler/utils/coverage.lcov
+      - packages/plugins/compiler/utils/coverage/lcov.info
   browser-plugin:
     paths:
-      - packages/plugins/compiler/browser/coverage.lcov
+      - packages/plugins/compiler/browser/coverage/lcov.info
   jss-plugin:
     paths:
-      - packages/plugins/compiler/jss/coverage.lcov
+      - packages/plugins/compiler/jss/coverage/lcov.info
   react-plugin:
     paths:
-      - packages/plugins/compiler/react/coverage.lcov
+      - packages/plugins/compiler/react/coverage/lcov.info
   vue-plugin:
     paths:
-      - packages/plugins/compiler/vue/coverage.lcov
+      - packages/plugins/compiler/vue/coverage/lcov.info
   cli:
     paths:
-      - packages/utilities/cli/coverage.lcov
+      - packages/utilities/cli/coverage/lcov.info

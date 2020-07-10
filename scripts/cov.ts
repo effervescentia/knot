@@ -17,10 +17,6 @@ export default {
     description: 'generate interactive web coverage report',
     script: nycReport('html')
   },
-  lcov: {
-    description: 'generate LCOV formatted coverage report',
-    script: `${nycReport('lcov')} > coverage.lcov`
-  },
   check: {
     description: 'test report for 100% coverage',
     script: series(
