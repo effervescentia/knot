@@ -1,3 +1,6 @@
+fixes:
+  - '/Users/benteichman/development/knot/::'
+
 coverage:
   status:
     project:
