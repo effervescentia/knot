@@ -6,11 +6,6 @@ export default {
     script: series.nps('build', 'test.lint', 'test.unit')
   },
 
-  ci: {
-    description:
-      'build project then run code linters and unit tests and upload coverage',
-    script: series.nps('test', 'cov.lcov')
-  },
   lint: {
     description: 'run code linters',
     script: series(

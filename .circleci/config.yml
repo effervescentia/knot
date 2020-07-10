@@ -153,7 +153,7 @@ commands:
       - lerna_exec:
           desc: Run Tests
           pkg: << parameters.pkg >>
-          command: yarn x test.ci
+          command: yarn x test
       - run:
           name: Upload Coverage
           command: bash <(curl -s https://codecov.io/bash) -F << parameters.pkg >>
