@@ -4,10 +4,9 @@ dist
 coverage
 package-lock.json
 .nyc_output
+*.lcov
 *.log
 *.install
 *.cache
 .DS_Store
 _esy
-lcov.info
-coverage.lcov

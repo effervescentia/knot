@@ -3,47 +3,47 @@ coverage:
     project:
       default:
         target: auto
-      '@knot/compiler':
+      compiler:
         target: auto
         flags:
           - compiler
-      '@knot/browserify':
+      browserify:
         target: auto
         flags:
           - browserify-plugin
-      '@knot/rollup':
+      rollup:
         target: auto
         flags:
           - rollup-pluging
-      '@knot/webpack':
+      webpack:
         target: auto
         flags:
           - webpack-plugin
-      '@knot/common':
+      common:
         target: auto
         flags:
           - common
-      '@knot/plugin-utils':
+      plugin-utils:
         target: auto
         flags:
           - plugin-utils
-      '@knot/browser-plugin':
+      browser-plugin:
         target: auto
         flags:
           - browser-plugin
-      '@knot/jss-plugin':
+      jss-plugin:
         target: auto
         flags:
           - jss-plugin
-      '@knot/react-plugin':
+      react-plugin:
         target: auto
         flags:
           - react-plugin
-      '@knot/vue-plugin':
+      vue-plugin:
         target: auto
         flags:
           - vue-plugin
-      '@knot/cli':
+      cli:
         target: auto
         flags:
           - cli
