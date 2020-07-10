@@ -21,6 +21,10 @@ export default {
     description: 'generate LCOV formatted coverage report',
     script: `${nycReport('lcov')} > coverage.lcov`
   },
+  send: {
+    description: 'send LCOV coverage report',
+    script: 'bash <(curl -s https://codecov.io/bash) -f coverage.lcov'
+  },
   check: {
     description: 'test report for 100% coverage',
     script: series(

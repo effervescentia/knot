@@ -113,13 +113,16 @@ commands:
   lerna_exec:
     description: execute a command on a particular package
     parameters:
+      desc:
+        type: string
+        default: Execute Lerna Command
       pkg:
         type: string
       command:
         type: string
     steps:
       - run:
-          name: Execute Lerna Command
+          name: << parameters.desc >>
           command: lerna exec --scope=@knot/<< parameters.pkg >> -- << parameters.command >>
   compiler_install:
     description: use esy to install Compiler OCaml dependencies
@@ -146,12 +149,16 @@ commands:
       - setup_yarn
       - setup_lerna
       - lerna_install:
+          desc: Install Dependencies
           pkg: << parameters.pkg >>
       - lerna_exec:
+          desc: Run Tests
           pkg: << parameters.pkg >>
-          command: |
-            yarn x test.ci
-            bash <(curl -s https://codecov.io/bash) -f coverage.lcov -F << parameters.pkg >>
+          command: yarn x test.ci
+      - lerna_exec:
+          desc: Upload Coverage
+          pkg: << parameters.pkg >>
+          command: yarn x cov.send -F << parameters.pkg >>
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
@@ -484,7 +491,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: "11.0.0"
+      xcode: '11.0.0'
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
