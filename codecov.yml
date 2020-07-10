@@ -1,86 +1,87 @@
 fixes:
-  - '/Users/benteichman/development/knot/::'
-# coverage:
-#   status:
-#     project:
-#       default:
-#         target: auto
-#       compiler:
-#         target: auto
-#         flags:
-#           - compiler
-#       browserify:
-#         target: auto
-#         flags:
-#           - browserify-plugin
-#       rollup:
-#         target: auto
-#         flags:
-#           - rollup-plugin
-#       webpack:
-#         target: auto
-#         flags:
-#           - webpack-plugin
-#       common:
-#         target: auto
-#         flags:
-#           - common
-#       plugin-utils:
-#         target: auto
-#         flags:
-#           - plugin-utils
-#       browser-plugin:
-#         target: auto
-#         flags:
-#           - browser-plugin
-#       jss-plugin:
-#         target: auto
-#         flags:
-#           - jss-plugin
-#       react-plugin:
-#         target: auto
-#         flags:
-#           - react-plugin
-#       vue-plugin:
-#         target: auto
-#         flags:
-#           - vue-plugin
-#       cli:
-#         target: auto
-#         flags:
-#           - cli
+  - '/home/circleci/project/::'
 
-# flags:
-#   compiler:
-#     paths:
-#       - packages/binaries/compiler/coverage/lcov.info
-#   browserify-plugin:
-#     paths:
-#       - packages/plugins/bundler/browserify/coverage/lcov.info
-#   rollup-plugin:
-#     paths:
-#       - packages/plugins/bundler/rollup/coverage/lcov.info
-#   webpack-plugin:
-#     paths:
-#       - packages/plugins/bundler/webpack/coverage/lcov.info
-#   common:
-#     paths:
-#       - packages/plugins/common/coverage/lcov.info
-#   plugin-utils:
-#     paths:
-#       - packages/plugins/compiler/utils/coverage/lcov.info
-#   browser-plugin:
-#     paths:
-#       - packages/plugins/compiler/browser/coverage/lcov.info
-#   jss-plugin:
-#     paths:
-#       - packages/plugins/compiler/jss/coverage/lcov.info
-#   react-plugin:
-#     paths:
-#       - packages/plugins/compiler/react/coverage/lcov.info
-#   vue-plugin:
-#     paths:
-#       - packages/plugins/compiler/vue/coverage/lcov.info
-#   cli:
-#     paths:
-#       - packages/utilities/cli/coverage/lcov.info
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+      compiler:
+        target: auto
+        flags:
+          - compiler
+      browserify:
+        target: auto
+        flags:
+          - browserify-plugin
+      rollup:
+        target: auto
+        flags:
+          - rollup-plugin
+      webpack:
+        target: auto
+        flags:
+          - webpack-plugin
+      common:
+        target: auto
+        flags:
+          - common
+      plugin-utils:
+        target: auto
+        flags:
+          - plugin-utils
+      browser-plugin:
+        target: auto
+        flags:
+          - browser-plugin
+      jss-plugin:
+        target: auto
+        flags:
+          - jss-plugin
+      react-plugin:
+        target: auto
+        flags:
+          - react-plugin
+      vue-plugin:
+        target: auto
+        flags:
+          - vue-plugin
+      cli:
+        target: auto
+        flags:
+          - cli
+
+flags:
+  compiler:
+    paths:
+      - packages/binaries/compiler/coverage/lcov.info
+  browserify-plugin:
+    paths:
+      - packages/plugins/bundler/browserify/coverage/lcov.info
+  rollup-plugin:
+    paths:
+      - packages/plugins/bundler/rollup/coverage/lcov.info
+  webpack-plugin:
+    paths:
+      - packages/plugins/bundler/webpack/coverage/lcov.info
+  common:
+    paths:
+      - packages/plugins/common/coverage/lcov.info
+  plugin-utils:
+    paths:
+      - packages/plugins/compiler/utils/coverage/lcov.info
+  browser-plugin:
+    paths:
+      - packages/plugins/compiler/browser/coverage/lcov.info
+  jss-plugin:
+    paths:
+      - packages/plugins/compiler/jss/coverage/lcov.info
+  react-plugin:
+    paths:
+      - packages/plugins/compiler/react/coverage/lcov.info
+  vue-plugin:
+    paths:
+      - packages/plugins/compiler/vue/coverage/lcov.info
+  cli:
+    paths:
+      - packages/utilities/cli/coverage/lcov.info
