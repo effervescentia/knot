@@ -2,6 +2,15 @@
 
 <!-- INJECT CHANGELOG HERE -->
 
+## [`@knot/cli-v1.5.1`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.5.1) (2020-7-10)
+
+### `@knot/cli`
+
+
+#### :bug: Bug Fixes
+
+- add version info to @knot/cli (#102) ([b9bdbc43](https://github.com/effervescentia/knot/commit/b9bdbc43e9ab219b754950418399a37c3381ea4d))
+
 ## [`@knot/cli-v1.5.0`](https://github.com/effervescentia/knot/releases/tag/@knot/cli-v1.5.0) (2020-5-19)
 
 ### `@knot/cli`
