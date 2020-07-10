@@ -149,7 +149,6 @@ commands:
       - setup_yarn
       - setup_lerna
       - lerna_install:
-          desc: Install Dependencies
           pkg: << parameters.pkg >>
       - lerna_exec:
           desc: Run Tests
