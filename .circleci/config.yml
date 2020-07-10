@@ -244,9 +244,8 @@ jobs:
 
   test_compiler_binary:
     executor: node/node
-    resource_class: large
     environment:
-      NODE_OPTIONS: --max_old_space_size=8192
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -491,9 +490,8 @@ jobs:
   compile_macos:
     macos:
       xcode: '11.0.0'
-    resource_class: large
     environment:
-      NODE_OPTIONS: --max_old_space_size=8192
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_cache:
@@ -520,9 +518,8 @@ jobs:
 
   compile_linux:
     executor: node/node
-    resource_class: large
     environment:
-      NODE_OPTIONS: --max_old_space_size=8192
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_compiler_cache
