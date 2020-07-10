@@ -134,8 +134,7 @@
     "@opam/opal": "0.1.1",
     "@opam/ounit": "2.0.8",
     "@opam/uri": "3.0.0",
-    "@opam/uutf": "1.0.2",
-    "ocaml": "^4.4.0"
+    "@opam/uutf": "1.0.2"
   },
   "devDependencies": {
     "@opam/merlin": "*",
