@@ -16,7 +16,7 @@ export default {
       series.nps(
         'build',
         'test.lint.ci',
-        'test.unit --tap | tap-xunit > reports/ava.xml',
+        'test.unit --tap | tap-xunit > reports/ava/report.xml',
         'cov.lcov'
       )
     )
@@ -28,7 +28,7 @@ export default {
     },
 
     ci: concurrent.nps(
-      'test.lint.eslint --format junit > reports/eslint.xml',
+      'test.lint.eslint --format junit > reports/eslint/report.xml',
       'test.lint.prettier'
     ),
     eslint: {
