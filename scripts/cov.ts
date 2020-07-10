@@ -23,7 +23,7 @@ export default {
   },
   send: {
     description: 'send LCOV coverage report',
-    script: 'bash <(curl -s https://codecov.io/bash) -f coverage.lcov'
+    script: 'codecov -f coverage.lcov'
   },
   check: {
     description: 'test report for 100% coverage',

@@ -28,6 +28,7 @@
     "@typescript-eslint/parser": "^2.14.0",
     "ava": "1.4.1",
     "browser-env": "^3.2.6",
+    "codecov": "^3.7.0",
     "commitizen": "^3.1.1",
     "cross-env": "^5.2.0",
     "cypress": "^3.1.4",
