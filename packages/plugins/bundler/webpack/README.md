@@ -8,6 +8,7 @@
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
+[![codecov](https://codecov.io/gh/effervescentia/knot/branch/master/graph/badge.svg?flag=webpack-plugin)](https://codecov.io/gh/effervescentia/knot)
 
 > A [`webpack`](https://webpack.js.org/) plugin to automatically handle parsing and transforming [`knot`](https://github.com/effervescentia/knot) code.
 
