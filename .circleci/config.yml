@@ -242,7 +242,7 @@ jobs:
       - save_cache:
           <<: *linux_node_cache
           paths:
-            - ~/.cache
+            - ~/.cache/yarn
 
   test_compiler_binary:
     executor: node/node

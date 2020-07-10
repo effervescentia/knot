@@ -13,12 +13,7 @@ export default {
       'build project then run code linters and unit tests with coverage',
     script: series(
       'mkdir -p reports',
-      series.nps(
-        'build',
-        'test.lint.ci',
-        'test.unit --tap | tap-xunit > reports/ava/report.xml',
-        'cov.lcov'
-      )
+      series.nps('build', 'test.lint.ci', 'test.unit.ci', 'cov.lcov')
     )
   },
   lint: {
@@ -27,9 +22,12 @@ export default {
       script: concurrent.nps('test.lint.eslint', 'test.lint.prettier')
     },
 
-    ci: concurrent.nps(
-      'test.lint.eslint --format junit > reports/eslint/report.xml',
-      'test.lint.prettier'
+    ci: series(
+      'mkdir -p reports/eslint',
+      concurrent.nps(
+        'test.lint.eslint --format junit > reports/eslint/report.xml',
+        'test.lint.prettier'
+      )
     ),
     eslint: {
       description: 'run eslint',
@@ -41,7 +39,14 @@ export default {
     }
   },
   unit: {
-    description: 'run unit tests',
-    script: 'nyc --silent ava'
+    default: {
+      description: 'run unit tests',
+      script: 'nyc --silent ava'
+    },
+
+    ci: series(
+      'mkdir -p reports/ava',
+      'nps "test.unit --tap | tap-xunit > reports/ava/report.xml"'
+    )
   }
 };
