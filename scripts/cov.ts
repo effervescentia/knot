@@ -17,10 +17,13 @@ export default {
     description: 'generate interactive web coverage report',
     script: nycReport('html')
   },
+  lcov: {
+    description: 'generate LCOV formatted coverage report',
+    script: `${nycReport('lcov')} > coverage.lcov`
+  },
   send: {
-    description:
-      'generate LCOV formatted coverage report and upload to codecov',
-    script: series(`${nycReport('lcov')} > coverage.lcov`, 'codecov')
+    description: 'send LCOV coverage report',
+    script: 'codecov -f coverage.lcov'
   },
   check: {
     description: 'test report for 100% coverage',

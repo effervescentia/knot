@@ -4,6 +4,7 @@ dist
 coverage
 package-lock.json
 .nyc_output
+*.lcov
 *.log
 *.install
 *.cache
