@@ -157,6 +157,8 @@ commands:
       - run:
           name: Upload Coverage
           command: bash <(curl -s https://codecov.io/bash) -F << parameters.pkg >>
+      - store_test_results:
+          path: << parameters.path >>/results
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
