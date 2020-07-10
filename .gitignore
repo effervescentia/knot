@@ -2,6 +2,7 @@ node_modules
 build
 dist
 coverage
+reports
 package-lock.json
 .nyc_output
 *.lcov

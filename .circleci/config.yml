@@ -109,7 +109,7 @@ commands:
     steps:
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/<< parameters.pkg >>
+          command: lerna bootstrap --scope=@knot/<< parameters.pkg >> -- --immutable --immutable-cache
   lerna_exec:
     description: execute a command on a particular package
     parameters:
@@ -157,6 +157,8 @@ commands:
       - run:
           name: Upload Coverage
           command: bash <(curl -s https://codecov.io/bash) -F << parameters.pkg >>
+      - store_test_results:
+          path: << parameters.path >>/reports
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
@@ -236,11 +238,11 @@ jobs:
       - setup_lerna
       - run:
           name: Install
-          command: lerna bootstrap
+          command: lerna bootstrap -- --immutable
       - save_cache:
           <<: *linux_node_cache
           paths:
-            - ~/.cache
+            - ~/.cache/yarn
 
   test_compiler_binary:
     executor: node/node
@@ -287,6 +289,16 @@ jobs:
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
+
+  test_cli:
+    executor: node/node
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: cli
+          path: packages/utilities/cli
 
   test_common:
     executor: node/node
@@ -565,6 +577,9 @@ workflows:
       - install_node
       - test_compiler_binary
       - test_compiler:
+          requires:
+            - install_node
+      - test_cli:
           requires:
             - install_node
       - test_common:

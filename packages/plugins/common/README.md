@@ -8,6 +8,7 @@
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
 [![CircleCI](https://img.shields.io/circleci/build/gh/effervescentia/knot?style=flat-square&token=c6d265c2c3ae9fea01043c75299974616b6498b0)](https://circleci.com/gh/effervescentia/knot)
+[![codecov](https://codecov.io/gh/effervescentia/knot/branch/master/graph/badge.svg?flag=common)](https://codecov.io/gh/effervescentia/knot)
 
 > A library for constants, utilities and types common to all [`knot`](https://github.com/effervescentia/knot) packages.
 
