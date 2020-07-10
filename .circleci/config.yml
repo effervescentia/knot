@@ -157,7 +157,7 @@ commands:
       - lerna_exec:
           desc: Upload Coverage
           pkg: << parameters.pkg >>
-          command: yarn x cov.send -F << parameters.pkg >>
+          command: yarn x cov.send -- -F << parameters.pkg >>
       - persist:
           from: << parameters.path >>/build
           to: << parameters.pkg >>
