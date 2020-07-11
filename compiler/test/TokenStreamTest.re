@@ -8,8 +8,8 @@ let test_read_fully = (file, expected_tkns, _) => {
 
   let rec loop = (stream, tkns) =>
     switch (stream, tkns) {
-    | (LazyStream.Cons(tkn, next_stream), [x, ...xs]) =>
-      assert_tkn_eql(tkn, x);
+    | (LazyStream.Cons({token}, next_stream), [x, ...xs]) =>
+      assert_tkn_eql(token, x);
       loop(Lazy.force(next_stream), xs);
     | (LazyStream.Cons(_, _), _) =>
       assert_failure("lexer detected more tokens than expected")

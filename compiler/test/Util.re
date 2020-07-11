@@ -29,9 +29,9 @@ let to_token_stream = tkns => {
     if (List.length(ts) == 0) {
       None;
     } else {
-      let t = List.nth(ts, 0);
+      let token = List.nth(ts, 0);
       remaining := List.tl(ts);
-      Some(t);
+      Some({token, cursor: ((-1), (-1)), length: (-1)});
     };
 
   LazyStream.of_function(() => next(remaining^));

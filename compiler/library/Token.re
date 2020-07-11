@@ -63,3 +63,9 @@ type token =
   | JSXTextNode(string)
   | LineComment(string)
   | BlockComment(string);
+
+type token_descriptor = {
+  token,
+  cursor: (int, int),
+  length: int,
+};
