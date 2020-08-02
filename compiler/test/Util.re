@@ -18,8 +18,8 @@ let load_resource = file => open_in(Config.resource_dir ++ "/" ++ file);
 
 let analyze_resource = (scope, file) =>
   load_resource(file)
-  |> UnicodeFileStream.of_channel
-  |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
+  |> FileStream.of_channel
+  |> TokenStream.of_file_stream(Lexer.next_token)
   |> Parser.parse(Parser.prog)
   |> Analyzer.analyze(~scope);
 

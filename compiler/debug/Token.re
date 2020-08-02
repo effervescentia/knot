@@ -1,5 +1,4 @@
-open Globals;
-open Token;
+open Core;
 
 let print_tkn =
   (

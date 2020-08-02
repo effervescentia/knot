@@ -1,5 +1,4 @@
-open MemberType;
-open Globals;
+open Core;
 
 let rec print_member_type =
   fun
@@ -14,26 +13,26 @@ let rec print_member_type =
   | View_t(args, ret) =>
     Printf.sprintf(
       "(%s) -> %s",
-      Util.print_comma_separated(print_member_type, args),
+      Knot.Util.print_comma_separated(print_member_type, args),
       print_member_type(ret),
     )
   | Style_t(params, rules) =>
     Printf.sprintf(
       "(%s) -> {%s}",
-      Util.print_comma_separated(print_member_type, params),
-      Util.print_comma_separated(x => x, rules),
+      Knot.Util.print_comma_separated(print_member_type, params),
+      Knot.Util.print_comma_separated(x => x, rules),
     )
   | State_t(params, props) =>
     Printf.sprintf(
       "(%s) -> {%s}",
-      Util.print_comma_separated(print_member_type, params),
+      Knot.Util.print_comma_separated(print_member_type, params),
       print_members(props),
     )
   | Object_t(members) => print_members(members) |> Printf.sprintf("{%s}")
   | Module_t(_, members, main_export) =>
     print_members(members)
     |> (
-      Util.print_optional(
+      Knot.Util.print_optional(
         print_member_type % Printf.sprintf("\n\t$main: %s\n"),
         main_export,
       )

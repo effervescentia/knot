@@ -1,3 +1,5 @@
+module FileReader = KnotUnicode.FileReader;
+
 let _buffer_size = 512;
 let _padding_width = 4;
 
@@ -14,7 +16,7 @@ let _add_line_number = (buf, margin_size, row) => {
 
 let print = (file, cursor) => {
   let in_channel = open_in(file);
-  let read_char = UnicodeFileReader.of_channel(in_channel);
+  let read_char = FileReader.of_channel(in_channel);
   let start_row = max(1, fst(cursor) - _padding_width);
   let end_row = fst(cursor) + _padding_width;
   let margin_size = (string_of_int(end_row) |> String.length) + 1;
@@ -79,7 +81,7 @@ let print = (file, cursor) => {
 
 let print_range = (file, start_cursor, end_cursor) => {
   let in_channel = open_in(file);
-  let read_char = UnicodeFileReader.of_channel(in_channel);
+  let read_char = FileReader.of_channel(in_channel);
   let start_row = max(1, fst(start_cursor) - _padding_width);
   let end_row = fst(end_cursor) + _padding_width;
   let margin_size = (string_of_int(end_row) |> String.length) + 1;

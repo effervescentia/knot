@@ -1,8 +1,9 @@
 include Knot.Core;
 include Exception;
 
-module Debug = Knot.Debug;
+module Debug = KnotDebug.Debug;
 module Compiler = KnotCompile.Compiler;
+module CodeFrame = KnotDebug.CodeFrame;
 
 type module_type =
   | ES6

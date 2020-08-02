@@ -26,7 +26,7 @@ let _assert_cursor =
 
 let test_read_fully = (file, ctx) => {
   let channel = Util.load_resource(file);
-  let input = UnicodeFileStream.of_channel(channel);
+  let input = FileStream.of_channel(channel);
 
   let rec next = (buf, x) =>
     switch (x) {
@@ -46,7 +46,7 @@ let test_cursor_information = (file, char, position, row, column) => {
   let channel = Util.load_resource(file);
 
   _assert_cursor(
-    _cursor_from(UnicodeFileStream.of_channel(channel), position),
+    _cursor_from(FileStream.of_channel(channel), position),
     Uchar.of_char(char),
     row,
     column,
@@ -57,7 +57,7 @@ let test_cursor_information = (file, char, position, row, column) => {
 
 let test_reposition = (file, position) => {
   let channel = Util.load_resource(file);
-  let input = UnicodeFileStream.of_channel(channel);
+  let input = FileStream.of_channel(channel);
   let channel_length = in_channel_length(channel);
   let extra_reads = Random.int(channel_length - position - 1);
 

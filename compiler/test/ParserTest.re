@@ -8,8 +8,8 @@ let tests =
       _ => {
         let token_stream =
           Util.load_resource(Config.unix_module_file)
-          |> UnicodeFileStream.of_channel
-          |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments);
+          |> FileStream.of_channel
+          |> TokenStream.of_file_stream(Lexer.next_token);
 
         switch (Parser.parse(Parser.prog, token_stream)) {
         | Some(res) => Assert.assert_ast_eql(Fixtures.full_ast, res)

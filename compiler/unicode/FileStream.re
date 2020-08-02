@@ -1,7 +1,7 @@
-open Globals;
+open Core;
 
 let of_channel = channel => {
-  let read_char = UnicodeFileReader.of_channel(channel);
+  let read_char = FileReader.of_channel(channel);
 
   LazyStream.of_function(() =>
     switch (read_char()) {

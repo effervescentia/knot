@@ -1,6 +1,6 @@
 include Knot.Core;
 
-module Debug = Knot.Debug;
+module Debug = KnotDebug.Debug;
 
 type status =
   | Idle

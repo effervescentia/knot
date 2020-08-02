@@ -7,7 +7,7 @@
    (name Main)  ;  From package.json main field
    ; The name of the executable (runnable via esy x knotc.exe) 
    (public_name knotc.exe)  ;  From package.json name field
-   (libraries  knot.lib knot.generate knot.compile unix core httpaf lwt lwt.unix faraday-lwt-unix uri ) ;  From package.json require field (array of strings)
+   (libraries  knot.lib knot.debug knot.generate knot.compile unix core httpaf lwt lwt.unix faraday-lwt-unix uri ) ;  From package.json require field (array of strings)
 )
  
  (install

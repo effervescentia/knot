@@ -1,8 +1,8 @@
-open Globals;
+open Core;
 
 type t =
-  | Newline((int, int))
-  | Character(Uchar.t, (int, int))
+  | Newline(cursor)
+  | Character(Uchar.t, cursor)
   | EndOfFile;
 
 let _normalized_newline_char_code = 10;

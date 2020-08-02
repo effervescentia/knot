@@ -2,7 +2,7 @@ open Core;
 open Match;
 open Matcher;
 
-include Knot.Debug;
+include KnotDebug.Debug;
 
 let rec print_match = m =>
   switch (m) {

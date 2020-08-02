@@ -24,23 +24,58 @@
       "name": "knot.lib",
       "namespace": "Knot"
     },
-    "lexer": {
+    "unicode": {
       "require": [
         "knot.lib"
+      ],
+      "name": "knot.unicode",
+      "namespace": "KnotUnicode"
+    },
+    "cache": {
+      "require": [
+        "knot.lib"
+      ],
+      "name": "knot.cache",
+      "namespace": "KnotCache"
+    },
+    "debug": {
+      "require": [
+        "knot.lib",
+        "knot.unicode"
+      ],
+      "name": "knot.debug",
+      "namespace": "KnotDebug"
+    },
+    "loader": {
+      "require": [
+        "knot.lib",
+        "knot.cache",
+        "knot.unicode",
+        "knot.lex"
+      ],
+      "name": "knot.load",
+      "namespace": "KnotLoad"
+    },
+    "lexer": {
+      "require": [
+        "knot.lib",
+        "knot.debug"
       ],
       "name": "knot.lex",
       "namespace": "KnotLex"
     },
     "parser": {
       "require": [
-        "knot.lib"
+        "knot.lib",
+        "knot.debug"
       ],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
     "resolver": {
       "require": [
-        "knot.lib"
+        "knot.lib",
+        "knot.debug"
       ],
       "name": "knot.resolve",
       "namespace": "KnotResolve"
@@ -64,7 +99,8 @@
     "compiler": {
       "require": [
         "knot.lib",
-        "knot.lex",
+        "knot.debug",
+        "knot.load",
         "knot.parse",
         "knot.analyze"
       ],
@@ -74,6 +110,7 @@
     "executable": {
       "require": [
         "knot.lib",
+        "knot.debug",
         "knot.generate",
         "knot.compile",
         "unix",
@@ -99,6 +136,8 @@
     "test": {
       "require": [
         "knot.lib",
+        "knot.unicode",
+        "knot.load",
         "knot.lex",
         "knot.parse",
         "knot.analyze",

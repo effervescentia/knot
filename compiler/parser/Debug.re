@@ -1,1 +1,1 @@
-include Knot.Debug;
+include KnotDebug.Debug;

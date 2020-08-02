@@ -1,8 +1,6 @@
+open Core;
+open Util;
 open AST;
-open Globals;
-open ResolveTarget;
-open Debug_Util;
-open Debug_AST;
 
 let print_resolve_target =
   fun

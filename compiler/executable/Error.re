@@ -18,7 +18,7 @@ let _print_syntax_error = (file, print) =>
         snd(cursor),
       )
       |> print;
-      Knot.CodeFrame.print(file, cursor) |> print_endline;
+      CodeFrame.print(file, cursor) |> print_endline;
     }
 
   | UnclosedCommentBlock(cursor) => {
@@ -28,7 +28,7 @@ let _print_syntax_error = (file, print) =>
         snd(cursor),
       )
       |> print;
-      Knot.CodeFrame.print(file, cursor) |> print_endline;
+      CodeFrame.print(file, cursor) |> print_endline;
     }
 
   | UnclosedString(cursor) => {
@@ -38,7 +38,7 @@ let _print_syntax_error = (file, print) =>
         snd(cursor),
       )
       |> print;
-      Knot.CodeFrame.print(file, cursor) |> print_endline;
+      CodeFrame.print(file, cursor) |> print_endline;
     }
 
   | InvalidDotAccess =>
