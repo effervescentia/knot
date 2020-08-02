@@ -1,4 +1,4 @@
-open Kore;
+open Globals;
 
 let _print_file_err = (pretty_path, message) =>
   Printf.sprintf(

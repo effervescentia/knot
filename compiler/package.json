@@ -38,6 +38,17 @@
       "name": "knot.cache",
       "namespace": "KnotCache"
     },
+    "http": {
+      "require": [
+        "knot.lib",
+        "httpaf",
+        "lwt",
+        "lwt.unix",
+        "faraday-lwt-unix"
+      ],
+      "name": "knot.http",
+      "namespace": "KnotHTTP"
+    },
     "debug": {
       "require": [
         "knot.lib",
@@ -46,15 +57,16 @@
       "name": "knot.debug",
       "namespace": "KnotDebug"
     },
-    "loader": {
+    "file": {
       "require": [
         "knot.lib",
         "knot.cache",
         "knot.unicode",
-        "knot.lex"
+        "knot.lex",
+        "core"
       ],
-      "name": "knot.load",
-      "namespace": "KnotLoad"
+      "name": "knot.file",
+      "namespace": "KnotFile"
     },
     "lexer": {
       "require": [
@@ -100,12 +112,32 @@
       "require": [
         "knot.lib",
         "knot.debug",
-        "knot.load",
+        "knot.file",
         "knot.parse",
         "knot.analyze"
       ],
       "name": "knot.compile",
       "namespace": "KnotCompile"
+    },
+    "server": {
+      "require": [
+        "knot.lib",
+        "knot.http",
+        "knot.generate",
+        "knot.compile",
+        "uri"
+      ],
+      "name": "knot.serve",
+      "namespace": "KnotServe"
+    },
+    "transpiler": {
+      "require": [
+        "knot.lib",
+        "knot.generate",
+        "knot.compile"
+      ],
+      "name": "knot.transpile",
+      "namespace": "KnotTranspile"
     },
     "executable": {
       "require": [
@@ -113,13 +145,8 @@
         "knot.debug",
         "knot.generate",
         "knot.compile",
-        "unix",
-        "core",
-        "httpaf",
-        "lwt",
-        "lwt.unix",
-        "faraday-lwt-unix",
-        "uri"
+        "knot.serve",
+        "knot.transpile"
       ],
       "main": "Main",
       "name": "knotc.exe",
@@ -137,7 +164,7 @@
       "require": [
         "knot.lib",
         "knot.unicode",
-        "knot.load",
+        "knot.file",
         "knot.lex",
         "knot.parse",
         "knot.analyze",

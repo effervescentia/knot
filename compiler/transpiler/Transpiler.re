@@ -1,7 +1,9 @@
-open Kore;
-open Kore.Compiler;
+open Globals;
+open KnotCompile.Compiler;
 
-let run = ({paths, main as in_path}, compiler) => {
+module Error = KnotDebug.Error;
+
+let run = ({paths, main as in_path} as config, compiler) => {
   try(compiler.add(in_path)) {
   | ExecutionError(InvalidPathFormat(s) | ModuleDoesNotExist(_, s))
       when s == in_path =>
@@ -24,9 +26,11 @@ let run = ({paths, main as in_path}, compiler) => {
 
     Log.info("%s  compiled!", Emoji.input_numbers);
 
-    Writer.clean_build_dir();
+    Writer.clean_dir(paths.build_dir);
+    FileUtil.relative_path(paths.root_dir, paths.build_dir)
+    |> Log.info("%s  (%s)", Emoji.sparkles);
 
-    compiler.iter(in_path, paths.source_dir, Writer.write);
+    compiler.iter(in_path, paths.source_dir, Writer.write(config));
 
     Log.info("%s  done!", Emoji.confetti_ball);
   };

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let analyze_dependencies =
   fun

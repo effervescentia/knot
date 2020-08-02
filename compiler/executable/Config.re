@@ -1,4 +1,4 @@
-open Kore;
+open Globals;
 
 let global = ref(None);
 
@@ -10,7 +10,7 @@ let get = () =>
 
 let relative_path = (extract, absolute_path) => {
   let {paths} = get();
-  Util.chop_path_prefix(extract(paths), absolute_path);
+  FileUtil.relative_path(extract(paths), absolute_path);
 };
 
 let is_config_file =
@@ -75,7 +75,7 @@ let generate_paths = config_file => {
 let create_descriptor = (path_resolver, target) => {
   let absolute_path = path_resolver(target);
 
-  KnotCompile.Core.{
+  KnotCompile.Globals.{
     target,
     absolute_path,
     relative_path: source_path(absolute_path),
@@ -127,7 +127,7 @@ let set_from_args = cwd => {
     ],
     x =>
       if (main^ == "") {
-        main := Util.normalize_path(cwd, x);
+        main := FileUtil.normalize_path(cwd, x);
       } else {
         raise(Arg.Bad(Printf.sprintf("unexpected argument: %s", x)));
       },
@@ -141,7 +141,9 @@ let set_from_args = cwd => {
     is_debug: is_debug^,
     port: port^,
     paths:
-      find_file(is_server^ ? Util.normalize_path(cwd, config_file^) : main^)
+      find_file(
+        is_server^ ? FileUtil.normalize_path(cwd, config_file^) : main^,
+      )
       |> generate_paths,
   };
 
@@ -150,7 +152,7 @@ let set_from_args = cwd => {
       raise(Arg.Bad("must provide the path to a source file"));
     };
 
-    if (!Util.is_within_dir(config.paths.source_dir, main^)) {
+    if (!FileUtil.is_within_dir(config.paths.source_dir, main^)) {
       throw_exec(
         EntryPointOutsideBuildContext(main^, config.paths.source_dir),
       );

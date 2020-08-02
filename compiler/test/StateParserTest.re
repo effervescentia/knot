@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let empty_state_decl = name =>
   [

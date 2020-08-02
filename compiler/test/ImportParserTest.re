@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let test_parse_import = Util.test_parse_import(KnotParse.Import.stmt);
 

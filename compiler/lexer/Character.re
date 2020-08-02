@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 open Matcher;
 
 let (==>) = (c, t) => Matcher(Exactly(c), _ => result(t));

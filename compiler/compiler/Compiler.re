@@ -1,10 +1,5 @@
-open Core;
+open Globals;
 open KnotAnalyze.Scope;
-
-module Analyzer = KnotAnalyze.Analyzer;
-module Scope = KnotAnalyze.Scope;
-module Parser = KnotParse.Parser;
-module Loader = KnotLoad.Loader;
 
 type t = {
   add: string => unit,
@@ -209,7 +204,7 @@ let create = create_desc => {
     status: () => status^,
     complete: () => status := Complete,
     iter: (entry, source_dir, f) =>
-      BuildTbl.extract(entry, source_dir, global_scope^.module_tbl)
+      BuildTable.extract(entry, source_dir, global_scope^.module_tbl)
       |> Hashtbl.iter(f),
     iter_modules: f =>
       Hashtbl.iter((key, _) => f(key), global_scope^.module_tbl),

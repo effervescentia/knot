@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let assignment = (parse_expr, input) =>
   (M.assign >> parse_expr ==> no_ctx ==> (e => Some(e)))(input);

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let createEl = Printf.sprintf("%s.createElement(%s)", jsx_plugin);
 let createFrag = Printf.sprintf("%s.createFragment(%s)", jsx_plugin);

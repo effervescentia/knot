@@ -1,5 +1,5 @@
 open OUnit2;
-open Knot.Globals;
+open Knot.Core;
 
 let assert_string_eql = (actual, expected) =>
   assert_equal(

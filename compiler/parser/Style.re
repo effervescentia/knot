@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let rule =
   Reference.refr(Expression.expr)

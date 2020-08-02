@@ -1,6 +1,4 @@
-open Core;
-
-module Context = KnotResolve.Context;
+open Globals;
 
 let _initial_size = 16;
 
@@ -9,13 +7,13 @@ let extract = (entry, source_dir, tbl) =>
     (key, value, acc) => {
       switch (value) {
       /* internal modules */
-      | Loaded(ast) when Util.is_source_module(key) =>
-        Hashtbl.add(acc, Util.to_path_segment(key), (key, ast))
+      | Loaded(ast) when FileUtil.is_source_module(key) =>
+        Hashtbl.add(acc, FileUtil.to_path_segment(key), (key, ast))
       /* external modules */
       | Loaded(ast) when key == entry =>
         Hashtbl.add(
           acc,
-          Util.chop_path_prefix(source_dir, key) |> Filename.chop_extension,
+          FileUtil.relative_path(source_dir, key) |> Filename.chop_extension,
           (Knot.Constants.main_module_alias, ast),
         )
       /* ignore all other modules */

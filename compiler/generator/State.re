@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let gen_member = name =>
   fun

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let pipe = (buffer_size, in_channel, out_channel) => {
   let channel_length = in_channel_length(in_channel);

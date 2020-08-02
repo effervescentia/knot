@@ -1,8 +1,7 @@
 open Match;
 open Matcher;
 
-include Knot.Globals;
-include Knot.Token;
+include Knot.Core;
 
 let result = x => (Some(x), []);
 

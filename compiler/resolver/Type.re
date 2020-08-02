@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve_mixin = (symbol_tbl, sidecar_tbl, (value, promise)) =>
   (

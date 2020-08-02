@@ -1,4 +1,7 @@
-open Kore;
+open Globals;
+
+module Server = KnotServe.Main;
+module Transpiler = KnotTranspile.Transpiler;
 
 let run = () => {
   Setup.run();
@@ -24,18 +27,18 @@ let run = () => {
       config.port,
     );
 
-    try (Main_Server.run(config, compiler)) {
+    try(Server.run(config, compiler)) {
     | Lwt.Canceled => Log.info("%s  shutting down", Emoji.robot_face)
     };
   } else {
     Log.info("%s  running stand-alone", Emoji.rocket);
 
-    Main_StandAlone.run(config, compiler);
+    Transpiler.run(config, compiler);
   };
 };
 
 let () =
-  try (run()) {
+  try(run()) {
   | err =>
     switch (err) {
     /* already handled, only to force a non-zero exit */

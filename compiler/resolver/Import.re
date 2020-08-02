@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   let module_type =

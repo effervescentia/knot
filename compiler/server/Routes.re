@@ -1,10 +1,7 @@
-open Httpaf;
-open Kore;
-open Kore.Compiler;
+open Globals;
+open KnotCompile.Compiler;
 
-module Response = Server_Response;
 module Generator = KnotGenerate.Generator;
-module CompilerUtil = KnotCompile.Util;
 
 let log_incoming = (~addon=?, ~emoji=Emoji.chequered_flag, req_d, uri) =>
   Log.info(
@@ -80,7 +77,7 @@ let get_module = ({paths: {source_dir}, module_type}, compiler, req_d, uri) =>
                 Bigstringaf.of_string(~off=0, ~len=String.length(str), str)
                 |> Body.write_bigstring(res_body),
               {
-                to_module_name: Util.normalize_module(source_dir),
+                to_module_name: FileUtil.normalize_module(source_dir),
                 to_import_statement:
                   switch (module_type) {
                   | Common => Generator.generate_common_import_statement

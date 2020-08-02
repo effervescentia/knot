@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let of_channel = channel => {
   let read_char = FileReader.of_channel(channel);

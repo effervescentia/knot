@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 module Lexer = KnotLex.Lexer;
 module Cache = KnotCache.Cache;

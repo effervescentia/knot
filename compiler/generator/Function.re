@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let gen_expr = generate_expr =>
   fun

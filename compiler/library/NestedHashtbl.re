@@ -1,4 +1,5 @@
-open Core;
+open Operators;
+open Invariant;
 
 type t('a, 'b) = {
   boundary: bool,

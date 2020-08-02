@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let rec print_member_type =
   fun

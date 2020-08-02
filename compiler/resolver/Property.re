@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve_expr = (name, type_def, default_val, promise) =>
   (

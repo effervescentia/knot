@@ -1,5 +1,5 @@
-open Core;
-open KnotGenerate.Core;
+open Globals;
+open KnotGenerate.Globals;
 
 let all_tokens = [
   Plus,

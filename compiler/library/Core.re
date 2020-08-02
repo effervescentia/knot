@@ -4,3 +4,7 @@ include AST;
 include DefinitionAST;
 include ResolveTarget;
 include MemberType;
+include Exception;
+include Invariant;
+include Operators;
+include Configuration;

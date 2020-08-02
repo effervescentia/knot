@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let const_decl = (name, expr) =>
   [Keyword(Const), Identifier(name), Assign, expr] |> Util.drift;

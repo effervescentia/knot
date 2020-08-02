@@ -1,5 +1,6 @@
 open Exception;
-open Globals;
+open Operators;
+open Invariant;
 
 type member_type =
   | Number_t

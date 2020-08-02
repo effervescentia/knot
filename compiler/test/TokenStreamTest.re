@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =

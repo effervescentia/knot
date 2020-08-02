@@ -1,8 +1,5 @@
-open Kore;
+open Globals;
 open Lwt.Infix;
-open Httpaf;
-
-module Response = Server_Response;
 
 type t = {
   start: unit => unit,
@@ -48,7 +45,7 @@ let error_handler = (_client_address, ~request=?, error, start_response) => {
 };
 
 let connection_handler = route_mapper =>
-  Http.Server.create_connection_handler(
+  HttpServer.create_connection_handler(
     ~config=?None,
     ~request_handler=request_handler(route_mapper),
     ~error_handler,

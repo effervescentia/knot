@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let analyze_scoped_expr = (analyze_expr, scope, expr) => {
   fst(expr)

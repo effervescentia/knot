@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 open Util;
 
 let with_ctx = (f, x) => x |~> f;

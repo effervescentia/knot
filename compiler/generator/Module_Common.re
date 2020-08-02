@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let _generate_common_module_import = (module_name, module_import) =>
   Printf.sprintf("var %s = require(\"%s\");", module_import, module_name)

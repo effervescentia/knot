@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let tests =
   "KnotGenerate.Generator"
@@ -17,7 +17,7 @@ let tests =
         |> (
           fun
           | Some(ast) =>
-            switch (KnotResolve.Core.opt_type_ref(ast)) {
+            switch (KnotResolve.Globals.opt_type_ref(ast)) {
             | _ =>
               KnotGenerate.Generator.generate(
                 s => generated := generated^ ++ s,

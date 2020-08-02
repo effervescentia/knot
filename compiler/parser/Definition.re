@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let rec stmts = input => (many(stmt) ==> (s => ModuleDefn(s)))(input)
 and stmt = input => (M.main >> type_defn ==> (t => MainDefn(t)))(input)

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let create_component =
   Printf.sprintf("%s.createComponent('%s',%s)", jsx_plugin);

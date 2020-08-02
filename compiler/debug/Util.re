@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 open MemberType;
 
 /** print type as string */

@@ -1,4 +1,4 @@
-open Kore;
+open Globals;
 
 let run = () => {
   let cwd = Unix.getcwd();
@@ -18,8 +18,8 @@ let run = () => {
   Log.color_on();
 
   let pretty_config_path =
-    Util.is_within_dir(cwd, config_file) ?
-      Util.chop_path_prefix(cwd, config_file) : config_file;
+    FileUtil.is_within_dir(cwd, config_file)
+      ? FileUtil.relative_path(cwd, config_file) : config_file;
 
   Log.info("%s  (%s)", Emoji.gear, pretty_config_path);
 };

@@ -7,5 +7,5 @@
    (name KnotCompile)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.compile)
-   (libraries  knot.lib knot.debug knot.load knot.parse knot.analyze )
+   (libraries  knot.lib knot.debug knot.file knot.parse knot.analyze )
 )

@@ -1,24 +1,23 @@
-open Kore;
+open Globals;
 
 module Generator = KnotGenerate.Generator;
-module CompilerUtil = KnotCompile.Util;
 
-let clean_build_dir = () => {
-  let {paths: {build_dir}} = Config.get();
-  Config.root_path(build_dir) |> Log.info("%s  (%s)", Emoji.sparkles);
-
-  if (Sys.file_exists(build_dir)) {
-    Util.clean_directory(build_dir);
+let clean_dir = dir =>
+  if (Sys.file_exists(dir)) {
+    FileUtil.clean_directory(dir);
   };
-};
 
-let write = (path, (module_name, ast)) => {
-  let {paths: {build_dir, source_dir}, module_type} = Config.get();
+let write =
+    (
+      {paths: {build_dir, source_dir, root_dir}, module_type},
+      path,
+      (module_name, ast),
+    ) => {
   let path = Printf.sprintf("%s.js", path) |> Filename.concat(build_dir);
 
-  Filename.dirname(path) |> Core.Unix.mkdir_p;
+  Filename.dirname(path) |> FileUtil.mkdir_p;
 
-  Config.root_path(path)
+  FileUtil.relative_path(root_dir, path)
   |> Log.info("%s  %s (%s)", Emoji.printer, module_name);
 
   let out_channel = open_out(path);
@@ -27,7 +26,7 @@ let write = (path, (module_name, ast)) => {
   Generator.generate(
     write_out,
     {
-      to_module_name: Util.normalize_module(source_dir),
+      to_module_name: FileUtil.normalize_module(source_dir),
       to_import_statement:
         switch (module_type) {
         | Common => Generator.generate_common_import_statement

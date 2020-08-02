@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let add = M.plus >> return((x, y) => AddExpr(no_ctx(x), no_ctx(y)))
 and sub = M.minus >> return((x, y) => SubExpr(no_ctx(x), no_ctx(y)))

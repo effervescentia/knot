@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 type t =
   | Newline(cursor)

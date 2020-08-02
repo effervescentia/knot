@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let generate = (printer, core, name) =>
   fst

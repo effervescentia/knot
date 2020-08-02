@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let decl = parse_expr =>
   M.let_

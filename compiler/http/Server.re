@@ -1,23 +1,27 @@
 open Lwt.Infix;
-open Http_Util;
+open Util;
 
-module HTTP = Httpaf.Client_connection;
+module HTTP = Httpaf.Server_connection;
 
-let request =
+let create_connection_handler =
     (
-      ~config=Config.default,
-      socket,
-      request,
+      ~config=Httpaf.Config.default,
+      ~request_handler,
       ~error_handler,
-      ~response_handler,
+      client_addr,
+      socket,
     ) => {
-  let (request_body, connection) =
-    HTTP.request(request, ~error_handler, ~response_handler);
+  let connection =
+    HTTP.create(
+      ~config,
+      ~error_handler=error_handler(client_addr),
+      request_handler(client_addr),
+    );
 
   let read_buffer = Buffer.create(config.response_body_buffer_size);
   let (read_loop_exited, notify_read_loop_exited) = Lwt.wait();
 
-  let read_loop = () => {
+  let rec read_loop = () => {
     let rec read_loop_step = () =>
       switch (HTTP.next_read_operation(connection)) {
       | `Read =>
@@ -41,6 +45,10 @@ let request =
               read_loop_step();
             }
         )
+      | `Yield =>
+        HTTP.yield_reader(connection, read_loop);
+
+        Lwt.return_unit;
       | `Close =>
         Lwt.wakeup_later(notify_read_loop_exited, ());
 
@@ -83,6 +91,10 @@ let request =
       | `Close(_) =>
         Lwt.wakeup_later(notify_write_loop_exited, ());
 
+        if (Lwt_unix.state(socket) != Lwt_unix.Closed) {
+          shutdown(socket, Unix.SHUTDOWN_SEND);
+        };
+
         Lwt.return_unit;
       };
 
@@ -100,17 +112,13 @@ let request =
   read_loop();
   write_loop();
 
-  Lwt.async(() =>
-    Lwt.join([read_loop_exited, write_loop_exited])
-    >>= (
-      () =>
-        if (Lwt_unix.state(socket) != Lwt_unix.Closed) {
-          Lwt.catch(() => Lwt_unix.close(socket), _exn => Lwt.return_unit);
-        } else {
-          Lwt.return_unit;
-        }
-    )
+  Lwt.join([read_loop_exited, write_loop_exited])
+  >>= (
+    () =>
+      if (Lwt_unix.state(socket) != Lwt_unix.Closed) {
+        Lwt.catch(() => Lwt_unix.close(socket), _exn => Lwt.return_unit);
+      } else {
+        Lwt.return_unit;
+      }
   );
-
-  request_body;
 };

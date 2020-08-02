@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let __some_ref = x => ref(Some(x));
 
