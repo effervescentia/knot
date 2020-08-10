@@ -31,10 +31,7 @@ and print_module_import = (~depth=0) =>
     | Import(module_, imports) =>
       Printf.sprintf(
         "IMPORT %s FROM %s",
-        Knot.Util.print_comma_separated(
-          with_ctx(print_import_target),
-          imports,
-        ),
+        Knot.Print.comma_separated(with_ctx(print_import_target), imports),
         module_,
       )
   )
@@ -45,9 +42,9 @@ and print_decl = name =>
     expr |~> print_expr |> Printf.sprintf("CONST %s = %s", name)
   | StateDecl(params, props) => {
       let params_str =
-        Knot.Util.print_comma_separated(with_ctx(print_property), params);
+        Knot.Print.comma_separated(with_ctx(print_property), params);
       let props_str =
-        Knot.Util.print_comma_separated(
+        Knot.Print.comma_separated(
           ((name, prop)) => prop |~> print_state_member(name),
           props,
         );
@@ -58,10 +55,7 @@ and print_decl = name =>
     Printf.sprintf(
       "VIEW %s%s%s = %s",
       name,
-      Knot.Util.print_optional(
-        Printf.sprintf(" extends %s") |> with_ctx,
-        super,
-      ),
+      Knot.Print.optional(Printf.sprintf(" extends %s") |> with_ctx, super),
       print_mixins(mixins),
       print_lambda(params, exprs),
     )
@@ -71,8 +65,8 @@ and print_decl = name =>
     Printf.sprintf(
       "STYLE %s = ([%s]) -> [%s]",
       name,
-      Knot.Util.print_comma_separated(with_ctx(print_property), params),
-      Knot.Util.print_comma_separated(print_style_rule_set, rule_sets),
+      Knot.Print.comma_separated(with_ctx(print_property), params),
+      Knot.Print.comma_separated(print_style_rule_set, rule_sets),
     )
 and print_import_target =
   fun
@@ -144,7 +138,7 @@ and print_ref =
     Printf.sprintf(
       "exec %s(%s)",
       source |~> print_ref,
-      Knot.Util.print_comma_separated(with_ctx(print_expr), exprs),
+      Knot.Print.comma_separated(with_ctx(print_expr), exprs),
     )
 and print_jsx =
   fun
@@ -154,20 +148,14 @@ and print_jsx =
       name,
       List.length(tags) == 0
         ? ""
-        : Knot.Util.print_comma_separated(print_element_tag, tags)
+        : Knot.Print.comma_separated(print_element_tag, tags)
           |> Printf.sprintf("(%s)"),
-      Knot.Util.print_sequential(
-        print_jsx_prop % Printf.sprintf(" %s"),
-        props,
-      ),
-      Knot.Util.print_sequential(print_jsx, children),
+      Knot.Print.sequential(print_jsx_prop % Printf.sprintf(" %s"), props),
+      Knot.Print.sequential(print_jsx, children),
       name,
     )
   | Fragment(children) =>
-    Printf.sprintf(
-      "<>%s</>",
-      Knot.Util.print_sequential(print_jsx, children),
-    )
+    Printf.sprintf("<>%s</>", Knot.Print.sequential(print_jsx, children))
   | TextNode(s) => s
   | EvalNode(expr) => expr |~> print_expr
 and print_element_tag =
@@ -194,7 +182,7 @@ and print_state_method = name =>
   | `Mutator(params, exprs) =>
     print_lambda(params, exprs) |> Printf.sprintf("mutator(%s = %s)", name)
 and print_mixins = mixins =>
-  Knot.Util.print_comma_separated(with_ctx(x => x), mixins)
+  Knot.Print.comma_separated(with_ctx(x => x), mixins)
   |> (
     fun
     | "" => ""
@@ -206,19 +194,16 @@ and print_style_key =
   fun
   | ClassKey(name) => Printf.sprintf("class(%s)", name)
 and print_style_rule_set = ((key, rules)) =>
-  Knot.Util.print_comma_separated(print_style_rule, rules)
+  Knot.Print.comma_separated(print_style_rule, rules)
   |> Printf.sprintf("ruleset(%s, [%s])", print_style_key(key))
-and print_type_def = Knot.Util.print_optional(fst % Printf.sprintf(": %s"))
+and print_type_def = Knot.Print.optional(fst % Printf.sprintf(": %s"))
 and print_assign = x =>
-  Knot.Util.print_optional(
-    with_ctx(print_expr % Printf.sprintf(" = %s")),
-    x,
-  )
+  Knot.Print.optional(with_ctx(print_expr % Printf.sprintf(" = %s")), x)
 and print_lambda = (params, exprs) => {
   let params_str =
-    Knot.Util.print_comma_separated(with_ctx(print_property), params);
+    Knot.Print.comma_separated(with_ctx(print_property), params);
   let exprs_str =
-    Knot.Util.print_comma_separated(with_ctx(print_scoped_expr), exprs);
+    Knot.Print.comma_separated(with_ctx(print_scoped_expr), exprs);
 
   Printf.sprintf("([%s]) -> [%s]", params_str, exprs_str);
 };

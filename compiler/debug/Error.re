@@ -13,7 +13,7 @@ let _print_syntax_error = (file, print) =>
   | InvalidCharacter(ch, cursor) => {
       Printf.sprintf(
         "encountered unexpected character '%s' at [%d:%d]",
-        Knot.Util.print_uchar(ch),
+        Knot.Print.uchar(ch),
         fst(cursor),
         snd(cursor),
       )

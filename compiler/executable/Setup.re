@@ -3,9 +3,8 @@ open Globals;
 let run = () => {
   let cwd = Unix.getcwd();
 
-  /* configuration */
-  Config.set_from_args(cwd);
-  let {is_server, is_debug, paths: {config_file}} = Config.get();
+  let {is_server, is_debug, paths: {config_file}} as config =
+    Config.from_args(cwd);
 
   /* logging */
   if (is_debug) {
@@ -22,4 +21,6 @@ let run = () => {
       ? FileUtil.relative_path(cwd, config_file) : config_file;
 
   Log.info("%s  (%s)", Emoji.gear, pretty_config_path);
+
+  config;
 };

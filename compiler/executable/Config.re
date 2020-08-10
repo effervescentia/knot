@@ -1,18 +1,5 @@
 open Globals;
 
-let global = ref(None);
-
-let get = () =>
-  switch (global^) {
-  | Some(cfg) => cfg
-  | None => invariant(ConfigurationNotInitialized)
-  };
-
-let relative_path = (extract, absolute_path) => {
-  let {paths} = get();
-  FileUtil.relative_path(extract(paths), absolute_path);
-};
-
 let is_config_file =
   String.lowercase_ascii
   % (
@@ -22,11 +9,8 @@ let is_config_file =
     | _ => false
   );
 
-let source_path = relative_path(({source_dir}) => source_dir);
-let root_path = relative_path(({root_dir}) => root_dir);
-let is_main = path => path == get().main;
-let module_name = module_ =>
-  is_main(module_) ? Knot.Constants.main_module_alias : module_;
+let module_name = (config, module_) =>
+  module_ == config.main ? Knot.Constants.main_module_alias : module_;
 
 let rec find_file = entry => {
   let dir = Filename.dirname(entry);
@@ -72,18 +56,19 @@ let generate_paths = config_file => {
   };
 };
 
-let create_descriptor = (path_resolver, target) => {
+let create_descriptor = (config, path_resolver, target) => {
   let absolute_path = path_resolver(target);
 
   KnotCompile.Globals.{
     target,
     absolute_path,
-    relative_path: source_path(absolute_path),
-    pretty_path: module_name(target),
+    relative_path:
+      FileUtil.relative_path(config.paths.source_dir, absolute_path),
+    pretty_path: module_name(config, target),
   };
 };
 
-let set_from_args = cwd => {
+let from_args = cwd => {
   let module_type = ref(ES6);
   let is_server = ref(false);
   let is_debug = ref(false);
@@ -107,22 +92,28 @@ let set_from_args = cwd => {
       (
         "-port",
         Arg.Set_int(port),
-        " The port to run on when in server mode",
+        Printf.sprintf(" The port to run on when in server mode (%d)", port^),
       ),
       (
         "-compiler.module",
         Arg.Symbol(
-          ["common", "es6"],
+          [common_module, es6_module],
           choice =>
             module_type :=
               (
                 switch (choice) {
-                | "common" => Common
+                | s when s == common_module => Common
                 | _ => ES6
                 }
               ),
         ),
-        "  The module type to generate",
+        Printf.sprintf(
+          "  The module type to generate (%s)",
+          switch (module_type^) {
+          | ES6 => es6_module
+          | Common => common_module
+          },
+        ),
       ),
     ],
     x =>
@@ -159,5 +150,5 @@ let set_from_args = cwd => {
     };
   };
 
-  global := Some(config);
+  config;
 };

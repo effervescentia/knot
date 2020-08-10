@@ -71,7 +71,8 @@
     "lexer": {
       "require": [
         "knot.lib",
-        "knot.debug"
+        "knot.debug",
+        "base"
       ],
       "name": "knot.lex",
       "namespace": "KnotLex"
@@ -190,6 +191,7 @@
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.1",
+    "@opam/base": "v0.12.2",
     "@opam/core": "v0.12.3",
     "@opam/dolog": "3.0",
     "@opam/dune": ">=1.6.0",

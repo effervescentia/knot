@@ -9,7 +9,7 @@ let log_incoming = (~addon=?, ~emoji=Emoji.chequered_flag, req_d, uri) =>
     emoji,
     Reqd.request(req_d).meth |> Method.to_string,
     Uri.to_string(uri),
-    Knot.Util.print_optional(Printf.sprintf(" (%s)"), addon),
+    Knot.Print.optional(Printf.sprintf(" (%s)"), addon),
   );
 
 let read_to_string = (req_d, f) => {

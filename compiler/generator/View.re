@@ -15,7 +15,7 @@ let gen_mixin = name =>
     )
 
   | Style_t(_, classes) =>
-    Knot.Util.print_sequential(
+    Knot.Print.sequential(
       x => Printf.sprintf("var $$_class_%s=%s_%s.%s;", x, class_map, name, x),
       classes,
     )
@@ -31,7 +31,7 @@ let gen_mixin = name =>
   | _ => "";
 
 let gen_mixins =
-  Knot.Util.print_sequential(~separator="", ((name, type_)) =>
+  Knot.Print.sequential(~separator="", ((name, type_)) =>
     gen_mixin(name, unwrap_type(type_^))
   );
 
@@ -44,7 +44,7 @@ let gen_prop = index =>
       platform_plugin,
       props_map,
       name,
-      Knot.Util.print_optional(
+      Knot.Print.optional(
         fst % Expression.generate % Printf.sprintf(",%s"),
         default_val,
       ),

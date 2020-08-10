@@ -9,7 +9,7 @@ let rec print_match = m =>
   | Exactly(c) =>
     Printf.sprintf("CHAR('%s')", String.make(1, c)) |> String.escaped
   | Any(ms) =>
-    Knot.Util.print_sequential(~separator="|", print_match, ms)
+    Knot.Print.sequential(~separator="|", print_match, ms)
     |> Printf.sprintf("ANY(%s)")
   | Not(m) => print_match(m) |> Printf.sprintf("NOT(%s)")
   | All => "ALL"

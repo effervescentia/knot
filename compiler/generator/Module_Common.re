@@ -3,7 +3,7 @@ open Globals;
 let _generate_common_module_import = (module_name, module_import) =>
   Printf.sprintf("var %s = require(\"%s\");", module_import, module_name)
 and _generate_common_named_import = module_import =>
-  Knot.Util.print_sequential(
+  Knot.Print.sequential(
     ~separator="",
     fun
     | (export_name, None) =>

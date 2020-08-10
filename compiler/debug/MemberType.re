@@ -13,26 +13,26 @@ let rec print_member_type =
   | View_t(args, ret) =>
     Printf.sprintf(
       "(%s) -> %s",
-      Knot.Util.print_comma_separated(print_member_type, args),
+      Knot.Print.comma_separated(print_member_type, args),
       print_member_type(ret),
     )
   | Style_t(params, rules) =>
     Printf.sprintf(
       "(%s) -> {%s}",
-      Knot.Util.print_comma_separated(print_member_type, params),
-      Knot.Util.print_comma_separated(x => x, rules),
+      Knot.Print.comma_separated(print_member_type, params),
+      Knot.Print.comma_separated(x => x, rules),
     )
   | State_t(params, props) =>
     Printf.sprintf(
       "(%s) -> {%s}",
-      Knot.Util.print_comma_separated(print_member_type, params),
+      Knot.Print.comma_separated(print_member_type, params),
       print_members(props),
     )
   | Object_t(members) => print_members(members) |> Printf.sprintf("{%s}")
   | Module_t(_, members, main_export) =>
     print_members(members)
     |> (
-      Knot.Util.print_optional(
+      Knot.Print.optional(
         print_member_type % Printf.sprintf("\n\t$main: %s\n"),
         main_export,
       )

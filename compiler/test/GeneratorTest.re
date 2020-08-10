@@ -42,7 +42,7 @@ let tests =
                       | _ =>
                         Printf.sprintf(
                           "IMPORT %s FROM %s;",
-                          Knot.Util.print_sequential(
+                          Knot.Print.sequential(
                             ((name, alias)) =>
                               switch (alias) {
                               | Some(alias_name) =>

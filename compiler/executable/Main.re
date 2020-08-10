@@ -3,22 +3,26 @@ open Globals;
 module Server = KnotServe.Main;
 module Transpiler = KnotTranspile.Transpiler;
 
+let inject_definition =
+  Compiler.(
+    (compiler, file) =>
+      compiler.inject(
+        Filename.concat(
+          Sys.argv[0] |> Filename.dirname |> Filename.dirname,
+          "share/knot/definitions/" ++ file,
+        ),
+      )
+  );
+
 let run = () => {
-  Setup.run();
+  let {paths} as config = Setup.run();
 
-  let {paths} as config = Config.get();
-  let desc_creator = PathResolver.simple(paths) |> Config.create_descriptor;
+  let desc_creator =
+    PathResolver.simple(paths) |> Config.create_descriptor(config);
   let compiler = Compiler.create(desc_creator);
-  let inject_definition = file =>
-    compiler.inject(
-      Filename.concat(
-        Sys.argv[0] |> Filename.dirname |> Filename.dirname,
-        "share/knot/definitions/" ++ file,
-      ),
-    );
 
-  inject_definition("jsx.kd", "@knot/jsx");
-  inject_definition("style.kd", "@knot/style");
+  inject_definition(compiler, "jsx.kd", "@knot/jsx");
+  inject_definition(compiler, "style.kd", "@knot/style");
 
   if (config.is_server) {
     Log.info(

@@ -7,5 +7,5 @@
    (name KnotLex)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lex)
-   (libraries  knot.lib knot.debug )
+   (libraries  knot.lib knot.debug base )
 )
