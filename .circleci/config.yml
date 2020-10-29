@@ -31,7 +31,7 @@ defaults:
       - macos_compiler_cache-v1
 
 orbs:
-  node: circleci/node@0.0.6
+  node: circleci/node@4.1.0
 
 executors:
   node-cypress:
