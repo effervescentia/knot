@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let module_alias = M.as_ >> M.identifier ==> (alias => Some(alias));
 let module_import =

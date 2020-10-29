@@ -1,5 +1,5 @@
 open OUnit2;
-open Knot.Globals;
+open Knot.Core;
 
 let assert_string_eql = (actual, expected) =>
   assert_equal(
@@ -74,12 +74,7 @@ let assert_single_char_cursor_eql = (actual, expected) =>
     ~msg="file cursor match",
     ~printer=
       ((ch, (row, col))) =>
-        Printf.sprintf(
-          "'%s' at [%d:%d]",
-          Knot.Util.print_uchar(ch),
-          row,
-          col,
-        ),
+        Printf.sprintf("'%s' at [%d:%d]", Knot.Print.uchar(ch), row, col),
     ~cmp=
       (lhs, rhs) =>
         Uchar.equal(fst(lhs), fst(rhs))

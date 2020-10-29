@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let analyze_rule = (scope, (key, value)) => {
   Reference.analyze(Expression.analyze, scope, key);

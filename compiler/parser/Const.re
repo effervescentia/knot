@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let decl =
   M.decl(M.const)

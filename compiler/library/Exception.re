@@ -1,10 +1,12 @@
+open Globals;
+
 type syntax_error =
   | /** found an unexpected character */
-    InvalidCharacter(Uchar.t, (int, int))
+    InvalidCharacter(Uchar.t, cursor)
   | /** comment block without closing tag */
-    UnclosedCommentBlock((int, int))
+    UnclosedCommentBlock(cursor)
   | /** string missing the closing quote */
-    UnclosedString((int, int))
+    UnclosedString(cursor)
   | /** dot operator was not followed by a valid property name */
     InvalidDotAccess;
 
@@ -81,12 +83,22 @@ type compilation_error =
       semantic_error,
     );
 
+type execution_error =
+  | MissingRootDirectory
+  | InvalidPathFormat(string)
+  | InvalidEntryPoint(string)
+  | ModuleDoesNotExist(string, string)
+  | EntryPointOutsideBuildContext(string, string);
+
 exception CompilationError(compilation_error);
+exception ExecutionError(execution_error);
+exception InternalCompilationError;
 exception NotImplemented;
 
 let throw = e => raise(CompilationError(e));
 let throw_syntax = e => throw(SyntaxError(e));
 let throw_semantic = e => throw(SemanticError(e));
+let throw_exec = e => raise(ExecutionError(e));
 
 let print_err = message =>
   ANSITerminal.(sprintf([red], "[ERROR]: %s", message)) |> print_endline;

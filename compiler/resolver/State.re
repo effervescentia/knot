@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve_prop = (sidecar_tbl, name, (value, promise)) =>
   switch (value) {

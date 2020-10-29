@@ -1,9 +1,5 @@
-open Core;
+open Globals;
 open KnotAnalyze.Scope;
-
-module Analyzer = KnotAnalyze.Analyzer;
-module Scope = KnotAnalyze.Scope;
-module Parser = KnotParse.Parser;
 
 type t = {
   add: string => unit,
@@ -57,6 +53,17 @@ let map_imports = map_name =>
 
       Module(mapped_imports, stmts);
     };
+let resolve_module = (prog, path) => {
+  let (token_stream, close_stream) = Loader.load(path);
+
+  let loaded =
+    Parser.parse(prog, token_stream)
+    |> (x => x |!> CompilationError(ParsingFailed));
+
+  close_stream();
+
+  loaded;
+};
 
 let add =
     (
@@ -71,7 +78,7 @@ let add =
     throw(CircularDependencyDetected);
   };
 
-  let loaded = Loader.load(Parser.prog, absolute_path);
+  let resolved = resolve_module(Parser.prog, absolute_path);
 
   Log.info(
     "%s  %s (%s)",
@@ -83,7 +90,7 @@ let add =
   Hashtbl.add(global_scope.module_tbl, absolute_path, Resolving);
   let module_alias_tbl =
     (
-      switch (loaded) {
+      switch (resolved) {
       | Module(x, _) => List.length(x)
       }
     )
@@ -106,7 +113,7 @@ let add =
             }
           );
         },
-      loaded,
+      resolved,
     );
 
   let linked = Linker.link(global_scope, desc, Some(mapped_loaded));
@@ -129,11 +136,11 @@ let inject =
     (global_scope, {target, absolute_path, relative_path, pretty_path}, name) => {
   Log.info("%s  (%s)", Emoji.syringe, name);
 
-  let loaded = Loader.load(Parser.defn, absolute_path);
+  let resolved = resolve_module(Parser.defn, absolute_path);
 
   Log.info("%s  (%s)", Emoji.left_pointing_magnifying_glass, name);
 
-  Analyzer.analyze_defn(loaded)
+  Analyzer.analyze_defn(resolved)
   |> (
     type_ => {
       Log.info("%s  (%s)", Emoji.heavy_check_mark, name);
@@ -167,7 +174,7 @@ let create = create_desc => {
       let absolute_path = desc.absolute_path;
 
       if (Filename.extension(absolute_path) == Knot.Constants.typedef_file_ext) {
-        try (inject(global_scope^, desc, name)) {
+        try(inject(global_scope^, desc, name)) {
         | err =>
           Hashtbl.replace(global_scope^.module_tbl, name, Failed);
 
@@ -185,7 +192,7 @@ let create = create_desc => {
         let {absolute_path} = desc;
 
         if (!is_loaded(global_scope^.module_tbl, absolute_path)) {
-          try (add(global_scope^, desc, create_desc, compiler.add)) {
+          try(add(global_scope^, desc, create_desc, compiler.add)) {
           | err =>
             Hashtbl.replace(global_scope^.module_tbl, absolute_path, Failed);
 
@@ -197,7 +204,7 @@ let create = create_desc => {
     status: () => status^,
     complete: () => status := Complete,
     iter: (entry, source_dir, f) =>
-      BuildTbl.extract(entry, source_dir, global_scope^.module_tbl)
+      BuildTable.extract(entry, source_dir, global_scope^.module_tbl)
       |> Hashtbl.iter(f),
     iter_modules: f =>
       Hashtbl.iter((key, _) => f(key), global_scope^.module_tbl),

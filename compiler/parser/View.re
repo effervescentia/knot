@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let mixins = M.tilde >> M.comma_separated(M.identifier) ==> List.map(no_ctx);
 

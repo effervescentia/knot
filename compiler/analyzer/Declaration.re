@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 open Scope;
 
 let analyze = (scope, name) =>

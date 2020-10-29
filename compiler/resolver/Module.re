@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve = ((value, promise)) =>
   switch (value) {

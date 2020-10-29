@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let gen_expr = generate_expr =>
   fun
@@ -34,7 +34,7 @@ let gen_param = (generate_expr, index) =>
       platform_plugin,
       index,
       name,
-      Knot.Util.print_optional(
+      Knot.Print.optional(
         fst % generate_expr % Printf.sprintf(",%s"),
         default_val,
       ),

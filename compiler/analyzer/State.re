@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let analyze_prop = (scope, name, promise) =>
   switch (fst(promise)) {

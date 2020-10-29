@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let () = {
   let failed = ref(false);
@@ -22,8 +22,8 @@ let () = {
       FileStreamTest.tests,
       LexerTest.tests,
       TokenStreamTest.tests,
-      ParserTest.tests,
-      ResolverTest.tests,
+      Parser_TestSuite.tests,
+      Resolver_TestSuite.tests,
       GeneratorTest.tests,
     ],
   );

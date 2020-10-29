@@ -24,23 +24,71 @@
       "name": "knot.lib",
       "namespace": "Knot"
     },
-    "lexer": {
+    "unicode": {
       "require": [
         "knot.lib"
+      ],
+      "name": "knot.unicode",
+      "namespace": "KnotUnicode"
+    },
+    "cache": {
+      "require": [
+        "knot.lib"
+      ],
+      "name": "knot.cache",
+      "namespace": "KnotCache"
+    },
+    "http": {
+      "require": [
+        "knot.lib",
+        "httpaf",
+        "lwt",
+        "lwt.unix",
+        "faraday-lwt-unix"
+      ],
+      "name": "knot.http",
+      "namespace": "KnotHTTP"
+    },
+    "debug": {
+      "require": [
+        "knot.lib",
+        "knot.unicode"
+      ],
+      "name": "knot.debug",
+      "namespace": "KnotDebug"
+    },
+    "file": {
+      "require": [
+        "knot.lib",
+        "knot.cache",
+        "knot.unicode",
+        "knot.lex",
+        "core"
+      ],
+      "name": "knot.file",
+      "namespace": "KnotFile"
+    },
+    "lexer": {
+      "require": [
+        "knot.lib",
+        "knot.debug",
+        "base"
       ],
       "name": "knot.lex",
       "namespace": "KnotLex"
     },
     "parser": {
       "require": [
-        "knot.lib"
+        "knot.lib",
+        "knot.debug"
       ],
       "name": "knot.parse",
       "namespace": "KnotParse"
     },
     "resolver": {
       "require": [
-        "knot.lib"
+        "knot.lib",
+        "knot.debug"
       ],
       "name": "knot.resolve",
       "namespace": "KnotResolve"
@@ -64,25 +112,42 @@
     "compiler": {
       "require": [
         "knot.lib",
-        "knot.lex",
+        "knot.debug",
+        "knot.file",
         "knot.parse",
         "knot.analyze"
       ],
       "name": "knot.compile",
       "namespace": "KnotCompile"
     },
-    "executable": {
+    "server": {
+      "require": [
+        "knot.lib",
+        "knot.http",
+        "knot.generate",
+        "knot.compile",
+        "uri"
+      ],
+      "name": "knot.serve",
+      "namespace": "KnotServe"
+    },
+    "transpiler": {
       "require": [
         "knot.lib",
         "knot.generate",
+        "knot.compile"
+      ],
+      "name": "knot.transpile",
+      "namespace": "KnotTranspile"
+    },
+    "executable": {
+      "require": [
+        "knot.lib",
+        "knot.debug",
+        "knot.generate",
         "knot.compile",
-        "unix",
-        "core",
-        "httpaf",
-        "lwt",
-        "lwt.unix",
-        "faraday-lwt-unix",
-        "uri"
+        "knot.serve",
+        "knot.transpile"
       ],
       "main": "Main",
       "name": "knotc.exe",
@@ -99,6 +164,8 @@
     "test": {
       "require": [
         "knot.lib",
+        "knot.unicode",
+        "knot.file",
         "knot.lex",
         "knot.parse",
         "knot.analyze",
@@ -124,6 +191,7 @@
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.1",
+    "@opam/base": "v0.12.2",
     "@opam/core": "v0.12.3",
     "@opam/dolog": "3.0",
     "@opam/dune": ">=1.6.0",

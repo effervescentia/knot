@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let prop_stmt =
   Property.prop(Expression.expr)

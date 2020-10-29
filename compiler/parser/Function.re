@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let expr_stmt = parse_expr =>
   parse_expr |> M.terminated ==> no_ctx % (x => ExpressionStatement(x));

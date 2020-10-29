@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve_callable = (params, exprs) => {
   let param_types = List.map(opt_type_ref, params);

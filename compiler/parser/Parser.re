@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let prog = stream => (Module.stmts << M.eof)(stream);
 

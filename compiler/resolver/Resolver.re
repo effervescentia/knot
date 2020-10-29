@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 type t = {resolve: (context_t, resolve_target) => unit}
 and context_t = {

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let _generate_es6_module_import = (module_name, module_import) =>
   switch (module_import) {

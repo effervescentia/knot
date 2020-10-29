@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
   let module_type =
@@ -33,12 +33,7 @@ let resolve = (module_tbl, symbol_tbl, module_, (value, promise)) => {
       =<< add_symbol(name)
 
     | (Module_t(_, export_tbl, _), NamedExport(name, alias)) =>
-      (
-        switch (alias) {
-        | Some(s) => s
-        | None => name
-        }
-      )
+      Knot.Option.default(name, alias)
       |> (
         s =>
           (

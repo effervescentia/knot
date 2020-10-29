@@ -1,6 +1,4 @@
-open Core;
-
-module Analyzer = KnotAnalyze.Analyzer;
+open Globals;
 
 let link =
   KnotAnalyze.Scope.(

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 /* </abc> */
 let close_tag = name =>

@@ -3,10 +3,8 @@ open Knot.Core;
 type t =
   | Matcher(Match.t, evaluator)
   | LookaheadMatcher(Match.t, list(Match.t), evaluator)
-  | BoundaryError(Match.t, ((int, int)) => syntax_error)
+  | BoundaryError(Match.t, cursor => syntax_error)
 and evaluator = (unit => string) => (option(token), list(t));
-
-type uchar_stream = LazyStream.t((Uchar.t, (int, int)));
 
 type active_matcher = {
   matcher: t,

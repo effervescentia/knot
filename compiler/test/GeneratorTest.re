@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let tests =
   "KnotGenerate.Generator"
@@ -10,31 +10,30 @@ let tests =
         let scope = KnotAnalyze.Scope.create();
 
         Util.load_resource(Config.sample_snippet)
-        |> UnicodeFileStream.of_channel
-        |> TokenStream.of_file_stream(~filter=TokenStream.filter_comments)
+        |> FileStream.of_channel
+        |> TokenStream.of_file_stream(Lexer.next_token)
         |> Parser.parse(Parser.prog)
         |> Analyzer.analyze(~scope)
         |> (
           fun
           | Some(ast) =>
-            switch (KnotResolve.Core.opt_type_ref(ast)) {
+            switch (KnotResolve.Globals.opt_type_ref(ast)) {
             | _ =>
               KnotGenerate.Generator.generate(
                 s => generated := generated^ ++ s,
                 {
                   to_module_name: s => s,
+
                   to_import_statement:
                     (module_name, module_import, named_imports) =>
-                    (
-                      switch (module_import) {
-                      | Some(name) =>
+                    Knot.Print.optional(
+                      name =>
                         Printf.sprintf(
                           "IMPORT MODULE %s from %s;",
                           name,
                           module_name,
-                        )
-                      | None => ""
-                      }
+                        ),
+                      module_import,
                     )
                     ++ (
                       switch (named_imports) {
@@ -42,13 +41,13 @@ let tests =
                       | _ =>
                         Printf.sprintf(
                           "IMPORT %s FROM %s;",
-                          Knot.Util.print_sequential(
+                          Knot.Print.sequential(
                             ((name, alias)) =>
-                              switch (alias) {
-                              | Some(alias_name) =>
-                                Printf.sprintf("%s AS %s", name, alias_name)
-                              | _ => name
-                              },
+                              Knot.Print.optional(
+                                ~default=name,
+                                Printf.sprintf("%s AS %s", name),
+                                alias,
+                              ),
                             named_imports,
                           ),
                           module_name,
@@ -60,11 +59,7 @@ let tests =
                     Printf.sprintf(
                       "EXPORT %s%s;",
                       name,
-                      switch (alias) {
-                      | Some(alias_name) =>
-                        Printf.sprintf(" as %s", alias_name)
-                      | None => ""
-                      },
+                      Knot.Print.optional(Printf.sprintf(" as %s"), alias),
                     ),
                 },
                 fst(ast),

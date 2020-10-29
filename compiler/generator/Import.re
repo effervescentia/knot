@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let generate = (printer, core, module_name, imports) => {
   let module_import =

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let resolve_declaration = (symbol_tbl, name, promise, typ) =>
   switch (NestedHashtbl.find(symbol_tbl, name)) {

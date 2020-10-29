@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let (==>) = (s, t) => token(s, _ => Boolean(t) |> result);
 

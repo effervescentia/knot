@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let to_file_stream = s => {
   let decoder = Uutf.decoder(`String(s));

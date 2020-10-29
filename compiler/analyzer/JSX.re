@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 open Scope;
 
 let analyze_prop = (analyze_expr, scope, (_, expr)) =>

@@ -1,11 +1,11 @@
-open Kore;
+open Globals;
 
 let simple = (config, target) =>
   (
     switch (target) {
     | res when String.length(res) == 0 => throw_exec(InvalidPathFormat(res))
-    | res when Util.is_source_module(res) =>
-      Util.to_path_segment(res)
+    | res when FileUtil.is_source_module(res) =>
+      FileUtil.to_path_segment(res)
       |> (
         s =>
           Printf.sprintf("%s%s", s, Knot.Constants.source_file_ext)

@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 open Scope;
 
 let rec analyze = (analyze_expr, scope, refr) => {

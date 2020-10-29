@@ -1,9 +1,9 @@
-open Core;
+open Globals;
 open Match;
 open Matcher;
 
 let _glyph = t =>
-  Knot.Util.split
+  Base.String.to_list
   % (
     fun
     | []

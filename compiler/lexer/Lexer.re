@@ -1,4 +1,4 @@
-open Core;
+open Globals;
 
 let _root_matchers =
   Character.matchers
