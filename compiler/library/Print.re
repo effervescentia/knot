@@ -14,10 +14,10 @@ let sequential = (~separator="", printer, xs) => {
 
 let comma_separated = printer => sequential(~separator=", ", printer);
 
-let optional = printer =>
+let optional = (~default="", printer) =>
   fun
   | Some(x) => printer(x)
-  | None => "";
+  | None => default;
 
 let uchar = ch => {
   let buf = Buffer.create(_uchar_buffer_size);

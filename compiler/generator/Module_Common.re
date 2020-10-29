@@ -34,7 +34,4 @@ let generate_import = (module_name, module_import, named_imports) => {
 };
 
 let generate_export = (name, alias) =>
-  switch (alias) {
-  | Some(alias_name) => Printf.sprintf("exports.%s = %s;", alias_name, name)
-  | None => Printf.sprintf("exports.%s = %s;", name, name)
-  };
+  Printf.sprintf("exports.%s = %s;", Knot.Option.default(name, alias), name);

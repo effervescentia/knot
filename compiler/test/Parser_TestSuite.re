@@ -44,7 +44,7 @@ let tests =
     >:: (
       _ => {
         let name = "myConst";
-        let stmt = ConstParserTest.const_decl(name, Number(5));
+        let stmt = Parser_ConstTest.const_decl(name, Number(5));
         let expected =
           Module(
             [],
@@ -62,7 +62,7 @@ let tests =
     >:: (
       _ => {
         let name = "myFunc";
-        let stmt = FunctionParserTest.empty_func_decl(name);
+        let stmt = Parser_FunctionTest.empty_func_decl(name);
         let expected =
           Module([], [Declaration(name, no_ctx(FunctionDecl([], [])))]);
         Util.test_parse_ast(Parser.prog, (stmt, expected));
@@ -72,7 +72,7 @@ let tests =
     >:: (
       _ => {
         let name = "MyView";
-        let stmt = ViewParserTest.empty_view_decl(name);
+        let stmt = Parser_ViewTest.empty_view_decl(name);
         let expected =
           Module(
             [],
@@ -85,15 +85,15 @@ let tests =
     >:: (
       _ => {
         let name = "MyState";
-        let stmt = StateParserTest.empty_state_decl(name);
+        let stmt = Parser_StateTest.empty_state_decl(name);
         let expected =
           Module([], [Declaration(name, no_ctx(StateDecl([], [])))]);
         Util.test_parse_ast(Parser.prog, (stmt, expected));
       }
     ),
-    ImportParserTest.tests,
-    ConstParserTest.tests,
-    FunctionParserTest.tests,
-    ViewParserTest.tests,
-    StateParserTest.tests,
+    Parser_ImportTest.tests,
+    Parser_ConstTest.tests,
+    Parser_FunctionTest.tests,
+    Parser_ViewTest.tests,
+    Parser_StateTest.tests,
   ];

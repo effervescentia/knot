@@ -4,7 +4,7 @@ let test_read_fully = (file, expected_tkns, _) => {
   let token_stream =
     Util.load_resource(file)
     |> FileStream.of_channel
-    |> TokenStream.of_file_stream(Lexer.next_token);
+    |> TokenStream.of_file_stream(~filter=None, Lexer.next_token);
 
   let rec loop = (stream, tkns) =>
     switch (stream, tkns) {

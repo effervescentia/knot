@@ -33,12 +33,8 @@ let gen_list = printer => Knot.Print.sequential(~separator=",", printer);
 let gen_rest = printer =>
   Knot.Print.sequential(printer % Printf.sprintf(",%s"));
 
-let gen_terminated = (generator, items) =>
-  List.fold_left(
-    (acc, item) => acc ++ generator(item) |> Printf.sprintf("%s;"),
-    "",
-    items,
-  );
+let gen_terminated = generator =>
+  Knot.Print.sequential(generator % Printf.sprintf("%s;"));
 
 let gen_string =
   Str.global_replace(Str.regexp_string("'"), "\'") % Printf.sprintf("'%s'");

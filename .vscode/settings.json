@@ -2,6 +2,10 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
+  "reason.diagnostics.tools": [
+    "merlin",
+    "bsb"
+  ],
   "eslint.format.enable": true,
   "eslint.lintTask.enable": true,
   "eslint.packageManager": "yarn",

@@ -23,18 +23,17 @@ let tests =
                 s => generated := generated^ ++ s,
                 {
                   to_module_name: s => s,
+
                   to_import_statement:
                     (module_name, module_import, named_imports) =>
-                    (
-                      switch (module_import) {
-                      | Some(name) =>
+                    Knot.Print.optional(
+                      name =>
                         Printf.sprintf(
                           "IMPORT MODULE %s from %s;",
                           name,
                           module_name,
-                        )
-                      | None => ""
-                      }
+                        ),
+                      module_import,
                     )
                     ++ (
                       switch (named_imports) {
@@ -44,11 +43,11 @@ let tests =
                           "IMPORT %s FROM %s;",
                           Knot.Print.sequential(
                             ((name, alias)) =>
-                              switch (alias) {
-                              | Some(alias_name) =>
-                                Printf.sprintf("%s AS %s", name, alias_name)
-                              | _ => name
-                              },
+                              Knot.Print.optional(
+                                ~default=name,
+                                Printf.sprintf("%s AS %s", name),
+                                alias,
+                              ),
                             named_imports,
                           ),
                           module_name,
@@ -60,11 +59,7 @@ let tests =
                     Printf.sprintf(
                       "EXPORT %s%s;",
                       name,
-                      switch (alias) {
-                      | Some(alias_name) =>
-                        Printf.sprintf(" as %s", alias_name)
-                      | None => ""
-                      },
+                      Knot.Print.optional(Printf.sprintf(" as %s"), alias),
                     ),
                 },
                 fst(ast),
