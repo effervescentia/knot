@@ -13,101 +13,114 @@
     }
   },
   "buildDirs": {
-    "library": {
+    "src/library": {
       "require": [
-        "opal",
         "dolog",
-        "emoji",
-        "uutf",
-        "ANSITerminal"
+        "tablecloth-native"
       ],
       "name": "knot.lib",
       "namespace": "Knot"
     },
-    "lexer": {
+    "src/grammar": {
       "require": [
-        "knot.lib"
+        "knot.lib",
+        "knot.parse"
       ],
-      "name": "knot.lex",
-      "namespace": "KnotLex"
+      "name": "knot.grammar",
+      "namespace": "Grammar"
     },
-    "parser": {
+    "src/file": {
+      "require": [
+        "knot.lib",
+        "fileutils"
+      ],
+      "name": "knot.file",
+      "namespace": "File"
+    },
+    "src/resolve": {
+      "require": [
+        "knot.lib",
+        "knot.file"
+      ],
+      "name": "knot.resolve",
+      "namespace": "Resolve"
+    },
+    "src/parse": {
       "require": [
         "knot.lib"
       ],
       "name": "knot.parse",
-      "namespace": "KnotParse"
+      "namespace": "Parse"
     },
-    "resolver": {
+    "src/compile": {
       "require": [
         "knot.lib"
       ],
-      "name": "knot.resolve",
-      "namespace": "KnotResolve"
-    },
-    "analyzer": {
-      "require": [
-        "knot.lib",
-        "knot.resolve"
-      ],
-      "name": "knot.analyze",
-      "namespace": "KnotAnalyze"
-    },
-    "generator": {
-      "require": [
-        "knot.lib",
-        "str"
-      ],
-      "name": "knot.generate",
-      "namespace": "KnotGenerate"
-    },
-    "compiler": {
-      "require": [
-        "knot.lib",
-        "knot.lex",
-        "knot.parse",
-        "knot.analyze"
-      ],
       "name": "knot.compile",
-      "namespace": "KnotCompile"
+      "namespace": "Compile"
     },
-    "executable": {
+    "src/executable": {
       "require": [
         "knot.lib",
-        "knot.generate",
-        "knot.compile",
-        "unix",
-        "core",
-        "httpaf",
-        "lwt",
-        "lwt.unix",
-        "faraday-lwt-unix",
-        "uri"
+        "knot.file",
+        "knot.resolve",
+        "knot.compile"
       ],
       "main": "Main",
-      "name": "knotc.exe",
-      "rawBuildConfigFooter": [
-        "(install",
-        "  (section share_root)",
-        "  (files",
-        "    (definitions/jsx.kd as knot/definitions/jsx.kd)",
-        "    (definitions/style.kd as knot/definitions/style.kd)",
-        "  )",
-        ")"
-      ]
+      "name": "knotc.exe"
     },
-    "test": {
+    "test/util": {
       "require": [
-        "knot.lib",
-        "knot.lex",
-        "knot.parse",
-        "knot.analyze",
-        "knot.generate",
-        "oUnit",
-        "ANSITerminal"
+        "alcotest"
+      ],
+      "name": "knot.test",
+      "namespace": "Test"
+    },
+    "test/file": {
+      "require": [
+        "knot.test",
+        "knot.file",
+        "alcotest"
       ],
       "main": "TestSuite",
-      "name": "TestSuite.exe"
+      "name": "FileTest.exe"
+    },
+    "test/grammar": {
+      "require": [
+        "knot.test",
+        "knot.grammar",
+        "knot.parse",
+        "alcotest"
+      ],
+      "main": "TestSuite",
+      "name": "GrammarTest.exe"
+    },
+    "test/resolve": {
+      "require": [
+        "knot.test",
+        "knot.resolve",
+        "alcotest"
+      ],
+      "main": "TestSuite",
+      "name": "ResolveTest.exe"
+    },
+    "test/parse": {
+      "require": [
+        "knot.test",
+        "knot.parse",
+        "alcotest"
+      ],
+      "main": "TestSuite",
+      "name": "ParseTest.exe"
+    },
+    "test/compile": {
+      "require": [
+        "knot.test",
+        "knot.compile",
+        "alcotest"
+      ],
+      "main": "TestSuite",
+      "name": "CompileTest.exe"
     }
   },
   "scripts": {
@@ -116,29 +129,27 @@
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test:unit && npm run test:e2e 1> /dev/null",
-    "test:unit": "esy x TestSuite.exe",
+    "test:file": "esy x FileTest.exe",
+    "test:compile": "esy x CompileTest.exe",
+    "test:parse": "esy x ParseTest.exe",
+    "test:grammar": "esy x GrammarTest.exe",
+    "test:resolve": "esy x ResolveTest.exe",
+    "test:unit": "npm run test:file && npm run test:compile",
     "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
     "test:e2e:debug": "npm run test:e2e -- -debug",
     "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
-    "@opam/ANSITerminal": "0.8.1",
-    "@opam/core": "v0.12.3",
-    "@opam/dolog": "3.0",
+    "@opam/alcotest": "1.2.3",
+    "@opam/dolog": "6.0.0",
     "@opam/dune": ">=1.6.0",
-    "@opam/emoji": "1.1.0",
-    "@opam/faraday-lwt-unix": "0.7.0",
-    "@opam/httpaf": "0.6.0",
-    "@opam/lwt": "4.3.0",
-    "@opam/opal": "0.1.1",
-    "@opam/ounit": "2.0.8",
-    "@opam/uri": "3.0.0",
-    "@opam/uutf": "1.0.2"
+    "@opam/fileutils": "0.6.3",
+    "@opam/tablecloth-native": "0.0.7"
   },
   "devDependencies": {
     "@opam/merlin": "*",
-    "ocaml": "4.7.1004",
+    "ocaml": "4.10.1002",
     "pesy": "*",
     "refmterr": "*"
   }

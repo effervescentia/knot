@@ -7,3 +7,4 @@ _release
 _esy/
 .DS_Store
 *.install
+_archived/
