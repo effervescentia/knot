@@ -47,6 +47,7 @@ type program_t = list(module_statement_t);
 let of_import = ((m_id, main)) => Import(m_id, main);
 let of_decl = ((name, x)) => Declaration(name, x);
 let of_const = x => Constant(x);
+let of_of_expr = x => Expression(x);
 let of_prim = x => Primitive(x);
 let of_bool = x => Boolean(x);
 let of_int = x => Integer(x);
