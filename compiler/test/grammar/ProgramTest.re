@@ -2,21 +2,32 @@ open Kore;
 
 module Program = Grammar.Program;
 
-let _parse = Parser.parse(Program.main);
+module Assert =
+  Assert.Make({
+    type t = AST.program_t;
 
-let _check_string = Alcotest.(check(string, "string matches"));
+    let parser = Parser.parse(Program.main);
 
-let _check_parse = (source, result) =>
-  LazyStream.of_string(source)
-  |> _parse
-  |> (
-    fun
-    | Some(r) => _check_string(r, result)
-    | None =>
-      source
-      |> Printf.sprintf("failed to parse input: '%s'")
-      |> Alcotest.fail
-      |> ignore
-  );
+    let test =
+      Alcotest.(
+        check(
+          list(
+            testable(
+              (x, y) => AST.print_mod_stmt(y) |> Format.print_string,
+              (==),
+            ),
+          ),
+          "program matches",
+        )
+      );
+  });
 
-let suite = "Program" >::: ["parse" >: (() => _check_parse("foo", "bar"))];
+let suite =
+  "Program"
+  >::: [
+    "no parse" >: (() => Assert.no_parse("import")),
+    "parse"
+    >: (
+      () => Assert.parse("import foo from \"bar\"", [Import("bar", "foo")])
+    ),
+  ];

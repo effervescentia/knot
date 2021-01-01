@@ -1,1 +1,1 @@
-let now = () => Unix.gettimeofday() ** 1000.0 |> int_of_float;
+let now = (): float => Unix.gettimeofday() ** 1000.0;

@@ -1,5 +1,5 @@
 {
-  "checksum": "83e6e8714254768957cf37a12dfd178a",
+  "checksum": "ae9d158b855b13a727943a23226b9e14",
   "root": "knot@link-dev:./package.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -61,6 +61,7 @@
       },
       "overrides": [],
       "dependencies": [
+        "@opam/uutf@opam:1.0.2@4440868f",
         "@opam/tablecloth-native@opam:0.0.7@cee0eae9",
         "@opam/fileutils@opam:0.6.3@67cadc89",
         "@opam/dune@opam:2.7.1@f5f493bc", "@opam/dolog@opam:6.0.0@d406c827",

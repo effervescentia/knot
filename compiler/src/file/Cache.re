@@ -12,7 +12,7 @@ let create = (project_name: string): t => {
   temp_dir;
 };
 
-let open_file = (path: string, cache: t) =>
+let open_file = (path: string, cache: t): in_channel =>
   Filename.concat(cache, path) |> open_in;
 
 let destroy = (temp_dir: t) => Util.remove_dir(temp_dir);

@@ -1,5 +1,5 @@
 open Kore;
 
 let () = {
-  "Grammar" >:::: [ProgramTest.suite];
+  "Grammar" >:::: [ProgramTest.suite, PrimitiveStringTest.suite];
 };

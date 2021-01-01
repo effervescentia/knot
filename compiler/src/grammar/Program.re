@@ -1,7 +1,11 @@
-open Parse.Onyx;
+open Kore;
 
-let main = input => (any *> return("bar"))(input);
+type input_t = LazyStream.t(Char.t);
+type output_t = option((list(AST.module_statement_t), input_t));
+type t = input_t => output_t;
 
-let imports = input => (any *> return("bar"))(input);
+let _program = x => x << (eof() |> M.lexeme);
 
-let declarations = input => (any *> return("bar"))(input);
+let imports: t = choice([Import.parser, any >> none]) |> many |> _program;
+
+let main: t = choice([Import.parser, Declaration.parser]) |> many |> _program;
