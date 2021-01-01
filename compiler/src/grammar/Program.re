@@ -6,6 +6,6 @@ type t = input_t => output_t;
 
 let _program = x => x << (eof() |> M.lexeme);
 
-let imports: t = choice([Import.parser, any >> none]) |> many |> _program;
+let imports: t = choice([Import.parser, any >> none]) |> many;
 
 let main: t = choice([Import.parser, Declaration.parser]) |> many |> _program;

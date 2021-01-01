@@ -8,3 +8,10 @@ include Input.Make({
 
   let make = (f, s) => (f, s);
 });
+
+let join = (cs: list(t)) => {
+  let (start, end_) = List.ends(cs) |> Tuple.map2(context);
+  let name = cs |> List.map(value) |> String.of_uchars;
+
+  (name, Cursor.range(start, end_));
+};

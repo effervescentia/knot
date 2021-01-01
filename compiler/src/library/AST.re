@@ -1,13 +1,14 @@
 open Infix;
 
 type number_t =
-  | Integer(int)
+  | Integer(Int64.t)
   | Float(float);
 
 type primitive_t =
   | Nil
   | Boolean(bool)
-  | Number(number_t);
+  | Number(number_t)
+  | String(string);
 
 type binary_operator_t =
   | Add
@@ -47,6 +48,11 @@ let of_import = ((m_id, main)) => Import(m_id, main);
 let of_decl = ((name, x)) => Declaration(name, x);
 let of_const = x => Constant(x);
 let of_prim = x => Primitive(x);
+let of_bool = x => Boolean(x);
+let of_int = x => Integer(x);
+let of_float = x => Float(x);
+let of_string = x => String(x);
+let of_num = x => Number(x);
 let nil = Nil;
 
 /* print helpers */
@@ -75,13 +81,14 @@ and print_unary_op =
   | Negative => "-"
 and print_num =
   fun
-  | Integer(int) => string_of_int(int)
-  | Float(float) => string_of_float(float)
+  | Integer(int) => Int64.to_string(int)
+  | Float(float) => float |> Print.fmt("%f")
 and print_prim =
   fun
   | Nil => "nil"
   | Boolean(bool) => string_of_bool(bool)
   | Number(num) => print_num(num)
+  | String(str) => str |> Print.fmt("\"%s\"")
 and print_expr =
   fun
   | Primitive(prim) => ""

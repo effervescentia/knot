@@ -7,7 +7,7 @@ let parser =
   >>= (
     name =>
       Keyword.from
-      >> Primitive.string
+      >> M.string
       >|= fst
       >>= (id => (id, name) |> AST.of_import |> return)
   )

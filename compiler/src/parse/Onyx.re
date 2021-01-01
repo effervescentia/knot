@@ -175,7 +175,7 @@ let none_of = (cs: list(char)) =>
  * matches a range of characters
  */
 let range = (l: char, r: char) =>
-  satisfy(v => Uchar.of_char(l) <= v && Uchar.of_char(r) >= v);
+  satisfy(v => Uchar.of_char(l) <= v && v <= Uchar.of_char(r));
 
 /**
  * returns a default value if x not matched
@@ -185,7 +185,7 @@ let option = (default, x) => x <|> return(default);
 /**
  * returns nothing whether or not x is matched
  */
-let optional = x => x >> none |> option();
+let optional = x => option((), x >> return());
 
 /**
  * matches a pattern multiple times and return an empty result
@@ -207,61 +207,3 @@ let rec many = x =>
  * matches a pattern n+1 times and return a list of results
  */
 let many1 = x => x <~> many(x);
-
-/* matchers */
-
-module Matchers = {
-  let space = one_of([' ', '\t', '\n']);
-  let spaces = skip_many(space);
-
-  let underscore = char('_');
-
-  let digit = range('0', '9');
-
-  let lower_alpha = range('a', 'z');
-  let upper_alpha = range('A', 'Z');
-  let alpha = lower_alpha <|> upper_alpha;
-
-  let alpha_num = digit <|> alpha;
-
-  let lexeme = x => spaces >> x;
-
-  let terminated = x => x << (char(';') |> optional);
-
-  /**
-   * matches a sequence of characters
-   */
-  let token = (s: string) =>
-    ctx
-    >>= (
-      start => {
-        let rec loop =
-          fun
-          | [] => assert(false)
-          | [c] =>
-            char(c)
-            >>= Char.context
-            % (end_ => return((s, Cursor.range(start, end_))))
-          | [c, ...cs] => char(c) >> loop(cs);
-
-        loop(s |> String.to_seq |> List.of_seq);
-      }
-    )
-    |> lexeme;
-
-  /**
-   * matches a sequence of alpha-numeric characters
-   */
-  let identifier =
-    choice([alpha, underscore])
-    <~> (choice([alpha_num, underscore]) |> many)
-    >|= (
-      rs => {
-        let (start, end_) = List.ends(rs) |> Tuple.map2(Char.context);
-        let name = rs |> List.map(Char.value) |> String.of_uchars;
-
-        (name, Cursor.range(start, end_));
-      }
-    )
-    |> lexeme;
-};

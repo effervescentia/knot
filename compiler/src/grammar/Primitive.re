@@ -2,29 +2,39 @@ open Kore;
 
 let __backslash = Uchar.of_char(C.Character.backslash);
 
-let string =
-  Character.quote
-  >|= Char.context
-  >>= (
-    start => {
-      let rec loop = f =>
-        choice([
-          /* end of string sequence */
-          Character.quote
-          >|= Char.context
-          % (end_ => (String.of_uchars(f([])), Cursor.range(start, end_))),
-          /* capture escaped characters */
-          Character.backslash
-          >> any
-          >|= Char.value
-          >>= (c => loop(rs => f([__backslash, c, ...rs]))),
-          /* capture characters of the string */
-          none_of([C.Character.quote, C.Character.eol])
-          >|= Char.value
-          >>= (c => loop(rs => f([c, ...rs]))),
-        ]);
+let nil = AST.nil <$ Keyword.nil |> M.lexeme;
 
-      loop(Functional.identity);
-    }
+let boolean =
+  true
+  <$ Keyword.true_
+  <|> (false <$ Keyword.false_)
+  >|= AST.of_bool
+  |> M.lexeme;
+
+let integer =
+  many1(M.digit)
+  >|= Char.join
+  % fst
+  % Int64.of_string
+  % AST.of_int
+  |> M.lexeme;
+
+let float =
+  many1(M.digit)
+  >>= Char.join
+  % (
+    is =>
+      Character.period
+      >> many1(M.digit)
+      >|= Char.join
+      % (fs => Print.fmt("%s.%s", fst(is), fst(fs)))
+      % Float.of_string
+      % AST.of_float
   )
   |> M.lexeme;
+
+let number = choice([integer, float]) >|= AST.of_num;
+
+let string = M.string >|= fst % AST.of_string;
+
+let parser = choice([nil, boolean, number, string]) >|= AST.of_prim;
