@@ -5,6 +5,7 @@ module Character = {
   let period = '.';
   let underscore = '_';
   let semicolon = ';';
+  let equal_sign = '=';
 };
 
 module Keyword = {
