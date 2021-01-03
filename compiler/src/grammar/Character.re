@@ -10,6 +10,9 @@ let underscore = char(C.underscore);
 let semicolon = char(C.semicolon);
 let equal_sign = char(C.equal_sign);
 
+let exclamation_mark = char(C.exclamation_mark);
+let caret = char(C.caret);
+
 let asterisk = char(C.asterisk);
 let forward_slash = char(C.forward_slash);
 let plus_sign = char(C.plus_sign);
@@ -20,3 +23,6 @@ let close_paren = char(C.close_paren);
 
 let open_brace = char(C.open_brace);
 let close_brace = char(C.close_brace);
+
+let open_chevron = char(C.open_chevron);
+let close_chevron = char(C.close_chevron);

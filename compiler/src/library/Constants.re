@@ -7,6 +7,9 @@ module Character = {
   let semicolon = ';';
   let equal_sign = '=';
 
+  let exclamation_mark = '!';
+  let caret = '^';
+
   let asterisk = '*';
   let forward_slash = '/';
   let plus_sign = '+';
@@ -20,6 +23,9 @@ module Character = {
 
   let open_bracket = '[';
   let close_bracket = ']';
+
+  let open_chevron = '<';
+  let close_chevron = '>';
 };
 
 module Glyph = {

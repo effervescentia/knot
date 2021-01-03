@@ -26,16 +26,35 @@ let suite =
   >::: [
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
     "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
+    "parse identifier" >: (() => Assert.parse("foo", AST.of_id("foo"))),
+    "parse group"
+    >: (() => Assert.parse("(foo)", AST.of_id("foo") |> AST.of_group)),
+    "parse unary"
+    >: (
+      () =>
+        [
+          ("-123", int_prim(123) |> AST.of_neg_op),
+          ("!true", bool_prim(true) |> AST.of_not_op),
+        ]
+        |> Assert.parse_many
+    ),
     "parse boolean logic"
     >: (
       () =>
         [("&&", AST.of_and_op), ("||", AST.of_or_op)]
         |> List.map(((op, tag)) =>
-             (
-               op |> Print.fmt("true %s false"),
-               (bool_prim(true), bool_prim(false)) |> tag,
-             )
+             [
+               (
+                 op |> Print.fmt("true%sfalse"),
+                 (bool_prim(true), bool_prim(false)) |> tag,
+               ),
+               (
+                 op |> Print.fmt(" true %s false "),
+                 (bool_prim(true), bool_prim(false)) |> tag,
+               ),
+             ]
            )
+        |> List.flatten
         |> Assert.parse_many
     ),
     "parse arithmetic"
@@ -48,11 +67,18 @@ let suite =
           ("/", AST.of_div_op),
         ]
         |> List.map(((op, tag)) =>
-             (
-               op |> Print.fmt("123 %s 456"),
-               (int_prim(123), int_prim(456)) |> tag,
-             )
+             [
+               (
+                 op |> Print.fmt("123%s456"),
+                 (int_prim(123), int_prim(456)) |> tag,
+               ),
+               (
+                 op |> Print.fmt(" 123 %s 456 "),
+                 (int_prim(123), int_prim(456)) |> tag,
+               ),
+             ]
            )
+        |> List.flatten
         |> Assert.parse_many
     ),
     "parse comparison"
@@ -65,25 +91,83 @@ let suite =
           (">", AST.of_gt_op),
         ]
         |> List.map(((op, tag)) =>
-             (
-               op |> Print.fmt("123 %s 456"),
-               (int_prim(123), int_prim(456)) |> tag,
-             )
+             [
+               (
+                 op |> Print.fmt("123%s456"),
+                 (int_prim(123), int_prim(456)) |> tag,
+               ),
+               (
+                 op |> Print.fmt(" 123 %s 456 "),
+                 (int_prim(123), int_prim(456)) |> tag,
+               ),
+             ]
            )
+        |> List.flatten
         |> Assert.parse_many
     ),
-    "parse complex arithmetic"
+    "parse complex expression"
     >: (
       () =>
-        Assert.parse(
-          "2 + 3 * 4 - 5 / 6",
+        [
           (
-            (int_prim(2), (int_prim(3), int_prim(4)) |> AST.of_mult_op)
-            |> AST.of_add_op,
-            (int_prim(5), int_prim(6)) |> AST.of_div_op,
-          )
-          |> AST.of_sub_op,
-        )
+            "2 + 3 * 4 ^ 5 - -6 / 7",
+            (
+              (
+                int_prim(2),
+                (
+                  int_prim(3),
+                  (int_prim(4), int_prim(5)) |> AST.of_expo_op,
+                )
+                |> AST.of_mult_op,
+              )
+              |> AST.of_add_op,
+              (int_prim(6) |> AST.of_neg_op, int_prim(7)) |> AST.of_div_op,
+            )
+            |> AST.of_sub_op,
+          ),
+          (
+            "(2 + 3) * 4 ^ (5 - -(6 / 7))",
+            (
+              (int_prim(2), int_prim(3)) |> AST.of_add_op |> AST.of_group,
+              (
+                int_prim(4),
+                (
+                  int_prim(5),
+                  (int_prim(6), int_prim(7))
+                  |> AST.of_div_op
+                  |> AST.of_group
+                  |> AST.of_neg_op,
+                )
+                |> AST.of_sub_op
+                |> AST.of_group,
+              )
+              |> AST.of_expo_op,
+            )
+            |> AST.of_mult_op,
+          ),
+          (
+            "a && (b > c || e <= f) && (!(g || h))",
+            (
+              (
+                AST.of_id("a"),
+                (
+                  (AST.of_id("b"), AST.of_id("c")) |> AST.of_gt_op,
+                  (AST.of_id("e"), AST.of_id("f")) |> AST.of_lte_op,
+                )
+                |> AST.of_or_op
+                |> AST.of_group,
+              )
+              |> AST.of_and_op,
+              (AST.of_id("g"), AST.of_id("h"))
+              |> AST.of_or_op
+              |> AST.of_group
+              |> AST.of_not_op
+              |> AST.of_group,
+            )
+            |> AST.of_and_op,
+          ),
+        ]
+        |> Assert.parse_many
     ),
     "parse left-associative"
     >: (
@@ -109,6 +193,30 @@ let suite =
                |> tag,
              )
            )
+        |> Assert.parse_many
+    ),
+    "parse right-associative"
+    >: (
+      () =>
+        (
+          [("^", AST.of_expo_op)]
+          |> List.map(((op, tag)) =>
+               (
+                 Print.fmt("a %s b %s c", op, op),
+                 (AST.of_id("a"), (AST.of_id("b"), AST.of_id("c")) |> tag)
+                 |> tag,
+               )
+             )
+        )
+        @ (
+          [("-", AST.of_neg_op), ("!", AST.of_not_op)]
+          |> List.map(((op, tag)) =>
+               (
+                 Print.fmt("%s %s %s a", op, op, op),
+                 AST.of_id("a") |> tag |> tag |> tag,
+               )
+             )
+        )
         |> Assert.parse_many
     ),
   ];

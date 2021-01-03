@@ -28,6 +28,9 @@ let recur = f => {
 let binary_op = (lx, op, rx) =>
   map3((l, _, r) => (l, r), lx, spaces >> op << spaces, rx);
 
+let rec unary_op = (x, op) =>
+  op |> lexeme >>= (f => unary_op(x, op) >|= f) <|> x;
+
 /**
  * matches a sequence of characters but tolerates spaces in between
  */

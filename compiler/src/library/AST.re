@@ -26,10 +26,12 @@ type binary_operator_t =
   | Add
   | Subtract
   | Divide
-  | Multiply;
+  | Multiply
+  | Exponent;
 
 type unary_operator_t =
   | Not
+  | Positive
   | Negative;
 
 type expression_t =
@@ -37,7 +39,7 @@ type expression_t =
   | Identifier(string)
   | Group(expression_t)
   | BinaryOp(binary_operator_t, expression_t, expression_t)
-  | UnaryOperation(unary_operator_t, expression_t)
+  | UnaryOp(unary_operator_t, expression_t)
   | Closure(list(statement_t))
 and statement_t =
   | Variable(string, expression_t)
@@ -65,6 +67,10 @@ let of_id = x => Identifier(x);
 let of_group = x => Group(x);
 let of_closure = xs => Closure(xs);
 
+let of_not_op = x => UnaryOp(Not, x);
+let of_neg_op = x => UnaryOp(Negative, x);
+let of_pos_op = x => UnaryOp(Positive, x);
+
 let of_and_op = ((l, r)) => BinaryOp(LogicalAnd, l, r);
 let of_or_op = ((l, r)) => BinaryOp(LogicalOr, l, r);
 
@@ -80,6 +86,8 @@ let of_gte_op = ((l, r)) => BinaryOp(GreaterOrEqual, l, r);
 
 let of_eq_op = ((l, r)) => BinaryOp(Equal, l, r);
 let of_ineq_op = ((l, r)) => BinaryOp(Unequal, l, r);
+
+let of_expo_op = ((l, r)) => BinaryOp(Exponent, l, r);
 
 let of_prim = x => Primitive(x);
 let of_bool = x => Boolean(x);
@@ -118,9 +126,11 @@ and print_binary_op =
   | GreaterThan => ">"
   | Equal => "=="
   | Unequal => "!="
+  | Exponent => "^"
 and print_unary_op =
   fun
   | Not => "!"
+  | Positive => "+"
   | Negative => "-"
 and print_num =
   fun
@@ -139,12 +149,12 @@ and print_expr =
   | Group(expr) => print_expr(expr) |> Print.fmt("(%s)")
   | BinaryOp(op, lhs, rhs) =>
     Print.fmt(
-      "(%s %s %s)",
+      "⟨%s %s %s⟩",
       print_expr(lhs),
       print_binary_op(op),
       print_expr(rhs),
     )
-  | UnaryOperation(op, expr) => print_unary_op(op) ++ print_expr(expr)
+  | UnaryOp(op, expr) => print_unary_op(op) ++ print_expr(expr)
   | Closure(exprs) =>
     Print.many(~separator="\n", print_stmt, exprs) |> Print.fmt("{\n%s}")
 and print_stmt = stmt =>
