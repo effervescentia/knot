@@ -6,9 +6,6 @@ let parser =
   >|= fst
   >>= (
     name =>
-      Keyword.from
-      >> M.string
-      >|= fst
-      >>= (id => (id, name) |> AST.of_import |> return)
+      Keyword.from >> M.string >|= fst % (id => (id, name) |> AST.of_import)
   )
   |> M.terminated;

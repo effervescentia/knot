@@ -23,8 +23,12 @@ module Assert =
 let suite =
   "Primitive - String"
   >::: [
-    "no parse" >: (() => Assert.no_parse("gibberish")),
-    "parse" >: (() => Assert.parse("\"foo\"", AST.of_string("foo"))),
+    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "parse"
+    >: (
+      () =>
+        ["\"foo\"", " \"foo\" "] |> Assert.parse_all(AST.of_string("foo"))
+    ),
     "with escape characters"
     >: (() => Assert.parse("\"foo\\\"bar\"", AST.of_string("foo\\\"bar"))),
   ];

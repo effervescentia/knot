@@ -20,7 +20,9 @@ module Assert =
 let suite =
   "Primitive - Boolean"
   >::: [
-    "no parse" >: (() => Assert.no_parse("gibberish")),
-    "parse true" >: (() => Assert.parse("true", AST.of_bool(true))),
-    "parse false" >: (() => Assert.parse("false", AST.of_bool(false))),
+    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "parse true"
+    >: (() => ["true", " true "] |> Assert.parse_all(AST.of_bool(true))),
+    "parse false"
+    >: (() => ["false", " false "] |> Assert.parse_all(AST.of_bool(false))),
   ];

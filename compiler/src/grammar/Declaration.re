@@ -1,12 +1,12 @@
 open Kore;
 
-let constant_decl =
+let constant =
   Keyword.const
-  >> M.identifier
-  >>= fst
-  % (
-    id =>
-      Operator.assign >> Expression.parser >|= AST.of_const % (x => (id, x))
-  );
+  >> M.binary_op(
+       M.identifier >|= fst,
+       Operator.assign,
+       Expression.parser >|= AST.of_const,
+     )
+  |> M.terminated;
 
-let parser = choice([constant_decl]) >|= AST.of_decl;
+let parser = choice([constant]) >|= AST.of_decl;

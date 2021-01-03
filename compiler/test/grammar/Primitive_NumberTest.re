@@ -35,12 +35,16 @@ let suite =
     "no parse"
     >: (
       () => {
-        AssertInteger.no_parse("gibberish");
-        AssertFloat.no_parse("gibberish");
+        ["gibberish"] |> AssertInteger.no_parse;
+        ["gibberish"] |> AssertFloat.no_parse;
       }
     ),
     "parse integer"
-    >: (() => AssertInteger.parse("123", Int64.of_int(123) |> AST.of_int)),
+    >: (
+      () =>
+        ["123", " 123 "]
+        |> AssertInteger.parse_all(Int64.of_int(123) |> AST.of_int)
+    ),
     "max integer"
     >: (
       () =>
@@ -50,7 +54,11 @@ let suite =
         )
     ),
     "parse float"
-    >: (() => AssertFloat.parse("123.45", 123.45 |> AST.of_float)),
+    >: (
+      () =>
+        ["123.45", " 123.45 "]
+        |> AssertFloat.parse_all(123.45 |> AST.of_float)
+    ),
     "max float"
     >: (
       () =>

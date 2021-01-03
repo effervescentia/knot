@@ -207,3 +207,36 @@ let rec many = x =>
  * matches a pattern n+1 times and return a list of results
  */
 let many1 = x => x <~> many(x);
+
+/**
+ * matches a pattern n+1 times separated by operator op
+ *
+ * associativity: left-to-right
+ */
+let chainl1 = (x, op) => {
+  let rec loop = a =>
+    op >>= (f => x >>= (b => loop(f((a, b))))) <|> return(a);
+  x >>= loop;
+};
+
+/**
+ * matches a pattern multiple times separated by operator op
+ *
+ * associativity: left-to-right
+ */
+let chainl = (x, op, default) => chainl1(x, op) <|> return(default);
+
+/**
+ * matches a pattern n+1 times separated by operator op
+ *
+ * associativity: right-to-left
+ */
+let rec chainr1 = (x, op) =>
+  x >>= (a => op >>= (f => chainr1(x, op) >|= f(a)) <|> return(a));
+
+/**
+ * matches a pattern multiple times separated by operator op
+ *
+ * associativity: right-to-left
+ */
+let chainr = (x, op, default) => chainr1(x, op) <|> return(default);

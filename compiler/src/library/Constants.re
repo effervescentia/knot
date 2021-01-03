@@ -1,11 +1,38 @@
 module Character = {
-  let backslash = '\\';
+  let back_slash = '\\';
   let eol = '\n';
   let quote = '"';
   let period = '.';
   let underscore = '_';
   let semicolon = ';';
   let equal_sign = '=';
+
+  let asterisk = '*';
+  let forward_slash = '/';
+  let plus_sign = '+';
+  let minus_sign = '-';
+
+  let open_paren = '(';
+  let close_paren = ')';
+
+  let open_brace = '{';
+  let close_brace = '}';
+
+  let open_bracket = '[';
+  let close_bracket = ']';
+};
+
+module Glyph = {
+  let logical_and = "&&";
+  let logical_or = "||";
+
+  let less_or_eql = "<=";
+  let less_than = "<";
+  let greater_or_eql = ">=";
+  let greater_than = ">";
+
+  let equality = "==";
+  let inequality = "!=";
 };
 
 module Keyword = {

@@ -29,28 +29,35 @@ module AssertImports =
   });
 module Assert = Assert.Make(Target);
 
+let __main_import = "import foo from \"bar\"";
+let __const_decl = "const foo = nil";
+
+let __main_import_ast = ("bar", "foo") |> AST.of_import;
+let __const_decl_ast =
+  ("foo", AST.nil |> AST.of_prim |> AST.of_const) |> AST.of_decl;
+
 let suite =
   "Program"
   >::: [
-    "no parse" >: (() => Assert.no_parse("import")),
-    "parse"
-    >: (
-      () => Assert.parse("import foo from \"bar\"", [Import("bar", "foo")])
-    ),
+    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "parse import"
+    >: (() => Assert.parse(__main_import, [__main_import_ast])),
+    "parse declaration"
+    >: (() => Assert.parse(__const_decl, [__const_decl_ast])),
     "parse multiple"
     >: (
       () =>
         Assert.parse(
-          "import foo from \"bar\"; import fizz from \"buzz\"",
-          [Import("bar", "foo"), Import("buzz", "fizz")],
+          Print.fmt("%s; %s", __main_import, __const_decl),
+          [__main_import_ast, __const_decl_ast],
         )
     ),
     "parse imports only"
     >: (
       () =>
         AssertImports.parse(
-          "import foo from \"bar\"; gibberish",
-          [Import("bar", "foo")],
+          __main_import |> Print.fmt("%s; gibberish"),
+          [__main_import_ast],
         )
     ),
   ];

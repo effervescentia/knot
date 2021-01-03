@@ -20,6 +20,6 @@ module Assert =
 let suite =
   "Primitive - Nil"
   >::: [
-    "no parse" >: (() => Assert.no_parse("gibberish")),
-    "parse true" >: (() => Assert.parse("nil", AST.nil)),
+    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "parse" >: (() => ["nil", " nil "] |> Assert.parse_all(AST.nil)),
   ];

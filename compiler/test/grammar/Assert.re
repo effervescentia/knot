@@ -25,14 +25,20 @@ module Make = (T: Target) => {
         |> ignore
     );
 
-  let no_parse = source =>
-    CharStream.of_string(source)
-    |> LazyStream.of_stream
-    |> T.parser
-    |> (
-      fun
-      | Some(r) =>
-        source |> Print.fmt("parsed input: '%s'") |> Alcotest.fail |> ignore
-      | None => ()
+  let parse_many = List.iter(((i, o)) => parse(i, o));
+
+  let parse_all = o => List.iter(i => parse(i, o));
+
+  let no_parse =
+    List.iter(source =>
+      CharStream.of_string(source)
+      |> LazyStream.of_stream
+      |> T.parser
+      |> (
+        fun
+        | Some(r) =>
+          source |> Print.fmt("parsed input: '%s'") |> Alcotest.fail |> ignore
+        | None => ()
+      )
     );
 };

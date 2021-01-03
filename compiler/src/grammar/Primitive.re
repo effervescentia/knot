@@ -1,7 +1,5 @@
 open Kore;
 
-let __backslash = Uchar.of_char(C.Character.backslash);
-
 let nil = AST.nil <$ Keyword.nil |> M.lexeme;
 
 let boolean =
@@ -37,4 +35,4 @@ let number = choice([integer, float]) >|= AST.of_num;
 
 let string = M.string >|= fst % AST.of_string;
 
-let parser = choice([nil, boolean, number, string]) >|= AST.of_prim;
+let parser = choice([nil, boolean, number, string]);

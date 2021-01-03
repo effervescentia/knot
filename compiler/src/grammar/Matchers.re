@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-let __backslash = Uchar.of_char(Constants.Character.backslash);
+let __back_slash = Uchar.of_char(Constants.Character.back_slash);
 
 let space = one_of([' ', '\t', '\n']);
 let spaces = skip_many(space);
@@ -18,9 +18,34 @@ let lexeme = x => spaces >> x;
 
 let terminated = x => x << optional(spaces >> Character.semicolon);
 
+let between = (l, r, x) => l >> lexeme(x) << lexeme(r);
+
+let recur = f => {
+  let rec p = input => f(p, input);
+  p;
+};
+
+let binary_op = (lx, op, rx) =>
+  map3((l, _, r) => (l, r), lx, spaces >> op << spaces, rx);
+
 /**
-   * matches a sequence of characters
-   */
+ * matches a sequence of characters but tolerates spaces in between
+ */
+let glyph = (s: string) =>
+  {
+    let rec loop =
+      fun
+      | [] => assert(false)
+      | [c] => char(c) |> lexeme >> return(s)
+      | [c, ...cs] => char(c) |> lexeme >> loop(cs);
+
+    loop(s |> String.to_seq |> List.of_seq);
+  }
+  |> lexeme;
+
+/**
+ * matches a sequence of characters
+ */
 let token = (s: string) =>
   ctx
   >>= (
@@ -40,8 +65,8 @@ let token = (s: string) =>
   |> lexeme;
 
 /**
-   * matches a sequence of alpha-numeric characters
-   */
+ * matches a sequence of alpha-numeric characters
+ */
 let identifier =
   choice([alpha, Character.underscore])
   <~> (choice([alpha_num, Character.underscore]) |> many)
@@ -64,10 +89,10 @@ let string =
           >|= Char.context
           % (end_ => (String.of_uchars(f([])), Cursor.range(start, end_))),
           /* capture escaped characters */
-          Character.backslash
+          Character.back_slash
           >> any
           >|= Char.value
-          >>= (c => loop(rs => f([__backslash, c, ...rs]))),
+          >>= (c => loop(rs => f([__back_slash, c, ...rs]))),
           /* capture characters of the string */
           none_of([Constants.Character.quote, Constants.Character.eol])
           >|= Char.value
