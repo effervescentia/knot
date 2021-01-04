@@ -126,7 +126,7 @@ let (<?>) = (x, e, input) =>
  *
  * if parser x succeeds, append it to the results of parser xs
  */
-let (<~>) = (x, xs) => x >>= (r => xs >>= (rs => return([r, ...rs])));
+let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 
 /* helpers */
 
@@ -185,7 +185,7 @@ let option = (default, x) => x <|> return(default);
 /**
  * returns nothing whether or not x is matched
  */
-let optional = x => option((), x >> return());
+let optional = x => option((), () <$ x);
 
 /**
  * matches a pattern multiple times and return an empty result

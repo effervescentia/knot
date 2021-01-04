@@ -7,6 +7,12 @@ let identifier = M.identifier >|= fst % AST.of_id;
 let group = x =>
   M.between(Character.open_paren, Character.close_paren, x) >|= AST.of_group;
 
+let closure = x =>
+  Statement.parser(x)
+  |> many
+  |> M.between(Character.open_brace, Character.close_brace)
+  >|= AST.of_closure;
+
 /**
  * each expression has a precedence denoted by its suffix
  *
@@ -37,7 +43,7 @@ and expr_7 = input =>
     choice([Operator.not_, Operator.positive, Operator.negative]),
     input,
   )
-and expr_8 = input => (group(expr_0) <|> value)(input)
+and expr_8 = input => (closure(expr_0) <|> group(expr_0) <|> value)(input)
 and value = input => choice([primitive, identifier], input);
 
 let parser = expr_0;

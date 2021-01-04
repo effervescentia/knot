@@ -1,20 +1,13 @@
 open Kore;
 
 /**
- * unary operator
- */
-/* let (<->) = (op, f, x, input) => (M.lexeme(op) >> x >|= f)(input);
-   let (<->) = (op, f, x, input) =>
-     (M.unary_op(op >> M.spaces >> return(f), x) |> M.lexeme)(input); */
-
-/**
  * binary operator
  */
-let (<=>) = (x, f) => M.lexeme(x) >> M.spaces >> return(f);
+let (<=>) = (x, f) => f <$ (M.lexeme(x) >> M.spaces);
 
-let not_ = Character.exclamation_mark >> return(AST.of_not_op);
-let negative = Character.minus_sign >> return(AST.of_neg_op);
-let positive = Character.plus_sign >> return(AST.of_pos_op);
+let not_ = AST.of_not_op <$ Character.exclamation_mark;
+let negative = AST.of_neg_op <$ Character.minus_sign;
+let positive = AST.of_pos_op <$ Character.plus_sign;
 
 let assign = Character.equal_sign |> M.lexeme;
 

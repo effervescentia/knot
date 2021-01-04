@@ -29,6 +29,23 @@ let suite =
     "parse identifier" >: (() => Assert.parse("foo", AST.of_id("foo"))),
     "parse group"
     >: (() => Assert.parse("(foo)", AST.of_id("foo") |> AST.of_group)),
+    "parse closure"
+    >: (
+      () =>
+        Assert.parse(
+          "{
+            foo;
+            1 + 2;
+            let x = false;
+          }",
+          [
+            AST.of_id("foo") |> AST.of_expr,
+            (int_prim(1), int_prim(2)) |> AST.of_add_op |> AST.of_expr,
+            ("x", bool_prim(false)) |> AST.of_var,
+          ]
+          |> AST.of_closure,
+        )
+    ),
     "parse unary"
     >: (
       () =>

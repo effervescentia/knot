@@ -39,7 +39,7 @@ let glyph = (s: string) =>
     let rec loop =
       fun
       | [] => assert(false)
-      | [c] => char(c) |> lexeme >> return(s)
+      | [c] => s <$ (char(c) |> lexeme)
       | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
     loop(s |> String.to_seq |> List.of_seq);
@@ -58,8 +58,8 @@ let token = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >>= Char.context
-          % (end_ => return((s, Cursor.range(start, end_))))
+          >|= Char.context
+          % (end_ => (s, Cursor.range(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq);

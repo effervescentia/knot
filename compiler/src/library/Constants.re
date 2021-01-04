@@ -39,6 +39,9 @@ module Glyph = {
 
   let equality = "==";
   let inequality = "!=";
+
+  let self_close_jsx = "/>";
+  let close_jsx = "</";
 };
 
 module Keyword = {

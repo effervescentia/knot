@@ -1,15 +1,5 @@
 open Infix;
 
-type number_t =
-  | Integer(Int64.t)
-  | Float(float);
-
-type primitive_t =
-  | Nil
-  | Boolean(bool)
-  | Number(number_t)
-  | String(string);
-
 type binary_operator_t =
   /* logical operators */
   | LogicalAnd
@@ -34,7 +24,26 @@ type unary_operator_t =
   | Positive
   | Negative;
 
-type expression_t =
+type number_t =
+  | Integer(Int64.t)
+  | Float(float);
+
+type primitive_t =
+  | Nil
+  | Boolean(bool)
+  | Number(number_t)
+  | String(string)
+  | JSX(string)
+and jsx_t = {
+  name: string,
+  attributes: list(jsx_attribute_t),
+  children: list(jsx_t),
+}
+and jsx_attribute_t =
+  | Class(string)
+  | ID(string)
+  | Property(string, option(expression_t))
+and expression_t =
   | Primitive(primitive_t)
   | Identifier(string)
   | Group(expression_t)
