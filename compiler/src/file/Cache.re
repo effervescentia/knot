@@ -12,6 +12,12 @@ let create = (project_name: string): t => {
   temp_dir;
 };
 
+let resolve_path = (path: string, cache: t): string =>
+  Filename.concat(cache, path);
+
+let file_exists = (path: string, cache: t): bool =>
+  Filename.concat(cache, path) |> Sys.file_exists;
+
 let open_file = (path: string, cache: t): in_channel =>
   Filename.concat(cache, path) |> open_in;
 

@@ -4,6 +4,8 @@ let primitive = Primitive.parser >|= AST.of_prim;
 
 let identifier = M.identifier >|= fst % AST.of_id;
 
+let jsx = x => JSX.parser(x) >|= AST.of_jsx;
+
 let group = x =>
   M.between(Character.open_paren, Character.close_paren, x) >|= AST.of_group;
 
@@ -44,6 +46,6 @@ and expr_7 = input =>
     input,
   )
 and expr_8 = input => (closure(expr_0) <|> group(expr_0) <|> value)(input)
-and value = input => choice([primitive, identifier], input);
+and value = input => choice([primitive, identifier, jsx(expr_0)], input);
 
 let parser = expr_0;

@@ -1,5 +1,14 @@
 open Infix;
 
+type type_t =
+  | K_Nil
+  | K_Boolean
+  | K_Integer
+  | K_Float
+  | K_String
+  /* used to indicate types which have failed to resolve due to a compile-time error */
+  | K_Invalid;
+
 type binary_operator_t =
   /* logical operators */
   | LogicalAnd
@@ -33,19 +42,21 @@ type primitive_t =
   | Boolean(bool)
   | Number(number_t)
   | String(string)
-  | JSX(string)
-and jsx_t = {
-  name: string,
-  attributes: list(jsx_attribute_t),
-  children: list(jsx_t),
-}
+and jsx_t =
+  | Tag(string, list(jsx_attribute_t), list(jsx_child_t))
+  | Fragment(list(jsx_child_t))
+and jsx_child_t =
+  | Text(string)
+  | Node(jsx_t)
+  | InlineExpression(expression_t)
 and jsx_attribute_t =
-  | Class(string)
-  | ID(string)
+  | Class(string, option(expression_t))
+  | ID(string, option(expression_t))
   | Property(string, option(expression_t))
 and expression_t =
   | Primitive(primitive_t)
   | Identifier(string)
+  | JSX(jsx_t)
   | Group(expression_t)
   | BinaryOp(binary_operator_t, expression_t, expression_t)
   | UnaryOp(unary_operator_t, expression_t)
@@ -97,6 +108,16 @@ let of_eq_op = ((l, r)) => BinaryOp(Equal, l, r);
 let of_ineq_op = ((l, r)) => BinaryOp(Unequal, l, r);
 
 let of_expo_op = ((l, r)) => BinaryOp(Exponent, l, r);
+
+let of_jsx = x => JSX(x);
+let of_frag = xs => Fragment(xs);
+let of_tag = ((name, attrs, children)) => Tag(name, attrs, children);
+let of_prop = ((name, value)) => Property(name, value);
+let of_jsx_class = ((name, value)) => Class(name, value);
+let of_jsx_id = ((name, value)) => ID(name, value);
+let of_text = x => Text(x);
+let of_node = x => Node(x);
+let of_inline_expr = x => InlineExpression(x);
 
 let of_prim = x => Primitive(x);
 let of_bool = x => Boolean(x);
@@ -151,10 +172,43 @@ and print_prim =
   | Boolean(bool) => string_of_bool(bool)
   | Number(num) => print_num(num)
   | String(str) => str |> Print.fmt("\"%s\"")
+and print_jsx =
+  fun
+  | Tag(name, attrs, children) =>
+    List.length(children) == 0
+      ? Print.many(print_jsx_attr % Print.fmt(" %s"), attrs)
+        |> Print.fmt("<%s%s />", name)
+      : Print.fmt(
+          "<%s%s>%s</%s>",
+          name,
+          Print.many(print_jsx_attr % Print.fmt(" %s"), attrs),
+          Print.many(~separator="\n", print_jsx_child, children),
+          name,
+        )
+  | Fragment(_) => "<></>"
+and print_jsx_child =
+  fun
+  | Node(jsx) => print_jsx(jsx)
+  | Text(s) => s
+  | InlineExpression(expr) => print_expr(expr) |> Print.fmt("{%s}")
+and print_jsx_attr = attr =>
+  (
+    switch (attr) {
+    | Class(name, value) => ("." ++ name, value)
+    | ID(name, value) => ("#" ++ name, value)
+    | Property(name, value) => (name, value)
+    }
+  )
+  |> (
+    fun
+    | (name, Some(expr)) => print_expr(expr) |> Print.fmt("%s=%s", name)
+    | (name, None) => name
+  )
 and print_expr =
   fun
   | Primitive(prim) => print_prim(prim)
   | Identifier(name) => name
+  | JSX(jsx) => print_jsx(jsx)
   | Group(expr) => print_expr(expr) |> Print.fmt("(%s)")
   | BinaryOp(op, lhs, rhs) =>
     Print.fmt(

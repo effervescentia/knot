@@ -1,5 +1,5 @@
 open Kore;
 
 let () = {
-  "File" >:::: [CacheTest.suite, ReaderTest.suite, WriterTest.suite];
+  "File" >:::: [CacheTest.suite, IOTest.suite];
 };

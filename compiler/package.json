@@ -5,129 +5,87 @@
   "esy": {
     "build": "dune build -p knot",
     "buildDev": "pesy",
-    "release": {
-      "bin": [
-        "knotc.exe"
-      ],
-      "rewritePrefix": true
-    }
+    "release": { "bin": [ "knotc.exe" ], "rewritePrefix": true }
   },
   "buildDirs": {
     "src/library": {
-      "require": [
-        "dolog",
-        "tablecloth-native"
-      ],
+      "require": [ "dolog", "tablecloth-native" ],
       "name": "knot.lib",
       "namespace": "Knot"
     },
     "src/grammar": {
-      "require": [
-        "knot.lib",
-        "knot.parse"
-      ],
+      "require": [ "knot.lib", "knot.parse" ],
       "name": "knot.grammar",
       "namespace": "Grammar"
     },
     "src/file": {
-      "require": [
-        "knot.lib",
-        "fileutils",
-        "uutf"
-      ],
+      "require": [ "knot.lib", "fileutils", "uutf" ],
       "name": "knot.file",
       "namespace": "File"
     },
     "src/resolve": {
-      "require": [
-        "knot.lib",
-        "knot.file"
-      ],
+      "require": [ "knot.lib", "knot.file" ],
       "name": "knot.resolve",
       "namespace": "Resolve"
     },
     "src/parse": {
-      "require": [
-        "knot.lib"
-      ],
+      "require": [ "knot.lib" ],
       "name": "knot.parse",
       "namespace": "Parse"
     },
     "src/compile": {
-      "require": [
-        "knot.lib"
-      ],
+      "require": [ "knot.lib" ],
       "name": "knot.compile",
       "namespace": "Compile"
     },
     "src/executable": {
       "require": [
-        "knot.lib",
-        "knot.file",
-        "knot.resolve",
-        "knot.compile"
+        "knot.lib", "knot.file", "knot.resolve", "knot.parse",
+        "knot.grammar", "knot.compile"
       ],
       "main": "Main",
       "name": "knotc.exe"
     },
     "test/util": {
-      "require": [
-        "alcotest"
-      ],
+      "require": [ "alcotest" ],
       "name": "knot.test",
       "namespace": "Test"
     },
+    "test/library": {
+      "require": [ "knot.test", "knot.lib" ],
+      "main": "TestSuite",
+      "name": "LibraryTest.exe"
+    },
     "test/file": {
-      "require": [
-        "knot.test",
-        "knot.file",
-        "alcotest"
-      ],
+      "require": [ "knot.test", "knot.file" ],
       "main": "TestSuite",
       "name": "FileTest.exe"
     },
     "test/grammar": {
-      "require": [
-        "knot.test",
-        "knot.grammar",
-        "knot.parse",
-        "knot.file",
-        "alcotest"
-      ],
+      "require": [ "knot.test", "knot.grammar", "knot.parse", "knot.file" ],
       "main": "TestSuite",
       "name": "GrammarTest.exe"
     },
     "test/resolve": {
-      "require": [
-        "knot.test",
-        "knot.resolve",
-        "alcotest"
-      ],
+      "require": [ "knot.test", "knot.resolve" ],
       "main": "TestSuite",
       "name": "ResolveTest.exe"
     },
     "test/parse": {
-      "require": [
-        "knot.test",
-        "knot.parse",
-        "alcotest"
-      ],
+      "require": [ "knot.test", "knot.parse" ],
       "main": "TestSuite",
       "name": "ParseTest.exe"
     },
     "test/compile": {
-      "require": [
-        "knot.test",
-        "knot.compile",
-        "alcotest"
-      ],
+      "require": [ "knot.test", "knot.compile" ],
       "main": "TestSuite",
       "name": "CompileTest.exe"
     }
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
+    "dev":
+      "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test:unit && npm run test:e2e 1> /dev/null",
@@ -139,10 +97,12 @@
     "test:unit": "npm run test:file && npm run test:compile",
     "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
     "test:e2e:debug": "npm run test:e2e -- -debug",
-    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
+    "tdd":
+      "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
+    "@opam/ANSITerminal": "0.8.2",
     "@opam/alcotest": "1.2.3",
     "@opam/dolog": "6.0.0",
     "@opam/dune": ">=1.6.0",

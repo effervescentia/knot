@@ -1,5 +1,5 @@
 {
-  "checksum": "ae9d158b855b13a727943a23226b9e14",
+  "checksum": "cdb22ec62c9db839ea79b0d8b8bdafae",
   "root": "knot@link-dev:./package.json",
   "node": {
     "refmterr@3.3.2@d41d8cd9": {
@@ -66,6 +66,7 @@
         "@opam/fileutils@opam:0.6.3@67cadc89",
         "@opam/dune@opam:2.7.1@f5f493bc", "@opam/dolog@opam:6.0.0@d406c827",
         "@opam/alcotest@opam:1.2.3@430ebab5",
+        "@opam/ANSITerminal@opam:0.8.2@9823a93b",
         "@esy-ocaml/reason@3.6.2@d41d8cd9"
       ],
       "devDependencies": [
@@ -1205,6 +1206,35 @@
         "@opam/dune@opam:2.7.1@f5f493bc",
         "@opam/cmdliner@opam:1.0.4@93208aac",
         "@opam/astring@opam:0.8.5@1300cee8"
+      ]
+    },
+    "@opam/ANSITerminal@opam:0.8.2@9823a93b": {
+      "id": "@opam/ANSITerminal@opam:0.8.2@9823a93b",
+      "name": "@opam/ANSITerminal",
+      "version": "opam:0.8.2",
+      "source": {
+        "type": "install",
+        "source": [
+          "archive:https://opam.ocaml.org/cache/sha256/88/88046cc8138cc78ca0878a896e472a353bd097fbf4ad3e21e50a0798e22cc112#sha256:88046cc8138cc78ca0878a896e472a353bd097fbf4ad3e21e50a0798e22cc112",
+          "archive:https://github.com/Chris00/ANSITerminal/releases/download/0.8.2/ANSITerminal-0.8.2.tbz#sha256:88046cc8138cc78ca0878a896e472a353bd097fbf4ad3e21e50a0798e22cc112"
+        ],
+        "opam": {
+          "name": "ANSITerminal",
+          "version": "0.8.2",
+          "path": "esy.lock/opam/ANSITerminal.0.8.2"
+        }
+      },
+      "overrides": [],
+      "dependencies": [
+        "ocaml@4.10.1002@d41d8cd9", "@opam/dune@opam:2.7.1@f5f493bc",
+        "@opam/base-unix@opam:base@87d0b2eb",
+        "@opam/base-bytes@opam:base@19d0c2ff",
+        "@esy-ocaml/substs@0.0.1@d41d8cd9"
+      ],
+      "devDependencies": [
+        "ocaml@4.10.1002@d41d8cd9", "@opam/dune@opam:2.7.1@f5f493bc",
+        "@opam/base-unix@opam:base@87d0b2eb",
+        "@opam/base-bytes@opam:base@19d0c2ff"
       ]
     },
     "@esy-ocaml/substs@0.0.1@d41d8cd9": {

@@ -70,11 +70,15 @@ let token = (s: string) =>
 /**
  * matches a sequence of alpha-numeric characters
  */
-let identifier =
-  choice([alpha, Character.underscore])
-  <~> (choice([alpha_num, Character.underscore]) |> many)
-  >|= Char.join
-  |> lexeme;
+let identifier = (~prefix=alpha <|> Character.underscore, input) =>
+  (
+    prefix
+    <~> (alpha_num <|> Character.underscore |> many)
+    >|= Char.join
+    |> lexeme
+  )(
+    input,
+  );
 
 /**
  * matches a sequence of characters between quotation marks

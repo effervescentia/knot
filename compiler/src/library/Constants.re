@@ -1,8 +1,12 @@
+let root_dir = "@/";
+let file_extension = ".kn";
+
 module Character = {
   let back_slash = '\\';
   let eol = '\n';
   let quote = '"';
   let period = '.';
+  let octothorp = '#';
   let underscore = '_';
   let semicolon = ';';
   let equal_sign = '=';
@@ -40,8 +44,11 @@ module Glyph = {
   let equality = "==";
   let inequality = "!=";
 
-  let self_close_jsx = "/>";
-  let close_jsx = "</";
+  let open_fragment = "<>";
+  let close_fragment = "</>";
+
+  let self_close_tag = "/>";
+  let close_tag = "</";
 };
 
 module Keyword = {

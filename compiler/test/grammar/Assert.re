@@ -2,15 +2,13 @@ open Kore;
 
 include Test.Assert;
 
-module type Target = {
-  type t;
-
-  let test: (t, t) => unit;
+module type ParseTarget = {
+  include Test.Assert.Target;
 
   let parser: Grammar.Program.input_t => option(t);
 };
 
-module Make = (T: Target) => {
+module Make = (T: ParseTarget) => {
   let parse = (source, result) =>
     CharStream.of_string(source)
     |> LazyStream.of_stream
