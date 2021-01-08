@@ -6,7 +6,7 @@ include Input.Make({
   let fst = fst;
   let snd = snd;
 
-  let make = (f, s) => (f, s);
+  let create = (f, s) => (f, s);
 });
 
 let join = (cs: list(t)) => {

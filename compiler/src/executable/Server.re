@@ -1,13 +1,17 @@
 open Kore;
 
-type server_config = {
-  name: string,
-  root_dir: string,
+type config_t = {
+  compile: Compiler.config_t,
   port: int,
-  watch: option(watch_config),
 }
 and watch_config = {entry: m_id};
 
-let run = (cfg: server_config) => {
-  ();
+let run = (cfg: config_t): Lwt.t(unit) => {
+  /* let compiler = Compiler.create(cfg.compile);
+
+     Sys.set_signal(
+       Sys.sigterm,
+       Sys.Signal_handle(_ => compiler |> Compiler.teardown),
+     ); */
+  Lwt.return();
 };

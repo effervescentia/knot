@@ -21,10 +21,13 @@ let _fold_edges = (fold: ('b, ('a, 'a)) => 'b, acc: 'b, graph: t('a)) =>
 
 let _is_edge_of = (node: 'a, (parent, child): edge_t('a)): bool =>
   parent == node || child == node;
+let _is_edge_to = (node: 'a, (_, child): edge_t('a)): bool => child == node;
+let _is_edge_from = (node: 'a, (parent, _): edge_t('a)): bool =>
+  parent == node;
 
 let empty = (): t('a) => {nodes: [], edges: []};
 
-let make = (nodes: list('a), edges: list(edge_t('a))): t('a) => {
+let create = (nodes: list('a), edges: list(edge_t('a))): t('a) => {
   nodes,
   edges,
 };
@@ -34,7 +37,9 @@ let get_nodes = (graph: t('a)): list('a) => graph.nodes;
 let has_node = (node: 'a, graph: t('a)): bool =>
   graph.nodes |> List.mem(node);
 
-let get_edges = (node: 'a, graph: t('a)): list(edge_t('a)) =>
+let get_edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
+
+let get_edges_of = (node: 'a, graph: t('a)): list(edge_t('a)) =>
   graph
   |> _fold_edges(
        (acc, edge) => _is_edge_of(node, edge) ? [edge, ...acc] : acc,
@@ -53,14 +58,16 @@ let get_neighbors = (node: 'a, graph: t('a)): list('a) =>
 let get_parents = (node: 'a, graph: t('a)): list('a) =>
   graph
   |> _fold_edges(
-       (acc, (parent, child)) => child == node ? [parent, ...acc] : acc,
+       (acc, (parent, _) as edge) =>
+         _is_edge_to(node, edge) ? [parent, ...acc] : acc,
        [],
      );
 
 let get_children = (node: 'a, graph: t('a)): list('a) =>
   graph
   |> _fold_edges(
-       (acc, (parent, child)) => parent == node ? [child, ...acc] : acc,
+       (acc, (_, child) as edge) =>
+         _is_edge_from(node, edge) ? [child, ...acc] : acc,
        [],
      );
 
@@ -81,17 +88,15 @@ let add_edge = (parent: 'a, child: 'a, graph: t('a)) => {
   graph.edges = List.incl((parent, child), graph.edges);
 };
 
-let remove_node = (node: 'a, graph: t('a)) => {
+let remove_node = (node: 'a, graph: t('a)) =>
   graph.nodes = List.excl(node, graph.nodes);
-  graph.edges = graph.edges |> List.filter(edge => !_is_edge_of(node, edge));
-};
 
-let rec remove_subtree = (node: 'a, graph: t('a)) => {
-  let children = graph |> get_children(node);
+let remove_edges_to = (node: 'a, graph: t('a)) =>
+  graph.edges = graph.edges |> List.filter(edge => !_is_edge_to(node, edge));
 
-  graph |> remove_node(node);
-  children |> List.iter(child => graph |> remove_subtree(child));
-};
+let remove_edges_from = (node: 'a, graph: t('a)) =>
+  graph.edges =
+    graph.edges |> List.filter(edge => !_is_edge_from(node, edge));
 
 let find_cycles = (target_node: 'a, graph: t('a)): list(list('a)) => {
   let rec loop = (visited, node) => {
@@ -112,9 +117,7 @@ let find_cycles = (target_node: 'a, graph: t('a)): list(list('a)) => {
 
 let find_unique_cycles = (nodes: list('a), graph: t('a)): list(list('a)) =>
   nodes
-  |> List.map(node =>
-       find_cycles(node, graph)
-     )
+  |> List.map(node => find_cycles(node, graph))
   |> List.flatten
   |> List.uniq_by(List.compare_members);
 
@@ -219,7 +222,5 @@ let to_string = (print_node: 'a => string, graph: t('a)) => {
     |> List.map(root => _print_subtree(root, visited, print_node, graph));
   let depth = printed |> List.map(snd % List.length) |> Int.max_of;
 
-  _merge_trees(depth, printed)
-  |> String.join(~separator="\n")
-  |> Print.fmt("\n%s");
+  _merge_trees(depth, printed) |> String.join(~separator="\n");
 };

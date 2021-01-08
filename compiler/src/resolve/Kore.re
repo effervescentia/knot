@@ -17,6 +17,6 @@ let to_m_id = (s: string): m_id => {
       ? s : s ++ Constants.file_extension;
 
   String.starts_with(Constants.root_dir, s)
-    ? Internal(String.sub(file_name, 2, String.length(file_name) - 2))
+    ? Internal(String.drop_prefix(Constants.root_dir, file_name))
     : External(file_name);
 };

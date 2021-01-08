@@ -6,8 +6,9 @@ let _to_cursor = decoder =>
 let _to_stream = decoder => {
   let next = _ =>
     switch (Uutf.decode(decoder)) {
-    | `Uchar(uchar) => Some(Char.make(uchar, _to_cursor(decoder)))
-    | `Malformed(uchar) => Some(Char.make(Uutf.u_rep, _to_cursor(decoder)))
+    | `Uchar(uchar) => Some(Char.create(uchar, _to_cursor(decoder)))
+    | `Malformed(uchar) =>
+      Some(Char.create(Uutf.u_rep, _to_cursor(decoder)))
     | `End => None
     | `Await => assert(false)
     };

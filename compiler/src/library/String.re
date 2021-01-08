@@ -25,4 +25,13 @@ let ends_with = (suffix: string, value: string): bool =>
 let drop_left = (count: int, value: string): string =>
   TString.drop_left(~count, value);
 
+let drop_right = (count: int, value: string): string =>
+  TString.drop_right(~count, value);
+
+let drop_prefix = (prefix: string, value: string): string =>
+  starts_with(prefix, value) ? drop_left(length(prefix), value) : value;
+
+let drop_suffix = (suffix: string, value: string): string =>
+  ends_with(suffix, value) ? drop_right(length(suffix), value) : value;
+
 let repeat = (count: int, value: string) => TString.repeat(~count, value);

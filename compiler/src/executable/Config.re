@@ -1,6 +1,7 @@
 open Kore;
 
 type t = {
+  mode: mode_t,
   entry: string,
   root_dir: string,
   debug: bool,
@@ -8,10 +9,18 @@ type t = {
 
 let from_args = (): t => {
   let debug = ref(false);
+  let watch = ref(false);
   let entry = ref("");
 
   Arg.parse(
-    [("-debug", Arg.Set(debug), " Enable a higher level of logging")],
+    [
+      ("-debug", Arg.Set(debug), " Enable a higher level of logging"),
+      (
+        "-watch",
+        Arg.Set(watch),
+        " Watch the root directory for file changes",
+      ),
+    ],
     x =>
       if (entry^ == "") {
         entry := Filename.normalize(x);
@@ -25,6 +34,7 @@ let from_args = (): t => {
     raise(Arg.Bad("missing argument: entry"));
   } else {
     {
+      mode: watch^ ? Watch : Static,
       entry: Filename.basename(entry^),
       root_dir: Filename.dirname(entry^),
       debug: debug^,

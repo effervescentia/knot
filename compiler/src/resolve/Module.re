@@ -22,27 +22,37 @@ let of_string = (raw: string) => Raw(raw);
 
 let of_file = (path: path_t) => File(path);
 
+let exists =
+  fun
+  | Raw(_) => true
+  | File(path) => Sys.file_exists(path.full);
+
 let read = f =>
   fun
-  | File(path) => {
-      let (stream, close) = IO.read_stream(path.full);
-
-      (
-        try(f(stream)) {
-        | _ => []
-        }
-      )
-      |> (
-        r => {
-          close();
-          r;
-        }
-      );
-    }
+  | File(path) as x when !exists(x) =>
+    throw(UnresolvedModule(path.relative))
+  | File(path) =>
+    IO.read_stream(path.full)
+    |> (
+      ((stream, close)) =>
+        (
+          try(f(stream)) {
+          | _ => []
+          }
+        )
+        |> (
+          r => {
+            close();
+            r;
+          }
+        )
+    )
   | Raw(s) => CharStream.of_string(s) |> LazyStream.of_stream |> f;
 
-let cache = cache =>
+let cache = (cache: Cache.t) =>
   fun
   | File(path) =>
-    IO.clone(path.full, cache |> Cache.resolve_path(path.relative))
-  | _ => ();
+    if (Sys.file_exists(path.full)) {
+      IO.clone(path.full, cache |> Cache.resolve_path(path.relative));
+    }
+  | Raw(_) => ();

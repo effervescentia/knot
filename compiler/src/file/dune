@@ -7,5 +7,5 @@
    (name File)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.file)
-   (libraries  knot.lib fileutils uutf )
+   (libraries  knot.lib fileutils uutf fswatch fswatch_lwt )
 )

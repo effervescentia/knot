@@ -2,13 +2,13 @@ open Kore;
 /* open Util; */
 
 let _make_graph = () =>
-  Graph.make(
+  Graph.create(
     ["foo", "bar", "fizz", "buzz"],
     [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
   );
 let __acyclic_graph = _make_graph();
 let __branching_graph =
-  Graph.make(
+  Graph.create(
     ["a", "b", "c", "d", "e", "f", "g"],
     [
       ("a", "b"),
@@ -22,7 +22,7 @@ let __branching_graph =
     ],
   );
 let __cyclic_graph =
-  Graph.make(
+  Graph.create(
     ["foo", "bar", "fizz", "buzz", "fee", "fie", "foe"],
     [
       ("foo", "bar"),
@@ -60,12 +60,12 @@ let suite =
   >::: [
     "empty"
     >: (() => GraphAssert.test({nodes: [], edges: []}, Graph.empty())),
-    "from entities"
+    "create"
     >: (
       () =>
         GraphAssert.test(
           __acyclic_graph,
-          Graph.make(
+          Graph.create(
             ["foo", "bar", "fizz", "buzz"],
             [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
           ),
@@ -86,12 +86,12 @@ let suite =
         Assert.false_(Graph.has_node("foobar", __acyclic_graph));
       }
     ),
-    "get edges"
+    "get edges of"
     >: (
       () =>
         Assert.string_pair_list(
           [("buzz", "fizz"), ("foo", "fizz")],
-          Graph.get_edges("fizz", __acyclic_graph),
+          Graph.get_edges_of("fizz", __acyclic_graph),
         )
     ),
     "get neighbors"
@@ -121,7 +121,7 @@ let suite =
     "add node"
     >: (
       () => {
-        let graph = Graph.make(["fizz"], []);
+        let graph = Graph.create(["fizz"], []);
 
         Graph.add_node("buzz", graph);
 
@@ -132,7 +132,7 @@ let suite =
     >: (
       () => {
         let graph =
-          Graph.make(["foo", "bar", "fizz", "buzz"], [("foo", "buzz")]);
+          Graph.create(["foo", "bar", "fizz", "buzz"], [("foo", "buzz")]);
 
         Graph.add_edge("buzz", "bar", graph);
 
@@ -177,16 +177,6 @@ let suite =
           },
           graph,
         );
-      }
-    ),
-    "remove subtree"
-    >: (
-      () => {
-        let graph = _make_graph();
-
-        Graph.remove_subtree("bar", graph);
-
-        GraphAssert.test({nodes: ["buzz"], edges: []}, graph);
       }
     ),
     "find cycles"

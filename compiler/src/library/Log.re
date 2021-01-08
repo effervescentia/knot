@@ -4,6 +4,7 @@ let init =
       set_log_level(debug ? DEBUG : INFO);
       set_output(stdout);
       color_on();
+      set_prefix(" [knot]");
     }
   );
 
