@@ -10,12 +10,7 @@ module Target = {
   let test =
     Alcotest.(
       check(
-        list(
-          testable(
-            (x, y) => AST.print_mod_stmt(y) |> Format.print_string,
-            (==),
-          ),
-        ),
+        list(testable(_ => fmt_mod_stmt % Format.print_string, (==))),
         "program matches",
       )
     );

@@ -7,5 +7,5 @@
    (name Resolve)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.resolve)
-   (libraries  knot.lib knot.file )
+   (libraries  knot.file )
 )

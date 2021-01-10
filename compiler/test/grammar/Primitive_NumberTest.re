@@ -10,7 +10,7 @@ module Target = {
   let test =
     Alcotest.(
       check(
-        testable((x, y) => AST.print_num(y) |> Format.print_string, (==)),
+        testable(x => fmt_num % Format.print_string, (==)),
         "program matches",
       )
     );

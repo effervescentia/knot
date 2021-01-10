@@ -46,8 +46,7 @@ module GraphAssert =
       Alcotest.(
         check(
           testable(
-            (x, y) =>
-              Graph.to_string(Functional.identity, y) |> Format.print_string,
+            _ => Graph.to_string(Functional.identity) % Format.print_string,
             (==),
           ),
           "graph matches",
@@ -77,6 +76,14 @@ let suite =
         Assert.string_list(
           ["foo", "bar", "fizz", "buzz"],
           Graph.get_nodes(__acyclic_graph),
+        )
+    ),
+    "get edges"
+    >: (
+      () =>
+        Assert.string_pair_list(
+          [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
+          Graph.get_edges(__acyclic_graph),
         )
     ),
     "has nodes"
@@ -173,7 +180,7 @@ let suite =
         GraphAssert.test(
           {
             nodes: ["foo", "bar", "fizz"],
-            edges: [("foo", "fizz"), ("bar", "foo")],
+            edges: [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
           },
           graph,
         );

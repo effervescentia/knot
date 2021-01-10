@@ -36,6 +36,6 @@ let to_string = (table: t): string =>
   |> List.of_seq
   |> Print.many(~separator="\n", key =>
        Hashtbl.find(table, key).ast
-       |> Print.many(AST.print_mod_stmt)
+       |> Grammar.Formatter.format
        |> Print.fmt("/* %s */\n\n%s", print_m_id(key))
      );

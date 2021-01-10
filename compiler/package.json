@@ -25,7 +25,6 @@
     },
     "src/grammar": {
       "require": [
-        "knot.lib",
         "knot.parse"
       ],
       "name": "knot.grammar",
@@ -44,7 +43,6 @@
     },
     "src/resolve": {
       "require": [
-        "knot.lib",
         "knot.file"
       ],
       "name": "knot.resolve",
@@ -57,12 +55,18 @@
       "name": "knot.parse",
       "namespace": "Parse"
     },
+    "src/generate": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.generate",
+      "namespace": "Generate"
+    },
     "src/compile": {
       "require": [
-        "knot.lib",
         "knot.file",
         "knot.resolve",
-        "knot.grammar"
+        "knot.generate"
       ],
       "name": "knot.compile",
       "namespace": "Compile"
@@ -138,6 +142,7 @@
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test:unit && npm run test:e2e 1> /dev/null",
+    "test:lib": "esy x LibraryTest.exe",
     "test:file": "esy x FileTest.exe",
     "test:compile": "esy x CompileTest.exe",
     "test:parse": "esy x ParseTest.exe",
@@ -146,7 +151,7 @@
     "test:unit": "npm run test:file && npm run test:compile",
     "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
     "test:e2e:debug": "npm run test:e2e -- -debug",
-    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
+    "tdd": "sane 'esy build && npm run test' --glob='(src|test)/**/*'"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
