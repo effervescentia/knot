@@ -1,5 +1,3 @@
 open Kore;
 
-let () = {
-  "Library" >:::: [GraphTest.suite];
-};
+let tests = [GraphTest.suite];

@@ -1,5 +1,3 @@
 open Kore;
 
-let () = {
-  "File" >:::: [CacheTest.suite, IOTest.suite];
-};
+let tests = [CacheTest.suite, IOTest.suite];

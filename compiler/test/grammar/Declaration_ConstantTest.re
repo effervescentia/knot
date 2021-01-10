@@ -18,7 +18,7 @@ module Assert =
   });
 
 let suite =
-  "Declaration - Constant"
+  "Grammar - Declaration - Constant"
   >::: [
     "no parse"
     >: (

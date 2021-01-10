@@ -90,16 +90,16 @@
         "knot.test",
         "knot.lib"
       ],
-      "main": "TestSuite",
-      "name": "LibraryTest.exe"
+      "name": "knot.lib_test",
+      "namespace": "TestLibrary"
     },
     "test/file": {
       "require": [
         "knot.test",
         "knot.file"
       ],
-      "main": "TestSuite",
-      "name": "FileTest.exe"
+      "name": "knot.file_test",
+      "namespace": "TestFile"
     },
     "test/grammar": {
       "require": [
@@ -108,32 +108,44 @@
         "knot.parse",
         "knot.file"
       ],
-      "main": "TestSuite",
-      "name": "GrammarTest.exe"
+      "name": "knot.grammar_test",
+      "namespace": "TestGrammar"
     },
     "test/resolve": {
       "require": [
         "knot.test",
         "knot.resolve"
       ],
-      "main": "TestSuite",
-      "name": "ResolveTest.exe"
+      "name": "knot.resolve_test",
+      "namespace": "TestResolve"
     },
     "test/parse": {
       "require": [
         "knot.test",
         "knot.parse"
       ],
-      "main": "TestSuite",
-      "name": "ParseTest.exe"
+      "name": "knot.parse_test",
+      "namespace": "TestParse"
     },
     "test/compile": {
       "require": [
         "knot.test",
         "knot.compile"
       ],
+      "name": "knot.compile_test",
+      "namespace": "TestCompile"
+    },
+    "test/all": {
+      "require": [
+        "knot.lib_test",
+        "knot.file_test",
+        "knot.grammar_test",
+        "knot.resolve_test",
+        "knot.parse_test",
+        "knot.compile_test"
+      ],
       "main": "TestSuite",
-      "name": "CompileTest.exe"
+      "name": "Test.exe"
     }
   },
   "scripts": {
@@ -142,13 +154,7 @@
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test:unit && npm run test:e2e 1> /dev/null",
-    "test:lib": "esy x LibraryTest.exe",
-    "test:file": "esy x FileTest.exe",
-    "test:compile": "esy x CompileTest.exe",
-    "test:parse": "esy x ParseTest.exe",
-    "test:grammar": "esy x GrammarTest.exe",
-    "test:resolve": "esy x ResolveTest.exe",
-    "test:unit": "npm run test:file && npm run test:compile",
+    "test:unit": "esy x Test.exe",
     "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
     "test:e2e:debug": "npm run test:e2e -- -debug",
     "tdd": "sane 'esy build && npm run test' --glob='(src|test)/**/*'"

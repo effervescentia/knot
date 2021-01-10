@@ -30,7 +30,7 @@ module AssertFloat =
   });
 
 let suite =
-  "Primitive - Number"
+  "Grammar - Primitive - Number"
   >::: [
     "no parse"
     >: (

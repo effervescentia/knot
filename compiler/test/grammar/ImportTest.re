@@ -18,7 +18,7 @@ module Assert =
   });
 
 let suite =
-  "Import"
+  "Grammar - Import"
   >::: [
     "no parse"
     >: (

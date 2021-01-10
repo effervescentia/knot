@@ -20,7 +20,7 @@ module Assert =
   });
 
 let suite =
-  "JSX"
+  "Grammar - JSX"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse tag"

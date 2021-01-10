@@ -55,7 +55,7 @@ module GraphAssert =
   });
 
 let suite =
-  "Graph"
+  "Library - Graph"
   >::: [
     "empty"
     >: (() => GraphAssert.test({nodes: [], edges: []}, Graph.empty())),

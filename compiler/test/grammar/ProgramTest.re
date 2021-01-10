@@ -32,7 +32,7 @@ let __const_decl_ast =
   ("foo", AST.nil |> AST.of_prim |> AST.of_const) |> AST.of_decl;
 
 let suite =
-  "Program"
+  "Grammar - Program"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse import"

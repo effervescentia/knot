@@ -2,4 +2,4 @@ open Kore;
 
 module IO = File.IO;
 
-let suite = "IO" >::: [];
+let suite = "File - IO" >::: [];

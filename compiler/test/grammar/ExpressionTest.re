@@ -19,7 +19,7 @@ module Assert =
   });
 
 let suite =
-  "Expression"
+  "Grammar - Expression"
   >::: [
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
     "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
