@@ -9,6 +9,8 @@ type t =
 
 let point = (line: int, column: int): t => Point({line, column});
 
+let zero = point(0, 0);
+
 let range = (x: t, y: t): t =>
   switch (x, y) {
   | _ when x == y => x
