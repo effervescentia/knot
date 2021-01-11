@@ -93,6 +93,13 @@ let map4 = (f, w, x, y, z) => f <$> w <*> x <*> y <*> z;
 let (<$) = (v, x) => (_ => v) <$> x;
 
 /**
+ * cast
+ *
+ * use t as the type for the result of x
+ */
+let (>@) = (x, t) => x >|= Block.cast(t);
+
+/**
  * discard_left
  *
  * if parser x succeeds, drop the result and try to match parser y

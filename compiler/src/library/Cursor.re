@@ -25,10 +25,10 @@ let zero_range = range(zero, zero);
 
 let to_string: t => string =
   fun
-  | Point({line, column}) => Print.fmt("[%d:%d]", line, column)
+  | Point({line, column}) => Print.fmt("(%d:%d)", line, column)
   | Range(start, end_) =>
     Print.fmt(
-      "[%d:%d - %d:%d]",
+      "(%d:%d - %d:%d)",
       start.line,
       start.column,
       end_.line,

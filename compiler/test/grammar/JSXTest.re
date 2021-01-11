@@ -58,7 +58,7 @@ let suite =
             "<Foo fizz=buzz />",
             AST.of_tag((
               "Foo",
-              [("fizz", AST.Identifier("buzz") |> some) |> AST.of_prop],
+              [("fizz", inv_id("buzz") |> some) |> AST.of_prop],
               [],
             )),
           ),
@@ -77,9 +77,7 @@ let suite =
               [
                 (
                   "fizz",
-                  [AST.Identifier("buzz") |> AST.of_expr]
-                  |> AST.of_closure
-                  |> some,
+                  [inv_id("buzz") |> AST.of_expr] |> AST.of_closure |> some,
                 )
                 |> AST.of_prop,
               ],

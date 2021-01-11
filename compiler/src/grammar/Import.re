@@ -6,6 +6,9 @@ let parser =
   >|= Block.value
   >>= (
     name =>
-      Keyword.from >> M.string >|= fst % (id => (id, name) |> AST.of_import)
+      Keyword.from
+      >> M.string
+      >|= Block.value
+      % (id => (id, name) |> AST.of_import)
   )
   |> M.terminated;

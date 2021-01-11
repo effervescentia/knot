@@ -2,7 +2,7 @@ open Kore;
 
 let primitive = Primitive.parser >|= AST.of_prim;
 
-let identifier = M.identifier >|= Block.value % AST.of_id;
+let identifier = M.identifier >@ Type.K_Invalid >|= AST.of_id;
 
 let jsx = x => JSX.parser(x) >|= AST.of_jsx;
 

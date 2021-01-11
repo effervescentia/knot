@@ -23,9 +23,9 @@ let suite =
   >::: [
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
     "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
-    "parse identifier" >: (() => Assert.parse("foo", AST.of_id("foo"))),
+    "parse identifier" >: (() => Assert.parse("foo", inv_id("foo"))),
     "parse group"
-    >: (() => Assert.parse("(foo)", AST.of_id("foo") |> AST.of_group)),
+    >: (() => Assert.parse("(foo)", inv_id("foo") |> AST.of_group)),
     "parse closure"
     >: (
       () =>
@@ -36,7 +36,7 @@ let suite =
             let x = false;
           }",
           [
-            AST.of_id("foo") |> AST.of_expr,
+            inv_id("foo") |> AST.of_expr,
             (int_prim(1), int_prim(2)) |> AST.of_add_op |> AST.of_expr,
             ("x", bool_prim(false)) |> AST.of_var,
           ]
@@ -163,16 +163,16 @@ let suite =
             "a && (b > c || e <= f) && (!(g || h))",
             (
               (
-                AST.of_id("a"),
+                inv_id("a"),
                 (
-                  (AST.of_id("b"), AST.of_id("c")) |> AST.of_gt_op,
-                  (AST.of_id("e"), AST.of_id("f")) |> AST.of_lte_op,
+                  (inv_id("b"), inv_id("c")) |> AST.of_gt_op,
+                  (inv_id("e"), inv_id("f")) |> AST.of_lte_op,
                 )
                 |> AST.of_or_op
                 |> AST.of_group,
               )
               |> AST.of_and_op,
-              (AST.of_id("g"), AST.of_id("h"))
+              (inv_id("g"), inv_id("h"))
               |> AST.of_or_op
               |> AST.of_group
               |> AST.of_not_op
@@ -203,8 +203,7 @@ let suite =
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
-               ((AST.of_id("a"), AST.of_id("b")) |> tag, AST.of_id("c"))
-               |> tag,
+               ((inv_id("a"), inv_id("b")) |> tag, inv_id("c")) |> tag,
              )
            )
         |> Assert.parse_many
@@ -217,8 +216,7 @@ let suite =
           |> List.map(((op, tag)) =>
                (
                  Print.fmt("a %s b %s c", op, op),
-                 (AST.of_id("a"), (AST.of_id("b"), AST.of_id("c")) |> tag)
-                 |> tag,
+                 (inv_id("a"), (inv_id("b"), inv_id("c")) |> tag) |> tag,
                )
              )
         )
@@ -227,7 +225,7 @@ let suite =
           |> List.map(((op, tag)) =>
                (
                  Print.fmt("%s %s %s a", op, op, op),
-                 AST.of_id("a") |> tag |> tag |> tag,
+                 inv_id("a") |> tag |> tag |> tag,
                )
              )
         )

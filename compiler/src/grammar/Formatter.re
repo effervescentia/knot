@@ -13,9 +13,10 @@ let fmt_type =
 
 let fmt_block = (print, x) =>
   Print.fmt(
-    "[ type: %s, cursor: %s ] %s",
+    "[ type: %s, cursor: %s, errors: (%s) ] %s",
     Print.opt(fmt_type, Block.type_(x)),
     Cursor.to_string(Block.cursor(x)),
+    Print.opt(Print.many(~separator=", ", print_err), Block.errors(x)),
     print(Block.value(x)),
   );
 
@@ -98,8 +99,8 @@ and fmt_jsx_attr = attr =>
   )
 and fmt_expr =
   fun
-  | Primitive(prim) => fmt_prim(prim)
-  | Identifier(name) => name
+  | Primitive(prim) => prim <.> fmt_prim
+  | Identifier(name) => Block.value(name)
   | JSX(jsx) => fmt_jsx(jsx)
   | Group(expr) => fmt_expr(expr) |> Print.fmt("(%s)")
   | BinaryOp(op, lhs, rhs) =>

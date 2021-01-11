@@ -1,5 +1,4 @@
 open Kore;
-/* open Util; */
 
 let _make_graph = () =>
   Graph.create(

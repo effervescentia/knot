@@ -94,7 +94,13 @@ let string =
           /* end of string sequence */
           Character.quote
           >|= Char.context
-          % (end_ => (String.of_uchars(f([])), Cursor.range(start, end_))),
+          % (
+            end_ =>
+              Block.create(
+                Cursor.range(start, end_),
+                String.of_uchars(f([])),
+              )
+          ),
           /* capture escaped characters */
           Character.back_slash
           >> any

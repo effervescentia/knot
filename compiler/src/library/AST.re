@@ -45,8 +45,8 @@ and jsx_attribute_t =
   | ID(string, option(expression_t))
   | Property(string, option(expression_t))
 and expression_t =
-  | Primitive(primitive_t)
-  | Identifier(string)
+  | Primitive(Block.t(primitive_t))
+  | Identifier(Block.t(string))
   | JSX(jsx_t)
   | Group(expression_t)
   | BinaryOp(binary_operator_t, expression_t, expression_t)

@@ -1,4 +1,5 @@
 open Kore;
+open Util;
 
 module Program = Grammar.Program;
 
@@ -28,8 +29,7 @@ let __main_import = "import foo from \"bar\"";
 let __const_decl = "const foo = nil";
 
 let __main_import_ast = ("bar", "foo") |> AST.of_import;
-let __const_decl_ast =
-  ("foo", AST.nil |> AST.of_prim |> AST.of_const) |> AST.of_decl;
+let __const_decl_ast = ("foo", nil_prim |> AST.of_const) |> AST.of_decl;
 
 let suite =
   "Grammar - Program"
