@@ -2,7 +2,7 @@ open Kore;
 
 module K = C.Keyword;
 
-let _kwd = x => () <$ M.token(x);
+let _kwd = x => M.token(x) >|= (((_, cursor)) => ((), cursor));
 
 let import = _kwd(K.import);
 let from = _kwd(K.from);

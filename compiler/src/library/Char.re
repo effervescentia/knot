@@ -9,9 +9,9 @@ include Input.Make({
   let create = (f, s) => (f, s);
 });
 
-let join = (cs: list(t)) => {
+let join = (cs: list(t)): Block.t(string) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(context);
   let name = cs |> List.map(value) |> String.of_uchars;
 
-  (name, Cursor.range(start, end_));
+  Block.create(Cursor.range(start, end_), name);
 };

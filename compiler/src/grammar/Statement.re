@@ -2,7 +2,7 @@ open Kore;
 
 let variable = expr =>
   Keyword.let_
-  >> M.binary_op(M.identifier >|= fst, Operator.assign, expr)
+  >> M.binary_op(M.identifier >|= Block.value, Operator.assign, expr)
   >|= AST.of_var;
 
 let expression = expr => expr >|= AST.of_expr;

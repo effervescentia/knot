@@ -31,7 +31,7 @@ type number_t =
 type primitive_t =
   | Nil
   | Boolean(bool)
-  | Number(number_t)
+  | Number(Block.t(number_t))
   | String(string)
 and jsx_t =
   | Tag(string, list(jsx_attribute_t), list(jsx_child_t))

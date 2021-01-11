@@ -9,29 +9,7 @@ let boolean =
   >|= AST.of_bool
   |> M.lexeme;
 
-let integer =
-  many1(M.digit)
-  >|= Char.join
-  % fst
-  % Int64.of_string
-  % AST.of_int
-  |> M.lexeme;
-
-let float =
-  many1(M.digit)
-  >>= Char.join
-  % (
-    is =>
-      Character.period
-      >> many1(M.digit)
-      >|= Char.join
-      % (fs => Print.fmt("%s.%s", fst(is), fst(fs)))
-      % Float.of_string
-      % AST.of_float
-  )
-  |> M.lexeme;
-
-let number = choice([integer, float]) >|= AST.of_num;
+let number = Number.parser >|= AST.of_num;
 
 let string = M.string >|= fst % AST.of_string;
 

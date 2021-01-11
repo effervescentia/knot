@@ -3,7 +3,7 @@ open Kore;
 let constant =
   Keyword.const
   >> M.binary_op(
-       M.identifier >|= fst,
+       M.identifier >|= Block.value,
        Operator.assign,
        Expression.parser >|= AST.of_const,
      )

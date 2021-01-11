@@ -9,8 +9,8 @@ module type ParseTarget = {
 };
 
 module Make = (T: ParseTarget) => {
-  let parse = (source, result) =>
-    CharStream.of_string(source)
+  let parse = (~cursor=false, source, result) =>
+    CharStream.of_string(~cursor, source)
     |> LazyStream.of_stream
     |> T.parser
     |> (
@@ -23,13 +23,14 @@ module Make = (T: ParseTarget) => {
         |> ignore
     );
 
-  let parse_many = List.iter(((i, o)) => parse(i, o));
+  let parse_many = (~cursor=false) =>
+    List.iter(((i, o)) => parse(~cursor, i, o));
 
-  let parse_all = o => List.iter(i => parse(i, o));
+  let parse_all = (~cursor=false, o) => List.iter(i => parse(~cursor, i, o));
 
-  let no_parse =
+  let no_parse = (~cursor=false) =>
     List.iter(source =>
-      CharStream.of_string(source)
+      CharStream.of_string(~cursor, source)
       |> LazyStream.of_stream
       |> T.parser
       |> (

@@ -60,6 +60,13 @@ let (>>=) = (x, f, input) =>
 let (>|=) = (x, f) => x >>= (r => f(r) |> return);
 
 /**
+ * map_block
+ *
+ * if parser x succeeds, transform the value of the result block with f
+ */
+let (>==) = (x, f) => x >>= Block.map(f) % return;
+
+/**
  * apply
  *
  * if parser x succeeds, use the function it returns to map the result of parser y

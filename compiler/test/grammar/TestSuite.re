@@ -1,9 +1,9 @@
 open Kore;
 
 let tests = [
+  NumberTest.suite,
   Primitive_NilTest.suite,
   Primitive_BooleanTest.suite,
-  Primitive_NumberTest.suite,
   Primitive_StringTest.suite,
   JSXTest.suite,
   ExpressionTest.suite,

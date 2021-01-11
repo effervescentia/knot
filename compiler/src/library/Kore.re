@@ -2,6 +2,7 @@ include Infix;
 include Error;
 
 module AST = AST;
+module Block = Block;
 module Char = Char;
 module Constants = Constants;
 module Cursor = Cursor;

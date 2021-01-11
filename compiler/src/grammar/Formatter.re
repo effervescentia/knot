@@ -1,5 +1,25 @@
 open Kore;
 open AST;
+open Type;
+
+let fmt_type =
+  fun
+  | K_Nil => "nil"
+  | K_Boolean => "bool"
+  | K_Integer => "int"
+  | K_Float => "float"
+  | K_String => "string"
+  | K_Invalid => "invalid";
+
+let fmt_block = (print, x) =>
+  Print.fmt(
+    "[ type: %s, cursor: %s ] %s",
+    Print.opt(fmt_type, Block.type_(x)),
+    Cursor.to_string(Block.cursor(x)),
+    print(Block.value(x)),
+  );
+
+let (<.>) = (x, f) => x |> Block.value |> f;
 
 let rec fmt_mod_stmt = stmt =>
   (
@@ -42,7 +62,7 @@ and fmt_prim =
   fun
   | Nil => "nil"
   | Boolean(bool) => string_of_bool(bool)
-  | Number(num) => fmt_num(num)
+  | Number(num) => num <.> fmt_num
   | String(str) => str |> Print.fmt("\"%s\"")
 and fmt_jsx =
   fun

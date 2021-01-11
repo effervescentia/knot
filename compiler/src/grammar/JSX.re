@@ -2,11 +2,11 @@ open Kore;
 
 let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
   M.binary_op(
-    M.identifier(~prefix) >|= fst,
+    M.identifier(~prefix) >|= Block.value,
     Operator.assign,
     x >|= (v => Some(v)),
   )
-  <|> (M.identifier(~prefix) >|= fst % (s => (s, None)));
+  <|> (M.identifier(~prefix) >|= Block.value % (s => (s, None)));
 
 let _self_closing = Glyph.self_close_tag >> return([]);
 
@@ -19,7 +19,7 @@ and fragment = x =>
 and tag = x =>
   Character.open_chevron
   >> M.identifier
-  >>= fst
+  >>= Block.value
   % (
     id =>
       attributes(x)
@@ -61,7 +61,7 @@ and text = x =>
     |> many
   )
   >|= Char.join
-  % fst
+  % Block.value
   % String.trim
   % AST.of_text
 and node = x => parser(x) >|= AST.of_node
