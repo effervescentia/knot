@@ -1,5 +1,7 @@
 open Kore;
 
+let wrap_block = x => Block.create();
+
 let nil_prim = AST.nil |> AST.of_prim;
 
 let bool_prim = AST.of_bool % AST.of_prim;

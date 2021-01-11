@@ -1,7 +1,7 @@
 open Kore;
 
 type entry_t = {
-  types: Hashtbl.t(string, AST.type_t),
+  types: Hashtbl.t(string, Type.t),
   ast: AST.program_t,
 };
 
@@ -13,7 +13,7 @@ let add =
     (
       id: m_id,
       ast: AST.program_t,
-      exports: list((string, AST.type_t)),
+      exports: list((string, Type.t)),
       table: t,
     ) =>
   Hashtbl.replace(
@@ -24,7 +24,7 @@ let add =
 
 let remove = (id: m_id, table: t) => Hashtbl.remove(table, id);
 
-let add_type = ((id, name): (m_id, string), value: AST.type_t, table: t) =>
+let add_type = ((id, name): (m_id, string), value: Type.t, table: t) =>
   if (Hashtbl.mem(table, id)) {
     let members = Hashtbl.find(table, id);
 

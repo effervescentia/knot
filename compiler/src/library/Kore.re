@@ -17,3 +17,4 @@ module Log = Log;
 module Print = Print;
 module String = String;
 module Tuple = Tuple;
+module Type = Type;
