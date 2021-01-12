@@ -34,8 +34,7 @@ let recur = f => {
   p;
 };
 
-let binary_op = (lx, op, rx) =>
-  map3((l, _, r) => (l, r), lx, spaces >> op << spaces, rx);
+let binary_op = (lx, op, rx) => map3((l, _, r) => (l, r), lx, op, rx);
 
 let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
 
@@ -118,7 +117,7 @@ let string =
             end_ =>
               Block.create(
                 Cursor.range(start, end_),
-                String.of_uchars(f([])),
+                f([]) |> String.of_uchars,
               )
           ),
           /* capture escaped characters */
