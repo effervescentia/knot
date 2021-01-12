@@ -14,8 +14,8 @@ let fmt_type =
 let fmt_block = (print, x) =>
   Print.fmt(
     "[ type: %s, cursor: %s, errors: (%s) ] %s",
-    Print.opt(fmt_type, Block.type_(x)),
-    Cursor.to_string(Block.cursor(x)),
+    Block.type_(x) |> fmt_type,
+    Block.cursor(x) |> Cursor.to_string,
     Print.opt(Print.many(~separator=", ", print_err), Block.errors(x)),
     print(Block.value(x)),
   );

@@ -2,18 +2,17 @@ open Kore;
 
 let nil =
   Keyword.nil
-  >|= snd
-  % (cursor => Block.create(~type_=Type.K_Nil, cursor, AST.nil))
+  >|= Block.extend(block => {...block, type_: Type.K_Nil, value: AST.nil})
   |> M.lexeme;
 
 let boolean =
   Keyword.true_
-  >|= snd
-  % (cursor => Block.create(~type_=Type.K_Boolean, cursor, true))
+  >|= Block.cursor
+  >|= (cursor => Block.create(~type_=Type.K_Boolean, cursor, true))
   <|> (
     Keyword.false_
-    >|= snd
-    % (cursor => Block.create(~type_=Type.K_Boolean, cursor, false))
+    >|= Block.cursor
+    >|= (cursor => Block.create(~type_=Type.K_Boolean, cursor, false))
   )
   >== AST.of_bool
   |> M.lexeme;
