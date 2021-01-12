@@ -114,7 +114,7 @@ let string =
           /* end of string sequence */
           Character.quote
           >|= Char.context
-          % (
+          >|= (
             end_ =>
               Block.create(
                 Cursor.range(start, end_),

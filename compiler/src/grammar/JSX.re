@@ -51,10 +51,10 @@ and attributes = x =>
   choice([
     _attribute(x) >|= AST.of_prop,
     _attribute(~prefix=Character.period, x)
-    >|= Tuple.map_fst2(s => String.sub(s, 1, String.length(s) - 1))
+    >|= Tuple.map_fst2(String.drop_left(1))
     >|= AST.of_jsx_class,
     _attribute(~prefix=Character.octothorp, x)
-    >|= Tuple.map_fst2(s => String.sub(s, 1, String.length(s) - 1))
+    >|= Tuple.map_fst2(String.drop_left(1))
     >|= AST.of_jsx_id,
   ])
   |> many
