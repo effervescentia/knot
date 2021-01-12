@@ -8,7 +8,7 @@ let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
   )
   <|> (M.identifier(~prefix) >|= Block.value % (s => (s, None)));
 
-let _self_closing = Glyph.self_close_tag >> return([]);
+let _self_closing = [] <$ Glyph.self_close_tag;
 
 let rec parser = (x, input) =>
   (choice([fragment(x), tag(x)]) |> M.lexeme)(input)
