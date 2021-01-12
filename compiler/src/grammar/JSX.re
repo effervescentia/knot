@@ -1,9 +1,8 @@
 open Kore;
 
 let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
-  M.binary_op(
+  Operator.assign(
     M.identifier(~prefix) >|= Block.value,
-    Operator.assign,
     x >|= (v => Some(v)),
   )
   <|> (M.identifier(~prefix) >|= Block.value % (s => (s, None)));

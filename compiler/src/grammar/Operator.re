@@ -9,7 +9,7 @@ let not_ = AST.of_not_op <$ Character.exclamation_mark;
 let negative = AST.of_neg_op <$ Character.minus_sign;
 let positive = AST.of_pos_op <$ Character.plus_sign;
 
-let assign = Character.equal_sign |> M.lexeme;
+let assign = (id, x) => M.binary_op(id, Character.equal_sign, x);
 
 let mult = Character.asterisk <=> AST.of_mult_op;
 let div = Character.forward_slash <=> AST.of_div_op;
