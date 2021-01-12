@@ -48,7 +48,7 @@ and expression_t =
   | Primitive(Block.t(primitive_t))
   | Identifier(Block.t(string))
   | JSX(jsx_t)
-  | Group(expression_t)
+  | Group(Block.t(expression_t))
   | BinaryOp(binary_operator_t, expression_t, expression_t)
   | UnaryOp(unary_operator_t, expression_t)
   | Closure(list(statement_t))

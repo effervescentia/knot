@@ -102,7 +102,7 @@ and fmt_expr =
   | Primitive(prim) => prim <.> fmt_prim
   | Identifier(name) => Block.value(name)
   | JSX(jsx) => fmt_jsx(jsx)
-  | Group(expr) => fmt_expr(expr) |> Print.fmt("(%s)")
+  | Group(expr) => expr <.> fmt_expr |> Print.fmt("(%s)")
   | BinaryOp(op, lhs, rhs) =>
     Print.fmt(
       "⟨%s %s %s⟩",

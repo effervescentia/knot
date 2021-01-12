@@ -103,7 +103,7 @@ let suite =
             AST.of_tag((
               "Foo",
               [
-                ("fizz", bool_prim(true) |> AST.of_group |> some)
+                ("fizz", bool_prim(true) |> to_block |> AST.of_group |> some)
                 |> AST.of_prop,
               ],
               [],

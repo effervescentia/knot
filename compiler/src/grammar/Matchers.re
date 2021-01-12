@@ -29,11 +29,6 @@ let between = (l, r, x) =>
     r,
   );
 
-let recur = f => {
-  let rec p = input => f(p, input);
-  p;
-};
-
 let binary_op = (lx, op, rx) => map3((l, _, r) => (l, r), lx, op, rx);
 
 let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;

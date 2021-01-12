@@ -25,7 +25,9 @@ let suite =
     "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
     "parse identifier" >: (() => Assert.parse("foo", inv_id("foo"))),
     "parse group"
-    >: (() => Assert.parse("(foo)", inv_id("foo") |> AST.of_group)),
+    >: (
+      () => Assert.parse("(foo)", inv_id("foo") |> to_block |> AST.of_group)
+    ),
     "parse closure"
     >: (
       () =>
@@ -142,17 +144,22 @@ let suite =
           (
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
             (
-              (int_prim(2), int_prim(3)) |> AST.of_add_op |> AST.of_group,
+              (int_prim(2), int_prim(3))
+              |> AST.of_add_op
+              |> to_block
+              |> AST.of_group,
               (
                 int_prim(4),
                 (
                   int_prim(5),
                   (int_prim(6), int_prim(7))
                   |> AST.of_div_op
+                  |> to_block
                   |> AST.of_group
                   |> AST.of_neg_op,
                 )
                 |> AST.of_sub_op
+                |> to_block
                 |> AST.of_group,
               )
               |> AST.of_expo_op,
@@ -169,13 +176,16 @@ let suite =
                   (inv_id("e"), inv_id("f")) |> AST.of_lte_op,
                 )
                 |> AST.of_or_op
+                |> to_block
                 |> AST.of_group,
               )
               |> AST.of_and_op,
               (inv_id("g"), inv_id("h"))
               |> AST.of_or_op
+              |> to_block
               |> AST.of_group
               |> AST.of_not_op
+              |> to_block
               |> AST.of_group,
             )
             |> AST.of_and_op,
