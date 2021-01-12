@@ -19,6 +19,14 @@ let lexeme = x => spaces >> x;
 let terminated = x => x << optional(spaces >> Character.semicolon);
 
 let between = (l, r, x) => l >> lexeme(x) << lexeme(r);
+let between2 = (l, r, x) =>
+  map3(
+    (l', x', r') =>
+      Block.create(Cursor.range(Block.cursor(l'), Block.cursor(r')), x'),
+    l,
+    x,
+    r,
+  );
 
 let recur = f => {
   let rec p = input => f(p, input);
@@ -35,15 +43,22 @@ let rec unary_op = (x, op) =>
  * matches a sequence of characters but tolerates spaces in between
  */
 let glyph = (s: string) =>
-  {
-    let rec loop =
-      fun
-      | [] => assert(false)
-      | [c] => s <$ (char(c) |> lexeme)
-      | [c, ...cs] => char(c) |> lexeme >> loop(cs);
+  ctx
+  >>= (
+    start => {
+      let rec loop =
+        fun
+        | [] => assert(false)
+        | [c] =>
+          char(c)
+          >|= Char.context
+          >|= (end_ => Block.create(Cursor.range(start, end_), ()))
+          |> lexeme
+        | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
-    loop(s |> String.to_seq |> List.of_seq);
-  }
+      s |> String.to_seq |> List.of_seq |> loop;
+    }
+  )
   |> lexeme;
 
 /**
