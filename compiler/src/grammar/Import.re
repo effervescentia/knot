@@ -9,6 +9,7 @@ let parser =
       Keyword.from
       >> M.string
       >|= Block.value
-      % (id => (id, name) |> AST.of_import)
+      >|= (id => (id, name))
+      >|= AST.of_import
   )
   |> M.terminated;

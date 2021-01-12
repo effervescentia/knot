@@ -10,7 +10,6 @@ module Date = Date;
 module Filename = Filename;
 module Functional = Functional;
 module Graph = Graph;
-module Input = Input;
 module Int = Int;
 module LazyStream = LazyStream;
 module List = List;

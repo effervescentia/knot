@@ -1,6 +1,7 @@
 open Parse.Onyx;
+open Knot.Kore;
 
-module C = Knot.Constants.Character;
+module C = Constants.Character;
 
 let back_slash = char(C.back_slash);
 let eol = char(C.eol);

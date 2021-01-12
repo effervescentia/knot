@@ -1,7 +1,9 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-let __back_slash = Uchar.of_char(Constants.Character.back_slash);
+module C = Constants;
+
+let __back_slash = Uchar.of_char(C.Character.back_slash);
 
 let space = one_of([' ', '\t', '\n']);
 let spaces = skip_many(space);
@@ -18,8 +20,7 @@ let lexeme = x => spaces >> x;
 
 let terminated = x => x << optional(spaces >> Character.semicolon);
 
-let between = (l, r, x) => l >> lexeme(x) << lexeme(r);
-let between2 = (l, r, x) =>
+let between = (l, r, x) =>
   map3(
     (l', x', r') =>
       Block.create(Cursor.range(Block.cursor(l'), Block.cursor(r')), x'),
@@ -38,6 +39,11 @@ let binary_op = (lx, op, rx) =>
 
 let rec unary_op = (x, op) =>
   op |> lexeme >>= (f => unary_op(x, op) >|= f) <|> x;
+
+/**
+ * matches a single character
+ */
+let symbol = x => char(x) >|= Char.to_block |> lexeme;
 
 /**
  * matches a sequence of characters but tolerates spaces in between
@@ -64,7 +70,7 @@ let glyph = (s: string) =>
 /**
  * matches a sequence of characters
  */
-let token = (s: string) =>
+let keyword = (s: string) =>
   ctx
   >>= (
     start => {
@@ -74,7 +80,7 @@ let token = (s: string) =>
         | [c] =>
           char(c)
           >|= Char.context
-          % (end_ => (s, Cursor.range(start, end_)))
+          >|= (end_ => Block.create(Cursor.range(start, end_), ()))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq);
@@ -122,7 +128,7 @@ let string =
           >|= Char.value
           >>= (c => loop(rs => f([__back_slash, c, ...rs]))),
           /* capture characters of the string */
-          none_of([Constants.Character.quote, Constants.Character.eol])
+          none_of([C.Character.quote, C.Character.eol])
           >|= Char.value
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);

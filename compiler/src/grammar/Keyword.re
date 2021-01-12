@@ -2,12 +2,10 @@ open Kore;
 
 module K = C.Keyword;
 
-let _kwd = x => M.token(x) >|= snd >|= (cursor => Block.create(cursor, ()));
-
-let import = _kwd(K.import);
-let from = _kwd(K.from);
-let const = _kwd(K.const);
-let let_ = _kwd(K.let_);
-let nil = _kwd(K.nil);
-let true_ = _kwd(K.true_);
-let false_ = _kwd(K.false_);
+let import = M.keyword(K.import);
+let from = M.keyword(K.from);
+let const = M.keyword(K.const);
+let let_ = M.keyword(K.let_);
+let nil = M.keyword(K.nil);
+let true_ = M.keyword(K.true_);
+let false_ = M.keyword(K.false_);

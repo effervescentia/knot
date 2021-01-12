@@ -1,13 +1,9 @@
-include Input.Make({
-  type t = (Uchar.t, Cursor.t);
-  type f = Uchar.t;
-  type s = Cursor.t;
+type t = (Uchar.t, Cursor.t);
 
-  let fst = fst;
-  let snd = snd;
+let value = (x: t) => fst(x);
+let context = (x: t) => snd(x);
 
-  let create = (f, s) => (f, s);
-});
+let create = (v: Uchar.t, c: Cursor.t) => (v, c);
 
 let join = (cs: list(t)): Block.t(string) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(context);
@@ -15,3 +11,6 @@ let join = (cs: list(t)): Block.t(string) => {
 
   Block.create(Cursor.range(start, end_), name);
 };
+
+let to_block = (x: t): Block.t(Uchar.t) =>
+  Block.create(context(x), value(x));

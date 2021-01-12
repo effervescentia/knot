@@ -48,7 +48,7 @@ module Glyph = {
   let close_fragment = "</>";
 
   let self_close_tag = "/>";
-  let close_tag = "</";
+  let open_end_tag = "</";
 };
 
 module Keyword = {

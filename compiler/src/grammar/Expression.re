@@ -7,12 +7,15 @@ let identifier = M.identifier >@ Type.K_Invalid >|= AST.of_id;
 let jsx = x => JSX.parser(x) >|= AST.of_jsx;
 
 let group = x =>
-  M.between(Character.open_paren, Character.close_paren, x) >|= AST.of_group;
+  M.between(Symbol.open_group, Symbol.close_group, x)
+  >|= Block.value
+  >|= AST.of_group;
 
 let closure = x =>
   Statement.parser(x)
   |> many
-  |> M.between(Character.open_brace, Character.close_brace)
+  |> M.between(Symbol.open_closure, Symbol.close_closure)
+  >|= Block.value
   >|= AST.of_closure;
 
 /**
