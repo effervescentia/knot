@@ -10,8 +10,8 @@ let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
 
 let _self_closing = Glyph.self_close_tag >> return([]);
 
-let rec parser = x =>
-  M.recur(p => choice([fragment(x), tag(x)]) |> M.lexeme)
+let rec parser = (x, input) =>
+  (choice([fragment(x), tag(x)]) |> M.lexeme)(input)
 and fragment = x =>
   children(x)
   |> M.between(Glyph.open_fragment, Glyph.close_fragment)
