@@ -1,30 +1,25 @@
 open Kore;
 
-/**
- * binary operator
- */
-let (<=>) = (x, f) => f <$ (M.lexeme(x) >> M.spaces);
+let not = AST.of_not_op <$ Symbol.not;
+let negative = AST.of_neg_op <$ Symbol.negative;
+let positive = AST.of_pos_op <$ Symbol.positive;
 
-let not_ = AST.of_not_op <$ Character.exclamation_mark;
-let negative = AST.of_neg_op <$ Character.minus_sign;
-let positive = AST.of_pos_op <$ Character.plus_sign;
+let assign = (id, x) => M.binary_op(id, Symbol.assign, x);
 
-let assign = (id, x) => M.binary_op(id, Character.equal_sign, x);
+let mult = AST.of_mult_op <$ Symbol.multiply;
+let div = AST.of_div_op <$ Symbol.divide;
+let add = AST.of_add_op <$ Symbol.add;
+let sub = AST.of_sub_op <$ Symbol.subtract;
 
-let mult = Character.asterisk <=> AST.of_mult_op;
-let div = Character.forward_slash <=> AST.of_div_op;
-let add = Character.plus_sign <=> AST.of_add_op;
-let sub = Character.minus_sign <=> AST.of_sub_op;
+let logical_and = AST.of_and_op <$ Glyph.logical_and;
+let logical_or = AST.of_or_op <$ Glyph.logical_or;
 
-let logical_and = Glyph.logical_and <=> AST.of_and_op;
-let logical_or = Glyph.logical_or <=> AST.of_or_op;
+let less_or_eql = AST.of_lte_op <$ Glyph.less_or_eql;
+let less_than = AST.of_lt_op <$ Symbol.less_than;
+let greater_or_eql = AST.of_gte_op <$ Glyph.greater_or_eql;
+let greater_than = AST.of_gt_op <$ Symbol.greater_than;
 
-let less_or_eql = Glyph.less_or_eql <=> AST.of_lte_op;
-let less_than = Character.open_chevron <=> AST.of_lt_op;
-let greater_or_eql = Glyph.greater_or_eql <=> AST.of_gte_op;
-let greater_than = Character.close_chevron <=> AST.of_gt_op;
+let equality = AST.of_eq_op <$ Glyph.equality;
+let inequality = AST.of_ineq_op <$ Glyph.inequality;
 
-let equality = Glyph.equality <=> AST.of_eq_op;
-let inequality = Glyph.inequality <=> AST.of_ineq_op;
-
-let expo = Character.caret <=> ((l, r) => AST.of_expo_op((l, r)));
+let expo = ((l, r) => AST.of_expo_op((l, r))) <$ Symbol.exponent;

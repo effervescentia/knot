@@ -2,8 +2,7 @@ open Kore;
 
 let nil =
   Keyword.nil
-  >|= Block.extend(block => {...block, type_: Type.K_Nil, value: AST.nil})
-  |> M.lexeme;
+  >|= Block.extend(block => {...block, type_: Type.K_Nil, value: AST.nil});
 
 let boolean =
   Keyword.true_
@@ -14,8 +13,7 @@ let boolean =
     >|= Block.cursor
     >|= (cursor => Block.create(~type_=Type.K_Boolean, cursor, false))
   )
-  >== AST.of_bool
-  |> M.lexeme;
+  >== AST.of_bool;
 
 let number = Number.parser >|= Block.wrap >== AST.of_num;
 

@@ -18,7 +18,7 @@ let alpha_num = digit <|> alpha;
 
 let lexeme = x => spaces >> x;
 
-let terminated = x => x << optional(spaces >> Character.semicolon);
+let terminated = x => x << (Character.semicolon |> lexeme |> optional);
 
 let between = (l, r, x) =>
   map3(
@@ -37,8 +37,7 @@ let recur = f => {
 let binary_op = (lx, op, rx) =>
   map3((l, _, r) => (l, r), lx, spaces >> op << spaces, rx);
 
-let rec unary_op = (x, op) =>
-  op |> lexeme >>= (f => unary_op(x, op) >|= f) <|> x;
+let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
 
 /**
  * matches a single character

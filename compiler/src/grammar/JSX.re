@@ -30,7 +30,7 @@ and fragment = x =>
   >|= Block.value
   >|= AST.of_frag
 and tag = x =>
-  Character.open_chevron
+  Tag.open_
   >> M.identifier
   >|= Block.value
   >>= (
@@ -40,7 +40,7 @@ and tag = x =>
         attrs =>
           _self_closing
           <|> (
-            M.lexeme(Character.close_chevron)
+            Tag.close
             >> children(x)
             << (M.keyword(id) |> M.between(Tag.open_end, Tag.close))
           )
