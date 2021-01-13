@@ -9,7 +9,8 @@ let fmt_type =
   | K_Integer => "int"
   | K_Float => "float"
   | K_String => "string"
-  | K_Invalid => "invalid";
+  | K_Invalid => "invalid"
+  | K_Unknown => "unknown";
 
 let fmt_block = (print, x) =>
   Print.fmt(
@@ -112,7 +113,7 @@ and fmt_expr =
     )
   | UnaryOp(op, expr) => fmt_unary_op(op) ++ fmt_expr(expr)
   | Closure(exprs) =>
-    Print.many(~separator="\n", fmt_stmt, exprs) |> Print.fmt("{\n%s}")
+    exprs <.> Print.many(~separator="\n", fmt_stmt) |> Print.fmt("{\n%s}")
 and fmt_stmt = stmt =>
   (
     switch (stmt) {

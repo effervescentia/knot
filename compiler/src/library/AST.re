@@ -51,7 +51,7 @@ and expression_t =
   | Group(Block.t(expression_t))
   | BinaryOp(binary_operator_t, expression_t, expression_t)
   | UnaryOp(unary_operator_t, expression_t)
-  | Closure(list(statement_t))
+  | Closure(Block.t(list(statement_t)))
 and statement_t =
   | Variable(string, expression_t)
   | Expression(expression_t)

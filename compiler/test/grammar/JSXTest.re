@@ -77,7 +77,10 @@ let suite =
               [
                 (
                   "fizz",
-                  [inv_id("buzz") |> AST.of_expr] |> AST.of_closure |> some,
+                  [inv_id("buzz") |> AST.of_expr]
+                  |> to_block
+                  |> AST.of_closure
+                  |> some,
                 )
                 |> AST.of_prop,
               ],
@@ -103,7 +106,13 @@ let suite =
             AST.of_tag((
               "Foo",
               [
-                ("fizz", bool_prim(true) |> to_block |> AST.of_group |> some)
+                (
+                  "fizz",
+                  bool_prim(true)
+                  |> to_block(~type_=Type.K_Boolean)
+                  |> AST.of_group
+                  |> some,
+                )
                 |> AST.of_prop,
               ],
               [],
