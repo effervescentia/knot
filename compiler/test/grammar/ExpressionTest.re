@@ -38,15 +38,15 @@ let suite =
         Assert.parse(
           "{
             foo;
-            1 + 2;
             let x = false;
+            1 + 2;
           }",
           [
             inv_id("foo") |> AST.of_expr,
-            (int_prim(1), int_prim(2)) |> AST.of_add_op |> AST.of_expr,
             ("x", bool_prim(false)) |> AST.of_var,
+            (int_prim(1), int_prim(2)) |> AST.of_add_op |> AST.of_expr,
           ]
-          |> to_block
+          |> to_block(~type_=Type.K_Integer)
           |> AST.of_closure,
         )
     ),

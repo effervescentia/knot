@@ -78,7 +78,7 @@ let suite =
                 (
                   "fizz",
                   [inv_id("buzz") |> AST.of_expr]
-                  |> to_block
+                  |> to_block(~type_=Type.K_Unknown)
                   |> AST.of_closure
                   |> some,
                 )
@@ -206,6 +206,24 @@ let suite =
                 string_prim("fizz") |> AST.of_inline_expr,
                 AST.of_text("buzz"),
               ],
+            )
+            |> AST.of_tag,
+          ),
+          (
+            "<Foo bar=fizz .buzz />",
+            (
+              "Foo",
+              [
+                (
+                  "bar",
+                  Some(
+                    "fizz" |> to_block(~type_=Type.K_Invalid) |> AST.of_id,
+                  ),
+                )
+                |> AST.of_prop,
+                ("buzz", None) |> AST.of_jsx_class,
+              ],
+              [],
             )
             |> AST.of_tag,
           ),

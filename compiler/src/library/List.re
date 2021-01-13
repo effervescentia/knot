@@ -29,3 +29,5 @@ let ends = (l: list('a)): ('a, 'a) => (
 
 let repeat = (count: int, value: 'a): list('a) =>
   TList.repeat(~count, value);
+
+let last = (xs: list('a)): option('a) => nth_opt(xs, length(xs) - 1);

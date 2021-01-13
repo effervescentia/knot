@@ -15,6 +15,19 @@ let closure = x =>
   Statement.parser(x)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
+  >|= (
+    x' =>
+      Block.cast(
+        Block.value(x')
+        |> List.last
+        |> (
+          fun
+          | None => Type.K_Nil
+          | Some(x) => TypeOf.statement(x)
+        ),
+        x',
+      )
+  )
   >|= AST.of_closure;
 
 /**
