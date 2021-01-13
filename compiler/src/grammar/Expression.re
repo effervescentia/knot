@@ -2,30 +2,27 @@ open Kore;
 
 let primitive = Primitive.parser >|= AST.of_prim;
 
-let identifier = M.identifier >@ Type.K_Invalid >|= AST.of_id;
+let identifier = Type.K_Invalid <@ M.identifier >|= AST.of_id;
 
 let jsx = x => JSX.parser(x) >|= AST.of_jsx;
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
-  >|= (x' => Block.cast(Block.value(x') |> TypeOf.expression, x'))
+  >@= (x' => Block.value(x') |> TypeOf.expression)
   >|= AST.of_group;
 
 let closure = x =>
   Statement.parser(x)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= (
+  >@= (
     x' =>
-      Block.cast(
-        Block.value(x')
-        |> List.last
-        |> (
-          fun
-          | None => Type.K_Nil
-          | Some(x) => TypeOf.statement(x)
-        ),
-        x',
+      Block.value(x')
+      |> List.last
+      |> (
+        fun
+        | None => Type.K_Nil
+        | Some(x) => TypeOf.statement(x)
       )
   )
   >|= AST.of_closure;

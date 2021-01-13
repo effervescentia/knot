@@ -17,6 +17,6 @@ let boolean =
 
 let number = Number.parser >|= Block.wrap >== AST.of_num;
 
-let string = M.string >== AST.of_string >@ Type.K_String;
+let string = Type.K_String <@ M.string >== AST.of_string;
 
 let parser = choice([nil, boolean, number, string]);

@@ -4,8 +4,8 @@ type t =
   | K_Integer
   | K_Float
   | K_String
+  | K_Element
   /* used to indicate types which have failed to resolve due to a compile-time error */
   | K_Invalid
-  | K_Element
   /* used as a placeholder while developing */
   | K_Unknown;

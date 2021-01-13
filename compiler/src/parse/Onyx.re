@@ -60,11 +60,25 @@ let (>>=) = (x, f, input) =>
 let (>|=) = (x, f) => x >>= (r => f(r) |> return);
 
 /**
- * map_block
+ * block::map
  *
  * if parser x succeeds, transform the value of the result block with f
  */
 let (>==) = (x, f) => x >>= Block.map(f) % return;
+
+/**
+ * block::cast
+ *
+ * use t as the type for the result of x
+ */
+let (<@) = (t, x) => x >|= Block.cast(t);
+
+/**
+ * block::evolve
+ *
+ * use the result of f as the type for the result block of x
+ */
+let (>@=) = (x, f) => x >|= (x' => Block.cast(f(x'), x'));
 
 /**
  * apply
@@ -91,13 +105,6 @@ let map4 = (f, w, x, y, z) => f <$> w <*> x <*> y <*> z;
  * use v as the value when applied to x
  */
 let (<$) = (v, x) => (_ => v) <$> x;
-
-/**
- * cast
- *
- * use t as the type for the result of x
- */
-let (>@) = (x, t) => x >|= Block.cast(t);
 
 /**
  * discard_left

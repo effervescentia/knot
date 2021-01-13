@@ -1,11 +1,10 @@
 open Kore;
 
 let integer =
-  many1(M.digit)
-  >|= Char.join
+  Type.K_Integer
+  <@ (many1(M.digit) >|= Char.join)
   >== Int64.of_string
   >== AST.of_int
-  >@ Type.K_Integer
   |> M.lexeme;
 
 let float =
