@@ -1,9 +1,11 @@
 include Knot.Kore;
 
-type js_module_t =
-  | Common
-  | ES6;
+module Target = {
+  type module_t =
+    | Common
+    | ES6;
 
-type target_t =
-  | JavaScript(js_module_t)
-  | Knot;
+  type t =
+    | JavaScript(module_t)
+    | Knot;
+};

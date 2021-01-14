@@ -6,7 +6,6 @@ module Block = Block;
 module Char = Char;
 module Constants = Constants;
 module Cursor = Cursor;
-module Date = Date;
 module Filename = Filename;
 module Functional = Functional;
 module Graph = Graph;

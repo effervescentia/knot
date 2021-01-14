@@ -2,6 +2,8 @@ include Stdlib.List;
 
 module TList = Tablecloth.List;
 
+let is_empty = (xs: list('a)): bool => length(xs) |> (==)(0);
+
 let incl = (x: 'a, xs: list('a)): list('a) =>
   if (mem(x, xs)) {
     xs;
@@ -15,6 +17,9 @@ let excl = (x: 'a, xs: list('a)): list('a) =>
   } else {
     xs;
   };
+
+let excl_all = (xs: list('a), ys: list('a)): list('a) =>
+  filter(y => !mem(y, xs), ys);
 
 let uniq_by = (compare: ('a, 'a) => bool) =>
   fold_left((acc, x) => exists(compare(x), acc) ? acc : [x, ...acc], []);

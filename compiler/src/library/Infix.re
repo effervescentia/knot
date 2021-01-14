@@ -7,3 +7,9 @@ let (@?) = (l, r) =>
   | (Some(_) as l, _) => l
   | (_, Some(_) as r) => r
   };
+
+let (|?:) = (x, y) =>
+  switch (x) {
+  | Some(x') => x'
+  | None => y
+  };
