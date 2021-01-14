@@ -18,7 +18,8 @@
         "dolog",
         "tablecloth-native",
         "lwt",
-        "lwt.unix"
+        "lwt.unix",
+        "ANSITerminal"
       ],
       "name": "knot.lib",
       "namespace": "Knot"
@@ -73,8 +74,7 @@
     },
     "src/executable": {
       "require": [
-        "knot.compile",
-        "ANSITerminal"
+        "knot.compile"
       ],
       "main": "Main",
       "name": "knotc.exe"

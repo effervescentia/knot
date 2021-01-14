@@ -1,5 +1,7 @@
 include Printf;
 
+module ANSI = ANSITerminal;
+
 let fmt = sprintf;
 
 let opt = f =>
@@ -12,3 +14,5 @@ let rec many = (~separator="", print: 'a => string) =>
   | [] => ""
   | [x] => print(x)
   | [x, ...xs] => print(x) ++ separator ++ many(~separator, print, xs);
+
+let bold = ANSI.sprintf([ANSI.Bold], "%s");

@@ -13,3 +13,9 @@ let (|?:) = (x, y) =>
   | Some(x') => x'
   | None => y
   };
+
+let (|!:) = (x, y) =>
+  switch (x) {
+  | Some(x') => x'
+  | None => y()
+  };

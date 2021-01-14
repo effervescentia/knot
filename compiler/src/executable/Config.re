@@ -1,7 +1,5 @@
 open Kore;
 
-module ANSI = ANSITerminal;
-
 type t = {
   mode: Mode.t,
   entry: string,
@@ -10,9 +8,19 @@ type t = {
   debug: bool,
 };
 
-let _bold = ANSI.sprintf([ANSI.Bold], "%s");
+let __commands = [
+  ("build", " compile files to target in output directory"),
+  ("watch", " run build and incrementally rebuild changed files"),
+  ("format", " update code style and spacing"),
+  ("lint", " analyze code style and report for anti-patterns"),
+  ("lsp", " run an LSP-compliant server for integration with IDEs"),
+  ("bundle", " generate executable from source code"),
+  ("develop", " run a development server to enable continuous development"),
+];
 
-let _bold_items = List.map(((name, desc)) => (_bold(name), desc));
+let __targets = ["javascript"];
+
+let _bold_items = List.map(((name, desc)) => (Print.bold(name), desc));
 
 let _pad_items = xs => {
   let offset =
@@ -24,22 +32,14 @@ let _pad_items = xs => {
   xs |> List.map(((cmd, desc)) => (Print.fmt("  %-*s", offset, cmd), desc));
 };
 
-let _print_items =
+let _print_cmds =
   _bold_items
   % _pad_items
   % Print.many(~separator="\n", ((cmd, desc)) => cmd ++ desc)
   % print_endline;
 
-let command_args = [
-  ("build", " compile files to target in output directory"),
-  ("watch", " run build and incrementally rebuild changed files"),
-  ("format", " update code style and spacing"),
-  ("lint", " analyze code style and report for anti-patterns"),
-  ("lsp", " run an LSP-compliant server for integration with IDEs"),
-  ("bundle", " generate executable from source code"),
-  ("develop", " run a development server to enable continuous development"),
-];
-/* |> List.map(((x, y)) => (x, Arg.Unit(Functional.identity), y)); */
+let _print_opts = xs =>
+  Print.many(~separator="\n\n", Opt.to_string, xs) |> print_endline;
 
 let from_args = (): t => {
   let debug = ref(false);
@@ -47,144 +47,168 @@ let from_args = (): t => {
   let config = ref("");
   let entry = ref("");
   let root_dir = ref("");
+  let out_dir = ref("");
+  let target = ref(None);
   let globs = ref([]);
   let port = ref(1337);
 
   let mode = ref(None);
 
-  let args = ref([]);
+  let options = ref([]);
+  let command_opts = ref([]);
 
   let rec usage = () => {
     let fmt_command =
-      Print.fmt("knotc %s") % _bold % Print.fmt("  %s [options]");
+      Print.fmt("knotc %s") % Print.bold % Print.fmt("  %s [options]");
 
     switch (mode^) {
     | None =>
-      _bold("knotc") |> Print.fmt("  %s <command> ...") |> print_endline;
+      Print.bold("knotc") |> Print.fmt("  %s <command> ...") |> print_endline;
 
-      _bold("\nCOMMANDS\n") |> print_endline;
+      Print.bold("\nCOMMANDS\n") |> print_endline;
 
-      command_args |> _print_items;
-    | Some(Mode.Build) => fmt_command("build") |> print_endline
-    | Some(Mode.Watch) => fmt_command("watch") |> print_endline
-    | Some(Mode.Format) => fmt_command("format") |> print_endline
-    | Some(Mode.Lint) => fmt_command("lint") |> print_endline
-    | Some(Mode.LSP) => fmt_command("lsp") |> print_endline
-    | Some(Mode.Bundle) => fmt_command("bundle") |> print_endline
-    | Some(Mode.Develop) => fmt_command("develop") |> print_endline
+      __commands |> _print_cmds;
+    | Some(mode) => Mode.to_string(mode) |> fmt_command |> print_endline
     };
 
-    let options =
-      args^
-      |> List.excl_all(hidden_args @ global_args)
-      |> List.map(((name, _, desc)) => (name, desc));
+    if (!List.is_empty(command_opts^)) {
+      Print.bold("\nCOMMAND OPTIONS\n") |> print_endline;
 
-    if (!List.is_empty(options)) {
-      _bold("\nCOMMAND OPTIONS\n") |> print_endline;
-
-      options |> _print_items;
+      command_opts^ |> _print_opts;
     };
 
-    _bold("\nOPTIONS\n") |> print_endline;
+    Print.bold("\nOPTIONS\n") |> print_endline;
 
-    global_args
-    |> List.excl_all(hidden_args)
-    |> List.map(((name, _, desc)) => (name, desc))
-    |> _print_items;
+    global_opts() |> _print_opts;
 
     exit(2);
   }
-  /* capture and replace the inbuilt -help arg */
-  and hidden_args = [("-help", Arg.Unit(usage), "")]
-  and global_args = [
-    (
-      "--config",
+  and global_opts = () => [
+    Opt.create(
+      ~default=Opt.Default.String(".knot.yml"),
+      "config",
       Arg.Set_string(config),
-      " set the location of the knot config file",
+      "set the location of the knot config file",
     ),
-    ("--debug", Arg.Set(debug), " enable a higher level of logging"),
-    ("--help", Arg.Unit(usage), " display this list of options"),
-    ...hidden_args,
+    Opt.create("debug", Arg.Set(debug), "enable a higher level of logging"),
+    Opt.create("help", Arg.Unit(usage), "display this list of options"),
   ];
 
-  let file_args = [
-    (
-      "--root-dir",
+  /* capture and replace the inbuilt -help arg */
+  let hidden_opts = [("-help", Arg.Unit(usage), "")];
+
+  let set_mode = (m, opts) => {
+    mode := Some(m);
+    command_opts := opts;
+    options :=
+      (opts @ global_opts() |> List.map(Opt.to_config) |> List.flatten)
+      @ hidden_opts;
+  };
+
+  let file_opts = [
+    Opt.create(
+      "root-dir",
       Arg.Set_string(root_dir),
-      " the root directory to reference modules from",
+      "the root directory to reference modules from",
     ),
   ];
 
-  let build_args =
-    [
-      ("--target", Arg.Set_string(root_dir), " the target to compile to"),
-      (
-        "--out-dir",
-        Arg.Set_string(root_dir),
-        " the directory to write compiled files to",
+  let server_opts = [
+    Opt.create(
+      ~alias="p",
+      ~default=Opt.Default.Int(port^),
+      "port",
+      Arg.Set_int(port),
+      "the port the server runs on",
+    ),
+  ];
+
+  let compile_opts = [
+    Opt.create(
+      ~alias="t",
+      ~options=__targets,
+      "target",
+      Arg.Symbol(
+        __targets,
+        fun
+        | "javascript" => target := Some(Target.JavaScript(Target.ES6))
+        | x => Print.fmt("unknown target: '%s'", x) |> panic,
+      ),
+      "the target to compile to",
+    ),
+  ];
+
+  let build_opts =
+    compile_opts
+    @ [
+      Opt.create(
+        ~alias="o",
+        "out-dir",
+        Arg.Set_string(out_dir),
+        "the directory to write compiled files to",
       ),
     ]
-    @ file_args
-    @ global_args;
+    @ file_opts;
 
-  let watch_args = [] @ file_args @ global_args;
+  let watch_opts = compile_opts @ [] @ file_opts;
 
-  let format_args = [] @ file_args @ global_args;
+  let format_opts = [] @ file_opts;
 
-  let lint_args =
-    [("--fix", Arg.Set(fix), " automatically apply fixes")]
-    @ file_args
-    @ global_args;
+  let lint_opts =
+    [
+      Opt.create(
+        ~alias="f",
+        ~default=Opt.Default.Bool(fix^),
+        "fix",
+        Arg.Set(fix),
+        "automatically apply fixes",
+      ),
+    ]
+    @ file_opts;
 
-  let lsp_args =
-    [("--port", Arg.Set_int(port), " the port the server runs on")]
-    @ global_args;
+  let lsp_opts = [] @ server_opts;
 
-  let bundle_args = [] @ global_args;
+  let bundle_opts = [];
 
-  let develop_args =
-    [("--port", Arg.Set_int(port), " the port the server runs on")]
-    @ global_args;
+  let develop_opts = [] @ server_opts;
 
-  args := global_args;
+  options :=
+    (global_opts() |> List.map(Opt.to_config) |> List.flatten) @ hidden_opts;
 
-  Arg.parse_dynamic(
-    args,
+  try(Arg.parse_dynamic(
+    options,
     x =>
       switch (mode^, x) {
-      | (None, "build") =>
-        mode := Some(Mode.Build);
-        args := build_args;
-      | (None, "watch") =>
-        mode := Some(Mode.Watch);
-        args := watch_args;
-      | (None, "format") =>
-        mode := Some(Mode.Format);
-        args := format_args;
-      | (None, "lint") =>
-        mode := Some(Mode.Lint);
-        args := lint_args;
-      | (None, "lsp") =>
-        mode := Some(Mode.LSP);
-        args := lsp_args;
-      | (None, "bundle") =>
-        mode := Some(Mode.Bundle);
-        args := bundle_args;
-      | (None, "develop") =>
-        mode := Some(Mode.Develop);
-        args := develop_args;
+      | (None, "build") => set_mode(Mode.Build, build_opts)
+      | (None, "watch") => set_mode(Mode.Watch, watch_opts)
+      | (None, "format") => set_mode(Mode.Format, format_opts)
+      | (None, "lint") => set_mode(Mode.Lint, lint_opts)
+      | (None, "lsp") => set_mode(Mode.LSP, lsp_opts)
+      | (None, "bundle") => set_mode(Mode.Build, bundle_opts)
+      | (None, "develop") => set_mode(Mode.Develop, develop_opts)
       | _ =>
         if (entry^ == "") {
           entry := Filename.normalize(x);
         } else {
-          raise(Arg.Bad(Print.fmt("unexpected argument: %s", x)));
+          Print.fmt("unexpected argument: %s", x) |> panic;
         }
       },
     "knotc [options] <command>",
-  );
+  )) {
+   | _ => ()
+  };
 
-  let mode = mode^ |?: Mode.Build;
-  let entry = Filename.basename(entry^);
+  let mode =
+    mode^
+    |!: (
+      () => {
+        __commands |> _print_cmds;
+        print_newline();
+
+        panic("must provide a command");
+      }
+    );
+  let entry = entry^ == "" ? panic("must provide an entry") : Filename.basename(entry^);
   let globs = globs^;
   let debug = debug^;
 

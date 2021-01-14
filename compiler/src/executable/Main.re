@@ -1,6 +1,8 @@
 open Kore;
 
 let () = {
+  Log.init({debug: false, color: true, timestamp: false});
+
   let config = Config.from_args();
 
   let root_dir = config.root_dir;
@@ -8,7 +10,7 @@ let () = {
   let entry = Internal(config.entry);
   let compiler_config = Compiler.{name, root_dir, entry};
 
-  Log.init(config.debug);
+  Log.init({debug: config.debug, color: true, timestamp: false});
 
   Log.info("building project '%s'", name);
 
