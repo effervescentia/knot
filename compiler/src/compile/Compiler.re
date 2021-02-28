@@ -4,6 +4,7 @@ type config_t = {
   name: string,
   entry: m_id,
   root_dir: string,
+  source_dir: string,
 };
 
 type t = {

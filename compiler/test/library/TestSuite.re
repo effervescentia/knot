@@ -1,3 +1,3 @@
 open Kore;
 
-let tests = [GraphTest.suite];
+let tests = [GraphTest.suite, FilenameTest.suite];

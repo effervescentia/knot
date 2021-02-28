@@ -3,25 +3,19 @@ open Kore;
 let () = {
   Log.init({debug: false, color: true, timestamp: false});
 
-  let config = Config.from_args();
-
-  let root_dir = config.root_dir;
-  let name = root_dir |> Filename.basename;
-  let entry = Internal(config.entry);
-  let compiler_config = Compiler.{name, root_dir, entry};
+  let (config, command) = Config.from_args();
 
   Log.init({debug: config.debug, color: true, timestamp: false});
 
-  Log.info("building project '%s'", name);
+  Log.info("building project '%s'", config.compile.name);
 
-  switch (config.mode) {
-  | Build => Build.run({compile: compiler_config})
-  | Watch => Lwt_main.run @@ Watch.run({compile: compiler_config})
-  | Format => Format.run({compile: compiler_config})
-  | Lint => Lint.run({compile: compiler_config})
-  | LSP => Lwt_main.run @@ LSP.run({compile: compiler_config, port: 8080})
-  | Bundle => Bundle.run({compile: compiler_config})
-  | Develop =>
-    Lwt_main.run @@ Develop.run({compile: compiler_config, port: 8080})
+  switch (command) {
+  | Build(cfg) => Build.run(config.compile, cfg)
+  | Watch(cfg) => Lwt_main.run @@ Watch.run(config.compile, cfg)
+  | Format(cfg) => Format.run(config.compile, cfg)
+  | Lint(cfg) => Lint.run(config.compile, cfg)
+  | LSP(cfg) => Lwt_main.run @@ LSP.run(config.compile, cfg)
+  | Bundle(cfg) => Bundle.run(config.compile, cfg)
+  | Develop(cfg) => Lwt_main.run @@ Develop.run(config.compile, cfg)
   };
 };

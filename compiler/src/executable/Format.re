@@ -1,7 +1,13 @@
 open Kore;
 
-type config_t = {compile: Compiler.config_t};
+type config_t = unit;
 
-let run = (cfg: config_t) => {
+let mode = () => {
+  let resolve = () => ();
+
+  ("format", [], resolve);
+};
+
+let run = (cfg: Compiler.config_t, cmd: config_t) => {
   ();
 };
