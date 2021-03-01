@@ -18,6 +18,7 @@ module Make = (T: Target) => {
 let true_ = Alcotest.(check(bool, "boolean matches", true));
 let false_ = Alcotest.(check(bool, "boolean matches", false));
 let string = Alcotest.(check(string, "string matches"));
+let int = Alcotest.(check(int, "int matches"));
 
 let string_list = Alcotest.(check(list(string), "string list matches"));
 

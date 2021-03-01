@@ -24,7 +24,7 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
       |> List.filter_map(
            Event.(
              event => {
-               let path = event.path |> Filename.relative_to(watcher.dir);
+               let path = event.path |> String.drop_prefix(watcher.dir);
 
                (
                  switch (event.flags) {

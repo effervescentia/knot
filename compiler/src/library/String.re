@@ -13,6 +13,8 @@ let of_uchars = (cs: list(Uchar.t)) =>
      )
   |> Buffer.contents;
 
+let to_list = TString.to_list;
+
 let join = (~separator="", xs: list(string)): string =>
   TString.join(~sep=separator, xs);
 
@@ -35,3 +37,38 @@ let drop_suffix = (suffix: string, value: string): string =>
   ends_with(suffix, value) ? drop_right(length(suffix), value) : value;
 
 let repeat = (count: int, value: string) => TString.repeat(~count, value);
+
+let find_index = (pattern: string, value: string) =>
+  switch (pattern) {
+  | "" => (-1)
+  | _ =>
+    let len = length(value);
+    let rec loop = index =>
+      index > len
+        ? (-1)
+        : sub(value, index, len - index) |> starts_with(pattern)
+            ? index : loop(index + 1);
+
+    loop(0);
+  };
+
+let rec replace = (pattern: string, replacement: string, value: string) =>
+  switch (pattern) {
+  | "" => value
+  | _ =>
+    let pattern_length = length(pattern);
+
+    let rec loop = target =>
+      switch (find_index(pattern, target)) {
+      | (-1) => target
+      | index =>
+        let replace_until = index + pattern_length;
+
+        sub(target, 0, index)
+        ++ replacement
+        ++ sub(target, replace_until, length(target) - replace_until)
+        |> replace(pattern, replacement);
+      };
+
+    loop(value);
+  };

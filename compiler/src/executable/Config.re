@@ -129,7 +129,7 @@ let from_args = (): (t, Command.t) => {
         | (None, "develop") => set_cmd(develop_cmd)
         | _ =>
           if (entry^ == "") {
-            entry := Filename.normalize(x);
+            entry := Filename.resolve(x);
           } else {
             Print.fmt("unexpected argument: %s", x) |> panic;
           }

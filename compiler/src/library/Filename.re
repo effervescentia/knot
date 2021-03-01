@@ -1,9 +1,36 @@
 include Stdlib.Filename;
 
-let normalize = (path: string) =>
-  is_relative(path)
-    ? concat(Sys.getcwd(), String.drop_prefix("./", path)) : path;
+exception AbsolutePathConcatentation;
+exception RelativePathConcatentation;
 
-let relative_to = (root: string, path: string) =>
-  !is_relative(path) && String.starts_with(root, path)
-    ? String.drop_prefix(root, path) |> String.drop_prefix("/") : path;
+let __relative_prefix = current_dir_name ++ dir_sep;
+let __dir_sep_char = List.nth(dir_sep |> String.to_list, 0);
+
+/**
+ * simplify a path to its most basic form
+ */
+let normalize = path =>
+  (String.starts_with(dir_sep, path) ? dir_sep : "")
+  ++ (
+    String.split_on_char(__dir_sep_char, path)
+    |> List.filter(value => value != "" && value != current_dir_name)
+    |> String.join(~separator=dir_sep)
+  );
+
+/**
+ * concatenate two paths
+ */
+let concat = (l: string, r: string) =>
+  is_relative(r)
+    ? concat(normalize(l), normalize(r))
+    : raise(AbsolutePathConcatentation);
+
+/**
+ * resolve the absolute form of a path
+ */
+let resolve = (path: string) =>
+  if (is_relative(path)) {
+    normalize(path);
+  } else {
+    concat(Sys.getcwd(), path);
+  };
