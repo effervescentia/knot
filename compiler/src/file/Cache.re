@@ -16,9 +16,9 @@ let resolve_path = (path: string, cache: t): string =>
   Filename.concat(cache, path);
 
 let file_exists = (path: string, cache: t): bool =>
-  Filename.concat(cache, path) |> Sys.file_exists;
+  resolve_path(path, cache) |> Sys.file_exists;
 
 let open_file = (path: string, cache: t): in_channel =>
-  Filename.concat(cache, path) |> open_in;
+  resolve_path(path, cache) |> open_in;
 
 let destroy = (temp_dir: t) => Util.remove_dir(temp_dir);

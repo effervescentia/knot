@@ -15,6 +15,7 @@ module Make = (T: Target) => {
   let test_all = o => List.iter(i => test(o, i));
 };
 
+let bool = Alcotest.(check(bool, "boolean matches"));
 let true_ = Alcotest.(check(bool, "boolean matches", true));
 let false_ = Alcotest.(check(bool, "boolean matches", false));
 let string = Alcotest.(check(string, "string matches"));
