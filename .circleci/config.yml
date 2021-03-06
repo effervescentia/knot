@@ -272,6 +272,9 @@ jobs:
       - restore_linux_node_cache
       - setup_yarn
       - setup_esy
+      - run:
+          name: Install fswatch
+          command: apt install fswatch
       - compiler_install
       - run:
           name: Build
