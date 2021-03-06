@@ -1,12 +1,6 @@
 version: 2.1
 
 defaults:
-  node_executor: &node_executor
-    executor: node/default
-    parameters:
-      tag: 15.9.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
   linux_node_cache: &linux_node_cache
     key: linux_node_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
   linux_node_cache_keys: &linux_node_cache_keys
@@ -234,7 +228,9 @@ commands:
 
 jobs:
   install_node:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -269,7 +265,11 @@ jobs:
             - packages/examples/webpack-vue/node_modules
 
   test_compiler_binary:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -307,7 +307,11 @@ jobs:
           to: knot
 
   test_compiler:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -315,7 +319,11 @@ jobs:
           path: packages/binaries/compiler
 
   test_cli:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -323,7 +331,11 @@ jobs:
           path: packages/utilities/cli
 
   test_common:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -331,7 +343,11 @@ jobs:
           path: packages/plugins/common
 
   test_plugin_utils:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -339,7 +355,11 @@ jobs:
           path: packages/plugins/compiler/utils
 
   test_browser_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -347,7 +367,11 @@ jobs:
           path: packages/plugins/compiler/browser
 
   test_react_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - attach_workspace:
@@ -363,7 +387,11 @@ jobs:
           path: packages/plugins/compiler/react
 
   test_vue_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - attach_workspace:
@@ -379,7 +407,11 @@ jobs:
           path: packages/plugins/compiler/vue
 
   test_jss_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - build_pkg:
@@ -387,21 +419,33 @@ jobs:
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - test_bundler_plugin:
           bundler: webpack
 
   test_browserify_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - test_bundler_plugin:
           bundler: browserify
 
   test_rollup_plugin:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - test_bundler_plugin:
@@ -533,7 +577,11 @@ jobs:
             - ~/.cache
 
   compile_linux:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -550,7 +598,11 @@ jobs:
           to: compiler_linux
 
   release:
-    <<: *node_executor
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
       - restore_linux_node_cache
