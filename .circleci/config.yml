@@ -274,7 +274,7 @@ jobs:
       - setup_esy
       - run:
           name: Install fswatch
-          command: apt install fswatch
+          command: sudo apt install fswatch
       - compiler_install
       - run:
           name: Build
