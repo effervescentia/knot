@@ -1,6 +1,12 @@
 version: 2.1
 
 defaults:
+  node_executor: &node_executor
+    executor: node/default
+    parameters:
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
   linux_node_cache: &linux_node_cache
     key: linux_node_cache-v1-{{ checksum "yarn.lock" }}-{{ .Branch }}
   linux_node_cache_keys: &linux_node_cache_keys
@@ -31,7 +37,7 @@ defaults:
       - macos_compiler_cache-v1
 
 orbs:
-  node: cimg/node@15.11
+  node: circleci/node@4.2.0
 
 executors:
   node-cypress:
@@ -228,7 +234,7 @@ commands:
 
 jobs:
   install_node:
-    executor: node/node
+    <<: *node_executor
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -263,9 +269,7 @@ jobs:
             - packages/examples/webpack-vue/node_modules
 
   test_compiler_binary:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -303,9 +307,7 @@ jobs:
           to: knot
 
   test_compiler:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - build_pkg:
@@ -313,9 +315,7 @@ jobs:
           path: packages/binaries/compiler
 
   test_cli:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - build_pkg:
@@ -323,9 +323,7 @@ jobs:
           path: packages/utilities/cli
 
   test_common:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - build_pkg:
@@ -333,9 +331,7 @@ jobs:
           path: packages/plugins/common
 
   test_plugin_utils:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - build_pkg:
@@ -343,9 +339,7 @@ jobs:
           path: packages/plugins/compiler/utils
 
   test_browser_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - build_pkg:
@@ -353,9 +347,7 @@ jobs:
           path: packages/plugins/compiler/browser
 
   test_react_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - attach_workspace:
@@ -371,9 +363,7 @@ jobs:
           path: packages/plugins/compiler/react
 
   test_vue_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - attach_workspace:
@@ -389,9 +379,7 @@ jobs:
           path: packages/plugins/compiler/vue
 
   test_jss_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - build_pkg:
@@ -399,27 +387,21 @@ jobs:
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - test_bundler_plugin:
           bundler: webpack
 
   test_browserify_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - test_bundler_plugin:
           bundler: browserify
 
   test_rollup_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - test_bundler_plugin:
@@ -551,9 +533,7 @@ jobs:
             - ~/.cache
 
   compile_linux:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -570,9 +550,7 @@ jobs:
           to: compiler_linux
 
   release:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    <<: *node_executor
     steps:
       - checkout
       - restore_linux_node_cache
