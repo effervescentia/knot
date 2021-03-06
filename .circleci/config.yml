@@ -276,7 +276,7 @@ jobs:
           name: Install fswatch
           command: |
             sudo apt update
-            sudo apt install fswatch
+            sudo apt install libfswatch-dev
       - compiler_install
       - run:
           name: Build
