@@ -40,14 +40,14 @@ let repeat = (count: int, value: string) => TString.repeat(~count, value);
 
 let find_index = (pattern: string, value: string) =>
   switch (pattern) {
-  | "" => (-1)
+  | "" => Some(0)
   | _ =>
     let len = length(value);
     let rec loop = index =>
       index > len
-        ? (-1)
+        ? None
         : sub(value, index, len - index) |> starts_with(pattern)
-            ? index : loop(index + 1);
+            ? Some(index) : loop(index + 1);
 
     loop(0);
   };
@@ -60,8 +60,8 @@ let rec replace = (pattern: string, replacement: string, value: string) =>
 
     let rec loop = target =>
       switch (find_index(pattern, target)) {
-      | (-1) => target
-      | index =>
+      | None => target
+      | Some(index) =>
         let replace_until = index + pattern_length;
 
         sub(target, 0, index)

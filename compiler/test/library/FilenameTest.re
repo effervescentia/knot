@@ -3,9 +3,9 @@ open Kore;
 let suite =
   "Library - Filename"
   >::: [
-    "normalize"
+    "normalize()"
     >: (
-      () => {
+      () =>
         [
           ("/", Filename.normalize("/")),
           ("/", Filename.normalize("///")),
@@ -21,12 +21,11 @@ let suite =
           ("..", Filename.normalize("../")),
           ("..", Filename.normalize("./../.")),
         ]
-        |> Assert.test_many(Assert.string);
-      }
+        |> Assert.(test_many(string))
     ),
-    "concat"
+    "concat()"
     >: (
-      () => {
+      () =>
         [
           ("", Filename.concat("", "")),
           ("", Filename.concat("", ".")),
@@ -38,6 +37,7 @@ let suite =
           ("/", Filename.concat("/", "./")),
           ("/", Filename.concat("/.", "./")),
           ("/", Filename.concat("/.", ".")),
+          ("x", Filename.concat("x", "")),
           ("x", Filename.concat("", "x")),
           ("x", Filename.concat("", "x/")),
           ("x/x", Filename.concat("x", "x")),
@@ -46,7 +46,22 @@ let suite =
           ("/x/x", Filename.concat("/x", "x")),
           ("/x/x", Filename.concat("/x/", "x/")),
         ]
-        |> Assert.test_many(Assert.string);
+        |> Assert.(test_many(string))
+    ),
+    "resolve()"
+    >: (
+      () => {
+        let cwd = Sys.getcwd();
+
+        [
+          (cwd, Filename.resolve("")),
+          (cwd, Filename.resolve(".")),
+          (cwd ++ "/..", Filename.resolve("..")),
+          (cwd ++ "/foo", Filename.resolve("foo")),
+          (cwd ++ "/foo", Filename.resolve("./foo")),
+          ("/foo", Filename.resolve("/foo")),
+        ]
+        |> Assert.(test_many(string));
       }
     ),
   ];

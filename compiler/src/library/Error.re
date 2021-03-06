@@ -23,7 +23,7 @@ let rec _print_err =
     |> Print.many(~separator=" -> ", Functional.identity)
     |> Print.fmt("import cycle between the following modules: %s")
   | UnresolvedModule(path) =>
-    path |> Print.fmt("coud not resolve module with path: %s")
+    path |> Print.fmt("could not resolve module with path: %s")
   | ErrorList(errors) => errors |> Print.many(~separator="\n\n", _print_err);
 
 let print_err =

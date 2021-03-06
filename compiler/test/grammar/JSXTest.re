@@ -13,7 +13,7 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(_ => fmt_jsx % Format.print_string, (==)),
+          testable(pp => fmt_jsx % Format.pp_print_string(pp), (==)),
           "program matches",
         )
       );

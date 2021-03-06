@@ -19,8 +19,30 @@ let true_ = Alcotest.(check(bool, "boolean matches", true));
 let false_ = Alcotest.(check(bool, "boolean matches", false));
 let string = Alcotest.(check(string, "string matches"));
 let int = Alcotest.(check(int, "int matches"));
+let uchar =
+  Alcotest.(
+    check(
+      testable(
+        (pp, uchar) => {
+          let buffer = Buffer.create(1);
+          Buffer.add_utf_8_uchar(buffer, uchar);
+
+          Buffer.contents(buffer) |> Format.pp_print_string(pp);
+        },
+        (==),
+      ),
+      "uchar matches",
+    )
+  );
+
+let opt_int = Alcotest.(check(option(int), "int matches"));
+
+let int_pair = Alcotest.(check(pair(int, int), "int pair matches"));
 
 let string_list = Alcotest.(check(list(string), "string list matches"));
+let int_list = Alcotest.(check(list(int), "int list matches"));
 
 let string_pair_list =
   Alcotest.(check(list(pair(string, string)), "string pair list matches"));
+let int_pair_list =
+  Alcotest.(check(list(pair(int, int)), "int pair list matches"));

@@ -25,7 +25,7 @@ let uniq_by = (compare: ('a, 'a) => bool) =>
   fold_left((acc, x) => exists(compare(x), acc) ? acc : [x, ...acc], []);
 
 let compare_members = (l: list('a), r: list('a)): bool =>
-  length(l) == length(r) && l |> for_all(x => mem(x, r));
+  l |> for_all(x => mem(x, r));
 
 let ends = (l: list('a)): ('a, 'a) => (
   nth(l, 0),
@@ -35,4 +35,8 @@ let ends = (l: list('a)): ('a, 'a) => (
 let repeat = (count: int, value: 'a): list('a) =>
   TList.repeat(~count, value);
 
-let last = (xs: list('a)): option('a) => nth_opt(xs, length(xs) - 1);
+let last = (xs: list('a)): option('a) =>
+  switch (xs) {
+  | [] => None
+  | _ => nth_opt(xs, length(xs) - 1)
+  };

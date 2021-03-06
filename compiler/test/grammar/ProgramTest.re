@@ -11,7 +11,9 @@ module Target = {
   let test =
     Alcotest.(
       check(
-        list(testable(_ => fmt_mod_stmt % Format.print_string, (==))),
+        list(
+          testable(pp => fmt_mod_stmt % Format.pp_print_string(pp), (==)),
+        ),
         "program matches",
       )
     );

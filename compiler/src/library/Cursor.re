@@ -21,8 +21,6 @@ let range = (x: t, y: t): t =>
   | (Range(start, _), Range(_, end_)) => Range(start, end_)
   };
 
-let zero_range = range(zero, zero);
-
 let to_string: t => string =
   fun
   | Point({line, column}) => Print.fmt("(%d:%d)", line, column)

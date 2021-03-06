@@ -3,7 +3,7 @@ open Kore;
 let suite =
   "Library - String"
   >::: [
-    "of_uchars"
+    "of_uchars()"
     >: (
       () =>
         [
@@ -16,39 +16,39 @@ let suite =
             ]),
           ),
         ]
-        |> Assert.test_many(Assert.string)
+        |> Assert.(test_many(string))
     ),
-    "drop_prefix"
+    "drop_prefix()"
     >: (
       () =>
         [
           ("bar", String.drop_prefix("foo", "foobar")),
           ("foobar", String.drop_prefix("fizz", "foobar")),
         ]
-        |> Assert.test_many(Assert.string)
+        |> Assert.(test_many(string))
     ),
-    "drop_suffix"
+    "drop_suffix()"
     >: (
       () =>
         [
           ("foo", String.drop_suffix("bar", "foobar")),
           ("foobar", String.drop_suffix("fizz", "foobar")),
         ]
-        |> Assert.test_many(Assert.string)
+        |> Assert.(test_many(string))
     ),
-    "find_index"
+    "find_index()"
     >: (
       () =>
         [
-          (3, String.find_index("bar", "foobar")),
-          ((-1), String.find_index("fizz", "foobar")),
-          ((-1), String.find_index("", "foobar")),
-          ((-1), String.find_index("foo", "")),
-          ((-1), String.find_index("", "")),
+          (Some(3), String.find_index("bar", "foobar")),
+          (None, String.find_index("fizz", "foobar")),
+          (Some(0), String.find_index("", "foobar")),
+          (None, String.find_index("foo", "")),
+          (Some(0), String.find_index("", "")),
         ]
-        |> Assert.test_many(Assert.int)
+        |> Assert.(test_many(opt_int))
     ),
-    "replace"
+    "replace()"
     >: (
       () =>
         [
@@ -56,6 +56,6 @@ let suite =
           ("barbarbar", String.replace("foo", "bar", "foofoofoo")),
           ("cdcbcdc", String.replace("aba", "cdc", "abababa")),
         ]
-        |> Assert.test_many(Assert.string)
+        |> Assert.(test_many(string))
     ),
   ];

@@ -1,7 +1,6 @@
 include Stdlib.Filename;
 
 exception AbsolutePathConcatentation;
-exception RelativePathConcatentation;
 
 let __relative_prefix = current_dir_name ++ dir_sep;
 let __dir_sep_char = List.nth(dir_sep |> String.to_list, 0);
@@ -22,7 +21,10 @@ let normalize = path =>
  */
 let concat = (l: string, r: string) =>
   is_relative(r)
-    ? concat(normalize(l), normalize(r))
+    ? switch (normalize(l), normalize(r)) {
+      | (l', "") => l'
+      | (l', r') => concat(l', r')
+      }
     : raise(AbsolutePathConcatentation);
 
 /**
@@ -30,7 +32,7 @@ let concat = (l: string, r: string) =>
  */
 let resolve = (path: string) =>
   if (is_relative(path)) {
-    normalize(path);
-  } else {
     concat(Sys.getcwd(), path);
+  } else {
+    normalize(path);
   };
