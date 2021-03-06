@@ -1,3 +1,6 @@
+/**
+ * Graph that manages the relationships between modules.
+ */
 open Kore;
 
 type t = {

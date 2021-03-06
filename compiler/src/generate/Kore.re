@@ -1,3 +1,6 @@
+/**
+ * Utitlities for converting module AST into formatted Knot code.
+ */
 include Knot.Kore;
 
 module Target = {

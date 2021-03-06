@@ -1,3 +1,7 @@
+/**
+ * Command utilities.
+ */
+
 type t =
   | Build(Build.config_t)
   | Watch(Watch.config_t)

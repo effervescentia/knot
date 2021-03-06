@@ -1,3 +1,6 @@
+/**
+ * Utilities for the "bundle" command.
+ */
 open Kore;
 
 type config_t = {out_dir: string};

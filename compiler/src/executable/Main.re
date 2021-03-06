@@ -1,3 +1,6 @@
+/**
+ * Execution entrypoint.
+ */
 open Kore;
 
 let () = {

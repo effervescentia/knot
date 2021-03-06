@@ -1,3 +1,6 @@
+/**
+ * Resolves modules on disk based on its identifier.
+ */
 open Kore;
 
 type module_t = {id: m_id};

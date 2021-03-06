@@ -1,3 +1,6 @@
+/**
+ * Container representing a point in a source document.
+ */
 type point_t = {
   line: int,
   column: int,

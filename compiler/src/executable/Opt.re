@@ -1,3 +1,6 @@
+/**
+ * Command line arg parsing utilities.
+ */
 open Kore;
 
 module Default = {

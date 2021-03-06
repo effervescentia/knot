@@ -1,3 +1,6 @@
+/**
+ * Types and utilities for a module's Abstract Syntax Tree.
+ */
 open Infix;
 
 type binary_operator_t =

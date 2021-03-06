@@ -1,3 +1,6 @@
+/**
+ * Utilities for the "lint" command.
+ */
 open Kore;
 
 type config_t = {fix: bool};

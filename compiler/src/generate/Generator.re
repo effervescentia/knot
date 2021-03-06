@@ -1,3 +1,6 @@
+/**
+ * Converts an AST into code based on the output format
+ */
 open Kore;
 open Target;
 

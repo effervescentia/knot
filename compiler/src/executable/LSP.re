@@ -1,3 +1,6 @@
+/**
+ * Utilities for the "lsp" command.
+ */
 open Kore;
 
 type config_t = {port: int};

@@ -1,3 +1,8 @@
+/**
+ * Container for a single unicode character and the cursor state associated with its location
+ * in the source document.
+ */
+
 type t = (Uchar.t, Cursor.t);
 
 let value = (x: t) => fst(x);

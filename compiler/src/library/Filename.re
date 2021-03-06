@@ -1,3 +1,6 @@
+/**
+ * Extension of the standard Filename module with additional functionality.
+ */
 include Stdlib.Filename;
 
 exception AbsolutePathConcatentation;

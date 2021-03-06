@@ -1,3 +1,6 @@
+/**
+ * Table for storing module ASTs.
+ */
 open Kore;
 
 type entry_t = {

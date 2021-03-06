@@ -1,3 +1,6 @@
+/**
+ * Extension of the standard List module with additional functionality.
+ */
 include Stdlib.List;
 
 module TList = Tablecloth.List;

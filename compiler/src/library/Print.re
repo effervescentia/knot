@@ -1,3 +1,6 @@
+/**
+ * Repackaging of the Printf module with additional functionality.
+ */
 include Printf;
 
 module ANSI = ANSITerminal;

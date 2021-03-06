@@ -1,3 +1,6 @@
+/**
+ * Parsers to extract information from modules.
+ */
 open Kore;
 open Parse.Parser;
 

@@ -1,3 +1,6 @@
+/**
+ * Utilities for the "format" command.
+ */
 open Kore;
 
 type config_t = unit;

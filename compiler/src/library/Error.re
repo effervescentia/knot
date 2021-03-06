@@ -1,3 +1,6 @@
+/**
+ * Errors and utitilies for problems encountered while compiling.
+ */
 open Infix;
 
 exception NotImplemented;

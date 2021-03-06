@@ -1,3 +1,7 @@
+/**
+ * Symbols, glyphs and keywords used in the grammar.
+ */
+
 let root_dir = "@/";
 let file_extension = ".kn";
 

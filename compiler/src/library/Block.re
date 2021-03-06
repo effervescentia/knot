@@ -1,3 +1,6 @@
+/**
+ * Container for working on fragments of an AST.
+ */
 open Error;
 open Infix;
 

@@ -1,4 +1,6 @@
 /**
+ * Recursive descent parsing utilities.
+ *
  * based off of the libraries "opal" and "reparse"
  * https://github.com/pyrocat101/opal
  * https://github.com/lemaetech/reparse

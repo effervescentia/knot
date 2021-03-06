@@ -1,4 +1,6 @@
 /**
+ * Wrapper for working with a stream that is lazily evaluated.
+ *
  * copied from this original implementation in the library "opal"
  * https://github.com/pyrocat101/opal/blob/ac495a4fc141cf843da74d223baecca47324acd4/opal.ml
  */

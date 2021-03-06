@@ -1,3 +1,6 @@
+/**
+ * Entrypoint for parsing a stream of unicode characters.
+ */
 open Kore;
 
 let parse = (parser, input) =>

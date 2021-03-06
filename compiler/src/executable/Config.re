@@ -1,3 +1,6 @@
+/**
+ * Parse command line args into config.
+ */
 open Kore;
 
 type t = {
@@ -9,7 +12,7 @@ let __commands = [
   ("build", " compile files to target in output directory"),
   ("watch", " run build and incrementally rebuild changed files"),
   ("format", " update code style and spacing"),
-  ("lint", " analyze code style and report for anti-patterns"),
+  ("lint", " analyze code style and report on anti-patterns"),
   ("lsp", " run an LSP-compliant server for integration with IDEs"),
   ("bundle", " generate executable from source code"),
   ("develop", " run a development server to enable continuous development"),

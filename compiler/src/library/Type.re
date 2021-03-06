@@ -1,3 +1,7 @@
+/**
+ * Definition of types that exist in the Knot language.
+ */
+
 type t =
   | K_Nil
   | K_Boolean

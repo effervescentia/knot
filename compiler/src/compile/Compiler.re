@@ -1,3 +1,6 @@
+/**
+ * Parses and transforms programs represented as a graph of modules.
+ */
 open Kore;
 
 type config_t = {
@@ -14,7 +17,7 @@ type t = {
   modules: ModuleTable.t,
   resolve_from_source: m_id => Module.t,
   resolve_from_cache: m_id => Module.t,
-  catch: compiler_err => unit,
+  throw: compiler_err => unit,
 };
 
 let _add_to_cache = (id: m_id, compiler: t) =>
@@ -41,7 +44,10 @@ let _print_modules = (compiler: t) =>
   ModuleTable.to_string(compiler.modules)
   |> Log.debug("\n\n--- modules ---\n\n%s");
 
-let create = (~catch=throw, config: config_t): t => {
+/**
+ * construct a new compiler instance
+ */
+let create = (~catch as throw=throw, config: config_t): t => {
   let resolve_from_source =
     Resolver.create(config.root_dir) |> Resolver.resolve_module;
 
@@ -60,15 +66,15 @@ let create = (~catch=throw, config: config_t): t => {
     );
 
   if (List.length(errors^) != 0) {
-    catch(ErrorList(errors^));
+    throw(ErrorList(errors^));
   };
 
   let modules =
     Hashtbl.create(graph |> ImportGraph.get_modules |> List.length);
 
   {
+    throw,
     config,
-    catch,
     cache,
     graph,
     modules,
@@ -77,27 +83,17 @@ let create = (~catch=throw, config: config_t): t => {
   };
 };
 
+/**
+ * check for import cycles and missing modules
+ */
 let validate = (compiler: t) => {
-  compiler.graph
-  |> ImportGraph.find_cycles
-  |> (List.map(print_m_id) |> List.map)
-  |> (
-    fun
-    | [] => ()
-    | cycles => throw_all(cycles |> List.map(cycle => ImportCycle(cycle)))
-  );
-
-  compiler.graph
-  |> ImportGraph.find_missing
-  |> List.map(print_m_id)
-  |> (
-    fun
-    | [] => ()
-    | missing =>
-      throw_all(missing |> List.map(path => UnresolvedModule(path)))
-  );
+  compiler.graph |> Validate.no_import_cycles;
+  compiler.graph |> Validate.no_unresolved_modules;
 };
 
+/**
+ * parse modules and add to table
+ */
 let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
   let errors = ref([]);
   ids
@@ -115,16 +111,19 @@ let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
      );
 
   if (List.length(errors^) != 0) {
-    compiler.catch(ErrorList(errors^));
+    compiler.throw(ErrorList(errors^));
   };
 };
 
+/**
+ * parse modules in the active import graph
+ */
 let initialize = (~cache=true, compiler: t) => {
   compiler |> _print_import_graph;
 
-  /* find import cycles and missing imports */
+  /* check if import graph is valid */
   try(compiler |> validate) {
-  | CompilerError(err) => compiler.catch(err)
+  | CompilerError(err) => compiler.throw(err)
   };
 
   let modules = ImportGraph.get_modules(compiler.graph);
@@ -143,6 +142,9 @@ let initialize = (~cache=true, compiler: t) => {
   /* compiler |> _print_modules; */
 };
 
+/**
+ * re-evaluate a subset of the import graph
+ */
 let incremental = (ids: list(m_id), compiler: t) => {
   compiler |> _print_import_graph;
 

@@ -1,3 +1,6 @@
+/**
+ * Logging utilities.
+ */
 module ANSI = ANSITerminal;
 
 type config_t = {

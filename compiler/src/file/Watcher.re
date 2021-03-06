@@ -1,3 +1,6 @@
+/**
+ * Watches a directory structure and reacts to files changing.
+ */
 open Kore;
 open Fswatch;
 open Lwt;

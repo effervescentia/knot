@@ -1,6 +1,6 @@
 /**
- * directional graph with support for cycle detection
- * can be safely compared through structural equality
+ * Directional graph with support for cycle detection.
+ * Can be safely compared through structural equality.
  */
 open Infix;
 

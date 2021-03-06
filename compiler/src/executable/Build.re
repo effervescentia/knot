@@ -1,3 +1,6 @@
+/**
+ * Utilities for the "build" command.
+ */
 open Kore;
 
 type config_t = {

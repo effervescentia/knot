@@ -1,3 +1,6 @@
+/**
+ * Utilities for the "develop" command.
+ */
 open Kore;
 
 type config_t = {port: int};

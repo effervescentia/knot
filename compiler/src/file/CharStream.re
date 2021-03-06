@@ -1,3 +1,6 @@
+/**
+ * Wrapper to ingest a stream of unicode characters.
+ */
 open Kore;
 
 let _to_cursor = (cursor, decoder) =>
