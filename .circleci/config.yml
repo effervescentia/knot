@@ -280,7 +280,8 @@ jobs:
           name: Install fswatch
           command: |
             sudo apt update
-            sudo apt install libfswatch-devel
+            sudo apt install fswatch
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/x86_64-linux-gnu/libfswatch.so
       - compiler_install
       - run:
           name: Build
