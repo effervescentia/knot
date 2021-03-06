@@ -275,8 +275,9 @@ jobs:
       - run:
           name: Install fswatch
           command: |
-            sudo add-apt-repository  universe
             sudo apt update
+            sudo apt install software-properties-common
+            sudo add-apt-repository universe
             sudo apt install fswatch
       - compiler_install
       - run:
