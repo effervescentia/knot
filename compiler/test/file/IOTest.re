@@ -4,10 +4,10 @@ module IO = File.IO;
 
 let __temp_dir = Filename.get_temp_dir_name();
 
-let suite =
-  "File - IO"
+let unit_tests =
+  "File.IO"
   >::: [
-    "read_steam"
+    "read_steam()"
     >: (
       () => {
         let content = "hello world";
@@ -23,7 +23,7 @@ let suite =
         close();
       }
     ),
-    "clone"
+    "clone()"
     >: (
       () => {
         let content = "hello world";

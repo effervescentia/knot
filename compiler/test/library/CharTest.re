@@ -30,7 +30,7 @@ let __cursor = Cursor.point(4, 0);
 let __char = (__uchar, __cursor);
 
 let suite =
-  "Library - Char"
+  "Library.Char"
   >::: [
     "create()"
     >: (

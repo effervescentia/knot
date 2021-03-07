@@ -1,9 +1,9 @@
 open Test.Infix;
 
 let () =
-  "Knot"
+  "Unit Tests"
   >:::: TestLibrary.TestSuite.tests
-  @ TestFile.TestSuite.tests
+  @ TestFile.TestSuite.unit_tests
   @ TestGrammar.TestSuite.tests
   @ TestResolve.TestSuite.tests
   @ TestParse.TestSuite.tests

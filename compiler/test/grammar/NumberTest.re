@@ -22,7 +22,7 @@ module Assert =
   });
 
 let suite =
-  "Grammar - Number"
+  "Grammar.Number"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse integer"

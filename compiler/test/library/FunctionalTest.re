@@ -1,7 +1,7 @@
 open Kore;
 
 let suite =
-  "Library - Functional"
+  "Library.Functional"
   >::: [
     "identity()"
     >: (

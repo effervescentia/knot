@@ -56,11 +56,11 @@ module GraphAssert =
   });
 
 let suite =
-  "Library - Graph"
+  "Library.Graph"
   >::: [
-    "empty"
+    "empty()"
     >: (() => GraphAssert.test({nodes: [], edges: []}, Graph.empty())),
-    "create"
+    "create()"
     >: (
       () =>
         GraphAssert.test(
@@ -71,7 +71,7 @@ let suite =
           ),
         )
     ),
-    "get nodes"
+    "get_nodes()"
     >: (
       () =>
         Assert.string_list(
@@ -79,7 +79,7 @@ let suite =
           Graph.get_nodes(__acyclic_graph),
         )
     ),
-    "get edges"
+    "get_edges()"
     >: (
       () =>
         Assert.string_pair_list(
@@ -87,14 +87,14 @@ let suite =
           Graph.get_edges(__acyclic_graph),
         )
     ),
-    "has nodes"
+    "has_node()"
     >: (
       () => {
         Graph.has_node("fizz", __acyclic_graph) |> Assert.true_;
         Graph.has_node("foobar", __acyclic_graph) |> Assert.false_;
       }
     ),
-    "get edges of"
+    "get_edges_of()"
     >: (
       () =>
         Assert.string_pair_list(
@@ -102,7 +102,7 @@ let suite =
           Graph.get_edges_of("fizz", __acyclic_graph),
         )
     ),
-    "get neighbors"
+    "get_neighbors()"
     >: (
       () =>
         Assert.string_list(
@@ -110,7 +110,7 @@ let suite =
           Graph.get_neighbors("fizz", __acyclic_graph),
         )
     ),
-    "get parents"
+    "get_parents()"
     >: (
       () =>
         Assert.string_list(
@@ -118,7 +118,7 @@ let suite =
           Graph.get_parents("fizz", __acyclic_graph),
         )
     ),
-    "get children"
+    "get_children()"
     >: (
       () =>
         Assert.string_list(
@@ -126,7 +126,7 @@ let suite =
           Graph.get_children("foo", __acyclic_graph),
         )
     ),
-    "add node"
+    "add_node()"
     >: (
       () => {
         let graph = Graph.create(["fizz"], []);
@@ -136,7 +136,7 @@ let suite =
         GraphAssert.test({nodes: ["buzz", "fizz"], edges: []}, graph);
       }
     ),
-    "add edge"
+    "add_edge() - add new edge"
     >: (
       () => {
         let graph =
@@ -153,7 +153,7 @@ let suite =
         );
       }
     ),
-    "add existing edge"
+    "add_edge() - add existing edge"
     >: (
       () => {
         let graph = _make_graph();
@@ -163,7 +163,7 @@ let suite =
         GraphAssert.test(__acyclic_graph, graph);
       }
     ),
-    "add invalid edge"
+    "add_edge() - add invalid edge"
     >: (
       () =>
         switch (Graph.add_edge("hi", "low", _make_graph())) {
@@ -171,7 +171,7 @@ let suite =
         | _ => Alcotest.fail("expected exception")
         }
     ),
-    "remove node"
+    "remove_node()"
     >: (
       () => {
         let graph = _make_graph();
@@ -187,25 +187,25 @@ let suite =
         );
       }
     ),
-    "find cycles"
+    "find_cycles() - has cycles"
     >: (
       () =>
         __cyclic_graph
         |> Graph.find_cycles("foo")
         |> _assert_cycles([["bar", "fizz", "foo"]])
     ),
-    "find no cycles"
+    "find_cycles() - no cycles"
     >: (
       () => _make_graph() |> Graph.find_cycles("foo") |> _assert_cycles([])
     ),
-    "find unique cycles"
+    "find_unique_cycles()"
     >: (
       () =>
         __cyclic_graph
         |> Graph.find_unique_cycles(["foo", "bar"])
         |> _assert_cycles([["fie", "foe", "bar"], ["bar", "fizz", "foo"]])
     ),
-    "find all unique cycles"
+    "find_all_unique_cycles()"
     >: (
       () =>
         __cyclic_graph
@@ -216,7 +216,7 @@ let suite =
              ["bar", "fizz", "foo"],
            ])
     ),
-    "is acyclic"
+    "is_acyclic()"
     >: (
       () => {
         __acyclic_graph |> Graph.is_acyclic |> Assert.true_;

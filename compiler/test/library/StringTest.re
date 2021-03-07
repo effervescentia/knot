@@ -1,7 +1,7 @@
 open Kore;
 
 let suite =
-  "Library - String"
+  "Library.String"
   >::: [
     "of_uchars()"
     >: (

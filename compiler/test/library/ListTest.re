@@ -1,7 +1,7 @@
 open Kore;
 
 let suite =
-  "Library - List"
+  "Library.List"
   >::: [
     "is_empty()"
     >: (

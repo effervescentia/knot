@@ -4,17 +4,17 @@ module Cache = File.Cache;
 
 let __temp_dir = Filename.get_temp_dir_name();
 
-let suite =
-  "File - Cache"
+let unit_tests =
+  "File.Cache"
   >::: [
-    "create"
+    "create()"
     >: (
       () =>
         Cache.create("myProject")
         |> String.starts_with(__temp_dir)
         |> Assert.true_
     ),
-    "resolve_path"
+    "resolve_path()"
     >: (
       () => {
         let cache = "foo/bar/cache";
@@ -28,7 +28,7 @@ let suite =
         |> Assert.(test_many(string));
       }
     ),
-    "file_exists"
+    "file_exists()"
     >: (
       () => {
         let path = "test_file_exists.txt";
@@ -42,7 +42,7 @@ let suite =
         |> Assert.(test_many(bool));
       }
     ),
-    "open_file"
+    "open_file()"
     >: (
       () => {
         let path = "test_open_file.txt";
@@ -58,7 +58,7 @@ let suite =
         close_in(open_file);
       }
     ),
-    "destroy"
+    "destroy()"
     >: (
       () => {
         let content = "hello world";

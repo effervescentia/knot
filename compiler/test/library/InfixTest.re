@@ -4,7 +4,7 @@ let _assert_opt_int_list =
   Alcotest.(check(option(list(int)), "option int list matches"));
 
 let suite =
-  "Library - Infix"
+  "Library.Infix"
   >::: [
     "(%)"
     >: (

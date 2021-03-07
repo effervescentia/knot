@@ -34,7 +34,7 @@ let __main_import_ast = ("bar", "foo") |> AST.of_import;
 let __const_decl_ast = ("foo", nil_prim |> AST.of_const) |> AST.of_decl;
 
 let suite =
-  "Grammar - Program"
+  "Grammar.Program"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse import"

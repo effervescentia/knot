@@ -22,7 +22,7 @@ module Assert =
   });
 
 let suite =
-  "Grammar - Boolean"
+  "Grammar.Primitive (Boolean)"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse true"

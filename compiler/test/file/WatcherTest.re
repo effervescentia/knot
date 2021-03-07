@@ -4,10 +4,10 @@ module Watcher = File.Watcher;
 
 let __temp_dir = Filename.get_temp_dir_name();
 
-let suite =
-  "File - Watcher"
+let unit_tests =
+  "File.Watcher"
   >::: [
-    "create"
+    "create()"
     >: (
       () => {
         let content = "hello world";
@@ -25,3 +25,5 @@ let suite =
       }
     ),
   ];
+
+let integration_tests = "File.Watcher" >::: [];

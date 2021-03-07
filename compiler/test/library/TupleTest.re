@@ -1,7 +1,7 @@
 open Kore;
 
 let suite =
-  "Library - Tuple"
+  "Library.Tuple"
   >::: [
     "map2()"
     >: (

@@ -136,7 +136,7 @@
       "name": "knot.compile_test",
       "namespace": "TestCompile"
     },
-    "test/all": {
+    "test/unit": {
       "require": [
         "knot.lib_test",
         "knot.file_test",
@@ -146,7 +146,19 @@
         "knot.compile_test"
       ],
       "main": "TestSuite",
-      "name": "Test.exe"
+      "name": "UnitTests.exe"
+    },
+    "test/integration": {
+      "require": [
+        "knot.lib_test",
+        "knot.file_test",
+        "knot.grammar_test",
+        "knot.resolve_test",
+        "knot.parse_test",
+        "knot.compile_test"
+      ],
+      "main": "TestSuite",
+      "name": "IntegrationTests.exe"
     }
   },
   "scripts": {
@@ -155,7 +167,8 @@
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test:unit && npm run test:e2e 1> /dev/null",
-    "test:unit": "esy x Test.exe",
+    "test.unit": "esy x UnitTests.exe",
+    "test.integration": "esy x IntegrationTests.exe",
     "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
     "test:e2e:debug": "npm run test:e2e -- -debug",
     "tdd": "sane 'esy build && npm run test' --glob='(src|test)/**/*'"
