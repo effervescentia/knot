@@ -81,7 +81,9 @@
     },
     "test/util": {
       "require": [
-        "alcotest"
+        "alcotest",
+        "lwt",
+        "lwt.unix"
       ],
       "name": "knot.test",
       "namespace": "Test"

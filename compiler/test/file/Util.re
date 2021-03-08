@@ -1,7 +1,23 @@
 open Kore;
 
+let temp_file_name = (name, ext) =>
+  Print.fmt("%s_%f.%s", name, Sys.time(), ext);
+
+let get_temp_dir = () =>
+  Filename.concat(
+    Filename.get_temp_dir_name(),
+    Sys.time() |> string_of_float,
+  );
+
 let write_to_file = (path, s) => {
   let out = open_out(path);
+  Print.fprintf(out, "%s", s);
+
+  close_out(out);
+};
+
+let append_to_file = (path, s) => {
+  let out = open_out_gen([Open_append], 0o666, path);
   Print.fprintf(out, "%s", s);
 
   close_out(out);
@@ -42,5 +58,5 @@ let read_lazy_char_stream = stream => {
     };
   };
 
-  loop(stream);
+  loop(stream) |> String.drop_suffix("\n");
 };

@@ -18,8 +18,8 @@ module Make = (T: Target) => {
 let fail = Alcotest.fail;
 
 let bool = Alcotest.(check(bool, "boolean matches"));
-let true_ = Alcotest.(check(bool, "boolean matches", true));
-let false_ = Alcotest.(check(bool, "boolean matches", false));
+let true_ = Alcotest.(check(bool, "is true", true));
+let false_ = Alcotest.(check(bool, "is false", false));
 let string = Alcotest.(check(string, "string matches"));
 let int = Alcotest.(check(int, "int matches"));
 let uchar =

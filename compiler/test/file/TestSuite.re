@@ -1,7 +1,5 @@
 open Kore;
 
-let unit_tests = [
-  CacheTest.unit_tests,
-  IOTest.unit_tests,
-  WatcherTest.unit_tests,
-];
+let unit_tests = [CacheTest.suite, IOTest.suite, WatcherTest_Unit.suite];
+
+let integration_tests = [WatcherTest_IT.suite];

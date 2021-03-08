@@ -18,6 +18,9 @@ type action_t =
 
 type dispatch_t = list((string, action_t)) => unit;
 
+let _ext_matches = (path: string, watcher: t): bool =>
+  watcher.extensions |> List.exists(ext => String.ends_with(ext, path));
+
 let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
   Lwt_mvar.take(msgBox)
   >>= (
@@ -31,16 +34,8 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
 
                (
                  switch (event.flags) {
-                 | flags
-                     when
-                       !Array.mem(IsFile, flags)
-                       || !(
-                            watcher.extensions
-                            |> List.exists(ext =>
-                                 String.ends_with(ext, event.path)
-                               )
-                          ) =>
-                   None
+                 | flags when !Array.mem(IsFile, flags) => None
+                 | flags when !(watcher |> _ext_matches(event.path)) => None
                  | flags when Array.mem(Created, flags) => Some(Add)
                  | flags when Array.mem(Updated, flags) => Some(Update)
                  | flags when Array.mem(Removed, flags) => Some(Remove)

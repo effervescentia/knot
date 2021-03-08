@@ -7,5 +7,5 @@
    (name Test)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.test)
-   (libraries  alcotest )
+   (libraries  alcotest lwt lwt.unix )
 )

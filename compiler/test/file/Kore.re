@@ -1,4 +1,4 @@
 include Knot.Kore;
-include Test.Infix;
+include Test.Kore;
 
-module Assert = Test.Assert;
+let fixture_path = "./test/file/.fixtures/read_me.txt";

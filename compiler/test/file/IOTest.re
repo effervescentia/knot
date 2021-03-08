@@ -2,22 +2,18 @@ open Kore;
 
 module IO = File.IO;
 
+let __content = "hello world";
 let __temp_dir = Filename.get_temp_dir_name();
 
-let unit_tests =
+let suite =
   "File.IO"
   >::: [
     "read_steam()"
     >: (
       () => {
-        let content = "hello world";
-        let path = Filename.concat(__temp_dir, "test_read_steam.txt");
+        let (stream, close) = IO.read_stream(fixture_path);
 
-        Util.write_to_file(path, content);
-
-        let (stream, close) = IO.read_stream(path);
-
-        [(content, Util.read_lazy_char_stream(stream))]
+        [(__content, Util.read_lazy_char_stream(stream))]
         |> Assert.(test_many(string));
 
         close();
@@ -26,16 +22,12 @@ let unit_tests =
     "clone()"
     >: (
       () => {
-        let content = "hello world";
-        let source = Filename.concat(__temp_dir, "test_clone.txt");
-        let target = Filename.concat(__temp_dir, "other/test_clone.txt");
+        let target = Filename.concat(__temp_dir, "other/test.txt");
 
-        Util.write_to_file(source, content);
-
-        IO.clone(source, target);
+        IO.clone(fixture_path, target);
 
         Sys.file_exists(target) |> Assert.true_;
-        Util.read_file_to_string(target) |> Assert.string(content);
+        Util.read_file_to_string(target) |> Assert.string(__content);
       }
     ),
   ];

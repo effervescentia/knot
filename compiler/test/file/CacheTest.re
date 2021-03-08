@@ -4,7 +4,7 @@ module Cache = File.Cache;
 
 let __temp_dir = Filename.get_temp_dir_name();
 
-let unit_tests =
+let suite =
   "File.Cache"
   >::: [
     "create()"
@@ -30,22 +30,17 @@ let unit_tests =
     ),
     "file_exists()"
     >: (
-      () => {
-        let path = "test_file_exists.txt";
-
-        Util.write_to_file(Filename.concat(__temp_dir, path), "");
-
+      () =>
         [
-          (true, __temp_dir |> Cache.file_exists(path)),
-          (false, __temp_dir |> Cache.file_exists("other/path")),
+          (true, "." |> Cache.file_exists(fixture_path)),
+          (false, "." |> Cache.file_exists("path/to/nonexistent/file.oops")),
         ]
-        |> Assert.(test_many(bool));
-      }
+        |> Assert.(test_many(bool))
     ),
     "open_file()"
     >: (
       () => {
-        let path = "test_open_file.txt";
+        let path = Util.temp_file_name("test", "txt");
         let content = "hello world";
 
         Util.write_to_file(Filename.concat(__temp_dir, path), content);
@@ -63,7 +58,8 @@ let unit_tests =
       () => {
         let content = "hello world";
         let parent_dir = Filename.concat(__temp_dir, "foo");
-        let path = Filename.concat(parent_dir, "test_destroy.txt");
+        let path =
+          Filename.concat(parent_dir, Util.temp_file_name("test", "txt"));
 
         FileUtil.mkdir(parent_dir);
         Util.write_to_file(path, content);
