@@ -9,6 +9,7 @@ module Cursor = Cursor;
 module Filename = Filename;
 module Functional = Functional;
 module Graph = Graph;
+module Hashtbl = Hashtbl;
 module Int = Int;
 module LazyStream = LazyStream;
 module List = List;

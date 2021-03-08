@@ -5,6 +5,7 @@ let tests = [
   FilenameTest.suite,
   FunctionalTest.suite,
   GraphTest.suite,
+  HashtblTest.suite,
   InfixTest.suite,
   IntTest.suite,
   ListTest.suite,

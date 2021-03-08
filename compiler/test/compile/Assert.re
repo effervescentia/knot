@@ -2,15 +2,6 @@ open Kore;
 
 include Test.Assert;
 
-let _hashtbl_compare = (~compare=(==), l, r) =>
-  Hashtbl.length(l) == Hashtbl.length(r)
-  && Hashtbl.to_seq_keys(l)
-  |> List.of_seq
-  |> List.for_all(key =>
-       Hashtbl.mem(r, key)
-       && compare(Hashtbl.find(l, key), Hashtbl.find(r, key))
-     );
-
 let module_table =
   Alcotest.(
     check(
@@ -18,10 +9,10 @@ let module_table =
         pp => Compile.ModuleTable.to_string % Format.pp_print_string(pp),
         Compile.ModuleTable.(
           (l, r) =>
-            _hashtbl_compare(
+            Hashtbl.compare(
               ~compare=
                 (x, y) =>
-                  x.ast == y.ast && _hashtbl_compare(x.types, y.types),
+                  x.ast == y.ast && Hashtbl.compare(x.types, y.types),
               l,
               r,
             )
