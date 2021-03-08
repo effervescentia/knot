@@ -2,9 +2,9 @@ open Test.Infix;
 
 let () =
   "Unit Tests"
-  >:::: TestLibrary.TestSuite.tests
+  >:::: TestCompile.TestSuite.tests
   @ TestFile.TestSuite.unit_tests
   @ TestGrammar.TestSuite.tests
-  @ TestResolve.TestSuite.tests
+  @ TestLibrary.TestSuite.tests
   @ TestParse.TestSuite.tests
-  @ TestCompile.TestSuite.tests;
+  @ TestResolve.TestSuite.tests;

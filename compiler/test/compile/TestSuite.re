@@ -1,1 +1,1 @@
-let tests = [];
+let tests = [ModuleTableTest.suite, ParserTest.suite];

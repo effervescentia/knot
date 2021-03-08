@@ -37,33 +37,14 @@ let __cyclic_graph =
 
 let _assert_cycles = Alcotest.(check(list(list(string)), "cycles match"));
 
-module GraphAssert =
-  Assert.Make({
-    type t = Graph.t(string);
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            pp =>
-              Graph.to_string(Functional.identity)
-              % Format.pp_print_string(pp),
-            (==),
-          ),
-          "graph matches",
-        )
-      );
-  });
-
 let suite =
   "Library.Graph"
   >::: [
-    "empty()"
-    >: (() => GraphAssert.test({nodes: [], edges: []}, Graph.empty())),
+    "empty()" >: (() => Assert.graph({nodes: [], edges: []}, Graph.empty())),
     "create()"
     >: (
       () =>
-        GraphAssert.test(
+        Assert.graph(
           __acyclic_graph,
           Graph.create(
             ["foo", "bar", "fizz", "buzz"],
@@ -133,7 +114,7 @@ let suite =
 
         Graph.add_node("buzz", graph);
 
-        GraphAssert.test({nodes: ["buzz", "fizz"], edges: []}, graph);
+        Assert.graph({nodes: ["buzz", "fizz"], edges: []}, graph);
       }
     ),
     "add_edge() - add new edge"
@@ -144,7 +125,7 @@ let suite =
 
         Graph.add_edge("buzz", "bar", graph);
 
-        GraphAssert.test(
+        Assert.graph(
           {
             nodes: ["foo", "bar", "fizz", "buzz"],
             edges: [("buzz", "bar"), ("foo", "buzz")],
@@ -160,7 +141,7 @@ let suite =
 
         Graph.add_edge("foo", "fizz", graph);
 
-        GraphAssert.test(__acyclic_graph, graph);
+        Assert.graph(__acyclic_graph, graph);
       }
     ),
     "add_edge() - add invalid edge"
@@ -178,7 +159,7 @@ let suite =
 
         Graph.remove_node("buzz", graph);
 
-        GraphAssert.test(
+        Assert.graph(
           {
             nodes: ["foo", "bar", "fizz"],
             edges: [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
