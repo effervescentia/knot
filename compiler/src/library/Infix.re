@@ -1,5 +1,5 @@
 /**
- * Custom binary operators.
+ Custom binary operators.
  */
 
 let (%) = (f, g, x) => g(f(x));

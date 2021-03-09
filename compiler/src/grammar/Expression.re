@@ -28,9 +28,9 @@ let closure = x =>
   >|= AST.of_closure;
 
 /**
- * each expression has a precedence denoted by its suffix
- *
- * the parser with the highest precedence should be matched first
+ each expression has a precedence denoted by its suffix
+
+ the parser with the highest precedence should be matched first
  */
 
 /* || */

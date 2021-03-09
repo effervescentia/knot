@@ -1,5 +1,5 @@
 /**
- * Definition of types that exist in the Knot language.
+ Definition of types that exist in the Knot language.
  */
 
 type t =

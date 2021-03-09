@@ -1,8 +1,8 @@
 /**
- * An abstraction around a source code module.
- * Includes information about its original path and import identifier.
- * May also allow for module data to be passed directly from an alternate source
- * such as when operating as a Language Server for an IDE.
+ An abstraction around a source code module.
+ Includes information about its original path and import identifier.
+ May also allow for module data to be passed directly from an alternate source
+ such as when operating as a Language Server for an IDE.
  */
 open Kore;
 open File;

@@ -1,26 +1,26 @@
 /**
- * Recursive descent parsing utilities.
- *
- * based off of the libraries "opal" and "reparse"
- * https://github.com/pyrocat101/opal
- * https://github.com/lemaetech/reparse
+ Recursive descent parsing utilities.
+
+ based off of the libraries "opal" and "reparse"
+ https://github.com/pyrocat101/opal
+ https://github.com/lemaetech/reparse
  */
 open Kore;
 
 /* primitives */
 
 /**
- * no match
+ no match
  */
 let none = _ => None;
 
 /**
- * return a value
+ return a value
  */
 let return = (x, input) => Some((x, input));
 
 /**
- * match any input
+ match any input
  */
 let any =
   LazyStream.(
@@ -31,7 +31,7 @@ let any =
   );
 
 /**
- * match the end of the stream source
+ match the end of the stream source
  */
 let eof = x =>
   LazyStream.(
@@ -43,10 +43,9 @@ let eof = x =>
 /* combinators */
 
 /**
- * bind
- *
- * if parser x succeeds, returns a parser defined by calling f with the result of x
- *
+ {b bind}
+
+ if parser [x] succeeds, returns a parser defined by calling [f] with the result of [x]
  */
 let (>>=) = (x, f, input) =>
   switch (x(input)) {
@@ -55,44 +54,44 @@ let (>>=) = (x, f, input) =>
   };
 
 /**
- * map_result
- *
- * if parser x succeeds, transform the result with f
+ {b map_result}
+
+ if parser [x] succeeds, transform the result with [f]
  */
 let (>|=) = (x, f) => x >>= (r => f(r) |> return);
 
 /**
- * block::map
- *
- * if parser x succeeds, transform the value of the result block with f
+ {b block::map}
+
+ if parser [x] succeeds, transform the value of the result block with [f]
  */
 let (>==) = (x, f) => x >>= Block.map(f) % return;
 
 /**
- * block::cast
- *
- * use t as the type for the result of x
+ {b block::cast}
+
+ use [t] as the type for the result of [x]
  */
 let (<@) = (t, x) => x >|= Block.cast(t);
 
 /**
- * block::evolve
- *
- * use the result of f as the type for the result block of x
+ {b block::evolve}
+
+ use the result of [f] as the type for the result block of [x]
  */
 let (>@=) = (x, f) => x >|= (x' => Block.cast(f(x'), x'));
 
 /**
- * apply
- *
- * if parser x succeeds, use the function it returns to map the result of parser y
+ {b apply}
+
+ if parser [x] succeeds, use the function it returns to map the result of parser [y]
  */
 let (<*>) = (x, y) => x >>= (f => y >|= f);
 
 /**
- * map
- *
- * wrap a function to apply to x
+ {b map}
+
+ wrap a function to apply to [x]
  */
 let (<$>) = (f, x) => return(f) <*> x;
 
@@ -102,30 +101,30 @@ let map3 = (f, x, y, z) => f <$> x <*> y <*> z;
 let map4 = (f, w, x, y, z) => f <$> w <*> x <*> y <*> z;
 
 /**
- * replace
- *
- * use v as the value when applied to x
+ {b replace}
+
+ use [v] as the value when applied to [x]
  */
 let (<$) = (v, x) => (_ => v) <$> x;
 
 /**
- * discard_left
- *
- * if parser x succeeds, drop the result and try to match parser y
+ {b discard_left}
+
+ if parser [x] succeeds, drop the result and try to match parser [y]
  */
 let (>>) = (x, y) => x >>= (_ => y);
 
 /**
- * discard_right
- *
- * if parser x succeeds, attempt to match parser y but return the result of x
+ {b discard_right}
+
+ if parser [x] succeeds, attempt to match parser [y] but return the result of [x]
  */
 let (<<) = (x, y) => x >>= (r => r <$ y);
 
 /**
- * else
- *
- * if parser x succeeds, return the result, otherwise attempt to use y
+ {b else}
+
+ if parser [x] succeeds, return the result, otherwise attempt to use [y]
  */
 let (<|>) = (x, y, input) =>
   switch (x(input)) {
@@ -134,9 +133,9 @@ let (<|>) = (x, y, input) =>
   };
 
 /**
- * finally
- *
- * if parser x succeeds, return the result, otherwise throw e
+ {b finally}
+
+ if parser [x] succeeds, return the result, otherwise throw [e]
  */
 let (<?>) = (x, e, input) =>
   switch (x(input)) {
@@ -145,16 +144,16 @@ let (<?>) = (x, e, input) =>
   };
 
 /**
- * chain
- *
- * if parser x succeeds, append it to the results of parser xs
+ {b chain}
+
+ if parser [x] succeeds, append it to the results of parser [xs]
  */
 let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 
 /* helpers */
 
 /**
- * returns the current context
+ returns the current context
  */
 let ctx =
   LazyStream.(
@@ -164,18 +163,18 @@ let ctx =
   );
 
 /**
- * matches a single character
+ matches a single character
  */
 let satisfy = (f: 'a => bool) =>
   any >>= (x => Char.value(x) |> (v => f(v) ? return(x) : none));
 
 /**
- * matches a single character
+ matches a single character
  */
 let char = (c: char) => satisfy((==)(Uchar.of_char(c)));
 
 /**
- * attempts to match each parser from left to right until one succeeds
+ attempts to match each parser from left to right until one succeeds
  */
 let rec choice =
   fun
@@ -183,58 +182,58 @@ let rec choice =
   | [x, ...xs] => x <|> choice(xs);
 
 /**
- * matches any of the provided characters
+ matches any of the provided characters
  */
 let one_of = (cs: list(char)) =>
   cs |> List.map(Uchar.of_char) |> (ucs => satisfy(v => List.mem(v, ucs)));
 
 /**
- * matches none of the provided characters
+ matches none of the provided characters
  */
 let none_of = (cs: list(char)) =>
   cs |> List.map(Uchar.of_char) |> (ucs => satisfy(v => !List.mem(v, ucs)));
 
 /**
- * matches a range of characters
+ matches a range of characters
  */
 let range = (l: char, r: char) =>
   satisfy(v => Uchar.of_char(l) <= v && v <= Uchar.of_char(r));
 
 /**
- * returns a default value if x not matched
+ returns value [default] if [x] not matched
  */
 let option = (default, x) => x <|> return(default);
 
 /**
- * returns nothing whether or not x is matched
+ returns nothing whether or not [x] is matched
  */
 let optional = x => option((), () <$ x);
 
 /**
- * matches a pattern multiple times and return an empty result
+ matches a pattern multiple times and return an empty result
  */
 let rec skip_many = x => x >>= (_ => skip_many(x)) |> option();
 
 /**
- * matches a pattern n+1 times and return an empty result
+ matches a pattern [n+1] times and return an empty result
  */
 let skip_many1 = x => x >> skip_many(x);
 
 /**
- * matches a pattern multiple times and return a list of results
+ matches a pattern multiple times and return a list of results
  */
 let rec many = x =>
   x >>= (r => many(x) >|= (rs => [r, ...rs])) |> option([]);
 
 /**
- * matches a pattern n+1 times and return a list of results
+ matches a pattern [n+1] times and return a list of results
  */
 let many1 = x => x <~> many(x);
 
 /**
- * matches a pattern n+1 times separated by operator op
- *
- * associativity: left-to-right
+ matches a pattern [n+1] times separated by operator [op]
+
+ associativity: {i left-to-right}
  */
 let chainl1 = (x, op) => {
   let rec loop = a =>
@@ -243,23 +242,23 @@ let chainl1 = (x, op) => {
 };
 
 /**
- * matches a pattern multiple times separated by operator op
- *
- * associativity: left-to-right
+ matches a pattern multiple times separated by operator [op]
+
+ associativity: {i left-to-right}
  */
 let chainl = (x, op, default) => chainl1(x, op) <|> return(default);
 
 /**
- * matches a pattern n+1 times separated by operator op
- *
- * associativity: right-to-left
+ matches a pattern [n+1] times separated by operator [op]
+
+ associativity: {i right-to-left}
  */
 let rec chainr1 = (x, op) =>
   x >>= (a => op >>= (f => chainr1(x, op) >|= f(a)) <|> return(a));
 
 /**
- * matches a pattern multiple times separated by operator op
- *
- * associativity: right-to-left
+ matches a pattern multiple times separated by operator op
+
+ associativity: {i right-to-left}
  */
 let chainr = (x, op, default) => chainr1(x, op) <|> return(default);

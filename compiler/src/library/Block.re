@@ -1,9 +1,9 @@
-/**
- * Container for working on fragments of an AST.
- */
 open Error;
 open Infix;
 
+/**
+ container for working on fragments of an AST
+ */
 type t('a) = {
   value: 'a,
   type_: Type.t,
@@ -19,10 +19,14 @@ let create =
   cursor,
 };
 
+/* getters */
+
 let value = (block: t('a)): 'a => block.value;
 let cursor = (block: t('a)): Cursor.t => block.cursor;
 let type_ = (block: t('a)): Type.t => block.type_;
 let errors = (block: t('a)): option(list(compiler_err)) => block.errors;
+
+/* methods */
 
 let replace = (value: 'b, block: t('a)): t('b) => {...block, value};
 

@@ -1,5 +1,5 @@
 /**
- * Utitlities for converting module AST into JavaScript code.
+ Utitlities for converting module AST into JavaScript code.
  */
 open Kore;
 

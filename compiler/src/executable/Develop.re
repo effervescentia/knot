@@ -1,5 +1,5 @@
 /**
- * Utilities for the "develop" command.
+ Utilities for the "develop" command.
  */
 open Kore;
 

@@ -1,5 +1,5 @@
 /**
- * Parse command line args into config.
+ Parse command line args into config.
  */
 open Kore;
 

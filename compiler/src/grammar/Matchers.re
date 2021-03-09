@@ -34,12 +34,12 @@ let binary_op = (lx, op, rx) => map3((l, _, r) => (l, r), lx, op, rx);
 let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
 
 /**
- * matches a single character
+ matches a single character
  */
 let symbol = x => char(x) >|= Char.to_block |> lexeme;
 
 /**
- * matches a sequence of characters but tolerates spaces in between
+ matches a sequence of characters but tolerates spaces in between
  */
 let glyph = (s: string) =>
   ctx
@@ -61,7 +61,7 @@ let glyph = (s: string) =>
   |> lexeme;
 
 /**
- * matches a sequence of characters
+ matches a sequence of characters
  */
 let keyword = (s: string) =>
   ctx
@@ -82,7 +82,7 @@ let keyword = (s: string) =>
   |> lexeme;
 
 /**
- * matches a sequence of alpha-numeric characters
+ matches a sequence of alpha-numeric characters
  */
 let identifier = (~prefix=alpha <|> Character.underscore, input) =>
   (
@@ -95,8 +95,8 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
   );
 
 /**
- * matches a sequence of characters between quotation marks
- * allows escaping characters with a '\' character
+ matches a sequence of characters between quotation marks
+ allows escaping characters with a '\' character
  */
 let string =
   Character.quote

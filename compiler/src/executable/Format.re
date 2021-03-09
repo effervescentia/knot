@@ -1,5 +1,5 @@
 /**
- * Utilities for the "format" command.
+ Utilities for the "format" command.
  */
 open Kore;
 

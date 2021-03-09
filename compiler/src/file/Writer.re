@@ -1,3 +1,3 @@
 /**
- * Utilities for writing to disk.
+ Utilities for writing to disk.
  */;

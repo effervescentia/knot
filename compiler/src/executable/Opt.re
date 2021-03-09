@@ -1,5 +1,5 @@
 /**
- * Command line arg parsing utilities.
+ Command line arg parsing utilities.
  */
 open Kore;
 

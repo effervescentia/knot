@@ -1,5 +1,5 @@
 /**
- * Utilities for the "build" command.
+ Utilities for the "build" command.
  */
 open Kore;
 

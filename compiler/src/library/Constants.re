@@ -1,5 +1,5 @@
 /**
- * Symbols, glyphs and keywords used in the grammar.
+ Symbols, glyphs and keywords used in the grammar.
  */
 
 let root_dir = "@/";

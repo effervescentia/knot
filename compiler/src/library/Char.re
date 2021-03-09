@@ -1,14 +1,17 @@
 /**
- * Container for a single unicode character and the cursor state associated with its location
- * in the source document.
+ container for a single unicode character and the cursor for its location
+ in a source document
  */
-
 type t = (Uchar.t, Cursor.t);
+
+let create = (v: Uchar.t, c: Cursor.t) => (v, c);
+
+/* getters */
 
 let value = (x: t) => fst(x);
 let context = (x: t) => snd(x);
 
-let create = (v: Uchar.t, c: Cursor.t) => (v, c);
+/* methods */
 
 let join = (cs: list(t)): Block.t(string) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(context);

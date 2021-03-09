@@ -1,5 +1,5 @@
 /**
- * Extension of the standard List module with additional functionality.
+ Extension of the standard List module with additional functionality.
  */
 include Stdlib.List;
 

@@ -1,5 +1,5 @@
 /**
- * Utilities to enable writing to and reading from a cached version of the source directory.
+ Utilities to enable writing to and reading from a cached version of the source directory.
  */
 
 type t = string;

@@ -1,5 +1,5 @@
 /**
- * Entrypoint for parsing a stream of unicode characters.
+ Entrypoint for parsing a stream of unicode characters.
  */
 open Kore;
 

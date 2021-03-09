@@ -1,6 +1,6 @@
 /**
- * Directional graph with support for cycle detection.
- * Can be safely compared through structural equality.
+ Directional graph with support for cycle detection.
+ Can be safely compared through structural equality.
  */
 open Infix;
 
@@ -9,8 +9,8 @@ exception InvalidEdge;
 type t('a) = {
   mutable nodes: list('a),
   /**
-   * these relationships are directional
-   * lhs is the parent, rhs is the child
+   these relationships are directional
+   lhs is the parent, rhs is the child
    */
   mutable edges: list(edge_t('a)),
 }
@@ -210,8 +210,8 @@ let rec _print_subtree =
 };
 
 /**
- * visited nodes can be printed multiple times, but their subtrees will only be printed once
- * can handle cyclic graphs
+ visited nodes can be printed multiple times, but their subtrees will only be printed once
+ can handle cyclic graphs
  */
 let to_string = (print_node: 'a => string, graph: t('a)) => {
   let roots = find_roots(graph);

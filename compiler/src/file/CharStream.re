@@ -1,5 +1,5 @@
 /**
- * Wrapper to ingest a stream of unicode characters.
+ Wrapper to ingest a stream of unicode characters.
  */
 open Kore;
 

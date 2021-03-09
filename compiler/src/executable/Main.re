@@ -1,5 +1,5 @@
 /**
- * Execution entrypoint.
+ Execution entrypoint.
  */
 open Kore;
 

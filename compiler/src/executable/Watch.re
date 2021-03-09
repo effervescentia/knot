@@ -1,5 +1,5 @@
 /**
- * Utilities for the "watch" command.
+ Utilities for the "watch" command.
  */
 open Kore;
 open Fswatch;

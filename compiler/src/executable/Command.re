@@ -1,5 +1,5 @@
 /**
- * Command utilities.
+ Command utilities.
  */
 
 type t =

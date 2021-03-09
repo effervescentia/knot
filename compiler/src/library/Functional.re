@@ -1,5 +1,5 @@
 /**
- * Functional programming utilities.
+ Functional programming utilities.
  */
 
 let identity = x => x;

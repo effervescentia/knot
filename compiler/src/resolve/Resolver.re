@@ -1,5 +1,5 @@
 /**
- * Resolves modules on disk based on its identifier.
+ Resolves modules on disk based on its identifier.
  */
 open Kore;
 

@@ -1,5 +1,5 @@
 /**
- * Repackaging of the Printf module with additional functionality.
+ Repackaging of the Printf module with additional functionality.
  */
 include Printf;
 

@@ -1,5 +1,5 @@
 /**
- * Utilities for the "lint" command.
+ Utilities for the "lint" command.
  */
 open Kore;
 

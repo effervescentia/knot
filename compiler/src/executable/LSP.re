@@ -1,5 +1,5 @@
 /**
- * Utilities for the "lsp" command.
+ Utilities for the "lsp" command.
  */
 open Kore;
 

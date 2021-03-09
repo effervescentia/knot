@@ -1,8 +1,11 @@
 /**
- * Static analysis validators for compiler state.
+ Static analysis validators for compiler state.
  */
 open Kore;
 
+/**
+ validate that an import graph does not contain cyclic imports
+ */
 let no_import_cycles = (graph: ImportGraph.t) => {
   graph
   |> ImportGraph.find_cycles
@@ -14,6 +17,9 @@ let no_import_cycles = (graph: ImportGraph.t) => {
   );
 };
 
+/**
+ validate that an import graph does not contain unresolved modules
+ */
 let no_unresolved_modules = (graph: ImportGraph.t) => {
   graph
   |> ImportGraph.find_missing

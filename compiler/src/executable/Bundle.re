@@ -1,5 +1,5 @@
 /**
- * Utilities for the "bundle" command.
+ Utilities for the "bundle" command.
  */
 open Kore;
 

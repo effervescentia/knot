@@ -1,5 +1,5 @@
 /**
- * Table for storing module ASTs.
+ Table for storing module ASTs.
  */
 open Kore;
 
@@ -10,8 +10,14 @@ type entry_t = {
 
 type t = Hashtbl.t(m_id, entry_t);
 
+/**
+ construct a new table for module information
+ */
 let create = (size: int) => Hashtbl.create(size);
 
+/**
+ add a module with associated export types and AST
+ */
 let add =
     (
       id: m_id,
@@ -25,8 +31,14 @@ let add =
     {ast, types: exports |> List.to_seq |> Hashtbl.of_seq},
   );
 
+/**
+ remove an entry from the table
+ */
 let remove = (id: m_id, table: t) => Hashtbl.remove(table, id);
 
+/**
+ declare the type of an export member of an existing module
+ */
 let add_type = ((id, name): (m_id, string), value: Type.t, table: t) =>
   if (Hashtbl.mem(table, id)) {
     let members = Hashtbl.find(table, id);
@@ -34,6 +46,9 @@ let add_type = ((id, name): (m_id, string), value: Type.t, table: t) =>
     Hashtbl.replace(members.types, name, value);
   };
 
+/**
+ print the table as a string
+ */
 let to_string = (table: t): string =>
   Hashtbl.to_seq_keys(table)
   |> List.of_seq

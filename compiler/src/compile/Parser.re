@@ -1,11 +1,15 @@
 /**
- * Parsers to extract information from modules.
+ Parsers to extract information from modules.
  */
 open Kore;
 open Parse.Parser;
 
 module Program = Grammar.Program;
 
+/**
+ parses document head to extract only the import statements
+ anything that cannot be parsed as an import statement will be ignored
+ */
 let imports =
   AST.(
     input =>
@@ -23,6 +27,9 @@ let imports =
       )
   );
 
+/**
+ parses entire document to extract imports, declarations and type information
+ */
 let ast =
   AST.(
     input =>

@@ -1,5 +1,5 @@
 /**
- * Types and utilities for a module's Abstract Syntax Tree.
+ Types and utilities for a module's Abstract Syntax Tree.
  */
 open Infix;
 

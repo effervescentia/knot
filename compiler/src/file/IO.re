@@ -1,5 +1,5 @@
 /**
- * Utitilies to read files in as a compatible module format.
+ Utitilies to read files in as a compatible module format.
  */
 open Kore;
 

@@ -1,5 +1,5 @@
 /**
- * Parses and transforms programs represented as a graph of modules.
+ Parses and transforms programs represented as a graph of modules.
  */
 open Kore;
 
@@ -23,9 +23,6 @@ type t = {
 let _add_to_cache = (id: m_id, compiler: t) =>
   compiler.resolve_from_source(id) |> Module.cache(compiler.cache);
 
-let _remove_module_types = (id: m_id, compiler: t) =>
-  compiler.modules |> ModuleTable.remove(id);
-
 let _get_exports = (ast: AST.program_t) =>
   ast
   |> List.filter_map(
@@ -45,7 +42,7 @@ let _print_modules = (compiler: t) =>
   |> Log.debug("\n\n--- modules ---\n\n%s");
 
 /**
- * construct a new compiler instance
+ construct a new compiler instance
  */
 let create = (~catch as throw=throw, config: config_t): t => {
   let resolve_from_source =
@@ -84,7 +81,7 @@ let create = (~catch as throw=throw, config: config_t): t => {
 };
 
 /**
- * check for import cycles and missing modules
+ check for import cycles and missing modules
  */
 let validate = (compiler: t) => {
   compiler.graph |> Validate.no_import_cycles;
@@ -92,7 +89,7 @@ let validate = (compiler: t) => {
 };
 
 /**
- * parse modules and add to table
+ parse modules and add to table
  */
 let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
   let errors = ref([]);
@@ -116,7 +113,7 @@ let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
 };
 
 /**
- * parse modules in the active import graph
+ parse modules in the active import graph
  */
 let initialize = (~cache=true, compiler: t) => {
   compiler |> _print_import_graph;
@@ -143,7 +140,7 @@ let initialize = (~cache=true, compiler: t) => {
 };
 
 /**
- * re-evaluate a subset of the import graph
+ re-evaluate a subset of the import graph
  */
 let incremental = (ids: list(m_id), compiler: t) => {
   compiler |> _print_import_graph;
@@ -175,7 +172,7 @@ let update_module = (id: m_id, compiler: t) => {
   let (removed, _) as result =
     compiler.graph |> ImportGraph.refresh_subtree(id);
 
-  removed |> List.iter(id => compiler |> _remove_module_types(id));
+  removed |> List.iter(id => compiler.modules |> ModuleTable.remove(id));
 
   result;
 };
@@ -183,7 +180,7 @@ let update_module = (id: m_id, compiler: t) => {
 let remove_module = (id: m_id, compiler: t) => {
   let removed = compiler.graph |> ImportGraph.prune_subtree(id);
 
-  removed |> List.iter(id => compiler |> _remove_module_types(id));
+  removed |> List.iter(id => compiler.modules |> ModuleTable.remove(id));
 
   removed;
 };

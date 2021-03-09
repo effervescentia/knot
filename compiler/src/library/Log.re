@@ -1,5 +1,5 @@
 /**
- * Logging utilities.
+ Logging utilities.
  */
 module ANSI = ANSITerminal;
 

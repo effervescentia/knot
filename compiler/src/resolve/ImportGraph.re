@@ -1,5 +1,5 @@
 /**
- * Graph that manages the relationships between modules.
+ Graph that manages the relationships between modules.
  */
 open Kore;
 
