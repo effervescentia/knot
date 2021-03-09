@@ -10,6 +10,7 @@ type t('a) = {
   mutable nodes: list('a),
   /**
    these relationships are directional
+
    lhs is the parent, rhs is the child
    */
   mutable edges: list(edge_t('a)),
@@ -21,23 +22,50 @@ let _fold_edges = (fold: ('b, ('a, 'a)) => 'b, acc: 'b, graph: t('a)) =>
 
 let _is_edge_of = (node: 'a, (parent, child): edge_t('a)): bool =>
   parent == node || child == node;
+
 let _is_edge_to = (node: 'a, (_, child): edge_t('a)): bool => child == node;
+
 let _is_edge_from = (node: 'a, (parent, _): edge_t('a)): bool =>
   parent == node;
 
-let empty = (): t('a) => {nodes: [], edges: []};
+let _merge_trees =
+    (depth: int, subtrees: list((int, list(string)))): list(string) => {
+  List.repeat(depth, ())
+  |> List.mapi((index, _) => {
+       subtrees
+       |> List.map(((width, rows)) =>
+            (List.length(rows) > index ? List.nth(rows, index) : "")
+            |> Print.fmt("%-*s", width)
+          )
+       |> String.join(~separator="")
+     });
+};
+
+let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
+  let width =
+    rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
+
+  (width, rows |> List.map(Print.fmt("%-*s", width)));
+};
+
+/* static */
 
 let create = (nodes: list('a), edges: list(edge_t('a))): t('a) => {
   nodes,
   edges,
 };
 
-let get_nodes = (graph: t('a)): list('a) => graph.nodes;
+let empty = (): t('a) => create([], []);
+
+/* getters */
+
+let nodes = (graph: t('a)): list('a) => graph.nodes;
+let edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
+
+/* methods */
 
 let has_node = (node: 'a, graph: t('a)): bool =>
   graph.nodes |> List.mem(node);
-
-let get_edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
 
 let get_edges_of = (node: 'a, graph: t('a)): list(edge_t('a)) =>
   graph
@@ -127,26 +155,6 @@ let find_all_unique_cycles = (graph: t('a)): list(list('a)) =>
 let is_acyclic = (graph: t('a)): bool =>
   find_all_unique_cycles(graph) |> List.length |> (==)(0);
 
-let _merge_trees =
-    (depth: int, subtrees: list((int, list(string)))): list(string) => {
-  List.repeat(depth, ())
-  |> List.mapi((index, _) => {
-       subtrees
-       |> List.map(((width, rows)) =>
-            (List.length(rows) > index ? List.nth(rows, index) : "")
-            |> Print.fmt("%-*s", width)
-          )
-       |> String.join(~separator="")
-     });
-};
-
-let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
-  let width =
-    rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
-
-  (width, rows |> List.map(Print.fmt("%-*s", width)));
-};
-
 let rec _print_subtree =
         (
           ~ancestors=[],
@@ -211,6 +219,7 @@ let rec _print_subtree =
 
 /**
  visited nodes can be printed multiple times, but their subtrees will only be printed once
+
  can handle cyclic graphs
  */
 let to_string = (print_node: 'a => string, graph: t('a)) => {

@@ -19,6 +19,8 @@ let _color_of_level =
     | DEBUG => ANSI.green
   );
 
+/* static */
+
 let init =
   Dolog.Log.(
     (cfg: config_t) => {
@@ -39,6 +41,8 @@ let init =
       );
     }
   );
+
+/* methods */
 
 let debug = Dolog.Log.debug;
 let info = Dolog.Log.info;

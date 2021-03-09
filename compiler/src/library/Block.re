@@ -11,6 +11,8 @@ type t('a) = {
   cursor: Cursor.t,
 };
 
+/* static */
+
 let create =
     (~type_=Type.K_Invalid, ~errors=?, cursor: Cursor.t, value: 'a): t('a) => {
   value,
@@ -28,13 +30,25 @@ let errors = (block: t('a)): option(list(compiler_err)) => block.errors;
 
 /* methods */
 
+/**
+ replace the [value] of the block
+ */
 let replace = (value: 'b, block: t('a)): t('b) => {...block, value};
 
+/**
+ replace the [type_] of the block
+ */
 let cast = (type_: Type.t, block: t('a)): t('a) => {...block, type_};
 
+/**
+ transform the [value] of the block
+ */
 let map = (f: 'a => 'b, block: t('a)): t('b) =>
   replace(f(block.value), block);
 
+/**
+ combine two blocks
+ */
 let join =
     (~type_=Type.K_Invalid, ~combine=(++), lhs: t(string), rhs: t(string))
     : t(string) => {
@@ -44,8 +58,17 @@ let join =
   errors: lhs.errors @? rhs.errors,
 };
 
+/**
+ wrap a block in another block
+ */
 let wrap = (block: t('a)): t('b) => {...block, value: block};
 
+/**
+ transform the block and return the result
+ */
 let extend = (f: t('a) => t('b), block: t('a)): t('b) => f(block);
 
+/**
+ compare the blocks using their [value]
+ */
 let compare = (lhs: t('a), rhs: t('a)): bool => lhs.value == rhs.value;

@@ -1,6 +1,3 @@
-/**
- Wrapper to ingest a stream of unicode characters.
- */
 open Kore;
 
 let _to_cursor = (cursor, decoder) =>
@@ -24,8 +21,15 @@ let _to_stream = (cursor, decoder) => {
 
 let _normalize = `Readline(Uchar.of_char(Constants.Character.eol));
 
-let of_string = (~cursor=true, s: string): Stream.t(Char.t) =>
+/**
+ wrapper to ingest a stream of unicode characters
+ */
+type t = Stream.t(Char.t);
+
+/* static */
+
+let of_string = (~cursor=true, s: string): t =>
   Uutf.decoder(~nln=_normalize, `String(s)) |> _to_stream(cursor);
 
-let of_channel = (~cursor=true, channel: in_channel): Stream.t(Char.t) =>
+let of_channel = (~cursor=true, channel: in_channel): t =>
   Uutf.decoder(~nln=_normalize, `Channel(channel)) |> _to_stream(cursor);

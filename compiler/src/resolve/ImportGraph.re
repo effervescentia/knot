@@ -25,6 +25,17 @@ let rec add_module = (~added=ref([]), id: m_id, graph: t) => {
   added^;
 };
 
+let create = (entry: m_id, get_imports: m_id => list(m_id)): t => {
+  let imports = Graph.empty();
+  let graph = {imports, get_imports};
+
+  add_module(entry, graph) |> ignore;
+
+  graph;
+};
+
+/* methods */
+
 let rec prune_subtree = (~removed=ref([]), node: 'a, graph: t) => {
   let children = graph.imports |> Graph.get_children(node);
 
@@ -46,13 +57,13 @@ let rec prune_subtree = (~removed=ref([]), node: 'a, graph: t) => {
   removed^;
 };
 
-let get_modules = graph => graph.imports |> Graph.get_nodes;
+let get_modules = graph => graph.imports |> Graph.nodes;
 
 let find_cycles = graph => graph.imports |> Graph.find_all_unique_cycles;
 
 let find_missing = graph =>
   graph.imports
-  |> Graph.get_edges
+  |> Graph.edges
   |> List.filter_map(
        snd
        % (child => Graph.has_node(child, graph.imports) ? None : Some(child)),
@@ -64,15 +75,6 @@ let refresh_subtree = (id: m_id, graph: t) => {
   let added = graph |> add_module(id);
 
   (removed |> List.filter(id => !List.mem(id, added)), added);
-};
-
-let create = (entry: m_id, get_imports: m_id => list(m_id)): t => {
-  let imports = Graph.empty();
-  let graph = {imports, get_imports};
-
-  add_module(entry, graph) |> ignore;
-
-  graph;
 };
 
 let to_string = (graph: t): string =>

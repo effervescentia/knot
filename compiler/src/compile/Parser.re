@@ -8,6 +8,7 @@ module Program = Grammar.Program;
 
 /**
  parses document head to extract only the import statements
+
  anything that cannot be parsed as an import statement will be ignored
  */
 let imports =

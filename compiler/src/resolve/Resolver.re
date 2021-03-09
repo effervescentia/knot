@@ -10,7 +10,11 @@ type t = {
   cache: option(Cache.t),
 };
 
+/* static */
+
 let create = (~cache=?, root_dir: string): t => {root_dir, cache};
+
+/* methods */
 
 let resolve_module = (resolver: t, id: m_id): Module.t =>
   switch (id, resolver.cache) {

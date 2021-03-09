@@ -62,6 +62,8 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
     }
   );
 
+/* static */
+
 let create = (dir: string, extensions: list(string)) => {
   switch (init_library()) {
   | Status.FSW_OK => ()
@@ -71,6 +73,11 @@ let create = (dir: string, extensions: list(string)) => {
   {dir, extensions};
 };
 
+/* methods */
+
+/**
+ start watching a folder for file system events
+ */
 let watch = (dispatch: dispatch_t, watcher: t) => {
   let (handle, msgBox) = Fswatch_lwt.init_session(Monitor.System_default);
 

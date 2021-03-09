@@ -1,13 +1,14 @@
 /**
- Wrapper for working with a stream that is lazily evaluated.
+ wrapper for working with a stream that is lazily evaluated
 
  copied from this original implementation in the library "opal"
- https://github.com/pyrocat101/opal/blob/ac495a4fc141cf843da74d223baecca47324acd4/opal.ml
+ {v https://github.com/pyrocat101/opal/blob/ac495a4fc141cf843da74d223baecca47324acd4/opal.ml}
  */
-
 type t('a) =
   | Cons('a, Lazy.t(t('a)))
   | Nil;
+
+/* static */
 
 let of_stream = (stream: Stream.t('a)): t('a) => {
   let rec next = stream =>

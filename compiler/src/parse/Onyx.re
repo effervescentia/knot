@@ -257,7 +257,7 @@ let rec chainr1 = (x, op) =>
   x >>= (a => op >>= (f => chainr1(x, op) >|= f(a)) <|> return(a));
 
 /**
- matches a pattern multiple times separated by operator op
+ matches a pattern multiple times separated by operator [op]
 
  associativity: {i right-to-left}
  */

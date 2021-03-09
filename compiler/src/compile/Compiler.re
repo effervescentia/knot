@@ -1,6 +1,3 @@
-/**
- Parses and transforms programs represented as a graph of modules.
- */
 open Kore;
 
 type config_t = {
@@ -10,6 +7,9 @@ type config_t = {
   source_dir: string,
 };
 
+/**
+ parses and transforms programs represented as a graph of modules
+ */
 type t = {
   config: config_t,
   cache: Cache.t,
@@ -40,6 +40,8 @@ let _print_import_graph = (compiler: t) =>
 let _print_modules = (compiler: t) =>
   ModuleTable.to_string(compiler.modules)
   |> Log.debug("\n\n--- modules ---\n\n%s");
+
+/* static */
 
 /**
  construct a new compiler instance
@@ -79,6 +81,8 @@ let create = (~catch as throw=throw, config: config_t): t => {
     resolve_from_cache,
   };
 };
+
+/* methods */
 
 /**
  check for import cycles and missing modules
@@ -165,9 +169,17 @@ let compile = (compiler: t) => {
   Log.info("compilation successful");
 };
 
+/**
+ add a new module (and its import graph) to a compiler
+ */
 let add_module = (id: m_id, compiler: t) =>
   compiler.graph |> ImportGraph.add_module(id);
 
+/**
+ replace an existing module in a compiler
+
+ all imports will be recalculated
+ */
 let update_module = (id: m_id, compiler: t) => {
   let (removed, _) as result =
     compiler.graph |> ImportGraph.refresh_subtree(id);
@@ -177,6 +189,12 @@ let update_module = (id: m_id, compiler: t) => {
   result;
 };
 
+/**
+ remove a module from a compiler
+
+ any modules which are only imported by the removed module
+ will also be removed
+ */
 let remove_module = (id: m_id, compiler: t) => {
   let removed = compiler.graph |> ImportGraph.prune_subtree(id);
 
@@ -185,9 +203,15 @@ let remove_module = (id: m_id, compiler: t) => {
   removed;
 };
 
+/**
+ move a module to a new location
+ */
 let relocate_module = (id: m_id, compiler: t) =>
   compiler.resolve_from_source(id) |> Module.exists
     ? update_module(id, compiler)
     : remove_module(id, compiler) |> (removed => (removed, []));
 
+/**
+ destroy any resources reserved by the compiler
+ */
 let teardown = (compiler: t) => compiler.cache |> Cache.destroy;

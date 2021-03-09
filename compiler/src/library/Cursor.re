@@ -21,6 +21,9 @@ let zero = point(0, 0);
 
 /* methods */
 
+/**
+ combine two cursors
+ */
 let join = (x: t, y: t): t =>
   switch (x, y) {
   | _ when x == y => x

@@ -16,9 +16,13 @@ type t =
   | Raw(string)
   | File(path_t);
 
+/* static */
+
 let of_string = (raw: string) => Raw(raw);
 
 let of_file = (path: path_t) => File(path);
+
+/* methods */
 
 let exists =
   fun

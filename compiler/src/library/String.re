@@ -5,6 +5,8 @@ include Stdlib.String;
 
 module TString = Tablecloth.String;
 
+/* static */
+
 let of_uchars = (cs: list(Uchar.t)) =>
   cs
   |> List.fold_left(
@@ -15,6 +17,8 @@ let of_uchars = (cs: list(Uchar.t)) =>
        Buffer.create(List.length(cs)),
      )
   |> Buffer.contents;
+
+/* methods */
 
 let to_list = TString.to_list;
 

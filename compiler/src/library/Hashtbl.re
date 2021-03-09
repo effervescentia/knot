@@ -1,3 +1,6 @@
+/**
+ Extension of the standard Hashtbl module with additional functionality.
+ */
 include Stdlib.Hashtbl;
 
 let compare = (~compare=(==), l, r) =>
