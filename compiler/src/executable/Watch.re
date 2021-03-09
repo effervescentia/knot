@@ -28,7 +28,7 @@ let run = (cfg: Compiler.config_t, cmd: config_t) => {
     Sys.Signal_handle(_ => compiler |> Compiler.teardown),
   );
 
-  compiler |> Compiler.initialize(~cache=false);
+  compiler |> Compiler.init(~skip_cache=true);
 
   Log.info("initial compilation successful");
 

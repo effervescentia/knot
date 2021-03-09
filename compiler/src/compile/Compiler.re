@@ -12,16 +12,21 @@ type config_t = {
  */
 type t = {
   config: config_t,
-  cache: Cache.t,
   graph: ImportGraph.t,
   modules: ModuleTable.t,
-  resolve_from_source: m_id => Module.t,
-  resolve_from_cache: m_id => Module.t,
+  resolver: Resolver.t,
   throw: compiler_err => unit,
+  errors: ref(list(compiler_err)),
 };
 
+let __module_table_size = 100;
+
+let _resolve = (~skip_cache=false, compiler: t, id: m_id) =>
+  Resolver.resolve_module(~skip_cache, id, compiler.resolver);
+
 let _add_to_cache = (id: m_id, compiler: t) =>
-  compiler.resolve_from_source(id) |> Module.cache(compiler.cache);
+  _resolve(~skip_cache=true, compiler, id)
+  |> Module.cache(compiler.resolver.cache);
 
 let _get_exports = (ast: AST.program_t) =>
   ast
@@ -32,6 +37,18 @@ let _get_exports = (ast: AST.program_t) =>
        | AST.Declaration(name, _) => Some((name, Type.K_Invalid))
        | _ => None,
      );
+
+let _report_errors = (compiler: t) => {
+  if (List.length(compiler.errors^) != 0) {
+    throw(ErrorList(compiler.errors^));
+  };
+
+  compiler.errors := [];
+};
+
+let _add_error = (err: compiler_err, errors: ref(list(compiler_err))) => {
+  errors := [err, ...errors^];
+};
 
 let _print_import_graph = (compiler: t) =>
   ImportGraph.to_string(compiler.graph)
@@ -47,41 +64,26 @@ let _print_modules = (compiler: t) =>
  construct a new compiler instance
  */
 let create = (~catch as throw=throw, config: config_t): t => {
-  let resolve_from_source =
-    Resolver.create(config.root_dir) |> Resolver.resolve_module;
-
   let cache = Cache.create(config.name);
-  let resolve_from_cache =
-    Resolver.create(~cache, config.root_dir) |> Resolver.resolve_module;
+  let resolver = Resolver.create(cache, config.root_dir);
 
   let errors = ref([]);
   let graph =
     ImportGraph.create(id =>
-      try(resolve_from_source(id) |> Module.read(Parser.imports)) {
+      try(
+        resolver
+        |> Resolver.resolve_module(~skip_cache=true, id)
+        |> Module.read(Parser.imports)
+      ) {
       | CompilerError(err) =>
-        errors := [err, ...errors^];
+        _add_error(err, errors);
         [];
       }
     );
 
-  graph |> ImportGraph.init(config.entry);
+  let modules = Hashtbl.create(__module_table_size);
 
-  if (List.length(errors^) != 0) {
-    throw(ErrorList(errors^));
-  };
-
-  let modules =
-    Hashtbl.create(graph |> ImportGraph.get_modules |> List.length);
-
-  {
-    throw,
-    config,
-    cache,
-    graph,
-    modules,
-    resolve_from_source,
-    resolve_from_cache,
-  };
+  {throw, config, graph, modules, resolver, errors};
 };
 
 /* methods */
@@ -98,7 +100,6 @@ let validate = (compiler: t) => {
  parse modules and add to table
  */
 let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
-  let errors = ref([]);
   ids
   |> List.iter(id =>
        try(
@@ -109,20 +110,20 @@ let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
              compiler.modules |> ModuleTable.add(id, ast, _get_exports(ast))
          )
        ) {
-       | CompilerError(err) => errors := [err, ...errors^]
+       | CompilerError(err) => _add_error(err, compiler.errors)
        }
      );
 
-  if (List.length(errors^) != 0) {
-    compiler.throw(ErrorList(errors^));
-  };
+  _report_errors(compiler);
 };
 
 /**
  parse modules in the active import graph
  */
-let initialize = (~cache=true, compiler: t) => {
-  compiler |> _print_import_graph;
+let init = (~skip_cache=false, compiler: t) => {
+  compiler.graph |> ImportGraph.init(compiler.config.entry);
+
+  _report_errors(compiler);
 
   /* check if import graph is valid */
   try(compiler |> validate) {
@@ -131,42 +132,31 @@ let initialize = (~cache=true, compiler: t) => {
 
   let modules = ImportGraph.get_modules(compiler.graph);
 
-  if (cache) {
+  if (!skip_cache) {
     /* cache snapshot of modules on disk */
     modules |> List.iter(id => _add_to_cache(id, compiler));
   };
 
   /* parse modules to AST */
-  compiler
-  |> process(
-       modules,
-       cache ? compiler.resolve_from_cache : compiler.resolve_from_source,
-     );
-  /* compiler |> _print_modules; */
+  compiler |> process(modules, _resolve(~skip_cache, compiler));
 };
 
 /**
  re-evaluate a subset of the import graph
  */
 let incremental = (ids: list(m_id), compiler: t) => {
-  compiler |> _print_import_graph;
-
   compiler |> validate;
-  compiler |> process(ids, compiler.resolve_from_source);
-
-  /* compiler |> _print_modules; */
+  compiler |> process(ids, _resolve(~skip_cache=true, compiler));
 
   /* generate output files */
-  ();
 
   Log.info("incremental compilation successful");
 };
 
 let compile = (compiler: t) => {
-  initialize(compiler);
+  init(compiler);
 
   /* generate output files */
-  ();
 
   Log.info("compilation successful");
 };
@@ -209,11 +199,11 @@ let remove_module = (id: m_id, compiler: t) => {
  move a module to a new location
  */
 let relocate_module = (id: m_id, compiler: t) =>
-  compiler.resolve_from_source(id) |> Module.exists
+  _resolve(~skip_cache=true, compiler, id) |> Module.exists
     ? update_module(id, compiler)
     : remove_module(id, compiler) |> (removed => (removed, []));
 
 /**
  destroy any resources reserved by the compiler
  */
-let teardown = (compiler: t) => compiler.cache |> Cache.destroy;
+let teardown = (compiler: t) => compiler.resolver.cache |> Cache.destroy;

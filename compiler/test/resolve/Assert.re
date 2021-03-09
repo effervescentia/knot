@@ -51,3 +51,22 @@ let program =
       "program matches",
     )
   );
+
+let resolver =
+  Alcotest.(
+    check(
+      testable(
+        Resolve.Resolver.(
+          (pp, resolver) =>
+            Print.fmt(
+              "cache: %s, root_dir: %s",
+              resolver.cache,
+              resolver.root_dir,
+            )
+            |> Format.pp_print_string(pp)
+        ),
+        (==),
+      ),
+      "resolver matches",
+    )
+  );
