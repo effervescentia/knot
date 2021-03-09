@@ -2,9 +2,6 @@ open Kore;
 
 module Module = Resolve.Module;
 
-let _range = ((l, l'), (r, r')) =>
-  Cursor.range(Cursor.point(l, l'), Cursor.point(r, r'));
-
 let __program = [
   AST.(
     of_decl((
@@ -13,11 +10,11 @@ let __program = [
         of_prim(
           Block.create(
             ~type_=Type.K_Integer,
-            _range((4, 15), (4, 17)),
+            Cursor.range((4, 15), (4, 17)),
             of_num(
               Block.create(
                 ~type_=Type.K_Integer,
-                _range((4, 15), (4, 17)),
+                Cursor.range((4, 15), (4, 17)),
                 of_int(Int64.of_int(123)),
               ),
             ),

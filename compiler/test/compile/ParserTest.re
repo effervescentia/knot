@@ -14,8 +14,6 @@ let __ast_fixture = "
   const ABC = 123;
  ";
 
-let _range = ((l, l'), (r, r')) =>
-  Cursor.range(Cursor.point(l, l'), Cursor.point(r, r'));
 let _to_stream = string =>
   File.CharStream.of_string(string) |> LazyStream.of_stream;
 
@@ -49,11 +47,11 @@ let suite =
                     of_prim(
                       Block.create(
                         ~type_=Type.K_Integer,
-                        _range((4, 15), (4, 17)),
+                        Cursor.range((4, 15), (4, 17)),
                         of_num(
                           Block.create(
                             ~type_=Type.K_Integer,
-                            _range((4, 15), (4, 17)),
+                            Cursor.range((4, 15), (4, 17)),
                             of_int(Int64.of_int(123)),
                           ),
                         ),

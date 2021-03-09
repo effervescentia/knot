@@ -36,7 +36,7 @@ let join =
     : t(string) => {
   value: combine(lhs.value, rhs.value),
   type_,
-  cursor: Cursor.range(lhs.cursor, rhs.cursor),
+  cursor: Cursor.join(lhs.cursor, rhs.cursor),
   errors: lhs.errors @? rhs.errors,
 };
 

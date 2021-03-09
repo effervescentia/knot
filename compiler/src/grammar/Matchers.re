@@ -23,7 +23,7 @@ let terminated = x => x << (Character.semicolon |> lexeme |> optional);
 let between = (l, r, x) =>
   map3(
     (l', x', r') =>
-      Block.create(Cursor.range(Block.cursor(l'), Block.cursor(r')), x'),
+      Block.create(Cursor.join(Block.cursor(l'), Block.cursor(r')), x'),
     l,
     x,
     r,
@@ -51,7 +51,7 @@ let glyph = (s: string) =>
         | [c] =>
           char(c)
           >|= Char.context
-          >|= (end_ => Block.create(Cursor.range(start, end_), ()))
+          >|= (end_ => Block.create(Cursor.join(start, end_), ()))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -73,7 +73,7 @@ let keyword = (s: string) =>
         | [c] =>
           char(c)
           >|= Char.context
-          >|= (end_ => Block.create(Cursor.range(start, end_), ()))
+          >|= (end_ => Block.create(Cursor.join(start, end_), ()))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq);
@@ -111,7 +111,7 @@ let string =
           >|= (
             end_ =>
               Block.create(
-                Cursor.range(start, end_),
+                Cursor.join(start, end_),
                 f([]) |> String.of_uchars,
               )
           ),

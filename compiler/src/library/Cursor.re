@@ -12,9 +12,12 @@ type t =
 
 let point = (line: int, column: int): t => Point({line, column});
 
+let range = ((line, column): (int, int), (line', column'): (int, int)): t =>
+  Range({line, column}, {line: line', column: column'});
+
 let zero = point(0, 0);
 
-let range = (x: t, y: t): t =>
+let join = (x: t, y: t): t =>
   switch (x, y) {
   | _ when x == y => x
 
