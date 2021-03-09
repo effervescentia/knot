@@ -21,14 +21,3 @@ let module_table =
       "module table matches",
     )
   );
-
-let program =
-  Alcotest.(
-    check(
-      testable(
-        pp => Grammar.Formatter.format % Format.pp_print_string(pp),
-        (==),
-      ),
-      "program matches",
-    )
-  );

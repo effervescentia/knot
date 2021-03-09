@@ -3,7 +3,6 @@ open Kore;
 module CharStream = File.CharStream;
 
 let __content = "hello world\n";
-let __temp_dir = Filename.get_temp_dir_name();
 
 let _read_stream = stream => {
   let chars = ref([]);

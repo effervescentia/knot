@@ -16,8 +16,6 @@ type t =
   | Raw(string)
   | File(path_t);
 
-let create = () => {};
-
 let of_string = (raw: string) => Raw(raw);
 
 let of_file = (path: path_t) => File(path);

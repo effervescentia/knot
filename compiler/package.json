@@ -117,7 +117,9 @@
     "test/resolve": {
       "require": [
         "knot.test",
-        "knot.resolve"
+        "knot.file_test",
+        "knot.resolve",
+        "knot.grammar"
       ],
       "name": "knot.resolve_test",
       "namespace": "TestResolve"

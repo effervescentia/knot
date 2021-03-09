@@ -23,3 +23,31 @@ let check_m_id =
 
 let m_id = Alcotest.(check(check_m_id, "module id matches"));
 let list_m_id = Alcotest.(check(list(check_m_id), "module id list matches"));
+
+let module_ =
+  Alcotest.(
+    check(
+      testable(
+        pp =>
+          Resolve.Module.(
+            fun
+            | Raw(s) => Print.fmt("raw: %s", s)
+            | File({full}) => Print.fmt("file: %s", full)
+          )
+          % Format.pp_print_string(pp),
+        (==),
+      ),
+      "module matches",
+    )
+  );
+
+let program =
+  Alcotest.(
+    check(
+      testable(
+        pp => Grammar.Formatter.format % Format.pp_print_string(pp),
+        (==),
+      ),
+      "program matches",
+    )
+  );

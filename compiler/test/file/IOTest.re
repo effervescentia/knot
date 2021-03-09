@@ -3,7 +3,6 @@ open Kore;
 module IO = File.IO;
 
 let __content = "hello world";
-let __temp_dir = Filename.get_temp_dir_name();
 
 let suite =
   "File.IO"
@@ -22,7 +21,7 @@ let suite =
     "clone()"
     >: (
       () => {
-        let target = Filename.concat(__temp_dir, "other/test.txt");
+        let target = Filename.concat(Util.get_temp_dir(), "other/test.txt");
 
         IO.clone(fixture_path, target);
 
