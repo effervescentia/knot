@@ -1,6 +1,6 @@
 open Kore;
 
-include Test.Assert;
+include TestResolve.Assert;
 
 let module_table =
   Alcotest.(
@@ -21,18 +21,6 @@ let module_table =
       "module table matches",
     )
   );
-
-let _check_m_id =
-  Alcotest.(
-    testable(
-      pp => Resolve.Kore.print_m_id % Format.pp_print_string(pp),
-      (==),
-    )
-  );
-
-let m_id = Alcotest.(check(_check_m_id, "module id matches"));
-let list_m_id =
-  Alcotest.(check(list(_check_m_id), "module id list matches"));
 
 let program =
   Alcotest.(

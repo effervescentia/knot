@@ -69,9 +69,8 @@ let suite =
     "parse invalid"
     >: (
       () =>
-        switch (_to_stream("foo bar") |> Parser.ast) {
-        | _ => Assert.fail("expected ParseFailed exception")
-        | exception ParseFailed => ()
-        }
+        Alcotest.check_raises("should throw ParseFailed", ParseFailed, () =>
+          _to_stream("foo bar") |> Parser.ast |> ignore
+        )
     ),
   ];

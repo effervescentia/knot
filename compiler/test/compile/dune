@@ -7,5 +7,5 @@
    (name TestCompile)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.compile_test)
-   (libraries  knot.test knot.compile )
+   (libraries  knot.test knot.resolve_test knot.compile )
 )

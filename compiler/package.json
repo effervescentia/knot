@@ -133,6 +133,7 @@
     "test/compile": {
       "require": [
         "knot.test",
+        "knot.resolve_test",
         "knot.compile"
       ],
       "name": "knot.compile_test",

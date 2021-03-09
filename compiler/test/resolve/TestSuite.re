@@ -1,1 +1,1 @@
-let tests = [];
+let tests = [ImportGraphTest.suite];

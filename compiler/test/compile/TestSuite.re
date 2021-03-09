@@ -1,1 +1,1 @@
-let tests = [ModuleTableTest.suite, ParserTest.suite];
+let tests = [ModuleTableTest.suite, ParserTest.suite, ValidateTest.suite];
