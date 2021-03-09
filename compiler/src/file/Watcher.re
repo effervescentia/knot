@@ -1,10 +1,10 @@
-/**
- Watches a directory structure and reacts to files changing.
- */
 open Kore;
 open Fswatch;
 open Lwt;
 
+/**
+ watches a directory structure and reacts to files changing
+ */
 type t = {
   dir: string,
   extensions: list(string),

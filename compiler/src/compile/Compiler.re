@@ -56,13 +56,15 @@ let create = (~catch as throw=throw, config: config_t): t => {
 
   let errors = ref([]);
   let graph =
-    ImportGraph.create(config.entry, id =>
+    ImportGraph.create(id =>
       try(resolve_from_source(id) |> Module.read(Parser.imports)) {
       | CompilerError(err) =>
         errors := [err, ...errors^];
         [];
       }
     );
+
+  graph |> ImportGraph.init(config.entry);
 
   if (List.length(errors^) != 0) {
     throw(ErrorList(errors^));

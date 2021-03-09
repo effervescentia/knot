@@ -1,12 +1,22 @@
-/**
- Graph that manages the relationships between modules.
- */
 open Kore;
 
+/**
+ graph that manages the relationships between modules
+ */
 type t = {
   imports: Graph.t(m_id),
   get_imports: m_id => list(m_id),
 };
+
+/* static */
+
+let create = (get_imports: m_id => list(m_id)): t => {
+  let imports = Graph.empty();
+
+  {imports, get_imports};
+};
+
+/* methods */
 
 let rec add_module = (~added=ref([]), id: m_id, graph: t) => {
   Graph.add_node(id, graph.imports);
@@ -25,16 +35,7 @@ let rec add_module = (~added=ref([]), id: m_id, graph: t) => {
   added^;
 };
 
-let create = (entry: m_id, get_imports: m_id => list(m_id)): t => {
-  let imports = Graph.empty();
-  let graph = {imports, get_imports};
-
-  add_module(entry, graph) |> ignore;
-
-  graph;
-};
-
-/* methods */
+let init = (entry: m_id) => add_module(entry) % ignore;
 
 let rec prune_subtree = (~removed=ref([]), node: 'a, graph: t) => {
   let children = graph.imports |> Graph.get_children(node);

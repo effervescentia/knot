@@ -1,6 +1,3 @@
-/**
- Table for storing module ASTs.
- */
 open Kore;
 
 type entry_t = {
@@ -8,12 +5,19 @@ type entry_t = {
   ast: AST.program_t,
 };
 
+/**
+ table for storing module ASTs
+ */
 type t = Hashtbl.t(m_id, entry_t);
+
+/* static */
 
 /**
  construct a new table for module information
  */
-let create = (size: int) => Hashtbl.create(size);
+let create = (size: int): t => Hashtbl.create(size);
+
+/* methods */
 
 /**
  add a module with associated export types and AST

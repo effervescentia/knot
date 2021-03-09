@@ -96,6 +96,7 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
 
 /**
  matches a sequence of characters between quotation marks
+
  allows escaping characters with a '\' character
  */
 let string =

@@ -7,6 +7,14 @@ let __bar_id = External("bar");
 let __fizz_id = Internal("fizz");
 let __buzz_id = External("buzz");
 
+let _setup = get_imports => {
+  let import_graph = ImportGraph.create(get_imports);
+
+  import_graph |> ImportGraph.init(__foo_id);
+
+  import_graph;
+};
+
 let suite =
   "Resolve.ImportGraph"
   >::: [
@@ -14,7 +22,19 @@ let suite =
     >: (
       () => {
         let get_imports = id => id == __foo_id ? [__bar_id] : [];
-        let import_graph = ImportGraph.create(__foo_id, get_imports);
+        let import_graph = ImportGraph.create(get_imports);
+
+        Assert.import_graph(
+          {imports: Graph.empty(), get_imports},
+          import_graph,
+        );
+      }
+    ),
+    "init()"
+    >: (
+      () => {
+        let get_imports = id => id == __foo_id ? [__bar_id] : [];
+        let import_graph = _setup(get_imports);
 
         Assert.import_graph(
           {
@@ -32,7 +52,7 @@ let suite =
         let get_imports = id =>
           id == __foo_id
             ? [__bar_id] : id == __fizz_id ? [__buzz_id, __bar_id] : [];
-        let import_graph = ImportGraph.create(__foo_id, get_imports);
+        let import_graph = _setup(get_imports);
 
         let added = import_graph |> ImportGraph.add_module(__fizz_id);
 
@@ -59,7 +79,7 @@ let suite =
       () => {
         let get_imports = id =>
           id == __foo_id ? [__bar_id] : id == __bar_id ? [__fizz_id] : [];
-        let import_graph = ImportGraph.create(__foo_id, get_imports);
+        let import_graph = _setup(get_imports);
 
         Assert.import_graph(
           {
@@ -90,7 +110,7 @@ let suite =
       () => {
         let get_imports = id =>
           id == __foo_id ? [__bar_id] : id == __bar_id ? [__fizz_id] : [];
-        let import_graph = ImportGraph.create(__foo_id, get_imports);
+        let import_graph = _setup(get_imports);
 
         import_graph |> ImportGraph.prune_subtree(__bar_id) |> ignore;
 
@@ -108,7 +128,7 @@ let suite =
         let new_get_imports = id => id == __buzz_id ? [] : [__buzz_id];
         let import_graph =
           ImportGraph.{
-            imports: create(__foo_id, get_imports).imports,
+            imports: _setup(get_imports).imports,
             get_imports: new_get_imports,
           };
 

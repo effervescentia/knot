@@ -1,10 +1,10 @@
-/**
- Resolves modules on disk based on its identifier.
- */
 open Kore;
 
 type module_t = {id: m_id};
 
+/**
+ resolves modules on disk based on an identifier
+ */
 type t = {
   root_dir: string,
   cache: option(Cache.t),
