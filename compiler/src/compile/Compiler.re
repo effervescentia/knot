@@ -38,13 +38,13 @@ let _get_exports = (ast: AST.program_t) =>
        | _ => None,
      );
 
-let _report_errors = (compiler: t) => {
+let _report_errors = (compiler: t) =>
   if (List.length(compiler.errors^) != 0) {
-    throw(ErrorList(compiler.errors^));
-  };
+    let errors = compiler.errors^;
 
-  compiler.errors := [];
-};
+    compiler.errors := [];
+    throw(ErrorList(errors));
+  };
 
 let _add_error = (err: compiler_err, errors: ref(list(compiler_err))) => {
   errors := [err, ...errors^];
@@ -99,11 +99,11 @@ let validate = (compiler: t) => {
 /**
  parse modules and add to table
  */
-let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
+let process = (ids: list(m_id), resolve: m_id => Module.t, compiler: t) => {
   ids
   |> List.iter(id =>
        try(
-         resolver(id)
+         resolve(id)
          |> Module.read(Parser.ast)
          |> (
            ast =>
@@ -118,7 +118,7 @@ let process = (ids: list(m_id), resolver: m_id => Module.t, compiler: t) => {
 };
 
 /**
- parse modules in the active import graph
+ fill import graph from entry and parse program to AST
  */
 let init = (~skip_cache=false, compiler: t) => {
   compiler.graph |> ImportGraph.init(compiler.config.entry);
@@ -126,9 +126,7 @@ let init = (~skip_cache=false, compiler: t) => {
   _report_errors(compiler);
 
   /* check if import graph is valid */
-  try(compiler |> validate) {
-  | CompilerError(err) => compiler.throw(err)
-  };
+  compiler |> validate;
 
   let modules = ImportGraph.get_modules(compiler.graph);
 
@@ -153,6 +151,9 @@ let incremental = (ids: list(m_id), compiler: t) => {
   Log.info("incremental compilation successful");
 };
 
+/**
+ compile the entire program to the target
+ */
 let compile = (compiler: t) => {
   init(compiler);
 
