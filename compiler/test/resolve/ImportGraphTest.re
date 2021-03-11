@@ -126,11 +126,10 @@ let suite =
         let get_imports = id =>
           id == __foo_id ? [__bar_id] : id == __bar_id ? [__fizz_id] : [];
         let new_get_imports = id => id == __buzz_id ? [] : [__buzz_id];
-        let import_graph =
-          ImportGraph.{
-            imports: _setup(get_imports).imports,
-            get_imports: new_get_imports,
-          };
+        let import_graph = {
+          ..._setup(get_imports),
+          get_imports: new_get_imports,
+        };
 
         let (removed, added) =
           import_graph |> ImportGraph.refresh_subtree(__bar_id);

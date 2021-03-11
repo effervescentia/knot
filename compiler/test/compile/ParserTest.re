@@ -25,7 +25,7 @@ let suite =
       () =>
         [
           (
-            [External("bar.kn"), External("buzz.kn")],
+            [External("bar"), External("buzz")],
             _to_stream(__import_fixture) |> Parser.imports,
           ),
           ([], _to_stream("") |> Parser.imports),

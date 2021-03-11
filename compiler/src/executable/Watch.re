@@ -21,7 +21,7 @@ let mode = () => {
 };
 
 let run = (cfg: Compiler.config_t, cmd: config_t) => {
-  let compiler = Compiler.create(~catch=print_err % Log.warn("%s"), cfg);
+  let compiler = Compiler.create(~catch=print_errs % Log.warn("%s"), cfg);
 
   Sys.set_signal(
     Sys.sigterm,
@@ -32,7 +32,7 @@ let run = (cfg: Compiler.config_t, cmd: config_t) => {
 
   Log.info("initial compilation successful");
 
-  let watcher = Watcher.create(cfg.root_dir, [Constants.file_extension]);
+  let watcher = Watcher.create(cfg.source_dir, [Constants.file_extension]);
 
   watcher
   |> Watcher.(

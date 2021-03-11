@@ -4,7 +4,9 @@ module Resolver = Resolve.Resolver;
 
 let __cache = "foo";
 let __root_dir = "bar";
-let __path = "fizz.txt";
+let __source_dir = "fizz";
+let __id = Internal("buzz");
+let __path = "buzz.kn";
 
 let suite =
   "Resolve.Resolver"
@@ -13,47 +15,47 @@ let suite =
     >: (
       () => {
         Assert.resolver(
-          {cache: __cache, root_dir: __root_dir},
-          Resolver.create(__cache, __root_dir),
+          {cache: __cache, root_dir: __root_dir, source_dir: __source_dir},
+          Resolver.create(__cache, __root_dir, __source_dir),
         );
       }
     ),
     "resolve_module() - resolve from cache"
     >: (
       () => {
-        let resolver = Resolver.create(__cache, __root_dir);
+        let resolver = Resolver.create(__cache, __root_dir, __source_dir);
 
         Assert.module_(
           Resolve.Module.File({
-            relative: __path,
+            relative: Filename.concat(__source_dir, __path),
             full: Filename.concat(__cache, __path),
           }),
-          Resolver.resolve_module(Internal(__path), resolver),
+          Resolver.resolve_module(__id, resolver),
         );
       }
     ),
     "resolve_module() - resolve from source"
     >: (
       () => {
-        let resolver = Resolver.create(__cache, __root_dir);
+        let resolver = Resolver.create(__cache, __root_dir, __source_dir);
 
         Assert.module_(
           Resolve.Module.File({
-            relative: __path,
-            full: Filename.concat(__root_dir, __path),
+            relative: Filename.concat(__source_dir, __path),
+            full:
+              String.join(
+                ~separator=Filename.dir_sep,
+                [__root_dir, __source_dir, __path],
+              ),
           }),
-          Resolver.resolve_module(
-            ~skip_cache=true,
-            Internal(__path),
-            resolver,
-          ),
+          Resolver.resolve_module(~skip_cache=true, __id, resolver),
         );
       }
     ),
     "resolve_module() - resolve external"
     >: (
       () => {
-        let resolver = Resolver.create(__cache, __root_dir);
+        let resolver = Resolver.create(__cache, __root_dir, __source_dir);
 
         Alcotest.check_raises(
           "should throw NotImplemented exception", NotImplemented, () =>

@@ -32,7 +32,8 @@ let module_ =
           Resolve.Module.(
             fun
             | Raw(s) => Print.fmt("raw: %s", s)
-            | File({full}) => Print.fmt("file: %s", full)
+            | File({full, relative}) =>
+              Print.fmt("full: %s, relative: %s", full, relative)
           )
           % Format.pp_print_string(pp),
         (==),

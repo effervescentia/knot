@@ -15,7 +15,7 @@ type t = {
   graph: ImportGraph.t,
   modules: ModuleTable.t,
   resolver: Resolver.t,
-  throw: compiler_err => unit,
+  throw: list(compiler_err) => unit,
   errors: ref(list(compiler_err)),
 };
 
@@ -43,11 +43,12 @@ let _report_errors = (compiler: t) =>
     let errors = compiler.errors^;
 
     compiler.errors := [];
-    throw(ErrorList(errors));
+    compiler.throw(errors);
   };
 
-let _add_error = (err: compiler_err, errors: ref(list(compiler_err))) => {
-  errors := [err, ...errors^];
+let _add_errors =
+    (errors: list(compiler_err), errors_ref: ref(list(compiler_err))) => {
+  errors_ref := errors @ errors_ref^;
 };
 
 let _print_import_graph = (compiler: t) =>
@@ -63,9 +64,9 @@ let _print_modules = (compiler: t) =>
 /**
  construct a new compiler instance
  */
-let create = (~catch as throw=throw, config: config_t): t => {
+let create = (~catch as throw=throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
-  let resolver = Resolver.create(cache, config.root_dir);
+  let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
   let errors = ref([]);
   let graph =
@@ -75,8 +76,8 @@ let create = (~catch as throw=throw, config: config_t): t => {
         |> Resolver.resolve_module(~skip_cache=true, id)
         |> Module.read(Parser.imports)
       ) {
-      | CompilerError(err) =>
-        _add_error(err, errors);
+      | CompilerError(e) =>
+        _add_errors(e, errors);
         [];
       }
     );
@@ -110,11 +111,11 @@ let process = (ids: list(m_id), resolve: m_id => Module.t, compiler: t) => {
              compiler.modules |> ModuleTable.add(id, ast, _get_exports(ast))
          )
        ) {
-       | CompilerError(err) => _add_error(err, compiler.errors)
+       | CompilerError(e) => _add_errors(e, compiler.errors)
        }
      );
 
-  _report_errors(compiler);
+  compiler |> _report_errors;
 };
 
 /**
@@ -122,8 +123,7 @@ let process = (ids: list(m_id), resolve: m_id => Module.t, compiler: t) => {
  */
 let init = (~skip_cache=false, compiler: t) => {
   compiler.graph |> ImportGraph.init(compiler.config.entry);
-
-  _report_errors(compiler);
+  compiler |> _report_errors;
 
   /* check if import graph is valid */
   compiler |> validate;

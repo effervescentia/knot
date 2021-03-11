@@ -31,17 +31,12 @@ let exists =
 
 let read = f =>
   fun
-  | File(path) as x when !exists(x) =>
-    throw(UnresolvedModule(path.relative))
+  | File(path) as x when !exists(x) => throw(FileNotFound(path.relative))
   | File(path) =>
     IO.read_stream(path.full)
     |> (
       ((stream, close)) =>
-        (
-          try(f(stream)) {
-          | _ => []
-          }
-        )
+        f(stream)
         |> (
           r => {
             close();

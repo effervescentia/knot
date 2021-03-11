@@ -18,7 +18,7 @@ let mode = () => {
 };
 
 let run = (cfg: Compiler.config_t, cmd: config_t) => {
-  let compiler = Compiler.create(~catch=err => print_err(err) |> panic, cfg);
+  let compiler = Compiler.create(~catch=print_errs % panic, cfg);
 
   compiler |> Compiler.compile;
   compiler |> Compiler.teardown;

@@ -7,14 +7,17 @@ module Module = Resolve.Module;
 
 let __valid_program_dir = "./test/compile/.fixtures/valid_program";
 let __invalid_program_dir = "./test/compile/.fixtures/invalid_program";
+let __cyclic_imports_dir = "./test/compile/.fixtures/cyclic_imports";
+let __source_dir = ".";
+let __entry_module = "entry";
 let __entry_filename = "entry.kn";
-let __entry = Internal(__entry_filename);
+let __entry = Internal(__entry_module);
 let __config =
   Compiler.{
     name: "foo",
     entry: __entry,
     root_dir: __valid_program_dir,
-    source_dir: ".",
+    source_dir: __source_dir,
   };
 
 let __types = [("ABC", Type.K_Invalid)] |> List.to_seq |> Hashtbl.of_seq;
@@ -41,6 +44,17 @@ let __ast = [
   ),
 ];
 
+let _assert_import_graph_structure =
+  Alcotest.(
+    check(
+      testable(
+        pp => Resolve.ImportGraph.to_string % Format.pp_print_string(pp),
+        (l, r) => l.imports == r.imports,
+      ),
+      "import graph matches",
+    )
+  );
+
 let suite =
   "Compile.Compiler"
   >::: [
@@ -55,9 +69,10 @@ let suite =
             resolver: {
               cache: "",
               root_dir: __valid_program_dir,
+              source_dir: __source_dir,
             },
             errors: ref([]),
-            throw,
+            throw: throw_all,
           },
           Compiler.create(__config),
         )
@@ -75,6 +90,7 @@ let suite =
             resolver: {
               cache: "",
               root_dir: __valid_program_dir,
+              source_dir: __source_dir,
             },
             errors: ref([]),
             throw,
@@ -108,14 +124,14 @@ let suite =
         );
       }
     ),
-    "process() - catch unresolved module"
+    "process() - catch file not found"
     >: (
       () => {
         let compiler = Compiler.create(__config);
 
         Alcotest.check_raises(
-          "should throw UnresolvedModule exception",
-          CompilerError(ErrorList([UnresolvedModule(__entry_filename)])),
+          "should throw FileNotFound exception",
+          CompilerError([FileNotFound(__entry_filename)]),
           () =>
           compiler
           |> Compiler.process([__entry], _ =>
@@ -141,6 +157,39 @@ let suite =
                    Filename.concat(__invalid_program_dir, __entry_filename),
                })
              )
+        );
+      }
+    ),
+    "init() - parse single module into AST"
+    >: (
+      () => {
+        let compiler = Compiler.create(__config);
+
+        compiler |> Compiler.init;
+
+        _assert_import_graph_structure(
+          {imports: Graph.create([__entry], []), get_imports: _ => []},
+          compiler.graph,
+        );
+        Assert.module_table(
+          [(__entry, ModuleTable.{types: __types, ast: __ast})]
+          |> List.to_seq
+          |> Hashtbl.of_seq,
+          compiler.modules,
+        );
+      }
+    ),
+    "init() - catch cyclic imports"
+    >: (
+      () => {
+        let compiler =
+          Compiler.create({...__config, root_dir: __cyclic_imports_dir});
+
+        Alcotest.check_raises(
+          "should throw ImportCycle exception",
+          CompilerError([ImportCycle(["@/entry", "@/cycle"])]),
+          () =>
+          compiler |> Compiler.init
         );
       }
     ),

@@ -30,7 +30,7 @@ let suite =
 
         Alcotest.check_raises(
           "should throw CompilerError",
-          CompilerError(ErrorList([ImportCycle(["@/foo"])])),
+          CompilerError([ImportCycle(["@/foo"])]),
           () =>
           Validate.no_import_cycles(graph)
         );
@@ -55,7 +55,7 @@ let suite =
 
         Alcotest.check_raises(
           "should throw CompilerError",
-          CompilerError(ErrorList([UnresolvedModule("@/bar")])),
+          CompilerError([UnresolvedModule("@/bar")]),
           () =>
           Validate.no_unresolved_modules(graph)
         );

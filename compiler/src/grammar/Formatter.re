@@ -17,7 +17,7 @@ let fmt_block = (print, x) =>
     "[ type: %s, cursor: %s, errors: (%s) ] %s",
     Block.type_(x) |> fmt_type,
     Block.cursor(x) |> Cursor.to_string,
-    Print.opt(Print.many(~separator=", ", print_err), Block.errors(x)),
+    Print.opt(print_errs, Block.errors(x)),
     print(Block.value(x)),
   );
 

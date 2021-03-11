@@ -2,6 +2,8 @@ open Kore;
 
 module Module = Resolve.Module;
 
+exception MockError;
+
 let __program = [
   AST.(
     of_decl((
@@ -101,23 +103,17 @@ let suite =
     ),
     "read() - file does not exist"
     >: (
-      () =>
+      () => {
+        let relative = "foo.kn";
+
         Alcotest.check_raises(
-          "should throw UnresolvedModule exception",
-          CompilerError(UnresolvedModule("foo")),
+          "should throw FileNotFound exception",
+          CompilerError([FileNotFound(relative)]),
           () =>
-          Module.read(_ => [], Module.File({relative: "foo", full: "bar"}))
+          Module.read(_ => [], Module.File({relative, full: "bar"}))
           |> ignore
-        )
-    ),
-    "read() - parse invalid program"
-    >: (
-      () =>
-        Module.read(
-          stream => Assert.fail("force error"),
-          Module.File({relative: "foo", full: fixture_path}),
-        )
-        |> Assert.program([])
+        );
+      }
     ),
     "cache()"
     >: (
