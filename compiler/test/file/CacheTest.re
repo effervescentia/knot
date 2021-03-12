@@ -2,6 +2,8 @@ open Kore;
 
 module Cache = File.Cache;
 
+let __content = "hello world\n";
+
 let suite =
   "File.Cache"
   >::: [
@@ -40,7 +42,7 @@ let suite =
       () => {
         let open_file = Cache.open_file("read_me.txt", fixture_dir);
 
-        [("hello world", Util.read_channel_to_string(open_file))]
+        [(__content, Util.read_channel_to_string(open_file))]
         |> Assert.(test_many(string));
 
         close_in(open_file);
@@ -49,7 +51,6 @@ let suite =
     "destroy()"
     >: (
       () => {
-        let content = "hello world";
         let temp_dir = Util.get_temp_dir();
         let parent_dir =
           Filename.concat(temp_dir, Print.fmt("%f", Sys.time()));
@@ -57,7 +58,7 @@ let suite =
           Filename.concat(parent_dir, Util.temp_file_name("test", "txt"));
 
         FileUtil.mkdir(~parent=true, parent_dir);
-        Util.write_to_file(path, content);
+        Util.write_to_file(path, __content);
         Cache.destroy(parent_dir);
 
         [

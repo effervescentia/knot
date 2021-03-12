@@ -44,8 +44,8 @@ and jsx_child_t =
   | Node(jsx_t)
   | InlineExpression(expression_t)
 and jsx_attribute_t =
+  | ID(string)
   | Class(string, option(expression_t))
-  | ID(string, option(expression_t))
   | Property(string, option(expression_t))
 and expression_t =
   | Primitive(Block.t(primitive_t))
@@ -108,7 +108,7 @@ let of_frag = xs => Fragment(xs);
 let of_tag = ((name, attrs, children)) => Tag(name, attrs, children);
 let of_prop = ((name, value)) => Property(name, value);
 let of_jsx_class = ((name, value)) => Class(name, value);
-let of_jsx_id = ((name, value)) => ID(name, value);
+let of_jsx_id = name => ID(name);
 let of_text = x => Text(x);
 let of_node = x => Node(x);
 let of_inline_expr = x => InlineExpression(x);

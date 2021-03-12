@@ -51,5 +51,7 @@ let cache = (cache: Cache.t) =>
   | File(path) =>
     if (Sys.file_exists(path.full)) {
       IO.clone(path.full, cache |> Cache.resolve_path(path.relative));
+    } else {
+      throw(FileNotFound(path.relative));
     }
   | Raw(_) => ();

@@ -4,7 +4,7 @@ module ModuleTable = Compile.ModuleTable;
 
 let __id = Internal("foo");
 let __types = [("bar", Type.K_Invalid)];
-let __program = [AST.Import("foo", "bar")];
+let __program = AST.[Import("foo", "bar")];
 let __table = ModuleTable.create(1);
 
 let _create_table = items => List.to_seq(items) |> Hashtbl.of_seq;

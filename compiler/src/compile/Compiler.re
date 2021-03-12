@@ -19,7 +19,7 @@ type t = {
   errors: ref(list(compiler_err)),
 };
 
-let __module_table_size = 100;
+let __module_table_size = 64;
 
 let _resolve = (~skip_cache=false, compiler: t, id: m_id) =>
   Resolver.resolve_module(~skip_cache, id, compiler.resolver);
@@ -152,10 +152,40 @@ let incremental = (ids: list(m_id), compiler: t) => {
 };
 
 /**
+ use the ASTs of parsed modules to generate files in the target format
+ */
+let emit_output = (target: Target.t, output_dir: string, compiler: t) => {
+  compiler.modules
+  |> Hashtbl.iter(
+       fun
+       | Internal(name) =>
+         Filename.concat(output_dir, name ++ Target.extension_of(target))
+         |> open_out
+         |> (
+           out => {
+             let generate =
+               Generator.generate(Printf.fprintf(out, "%s"), target);
+
+             (ModuleTable.{ast}) => {
+               generate(ast);
+               close_out(out);
+             };
+           }
+         )
+       | External(_) => raise(NotImplemented),
+     );
+};
+
+/**
  compile the entire program to the target
  */
-let compile = (compiler: t) => {
-  init(compiler);
+let compile = (target: Target.t, output_dir: string, compiler: t) => {
+  compiler |> init;
+
+  FileUtil.rm(~recurse=true, [output_dir]);
+  FileUtil.mkdir(~parent=true, output_dir);
+
+  compiler |> emit_output(target, output_dir);
 
   /* generate output files */
 
@@ -207,4 +237,5 @@ let relocate_module = (id: m_id, compiler: t) =>
 /**
  destroy any resources reserved by the compiler
  */
+
 let teardown = (compiler: t) => compiler.resolver.cache |> Cache.destroy;

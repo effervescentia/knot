@@ -17,9 +17,9 @@ let mode = () => {
   ("build", [out_dir_opt, target_opt], resolve);
 };
 
-let run = (cfg: Compiler.config_t, cmd: config_t) => {
-  let compiler = Compiler.create(~catch=print_errs % panic, cfg);
+let run = (~catch=print_errs % panic, cfg: Compiler.config_t, cmd: config_t) => {
+  let compiler = Compiler.create(~catch, cfg);
 
-  compiler |> Compiler.compile;
+  compiler |> Compiler.compile(cmd.target, cmd.out_dir);
   compiler |> Compiler.teardown;
 };

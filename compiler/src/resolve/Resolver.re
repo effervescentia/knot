@@ -11,16 +11,6 @@ type t = {
 
 let _get_source_path = name => name ++ Constants.file_extension;
 
-let _to_module = (path, resolver) =>
-  Filename.concat(resolver.source_dir, path)
-  |> (
-    relative =>
-      Module.of_file({
-        full: Filename.concat(resolver.root_dir, relative),
-        relative,
-      })
-  );
-
 /* static */
 
 let create = (cache: Cache.t, root_dir: string, source_dir: string): t => {
@@ -38,17 +28,13 @@ let resolve_module = (~skip_cache=false, id: m_id, resolver: t): Module.t =>
   switch (id, skip_cache) {
   /* resolve from cache if not skipping cache */
   | (Internal(name), false) =>
-    let path = _get_source_path(name);
-
-    resolver.cache
-    |> Cache.resolve_path(path)
+    Filename.concat(resolver.source_dir, _get_source_path(name))
     |> (
-      full =>
-        Module.of_file({
-          full,
-          relative: Filename.concat(resolver.source_dir, path),
-        })
-    );
+      relative =>
+        resolver.cache
+        |> Cache.resolve_path(relative)
+        |> (full => Module.of_file({full, relative}))
+    )
   /* resolve from source directory if skipping cache */
   | (Internal(name), true) =>
     Filename.concat(resolver.source_dir, _get_source_path(name))

@@ -1,8 +1,10 @@
-/**
- Execution entrypoint.
- */
-open Kore;
+open Knot.Kore;
 
+open Executable;
+
+/**
+ execution entrypoint
+ */
 let () = {
   Log.init({debug: false, color: true, timestamp: false});
 

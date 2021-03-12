@@ -194,14 +194,9 @@ module Shared = {
     let (source_dir_opt, get_source_dir) = source_dir(~default="src", ());
 
     let resolve = () => {
-      let root_dir = get_root_dir();
+      let root_dir = get_root_dir() |> Filename.resolve;
 
-      let source_dir = get_source_dir();
-      let source_dir =
-        Filename.is_implicit(source_dir) || Filename.is_relative(source_dir)
-          ? Filename.concat(root_dir, source_dir) : source_dir;
-
-      Log.error("source %s", source_dir);
+      let source_dir = get_source_dir() |> Filename.relative_to(root_dir);
 
       Compiler.{
         name: Filename.basename(root_dir),

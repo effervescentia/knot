@@ -4,12 +4,10 @@
 
 type t = string;
 
-let __source_prefix = "source";
-
 /* static */
 
 let create = (project_name: string): t => {
-  let temp_dir = Util.create_temp_dir(project_name, __source_prefix);
+  let temp_dir = Util.create_temp_dir(project_name);
 
   temp_dir;
 };
@@ -37,4 +35,4 @@ let open_file = (path: string, cache: t): in_channel =>
 /**
  remove the cache directory
  */
-let destroy = (temp_dir: t) => Util.remove_dir(temp_dir);
+let destroy = (temp_dir: t) => FileUtil.rm(~recurse=true, [temp_dir]);

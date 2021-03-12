@@ -53,8 +53,9 @@ and attributes = x =>
     _attribute(~prefix=Character.period, x)
     >|= Tuple.map_fst2(String.drop_left(1))
     >|= AST.of_jsx_class,
-    _attribute(~prefix=Character.octothorp, x)
-    >|= Tuple.map_fst2(String.drop_left(1))
+    M.identifier(~prefix=Character.octothorp)
+    >|= Block.value
+    >|= String.drop_left(1)
     >|= AST.of_jsx_id,
   ])
   |> many

@@ -24,17 +24,10 @@ let append_to_file = (path, s) => {
 };
 
 let read_channel_to_string = in_ => {
-  let string = ref(input_line(in_));
+  let string = really_input_string(in_, in_channel_length(in_));
+  close_in(in_);
 
-  let rec loop = () =>
-    switch (string := string^ ++ input_line(in_) ++ "\n") {
-    | _ => loop()
-    | exception End_of_file =>
-      close_in(in_);
-      string^;
-    };
-
-  loop();
+  string;
 };
 
 let read_file_to_string = path => {
@@ -58,5 +51,5 @@ let read_lazy_char_stream = stream => {
     };
   };
 
-  loop(stream) |> String.drop_suffix("\n");
+  loop(stream);
 };

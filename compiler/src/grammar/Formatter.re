@@ -89,7 +89,7 @@ and fmt_jsx_attr = attr =>
   (
     switch (attr) {
     | Class(name, value) => ("." ++ name, value)
-    | ID(name, value) => ("#" ++ name, value)
+    | ID(name) => ("#" ++ name, None)
     | Property(name, value) => (name, value)
     }
   )

@@ -146,7 +146,7 @@ let suite =
           ),
           (
             "<Foo #fizz />",
-            AST.of_tag(("Foo", [("fizz", None) |> AST.of_jsx_id], [])),
+            AST.of_tag(("Foo", ["fizz" |> AST.of_jsx_id], [])),
           ),
         ]
         |> Assert.parse_many

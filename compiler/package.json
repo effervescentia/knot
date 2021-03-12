@@ -76,6 +76,13 @@
       "require": [
         "knot.compile"
       ],
+      "name": "knot.exec",
+      "namespace": "Executable"
+    },
+    "src/cli": {
+      "require": [
+        "knot.exec"
+      ],
       "main": "Main",
       "name": "knotc.exe"
     },
@@ -132,6 +139,14 @@
       "name": "knot.parse_test",
       "namespace": "TestParse"
     },
+    "test/generate": {
+      "require": [
+        "knot.test",
+        "knot.generate"
+      ],
+      "name": "knot.generate_test",
+      "namespace": "TestGenerate"
+    },
     "test/compile": {
       "require": [
         "knot.test",
@@ -141,6 +156,15 @@
       "name": "knot.compile_test",
       "namespace": "TestCompile"
     },
+    "test/executable": {
+      "require": [
+        "knot.test",
+        "knot.file_test",
+        "knot.exec"
+      ],
+      "name": "knot.exec_test",
+      "namespace": "TestExecutable"
+    },
     "test/unit": {
       "require": [
         "knot.lib_test",
@@ -148,19 +172,16 @@
         "knot.grammar_test",
         "knot.resolve_test",
         "knot.parse_test",
-        "knot.compile_test"
+        "knot.generate_test",
+        "knot.compile_test",
+        "knot.exec_test"
       ],
       "main": "TestSuite",
       "name": "UnitTests.exe"
     },
     "test/integration": {
       "require": [
-        "knot.lib_test",
-        "knot.file_test",
-        "knot.grammar_test",
-        "knot.resolve_test",
-        "knot.parse_test",
-        "knot.compile_test"
+        "knot.file_test"
       ],
       "main": "TestSuite",
       "name": "IntegrationTests.exe"

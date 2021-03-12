@@ -21,8 +21,8 @@ let __config =
   };
 
 let __types = [("ABC", Type.K_Invalid)] |> List.to_seq |> Hashtbl.of_seq;
-let __ast = [
-  AST.(
+let __ast =
+  AST.[
     of_decl((
       "ABC",
       of_const(
@@ -40,9 +40,8 @@ let __ast = [
           ),
         ),
       ),
-    ))
-  ),
-];
+    )),
+  ];
 
 let _assert_import_graph_structure =
   Alcotest.(

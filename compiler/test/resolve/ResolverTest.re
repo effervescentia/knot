@@ -24,11 +24,12 @@ let suite =
     >: (
       () => {
         let resolver = Resolver.create(__cache, __root_dir, __source_dir);
+        let relative = Filename.concat(__source_dir, __path);
 
         Assert.module_(
           Resolve.Module.File({
-            relative: Filename.concat(__source_dir, __path),
-            full: Filename.concat(__cache, __path),
+            relative,
+            full: Filename.concat(__cache, relative),
           }),
           Resolver.resolve_module(__id, resolver),
         );

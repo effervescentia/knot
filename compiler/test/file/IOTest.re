@@ -2,7 +2,7 @@ open Kore;
 
 module IO = File.IO;
 
-let __content = "hello world";
+let __content = "hello world\n";
 
 let suite =
   "File.IO"

@@ -33,9 +33,9 @@ let suite =
     "of_string()"
     >: (
       () => {
-        let contents = "foo";
+        let content = "foo";
 
-        Assert.module_(Module.Raw(contents), Module.of_string(contents));
+        Assert.module_(Module.Raw(content), Module.of_string(content));
       }
     ),
     "of_file()"
@@ -69,15 +69,15 @@ let suite =
     "read() - raw"
     >: (
       () => {
-        let contents = "foo";
+        let content = "foo";
 
         let program =
           Module.read(
             stream => {
-              Util.read_lazy_char_stream(stream) |> Assert.string(contents);
+              Util.read_lazy_char_stream(stream) |> Assert.string(content);
               __program;
             },
-            Module.Raw(contents),
+            Module.Raw(content),
           );
 
         Assert.program(__program, program);
@@ -90,7 +90,7 @@ let suite =
           Module.read(
             stream => {
               Assert.string(
-                "hello world",
+                "hello world\n",
                 Util.read_lazy_char_stream(stream),
               );
               __program;
@@ -115,7 +115,7 @@ let suite =
         );
       }
     ),
-    "cache()"
+    "cache() - file exists"
     >: (
       () => {
         let relative_path = "foo.txt";
@@ -129,6 +129,20 @@ let suite =
         Filename.concat(cache, relative_path)
         |> Sys.file_exists
         |> Assert.true_;
+      }
+    ),
+    "cache() - file does not exist"
+    >: (
+      () => {
+        let relative_path = "foo.txt";
+        let cache = Util.get_temp_dir();
+
+        Alcotest.check_raises(
+          "should throw FileNotFound exception",
+          CompilerError([FileNotFound(relative_path)]),
+          () =>
+          Module.cache(cache, File({relative: relative_path, full: "bar"}))
+        );
       }
     ),
   ];

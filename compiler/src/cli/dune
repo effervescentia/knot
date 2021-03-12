@@ -4,8 +4,8 @@
 ; !!!! If you want to stop using pesy and manage this file by hand, change package.json's 'esy.build' command to: refmterr dune build -p  knot
 (executable
    ; The entrypoint module
-   (name TestSuite)  ;  From package.json main field
-   ; The name of the executable (runnable via esy x UnitTests.exe) 
-   (public_name UnitTests.exe)  ;  From package.json name field
-   (libraries  knot.lib_test knot.file_test knot.grammar_test knot.resolve_test knot.parse_test knot.generate_test knot.compile_test knot.exec_test ) ;  From package.json require field (array of strings)
+   (name Main)  ;  From package.json main field
+   ; The name of the executable (runnable via esy x knotc.exe) 
+   (public_name knotc.exe)  ;  From package.json name field
+   (libraries  knot.exec ) ;  From package.json require field (array of strings)
 )
