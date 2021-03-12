@@ -160,9 +160,11 @@ let emit_output = (target: Target.t, output_dir: string, compiler: t) => {
        fun
        | Internal(name) =>
          Filename.concat(output_dir, name ++ Target.extension_of(target))
-         |> open_out
          |> (
-           out => {
+           path => {
+             Filename.dirname(path) |> FileUtil.mkdir(~parent=true);
+
+             let out = open_out(path);
              let generate =
                Generator.generate(Printf.fprintf(out, "%s"), target);
 
