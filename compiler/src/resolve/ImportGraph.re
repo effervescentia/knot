@@ -4,13 +4,13 @@ open Kore;
  graph that manages the relationships between modules
  */
 type t = {
-  imports: Graph.t(m_id),
-  get_imports: m_id => list(m_id),
+  imports: Graph.t(AST.namespace_t),
+  get_imports: AST.namespace_t => list(AST.namespace_t),
 };
 
 /* static */
 
-let create = (get_imports: m_id => list(m_id)): t => {
+let create = (get_imports: AST.namespace_t => list(AST.namespace_t)): t => {
   let imports = Graph.empty();
 
   {imports, get_imports};
@@ -18,7 +18,7 @@ let create = (get_imports: m_id => list(m_id)): t => {
 
 /* methods */
 
-let rec add_module = (~added=ref([]), id: m_id, graph: t) => {
+let rec add_module = (~added=ref([]), id: AST.namespace_t, graph: t) => {
   Graph.add_node(id, graph.imports);
 
   added := added^ |> List.incl(id);
@@ -35,7 +35,7 @@ let rec add_module = (~added=ref([]), id: m_id, graph: t) => {
   added^;
 };
 
-let init = (entry: m_id) => add_module(entry) % ignore;
+let init = (entry: AST.namespace_t) => add_module(entry) % ignore;
 
 let rec prune_subtree = (~removed=ref([]), node: 'a, graph: t) => {
   let children = graph.imports |> Graph.get_children(node);
@@ -71,7 +71,7 @@ let find_missing = graph =>
      )
   |> List.uniq_by((==));
 
-let refresh_subtree = (id: m_id, graph: t) => {
+let refresh_subtree = (id: AST.namespace_t, graph: t) => {
   let removed = graph |> prune_subtree(id);
   let added = graph |> add_module(id);
 
@@ -79,4 +79,4 @@ let refresh_subtree = (id: m_id, graph: t) => {
 };
 
 let to_string = (graph: t): string =>
-  graph.imports |> Graph.to_string(print_m_id);
+  graph.imports |> Graph.to_string(AST.string_of_namespace);

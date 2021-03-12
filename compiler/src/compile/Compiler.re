@@ -2,7 +2,7 @@ open Kore;
 
 type config_t = {
   name: string,
-  entry: m_id,
+  entry: namespace_t,
   root_dir: string,
   source_dir: string,
 };
@@ -21,10 +21,10 @@ type t = {
 
 let __module_table_size = 64;
 
-let _resolve = (~skip_cache=false, compiler: t, id: m_id) =>
+let _resolve = (~skip_cache=false, compiler: t, id: namespace_t) =>
   Resolver.resolve_module(~skip_cache, id, compiler.resolver);
 
-let _add_to_cache = (id: m_id, compiler: t) =>
+let _add_to_cache = (id: namespace_t, compiler: t) =>
   _resolve(~skip_cache=true, compiler, id)
   |> Module.cache(compiler.resolver.cache);
 
@@ -100,7 +100,8 @@ let validate = (compiler: t) => {
 /**
  parse modules and add to table
  */
-let process = (ids: list(m_id), resolve: m_id => Module.t, compiler: t) => {
+let process =
+    (ids: list(namespace_t), resolve: namespace_t => Module.t, compiler: t) => {
   ids
   |> List.iter(id =>
        try(
@@ -142,7 +143,7 @@ let init = (~skip_cache=false, compiler: t) => {
 /**
  re-evaluate a subset of the import graph
  */
-let incremental = (ids: list(m_id), compiler: t) => {
+let incremental = (ids: list(namespace_t), compiler: t) => {
   compiler |> validate;
   compiler |> process(ids, _resolve(~skip_cache=true, compiler));
 
@@ -162,14 +163,26 @@ let emit_output = (target: Target.t, output_dir: string, compiler: t) => {
          Filename.concat(output_dir, name ++ Target.extension_of(target))
          |> (
            path => {
-             Filename.dirname(path) |> FileUtil.mkdir(~parent=true);
+             let parent_dir = Filename.dirname(path);
+
+             parent_dir |> FileUtil.mkdir(~parent=true);
 
              let out = open_out(path);
-             let generate =
-               Generator.generate(Printf.fprintf(out, "%s"), target);
 
              (ModuleTable.{ast}) => {
-               generate(ast);
+               Generator.generate(
+                 target,
+                 {
+                   print: Printf.fprintf(out, "%s"),
+                   resolve:
+                     fun
+                     | Internal(path) =>
+                       Filename.concat(output_dir, path)
+                       |> Filename.relative_to(parent_dir)
+                     | External(_) => raise(NotImplemented),
+                 },
+                 ast,
+               );
                close_out(out);
              };
            }
@@ -197,7 +210,7 @@ let compile = (target: Target.t, output_dir: string, compiler: t) => {
 /**
  add a new module (and its import graph) to a compiler
  */
-let add_module = (id: m_id, compiler: t) =>
+let add_module = (id: namespace_t, compiler: t) =>
   compiler.graph |> ImportGraph.add_module(id);
 
 /**
@@ -205,7 +218,7 @@ let add_module = (id: m_id, compiler: t) =>
 
  all imports will be recalculated
  */
-let update_module = (id: m_id, compiler: t) => {
+let update_module = (id: namespace_t, compiler: t) => {
   let (removed, _) as result =
     compiler.graph |> ImportGraph.refresh_subtree(id);
 
@@ -220,7 +233,7 @@ let update_module = (id: m_id, compiler: t) => {
  any modules which are only imported by the removed module
  will also be removed
  */
-let remove_module = (id: m_id, compiler: t) => {
+let remove_module = (id: namespace_t, compiler: t) => {
   let removed = compiler.graph |> ImportGraph.prune_subtree(id);
 
   removed |> List.iter(id => compiler.modules |> ModuleTable.remove(id));
@@ -231,7 +244,7 @@ let remove_module = (id: m_id, compiler: t) => {
 /**
  move a module to a new location
  */
-let relocate_module = (id: m_id, compiler: t) =>
+let relocate_module = (id: namespace_t, compiler: t) =>
   _resolve(~skip_cache=true, compiler, id) |> Module.exists
     ? update_module(id, compiler)
     : remove_module(id, compiler) |> (removed => (removed, []));

@@ -21,7 +21,7 @@ let imports =
           stmts
           |> List.filter_map(
                fun
-               | Import(name, _) => Some(to_m_id(name))
+               | Import(namespace, _) => Some(namespace)
                | _ => None,
              )
         | None => raise(ParseFailed)

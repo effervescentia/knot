@@ -11,7 +11,7 @@ let __cyclic_imports_dir = "./test/compile/.fixtures/cyclic_imports";
 let __source_dir = ".";
 let __entry_module = "entry";
 let __entry_filename = "entry.kn";
-let __entry = Internal(__entry_module);
+let __entry = AST.Internal(__entry_module);
 let __config =
   Compiler.{
     name: "foo",
@@ -107,7 +107,7 @@ let suite =
         |> Compiler.process(
              [__entry],
              id => {
-               Assert.m_id(__entry, id);
+               Assert.namespace(__entry, id);
                Module.File({
                  relative: __entry_filename,
                  full: Filename.concat(__valid_program_dir, __entry_filename),

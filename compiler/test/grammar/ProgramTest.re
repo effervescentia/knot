@@ -27,10 +27,10 @@ module AssertImports =
   });
 module Assert = Assert.Make(Target);
 
-let __main_import = "import foo from \"bar\"";
+let __main_import = "import foo from \"@/bar\"";
 let __const_decl = "const foo = nil";
 
-let __main_import_ast = ("bar", "foo") |> AST.of_import;
+let __main_import_ast = ("bar" |> AST.of_internal, "foo") |> AST.of_import;
 let __const_decl_ast = ("foo", nil_prim |> AST.of_const) |> AST.of_decl;
 
 let suite =

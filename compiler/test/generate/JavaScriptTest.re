@@ -8,8 +8,9 @@ let _bool_prim = of_bool % _in_block % of_prim;
 let _int_prim =
   Int64.of_int % of_int % _in_block % of_num % _in_block % of_prim;
 
+let __resolved = "../foo/bar";
 let __program = [
-  ("@/foo/bar", "Foo") |> of_import,
+  ("foo/bar" |> of_internal, "Foo") |> of_import,
   ("ABC", 123 |> _int_prim |> of_const) |> of_decl,
 ];
 
@@ -376,7 +377,7 @@ export { foo };
         let buffer = Buffer.create(100);
         let print = Buffer.add_string(buffer);
 
-        JavaScript.generate(print, Common, []);
+        JavaScript.generate(Common, {print, resolve: _ => ""}, []);
 
         Assert.string("module.exports = {};\n", buffer |> Buffer.contents);
       }
@@ -387,7 +388,7 @@ export { foo };
         let buffer = Buffer.create(100);
         let print = Buffer.add_string(buffer);
 
-        JavaScript.generate(print, ES6, []);
+        JavaScript.generate(ES6, {print, resolve: _ => ""}, []);
 
         Assert.string("export {};\n", buffer |> Buffer.contents);
       }
@@ -398,11 +399,21 @@ export { foo };
         let buffer = Buffer.create(100);
         let print = Buffer.add_string(buffer);
 
-        JavaScript.generate(print, Common, __program);
+        JavaScript.generate(
+          Common,
+          {
+            print,
+            resolve: path => {
+              Assert.namespace("foo/bar" |> of_internal, path);
+              __resolved;
+            },
+          },
+          __program,
+        );
 
         Assert.string(
           "var $knot = require(\"@knot/runtime\");
-var Foo = require(\"@/foo/bar\");
+var Foo = require(\"../foo/bar\");
 var ABC = 123;
 exports.ABC = ABC;
 ",
@@ -416,11 +427,21 @@ exports.ABC = ABC;
         let buffer = Buffer.create(100);
         let print = Buffer.add_string(buffer);
 
-        JavaScript.generate(print, ES6, __program);
+        JavaScript.generate(
+          ES6,
+          {
+            print,
+            resolve: path => {
+              Assert.namespace("foo/bar" |> of_internal, path);
+              __resolved;
+            },
+          },
+          __program,
+        );
 
         Assert.string(
           "import $knot from \"@knot/runtime\";
-import Foo from \"@/foo/bar\";
+import Foo from \"../foo/bar\";
 var ABC = 123;
 export { ABC };
 ",

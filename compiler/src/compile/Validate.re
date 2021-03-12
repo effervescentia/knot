@@ -9,7 +9,7 @@ open Kore;
 let no_import_cycles = (graph: ImportGraph.t) => {
   graph
   |> ImportGraph.find_cycles
-  |> (List.map(print_m_id) |> List.map)
+  |> (List.map(AST.string_of_namespace) |> List.map)
   |> (
     fun
     | [] => ()
@@ -23,7 +23,7 @@ let no_import_cycles = (graph: ImportGraph.t) => {
 let no_unresolved_modules = (graph: ImportGraph.t) => {
   graph
   |> ImportGraph.find_missing
-  |> List.map(print_m_id)
+  |> List.map(AST.string_of_namespace)
   |> (
     fun
     | [] => ()

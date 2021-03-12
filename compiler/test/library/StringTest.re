@@ -48,14 +48,4 @@ let suite =
         ]
         |> Assert.(test_many(opt_int))
     ),
-    "replace()"
-    >: (
-      () =>
-        [
-          ("foobar", String.replace("fizz", "foo", "fizzbar")),
-          ("barbarbar", String.replace("foo", "bar", "foofoofoo")),
-          ("cdcbcdc", String.replace("aba", "cdc", "abababa")),
-        ]
-        |> Assert.(test_many(string))
-    ),
   ];

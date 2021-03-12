@@ -15,7 +15,7 @@ module Make = (T: ParseTarget) => {
     |> T.parser
     |> (
       fun
-      | Some(r) => T.test(result, r)
+      | Some(r) => T.test(r, result)
       | None =>
         source
         |> Print.fmt("failed to parse input: '%s'")

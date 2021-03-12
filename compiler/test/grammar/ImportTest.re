@@ -30,16 +30,16 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          "import foo from \"bar\"",
-          AST.of_import(("bar", "foo")),
+          "import foo from \"@/bar\"",
+          AST.(of_import(("bar" |> of_internal, "foo"))),
         )
     ),
     "parse terminated"
     >: (
       () =>
         Assert.parse(
-          "import foo from \"bar\";",
-          AST.of_import(("bar", "foo")),
+          "import foo from \"@/bar\";",
+          AST.(of_import(("bar" |> of_internal, "foo"))),
         )
     ),
   ];

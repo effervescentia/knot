@@ -9,7 +9,7 @@ let __import_fixture = "
   const ABC = 123;
  ";
 let __ast_fixture = "
-  import foo from \"bar\";
+  import foo from \"@/bar\";
 
   const ABC = 123;
  ";
@@ -23,14 +23,14 @@ let suite =
     "parse imports"
     >: (
       () =>
-        [
+        AST.[
           (
-            [External("bar"), External("buzz")],
+            [of_external("bar"), of_external("buzz")],
             _to_stream(__import_fixture) |> Parser.imports,
           ),
           ([], _to_stream("") |> Parser.imports),
         ]
-        |> Assert.(test_many(list_m_id))
+        |> Assert.(test_many(list_namespace))
     ),
     "parse AST"
     >: (
@@ -39,7 +39,7 @@ let suite =
           ([], _to_stream("") |> Parser.ast),
           (
             AST.[
-              of_import(("bar", "foo")),
+              of_import(("bar" |> of_internal, "foo")),
               of_decl((
                 "ABC",
                 of_const(

@@ -61,8 +61,8 @@ exports.ABC = ABC;
         |> Util.read_file_to_string
         |> Assert.string(
              "var $knot = require(\"@knot/runtime\");
-var TIMEOUT = require(\"@/common/constants\");
-var App = require(\"@/App\");
+var TIMEOUT = require(\"./common/constants\");
+var App = require(\"./App\");
 var ABC = 123;
 exports.ABC = ABC;
 ",

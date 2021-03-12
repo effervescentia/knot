@@ -4,8 +4,8 @@
 open Kore;
 open Target;
 
-let generate = (print: string => unit, target: Target.t, ast: program_t) =>
+let generate = (target: Target.t, output: output_t, ast: program_t) =>
   switch (target) {
-  | JavaScript(module_type) => JavaScript.generate(print, module_type, ast)
-  | Knot => Grammar.Formatter.format(ast) |> print
+  | JavaScript(module_type) => JavaScript.generate(module_type, output, ast)
+  | Knot => Grammar.Formatter.format(ast) |> output.print
   };

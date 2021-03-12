@@ -5,7 +5,7 @@ module Resolver = Resolve.Resolver;
 let __cache = "foo";
 let __root_dir = "bar";
 let __source_dir = "fizz";
-let __id = Internal("buzz");
+let __id = AST.Internal("buzz");
 let __path = "buzz.kn";
 
 let suite =

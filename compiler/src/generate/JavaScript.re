@@ -19,19 +19,29 @@ let _print_many = (printer, print) => {
 
 let number =
   fun
-  | Integer(value) => Int64.to_string(value)
-  | Float(value) => string_of_float(value);
+  | Integer(value) => value |> Int64.to_string
+  | Float(value) => value |> string_of_float;
 
 let string = String.escaped % Print.fmt("\"%s\"");
 
-let common_import = (print: print_t, name: string, main: string) =>
-  name |> string |> Print.fmt("var %s = require(%s);\n", main) |> print;
+let common_import =
+    ({print, resolve}: output_t, name: namespace_t, main: string) =>
+  name
+  |> resolve
+  |> string
+  |> Print.fmt("var %s = require(%s);\n", main)
+  |> print;
 
 let common_export = (print: print_t, name: string) =>
   Print.fmt("exports.%s = %s;\n", name, name) |> print;
 
-let es6_import = (print: print_t, name: string, main: string) =>
-  name |> string |> Print.fmt("import %s from %s;\n", main) |> print;
+let es6_import =
+    ({print, resolve}: output_t, name: namespace_t, main: string) =>
+  name
+  |> resolve
+  |> string
+  |> Print.fmt("import %s from %s;\n", main)
+  |> print;
 
 let es6_export = (print: print_t, name: string) =>
   Print.fmt("export { %s };\n", name) |> print;
@@ -293,7 +303,12 @@ let declaration =
   };
 };
 
-let generate = (print: print_t, module_type: Target.module_t, ast: program_t) => {
+let generate =
+    (
+      module_type: Target.module_t,
+      {print, resolve} as output: output_t,
+      ast: program_t,
+    ) => {
   let has_no_declarations =
     ast
     |> List.filter(
@@ -315,13 +330,22 @@ let generate = (print: print_t, module_type: Target.module_t, ast: program_t) =>
     |> print;
   };
 
+  let resolve =
+    resolve
+    % (
+      fun
+      | "" => "."
+      | relative =>
+        String.starts_with("..", relative) ? relative : "./" ++ relative
+    );
+
   ast
   |> List.iter(
        fun
        | Import(name, main) =>
          switch (module_type) {
-         | Common => common_import(print, name, main)
-         | ES6 => es6_import(print, name, main)
+         | Common => common_import({...output, resolve}, name, main)
+         | ES6 => es6_import({...output, resolve}, name, main)
          }
        | Declaration(name, decl) =>
          declaration(print, module_type, name, decl)

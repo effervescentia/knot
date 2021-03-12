@@ -13,16 +13,17 @@ let import_graph =
     )
   );
 
-let check_m_id =
+let check_namespace =
   Alcotest.(
     testable(
-      pp => Resolve.Kore.print_m_id % Format.pp_print_string(pp),
+      pp => AST.string_of_namespace % Format.pp_print_string(pp),
       (==),
     )
   );
 
-let m_id = Alcotest.(check(check_m_id, "module id matches"));
-let list_m_id = Alcotest.(check(list(check_m_id), "module id list matches"));
+let namespace = Alcotest.(check(check_namespace, "namespace matches"));
+let list_namespace =
+  Alcotest.(check(list(check_namespace), "namespace list matches"));
 
 let module_ =
   Alcotest.(

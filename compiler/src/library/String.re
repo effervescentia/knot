@@ -58,24 +58,3 @@ let find_index = (pattern: string, value: string) =>
 
     loop(0);
   };
-
-let rec replace = (pattern: string, replacement: string, value: string) =>
-  switch (pattern) {
-  | "" => value
-  | _ =>
-    let pattern_length = length(pattern);
-
-    let rec loop = target =>
-      switch (find_index(pattern, target)) {
-      | None => target
-      | Some(index) =>
-        let replace_until = index + pattern_length;
-
-        sub(target, 0, index)
-        ++ replacement
-        ++ sub(target, replace_until, length(target) - replace_until)
-        |> replace(pattern, replacement);
-      };
-
-    loop(value);
-  };

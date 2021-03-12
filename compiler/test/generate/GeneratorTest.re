@@ -25,7 +25,11 @@ let suite =
         let buffer = Buffer.create(100);
         let print = Buffer.add_string(buffer);
 
-        Generator.generate(print, JavaScript(ES6), __program);
+        Generator.generate(
+          JavaScript(ES6),
+          {print, resolve: _ => ""},
+          __program,
+        );
 
         Assert.string(
           "import $knot from \"@knot/runtime\";

@@ -2,7 +2,7 @@ open Kore;
 
 module Validate = Compile.Validate;
 
-let __id = Internal("foo");
+let __id = AST.Internal("foo");
 
 let _setup = get_imports => {
   let graph = Resolve.ImportGraph.create(get_imports);
@@ -47,7 +47,7 @@ let suite =
     "no_unresolved_modules() - invalid"
     >: (
       () => {
-        let other_id = Internal("bar");
+        let other_id = AST.Internal("bar");
         let graph = _setup(id => id == __id ? [other_id] : []);
 
         graph.imports |> Graph.add_edge(__id, other_id);

@@ -26,12 +26,14 @@ let (<.>) = (x, f) => x |> Block.value |> f;
 let rec fmt_mod_stmt = stmt =>
   (
     switch (stmt) {
-    | Import(m_id, main) => Print.fmt("import %s from \"%s\";", main, m_id)
+    | Import(namespace, main) =>
+      Print.fmt("import %s from \"%s\";", main, fmt_ns(namespace))
     | Declaration(name, decl) => fmt_decl((name, decl))
     | EmptyModuleStatement => "\n"
     }
   )
   |> Print.fmt("%s\n")
+and fmt_ns = AST.string_of_namespace
 and fmt_decl = ((name, decl)) =>
   switch (decl) {
   | Constant(expr) => fmt_expr(expr) |> Print.fmt("const %s = %s;", name)

@@ -63,8 +63,12 @@ and statement_t =
 type declaration_t =
   | Constant(expression_t);
 
+type namespace_t =
+  | Internal(string)
+  | External(string);
+
 type module_statement_t =
-  | Import(string, string)
+  | Import(namespace_t, string)
   | Declaration(string, declaration_t)
   | EmptyModuleStatement;
 
@@ -72,7 +76,10 @@ type program_t = list(module_statement_t);
 
 /* tag helpers */
 
-let of_import = ((m_id, main)) => Import(m_id, main);
+let of_internal = namespace => Internal(namespace);
+let of_external = namespace => External(namespace);
+
+let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
 let of_const = x => Constant(x);
 let of_var = ((name, x)) => Variable(name, x);
@@ -120,3 +127,10 @@ let of_float = x => Float(x);
 let of_string = x => String(x);
 let of_num = x => Number(x);
 let nil = Nil;
+
+/* printing utils */
+
+let string_of_namespace =
+  fun
+  | Internal(path) => Constants.root_dir ++ path
+  | External(path) => path;

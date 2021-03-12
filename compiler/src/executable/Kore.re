@@ -1,5 +1,4 @@
 include Knot.Kore;
-include Resolve.Kore;
 include Generate.Kore;
 
 module Compiler = Compile.Compiler;

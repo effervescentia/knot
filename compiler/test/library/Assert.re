@@ -41,3 +41,15 @@ let graph =
       "graph matches",
     )
   );
+
+let check_namespace =
+  Alcotest.(
+    testable(
+      pp => AST.string_of_namespace % Format.pp_print_string(pp),
+      (==),
+    )
+  );
+
+let namespace = Alcotest.(check(check_namespace, "namespace matches"));
+let list_namespace =
+  Alcotest.(check(list(check_namespace), "namespace list matches"));

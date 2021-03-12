@@ -2,10 +2,10 @@ open Kore;
 
 module ImportGraph = Resolve.ImportGraph;
 
-let __foo_id = Internal("foo");
-let __bar_id = External("bar");
-let __fizz_id = Internal("fizz");
-let __buzz_id = External("buzz");
+let __foo_id = AST.Internal("foo");
+let __bar_id = AST.External("bar");
+let __fizz_id = AST.Internal("fizz");
+let __buzz_id = AST.External("buzz");
 
 let _setup = get_imports => {
   let import_graph = ImportGraph.create(get_imports);
@@ -56,7 +56,7 @@ let suite =
 
         let added = import_graph |> ImportGraph.add_module(__fizz_id);
 
-        Assert.list_m_id([__buzz_id, __fizz_id], added);
+        Assert.list_namespace([__buzz_id, __fizz_id], added);
         Assert.import_graph(
           {
             imports:
@@ -95,7 +95,7 @@ let suite =
 
         let removed = import_graph |> ImportGraph.prune_subtree(__bar_id);
 
-        Assert.list_m_id([__fizz_id, __bar_id], removed);
+        Assert.list_namespace([__fizz_id, __bar_id], removed);
         Assert.import_graph(
           {
             imports: Graph.create([__foo_id], [(__foo_id, __bar_id)]),
@@ -114,7 +114,7 @@ let suite =
 
         import_graph |> ImportGraph.prune_subtree(__bar_id) |> ignore;
 
-        Assert.list_m_id(
+        Assert.list_namespace(
           [__bar_id],
           import_graph |> ImportGraph.find_missing,
         );
@@ -134,8 +134,8 @@ let suite =
         let (removed, added) =
           import_graph |> ImportGraph.refresh_subtree(__bar_id);
 
-        Assert.list_m_id([__fizz_id], removed);
-        Assert.list_m_id([__buzz_id, __bar_id], added);
+        Assert.list_namespace([__fizz_id], removed);
+        Assert.list_namespace([__buzz_id, __bar_id], added);
         Assert.import_graph(
           {
             imports:
