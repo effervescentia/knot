@@ -30,14 +30,20 @@ let suite =
             "-9223372036854775808",
             Int64.min_int |> of_int |> JavaScript.number,
           ),
-          ("4.56", 4.56 |> of_float |> JavaScript.number),
+          ("0", (0.0, 0) |> of_float |> JavaScript.number),
+          ("1", (1.0, 0) |> of_float |> JavaScript.number),
+          ("12345", (12345.0, 5) |> of_float |> JavaScript.number),
+          ("4.56", (4.56, 3) |> of_float |> JavaScript.number),
+          ("1234.56", (1234.56, 6) |> of_float |> JavaScript.number),
+          ("0.123", (0.123, 3) |> of_float |> JavaScript.number),
+          ("0.000456", (0.000456, 6) |> of_float |> JavaScript.number),
           (
             "1.79769313486e+308",
-            Float.max_float |> of_float |> JavaScript.number,
+            (Float.max_float, 12) |> of_float |> JavaScript.number,
           ),
           (
             "2.22507385851e-308",
-            Float.min_float |> of_float |> JavaScript.number,
+            (Float.min_float, 12) |> of_float |> JavaScript.number,
           ),
         ]
         |> Assert.(test_many(string));

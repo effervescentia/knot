@@ -20,7 +20,7 @@ let _print_many = (printer, print) => {
 let number =
   fun
   | Integer(value) => value |> Int64.to_string
-  | Float(value) => value |> string_of_float;
+  | Float(value, precision) => value |> Print.fmt("%.*g", precision);
 
 let string = String.escaped % Print.fmt("\"%s\"");
 

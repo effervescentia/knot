@@ -50,8 +50,13 @@ let map = (f: 'a => 'b, block: t('a)): t('b) =>
  combine two blocks
  */
 let join =
-    (~type_=Type.K_Invalid, ~combine=(++), lhs: t(string), rhs: t(string))
-    : t(string) => {
+    (
+      ~type_=Type.K_Invalid,
+      ~combine: ('a, 'a) => 'b,
+      lhs: t('a),
+      rhs: t('a),
+    )
+    : t('b) => {
   value: combine(lhs.value, rhs.value),
   type_,
   cursor: Cursor.join(lhs.cursor, rhs.cursor),

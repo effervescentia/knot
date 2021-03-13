@@ -43,6 +43,14 @@ let drop_prefix = (prefix: string, value: string): string =>
 let drop_suffix = (suffix: string, value: string): string =>
   ends_with(suffix, value) ? drop_right(length(suffix), value) : value;
 
+let rec drop_all_prefix = (prefix: string, value: string): string =>
+  starts_with(prefix, value)
+    ? drop_left(length(prefix), value) |> drop_all_prefix(prefix) : value;
+
+let rec drop_all_suffix = (suffix: string, value: string): string =>
+  ends_with(suffix, value)
+    ? drop_right(length(suffix), value) |> drop_all_suffix(suffix) : value;
+
 let repeat = (count: int, value: string) => TString.repeat(~count, value);
 
 let find_index = (pattern: string, value: string) =>

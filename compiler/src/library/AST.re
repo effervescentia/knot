@@ -29,7 +29,7 @@ type unary_operator_t =
 
 type number_t =
   | Integer(Int64.t)
-  | Float(float);
+  | Float(float, int);
 
 type primitive_t =
   | Nil
@@ -123,7 +123,7 @@ let of_inline_expr = x => InlineExpression(x);
 let of_prim = x => Primitive(x);
 let of_bool = x => Boolean(x);
 let of_int = x => Integer(x);
-let of_float = x => Float(x);
+let of_float = ((x, precision)) => Float(x, precision);
 let of_string = x => String(x);
 let of_num = x => Number(x);
 let nil = Nil;

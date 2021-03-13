@@ -15,9 +15,28 @@ let float =
   )
   >|= (
     ((x, y)) =>
-      Block.join(~type_=Type.K_Float, ~combine=Print.fmt("%s.%s"), x, y)
+      Block.join(
+        ~type_=Type.K_Float,
+        ~combine=
+          (integer, fraction) => {
+            let integer = integer |> String.drop_all_prefix("0");
+            let integer_precision = integer |> String.length;
+            let fraction = fraction |> String.drop_all_suffix("0");
+            let fraction_precision = fraction |> String.length;
+
+            if (fraction == "") {
+              (integer |> Float.of_string, integer_precision);
+            } else {
+              (
+                Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
+                integer_precision + fraction_precision,
+              );
+            };
+          },
+        x,
+        y,
+      )
   )
-  >== Float.of_string
   >== AST.of_float
   |> M.lexeme;
 

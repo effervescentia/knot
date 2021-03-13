@@ -61,7 +61,7 @@ and fmt_unary_op =
 and fmt_num =
   fun
   | Integer(int) => Int64.to_string(int)
-  | Float(float) => float |> Print.fmt("%f")
+  | Float(float, precision) => float |> Print.fmt("%.*f", precision)
 and fmt_prim =
   fun
   | Nil => "nil"
