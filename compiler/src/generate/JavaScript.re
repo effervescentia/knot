@@ -49,7 +49,7 @@ let es6_export = (print: print_t, name: string) =>
 let primitive = (print: print_t) =>
   fun
   | Boolean(value) => (value ? "true" : "false") |> print
-  | Number(value) => value |> Block.value |> number |> print
+  | Number(value) => value |> number |> print
   | String(value) => value |> string |> print
   | Nil => print("null");
 

@@ -15,7 +15,7 @@ let boolean =
   )
   >== AST.of_bool;
 
-let number = Number.parser >|= Block.wrap >== AST.of_num;
+let number = Number.parser >== AST.of_num;
 
 let string = Type.K_String <@ M.string >== AST.of_string;
 

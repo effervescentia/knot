@@ -5,14 +5,13 @@ module Generator = Generate.Generator;
 let __program = [
   of_decl((
     "ABC",
-    of_const(
-      of_prim(
-        Block.create(
-          Cursor.zero,
-          of_num(Block.create(Cursor.zero, of_int(Int64.of_int(123)))),
-        ),
-      ),
-    ),
+    123
+    |> Int64.of_int
+    |> of_int
+    |> of_num
+    |> Block.create(Cursor.zero)
+    |> of_prim
+    |> of_const,
   )),
 ];
 

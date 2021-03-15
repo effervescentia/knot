@@ -66,7 +66,7 @@ and fmt_prim =
   fun
   | Nil => "nil"
   | Boolean(bool) => string_of_bool(bool)
-  | Number(num) => num <.> fmt_num
+  | Number(num) => num |> fmt_num
   | String(str) => str |> Print.fmt("\"%s\"")
 and fmt_jsx =
   fun

@@ -42,21 +42,16 @@ let suite =
               of_import(("bar" |> of_internal, "foo")),
               of_decl((
                 "ABC",
-                of_const(
-                  of_prim(
-                    Block.create(
-                      ~type_=Type.K_Integer,
-                      Cursor.range((4, 15), (4, 17)),
-                      of_num(
-                        Block.create(
-                          ~type_=Type.K_Integer,
-                          Cursor.range((4, 15), (4, 17)),
-                          of_int(Int64.of_int(123)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                123
+                |> Int64.of_int
+                |> of_int
+                |> of_num
+                |> Block.create(
+                     ~type_=Type.K_Integer,
+                     Cursor.range((4, 15), (4, 17)),
+                   )
+                |> of_prim
+                |> of_const,
               )),
             ],
             _to_stream(__ast_fixture) |> Parser.ast,
