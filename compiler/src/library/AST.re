@@ -37,28 +37,44 @@ type primitive_t =
   | Number(number_t)
   | String(string)
 and jsx_t =
-  | Tag(string, list(jsx_attribute_t), list(jsx_child_t))
+  | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
   | Fragment(list(jsx_child_t))
 and jsx_child_t =
   | Text(string)
   | Node(jsx_t)
   | InlineExpression(expression_t)
 and jsx_attribute_t =
-  | ID(string)
-  | Class(string, option(expression_t))
-  | Property(string, option(expression_t))
+  | ID(identifier_t)
+  | Class(identifier_t, option(expression_t))
+  | Property(identifier_t, option(expression_t))
+/* and identifier_t = (_identifier_t, Cursor.t) */
+and identifier_t =
+  | Private(string)
+  | Public(string)
+/* and expression_t = (_expression_t, Type.t, Cursor.t) */
 and expression_t =
   | Primitive(Block.t(primitive_t))
-  | Identifier(Block.t(string))
+  | Identifier(identifier_t)
   | JSX(jsx_t)
   | Group(Block.t(expression_t))
   | BinaryOp(binary_operator_t, expression_t, expression_t)
   | UnaryOp(unary_operator_t, expression_t)
   | Closure(Block.t(list(statement_t)))
 and statement_t =
-  | Variable(string, expression_t)
+  | Variable(identifier_t, expression_t)
   | Expression(expression_t)
   | EmptyStatement;
+/* | Primitive(primitive_t)
+     | Identifier(identifier_t)
+     | JSX(jsx_t)
+     | Group(expression_t)
+     | BinaryOp(binary_operator_t, expression_t, expression_t)
+     | UnaryOp(unary_operator_t, expression_t)
+     | Closure(list(statement_t))
+   and statement_t =
+     | Variable(identifier_t, expression_t)
+     | Expression(expression_t)
+     | EmptyStatement; */
 
 type declaration_t =
   | Constant(expression_t);
@@ -69,7 +85,7 @@ type namespace_t =
 
 type module_statement_t =
   | Import(namespace_t, string)
-  | Declaration(string, declaration_t)
+  | Declaration(identifier_t, declaration_t)
   | EmptyModuleStatement;
 
 type program_t = list(module_statement_t);
@@ -119,6 +135,9 @@ let of_jsx_id = name => ID(name);
 let of_text = x => Text(x);
 let of_node = x => Node(x);
 let of_inline_expr = x => InlineExpression(x);
+
+let of_public = x => Public(x);
+let of_private = x => Private(x);
 
 let of_prim = x => Primitive(x);
 let of_bool = x => Boolean(x);

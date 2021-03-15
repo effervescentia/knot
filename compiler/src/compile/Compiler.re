@@ -32,9 +32,8 @@ let _get_exports = (ast: AST.program_t) =>
   ast
   |> List.filter_map(
        fun
-       | AST.Declaration(name, _) when name |> String.starts_with("_") =>
-         None
-       | AST.Declaration(name, _) => Some((name, Type.K_Invalid))
+       | AST.Declaration(Private(_), _) => None
+       | AST.Declaration(Public(name), _) => Some((name, Type.K_Invalid))
        | _ => None,
      );
 

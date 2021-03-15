@@ -53,10 +53,15 @@ let primitive = (print: print_t) =>
   | String(value) => value |> string |> print
   | Nil => print("null");
 
+let identifier =
+  fun
+  | Public(name) => name
+  | Private(name) => Constants.private_prefix ++ name;
+
 let rec expression = (print: print_t) =>
   fun
   | Primitive(value) => value |> Block.value |> primitive(print)
-  | Identifier(value) => value |> Block.value |> print
+  | Identifier(value) => value |> identifier |> print
   | Group(value) => {
       print("(");
       value |> Block.value |> expression(print);
@@ -93,7 +98,7 @@ let rec expression = (print: print_t) =>
 and statement = (~is_last=false, print: print_t) =>
   fun
   | Variable(name, value) => {
-      Print.fmt("var %s = ", name) |> print;
+      name |> identifier |> Print.fmt("var %s = ") |> print;
       value |> expression(print);
       print(";\n");
 
@@ -156,7 +161,11 @@ and binary_op = (print: print_t) => {
 and jsx = (print: print_t) =>
   fun
   | Tag(name, attrs, values) => {
-      name |> string |> Print.fmt("$knot.jsx.createTag(%s, ") |> print;
+      name
+      |> identifier
+      |> string
+      |> Print.fmt("$knot.jsx.createTag(%s, ")
+      |> print;
 
       attrs |> jsx_attrs(print);
 
@@ -194,15 +203,8 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                  c,
                  [
                    (
-                     name,
-                     (
-                       () =>
-                         expression(
-                           print,
-                           expr
-                           |?: (name |> Block.create(Cursor.zero) |> of_id),
-                         )
-                     ),
+                     name |> identifier,
+                     (() => expression(print, expr |?: (name |> of_id))),
                    ),
                    ...p,
                  ],
@@ -210,8 +212,15 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
              | Class(name, None) => (
                  [
                    (
-                     name,
-                     (() => name |> Print.fmt(".%s") |> string |> print),
+                     name |> identifier,
+                     (
+                       () =>
+                         name
+                         |> identifier
+                         |> Print.fmt(".%s")
+                         |> string
+                         |> print
+                     ),
                    ),
                    ...c,
                  ],
@@ -220,12 +229,13 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
              | Class(name, Some(expr)) => (
                  [
                    (
-                     name,
+                     name |> identifier,
                      (
                        () => {
                          print("(");
                          expr |> expression(print);
                          name
+                         |> identifier
                          |> Print.fmt(".%s")
                          |> string
                          |> Print.fmt(" ? %s : \"\")")
@@ -239,7 +249,7 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                )
              | ID(name) => (
                  c,
-                 [("id", (() => name |> string |> print)), ...p],
+                 [("id", (() => name |> identifier |> string |> print)), ...p],
                ),
            ([], []),
          );
@@ -280,8 +290,8 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
     print(" }");
   };
 
-let constant = (print: print_t, name: string, value: expression_t) => {
-  Print.fmt("var %s = ", name) |> print;
+let constant = (print: print_t, name: identifier_t, value: expression_t) => {
+  name |> identifier |> Print.fmt("var %s = ") |> print;
   value |> expression(print);
   print(";\n");
 };
@@ -290,16 +300,17 @@ let declaration =
     (
       print: print_t,
       module_type: Target.module_t,
-      name: string,
+      name: identifier_t,
       decl: declaration_t,
     ) => {
   switch (decl) {
   | Constant(value) => constant(print, name, value)
   };
 
-  switch (module_type) {
-  | Common => common_export(print, name)
-  | ES6 => es6_export(print, name)
+  switch (name, module_type) {
+  | (Public(name), Common) => common_export(print, name)
+  | (Public(name), ES6) => es6_export(print, name)
+  | _ => ()
   };
 };
 

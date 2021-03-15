@@ -1,10 +1,11 @@
 open Kore;
+open AST;
 
 module Declaration = Grammar.Declaration;
 
 module Assert =
   Assert.Make({
-    type t = (string, AST.declaration_t);
+    type t = (identifier_t, declaration_t);
 
     let parser = Parser.parse(Declaration.constant);
 
@@ -30,7 +31,7 @@ let suite =
       () =>
         Assert.parse(
           "const foo = nil",
-          ("foo", Util.nil_prim |> AST.of_const),
+          ("foo" |> of_public, Util.nil_prim |> of_const),
         )
     ),
   ];

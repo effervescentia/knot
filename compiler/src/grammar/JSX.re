@@ -1,4 +1,5 @@
 open Kore;
+open AST;
 
 module Tag = {
   let open_ = M.symbol(C.Character.open_chevron);
@@ -28,7 +29,7 @@ and fragment = x =>
   children(x)
   |> M.between(Fragment.open_, Fragment.close)
   >|= Block.value
-  >|= AST.of_frag
+  >|= of_frag
 and tag = x =>
   Tag.open_
   >> M.identifier
@@ -44,19 +45,20 @@ and tag = x =>
             >> children(x)
             << (M.keyword(id) |> M.between(Tag.open_end, Tag.close))
           )
-          >|= (cs => AST.of_tag((id, attrs, cs)))
+          >|= (cs => of_tag((id |> of_public, attrs, cs)))
       )
   )
 and attributes = x =>
   choice([
-    _attribute(x) >|= AST.of_prop,
+    _attribute(x) >|= Tuple.map_fst2(of_public) >|= of_prop,
     _attribute(~prefix=Character.period, x)
-    >|= Tuple.map_fst2(String.drop_left(1))
-    >|= AST.of_jsx_class,
+    >|= Tuple.map_fst2(String.drop_left(1) % of_public)
+    >|= of_jsx_class,
     M.identifier(~prefix=Character.octothorp)
     >|= Block.value
     >|= String.drop_left(1)
-    >|= AST.of_jsx_id,
+    >|= of_public
+    >|= of_jsx_id,
   ])
   |> many
 and children = x =>
@@ -74,10 +76,10 @@ and text = x =>
   >|= Char.join
   >|= Block.value
   >|= String.trim
-  >|= AST.of_text
-and node = x => parser(x) >|= AST.of_node
+  >|= of_text
+and node = x => parser(x) >|= of_node
 and inline_expr = x =>
   x
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
   >|= Block.value
-  >|= AST.of_inline_expr;
+  >|= of_inline_expr;

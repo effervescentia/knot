@@ -1,12 +1,13 @@
 open Kore;
 open Util;
+open AST;
 
 module Expression = Grammar.Expression;
 module JSX = Grammar.JSX;
 
 module Assert =
   Assert.Make({
-    type t = AST.jsx_t;
+    type t = jsx_t;
 
     let parser = JSX.parser(Expression.parser) |> Parser.parse;
 
@@ -27,8 +28,8 @@ let suite =
     >: (
       () =>
         [
-          ("<Foo></Foo>", AST.of_tag(("Foo", [], []))),
-          (" < Foo > < / Foo > ", AST.of_tag(("Foo", [], []))),
+          ("<Foo></Foo>", of_tag(("Foo" |> of_public, [], []))),
+          (" < Foo > < / Foo > ", of_tag(("Foo" |> of_public, [], []))),
         ]
         |> Assert.parse_many
     ),
@@ -36,8 +37,8 @@ let suite =
     >: (
       () =>
         [
-          ("<Foo/>", AST.of_tag(("Foo", [], []))),
-          (" < Foo / > ", AST.of_tag(("Foo", [], []))),
+          ("<Foo/>", of_tag(("Foo" |> of_public, [], []))),
+          (" < Foo / > ", of_tag(("Foo" |> of_public, [], []))),
         ]
         |> Assert.parse_many
     ),
@@ -45,8 +46,11 @@ let suite =
     >: (
       () =>
         [
-          ("<></>", AST.of_frag([])),
-          ("<><Bar /></>", AST.of_frag([("Bar", [], []) |> jsx_node])),
+          ("<></>", of_frag([])),
+          (
+            "<><Bar /></>",
+            of_frag([("Bar" |> of_public, [], []) |> jsx_node]),
+          ),
         ]
         |> Assert.parse_many
     ),
@@ -56,97 +60,121 @@ let suite =
         [
           (
             "<Foo fizz=buzz />",
-            AST.of_tag((
-              "Foo",
-              [("fizz", inv_id("buzz") |> some) |> AST.of_prop],
+            of_tag((
+              "Foo" |> of_public,
+              [
+                ("fizz" |> of_public, "buzz" |> of_public |> of_id |> some)
+                |> of_prop,
+              ],
               [],
             )),
           ),
           (
             "<Foo fizz=\"buzz\" />",
-            AST.of_tag((
-              "Foo",
-              [("fizz", string_prim("buzz") |> some) |> AST.of_prop],
+            of_tag((
+              "Foo" |> of_public,
+              [
+                ("fizz" |> of_public, string_prim("buzz") |> some) |> of_prop,
+              ],
               [],
             )),
           ),
           (
             "<Foo fizz={ buzz; } />",
-            AST.of_tag((
-              "Foo",
+            of_tag((
+              "Foo" |> of_public,
               [
                 (
-                  "fizz",
-                  [inv_id("buzz") |> AST.of_expr]
+                  "fizz" |> of_public,
+                  ["buzz" |> of_public |> of_id |> of_expr]
                   |> to_block(~type_=Type.K_Unknown)
-                  |> AST.of_closure
+                  |> of_closure
                   |> some,
                 )
-                |> AST.of_prop,
+                |> of_prop,
               ],
               [],
             )),
           ),
           (
             "<Foo fizz=1 + 2 />",
-            AST.of_tag((
-              "Foo",
+            of_tag((
+              "Foo" |> of_public,
               [
                 (
-                  "fizz",
-                  (int_prim(1), int_prim(2)) |> AST.of_add_op |> some,
+                  "fizz" |> of_public,
+                  (int_prim(1), int_prim(2)) |> of_add_op |> some,
                 )
-                |> AST.of_prop,
+                |> of_prop,
               ],
               [],
             )),
           ),
           (
             "<Foo fizz=(true) />",
-            AST.of_tag((
-              "Foo",
+            of_tag((
+              "Foo" |> of_public,
               [
                 (
-                  "fizz",
+                  "fizz" |> of_public,
                   bool_prim(true)
                   |> to_block(~type_=Type.K_Boolean)
-                  |> AST.of_group
+                  |> of_group
                   |> some,
                 )
-                |> AST.of_prop,
+                |> of_prop,
               ],
               [],
             )),
           ),
           (
             "<Foo fizz=-3 />",
-            AST.of_tag((
-              "Foo",
+            of_tag((
+              "Foo" |> of_public,
               [
-                ("fizz", int_prim(3) |> AST.of_neg_op |> some) |> AST.of_prop,
+                ("fizz" |> of_public, int_prim(3) |> of_neg_op |> some)
+                |> of_prop,
               ],
               [],
             )),
           ),
           (
             "<Foo fizz=<buzz /> />",
-            AST.of_tag((
-              "Foo",
-              [("fizz", ("buzz", [], []) |> jsx |> some) |> AST.of_prop],
+            of_tag((
+              "Foo" |> of_public,
+              [
+                (
+                  "fizz" |> of_public,
+                  ("buzz" |> of_public, [], []) |> jsx |> some,
+                )
+                |> of_prop,
+              ],
               [],
             )),
           ),
           (
             "<Foo fizz />",
-            AST.of_tag(("Foo", [("fizz", None) |> AST.of_prop], [])),
+            of_tag((
+              "Foo" |> of_public,
+              [("fizz" |> of_public, None) |> of_prop],
+              [],
+            )),
           ),
           (
             "<Foo .fizz />",
-            AST.of_tag(("Foo", [("fizz", None) |> AST.of_jsx_class], [])),
+            of_tag((
+              "Foo" |> of_public,
+              [("fizz" |> of_public, None) |> of_jsx_class],
+              [],
+            )),
           ),
           (
             "<Foo #fizz />",
-            AST.of_tag(("Foo", ["fizz" |> AST.of_jsx_id], [])),
+            of_tag((
+              "Foo" |> of_public,
+              ["fizz" |> of_public |> of_jsx_id],
+              [],
+            )),
           ),
         ]
         |> Assert.parse_many
@@ -157,29 +185,34 @@ let suite =
         [
           (
             "<Foo><Bar /></Foo>",
-            ("Foo", [], [("Bar", [], []) |> jsx_node]) |> AST.of_tag,
+            (
+              "Foo" |> of_public,
+              [],
+              [("Bar" |> of_public, [], []) |> jsx_node],
+            )
+            |> of_tag,
           ),
           (
             "<Foo>{1 + 2}</Foo>",
             (
-              "Foo",
+              "Foo" |> of_public,
               [],
-              [
-                (int_prim(1), int_prim(2))
-                |> AST.of_add_op
-                |> AST.of_inline_expr,
-              ],
+              [(int_prim(1), int_prim(2)) |> of_add_op |> of_inline_expr],
             )
-            |> AST.of_tag,
+            |> of_tag,
           ),
           (
             "<Foo>{<Bar />}</Foo>",
-            ("Foo", [], [("Bar", [], []) |> jsx |> AST.of_inline_expr])
-            |> AST.of_tag,
+            (
+              "Foo" |> of_public,
+              [],
+              [("Bar" |> of_public, [], []) |> jsx |> of_inline_expr],
+            )
+            |> of_tag,
           ),
           (
             "<Foo> bar \"or\" 123 </Foo>",
-            ("Foo", [], [AST.of_text("bar \"or\" 123")]) |> AST.of_tag,
+            ("Foo" |> of_public, [], [of_text("bar \"or\" 123")]) |> of_tag,
           ),
         ]
         |> Assert.parse_many
@@ -190,42 +223,40 @@ let suite =
         [
           (
             "<Foo><Bar /></Foo>",
-            ("Foo", [], [("Bar", [], []) |> jsx_node]) |> AST.of_tag,
+            (
+              "Foo" |> of_public,
+              [],
+              [("Bar" |> of_public, [], []) |> jsx_node],
+            )
+            |> of_tag,
           ),
           (
             "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
             (
-              "Foo",
+              "Foo" |> of_public,
               [],
               [
-                AST.of_text("bar"),
-                (int_prim(1), int_prim(2))
-                |> AST.of_add_op
-                |> AST.of_inline_expr,
-                ("Bar", [], []) |> jsx_node,
-                string_prim("fizz") |> AST.of_inline_expr,
-                AST.of_text("buzz"),
+                of_text("bar"),
+                (int_prim(1), int_prim(2)) |> of_add_op |> of_inline_expr,
+                ("Bar" |> of_public, [], []) |> jsx_node,
+                string_prim("fizz") |> of_inline_expr,
+                of_text("buzz"),
               ],
             )
-            |> AST.of_tag,
+            |> of_tag,
           ),
           (
             "<Foo bar=fizz .buzz />",
             (
-              "Foo",
+              "Foo" |> of_public,
               [
-                (
-                  "bar",
-                  Some(
-                    "fizz" |> to_block(~type_=Type.K_Invalid) |> AST.of_id,
-                  ),
-                )
-                |> AST.of_prop,
-                ("buzz", None) |> AST.of_jsx_class,
+                ("bar" |> of_public, Some("fizz" |> of_public |> of_id))
+                |> of_prop,
+                ("buzz" |> of_public, None) |> of_jsx_class,
               ],
               [],
             )
-            |> AST.of_tag,
+            |> of_tag,
           ),
         ]
         |> Assert.parse_many

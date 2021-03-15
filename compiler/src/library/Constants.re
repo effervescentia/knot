@@ -5,6 +5,8 @@
 let root_dir = "@/";
 let file_extension = ".kn";
 
+let private_prefix = "_";
+
 module Character = {
   let back_slash = '\\';
   let eol = '\n';

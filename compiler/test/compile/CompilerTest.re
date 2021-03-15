@@ -24,7 +24,7 @@ let __types = [("ABC", Type.K_Invalid)] |> List.to_seq |> Hashtbl.of_seq;
 let __ast =
   AST.[
     of_decl((
-      "ABC",
+      "ABC" |> of_public,
       123
       |> Int64.of_int
       |> of_int

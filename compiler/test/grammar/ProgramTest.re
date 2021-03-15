@@ -1,10 +1,11 @@
 open Kore;
 open Util;
+open AST;
 
 module Program = Grammar.Program;
 
 module Target = {
-  type t = AST.program_t;
+  type t = program_t;
 
   let parser = Parser.parse(Program.main);
 
@@ -30,8 +31,8 @@ module Assert = Assert.Make(Target);
 let __main_import = "import foo from \"@/bar\"";
 let __const_decl = "const foo = nil";
 
-let __main_import_ast = ("bar" |> AST.of_internal, "foo") |> AST.of_import;
-let __const_decl_ast = ("foo", nil_prim |> AST.of_const) |> AST.of_decl;
+let __main_import_ast = ("bar" |> of_internal, "foo") |> of_import;
+let __const_decl_ast = ("foo" |> of_public, nil_prim |> of_const) |> of_decl;
 
 let suite =
   "Grammar.Program"

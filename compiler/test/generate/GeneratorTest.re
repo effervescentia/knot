@@ -4,7 +4,7 @@ module Generator = Generate.Generator;
 
 let __program = [
   of_decl((
-    "ABC",
+    "ABC" |> of_public,
     123
     |> Int64.of_int
     |> of_int

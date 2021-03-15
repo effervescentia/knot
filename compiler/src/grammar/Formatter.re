@@ -36,7 +36,8 @@ let rec fmt_mod_stmt = stmt =>
 and fmt_ns = AST.string_of_namespace
 and fmt_decl = ((name, decl)) =>
   switch (decl) {
-  | Constant(expr) => fmt_expr(expr) |> Print.fmt("const %s = %s;", name)
+  | Constant(expr) =>
+    fmt_expr(expr) |> Print.fmt("const %s = %s;", name |> fmt_id)
   }
 and fmt_binary_op =
   fun
@@ -73,13 +74,13 @@ and fmt_jsx =
   | Tag(name, attrs, children) =>
     List.length(children) == 0
       ? Print.many(fmt_jsx_attr % Print.fmt(" %s"), attrs)
-        |> Print.fmt("<%s%s />", name)
+        |> Print.fmt("<%s%s />", name |> fmt_id)
       : Print.fmt(
           "<%s%s>%s</%s>",
-          name,
+          name |> fmt_id,
           Print.many(fmt_jsx_attr % Print.fmt(" %s"), attrs),
           Print.many(~separator="\n", fmt_jsx_child, children),
-          name,
+          name |> fmt_id,
         )
   | Fragment(_) => "<></>"
 and fmt_jsx_child =
@@ -90,9 +91,9 @@ and fmt_jsx_child =
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
-    | Class(name, value) => ("." ++ name, value)
-    | ID(name) => ("#" ++ name, None)
-    | Property(name, value) => (name, value)
+    | Class(name, value) => ("." ++ (name |> fmt_id), value)
+    | ID(name) => ("#" ++ (name |> fmt_id), None)
+    | Property(name, value) => (name |> fmt_id, value)
     }
   )
   |> (
@@ -100,10 +101,14 @@ and fmt_jsx_attr = attr =>
     | (name, Some(expr)) => fmt_expr(expr) |> Print.fmt("%s=%s", name)
     | (name, None) => name
   )
+and fmt_id =
+  fun
+  | Public(name) => name
+  | Private(name) => Constants.private_prefix ++ name
 and fmt_expr =
   fun
   | Primitive(prim) => prim <.> fmt_prim
-  | Identifier(name) => Block.value(name)
+  | Identifier(name) => name |> fmt_id
   | JSX(jsx) => fmt_jsx(jsx)
   | Group(expr) => expr <.> fmt_expr |> Print.fmt("(%s)")
   | BinaryOp(op, lhs, rhs) =>
@@ -120,7 +125,7 @@ and fmt_stmt = stmt =>
   (
     switch (stmt) {
     | Variable(name, expr) =>
-      fmt_expr(expr) |> Print.fmt("let %s = %s", name)
+      fmt_expr(expr) |> Print.fmt("let %s = %s", name |> fmt_id)
     | Expression(expr) => fmt_expr(expr)
     | EmptyStatement => "\n"
     }

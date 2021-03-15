@@ -10,7 +10,7 @@ let _int_prim = Int64.of_int % of_int % of_num % _in_block % of_prim;
 let __resolved = "../foo/bar";
 let __program = [
   ("foo/bar" |> of_internal, "Foo") |> of_import,
-  ("ABC", 123 |> _int_prim |> of_const) |> of_decl,
+  ("ABC" |> of_public, 123 |> _int_prim |> of_const) |> of_decl,
 ];
 
 let suite =
@@ -84,7 +84,7 @@ let suite =
         };
 
         [
-          ("fooBar", "fooBar" |> _in_block |> of_id |> print),
+          ("fooBar", "fooBar" |> of_public |> of_id |> print),
           ("(123)", 123 |> _int_prim |> _in_block |> of_group |> print),
           (
             "(function(){
@@ -104,7 +104,7 @@ return (678 + 910);
 var foo = 456;
 return null;
 })()",
-            [("foo", 456 |> _int_prim) |> of_var]
+            [("foo" |> of_public, 456 |> _int_prim) |> of_var]
             |> _in_block
             |> of_closure
             |> print,
@@ -127,7 +127,7 @@ return null;
         [
           (
             "var fooBar = 123;\n",
-            ("fooBar", 123 |> _int_prim) |> of_var |> print,
+            ("fooBar" |> of_public, 123 |> _int_prim) |> of_var |> print,
           ),
           (
             "(123 === 456);\n",
@@ -236,7 +236,7 @@ return null;
         [
           (
             "$knot.jsx.createTag(\"Foo\", {})",
-            ("Foo", [], []) |> of_tag |> print,
+            ("Foo" |> of_public, [], []) |> of_tag |> print,
           ),
           ("$knot.jsx.createFragment()", [] |> of_frag |> print),
         ]
@@ -257,15 +257,16 @@ return null;
         [
           (
             "$knot.jsx.createTag(\"Foo\", {})",
-            ("Foo", [], []) |> of_tag |> of_node |> print,
+            ("Foo" |> of_public, [], []) |> of_tag |> of_node |> print,
           ),
           (
             "$knot.jsx.createTag(\"Foo\", { bar: fizz, foo: foo })",
             (
-              "Foo",
+              "Foo" |> of_public,
               [
-                ("foo", None) |> of_prop,
-                ("bar", Some("fizz" |> _in_block |> of_id)) |> of_prop,
+                ("foo" |> of_public, None) |> of_prop,
+                ("bar" |> of_public, Some("fizz" |> of_public |> of_id))
+                |> of_prop,
               ],
               [],
             )
@@ -276,9 +277,13 @@ return null;
           (
             "$knot.jsx.createTag(\"Foo\", {}, $knot.jsx.createTag(\"Bar\", {}, \"fizz\"))",
             (
-              "Foo",
+              "Foo" |> of_public,
               [],
-              [("Bar", [], ["fizz" |> of_text]) |> of_tag |> of_node],
+              [
+                ("Bar" |> of_public, [], ["fizz" |> of_text])
+                |> of_tag
+                |> of_node,
+              ],
             )
             |> of_tag
             |> of_node
@@ -302,28 +307,32 @@ return null;
         };
 
         [
-          ("{ foo: foo }", [("foo", None) |> of_prop] |> print),
+          ("{ foo: foo }", [("foo" |> of_public, None) |> of_prop] |> print),
           (
             "{ foo: bar }",
-            [("foo", Some("bar" |> _in_block |> of_id)) |> of_prop] |> print,
+            [
+              ("foo" |> of_public, Some("bar" |> of_public |> of_id))
+              |> of_prop,
+            ]
+            |> print,
           ),
           (
             "{ className: \".foo\" }",
-            [("foo", None) |> of_jsx_class] |> print,
+            [("foo" |> of_public, None) |> of_jsx_class] |> print,
           ),
           (
             "{ className: ((123 > 456) ? \".foo\" : \"\") + \".bar\" }",
             [
-              ("bar", None) |> of_jsx_class,
+              ("bar" |> of_public, None) |> of_jsx_class,
               (
-                "foo",
+                "foo" |> of_public,
                 Some((123 |> _int_prim, 456 |> _int_prim) |> of_gt_op),
               )
               |> of_jsx_class,
             ]
             |> print,
           ),
-          ("{ id: \"foo\" }", ["foo" |> of_jsx_id] |> print),
+          ("{ id: \"foo\" }", ["foo" |> of_public |> of_jsx_id] |> print),
         ]
         |> Assert.(test_many(string));
       }
@@ -339,7 +348,9 @@ return null;
           Buffer.contents(buffer);
         };
 
-        [("var foo = 123;\n", 123 |> _int_prim |> print("foo"))]
+        [
+          ("var foo = 123;\n", 123 |> _int_prim |> print("foo" |> of_public)),
+        ]
         |> Assert.(test_many(string));
       }
     ),
@@ -364,13 +375,19 @@ return null;
             "var foo = 123;
 exports.foo = foo;
 ",
-            123 |> _int_prim |> of_const |> print(Target.Common, "foo"),
+            123
+            |> _int_prim
+            |> of_const
+            |> print(Target.Common, "foo" |> of_public),
           ),
           (
             "var foo = 123;
 export { foo };
 ",
-            123 |> _int_prim |> of_const |> print(Target.ES6, "foo"),
+            123
+            |> _int_prim
+            |> of_const
+            |> print(Target.ES6, "foo" |> of_public),
           ),
         ]
         |> Assert.(test_many(string));

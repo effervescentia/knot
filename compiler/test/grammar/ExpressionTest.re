@@ -1,11 +1,12 @@
 open Kore;
 open Util;
+open AST;
 
 module Expression = Grammar.Expression;
 
 module Assert =
   Assert.Make({
-    type t = AST.expression_t;
+    type t = expression_t;
 
     let parser = Parser.parse(Expression.parser);
 
@@ -23,13 +24,18 @@ let suite =
   >::: [
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
     "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
-    "parse identifier" >: (() => Assert.parse("foo", inv_id("foo"))),
+    "parse identifier"
+    >: (() => Assert.parse("foo", "foo" |> of_public |> of_id)),
     "parse group"
     >: (
       () =>
         Assert.parse(
           "(foo)",
-          inv_id("foo") |> to_block(~type_=Type.K_Unknown) |> AST.of_group,
+          "foo"
+          |> of_public
+          |> of_id
+          |> to_block(~type_=Type.K_Unknown)
+          |> of_group,
         )
     ),
     "parse closure"
@@ -42,27 +48,27 @@ let suite =
             1 + 2;
           }",
           [
-            inv_id("foo") |> AST.of_expr,
-            ("x", bool_prim(false)) |> AST.of_var,
-            (int_prim(1), int_prim(2)) |> AST.of_add_op |> AST.of_expr,
+            "foo" |> of_public |> of_id |> of_expr,
+            ("x" |> of_public, bool_prim(false)) |> of_var,
+            (int_prim(1), int_prim(2)) |> of_add_op |> of_expr,
           ]
           |> to_block(~type_=Type.K_Integer)
-          |> AST.of_closure,
+          |> of_closure,
         )
     ),
     "parse unary"
     >: (
       () =>
         [
-          ("-123", int_prim(123) |> AST.of_neg_op),
-          ("!true", bool_prim(true) |> AST.of_not_op),
+          ("-123", int_prim(123) |> of_neg_op),
+          ("!true", bool_prim(true) |> of_not_op),
         ]
         |> Assert.parse_many
     ),
     "parse boolean logic"
     >: (
       () =>
-        [("&&", AST.of_and_op), ("||", AST.of_or_op)]
+        [("&&", of_and_op), ("||", of_or_op)]
         |> List.map(((op, tag)) =>
              [
                (
@@ -82,10 +88,10 @@ let suite =
     >: (
       () =>
         [
-          ("+", AST.of_add_op),
-          ("-", AST.of_sub_op),
-          ("*", AST.of_mult_op),
-          ("/", AST.of_div_op),
+          ("+", of_add_op),
+          ("-", of_sub_op),
+          ("*", of_mult_op),
+          ("/", of_div_op),
         ]
         |> List.map(((op, tag)) =>
              [
@@ -106,10 +112,10 @@ let suite =
     >: (
       () =>
         [
-          ("<=", AST.of_lte_op),
-          ("<", AST.of_lt_op),
-          (">=", AST.of_gte_op),
-          (">", AST.of_gt_op),
+          ("<=", of_lte_op),
+          ("<", of_lt_op),
+          (">=", of_gte_op),
+          (">", of_gt_op),
         ]
         |> List.map(((op, tag)) =>
              [
@@ -135,65 +141,64 @@ let suite =
             (
               (
                 int_prim(2),
-                (
-                  int_prim(3),
-                  (int_prim(4), int_prim(5)) |> AST.of_expo_op,
-                )
-                |> AST.of_mult_op,
+                (int_prim(3), (int_prim(4), int_prim(5)) |> of_expo_op)
+                |> of_mult_op,
               )
-              |> AST.of_add_op,
-              (int_prim(6) |> AST.of_neg_op, int_prim(7)) |> AST.of_div_op,
+              |> of_add_op,
+              (int_prim(6) |> of_neg_op, int_prim(7)) |> of_div_op,
             )
-            |> AST.of_sub_op,
+            |> of_sub_op,
           ),
           (
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
             (
               (int_prim(2), int_prim(3))
-              |> AST.of_add_op
+              |> of_add_op
               |> to_block(~type_=Type.K_Integer)
-              |> AST.of_group,
+              |> of_group,
               (
                 int_prim(4),
                 (
                   int_prim(5),
                   (int_prim(6), int_prim(7))
-                  |> AST.of_div_op
+                  |> of_div_op
                   |> to_block(~type_=Type.K_Float)
-                  |> AST.of_group
-                  |> AST.of_neg_op,
+                  |> of_group
+                  |> of_neg_op,
                 )
-                |> AST.of_sub_op
+                |> of_sub_op
                 |> to_block(~type_=Type.K_Float)
-                |> AST.of_group,
+                |> of_group,
               )
-              |> AST.of_expo_op,
+              |> of_expo_op,
             )
-            |> AST.of_mult_op,
+            |> of_mult_op,
           ),
           (
             "a && (b > c || e <= f) && (!(g || h))",
             (
               (
-                inv_id("a"),
+                "a" |> of_public |> of_id,
                 (
-                  (inv_id("b"), inv_id("c")) |> AST.of_gt_op,
-                  (inv_id("e"), inv_id("f")) |> AST.of_lte_op,
+                  ("b" |> of_public |> of_id, "c" |> of_public |> of_id)
+                  |> of_gt_op,
+                  ("e" |> of_public |> of_id, "f" |> of_public |> of_id)
+                  |> of_lte_op,
                 )
-                |> AST.of_or_op
+                |> of_or_op
                 |> to_block(~type_=Type.K_Boolean)
-                |> AST.of_group,
+                |> of_group,
               )
-              |> AST.of_and_op,
-              (inv_id("g"), inv_id("h"))
-              |> AST.of_or_op
+              |> of_and_op,
+              ("g" |> of_public |> of_id, "h" |> of_public |> of_id)
+              |> of_or_op
               |> to_block(~type_=Type.K_Boolean)
-              |> AST.of_group
-              |> AST.of_not_op
+              |> of_group
+              |> of_not_op
               |> to_block(~type_=Type.K_Boolean)
-              |> AST.of_group,
+              |> of_group,
             )
-            |> AST.of_and_op,
+            |> of_and_op,
           ),
         ]
         |> Assert.parse_many
@@ -202,23 +207,27 @@ let suite =
     >: (
       () =>
         [
-          ("+", AST.of_add_op),
-          ("-", AST.of_sub_op),
-          ("*", AST.of_mult_op),
-          ("/", AST.of_div_op),
-          ("&&", AST.of_and_op),
-          ("||", AST.of_or_op),
-          ("<=", AST.of_lte_op),
-          ("<", AST.of_lt_op),
-          (">=", AST.of_gte_op),
-          (">", AST.of_gt_op),
-          ("==", AST.of_eq_op),
-          ("!=", AST.of_ineq_op),
+          ("+", of_add_op),
+          ("-", of_sub_op),
+          ("*", of_mult_op),
+          ("/", of_div_op),
+          ("&&", of_and_op),
+          ("||", of_or_op),
+          ("<=", of_lte_op),
+          ("<", of_lt_op),
+          (">=", of_gte_op),
+          (">", of_gt_op),
+          ("==", of_eq_op),
+          ("!=", of_ineq_op),
         ]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
-               ((inv_id("a"), inv_id("b")) |> tag, inv_id("c")) |> tag,
+               (
+                 ("a" |> of_public |> of_id, "b" |> of_public |> of_id) |> tag,
+                 "c" |> of_public |> of_id,
+               )
+               |> tag,
              )
            )
         |> Assert.parse_many
@@ -227,20 +236,25 @@ let suite =
     >: (
       () =>
         (
-          [("^", AST.of_expo_op)]
+          [("^", of_expo_op)]
           |> List.map(((op, tag)) =>
                (
                  Print.fmt("a %s b %s c", op, op),
-                 (inv_id("a"), (inv_id("b"), inv_id("c")) |> tag) |> tag,
+                 (
+                   "a" |> of_public |> of_id,
+                   ("b" |> of_public |> of_id, "c" |> of_public |> of_id)
+                   |> tag,
+                 )
+                 |> tag,
                )
              )
         )
         @ (
-          [("-", AST.of_neg_op), ("!", AST.of_not_op)]
+          [("-", of_neg_op), ("!", of_not_op)]
           |> List.map(((op, tag)) =>
                (
                  Print.fmt("%s %s %s a", op, op, op),
-                 inv_id("a") |> tag |> tag |> tag,
+                 "a" |> of_public |> of_id |> tag |> tag |> tag,
                )
              )
         )

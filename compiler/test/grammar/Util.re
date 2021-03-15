@@ -27,8 +27,6 @@ let float_prim = AST.of_float % AST.of_num % as_float % AST.of_prim;
 
 let string_prim = AST.of_string % as_string % AST.of_prim;
 
-let inv_id = x => to_block(~type_=Type.K_Invalid, x) |> AST.of_id;
-
 let jsx_node = AST.of_tag % AST.of_node;
 
 let jsx = AST.of_tag % AST.of_jsx;

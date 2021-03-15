@@ -41,7 +41,7 @@ let suite =
             AST.[
               of_import(("bar" |> of_internal, "foo")),
               of_decl((
-                "ABC",
+                "ABC" |> of_public,
                 123
                 |> Int64.of_int
                 |> of_int
