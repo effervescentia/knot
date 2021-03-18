@@ -1,6 +1,6 @@
 open Kore;
-open Util;
 open AST;
+open Util;
 
 module Expression = Grammar.Expression;
 
@@ -25,7 +25,7 @@ let suite =
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
     "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
     "parse identifier"
-    >: (() => Assert.parse("foo", "foo" |> of_public |> of_id)),
+    >: (() => Assert.parse("foo", "foo" |> of_public |> as_lexeme |> of_id)),
     "parse group"
     >: (
       () =>
@@ -33,6 +33,7 @@ let suite =
           "(foo)",
           "foo"
           |> of_public
+          |> as_lexeme
           |> of_id
           |> to_block(~type_=Type.K_Unknown)
           |> of_group,
@@ -48,8 +49,8 @@ let suite =
             1 + 2;
           }",
           [
-            "foo" |> of_public |> of_id |> of_expr,
-            ("x" |> of_public, bool_prim(false)) |> of_var,
+            "foo" |> of_public |> as_lexeme |> of_id |> of_expr,
+            ("x" |> of_public |> as_lexeme, bool_prim(false)) |> of_var,
             (int_prim(1), int_prim(2)) |> of_add_op |> of_expr,
           ]
           |> to_block(~type_=Type.K_Integer)
@@ -178,11 +179,17 @@ let suite =
             "a && (b > c || e <= f) && (!(g || h))",
             (
               (
-                "a" |> of_public |> of_id,
+                "a" |> of_public |> as_lexeme |> of_id,
                 (
-                  ("b" |> of_public |> of_id, "c" |> of_public |> of_id)
+                  (
+                    "b" |> of_public |> as_lexeme |> of_id,
+                    "c" |> of_public |> as_lexeme |> of_id,
+                  )
                   |> of_gt_op,
-                  ("e" |> of_public |> of_id, "f" |> of_public |> of_id)
+                  (
+                    "e" |> of_public |> as_lexeme |> of_id,
+                    "f" |> of_public |> as_lexeme |> of_id,
+                  )
                   |> of_lte_op,
                 )
                 |> of_or_op
@@ -190,7 +197,10 @@ let suite =
                 |> of_group,
               )
               |> of_and_op,
-              ("g" |> of_public |> of_id, "h" |> of_public |> of_id)
+              (
+                "g" |> of_public |> as_lexeme |> of_id,
+                "h" |> of_public |> as_lexeme |> of_id,
+              )
               |> of_or_op
               |> to_block(~type_=Type.K_Boolean)
               |> of_group
@@ -224,8 +234,12 @@ let suite =
              (
                Print.fmt("a %s b %s c", op, op),
                (
-                 ("a" |> of_public |> of_id, "b" |> of_public |> of_id) |> tag,
-                 "c" |> of_public |> of_id,
+                 (
+                   "a" |> of_public |> as_lexeme |> of_id,
+                   "b" |> of_public |> as_lexeme |> of_id,
+                 )
+                 |> tag,
+                 "c" |> of_public |> as_lexeme |> of_id,
                )
                |> tag,
              )
@@ -241,8 +255,11 @@ let suite =
                (
                  Print.fmt("a %s b %s c", op, op),
                  (
-                   "a" |> of_public |> of_id,
-                   ("b" |> of_public |> of_id, "c" |> of_public |> of_id)
+                   "a" |> of_public |> as_lexeme |> of_id,
+                   (
+                     "b" |> of_public |> as_lexeme |> of_id,
+                     "c" |> of_public |> as_lexeme |> of_id,
+                   )
                    |> tag,
                  )
                  |> tag,
@@ -254,7 +271,7 @@ let suite =
           |> List.map(((op, tag)) =>
                (
                  Print.fmt("%s %s %s a", op, op, op),
-                 "a" |> of_public |> of_id |> tag |> tag |> tag,
+                 "a" |> of_public |> as_lexeme |> of_id |> tag |> tag |> tag,
                )
              )
         )

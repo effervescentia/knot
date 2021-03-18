@@ -36,7 +36,7 @@ and fmt_ns = AST.string_of_namespace
 and fmt_decl = ((name, decl)) =>
   switch (decl) {
   | Constant(expr) =>
-    fmt_expr(expr) |> Print.fmt("const %s = %s;", name |> fmt_id)
+    fmt_expr(expr) |> Print.fmt("const %s = %s;", name |> fst |> fmt_id)
   }
 and fmt_binary_op =
   fun
@@ -73,13 +73,13 @@ and fmt_jsx =
   | Tag(name, attrs, children) =>
     List.length(children) == 0
       ? Print.many(fmt_jsx_attr % Print.fmt(" %s"), attrs)
-        |> Print.fmt("<%s%s />", name |> fmt_id)
+        |> Print.fmt("<%s%s />", name |> fst |> fmt_id)
       : Print.fmt(
           "<%s%s>%s</%s>",
-          name |> fmt_id,
+          name |> fst |> fmt_id,
           Print.many(fmt_jsx_attr % Print.fmt(" %s"), attrs),
           Print.many(~separator="\n", fmt_jsx_child, children),
-          name |> fmt_id,
+          name |> fst |> fmt_id,
         )
   | Fragment(_) => "<></>"
 and fmt_jsx_child =
@@ -90,9 +90,9 @@ and fmt_jsx_child =
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
-    | Class(name, value) => ("." ++ (name |> fmt_id), value)
-    | ID(name) => ("#" ++ (name |> fmt_id), None)
-    | Property(name, value) => (name |> fmt_id, value)
+    | Class(name, value) => ("." ++ (name |> fst |> fmt_id), value)
+    | ID(name) => ("#" ++ (name |> fst |> fmt_id), None)
+    | Property(name, value) => (name |> fst |> fmt_id, value)
     }
   )
   |> (
@@ -107,7 +107,7 @@ and fmt_id =
 and fmt_expr =
   fun
   | Primitive(prim) => prim |> Tuple.fst3 |> fmt_prim
-  | Identifier(name) => name |> fmt_id
+  | Identifier(name) => name |> fst |> fmt_id
   | JSX(jsx) => fmt_jsx(jsx)
   | Group(expr) => expr <.> fmt_expr |> Print.fmt("(%s)")
   | BinaryOp(op, lhs, rhs) =>
@@ -124,7 +124,7 @@ and fmt_stmt = stmt =>
   (
     switch (stmt) {
     | Variable(name, expr) =>
-      fmt_expr(expr) |> Print.fmt("let %s = %s", name |> fmt_id)
+      fmt_expr(expr) |> Print.fmt("let %s = %s", name |> fst |> fmt_id)
     | Expression(expr) => fmt_expr(expr)
     }
   )

@@ -51,8 +51,8 @@ and jsx_attribute_t =
   | ID(identifier_t)
   | Class(identifier_t, option(expression_t))
   | Property(identifier_t, option(expression_t))
-/* and identifier_t = (_identifier_t, Cursor.t) */
-and identifier_t =
+and identifier_t = lexeme_t(_identifier_t)
+and _identifier_t =
   | Private(string)
   | Public(string)
 /* and expression_t = (_expression_t, Type.t, Cursor.t) */

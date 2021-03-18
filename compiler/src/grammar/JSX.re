@@ -16,10 +16,13 @@ module Fragment = {
 
 let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
   Operator.assign(
-    M.identifier(~prefix) >|= Block.value,
+    M.identifier(~prefix) >|= (id => (id |> Block.value, id |> Block.cursor)),
     x >|= (v => Some(v)),
   )
-  <|> (M.identifier(~prefix) >|= Block.value >|= (s => (s, None)));
+  <|> (
+    M.identifier(~prefix)
+    >|= (id => ((id |> Block.value, id |> Block.cursor), None))
+  );
 
 let _self_closing = [] <$ Tag.self_close;
 
@@ -33,7 +36,6 @@ and fragment = x =>
 and tag = x =>
   Tag.open_
   >> M.identifier
-  >|= Block.value
   >>= (
     id =>
       attributes(x)
@@ -43,21 +45,36 @@ and tag = x =>
           <|> (
             Tag.close
             >> children(x)
-            << (M.keyword(id) |> M.between(Tag.open_end, Tag.close))
+            << (
+              id
+              |> Block.value
+              |> M.keyword
+              |> M.between(Tag.open_end, Tag.close)
+            )
           )
-          >|= (cs => of_tag((id |> of_public, attrs, cs)))
+          >|= (
+            cs =>
+              of_tag((
+                (id |> Block.value |> of_public, id |> Block.cursor),
+                attrs,
+                cs,
+              ))
+          )
       )
   )
 and attributes = x =>
   choice([
-    _attribute(x) >|= Tuple.map_fst2(of_public) >|= of_prop,
+    _attribute(x) >|= Tuple.map_fst2(Tuple.map_fst2(of_public)) >|= of_prop,
     _attribute(~prefix=Character.period, x)
-    >|= Tuple.map_fst2(String.drop_left(1) % of_public)
+    >|= Tuple.map_fst2(Tuple.map_fst2(String.drop_left(1) % of_public))
     >|= of_jsx_class,
     M.identifier(~prefix=Character.octothorp)
-    >|= Block.value
-    >|= String.drop_left(1)
-    >|= of_public
+    >|= (
+      id => (
+        id |> Block.value |> String.drop_left(1) |> of_public,
+        id |> Block.cursor,
+      )
+    )
     >|= of_jsx_id,
   ])
   |> many

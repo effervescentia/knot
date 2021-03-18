@@ -28,8 +28,11 @@ let suite =
     >: (
       () =>
         [
-          ("<Foo></Foo>", of_tag(("Foo" |> of_public, [], []))),
-          (" < Foo > < / Foo > ", of_tag(("Foo" |> of_public, [], []))),
+          ("<Foo></Foo>", of_tag(("Foo" |> of_public |> as_lexeme, [], []))),
+          (
+            " < Foo > < / Foo > ",
+            of_tag(("Foo" |> of_public |> as_lexeme, [], [])),
+          ),
         ]
         |> Assert.parse_many
     ),
@@ -37,8 +40,8 @@ let suite =
     >: (
       () =>
         [
-          ("<Foo/>", of_tag(("Foo" |> of_public, [], []))),
-          (" < Foo / > ", of_tag(("Foo" |> of_public, [], []))),
+          ("<Foo/>", of_tag(("Foo" |> of_public |> as_lexeme, [], []))),
+          (" < Foo / > ", of_tag(("Foo" |> of_public |> as_lexeme, [], []))),
         ]
         |> Assert.parse_many
     ),
@@ -49,7 +52,7 @@ let suite =
           ("<></>", of_frag([])),
           (
             "<><Bar /></>",
-            of_frag([("Bar" |> of_public, [], []) |> jsx_node]),
+            of_frag([("Bar" |> of_public |> as_lexeme, [], []) |> jsx_node]),
           ),
         ]
         |> Assert.parse_many
@@ -61,9 +64,12 @@ let suite =
           (
             "<Foo fizz=buzz />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
-                ("fizz" |> of_public, "buzz" |> of_public |> of_id |> some)
+                (
+                  "fizz" |> of_public |> as_lexeme,
+                  "buzz" |> of_public |> as_lexeme |> of_id |> some,
+                )
                 |> of_prop,
               ],
               [],
@@ -72,9 +78,13 @@ let suite =
           (
             "<Foo fizz=\"buzz\" />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
-                ("fizz" |> of_public, string_prim("buzz") |> some) |> of_prop,
+                (
+                  "fizz" |> of_public |> as_lexeme,
+                  string_prim("buzz") |> some,
+                )
+                |> of_prop,
               ],
               [],
             )),
@@ -82,11 +92,11 @@ let suite =
           (
             "<Foo fizz={ buzz; } />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public,
-                  ["buzz" |> of_public |> of_id |> of_expr]
+                  "fizz" |> of_public |> as_lexeme,
+                  ["buzz" |> of_public |> as_lexeme |> of_id |> of_expr]
                   |> to_block(~type_=Type.K_Unknown)
                   |> of_closure
                   |> some,
@@ -99,10 +109,10 @@ let suite =
           (
             "<Foo fizz=1 + 2 />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public,
+                  "fizz" |> of_public |> as_lexeme,
                   (int_prim(1), int_prim(2)) |> of_add_op |> some,
                 )
                 |> of_prop,
@@ -113,10 +123,10 @@ let suite =
           (
             "<Foo fizz=(true) />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public,
+                  "fizz" |> of_public |> as_lexeme,
                   bool_prim(true)
                   |> to_block(~type_=Type.K_Boolean)
                   |> of_group
@@ -130,9 +140,12 @@ let suite =
           (
             "<Foo fizz=-3 />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
-                ("fizz" |> of_public, int_prim(3) |> of_neg_op |> some)
+                (
+                  "fizz" |> of_public |> as_lexeme,
+                  int_prim(3) |> of_neg_op |> some,
+                )
                 |> of_prop,
               ],
               [],
@@ -141,11 +154,11 @@ let suite =
           (
             "<Foo fizz=<buzz /> />",
             of_tag((
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public,
-                  ("buzz" |> of_public, [], []) |> jsx |> some,
+                  "fizz" |> of_public |> as_lexeme,
+                  ("buzz" |> of_public |> as_lexeme, [], []) |> jsx |> some,
                 )
                 |> of_prop,
               ],
@@ -155,24 +168,24 @@ let suite =
           (
             "<Foo fizz />",
             of_tag((
-              "Foo" |> of_public,
-              [("fizz" |> of_public, None) |> of_prop],
+              "Foo" |> of_public |> as_lexeme,
+              [("fizz" |> of_public |> as_lexeme, None) |> of_prop],
               [],
             )),
           ),
           (
             "<Foo .fizz />",
             of_tag((
-              "Foo" |> of_public,
-              [("fizz" |> of_public, None) |> of_jsx_class],
+              "Foo" |> of_public |> as_lexeme,
+              [("fizz" |> of_public |> as_lexeme, None) |> of_jsx_class],
               [],
             )),
           ),
           (
             "<Foo #fizz />",
             of_tag((
-              "Foo" |> of_public,
-              ["fizz" |> of_public |> of_jsx_id],
+              "Foo" |> of_public |> as_lexeme,
+              ["fizz" |> of_public |> as_lexeme |> of_jsx_id],
               [],
             )),
           ),
@@ -186,16 +199,16 @@ let suite =
           (
             "<Foo><Bar /></Foo>",
             (
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [],
-              [("Bar" |> of_public, [], []) |> jsx_node],
+              [("Bar" |> of_public |> as_lexeme, [], []) |> jsx_node],
             )
             |> of_tag,
           ),
           (
             "<Foo>{1 + 2}</Foo>",
             (
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [],
               [(int_prim(1), int_prim(2)) |> of_add_op |> of_inline_expr],
             )
@@ -204,15 +217,24 @@ let suite =
           (
             "<Foo>{<Bar />}</Foo>",
             (
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [],
-              [("Bar" |> of_public, [], []) |> jsx |> of_inline_expr],
+              [
+                ("Bar" |> of_public |> as_lexeme, [], [])
+                |> jsx
+                |> of_inline_expr,
+              ],
             )
             |> of_tag,
           ),
           (
             "<Foo> bar \"or\" 123 </Foo>",
-            ("Foo" |> of_public, [], [of_text("bar \"or\" 123")]) |> of_tag,
+            (
+              "Foo" |> of_public |> as_lexeme,
+              [],
+              [of_text("bar \"or\" 123")],
+            )
+            |> of_tag,
           ),
         ]
         |> Assert.parse_many
@@ -224,21 +246,21 @@ let suite =
           (
             "<Foo><Bar /></Foo>",
             (
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [],
-              [("Bar" |> of_public, [], []) |> jsx_node],
+              [("Bar" |> of_public |> as_lexeme, [], []) |> jsx_node],
             )
             |> of_tag,
           ),
           (
             "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
             (
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [],
               [
                 of_text("bar"),
                 (int_prim(1), int_prim(2)) |> of_add_op |> of_inline_expr,
-                ("Bar" |> of_public, [], []) |> jsx_node,
+                ("Bar" |> of_public |> as_lexeme, [], []) |> jsx_node,
                 string_prim("fizz") |> of_inline_expr,
                 of_text("buzz"),
               ],
@@ -248,11 +270,14 @@ let suite =
           (
             "<Foo bar=fizz .buzz />",
             (
-              "Foo" |> of_public,
+              "Foo" |> of_public |> as_lexeme,
               [
-                ("bar" |> of_public, Some("fizz" |> of_public |> of_id))
+                (
+                  "bar" |> of_public |> as_lexeme,
+                  Some("fizz" |> of_public |> as_lexeme |> of_id),
+                )
                 |> of_prop,
-                ("buzz" |> of_public, None) |> of_jsx_class,
+                ("buzz" |> of_public |> as_lexeme, None) |> of_jsx_class,
               ],
               [],
             )

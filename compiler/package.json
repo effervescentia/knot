@@ -125,6 +125,7 @@
       "require": [
         "knot.test",
         "knot.file_test",
+        "knot.grammar_test",
         "knot.resolve",
         "knot.grammar"
       ],
@@ -143,6 +144,7 @@
       "require": [
         "knot.test",
         "knot.lib_test",
+        "knot.grammar_test",
         "knot.generate"
       ],
       "name": "knot.generate_test",

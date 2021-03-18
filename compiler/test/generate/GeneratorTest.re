@@ -1,11 +1,16 @@
 open Kore;
+open Util;
 
 module Generator = Generate.Generator;
 
 let __program = [
   of_decl((
-    "ABC" |> of_public,
-    (123 |> Int64.of_int |> of_int |> of_num, Type.K_Integer, Cursor.zero)
+    "ABC" |> of_public |> as_lexeme,
+    123
+    |> Int64.of_int
+    |> of_int
+    |> of_num
+    |> as_typed_lexeme(Type.K_Integer)
     |> of_prim
     |> of_const,
   )),

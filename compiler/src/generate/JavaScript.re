@@ -61,7 +61,7 @@ let identifier =
 let rec expression = (print: print_t) =>
   fun
   | Primitive(value) => value |> Tuple.fst3 |> primitive(print)
-  | Identifier(value) => value |> identifier |> print
+  | Identifier(value) => value |> fst |> identifier |> print
   | Group(value) => {
       print("(");
       value |> Block.value |> expression(print);
@@ -97,7 +97,7 @@ let rec expression = (print: print_t) =>
 and statement = (~is_last=false, print: print_t) =>
   fun
   | Variable(name, value) => {
-      name |> identifier |> Print.fmt("var %s = ") |> print;
+      name |> fst |> identifier |> Print.fmt("var %s = ") |> print;
       value |> expression(print);
       print(";\n");
 
@@ -160,6 +160,7 @@ and jsx = (print: print_t) =>
   fun
   | Tag(name, attrs, values) => {
       name
+      |> fst
       |> identifier
       |> string
       |> Print.fmt("$knot.jsx.createTag(%s, ")
@@ -201,7 +202,7 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                  c,
                  [
                    (
-                     name |> identifier,
+                     name |> fst |> identifier,
                      (() => expression(print, expr |?: (name |> of_id))),
                    ),
                    ...p,
@@ -210,10 +211,11 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
              | Class(name, None) => (
                  [
                    (
-                     name |> identifier,
+                     name |> fst |> identifier,
                      (
                        () =>
                          name
+                         |> fst
                          |> identifier
                          |> Print.fmt(".%s")
                          |> string
@@ -227,12 +229,13 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
              | Class(name, Some(expr)) => (
                  [
                    (
-                     name |> identifier,
+                     name |> fst |> identifier,
                      (
                        () => {
                          print("(");
                          expr |> expression(print);
                          name
+                         |> fst
                          |> identifier
                          |> Print.fmt(".%s")
                          |> string
@@ -248,7 +251,10 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
              | ID(name) => (
                  c,
                  [
-                   ("id", (() => name |> identifier |> string |> print)),
+                   (
+                     "id",
+                     (() => name |> fst |> identifier |> string |> print),
+                   ),
                    ...p,
                  ],
                ),
@@ -292,7 +298,7 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
   };
 
 let constant = (print: print_t, name: identifier_t, value: expression_t) => {
-  name |> identifier |> Print.fmt("var %s = ") |> print;
+  name |> fst |> identifier |> Print.fmt("var %s = ") |> print;
   value |> expression(print);
   print(";\n");
 };
@@ -308,7 +314,7 @@ let declaration =
   | Constant(value) => constant(print, name, value)
   };
 
-  switch (name, module_type) {
+  switch (name |> fst, module_type) {
   | (Public(name), Common) => common_export(print, name)
   | (Public(name), ES6) => es6_export(print, name)
   | _ => ()

@@ -7,7 +7,7 @@ exception MockError;
 let __program = [
   AST.(
     of_decl((
-      "ABC" |> of_public,
+      "ABC" |> of_public |> Util.as_lexeme,
       (
         123 |> Int64.of_int |> of_int |> of_num,
         Type.K_Integer,
