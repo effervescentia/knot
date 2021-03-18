@@ -1,10 +1,15 @@
 open Kore;
 
 let integer =
-  Type.K_Integer
-  <@ (many1(M.digit) >|= Char.join)
-  >== Int64.of_string
-  >== AST.of_int
+  many1(M.digit)
+  >|= Char.join
+  >|= (
+    block => (
+      block |> Block.value |> Int64.of_string |> AST.of_int,
+      Type.K_Integer,
+      block |> Block.cursor,
+    )
+  )
   |> M.lexeme;
 
 let float =
@@ -14,30 +19,26 @@ let float =
     many1(M.digit) >|= Char.join,
   )
   >|= (
-    ((x, y)) =>
-      Block.join(
-        ~type_=Type.K_Float,
-        ~combine=
-          (integer, fraction) => {
-            let integer = integer |> String.drop_all_prefix("0");
-            let integer_precision = integer |> String.length;
-            let fraction = fraction |> String.drop_all_suffix("0");
-            let fraction_precision = fraction |> String.length;
+    ((x, y)) => (
+      {
+        let integer = x |> Block.value |> String.drop_all_prefix("0");
+        let integer_precision = integer |> String.length;
+        let fraction = y |> Block.value |> String.drop_all_suffix("0");
+        let fraction_precision = fraction |> String.length;
 
-            if (fraction == "") {
-              (integer |> Float.of_string, integer_precision);
-            } else {
-              (
-                Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
-                integer_precision + fraction_precision,
-              );
-            };
-          },
-        x,
-        y,
-      )
+        if (fraction == "") {
+          AST.of_float((integer |> Float.of_string, integer_precision));
+        } else {
+          AST.of_float((
+            Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
+            integer_precision + fraction_precision,
+          ));
+        };
+      },
+      Type.K_Float,
+      Cursor.join(x |> Block.cursor, y |> Block.cursor),
+    )
   )
-  >== AST.of_float
   |> M.lexeme;
 
 let parser = choice([float, integer]);

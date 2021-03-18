@@ -42,14 +42,11 @@ let suite =
               of_import(("bar" |> of_internal, "foo")),
               of_decl((
                 "ABC" |> of_public,
-                123
-                |> Int64.of_int
-                |> of_int
-                |> of_num
-                |> Block.create(
-                     ~type_=Type.K_Integer,
-                     Cursor.range((4, 15), (4, 17)),
-                   )
+                (
+                  123 |> Int64.of_int |> of_int |> of_num,
+                  Type.K_Integer,
+                  Cursor.range((4, 15), (4, 17)),
+                )
                 |> of_prim
                 |> of_const,
               )),

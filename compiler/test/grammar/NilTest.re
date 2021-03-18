@@ -5,7 +5,7 @@ module Primitive = Grammar.Primitive;
 
 module Assert =
   Assert.Make({
-    type t = Block.t(AST.primitive_t);
+    type t = AST.primitive_t;
 
     let parser = Parser.parse(Primitive.nil);
 
@@ -13,7 +13,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp => fmt_block(fmt_prim) % Format.pp_print_string(pp),
+            pp => Tuple.fst3 % fmt_prim % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",

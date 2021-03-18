@@ -5,7 +5,7 @@ module Number = Grammar.Number;
 
 module Assert =
   Assert.Make({
-    type t = Block.t(AST.number_t);
+    type t = (AST.number_t, Type.t, Cursor.t);
 
     let parser = Parser.parse(Number.parser);
 
@@ -13,7 +13,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp => fmt_block(fmt_num) % Format.pp_print_string(pp),
+            pp => Tuple.fst3 % fmt_num % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",

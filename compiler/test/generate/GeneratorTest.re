@@ -5,11 +5,7 @@ module Generator = Generate.Generator;
 let __program = [
   of_decl((
     "ABC" |> of_public,
-    123
-    |> Int64.of_int
-    |> of_int
-    |> of_num
-    |> Block.create(Cursor.zero)
+    (123 |> Int64.of_int |> of_int |> of_num, Type.K_Integer, Cursor.zero)
     |> of_prim
     |> of_const,
   )),

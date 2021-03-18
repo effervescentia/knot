@@ -26,8 +26,8 @@ let tests = [
     >: (
       () => {
         let tbl = ExpressionHashtbl.create(3);
-        let key1 = AST.Primitive(Block.create(Cursor.zero, AST.Nil));
-        let key2 = AST.Primitive(Block.create(Cursor.zero, AST.Nil));
+        let key1 = AST.Primitive((AST.Nil, Type.K_Nil, Cursor.zero));
+        let key2 = AST.Primitive((AST.Nil, Type.K_Nil, Cursor.zero));
 
         ExpressionHashtbl.add(tbl, key1, 1);
         ExpressionHashtbl.add(tbl, key2, 2);

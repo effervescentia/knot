@@ -3,17 +3,20 @@ open Kore;
 let to_block = (~type_=?, ~cursor=Cursor.zero) =>
   Block.create(cursor, ~type_?);
 
-let as_nil = x => to_block(~type_=Type.K_Nil, x);
+let _lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
+let _typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 
-let as_bool = x => to_block(~type_=Type.K_Boolean, x);
+let as_nil = x => _typed_lexeme(Type.K_Nil, x);
 
-let as_int = x => to_block(~type_=Type.K_Integer, x);
+let as_bool = x => _typed_lexeme(Type.K_Boolean, x);
 
-let as_float = x => to_block(~type_=Type.K_Float, x);
+let as_int = x => _typed_lexeme(Type.K_Integer, x);
 
-let as_string = x => to_block(~type_=Type.K_String, x);
+let as_float = x => _typed_lexeme(Type.K_Float, x);
 
-let as_invalid = x => to_block(~type_=Type.K_Invalid, x);
+let as_string = x => _typed_lexeme(Type.K_String, x);
+
+let as_invalid = x => _typed_lexeme(Type.K_Invalid, x);
 
 let (<+>) = (l, r) => l % to_block % r;
 

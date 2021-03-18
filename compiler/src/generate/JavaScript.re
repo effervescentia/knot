@@ -60,7 +60,7 @@ let identifier =
 
 let rec expression = (print: print_t) =>
   fun
-  | Primitive(value) => value |> Block.value |> primitive(print)
+  | Primitive(value) => value |> Tuple.fst3 |> primitive(print)
   | Identifier(value) => value |> identifier |> print
   | Group(value) => {
       print("(");
@@ -70,7 +70,6 @@ let rec expression = (print: print_t) =>
   | Closure(value) =>
     value
     |> Block.value
-    |> List.excl(EmptyStatement)
     |> (
       values =>
         List.is_empty(values)
@@ -114,7 +113,6 @@ and statement = (~is_last=false, print: print_t) =>
       value |> expression(print);
       print(";\n");
     }
-  | EmptyStatement => ()
 and unary_op = (print: print_t) => {
   let print' = (symbol, value) => {
     symbol |> print;
@@ -249,7 +247,10 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                )
              | ID(name) => (
                  c,
-                 [("id", (() => name |> identifier |> string |> print)), ...p],
+                 [
+                   ("id", (() => name |> identifier |> string |> print)),
+                   ...p,
+                 ],
                ),
            ([], []),
          );
@@ -359,8 +360,7 @@ let generate =
          | ES6 => es6_import({...output, resolve}, name, main)
          }
        | Declaration(name, decl) =>
-         declaration(print, module_type, name, decl)
-       | EmptyModuleStatement => (),
+         declaration(print, module_type, name, decl),
      );
 
   if (has_no_declarations) {

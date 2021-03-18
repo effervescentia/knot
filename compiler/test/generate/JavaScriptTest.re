@@ -4,8 +4,10 @@ module JavaScript = Generate.JavaScript;
 
 let _in_block = x => Block.create(Cursor.zero, x);
 
-let _bool_prim = of_bool % _in_block % of_prim;
-let _int_prim = Int64.of_int % of_int % of_num % _in_block % of_prim;
+let _bool_prim = b => (b |> of_bool, Type.K_Boolean, Cursor.zero) |> of_prim;
+let _int_prim = i =>
+  (i |> Int64.of_int |> of_int |> of_num, Type.K_Integer, Cursor.zero)
+  |> of_prim;
 
 let __resolved = "../foo/bar";
 let __program = [
@@ -136,7 +138,6 @@ return null;
             |> of_expr
             |> print,
           ),
-          ("", EmptyStatement |> print),
         ]
         |> Assert.(test_many(string));
       }

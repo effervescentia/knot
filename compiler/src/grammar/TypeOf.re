@@ -12,7 +12,7 @@ let _typeof_arithmetic_op = (l, r) =>
 
 let rec expression =
   fun
-  | Primitive(x) => Block.type_(x)
+  | Primitive(x) => Tuple.snd3(x)
   | Identifier(_) => K_Unknown
   | JSX(_) => K_Element
   | Group(x) => Block.value(x) |> expression
@@ -50,5 +50,4 @@ let rec expression =
 let statement =
   fun
   | Expression(x) => expression(x)
-  | Variable(_) => K_Nil
-  | EmptyStatement => K_Invalid;
+  | Variable(_) => K_Nil;

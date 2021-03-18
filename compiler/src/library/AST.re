@@ -31,7 +31,11 @@ type number_t =
   | Integer(Int64.t)
   | Float(float, int);
 
-type primitive_t =
+type lexeme_t('a) = ('a, Cursor.t);
+type typed_lexeme_t('a) = ('a, Type.t, Cursor.t);
+
+type primitive_t = typed_lexeme_t(_primitive_t)
+and _primitive_t =
   | Nil
   | Boolean(bool)
   | Number(number_t)
@@ -53,7 +57,7 @@ and identifier_t =
   | Public(string)
 /* and expression_t = (_expression_t, Type.t, Cursor.t) */
 and expression_t =
-  | Primitive(Block.t(primitive_t))
+  | Primitive(primitive_t)
   | Identifier(identifier_t)
   | JSX(jsx_t)
   | Group(Block.t(expression_t))
@@ -62,8 +66,7 @@ and expression_t =
   | Closure(Block.t(list(statement_t)))
 and statement_t =
   | Variable(identifier_t, expression_t)
-  | Expression(expression_t)
-  | EmptyStatement;
+  | Expression(expression_t);
 /* | Primitive(primitive_t)
      | Identifier(identifier_t)
      | JSX(jsx_t)
@@ -85,8 +88,7 @@ type namespace_t =
 
 type module_statement_t =
   | Import(namespace_t, string)
-  | Declaration(identifier_t, declaration_t)
-  | EmptyModuleStatement;
+  | Declaration(identifier_t, declaration_t);
 
 type program_t = list(module_statement_t);
 

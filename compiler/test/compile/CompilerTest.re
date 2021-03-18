@@ -25,14 +25,11 @@ let __ast =
   AST.[
     of_decl((
       "ABC" |> of_public,
-      123
-      |> Int64.of_int
-      |> of_int
-      |> of_num
-      |> Block.create(
-           ~type_=Type.K_Integer,
-           Cursor.range((1, 13), (1, 15)),
-         )
+      (
+        123 |> Int64.of_int |> of_int |> of_num,
+        Type.K_Integer,
+        Cursor.range((1, 13), (1, 15)),
+      )
       |> of_prim
       |> of_const,
     )),

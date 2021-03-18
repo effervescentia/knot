@@ -29,7 +29,6 @@ let rec fmt_mod_stmt = stmt =>
     | Import(namespace, main) =>
       Print.fmt("import %s from \"%s\";", main, fmt_ns(namespace))
     | Declaration(name, decl) => fmt_decl((name, decl))
-    | EmptyModuleStatement => "\n"
     }
   )
   |> Print.fmt("%s\n")
@@ -107,7 +106,7 @@ and fmt_id =
   | Private(name) => Constants.private_prefix ++ name
 and fmt_expr =
   fun
-  | Primitive(prim) => prim <.> fmt_prim
+  | Primitive(prim) => prim |> Tuple.fst3 |> fmt_prim
   | Identifier(name) => name |> fmt_id
   | JSX(jsx) => fmt_jsx(jsx)
   | Group(expr) => expr <.> fmt_expr |> Print.fmt("(%s)")
@@ -127,7 +126,6 @@ and fmt_stmt = stmt =>
     | Variable(name, expr) =>
       fmt_expr(expr) |> Print.fmt("let %s = %s", name |> fmt_id)
     | Expression(expr) => fmt_expr(expr)
-    | EmptyStatement => "\n"
     }
   )
   |> Print.fmt("%s;");
