@@ -1,4 +1,5 @@
 open Kore;
+open Util;
 
 module Module = Resolve.Module;
 
@@ -6,16 +7,21 @@ exception MockError;
 
 let __program = [
   AST.(
-    of_decl((
+    (
       "ABC" |> of_public |> Util.as_lexeme,
-      (
-        123 |> Int64.of_int |> of_int |> of_num,
-        Type.K_Integer,
-        Cursor.range((4, 15), (4, 17)),
-      )
+      123
+      |> Int64.of_int
+      |> of_int
+      |> of_num
+      |> as_typed_lexeme(
+           ~cursor=Cursor.range((4, 15), (4, 17)),
+           Type.K_Integer,
+         )
       |> of_prim
+      |> as_int
       |> of_const,
-    ))
+    )
+    |> of_decl
   ),
 ];
 

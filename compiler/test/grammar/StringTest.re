@@ -13,7 +13,11 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp => Tuple.fst3 % fmt_prim % Format.pp_print_string(pp),
+            pp =>
+              Tuple.fst3
+              % Debug.print_prim
+              % Pretty.to_string
+              % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",

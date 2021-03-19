@@ -13,7 +13,14 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(pp => fmt_expr % Format.pp_print_string(pp), (==)),
+          testable(
+            pp =>
+              Tuple.fst3
+              % Debug.print_expr
+              % Pretty.to_string
+              % Format.pp_print_string(pp),
+            (==),
+          ),
           "program matches",
         )
       );
@@ -23,9 +30,15 @@ let suite =
   "Grammar.Expression"
   >::: [
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
-    "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
+    "parse primitive" >: (() => Assert.parse("123", 123 |> int_prim)),
     "parse identifier"
-    >: (() => Assert.parse("foo", "foo" |> of_public |> as_lexeme |> of_id)),
+    >: (
+      () =>
+        Assert.parse(
+          "foo",
+          "foo" |> of_public |> as_lexeme |> of_id |> as_unknown,
+        )
+    ),
     "parse group"
     >: (
       () =>
@@ -35,8 +48,9 @@ let suite =
           |> of_public
           |> as_lexeme
           |> of_id
-          |> to_block(~type_=Type.K_Unknown)
-          |> of_group,
+          |> as_unknown
+          |> of_group
+          |> as_unknown,
         )
     ),
     "parse closure"
@@ -49,20 +63,21 @@ let suite =
             1 + 2;
           }",
           [
-            "foo" |> of_public |> as_lexeme |> of_id |> of_expr,
-            ("x" |> of_public |> as_lexeme, bool_prim(false)) |> of_var,
-            (int_prim(1), int_prim(2)) |> of_add_op |> of_expr,
+            "foo" |> of_public |> as_lexeme |> of_id |> as_unknown |> of_expr,
+            ("x" |> of_public |> as_lexeme, false |> bool_prim |> as_bool)
+            |> of_var,
+            (1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int |> of_expr,
           ]
-          |> to_block(~type_=Type.K_Integer)
-          |> of_closure,
+          |> of_closure
+          |> as_int,
         )
     ),
     "parse unary"
     >: (
       () =>
         [
-          ("-123", int_prim(123) |> of_neg_op),
-          ("!true", bool_prim(true) |> of_not_op),
+          ("-123", 123 |> int_prim |> of_neg_op |> as_int),
+          ("!true", true |> bool_prim |> as_bool |> of_not_op |> as_bool),
         ]
         |> Assert.parse_many
     ),
@@ -74,11 +89,15 @@ let suite =
              [
                (
                  op |> Print.fmt("true%sfalse"),
-                 (bool_prim(true), bool_prim(false)) |> tag,
+                 (true |> bool_prim |> as_bool, false |> bool_prim |> as_bool)
+                 |> tag
+                 |> as_bool,
                ),
                (
                  op |> Print.fmt(" true %s false "),
-                 (bool_prim(true), bool_prim(false)) |> tag,
+                 (true |> bool_prim |> as_bool, false |> bool_prim |> as_bool)
+                 |> tag
+                 |> as_bool,
                ),
              ]
            )
@@ -89,20 +108,20 @@ let suite =
     >: (
       () =>
         [
-          ("+", of_add_op),
-          ("-", of_sub_op),
-          ("*", of_mult_op),
-          ("/", of_div_op),
+          ("+", of_add_op % as_int),
+          ("-", of_sub_op % as_int),
+          ("*", of_mult_op % as_int),
+          ("/", of_div_op % as_float),
         ]
         |> List.map(((op, tag)) =>
              [
                (
                  op |> Print.fmt("123%s456"),
-                 (int_prim(123), int_prim(456)) |> tag,
+                 (123 |> int_prim, 456 |> int_prim) |> tag,
                ),
                (
                  op |> Print.fmt(" 123 %s 456 "),
-                 (int_prim(123), int_prim(456)) |> tag,
+                 (123 |> int_prim, 456 |> int_prim) |> tag,
                ),
              ]
            )
@@ -122,11 +141,11 @@ let suite =
              [
                (
                  op |> Print.fmt("123%s456"),
-                 (int_prim(123), int_prim(456)) |> tag,
+                 (123 |> int_prim, 456 |> int_prim) |> tag |> as_bool,
                ),
                (
                  op |> Print.fmt(" 123 %s 456 "),
-                 (int_prim(123), int_prim(456)) |> tag,
+                 (123 |> int_prim, 456 |> int_prim) |> tag |> as_bool,
                ),
              ]
            )
@@ -142,73 +161,94 @@ let suite =
             (
               (
                 int_prim(2),
-                (int_prim(3), (int_prim(4), int_prim(5)) |> of_expo_op)
-                |> of_mult_op,
+                (
+                  int_prim(3),
+                  (int_prim(4), int_prim(5)) |> of_expo_op |> as_float,
+                )
+                |> of_mult_op
+                |> as_float,
               )
-              |> of_add_op,
-              (int_prim(6) |> of_neg_op, int_prim(7)) |> of_div_op,
+              |> of_add_op
+              |> as_float,
+              (int_prim(6) |> of_neg_op |> as_int, int_prim(7))
+              |> of_div_op
+              |> as_float,
             )
-            |> of_sub_op,
+            |> of_sub_op
+            |> as_float,
           ),
           (
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
             (
               (int_prim(2), int_prim(3))
               |> of_add_op
-              |> to_block(~type_=Type.K_Integer)
-              |> of_group,
+              |> as_int
+              |> of_group
+              |> as_int,
               (
                 int_prim(4),
                 (
                   int_prim(5),
                   (int_prim(6), int_prim(7))
                   |> of_div_op
-                  |> to_block(~type_=Type.K_Float)
+                  |> as_float
                   |> of_group
-                  |> of_neg_op,
+                  |> as_float
+                  |> of_neg_op
+                  |> as_float,
                 )
                 |> of_sub_op
-                |> to_block(~type_=Type.K_Float)
-                |> of_group,
+                |> as_float
+                |> of_group
+                |> as_float,
               )
-              |> of_expo_op,
+              |> of_expo_op
+              |> as_float,
             )
-            |> of_mult_op,
+            |> of_mult_op
+            |> as_float,
           ),
           (
             "a && (b > c || e <= f) && (!(g || h))",
             (
               (
-                "a" |> of_public |> as_lexeme |> of_id,
+                "a" |> of_public |> as_lexeme |> of_id |> as_unknown,
                 (
                   (
-                    "b" |> of_public |> as_lexeme |> of_id,
-                    "c" |> of_public |> as_lexeme |> of_id,
+                    "b" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                    "c" |> of_public |> as_lexeme |> of_id |> as_unknown,
                   )
-                  |> of_gt_op,
+                  |> of_gt_op
+                  |> as_bool,
                   (
-                    "e" |> of_public |> as_lexeme |> of_id,
-                    "f" |> of_public |> as_lexeme |> of_id,
+                    "e" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                    "f" |> of_public |> as_lexeme |> of_id |> as_unknown,
                   )
-                  |> of_lte_op,
+                  |> of_lte_op
+                  |> as_bool,
                 )
                 |> of_or_op
-                |> to_block(~type_=Type.K_Boolean)
-                |> of_group,
+                |> as_bool
+                |> of_group
+                |> as_bool,
               )
-              |> of_and_op,
+              |> of_and_op
+              |> as_bool,
               (
-                "g" |> of_public |> as_lexeme |> of_id,
-                "h" |> of_public |> as_lexeme |> of_id,
+                "g" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                "h" |> of_public |> as_lexeme |> of_id |> as_unknown,
               )
               |> of_or_op
-              |> to_block(~type_=Type.K_Boolean)
+              |> as_bool
               |> of_group
+              |> as_bool
               |> of_not_op
-              |> to_block(~type_=Type.K_Boolean)
-              |> of_group,
+              |> as_bool
+              |> of_group
+              |> as_bool,
             )
-            |> of_and_op,
+            |> of_and_op
+            |> as_bool,
           ),
         ]
         |> Assert.parse_many
@@ -217,29 +257,29 @@ let suite =
     >: (
       () =>
         [
-          ("+", of_add_op),
-          ("-", of_sub_op),
-          ("*", of_mult_op),
-          ("/", of_div_op),
-          ("&&", of_and_op),
-          ("||", of_or_op),
-          ("<=", of_lte_op),
-          ("<", of_lt_op),
-          (">=", of_gte_op),
-          (">", of_gt_op),
-          ("==", of_eq_op),
-          ("!=", of_ineq_op),
+          ("+", of_add_op % as_invalid),
+          ("-", of_sub_op % as_invalid),
+          ("*", of_mult_op % as_invalid),
+          ("/", of_div_op % as_float),
+          ("&&", of_and_op % as_bool),
+          ("||", of_or_op % as_bool),
+          ("<=", of_lte_op % as_bool),
+          ("<", of_lt_op % as_bool),
+          (">=", of_gte_op % as_bool),
+          (">", of_gt_op % as_bool),
+          ("==", of_eq_op % as_bool),
+          ("!=", of_ineq_op % as_bool),
         ]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
                (
                  (
-                   "a" |> of_public |> as_lexeme |> of_id,
-                   "b" |> of_public |> as_lexeme |> of_id,
+                   "a" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                   "b" |> of_public |> as_lexeme |> of_id |> as_unknown,
                  )
                  |> tag,
-                 "c" |> of_public |> as_lexeme |> of_id,
+                 "c" |> of_public |> as_lexeme |> of_id |> as_unknown,
                )
                |> tag,
              )
@@ -248,33 +288,59 @@ let suite =
     ),
     "parse right-associative"
     >: (
-      () =>
-        (
-          [("^", of_expo_op)]
-          |> List.map(((op, tag)) =>
-               (
-                 Print.fmt("a %s b %s c", op, op),
-                 (
-                   "a" |> of_public |> as_lexeme |> of_id,
-                   (
-                     "b" |> of_public |> as_lexeme |> of_id,
-                     "c" |> of_public |> as_lexeme |> of_id,
-                   )
-                   |> tag,
-                 )
-                 |> tag,
-               )
-             )
-        )
-        @ (
-          [("-", of_neg_op), ("!", of_not_op)]
-          |> List.map(((op, tag)) =>
-               (
-                 Print.fmt("%s %s %s a", op, op, op),
-                 "a" |> of_public |> as_lexeme |> of_id |> tag |> tag |> tag,
-               )
-             )
-        )
-        |> Assert.parse_many
+      () => {
+        [
+          (
+            "a ^ b ^ c",
+            (
+              "a" |> of_public |> as_lexeme |> of_id |> as_unknown,
+              (
+                "b" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                "c" |> of_public |> as_lexeme |> of_id |> as_unknown,
+              )
+              |> of_expo_op
+              |> as_float,
+            )
+            |> of_expo_op
+            |> as_float,
+          ),
+        ]
+        |> Assert.parse_many;
+
+        [
+          (
+            "- - - a",
+            "a"
+            |> of_public
+            |> as_lexeme
+            |> of_id
+            |> as_unknown
+            |> of_neg_op
+            |> as_unknown
+            |> of_neg_op
+            |> as_unknown
+            |> of_neg_op
+            |> as_unknown,
+          ),
+        ]
+        |> Assert.parse_many;
+        [
+          (
+            "! ! ! a",
+            "a"
+            |> of_public
+            |> as_lexeme
+            |> of_id
+            |> as_unknown
+            |> of_not_op
+            |> as_unknown
+            |> of_not_op
+            |> as_unknown
+            |> of_not_op
+            |> as_unknown,
+          ),
+        ]
+        |> Assert.parse_many;
+      }
     ),
   ];

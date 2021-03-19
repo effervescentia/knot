@@ -13,7 +13,13 @@ module Target = {
     Alcotest.(
       check(
         list(
-          testable(pp => fmt_mod_stmt % Format.pp_print_string(pp), (==)),
+          testable(
+            pp =>
+              Debug.print_mod_stmt
+              % Pretty.to_string
+              % Format.pp_print_string(pp),
+            (==),
+          ),
         ),
         "program matches",
       )
@@ -33,7 +39,7 @@ let __const_decl = "const foo = nil";
 
 let __main_import_ast = ("bar" |> of_internal, "foo") |> of_import;
 let __const_decl_ast =
-  ("foo" |> of_public |> as_lexeme, nil_prim |> of_const) |> of_decl;
+  ("foo" |> of_public |> as_lexeme, nil_prim |> as_nil |> of_const) |> of_decl;
 
 let suite =
   "Grammar.Program"

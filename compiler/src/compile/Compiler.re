@@ -34,7 +34,7 @@ let _get_exports = (ast: AST.program_t) =>
        fun
        | AST.Declaration((Private(_), _), _) => None
        | AST.Declaration((Public(name), _), _) =>
-         Some((name, Type.K_Invalid))
+         Some((name, Type.K_Unknown))
        | _ => None,
      );
 

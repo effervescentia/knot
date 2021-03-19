@@ -8,9 +8,9 @@ let _print_many = (printer, print) => {
   let rec loop =
     fun
     | [] => ()
-    | [x] => x |> print(printer)
+    | [x] => x |> print
     | [x, ...xs] => {
-        x |> print(printer);
+        x |> print;
         printer(", ");
         loop(xs);
       };
@@ -60,44 +60,40 @@ let identifier =
 
 let rec expression = (print: print_t) =>
   fun
-  | Primitive(value) => value |> Tuple.fst3 |> primitive(print)
-  | Identifier(value) => value |> fst |> identifier |> print
-  | Group(value) => {
+  | Primitive((value, _, _)) => value |> primitive(print)
+  | Identifier((value, _)) => value |> identifier |> print
+  | Group((value, _, _)) => {
       print("(");
-      value |> Block.value |> expression(print);
+      value |> expression(print);
       print(")");
     }
-  | Closure(value) =>
-    value
-    |> Block.value
-    |> (
-      values =>
-        List.is_empty(values)
-          ? print("null")
-          : {
-            print("(function(){\n");
+  | Closure(values) =>
+    List.is_empty(values)
+      ? print("null")
+      : {
+        print("(function(){\n");
 
-            let rec loop =
-              fun
-              | [] => ()
-              | [x] => x |> statement(~is_last=true, print)
+        let rec loop = (
+          fun
+          | [] => ()
+          | [x] => x |> statement(~is_last=true, print)
 
-              | [x, ...xs] => {
-                  x |> statement(print);
-                  loop(xs);
-                };
-            loop(values);
+          | [x, ...xs] => {
+              x |> statement(print);
+              loop(xs);
+            }
+        );
+        loop(values);
 
-            print("})()");
-          }
-    )
+        print("})()");
+      }
   | UnaryOp(op, value) => value |> unary_op(print, op)
   | BinaryOp(op, lhs, rhs) => binary_op(print, op, lhs, rhs)
-  | JSX(value) => value |> jsx(print)
+  | JSX((value, _)) => value |> jsx(print)
 and statement = (~is_last=false, print: print_t) =>
   fun
-  | Variable(name, value) => {
-      name |> fst |> identifier |> Print.fmt("var %s = ") |> print;
+  | Variable((name, _), (value, _, _)) => {
+      name |> identifier |> Print.fmt("var %s = ") |> print;
       value |> expression(print);
       print(";\n");
 
@@ -105,7 +101,7 @@ and statement = (~is_last=false, print: print_t) =>
         print("return null;\n");
       };
     }
-  | Expression(value) => {
+  | Expression((value, _, _)) => {
       if (is_last) {
         print("return ");
       };
@@ -114,7 +110,7 @@ and statement = (~is_last=false, print: print_t) =>
       print(";\n");
     }
 and unary_op = (print: print_t) => {
-  let print' = (symbol, value) => {
+  let print' = (symbol, (value, _, _)) => {
     symbol |> print;
     value |> expression(print);
   };
@@ -125,7 +121,7 @@ and unary_op = (print: print_t) => {
   | Not => print'("!");
 }
 and binary_op = (print: print_t) => {
-  let print' = (symbol, lhs, rhs) => {
+  let print' = (symbol, (lhs, _, _), (rhs, _, _)) => {
     print("(");
     lhs |> expression(print);
     symbol |> Print.fmt(" %s ") |> print;
@@ -147,7 +143,7 @@ and binary_op = (print: print_t) => {
   | Multiply => print'("*")
   | Divide => print'("/")
   | Exponent => (
-      (lhs, rhs) => {
+      ((lhs, _, _), (rhs, _, _)) => {
         print("Math.pow(");
         lhs |> expression(print);
         print(", ");
@@ -158,9 +154,8 @@ and binary_op = (print: print_t) => {
 }
 and jsx = (print: print_t) =>
   fun
-  | Tag(name, attrs, values) => {
+  | Tag((name, _), attrs, values) => {
       name
-      |> fst
       |> identifier
       |> string
       |> Print.fmt("$knot.jsx.createTag(%s, ")
@@ -169,7 +164,7 @@ and jsx = (print: print_t) =>
       attrs |> jsx_attrs(print);
 
       values
-      |> List.iter(x => {
+      |> List.iter(((x, _)) => {
            print(", ");
            x |> jsx_child(print);
          });
@@ -179,15 +174,15 @@ and jsx = (print: print_t) =>
   | Fragment(values) => {
       print("$knot.jsx.createFragment(");
 
-      _print_many(print, jsx_child, values);
+      _print_many(print, fst % jsx_child(print), values);
 
       print(")");
     }
 and jsx_child = (print: print_t) =>
   fun
-  | Node(value) => value |> jsx(print)
+  | Node((value, _)) => value |> jsx(print)
   | Text(value) => value |> string |> print
-  | InlineExpression(value) => value |> expression(print)
+  | InlineExpression((value, _, _)) => value |> expression(print)
 and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
   if (List.is_empty(attrs)) {
     print("{}");
@@ -198,24 +193,35 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
       |> List.fold_left(
            ((c, p)) =>
              fun
-             | Property(name, expr) => (
+             | (Property((name, _), expr), _) => (
                  c,
                  [
                    (
-                     name |> fst |> identifier,
-                     (() => expression(print, expr |?: (name |> of_id))),
+                     name |> identifier,
+                     (
+                       () =>
+                         expression(
+                           print,
+                           expr
+                           |?: (
+                             (name, Cursor.zero) |> of_id,
+                             Type.K_Unknown,
+                             Cursor.zero,
+                           )
+                           |> Tuple.fst3,
+                         )
+                     ),
                    ),
                    ...p,
                  ],
                )
-             | Class(name, None) => (
+             | (Class((name, _), None), _) => (
                  [
                    (
-                     name |> fst |> identifier,
+                     name |> identifier,
                      (
                        () =>
                          name
-                         |> fst
                          |> identifier
                          |> Print.fmt(".%s")
                          |> string
@@ -226,16 +232,15 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                  ],
                  p,
                )
-             | Class(name, Some(expr)) => (
+             | (Class((name, _), Some((expr, _, _))), _) => (
                  [
                    (
-                     name |> fst |> identifier,
+                     name |> identifier,
                      (
                        () => {
                          print("(");
                          expr |> expression(print);
                          name
-                         |> fst
                          |> identifier
                          |> Print.fmt(".%s")
                          |> string
@@ -248,13 +253,10 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                  ],
                  p,
                )
-             | ID(name) => (
+             | (ID((name, _)), _) => (
                  c,
                  [
-                   (
-                     "id",
-                     (() => name |> fst |> identifier |> string |> print),
-                   ),
+                   ("id", (() => name |> identifier |> string |> print)),
                    ...p,
                  ],
                ),
@@ -288,7 +290,7 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
     print("{ ");
     _print_many(
       print,
-      (_, (name, print_value)) => {
+      ((name, print_value)) => {
         Print.fmt("%s: ", name) |> print;
         print_value();
       },
@@ -297,8 +299,9 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
     print(" }");
   };
 
-let constant = (print: print_t, name: identifier_t, value: expression_t) => {
-  name |> fst |> identifier |> Print.fmt("var %s = ") |> print;
+let constant =
+    (print: print_t, (name, _): identifier_t, (value, _, _): expression_t) => {
+  name |> identifier |> Print.fmt("var %s = ") |> print;
   value |> expression(print);
   print(";\n");
 };

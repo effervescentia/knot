@@ -17,22 +17,35 @@ module Fragment = {
 let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
   Operator.assign(
     M.identifier(~prefix) >|= (id => (id |> Block.value, id |> Block.cursor)),
-    x >|= (v => Some(v)),
+    x,
+  )
+  >|= (
+    ((name, value)) => (
+      name,
+      Some(value),
+      Cursor.join(name |> snd, Tuple.thd3(value)),
+    )
   )
   <|> (
     M.identifier(~prefix)
-    >|= (id => ((id |> Block.value, id |> Block.cursor), None))
+    >|= (
+      id => (
+        (id |> Block.value, id |> Block.cursor),
+        None,
+        id |> Block.cursor,
+      )
+    )
   );
 
-let _self_closing = [] <$ Tag.self_close;
+let _self_closing =
+  Tag.self_close >|= Block.cursor >|= (end_cursor => ([], end_cursor));
 
 let rec parser = (x, input) =>
   (choice([fragment(x), tag(x)]) |> M.lexeme)(input)
 and fragment = x =>
   children(x)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= Block.value
-  >|= of_frag
+  >|= (block => (block |> Block.value |> of_frag, block |> Block.cursor))
 and tag = x =>
   Tag.open_
   >> M.identifier
@@ -45,37 +58,57 @@ and tag = x =>
           <|> (
             Tag.close
             >> children(x)
-            << (
-              id
-              |> Block.value
-              |> M.keyword
-              |> M.between(Tag.open_end, Tag.close)
+            >>= (
+              cs =>
+                id
+                |> Block.value
+                |> M.keyword
+                |> M.between(Tag.open_end, Tag.close)
+                >|= Block.cursor
+                >|= (end_cursor => (cs, end_cursor))
             )
           )
           >|= (
-            cs =>
-              of_tag((
+            ((cs, end_cursor)) => (
+              (
                 (id |> Block.value |> of_public, id |> Block.cursor),
                 attrs,
                 cs,
-              ))
+              )
+              |> of_tag,
+              Cursor.join(id |> Block.cursor, end_cursor),
+            )
           )
       )
   )
 and attributes = x =>
   choice([
-    _attribute(x) >|= Tuple.map_fst2(Tuple.map_fst2(of_public)) >|= of_prop,
+    _attribute(x)
+    >|= (
+      ((name, value, cursor)) => (
+        (name |> Tuple.map_fst2(of_public), value) |> of_prop,
+        cursor,
+      )
+    ),
     _attribute(~prefix=Character.period, x)
-    >|= Tuple.map_fst2(Tuple.map_fst2(String.drop_left(1) % of_public))
-    >|= of_jsx_class,
+    >|= (
+      ((name, value, cursor)) => (
+        (name |> Tuple.map_fst2(String.drop_left(1) % of_public), value)
+        |> of_jsx_class,
+        cursor,
+      )
+    ),
     M.identifier(~prefix=Character.octothorp)
     >|= (
       id => (
-        id |> Block.value |> String.drop_left(1) |> of_public,
+        (
+          id |> Block.value |> String.drop_left(1) |> of_public,
+          id |> Block.cursor,
+        )
+        |> of_jsx_id,
         id |> Block.cursor,
       )
-    )
-    >|= of_jsx_id,
+    ),
   ])
   |> many
 and children = x =>
@@ -91,12 +124,17 @@ and text = x =>
     |> many
   )
   >|= Char.join
-  >|= Block.value
-  >|= String.trim
-  >|= of_text
-and node = x => parser(x) >|= of_node
+  >|= (
+    block => (
+      block |> Block.value |> String.trim |> of_text,
+      block |> Block.cursor,
+    )
+  )
+and node = x =>
+  parser(x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
 and inline_expr = x =>
   x
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= Block.value
-  >|= of_inline_expr;
+  >|= (
+    block => (block |> Block.value |> of_inline_expr, block |> Block.cursor)
+  );

@@ -40,14 +40,17 @@ and _primitive_t =
   | Boolean(bool)
   | Number(number_t)
   | String(string)
-and jsx_t =
+and jsx_t = lexeme_t(_jsx_t)
+and _jsx_t =
   | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
   | Fragment(list(jsx_child_t))
-and jsx_child_t =
+and jsx_child_t = lexeme_t(_jsx_child_t)
+and _jsx_child_t =
   | Text(string)
   | Node(jsx_t)
   | InlineExpression(expression_t)
-and jsx_attribute_t =
+and jsx_attribute_t = lexeme_t(_jsx_attribute_t)
+and _jsx_attribute_t =
   | ID(identifier_t)
   | Class(identifier_t, option(expression_t))
   | Property(identifier_t, option(expression_t))
@@ -55,29 +58,18 @@ and identifier_t = lexeme_t(_identifier_t)
 and _identifier_t =
   | Private(string)
   | Public(string)
-/* and expression_t = (_expression_t, Type.t, Cursor.t) */
-and expression_t =
+and expression_t = typed_lexeme_t(_expression_t)
+and _expression_t =
   | Primitive(primitive_t)
   | Identifier(identifier_t)
   | JSX(jsx_t)
-  | Group(Block.t(expression_t))
+  | Group(expression_t)
   | BinaryOp(binary_operator_t, expression_t, expression_t)
   | UnaryOp(unary_operator_t, expression_t)
-  | Closure(Block.t(list(statement_t)))
+  | Closure(list(statement_t))
 and statement_t =
   | Variable(identifier_t, expression_t)
   | Expression(expression_t);
-/* | Primitive(primitive_t)
-     | Identifier(identifier_t)
-     | JSX(jsx_t)
-     | Group(expression_t)
-     | BinaryOp(binary_operator_t, expression_t, expression_t)
-     | UnaryOp(unary_operator_t, expression_t)
-     | Closure(list(statement_t))
-   and statement_t =
-     | Variable(identifier_t, expression_t)
-     | Expression(expression_t)
-     | EmptyStatement; */
 
 type declaration_t =
   | Constant(expression_t);

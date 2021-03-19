@@ -1,4 +1,5 @@
 open Kore;
+open Util;
 
 module Parser = Compile.Parser;
 
@@ -48,6 +49,10 @@ let suite =
                   Cursor.range((4, 15), (4, 17)),
                 )
                 |> of_prim
+                |> as_typed_lexeme(
+                     ~cursor=Cursor.range((4, 15), (4, 17)),
+                     Type.K_Integer,
+                   )
                 |> of_const,
               )),
             ],

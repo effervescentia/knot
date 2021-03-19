@@ -1,4 +1,5 @@
 open Kore;
+open Util;
 
 module Compiler = Compile.Compiler;
 module ModuleTable = Compile.ModuleTable;
@@ -20,10 +21,10 @@ let __config =
     source_dir: __source_dir,
   };
 
-let __types = [("ABC", Type.K_Invalid)] |> List.to_seq |> Hashtbl.of_seq;
+let __types = [("ABC", Type.K_Unknown)] |> List.to_seq |> Hashtbl.of_seq;
 let __ast =
   AST.[
-    of_decl((
+    (
       ("ABC" |> of_public, Cursor.range((1, 7), (1, 9))),
       (
         123 |> Int64.of_int |> of_int |> of_num,
@@ -31,8 +32,13 @@ let __ast =
         Cursor.range((1, 13), (1, 15)),
       )
       |> of_prim
+      |> as_typed_lexeme(
+           ~cursor=Cursor.range((1, 13), (1, 15)),
+           Type.K_Integer,
+         )
       |> of_const,
-    )),
+    )
+    |> of_decl,
   ];
 
 let _assert_import_graph_structure =

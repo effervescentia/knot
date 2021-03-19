@@ -13,7 +13,11 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(pp => fmt_decl % Format.pp_print_string(pp), (==)),
+          testable(
+            pp =>
+              Debug.print_decl % Pretty.to_string % Format.pp_print_string(pp),
+            (==),
+          ),
           "program matches",
         )
       );
@@ -32,7 +36,10 @@ let suite =
       () =>
         Assert.parse(
           "const foo = nil",
-          ("foo" |> of_public |> as_lexeme, Util.nil_prim |> of_const),
+          (
+            "foo" |> of_public |> as_lexeme,
+            Util.nil_prim |> as_nil |> of_const,
+          ),
         )
     ),
   ];

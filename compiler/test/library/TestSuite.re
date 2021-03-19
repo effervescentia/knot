@@ -9,6 +9,7 @@ let tests = [
   InfixTest.suite,
   IntTest.suite,
   ListTest.suite,
+  PrettyTest.suite,
   PrintTest.suite,
   StringTest.suite,
   TupleTest.suite,

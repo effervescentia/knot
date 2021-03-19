@@ -1,34 +1,53 @@
 open Kore;
 
-let primitive = Primitive.parser >|= AST.of_prim;
+let _wrap_typed_lexeme = (f, (_, type_, cursor) as lexeme) => (
+  lexeme |> f,
+  type_,
+  cursor,
+);
+
+let primitive =
+  Primitive.parser
+  >|= (((_, type_, cursor) as prim) => (prim |> AST.of_prim, type_, cursor));
 
 let identifier =
   M.identifier
   >|= (id => (id |> Block.value |> AST.of_public, id |> Block.cursor))
-  >|= AST.of_id;
+  >|= (((_, cursor) as id) => (id |> AST.of_id, Type.K_Unknown, cursor));
 
-let jsx = x => JSX.parser(x) >|= AST.of_jsx;
+let jsx = x =>
+  JSX.parser(x)
+  >|= (((_, cursor) as jsx) => (jsx |> AST.of_jsx, Type.K_Element, cursor));
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
-  >@= (x' => Block.value(x') |> TypeOf.expression)
-  >|= AST.of_group;
+  >|= (
+    block => {
+      let (_, type_, _) as group = block |> Block.value;
+
+      (group |> AST.of_group, type_, block |> Block.cursor);
+    }
+  );
 
 let closure = x =>
   Statement.parser(x)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >@= (
-    x' =>
-      Block.value(x')
-      |> List.last
-      |> (
-        fun
-        | None => Type.K_Nil
-        | Some(x) => TypeOf.statement(x)
-      )
-  )
-  >|= AST.of_closure;
+  >|= (
+    block => {
+      let stmts = block |> Block.value;
+      let type_ =
+        stmts
+        |> List.last
+        |> (
+          fun
+          | None => Type.K_Nil
+          | Some(x) => TypeOf.statement(x)
+        );
+
+      (stmts |> AST.of_closure, type_, block |> Block.cursor);
+    }
+  );
 
 /*
  each expression has a precedence denoted by its suffix

@@ -5,14 +5,14 @@ module JavaScript = Generate.JavaScript;
 
 let _in_block = x => Block.create(Cursor.zero, x);
 
-let _bool_prim = of_bool % as_typed_lexeme(Type.K_Boolean) % of_prim;
-let _int_prim =
-  Int64.of_int % of_int % of_num % as_typed_lexeme(Type.K_Integer) % of_prim;
+let _bool_prim = of_bool % as_bool % of_prim;
+let _int_prim = Int64.of_int % of_int % of_num % as_int % of_prim;
 
 let __resolved = "../foo/bar";
 let __program = [
   ("foo/bar" |> of_internal, "Foo") |> of_import,
-  ("ABC" |> of_public |> as_lexeme, 123 |> _int_prim |> of_const) |> of_decl,
+  ("ABC" |> of_public |> as_lexeme, 123 |> _int_prim |> as_int |> of_const)
+  |> of_decl,
 ];
 
 let suite =
@@ -87,17 +87,22 @@ let suite =
 
         [
           ("fooBar", "fooBar" |> of_public |> as_lexeme |> of_id |> print),
-          ("(123)", 123 |> _int_prim |> _in_block |> of_group |> print),
+          ("(123)", 123 |> _int_prim |> as_int |> of_group |> print),
           (
             "(function(){
 (123 === 456);
 return (678 + 910);
 })()",
             [
-              (123 |> _int_prim, 456 |> _int_prim) |> of_eq_op |> of_expr,
-              (678 |> _int_prim, 910 |> _int_prim) |> of_add_op |> of_expr,
+              (123 |> _int_prim |> as_int, 456 |> _int_prim |> as_int)
+              |> of_eq_op
+              |> as_int
+              |> of_expr,
+              (678 |> _int_prim |> as_int, 910 |> _int_prim |> as_int)
+              |> of_add_op
+              |> as_int
+              |> of_expr,
             ]
-            |> _in_block
             |> of_closure
             |> print,
           ),
@@ -106,8 +111,10 @@ return (678 + 910);
 var foo = 456;
 return null;
 })()",
-            [("foo" |> of_public |> as_lexeme, 456 |> _int_prim) |> of_var]
-            |> _in_block
+            [
+              ("foo" |> of_public |> as_lexeme, 456 |> _int_prim |> as_int)
+              |> of_var,
+            ]
             |> of_closure
             |> print,
           ),
@@ -129,14 +136,15 @@ return null;
         [
           (
             "var fooBar = 123;\n",
-            ("fooBar" |> of_public |> as_lexeme, 123 |> _int_prim)
+            ("fooBar" |> of_public |> as_lexeme, 123 |> _int_prim |> as_int)
             |> of_var
             |> print,
           ),
           (
             "(123 === 456);\n",
-            (123 |> _int_prim, 456 |> _int_prim)
+            (123 |> _int_prim |> as_int, 456 |> _int_prim |> as_int)
             |> of_eq_op
+            |> as_int
             |> of_expr
             |> print,
           ),
@@ -158,49 +166,107 @@ return null;
         [
           (
             "(true && false)",
-            print(LogicalAnd, true |> _bool_prim, false |> _bool_prim),
+            print(
+              LogicalAnd,
+              true |> _bool_prim |> as_bool,
+              false |> _bool_prim |> as_bool,
+            ),
           ),
           (
             "(true || false)",
-            print(LogicalOr, true |> _bool_prim, false |> _bool_prim),
+            print(
+              LogicalOr,
+              true |> _bool_prim |> as_bool,
+              false |> _bool_prim |> as_bool,
+            ),
           ),
           (
             "(123 <= 456)",
-            print(LessOrEqual, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              LessOrEqual,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
           (
             "(123 < 456)",
-            print(LessThan, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              LessThan,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
           (
             "(123 >= 456)",
-            print(GreaterOrEqual, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              GreaterOrEqual,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
           (
             "(123 > 456)",
-            print(GreaterThan, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              GreaterThan,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
           (
             "(123 === 456)",
-            print(Equal, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              Equal,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
           (
             "(123 !== 456)",
-            print(Unequal, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              Unequal,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
-          ("(123 + 456)", print(Add, 123 |> _int_prim, 456 |> _int_prim)),
+          (
+            "(123 + 456)",
+            print(
+              Add,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
+          ),
           (
             "(123 - 456)",
-            print(Subtract, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              Subtract,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
           (
             "(123 * 456)",
-            print(Multiply, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              Multiply,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
-          ("(123 / 456)", print(Divide, 123 |> _int_prim, 456 |> _int_prim)),
+          (
+            "(123 / 456)",
+            print(
+              Divide,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
+          ),
           (
             "Math.pow(123, 456)",
-            print(Exponent, 123 |> _int_prim, 456 |> _int_prim),
+            print(
+              Exponent,
+              123 |> _int_prim |> as_int,
+              456 |> _int_prim |> as_int,
+            ),
           ),
         ]
         |> Assert.(test_many(string));
@@ -218,9 +284,9 @@ return null;
         };
 
         [
-          ("!true", print(Not, true |> _bool_prim)),
-          ("+123", print(Positive, 123 |> _int_prim)),
-          ("-123", print(Negative, 123 |> _int_prim)),
+          ("!true", print(Not, true |> _bool_prim |> as_bool)),
+          ("+123", print(Positive, 123 |> _int_prim |> as_int)),
+          ("-123", print(Negative, 123 |> _int_prim |> as_int)),
         ]
         |> Assert.(test_many(string));
       }
@@ -262,6 +328,7 @@ return null;
             "$knot.jsx.createTag(\"Foo\", {})",
             ("Foo" |> of_public |> as_lexeme, [], [])
             |> of_tag
+            |> as_lexeme
             |> of_node
             |> print,
           ),
@@ -270,16 +337,20 @@ return null;
             (
               "Foo" |> of_public |> as_lexeme,
               [
-                ("foo" |> of_public |> as_lexeme, None) |> of_prop,
+                ("foo" |> of_public |> as_lexeme, None) |> of_prop |> as_lexeme,
                 (
                   "bar" |> of_public |> as_lexeme,
-                  Some("fizz" |> of_public |> as_lexeme |> of_id),
+                  Some(
+                    "fizz" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                  ),
                 )
-                |> of_prop,
+                |> of_prop
+                |> as_lexeme,
               ],
               [],
             )
             |> of_tag
+            |> as_lexeme
             |> of_node
             |> print,
           ),
@@ -289,17 +360,24 @@ return null;
               "Foo" |> of_public |> as_lexeme,
               [],
               [
-                ("Bar" |> of_public |> as_lexeme, [], ["fizz" |> of_text])
+                (
+                  "Bar" |> of_public |> as_lexeme,
+                  [],
+                  ["fizz" |> of_text |> as_lexeme],
+                )
                 |> of_tag
-                |> of_node,
+                |> as_lexeme
+                |> of_node
+                |> as_lexeme,
               ],
             )
             |> of_tag
+            |> as_lexeme
             |> of_node
             |> print,
           ),
           ("\"Hello World!\"", "Hello World!" |> of_text |> print),
-          ("123", 123 |> _int_prim |> of_inline_expr |> print),
+          ("123", 123 |> _int_prim |> as_int |> of_inline_expr |> print),
         ]
         |> Assert.(test_many(string));
       }
@@ -318,39 +396,53 @@ return null;
         [
           (
             "{ foo: foo }",
-            [("foo" |> of_public |> as_lexeme, None) |> of_prop] |> print,
+            [("foo" |> of_public |> as_lexeme, None) |> of_prop |> as_lexeme]
+            |> print,
           ),
           (
             "{ foo: bar }",
             [
               (
                 "foo" |> of_public |> as_lexeme,
-                Some("bar" |> of_public |> as_lexeme |> of_id),
+                Some("bar" |> of_public |> as_lexeme |> of_id |> as_unknown),
               )
-              |> of_prop,
+              |> of_prop
+              |> as_lexeme,
             ]
             |> print,
           ),
           (
             "{ className: \".foo\" }",
-            [("foo" |> of_public |> as_lexeme, None) |> of_jsx_class]
+            [
+              ("foo" |> of_public |> as_lexeme, None)
+              |> of_jsx_class
+              |> as_lexeme,
+            ]
             |> print,
           ),
           (
             "{ className: ((123 > 456) ? \".foo\" : \"\") + \".bar\" }",
             [
-              ("bar" |> of_public |> as_lexeme, None) |> of_jsx_class,
+              ("bar" |> of_public |> as_lexeme, None)
+              |> of_jsx_class
+              |> as_lexeme,
               (
                 "foo" |> of_public |> as_lexeme,
-                Some((123 |> _int_prim, 456 |> _int_prim) |> of_gt_op),
+                Some(
+                  (123 |> _int_prim |> as_int, 456 |> _int_prim |> as_int)
+                  |> of_gt_op
+                  |> as_bool,
+                ),
               )
-              |> of_jsx_class,
+              |> of_jsx_class
+              |> as_lexeme,
             ]
             |> print,
           ),
           (
             "{ id: \"foo\" }",
-            ["foo" |> of_public |> as_lexeme |> of_jsx_id] |> print,
+            ["foo" |> of_public |> as_lexeme |> of_jsx_id |> as_lexeme]
+            |> print,
           ),
         ]
         |> Assert.(test_many(string));
@@ -370,7 +462,10 @@ return null;
         [
           (
             "var foo = 123;\n",
-            123 |> _int_prim |> print("foo" |> of_public |> as_lexeme),
+            123
+            |> _int_prim
+            |> as_int
+            |> print("foo" |> of_public |> as_lexeme),
           ),
         ]
         |> Assert.(test_many(string));
@@ -399,6 +494,7 @@ exports.foo = foo;
 ",
             123
             |> _int_prim
+            |> as_int
             |> of_const
             |> print(Target.Common, "foo" |> of_public |> as_lexeme),
           ),
@@ -408,6 +504,7 @@ export { foo };
 ",
             123
             |> _int_prim
+            |> as_int
             |> of_const
             |> print(Target.ES6, "foo" |> of_public |> as_lexeme),
           ),
