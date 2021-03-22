@@ -2,6 +2,7 @@
  Pretty printing utilities.
  */
 
+/* add Breakpoint to add supported breakpoints when auto-wrapping long lines? */
 type t =
   | Nil
   | String(string)
@@ -16,11 +17,23 @@ let rec _flatten = (column: int, x: list((t, int))) =>
   | [(Nil, _), ...xs] => _flatten(column, xs)
 
   | [(String(s), indent), ...xs] =>
-    let spaces = indent - column;
+    if (String.contains(s, '\n')) {
+      _flatten(
+        column,
+        (
+          String.split_on_char('\n', s)
+          |> List.map(x => (x == "" ? Nil : String(x), indent))
+          |> List.intersperse((Newline, indent))
+        )
+        @ xs,
+      );
+    } else {
+      let spaces = indent - column;
 
-    (spaces > 0 ? String.repeat(spaces, " ") : "")
-    ++ s
-    ++ _flatten(column + spaces + (s |> String.length), xs);
+      (spaces > 0 ? String.repeat(spaces, " ") : "")
+      ++ s
+      ++ _flatten(column + spaces + (s |> String.length), xs);
+    }
 
   | [(Append(l, r), indent), ...xs] =>
     _flatten(column, [(l, indent), (r, indent), ...xs])

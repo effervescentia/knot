@@ -9,125 +9,215 @@ let fmt_type =
   | K_Integer => "int"
   | K_Float => "float"
   | K_String => "string"
+  | K_Element => "element"
   | K_Invalid => "invalid"
   | K_Unknown => "unknown";
 
-let fmt_block = (print, x) =>
-  Print.fmt(
-    "[ type: %s, cursor: %s, errors: (%s) ] %s",
-    Block.type_(x) |> fmt_type,
-    Block.cursor(x) |> Cursor.to_string,
-    Print.opt(print_errs, Block.errors(x)),
-    print(Block.value(x)),
-  );
-
-let rec fmt_mod_stmt = stmt =>
+let fmt_binary_op =
   (
-    switch (stmt) {
-    | Import(namespace, main) =>
-      Print.fmt("import %s from \"%s\";", main, fmt_ns(namespace))
-    | Declaration(name, decl) => fmt_decl((name, decl))
-    }
+    fun
+    | LogicalAnd => "&&"
+    | LogicalOr => "||"
+    | Add => "+"
+    | Subtract => "-"
+    | Divide => "/"
+    | Multiply => "*"
+    | LessOrEqual => "<="
+    | LessThan => "<"
+    | GreaterOrEqual => ">="
+    | GreaterThan => ">"
+    | Equal => "=="
+    | Unequal => "!="
+    | Exponent => "^"
   )
-  |> Print.fmt("%s\n")
-and fmt_ns = AST.string_of_namespace
-and fmt_decl = (((name, _), decl)) =>
-  switch (decl) {
-  | Constant((expr, _, _)) =>
-    expr |> fmt_expr |> Print.fmt("const %s = %s;", name |> fmt_id)
-  }
-and fmt_binary_op =
+  % Pretty.string;
+
+let fmt_unary_op =
+  (
+    fun
+    | Not => "!"
+    | Positive => "+"
+    | Negative => "-"
+  )
+  % Pretty.string;
+
+let fmt_id =
+  (
+    fun
+    | Public(name) => name
+    | Private(name) => Constants.private_prefix ++ name
+  )
+  % Pretty.string;
+
+let fmt_ns = AST.string_of_namespace % Pretty.string;
+
+let fmt_num =
+  (
+    fun
+    | Integer(int) => int |> Int64.to_string
+    | Float(float, precision) => float |> Print.fmt("%.*f", precision)
+  )
+  % Pretty.string;
+
+let fmt_prim =
   fun
-  | LogicalAnd => "&&"
-  | LogicalOr => "||"
-  | Add => "+"
-  | Subtract => "-"
-  | Divide => "/"
-  | Multiply => "*"
-  | LessOrEqual => "<="
-  | LessThan => "<"
-  | GreaterOrEqual => ">="
-  | GreaterThan => ">"
-  | Equal => "=="
-  | Unequal => "!="
-  | Exponent => "^"
-and fmt_unary_op =
-  fun
-  | Not => "!"
-  | Positive => "+"
-  | Negative => "-"
-and fmt_num =
-  fun
-  | Integer(int) => int |> Int64.to_string
-  | Float(float, precision) => float |> Print.fmt("%.*f", precision)
-and fmt_prim =
-  fun
-  | Nil => "nil"
-  | Boolean(bool) => bool |> string_of_bool
+  | Nil => "nil" |> Pretty.string
+  | Boolean(bool) => bool |> string_of_bool |> Pretty.string
   | Number(num) => num |> fmt_num
-  | String(str) => str |> Print.fmt("\"%s\"")
-and fmt_jsx =
+  | String(str) => str |> Print.fmt("\"%s\"") |> Pretty.string;
+
+let rec fmt_jsx =
   fun
   | Tag((name, _), attrs, children) =>
-    List.length(children) == 0
-      ? Print.many(fst % fmt_jsx_attr % Print.fmt(" %s"), attrs)
-        |> Print.fmt("<%s%s />", name |> fmt_id)
-      : Print.fmt(
-          "<%s%s>%s</%s>",
-          name |> fmt_id,
-          Print.many(fst % fmt_jsx_attr % Print.fmt(" %s"), attrs),
-          Print.many(~separator="\n", fst % fmt_jsx_child, children),
-          name |> fmt_id,
-        )
-  | Fragment(_) => "<></>"
+    [
+      "<" |> Pretty.string,
+      name |> fmt_id,
+      attrs |> List.is_empty
+        ? Pretty.Nil
+        : attrs
+          |> List.map(
+               fst
+               % (
+                 attr =>
+                   [" " |> Pretty.string, attr |> fmt_jsx_attr]
+                   |> Pretty.concat
+               ),
+             )
+          |> Pretty.concat,
+      children |> List.is_empty
+        ? " />" |> Pretty.string
+        : [
+            [">" |> Pretty.string] |> Pretty.newline,
+            children
+            |> List.map(
+                 fst % (child => [child |> fmt_jsx_child] |> Pretty.newline),
+               )
+            |> Pretty.concat
+            |> Pretty.indent(2),
+            ["</" |> Pretty.string, name |> fmt_id, ">" |> Pretty.string]
+            |> Pretty.concat,
+          ]
+          |> Pretty.concat,
+    ]
+    |> Pretty.concat
+  | Fragment(children) =>
+    children |> List.is_empty
+      ? "<></>" |> Pretty.string
+      : [
+          ["<>" |> Pretty.string] |> Pretty.newline,
+          children
+          |> List.map(fst % fmt_jsx_child)
+          |> Pretty.concat
+          |> Pretty.indent(2),
+          "</>" |> Pretty.string,
+        ]
+        |> Pretty.concat
+
 and fmt_jsx_child =
   fun
   | Node((jsx, _)) => jsx |> fmt_jsx
-  | Text(s) => s
-  | InlineExpression((expr, _, _)) => expr |> fmt_expr |> Print.fmt("{%s}")
+  | Text(s) => s |> Pretty.string
+  | InlineExpression((expr, _, _)) =>
+    ["{" |> Pretty.string, expr |> fmt_expr, "}" |> Pretty.string]
+    |> Pretty.concat
+
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
-    | Class((name, _), value) => ("." ++ (name |> fmt_id), value)
-    | ID((name, _)) => ("#" ++ (name |> fmt_id), None)
+    | Class((name, _), value) => (
+        ["." |> Pretty.string, name |> fmt_id] |> Pretty.concat,
+        value,
+      )
+    | ID((name, _)) => (
+        ["#" |> Pretty.string, name |> fmt_id] |> Pretty.concat,
+        None,
+      )
     | Property((name, _), value) => (name |> fmt_id, value)
     }
   )
   |> (
     fun
     | (name, Some((expr, _, _))) =>
-      expr |> fmt_expr |> Print.fmt("%s=%s", name)
+      [name, "=" |> Pretty.string, expr |> fmt_expr] |> Pretty.concat
+
     | (name, None) => name
   )
-and fmt_id =
-  fun
-  | Public(name) => name
-  | Private(name) => Constants.private_prefix ++ name
+
 and fmt_expr =
   fun
   | Primitive((prim, _, _)) => prim |> fmt_prim
   | Identifier((name, _)) => name |> fmt_id
   | JSX((jsx, _)) => jsx |> fmt_jsx
-  | Group((expr, _, _)) => expr |> fmt_expr |> Print.fmt("(%s)")
+  | Group((expr, _, _)) =>
+    ["(" |> Pretty.string, expr |> fmt_expr, ")" |> Pretty.string]
+    |> Pretty.concat
   | BinaryOp(op, (lhs, _, _), (rhs, _, _)) =>
-    Print.fmt(
-      "⟨%s %s %s⟩",
+    [
       lhs |> fmt_expr,
+      " " |> Pretty.string,
       op |> fmt_binary_op,
+      " " |> Pretty.string,
       rhs |> fmt_expr,
-    )
-  | UnaryOp(op, (expr, _, _)) => fmt_unary_op(op) ++ fmt_expr(expr)
-  | Closure(exprs) =>
-    exprs |> Print.many(~separator="\n", fmt_stmt) |> Print.fmt("{\n%s}")
+    ]
+    |> Pretty.concat
+  | UnaryOp(op, (expr, _, _)) =>
+    [op |> fmt_unary_op, expr |> fmt_expr] |> Pretty.concat
+  | Closure(stmts) =>
+    stmts |> List.is_empty
+      ? "{}" |> Pretty.string
+      : [
+          ["{" |> Pretty.string] |> Pretty.newline,
+          stmts
+          |> List.map(stmt => [stmt |> fmt_stmt] |> Pretty.newline)
+          |> Pretty.concat
+          |> Pretty.indent(2),
+          "}" |> Pretty.string,
+        ]
+        |> Pretty.concat
+
 and fmt_stmt = stmt =>
   (
     switch (stmt) {
-    | Variable((name, _), (expr, _, _)) =>
-      expr |> fmt_expr |> Print.fmt("let %s = %s", name |> fmt_id)
-    | Expression((expr, _, _)) => expr |> fmt_expr
+    | Variable((name, _), (expr, _, _)) => [
+        "let " |> Pretty.string,
+        name |> fmt_id,
+        " = " |> Pretty.string,
+        expr |> fmt_expr,
+      ]
+    | Expression((expr, _, _)) => [expr |> fmt_expr]
     }
   )
-  |> Print.fmt("%s;");
+  @ [";" |> Pretty.string]
+  |> Pretty.concat;
+
+let fmt_decl = (((name, _), decl)) =>
+  switch (decl) {
+  | Constant((expr, _, _)) =>
+    [
+      "const " |> Pretty.string,
+      name |> fmt_id,
+      " = " |> Pretty.string,
+      expr |> fmt_expr,
+      ";" |> Pretty.string,
+    ]
+    |> Pretty.concat
+  };
+
+let fmt_mod_stmt = stmt =>
+  (
+    switch (stmt) {
+    | Import(namespace, main) => [
+        "import " |> Pretty.string,
+        main |> Pretty.string,
+        " from \"" |> Pretty.string,
+        namespace |> fmt_ns,
+        "\";" |> Pretty.string,
+      ]
+
+    | Declaration(name, decl) => [(name, decl) |> fmt_decl]
+    }
+  )
+  |> Pretty.newline;
 
 let format = (program: program_t): string =>
-  Print.many(fmt_mod_stmt, program);
+  program |> List.map(fmt_mod_stmt) |> Pretty.concat |> Pretty.to_string;

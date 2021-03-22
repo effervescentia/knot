@@ -43,3 +43,5 @@ let last = (xs: list('a)): option('a) =>
   | [] => None
   | _ => nth_opt(xs, length(xs) - 1)
   };
+
+let intersperse = TList.intersperse;
