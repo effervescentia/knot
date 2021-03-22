@@ -165,6 +165,13 @@ and fmt_expr =
   | Primitive((prim, _, _)) => prim |> fmt_prim
   | Identifier((name, _)) => name |> fmt_id
   | JSX((jsx, _)) => jsx |> fmt_jsx
+  /* collapse parentheses around unary values */
+  | Group((
+      (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
+      _,
+      _,
+    )) =>
+    expr |> fmt_expr
   | Group((expr, _, _)) =>
     ["(" |> Pretty.string, expr |> fmt_expr, ")" |> Pretty.string]
     |> Pretty.concat

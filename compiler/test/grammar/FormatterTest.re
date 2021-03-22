@@ -83,11 +83,21 @@ let suite =
         [
           ("nil", nil |> as_nil |> of_prim),
           ("fooBar", "fooBar" |> of_public |> as_lexeme |> of_id),
-          ("(123)", 123 |> int_prim |> of_group),
+          ("123", 123 |> int_prim |> of_group),
+          ("123", 123 |> int_prim |> of_group |> as_int |> of_group),
           (
             "(123 + 456)",
             (123 |> int_prim, 456 |> int_prim)
             |> of_add_op
+            |> as_int
+            |> of_group,
+          ),
+          (
+            "(123 + 456)",
+            (123 |> int_prim, 456 |> int_prim)
+            |> of_add_op
+            |> as_int
+            |> of_group
             |> as_int
             |> of_group,
           ),
@@ -259,10 +269,26 @@ let suite =
             |> of_prop,
           ),
           (
-            "fizz=(true)",
+            "fizz=true",
             (
               "fizz" |> of_public |> as_lexeme,
-              Some(true |> bool_prim |> of_group |> as_bool),
+              Some(
+                true |> bool_prim |> of_group |> as_bool |> of_group |> as_bool,
+              ),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz=(1 + 2)",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some(
+                (1 |> int_prim, 2 |> int_prim)
+                |> of_add_op
+                |> as_int
+                |> of_group
+                |> as_int,
+              ),
             )
             |> of_prop,
           ),
