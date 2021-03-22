@@ -3,7 +3,6 @@ include Error;
 
 module AST = AST;
 module Block = Block;
-module Char = Char;
 module Constants = Constants;
 module Cursor = Cursor;
 module Debug = Debug;
@@ -11,6 +10,7 @@ module Filename = Filename;
 module Functional = Functional;
 module Graph = Graph;
 module Hashtbl = Hashtbl;
+module Input = Input;
 module Int = Int;
 module LazyStream = LazyStream;
 module List = List;

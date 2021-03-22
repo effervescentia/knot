@@ -158,7 +158,7 @@ let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 let ctx =
   LazyStream.(
     fun
-    | Cons(r, _) as input => Some((Char.context(r), input))
+    | Cons(r, _) as input => Some((Input.context(r), input))
     | Nil => None
   );
 
@@ -166,7 +166,7 @@ let ctx =
  matches a single character
  */
 let satisfy = (f: 'a => bool) =>
-  any >>= (x => Char.value(x) |> (v => f(v) ? return(x) : none));
+  any >>= (x => Input.value(x) |> (v => f(v) ? return(x) : none));
 
 /**
  matches a single character

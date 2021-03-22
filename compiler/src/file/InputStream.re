@@ -9,9 +9,9 @@ let _to_stream = (cursor, decoder) => {
   let next = _ =>
     switch (Uutf.decode(decoder)) {
     | `Uchar(uchar) =>
-      Some(Char.create(uchar, _to_cursor(cursor, decoder)))
+      Some(Input.create(uchar, _to_cursor(cursor, decoder)))
     | `Malformed(uchar) =>
-      Some(Char.create(Uutf.u_rep, _to_cursor(cursor, decoder)))
+      Some(Input.create(Uutf.u_rep, _to_cursor(cursor, decoder)))
     | `End => None
     | `Await => assert(false)
     };
@@ -24,7 +24,7 @@ let _normalize = `Readline(Uchar.of_char(Constants.Character.eol));
 /**
  wrapper to ingest a stream of unicode characters
  */
-type t = Stream.t(Char.t);
+type t = Stream.t(Input.t);
 
 /* static */
 

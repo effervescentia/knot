@@ -123,7 +123,7 @@ and text = x =>
     ])
     |> many
   )
-  >|= Char.join
+  >|= Input.join
   >|= (
     block => (
       block |> Block.value |> String.trim |> of_text,

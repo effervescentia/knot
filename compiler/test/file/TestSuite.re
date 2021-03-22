@@ -2,7 +2,7 @@ open Kore;
 
 let unit_tests = [
   CacheTest.suite,
-  CharStreamTest.suite,
+  InputStreamTest.suite,
   IOTest.suite,
   WatcherTest_Unit.suite,
 ];

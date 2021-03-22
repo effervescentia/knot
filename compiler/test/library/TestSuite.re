@@ -7,6 +7,7 @@ let tests = [
   GraphTest.suite,
   HashtblTest.suite,
   InfixTest.suite,
+  InputTest.suite,
   IntTest.suite,
   ListTest.suite,
   PrettyTest.suite,

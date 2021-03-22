@@ -5,19 +5,21 @@ let __cursor = Cursor.point(4, 0);
 let __char = (__uchar, __cursor);
 
 let suite =
-  "Library.Char"
+  "Library.Input"
   >::: [
     "create()"
     >: (
       () =>
-        [(__char, Char.create(__uchar, __cursor))]
+        [(__char, Input.create(__uchar, __cursor))]
         |> Assert.(test_many(char))
     ),
     "value()"
-    >: (() => [(__uchar, Char.value(__char))] |> Assert.(test_many(uchar))),
+    >: (
+      () => [(__uchar, Input.value(__char))] |> Assert.(test_many(uchar))
+    ),
     "context()"
     >: (
       () =>
-        [(__cursor, Char.context(__char))] |> Assert.(test_many(cursor))
+        [(__cursor, Input.context(__char))] |> Assert.(test_many(cursor))
     ),
   ];

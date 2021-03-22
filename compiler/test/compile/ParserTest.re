@@ -16,7 +16,7 @@ let __ast_fixture = "
  ";
 
 let _to_stream = string =>
-  File.CharStream.of_string(string) |> LazyStream.of_stream;
+  File.InputStream.of_string(string) |> LazyStream.of_stream;
 
 let suite =
   "Compile.Parser"

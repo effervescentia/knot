@@ -2,7 +2,7 @@ open Kore;
 
 let integer =
   many1(M.digit)
-  >|= Char.join
+  >|= Input.join
   >|= (
     block => (
       block |> Block.value |> Int64.of_string |> AST.of_int,
@@ -14,9 +14,9 @@ let integer =
 
 let float =
   M.binary_op(
-    many1(M.digit) >|= Char.join,
+    many1(M.digit) >|= Input.join,
     Character.period,
-    many1(M.digit) >|= Char.join,
+    many1(M.digit) >|= Input.join,
   )
   >|= (
     ((x, y)) => (

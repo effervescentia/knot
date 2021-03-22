@@ -36,7 +36,7 @@ let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
 /**
  matches a single character
  */
-let symbol = x => char(x) >|= Char.to_block |> lexeme;
+let symbol = x => char(x) >|= Input.to_block |> lexeme;
 
 /**
  matches a sequence of characters but tolerates spaces in between
@@ -50,7 +50,7 @@ let glyph = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Char.context
+          >|= Input.context
           >|= (end_ => Block.create(Cursor.join(start, end_), ()))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
@@ -72,7 +72,7 @@ let keyword = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Char.context
+          >|= Input.context
           >|= (end_ => Block.create(Cursor.join(start, end_), ()))
         | [c, ...cs] => char(c) >> loop(cs);
 
@@ -88,7 +88,7 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
   (
     prefix
     <~> (alpha_num <|> Character.underscore |> many)
-    >|= Char.join
+    >|= Input.join
     |> lexeme
   )(
     input,
@@ -101,14 +101,14 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
  */
 let string =
   Character.quote
-  >|= Char.context
+  >|= Input.context
   >>= (
     start => {
       let rec loop = f =>
         choice([
           /* end of string sequence */
           Character.quote
-          >|= Char.context
+          >|= Input.context
           >|= (
             end_ =>
               Block.create(
@@ -119,11 +119,11 @@ let string =
           /* capture escaped characters */
           Character.back_slash
           >> any
-          >|= Char.value
+          >|= Input.value
           >>= (c => loop(rs => f([__back_slash, c, ...rs]))),
           /* capture characters of the string */
           none_of([C.Character.quote, C.Character.eol])
-          >|= Char.value
+          >|= Input.value
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);
 

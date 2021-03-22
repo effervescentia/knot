@@ -10,7 +10,7 @@ module type ParseTarget = {
 
 module Make = (T: ParseTarget) => {
   let parse = (~cursor=false, source, result) =>
-    CharStream.of_string(~cursor, source)
+    InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
     |> T.parser
     |> (
@@ -30,7 +30,7 @@ module Make = (T: ParseTarget) => {
 
   let no_parse = (~cursor=false) =>
     List.iter(source =>
-      CharStream.of_string(~cursor, source)
+      InputStream.of_string(~cursor, source)
       |> LazyStream.of_stream
       |> T.parser
       |> (

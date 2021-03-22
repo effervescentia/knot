@@ -16,7 +16,7 @@ let context = (x: t) => snd(x);
 /* methods */
 
 /**
- combine two chars
+ combine two inputs
  */
 let join = (cs: list(t)): Block.t(string) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(context);
@@ -26,7 +26,7 @@ let join = (cs: list(t)): Block.t(string) => {
 };
 
 /**
- convert char into a block
+ convert input into a block
  */
 let to_block = (x: t): Block.t(Uchar.t) =>
   Block.create(context(x), value(x));

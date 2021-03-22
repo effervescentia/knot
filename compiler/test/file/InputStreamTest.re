@@ -1,24 +1,24 @@
 open Kore;
 
-module CharStream = File.CharStream;
+module InputStream = File.InputStream;
 
 let __content = "hello world\n";
 
 let _read_stream = stream => {
   let chars = ref([]);
 
-  stream |> Stream.iter(Char.value % (char => chars := [char, ...chars^]));
+  stream |> Stream.iter(Input.value % (char => chars := [char, ...chars^]));
 
   List.rev(chars^) |> String.of_uchars;
 };
 
 let suite =
-  "File.CharStream"
+  "File.InputStream"
   >::: [
     "of_string()"
     >: (
       () =>
-        [(__content, CharStream.of_string(__content) |> _read_stream)]
+        [(__content, __content |> InputStream.of_string |> _read_stream)]
         |> Assert.(test_many(string))
     ),
     "of_channel()"
@@ -26,7 +26,7 @@ let suite =
       () => {
         let in_ = open_in(fixture_path);
 
-        [(__content, CharStream.of_channel(in_) |> _read_stream)]
+        [(__content, in_ |> InputStream.of_channel |> _read_stream)]
         |> Assert.(test_many(string));
 
         close_in(in_);

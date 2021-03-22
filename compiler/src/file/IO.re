@@ -6,11 +6,11 @@ open Kore;
 /**
  read a file as a lazy stream of unicode characters
  */
-let read_stream = (path: string): (LazyStream.t(Char.t), unit => unit) =>
+let read_stream = (path: string): (LazyStream.t(Input.t), unit => unit) =>
   open_in(path)
   |> (
     channel => (
-      CharStream.of_channel(channel) |> LazyStream.of_stream,
+      InputStream.of_channel(channel) |> LazyStream.of_stream,
       () => close_in(channel),
     )
   );

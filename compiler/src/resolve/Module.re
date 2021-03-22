@@ -44,7 +44,7 @@ let read = f =>
           }
         )
     )
-  | Raw(s) => CharStream.of_string(s) |> LazyStream.of_stream |> f;
+  | Raw(s) => InputStream.of_string(s) |> LazyStream.of_stream |> f;
 
 let cache = (cache: Cache.t) =>
   fun

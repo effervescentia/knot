@@ -11,8 +11,8 @@ let char =
             x =>
               Print.fmt(
                 "%s@%s",
-                [Char.value(x)] |> String.of_uchars,
-                Char.context(x) |> Cursor.to_string,
+                [x |> Input.value] |> String.of_uchars,
+                x |> Input.context |> Cursor.to_string,
               )
           )
           % Format.pp_print_string(pp),
