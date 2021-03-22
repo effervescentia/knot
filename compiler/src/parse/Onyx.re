@@ -61,27 +61,6 @@ let (>>=) = (x, f, input) =>
 let (>|=) = (x, f) => x >>= (r => f(r) |> return);
 
 /**
- {b block::map}
-
- if parser [x] succeeds, transform the value of the result block with [f]
- */
-let (>==) = (x, f) => x >>= Block.map(f) % return;
-
-/**
- {b block::cast}
-
- use [t] as the type for the result of [x]
- */
-let (<@) = (t, x) => x >|= Block.cast(t);
-
-/**
- {b block::evolve}
-
- use the result of [f] as the type for the result block of [x]
- */
-let (>@=) = (x, f) => x >|= (x' => Block.cast(f(x'), x'));
-
-/**
  {b apply}
 
  if parser [x] succeeds, use the function it returns to map the result of parser [y]
@@ -153,12 +132,12 @@ let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 /* helpers */
 
 /**
- returns the current context
+ returns the current cursor
  */
-let ctx =
+let get_cursor =
   LazyStream.(
     fun
-    | Cons(r, _) as input => Some((Input.context(r), input))
+    | Cons(r, _) as input => Some((Input.cursor(r), input))
     | Nil => None
   );
 

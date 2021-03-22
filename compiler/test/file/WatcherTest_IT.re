@@ -15,23 +15,6 @@ let _setup = () => {
   (parent_dir, path);
 };
 
-let _on_tick = (~ticks=1, callback) => {
-  let timeout = Lwt_timeout.create(ticks, callback);
-
-  Lwt_timeout.start(timeout);
-
-  () => Lwt_timeout.stop(timeout);
-};
-
-let _await_succcess = () =>
-  _on_tick(~ticks=2, () => Assert.fail("test did not finish in time"));
-
-let _wait = () => {
-  let (promise, resolver) = Lwt.wait();
-
-  (promise, Lwt.wakeup(resolver));
-};
-
 let _test_watch = (check, watcher) => {
   Lwt.async(() => {
     watcher
@@ -77,12 +60,13 @@ let suite =
       (_, ()) => {
         let (parent_dir, path) = _setup();
         let watcher = Watcher.create(parent_dir, __extensions);
-        let cancel = _await_succcess();
-        let (promise, resolve) = _wait();
+        let cancel = Async.await_succcess();
+        let (promise, resolve) = Async.wait();
 
         let new_file = Filename.concat(parent_dir, "added.txt");
 
-        _on_tick(() => Util.write_to_file(new_file, "new file")) |> ignore;
+        Async.on_tick(() => Util.write_to_file(new_file, "new file"))
+        |> ignore;
 
         watcher
         |> _test_watch(
@@ -102,10 +86,10 @@ let suite =
       (_, ()) => {
         let (parent_dir, path) = _setup();
         let watcher = Watcher.create(parent_dir, __extensions);
-        let (promise, resolve) = _wait();
-        let cancel = _on_tick(~ticks=2, resolve);
+        let (promise, resolve) = Async.wait();
+        let cancel = Async.on_tick(~ticks=2, resolve);
 
-        _on_tick(() =>
+        Async.on_tick(() =>
           Util.write_to_file(
             Filename.concat(parent_dir, "added.c"),
             "new file",
@@ -131,8 +115,8 @@ let suite =
       (_, ()) => {
         let (parent_dir, path) = _setup();
         let watcher = Watcher.create(parent_dir, __extensions);
-        let (promise, resolve) = _wait();
-        let cancel = _on_tick(~ticks=2, resolve);
+        let (promise, resolve) = Async.wait();
+        let cancel = Async.on_tick(~ticks=2, resolve);
         let renamed_file = Filename.concat(parent_dir, "renamed.txt");
         let end_ = () => {
           cancel();
@@ -141,7 +125,7 @@ let suite =
         let source_reported = ref(false);
         let target_reported = ref(false);
 
-        _on_tick(() => FileUtil.mv(path, renamed_file)) |> ignore;
+        Async.on_tick(() => FileUtil.mv(path, renamed_file)) |> ignore;
 
         watcher
         |> _test_watch(
@@ -161,10 +145,11 @@ let suite =
       (_, ()) => {
         let (parent_dir, path) = _setup();
         let watcher = Watcher.create(parent_dir, __extensions);
-        let (promise, resolve) = _wait();
-        let cancel = _on_tick(~ticks=2, resolve);
+        let (promise, resolve) = Async.wait();
+        let cancel = Async.on_tick(~ticks=2, resolve);
 
-        _on_tick(() => Util.append_to_file(path, "more content")) |> ignore;
+        Async.on_tick(() => Util.append_to_file(path, "more content"))
+        |> ignore;
 
         watcher
         |> _test_watch(
@@ -184,10 +169,11 @@ let suite =
       (_, ()) => {
         let (parent_dir, path) = _setup();
         let watcher = Watcher.create(parent_dir, __extensions);
-        let (promise, resolve) = _wait();
-        let cancel = _on_tick(~ticks=2, resolve);
+        let (promise, resolve) = Async.wait();
+        let cancel = Async.on_tick(~ticks=2, resolve);
 
-        _on_tick(() => FileUtil.rm(~recurse=true, [parent_dir])) |> ignore;
+        Async.on_tick(() => FileUtil.rm(~recurse=true, [parent_dir]))
+        |> ignore;
 
         watcher
         |> _test_watch(

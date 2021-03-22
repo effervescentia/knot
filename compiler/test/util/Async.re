@@ -2,8 +2,6 @@ module Tester = Alcotest_engine.Cli.Make(Alcotest.Unix, Lwt);
 
 include Tester;
 
-let test_case_sync = (n, s, f) => test_case(n, s, x => Lwt.return(f(x)));
-
 let run_test = (fn, args) => {
   let (async_ex, async_waker) = Lwt.wait();
   let handle_exn = ex => {
@@ -19,3 +17,20 @@ let run_test = (fn, args) => {
 };
 
 let test_case = (n, s, f) => test_case(n, s, run_test(f));
+
+let on_tick = (~ticks=1, callback) => {
+  let timeout = Lwt_timeout.create(ticks, callback);
+
+  Lwt_timeout.start(timeout);
+
+  () => Lwt_timeout.stop(timeout);
+};
+
+let await_succcess = () =>
+  on_tick(~ticks=2, () => Assert.fail("test did not finish in time"));
+
+let wait = () => {
+  let (promise, resolver) = Lwt.wait();
+
+  (promise, Lwt.wakeup(resolver));
+};

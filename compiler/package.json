@@ -184,7 +184,8 @@
     },
     "test/integration": {
       "require": [
-        "knot.file_test"
+        "knot.file_test",
+        "knot.exec_test"
       ],
       "main": "TestSuite",
       "name": "IntegrationTests.exe"

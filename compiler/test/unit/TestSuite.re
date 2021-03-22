@@ -3,7 +3,7 @@ open Test.Infix;
 let () =
   "Unit Tests"
   >:::: TestCompile.TestSuite.tests
-  @ TestExecutable.TestSuite.tests
+  @ TestExecutable.TestSuite.unit_tests
   @ TestFile.TestSuite.unit_tests
   @ TestGenerate.TestSuite.tests
   @ TestGrammar.TestSuite.tests

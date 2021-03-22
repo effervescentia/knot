@@ -12,7 +12,7 @@ let char =
               Print.fmt(
                 "%s@%s",
                 [x |> Input.value] |> String.of_uchars,
-                x |> Input.context |> Cursor.to_string,
+                x |> Input.cursor |> Cursor.to_string,
               )
           )
           % Format.pp_print_string(pp),

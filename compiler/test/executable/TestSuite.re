@@ -1,3 +1,5 @@
 open Kore;
 
-let tests = [BuildTest.suite, FormatTest.suite];
+let unit_tests = [BuildTest.suite];
+
+let integration_tests = [FormatTest.suite];

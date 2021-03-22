@@ -3,7 +3,7 @@ open Util;
 
 module JavaScript = Generate.JavaScript;
 
-let _in_block = x => Block.create(Cursor.zero, x);
+let _in_block = x => Block.create(x, Cursor.zero);
 
 let __resolved = "../foo/bar";
 let __program = [

@@ -23,7 +23,7 @@ let terminated = x => x << (Character.semicolon |> lexeme |> optional);
 let between = (l, r, x) =>
   map3(
     (l', x', r') =>
-      Block.create(Cursor.join(Block.cursor(l'), Block.cursor(r')), x'),
+      Block.create(x', Cursor.join(Block.cursor(l'), Block.cursor(r'))),
     l,
     x,
     r,
@@ -42,7 +42,7 @@ let symbol = x => char(x) >|= Input.to_block |> lexeme;
  matches a sequence of characters but tolerates spaces in between
  */
 let glyph = (s: string) =>
-  ctx
+  get_cursor
   >>= (
     start => {
       let rec loop =
@@ -50,8 +50,8 @@ let glyph = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Input.context
-          >|= (end_ => Block.create(Cursor.join(start, end_), ()))
+          >|= Input.cursor
+          >|= (end_ => Block.create((), Cursor.join(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -64,7 +64,7 @@ let glyph = (s: string) =>
  matches a sequence of characters
  */
 let keyword = (s: string) =>
-  ctx
+  get_cursor
   >>= (
     start => {
       let rec loop =
@@ -72,8 +72,8 @@ let keyword = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Input.context
-          >|= (end_ => Block.create(Cursor.join(start, end_), ()))
+          >|= Input.cursor
+          >|= (end_ => Block.create((), Cursor.join(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq);
@@ -101,19 +101,19 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
  */
 let string =
   Character.quote
-  >|= Input.context
+  >|= Input.cursor
   >>= (
     start => {
       let rec loop = f =>
         choice([
           /* end of string sequence */
           Character.quote
-          >|= Input.context
+          >|= Input.cursor
           >|= (
             end_ =>
               Block.create(
-                Cursor.join(start, end_),
                 f([]) |> String.of_uchars,
+                Cursor.join(start, end_),
               )
           ),
           /* capture escaped characters */

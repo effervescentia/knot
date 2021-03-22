@@ -7,5 +7,5 @@
    (name TestSuite)  ;  From package.json main field
    ; The name of the executable (runnable via esy x IntegrationTests.exe) 
    (public_name IntegrationTests.exe)  ;  From package.json name field
-   (libraries  knot.file_test ) ;  From package.json require field (array of strings)
+   (libraries  knot.file_test knot.exec_test ) ;  From package.json require field (array of strings)
 )

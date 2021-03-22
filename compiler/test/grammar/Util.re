@@ -1,8 +1,5 @@
 open Kore;
 
-let to_block = (~type_=?, ~cursor=Cursor.zero) =>
-  Block.create(cursor, ~type_?);
-
 let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
 let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 
