@@ -64,8 +64,7 @@ let suite =
           }",
           [
             "foo" |> of_public |> as_lexeme |> of_id |> as_unknown |> of_expr,
-            ("x" |> of_public |> as_lexeme, false |> bool_prim |> as_bool)
-            |> of_var,
+            ("x" |> of_public |> as_lexeme, false |> bool_prim) |> of_var,
             (1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int |> of_expr,
           ]
           |> of_closure
@@ -77,7 +76,7 @@ let suite =
       () =>
         [
           ("-123", 123 |> int_prim |> of_neg_op |> as_int),
-          ("!true", true |> bool_prim |> as_bool |> of_not_op |> as_bool),
+          ("!true", true |> bool_prim |> of_not_op |> as_bool),
         ]
         |> Assert.parse_many
     ),
@@ -89,15 +88,11 @@ let suite =
              [
                (
                  op |> Print.fmt("true%sfalse"),
-                 (true |> bool_prim |> as_bool, false |> bool_prim |> as_bool)
-                 |> tag
-                 |> as_bool,
+                 (true |> bool_prim, false |> bool_prim) |> tag |> as_bool,
                ),
                (
                  op |> Print.fmt(" true %s false "),
-                 (true |> bool_prim |> as_bool, false |> bool_prim |> as_bool)
-                 |> tag
-                 |> as_bool,
+                 (true |> bool_prim, false |> bool_prim) |> tag |> as_bool,
                ),
              ]
            )

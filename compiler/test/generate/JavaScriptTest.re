@@ -5,14 +5,10 @@ module JavaScript = Generate.JavaScript;
 
 let _in_block = x => Block.create(Cursor.zero, x);
 
-let _bool_prim = of_bool % as_bool % of_prim;
-let _int_prim = Int64.of_int % of_int % of_num % as_int % of_prim;
-
 let __resolved = "../foo/bar";
 let __program = [
   ("foo/bar" |> of_internal, "Foo") |> of_import,
-  ("ABC" |> of_public |> as_lexeme, 123 |> _int_prim |> as_int |> of_const)
-  |> of_decl,
+  ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const) |> of_decl,
 ];
 
 let suite =
@@ -87,18 +83,18 @@ let suite =
 
         [
           ("fooBar", "fooBar" |> of_public |> as_lexeme |> of_id |> print),
-          ("(123)", 123 |> _int_prim |> as_int |> of_group |> print),
+          ("(123)", 123 |> int_prim |> of_group |> print),
           (
             "(function(){
 (123 === 456);
 return (678 + 910);
 })()",
             [
-              (123 |> _int_prim |> as_int, 456 |> _int_prim |> as_int)
+              (123 |> int_prim, 456 |> int_prim)
               |> of_eq_op
               |> as_int
               |> of_expr,
-              (678 |> _int_prim |> as_int, 910 |> _int_prim |> as_int)
+              (678 |> int_prim, 910 |> int_prim)
               |> of_add_op
               |> as_int
               |> of_expr,
@@ -111,10 +107,7 @@ return (678 + 910);
 var foo = 456;
 return null;
 })()",
-            [
-              ("foo" |> of_public |> as_lexeme, 456 |> _int_prim |> as_int)
-              |> of_var,
-            ]
+            [("foo" |> of_public |> as_lexeme, 456 |> int_prim) |> of_var]
             |> of_closure
             |> print,
           ),
@@ -136,13 +129,13 @@ return null;
         [
           (
             "var fooBar = 123;\n",
-            ("fooBar" |> of_public |> as_lexeme, 123 |> _int_prim |> as_int)
+            ("fooBar" |> of_public |> as_lexeme, 123 |> int_prim)
             |> of_var
             |> print,
           ),
           (
             "(123 === 456);\n",
-            (123 |> _int_prim |> as_int, 456 |> _int_prim |> as_int)
+            (123 |> int_prim, 456 |> int_prim)
             |> of_eq_op
             |> as_int
             |> of_expr
@@ -166,107 +159,37 @@ return null;
         [
           (
             "(true && false)",
-            print(
-              LogicalAnd,
-              true |> _bool_prim |> as_bool,
-              false |> _bool_prim |> as_bool,
-            ),
+            print(LogicalAnd, true |> bool_prim, false |> bool_prim),
           ),
           (
             "(true || false)",
-            print(
-              LogicalOr,
-              true |> _bool_prim |> as_bool,
-              false |> _bool_prim |> as_bool,
-            ),
+            print(LogicalOr, true |> bool_prim, false |> bool_prim),
           ),
           (
             "(123 <= 456)",
-            print(
-              LessOrEqual,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
+            print(LessOrEqual, 123 |> int_prim, 456 |> int_prim),
           ),
-          (
-            "(123 < 456)",
-            print(
-              LessThan,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
-          ),
+          ("(123 < 456)", print(LessThan, 123 |> int_prim, 456 |> int_prim)),
           (
             "(123 >= 456)",
-            print(
-              GreaterOrEqual,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
+            print(GreaterOrEqual, 123 |> int_prim, 456 |> int_prim),
           ),
           (
             "(123 > 456)",
-            print(
-              GreaterThan,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
+            print(GreaterThan, 123 |> int_prim, 456 |> int_prim),
           ),
-          (
-            "(123 === 456)",
-            print(
-              Equal,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
-          ),
+          ("(123 === 456)", print(Equal, 123 |> int_prim, 456 |> int_prim)),
           (
             "(123 !== 456)",
-            print(
-              Unequal,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
+            print(Unequal, 123 |> int_prim, 456 |> int_prim),
           ),
-          (
-            "(123 + 456)",
-            print(
-              Add,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
-          ),
-          (
-            "(123 - 456)",
-            print(
-              Subtract,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
-          ),
-          (
-            "(123 * 456)",
-            print(
-              Multiply,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
-          ),
-          (
-            "(123 / 456)",
-            print(
-              Divide,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
-          ),
+          ("(123 + 456)", print(Add, 123 |> int_prim, 456 |> int_prim)),
+          ("(123 - 456)", print(Subtract, 123 |> int_prim, 456 |> int_prim)),
+          ("(123 * 456)", print(Multiply, 123 |> int_prim, 456 |> int_prim)),
+          ("(123 / 456)", print(Divide, 123 |> int_prim, 456 |> int_prim)),
           (
             "Math.pow(123, 456)",
-            print(
-              Exponent,
-              123 |> _int_prim |> as_int,
-              456 |> _int_prim |> as_int,
-            ),
+            print(Exponent, 123 |> int_prim, 456 |> int_prim),
           ),
         ]
         |> Assert.(test_many(string));
@@ -284,9 +207,9 @@ return null;
         };
 
         [
-          ("!true", print(Not, true |> _bool_prim |> as_bool)),
-          ("+123", print(Positive, 123 |> _int_prim |> as_int)),
-          ("-123", print(Negative, 123 |> _int_prim |> as_int)),
+          ("!true", print(Not, true |> bool_prim)),
+          ("+123", print(Positive, 123 |> int_prim)),
+          ("-123", print(Negative, 123 |> int_prim)),
         ]
         |> Assert.(test_many(string));
       }
@@ -377,7 +300,7 @@ return null;
             |> print,
           ),
           ("\"Hello World!\"", "Hello World!" |> of_text |> print),
-          ("123", 123 |> _int_prim |> as_int |> of_inline_expr |> print),
+          ("123", 123 |> int_prim |> of_inline_expr |> print),
         ]
         |> Assert.(test_many(string));
       }
@@ -429,9 +352,7 @@ return null;
               (
                 "foo" |> of_public |> as_lexeme,
                 Some(
-                  (123 |> _int_prim |> as_int, 456 |> _int_prim |> as_int)
-                  |> of_gt_op
-                  |> as_bool,
+                  (123 |> int_prim, 456 |> int_prim) |> of_gt_op |> as_bool,
                 ),
               )
               |> of_jsx_class
@@ -462,10 +383,7 @@ return null;
         [
           (
             "var foo = 123;\n",
-            123
-            |> _int_prim
-            |> as_int
-            |> print("foo" |> of_public |> as_lexeme),
+            123 |> int_prim |> print("foo" |> of_public |> as_lexeme),
           ),
         ]
         |> Assert.(test_many(string));
@@ -493,8 +411,7 @@ return null;
 exports.foo = foo;
 ",
             123
-            |> _int_prim
-            |> as_int
+            |> int_prim
             |> of_const
             |> print(Target.Common, "foo" |> of_public |> as_lexeme),
           ),
@@ -503,8 +420,7 @@ exports.foo = foo;
 export { foo };
 ",
             123
-            |> _int_prim
-            |> as_int
+            |> int_prim
             |> of_const
             |> print(Target.ES6, "foo" |> of_public |> as_lexeme),
           ),

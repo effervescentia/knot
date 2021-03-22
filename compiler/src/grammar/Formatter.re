@@ -142,10 +142,23 @@ and fmt_jsx_attr = attr =>
   |> (
     fun
     | (name, Some((expr, _, _))) =>
-      [name, "=" |> Pretty.string, expr |> fmt_expr] |> Pretty.concat
+      [name, "=" |> Pretty.string, expr |> fmt_jsx_attr_expr] |> Pretty.concat
 
     | (name, None) => name
   )
+
+and fmt_jsx_attr_expr = x =>
+  switch (x) {
+  | Primitive(_)
+  | Identifier(_)
+  | Group(_)
+  | Closure(_)
+  /* show tags or fragments with no children */
+  | JSX((Tag(_, _, []) | Fragment([]), _)) => x |> fmt_expr
+  | _ =>
+    ["(" |> Pretty.string, x |> fmt_expr, ")" |> Pretty.string]
+    |> Pretty.concat
+  }
 
 and fmt_expr =
   fun

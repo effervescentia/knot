@@ -83,14 +83,11 @@ let suite =
         [
           ("nil", nil |> as_nil |> of_prim),
           ("fooBar", "fooBar" |> of_public |> as_lexeme |> of_id),
+          ("(123)", 123 |> int_prim |> of_group),
           (
-            "(123)",
-            123
-            |> Int64.of_int
-            |> of_int
-            |> of_num
-            |> as_int
-            |> of_prim
+            "(123 + 456)",
+            (123 |> int_prim, 456 |> int_prim)
+            |> of_add_op
             |> as_int
             |> of_group,
           ),
@@ -101,23 +98,16 @@ let suite =
   nil;
 }",
             [
-              true |> of_bool |> as_bool |> of_prim |> as_bool |> of_expr,
-              false |> of_bool |> as_bool |> of_prim |> as_bool |> of_expr,
-              nil |> as_nil |> of_prim |> as_nil |> of_expr,
+              true |> bool_prim |> of_expr,
+              false |> bool_prim |> of_expr,
+              nil_prim |> of_expr,
             ]
             |> of_closure,
           ),
-          (
-            "!true",
-            true |> of_bool |> as_bool |> of_prim |> as_bool |> of_not_op,
-          ),
+          ("!true", true |> bool_prim |> of_not_op),
           (
             "true || false",
-            (
-              true |> of_bool |> as_bool |> of_prim |> as_bool,
-              false |> of_bool |> as_bool |> of_prim |> as_bool,
-            )
-            |> of_or_op,
+            (true |> bool_prim, false |> bool_prim) |> of_or_op,
           ),
           (
             "<Foo>
@@ -142,49 +132,6 @@ let suite =
         [
           ("<Foo />", ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag),
           ("<></>", [] |> of_frag),
-          (
-            "<Foo fizz=buzz />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  Some(
-                    "buzz" |> of_public |> as_lexeme |> of_id |> as_unknown,
-                  ),
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag,
-          ),
-          (
-            "<Foo .fizz=true />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  Some(true |> bool_prim |> as_bool),
-                )
-                |> of_jsx_class
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag,
-          ),
-          (
-            "<Foo #bar />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              ["bar" |> of_public |> as_lexeme |> of_jsx_id |> as_lexeme],
-              [],
-            )
-            |> of_tag,
-          ),
           (
             "<Foo #bar .fizz buzz />",
             (
@@ -268,7 +215,7 @@ let suite =
                 |> as_lexeme
                 |> of_node
                 |> as_lexeme,
-                nil_prim |> as_nil |> of_inline_expr |> as_lexeme,
+                nil_prim |> of_inline_expr |> as_lexeme,
                 "Hello, World!" |> of_text |> as_lexeme,
               ],
             )
@@ -276,6 +223,117 @@ let suite =
           ),
         ]
         |> List.map(Tuple.map_snd2(fmt_jsx % Pretty.to_string))
+        |> Assert.(test_many(string))
+    ),
+    "fmt_jsx_attr()"
+    >: (
+      () =>
+        [
+          (
+            "fizz=buzz",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some("buzz" |> of_public |> as_lexeme |> of_id |> as_unknown),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz=123",
+            ("fizz" |> of_public |> as_lexeme, Some(123 |> int_prim))
+            |> of_prop,
+          ),
+          (
+            "fizz=(1 + 2)",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some((1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz=(-1)",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some(1 |> int_prim |> of_neg_op |> as_int),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz=(true)",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some(true |> bool_prim |> of_group |> as_bool),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz={
+  true;
+  false;
+}",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some(
+                [true |> bool_prim |> of_expr, false |> bool_prim |> of_expr]
+                |> of_closure
+                |> as_bool,
+              ),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz=<Buzz />",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some(
+                ("Buzz" |> of_public |> as_lexeme, [], [])
+                |> of_tag
+                |> as_lexeme
+                |> of_jsx
+                |> as_element,
+              ),
+            )
+            |> of_prop,
+          ),
+          (
+            "fizz=(<Buzz>
+  <Foo />
+</Buzz>)",
+            (
+              "fizz" |> of_public |> as_lexeme,
+              Some(
+                (
+                  "Buzz" |> of_public |> as_lexeme,
+                  [],
+                  [
+                    ("Foo" |> of_public |> as_lexeme, [], [])
+                    |> of_tag
+                    |> as_lexeme
+                    |> of_node
+                    |> as_lexeme,
+                  ],
+                )
+                |> of_tag
+                |> as_lexeme
+                |> of_jsx
+                |> as_element,
+              ),
+            )
+            |> of_prop,
+          ),
+          ("buzz", ("buzz" |> of_public |> as_lexeme, None) |> of_prop),
+          (
+            ".fizz=true",
+            ("fizz" |> of_public |> as_lexeme, Some(true |> bool_prim))
+            |> of_jsx_class,
+          ),
+          (
+            ".fizz",
+            ("fizz" |> of_public |> as_lexeme, None) |> of_jsx_class,
+          ),
+          ("#bar", "bar" |> of_public |> as_lexeme |> of_jsx_id),
+        ]
+        |> List.map(Tuple.map_snd2(fmt_jsx_attr % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
     "fmt_stmt()"
@@ -319,10 +377,7 @@ let suite =
 const ABC = 123;
 ",
             [
-              (
-                "DEF" |> of_public |> as_lexeme,
-                true |> bool_prim |> as_bool |> of_const,
-              )
+              ("DEF" |> of_public |> as_lexeme, true |> bool_prim |> of_const)
               |> of_decl,
               ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
               |> of_decl,

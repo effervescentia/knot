@@ -22,16 +22,16 @@ let as_unknown = x => as_typed_lexeme(Type.K_Unknown, x);
 
 let as_invalid = x => as_typed_lexeme(Type.K_Invalid, x);
 
-let nil_prim = AST.nil |> as_nil |> AST.of_prim;
+let nil_prim = AST.nil |> as_nil |> AST.of_prim |> as_nil;
 
-let bool_prim = AST.of_bool % as_bool % AST.of_prim;
+let bool_prim = AST.of_bool % as_bool % AST.of_prim % as_bool;
 
 let int_prim =
   Int64.of_int % AST.of_int % AST.of_num % as_int % AST.of_prim % as_int;
 
-let float_prim = AST.of_float % AST.of_num % as_float % AST.of_prim;
+let float_prim = AST.of_float % AST.of_num % as_float % AST.of_prim % as_float;
 
-let string_prim = AST.of_string % as_string % AST.of_prim;
+let string_prim = AST.of_string % as_string % AST.of_prim % as_string;
 
 let jsx_node = AST.of_tag % as_lexeme % AST.of_node;
 

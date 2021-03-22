@@ -36,10 +36,7 @@ let suite =
       () =>
         Assert.parse(
           "const foo = nil",
-          (
-            "foo" |> of_public |> as_lexeme,
-            Util.nil_prim |> as_nil |> of_const,
-          ),
+          ("foo" |> of_public |> as_lexeme, nil_prim |> of_const),
         )
     ),
   ];

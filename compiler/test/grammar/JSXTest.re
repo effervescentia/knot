@@ -112,7 +112,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  "buzz" |> string_prim |> as_string |> some,
+                  "buzz" |> string_prim |> some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -176,7 +176,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  bool_prim(true) |> as_bool |> of_group |> as_bool |> some,
+                  bool_prim(true) |> of_group |> as_bool |> some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -360,11 +360,7 @@ let suite =
                 ("Bar" |> of_public |> as_lexeme, [], [])
                 |> jsx_node
                 |> as_lexeme,
-                "fizz"
-                |> string_prim
-                |> as_string
-                |> of_inline_expr
-                |> as_lexeme,
+                "fizz" |> string_prim |> of_inline_expr |> as_lexeme,
                 "buzz" |> of_text |> as_lexeme,
               ],
             )

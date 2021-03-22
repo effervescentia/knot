@@ -202,13 +202,10 @@ and jsx_attrs = (print: print_t, attrs: list(jsx_attribute_t)) =>
                        () =>
                          expression(
                            print,
-                           expr
-                           |?: (
-                             (name, Cursor.zero) |> of_id,
-                             Type.K_Unknown,
-                             Cursor.zero,
-                           )
-                           |> Tuple.fst3,
+                           switch (expr) {
+                           | Some((expr, _, _)) => expr
+                           | None => (name, Cursor.zero) |> of_id
+                           },
                          )
                      ),
                    ),
