@@ -45,7 +45,10 @@ let suite =
     "fmt_ns()"
     >: (
       () =>
-        [("@/fooBar", Internal("fooBar")), ("fooBar", External("fooBar"))]
+        [
+          ("\"@/fooBar\"", Internal("fooBar")),
+          ("\"fooBar\"", External("fooBar")),
+        ]
         |> List.map(Tuple.map_snd2(fmt_ns % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
@@ -297,7 +300,7 @@ let suite =
       () =>
         [
           (
-            "const foo = nil;",
+            "const foo = nil;\n",
             (
               "foo" |> of_public |> as_lexeme,
               nil |> as_nil |> of_prim |> as_nil |> of_const,
@@ -307,24 +310,59 @@ let suite =
         |> List.map(Tuple.map_snd2(fmt_decl % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
-    "fmt_mod_stmt()"
+    "fmt_declarations()"
     >: (
       () =>
         [
           (
-            "const foo = nil;\n",
-            (
-              "foo" |> of_public |> as_lexeme,
-              nil |> as_nil |> of_prim |> as_nil |> of_const,
-            )
-            |> of_decl,
-          ),
-          (
-            "import Foo from \"bar\";\n",
-            ("bar" |> of_external, "Foo") |> of_import,
+            "const DEF = true;
+const ABC = 123;
+",
+            [
+              (
+                "DEF" |> of_public |> as_lexeme,
+                true |> bool_prim |> as_bool |> of_const,
+              )
+              |> of_decl,
+              ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
+              |> of_decl,
+            ],
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_mod_stmt % Pretty.to_string))
+        |> List.map(
+             Tuple.map_snd2(
+               fmt_declarations % Pretty.concat % Pretty.to_string,
+             ),
+           )
+        |> Assert.(test_many(string))
+    ),
+    "fmt_imports()"
+    >: (
+      () =>
+        [
+          (
+            "import Foo from \"bar\";
+import Fizz from \"buzz\";
+",
+            [
+              ("buzz" |> of_external, "Fizz") |> of_import,
+              ("bar" |> of_external, "Foo") |> of_import,
+            ],
+          ),
+          (
+            "import Fizz from \"buzz\";
+
+import Foo from \"@/bar\";
+",
+            [
+              ("bar" |> of_internal, "Foo") |> of_import,
+              ("buzz" |> of_external, "Fizz") |> of_import,
+            ],
+          ),
+        ]
+        |> List.map(
+             Tuple.map_snd2(fmt_imports % Pretty.concat % Pretty.to_string),
+           )
         |> Assert.(test_many(string))
     ),
     "format()"
@@ -333,12 +371,25 @@ let suite =
         [
           ("", [] |> Formatter.format),
           (
+            "import Foo from \"bar\";\n",
+            [("bar" |> of_external, "Foo") |> of_import] |> Formatter.format,
+          ),
+          (
+            "const ABC = 123;\n",
+            [
+              ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
+              |> of_decl,
+            ]
+            |> Formatter.format,
+          ),
+          (
             "import Foo from \"bar\";
+
 const ABC = 123;
 ",
             [
               ("bar" |> of_external, "Foo") |> of_import,
-              ("ABC" |> of_public |> as_lexeme, int_prim(123) |> of_const)
+              ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
               |> of_decl,
             ]
             |> Formatter.format,

@@ -2,6 +2,10 @@ open Kore;
 open AST;
 open Type;
 
+let __space = " " |> Pretty.string;
+let __semicolon = ";" |> Pretty.string;
+let __quotation_mark = "\"" |> Pretty.string;
+
 let fmt_type =
   fun
   | K_Nil => "nil"
@@ -49,8 +53,6 @@ let fmt_id =
   )
   % Pretty.string;
 
-let fmt_ns = AST.string_of_namespace % Pretty.string;
-
 let fmt_num =
   (
     fun
@@ -59,12 +61,18 @@ let fmt_num =
   )
   % Pretty.string;
 
+let fmt_string = s =>
+  [__quotation_mark, s |> String.escaped |> Pretty.string, __quotation_mark]
+  |> Pretty.concat;
+
+let fmt_ns = AST.string_of_namespace % fmt_string;
+
 let fmt_prim =
   fun
   | Nil => "nil" |> Pretty.string
   | Boolean(bool) => bool |> string_of_bool |> Pretty.string
   | Number(num) => num |> fmt_num
-  | String(str) => str |> Print.fmt("\"%s\"") |> Pretty.string;
+  | String(str) => str |> fmt_string;
 
 let rec fmt_jsx =
   fun
@@ -77,11 +85,7 @@ let rec fmt_jsx =
         : attrs
           |> List.map(
                fst
-               % (
-                 attr =>
-                   [" " |> Pretty.string, attr |> fmt_jsx_attr]
-                   |> Pretty.concat
-               ),
+               % (attr => [__space, attr |> fmt_jsx_attr] |> Pretty.concat),
              )
           |> Pretty.concat,
       children |> List.is_empty
@@ -152,13 +156,7 @@ and fmt_expr =
     ["(" |> Pretty.string, expr |> fmt_expr, ")" |> Pretty.string]
     |> Pretty.concat
   | BinaryOp(op, (lhs, _, _), (rhs, _, _)) =>
-    [
-      lhs |> fmt_expr,
-      " " |> Pretty.string,
-      op |> fmt_binary_op,
-      " " |> Pretty.string,
-      rhs |> fmt_expr,
-    ]
+    [lhs |> fmt_expr, __space, op |> fmt_binary_op, __space, rhs |> fmt_expr]
     |> Pretty.concat
   | UnaryOp(op, (expr, _, _)) =>
     [op |> fmt_unary_op, expr |> fmt_expr] |> Pretty.concat
@@ -187,37 +185,109 @@ and fmt_stmt = stmt =>
     | Expression((expr, _, _)) => [expr |> fmt_expr]
     }
   )
-  @ [";" |> Pretty.string]
+  @ [__semicolon]
   |> Pretty.concat;
 
 let fmt_decl = (((name, _), decl)) =>
-  switch (decl) {
-  | Constant((expr, _, _)) =>
-    [
-      "const " |> Pretty.string,
-      name |> fmt_id,
-      " = " |> Pretty.string,
-      expr |> fmt_expr,
-      ";" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  };
-
-let fmt_mod_stmt = stmt =>
   (
-    switch (stmt) {
-    | Import(namespace, main) => [
-        "import " |> Pretty.string,
-        main |> Pretty.string,
-        " from \"" |> Pretty.string,
-        namespace |> fmt_ns,
-        "\";" |> Pretty.string,
+    switch (decl) {
+    | Constant((expr, _, _)) => [
+        "const " |> Pretty.string,
+        name |> fmt_id,
+        " = " |> Pretty.string,
+        expr |> fmt_expr,
+        __semicolon,
       ]
-
-    | Declaration(name, decl) => [(name, decl) |> fmt_decl]
     }
   )
   |> Pretty.newline;
 
-let format = (program: program_t): string =>
-  program |> List.map(fmt_mod_stmt) |> Pretty.concat |> Pretty.to_string;
+let fmt_imports = stmts => {
+  let (internal_imports, external_imports) =
+    stmts
+    |> List.filter_map(
+         fun
+         | Import(namespace, main) => Some((namespace, main))
+         | _ => None,
+       )
+    |> List.partition(
+         fun
+         | (Internal(_), _) => true
+         | _ => false,
+       )
+    |> Tuple.map2(
+         List.sort((l, r) =>
+           (l, r)
+           |> Tuple.map2(
+                fst
+                % (
+                  fun
+                  | Internal(name)
+                  | External(name) => name
+                ),
+              )
+           |> Tuple.reduce2(String.compare)
+         )
+         % List.map(((namespace, main)) =>
+             [
+               "import " |> Pretty.string,
+               main |> Pretty.string,
+               " from " |> Pretty.string,
+               namespace |> fmt_ns,
+               __semicolon,
+             ]
+             |> Pretty.newline
+           ),
+       );
+
+  external_imports
+  @ (
+    external_imports |> List.is_empty || internal_imports |> List.is_empty
+      ? [] : [Pretty.Newline]
+  )
+  @ internal_imports;
+};
+
+let fmt_declarations = stmts => {
+  let declarations =
+    stmts
+    |> List.filter_map(
+         fun
+         | Declaration(name, decl) => Some((name, decl))
+         | _ => None,
+       );
+
+  let rec loop = (~acc=[]) =>
+    fun
+    | [] => acc |> List.rev
+    /* do not add newline after the last statement */
+    | [x] => loop(~acc=[x |> fmt_decl, ...acc], [])
+    /* handle constant clustering logic */
+    | [(_, Constant(_)) as x, ...xs] =>
+      switch (xs) {
+      /* no more statements, loop to return */
+      | []
+      /* followed by a constant, do not add newline */
+      | [(_, Constant(_)), ..._] => loop(~acc=[x |> fmt_decl, ...acc], xs)
+      /* followed by other declarations, add a newline */
+      | _ => loop(~acc=[x |> fmt_decl, Pretty.Newline, ...acc], xs)
+      }
+    /* not a constant, add a newline */
+    | [x, ...xs] => loop(~acc=[x |> fmt_decl, Pretty.Newline, ...acc], xs);
+
+  loop(declarations);
+};
+
+let format = (program: program_t): string => {
+  let imports = program |> fmt_imports;
+  let declarations = program |> fmt_declarations;
+
+  imports
+  @ (
+    imports |> List.is_empty || declarations |> List.is_empty
+      ? [] : [Pretty.Newline]
+  )
+  @ declarations
+  |> Pretty.concat
+  |> Pretty.to_string;
+};

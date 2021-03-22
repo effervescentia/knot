@@ -31,3 +31,7 @@ let map_thd3 = (f: 'c => 'd, (x, y, z): ('a, 'b, 'c)): ('a, 'b, 'd) => (
   y,
   f(z),
 );
+
+let reduce2 = (f: ('a, 'b) => 'c, (x, y): ('a, 'b)): 'c => f(x, y);
+let reduce3 = (f: ('a, 'b, 'c) => 'd, (x, y, z): ('a, 'b, 'c)): 'd =>
+  f(x, y, z);
