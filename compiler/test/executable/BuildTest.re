@@ -6,7 +6,7 @@ let __compiler_config =
   Compile.Compiler.{
     name: "foo",
     entry: Internal("main"),
-    root_dir: "test/executable/.fixtures/simple",
+    root_dir: simple_fixture_dir,
     source_dir: ".",
   };
 
@@ -48,7 +48,7 @@ exports.ABC = ABC;
           ~catch=print_errs % Assert.fail,
           {
             ...__compiler_config,
-            root_dir: "test/executable/.fixtures/complex",
+            root_dir: complex_fixture_dir,
             source_dir: "src",
           },
           {target: Target.(JavaScript(Common)), out_dir: temp_dir},

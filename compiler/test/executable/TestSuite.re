@@ -1,3 +1,3 @@
 open Kore;
 
-let tests = [BuildTest.suite];
+let tests = [BuildTest.suite, FormatTest.suite];

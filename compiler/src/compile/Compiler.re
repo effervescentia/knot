@@ -93,8 +93,8 @@ let create = (~catch as throw=throw_all, config: config_t): t => {
  check for import cycles and missing modules
  */
 let validate = (compiler: t) => {
-  compiler.graph |> Validate.no_import_cycles;
-  compiler.graph |> Validate.no_unresolved_modules;
+  compiler.graph |> Validate.no_import_cycles(~catch=compiler.throw);
+  compiler.graph |> Validate.no_unresolved_modules(~catch=compiler.throw);
 };
 
 /**
