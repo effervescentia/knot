@@ -2,6 +2,7 @@
  Types and utilities for a module's Abstract Syntax Tree.
  */
 open Infix;
+open Reference;
 
 type binary_operator_t =
   /* logical operators */
@@ -54,10 +55,7 @@ and _jsx_attribute_t =
   | ID(identifier_t)
   | Class(identifier_t, option(expression_t))
   | Property(identifier_t, option(expression_t))
-and identifier_t = lexeme_t(_identifier_t)
-and _identifier_t =
-  | Private(string)
-  | Public(string)
+and identifier_t = lexeme_t(Identifier.t)
 and expression_t = typed_lexeme_t(_expression_t)
 and _expression_t =
   | Primitive(primitive_t)
@@ -74,20 +72,19 @@ and statement_t =
 type declaration_t =
   | Constant(expression_t);
 
-type namespace_t =
-  | Internal(string)
-  | External(string);
-
 type module_statement_t =
-  | Import(namespace_t, string)
+  | Import(Namespace.t, string)
   | Declaration(identifier_t, declaration_t);
 
 type program_t = list(module_statement_t);
 
 /* tag helpers */
 
-let of_internal = namespace => Internal(namespace);
-let of_external = namespace => External(namespace);
+let of_internal = namespace => Namespace.Internal(namespace);
+let of_external = namespace => Namespace.External(namespace);
+
+let of_public = name => Identifier.Public(name);
+let of_private = name => Identifier.Private(name);
 
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
@@ -130,9 +127,6 @@ let of_text = x => Text(x);
 let of_node = x => Node(x);
 let of_inline_expr = x => InlineExpression(x);
 
-let of_public = x => Public(x);
-let of_private = x => Private(x);
-
 let of_prim = x => Primitive(x);
 let of_bool = x => Boolean(x);
 let of_int = x => Integer(x);
@@ -140,10 +134,3 @@ let of_float = ((x, precision)) => Float(x, precision);
 let of_string = x => String(x);
 let of_num = x => Number(x);
 let nil = Nil;
-
-/* printing utils */
-
-let string_of_namespace =
-  fun
-  | Internal(path) => Constants.root_dir ++ path
-  | External(path) => path;

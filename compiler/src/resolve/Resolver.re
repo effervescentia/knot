@@ -25,7 +25,7 @@ let create = (cache: Cache.t, root_dir: string, source_dir: string): t => {
  find a file either in the cache or source directories
  */
 let resolve_module =
-    (~skip_cache=false, id: AST.namespace_t, resolver: t): Module.t =>
+    (~skip_cache=false, id: Reference.Namespace.t, resolver: t): Module.t =>
   switch (id, skip_cache) {
   /* resolve from cache if not skipping cache */
   | (Internal(name), false) =>

@@ -9,14 +9,8 @@ let parser =
       Keyword.from
       >> M.string
       >|= Block.value
-      >|= (
-        id => (
-          String.starts_with(Constants.root_dir, id)
-            ? AST.of_internal(String.drop_prefix(Constants.root_dir, id))
-            : AST.of_external(id),
-          name,
-        )
-      )
+      >|= Reference.Namespace.of_string
+      >|= (id => (id, name))
       >|= AST.of_import
   )
   |> M.terminated;

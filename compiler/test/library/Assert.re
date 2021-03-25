@@ -45,7 +45,7 @@ let graph =
 let check_namespace =
   Alcotest.(
     testable(
-      pp => AST.string_of_namespace % Format.pp_print_string(pp),
+      pp => Reference.Namespace.to_string % Format.pp_print_string(pp),
       (==),
     )
   );

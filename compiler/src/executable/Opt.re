@@ -200,7 +200,7 @@ module Shared = {
 
       Compiler.{
         name: Filename.basename(root_dir),
-        entry: Internal(""),
+        entry: Internal("main"),
         root_dir,
         source_dir,
       };

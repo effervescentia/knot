@@ -2,7 +2,7 @@ open Error;
 open Infix;
 
 /**
- container for working on fragments of an AST
+ container for working on fragments of an source document
  */
 type t('a) = ('a, Cursor.t);
 

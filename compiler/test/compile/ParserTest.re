@@ -45,13 +45,13 @@ let suite =
                 ("ABC" |> of_public, Cursor.range((4, 9), (4, 11))),
                 (
                   123 |> Int64.of_int |> of_int |> of_num,
-                  Type.K_Integer,
+                  Type.K_Strong(K_Integer),
                   Cursor.range((4, 15), (4, 17)),
                 )
                 |> of_prim
                 |> as_typed_lexeme(
                      ~cursor=Cursor.range((4, 15), (4, 17)),
-                     Type.K_Integer,
+                     Type.K_Strong(K_Integer),
                    )
                 |> of_const,
               )),

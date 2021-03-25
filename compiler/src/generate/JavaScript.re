@@ -3,6 +3,7 @@
  */
 open Kore;
 open AST;
+open Reference;
 
 let _print_many = (printer, print) => {
   let rec loop =
@@ -25,7 +26,7 @@ let number =
 let string = String.escaped % Print.fmt("\"%s\"");
 
 let common_import =
-    ({print, resolve}: output_t, name: namespace_t, main: string) =>
+    ({print, resolve}: output_t, name: Namespace.t, main: string) =>
   name
   |> resolve
   |> string
@@ -36,7 +37,7 @@ let common_export = (print: print_t, name: string) =>
   Print.fmt("exports.%s = %s;\n", name, name) |> print;
 
 let es6_import =
-    ({print, resolve}: output_t, name: namespace_t, main: string) =>
+    ({print, resolve}: output_t, name: Namespace.t, main: string) =>
   name
   |> resolve
   |> string
@@ -53,10 +54,7 @@ let primitive = (print: print_t) =>
   | String(value) => value |> string |> print
   | Nil => print("null");
 
-let identifier =
-  fun
-  | Public(name) => name
-  | Private(name) => Constants.private_prefix ++ name;
+let identifier = Identifier.to_string;
 
 let rec expression = (print: print_t) =>
   fun

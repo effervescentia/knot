@@ -39,7 +39,7 @@ let run = (cfg: Compiler.config_t, cmd: config_t) => {
        watch(actions =>
          actions
          |> List.map(((path, action)) => {
-              let id = Internal(path);
+              let id = Reference.Namespace.Internal(path);
               switch (action) {
               | Add => compiler |> Compiler.add_module(id)
               | Update => compiler |> Compiler.update_module(id) |> snd

@@ -1,25 +1,19 @@
 open Kore;
 
-let constant =
+let constant = (scope: Scope.t) =>
   Keyword.const
   >> Operator.assign(
        M.identifier
-       >|= (
-         id => {
-           let value = id |> Block.value;
-
-           (
-             String.starts_with(Constants.private_prefix, value)
-               ? value
-                 |> String.drop_prefix(Constants.private_prefix)
-                 |> AST.of_private
-               : AST.of_public(value),
-             id |> Block.cursor,
-           );
-         }
-       ),
-       Expression.parser >|= AST.of_const,
+       >|= Tuple.split2(
+             Block.value % Reference.Identifier.of_string,
+             Block.cursor,
+           ),
+       Expression.parser(scope) >|= AST.of_const,
      )
+  >@= (
+    (((id, _), decl)) =>
+      scope |> Scope.define(id, decl |> TypeOf.declaration)
+  )
   |> M.terminated;
 
-let parser = choice([constant]) >|= AST.of_decl;
+let parser = (scope: Scope.t) => choice([constant(scope)]) >|= AST.of_decl;

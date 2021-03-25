@@ -7,7 +7,7 @@ module Assert =
   Assert.Make({
     type t = AST.primitive_t;
 
-    let parser = Parser.parse(Primitive.string);
+    let parser = _ => Parser.parse(Primitive.string);
 
     let test =
       Alcotest.(

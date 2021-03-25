@@ -15,7 +15,7 @@ let __program = [
       |> of_num
       |> as_typed_lexeme(
            ~cursor=Cursor.range((4, 15), (4, 17)),
-           Type.K_Integer,
+           Type.K_Strong(K_Integer),
          )
       |> of_prim
       |> as_int

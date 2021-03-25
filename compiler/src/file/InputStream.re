@@ -9,9 +9,9 @@ let _to_stream = (cursor, decoder) => {
   let next = _ =>
     switch (Uutf.decode(decoder)) {
     | `Uchar(uchar) =>
-      Some(Input.create(uchar, {cursor: _to_cursor(cursor, decoder)}))
+      Some(Input.create(uchar, _to_cursor(cursor, decoder)))
     | `Malformed(uchar) =>
-      Some(Input.create(Uutf.u_rep, {cursor: _to_cursor(cursor, decoder)}))
+      Some(Input.create(Uutf.u_rep, _to_cursor(cursor, decoder)))
     | `End => None
     | `Await => assert(false)
     };

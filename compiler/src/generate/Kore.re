@@ -5,7 +5,7 @@ type print_t = string => unit;
 
 type output_t = {
   print: string => unit,
-  resolve: namespace_t => string,
+  resolve: Reference.Namespace.t => string,
 };
 
 module Target = {

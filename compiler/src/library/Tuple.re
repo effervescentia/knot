@@ -35,3 +35,13 @@ let map_thd3 = (f: 'c => 'd, (x, y, z): ('a, 'b, 'c)): ('a, 'b, 'd) => (
 let reduce2 = (f: ('a, 'b) => 'c, (x, y): ('a, 'b)): 'c => f(x, y);
 let reduce3 = (f: ('a, 'b, 'c) => 'd, (x, y, z): ('a, 'b, 'c)): 'd =>
   f(x, y, z);
+
+let split2 = (f0: 'a => 'b, f1: 'a => 'c, x: 'a): ('b, 'c) => (
+  f0(x),
+  f1(x),
+);
+let split3 = (f0: 'a => 'b, f1: 'a => 'c, f2: 'a => 'd, x: 'a): ('b, 'c, 'd) => (
+  f0(x),
+  f1(x),
+  f2(x),
+);

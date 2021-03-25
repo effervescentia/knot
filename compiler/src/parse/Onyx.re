@@ -61,6 +61,20 @@ let (>>=) = (x, f, input) =>
 let (>|=) = (x, f) => x >>= (r => f(r) |> return);
 
 /**
+ {b produce_effect}
+
+ if parser [x] succeeds, execute effect [f]
+ */
+let (>@=) = (x, f) =>
+  x
+  >>= (
+    r => {
+      f(r);
+      return(r);
+    }
+  );
+
+/**
  {b apply}
 
  if parser [x] succeeds, use the function it returns to map the result of parser [y]

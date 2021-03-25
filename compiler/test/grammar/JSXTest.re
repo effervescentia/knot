@@ -9,7 +9,8 @@ module Assert =
   Assert.Make({
     type t = jsx_t;
 
-    let parser = JSX.parser(Expression.parser) |> Parser.parse;
+    let parser = scope =>
+      JSX.parser(scope, Expression.parser) |> Parser.parse;
 
     let test =
       Alcotest.(
@@ -90,12 +91,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  "buzz"
-                  |> of_public
-                  |> as_lexeme
-                  |> of_id
-                  |> as_unknown
-                  |> some,
+                  "buzz" |> of_public |> as_lexeme |> of_id |> as_bool |> some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -134,11 +130,11 @@ let suite =
                     |> of_public
                     |> as_lexeme
                     |> of_id
-                    |> as_unknown
+                    |> as_bool
                     |> of_expr,
                   ]
                   |> of_closure
-                  |> as_unknown
+                  |> as_bool
                   |> some,
                 )
                 |> of_prop
@@ -262,7 +258,13 @@ let suite =
             |> as_lexeme,
           ),
         ]
-        |> Assert.parse_many
+        |> Assert.parse_many(
+             ~scope=
+               to_scope([
+                 ("fizz", K_Strong(K_Integer)),
+                 ("buzz", K_Strong(K_Boolean)),
+               ]),
+           )
     ),
     "parse single child"
     >: (
@@ -374,9 +376,7 @@ let suite =
               [
                 (
                   "bar" |> of_public |> as_lexeme,
-                  Some(
-                    "fizz" |> of_public |> as_lexeme |> of_id |> as_unknown,
-                  ),
+                  Some("fizz" |> of_public |> as_lexeme |> of_id |> as_bool),
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -390,6 +390,8 @@ let suite =
             |> as_lexeme,
           ),
         ]
-        |> Assert.parse_many
+        |> Assert.parse_many(
+             ~scope=to_scope([("fizz", K_Strong(K_Boolean))]),
+           )
     ),
   ];

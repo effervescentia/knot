@@ -1,6 +1,7 @@
 open Kore;
 open AST;
 open Util;
+open Reference;
 
 module Formatter = Grammar.Formatter;
 
@@ -36,16 +37,16 @@ let suite =
         |> Assert.(test_many(string))
     ),
     "fmt_id()"
-    >: (
-      () =>
-        [("fooBar", Public("fooBar")), ("_fooBar", Private("fooBar"))]
-        |> List.map(Tuple.map_snd2(fmt_id % Pretty.to_string))
-        |> Assert.(test_many(string))
-    ),
+    >: Identifier.(
+         () =>
+           [("fooBar", Public("fooBar")), ("_fooBar", Private("fooBar"))]
+           |> List.map(Tuple.map_snd2(fmt_id % Pretty.to_string))
+           |> Assert.(test_many(string))
+       ),
     "fmt_ns()"
     >: (
       () =>
-        [
+        Namespace.[
           ("\"@/fooBar\"", Internal("fooBar")),
           ("\"fooBar\"", External("fooBar")),
         ]

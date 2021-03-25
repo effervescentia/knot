@@ -7,7 +7,7 @@ module Program = Grammar.Program;
 module Target = {
   type t = program_t;
 
-  let parser = Parser.parse(Program.main);
+  let parser = scope => Parser.parse(Program.main(~scope));
 
   let test =
     Alcotest.(
@@ -30,7 +30,7 @@ module AssertImports =
   Assert.Make({
     include Target;
 
-    let parser = Parser.parse(Program.imports);
+    let parser = scope => Parser.parse(Program.imports(~scope));
   });
 module Assert = Assert.Make(Target);
 
@@ -48,8 +48,25 @@ let suite =
     "parse import"
     >: (() => Assert.parse(__main_import, [__main_import_ast])),
     "parse declaration"
-    >: (() => Assert.parse(__const_decl, [__const_decl_ast])),
-    "parse multiple"
+    >: (
+      () =>
+        [
+          (__const_decl, [__const_decl_ast]),
+          (
+            __const_decl ++ "; const bar = foo",
+            [
+              __const_decl_ast,
+              (
+                "bar" |> of_public |> as_lexeme,
+                "foo" |> of_public |> as_lexeme |> of_id |> as_nil |> of_const,
+              )
+              |> of_decl,
+            ],
+          ),
+        ]
+        |> Assert.parse_many
+    ),
+    "parse import and declaration"
     >: (
       () =>
         Assert.parse(

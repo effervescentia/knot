@@ -1,15 +1,19 @@
 open Kore;
 
-let variable = expr =>
+let variable = (scope: Scope.t, expr) =>
   Keyword.let_
   >> Operator.assign(
        M.identifier
-       >|= (id => (id |> Block.value |> AST.of_public, id |> Block.cursor)),
-       expr,
+       >|= Tuple.split2(
+             Block.value % Reference.Identifier.of_string,
+             Block.cursor,
+           ),
+       expr(scope),
      )
+  >@= ((((id, _), (_, t, _))) => scope |> Scope.define(id, t))
   >|= AST.of_var;
 
-let expression = expr => expr >|= AST.of_expr;
+let expression = (scope: Scope.t, expr) => expr(scope) >|= AST.of_expr;
 
-let parser = expr =>
-  choice([variable(expr), expression(expr)]) |> M.terminated;
+let parser = (scope: Scope.t, expr) =>
+  choice([variable(scope, expr), expression(scope, expr)]) |> M.terminated;

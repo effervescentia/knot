@@ -2,10 +2,10 @@ open Kore;
 
 module ImportGraph = Resolve.ImportGraph;
 
-let __foo_id = AST.Internal("foo");
-let __bar_id = AST.External("bar");
-let __fizz_id = AST.Internal("fizz");
-let __buzz_id = AST.External("buzz");
+let __foo_id = Reference.Namespace.Internal("foo");
+let __bar_id = Reference.Namespace.External("bar");
+let __fizz_id = Reference.Namespace.Internal("fizz");
+let __buzz_id = Reference.Namespace.External("buzz");
 
 let _setup = get_imports => {
   let import_graph = ImportGraph.create(get_imports);

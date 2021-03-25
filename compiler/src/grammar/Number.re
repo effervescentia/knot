@@ -6,7 +6,7 @@ let integer =
   >|= (
     block => (
       block |> Block.value |> Int64.of_string |> AST.of_int,
-      Type.K_Integer,
+      Type.K_Strong(K_Integer),
       block |> Block.cursor,
     )
   )
@@ -35,7 +35,7 @@ let float =
           ));
         };
       },
-      Type.K_Float,
+      Type.K_Strong(K_Float),
       Cursor.join(x |> Block.cursor, y |> Block.cursor),
     )
   )

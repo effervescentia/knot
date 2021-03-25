@@ -7,7 +7,7 @@ module Assert =
   Assert.Make({
     type t = (AST.number_t, Type.t, Cursor.t);
 
-    let parser = Parser.parse(Number.parser);
+    let parser = _ => Parser.parse(Number.parser);
 
     let test =
       Alcotest.(

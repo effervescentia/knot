@@ -1,21 +1,14 @@
 open Kore;
 open AST;
 open Type;
+open Reference;
 
 let __space = " " |> Pretty.string;
 let __semicolon = ";" |> Pretty.string;
 let __quotation_mark = "\"" |> Pretty.string;
 
-let fmt_type =
-  fun
-  | K_Nil => "nil"
-  | K_Boolean => "bool"
-  | K_Integer => "int"
-  | K_Float => "float"
-  | K_String => "string"
-  | K_Element => "element"
-  | K_Invalid => "invalid"
-  | K_Unknown => "unknown";
+let fmt_anon_id = id =>
+  "'" ++ String.make(1, char_of_int(97 + id)) |> Pretty.string;
 
 let fmt_binary_op =
   (
@@ -45,13 +38,7 @@ let fmt_unary_op =
   )
   % Pretty.string;
 
-let fmt_id =
-  (
-    fun
-    | Public(name) => name
-    | Private(name) => Constants.private_prefix ++ name
-  )
-  % Pretty.string;
+let fmt_id = Identifier.to_string % Pretty.string;
 
 let fmt_num =
   (
@@ -65,7 +52,7 @@ let fmt_string = s =>
   [__quotation_mark, s |> String.escaped |> Pretty.string, __quotation_mark]
   |> Pretty.concat;
 
-let fmt_ns = AST.string_of_namespace % fmt_string;
+let fmt_ns = Namespace.to_string % fmt_string;
 
 let fmt_prim =
   fun
@@ -231,20 +218,22 @@ let fmt_imports = stmts => {
          | _ => None,
        )
     |> List.partition(
-         fun
-         | (Internal(_), _) => true
-         | _ => false,
+         Namespace.(
+           fun
+           | (Internal(_), _) => true
+           | _ => false
+         ),
        )
     |> Tuple.map2(
          List.sort((l, r) =>
            (l, r)
            |> Tuple.map2(
                 fst
-                % (
-                  fun
-                  | Internal(name)
-                  | External(name) => name
-                ),
+                % Namespace.(
+                    fun
+                    | Internal(name)
+                    | External(name) => name
+                  ),
               )
            |> Tuple.reduce2(String.compare)
          )

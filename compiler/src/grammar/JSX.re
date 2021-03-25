@@ -14,10 +14,10 @@ module Fragment = {
   let close = M.glyph(C.Glyph.close_fragment);
 };
 
-let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
+let _attribute = (~prefix=M.alpha <|> Character.underscore, scope, x) =>
   Operator.assign(
-    M.identifier(~prefix) >|= (id => (id |> Block.value, id |> Block.cursor)),
-    x,
+    M.identifier(~prefix) >|= Tuple.split2(Block.value, Block.cursor),
+    x(scope),
   )
   >|= (
     ((name, value)) => (
@@ -30,7 +30,7 @@ let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
     M.identifier(~prefix)
     >|= (
       id => (
-        (id |> Block.value, id |> Block.cursor),
+        id |> Tuple.split2(Block.value, Block.cursor),
         None,
         id |> Block.cursor,
       )
@@ -40,24 +40,24 @@ let _attribute = (~prefix=M.alpha <|> Character.underscore, x) =>
 let _self_closing =
   Tag.self_close >|= Block.cursor >|= (end_cursor => ([], end_cursor));
 
-let rec parser = (x, input) =>
-  (choice([fragment(x), tag(x)]) |> M.lexeme)(input)
-and fragment = x =>
-  children(x)
+let rec parser = (scope: Scope.t, x, input) =>
+  (choice([fragment(scope, x), tag(scope, x)]) |> M.lexeme)(input)
+and fragment = (scope: Scope.t, x) =>
+  children(scope, x)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= (block => (block |> Block.value |> of_frag, block |> Block.cursor))
-and tag = x =>
+  >|= Tuple.split2(Block.value % of_frag, Block.cursor)
+and tag = (scope: Scope.t, x) =>
   Tag.open_
   >> M.identifier
   >>= (
     id =>
-      attributes(x)
+      attributes(scope, x)
       >>= (
         attrs =>
           _self_closing
           <|> (
             Tag.close
-            >> children(x)
+            >> children(scope, x)
             >>= (
               cs =>
                 id
@@ -71,7 +71,11 @@ and tag = x =>
           >|= (
             ((cs, end_cursor)) => (
               (
-                (id |> Block.value |> of_public, id |> Block.cursor),
+                id
+                |> Tuple.split2(
+                     Block.value % Reference.Identifier.of_string,
+                     Block.cursor,
+                   ),
                 attrs,
                 cs,
               )
@@ -81,16 +85,16 @@ and tag = x =>
           )
       )
   )
-and attributes = x =>
+and attributes = (scope: Scope.t, x) =>
   choice([
-    _attribute(x)
+    _attribute(scope, x)
     >|= (
       ((name, value, cursor)) => (
         (name |> Tuple.map_fst2(of_public), value) |> of_prop,
         cursor,
       )
     ),
-    _attribute(~prefix=Character.period, x)
+    _attribute(~prefix=Character.period, scope, x)
     >|= (
       ((name, value, cursor)) => (
         (name |> Tuple.map_fst2(String.drop_left(1) % of_public), value)
@@ -99,21 +103,21 @@ and attributes = x =>
       )
     ),
     M.identifier(~prefix=Character.octothorp)
-    >|= (
-      id => (
-        (
-          id |> Block.value |> String.drop_left(1) |> of_public,
-          id |> Block.cursor,
-        )
-        |> of_jsx_id,
-        id |> Block.cursor,
-      )
-    ),
+    >|= Tuple.split2(
+          Tuple.split2(
+            Block.value % String.drop_left(1) % of_public,
+            Block.cursor,
+          )
+          % of_jsx_id,
+          Block.cursor,
+        ),
   ])
   |> many
-and children = x =>
-  choice([node(x), inline_expr(x), text(x)]) |> M.lexeme |> many
-and text = x =>
+and children = (scope: Scope.t, x) =>
+  choice([node(scope, x), inline_expr(scope, x), text(scope, x)])
+  |> M.lexeme
+  |> many
+and text = (scope: Scope.t, x) =>
   none_of([C.Character.open_brace, C.Character.open_chevron])
   <~> (
     none_of([
@@ -124,17 +128,10 @@ and text = x =>
     |> many
   )
   >|= Input.join
-  >|= (
-    block => (
-      block |> Block.value |> String.trim |> of_text,
-      block |> Block.cursor,
-    )
-  )
-and node = x =>
-  parser(x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
-and inline_expr = x =>
-  x
+  >|= Tuple.split2(Block.value % String.trim % of_text, Block.cursor)
+and node = (scope: Scope.t, x) =>
+  parser(scope, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
+and inline_expr = (scope: Scope.t, x) =>
+  x(scope)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= (
-    block => (block |> Block.value |> of_inline_expr, block |> Block.cursor)
-  );
+  >|= Tuple.split2(Block.value % of_inline_expr, Block.cursor);

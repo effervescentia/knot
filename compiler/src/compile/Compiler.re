@@ -1,8 +1,9 @@
 open Kore;
+open Reference;
 
 type config_t = {
   name: string,
-  entry: namespace_t,
+  entry: Namespace.t,
   root_dir: string,
   source_dir: string,
 };
@@ -21,24 +22,24 @@ type t = {
 
 let __module_table_size = 64;
 
-let _resolve = (~skip_cache=false, compiler: t, id: namespace_t) =>
+let _resolve = (~skip_cache=false, compiler, id) =>
   Resolver.resolve_module(~skip_cache, id, compiler.resolver);
 
-let _add_to_cache = (id: namespace_t, compiler: t) =>
+let _add_to_cache = (id, compiler) =>
   _resolve(~skip_cache=true, compiler, id)
   |> Module.cache(compiler.resolver.cache);
 
-let _get_exports = (ast: AST.program_t) =>
+let _get_exports = ast =>
   ast
   |> List.filter_map(
        fun
        | AST.Declaration((Private(_), _), _) => None
-       | AST.Declaration((Public(name), _), _) =>
-         Some((name, Type.K_Unknown))
+       | AST.Declaration((Public(name), _), decl) =>
+         Some((name, decl |> TypeOf.declaration))
        | _ => None,
      );
 
-let _report_errors = (compiler: t) =>
+let _report_errors = compiler =>
   if (List.length(compiler.errors^) != 0) {
     let errors = compiler.errors^;
 
@@ -51,11 +52,11 @@ let _add_errors =
   errors_ref := errors @ errors_ref^;
 };
 
-let _print_import_graph = (compiler: t) =>
+let _print_import_graph = compiler =>
   ImportGraph.to_string(compiler.graph)
   |> Log.debug("\n\n--- import graph ---\n\n%s");
 
-let _print_modules = (compiler: t) =>
+let _print_modules = compiler =>
   ModuleTable.to_string(compiler.modules)
   |> Log.debug("\n\n--- modules ---\n\n%s");
 
@@ -101,7 +102,7 @@ let validate = (compiler: t) => {
  parse modules and add to table
  */
 let process =
-    (ids: list(namespace_t), resolve: namespace_t => Module.t, compiler: t) => {
+    (ids: list(Namespace.t), resolve: Namespace.t => Module.t, compiler: t) => {
   ids
   |> List.iter(id =>
        try(
@@ -143,7 +144,7 @@ let init = (~skip_cache=false, compiler: t) => {
 /**
  re-evaluate a subset of the import graph
  */
-let incremental = (ids: list(namespace_t), compiler: t) => {
+let incremental = (ids: list(Namespace.t), compiler: t) => {
   compiler |> validate;
   compiler |> process(ids, _resolve(~skip_cache=true, compiler));
 
@@ -155,41 +156,42 @@ let incremental = (ids: list(namespace_t), compiler: t) => {
 /**
  use the ASTs of parsed modules to generate files in the target format
  */
-let emit_output = (target: Target.t, output_dir: string, compiler: t) => {
+let emit_output = (target: Target.t, output_dir: string, compiler: t) =>
   compiler.modules
   |> Hashtbl.iter(
-       fun
-       | Internal(name) =>
-         Filename.concat(output_dir, name ++ Target.extension_of(target))
-         |> (
-           path => {
-             let parent_dir = Filename.dirname(path);
+       Namespace.(
+         fun
+         | Internal(name) =>
+           Filename.concat(output_dir, name ++ Target.extension_of(target))
+           |> (
+             path => {
+               let parent_dir = Filename.dirname(path);
 
-             parent_dir |> FileUtil.mkdir(~parent=true);
+               parent_dir |> FileUtil.mkdir(~parent=true);
 
-             let out = open_out(path);
+               let out = open_out(path);
 
-             (ModuleTable.{ast}) => {
-               Generator.generate(
-                 target,
-                 {
-                   print: Printf.fprintf(out, "%s"),
-                   resolve:
-                     fun
-                     | Internal(path) =>
-                       Filename.concat(output_dir, path)
-                       |> Filename.relative_to(parent_dir)
-                     | External(_) => raise(NotImplemented),
-                 },
-                 ast,
-               );
-               close_out(out);
-             };
-           }
-         )
-       | External(_) => raise(NotImplemented),
+               (ModuleTable.{ast}) => {
+                 Generator.generate(
+                   target,
+                   {
+                     print: Printf.fprintf(out, "%s"),
+                     resolve:
+                       fun
+                       | Internal(path) =>
+                         Filename.concat(output_dir, path)
+                         |> Filename.relative_to(parent_dir)
+                       | External(_) => raise(NotImplemented),
+                   },
+                   ast,
+                 );
+                 close_out(out);
+               };
+             }
+           )
+         | External(_) => raise(NotImplemented)
+       ),
      );
-};
 
 /**
  compile the entire program to the target
@@ -210,7 +212,7 @@ let compile = (target: Target.t, output_dir: string, compiler: t) => {
 /**
  add a new module (and its import graph) to a compiler
  */
-let add_module = (id: namespace_t, compiler: t) =>
+let add_module = (id: Namespace.t, compiler: t) =>
   compiler.graph |> ImportGraph.add_module(id);
 
 /**
@@ -218,7 +220,7 @@ let add_module = (id: namespace_t, compiler: t) =>
 
  all imports will be recalculated
  */
-let update_module = (id: namespace_t, compiler: t) => {
+let update_module = (id: Namespace.t, compiler: t) => {
   let (removed, _) as result =
     compiler.graph |> ImportGraph.refresh_subtree(id);
 
@@ -233,7 +235,7 @@ let update_module = (id: namespace_t, compiler: t) => {
  any modules which are only imported by the removed module
  will also be removed
  */
-let remove_module = (id: namespace_t, compiler: t) => {
+let remove_module = (id: Namespace.t, compiler: t) => {
   let removed = compiler.graph |> ImportGraph.prune_subtree(id);
 
   removed |> List.iter(id => compiler.modules |> ModuleTable.remove(id));
@@ -244,7 +246,7 @@ let remove_module = (id: namespace_t, compiler: t) => {
 /**
  move a module to a new location
  */
-let relocate_module = (id: namespace_t, compiler: t) =>
+let relocate_module = (id: Namespace.t, compiler: t) =>
   _resolve(~skip_cache=true, compiler, id) |> Module.exists
     ? update_module(id, compiler)
     : remove_module(id, compiler) |> (removed => (removed, []));

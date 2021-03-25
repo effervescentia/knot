@@ -5,17 +5,17 @@ include Test.Assert;
 module type ParseTarget = {
   include Test.Assert.Target;
 
-  let parser: Grammar.Program.input_t => option(t);
+  let parser: (Scope.t, Grammar.Program.input_t) => option(t);
 };
 
 module Make = (T: ParseTarget) => {
-  let parse = (~cursor=false, source, result) =>
+  let parse = (~scope=Scope.create(), ~cursor=false, source, expected) =>
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
-    |> T.parser
+    |> T.parser(scope)
     |> (
       fun
-      | Some(r) => T.test(r, result)
+      | Some(actual) => T.test(expected, actual)
       | None =>
         source
         |> Print.fmt("failed to parse input: '%s'")
@@ -23,16 +23,17 @@ module Make = (T: ParseTarget) => {
         |> ignore
     );
 
-  let parse_many = (~cursor=false) =>
-    List.iter(((i, o)) => parse(~cursor, i, o));
+  let parse_many = (~scope=Scope.create(), ~cursor=false) =>
+    List.iter(((i, o)) => parse(~scope, ~cursor, i, o));
 
-  let parse_all = (~cursor=false, o) => List.iter(i => parse(~cursor, i, o));
+  let parse_all = (~scope=Scope.create(), ~cursor=false, o) =>
+    List.iter(i => parse(~scope, ~cursor, i, o));
 
-  let no_parse = (~cursor=false) =>
+  let no_parse = (~scope=Scope.create(), ~cursor=false) =>
     List.iter(source =>
       InputStream.of_string(~cursor, source)
       |> LazyStream.of_stream
-      |> T.parser
+      |> T.parser(scope)
       |> (
         fun
         | Some(r) =>

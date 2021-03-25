@@ -8,7 +8,7 @@ module Assert =
   Assert.Make({
     type t = (identifier_t, declaration_t);
 
-    let parser = Parser.parse(Declaration.constant);
+    let parser = scope => Parser.parse(Declaration.constant(scope));
 
     let test =
       Alcotest.(

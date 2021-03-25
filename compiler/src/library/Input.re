@@ -2,18 +2,16 @@
  container for a single unicode character and the cursor for its location
  in a source document
  */
-type t = (Uchar.t, context_t)
-and context_t = {cursor: Cursor.t};
+type t = (Uchar.t, Cursor.t);
 
 /* static */
 
-let create = (v: Uchar.t, c: context_t) => (v, c);
+let create = (v: Uchar.t, c: Cursor.t) => (v, c);
 
 /* getters */
 
 let value = (x: t) => fst(x);
-let context = (x: t) => snd(x);
-let cursor = (x: t) => context(x).cursor;
+let cursor = (x: t) => snd(x);
 
 /* methods */
 
