@@ -71,7 +71,9 @@ let greater_than =
 
 let _symmetrical =
   fun
-  | (l, r) when l == r => l
+  | (K_Strong(K_Integer | K_Float), K_Strong(K_Integer | K_Float)) =>
+    K_Strong(K_Boolean)
+  | (l, r) when l == r => K_Strong(K_Boolean)
   | (l, r) => K_Invalid(TypeMismatch(l, r));
 let equality = of_eq_op |> _binary_op(_symmetrical) <$ Glyph.equality;
 let inequality = of_ineq_op |> _binary_op(_symmetrical) <$ Glyph.inequality;

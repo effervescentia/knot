@@ -34,7 +34,7 @@ let init =
       Dolog.Log.set_prefix_builder(lvl =>
         string_of_level(lvl)
         |> ANSI.sprintf([_color_of_level(lvl)], "%s")
-        |> Printf.sprintf(
+        |> Print.fmt(
              "%s[knot] %s ",
              cfg.timestamp ? Sys.time() |> Print.fmt("%f ") : "",
            )

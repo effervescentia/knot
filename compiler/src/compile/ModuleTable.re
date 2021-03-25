@@ -68,10 +68,7 @@ let to_string = (~debug=false, table: t): string =>
                 "/* %s */\n\nexports: %s\n\n%s",
                 Namespace.to_string(key),
                 types
-                |> Hashtbl.to_string(
-                     Functional.identity,
-                     Type.to_string % Pretty.to_string,
-                   )
+                |> Hashtbl.to_string(Functional.identity, Type.to_string)
                 |> Pretty.to_string,
               )
        )

@@ -35,7 +35,7 @@ let _print_attr = (name, value) =>
     Newline,
     value |> Pretty.indent(2),
   ]
-  |> Pretty.newline;
+  |> Pretty.concat;
 
 let _print_entity = (~attrs=[], ~cursor=?, name) =>
   [
@@ -66,7 +66,12 @@ let print_lexeme = (~attrs=[], name, value, cursor) =>
 
 let print_typed_lexeme = (name, value, type_, cursor) =>
   print_lexeme(
-    ~attrs=[_print_attr("type", type_ |> Type.to_string)],
+    ~attrs=[
+      _print_attr(
+        "type",
+        [type_ |> Type.to_string |> Pretty.string] |> Pretty.newline,
+      ),
+    ],
     name,
     value,
     cursor,
@@ -75,9 +80,14 @@ let print_typed_lexeme = (name, value, type_, cursor) =>
 let rec print_expr =
   fun
   | Primitive((prim, type_, cursor)) =>
-    print_typed_lexeme("Primitive", prim |> print_prim, type_, cursor)
+    print_typed_lexeme(
+      "Primitive",
+      [prim |> print_prim] |> Pretty.newline,
+      type_,
+      cursor,
+    )
   | Identifier((name, cursor)) =>
-    print_lexeme("Identifier", name |> print_id, cursor)
+    print_lexeme("Identifier", [name |> print_id] |> Pretty.newline, cursor)
   | JSX((jsx, cursor)) => print_lexeme("JSX", jsx |> print_jsx, cursor)
   | Group((expr, type_, cursor)) =>
     print_typed_lexeme("Group", expr |> print_expr, type_, cursor)
@@ -107,11 +117,7 @@ let rec print_expr =
       cursor,
     )
   | Closure(stmts) =>
-    _print_entity(
-      ~attrs=
-        stmts |> List.map(stmt => [stmt |> print_stmt] |> Pretty.newline),
-      "Closure",
-    )
+    _print_entity(~attrs=stmts |> List.map(print_stmt), "Closure")
 
 and print_prim =
   fun
@@ -206,7 +212,7 @@ and print_stmt = stmt =>
     _print_entity(
       ~attrs=[
         print_lexeme("Name", name |> print_id, name_cursor),
-        print_typed_lexeme("Value", name |> print_id, type_, cursor),
+        print_typed_lexeme("Value", expr |> print_expr, type_, cursor),
       ],
       "Variable",
     )

@@ -49,3 +49,34 @@ let string_pair_list =
   Alcotest.(check(list(pair(string, string)), "string pair list matches"));
 let int_pair_list =
   Alcotest.(check(list(pair(int, int)), "int pair list matches"));
+
+let hashtbl = (key_to_string, value_to_string) =>
+  Alcotest.(
+    check(
+      testable(
+        (pp, tbl) =>
+          tbl
+          |> Hashtbl.to_seq_keys
+          |> List.of_seq
+          |> List.map(key =>
+               Printf.sprintf(
+                 "%s: %s\n",
+                 key |> key_to_string,
+                 Hashtbl.find(tbl, key) |> value_to_string,
+               )
+             )
+          |> List.fold_left((++), "")
+          |> Printf.sprintf("{\n%s}")
+          |> Format.pp_print_string(pp),
+        (l, r) =>
+          Hashtbl.length(l) == Hashtbl.length(r)
+          && Hashtbl.to_seq_keys(l)
+          |> List.of_seq
+          |> List.for_all(key =>
+               Hashtbl.mem(r, key)
+               && Hashtbl.find(l, key) == Hashtbl.find(r, key)
+             ),
+      ),
+      "hashtbl matches",
+    )
+  );
