@@ -109,7 +109,7 @@ and fmt_jsx_child =
   | Node((jsx, _)) => jsx |> fmt_jsx
   | Text(s) => s |> Pretty.string
   | InlineExpression((expr, _, _)) =>
-    ["{" |> Pretty.string, expr |> fmt_expr, "}" |> Pretty.string]
+    ["{" |> Pretty.string, expr |> fmt_expression, "}" |> Pretty.string]
     |> Pretty.concat
 
 and fmt_jsx_attr = attr =>
@@ -141,13 +141,13 @@ and fmt_jsx_attr_expr = x =>
   | Group(_)
   | Closure(_)
   /* show tags or fragments with no children */
-  | JSX((Tag(_, _, []) | Fragment([]), _)) => x |> fmt_expr
+  | JSX((Tag(_, _, []) | Fragment([]), _)) => x |> fmt_expression
   | _ =>
-    ["(" |> Pretty.string, x |> fmt_expr, ")" |> Pretty.string]
+    ["(" |> Pretty.string, x |> fmt_expression, ")" |> Pretty.string]
     |> Pretty.concat
   }
 
-and fmt_expr =
+and fmt_expression =
   fun
   | Primitive((prim, _, _)) => prim |> fmt_prim
   | Identifier((name, _)) => name |> fmt_id
@@ -158,38 +158,44 @@ and fmt_expr =
       _,
       _,
     )) =>
-    expr |> fmt_expr
+    expr |> fmt_expression
   | Group((expr, _, _)) =>
-    ["(" |> Pretty.string, expr |> fmt_expr, ")" |> Pretty.string]
+    ["(" |> Pretty.string, expr |> fmt_expression, ")" |> Pretty.string]
     |> Pretty.concat
   | BinaryOp(op, (lhs, _, _), (rhs, _, _)) =>
-    [lhs |> fmt_expr, __space, op |> fmt_binary_op, __space, rhs |> fmt_expr]
+    [
+      lhs |> fmt_expression,
+      __space,
+      op |> fmt_binary_op,
+      __space,
+      rhs |> fmt_expression,
+    ]
     |> Pretty.concat
   | UnaryOp(op, (expr, _, _)) =>
-    [op |> fmt_unary_op, expr |> fmt_expr] |> Pretty.concat
+    [op |> fmt_unary_op, expr |> fmt_expression] |> Pretty.concat
   | Closure(stmts) =>
     stmts |> List.is_empty
       ? "{}" |> Pretty.string
       : [
           ["{" |> Pretty.string] |> Pretty.newline,
           stmts
-          |> List.map(stmt => [stmt |> fmt_stmt] |> Pretty.newline)
+          |> List.map(stmt => [stmt |> fmt_statement] |> Pretty.newline)
           |> Pretty.concat
           |> Pretty.indent(2),
           "}" |> Pretty.string,
         ]
         |> Pretty.concat
 
-and fmt_stmt = stmt =>
+and fmt_statement = stmt =>
   (
     switch (stmt) {
     | Variable((name, _), (expr, _, _)) => [
         "let " |> Pretty.string,
         name |> fmt_id,
         " = " |> Pretty.string,
-        expr |> fmt_expr,
+        expr |> fmt_expression,
       ]
-    | Expression((expr, _, _)) => [expr |> fmt_expr]
+    | Expression((expr, _, _)) => [expr |> fmt_expression]
     }
   )
   @ [__semicolon]
@@ -202,7 +208,7 @@ let fmt_decl = (((name, _), decl)) =>
         "const " |> Pretty.string,
         name |> fmt_id,
         " = " |> Pretty.string,
-        expr |> fmt_expr,
+        expr |> fmt_expression,
         __semicolon,
       ]
     }
@@ -214,7 +220,7 @@ let fmt_imports = stmts => {
     stmts
     |> List.filter_map(
          fun
-         | Import(namespace, main) => Some((namespace, main))
+         | Import(namespace, imports) => Some((namespace, imports))
          | _ => None,
        )
     |> List.partition(
@@ -237,16 +243,58 @@ let fmt_imports = stmts => {
               )
            |> Tuple.reduce2(String.compare)
          )
-         % List.map(((namespace, main)) =>
+         % List.map(((namespace, imports)) => {
+             let (main_import, named_imports) =
+               imports
+               |> List.fold_left(
+                    ((m, n)) =>
+                      fun
+                      | Main((id, _)) => (Some(id), n)
+                      | Named((id, _), label) => (m, [(id, label), ...n]),
+                    (None, []),
+                  );
+
              [
-               "import " |> Pretty.string,
-               main |> Pretty.string,
+               "import" |> Pretty.string,
+               main_import
+               |> (
+                 fun
+                 | Some(id) =>
+                   [
+                     " " |> Pretty.string,
+                     id |> Identifier.to_string |> Pretty.string,
+                   ]
+                   |> Pretty.concat
+                 | None => Pretty.Nil
+               ),
+               switch (main_import, named_imports) {
+               | (Some(_), [_, ..._]) => "," |> Pretty.string
+               | _ => Pretty.Nil
+               },
+               named_imports |> List.is_empty
+                 ? Pretty.Nil
+                 : [
+                     "{ " |> Pretty.string,
+                     named_imports
+                     |> List.sort((l, r) =>
+                          (l, r)
+                          |> Tuple.map2(fst % Identifier.to_string)
+                          |> Tuple.reduce2(String.compare)
+                        )
+                     |> List.map(((id, label)) =>
+                          id |> Identifier.to_string |> Pretty.string
+                        )
+                     |> List.intersperse(", " |> Pretty.string)
+                     |> Pretty.concat,
+                     " }" |> Pretty.string,
+                   ]
+                   |> Pretty.concat,
                " from " |> Pretty.string,
                namespace |> fmt_ns,
                __semicolon,
              ]
-             |> Pretty.newline
-           ),
+             |> Pretty.newline;
+           }),
        );
 
   external_imports

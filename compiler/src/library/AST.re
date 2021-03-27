@@ -35,13 +35,16 @@ type number_t =
 type lexeme_t('a) = ('a, Cursor.t);
 type typed_lexeme_t('a) = ('a, Type.t, Cursor.t);
 
+type identifier_t = lexeme_t(Identifier.t);
+
 type primitive_t = typed_lexeme_t(_primitive_t)
 and _primitive_t =
   | Nil
   | Boolean(bool)
   | Number(number_t)
-  | String(string)
-and jsx_t = lexeme_t(_jsx_t)
+  | String(string);
+
+type jsx_t = lexeme_t(_jsx_t)
 and _jsx_t =
   | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
   | Fragment(list(jsx_child_t))
@@ -55,7 +58,6 @@ and _jsx_attribute_t =
   | ID(identifier_t)
   | Class(identifier_t, option(expression_t))
   | Property(identifier_t, option(expression_t))
-and identifier_t = lexeme_t(Identifier.t)
 and expression_t = typed_lexeme_t(_expression_t)
 and _expression_t =
   | Primitive(primitive_t)
@@ -72,8 +74,12 @@ and statement_t =
 type declaration_t =
   | Constant(expression_t);
 
+type import_t =
+  | Main(identifier_t)
+  | Named(identifier_t, option(identifier_t));
+
 type module_statement_t =
-  | Import(Namespace.t, string)
+  | Import(Namespace.t, list(import_t))
   | Declaration(identifier_t, declaration_t);
 
 type program_t = list(module_statement_t);
@@ -85,6 +91,9 @@ let of_external = namespace => Namespace.External(namespace);
 
 let of_public = name => Identifier.Public(name);
 let of_private = name => Identifier.Private(name);
+
+let of_main = x => Main(x);
+let of_named = ((x, y)) => Named(x, y);
 
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);

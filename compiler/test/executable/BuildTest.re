@@ -61,8 +61,12 @@ exports.ABC = ABC;
         |> Util.read_file_to_string
         |> Assert.string(
              "var $knot = require(\"@knot/runtime\");
-var TIMEOUT = require(\"./common/constants\");
-var App = require(\"./App\");
+var $import$_$common$constants = require(\"./common/constants\");
+var TIMEOUT = $import$_$common$constants.main;
+$import$_$common$constants = null;
+var $import$_$App = require(\"./App\");
+var App = $import$_$App.main;
+$import$_$App = null;
 var ABC = 123;
 exports.ABC = ABC;
 ",
@@ -71,7 +75,7 @@ exports.ABC = ABC;
         |> Util.read_file_to_string
         |> Assert.string(
              "var $knot = require(\"@knot/runtime\");
-var App = $knot.jsx.createTag(\"div\", {}, \"hello world\");
+var App = $knot.jsx.createTag(\"div\", null, \"hello world\");
 exports.App = App;
 ",
            );

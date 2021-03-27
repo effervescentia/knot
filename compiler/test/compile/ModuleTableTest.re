@@ -1,10 +1,17 @@
 open Kore;
+open Util;
 
 module ModuleTable = Compile.ModuleTable;
 
 let __id = Reference.Namespace.Internal("foo");
 let __types = [("bar", Type.K_Weak(0))];
-let __program = AST.[Import("foo" |> of_internal, "bar")];
+let __program =
+  AST.[
+    Import(
+      "foo" |> of_internal,
+      ["bar" |> of_public |> as_lexeme |> of_main],
+    ),
+  ];
 let __table = ModuleTable.create(1);
 
 let _create_table = items => List.to_seq(items) |> Hashtbl.of_seq;

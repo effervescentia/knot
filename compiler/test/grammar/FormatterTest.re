@@ -78,7 +78,7 @@ let suite =
         |> List.map(Tuple.map_snd2(fmt_prim % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
-    "fmt_expr()"
+    "fmt_expression()"
     >: (
       () =>
         [
@@ -134,7 +134,7 @@ let suite =
             |> of_jsx,
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_expr % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(fmt_expression % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
     "fmt_jsx()"
@@ -363,7 +363,7 @@ let suite =
         |> List.map(Tuple.map_snd2(fmt_jsx_attr % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
-    "fmt_stmt()"
+    "fmt_statement()"
     >: (
       () =>
         [
@@ -377,7 +377,7 @@ let suite =
             |> of_var,
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_stmt % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(fmt_statement % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
     "fmt_decl() - constant"
@@ -427,8 +427,16 @@ const ABC = 123;
 import Fizz from \"buzz\";
 ",
             [
-              ("buzz" |> of_external, "Fizz") |> of_import,
-              ("bar" |> of_external, "Foo") |> of_import,
+              (
+                "buzz" |> of_external,
+                ["Fizz" |> of_public |> as_lexeme |> of_main],
+              )
+              |> of_import,
+              (
+                "bar" |> of_external,
+                ["Foo" |> of_public |> as_lexeme |> of_main],
+              )
+              |> of_import,
             ],
           ),
           (
@@ -437,8 +445,16 @@ import Fizz from \"buzz\";
 import Foo from \"@/bar\";
 ",
             [
-              ("bar" |> of_internal, "Foo") |> of_import,
-              ("buzz" |> of_external, "Fizz") |> of_import,
+              (
+                "bar" |> of_internal,
+                ["Foo" |> of_public |> as_lexeme |> of_main],
+              )
+              |> of_import,
+              (
+                "buzz" |> of_external,
+                ["Fizz" |> of_public |> as_lexeme |> of_main],
+              )
+              |> of_import,
             ],
           ),
         ]
@@ -454,7 +470,14 @@ import Foo from \"@/bar\";
           ("", [] |> Formatter.format),
           (
             "import Foo from \"bar\";\n",
-            [("bar" |> of_external, "Foo") |> of_import] |> Formatter.format,
+            [
+              (
+                "bar" |> of_external,
+                ["Foo" |> of_public |> as_lexeme |> of_main],
+              )
+              |> of_import,
+            ]
+            |> Formatter.format,
           ),
           (
             "const ABC = 123;\n",
@@ -470,7 +493,11 @@ import Foo from \"@/bar\";
 const ABC = 123;
 ",
             [
-              ("bar" |> of_external, "Foo") |> of_import,
+              (
+                "bar" |> of_external,
+                ["Foo" |> of_public |> as_lexeme |> of_main],
+              )
+              |> of_import,
               ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
               |> of_decl,
             ]

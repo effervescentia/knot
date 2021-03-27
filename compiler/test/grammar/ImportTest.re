@@ -1,4 +1,5 @@
 open Kore;
+open Util;
 
 module Import = Grammar.Import;
 
@@ -37,7 +38,12 @@ let suite =
       () =>
         Assert.parse(
           "import foo from \"@/bar\"",
-          AST.(of_import(("bar" |> of_internal, "foo"))),
+          AST.(
+            of_import((
+              "bar" |> of_internal,
+              ["foo" |> of_public |> as_lexeme |> of_main],
+            ))
+          ),
         )
     ),
     "parse terminated"
@@ -45,7 +51,12 @@ let suite =
       () =>
         Assert.parse(
           "import foo from \"@/bar\";",
-          AST.(of_import(("bar" |> of_internal, "foo"))),
+          AST.(
+            of_import((
+              "bar" |> of_internal,
+              ["foo" |> of_public |> as_lexeme |> of_main],
+            ))
+          ),
         )
     ),
   ];

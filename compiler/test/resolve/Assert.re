@@ -1,6 +1,6 @@
 open Kore;
 
-include Test.Assert;
+include TestLibrary.Assert;
 
 let import_graph =
   Alcotest.(
@@ -12,18 +12,6 @@ let import_graph =
       "import graph matches",
     )
   );
-
-let check_namespace =
-  Alcotest.(
-    testable(
-      pp => Reference.Namespace.to_string % Format.pp_print_string(pp),
-      (==),
-    )
-  );
-
-let namespace = Alcotest.(check(check_namespace, "namespace matches"));
-let list_namespace =
-  Alcotest.(check(list(check_namespace), "namespace list matches"));
 
 let module_ =
   Alcotest.(
@@ -46,10 +34,7 @@ let module_ =
 let program =
   Alcotest.(
     check(
-      testable(
-        pp => Grammar.Formatter.format % Format.pp_print_string(pp),
-        (==),
-      ),
+      testable(pp => Debug.print_ast % Format.pp_print_string(pp), (==)),
       "program matches",
     )
   );

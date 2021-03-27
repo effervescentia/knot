@@ -37,7 +37,9 @@ module Assert = Assert.Make(Target);
 let __main_import = "import foo from \"@/bar\"";
 let __const_decl = "const foo = nil";
 
-let __main_import_ast = ("bar" |> of_internal, "foo") |> of_import;
+let __main_import_ast =
+  ("bar" |> of_internal, ["foo" |> of_public |> as_lexeme |> of_main])
+  |> of_import;
 let __const_decl_ast =
   ("foo" |> of_public |> as_lexeme, nil_prim |> of_const) |> of_decl;
 

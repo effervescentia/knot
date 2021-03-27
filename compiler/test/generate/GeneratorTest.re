@@ -12,23 +12,13 @@ let suite =
   >::: [
     "generate() - JavaScript"
     >: (
-      () => {
-        let buffer = Buffer.create(100);
-        let print = Buffer.add_string(buffer);
-
-        Generator.generate(
-          JavaScript(ES6),
-          {print, resolve: _ => ""},
-          __program,
-        );
-
+      () =>
         Assert.string(
           "import $knot from \"@knot/runtime\";
 var ABC = 123;
 export { ABC };
 ",
-          buffer |> Buffer.contents,
-        );
-      }
+          Generator.generate(JavaScript(ES6), _ => "", __program),
+        )
     ),
   ];

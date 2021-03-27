@@ -2,10 +2,11 @@ include Knot.Kore;
 include AST;
 
 type print_t = string => unit;
+type resolve_t = Reference.Namespace.t => string;
 
 type output_t = {
   print: string => unit,
-  resolve: Reference.Namespace.t => string,
+  resolve: resolve_t,
 };
 
 module Target = {

@@ -1,6 +1,8 @@
 /**
  Extension of the standard String module with additional functionality.
  */
+open Infix;
+
 include Stdlib.String;
 
 module TString = Tablecloth.String;
@@ -66,3 +68,6 @@ let find_index = (pattern: string, value: string) =>
 
     loop(0);
   };
+
+let replace = (target: char, replacement: char) =>
+  to_seq % Seq.map(x => x == target ? replacement : x) % of_seq;

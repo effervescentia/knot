@@ -40,8 +40,17 @@ let suite =
           ([], _to_stream("") |> Parser.ast),
           (
             AST.[
-              of_import(("bar" |> of_internal, "foo")),
-              of_decl((
+              (
+                "bar" |> of_internal,
+                [
+                  "foo"
+                  |> of_public
+                  |> as_lexeme(~cursor=Cursor.range((2, 10), (2, 12)))
+                  |> of_main,
+                ],
+              )
+              |> of_import,
+              (
                 ("ABC" |> of_public, Cursor.range((4, 9), (4, 11))),
                 (
                   123 |> Int64.of_int |> of_int |> of_num,
@@ -54,7 +63,8 @@ let suite =
                      Type.K_Strong(K_Integer),
                    )
                 |> of_const,
-              )),
+              )
+              |> of_decl,
             ],
             _to_stream(__ast_fixture) |> Parser.ast,
           ),

@@ -174,17 +174,14 @@ let emit_output = (target: Target.t, output_dir: string, compiler: t) =>
                (ModuleTable.{ast}) => {
                  Generator.generate(
                    target,
-                   {
-                     print: Printf.fprintf(out, "%s"),
-                     resolve:
-                       fun
-                       | Internal(path) =>
-                         Filename.concat(output_dir, path)
-                         |> Filename.relative_to(parent_dir)
-                       | External(_) => raise(NotImplemented),
-                   },
+                   fun
+                   | Internal(path) =>
+                     Filename.concat(output_dir, path)
+                     |> Filename.relative_to(parent_dir)
+                   | External(_) => raise(NotImplemented),
                    ast,
-                 );
+                 )
+                 |> Printf.fprintf(out, "%s");
                  close_out(out);
                };
              }

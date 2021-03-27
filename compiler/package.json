@@ -124,6 +124,7 @@
     "test/resolve": {
       "require": [
         "knot.test",
+        "knot.lib_test",
         "knot.file_test",
         "knot.grammar_test",
         "knot.resolve",
