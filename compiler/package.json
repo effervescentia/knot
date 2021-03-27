@@ -114,6 +114,7 @@
     "test/grammar": {
       "require": [
         "knot.test",
+        "knot.lib_test",
         "knot.grammar",
         "knot.parse",
         "knot.file"

@@ -350,7 +350,7 @@ let suite =
                 (
                   "bar" |> of_public |> as_lexeme,
                   Some(
-                    "fizz" |> of_public |> as_lexeme |> of_id |> as_unknown,
+                    "fizz" |> of_public |> as_lexeme |> of_id |> as_weak(0),
                   ),
                 )
                 |> of_prop
@@ -417,7 +417,7 @@ let suite =
             [
               (
                 "foo" |> of_public |> as_lexeme,
-                Some("bar" |> of_public |> as_lexeme |> of_id |> as_unknown),
+                Some("bar" |> of_public |> as_lexeme |> of_id |> as_weak(0)),
               )
               |> of_prop
               |> as_lexeme,

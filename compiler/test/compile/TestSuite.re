@@ -1,6 +1,1 @@
-let tests = [
-  CompilerTest.suite,
-  ModuleTableTest.suite,
-  ParserTest.suite,
-  ValidateTest.suite,
-];
+let tests = [CompilerTest.suite, ParserTest.suite, ValidateTest.suite];

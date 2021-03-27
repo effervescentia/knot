@@ -10,6 +10,7 @@ let tests = [
   InputTest.suite,
   IntTest.suite,
   ListTest.suite,
+  ModuleTableTest.suite,
   PrettyTest.suite,
   PrintTest.suite,
   StringTest.suite,

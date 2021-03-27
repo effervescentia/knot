@@ -76,6 +76,40 @@ let suite =
           [__main_import_ast, __const_decl_ast],
         )
     ),
+    "parse import with dependent declaration"
+    >: (
+      () =>
+        Assert.parse(
+          ~scope=
+            Scope.create(
+              ~modules=
+                [
+                  (
+                    "bar" |> of_internal,
+                    ModuleTable.{
+                      ast: [],
+                      types:
+                        [("main" |> of_public, Type.K_Strong(K_Boolean))]
+                        |> List.to_seq
+                        |> Hashtbl.of_seq,
+                    },
+                  ),
+                ]
+                |> List.to_seq
+                |> Hashtbl.of_seq,
+              (),
+            ),
+          __main_import ++ "; const bar = foo",
+          [
+            __main_import_ast,
+            (
+              "bar" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_lexeme |> of_id |> as_bool |> of_const,
+            )
+            |> of_decl,
+          ],
+        )
+    ),
     "parse imports only"
     >: (
       () =>

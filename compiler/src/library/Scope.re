@@ -1,3 +1,4 @@
+open Infix;
 open Reference;
 
 exception AnonymousTypeNotFound;
@@ -8,6 +9,7 @@ exception AnonymousTypeNotFound;
 type t = {
   /* seed for new anonymous types */
   seed: ref(int),
+  modules: ModuleTable.t,
   types: Hashtbl.t(Identifier.t, Type.t),
   anonymous:
     Hashtbl.t(int, result(Type.trait_t, (Type.trait_t, Type.trait_t))),
@@ -15,9 +17,18 @@ type t = {
 
 /* static */
 
-let create = (~parent=?, ~seed=ref(0), ~anonymous=Hashtbl.create(0), ()): t => {
+let create =
+    (
+      ~parent=?,
+      ~seed=ref(0),
+      ~anonymous=Hashtbl.create(0),
+      ~modules=ModuleTable.create(0),
+      (),
+    )
+    : t => {
   seed,
   anonymous,
+  modules,
   types:
     switch (parent) {
     | Some(parent) => Hashtbl.copy(parent.types)
@@ -28,13 +39,39 @@ let create = (~parent=?, ~seed=ref(0), ~anonymous=Hashtbl.create(0), ()): t => {
 /* methods */
 
 let clone = (parent: t): t => {
-  seed: parent.seed,
+  ...parent,
   anonymous: Hashtbl.copy(parent.anonymous),
   types: Hashtbl.copy(parent.types),
 };
 
+/**
+ define a new variable within the scope
+ */
 let define = (name: Identifier.t, type_: Type.t, scope: t) =>
   Hashtbl.replace(scope.types, name, type_);
+
+/**
+ find the type of an export from a different module and import it into the current scope
+ */
+let import =
+    (
+      namespace: Namespace.t,
+      id: Identifier.t,
+      label: option(Identifier.t),
+      scope: t,
+    ) => {
+  let type_ =
+    switch (ModuleTable.find(namespace, scope.modules)) {
+    | Some({types}) =>
+      switch (Hashtbl.find_opt(types, id)) {
+      | Some(t) => t
+      | None => Type.K_Invalid(ExternalNotFound(namespace, id))
+      }
+    | None => Type.K_Invalid(ExternalNotFound(namespace, id))
+    };
+
+  define(label |?: id, type_, scope);
+};
 
 /**
  resolve a type within the scope

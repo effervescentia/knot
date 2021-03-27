@@ -287,3 +287,23 @@ let print_mod_stmt =
 
 let print_ast = (program: program_t): string =>
   program |> List.map(print_mod_stmt) |> Pretty.concat |> Pretty.to_string;
+
+let print_module_table = (~debug=false, table: ModuleTable.t): string =>
+  Hashtbl.to_seq_keys(table)
+  |> List.of_seq
+  |> Print.many(~separator="\n", key =>
+       key
+       |> Hashtbl.find(table)
+       |> (
+         ({ast, types}) =>
+           ast
+           |> print_ast
+           |> Print.fmt(
+                "/* %s */\n\nexports: %s\n\n%s",
+                Reference.Namespace.to_string(key),
+                types
+                |> Hashtbl.to_string(Identifier.to_string, Type.to_string)
+                |> Pretty.to_string,
+              )
+       )
+     );

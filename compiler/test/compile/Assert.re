@@ -2,29 +2,6 @@ open Kore;
 
 include TestResolve.Assert;
 
-module Compare = {
-  open Alcotest;
-
-  include TestResolve.Assert.Compare;
-
-  let module_table =
-    testable(
-      pp => Compile.Debug.print_module_table % Format.pp_print_string(pp),
-      Compile.ModuleTable.(
-        (l, r) =>
-          Hashtbl.compare(
-            ~compare=
-              (x, y) => x.ast == y.ast && Hashtbl.compare(x.types, y.types),
-            l,
-            r,
-          )
-      ),
-    );
-};
-
-let module_table =
-  Alcotest.check(Compare.module_table, "module table matches");
-
 let compiler =
   Alcotest.(
     check(

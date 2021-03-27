@@ -1,8 +1,7 @@
-open Kore;
 open Reference;
 
 type entry_t = {
-  types: Hashtbl.t(string, Type.t),
+  types: Hashtbl.t(Identifier.t, Type.t),
   ast: AST.program_t,
 };
 
@@ -20,6 +19,8 @@ let create = (size: int): t => Hashtbl.create(size);
 
 /* methods */
 
+let find = (id: Namespace.t, table: t) => Hashtbl.find_opt(table, id);
+
 /**
  add a module with associated export types and AST
  */
@@ -27,7 +28,7 @@ let add =
     (
       id: Namespace.t,
       ast: AST.program_t,
-      exports: list((string, Type.t)),
+      exports: list((Identifier.t, Type.t)),
       table: t,
     ) =>
   Hashtbl.replace(
@@ -44,9 +45,10 @@ let remove = (id: Namespace.t, table: t) => Hashtbl.remove(table, id);
 /**
  declare the type of an export member of an existing module
  */
-let add_type = ((id, name): (Namespace.t, string), value: Type.t, table: t) =>
-  if (Hashtbl.mem(table, id)) {
-    let members = Hashtbl.find(table, id);
+let add_type =
+    ((namespace, id): (Namespace.t, Identifier.t), value: Type.t, table: t) =>
+  if (Hashtbl.mem(table, namespace)) {
+    let members = Hashtbl.find(table, namespace);
 
-    Hashtbl.replace(members.types, name, value);
+    Hashtbl.replace(members.types, id, value);
   };

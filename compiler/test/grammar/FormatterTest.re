@@ -244,7 +244,7 @@ let suite =
             "fizz=buzz",
             (
               "fizz" |> of_public |> as_lexeme,
-              Some("buzz" |> of_public |> as_lexeme |> of_id |> as_unknown),
+              Some("buzz" |> of_public |> as_lexeme |> of_id |> as_weak(0)),
             )
             |> of_prop,
           ),

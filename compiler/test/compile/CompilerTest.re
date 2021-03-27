@@ -3,7 +3,6 @@ open Util;
 open Type;
 
 module Compiler = Compile.Compiler;
-module ModuleTable = Compile.ModuleTable;
 module ImportGraph = Resolve.ImportGraph;
 module Module = Resolve.Module;
 
@@ -23,7 +22,9 @@ let __config =
   };
 
 let __types =
-  [("ABC", K_Strong(K_Integer))] |> List.to_seq |> Hashtbl.of_seq;
+  AST.[("ABC" |> of_public, K_Strong(K_Integer))]
+  |> List.to_seq
+  |> Hashtbl.of_seq;
 let __ast =
   AST.[
     (

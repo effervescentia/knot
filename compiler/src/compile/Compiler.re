@@ -34,8 +34,8 @@ let _get_exports = ast =>
   |> List.filter_map(
        fun
        | AST.Declaration((Private(_), _), _) => None
-       | AST.Declaration((Public(name), _), decl) =>
-         Some((name, decl |> TypeOf.declaration))
+       | AST.Declaration((id, _), decl) =>
+         Some((id, decl |> TypeOf.declaration))
        | _ => None,
      );
 
@@ -94,18 +94,19 @@ let validate = (compiler: t) => {
  parse modules and add to table
  */
 let process =
-    (ids: list(Namespace.t), resolve: Namespace.t => Module.t, compiler: t) => {
+    (
+      ids: list(Namespace.t),
+      resolve: Namespace.t => Module.t,
+      {modules, errors} as compiler: t,
+    ) => {
   ids
   |> List.iter(id =>
        try(
          resolve(id)
-         |> Module.read(Parser.ast)
-         |> (
-           ast =>
-             compiler.modules |> ModuleTable.add(id, ast, _get_exports(ast))
-         )
+         |> Module.read(Parser.ast(~scope=Scope.create(~modules, ())))
+         |> (ast => modules |> ModuleTable.add(id, ast, _get_exports(ast)))
        ) {
-       | CompilerError(e) => _add_errors(e, compiler.errors)
+       | CompilerError(e) => _add_errors(e, errors)
        }
      );
 

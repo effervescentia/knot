@@ -14,6 +14,7 @@ module Input = Input;
 module Int = Int;
 module LazyStream = LazyStream;
 module List = List;
+module ModuleTable = ModuleTable;
 module Log = Log;
 module Pretty = Pretty;
 module Print = Print;
