@@ -3,11 +3,7 @@ open Kore;
 let constant = (scope: Scope.t) =>
   Keyword.const
   >> Operator.assign(
-       M.identifier
-       >|= Tuple.split2(
-             Block.value % Reference.Identifier.of_string,
-             Block.cursor,
-           ),
+       Identifier.parser,
        Expression.parser(scope) >|= AST.of_const,
      )
   >@= (

@@ -423,7 +423,7 @@ const ABC = 123;
       () =>
         [
           (
-            "import Foo from \"bar\";
+            "import bar, { Bar, Foo as foo } from \"bar\";
 import Fizz from \"buzz\";
 ",
             [
@@ -434,7 +434,15 @@ import Fizz from \"buzz\";
               |> of_import,
               (
                 "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main],
+                [
+                  "bar" |> of_public |> as_lexeme |> of_main,
+                  (
+                    "Foo" |> of_public |> as_lexeme,
+                    Some("foo" |> of_public |> as_lexeme),
+                  )
+                  |> of_named,
+                  ("Bar" |> of_public |> as_lexeme, None) |> of_named,
+                ],
               )
               |> of_import,
             ],
@@ -467,7 +475,7 @@ import Foo from \"@/bar\";
     >: (
       () =>
         [
-          ("", [] |> Formatter.format),
+          ("", []),
           (
             "import Foo from \"bar\";\n",
             [
@@ -476,16 +484,14 @@ import Foo from \"@/bar\";
                 ["Foo" |> of_public |> as_lexeme |> of_main],
               )
               |> of_import,
-            ]
-            |> Formatter.format,
+            ],
           ),
           (
             "const ABC = 123;\n",
             [
               ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
               |> of_decl,
-            ]
-            |> Formatter.format,
+            ],
           ),
           (
             "import Foo from \"bar\";
@@ -500,10 +506,10 @@ const ABC = 123;
               |> of_import,
               ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
               |> of_decl,
-            ]
-            |> Formatter.format,
+            ],
           ),
         ]
+        |> List.map(Tuple.map_snd2(Formatter.format % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
   ];

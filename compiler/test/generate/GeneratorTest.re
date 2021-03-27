@@ -18,7 +18,8 @@ let suite =
 var ABC = 123;
 export { ABC };
 ",
-          Generator.generate(JavaScript(ES6), _ => "", __program),
+          Generator.generate(JavaScript(ES6), _ => "", __program)
+          |> Pretty.to_string,
         )
     ),
   ];

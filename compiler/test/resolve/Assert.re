@@ -6,7 +6,7 @@ let import_graph =
   Alcotest.(
     check(
       testable(
-        pp => Resolve.ImportGraph.to_string % Format.pp_print_string(pp),
+        pp => Resolve.Debug.print_import_graph % Format.pp_print_string(pp),
         (l, r) => l.imports == r.imports && l.get_imports === r.get_imports,
       ),
       "import graph matches",

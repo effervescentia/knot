@@ -42,10 +42,12 @@ let _self_closing =
 
 let rec parser = (scope: Scope.t, x, input) =>
   (choice([fragment(scope, x), tag(scope, x)]) |> M.lexeme)(input)
+
 and fragment = (scope: Scope.t, x) =>
   children(scope, x)
   |> M.between(Fragment.open_, Fragment.close)
   >|= Tuple.split2(Block.value % of_frag, Block.cursor)
+
 and tag = (scope: Scope.t, x) =>
   Tag.open_
   >> M.identifier
@@ -85,6 +87,7 @@ and tag = (scope: Scope.t, x) =>
           )
       )
   )
+
 and attributes = (scope: Scope.t, x) =>
   choice([
     _attribute(scope, x)
@@ -113,10 +116,12 @@ and attributes = (scope: Scope.t, x) =>
         ),
   ])
   |> many
+
 and children = (scope: Scope.t, x) =>
   choice([node(scope, x), inline_expr(scope, x), text(scope, x)])
   |> M.lexeme
   |> many
+
 and text = (scope: Scope.t, x) =>
   none_of([C.Character.open_brace, C.Character.open_chevron])
   <~> (
@@ -129,8 +134,10 @@ and text = (scope: Scope.t, x) =>
   )
   >|= Input.join
   >|= Tuple.split2(Block.value % String.trim % of_text, Block.cursor)
+
 and node = (scope: Scope.t, x) =>
   parser(scope, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
+
 and inline_expr = (scope: Scope.t, x) =>
   x(scope)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)

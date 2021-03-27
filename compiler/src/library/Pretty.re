@@ -10,15 +10,16 @@ type t =
   | Indent(t, int)
   | Append(t, t);
 
-let rec _flatten = (column: int, x: list((t, int))) =>
-  switch (x) {
-  | [] => ""
+let rec flatten = (print: string => unit, column: int) =>
+  fun
+  | [] => ()
 
-  | [(Nil, _), ...xs] => _flatten(column, xs)
+  | [(Nil, _), ...xs] => flatten(print, column, xs)
 
   | [(String(s), indent), ...xs] =>
     if (String.contains(s, '\n')) {
-      _flatten(
+      flatten(
+        print,
         column,
         (
           String.split_on_char('\n', s)
@@ -30,19 +31,26 @@ let rec _flatten = (column: int, x: list((t, int))) =>
     } else {
       let spaces = indent - column;
 
-      (spaces > 0 ? String.repeat(spaces, " ") : "")
-      ++ s
-      ++ _flatten(column + spaces + (s |> String.length), xs);
+      if (spaces > 0) {
+        String.repeat(spaces, " ") |> print;
+      };
+
+      print(s);
+
+      flatten(print, column + spaces + (s |> String.length), xs);
     }
 
   | [(Append(l, r), indent), ...xs] =>
-    _flatten(column, [(l, indent), (r, indent), ...xs])
+    flatten(print, column, [(l, indent), (r, indent), ...xs])
 
-  | [(Newline, indent), ...xs] => "\n" ++ _flatten(0, xs)
+  | [(Newline, indent), ...xs] => {
+      print("\n");
+
+      flatten(print, 0, xs);
+    }
 
   | [(Indent(x, indent), root_indent), ...xs] =>
-    _flatten(column, [(x, root_indent + indent), ...xs])
-  };
+    flatten(print, column, [(x, root_indent + indent), ...xs]);
 
 let string = x => String(x);
 let indent = (x, y) => Indent(y, x);
@@ -54,4 +62,10 @@ let rec concat = xs =>
   };
 let newline = xs => Append(concat(xs), Newline);
 
-let to_string = x => _flatten(0, [(x, 0)]);
+let to_string = x => {
+  let buffer = Buffer.create(100);
+
+  flatten(Buffer.add_string(buffer), 0, [(x, 0)]);
+
+  buffer |> Buffer.contents;
+};

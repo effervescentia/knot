@@ -29,7 +29,7 @@ let _is_edge_from = (node: 'a, (parent, _): edge_t('a)): bool =>
   parent == node;
 
 let _merge_trees =
-    (depth: int, subtrees: list((int, list(string)))): list(string) => {
+    (depth: int, subtrees: list((int, list(string)))): list(string) =>
   List.repeat(depth, ())
   |> List.mapi((index, _) => {
        subtrees
@@ -39,7 +39,6 @@ let _merge_trees =
           )
        |> String.join(~separator="")
      });
-};
 
 let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
   let width =

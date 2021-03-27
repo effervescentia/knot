@@ -11,11 +11,7 @@ let primitive =
   >|= (((_, type_, cursor) as prim) => (prim |> AST.of_prim, type_, cursor));
 
 let identifier = (scope: Scope.t) =>
-  M.identifier
-  >|= Tuple.split2(
-        Block.value % Reference.Identifier.of_string,
-        Block.cursor,
-      )
+  Identifier.parser
   >|= (
     ((id, cursor) as id_lexeme) => (
       id_lexeme |> AST.of_id,
@@ -109,14 +105,14 @@ and expr_7 = (scope, input) =>
 /* {}, () */
 and expr_8 = (scope, input) =>
   (
-    closure(Scope.clone(scope), expr_0)
-    <|> group(expr_0(scope))
-    <|> value(scope)
+    closure(scope |> Scope.clone, expr_0)
+    <|> (expr_0(scope) |> group)
+    <|> term(scope)
   )(
     input,
   )
 /* 2, foo, <bar /> */
-and value = (scope, input) =>
+and term = (scope, input) =>
   choice([primitive, identifier(scope), jsx(scope, expr_0)], input);
 
 let parser = expr_0;

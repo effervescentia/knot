@@ -2,6 +2,18 @@ open Infix;
 open AST;
 open Reference;
 
+let print_cursor =
+  fun
+  | Cursor.Point({line, column}) => Print.fmt("(%d:%d)", line, column)
+  | Cursor.Range(start, end_) =>
+    Print.fmt(
+      "(%d:%d - %d:%d)",
+      start.line,
+      start.column,
+      end_.line,
+      end_.column,
+    );
+
 let print_ns = Namespace.to_string % Pretty.string;
 
 let print_id = Identifier.to_string % Pretty.string;
@@ -45,7 +57,7 @@ let _print_entity = (~attrs=[], ~children=[], ~cursor=?, name) =>
       name |> Pretty.string,
       switch (cursor) {
       | Some(cursor) =>
-        ["@" |> Pretty.string, cursor |> Cursor.to_string |> Pretty.string]
+        ["@" |> Pretty.string, cursor |> print_cursor |> Pretty.string]
         |> Pretty.concat
       | None => Pretty.Nil
       },

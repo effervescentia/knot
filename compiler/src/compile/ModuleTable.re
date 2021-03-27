@@ -50,26 +50,3 @@ let add_type = ((id, name): (Namespace.t, string), value: Type.t, table: t) =>
 
     Hashtbl.replace(members.types, name, value);
   };
-
-/**
- print the table as a string
- */
-let to_string = (~debug=false, table: t): string =>
-  Hashtbl.to_seq_keys(table)
-  |> List.of_seq
-  |> Print.many(~separator="\n", key =>
-       key
-       |> Hashtbl.find(table)
-       |> (
-         ({ast, types}) =>
-           ast
-           |> (debug ? Debug.print_ast : Grammar.Formatter.format)
-           |> Print.fmt(
-                "/* %s */\n\nexports: %s\n\n%s",
-                Namespace.to_string(key),
-                types
-                |> Hashtbl.to_string(Functional.identity, Type.to_string)
-                |> Pretty.to_string,
-              )
-       )
-     );

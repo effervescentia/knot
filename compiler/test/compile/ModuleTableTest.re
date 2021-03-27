@@ -76,24 +76,4 @@ let suite =
         [(original_table, __table)] |> Assert.(test_many(module_table));
       }
     ),
-    "to_string()"
-    >: (
-      () => {
-        __table |> ModuleTable.add(__id, __program, __types);
-
-        [
-          (
-            "/* @/foo */
-
-exports: {
-  bar: Weak<0>
-}
-
-import bar from \"@/foo\";\n",
-            __table |> ModuleTable.to_string,
-          ),
-        ]
-        |> Assert.(test_many(string));
-      }
-    ),
   ];

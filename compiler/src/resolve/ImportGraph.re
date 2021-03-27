@@ -12,9 +12,8 @@ type t = {
 /* static */
 
 let create = (get_imports: Namespace.t => list(Namespace.t)): t => {
-  let imports = Graph.empty();
-
-  {imports, get_imports};
+  imports: Graph.empty(),
+  get_imports,
 };
 
 /* methods */
@@ -78,6 +77,3 @@ let refresh_subtree = (id: Namespace.t, graph: t) => {
 
   (removed |> List.filter(id => !List.mem(id, added)), added);
 };
-
-let to_string = (graph: t): string =>
-  graph.imports |> Graph.to_string(Namespace.to_string);

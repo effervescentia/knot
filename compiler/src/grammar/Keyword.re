@@ -9,3 +9,4 @@ let let_ = M.keyword(K.let_);
 let nil = M.keyword(K.nil);
 let true_ = M.keyword(K.true_);
 let false_ = M.keyword(K.false_);
+let as_ = M.keyword(K.as_);

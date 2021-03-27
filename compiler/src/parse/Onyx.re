@@ -203,7 +203,7 @@ let option = (default, x) => x <|> return(default);
 let optional = x => option((), () <$ x);
 
 /**
- matches a pattern multiple times and return an empty result
+ matches a pattern [0] or more times and return an empty result
  */
 let rec skip_many = x => x >>= (_ => skip_many(x)) |> option();
 
@@ -213,7 +213,7 @@ let rec skip_many = x => x >>= (_ => skip_many(x)) |> option();
 let skip_many1 = x => x >> skip_many(x);
 
 /**
- matches a pattern multiple times and return a list of results
+ matches a pattern [0] or more times and return a list of results
  */
 let rec many = x =>
   x >>= (r => many(x) >|= (rs => [r, ...rs])) |> option([]);
@@ -222,6 +222,16 @@ let rec many = x =>
  matches a pattern [n+1] times and return a list of results
  */
 let many1 = x => x <~> many(x);
+
+/**
+ matches a pattern [n+1] times divided by separator [sep]
+ */
+let sep_by1 = (sep, x) => x <~> many(sep >> x);
+
+/**
+ matches a pattern [0] or more times divided by separator [sep]
+ */
+let sep_by = (sep, x) => sep_by1(sep, x) <|> return([]);
 
 /**
  matches a pattern [n+1] times separated by operator [op]
@@ -235,7 +245,7 @@ let chainl1 = (x, op) => {
 };
 
 /**
- matches a pattern multiple times separated by operator [op]
+ matches a pattern [0] or more times separated by operator [op]
 
  associativity: {i left-to-right}
  */
@@ -250,7 +260,7 @@ let rec chainr1 = (x, op) =>
   x >>= (a => op >>= (f => chainr1(x, op) >|= f(a)) <|> return(a));
 
 /**
- matches a pattern multiple times separated by operator [op]
+ matches a pattern [0] or more times separated by operator [op]
 
  associativity: {i right-to-left}
  */

@@ -9,4 +9,3 @@ let quote = char(C.quote);
 let period = char(C.period);
 let octothorp = char(C.octothorp);
 let underscore = char(C.underscore);
-let semicolon = char(C.semicolon);

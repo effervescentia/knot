@@ -242,11 +242,10 @@ and fmt_es6_export = (name: string) =>
   ["export { " |> Pretty.string, name |> Pretty.string, " }" |> Pretty.string]
   |> Pretty.concat;
 
-let format = (module_type: Target.module_t, program: program_t): string =>
+let format = (module_type: Target.module_t, program: program_t): Pretty.t =>
   program
   |> List.map(stmt =>
        [fmt_statement(module_type, stmt), ";" |> Pretty.string]
        |> Pretty.newline
      )
-  |> Pretty.concat
-  |> Pretty.to_string;
+  |> Pretty.concat;

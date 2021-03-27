@@ -268,7 +268,7 @@ let fmt_imports = stmts => {
                  | None => Pretty.Nil
                ),
                switch (main_import, named_imports) {
-               | (Some(_), [_, ..._]) => "," |> Pretty.string
+               | (Some(_), [_, ..._]) => ", " |> Pretty.string
                | _ => Pretty.Nil
                },
                named_imports |> List.is_empty
@@ -282,7 +282,17 @@ let fmt_imports = stmts => {
                           |> Tuple.reduce2(String.compare)
                         )
                      |> List.map(((id, label)) =>
-                          id |> Identifier.to_string |> Pretty.string
+                          [
+                            id |> fmt_id,
+                            ...switch (label) {
+                               | Some((label, _)) => [
+                                   " as " |> Pretty.string,
+                                   label |> fmt_id,
+                                 ]
+                               | None => []
+                               },
+                          ]
+                          |> Pretty.concat
                         )
                      |> List.intersperse(", " |> Pretty.string)
                      |> Pretty.concat,
@@ -335,7 +345,7 @@ let fmt_declarations = stmts => {
   loop(declarations);
 };
 
-let format = (program: program_t): string => {
+let format = (program: program_t): Pretty.t => {
   let imports = program |> fmt_imports;
   let declarations = program |> fmt_declarations;
 
@@ -345,6 +355,5 @@ let format = (program: program_t): string => {
       ? [] : [Pretty.Newline]
   )
   @ declarations
-  |> Pretty.concat
-  |> Pretty.to_string;
+  |> Pretty.concat;
 };

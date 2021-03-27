@@ -6,11 +6,7 @@ type t = string;
 
 /* static */
 
-let create = (project_name: string): t => {
-  let temp_dir = Util.create_temp_dir(project_name);
-
-  temp_dir;
-};
+let create = (project_name: string): t => Util.create_temp_dir(project_name);
 
 /* methods */
 

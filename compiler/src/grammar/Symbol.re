@@ -3,6 +3,9 @@ open Kore;
 module C = C.Character;
 module M = Matchers;
 
+let semicolon = M.symbol(C.semicolon);
+let comma = M.symbol(C.comma);
+
 let not = M.symbol(C.exclamation_mark);
 let negative = M.symbol(C.minus_sign);
 let positive = M.symbol(C.plus_sign);

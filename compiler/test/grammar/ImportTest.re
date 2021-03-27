@@ -36,27 +36,99 @@ let suite =
     "parse"
     >: (
       () =>
-        Assert.parse(
-          "import foo from \"@/bar\"",
-          AST.(
-            of_import((
-              "bar" |> of_internal,
-              ["foo" |> of_public |> as_lexeme |> of_main],
-            ))
+        [
+          (
+            "import foo from \"@/bar\"",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                ["foo" |> of_public |> as_lexeme |> of_main],
+              ))
+            ),
           ),
-        )
+          (
+            "import {} from \"@/bar\"",
+            AST.(of_import(("bar" |> of_internal, []))),
+          ),
+          (
+            "import { foo } from \"@/bar\"",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                [("foo" |> of_public |> as_lexeme, None) |> of_named],
+              ))
+            ),
+          ),
+          (
+            "import { foo as bar } from \"@/bar\"",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                [
+                  (
+                    "foo" |> of_public |> as_lexeme,
+                    Some("bar" |> of_public |> as_lexeme),
+                  )
+                  |> of_named,
+                ],
+              ))
+            ),
+          ),
+          (
+            "import fizz, { foo, bar as Bar } from \"@/bar\"",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                [
+                  "fizz" |> of_public |> as_lexeme |> of_main,
+                  ("foo" |> of_public |> as_lexeme, None) |> of_named,
+                  (
+                    "bar" |> of_public |> as_lexeme,
+                    Some("Bar" |> of_public |> as_lexeme),
+                  )
+                  |> of_named,
+                ],
+              ))
+            ),
+          ),
+          (
+            "import { foo, bar, } from \"@/bar\"",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                [
+                  ("foo" |> of_public |> as_lexeme, None) |> of_named,
+                  ("bar" |> of_public |> as_lexeme, None) |> of_named,
+                ],
+              ))
+            ),
+          ),
+        ]
+        |> Assert.parse_many
     ),
     "parse terminated"
     >: (
       () =>
-        Assert.parse(
-          "import foo from \"@/bar\";",
-          AST.(
-            of_import((
-              "bar" |> of_internal,
-              ["foo" |> of_public |> as_lexeme |> of_main],
-            ))
+        [
+          (
+            "import foo from \"@/bar\";",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                ["foo" |> of_public |> as_lexeme |> of_main],
+              ))
+            ),
           ),
-        )
+          (
+            "  import  foo  from   \"@/bar\"  ;  ",
+            AST.(
+              of_import((
+                "bar" |> of_internal,
+                ["foo" |> of_public |> as_lexeme |> of_main],
+              ))
+            ),
+          ),
+        ]
+        |> Assert.parse_many
     ),
   ];

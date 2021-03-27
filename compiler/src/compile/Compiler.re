@@ -52,14 +52,6 @@ let _add_errors =
   errors_ref := errors @ errors_ref^;
 };
 
-let _print_import_graph = compiler =>
-  ImportGraph.to_string(compiler.graph)
-  |> Log.debug("\n\n--- import graph ---\n\n%s");
-
-let _print_modules = compiler =>
-  ModuleTable.to_string(compiler.modules)
-  |> Log.debug("\n\n--- modules ---\n\n%s");
-
 /* static */
 
 /**
@@ -181,7 +173,7 @@ let emit_output = (target: Target.t, output_dir: string, compiler: t) =>
                    | External(_) => raise(NotImplemented),
                    ast,
                  )
-                 |> Printf.fprintf(out, "%s");
+                 |> Writer.write(out);
                  close_out(out);
                };
              }

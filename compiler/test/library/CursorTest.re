@@ -58,17 +58,4 @@ let suite =
         ]
         |> Assert.(test_many(cursor))
     ),
-    "to_string()"
-    >: (
-      () =>
-        [
-          ("(1:2)", Cursor.point(1, 2) |> Cursor.to_string),
-          (
-            "(3:5 - 4:2)",
-            Cursor.join(Cursor.point(3, 5), Cursor.point(4, 2))
-            |> Cursor.to_string,
-          ),
-        ]
-        |> Assert.(test_many(string))
-    ),
   ];

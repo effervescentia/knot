@@ -33,15 +33,3 @@ let join = (x: t, y: t): t =>
   | (Point(start), Range(_, end_))
   | (Range(start, _), Range(_, end_)) => Range(start, end_)
   };
-
-let to_string: t => string =
-  fun
-  | Point({line, column}) => Print.fmt("(%d:%d)", line, column)
-  | Range(start, end_) =>
-    Print.fmt(
-      "(%d:%d - %d:%d)",
-      start.line,
-      start.column,
-      end_.line,
-      end_.column,
-    );

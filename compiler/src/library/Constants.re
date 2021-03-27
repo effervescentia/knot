@@ -12,6 +12,7 @@ module Character = {
   let eol = '\n';
   let quote = '"';
   let period = '.';
+  let comma = ',';
   let octothorp = '#';
   let underscore = '_';
   let semicolon = ';';
@@ -65,4 +66,5 @@ module Keyword = {
   let nil = "nil";
   let true_ = "true";
   let false_ = "false";
+  let as_ = "as";
 };

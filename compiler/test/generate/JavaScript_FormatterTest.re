@@ -251,7 +251,9 @@ foo.bar = null;
             ],
           ),
         ]
-        |> List.map(Tuple.map_snd2(Formatter.format(Target.ES6)))
+        |> List.map(
+             Tuple.map_snd2(Formatter.format(Target.ES6) % Pretty.to_string),
+           )
         |> Assert.(test_many(string))
     ),
     "format() - CommonJS"
@@ -276,7 +278,11 @@ foo.bar = null;
             ],
           ),
         ]
-        |> List.map(Tuple.map_snd2(Formatter.format(Target.Common)))
+        |> List.map(
+             Tuple.map_snd2(
+               Formatter.format(Target.Common) % Pretty.to_string,
+             ),
+           )
         |> Assert.(test_many(string))
     ),
   ];

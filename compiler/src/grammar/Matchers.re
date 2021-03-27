@@ -18,8 +18,6 @@ let alpha_num = digit <|> alpha;
 
 let lexeme = x => spaces >> x;
 
-let terminated = x => x << (Character.semicolon |> lexeme |> optional);
-
 let between = (l, r, x) =>
   map3(
     (l', x', r') =>
@@ -37,6 +35,19 @@ let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
  matches a single character
  */
 let symbol = x => char(x) >|= Input.to_block |> lexeme;
+
+/**
+ matches a pattern that may be terminated by a semicolon
+ */
+let terminated = x => x << (C.Character.semicolon |> symbol |> optional);
+
+/**
+ matches a pattern that is separated by commas and may be terminated with a comma
+ */
+let comma_sep = x =>
+  x
+  |> sep_by(C.Character.comma |> symbol)
+  << optional(C.Character.comma |> symbol);
 
 /**
  matches a sequence of characters but tolerates spaces in between
