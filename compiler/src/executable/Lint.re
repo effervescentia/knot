@@ -10,7 +10,8 @@ let fix_opt = (~default=false, ()) => {
   let opt =
     Opt.create(
       ~alias="f",
-      ~default=Opt.Default.Bool(default),
+      ~default=Bool(default),
+      ~from_config=cfg => Some(Bool(cfg.fix)),
       "fix",
       Arg.Set(value),
       "automatically apply fixes",
@@ -23,11 +24,24 @@ let fix_opt = (~default=false, ()) => {
 let mode = () => {
   let (fix_opt, get_fix) = fix_opt();
 
-  let resolve = () => {fix: get_fix()};
-
-  ("lint", [fix_opt], resolve);
+  Mode.create("lint", [fix_opt], (static, global) => {fix: get_fix()});
 };
 
-let run = (cfg: Compiler.config_t, cmd: config_t) => {
+let run = (global: global_t, config: config_t) => {
+  Log.info("running 'lint' command");
+  Log.debug(
+    "lint config: %s",
+    [
+      ("name", global.name),
+      ("root_dir", global.root_dir),
+      ("source_dir", global.source_dir),
+      ("fix", config.fix |> string_of_bool),
+    ]
+    |> List.to_seq
+    |> Hashtbl.of_seq
+    |> Hashtbl.to_string(Functional.identity, Functional.identity)
+    |> Pretty.to_string,
+  );
+
   ();
 };

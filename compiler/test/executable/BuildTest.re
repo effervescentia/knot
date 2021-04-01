@@ -2,12 +2,13 @@ open Kore;
 
 module Build = Executable.Build;
 
+let __entry = Reference.Namespace.Internal("main");
 let __compiler_config =
-  Compile.Compiler.{
+  Executable.Kore.{
     name: "foo",
-    entry: Internal("main"),
     root_dir: simple_fixture_dir,
     source_dir: ".",
+    debug: false,
   };
 
 let suite =
@@ -20,9 +21,13 @@ let suite =
         let output_file = Filename.concat(temp_dir, "main.js");
 
         Build.run(
-          ~catch=print_errs % Assert.fail,
+          ~report=print_errs % Assert.fail,
           __compiler_config,
-          {target: Target.(JavaScript(Common)), out_dir: temp_dir},
+          {
+            target: Target.(JavaScript(Common)),
+            out_dir: temp_dir,
+            entry: __entry,
+          },
         );
 
         output_file |> Sys.file_exists |> Assert.true_;
@@ -45,13 +50,17 @@ exports.ABC = ABC;
         let constants_file = Filename.concat(temp_dir, "common/constants.js");
 
         Build.run(
-          ~catch=print_errs % Assert.fail,
+          ~report=print_errs % Assert.fail,
           {
             ...__compiler_config,
             root_dir: complex_fixture_dir,
             source_dir: "src",
           },
-          {target: Target.(JavaScript(Common)), out_dir: temp_dir},
+          {
+            target: Target.(JavaScript(Common)),
+            out_dir: temp_dir,
+            entry: __entry,
+          },
         );
 
         [main_file, app_file, constants_file]

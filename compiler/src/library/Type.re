@@ -45,7 +45,7 @@ let restrict = (lhs: trait_t, rhs: trait_t): option(trait_t) =>
   /* placeholder for other first-class types */
   | (K_Callable(_), K_Callable(_))
   | (K_Iterable(_), K_Iterable(_))
-  | (K_Structural(_), K_Structural(_)) => raise(Error.NotImplemented)
+  | (K_Structural(_), K_Structural(_)) => None
 
   | (l, r) when l == r => Some(l)
 
@@ -65,7 +65,7 @@ let generalize = (lhs: trait_t, rhs: trait_t): option(trait_t) =>
   /* placeholder for other first-class types */
   | (K_Callable(_), K_Callable(_))
   | (K_Iterable(_), K_Iterable(_))
-  | (K_Structural(_), K_Structural(_)) => raise(Error.NotImplemented)
+  | (K_Structural(_), K_Structural(_)) => None
 
   | (l, r) when l == r => Some(l)
 
@@ -183,3 +183,4 @@ and _err_to_string =
 
 let to_string = _type_to_string % Pretty.to_string;
 let trait_to_string = _trait_to_string % Pretty.to_string;
+let err_to_string = _err_to_string % Pretty.to_string;

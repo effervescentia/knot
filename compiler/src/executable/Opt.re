@@ -22,6 +22,7 @@ type t = {
   spec: Arg.spec,
   alias: option(string),
   default: option(Default.t),
+  from_config: static_t => option(Default.t),
   options: option(list(string)),
 };
 
@@ -29,6 +30,7 @@ let create =
     (
       ~alias=?,
       ~default=?,
+      ~from_config=_ => None,
       ~options=?,
       name: string,
       spec: Arg.spec,
@@ -40,6 +42,7 @@ let create =
   desc,
   alias,
   default,
+  from_config,
   options,
 };
 
@@ -52,9 +55,9 @@ let to_config = (value: t): list((string, Arg.spec, string)) =>
     }
   );
 
-let to_string = (value: t): string =>
+let to_string = (cfg: option(static_t), value: t): string =>
   Print.fmt(
-    "  %s%s%s\n    %s",
+    "  %s%s%s%s\n\n    %s",
     value.name
     |> (
       switch (value.alias) {
@@ -63,38 +66,105 @@ let to_string = (value: t): string =>
       }
     )
     |> Print.bold,
-    switch (value.default) {
-    | Some(default) =>
-      Default.to_string(default) |> Print.bold |> Print.fmt(" (default=%s)")
-    | None => ""
-    },
     switch (value.options) {
     | Some(options) =>
       Print.many(~separator=", ", Functional.identity, options)
       |> Print.bold
-      |> Print.fmt(" (options=%s)")
+      |> Print.fmt(" (options: %s)")
+    | None => ""
+    },
+    switch (value.default) {
+    | Some(default) =>
+      Default.to_string(default)
+      |> Print.bold
+      |> Print.fmt("\n    [default: %s]")
+    | None => ""
+    },
+    switch (cfg) {
+    | Some(cfg) =>
+      switch (value.from_config(cfg), value.default) {
+      | (Some(from_config), Some(default)) when from_config != default =>
+        Default.to_string(from_config)
+        |> Print.bold
+        |> Print.fmt("\n    [from config: %s]")
+      | _ => ""
+      }
     | None => ""
     },
     value.desc,
   );
 
 module Shared = {
-  let __targets = ["javascript"];
   let __min_port = 1024;
   let __max_port = 49151;
 
-  let port = (~default=1337, ()) => {
-    let value = ref(default);
+  let _resolve =
+      (
+        cfg: option(static_t),
+        select: static_t => 'a,
+        default: 'a,
+        value: option('a),
+      )
+      : 'a =>
+    switch (cfg, value) {
+    | (_, Some(value)) => value
+    | (Some(cfg), None) => select(cfg)
+    | (None, None) => default
+    };
+
+  let debug = (~default=defaults.debug, ()) => {
+    let value = ref(None);
+    let opt =
+      create(
+        ~default=Bool(default),
+        ~from_config=cfg => Some(Bool(cfg.debug)),
+        "debug",
+        Unit(() => value := Some(true)),
+        "enable a higher level of logging",
+      );
+    let resolve = cfg => value^ |> _resolve(cfg, x => x.debug, default);
+
+    (opt, resolve);
+  };
+
+  let root_dir = (~default=defaults.root_dir, ()) => {
+    let value = ref(None);
+    let opt =
+      create(
+        ~alias="r",
+        ~default=String(default),
+        ~from_config=cfg => Some(String(cfg.root_dir)),
+        "root-dir",
+        String(x => value := Some(x)),
+        "the root directory to reference modules from",
+      );
+    let resolve = cfg => {
+      let root_dir =
+        value^ |> _resolve(cfg, x => x.root_dir, default) |> Filename.resolve;
+
+      if (!Sys.file_exists(root_dir)) {
+        root_dir |> Print.fmt("root directory does not exist: '%s'") |> panic;
+      };
+
+      root_dir;
+    };
+
+    (opt, resolve);
+  };
+
+  let port = (~default=defaults.port, ()) => {
+    let value = ref(None);
     let opt =
       create(
         ~alias="p",
-        ~default=Default.Int(default),
+        ~default=Int(default),
+        ~from_config=cfg => Some(Int(cfg.port)),
         "port",
-        Arg.Set_int(value),
+        Int(x => value := Some(x)),
         "the port the server runs on",
       );
-    let resolve = () => {
-      let port = value^;
+    let resolve = cfg => {
+      let port = value^ |> _resolve(cfg, x => x.port, default);
 
       if (port < __min_port || port > __max_port) {
         Print.fmt(
@@ -111,101 +181,145 @@ module Shared = {
     (opt, resolve);
   };
 
-  let root_dir = (~default="", ()) => {
-    let value = ref(default);
+  let _check_source_dir_exists = x =>
+    if (!Sys.file_exists(x)) {
+      x |> Print.fmt("source directory does not exist: '%s'") |> panic;
+    };
+  let source_dir = (~default=defaults.source_dir, ()) => {
+    let value = ref(None);
     let opt =
       create(
-        ~default=Default.String(default),
-        "root-dir",
-        Arg.Set_string(value),
-        "the root directory to reference modules from",
+        ~alias="s",
+        ~default=String(default),
+        ~from_config=cfg => Some(String(cfg.source_dir)),
+        "source-dir",
+        String(x => value := Some(x)),
+        Print.fmt(
+          "the directory to reference source modules from, relative to %s",
+          Print.bold("root-dir"),
+        ),
       );
-    let resolve = () => {
-      let root_dir = value^;
-
-      if (root_dir == "") {
-        panic("root directory not provided");
+    let resolve = (cfg: option(static_t), root_dir) => {
+      switch (cfg, value^) {
+      | (_, Some(value)) =>
+        let source_dir = value |> Filename.resolve;
+        _check_source_dir_exists(source_dir);
+        source_dir |> Filename.relative_to(root_dir);
+      | (Some(cfg), None) =>
+        let source_dir = cfg.source_dir;
+        _check_source_dir_exists(source_dir |> Filename.resolve);
+        source_dir;
+      | (None, None) =>
+        let source_dir = default;
+        _check_source_dir_exists(source_dir |> Filename.resolve);
+        source_dir;
       };
-
-      if (!Sys.file_exists(root_dir)) {
-        root_dir |> Print.fmt("root directory does not exist: '%s'") |> panic;
-      };
-
-      root_dir;
     };
 
     (opt, resolve);
   };
 
-  let source_dir = (~default="", ()) => {
-    let value = ref(default);
+  let _check_entry_exists = x =>
+    if (!Sys.file_exists(x)) {
+      x |> Print.fmt("entry does not exist: '%s'") |> panic;
+    };
+  let entry = (~default=defaults.entry, ()) => {
+    let value = ref(None);
     let opt =
       create(
-        ~default=Default.String(default),
-        "source-dir",
-        Arg.Set_string(value),
-        Print.bold("root-dir")
-        |> Print.fmt(
-             "the directory to reference source modules from, relative to %s",
-           ),
+        ~alias="e",
+        ~default=String(default),
+        ~from_config=cfg => Some(String(cfg.entry)),
+        "entry",
+        String(x => value := Some(x)),
+        Print.fmt(
+          "the entry point for execution, relative to %s",
+          Print.bold("source-dir"),
+        ),
       );
-    let resolve = () => value^;
+    let resolve = (cfg, root_dir, source_dir) => {
+      let source_path = Filename.concat(root_dir, source_dir);
+
+      Namespace.Internal(
+        (
+          switch (cfg, value^) {
+          | (_, Some(value)) =>
+            let entry = value |> Filename.resolve;
+            _check_entry_exists(entry);
+            entry |> Filename.relative_to(source_path);
+          | (Some(cfg), None) =>
+            let entry = cfg.entry;
+            _check_entry_exists(Filename.concat(source_path, entry));
+            entry;
+          | (None, None) =>
+            let entry = default;
+            _check_entry_exists(Filename.concat(source_path, entry));
+            entry;
+          }
+        )
+        |> String.drop_suffix(Constants.file_extension),
+      );
+    };
 
     (opt, resolve);
   };
 
+  let __targets = [
+    Target.javascript_es6,
+    Target.javascript_common,
+    Target.knot,
+  ];
+  let target_of_string = x =>
+    switch (Target.of_string(x)) {
+    | Some(_) as y => y
+    | None => x |> Print.fmt("unknown target: '%s'") |> panic
+    };
   let target = () => {
     let value = ref(None);
     let opt =
       create(
         ~alias="t",
         ~options=__targets,
+        ~from_config=
+          cfg => cfg.target |?> Target.to_string % (x => Default.String(x)),
         "target",
-        Arg.Symbol(
-          __targets,
-          fun
-          | "javascript" => value := Some(Target.JavaScript(Target.ES6))
-          | x => Print.fmt("unknown target: '%s'", x) |> panic,
-        ),
+        Symbol(__targets, x => value := target_of_string(x)),
         "the target to compile to",
       );
-    let resolve = () =>
-      value^ |!: (() => panic("must provide a target for compilation"));
+    let resolve = cfg =>
+      switch (cfg, value^) {
+      | (None, Some(value)) => value
+      | (Some({target: Some(target)}), None) => target
+      | (_, _) => panic("must provide a target for compilation")
+      };
 
     (opt, resolve);
   };
-
-  let out_dir = () => {
-    let value = ref("");
+  let out_dir = (~default=defaults.out_dir, ()) => {
+    let value = ref(None);
     let opt =
       create(
         ~alias="o",
+        ~default=String(default),
+        ~from_config=cfg => Some(String(cfg.out_dir)),
         "out-dir",
-        Arg.Set_string(value),
+        String(x => value := Some(x)),
         "the directory to write compiled files to",
       );
-    let resolve = () => value^;
+    let resolve = (cfg: option(static_t), root_dir: string) =>
+      switch (cfg, value^) {
+      | (_, Some(value)) => value |> Filename.resolve
+      | (Some(cfg), None) =>
+        let out_dir = cfg.out_dir;
+
+        if (Filename.is_relative(out_dir)) {
+          Filename.concat(root_dir, out_dir);
+        } else {
+          out_dir;
+        };
+      | (None, None) => Filename.concat(root_dir, default)
+      };
 
     (opt, resolve);
-  };
-
-  let compile = () => {
-    let (root_dir_opt, get_root_dir) = root_dir(~default=Sys.getcwd(), ());
-    let (source_dir_opt, get_source_dir) = source_dir(~default="src", ());
-
-    let resolve = () => {
-      let root_dir = get_root_dir() |> Filename.resolve;
-
-      let source_dir = get_source_dir() |> Filename.relative_to(root_dir);
-
-      Compiler.{
-        name: Filename.basename(root_dir),
-        entry: Internal("main"),
-        root_dir,
-        source_dir,
-      };
-    };
-
-    ([root_dir_opt, source_dir_opt], resolve);
   };
 };

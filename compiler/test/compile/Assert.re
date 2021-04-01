@@ -20,7 +20,7 @@ let compiler =
             && l.resolver.root_dir == r.resolver.root_dir
             && l.config == r.config
             && l.errors == r.errors
-            && l.throw === r.throw;
+            && l.report === r.report;
           }
         ),
       ),

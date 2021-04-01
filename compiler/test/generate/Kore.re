@@ -1,4 +1,5 @@
 include Knot.Kore;
-include Generate.Kore;
 include AST;
 include Test.Infix;
+
+module Target = Generate.Target;

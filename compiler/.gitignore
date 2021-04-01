@@ -8,3 +8,4 @@ _esy/
 .DS_Store
 *.install
 _archived/
+.scratch/

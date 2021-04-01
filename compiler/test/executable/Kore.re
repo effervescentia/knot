@@ -1,6 +1,7 @@
 include Knot.Kore;
-include Generate.Kore;
 include Test.Kore;
+
+module Target = Generate.Target;
 
 let simple_fixture_dir = "./test/executable/.fixtures/simple";
 let complex_fixture_dir = "./test/executable/.fixtures/complex";

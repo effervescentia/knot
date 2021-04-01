@@ -16,7 +16,6 @@ let __entry = Reference.Namespace.Internal(__entry_module);
 let __config =
   Compiler.{
     name: "foo",
-    entry: __entry,
     root_dir: __valid_program_dir,
     source_dir: __source_dir,
   };
@@ -72,7 +71,7 @@ let suite =
               source_dir: __source_dir,
             },
             errors: ref([]),
-            throw: throw_all,
+            report: throw_all,
           },
           Compiler.create(__config),
         )
@@ -80,7 +79,7 @@ let suite =
     "create() - use custom error handler"
     >: (
       () => {
-        let throw = _ => ();
+        let report = _ => ();
 
         Assert.compiler(
           {
@@ -93,9 +92,9 @@ let suite =
               source_dir: __source_dir,
             },
             errors: ref([]),
-            throw,
+            report,
           },
-          Compiler.create(~catch=throw, __config),
+          Compiler.create(~report, __config),
         );
       }
     ),
@@ -165,7 +164,7 @@ let suite =
       () => {
         let compiler = Compiler.create(__config);
 
-        compiler |> Compiler.init;
+        compiler |> Compiler.init(__entry);
 
         _assert_import_graph_structure(
           {imports: Graph.create([__entry], []), get_imports: _ => []},
@@ -189,7 +188,7 @@ let suite =
           "should throw ImportCycle exception",
           CompilerError([ImportCycle(["@/entry", "@/cycle"])]),
           () =>
-          compiler |> Compiler.init
+          compiler |> Compiler.init(__entry)
         );
       }
     ),

@@ -74,7 +74,8 @@
     },
     "src/executable": {
       "require": [
-        "knot.compile"
+        "knot.compile",
+        "yaml"
       ],
       "name": "knot.exec",
       "namespace": "Executable"
@@ -200,10 +201,7 @@
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test.unit && npm run test.integration && npm run test:e2e 1> /dev/null",
     "test.unit": "esy x UnitTests.exe --show-errors",
-    "test.integration": "esy x IntegrationTests.exe --show-errors",
-    "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
-    "test:e2e:debug": "npm run test:e2e -- -debug",
-    "tdd": "sane 'esy build && npm run test' --glob='(src|test)/**/*'"
+    "test.integration": "esy x IntegrationTests.exe --show-errors"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
@@ -216,7 +214,8 @@
     "@opam/fswatch_lwt": "11-0.1.0",
     "@opam/lwt": "5.4.0",
     "@opam/tablecloth-native": "0.0.7",
-    "@opam/uutf": "1.0.2"
+    "@opam/uutf": "1.0.2",
+    "@opam/yaml": "2.1.0"
   },
   "devDependencies": {
     "@opam/merlin": "*",

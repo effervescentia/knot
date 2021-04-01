@@ -3,11 +3,11 @@ open Kore;
 module Format = Executable.Format;
 
 let __compiler_config =
-  Compile.Compiler.{
+  Executable.Kore.{
     name: "foo",
-    entry: Internal("main"),
     root_dir: "placeholder",
     source_dir: ".",
+    debug: false,
   };
 
 let suite =
@@ -23,7 +23,7 @@ let suite =
         FileUtil.cp(~recurse=true, [messy_fixture_dir], temp_dir);
 
         Format.run(
-          ~catch=print_errs % Assert.fail,
+          ~report=print_errs % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
           (),
         );
@@ -52,7 +52,7 @@ let suite =
         FileUtil.cp(~recurse=true, [messy_cylic_fixture_dir], temp_dir);
 
         Format.run(
-          ~catch=print_errs % Assert.fail,
+          ~report=print_errs % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
           (),
         );
@@ -89,7 +89,7 @@ let suite =
         );
 
         Format.run(
-          ~catch=print_errs % Assert.fail,
+          ~report=print_errs % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
           (),
         );

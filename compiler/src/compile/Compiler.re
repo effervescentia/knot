@@ -3,7 +3,6 @@ open Reference;
 
 type config_t = {
   name: string,
-  entry: Namespace.t,
   root_dir: string,
   source_dir: string,
 };
@@ -16,18 +15,11 @@ type t = {
   graph: ImportGraph.t,
   modules: ModuleTable.t,
   resolver: Resolver.t,
-  throw: list(compiler_err) => unit,
-  errors: ref(list(compiler_err)),
+  report: list(compile_err) => unit,
+  errors: ref(list(compile_err)),
 };
 
 let __module_table_size = 64;
-
-let _resolve = (~skip_cache=false, compiler, id) =>
-  Resolver.resolve_module(~skip_cache, id, compiler.resolver);
-
-let _add_to_cache = (id, compiler) =>
-  _resolve(~skip_cache=true, compiler, id)
-  |> Module.cache(compiler.resolver.cache);
 
 let _get_exports = ast =>
   ast
@@ -44,11 +36,11 @@ let _report_errors = compiler =>
     let errors = compiler.errors^;
 
     compiler.errors := [];
-    compiler.throw(errors);
+    compiler.report(errors);
   };
 
 let _add_errors =
-    (errors: list(compiler_err), errors_ref: ref(list(compiler_err))) => {
+    (errors: list(compile_err), errors_ref: ref(list(compile_err))) => {
   errors_ref := errors @ errors_ref^;
 };
 
@@ -57,7 +49,7 @@ let _add_errors =
 /**
  construct a new compiler instance
  */
-let create = (~catch as throw=throw_all, config: config_t): t => {
+let create = (~report=throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
@@ -77,17 +69,24 @@ let create = (~catch as throw=throw_all, config: config_t): t => {
 
   let modules = Hashtbl.create(__module_table_size);
 
-  {throw, config, graph, modules, resolver, errors};
+  {report, config, graph, modules, resolver, errors};
 };
 
 /* methods */
+
+let resolve = (~skip_cache=false, compiler, id) =>
+  Resolver.resolve_module(~skip_cache, id, compiler.resolver);
+
+let _add_to_cache = (id, compiler) =>
+  resolve(~skip_cache=true, compiler, id)
+  |> Module.cache(compiler.resolver.cache);
 
 /**
  check for import cycles and missing modules
  */
 let validate = (compiler: t) => {
-  compiler.graph |> Validate.no_import_cycles(~catch=compiler.throw);
-  compiler.graph |> Validate.no_unresolved_modules(~catch=compiler.throw);
+  compiler.graph |> Validate.no_import_cycles(~report=compiler.report);
+  compiler.graph |> Validate.no_unresolved_modules(~report=compiler.report);
 };
 
 /**
@@ -116,8 +115,8 @@ let process =
 /**
  fill import graph from entry and parse program to AST
  */
-let init = (~skip_cache=false, compiler: t) => {
-  compiler.graph |> ImportGraph.init(compiler.config.entry);
+let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
+  compiler.graph |> ImportGraph.init(entry);
   compiler |> _report_errors;
 
   /* check if import graph is valid */
@@ -131,7 +130,7 @@ let init = (~skip_cache=false, compiler: t) => {
   };
 
   /* parse modules to AST */
-  compiler |> process(modules, _resolve(~skip_cache, compiler));
+  compiler |> process(modules, resolve(~skip_cache, compiler));
 };
 
 /**
@@ -139,7 +138,7 @@ let init = (~skip_cache=false, compiler: t) => {
  */
 let incremental = (ids: list(Namespace.t), compiler: t) => {
   compiler |> validate;
-  compiler |> process(ids, _resolve(~skip_cache=true, compiler));
+  compiler |> process(ids, resolve(~skip_cache=true, compiler));
 
   /* generate output files */
 
@@ -186,8 +185,9 @@ let emit_output = (target: Target.t, output_dir: string, compiler: t) =>
 /**
  compile the entire program to the target
  */
-let compile = (target: Target.t, output_dir: string, compiler: t) => {
-  compiler |> init;
+let compile =
+    (target: Target.t, output_dir: string, entry: Namespace.t, compiler: t) => {
+  compiler |> init(entry);
 
   FileUtil.rm(~recurse=true, [output_dir]);
   FileUtil.mkdir(~parent=true, output_dir);
@@ -203,7 +203,11 @@ let compile = (target: Target.t, output_dir: string, compiler: t) => {
  add a new module (and its import graph) to a compiler
  */
 let add_module = (id: Namespace.t, compiler: t) =>
-  compiler.graph |> ImportGraph.add_module(id);
+  if (compiler.graph |> ImportGraph.has_module(id)) {
+    compiler.graph |> ImportGraph.get_imported_by(id);
+  } else {
+    compiler.graph |> ImportGraph.add_module(id);
+  };
 
 /**
  replace an existing module in a compiler
@@ -237,7 +241,7 @@ let remove_module = (id: Namespace.t, compiler: t) => {
  move a module to a new location
  */
 let relocate_module = (id: Namespace.t, compiler: t) =>
-  _resolve(~skip_cache=true, compiler, id) |> Module.exists
+  resolve(~skip_cache=true, compiler, id) |> Module.exists
     ? update_module(id, compiler)
     : remove_module(id, compiler) |> (removed => (removed, []));
 

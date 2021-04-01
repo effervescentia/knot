@@ -22,3 +22,12 @@ let clone = (source: string, target: string) => {
   Filename.dirname(target) |> FileUtil.mkdir(~parent=true);
   FileUtil.cp([source], target);
 };
+
+let read_to_string = path => {
+  let in_ = open_in(path);
+  let string = really_input_string(in_, in_channel_length(in_));
+
+  close_in(in_);
+
+  string;
+};

@@ -1,6 +1,7 @@
 /**
  Command utilities.
  */
+open Kore;
 
 type t =
   | Build(Build.config_t)
@@ -21,16 +22,10 @@ let to_string =
   | Bundle(_) => "bundle"
   | Develop(_) => "develop";
 
-let _map = (f, (name, opts, resolve): (string, list(Opt.t), unit => 'a)) => (
-  name,
-  opts,
-  () => f(resolve()),
-);
-
-let of_build = _map(x => Build(x));
-let of_watch = _map(x => Watch(x));
-let of_format = _map(x => Format(x));
-let of_lint = _map(x => Lint(x));
-let of_lsp = _map(x => LSP(x));
-let of_bundle = _map(x => Bundle(x));
-let of_develop = _map(x => Develop(x));
+let of_build = Mode.map(x => Build(x));
+let of_watch = Mode.map(x => Watch(x));
+let of_format = Mode.map(x => Format(x));
+let of_lint = Mode.map(x => Lint(x));
+let of_lsp = Mode.map(x => LSP(x));
+let of_bundle = Mode.map(x => Bundle(x));
+let of_develop = Mode.map(x => Develop(x));
