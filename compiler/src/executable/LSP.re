@@ -5,28 +5,19 @@ open Kore;
 
 type config_t = {port: int};
 
-let mode = () => {
-  let (port_opt, get_port) = Opt.Shared.port();
+let cmd = () => {
+  let (port_opt, get_port) = ConfigOpt.port();
 
-  Mode.create("lsp", [port_opt], (static, global) =>
+  Cmd.create(lsp_key, [port_opt], (static, global) =>
     {port: get_port(static)}
   );
 };
 
 let run = (global: global_t, config: config_t): Lwt.t(unit) => {
-  Log.info("running 'lsp' command");
-  Log.debug(
-    "lsp config: %s",
-    [
-      ("name", global.name),
-      ("root_dir", global.root_dir),
-      ("source_dir", global.source_dir),
-      ("port", config.port |> string_of_int),
-    ]
-    |> List.to_seq
-    |> Hashtbl.of_seq
-    |> Hashtbl.to_string(Functional.identity, Functional.identity)
-    |> Pretty.to_string,
+  Cmd.log_config(
+    global,
+    lsp_key,
+    [(port_key, config.port |> string_of_int)],
   );
 
   Lwt.return();

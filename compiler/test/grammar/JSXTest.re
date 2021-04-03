@@ -91,7 +91,12 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  "buzz" |> of_public |> as_lexeme |> of_id |> as_bool |> some,
+                  "buzz"
+                  |> of_public
+                  |> as_lexeme
+                  |> of_id
+                  |> as_bool
+                  |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -108,7 +113,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  "buzz" |> string_prim |> some,
+                  "buzz" |> string_prim |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -135,7 +140,7 @@ let suite =
                   ]
                   |> of_closure
                   |> as_bool
-                  |> some,
+                  |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -155,7 +160,7 @@ let suite =
                   (1 |> int_prim, 2 |> int_prim)
                   |> of_add_op
                   |> as_int
-                  |> some,
+                  |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -172,7 +177,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  bool_prim(true) |> of_group |> as_bool |> some,
+                  bool_prim(true) |> of_group |> as_bool |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -189,7 +194,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  3 |> int_prim |> of_neg_op |> as_int |> some,
+                  3 |> int_prim |> of_neg_op |> as_int |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -209,7 +214,7 @@ let suite =
                   ("buzz" |> of_public |> as_lexeme, [], [])
                   |> jsx_tag
                   |> as_element
-                  |> some,
+                  |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,

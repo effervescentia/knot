@@ -33,3 +33,8 @@ let join = (x: t, y: t): t =>
   | (Point(start), Range(_, end_))
   | (Range(start, _), Range(_, end_)) => Range(start, end_)
   };
+
+let expand =
+  fun
+  | Range(start, end_) => (start, end_)
+  | Point(point) => (point, point);

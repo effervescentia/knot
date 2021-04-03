@@ -4,24 +4,16 @@
 open Kore;
 
 let __commands = [
-  ("build", " compile files to target in output directory"),
-  ("watch", " run build and incrementally rebuild changed files"),
-  ("format", " update code style and spacing"),
-  ("lint", " analyze code style and report on anti-patterns"),
-  ("lsp", " run an LSP-compliant server for integration with IDEs"),
-  ("bundle", " generate executable from source code"),
-  ("develop", " run a development server to enable continuous development"),
+  (build_key, " compile files to target in output directory"),
+  (watch_key, " run build and incrementally rebuild changed files"),
+  (format_key, " update code style and spacing"),
+  (lint_key, " analyze code style and report on anti-patterns"),
+  (lsp_key, " run an LSP-compliant server for integration with IDEs"),
+  (bundle_key, " generate executable from source code"),
+  (develop_key, " run a development server to enable continuous development"),
 ];
 
 let __config_file = ".knot.yml";
-
-let __build_cmd = Command.of_build(Build.mode());
-let __watch_cmd = Command.of_watch(Watch.mode());
-let __format_cmd = Command.of_format(Format.mode());
-let __lint_cmd = Command.of_lint(Lint.mode());
-let __lsp_cmd = Command.of_lsp(LSP.mode());
-let __bundle_cmd = Command.of_bundle(Bundle.mode());
-let __develop_cmd = Command.of_develop(Develop.mode());
 
 let _bold_items = List.map(((name, desc)) => (Print.bold(name), desc));
 
@@ -43,13 +35,13 @@ let _print_cmds =
 
 let _print_opts = (cfg, xs) =>
   Print.many(~separator="\n\n", Opt.to_string(cfg), xs) |> print_endline;
-
 let from_file = (file: string): static_t => {
   let root_dir = ref(defaults.root_dir);
   let source_dir = ref(defaults.source_dir);
   let out_dir = ref(defaults.out_dir);
   let target = ref(defaults.target);
   let entry = ref(defaults.entry);
+  let color = ref(defaults.color);
   let fix = ref(defaults.fix);
   let debug = ref(defaults.debug);
   let port = ref(defaults.port);
@@ -59,17 +51,19 @@ let from_file = (file: string): static_t => {
     entries
     |> List.iter(
          fun
-         | (name, `String(value)) when name == "root_dir" =>
+         | (name, `String(value)) when name == root_dir_key =>
            root_dir := value |> Filename.resolve
-         | (name, `String(value)) when name == "source_dir" =>
+         | (name, `String(value)) when name == source_dir_key =>
            source_dir := value
-         | (name, `String(value)) when name == "out_dir" => out_dir := value
-         | (name, `String(value)) when name == "target" =>
-           target := Opt.Shared.target_of_string(value)
-         | (name, `String(value)) when name == "entry" => entry := value
-         | (name, `Bool(value)) when name == "fix" => fix := value
-         | (name, `Bool(value)) when name == "debug" => debug := value
-         | (name, `Float(value)) when name == "port" =>
+         | (name, `String(value)) when name == out_dir_key =>
+           out_dir := value
+         | (name, `String(value)) when name == target_key =>
+           target := Some(target_of_string(value))
+         | (name, `String(value)) when name == entry_key => entry := value
+         | (name, `Bool(value)) when name == fix_key => fix := value
+         | (name, `Bool(value)) when name == color_key => color := value
+         | (name, `Bool(value)) when name == debug_key => debug := value
+         | (name, `Float(value)) when name == port_key =>
            port := value |> int_of_float
          | (name, _) =>
            name |> Print.fmt("invalid entry found: %s") |> panic,
@@ -88,13 +82,14 @@ let from_file = (file: string): static_t => {
     out_dir: out_dir^,
     target: target^,
     entry: entry^,
+    color: color^,
     fix: fix^,
     debug: debug^,
     port: port^,
   };
 };
 
-let from_args = (): (global_t, Command.t) => {
+let from_args = (): (global_t, RunCmd.t) => {
   let auto_config_file = File.Util.find_up(__config_file, defaults.root_dir);
   let config_file = ref("");
   let static = ref(auto_config_file |?> from_file);
@@ -103,9 +98,9 @@ let from_args = (): (global_t, Command.t) => {
 
   let options = ref([]);
 
-  let (debug_opt, get_debug) = Opt.Shared.debug();
-  let (root_dir_opt, get_root_dir) = Opt.Shared.root_dir();
-  let (source_dir_opt, get_source_dir) = Opt.Shared.source_dir();
+  let (debug_opt, get_debug) = ConfigOpt.debug();
+  let (root_dir_opt, get_root_dir) = ConfigOpt.root_dir();
+  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
 
   let find_static_config = root_dir =>
     if (config_file^ == "") {
@@ -120,7 +115,7 @@ let from_args = (): (global_t, Command.t) => {
   let rec usage = () => {
     find_static_config(get_root_dir(static^));
 
-    let fmt_command = ({name}: Mode.t('a)) =>
+    let fmt_command = ({name}: Cmd.t('a)) =>
       Print.fmt(
         "  %s [options]",
         name |> Print.fmt("knotc %s") |> Print.bold,
@@ -133,8 +128,8 @@ let from_args = (): (global_t, Command.t) => {
       Print.bold("\nCOMMANDS\n") |> print_endline;
 
       __commands |> _print_cmds;
-    | Some(Mode.{name, opts: command_opts} as mode) =>
-      mode |> fmt_command |> print_endline;
+    | Some(Cmd.{name, opts: command_opts} as cmd) =>
+      cmd |> fmt_command |> print_endline;
 
       if (!List.is_empty(command_opts)) {
         Print.bold("\nCOMMAND OPTIONS\n") |> print_endline;
@@ -154,7 +149,7 @@ let from_args = (): (global_t, Command.t) => {
     source_dir_opt,
     Opt.create(
       ~alias="c",
-      ~default=Opt.Default.String(auto_config_file |?: __config_file),
+      ~default=String(auto_config_file |?: __config_file),
       "config",
       String(
         Filename.resolve
@@ -180,28 +175,28 @@ let from_args = (): (global_t, Command.t) => {
   /* capture and replace the inbuilt -help arg */
   let hidden_opts = [("-help", Arg.Unit(usage), "")];
 
-  let set_cmd = ({opts} as m: Mode.t('a)) => {
+  let set_cmd = ({opts} as m: Cmd.t('a)) => {
     cmd := Some(m);
     options :=
-      (opts @ global_opts() |> List.map(Opt.to_config) |> List.flatten)
+      (opts @ global_opts() |> List.map(Opt.to_args) |> List.flatten)
       @ hidden_opts;
   };
 
   options :=
-    (global_opts() |> List.map(Opt.to_config) |> List.flatten) @ hidden_opts;
+    (global_opts() |> List.map(Opt.to_args) |> List.flatten) @ hidden_opts;
 
   try(
     Arg.parse_dynamic(
       options,
       x =>
         switch (cmd^, x) {
-        | (None, "build") => set_cmd(__build_cmd)
-        | (None, "watch") => set_cmd(__watch_cmd)
-        | (None, "format") => set_cmd(__format_cmd)
-        | (None, "lint") => set_cmd(__lint_cmd)
-        | (None, "lsp") => set_cmd(__lsp_cmd)
-        | (None, "bundle") => set_cmd(__bundle_cmd)
-        | (None, "develop") => set_cmd(__develop_cmd)
+        | (None, key) when key == build_key => set_cmd(RunCmd.build)
+        | (None, key) when key == watch_key => set_cmd(RunCmd.watch)
+        | (None, key) when key == format_key => set_cmd(RunCmd.format)
+        | (None, key) when key == lint_key => set_cmd(RunCmd.lint)
+        | (None, key) when key == lsp_key => set_cmd(RunCmd.lsp)
+        | (None, key) when key == bundle_key => set_cmd(RunCmd.bundle)
+        | (None, key) when key == develop_key => set_cmd(RunCmd.develop)
         | _ => Print.fmt("unexpected argument: %s", x) |> panic
         },
       "knotc [options] <command>",
@@ -210,7 +205,7 @@ let from_args = (): (global_t, Command.t) => {
   | _ => ()
   };
 
-  let Mode.{resolve} =
+  let Cmd.{resolve} =
     cmd^
     |!: (
       () => {

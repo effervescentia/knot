@@ -44,5 +44,3 @@ let string_prim = AST.of_string % as_string % AST.of_prim % as_string;
 let jsx_node = AST.of_tag % as_lexeme % AST.of_node;
 
 let jsx_tag = AST.of_tag % as_lexeme % AST.of_jsx;
-
-let some = x => Some(x);

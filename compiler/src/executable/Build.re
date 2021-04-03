@@ -9,13 +9,13 @@ type config_t = {
   entry: Namespace.t,
 };
 
-let mode = () => {
-  let (out_dir_opt, get_out_dir) = Opt.Shared.out_dir();
-  let (target_opt, get_target) = Opt.Shared.target();
-  let (entry_opt, get_entry) = Opt.Shared.entry();
+let cmd = () => {
+  let (out_dir_opt, get_out_dir) = ConfigOpt.out_dir();
+  let (target_opt, get_target) = ConfigOpt.target();
+  let (entry_opt, get_entry) = ConfigOpt.entry();
 
-  Mode.create(
-    "build", [out_dir_opt, target_opt, entry_opt], (static, global) =>
+  Cmd.create(
+    build_key, [out_dir_opt, target_opt, entry_opt], (static, global) =>
     {
       target: get_target(static),
       out_dir: get_out_dir(static, global.root_dir),
@@ -25,21 +25,14 @@ let mode = () => {
 };
 
 let run = (~report=print_errs % panic, global: global_t, config: config_t) => {
-  Log.info("running 'build' command");
-  Log.debug(
-    "build config: %s",
+  Cmd.log_config(
+    global,
+    build_key,
     [
-      ("name", global.name),
-      ("root_dir", global.root_dir),
-      ("source_dir", global.source_dir),
-      ("out_dir", config.out_dir),
-      ("target", config.target |> Target.to_string),
-      ("entry", config.entry |> Namespace.to_string),
-    ]
-    |> List.to_seq
-    |> Hashtbl.of_seq
-    |> Hashtbl.to_string(Functional.identity, Functional.identity)
-    |> Pretty.to_string,
+      (out_dir_key, config.out_dir),
+      (target_key, config.target |> Target.to_string),
+      (entry_key, config.entry |> Namespace.to_string),
+    ],
   );
 
   let compiler =

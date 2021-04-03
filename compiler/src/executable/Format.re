@@ -5,24 +5,12 @@ open Kore;
 
 type config_t = unit;
 
-let mode = () => {
-  Mode.create("format", [], (_, _) => ());
+let cmd = () => {
+  Cmd.create(format_key, [], (_, _) => ());
 };
 
 let run = (~report=print_errs % panic, global: global_t, config: config_t) => {
-  Log.info("running 'format' command");
-  Log.debug(
-    "format config: %s",
-    [
-      ("name", global.name),
-      ("root_dir", global.root_dir),
-      ("source_dir", global.source_dir),
-    ]
-    |> List.to_seq
-    |> Hashtbl.of_seq
-    |> Hashtbl.to_string(Functional.identity, Functional.identity)
-    |> Pretty.to_string,
-  );
+  Cmd.log_config(global, format_key, []);
 
   let compiler =
     Compiler.create(

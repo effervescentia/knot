@@ -19,3 +19,4 @@ let rec many = (~separator="", print: 'a => string) =>
   | [x, ...xs] => print(x) ++ separator ++ many(~separator, print, xs);
 
 let bold = ANSI.sprintf([ANSI.Bold], "%s");
+let red = ANSI.sprintf([ANSI.red], "%s");
