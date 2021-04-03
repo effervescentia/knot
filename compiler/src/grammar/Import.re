@@ -36,12 +36,11 @@ let parser = (ctx: Context.t) =>
            AST.(
              fun
              | Main((id, _)) =>
-               ctx.scope
-               |> Scope.import(namespace, Public("main"), Some(id))
+               ctx |> Context.import(namespace, Public("main"), Some(id))
              | Named((id, _), None) =>
-               ctx.scope |> Scope.import(namespace, id, None)
+               ctx |> Context.import(namespace, id, None)
              | Named((id, _), Some((label, _))) =>
-               ctx.scope |> Scope.import(namespace, id, Some(label))
+               ctx |> Context.import(namespace, id, Some(label))
            ),
          )
   )
