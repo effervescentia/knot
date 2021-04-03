@@ -27,6 +27,7 @@ let run = (~report=print_errs % panic, global: global_t, config: config_t) => {
         name: global.name,
         root_dir: global.root_dir,
         source_dir: global.source_dir,
+        fail_fast: false,
       },
     );
 

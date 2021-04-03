@@ -31,7 +31,7 @@ let exists =
 
 let read = f =>
   fun
-  | File(path) as x when !exists(x) => throw(FileNotFound(path.relative))
+  | File(path) as x when !exists(x) => Error([FileNotFound(path.relative)])
   | File(path) =>
     IO.read_stream(path.full)
     |> (
@@ -40,18 +40,19 @@ let read = f =>
         |> (
           r => {
             close();
-            r;
+            Ok(r);
           }
         )
     )
-  | Raw(s) => InputStream.of_string(s) |> LazyStream.of_stream |> f;
+  | Raw(s) => Ok(InputStream.of_string(s) |> LazyStream.of_stream |> f);
 
 let cache = (cache: Cache.t) =>
   fun
   | File(path) =>
     if (Sys.file_exists(path.full)) {
       IO.clone(path.full, cache |> Cache.resolve_path(path.relative));
+      Ok();
     } else {
-      throw(FileNotFound(path.relative));
+      Error([FileNotFound(path.relative)]);
     }
-  | Raw(_) => ();
+  | Raw(_) => Ok();

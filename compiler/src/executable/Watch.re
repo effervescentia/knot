@@ -27,7 +27,8 @@ let cmd = () => {
   );
 };
 
-let run = (global: global_t, config: config_t) => {
+let run =
+    (~report=print_errs % Log.warn("%s"), global: global_t, config: config_t) => {
   Cmd.log_config(
     global,
     watch_key,
@@ -40,11 +41,12 @@ let run = (global: global_t, config: config_t) => {
 
   let compiler =
     Compiler.create(
-      ~report=print_errs % Log.warn("%s"),
+      ~report,
       {
         name: global.name,
         root_dir: global.root_dir,
         source_dir: global.source_dir,
+        fail_fast: false,
       },
     );
 

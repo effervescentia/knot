@@ -18,6 +18,7 @@ let __config =
     name: "foo",
     root_dir: __valid_program_dir,
     source_dir: __source_dir,
+    fail_fast: true,
   };
 
 let __types =
@@ -70,17 +71,14 @@ let suite =
               root_dir: __valid_program_dir,
               source_dir: __source_dir,
             },
-            errors: ref([]),
-            report: throw_all,
+            dispatch: _ => (),
           },
           Compiler.create(__config),
         )
     ),
     "create() - use custom error handler"
     >: (
-      () => {
-        let report = _ => ();
-
+      () =>
         Assert.compiler(
           {
             config: __config,
@@ -91,12 +89,10 @@ let suite =
               root_dir: __valid_program_dir,
               source_dir: __source_dir,
             },
-            errors: ref([]),
-            report,
+            dispatch: _ => (),
           },
-          Compiler.create(~report, __config),
-        );
-      }
+          Compiler.create(__config),
+        )
     ),
     "process() - parse all modules into their AST"
     >: (
@@ -137,7 +133,6 @@ let suite =
                Module.File({relative: __entry_filename, full: "foo"})
              )
         );
-        Assert.int(0, List.length(compiler.errors^));
       }
     ),
     "process() - catch parsing error"

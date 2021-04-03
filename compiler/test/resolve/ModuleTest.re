@@ -76,7 +76,8 @@ let suite =
               __program;
             },
             Module.Raw(content),
-          );
+          )
+          |> Result.get_ok;
 
         Assert.program(__program, program);
       }
@@ -94,7 +95,8 @@ let suite =
               __program;
             },
             Module.File({relative: "foo", full: fixture_path}),
-          );
+          )
+          |> Result.get_ok;
 
         Assert.program(__program, program);
       }
@@ -104,12 +106,10 @@ let suite =
       () => {
         let relative = "foo.kn";
 
-        Alcotest.check_raises(
-          "should throw FileNotFound exception",
-          CompileError([FileNotFound(relative)]),
-          () =>
+        Assert.compile_errors(
+          [FileNotFound(relative)],
           Module.read(_ => [], Module.File({relative, full: "bar"}))
-          |> ignore
+          |> Result.get_error,
         );
       }
     ),
@@ -122,7 +122,8 @@ let suite =
         Module.cache(
           cache,
           File({relative: relative_path, full: fixture_path}),
-        );
+        )
+        |> Result.get_ok;
 
         Filename.concat(cache, relative_path)
         |> Sys.file_exists
@@ -135,11 +136,10 @@ let suite =
         let relative_path = "foo.txt";
         let cache = Util.get_temp_dir();
 
-        Alcotest.check_raises(
-          "should throw FileNotFound exception",
-          CompileError([FileNotFound(relative_path)]),
-          () =>
+        Assert.compile_errors(
+          [FileNotFound(relative_path)],
           Module.cache(cache, File({relative: relative_path, full: "bar"}))
+          |> Result.get_error,
         );
       }
     ),

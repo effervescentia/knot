@@ -18,9 +18,7 @@ let compiler =
 
             l.graph.imports == r.graph.imports
             && l.resolver.root_dir == r.resolver.root_dir
-            && l.config == r.config
-            && l.errors == r.errors
-            && l.report === r.report;
+            && l.config == r.config;
           }
         ),
       ),

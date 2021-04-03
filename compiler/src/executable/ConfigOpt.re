@@ -228,7 +228,6 @@ let fix = (~default=defaults.fix, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
-      ~alias="f",
       ~default=Bool(default),
       ~from_config=cfg => Some(Bool(cfg.fix)),
       fix_key,
@@ -236,6 +235,21 @@ let fix = (~default=defaults.fix, ()) => {
       "automatically apply fixes",
     );
   let resolve = cfg => value^ |> _resolve(cfg, x => x.fix, default);
+
+  (opt, resolve);
+};
+
+let fail_fast = (~default=defaults.fail_fast, ()) => {
+  let value = ref(None);
+  let opt =
+    Opt.create(
+      ~default=Bool(default),
+      ~from_config=cfg => Some(Bool(cfg.fail_fast)),
+      fail_fast_key,
+      Unit(() => value := Some(true)),
+      "fail as soon as the first error is encountered",
+    );
+  let resolve = cfg => value^ |> _resolve(cfg, x => x.fail_fast, default);
 
   (opt, resolve);
 };

@@ -20,6 +20,7 @@ let entry_key = "entry";
 let debug_key = "debug";
 let color_key = "color";
 let fix_key = "fix";
+let fail_fast_key = "fail_fast";
 let port_key = "port";
 
 let is_ci =
@@ -38,6 +39,7 @@ type static_t = {
   debug: bool,
   color: bool,
   fix: bool,
+  fail_fast: bool,
   port: int,
 };
 
@@ -50,6 +52,7 @@ let defaults = {
   debug: false,
   color: !is_ci,
   fix: false,
+  fail_fast: false,
   port: 1337,
 };
 

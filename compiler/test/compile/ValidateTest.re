@@ -12,6 +12,19 @@ let _setup = get_imports => {
   graph;
 };
 
+let _assert_validate_result =
+  Alcotest.(
+    check(
+      result(
+        testable((_, _) => (), (==)),
+        testable(pp => print_errs % Format.pp_print_string(pp), (==)),
+      ),
+      "validate result matches",
+    )
+  );
+let _assert_valid = _assert_validate_result(Ok());
+let _assert_invalid = errs => _assert_validate_result(Error(errs));
+
 let suite =
   "Compile.Validate"
   >::: [
@@ -20,7 +33,7 @@ let suite =
       () => {
         let graph = _setup(id => id == __id ? [Internal("bar")] : []);
 
-        Validate.no_import_cycles(graph);
+        _assert_valid(Validate.no_import_cycles(graph));
       }
     ),
     "no_import_cycles() - invalid"
@@ -28,11 +41,9 @@ let suite =
       () => {
         let graph = _setup(_ => [__id]);
 
-        Alcotest.check_raises(
-          "should throw CompileError",
-          CompileError([ImportCycle(["@/foo"])]),
-          () =>
-          Validate.no_import_cycles(graph)
+        _assert_invalid(
+          [ImportCycle(["@/foo"])],
+          Validate.no_import_cycles(graph),
         );
       }
     ),
@@ -41,7 +52,7 @@ let suite =
       () => {
         let graph = _setup(id => id == __id ? [Internal("bar")] : []);
 
-        Validate.no_unresolved_modules(graph);
+        _assert_valid(Validate.no_unresolved_modules(graph));
       }
     ),
     "no_unresolved_modules() - invalid"
@@ -53,11 +64,9 @@ let suite =
         graph.imports |> Graph.add_edge(__id, other_id);
         graph.imports |> Graph.remove_node(other_id);
 
-        Alcotest.check_raises(
-          "should throw CompileError",
-          CompileError([UnresolvedModule("@/bar")]),
-          () =>
-          Validate.no_unresolved_modules(graph)
+        _assert_invalid(
+          [UnresolvedModule("@/bar")],
+          Validate.no_unresolved_modules(graph),
         );
       }
     ),

@@ -65,3 +65,11 @@ let list_namespace =
 
 let module_table =
   Alcotest.check(Compare.module_table, "module table matches");
+
+let compile_errors =
+  Alcotest.(
+    check(
+      testable(pp => print_errs % Format.pp_print_string(pp), (==)),
+      "compile error matches",
+    )
+  );

@@ -5,7 +5,12 @@ type config_t = {
   name: string,
   root_dir: string,
   source_dir: string,
+  fail_fast: bool,
 };
+
+type action_t =
+  | Report(list(compile_err))
+  | Flush;
 
 /**
  parses and transforms programs represented as a graph of modules
@@ -15,8 +20,7 @@ type t = {
   graph: ImportGraph.t,
   modules: ModuleTable.t,
   resolver: Resolver.t,
-  report: list(compile_err) => unit,
-  errors: ref(list(compile_err)),
+  dispatch: action_t => unit,
 };
 
 let __module_table_size = 64;
@@ -31,19 +35,6 @@ let _get_exports = ast =>
        | _ => None,
      );
 
-let _report_errors = compiler =>
-  if (List.length(compiler.errors^) != 0) {
-    let errors = compiler.errors^;
-
-    compiler.errors := [];
-    compiler.report(errors);
-  };
-
-let _add_errors =
-    (errors: list(compile_err), errors_ref: ref(list(compile_err))) => {
-  errors_ref := errors @ errors_ref^;
-};
-
 /* static */
 
 /**
@@ -54,22 +45,41 @@ let create = (~report=throw_all, config: config_t): t => {
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
   let errors = ref([]);
+  let dispatch =
+    fun
+    | Report(errs) =>
+      if (config.fail_fast) {
+        report(errs);
+      } else {
+        errors := errors^ @ errs;
+      }
+    | Flush => {
+        let errs = errors^;
+
+        if (!List.is_empty(errs)) {
+          errors := [];
+          report(errs);
+        };
+      };
+
   let graph =
     ImportGraph.create(id =>
-      try(
+      switch (
         resolver
         |> Resolver.resolve_module(~skip_cache=true, id)
         |> Module.read(Parser.imports)
       ) {
-      | CompileError(e) =>
-        _add_errors(e, errors);
+      | Ok(x) => x
+      | Error(errs) =>
+        Report(errs) |> dispatch;
+        /* assume no imports if parsing failed */
         [];
       }
     );
 
   let modules = Hashtbl.create(__module_table_size);
 
-  {report, config, graph, modules, resolver, errors};
+  {dispatch, config, graph, modules, resolver};
 };
 
 /* methods */
@@ -77,16 +87,18 @@ let create = (~report=throw_all, config: config_t): t => {
 let resolve = (~skip_cache=false, compiler, id) =>
   Resolver.resolve_module(~skip_cache, id, compiler.resolver);
 
-let _add_to_cache = (id, compiler) =>
-  resolve(~skip_cache=true, compiler, id)
-  |> Module.cache(compiler.resolver.cache);
-
 /**
  check for import cycles and missing modules
  */
 let validate = (compiler: t) => {
-  compiler.graph |> Validate.no_import_cycles(~report=compiler.report);
-  compiler.graph |> Validate.no_unresolved_modules(~report=compiler.report);
+  [Validate.no_import_cycles, Validate.no_unresolved_modules]
+  |> List.iter(validate =>
+       compiler.graph
+       |> validate
+       |> Result.iter_error(errs => Report(errs) |> compiler.dispatch)
+     );
+
+  compiler.dispatch(Flush);
 };
 
 /**
@@ -96,24 +108,24 @@ let process =
     (
       ids: list(Namespace.t),
       resolve: Namespace.t => Module.t,
-      {modules, errors} as compiler: t,
+      {modules} as compiler: t,
     ) => {
   ids
   |> List.iter(id =>
-       try(
+       switch (
          resolve(id)
          |> Module.read(
               Parser.ast(
                 ~ctx=Context.create(~scope=Scope.create(~modules, ()), ()),
               ),
             )
-         |> (ast => modules |> ModuleTable.add(id, ast, _get_exports(ast)))
        ) {
-       | CompileError(e) => _add_errors(e, errors)
+       | Ok(ast) => modules |> ModuleTable.add(id, ast, _get_exports(ast))
+       | Error(errs) => Report(errs) |> compiler.dispatch
        }
      );
 
-  compiler |> _report_errors;
+  compiler.dispatch(Flush);
 };
 
 /**
@@ -121,7 +133,7 @@ let process =
  */
 let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   compiler.graph |> ImportGraph.init(entry);
-  compiler |> _report_errors;
+  compiler.dispatch(Flush);
 
   /* check if import graph is valid */
   compiler |> validate;
@@ -130,7 +142,16 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
 
   if (!skip_cache) {
     /* cache snapshot of modules on disk */
-    modules |> List.iter(id => _add_to_cache(id, compiler));
+    modules
+    |> List.iter(id =>
+         switch (
+           resolve(~skip_cache=true, compiler, id)
+           |> Module.cache(compiler.resolver.cache)
+         ) {
+         | Ok(_) => ()
+         | Error(errs) => Report(errs) |> compiler.dispatch
+         }
+       );
   };
 
   /* parse modules to AST */

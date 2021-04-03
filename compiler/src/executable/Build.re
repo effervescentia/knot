@@ -7,12 +7,14 @@ type config_t = {
   target: Target.t,
   out_dir: string,
   entry: Namespace.t,
+  fail_fast: bool,
 };
 
 let cmd = () => {
   let (out_dir_opt, get_out_dir) = ConfigOpt.out_dir();
   let (target_opt, get_target) = ConfigOpt.target();
   let (entry_opt, get_entry) = ConfigOpt.entry();
+  let (fail_fast_opt, get_fail_fast) = ConfigOpt.fail_fast();
 
   Cmd.create(
     build_key, [out_dir_opt, target_opt, entry_opt], (static, global) =>
@@ -20,6 +22,7 @@ let cmd = () => {
       target: get_target(static),
       out_dir: get_out_dir(static, global.root_dir),
       entry: get_entry(static, global.root_dir, global.source_dir),
+      fail_fast: get_fail_fast(static),
     }
   );
 };
@@ -42,6 +45,7 @@ let run = (~report=print_errs % panic, global: global_t, config: config_t) => {
         name: global.name,
         root_dir: global.root_dir,
         source_dir: global.source_dir,
+        fail_fast: config.fail_fast,
       },
     );
 

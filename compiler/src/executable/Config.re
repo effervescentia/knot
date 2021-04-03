@@ -43,6 +43,7 @@ let from_file = (file: string): static_t => {
   let entry = ref(defaults.entry);
   let color = ref(defaults.color);
   let fix = ref(defaults.fix);
+  let fail_fast = ref(defaults.fail_fast);
   let debug = ref(defaults.debug);
   let port = ref(defaults.port);
 
@@ -61,6 +62,8 @@ let from_file = (file: string): static_t => {
            target := Some(target_of_string(value))
          | (name, `String(value)) when name == entry_key => entry := value
          | (name, `Bool(value)) when name == fix_key => fix := value
+         | (name, `Bool(value)) when name == fail_fast_key =>
+           fail_fast := value
          | (name, `Bool(value)) when name == color_key => color := value
          | (name, `Bool(value)) when name == debug_key => debug := value
          | (name, `Float(value)) when name == port_key =>
@@ -84,6 +87,7 @@ let from_file = (file: string): static_t => {
     entry: entry^,
     color: color^,
     fix: fix^,
+    fail_fast: fail_fast^,
     debug: debug^,
     port: port^,
   };

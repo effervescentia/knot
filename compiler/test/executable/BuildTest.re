@@ -27,6 +27,7 @@ let suite =
             target: Target.(JavaScript(Common)),
             out_dir: temp_dir,
             entry: __entry,
+            fail_fast: true,
           },
         );
 
@@ -60,6 +61,7 @@ exports.ABC = ABC;
             target: Target.(JavaScript(Common)),
             out_dir: temp_dir,
             entry: __entry,
+            fail_fast: true,
           },
         );
 
