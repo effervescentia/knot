@@ -9,7 +9,8 @@ module Assert = {
   include Assert.Make({
     type t = (identifier_t, declaration_t);
 
-    let parser = scope => Parser.parse(Declaration.constant(scope));
+    let parser = scope =>
+      Parser.parse(Declaration.constant(Context.create(~scope, ())));
 
     let test =
       Alcotest.(

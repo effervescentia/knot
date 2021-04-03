@@ -29,8 +29,8 @@ let suite =
         let graph = _setup(_ => [__id]);
 
         Alcotest.check_raises(
-          "should throw CompilerError",
-          CompilerError([ImportCycle(["@/foo"])]),
+          "should throw CompileError",
+          CompileError([ImportCycle(["@/foo"])]),
           () =>
           Validate.no_import_cycles(graph)
         );
@@ -54,8 +54,8 @@ let suite =
         graph.imports |> Graph.remove_node(other_id);
 
         Alcotest.check_raises(
-          "should throw CompilerError",
-          CompilerError([UnresolvedModule("@/bar")]),
+          "should throw CompileError",
+          CompileError([UnresolvedModule("@/bar")]),
           () =>
           Validate.no_unresolved_modules(graph)
         );

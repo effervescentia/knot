@@ -33,8 +33,8 @@ let imports =
  */
 let ast =
   AST.(
-    (~scope=Scope.create(), input) =>
-      parse(Program.main(~scope), input)
+    (~ctx=Context.create(), input) =>
+      parse(Program.main(~ctx), input)
       |> (
         fun
         | Some(stmts) => stmts

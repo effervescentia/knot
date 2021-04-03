@@ -8,7 +8,8 @@ module Assert =
   Assert.Make({
     type t = expression_t;
 
-    let parser = scope => Parser.parse(Expression.parser(scope));
+    let parser = scope =>
+      Parser.parse(Expression.parser(Context.create(~scope, ())));
 
     let test =
       Alcotest.(

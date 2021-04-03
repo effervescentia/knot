@@ -23,7 +23,7 @@ let named_import =
   >|= Block.value
   >|= List.map(AST.of_named);
 
-let parser = (scope: Scope.t) =>
+let parser = (ctx: Context.t) =>
   Keyword.import
   >> (choice([main_import, named_import]) |> M.comma_sep)
   >|= List.flatten
@@ -36,11 +36,12 @@ let parser = (scope: Scope.t) =>
            AST.(
              fun
              | Main((id, _)) =>
-               scope |> Scope.import(namespace, Public("main"), Some(id))
+               ctx.scope
+               |> Scope.import(namespace, Public("main"), Some(id))
              | Named((id, _), None) =>
-               scope |> Scope.import(namespace, id, None)
+               ctx.scope |> Scope.import(namespace, id, None)
              | Named((id, _), Some((label, _))) =>
-               scope |> Scope.import(namespace, id, Some(label))
+               ctx.scope |> Scope.import(namespace, id, Some(label))
            ),
          )
   )

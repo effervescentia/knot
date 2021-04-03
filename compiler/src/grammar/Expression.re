@@ -10,18 +10,18 @@ let primitive =
   Primitive.parser
   >|= (((_, type_, cursor) as prim) => (prim |> AST.of_prim, type_, cursor));
 
-let identifier = (scope: Scope.t) =>
+let identifier = (ctx: Context.t) =>
   Identifier.parser
   >|= (
     ((id, cursor) as id_lexeme) => (
       id_lexeme |> AST.of_id,
-      scope |> Scope.find(id),
+      ctx.scope |> Scope.find(id),
       cursor,
     )
   );
 
-let jsx = (scope: Scope.t, x) =>
-  JSX.parser(scope, x)
+let jsx = (ctx: Context.t, x) =>
+  JSX.parser(ctx, x)
   >|= (
     ((_, cursor) as jsx) => (
       jsx |> AST.of_jsx,
@@ -40,8 +40,8 @@ let group = x =>
     }
   );
 
-let closure = (scope: Scope.t, x) =>
-  Statement.parser(scope, x)
+let closure = (ctx: Context.t, x) =>
+  Statement.parser(ctx, x)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Tuple.split2(Block.value, Block.cursor)
@@ -67,18 +67,18 @@ let closure = (scope: Scope.t, x) =>
  */
 
 /* || */
-let rec expr_0 = (scope, input) =>
-  chainl1(expr_1(scope), Operator.logical_or, input)
+let rec expr_0 = (ctx: Context.t, input) =>
+  chainl1(expr_1(ctx), Operator.logical_or, input)
 /* && */
-and expr_1 = (scope, input) =>
-  chainl1(expr_2(scope), Operator.logical_and, input)
+and expr_1 = (ctx: Context.t, input) =>
+  chainl1(expr_2(ctx), Operator.logical_and, input)
 /* ==, != */
-and expr_2 = (scope, input) =>
-  chainl1(expr_3(scope), Operator.equality <|> Operator.inequality, input)
+and expr_2 = (ctx: Context.t, input) =>
+  chainl1(expr_3(ctx), Operator.equality <|> Operator.inequality, input)
 /* <=, <, >=, > */
-and expr_3 = (scope, input) =>
+and expr_3 = (ctx: Context.t, input) =>
   chainl1(
-    expr_4(scope),
+    expr_4(ctx),
     choice([
       Operator.less_or_eql,
       Operator.less_than,
@@ -88,31 +88,32 @@ and expr_3 = (scope, input) =>
     input,
   )
 /* +, - */
-and expr_4 = (scope, input) =>
-  chainl1(expr_5(scope), Operator.add <|> Operator.sub, input)
+and expr_4 = (ctx: Context.t, input) =>
+  chainl1(expr_5(ctx), Operator.add <|> Operator.sub, input)
 /* *, / */
-and expr_5 = (scope, input) =>
-  chainl1(expr_6(scope), Operator.mult <|> Operator.div, input)
+and expr_5 = (ctx: Context.t, input) =>
+  chainl1(expr_6(ctx), Operator.mult <|> Operator.div, input)
 /* ^ */
-and expr_6 = (scope, input) => chainr1(expr_7(scope), Operator.expo, input)
+and expr_6 = (ctx: Context.t, input) =>
+  chainr1(expr_7(ctx), Operator.expo, input)
 /* !, +, - */
-and expr_7 = (scope, input) =>
+and expr_7 = (ctx: Context.t, input) =>
   M.unary_op(
-    expr_8(scope),
+    expr_8(ctx),
     choice([Operator.not, Operator.positive, Operator.negative]),
     input,
   )
 /* {}, () */
-and expr_8 = (scope, input) =>
+and expr_8 = (ctx: Context.t, input) =>
   (
-    closure(scope |> Scope.clone, expr_0)
-    <|> (expr_0(scope) |> group)
-    <|> term(scope)
+    closure(ctx |> Context.clone, expr_0)
+    <|> (expr_0(ctx) |> group)
+    <|> term(ctx)
   )(
     input,
   )
 /* 2, foo, <bar /> */
-and term = (scope, input) =>
-  choice([primitive, identifier(scope), jsx(scope, expr_0)], input);
+and term = (ctx: Context.t, input) =>
+  choice([primitive, identifier(ctx), jsx(ctx, expr_0)], input);
 
 let parser = expr_0;

@@ -10,7 +10,8 @@ module Assert =
     type t = jsx_t;
 
     let parser = scope =>
-      JSX.parser(scope, Expression.parser) |> Parser.parse;
+      JSX.parser(Context.create(~scope, ()), Expression.parser)
+      |> Parser.parse;
 
     let test =
       Alcotest.(

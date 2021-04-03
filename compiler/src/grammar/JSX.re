@@ -14,10 +14,10 @@ module Fragment = {
   let close = M.glyph(C.Glyph.close_fragment);
 };
 
-let _attribute = (~prefix=M.alpha <|> Character.underscore, scope, x) =>
+let _attribute = (~prefix=M.alpha <|> Character.underscore, ctx: Context.t, x) =>
   Operator.assign(
     M.identifier(~prefix) >|= Tuple.split2(Block.value, Block.cursor),
-    x(scope),
+    x(ctx),
   )
   >|= (
     ((name, value)) => (
@@ -40,26 +40,26 @@ let _attribute = (~prefix=M.alpha <|> Character.underscore, scope, x) =>
 let _self_closing =
   Tag.self_close >|= Block.cursor >|= (end_cursor => ([], end_cursor));
 
-let rec parser = (scope: Scope.t, x, input) =>
-  (choice([fragment(scope, x), tag(scope, x)]) |> M.lexeme)(input)
+let rec parser = (ctx: Context.t, x, input) =>
+  (choice([fragment(ctx, x), tag(ctx, x)]) |> M.lexeme)(input)
 
-and fragment = (scope: Scope.t, x) =>
-  children(scope, x)
+and fragment = (ctx: Context.t, x) =>
+  children(ctx, x)
   |> M.between(Fragment.open_, Fragment.close)
   >|= Tuple.split2(Block.value % of_frag, Block.cursor)
 
-and tag = (scope: Scope.t, x) =>
+and tag = (ctx: Context.t, x) =>
   Tag.open_
   >> M.identifier
   >>= (
     id =>
-      attributes(scope, x)
+      attributes(ctx, x)
       >>= (
         attrs =>
           _self_closing
           <|> (
             Tag.close
-            >> children(scope, x)
+            >> children(ctx, x)
             >>= (
               cs =>
                 id
@@ -88,16 +88,16 @@ and tag = (scope: Scope.t, x) =>
       )
   )
 
-and attributes = (scope: Scope.t, x) =>
+and attributes = (ctx: Context.t, x) =>
   choice([
-    _attribute(scope, x)
+    _attribute(ctx, x)
     >|= (
       ((name, value, cursor)) => (
         (name |> Tuple.map_fst2(of_public), value) |> of_prop,
         cursor,
       )
     ),
-    _attribute(~prefix=Character.period, scope, x)
+    _attribute(~prefix=Character.period, ctx, x)
     >|= (
       ((name, value, cursor)) => (
         (name |> Tuple.map_fst2(String.drop_left(1) % of_public), value)
@@ -117,12 +117,10 @@ and attributes = (scope: Scope.t, x) =>
   ])
   |> many
 
-and children = (scope: Scope.t, x) =>
-  choice([node(scope, x), inline_expr(scope, x), text(scope, x)])
-  |> M.lexeme
-  |> many
+and children = (ctx: Context.t, x) =>
+  choice([node(ctx, x), inline_expr(ctx, x), text]) |> M.lexeme |> many
 
-and text = (scope: Scope.t, x) =>
+and text =
   none_of([C.Character.open_brace, C.Character.open_chevron])
   <~> (
     none_of([
@@ -135,10 +133,10 @@ and text = (scope: Scope.t, x) =>
   >|= Input.join
   >|= Tuple.split2(Block.value % String.trim % of_text, Block.cursor)
 
-and node = (scope: Scope.t, x) =>
-  parser(scope, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
+and node = (ctx: Context.t, x) =>
+  parser(ctx, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
 
-and inline_expr = (scope: Scope.t, x) =>
-  x(scope)
+and inline_expr = (ctx: Context.t, x) =>
+  x(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
   >|= Tuple.split2(Block.value % of_inline_expr, Block.cursor);

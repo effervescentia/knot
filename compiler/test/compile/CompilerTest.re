@@ -130,7 +130,7 @@ let suite =
 
         Alcotest.check_raises(
           "should throw FileNotFound exception",
-          CompilerError([FileNotFound(__entry_filename)]),
+          CompileError([FileNotFound(__entry_filename)]),
           () =>
           compiler
           |> Compiler.process([__entry], _ =>
@@ -186,7 +186,7 @@ let suite =
 
         Alcotest.check_raises(
           "should throw ImportCycle exception",
-          CompilerError([ImportCycle(["@/entry", "@/cycle"])]),
+          CompileError([ImportCycle(["@/entry", "@/cycle"])]),
           () =>
           compiler |> Compiler.init(__entry)
         );

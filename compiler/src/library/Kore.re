@@ -4,6 +4,7 @@ include Error;
 module AST = AST;
 module Block = Block;
 module Constants = Constants;
+module Context = Context;
 module Cursor = Cursor;
 module Debug = Debug;
 module Filename = Filename;

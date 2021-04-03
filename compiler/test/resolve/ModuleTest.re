@@ -106,7 +106,7 @@ let suite =
 
         Alcotest.check_raises(
           "should throw FileNotFound exception",
-          CompilerError([FileNotFound(relative)]),
+          CompileError([FileNotFound(relative)]),
           () =>
           Module.read(_ => [], Module.File({relative, full: "bar"}))
           |> ignore
@@ -137,7 +137,7 @@ let suite =
 
         Alcotest.check_raises(
           "should throw FileNotFound exception",
-          CompilerError([FileNotFound(relative_path)]),
+          CompileError([FileNotFound(relative_path)]),
           () =>
           Module.cache(cache, File({relative: relative_path, full: "bar"}))
         );

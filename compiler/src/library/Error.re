@@ -17,11 +17,11 @@ type compile_err =
   | FileNotFound(string)
   | ParseError(parse_err);
 
-exception CompilerError(list(compile_err));
+exception CompileError(list(compile_err));
 
-let throw = err => raise(CompilerError([err]));
+let throw = err => raise(CompileError([err]));
 
-let throw_all = errs => raise(CompilerError(errs));
+let throw_all = errs => raise(CompileError(errs));
 
 let _parse_err_to_string =
   fun

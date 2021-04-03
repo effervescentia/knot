@@ -61,7 +61,7 @@ let create = (~report=throw_all, config: config_t): t => {
         |> Resolver.resolve_module(~skip_cache=true, id)
         |> Module.read(Parser.imports)
       ) {
-      | CompilerError(e) =>
+      | CompileError(e) =>
         _add_errors(e, errors);
         [];
       }
@@ -102,10 +102,14 @@ let process =
   |> List.iter(id =>
        try(
          resolve(id)
-         |> Module.read(Parser.ast(~scope=Scope.create(~modules, ())))
+         |> Module.read(
+              Parser.ast(
+                ~ctx=Context.create(~scope=Scope.create(~modules, ()), ()),
+              ),
+            )
          |> (ast => modules |> ModuleTable.add(id, ast, _get_exports(ast)))
        ) {
-       | CompilerError(e) => _add_errors(e, errors)
+       | CompileError(e) => _add_errors(e, errors)
        }
      );
 
