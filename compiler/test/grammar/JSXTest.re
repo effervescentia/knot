@@ -9,9 +9,7 @@ module Assert =
   Assert.Make({
     type t = jsx_t;
 
-    let parser = scope =>
-      JSX.parser(Context.create(~scope, ()), Expression.parser)
-      |> Parser.parse;
+    let parser = ctx => JSX.parser(ctx, Expression.parser) |> Parser.parse;
 
     let test =
       Alcotest.(

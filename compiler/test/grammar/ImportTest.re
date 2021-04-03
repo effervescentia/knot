@@ -7,7 +7,7 @@ module Assert =
   Assert.Make({
     type t = AST.module_statement_t;
 
-    let parser = _ => Parser.parse(Import.parser(Context.create()));
+    let parser = ctx => Parser.parse(Import.parser(ctx));
 
     let test =
       Alcotest.(

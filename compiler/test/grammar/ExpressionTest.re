@@ -8,8 +8,7 @@ module Assert =
   Assert.Make({
     type t = expression_t;
 
-    let parser = scope =>
-      Parser.parse(Expression.parser(Context.create(~scope, ())));
+    let parser = ctx => Parser.parse(Expression.parser(ctx));
 
     let test =
       Alcotest.(
@@ -51,6 +50,7 @@ let suite =
           ("bar", "bar" |> of_public |> as_lexeme |> of_id |> as_int),
         ]
         |> Assert.parse_many(
+             ~report=ignore,
              ~scope=to_scope([("bar", K_Strong(K_Integer))]),
            )
     ),
@@ -58,14 +58,15 @@ let suite =
     >: (
       () =>
         Assert.parse(
+          ~scope=to_scope([("foo", K_Strong(K_Boolean))]),
           "(foo)",
           "foo"
           |> of_public
           |> as_lexeme
           |> of_id
-          |> as_invalid(NotFound(Public("foo")))
+          |> as_bool
           |> of_group
-          |> as_invalid(NotFound(Public("foo"))),
+          |> as_bool,
         )
     ),
     "parse closure"
@@ -394,6 +395,7 @@ let suite =
              )
            )
         |> Assert.parse_many(
+             ~report=ignore,
              ~scope=
                to_scope([
                  ("a", K_Weak(0)),
@@ -424,6 +426,7 @@ let suite =
              )
            )
         |> Assert.parse_many(
+             ~report=ignore,
              ~scope=
                to_scope([
                  ("a", K_Weak(0)),

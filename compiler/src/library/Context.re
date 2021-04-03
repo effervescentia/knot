@@ -48,9 +48,10 @@ let import =
  resolve a type within the active scope
  */
 let find_in_scope = (name: Identifier.t, ctx: t) =>
-  switch (Scope.find(name, ctx.scope)) {
-  | Type.K_Invalid(err) as t =>
+  switch (Hashtbl.find_opt(ctx.scope.types, name)) {
+  | Some(t) => t
+  | None =>
+    let err = Type.NotFound(name);
     ctx.report(ParseError(TypeError(err)));
-    t;
-  | t => t
+    Type.K_Invalid(err);
   };

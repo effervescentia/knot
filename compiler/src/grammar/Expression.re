@@ -15,7 +15,7 @@ let identifier = (ctx: Context.t) =>
   >|= (
     ((id, cursor) as id_lexeme) => (
       id_lexeme |> AST.of_id,
-      ctx.scope |> Scope.find(id),
+      ctx |> Context.find_in_scope(id),
       cursor,
     )
   );
@@ -68,39 +68,47 @@ let closure = (ctx: Context.t, x) =>
 
 /* || */
 let rec expr_0 = (ctx: Context.t, input) =>
-  chainl1(expr_1(ctx), Operator.logical_or, input)
+  chainl1(expr_1(ctx), Operator.logical_or(ctx), input)
 /* && */
 and expr_1 = (ctx: Context.t, input) =>
-  chainl1(expr_2(ctx), Operator.logical_and, input)
+  chainl1(expr_2(ctx), Operator.logical_and(ctx), input)
 /* ==, != */
 and expr_2 = (ctx: Context.t, input) =>
-  chainl1(expr_3(ctx), Operator.equality <|> Operator.inequality, input)
+  chainl1(
+    expr_3(ctx),
+    Operator.equality(ctx) <|> Operator.inequality(ctx),
+    input,
+  )
 /* <=, <, >=, > */
 and expr_3 = (ctx: Context.t, input) =>
   chainl1(
     expr_4(ctx),
     choice([
-      Operator.less_or_eql,
-      Operator.less_than,
-      Operator.greater_or_eql,
-      Operator.greater_than,
+      Operator.less_or_eql(ctx),
+      Operator.less_than(ctx),
+      Operator.greater_or_eql(ctx),
+      Operator.greater_than(ctx),
     ]),
     input,
   )
 /* +, - */
 and expr_4 = (ctx: Context.t, input) =>
-  chainl1(expr_5(ctx), Operator.add <|> Operator.sub, input)
+  chainl1(expr_5(ctx), Operator.add(ctx) <|> Operator.sub(ctx), input)
 /* *, / */
 and expr_5 = (ctx: Context.t, input) =>
-  chainl1(expr_6(ctx), Operator.mult <|> Operator.div, input)
+  chainl1(expr_6(ctx), Operator.mult(ctx) <|> Operator.div(ctx), input)
 /* ^ */
 and expr_6 = (ctx: Context.t, input) =>
-  chainr1(expr_7(ctx), Operator.expo, input)
+  chainr1(expr_7(ctx), Operator.expo(ctx), input)
 /* !, +, - */
 and expr_7 = (ctx: Context.t, input) =>
   M.unary_op(
     expr_8(ctx),
-    choice([Operator.not, Operator.positive, Operator.negative]),
+    choice([
+      Operator.not(ctx),
+      Operator.positive(ctx),
+      Operator.negative(ctx),
+    ]),
     input,
   )
 /* {}, () */

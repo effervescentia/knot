@@ -51,15 +51,6 @@ let define = (name: Identifier.t, type_: Type.t, scope: t) =>
   Hashtbl.replace(scope.types, name, type_);
 
 /**
- resolve a type within the scope
- */
-let find = (name: Identifier.t, scope: t) =>
-  switch (Hashtbl.find_opt(scope.types, name)) {
-  | Some(t) => t
-  | None => Type.K_Invalid(NotFound(name))
-  };
-
-/**
  create a new weak anonymous type and add it to the local scope
  */
 let weak = (scope: t): Type.t => {
@@ -107,6 +98,7 @@ let lift = (id: int, source: t, target: t) =>
     target.seed := seed + 1;
 
     Type.K_Strong(K_Anonymous(seed, trait));
+  /* TODO: move this function up so invalid type can be reported by context */
   | Some(Error((x, y))) => Type.K_Invalid(TraitConflict(x, y))
   | None => raise(AnonymousTypeNotFound)
   };
