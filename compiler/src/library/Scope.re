@@ -51,29 +51,6 @@ let define = (name: Identifier.t, type_: Type.t, scope: t) =>
   Hashtbl.replace(scope.types, name, type_);
 
 /**
- find the type of an export from a different module and import it into the current scope
- */
-let import =
-    (
-      namespace: Namespace.t,
-      id: Identifier.t,
-      label: option(Identifier.t),
-      scope: t,
-    ) => {
-  let type_ =
-    switch (ModuleTable.find(namespace, scope.modules)) {
-    | Some({types}) =>
-      switch (Hashtbl.find_opt(types, id)) {
-      | Some(t) => t
-      | None => Type.K_Invalid(ExternalNotFound(namespace, id))
-      }
-    | None => Type.K_Invalid(ExternalNotFound(namespace, id))
-    };
-
-  define(label |?: id, type_, scope);
-};
-
-/**
  resolve a type within the scope
  */
 let find = (name: Identifier.t, scope: t) =>
