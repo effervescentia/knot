@@ -7,7 +7,7 @@ module Program = Grammar.Program;
 module Target = {
   type t = program_t;
 
-  let parser = ctx => Parser.parse(Program.main(~ctx));
+  let parser = Program.main % Parser.parse;
 
   let test =
     Alcotest.(
@@ -30,7 +30,7 @@ module AssertImports =
   Assert.Make({
     include Target;
 
-    let parser = ctx => Parser.parse(Program.imports(~ctx));
+    let parser = Program.imports % Parser.parse;
   });
 module Assert = Assert.Make(Target);
 

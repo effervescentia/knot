@@ -13,7 +13,7 @@ module Make = (T: ParseTarget) => {
       (~scope=Scope.create(), ~report=throw, ~cursor=false, source, expected) =>
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
-    |> T.parser(Context.create(~scope, ~report, ()))
+    |> T.parser(Context.create(~scope, ~report, Internal("mock")))
     |> (
       fun
       | Some(actual) => T.test(expected, actual)
@@ -34,7 +34,7 @@ module Make = (T: ParseTarget) => {
     List.iter(source =>
       InputStream.of_string(~cursor, source)
       |> LazyStream.of_stream
-      |> T.parser(Context.create(~scope, ~report, ()))
+      |> T.parser(Context.create(~scope, ~report, Internal("mock")))
       |> (
         fun
         | Some(r) =>

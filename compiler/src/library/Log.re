@@ -1,6 +1,8 @@
 /**
  Logging utilities.
  */
+include Infix;
+
 module ANSI = ANSITerminal;
 
 type config_t = {
@@ -25,7 +27,7 @@ let init =
   Dolog.Log.(
     (cfg: config_t) => {
       set_log_level(cfg.debug ? DEBUG : INFO);
-      set_output(stdout);
+      set_output(stderr);
 
       if (cfg.color) {
         color_on();
@@ -33,10 +35,15 @@ let init =
 
       Dolog.Log.set_prefix_builder(lvl =>
         string_of_level(lvl)
-        |> ANSI.sprintf([_color_of_level(lvl)], "%s")
+        |> (
+          cfg.color
+            ? ANSI.sprintf([_color_of_level(lvl)], "%s")
+            : Functional.identity
+        )
+        |> Print.bold
         |> Print.fmt(
-             "%s[knot] %s ",
-             cfg.timestamp ? Sys.time() |> Print.fmt("%f ") : "",
+             "%s[knot] %s",
+             cfg.timestamp ? Sys.time() |> string_of_float : "",
            )
       );
     }

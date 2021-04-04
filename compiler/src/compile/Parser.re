@@ -11,33 +11,27 @@ module Program = Grammar.Program;
 
  anything that cannot be parsed as an import statement will be ignored
  */
-let imports =
-  AST.(
-    input =>
-      parse(Program.imports, input)
-      |> (
-        fun
-        | Some(stmts) =>
-          stmts
-          |> List.filter_map(
-               fun
-               | Import(namespace, _) => Some(namespace)
-               | _ => None,
-             )
-        | None => raise(ParseFailed)
-      )
+let imports = (namespace, input) =>
+  parse(Program.imports(Context.create(~report=ignore, namespace)), input)
+  |> (
+    fun
+    | Some(stmts) =>
+      stmts
+      |> List.filter_map(
+           fun
+           | AST.Import(namespace, _) => Some(namespace)
+           | _ => None,
+         )
+    | None => raise(ParseFailed)
   );
 
 /**
  parses entire document to extract imports, declarations and type information
  */
-let ast =
-  AST.(
-    (~ctx=Context.create(), input) =>
-      parse(Program.main(~ctx), input)
-      |> (
-        fun
-        | Some(stmts) => stmts
-        | None => raise(ParseFailed)
-      )
+let ast = (ctx, input) =>
+  parse(Program.main(ctx), input)
+  |> (
+    fun
+    | Some(stmts) => stmts
+    | None => raise(ParseFailed)
   );

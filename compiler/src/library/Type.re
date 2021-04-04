@@ -182,5 +182,6 @@ and _err_to_string =
     |> Pretty.concat;
 
 let to_string = _type_to_string % Pretty.to_string;
+let strong_to_string = _strong_to_string % Pretty.to_string;
 let trait_to_string = _trait_to_string % Pretty.to_string;
 let err_to_string = _err_to_string % Pretty.to_string;

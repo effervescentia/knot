@@ -17,8 +17,6 @@ let _to_stream = (cursor, decoder) =>
     }
   );
 
-let _normalize = `Readline(Uchar.of_char(Constants.Character.eol));
-
 /**
  wrapper to ingest a stream of unicode characters
  */
@@ -27,7 +25,15 @@ type t = Stream.t(Input.t);
 /* static */
 
 let of_string = (~cursor=true, s: string): t =>
-  Uutf.decoder(~nln=_normalize, `String(s)) |> _to_stream(cursor);
+  decoder(`String(s)) |> _to_stream(cursor);
 
 let of_channel = (~cursor=true, channel: in_channel): t =>
-  Uutf.decoder(~nln=_normalize, `Channel(channel)) |> _to_stream(cursor);
+  decoder(`Channel(channel)) |> _to_stream(cursor);
+
+let to_string = (stream: t): string => {
+  let buffer = Buffer.create(stream |> Stream.count);
+
+  stream |> Stream.iter(fst % Buffer.add_utf_8_uchar(buffer));
+
+  buffer |> Buffer.contents;
+};

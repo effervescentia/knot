@@ -1,33 +1,33 @@
 open Kore;
 
-exception SourceNotAvailable(string);
+exception SourceNotAvailable;
 
-let print = (~buffer_lines=2, ~color=false, file: string, cursor: Cursor.t) => {
+let print =
+    (~buffer_lines=2, ~color=false, contents: string, cursor: Cursor.t) => {
   let buffer = Buffer.create(100);
+  let lines = contents |> String.split_on_char('\n');
   let (start, end_) = Cursor.expand(cursor);
 
   let first_line = max(start.line - buffer_lines, 0);
   let last_line = end_.line + buffer_lines;
   let line_number_width = last_line |> string_of_int |> String.length;
-  let in_ = open_in(file);
 
   let rec loop = row =>
     if (row < first_line) {
-      try(input_line(in_) |> ignore) {
-      | End_of_file => raise(SourceNotAvailable(file))
+      if (row > List.length(lines)) {
+        raise(SourceNotAvailable);
       };
 
       loop(row + 1);
     } else if (row <= last_line) {
-      switch (input_line(in_)) {
-      | line =>
+      switch (List.nth_opt(lines, row - 1)) {
+      | Some(line) =>
         let is_highlight = row >= start.line && row <= end_.line;
 
         Print.fmt(
-          " %*s │ %s\n",
-          line_number_width,
-          color && is_highlight
-            ? Print.red(row |> string_of_int) : Print.fmt("%d", row),
+          " %s │ %s\n",
+          Print.fmt("%*d", line_number_width, row)
+          |> (color && is_highlight ? Print.red : Functional.identity),
           line,
         )
         |> Buffer.add_string(buffer);
@@ -62,13 +62,11 @@ let print = (~buffer_lines=2, ~color=false, file: string, cursor: Cursor.t) => {
 
         loop(row + 1);
 
-      | exception End_of_file =>
-        row < end_.line ? raise(SourceNotAvailable(file)) : ()
+      | None => row < end_.line ? raise(SourceNotAvailable) : ()
       };
     };
 
   loop(1);
-  close_in(in_);
 
   buffer |> Buffer.contents;
 };

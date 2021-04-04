@@ -5,13 +5,16 @@ open Reference;
  compilation context used for reporting errors and accessing scope
  */
 type t = {
+  namespace: Namespace.t,
   scope: Scope.t,
   report: Error.compile_err => unit,
 };
 
 /* static */
 
-let create = (~scope=Scope.create(), ~report=Error.throw, ()) => {
+let create =
+    (~scope=Scope.create(), ~report=Error.throw, namespace: Namespace.t) => {
+  namespace,
   scope,
   report,
 };
@@ -26,19 +29,16 @@ let clone = (ctx: t) => {...ctx, scope: ctx.scope |> Scope.clone};
 let import =
     (
       namespace: Namespace.t,
-      id: Identifier.t,
+      (id, cursor): AST.identifier_t,
       label: option(Identifier.t),
       ctx: t,
     ) => {
-  let invalid_type = Type.K_Invalid(ExternalNotFound(namespace, id));
   let type_ =
-    switch (ModuleTable.find(namespace, ctx.scope.modules)) {
-    | Some({types}) =>
-      switch (Hashtbl.find_opt(types, id)) {
-      | Some(t) => t
-      | None => invalid_type
-      }
-    | None => invalid_type
+    switch (ctx.scope |> Scope.lookup(namespace, id)) {
+    | Ok(t) => t
+    | Error(err) =>
+      ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
+      Type.K_Invalid(err);
     };
 
   Scope.define(label |?: id, type_, ctx.scope);
@@ -47,11 +47,11 @@ let import =
 /**
  resolve a type within the active scope
  */
-let find_in_scope = (name: Identifier.t, ctx: t) =>
+let find_in_scope = ((name, cursor): AST.identifier_t, ctx: t) =>
   switch (Hashtbl.find_opt(ctx.scope.types, name)) {
   | Some(t) => t
   | None =>
     let err = Type.NotFound(name);
-    ctx.report(ParseError(TypeError(err)));
+    ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
     Type.K_Invalid(err);
   };

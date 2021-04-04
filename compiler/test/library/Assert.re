@@ -69,7 +69,7 @@ let module_table =
 let compile_errors =
   Alcotest.(
     check(
-      testable(pp => print_errs % Format.pp_print_string(pp), (==)),
+      testable(pp => Util.print_errs % Format.pp_print_string(pp), (==)),
       "compile error matches",
     )
   );

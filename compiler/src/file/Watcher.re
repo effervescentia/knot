@@ -57,7 +57,12 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
          )
       |> dispatch;
 
-      flush(stdout);
+      /*
+        TODO: might have to change this back to stdout
+        the thinking is that all log messages are written to stderr so shouldn't have
+        anything to flush on stdout
+       */
+      flush(stderr);
       _listen(dispatch, watcher, msgBox);
     }
   );

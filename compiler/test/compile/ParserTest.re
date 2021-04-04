@@ -14,6 +14,8 @@ let __ast_fixture = "
 
   const ABC = 123;
  ";
+let __namespace = Reference.Namespace.Internal("foo");
+let __context = Context.create(__namespace);
 
 let _to_stream = string =>
   File.InputStream.of_string(string) |> LazyStream.of_stream;
@@ -27,9 +29,9 @@ let suite =
         AST.[
           (
             [of_external("bar"), of_external("buzz")],
-            _to_stream(__import_fixture) |> Parser.imports,
+            _to_stream(__import_fixture) |> Parser.imports(__namespace),
           ),
-          ([], _to_stream("") |> Parser.imports),
+          ([], _to_stream("") |> Parser.imports(__namespace)),
         ]
         |> Assert.(test_many(list_namespace))
     ),
@@ -37,7 +39,7 @@ let suite =
     >: (
       () =>
         [
-          ([], _to_stream("") |> Parser.ast),
+          ([], _to_stream("") |> Parser.ast(__context)),
           (
             AST.[
               (
@@ -66,7 +68,7 @@ let suite =
               )
               |> of_decl,
             ],
-            _to_stream(__ast_fixture) |> Parser.ast,
+            _to_stream(__ast_fixture) |> Parser.ast(__context),
           ),
         ]
         |> Assert.(test_many(program))
@@ -75,7 +77,7 @@ let suite =
     >: (
       () =>
         Alcotest.check_raises("should throw ParseFailed", ParseFailed, () =>
-          _to_stream("foo bar") |> Parser.ast |> ignore
+          _to_stream("foo bar") |> Parser.ast(__context) |> ignore
         )
     ),
   ];

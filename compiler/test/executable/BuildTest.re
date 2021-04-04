@@ -9,6 +9,7 @@ let __compiler_config =
     root_dir: simple_fixture_dir,
     source_dir: ".",
     debug: false,
+    color: false,
   };
 
 let suite =
@@ -21,7 +22,7 @@ let suite =
         let output_file = Filename.concat(temp_dir, "main.js");
 
         Build.run(
-          ~report=print_errs % Assert.fail,
+          ~report=_ => Util.print_errs % Assert.fail,
           __compiler_config,
           {
             target: Target.(JavaScript(Common)),
@@ -51,7 +52,7 @@ exports.ABC = ABC;
         let constants_file = Filename.concat(temp_dir, "common/constants.js");
 
         Build.run(
-          ~report=print_errs % Assert.fail,
+          ~report=_ => Util.print_errs % Assert.fail,
           {
             ...__compiler_config,
             root_dir: complex_fixture_dir,

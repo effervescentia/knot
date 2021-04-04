@@ -46,13 +46,21 @@ let read = f =>
     )
   | Raw(s) => Ok(InputStream.of_string(s) |> LazyStream.of_stream |> f);
 
+let read_to_string =
+  fun
+  | File({full}) => full |> IO.read_to_string
+  | Raw(s) => s;
+
 let cache = (cache: Cache.t) =>
   fun
   | File(path) =>
     if (Sys.file_exists(path.full)) {
-      IO.clone(path.full, cache |> Cache.resolve_path(path.relative));
-      Ok();
+      let cached_path = cache |> Cache.resolve_path(path.relative);
+
+      IO.clone(path.full, cached_path);
+
+      Ok(cached_path);
     } else {
       Error([FileNotFound(path.relative)]);
     }
-  | Raw(_) => Ok();
+  | Raw(_) => raise(NotImplemented);

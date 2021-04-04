@@ -1,5 +1,7 @@
 open Kore;
 
+include TestLibrary.Util;
+
 let temp_file_name = (name, ext) =>
   Print.fmt("%s_%f.%s", name, Sys.time(), ext);
 

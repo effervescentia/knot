@@ -27,7 +27,12 @@ let cmd = () => {
   );
 };
 
-let run = (~report=print_errs % panic, global: global_t, config: config_t) => {
+let run =
+    (
+      global: global_t,
+      ~report=Reporter.panic(~color=global.color),
+      config: config_t,
+    ) => {
   Cmd.log_config(
     global,
     build_key,

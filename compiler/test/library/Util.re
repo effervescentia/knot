@@ -44,3 +44,27 @@ let string_prim = AST.of_string % as_string % AST.of_prim % as_string;
 let jsx_node = AST.of_tag % as_lexeme % AST.of_node;
 
 let jsx_tag = AST.of_tag % as_lexeme % AST.of_jsx;
+
+let print_parse_err =
+  fun
+  | TypeError(err) => err |> Type.err_to_string |> Print.fmt("TypeError<%s>");
+
+let print_compile_err =
+  fun
+  | ImportCycle(cycles) =>
+    cycles
+    |> Print.many(~separator=" -> ", Functional.identity)
+    |> Print.fmt("ImportCycle<%s>")
+  | UnresolvedModule(name) => name |> Print.fmt("UnresolvedModule<%s>")
+  | FileNotFound(path) => path |> Print.fmt("FileNotFound<%s>")
+  | ParseError(err, namespace, cursor) =>
+    Print.fmt(
+      "ParseError<%s, %s, %s>",
+      err |> _parse_err_to_string,
+      namespace |> Reference.Namespace.to_string,
+      cursor |> Debug.print_cursor,
+    );
+
+let print_errs =
+  Print.many(~separator="\n\n", print_compile_err)
+  % Print.fmt("found some errors during compilation:\n\n%s");

@@ -13,8 +13,8 @@ let primitive =
 let identifier = (ctx: Context.t) =>
   Identifier.parser
   >|= (
-    ((id, cursor) as id_lexeme) => (
-      id_lexeme |> AST.of_id,
+    ((_, cursor) as id) => (
+      id |> AST.of_id,
       ctx |> Context.find_in_scope(id),
       cursor,
     )

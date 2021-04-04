@@ -36,7 +36,8 @@ let _print_cmds =
 let _print_opts = (cfg, xs) =>
   Print.many(~separator="\n\n", Opt.to_string(cfg), xs) |> print_endline;
 let from_file = (file: string): static_t => {
-  let root_dir = ref(defaults.root_dir);
+  let root_dir = ref(file |> Filename.dirname);
+  let project_name = ref(defaults.name);
   let source_dir = ref(defaults.source_dir);
   let out_dir = ref(defaults.out_dir);
   let target = ref(defaults.target);
@@ -47,11 +48,15 @@ let from_file = (file: string): static_t => {
   let debug = ref(defaults.debug);
   let port = ref(defaults.port);
 
+  Log.debug("looking for config file: %s", file);
+
   switch (file |> File.IO.read_to_string |> Yaml.of_string) {
   | Ok(`O(entries)) =>
     entries
     |> List.iter(
          fun
+         | (name, `String(value)) when name == name_key =>
+           project_name := Some(value)
          | (name, `String(value)) when name == root_dir_key =>
            root_dir := value |> Filename.resolve
          | (name, `String(value)) when name == source_dir_key =>
@@ -71,6 +76,7 @@ let from_file = (file: string): static_t => {
          | (name, _) =>
            name |> Print.fmt("invalid entry found: %s") |> panic,
        )
+  | Ok(`Null) => ()
   | Ok(_) =>
     Print.fmt(
       "expected an object with some of the following keys: root_dir, source_dir, entry",
@@ -80,6 +86,7 @@ let from_file = (file: string): static_t => {
   };
 
   {
+    name: project_name^,
     root_dir: root_dir^,
     source_dir: source_dir^,
     out_dir: out_dir^,
@@ -95,7 +102,7 @@ let from_file = (file: string): static_t => {
 
 let from_args = (): (global_t, RunCmd.t) => {
   let auto_config_file = File.Util.find_up(__config_file, defaults.root_dir);
-  let config_file = ref("");
+  let config_file = ref(None);
   let static = ref(auto_config_file |?> from_file);
 
   let cmd = ref(None);
@@ -103,15 +110,16 @@ let from_args = (): (global_t, RunCmd.t) => {
   let options = ref([]);
 
   let (debug_opt, get_debug) = ConfigOpt.debug();
+  let (color_opt, get_color) = ConfigOpt.color();
   let (root_dir_opt, get_root_dir) = ConfigOpt.root_dir();
   let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
 
   let find_static_config = root_dir =>
-    if (config_file^ == "") {
+    if (config_file^ == None) {
       switch (File.Util.find_up(__config_file, root_dir)) {
       | Some(path) =>
         static := Some(path |> from_file);
-        config_file := path;
+        config_file := Some(path);
       | None => ()
       };
     };
@@ -158,21 +166,22 @@ let from_args = (): (global_t, RunCmd.t) => {
       String(
         Filename.resolve
         % (
-          x => {
-            if (!Sys.file_exists(x)) {
-              x
+          path => {
+            if (!Sys.file_exists(path)) {
+              path
               |> Print.fmt("unable to find the specified config file: %s")
               |> panic;
             };
 
-            static := Some(from_file(x));
-            config_file := x;
+            static := Some(from_file(path));
+            config_file := Some(path);
           }
         ),
       ),
       "set the location of the knot config file",
     ),
     debug_opt,
+    color_opt,
     Opt.create("help", Unit(usage), "display this list of options"),
   ];
 
@@ -223,11 +232,25 @@ let from_args = (): (global_t, RunCmd.t) => {
   let root_dir = get_root_dir(static^);
   find_static_config(root_dir);
 
+  switch (config_file^) {
+  | Some(path) =>
+    path
+    |> Filename.relative_to(Sys.getcwd())
+    |> Print.bold
+    |> Log.info("found config file: %s")
+  | None => Log.warn("no config file found")
+  };
+
   let global_cfg = {
-    debug: get_debug(static^),
     root_dir,
+    debug: get_debug(static^),
+    color: get_color(static^),
     source_dir: get_source_dir(static^, root_dir),
-    name: root_dir |> Filename.basename,
+    name:
+      switch (static^) {
+      | Some({name: Some(name)}) => name
+      | _ => root_dir |> Filename.basename
+      },
   };
 
   (global_cfg, resolve(static^, global_cfg));

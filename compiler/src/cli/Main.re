@@ -6,13 +6,13 @@ open Executable;
  execution entrypoint
  */
 let () = {
-  Log.init({debug: false, color: true, timestamp: false});
+  Log.init({debug: false, color: false, timestamp: false});
 
   let (config, command) = Config.from_args();
 
-  Log.init({debug: config.debug, color: true, timestamp: false});
+  Log.init({debug: config.debug, color: config.color, timestamp: false});
 
-  Log.info("project '%s'", config.name);
+  config.name |> Print.good |> Log.info("project %s");
 
   switch (command) {
   | Build(cmd) => Build.run(config, cmd)

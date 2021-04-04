@@ -11,7 +11,7 @@ let __targets = [
 
 let _check_exists = (name, x) =>
   if (!Sys.file_exists(x)) {
-    x |> Print.fmt("%s does not exist: '%s'", name) |> panic;
+    x |> Print.fmt("%s does not exist: %s", name) |> panic;
   };
 
 let _resolve =
@@ -59,7 +59,7 @@ let root_dir = (~default=defaults.root_dir, ()) => {
       value^ |> _resolve(cfg, x => x.root_dir, default) |> Filename.resolve;
 
     if (!Sys.file_exists(root_dir)) {
-      root_dir |> Print.fmt("root directory does not exist: '%s'") |> panic;
+      root_dir |> Print.fmt("root directory does not exist: %s") |> panic;
     };
 
     root_dir;
@@ -188,7 +188,7 @@ let target = () => {
     );
   let resolve = cfg =>
     switch (cfg, value^) {
-    | (None, Some(value)) => value
+    | (_, Some(value)) => value
     | (Some({target: Some(target)}), None) => target
     | (_, _) => panic("must provide a target for compilation")
     };
@@ -235,6 +235,21 @@ let fix = (~default=defaults.fix, ()) => {
       "automatically apply fixes",
     );
   let resolve = cfg => value^ |> _resolve(cfg, x => x.fix, default);
+
+  (opt, resolve);
+};
+
+let color = (~default=defaults.color, ()) => {
+  let value = ref(None);
+  let opt =
+    Opt.create(
+      ~default=Bool(default),
+      ~from_config=cfg => Some(Bool(cfg.color)),
+      color_key,
+      Bool(x => value := Some(x)),
+      "allow color in logs",
+    );
+  let resolve = cfg => value^ |> _resolve(cfg, x => x.color, default);
 
   (opt, resolve);
 };

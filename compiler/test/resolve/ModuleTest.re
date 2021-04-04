@@ -119,15 +119,18 @@ let suite =
         let relative_path = "foo.txt";
         let cache = Util.get_temp_dir();
 
-        Module.cache(
-          cache,
-          File({relative: relative_path, full: fixture_path}),
-        )
-        |> Result.get_ok;
+        let cached_path =
+          Module.cache(
+            cache,
+            File({relative: relative_path, full: fixture_path}),
+          )
+          |> Result.get_ok;
 
         Filename.concat(cache, relative_path)
         |> Sys.file_exists
         |> Assert.true_;
+        cached_path |> String.starts_with(cache) |> Assert.true_;
+        cached_path |> String.ends_with(relative_path) |> Assert.true_;
       }
     ),
     "cache() - file does not exist"

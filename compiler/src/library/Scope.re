@@ -51,6 +51,22 @@ let define = (name: Identifier.t, type_: Type.t, scope: t) =>
   Hashtbl.replace(scope.types, name, type_);
 
 /**
+ find the type of an export from a different module
+ */
+let lookup = (namespace: Namespace.t, id: Identifier.t, scope: t) => {
+  let type_err = Type.ExternalNotFound(namespace, id);
+
+  switch (ModuleTable.find(namespace, scope.modules)) {
+  | Some({types}) =>
+    switch (Hashtbl.find_opt(types, id)) {
+    | Some(t) => Ok(t)
+    | None => Error(type_err)
+    }
+  | None => Error(type_err)
+  };
+};
+
+/**
  create a new weak anonymous type and add it to the local scope
  */
 let weak = (scope: t): Type.t => {

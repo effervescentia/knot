@@ -9,20 +9,28 @@ let cmd = () => {
   Cmd.create(format_key, [], (_, _) => ());
 };
 
-let run = (~report=print_errs % panic, global: global_t, config: config_t) => {
+let run =
+    (
+      global: global_t,
+      ~report=Reporter.panic(~color=global.color),
+      config: config_t,
+    ) => {
   Cmd.log_config(global, format_key, []);
 
   let compiler =
     Compiler.create(
       ~report=
-        List.filter(
-          fun
-          | ImportCycle(_)
-          | UnresolvedModule(_)
-          | FileNotFound(_)
-          | ParseError(_) => false,
-        )
-        % (errors => errors |> List.is_empty ? () : report(errors)),
+        resolver =>
+          List.filter(
+            fun
+            | ImportCycle(_)
+            | UnresolvedModule(_)
+            | FileNotFound(_)
+            | ParseError(_) => false,
+          )
+          % (
+            errors => errors |> List.is_empty ? () : report(resolver, errors)
+          ),
       {
         name: global.name,
         root_dir: global.root_dir,

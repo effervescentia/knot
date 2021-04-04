@@ -35,11 +35,15 @@ let parser = (ctx: Context.t) =>
       |> List.iter(
            AST.(
              fun
-             | Main((id, _)) =>
-               ctx |> Context.import(namespace, Public("main"), Some(id))
-             | Named((id, _), None) =>
-               ctx |> Context.import(namespace, id, None)
-             | Named((id, _), Some((label, _))) =>
+             | Main((id, cursor)) =>
+               ctx
+               |> Context.import(
+                    namespace,
+                    (Public("main"), cursor),
+                    Some(id),
+                  )
+             | Named(id, None) => ctx |> Context.import(namespace, id, None)
+             | Named(id, Some((label, _))) =>
                ctx |> Context.import(namespace, id, Some(label))
            ),
          )

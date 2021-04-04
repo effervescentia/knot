@@ -7,5 +7,5 @@
    (name TestFile)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.file_test)
-   (libraries  knot.test knot.file )
+   (libraries  knot.test knot.lib_test knot.file )
 )

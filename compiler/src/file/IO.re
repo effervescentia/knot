@@ -23,11 +23,26 @@ let clone = (source: string, target: string) => {
   FileUtil.cp([source], target);
 };
 
-let read_to_string = path => {
-  let in_ = open_in(path);
-  let string = really_input_string(in_, in_channel_length(in_));
+/**
+ read a file to a string, applying newline normalization
+ */
+let read_to_string = (path: string): string => {
+  let channel = open_in(path);
+  let decoder = decoder(`Channel(channel));
 
-  close_in(in_);
+  let rec loop = buffer =>
+    switch (Uutf.decode(decoder)) {
+    | `Uchar(uchar) =>
+      uchar |> Buffer.add_utf_8_uchar(buffer);
+      loop(buffer);
+    | `Malformed(uchar) =>
+      Uutf.u_rep |> Buffer.add_utf_8_uchar(buffer);
+      loop(buffer);
+    | `End =>
+      close_in(channel);
+      buffer |> Buffer.contents;
+    | `Await => assert(false)
+    };
 
-  string;
+  Buffer.create(in_channel_length(channel)) |> loop;
 };

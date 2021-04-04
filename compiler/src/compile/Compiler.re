@@ -40,7 +40,7 @@ let _get_exports = ast =>
 /**
  construct a new compiler instance
  */
-let create = (~report=throw_all, config: config_t): t => {
+let create = (~report=_ => throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
@@ -49,25 +49,24 @@ let create = (~report=throw_all, config: config_t): t => {
     fun
     | Report(errs) =>
       if (config.fail_fast) {
-        report(errs);
+        report(resolver, errs);
       } else {
         errors := errors^ @ errs;
       }
-    | Flush => {
-        let errs = errors^;
-
-        if (!List.is_empty(errs)) {
-          errors := [];
-          report(errs);
-        };
+    | Flush =>
+      switch (errors^) {
+      | [] => ()
+      | errs =>
+        errors := [];
+        report(resolver, errs);
       };
 
   let graph =
-    ImportGraph.create(id =>
+    ImportGraph.create(namespace =>
       switch (
         resolver
-        |> Resolver.resolve_module(~skip_cache=true, id)
-        |> Module.read(Parser.imports)
+        |> Resolver.resolve_module(~skip_cache=true, namespace)
+        |> Module.read(Parser.imports(namespace))
       ) {
       | Ok(x) => x
       | Error(errs) =>
@@ -106,21 +105,26 @@ let validate = (compiler: t) => {
  */
 let process =
     (
-      ids: list(Namespace.t),
+      namespaces: list(Namespace.t),
       resolve: Namespace.t => Module.t,
       {modules} as compiler: t,
     ) => {
-  ids
-  |> List.iter(id =>
+  namespaces
+  |> List.iter(namespace =>
        switch (
-         resolve(id)
+         resolve(namespace)
          |> Module.read(
               Parser.ast(
-                ~ctx=Context.create(~scope=Scope.create(~modules, ()), ()),
+                Context.create(
+                  ~scope=Scope.create(~modules, ()),
+                  ~report=err => Report([err]) |> compiler.dispatch,
+                  namespace,
+                ),
               ),
             )
        ) {
-       | Ok(ast) => modules |> ModuleTable.add(id, ast, _get_exports(ast))
+       | Ok(ast) =>
+         modules |> ModuleTable.add(namespace, ast, _get_exports(ast))
        | Error(errs) => Report(errs) |> compiler.dispatch
        }
      );
@@ -148,7 +152,12 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
            resolve(~skip_cache=true, compiler, id)
            |> Module.cache(compiler.resolver.cache)
          ) {
-         | Ok(_) => ()
+         | Ok(path) =>
+           Log.debug(
+             "successfuly cached module %s to %s",
+             id |> Namespace.to_string,
+             path,
+           )
          | Error(errs) => Report(errs) |> compiler.dispatch
          }
        );

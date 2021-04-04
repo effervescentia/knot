@@ -107,6 +107,7 @@
     "test/file": {
       "require": [
         "knot.test",
+        "knot.lib_test",
         "knot.file"
       ],
       "name": "knot.file_test",

@@ -12,6 +12,7 @@ let lsp_key = "lsp";
 let bundle_key = "bundle";
 let develop_key = "develop";
 
+let name_key = "name";
 let root_dir_key = "root_dir";
 let source_dir_key = "source_dir";
 let out_dir_key = "out_dir";
@@ -31,6 +32,7 @@ let is_ci =
   };
 
 type static_t = {
+  name: option(string),
   root_dir: string,
   source_dir: string,
   out_dir: string,
@@ -44,6 +46,7 @@ type static_t = {
 };
 
 let defaults = {
+  name: None,
   root_dir: Sys.getcwd(),
   source_dir: "src",
   out_dir: "build",
@@ -58,6 +61,7 @@ let defaults = {
 
 type global_t = {
   debug: bool,
+  color: bool,
   name: string,
   root_dir: string,
   source_dir: string,

@@ -24,7 +24,7 @@ let map = (f, {resolve} as cmd: t('a)): t('b) => {
 
 let log_config =
     (global: global_t, name: string, attributes: list((string, string))) => {
-  Log.info("running '%s' command", name);
+  name |> Print.green |> Print.bold |> Log.info("running %s command");
   Log.debug(
     "%s config: %s",
     name,
