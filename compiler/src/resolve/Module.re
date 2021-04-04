@@ -24,6 +24,11 @@ let of_file = (path: path_t) => File(path);
 
 /* methods */
 
+let get_path =
+  fun
+  | Raw(_) => None
+  | File(path) => Some(path);
+
 let exists =
   fun
   | Raw(_) => true

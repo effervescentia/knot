@@ -30,46 +30,50 @@ let _print_resolution = ((description, examples)) =>
   ]
   |> Pretty.concat;
 
-let _print_err = (~index, ~color, title, content) =>
+let _print_err = (~index, ~color, path, title, content) =>
   [
-    [
-      Print.fmt("%d) %s", index + 1, title)
-      |> _print_bad(~color)
-      |> Pretty.string,
-    ]
-    |> Pretty.newline,
+    Print.fmt("%d) %s", index + 1, title)
+    |> _print_bad(~color)
+    |> Pretty.string,
+    switch (path) {
+    | Some(path) =>
+      [
+        " : " |> Pretty.string,
+        path |> (color ? Print.cyan : Functional.identity) |> Pretty.string,
+      ]
+      |> Pretty.newline
+      |> Pretty.indent(2)
+    | None => Pretty.Newline
+    },
     Pretty.Newline,
     [content |> Pretty.indent(2)] |> Pretty.concat,
   ]
   |> Pretty.concat;
 
-let _type_trait_to_string = (~color) =>
+let _type_trait_to_string = (~color, print_target) =>
   Type.(
     fun
     | K_Unknown =>
       "Unknown"
-      |> _print_bad(~color)
+      |> print_target
       |> Print.fmt("%s which can represent any type")
 
     | K_Exactly(t) =>
-      t
-      |> Type.strong_to_string
-      |> Print.fmt("Exactly<%s>")
-      |> _print_bad(~color)
+      t |> Type.strong_to_string |> Print.fmt("Exactly<%s>") |> print_target
 
     | K_Numeric =>
       Print.fmt(
         "%s which is shared by the types %s and %s",
-        "Numeric" |> _print_bad(~color),
-        "int" |> _print_good(~color),
-        "float" |> _print_good(~color),
+        "Numeric" |> print_target,
+        "int" |> Print.bold,
+        "float" |> Print.bold,
       )
 
     | K_Iterable(t) =>
       t
       |> Type.trait_to_string
       |> Print.fmt("Iterable<%s>")
-      |> _print_bad(~color)
+      |> print_target
       |> Print.fmt(
            "%s which is used for containers of sequential data such as a list",
          )
@@ -80,7 +84,7 @@ let _type_trait_to_string = (~color) =>
            Print.fmt("%s: %s", name, trait |> Type.trait_to_string)
          )
       |> Print.fmt("Structural<{ %s }>")
-      |> _print_bad(~color)
+      |> print_target
       |> Print.fmt(
            "'%s' which is used for containers of data keyed by strings",
          )
@@ -91,7 +95,7 @@ let _type_trait_to_string = (~color) =>
         args |> Print.many(~separator=", ", Type.trait_to_string),
         result |> Type.trait_to_string,
       )
-      |> _print_bad(~color)
+      |> print_target
       |> Print.fmt("'%s' which is used for functions")
   );
 
@@ -110,7 +114,7 @@ let _extract_type_err = (~color) =>
           [
             [
               lhs
-              |> _type_trait_to_string(~color)
+              |> _type_trait_to_string(~color, _print_bad(~color))
               |> Print.fmt(
                    "• the left-hand-side argument has the trait %s",
                  )
@@ -119,7 +123,7 @@ let _extract_type_err = (~color) =>
             |> Pretty.newline,
             [
               rhs
-              |> _type_trait_to_string(~color)
+              |> _type_trait_to_string(~color, _print_bad(~color))
               |> Print.fmt(
                    "• the right-hand-side argument has the trait %s",
                  )
@@ -137,17 +141,11 @@ let _extract_type_err = (~color) =>
         "Type Cannot Be Assigned",
         [
           [
-            trait
-            |> _type_trait_to_string(~color)
-            |> Print.fmt("expected a type that implements the trait %s,")
-            |> Pretty.string,
-          ]
-          |> Pretty.newline,
-          [
-            t
-            |> Type.to_string
-            |> _print_bad(~color)
-            |> Print.fmt("but found the type %s instead")
+            Print.fmt(
+              "expected a type that implements the trait %s but found the type %s instead",
+              trait |> _type_trait_to_string(~color, _print_good(~color)),
+              t |> Type.to_string |> _print_bad(~color),
+            )
             |> Pretty.string,
           ]
           |> Pretty.newline,
@@ -156,36 +154,18 @@ let _extract_type_err = (~color) =>
         |> Pretty.concat,
         None,
       )
-    | TypeMismatch(lhs, rhs) => (
+    | TypeMismatch(expected, actual) => (
         "Types Do Not Match",
         [
           [
-            "the types of the arguments in this operation are not compatible with each other:"
+            Print.fmt(
+              "expected the type %s but found the type %s instead",
+              expected |> Type.to_string |> _print_good(~color),
+              actual |> Type.to_string |> _print_bad(~color),
+            )
             |> Pretty.string,
           ]
           |> Pretty.newline,
-          Pretty.Newline,
-          [
-            [
-              lhs
-              |> Type.to_string
-              |> _print_bad(~color)
-              |> Print.fmt("• the left-hand-side argument has the type %s")
-              |> Pretty.string,
-            ]
-            |> Pretty.newline,
-            [
-              rhs
-              |> Type.to_string
-              |> _print_bad(~color)
-              |> Print.fmt(
-                   "• the right-hand-side argument has the type %s",
-                 )
-              |> Pretty.string,
-            ]
-            |> Pretty.newline,
-          ]
-          |> Pretty.concat,
           Pretty.Newline,
         ]
         |> Pretty.concat,
@@ -224,7 +204,7 @@ let _extract_type_err = (~color) =>
                 |> List.map(fmt =>
                      id
                      |> Identifier.to_string
-                     |> _print_good(~color)
+                     |> Print.bold
                      |> fmt
                      |> Pretty.string
                    ),
@@ -237,7 +217,7 @@ let _extract_type_err = (~color) =>
                 |> List.map(fmt =>
                      id
                      |> Identifier.to_string
-                     |> _print_good(~color)
+                     |> Print.bold
                      |> fmt
                      |> Pretty.string
                    ),
@@ -270,6 +250,7 @@ let _extract_parse_err = (~color) =>
 let _extract_compile_err = (~color, resolver) =>
   fun
   | ImportCycle(cycles) => (
+      None,
       "Import Cycle Found",
       cycles
       |> Print.many(~separator=" -> ", Functional.identity)
@@ -278,11 +259,13 @@ let _extract_compile_err = (~color, resolver) =>
     )
 
   | UnresolvedModule(name) => (
+      None,
       "Unresolved Module",
       name |> Print.fmt("could not resolve module: %s") |> Pretty.string,
     )
 
   | FileNotFound(path) => (
+      None,
       "File Not Found",
       path |> Print.fmt("could not find file with path: %s") |> Pretty.string,
     )
@@ -295,6 +278,10 @@ let _extract_compile_err = (~color, resolver) =>
            |> Module.read_to_string;
 
          (
+           resolver
+           |> Resolver.resolve_module(~skip_cache=true, namespace)
+           |> Module.get_path
+           |?> (x => x.relative),
            title,
            [
              description,
@@ -366,8 +353,8 @@ let report = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
     |> List.mapi((index, err) =>
          err
          |> _extract_compile_err(~color, resolver)
-         |> Tuple.reduce2((title, content) =>
-              _print_err(~index, ~color, title, content)
+         |> Tuple.reduce3((path, title, content) =>
+              _print_err(~index, ~color, path, title, content)
             )
        )
     |> List.intersperse(Pretty.Newline)
