@@ -9,12 +9,7 @@ let cmd = () => {
   Cmd.create(format_key, [], (_, _) => ());
 };
 
-let run =
-    (
-      global: global_t,
-      ~report=Reporter.panic(~color=global.color),
-      config: config_t,
-    ) => {
+let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
   Cmd.log_config(global, format_key, []);
 
   let compiler =

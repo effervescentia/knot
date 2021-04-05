@@ -6,11 +6,12 @@ open Executable;
  execution entrypoint
  */
 let () = {
-  Log.init({debug: false, color: false, timestamp: false});
+  Log.init({debug: false, timestamp: false});
 
   let (config, command) = Config.from_args();
 
-  Log.init({debug: config.debug, color: config.color, timestamp: false});
+  Print.color := config.color;
+  Log.init({debug: config.debug, timestamp: false});
 
   config.name |> Print.good |> Log.info("project %s");
 

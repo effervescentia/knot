@@ -2,8 +2,7 @@ open Kore;
 
 exception SourceNotAvailable;
 
-let print =
-    (~buffer_lines=2, ~color=false, contents: string, cursor: Cursor.t) => {
+let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
   let buffer = Buffer.create(100);
   let lines = contents |> String.split_on_char('\n');
   let (start, end_) = Cursor.expand(cursor);
@@ -25,10 +24,11 @@ let print =
         let is_highlight = row >= start.line && row <= end_.line;
 
         Print.fmt(
-          " %s │ %s\n",
+          " %s %s %s\n",
           Print.fmt("%*d", line_number_width, row)
-          |> (color && is_highlight ? Print.red : Functional.identity),
-          line,
+          |> (is_highlight ? Print.red : Print.grey),
+          "│" |> Print.grey,
+          line |> (is_highlight ? Functional.identity : Print.grey),
         )
         |> Buffer.add_string(buffer);
 
@@ -44,9 +44,10 @@ let print =
           Buffer.add_string(
             buffer,
             Print.fmt(
-              " %*s │ %*s%s\n",
+              " %*s %s %*s%s\n",
               line_number_width,
               "",
+              "│" |> Print.grey,
               unhighlighted_prefix_length,
               "",
               String.repeat(
@@ -55,7 +56,7 @@ let print =
                 - unhighlighted_suffix_length,
                 "^",
               )
-              |> (color ? Print.red : Functional.identity),
+              |> Print.red,
             ),
           );
         };

@@ -4,13 +4,6 @@ module Resolver = Resolve.Resolver;
 module Module = Resolve.Module;
 module Writer = File.Writer;
 
-let _print_red = (~color) => color ? Print.red : Print.bold;
-let _print_green = (~color) => color ? Print.green : Print.bold;
-let _print_yellow = (~color) => color ? Print.yellow : Print.bold;
-let _print_bad = (~color) => color ? Print.bad : Print.bold;
-let _print_good = (~color) => color ? Print.good : Print.bold;
-let _print_warn = (~color) => color ? Print.warn : Print.bold;
-
 let _print_code_examples =
   List.intersperse(
     [Pretty.Newline, "// or" |> Pretty.string, Pretty.Newline]
@@ -30,17 +23,12 @@ let _print_resolution = ((description, examples)) =>
   ]
   |> Pretty.concat;
 
-let _print_err = (~index, ~color, path, title, content) =>
+let _print_err = (~index, path, title, content) =>
   [
-    Print.fmt("%d) %s", index + 1, title)
-    |> _print_bad(~color)
-    |> Pretty.string,
+    Print.fmt("%d) %s", index + 1, title) |> Print.bad |> Pretty.string,
     switch (path) {
     | Some(path) =>
-      [
-        " : " |> Pretty.string,
-        path |> (color ? Print.cyan : Functional.identity) |> Pretty.string,
-      ]
+      [" : " |> Pretty.string, path |> Print.cyan |> Pretty.string]
       |> Pretty.newline
       |> Pretty.indent(2)
     | None => Pretty.Newline
@@ -50,7 +38,7 @@ let _print_err = (~index, ~color, path, title, content) =>
   ]
   |> Pretty.concat;
 
-let _type_trait_to_string = (~color, print_target) =>
+let _type_trait_to_string = print_target =>
   Type.(
     fun
     | K_Unknown =>
@@ -99,7 +87,7 @@ let _type_trait_to_string = (~color, print_target) =>
       |> Print.fmt("'%s' which is used for functions")
   );
 
-let _extract_type_err = (~color) =>
+let _extract_type_err =
   Type.(
     fun
     | TraitConflict(lhs, rhs) => (
@@ -114,7 +102,7 @@ let _extract_type_err = (~color) =>
           [
             [
               lhs
-              |> _type_trait_to_string(~color, _print_bad(~color))
+              |> _type_trait_to_string(Print.bad)
               |> Print.fmt(
                    "• the left-hand-side argument has the trait %s",
                  )
@@ -123,7 +111,7 @@ let _extract_type_err = (~color) =>
             |> Pretty.newline,
             [
               rhs
-              |> _type_trait_to_string(~color, _print_bad(~color))
+              |> _type_trait_to_string(Print.bad)
               |> Print.fmt(
                    "• the right-hand-side argument has the trait %s",
                  )
@@ -143,8 +131,8 @@ let _extract_type_err = (~color) =>
           [
             Print.fmt(
               "expected a type that implements the trait %s but found the type %s instead",
-              trait |> _type_trait_to_string(~color, _print_good(~color)),
-              t |> Type.to_string |> _print_bad(~color),
+              trait |> _type_trait_to_string(Print.good),
+              t |> Type.to_string |> Print.bad,
             )
             |> Pretty.string,
           ]
@@ -160,8 +148,8 @@ let _extract_type_err = (~color) =>
           [
             Print.fmt(
               "expected the type %s but found the type %s instead",
-              expected |> Type.to_string |> _print_good(~color),
-              actual |> Type.to_string |> _print_bad(~color),
+              expected |> Type.to_string |> Print.good,
+              actual |> Type.to_string |> Print.bad,
             )
             |> Pretty.string,
           ]
@@ -177,7 +165,7 @@ let _extract_type_err = (~color) =>
           [
             id
             |> Identifier.to_string
-            |> _print_bad(~color)
+            |> Print.bad
             |> Print.fmt(
                  "unable to resolve an identifier %s in the local scope or any inherited scope",
                )
@@ -191,7 +179,7 @@ let _extract_type_err = (~color) =>
             _print_resolution((
               id
               |> Identifier.to_string
-              |> _print_bad(~color)
+              |> Print.bad
               |> Print.fmt(
                    "check that the identifier %s is spelled correctly",
                  ),
@@ -232,8 +220,8 @@ let _extract_type_err = (~color) =>
         [
           Print.fmt(
             "an export with the identifier %s could not be found in module %s",
-            id |> Identifier.to_string |> _print_bad(~color),
-            namespace |> Namespace.to_string |> _print_bad(~color),
+            id |> Identifier.to_string |> Print.bad,
+            namespace |> Namespace.to_string |> Print.bad,
           )
           |> Pretty.string,
           Pretty.Newline,
@@ -243,11 +231,11 @@ let _extract_type_err = (~color) =>
       )
   );
 
-let _extract_parse_err = (~color) =>
+let _extract_parse_err =
   fun
-  | TypeError(err) => _extract_type_err(~color, err);
+  | TypeError(err) => _extract_type_err(err);
 
-let _extract_compile_err = (~color, resolver) =>
+let _extract_compile_err = resolver =>
   fun
   | ImportCycle(cycles) => (
       None,
@@ -271,7 +259,7 @@ let _extract_compile_err = (~color, resolver) =>
     )
 
   | ParseError(err, namespace, cursor) =>
-    _extract_parse_err(~color, err)
+    _extract_parse_err(err)
     |> Tuple.reduce3((title, description, resolutions) => {
          let module_ =
            Resolver.resolve_module(namespace, resolver)
@@ -285,7 +273,7 @@ let _extract_compile_err = (~color, resolver) =>
            title,
            [
              description,
-             File.CodeFrame.print(~color, module_, cursor) |> Pretty.string,
+             File.CodeFrame.print(module_, cursor) |> Pretty.string,
              switch (resolutions) {
              | Some(resolutions) =>
                [
@@ -306,7 +294,7 @@ let _extract_compile_err = (~color, resolver) =>
          );
        });
 
-let report = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
+let report = (resolver: Resolver.t, errors: list(compile_err)) => {
   let header =
     Print.fmt("%sFAILED%s", String.repeat(20, " "), String.repeat(20, " "));
   let summary =
@@ -317,11 +305,8 @@ let report = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
         |> List.length
         |> string_of_int
         |> Print.fmt("%s error(s)")
-        |> _print_red(~color),
-        0
-        |> string_of_int
-        |> Print.fmt("%s warning(s)")
-        |> _print_yellow(~color),
+        |> Print.red,
+        0 |> string_of_int |> Print.fmt("%s warning(s)") |> Print.yellow,
       )
       |> Pretty.string,
     ]
@@ -330,21 +315,11 @@ let report = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
 
   [
     Pretty.Newline,
-    [
-      horiz_border
-      |> Print.fmt("╔%s╗")
-      |> _print_bad(~color)
-      |> Pretty.string,
-    ]
+    [horiz_border |> Print.fmt("╔%s╗") |> Print.bad |> Pretty.string]
     |> Pretty.newline,
-    [header |> Print.fmt("║%s║") |> _print_bad(~color) |> Pretty.string]
+    [header |> Print.fmt("║%s║") |> Print.bad |> Pretty.string]
     |> Pretty.newline,
-    [
-      horiz_border
-      |> Print.fmt("╚%s╝")
-      |> _print_bad(~color)
-      |> Pretty.string,
-    ]
+    [horiz_border |> Print.fmt("╚%s╝") |> Print.bad |> Pretty.string]
     |> Pretty.newline,
     Pretty.Newline,
     summary,
@@ -352,9 +327,9 @@ let report = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
     errors
     |> List.mapi((index, err) =>
          err
-         |> _extract_compile_err(~color, resolver)
+         |> _extract_compile_err(resolver)
          |> Tuple.reduce3((path, title, content) =>
-              _print_err(~index, ~color, path, title, content)
+              _print_err(~index, path, title, content)
             )
        )
     |> List.intersperse(Pretty.Newline)
@@ -364,8 +339,8 @@ let report = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
   |> Pretty.concat;
 };
 
-let panic = (~color, resolver: Resolver.t, errors: list(compile_err)) => {
-  report(~color, resolver, errors) |> Writer.write(stderr);
+let panic = (resolver: Resolver.t, errors: list(compile_err)) => {
+  report(resolver, errors) |> Writer.write(stderr);
 
   exit(2);
 };

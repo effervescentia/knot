@@ -7,7 +7,6 @@ module ANSI = ANSITerminal;
 
 type config_t = {
   debug: bool,
-  color: bool,
   timestamp: bool,
 };
 
@@ -29,17 +28,9 @@ let init =
       set_log_level(cfg.debug ? DEBUG : INFO);
       set_output(stderr);
 
-      if (cfg.color) {
-        color_on();
-      };
-
       Dolog.Log.set_prefix_builder(lvl =>
         string_of_level(lvl)
-        |> (
-          cfg.color
-            ? ANSI.sprintf([_color_of_level(lvl)], "%s")
-            : Functional.identity
-        )
+        |> Print.ansi_sprintf([_color_of_level(lvl)])
         |> Print.bold
         |> Print.fmt(
              "%s[knot] %s",
