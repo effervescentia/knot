@@ -27,10 +27,31 @@ let _print_err = (~index, path, title, content) =>
   [
     Print.fmt("%d) %s", index + 1, title) |> Print.bad |> Pretty.string,
     switch (path) {
-    | Some(path) =>
-      [" : " |> Pretty.string, path |> Print.cyan |> Pretty.string]
-      |> Pretty.newline
-      |> Pretty.indent(2)
+    | Some((Module.{relative, full}, cursor)) =>
+      let cursor_suffix =
+        Cursor.(
+          switch (cursor) {
+          | Range({line, column}, _)
+          | Point({line, column}) => Print.fmt(":%d:%d", line, column)
+          }
+        );
+
+      [
+        [
+          " : " |> Pretty.string,
+          relative |> Print.cyan |> Pretty.string,
+          cursor_suffix |> Print.grey |> Pretty.string,
+        ]
+        |> Pretty.newline,
+        [
+          Print.fmt("(%s%s)", full, cursor_suffix)
+          |> Print.grey
+          |> Pretty.string,
+        ]
+        |> Pretty.newline,
+      ]
+      |> Pretty.concat
+      |> Pretty.indent(2);
     | None => Pretty.Newline
     },
     Pretty.Newline,
@@ -269,7 +290,7 @@ let _extract_compile_err = resolver =>
            resolver
            |> Resolver.resolve_module(~skip_cache=true, namespace)
            |> Module.get_path
-           |?> (x => x.relative),
+           |?> (x => (x, cursor)),
            title,
            [
              description,

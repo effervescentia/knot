@@ -24,7 +24,7 @@ let rec many = (~separator="", print: 'a => string) =>
 
 let ansi_sprintf = (x, s) => color^ ? ANSI.sprintf(x, "%s", s) : s;
 let ansi_code_sprintf = (x, s) =>
-  color^ ? fmt("\027[;%dm%s\027[0m", x, s) : s;
+  color^ ? fmt("\027[%dm%s\027[0m", x, s) : s;
 
 let bold = ansi_sprintf([ANSI.Bold]);
 let red = ansi_sprintf([ANSI.red]);
