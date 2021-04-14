@@ -71,3 +71,13 @@ let find_index = (pattern: string, value: string) =>
 
 let replace = (target: char, replacement: char) =>
   to_seq % Seq.map(x => x == target ? replacement : x) % of_seq;
+
+let split = (pattern: string, value: string) =>
+  switch (find_index(pattern, value)) {
+  | Some(index) => (
+      sub(value, 0, index),
+      sub(value, index + 2, length(value) - (index + 2)),
+    )
+
+  | None => (value, "")
+  };

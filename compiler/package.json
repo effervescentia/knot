@@ -72,9 +72,18 @@
       "name": "knot.compile",
       "namespace": "Compile"
     },
+    "src/language_server": {
+      "require": [
+        "knot.compile",
+        "yojson"
+      ],
+      "name": "knot.lang_server",
+      "namespace": "LanguageServer"
+    },
     "src/executable": {
       "require": [
         "knot.compile",
+        "knot.lang_server",
         "yaml"
       ],
       "name": "knot.exec",
@@ -216,7 +225,8 @@
     "@opam/lwt": "5.4.0",
     "@opam/tablecloth-native": "0.0.7",
     "@opam/uutf": "1.0.2",
-    "@opam/yaml": "2.1.0"
+    "@opam/yaml": "2.1.0",
+    "@opam/yojson": "1.7.0"
   },
   "devDependencies": {
     "@opam/merlin": "*",

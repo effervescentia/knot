@@ -33,7 +33,7 @@ let init =
         |> Print.ansi_sprintf([_color_of_level(lvl)])
         |> Print.bold
         |> Print.fmt(
-             "%s[knot] %s",
+             "%s[knot] %s ",
              cfg.timestamp ? Sys.time() |> string_of_float : "",
            )
       );

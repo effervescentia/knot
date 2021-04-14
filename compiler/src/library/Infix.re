@@ -29,3 +29,9 @@ let (|?>) = (x, f) =>
   | Some(x') => Some(f(x'))
   | None => None
   };
+
+let (|?<) = (x, f) =>
+  switch (x) {
+  | Some(x') => f(x')
+  | None => None
+  };

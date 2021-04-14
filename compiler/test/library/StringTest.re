@@ -48,4 +48,10 @@ let suite =
         ]
         |> Assert.(test_many(opt_int))
     ),
+    "split()"
+    >: (
+      () =>
+        [(("foo", "bar"), String.split(": ", "foo: bar"))]
+        |> Assert.(test_many(string_pair))
+    ),
   ];

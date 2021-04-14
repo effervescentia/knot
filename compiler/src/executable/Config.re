@@ -103,7 +103,16 @@ let from_file = (file: string): static_t => {
 let from_args = (): (global_t, RunCmd.t) => {
   let auto_config_file = File.Util.find_up(__config_file, defaults.root_dir);
   let config_file = ref(None);
-  let static = ref(auto_config_file |?> from_file);
+  let static =
+    ref(
+      auto_config_file
+      |?> (
+        file => {
+          Log.debug("automatically found config file: %s", file);
+          from_file(file);
+        }
+      ),
+    );
 
   let cmd = ref(None);
 

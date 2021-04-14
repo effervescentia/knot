@@ -120,11 +120,11 @@ let source_dir = (~default=defaults.source_dir, ()) => {
       source_dir |> Filename.relative_to(root_dir);
     | (Some(cfg), None) =>
       let source_dir = cfg.source_dir;
-      _check_source_dir_exists(source_dir |> Filename.resolve);
+      _check_source_dir_exists(Filename.concat(root_dir, source_dir));
       source_dir;
     | (None, None) =>
       let source_dir = default;
-      _check_source_dir_exists(source_dir |> Filename.resolve);
+      _check_source_dir_exists(Filename.concat(root_dir, source_dir));
       source_dir;
     };
   };
