@@ -1,6 +1,7 @@
 open Kore;
 open Util;
 open Type;
+open Reference;
 
 module Compiler = Compile.Compiler;
 module ImportGraph = Resolve.ImportGraph;
@@ -12,7 +13,7 @@ let __cyclic_imports_dir = "./test/compile/.fixtures/cyclic_imports";
 let __source_dir = ".";
 let __entry_module = "entry";
 let __entry_filename = "entry.kn";
-let __entry = Reference.Namespace.Internal(__entry_module);
+let __entry = Namespace.Internal(__entry_module);
 let __config =
   Compiler.{
     name: "foo",
@@ -22,13 +23,13 @@ let __config =
   };
 
 let __types =
-  AST.[("ABC" |> of_public, K_Strong(K_Integer))]
+  AST.[(Export.Named("ABC" |> of_public), K_Strong(K_Integer))]
   |> List.to_seq
   |> Hashtbl.of_seq;
 let __ast =
   AST.[
     (
-      ("ABC" |> of_public, Cursor.range((1, 7), (1, 9))),
+      ("ABC" |> of_public, Cursor.range((1, 7), (1, 9))) |> of_named_export,
       (
         123 |> Int64.of_int |> of_int |> of_num,
         K_Strong(K_Integer),

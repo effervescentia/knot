@@ -2,7 +2,7 @@ open Kore;
 
 let variable = (ctx: Context.t, expr) =>
   Keyword.let_
-  >> Operator.assign(Identifier.parser, expr(ctx))
+  >> Operator.assign(Identifier.parser(ctx), expr(ctx))
   >@= ((((id, _), (_, t, _))) => ctx.scope |> Scope.define(id, t))
   >|= AST.of_var;
 

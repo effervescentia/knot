@@ -8,9 +8,16 @@ let _in_block = x => Block.create(x, Cursor.zero);
 
 let __resolved = "../foo/bar";
 let __program = [
-  ("foo/bar" |> of_internal, ["Foo" |> of_public |> as_lexeme |> of_main])
+  (
+    "foo/bar" |> of_internal,
+    ["Foo" |> of_public |> as_lexeme |> of_main_import],
+  )
   |> of_import,
-  ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const) |> of_decl,
+  (
+    "ABC" |> of_public |> as_lexeme |> of_named_export,
+    123 |> int_prim |> of_const,
+  )
+  |> of_decl,
 ];
 
 module Compare = {
@@ -185,7 +192,8 @@ let suite =
               [("fizz", None), ("buzz", Some("local_buzz"))],
             ),
           ),
-          ("export { foo }", Export("foo")),
+          ("export { foo }", Export("foo", None)),
+          ("export { foo as bar }", Export("foo", Some("bar"))),
           ("export {}", EmptyExport),
         ]
         |> List.map(
@@ -221,7 +229,8 @@ $import$__$foo$bar = null",
               [("fizz", None), ("buzz", Some("local_buzz"))],
             ),
           ),
-          ("exports.foo = foo", Export("foo")),
+          ("exports.foo = foo", Export("foo", None)),
+          ("exports.bar = foo", Export("foo", Some("bar"))),
           ("module.exports = {}", EmptyExport),
         ]
         |> List.map(
@@ -240,13 +249,15 @@ $import$__$foo$bar = null",
 import { fizz } from \"foo/bar\";
 var foo = 5 < 10;
 export { foo };
+export { fizz as buzz };
 foo.bar = null;
 ",
             [
               DefaultImport("foo", "bar"),
               Import("foo/bar", [("fizz", None)]),
               Variable("foo", BinaryOp("<", Number("5"), Number("10"))),
-              Export("foo"),
+              Export("foo", None),
+              Export("fizz", Some("buzz")),
               Assignment(DotAccess(Identifier("foo"), "bar"), Null),
             ],
           ),
@@ -267,13 +278,15 @@ var fizz = $import$foo$bar.fizz;
 $import$foo$bar = null;
 var foo = 5 < 10;
 exports.foo = foo;
+exports.buzz = fizz;
 foo.bar = null;
 ",
             [
               DefaultImport("foo", "bar"),
               Import("foo/bar", [("fizz", None)]),
               Variable("foo", BinaryOp("<", Number("5"), Number("10"))),
-              Export("foo"),
+              Export("foo", None),
+              Export("fizz", Some("buzz")),
               Assignment(DotAccess(Identifier("foo"), "bar"), Null),
             ],
           ),

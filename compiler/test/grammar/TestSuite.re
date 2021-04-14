@@ -9,6 +9,7 @@ let tests = [
   JSXTest.suite,
   ExpressionTest.suite,
   Declaration_ConstantTest.suite,
+  DeclarationTest.suite,
   ImportTest.suite,
   ProgramTest.suite,
 ];

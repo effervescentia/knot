@@ -11,7 +11,7 @@ let primitive =
   >|= (((_, type_, cursor) as prim) => (prim |> AST.of_prim, type_, cursor));
 
 let identifier = (ctx: Context.t) =>
-  Identifier.parser
+  Identifier.parser(ctx)
   >|= (
     ((_, cursor) as id) => (
       id |> AST.of_id,

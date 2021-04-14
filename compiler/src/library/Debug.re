@@ -230,12 +230,23 @@ and print_stmt = stmt =>
     print_typed_lexeme("Expression", expr |> print_expr, type_, cursor)
   };
 
-let print_decl = (((name, name_cursor), decl)) =>
+let print_decl = ((name, decl)) =>
   switch (decl) {
   | Constant((expr, type_, cursor)) =>
     _print_entity(
       ~children=[
-        print_lexeme("Name", name |> print_id, name_cursor),
+        print_lexeme(
+          "Name",
+          switch (name) {
+          | MainExport((id, _)) =>
+            ["(main) " |> Pretty.string, id |> print_id] |> Pretty.concat
+          | NamedExport((id, _)) => id |> print_id
+          },
+          switch (name) {
+          | MainExport((_, name_cursor))
+          | NamedExport((_, name_cursor)) => name_cursor
+          },
+        ),
         print_typed_lexeme("Value", expr |> print_expr, type_, cursor),
       ],
       "Constant",
@@ -255,14 +266,17 @@ let print_mod_stmt =
             imports
             |> List.map(
                  fun
-                 | Main((name, cursor)) =>
+                 | MainImport((name, cursor)) =>
                    _print_entity(
                      "Main",
                      ~children=[
                        print_lexeme("Name", name |> print_id, cursor),
                      ],
                    )
-                 | Named((name, name_cursor), Some((label, label_cursor))) =>
+                 | NamedImport(
+                     (name, name_cursor),
+                     Some((label, label_cursor)),
+                   ) =>
                    _print_entity(
                      "Named",
                      ~children=[
@@ -270,7 +284,7 @@ let print_mod_stmt =
                        print_lexeme("As", label |> print_id, label_cursor),
                      ],
                    )
-                 | Named((name, cursor), None) =>
+                 | NamedImport((name, cursor), None) =>
                    _print_entity(
                      "Named",
                      ~children=[
@@ -302,7 +316,7 @@ let print_module_table = (~debug=false, table: ModuleTable.t): string =>
                 "/* %s */\n\nexports: %s\n\n%s",
                 Reference.Namespace.to_string(key),
                 types
-                |> Hashtbl.to_string(Identifier.to_string, Type.to_string)
+                |> Hashtbl.to_string(Export.to_string, Type.to_string)
                 |> Pretty.to_string,
               )
        )

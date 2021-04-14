@@ -21,7 +21,7 @@ and statement_t =
   | Return(option(expression_t))
   | DefaultImport(string, string)
   | Import(string, list((string, option(string))))
-  | Export(string)
+  | Export(string, option(string))
   | EmptyExport;
 
 type program_t = list(statement_t);

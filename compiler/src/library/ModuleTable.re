@@ -1,7 +1,7 @@
 open Reference;
 
 type entry_t = {
-  types: Hashtbl.t(Identifier.t, Type.t),
+  types: Hashtbl.t(Export.t, Type.t),
   ast: AST.program_t,
 };
 
@@ -28,7 +28,7 @@ let add =
     (
       id: Namespace.t,
       ast: AST.program_t,
-      exports: list((Identifier.t, Type.t)),
+      exports: list((Export.t, Type.t)),
       table: t,
     ) =>
   Hashtbl.replace(
@@ -46,7 +46,7 @@ let remove = (id: Namespace.t, table: t) => Hashtbl.remove(table, id);
  declare the type of an export member of an existing module
  */
 let add_type =
-    ((namespace, id): (Namespace.t, Identifier.t), value: Type.t, table: t) =>
+    ((namespace, id): (Namespace.t, Export.t), value: Type.t, table: t) =>
   if (Hashtbl.mem(table, namespace)) {
     let members = Hashtbl.find(table, namespace);
 

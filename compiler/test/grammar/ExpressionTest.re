@@ -387,11 +387,16 @@ let suite =
                    "b" |> of_public |> as_lexeme |> of_id |> as_weak(1),
                  )
                  |> tag
-                 |> as_invalid(NotAssignable(K_Weak(1), K_Numeric)),
+                 |> as_invalid(NotAssignable(K_Weak(0), K_Numeric)),
                  "c" |> of_public |> as_lexeme |> of_id |> as_weak(2),
                )
                |> tag
-               |> as_invalid(NotAssignable(K_Weak(2), K_Numeric)),
+               |> as_invalid(
+                    NotAssignable(
+                      K_Invalid(NotAssignable(K_Weak(0), K_Numeric)),
+                      K_Numeric,
+                    ),
+                  ),
              )
            )
         |> Assert.parse_many(

@@ -1,5 +1,6 @@
 open Kore;
 open Util;
+open Reference;
 
 module Import = Grammar.Import;
 
@@ -42,7 +43,7 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main],
+                ["foo" |> of_public |> as_lexeme |> of_main_import],
               ))
             ),
           ),
@@ -55,7 +56,7 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                [("foo" |> of_public |> as_lexeme, None) |> of_named],
+                [("foo" |> of_public |> as_lexeme, None) |> of_named_import],
               ))
             ),
           ),
@@ -69,7 +70,7 @@ let suite =
                     "foo" |> of_public |> as_lexeme,
                     Some("bar" |> of_public |> as_lexeme),
                   )
-                  |> of_named,
+                  |> of_named_import,
                 ],
               ))
             ),
@@ -80,13 +81,13 @@ let suite =
               of_import((
                 "bar" |> of_internal,
                 [
-                  "fizz" |> of_public |> as_lexeme |> of_main,
-                  ("foo" |> of_public |> as_lexeme, None) |> of_named,
+                  "fizz" |> of_public |> as_lexeme |> of_main_import,
+                  ("foo" |> of_public |> as_lexeme, None) |> of_named_import,
                   (
                     "bar" |> of_public |> as_lexeme,
                     Some("Bar" |> of_public |> as_lexeme),
                   )
-                  |> of_named,
+                  |> of_named_import,
                 ],
               ))
             ),
@@ -97,14 +98,44 @@ let suite =
               of_import((
                 "bar" |> of_internal,
                 [
-                  ("foo" |> of_public |> as_lexeme, None) |> of_named,
-                  ("bar" |> of_public |> as_lexeme, None) |> of_named,
+                  ("foo" |> of_public |> as_lexeme, None) |> of_named_import,
+                  ("bar" |> of_public |> as_lexeme, None) |> of_named_import,
                 ],
               ))
             ),
           ),
         ]
-        |> Assert.parse_many
+        |> Assert.parse_many(
+             ~scope=
+               Scope.create(
+                 ~modules=
+                   AST.[
+                     (
+                       "bar" |> of_internal,
+                       ModuleTable.{
+                         ast: [],
+                         types:
+                           [
+                             (Export.Main, Type.K_Strong(K_Nil)),
+                             (
+                               Export.Named("bar" |> of_public),
+                               Type.K_Strong(K_Boolean),
+                             ),
+                             (
+                               Export.Named("foo" |> of_public),
+                               Type.K_Strong(K_String),
+                             ),
+                           ]
+                           |> List.to_seq
+                           |> Hashtbl.of_seq,
+                       },
+                     ),
+                   ]
+                   |> List.to_seq
+                   |> Hashtbl.of_seq,
+                 (),
+               ),
+           )
     ),
     "parse terminated"
     >: (
@@ -115,7 +146,7 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main],
+                ["foo" |> of_public |> as_lexeme |> of_main_import],
               ))
             ),
           ),
@@ -124,11 +155,31 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main],
+                ["foo" |> of_public |> as_lexeme |> of_main_import],
               ))
             ),
           ),
         ]
-        |> Assert.parse_many
+        |> Assert.parse_many(
+             ~scope=
+               Scope.create(
+                 ~modules=
+                   AST.[
+                     (
+                       "bar" |> of_internal,
+                       ModuleTable.{
+                         ast: [],
+                         types:
+                           [(Export.Main, Type.K_Strong(K_Nil))]
+                           |> List.to_seq
+                           |> Hashtbl.of_seq,
+                       },
+                     ),
+                   ]
+                   |> List.to_seq
+                   |> Hashtbl.of_seq,
+                 (),
+               ),
+           )
     ),
   ];

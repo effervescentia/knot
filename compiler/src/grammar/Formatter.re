@@ -249,8 +249,11 @@ let fmt_imports = stmts => {
                |> List.fold_left(
                     ((m, n)) =>
                       fun
-                      | Main((id, _)) => (Some(id), n)
-                      | Named((id, _), label) => (m, [(id, label), ...n]),
+                      | MainImport((id, _)) => (Some(id), n)
+                      | NamedImport((id, _), label) => (
+                          m,
+                          [(id, label), ...n],
+                        ),
                     (None, []),
                   );
 
@@ -320,7 +323,8 @@ let fmt_declarations = stmts => {
     stmts
     |> List.filter_map(
          fun
-         | Declaration(name, decl) => Some((name, decl))
+         | Declaration(MainExport(name) | NamedExport(name), decl) =>
+           Some((name, decl))
          | _ => None,
        );
 

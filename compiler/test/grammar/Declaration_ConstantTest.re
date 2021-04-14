@@ -1,15 +1,17 @@
 open Kore;
 open AST;
 open Util;
+open Reference;
 
 module Declaration = Grammar.Declaration;
 
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = (identifier_t, declaration_t);
+    type t = (export_t, declaration_t);
 
-    let parser = ctx => Parser.parse(Declaration.constant(ctx));
+    let parser = ctx =>
+      Parser.parse(Declaration.constant(ctx, AST.of_named_export));
 
     let test =
       Alcotest.(
@@ -36,10 +38,16 @@ let suite =
     "parse"
     >: (
       () =>
-        Assert.parse(
-          "const foo = nil",
-          ("foo" |> of_public |> as_lexeme, nil_prim |> of_const),
-        )
+        [
+          (
+            "const foo = nil",
+            (
+              "foo" |> of_public |> as_lexeme |> of_named_export,
+              nil_prim |> of_const,
+            ),
+          ),
+        ]
+        |> Assert.parse_many
     ),
     "parse with complex derived type"
     >: (
@@ -59,7 +67,7 @@ let suite =
             y || x + 1 <= 5;
           }",
           (
-            "foo" |> of_public |> as_lexeme,
+            "foo" |> of_public |> as_lexeme |> of_named_export,
             [
               (
                 "x" |> of_public |> as_lexeme,
@@ -112,13 +120,13 @@ let suite =
 
         Assert.int(0, scope.seed^);
         Assert.hashtbl(
-          Reference.Identifier.to_string,
+          Export.to_string,
           Type.to_string,
           [
-            ("bar" |> of_public, Type.K_Strong(K_Float)),
-            ("fizz" |> of_public, Type.K_Strong(K_Integer)),
-            ("buzz" |> of_public, Type.K_Strong(K_Float)),
-            ("foo" |> of_public, Type.K_Strong(K_Boolean)),
+            (Export.Named("bar" |> of_public), Type.K_Strong(K_Float)),
+            (Export.Named("fizz" |> of_public), Type.K_Strong(K_Integer)),
+            (Export.Named("buzz" |> of_public), Type.K_Strong(K_Float)),
+            (Export.Named("foo" |> of_public), Type.K_Strong(K_Boolean)),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,

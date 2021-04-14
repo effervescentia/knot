@@ -75,12 +75,16 @@ type declaration_t =
   | Constant(expression_t);
 
 type import_t =
-  | Main(identifier_t)
-  | Named(identifier_t, option(identifier_t));
+  | MainImport(identifier_t)
+  | NamedImport(identifier_t, option(identifier_t));
+
+type export_t =
+  | MainExport(identifier_t)
+  | NamedExport(identifier_t);
 
 type module_statement_t =
   | Import(Namespace.t, list(import_t))
-  | Declaration(identifier_t, declaration_t);
+  | Declaration(export_t, declaration_t);
 
 type program_t = list(module_statement_t);
 
@@ -92,8 +96,11 @@ let of_external = namespace => Namespace.External(namespace);
 let of_public = name => Identifier.Public(name);
 let of_private = name => Identifier.Private(name);
 
-let of_main = x => Main(x);
-let of_named = ((x, y)) => Named(x, y);
+let of_main_import = x => MainImport(x);
+let of_named_import = ((x, y)) => NamedImport(x, y);
+
+let of_main_export = x => MainExport(x);
+let of_named_export = x => NamedExport(x);
 
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);

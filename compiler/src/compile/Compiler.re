@@ -27,13 +27,27 @@ let __module_table_size = 64;
 
 let _get_exports = ast =>
   ast
-  |> List.filter_map(
+  |> List.map(
        fun
-       | AST.Declaration((Private(_), _), _) => None
-       | AST.Declaration((id, _), decl) =>
-         Some((id, decl |> TypeOf.declaration))
-       | _ => None,
-     );
+       /* ignore all private declarations */
+       | AST.Declaration(
+           MainExport((Private(_), _)) | NamedExport((Private(_), _)),
+           _,
+         ) =>
+         []
+
+       | AST.Declaration(NamedExport((id, _)), decl) => [
+           (Export.Named(id), decl |> TypeOf.declaration),
+         ]
+
+       | AST.Declaration(MainExport((id, _)), decl) => [
+           (Export.Named(id), decl |> TypeOf.declaration),
+           (Export.Main, decl |> TypeOf.declaration),
+         ]
+
+       | _ => [],
+     )
+  |> List.flatten;
 
 /* static */
 

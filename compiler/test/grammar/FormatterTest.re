@@ -404,9 +404,15 @@ let suite =
 const ABC = 123;
 ",
             [
-              ("DEF" |> of_public |> as_lexeme, true |> bool_prim |> of_const)
+              (
+                "DEF" |> of_public |> as_lexeme |> of_named_export,
+                true |> bool_prim |> of_const,
+              )
               |> of_decl,
-              ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
+              (
+                "ABC" |> of_public |> as_lexeme |> of_named_export,
+                123 |> int_prim |> of_const,
+              )
               |> of_decl,
             ],
           ),
@@ -429,19 +435,19 @@ import Fizz from \"buzz\";
             [
               (
                 "buzz" |> of_external,
-                ["Fizz" |> of_public |> as_lexeme |> of_main],
+                ["Fizz" |> of_public |> as_lexeme |> of_main_import],
               )
               |> of_import,
               (
                 "bar" |> of_external,
                 [
-                  "bar" |> of_public |> as_lexeme |> of_main,
+                  "bar" |> of_public |> as_lexeme |> of_main_import,
                   (
                     "Foo" |> of_public |> as_lexeme,
                     Some("foo" |> of_public |> as_lexeme),
                   )
-                  |> of_named,
-                  ("Bar" |> of_public |> as_lexeme, None) |> of_named,
+                  |> of_named_import,
+                  ("Bar" |> of_public |> as_lexeme, None) |> of_named_import,
                 ],
               )
               |> of_import,
@@ -455,12 +461,12 @@ import Foo from \"@/bar\";
             [
               (
                 "bar" |> of_internal,
-                ["Foo" |> of_public |> as_lexeme |> of_main],
+                ["Foo" |> of_public |> as_lexeme |> of_main_import],
               )
               |> of_import,
               (
                 "buzz" |> of_external,
-                ["Fizz" |> of_public |> as_lexeme |> of_main],
+                ["Fizz" |> of_public |> as_lexeme |> of_main_import],
               )
               |> of_import,
             ],
@@ -481,7 +487,7 @@ import Foo from \"@/bar\";
             [
               (
                 "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main],
+                ["Foo" |> of_public |> as_lexeme |> of_main_import],
               )
               |> of_import,
             ],
@@ -489,7 +495,10 @@ import Foo from \"@/bar\";
           (
             "const ABC = 123;\n",
             [
-              ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
+              (
+                "ABC" |> of_public |> as_lexeme |> of_named_export,
+                123 |> int_prim |> of_const,
+              )
               |> of_decl,
             ],
           ),
@@ -501,10 +510,13 @@ const ABC = 123;
             [
               (
                 "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main],
+                ["Foo" |> of_public |> as_lexeme |> of_main_import],
               )
               |> of_import,
-              ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)
+              (
+                "ABC" |> of_public |> as_lexeme |> of_named_export,
+                123 |> int_prim |> of_const,
+              )
               |> of_decl,
             ],
           ),

@@ -1,5 +1,6 @@
 open Kore;
 open Util;
+open Reference;
 
 module Parser = Compile.Parser;
 
@@ -14,8 +15,31 @@ let __ast_fixture = "
 
   const ABC = 123;
  ";
-let __namespace = Reference.Namespace.Internal("foo");
-let __context = Context.create(__namespace);
+let __namespace = Namespace.Internal("foo");
+
+let __context =
+  Context.create(
+    ~scope=
+      Scope.create(
+        ~modules=
+          AST.[
+            (
+              "bar" |> of_internal,
+              ModuleTable.{
+                ast: [],
+                types:
+                  [(Export.Main, Type.K_Strong(K_Boolean))]
+                  |> List.to_seq
+                  |> Hashtbl.of_seq,
+              },
+            ),
+          ]
+          |> List.to_seq
+          |> Hashtbl.of_seq,
+        (),
+      ),
+    __namespace,
+  );
 
 let _to_stream = string =>
   File.InputStream.of_string(string) |> LazyStream.of_stream;
@@ -48,12 +72,13 @@ let suite =
                   "foo"
                   |> of_public
                   |> as_lexeme(~cursor=Cursor.range((2, 10), (2, 12)))
-                  |> of_main,
+                  |> of_main_import,
                 ],
               )
               |> of_import,
               (
-                ("ABC" |> of_public, Cursor.range((4, 9), (4, 11))),
+                ("ABC" |> of_public, Cursor.range((4, 9), (4, 11)))
+                |> of_named_export,
                 (
                   123 |> Int64.of_int |> of_int |> of_num,
                   Type.K_Strong(K_Integer),

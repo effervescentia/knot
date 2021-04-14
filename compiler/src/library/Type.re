@@ -2,6 +2,7 @@
  Definition of types and interfaces that exist in the Knot language.
  */
 open Infix;
+open Reference;
 
 type strong_t =
   | K_Nil
@@ -37,8 +38,8 @@ and type_err =
   | TraitConflict(trait_t, trait_t)
   | NotAssignable(t, trait_t)
   | TypeMismatch(t, t)
-  | NotFound(Reference.Identifier.t)
-  | ExternalNotFound(Reference.Namespace.t, Reference.Identifier.t);
+  | NotFound(Identifier.t)
+  | ExternalNotFound(Namespace.t, Export.t);
 
 let restrict = (lhs: trait_t, rhs: trait_t): option(trait_t) =>
   switch (lhs, rhs) {
@@ -168,15 +169,16 @@ and _err_to_string =
   | NotFound(x) =>
     [
       "NotFound<" |> Pretty.string,
-      x |> Reference.Identifier.to_string |> Pretty.string,
+      x |> Identifier.to_string |> Pretty.string,
       ">" |> Pretty.string,
     ]
     |> Pretty.concat
   | ExternalNotFound(namespace, id) =>
     [
       "ExternalNotFound<" |> Pretty.string,
-      namespace |> Reference.Namespace.to_string |> Pretty.string,
-      id |> Reference.Identifier.to_string |> Pretty.string,
+      namespace |> Namespace.to_string |> Pretty.string,
+      "#" |> Pretty.string,
+      id |> Export.to_string |> Pretty.string,
       ">" |> Pretty.string,
     ]
     |> Pretty.concat;

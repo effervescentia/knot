@@ -142,10 +142,10 @@ and fmt_statement = (module_type: Target.module_t, stmt) =>
     | ES6 => fmt_es6_named_imports(namespace, imports)
     | Common => fmt_common_named_imports(namespace, imports)
     }
-  | Export(id) =>
+  | Export(id, alias) =>
     switch (module_type) {
-    | ES6 => fmt_es6_export(id)
-    | Common => fmt_common_export(id)
+    | ES6 => fmt_es6_export(~alias, id)
+    | Common => fmt_common_export(~alias, id)
     }
   | EmptyExport =>
     switch (module_type) {
@@ -198,8 +198,11 @@ and fmt_common_named_imports =
   )
   |> Pretty.concat
 
-and fmt_common_export = (name: string) =>
-  Assignment(DotAccess(Identifier("exports"), name), Identifier(name))
+and fmt_common_export = (~alias=None, name: string) =>
+  Assignment(
+    DotAccess(Identifier("exports"), alias |?: name),
+    Identifier(name),
+  )
   |> fmt_statement(Target.Common)
 
 and fmt_es6_default_import = (namespace: string, id: string) =>
@@ -238,8 +241,13 @@ and fmt_es6_named_imports =
   )
   |> Pretty.concat
 
-and fmt_es6_export = (name: string) =>
-  ["export { " |> Pretty.string, name |> Pretty.string, " }" |> Pretty.string]
+and fmt_es6_export = (~alias=None, name: string) =>
+  [
+    "export { " |> Pretty.string,
+    name |> Pretty.string,
+    alias |?> Print.fmt(" as %s") % Pretty.string |?: Pretty.Nil,
+    " }" |> Pretty.string,
+  ]
   |> Pretty.concat;
 
 let format = (module_type: Target.module_t, program: program_t): Pretty.t =>

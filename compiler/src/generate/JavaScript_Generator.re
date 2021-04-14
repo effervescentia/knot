@@ -9,6 +9,7 @@ let __util_lib = "$knot";
 let __runtime_namespace = "@knot/runtime";
 let __class_name_prop = "className";
 let __id_prop = "id";
+let __main_export = "main";
 
 let _knot_util = (util, property) =>
   JavaScript_AST.DotAccess(
@@ -226,7 +227,7 @@ let declaration = (name: identifier_t, decl: declaration_t) =>
   )
   @ (
     switch (name |> fst) {
-    | Public(name) => [JavaScript_AST.Export(name)]
+    | Public(name) => [JavaScript_AST.Export(name, None)]
     | _ => []
     }
   );
@@ -254,15 +255,15 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                    imports
                    |> List.map(
                         fun
-                        | Main((id, _)) => (
-                            "main",
+                        | MainImport((id, _)) => (
+                            __main_export,
                             Some(id |> Identifier.to_string),
                           )
-                        | Named((id, _), Some((label, _))) => (
+                        | NamedImport((id, _), Some((label, _))) => (
                             id |> Identifier.to_string,
                             Some(label |> Identifier.to_string),
                           )
-                        | Named((id, _), None) => (
+                        | NamedImport((id, _), None) => (
                             id |> Identifier.to_string,
                             None,
                           ),
@@ -271,7 +272,21 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                ],
                d,
              )
-           | Declaration(name, decl) => (i, d @ declaration(name, decl)),
+           | Declaration(NamedExport(name), decl) => (
+               i,
+               d @ declaration(name, decl),
+             )
+           | Declaration(MainExport(name), decl) => (
+               i,
+               d
+               @ declaration(name, decl)
+               @ [
+                 JavaScript_AST.Export(
+                   name |> fst |> Identifier.to_string,
+                   Some(__main_export),
+                 ),
+               ],
+             ),
          ([], []),
        );
 

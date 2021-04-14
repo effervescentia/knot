@@ -84,7 +84,7 @@ let keyword = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.cursor
-          >|= (end_ => Block.create((), Cursor.join(start, end_)))
+          >|= (end_ => Block.create(s, Cursor.join(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq);

@@ -9,7 +9,8 @@ exception ParseFailed;
 exception WatchFailed(string);
 
 type parse_err =
-  | TypeError(Type.type_err);
+  | TypeError(Type.type_err)
+  | ReservedKeyword(string);
 
 type compile_err =
   | ImportCycle(list(string))
@@ -25,8 +26,9 @@ let throw_all = errs => raise(CompileError(errs));
 
 let _parse_err_to_string =
   fun
-  | TypeError(err) =>
-    err |> Type.err_to_string |> Print.fmt("type error: %s");
+  | TypeError(err) => err |> Type.err_to_string |> Print.fmt("type error: %s")
+  | ReservedKeyword(name) =>
+    name |> Print.fmt("reserved keyword %s cannot be used as an identifier");
 
 let _compile_err_to_string =
   fun

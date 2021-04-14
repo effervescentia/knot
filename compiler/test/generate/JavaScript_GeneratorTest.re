@@ -9,9 +9,16 @@ let _in_block = x => Block.create(x, Cursor.zero);
 
 let __resolved = "../foo/bar";
 let __program = [
-  ("foo/bar" |> of_internal, ["Foo" |> of_public |> as_lexeme |> of_main])
+  (
+    "foo/bar" |> of_internal,
+    ["Foo" |> of_public |> as_lexeme |> of_main_import],
+  )
   |> of_import,
-  ("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const) |> of_decl,
+  (
+    "ABC" |> of_public |> as_lexeme |> of_named_export,
+    123 |> int_prim |> of_const,
+  )
+  |> of_decl,
 ];
 
 module Compare = {
@@ -489,7 +496,7 @@ let suite =
       () =>
         [
           (
-            [Variable("foo", Number("123")), Export("foo")],
+            [Variable("foo", Number("123")), Export("foo", None)],
             Generator.declaration(
               "foo" |> of_public |> as_lexeme,
               123 |> int_prim |> of_const,
@@ -521,7 +528,7 @@ let suite =
             DefaultImport("@knot/runtime", "$knot"),
             Import("../foo/bar", [("main", Some("Foo"))]),
             Variable("ABC", Number("123")),
-            Export("ABC"),
+            Export("ABC", None),
           ],
           Generator.generate(
             path => {

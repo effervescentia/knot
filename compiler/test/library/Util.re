@@ -4,7 +4,9 @@ let to_scope = (types: list((string, Type.t))) => {
   let scope = Scope.create();
 
   types
-  |> List.map(Tuple.map_fst2(AST.of_public))
+  |> List.map(
+       Tuple.map_fst2(AST.of_public % (x => Reference.Export.Named(x))),
+     )
   |> List.to_seq
   |> Hashtbl.add_seq(scope.types);
 

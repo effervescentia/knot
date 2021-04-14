@@ -239,10 +239,20 @@ let _extract_type_err =
     | ExternalNotFound(namespace, id) => (
         "External Not Found",
         [
-          Print.fmt(
-            "an export with the identifier %s could not be found in module %s",
-            id |> Identifier.to_string |> Print.bad,
-            namespace |> Namespace.to_string |> Print.bad,
+          (
+            switch (id) {
+            | Named(id) =>
+              Print.fmt(
+                "an export with the identifier %s could not be found in module %s",
+                id |> Identifier.to_string |> Print.bad,
+                namespace |> Namespace.to_string |> Print.bad,
+              )
+            | Main =>
+              Print.fmt(
+                "a main export could not be found in module %s",
+                namespace |> Namespace.to_string |> Print.bad,
+              )
+            }
           )
           |> Pretty.string,
           Pretty.Newline,
@@ -254,7 +264,33 @@ let _extract_type_err =
 
 let _extract_parse_err =
   fun
-  | TypeError(err) => _extract_type_err(err);
+  | TypeError(err) => _extract_type_err(err)
+  | ReservedKeyword(name) => (
+      "Reserved Keyword",
+      name
+      |> Print.bad
+      |> Print.fmt("the reserved keyword %s was used as an identifier")
+      |> Pretty.string,
+      Some(
+        [
+          _print_resolution((
+            name
+            |> Print.bad
+            |> Print.fmt("check that the identifier %s is spelled correctly"),
+            None,
+          )),
+          _print_resolution((
+            Print.fmt(
+              "rename %s so that there is no conflict with reserved keywords (%s)",
+              name |> Print.bad,
+              Constants.Keyword.reserved |> String.join(~separator=", "),
+            ),
+            None,
+          )),
+        ]
+        |> Pretty.concat,
+      ),
+    );
 
 let _extract_compile_err = resolver =>
   fun

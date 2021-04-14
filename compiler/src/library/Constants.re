@@ -61,10 +61,13 @@ module Glyph = {
 module Keyword = {
   let import = "import";
   let from = "from";
+  let main = "main";
   let const = "const";
   let let_ = "let";
   let nil = "nil";
   let true_ = "true";
   let false_ = "false";
   let as_ = "as";
+
+  let reserved = [import, from, main, const, let_, nil, true_, false_, as_];
 };

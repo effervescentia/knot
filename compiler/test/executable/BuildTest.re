@@ -89,6 +89,7 @@ exports.ABC = ABC;
              "var $knot = require(\"@knot/runtime\");
 var App = $knot.jsx.createTag(\"div\", null, \"hello world\");
 exports.App = App;
+exports.main = App;
 ",
            );
         constants_file
@@ -97,6 +98,7 @@ exports.App = App;
              "var $knot = require(\"@knot/runtime\");
 var TIMEOUT = 100;
 exports.TIMEOUT = TIMEOUT;
+exports.main = TIMEOUT;
 ",
            );
       }

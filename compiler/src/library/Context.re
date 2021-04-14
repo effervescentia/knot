@@ -29,8 +29,8 @@ let clone = (ctx: t) => {...ctx, scope: ctx.scope |> Scope.clone};
 let import =
     (
       namespace: Namespace.t,
-      (id, cursor): AST.identifier_t,
-      label: option(Identifier.t),
+      (id, cursor): (Export.t, Cursor.t),
+      label: Identifier.t,
       ctx: t,
     ) => {
   let type_ =
@@ -41,14 +41,14 @@ let import =
       Type.K_Invalid(err);
     };
 
-  Scope.define(label |?: id, type_, ctx.scope);
+  Scope.define(label, type_, ctx.scope);
 };
 
 /**
  resolve a type within the active scope
  */
 let find_in_scope = ((name, cursor): AST.identifier_t, ctx: t) =>
-  switch (Hashtbl.find_opt(ctx.scope.types, name)) {
+  switch (Hashtbl.find_opt(ctx.scope.types, Named(name))) {
   | Some(t) => t
   | None =>
     let err = Type.NotFound(name);

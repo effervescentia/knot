@@ -1,13 +1,14 @@
 open Kore;
 open Util;
+open Reference;
 
-let __id = Reference.Namespace.Internal("foo");
-let __types = AST.[("bar" |> of_public, Type.K_Weak(0))];
+let __id = Namespace.Internal("foo");
+let __types = AST.[(Export.Named("bar" |> of_public), Type.K_Weak(0))];
 let __program =
   AST.[
     Import(
       "foo" |> of_internal,
-      ["bar" |> of_public |> as_lexeme |> of_main],
+      ["bar" |> of_public |> as_lexeme |> of_main_import],
     ),
   ];
 let __table = ModuleTable.create(1);
@@ -30,7 +31,9 @@ let suite =
                 ModuleTable.{
                   types:
                     _create_table(
-                      AST.[("bar" |> of_public, Type.K_Weak(0))],
+                      AST.[
+                        (Export.Named("bar" |> of_public), Type.K_Weak(0)),
+                      ],
                     ),
                   ast: __program,
                 },
@@ -48,7 +51,7 @@ let suite =
         __table |> ModuleTable.add(__id, __program, []);
         __table
         |> ModuleTable.add_type(
-             (__id, "new_type" |> AST.of_public),
+             (__id, Export.Named("new_type" |> AST.of_public)),
              Type.K_Strong(K_Float),
            );
 
@@ -61,7 +64,10 @@ let suite =
                   types:
                     _create_table(
                       AST.[
-                        ("new_type" |> of_public, Type.K_Strong(K_Float)),
+                        (
+                          Export.Named("new_type" |> of_public),
+                          Type.K_Strong(K_Float),
+                        ),
                       ],
                     ),
                   ast: __program,
@@ -80,7 +86,7 @@ let suite =
         let original_table = Hashtbl.copy(__table);
         __table
         |> ModuleTable.add_type(
-             (__id, "new_type" |> AST.of_public),
+             (__id, Export.Named("new_type" |> AST.of_public)),
              Type.K_Strong(K_Float),
            );
 

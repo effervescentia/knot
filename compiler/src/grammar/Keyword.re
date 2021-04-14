@@ -4,6 +4,7 @@ module K = C.Keyword;
 
 let import = M.keyword(K.import);
 let from = M.keyword(K.from);
+let main = M.keyword(K.main);
 let const = M.keyword(K.const);
 let let_ = M.keyword(K.let_);
 let nil = M.keyword(K.nil);

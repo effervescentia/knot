@@ -29,3 +29,14 @@ module Identifier = {
     | Public(name) => name
     | Private(name) => Constants.private_prefix ++ name;
 };
+
+module Export = {
+  type t =
+    | Main
+    | Named(Identifier.t);
+
+  let to_string =
+    fun
+    | Main => "main"
+    | Named(name) => name |> Identifier.to_string;
+};

@@ -10,7 +10,7 @@ type t = {
   /* seed for new anonymous types */
   seed: ref(int),
   modules: ModuleTable.t,
-  types: Hashtbl.t(Identifier.t, Type.t),
+  types: Hashtbl.t(Export.t, Type.t),
   anonymous:
     Hashtbl.t(int, result(Type.trait_t, (Type.trait_t, Type.trait_t))),
 };
@@ -48,12 +48,12 @@ let clone = (parent: t): t => {
  define a new variable within the scope
  */
 let define = (name: Identifier.t, type_: Type.t, scope: t) =>
-  Hashtbl.replace(scope.types, name, type_);
+  Hashtbl.replace(scope.types, Named(name), type_);
 
 /**
  find the type of an export from a different module
  */
-let lookup = (namespace: Namespace.t, id: Identifier.t, scope: t) => {
+let lookup = (namespace: Namespace.t, id: Export.t, scope: t) => {
   let type_err = Type.ExternalNotFound(namespace, id);
 
   switch (ModuleTable.find(namespace, scope.modules)) {

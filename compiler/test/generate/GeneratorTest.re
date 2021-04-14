@@ -4,7 +4,10 @@ open Util;
 module Generator = Generate.Generator;
 
 let __program = [
-  of_decl(("ABC" |> of_public |> as_lexeme, 123 |> int_prim |> of_const)),
+  of_decl((
+    "ABC" |> of_public |> as_lexeme |> of_named_export,
+    123 |> int_prim |> of_const,
+  )),
 ];
 
 let suite =
