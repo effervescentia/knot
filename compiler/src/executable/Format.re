@@ -3,10 +3,20 @@
  */
 open Kore;
 
-type config_t = unit;
+type config_t = {source_dir: string};
 
 let cmd = () => {
-  Cmd.create(format_key, [], (_, _) => ());
+  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
+
+  Cmd.create(
+    format_key,
+    [source_dir_opt],
+    (static, global) => {
+      let source_dir = get_source_dir(static, global.root_dir);
+
+      {source_dir: source_dir};
+    },
+  );
 };
 
 let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
@@ -29,12 +39,12 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
       {
         name: global.name,
         root_dir: global.root_dir,
-        source_dir: global.source_dir,
+        source_dir: config.source_dir,
         fail_fast: false,
       },
     );
 
-  let source_path = Filename.concat(global.root_dir, global.source_dir);
+  let source_path = Filename.concat(global.root_dir, config.source_dir);
 
   let files =
     FileUtil.find(
@@ -66,7 +76,7 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
   compiler
   |> Compiler.emit_output(
        Target.Knot,
-       Filename.concat(global.root_dir, global.source_dir),
+       Filename.concat(global.root_dir, config.source_dir),
      );
   compiler |> Compiler.teardown;
 };

@@ -49,7 +49,8 @@ let jsx_tag = AST.of_tag % as_lexeme % AST.of_jsx;
 
 let print_parse_err =
   fun
-  | TypeError(err) => err |> Type.err_to_string |> Print.fmt("TypeError<%s>");
+  | TypeError(err) => err |> Type.err_to_string |> Print.fmt("TypeError<%s>")
+  | ReservedKeyword(name) => name |> Print.fmt("ReservedKeyword<%s>");
 
 let print_compile_err =
   fun

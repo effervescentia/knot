@@ -1,5 +1,3 @@
-open Kore;
-
 let javascript_es6 = "javascript-es6";
 let javascript_common = "javascript-common";
 let knot = "knot";

@@ -64,43 +64,35 @@ let read_event = (stream: Stream.t(char)) => {
   Event.deserialize(method_, json);
 };
 
-let watch_events = (stream: Stream.t(char)) => {
+let watch_events = (stream: Stream.t(char), handler: Event.t => unit) => {
   while (true) {
-    let event = read_event(stream);
-
-    Event.(
-      switch (event) {
-      | Some(Hover(_)) => Log.info("hover")
-      | Some(FileOpen(x)) =>
-        Log.info("opened file: %s", x.params.text_document.uri)
-      | Some(FileClose(x)) =>
-        Log.info("closed file %s", x.params.text_document.uri)
-      | Some(GoToDefinition(x)) =>
-        Log.info("go to definition %s", x.params.text_document.uri)
-      | _ => ()
-      }
-    );
+    read_event(stream) |?> handler |> ignore;
   };
 };
 
-let of_channel = (channel: in_channel): unit => {
-  let reply = (req: Event.request_t('a), create_res) => {
-    let res = create_res(req.id);
+let send = (res: Yojson.Basic.t) => {
+  res |> Response.serialize |> Print.fprintf(stdout, "%s");
+  flush(stdout);
+};
 
-    Log.debug(
-      "response_to: %d result: %s",
-      req.id,
-      Yojson.Basic.pretty_to_string(res),
-    );
+let reply = (req: Event.request_t('a), create_res) => {
+  let res = create_res(req.id);
 
-    res |> Response.serialize |> Print.fprintf(stdout, "%s");
-    flush(stdout);
-  };
+  Log.debug(
+    "response_to: %d result: %s",
+    req.id,
+    Yojson.Basic.pretty_to_string(res),
+  );
+
+  send(res);
+};
+
+let subscribe = (channel: in_channel, handler: Event.t => unit): unit => {
   let stream = channel |> Stream.of_channel;
 
   Event.(
     switch (read_event(stream)) {
-    | Some(Initialize(req)) =>
+    | Some(Initialize(req) as event) =>
       Log.info("server initialized successfully");
 
       Response.initialize(
@@ -112,7 +104,9 @@ let of_channel = (channel: in_channel): unit => {
       )
       |> reply(req);
 
-      watch_events(stream);
+      handler(event);
+
+      watch_events(stream, handler);
     | _ => failwith("did not receive initialize request first")
     }
   );

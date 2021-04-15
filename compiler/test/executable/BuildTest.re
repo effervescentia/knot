@@ -7,10 +7,10 @@ let __compiler_config =
   Executable.Kore.{
     name: "foo",
     root_dir: simple_fixture_dir,
-    source_dir: ".",
     debug: false,
     color: false,
   };
+let __source_dir = ".";
 
 let suite =
   "Executable.Build"
@@ -26,6 +26,7 @@ let suite =
           __compiler_config,
           {
             target: Target.(JavaScript(Common)),
+            source_dir: __source_dir,
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
@@ -53,13 +54,10 @@ exports.ABC = ABC;
 
         Build.run(
           ~report=_ => Util.print_errs % Assert.fail,
-          {
-            ...__compiler_config,
-            root_dir: complex_fixture_dir,
-            source_dir: "src",
-          },
+          {...__compiler_config, root_dir: complex_fixture_dir},
           {
             target: Target.(JavaScript(Common)),
+            source_dir: "src",
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,

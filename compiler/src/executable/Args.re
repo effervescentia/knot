@@ -3,18 +3,6 @@
  */
 open Kore;
 
-let __commands = [
-  (build_key, " compile files to target in output directory"),
-  (watch_key, " run build and incrementally rebuild changed files"),
-  (format_key, " update code style and spacing"),
-  (lint_key, " analyze code style and report on anti-patterns"),
-  (lsp_key, " run an LSP-compliant server for integration with IDEs"),
-  (bundle_key, " generate executable from source code"),
-  (develop_key, " run a development server to enable continuous development"),
-];
-
-let __config_file = ".knot.yml";
-
 let _bold_items = List.map(((name, desc)) => (Print.bold(name), desc));
 
 let _pad_items = xs => {
@@ -35,73 +23,9 @@ let _print_cmds =
 
 let _print_opts = (cfg, xs) =>
   Print.many(~separator="\n\n", Opt.to_string(cfg), xs) |> print_endline;
-let from_file = (file: string): static_t => {
-  let root_dir = ref(file |> Filename.dirname);
-  let project_name = ref(defaults.name);
-  let source_dir = ref(defaults.source_dir);
-  let out_dir = ref(defaults.out_dir);
-  let target = ref(defaults.target);
-  let entry = ref(defaults.entry);
-  let color = ref(defaults.color);
-  let fix = ref(defaults.fix);
-  let fail_fast = ref(defaults.fail_fast);
-  let debug = ref(defaults.debug);
-  let port = ref(defaults.port);
 
-  Log.debug("looking for config file: %s", file);
-
-  switch (file |> File.IO.read_to_string |> Yaml.of_string) {
-  | Ok(`O(entries)) =>
-    entries
-    |> List.iter(
-         fun
-         | (name, `String(value)) when name == name_key =>
-           project_name := Some(value)
-         | (name, `String(value)) when name == root_dir_key =>
-           root_dir := value |> Filename.resolve
-         | (name, `String(value)) when name == source_dir_key =>
-           source_dir := value
-         | (name, `String(value)) when name == out_dir_key =>
-           out_dir := value
-         | (name, `String(value)) when name == target_key =>
-           target := Some(target_of_string(value))
-         | (name, `String(value)) when name == entry_key => entry := value
-         | (name, `Bool(value)) when name == fix_key => fix := value
-         | (name, `Bool(value)) when name == fail_fast_key =>
-           fail_fast := value
-         | (name, `Bool(value)) when name == color_key => color := value
-         | (name, `Bool(value)) when name == debug_key => debug := value
-         | (name, `Float(value)) when name == port_key =>
-           port := value |> int_of_float
-         | (name, _) =>
-           name |> Print.fmt("invalid entry found: %s") |> panic,
-       )
-  | Ok(`Null) => ()
-  | Ok(_) =>
-    Print.fmt(
-      "expected an object with some of the following keys: root_dir, source_dir, entry",
-    )
-    |> panic
-  | _ => file |> Print.fmt("failed to parse configuration file: %s") |> panic
-  };
-
-  {
-    name: project_name^,
-    root_dir: root_dir^,
-    source_dir: source_dir^,
-    out_dir: out_dir^,
-    target: target^,
-    entry: entry^,
-    color: color^,
-    fix: fix^,
-    fail_fast: fail_fast^,
-    debug: debug^,
-    port: port^,
-  };
-};
-
-let from_args = (): (global_t, RunCmd.t) => {
-  let auto_config_file = File.Util.find_up(__config_file, defaults.root_dir);
+let to_config = (): (global_t, RunCmd.t) => {
+  let auto_config_file = ConfigFile.find(default_config.root_dir);
   let config_file = ref(None);
   let static =
     ref(
@@ -109,7 +33,7 @@ let from_args = (): (global_t, RunCmd.t) => {
       |?> (
         file => {
           Log.debug("automatically found config file: %s", file);
-          from_file(file);
+          ConfigFile.read(file);
         }
       ),
     );
@@ -121,13 +45,12 @@ let from_args = (): (global_t, RunCmd.t) => {
   let (debug_opt, get_debug) = ConfigOpt.debug();
   let (color_opt, get_color) = ConfigOpt.color();
   let (root_dir_opt, get_root_dir) = ConfigOpt.root_dir();
-  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
 
   let find_static_config = root_dir =>
     if (config_file^ == None) {
-      switch (File.Util.find_up(__config_file, root_dir)) {
+      switch (File.Util.find_up(ConfigFile.name, root_dir)) {
       | Some(path) =>
-        static := Some(path |> from_file);
+        static := Some(path |> ConfigFile.read);
         config_file := Some(path);
       | None => ()
       };
@@ -135,6 +58,10 @@ let from_args = (): (global_t, RunCmd.t) => {
 
   let rec usage = () => {
     find_static_config(get_root_dir(static^));
+
+    if (!is_ci) {
+      Print.color := true;
+    };
 
     let fmt_command = ({name}: Cmd.t('a)) =>
       Print.fmt(
@@ -148,7 +75,7 @@ let from_args = (): (global_t, RunCmd.t) => {
 
       Print.bold("\nCOMMANDS\n") |> print_endline;
 
-      __commands |> _print_cmds;
+      RunCmd.commands |> _print_cmds;
     | Some(Cmd.{name, opts: command_opts} as cmd) =>
       cmd |> fmt_command |> print_endline;
 
@@ -167,10 +94,9 @@ let from_args = (): (global_t, RunCmd.t) => {
   }
   and global_opts = () => [
     root_dir_opt,
-    source_dir_opt,
     Opt.create(
       ~alias="c",
-      ~default=String(auto_config_file |?: __config_file),
+      ~default=String(auto_config_file |?: ConfigFile.name),
       "config",
       String(
         Filename.resolve
@@ -182,7 +108,7 @@ let from_args = (): (global_t, RunCmd.t) => {
               |> panic;
             };
 
-            static := Some(from_file(path));
+            static := Some(ConfigFile.read(path));
             config_file := Some(path);
           }
         ),
@@ -231,7 +157,7 @@ let from_args = (): (global_t, RunCmd.t) => {
     cmd^
     |!: (
       () => {
-        __commands |> _print_cmds;
+        RunCmd.commands |> _print_cmds;
         print_newline();
 
         panic("must provide a command");
@@ -254,7 +180,6 @@ let from_args = (): (global_t, RunCmd.t) => {
     root_dir,
     debug: get_debug(static^),
     color: get_color(static^),
-    source_dir: get_source_dir(static^, root_dir),
     name:
       switch (static^) {
       | Some({name: Some(name)}) => name

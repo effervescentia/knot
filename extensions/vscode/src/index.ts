@@ -9,19 +9,15 @@ let client: LanguageClient;
 
 const LSP_BINARY =
   '/Users/benteichman/development/knot/compiler/_esy/default/store/i/knot-94e894a7/bin/knotc.exe';
-const SCRATCH_CONFIG =
-  '/Users/benteichman/development/knot/compiler/.scratch/.knot.yml';
 
 export function activate(_context: ExtensionContext) {
-  // const configFile = context.asAbsolutePath('.knot.yml');
-
-  const args = ['lsp', '--color', 'false', '--config', SCRATCH_CONFIG];
+  const args = ['lsp', '--color', 'false'];
   const debugArgs = [...args, '--debug'];
 
   const serverOptions: ServerOptions = {
     run: {
       command: LSP_BINARY,
-      args: debugArgs
+      args
     },
     debug: {
       command: LSP_BINARY,

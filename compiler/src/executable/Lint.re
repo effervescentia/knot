@@ -8,9 +8,7 @@ type config_t = {fix: bool};
 let cmd = () => {
   let (fix_opt, get_fix) = ConfigOpt.fix();
 
-  Cmd.create(lint_key, [fix_opt], (static, global) =>
-    {fix: get_fix(static)}
-  );
+  Cmd.create(lint_key, [fix_opt], (static, _) => {fix: get_fix(static)});
 };
 
 let run = (global: global_t, config: config_t) => {

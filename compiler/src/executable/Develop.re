@@ -8,7 +8,7 @@ type config_t = {port: int};
 let cmd = () => {
   let (port_opt, get_port) = ConfigOpt.port();
 
-  Cmd.create(develop_key, [port_opt], (static, global) =>
+  Cmd.create(develop_key, [port_opt], (static, _) =>
     {port: get_port(static)}
   );
 };

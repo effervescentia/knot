@@ -22,7 +22,7 @@ type t = {
   spec: Arg.spec,
   alias: option(string),
   default: option(Value.t),
-  from_config: static_t => option(Value.t),
+  from_config: Config.t => option(Value.t),
   options: option(list(string)),
 };
 
@@ -56,7 +56,7 @@ let to_args = (value: t): list((string, Arg.spec, string)) => [
      },
 ];
 
-let to_string = (cfg: option(static_t), value: t): string =>
+let to_string = (cfg: option(Config.t), value: t): string =>
   Print.fmt(
     "  %s%s%s%s\n\n    %s",
     value.name

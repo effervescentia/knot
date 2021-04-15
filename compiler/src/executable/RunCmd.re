@@ -29,3 +29,13 @@ let lint = Lint.cmd() |> Cmd.map(x => Lint(x));
 let lsp = LSP.cmd() |> Cmd.map(x => LSP(x));
 let bundle = Bundle.cmd() |> Cmd.map(x => Bundle(x));
 let develop = Develop.cmd() |> Cmd.map(x => Develop(x));
+
+let commands = [
+  (build_key, " compile files to target in output directory"),
+  (watch_key, " run build and incrementally rebuild changed files"),
+  (format_key, " update code style and spacing"),
+  (lint_key, " analyze code style and report on anti-patterns"),
+  (lsp_key, " run an LSP-compliant server for integration with IDEs"),
+  (bundle_key, " generate executable from source code"),
+  (develop_key, " run a development server to enable continuous development"),
+];

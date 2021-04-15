@@ -3,13 +3,23 @@
  */
 open Kore;
 
-type config_t = {out_dir: string};
+type config_t = {
+  source_dir: string,
+  out_dir: string,
+};
 
 let cmd = () => {
+  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
   let (out_dir_opt, get_out_dir) = ConfigOpt.out_dir();
 
-  Cmd.create(bundle_key, [out_dir_opt], (static, global) =>
-    {out_dir: get_out_dir(static, global.root_dir)}
+  Cmd.create(
+    bundle_key,
+    [source_dir_opt, out_dir_opt],
+    (static, global) => {
+      let source_dir = get_source_dir(static, global.root_dir);
+
+      {source_dir, out_dir: get_out_dir(static, global.root_dir)};
+    },
   );
 };
 

@@ -1,7 +1,6 @@
 include Knot.Kore;
 include Reference;
 
-module Target = Generate.Target;
 module Compiler = Compile.Compiler;
 
 let build_key = "build";
@@ -31,40 +30,13 @@ let is_ci =
   | Some(_) => true
   };
 
-type static_t = {
-  name: option(string),
-  root_dir: string,
-  source_dir: string,
-  out_dir: string,
-  target: option(Target.t),
-  entry: string,
-  debug: bool,
-  color: bool,
-  fix: bool,
-  fail_fast: bool,
-  port: int,
-};
-
-let defaults = {
-  name: None,
-  root_dir: Sys.getcwd(),
-  source_dir: "src",
-  out_dir: "build",
-  entry: "main.kn",
-  target: None,
-  debug: false,
-  color: !is_ci,
-  fix: false,
-  fail_fast: false,
-  port: 1337,
-};
+let default_config = Knot.Config.defaults(is_ci);
 
 type global_t = {
   debug: bool,
   color: bool,
   name: string,
   root_dir: string,
-  source_dir: string,
 };
 
 let panic = (err: string) => {

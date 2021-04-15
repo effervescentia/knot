@@ -17,6 +17,13 @@ let _wrap_response = (result, id: int) =>
     ("result", result),
   ]);
 
+let _wrap_notification = (method_: string, result) =>
+  `Assoc([
+    ("jsonrpc", `String("2.0")),
+    ("method", `String(method_)),
+    ("result", result),
+  ]);
+
 let initialize = (name: string, workspace_support: bool) =>
   `Assoc([
     ("serverInfo", `Assoc([("name", `String(name))])),
@@ -53,3 +60,26 @@ let initialize = (name: string, workspace_support: bool) =>
     ),
   ])
   |> _wrap_response;
+
+type message_t =
+  | Error
+  | Warning
+  | Info
+  | Log;
+
+let show_message = (message: string, type_: message_t) =>
+  `Assoc([
+    ("message", `String(message)),
+    (
+      "type",
+      `Int(
+        switch (type_) {
+        | Error => 1
+        | Warning => 2
+        | Info => 3
+        | Log => 4
+        },
+      ),
+    ),
+  ])
+  |> _wrap_notification("window/showMessage");

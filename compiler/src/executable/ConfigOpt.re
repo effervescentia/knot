@@ -16,8 +16,8 @@ let _check_exists = (name, x) =>
 
 let _resolve =
     (
-      cfg: option(static_t),
-      select: static_t => 'a,
+      cfg: option(Config.t),
+      select: Config.t => 'a,
       default: 'a,
       value: option('a),
     )
@@ -28,7 +28,7 @@ let _resolve =
   | (None, None) => default
   };
 
-let debug = (~default=defaults.debug, ()) => {
+let debug = (~default=default_config.debug, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -38,12 +38,13 @@ let debug = (~default=defaults.debug, ()) => {
       Unit(() => value := Some(true)),
       "enable a higher level of logging",
     );
-  let resolve = cfg => value^ |> _resolve(cfg, x => x.debug, default);
+  let resolve = (cfg: option(Config.t)) =>
+    value^ |> _resolve(cfg, x => x.debug, default);
 
   (opt, resolve);
 };
 
-let root_dir = (~default=defaults.root_dir, ()) => {
+let root_dir = (~default=default_config.root_dir, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -54,7 +55,7 @@ let root_dir = (~default=defaults.root_dir, ()) => {
       String(x => value := Some(x)),
       "the root directory to reference modules from",
     );
-  let resolve = cfg => {
+  let resolve = (cfg: option(Config.t)) => {
     let root_dir =
       value^ |> _resolve(cfg, x => x.root_dir, default) |> Filename.resolve;
 
@@ -68,7 +69,7 @@ let root_dir = (~default=defaults.root_dir, ()) => {
   (opt, resolve);
 };
 
-let port = (~default=defaults.port, ()) => {
+let port = (~default=default_config.port, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -79,7 +80,7 @@ let port = (~default=defaults.port, ()) => {
       Int(x => value := Some(x)),
       "the port the server runs on",
     );
-  let resolve = cfg => {
+  let resolve = (cfg: option(Config.t)) => {
     let port = value^ |> _resolve(cfg, x => x.port, default);
 
     if (port < __min_port || port > __max_port) {
@@ -98,7 +99,7 @@ let port = (~default=defaults.port, ()) => {
 };
 
 let _check_source_dir_exists = _check_exists("source directory");
-let source_dir = (~default=defaults.source_dir, ()) => {
+let source_dir = (~default=default_config.source_dir, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -112,7 +113,7 @@ let source_dir = (~default=defaults.source_dir, ()) => {
         Print.bold("root-dir"),
       ),
     );
-  let resolve = (cfg: option(static_t), root_dir) => {
+  let resolve = (cfg: option(Config.t), root_dir) => {
     switch (cfg, value^) {
     | (_, Some(value)) =>
       let source_dir = value |> Filename.resolve;
@@ -133,7 +134,7 @@ let source_dir = (~default=defaults.source_dir, ()) => {
 };
 
 let _check_entry_exists = _check_exists(entry_key);
-let entry = (~default=defaults.entry, ()) => {
+let entry = (~default=default_config.entry, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -147,7 +148,7 @@ let entry = (~default=defaults.entry, ()) => {
         Print.bold("source-dir"),
       ),
     );
-  let resolve = (cfg, root_dir, source_dir) => {
+  let resolve = (cfg: option(Config.t), root_dir, source_dir) => {
     let source_path = Filename.concat(root_dir, source_dir);
 
     Namespace.Internal(
@@ -186,7 +187,7 @@ let target = () => {
       Symbol(__targets, x => value := Some(target_of_string(x))),
       "the target to compile to",
     );
-  let resolve = cfg =>
+  let resolve = (cfg: option(Config.t)) =>
     switch (cfg, value^) {
     | (_, Some(value)) => value
     | (Some({target: Some(target)}), None) => target
@@ -196,7 +197,7 @@ let target = () => {
   (opt, resolve);
 };
 
-let out_dir = (~default=defaults.out_dir, ()) => {
+let out_dir = (~default=default_config.out_dir, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -207,7 +208,7 @@ let out_dir = (~default=defaults.out_dir, ()) => {
       String(x => value := Some(x)),
       "the directory to write compiled files to",
     );
-  let resolve = (cfg: option(static_t), root_dir: string) =>
+  let resolve = (cfg: option(Config.t), root_dir: string) =>
     switch (cfg, value^) {
     | (_, Some(value)) => value |> Filename.resolve
     | (Some(cfg), None) =>
@@ -224,7 +225,7 @@ let out_dir = (~default=defaults.out_dir, ()) => {
   (opt, resolve);
 };
 
-let fix = (~default=defaults.fix, ()) => {
+let fix = (~default=default_config.fix, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -234,12 +235,13 @@ let fix = (~default=defaults.fix, ()) => {
       Unit(() => value := Some(true)),
       "automatically apply fixes",
     );
-  let resolve = cfg => value^ |> _resolve(cfg, x => x.fix, default);
+  let resolve = (cfg: option(Config.t)) =>
+    value^ |> _resolve(cfg, x => x.fix, default);
 
   (opt, resolve);
 };
 
-let color = (~default=defaults.color, ()) => {
+let color = (~default=default_config.color, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -249,12 +251,13 @@ let color = (~default=defaults.color, ()) => {
       Bool(x => value := Some(x)),
       "allow color in logs",
     );
-  let resolve = cfg => value^ |> _resolve(cfg, x => x.color, default);
+  let resolve = (cfg: option(Config.t)) =>
+    value^ |> _resolve(cfg, x => x.color, default);
 
   (opt, resolve);
 };
 
-let fail_fast = (~default=defaults.fail_fast, ()) => {
+let fail_fast = (~default=default_config.fail_fast, ()) => {
   let value = ref(None);
   let opt =
     Opt.create(
@@ -264,7 +267,8 @@ let fail_fast = (~default=defaults.fail_fast, ()) => {
       Unit(() => value := Some(true)),
       "fail as soon as the first error is encountered",
     );
-  let resolve = cfg => value^ |> _resolve(cfg, x => x.fail_fast, default);
+  let resolve = (cfg: option(Config.t)) =>
+    value^ |> _resolve(cfg, x => x.fail_fast, default);
 
   (opt, resolve);
 };

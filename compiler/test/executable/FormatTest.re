@@ -6,10 +6,11 @@ let __compiler_config =
   Executable.Kore.{
     name: "foo",
     root_dir: "placeholder",
-    source_dir: ".",
+
     debug: false,
     color: false,
   };
+let __source_dir = ".";
 
 let suite =
   "Executable.Format"
@@ -26,7 +27,7 @@ let suite =
         Format.run(
           ~report=_ => Util.print_errs % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
-          (),
+          {source_dir: __source_dir},
         );
 
         Async.on_tick(() => {
@@ -55,7 +56,7 @@ let suite =
         Format.run(
           ~report=_ => Util.print_errs % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
-          (),
+          {source_dir: __source_dir},
         );
 
         Async.on_tick(() => {
@@ -92,7 +93,7 @@ let suite =
         Format.run(
           ~report=_ => Util.print_errs % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
-          (),
+          {source_dir: __source_dir},
         );
 
         Async.on_tick(() => {

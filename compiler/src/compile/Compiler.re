@@ -272,6 +272,16 @@ let update_module = (id: Namespace.t, compiler: t) => {
 };
 
 /**
+ add a new module (and its import graph) to a compiler
+ */
+let upsert_module = (id: Namespace.t, compiler: t) =>
+  if (compiler.graph |> ImportGraph.has_module(id)) {
+    compiler |> update_module(id) |> ignore;
+  } else {
+    compiler |> add_module(id) |> ignore;
+  };
+
+/**
  remove a module from a compiler
 
  any modules which are only imported by the removed module

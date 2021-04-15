@@ -3,14 +3,14 @@ open Kore;
 type t('a) = {
   name: string,
   opts: list(Opt.t),
-  resolve: (option(static_t), global_t) => 'a,
+  resolve: (option(Config.t), global_t) => 'a,
 };
 
 let create =
     (
       name: string,
       opts: list(Opt.t),
-      resolve: (option(static_t), global_t) => 'a,
+      resolve: (option(Config.t), global_t) => 'a,
     ) => {
   name,
   opts,
@@ -29,9 +29,9 @@ let log_config =
     "%s config: %s",
     name,
     [
-      ("name", global.name),
-      (root_dir_key, global.root_dir),
-      (source_dir_key, global.source_dir),
+      ("root_dir", global.root_dir),
+      ("color", global.color |> string_of_bool),
+      ("debug", global.debug |> string_of_bool),
       ...attributes,
     ]
     |> List.to_seq

@@ -3,6 +3,7 @@ include Error;
 
 module AST = AST;
 module Block = Block;
+module Config = Config;
 module Constants = Constants;
 module Context = Context;
 module Cursor = Cursor;
@@ -22,5 +23,6 @@ module Print = Print;
 module Reference = Reference;
 module Scope = Scope;
 module String = String;
+module Target = Target;
 module Tuple = Tuple;
 module Type = Type;

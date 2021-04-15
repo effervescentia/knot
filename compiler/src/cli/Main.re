@@ -8,7 +8,7 @@ open Executable;
 let () = {
   Log.init({debug: false, timestamp: false});
 
-  let (config, command) = Config.from_args();
+  let (config, command) = Args.to_config();
 
   Print.color := config.color;
   Log.init({debug: config.debug, timestamp: false});
