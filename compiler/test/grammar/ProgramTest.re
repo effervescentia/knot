@@ -37,6 +37,7 @@ module Assert = Assert.Make(Target);
 
 let __main_import = "import foo from \"@/bar\"";
 let __const_decl = "const foo = nil";
+let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
 
 let __main_import_ast =
   ("bar" |> of_internal, ["foo" |> of_public |> as_lexeme |> of_main_import])
@@ -57,6 +58,7 @@ let __scope =
               [(Export.Main, Type.K_Strong(K_String))]
               |> List.to_seq
               |> Hashtbl.of_seq,
+            scopes: __scope_tree,
           },
         ),
       ]
@@ -121,6 +123,7 @@ let suite =
                         [(Export.Main, Type.K_Strong(K_Boolean))]
                         |> List.to_seq
                         |> Hashtbl.of_seq,
+                      scopes: __scope_tree,
                     },
                   ),
                 ]

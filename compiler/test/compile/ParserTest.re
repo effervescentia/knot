@@ -18,6 +18,8 @@ let __ast_fixture = "
 let __foo = Namespace.Internal("foo");
 let __bar = Namespace.Internal("bar");
 
+let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+
 let __context =
   Context.create(
     ~scope=
@@ -32,6 +34,7 @@ let __context =
                   [(Export.Main, Type.K_Strong(K_Boolean))]
                   |> List.to_seq
                   |> Hashtbl.of_seq,
+                scopes: __scope_tree,
               },
             ),
           ]

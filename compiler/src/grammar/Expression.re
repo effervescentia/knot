@@ -69,9 +69,11 @@ let closure = (ctx: Context.t, x) =>
 /* || */
 let rec expr_0 = (ctx: Context.t, input) =>
   chainl1(expr_1(ctx), Operator.logical_or(ctx), input)
+
 /* && */
 and expr_1 = (ctx: Context.t, input) =>
   chainl1(expr_2(ctx), Operator.logical_and(ctx), input)
+
 /* ==, != */
 and expr_2 = (ctx: Context.t, input) =>
   chainl1(
@@ -79,6 +81,7 @@ and expr_2 = (ctx: Context.t, input) =>
     Operator.equality(ctx) <|> Operator.inequality(ctx),
     input,
   )
+
 /* <=, <, >=, > */
 and expr_3 = (ctx: Context.t, input) =>
   chainl1(
@@ -91,15 +94,19 @@ and expr_3 = (ctx: Context.t, input) =>
     ]),
     input,
   )
+
 /* +, - */
 and expr_4 = (ctx: Context.t, input) =>
   chainl1(expr_5(ctx), Operator.add(ctx) <|> Operator.sub(ctx), input)
+
 /* *, / */
 and expr_5 = (ctx: Context.t, input) =>
   chainl1(expr_6(ctx), Operator.mult(ctx) <|> Operator.div(ctx), input)
+
 /* ^ */
 and expr_6 = (ctx: Context.t, input) =>
   chainr1(expr_7(ctx), Operator.expo(ctx), input)
+
 /* !, +, - */
 and expr_7 = (ctx: Context.t, input) =>
   M.unary_op(
@@ -111,15 +118,22 @@ and expr_7 = (ctx: Context.t, input) =>
     ]),
     input,
   )
+
 /* {}, () */
 and expr_8 = (ctx: Context.t, input) =>
-  (
-    closure(ctx |> Context.clone, expr_0)
-    <|> (expr_0(ctx) |> group)
-    <|> term(ctx)
-  )(
+  {
+    let child_ctx = ctx |> Context.child;
+
+    choice([
+      closure(child_ctx, expr_0)
+      >@= (((_, _, cursor)) => Context.submit(cursor, child_ctx)),
+      expr_0(ctx) |> group,
+      term(ctx),
+    ]);
+  }(
     input,
   )
+
 /* 2, foo, <bar /> */
 and term = (ctx: Context.t, input) =>
   choice([primitive, identifier(ctx), jsx(ctx, expr_0)], input);

@@ -25,6 +25,8 @@ module Assert =
       );
   });
 
+let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+
 let suite =
   "Grammar.Import"
   >::: [
@@ -128,6 +130,7 @@ let suite =
                            ]
                            |> List.to_seq
                            |> Hashtbl.of_seq,
+                         scopes: __scope_tree,
                        },
                      ),
                    ]
@@ -173,6 +176,7 @@ let suite =
                            [(Export.Main, Type.K_Strong(K_Nil))]
                            |> List.to_seq
                            |> Hashtbl.of_seq,
+                         scopes: __scope_tree,
                        },
                      ),
                    ]

@@ -13,6 +13,8 @@ let __program =
   ];
 let __table = ModuleTable.create(1);
 
+let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+
 let _create_table = items => List.to_seq(items) |> Hashtbl.of_seq;
 
 let suite =
@@ -21,7 +23,7 @@ let suite =
     "add()"
     >: (
       () => {
-        __table |> ModuleTable.add(__id, __program, __types);
+        __table |> ModuleTable.add(__id, __program, __types, __scope_tree);
 
         [
           (
@@ -36,6 +38,7 @@ let suite =
                       ],
                     ),
                   ast: __program,
+                  scopes: __scope_tree,
                 },
               ),
             ]),
@@ -48,7 +51,7 @@ let suite =
     "add_type() - add type to existing module"
     >: (
       () => {
-        __table |> ModuleTable.add(__id, __program, []);
+        __table |> ModuleTable.add(__id, __program, [], __scope_tree);
         __table
         |> ModuleTable.add_type(
              (__id, Export.Named("new_type" |> AST.of_public)),
@@ -71,6 +74,7 @@ let suite =
                       ],
                     ),
                   ast: __program,
+                  scopes: __scope_tree,
                 },
               ),
             ]),

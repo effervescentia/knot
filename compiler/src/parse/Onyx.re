@@ -65,7 +65,7 @@ let (>|=) = (x, f) => x >>= (r => f(r) |> return);
 
  if parser [x] succeeds, execute effect [f]
  */
-let (>@=) = (x, f) =>
+let (>@=) = (x, f: 'a => unit) =>
   x
   >>= (
     r => {

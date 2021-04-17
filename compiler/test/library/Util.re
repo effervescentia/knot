@@ -1,12 +1,11 @@
 open Kore;
+open Reference;
 
 let to_scope = (types: list((string, Type.t))) => {
   let scope = Scope.create();
 
   types
-  |> List.map(
-       Tuple.map_fst2(AST.of_public % (x => Reference.Export.Named(x))),
-     )
+  |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
   |> List.to_seq
   |> Hashtbl.add_seq(scope.types);
 
@@ -60,11 +59,13 @@ let print_compile_err =
     |> Print.fmt("ImportCycle<%s>")
   | UnresolvedModule(name) => name |> Print.fmt("UnresolvedModule<%s>")
   | FileNotFound(path) => path |> Print.fmt("FileNotFound<%s>")
+  | InvalidModule(namespace) =>
+    namespace |> Namespace.to_string |> Print.fmt("InvalidModule<%s>")
   | ParseError(err, namespace, cursor) =>
     Print.fmt(
       "ParseError<%s, %s, %s>",
       err |> _parse_err_to_string,
-      namespace |> Reference.Namespace.to_string,
+      namespace |> Namespace.to_string,
       cursor |> Debug.print_cursor,
     );
 

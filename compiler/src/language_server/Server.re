@@ -2,7 +2,9 @@ open Kore;
 open Reference;
 
 module Compiler = Compile.Compiler;
+module ScopeTree = Compile.ScopeTree;
 module ImportGraph = Resolve.ImportGraph;
+module InputStream = File.InputStream;
 
 type module_context_t = {tokens: TokenTree.t};
 
@@ -81,6 +83,21 @@ let _analyze_module =
   | None => None
   };
 
+/* let _scan_for_token = (point: Cursor.point_t, path: string) => {
+     let in_ = open_in(path);
+     let stream = InputStream.of_channel(in_);
+
+     let rec loop = buffer => {
+       switch (stream |> Stream.peek, buffer |> Buffer.contents) {
+       | (Some((uchar, cursor)), _) => None
+       | (None, "") => None
+       | (None, "") => None
+       };
+     };
+
+     loop(Buffer.create(10));
+   }; */
+
 let start = (find_config: string => Config.t) => {
   let compilers: Hashtbl.t(string, compiler_context_t) = Hashtbl.create(1);
 
@@ -126,55 +143,67 @@ let start = (find_config: string => Config.t) => {
           {params: {text_document: {uri}, position: {line, character}}} as req,
         ) => {
           let path = _uri_to_path(uri);
+          let point = Cursor.{line, column: character};
           Log.info("hover in file: %s", path);
 
-          (
-            switch (compilers |> _resolve(path)) {
-            | Some((namespace, {compiler, contexts} as ctx)) =>
-              let find_token = RangeTree.find_leaf({line, column: character});
+          switch (compilers |> _resolve(path)) {
+          | Some((namespace, {compiler, contexts} as ctx)) =>
+            let find_token = RangeTree.find_leaf(point);
 
+            (
               switch (Hashtbl.find_opt(contexts, namespace)) {
               | Some({tokens}) => find_token(tokens)
               | None =>
                 _force_compile(namespace, compiler);
-
                 _analyze_module(namespace, ctx) |?< find_token;
-              };
-
-            | None => None
-            }
-          )
-          |> (
-            fun
-            | Some((range, Primitive(prim))) =>
-              Protocol.reply(
-                req,
-                Response.hover(
-                  range,
-                  Print.fmt(
-                    "type: %s",
-                    switch (prim) {
-                    | Nil => "nil"
-                    | Boolean(_) => "bool"
-                    | String(_) => "string"
-                    | Number(Float(_)) => "float"
-                    | Number(Integer(_)) => "int"
-                    },
+              }
+            )
+            |> (
+              fun
+              | Some((range, Primitive(prim))) =>
+                Protocol.reply(
+                  req,
+                  Response.hover(
+                    range,
+                    Print.fmt(
+                      "`%s`",
+                      switch (prim) {
+                      | Nil => "nil"
+                      | Boolean(_) => "bool"
+                      | String(_) => "string"
+                      | Number(Float(_)) => "float"
+                      | Number(Integer(_)) => "int"
+                      },
+                    ),
                   ),
-                ),
-              )
+                )
 
-            | Some((range, Identifier(id))) =>
-              Protocol.reply(req, Response.hover(range, "type: unknown"))
+              | Some((range, Identifier(id))) => {
+                  Hashtbl.find_opt(compiler.modules, namespace)
+                  |?< (
+                    ({scopes}) => ScopeTree.find_type(id, point, scopes)
+                  )
+                  |> (
+                    fun
+                    | Some(type_) => Type.to_string(type_)
+                    | None => "unknown"
+                  )
+                  |> Print.fmt("`%s`")
+                  |> Response.hover(range)
+                  |> Protocol.reply(req);
+                }
 
-            | Some(_) => Protocol.reply(req, Response.hover_empty)
+              | Some(_) => Protocol.reply(req, Response.hover_empty)
 
-            | _ =>
-              Protocol.reply(
-                req,
-                Response.error(InvalidRequest, "no token found"),
-              )
-          );
+              | _ =>
+                Protocol.reply(
+                  req,
+                  Response.error(InvalidRequest, "no token found"),
+                )
+            );
+
+          | None => ()
+          };
         }
 
       | FileOpen({params: {text_document: {uri}}}) => {

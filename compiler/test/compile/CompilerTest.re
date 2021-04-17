@@ -22,10 +22,13 @@ let __config =
     fail_fast: true,
   };
 
+let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+
 let __types =
   AST.[(Export.Named("ABC" |> of_public), K_Strong(K_Integer))]
   |> List.to_seq
   |> Hashtbl.of_seq;
+
 let __ast =
   AST.[
     (
@@ -113,7 +116,12 @@ let suite =
            );
 
         Assert.module_table(
-          [(__entry, ModuleTable.{types: __types, ast: __ast})]
+          [
+            (
+              __entry,
+              ModuleTable.{types: __types, ast: __ast, scopes: __scope_tree},
+            ),
+          ]
           |> List.to_seq
           |> Hashtbl.of_seq,
           compiler.modules,
@@ -169,7 +177,12 @@ let suite =
           compiler.graph,
         );
         Assert.module_table(
-          [(__entry, ModuleTable.{types: __types, ast: __ast})]
+          [
+            (
+              __entry,
+              ModuleTable.{types: __types, ast: __ast, scopes: __scope_tree},
+            ),
+          ]
           |> List.to_seq
           |> Hashtbl.of_seq,
           compiler.modules,

@@ -115,24 +115,27 @@ let validate = (compiler: t) => {
   compiler.dispatch(Flush);
 };
 
-let process_one = (id: Namespace.t, module_: Module.t, compiler: t) =>
-  switch (
-    module_
-    |> Module.read(
-         Parser.ast(
-           Context.create(
-             ~scope=Scope.create(~modules=compiler.modules, ()),
-             ~report=err => Report([err]) |> compiler.dispatch,
-             id,
-           ),
-         ),
-       )
-  ) {
+let process_one = (id: Namespace.t, module_: Module.t, compiler: t) => {
+  let context =
+    Context.create(
+      ~scope=Scope.create(~modules=compiler.modules, ()),
+      ~report=err => Report([err]) |> compiler.dispatch,
+      id,
+    );
+
+  switch (module_ |> Module.read(Parser.ast(context))) {
   | Ok(ast) =>
-    compiler.modules |> ModuleTable.add(id, ast, _get_exports(ast))
+    compiler.modules
+    |> ModuleTable.add(
+         id,
+         ast,
+         _get_exports(ast),
+         context |> ScopeTree.of_context,
+       )
 
   | Error(errs) => Report(errs) |> compiler.dispatch
   };
+};
 
 /**
  parse modules and add to table

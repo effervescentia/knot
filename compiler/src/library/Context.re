@@ -5,23 +5,43 @@ open Reference;
  compilation context used for reporting errors and accessing scope
  */
 type t = {
+  parent: option(t),
   namespace: Namespace.t,
   scope: Scope.t,
   report: Error.compile_err => unit,
+  mutable children: list((t, Cursor.t)),
 };
 
 /* static */
 
 let create =
     (~scope=Scope.create(), ~report=Error.throw, namespace: Namespace.t) => {
+  parent: None,
   namespace,
   scope,
   report,
+  children: [],
 };
 
 /* methods */
 
-let clone = (ctx: t) => {...ctx, scope: ctx.scope |> Scope.clone};
+/**
+ clone the current context and set the original context as its parent
+ */
+let child = (ctx: t) => {
+  ...ctx,
+  scope: ctx.scope |> Scope.clone,
+  parent: Some(ctx),
+};
+
+/**
+ save the context to its parent with an associated cursor
+ */
+let submit = (cursor: Cursor.t, ctx: t) =>
+  switch (ctx.parent) {
+  | Some(parent) => parent.children = parent.children @ [(ctx, cursor)]
+  | None => ()
+  };
 
 /**
  find the type of an export from a different module and import it into the current scope

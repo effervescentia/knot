@@ -1,8 +1,11 @@
 open Reference;
 
+type scope_tree_t = RangeTree.t(option(Hashtbl.t(Export.t, Type.t)));
+
 type entry_t = {
   types: Hashtbl.t(Export.t, Type.t),
   ast: AST.program_t,
+  scopes: RangeTree.t(option(Hashtbl.t(Export.t, Type.t))),
 };
 
 /**
@@ -29,12 +32,13 @@ let add =
       id: Namespace.t,
       ast: AST.program_t,
       exports: list((Export.t, Type.t)),
+      scopes: scope_tree_t,
       table: t,
     ) =>
   Hashtbl.replace(
     table,
     id,
-    {ast, types: exports |> List.to_seq |> Hashtbl.of_seq},
+    {ast, types: exports |> List.to_seq |> Hashtbl.of_seq, scopes},
   );
 
 /**
