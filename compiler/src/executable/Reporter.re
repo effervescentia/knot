@@ -315,6 +315,15 @@ let _extract_compile_err = resolver =>
       path |> Print.fmt("could not find file with path: %s") |> Pretty.string,
     )
 
+  | InvalidModule(namespace) => (
+      resolver
+      |> Resolver.resolve_module(~skip_cache=true, namespace)
+      |> Module.get_path
+      |?> (x => (x, Cursor.zero)),
+      "Invalid Module",
+      Print.fmt("failed to parse module") |> Pretty.string,
+    )
+
   | ParseError(err, namespace, cursor) =>
     _extract_parse_err(err)
     |> Tuple.reduce3((title, description, resolutions) => {

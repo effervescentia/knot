@@ -61,6 +61,11 @@ type file_open_params_t = {text_document: text_document_item_t};
 
 type file_close_params_t = {text_document: text_document_t};
 
+type file_change_params_t = {
+  text_document: text_document_t,
+  changes: list(string),
+};
+
 type progress_token =
   | Int(int)
   | String(string);
@@ -76,6 +81,7 @@ type t =
   | Hover(request_t(hover_params_t))
   | FileOpen(notification_t(file_open_params_t))
   | FileClose(notification_t(file_close_params_t))
+  | FileChange(notification_t(file_change_params_t))
   | GoToDefinition(request_t(go_to_definition_params_t));
 
 module Deserialize = {
@@ -86,8 +92,8 @@ module Deserialize = {
     % (
       fun
       | `Assoc(_) as x => {
-          let line = x |> member("line") |> to_int;
-          let character = x |> member("character") |> to_int;
+          let line = (x |> member("line") |> to_int) + 1;
+          let character = (x |> member("character") |> to_int) + 1;
 
           {line, character};
         }
@@ -235,6 +241,26 @@ module Deserialize = {
       )
     );
 
+  let file_change_req =
+    notification((json) =>
+      (
+        {
+          let text_document = json |> _get_text_document;
+          let changes =
+            json
+            |> member("contentChanges")
+            |> to_list
+            |> List.filter_map(
+                 fun
+                 | `Assoc([("text", `String(text))]) => Some(text)
+                 | _ => None,
+               );
+
+          {text_document, changes};
+        }: file_change_params_t
+      )
+    );
+
   let go_to_definition_req =
     request((json) =>
       (
@@ -256,6 +282,8 @@ let deserialize =
     Deserialize.file_open_req % (x => Some(FileOpen(x)))
   | "textDocument/didClose" =>
     Deserialize.file_close_req % (x => Some(FileClose(x)))
+  | "textDocument/didChange" =>
+    Deserialize.file_change_req % (x => Some(FileChange(x)))
   | "textDocument/definition" =>
     Deserialize.go_to_definition_req % (x => Some(GoToDefinition(x)))
   | _ => (_ => None);

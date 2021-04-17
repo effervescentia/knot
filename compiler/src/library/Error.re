@@ -2,10 +2,10 @@
  Errors and utitilies for problems encountered while compiling.
  */
 open Infix;
+open Reference;
 
 exception NotImplemented;
 
-exception ParseFailed;
 exception WatchFailed(string);
 
 type parse_err =
@@ -16,7 +16,8 @@ type compile_err =
   | ImportCycle(list(string))
   | UnresolvedModule(string)
   | FileNotFound(string)
-  | ParseError(parse_err, Reference.Namespace.t, Cursor.t);
+  | ParseError(parse_err, Namespace.t, Cursor.t)
+  | InvalidModule(Namespace.t);
 
 exception CompileError(list(compile_err));
 
@@ -41,7 +42,15 @@ let _compile_err_to_string =
   | FileNotFound(path) =>
     path |> Print.fmt("could not find file with path: %s")
   | ParseError(err, namespace, cursor) =>
-    err |> _parse_err_to_string |> Print.fmt("error found while parsing: %s");
+    Print.fmt(
+      "error found while parsing %s: %s",
+      namespace |> Namespace.to_string,
+      err |> _parse_err_to_string,
+    )
+  | InvalidModule(namespace) =>
+    namespace
+    |> Namespace.to_string
+    |> Print.fmt("failed to parse module: %s");
 
 let print_errs =
   Print.many(~separator="\n\n", _compile_err_to_string)

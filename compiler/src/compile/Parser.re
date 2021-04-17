@@ -22,7 +22,7 @@ let imports = (namespace, input) =>
            | AST.Import(namespace, _) => Some(namespace)
            | _ => None,
          )
-    | None => raise(ParseFailed)
+    | None => []
   );
 
 /**
@@ -33,5 +33,8 @@ let ast = (ctx, input) =>
   |> (
     fun
     | Some(stmts) => stmts
-    | None => raise(ParseFailed)
+    | None => {
+        ctx.report(InvalidModule(ctx.namespace));
+        [];
+      }
   );

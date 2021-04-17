@@ -15,7 +15,8 @@ let __ast_fixture = "
 
   const ABC = 123;
  ";
-let __namespace = Namespace.Internal("foo");
+let __foo = Namespace.Internal("foo");
+let __bar = Namespace.Internal("bar");
 
 let __context =
   Context.create(
@@ -38,7 +39,7 @@ let __context =
           |> Hashtbl.of_seq,
         (),
       ),
-    __namespace,
+    __foo,
   );
 
 let _to_stream = string =>
@@ -53,9 +54,9 @@ let suite =
         AST.[
           (
             [of_external("bar"), of_external("buzz")],
-            _to_stream(__import_fixture) |> Parser.imports(__namespace),
+            _to_stream(__import_fixture) |> Parser.imports(__foo),
           ),
-          ([], _to_stream("") |> Parser.imports(__namespace)),
+          ([], _to_stream("") |> Parser.imports(__foo)),
         ]
         |> Assert.(test_many(list_namespace))
     ),
@@ -67,7 +68,7 @@ let suite =
           (
             AST.[
               (
-                "bar" |> of_internal,
+                __bar,
                 [
                   "foo"
                   |> of_public
@@ -101,7 +102,10 @@ let suite =
     "parse invalid"
     >: (
       () =>
-        Alcotest.check_raises("should throw ParseFailed", ParseFailed, () =>
+        Alcotest.check_raises(
+          "should throw InvalidModule",
+          CompileError([InvalidModule(__foo)]),
+          () =>
           _to_stream("foo bar") |> Parser.ast(__context) |> ignore
         )
     ),

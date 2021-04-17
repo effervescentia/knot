@@ -49,7 +49,7 @@ let read = f =>
           }
         )
     )
-  | Raw(s) => Ok(InputStream.of_string(s) |> LazyStream.of_stream |> f);
+  | Raw(s) => Ok(s |> IO.read_string |> f);
 
 let read_to_string =
   fun

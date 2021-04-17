@@ -2,6 +2,7 @@ include Infix;
 include Error;
 
 module AST = AST;
+module BinaryTree = BinaryTree;
 module Block = Block;
 module Config = Config;
 module Constants = Constants;
@@ -20,6 +21,7 @@ module ModuleTable = ModuleTable;
 module Log = Log;
 module Pretty = Pretty;
 module Print = Print;
+module RangeTree = RangeTree;
 module Reference = Reference;
 module Scope = Scope;
 module String = String;

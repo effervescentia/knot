@@ -16,6 +16,12 @@ let read_stream = (path: string): (LazyStream.t(Input.t), unit => unit) =>
   );
 
 /**
+ read a string as a lazy stream of unicode characters
+ */
+let read_string = (contents: string): LazyStream.t(Input.t) =>
+  contents |> InputStream.of_string |> LazyStream.of_stream;
+
+/**
  copy an existing file to a new location
  */
 let clone = (source: string, target: string) => {

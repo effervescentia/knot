@@ -83,7 +83,8 @@ let create = (~report=_ => throw_all, config: config_t): t => {
         |> Module.read(Parser.imports(namespace))
       ) {
       | Ok(x) => x
-      | Error(errs) =>
+      | Error(errs)
+      | exception (CompileError(errs)) =>
         Report(errs) |> dispatch;
         /* assume no imports if parsing failed */
         [];
@@ -114,6 +115,25 @@ let validate = (compiler: t) => {
   compiler.dispatch(Flush);
 };
 
+let process_one = (id: Namespace.t, module_: Module.t, compiler: t) =>
+  switch (
+    module_
+    |> Module.read(
+         Parser.ast(
+           Context.create(
+             ~scope=Scope.create(~modules=compiler.modules, ()),
+             ~report=err => Report([err]) |> compiler.dispatch,
+             id,
+           ),
+         ),
+       )
+  ) {
+  | Ok(ast) =>
+    compiler.modules |> ModuleTable.add(id, ast, _get_exports(ast))
+
+  | Error(errs) => Report(errs) |> compiler.dispatch
+  };
+
 /**
  parse modules and add to table
  */
@@ -125,22 +145,7 @@ let process =
     ) => {
   namespaces
   |> List.iter(namespace =>
-       switch (
-         resolve(namespace)
-         |> Module.read(
-              Parser.ast(
-                Context.create(
-                  ~scope=Scope.create(~modules, ()),
-                  ~report=err => Report([err]) |> compiler.dispatch,
-                  namespace,
-                ),
-              ),
-            )
-       ) {
-       | Ok(ast) =>
-         modules |> ModuleTable.add(namespace, ast, _get_exports(ast))
-       | Error(errs) => Report(errs) |> compiler.dispatch
-       }
+       process_one(namespace, resolve(namespace), compiler)
      );
 
   compiler.dispatch(Flush);
@@ -276,9 +281,9 @@ let update_module = (id: Namespace.t, compiler: t) => {
  */
 let upsert_module = (id: Namespace.t, compiler: t) =>
   if (compiler.graph |> ImportGraph.has_module(id)) {
-    compiler |> update_module(id) |> ignore;
+    compiler |> update_module(id) |> snd;
   } else {
-    compiler |> add_module(id) |> ignore;
+    compiler |> add_module(id);
   };
 
 /**
@@ -304,7 +309,31 @@ let relocate_module = (id: Namespace.t, compiler: t) =>
     : remove_module(id, compiler) |> (removed => (removed, []));
 
 /**
+ add or update a module by providing the raw text
+ */
+let insert_module = (id: Namespace.t, contents: string, compiler: t) => {
+  if (!(compiler.graph |> ImportGraph.has_module(id))) {
+    compiler.graph.imports |> Graph.add_node(id);
+  };
+
+  let module_ = Module.Raw(contents);
+  switch (module_ |> Module.read(Parser.imports(id))) {
+  | Ok(imports) =>
+    let added = ref([id]);
+
+    imports
+    |> List.iter(id =>
+         ImportGraph.add_module(~added, id, compiler.graph) |> ignore
+       );
+
+    compiler |> incremental(added^ |> List.excl(id));
+    compiler |> process_one(id, module_);
+
+  | Error(errs) => Report(errs) |> compiler.dispatch
+  };
+};
+
+/**
  destroy any resources reserved by the compiler
  */
-
 let teardown = (compiler: t) => compiler.resolver.cache |> Cache.destroy;

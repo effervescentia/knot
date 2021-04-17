@@ -143,7 +143,9 @@ let suite =
           Compiler.create({...__config, root_dir: __invalid_program_dir});
 
         Alcotest.check_raises(
-          "should throw ParseFailed exception", ParseFailed, () =>
+          "should throw InvalidModule exception",
+          CompileError([InvalidModule(__entry)]),
+          () =>
           compiler
           |> Compiler.process([__entry], _ =>
                Module.File({

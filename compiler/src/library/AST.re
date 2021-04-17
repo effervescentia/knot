@@ -37,29 +37,29 @@ type typed_lexeme_t('a) = ('a, Type.t, Cursor.t);
 
 type identifier_t = lexeme_t(Identifier.t);
 
-type primitive_t = typed_lexeme_t(_primitive_t)
-and _primitive_t =
+type primitive_t = typed_lexeme_t(raw_primitive_t)
+and raw_primitive_t =
   | Nil
   | Boolean(bool)
   | Number(number_t)
   | String(string);
 
-type jsx_t = lexeme_t(_jsx_t)
-and _jsx_t =
+type jsx_t = lexeme_t(raw_jsx_t)
+and raw_jsx_t =
   | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
   | Fragment(list(jsx_child_t))
-and jsx_child_t = lexeme_t(_jsx_child_t)
-and _jsx_child_t =
+and jsx_child_t = lexeme_t(raw_jsx_child_t)
+and raw_jsx_child_t =
   | Text(string)
   | Node(jsx_t)
   | InlineExpression(expression_t)
-and jsx_attribute_t = lexeme_t(_jsx_attribute_t)
-and _jsx_attribute_t =
+and jsx_attribute_t = lexeme_t(raw_jsx_attribute_t)
+and raw_jsx_attribute_t =
   | ID(identifier_t)
   | Class(identifier_t, option(expression_t))
   | Property(identifier_t, option(expression_t))
-and expression_t = typed_lexeme_t(_expression_t)
-and _expression_t =
+and expression_t = typed_lexeme_t(raw_expression_t)
+and raw_expression_t =
   | Primitive(primitive_t)
   | Identifier(identifier_t)
   | JSX(jsx_t)

@@ -24,6 +24,45 @@ let _wrap_notification = (method_: string, result) =>
     ("result", result),
   ]);
 
+type error_code_t =
+  | ServerNotInitialized
+  | UnknownErrorCode
+  | ParseError
+  | InvalidRequest
+  | InvalidParams
+  | MethodNotFound
+  | InternalError
+  | ContentModified
+  | RequestCancelled;
+
+let error = (code: error_code_t, message: string, id: int) =>
+  `Assoc([
+    ("jsonrpc", `String("2.0")),
+    ("id", `Int(id)),
+    (
+      "error",
+      `Assoc([
+        (
+          "code",
+          `Int(
+            switch (code) {
+            | ServerNotInitialized => (-32002)
+            | UnknownErrorCode => (-32001)
+            | ParseError => (-32700)
+            | InvalidRequest => (-32600)
+            | InvalidParams => (-32601)
+            | MethodNotFound => (-32602)
+            | InternalError => (-32603)
+            | ContentModified => (-32801)
+            | RequestCancelled => (-32800)
+            },
+          ),
+        ),
+        ("message", `String(message)),
+      ]),
+    ),
+  ]);
+
 let initialize = (name: string, workspace_support: bool) =>
   `Assoc([
     ("serverInfo", `Assoc([("name", `String(name))])),
@@ -60,6 +99,39 @@ let initialize = (name: string, workspace_support: bool) =>
     ),
   ])
   |> _wrap_response;
+
+let hover = ((start, end_): RangeTree.range_t, contents: string) =>
+  `Assoc([
+    (
+      "contents",
+      `Assoc([
+        ("kind", `String("markdown")),
+        ("value", `String(contents)),
+      ]),
+    ),
+    (
+      "range",
+      `Assoc([
+        (
+          "start",
+          `Assoc([
+            ("line", `Int(start.line - 1)),
+            ("character", `Int(start.column - 1)),
+          ]),
+        ),
+        (
+          "end",
+          `Assoc([
+            ("line", `Int(end_.line - 1)),
+            ("character", `Int(end_.column)),
+          ]),
+        ),
+      ]),
+    ),
+  ])
+  |> _wrap_response;
+
+let hover_empty = `Null |> _wrap_response;
 
 type message_t =
   | Error

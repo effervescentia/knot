@@ -45,3 +45,12 @@ let last = (xs: list('a)): option('a) =>
   };
 
 let intersperse = TList.intersperse;
+
+let split_at = (index: int, xs: list('a)) => TList.split_at(~index, xs);
+
+let divide = (xs: list('a)) =>
+  switch (xs) {
+  | []
+  | [_] => (xs, [])
+  | _ => xs |> split_at((xs |> length) / 2)
+  };

@@ -115,6 +115,17 @@ let add_edge = (parent: 'a, child: 'a, graph: t('a)) => {
   graph.edges = List.incl((parent, child), graph.edges);
 };
 
+let union = (lhs: t('a), rhs: t('a)): t('a) => {
+  nodes:
+    lhs.nodes
+    @ rhs.nodes
+    |> List.fold_left((acc, node) => List.incl(node, acc), []),
+  edges:
+    lhs.edges
+    @ rhs.edges
+    |> List.fold_left((acc, edge) => List.incl(edge, acc), []),
+};
+
 let remove_node = (node: 'a, graph: t('a)) =>
   graph.nodes = List.excl(node, graph.nodes);
 

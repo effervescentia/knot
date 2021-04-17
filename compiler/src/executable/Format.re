@@ -31,7 +31,8 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
             | ImportCycle(_)
             | UnresolvedModule(_)
             | FileNotFound(_)
-            | ParseError(_) => false,
+            | ParseError(_)
+            | InvalidModule(_) => false,
           )
           % (
             errors => errors |> List.is_empty ? () : report(resolver, errors)
