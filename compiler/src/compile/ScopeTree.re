@@ -61,8 +61,8 @@ let rec of_context = (~cursor=?, context: Context.t): t => {
   );
 };
 
-let find_type =
-    (id: Identifier.t, point: Cursor.point_t, tree: t): option(Type.t) =>
+let find_scope =
+    (point: Cursor.point_t, tree: t): option(Hashtbl.t(Export.t, Type.t)) =>
   BinaryTree.search(
     (left, right) =>
       if (Cursor.is_in_range(left.value |> fst, point)) {
@@ -74,8 +74,8 @@ let find_type =
       },
     tree,
   )
-  |?< (
-    fun
-    | (_, Some(types)) => Hashtbl.find_opt(types, Named(id))
-    | _ => None
-  );
+  |?< snd;
+
+let find_type =
+    (id: Identifier.t, point: Cursor.point_t, tree: t): option(Type.t) =>
+  find_scope(point, tree) |?< (types => Hashtbl.find_opt(types, Named(id)));

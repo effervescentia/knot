@@ -172,11 +172,8 @@ let start = (find_config: string => Config.t) => {
                   |?< (
                     ({scopes}) => ScopeTree.find_type(id, point, scopes)
                   )
-                  |> (
-                    fun
-                    | Some(type_) => Type.to_string(type_)
-                    | None => "unknown"
-                  )
+                  |?> (type_ => Type.to_string(type_))
+                  |?: "unknown"
                   |> Print.fmt("`%s`")
                   |> Response.hover(range)
                   |> Protocol.reply(req);
@@ -214,6 +211,27 @@ let start = (find_config: string => Config.t) => {
             );
 
           | None => ()
+          };
+        }
+
+      | CodeCompletion(
+          {params: {text_document: {uri}, position: {line, character}}} as req,
+        ) => {
+          let path = _uri_to_path(uri);
+          let point = Cursor.{line, column: character};
+
+          switch (compilers |> _resolve(path)) {
+          | Some((namespace, {compiler})) =>
+            Hashtbl.find_opt(compiler.modules, namespace)
+            |?< (({scopes}) => ScopeTree.find_scope(point, scopes))
+            |?> Hashtbl.to_seq_keys
+            % List.of_seq
+            % List.map(Export.to_string)
+            |?: []
+            |> Response.completion
+            |> Protocol.reply(req)
+
+          | None => Protocol.reply(req, Response.completion([]))
           };
         }
 

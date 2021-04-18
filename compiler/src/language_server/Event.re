@@ -76,13 +76,20 @@ type go_to_definition_params_t = {
   partial_result_token: option(progress_token),
 };
 
+type completion_params_t = {
+  text_document: text_document_t,
+  position: position_t,
+  partial_result_token: option(progress_token),
+};
+
 type t =
   | Initialize(request_t(initialize_params_t))
   | Hover(request_t(hover_params_t))
   | FileOpen(notification_t(file_open_params_t))
   | FileClose(notification_t(file_close_params_t))
   | FileChange(notification_t(file_change_params_t))
-  | GoToDefinition(request_t(go_to_definition_params_t));
+  | GoToDefinition(request_t(go_to_definition_params_t))
+  | CodeCompletion(request_t(completion_params_t));
 
 module Deserialize = {
   open Yojson.Basic.Util;
@@ -272,6 +279,18 @@ module Deserialize = {
         }: go_to_definition_params_t
       )
     );
+
+  let completion_req =
+    request((json) =>
+      (
+        {
+          let text_document = json |> _get_text_document;
+          let position = json |> _get_position;
+
+          {text_document, position, partial_result_token: None};
+        }: completion_params_t
+      )
+    );
 };
 
 let deserialize =
@@ -286,4 +305,6 @@ let deserialize =
     Deserialize.file_change_req % (x => Some(FileChange(x)))
   | "textDocument/definition" =>
     Deserialize.go_to_definition_req % (x => Some(GoToDefinition(x)))
+  | "textDocument/completion" =>
+    Deserialize.completion_req % (x => Some(CodeCompletion(x)))
   | _ => (_ => None);

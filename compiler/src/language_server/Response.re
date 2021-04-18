@@ -10,14 +10,14 @@ let serialize = json => {
   );
 };
 
-let _wrap_response = (result, id: int) =>
+let _wrap_response = (result: Yojson.Basic.t, id: int) =>
   `Assoc([
     ("jsonrpc", `String("2.0")),
     ("id", `Int(id)),
     ("result", result),
   ]);
 
-let _wrap_notification = (method_: string, result) =>
+let _wrap_notification = (method_: string, result: Yojson.Basic.t) =>
   `Assoc([
     ("jsonrpc", `String("2.0")),
     ("method", `String(method_)),
@@ -82,7 +82,13 @@ let initialize = (name: string, workspace_support: bool) =>
         /* enable hover support */
         ("hoverProvider", `Bool(true)),
         /* enable code completion support */
-        ("completionProvider", `Assoc([("resolveProvider", `Bool(true))])),
+        (
+          "completionProvider",
+          `Assoc([
+            ("resolveProvider", `Bool(true)),
+            ("triggerCharacters", `List([`String(".")])),
+          ]),
+        ),
         /* enable go-to definition support */
         ("definitionProvider", `Bool(true)),
         (
@@ -129,6 +135,10 @@ let hover = ((start, end_): Cursor.range_t, contents: string) =>
       ]),
     ),
   ])
+  |> _wrap_response;
+
+let completion = (items: list(string)) =>
+  `List(items |> List.map(label => `Assoc([("label", `String(label))])))
   |> _wrap_response;
 
 let hover_empty = `Null |> _wrap_response;
