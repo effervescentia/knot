@@ -37,3 +37,47 @@ let to_string = (stream: t): string => {
 
   buffer |> Buffer.contents;
 };
+
+let __initial = Cursor.{line: 0, column: 0};
+
+let scan = (predicate: Block.t(string) => bool, contents: string) => {
+  let stream = of_string(contents);
+  let buffer = Buffer.create(8);
+
+  let rec loop = (start, end_) => {
+    switch (stream |> Stream.peek |?> Tuple.map_snd2(Cursor.expand % fst)) {
+    | Some((uchar, cursor)) =>
+      stream |> Stream.junk;
+
+      switch (uchar |> Uchar.to_char) {
+      | ' '
+      | '\n'
+      | '\r'
+      | '\t' =>
+        if (Buffer.length(buffer) == 0) {
+          loop(cursor, cursor);
+        } else {
+          let token = buffer |> Buffer.contents;
+          let block = Block.create(token, Cursor.Range(start, end_));
+
+          buffer |> Buffer.clear;
+
+          if (predicate(block)) {
+            Some(block);
+          } else {
+            loop(start, end_);
+          };
+        }
+      | _ =>
+        let is_first_char = Buffer.length(buffer) == 0;
+        Buffer.add_utf_8_uchar(buffer, uchar);
+
+        loop(is_first_char ? cursor : start, cursor);
+      };
+
+    | None => None
+    };
+  };
+
+  loop(__initial, __initial);
+};

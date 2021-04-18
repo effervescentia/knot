@@ -23,7 +23,8 @@ let suite =
     "add()"
     >: (
       () => {
-        __table |> ModuleTable.add(__id, __program, __types, __scope_tree);
+        __table
+        |> ModuleTable.add(__id, __program, __types, __scope_tree, "foo");
 
         [
           (
@@ -39,6 +40,7 @@ let suite =
                     ),
                   ast: __program,
                   scopes: __scope_tree,
+                  raw: "foo",
                 },
               ),
             ]),
@@ -51,7 +53,7 @@ let suite =
     "add_type() - add type to existing module"
     >: (
       () => {
-        __table |> ModuleTable.add(__id, __program, [], __scope_tree);
+        __table |> ModuleTable.add(__id, __program, [], __scope_tree, "foo");
         __table
         |> ModuleTable.add_type(
              (__id, Export.Named("new_type" |> AST.of_public)),
@@ -75,6 +77,7 @@ let suite =
                     ),
                   ast: __program,
                   scopes: __scope_tree,
+                  raw: "foo",
                 },
               ),
             ]),

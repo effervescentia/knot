@@ -6,6 +6,7 @@ type entry_t = {
   types: Hashtbl.t(Export.t, Type.t),
   ast: AST.program_t,
   scopes: RangeTree.t(option(Hashtbl.t(Export.t, Type.t))),
+  raw: string,
 };
 
 /**
@@ -33,12 +34,13 @@ let add =
       ast: AST.program_t,
       exports: list((Export.t, Type.t)),
       scopes: scope_tree_t,
+      raw: string,
       table: t,
     ) =>
   Hashtbl.replace(
     table,
     id,
-    {ast, types: exports |> List.to_seq |> Hashtbl.of_seq, scopes},
+    {ast, types: exports |> List.to_seq |> Hashtbl.of_seq, scopes, raw},
   );
 
 /**

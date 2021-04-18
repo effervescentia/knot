@@ -339,7 +339,11 @@ let _extract_compile_err = resolver =>
            title,
            [
              description,
-             File.CodeFrame.print(module_, cursor) |> Pretty.string,
+             switch (module_) {
+             | Ok(x) => File.CodeFrame.print(x, cursor) |> Pretty.string
+             | Error(_) =>
+               ["code frame not available" |> Pretty.string] |> Pretty.newline
+             },
              switch (resolutions) {
              | Some(resolutions) =>
                [

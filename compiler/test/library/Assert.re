@@ -45,7 +45,10 @@ module Compare = {
         (l, r) =>
           Hashtbl.compare(
             ~compare=
-              (x, y) => x.ast == y.ast && Hashtbl.compare(x.types, y.types),
+              (x, y) =>
+                x.ast == y.ast
+                && x.raw == y.raw
+                && Hashtbl.compare(x.types, y.types),
             l,
             r,
           )

@@ -59,6 +59,7 @@ let __scope =
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
+            raw: "foo",
           },
         ),
       ]
@@ -124,6 +125,7 @@ let suite =
                         |> List.to_seq
                         |> Hashtbl.of_seq,
                       scopes: __scope_tree,
+                      raw: "foo",
                     },
                   ),
                 ]

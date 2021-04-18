@@ -65,9 +65,9 @@ let find_type =
     (id: Identifier.t, point: Cursor.point_t, tree: t): option(Type.t) =>
   BinaryTree.search(
     (left, right) =>
-      if (RangeTree.is_in_range(left.value |> fst, point)) {
+      if (Cursor.is_in_range(left.value |> fst, point)) {
         Some(left);
-      } else if (RangeTree.is_in_range(right.value |> fst, point)) {
+      } else if (Cursor.is_in_range(right.value |> fst, point)) {
         Some(right);
       } else {
         None;

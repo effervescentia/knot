@@ -119,7 +119,12 @@ let suite =
           [
             (
               __entry,
-              ModuleTable.{types: __types, ast: __ast, scopes: __scope_tree},
+              ModuleTable.{
+                types: __types,
+                ast: __ast,
+                scopes: __scope_tree,
+                raw: "foo",
+              },
             ),
           ]
           |> List.to_seq
@@ -180,7 +185,12 @@ let suite =
           [
             (
               __entry,
-              ModuleTable.{types: __types, ast: __ast, scopes: __scope_tree},
+              ModuleTable.{
+                types: __types,
+                ast: __ast,
+                scopes: __scope_tree,
+                raw: "foo",
+              },
             ),
           ]
           |> List.to_seq

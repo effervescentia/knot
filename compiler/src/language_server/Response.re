@@ -100,7 +100,7 @@ let initialize = (name: string, workspace_support: bool) =>
   ])
   |> _wrap_response;
 
-let hover = ((start, end_): RangeTree.range_t, contents: string) =>
+let hover = ((start, end_): Cursor.range_t, contents: string) =>
   `Assoc([
     (
       "contents",

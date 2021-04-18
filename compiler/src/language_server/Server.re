@@ -83,20 +83,10 @@ let _analyze_module =
   | None => None
   };
 
-/* let _scan_for_token = (point: Cursor.point_t, path: string) => {
-     let in_ = open_in(path);
-     let stream = InputStream.of_channel(in_);
-
-     let rec loop = buffer => {
-       switch (stream |> Stream.peek, buffer |> Buffer.contents) {
-       | (Some((uchar, cursor)), _) => None
-       | (None, "") => None
-       | (None, "") => None
-       };
-     };
-
-     loop(Buffer.create(10));
-   }; */
+let _scan_for_token = (point: Cursor.point_t) =>
+  InputStream.scan(block =>
+    Cursor.is_in_range(block |> Block.cursor |> Cursor.expand, point)
+  );
 
 let start = (find_config: string => Config.t) => {
   let compilers: Hashtbl.t(string, compiler_context_t) = Hashtbl.create(1);
@@ -144,7 +134,6 @@ let start = (find_config: string => Config.t) => {
         ) => {
           let path = _uri_to_path(uri);
           let point = Cursor.{line, column: character};
-          Log.info("hover in file: %s", path);
 
           switch (compilers |> _resolve(path)) {
           | Some((namespace, {compiler, contexts} as ctx)) =>
@@ -193,9 +182,31 @@ let start = (find_config: string => Config.t) => {
                   |> Protocol.reply(req);
                 }
 
-              | Some(_) => Protocol.reply(req, Response.hover_empty)
+              | Some(_) => {
+                  Hashtbl.find_opt(compiler.modules, namespace)
+                  |?< (({raw}) => raw |> _scan_for_token(point))
+                  |?< (
+                    block =>
+                      switch (block |> Block.value) {
+                      | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
+                        Some((
+                          kwd |> Print.fmt("keyword `%s`"),
+                          block |> Block.cursor,
+                        ))
+                      | _ => None
+                      }
+                  )
+                  |> (
+                    fun
+                    | Some((message, cursor)) =>
+                      message
+                      |> Response.hover(cursor |> Cursor.expand)
+                      |> Protocol.reply(req)
+                    | None => Protocol.reply(req, Response.hover_empty)
+                  );
+                }
 
-              | _ =>
+              | None =>
                 Protocol.reply(
                   req,
                   Response.error(InvalidRequest, "no token found"),
@@ -208,7 +219,6 @@ let start = (find_config: string => Config.t) => {
 
       | FileOpen({params: {text_document: {uri}}}) => {
           let path = _uri_to_path(uri);
-          Log.info("opened file: %s", path);
 
           switch (compilers |> _resolve(path)) {
           | Some((namespace, {compiler, contexts} as ctx)) =>
@@ -222,7 +232,6 @@ let start = (find_config: string => Config.t) => {
 
       | FileClose({params: {text_document: {uri}}}) => {
           let path = _uri_to_path(uri);
-          Log.info("closed file %s", uri);
 
           switch (compilers |> _resolve(path)) {
           | Some((namespace, {compiler, contexts})) =>
@@ -233,7 +242,6 @@ let start = (find_config: string => Config.t) => {
 
       | FileChange({params: {text_document: {uri}, changes}}) => {
           let path = _uri_to_path(uri);
-          Log.info("changed file %s", uri);
 
           switch (changes |> List.last, compilers |> _resolve(path)) {
           | (

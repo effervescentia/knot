@@ -2,6 +2,7 @@ type point_t = {
   line: int,
   column: int,
 };
+type range_t = (point_t, point_t);
 
 /**
  container representing a selection of a source document
@@ -38,3 +39,17 @@ let expand =
   fun
   | Range(start, end_) => (start, end_)
   | Point(point) => (point, point);
+
+let is_in_range = ((start, end_): range_t, point: point_t) =>
+  Int.contains((start.line, end_.line), point.line)
+  && (
+    if (start.line == end_.line) {
+      Int.contains((start.column, end_.column), point.column);
+    } else if (start.line == point.line) {
+      point.column >= start.column;
+    } else if (end_.line == point.line) {
+      point.column <= end_.column;
+    } else {
+      true;
+    }
+  );

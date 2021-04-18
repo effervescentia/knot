@@ -123,18 +123,24 @@ let process_one = (id: Namespace.t, module_: Module.t, compiler: t) => {
       id,
     );
 
-  switch (module_ |> Module.read(Parser.ast(context))) {
-  | Ok(ast) =>
-    compiler.modules
-    |> ModuleTable.add(
-         id,
-         ast,
-         _get_exports(ast),
-         context |> ScopeTree.of_context,
-       )
+  module_
+  |> Module.read_to_string
+  |> (
+    fun
+    | Ok(raw) => {
+        let ast = raw |> File.IO.read_string |> Parser.ast(context);
 
-  | Error(errs) => Report(errs) |> compiler.dispatch
-  };
+        compiler.modules
+        |> ModuleTable.add(
+             id,
+             ast,
+             _get_exports(ast),
+             context |> ScopeTree.of_context,
+             raw,
+           );
+      }
+    | Error(errs) => Report(errs) |> compiler.dispatch
+  );
 };
 
 /**
@@ -319,21 +325,16 @@ let insert_module = (id: Namespace.t, contents: string, compiler: t) => {
     compiler.graph.imports |> Graph.add_node(id);
   };
 
-  let module_ = Module.Raw(contents);
-  switch (module_ |> Module.read(Parser.imports(id))) {
-  | Ok(imports) =>
-    let added = ref([id]);
+  let imports = contents |> File.IO.read_string |> Parser.imports(id);
+  let added = ref([id]);
 
-    imports
-    |> List.iter(id =>
-         ImportGraph.add_module(~added, id, compiler.graph) |> ignore
-       );
+  imports
+  |> List.iter(id =>
+       ImportGraph.add_module(~added, id, compiler.graph) |> ignore
+     );
 
-    compiler |> incremental(added^ |> List.excl(id));
-    compiler |> process_one(id, module_);
-
-  | Error(errs) => Report(errs) |> compiler.dispatch
-  };
+  compiler |> incremental(added^ |> List.excl(id));
+  compiler |> process_one(id, Raw(contents));
 };
 
 /**
