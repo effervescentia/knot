@@ -1,5 +1,4 @@
 open Kore;
-open Reference;
 
 type token_t =
   | Skip

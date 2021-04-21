@@ -10,7 +10,7 @@ let serialize = json => {
   );
 };
 
-let _wrap_response = (result: Yojson.Basic.t, id: int) =>
+let wrap = (result: Yojson.Basic.t, id: int) =>
   `Assoc([
     ("jsonrpc", `String("2.0")),
     ("id", `Int(id)),
@@ -104,44 +104,9 @@ let initialize = (name: string, workspace_support: bool) =>
       ]),
     ),
   ])
-  |> _wrap_response;
+  |> wrap;
 
-let hover = ((start, end_): Cursor.range_t, contents: string) =>
-  `Assoc([
-    (
-      "contents",
-      `Assoc([
-        ("kind", `String("markdown")),
-        ("value", `String(contents)),
-      ]),
-    ),
-    (
-      "range",
-      `Assoc([
-        (
-          "start",
-          `Assoc([
-            ("line", `Int(start.line - 1)),
-            ("character", `Int(start.column - 1)),
-          ]),
-        ),
-        (
-          "end",
-          `Assoc([
-            ("line", `Int(end_.line - 1)),
-            ("character", `Int(end_.column)),
-          ]),
-        ),
-      ]),
-    ),
-  ])
-  |> _wrap_response;
-
-let completion = (items: list(string)) =>
-  `List(items |> List.map(label => `Assoc([("label", `String(label))])))
-  |> _wrap_response;
-
-let hover_empty = `Null |> _wrap_response;
+let hover_empty = `Null |> wrap;
 
 type message_t =
   | Error

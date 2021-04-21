@@ -61,12 +61,13 @@ let read_event = (stream: Stream.t(char)) => {
     Yojson.Basic.pretty_to_string(json),
   );
 
-  Event.deserialize(method_, json);
+  (method_, json);
 };
 
-let watch_events = (stream: Stream.t(char), handler: Event.t => unit) => {
+let watch_events =
+    (stream: Stream.t(char), handler: ((string, Yojson.Basic.t)) => unit) => {
   while (true) {
-    read_event(stream) |?> handler |> ignore;
+    read_event(stream) |> handler;
   };
 };
 
@@ -75,7 +76,7 @@ let send = (res: Yojson.Basic.t) => {
   flush(stdout);
 };
 
-let reply = (req: Event.request_t('a), create_res) => {
+let reply = (req: Deserialize.request_t('a), create_res) => {
   let res = create_res(req.id);
 
   Log.debug(
@@ -87,27 +88,12 @@ let reply = (req: Event.request_t('a), create_res) => {
   send(res);
 };
 
-let subscribe = (channel: in_channel, handler: Event.t => unit): unit => {
-  let stream = channel |> Stream.of_channel;
-
-  Event.(
-    switch (read_event(stream)) {
-    | Some(Initialize(req) as event) =>
-      Log.info("server initialized successfully");
-
-      Response.initialize(
-        "knot",
-        req.params.capabilities
-        |?< (x => x.workspace)
-        |?< (x => x.workspace_folders)
-        |?: false,
-      )
-      |> reply(req);
-
-      handler(event);
-
-      watch_events(stream, handler);
-    | _ => failwith("did not receive initialize request first")
-    }
+let report = errs =>
+  send(
+    Response.show_message(
+      errs
+      |> Knot.Error.print_errs
+      |> Print.fmt("compilation failed with errors:\n%s"),
+      Error,
+    ),
   );
-};
