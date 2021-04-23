@@ -9,7 +9,8 @@ module Assert =
   Assert.Make({
     type t = jsx_t;
 
-    let parser = ctx => JSX.parser(ctx, Expression.parser) |> Parser.parse;
+    let parser = ctx =>
+      JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
 
     let test =
       Alcotest.(
@@ -170,13 +171,33 @@ let suite =
             |> as_lexeme,
           ),
           (
+            "<Foo fizz=(1 > 2) />",
+            (
+              "Foo" |> of_public |> as_lexeme,
+              [
+                (
+                  "fizz" |> of_public |> as_lexeme,
+                  (1 |> int_prim, 2 |> int_prim)
+                  |> of_gt_op
+                  |> as_bool
+                  |> Option.some,
+                )
+                |> of_prop
+                |> as_lexeme,
+              ],
+              [],
+            )
+            |> of_tag
+            |> as_lexeme,
+          ),
+          (
             "<Foo fizz=(true) />",
             (
               "Foo" |> of_public |> as_lexeme,
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  bool_prim(true) |> of_group |> as_bool |> Option.some,
+                  bool_prim(true) |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -336,66 +357,87 @@ let suite =
     "parse complex"
     >: (
       () =>
-        [
-          (
-            "<Foo><Bar /></Foo>",
+        try(
+          [
             (
-              "Foo" |> of_public |> as_lexeme,
-              [],
-              [
-                ("Bar" |> of_public |> as_lexeme, [], [])
-                |> jsx_node
-                |> as_lexeme,
-              ],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
+              "<Foo bar=4><Bar /></Foo>",
+              (
+                "Foo" |> of_public |> as_lexeme,
+                [
+                  (
+                    "bar" |> of_public |> as_lexeme,
+                    4 |> int_prim |> Option.some,
+                  )
+                  |> of_prop
+                  |> as_lexeme,
+                ],
+                [
+                  ("Bar" |> of_public |> as_lexeme, [], [])
+                  |> jsx_node
+                  |> as_lexeme,
+                ],
+              )
+              |> of_tag
+              |> as_lexeme,
+            ),
             (
-              "Foo" |> of_public |> as_lexeme,
-              [],
-              [
-                "bar" |> of_text |> as_lexeme,
-                (1 |> int_prim, 2 |> int_prim)
-                |> of_add_op
-                |> as_int
-                |> of_inline_expr
-                |> as_lexeme,
-                ("Bar" |> of_public |> as_lexeme, [], [])
-                |> jsx_node
-                |> as_lexeme,
-                "fizz" |> string_prim |> of_inline_expr |> as_lexeme,
-                "buzz" |> of_text |> as_lexeme,
-              ],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo bar=fizz .buzz />",
+              "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
+              (
+                "Foo" |> of_public |> as_lexeme,
+                [],
+                [
+                  "bar" |> of_text |> as_lexeme,
+                  (1 |> int_prim, 2 |> int_prim)
+                  |> of_add_op
+                  |> as_int
+                  |> of_inline_expr
+                  |> as_lexeme,
+                  ("Bar" |> of_public |> as_lexeme, [], [])
+                  |> jsx_node
+                  |> as_lexeme,
+                  "fizz" |> string_prim |> of_inline_expr |> as_lexeme,
+                  "buzz" |> of_text |> as_lexeme,
+                ],
+              )
+              |> of_tag
+              |> as_lexeme,
+            ),
             (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "bar" |> of_public |> as_lexeme,
-                  Some("fizz" |> of_public |> as_lexeme |> of_id |> as_bool),
-                )
-                |> of_prop
-                |> as_lexeme,
-                ("buzz" |> of_public |> as_lexeme, None)
-                |> of_jsx_class
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-        ]
-        |> Assert.parse_many(
-             ~scope=to_scope([("fizz", K_Strong(K_Boolean))]),
-           )
+              "<Foo bar=fizz .buzz />",
+              (
+                "Foo" |> of_public |> as_lexeme,
+                [
+                  (
+                    "bar" |> of_public |> as_lexeme,
+                    "fizz"
+                    |> of_public
+                    |> as_lexeme
+                    |> of_id
+                    |> as_bool
+                    |> Option.some,
+                  )
+                  |> of_prop
+                  |> as_lexeme,
+                  ("buzz" |> of_public |> as_lexeme, None)
+                  |> of_jsx_class
+                  |> as_lexeme,
+                ],
+                [],
+              )
+              |> of_tag
+              |> as_lexeme,
+            ),
+          ]
+          |> Assert.parse_many(
+               ~scope=to_scope([("fizz", K_Strong(K_Boolean))]),
+             )
+        ) {
+        | CompileError(x) =>
+          x
+          |> List.map(Knot.Error._compile_err_to_string)
+          |> List.intersperse(", ")
+          |> List.fold_left((++), "")
+          |> Test.Assert.string("%s")
+        }
     ),
   ];

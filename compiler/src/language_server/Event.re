@@ -7,7 +7,10 @@ type t =
   | FileClose(Deserialize.notification_t(FileClose.params_t))
   | FileChange(Deserialize.notification_t(FileChange.params_t))
   | GoToDefinition(Deserialize.request_t(GoToDefinition.params_t))
-  | CodeCompletion(Deserialize.request_t(CodeCompletion.params_t));
+  | CodeCompletion(Deserialize.request_t(CodeCompletion.params_t))
+  | Format(Deserialize.request_t(Format.params_t))
+  | LocalSymbols(Deserialize.request_t(LocalSymbols.params_t))
+  | WorkspaceSymbols(Deserialize.request_t(WorkspaceSymbols.params_t));
 
 let deserialize =
   fun
@@ -23,4 +26,9 @@ let deserialize =
     GoToDefinition.request % (x => Some(GoToDefinition(x)))
   | "textDocument/completion" =>
     CodeCompletion.request % (x => Some(CodeCompletion(x)))
+  | "textDocument/documentSymbol" =>
+    LocalSymbols.request % (x => Some(LocalSymbols(x)))
+  | "workspace/symbol" =>
+    WorkspaceSymbols.request % (x => Some(WorkspaceSymbols(x)))
+  | "textDocument/formatting" => Format.request % (x => Some(Format(x)))
   | _ => (_ => None);

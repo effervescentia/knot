@@ -27,10 +27,8 @@ let handler =
     (
       runtime: Runtime.t,
       {params: {text_document: {uri}, changes}}: notification_t(params_t),
-    ) => {
-  let path = uri_to_path(uri);
-
-  switch (changes |> List.last, runtime |> Runtime.resolve(path)) {
+    ) =>
+  switch (changes |> List.last, runtime |> Runtime.resolve(uri)) {
   | (Some(contents), Some((namespace, {compiler, contexts} as ctx))) =>
     let silent_compiler = {...compiler, dispatch: ignore};
 
@@ -41,4 +39,3 @@ let handler =
   | _
   | exception _ => ()
   };
-};

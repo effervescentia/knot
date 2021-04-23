@@ -26,10 +26,9 @@ let handler =
       {params: {text_document: {uri}, position: {line, character}}} as req:
         request_t(params_t),
     ) => {
-  let path = uri_to_path(uri);
   let point = Cursor.{line, column: character};
 
-  switch (runtime |> Runtime.resolve(path)) {
+  switch (runtime |> Runtime.resolve(uri)) {
   | Some((namespace, {compiler})) =>
     Hashtbl.find_opt(compiler.modules, namespace)
     |?< (({scopes}) => ScopeTree.find_scope(point, scopes))

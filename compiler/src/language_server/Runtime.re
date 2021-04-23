@@ -73,3 +73,10 @@ let scan_for_token = (point: Cursor.point_t) =>
   File.InputStream.scan(block =>
     Cursor.is_in_range(block |> Block.cursor |> Cursor.expand, point)
   );
+
+let purge_module = (path: string, runtime: t) =>
+  switch (runtime |> resolve(path)) {
+  | Some((namespace, {compiler, contexts})) =>
+    Hashtbl.remove(contexts, namespace)
+  | None => ()
+  };

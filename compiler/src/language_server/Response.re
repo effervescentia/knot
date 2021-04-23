@@ -10,6 +10,55 @@ let serialize = json => {
   );
 };
 
+let symbol =
+  Capabilities.(
+    fun
+    | File => 1
+    | Module => 2
+    | Namespace => 3
+    | Package => 4
+    | Class => 5
+    | Method => 6
+    | Property => 7
+    | Field => 8
+    | Constructor => 9
+    | Enum => 10
+    | Interface => 11
+    | Function => 12
+    | Variable => 13
+    | Constant => 14
+    | String => 15
+    | Number => 16
+    | Boolean => 17
+    | Array => 18
+    | Object => 19
+    | Key => 20
+    | Null => 21
+    | EnumMember => 22
+    | Struct => 23
+    | Event => 24
+    | Operator => 25
+    | TypeParameter => 26
+  );
+
+let range = ((start, end_): Cursor.range_t) =>
+  `Assoc([
+    (
+      "start",
+      `Assoc([
+        ("line", `Int(start.line - 1)),
+        ("character", `Int(start.column - 1)),
+      ]),
+    ),
+    (
+      "end",
+      `Assoc([
+        ("line", `Int(end_.line - 1)),
+        ("character", `Int(end_.column)),
+      ]),
+    ),
+  ]);
+
 let wrap = (result: Yojson.Basic.t, id: int) =>
   `Assoc([
     ("jsonrpc", `String("2.0")),
@@ -62,49 +111,6 @@ let error = (code: error_code_t, message: string, id: int) =>
       ]),
     ),
   ]);
-
-let initialize = (name: string, workspace_support: bool) =>
-  `Assoc([
-    ("serverInfo", `Assoc([("name", `String(name))])),
-    (
-      "capabilities",
-      `Assoc([
-        (
-          "workspace",
-          `Assoc([
-            /* support workspace folders */
-            (
-              "workspaceFolders",
-              `Assoc([("support", `Bool(workspace_support))]),
-            ),
-          ]),
-        ),
-        /* enable hover support */
-        ("hoverProvider", `Bool(true)),
-        /* enable code completion support */
-        (
-          "completionProvider",
-          `Assoc([
-            ("resolveProvider", `Bool(true)),
-            ("triggerCharacters", `List([`String(".")])),
-          ]),
-        ),
-        /* enable go-to definition support */
-        ("definitionProvider", `Bool(true)),
-        (
-          "textDocumentSync",
-          `Assoc([
-            /* send notifications when files opened or closed */
-            ("openClose", `Bool(true)),
-            /* TODO: add incremental supports */
-            /* send full documents when syncing */
-            ("change", `Int(1)),
-          ]),
-        ),
-      ]),
-    ),
-  ])
-  |> wrap;
 
 let hover_empty = `Null |> wrap;
 

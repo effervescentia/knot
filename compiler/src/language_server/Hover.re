@@ -15,34 +15,16 @@ let request =
     {text_document, position};
   });
 
-let response = ((start, end_): Cursor.range_t, contents: string) =>
+let response = (range: Cursor.range_t, contents: string) =>
   `Assoc([
     (
       "contents",
       `Assoc([
-        ("kind", `String("markdown")),
+        ("language", `String("knot")),
         ("value", `String(contents)),
       ]),
     ),
-    (
-      "range",
-      `Assoc([
-        (
-          "start",
-          `Assoc([
-            ("line", `Int(start.line - 1)),
-            ("character", `Int(start.column - 1)),
-          ]),
-        ),
-        (
-          "end",
-          `Assoc([
-            ("line", `Int(end_.line - 1)),
-            ("character", `Int(end_.column)),
-          ]),
-        ),
-      ]),
-    ),
+    ("range", range |> Response.range),
   ])
   |> Response.wrap;
 
@@ -52,10 +34,9 @@ let handler =
       {params: {text_document: {uri}, position: {line, character}}} as req:
         request_t(params_t),
     ) => {
-  let path = Deserialize.uri_to_path(uri);
   let point = Cursor.{line, column: character};
 
-  switch (runtime |> Runtime.resolve(path)) {
+  switch (runtime |> Runtime.resolve(uri)) {
   | Some((namespace, {compiler, contexts} as ctx)) =>
     let find_token = RangeTree.find_leaf(point);
 
@@ -75,7 +56,7 @@ let handler =
           response(
             range,
             Print.fmt(
-              "`%s`",
+              "type %s",
               switch (prim) {
               | Nil => "nil"
               | Boolean(_) => "bool"
@@ -91,8 +72,8 @@ let handler =
           Hashtbl.find_opt(compiler.modules, namespace)
           |?< (({scopes}) => ScopeTree.find_type(id, point, scopes))
           |?> (type_ => Type.to_string(type_))
-          |?: "unknown"
-          |> Print.fmt("`%s`")
+          |?> Print.fmt("%s: %s", id |> Identifier.to_string)
+          |?: "(unknown)"
           |> response(range)
           |> Protocol.reply(req);
         }
@@ -105,7 +86,7 @@ let handler =
               switch (block |> Block.value) {
               | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
                 Some((
-                  kwd |> Print.fmt("keyword `%s`"),
+                  kwd |> Print.fmt("(keyword) %s"),
                   block |> Block.cursor,
                 ))
               | _ => None

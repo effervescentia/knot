@@ -17,7 +17,7 @@ export function activate(_context: ExtensionContext) {
   const serverOptions: ServerOptions = {
     run: {
       command: LSP_BINARY,
-      args
+      args: debugArgs
     },
     debug: {
       command: LSP_BINARY,

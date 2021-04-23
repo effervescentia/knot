@@ -123,7 +123,7 @@ let suite =
                 types: __types,
                 ast: __ast,
                 scopes: __scope_tree,
-                raw: "foo",
+                raw: "const ABC = 123;\n",
               },
             ),
           ]
@@ -189,7 +189,7 @@ let suite =
                 types: __types,
                 ast: __ast,
                 scopes: __scope_tree,
-                raw: "foo",
+                raw: "const ABC = 123;\n",
               },
             ),
           ]

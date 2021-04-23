@@ -12,7 +12,7 @@ let notification =
       |> (
         fun
         | `Assoc(_) as x => {
-            let uri = x |> member("uri") |> to_string;
+            let uri = x |> get_uri;
             let language_id = x |> member("languageId") |> to_string;
             let version = x |> member("version") |> to_int;
             let text = x |> member("text") |> to_string;
@@ -29,10 +29,8 @@ let handler =
     (
       runtime: Runtime.t,
       {params: {text_document: {uri}}}: notification_t(params_t),
-    ) => {
-  let path = uri_to_path(uri);
-
-  switch (runtime |> Runtime.resolve(path)) {
+    ) =>
+  switch (runtime |> Runtime.resolve(uri)) {
   | Some((namespace, {compiler, contexts} as ctx)) =>
     let added = compiler |> Compiler.upsert_module(namespace);
 
@@ -41,4 +39,3 @@ let handler =
 
   | None => ()
   };
-};

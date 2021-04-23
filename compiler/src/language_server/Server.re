@@ -14,17 +14,7 @@ let _subscribe = (channel: in_channel, handler: Event.t => unit): unit => {
   | Some(Initialize(req) as event) =>
     Log.info("server initialized successfully");
 
-    Response.initialize(
-      "knot",
-      req.params.capabilities
-      |?< (x => x.workspace)
-      |?< (x => x.workspace_folders)
-      |?: false,
-    )
-    |> Protocol.reply(req);
-
     handler(event);
-
     Protocol.watch_events(stream, event =>
       event |> deserialize |?> handler |> ignore
     );
@@ -46,6 +36,9 @@ let start = (find_config: string => Config.t) => {
       | FileClose(req) => FileClose.handler(runtime, req)
       | FileChange(req) => FileChange.handler(runtime, req)
       | GoToDefinition(req) => GoToDefinition.handler(runtime, req)
+      | Format(req) => Format.handler(runtime, req)
+      | LocalSymbols(req) => LocalSymbols.handler(runtime, req)
+      | WorkspaceSymbols(req) => WorkspaceSymbols.handler(runtime, req)
     ),
   );
 

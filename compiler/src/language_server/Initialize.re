@@ -76,7 +76,7 @@ let request =
         | `List(xs) =>
           xs
           |> List.map(x => {
-               let uri = x |> member("uri") |> to_string;
+               let uri = x |> get_uri;
                let name = x |> member("name") |> to_string;
 
                {uri, name};
@@ -97,25 +97,84 @@ let request =
     };
   });
 
+let response = (name: string, workspace_support: bool) =>
+  `Assoc([
+    ("serverInfo", `Assoc([("name", `String(name))])),
+    (
+      "capabilities",
+      `Assoc([
+        (
+          "workspace",
+          `Assoc([
+            /* support workspace folders */
+            (
+              "workspaceFolders",
+              `Assoc([("support", `Bool(workspace_support))]),
+            ),
+          ]),
+        ),
+        /* enable hover support */
+        ("hoverProvider", `Bool(true)),
+        /* enable code completion support */
+        (
+          "completionProvider",
+          `Assoc([
+            ("resolveProvider", `Bool(true)),
+            ("triggerCharacters", `List([`String(".")])),
+          ]),
+        ),
+        /* enable go-to definition support */
+        ("definitionProvider", `Bool(true)),
+        /* enable document-scoped symbol support */
+        ("documentSymbolProvider", `Bool(true)),
+        /* enable workspace-scoped symbol support */
+        ("workspaceSymbolProvider", `Bool(true)),
+        /* enable formatting support */
+        ("documentFormattingProvider", `Bool(true)),
+        (
+          "textDocumentSync",
+          `Assoc([
+            /* send notifications when files opened or closed */
+            ("openClose", `Bool(true)),
+            /* TODO: add incremental supports */
+            /* send full documents when syncing */
+            ("change", `Int(1)),
+          ]),
+        ),
+      ]),
+    ),
+  ])
+  |> Response.wrap;
+
 let handler =
     (
       {find_config, compilers}: Runtime.t,
-      {params: {workspace_folders: folders}}: request_t(params_t),
-    ) =>
+      {params: {workspace_folders: folders}} as req: request_t(params_t),
+    ) => {
+  response(
+    "knot",
+    req.params.capabilities
+    |?< (x => x.workspace)
+    |?< (x => x.workspace_folders)
+    |?: false,
+  )
+  |> Protocol.reply(req);
+
   /* TODO: handle the case where workspace folders are nested? */
   folders
   |?: []
   |> List.iter(({name, uri}) => {
-       let path = uri_to_path(uri);
-       Log.info("creating compiler for '%s' project (%s)", name, path);
+       Log.info("creating compiler for '%s' project (%s)", name, uri);
 
-       let config = find_config(path);
+       let config = find_config(uri);
        let root_dir =
-         (
-           Filename.is_relative(config.root_dir)
-             ? Filename.concat(path, config.root_dir) : config.root_dir
-         )
-         |> Filename.resolve;
+         Filename.(
+           (
+             is_relative(config.root_dir)
+               ? concat(uri, config.root_dir) : config.root_dir
+           )
+           |> resolve
+         );
 
        let compiler =
          Compiler.create(
@@ -129,3 +188,4 @@ let handler =
          {uri, compiler, contexts: Hashtbl.create(10)},
        );
      });
+};

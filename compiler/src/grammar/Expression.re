@@ -136,6 +136,6 @@ and expr_8 = (ctx: Context.t, input) =>
 
 /* 2, foo, <bar /> */
 and term = (ctx: Context.t, input) =>
-  choice([primitive, identifier(ctx), jsx(ctx, expr_0)], input);
+  choice([primitive, identifier(ctx), jsx(ctx, (expr_4, expr_0))], input);
 
 let parser = expr_0;

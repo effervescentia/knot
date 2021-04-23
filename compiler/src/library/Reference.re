@@ -12,6 +12,12 @@ module Namespace = {
     fun
     | Internal(path) => Constants.root_dir ++ path
     | External(path) => path;
+
+  let to_path = (source_dir: string) =>
+    fun
+    | Internal(path) =>
+      Filename.concat(source_dir, path ++ Constants.file_extension)
+    | External(path) => path;
 };
 
 module Identifier = {

@@ -32,10 +32,6 @@ type progress_token =
   | Int(int)
   | String(string);
 
-let __file_schema = "file://";
-
-let uri_to_path = String.drop_prefix(__file_schema);
-
 let get_position =
   member("position")
   % (
@@ -49,12 +45,14 @@ let get_position =
     | x => raise(Type_error("position", x))
   );
 
+let get_uri = member("uri") % to_string % String.drop_prefix(file_schema);
+
 let get_text_document =
   member("textDocument")
   % (
     fun
     | `Assoc(_) as x => {
-        let uri = x |> member("uri") |> to_string |> uri_to_path;
+        let uri = x |> get_uri;
 
         {uri: uri};
       }

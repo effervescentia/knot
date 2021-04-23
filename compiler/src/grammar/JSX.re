@@ -14,10 +14,14 @@ module Fragment = {
   let close = M.glyph(C.Glyph.close_fragment);
 };
 
-let _attribute = (~prefix=M.alpha <|> Character.underscore, ctx: Context.t, x) =>
+let _attribute =
+    (~prefix=M.alpha <|> Character.underscore, ctx: Context.t, (term, expr)) =>
   Operator.assign(
     M.identifier(~prefix) >|= Tuple.split2(Block.value, Block.cursor),
-    x(ctx),
+    expr(ctx)
+    |> M.between(Symbol.open_group, Symbol.close_group)
+    >|= Block.value
+    <|> term(ctx),
   )
   >|= (
     ((name, value)) => (
@@ -56,20 +60,18 @@ and tag = (ctx: Context.t, x) =>
       attributes(ctx, x)
       >>= (
         attrs =>
-          _self_closing
-          <|> (
-            Tag.close
-            >> children(ctx, x)
-            >>= (
-              cs =>
-                id
-                |> Block.value
-                |> M.keyword
-                |> M.between(Tag.open_end, Tag.close)
-                >|= Block.cursor
-                >|= (end_cursor => (cs, end_cursor))
-            )
+          Tag.close
+          >> children(ctx, x)
+          >>= (
+            cs =>
+              id
+              |> Block.value
+              |> M.keyword
+              |> M.between(Tag.open_end, Tag.close)
+              >|= Block.cursor
+              >|= (end_cursor => (cs, end_cursor))
           )
+          <|> _self_closing
           >|= (
             ((cs, end_cursor)) => (
               (
@@ -136,7 +138,7 @@ and text =
 and node = (ctx: Context.t, x) =>
   parser(ctx, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
 
-and inline_expr = (ctx: Context.t, x) =>
-  x(ctx)
+and inline_expr = (ctx: Context.t, (_, expr)) =>
+  expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
   >|= Tuple.split2(Block.value % of_inline_expr, Block.cursor);

@@ -309,15 +309,16 @@ let print_module_table = (~debug=false, table: ModuleTable.t): string =>
        key
        |> Hashtbl.find(table)
        |> (
-         ({ast, types}) =>
+         ({ast, raw, types}) =>
            ast
            |> print_ast
            |> Print.fmt(
-                "/* %s */\n\nexports: %s\n\n%s",
+                "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
                 Reference.Namespace.to_string(key),
                 types
                 |> Hashtbl.to_string(Export.to_string, Type.to_string)
                 |> Pretty.to_string,
+                raw,
               )
        )
      );
