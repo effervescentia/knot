@@ -64,10 +64,48 @@ let rec of_expr =
     )
   | AST.UnaryOp(_, (expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
   | AST.Closure(stmts) => stmts |> List.map(of_stmt) |> of_list
+
 and of_jsx =
   fun
-  /* TODO: support jsx structures (just need to map to a tree) */
-  | _ => __skip
+  | AST.Fragment(children) =>
+    children
+    |> List.map(((child, cursor)) => of_jsx_child(child) |> _wrap(cursor))
+    |> of_list
+
+  | AST.Tag(id, attrs, children) =>
+    [id |> Tuple.reduce2(of_id)]
+    @ (
+      attrs
+      |> List.map(((attr, cursor)) => attr |> of_jsx_attr |> _wrap(cursor))
+    )
+    @ (
+      children
+      |> List.map(((child, cursor)) =>
+           child |> of_jsx_child |> _wrap(cursor)
+         )
+    )
+    |> of_list
+
+and of_jsx_child =
+  fun
+  | AST.Node((tag, cursor)) => tag |> of_jsx |> _wrap(cursor)
+  | AST.InlineExpression((expr, _, cursor)) =>
+    expr |> of_expr |> _wrap(cursor)
+  | AST.Text((text, cursor)) =>
+    BinaryTree.create((
+      cursor |> Cursor.expand,
+      Primitive(AST.String(text)),
+    ))
+
+and of_jsx_attr =
+  fun
+  | AST.ID(id) => id |> Tuple.reduce2(of_id)
+  | AST.Class(id, None)
+  | AST.Property(id, None) => id |> Tuple.reduce2(of_id)
+  | AST.Class(id, Some((expr, _, cursor)))
+  | AST.Property(id, Some((expr, _, cursor))) =>
+    _join(id |> Tuple.reduce2(of_id), expr |> of_expr |> _wrap(cursor))
+
 and of_stmt =
   fun
   | AST.Variable(name, (expr, _, expr_cursor)) =>

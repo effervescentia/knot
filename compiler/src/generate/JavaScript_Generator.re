@@ -128,7 +128,7 @@ and jsx =
 and jsx_child =
   fun
   | Node((value, _)) => value |> jsx
-  | Text(value) => JavaScript_AST.String(value)
+  | Text((value, _)) => JavaScript_AST.String(value)
   | InlineExpression((value, _, _)) => value |> expression
 
 and jsx_attrs = (attrs: list(jsx_attribute_t)) =>

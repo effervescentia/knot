@@ -127,7 +127,7 @@ let suite =
             (
               "Foo" |> of_public |> as_lexeme,
               [],
-              ["bar" |> of_text |> as_lexeme],
+              ["bar" |> as_lexeme |> of_text |> as_lexeme],
             )
             |> of_tag
             |> as_lexeme
@@ -167,7 +167,7 @@ let suite =
             (
               "Foo" |> of_public |> as_lexeme,
               [],
-              ["bar" |> of_text |> as_lexeme],
+              ["bar" |> as_lexeme |> of_text |> as_lexeme],
             )
             |> of_tag,
           ),
@@ -201,7 +201,7 @@ let suite =
                 (
                   "Bar" |> of_public |> as_lexeme,
                   [],
-                  ["fizzbuzz" |> of_text |> as_lexeme],
+                  ["fizzbuzz" |> as_lexeme |> of_text |> as_lexeme],
                 )
                 |> of_tag
                 |> as_lexeme
@@ -227,7 +227,7 @@ let suite =
                 |> of_node
                 |> as_lexeme,
                 nil_prim |> of_inline_expr |> as_lexeme,
-                "Hello, World!" |> of_text |> as_lexeme,
+                "Hello, World!" |> as_lexeme |> of_text |> as_lexeme,
               ],
             )
             |> of_tag,

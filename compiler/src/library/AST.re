@@ -50,7 +50,7 @@ and raw_jsx_t =
   | Fragment(list(jsx_child_t))
 and jsx_child_t = lexeme_t(raw_jsx_child_t)
 and raw_jsx_child_t =
-  | Text(string)
+  | Text(lexeme_t(string))
   | Node(jsx_t)
   | InlineExpression(expression_t)
 and jsx_attribute_t = lexeme_t(raw_jsx_attribute_t)

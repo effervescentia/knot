@@ -107,7 +107,7 @@ let rec fmt_jsx =
 and fmt_jsx_child =
   fun
   | Node((jsx, _)) => jsx |> fmt_jsx
-  | Text(s) => s |> Pretty.string
+  | Text((s, _)) => s |> Pretty.string
   | InlineExpression((expr, _, _)) =>
     ["{" |> Pretty.string, expr |> fmt_expression, "}" |> Pretty.string]
     |> Pretty.concat

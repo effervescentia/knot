@@ -391,7 +391,7 @@ let suite =
                 (
                   "Bar" |> of_public |> as_lexeme,
                   [],
-                  ["fizz" |> of_text |> as_lexeme],
+                  ["fizz" |> as_lexeme |> of_text |> as_lexeme],
                 )
                 |> of_tag
                 |> as_lexeme
@@ -403,7 +403,7 @@ let suite =
             |> as_lexeme
             |> of_node,
           ),
-          (String("Hello World!"), "Hello World!" |> of_text),
+          (String("Hello World!"), "Hello World!" |> as_lexeme |> of_text),
           (Number("123"), 123 |> int_prim |> of_inline_expr),
         ]
         |> List.map(Tuple.map_snd2(Generator.jsx_child))

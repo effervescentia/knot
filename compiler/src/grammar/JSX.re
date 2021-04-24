@@ -133,7 +133,10 @@ and text =
     |> many
   )
   >|= Input.join
-  >|= Tuple.split2(Block.value % String.trim % of_text, Block.cursor)
+  >|= Tuple.split2(
+        Tuple.split2(Block.value % String.trim, Block.cursor) % of_text,
+        Block.cursor,
+      )
 
 and node = (ctx: Context.t, x) =>
   parser(ctx, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))

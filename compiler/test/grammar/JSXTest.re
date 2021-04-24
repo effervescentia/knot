@@ -346,7 +346,7 @@ let suite =
             (
               "Foo" |> of_public |> as_lexeme,
               [],
-              [of_text("bar \"or\" 123") |> as_lexeme],
+              ["bar \"or\" 123" |> as_lexeme |> of_text |> as_lexeme],
             )
             |> of_tag
             |> as_lexeme,
@@ -386,7 +386,7 @@ let suite =
                 "Foo" |> of_public |> as_lexeme,
                 [],
                 [
-                  "bar" |> of_text |> as_lexeme,
+                  "bar" |> as_lexeme |> of_text |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
                   |> of_add_op
                   |> as_int
@@ -396,7 +396,7 @@ let suite =
                   |> jsx_node
                   |> as_lexeme,
                   "fizz" |> string_prim |> of_inline_expr |> as_lexeme,
-                  "buzz" |> of_text |> as_lexeme,
+                  "buzz" |> as_lexeme |> of_text |> as_lexeme,
                 ],
               )
               |> of_tag

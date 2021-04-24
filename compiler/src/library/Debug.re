@@ -179,7 +179,12 @@ and print_jsx =
 and print_jsx_child =
   fun
   | Node((jsx, cursor)) => print_lexeme("Node", jsx |> print_jsx, cursor)
-  | Text(s) => s |> Pretty.string
+  | Text((text, cursor)) =>
+    print_lexeme(
+      "Text",
+      text |> Print.fmt("\"%s\"") |> Pretty.string,
+      cursor,
+    )
   | InlineExpression((expr, type_, cursor)) =>
     print_typed_lexeme("InlineExpression", expr |> print_expr, type_, cursor)
 
