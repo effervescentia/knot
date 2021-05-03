@@ -8,6 +8,11 @@ type params_t = {
   partial_result_token: option(progress_token),
 };
 
+type completion_item = {
+  label: string,
+  kind: Capabilities.symbol_t,
+};
+
 let request =
   request(json => {
     let text_document = json |> get_text_document;
@@ -16,8 +21,16 @@ let request =
     {text_document, position, partial_result_token: None};
   });
 
-let response = (items: list(string)) =>
-  `List(items |> List.map(label => `Assoc([("label", `String(label))])))
+let response = (items: list(completion_item)) =>
+  `List(
+    items
+    |> List.map(({label, kind}) =>
+         `Assoc([
+           ("label", `String(label)),
+           ("kind", `Int(kind |> Response.symbol)),
+         ])
+       ),
+  )
   |> Response.wrap;
 
 let handler =
@@ -32,9 +45,11 @@ let handler =
   | Some((namespace, {compiler})) =>
     Hashtbl.find_opt(compiler.modules, namespace)
     |?< (({scopes}) => ScopeTree.find_scope(point, scopes))
-    |?> Hashtbl.to_seq_keys
+    |?> Hashtbl.to_seq
     % List.of_seq
-    % List.map(Export.to_string)
+    % List.map(((key, value)) =>
+        {label: key |> Export.to_string, kind: Capabilities.Variable}
+      )
     |?: []
     |> response
     |> Protocol.reply(req)

@@ -88,6 +88,12 @@ let reply = (req: Deserialize.request_t('a), create_res) => {
   send(res);
 };
 
+let notify = (notification: Yojson.Basic.t) => {
+  Log.debug("notification: %s", Yojson.Basic.pretty_to_string(notification));
+
+  send(notification);
+};
+
 let report = errs =>
   send(
     Response.show_message(

@@ -21,7 +21,7 @@ export function activate(_context: ExtensionContext) {
     },
     debug: {
       command: LSP_BINARY,
-      args: debugArgs
+      args
     }
   };
 

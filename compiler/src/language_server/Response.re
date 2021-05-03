@@ -66,11 +66,11 @@ let wrap = (result: Yojson.Basic.t, id: int) =>
     ("result", result),
   ]);
 
-let _wrap_notification = (method_: string, result: Yojson.Basic.t) =>
+let wrap_notification = (method_: string, params: Yojson.Basic.t) =>
   `Assoc([
     ("jsonrpc", `String("2.0")),
     ("method", `String(method_)),
-    ("result", result),
+    ("params", params),
   ]);
 
 type error_code_t =
@@ -135,4 +135,4 @@ let show_message = (message: string, type_: message_t) =>
       ),
     ),
   ])
-  |> _wrap_notification("window/showMessage");
+  |> wrap_notification("window/showMessage");

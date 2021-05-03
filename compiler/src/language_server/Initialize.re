@@ -178,7 +178,11 @@ let handler =
 
        let compiler =
          Compiler.create(
-           ~report=_ => Protocol.report,
+           ~report=
+             _ =>
+               Diagnostics.report(
+                 Filename.concat(root_dir, config.source_dir),
+               ),
            {root_dir, source_dir: config.source_dir, name, fail_fast: false},
          );
 
