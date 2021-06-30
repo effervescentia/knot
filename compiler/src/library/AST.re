@@ -74,7 +74,7 @@ and statement_t =
 type argument_t = {
   name: identifier_t,
   default: option(expression_t),
-  /* explicit_type: option(lexeme_t(Type.t)), */
+  /* type_: option(lexeme_t(Type.t)), */
 };
 
 type declaration_t =
