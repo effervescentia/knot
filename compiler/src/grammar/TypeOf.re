@@ -9,4 +9,5 @@ let statement =
 
 let declaration =
   fun
-  | Constant((_, t, _)) => t;
+  | Constant((_, t, _)) => t
+  | Function(args, (_, t, _)) => K_Strong(K_Function([], t));

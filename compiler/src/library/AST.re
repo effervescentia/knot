@@ -71,8 +71,15 @@ and statement_t =
   | Variable(identifier_t, expression_t)
   | Expression(expression_t);
 
+type argument_t = {
+  name: identifier_t,
+  default: option(expression_t),
+  /* explicit_type: option(lexeme_t(Type.t)), */
+};
+
 type declaration_t =
-  | Constant(expression_t);
+  | Constant(expression_t)
+  | Function(list((argument_t, Type.t)), expression_t);
 
 type import_t =
   | MainImport(identifier_t)
@@ -105,6 +112,7 @@ let of_named_export = x => NamedExport(x);
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
 let of_const = x => Constant(x);
+let of_func = ((args, expr)) => Function(args, expr);
 let of_var = ((name, x)) => Variable(name, x);
 let of_expr = x => Expression(x);
 let of_id = x => Identifier(x);

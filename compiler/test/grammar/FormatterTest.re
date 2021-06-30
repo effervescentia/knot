@@ -380,7 +380,7 @@ let suite =
         |> List.map(Tuple.map_snd2(fmt_statement % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
-    "fmt_decl() - constant"
+    "fmt_declaration() - constant"
     >: (
       () =>
         [
@@ -392,7 +392,71 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_decl % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(fmt_declaration % Pretty.to_string))
+        |> Assert.(test_many(string))
+    ),
+    "fmt_declaration() - function"
+    >: (
+      () =>
+        [
+          (
+            "func foo(bar, fizz = 3) -> bar + fizz;\n",
+            (
+              "foo" |> of_public |> as_lexeme,
+              (
+                [
+                  (
+                    {name: "bar" |> of_public |> as_lexeme, default: None},
+                    Type.K_Strong(K_Integer),
+                  ),
+                  (
+                    {
+                      name: "fizz" |> of_public |> as_lexeme,
+                      default: Some(3 |> int_prim),
+                    },
+                    Type.K_Strong(K_Integer),
+                  ),
+                ],
+                (
+                  "bar" |> of_public |> as_lexeme |> of_id |> as_int,
+                  "fizz" |> of_public |> as_lexeme |> of_id |> as_int,
+                )
+                |> of_add_op
+                |> as_int,
+              )
+              |> of_func,
+            ),
+          ),
+          (
+            "func buzz -> {
+  let zip = 3;
+  let zap = 4;
+  zip * zap;
+}
+",
+            (
+              "buzz" |> of_public |> as_lexeme,
+              (
+                [],
+                [
+                  ("zip" |> of_public |> as_lexeme, 3 |> int_prim) |> of_var,
+                  ("zap" |> of_public |> as_lexeme, 4 |> int_prim) |> of_var,
+                  (
+                    "zip" |> of_public |> as_lexeme |> of_id |> as_int,
+                    "zap" |> of_public |> as_lexeme |> of_id |> as_int,
+                  )
+                  |> of_mult_op
+                  |> as_int
+                  |> of_expr,
+                ]
+                |> of_closure
+                |> as_int,
+              )
+              |> of_func,
+            ),
+          ),
+        ]
+        |> List.map(Tuple.map_snd2(fmt_declaration % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
     "fmt_declarations()"

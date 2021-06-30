@@ -491,6 +491,104 @@ let suite =
         ]
         |> Assert.(test_many(_assert_statement))
     ),
+    "function()"
+    >: (
+      () =>
+        [
+          (
+            Expression(
+              Function(
+                Some("foo"),
+                ["bar"],
+                [Return(Some(Number("123")))],
+              ),
+            ),
+            Generator.function_(
+              "foo" |> of_public |> as_lexeme,
+              [
+                (
+                  {name: "bar" |> of_public |> as_lexeme, default: None},
+                  Type.K_Strong(K_Nil),
+                ),
+              ],
+              123 |> int_prim,
+            ),
+          ),
+          (
+            Expression(
+              Function(
+                Some("foo"),
+                ["bar"],
+                [
+                  Assignment(Identifier("bar"), Number("123")),
+                  Return(
+                    Some(
+                      Group(BinaryOp("+", Identifier("bar"), Number("5"))),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Generator.function_(
+              "foo" |> of_public |> as_lexeme,
+              [
+                (
+                  {
+                    name: "bar" |> of_public |> as_lexeme,
+                    default: Some(123 |> int_prim),
+                  },
+                  Type.K_Strong(K_Nil),
+                ),
+              ],
+              (
+                "bar" |> of_public |> as_lexeme |> of_id |> as_int,
+                5 |> int_prim,
+              )
+              |> of_add_op
+              |> as_int,
+            ),
+          ),
+          (
+            Expression(
+              Function(
+                Some("foo"),
+                [],
+                [
+                  Variable("buzz", Number("2")),
+                  Return(
+                    Some(
+                      Group(
+                        BinaryOp(
+                          "/",
+                          Identifier("buzz"),
+                          Identifier("buzz"),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Generator.function_(
+              "foo" |> of_public |> as_lexeme,
+              [],
+              [
+                ("buzz" |> of_public |> as_lexeme, 2 |> int_prim) |> of_var,
+                (
+                  "buzz" |> of_public |> as_lexeme |> of_id |> as_int,
+                  "buzz" |> of_public |> as_lexeme |> of_id |> as_int,
+                )
+                |> of_div_op
+                |> as_float
+                |> of_expr,
+              ]
+              |> of_closure
+              |> as_float,
+            ),
+          ),
+        ]
+        |> Assert.(test_many(_assert_statement))
+    ),
     "declaration()"
     >: (
       () =>

@@ -108,7 +108,7 @@ let suite =
           ),
           ("function () {\n}", Function(None, [], [])),
           (
-            "function foo (bar, fizz) {
+            "function foo(bar, fizz) {
   var x = 123;
   x + 20;
   return null;

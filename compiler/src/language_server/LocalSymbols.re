@@ -52,19 +52,35 @@ let handler =
           |> List.filter_map(
                AST.(
                  fun
-                 | Declaration(
-                     MainExport(name) | NamedExport(name),
-                     Constant(expr),
-                   ) =>
-                   Some({
-                     name: name |> Block.value |> Identifier.to_string,
-                     detail: expr |> Tuple.snd3 |> Type.to_string,
-                     range: name |> Block.cursor |> Cursor.expand,
-                     full_range:
-                       Cursor.join(name |> Block.cursor, expr |> Tuple.thd3)
-                       |> Cursor.expand,
-                     kind: Capabilities.Variable,
-                   })
+                 | Declaration(MainExport(name) | NamedExport(name), decl) => {
+                     let name_cursor = name |> Block.cursor;
+                     let range = name_cursor |> Cursor.expand;
+                     let name = name |> Block.value |> Identifier.to_string;
+                     let type_ = decl |> Grammar.TypeOf.declaration;
+
+                     Some(
+                       switch (decl) {
+                       | Constant(expr) => {
+                           name,
+                           detail: type_ |> Type.to_string,
+                           range,
+                           full_range:
+                             Cursor.join(name_cursor, expr |> Tuple.thd3)
+                             |> Cursor.expand,
+                           kind: Capabilities.Variable,
+                         }
+                       | Function(args, expr) => {
+                           name,
+                           detail: type_ |> Type.to_string,
+                           range,
+                           full_range:
+                             Cursor.join(name_cursor, expr |> Tuple.thd3)
+                             |> Cursor.expand,
+                           kind: Capabilities.Function,
+                         }
+                       },
+                     );
+                   }
                  | Import(_) => None
                ),
              )

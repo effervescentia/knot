@@ -56,6 +56,8 @@ module Glyph = {
 
   let self_close_tag = "/>";
   let open_end_tag = "</";
+
+  let lambda = "->";
 };
 
 module Keyword = {
@@ -63,6 +65,7 @@ module Keyword = {
   let from = "from";
   let main = "main";
   let const = "const";
+  let func = "func";
   let let_ = "let";
   let nil = "nil";
   let true_ = "true";

@@ -61,12 +61,12 @@ let rec fmt_expression = (module_type: Target.module_t) =>
     |> Pretty.concat
   | Function(name, args, stmts) =>
     [
-      "function" |> Pretty.string,
+      "function " |> Pretty.string,
       switch (name) {
-      | Some(name) => name |> Print.fmt(" %s") |> Pretty.string
+      | Some(name) => name |> Pretty.string
       | None => Pretty.Nil
       },
-      " (" |> Pretty.string,
+      "(" |> Pretty.string,
       args
       |> List.map(Pretty.string)
       |> List.intersperse(", " |> Pretty.string)

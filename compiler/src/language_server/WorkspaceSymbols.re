@@ -56,19 +56,35 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                      fun
                      | Declaration(
                          MainExport(name) | NamedExport(name),
-                         Constant(expr),
-                       ) =>
-                       Some({
-                         uri:
+                         decl,
+                       ) => {
+                         let uri =
                            Filename.concat(
                              uri,
                              namespace
                              |> Namespace.to_path(compiler.config.source_dir),
-                           ),
-                         name: name |> Block.value |> Identifier.to_string,
-                         range: name |> Block.cursor |> Cursor.expand,
-                         kind: Capabilities.Variable,
-                       })
+                           );
+                         let range = name |> Block.cursor |> Cursor.expand;
+                         let name =
+                           name |> Block.value |> Identifier.to_string;
+
+                         Some(
+                           switch (decl) {
+                           | Constant(expr) => {
+                               uri,
+                               name,
+                               range,
+                               kind: Capabilities.Variable,
+                             }
+                           | Function(args, expr) => {
+                               uri,
+                               name,
+                               range,
+                               kind: Capabilities.Function,
+                             }
+                           },
+                         );
+                       }
                      | Import(_) => None
                    ),
                  )

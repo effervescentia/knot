@@ -4,13 +4,20 @@
 open Infix;
 open Reference;
 
-type strong_t =
+type t =
+  | K_Strong(strong_t)
+  | K_Weak(int)
+  /* used to indicate types which have failed to resolve due to a compile-time error */
+  | K_Invalid(type_err)
+
+and strong_t =
   | K_Nil
   | K_Boolean
   | K_Integer
   | K_Float
   | K_String
   | K_Element
+  | K_Function(list((string, t)), t)
   | K_Anonymous(int, trait_t)
 
 /**
@@ -27,13 +34,8 @@ and trait_t =
   /* used to describe structural interfaces */
   | K_Structural(list((string, trait_t)))
   /* used to describe exact types, should only be used while parsing and be hardened to the wrapped type */
-  | K_Exactly(strong_t);
+  | K_Exactly(strong_t)
 
-type t =
-  | K_Strong(strong_t)
-  | K_Weak(int)
-  /* used to indicate types which have failed to resolve due to a compile-time error */
-  | K_Invalid(type_err)
 and type_err =
   | TraitConflict(trait_t, trait_t)
   | NotAssignable(t, trait_t)
@@ -80,7 +82,22 @@ let generalize = (lhs: trait_t, rhs: trait_t): option(trait_t) =>
   | _ => None
   };
 
-let rec _strong_to_string =
+let rec _type_to_string =
+  fun
+  | K_Invalid(err) =>
+    ["Invalid<" |> Pretty.string, err |> _err_to_string, ">" |> Pretty.string]
+    |> Pretty.concat
+
+  | K_Weak(id) =>
+    [
+      "Weak<" |> Pretty.string,
+      id |> string_of_int |> Pretty.string,
+      ">" |> Pretty.string,
+    ]
+    |> Pretty.concat
+  | K_Strong(t) => t |> _strong_to_string
+
+and _strong_to_string =
   fun
   | K_Nil => "nil" |> Pretty.string
   | K_Boolean => "bool" |> Pretty.string
@@ -88,6 +105,24 @@ let rec _strong_to_string =
   | K_Float => "float" |> Pretty.string
   | K_String => "string" |> Pretty.string
   | K_Element => "element" |> Pretty.string
+  | K_Function(args, result) =>
+    [
+      "(" |> Pretty.string,
+      args
+      |> List.map(((name, type_)) =>
+           [
+             name |> Pretty.string,
+             ": " |> Pretty.string,
+             type_ |> _type_to_string,
+           ]
+           |> Pretty.concat
+         )
+      |> List.intersperse(", " |> Pretty.string)
+      |> Pretty.concat,
+      ") -> " |> Pretty.string,
+      result |> _type_to_string,
+    ]
+    |> Pretty.concat
   | K_Anonymous(id, trait) =>
     [
       "Anonymous<" |> Pretty.string,
@@ -96,6 +131,7 @@ let rec _strong_to_string =
       ">" |> Pretty.string,
     ]
     |> Pretty.concat
+
 and _trait_to_string =
   fun
   | K_Numeric => "Numeric" |> Pretty.string
@@ -120,22 +156,7 @@ and _trait_to_string =
     |> Pretty.concat
   | K_Structural(_) => "Structural" |> Pretty.string
   | K_Exactly(t) => t |> _strong_to_string
-  | K_Unknown => "unknown" |> Pretty.string;
-
-let rec _type_to_string =
-  fun
-  | K_Invalid(err) =>
-    ["Invalid<" |> Pretty.string, err |> _err_to_string, ">" |> Pretty.string]
-    |> Pretty.concat
-
-  | K_Weak(id) =>
-    [
-      "Weak<" |> Pretty.string,
-      id |> string_of_int |> Pretty.string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | K_Strong(t) => t |> _strong_to_string
+  | K_Unknown => "unknown" |> Pretty.string
 
 and _err_to_string =
   fun

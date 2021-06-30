@@ -219,10 +219,55 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
 let constant = ((name, _): identifier_t, (value, _, _): expression_t) =>
   JavaScript_AST.Variable(name |> Identifier.to_string, value |> expression);
 
+let function_ =
+    (
+      (name, _): identifier_t,
+      args: list((argument_t, Type.t)),
+      (expr, _, _): expression_t,
+    ) =>
+  JavaScript_AST.(
+    Expression(
+      Function(
+        Some(name |> Identifier.to_string),
+        args
+        |> List.map((({name}, _)) => name |> fst |> Identifier.to_string),
+        (
+          args
+          |> List.filter_map(
+               fun
+               | ({name, default: Some((default, _, _))}, _) =>
+                 Some(
+                   Assignment(
+                     Identifier(name |> fst |> Identifier.to_string),
+                     default |> expression,
+                   ),
+                 )
+               | _ => None,
+             )
+        )
+        @ (
+          switch (expr) {
+          | Closure(stmts) =>
+            let rec loop = (
+              fun
+              | [] => []
+              | [x] => statement(~is_last=true, x)
+              | [x, ...xs] => statement(x) @ loop(xs)
+            );
+
+            stmts |> loop;
+          | _ => [Return(Some(expr |> expression))]
+          }
+        ),
+      ),
+    )
+  );
+
 let declaration = (name: identifier_t, decl: declaration_t) =>
   (
     switch (decl) {
     | Constant(value) => [constant(name, value)]
+    | Function(args, expr) => [function_(name, args, expr)]
     }
   )
   @ (

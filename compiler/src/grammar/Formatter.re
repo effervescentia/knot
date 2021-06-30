@@ -201,7 +201,7 @@ and fmt_statement = stmt =>
   @ [__semicolon]
   |> Pretty.concat;
 
-let fmt_decl = (((name, _), decl)) =>
+let fmt_declaration = (((name, _), decl)) =>
   (
     switch (decl) {
     | Constant((expr, _, _)) => [
@@ -210,6 +210,38 @@ let fmt_decl = (((name, _), decl)) =>
         " = " |> Pretty.string,
         expr |> fmt_expression,
         __semicolon,
+      ]
+    | Function(args, (expr, _, _)) => [
+        "func " |> Pretty.string,
+        name |> fmt_id,
+        List.is_empty(args)
+          ? Pretty.Nil
+          : [
+              "(" |> Pretty.string,
+              args
+              |> List.map((({name, default}, type_)) =>
+                   [
+                     name |> fst |> fmt_id,
+                     switch (default) {
+                     | Some((expr, _, _)) =>
+                       [" = " |> Pretty.string, expr |> fmt_expression]
+                       |> Pretty.concat
+                     | None => Pretty.Nil
+                     },
+                   ]
+                   |> Pretty.concat
+                 )
+              |> List.intersperse(", " |> Pretty.string)
+              |> Pretty.concat,
+              ")" |> Pretty.string,
+            ]
+            |> Pretty.concat,
+        " -> " |> Pretty.string,
+        expr |> fmt_expression,
+        switch (expr) {
+        | Closure(_) => Pretty.Nil
+        | _ => __semicolon
+        },
       ]
     }
   )
@@ -332,19 +364,21 @@ let fmt_declarations = stmts => {
     fun
     | [] => acc |> List.rev
     /* do not add newline after the last statement */
-    | [x] => loop(~acc=[x |> fmt_decl, ...acc], [])
+    | [x] => loop(~acc=[x |> fmt_declaration, ...acc], [])
     /* handle constant clustering logic */
     | [(_, Constant(_)) as x, ...xs] =>
       switch (xs) {
       /* no more statements, loop to return */
       | []
       /* followed by a constant, do not add newline */
-      | [(_, Constant(_)), ..._] => loop(~acc=[x |> fmt_decl, ...acc], xs)
+      | [(_, Constant(_)), ..._] =>
+        loop(~acc=[x |> fmt_declaration, ...acc], xs)
       /* followed by other declarations, add a newline */
-      | _ => loop(~acc=[x |> fmt_decl, Pretty.Newline, ...acc], xs)
+      | _ => loop(~acc=[x |> fmt_declaration, Pretty.Newline, ...acc], xs)
       }
     /* not a constant, add a newline */
-    | [x, ...xs] => loop(~acc=[x |> fmt_decl, Pretty.Newline, ...acc], xs);
+    | [x, ...xs] =>
+      loop(~acc=[x |> fmt_declaration, Pretty.Newline, ...acc], xs);
 
   loop(declarations);
 };

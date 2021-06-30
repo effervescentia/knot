@@ -10,3 +10,5 @@ let greater_or_eql = M.glyph(G.greater_or_eql);
 
 let equality = M.glyph(G.equality);
 let inequality = M.glyph(G.inequality);
+
+let lambda = M.glyph(G.lambda);

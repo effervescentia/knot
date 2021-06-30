@@ -84,9 +84,7 @@ let print_lexeme = (~attrs=[], name, value, cursor) =>
 
 let print_typed_lexeme = (name, value, type_, cursor) =>
   print_lexeme(
-    ~attrs=[
-      ("type", [type_ |> Type.to_string |> Pretty.string] |> Pretty.concat),
-    ],
+    ~attrs=[("type", type_ |> Type.to_string |> Pretty.string)],
     name,
     value,
     cursor,
@@ -255,6 +253,49 @@ let print_decl = ((name, decl)) =>
         print_typed_lexeme("Value", expr |> print_expr, type_, cursor),
       ],
       "Constant",
+    )
+  | Function(args, expr) =>
+    _print_entity(
+      ~children=[
+        _print_entity(
+          ~children=
+            args
+            |> List.map((({name, default}, type_)) =>
+                 [
+                   print_lexeme("Name", name |> fst |> print_id, name |> snd),
+                   _print_entity(
+                     ~children=[name |> fst |> print_id],
+                     "Type",
+                   ),
+                   ...switch (default) {
+                      | Some((default, type_, cursor)) => [
+                          print_typed_lexeme(
+                            "Default",
+                            default |> print_expr,
+                            type_,
+                            cursor,
+                          ),
+                        ]
+                      | None => []
+                      },
+                 ]
+               )
+            |> List.flatten,
+          "Attributes",
+        ),
+        _print_entity(
+          ~children=[
+            print_typed_lexeme(
+              "Value",
+              expr |> Tuple.fst3 |> print_expr,
+              expr |> Tuple.snd3,
+              expr |> Tuple.thd3,
+            ),
+          ],
+          "Body",
+        ),
+      ],
+      "Function",
     )
   };
 

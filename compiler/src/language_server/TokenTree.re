@@ -117,7 +117,18 @@ and of_stmt =
 
 let of_decl =
   fun
-  | AST.Constant((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor);
+  | AST.Constant((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
+  | AST.Function(args, (expr, _, cursor)) =>
+    _join(
+      args
+      |> _fold(((AST.{name, default}, _)) =>
+           {
+             ...name |> Tuple.reduce2(of_id),
+             right: default |?> Tuple.fst3 % of_expr,
+           }
+         ),
+      of_expr(expr) |> _wrap(cursor),
+    );
 
 let of_import =
   fun
