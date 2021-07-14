@@ -31,7 +31,7 @@ defaults:
       - macos_compiler_cache-v1
 
 orbs:
-  node: circleci/node@0.0.6
+  node: circleci/node@4.2.0
 
 executors:
   node-cypress:
@@ -228,7 +228,9 @@ commands:
 
 jobs:
   install_node:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -263,7 +265,9 @@ jobs:
             - packages/examples/webpack-vue/node_modules
 
   test_compiler_binary:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -272,6 +276,12 @@ jobs:
       - restore_linux_node_cache
       - setup_yarn
       - setup_esy
+      - run:
+          name: Install fswatch
+          command: |
+            sudo apt update
+            sudo apt install fswatch
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/x86_64-linux-gnu/libfswatch.so
       - compiler_install
       - run:
           name: Build
@@ -299,7 +309,9 @@ jobs:
           to: knot
 
   test_compiler:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -309,7 +321,9 @@ jobs:
           path: packages/binaries/compiler
 
   test_cli:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -319,7 +333,9 @@ jobs:
           path: packages/utilities/cli
 
   test_common:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -329,7 +345,9 @@ jobs:
           path: packages/plugins/common
 
   test_plugin_utils:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -339,7 +357,9 @@ jobs:
           path: packages/plugins/compiler/utils
 
   test_browser_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -349,7 +369,9 @@ jobs:
           path: packages/plugins/compiler/browser
 
   test_react_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -367,7 +389,9 @@ jobs:
           path: packages/plugins/compiler/react
 
   test_vue_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -385,7 +409,9 @@ jobs:
           path: packages/plugins/compiler/vue
 
   test_jss_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -395,7 +421,9 @@ jobs:
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -404,7 +432,9 @@ jobs:
           bundler: webpack
 
   test_browserify_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -413,7 +443,9 @@ jobs:
           bundler: browserify
 
   test_rollup_plugin:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -547,7 +579,9 @@ jobs:
             - ~/.cache
 
   compile_linux:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -566,7 +600,9 @@ jobs:
           to: compiler_linux
 
   release:
-    executor: node/node
+    executor:
+      name: node/default
+      tag: 15.9.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:

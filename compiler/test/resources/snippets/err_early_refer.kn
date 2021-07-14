@@ -1,2 +1,0 @@
-const first = second + 9;
-const second = 3;

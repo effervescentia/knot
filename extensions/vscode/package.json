@@ -12,6 +12,10 @@
   "private": true,
   "repository": "https://github.com/effervescentia/knot.git",
   "homepage": "https://github.com/effervescentia/knot/blob/master/extensions/vscode/README.md",
+  "main": "./build/main/index.js",
+  "activationEvents": [
+    "onLanguage:knot"
+  ],
   "contributes": {
     "languages": [
       {
@@ -21,8 +25,7 @@
           "knot"
         ],
         "extensions": [
-          ".kn",
-          ".knot"
+          ".kn"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -40,5 +43,16 @@
     "color": "#31717b",
     "theme": "dark"
   },
-  "publisher": "knot-lang"
+  "publisher": "knot-lang",
+  "dependencies": {
+    "vscode-languageclient": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.55.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  }
 }

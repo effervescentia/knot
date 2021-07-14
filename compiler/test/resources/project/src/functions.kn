@@ -1,9 +1,0 @@
-import { numericConst, multiplicationConst } from ".constants";
-
-func compactFunc() -> 4;
-func compactExprFunc() -> numericConst + 42;
-func multiExprFunc() -> {
-  13 + multiplicationConst;
-  "a different result";
-}
-func paramFunc(a: string) -> a;

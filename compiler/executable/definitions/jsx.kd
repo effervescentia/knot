@@ -1,3 +1,0 @@
-main {
-  render: (jsx, string) -> nil;
-}
