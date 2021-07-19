@@ -4,4 +4,3 @@ include Grammar.Formatter;
 
 module Parser = Parse.Parser;
 module InputStream = File.InputStream;
-module RawUtil = AST.Raw.Util;

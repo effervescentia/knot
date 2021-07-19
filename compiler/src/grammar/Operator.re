@@ -1,5 +1,6 @@
 open Kore;
 open Type;
+open AST.Raw.Util;
 
 let _report_invalid = (ctx: Context.t, cursor, err) => {
   ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
@@ -7,8 +8,8 @@ let _report_invalid = (ctx: Context.t, cursor, err) => {
 };
 
 let _unary_op = (ctx, t, f, (_, type_, cursor) as expr) => (
-  expr |> f,
-  switch (type_ |> t) {
+  f(expr),
+  switch (t(type_)) {
   | Ok(t) => t
   | Error(err) => _report_invalid(ctx, cursor, err)
   },
@@ -35,9 +36,9 @@ let _inverting =
   | t => Error(NotAssignable(t, K_Numeric));
 
 let negative = (ctx: Context.t) =>
-  RawUtil.neg_op |> _unary_op(ctx, _inverting) <$ Symbol.negative;
+  to_neg_op |> _unary_op(ctx, _inverting) <$ Symbol.negative;
 let positive = (ctx: Context.t) =>
-  RawUtil.pos_op |> _unary_op(ctx, _inverting) <$ Symbol.positive;
+  to_pos_op |> _unary_op(ctx, _inverting) <$ Symbol.positive;
 
 /* simple arithmetic (*, +, -) */
 
@@ -54,11 +55,11 @@ let _simple_arithmetic = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
 let mult = (ctx: Context.t) =>
-  RawUtil.mult_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.multiply;
+  to_mult_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.multiply;
 let add = (ctx: Context.t) =>
-  RawUtil.add_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.add;
+  to_add_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.add;
 let sub = (ctx: Context.t) =>
-  RawUtil.sub_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.subtract;
+  to_sub_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.subtract;
 
 /* complex arithmetic (/, ^) */
 
@@ -73,11 +74,9 @@ let _complex_arithmetic = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
 let div = (ctx: Context.t) =>
-  RawUtil.div_op |> _binary_op(ctx, _complex_arithmetic) <$ Symbol.divide;
+  to_div_op |> _binary_op(ctx, _complex_arithmetic) <$ Symbol.divide;
 let expo = (ctx: Context.t) =>
-  (
-    (l, r) => (l, r) |> _binary_op(ctx, _complex_arithmetic, RawUtil.expo_op)
-  )
+  ((l, r) => (l, r) |> _binary_op(ctx, _complex_arithmetic, to_expo_op))
   <$ Symbol.exponent;
 
 /* logical (&&, ||) */
@@ -92,9 +91,9 @@ let _logical = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((TypeMismatch(K_Strong(K_Boolean), t), l_cursor));
 
 let logical_and = (ctx: Context.t) =>
-  RawUtil.and_op |> _binary_op(ctx, _logical) <$ Glyph.logical_and;
+  to_and_op |> _binary_op(ctx, _logical) <$ Glyph.logical_and;
 let logical_or = (ctx: Context.t) =>
-  RawUtil.or_op |> _binary_op(ctx, _logical) <$ Glyph.logical_or;
+  to_or_op |> _binary_op(ctx, _logical) <$ Glyph.logical_or;
 
 /* negating (!) */
 
@@ -104,7 +103,7 @@ let _negating =
   | t => Error(TypeMismatch(K_Strong(K_Boolean), t));
 
 let not = (ctx: Context.t) =>
-  RawUtil.not_op |> _unary_op(ctx, _negating) <$ Symbol.not;
+  to_not_op |> _unary_op(ctx, _negating) <$ Symbol.not;
 
 /* comparative (<=, <, >=, >) */
 
@@ -119,13 +118,13 @@ let _comparative = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
 let less_or_eql = (ctx: Context.t) =>
-  RawUtil.lte_op |> _binary_op(ctx, _comparative) <$ Glyph.less_or_eql;
+  to_lte_op |> _binary_op(ctx, _comparative) <$ Glyph.less_or_eql;
 let less_than = (ctx: Context.t) =>
-  RawUtil.lt_op |> _binary_op(ctx, _comparative) <$ Symbol.less_than;
+  to_lt_op |> _binary_op(ctx, _comparative) <$ Symbol.less_than;
 let greater_or_eql = (ctx: Context.t) =>
-  RawUtil.gte_op |> _binary_op(ctx, _comparative) <$ Glyph.greater_or_eql;
+  to_gte_op |> _binary_op(ctx, _comparative) <$ Glyph.greater_or_eql;
 let greater_than = (ctx: Context.t) =>
-  RawUtil.gt_op |> _binary_op(ctx, _comparative) <$ Symbol.greater_than;
+  to_gt_op |> _binary_op(ctx, _comparative) <$ Symbol.greater_than;
 
 /* symmetrical (==, !=) */
 
@@ -139,6 +138,6 @@ let _symmetrical = ((_, r_cursor)) =>
   | (l, r) => Error((TypeMismatch(l, r), r_cursor));
 
 let equality = (ctx: Context.t) =>
-  RawUtil.eq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.equality;
+  to_eq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.equality;
 let inequality = (ctx: Context.t) =>
-  RawUtil.ineq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.inequality;
+  to_ineq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.inequality;

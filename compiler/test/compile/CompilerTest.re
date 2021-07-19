@@ -22,7 +22,7 @@ let __config =
     fail_fast: true,
   };
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = (Cursor.zero |> Cursor.expand, None) |> BinaryTree.create;
 
 let __types =
   AST.[(Export.Named("ABC" |> of_public), K_Strong(K_Integer))]

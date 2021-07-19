@@ -1,11 +1,12 @@
 open Kore;
+open AST.Raw.Util;
 
 let integer =
   many1(M.digit)
   >|= Input.join
   >|= (
     block => (
-      block |> Block.value |> Int64.of_string |> RawUtil.int,
+      block |> Block.value |> Int64.of_string |> to_int,
       Type.K_Strong(K_Integer),
       block |> Block.cursor,
     )
@@ -34,10 +35,10 @@ let float =
               integer_precision + fraction_precision,
             )
         )
-        |> RawUtil.float;
+        |> to_float;
       },
       Type.K_Strong(K_Float),
-      Cursor.join(x |> Block.cursor, y |> Block.cursor),
+      Cursor.join(Block.cursor(x), Block.cursor(y)),
     )
   )
   |> M.lexeme;

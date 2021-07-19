@@ -1,6 +1,7 @@
 open Kore;
-open Util;
+open AST.Raw.Util;
 open Reference;
+open Util;
 
 module Import = Grammar.Import;
 
@@ -26,7 +27,7 @@ module Assert =
       );
   });
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = (Cursor.zero |> Cursor.expand, None) |> BinaryTree.create;
 
 let suite =
   "Grammar.Import"
@@ -43,100 +44,75 @@ let suite =
         [
           (
             "import foo from \"@/bar\"",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
-              )
-              |> RawUtil.import
-            ),
+            (to_internal("bar"), [to_public_main_import("foo")])
+            |> to_import,
           ),
           (
             "import {} from \"@/bar\"",
-            AST.(("bar" |> RawUtil.internal, []) |> RawUtil.import),
+            (to_internal("bar"), []) |> to_import,
           ),
           (
             "import { foo } from \"@/bar\"",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                [
-                  ("foo" |> RawUtil.public |> as_lexeme, None)
-                  |> RawUtil.named_import,
-                ],
-              )
-              |> RawUtil.import
-            ),
+            (
+              to_internal("bar"),
+              [(raw_public("foo"), None) |> to_named_import],
+            )
+            |> to_import,
           ),
           (
             "import { foo as bar } from \"@/bar\"",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                [
-                  (
-                    "foo" |> RawUtil.public |> as_lexeme,
-                    Some("bar" |> RawUtil.public |> as_lexeme),
-                  )
-                  |> RawUtil.named_import,
-                ],
-              )
-              |> RawUtil.import
-            ),
+            (
+              to_internal("bar"),
+              [
+                (raw_public("foo"), Some(raw_public("bar")))
+                |> to_named_import,
+              ],
+            )
+            |> to_import,
           ),
           (
             "import fizz, { foo, bar as Bar } from \"@/bar\"",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                [
-                  "fizz" |> RawUtil.public |> as_lexeme |> RawUtil.main_import,
-                  ("foo" |> RawUtil.public |> as_lexeme, None)
-                  |> RawUtil.named_import,
-                  (
-                    "bar" |> RawUtil.public |> as_lexeme,
-                    Some("Bar" |> RawUtil.public |> as_lexeme),
-                  )
-                  |> RawUtil.named_import,
-                ],
-              )
-              |> RawUtil.import
-            ),
+            (
+              "bar" |> to_internal,
+              [
+                to_public_main_import("fizz"),
+                (raw_public("foo"), None) |> to_named_import,
+                (raw_public("bar"), Some(raw_public("Bar")))
+                |> to_named_import,
+              ],
+            )
+            |> to_import,
           ),
           (
             "import { foo, bar, } from \"@/bar\"",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                [
-                  ("foo" |> RawUtil.public |> as_lexeme, None)
-                  |> RawUtil.named_import,
-                  ("bar" |> RawUtil.public |> as_lexeme, None)
-                  |> RawUtil.named_import,
-                ],
-              )
-              |> RawUtil.import
-            ),
+            (
+              "bar" |> to_internal,
+              [
+                (raw_public("foo"), None) |> to_named_import,
+                (raw_public("bar"), None) |> to_named_import,
+              ],
+            )
+            |> to_import,
           ),
         ]
         |> Assert.parse_many(
              ~scope=
                Scope.create(
                  ~modules=
-                   AST.[
+                   [
                      (
-                       "bar" |> RawUtil.internal,
+                       "bar" |> to_internal,
                        ModuleTable.{
                          ast: [],
                          types:
                            [
                              (Export.Main, Type.K_Strong(K_Nil)),
                              (
-                               Export.Named("bar" |> RawUtil.public),
+                               Export.Named("bar" |> to_public),
                                Type.K_Strong(K_Boolean),
                              ),
                              (
-                               Export.Named("foo" |> RawUtil.public),
+                               Export.Named("foo" |> to_public),
                                Type.K_Strong(K_String),
                              ),
                            ]
@@ -159,32 +135,22 @@ let suite =
         [
           (
             "import foo from \"@/bar\";",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
-              )
-              |> RawUtil.import
-            ),
+            (to_internal("bar"), [to_public_main_import("foo")])
+            |> to_import,
           ),
           (
             "  import  foo  from   \"@/bar\"  ;  ",
-            AST.(
-              (
-                "bar" |> RawUtil.internal,
-                ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
-              )
-              |> RawUtil.import
-            ),
+            (to_internal("bar"), [to_public_main_import("foo")])
+            |> to_import,
           ),
         ]
         |> Assert.parse_many(
              ~scope=
                Scope.create(
                  ~modules=
-                   AST.[
+                   [
                      (
-                       "bar" |> RawUtil.internal,
+                       "bar" |> to_internal,
                        ModuleTable.{
                          ast: [],
                          types:

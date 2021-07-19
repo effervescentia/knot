@@ -1,14 +1,15 @@
 open Kore;
+open AST.Final.Util;
 
 let constant = (ctx: Context.t, f) =>
   Keyword.const
   >> Operator.assign(
        Identifier.parser(ctx),
-       Expression.parser(ctx) >|= RawUtil.const,
+       Expression.parser(ctx) >|= to_const,
      )
   >|= (
     (((id, _) as x, decl)) => {
-      ctx.scope |> Scope.define(id, decl |> TypeOf.declaration);
+      ctx.scope |> Scope.define(id, TypeOf.declaration(decl));
 
       (f(x), decl);
     }
@@ -19,7 +20,7 @@ let type_ = (ctx: Context.t, f) =>
   Keyword.type_
   >> Operator.assign(
        Identifier.parser(ctx),
-       TypePrimitive.parser >|= (x => AST.Final.Util.type_(x)),
+       TypePrimitive.parser >|= AST.Final.Util.to_type,
      )
   >|= (
     (((id, _) as x, decl)) => {
@@ -37,7 +38,7 @@ let function_ = (ctx: Context.t, f) =>
   >> Identifier.parser(ctx)
   >>= (
     id => {
-      let child_ctx = ctx |> Context.child;
+      let child_ctx = Context.child(ctx);
 
       Lambda.parser(child_ctx)
       >|= (
@@ -46,7 +47,7 @@ let function_ = (ctx: Context.t, f) =>
 
           Context.submit(ctx_cursor, child_ctx);
 
-          (f(id), (args, expr) |> RawUtil.func);
+          (f(id), (args, expr) |> to_func);
         }
       );
     }
@@ -54,11 +55,8 @@ let function_ = (ctx: Context.t, f) =>
   |> M.terminated;
 
 let parser = (ctx: Context.t) =>
-  option(RawUtil.named_export, RawUtil.main_export <$ Keyword.main)
+  option(to_named_export, to_main_export <$ Keyword.main)
   >>= (
     f =>
-      [constant, function_]
-      |> List.map(x => x(ctx, f))
-      |> choice
-      >|= RawUtil.decl
+      [constant, function_] |> List.map(x => x(ctx, f)) |> choice >|= to_decl
   );

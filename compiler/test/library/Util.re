@@ -1,53 +1,61 @@
 open Kore;
+open AST.Raw.Util;
 open Reference;
-
-module RawUtil = AST.Raw.Util;
 
 let to_scope = (types: list((string, Type.t))) => {
   let scope = Scope.create();
 
   types
-  |> List.map(Tuple.map_fst2(RawUtil.public % (x => Export.Named(x))))
+  |> List.map(Tuple.map_fst2(to_public % (x => Export.Named(x))))
   |> List.to_seq
   |> Hashtbl.add_seq(scope.types);
 
   scope;
 };
 
+/* typed utils */
+
 let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
 let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 
 let as_nil = x => as_typed_lexeme(Type.K_Strong(K_Nil), x);
-
 let as_bool = x => as_typed_lexeme(Type.K_Strong(K_Boolean), x);
-
 let as_int = x => as_typed_lexeme(Type.K_Strong(K_Integer), x);
-
 let as_float = x => as_typed_lexeme(Type.K_Strong(K_Float), x);
-
 let as_string = x => as_typed_lexeme(Type.K_Strong(K_String), x);
-
 let as_element = x => as_typed_lexeme(Type.K_Strong(K_Element), x);
-
 let as_invalid = (err, x) => as_typed_lexeme(Type.K_Invalid(err), x);
-
 let as_weak = (id, x) => as_typed_lexeme(Type.K_Weak(id), x);
 
-let nil_prim = RawUtil.nil |> as_nil |> RawUtil.prim |> as_nil;
+/* raw utils */
 
-let bool_prim = RawUtil.bool % as_bool % RawUtil.prim % as_bool;
+let raw_nil = nil |> as_nil;
+let raw_bool = to_bool % as_bool;
+let raw_int = Int64.of_int % to_int % as_int;
+let raw_float = to_float % as_float;
+let raw_string = to_string % as_string;
+let raw_public = to_public % as_lexeme;
 
-let int_prim =
-  Int64.of_int % RawUtil.int % RawUtil.num % as_int % RawUtil.prim % as_int;
+/* primitive utils */
 
-let float_prim =
-  RawUtil.float % RawUtil.num % as_float % RawUtil.prim % as_float;
+let nil_prim = raw_nil |> to_prim |> as_nil;
+let bool_prim = raw_bool % to_prim % as_bool;
+let int_prim = Int64.of_int % to_int % to_num % as_int % to_prim % as_int;
+let float_prim = to_float % to_num % as_float % to_prim % as_float;
+let string_prim = raw_string % to_prim % as_string;
 
-let string_prim = RawUtil.string % as_string % RawUtil.prim % as_string;
+/* type factories */
 
-let jsx_node = RawUtil.tag % as_lexeme % RawUtil.node;
+let to_neg_int = to_neg_op % as_int;
+let to_neg_float = to_neg_op % as_float;
+let to_not_bool = to_not_op % as_bool;
+let to_public_id = f => raw_public % to_id % f;
+let to_public_export = raw_public % AST.Final.Util.to_named_export;
+let to_public_main_export = raw_public % AST.Final.Util.to_main_export;
+let to_public_main_import = raw_public % AST.Final.Util.to_main_import;
 
-let jsx_tag = RawUtil.tag % as_lexeme % RawUtil.jsx;
+let jsx_node = to_tag % as_lexeme % to_node;
+let jsx_tag = to_tag % as_lexeme % to_jsx;
 
 let print_parse_err =
   fun

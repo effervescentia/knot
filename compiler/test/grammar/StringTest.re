@@ -1,4 +1,5 @@
 open Kore;
+open AST.Raw.Util;
 open Util;
 
 module Primitive = Grammar.Primitive;
@@ -30,16 +31,8 @@ let suite =
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse"
     >: (
-      () =>
-        ["\"foo\"", " \"foo\" "]
-        |> Assert.parse_all("foo" |> RawUtil.string |> as_string)
+      () => ["\"foo\"", " \"foo\" "] |> Assert.parse_all(raw_string("foo"))
     ),
     "with escape characters"
-    >: (
-      () =>
-        Assert.parse(
-          "\"foo\\\"bar\"",
-          "foo\\\"bar" |> RawUtil.string |> as_string,
-        )
-    ),
+    >: (() => Assert.parse("\"foo\\\"bar\"", raw_string("foo\\\"bar"))),
   ];

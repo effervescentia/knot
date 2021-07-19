@@ -1,9 +1,9 @@
 open Kore;
-open Util;
+open AST.Raw.Util;
 open Reference;
+open Util;
 
 module Program = Grammar.Program;
-module RawUtil = AST.Raw.Util;
 
 module Target = {
   open AST.Raw;
@@ -40,27 +40,19 @@ module Assert = Assert.Make(Target);
 
 let __main_import = "import foo from \"@/bar\"";
 let __const_decl = "const foo = nil";
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = (Cursor.zero |> Cursor.expand, None) |> BinaryTree.create;
 
 let __main_import_ast =
-  (
-    "bar" |> RawUtil.internal,
-    ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
-  )
-  |> RawUtil.import;
+  (to_internal("bar"), [to_public_main_import("foo")]) |> to_import;
 let __const_decl_ast =
-  (
-    "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
-    nil_prim |> RawUtil.const,
-  )
-  |> RawUtil.decl;
+  (to_public_export("foo"), to_const(nil_prim)) |> to_decl;
 
 let __scope =
   Scope.create(
     ~modules=
       [
         (
-          "bar" |> RawUtil.internal,
+          "bar" |> to_internal,
           ModuleTable.{
             ast: [],
             types:
@@ -97,15 +89,10 @@ let suite =
             [
               __const_decl_ast,
               (
-                "bar" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
-                "foo"
-                |> RawUtil.public
-                |> as_lexeme
-                |> RawUtil.id
-                |> as_nil
-                |> RawUtil.const,
+                to_public_export("bar"),
+                "foo" |> to_public_id(as_nil) |> to_const,
               )
-              |> RawUtil.decl,
+              |> to_decl,
             ],
           ),
         ]
@@ -131,7 +118,7 @@ let suite =
               ~modules=
                 [
                   (
-                    "bar" |> RawUtil.internal,
+                    "bar" |> to_internal,
                     ModuleTable.{
                       ast: [],
                       types:
@@ -151,15 +138,10 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
-              "foo"
-              |> RawUtil.public
-              |> as_lexeme
-              |> RawUtil.id
-              |> as_bool
-              |> RawUtil.const,
+              to_public_export("bar"),
+              "foo" |> to_public_id(as_bool) |> to_const,
             )
-            |> RawUtil.decl,
+            |> to_decl,
           ],
         )
     ),

@@ -5,53 +5,55 @@ open Infix;
 open Reference;
 open Cow;
 
+module Common = {
+  type lexeme_t('a) = ('a, Cursor.t);
+
+  type binary_operator_t =
+    /* logical operators */
+    | LogicalAnd
+    | LogicalOr
+    /* comparative operators */
+    | LessOrEqual
+    | LessThan
+    | GreaterOrEqual
+    | GreaterThan
+    /* equality operators */
+    | Equal
+    | Unequal
+    /* arithmetic operators */
+    | Add
+    | Subtract
+    | Divide
+    | Multiply
+    | Exponent;
+
+  type unary_operator_t =
+    | Not
+    | Positive
+    | Negative;
+
+  type number_t =
+    | Integer(Int64.t)
+    | Float(float, int);
+
+  type identifier_t = lexeme_t(Identifier.t);
+
+  type raw_primitive_t =
+    | Nil
+    | Boolean(bool)
+    | Number(number_t)
+    | String(string);
+};
+
 module type ASTParams = {
   type type_t;
 
   let print_type: type_t => string;
 };
 
-module GlobalDebug = Debug;
-
-type lexeme_t('a) = ('a, Cursor.t);
-
-type binary_operator_t =
-  /* logical operators */
-  | LogicalAnd
-  | LogicalOr
-  /* comparative operators */
-  | LessOrEqual
-  | LessThan
-  | GreaterOrEqual
-  | GreaterThan
-  /* equality operators */
-  | Equal
-  | Unequal
-  /* arithmetic operators */
-  | Add
-  | Subtract
-  | Divide
-  | Multiply
-  | Exponent;
-
-type unary_operator_t =
-  | Not
-  | Positive
-  | Negative;
-
-type number_t =
-  | Integer(Int64.t)
-  | Float(float, int);
-
-type identifier_t = lexeme_t(Identifier.t);
-
-type raw_primitive_t =
-  | Nil
-  | Boolean(bool)
-  | Number(number_t)
-  | String(string);
-
 module Make = (T: ASTParams) => {
+  include Common;
+
   type typed_lexeme_t('a) = ('a, T.type_t, Cursor.t);
 
   type primitive_t = typed_lexeme_t(raw_primitive_t);
@@ -93,89 +95,62 @@ module Make = (T: ASTParams) => {
     /* type_: option(lexeme_t(Type.t)), */
   };
 
-  type declaration_t =
-    | Constant(expression_t)
-    | Type(lexeme_t(T.type_t))
-    | Function(list((argument_t, T.type_t)), expression_t);
-
-  type import_t =
-    | MainImport(identifier_t)
-    | NamedImport(identifier_t, option(identifier_t));
-
-  type export_t =
-    | MainExport(identifier_t)
-    | NamedExport(identifier_t);
-
-  type module_statement_t =
-    | Import(Namespace.t, list(import_t))
-    | Declaration(export_t, declaration_t);
-
-  type program_t = list(module_statement_t);
-
   /* tag helpers */
 
   module Util = {
-    let internal = namespace => Namespace.Internal(namespace);
-    let external_ = namespace => Namespace.External(namespace);
+    let to_internal = namespace => Namespace.Internal(namespace);
+    let to_external = namespace => Namespace.External(namespace);
 
-    let public = name => Identifier.Public(name);
-    let private = name => Identifier.Private(name);
+    let to_public = name => Identifier.Public(name);
+    let to_private = name => Identifier.Private(name);
 
-    let main_import = x => MainImport(x);
-    let named_import = ((x, y)) => NamedImport(x, y);
+    let to_var = ((name, x)) => Variable(name, x);
+    let to_expr = x => Expression(x);
+    let to_id = x => Identifier(x);
+    let to_group = x => Group(x);
+    let to_closure = xs => Closure(xs);
 
-    let main_export = x => MainExport(x);
-    let named_export = x => NamedExport(x);
-
-    let import = ((namespace, main)) => Import(namespace, main);
-    let decl = ((name, x)) => Declaration(name, x);
-    let const = x => Constant(x);
-    let type_ = x => Type(x);
-    let func = ((args, expr)) => Function(args, expr);
-    let var = ((name, x)) => Variable(name, x);
-    let expr = x => Expression(x);
-    let id = x => Identifier(x);
-    let group = x => Group(x);
-    let closure = xs => Closure(xs);
-
-    let not_op = x => UnaryOp(Not, x);
-    let neg_op = x => UnaryOp(Negative, x);
-    let pos_op = x => UnaryOp(Positive, x);
+    let to_not_op = x => UnaryOp(Not, x);
+    let to_neg_op = x => UnaryOp(Negative, x);
+    let to_pos_op = x => UnaryOp(Positive, x);
 
     let and_op = ((l, r)) => BinaryOp(LogicalAnd, l, r);
+    let to_and_op = ((l, r)) => BinaryOp(LogicalAnd, l, r);
     let or_op = ((l, r)) => BinaryOp(LogicalOr, l, r);
+    let to_or_op = ((l, r)) => BinaryOp(LogicalOr, l, r);
 
-    let mult_op = ((l, r)) => BinaryOp(Multiply, l, r);
-    let div_op = ((l, r)) => BinaryOp(Divide, l, r);
-    let add_op = ((l, r)) => BinaryOp(Add, l, r);
-    let sub_op = ((l, r)) => BinaryOp(Subtract, l, r);
+    let to_mult_op = ((l, r)) => BinaryOp(Multiply, l, r);
+    let to_div_op = ((l, r)) => BinaryOp(Divide, l, r);
+    let to_add_op = ((l, r)) => BinaryOp(Add, l, r);
+    let to_sub_op = ((l, r)) => BinaryOp(Subtract, l, r);
 
-    let lt_op = ((l, r)) => BinaryOp(LessThan, l, r);
-    let lte_op = ((l, r)) => BinaryOp(LessOrEqual, l, r);
-    let gt_op = ((l, r)) => BinaryOp(GreaterThan, l, r);
-    let gte_op = ((l, r)) => BinaryOp(GreaterOrEqual, l, r);
+    let to_lt_op = ((l, r)) => BinaryOp(LessThan, l, r);
+    let to_lte_op = ((l, r)) => BinaryOp(LessOrEqual, l, r);
+    let to_gt_op = ((l, r)) => BinaryOp(GreaterThan, l, r);
+    let to_gte_op = ((l, r)) => BinaryOp(GreaterOrEqual, l, r);
 
-    let eq_op = ((l, r)) => BinaryOp(Equal, l, r);
-    let ineq_op = ((l, r)) => BinaryOp(Unequal, l, r);
+    let to_eq_op = ((l, r)) => BinaryOp(Equal, l, r);
+    let to_ineq_op = ((l, r)) => BinaryOp(Unequal, l, r);
 
-    let expo_op = ((l, r)) => BinaryOp(Exponent, l, r);
+    let to_expo_op = ((l, r)) => BinaryOp(Exponent, l, r);
 
-    let jsx = x => JSX(x);
-    let frag = xs => Fragment(xs);
-    let tag = ((name, attrs, children)) => Tag(name, attrs, children);
-    let prop = ((name, value)) => Property(name, value);
-    let jsx_class = ((name, value)) => Class(name, value);
-    let jsx_id = x => ID(x);
-    let text = x => Text(x);
-    let node = x => Node(x);
-    let inline_expr = x => InlineExpression(x);
+    let to_jsx = x => JSX(x);
+    let to_frag = xs => Fragment(xs);
+    let to_tag = ((name, attrs, children)) => Tag(name, attrs, children);
+    let to_prop = ((name, value)) => Property(name, value);
+    let to_jsx_class = ((name, value)) => Class(name, value);
+    let to_jsx_id = x => ID(x);
+    let to_text = x => Text(x);
+    let to_node = x => Node(x);
+    let to_inline_expr = x => InlineExpression(x);
 
-    let prim = x => Primitive(x);
-    let bool = x => Boolean(x);
-    let int = x => Integer(x);
-    let float = ((x, precision)) => Float(x, precision);
-    let string = x => String(x);
-    let num = x => Number(x);
+    let to_prim = x => Primitive(x);
+    let to_bool = x => Boolean(x);
+    let to_int = x => Integer(x);
+    let to_float = ((x, precision)) => Float(x, precision);
+    let to_string = x => String(x);
+    let to_num = x => Number(x);
+
     let nil = Nil;
   };
 
@@ -381,6 +356,83 @@ module Make = (T: ASTParams) => {
           )
         | (entity, name, None) => Xml.tag(entity, name)
       );
+  };
+};
+
+module Raw =
+  Make({
+    type type_t = Type.t;
+
+    let print_type = Type.to_string;
+  });
+
+include Raw;
+
+module FinalParams = {
+  open Constants;
+
+  type type_t = Type2.t;
+
+  let rec print_type =
+    Type2.(
+      fun
+      | Nil => Keyword.nil
+      | Boolean => Keyword.bool
+      | Integer => Keyword.int
+      | Float => Keyword.float
+      | String => Keyword.string
+      | Element => Keyword.element
+      | Iterable(t) => Keyword.element
+      | Abstract(abstr) =>
+        switch (abstr) {
+        | Unknown => "unknown"
+        | Numeric => Keyword.number
+        }
+      /* TODO: finish this */
+      | pattern => "pattern"
+    );
+};
+
+module Final = {
+  include Make(FinalParams);
+
+  type declaration_t =
+    | Constant(expression_t)
+    | Type(lexeme_t(FinalParams.type_t))
+    | Function(list((argument_t, FinalParams.type_t)), expression_t);
+
+  type import_t =
+    | MainImport(identifier_t)
+    | NamedImport(identifier_t, option(identifier_t));
+
+  type export_t =
+    | MainExport(identifier_t)
+    | NamedExport(identifier_t);
+
+  type module_statement_t =
+    | Import(Namespace.t, list(import_t))
+    | Declaration(export_t, declaration_t);
+
+  type program_t = list(module_statement_t);
+
+  module Util = {
+    include Util;
+
+    let to_main_import = x => MainImport(x);
+    let to_named_import = ((x, y)) => NamedImport(x, y);
+
+    let to_main_export = x => MainExport(x);
+    let to_named_export = x => NamedExport(x);
+
+    let to_import = ((namespace, main)) => Import(namespace, main);
+    let to_decl = ((name, x)) => Declaration(name, x);
+    let to_const = x => Constant(x);
+    let to_type = x => Type(x);
+    let to_func = ((args, expr)) => Function(args, expr);
+  };
+
+  module Debug = {
+    include Debug;
 
     let print_decl = ((name, decl)) =>
       switch (decl) {
@@ -428,7 +480,7 @@ module Make = (T: ASTParams) => {
             ),
             print_lexeme(
               "Value",
-              type_ |> T.print_type |> Xml.string,
+              type_ |> FinalParams.print_type |> Xml.string,
               cursor,
             ),
           ]
@@ -527,38 +579,3 @@ module Make = (T: ASTParams) => {
       |> Xml.to_string;
   };
 };
-
-module Raw =
-  Make({
-    type type_t = Type.t;
-
-    let print_type = Type.to_string;
-  });
-
-include Raw;
-
-module Final =
-  Make({
-    open Constants;
-
-    type type_t = Type2.t;
-
-    let rec print_type =
-      Type2.(
-        fun
-        | Nil => Keyword.nil
-        | Boolean => Keyword.bool
-        | Integer => Keyword.int
-        | Float => Keyword.float
-        | String => Keyword.string
-        | Element => Keyword.element
-        | Iterable(t) => Keyword.element
-        | Abstract(abstr) =>
-          switch (abstr) {
-          | Unknown => "unknown"
-          | Numeric => Keyword.number
-          }
-        /* TODO: finish this */
-        | pattern => "pattern"
-      );
-  });

@@ -1,22 +1,21 @@
 open Kore;
+open AST.Raw.Util;
 
 let _wrap_typed_lexeme = (f, (_, type_, cursor) as lexeme) => (
-  lexeme |> f,
+  f(lexeme),
   type_,
   cursor,
 );
 
 let primitive =
   Primitive.parser
-  >|= (
-    ((_, type_, cursor) as prim) => (prim |> RawUtil.prim, type_, cursor)
-  );
+  >|= (((_, type_, cursor) as prim) => (to_prim(prim), type_, cursor));
 
 let identifier = (ctx: Context.t) =>
   Identifier.parser(ctx)
   >|= (
     ((_, cursor) as id) => (
-      id |> RawUtil.id,
+      to_id(id),
       ctx |> Context.find_in_scope(id),
       cursor,
     )
@@ -26,7 +25,7 @@ let jsx = (ctx: Context.t, x) =>
   JSX.parser(ctx, x)
   >|= (
     ((_, cursor) as jsx) => (
-      jsx |> RawUtil.jsx,
+      to_jsx(jsx),
       Type.K_Strong(K_Element),
       cursor,
     )
@@ -36,9 +35,9 @@ let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
   >|= (
     block => {
-      let (_, type_, _) as group = block |> Block.value;
+      let (_, type_, _) as group = Block.value(block);
 
-      (group |> RawUtil.group, type_, block |> Block.cursor);
+      (to_group(group), type_, Block.cursor(block));
     }
   );
 
@@ -58,7 +57,7 @@ let closure = (ctx: Context.t, x) =>
           | Some(x) => TypeOf.statement(x)
         );
 
-      (stmts |> RawUtil.closure, type_, cursor);
+      (to_closure(stmts), type_, cursor);
     }
   );
 
@@ -124,7 +123,7 @@ and expr_7 = (ctx: Context.t, input) =>
 /* {}, () */
 and expr_8 = (ctx: Context.t, input) =>
   {
-    let child_ctx = ctx |> Context.child;
+    let child_ctx = Context.child(ctx);
 
     choice([
       closure(child_ctx, expr_0)

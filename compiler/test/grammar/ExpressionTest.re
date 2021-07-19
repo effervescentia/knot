@@ -1,4 +1,5 @@
 open Kore;
+open AST.Raw.Util;
 open Util;
 
 module Expression = Grammar.Expression;
@@ -35,23 +36,16 @@ let suite =
   "Grammar.Expression"
   >::: [
     "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
-    "parse primitive" >: (() => Assert.parse("123", 123 |> int_prim)),
+    "parse primitive" >: (() => Assert.parse("123", int_prim(123))),
     "parse identifier"
     >: (
       () =>
         [
           (
             "foo",
-            "foo"
-            |> RawUtil.public
-            |> as_lexeme
-            |> RawUtil.id
-            |> as_invalid(NotFound(Public("foo"))),
+            "foo" |> to_public_id(as_invalid(NotFound(Public("foo")))),
           ),
-          (
-            "bar",
-            "bar" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-          ),
+          ("bar", "bar" |> to_public_id(as_int)),
         ]
         |> Assert.parse_many(
              ~report=ignore,
@@ -64,13 +58,7 @@ let suite =
         Assert.parse(
           ~scope=to_scope([("foo", K_Strong(K_Boolean))]),
           "(foo)",
-          "foo"
-          |> RawUtil.public
-          |> as_lexeme
-          |> RawUtil.id
-          |> as_bool
-          |> RawUtil.group
-          |> as_bool,
+          "foo" |> to_public_id(as_bool) |> to_group |> as_bool,
         )
     ),
     "parse closure"
@@ -86,30 +74,18 @@ let suite =
             1 + 2;
           }",
             [
-              "foo"
-              |> RawUtil.public
-              |> as_lexeme
-              |> RawUtil.id
-              |> as_string
-              |> RawUtil.expr,
-              ("x" |> RawUtil.public |> as_lexeme, false |> bool_prim)
-              |> RawUtil.var,
+              "foo" |> to_public_id(as_string) |> to_expr,
+              ("x" |> to_public |> as_lexeme, bool_prim(false)) |> to_var,
               (
-                "y" |> RawUtil.public |> as_lexeme,
-                "foo" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_string,
+                "y" |> to_public |> as_lexeme,
+                "foo" |> to_public_id(as_string),
               )
-              |> RawUtil.var,
-              (
-                "z" |> RawUtil.public |> as_lexeme,
-                "y" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_string,
-              )
-              |> RawUtil.var,
-              (1 |> int_prim, 2 |> int_prim)
-              |> RawUtil.add_op
-              |> as_int
-              |> RawUtil.expr,
+              |> to_var,
+              ("z" |> to_public |> as_lexeme, "y" |> to_public_id(as_string))
+              |> to_var,
+              (int_prim(1), int_prim(2)) |> to_add_op |> as_int |> to_expr,
             ]
-            |> RawUtil.closure
+            |> to_closure
             |> as_int,
           ),
         ]
@@ -121,24 +97,24 @@ let suite =
     >: (
       () =>
         [
-          ("-123", 123 |> int_prim |> RawUtil.neg_op |> as_int),
-          ("!true", true |> bool_prim |> RawUtil.not_op |> as_bool),
+          ("-123", 123 |> int_prim |> to_neg_int),
+          ("!true", true |> bool_prim |> to_not_bool),
         ]
         |> Assert.parse_many
     ),
     "parse boolean logic"
     >: (
       () =>
-        [("&&", RawUtil.and_op), ("||", RawUtil.or_op)]
+        [("&&", to_and_op), ("||", to_or_op)]
         |> List.map(((op, tag)) =>
              [
                (
                  op |> Print.fmt("true%sfalse"),
-                 (true |> bool_prim, false |> bool_prim) |> tag |> as_bool,
+                 (bool_prim(true), bool_prim(false)) |> tag |> as_bool,
                ),
                (
                  op |> Print.fmt(" true %s false "),
-                 (true |> bool_prim, false |> bool_prim) |> tag |> as_bool,
+                 (bool_prim(true), bool_prim(false)) |> tag |> as_bool,
                ),
              ]
            )
@@ -149,20 +125,20 @@ let suite =
     >: (
       () =>
         [
-          ("+", RawUtil.add_op % as_int),
-          ("-", RawUtil.sub_op % as_int),
-          ("*", RawUtil.mult_op % as_int),
-          ("/", RawUtil.div_op % as_float),
+          ("+", to_add_op % as_int),
+          ("-", to_sub_op % as_int),
+          ("*", to_mult_op % as_int),
+          ("/", to_div_op % as_float),
         ]
         |> List.map(((op, tag)) =>
              [
                (
                  op |> Print.fmt("123%s456"),
-                 (123 |> int_prim, 456 |> int_prim) |> tag,
+                 (int_prim(123), int_prim(456)) |> tag,
                ),
                (
                  op |> Print.fmt(" 123 %s 456 "),
-                 (123 |> int_prim, 456 |> int_prim) |> tag,
+                 (int_prim(123), int_prim(456)) |> tag,
                ),
              ]
            )
@@ -173,20 +149,20 @@ let suite =
     >: (
       () =>
         [
-          ("<=", RawUtil.lte_op),
-          ("<", RawUtil.lt_op),
-          (">=", RawUtil.gte_op),
-          (">", RawUtil.gt_op),
+          ("<=", to_lte_op),
+          ("<", to_lt_op),
+          (">=", to_gte_op),
+          (">", to_gt_op),
         ]
         |> List.map(((op, tag)) =>
              [
                (
                  op |> Print.fmt("123%s456"),
-                 (123 |> int_prim, 456 |> int_prim) |> tag |> as_bool,
+                 (int_prim(123), int_prim(456)) |> tag |> as_bool,
                ),
                (
                  op |> Print.fmt(" 123 %s 456 "),
-                 (123 |> int_prim, 456 |> int_prim) |> tag |> as_bool,
+                 (int_prim(123), int_prim(456)) |> tag |> as_bool,
                ),
              ]
            )
@@ -204,95 +180,86 @@ let suite =
                 int_prim(2),
                 (
                   int_prim(3),
-                  (int_prim(4), int_prim(5)) |> RawUtil.expo_op |> as_float,
+                  (int_prim(4), int_prim(5)) |> to_expo_op |> as_float,
                 )
-                |> RawUtil.mult_op
+                |> to_mult_op
                 |> as_float,
               )
-              |> RawUtil.add_op
+              |> to_add_op
               |> as_float,
-              (int_prim(6) |> RawUtil.neg_op |> as_int, int_prim(7))
-              |> RawUtil.div_op
+              (int_prim(6) |> to_neg_int, int_prim(7))
+              |> to_div_op
               |> as_float,
             )
-            |> RawUtil.sub_op
+            |> to_sub_op
             |> as_float,
           ),
           (
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
             (
               (int_prim(2), int_prim(3))
-              |> RawUtil.add_op
+              |> to_add_op
               |> as_int
-              |> RawUtil.group
+              |> to_group
               |> as_int,
               (
                 int_prim(4),
                 (
                   int_prim(5),
                   (int_prim(6), int_prim(7))
-                  |> RawUtil.div_op
+                  |> to_div_op
                   |> as_float
-                  |> RawUtil.group
+                  |> to_group
                   |> as_float
-                  |> RawUtil.neg_op
-                  |> as_float,
+                  |> to_neg_float,
                 )
-                |> RawUtil.sub_op
+                |> to_sub_op
                 |> as_float
-                |> RawUtil.group
+                |> to_group
                 |> as_float,
               )
-              |> RawUtil.expo_op
+              |> to_expo_op
               |> as_float,
             )
-            |> RawUtil.mult_op
+            |> to_mult_op
             |> as_float,
           ),
           (
             "a && (b > c || e <= f) && (!(g || h))",
             (
               (
-                "a" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_bool,
+                "a" |> to_public_id(as_bool),
                 (
                   (
-                    "b" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-                    "c"
-                    |> RawUtil.public
-                    |> as_lexeme
-                    |> RawUtil.id
-                    |> as_float,
+                    "b" |> to_public_id(as_int),
+                    "c" |> to_public_id(as_float),
                   )
-                  |> RawUtil.gt_op
+                  |> to_gt_op
                   |> as_bool,
                   (
-                    "e" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_float,
-                    "f" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
+                    "e" |> to_public_id(as_float),
+                    "f" |> to_public_id(as_int),
                   )
-                  |> RawUtil.lte_op
+                  |> to_lte_op
                   |> as_bool,
                 )
-                |> RawUtil.or_op
+                |> to_or_op
                 |> as_bool
-                |> RawUtil.group
+                |> to_group
                 |> as_bool,
               )
-              |> RawUtil.and_op
+              |> to_and_op
               |> as_bool,
-              (
-                "g" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_bool,
-                "h" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_bool,
-              )
-              |> RawUtil.or_op
+              ("g" |> to_public_id(as_bool), "h" |> to_public_id(as_bool))
+              |> to_or_op
               |> as_bool
-              |> RawUtil.group
+              |> to_group
               |> as_bool
-              |> RawUtil.not_op
-              |> as_bool
-              |> RawUtil.group
+              |> to_not_bool
+              |> to_group
               |> as_bool,
             )
-            |> RawUtil.and_op
+            |> to_and_op
             |> as_bool,
           ),
         ]
@@ -312,22 +279,15 @@ let suite =
     "parse left-associative"
     >: (
       () => {
-        [
-          ("+", RawUtil.add_op),
-          ("-", RawUtil.sub_op),
-          ("*", RawUtil.mult_op),
-        ]
+        [("+", to_add_op), ("-", to_sub_op), ("*", to_mult_op)]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
                (
-                 (
-                   "a" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-                   "b" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-                 )
+                 ("a" |> to_public_id(as_int), "b" |> to_public_id(as_int))
                  |> tag
                  |> as_int,
-                 "c" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
+                 "c" |> to_public_id(as_int),
                )
                |> tag
                |> as_int,
@@ -342,18 +302,15 @@ let suite =
                ]),
            );
 
-        [("/", RawUtil.div_op)]
+        [("/", to_div_op)]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
                (
-                 (
-                   "a" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-                   "b" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-                 )
+                 ("a" |> to_public_id(as_int), "b" |> to_public_id(as_int))
                  |> tag
                  |> as_float,
-                 "c" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
+                 "c" |> to_public_id(as_int),
                )
                |> tag
                |> as_float,
@@ -368,18 +325,15 @@ let suite =
                ]),
            );
 
-        [("&&", RawUtil.and_op), ("||", RawUtil.or_op)]
+        [("&&", to_and_op), ("||", to_or_op)]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
                (
-                 (
-                   "a" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_bool,
-                   "b" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_bool,
-                 )
+                 ("a" |> to_public_id(as_bool), "b" |> to_public_id(as_bool))
                  |> tag
                  |> as_bool,
-                 "c" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_bool,
+                 "c" |> to_public_id(as_bool),
                )
                |> tag
                |> as_bool,
@@ -394,34 +348,22 @@ let suite =
                ]),
            );
         [
-          ("<=", RawUtil.lte_op),
-          ("<", RawUtil.lt_op),
-          (">=", RawUtil.gte_op),
-          (">", RawUtil.gt_op),
+          ("<=", to_lte_op),
+          ("<", to_lt_op),
+          (">=", to_gte_op),
+          (">", to_gt_op),
         ]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
                (
                  (
-                   "a"
-                   |> RawUtil.public
-                   |> as_lexeme
-                   |> RawUtil.id
-                   |> as_weak(0),
-                   "b"
-                   |> RawUtil.public
-                   |> as_lexeme
-                   |> RawUtil.id
-                   |> as_weak(1),
+                   "a" |> to_public_id(as_weak(0)),
+                   "b" |> to_public_id(as_weak(1)),
                  )
                  |> tag
                  |> as_invalid(NotAssignable(K_Weak(0), K_Numeric)),
-                 "c"
-                 |> RawUtil.public
-                 |> as_lexeme
-                 |> RawUtil.id
-                 |> as_weak(2),
+                 "c" |> to_public_id(as_weak(2)),
                )
                |> tag
                |> as_invalid(
@@ -441,30 +383,18 @@ let suite =
                  ("c", K_Weak(2)),
                ]),
            );
-        [("==", RawUtil.eq_op), ("!=", RawUtil.ineq_op)]
+        [("==", to_eq_op), ("!=", to_ineq_op)]
         |> List.map(((op, tag)) =>
              (
                Print.fmt("a %s b %s c", op, op),
                (
                  (
-                   "a"
-                   |> RawUtil.public
-                   |> as_lexeme
-                   |> RawUtil.id
-                   |> as_weak(0),
-                   "b"
-                   |> RawUtil.public
-                   |> as_lexeme
-                   |> RawUtil.id
-                   |> as_weak(1),
+                   "a" |> to_public_id(as_weak(0)),
+                   "b" |> to_public_id(as_weak(1)),
                  )
                  |> tag
                  |> as_invalid(TypeMismatch(K_Weak(0), K_Weak(1))),
-                 "c"
-                 |> RawUtil.public
-                 |> as_lexeme
-                 |> RawUtil.id
-                 |> as_weak(2),
+                 "c" |> to_public_id(as_weak(2)),
                )
                |> tag
                |> as_invalid(
@@ -493,15 +423,12 @@ let suite =
           (
             "a ^ b ^ c",
             (
-              "a" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-              (
-                "b" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-                "c" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
-              )
-              |> RawUtil.expo_op
+              "a" |> to_public_id(as_int),
+              ("b" |> to_public_id(as_int), "c" |> to_public_id(as_int))
+              |> to_expo_op
               |> as_float,
             )
-            |> RawUtil.expo_op
+            |> to_expo_op
             |> as_float,
           ),
         ]
@@ -518,16 +445,10 @@ let suite =
           (
             "- - - a",
             "a"
-            |> RawUtil.public
-            |> as_lexeme
-            |> RawUtil.id
-            |> as_int
-            |> RawUtil.neg_op
-            |> as_int
-            |> RawUtil.neg_op
-            |> as_int
-            |> RawUtil.neg_op
-            |> as_int,
+            |> to_public_id(as_int)
+            |> to_neg_int
+            |> to_neg_int
+            |> to_neg_int,
           ),
         ]
         |> Assert.parse_many(~scope=to_scope([("a", K_Strong(K_Integer))]));
@@ -535,16 +456,10 @@ let suite =
           (
             "! ! ! a",
             "a"
-            |> RawUtil.public
-            |> as_lexeme
-            |> RawUtil.id
-            |> as_bool
-            |> RawUtil.not_op
-            |> as_bool
-            |> RawUtil.not_op
-            |> as_bool
-            |> RawUtil.not_op
-            |> as_bool,
+            |> to_public_id(as_bool)
+            |> to_not_bool
+            |> to_not_bool
+            |> to_not_bool,
           ),
         ]
         |> Assert.parse_many(~scope=to_scope([("a", K_Strong(K_Boolean))]));

@@ -1,4 +1,5 @@
 open Kore;
+open AST.Raw.Util;
 open Util;
 
 module Primitive = Grammar.Primitive;
@@ -28,6 +29,5 @@ let suite =
   "Grammar.Primitive (Nil)"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
-    "parse"
-    >: (() => ["nil", " nil "] |> Assert.parse_all(RawUtil.nil |> as_nil)),
+    "parse" >: (() => ["nil", " nil "] |> Assert.parse_all(raw_nil)),
   ];

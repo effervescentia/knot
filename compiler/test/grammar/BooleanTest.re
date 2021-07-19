@@ -1,4 +1,5 @@
 open Kore;
+open AST.Raw.Util;
 open Util;
 
 module Primitive = Grammar.Primitive;
@@ -24,14 +25,12 @@ module Assert =
       );
   });
 
-let _raw_bool = RawUtil.bool % as_bool;
-
 let suite =
   "Grammar.Primitive (Boolean)"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse true"
-    >: (() => ["true", " true "] |> Assert.parse_all(_raw_bool(true))),
+    >: (() => ["true", " true "] |> Assert.parse_all(raw_bool(true))),
     "parse false"
-    >: (() => ["false", " false "] |> Assert.parse_all(_raw_bool(false))),
+    >: (() => ["false", " false "] |> Assert.parse_all(raw_bool(false))),
   ];

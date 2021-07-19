@@ -41,7 +41,7 @@ module Compare = {
   let module_table =
     testable(
       pp =>
-        ModuleTable.to_string(AST.Raw.Debug.print_ast)
+        ModuleTable.to_string(AST.Final.Debug.print_ast)
         % Format.pp_print_string(pp),
       ModuleTable.(
         (l, r) =>

@@ -1,4 +1,5 @@
 open Kore;
+open AST.Final.Util;
 
 let namespace = imports =>
   M.string
@@ -8,8 +9,8 @@ let namespace = imports =>
 
 let main_import =
   M.identifier
-  >|= Tuple.split2(Block.value % RawUtil.public, Block.cursor)
-  >|= RawUtil.main_import
+  >|= Tuple.split2(Block.value % to_public, Block.cursor)
+  >|= to_main_import
   >|= (x => [x]);
 
 let named_import = (ctx: Context.t) =>
@@ -22,7 +23,7 @@ let named_import = (ctx: Context.t) =>
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Block.value
-  >|= List.map(RawUtil.named_import);
+  >|= List.map(to_named_import);
 
 let parser = (ctx: Context.t) =>
   Keyword.import
@@ -34,7 +35,7 @@ let parser = (ctx: Context.t) =>
     ((namespace, imports)) =>
       imports
       |> List.iter(
-           AST.(
+           AST.Final.(
              fun
              | MainImport((alias, cursor)) =>
                ctx |> Context.import(namespace, (Main, cursor), alias)
@@ -45,5 +46,5 @@ let parser = (ctx: Context.t) =>
            ),
          )
   )
-  >|= RawUtil.import
+  >|= to_import
   |> M.terminated;

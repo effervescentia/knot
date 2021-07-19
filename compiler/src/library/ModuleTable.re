@@ -4,7 +4,7 @@ type scope_tree_t = RangeTree.t(option(Hashtbl.t(Export.t, Type.t)));
 
 type entry_t = {
   types: Hashtbl.t(Export.t, Type.t),
-  ast: AST.program_t,
+  ast: AST.Final.program_t,
   scopes: RangeTree.t(option(Hashtbl.t(Export.t, Type.t))),
   raw: string,
 };
@@ -31,7 +31,7 @@ let find = (id: Namespace.t, table: t) => Hashtbl.find_opt(table, id);
 let add =
     (
       id: Namespace.t,
-      ast: AST.program_t,
+      ast: AST.Final.program_t,
       exports: list((Export.t, Type.t)),
       scopes: scope_tree_t,
       raw: string,
@@ -60,7 +60,7 @@ let add_type =
   };
 
 let to_string =
-    (~debug=false, print_ast: AST.program_t => string, table: t): string =>
+    (~debug=false, print_ast: AST.Final.program_t => string, table: t): string =>
   Hashtbl.to_seq_keys(table)
   |> List.of_seq
   |> Print.many(~separator="\n", key =>
