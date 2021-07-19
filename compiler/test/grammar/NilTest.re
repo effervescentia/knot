@@ -13,7 +13,10 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp => Tuple.fst3 % Debug.print_prim % Format.pp_print_string(pp),
+            pp =>
+              Tuple.fst3
+              % AST.Raw.Debug.print_prim
+              % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",
@@ -26,5 +29,5 @@ let suite =
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse"
-    >: (() => ["nil", " nil "] |> Assert.parse_all(AST.nil |> as_nil)),
+    >: (() => ["nil", " nil "] |> Assert.parse_all(RawUtil.nil |> as_nil)),
   ];

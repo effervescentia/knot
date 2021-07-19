@@ -1,11 +1,12 @@
 open Kore;
-open AST;
 open Util;
 open Reference;
 
 module Declaration = Grammar.Declaration;
 
 module Assert = {
+  open AST.Raw;
+
   include Assert;
   include Assert.Make({
     type t = module_statement_t;
@@ -39,10 +40,10 @@ let suite =
           (
             "const foo = nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              nil_prim |> of_const,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              nil_prim |> RawUtil.const,
             )
-            |> of_decl,
+            |> RawUtil.decl,
           ),
         ]
         |> Assert.parse_many
@@ -54,10 +55,10 @@ let suite =
           (
             "main const foo = nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_main_export,
-              nil_prim |> of_const,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_export,
+              nil_prim |> RawUtil.const,
             )
-            |> of_decl,
+            |> RawUtil.decl,
           ),
         ]
         |> Assert.parse_many

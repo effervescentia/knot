@@ -1,5 +1,4 @@
 open Kore;
-open AST;
 open AST.Final;
 open Type;
 open Reference;
@@ -12,7 +11,7 @@ let fmt_anon_id = id =>
   "'" ++ String.make(1, char_of_int(97 + id)) |> Pretty.string;
 
 let fmt_binary_op =
-  (
+  AST.(
     fun
     | LogicalAnd => "&&"
     | LogicalOr => "||"
@@ -31,7 +30,7 @@ let fmt_binary_op =
   % Pretty.string;
 
 let fmt_unary_op =
-  (
+  AST.(
     fun
     | Not => "!"
     | Positive => "+"
@@ -42,7 +41,7 @@ let fmt_unary_op =
 let fmt_id = Identifier.to_string % Pretty.string;
 
 let fmt_num =
-  (
+  AST.(
     fun
     | Integer(int) => int |> Int64.to_string
     | Float(float, precision) => float |> Print.fmt("%.*f", precision)
@@ -56,11 +55,13 @@ let fmt_string = s =>
 let fmt_ns = Namespace.to_string % fmt_string;
 
 let fmt_prim =
-  fun
-  | Nil => "nil" |> Pretty.string
-  | Boolean(bool) => bool |> string_of_bool |> Pretty.string
-  | Number(num) => num |> fmt_num
-  | String(str) => str |> fmt_string;
+  AST.(
+    fun
+    | Nil => "nil" |> Pretty.string
+    | Boolean(bool) => bool |> string_of_bool |> Pretty.string
+    | Number(num) => num |> fmt_num
+    | String(str) => str |> fmt_string
+  );
 
 let rec fmt_jsx =
   fun

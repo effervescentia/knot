@@ -1,17 +1,18 @@
 open Kore;
-open AST;
 open Util;
 open Reference;
 
 module Declaration = Grammar.Declaration;
 
 module Assert = {
+  open AST.Raw;
+
   include Assert;
   include Assert.Make({
     type t = (export_t, declaration_t);
 
     let parser = ctx =>
-      Parser.parse(Declaration.constant(ctx, AST.of_named_export));
+      Parser.parse(Declaration.constant(ctx, RawUtil.named_export));
 
     let test =
       Alcotest.(
@@ -29,6 +30,8 @@ module Assert = {
   });
 };
 
+let _public_id = f => RawUtil.public % as_lexeme % RawUtil.id % f;
+
 let suite =
   "Grammar.Declaration (Constant)"
   >::: [
@@ -44,8 +47,8 @@ let suite =
           (
             "const foo = nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              nil_prim |> of_const,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              nil_prim |> RawUtil.const,
             ),
           ),
         ]
@@ -69,54 +72,48 @@ let suite =
             y || x + 1 <= 5;
           }",
           (
-            "foo" |> of_public |> as_lexeme |> of_named_export,
+            "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
             [
               (
-                "x" |> of_public |> as_lexeme,
-                "bar" |> of_public |> as_lexeme |> of_id |> as_float,
+                "x" |> RawUtil.public |> as_lexeme,
+                "bar" |> _public_id(as_float),
               )
-              |> of_var,
+              |> RawUtil.var,
               (
-                "y" |> of_public |> as_lexeme,
+                "y" |> RawUtil.public |> as_lexeme,
                 (
-                  (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "fizz" |> of_public |> as_lexeme |> of_id |> as_int,
-                  )
-                  |> of_gt_op
+                  ("x" |> _public_id(as_float), "fizz" |> _public_id(as_int))
+                  |> RawUtil.gt_op
                   |> as_bool,
                   (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "buzz" |> of_public |> as_lexeme |> of_id |> as_float,
+                    "x" |> _public_id(as_float),
+                    "buzz" |> _public_id(as_float),
                   )
-                  |> of_ineq_op
+                  |> RawUtil.ineq_op
                   |> as_bool,
                 )
-                |> of_and_op
+                |> RawUtil.and_op
                 |> as_bool,
               )
-              |> of_var,
+              |> RawUtil.var,
               (
-                "y" |> of_public |> as_lexeme |> of_id |> as_bool,
+                "y" |> _public_id(as_bool),
                 (
-                  (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    1 |> int_prim,
-                  )
-                  |> of_add_op
+                  ("x" |> _public_id(as_float), 1 |> int_prim)
+                  |> RawUtil.add_op
                   |> as_float,
                   5 |> int_prim,
                 )
-                |> of_lte_op
+                |> RawUtil.lte_op
                 |> as_bool,
               )
-              |> of_or_op
+              |> RawUtil.or_op
               |> as_bool
-              |> of_expr,
+              |> RawUtil.expr,
             ]
-            |> of_closure
+            |> RawUtil.closure
             |> as_bool
-            |> of_const,
+            |> RawUtil.const,
           ),
         );
 
@@ -125,10 +122,19 @@ let suite =
           Export.to_string,
           Type.to_string,
           [
-            (Export.Named("bar" |> of_public), Type.K_Strong(K_Float)),
-            (Export.Named("fizz" |> of_public), Type.K_Strong(K_Integer)),
-            (Export.Named("buzz" |> of_public), Type.K_Strong(K_Float)),
-            (Export.Named("foo" |> of_public), Type.K_Strong(K_Boolean)),
+            (Export.Named("bar" |> RawUtil.public), Type.K_Strong(K_Float)),
+            (
+              Export.Named("fizz" |> RawUtil.public),
+              Type.K_Strong(K_Integer),
+            ),
+            (
+              Export.Named("buzz" |> RawUtil.public),
+              Type.K_Strong(K_Float),
+            ),
+            (
+              Export.Named("foo" |> RawUtil.public),
+              Type.K_Strong(K_Boolean),
+            ),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,

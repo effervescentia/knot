@@ -1,5 +1,4 @@
 open Kore;
-open AST;
 open Util;
 open Reference;
 
@@ -7,6 +6,8 @@ module Program = Grammar.Program;
 module RawUtil = AST.Raw.Util;
 
 module Target = {
+  open AST.Raw;
+
   type t = program_t;
 
   let parser = Program.main % Parser.parse;

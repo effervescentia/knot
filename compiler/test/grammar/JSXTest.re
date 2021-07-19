@@ -1,12 +1,13 @@
 open Kore;
 open Util;
-open AST;
 
 module Expression = Grammar.Expression;
 module JSX = Grammar.JSX;
 
 module Assert =
   Assert.Make({
+    open AST.Raw;
+
     type t = jsx_t;
 
     let parser = ctx =>
@@ -38,11 +39,15 @@ let suite =
         [
           (
             "<Foo></Foo>",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
+            ("Foo" |> RawUtil.public |> as_lexeme, [], [])
+            |> RawUtil.tag
+            |> as_lexeme,
           ),
           (
             " < Foo > < / Foo > ",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
+            ("Foo" |> RawUtil.public |> as_lexeme, [], [])
+            |> RawUtil.tag
+            |> as_lexeme,
           ),
         ]
         |> Assert.parse_many
@@ -53,11 +58,15 @@ let suite =
         [
           (
             "<Foo/>",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
+            ("Foo" |> RawUtil.public |> as_lexeme, [], [])
+            |> RawUtil.tag
+            |> as_lexeme,
           ),
           (
             " < Foo / > ",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
+            ("Foo" |> RawUtil.public |> as_lexeme, [], [])
+            |> RawUtil.tag
+            |> as_lexeme,
           ),
         ]
         |> Assert.parse_many
@@ -66,15 +75,15 @@ let suite =
     >: (
       () =>
         [
-          ("<></>", [] |> of_frag |> as_lexeme),
+          ("<></>", [] |> RawUtil.frag |> as_lexeme),
           (
             "<><Bar /></>",
             [
-              ("Bar" |> of_public |> as_lexeme, [], [])
+              ("Bar" |> RawUtil.public |> as_lexeme, [], [])
               |> jsx_node
               |> as_lexeme,
             ]
-            |> of_frag
+            |> RawUtil.frag
             |> as_lexeme,
           ),
         ]
@@ -87,199 +96,205 @@ let suite =
           (
             "<Foo fizz=buzz />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
+                  "fizz" |> RawUtil.public |> as_lexeme,
                   "buzz"
-                  |> of_public
+                  |> RawUtil.public
                   |> as_lexeme
-                  |> of_id
+                  |> RawUtil.id
                   |> as_bool
                   |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz=\"buzz\" />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
+                  "fizz" |> RawUtil.public |> as_lexeme,
                   "buzz" |> string_prim |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz={ buzz; } />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
+                  "fizz" |> RawUtil.public |> as_lexeme,
                   [
                     "buzz"
-                    |> of_public
+                    |> RawUtil.public
                     |> as_lexeme
-                    |> of_id
+                    |> RawUtil.id
                     |> as_bool
-                    |> of_expr,
+                    |> RawUtil.expr,
                   ]
-                  |> of_closure
+                  |> RawUtil.closure
                   |> as_bool
                   |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz=1 + 2 />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
+                  "fizz" |> RawUtil.public |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
-                  |> of_add_op
+                  |> RawUtil.add_op
                   |> as_int
                   |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz=(1 > 2) />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
+                  "fizz" |> RawUtil.public |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
-                  |> of_gt_op
+                  |> RawUtil.gt_op
                   |> as_bool
                   |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz=(true) />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
+                  "fizz" |> RawUtil.public |> as_lexeme,
                   bool_prim(true) |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz=-3 />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
-                  3 |> int_prim |> of_neg_op |> as_int |> Option.some,
+                  "fizz" |> RawUtil.public |> as_lexeme,
+                  3 |> int_prim |> RawUtil.neg_op |> as_int |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz=<buzz /> />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
                 (
-                  "fizz" |> of_public |> as_lexeme,
-                  ("buzz" |> of_public |> as_lexeme, [], [])
+                  "fizz" |> RawUtil.public |> as_lexeme,
+                  ("buzz" |> RawUtil.public |> as_lexeme, [], [])
                   |> jsx_tag
                   |> as_element
                   |> Option.some,
                 )
-                |> of_prop
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo fizz />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
-                ("fizz" |> of_public |> as_lexeme, None)
-                |> of_prop
+                ("fizz" |> RawUtil.public |> as_lexeme, None)
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo .fizz />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
-                ("fizz" |> of_public |> as_lexeme, None)
-                |> of_jsx_class
+                ("fizz" |> RawUtil.public |> as_lexeme, None)
+                |> RawUtil.jsx_class
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo #fizz />",
             (
-              "Foo" |> of_public |> as_lexeme,
-              ["fizz" |> of_public |> as_lexeme |> of_jsx_id |> as_lexeme],
+              "Foo" |> RawUtil.public |> as_lexeme,
+              [
+                "fizz"
+                |> RawUtil.public
+                |> as_lexeme
+                |> RawUtil.jsx_id
+                |> as_lexeme,
+              ],
               [],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
         ]
@@ -298,57 +313,57 @@ let suite =
           (
             "<Foo><Bar /></Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
               [
-                ("Bar" |> of_public |> as_lexeme, [], [])
+                ("Bar" |> RawUtil.public |> as_lexeme, [], [])
                 |> jsx_node
                 |> as_lexeme,
               ],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo>{1 + 2}</Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
               [
                 (1 |> int_prim, 2 |> int_prim)
-                |> of_add_op
+                |> RawUtil.add_op
                 |> as_int
-                |> of_inline_expr
+                |> RawUtil.inline_expr
                 |> as_lexeme,
               ],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo>{<Bar />}</Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
               [
-                ("Bar" |> of_public |> as_lexeme, [], [])
+                ("Bar" |> RawUtil.public |> as_lexeme, [], [])
                 |> jsx_tag
                 |> as_element
-                |> of_inline_expr
+                |> RawUtil.inline_expr
                 |> as_lexeme,
               ],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
           (
             "<Foo> bar \"or\" 123 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
-              ["bar \"or\" 123" |> as_lexeme |> of_text |> as_lexeme],
+              ["bar \"or\" 123" |> as_lexeme |> RawUtil.text |> as_lexeme],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme,
           ),
         ]
@@ -362,69 +377,69 @@ let suite =
             (
               "<Foo bar=4><Bar /></Foo>",
               (
-                "Foo" |> of_public |> as_lexeme,
+                "Foo" |> RawUtil.public |> as_lexeme,
                 [
                   (
-                    "bar" |> of_public |> as_lexeme,
+                    "bar" |> RawUtil.public |> as_lexeme,
                     4 |> int_prim |> Option.some,
                   )
-                  |> of_prop
+                  |> RawUtil.prop
                   |> as_lexeme,
                 ],
                 [
-                  ("Bar" |> of_public |> as_lexeme, [], [])
+                  ("Bar" |> RawUtil.public |> as_lexeme, [], [])
                   |> jsx_node
                   |> as_lexeme,
                 ],
               )
-              |> of_tag
+              |> RawUtil.tag
               |> as_lexeme,
             ),
             (
               "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
               (
-                "Foo" |> of_public |> as_lexeme,
+                "Foo" |> RawUtil.public |> as_lexeme,
                 [],
                 [
-                  "bar" |> as_lexeme |> of_text |> as_lexeme,
+                  "bar" |> as_lexeme |> RawUtil.text |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
-                  |> of_add_op
+                  |> RawUtil.add_op
                   |> as_int
-                  |> of_inline_expr
+                  |> RawUtil.inline_expr
                   |> as_lexeme,
-                  ("Bar" |> of_public |> as_lexeme, [], [])
+                  ("Bar" |> RawUtil.public |> as_lexeme, [], [])
                   |> jsx_node
                   |> as_lexeme,
-                  "fizz" |> string_prim |> of_inline_expr |> as_lexeme,
-                  "buzz" |> as_lexeme |> of_text |> as_lexeme,
+                  "fizz" |> string_prim |> RawUtil.inline_expr |> as_lexeme,
+                  "buzz" |> as_lexeme |> RawUtil.text |> as_lexeme,
                 ],
               )
-              |> of_tag
+              |> RawUtil.tag
               |> as_lexeme,
             ),
             (
               "<Foo bar=fizz .buzz />",
               (
-                "Foo" |> of_public |> as_lexeme,
+                "Foo" |> RawUtil.public |> as_lexeme,
                 [
                   (
-                    "bar" |> of_public |> as_lexeme,
+                    "bar" |> RawUtil.public |> as_lexeme,
                     "fizz"
-                    |> of_public
+                    |> RawUtil.public
                     |> as_lexeme
-                    |> of_id
+                    |> RawUtil.id
                     |> as_bool
                     |> Option.some,
                   )
-                  |> of_prop
+                  |> RawUtil.prop
                   |> as_lexeme,
-                  ("buzz" |> of_public |> as_lexeme, None)
-                  |> of_jsx_class
+                  ("buzz" |> RawUtil.public |> as_lexeme, None)
+                  |> RawUtil.jsx_class
                   |> as_lexeme,
                 ],
                 [],
               )
-              |> of_tag
+              |> RawUtil.tag
               |> as_lexeme,
             ),
           ]

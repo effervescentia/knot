@@ -1,17 +1,18 @@
 open Kore;
-open AST;
 open Util;
 open Reference;
 
 module Declaration = Grammar.Declaration;
 
 module Assert = {
+  open AST.Raw;
+
   include Assert;
   include Assert.Make({
     type t = (export_t, declaration_t);
 
     let parser = ctx =>
-      Parser.parse(Declaration.function_(ctx, AST.of_named_export));
+      Parser.parse(Declaration.function_(ctx, RawUtil.named_export));
 
     let test =
       Alcotest.(
@@ -54,29 +55,31 @@ let suite =
           (
             "func foo -> nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], nil_prim) |> of_func,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              ([], nil_prim) |> RawUtil.func,
             ),
           ),
           (
             "func foo -> { nil }",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], [nil_prim |> of_expr] |> of_closure |> as_nil) |> of_func,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              ([], [nil_prim |> RawUtil.expr] |> RawUtil.closure |> as_nil)
+              |> RawUtil.func,
             ),
           ),
           (
             "func foo () -> nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], nil_prim) |> of_func,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              ([], nil_prim) |> RawUtil.func,
             ),
           ),
           (
             "func foo () -> { nil }",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], [nil_prim |> of_expr] |> of_closure |> as_nil) |> of_func,
+              "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              ([], [nil_prim |> RawUtil.expr] |> RawUtil.closure |> as_nil)
+              |> RawUtil.func,
             ),
           ),
         ]

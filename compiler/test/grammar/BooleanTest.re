@@ -13,7 +13,10 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp => Tuple.fst3 % Debug.print_prim % Format.pp_print_string(pp),
+            pp =>
+              Tuple.fst3
+              % AST.Raw.Debug.print_prim
+              % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",
@@ -21,19 +24,14 @@ module Assert =
       );
   });
 
+let _raw_bool = RawUtil.bool % as_bool;
+
 let suite =
   "Grammar.Primitive (Boolean)"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse true"
-    >: (
-      () =>
-        ["true", " true "] |> Assert.parse_all(AST.of_bool(true) |> as_bool)
-    ),
+    >: (() => ["true", " true "] |> Assert.parse_all(_raw_bool(true))),
     "parse false"
-    >: (
-      () =>
-        ["false", " false "]
-        |> Assert.parse_all(AST.of_bool(false) |> as_bool)
-    ),
+    >: (() => ["false", " false "] |> Assert.parse_all(_raw_bool(false))),
   ];

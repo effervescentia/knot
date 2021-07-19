@@ -1,5 +1,4 @@
 open Kore;
-open AST;
 open Util;
 open Reference;
 
@@ -11,7 +10,7 @@ let suite =
     "fmt_binary_op()"
     >: (
       () =>
-        [
+        AST.[
           ("&&", LogicalAnd),
           ("||", LogicalOr),
           ("+", Add),
@@ -32,7 +31,7 @@ let suite =
     "fmt_unary_op()"
     >: (
       () =>
-        [("!", Not), ("+", Positive), ("-", Negative)]
+        AST.[("!", Not), ("+", Positive), ("-", Negative)]
         |> List.map(Tuple.map_snd2(fmt_unary_op % Pretty.to_string))
         |> Assert.(test_many(string))
     ),
@@ -57,10 +56,10 @@ let suite =
     >: (
       () =>
         [
-          ("123", 123 |> Int64.of_int |> of_int),
-          ("9223372036854775807", Int64.max_int |> of_int),
-          ("-9223372036854775808", Int64.min_int |> of_int),
-          ("123.456", (123.456, 3) |> of_float),
+          ("123", 123 |> Int64.of_int |> RawUtil.int),
+          ("9223372036854775807", Int64.max_int |> RawUtil.int),
+          ("-9223372036854775808", Int64.min_int |> RawUtil.int),
+          ("123.456", (123.456, 3) |> RawUtil.float),
         ]
         |> List.map(Tuple.map_snd2(fmt_num % Pretty.to_string))
         |> Assert.(test_many(string))
@@ -69,11 +68,11 @@ let suite =
     >: (
       () =>
         [
-          ("123", 123 |> Int64.of_int |> of_int |> of_num),
-          ("true", true |> of_bool),
-          ("false", false |> of_bool),
-          ("nil", nil),
-          ("\"foo bar\"", "foo bar" |> of_string),
+          ("123", 123 |> Int64.of_int |> RawUtil.int |> RawUtil.num),
+          ("true", true |> RawUtil.bool),
+          ("false", false |> RawUtil.bool),
+          ("nil", RawUtil.nil),
+          ("\"foo bar\"", "foo bar" |> RawUtil.string),
         ]
         |> List.map(Tuple.map_snd2(fmt_prim % Pretty.to_string))
         |> Assert.(test_many(string))
@@ -82,25 +81,28 @@ let suite =
     >: (
       () =>
         [
-          ("nil", nil |> as_nil |> of_prim),
-          ("fooBar", "fooBar" |> of_public |> as_lexeme |> of_id),
-          ("123", 123 |> int_prim |> of_group),
-          ("123", 123 |> int_prim |> of_group |> as_int |> of_group),
+          ("nil", RawUtil.nil |> as_nil |> RawUtil.prim),
+          ("fooBar", "fooBar" |> RawUtil.public |> as_lexeme |> RawUtil.id),
+          ("123", 123 |> int_prim |> RawUtil.group),
           (
-            "(123 + 456)",
-            (123 |> int_prim, 456 |> int_prim)
-            |> of_add_op
-            |> as_int
-            |> of_group,
+            "123",
+            123 |> int_prim |> RawUtil.group |> as_int |> RawUtil.group,
           ),
           (
             "(123 + 456)",
             (123 |> int_prim, 456 |> int_prim)
-            |> of_add_op
+            |> RawUtil.add_op
             |> as_int
-            |> of_group
+            |> RawUtil.group,
+          ),
+          (
+            "(123 + 456)",
+            (123 |> int_prim, 456 |> int_prim)
+            |> RawUtil.add_op
             |> as_int
-            |> of_group,
+            |> RawUtil.group
+            |> as_int
+            |> RawUtil.group,
           ),
           (
             "{
@@ -109,29 +111,29 @@ let suite =
   nil;
 }",
             [
-              true |> bool_prim |> of_expr,
-              false |> bool_prim |> of_expr,
-              nil_prim |> of_expr,
+              true |> bool_prim |> RawUtil.expr,
+              false |> bool_prim |> RawUtil.expr,
+              nil_prim |> RawUtil.expr,
             ]
-            |> of_closure,
+            |> RawUtil.closure,
           ),
-          ("!true", true |> bool_prim |> of_not_op),
+          ("!true", true |> bool_prim |> RawUtil.not_op),
           (
             "true || false",
-            (true |> bool_prim, false |> bool_prim) |> of_or_op,
+            (true |> bool_prim, false |> bool_prim) |> RawUtil.or_op,
           ),
           (
             "<Foo>
   bar
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
-              ["bar" |> as_lexeme |> of_text |> as_lexeme],
+              ["bar" |> as_lexeme |> RawUtil.text |> as_lexeme],
             )
-            |> of_tag
+            |> RawUtil.tag
             |> as_lexeme
-            |> of_jsx,
+            |> RawUtil.jsx,
           ),
         ]
         |> List.map(Tuple.map_snd2(fmt_expression % Pretty.to_string))
@@ -141,52 +143,59 @@ let suite =
     >: (
       () =>
         [
-          ("<Foo />", ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag),
-          ("<></>", [] |> of_frag),
+          (
+            "<Foo />",
+            ("Foo" |> RawUtil.public |> as_lexeme, [], []) |> RawUtil.tag,
+          ),
+          ("<></>", [] |> RawUtil.frag),
           (
             "<Foo #bar .fizz buzz />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [
-                "bar" |> of_public |> as_lexeme |> of_jsx_id |> as_lexeme,
-                ("fizz" |> of_public |> as_lexeme, None)
-                |> of_jsx_class
+                "bar"
+                |> RawUtil.public
+                |> as_lexeme
+                |> RawUtil.jsx_id
                 |> as_lexeme,
-                ("buzz" |> of_public |> as_lexeme, None)
-                |> of_prop
+                ("fizz" |> RawUtil.public |> as_lexeme, None)
+                |> RawUtil.jsx_class
+                |> as_lexeme,
+                ("buzz" |> RawUtil.public |> as_lexeme, None)
+                |> RawUtil.prop
                 |> as_lexeme,
               ],
               [],
             )
-            |> of_tag,
+            |> RawUtil.tag,
           ),
           (
             "<Foo>
   bar
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
-              ["bar" |> as_lexeme |> of_text |> as_lexeme],
+              ["bar" |> as_lexeme |> RawUtil.text |> as_lexeme],
             )
-            |> of_tag,
+            |> RawUtil.tag,
           ),
           (
             "<Foo>
   {1 + 5}
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
               [
                 (1 |> int_prim, 5 |> int_prim)
-                |> of_add_op
+                |> RawUtil.add_op
                 |> as_int
-                |> of_inline_expr
+                |> RawUtil.inline_expr
                 |> as_lexeme,
               ],
             )
-            |> of_tag,
+            |> RawUtil.tag,
           ),
           (
             "<Foo>
@@ -195,21 +204,21 @@ let suite =
   </Bar>
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
               [
                 (
-                  "Bar" |> of_public |> as_lexeme,
+                  "Bar" |> RawUtil.public |> as_lexeme,
                   [],
-                  ["fizzbuzz" |> as_lexeme |> of_text |> as_lexeme],
+                  ["fizzbuzz" |> as_lexeme |> RawUtil.text |> as_lexeme],
                 )
-                |> of_tag
+                |> RawUtil.tag
                 |> as_lexeme
-                |> of_node
+                |> RawUtil.node
                 |> as_lexeme,
               ],
             )
-            |> of_tag,
+            |> RawUtil.tag,
           ),
           (
             "<Foo>
@@ -218,19 +227,19 @@ let suite =
   Hello, World!
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> RawUtil.public |> as_lexeme,
               [],
               [
-                ("Bar" |> of_public |> as_lexeme, [], [])
-                |> of_tag
+                ("Bar" |> RawUtil.public |> as_lexeme, [], [])
+                |> RawUtil.tag
                 |> as_lexeme
-                |> of_node
+                |> RawUtil.node
                 |> as_lexeme,
-                nil_prim |> of_inline_expr |> as_lexeme,
-                "Hello, World!" |> as_lexeme |> of_text |> as_lexeme,
+                nil_prim |> RawUtil.inline_expr |> as_lexeme,
+                "Hello, World!" |> as_lexeme |> RawUtil.text |> as_lexeme,
               ],
             )
-            |> of_tag,
+            |> RawUtil.tag,
           ),
         ]
         |> List.map(Tuple.map_snd2(fmt_jsx % Pretty.to_string))
@@ -243,55 +252,68 @@ let suite =
           (
             "fizz=buzz",
             (
-              "fizz" |> of_public |> as_lexeme,
-              Some("buzz" |> of_public |> as_lexeme |> of_id |> as_weak(0)),
+              "fizz" |> RawUtil.public |> as_lexeme,
+              Some(
+                "buzz"
+                |> RawUtil.public
+                |> as_lexeme
+                |> RawUtil.id
+                |> as_weak(0),
+              ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz=123",
-            ("fizz" |> of_public |> as_lexeme, Some(123 |> int_prim))
-            |> of_prop,
+            ("fizz" |> RawUtil.public |> as_lexeme, Some(123 |> int_prim))
+            |> RawUtil.prop,
           ),
           (
             "fizz=(1 + 2)",
             (
-              "fizz" |> of_public |> as_lexeme,
-              Some((1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int),
+              "fizz" |> RawUtil.public |> as_lexeme,
+              Some(
+                (1 |> int_prim, 2 |> int_prim) |> RawUtil.add_op |> as_int,
+              ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz=(-1)",
             (
-              "fizz" |> of_public |> as_lexeme,
-              Some(1 |> int_prim |> of_neg_op |> as_int),
+              "fizz" |> RawUtil.public |> as_lexeme,
+              Some(1 |> int_prim |> RawUtil.neg_op |> as_int),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz=true",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> RawUtil.public |> as_lexeme,
               Some(
-                true |> bool_prim |> of_group |> as_bool |> of_group |> as_bool,
+                true
+                |> bool_prim
+                |> RawUtil.group
+                |> as_bool
+                |> RawUtil.group
+                |> as_bool,
               ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz=(1 + 2)",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> RawUtil.public |> as_lexeme,
               Some(
                 (1 |> int_prim, 2 |> int_prim)
-                |> of_add_op
+                |> RawUtil.add_op
                 |> as_int
-                |> of_group
+                |> RawUtil.group
                 |> as_int,
               ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz={
@@ -299,66 +321,72 @@ let suite =
   false;
 }",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> RawUtil.public |> as_lexeme,
               Some(
-                [true |> bool_prim |> of_expr, false |> bool_prim |> of_expr]
-                |> of_closure
+                [
+                  true |> bool_prim |> RawUtil.expr,
+                  false |> bool_prim |> RawUtil.expr,
+                ]
+                |> RawUtil.closure
                 |> as_bool,
               ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz=<Buzz />",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> RawUtil.public |> as_lexeme,
               Some(
-                ("Buzz" |> of_public |> as_lexeme, [], [])
-                |> of_tag
+                ("Buzz" |> RawUtil.public |> as_lexeme, [], [])
+                |> RawUtil.tag
                 |> as_lexeme
-                |> of_jsx
+                |> RawUtil.jsx
                 |> as_element,
               ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
           (
             "fizz=(<Buzz>
   <Foo />
 </Buzz>)",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> RawUtil.public |> as_lexeme,
               Some(
                 (
-                  "Buzz" |> of_public |> as_lexeme,
+                  "Buzz" |> RawUtil.public |> as_lexeme,
                   [],
                   [
-                    ("Foo" |> of_public |> as_lexeme, [], [])
-                    |> of_tag
+                    ("Foo" |> RawUtil.public |> as_lexeme, [], [])
+                    |> RawUtil.tag
                     |> as_lexeme
-                    |> of_node
+                    |> RawUtil.node
                     |> as_lexeme,
                   ],
                 )
-                |> of_tag
+                |> RawUtil.tag
                 |> as_lexeme
-                |> of_jsx
+                |> RawUtil.jsx
                 |> as_element,
               ),
             )
-            |> of_prop,
+            |> RawUtil.prop,
           ),
-          ("buzz", ("buzz" |> of_public |> as_lexeme, None) |> of_prop),
+          (
+            "buzz",
+            ("buzz" |> RawUtil.public |> as_lexeme, None) |> RawUtil.prop,
+          ),
           (
             ".fizz=true",
-            ("fizz" |> of_public |> as_lexeme, Some(true |> bool_prim))
-            |> of_jsx_class,
+            ("fizz" |> RawUtil.public |> as_lexeme, Some(true |> bool_prim))
+            |> RawUtil.jsx_class,
           ),
           (
             ".fizz",
-            ("fizz" |> of_public |> as_lexeme, None) |> of_jsx_class,
+            ("fizz" |> RawUtil.public |> as_lexeme, None) |> RawUtil.jsx_class,
           ),
-          ("#bar", "bar" |> of_public |> as_lexeme |> of_jsx_id),
+          ("#bar", "bar" |> RawUtil.public |> as_lexeme |> RawUtil.jsx_id),
         ]
         |> List.map(Tuple.map_snd2(fmt_jsx_attr % Pretty.to_string))
         |> Assert.(test_many(string))
@@ -367,14 +395,17 @@ let suite =
     >: (
       () =>
         [
-          ("nil;", nil |> as_nil |> of_prim |> as_nil |> of_expr),
+          (
+            "nil;",
+            RawUtil.nil |> as_nil |> RawUtil.prim |> as_nil |> RawUtil.expr,
+          ),
           (
             "let foo = nil;",
             (
-              "foo" |> of_public |> as_lexeme,
-              nil |> as_nil |> of_prim |> as_nil,
+              "foo" |> RawUtil.public |> as_lexeme,
+              RawUtil.nil |> as_nil |> RawUtil.prim |> as_nil,
             )
-            |> of_var,
+            |> RawUtil.var,
           ),
         ]
         |> List.map(Tuple.map_snd2(fmt_statement % Pretty.to_string))
@@ -387,8 +418,8 @@ let suite =
           (
             "const foo = nil;\n",
             (
-              "foo" |> of_public |> as_lexeme,
-              nil |> as_nil |> of_prim |> as_nil |> of_const,
+              "foo" |> RawUtil.public |> as_lexeme,
+              RawUtil.nil |> as_nil |> RawUtil.prim |> as_nil |> RawUtil.const,
             ),
           ),
         ]
@@ -402,26 +433,29 @@ let suite =
           (
             "func foo(bar, fizz = 3) -> bar + fizz;\n",
             (
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> RawUtil.public |> as_lexeme,
               (
                 [
                   (
-                    {name: "bar" |> of_public |> as_lexeme, default: None},
+                    {
+                      name: "bar" |> RawUtil.public |> as_lexeme,
+                      default: None,
+                    },
                     Type.K_Strong(K_Integer),
                   ),
                   (
                     {
-                      name: "fizz" |> of_public |> as_lexeme,
+                      name: "fizz" |> RawUtil.public |> as_lexeme,
                       default: Some(3 |> int_prim),
                     },
                     Type.K_Strong(K_Integer),
                   ),
                 ],
                 (
-                  "bar" |> of_public |> as_lexeme |> of_id |> as_int,
-                  "fizz" |> of_public |> as_lexeme |> of_id |> as_int,
+                  "bar" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
+                  "fizz" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
                 )
-                |> of_add_op
+                |> RawUtil.add_op
                 |> as_int,
               )
               |> of_func,
@@ -435,24 +469,30 @@ let suite =
 }
 ",
             (
-              "buzz" |> of_public |> as_lexeme,
+              "buzz" |> RawUtil.public |> as_lexeme,
               (
                 [],
                 [
-                  ("zip" |> of_public |> as_lexeme, 3 |> int_prim) |> of_var,
-                  ("zap" |> of_public |> as_lexeme, 4 |> int_prim) |> of_var,
+                  ("zip" |> RawUtil.public |> as_lexeme, 3 |> int_prim)
+                  |> RawUtil.var,
+                  ("zap" |> RawUtil.public |> as_lexeme, 4 |> int_prim)
+                  |> RawUtil.var,
                   (
-                    "zip" |> of_public |> as_lexeme |> of_id |> as_int,
-                    "zap" |> of_public |> as_lexeme |> of_id |> as_int,
+                    "zip" |> RawUtil.public |> as_lexeme |> RawUtil.id |> as_int,
+                    "zap"
+                    |> RawUtil.public
+                    |> as_lexeme
+                    |> RawUtil.id
+                    |> as_int,
                   )
-                  |> of_mult_op
+                  |> RawUtil.mult_op
                   |> as_int
-                  |> of_expr,
+                  |> RawUtil.expr,
                 ]
-                |> of_closure
+                |> RawUtil.closure
                 |> as_int,
               )
-              |> of_func,
+              |> RawUtil.func,
             ),
           ),
         ]
@@ -469,15 +509,15 @@ const ABC = 123;
 ",
             [
               (
-                "DEF" |> of_public |> as_lexeme |> of_named_export,
-                true |> bool_prim |> of_const,
+                "DEF" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+                true |> bool_prim |> RawUtil.const,
               )
-              |> of_decl,
+              |> RawUtil.decl,
               (
-                "ABC" |> of_public |> as_lexeme |> of_named_export,
-                123 |> int_prim |> of_const,
+                "ABC" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+                123 |> int_prim |> RawUtil.const,
               )
-              |> of_decl,
+              |> RawUtil.decl,
             ],
           ),
         ]
@@ -498,23 +538,24 @@ import Fizz from \"buzz\";
 ",
             [
               (
-                "buzz" |> of_external,
-                ["Fizz" |> of_public |> as_lexeme |> of_main_import],
+                "buzz" |> RawUtil.external,
+                ["Fizz" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
               )
-              |> of_import,
+              |> RawUtil.import,
               (
-                "bar" |> of_external,
+                "bar" |> RawUtil.external,
                 [
-                  "bar" |> of_public |> as_lexeme |> of_main_import,
+                  "bar" |> RawUtil.public |> as_lexeme |> RawUtil.main_import,
                   (
-                    "Foo" |> of_public |> as_lexeme,
-                    Some("foo" |> of_public |> as_lexeme),
+                    "Foo" |> RawUtil.public |> as_lexeme,
+                    Some("foo" |> RawUtil.public |> as_lexeme),
                   )
-                  |> of_named_import,
-                  ("Bar" |> of_public |> as_lexeme, None) |> of_named_import,
+                  |> RawUtil.named_import,
+                  ("Bar" |> RawUtil.public |> as_lexeme, None)
+                  |> RawUtil.named_import,
                 ],
               )
-              |> of_import,
+              |> RawUtil.import,
             ],
           ),
           (
@@ -524,15 +565,15 @@ import Foo from \"@/bar\";
 ",
             [
               (
-                "bar" |> of_internal,
-                ["Foo" |> of_public |> as_lexeme |> of_main_import],
+                "bar" |> RawUtil.internal,
+                ["Foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
               )
-              |> of_import,
+              |> RawUtil.import,
               (
-                "buzz" |> of_external,
-                ["Fizz" |> of_public |> as_lexeme |> of_main_import],
+                "buzz" |> RawUtil.external,
+                ["Fizz" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
               )
-              |> of_import,
+              |> RawUtil.import,
             ],
           ),
         ]
@@ -550,20 +591,20 @@ import Foo from \"@/bar\";
             "import Foo from \"bar\";\n",
             [
               (
-                "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main_import],
+                "bar" |> RawUtil.external,
+                ["Foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
               )
-              |> of_import,
+              |> RawUtil.import,
             ],
           ),
           (
             "const ABC = 123;\n",
             [
               (
-                "ABC" |> of_public |> as_lexeme |> of_named_export,
-                123 |> int_prim |> of_const,
+                "ABC" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+                123 |> int_prim |> RawUtil.const,
               )
-              |> of_decl,
+              |> RawUtil.decl,
             ],
           ),
           (
@@ -573,15 +614,15 @@ const ABC = 123;
 ",
             [
               (
-                "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main_import],
+                "bar" |> RawUtil.external,
+                ["Foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
               )
-              |> of_import,
+              |> RawUtil.import,
               (
-                "ABC" |> of_public |> as_lexeme |> of_named_export,
-                123 |> int_prim |> of_const,
+                "ABC" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+                123 |> int_prim |> RawUtil.const,
               )
-              |> of_decl,
+              |> RawUtil.decl,
             ],
           ),
         ]

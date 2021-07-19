@@ -15,7 +15,7 @@ module Assert =
         check(
           testable(
             pp =>
-              Debug.print_mod_stmt
+              AST.Raw.Debug.print_mod_stmt
               % Cow.Xml.list
               % Cow.Xml.to_string
               % Format.pp_print_string(pp),
@@ -44,67 +44,78 @@ let suite =
           (
             "import foo from \"@/bar\"",
             AST.(
-              of_import((
-                "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main_import],
-              ))
+              (
+                "bar" |> RawUtil.internal,
+                ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
+              )
+              |> RawUtil.import
             ),
           ),
           (
             "import {} from \"@/bar\"",
-            AST.(of_import(("bar" |> of_internal, []))),
+            AST.(("bar" |> RawUtil.internal, []) |> RawUtil.import),
           ),
           (
             "import { foo } from \"@/bar\"",
             AST.(
-              of_import((
-                "bar" |> of_internal,
-                [("foo" |> of_public |> as_lexeme, None) |> of_named_import],
-              ))
+              (
+                "bar" |> RawUtil.internal,
+                [
+                  ("foo" |> RawUtil.public |> as_lexeme, None)
+                  |> RawUtil.named_import,
+                ],
+              )
+              |> RawUtil.import
             ),
           ),
           (
             "import { foo as bar } from \"@/bar\"",
             AST.(
-              of_import((
-                "bar" |> of_internal,
+              (
+                "bar" |> RawUtil.internal,
                 [
                   (
-                    "foo" |> of_public |> as_lexeme,
-                    Some("bar" |> of_public |> as_lexeme),
+                    "foo" |> RawUtil.public |> as_lexeme,
+                    Some("bar" |> RawUtil.public |> as_lexeme),
                   )
-                  |> of_named_import,
+                  |> RawUtil.named_import,
                 ],
-              ))
+              )
+              |> RawUtil.import
             ),
           ),
           (
             "import fizz, { foo, bar as Bar } from \"@/bar\"",
             AST.(
-              of_import((
-                "bar" |> of_internal,
+              (
+                "bar" |> RawUtil.internal,
                 [
-                  "fizz" |> of_public |> as_lexeme |> of_main_import,
-                  ("foo" |> of_public |> as_lexeme, None) |> of_named_import,
+                  "fizz" |> RawUtil.public |> as_lexeme |> RawUtil.main_import,
+                  ("foo" |> RawUtil.public |> as_lexeme, None)
+                  |> RawUtil.named_import,
                   (
-                    "bar" |> of_public |> as_lexeme,
-                    Some("Bar" |> of_public |> as_lexeme),
+                    "bar" |> RawUtil.public |> as_lexeme,
+                    Some("Bar" |> RawUtil.public |> as_lexeme),
                   )
-                  |> of_named_import,
+                  |> RawUtil.named_import,
                 ],
-              ))
+              )
+              |> RawUtil.import
             ),
           ),
           (
             "import { foo, bar, } from \"@/bar\"",
             AST.(
-              of_import((
-                "bar" |> of_internal,
+              (
+                "bar" |> RawUtil.internal,
                 [
-                  ("foo" |> of_public |> as_lexeme, None) |> of_named_import,
-                  ("bar" |> of_public |> as_lexeme, None) |> of_named_import,
+                  ("foo" |> RawUtil.public |> as_lexeme, None)
+                  |> RawUtil.named_import,
+                  ("bar" |> RawUtil.public |> as_lexeme, None)
+                  |> RawUtil.named_import,
                 ],
-              ))
+              )
+              |> RawUtil.import
             ),
           ),
         ]
@@ -114,18 +125,18 @@ let suite =
                  ~modules=
                    AST.[
                      (
-                       "bar" |> of_internal,
+                       "bar" |> RawUtil.internal,
                        ModuleTable.{
                          ast: [],
                          types:
                            [
                              (Export.Main, Type.K_Strong(K_Nil)),
                              (
-                               Export.Named("bar" |> of_public),
+                               Export.Named("bar" |> RawUtil.public),
                                Type.K_Strong(K_Boolean),
                              ),
                              (
-                               Export.Named("foo" |> of_public),
+                               Export.Named("foo" |> RawUtil.public),
                                Type.K_Strong(K_String),
                              ),
                            ]
@@ -149,19 +160,21 @@ let suite =
           (
             "import foo from \"@/bar\";",
             AST.(
-              of_import((
-                "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main_import],
-              ))
+              (
+                "bar" |> RawUtil.internal,
+                ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
+              )
+              |> RawUtil.import
             ),
           ),
           (
             "  import  foo  from   \"@/bar\"  ;  ",
             AST.(
-              of_import((
-                "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main_import],
-              ))
+              (
+                "bar" |> RawUtil.internal,
+                ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
+              )
+              |> RawUtil.import
             ),
           ),
         ]
@@ -171,7 +184,7 @@ let suite =
                  ~modules=
                    AST.[
                      (
-                       "bar" |> of_internal,
+                       "bar" |> RawUtil.internal,
                        ModuleTable.{
                          ast: [],
                          types:
