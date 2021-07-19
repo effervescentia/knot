@@ -19,7 +19,7 @@ module Assert =
             pp =>
               fst
               % Debug.print_jsx
-              % Pretty.to_string
+              % Cow.Xml.to_string
               % Format.pp_print_string(pp),
             (==),
           ),

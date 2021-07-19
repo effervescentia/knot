@@ -1,5 +1,6 @@
 open Kore;
 open AST;
+open AST.Final;
 open Type;
 open Reference;
 
@@ -201,6 +202,58 @@ and fmt_statement = stmt =>
   @ [__semicolon]
   |> Pretty.concat;
 
+let rec fmt_type =
+  Type2.(
+    fun
+    | Nil => Constants.Keyword.nil |> Pretty.string
+    | Boolean => Constants.Keyword.bool |> Pretty.string
+    | Integer => Constants.Keyword.int |> Pretty.string
+    | Float => Constants.Keyword.float |> Pretty.string
+    | String => Constants.Keyword.string |> Pretty.string
+    | Element => Constants.Keyword.element |> Pretty.string
+    | Iterable(t) => [t |> fmt_type, "[]" |> Pretty.string] |> Pretty.concat
+    | Structural(ts) =>
+      List.is_empty(ts)
+        ? "{}" |> Pretty.string
+        : [
+            "{ " |> Pretty.string,
+            ts
+            |> List.map(((key, value)) =>
+                 [key |> Pretty.string] |> Pretty.concat
+               )
+            |> List.intersperse(", " |> Pretty.string)
+            |> Pretty.concat,
+            " }" |> Pretty.string,
+          ]
+          |> Pretty.concat
+    | Function(args, res) =>
+      [
+        List.is_empty(args)
+          ? "()" |> Pretty.string
+          : [
+              "(" |> Pretty.string,
+              args
+              |> List.map(((name, value)) =>
+                   [name |> Pretty.string] |> Pretty.concat
+                 )
+              |> List.intersperse(", " |> Pretty.string)
+              |> Pretty.concat,
+              ")" |> Pretty.string,
+            ]
+            |> Pretty.concat,
+        " -> " |> Pretty.string,
+      ]
+      |> Pretty.concat
+    | Abstract(t) =>
+      (
+        switch (t) {
+        | Unknown => "unknown"
+        | Numeric => Constants.Keyword.number
+        }
+      )
+      |> Pretty.string
+  );
+
 let fmt_declaration = (((name, _), decl)) =>
   (
     switch (decl) {
@@ -210,6 +263,12 @@ let fmt_declaration = (((name, _), decl)) =>
         " = " |> Pretty.string,
         expr |> fmt_expression,
         __semicolon,
+      ]
+    | Type((type_, _)) => [
+        "type " |> Pretty.string,
+        name |> fmt_id,
+        " = " |> Pretty.string,
+        type_ |> fmt_type,
       ]
     | Function(args, (expr, _, _)) => [
         "func " |> Pretty.string,

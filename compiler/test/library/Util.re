@@ -1,11 +1,13 @@
 open Kore;
 open Reference;
 
+module RawUtil = AST.Raw.Util;
+
 let to_scope = (types: list((string, Type.t))) => {
   let scope = Scope.create();
 
   types
-  |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
+  |> List.map(Tuple.map_fst2(RawUtil.public % (x => Export.Named(x))))
   |> List.to_seq
   |> Hashtbl.add_seq(scope.types);
 
@@ -31,20 +33,21 @@ let as_invalid = (err, x) => as_typed_lexeme(Type.K_Invalid(err), x);
 
 let as_weak = (id, x) => as_typed_lexeme(Type.K_Weak(id), x);
 
-let nil_prim = AST.nil |> as_nil |> AST.of_prim |> as_nil;
+let nil_prim = RawUtil.nil |> as_nil |> RawUtil.prim |> as_nil;
 
-let bool_prim = AST.of_bool % as_bool % AST.of_prim % as_bool;
+let bool_prim = RawUtil.bool % as_bool % RawUtil.prim % as_bool;
 
 let int_prim =
-  Int64.of_int % AST.of_int % AST.of_num % as_int % AST.of_prim % as_int;
+  Int64.of_int % RawUtil.int % RawUtil.num % as_int % RawUtil.prim % as_int;
 
-let float_prim = AST.of_float % AST.of_num % as_float % AST.of_prim % as_float;
+let float_prim =
+  RawUtil.float % RawUtil.num % as_float % RawUtil.prim % as_float;
 
-let string_prim = AST.of_string % as_string % AST.of_prim % as_string;
+let string_prim = RawUtil.string % as_string % RawUtil.prim % as_string;
 
-let jsx_node = AST.of_tag % as_lexeme % AST.of_node;
+let jsx_node = RawUtil.tag % as_lexeme % RawUtil.node;
 
-let jsx_tag = AST.of_tag % as_lexeme % AST.of_jsx;
+let jsx_tag = RawUtil.tag % as_lexeme % RawUtil.jsx;
 
 let print_parse_err =
   fun
@@ -66,7 +69,7 @@ let print_compile_err =
       "ParseError<%s, %s, %s>",
       err |> _parse_err_to_string,
       namespace |> Namespace.to_string,
-      cursor |> Debug.print_cursor,
+      cursor |> Cursor.to_string,
     );
 
 let print_errs =

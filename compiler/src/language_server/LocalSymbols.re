@@ -58,28 +58,30 @@ let handler =
                      let name = name |> Block.value |> Identifier.to_string;
                      let type_ = decl |> Grammar.TypeOf.declaration;
 
-                     Some(
-                       switch (decl) {
-                       | Constant(expr) => {
-                           name,
-                           detail: type_ |> Type.to_string,
-                           range,
-                           full_range:
-                             Cursor.join(name_cursor, expr |> Tuple.thd3)
-                             |> Cursor.expand,
-                           kind: Capabilities.Variable,
-                         }
-                       | Function(args, expr) => {
-                           name,
-                           detail: type_ |> Type.to_string,
-                           range,
-                           full_range:
-                             Cursor.join(name_cursor, expr |> Tuple.thd3)
-                             |> Cursor.expand,
-                           kind: Capabilities.Function,
-                         }
-                       },
-                     );
+                     switch (decl) {
+                     | Constant(expr) =>
+                       Some({
+                         name,
+                         detail: type_ |> Type.to_string,
+                         range,
+                         full_range:
+                           Cursor.join(name_cursor, expr |> Tuple.thd3)
+                           |> Cursor.expand,
+                         kind: Capabilities.Variable,
+                       })
+                     /* TODO: add type handling */
+                     | Type(_) => None
+                     | Function(args, expr) =>
+                       Some({
+                         name,
+                         detail: type_ |> Type.to_string,
+                         range,
+                         full_range:
+                           Cursor.join(name_cursor, expr |> Tuple.thd3)
+                           |> Cursor.expand,
+                         kind: Capabilities.Function,
+                       })
+                     };
                    }
                  | Import(_) => None
                ),

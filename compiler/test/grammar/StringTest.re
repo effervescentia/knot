@@ -15,8 +15,7 @@ module Assert =
           testable(
             pp =>
               Tuple.fst3
-              % Debug.print_prim
-              % Pretty.to_string
+              % AST.Raw.Debug.print_prim
               % Format.pp_print_string(pp),
             (==),
           ),
@@ -33,14 +32,14 @@ let suite =
     >: (
       () =>
         ["\"foo\"", " \"foo\" "]
-        |> Assert.parse_all(AST.of_string("foo") |> as_string)
+        |> Assert.parse_all("foo" |> RawUtil.string |> as_string)
     ),
     "with escape characters"
     >: (
       () =>
         Assert.parse(
           "\"foo\\\"bar\"",
-          AST.of_string("foo\\\"bar") |> as_string,
+          "foo\\\"bar" |> RawUtil.string |> as_string,
         )
     ),
   ];

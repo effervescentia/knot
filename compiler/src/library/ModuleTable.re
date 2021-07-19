@@ -58,3 +58,25 @@ let add_type =
 
     Hashtbl.replace(members.types, id, value);
   };
+
+let to_string =
+    (~debug=false, print_ast: AST.program_t => string, table: t): string =>
+  Hashtbl.to_seq_keys(table)
+  |> List.of_seq
+  |> Print.many(~separator="\n", key =>
+       key
+       |> Hashtbl.find(table)
+       |> (
+         ({ast, raw, types}) =>
+           ast
+           |> print_ast
+           |> Print.fmt(
+                "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
+                Reference.Namespace.to_string(key),
+                types
+                |> Hashtbl.to_string(Export.to_string, Type.to_string)
+                |> Pretty.to_string,
+                raw,
+              )
+       )
+     );

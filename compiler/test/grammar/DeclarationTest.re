@@ -18,7 +18,8 @@ module Assert = {
           testable(
             pp =>
               Debug.print_mod_stmt
-              % Pretty.to_string
+              % Cow.Xml.list
+              % Cow.Xml.to_string
               % Format.pp_print_string(pp),
             (==),
           ),

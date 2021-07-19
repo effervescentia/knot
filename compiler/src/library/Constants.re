@@ -61,16 +61,35 @@ module Glyph = {
 };
 
 module Keyword = {
-  let import = "import";
-  let from = "from";
-  let main = "main";
+  /* declarations */
   let const = "const";
+  let type_ = "type";
   let func = "func";
   let let_ = "let";
+
+  /* utility */
+  let main = "main";
+  let as_ = "as";
+
+  /* import */
+  let import = "import";
+  let from = "from";
+
+  /* primitives */
   let nil = "nil";
   let true_ = "true";
   let false_ = "false";
-  let as_ = "as";
 
-  let reserved = [import, from, main, const, let_, nil, true_, false_, as_];
+  /* type primitives */
+  let bool = "bool";
+  let int = "int";
+  let float = "float";
+  let number = "number";
+  let string = "string";
+  let element = "Element";
+
+  /**
+   * keywords which cannot be used as the name of an indentifier
+   */
+  let reserved = [const, type_, func, let_, nil, true_, false_, as_];
 };

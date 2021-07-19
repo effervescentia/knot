@@ -8,8 +8,8 @@ let namespace = imports =>
 
 let main_import =
   M.identifier
-  >|= Tuple.split2(Block.value % AST.of_public, Block.cursor)
-  >|= AST.of_main_import
+  >|= Tuple.split2(Block.value % RawUtil.public, Block.cursor)
+  >|= RawUtil.main_import
   >|= (x => [x]);
 
 let named_import = (ctx: Context.t) =>
@@ -22,7 +22,7 @@ let named_import = (ctx: Context.t) =>
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Block.value
-  >|= List.map(AST.of_named_import);
+  >|= List.map(RawUtil.named_import);
 
 let parser = (ctx: Context.t) =>
   Keyword.import
@@ -45,5 +45,5 @@ let parser = (ctx: Context.t) =>
            ),
          )
   )
-  >|= AST.of_import
+  >|= RawUtil.import
   |> M.terminated;

@@ -15,7 +15,7 @@ module Compare = {
             Print.fmt(
               "%s@%s",
               [x |> Input.value] |> String.of_uchars,
-              x |> Input.cursor |> Debug.print_cursor,
+              x |> Input.cursor |> Cursor.to_string,
             )
         )
         % Format.pp_print_string(pp),
@@ -23,7 +23,7 @@ module Compare = {
     );
 
   let cursor =
-    testable(pp => Debug.print_cursor % Format.pp_print_string(pp), (==));
+    testable(pp => Cursor.to_string % Format.pp_print_string(pp), (==));
 
   let graph =
     testable(
@@ -40,7 +40,9 @@ module Compare = {
 
   let module_table =
     testable(
-      pp => Debug.print_module_table % Format.pp_print_string(pp),
+      pp =>
+        ModuleTable.to_string(AST.Raw.Debug.print_ast)
+        % Format.pp_print_string(pp),
       ModuleTable.(
         (l, r) =>
           Hashtbl.compare(

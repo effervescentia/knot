@@ -4,7 +4,8 @@ type token_t =
   | Skip
   | Join
   | Identifier(Identifier.t)
-  | Primitive(AST.raw_primitive_t);
+  | Primitive(AST.raw_primitive_t)
+  | Type(Type2.t);
 
 type t = RangeTree.t(token_t);
 
@@ -118,6 +119,8 @@ and of_stmt =
 let of_decl =
   fun
   | AST.Constant((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
+  | AST.Type((t, cursor)) =>
+    BinaryTree.create((cursor |> Cursor.expand, Type(t)))
   | AST.Function(args, (expr, _, cursor)) =>
     _join(
       args
@@ -154,7 +157,8 @@ let to_string = (tree: t) =>
         | Join => ""
         | Skip => "[skip]"
         | Identifier(id) => Identifier.to_string(id)
-        | Primitive(prim) => Debug.print_prim(prim) |> Pretty.to_string
+        | Primitive(prim) => Debug.print_prim(prim)
+        | Type(type_) => Debug.print_type(type_)
         },
         Cursor.Range(start, end_) |> Debug.print_cursor,
       )

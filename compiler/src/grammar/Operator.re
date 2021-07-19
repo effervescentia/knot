@@ -1,5 +1,4 @@
 open Kore;
-open AST;
 open Type;
 
 let _report_invalid = (ctx: Context.t, cursor, err) => {
@@ -36,9 +35,9 @@ let _inverting =
   | t => Error(NotAssignable(t, K_Numeric));
 
 let negative = (ctx: Context.t) =>
-  of_neg_op |> _unary_op(ctx, _inverting) <$ Symbol.negative;
+  RawUtil.neg_op |> _unary_op(ctx, _inverting) <$ Symbol.negative;
 let positive = (ctx: Context.t) =>
-  of_pos_op |> _unary_op(ctx, _inverting) <$ Symbol.positive;
+  RawUtil.pos_op |> _unary_op(ctx, _inverting) <$ Symbol.positive;
 
 /* simple arithmetic (*, +, -) */
 
@@ -55,11 +54,11 @@ let _simple_arithmetic = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
 let mult = (ctx: Context.t) =>
-  of_mult_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.multiply;
+  RawUtil.mult_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.multiply;
 let add = (ctx: Context.t) =>
-  of_add_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.add;
+  RawUtil.add_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.add;
 let sub = (ctx: Context.t) =>
-  of_sub_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.subtract;
+  RawUtil.sub_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.subtract;
 
 /* complex arithmetic (/, ^) */
 
@@ -74,9 +73,11 @@ let _complex_arithmetic = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
 let div = (ctx: Context.t) =>
-  of_div_op |> _binary_op(ctx, _complex_arithmetic) <$ Symbol.divide;
+  RawUtil.div_op |> _binary_op(ctx, _complex_arithmetic) <$ Symbol.divide;
 let expo = (ctx: Context.t) =>
-  ((l, r) => (l, r) |> _binary_op(ctx, _complex_arithmetic, of_expo_op))
+  (
+    (l, r) => (l, r) |> _binary_op(ctx, _complex_arithmetic, RawUtil.expo_op)
+  )
   <$ Symbol.exponent;
 
 /* logical (&&, ||) */
@@ -91,9 +92,9 @@ let _logical = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((TypeMismatch(K_Strong(K_Boolean), t), l_cursor));
 
 let logical_and = (ctx: Context.t) =>
-  of_and_op |> _binary_op(ctx, _logical) <$ Glyph.logical_and;
+  RawUtil.and_op |> _binary_op(ctx, _logical) <$ Glyph.logical_and;
 let logical_or = (ctx: Context.t) =>
-  of_or_op |> _binary_op(ctx, _logical) <$ Glyph.logical_or;
+  RawUtil.or_op |> _binary_op(ctx, _logical) <$ Glyph.logical_or;
 
 /* negating (!) */
 
@@ -103,7 +104,7 @@ let _negating =
   | t => Error(TypeMismatch(K_Strong(K_Boolean), t));
 
 let not = (ctx: Context.t) =>
-  of_not_op |> _unary_op(ctx, _negating) <$ Symbol.not;
+  RawUtil.not_op |> _unary_op(ctx, _negating) <$ Symbol.not;
 
 /* comparative (<=, <, >=, >) */
 
@@ -118,13 +119,13 @@ let _comparative = ((l_cursor, r_cursor)) =>
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
 let less_or_eql = (ctx: Context.t) =>
-  of_lte_op |> _binary_op(ctx, _comparative) <$ Glyph.less_or_eql;
+  RawUtil.lte_op |> _binary_op(ctx, _comparative) <$ Glyph.less_or_eql;
 let less_than = (ctx: Context.t) =>
-  of_lt_op |> _binary_op(ctx, _comparative) <$ Symbol.less_than;
+  RawUtil.lt_op |> _binary_op(ctx, _comparative) <$ Symbol.less_than;
 let greater_or_eql = (ctx: Context.t) =>
-  of_gte_op |> _binary_op(ctx, _comparative) <$ Glyph.greater_or_eql;
+  RawUtil.gte_op |> _binary_op(ctx, _comparative) <$ Glyph.greater_or_eql;
 let greater_than = (ctx: Context.t) =>
-  of_gt_op |> _binary_op(ctx, _comparative) <$ Symbol.greater_than;
+  RawUtil.gt_op |> _binary_op(ctx, _comparative) <$ Symbol.greater_than;
 
 /* symmetrical (==, !=) */
 
@@ -138,6 +139,6 @@ let _symmetrical = ((_, r_cursor)) =>
   | (l, r) => Error((TypeMismatch(l, r), r_cursor));
 
 let equality = (ctx: Context.t) =>
-  of_eq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.equality;
+  RawUtil.eq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.equality;
 let inequality = (ctx: Context.t) =>
-  of_ineq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.inequality;
+  RawUtil.ineq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.inequality;

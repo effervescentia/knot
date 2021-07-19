@@ -18,7 +18,9 @@ module Assert = {
         check(
           testable(
             pp =>
-              Debug.print_decl % Pretty.to_string % Format.pp_print_string(pp),
+              Debug.print_decl
+              % Cow.Xml.to_string
+              % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",

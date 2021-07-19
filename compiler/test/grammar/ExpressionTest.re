@@ -21,7 +21,7 @@ module Assert =
                 type_,
                 cursor,
               )
-              |> Pretty.to_string
+              |> Cow.Xml.to_string
               |> Format.pp_print_string(pp),
             (==),
           ),

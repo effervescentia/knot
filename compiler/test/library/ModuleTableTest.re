@@ -3,12 +3,13 @@ open Util;
 open Reference;
 
 let __id = Namespace.Internal("foo");
-let __types = AST.[(Export.Named("bar" |> of_public), Type.K_Weak(0))];
+let __types =
+  AST.[(Export.Named("bar" |> RawUtil.public), Type.K_Weak(0))];
 let __program =
   AST.[
     Import(
-      "foo" |> of_internal,
-      ["bar" |> of_public |> as_lexeme |> of_main_import],
+      "foo" |> RawUtil.internal,
+      ["bar" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
     ),
   ];
 let __table = ModuleTable.create(1);
@@ -35,7 +36,10 @@ let suite =
                   types:
                     _create_table(
                       AST.[
-                        (Export.Named("bar" |> of_public), Type.K_Weak(0)),
+                        (
+                          Export.Named("bar" |> RawUtil.public),
+                          Type.K_Weak(0),
+                        ),
                       ],
                     ),
                   ast: __program,
@@ -56,7 +60,7 @@ let suite =
         __table |> ModuleTable.add(__id, __program, [], __scope_tree, "foo");
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named("new_type" |> AST.of_public)),
+             (__id, Export.Named("new_type" |> RawUtil.public)),
              Type.K_Strong(K_Float),
            );
 
@@ -70,7 +74,7 @@ let suite =
                     _create_table(
                       AST.[
                         (
-                          Export.Named("new_type" |> of_public),
+                          Export.Named("new_type" |> RawUtil.public),
                           Type.K_Strong(K_Float),
                         ),
                       ],
@@ -93,7 +97,7 @@ let suite =
         let original_table = Hashtbl.copy(__table);
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named("new_type" |> AST.of_public)),
+             (__id, Export.Named("new_type" |> RawUtil.public)),
              Type.K_Strong(K_Float),
            );
 

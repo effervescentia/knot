@@ -5,7 +5,7 @@ let integer =
   >|= Input.join
   >|= (
     block => (
-      block |> Block.value |> Int64.of_string |> AST.of_int,
+      block |> Block.value |> Int64.of_string |> RawUtil.int,
       Type.K_Strong(K_Integer),
       block |> Block.cursor,
     )
@@ -26,14 +26,15 @@ let float =
         let fraction = y |> Block.value |> String.drop_all_suffix("0");
         let fraction_precision = fraction |> String.length;
 
-        if (fraction == "") {
-          AST.of_float((integer |> Float.of_string, integer_precision));
-        } else {
-          AST.of_float((
-            Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
-            integer_precision + fraction_precision,
-          ));
-        };
+        (
+          fraction == ""
+            ? (integer |> Float.of_string, integer_precision)
+            : (
+              Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
+              integer_precision + fraction_precision,
+            )
+        )
+        |> RawUtil.float;
       },
       Type.K_Strong(K_Float),
       Cursor.join(x |> Block.cursor, y |> Block.cursor),

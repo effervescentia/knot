@@ -68,22 +68,24 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                          let name =
                            name |> Block.value |> Identifier.to_string;
 
-                         Some(
-                           switch (decl) {
-                           | Constant(expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Variable,
-                             }
-                           | Function(args, expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Function,
-                             }
-                           },
-                         );
+                         switch (decl) {
+                         | Constant(expr) =>
+                           Some({
+                             uri,
+                             name,
+                             range,
+                             kind: Capabilities.Variable,
+                           })
+                         /* TODO: add type handling */
+                         | Type(_) => None
+                         | Function(args, expr) =>
+                           Some({
+                             uri,
+                             name,
+                             range,
+                             kind: Capabilities.Function,
+                           })
+                         };
                        }
                      | Import(_) => None
                    ),

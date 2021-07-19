@@ -267,6 +267,7 @@ let declaration = (name: identifier_t, decl: declaration_t) =>
   (
     switch (decl) {
     | Constant(value) => [constant(name, value)]
+    | Type(_) => []
     | Function(args, expr) => [function_(name, args, expr)]
     }
   )

@@ -4,6 +4,7 @@ open Util;
 open Reference;
 
 module Program = Grammar.Program;
+module RawUtil = AST.Raw.Util;
 
 module Target = {
   type t = program_t;
@@ -17,7 +18,8 @@ module Target = {
           testable(
             pp =>
               Debug.print_mod_stmt
-              % Pretty.to_string
+              % Cow.Xml.list
+              % Cow.Xml.to_string
               % Format.pp_print_string(pp),
             (==),
           ),
@@ -40,18 +42,24 @@ let __const_decl = "const foo = nil";
 let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
 
 let __main_import_ast =
-  ("bar" |> of_internal, ["foo" |> of_public |> as_lexeme |> of_main_import])
-  |> of_import;
+  (
+    "bar" |> RawUtil.internal,
+    ["foo" |> RawUtil.public |> as_lexeme |> RawUtil.main_import],
+  )
+  |> RawUtil.import;
 let __const_decl_ast =
-  ("foo" |> of_public |> as_lexeme |> of_named_export, nil_prim |> of_const)
-  |> of_decl;
+  (
+    "foo" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+    nil_prim |> RawUtil.const,
+  )
+  |> RawUtil.decl;
 
 let __scope =
   Scope.create(
     ~modules=
       [
         (
-          "bar" |> of_internal,
+          "bar" |> RawUtil.internal,
           ModuleTable.{
             ast: [],
             types:
@@ -88,10 +96,15 @@ let suite =
             [
               __const_decl_ast,
               (
-                "bar" |> of_public |> as_lexeme |> of_named_export,
-                "foo" |> of_public |> as_lexeme |> of_id |> as_nil |> of_const,
+                "bar" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+                "foo"
+                |> RawUtil.public
+                |> as_lexeme
+                |> RawUtil.id
+                |> as_nil
+                |> RawUtil.const,
               )
-              |> of_decl,
+              |> RawUtil.decl,
             ],
           ),
         ]
@@ -117,7 +130,7 @@ let suite =
               ~modules=
                 [
                   (
-                    "bar" |> of_internal,
+                    "bar" |> RawUtil.internal,
                     ModuleTable.{
                       ast: [],
                       types:
@@ -137,10 +150,15 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> of_public |> as_lexeme |> of_named_export,
-              "foo" |> of_public |> as_lexeme |> of_id |> as_bool |> of_const,
+              "bar" |> RawUtil.public |> as_lexeme |> RawUtil.named_export,
+              "foo"
+              |> RawUtil.public
+              |> as_lexeme
+              |> RawUtil.id
+              |> as_bool
+              |> RawUtil.const,
             )
-            |> of_decl,
+            |> RawUtil.decl,
           ],
         )
     ),

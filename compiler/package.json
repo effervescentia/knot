@@ -19,7 +19,8 @@
         "tablecloth-native",
         "lwt",
         "lwt.unix",
-        "ANSITerminal"
+        "ANSITerminal",
+        "cow"
       ],
       "name": "knot.lib",
       "namespace": "Knot"
@@ -217,6 +218,7 @@
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.2",
     "@opam/alcotest": "1.2.3",
+    "@opam/cow": "2.4.0",
     "@opam/dolog": "6.0.0",
     "@opam/dune": ">=1.6.0",
     "@opam/fileutils": "0.6.3",

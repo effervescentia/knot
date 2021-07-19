@@ -8,13 +8,15 @@ let _wrap_typed_lexeme = (f, (_, type_, cursor) as lexeme) => (
 
 let primitive =
   Primitive.parser
-  >|= (((_, type_, cursor) as prim) => (prim |> AST.of_prim, type_, cursor));
+  >|= (
+    ((_, type_, cursor) as prim) => (prim |> RawUtil.prim, type_, cursor)
+  );
 
 let identifier = (ctx: Context.t) =>
   Identifier.parser(ctx)
   >|= (
     ((_, cursor) as id) => (
-      id |> AST.of_id,
+      id |> RawUtil.id,
       ctx |> Context.find_in_scope(id),
       cursor,
     )
@@ -24,7 +26,7 @@ let jsx = (ctx: Context.t, x) =>
   JSX.parser(ctx, x)
   >|= (
     ((_, cursor) as jsx) => (
-      jsx |> AST.of_jsx,
+      jsx |> RawUtil.jsx,
       Type.K_Strong(K_Element),
       cursor,
     )
@@ -36,7 +38,7 @@ let group = x =>
     block => {
       let (_, type_, _) as group = block |> Block.value;
 
-      (group |> AST.of_group, type_, block |> Block.cursor);
+      (group |> RawUtil.group, type_, block |> Block.cursor);
     }
   );
 
@@ -56,7 +58,7 @@ let closure = (ctx: Context.t, x) =>
           | Some(x) => TypeOf.statement(x)
         );
 
-      (stmts |> AST.of_closure, type_, cursor);
+      (stmts |> RawUtil.closure, type_, cursor);
     }
   );
 

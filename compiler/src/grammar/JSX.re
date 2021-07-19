@@ -1,5 +1,4 @@
 open Kore;
-open AST;
 
 module Tag = {
   let open_ = M.symbol(C.Character.open_chevron);
@@ -50,7 +49,7 @@ let rec parser = (ctx: Context.t, x, input) =>
 and fragment = (ctx: Context.t, x) =>
   children(ctx, x)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= Tuple.split2(Block.value % of_frag, Block.cursor)
+  >|= Tuple.split2(Block.value % RawUtil.frag, Block.cursor)
 
 and tag = (ctx: Context.t, x) =>
   Tag.open_
@@ -83,7 +82,7 @@ and tag = (ctx: Context.t, x) =>
                 attrs,
                 cs,
               )
-              |> of_tag,
+              |> RawUtil.tag,
               Cursor.join(id |> Block.cursor, end_cursor),
             )
           )
@@ -95,25 +94,28 @@ and attributes = (ctx: Context.t, x) =>
     _attribute(ctx, x)
     >|= (
       ((name, value, cursor)) => (
-        (name |> Tuple.map_fst2(of_public), value) |> of_prop,
+        (name |> Tuple.map_fst2(RawUtil.public), value) |> RawUtil.prop,
         cursor,
       )
     ),
     _attribute(~prefix=Character.period, ctx, x)
     >|= (
       ((name, value, cursor)) => (
-        (name |> Tuple.map_fst2(String.drop_left(1) % of_public), value)
-        |> of_jsx_class,
+        (
+          name |> Tuple.map_fst2(String.drop_left(1) % RawUtil.public),
+          value,
+        )
+        |> RawUtil.jsx_class,
         cursor,
       )
     ),
     M.identifier(~prefix=Character.octothorp)
     >|= Tuple.split2(
           Tuple.split2(
-            Block.value % String.drop_left(1) % of_public,
+            Block.value % String.drop_left(1) % RawUtil.public,
             Block.cursor,
           )
-          % of_jsx_id,
+          % RawUtil.jsx_id,
           Block.cursor,
         ),
   ])
@@ -134,14 +136,15 @@ and text =
   )
   >|= Input.join
   >|= Tuple.split2(
-        Tuple.split2(Block.value % String.trim, Block.cursor) % of_text,
+        Tuple.split2(Block.value % String.trim, Block.cursor) % RawUtil.text,
         Block.cursor,
       )
 
 and node = (ctx: Context.t, x) =>
-  parser(ctx, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
+  parser(ctx, x)
+  >|= (((_, cursor) as node) => (node |> RawUtil.node, cursor))
 
 and inline_expr = (ctx: Context.t, (_, expr)) =>
   expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= Tuple.split2(Block.value % of_inline_expr, Block.cursor);
+  >|= Tuple.split2(Block.value % RawUtil.inline_expr, Block.cursor);
