@@ -5,20 +5,12 @@ open Infix;
 open Reference;
 
 type t =
-  | K_Strong(strong_t)
+  | K_Strong(Type2.primitive_t)
   | K_Weak(int)
   /* used to indicate types which have failed to resolve due to a compile-time error */
   | K_Invalid(type_err)
 
-and strong_t =
-  | K_Nil
-  | K_Boolean
-  | K_Integer
-  | K_Float
-  | K_String
-  | K_Element
-  | K_Function(list((string, t)), t)
-  | K_Anonymous(int, trait_t)
+and strong_t = [ Type2.container_t(t) | Type2.primitive_t]
 
 /**
  describes constraints on a type during type resolution

@@ -1,11 +1,11 @@
 open Reference;
 
-type scope_tree_t = RangeTree.t(option(Hashtbl.t(Export.t, Type.t)));
+type scope_tree_t = RangeTree.t(option(Hashtbl.t(Export.t, Type2.t)));
 
 type entry_t = {
-  types: Hashtbl.t(Export.t, Type.t),
+  types: Hashtbl.t(Export.t, Type2.t),
   ast: AST.Final.program_t,
-  scopes: RangeTree.t(option(Hashtbl.t(Export.t, Type.t))),
+  scopes: scope_tree_t,
   raw: string,
 };
 
@@ -32,7 +32,7 @@ let add =
     (
       id: Namespace.t,
       ast: AST.Final.program_t,
-      exports: list((Export.t, Type.t)),
+      exports: list((Export.t, Type2.t)),
       scopes: scope_tree_t,
       raw: string,
       table: t,
@@ -52,7 +52,7 @@ let remove = (id: Namespace.t, table: t) => Hashtbl.remove(table, id);
  declare the type of an export member of an existing module
  */
 let add_type =
-    ((namespace, id): (Namespace.t, Export.t), value: Type.t, table: t) =>
+    ((namespace, id): (Namespace.t, Export.t), value: Type2.t, table: t) =>
   if (Hashtbl.mem(table, namespace)) {
     let members = Hashtbl.find(table, namespace);
 
@@ -74,7 +74,7 @@ let to_string =
                 "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
                 Reference.Namespace.to_string(key),
                 types
-                |> Hashtbl.to_string(Export.to_string, Type.to_string)
+                |> Hashtbl.to_string(Export.to_string, Type2.to_string)
                 |> Pretty.to_string,
                 raw,
               )

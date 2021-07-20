@@ -373,24 +373,7 @@ module FinalParams = {
 
   type type_t = Type2.t;
 
-  let rec print_type =
-    Type2.(
-      fun
-      | Nil => Keyword.nil
-      | Boolean => Keyword.bool
-      | Integer => Keyword.int
-      | Float => Keyword.float
-      | String => Keyword.string
-      | Element => Keyword.element
-      | Iterable(t) => Keyword.element
-      | Abstract(abstr) =>
-        switch (abstr) {
-        | Unknown => "unknown"
-        | Numeric => Keyword.number
-        }
-      /* TODO: finish this */
-      | pattern => "pattern"
-    );
+  let rec print_type = Type2.to_string;
 };
 
 module Final = {

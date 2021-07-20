@@ -1,5 +1,4 @@
 open Kore;
-open AST;
 
 let statement =
   AST.Raw.(
