@@ -2,7 +2,8 @@
  Pretty printing utilities.
  */
 
-/* add Breakpoint to add supported breakpoints when auto-wrapping long lines? */
+/* TODO: add Breakpoint to add supported breakpoints when auto-wrapping long lines? */
+/* TODO: replace this with the ocaml pretty printer? */
 type t =
   | Nil
   | String(string)
