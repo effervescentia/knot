@@ -40,7 +40,8 @@ module Compare = {
 
   let module_table =
     testable(
-      pp => Debug.print_module_table % Format.pp_print_string(pp),
+      pp =>
+        ModuleTable.to_string(Type.to_string) % Format.pp_print_string(pp),
       ModuleTable.(
         (l, r) =>
           Hashtbl.compare(

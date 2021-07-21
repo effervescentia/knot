@@ -9,7 +9,7 @@ exception AnonymousTypeNotFound;
 type t = {
   /* seed for new anonymous types */
   seed: ref(int),
-  modules: ModuleTable.t,
+  modules: ModuleTable.t(Type.t),
   types: Hashtbl.t(Export.t, Type.t),
   anonymous:
     Hashtbl.t(int, result(Type.trait_t, (Type.trait_t, Type.trait_t))),

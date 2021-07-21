@@ -18,7 +18,7 @@ type action_t =
 type t = {
   config: config_t,
   graph: ImportGraph.t,
-  modules: ModuleTable.t,
+  modules: ModuleTable.t(Type.t),
   resolver: Resolver.t,
   dispatch: action_t => unit,
 };
