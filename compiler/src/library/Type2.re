@@ -14,17 +14,26 @@ module Trait = {
 
 module Error = {
   type t('a) =
+    | TypeMismatch('a, 'a)
     | NotAssignable('a, Trait.t)
-    | ExternalNotFound(Namespace.t, Export.t);
+    | ExternalNotFound(Namespace.t, Export.t)
+    | TypeResolutionFailed;
 
   let to_string = (type_to_string: 'a => string) =>
     fun
-    | NotAssignable(x, y) =>
+    | NotAssignable(type_, trait) =>
       Print.fmt(
         "NotAssignable<%s, %s>",
-        type_to_string(x),
-        Trait.to_string(y),
+        type_to_string(type_),
+        Trait.to_string(trait),
       )
+    | TypeMismatch(lhs, rhs) =>
+      Print.fmt(
+        "TypeMismatch<%s, %s>",
+        type_to_string(lhs),
+        type_to_string(rhs),
+      )
+    | TypeResolutionFailed => "TypeResolutionFailed"
     | ExternalNotFound(namespace, id) =>
       Print.fmt(
         "ExternalNotFound<%s#%s>",
@@ -57,9 +66,11 @@ type t = [ primitive_t | container_t(t) | abstract_t(Trait.t)];
 module Raw = {
   type t = [
     | `Strong(strong_t)
-    | `Weak(ref(result(weak_t, Error.t(strong_t))))
+    | `Weak(ref(result(weak_t, error_t)))
     | invalid_t(strong_t)
   ]
+
+  and error_t = Error.t(strong_t)
 
   and strong_t = [ primitive_t | container_t(t)]
 
@@ -186,7 +197,7 @@ module Result = {
     | `Invalid(ExternalNotFound(_) as err) => `Invalid(err)
     }
 
-  and err_to_strong_err = (err: Error.t(valid_t)): Error.t(Raw.strong_t) =>
+  and err_to_strong_err = (err: Error.t(valid_t)): Raw.error_t =>
     switch (err) {
     | NotAssignable(t, trait) => NotAssignable(_valid_to_strong(t), trait)
     | ExternalNotFound(_) as err => err

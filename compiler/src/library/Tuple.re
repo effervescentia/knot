@@ -2,6 +2,11 @@
  Utilities for working with pairs of values.
  */
 
+type t2('a) = ('a, 'a);
+type t3('a) = ('a, 'a, 'a);
+
+/* methods */
+
 let map2 = (f: 'a => 'b, (x, y): ('a, 'a)): ('b, 'b) => (f(x), f(y));
 
 let map_fst2 = (f: 'a => 'c, (x, y): ('a, 'b)): ('c, 'b) => (f(x), y);

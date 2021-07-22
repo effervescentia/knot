@@ -9,7 +9,7 @@ exception NotImplemented;
 exception WatchFailed(string);
 
 type parse_err =
-  | TypeError(Type2.Error.t(Type2.Raw.strong_t))
+  | TypeError(Type2.Raw.error_t)
   | ReservedKeyword(string);
 
 type compile_err =
