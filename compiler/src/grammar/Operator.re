@@ -1,10 +1,15 @@
 open Kore;
 open AST;
-open Type;
 
-let _report_invalid = (ctx: Context.t, cursor, err) => {
+let _report_invalid =
+    (
+      ctx: Context.t,
+      cursor: Cursor.t,
+      err: Type2.Error.t(Type2.Raw.strong_t),
+    )
+    : Type2.Raw.t => {
   ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
-  K_Invalid(err);
+  `Invalid(err);
 };
 
 let _unary_op = (ctx, t, f, (_, type_, cursor) as expr) => (
@@ -32,8 +37,8 @@ let assign = (id, x) => M.binary_op(id, Symbol.assign, x);
 
 let _inverting =
   fun
-  | K_Strong((K_Integer | K_Float) as t) => Ok(K_Strong(t))
-  | t => Error(NotAssignable(t, K_Numeric));
+  | `Strong((`Integer | `Float) as t) => Ok(`Strong(t))
+  | t => Error(Type2.Error.NotAssignable(t, Number));
 
 let negative = (ctx: Context.t) =>
   of_neg_op |> _unary_op(ctx, _inverting) <$ Symbol.negative;
@@ -45,14 +50,14 @@ let positive = (ctx: Context.t) =>
 let _simple_arithmetic = ((l_cursor, r_cursor)) =>
   fun
   /* arithmetic with real numbers */
-  | (K_Strong(K_Integer), K_Strong(K_Integer)) => Ok(K_Strong(K_Integer))
+  | (`Strong(`Integer), `Strong(`Integer)) => Ok(`Strong(`Integer))
   /* arithmetic with complex numbers */
-  | (K_Strong(K_Integer | K_Float), K_Strong(K_Integer | K_Float)) =>
-    Ok(K_Strong(K_Float))
+  | (`Strong(`Integer | `Float), `Strong(`Integer | `Float)) =>
+    Ok(`Strong(`Float))
   /* check arguments from right-to-left */
-  | (K_Strong(K_Integer | K_Float), t) =>
-    Error((NotAssignable(t, K_Numeric), r_cursor))
-  | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
+  | (`Strong(`Integer | `Float), t) =>
+    Error((Type2.Error.NotAssignable(t, Number), r_cursor))
+  | (t, _) => Error((Type2.Error.NotAssignable(t, Number), l_cursor));
 
 let mult = (ctx: Context.t) =>
   of_mult_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.multiply;
@@ -66,12 +71,12 @@ let sub = (ctx: Context.t) =>
 let _complex_arithmetic = ((l_cursor, r_cursor)) =>
   fun
   /* all numeric operations should result in a float */
-  | (K_Strong(K_Integer | K_Float), K_Strong(K_Integer | K_Float)) =>
-    Ok(K_Strong(K_Float))
+  | (`Strong(`Integer | `Float), `Strong(`Integer | `Float)) =>
+    Ok(`Strong(`Float))
   /* check arguments from right-to-left */
-  | (K_Strong(K_Integer | K_Float), t) =>
-    Error((NotAssignable(t, K_Numeric), r_cursor))
-  | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
+  | (`Strong(`Integer | `Float), t) =>
+    Error((Type2.Error.NotAssignable(t, K_Numeric), r_cursor))
+  | (t, _) => Error((Type2.Error.NotAssignable(t, K_Numeric), l_cursor));
 
 let div = (ctx: Context.t) =>
   of_div_op |> _binary_op(ctx, _complex_arithmetic) <$ Symbol.divide;
@@ -84,11 +89,12 @@ let expo = (ctx: Context.t) =>
 let _logical = ((l_cursor, r_cursor)) =>
   fun
   /* only allow boolean values on either side */
-  | (K_Strong(K_Boolean), K_Strong(K_Boolean)) => Ok(K_Strong(K_Boolean))
+  | (`Strong(`Boolean), `Strong(`Boolean)) => Ok(`Strong(`Boolean))
   /* check arguments from right-to-left */
-  | (K_Strong(K_Boolean), t) =>
-    Error((TypeMismatch(K_Strong(K_Boolean), t), r_cursor))
-  | (t, _) => Error((TypeMismatch(K_Strong(K_Boolean), t), l_cursor));
+  | (`Strong(`Boolean), t) =>
+    Error((Type2.Error.TypeMismatch(`Strong(`Boolean), t), r_cursor))
+  | (t, _) =>
+    Error((Type2.Error.TypeMismatch(`Strong(`Boolean), t), l_cursor));
 
 let logical_and = (ctx: Context.t) =>
   of_and_op |> _binary_op(ctx, _logical) <$ Glyph.logical_and;
@@ -99,8 +105,8 @@ let logical_or = (ctx: Context.t) =>
 
 let _negating =
   fun
-  | K_Strong(K_Boolean) => Ok(K_Strong(K_Boolean))
-  | t => Error(TypeMismatch(K_Strong(K_Boolean), t));
+  | `Strong(`Boolean) => Ok(`Strong(`Boolean))
+  | t => Error(Type2.Error.TypeMismatch(`Strong(`Boolean), t));
 
 let not = (ctx: Context.t) =>
   of_not_op |> _unary_op(ctx, _negating) <$ Symbol.not;
@@ -110,10 +116,10 @@ let not = (ctx: Context.t) =>
 let _comparative = ((l_cursor, r_cursor)) =>
   fun
   /* all numeric types can be compared */
-  | (K_Strong(K_Integer | K_Float), K_Strong(K_Integer | K_Float)) =>
-    Ok(K_Strong(K_Boolean))
+  | (`Strong(`Integer | `Float), `Strong(`Integer | `Float)) =>
+    Ok(`Strong(`Boolean))
   /* check arguments from right-to-left */
-  | (K_Strong(K_Integer | K_Float), t) =>
+  | (`Strong(`Integer | `Float), t) =>
     Error((NotAssignable(t, K_Numeric), r_cursor))
   | (t, _) => Error((NotAssignable(t, K_Numeric), l_cursor));
 
@@ -131,10 +137,10 @@ let greater_than = (ctx: Context.t) =>
 let _symmetrical = ((_, r_cursor)) =>
   fun
   /* allow comparing numeric types with each other */
-  | (K_Strong(K_Integer | K_Float), K_Strong(K_Integer | K_Float)) =>
-    Ok(K_Strong(K_Boolean))
+  | (`Strong(`Integer | `Float), `Strong(`Integer | `Float)) =>
+    Ok(`Strong(`Boolean))
   /* otherwise operands must be of the same type */
-  | (l, r) when l == r => Ok(K_Strong(K_Boolean))
+  | (l, r) when l == r => Ok(`Strong(`Boolean))
   | (l, r) => Error((TypeMismatch(l, r), r_cursor));
 
 let equality = (ctx: Context.t) =>

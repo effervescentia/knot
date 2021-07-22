@@ -36,19 +36,22 @@ let parser = (ctx: ModuleContext.t) =>
   << Keyword.from
   >>= namespace
   >@= (
-    ((namespace, imports)) =>
+    ((namespace, imports)) => {
+      let import = ModuleContext.import(namespace);
+
       imports
       |> List.iter(
            AST.(
              fun
              | MainImport((alias, cursor)) =>
-               ctx |> Context.import(namespace, (Main, cursor), alias)
+               ctx |> import((Main, cursor), alias)
              | NamedImport((id, cursor), None) =>
-               ctx |> Context.import(namespace, (Named(id), cursor), id)
+               ctx |> import((Named(id), cursor), id)
              | NamedImport((id, cursor), Some((label, _))) =>
-               ctx |> Context.import(namespace, (Named(id), cursor), label)
+               ctx |> import((Named(id), cursor), label)
            ),
-         )
+         );
+    }
   )
   >|= AST.of_import
   |> M.terminated;

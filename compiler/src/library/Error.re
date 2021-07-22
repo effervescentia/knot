@@ -9,7 +9,7 @@ exception NotImplemented;
 exception WatchFailed(string);
 
 type parse_err =
-  | TypeError(Type2.type_err)
+  | TypeError(Type2.Error.t(Type2.Raw.strong_t))
   | ReservedKeyword(string);
 
 type compile_err =
@@ -25,10 +25,12 @@ let throw = err => raise(CompileError([err]));
 
 let throw_all = errs => raise(CompileError(errs));
 
-let _parse_err_to_string =
+let parse_err_to_string =
   fun
   | TypeError(err) =>
-    err |> Type2.err_to_string |> Print.fmt("type error: %s")
+    err
+    |> Type2.Error.to_string(Type2.Raw.strong_to_string)
+    |> Print.fmt("type error: %s")
   | ReservedKeyword(name) =>
     name |> Print.fmt("reserved keyword %s cannot be used as an identifier");
 
@@ -46,7 +48,7 @@ let _compile_err_to_string =
     Print.fmt(
       "error found while parsing %s: %s",
       namespace |> Namespace.to_string,
-      err |> _parse_err_to_string,
+      err |> parse_err_to_string,
     )
   | InvalidModule(namespace) =>
     namespace

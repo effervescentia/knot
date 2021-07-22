@@ -26,13 +26,13 @@ let create =
  find the type of an export from a different module
  */
 let lookup = (namespace: Namespace.t, id: Export.t, ctx: t) => {
-  let type_err = Type2.ExternalNotFound(namespace, id);
+  let type_err = Type2.Error.ExternalNotFound(namespace, id);
 
   switch (ModuleTable.find(namespace, ctx.modules)) {
   | Some({types}) =>
     switch (Hashtbl.find_opt(types, id)) {
     | Some(`Invalid(type_err)) => Error(type_err)
-    | Some(t) => Ok(t)
+    | Some(`Valid(t)) => Ok(t)
     | None => Error(type_err)
     }
   | None => Error(type_err)

@@ -57,8 +57,8 @@ let import =
     switch (ctx.scope |> Scope.lookup(namespace, id)) {
     | Ok(t) => t
     | Error(err) =>
-      ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
-      Type.K_Invalid(err);
+      /* ctx.report(ParseError(TypeError(err), ctx.namespace, cursor)); */
+      Type.K_Invalid(err)
     };
 
   Scope.define(label, type_, ctx.scope);
@@ -72,6 +72,6 @@ let find_in_scope = ((name, cursor): AST.identifier_t, ctx: t) =>
   | Some(t) => t
   | None =>
     let err = Type.NotFound(name);
-    ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
+    /* ctx.report(ParseError(TypeError(err), ctx.namespace, cursor)); */
     Type.K_Invalid(err);
   };

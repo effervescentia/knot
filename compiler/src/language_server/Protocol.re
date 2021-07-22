@@ -97,9 +97,7 @@ let notify = (notification: Yojson.Basic.t) => {
 let report = errs =>
   send(
     Response.show_message(
-      errs
-      |> Knot.Error.print_errs
-      |> Print.fmt("compilation failed with errors:\n%s"),
+      errs |> print_errs |> Print.fmt("compilation failed with errors:\n%s"),
       Error,
     ),
   );

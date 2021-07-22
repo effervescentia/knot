@@ -48,7 +48,10 @@ let jsx_tag = AST.of_tag % as_lexeme % AST.of_jsx;
 
 let print_parse_err =
   fun
-  | TypeError(err) => err |> Type.err_to_string |> Print.fmt("TypeError<%s>")
+  | TypeError(err) =>
+    err
+    |> Type2.(Error.to_string(Raw.strong_to_string))
+    |> Print.fmt("TypeError<%s>")
   | ReservedKeyword(name) => name |> Print.fmt("ReservedKeyword<%s>");
 
 let print_compile_err =
@@ -64,7 +67,7 @@ let print_compile_err =
   | ParseError(err, namespace, cursor) =>
     Print.fmt(
       "ParseError<%s, %s, %s>",
-      err |> _parse_err_to_string,
+      err |> parse_err_to_string,
       namespace |> Namespace.to_string,
       cursor |> Debug.print_cursor,
     );

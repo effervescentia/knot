@@ -27,7 +27,7 @@ let notification = (uri: string, errs) =>
                ("range", range |> Response.range),
                ("severity", `Int(severity(Error))),
                ("source", `String("knot")),
-               ("message", `String(err |> Knot.Error._parse_err_to_string)),
+               ("message", `String(err |> Knot.Error.parse_err_to_string)),
              ])
            ),
       ),
