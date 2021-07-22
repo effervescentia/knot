@@ -18,7 +18,7 @@ type action_t =
 type t = {
   config: config_t,
   graph: ImportGraph.t,
-  modules: ModuleTable.t(Type.t),
+  modules: ModuleTable.t(Type2.t),
   resolver: Resolver.t,
   dispatch: action_t => unit,
 };
@@ -115,12 +115,12 @@ let validate = (compiler: t) => {
   compiler.dispatch(Flush);
 };
 
-let process_one = (id: Namespace.t, module_: Module.t, compiler: t) => {
+let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
   let context =
-    Context.create(
-      ~scope=Scope.create(~modules=compiler.modules, ()),
+    NamespaceContext.create(
+      ~modules=compiler.modules,
       ~report=err => Report([err]) |> compiler.dispatch,
-      id,
+      namespace,
     );
 
   module_
@@ -132,7 +132,7 @@ let process_one = (id: Namespace.t, module_: Module.t, compiler: t) => {
 
         compiler.modules
         |> ModuleTable.add(
-             id,
+             namespace,
              ast,
              _get_exports(ast),
              context |> ScopeTree.of_context,

@@ -12,19 +12,24 @@ let main_import =
   >|= AST.of_main_import
   >|= (x => [x]);
 
-let named_import = (ctx: Context.t) =>
-  Identifier.parser(ctx)
+let named_import = (ctx: ModuleContext.t) => {
+  let closure_ctx = ClosureContext.from_module(ctx);
+
+  Identifier.parser(closure_ctx)
   >>= (
     id =>
-      Keyword.as_ >> Identifier.parser(ctx) >|= (label => (id, Some(label)))
+      Keyword.as_
+      >> Identifier.parser(closure_ctx)
+      >|= (label => (id, Some(label)))
   )
-  <|> (Identifier.parser(ctx) >|= (id => (id, None)))
+  <|> (Identifier.parser(closure_ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Block.value
   >|= List.map(AST.of_named_import);
+};
 
-let parser = (ctx: Context.t) =>
+let parser = (ctx: ModuleContext.t) =>
   Keyword.import
   >> (choice([main_import, named_import(ctx)]) |> M.comma_sep)
   >|= List.flatten

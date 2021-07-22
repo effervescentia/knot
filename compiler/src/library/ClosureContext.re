@@ -34,3 +34,6 @@ let child = (parent: t) =>
     ~scope=NestedHashtbl.child(parent.scope),
     parent.namespace_context,
   );
+
+let report = (ctx: t, err: Error.compile_err) =>
+  ctx.namespace_context.report(err);

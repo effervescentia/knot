@@ -36,6 +36,6 @@ let function_ = (ctx: Context.t, f) =>
   )
   |> M.terminated;
 
-let parser = (ctx: Context.t) =>
+let parser = (ctx: ModuleContext.t) =>
   option(AST.of_named_export, AST.of_main_export <$ Keyword.main)
   >>= (f => choice([constant(ctx, f), function_(ctx, f)]) >|= AST.of_decl);
