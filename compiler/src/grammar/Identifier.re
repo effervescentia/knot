@@ -5,9 +5,9 @@ let reserved = (ctx: ClosureContext.t) =>
   >|= (
     name => {
       ParseError(
-        ReservedKeyword(name |> Block.value),
+        ReservedKeyword(Block.value(name)),
         ctx.namespace_context.namespace,
-        name |> Block.cursor,
+        Block.cursor(name),
       )
       |> ClosureContext.report(ctx);
 

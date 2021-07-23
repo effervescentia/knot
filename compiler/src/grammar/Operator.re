@@ -8,8 +8,10 @@ type binary_op_resolver =
   result(Type2.Raw.t, (Type2.Raw.error_t, Cursor.t));
 
 let _report_invalid =
-    (ctx: Context.t, cursor: Cursor.t, err: Type2.Raw.error_t): Type2.Raw.t => {
-  ctx.report(ParseError(TypeError(err), ctx.namespace, cursor));
+    (ctx: ClosureContext.t, cursor: Cursor.t, err: Type2.Raw.error_t)
+    : Type2.Raw.t => {
+  ParseError(TypeError(err), ctx.namespace_context.namespace, cursor)
+  |> ClosureContext.report(ctx);
   `Invalid(err);
 };
 
@@ -43,9 +45,9 @@ let _inverting: unary_op_resolver =
   /* TODO: support weak type assignment */
   | _ => Error(TypeResolutionFailed);
 
-let negative = (ctx: Context.t) =>
+let negative = (ctx: ClosureContext.t) =>
   of_neg_op |> _unary_op(ctx, _inverting) <$ Symbol.negative;
-let positive = (ctx: Context.t) =>
+let positive = (ctx: ClosureContext.t) =>
   of_pos_op |> _unary_op(ctx, _inverting) <$ Symbol.positive;
 
 /* simple arithmetic (*, +, -) */
@@ -65,11 +67,11 @@ let _simple_arithmetic: binary_op_resolver =
     /* TODO: support weak type assignment */
     | _ => Error((TypeResolutionFailed, Cursor.join(l_cursor, r_cursor)));
 
-let mult = (ctx: Context.t) =>
+let mult = (ctx: ClosureContext.t) =>
   of_mult_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.multiply;
-let add = (ctx: Context.t) =>
+let add = (ctx: ClosureContext.t) =>
   of_add_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.add;
-let sub = (ctx: Context.t) =>
+let sub = (ctx: ClosureContext.t) =>
   of_sub_op |> _binary_op(ctx, _simple_arithmetic) <$ Symbol.subtract;
 
 /* complex arithmetic (/, ^) */
@@ -87,9 +89,9 @@ let _complex_arithmetic: binary_op_resolver =
     /* TODO: support weak type assignment */
     | _ => Error((TypeResolutionFailed, Cursor.join(l_cursor, r_cursor)));
 
-let div = (ctx: Context.t) =>
+let div = (ctx: ClosureContext.t) =>
   of_div_op |> _binary_op(ctx, _complex_arithmetic) <$ Symbol.divide;
-let expo = (ctx: Context.t) =>
+let expo = (ctx: ClosureContext.t) =>
   ((l, r) => (l, r) |> _binary_op(ctx, _complex_arithmetic, of_expo_op))
   <$ Symbol.exponent;
 
@@ -107,9 +109,9 @@ let _logical: binary_op_resolver =
     /* TODO: support weak type assignment */
     | _ => Error((TypeResolutionFailed, Cursor.join(l_cursor, r_cursor)));
 
-let logical_and = (ctx: Context.t) =>
+let logical_and = (ctx: ClosureContext.t) =>
   of_and_op |> _binary_op(ctx, _logical) <$ Glyph.logical_and;
-let logical_or = (ctx: Context.t) =>
+let logical_or = (ctx: ClosureContext.t) =>
   of_or_op |> _binary_op(ctx, _logical) <$ Glyph.logical_or;
 
 /* negating (!) */
@@ -121,7 +123,7 @@ let _negating: unary_op_resolver =
   /* TODO: support weak type assignment */
   | _ => Error(TypeResolutionFailed);
 
-let not = (ctx: Context.t) =>
+let not = (ctx: ClosureContext.t) =>
   of_not_op |> _unary_op(ctx, _negating) <$ Symbol.not;
 
 /* comparative (<=, <, >=, >) */
@@ -139,13 +141,13 @@ let _comparative: binary_op_resolver =
     /* TODO: support weak type assignment */
     | _ => Error((TypeResolutionFailed, Cursor.join(l_cursor, r_cursor)));
 
-let less_or_eql = (ctx: Context.t) =>
+let less_or_eql = (ctx: ClosureContext.t) =>
   of_lte_op |> _binary_op(ctx, _comparative) <$ Glyph.less_or_eql;
-let less_than = (ctx: Context.t) =>
+let less_than = (ctx: ClosureContext.t) =>
   of_lt_op |> _binary_op(ctx, _comparative) <$ Symbol.less_than;
-let greater_or_eql = (ctx: Context.t) =>
+let greater_or_eql = (ctx: ClosureContext.t) =>
   of_gte_op |> _binary_op(ctx, _comparative) <$ Glyph.greater_or_eql;
-let greater_than = (ctx: Context.t) =>
+let greater_than = (ctx: ClosureContext.t) =>
   of_gt_op |> _binary_op(ctx, _comparative) <$ Symbol.greater_than;
 
 /* symmetrical (==, !=) */
@@ -162,7 +164,7 @@ let _symmetrical: binary_op_resolver =
     /* TODO: support weak type assignment */
     | _ => Error((TypeResolutionFailed, Cursor.join(l_cursor, r_cursor)));
 
-let equality = (ctx: Context.t) =>
+let equality = (ctx: ClosureContext.t) =>
   of_eq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.equality;
-let inequality = (ctx: Context.t) =>
+let inequality = (ctx: ClosureContext.t) =>
   of_ineq_op |> _binary_op(ctx, _symmetrical) <$ Glyph.inequality;

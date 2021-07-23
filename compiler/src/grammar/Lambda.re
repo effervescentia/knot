@@ -1,6 +1,6 @@
 open Kore;
 
-let arguments = (ctx: Context.t) =>
+let arguments = (ctx: ClosureContext.t) =>
   M.between(
     Symbol.open_group,
     Symbol.close_group,
@@ -10,26 +10,31 @@ let arguments = (ctx: Context.t) =>
         Expression.parser(ctx) >|= Option.some,
       )
       >|= (
-        ((id, default)) => {
+        (((id, _) as name, default)) => {
           let type_ =
             switch (default) {
             | Some((_, t, _)) =>
-              ctx.scope |> Scope.define(id |> fst, t);
+              ctx |> ClosureContext.define(id, t);
               t;
-            | None => ctx.scope |> Scope.weak
+            | None => ctx |> ClosureContext.define_weak(id)
             };
 
-          (AST.{name: id, default}, type_);
+          (AST.{name, default}, type_);
         }
       ),
       Identifier.parser(ctx)
-      >|= (id => (AST.{name: id, default: None}, ctx.scope |> Scope.weak)),
+      >|= (
+        ((id, _) as name) => (
+          AST.{name, default: None},
+          ctx |> ClosureContext.define_weak(id),
+        )
+      ),
     ])
     |> sep_by(Symbol.comma),
   )
   >|= Block.value;
 
-let parser = (ctx: Context.t) =>
+let parser = (ctx: ClosureContext.t) =>
   option([], arguments(ctx))
   >>= (
     args => Glyph.lambda >> Expression.parser(ctx) >|= (expr => (args, expr))

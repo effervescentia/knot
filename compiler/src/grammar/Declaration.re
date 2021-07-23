@@ -1,6 +1,6 @@
 open Kore;
 
-let constant = (ctx: Context.t, f) =>
+let constant = (ctx: ClosureContext.t, f) =>
   Keyword.const
   >> Operator.assign(
        Identifier.parser(ctx),
@@ -8,26 +8,26 @@ let constant = (ctx: Context.t, f) =>
      )
   >|= (
     (((id, _) as x, decl)) => {
-      ctx.scope |> Scope.define(id, decl |> TypeOf.declaration);
+      ctx |> ClosureContext.define(id, TypeOf.declaration(decl));
 
       (f(x), decl);
     }
   )
   |> M.terminated;
 
-let function_ = (ctx: Context.t, f) =>
+let function_ = (ctx: ClosureContext.t, f) =>
   Keyword.func
   >> Identifier.parser(ctx)
   >>= (
     id => {
-      let child_ctx = ctx |> Context.child;
+      let child_ctx = ClosureContext.child(ctx);
 
       Lambda.parser(child_ctx)
       >|= (
         ((args, (_, _, expr_cursor) as expr)) => {
           let ctx_cursor = Cursor.join(expr_cursor, expr_cursor);
 
-          Context.submit(ctx_cursor, child_ctx);
+          child_ctx |> ClosureContext.save(ctx_cursor);
 
           (f(id), (args, expr) |> AST.of_func);
         }
@@ -36,6 +36,13 @@ let function_ = (ctx: Context.t, f) =>
   )
   |> M.terminated;
 
-let parser = (ctx: ModuleContext.t) =>
+let parser = (ctx: ModuleContext.t) => {
+  let closure_ctx = ClosureContext.from_module(ctx);
+
   option(AST.of_named_export, AST.of_main_export <$ Keyword.main)
-  >>= (f => choice([constant(ctx, f), function_(ctx, f)]) >|= AST.of_decl);
+  >>= (
+    f =>
+      choice([constant(closure_ctx, f), function_(closure_ctx, f)])
+      >|= AST.of_decl
+  );
+};

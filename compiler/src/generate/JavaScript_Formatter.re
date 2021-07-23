@@ -1,137 +1,124 @@
 open Kore;
 open JavaScript_AST;
+open Pretty;
 
 let _import_variable_name =
   String.replace('.', '_') % String.replace('/', '$');
 
-let fmt_string = String.escaped % Print.fmt("\"%s\"") % Pretty.string;
+let fmt_string = String.escaped % Print.fmt("\"%s\"") % string;
 
 let rec fmt_expression = (module_type: Target.module_t) =>
   fun
-  | Null => "null" |> Pretty.string
-  | Boolean(x) => x |> string_of_bool |> Pretty.string
-  | Number(x) => x |> Pretty.string
-  | String(x) => x |> fmt_string
+  | Null => string("null")
+  | Boolean(x) => x |> string_of_bool |> string
+  | Number(x) => string(x)
+  | String(x) => fmt_string(x)
   | Group(Group(_) as x) => x |> fmt_expression(module_type)
   | Group(x) =>
-    [
-      "(" |> Pretty.string,
-      x |> fmt_expression(module_type),
-      ")" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | Identifier(x) => x |> Pretty.string
+    [string("("), x |> fmt_expression(module_type), string(")")] |> concat
+  | Identifier(x) => string(x)
   | DotAccess(expr, name) =>
-    [
-      expr |> fmt_expression(module_type),
-      "." |> Pretty.string,
-      name |> Pretty.string,
-    ]
-    |> Pretty.concat
+    [expr |> fmt_expression(module_type), string("."), string(name)]
+    |> concat
   | FunctionCall(expr, args) =>
     [
       expr |> fmt_expression(module_type),
-      "(" |> Pretty.string,
+      string("("),
       args
       |> List.map(fmt_expression(module_type))
-      |> List.intersperse(", " |> Pretty.string)
-      |> Pretty.concat,
-      ")" |> Pretty.string,
+      |> List.intersperse(string(", "))
+      |> concat,
+      string(")"),
     ]
-    |> Pretty.concat
+    |> concat
   | UnaryOp(op, x) =>
-    [op |> Pretty.string, x |> fmt_expression(module_type)] |> Pretty.concat
+    [string(op), x |> fmt_expression(module_type)] |> concat
   | BinaryOp(op, l, r) =>
     [
       l |> fmt_expression(module_type),
-      " " |> Pretty.string,
-      op |> Pretty.string,
-      " " |> Pretty.string,
+      string(" "),
+      string(op),
+      string(" "),
       r |> fmt_expression(module_type),
     ]
-    |> Pretty.concat
+    |> concat
   | Ternary(x, y, z) =>
     [
       x |> fmt_expression(module_type),
-      " ? " |> Pretty.string,
+      string(" ? "),
       y |> fmt_expression(module_type),
-      " : " |> Pretty.string,
+      string(" : "),
       z |> fmt_expression(module_type),
     ]
-    |> Pretty.concat
+    |> concat
   | Function(name, args, stmts) =>
     [
-      "function " |> Pretty.string,
+      string("function "),
       switch (name) {
-      | Some(name) => name |> Pretty.string
-      | None => Pretty.Nil
+      | Some(name) => string(name)
+      | None => Nil
       },
-      "(" |> Pretty.string,
-      args
-      |> List.map(Pretty.string)
-      |> List.intersperse(", " |> Pretty.string)
-      |> Pretty.concat,
-      [") {" |> Pretty.string] |> Pretty.newline,
+      string("("),
+      args |> List.map(string) |> List.intersperse(string(", ")) |> concat,
+      [string(") {")] |> newline,
       stmts
       |> List.map(stmt =>
-           [fmt_statement(module_type, stmt), ";" |> Pretty.string]
-           |> Pretty.newline
+           [fmt_statement(module_type, stmt), string(";")] |> newline
          )
-      |> Pretty.concat
-      |> Pretty.indent(2),
-      "}" |> Pretty.string,
+      |> concat
+      |> indent(2),
+      string("}"),
     ]
-    |> Pretty.concat
+    |> concat
   | Object(props) =>
-    props |> List.is_empty
-      ? "{}" |> Pretty.string
+    List.is_empty(props)
+      ? string("{}")
       : [
-          ["{" |> Pretty.string] |> Pretty.newline,
+          [string("{")] |> newline,
           props
           |> List.map(((name, expr)) =>
                [
-                 name |> Pretty.string,
-                 ": " |> Pretty.string,
+                 string(name),
+                 string(": "),
                  expr |> fmt_expression(module_type),
                ]
-               |> Pretty.concat
+               |> concat
              )
-          |> List.intersperse(["," |> Pretty.string] |> Pretty.newline)
-          |> Pretty.concat
-          |> Pretty.indent(2),
-          [Pretty.Newline, "}" |> Pretty.string] |> Pretty.concat,
+          |> List.intersperse([string(",")] |> newline)
+          |> concat
+          |> indent(2),
+          [Newline, string("}")] |> concat,
         ]
-        |> Pretty.concat
+        |> concat
 
 and fmt_statement = (module_type: Target.module_t, stmt) =>
   switch (stmt) {
-  | Expression(x) => [x |> fmt_expression(module_type)] |> Pretty.concat
+  | Expression(x) => [x |> fmt_expression(module_type)] |> concat
   | Variable(name, expr) =>
     [
-      "var " |> Pretty.string,
-      name |> Pretty.string,
-      " = " |> Pretty.string,
+      string("var "),
+      string(name),
+      string(" = "),
       expr |> fmt_expression(module_type),
     ]
-    |> Pretty.concat
+    |> concat
   | Assignment(lhs, rhs) =>
     [
       lhs |> fmt_expression(module_type),
-      " = " |> Pretty.string,
+      string(" = "),
       rhs |> fmt_expression(module_type),
     ]
-    |> Pretty.concat
+    |> concat
   | Return(expr) =>
     [
-      "return" |> Pretty.string,
+      string("return"),
       switch (expr) {
       | Some(expr) =>
-        [" " |> Pretty.string, expr |> fmt_expression(module_type)]
-        |> Pretty.concat
-      | None => Pretty.Nil
+        [string(" "), expr |> fmt_expression(module_type)] |> concat
+      | None => Nil
       },
     ]
-    |> Pretty.concat
+    |> concat
   | DefaultImport(namespace, id) =>
     switch (module_type) {
     | ES6 => fmt_es6_default_import(namespace, id)
@@ -149,7 +136,7 @@ and fmt_statement = (module_type: Target.module_t, stmt) =>
     }
   | EmptyExport =>
     switch (module_type) {
-    | ES6 => ["export {}" |> Pretty.string] |> Pretty.concat
+    | ES6 => [string("export {}")] |> concat
     | Common =>
       Assignment(DotAccess(Identifier("module"), "exports"), Object([]))
       |> fmt_statement(module_type)
@@ -163,7 +150,7 @@ and fmt_common_default_import = (namespace: string, id: string) =>
 and fmt_common_named_imports =
     (namespace: string, imports: list((string, option(string)))) =>
   (
-    imports |> List.is_empty
+    List.is_empty(imports)
       ? []
       : {
         let temp_variable_name =
@@ -193,10 +180,10 @@ and fmt_common_named_imports =
         )
         @ [Assignment(Identifier(temp_variable_name), Null)]
         |> List.map(fmt_statement(Target.Common))
-        |> List.intersperse([";" |> Pretty.string] |> Pretty.newline);
+        |> List.intersperse([string(";")] |> newline);
       }
   )
-  |> Pretty.concat
+  |> concat
 
 and fmt_common_export = (~alias=None, name: string) =>
   Assignment(
@@ -207,53 +194,47 @@ and fmt_common_export = (~alias=None, name: string) =>
 
 and fmt_es6_default_import = (namespace: string, id: string) =>
   [
-    "import " |> Pretty.string,
-    id |> Pretty.string,
-    " from " |> Pretty.string,
+    string("import "),
+    string(id),
+    string(" from "),
     namespace |> fmt_string,
   ]
-  |> Pretty.concat
+  |> concat
 
 and fmt_es6_named_imports =
     (namespace: string, imports: list((string, option(string)))) =>
   (
-    imports |> List.is_empty
+    List.is_empty(imports)
       ? []
       : [
-        "import { " |> Pretty.string,
+        string("import { "),
         imports
         |> List.map(
              fun
              | (id, Some(label)) =>
-               [
-                 id |> Pretty.string,
-                 " as " |> Pretty.string,
-                 label |> Pretty.string,
-               ]
-               |> Pretty.concat
-             | (id, None) => id |> Pretty.string,
+               [string(id), string(" as "), string(label)] |> concat
+             | (id, None) => string(id),
            )
-        |> List.intersperse(", " |> Pretty.string)
-        |> Pretty.concat,
-        " } from " |> Pretty.string,
-        namespace |> fmt_string,
+        |> List.intersperse(string(", "))
+        |> concat,
+        string(" } from "),
+        fmt_string(namespace),
       ]
   )
-  |> Pretty.concat
+  |> concat
 
 and fmt_es6_export = (~alias=None, name: string) =>
   [
-    "export { " |> Pretty.string,
-    name |> Pretty.string,
-    alias |?> Print.fmt(" as %s") % Pretty.string |?: Pretty.Nil,
-    " }" |> Pretty.string,
+    string("export { "),
+    string(name),
+    alias |?> Print.fmt(" as %s") % string |?: Nil,
+    string(" }"),
   ]
-  |> Pretty.concat;
+  |> concat;
 
 let format = (module_type: Target.module_t, program: program_t): Pretty.t =>
   program
   |> List.map(stmt =>
-       [fmt_statement(module_type, stmt), ";" |> Pretty.string]
-       |> Pretty.newline
+       [fmt_statement(module_type, stmt), string(";")] |> newline
      )
-  |> Pretty.concat;
+  |> concat;

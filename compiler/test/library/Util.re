@@ -1,35 +1,35 @@
 open Kore;
 open Reference;
 
-let to_scope = (types: list((string, Type.t))) => {
-  let scope = Scope.create();
+/* let to_scope = (types: list((string, Type2.Raw.t))) => {
+     let scope = Scope.create();
 
-  types
-  |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
-  |> List.to_seq
-  |> Hashtbl.add_seq(scope.types);
+     types
+     |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
+     |> List.to_seq
+     |> Hashtbl.add_seq(scope.types);
 
-  scope;
-};
+     scope;
+   }; */
 
 let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
 let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 
-let as_nil = x => as_typed_lexeme(Type.K_Strong(K_Nil), x);
+let as_nil = x => as_typed_lexeme(`Strong(`Nil), x);
 
-let as_bool = x => as_typed_lexeme(Type.K_Strong(K_Boolean), x);
+let as_bool = x => as_typed_lexeme(`Strong(`Boolean), x);
 
-let as_int = x => as_typed_lexeme(Type.K_Strong(K_Integer), x);
+let as_int = x => as_typed_lexeme(`Strong(`Integer), x);
 
-let as_float = x => as_typed_lexeme(Type.K_Strong(K_Float), x);
+let as_float = x => as_typed_lexeme(`Strong(`Float), x);
 
-let as_string = x => as_typed_lexeme(Type.K_Strong(K_String), x);
+let as_string = x => as_typed_lexeme(`Strong(`String), x);
 
-let as_element = x => as_typed_lexeme(Type.K_Strong(K_Element), x);
+let as_element = x => as_typed_lexeme(`Strong(`Element), x);
 
-let as_invalid = (err, x) => as_typed_lexeme(Type.K_Invalid(err), x);
+let as_invalid = (err, x) => as_typed_lexeme(`Invalid(err), x);
 
-let as_weak = (id, x) => as_typed_lexeme(Type.K_Weak(id), x);
+let as_weak = (id, x) => as_typed_lexeme(`Weak(id), x);
 
 let nil_prim = AST.nil |> as_nil |> AST.of_prim |> as_nil;
 

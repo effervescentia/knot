@@ -84,7 +84,7 @@ let print_lexeme = (~attrs=[], name, value, cursor) =>
 
 let print_typed_lexeme = (name, value, type_, cursor) =>
   print_lexeme(
-    ~attrs=[("type", type_ |> Type.to_string |> Pretty.string)],
+    ~attrs=[("type", type_ |> Type2.Raw.to_string |> Pretty.string)],
     name,
     value,
     cursor,

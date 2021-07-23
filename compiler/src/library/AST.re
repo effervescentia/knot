@@ -33,7 +33,7 @@ type number_t =
   | Float(float, int);
 
 type lexeme_t('a) = ('a, Cursor.t);
-type typed_lexeme_t('a) = ('a, Type.t, Cursor.t);
+type typed_lexeme_t('a) = ('a, Type2.Raw.t, Cursor.t);
 
 type identifier_t = lexeme_t(Identifier.t);
 

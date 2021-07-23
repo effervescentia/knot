@@ -14,6 +14,7 @@ module Trait = {
 
 module Error = {
   type t('a) =
+    | NotFound(Identifier.t)
     | TypeMismatch('a, 'a)
     | NotAssignable('a, Trait.t)
     | ExternalNotFound(Namespace.t, Export.t)
@@ -21,6 +22,7 @@ module Error = {
 
   let to_string = (type_to_string: 'a => string) =>
     fun
+    | NotFound(id) => id |> Identifier.to_string |> Print.fmt("NotFound<%s>")
     | NotAssignable(type_, trait) =>
       Print.fmt(
         "NotAssignable<%s, %s>",
@@ -127,12 +129,8 @@ module Raw = {
         switch (weak_type) {
         | Ok(ok_type) =>
           switch (ok_type) {
-          | `Nil as x
-          | `Boolean as x
-          | `Integer as x
-          | `Float as x
-          | `String as x
-          | `Element as x => primitive_to_string(x)
+          | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+            primitive_to_string(x)
           | `List(t) => t |> list_to_string(to_string)
           | `Struct(props) => props |> struct_to_string(to_string)
           | `Function(args, res) => function_to_string(to_string, args, res)
@@ -148,12 +146,8 @@ module Raw = {
   and strong_to_string = (type_: strong_t) =>
     Constants.(
       switch (type_) {
-      | `Nil as x
-      | `Boolean as x
-      | `Integer as x
-      | `Float as x
-      | `String as x
-      | `Element as x => primitive_to_string(x)
+      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+        primitive_to_string(x)
       | `List(t) => t |> list_to_string(to_string)
       | `Struct(props) => props |> struct_to_string(to_string)
       | `Function(args, res) => function_to_string(to_string, args, res)
@@ -173,12 +167,7 @@ module Result = {
 
   and _valid_to_strong = (type_: valid_t): Raw.strong_t =>
     switch (type_) {
-    | `Nil as t
-    | `Boolean as t
-    | `Integer as t
-    | `Float as t
-    | `String as t
-    | `Element as t => t
+    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
 
     | `List(x) => `List(_valid_to_raw(x))
     | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(_valid_to_raw)))
@@ -194,12 +183,17 @@ module Result = {
     | `Valid(t) => _valid_to_raw(t)
     | `Invalid(NotAssignable(t, trait)) =>
       `Invalid(NotAssignable(_valid_to_strong(t), trait))
-    | `Invalid(ExternalNotFound(_) as err) => `Invalid(err)
+    | `Invalid(TypeMismatch(lhs, rhs)) =>
+      `Invalid(TypeMismatch(_valid_to_strong(lhs), _valid_to_strong(rhs)))
+    | `Invalid(
+        (ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err,
+      ) =>
+      `Invalid(err)
     }
 
   and err_to_strong_err = (err: Error.t(valid_t)): Raw.error_t =>
     switch (err) {
     | NotAssignable(t, trait) => NotAssignable(_valid_to_strong(t), trait)
-    | ExternalNotFound(_) as err => err
+    | (ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err => err
     };
 };

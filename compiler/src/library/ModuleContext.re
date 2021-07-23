@@ -24,12 +24,18 @@ let create =
 
 /* methods */
 
+/**
+ convert the imported externals into a scope
+ */
 let get_external_scope = (module_context: t) =>
   module_context.externals
   |> Hashtbl.to_seq
   |> Seq.map(Tuple.map_snd2(Type2.Result.to_raw))
   |> NestedHashtbl.from_seq;
 
+/**
+ report a compile error
+ */
 let report = (ctx: t, err: Error.compile_err) =>
   ctx.namespace_context.report(err);
 

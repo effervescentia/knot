@@ -1,31 +1,29 @@
 open Kore;
+open Pretty;
 
 module Resolver = Resolve.Resolver;
 module Module = Resolve.Module;
 module Writer = File.Writer;
 
 let _print_code_examples =
-  List.intersperse(
-    [Pretty.Newline, "// or" |> Pretty.string, Pretty.Newline]
-    |> Pretty.concat,
-  )
-  % Pretty.newline
-  % Pretty.indent(2);
+  List.intersperse([Newline, string("// or"), Newline] |> concat)
+  % newline
+  % indent(2);
 
 let _print_resolution = ((description, examples)) =>
   [
-    [description |> Print.fmt("• %s") |> Pretty.string] |> Pretty.newline,
-    Pretty.Newline,
+    [description |> Print.fmt("• %s") |> string] |> newline,
+    Newline,
     switch (examples) {
-    | Some(examples) => [examples |> _print_code_examples] |> Pretty.newline
-    | None => Pretty.Nil
+    | Some(examples) => [examples |> _print_code_examples] |> newline
+    | None => Nil
     },
   ]
-  |> Pretty.concat;
+  |> concat;
 
 let _print_err = (~index, path, title, content) =>
   [
-    Print.fmt("%d) %s", index + 1, title) |> Print.bad |> Pretty.string,
+    Print.fmt("%d) %s", index + 1, title) |> Print.bad |> string,
     switch (path) {
     | Some((Module.{relative, full}, cursor)) =>
       let cursor_suffix =
@@ -38,26 +36,22 @@ let _print_err = (~index, path, title, content) =>
 
       [
         [
-          " : " |> Pretty.string,
-          relative |> Print.cyan |> Pretty.string,
-          cursor_suffix |> Print.grey |> Pretty.string,
+          string(" : "),
+          relative |> Print.cyan |> string,
+          cursor_suffix |> Print.grey |> string,
         ]
-        |> Pretty.newline,
-        [
-          Print.fmt("(%s%s)", full, cursor_suffix)
-          |> Print.grey
-          |> Pretty.string,
-        ]
-        |> Pretty.newline,
+        |> newline,
+        [Print.fmt("(%s%s)", full, cursor_suffix) |> Print.grey |> string]
+        |> newline,
       ]
-      |> Pretty.concat
-      |> Pretty.indent(2);
-    | None => Pretty.Newline
+      |> concat
+      |> indent(2);
+    | None => Newline
     },
-    Pretty.Newline,
-    [content |> Pretty.indent(2)] |> Pretty.concat,
+    Newline,
+    [content |> indent(2)] |> concat,
   ]
-  |> Pretty.concat;
+  |> concat;
 
 let _type_trait_to_string = print_target =>
   Type.(
@@ -115,11 +109,12 @@ let _extract_type_err =
         "Types Have Conflicting Traits",
         [
           [
-            "the types of the arguments in this operation are not compatible with each other:"
-            |> Pretty.string,
+            string(
+              "the types of the arguments in this operation are not compatible with each other:",
+            ),
           ]
-          |> Pretty.newline,
-          Pretty.Newline,
+          |> newline,
+          Newline,
           [
             [
               lhs
@@ -127,23 +122,23 @@ let _extract_type_err =
               |> Print.fmt(
                    "• the left-hand-side argument has the trait %s",
                  )
-              |> Pretty.string,
+              |> string,
             ]
-            |> Pretty.newline,
+            |> newline,
             [
               rhs
               |> _type_trait_to_string(Print.bad)
               |> Print.fmt(
                    "• the right-hand-side argument has the trait %s",
                  )
-              |> Pretty.string,
+              |> string,
             ]
-            |> Pretty.newline,
+            |> newline,
           ]
-          |> Pretty.concat,
-          Pretty.Newline,
+          |> concat,
+          Newline,
         ]
-        |> Pretty.concat,
+        |> concat,
         None,
       )
     | NotAssignable(t, trait) => (
@@ -155,12 +150,12 @@ let _extract_type_err =
               trait |> _type_trait_to_string(Print.good),
               t |> Type.to_string |> Print.bad,
             )
-            |> Pretty.string,
+            |> string,
           ]
-          |> Pretty.newline,
-          Pretty.Newline,
+          |> newline,
+          Newline,
         ]
-        |> Pretty.concat,
+        |> concat,
         None,
       )
     | TypeMismatch(expected, actual) => (
@@ -172,12 +167,12 @@ let _extract_type_err =
               expected |> Type.to_string |> Print.good,
               actual |> Type.to_string |> Print.bad,
             )
-            |> Pretty.string,
+            |> string,
           ]
-          |> Pretty.newline,
-          Pretty.Newline,
+          |> newline,
+          Newline,
         ]
-        |> Pretty.concat,
+        |> concat,
         None,
       )
     | NotFound(id) => (
@@ -190,11 +185,11 @@ let _extract_type_err =
             |> Print.fmt(
                  "unable to resolve an identifier %s in the local scope or any inherited scope",
                )
-            |> Pretty.string,
+            |> string,
           ]
-          |> Pretty.newline,
+          |> newline,
         ]
-        |> Pretty.newline,
+        |> newline,
         Some(
           [
             _print_resolution((
@@ -211,11 +206,7 @@ let _extract_type_err =
               Some(
                 [Print.fmt("const %s = …;"), Print.fmt("let %s = …;")]
                 |> List.map(fmt =>
-                     id
-                     |> Identifier.to_string
-                     |> Print.bold
-                     |> fmt
-                     |> Pretty.string
+                     id |> Identifier.to_string |> Print.bold |> fmt |> string
                    ),
               ),
             )),
@@ -224,16 +215,12 @@ let _extract_type_err =
               Some(
                 [Print.fmt("import { %s } from \"…\";")]
                 |> List.map(fmt =>
-                     id
-                     |> Identifier.to_string
-                     |> Print.bold
-                     |> fmt
-                     |> Pretty.string
+                     id |> Identifier.to_string |> Print.bold |> fmt |> string
                    ),
               ),
             )),
           ]
-          |> Pretty.concat,
+          |> concat,
         ),
       )
     | ExternalNotFound(namespace, id) => (
@@ -254,10 +241,10 @@ let _extract_type_err =
               )
             }
           )
-          |> Pretty.string,
-          Pretty.Newline,
+          |> string,
+          Newline,
         ]
-        |> Pretty.newline,
+        |> newline,
         None,
       )
   );
@@ -270,7 +257,7 @@ let _extract_parse_err =
       name
       |> Print.bad
       |> Print.fmt("the reserved keyword %s was used as an identifier")
-      |> Pretty.string,
+      |> string,
       Some(
         [
           _print_resolution((
@@ -288,7 +275,7 @@ let _extract_parse_err =
             None,
           )),
         ]
-        |> Pretty.concat,
+        |> concat,
       ),
     );
 
@@ -300,19 +287,19 @@ let _extract_compile_err = resolver =>
       cycles
       |> Print.many(~separator=" -> ", Functional.identity)
       |> Print.fmt("import cycle between the following modules: %s")
-      |> Pretty.string,
+      |> string,
     )
 
   | UnresolvedModule(name) => (
       None,
       "Unresolved Module",
-      name |> Print.fmt("could not resolve module: %s") |> Pretty.string,
+      name |> Print.fmt("could not resolve module: %s") |> string,
     )
 
   | FileNotFound(path) => (
       None,
       "File Not Found",
-      path |> Print.fmt("could not find file with path: %s") |> Pretty.string,
+      path |> Print.fmt("could not find file with path: %s") |> string,
     )
 
   | InvalidModule(namespace) => (
@@ -321,7 +308,7 @@ let _extract_compile_err = resolver =>
       |> Module.get_path
       |?> (x => (x, Cursor.zero)),
       "Invalid Module",
-      Print.fmt("failed to parse module") |> Pretty.string,
+      Print.fmt("failed to parse module") |> string,
     )
 
   | ParseError(err, namespace, cursor) =>
@@ -340,27 +327,23 @@ let _extract_compile_err = resolver =>
            [
              description,
              switch (module_) {
-             | Ok(x) => File.CodeFrame.print(x, cursor) |> Pretty.string
-             | Error(_) =>
-               ["code frame not available" |> Pretty.string] |> Pretty.newline
+             | Ok(x) => File.CodeFrame.print(x, cursor) |> string
+             | Error(_) => [string("code frame not available")] |> newline
              },
              switch (resolutions) {
              | Some(resolutions) =>
                [
-                 Pretty.Newline,
-                 [
-                   "try one of the following to resolve this issue:"
-                   |> Pretty.string,
-                 ]
-                 |> Pretty.newline,
-                 Pretty.Newline,
-                 resolutions |> Pretty.indent(2),
+                 Newline,
+                 [string("try one of the following to resolve this issue:")]
+                 |> newline,
+                 Newline,
+                 resolutions |> indent(2),
                ]
-               |> Pretty.concat
-             | None => Pretty.Nil
+               |> concat
+             | None => Nil
              },
            ]
-           |> Pretty.concat,
+           |> concat,
          );
        });
 
@@ -378,22 +361,19 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
         |> Print.red,
         0 |> string_of_int |> Print.fmt("%s warning(s)") |> Print.yellow,
       )
-      |> Pretty.string,
+      |> string,
     ]
-    |> Pretty.newline;
+    |> newline;
   let horiz_border = String.repeat(header |> String.length, "═");
 
   [
-    Pretty.Newline,
-    [horiz_border |> Print.fmt("╔%s╗") |> Print.bad |> Pretty.string]
-    |> Pretty.newline,
-    [header |> Print.fmt("║%s║") |> Print.bad |> Pretty.string]
-    |> Pretty.newline,
-    [horiz_border |> Print.fmt("╚%s╝") |> Print.bad |> Pretty.string]
-    |> Pretty.newline,
-    Pretty.Newline,
+    Newline,
+    [horiz_border |> Print.fmt("╔%s╗") |> Print.bad |> string] |> newline,
+    [header |> Print.fmt("║%s║") |> Print.bad |> string] |> newline,
+    [horiz_border |> Print.fmt("╚%s╝") |> Print.bad |> string] |> newline,
+    Newline,
     summary,
-    Pretty.Newline,
+    Newline,
     errors
     |> List.mapi((index, err) =>
          err
@@ -402,11 +382,11 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
               _print_err(~index, path, title, content)
             )
        )
-    |> List.intersperse(Pretty.Newline)
-    |> Pretty.concat,
+    |> List.intersperse(Newline)
+    |> concat,
     summary,
   ]
-  |> Pretty.concat;
+  |> concat;
 };
 
 let panic = (resolver: Resolver.t, errors: list(compile_err)) => {

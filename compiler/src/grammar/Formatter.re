@@ -2,13 +2,14 @@ open Kore;
 open AST;
 open Type;
 open Reference;
+open Pretty;
 
-let __space = " " |> Pretty.string;
-let __semicolon = ";" |> Pretty.string;
-let __quotation_mark = "\"" |> Pretty.string;
+let __space = string(" ");
+let __semicolon = string(";");
+let __quotation_mark = string("\"");
 
 let fmt_anon_id = id =>
-  "'" ++ String.make(1, char_of_int(97 + id)) |> Pretty.string;
+  "'" ++ String.make(1, char_of_int(97 + id)) |> string;
 
 let fmt_binary_op =
   (
@@ -27,7 +28,7 @@ let fmt_binary_op =
     | Unequal => "!="
     | Exponent => "^"
   )
-  % Pretty.string;
+  % string;
 
 let fmt_unary_op =
   (
@@ -36,100 +37,92 @@ let fmt_unary_op =
     | Positive => "+"
     | Negative => "-"
   )
-  % Pretty.string;
+  % string;
 
-let fmt_id = Identifier.to_string % Pretty.string;
+let fmt_id = Identifier.to_string % string;
 
 let fmt_num =
   (
     fun
-    | Integer(int) => int |> Int64.to_string
+    | Integer(int) => Int64.to_string(int)
     | Float(float, precision) => float |> Print.fmt("%.*f", precision)
   )
-  % Pretty.string;
+  % string;
 
 let fmt_string = s =>
-  [__quotation_mark, s |> String.escaped |> Pretty.string, __quotation_mark]
-  |> Pretty.concat;
+  [__quotation_mark, s |> String.escaped |> string, __quotation_mark]
+  |> concat;
 
 let fmt_ns = Namespace.to_string % fmt_string;
 
 let fmt_prim =
-  fun
-  | Nil => "nil" |> Pretty.string
-  | Boolean(bool) => bool |> string_of_bool |> Pretty.string
-  | Number(num) => num |> fmt_num
-  | String(str) => str |> fmt_string;
+  AST.(
+    fun
+    | Nil => string("nil")
+    | Boolean(bool) => bool |> string_of_bool |> string
+    | Number(num) => fmt_num(num)
+    | String(str) => fmt_string(str)
+  );
 
 let rec fmt_jsx =
   fun
   | Tag((name, _), attrs, children) =>
     [
-      "<" |> Pretty.string,
-      name |> fmt_id,
-      attrs |> List.is_empty
-        ? Pretty.Nil
+      string("<"),
+      fmt_id(name),
+      List.is_empty(attrs)
+        ? Nil
         : attrs
           |> List.map(
-               fst
-               % (attr => [__space, attr |> fmt_jsx_attr] |> Pretty.concat),
+               fst % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
              )
-          |> Pretty.concat,
-      children |> List.is_empty
-        ? " />" |> Pretty.string
+          |> concat,
+      List.is_empty(children)
+        ? string(" />")
         : [
-            [">" |> Pretty.string] |> Pretty.newline,
+            [string(">")] |> newline,
             children
-            |> List.map(
-                 fst % (child => [child |> fmt_jsx_child] |> Pretty.newline),
-               )
-            |> Pretty.concat
-            |> Pretty.indent(2),
-            ["</" |> Pretty.string, name |> fmt_id, ">" |> Pretty.string]
-            |> Pretty.concat,
+            |> List.map(fst % (child => [fmt_jsx_child(child)] |> newline))
+            |> concat
+            |> indent(2),
+            [string("</"), fmt_id(name), string(">")] |> concat,
           ]
-          |> Pretty.concat,
+          |> concat,
     ]
-    |> Pretty.concat
+    |> concat
+
   | Fragment(children) =>
     children |> List.is_empty
-      ? "<></>" |> Pretty.string
+      ? string("<></>")
       : [
-          ["<>" |> Pretty.string] |> Pretty.newline,
-          children
-          |> List.map(fst % fmt_jsx_child)
-          |> Pretty.concat
-          |> Pretty.indent(2),
-          "</>" |> Pretty.string,
+          [string("<>")] |> newline,
+          children |> List.map(fst % fmt_jsx_child) |> concat |> indent(2),
+          string("</>"),
         ]
-        |> Pretty.concat
+        |> concat
 
 and fmt_jsx_child =
   fun
-  | Node((jsx, _)) => jsx |> fmt_jsx
-  | Text((s, _)) => s |> Pretty.string
+  | Node((jsx, _)) => fmt_jsx(jsx)
+  | Text((s, _)) => string(s)
   | InlineExpression((expr, _, _)) =>
-    ["{" |> Pretty.string, expr |> fmt_expression, "}" |> Pretty.string]
-    |> Pretty.concat
+    [string("{"), fmt_expression(expr), string("}")] |> concat
 
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
     | Class((name, _), value) => (
-        ["." |> Pretty.string, name |> fmt_id] |> Pretty.concat,
+        [string("."), fmt_id(name)] |> concat,
         value,
       )
-    | ID((name, _)) => (
-        ["#" |> Pretty.string, name |> fmt_id] |> Pretty.concat,
-        None,
-      )
-    | Property((name, _), value) => (name |> fmt_id, value)
+    | ID((name, _)) => ([string("#"), fmt_id(name)] |> concat, None)
+    | Property((name, _), value) => (fmt_id(name), value)
     }
   )
   |> (
     fun
     | (name, Some((expr, _, _))) =>
-      [name, "=" |> Pretty.string, expr |> fmt_jsx_attr_expr] |> Pretty.concat
+      [name, string("="), fmt_jsx_attr_expr(expr)] |> concat
 
     | (name, None) => name
   )
@@ -141,17 +134,15 @@ and fmt_jsx_attr_expr = x =>
   | Group(_)
   | Closure(_)
   /* show tags or fragments with no children */
-  | JSX((Tag(_, _, []) | Fragment([]), _)) => x |> fmt_expression
-  | _ =>
-    ["(" |> Pretty.string, x |> fmt_expression, ")" |> Pretty.string]
-    |> Pretty.concat
+  | JSX((Tag(_, _, []) | Fragment([]), _)) => fmt_expression(x)
+  | _ => [string("("), fmt_expression(x), string(")")] |> concat
   }
 
 and fmt_expression =
   fun
-  | Primitive((prim, _, _)) => prim |> fmt_prim
-  | Identifier((name, _)) => name |> fmt_id
-  | JSX((jsx, _)) => jsx |> fmt_jsx
+  | Primitive((prim, _, _)) => fmt_prim(prim)
+  | Identifier((name, _)) => fmt_id(name)
+  | JSX((jsx, _)) => fmt_jsx(jsx)
   /* collapse parentheses around unary values */
   | Group((
       (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
@@ -160,8 +151,7 @@ and fmt_expression =
     )) =>
     expr |> fmt_expression
   | Group((expr, _, _)) =>
-    ["(" |> Pretty.string, expr |> fmt_expression, ")" |> Pretty.string]
-    |> Pretty.concat
+    [string("("), fmt_expression(expr), string(")")] |> concat
   | BinaryOp(op, (lhs, _, _), (rhs, _, _)) =>
     [
       lhs |> fmt_expression,
@@ -170,82 +160,81 @@ and fmt_expression =
       __space,
       rhs |> fmt_expression,
     ]
-    |> Pretty.concat
+    |> concat
   | UnaryOp(op, (expr, _, _)) =>
-    [op |> fmt_unary_op, expr |> fmt_expression] |> Pretty.concat
+    [fmt_unary_op(op), fmt_expression(expr)] |> concat
   | Closure(stmts) =>
-    stmts |> List.is_empty
-      ? "{}" |> Pretty.string
+    List.is_empty(stmts)
+      ? string("{}")
       : [
-          ["{" |> Pretty.string] |> Pretty.newline,
+          [string("{")] |> newline,
           stmts
-          |> List.map(stmt => [stmt |> fmt_statement] |> Pretty.newline)
-          |> Pretty.concat
-          |> Pretty.indent(2),
-          "}" |> Pretty.string,
+          |> List.map(stmt => [fmt_statement(stmt)] |> newline)
+          |> concat
+          |> indent(2),
+          string("}"),
         ]
-        |> Pretty.concat
+        |> concat
 
 and fmt_statement = stmt =>
   (
     switch (stmt) {
     | Variable((name, _), (expr, _, _)) => [
-        "let " |> Pretty.string,
-        name |> fmt_id,
-        " = " |> Pretty.string,
-        expr |> fmt_expression,
+        string("let "),
+        fmt_id(name),
+        string(" = "),
+        fmt_expression(expr),
       ]
-    | Expression((expr, _, _)) => [expr |> fmt_expression]
+    | Expression((expr, _, _)) => [fmt_expression(expr)]
     }
   )
   @ [__semicolon]
-  |> Pretty.concat;
+  |> concat;
 
 let fmt_declaration = (((name, _), decl)) =>
   (
     switch (decl) {
     | Constant((expr, _, _)) => [
-        "const " |> Pretty.string,
-        name |> fmt_id,
-        " = " |> Pretty.string,
-        expr |> fmt_expression,
+        string("const "),
+        fmt_id(name),
+        string(" = "),
+        fmt_expression(expr),
         __semicolon,
       ]
     | Function(args, (expr, _, _)) => [
-        "func " |> Pretty.string,
-        name |> fmt_id,
+        string("func "),
+        fmt_id(name),
         List.is_empty(args)
-          ? Pretty.Nil
+          ? Nil
           : [
-              "(" |> Pretty.string,
+              string("("),
               args
               |> List.map((({name, default}, type_)) =>
                    [
                      name |> fst |> fmt_id,
                      switch (default) {
                      | Some((expr, _, _)) =>
-                       [" = " |> Pretty.string, expr |> fmt_expression]
-                       |> Pretty.concat
-                     | None => Pretty.Nil
+                       [string(" = "), fmt_expression(expr)] |> concat
+                     | None => Nil
                      },
                    ]
-                   |> Pretty.concat
+                   |> concat
                  )
-              |> List.intersperse(", " |> Pretty.string)
-              |> Pretty.concat,
-              ")" |> Pretty.string,
+              |> List.intersperse(string(", "))
+              |> concat,
+              string(")"),
             ]
-            |> Pretty.concat,
-        " -> " |> Pretty.string,
-        expr |> fmt_expression,
+            |> concat,
+        string(" -> "),
+        fmt_expression(expr),
         switch (expr) {
-        | Closure(_) => Pretty.Nil
+        | Closure(_) => Nil
         | _ => __semicolon
         },
       ]
     }
   )
-  |> Pretty.newline;
+  |> newline;
 
 let fmt_imports = stmts => {
   let (internal_imports, external_imports) =
@@ -290,26 +279,23 @@ let fmt_imports = stmts => {
                   );
 
              [
-               "import" |> Pretty.string,
+               string("import"),
                main_import
                |> (
                  fun
                  | Some(id) =>
-                   [
-                     " " |> Pretty.string,
-                     id |> Identifier.to_string |> Pretty.string,
-                   ]
-                   |> Pretty.concat
-                 | None => Pretty.Nil
+                   [string(" "), Identifier.to_string(id) |> string]
+                   |> concat
+                 | None => Nil
                ),
                switch (main_import, named_imports) {
-               | (Some(_), [_, ..._]) => ", " |> Pretty.string
-               | _ => Pretty.Nil
+               | (Some(_), [_, ..._]) => string(", ")
+               | _ => Nil
                },
-               named_imports |> List.is_empty
-                 ? Pretty.Nil
+               List.is_empty(named_imports)
+                 ? Nil
                  : [
-                     "{ " |> Pretty.string,
+                     string("{ "),
                      named_imports
                      |> List.sort((l, r) =>
                           (l, r)
@@ -318,34 +304,34 @@ let fmt_imports = stmts => {
                         )
                      |> List.map(((id, label)) =>
                           [
-                            id |> fmt_id,
+                            fmt_id(id),
                             ...switch (label) {
                                | Some((label, _)) => [
-                                   " as " |> Pretty.string,
-                                   label |> fmt_id,
+                                   string(" as "),
+                                   fmt_id(label),
                                  ]
                                | None => []
                                },
                           ]
-                          |> Pretty.concat
+                          |> concat
                         )
-                     |> List.intersperse(", " |> Pretty.string)
-                     |> Pretty.concat,
-                     " }" |> Pretty.string,
+                     |> List.intersperse(string(", "))
+                     |> concat,
+                     string(" }"),
                    ]
-                   |> Pretty.concat,
-               " from " |> Pretty.string,
-               namespace |> fmt_ns,
+                   |> concat,
+               string(" from "),
+               fmt_ns(namespace),
                __semicolon,
              ]
-             |> Pretty.newline;
+             |> newline;
            }),
        );
 
   external_imports
   @ (
-    external_imports |> List.is_empty || internal_imports |> List.is_empty
-      ? [] : [Pretty.Newline]
+    List.is_empty(external_imports) || List.is_empty(internal_imports)
+      ? [] : [Newline]
   )
   @ internal_imports;
 };
@@ -362,7 +348,7 @@ let fmt_declarations = stmts => {
 
   let rec loop = (~acc=[]) =>
     fun
-    | [] => acc |> List.rev
+    | [] => List.rev(acc)
     /* do not add newline after the last statement */
     | [x] => loop(~acc=[x |> fmt_declaration, ...acc], [])
     /* handle constant clustering logic */
@@ -372,13 +358,12 @@ let fmt_declarations = stmts => {
       | []
       /* followed by a constant, do not add newline */
       | [(_, Constant(_)), ..._] =>
-        loop(~acc=[x |> fmt_declaration, ...acc], xs)
+        loop(~acc=[fmt_declaration(x), ...acc], xs)
       /* followed by other declarations, add a newline */
-      | _ => loop(~acc=[x |> fmt_declaration, Pretty.Newline, ...acc], xs)
+      | _ => loop(~acc=[fmt_declaration(x), Newline, ...acc], xs)
       }
     /* not a constant, add a newline */
-    | [x, ...xs] =>
-      loop(~acc=[x |> fmt_declaration, Pretty.Newline, ...acc], xs);
+    | [x, ...xs] => loop(~acc=[x |> fmt_declaration, Newline, ...acc], xs);
 
   loop(declarations);
 };
@@ -389,9 +374,8 @@ let format = (program: program_t): Pretty.t => {
 
   imports
   @ (
-    imports |> List.is_empty || declarations |> List.is_empty
-      ? [] : [Pretty.Newline]
+    imports |> List.is_empty || declarations |> List.is_empty ? [] : [Newline]
   )
   @ declarations
-  |> Pretty.concat;
+  |> concat;
 };

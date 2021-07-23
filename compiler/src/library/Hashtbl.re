@@ -17,21 +17,23 @@ let to_string =
       value_to_string: 'b => string,
       tbl: t('a, 'b),
     ) =>
-  [
-    ["{" |> Pretty.string] |> Pretty.newline,
-    tbl
-    |> to_seq_keys
-    |> List.of_seq
-    |> List.map(key =>
-         [
-           key |> key_to_string |> Pretty.string,
-           ": " |> Pretty.string,
-           find(tbl, key) |> value_to_string |> Pretty.string,
-         ]
-         |> Pretty.newline
-       )
-    |> Pretty.concat
-    |> Pretty.indent(2),
-    "}" |> Pretty.string,
-  ]
-  |> Pretty.concat;
+  Pretty.(
+    [
+      [string("{")] |> newline,
+      tbl
+      |> to_seq_keys
+      |> List.of_seq
+      |> List.map(key =>
+           [
+             key |> key_to_string |> string,
+             string(": "),
+             find(tbl, key) |> value_to_string |> string,
+           ]
+           |> newline
+         )
+      |> concat
+      |> indent(2),
+      string("}"),
+    ]
+    |> concat
+  );
