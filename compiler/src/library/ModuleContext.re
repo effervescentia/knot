@@ -27,8 +27,8 @@ let create =
 /**
  convert the imported externals into a scope
  */
-let get_external_scope = (module_context: t) =>
-  module_context.externals
+let get_external_scope = (ctx: t) =>
+  ctx.externals
   |> Hashtbl.to_seq
   |> Seq.map(Tuple.map_snd2(Type2.Result.to_raw))
   |> NestedHashtbl.from_seq;
@@ -38,6 +38,12 @@ let get_external_scope = (module_context: t) =>
  */
 let report = (ctx: t, err: Error.compile_err) =>
   ctx.namespace_context.report(err);
+
+/**
+ define a new declaration within the module
+ */
+let define = (name: Identifier.t, type_: Type2.Raw.t, ctx: t) =>
+  ctx.scope |> NestedHashtbl.set(name, type_);
 
 /**
  find the type of an export from a different module and import it into the current scope
@@ -51,7 +57,7 @@ let import =
     ) => {
   let type_: Type2.Result.t =
     switch (ctx.namespace_context |> NamespaceContext.lookup(namespace, id)) {
-    | Ok(t) => `Valid(t)
+    | Ok(t) => Valid(t)
     | Error(err) =>
       Error.ParseError(
         TypeError(Type2.Result.err_to_strong_err(err)),
@@ -60,7 +66,7 @@ let import =
       )
       |> report(ctx);
 
-      `Invalid(err);
+      Invalid(err);
     };
 
   Hashtbl.replace(ctx.externals, label, type_);

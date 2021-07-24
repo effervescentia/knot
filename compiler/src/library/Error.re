@@ -29,7 +29,7 @@ let parse_err_to_string =
   fun
   | TypeError(err) =>
     err
-    |> Type2.Error.to_string(Type2.Raw.strong_to_string)
+    |> Type2.Error.to_string(Type2.Raw.to_string)
     |> Print.fmt("type error: %s")
   | ReservedKeyword(name) =>
     name |> Print.fmt("reserved keyword %s cannot be used as an identifier");

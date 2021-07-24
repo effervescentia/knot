@@ -1,5 +1,5 @@
 open Kore;
-open AST;
+open AST.Raw;
 
 module Tag = {
   let open_ = M.symbol(C.Character.open_chevron);

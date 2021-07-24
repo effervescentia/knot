@@ -8,13 +8,15 @@ let _wrap_typed_lexeme = (f, (_, type_, cursor) as lexeme) => (
 
 let primitive =
   Primitive.parser
-  >|= (((_, type_, cursor) as prim) => (AST.of_prim(prim), type_, cursor));
+  >|= (
+    ((_, type_, cursor) as prim) => (AST.Raw.of_prim(prim), type_, cursor)
+  );
 
 let identifier = (ctx: ClosureContext.t) =>
   Identifier.parser(ctx)
   >|= (
     ((_, cursor) as id) => (
-      AST.of_id(id),
+      AST.Raw.of_id(id),
       ctx |> ClosureContext.resolve(id),
       cursor,
     )
@@ -23,16 +25,20 @@ let identifier = (ctx: ClosureContext.t) =>
 let jsx = (ctx: ClosureContext.t, x) =>
   JSX.parser(ctx, x)
   >|= (
-    ((_, cursor) as jsx) => (AST.of_jsx(jsx), `Strong(`Element), cursor)
+    ((_, cursor) as jsx) => (
+      AST.Raw.of_jsx(jsx),
+      Type2.Raw.Strong(`Element),
+      cursor,
+    )
   );
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
   >|= (
     block => {
-      let (_, type_, _) as group = block |> Block.value;
+      let (_, type_, _) as group = Block.value(block);
 
-      (group |> AST.of_group, type_, block |> Block.cursor);
+      (AST.Raw.of_group(group), type_, Block.cursor(block));
     }
   );
 
@@ -48,11 +54,11 @@ let closure = (ctx: ClosureContext.t, x) =>
         |> List.last
         |> (
           fun
-          | None => `Strong(`Nil)
-          | Some(x) => TypeOf.statement(x)
+          | None => Type2.Raw.Strong(`Nil)
+          | Some(x) => TypeOf.raw_statement(x)
         );
 
-      (stmts |> AST.of_closure, type_, cursor);
+      (AST.Raw.of_closure(stmts), type_, cursor);
     }
   );
 
@@ -118,7 +124,7 @@ and expr_7 = (ctx: ClosureContext.t, input) =>
 /* {}, () */
 and expr_8 = (ctx: ClosureContext.t, input) =>
   {
-    let child_ctx = ctx |> ClosureContext.child;
+    let child_ctx = ClosureContext.child(ctx);
 
     choice([
       closure(child_ctx, expr_0)

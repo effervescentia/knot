@@ -72,7 +72,7 @@ let to_string =
        |> (
          ({ast, raw, types}) =>
            ast
-           |> Debug.print_ast
+           |> AST.Debug.print_ast
            |> Print.fmt(
                 "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
                 Reference.Namespace.to_string(key),

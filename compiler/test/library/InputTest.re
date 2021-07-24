@@ -9,7 +9,7 @@ let _assert_context =
     check(
       testable(
         (pp, cursor) =>
-          cursor |> Debug.print_cursor |> Format.pp_print_string(pp),
+          cursor |> Cursor.to_string |> Format.pp_print_string(pp),
         (==),
       ),
       "cursor matches",

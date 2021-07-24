@@ -6,7 +6,7 @@ let integer =
   >|= (
     block => (
       block |> Block.value |> Int64.of_string |> AST.of_int,
-      `Strong(`Integer),
+      Type2.Raw.Strong(`Integer),
       block |> Block.cursor,
     )
   )
@@ -27,15 +27,15 @@ let float =
         let fraction_precision = fraction |> String.length;
 
         if (fraction == "") {
-          AST.of_float((integer |> Float.of_string, integer_precision));
+          AST.Raw.of_float((integer |> Float.of_string, integer_precision));
         } else {
-          AST.of_float((
+          AST.Raw.of_float((
             Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
             integer_precision + fraction_precision,
           ));
         };
       },
-      `Strong(`Float),
+      Type2.Raw.Strong(`Float),
       Cursor.join(x |> Block.cursor, y |> Block.cursor),
     )
   )

@@ -53,3 +53,15 @@ let is_in_range = ((start, end_): range_t, point: point_t) =>
       true;
     }
   );
+
+let to_string =
+  fun
+  | Point({line, column}) => Print.fmt("(%d:%d)", line, column)
+  | Range(start, end_) =>
+    Print.fmt(
+      "(%d:%d - %d:%d)",
+      start.line,
+      start.column,
+      end_.line,
+      end_.column,
+    );

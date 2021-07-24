@@ -9,7 +9,6 @@ module Config = Config;
 module Constants = Constants;
 module Context = Context;
 module Cursor = Cursor;
-module Debug = Debug;
 module DefinitionTable = DefinitionTable;
 module Filename = Filename;
 module Functional = Functional;

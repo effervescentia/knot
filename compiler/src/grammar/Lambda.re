@@ -19,13 +19,13 @@ let arguments = (ctx: ClosureContext.t) =>
             | None => ctx |> ClosureContext.define_weak(id)
             };
 
-          (AST.{name, default}, type_);
+          (AST.Raw.{name, default}, type_);
         }
       ),
       Identifier.parser(ctx)
       >|= (
         ((id, _) as name) => (
-          AST.{name, default: None},
+          AST.Raw.{name, default: None},
           ctx |> ClosureContext.define_weak(id),
         )
       ),

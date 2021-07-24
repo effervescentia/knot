@@ -55,7 +55,7 @@ let resolve = ((name, cursor): AST.identifier_t, ctx: t) =>
   | None =>
     let err = Type2.Error.NotFound(name);
     /* ctx.report(ParseError(TypeError(err), ctx.namespace, cursor)); */
-    `Invalid(err);
+    Invalid(err);
   };
 
 /**
@@ -68,7 +68,7 @@ let define = (name: Identifier.t, type_: Type2.Raw.t, ctx: t) =>
  define a new weak variable within the scope
  */
 let define_weak = (id: Identifier.t, ctx: t): Type2.Raw.t => {
-  let type_ = `Weak(ref(Ok(`Abstract(Type2.Trait.Unknown))));
+  let type_ = Type2.(Raw.Weak(ref(Ok(`Abstract(Trait.Unknown)))));
 
   ctx.scope |> NestedHashtbl.set(id, type_);
 

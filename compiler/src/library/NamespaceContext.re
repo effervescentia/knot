@@ -31,8 +31,8 @@ let lookup = (namespace: Namespace.t, id: Export.t, ctx: t) => {
   switch (ModuleTable.find(namespace, ctx.modules)) {
   | Some({types}) =>
     switch (Hashtbl.find_opt(types, id)) {
-    | Some(`Invalid(type_err)) => Error(type_err)
-    | Some(`Valid(t)) => Ok(t)
+    | Some(Valid(t)) => Ok(t)
+    | Some(Invalid(type_err)) => Error(type_err)
     | None => Error(type_err)
     }
   | None => Error(type_err)
