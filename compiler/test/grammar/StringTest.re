@@ -1,11 +1,13 @@
 open Kore;
-open Util;
+open Util.RawUtil;
 
 module Primitive = Grammar.Primitive;
 
 module Assert =
   Assert.Make({
-    type t = AST.primitive_t;
+    open AST;
+
+    type t = Raw.primitive_t;
 
     let parser = _ => Parser.parse(Primitive.string);
 
@@ -15,7 +17,7 @@ module Assert =
           testable(
             pp =>
               Tuple.fst3
-              % Debug.print_prim
+              % Raw.Debug.print_prim
               % Pretty.to_string
               % Format.pp_print_string(pp),
             (==),
@@ -33,14 +35,14 @@ let suite =
     >: (
       () =>
         ["\"foo\"", " \"foo\" "]
-        |> Assert.parse_all(AST.of_string("foo") |> as_string)
+        |> Assert.parse_all(AST.Raw.of_string("foo") |> as_string)
     ),
     "with escape characters"
     >: (
       () =>
         Assert.parse(
           "\"foo\\\"bar\"",
-          AST.of_string("foo\\\"bar") |> as_string,
+          AST.Raw.of_string("foo\\\"bar") |> as_string,
         )
     ),
   ];

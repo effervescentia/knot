@@ -42,8 +42,8 @@ let report = (ctx: t, err: Error.compile_err) =>
 /**
  define a new declaration within the module
  */
-let define = (name: Identifier.t, type_: Type2.Raw.t, ctx: t) =>
-  ctx.scope |> NestedHashtbl.set(name, type_);
+let define = (name: Identifier.t, type_: Type2.Result.t, ctx: t) =>
+  ctx.definitions |> DefinitionTable.add(Export.Named(name), type_);
 
 /**
  find the type of an export from a different module and import it into the current scope

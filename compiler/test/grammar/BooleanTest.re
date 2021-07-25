@@ -1,11 +1,13 @@
 open Kore;
-open Util;
+open Util.RawUtil;
 
 module Primitive = Grammar.Primitive;
 
 module Assert =
   Assert.Make({
-    type t = AST.primitive_t;
+    open AST;
+
+    type t = Raw.primitive_t;
 
     let parser = _ => Parser.parse(Primitive.boolean);
 
@@ -15,7 +17,7 @@ module Assert =
           testable(
             pp =>
               Tuple.fst3
-              % Debug.print_prim
+              % Raw.Debug.print_prim
               % Pretty.to_string
               % Format.pp_print_string(pp),
             (==),
@@ -32,12 +34,13 @@ let suite =
     "parse true"
     >: (
       () =>
-        ["true", " true "] |> Assert.parse_all(AST.of_bool(true) |> as_bool)
+        ["true", " true "]
+        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_bool)
     ),
     "parse false"
     >: (
       () =>
         ["false", " false "]
-        |> Assert.parse_all(AST.of_bool(false) |> as_bool)
+        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_bool)
     ),
   ];

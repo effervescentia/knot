@@ -1,11 +1,13 @@
 open Kore;
-open Util;
+open Util.RawUtil;
 
 module Number = Grammar.Number;
 
 module Assert =
   Assert.Make({
-    type t = (AST.number_t, Type.t, Cursor.t);
+    open AST;
+
+    type t = Raw.typed_lexeme_t(number_t);
 
     let parser = _ => Parser.parse(Number.parser);
 
@@ -13,7 +15,8 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp => Tuple.fst3 % Debug.print_num % Format.pp_print_string(pp),
+            pp =>
+              Tuple.fst3 % Raw.Debug.print_num % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",

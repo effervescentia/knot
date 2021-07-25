@@ -40,7 +40,15 @@ module TypeResolver = {
             xs |> List.last |> Option.map(TypeOf.statement) |?: Valid(`Nil),
           )
         )
-      | Identifier(id) => Identifier(id)
+      | Identifier(id) => (Identifier(id), Type2.Result.of_raw(type_))
+      | UnaryOp(op, expr) => (
+          UnaryOp(op, res_expr(expr)),
+          Type2.Result.of_raw(type_),
+        )
+      | BinaryOp(op, lhs, rhs) => (
+          BinaryOp(op, res_expr(lhs), res_expr(rhs)),
+          Type2.Result.of_raw(type_),
+        )
       }
     )
     |> _bind_typed_lexeme(cursor)
@@ -89,10 +97,12 @@ let constant = (ctx: ModuleContext.t, f) => {
        Expression.parser(closure_ctx),
      )
   >|= (
-    (((id, _) as x, expr)) => {
-      closure_ctx |> ClosureContext.define(id, TypeOf.lexeme(expr));
+    (((id, _) as x, raw_expr)) => {
+      let expr = TypeResolver.res_expr(raw_expr);
 
-      (f(x), decl);
+      ctx |> ModuleContext.define(id, TypeOf.lexeme(expr));
+
+      (f(x), AST.of_const(expr));
     }
   )
   |> M.terminated;
@@ -109,12 +119,25 @@ let function_ = (ctx: ModuleContext.t, f) => {
 
       Lambda.parser(child_ctx)
       >|= (
-        ((args, (_, _, expr_cursor) as expr)) => {
-          let ctx_cursor = Cursor.join(expr_cursor, expr_cursor);
+        ((raw_args, (_, _, res_cursor) as raw_res)) => {
+          let ctx_cursor = Cursor.join(res_cursor, res_cursor);
+          let res = TypeResolver.res_expr(raw_res);
+          let args =
+            raw_args
+            |> List.map(((arg: AST.Raw.argument_t, arg_type)) =>
+                 (
+                   AST.{
+                     name: arg.name,
+                     default:
+                       arg.default |> Option.map(TypeResolver.res_expr),
+                   },
+                   Type2.Result.of_raw(arg_type),
+                 )
+               );
 
           child_ctx |> ClosureContext.save(ctx_cursor);
 
-          (f(id), (args, expr) |> AST.Raw.of_func);
+          (f(id), (args, res) |> AST.of_func);
         }
       );
     }

@@ -1,11 +1,13 @@
 open Kore;
-open Util;
+open Util.RawUtil;
 
 module Primitive = Grammar.Primitive;
 
 module Assert =
   Assert.Make({
-    type t = AST.primitive_t;
+    open AST;
+
+    type t = Raw.primitive_t;
 
     let parser = _ => Parser.parse(Primitive.nil);
 
@@ -15,7 +17,7 @@ module Assert =
           testable(
             pp =>
               Tuple.fst3
-              % Debug.print_prim
+              % Raw.Debug.print_prim
               % Pretty.to_string
               % Format.pp_print_string(pp),
             (==),
@@ -30,5 +32,5 @@ let suite =
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse"
-    >: (() => ["nil", " nil "] |> Assert.parse_all(AST.nil |> as_nil)),
+    >: (() => ["nil", " nil "] |> Assert.parse_all(AST.Raw.nil |> as_nil)),
   ];

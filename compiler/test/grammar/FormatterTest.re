@@ -1,6 +1,7 @@
 open Kore;
 open AST;
 open Util;
+open ResultUtil;
 open Reference;
 
 module Formatter = Grammar.Formatter;
@@ -244,7 +245,13 @@ let suite =
             "fizz=buzz",
             (
               "fizz" |> of_public |> as_lexeme,
-              Some("buzz" |> of_public |> as_lexeme |> of_id |> as_weak(0)),
+              Some(
+                "buzz"
+                |> of_public
+                |> as_lexeme
+                |> of_id
+                |> as_abstract(Unknown),
+              ),
             )
             |> of_prop,
           ),
@@ -407,14 +414,14 @@ let suite =
                 [
                   (
                     {name: "bar" |> of_public |> as_lexeme, default: None},
-                    Type.K_Strong(K_Integer),
+                    Type2.Result.Valid(`Integer),
                   ),
                   (
                     {
                       name: "fizz" |> of_public |> as_lexeme,
                       default: Some(3 |> int_prim),
                     },
-                    Type.K_Strong(K_Integer),
+                    Type2.Result.Valid(`Integer),
                   ),
                 ],
                 (

@@ -1,56 +1,103 @@
 open Kore;
 open Reference;
 
-/* let to_scope = (types: list((string, Type2.Raw.t))) => {
-     let scope = Scope.create();
+let to_scope = (types: list((string, Type2.Result.t))): DefinitionTable.t => {
+  types
+  |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
+  |> List.to_seq
+  |> DefinitionTable.from_seq;
+};
 
-     types
-     |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
-     |> List.to_seq
-     |> Hashtbl.add_seq(scope.types);
-
-     scope;
-   }; */
+let scope_to_closure = (scope: list((string, Type2.Raw.t))) =>
+  ClosureContext.create(
+    ~scope=
+      scope
+      |> List.map(Tuple.map_fst2(AST.of_public))
+      |> List.to_seq
+      |> NestedHashtbl.from_seq,
+  );
 
 let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
 let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 
-let as_nil = x => as_typed_lexeme(Type2.Raw.Strong(`Nil), x);
+module type UtilParams = {
+  type type_t;
 
-let as_bool = x => as_typed_lexeme(Type2.Raw.Strong(`Boolean), x);
+  let to_type: Type2.primitive_t => type_t;
+};
 
-let as_int = x => as_typed_lexeme(Type2.Raw.Strong(`Integer), x);
+module Make = (T: UtilParams) => {
+  let as_nil = x => as_typed_lexeme(T.to_type(`Nil), x);
+  let as_bool = x => as_typed_lexeme(T.to_type(`Boolean), x);
+  let as_int = x => as_typed_lexeme(T.to_type(`Integer), x);
+  let as_float = x => as_typed_lexeme(T.to_type(`Float), x);
+  let as_string = x => as_typed_lexeme(T.to_type(`String), x);
+  let as_element = x => as_typed_lexeme(T.to_type(`Element), x);
+};
 
-let as_float = x => as_typed_lexeme(Type2.Raw.Strong(`Float), x);
+module RawUtil = {
+  open Type2.Raw;
 
-let as_string = x => as_typed_lexeme(Type2.Raw.Strong(`String), x);
+  include Make({
+    type type_t = Type2.Raw.t;
 
-let as_element = x => as_typed_lexeme(Type2.Raw.Strong(`Element), x);
+    let to_type =
+      fun
+      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+        Strong(x);
+  });
 
-let as_invalid = (err, x) => as_typed_lexeme(Type2.Raw.Invalid(err), x);
+  open AST.Raw;
 
-let as_weak = (id, x) => as_typed_lexeme(Type2.Raw.Weak(id), x);
+  let as_invalid = (err, x) => as_typed_lexeme(Invalid(err), x);
 
-let nil_prim = AST.Raw.nil |> as_nil |> AST.Raw.of_prim |> as_nil;
+  let as_abstract = (id, x) =>
+    as_typed_lexeme(Weak(ref(Ok(`Abstract(id)))), x);
 
-let bool_prim = AST.Raw.of_bool % as_bool % AST.Raw.of_prim % as_bool;
+  let nil_prim = nil |> as_nil |> of_prim |> as_nil;
 
-let int_prim =
-  Int64.of_int
-  % AST.Raw.of_int
-  % AST.Raw.of_num
-  % as_int
-  % AST.Raw.of_prim
-  % as_int;
+  let bool_prim = of_bool % as_bool % of_prim % as_bool;
 
-let float_prim =
-  AST.Raw.of_float % AST.Raw.of_num % as_float % AST.Raw.of_prim % as_float;
+  let int_prim = Int64.of_int % of_int % of_num % as_int % of_prim % as_int;
 
-let string_prim = AST.Raw.of_string % as_string % AST.Raw.of_prim % as_string;
+  let float_prim = of_float % of_num % as_float % of_prim % as_float;
 
-let jsx_node = AST.Raw.of_tag % as_lexeme % AST.Raw.of_node;
+  let string_prim = of_string % as_string % of_prim % as_string;
 
-let jsx_tag = AST.Raw.of_tag % as_lexeme % AST.Raw.of_jsx;
+  let jsx_node = of_tag % as_lexeme % of_node;
+
+  let jsx_tag = of_tag % as_lexeme % of_jsx;
+
+  let weak_unknown = Weak(ref(Ok(`Abstract(Type2.Trait.Unknown))));
+};
+
+module ResultUtil = {
+  open Type2.Result;
+
+  include Make({
+    type type_t = Type2.Result.t;
+
+    let to_type =
+      fun
+      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+        Valid(x);
+  });
+
+  open AST;
+
+  let as_abstract = (trait, x) =>
+    as_typed_lexeme(Valid(`Abstract(trait)), x);
+
+  let nil_prim = nil |> as_nil |> of_prim |> as_nil;
+
+  let bool_prim = of_bool % as_bool % of_prim % as_bool;
+
+  let int_prim = Int64.of_int % of_int % of_num % as_int % of_prim % as_int;
+
+  let float_prim = of_float % of_num % as_float % of_prim % as_float;
+
+  let string_prim = of_string % as_string % of_prim % as_string;
+};
 
 let print_parse_err =
   fun

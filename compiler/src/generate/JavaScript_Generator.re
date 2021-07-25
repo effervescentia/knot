@@ -222,7 +222,7 @@ let constant = ((name, _): identifier_t, (value, _, _): expression_t) =>
 let function_ =
     (
       (name, _): identifier_t,
-      args: list((argument_t, Type.t)),
+      args: list((argument_t, Type2.Result.t)),
       (expr, _, _): expression_t,
     ) =>
   JavaScript_AST.(
