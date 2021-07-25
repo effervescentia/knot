@@ -241,7 +241,7 @@ module Make = (T: ASTParams) => {
               r_cursor,
             ),
           ],
-          op |> print_binary_op,
+          print_binary_op(op),
         )
       | UnaryOp(op, (expr, type_, cursor)) =>
         print_typed_lexeme(
@@ -308,7 +308,7 @@ module Make = (T: ASTParams) => {
       | InlineExpression((expr, type_, cursor)) =>
         print_typed_lexeme(
           "InlineExpression",
-          expr |> print_expr,
+          print_expr(expr),
           type_,
           cursor,
         )

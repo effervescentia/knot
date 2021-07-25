@@ -7,7 +7,7 @@ module ImportGraph = Resolve.ImportGraph;
 module InputStream = File.InputStream;
 
 let _subscribe = (channel: in_channel, handler: Event.t => unit): unit => {
-  let stream = channel |> Stream.of_channel;
+  let stream = Stream.of_channel(channel);
   let deserialize = Tuple.reduce2(Event.deserialize);
 
   switch (Protocol.read_event(stream) |> deserialize) {

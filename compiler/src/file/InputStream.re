@@ -31,11 +31,11 @@ let of_channel = (~cursor=true, channel: in_channel): t =>
   decoder(`Channel(channel)) |> _to_stream(cursor);
 
 let to_string = (stream: t): string => {
-  let buffer = Buffer.create(stream |> Stream.count);
+  let buffer = Buffer.create(Stream.count(stream));
 
   stream |> Stream.iter(fst % Buffer.add_utf_8_uchar(buffer));
 
-  buffer |> Buffer.contents;
+  Buffer.contents(buffer);
 };
 
 let __initial = Cursor.{line: 0, column: 0};
@@ -45,11 +45,11 @@ let scan = (predicate: Block.t(string) => bool, contents: string) => {
   let buffer = Buffer.create(8);
 
   let rec loop = (start, end_) => {
-    switch (stream |> Stream.peek |?> Tuple.map_snd2(Cursor.expand % fst)) {
+    switch (Stream.peek(stream) |?> Tuple.map_snd2(Cursor.expand % fst)) {
     | Some((uchar, cursor)) =>
-      stream |> Stream.junk;
+      Stream.junk(stream);
 
-      switch (uchar |> Uchar.to_char) {
+      switch (Uchar.to_char(uchar)) {
       | ' '
       | '\n'
       | '\r'

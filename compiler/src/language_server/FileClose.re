@@ -6,7 +6,7 @@ type params_t = {text_document: text_document_t};
 
 let notification =
   notification(json => {
-    let text_document = json |> get_text_document;
+    let text_document = get_text_document(json);
 
     {text_document: text_document};
   });

@@ -387,7 +387,7 @@ module Deserialize = {
   let to_dynamic_registration =
     fun
     | `Assoc(_) as x => {
-        let dynamic_registration = x |> _get_dynamic_registration;
+        let dynamic_registration = _get_dynamic_registration(x);
 
         Some({dynamic_registration: dynamic_registration});
       }
@@ -396,7 +396,7 @@ module Deserialize = {
   let to_refresh_support =
     fun
     | `Assoc(_) as x => {
-        let refresh_support = x |> _get_refresh_support;
+        let refresh_support = _get_refresh_support(x);
 
         Some({refresh_support: refresh_support});
       }
@@ -502,7 +502,7 @@ module Deserialize = {
             |> (
               fun
               | `Assoc(_) as x => {
-                  let dynamic_registration = x |> _get_dynamic_registration;
+                  let dynamic_registration = _get_dynamic_registration(x);
 
                   let symbol_kind =
                     x
@@ -631,7 +631,7 @@ module Deserialize = {
             |> (
               fun
               | `Assoc(_) as x => {
-                  let dynamic_registration = x |> _get_dynamic_registration;
+                  let dynamic_registration = _get_dynamic_registration(x);
                   let tooltip_support =
                     x |> member("tooltipSupport") |> to_bool_option;
 
@@ -646,7 +646,7 @@ module Deserialize = {
             |> (
               fun
               | `Assoc(_) as x => {
-                  let dynamic_registration = x |> _get_dynamic_registration;
+                  let dynamic_registration = _get_dynamic_registration(x);
                   let range_limit =
                     x |> member("rangeLimit") |> to_int_option;
                   let line_folding_only =
@@ -660,19 +660,6 @@ module Deserialize = {
                 }
               | _ => None
             );
-
-          /* completion: option(completion_capabilities_t),
-             hover: option(hover_capabilities_t),
-             signature_help: option(signature_help_capabilities_t),
-             declaration: option(with_link_support_t),
-             definition: option(with_link_support_t),
-             type_definition: option(with_link_support_t),
-             implementation: option(with_link_support_t),
-             document_symbol: option(document_symbol_capabilities_t),
-             code_action: option(code_action_capabilities_t),
-             rename: option(rename_capabilities_t),
-             publish_diagnostics: option(publish_diagnostics_capabilities_t),
-             semantic_tokens: option(semantic_tokens_capabilities_t), */
 
           Some({
             synchronization,

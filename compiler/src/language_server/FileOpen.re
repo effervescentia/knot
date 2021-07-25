@@ -12,7 +12,7 @@ let notification =
       |> (
         fun
         | `Assoc(_) as x => {
-            let uri = x |> get_uri;
+            let uri = get_uri(x);
             let language_id = x |> member("languageId") |> to_string;
             let version = x |> member("version") |> to_int;
             let text = x |> member("text") |> to_string;

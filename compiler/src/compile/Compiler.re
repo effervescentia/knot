@@ -39,12 +39,12 @@ let _get_exports = ast =>
          []
 
        | AST.Declaration(NamedExport((id, _)), decl) => [
-           (Export.Named(id), decl |> TypeOf.declaration),
+           (Export.Named(id), TypeOf.declaration(decl)),
          ]
 
        | AST.Declaration(MainExport((id, _)), decl) => [
-           (Export.Named(id), decl |> TypeOf.declaration),
-           (Export.Main, decl |> TypeOf.declaration),
+           (Export.Named(id), TypeOf.declaration(decl)),
+           (Export.Main, TypeOf.declaration(decl)),
          ]
 
        | _ => [],

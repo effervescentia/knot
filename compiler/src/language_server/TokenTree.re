@@ -8,7 +8,7 @@ type token_t =
 
 type t = RangeTree.t(token_t);
 
-let __skip: t = BinaryTree.create((Cursor.zero |> Cursor.expand, Skip));
+let __skip: t = BinaryTree.create((Cursor.(expand(zero)), Skip));
 
 let _join = (left: t, right: t) =>
   switch (left, right) {
@@ -35,7 +35,7 @@ let _wrap = (cursor, tree: t) =>
   );
 
 let of_id = (id, cursor) =>
-  BinaryTree.create((cursor |> Cursor.expand, Identifier(id)));
+  BinaryTree.create((Cursor.expand(cursor), Identifier(id)));
 
 let rec of_list = (xs: list(t)): t =>
   switch (xs) {
@@ -53,7 +53,7 @@ let rec of_list = (xs: list(t)): t =>
 let rec of_expr =
   fun
   | AST.Primitive((prim, _, cursor)) =>
-    BinaryTree.create((cursor |> Cursor.expand, Primitive(prim)))
+    BinaryTree.create((Cursor.expand(cursor), Primitive(prim)))
   | AST.Identifier(id) => id |> Tuple.reduce2(of_id)
   | AST.JSX((jsx, cursor)) => of_jsx(jsx) |> _wrap(cursor)
   | AST.Group((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
@@ -92,10 +92,7 @@ and of_jsx_child =
   | AST.InlineExpression((expr, _, cursor)) =>
     expr |> of_expr |> _wrap(cursor)
   | AST.Text((text, cursor)) =>
-    BinaryTree.create((
-      cursor |> Cursor.expand,
-      Primitive(AST.String(text)),
-    ))
+    BinaryTree.create((Cursor.expand(cursor), Primitive(String(text))))
 
 and of_jsx_attr =
   fun
@@ -146,18 +143,16 @@ let of_mod_stmt =
 let of_ast = (program: AST.program_t) => program |> _fold(of_mod_stmt);
 
 let to_string = (tree: t) =>
-  BinaryTree.to_string(
-    (((start, end_), token)) =>
-      Print.fmt(
-        "%s %s",
-        switch (token) {
-        | Join => ""
-        | Skip => "[skip]"
-        | Identifier(id) => Identifier.to_string(id)
-        | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
-        },
-        Cursor.Range(start, end_) |> Cursor.to_string,
-      )
-      |> String.trim,
-    tree,
+  BinaryTree.to_string((((start, end_), token)) =>
+    Print.fmt(
+      "%s %s",
+      switch (token) {
+      | Join => ""
+      | Skip => "[skip]"
+      | Identifier(id) => Identifier.to_string(id)
+      | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
+      },
+      Cursor.Range(start, end_) |> Cursor.to_string,
+    )
+    |> String.trim
   );

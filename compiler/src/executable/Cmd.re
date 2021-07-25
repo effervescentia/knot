@@ -30,8 +30,8 @@ let log_config =
     name,
     [
       ("root_dir", global.root_dir),
-      ("color", global.color |> string_of_bool),
-      ("debug", global.debug |> string_of_bool),
+      ("color", string_of_bool(global.color)),
+      ("debug", string_of_bool(global.debug)),
       ...attributes,
     ]
     |> List.to_seq

@@ -39,7 +39,7 @@ let create =
       desc: string,
     )
     : t => {
-  name: name |> _to_kebab_case,
+  name: _to_kebab_case(name),
   spec,
   desc,
   alias,

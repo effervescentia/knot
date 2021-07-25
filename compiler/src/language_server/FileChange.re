@@ -9,7 +9,7 @@ type params_t = {
 
 let notification =
   notification(json => {
-    let text_document = json |> get_text_document;
+    let text_document = get_text_document(json);
     let changes =
       json
       |> member("contentChanges")

@@ -10,8 +10,8 @@ type params_t = {
 
 let request =
   request(json => {
-    let text_document = json |> get_text_document;
-    let position = json |> get_position;
+    let text_document = get_text_document(json);
+    let position = get_position(json);
 
     {text_document, position, partial_result_token: None};
   });

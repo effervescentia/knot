@@ -46,7 +46,7 @@ let read_to_string = (path: string): string => {
       loop(buffer);
     | `End =>
       close_in(channel);
-      buffer |> Buffer.contents;
+      Buffer.contents(buffer);
     | `Await => assert(false)
     };
 

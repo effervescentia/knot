@@ -36,7 +36,7 @@ let resolve = (path: string, {compilers}: t) =>
           |> String.drop_suffix(Constants.file_extension)
           |> (++)(Constants.root_dir);
 
-        Some((relative |> Namespace.of_string, context));
+        Some((Namespace.of_string(relative), context));
       }
     | None => {
         Log.warn(
@@ -61,7 +61,7 @@ let analyze_module =
     (namespace: Namespace.t, {compiler, contexts}: compiler_context_t) =>
   switch (Hashtbl.find_opt(compiler.modules, namespace)) {
   | Some({ast}) =>
-    let tokens = ast |> TokenTree.of_ast;
+    let tokens = TokenTree.of_ast(ast);
 
     Hashtbl.add(contexts, namespace, {tokens: tokens});
 

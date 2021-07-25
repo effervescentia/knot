@@ -52,7 +52,7 @@ let get_text_document =
   % (
     fun
     | `Assoc(_) as x => {
-        let uri = x |> get_uri;
+        let uri = get_uri(x);
 
         {uri: uri};
       }

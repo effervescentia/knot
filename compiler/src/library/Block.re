@@ -12,5 +12,5 @@ let create = (value: 'a, cursor: Cursor.t): t('a) => (value, cursor);
 
 /* getters */
 
-let value = (block: t('a)): 'a => block |> fst;
-let cursor = (block: t('a)): Cursor.t => block |> snd;
+let value = (block: t('a)): 'a => fst(block);
+let cursor = (block: t('a)): Cursor.t => snd(block);

@@ -21,7 +21,7 @@ let _jsx_util = _knot_util("jsx");
 let number = x =>
   JavaScript_AST.Number(
     switch (x) {
-    | Integer(value) => value |> Int64.to_string
+    | Integer(value) => Int64.to_string(value)
     | Float(value, precision) => value |> Print.fmt("%.*g", precision)
     },
   );
@@ -29,12 +29,12 @@ let number = x =>
 let rec expression =
   fun
   | Primitive((Boolean(x), _, _)) => JavaScript_AST.Boolean(x)
-  | Primitive((Number(x), _, _)) => x |> number
+  | Primitive((Number(x), _, _)) => number(x)
   | Primitive((String(x), _, _)) => JavaScript_AST.String(x)
   | Primitive((Nil, _, _)) => JavaScript_AST.Null
   | Identifier((value, _)) =>
     JavaScript_AST.Identifier(value |> Identifier.to_string)
-  | Group((value, _, _)) => JavaScript_AST.Group(value |> expression)
+  | Group((value, _, _)) => JavaScript_AST.Group(expression(value))
 
   | Closure([]) => JavaScript_AST.(Null)
   | Closure(values) => {
@@ -50,7 +50,7 @@ let rec expression =
 
   | UnaryOp(op, value) => value |> unary_op(op)
   | BinaryOp(op, lhs, rhs) => binary_op(op, lhs, rhs)
-  | JSX((value, _)) => value |> jsx
+  | JSX((value, _)) => jsx(value)
 
 and statement = (~is_last=false) =>
   fun
@@ -58,14 +58,14 @@ and statement = (~is_last=false) =>
     [
       JavaScript_AST.Variable(
         name |> Identifier.to_string,
-        value |> expression,
+        expression(value),
       ),
     ]
     @ (is_last ? [JavaScript_AST.Return(Some(Null))] : [])
   | Expression((value, _, _)) => [
       is_last
-        ? JavaScript_AST.Return(Some(value |> expression))
-        : JavaScript_AST.Expression(value |> expression),
+        ? JavaScript_AST.Return(Some(expression(value)))
+        : JavaScript_AST.Expression(expression(value)),
     ]
 
 and unary_op = (op, (value, _, _)) =>
@@ -75,13 +75,13 @@ and unary_op = (op, (value, _, _)) =>
     | Positive => "+"
     | Not => "!"
     },
-    Group(value |> expression),
+    Group(expression(value)),
   )
 
 and binary_op = {
   let op = (symbol, (lhs, _, _), (rhs, _, _)) =>
     JavaScript_AST.Group(
-      BinaryOp(symbol, lhs |> expression, rhs |> expression),
+      BinaryOp(symbol, expression(lhs), expression(rhs)),
     );
 
   fun
@@ -101,7 +101,7 @@ and binary_op = {
       ((lhs, _, _), (rhs, _, _)) =>
         JavaScript_AST.FunctionCall(
           DotAccess(Identifier("Math"), "pow"),
-          [lhs |> expression, rhs |> expression],
+          [expression(lhs), expression(rhs)],
         )
     );
 }
@@ -112,10 +112,10 @@ and jsx =
     JavaScript_AST.FunctionCall(
       _jsx_util("createTag"),
       [
-        String(name |> Identifier.to_string),
+        String(Identifier.to_string(name)),
         ...List.is_empty(attrs) && List.is_empty(values)
              ? []
-             : [attrs |> jsx_attrs, ...values |> List.map(fst % jsx_child)],
+             : [jsx_attrs(attrs), ...values |> List.map(fst % jsx_child)],
       ],
     )
 
@@ -127,9 +127,9 @@ and jsx =
 
 and jsx_child =
   fun
-  | Node((value, _)) => value |> jsx
+  | Node((value, _)) => jsx(value)
   | Text((value, _)) => JavaScript_AST.String(value)
-  | InlineExpression((value, _, _)) => value |> expression
+  | InlineExpression((value, _, _)) => expression(value)
 
 and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
   if (List.is_empty(attrs)) {
@@ -147,12 +147,12 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    c,
                    [
                      (
-                       name |> Identifier.to_string,
+                       Identifier.to_string(name),
                        switch (expr) {
-                       | Some((expr, _, _)) => expr |> expression
+                       | Some((expr, _, _)) => expression(expr)
                        | None =>
                          JavaScript_AST.Identifier(
-                           name |> Identifier.to_string,
+                           Identifier.to_string(name),
                          )
                        },
                      ),
@@ -172,7 +172,7 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    [
                      JavaScript_AST.Group(
                        Ternary(
-                         expr |> expression,
+                         expression(expr),
                          String(
                            name |> Identifier.to_string |> Print.fmt(".%s"),
                          ),
@@ -185,10 +185,7 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                  )
                | ID((name, _)) => (
                    c,
-                   [
-                     (__id_prop, String(name |> Identifier.to_string)),
-                     ...p,
-                   ],
+                   [(__id_prop, String(Identifier.to_string(name))), ...p],
                  )
              ),
            ([], []),
@@ -217,7 +214,7 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
   };
 
 let constant = ((name, _): identifier_t, (value, _, _): expression_t) =>
-  JavaScript_AST.Variable(name |> Identifier.to_string, value |> expression);
+  JavaScript_AST.Variable(Identifier.to_string(name), expression(value));
 
 let function_ =
     (
@@ -228,7 +225,7 @@ let function_ =
   JavaScript_AST.(
     Expression(
       Function(
-        Some(name |> Identifier.to_string),
+        Some(Identifier.to_string(name)),
         args
         |> List.map((({name}, _)) => name |> fst |> Identifier.to_string),
         (
@@ -239,7 +236,7 @@ let function_ =
                  Some(
                    Assignment(
                      Identifier(name |> fst |> Identifier.to_string),
-                     default |> expression,
+                     expression(default),
                    ),
                  )
                | _ => None,
@@ -255,8 +252,8 @@ let function_ =
               | [x, ...xs] => statement(x) @ loop(xs)
             );
 
-            stmts |> loop;
-          | _ => [Return(Some(expr |> expression))]
+            loop(stmts);
+          | _ => [Return(Some(expression(expr)))]
           }
         ),
       ),
@@ -271,7 +268,7 @@ let declaration = (name: identifier_t, decl: declaration_t) =>
     }
   )
   @ (
-    switch (name |> fst) {
+    switch (fst(name)) {
     | Public(name) => [JavaScript_AST.Export(name, None)]
     | _ => []
     }
@@ -296,20 +293,20 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                i
                @ [
                  JavaScript_AST.Import(
-                   namespace |> resolve,
+                   resolve(namespace),
                    imports
                    |> List.map(
                         fun
                         | MainImport((id, _)) => (
                             __main_export,
-                            Some(id |> Identifier.to_string),
+                            Some(Identifier.to_string(id)),
                           )
                         | NamedImport((id, _), Some((label, _))) => (
-                            id |> Identifier.to_string,
-                            Some(label |> Identifier.to_string),
+                            Identifier.to_string(id),
+                            Some(Identifier.to_string(label)),
                           )
                         | NamedImport((id, _), None) => (
-                            id |> Identifier.to_string,
+                            Identifier.to_string(id),
                             None,
                           ),
                       ),
@@ -335,7 +332,7 @@ let generate = (resolve: resolve_t, ast: program_t) => {
          ([], []),
        );
 
-  declarations |> List.is_empty
+  List.is_empty(declarations)
     ? imports @ [JavaScript_AST.EmptyExport]
     : [
         JavaScript_AST.DefaultImport(__runtime_namespace, __util_lib),

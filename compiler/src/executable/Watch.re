@@ -47,8 +47,8 @@ let run =
     watch_key,
     [
       (out_dir_key, config.out_dir),
-      (target_key, config.target |> Target.to_string),
-      (entry_key, config.entry |> Namespace.to_string),
+      (target_key, Target.to_string(config.target)),
+      (entry_key, Namespace.to_string(config.entry)),
     ],
   );
 
@@ -65,7 +65,7 @@ let run =
 
   Sys.set_signal(
     Sys.sigterm,
-    Sys.Signal_handle(_ => compiler |> Compiler.teardown),
+    Sys.Signal_handle(_ => Compiler.teardown(compiler)),
   );
 
   compiler |> Compiler.init(~skip_cache=true, config.entry);

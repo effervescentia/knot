@@ -24,10 +24,10 @@ let notification = (uri: string, errs) =>
         errs
         |> List.map(((err, range)) =>
              `Assoc([
-               ("range", range |> Response.range),
+               ("range", Response.range(range)),
                ("severity", `Int(severity(Error))),
                ("source", `String("knot")),
-               ("message", `String(err |> Knot.Error.parse_err_to_string)),
+               ("message", `String(Knot.Error.parse_err_to_string(err))),
              ])
            ),
       ),
@@ -46,7 +46,7 @@ let report = (source_dir: string, errs) => {
            grouped_errs,
            namespace,
            (Hashtbl.find_opt(grouped_errs, namespace) |?: [])
-           @ [(err, cursor |> Cursor.expand)],
+           @ [(err, Cursor.expand(cursor))],
          )
        | _ => (),
      );

@@ -52,5 +52,5 @@ let divide = (xs: list('a)) =>
   switch (xs) {
   | []
   | [_] => (xs, [])
-  | _ => xs |> split_at((xs |> length) / 2)
+  | _ => xs |> split_at(length(xs) / 2)
   };

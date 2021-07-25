@@ -1,4 +1,5 @@
 open Kore;
+open AST;
 
 let namespace = imports =>
   M.string
@@ -8,8 +9,8 @@ let namespace = imports =>
 
 let main_import =
   M.identifier
-  >|= Tuple.split2(Block.value % AST.of_public, Block.cursor)
-  >|= AST.of_main_import
+  >|= Tuple.split2(Block.value % of_public, Block.cursor)
+  >|= of_main_import
   >|= (x => [x]);
 
 let named_import = (ctx: ModuleContext.t) => {
@@ -26,7 +27,7 @@ let named_import = (ctx: ModuleContext.t) => {
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Block.value
-  >|= List.map(AST.of_named_import);
+  >|= List.map(of_named_import);
 };
 
 let parser = (ctx: ModuleContext.t) =>
@@ -41,17 +42,15 @@ let parser = (ctx: ModuleContext.t) =>
 
       imports
       |> List.iter(
-           AST.(
-             fun
-             | MainImport((alias, cursor)) =>
-               ctx |> import((Main, cursor), alias)
-             | NamedImport((id, cursor), None) =>
-               ctx |> import((Named(id), cursor), id)
-             | NamedImport((id, cursor), Some((label, _))) =>
-               ctx |> import((Named(id), cursor), label)
-           ),
+           fun
+           | MainImport((alias, cursor)) =>
+             ctx |> import((Main, cursor), alias)
+           | NamedImport((id, cursor), None) =>
+             ctx |> import((Named(id), cursor), id)
+           | NamedImport((id, cursor), Some((label, _))) =>
+             ctx |> import((Named(id), cursor), label),
          );
     }
   )
-  >|= AST.of_import
+  >|= of_import
   |> M.terminated;

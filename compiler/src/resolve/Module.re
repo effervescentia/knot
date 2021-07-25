@@ -54,7 +54,7 @@ let read = f =>
 let read_to_string =
   fun
   | File(path) as x when !exists(x) => Error([FileNotFound(path.relative)])
-  | File({full}) => Ok(full |> IO.read_to_string)
+  | File({full}) => Ok(IO.read_to_string(full))
   | Raw(s) => Ok(s);
 
 let cache = (cache: Cache.t) =>

@@ -193,12 +193,7 @@ and fmt_common_export = (~alias=None, name: string) =>
   |> fmt_statement(Target.Common)
 
 and fmt_es6_default_import = (namespace: string, id: string) =>
-  [
-    string("import "),
-    string(id),
-    string(" from "),
-    namespace |> fmt_string,
-  ]
+  [string("import "), string(id), string(" from "), fmt_string(namespace)]
   |> concat
 
 and fmt_es6_named_imports =

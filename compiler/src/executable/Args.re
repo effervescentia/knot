@@ -50,7 +50,7 @@ let to_config = (): (global_t, RunCmd.t) => {
     if (config_file^ == None) {
       switch (File.Util.find_up(ConfigFile.name, root_dir)) {
       | Some(path) =>
-        static := Some(path |> ConfigFile.read);
+        static := Some(ConfigFile.read(path));
         config_file := Some(path);
       | None => ()
       };
@@ -75,7 +75,7 @@ let to_config = (): (global_t, RunCmd.t) => {
 
       Print.bold("\nCOMMANDS\n") |> print_endline;
 
-      RunCmd.commands |> _print_cmds;
+      _print_cmds(RunCmd.commands);
     | Some(Cmd.{name, opts: command_opts} as cmd) =>
       cmd |> fmt_command |> print_endline;
 
@@ -157,7 +157,7 @@ let to_config = (): (global_t, RunCmd.t) => {
     cmd^
     |!: (
       () => {
-        RunCmd.commands |> _print_cmds;
+        _print_cmds(RunCmd.commands);
         print_newline();
 
         panic("must provide a command");
@@ -183,7 +183,7 @@ let to_config = (): (global_t, RunCmd.t) => {
     name:
       switch (static^) {
       | Some({name: Some(name)}) => name
-      | _ => root_dir |> Filename.basename
+      | _ => Filename.basename(root_dir)
       },
   };
 

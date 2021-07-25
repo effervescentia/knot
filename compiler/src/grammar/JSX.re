@@ -31,7 +31,7 @@ let _attribute =
     ((name, value)) => (
       name,
       Some(value),
-      Cursor.join(name |> snd, Tuple.thd3(value)),
+      Cursor.join(snd(name), Tuple.thd3(value)),
     )
   )
   <|> (
@@ -40,7 +40,7 @@ let _attribute =
       id => (
         id |> Tuple.split2(Block.value, Block.cursor),
         None,
-        id |> Block.cursor,
+        Block.cursor(id),
       )
     )
   );
@@ -88,7 +88,7 @@ and tag = (ctx: ClosureContext.t, x) =>
                 cs,
               )
               |> of_tag,
-              Cursor.join(id |> Block.cursor, end_cursor),
+              Cursor.join(Block.cursor(id), end_cursor),
             )
           )
       )
@@ -143,7 +143,7 @@ and text =
       )
 
 and node = (ctx: ClosureContext.t, x) =>
-  parser(ctx, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
+  parser(ctx, x) >|= (((_, cursor) as node) => (of_node(node), cursor))
 
 and inline_expr = (ctx: ClosureContext.t, (_, expr)) =>
   expr(ctx)

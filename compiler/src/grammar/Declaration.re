@@ -1,8 +1,7 @@
 open Kore;
+open AST;
 
 module TypeResolver = {
-  open AST;
-
   let _bind_lexeme = (cursor: Cursor.t, x) => (x, cursor);
   let _bind_typed_lexeme = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
 
@@ -102,7 +101,7 @@ let constant = (ctx: ModuleContext.t, f) => {
 
       ctx |> ModuleContext.define(id, TypeOf.lexeme(expr));
 
-      (f(x), AST.of_const(expr));
+      (f(x), of_const(expr));
     }
   )
   |> M.terminated;
@@ -124,9 +123,9 @@ let function_ = (ctx: ModuleContext.t, f) => {
           let res = TypeResolver.res_expr(raw_res);
           let args =
             raw_args
-            |> List.map(((arg: AST.Raw.argument_t, arg_type)) =>
+            |> List.map(((arg: Raw.argument_t, arg_type)) =>
                  (
-                   AST.{
+                   {
                      name: arg.name,
                      default:
                        arg.default |> Option.map(TypeResolver.res_expr),
@@ -137,7 +136,7 @@ let function_ = (ctx: ModuleContext.t, f) => {
 
           child_ctx |> ClosureContext.save(ctx_cursor);
 
-          (f(id), (args, res) |> AST.of_func);
+          (f(id), (args, res) |> of_func);
         }
       );
     }
@@ -146,5 +145,5 @@ let function_ = (ctx: ModuleContext.t, f) => {
 };
 
 let parser = (ctx: ModuleContext.t) =>
-  option(AST.of_named_export, AST.of_main_export <$ Keyword.main)
-  >>= (f => choice([constant(ctx, f), function_(ctx, f)]) >|= AST.of_decl);
+  option(of_named_export, of_main_export <$ Keyword.main)
+  >>= (f => choice([constant(ctx, f), function_(ctx, f)]) >|= of_decl);

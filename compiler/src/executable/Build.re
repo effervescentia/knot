@@ -41,8 +41,8 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
     build_key,
     [
       (out_dir_key, config.out_dir),
-      (target_key, config.target |> Target.to_string),
-      (entry_key, config.entry |> Namespace.to_string),
+      (target_key, Target.to_string(config.target)),
+      (entry_key, Namespace.to_string(config.entry)),
     ],
   );
 
@@ -58,5 +58,5 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
     );
 
   compiler |> Compiler.compile(config.target, config.out_dir, config.entry);
-  compiler |> Compiler.teardown;
+  Compiler.teardown(compiler);
 };

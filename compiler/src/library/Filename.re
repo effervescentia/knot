@@ -4,7 +4,7 @@
 include Stdlib.Filename;
 
 let __relative_prefix = current_dir_name ++ dir_sep;
-let __dir_sep_char = List.nth(dir_sep |> String.to_list, 0);
+let __dir_sep_char = List.nth(String.to_list(dir_sep), 0);
 
 let _drop_current_dirs =
   List.filter(value => value != "" && value != current_dir_name);

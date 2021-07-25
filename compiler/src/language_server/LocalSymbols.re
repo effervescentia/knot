@@ -17,7 +17,7 @@ type document_symbol_t = {
 
 let request =
   request(json => {
-    let text_document = json |> get_text_document;
+    let text_document = get_text_document(json);
 
     {text_document, partial_result_token: None};
   });
@@ -28,10 +28,10 @@ let response = (symbols: list(document_symbol_t)) =>
     |> List.map(({name, detail, kind, range, full_range}) =>
          `Assoc([
            ("name", `String(name)),
-           ("kind", `Int(kind |> Response.symbol)),
+           ("kind", `Int(Response.symbol(kind))),
            ("detail", `String(detail)),
-           ("range", full_range |> Response.range),
-           ("selectionRange", range |> Response.range),
+           ("range", Response.range(full_range)),
+           ("selectionRange", Response.range(range)),
          ])
        ),
   )
@@ -53,8 +53,8 @@ let handler =
                AST.(
                  fun
                  | Declaration(MainExport(name) | NamedExport(name), decl) => {
-                     let name_cursor = name |> Block.cursor;
-                     let range = name_cursor |> Cursor.expand;
+                     let name_cursor = Block.cursor(name);
+                     let range = Cursor.expand(name_cursor);
                      let name = name |> Block.value |> Identifier.to_string;
                      let type_ = decl |> Grammar.TypeOf.declaration;
 
@@ -62,7 +62,7 @@ let handler =
                        switch (decl) {
                        | Constant(expr) => {
                            name,
-                           detail: type_ |> Type2.to_string,
+                           detail: Type2.to_string(type_),
                            range,
                            full_range:
                              Cursor.join(name_cursor, expr |> Tuple.thd3)
@@ -71,10 +71,10 @@ let handler =
                          }
                        | Function(args, expr) => {
                            name,
-                           detail: type_ |> Type2.to_string,
+                           detail: Type2.to_string(type_),
                            range,
                            full_range:
-                             Cursor.join(name_cursor, expr |> Tuple.thd3)
+                             Cursor.join(name_cursor, Tuple.thd3(expr))
                              |> Cursor.expand,
                            kind: Capabilities.Function,
                          }

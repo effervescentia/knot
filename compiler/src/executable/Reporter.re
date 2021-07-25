@@ -64,9 +64,9 @@ let _type_trait_to_string = print_target =>
     | Number =>
       Print.fmt(
         "%s which is shared by the types %s and %s",
-        "number" |> print_target,
-        "int" |> Print.bold,
-        "float" |> Print.bold,
+        print_target("number"),
+        Print.bold("int"),
+        Print.bold("float"),
       )
   );
 
@@ -333,7 +333,7 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
       |> string,
     ]
     |> newline;
-  let horiz_border = String.repeat(header |> String.length, "═");
+  let horiz_border = String.repeat(String.length(header), "═");
 
   [
     Newline,

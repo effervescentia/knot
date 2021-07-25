@@ -15,8 +15,8 @@ type completion_item = {
 
 let request =
   request(json => {
-    let text_document = json |> get_text_document;
-    let position = json |> get_position;
+    let text_document = get_text_document(json);
+    let position = get_position(json);
 
     {text_document, position, partial_result_token: None};
   });
@@ -27,7 +27,7 @@ let response = (items: list(completion_item)) =>
     |> List.map(({label, kind}) =>
          `Assoc([
            ("label", `String(label)),
-           ("kind", `Int(kind |> Response.symbol)),
+           ("kind", `Int(Response.symbol(kind))),
          ])
        ),
   )
@@ -48,7 +48,7 @@ let handler =
     |?> Hashtbl.to_seq
     % List.of_seq
     % List.map(((key, value)) =>
-        {label: key |> Export.to_string, kind: Capabilities.Variable}
+        {label: Export.to_string(key), kind: Capabilities.Variable}
       )
     |?: []
     |> response

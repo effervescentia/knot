@@ -27,7 +27,7 @@ let read_content = (length, stream) => {
 
   let rec loop =
     fun
-    | 0 => buffer |> Buffer.contents
+    | 0 => Buffer.contents(buffer)
     | remaining => {
         Buffer.add_char(buffer, Stream.next(stream));
         loop(remaining - 1);

@@ -17,7 +17,7 @@ let run = (global: global_t, config: config_t): Lwt.t(unit) => {
   Cmd.log_config(
     global,
     develop_key,
-    [(port_key, config.port |> string_of_int)],
+    [(port_key, string_of_int(config.port))],
   );
 
   Lwt.return();

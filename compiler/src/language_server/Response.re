@@ -1,13 +1,9 @@
 open Kore;
 
 let serialize = json => {
-  let content = json |> Yojson.Basic.to_string;
+  let content = Yojson.Basic.to_string(json);
 
-  Print.fmt(
-    "Content-Length: %d\r\n\r\n%s",
-    content |> String.length,
-    content,
-  );
+  Print.fmt("Content-Length: %d\r\n\r\n%s", String.length(content), content);
 };
 
 let symbol =
@@ -112,7 +108,7 @@ let error = (code: error_code_t, message: string, id: int) =>
     ),
   ]);
 
-let hover_empty = `Null |> wrap;
+let hover_empty = wrap(`Null);
 
 type message_t =
   | Error

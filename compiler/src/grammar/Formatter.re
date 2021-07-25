@@ -1,6 +1,5 @@
 open Kore;
 open AST;
-open Type;
 open Reference;
 open Pretty;
 
@@ -92,7 +91,7 @@ let rec fmt_jsx =
     |> concat
 
   | Fragment(children) =>
-    children |> List.is_empty
+    List.is_empty(children)
       ? string("<></>")
       : [
           [string("<>")] |> newline,
@@ -149,16 +148,16 @@ and fmt_expression =
       _,
       _,
     )) =>
-    expr |> fmt_expression
+    fmt_expression(expr)
   | Group((expr, _, _)) =>
     [string("("), fmt_expression(expr), string(")")] |> concat
   | BinaryOp(op, (lhs, _, _), (rhs, _, _)) =>
     [
-      lhs |> fmt_expression,
+      fmt_expression(lhs),
       __space,
-      op |> fmt_binary_op,
+      fmt_binary_op(op),
       __space,
-      rhs |> fmt_expression,
+      fmt_expression(rhs),
     ]
     |> concat
   | UnaryOp(op, (expr, _, _)) =>
@@ -350,7 +349,7 @@ let fmt_declarations = stmts => {
     fun
     | [] => List.rev(acc)
     /* do not add newline after the last statement */
-    | [x] => loop(~acc=[x |> fmt_declaration, ...acc], [])
+    | [x] => loop(~acc=[fmt_declaration(x), ...acc], [])
     /* handle constant clustering logic */
     | [(_, Constant(_)) as x, ...xs] =>
       switch (xs) {
@@ -363,18 +362,18 @@ let fmt_declarations = stmts => {
       | _ => loop(~acc=[fmt_declaration(x), Newline, ...acc], xs)
       }
     /* not a constant, add a newline */
-    | [x, ...xs] => loop(~acc=[x |> fmt_declaration, Newline, ...acc], xs);
+    | [x, ...xs] => loop(~acc=[fmt_declaration(x), Newline, ...acc], xs);
 
   loop(declarations);
 };
 
 let format = (program: program_t): Pretty.t => {
-  let imports = program |> fmt_imports;
-  let declarations = program |> fmt_declarations;
+  let imports = fmt_imports(program);
+  let declarations = fmt_declarations(program);
 
   imports
   @ (
-    imports |> List.is_empty || declarations |> List.is_empty ? [] : [Newline]
+    List.is_empty(imports) || List.is_empty(declarations) ? [] : [Newline]
   )
   @ declarations
   |> concat;

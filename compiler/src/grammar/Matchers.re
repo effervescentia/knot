@@ -46,8 +46,8 @@ let terminated = x => x << (C.Character.semicolon |> symbol |> optional);
  */
 let comma_sep = x =>
   x
-  |> sep_by(C.Character.comma |> symbol)
-  << optional(C.Character.comma |> symbol);
+  |> sep_by(symbol(C.Character.comma))
+  << optional(symbol(C.Character.comma));
 
 /**
  matches a sequence of characters but tolerates spaces in between

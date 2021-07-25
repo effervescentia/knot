@@ -18,7 +18,7 @@ type params_t = {
 
 let request =
   request(json => {
-    let text_document = json |> get_text_document;
+    let text_document = get_text_document(json);
     let options =
       json
       |> member("options")
@@ -46,7 +46,7 @@ let request =
     {text_document, options, partial_result_token: None};
   });
 
-let response = () => `Null |> Response.wrap;
+let response = () => Response.wrap(`Null);
 
 let handler =
     (

@@ -29,5 +29,4 @@ module Reference = Reference;
 module String = String;
 module Target = Target;
 module Tuple = Tuple;
-module Type = Type;
 module Type2 = Type2;

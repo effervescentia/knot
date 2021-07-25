@@ -76,7 +76,7 @@ let request =
         | `List(xs) =>
           xs
           |> List.map(x => {
-               let uri = x |> get_uri;
+               let uri = get_uri(x);
                let name = x |> member("name") |> to_string;
 
                {uri, name};

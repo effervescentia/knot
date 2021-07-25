@@ -27,7 +27,7 @@ let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
           " %s %s %s\n",
           Print.fmt("%*d", line_number_width, row)
           |> (is_highlight ? Print.red : Print.grey),
-          "│" |> Print.grey,
+          Print.grey("│"),
           line |> (is_highlight ? Functional.identity : Print.grey),
         )
         |> Buffer.add_string(buffer);
@@ -47,7 +47,7 @@ let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
               " %*s %s %*s%s\n",
               line_number_width,
               "",
-              "│" |> Print.grey,
+              Print.grey("│"),
               unhighlighted_prefix_length,
               "",
               String.repeat(
@@ -69,5 +69,5 @@ let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
 
   loop(1);
 
-  buffer |> Buffer.contents;
+  Buffer.contents(buffer);
 };

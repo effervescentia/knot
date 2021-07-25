@@ -1,4 +1,5 @@
 open Kore;
+open AST.Raw;
 
 let arguments = (ctx: ClosureContext.t) =>
   M.between(
@@ -19,13 +20,13 @@ let arguments = (ctx: ClosureContext.t) =>
             | None => ctx |> ClosureContext.define_weak(id)
             };
 
-          (AST.Raw.{name, default}, type_);
+          ({name, default}, type_);
         }
       ),
       Identifier.parser(ctx)
       >|= (
         ((id, _) as name) => (
-          AST.Raw.{name, default: None},
+          {name, default: None},
           ctx |> ClosureContext.define_weak(id),
         )
       ),

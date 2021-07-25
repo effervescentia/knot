@@ -15,7 +15,7 @@ let run = (global: global_t, config: config_t) => {
   Cmd.log_config(
     global,
     lint_key,
-    [(fix_key, config.fix |> string_of_bool)],
+    [(fix_key, string_of_bool(config.fix))],
   );
 
   ();

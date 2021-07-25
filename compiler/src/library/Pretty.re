@@ -38,7 +38,7 @@ let rec flatten = (print: string => unit, column: int) =>
 
       print(s);
 
-      flatten(print, column + spaces + (s |> String.length), xs);
+      flatten(print, column + spaces + String.length(s), xs);
     }
 
   | [(Append(l, r), indent), ...xs] =>
@@ -68,5 +68,5 @@ let to_string = x => {
 
   flatten(Buffer.add_string(buffer), 0, [(x, 0)]);
 
-  buffer |> Buffer.contents;
+  Buffer.contents(buffer);
 };

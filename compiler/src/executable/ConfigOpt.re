@@ -116,7 +116,7 @@ let source_dir = (~default=default_config.source_dir, ()) => {
   let resolve = (cfg: option(Config.t), root_dir) => {
     switch (cfg, value^) {
     | (_, Some(value)) =>
-      let source_dir = value |> Filename.resolve;
+      let source_dir = Filename.resolve(value);
       _check_source_dir_exists(source_dir);
       source_dir |> Filename.relative_to(root_dir);
     | (Some(cfg), None) =>
@@ -155,7 +155,7 @@ let entry = (~default=default_config.entry, ()) => {
       (
         switch (cfg, value^) {
         | (_, Some(value)) =>
-          let entry = value |> Filename.resolve;
+          let entry = Filename.resolve(value);
           _check_entry_exists(entry);
           entry |> Filename.relative_to(source_path);
         | (Some(cfg), None) =>
@@ -210,7 +210,7 @@ let out_dir = (~default=default_config.out_dir, ()) => {
     );
   let resolve = (cfg: option(Config.t), root_dir: string) =>
     switch (cfg, value^) {
-    | (_, Some(value)) => value |> Filename.resolve
+    | (_, Some(value)) => Filename.resolve(value)
     | (Some(cfg), None) =>
       let out_dir = cfg.out_dir;
 
