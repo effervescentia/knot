@@ -30,7 +30,7 @@ let __context =
           ModuleTable.{
             ast: [],
             types:
-              [(Export.Main, Type2.Result.Valid(`Boolean))]
+              [(Export.Main, Type2.Valid(`Boolean))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
@@ -83,13 +83,13 @@ let suite =
                 |> of_named_export,
                 (
                   123 |> Int64.of_int |> of_int |> of_num,
-                  Type2.Result.Valid(`Integer),
+                  Type2.Valid(`Integer),
                   Cursor.range((4, 15), (4, 17)),
                 )
                 |> of_prim
                 |> as_typed_lexeme(
                      ~cursor=Cursor.range((4, 15), (4, 17)),
-                     Type2.Result.Valid(`Integer),
+                     Type2.Valid(`Integer),
                    )
                 |> of_const,
               )

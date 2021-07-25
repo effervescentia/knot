@@ -1,7 +1,7 @@
 open Kore;
 open Reference;
 
-let to_scope = (types: list((string, Type2.Result.t))): DefinitionTable.t => {
+let to_scope = (types: list((string, Type2.t))): DefinitionTable.t => {
   types
   |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
   |> List.to_seq
@@ -72,21 +72,21 @@ module RawUtil = {
 };
 
 module ResultUtil = {
-  open Type2.Result;
-
   include Make({
-    type type_t = Type2.Result.t;
+    type type_t = Type2.t;
 
     let to_type =
-      fun
-      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-        Valid(x);
+      Type2.(
+        fun
+        | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+          Valid(x)
+      );
   });
 
   open AST;
 
   let as_abstract = (trait, x) =>
-    as_typed_lexeme(Valid(`Abstract(trait)), x);
+    as_typed_lexeme(Type2.Valid(`Abstract(trait)), x);
 
   let nil_prim = nil |> as_nil |> of_prim |> as_nil;
 

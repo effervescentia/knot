@@ -1,10 +1,9 @@
 open Reference;
 
-type scope_tree_t =
-  RangeTree.t(option(Hashtbl.t(Export.t, Type2.Result.t)));
+type scope_tree_t = RangeTree.t(option(Hashtbl.t(Export.t, Type2.t)));
 
 type entry_t = {
-  types: Hashtbl.t(Export.t, Type2.Result.t),
+  types: Hashtbl.t(Export.t, Type2.t),
   ast: AST.program_t,
   scopes: scope_tree_t,
   raw: string,
@@ -33,7 +32,7 @@ let add =
     (
       id: Namespace.t,
       ast: AST.program_t,
-      exports: list((Export.t, Type2.Result.t)),
+      exports: list((Export.t, Type2.t)),
       scopes: scope_tree_t,
       raw: string,
       table: t,
@@ -77,10 +76,7 @@ let to_string = (~debug=false, table: t): string =>
                 "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
                 Reference.Namespace.to_string(key),
                 types
-                |> Hashtbl.to_string(
-                     Export.to_string,
-                     Type2.Result.to_string,
-                   )
+                |> Hashtbl.to_string(Export.to_string, Type2.to_string)
                 |> Pretty.to_string,
                 raw,
               )

@@ -118,14 +118,14 @@ let suite =
                          ast: [],
                          types:
                            [
-                             (Export.Main, Type2.Result.Valid(`Nil)),
+                             (Export.Main, Type2.Valid(`Nil)),
                              (
                                Export.Named("bar" |> of_public),
-                               Type2.Result.Valid(`Boolean),
+                               Type2.Valid(`Boolean),
                              ),
                              (
                                Export.Named("foo" |> of_public),
-                               Type2.Result.Valid(`String),
+                               Type2.Valid(`String),
                              ),
                            ]
                            |> List.to_seq
@@ -174,7 +174,7 @@ let suite =
                        ModuleTable.{
                          ast: [],
                          types:
-                           [(Export.Main, Type2.Result.Valid(`Nil))]
+                           [(Export.Main, Type2.Valid(`Nil))]
                            |> List.to_seq
                            |> Hashtbl.of_seq,
                          scopes: __scope_tree,

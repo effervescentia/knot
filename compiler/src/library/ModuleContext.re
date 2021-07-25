@@ -1,6 +1,6 @@
 open Reference;
 
-type externals_t = Hashtbl.t(Identifier.t, Type2.Result.t);
+type externals_t = Hashtbl.t(Identifier.t, Type2.t);
 
 type t = {
   externals: externals_t,
@@ -30,7 +30,7 @@ let create =
 let get_external_scope = (ctx: t) =>
   ctx.externals
   |> Hashtbl.to_seq
-  |> Seq.map(Tuple.map_snd2(Type2.Result.to_raw))
+  |> Seq.map(Tuple.map_snd2(Type2.to_raw))
   |> NestedHashtbl.from_seq;
 
 /**
@@ -42,7 +42,7 @@ let report = (ctx: t, err: Error.compile_err) =>
 /**
  define a new declaration within the module
  */
-let define = (name: Identifier.t, type_: Type2.Result.t, ctx: t) =>
+let define = (name: Identifier.t, type_: Type2.t, ctx: t) =>
   ctx.definitions |> DefinitionTable.add(Export.Named(name), type_);
 
 /**
@@ -55,12 +55,12 @@ let import =
       label: Identifier.t,
       ctx: t,
     ) => {
-  let type_: Type2.Result.t =
+  let type_: Type2.t =
     switch (ctx.namespace_context |> NamespaceContext.lookup(namespace, id)) {
     | Ok(t) => Valid(t)
     | Error(err) =>
       Error.ParseError(
-        TypeError(Type2.Result.err_to_strong_err(err)),
+        TypeError(Type2.err_to_strong_err(err)),
         ctx.namespace_context.namespace,
         cursor,
       )

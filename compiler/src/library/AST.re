@@ -370,9 +370,9 @@ module Raw =
   });
 
 include Make({
-  type type_t = Type2.Result.t;
+  type type_t = Type2.t;
 
-  let type_to_string = Type2.Result.to_raw % Type2.Raw.to_string;
+  let type_to_string = Type2.to_raw % Type2.Raw.to_string;
 });
 
 type declaration_t =

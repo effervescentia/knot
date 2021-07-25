@@ -1,7 +1,7 @@
 open Kore;
 open Util;
 open ResultUtil;
-open Type2.Result;
+open Type2;
 open Reference;
 
 module Compiler = Compile.Compiler;

@@ -414,14 +414,14 @@ let suite =
                 [
                   (
                     {name: "bar" |> of_public |> as_lexeme, default: None},
-                    Type2.Result.Valid(`Integer),
+                    Type2.Valid(`Integer),
                   ),
                   (
                     {
                       name: "fizz" |> of_public |> as_lexeme,
                       default: Some(3 |> int_prim),
                     },
-                    Type2.Result.Valid(`Integer),
+                    Type2.Valid(`Integer),
                   ),
                 ],
                 (

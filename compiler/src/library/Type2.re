@@ -61,8 +61,6 @@ type primitive_t = [
   | `Element
 ];
 
-type t = [ primitive_t | container_t(t) | abstract_t(Trait.t)];
-
 module Raw = {
   type t =
     | Strong(strong_t)
@@ -152,111 +150,106 @@ module Raw = {
     };
 };
 
-module Result = {
-  type t =
-    | Valid(valid_t)
-    | Invalid(Error.t(t))
+type t =
+  | Valid(valid_t)
+  | Invalid(Error.t(t))
 
-  and valid_t = [ primitive_t | container_t(t) | abstract_t(Trait.t)]
+and valid_t = [ primitive_t | container_t(t) | abstract_t(Trait.t)]
 
-  and error_t = Error.t(t);
+and error_t = Error.t(t);
 
-  let from_result = (res: result(valid_t, error_t)) =>
-    switch (res) {
-    | Ok(x) => Valid(x)
-    | Error(err) => Invalid(err)
-    };
+let from_result = (res: result(valid_t, error_t)) =>
+  switch (res) {
+  | Ok(x) => Valid(x)
+  | Error(err) => Invalid(err)
+  };
 
-  /* methods */
+/* methods */
 
-  let to_result = (res: t) =>
-    switch (res) {
-    | Valid(x) => Ok(x)
-    | Invalid(err) => Error(err)
-    };
+let to_result = (res: t) =>
+  switch (res) {
+  | Valid(x) => Ok(x)
+  | Invalid(err) => Error(err)
+  };
 
-  let rec _valid_to_raw = (type_: valid_t): Raw.t =>
-    switch (type_) {
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
-      Strong(t)
+let rec _valid_to_raw = (type_: valid_t): Raw.t =>
+  switch (type_) {
+  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
+    Strong(t)
 
-    | `List(x) => Strong(`List(to_raw(x)))
-    | `Struct(xs) =>
-      Strong(`Struct(xs |> List.map(Tuple.map_snd2(to_raw))))
-    | `Function(args, res) =>
-      Strong(
-        `Function((args |> List.map(Tuple.map_snd2(to_raw)), to_raw(res))),
-      )
-    | `Abstract(_) as x => Weak(ref(Ok(x)))
-    }
+  | `List(x) => Strong(`List(to_raw(x)))
+  | `Struct(xs) => Strong(`Struct(xs |> List.map(Tuple.map_snd2(to_raw))))
+  | `Function(args, res) =>
+    Strong(
+      `Function((args |> List.map(Tuple.map_snd2(to_raw)), to_raw(res))),
+    )
+  | `Abstract(_) as x => Weak(ref(Ok(x)))
+  }
 
-  and to_raw = (type_: t): Raw.t =>
-    switch (type_) {
-    | Valid(t) => _valid_to_raw(t)
-    | Invalid(NotAssignable(t, trait)) =>
-      Invalid(NotAssignable(to_raw(t), trait))
-    | Invalid(TypeMismatch(lhs, rhs)) =>
-      Invalid(TypeMismatch(to_raw(lhs), to_raw(rhs)))
-    | Invalid(
-        (ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err,
-      ) =>
-      Invalid(err)
-    }
+and to_raw = (type_: t): Raw.t =>
+  switch (type_) {
+  | Valid(t) => _valid_to_raw(t)
+  | Invalid(NotAssignable(t, trait)) =>
+    Invalid(NotAssignable(to_raw(t), trait))
+  | Invalid(TypeMismatch(lhs, rhs)) =>
+    Invalid(TypeMismatch(to_raw(lhs), to_raw(rhs)))
+  | Invalid((ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err) =>
+    Invalid(err)
+  }
 
-  and err_to_strong_err = (err: error_t): Raw.error_t =>
-    switch (err) {
-    | NotAssignable(t, trait) => NotAssignable(to_raw(t), trait)
-    | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
-    | (ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err => err
-    };
+and err_to_strong_err = (err: error_t): Raw.error_t =>
+  switch (err) {
+  | NotAssignable(t, trait) => NotAssignable(to_raw(t), trait)
+  | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
+  | (ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err => err
+  };
 
-  let rec to_string = (type_: t) =>
-    switch (type_) {
-    | Valid(t) => valid_to_string(t)
-    | Invalid(err) => err |> Error.to_string(to_string)
-    }
+let rec to_string = (type_: t) =>
+  switch (type_) {
+  | Valid(t) => valid_to_string(t)
+  | Invalid(err) => err |> Error.to_string(to_string)
+  }
 
-  and valid_to_string = (type_: valid_t) =>
-    switch (type_) {
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-      Raw.primitive_to_string(x)
-    | `List(t) => t |> Raw.list_to_string(to_string)
-    | `Struct(props) => props |> Raw.struct_to_string(to_string)
-    | `Function(args, res) => Raw.function_to_string(to_string, args, res)
-    | `Abstract(trait) => Raw.abstract_to_string(trait)
-    };
+and valid_to_string = (type_: valid_t) =>
+  switch (type_) {
+  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+    Raw.primitive_to_string(x)
+  | `List(t) => t |> Raw.list_to_string(to_string)
+  | `Struct(props) => props |> Raw.struct_to_string(to_string)
+  | `Function(args, res) => Raw.function_to_string(to_string, args, res)
+  | `Abstract(trait) => Raw.abstract_to_string(trait)
+  };
 
-  let rec of_raw = (type_: Raw.t): t =>
-    switch (type_) {
-    | Strong(t) => Valid(valid_of_strong(t))
-    | Weak({contents: Ok(t)}) => Valid(valid_of_weak(t))
-    | Weak({contents: Error(err)}) => Invalid(err_of_raw_err(err))
-    | Invalid(err) => Invalid(err_of_raw_err(err))
-    }
+let rec of_raw = (type_: Raw.t): t =>
+  switch (type_) {
+  | Strong(t) => Valid(valid_of_strong(t))
+  | Weak({contents: Ok(t)}) => Valid(valid_of_weak(t))
+  | Weak({contents: Error(err)}) => Invalid(err_of_raw_err(err))
+  | Invalid(err) => Invalid(err_of_raw_err(err))
+  }
 
-  and valid_of_strong = (type_: Raw.strong_t): valid_t =>
-    switch (type_) {
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
-    | `List(x) => `List(of_raw(x))
-    | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
-    | `Function(args, res) =>
-      `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
-    }
+and valid_of_strong = (type_: Raw.strong_t): valid_t =>
+  switch (type_) {
+  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
+  | `List(x) => `List(of_raw(x))
+  | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
+  | `Function(args, res) =>
+    `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
+  }
 
-  and valid_of_weak = (type_: Raw.weak_t): valid_t =>
-    switch (type_) {
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
-    | `List(x) => `List(of_raw(x))
-    | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
-    | `Function(args, res) =>
-      `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
-    | `Abstract(t) => `Abstract(t)
-    }
+and valid_of_weak = (type_: Raw.weak_t): valid_t =>
+  switch (type_) {
+  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
+  | `List(x) => `List(of_raw(x))
+  | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
+  | `Function(args, res) =>
+    `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
+  | `Abstract(t) => `Abstract(t)
+  }
 
-  and err_of_raw_err = (err: Raw.error_t): error_t =>
-    switch (err) {
-    | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
-    | NotAssignable(x, y) => NotAssignable(of_raw(x), y)
-    | (NotFound(_) | ExternalNotFound(_) | TypeResolutionFailed) as err => err
-    };
-};
+and err_of_raw_err = (err: Raw.error_t): error_t =>
+  switch (err) {
+  | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
+  | NotAssignable(x, y) => NotAssignable(of_raw(x), y)
+  | (NotFound(_) | ExternalNotFound(_) | TypeResolutionFailed) as err => err
+  };
