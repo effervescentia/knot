@@ -8,7 +8,7 @@ module Assert =
   Assert.Make({
     type t = AST.module_statement_t;
 
-    let parser = ctx => Parser.parse(Import.parser(ctx));
+    let parser = ((_, ctx, _)) => Parser.parse(Import.parser(ctx));
 
     let test =
       Alcotest.(
@@ -108,8 +108,8 @@ let suite =
           ),
         ]
         |> Assert.parse_many(
-             ~scope=
-               Scope.create(
+             ~ns_context=
+               NamespaceContext.create(
                  ~modules=
                    AST.[
                      (
@@ -118,14 +118,14 @@ let suite =
                          ast: [],
                          types:
                            [
-                             (Export.Main, Type.K_Strong(K_Nil)),
+                             (Export.Main, Type2.Result.Valid(`Nil)),
                              (
                                Export.Named("bar" |> of_public),
-                               Type.K_Strong(K_Boolean),
+                               Type2.Result.Valid(`Boolean),
                              ),
                              (
                                Export.Named("foo" |> of_public),
-                               Type.K_Strong(K_String),
+                               Type2.Result.Valid(`String),
                              ),
                            ]
                            |> List.to_seq
@@ -137,7 +137,7 @@ let suite =
                    ]
                    |> List.to_seq
                    |> Hashtbl.of_seq,
-                 (),
+                 Internal("mock"),
                ),
            )
     ),
@@ -165,8 +165,8 @@ let suite =
           ),
         ]
         |> Assert.parse_many(
-             ~scope=
-               Scope.create(
+             ~ns_context=
+               NamespaceContext.create(
                  ~modules=
                    AST.[
                      (
@@ -174,7 +174,7 @@ let suite =
                        ModuleTable.{
                          ast: [],
                          types:
-                           [(Export.Main, Type.K_Strong(K_Nil))]
+                           [(Export.Main, Type2.Result.Valid(`Nil))]
                            |> List.to_seq
                            |> Hashtbl.of_seq,
                          scopes: __scope_tree,
@@ -184,7 +184,7 @@ let suite =
                    ]
                    |> List.to_seq
                    |> Hashtbl.of_seq,
-                 (),
+                 Internal("mock"),
                ),
            )
     ),

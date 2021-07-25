@@ -1,29 +1,30 @@
 open Reference;
 
-type scope_tree_t('a) = RangeTree.t(option(Hashtbl.t(Export.t, 'a)));
+type scope_tree_t =
+  RangeTree.t(option(Hashtbl.t(Export.t, Type2.Result.t)));
 
-type entry_t('a) = {
-  types: Hashtbl.t(Export.t, 'a),
+type entry_t = {
+  types: Hashtbl.t(Export.t, Type2.Result.t),
   ast: AST.program_t,
-  scopes: scope_tree_t('a),
+  scopes: scope_tree_t,
   raw: string,
 };
 
 /**
  table for storing module ASTs
  */
-type t('a) = Hashtbl.t(Namespace.t, entry_t('a));
+type t = Hashtbl.t(Namespace.t, entry_t);
 
 /* static */
 
 /**
  construct a new table for module information
  */
-let create = (size: int): t('a) => Hashtbl.create(size);
+let create = (size: int): t => Hashtbl.create(size);
 
 /* methods */
 
-let find = (id: Namespace.t, table: t('a)) => Hashtbl.find_opt(table, id);
+let find = (id: Namespace.t, table: t) => Hashtbl.find_opt(table, id);
 
 /**
  add a module with associated export types and AST
@@ -32,10 +33,10 @@ let add =
     (
       id: Namespace.t,
       ast: AST.program_t,
-      exports: list((Export.t, 'a)),
-      scopes: scope_tree_t('a),
+      exports: list((Export.t, Type2.Result.t)),
+      scopes: scope_tree_t,
       raw: string,
-      table: t('a),
+      table: t,
     ) =>
   Hashtbl.replace(
     table,
@@ -46,13 +47,13 @@ let add =
 /**
  remove an entry from the table
  */
-let remove = (id: Namespace.t, table: t('a)) => Hashtbl.remove(table, id);
+let remove = (id: Namespace.t, table: t) => Hashtbl.remove(table, id);
 
 /**
  declare the type of an export member of an existing module
  */
 let add_type =
-    ((namespace, id): (Namespace.t, Export.t), value: 'a, table: t('a)) =>
+    ((namespace, id): (Namespace.t, Export.t), value: 'a, table: t) =>
   if (Hashtbl.mem(table, namespace)) {
     let members = Hashtbl.find(table, namespace);
 
@@ -62,8 +63,7 @@ let add_type =
 /**
  print a string representation for debugging
  */
-let to_string =
-    (~debug=false, type_to_string: 'a => string, table: t('a)): string =>
+let to_string = (~debug=false, table: t): string =>
   Hashtbl.to_seq_keys(table)
   |> List.of_seq
   |> Print.many(~separator="\n", key =>
@@ -77,7 +77,10 @@ let to_string =
                 "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
                 Reference.Namespace.to_string(key),
                 types
-                |> Hashtbl.to_string(Export.to_string, Type.to_string)
+                |> Hashtbl.to_string(
+                     Export.to_string,
+                     Type2.Result.to_string,
+                   )
                 |> Pretty.to_string,
                 raw,
               )

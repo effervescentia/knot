@@ -1,6 +1,7 @@
 open Kore;
 open AST;
 open Util;
+open ResultUtil;
 open Reference;
 
 module Program = Grammar.Program;
@@ -8,7 +9,7 @@ module Program = Grammar.Program;
 module Target = {
   type t = program_t;
 
-  let parser = Program.main % Parser.parse;
+  let parser = ((ctx, _, _)) => ctx |> Program.main |> Parser.parse;
 
   let test =
     Alcotest.(
@@ -31,7 +32,7 @@ module AssertImports =
   Assert.Make({
     include Target;
 
-    let parser = Program.imports % Parser.parse;
+    let parser = ((ctx, _, _)) => ctx |> Program.imports |> Parser.parse;
   });
 module Assert = Assert.Make(Target);
 
@@ -46,8 +47,8 @@ let __const_decl_ast =
   ("foo" |> of_public |> as_lexeme |> of_named_export, nil_prim |> of_const)
   |> of_decl;
 
-let __scope =
-  Scope.create(
+let __ns_context =
+  NamespaceContext.create(
     ~modules=
       [
         (
@@ -55,7 +56,7 @@ let __scope =
           ModuleTable.{
             ast: [],
             types:
-              [(Export.Main, Type.K_Strong(K_String))]
+              [(Export.Main, Type2.Result.Valid(`String))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
@@ -65,7 +66,7 @@ let __scope =
       ]
       |> List.to_seq
       |> Hashtbl.of_seq,
-    (),
+    Internal("mock"),
   );
 
 let suite =
@@ -76,7 +77,7 @@ let suite =
     >: (
       () =>
         [(__main_import, [__main_import_ast])]
-        |> Assert.parse_many(~scope=__scope)
+        |> Assert.parse_many(~ns_context=__ns_context)
     ),
     "parse declaration"
     >: (
@@ -106,14 +107,14 @@ let suite =
             [__main_import_ast, __const_decl_ast],
           ),
         ]
-        |> Assert.parse_many(~scope=__scope)
+        |> Assert.parse_many(~ns_context=__ns_context)
     ),
     "parse import with dependent declaration"
     >: (
       () =>
         Assert.parse(
-          ~scope=
-            Scope.create(
+          ~ns_context=
+            NamespaceContext.create(
               ~modules=
                 [
                   (
@@ -121,7 +122,7 @@ let suite =
                     ModuleTable.{
                       ast: [],
                       types:
-                        [(Export.Main, Type.K_Strong(K_Boolean))]
+                        [(Export.Main, Type2.Result.Valid(`Boolean))]
                         |> List.to_seq
                         |> Hashtbl.of_seq,
                       scopes: __scope_tree,
@@ -131,7 +132,7 @@ let suite =
                 ]
                 |> List.to_seq
                 |> Hashtbl.of_seq,
-              (),
+              Internal("mock"),
             ),
           __main_import ++ "; const bar = foo",
           [
@@ -150,6 +151,6 @@ let suite =
         [
           (__main_import |> Print.fmt("%s; gibberish"), [__main_import_ast]),
         ]
-        |> AssertImports.parse_many(~scope=__scope)
+        |> AssertImports.parse_many(~ns_context=__ns_context)
     ),
   ];

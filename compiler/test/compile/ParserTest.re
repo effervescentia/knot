@@ -1,5 +1,6 @@
 open Kore;
 open Util;
+open ResultUtil;
 open Reference;
 
 module Parser = Compile.Parser;
@@ -21,28 +22,24 @@ let __bar = Namespace.Internal("bar");
 let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
 
 let __context =
-  Context.create(
-    ~scope=
-      Scope.create(
-        ~modules=
-          AST.[
-            (
-              "bar" |> of_internal,
-              ModuleTable.{
-                ast: [],
-                types:
-                  [(Export.Main, Type.K_Strong(K_Boolean))]
-                  |> List.to_seq
-                  |> Hashtbl.of_seq,
-                scopes: __scope_tree,
-                raw: "foo",
-              },
-            ),
-          ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
-        (),
-      ),
+  NamespaceContext.create(
+    ~modules=
+      AST.[
+        (
+          "bar" |> of_internal,
+          ModuleTable.{
+            ast: [],
+            types:
+              [(Export.Main, Type2.Result.Valid(`Boolean))]
+              |> List.to_seq
+              |> Hashtbl.of_seq,
+            scopes: __scope_tree,
+            raw: "foo",
+          },
+        ),
+      ]
+      |> List.to_seq
+      |> Hashtbl.of_seq,
     __foo,
   );
 
@@ -86,13 +83,13 @@ let suite =
                 |> of_named_export,
                 (
                   123 |> Int64.of_int |> of_int |> of_num,
-                  Type.K_Strong(K_Integer),
+                  Type2.Result.Valid(`Integer),
                   Cursor.range((4, 15), (4, 17)),
                 )
                 |> of_prim
                 |> as_typed_lexeme(
                      ~cursor=Cursor.range((4, 15), (4, 17)),
-                     Type.K_Strong(K_Integer),
+                     Type2.Result.Valid(`Integer),
                    )
                 |> of_const,
               )

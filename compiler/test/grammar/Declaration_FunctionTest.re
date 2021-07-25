@@ -1,6 +1,7 @@
 open Kore;
 open AST;
 open Util;
+open ResultUtil;
 open Reference;
 
 module Declaration = Grammar.Declaration;
@@ -10,7 +11,7 @@ module Assert = {
   include Assert.Make({
     type t = (export_t, declaration_t);
 
-    let parser = ctx =>
+    let parser = ((_, ctx, _)) =>
       Parser.parse(Declaration.function_(ctx, AST.of_named_export));
 
     let test =

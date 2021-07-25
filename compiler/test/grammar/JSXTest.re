@@ -1,6 +1,7 @@
 open Kore;
 open Util;
-open AST;
+open RawUtil;
+open AST.Raw;
 
 module Expression = Grammar.Expression;
 module JSX = Grammar.JSX;
@@ -9,7 +10,7 @@ module Assert =
   Assert.Make({
     type t = jsx_t;
 
-    let parser = ctx =>
+    let parser = ((_, _, ctx)) =>
       JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
 
     let test =
@@ -284,10 +285,10 @@ let suite =
           ),
         ]
         |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("fizz", K_Strong(K_Integer)),
-                 ("buzz", K_Strong(K_Boolean)),
+             ~cls_context=
+               scope_to_closure([
+                 ("fizz", Strong(`Integer)),
+                 ("buzz", Strong(`Boolean)),
                ]),
            )
     ),
@@ -429,7 +430,7 @@ let suite =
             ),
           ]
           |> Assert.parse_many(
-               ~scope=to_scope([("fizz", K_Strong(K_Boolean))]),
+               ~cls_context=scope_to_closure([("fizz", Strong(`Boolean))]),
              )
         ) {
         | CompileError(x) =>

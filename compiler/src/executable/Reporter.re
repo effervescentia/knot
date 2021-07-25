@@ -54,93 +54,61 @@ let _print_err = (~index, path, title, content) =>
   |> concat;
 
 let _type_trait_to_string = print_target =>
-  Type.(
+  Type2.Trait.(
     fun
-    | K_Unknown =>
+    | Unknown =>
       "Unknown"
       |> print_target
       |> Print.fmt("%s which can represent any type")
 
-    | K_Exactly(t) =>
-      t |> Type.strong_to_string |> Print.fmt("Exactly<%s>") |> print_target
-
-    | K_Numeric =>
+    | Number =>
       Print.fmt(
         "%s which is shared by the types %s and %s",
-        "Numeric" |> print_target,
+        "number" |> print_target,
         "int" |> Print.bold,
         "float" |> Print.bold,
       )
-
-    | K_Iterable(t) =>
-      t
-      |> Type.trait_to_string
-      |> Print.fmt("Iterable<%s>")
-      |> print_target
-      |> Print.fmt(
-           "%s which is used for containers of sequential data such as a list",
-         )
-
-    | K_Structural(traits) =>
-      traits
-      |> Print.many(~separator=", ", ((name, trait)) =>
-           Print.fmt("%s: %s", name, trait |> Type.trait_to_string)
-         )
-      |> Print.fmt("Structural<{ %s }>")
-      |> print_target
-      |> Print.fmt(
-           "'%s' which is used for containers of data keyed by strings",
-         )
-
-    | K_Callable(args, result) =>
-      Print.fmt(
-        "Callable<[ %s ], %s>",
-        args |> Print.many(~separator=", ", Type.trait_to_string),
-        result |> Type.trait_to_string,
-      )
-      |> print_target
-      |> Print.fmt("'%s' which is used for functions")
   );
 
 let _extract_type_err =
-  Type.(
+  Type2.Error.(
     fun
-    | TraitConflict(lhs, rhs) => (
-        "Types Have Conflicting Traits",
-        [
-          [
-            string(
-              "the types of the arguments in this operation are not compatible with each other:",
-            ),
-          ]
-          |> newline,
-          Newline,
-          [
-            [
-              lhs
-              |> _type_trait_to_string(Print.bad)
-              |> Print.fmt(
-                   "• the left-hand-side argument has the trait %s",
-                 )
-              |> string,
-            ]
-            |> newline,
-            [
-              rhs
-              |> _type_trait_to_string(Print.bad)
-              |> Print.fmt(
-                   "• the right-hand-side argument has the trait %s",
-                 )
-              |> string,
-            ]
-            |> newline,
-          ]
-          |> concat,
-          Newline,
-        ]
-        |> concat,
-        None,
-      )
+    /* | TraitConflict(lhs, rhs) => (
+         "Types Have Conflicting Traits",
+         [
+           [
+             string(
+               "the types of the arguments in this operation are not compatible with each other:",
+             ),
+           ]
+           |> newline,
+           Newline,
+           [
+             [
+               lhs
+               |> _type_trait_to_string(Print.bad)
+               |> Print.fmt(
+                    "• the left-hand-side argument has the trait %s",
+                  )
+               |> string,
+             ]
+             |> newline,
+             [
+               rhs
+               |> _type_trait_to_string(Print.bad)
+               |> Print.fmt(
+                    "• the right-hand-side argument has the trait %s",
+                  )
+               |> string,
+             ]
+             |> newline,
+           ]
+           |> concat,
+           Newline,
+         ]
+         |> concat,
+         None,
+       ) */
     | NotAssignable(t, trait) => (
         "Type Cannot Be Assigned",
         [
@@ -148,7 +116,7 @@ let _extract_type_err =
             Print.fmt(
               "expected a type that implements the trait %s but found the type %s instead",
               trait |> _type_trait_to_string(Print.good),
-              t |> Type.to_string |> Print.bad,
+              t |> Type2.Raw.to_string |> Print.bad,
             )
             |> string,
           ]
@@ -164,8 +132,8 @@ let _extract_type_err =
           [
             Print.fmt(
               "expected the type %s but found the type %s instead",
-              expected |> Type.to_string |> Print.good,
-              actual |> Type.to_string |> Print.bad,
+              expected |> Type2.Raw.to_string |> Print.good,
+              actual |> Type2.Raw.to_string |> Print.bad,
             )
             |> string,
           ]
@@ -247,6 +215,7 @@ let _extract_type_err =
         |> newline,
         None,
       )
+    | TypeResolutionFailed => ("Type Resolution Failed", Pretty.Nil, None)
   );
 
 let _extract_parse_err =

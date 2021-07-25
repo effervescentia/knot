@@ -1,5 +1,6 @@
 open Kore;
 open Util;
+open ResultUtil;
 open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
@@ -357,7 +358,11 @@ let suite =
                 (
                   "bar" |> of_public |> as_lexeme,
                   Some(
-                    "fizz" |> of_public |> as_lexeme |> of_id |> as_weak(0),
+                    "fizz"
+                    |> of_public
+                    |> as_lexeme
+                    |> of_id
+                    |> as_abstract(Unknown),
                   ),
                 )
                 |> of_prop
@@ -424,7 +429,13 @@ let suite =
             [
               (
                 "foo" |> of_public |> as_lexeme,
-                Some("bar" |> of_public |> as_lexeme |> of_id |> as_weak(0)),
+                Some(
+                  "bar"
+                  |> of_public
+                  |> as_lexeme
+                  |> of_id
+                  |> as_abstract(Unknown),
+                ),
               )
               |> of_prop
               |> as_lexeme,
@@ -508,7 +519,7 @@ let suite =
               [
                 (
                   {name: "bar" |> of_public |> as_lexeme, default: None},
-                  Type.K_Strong(K_Nil),
+                  Valid(`Nil),
                 ),
               ],
               123 |> int_prim,
@@ -537,7 +548,7 @@ let suite =
                     name: "bar" |> of_public |> as_lexeme,
                     default: Some(123 |> int_prim),
                   },
-                  Type.K_Strong(K_Nil),
+                  Valid(`Nil),
                 ),
               ],
               (

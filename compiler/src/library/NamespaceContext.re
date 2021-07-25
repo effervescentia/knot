@@ -2,7 +2,7 @@ open Reference;
 
 type t = {
   namespace: Namespace.t,
-  modules: ModuleTable.t(Type2.Result.t),
+  modules: ModuleTable.t,
   report: Error.compile_err => unit,
   mutable inner_modules: list((Module.t, DefinitionTable.t, Cursor.t)),
 };

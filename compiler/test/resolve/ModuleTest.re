@@ -1,5 +1,6 @@
 open Kore;
 open Util;
+open ResultUtil;
 
 module Module = Resolve.Module;
 
@@ -15,7 +16,7 @@ let __program = [
       |> of_num
       |> as_typed_lexeme(
            ~cursor=Cursor.range((4, 15), (4, 17)),
-           Type.K_Strong(K_Integer),
+           Type2.Result.Valid(`Integer),
          )
       |> of_prim
       |> as_int

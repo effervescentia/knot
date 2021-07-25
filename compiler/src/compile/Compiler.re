@@ -1,5 +1,7 @@
 open Kore;
-open Reference;
+
+module Namespace = Reference.Namespace;
+module Export = Reference.Export;
 
 type config_t = {
   name: string,
@@ -18,7 +20,7 @@ type action_t =
 type t = {
   config: config_t,
   graph: ImportGraph.t,
-  modules: ModuleTable.t(Type2.Result.t),
+  modules: ModuleTable.t,
   resolver: Resolver.t,
   dispatch: action_t => unit,
 };

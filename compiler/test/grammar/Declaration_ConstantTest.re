@@ -1,6 +1,7 @@
 open Kore;
 open AST;
 open Util;
+open ResultUtil;
 open Reference;
 
 module Declaration = Grammar.Declaration;
@@ -10,7 +11,7 @@ module Assert = {
   include Assert.Make({
     type t = (export_t, declaration_t);
 
-    let parser = ctx =>
+    let parser = ((_, ctx, _)) =>
       Parser.parse(Declaration.constant(ctx, AST.of_named_export));
 
     let test =
@@ -52,15 +53,17 @@ let suite =
     "parse with complex derived type"
     >: (
       () => {
-        let scope =
-          to_scope([
-            ("bar", K_Strong(K_Float)),
-            ("fizz", K_Strong(K_Integer)),
-            ("buzz", K_Strong(K_Float)),
-          ]);
+        let definitions =
+          Type2.Result.[
+            (Export.Named(of_public("bar")), Valid(`Float)),
+            (Export.Named(of_public("fizz")), Valid(`Integer)),
+            (Export.Named(of_public("buzz")), Valid(`Float)),
+          ]
+          |> List.to_seq
+          |> DefinitionTable.from_seq;
 
         Assert.parse(
-          ~scope,
+          ~mod_context=x => ModuleContext.create(~definitions, x),
           "const foo = {
             let x = bar;
             let y = x > fizz && x != buzz;
@@ -118,33 +121,33 @@ let suite =
           ),
         );
 
-        Assert.int(0, scope.seed^);
+        /* Assert.int(0, scope.seed^); */
         Assert.hashtbl(
           Export.to_string,
-          Type.to_string,
-          [
-            (Export.Named("bar" |> of_public), Type.K_Strong(K_Float)),
-            (Export.Named("fizz" |> of_public), Type.K_Strong(K_Integer)),
-            (Export.Named("buzz" |> of_public), Type.K_Strong(K_Float)),
-            (Export.Named("foo" |> of_public), Type.K_Strong(K_Boolean)),
+          Type2.Result.to_string,
+          Type2.Result.[
+            (Export.Named(of_public("bar")), Valid(`Float)),
+            (Export.Named(of_public("fizz")), Valid(`Integer)),
+            (Export.Named(of_public("buzz")), Valid(`Float)),
+            (Export.Named(of_public("foo")), Valid(`Boolean)),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,
-          scope.types,
+          definitions.scope,
         );
-        Assert.hashtbl(
-          string_of_int,
-          fun
-          | Ok(t) => t |> Type.trait_to_string |> Print.fmt("Ok(%s)")
-          | Error((x, y)) =>
-            Print.fmt(
-              "Error(%s, %s)",
-              x |> Type.trait_to_string,
-              y |> Type.trait_to_string,
-            ),
-          [] |> List.to_seq |> Hashtbl.of_seq,
-          scope.anonymous,
-        );
+        /* Assert.hashtbl(
+             string_of_int,
+             fun
+             | Ok(t) => t |> Type.trait_to_string |> Print.fmt("Ok(%s)")
+             | Error((x, y)) =>
+               Print.fmt(
+                 "Error(%s, %s)",
+                 x |> Type.trait_to_string,
+                 y |> Type.trait_to_string,
+               ),
+             [] |> List.to_seq |> Hashtbl.of_seq,
+             scope.anonymous,
+           ); */
       }
     ),
   ];

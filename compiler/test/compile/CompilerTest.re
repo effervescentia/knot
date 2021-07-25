@@ -1,6 +1,7 @@
 open Kore;
 open Util;
-open Type;
+open ResultUtil;
+open Type2.Result;
 open Reference;
 
 module Compiler = Compile.Compiler;
@@ -25,7 +26,7 @@ let __config =
 let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
 
 let __types =
-  AST.[(Export.Named("ABC" |> of_public), K_Strong(K_Integer))]
+  AST.[(Export.Named("ABC" |> of_public), Valid(`Integer))]
   |> List.to_seq
   |> Hashtbl.of_seq;
 
@@ -35,13 +36,13 @@ let __ast =
       ("ABC" |> of_public, Cursor.range((1, 7), (1, 9))) |> of_named_export,
       (
         123 |> Int64.of_int |> of_int |> of_num,
-        K_Strong(K_Integer),
+        Valid(`Integer),
         Cursor.range((1, 13), (1, 15)),
       )
       |> of_prim
       |> as_typed_lexeme(
            ~cursor=Cursor.range((1, 13), (1, 15)),
-           K_Strong(K_Integer),
+           Valid(`Integer),
          )
       |> of_const,
     )

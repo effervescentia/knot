@@ -3,7 +3,9 @@ open Util;
 open Reference;
 
 let __id = Namespace.Internal("foo");
-let __types = AST.[(Export.Named("bar" |> of_public), Type.K_Weak(0))];
+let __types: list((Export.t, Type2.Result.t)) = [
+  (Named(AST.of_public("bar")), Valid(`Abstract(Unknown))),
+];
 let __program =
   AST.[
     Import(
@@ -12,10 +14,9 @@ let __program =
     ),
   ];
 let __table = ModuleTable.create(1);
+let __scope_tree = BinaryTree.create((Cursor.(expand(zero)), None));
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
-
-let _create_table = items => List.to_seq(items) |> Hashtbl.of_seq;
+let _create_table = items => items |> List.to_seq |> Hashtbl.of_seq;
 
 let suite =
   "Compile.ModuleTable"
@@ -35,7 +36,10 @@ let suite =
                   types:
                     _create_table(
                       AST.[
-                        (Export.Named("bar" |> of_public), Type.K_Weak(0)),
+                        (
+                          Export.Named("bar" |> of_public),
+                          Type2.Result.Valid(`Abstract(Unknown)),
+                        ),
                       ],
                     ),
                   ast: __program,
@@ -57,7 +61,7 @@ let suite =
         __table
         |> ModuleTable.add_type(
              (__id, Export.Named("new_type" |> AST.of_public)),
-             Type.K_Strong(K_Float),
+             Valid(`Float),
            );
 
         [
@@ -67,14 +71,12 @@ let suite =
                 __id,
                 ModuleTable.{
                   types:
-                    _create_table(
-                      AST.[
-                        (
-                          Export.Named("new_type" |> of_public),
-                          Type.K_Strong(K_Float),
-                        ),
-                      ],
-                    ),
+                    _create_table([
+                      (
+                        Export.Named("new_type" |> AST.of_public),
+                        Type2.Result.Valid(`Float),
+                      ),
+                    ]),
                   ast: __program,
                   scopes: __scope_tree,
                   raw: "foo",
@@ -93,8 +95,8 @@ let suite =
         let original_table = Hashtbl.copy(__table);
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named("new_type" |> AST.of_public)),
-             Type.K_Strong(K_Float),
+             (__id, Named(AST.of_public("new_type"))),
+             Valid(`Float),
            );
 
         [(original_table, __table)] |> Assert.(test_many(module_table));

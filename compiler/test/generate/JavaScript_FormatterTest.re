@@ -1,5 +1,6 @@
 open Kore;
 open Util;
+open ResultUtil;
 open Generate.JavaScript_AST;
 
 module Formatter = Generate.JavaScript_Formatter;

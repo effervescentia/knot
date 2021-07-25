@@ -154,7 +154,7 @@ let to_string = (tree: t) =>
         | Join => ""
         | Skip => "[skip]"
         | Identifier(id) => Identifier.to_string(id)
-        | Primitive(prim) => Debug.print_prim(prim) |> Pretty.to_string
+        | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
         },
         Cursor.Range(start, end_) |> Cursor.to_string,
       )

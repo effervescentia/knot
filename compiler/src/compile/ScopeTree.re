@@ -10,7 +10,7 @@ let rec _join =
   | xs =>
     xs
     |> List.divide
-    |> Tuple.map2(join)
+    |> Tuple.map2(_join)
     |> BinaryTree.(
          (
            fun
@@ -61,37 +61,11 @@ let rec of_def_tbl = (~cursor=?, definitions: DefinitionTable.t): t => {
 let rec of_context = (~cursor=?, context: NamespaceContext.t): t => {
   context.inner_modules
   |> List.map(((_, x, cursor)) => of_def_tbl(~cursor, x))
-  |> List.divide
-  |> Tuple.map2(_join)
-  |> (
-    fun
-    | (
-        Some({value: ((start, _), _)} as head),
-        Some({value: ((_, end_), _)} as tail),
-      ) =>
-      BinaryTree.create(
-        ~left=head,
-        ~right=tail,
-        (
-          cursor |?> Cursor.expand |?: (start, end_),
-          Some(context.scope.types),
-        ),
-      )
-    | (Some({value: (only_cursor, _)} as only), None)
-    | (None, Some({value: (only_cursor, _)} as only)) =>
-      BinaryTree.create(
-        ~left=only,
-        (
-          cursor |?> Cursor.expand |?: only_cursor,
-          Some(context.scope.types),
-        ),
-      )
-    | (None, None) =>
-      BinaryTree.create((
+  |> _join
+  |?: BinaryTree.create((
         cursor |?: Cursor.zero |> Cursor.expand,
-        Some(context.scope.types),
-      ))
-  );
+        Some(Hashtbl.create(0)),
+      ));
 };
 
 let find_scope =
