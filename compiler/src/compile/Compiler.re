@@ -18,7 +18,7 @@ type action_t =
 type t = {
   config: config_t,
   graph: ImportGraph.t,
-  modules: ModuleTable.t(Type2.t),
+  modules: ModuleTable.t(Type2.Result.t),
   resolver: Resolver.t,
   dispatch: action_t => unit,
 };
@@ -135,7 +135,7 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
              namespace,
              ast,
              _get_exports(ast),
-             context |> ScopeTree.of_context,
+             ScopeTree.of_context(context),
              raw,
            );
       }

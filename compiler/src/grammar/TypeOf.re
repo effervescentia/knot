@@ -19,8 +19,7 @@ let statement =
 let declaration =
   AST.(
     fun
-    | Constant((_, t, _)) => Type2.Result.to_raw(t)
+    | Constant((_, t, _)) => t
     /* TODO: extract argument types */
-    | Function(args, (_, t, _)) =>
-      Strong(`Function(([], Type2.Result.to_raw(t))))
+    | Function(args, (_, t, _)) => Valid(`Function(([], t)))
   );

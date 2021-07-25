@@ -4,6 +4,7 @@ type t = {
   namespace: Namespace.t,
   modules: ModuleTable.t(Type2.Result.t),
   report: Error.compile_err => unit,
+  mutable inner_modules: list((Module.t, DefinitionTable.t, Cursor.t)),
 };
 
 /* static */
@@ -18,6 +19,7 @@ let create =
   namespace,
   modules,
   report,
+  inner_modules: [],
 };
 
 /* methods */
@@ -38,3 +40,12 @@ let lookup = (namespace: Namespace.t, id: Export.t, ctx: t) => {
   | None => Error(type_err)
   };
 };
+
+let define_module =
+    (
+      module_: Module.t,
+      definitions: DefinitionTable.t,
+      cursor: Cursor.t,
+      ctx: t,
+    ) =>
+  ctx.inner_modules = ctx.inner_modules @ [(module_, definitions, cursor)];

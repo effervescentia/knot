@@ -15,6 +15,13 @@ let main: t =
   ctx => {
     let module_ctx = ModuleContext.create(ctx);
 
+    ctx
+    |> NamespaceContext.define_module(
+         Root,
+         module_ctx.definitions,
+         Cursor.zero,
+       );
+
     choice([Import.parser(module_ctx), Declaration.parser(module_ctx)])
     |> many
     |> _program;

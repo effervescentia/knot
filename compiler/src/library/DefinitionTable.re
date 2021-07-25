@@ -2,7 +2,7 @@ open Reference;
 
 type t = {
   scope: Hashtbl.t(Export.t, Type2.Result.t),
-  mutable children: list(t),
+  mutable children: list((t, Cursor.t)),
 };
 
 /* static */

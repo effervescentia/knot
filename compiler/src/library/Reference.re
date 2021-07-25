@@ -20,6 +20,19 @@ module Namespace = {
     | External(path) => path;
 };
 
+module Module = {
+  type t =
+    | Root
+    | Inner(string, option(t));
+
+  let rec to_string =
+    fun
+    | Root => "[root]"
+    | Inner(name, None) => name
+    | Inner(name, Some(parent)) =>
+      Print.fmt("%s.%s", to_string(parent), name);
+};
+
 module Identifier = {
   type t =
     | Private(string)
