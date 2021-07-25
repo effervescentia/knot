@@ -62,7 +62,7 @@ let handler =
                        switch (decl) {
                        | Constant(expr) => {
                            name,
-                           detail: Type2.to_string(type_),
+                           detail: Type.to_string(type_),
                            range,
                            full_range:
                              Cursor.join(name_cursor, expr |> Tuple.thd3)
@@ -71,7 +71,7 @@ let handler =
                          }
                        | Function(args, expr) => {
                            name,
-                           detail: Type2.to_string(type_),
+                           detail: Type.to_string(type_),
                            range,
                            full_range:
                              Cursor.join(name_cursor, Tuple.thd3(expr))

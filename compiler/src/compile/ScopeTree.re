@@ -1,7 +1,7 @@
 open Kore;
 open Reference;
 
-type t = RangeTree.t(option(Hashtbl.t(Export.t, Type2.t)));
+type t = RangeTree.t(option(Hashtbl.t(Export.t, Type.t)));
 
 let rec _join =
   fun
@@ -69,7 +69,7 @@ let rec of_context = (~cursor=?, context: NamespaceContext.t): t => {
 };
 
 let find_scope =
-    (point: Cursor.point_t, tree: t): option(Hashtbl.t(Export.t, Type2.t)) =>
+    (point: Cursor.point_t, tree: t): option(Hashtbl.t(Export.t, Type.t)) =>
   BinaryTree.search(
     (left, right) =>
       if (Cursor.is_in_range(left.value |> fst, point)) {
@@ -84,5 +84,5 @@ let find_scope =
   |?< snd;
 
 let find_type =
-    (id: Identifier.t, point: Cursor.point_t, tree: t): option(Type2.t) =>
+    (id: Identifier.t, point: Cursor.point_t, tree: t): option(Type.t) =>
   find_scope(point, tree) |?< (types => Hashtbl.find_opt(types, Named(id)));

@@ -1,6 +1,6 @@
 open Kore;
 open AST.Raw;
-open Type2.Raw;
+open Type.Raw;
 
 let _wrap_typed_lexeme = (f, (_, type_, cursor) as lexeme) => (
   f(lexeme),

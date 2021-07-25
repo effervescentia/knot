@@ -3,7 +3,7 @@ open Util;
 open Reference;
 
 let __id = Namespace.Internal("foo");
-let __types: list((Export.t, Type2.t)) = [
+let __types: list((Export.t, Type.t)) = [
   (Named(AST.of_public("bar")), Valid(`Abstract(Unknown))),
 ];
 let __program =
@@ -38,7 +38,7 @@ let suite =
                       AST.[
                         (
                           Export.Named("bar" |> of_public),
-                          Type2.Valid(`Abstract(Unknown)),
+                          Type.Valid(`Abstract(Unknown)),
                         ),
                       ],
                     ),
@@ -74,7 +74,7 @@ let suite =
                     _create_table([
                       (
                         Export.Named("new_type" |> AST.of_public),
-                        Type2.Valid(`Float),
+                        Type.Valid(`Float),
                       ),
                     ]),
                   ast: __program,

@@ -54,7 +54,7 @@ let suite =
     >: (
       () => {
         let definitions =
-          Type2.[
+          Type.[
             (Export.Named(of_public("bar")), Valid(`Float)),
             (Export.Named(of_public("fizz")), Valid(`Integer)),
             (Export.Named(of_public("buzz")), Valid(`Float)),
@@ -124,8 +124,8 @@ let suite =
         /* Assert.int(0, scope.seed^); */
         Assert.hashtbl(
           Export.to_string,
-          Type2.to_string,
-          Type2.[
+          Type.to_string,
+          Type.[
             (Export.Named(of_public("bar")), Valid(`Float)),
             (Export.Named(of_public("fizz")), Valid(`Integer)),
             (Export.Named(of_public("buzz")), Valid(`Float)),

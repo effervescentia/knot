@@ -28,7 +28,7 @@ let create =
  find the type of an export from a different module
  */
 let lookup = (namespace: Namespace.t, id: Export.t, ctx: t) => {
-  let type_err = Type2.Error.ExternalNotFound(namespace, id);
+  let type_err = Type.Error.ExternalNotFound(namespace, id);
 
   switch (ModuleTable.find(namespace, ctx.modules)) {
   | Some({types}) =>

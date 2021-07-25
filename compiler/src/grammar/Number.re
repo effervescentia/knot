@@ -1,6 +1,6 @@
 open Kore;
 open AST.Raw;
-open Type2.Raw;
+open Type.Raw;
 
 let integer =
   many1(M.digit)

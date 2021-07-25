@@ -1,14 +1,14 @@
 open Kore;
 open Reference;
 
-let to_scope = (types: list((string, Type2.t))): DefinitionTable.t => {
+let to_scope = (types: list((string, Type.t))): DefinitionTable.t => {
   types
   |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
   |> List.to_seq
   |> DefinitionTable.from_seq;
 };
 
-let scope_to_closure = (scope: list((string, Type2.Raw.t))) =>
+let scope_to_closure = (scope: list((string, Type.Raw.t))) =>
   ClosureContext.create(
     ~scope=
       scope
@@ -23,7 +23,7 @@ let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 module type UtilParams = {
   type type_t;
 
-  let to_type: Type2.primitive_t => type_t;
+  let to_type: Type.primitive_t => type_t;
 };
 
 module Make = (T: UtilParams) => {
@@ -36,10 +36,10 @@ module Make = (T: UtilParams) => {
 };
 
 module RawUtil = {
-  open Type2.Raw;
+  open Type.Raw;
 
   include Make({
-    type type_t = Type2.Raw.t;
+    type type_t = Type.Raw.t;
 
     let to_type =
       fun
@@ -68,15 +68,15 @@ module RawUtil = {
 
   let jsx_tag = of_tag % as_lexeme % of_jsx;
 
-  let weak_unknown = Weak(ref(Ok(`Abstract(Type2.Trait.Unknown))));
+  let weak_unknown = Weak(ref(Ok(`Abstract(Type.Trait.Unknown))));
 };
 
 module ResultUtil = {
   include Make({
-    type type_t = Type2.t;
+    type type_t = Type.t;
 
     let to_type =
-      Type2.(
+      Type.(
         fun
         | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
           Valid(x)
@@ -86,7 +86,7 @@ module ResultUtil = {
   open AST;
 
   let as_abstract = (trait, x) =>
-    as_typed_lexeme(Type2.Valid(`Abstract(trait)), x);
+    as_typed_lexeme(Type.Valid(`Abstract(trait)), x);
 
   let nil_prim = nil |> as_nil |> of_prim |> as_nil;
 
@@ -103,7 +103,7 @@ let print_parse_err =
   fun
   | TypeError(err) =>
     err
-    |> Type2.(Error.to_string(Raw.to_string))
+    |> Type.(Error.to_string(Raw.to_string))
     |> Print.fmt("TypeError<%s>")
   | ReservedKeyword(name) => name |> Print.fmt("ReservedKeyword<%s>");
 

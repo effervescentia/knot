@@ -3,7 +3,7 @@ open Reference;
 type t = {
   parent: option(t),
   namespace_context: NamespaceContext.t,
-  scope: NestedHashtbl.t(Identifier.t, Type2.Raw.t),
+  scope: NestedHashtbl.t(Identifier.t, Type.Raw.t),
   mutable children: list((t, Cursor.t)),
 };
 
@@ -53,7 +53,7 @@ let resolve = ((name, cursor): AST.identifier_t, ctx: t) =>
   switch (ctx.scope |> NestedHashtbl.find(name)) {
   | Some(t) => t
   | None =>
-    let err = Type2.Error.NotFound(name);
+    let err = Type.Error.NotFound(name);
     /* ctx.report(ParseError(TypeError(err), ctx.namespace, cursor)); */
     Invalid(err);
   };
@@ -61,14 +61,14 @@ let resolve = ((name, cursor): AST.identifier_t, ctx: t) =>
 /**
  define a new variable within the scope
  */
-let define = (name: Identifier.t, type_: Type2.Raw.t, ctx: t) =>
+let define = (name: Identifier.t, type_: Type.Raw.t, ctx: t) =>
   ctx.scope |> NestedHashtbl.set(name, type_);
 
 /**
  define a new weak variable within the scope
  */
-let define_weak = (id: Identifier.t, ctx: t): Type2.Raw.t => {
-  let type_ = Type2.(Raw.Weak(ref(Ok(`Abstract(Trait.Unknown)))));
+let define_weak = (id: Identifier.t, ctx: t): Type.Raw.t => {
+  let type_ = Type.(Raw.Weak(ref(Ok(`Abstract(Trait.Unknown)))));
 
   ctx.scope |> NestedHashtbl.set(id, type_);
 

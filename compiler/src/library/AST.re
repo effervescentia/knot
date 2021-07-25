@@ -364,15 +364,15 @@ module Make = (T: ASTParams) => {
 
 module Raw =
   Make({
-    type type_t = Type2.Raw.t;
+    type type_t = Type.Raw.t;
 
-    let type_to_string = Type2.Raw.to_string;
+    let type_to_string = Type.Raw.to_string;
   });
 
 include Make({
-  type type_t = Type2.t;
+  type type_t = Type.t;
 
-  let type_to_string = Type2.to_raw % Type2.Raw.to_string;
+  let type_to_string = Type.to_raw % Type.Raw.to_string;
 });
 
 type declaration_t =

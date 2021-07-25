@@ -6,7 +6,7 @@ module TypeResolver = {
   let _bind_typed_lexeme = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
 
   let res_prim = ((prim, type_, cursor): Raw.primitive_t): primitive_t =>
-    Type2.(
+    Type.(
       switch (prim) {
       | Nil => (Nil, Valid(`Nil))
       | Boolean(bool) => (Boolean(bool), Valid(`Boolean))
@@ -39,14 +39,14 @@ module TypeResolver = {
             xs |> List.last |> Option.map(TypeOf.statement) |?: Valid(`Nil),
           )
         )
-      | Identifier(id) => (Identifier(id), Type2.of_raw(type_))
+      | Identifier(id) => (Identifier(id), Type.of_raw(type_))
       | UnaryOp(op, expr) => (
           UnaryOp(op, res_expr(expr)),
-          Type2.of_raw(type_),
+          Type.of_raw(type_),
         )
       | BinaryOp(op, lhs, rhs) => (
           BinaryOp(op, res_expr(lhs), res_expr(rhs)),
-          Type2.of_raw(type_),
+          Type.of_raw(type_),
         )
       }
     )
@@ -130,7 +130,7 @@ let function_ = (ctx: ModuleContext.t, f) => {
                      default:
                        arg.default |> Option.map(TypeResolver.res_expr),
                    },
-                   Type2.of_raw(arg_type),
+                   Type.of_raw(arg_type),
                  )
                );
 

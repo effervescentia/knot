@@ -1,15 +1,15 @@
 open Kore;
 open AST.Raw;
 
-type type_result = result(Type2.Raw.t, Type2.Raw.error_t);
-type unary_op_resolver = Type2.Raw.t => type_result;
+type type_result = result(Type.Raw.t, Type.Raw.error_t);
+type unary_op_resolver = Type.Raw.t => type_result;
 type binary_op_resolver =
-  (Tuple.t2(Cursor.t), Tuple.t2(Type2.Raw.t)) =>
-  result(Type2.Raw.t, (Type2.Raw.error_t, Cursor.t));
+  (Tuple.t2(Cursor.t), Tuple.t2(Type.Raw.t)) =>
+  result(Type.Raw.t, (Type.Raw.error_t, Cursor.t));
 
 let _report_invalid =
-    (ctx: ClosureContext.t, cursor: Cursor.t, err: Type2.Raw.error_t)
-    : Type2.Raw.t => {
+    (ctx: ClosureContext.t, cursor: Cursor.t, err: Type.Raw.error_t)
+    : Type.Raw.t => {
   ParseError(TypeError(err), ctx.namespace_context.namespace, cursor)
   |> ClosureContext.report(ctx);
   Invalid(err);

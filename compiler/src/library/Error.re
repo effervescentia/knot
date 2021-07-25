@@ -9,7 +9,7 @@ exception NotImplemented;
 exception WatchFailed(string);
 
 type parse_err =
-  | TypeError(Type2.Raw.error_t)
+  | TypeError(Type.Raw.error_t)
   | ReservedKeyword(string);
 
 type compile_err =
@@ -29,7 +29,7 @@ let parse_err_to_string =
   fun
   | TypeError(err) =>
     err
-    |> Type2.Error.to_string(Type2.Raw.to_string)
+    |> Type.Error.to_string(Type.Raw.to_string)
     |> Print.fmt("type error: %s")
   | ReservedKeyword(name) =>
     name |> Print.fmt("reserved keyword %s cannot be used as an identifier");

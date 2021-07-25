@@ -54,7 +54,7 @@ let _print_err = (~index, path, title, content) =>
   |> concat;
 
 let _type_trait_to_string = print_target =>
-  Type2.Trait.(
+  Type.Trait.(
     fun
     | Unknown =>
       "Unknown"
@@ -71,7 +71,7 @@ let _type_trait_to_string = print_target =>
   );
 
 let _extract_type_err =
-  Type2.Error.(
+  Type.Error.(
     fun
     /* | TraitConflict(lhs, rhs) => (
          "Types Have Conflicting Traits",
@@ -116,7 +116,7 @@ let _extract_type_err =
             Print.fmt(
               "expected a type that implements the trait %s but found the type %s instead",
               trait |> _type_trait_to_string(Print.good),
-              t |> Type2.Raw.to_string |> Print.bad,
+              t |> Type.Raw.to_string |> Print.bad,
             )
             |> string,
           ]
@@ -132,8 +132,8 @@ let _extract_type_err =
           [
             Print.fmt(
               "expected the type %s but found the type %s instead",
-              expected |> Type2.Raw.to_string |> Print.good,
-              actual |> Type2.Raw.to_string |> Print.bad,
+              expected |> Type.Raw.to_string |> Print.good,
+              actual |> Type.Raw.to_string |> Print.bad,
             )
             |> string,
           ]
