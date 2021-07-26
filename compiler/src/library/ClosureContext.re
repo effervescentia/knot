@@ -49,7 +49,7 @@ let report = (ctx: t, err: Error.compile_err) =>
 /**
  resolve a type within the active scope
  */
-let resolve = ((name, cursor): AST.identifier_t, ctx: t) =>
+let resolve = ((name, cursor): AST.Raw.identifier_t, ctx: t) =>
   switch (ctx.scope |> NestedHashtbl.find(name)) {
   | Some(t) => t
   | None =>

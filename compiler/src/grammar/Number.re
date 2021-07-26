@@ -8,7 +8,6 @@ let integer =
   >|= (
     block => (
       block |> Block.value |> Int64.of_string |> AST.of_int,
-      Strong(`Integer),
       Block.cursor(block),
     )
   )
@@ -40,7 +39,6 @@ let float =
         )
         |> of_float;
       },
-      Strong(`Float),
       Cursor.join(Block.cursor(x), Block.cursor(y)),
     )
   )

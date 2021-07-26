@@ -1,7 +1,6 @@
 open Kore;
 open AST;
-open Util;
-open ResultUtil;
+open Util.ResultUtil;
 open Reference;
 
 module Program = Grammar.Program;
@@ -90,7 +89,7 @@ let suite =
               __const_decl_ast,
               (
                 "bar" |> of_public |> as_lexeme |> of_named_export,
-                "foo" |> of_public |> as_lexeme |> of_id |> as_nil |> of_const,
+                "foo" |> of_public |> as_nil |> of_id |> as_nil |> of_const,
               )
               |> of_decl,
             ],
@@ -139,7 +138,7 @@ let suite =
             __main_import_ast,
             (
               "bar" |> of_public |> as_lexeme |> of_named_export,
-              "foo" |> of_public |> as_lexeme |> of_id |> as_bool |> of_const,
+              "foo" |> of_public |> as_bool |> of_id |> as_bool |> of_const,
             )
             |> of_decl,
           ],

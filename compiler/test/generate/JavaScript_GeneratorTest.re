@@ -1,6 +1,5 @@
 open Kore;
-open Util;
-open ResultUtil;
+open Util.ResultUtil;
 open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;

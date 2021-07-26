@@ -2,37 +2,20 @@ open Kore;
 open AST.Raw;
 open Type.Raw;
 
-let _wrap_typed_lexeme = (f, (_, type_, cursor) as lexeme) => (
-  f(lexeme),
-  type_,
-  cursor,
-);
-
 let primitive =
-  Primitive.parser
-  >|= (((_, type_, cursor) as prim) => (of_prim(prim), type_, cursor));
+  Primitive.parser >|= (((_, cursor) as prim) => (of_prim(prim), cursor));
 
 let identifier = (ctx: ClosureContext.t) =>
-  Identifier.parser(ctx)
-  >|= (
-    ((_, cursor) as id) => (
-      of_id(id),
-      ctx |> ClosureContext.resolve(id),
-      cursor,
-    )
-  );
+  Identifier.parser(ctx) >|= (((_, cursor) as id) => (of_id(id), cursor));
 
 let jsx = (ctx: ClosureContext.t, x) =>
-  JSX.parser(ctx, x)
-  >|= (((_, cursor) as jsx) => (of_jsx(jsx), Strong(`Element), cursor));
+  JSX.parser(ctx, x) >|= (((_, cursor) as jsx) => (of_jsx(jsx), cursor));
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
   >|= (
     block => {
-      let (_, type_, _) as group = Block.value(block);
-
-      (of_group(group), type_, Block.cursor(block));
+      (block |> Block.value |> of_group, Block.cursor(block));
     }
   );
 
@@ -43,16 +26,7 @@ let closure = (ctx: ClosureContext.t, x) =>
   >|= Tuple.split2(Block.value, Block.cursor)
   >|= (
     ((stmts, cursor)) => {
-      let type_ =
-        stmts
-        |> List.last
-        |> (
-          fun
-          | None => Strong(`Nil)
-          | Some(x) => TypeOf.raw_statement(x)
-        );
-
-      (of_closure(stmts), type_, cursor);
+      (of_closure(stmts), cursor);
     }
   );
 
@@ -122,7 +96,7 @@ and expr_8 = (ctx: ClosureContext.t, input) =>
 
     choice([
       closure(child_ctx, expr_0)
-      >@= (((_, _, cursor)) => ClosureContext.save(cursor, child_ctx)),
+      >@= (((_, cursor)) => ClosureContext.save(cursor, child_ctx)),
       expr_0(ctx) |> group,
       term(ctx),
     ]);

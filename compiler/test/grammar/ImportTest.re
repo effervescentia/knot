@@ -1,5 +1,5 @@
 open Kore;
-open Util;
+open Util.CommonUtil;
 open Reference;
 
 module Import = Grammar.Import;

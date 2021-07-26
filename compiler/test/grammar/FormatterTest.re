@@ -1,7 +1,6 @@
 open Kore;
 open AST;
-open Util;
-open ResultUtil;
+open Util.ResultUtil;
 open Reference;
 
 module Formatter = Grammar.Formatter;
@@ -84,7 +83,7 @@ let suite =
       () =>
         [
           ("nil", nil |> as_nil |> of_prim),
-          ("fooBar", "fooBar" |> of_public |> as_lexeme |> of_id),
+          ("fooBar", "fooBar" |> of_public |> as_unknown |> of_id),
           ("123", 123 |> int_prim |> of_group),
           ("123", 123 |> int_prim |> of_group |> as_int |> of_group),
           (
@@ -126,7 +125,7 @@ let suite =
   bar
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_unknown,
               [],
               ["bar" |> as_lexeme |> of_text |> as_lexeme],
             )

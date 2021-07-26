@@ -1,6 +1,5 @@
 open Kore;
-open Util;
-open ResultUtil;
+open Util.ResultUtil;
 open Reference;
 
 module Parser = Compile.Parser;

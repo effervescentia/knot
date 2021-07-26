@@ -73,7 +73,7 @@ let rec fmt_jsx =
         ? Nil
         : attrs
           |> List.map(
-               fst % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
+               Tuple.fst3 % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
              )
           |> concat,
       List.is_empty(children)
@@ -81,7 +81,9 @@ let rec fmt_jsx =
         : [
             [string(">")] |> newline,
             children
-            |> List.map(fst % (child => [fmt_jsx_child(child)] |> newline))
+            |> List.map(
+                 Tuple.fst3 % (child => [fmt_jsx_child(child)] |> newline),
+               )
             |> concat
             |> indent(2),
             [string("</"), fmt_id(name), string(">")] |> concat,
@@ -95,15 +97,18 @@ let rec fmt_jsx =
       ? string("<></>")
       : [
           [string("<>")] |> newline,
-          children |> List.map(fst % fmt_jsx_child) |> concat |> indent(2),
+          children
+          |> List.map(Tuple.fst3 % fmt_jsx_child)
+          |> concat
+          |> indent(2),
           string("</>"),
         ]
         |> concat
 
 and fmt_jsx_child =
   fun
-  | Node((jsx, _)) => fmt_jsx(jsx)
-  | Text((s, _)) => string(s)
+  | Node((jsx, _, _)) => fmt_jsx(jsx)
+  | Text((s, _, _)) => string(s)
   | InlineExpression((expr, _, _)) =>
     [string("{"), fmt_expression(expr), string("}")] |> concat
 
@@ -133,15 +138,15 @@ and fmt_jsx_attr_expr = x =>
   | Group(_)
   | Closure(_)
   /* show tags or fragments with no children */
-  | JSX((Tag(_, _, []) | Fragment([]), _)) => fmt_expression(x)
+  | JSX((Tag(_, _, []) | Fragment([]), _, _)) => fmt_expression(x)
   | _ => [string("("), fmt_expression(x), string(")")] |> concat
   }
 
 and fmt_expression =
   fun
   | Primitive((prim, _, _)) => fmt_prim(prim)
-  | Identifier((name, _)) => fmt_id(name)
-  | JSX((jsx, _)) => fmt_jsx(jsx)
+  | Identifier((name, _, _)) => fmt_id(name)
+  | JSX((jsx, _, _)) => fmt_jsx(jsx)
   /* collapse parentheses around unary values */
   | Group((
       (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
@@ -208,9 +213,9 @@ let fmt_declaration = (((name, _), decl)) =>
           : [
               string("("),
               args
-              |> List.map((({name, default}, type_)) =>
+              |> List.map((({name, default, type_}, _, _)) =>
                    [
-                     name |> fst |> fmt_id,
+                     name |> Block.value |> fmt_id,
                      switch (default) {
                      | Some((expr, _, _)) =>
                        [string(" = "), fmt_expression(expr)] |> concat

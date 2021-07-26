@@ -2,29 +2,20 @@ open Kore;
 open AST.Raw;
 open Type.Raw;
 
-let nil =
-  Keyword.nil >|= Block.cursor >|= (cursor => (nil, Strong(`Nil), cursor));
+let nil = Keyword.nil >|= Block.cursor >|= (cursor => (nil, cursor));
 
 let boolean =
   Keyword.true_
   >|= Block.cursor
-  >|= (cursor => (of_bool(true), Strong(`Boolean), cursor))
+  >|= (cursor => (of_bool(true), cursor))
   <|> (
-    Keyword.false_
-    >|= Block.cursor
-    >|= (cursor => (of_bool(false), Strong(`Boolean), cursor))
+    Keyword.false_ >|= Block.cursor >|= (cursor => (of_bool(false), cursor))
   );
 
-let number = Number.parser >|= Tuple.map_fst3(of_num);
+let number = Number.parser >|= Tuple.map_fst2(of_num);
 
 let string =
   M.string
-  >|= (
-    block => (
-      block |> Block.value |> of_string,
-      Strong(`String),
-      Block.cursor(block),
-    )
-  );
+  >|= (block => (block |> Block.value |> of_string, Block.cursor(block)));
 
 let parser = choice([nil, boolean, number, string]);

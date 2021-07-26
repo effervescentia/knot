@@ -5,7 +5,7 @@ module TypeResolver = {
   let _bind_lexeme = (cursor: Cursor.t, x) => (x, cursor);
   let _bind_typed_lexeme = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
 
-  let res_prim = ((prim, type_, cursor): Raw.primitive_t): primitive_t =>
+  let res_prim = ((prim, cursor): Raw.primitive_t): primitive_t =>
     Type.(
       switch (prim) {
       | Nil => (Nil, Valid(`Nil))
@@ -19,11 +19,11 @@ module TypeResolver = {
 
   let rec res_stmt = (stmt: Raw.statement_t): statement_t =>
     switch (stmt) {
-    | Variable(id, expr) => Variable(id, res_expr(expr))
+    | Variable(id, expr) => res_expr(expr) |> (x => Variable(id, x))
     | Expression(expr) => Expression(res_expr(expr))
     }
 
-  and res_expr = ((expr, type_, cursor): Raw.expression_t): expression_t =>
+  and res_expr = ((expr, cursor): Raw.expression_t): expression_t =>
     (
       switch (expr) {
       | Primitive(prim) =>
@@ -39,14 +39,20 @@ module TypeResolver = {
             xs |> List.last |> Option.map(TypeOf.statement) |?: Valid(`Nil),
           )
         )
-      | Identifier(id) => (Identifier(id), Type.of_raw(type_))
+      | Identifier((id, cursor)) => (
+          Identifier((id, Valid(`Abstract(Unknown)), cursor)),
+          /* TODO: implement */
+          Valid(`Abstract(Unknown)),
+        )
       | UnaryOp(op, expr) => (
           UnaryOp(op, res_expr(expr)),
-          Type.of_raw(type_),
+          /* TODO: implement */
+          Valid(`Abstract(Unknown)),
         )
       | BinaryOp(op, lhs, rhs) => (
           BinaryOp(op, res_expr(lhs), res_expr(rhs)),
-          Type.of_raw(type_),
+          /* TODO: implement */
+          Valid(`Abstract(Unknown)),
         )
       }
     )
@@ -55,36 +61,60 @@ module TypeResolver = {
   and res_jsx = ((jsx, cursor): Raw.jsx_t): jsx_t =>
     (
       switch (jsx) {
-      | Tag(id, attrs, children) =>
-        Tag(
-          id,
-          attrs |> List.map(res_attr),
-          children |> List.map(res_child),
+      | Tag(id, attrs, children) => (
+          Tag(
+            id,
+            attrs |> List.map(res_attr),
+            children |> List.map(res_child),
+          ),
+          Type.Valid(`Element),
         )
-      | Fragment(children) => Fragment(children |> List.map(res_child))
+      | Fragment(children) => (
+          Fragment(children |> List.map(res_child)),
+          Type.Valid(`Element),
+        )
       }
     )
-    |> _bind_lexeme(cursor)
+    |> _bind_typed_lexeme(cursor)
 
   and res_attr = ((attr, cursor): Raw.jsx_attribute_t): jsx_attribute_t =>
     (
       switch (attr) {
-      | ID(id) => ID(id)
-      | Class(id, expr) => Class(id, expr |> Option.map(res_expr))
-      | Property(id, expr) => Property(id, expr |> Option.map(res_expr))
+      | ID(id) => (ID(id), Type.Valid(`String))
+      | Class(id, expr) => (
+          Class(id, expr |> Option.map(res_expr)),
+          Type.Valid(`String),
+        )
+      | Property(id, expr) =>
+        expr
+        |> Option.map(res_expr)
+        |> (
+          x => (
+            Property(id, x),
+            x |> Option.map(Tuple.snd3) |?: Type.Valid(`Abstract(Unknown)),
+          )
+        )
       }
     )
-    |> _bind_lexeme(cursor)
+    |> _bind_typed_lexeme(cursor)
 
   and res_child = ((attr, cursor): Raw.jsx_child_t): jsx_child_t =>
     (
       switch (attr) {
-      | Text(text) => Text(text)
-      | Node(jsx) => Node(res_jsx(jsx))
-      | InlineExpression(expr) => InlineExpression(res_expr(expr))
+      | Text(text) => (
+          Text((
+            Block.value(text),
+            Type.Valid(`String),
+            Block.cursor(text),
+          )),
+          Type.Valid(`String),
+        )
+      | Node(jsx) => (Node(res_jsx(jsx)), Type.Valid(`Element))
+      | InlineExpression(expr) =>
+        res_expr(expr) |> (x => (InlineExpression(x), Tuple.snd3(x)))
       }
     )
-    |> _bind_lexeme(cursor);
+    |> _bind_typed_lexeme(cursor);
 };
 
 let constant = (ctx: ModuleContext.t, f) => {
@@ -118,19 +148,22 @@ let function_ = (ctx: ModuleContext.t, f) => {
 
       Lambda.parser(child_ctx)
       >|= (
-        ((raw_args, (_, _, res_cursor) as raw_res)) => {
+        ((raw_args, (_, res_cursor) as raw_res)) => {
           let ctx_cursor = Cursor.join(res_cursor, res_cursor);
           let res = TypeResolver.res_expr(raw_res);
           let args =
             raw_args
-            |> List.map(((arg: Raw.argument_t, arg_type)) =>
+            |> List.map(((arg, cursor): Raw.argument_t) =>
                  (
                    {
                      name: arg.name,
                      default:
                        arg.default |> Option.map(TypeResolver.res_expr),
+                     type_: None,
                    },
-                   Type.of_raw(arg_type),
+                   /* TODO: implement */
+                   Type.Valid(`Abstract(Unknown)),
+                   cursor,
                  )
                );
 

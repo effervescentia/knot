@@ -11,23 +11,40 @@ let arguments = (ctx: ClosureContext.t) =>
         Expression.parser(ctx) >|= Option.some,
       )
       >|= (
-        (((id, _) as name, default)) => {
-          let type_ =
-            switch (default) {
-            | Some((_, t, _)) =>
-              ctx |> ClosureContext.define(id, t);
-              t;
-            | None => ctx |> ClosureContext.define_weak(id)
-            };
+        ((name, default)) => {
+          let name_cursor = Block.cursor(name);
 
-          ({name, default}, type_);
+          (
+            {
+              /* let type_ =
+                 switch (default) {
+                 | Some((_, t, _)) =>
+                   ctx |> ClosureContext.define(id, t);
+                   t;
+                 | None => ctx |> ClosureContext.define_weak(id)
+                 }; */
+
+              name,
+              default,
+              type_: None,
+            },
+            Cursor.join(
+              name_cursor,
+              default |> Option.map(Block.cursor) |?: name_cursor,
+            ),
+          );
         }
       ),
       Identifier.parser(ctx)
       >|= (
-        ((id, _) as name) => (
-          {name, default: None},
-          ctx |> ClosureContext.define_weak(id),
+        name => (
+          {
+            name,
+            default: None,
+            type_: None,
+            /* ctx |> ClosureContext.define_weak(id), */
+          },
+          Block.cursor(name),
         )
       ),
     ])

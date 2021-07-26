@@ -1,5 +1,5 @@
 open Kore;
-open Util;
+open Util.RawUtil;
 open Reference;
 
 let __id = Namespace.Internal("foo");

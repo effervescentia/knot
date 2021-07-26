@@ -31,7 +31,7 @@ let _attribute =
     ((name, value)) => (
       name,
       Some(value),
-      Cursor.join(snd(name), Tuple.thd3(value)),
+      Cursor.join(snd(name), Block.cursor(value)),
     )
   )
   <|> (

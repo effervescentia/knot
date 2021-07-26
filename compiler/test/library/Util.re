@@ -1,68 +1,52 @@
 open Kore;
 open Reference;
 
-let to_scope = (types: list((string, Type.t))): DefinitionTable.t => {
-  types
-  |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
-  |> List.to_seq
-  |> DefinitionTable.from_seq;
-};
-
-let scope_to_closure = (scope: list((string, Type.Raw.t))) =>
-  ClosureContext.create(
-    ~scope=
-      scope
-      |> List.map(Tuple.map_fst2(AST.of_public))
-      |> List.to_seq
-      |> NestedHashtbl.from_seq,
+module CommonUtil = {
+  let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
+  let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (
+    x,
+    type_,
+    cursor,
   );
 
-let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
-let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
+  let to_scope = (types: list((string, Type.t))): DefinitionTable.t => {
+    types
+    |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
+    |> List.to_seq
+    |> DefinitionTable.from_seq;
+  };
 
-module type UtilParams = {
-  type type_t;
-
-  let to_type: Type.primitive_t => type_t;
-};
-
-module Make = (T: UtilParams) => {
-  let as_nil = x => as_typed_lexeme(T.to_type(`Nil), x);
-  let as_bool = x => as_typed_lexeme(T.to_type(`Boolean), x);
-  let as_int = x => as_typed_lexeme(T.to_type(`Integer), x);
-  let as_float = x => as_typed_lexeme(T.to_type(`Float), x);
-  let as_string = x => as_typed_lexeme(T.to_type(`String), x);
-  let as_element = x => as_typed_lexeme(T.to_type(`Element), x);
+  let scope_to_closure = (scope: list((string, Type.Raw.t))) =>
+    ClosureContext.create(
+      ~scope=
+        scope
+        |> List.map(Tuple.map_fst2(AST.of_public))
+        |> List.to_seq
+        |> NestedHashtbl.from_seq,
+    );
 };
 
 module RawUtil = {
   open Type.Raw;
-
-  include Make({
-    type type_t = Type.Raw.t;
-
-    let to_type =
-      fun
-      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-        Strong(x);
-  });
-
   open AST.Raw;
+
+  include CommonUtil;
 
   let as_invalid = (err, x) => as_typed_lexeme(Invalid(err), x);
 
   let as_abstract = (id, x) =>
     as_typed_lexeme(Weak(ref(Ok(`Abstract(id)))), x);
 
-  let nil_prim = nil |> as_nil |> of_prim |> as_nil;
+  let nil_prim = nil |> as_lexeme |> of_prim |> as_lexeme;
 
-  let bool_prim = of_bool % as_bool % of_prim % as_bool;
+  let bool_prim = of_bool % as_lexeme % of_prim % as_lexeme;
 
-  let int_prim = Int64.of_int % of_int % of_num % as_int % of_prim % as_int;
+  let int_prim =
+    Int64.of_int % of_int % of_num % as_lexeme % of_prim % as_lexeme;
 
-  let float_prim = of_float % of_num % as_float % of_prim % as_float;
+  let float_prim = of_float % of_num % as_lexeme % of_prim % as_lexeme;
 
-  let string_prim = of_string % as_string % of_prim % as_string;
+  let string_prim = of_string % as_lexeme % of_prim % as_lexeme;
 
   let jsx_node = of_tag % as_lexeme % of_node;
 
@@ -72,18 +56,17 @@ module RawUtil = {
 };
 
 module ResultUtil = {
-  include Make({
-    type type_t = Type.t;
-
-    let to_type =
-      Type.(
-        fun
-        | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-          Valid(x)
-      );
-  });
-
   open AST;
+
+  include CommonUtil;
+
+  let as_nil = x => as_typed_lexeme(Type.Valid(`Nil), x);
+  let as_bool = x => as_typed_lexeme(Type.Valid(`Boolean), x);
+  let as_int = x => as_typed_lexeme(Type.Valid(`Integer), x);
+  let as_float = x => as_typed_lexeme(Type.Valid(`Float), x);
+  let as_string = x => as_typed_lexeme(Type.Valid(`String), x);
+  let as_element = x => as_typed_lexeme(Type.Valid(`Element), x);
+  let as_unknown = x => as_typed_lexeme(Type.Valid(`Abstract(Unknown)), x);
 
   let as_abstract = (trait, x) =>
     as_typed_lexeme(Type.Valid(`Abstract(trait)), x);

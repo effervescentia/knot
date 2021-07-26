@@ -4,71 +4,115 @@
 open Infix;
 open Reference;
 
-type binary_operator_t =
-  /* logical operators */
-  | LogicalAnd
-  | LogicalOr
-  /* comparative operators */
-  | LessOrEqual
-  | LessThan
-  | GreaterOrEqual
-  | GreaterThan
-  /* equality operators */
-  | Equal
-  | Unequal
-  /* arithmetic operators */
-  | Add
-  | Subtract
-  | Divide
-  | Multiply
-  | Exponent;
+module Common = {
+  type binary_operator_t =
+    /* logical operators */
+    | LogicalAnd
+    | LogicalOr
+    /* comparative operators */
+    | LessOrEqual
+    | LessThan
+    | GreaterOrEqual
+    | GreaterThan
+    /* equality operators */
+    | Equal
+    | Unequal
+    /* arithmetic operators */
+    | Add
+    | Subtract
+    | Divide
+    | Multiply
+    | Exponent;
 
-type unary_operator_t =
-  | Not
-  | Positive
-  | Negative;
+  type unary_operator_t =
+    | Not
+    | Positive
+    | Negative;
 
-type number_t =
-  | Integer(Int64.t)
-  | Float(float, int);
+  type number_t =
+    | Integer(Int64.t)
+    | Float(float, int);
 
-type lexeme_t('a) = ('a, Cursor.t);
+  module Debug = {
+    open Pretty;
 
-type identifier_t = lexeme_t(Identifier.t);
+    let print_attr = ((name, value)) =>
+      [string(" "), string(name), string("=\""), value, string("\"")]
+      |> concat;
+
+    let print_entity = (~attrs=[], ~children=[], ~cursor=?, name) =>
+      [
+        [
+          string("<"),
+          string(name),
+          switch (cursor) {
+          | Some(cursor) =>
+            [string("@"), cursor |> Cursor.to_string |> string] |> concat
+          | None => Nil
+          },
+          attrs |> List.map(print_attr) |> concat,
+        ]
+        |> concat,
+        List.is_empty(children)
+          ? string(" />")
+          : [
+              [string(">")] |> newline,
+              children
+              |> List.map(child => [child] |> newline)
+              |> concat
+              |> indent(2),
+              [string("</"), string(name), string(">")] |> concat,
+            ]
+            |> concat,
+      ]
+      |> concat;
+
+    let print_lexeme = (~attrs=[], name, value, cursor) =>
+      print_entity(~attrs, ~cursor, ~children=[value], name);
+  };
+};
 
 module type ASTParams = {
   type type_t;
 
-  let type_to_string: type_t => string;
+  type lexeme_t('a);
+
+  let get_value: lexeme_t('a) => 'a;
+  let get_cursor: lexeme_t('a) => Cursor.t;
+
+  let print_lexeme: (string, 'a => Pretty.t, lexeme_t('a)) => Pretty.t;
 };
 
 module Make = (T: ASTParams) => {
+  include Common;
+
   type type_t = T.type_t;
 
-  type typed_lexeme_t('a) = ('a, type_t, Cursor.t);
+  type identifier_t = T.lexeme_t(Identifier.t);
+  type untyped_id_t = Block.t(Identifier.t);
 
-  type primitive_t = typed_lexeme_t(raw_primitive_t)
+  type primitive_t = T.lexeme_t(raw_primitive_t)
   and raw_primitive_t =
     | Nil
     | Boolean(bool)
     | Number(number_t)
     | String(string);
 
-  type jsx_t = lexeme_t(raw_jsx_t)
+  type jsx_t = T.lexeme_t(raw_jsx_t)
   and raw_jsx_t =
-    | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
+    | Tag(untyped_id_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
-  and jsx_child_t = lexeme_t(raw_jsx_child_t)
+  and jsx_child_t = T.lexeme_t(raw_jsx_child_t)
   and raw_jsx_child_t =
-    | Text(lexeme_t(string))
+    | Text(T.lexeme_t(string))
     | Node(jsx_t)
     | InlineExpression(expression_t)
-  and jsx_attribute_t = lexeme_t(raw_jsx_attribute_t)
+  and jsx_attribute_t = T.lexeme_t(raw_jsx_attribute_t)
   and raw_jsx_attribute_t =
-    | ID(identifier_t)
-    | Class(identifier_t, option(expression_t))
-    | Property(identifier_t, option(expression_t))
-  and expression_t = typed_lexeme_t(raw_expression_t)
+    | ID(untyped_id_t)
+    | Class(untyped_id_t, option(expression_t))
+    | Property(untyped_id_t, option(expression_t))
+  and expression_t = T.lexeme_t(raw_expression_t)
   and raw_expression_t =
     | Primitive(primitive_t)
     | Identifier(identifier_t)
@@ -78,13 +122,14 @@ module Make = (T: ASTParams) => {
     | UnaryOp(unary_operator_t, expression_t)
     | Closure(list(statement_t))
   and statement_t =
-    | Variable(identifier_t, expression_t)
+    | Variable(untyped_id_t, expression_t)
     | Expression(expression_t);
 
-  type argument_t = {
-    name: identifier_t,
+  type argument_t = T.lexeme_t(raw_argument_t)
+  and raw_argument_t = {
+    name: untyped_id_t,
     default: option(expression_t),
-    /* type_: option(lexeme_t(Type.t)), */
+    type_: option(T.lexeme_t(Type.t)),
   };
 
   /* tag helpers */
@@ -144,6 +189,16 @@ module Make = (T: ASTParams) => {
   module Debug = {
     open Pretty;
 
+    include Debug;
+
+    let print_lexeme = T.print_lexeme;
+    let print_untyped_lexeme = (label, print_value, x) =>
+      Common.Debug.print_lexeme(
+        label,
+        x |> Block.value |> print_value,
+        Block.cursor(x),
+      );
+
     let print_ns = Namespace.to_string % string;
 
     let print_id = Identifier.to_string % string;
@@ -170,88 +225,27 @@ module Make = (T: ASTParams) => {
       | Positive => "Positive"
       | Negative => "Negative";
 
-    let _print_attr = ((name, value)) =>
-      [string(" "), string(name), string("=\""), value, string("\"")]
-      |> concat;
-
-    let _print_entity = (~attrs=[], ~children=[], ~cursor=?, name) =>
-      [
-        [
-          string("<"),
-          string(name),
-          switch (cursor) {
-          | Some(cursor) =>
-            [string("@"), cursor |> Cursor.to_string |> string] |> concat
-          | None => Nil
-          },
-          attrs |> List.map(_print_attr) |> concat,
-        ]
-        |> concat,
-        List.is_empty(children)
-          ? string(" />")
-          : [
-              [string(">")] |> newline,
-              children
-              |> List.map(child => [child] |> newline)
-              |> concat
-              |> indent(2),
-              [string("</"), string(name), string(">")] |> concat,
-            ]
-            |> concat,
-      ]
-      |> concat;
-
-    let print_lexeme = (~attrs=[], name, value, cursor) =>
-      _print_entity(~attrs, ~cursor, ~children=[value], name);
-
-    let print_typed_lexeme = (name, value, type_, cursor) =>
-      print_lexeme(
-        ~attrs=[("type", type_ |> T.type_to_string |> string)],
-        name,
-        value,
-        cursor,
-      );
-
     let rec print_expr =
       fun
-      | Primitive((prim, type_, cursor)) =>
-        print_typed_lexeme("Primitive", print_prim(prim), type_, cursor)
-      | Identifier((name, cursor)) =>
-        print_lexeme("Identifier", print_id(name), cursor)
-      | JSX((jsx, cursor)) => print_lexeme("JSX", print_jsx(jsx), cursor)
-      | Group((expr, type_, cursor)) =>
-        print_typed_lexeme("Group", print_expr(expr), type_, cursor)
-      | BinaryOp(
-          op,
-          (l_value, l_type, l_cursor),
-          (r_value, r_type, r_cursor),
-        ) =>
-        _print_entity(
+      | Primitive(prim) => T.print_lexeme("Primitive", print_prim, prim)
+      | Identifier(id) => T.print_lexeme("Identifier", print_id, id)
+      | JSX(jsx) => T.print_lexeme("JSX", print_jsx, jsx)
+      | Group(group) => T.print_lexeme("Group", print_expr, group)
+      | BinaryOp(op, lhs, rhs) =>
+        Debug.print_entity(
           ~children=[
-            print_typed_lexeme(
-              "LeftHandSide",
-              print_expr(l_value),
-              l_type,
-              l_cursor,
-            ),
-            print_typed_lexeme(
-              "RightHandSide",
-              print_expr(r_value),
-              r_type,
-              r_cursor,
-            ),
+            T.print_lexeme("LeftHandSide", print_expr, lhs),
+            T.print_lexeme("RightHandSide", print_expr, rhs),
           ],
           print_binary_op(op),
         )
-      | UnaryOp(op, (expr, type_, cursor)) =>
-        print_typed_lexeme(
-          print_unary_op(op),
-          print_expr(expr),
-          type_,
-          cursor,
-        )
+      | UnaryOp(op, expr) =>
+        T.print_lexeme(print_unary_op(op), print_expr, expr)
       | Closure(stmts) =>
-        _print_entity(~children=stmts |> List.map(print_stmt), "Closure")
+        Debug.print_entity(
+          ~children=stmts |> List.map(print_stmt),
+          "Closure",
+        )
 
     and print_prim =
       fun
@@ -267,97 +261,89 @@ module Make = (T: ASTParams) => {
 
     and print_jsx =
       fun
-      | Tag((name, cursor), attrs, children) =>
-        _print_entity(
+      | Tag(name, attrs, children) =>
+        Debug.print_entity(
           ~attrs=[
             (
               "attrs",
               attrs
-              |> List.map(((attr, cursor)) =>
-                   print_lexeme("Attribute", print_jsx_attr(attr), cursor)
+              |> List.map(attr =>
+                   T.print_lexeme("Attribute", print_jsx_attr, attr)
                  )
               |> concat,
             ),
             (
               "children",
               children
-              |> List.map(((child, cursor)) =>
-                   print_lexeme("Child", print_jsx_child(child), cursor)
+              |> List.map(child =>
+                   T.print_lexeme("Child", print_jsx_child, child)
                  )
               |> concat,
             ),
           ],
-          ~children=[print_lexeme("Name", print_id(name), cursor)],
+          ~children=[print_untyped_lexeme("Name", print_id, name)],
           "Tag",
         )
       | Fragment(children) =>
-        _print_entity(
+        Debug.print_entity(
           ~children=
             children
-            |> List.map(((child, cursor)) =>
-                 print_lexeme("Child", print_jsx_child(child), cursor)
+            |> List.map(child =>
+                 T.print_lexeme("Child", print_jsx_child, child)
                ),
           "Fragment",
         )
 
     and print_jsx_child =
       fun
-      | Node((jsx, cursor)) => print_lexeme("Node", print_jsx(jsx), cursor)
-      | Text((text, cursor)) =>
-        print_lexeme("Text", text |> Print.fmt("\"%s\"") |> string, cursor)
-      | InlineExpression((expr, type_, cursor)) =>
-        print_typed_lexeme(
-          "InlineExpression",
-          print_expr(expr),
-          type_,
-          cursor,
-        )
+      | Node(jsx) => T.print_lexeme("Node", print_jsx, jsx)
+      | Text(text) =>
+        T.print_lexeme("Text", Print.fmt("\"%s\"") % string, text)
+      | InlineExpression(expr) =>
+        T.print_lexeme("InlineExpression", print_expr, expr)
 
     and print_jsx_attr = attr =>
       (
         switch (attr) {
-        | Class((name, cursor), value) => (
+        | Class(name, value) => (
             "Class",
-            print_lexeme("Name", print_id(name), cursor),
+            print_untyped_lexeme("Name", print_id, name),
             value,
           )
-        | ID((name, cursor)) => (
+        | ID(name) => (
             "ID",
-            print_lexeme("Name", print_id(name), cursor),
+            print_untyped_lexeme("Name", print_id, name),
             None,
           )
-        | Property((name, cursor), value) => (
+        | Property(name, value) => (
             "Property",
-            print_lexeme("Name", print_id(name), cursor),
+            print_untyped_lexeme("Name", print_id, name),
             value,
           )
         }
       )
       |> (
         fun
-        | (entity, name, Some((expr, type_, cursor))) =>
-          _print_entity(
-            ~children=[
-              name,
-              print_typed_lexeme("Value", print_expr(expr), type_, cursor),
-            ],
+        | (entity, name, Some(expr)) =>
+          Debug.print_entity(
+            ~children=[name, T.print_lexeme("Value", print_expr, expr)],
             entity,
           )
-        | (entity, name, None) => _print_entity(~children=[name], entity)
+        | (entity, name, None) =>
+          Debug.print_entity(~children=[name], entity)
       )
 
     and print_stmt = stmt =>
       switch (stmt) {
-      | Variable((name, name_cursor), (expr, type_, cursor)) =>
-        _print_entity(
+      | Variable(name, expr) =>
+        Debug.print_entity(
           ~children=[
-            print_lexeme("Name", name |> print_id, name_cursor),
-            print_typed_lexeme("Value", print_expr(expr), type_, cursor),
+            print_untyped_lexeme("Name", print_id, name),
+            T.print_lexeme("Value", print_expr, expr),
           ],
           "Variable",
         )
-      | Expression((expr, type_, cursor)) =>
-        print_typed_lexeme("Expression", print_expr(expr), type_, cursor)
+      | Expression(expr) => T.print_lexeme("Expression", print_expr, expr)
       };
   };
 };
@@ -366,26 +352,48 @@ module Raw =
   Make({
     type type_t = Type.Raw.t;
 
-    let type_to_string = Type.Raw.to_string;
+    type lexeme_t('a) = Block.t('a);
+
+    let get_value = Block.value;
+    let get_cursor = Block.cursor;
+
+    let print_lexeme = (label, print_value, x) =>
+      Common.Debug.print_lexeme(
+        label,
+        x |> get_value |> print_value,
+        get_cursor(x),
+      );
   });
 
 include Make({
   type type_t = Type.t;
 
-  let type_to_string = Type.to_raw % Type.Raw.to_string;
+  type lexeme_t('a) = ('a, Type.t, Cursor.t);
+
+  let get_value = Tuple.fst3;
+  let get_type = Tuple.snd3;
+  let get_cursor = Tuple.thd3;
+
+  let print_lexeme = (label, print_value, x) =>
+    Common.Debug.print_lexeme(
+      ~attrs=[("type", x |> get_type |> Type.to_string |> Pretty.string)],
+      label,
+      x |> get_value |> print_value,
+      get_cursor(x),
+    );
 });
 
 type declaration_t =
   | Constant(expression_t)
-  | Function(list((argument_t, type_t)), expression_t);
+  | Function(list(argument_t), expression_t);
 
 type import_t =
-  | MainImport(identifier_t)
-  | NamedImport(identifier_t, option(identifier_t));
+  | MainImport(untyped_id_t)
+  | NamedImport(untyped_id_t, option(untyped_id_t));
 
 type export_t =
-  | MainExport(identifier_t)
-  | NamedExport(identifier_t);
+  | MainExport(untyped_id_t)
+  | NamedExport(untyped_id_t);
 
 type module_statement_t =
   | Import(Namespace.t, list(import_t))
@@ -416,46 +424,44 @@ module Debug = {
 
   let print_decl = ((name, decl)) =>
     switch (decl) {
-    | Constant((expr, type_, cursor)) =>
-      _print_entity(
+    | Constant(expr) =>
+      print_entity(
         ~children=[
-          print_lexeme(
+          print_entity(
+            ~cursor=
+              switch (name) {
+              | MainExport((_, name_cursor))
+              | NamedExport((_, name_cursor)) => name_cursor
+              },
+            ~children=[
+              switch (name) {
+              | MainExport((id, _)) =>
+                [string("(main) "), print_id(id)] |> concat
+              | NamedExport((id, _)) => print_id(id)
+              },
+            ],
             "Name",
-            switch (name) {
-            | MainExport((id, _)) =>
-              [string("(main) "), print_id(id)] |> concat
-            | NamedExport((id, _)) => print_id(id)
-            },
-            switch (name) {
-            | MainExport((_, name_cursor))
-            | NamedExport((_, name_cursor)) => name_cursor
-            },
           ),
-          print_typed_lexeme("Value", print_expr(expr), type_, cursor),
+          print_lexeme("Value", print_expr, expr),
         ],
         "Constant",
       )
     | Function(args, expr) =>
-      _print_entity(
+      print_entity(
         ~children=[
-          _print_entity(
+          print_entity(
             ~children=
               args
-              |> List.map((({name, default}, type_)) =>
+              |> List.map((({name, default}, type_, _)) =>
                    [
-                     print_lexeme("Name", name |> fst |> print_id, snd(name)),
-                     _print_entity(
-                       ~children=[name |> fst |> print_id],
+                     print_untyped_lexeme("Name", print_id, name),
+                     print_entity(
+                       ~children=[type_ |> Type.to_string |> string],
                        "Type",
                      ),
                      ...switch (default) {
-                        | Some((default, type_, cursor)) => [
-                            print_typed_lexeme(
-                              "Default",
-                              print_expr(default),
-                              type_,
-                              cursor,
-                            ),
+                        | Some(default) => [
+                            print_lexeme("Default", print_expr, default),
                           ]
                         | None => []
                         },
@@ -464,15 +470,8 @@ module Debug = {
               |> List.flatten,
             "Attributes",
           ),
-          _print_entity(
-            ~children=[
-              print_typed_lexeme(
-                "Value",
-                expr |> Tuple.fst3 |> print_expr,
-                Tuple.snd3(expr),
-                Tuple.thd3(expr),
-              ),
-            ],
+          print_entity(
+            ~children=[print_lexeme("Value", print_expr, expr)],
             "Body",
           ),
         ],
@@ -484,7 +483,7 @@ module Debug = {
     (
       fun
       | Import(namespace, imports) => [
-          _print_entity(
+          print_entity(
             ~attrs=[
               ("namespace", print_ns(namespace)),
               ("main", print_ns(namespace)),
@@ -493,29 +492,30 @@ module Debug = {
               imports
               |> List.map(
                    fun
-                   | MainImport((name, cursor)) =>
-                     _print_entity(
+                   | MainImport(name) =>
+                     print_entity(
                        "Main",
                        ~children=[
-                         print_lexeme("Name", print_id(name), cursor),
+                         print_untyped_lexeme("Name", print_id, name),
                        ],
                      )
-                   | NamedImport(
-                       (name, name_cursor),
-                       Some((label, label_cursor)),
-                     ) =>
-                     _print_entity(
+                   | NamedImport(name, Some((label, label_cursor))) =>
+                     print_entity(
                        "Named",
                        ~children=[
-                         print_lexeme("Name", print_id(name), name_cursor),
-                         print_lexeme("As", print_id(label), label_cursor),
+                         print_untyped_lexeme("Name", print_id, name),
+                         print_entity(
+                           ~cursor=label_cursor,
+                           ~children=[print_id(label)],
+                           "As",
+                         ),
                        ],
                      )
-                   | NamedImport((name, cursor), None) =>
-                     _print_entity(
+                   | NamedImport(name, None) =>
+                     print_entity(
                        "Named",
                        ~children=[
-                         print_lexeme("Name", print_id(name), cursor),
+                         print_untyped_lexeme("Name", print_id, name),
                        ],
                      ),
                  ),

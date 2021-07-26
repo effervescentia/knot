@@ -16,7 +16,7 @@ module Assert =
         check(
           testable(
             pp =>
-              Tuple.fst3
+              Block.value
               % Raw.Debug.print_prim
               % Pretty.to_string
               % Format.pp_print_string(pp),
@@ -32,5 +32,5 @@ let suite =
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse"
-    >: (() => ["nil", " nil "] |> Assert.parse_all(AST.Raw.nil |> as_nil)),
+    >: (() => ["nil", " nil "] |> Assert.parse_all(AST.Raw.nil |> as_lexeme)),
   ];

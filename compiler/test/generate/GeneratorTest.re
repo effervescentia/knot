@@ -1,6 +1,5 @@
 open Kore;
-open Util;
-open ResultUtil;
+open Util.ResultUtil;
 
 module Generator = Generate.Generator;
 

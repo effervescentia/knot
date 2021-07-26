@@ -2,13 +2,6 @@ open Kore;
 
 let lexeme = ((_, t, _)) => t;
 
-let raw_statement =
-  AST.Raw.(
-    fun
-    | Expression((_, t, _)) => t
-    | Variable(_) => Strong(`Nil)
-  );
-
 let statement =
   AST.(
     fun

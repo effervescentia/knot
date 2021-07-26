@@ -1,7 +1,6 @@
 open Kore;
 open AST;
-open Util;
-open ResultUtil;
+open Util.ResultUtil;
 open Reference;
 
 module Declaration = Grammar.Declaration;

@@ -4,7 +4,8 @@ open AST.Raw;
 let variable = (ctx: ClosureContext.t, expr) =>
   Keyword.let_
   >> Operator.assign(Identifier.parser(ctx), expr(ctx))
-  >@= ((((id, _), (_, t, _))) => ctx |> ClosureContext.define(id, t))
+  /* TODO: move to type inference module */
+  /* >@= ((((id, _), (_, t, _))) => ctx |> ClosureContext.define(id, t)) */
   >|= of_var;
 
 let expression = (ctx: ClosureContext.t, expr) => expr(ctx) >|= of_expr;

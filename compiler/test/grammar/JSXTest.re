@@ -1,6 +1,5 @@
 open Kore;
-open Util;
-open RawUtil;
+open Util.RawUtil;
 open AST.Raw;
 
 module Expression = Grammar.Expression;
@@ -96,7 +95,7 @@ let suite =
                   |> of_public
                   |> as_lexeme
                   |> of_id
-                  |> as_bool
+                  |> as_lexeme
                   |> Option.some,
                 )
                 |> of_prop
@@ -136,11 +135,11 @@ let suite =
                     |> of_public
                     |> as_lexeme
                     |> of_id
-                    |> as_bool
+                    |> as_lexeme
                     |> of_expr,
                   ]
                   |> of_closure
-                  |> as_bool
+                  |> as_lexeme
                   |> Option.some,
                 )
                 |> of_prop
@@ -160,7 +159,7 @@ let suite =
                   "fizz" |> of_public |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
                   |> of_add_op
-                  |> as_int
+                  |> as_lexeme
                   |> Option.some,
                 )
                 |> of_prop
@@ -180,7 +179,7 @@ let suite =
                   "fizz" |> of_public |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
                   |> of_gt_op
-                  |> as_bool
+                  |> as_lexeme
                   |> Option.some,
                 )
                 |> of_prop
@@ -215,7 +214,7 @@ let suite =
               [
                 (
                   "fizz" |> of_public |> as_lexeme,
-                  3 |> int_prim |> of_neg_op |> as_int |> Option.some,
+                  3 |> int_prim |> of_neg_op |> as_lexeme |> Option.some,
                 )
                 |> of_prop
                 |> as_lexeme,
@@ -234,7 +233,7 @@ let suite =
                   "fizz" |> of_public |> as_lexeme,
                   ("buzz" |> of_public |> as_lexeme, [], [])
                   |> jsx_tag
-                  |> as_element
+                  |> as_lexeme
                   |> Option.some,
                 )
                 |> of_prop
@@ -318,7 +317,7 @@ let suite =
               [
                 (1 |> int_prim, 2 |> int_prim)
                 |> of_add_op
-                |> as_int
+                |> as_lexeme
                 |> of_inline_expr
                 |> as_lexeme,
               ],
@@ -334,7 +333,7 @@ let suite =
               [
                 ("Bar" |> of_public |> as_lexeme, [], [])
                 |> jsx_tag
-                |> as_element
+                |> as_lexeme
                 |> of_inline_expr
                 |> as_lexeme,
               ],
@@ -390,7 +389,7 @@ let suite =
                   "bar" |> as_lexeme |> of_text |> as_lexeme,
                   (1 |> int_prim, 2 |> int_prim)
                   |> of_add_op
-                  |> as_int
+                  |> as_lexeme
                   |> of_inline_expr
                   |> as_lexeme,
                   ("Bar" |> of_public |> as_lexeme, [], [])
@@ -414,7 +413,7 @@ let suite =
                     |> of_public
                     |> as_lexeme
                     |> of_id
-                    |> as_bool
+                    |> as_lexeme
                     |> Option.some,
                   )
                   |> of_prop
