@@ -1,11 +1,11 @@
 open Kore;
 open AST.Raw;
 
-let _unary_op = (ctx, f, (_, cursor) as expr) => (f(expr), cursor);
+let _unary_op = (ctx, f, expr) => (f(expr), Block.cursor(expr));
 
-let _binary_op = (ctx, f, ((_, l_cursor) as l, (_, r_cursor) as r)) => (
+let _binary_op = (ctx, f, (l, r)) => (
   (l, r) |> f,
-  Cursor.join(l_cursor, r_cursor),
+  Cursor.join(Block.cursor(l), Block.cursor(r)),
 );
 
 let assign = (id, x) => M.binary_op(id, Symbol.assign, x);

@@ -126,12 +126,12 @@ let constant = (ctx: ModuleContext.t, f) => {
        Expression.parser(closure_ctx),
      )
   >|= (
-    (((id, _) as x, raw_expr)) => {
+    ((id, raw_expr)) => {
       let expr = TypeResolver.res_expr(raw_expr);
 
-      ctx |> ModuleContext.define(id, TypeOf.lexeme(expr));
+      ctx |> ModuleContext.define(Block.value(id), TypeOf.lexeme(expr));
 
-      (f(x), of_const(expr));
+      (f(id), of_const(expr));
     }
   )
   |> M.terminated;
@@ -148,8 +148,9 @@ let function_ = (ctx: ModuleContext.t, f) => {
 
       Lambda.parser(child_ctx)
       >|= (
-        ((raw_args, (_, res_cursor) as raw_res)) => {
-          let ctx_cursor = Cursor.join(res_cursor, res_cursor);
+        ((raw_args, raw_res)) => {
+          let ctx_cursor =
+            Cursor.join(Block.cursor(raw_res), Block.cursor(raw_res));
           let res = TypeResolver.res_expr(raw_res);
           let args =
             raw_args

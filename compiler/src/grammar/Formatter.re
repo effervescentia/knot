@@ -65,10 +65,10 @@ let fmt_prim =
 
 let rec fmt_jsx =
   fun
-  | Tag((name, _), attrs, children) =>
+  | Tag(name, attrs, children) =>
     [
       string("<"),
-      fmt_id(name),
+      name |> Block.value |> fmt_id,
       List.is_empty(attrs)
         ? Nil
         : attrs
@@ -86,7 +86,8 @@ let rec fmt_jsx =
                )
             |> concat
             |> indent(2),
-            [string("</"), fmt_id(name), string(">")] |> concat,
+            [string("</"), name |> Block.value |> fmt_id, string(">")]
+            |> concat,
           ]
           |> concat,
     ]
@@ -115,12 +116,15 @@ and fmt_jsx_child =
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
-    | Class((name, _), value) => (
-        [string("."), fmt_id(name)] |> concat,
+    | Class(name, value) => (
+        [string("."), name |> Block.value |> fmt_id] |> concat,
         value,
       )
-    | ID((name, _)) => ([string("#"), fmt_id(name)] |> concat, None)
-    | Property((name, _), value) => (fmt_id(name), value)
+    | ID(name) => (
+        [string("#"), name |> Block.value |> fmt_id] |> concat,
+        None,
+      )
+    | Property(name, value) => (name |> Block.value |> fmt_id, value)
     }
   )
   |> (
@@ -183,9 +187,9 @@ and fmt_expression =
 and fmt_statement = stmt =>
   (
     switch (stmt) {
-    | Variable((name, _), (expr, _, _)) => [
+    | Variable(name, (expr, _, _)) => [
         string("let "),
-        fmt_id(name),
+        name |> Block.value |> fmt_id,
         string(" = "),
         fmt_expression(expr),
       ]
@@ -195,19 +199,19 @@ and fmt_statement = stmt =>
   @ [__semicolon]
   |> concat;
 
-let fmt_declaration = (((name, _), decl)) =>
+let fmt_declaration = ((name, decl)) =>
   (
     switch (decl) {
     | Constant((expr, _, _)) => [
         string("const "),
-        fmt_id(name),
+        name |> Block.value |> fmt_id,
         string(" = "),
         fmt_expression(expr),
         __semicolon,
       ]
     | Function(args, (expr, _, _)) => [
         string("func "),
-        fmt_id(name),
+        name |> Block.value |> fmt_id,
         List.is_empty(args)
           ? Nil
           : [
@@ -274,10 +278,10 @@ let fmt_imports = stmts => {
                |> List.fold_left(
                     ((m, n)) =>
                       fun
-                      | MainImport((id, _)) => (Some(id), n)
-                      | NamedImport((id, _), label) => (
+                      | MainImport(id) => (Some(Block.value(id)), n)
+                      | NamedImport(id, label) => (
                           m,
-                          [(id, label), ...n],
+                          [(Block.value(id), label), ...n],
                         ),
                     (None, []),
                   );
@@ -310,9 +314,9 @@ let fmt_imports = stmts => {
                           [
                             fmt_id(id),
                             ...switch (label) {
-                               | Some((label, _)) => [
+                               | Some(label) => [
                                    string(" as "),
-                                   fmt_id(label),
+                                   label |> Block.value |> fmt_id,
                                  ]
                                | None => []
                                },

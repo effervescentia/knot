@@ -54,10 +54,10 @@ let rec gen_expression =
 
 and gen_statement = (~is_last=false) =>
   fun
-  | Variable((name, _), (value, _, _)) =>
+  | Variable(name, (value, _, _)) =>
     [
       JavaScript_AST.Variable(
-        name |> Identifier.to_string,
+        name |> Block.value |> Identifier.to_string,
         gen_expression(value),
       ),
     ]
@@ -108,11 +108,11 @@ and gen_binary_op = {
 
 and gen_jsx =
   fun
-  | Tag((name, _), attrs, values) =>
+  | Tag(name, attrs, values) =>
     JavaScript_AST.FunctionCall(
       _jsx_util("createTag"),
       [
-        String(Identifier.to_string(name)),
+        String(name |> Block.value |> Identifier.to_string),
         ...List.is_empty(attrs) && List.is_empty(values)
              ? []
              : [
@@ -146,38 +146,44 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
              Tuple.fst3
              % (
                fun
-               | Property((name, _), expr) => (
+               | Property(name, expr) => (
                    c,
                    [
                      (
-                       Identifier.to_string(name),
+                       name |> Block.value |> Identifier.to_string,
                        switch (expr) {
                        | Some((expr, _, _)) => gen_expression(expr)
                        | None =>
                          JavaScript_AST.Identifier(
-                           Identifier.to_string(name),
+                           name |> Block.value |> Identifier.to_string,
                          )
                        },
                      ),
                      ...p,
                    ],
                  )
-               | Class((name, _), None) => (
+               | Class(name, None) => (
                    [
                      JavaScript_AST.String(
-                       name |> Identifier.to_string |> Print.fmt(".%s"),
+                       name
+                       |> Block.value
+                       |> Identifier.to_string
+                       |> Print.fmt(".%s"),
                      ),
                      ...c,
                    ],
                    p,
                  )
-               | Class((name, _), Some((expr, _, _))) => (
+               | Class(name, Some((expr, _, _))) => (
                    [
                      JavaScript_AST.Group(
                        Ternary(
                          gen_expression(expr),
                          String(
-                           name |> Identifier.to_string |> Print.fmt(".%s"),
+                           name
+                           |> Block.value
+                           |> Identifier.to_string
+                           |> Print.fmt(".%s"),
                          ),
                          String(""),
                        ),
@@ -186,9 +192,15 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    ],
                    p,
                  )
-               | ID((name, _)) => (
+               | ID(name) => (
                    c,
-                   [(__id_prop, String(Identifier.to_string(name))), ...p],
+                   [
+                     (
+                       __id_prop,
+                       String(name |> Block.value |> Identifier.to_string),
+                     ),
+                     ...p,
+                   ],
                  )
              ),
            ([], []),
@@ -216,24 +228,22 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
     JavaScript_AST.Object(props);
   };
 
-let gen_constant = ((name, _): untyped_id_t, (value, _, _): expression_t) =>
+let gen_constant = (name: untyped_id_t, (value, _, _): expression_t) =>
   JavaScript_AST.Variable(
-    Identifier.to_string(name),
+    name |> Block.value |> Identifier.to_string,
     gen_expression(value),
   );
 
 let gen_function =
-    (
-      (name, _): untyped_id_t,
-      args: list(argument_t),
-      (expr, _, _): expression_t,
-    ) =>
+    (name: untyped_id_t, args: list(argument_t), (expr, _, _): expression_t) =>
   JavaScript_AST.(
     Expression(
       Function(
-        Some(Identifier.to_string(name)),
+        Some(name |> Block.value |> Identifier.to_string),
         args
-        |> List.map((({name}, _, _)) => name |> fst |> Identifier.to_string),
+        |> List.map((({name}, _, _)) =>
+             name |> Block.value |> Identifier.to_string
+           ),
         (
           args
           |> List.filter_map(
@@ -241,7 +251,7 @@ let gen_function =
                | ({name, default: Some((default, _, _))}, _, _) =>
                  Some(
                    Assignment(
-                     Identifier(name |> fst |> Identifier.to_string),
+                     Identifier(name |> Block.value |> Identifier.to_string),
                      gen_expression(default),
                    ),
                  )
@@ -274,7 +284,7 @@ let gen_declaration = (name: untyped_id_t, decl: declaration_t) =>
     }
   )
   @ (
-    switch (fst(name)) {
+    switch (Block.value(name)) {
     | Public(name) => [JavaScript_AST.Export(name, None)]
     | _ => []
     }
@@ -303,16 +313,18 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                    imports
                    |> List.map(
                         fun
-                        | MainImport((id, _)) => (
+                        | MainImport(id) => (
                             __main_export,
-                            Some(Identifier.to_string(id)),
+                            Some(id |> Block.value |> Identifier.to_string),
                           )
-                        | NamedImport((id, _), Some((label, _))) => (
-                            Identifier.to_string(id),
-                            Some(Identifier.to_string(label)),
+                        | NamedImport(id, Some(label)) => (
+                            id |> Block.value |> Identifier.to_string,
+                            Some(
+                              label |> Block.value |> Identifier.to_string,
+                            ),
                           )
-                        | NamedImport((id, _), None) => (
-                            Identifier.to_string(id),
+                        | NamedImport(id, None) => (
+                            id |> Block.value |> Identifier.to_string,
                             None,
                           ),
                       ),
@@ -330,7 +342,7 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                @ gen_declaration(name, decl)
                @ [
                  JavaScript_AST.Export(
-                   name |> fst |> Identifier.to_string,
+                   name |> Block.value |> Identifier.to_string,
                    Some(__main_export),
                  ),
                ],

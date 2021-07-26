@@ -143,7 +143,7 @@ and text =
       )
 
 and node = (ctx: ClosureContext.t, x) =>
-  parser(ctx, x) >|= (((_, cursor) as node) => (of_node(node), cursor))
+  parser(ctx, x) >|= (node => (of_node(node), Block.cursor(node)))
 
 and inline_expr = (ctx: ClosureContext.t, (_, expr)) =>
   expr(ctx)

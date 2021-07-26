@@ -430,14 +430,14 @@ module Debug = {
           print_entity(
             ~cursor=
               switch (name) {
-              | MainExport((_, name_cursor))
-              | NamedExport((_, name_cursor)) => name_cursor
+              | MainExport(x)
+              | NamedExport(x) => Block.cursor(x)
               },
             ~children=[
               switch (name) {
-              | MainExport((id, _)) =>
-                [string("(main) "), print_id(id)] |> concat
-              | NamedExport((id, _)) => print_id(id)
+              | MainExport(id) =>
+                [string("(main) "), id |> Block.value |> print_id] |> concat
+              | NamedExport(id) => id |> Block.value |> print_id
               },
             ],
             "Name",

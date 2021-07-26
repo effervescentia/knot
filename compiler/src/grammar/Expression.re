@@ -3,13 +3,13 @@ open AST.Raw;
 open Type.Raw;
 
 let primitive =
-  Primitive.parser >|= (((_, cursor) as prim) => (of_prim(prim), cursor));
+  Primitive.parser >|= (prim => (of_prim(prim), Block.cursor(prim)));
 
 let identifier = (ctx: ClosureContext.t) =>
-  Identifier.parser(ctx) >|= (((_, cursor) as id) => (of_id(id), cursor));
+  Identifier.parser(ctx) >|= (id => (of_id(id), Block.cursor(id)));
 
 let jsx = (ctx: ClosureContext.t, x) =>
-  JSX.parser(ctx, x) >|= (((_, cursor) as jsx) => (of_jsx(jsx), cursor));
+  JSX.parser(ctx, x) >|= (jsx => (of_jsx(jsx), Block.cursor(jsx)));
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
@@ -96,7 +96,8 @@ and expr_8 = (ctx: ClosureContext.t, input) =>
 
     choice([
       closure(child_ctx, expr_0)
-      >@= (((_, cursor)) => ClosureContext.save(cursor, child_ctx)),
+      >@= Block.cursor
+      % (cursor => ClosureContext.save(cursor, child_ctx)),
       expr_0(ctx) |> group,
       term(ctx),
     ]);

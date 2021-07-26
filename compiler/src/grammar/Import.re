@@ -47,8 +47,8 @@ let parser = (ctx: ModuleContext.t) =>
              ctx |> import((Main, cursor), alias)
            | NamedImport((id, cursor), None) =>
              ctx |> import((Named(id), cursor), id)
-           | NamedImport((id, cursor), Some((label, _))) =>
-             ctx |> import((Named(id), cursor), label),
+           | NamedImport((id, cursor), Some(label)) =>
+             ctx |> import((Named(id), cursor), Block.value(label)),
          );
     }
   )
