@@ -8,7 +8,7 @@ exception MockError;
 let __program = [
   AST.(
     (
-      "ABC" |> of_public |> Util.as_lexeme |> of_named_export,
+      "ABC" |> of_public |> as_lexeme |> of_named_export,
       123
       |> Int64.of_int
       |> of_int

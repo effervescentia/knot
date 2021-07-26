@@ -34,8 +34,9 @@ let _wrap = (cursor, tree: t) =>
         ? tree : BinaryTree.create(~left=tree, (range, Join))
   );
 
-let of_id = (id, cursor) =>
+let of_untyped_id = (id, cursor) =>
   BinaryTree.create((Cursor.expand(cursor), Identifier(id)));
+let of_id = (id, _, cursor) => of_untyped_id(id, cursor);
 
 let rec of_list = (xs: list(t)): t =>
   switch (xs) {
@@ -54,8 +55,8 @@ let rec of_expr =
   fun
   | AST.Primitive((prim, _, cursor)) =>
     BinaryTree.create((Cursor.expand(cursor), Primitive(prim)))
-  | AST.Identifier(id) => id |> Tuple.reduce2(of_id)
-  | AST.JSX((jsx, cursor)) => of_jsx(jsx) |> _wrap(cursor)
+  | AST.Identifier(id) => id |> Tuple.reduce3(of_id)
+  | AST.JSX((jsx, _, cursor)) => of_jsx(jsx) |> _wrap(cursor)
   | AST.Group((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
   | AST.BinaryOp(_, (left, _, l_cursor), (right, _, r_cursor)) =>
     _join(
@@ -69,18 +70,22 @@ and of_jsx =
   fun
   | AST.Fragment(children) =>
     children
-    |> List.map(((child, cursor)) => of_jsx_child(child) |> _wrap(cursor))
+    |> List.map(((child, _, cursor)) =>
+         of_jsx_child(child) |> _wrap(cursor)
+       )
     |> of_list
 
   | AST.Tag(id, attrs, children) =>
-    [id |> Tuple.reduce2(of_id)]
+    [id |> Tuple.reduce2(of_untyped_id)]
     @ (
       attrs
-      |> List.map(((attr, cursor)) => attr |> of_jsx_attr |> _wrap(cursor))
+      |> List.map(((attr, _, cursor)) =>
+           attr |> of_jsx_attr |> _wrap(cursor)
+         )
     )
     @ (
       children
-      |> List.map(((child, cursor)) =>
+      |> List.map(((child, _, cursor)) =>
            child |> of_jsx_child |> _wrap(cursor)
          )
     )
@@ -88,26 +93,29 @@ and of_jsx =
 
 and of_jsx_child =
   fun
-  | AST.Node((tag, cursor)) => tag |> of_jsx |> _wrap(cursor)
+  | AST.Node((tag, _, cursor)) => tag |> of_jsx |> _wrap(cursor)
   | AST.InlineExpression((expr, _, cursor)) =>
     expr |> of_expr |> _wrap(cursor)
-  | AST.Text((text, cursor)) =>
+  | AST.Text((text, _, cursor)) =>
     BinaryTree.create((Cursor.expand(cursor), Primitive(String(text))))
 
 and of_jsx_attr =
   fun
-  | AST.ID(id) => id |> Tuple.reduce2(of_id)
+  | AST.ID(id) => id |> Tuple.reduce2(of_untyped_id)
   | AST.Class(id, None)
-  | AST.Property(id, None) => id |> Tuple.reduce2(of_id)
+  | AST.Property(id, None) => id |> Tuple.reduce2(of_untyped_id)
   | AST.Class(id, Some((expr, _, cursor)))
   | AST.Property(id, Some((expr, _, cursor))) =>
-    _join(id |> Tuple.reduce2(of_id), expr |> of_expr |> _wrap(cursor))
+    _join(
+      id |> Tuple.reduce2(of_untyped_id),
+      expr |> of_expr |> _wrap(cursor),
+    )
 
 and of_stmt =
   fun
   | AST.Variable(name, (expr, _, expr_cursor)) =>
     _join(
-      name |> Tuple.reduce2(of_id),
+      name |> Tuple.reduce2(of_untyped_id),
       of_expr(expr) |> _wrap(expr_cursor),
     )
   | AST.Expression((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor);
@@ -118,9 +126,9 @@ let of_decl =
   | AST.Function(args, (expr, _, cursor)) =>
     _join(
       args
-      |> _fold(((AST.{name, default}, _)) =>
+      |> _fold(((AST.{name, default}, _, _)) =>
            {
-             ...name |> Tuple.reduce2(of_id),
+             ...name |> Tuple.reduce2(of_untyped_id),
              right: default |?> Tuple.fst3 % of_expr,
            }
          ),
@@ -130,15 +138,17 @@ let of_decl =
 let of_import =
   fun
   | AST.MainImport(id)
-  | AST.NamedImport(id, None) => id |> Tuple.reduce2(of_id)
+  | AST.NamedImport(id, None) => id |> Tuple.reduce2(of_untyped_id)
   | AST.NamedImport(id, Some(alias)) =>
-    (id, alias) |> Tuple.map2(Tuple.reduce2(of_id)) |> Tuple.reduce2(_join);
+    (id, alias)
+    |> Tuple.map2(Tuple.reduce2(of_untyped_id))
+    |> Tuple.reduce2(_join);
 
 let of_mod_stmt =
   fun
   | AST.Import(namespace, imports) => imports |> _fold(of_import)
   | AST.Declaration(MainExport(id) | NamedExport(id), decl) =>
-    _join(id |> Tuple.reduce2(of_id), of_decl(decl));
+    _join(id |> Tuple.reduce2(of_untyped_id), of_decl(decl));
 
 let of_ast = (program: AST.program_t) => program |> _fold(of_mod_stmt);
 

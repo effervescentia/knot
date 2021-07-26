@@ -18,7 +18,7 @@ let _knot_util = (util, property) =>
   );
 let _jsx_util = _knot_util("jsx");
 
-let number = x =>
+let gen_number = x =>
   JavaScript_AST.Number(
     switch (x) {
     | Integer(value) => Int64.to_string(value)
@@ -26,62 +26,62 @@ let number = x =>
     },
   );
 
-let rec expression =
+let rec gen_expression =
   fun
   | Primitive((Boolean(x), _, _)) => JavaScript_AST.Boolean(x)
-  | Primitive((Number(x), _, _)) => number(x)
+  | Primitive((Number(x), _, _)) => gen_number(x)
   | Primitive((String(x), _, _)) => JavaScript_AST.String(x)
   | Primitive((Nil, _, _)) => JavaScript_AST.Null
-  | Identifier((value, _)) =>
+  | Identifier((value, _, _)) =>
     JavaScript_AST.Identifier(value |> Identifier.to_string)
-  | Group((value, _, _)) => JavaScript_AST.Group(expression(value))
+  | Group((value, _, _)) => JavaScript_AST.Group(gen_expression(value))
 
   | Closure([]) => JavaScript_AST.(Null)
   | Closure(values) => {
       let rec loop = (
         fun
         | [] => []
-        | [x] => statement(~is_last=true, x)
-        | [x, ...xs] => statement(x) @ loop(xs)
+        | [x] => gen_statement(~is_last=true, x)
+        | [x, ...xs] => gen_statement(x) @ loop(xs)
       );
 
       values |> loop |> JavaScript_AST.iife;
     }
 
-  | UnaryOp(op, value) => value |> unary_op(op)
-  | BinaryOp(op, lhs, rhs) => binary_op(op, lhs, rhs)
-  | JSX((value, _)) => jsx(value)
+  | UnaryOp(op, value) => value |> gen_unary_op(op)
+  | BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
+  | JSX((value, _, _)) => gen_jsx(value)
 
-and statement = (~is_last=false) =>
+and gen_statement = (~is_last=false) =>
   fun
   | Variable((name, _), (value, _, _)) =>
     [
       JavaScript_AST.Variable(
         name |> Identifier.to_string,
-        expression(value),
+        gen_expression(value),
       ),
     ]
     @ (is_last ? [JavaScript_AST.Return(Some(Null))] : [])
   | Expression((value, _, _)) => [
       is_last
-        ? JavaScript_AST.Return(Some(expression(value)))
-        : JavaScript_AST.Expression(expression(value)),
+        ? JavaScript_AST.Return(Some(gen_expression(value)))
+        : JavaScript_AST.Expression(gen_expression(value)),
     ]
 
-and unary_op = (op, (value, _, _)) =>
+and gen_unary_op = (op, (value, _, _)) =>
   JavaScript_AST.UnaryOp(
     switch (op) {
     | Negative => "-"
     | Positive => "+"
     | Not => "!"
     },
-    Group(expression(value)),
+    Group(gen_expression(value)),
   )
 
-and binary_op = {
+and gen_binary_op = {
   let op = (symbol, (lhs, _, _), (rhs, _, _)) =>
     JavaScript_AST.Group(
-      BinaryOp(symbol, expression(lhs), expression(rhs)),
+      BinaryOp(symbol, gen_expression(lhs), gen_expression(rhs)),
     );
 
   fun
@@ -101,12 +101,12 @@ and binary_op = {
       ((lhs, _, _), (rhs, _, _)) =>
         JavaScript_AST.FunctionCall(
           DotAccess(Identifier("Math"), "pow"),
-          [expression(lhs), expression(rhs)],
+          [gen_expression(lhs), gen_expression(rhs)],
         )
     );
 }
 
-and jsx =
+and gen_jsx =
   fun
   | Tag((name, _), attrs, values) =>
     JavaScript_AST.FunctionCall(
@@ -115,23 +115,26 @@ and jsx =
         String(Identifier.to_string(name)),
         ...List.is_empty(attrs) && List.is_empty(values)
              ? []
-             : [jsx_attrs(attrs), ...values |> List.map(fst % jsx_child)],
+             : [
+               gen_jsx_attrs(attrs),
+               ...values |> List.map(Tuple.fst3 % gen_jsx_child),
+             ],
       ],
     )
 
   | Fragment(values) =>
     JavaScript_AST.FunctionCall(
       _jsx_util("createFragment"),
-      values |> List.map(fst % jsx_child),
+      values |> List.map(Tuple.fst3 % gen_jsx_child),
     )
 
-and jsx_child =
+and gen_jsx_child =
   fun
-  | Node((value, _)) => jsx(value)
-  | Text((value, _)) => JavaScript_AST.String(value)
-  | InlineExpression((value, _, _)) => expression(value)
+  | Node((value, _, _)) => gen_jsx(value)
+  | Text((value, _, _)) => JavaScript_AST.String(value)
+  | InlineExpression((value, _, _)) => gen_expression(value)
 
-and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
+and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
   if (List.is_empty(attrs)) {
     JavaScript_AST.Null;
   } else {
@@ -140,7 +143,7 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
       attrs
       |> List.fold_left(
            ((c, p)) =>
-             fst
+             Tuple.fst3
              % (
                fun
                | Property((name, _), expr) => (
@@ -149,7 +152,7 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                      (
                        Identifier.to_string(name),
                        switch (expr) {
-                       | Some((expr, _, _)) => expression(expr)
+                       | Some((expr, _, _)) => gen_expression(expr)
                        | None =>
                          JavaScript_AST.Identifier(
                            Identifier.to_string(name),
@@ -172,7 +175,7 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    [
                      JavaScript_AST.Group(
                        Ternary(
-                         expression(expr),
+                         gen_expression(expr),
                          String(
                            name |> Identifier.to_string |> Print.fmt(".%s"),
                          ),
@@ -213,13 +216,16 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
     JavaScript_AST.Object(props);
   };
 
-let constant = ((name, _): identifier_t, (value, _, _): expression_t) =>
-  JavaScript_AST.Variable(Identifier.to_string(name), expression(value));
+let gen_constant = ((name, _): untyped_id_t, (value, _, _): expression_t) =>
+  JavaScript_AST.Variable(
+    Identifier.to_string(name),
+    gen_expression(value),
+  );
 
-let function_ =
+let gen_function =
     (
-      (name, _): identifier_t,
-      args: list((argument_t, Type.t)),
+      (name, _): untyped_id_t,
+      args: list(argument_t),
       (expr, _, _): expression_t,
     ) =>
   JavaScript_AST.(
@@ -227,16 +233,16 @@ let function_ =
       Function(
         Some(Identifier.to_string(name)),
         args
-        |> List.map((({name}, _)) => name |> fst |> Identifier.to_string),
+        |> List.map((({name}, _, _)) => name |> fst |> Identifier.to_string),
         (
           args
           |> List.filter_map(
                fun
-               | ({name, default: Some((default, _, _))}, _) =>
+               | ({name, default: Some((default, _, _))}, _, _) =>
                  Some(
                    Assignment(
                      Identifier(name |> fst |> Identifier.to_string),
-                     expression(default),
+                     gen_expression(default),
                    ),
                  )
                | _ => None,
@@ -248,23 +254,23 @@ let function_ =
             let rec loop = (
               fun
               | [] => []
-              | [x] => statement(~is_last=true, x)
-              | [x, ...xs] => statement(x) @ loop(xs)
+              | [x] => gen_statement(~is_last=true, x)
+              | [x, ...xs] => gen_statement(x) @ loop(xs)
             );
 
             loop(stmts);
-          | _ => [Return(Some(expression(expr)))]
+          | _ => [Return(Some(gen_expression(expr)))]
           }
         ),
       ),
     )
   );
 
-let declaration = (name: identifier_t, decl: declaration_t) =>
+let gen_declaration = (name: untyped_id_t, decl: declaration_t) =>
   (
     switch (decl) {
-    | Constant(value) => [constant(name, value)]
-    | Function(args, expr) => [function_(name, args, expr)]
+    | Constant(value) => [gen_constant(name, value)]
+    | Function(args, expr) => [gen_function(name, args, expr)]
     }
   )
   @ (
@@ -316,12 +322,12 @@ let generate = (resolve: resolve_t, ast: program_t) => {
              )
            | Declaration(NamedExport(name), decl) => (
                i,
-               d @ declaration(name, decl),
+               d @ gen_declaration(name, decl),
              )
            | Declaration(MainExport(name), decl) => (
                i,
                d
-               @ declaration(name, decl)
+               @ gen_declaration(name, decl)
                @ [
                  JavaScript_AST.Export(
                    name |> fst |> Identifier.to_string,

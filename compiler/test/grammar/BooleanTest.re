@@ -16,7 +16,7 @@ module Assert =
         check(
           testable(
             pp =>
-              Tuple.fst3
+              fst
               % Raw.Debug.print_prim
               % Pretty.to_string
               % Format.pp_print_string(pp),
@@ -35,12 +35,12 @@ let suite =
     >: (
       () =>
         ["true", " true "]
-        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_bool)
+        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_lexeme)
     ),
     "parse false"
     >: (
       () =>
         ["false", " false "]
-        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_bool)
+        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_lexeme)
     ),
   ];

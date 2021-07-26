@@ -73,21 +73,21 @@ let suite =
             [
               (
                 "x" |> of_public |> as_lexeme,
-                "bar" |> of_public |> as_lexeme |> of_id |> as_float,
+                "bar" |> of_public |> as_float |> of_id |> as_float,
               )
               |> of_var,
               (
                 "y" |> of_public |> as_lexeme,
                 (
                   (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "fizz" |> of_public |> as_lexeme |> of_id |> as_int,
+                    "x" |> of_public |> as_float |> of_id |> as_float,
+                    "fizz" |> of_public |> as_int |> of_id |> as_int,
                   )
                   |> of_gt_op
                   |> as_bool,
                   (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "buzz" |> of_public |> as_lexeme |> of_id |> as_float,
+                    "x" |> of_public |> as_float |> of_id |> as_float,
+                    "buzz" |> of_public |> as_float |> of_id |> as_float,
                   )
                   |> of_ineq_op
                   |> as_bool,
@@ -97,10 +97,10 @@ let suite =
               )
               |> of_var,
               (
-                "y" |> of_public |> as_lexeme |> of_id |> as_bool,
+                "y" |> of_public |> as_bool |> of_id |> as_bool,
                 (
                   (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
+                    "x" |> of_public |> as_float |> of_id |> as_float,
                     1 |> int_prim,
                   )
                   |> of_add_op

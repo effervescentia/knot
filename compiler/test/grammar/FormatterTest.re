@@ -125,12 +125,12 @@ let suite =
   bar
 </Foo>",
             (
-              "Foo" |> of_public |> as_unknown,
+              "Foo" |> of_public |> as_lexeme,
               [],
-              ["bar" |> as_lexeme |> of_text |> as_lexeme],
+              ["bar" |> as_string |> of_text |> as_string],
             )
             |> of_tag
-            |> as_lexeme
+            |> as_element
             |> of_jsx,
           ),
         ]
@@ -148,13 +148,13 @@ let suite =
             (
               "Foo" |> of_public |> as_lexeme,
               [
-                "bar" |> of_public |> as_lexeme |> of_jsx_id |> as_lexeme,
+                "bar" |> of_public |> as_lexeme |> of_jsx_id |> as_string,
                 ("fizz" |> of_public |> as_lexeme, None)
                 |> of_jsx_class
-                |> as_lexeme,
+                |> as_string,
                 ("buzz" |> of_public |> as_lexeme, None)
                 |> of_prop
-                |> as_lexeme,
+                |> as_unknown,
               ],
               [],
             )
@@ -167,7 +167,7 @@ let suite =
             (
               "Foo" |> of_public |> as_lexeme,
               [],
-              ["bar" |> as_lexeme |> of_text |> as_lexeme],
+              ["bar" |> as_string |> of_text |> as_string],
             )
             |> of_tag,
           ),
@@ -183,7 +183,7 @@ let suite =
                 |> of_add_op
                 |> as_int
                 |> of_inline_expr
-                |> as_lexeme,
+                |> as_element,
               ],
             )
             |> of_tag,
@@ -201,12 +201,12 @@ let suite =
                 (
                   "Bar" |> of_public |> as_lexeme,
                   [],
-                  ["fizzbuzz" |> as_lexeme |> of_text |> as_lexeme],
+                  ["fizzbuzz" |> as_string |> of_text |> as_string],
                 )
                 |> of_tag
-                |> as_lexeme
+                |> as_element
                 |> of_node
-                |> as_lexeme,
+                |> as_element,
               ],
             )
             |> of_tag,
@@ -223,11 +223,11 @@ let suite =
               [
                 ("Bar" |> of_public |> as_lexeme, [], [])
                 |> of_tag
-                |> as_lexeme
+                |> as_element
                 |> of_node
-                |> as_lexeme,
-                nil_prim |> of_inline_expr |> as_lexeme,
-                "Hello, World!" |> as_lexeme |> of_text |> as_lexeme,
+                |> as_element,
+                nil_prim |> of_inline_expr |> as_nil,
+                "Hello, World!" |> as_string |> of_text |> as_string,
               ],
             )
             |> of_tag,
@@ -244,13 +244,7 @@ let suite =
             "fizz=buzz",
             (
               "fizz" |> of_public |> as_lexeme,
-              Some(
-                "buzz"
-                |> of_public
-                |> as_lexeme
-                |> of_id
-                |> as_abstract(Unknown),
-              ),
+              Some("buzz" |> of_public |> as_unknown |> of_id |> as_unknown),
             )
             |> of_prop,
           ),
@@ -321,7 +315,7 @@ let suite =
               Some(
                 ("Buzz" |> of_public |> as_lexeme, [], [])
                 |> of_tag
-                |> as_lexeme
+                |> as_element
                 |> of_jsx
                 |> as_element,
               ),
@@ -341,13 +335,13 @@ let suite =
                   [
                     ("Foo" |> of_public |> as_lexeme, [], [])
                     |> of_tag
-                    |> as_lexeme
+                    |> as_element
                     |> of_node
-                    |> as_lexeme,
+                    |> as_element,
                   ],
                 )
                 |> of_tag
-                |> as_lexeme
+                |> as_element
                 |> of_jsx
                 |> as_element,
               ),
@@ -411,21 +405,22 @@ let suite =
               "foo" |> of_public |> as_lexeme,
               (
                 [
-                  (
-                    {name: "bar" |> of_public |> as_lexeme, default: None},
-                    Type.Valid(`Integer),
-                  ),
-                  (
-                    {
-                      name: "fizz" |> of_public |> as_lexeme,
-                      default: Some(3 |> int_prim),
-                    },
-                    Type.Valid(`Integer),
-                  ),
+                  {
+                    name: "bar" |> of_public |> as_lexeme,
+                    default: None,
+                    type_: None,
+                  }
+                  |> as_int,
+                  {
+                    name: "fizz" |> of_public |> as_lexeme,
+                    default: Some(3 |> int_prim),
+                    type_: None,
+                  }
+                  |> as_int,
                 ],
                 (
-                  "bar" |> of_public |> as_lexeme |> of_id |> as_int,
-                  "fizz" |> of_public |> as_lexeme |> of_id |> as_int,
+                  "bar" |> of_public |> as_int |> of_id |> as_int,
+                  "fizz" |> of_public |> as_int |> of_id |> as_int,
                 )
                 |> of_add_op
                 |> as_int,
@@ -448,8 +443,8 @@ let suite =
                   ("zip" |> of_public |> as_lexeme, 3 |> int_prim) |> of_var,
                   ("zap" |> of_public |> as_lexeme, 4 |> int_prim) |> of_var,
                   (
-                    "zip" |> of_public |> as_lexeme |> of_id |> as_int,
-                    "zap" |> of_public |> as_lexeme |> of_id |> as_int,
+                    "zip" |> of_public |> as_int |> of_id |> as_int,
+                    "zap" |> of_public |> as_int |> of_id |> as_int,
                   )
                   |> of_mult_op
                   |> as_int
