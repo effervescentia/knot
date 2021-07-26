@@ -3,8 +3,7 @@ open AST;
 
 let namespace = imports =>
   M.string
-  >|= Node.Raw.value
-  >|= Reference.Namespace.of_string
+  >|= Tuple.map_fst2(Reference.Namespace.of_string)
   >|= (namespace => (namespace, imports));
 
 let main_import =
@@ -39,25 +38,35 @@ let named_import = (ctx: ModuleContext.t) => {
 
 let parser = (ctx: ModuleContext.t) =>
   Keyword.import
-  >> (choice([main_import, named_import(ctx)]) |> M.comma_sep)
-  >|= List.flatten
-  << Keyword.from
-  >>= namespace
-  >@= (
-    ((namespace, imports)) => {
-      let import = ModuleContext.import(namespace);
+  >>= Node.Raw.cursor
+  % (
+    start =>
+      choice([main_import, named_import(ctx)])
+      |> M.comma_sep
+      >|= List.flatten
+      << Keyword.from
+      >>= namespace
+      >@= (
+        ((namespace, imports)) => {
+          let import = namespace |> Node.Raw.value |> ModuleContext.import;
 
-      imports
-      |> List.iter(
-           fun
-           | (MainImport((alias, _)), cursor) =>
-             ctx |> import((Main, cursor), alias)
-           | (NamedImport((id, _), None), cursor) =>
-             ctx |> import((Named(id), cursor), id)
-           | (NamedImport((id, _), Some(label)), cursor) =>
-             ctx |> import((Named(id), cursor), Node.Raw.value(label)),
-         );
-    }
-  )
-  >|= of_import
-  |> M.terminated;
+          imports
+          |> List.iter(
+               fun
+               | (MainImport((alias, _)), cursor) =>
+                 ctx |> import((Main, cursor), alias)
+               | (NamedImport((id, _), None), cursor) =>
+                 ctx |> import((Named(id), cursor), id)
+               | (NamedImport((id, _), Some(label)), cursor) =>
+                 ctx |> import((Named(id), cursor), Node.Raw.value(label)),
+             );
+        }
+      )
+      >|= (
+        ((namespace, imports)) => (
+          (Node.Raw.value(namespace), imports) |> of_import,
+          Cursor.join(start, Node.Raw.cursor(namespace)),
+        )
+      )
+      |> M.terminated
+  );

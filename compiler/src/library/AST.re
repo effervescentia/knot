@@ -100,7 +100,7 @@ module Make = (T: ASTParams) => {
   type type_t = T.type_t;
 
   type identifier_t = T.node_t(Identifier.t);
-  type untyped_id_t = Node.Raw.t(Identifier.t);
+  type raw_identifier_t = Node.Raw.t(Identifier.t);
 
   type primitive_t = T.node_t(raw_primitive_t)
   and raw_primitive_t =
@@ -111,7 +111,7 @@ module Make = (T: ASTParams) => {
 
   type jsx_t = T.node_t(raw_jsx_t)
   and raw_jsx_t =
-    | Tag(untyped_id_t, list(jsx_attribute_t), list(jsx_child_t))
+    | Tag(raw_identifier_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
   and jsx_child_t = T.node_t(raw_jsx_child_t)
   and raw_jsx_child_t =
@@ -120,9 +120,9 @@ module Make = (T: ASTParams) => {
     | InlineExpression(expression_t)
   and jsx_attribute_t = T.node_t(raw_jsx_attribute_t)
   and raw_jsx_attribute_t =
-    | ID(untyped_id_t)
-    | Class(untyped_id_t, option(expression_t))
-    | Property(untyped_id_t, option(expression_t))
+    | ID(raw_identifier_t)
+    | Class(raw_identifier_t, option(expression_t))
+    | Property(raw_identifier_t, option(expression_t))
   and expression_t = T.node_t(raw_expression_t)
   and raw_expression_t =
     | Primitive(primitive_t)
@@ -133,12 +133,12 @@ module Make = (T: ASTParams) => {
     | UnaryOp(unary_operator_t, expression_t)
     | Closure(list(statement_t))
   and statement_t =
-    | Variable(untyped_id_t, expression_t)
+    | Variable(raw_identifier_t, expression_t)
     | Expression(expression_t);
 
   type argument_t = T.node_t(raw_argument_t)
   and raw_argument_t = {
-    name: untyped_id_t,
+    name: raw_identifier_t,
     default: option(expression_t),
     type_: option(T.node_t(Type.t)),
   };
@@ -401,14 +401,15 @@ and raw_declaration_t =
 
 type import_t = Node.Raw.t(raw_import_t)
 and raw_import_t =
-  | MainImport(untyped_id_t)
-  | NamedImport(untyped_id_t, option(untyped_id_t));
+  | MainImport(raw_identifier_t)
+  | NamedImport(raw_identifier_t, option(raw_identifier_t));
 
 type export_t =
-  | MainExport(untyped_id_t)
-  | NamedExport(untyped_id_t);
+  | MainExport(raw_identifier_t)
+  | NamedExport(raw_identifier_t);
 
-type module_statement_t =
+type module_statement_t = Node.Raw.t(raw_module_statement_t)
+and raw_module_statement_t =
   | Import(Namespace.t, list(import_t))
   | Declaration(export_t, declaration_t);
 
@@ -497,8 +498,9 @@ module Debug = {
   let print_mod_stmt =
     (
       fun
-      | Import(namespace, imports) => [
+      | (Import(namespace, imports), cursor) => [
           print_entity(
+            ~cursor,
             ~attrs=[
               ("namespace", print_ns(namespace)),
               ("main", print_ns(namespace)),
@@ -540,7 +542,13 @@ module Debug = {
             "Import",
           ),
         ]
-      | Declaration(name, decl) => [(name, decl) |> print_decl]
+      | (Declaration(name, decl), cursor) => [
+          print_entity(
+            ~cursor,
+            ~children=[(name, decl) |> print_decl],
+            "Declaration",
+          ),
+        ]
     )
     % newline;
 

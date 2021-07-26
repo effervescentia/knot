@@ -258,9 +258,12 @@ let fmt_imports = stmts => {
   let (internal_imports, external_imports) =
     stmts
     |> List.filter_map(
-         fun
-         | Import(namespace, imports) => Some((namespace, imports))
-         | _ => None,
+         Node.Raw.value
+         % (
+           fun
+           | Import(namespace, imports) => Some((namespace, imports))
+           | _ => None
+         ),
        )
     |> List.partition(
          Namespace.(
@@ -361,10 +364,13 @@ let fmt_declarations = stmts => {
   let declarations =
     stmts
     |> List.filter_map(
-         fun
-         | Declaration(MainExport(name) | NamedExport(name), decl) =>
-           Some((name, decl))
-         | _ => None,
+         Node.Raw.value
+         % (
+           fun
+           | Declaration(MainExport(name) | NamedExport(name), decl) =>
+             Some((name, decl))
+           | _ => None
+         ),
        );
 
   let rec loop = (~acc=[]) =>

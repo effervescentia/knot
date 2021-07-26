@@ -41,7 +41,8 @@ let suite =
               "foo" |> of_public |> as_lexeme |> of_named_export,
               nil_prim |> of_const |> as_nil,
             )
-            |> of_decl,
+            |> of_decl
+            |> as_lexeme,
           ),
         ]
         |> Assert.parse_many
@@ -56,7 +57,8 @@ let suite =
               "foo" |> of_public |> as_lexeme |> of_main_export,
               nil_prim |> of_const |> as_nil,
             )
-            |> of_decl,
+            |> of_decl
+            |> as_lexeme,
           ),
         ]
         |> Assert.parse_many

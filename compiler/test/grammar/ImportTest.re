@@ -43,35 +43,39 @@ let suite =
           (
             "import foo from \"@/bar\"",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
           (
             "import {} from \"@/bar\"",
-            AST.(of_import(("bar" |> of_internal, []))),
+            AST.(("bar" |> of_internal, []) |> of_import |> as_lexeme),
           ),
           (
             "import { foo } from \"@/bar\"",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   ("foo" |> of_public |> as_lexeme, None)
                   |> of_named_import
                   |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
           (
             "import { foo as bar } from \"@/bar\"",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   (
@@ -81,13 +85,15 @@ let suite =
                   |> of_named_import
                   |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
           (
             "import fizz, { foo, bar as Bar } from \"@/bar\"",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   "fizz"
@@ -105,13 +111,15 @@ let suite =
                   |> of_named_import
                   |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
           (
             "import { foo, bar, } from \"@/bar\"",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   ("foo" |> of_public |> as_lexeme, None)
@@ -121,7 +129,9 @@ let suite =
                   |> of_named_import
                   |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
         ]
@@ -166,23 +176,27 @@ let suite =
           (
             "import foo from \"@/bar\";",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
           (
             "  import  foo  from   \"@/bar\"  ;  ",
             AST.(
-              of_import((
+              (
                 "bar" |> of_internal,
                 [
                   "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
                 ],
-              ))
+              )
+              |> of_import
+              |> as_lexeme
             ),
           ),
         ]

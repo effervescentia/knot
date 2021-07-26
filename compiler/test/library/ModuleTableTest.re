@@ -11,7 +11,8 @@ let __program =
     Import(
       "foo" |> of_internal,
       ["bar" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
-    ),
+    )
+    |> as_lexeme,
   ];
 let __table = ModuleTable.create(1);
 let __scope_tree = BinaryTree.create((Cursor.(expand(zero)), None));

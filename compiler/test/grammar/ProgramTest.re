@@ -44,13 +44,15 @@ let __main_import_ast =
     "bar" |> of_internal,
     ["foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
   )
-  |> of_import;
+  |> of_import
+  |> as_lexeme;
 let __const_decl_ast =
   (
     "foo" |> of_public |> as_lexeme |> of_named_export,
     nil_prim |> of_const |> as_nil,
   )
-  |> of_decl;
+  |> of_decl
+  |> as_lexeme;
 
 let __ns_context =
   NamespaceContext.create(
@@ -103,7 +105,8 @@ let suite =
                 |> of_const
                 |> as_nil,
               )
-              |> of_decl,
+              |> of_decl
+              |> as_lexeme,
             ],
           ),
         ]
@@ -158,7 +161,8 @@ let suite =
               |> of_const
               |> as_nil,
             )
-            |> of_decl,
+            |> of_decl
+            |> as_lexeme,
           ],
         )
     ),
