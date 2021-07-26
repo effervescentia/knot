@@ -53,25 +53,30 @@ let rec of_list = (xs: list(t)): t =>
 
 let rec of_expr =
   fun
-  | AST.Primitive((prim, _, cursor)) =>
-    BinaryTree.create((Cursor.expand(cursor), Primitive(prim)))
+  | AST.Primitive(prim) =>
+    BinaryTree.create((
+      prim |> Node.cursor |> Cursor.expand,
+      Primitive(Node.value(prim)),
+    ))
   | AST.Identifier(id) => id |> Tuple.reduce3(of_id)
-  | AST.JSX((jsx, _, cursor)) => of_jsx(jsx) |> _wrap(cursor)
-  | AST.Group((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
-  | AST.BinaryOp(_, (left, _, l_cursor), (right, _, r_cursor)) =>
+  | AST.JSX(jsx) => jsx |> Node.value |> of_jsx |> _wrap(Node.cursor(jsx))
+  | AST.Group(expr) =>
+    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+  | AST.BinaryOp(_, lhs, rhs) =>
     _join(
-      of_expr(left) |> _wrap(l_cursor),
-      of_expr(right) |> _wrap(r_cursor),
+      lhs |> Node.value |> of_expr |> _wrap(Node.cursor(lhs)),
+      rhs |> Node.value |> of_expr |> _wrap(Node.cursor(rhs)),
     )
-  | AST.UnaryOp(_, (expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
+  | AST.UnaryOp(_, expr) =>
+    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
   | AST.Closure(stmts) => stmts |> List.map(of_stmt) |> of_list
 
 and of_jsx =
   fun
   | AST.Fragment(children) =>
     children
-    |> List.map(((child, _, cursor)) =>
-         of_jsx_child(child) |> _wrap(cursor)
+    |> List.map(child =>
+         child |> Node.value |> of_jsx_child |> _wrap(Node.cursor(child))
        )
     |> of_list
 
@@ -79,60 +84,68 @@ and of_jsx =
     [id |> Tuple.reduce2(of_untyped_id)]
     @ (
       attrs
-      |> List.map(((attr, _, cursor)) =>
-           attr |> of_jsx_attr |> _wrap(cursor)
+      |> List.map(attr =>
+           attr |> Node.value |> of_jsx_attr |> _wrap(Node.cursor(attr))
          )
     )
     @ (
       children
-      |> List.map(((child, _, cursor)) =>
-           child |> of_jsx_child |> _wrap(cursor)
+      |> List.map(child =>
+           child |> Node.value |> of_jsx_child |> _wrap(Node.cursor(child))
          )
     )
     |> of_list
 
 and of_jsx_child =
   fun
-  | AST.Node((tag, _, cursor)) => tag |> of_jsx |> _wrap(cursor)
-  | AST.InlineExpression((expr, _, cursor)) =>
-    expr |> of_expr |> _wrap(cursor)
-  | AST.Text((text, _, cursor)) =>
-    BinaryTree.create((Cursor.expand(cursor), Primitive(String(text))))
+  | AST.Node(tag) => tag |> Node.value |> of_jsx |> _wrap(Node.cursor(tag))
+  | AST.InlineExpression(expr) =>
+    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+  | AST.Text(text) =>
+    BinaryTree.create((
+      text |> Node.cursor |> Cursor.expand,
+      Primitive(String(Node.value(text))),
+    ))
 
 and of_jsx_attr =
   fun
   | AST.ID(id) => id |> Tuple.reduce2(of_untyped_id)
   | AST.Class(id, None)
   | AST.Property(id, None) => id |> Tuple.reduce2(of_untyped_id)
-  | AST.Class(id, Some((expr, _, cursor)))
-  | AST.Property(id, Some((expr, _, cursor))) =>
+  | AST.Class(id, Some(expr))
+  | AST.Property(id, Some(expr)) =>
     _join(
       id |> Tuple.reduce2(of_untyped_id),
-      expr |> of_expr |> _wrap(cursor),
+      expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr)),
     )
 
 and of_stmt =
   fun
-  | AST.Variable(name, (expr, _, expr_cursor)) =>
+  | AST.Variable(name, expr) =>
     _join(
       name |> Tuple.reduce2(of_untyped_id),
-      of_expr(expr) |> _wrap(expr_cursor),
+      expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr)),
     )
-  | AST.Expression((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor);
+  | AST.Expression(expr) =>
+    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr));
 
 let of_decl =
   fun
-  | AST.Constant((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
-  | AST.Function(args, (expr, _, cursor)) =>
+  | AST.Constant(expr) =>
+    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+  | AST.Function(args, expr) =>
     _join(
       args
-      |> _fold(((AST.{name, default}, _, _)) =>
-           {
-             ...name |> Tuple.reduce2(of_untyped_id),
-             right: default |?> Tuple.fst3 % of_expr,
-           }
+      |> _fold(
+           Node.value
+           % (
+             (AST.{name, default}) => {
+               ...name |> Tuple.reduce2(of_untyped_id),
+               right: default |?> Node.value % of_expr,
+             }
+           ),
          ),
-      of_expr(expr) |> _wrap(cursor),
+      expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr)),
     );
 
 let of_import =

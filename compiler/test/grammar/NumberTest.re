@@ -7,7 +7,7 @@ module Assert =
   Assert.Make({
     open AST;
 
-    type t = Block.t(number_t);
+    type t = Node.Raw.t(number_t);
 
     let parser = _ => Parser.parse(Number.parser);
 
@@ -16,7 +16,9 @@ module Assert =
         check(
           testable(
             pp =>
-              Block.value % Raw.Debug.print_num % Format.pp_print_string(pp),
+              Node.Raw.value
+              % Raw.Debug.print_num
+              % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",

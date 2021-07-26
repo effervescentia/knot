@@ -40,7 +40,7 @@ let to_string = (stream: t): string => {
 
 let __initial = Cursor.{line: 0, column: 0};
 
-let scan = (predicate: Block.t(string) => bool, contents: string) => {
+let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
   let stream = of_string(contents);
   let buffer = Buffer.create(8);
 
@@ -58,7 +58,7 @@ let scan = (predicate: Block.t(string) => bool, contents: string) => {
           loop(cursor, cursor);
         } else {
           let token = buffer |> Buffer.contents;
-          let block = Block.create(token, Cursor.Range(start, end_));
+          let block = Node.Raw.create(token, Cursor.Range(start, end_));
 
           buffer |> Buffer.clear;
 

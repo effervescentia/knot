@@ -68,12 +68,12 @@ let rec fmt_jsx =
   | Tag(name, attrs, children) =>
     [
       string("<"),
-      name |> Block.value |> fmt_id,
+      name |> Node.Raw.value |> fmt_id,
       List.is_empty(attrs)
         ? Nil
         : attrs
           |> List.map(
-               Tuple.fst3 % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
+               Node.value % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
              )
           |> concat,
       List.is_empty(children)
@@ -82,11 +82,11 @@ let rec fmt_jsx =
             [string(">")] |> newline,
             children
             |> List.map(
-                 Tuple.fst3 % (child => [fmt_jsx_child(child)] |> newline),
+                 Node.value % (child => [fmt_jsx_child(child)] |> newline),
                )
             |> concat
             |> indent(2),
-            [string("</"), name |> Block.value |> fmt_id, string(">")]
+            [string("</"), name |> Node.Raw.value |> fmt_id, string(">")]
             |> concat,
           ]
           |> concat,
@@ -99,7 +99,7 @@ let rec fmt_jsx =
       : [
           [string("<>")] |> newline,
           children
-          |> List.map(Tuple.fst3 % fmt_jsx_child)
+          |> List.map(Node.value % fmt_jsx_child)
           |> concat
           |> indent(2),
           string("</>"),
@@ -108,29 +108,30 @@ let rec fmt_jsx =
 
 and fmt_jsx_child =
   fun
-  | Node((jsx, _, _)) => fmt_jsx(jsx)
-  | Text((s, _, _)) => string(s)
-  | InlineExpression((expr, _, _)) =>
-    [string("{"), fmt_expression(expr), string("}")] |> concat
+  | Node(jsx) => jsx |> Node.value |> fmt_jsx
+  | Text(s) => s |> Node.value |> string
+  | InlineExpression(expr) =>
+    [string("{"), expr |> Node.value |> fmt_expression, string("}")]
+    |> concat
 
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
     | Class(name, value) => (
-        [string("."), name |> Block.value |> fmt_id] |> concat,
+        [string("."), name |> Node.Raw.value |> fmt_id] |> concat,
         value,
       )
     | ID(name) => (
-        [string("#"), name |> Block.value |> fmt_id] |> concat,
+        [string("#"), name |> Node.Raw.value |> fmt_id] |> concat,
         None,
       )
-    | Property(name, value) => (name |> Block.value |> fmt_id, value)
+    | Property(name, value) => (name |> Node.Raw.value |> fmt_id, value)
     }
   )
   |> (
     fun
-    | (name, Some((expr, _, _))) =>
-      [name, string("="), fmt_jsx_attr_expr(expr)] |> concat
+    | (name, Some(expr)) =>
+      [name, string("="), expr |> Node.value |> fmt_jsx_attr_expr] |> concat
 
     | (name, None) => name
   )
@@ -148,9 +149,9 @@ and fmt_jsx_attr_expr = x =>
 
 and fmt_expression =
   fun
-  | Primitive((prim, _, _)) => fmt_prim(prim)
-  | Identifier((name, _, _)) => fmt_id(name)
-  | JSX((jsx, _, _)) => fmt_jsx(jsx)
+  | Primitive(prim) => prim |> Node.value |> fmt_prim
+  | Identifier(name) => name |> Node.value |> fmt_id
+  | JSX(jsx) => jsx |> Node.value |> fmt_jsx
   /* collapse parentheses around unary values */
   | Group((
       (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
@@ -158,19 +159,20 @@ and fmt_expression =
       _,
     )) =>
     fmt_expression(expr)
-  | Group((expr, _, _)) =>
-    [string("("), fmt_expression(expr), string(")")] |> concat
-  | BinaryOp(op, (lhs, _, _), (rhs, _, _)) =>
+  | Group(expr) =>
+    [string("("), expr |> Node.value |> fmt_expression, string(")")]
+    |> concat
+  | BinaryOp(op, lhs, rhs) =>
     [
-      fmt_expression(lhs),
+      lhs |> Node.value |> fmt_expression,
       __space,
       fmt_binary_op(op),
       __space,
-      fmt_expression(rhs),
+      rhs |> Node.value |> fmt_expression,
     ]
     |> concat
-  | UnaryOp(op, (expr, _, _)) =>
-    [fmt_unary_op(op), fmt_expression(expr)] |> concat
+  | UnaryOp(op, expr) =>
+    [fmt_unary_op(op), expr |> Node.value |> fmt_expression] |> concat
   | Closure(stmts) =>
     List.is_empty(stmts)
       ? string("{}")
@@ -187,13 +189,13 @@ and fmt_expression =
 and fmt_statement = stmt =>
   (
     switch (stmt) {
-    | Variable(name, (expr, _, _)) => [
+    | Variable(name, expr) => [
         string("let "),
-        name |> Block.value |> fmt_id,
+        name |> Node.Raw.value |> fmt_id,
         string(" = "),
-        fmt_expression(expr),
+        expr |> Node.value |> fmt_expression,
       ]
-    | Expression((expr, _, _)) => [fmt_expression(expr)]
+    | Expression(expr) => [expr |> Node.value |> fmt_expression]
     }
   )
   @ [__semicolon]
@@ -202,31 +204,39 @@ and fmt_statement = stmt =>
 let fmt_declaration = ((name, decl)) =>
   (
     switch (decl) {
-    | Constant((expr, _, _)) => [
+    | Constant(expr) => [
         string("const "),
-        name |> Block.value |> fmt_id,
+        name |> Node.Raw.value |> fmt_id,
         string(" = "),
-        fmt_expression(expr),
+        expr |> Node.value |> fmt_expression,
         __semicolon,
       ]
-    | Function(args, (expr, _, _)) => [
+    | Function(args, expr) => [
         string("func "),
-        name |> Block.value |> fmt_id,
+        name |> Node.Raw.value |> fmt_id,
         List.is_empty(args)
           ? Nil
           : [
               string("("),
               args
-              |> List.map((({name, default, type_}, _, _)) =>
-                   [
-                     name |> Block.value |> fmt_id,
-                     switch (default) {
-                     | Some((expr, _, _)) =>
-                       [string(" = "), fmt_expression(expr)] |> concat
-                     | None => Nil
-                     },
-                   ]
-                   |> concat
+              |> List.map(
+                   Node.value
+                   % (
+                     ({name, default, type_}) =>
+                       [
+                         name |> Node.Raw.value |> fmt_id,
+                         switch (default) {
+                         | Some(expr) =>
+                           [
+                             string(" = "),
+                             expr |> Node.value |> fmt_expression,
+                           ]
+                           |> concat
+                         | None => Nil
+                         },
+                       ]
+                       |> concat
+                   ),
                  )
               |> List.intersperse(string(", "))
               |> concat,
@@ -234,8 +244,8 @@ let fmt_declaration = ((name, decl)) =>
             ]
             |> concat,
         string(" -> "),
-        fmt_expression(expr),
-        switch (expr) {
+        expr |> Node.value |> fmt_expression,
+        switch (Node.value(expr)) {
         | Closure(_) => Nil
         | _ => __semicolon
         },
@@ -278,10 +288,10 @@ let fmt_imports = stmts => {
                |> List.fold_left(
                     ((m, n)) =>
                       fun
-                      | MainImport(id) => (Some(Block.value(id)), n)
+                      | MainImport(id) => (Some(Node.Raw.value(id)), n)
                       | NamedImport(id, label) => (
                           m,
-                          [(Block.value(id), label), ...n],
+                          [(Node.Raw.value(id), label), ...n],
                         ),
                     (None, []),
                   );
@@ -316,7 +326,7 @@ let fmt_imports = stmts => {
                             ...switch (label) {
                                | Some(label) => [
                                    string(" as "),
-                                   label |> Block.value |> fmt_id,
+                                   label |> Node.Raw.value |> fmt_id,
                                  ]
                                | None => []
                                },

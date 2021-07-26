@@ -21,7 +21,10 @@ let lexeme = x => spaces >> x;
 let between = (l, r, x) =>
   map3(
     (l', x', r') =>
-      Block.create(x', Cursor.join(Block.cursor(l'), Block.cursor(r'))),
+      Node.Raw.create(
+        x',
+        Cursor.join(Node.Raw.cursor(l'), Node.Raw.cursor(r')),
+      ),
     l,
     x,
     r,
@@ -34,7 +37,7 @@ let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
 /**
  matches a single character
  */
-let symbol = x => char(x) >|= Input.to_block |> lexeme;
+let symbol = x => char(x) >|= Input.to_node |> lexeme;
 
 /**
  matches a pattern that may be terminated by a semicolon
@@ -62,7 +65,7 @@ let glyph = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.cursor
-          >|= (end_ => Block.create((), Cursor.join(start, end_)))
+          >|= (end_ => Node.Raw.create((), Cursor.join(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -84,7 +87,7 @@ let keyword = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.cursor
-          >|= (end_ => Block.create(s, Cursor.join(start, end_)))
+          >|= (end_ => Node.Raw.create(s, Cursor.join(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq);
@@ -122,7 +125,7 @@ let string =
           >|= Input.cursor
           >|= (
             end_ =>
-              Block.create(
+              Node.Raw.create(
                 f([]) |> String.of_uchars,
                 Cursor.join(start, end_),
               )

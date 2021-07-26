@@ -21,32 +21,32 @@ let _attribute =
       (term, expr),
     ) =>
   Operator.assign(
-    M.identifier(~prefix) >|= Tuple.split2(Block.value, Block.cursor),
+    M.identifier(~prefix) >|= Tuple.split2(Node.Raw.value, Node.Raw.cursor),
     expr(ctx)
     |> M.between(Symbol.open_group, Symbol.close_group)
-    >|= Block.value
+    >|= Node.Raw.value
     <|> term(ctx),
   )
   >|= (
     ((name, value)) => (
       name,
       Some(value),
-      Cursor.join(snd(name), Block.cursor(value)),
+      Cursor.join(snd(name), Node.Raw.cursor(value)),
     )
   )
   <|> (
     M.identifier(~prefix)
     >|= (
       id => (
-        id |> Tuple.split2(Block.value, Block.cursor),
+        id |> Tuple.split2(Node.Raw.value, Node.Raw.cursor),
         None,
-        Block.cursor(id),
+        Node.Raw.cursor(id),
       )
     )
   );
 
 let _self_closing =
-  Tag.self_close >|= Block.cursor >|= (end_cursor => ([], end_cursor));
+  Tag.self_close >|= Node.Raw.cursor >|= (end_cursor => ([], end_cursor));
 
 let rec parser = (ctx: ClosureContext.t, x, input) =>
   (choice([fragment(ctx, x), tag(ctx, x)]) |> M.lexeme)(input)
@@ -54,7 +54,7 @@ let rec parser = (ctx: ClosureContext.t, x, input) =>
 and fragment = (ctx: ClosureContext.t, x) =>
   children(ctx, x)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= Tuple.split2(Block.value % of_frag, Block.cursor)
+  >|= Tuple.split2(Node.Raw.value % of_frag, Node.Raw.cursor)
 
 and tag = (ctx: ClosureContext.t, x) =>
   Tag.open_
@@ -69,10 +69,10 @@ and tag = (ctx: ClosureContext.t, x) =>
           >>= (
             cs =>
               id
-              |> Block.value
+              |> Node.Raw.value
               |> M.keyword
               |> M.between(Tag.open_end, Tag.close)
-              >|= Block.cursor
+              >|= Node.Raw.cursor
               >|= (end_cursor => (cs, end_cursor))
           )
           <|> _self_closing
@@ -81,14 +81,14 @@ and tag = (ctx: ClosureContext.t, x) =>
               (
                 id
                 |> Tuple.split2(
-                     Block.value % Reference.Identifier.of_string,
-                     Block.cursor,
+                     Node.Raw.value % Reference.Identifier.of_string,
+                     Node.Raw.cursor,
                    ),
                 attrs,
                 cs,
               )
               |> of_tag,
-              Cursor.join(Block.cursor(id), end_cursor),
+              Cursor.join(Node.Raw.cursor(id), end_cursor),
             )
           )
       )
@@ -114,11 +114,11 @@ and attributes = (ctx: ClosureContext.t, x) =>
     M.identifier(~prefix=Character.octothorp)
     >|= Tuple.split2(
           Tuple.split2(
-            Block.value % String.drop_left(1) % of_public,
-            Block.cursor,
+            Node.Raw.value % String.drop_left(1) % of_public,
+            Node.Raw.cursor,
           )
           % of_jsx_id,
-          Block.cursor,
+          Node.Raw.cursor,
         ),
   ])
   |> many
@@ -138,14 +138,14 @@ and text =
   )
   >|= Input.join
   >|= Tuple.split2(
-        Tuple.split2(Block.value % String.trim, Block.cursor) % of_text,
-        Block.cursor,
+        Tuple.split2(Node.Raw.value % String.trim, Node.Raw.cursor) % of_text,
+        Node.Raw.cursor,
       )
 
 and node = (ctx: ClosureContext.t, x) =>
-  parser(ctx, x) >|= (node => (of_node(node), Block.cursor(node)))
+  parser(ctx, x) >|= (node => (of_node(node), Node.Raw.cursor(node)))
 
 and inline_expr = (ctx: ClosureContext.t, (_, expr)) =>
   expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= Tuple.split2(Block.value % of_inline_expr, Block.cursor);
+  >|= Tuple.split2(Node.Raw.value % of_inline_expr, Node.Raw.cursor);

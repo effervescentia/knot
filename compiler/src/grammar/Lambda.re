@@ -12,7 +12,7 @@ let arguments = (ctx: ClosureContext.t) =>
       )
       >|= (
         ((name, default)) => {
-          let name_cursor = Block.cursor(name);
+          let name_cursor = Node.Raw.cursor(name);
 
           (
             {
@@ -30,7 +30,7 @@ let arguments = (ctx: ClosureContext.t) =>
             },
             Cursor.join(
               name_cursor,
-              default |> Option.map(Block.cursor) |?: name_cursor,
+              default |> Option.map(Node.Raw.cursor) |?: name_cursor,
             ),
           );
         }
@@ -44,13 +44,13 @@ let arguments = (ctx: ClosureContext.t) =>
             type_: None,
             /* ctx |> ClosureContext.define_weak(id), */
           },
-          Block.cursor(name),
+          Node.Raw.cursor(name),
         )
       ),
     ])
     |> sep_by(Symbol.comma),
   )
-  >|= Block.value;
+  >|= Node.Raw.value;
 
 let parser = (ctx: ClosureContext.t) =>
   option([], arguments(ctx))

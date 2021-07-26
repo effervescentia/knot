@@ -7,8 +7,8 @@ let integer =
   >|= Input.join
   >|= (
     block => (
-      block |> Block.value |> Int64.of_string |> AST.of_int,
-      Block.cursor(block),
+      block |> Node.Raw.value |> Int64.of_string |> AST.of_int,
+      Node.Raw.cursor(block),
     )
   )
   |> M.lexeme;
@@ -22,9 +22,9 @@ let float =
   >|= (
     ((x, y)) => (
       {
-        let integer = x |> Block.value |> String.drop_all_prefix("0");
+        let integer = x |> Node.Raw.value |> String.drop_all_prefix("0");
         let integer_precision = integer |> String.length;
-        let fraction = y |> Block.value |> String.drop_all_suffix("0");
+        let fraction = y |> Node.Raw.value |> String.drop_all_suffix("0");
         let fraction_precision = String.length(fraction);
 
         (
@@ -39,7 +39,7 @@ let float =
         )
         |> of_float;
       },
-      Cursor.join(Block.cursor(x), Block.cursor(y)),
+      Cursor.join(Node.Raw.cursor(x), Node.Raw.cursor(y)),
     )
   )
   |> M.lexeme;

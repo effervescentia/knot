@@ -89,7 +89,7 @@ module Make = (T: ASTParams) => {
   type type_t = T.type_t;
 
   type identifier_t = T.lexeme_t(Identifier.t);
-  type untyped_id_t = Block.t(Identifier.t);
+  type untyped_id_t = Node.Raw.t(Identifier.t);
 
   type primitive_t = T.lexeme_t(raw_primitive_t)
   and raw_primitive_t =
@@ -195,8 +195,8 @@ module Make = (T: ASTParams) => {
     let print_untyped_lexeme = (label, print_value, x) =>
       Common.Debug.print_lexeme(
         label,
-        x |> Block.value |> print_value,
-        Block.cursor(x),
+        x |> Node.Raw.value |> print_value,
+        Node.Raw.cursor(x),
       );
 
     let print_ns = Namespace.to_string % string;
@@ -352,10 +352,10 @@ module Raw =
   Make({
     type type_t = Type.Raw.t;
 
-    type lexeme_t('a) = Block.t('a);
+    type lexeme_t('a) = Node.Raw.t('a);
 
-    let get_value = Block.value;
-    let get_cursor = Block.cursor;
+    let get_value = Node.Raw.value;
+    let get_cursor = Node.Raw.cursor;
 
     let print_lexeme = (label, print_value, x) =>
       Common.Debug.print_lexeme(
@@ -368,11 +368,11 @@ module Raw =
 include Make({
   type type_t = Type.t;
 
-  type lexeme_t('a) = ('a, Type.t, Cursor.t);
+  type lexeme_t('a) = Node.t('a);
 
-  let get_value = Tuple.fst3;
-  let get_type = Tuple.snd3;
-  let get_cursor = Tuple.thd3;
+  let get_value = Node.value;
+  let get_type = Node.type_;
+  let get_cursor = Node.cursor;
 
   let print_lexeme = (label, print_value, x) =>
     Common.Debug.print_lexeme(
@@ -431,13 +431,14 @@ module Debug = {
             ~cursor=
               switch (name) {
               | MainExport(x)
-              | NamedExport(x) => Block.cursor(x)
+              | NamedExport(x) => Node.Raw.cursor(x)
               },
             ~children=[
               switch (name) {
               | MainExport(id) =>
-                [string("(main) "), id |> Block.value |> print_id] |> concat
-              | NamedExport(id) => id |> Block.value |> print_id
+                [string("(main) "), id |> Node.Raw.value |> print_id]
+                |> concat
+              | NamedExport(id) => id |> Node.Raw.value |> print_id
               },
             ],
             "Name",

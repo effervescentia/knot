@@ -27,9 +27,9 @@ module TypeResolver = {
     (
       switch (expr) {
       | Primitive(prim) =>
-        res_prim(prim) |> (x => (Primitive(x), Tuple.snd3(x)))
+        res_prim(prim) |> (x => (Primitive(x), Node.type_(x)))
       | JSX(jsx) => (JSX(res_jsx(jsx)), Valid(`Element))
-      | Group(expr) => res_expr(expr) |> (x => (Group(x), Tuple.snd3(x)))
+      | Group(expr) => res_expr(expr) |> (x => (Group(x), Node.type_(x)))
       | Closure(stmts) =>
         stmts
         |> List.map(res_stmt)
@@ -91,7 +91,7 @@ module TypeResolver = {
         |> (
           x => (
             Property(id, x),
-            x |> Option.map(Tuple.snd3) |?: Type.Valid(`Abstract(Unknown)),
+            x |> Option.map(Node.type_) |?: Type.Valid(`Abstract(Unknown)),
           )
         )
       }
@@ -103,15 +103,15 @@ module TypeResolver = {
       switch (attr) {
       | Text(text) => (
           Text((
-            Block.value(text),
+            Node.Raw.value(text),
             Type.Valid(`String),
-            Block.cursor(text),
+            Node.Raw.cursor(text),
           )),
           Type.Valid(`String),
         )
       | Node(jsx) => (Node(res_jsx(jsx)), Type.Valid(`Element))
       | InlineExpression(expr) =>
-        res_expr(expr) |> (x => (InlineExpression(x), Tuple.snd3(x)))
+        res_expr(expr) |> (x => (InlineExpression(x), Node.type_(x)))
       }
     )
     |> _bind_typed_lexeme(cursor);
@@ -129,7 +129,7 @@ let constant = (ctx: ModuleContext.t, f) => {
     ((id, raw_expr)) => {
       let expr = TypeResolver.res_expr(raw_expr);
 
-      ctx |> ModuleContext.define(Block.value(id), TypeOf.lexeme(expr));
+      ctx |> ModuleContext.define(Node.Raw.value(id), TypeOf.lexeme(expr));
 
       (f(id), of_const(expr));
     }
@@ -150,7 +150,7 @@ let function_ = (ctx: ModuleContext.t, f) => {
       >|= (
         ((raw_args, raw_res)) => {
           let ctx_cursor =
-            Cursor.join(Block.cursor(raw_res), Block.cursor(raw_res));
+            Cursor.join(Node.Raw.cursor(raw_res), Node.Raw.cursor(raw_res));
           let res = TypeResolver.res_expr(raw_res);
           let args =
             raw_args

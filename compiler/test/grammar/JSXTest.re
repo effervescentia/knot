@@ -17,7 +17,7 @@ module Assert =
         check(
           testable(
             pp =>
-              fst
+              Node.Raw.value
               % Debug.print_jsx
               % Pretty.to_string
               % Format.pp_print_string(pp),

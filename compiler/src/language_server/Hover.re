@@ -83,11 +83,11 @@ let handler =
           |?< (({raw}) => raw |> Runtime.scan_for_token(point))
           |?< (
             block =>
-              switch (Block.value(block)) {
+              switch (Node.Raw.value(block)) {
               | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
                 Some((
                   kwd |> Print.fmt("(keyword) %s"),
-                  Block.cursor(block),
+                  Node.Raw.cursor(block),
                 ))
               | _ => None
               }

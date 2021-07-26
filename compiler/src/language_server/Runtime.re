@@ -71,7 +71,7 @@ let analyze_module =
 
 let scan_for_token = (point: Cursor.point_t) =>
   File.InputStream.scan(block =>
-    Cursor.is_in_range(block |> Block.cursor |> Cursor.expand, point)
+    Cursor.is_in_range(block |> Node.Raw.cursor |> Cursor.expand, point)
   );
 
 let purge_module = (path: string, runtime: t) =>

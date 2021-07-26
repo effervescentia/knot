@@ -4,8 +4,6 @@ open Generate.JavaScript_AST;
 
 module Formatter = Generate.JavaScript_Formatter;
 
-let _in_block = x => Block.create(x, Cursor.zero);
-
 let __resolved = "../foo/bar";
 let __program = [
   (

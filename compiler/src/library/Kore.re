@@ -3,7 +3,6 @@ include Error;
 
 module AST = AST;
 module BinaryTree = BinaryTree;
-module Block = Block;
 module ClosureContext = ClosureContext;
 module Config = Config;
 module Constants = Constants;
@@ -22,6 +21,7 @@ module ModuleContext = ModuleContext;
 module ModuleTable = ModuleTable;
 module NamespaceContext = NamespaceContext;
 module NestedHashtbl = NestedHashtbl;
+module Node = Node;
 module Pretty = Pretty;
 module Print = Print;
 module RangeTree = RangeTree;

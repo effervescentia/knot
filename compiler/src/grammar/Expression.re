@@ -3,19 +3,19 @@ open AST.Raw;
 open Type.Raw;
 
 let primitive =
-  Primitive.parser >|= (prim => (of_prim(prim), Block.cursor(prim)));
+  Primitive.parser >|= (prim => (of_prim(prim), Node.Raw.cursor(prim)));
 
 let identifier = (ctx: ClosureContext.t) =>
-  Identifier.parser(ctx) >|= (id => (of_id(id), Block.cursor(id)));
+  Identifier.parser(ctx) >|= (id => (of_id(id), Node.Raw.cursor(id)));
 
 let jsx = (ctx: ClosureContext.t, x) =>
-  JSX.parser(ctx, x) >|= (jsx => (of_jsx(jsx), Block.cursor(jsx)));
+  JSX.parser(ctx, x) >|= (jsx => (of_jsx(jsx), Node.Raw.cursor(jsx)));
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
   >|= (
     block => {
-      (block |> Block.value |> of_group, Block.cursor(block));
+      (block |> Node.Raw.value |> of_group, Node.Raw.cursor(block));
     }
   );
 
@@ -23,7 +23,7 @@ let closure = (ctx: ClosureContext.t, x) =>
   Statement.parser(ctx, x)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= Tuple.split2(Block.value, Block.cursor)
+  >|= Tuple.split2(Node.Raw.value, Node.Raw.cursor)
   >|= (
     ((stmts, cursor)) => {
       (of_closure(stmts), cursor);
@@ -96,7 +96,7 @@ and expr_8 = (ctx: ClosureContext.t, input) =>
 
     choice([
       closure(child_ctx, expr_0)
-      >@= Block.cursor
+      >@= Node.Raw.cursor
       % (cursor => ClosureContext.save(cursor, child_ctx)),
       expr_0(ctx) |> group,
       term(ctx),

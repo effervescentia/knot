@@ -64,9 +64,9 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                              namespace
                              |> Namespace.to_path(compiler.config.source_dir),
                            );
-                         let range = name |> Block.cursor |> Cursor.expand;
+                         let range = name |> Node.Raw.cursor |> Cursor.expand;
                          let name =
-                           name |> Block.value |> Identifier.to_string;
+                           name |> Node.Raw.value |> Identifier.to_string;
 
                          Some(
                            switch (decl) {

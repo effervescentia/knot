@@ -3,13 +3,13 @@ open AST;
 
 let namespace = imports =>
   M.string
-  >|= Block.value
+  >|= Node.Raw.value
   >|= Reference.Namespace.of_string
   >|= (namespace => (namespace, imports));
 
 let main_import =
   M.identifier
-  >|= Tuple.split2(Block.value % of_public, Block.cursor)
+  >|= Tuple.split2(Node.Raw.value % of_public, Node.Raw.cursor)
   >|= of_main_import
   >|= (x => [x]);
 
@@ -26,7 +26,7 @@ let named_import = (ctx: ModuleContext.t) => {
   <|> (Identifier.parser(closure_ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= Block.value
+  >|= Node.Raw.value
   >|= List.map(of_named_import);
 };
 
@@ -48,7 +48,7 @@ let parser = (ctx: ModuleContext.t) =>
            | NamedImport((id, cursor), None) =>
              ctx |> import((Named(id), cursor), id)
            | NamedImport((id, cursor), Some(label)) =>
-             ctx |> import((Named(id), cursor), Block.value(label)),
+             ctx |> import((Named(id), cursor), Node.Raw.value(label)),
          );
     }
   )

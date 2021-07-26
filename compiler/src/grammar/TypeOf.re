@@ -5,14 +5,26 @@ let lexeme = ((_, t, _)) => t;
 let statement =
   AST.(
     fun
-    | Expression((_, t, _)) => t
+    | Expression(expr) => Node.type_(expr)
     | Variable(_) => Valid(`Nil)
   );
 
 let declaration =
   AST.(
     fun
-    | Constant((_, t, _)) => t
+    | Constant(const) => Node.type_(const)
     /* TODO: extract argument types */
-    | Function(args, (_, t, _)) => Valid(`Function(([], t)))
+    | Function(args, res) =>
+      Valid(
+        `Function((
+          args
+          |> List.map((({name}, type_, _)) =>
+               (
+                 name |> Node.Raw.value |> Reference.Identifier.to_string,
+                 type_,
+               )
+             ),
+          Node.type_(res),
+        )),
+      )
   );
