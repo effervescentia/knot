@@ -9,7 +9,7 @@ let __resolved = "../foo/bar";
 let __program = [
   (
     "foo/bar" |> of_internal,
-    ["Foo" |> of_public |> as_lexeme |> of_main_import],
+    ["Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
   )
   |> of_import,
   (

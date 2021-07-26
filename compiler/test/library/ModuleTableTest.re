@@ -10,7 +10,7 @@ let __program =
   AST.[
     Import(
       "foo" |> of_internal,
-      ["bar" |> of_public |> as_lexeme |> of_main_import],
+      ["bar" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
     ),
   ];
 let __table = ModuleTable.create(1);

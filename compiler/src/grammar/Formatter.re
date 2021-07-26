@@ -287,12 +287,15 @@ let fmt_imports = stmts => {
                imports
                |> List.fold_left(
                     ((m, n)) =>
-                      fun
-                      | MainImport(id) => (Some(Node.Raw.value(id)), n)
-                      | NamedImport(id, label) => (
-                          m,
-                          [(Node.Raw.value(id), label), ...n],
-                        ),
+                      Node.Raw.value
+                      % (
+                        fun
+                        | MainImport(id) => (Some(Node.Raw.value(id)), n)
+                        | NamedImport(id, label) => (
+                            m,
+                            [(Node.Raw.value(id), label), ...n],
+                          )
+                      ),
                     (None, []),
                   );
 

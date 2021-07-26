@@ -40,7 +40,10 @@ let __const_decl = "const foo = nil";
 let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
 
 let __main_import_ast =
-  ("bar" |> of_internal, ["foo" |> of_public |> as_lexeme |> of_main_import])
+  (
+    "bar" |> of_internal,
+    ["foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
+  )
   |> of_import;
 let __const_decl_ast =
   (

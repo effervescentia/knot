@@ -10,8 +10,7 @@ let namespace = imports =>
 let main_import =
   M.identifier
   >|= Tuple.split2(Node.Raw.value % of_public, Node.Raw.cursor)
-  >|= of_main_import
-  >|= (x => [x]);
+  >|= (import => [(of_main_import(import), Node.Raw.cursor(import))]);
 
 let named_import = (ctx: ModuleContext.t) => {
   let closure_ctx = ClosureContext.from_module(ctx);
@@ -27,7 +26,15 @@ let named_import = (ctx: ModuleContext.t) => {
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Node.Raw.value
-  >|= List.map(of_named_import);
+  >|= List.map(((name, label) as import) =>
+        (
+          of_named_import(import),
+          Cursor.join(
+            Node.Raw.cursor(name),
+            label |> Option.map(Node.Raw.cursor) |?: Node.Raw.cursor(name),
+          ),
+        )
+      );
 };
 
 let parser = (ctx: ModuleContext.t) =>
@@ -43,11 +50,11 @@ let parser = (ctx: ModuleContext.t) =>
       imports
       |> List.iter(
            fun
-           | MainImport((alias, cursor)) =>
+           | (MainImport((alias, _)), cursor) =>
              ctx |> import((Main, cursor), alias)
-           | NamedImport((id, cursor), None) =>
+           | (NamedImport((id, _), None), cursor) =>
              ctx |> import((Named(id), cursor), id)
-           | NamedImport((id, cursor), Some(label)) =>
+           | (NamedImport((id, _), Some(label)), cursor) =>
              ctx |> import((Named(id), cursor), Node.Raw.value(label)),
          );
     }

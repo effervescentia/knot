@@ -73,7 +73,8 @@ let suite =
                   "foo"
                   |> of_public
                   |> as_lexeme(~cursor=Cursor.range((2, 10), (2, 12)))
-                  |> of_main_import,
+                  |> of_main_import
+                  |> as_lexeme,
                 ],
               )
               |> of_import,

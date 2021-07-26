@@ -399,7 +399,8 @@ and raw_declaration_t =
   | Constant(expression_t)
   | Function(list(argument_t), expression_t);
 
-type import_t =
+type import_t = Node.Raw.t(raw_import_t)
+and raw_import_t =
   | MainImport(untyped_id_t)
   | NamedImport(untyped_id_t, option(untyped_id_t));
 
@@ -505,33 +506,36 @@ module Debug = {
             ~children=
               imports
               |> List.map(
-                   fun
-                   | MainImport(name) =>
-                     print_entity(
-                       "Main",
-                       ~children=[
-                         print_untyped_lexeme("Name", print_id, name),
-                       ],
-                     )
-                   | NamedImport(name, Some((label, label_cursor))) =>
-                     print_entity(
-                       "Named",
-                       ~children=[
-                         print_untyped_lexeme("Name", print_id, name),
-                         print_entity(
-                           ~cursor=label_cursor,
-                           ~children=[print_id(label)],
-                           "As",
-                         ),
-                       ],
-                     )
-                   | NamedImport(name, None) =>
-                     print_entity(
-                       "Named",
-                       ~children=[
-                         print_untyped_lexeme("Name", print_id, name),
-                       ],
-                     ),
+                   Node.Raw.value
+                   % (
+                     fun
+                     | MainImport(name) =>
+                       print_entity(
+                         "Main",
+                         ~children=[
+                           print_untyped_lexeme("Name", print_id, name),
+                         ],
+                       )
+                     | NamedImport(name, Some((label, label_cursor))) =>
+                       print_entity(
+                         "Named",
+                         ~children=[
+                           print_untyped_lexeme("Name", print_id, name),
+                           print_entity(
+                             ~cursor=label_cursor,
+                             ~children=[print_id(label)],
+                             "As",
+                           ),
+                         ],
+                       )
+                     | NamedImport(name, None) =>
+                       print_entity(
+                         "Named",
+                         ~children=[
+                           print_untyped_lexeme("Name", print_id, name),
+                         ],
+                       )
+                   ),
                  ),
             "Import",
           ),

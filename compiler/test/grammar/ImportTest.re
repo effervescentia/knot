@@ -45,7 +45,9 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                ],
               ))
             ),
           ),
@@ -58,7 +60,11 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                [("foo" |> of_public |> as_lexeme, None) |> of_named_import],
+                [
+                  ("foo" |> of_public |> as_lexeme, None)
+                  |> of_named_import
+                  |> as_lexeme,
+                ],
               ))
             ),
           ),
@@ -72,7 +78,8 @@ let suite =
                     "foo" |> of_public |> as_lexeme,
                     Some("bar" |> of_public |> as_lexeme),
                   )
-                  |> of_named_import,
+                  |> of_named_import
+                  |> as_lexeme,
                 ],
               ))
             ),
@@ -83,13 +90,20 @@ let suite =
               of_import((
                 "bar" |> of_internal,
                 [
-                  "fizz" |> of_public |> as_lexeme |> of_main_import,
-                  ("foo" |> of_public |> as_lexeme, None) |> of_named_import,
+                  "fizz"
+                  |> of_public
+                  |> as_lexeme
+                  |> of_main_import
+                  |> as_lexeme,
+                  ("foo" |> of_public |> as_lexeme, None)
+                  |> of_named_import
+                  |> as_lexeme,
                   (
                     "bar" |> of_public |> as_lexeme,
                     Some("Bar" |> of_public |> as_lexeme),
                   )
-                  |> of_named_import,
+                  |> of_named_import
+                  |> as_lexeme,
                 ],
               ))
             ),
@@ -100,8 +114,12 @@ let suite =
               of_import((
                 "bar" |> of_internal,
                 [
-                  ("foo" |> of_public |> as_lexeme, None) |> of_named_import,
-                  ("bar" |> of_public |> as_lexeme, None) |> of_named_import,
+                  ("foo" |> of_public |> as_lexeme, None)
+                  |> of_named_import
+                  |> as_lexeme,
+                  ("bar" |> of_public |> as_lexeme, None)
+                  |> of_named_import
+                  |> as_lexeme,
                 ],
               ))
             ),
@@ -150,7 +168,9 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                ],
               ))
             ),
           ),
@@ -159,7 +179,9 @@ let suite =
             AST.(
               of_import((
                 "bar" |> of_internal,
-                ["foo" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                ],
               ))
             ),
           ),

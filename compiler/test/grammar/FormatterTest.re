@@ -502,19 +502,28 @@ import Fizz from \"buzz\";
             [
               (
                 "buzz" |> of_external,
-                ["Fizz" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "Fizz"
+                  |> of_public
+                  |> as_lexeme
+                  |> of_main_import
+                  |> as_lexeme,
+                ],
               )
               |> of_import,
               (
                 "bar" |> of_external,
                 [
-                  "bar" |> of_public |> as_lexeme |> of_main_import,
+                  "bar" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
                   (
                     "Foo" |> of_public |> as_lexeme,
                     Some("foo" |> of_public |> as_lexeme),
                   )
-                  |> of_named_import,
-                  ("Bar" |> of_public |> as_lexeme, None) |> of_named_import,
+                  |> of_named_import
+                  |> as_lexeme,
+                  ("Bar" |> of_public |> as_lexeme, None)
+                  |> of_named_import
+                  |> as_lexeme,
                 ],
               )
               |> of_import,
@@ -528,12 +537,20 @@ import Foo from \"@/bar\";
             [
               (
                 "bar" |> of_internal,
-                ["Foo" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                ],
               )
               |> of_import,
               (
                 "buzz" |> of_external,
-                ["Fizz" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "Fizz"
+                  |> of_public
+                  |> as_lexeme
+                  |> of_main_import
+                  |> as_lexeme,
+                ],
               )
               |> of_import,
             ],
@@ -554,7 +571,9 @@ import Foo from \"@/bar\";
             [
               (
                 "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                ],
               )
               |> of_import,
             ],
@@ -577,7 +596,9 @@ const ABC = 123;
             [
               (
                 "bar" |> of_external,
-                ["Foo" |> of_public |> as_lexeme |> of_main_import],
+                [
+                  "Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                ],
               )
               |> of_import,
               (

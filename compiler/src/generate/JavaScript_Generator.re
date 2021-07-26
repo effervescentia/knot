@@ -326,23 +326,26 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                    resolve(namespace),
                    imports
                    |> List.map(
-                        fun
-                        | MainImport(id) => (
-                            __main_export,
-                            Some(
+                        Node.Raw.value
+                        % (
+                          fun
+                          | MainImport(id) => (
+                              __main_export,
+                              Some(
+                                id |> Node.Raw.value |> Identifier.to_string,
+                              ),
+                            )
+                          | NamedImport(id, Some(label)) => (
                               id |> Node.Raw.value |> Identifier.to_string,
-                            ),
-                          )
-                        | NamedImport(id, Some(label)) => (
-                            id |> Node.Raw.value |> Identifier.to_string,
-                            Some(
-                              label |> Node.Raw.value |> Identifier.to_string,
-                            ),
-                          )
-                        | NamedImport(id, None) => (
-                            id |> Node.Raw.value |> Identifier.to_string,
-                            None,
-                          ),
+                              Some(
+                                label |> Node.Raw.value |> Identifier.to_string,
+                              ),
+                            )
+                          | NamedImport(id, None) => (
+                              id |> Node.Raw.value |> Identifier.to_string,
+                              None,
+                            )
+                        ),
                       ),
                  ),
                ],

@@ -159,7 +159,8 @@ let of_import =
 
 let of_mod_stmt =
   fun
-  | AST.Import(namespace, imports) => imports |> _fold(of_import)
+  | AST.Import(namespace, imports) =>
+    imports |> _fold(Node.Raw.value % of_import)
   | AST.Declaration(MainExport(id) | NamedExport(id), decl) =>
     _join(id |> Tuple.reduce2(of_untyped_id), decl |> Node.value |> of_decl);
 

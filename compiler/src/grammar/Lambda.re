@@ -55,5 +55,17 @@ let arguments = (ctx: ClosureContext.t) =>
 let parser = (ctx: ClosureContext.t) =>
   option([], arguments(ctx))
   >>= (
-    args => Glyph.lambda >> Expression.parser(ctx) >|= (expr => (args, expr))
+    args =>
+      Glyph.lambda
+      >>= (
+        start =>
+          Expression.parser(ctx)
+          >|= (
+            expr => (
+              args,
+              expr,
+              Cursor.join(Node.Raw.cursor(start), Node.Raw.cursor(expr)),
+            )
+          )
+      )
   );
