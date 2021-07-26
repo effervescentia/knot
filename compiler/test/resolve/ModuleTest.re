@@ -19,7 +19,8 @@ let __program = [
          )
       |> of_prim
       |> as_int
-      |> of_const,
+      |> of_const
+      |> as_int,
     )
     |> of_decl
   ),

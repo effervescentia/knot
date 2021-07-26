@@ -43,7 +43,11 @@ let __ast =
            ~cursor=Cursor.range((1, 13), (1, 15)),
            Valid(`Integer),
          )
-      |> of_const,
+      |> of_const
+      |> as_typed_lexeme(
+           ~cursor=Cursor.range((1, 13), (1, 15)),
+           Valid(`Integer),
+         ),
     )
     |> of_decl,
   ];

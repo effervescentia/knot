@@ -67,8 +67,19 @@ module Common = {
       ]
       |> concat;
 
-    let print_lexeme = (~attrs=[], name, value, cursor) =>
-      print_entity(~attrs, ~cursor, ~children=[value], name);
+    let print_lexeme = (~attrs=[], label, value, cursor) =>
+      print_entity(~attrs, ~cursor, ~children=[value], label);
+
+    let print_typed_lexeme = (~attrs=[], label, value, type_, cursor) =>
+      print_entity(
+        ~attrs=[
+          ("type", type_ |> Type.to_string |> Pretty.string),
+          ...attrs,
+        ],
+        ~cursor,
+        ~children=[value],
+        label,
+      );
   };
 };
 
@@ -375,15 +386,16 @@ include Make({
   let get_cursor = Node.cursor;
 
   let print_lexeme = (label, print_value, x) =>
-    Common.Debug.print_lexeme(
-      ~attrs=[("type", x |> get_type |> Type.to_string |> Pretty.string)],
+    Common.Debug.print_typed_lexeme(
       label,
       x |> get_value |> print_value,
+      get_type(x),
       get_cursor(x),
     );
 });
 
-type declaration_t =
+type declaration_t = Node.t(raw_declaration_t)
+and raw_declaration_t =
   | Constant(expression_t)
   | Function(list(argument_t), expression_t);
 
@@ -423,9 +435,10 @@ module Debug = {
   include Debug;
 
   let print_decl = ((name, decl)) =>
-    switch (decl) {
+    switch (Node.value(decl)) {
     | Constant(expr) =>
       print_entity(
+        ~cursor=Node.cursor(decl),
         ~children=[
           print_entity(
             ~cursor=

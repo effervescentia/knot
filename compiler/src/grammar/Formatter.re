@@ -203,7 +203,7 @@ and fmt_statement = stmt =>
 
 let fmt_declaration = ((name, decl)) =>
   (
-    switch (decl) {
+    switch (Node.value(decl)) {
     | Constant(expr) => [
         string("const "),
         name |> Node.Raw.value |> fmt_id,
@@ -370,12 +370,12 @@ let fmt_declarations = stmts => {
     /* do not add newline after the last statement */
     | [x] => loop(~acc=[fmt_declaration(x), ...acc], [])
     /* handle constant clustering logic */
-    | [(_, Constant(_)) as x, ...xs] =>
+    | [(_, (Constant(_), _, _)) as x, ...xs] =>
       switch (xs) {
       /* no more statements, loop to return */
       | []
       /* followed by a constant, do not add newline */
-      | [(_, Constant(_)), ..._] =>
+      | [(_, (Constant(_), _, _)), ..._] =>
         loop(~acc=[fmt_declaration(x), ...acc], xs)
       /* followed by other declarations, add a newline */
       | _ => loop(~acc=[fmt_declaration(x), Newline, ...acc], xs)

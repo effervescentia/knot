@@ -39,12 +39,12 @@ let _get_exports = ast =>
          []
 
        | AST.Declaration(NamedExport(id), decl) => [
-           (Export.Named(Node.Raw.value(id)), TypeOf.declaration(decl)),
+           (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
          ]
 
        | AST.Declaration(MainExport(id), decl) => [
-           (Export.Named(Node.Raw.value(id)), TypeOf.declaration(decl)),
-           (Export.Main, TypeOf.declaration(decl)),
+           (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
+           (Export.Main, Node.type_(decl)),
          ]
 
        | _ => [],

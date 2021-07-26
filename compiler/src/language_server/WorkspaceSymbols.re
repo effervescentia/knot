@@ -69,7 +69,7 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                            name |> Node.Raw.value |> Identifier.to_string;
 
                          Some(
-                           switch (decl) {
+                           switch (Node.value(decl)) {
                            | Constant(expr) => {
                                uri,
                                name,

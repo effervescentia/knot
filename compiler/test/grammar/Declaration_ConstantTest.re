@@ -43,7 +43,7 @@ let suite =
             "const foo = nil",
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
-              nil_prim |> of_const,
+              nil_prim |> of_const |> as_nil,
             ),
           ),
         ]
@@ -116,7 +116,8 @@ let suite =
             ]
             |> of_closure
             |> as_bool
-            |> of_const,
+            |> of_const
+            |> as_bool,
           ),
         );
 

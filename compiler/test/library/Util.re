@@ -66,6 +66,8 @@ module ResultUtil = {
   let as_float = x => as_typed_lexeme(Type.Valid(`Float), x);
   let as_string = x => as_typed_lexeme(Type.Valid(`String), x);
   let as_element = x => as_typed_lexeme(Type.Valid(`Element), x);
+  let as_function = (args, res, x) =>
+    as_typed_lexeme(Type.Valid(`Function((args, res))), x);
   let as_unknown = x => as_typed_lexeme(Type.Valid(`Abstract(Unknown)), x);
 
   let as_abstract = (trait, x) =>

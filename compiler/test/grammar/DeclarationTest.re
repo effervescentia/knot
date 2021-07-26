@@ -39,7 +39,7 @@ let suite =
             "const foo = nil",
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
-              nil_prim |> of_const,
+              nil_prim |> of_const |> as_nil,
             )
             |> of_decl,
           ),
@@ -54,7 +54,7 @@ let suite =
             "main const foo = nil",
             (
               "foo" |> of_public |> as_lexeme |> of_main_export,
-              nil_prim |> of_const,
+              nil_prim |> of_const |> as_nil,
             )
             |> of_decl,
           ),

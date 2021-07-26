@@ -53,28 +53,32 @@ let suite =
             "func foo -> nil",
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], nil_prim) |> of_func,
+              ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
             ),
           ),
           (
             "func foo -> { nil }",
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], [nil_prim |> of_expr] |> of_closure |> as_nil) |> of_func,
+              ([], [nil_prim |> of_expr] |> of_closure |> as_nil)
+              |> of_func
+              |> as_function([], Valid(`Nil)),
             ),
           ),
           (
             "func foo () -> nil",
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], nil_prim) |> of_func,
+              ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
             ),
           ),
           (
             "func foo () -> { nil }",
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
-              ([], [nil_prim |> of_expr] |> of_closure |> as_nil) |> of_func,
+              ([], [nil_prim |> of_expr] |> of_closure |> as_nil)
+              |> of_func
+              |> as_function([], Valid(`Nil)),
             ),
           ),
         ]

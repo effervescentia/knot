@@ -43,7 +43,10 @@ let __main_import_ast =
   ("bar" |> of_internal, ["foo" |> of_public |> as_lexeme |> of_main_import])
   |> of_import;
 let __const_decl_ast =
-  ("foo" |> of_public |> as_lexeme |> of_named_export, nil_prim |> of_const)
+  (
+    "foo" |> of_public |> as_lexeme |> of_named_export,
+    nil_prim |> of_const |> as_nil,
+  )
   |> of_decl;
 
 let __ns_context =
@@ -89,7 +92,13 @@ let suite =
               __const_decl_ast,
               (
                 "bar" |> of_public |> as_lexeme |> of_named_export,
-                "foo" |> of_public |> as_nil |> of_id |> as_nil |> of_const,
+                "foo"
+                |> of_public
+                |> as_nil
+                |> of_id
+                |> as_nil
+                |> of_const
+                |> as_nil,
               )
               |> of_decl,
             ],
@@ -138,7 +147,13 @@ let suite =
             __main_import_ast,
             (
               "bar" |> of_public |> as_lexeme |> of_named_export,
-              "foo" |> of_public |> as_bool |> of_id |> as_bool |> of_const,
+              "foo"
+              |> of_public
+              |> as_bool
+              |> of_id
+              |> as_bool
+              |> of_const
+              |> as_nil,
             )
             |> of_decl,
           ],

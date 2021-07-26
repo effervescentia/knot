@@ -388,7 +388,7 @@ let suite =
             "const foo = nil;\n",
             (
               "foo" |> of_public |> as_lexeme,
-              nil |> as_nil |> of_prim |> as_nil |> of_const,
+              nil |> as_nil |> of_prim |> as_nil |> of_const |> as_nil,
             ),
           ),
         ]
@@ -425,7 +425,8 @@ let suite =
                 |> of_add_op
                 |> as_int,
               )
-              |> of_func,
+              |> of_func
+              |> as_function([], Valid(`Integer)),
             ),
           ),
           (
@@ -453,7 +454,8 @@ let suite =
                 |> of_closure
                 |> as_int,
               )
-              |> of_func,
+              |> of_func
+              |> as_function([], Valid(`Integer)),
             ),
           ),
         ]
@@ -471,12 +473,12 @@ const ABC = 123;
             [
               (
                 "DEF" |> of_public |> as_lexeme |> of_named_export,
-                true |> bool_prim |> of_const,
+                true |> bool_prim |> of_const |> as_bool,
               )
               |> of_decl,
               (
                 "ABC" |> of_public |> as_lexeme |> of_named_export,
-                123 |> int_prim |> of_const,
+                123 |> int_prim |> of_const |> as_int,
               )
               |> of_decl,
             ],
@@ -562,7 +564,7 @@ import Foo from \"@/bar\";
             [
               (
                 "ABC" |> of_public |> as_lexeme |> of_named_export,
-                123 |> int_prim |> of_const,
+                123 |> int_prim |> of_const |> as_int,
               )
               |> of_decl,
             ],
@@ -580,7 +582,7 @@ const ABC = 123;
               |> of_import,
               (
                 "ABC" |> of_public |> as_lexeme |> of_named_export,
-                123 |> int_prim |> of_const,
+                123 |> int_prim |> of_const |> as_int,
               )
               |> of_decl,
             ],

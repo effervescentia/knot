@@ -121,59 +121,95 @@ let constant = (ctx: ModuleContext.t, f) => {
   let closure_ctx = ClosureContext.from_module(ctx);
 
   Keyword.const
-  >> Operator.assign(
-       Identifier.parser(closure_ctx),
-       Expression.parser(closure_ctx),
-     )
-  >|= (
-    ((id, raw_expr)) => {
-      let expr = TypeResolver.res_expr(raw_expr);
+  >>= (
+    start =>
+      Operator.assign(
+        Identifier.parser(closure_ctx),
+        Expression.parser(closure_ctx),
+      )
+      >|= (
+        ((id, raw_expr)) => {
+          let expr = TypeResolver.res_expr(raw_expr);
 
-      ctx |> ModuleContext.define(Node.Raw.value(id), TypeOf.lexeme(expr));
+          /* ctx |> ModuleContext.define(Node.Raw.value(id), TypeOf.lexeme(expr)); */
 
-      (f(id), of_const(expr));
-    }
-  )
-  |> M.terminated;
+          (
+            f(id),
+            (
+              of_const(expr),
+              Node.type_(expr),
+              Cursor.join(Node.Raw.cursor(start), Node.cursor(expr)),
+            ),
+          );
+        }
+      )
+      |> M.terminated
+  );
 };
 
 let function_ = (ctx: ModuleContext.t, f) => {
   let closure_ctx = ClosureContext.from_module(ctx);
 
   Keyword.func
-  >> Identifier.parser(closure_ctx)
   >>= (
-    id => {
-      let child_ctx = ClosureContext.child(closure_ctx);
+    start =>
+      Identifier.parser(closure_ctx)
+      >>= (
+        id => {
+          let child_ctx = ClosureContext.child(closure_ctx);
 
-      Lambda.parser(child_ctx)
-      >|= (
-        ((raw_args, raw_res)) => {
-          let ctx_cursor =
-            Cursor.join(Node.Raw.cursor(raw_res), Node.Raw.cursor(raw_res));
-          let res = TypeResolver.res_expr(raw_res);
-          let args =
-            raw_args
-            |> List.map(((arg, cursor): Raw.argument_t) =>
-                 (
-                   {
-                     name: arg.name,
-                     default:
-                       arg.default |> Option.map(TypeResolver.res_expr),
-                     type_: None,
-                   },
-                   /* TODO: implement */
-                   Type.Valid(`Abstract(Unknown)),
-                   cursor,
-                 )
-               );
+          Lambda.parser(child_ctx)
+          >|= (
+            ((raw_args, raw_res)) => {
+              let ctx_cursor =
+                Cursor.join(
+                  Node.Raw.cursor(raw_res),
+                  Node.Raw.cursor(raw_res),
+                );
+              let res = TypeResolver.res_expr(raw_res);
+              let args =
+                raw_args
+                |> List.map(((arg, cursor): Raw.argument_t) =>
+                     (
+                       {
+                         name: arg.name,
+                         default:
+                           arg.default |> Option.map(TypeResolver.res_expr),
+                         type_: None,
+                       },
+                       /* TODO: implement */
+                       Type.Valid(`Abstract(Unknown)),
+                       cursor,
+                     )
+                   );
 
-          child_ctx |> ClosureContext.save(ctx_cursor);
+              child_ctx |> ClosureContext.save(ctx_cursor);
 
-          (f(id), (args, res) |> of_func);
+              (
+                f(id),
+                (
+                  (args, res) |> of_func,
+                  Type.Valid(
+                    `Function((
+                      args
+                      |> List.map((({name}, type_, _)) =>
+                           (
+                             name
+                             |> Node.Raw.value
+                             |> Reference.Identifier.to_string,
+                             type_,
+                           )
+                         ),
+                      Node.type_(res),
+                    )),
+                  ),
+                  Cursor.join(Node.Raw.cursor(start), Node.cursor(res)),
+                ),
+              );
+            }
+          );
         }
-      );
-    }
+      )
   )
   |> M.terminated;
 };

@@ -13,7 +13,7 @@ let __program = [
   |> of_import,
   (
     "ABC" |> of_public |> as_lexeme |> of_named_export,
-    123 |> int_prim |> of_const,
+    123 |> int_prim |> of_const |> as_int,
   )
   |> of_decl,
 ];

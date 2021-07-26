@@ -161,7 +161,7 @@ let of_mod_stmt =
   fun
   | AST.Import(namespace, imports) => imports |> _fold(of_import)
   | AST.Declaration(MainExport(id) | NamedExport(id), decl) =>
-    _join(id |> Tuple.reduce2(of_untyped_id), of_decl(decl));
+    _join(id |> Tuple.reduce2(of_untyped_id), decl |> Node.value |> of_decl);
 
 let of_ast = (program: AST.program_t) => program |> _fold(of_mod_stmt);
 

@@ -56,10 +56,10 @@ let handler =
                      let name_cursor = Node.Raw.cursor(name);
                      let range = Cursor.expand(name_cursor);
                      let name = name |> Node.Raw.value |> Identifier.to_string;
-                     let type_ = decl |> Grammar.TypeOf.declaration;
+                     let type_ = Node.type_(decl);
 
                      Some(
-                       switch (decl) {
+                       switch (Node.value(decl)) {
                        | Constant(expr) => {
                            name,
                            detail: Type.to_string(type_),

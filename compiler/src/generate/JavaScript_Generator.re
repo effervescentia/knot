@@ -292,7 +292,7 @@ let gen_function =
 
 let gen_declaration = (name: untyped_id_t, decl: declaration_t) =>
   (
-    switch (decl) {
+    switch (Node.value(decl)) {
     | Constant(value) => [gen_constant(name, value)]
     | Function(args, expr) => [gen_function(name, args, expr)]
     }

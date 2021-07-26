@@ -90,7 +90,11 @@ let suite =
                      ~cursor=Cursor.range((4, 15), (4, 17)),
                      Type.Valid(`Integer),
                    )
-                |> of_const,
+                |> of_const
+                |> as_typed_lexeme(
+                     ~cursor=Cursor.range((4, 15), (4, 17)),
+                     Type.Valid(`Integer),
+                   ),
               )
               |> of_decl,
             ],
