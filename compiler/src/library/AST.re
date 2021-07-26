@@ -75,12 +75,12 @@ module Common = {
 module type ASTParams = {
   type type_t;
 
-  type lexeme_t('a);
+  type node_t('a);
 
-  let get_value: lexeme_t('a) => 'a;
-  let get_cursor: lexeme_t('a) => Cursor.t;
+  let get_value: node_t('a) => 'a;
+  let get_cursor: node_t('a) => Cursor.t;
 
-  let print_lexeme: (string, 'a => Pretty.t, lexeme_t('a)) => Pretty.t;
+  let print_lexeme: (string, 'a => Pretty.t, node_t('a)) => Pretty.t;
 };
 
 module Make = (T: ASTParams) => {
@@ -88,31 +88,31 @@ module Make = (T: ASTParams) => {
 
   type type_t = T.type_t;
 
-  type identifier_t = T.lexeme_t(Identifier.t);
+  type identifier_t = T.node_t(Identifier.t);
   type untyped_id_t = Node.Raw.t(Identifier.t);
 
-  type primitive_t = T.lexeme_t(raw_primitive_t)
+  type primitive_t = T.node_t(raw_primitive_t)
   and raw_primitive_t =
     | Nil
     | Boolean(bool)
     | Number(number_t)
     | String(string);
 
-  type jsx_t = T.lexeme_t(raw_jsx_t)
+  type jsx_t = T.node_t(raw_jsx_t)
   and raw_jsx_t =
     | Tag(untyped_id_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
-  and jsx_child_t = T.lexeme_t(raw_jsx_child_t)
+  and jsx_child_t = T.node_t(raw_jsx_child_t)
   and raw_jsx_child_t =
-    | Text(T.lexeme_t(string))
+    | Text(T.node_t(string))
     | Node(jsx_t)
     | InlineExpression(expression_t)
-  and jsx_attribute_t = T.lexeme_t(raw_jsx_attribute_t)
+  and jsx_attribute_t = T.node_t(raw_jsx_attribute_t)
   and raw_jsx_attribute_t =
     | ID(untyped_id_t)
     | Class(untyped_id_t, option(expression_t))
     | Property(untyped_id_t, option(expression_t))
-  and expression_t = T.lexeme_t(raw_expression_t)
+  and expression_t = T.node_t(raw_expression_t)
   and raw_expression_t =
     | Primitive(primitive_t)
     | Identifier(identifier_t)
@@ -125,11 +125,11 @@ module Make = (T: ASTParams) => {
     | Variable(untyped_id_t, expression_t)
     | Expression(expression_t);
 
-  type argument_t = T.lexeme_t(raw_argument_t)
+  type argument_t = T.node_t(raw_argument_t)
   and raw_argument_t = {
     name: untyped_id_t,
     default: option(expression_t),
-    type_: option(T.lexeme_t(Type.t)),
+    type_: option(T.node_t(Type.t)),
   };
 
   /* tag helpers */
@@ -352,7 +352,7 @@ module Raw =
   Make({
     type type_t = Type.Raw.t;
 
-    type lexeme_t('a) = Node.Raw.t('a);
+    type node_t('a) = Node.Raw.t('a);
 
     let get_value = Node.Raw.value;
     let get_cursor = Node.Raw.cursor;
@@ -368,7 +368,7 @@ module Raw =
 include Make({
   type type_t = Type.t;
 
-  type lexeme_t('a) = Node.t('a);
+  type node_t('a) = Node.t('a);
 
   let get_value = Node.value;
   let get_type = Node.type_;

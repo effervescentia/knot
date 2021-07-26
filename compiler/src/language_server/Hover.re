@@ -82,12 +82,12 @@ let handler =
           Hashtbl.find_opt(compiler.modules, namespace)
           |?< (({raw}) => raw |> Runtime.scan_for_token(point))
           |?< (
-            block =>
-              switch (Node.Raw.value(block)) {
+            node =>
+              switch (Node.Raw.value(node)) {
               | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
                 Some((
                   kwd |> Print.fmt("(keyword) %s"),
-                  Node.Raw.cursor(block),
+                  Node.Raw.cursor(node),
                 ))
               | _ => None
               }

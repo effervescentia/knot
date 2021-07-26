@@ -18,8 +18,6 @@ let number = Number.parser >|= Tuple.map_fst2(of_num);
 
 let string =
   M.string
-  >|= (
-    block => (block |> Node.Raw.value |> of_string, Node.Raw.cursor(block))
-  );
+  >|= (node => (node |> Node.Raw.value |> of_string, Node.Raw.cursor(node)));
 
 let parser = choice([nil, boolean, number, string]);

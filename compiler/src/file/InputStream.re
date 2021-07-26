@@ -58,12 +58,12 @@ let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
           loop(cursor, cursor);
         } else {
           let token = buffer |> Buffer.contents;
-          let block = Node.Raw.create(token, Cursor.Range(start, end_));
+          let node = Node.Raw.create(token, Cursor.Range(start, end_));
 
           buffer |> Buffer.clear;
 
-          if (predicate(block)) {
-            Some(block);
+          if (predicate(node)) {
+            Some(node);
           } else {
             loop(start, end_);
           };

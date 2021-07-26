@@ -32,6 +32,6 @@ module Raw = {
 
   /* getters */
 
-  let value = (block: t('a)): 'a => fst(block);
-  let cursor = (block: t('a)): Cursor.t => snd(block);
+  let value = (node: t('a)): 'a => fst(node);
+  let cursor = (node: t('a)): Cursor.t => snd(node);
 };

@@ -14,8 +14,8 @@ let jsx = (ctx: ClosureContext.t, x) =>
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
   >|= (
-    block => {
-      (block |> Node.Raw.value |> of_group, Node.Raw.cursor(block));
+    node => {
+      (node |> Node.Raw.value |> of_group, Node.Raw.cursor(node));
     }
   );
 

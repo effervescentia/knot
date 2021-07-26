@@ -1,7 +1,5 @@
 open Kore;
 
-let lexeme = ((_, t, _)) => t;
-
 let statement =
   AST.(
     fun

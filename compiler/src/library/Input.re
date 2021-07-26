@@ -16,7 +16,7 @@ let cursor: t => Cursor.t = Node.Raw.cursor;
 /* methods */
 
 /**
- combine two inputs into a block
+ combine two inputs into a node
  */
 let join = (cs: list(t)): Node.Raw.t(string) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(cursor);
@@ -26,7 +26,7 @@ let join = (cs: list(t)): Node.Raw.t(string) => {
 };
 
 /**
- convert input into a block
+ convert input into a node
  */
 let to_node = (x: t): Node.Raw.t(Uchar.t) =>
   Node.Raw.create(value(x), cursor(x));

@@ -6,9 +6,9 @@ let integer =
   many1(M.digit)
   >|= Input.join
   >|= (
-    block => (
-      block |> Node.Raw.value |> Int64.of_string |> AST.of_int,
-      Node.Raw.cursor(block),
+    node => (
+      node |> Node.Raw.value |> Int64.of_string |> AST.of_int,
+      Node.Raw.cursor(node),
     )
   )
   |> M.lexeme;
