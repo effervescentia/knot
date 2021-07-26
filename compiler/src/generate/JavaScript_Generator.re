@@ -318,54 +318,59 @@ let generate = (resolve: resolve_t, ast: program_t) => {
     ast
     |> List.fold_left(
          ((i, d)) =>
-           fun
-           | Import(namespace, imports) => (
-               i
-               @ [
-                 JavaScript_AST.Import(
-                   resolve(namespace),
-                   imports
-                   |> List.map(
-                        Node.Raw.value
-                        % (
-                          fun
-                          | MainImport(id) => (
-                              __main_export,
-                              Some(
+           Node.Raw.value
+           % (
+             fun
+             | Import(namespace, imports) => (
+                 i
+                 @ [
+                   JavaScript_AST.Import(
+                     resolve(namespace),
+                     imports
+                     |> List.map(
+                          Node.Raw.value
+                          % (
+                            fun
+                            | MainImport(id) => (
+                                __main_export,
+                                Some(
+                                  id |> Node.Raw.value |> Identifier.to_string,
+                                ),
+                              )
+                            | NamedImport(id, Some(label)) => (
                                 id |> Node.Raw.value |> Identifier.to_string,
-                              ),
-                            )
-                          | NamedImport(id, Some(label)) => (
-                              id |> Node.Raw.value |> Identifier.to_string,
-                              Some(
-                                label |> Node.Raw.value |> Identifier.to_string,
-                              ),
-                            )
-                          | NamedImport(id, None) => (
-                              id |> Node.Raw.value |> Identifier.to_string,
-                              None,
-                            )
+                                Some(
+                                  label
+                                  |> Node.Raw.value
+                                  |> Identifier.to_string,
+                                ),
+                              )
+                            | NamedImport(id, None) => (
+                                id |> Node.Raw.value |> Identifier.to_string,
+                                None,
+                              )
+                          ),
                         ),
-                      ),
-                 ),
-               ],
-               d,
-             )
-           | Declaration(NamedExport(name), decl) => (
-               i,
-               d @ gen_declaration(name, decl),
-             )
-           | Declaration(MainExport(name), decl) => (
-               i,
-               d
-               @ gen_declaration(name, decl)
-               @ [
-                 JavaScript_AST.Export(
-                   name |> Node.Raw.value |> Identifier.to_string,
-                   Some(__main_export),
-                 ),
-               ],
-             ),
+                   ),
+                 ],
+                 d,
+               )
+             | Declaration(NamedExport(name), decl) => (
+                 i,
+                 d @ gen_declaration(name, decl),
+               )
+             | Declaration(MainExport(name), decl) => (
+                 i,
+                 d
+                 @ gen_declaration(name, decl)
+                 @ [
+                   JavaScript_AST.Export(
+                     name |> Node.Raw.value |> Identifier.to_string,
+                     Some(__main_export),
+                   ),
+                 ],
+               )
+           ),
          ([], []),
        );
 
