@@ -164,7 +164,8 @@ let of_mod_stmt =
   | AST.Declaration(MainExport(id) | NamedExport(id), decl) =>
     _join(id |> Tuple.reduce2(of_untyped_id), decl |> Node.value |> of_decl);
 
-let of_ast = (program: AST.program_t) => program |> _fold(of_mod_stmt);
+let of_ast = (program: AST.program_t) =>
+  program |> _fold(Node.Raw.value % of_mod_stmt);
 
 let to_string = (tree: t) =>
   BinaryTree.to_string((((start, end_), token)) =>

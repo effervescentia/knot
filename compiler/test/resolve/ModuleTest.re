@@ -23,6 +23,7 @@ let __program = [
       |> as_int,
     )
     |> of_decl
+    |> as_lexeme
   ),
 ];
 

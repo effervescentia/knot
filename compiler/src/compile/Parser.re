@@ -21,9 +21,12 @@ let imports = (namespace, input) =>
     | Some(stmts) =>
       stmts
       |> List.filter_map(
-           fun
-           | AST.Import(namespace, _) => Some(namespace)
-           | _ => None,
+           Node.Raw.value
+           % (
+             fun
+             | AST.Import(namespace, _) => Some(namespace)
+             | _ => None
+           ),
          )
     | None => []
   );

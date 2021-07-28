@@ -475,12 +475,14 @@ const ABC = 123;
                 "DEF" |> of_public |> as_lexeme |> of_named_export,
                 true |> bool_prim |> of_const |> as_bool,
               )
-              |> of_decl,
+              |> of_decl
+              |> as_lexeme,
               (
                 "ABC" |> of_public |> as_lexeme |> of_named_export,
                 123 |> int_prim |> of_const |> as_int,
               )
-              |> of_decl,
+              |> of_decl
+              |> as_lexeme,
             ],
           ),
         ]
@@ -557,7 +559,12 @@ import Foo from \"@/bar\";
           ),
         ]
         |> List.map(
-             Tuple.map_snd2(fmt_imports % Pretty.concat % Pretty.to_string),
+             Tuple.map_snd2(
+               List.map(as_lexeme)
+               % fmt_imports
+               % Pretty.concat
+               % Pretty.to_string,
+             ),
            )
         |> Assert.(test_many(string))
     ),
@@ -609,7 +616,11 @@ const ABC = 123;
             ],
           ),
         ]
-        |> List.map(Tuple.map_snd2(Formatter.format % Pretty.to_string))
+        |> List.map(
+             Tuple.map_snd2(
+               List.map(as_lexeme) % Formatter.format % Pretty.to_string,
+             ),
+           )
         |> Assert.(test_many(string))
     ),
   ];

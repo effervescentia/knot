@@ -50,39 +50,41 @@ let handler =
         ({ast}) =>
           ast
           |> List.filter_map(
-               AST.(
-                 fun
-                 | Declaration(MainExport(name) | NamedExport(name), decl) => {
-                     let name_cursor = Node.Raw.cursor(name);
-                     let range = Cursor.expand(name_cursor);
-                     let name = name |> Node.Raw.value |> Identifier.to_string;
-                     let type_ = Node.type_(decl);
+               Node.Raw.value
+               % AST.(
+                   fun
+                   | Declaration(MainExport(name) | NamedExport(name), decl) => {
+                       let name_cursor = Node.Raw.cursor(name);
+                       let range = Cursor.expand(name_cursor);
+                       let name =
+                         name |> Node.Raw.value |> Identifier.to_string;
+                       let type_ = Node.type_(decl);
 
-                     Some(
-                       switch (Node.value(decl)) {
-                       | Constant(expr) => {
-                           name,
-                           detail: Type.to_string(type_),
-                           range,
-                           full_range:
-                             Cursor.join(name_cursor, Node.cursor(expr))
-                             |> Cursor.expand,
-                           kind: Capabilities.Variable,
-                         }
-                       | Function(args, expr) => {
-                           name,
-                           detail: Type.to_string(type_),
-                           range,
-                           full_range:
-                             Cursor.join(name_cursor, Node.cursor(expr))
-                             |> Cursor.expand,
-                           kind: Capabilities.Function,
-                         }
-                       },
-                     );
-                   }
-                 | Import(_) => None
-               ),
+                       Some(
+                         switch (Node.value(decl)) {
+                         | Constant(expr) => {
+                             name,
+                             detail: Type.to_string(type_),
+                             range,
+                             full_range:
+                               Cursor.join(name_cursor, Node.cursor(expr))
+                               |> Cursor.expand,
+                             kind: Capabilities.Variable,
+                           }
+                         | Function(args, expr) => {
+                             name,
+                             detail: Type.to_string(type_),
+                             range,
+                             full_range:
+                               Cursor.join(name_cursor, Node.cursor(expr))
+                               |> Cursor.expand,
+                             kind: Capabilities.Function,
+                           }
+                         },
+                       );
+                     }
+                   | Import(_) => None
+                 ),
              )
       )
       |?: [];

@@ -52,41 +52,45 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
          |> List.map(((namespace, ModuleTable.{ast})) =>
               ast
               |> List.filter_map(
-                   AST.(
-                     fun
-                     | Declaration(
-                         MainExport(name) | NamedExport(name),
-                         decl,
-                       ) => {
-                         let uri =
-                           Filename.concat(
-                             uri,
-                             namespace
-                             |> Namespace.to_path(compiler.config.source_dir),
-                           );
-                         let range = name |> Node.Raw.cursor |> Cursor.expand;
-                         let name =
-                           name |> Node.Raw.value |> Identifier.to_string;
+                   Node.Raw.value
+                   % AST.(
+                       fun
+                       | Declaration(
+                           MainExport(name) | NamedExport(name),
+                           decl,
+                         ) => {
+                           let uri =
+                             Filename.concat(
+                               uri,
+                               namespace
+                               |> Namespace.to_path(
+                                    compiler.config.source_dir,
+                                  ),
+                             );
+                           let range =
+                             name |> Node.Raw.cursor |> Cursor.expand;
+                           let name =
+                             name |> Node.Raw.value |> Identifier.to_string;
 
-                         Some(
-                           switch (Node.value(decl)) {
-                           | Constant(expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Variable,
-                             }
-                           | Function(args, expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Function,
-                             }
-                           },
-                         );
-                       }
-                     | Import(_) => None
-                   ),
+                           Some(
+                             switch (Node.value(decl)) {
+                             | Constant(expr) => {
+                                 uri,
+                                 name,
+                                 range,
+                                 kind: Capabilities.Variable,
+                               }
+                             | Function(args, expr) => {
+                                 uri,
+                                 name,
+                                 range,
+                                 kind: Capabilities.Function,
+                               }
+                             },
+                           );
+                         }
+                       | Import(_) => None
+                     ),
                  )
             )
          |> List.flatten

@@ -6,18 +6,20 @@ module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
 
 let __resolved = "../foo/bar";
-let __program = [
-  (
-    "foo/bar" |> of_internal,
-    ["Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
-  )
-  |> of_import,
-  (
-    "ABC" |> of_public |> as_lexeme |> of_named_export,
-    123 |> int_prim |> of_const |> as_int,
-  )
-  |> of_decl,
-];
+let __program =
+  [
+    (
+      "foo/bar" |> of_internal,
+      ["Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
+    )
+    |> of_import,
+    (
+      "ABC" |> of_public |> as_lexeme |> of_named_export,
+      123 |> int_prim |> of_const |> as_int,
+    )
+    |> of_decl,
+  ]
+  |> List.map(as_lexeme);
 
 module Compare = {
   open Alcotest;

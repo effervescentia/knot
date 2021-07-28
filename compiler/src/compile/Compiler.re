@@ -30,24 +30,27 @@ let __module_table_size = 64;
 let _get_exports = ast =>
   ast
   |> List.map(
-       fun
-       /* ignore all private declarations */
-       | AST.Declaration(
-           MainExport((Private(_), _)) | NamedExport((Private(_), _)),
-           _,
-         ) =>
-         []
+       Node.Raw.value
+       % (
+         fun
+         /* ignore all private declarations */
+         | AST.Declaration(
+             MainExport((Private(_), _)) | NamedExport((Private(_), _)),
+             _,
+           ) =>
+           []
 
-       | AST.Declaration(NamedExport(id), decl) => [
-           (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
-         ]
+         | AST.Declaration(NamedExport(id), decl) => [
+             (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
+           ]
 
-       | AST.Declaration(MainExport(id), decl) => [
-           (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
-           (Export.Main, Node.type_(decl)),
-         ]
+         | AST.Declaration(MainExport(id), decl) => [
+             (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
+             (Export.Main, Node.type_(decl)),
+           ]
 
-       | _ => [],
+         | _ => []
+       ),
      )
   |> List.flatten;
 

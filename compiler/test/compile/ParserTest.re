@@ -98,7 +98,8 @@ let suite =
                    ),
               )
               |> of_decl,
-            ],
+            ]
+            |> List.map(as_lexeme),
             _to_stream(__ast_fixture) |> Parser.ast(__context),
           ),
         ]

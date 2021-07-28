@@ -50,7 +50,8 @@ let __ast =
          ),
     )
     |> of_decl,
-  ];
+  ]
+  |> List.map(as_lexeme);
 
 let _assert_import_graph_structure =
   Alcotest.(

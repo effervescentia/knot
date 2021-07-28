@@ -8,7 +8,7 @@ module Declaration = Grammar.Declaration;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = (export_t, declaration_t);
+    type t = Node.Raw.t((export_t, declaration_t));
 
     let parser = ((_, ctx, _)) =>
       Parser.parse(Declaration.constant(ctx, AST.of_named_export));
@@ -18,7 +18,10 @@ module Assert = {
         check(
           testable(
             pp =>
-              Debug.print_decl % Pretty.to_string % Format.pp_print_string(pp),
+              Node.Raw.value
+              % Debug.print_decl
+              % Pretty.to_string
+              % Format.pp_print_string(pp),
             (==),
           ),
           "program matches",
@@ -44,7 +47,8 @@ let suite =
             (
               "foo" |> of_public |> as_lexeme |> of_named_export,
               nil_prim |> of_const |> as_nil,
-            ),
+            )
+            |> as_lexeme,
           ),
         ]
         |> Assert.parse_many
@@ -118,7 +122,8 @@ let suite =
             |> as_bool
             |> of_const
             |> as_bool,
-          ),
+          )
+          |> as_lexeme,
         );
 
         /* Assert.int(0, scope.seed^); */
