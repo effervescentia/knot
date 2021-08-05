@@ -64,7 +64,7 @@ let suite =
             "func foo -> { nil }",
             (
               "foo" |> of_public |> as_raw_node |> of_named_export,
-              ([], [nil_prim |> of_expr] |> of_closure |> as_nil)
+              ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
               |> of_func
               |> as_function([], Valid(`Nil)),
             )
@@ -82,7 +82,7 @@ let suite =
             "func foo () -> { nil }",
             (
               "foo" |> of_public |> as_raw_node |> of_named_export,
-              ([], [nil_prim |> of_expr] |> of_closure |> as_nil)
+              ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
               |> of_func
               |> as_function([], Valid(`Nil)),
             )

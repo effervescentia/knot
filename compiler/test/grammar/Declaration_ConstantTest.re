@@ -79,7 +79,8 @@ let suite =
                 "x" |> of_public |> as_raw_node,
                 "bar" |> of_public |> as_float |> of_id |> as_float,
               )
-              |> of_var,
+              |> of_var
+              |> as_nil,
               (
                 "y" |> of_public |> as_raw_node,
                 (
@@ -99,7 +100,8 @@ let suite =
                 |> of_and_op
                 |> as_bool,
               )
-              |> of_var,
+              |> of_var
+              |> as_bool,
               (
                 "y" |> of_public |> as_bool |> of_id |> as_bool,
                 (
@@ -116,7 +118,8 @@ let suite =
               )
               |> of_or_op
               |> as_bool
-              |> of_expr,
+              |> of_expr
+              |> as_bool,
             ]
             |> of_closure
             |> as_bool

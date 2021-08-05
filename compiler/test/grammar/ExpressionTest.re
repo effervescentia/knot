@@ -71,22 +71,28 @@ let suite =
               |> as_raw_node
               |> of_id
               |> as_raw_node
-              |> of_expr,
-              ("x" |> of_public |> as_raw_node, false |> bool_prim) |> of_var,
+              |> of_expr
+              |> as_raw_node,
+              ("x" |> of_public |> as_raw_node, false |> bool_prim)
+              |> of_var
+              |> as_raw_node,
               (
                 "y" |> of_public |> as_raw_node,
                 "foo" |> of_public |> as_raw_node |> of_id |> as_raw_node,
               )
-              |> of_var,
+              |> of_var
+              |> as_raw_node,
               (
                 "z" |> of_public |> as_raw_node,
                 "y" |> of_public |> as_raw_node |> of_id |> as_raw_node,
               )
-              |> of_var,
+              |> of_var
+              |> as_raw_node,
               (1 |> int_prim, 2 |> int_prim)
               |> of_add_op
               |> as_raw_node
-              |> of_expr,
+              |> of_expr
+              |> as_raw_node,
             ]
             |> of_closure
             |> as_raw_node,

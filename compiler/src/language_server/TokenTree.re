@@ -69,7 +69,7 @@ let rec of_expr =
     )
   | AST.UnaryOp(_, expr) =>
     expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
-  | AST.Closure(stmts) => stmts |> List.map(of_stmt) |> of_list
+  | AST.Closure(stmts) => stmts |> List.map(Node.value % of_stmt) |> of_list
 
 and of_jsx =
   fun

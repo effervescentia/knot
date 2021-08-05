@@ -127,11 +127,13 @@ let suite =
               (123 |> int_prim, 456 |> int_prim)
               |> of_eq_op
               |> as_int
-              |> of_expr,
+              |> of_expr
+              |> as_int,
               (678 |> int_prim, 910 |> int_prim)
               |> of_add_op
               |> as_int
-              |> of_expr,
+              |> of_expr
+              |> as_int,
             ]
             |> of_closure,
           ),
@@ -146,7 +148,11 @@ let suite =
               ),
               [],
             ),
-            [("foo" |> of_public |> as_raw_node, 456 |> int_prim) |> of_var]
+            [
+              ("foo" |> of_public |> as_raw_node, 456 |> int_prim)
+              |> of_var
+              |> as_nil,
+            ]
             |> of_closure,
           ),
         ]
@@ -595,14 +601,17 @@ let suite =
               "foo" |> of_public |> as_raw_node,
               [],
               [
-                ("buzz" |> of_public |> as_raw_node, 2 |> int_prim) |> of_var,
+                ("buzz" |> of_public |> as_raw_node, 2 |> int_prim)
+                |> of_var
+                |> as_nil,
                 (
                   "buzz" |> of_public |> as_int |> of_id |> as_int,
                   "buzz" |> of_public |> as_int |> of_id |> as_int,
                 )
                 |> of_div_op
                 |> as_float
-                |> of_expr,
+                |> of_expr
+                |> as_float,
               ]
               |> of_closure
               |> as_float,

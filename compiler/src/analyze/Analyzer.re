@@ -16,11 +16,19 @@ let res_prim = ((prim, cursor): Raw.primitive_t): primitive_t =>
   )
   |> _bind_typed_node(cursor);
 
-let rec res_stmt = (scope: Scope.t, stmt: Raw.statement_t): statement_t =>
-  switch (stmt) {
-  | Variable(id, expr) => res_expr(scope, expr) |> (x => Variable(id, x))
-  | Expression(expr) => Expression(res_expr(scope, expr))
-  }
+let rec res_stmt =
+        (scope: Scope.t, (stmt, cursor): Raw.statement_t): statement_t =>
+  (
+    switch (stmt) {
+    | Variable(id, expr) => (
+        Variable(id, res_expr(scope, expr)),
+        Type.Valid(`Nil),
+      )
+    | Expression(expr) =>
+      res_expr(scope, expr) |> (x => (Expression(x), Node.type_(x)))
+    }
+  )
+  |> _bind_typed_node(cursor)
 
 and res_expr =
     (scope: Scope.t, (expr, cursor): Raw.expression_t): expression_t =>
@@ -37,7 +45,10 @@ and res_expr =
       |> (
         xs => (
           Closure(xs),
-          xs |> List.last |> Option.map(TypeOf.statement) |?: Valid(`Nil),
+          xs
+          |> List.last
+          |> Option.map(Node.value % TypeOf.statement)
+          |?: Valid(`Nil),
         )
       )
     | Identifier((id, cursor)) => (

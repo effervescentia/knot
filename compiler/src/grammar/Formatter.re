@@ -179,7 +179,9 @@ and fmt_expression =
       : [
           [string("{")] |> newline,
           stmts
-          |> List.map(stmt => [fmt_statement(stmt)] |> newline)
+          |> List.map(stmt =>
+               [stmt |> Node.value |> fmt_statement] |> newline
+             )
           |> concat
           |> indent(2),
           string("}"),

@@ -144,7 +144,8 @@ let suite =
                     |> as_raw_node
                     |> of_id
                     |> as_raw_node
-                    |> of_expr,
+                    |> of_expr
+                    |> as_raw_node,
                   ]
                   |> of_closure
                   |> as_raw_node

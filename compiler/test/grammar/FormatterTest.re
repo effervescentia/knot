@@ -109,9 +109,9 @@ let suite =
   nil;
 }",
             [
-              true |> bool_prim |> of_expr,
-              false |> bool_prim |> of_expr,
-              nil_prim |> of_expr,
+              true |> bool_prim |> of_expr |> as_bool,
+              false |> bool_prim |> of_expr |> as_bool,
+              nil_prim |> of_expr |> as_nil,
             ]
             |> of_closure,
           ),
@@ -301,7 +301,10 @@ let suite =
             (
               "fizz" |> of_public |> as_raw_node,
               Some(
-                [true |> bool_prim |> of_expr, false |> bool_prim |> of_expr]
+                [
+                  true |> bool_prim |> of_expr |> as_bool,
+                  false |> bool_prim |> of_expr |> as_bool,
+                ]
                 |> of_closure
                 |> as_bool,
               ),
@@ -441,15 +444,20 @@ let suite =
               (
                 [],
                 [
-                  ("zip" |> of_public |> as_raw_node, 3 |> int_prim) |> of_var,
-                  ("zap" |> of_public |> as_raw_node, 4 |> int_prim) |> of_var,
+                  ("zip" |> of_public |> as_raw_node, 3 |> int_prim)
+                  |> of_var
+                  |> as_nil,
+                  ("zap" |> of_public |> as_raw_node, 4 |> int_prim)
+                  |> of_var
+                  |> as_nil,
                   (
                     "zip" |> of_public |> as_int |> of_id |> as_int,
                     "zap" |> of_public |> as_int |> of_id |> as_int,
                   )
                   |> of_mult_op
                   |> as_int
-                  |> of_expr,
+                  |> of_expr
+                  |> as_int,
                 ]
                 |> of_closure
                 |> as_int,

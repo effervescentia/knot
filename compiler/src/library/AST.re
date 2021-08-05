@@ -133,7 +133,8 @@ module Make = (T: ASTParams) => {
     | BinaryOp(binary_operator_t, expression_t, expression_t)
     | UnaryOp(unary_operator_t, expression_t)
     | Closure(list(statement_t))
-  and statement_t =
+  and statement_t = T.node_t(raw_statement_t)
+  and raw_statement_t =
     | Variable(untyped_identifier_t, expression_t)
     | Expression(expression_t);
 
@@ -346,17 +347,20 @@ module Make = (T: ASTParams) => {
       )
 
     and print_stmt = stmt =>
-      switch (stmt) {
-      | Variable(name, expr) =>
-        Debug.print_entity(
-          ~children=[
-            print_untyped_node("Name", print_id, name),
-            T.print_node("Value", print_expr, expr),
-          ],
-          "Variable",
-        )
-      | Expression(expr) => T.print_node("Expression", print_expr, expr)
-      };
+      T.print_node(
+        "Statement",
+        fun
+        | Variable(name, expr) =>
+          Debug.print_entity(
+            ~children=[
+              print_untyped_node("Name", print_id, name),
+              T.print_node("Value", print_expr, expr),
+            ],
+            "Variable",
+          )
+        | Expression(expr) => T.print_node("Expression", print_expr, expr),
+        stmt,
+      );
   };
 };
 

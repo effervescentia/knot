@@ -42,8 +42,8 @@ let rec gen_expression =
       let rec loop = (
         fun
         | [] => []
-        | [x] => gen_statement(~is_last=true, x)
-        | [x, ...xs] => gen_statement(x) @ loop(xs)
+        | [x] => x |> Node.value |> gen_statement(~is_last=true)
+        | [x, ...xs] => (x |> Node.value |> gen_statement) @ loop(xs)
       );
 
       values |> loop |> JavaScript_AST.iife;
@@ -278,8 +278,8 @@ let gen_function =
             let rec loop = (
               fun
               | [] => []
-              | [x] => gen_statement(~is_last=true, x)
-              | [x, ...xs] => gen_statement(x) @ loop(xs)
+              | [x] => x |> Node.value |> gen_statement(~is_last=true)
+              | [x, ...xs] => (x |> Node.value |> gen_statement) @ loop(xs)
             );
 
             loop(stmts);
