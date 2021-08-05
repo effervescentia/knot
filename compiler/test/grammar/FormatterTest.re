@@ -125,7 +125,7 @@ let suite =
   bar
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [],
               ["bar" |> as_string |> of_text |> as_string],
             )
@@ -141,18 +141,18 @@ let suite =
     >: (
       () =>
         [
-          ("<Foo />", ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag),
+          ("<Foo />", ("Foo" |> of_public |> as_raw_node, [], []) |> of_tag),
           ("<></>", [] |> of_frag),
           (
             "<Foo #bar .fizz buzz />",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [
-                "bar" |> of_public |> as_lexeme |> of_jsx_id |> as_string,
-                ("fizz" |> of_public |> as_lexeme, None)
+                "bar" |> of_public |> as_raw_node |> of_jsx_id |> as_string,
+                ("fizz" |> of_public |> as_raw_node, None)
                 |> of_jsx_class
                 |> as_string,
-                ("buzz" |> of_public |> as_lexeme, None)
+                ("buzz" |> of_public |> as_raw_node, None)
                 |> of_prop
                 |> as_unknown,
               ],
@@ -165,7 +165,7 @@ let suite =
   bar
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [],
               ["bar" |> as_string |> of_text |> as_string],
             )
@@ -176,7 +176,7 @@ let suite =
   {1 + 5}
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [],
               [
                 (1 |> int_prim, 5 |> int_prim)
@@ -195,11 +195,11 @@ let suite =
   </Bar>
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [],
               [
                 (
-                  "Bar" |> of_public |> as_lexeme,
+                  "Bar" |> of_public |> as_raw_node,
                   [],
                   ["fizzbuzz" |> as_string |> of_text |> as_string],
                 )
@@ -218,10 +218,10 @@ let suite =
   Hello, World!
 </Foo>",
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [],
               [
-                ("Bar" |> of_public |> as_lexeme, [], [])
+                ("Bar" |> of_public |> as_raw_node, [], [])
                 |> of_tag
                 |> as_element
                 |> of_node
@@ -243,20 +243,20 @@ let suite =
           (
             "fizz=buzz",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some("buzz" |> of_public |> as_unknown |> of_id |> as_unknown),
             )
             |> of_prop,
           ),
           (
             "fizz=123",
-            ("fizz" |> of_public |> as_lexeme, Some(123 |> int_prim))
+            ("fizz" |> of_public |> as_raw_node, Some(123 |> int_prim))
             |> of_prop,
           ),
           (
             "fizz=(1 + 2)",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some((1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int),
             )
             |> of_prop,
@@ -264,7 +264,7 @@ let suite =
           (
             "fizz=(-1)",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some(1 |> int_prim |> of_neg_op |> as_int),
             )
             |> of_prop,
@@ -272,7 +272,7 @@ let suite =
           (
             "fizz=true",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some(
                 true |> bool_prim |> of_group |> as_bool |> of_group |> as_bool,
               ),
@@ -282,7 +282,7 @@ let suite =
           (
             "fizz=(1 + 2)",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some(
                 (1 |> int_prim, 2 |> int_prim)
                 |> of_add_op
@@ -299,7 +299,7 @@ let suite =
   false;
 }",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some(
                 [true |> bool_prim |> of_expr, false |> bool_prim |> of_expr]
                 |> of_closure
@@ -311,9 +311,9 @@ let suite =
           (
             "fizz=<Buzz />",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some(
-                ("Buzz" |> of_public |> as_lexeme, [], [])
+                ("Buzz" |> of_public |> as_raw_node, [], [])
                 |> of_tag
                 |> as_element
                 |> of_jsx
@@ -327,13 +327,13 @@ let suite =
   <Foo />
 </Buzz>)",
             (
-              "fizz" |> of_public |> as_lexeme,
+              "fizz" |> of_public |> as_raw_node,
               Some(
                 (
-                  "Buzz" |> of_public |> as_lexeme,
+                  "Buzz" |> of_public |> as_raw_node,
                   [],
                   [
-                    ("Foo" |> of_public |> as_lexeme, [], [])
+                    ("Foo" |> of_public |> as_raw_node, [], [])
                     |> of_tag
                     |> as_element
                     |> of_node
@@ -348,17 +348,17 @@ let suite =
             )
             |> of_prop,
           ),
-          ("buzz", ("buzz" |> of_public |> as_lexeme, None) |> of_prop),
+          ("buzz", ("buzz" |> of_public |> as_raw_node, None) |> of_prop),
           (
             ".fizz=true",
-            ("fizz" |> of_public |> as_lexeme, Some(true |> bool_prim))
+            ("fizz" |> of_public |> as_raw_node, Some(true |> bool_prim))
             |> of_jsx_class,
           ),
           (
             ".fizz",
-            ("fizz" |> of_public |> as_lexeme, None) |> of_jsx_class,
+            ("fizz" |> of_public |> as_raw_node, None) |> of_jsx_class,
           ),
-          ("#bar", "bar" |> of_public |> as_lexeme |> of_jsx_id),
+          ("#bar", "bar" |> of_public |> as_raw_node |> of_jsx_id),
         ]
         |> List.map(Tuple.map_snd2(fmt_jsx_attr % Pretty.to_string))
         |> Assert.(test_many(string))
@@ -371,7 +371,7 @@ let suite =
           (
             "let foo = nil;",
             (
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               nil |> as_nil |> of_prim |> as_nil,
             )
             |> of_var,
@@ -387,7 +387,7 @@ let suite =
           (
             "const foo = nil;\n",
             (
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               nil |> as_nil |> of_prim |> as_nil |> of_const |> as_nil,
             ),
           ),
@@ -402,17 +402,17 @@ let suite =
           (
             "func foo(bar, fizz = 3) -> bar + fizz;\n",
             (
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               (
                 [
                   {
-                    name: "bar" |> of_public |> as_lexeme,
+                    name: "bar" |> of_public |> as_raw_node,
                     default: None,
                     type_: None,
                   }
                   |> as_int,
                   {
-                    name: "fizz" |> of_public |> as_lexeme,
+                    name: "fizz" |> of_public |> as_raw_node,
                     default: Some(3 |> int_prim),
                     type_: None,
                   }
@@ -437,12 +437,12 @@ let suite =
 }
 ",
             (
-              "buzz" |> of_public |> as_lexeme,
+              "buzz" |> of_public |> as_raw_node,
               (
                 [],
                 [
-                  ("zip" |> of_public |> as_lexeme, 3 |> int_prim) |> of_var,
-                  ("zap" |> of_public |> as_lexeme, 4 |> int_prim) |> of_var,
+                  ("zip" |> of_public |> as_raw_node, 3 |> int_prim) |> of_var,
+                  ("zap" |> of_public |> as_raw_node, 4 |> int_prim) |> of_var,
                   (
                     "zip" |> of_public |> as_int |> of_id |> as_int,
                     "zap" |> of_public |> as_int |> of_id |> as_int,
@@ -472,17 +472,17 @@ const ABC = 123;
 ",
             [
               (
-                "DEF" |> of_public |> as_lexeme |> of_named_export,
+                "DEF" |> of_public |> as_raw_node |> of_named_export,
                 true |> bool_prim |> of_const |> as_bool,
               )
               |> of_decl
-              |> as_lexeme,
+              |> as_raw_node,
               (
-                "ABC" |> of_public |> as_lexeme |> of_named_export,
+                "ABC" |> of_public |> as_raw_node |> of_named_export,
                 123 |> int_prim |> of_const |> as_int,
               )
               |> of_decl
-              |> as_lexeme,
+              |> as_raw_node,
             ],
           ),
         ]
@@ -507,25 +507,29 @@ import Fizz from \"buzz\";
                 [
                   "Fizz"
                   |> of_public
-                  |> as_lexeme
+                  |> as_raw_node
                   |> of_main_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
               (
                 "bar" |> of_external,
                 [
-                  "bar" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "bar"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                   (
-                    "Foo" |> of_public |> as_lexeme,
-                    Some("foo" |> of_public |> as_lexeme),
+                    "Foo" |> of_public |> as_raw_node,
+                    Some("foo" |> of_public |> as_raw_node),
                   )
                   |> of_named_import
-                  |> as_lexeme,
-                  ("Bar" |> of_public |> as_lexeme, None)
+                  |> as_raw_node,
+                  ("Bar" |> of_public |> as_raw_node, None)
                   |> of_named_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
@@ -540,7 +544,11 @@ import Foo from \"@/bar\";
               (
                 "bar" |> of_internal,
                 [
-                  "Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "Foo"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
@@ -549,9 +557,9 @@ import Foo from \"@/bar\";
                 [
                   "Fizz"
                   |> of_public
-                  |> as_lexeme
+                  |> as_raw_node
                   |> of_main_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
@@ -560,7 +568,7 @@ import Foo from \"@/bar\";
         ]
         |> List.map(
              Tuple.map_snd2(
-               List.map(as_lexeme)
+               List.map(as_raw_node)
                % fmt_imports
                % Pretty.concat
                % Pretty.to_string,
@@ -579,7 +587,11 @@ import Foo from \"@/bar\";
               (
                 "bar" |> of_external,
                 [
-                  "Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "Foo"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
@@ -589,7 +601,7 @@ import Foo from \"@/bar\";
             "const ABC = 123;\n",
             [
               (
-                "ABC" |> of_public |> as_lexeme |> of_named_export,
+                "ABC" |> of_public |> as_raw_node |> of_named_export,
                 123 |> int_prim |> of_const |> as_int,
               )
               |> of_decl,
@@ -604,12 +616,16 @@ const ABC = 123;
               (
                 "bar" |> of_external,
                 [
-                  "Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "Foo"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
               (
-                "ABC" |> of_public |> as_lexeme |> of_named_export,
+                "ABC" |> of_public |> as_raw_node |> of_named_export,
                 123 |> int_prim |> of_const |> as_int,
               )
               |> of_decl,
@@ -618,7 +634,7 @@ const ABC = 123;
         ]
         |> List.map(
              Tuple.map_snd2(
-               List.map(as_lexeme) % Formatter.format % Pretty.to_string,
+               List.map(as_raw_node) % Formatter.format % Pretty.to_string,
              ),
            )
         |> Assert.(test_many(string))

@@ -2,8 +2,8 @@ open Kore;
 open AST;
 
 module TypeResolver = {
-  let _bind_lexeme = (cursor: Cursor.t, x) => (x, cursor);
-  let _bind_typed_lexeme = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
+  let _bind_node = (cursor: Cursor.t, x) => (x, cursor);
+  let _bind_typed_node = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
 
   let res_prim = ((prim, cursor): Raw.primitive_t): primitive_t =>
     Type.(
@@ -15,7 +15,7 @@ module TypeResolver = {
       | String(str) => (String(str), Valid(`String))
       }
     )
-    |> _bind_typed_lexeme(cursor);
+    |> _bind_typed_node(cursor);
 
   let rec res_stmt = (stmt: Raw.statement_t): statement_t =>
     switch (stmt) {
@@ -56,7 +56,7 @@ module TypeResolver = {
         )
       }
     )
-    |> _bind_typed_lexeme(cursor)
+    |> _bind_typed_node(cursor)
 
   and res_jsx = ((jsx, cursor): Raw.jsx_t): jsx_t =>
     (
@@ -75,7 +75,7 @@ module TypeResolver = {
         )
       }
     )
-    |> _bind_typed_lexeme(cursor)
+    |> _bind_typed_node(cursor)
 
   and res_attr = ((attr, cursor): Raw.jsx_attribute_t): jsx_attribute_t =>
     (
@@ -96,7 +96,7 @@ module TypeResolver = {
         )
       }
     )
-    |> _bind_typed_lexeme(cursor)
+    |> _bind_typed_node(cursor)
 
   and res_child = ((attr, cursor): Raw.jsx_child_t): jsx_child_t =>
     (
@@ -114,7 +114,7 @@ module TypeResolver = {
         res_expr(expr) |> (x => (InlineExpression(x), Node.type_(x)))
       }
     )
-    |> _bind_typed_lexeme(cursor);
+    |> _bind_typed_node(cursor);
 };
 
 let constant = (ctx: ModuleContext.t, f) => {
@@ -132,7 +132,7 @@ let constant = (ctx: ModuleContext.t, f) => {
         ((id, raw_expr)) => {
           let expr = TypeResolver.res_expr(raw_expr);
 
-          /* ctx |> ModuleContext.define(Node.Raw.value(id), TypeOf.lexeme(expr)); */
+          /* ctx |> ModuleContext.define(Node.Raw.value(id), TypeOf.node(expr)); */
 
           (
             (

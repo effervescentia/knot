@@ -32,5 +32,7 @@ let suite =
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse"
-    >: (() => ["nil", " nil "] |> Assert.parse_all(AST.Raw.nil |> as_lexeme)),
+    >: (
+      () => ["nil", " nil "] |> Assert.parse_all(AST.Raw.nil |> as_raw_node)
+    ),
   ];

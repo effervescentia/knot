@@ -39,19 +39,13 @@ let __ast =
         Cursor.range((1, 13), (1, 15)),
       )
       |> of_prim
-      |> as_typed_lexeme(
-           ~cursor=Cursor.range((1, 13), (1, 15)),
-           Valid(`Integer),
-         )
+      |> as_node(~cursor=Cursor.range((1, 13), (1, 15)), Valid(`Integer))
       |> of_const
-      |> as_typed_lexeme(
-           ~cursor=Cursor.range((1, 13), (1, 15)),
-           Valid(`Integer),
-         ),
+      |> as_node(~cursor=Cursor.range((1, 13), (1, 15)), Valid(`Integer)),
     )
     |> of_decl,
   ]
-  |> List.map(as_lexeme);
+  |> List.map(as_raw_node);
 
 let _assert_import_graph_structure =
   Alcotest.(

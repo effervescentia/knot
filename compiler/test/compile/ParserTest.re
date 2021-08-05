@@ -72,9 +72,9 @@ let suite =
                 [
                   "foo"
                   |> of_public
-                  |> as_lexeme(~cursor=Cursor.range((2, 10), (2, 12)))
+                  |> as_raw_node(~cursor=Cursor.range((2, 10), (2, 12)))
                   |> of_main_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import,
@@ -87,19 +87,19 @@ let suite =
                   Cursor.range((4, 15), (4, 17)),
                 )
                 |> of_prim
-                |> as_typed_lexeme(
+                |> as_node(
                      ~cursor=Cursor.range((4, 15), (4, 17)),
                      Type.Valid(`Integer),
                    )
                 |> of_const
-                |> as_typed_lexeme(
+                |> as_node(
                      ~cursor=Cursor.range((4, 15), (4, 17)),
                      Type.Valid(`Integer),
                    ),
               )
               |> of_decl,
             ]
-            |> List.map(as_lexeme),
+            |> List.map(as_raw_node),
             _to_stream(__ast_fixture) |> Parser.ast(__context),
           ),
         ]

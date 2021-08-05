@@ -35,12 +35,12 @@ let suite =
     >: (
       () =>
         ["true", " true "]
-        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_lexeme)
+        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_raw_node)
     ),
     "parse false"
     >: (
       () =>
         ["false", " false "]
-        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_lexeme)
+        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_raw_node)
     ),
   ];

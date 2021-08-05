@@ -10,16 +10,16 @@ let __program =
   [
     (
       "foo/bar" |> of_internal,
-      ["Foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
+      ["Foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
     )
     |> of_import,
     (
-      "ABC" |> of_public |> as_lexeme |> of_named_export,
+      "ABC" |> of_public |> as_raw_node |> of_named_export,
       123 |> int_prim |> of_const |> as_int,
     )
     |> of_decl,
   ]
-  |> List.map(as_lexeme);
+  |> List.map(as_raw_node);
 
 module Compare = {
   open Alcotest;
@@ -146,7 +146,7 @@ let suite =
               ),
               [],
             ),
-            [("foo" |> of_public |> as_lexeme, 456 |> int_prim) |> of_var]
+            [("foo" |> of_public |> as_raw_node, 456 |> int_prim) |> of_var]
             |> of_closure,
           ),
         ]
@@ -159,13 +159,13 @@ let suite =
         [
           (
             [Variable("fooBar", Number("123"))],
-            ("fooBar" |> of_public |> as_lexeme, 123 |> int_prim)
+            ("fooBar" |> of_public |> as_raw_node, 123 |> int_prim)
             |> of_var
             |> Generator.gen_statement,
           ),
           (
             [Variable("fooBar", Number("123")), Return(Some(Null))],
-            ("fooBar" |> of_public |> as_lexeme, 123 |> int_prim)
+            ("fooBar" |> of_public |> as_raw_node, 123 |> int_prim)
             |> of_var
             |> Generator.gen_statement(~is_last=true),
           ),
@@ -329,7 +329,7 @@ let suite =
               DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
               [String("Foo")],
             ),
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag,
+            ("Foo" |> of_public |> as_raw_node, [], []) |> of_tag,
           ),
           (
             FunctionCall(
@@ -354,7 +354,7 @@ let suite =
               DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
               [String("Foo")],
             ),
-            ("Foo" |> of_public |> as_lexeme, [], [])
+            ("Foo" |> of_public |> as_raw_node, [], [])
             |> of_tag
             |> as_element
             |> of_node,
@@ -371,13 +371,13 @@ let suite =
               ],
             ),
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [
-                ("foo" |> of_public |> as_lexeme, None)
+                ("foo" |> of_public |> as_raw_node, None)
                 |> of_prop
                 |> as_unknown,
                 (
-                  "bar" |> of_public |> as_lexeme,
+                  "bar" |> of_public |> as_raw_node,
                   Some(
                     "fizz" |> of_public |> as_unknown |> of_id |> as_unknown,
                   ),
@@ -407,11 +407,11 @@ let suite =
               ],
             ),
             (
-              "Foo" |> of_public |> as_lexeme,
+              "Foo" |> of_public |> as_raw_node,
               [],
               [
                 (
-                  "Bar" |> of_public |> as_lexeme,
+                  "Bar" |> of_public |> as_raw_node,
                   [],
                   ["fizz" |> as_string |> of_text |> as_string],
                 )
@@ -438,14 +438,16 @@ let suite =
           (
             Object([("foo", Identifier("foo"))]),
             [
-              ("foo" |> of_public |> as_lexeme, None) |> of_prop |> as_unknown,
+              ("foo" |> of_public |> as_raw_node, None)
+              |> of_prop
+              |> as_unknown,
             ],
           ),
           (
             Object([("foo", Identifier("bar"))]),
             [
               (
-                "foo" |> of_public |> as_lexeme,
+                "foo" |> of_public |> as_raw_node,
                 Some("bar" |> of_public |> as_unknown |> of_id |> as_unknown),
               )
               |> of_prop
@@ -455,7 +457,7 @@ let suite =
           (
             Object([("className", String(".foo"))]),
             [
-              ("foo" |> of_public |> as_lexeme, None)
+              ("foo" |> of_public |> as_raw_node, None)
               |> of_jsx_class
               |> as_unknown,
             ],
@@ -478,11 +480,11 @@ let suite =
               ),
             ]),
             [
-              ("bar" |> of_public |> as_lexeme, None)
+              ("bar" |> of_public |> as_raw_node, None)
               |> of_jsx_class
               |> as_unknown,
               (
-                "foo" |> of_public |> as_lexeme,
+                "foo" |> of_public |> as_raw_node,
                 Some(
                   (123 |> int_prim, 456 |> int_prim) |> of_gt_op |> as_bool,
                 ),
@@ -493,7 +495,7 @@ let suite =
           ),
           (
             Object([("id", String("foo"))]),
-            ["foo" |> of_public |> as_lexeme |> of_jsx_id |> as_unknown],
+            ["foo" |> of_public |> as_raw_node |> of_jsx_id |> as_unknown],
           ),
         ]
         |> List.map(Tuple.map_snd2(Generator.gen_jsx_attrs))
@@ -506,7 +508,7 @@ let suite =
           (
             Variable("foo", Number("123")),
             Generator.gen_constant(
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               123 |> int_prim,
             ),
           ),
@@ -526,10 +528,10 @@ let suite =
               ),
             ),
             Generator.gen_function(
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               [
                 {
-                  name: "bar" |> of_public |> as_lexeme,
+                  name: "bar" |> of_public |> as_raw_node,
                   default: None,
                   type_: None,
                 }
@@ -554,10 +556,10 @@ let suite =
               ),
             ),
             Generator.gen_function(
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               [
                 {
-                  name: "bar" |> of_public |> as_lexeme,
+                  name: "bar" |> of_public |> as_raw_node,
                   default: Some(123 |> int_prim),
                   type_: None,
                 }
@@ -590,10 +592,10 @@ let suite =
               ),
             ),
             Generator.gen_function(
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               [],
               [
-                ("buzz" |> of_public |> as_lexeme, 2 |> int_prim) |> of_var,
+                ("buzz" |> of_public |> as_raw_node, 2 |> int_prim) |> of_var,
                 (
                   "buzz" |> of_public |> as_int |> of_id |> as_int,
                   "buzz" |> of_public |> as_int |> of_id |> as_int,
@@ -616,14 +618,14 @@ let suite =
           (
             [Variable("foo", Number("123")), Export("foo", None)],
             Generator.gen_declaration(
-              "foo" |> of_public |> as_lexeme,
+              "foo" |> of_public |> as_raw_node,
               123 |> int_prim |> of_const |> as_int,
             ),
           ),
           (
             [Variable("_foo", Number("123"))],
             Generator.gen_declaration(
-              "foo" |> of_private |> as_lexeme,
+              "foo" |> of_private |> as_raw_node,
               123 |> int_prim |> of_const |> as_int,
             ),
           ),

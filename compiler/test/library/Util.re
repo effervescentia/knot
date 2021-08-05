@@ -2,12 +2,8 @@ open Kore;
 open Reference;
 
 module CommonUtil = {
-  let as_lexeme = (~cursor=Cursor.zero, x) => (x, cursor);
-  let as_typed_lexeme = (~cursor=Cursor.zero, type_, x) => (
-    x,
-    type_,
-    cursor,
-  );
+  let as_raw_node = (~cursor=Cursor.zero, x) => (x, cursor);
+  let as_node = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
 
   let to_scope = (types: list((string, Type.t))): DefinitionTable.t => {
     types
@@ -32,25 +28,24 @@ module RawUtil = {
 
   include CommonUtil;
 
-  let as_invalid = (err, x) => as_typed_lexeme(Invalid(err), x);
+  let as_invalid = (err, x) => as_node(Invalid(err), x);
 
-  let as_abstract = (id, x) =>
-    as_typed_lexeme(Weak(ref(Ok(`Abstract(id)))), x);
+  let as_abstract = (id, x) => as_node(Weak(ref(Ok(`Abstract(id)))), x);
 
-  let nil_prim = nil |> as_lexeme |> of_prim |> as_lexeme;
+  let nil_prim = nil |> as_raw_node |> of_prim |> as_raw_node;
 
-  let bool_prim = of_bool % as_lexeme % of_prim % as_lexeme;
+  let bool_prim = of_bool % as_raw_node % of_prim % as_raw_node;
 
   let int_prim =
-    Int64.of_int % of_int % of_num % as_lexeme % of_prim % as_lexeme;
+    Int64.of_int % of_int % of_num % as_raw_node % of_prim % as_raw_node;
 
-  let float_prim = of_float % of_num % as_lexeme % of_prim % as_lexeme;
+  let float_prim = of_float % of_num % as_raw_node % of_prim % as_raw_node;
 
-  let string_prim = of_string % as_lexeme % of_prim % as_lexeme;
+  let string_prim = of_string % as_raw_node % of_prim % as_raw_node;
 
-  let jsx_node = of_tag % as_lexeme % of_node;
+  let jsx_node = of_tag % as_raw_node % of_node;
 
-  let jsx_tag = of_tag % as_lexeme % of_jsx;
+  let jsx_tag = of_tag % as_raw_node % of_jsx;
 
   let weak_unknown = Weak(ref(Ok(`Abstract(Type.Trait.Unknown))));
 };
@@ -60,18 +55,17 @@ module ResultUtil = {
 
   include CommonUtil;
 
-  let as_nil = x => as_typed_lexeme(Type.Valid(`Nil), x);
-  let as_bool = x => as_typed_lexeme(Type.Valid(`Boolean), x);
-  let as_int = x => as_typed_lexeme(Type.Valid(`Integer), x);
-  let as_float = x => as_typed_lexeme(Type.Valid(`Float), x);
-  let as_string = x => as_typed_lexeme(Type.Valid(`String), x);
-  let as_element = x => as_typed_lexeme(Type.Valid(`Element), x);
+  let as_nil = x => as_node(Type.Valid(`Nil), x);
+  let as_bool = x => as_node(Type.Valid(`Boolean), x);
+  let as_int = x => as_node(Type.Valid(`Integer), x);
+  let as_float = x => as_node(Type.Valid(`Float), x);
+  let as_string = x => as_node(Type.Valid(`String), x);
+  let as_element = x => as_node(Type.Valid(`Element), x);
   let as_function = (args, res, x) =>
-    as_typed_lexeme(Type.Valid(`Function((args, res))), x);
-  let as_unknown = x => as_typed_lexeme(Type.Valid(`Abstract(Unknown)), x);
+    as_node(Type.Valid(`Function((args, res))), x);
+  let as_unknown = x => as_node(Type.Valid(`Abstract(Unknown)), x);
 
-  let as_abstract = (trait, x) =>
-    as_typed_lexeme(Type.Valid(`Abstract(trait)), x);
+  let as_abstract = (trait, x) => as_node(Type.Valid(`Abstract(trait)), x);
 
   let nil_prim = nil |> as_nil |> of_prim |> as_nil;
 

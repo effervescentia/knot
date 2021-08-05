@@ -42,17 +42,17 @@ let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
 let __main_import_ast =
   (
     "bar" |> of_internal,
-    ["foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
+    ["foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
   )
   |> of_import
-  |> as_lexeme;
+  |> as_raw_node;
 let __const_decl_ast =
   (
-    "foo" |> of_public |> as_lexeme |> of_named_export,
+    "foo" |> of_public |> as_raw_node |> of_named_export,
     nil_prim |> of_const |> as_nil,
   )
   |> of_decl
-  |> as_lexeme;
+  |> as_raw_node;
 
 let __ns_context =
   NamespaceContext.create(
@@ -96,7 +96,7 @@ let suite =
             [
               __const_decl_ast,
               (
-                "bar" |> of_public |> as_lexeme |> of_named_export,
+                "bar" |> of_public |> as_raw_node |> of_named_export,
                 "foo"
                 |> of_public
                 |> as_nil
@@ -106,7 +106,7 @@ let suite =
                 |> as_nil,
               )
               |> of_decl
-              |> as_lexeme,
+              |> as_raw_node,
             ],
           ),
         ]
@@ -152,7 +152,7 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> of_public |> as_lexeme |> of_named_export,
+              "bar" |> of_public |> as_raw_node |> of_named_export,
               "foo"
               |> of_public
               |> as_bool
@@ -162,7 +162,7 @@ let suite =
               |> as_nil,
             )
             |> of_decl
-            |> as_lexeme,
+            |> as_raw_node,
           ],
         )
     ),

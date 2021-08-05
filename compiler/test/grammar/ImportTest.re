@@ -46,16 +46,20 @@ let suite =
               (
                 "bar" |> of_internal,
                 [
-                  "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "foo"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
           (
             "import {} from \"@/bar\"",
-            AST.(("bar" |> of_internal, []) |> of_import |> as_lexeme),
+            AST.(("bar" |> of_internal, []) |> of_import |> as_raw_node),
           ),
           (
             "import { foo } from \"@/bar\"",
@@ -63,13 +67,13 @@ let suite =
               (
                 "bar" |> of_internal,
                 [
-                  ("foo" |> of_public |> as_lexeme, None)
+                  ("foo" |> of_public |> as_raw_node, None)
                   |> of_named_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
           (
@@ -79,15 +83,15 @@ let suite =
                 "bar" |> of_internal,
                 [
                   (
-                    "foo" |> of_public |> as_lexeme,
-                    Some("bar" |> of_public |> as_lexeme),
+                    "foo" |> of_public |> as_raw_node,
+                    Some("bar" |> of_public |> as_raw_node),
                   )
                   |> of_named_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
           (
@@ -98,22 +102,22 @@ let suite =
                 [
                   "fizz"
                   |> of_public
-                  |> as_lexeme
+                  |> as_raw_node
                   |> of_main_import
-                  |> as_lexeme,
-                  ("foo" |> of_public |> as_lexeme, None)
+                  |> as_raw_node,
+                  ("foo" |> of_public |> as_raw_node, None)
                   |> of_named_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                   (
-                    "bar" |> of_public |> as_lexeme,
-                    Some("Bar" |> of_public |> as_lexeme),
+                    "bar" |> of_public |> as_raw_node,
+                    Some("Bar" |> of_public |> as_raw_node),
                   )
                   |> of_named_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
           (
@@ -122,16 +126,16 @@ let suite =
               (
                 "bar" |> of_internal,
                 [
-                  ("foo" |> of_public |> as_lexeme, None)
+                  ("foo" |> of_public |> as_raw_node, None)
                   |> of_named_import
-                  |> as_lexeme,
-                  ("bar" |> of_public |> as_lexeme, None)
+                  |> as_raw_node,
+                  ("bar" |> of_public |> as_raw_node, None)
                   |> of_named_import
-                  |> as_lexeme,
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
         ]
@@ -179,11 +183,15 @@ let suite =
               (
                 "bar" |> of_internal,
                 [
-                  "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "foo"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
           (
@@ -192,11 +200,15 @@ let suite =
               (
                 "bar" |> of_internal,
                 [
-                  "foo" |> of_public |> as_lexeme |> of_main_import |> as_lexeme,
+                  "foo"
+                  |> of_public
+                  |> as_raw_node
+                  |> of_main_import
+                  |> as_raw_node,
                 ],
               )
               |> of_import
-              |> as_lexeme
+              |> as_raw_node
             ),
           ),
         ]

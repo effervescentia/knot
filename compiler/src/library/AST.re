@@ -33,6 +33,8 @@ module Common = {
     | Integer(Int64.t)
     | Float(float, int);
 
+  type untyped_identifier_t = Node.Raw.t(Identifier.t);
+
   module Debug = {
     open Pretty;
 
@@ -67,10 +69,10 @@ module Common = {
       ]
       |> concat;
 
-    let print_lexeme = (~attrs=[], label, value, cursor) =>
+    let print_node = (~attrs=[], label, value, cursor) =>
       print_entity(~attrs, ~cursor, ~children=[value], label);
 
-    let print_typed_lexeme = (~attrs=[], label, value, type_, cursor) =>
+    let print_typed_node = (~attrs=[], label, value, type_, cursor) =>
       print_entity(
         ~attrs=[
           ("type", type_ |> Type.to_string |> Pretty.string),
@@ -91,7 +93,7 @@ module type ASTParams = {
   let get_value: node_t('a) => 'a;
   let get_cursor: node_t('a) => Cursor.t;
 
-  let print_lexeme: (string, 'a => Pretty.t, node_t('a)) => Pretty.t;
+  let print_node: (string, 'a => Pretty.t, node_t('a)) => Pretty.t;
 };
 
 module Make = (T: ASTParams) => {
@@ -100,7 +102,6 @@ module Make = (T: ASTParams) => {
   type type_t = T.type_t;
 
   type identifier_t = T.node_t(Identifier.t);
-  type raw_identifier_t = Node.Raw.t(Identifier.t);
 
   type primitive_t = T.node_t(raw_primitive_t)
   and raw_primitive_t =
@@ -111,7 +112,7 @@ module Make = (T: ASTParams) => {
 
   type jsx_t = T.node_t(raw_jsx_t)
   and raw_jsx_t =
-    | Tag(raw_identifier_t, list(jsx_attribute_t), list(jsx_child_t))
+    | Tag(untyped_identifier_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
   and jsx_child_t = T.node_t(raw_jsx_child_t)
   and raw_jsx_child_t =
@@ -120,9 +121,9 @@ module Make = (T: ASTParams) => {
     | InlineExpression(expression_t)
   and jsx_attribute_t = T.node_t(raw_jsx_attribute_t)
   and raw_jsx_attribute_t =
-    | ID(raw_identifier_t)
-    | Class(raw_identifier_t, option(expression_t))
-    | Property(raw_identifier_t, option(expression_t))
+    | ID(untyped_identifier_t)
+    | Class(untyped_identifier_t, option(expression_t))
+    | Property(untyped_identifier_t, option(expression_t))
   and expression_t = T.node_t(raw_expression_t)
   and raw_expression_t =
     | Primitive(primitive_t)
@@ -133,12 +134,12 @@ module Make = (T: ASTParams) => {
     | UnaryOp(unary_operator_t, expression_t)
     | Closure(list(statement_t))
   and statement_t =
-    | Variable(raw_identifier_t, expression_t)
+    | Variable(untyped_identifier_t, expression_t)
     | Expression(expression_t);
 
   type argument_t = T.node_t(raw_argument_t)
   and raw_argument_t = {
-    name: raw_identifier_t,
+    name: untyped_identifier_t,
     default: option(expression_t),
     type_: option(T.node_t(Type.t)),
   };
@@ -202,9 +203,9 @@ module Make = (T: ASTParams) => {
 
     include Debug;
 
-    let print_lexeme = T.print_lexeme;
-    let print_untyped_lexeme = (label, print_value, x) =>
-      Common.Debug.print_lexeme(
+    let print_node = T.print_node;
+    let print_untyped_node = (label, print_value, x) =>
+      Common.Debug.print_node(
         label,
         x |> Node.Raw.value |> print_value,
         Node.Raw.cursor(x),
@@ -238,20 +239,20 @@ module Make = (T: ASTParams) => {
 
     let rec print_expr =
       fun
-      | Primitive(prim) => T.print_lexeme("Primitive", print_prim, prim)
-      | Identifier(id) => T.print_lexeme("Identifier", print_id, id)
-      | JSX(jsx) => T.print_lexeme("JSX", print_jsx, jsx)
-      | Group(group) => T.print_lexeme("Group", print_expr, group)
+      | Primitive(prim) => T.print_node("Primitive", print_prim, prim)
+      | Identifier(id) => T.print_node("Identifier", print_id, id)
+      | JSX(jsx) => T.print_node("JSX", print_jsx, jsx)
+      | Group(group) => T.print_node("Group", print_expr, group)
       | BinaryOp(op, lhs, rhs) =>
         Debug.print_entity(
           ~children=[
-            T.print_lexeme("LeftHandSide", print_expr, lhs),
-            T.print_lexeme("RightHandSide", print_expr, rhs),
+            T.print_node("LeftHandSide", print_expr, lhs),
+            T.print_node("RightHandSide", print_expr, rhs),
           ],
           print_binary_op(op),
         )
       | UnaryOp(op, expr) =>
-        T.print_lexeme(print_unary_op(op), print_expr, expr)
+        T.print_node(print_unary_op(op), print_expr, expr)
       | Closure(stmts) =>
         Debug.print_entity(
           ~children=stmts |> List.map(print_stmt),
@@ -279,7 +280,7 @@ module Make = (T: ASTParams) => {
               "attrs",
               attrs
               |> List.map(attr =>
-                   T.print_lexeme("Attribute", print_jsx_attr, attr)
+                   T.print_node("Attribute", print_jsx_attr, attr)
                  )
               |> concat,
             ),
@@ -287,12 +288,12 @@ module Make = (T: ASTParams) => {
               "children",
               children
               |> List.map(child =>
-                   T.print_lexeme("Child", print_jsx_child, child)
+                   T.print_node("Child", print_jsx_child, child)
                  )
               |> concat,
             ),
           ],
-          ~children=[print_untyped_lexeme("Name", print_id, name)],
+          ~children=[print_untyped_node("Name", print_id, name)],
           "Tag",
         )
       | Fragment(children) =>
@@ -300,35 +301,35 @@ module Make = (T: ASTParams) => {
           ~children=
             children
             |> List.map(child =>
-                 T.print_lexeme("Child", print_jsx_child, child)
+                 T.print_node("Child", print_jsx_child, child)
                ),
           "Fragment",
         )
 
     and print_jsx_child =
       fun
-      | Node(jsx) => T.print_lexeme("Node", print_jsx, jsx)
+      | Node(jsx) => T.print_node("Node", print_jsx, jsx)
       | Text(text) =>
-        T.print_lexeme("Text", Print.fmt("\"%s\"") % string, text)
+        T.print_node("Text", Print.fmt("\"%s\"") % string, text)
       | InlineExpression(expr) =>
-        T.print_lexeme("InlineExpression", print_expr, expr)
+        T.print_node("InlineExpression", print_expr, expr)
 
     and print_jsx_attr = attr =>
       (
         switch (attr) {
         | Class(name, value) => (
             "Class",
-            print_untyped_lexeme("Name", print_id, name),
+            print_untyped_node("Name", print_id, name),
             value,
           )
         | ID(name) => (
             "ID",
-            print_untyped_lexeme("Name", print_id, name),
+            print_untyped_node("Name", print_id, name),
             None,
           )
         | Property(name, value) => (
             "Property",
-            print_untyped_lexeme("Name", print_id, name),
+            print_untyped_node("Name", print_id, name),
             value,
           )
         }
@@ -337,7 +338,7 @@ module Make = (T: ASTParams) => {
         fun
         | (entity, name, Some(expr)) =>
           Debug.print_entity(
-            ~children=[name, T.print_lexeme("Value", print_expr, expr)],
+            ~children=[name, T.print_node("Value", print_expr, expr)],
             entity,
           )
         | (entity, name, None) =>
@@ -349,12 +350,12 @@ module Make = (T: ASTParams) => {
       | Variable(name, expr) =>
         Debug.print_entity(
           ~children=[
-            print_untyped_lexeme("Name", print_id, name),
-            T.print_lexeme("Value", print_expr, expr),
+            print_untyped_node("Name", print_id, name),
+            T.print_node("Value", print_expr, expr),
           ],
           "Variable",
         )
-      | Expression(expr) => T.print_lexeme("Expression", print_expr, expr)
+      | Expression(expr) => T.print_node("Expression", print_expr, expr)
       };
   };
 };
@@ -368,8 +369,8 @@ module Raw =
     let get_value = Node.Raw.value;
     let get_cursor = Node.Raw.cursor;
 
-    let print_lexeme = (label, print_value, x) =>
-      Common.Debug.print_lexeme(
+    let print_node = (label, print_value, x) =>
+      Common.Debug.print_node(
         label,
         x |> get_value |> print_value,
         get_cursor(x),
@@ -385,8 +386,8 @@ include Make({
   let get_type = Node.type_;
   let get_cursor = Node.cursor;
 
-  let print_lexeme = (label, print_value, x) =>
-    Common.Debug.print_typed_lexeme(
+  let print_node = (label, print_value, x) =>
+    Common.Debug.print_typed_node(
       label,
       x |> get_value |> print_value,
       get_type(x),
@@ -401,12 +402,12 @@ and raw_declaration_t =
 
 type import_t = Node.Raw.t(raw_import_t)
 and raw_import_t =
-  | MainImport(raw_identifier_t)
-  | NamedImport(raw_identifier_t, option(raw_identifier_t));
+  | MainImport(untyped_identifier_t)
+  | NamedImport(untyped_identifier_t, option(untyped_identifier_t));
 
 type export_t =
-  | MainExport(raw_identifier_t)
-  | NamedExport(raw_identifier_t);
+  | MainExport(untyped_identifier_t)
+  | NamedExport(untyped_identifier_t);
 
 type module_statement_t = Node.Raw.t(raw_module_statement_t)
 and raw_module_statement_t =
@@ -428,8 +429,6 @@ let of_func = ((args, expr)) => Function(args, expr);
 
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
-let of_const = x => Constant(x);
-let of_func = ((args, expr)) => Function(args, expr);
 
 module Debug = {
   open Pretty;
@@ -458,7 +457,7 @@ module Debug = {
             ],
             "Name",
           ),
-          print_lexeme("Value", print_expr, expr),
+          print_node("Value", print_expr, expr),
         ],
         "Constant",
       )
@@ -470,14 +469,14 @@ module Debug = {
               args
               |> List.map((({name, default}, type_, _)) =>
                    [
-                     print_untyped_lexeme("Name", print_id, name),
+                     print_untyped_node("Name", print_id, name),
                      print_entity(
                        ~children=[type_ |> Type.to_string |> string],
                        "Type",
                      ),
                      ...switch (default) {
                         | Some(default) => [
-                            print_lexeme("Default", print_expr, default),
+                            print_node("Default", print_expr, default),
                           ]
                         | None => []
                         },
@@ -487,7 +486,7 @@ module Debug = {
             "Attributes",
           ),
           print_entity(
-            ~children=[print_lexeme("Value", print_expr, expr)],
+            ~children=[print_node("Value", print_expr, expr)],
             "Body",
           ),
         ],
@@ -515,14 +514,14 @@ module Debug = {
                        print_entity(
                          "Main",
                          ~children=[
-                           print_untyped_lexeme("Name", print_id, name),
+                           print_untyped_node("Name", print_id, name),
                          ],
                        )
                      | NamedImport(name, Some((label, label_cursor))) =>
                        print_entity(
                          "Named",
                          ~children=[
-                           print_untyped_lexeme("Name", print_id, name),
+                           print_untyped_node("Name", print_id, name),
                            print_entity(
                              ~cursor=label_cursor,
                              ~children=[print_id(label)],
@@ -534,7 +533,7 @@ module Debug = {
                        print_entity(
                          "Named",
                          ~children=[
-                           print_untyped_lexeme("Name", print_id, name),
+                           print_untyped_node("Name", print_id, name),
                          ],
                        )
                    ),

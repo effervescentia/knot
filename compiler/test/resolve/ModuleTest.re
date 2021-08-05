@@ -8,12 +8,12 @@ exception MockError;
 let __program = [
   AST.(
     (
-      "ABC" |> of_public |> as_lexeme |> of_named_export,
+      "ABC" |> of_public |> as_raw_node |> of_named_export,
       123
       |> Int64.of_int
       |> of_int
       |> of_num
-      |> as_typed_lexeme(
+      |> as_node(
            ~cursor=Cursor.range((4, 15), (4, 17)),
            Type.Valid(`Integer),
          )
@@ -23,7 +23,7 @@ let __program = [
       |> as_int,
     )
     |> of_decl
-    |> as_lexeme
+    |> as_raw_node
   ),
 ];
 

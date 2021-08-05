@@ -45,10 +45,10 @@ let suite =
           (
             "const foo = nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
+              "foo" |> of_public |> as_raw_node |> of_named_export,
               nil_prim |> of_const |> as_nil,
             )
-            |> as_lexeme,
+            |> as_raw_node,
           ),
         ]
         |> Assert.parse_many
@@ -73,15 +73,15 @@ let suite =
             y || x + 1 <= 5;
           }",
           (
-            "foo" |> of_public |> as_lexeme |> of_named_export,
+            "foo" |> of_public |> as_raw_node |> of_named_export,
             [
               (
-                "x" |> of_public |> as_lexeme,
+                "x" |> of_public |> as_raw_node,
                 "bar" |> of_public |> as_float |> of_id |> as_float,
               )
               |> of_var,
               (
-                "y" |> of_public |> as_lexeme,
+                "y" |> of_public |> as_raw_node,
                 (
                   (
                     "x" |> of_public |> as_float |> of_id |> as_float,
@@ -123,7 +123,7 @@ let suite =
             |> of_const
             |> as_bool,
           )
-          |> as_lexeme,
+          |> as_raw_node,
         );
 
         /* Assert.int(0, scope.seed^); */

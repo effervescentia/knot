@@ -55,38 +55,38 @@ let suite =
           (
             "func foo -> nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
+              "foo" |> of_public |> as_raw_node |> of_named_export,
               ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
             )
-            |> as_lexeme,
+            |> as_raw_node,
           ),
           (
             "func foo -> { nil }",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
+              "foo" |> of_public |> as_raw_node |> of_named_export,
               ([], [nil_prim |> of_expr] |> of_closure |> as_nil)
               |> of_func
               |> as_function([], Valid(`Nil)),
             )
-            |> as_lexeme,
+            |> as_raw_node,
           ),
           (
             "func foo () -> nil",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
+              "foo" |> of_public |> as_raw_node |> of_named_export,
               ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
             )
-            |> as_lexeme,
+            |> as_raw_node,
           ),
           (
             "func foo () -> { nil }",
             (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
+              "foo" |> of_public |> as_raw_node |> of_named_export,
               ([], [nil_prim |> of_expr] |> of_closure |> as_nil)
               |> of_func
               |> as_function([], Valid(`Nil)),
             )
-            |> as_lexeme,
+            |> as_raw_node,
           ),
         ]
         |> Assert.parse_many

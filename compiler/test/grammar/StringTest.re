@@ -35,14 +35,14 @@ let suite =
     >: (
       () =>
         ["\"foo\"", " \"foo\" "]
-        |> Assert.parse_all(AST.Raw.of_string("foo") |> as_lexeme)
+        |> Assert.parse_all(AST.Raw.of_string("foo") |> as_raw_node)
     ),
     "with escape characters"
     >: (
       () =>
         Assert.parse(
           "\"foo\\\"bar\"",
-          AST.Raw.of_string("foo\\\"bar") |> as_lexeme,
+          AST.Raw.of_string("foo\\\"bar") |> as_raw_node,
         )
     ),
   ];

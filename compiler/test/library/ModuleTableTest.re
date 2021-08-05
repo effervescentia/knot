@@ -10,9 +10,9 @@ let __program =
   AST.[
     Import(
       "foo" |> of_internal,
-      ["bar" |> of_public |> as_lexeme |> of_main_import |> as_lexeme],
+      ["bar" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
     )
-    |> as_lexeme,
+    |> as_raw_node,
   ];
 let __table = ModuleTable.create(1);
 let __scope_tree = BinaryTree.create((Cursor.(expand(zero)), None));

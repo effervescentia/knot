@@ -236,14 +236,14 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
     JavaScript_AST.Object(props);
   };
 
-let gen_constant = (name: raw_identifier_t, value: expression_t) =>
+let gen_constant = (name: untyped_identifier_t, value: expression_t) =>
   JavaScript_AST.Variable(
     name |> Node.Raw.value |> Identifier.to_string,
     value |> Node.value |> gen_expression,
   );
 
 let gen_function =
-    (name: raw_identifier_t, args: list(argument_t), expr: expression_t) =>
+    (name: untyped_identifier_t, args: list(argument_t), expr: expression_t) =>
   JavaScript_AST.(
     Expression(
       Function(
@@ -290,7 +290,7 @@ let gen_function =
     )
   );
 
-let gen_declaration = (name: raw_identifier_t, decl: declaration_t) =>
+let gen_declaration = (name: untyped_identifier_t, decl: declaration_t) =>
   (
     switch (Node.value(decl)) {
     | Constant(value) => [gen_constant(name, value)]
