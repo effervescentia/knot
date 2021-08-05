@@ -3,8 +3,11 @@ open Reference;
 type externals_t = Hashtbl.t(Identifier.t, Type.t);
 
 type t = {
+  /* types that have been imported into the scope */
   externals: externals_t,
+  /* types that have been defined within the scope */
   definitions: DefinitionTable.t,
+  /* parent namespace context */
   namespace_context: NamespaceContext.t,
 };
 

@@ -1,6 +1,6 @@
 open Kore;
 
-let reserved = (ctx: ClosureContext.t) =>
+let reserved = (ctx: ModuleContext.t) =>
   choice(Constants.Keyword.reserved |> List.map(M.keyword))
   >|= (
     name => {
@@ -9,7 +9,7 @@ let reserved = (ctx: ClosureContext.t) =>
         ctx.namespace_context.namespace,
         Node.Raw.cursor(name),
       )
-      |> ClosureContext.report(ctx);
+      |> ModuleContext.report(ctx);
 
       name;
     }
@@ -17,7 +17,7 @@ let reserved = (ctx: ClosureContext.t) =>
 
 let named = M.identifier;
 
-let parser = (ctx: ClosureContext.t) =>
+let parser = (ctx: ModuleContext.t) =>
   choice([reserved(ctx), named])
   >|= Tuple.split2(
         Node.Raw.value % Reference.Identifier.of_string,

@@ -1,7 +1,7 @@
 open Kore;
 open AST.Raw;
 
-let arguments = (ctx: ClosureContext.t) =>
+let arguments = (ctx: ModuleContext.t) =>
   M.between(
     Symbol.open_group,
     Symbol.close_group,
@@ -15,19 +15,7 @@ let arguments = (ctx: ClosureContext.t) =>
           let name_cursor = Node.Raw.cursor(name);
 
           (
-            {
-              /* let type_ =
-                 switch (default) {
-                 | Some((_, t, _)) =>
-                   ctx |> ClosureContext.define(id, t);
-                   t;
-                 | None => ctx |> ClosureContext.define_weak(id)
-                 }; */
-
-              name,
-              default,
-              type_: None,
-            },
+            {name, default, type_: None},
             Cursor.join(
               name_cursor,
               default |> Option.map(Node.Raw.cursor) |?: name_cursor,
@@ -37,22 +25,14 @@ let arguments = (ctx: ClosureContext.t) =>
       ),
       Identifier.parser(ctx)
       >|= (
-        name => (
-          {
-            name,
-            default: None,
-            type_: None,
-            /* ctx |> ClosureContext.define_weak(id), */
-          },
-          Node.Raw.cursor(name),
-        )
+        name => ({name, default: None, type_: None}, Node.Raw.cursor(name))
       ),
     ])
     |> sep_by(Symbol.comma),
   )
   >|= Node.Raw.value;
 
-let parser = (ctx: ClosureContext.t) =>
+let parser = (ctx: ModuleContext.t) =>
   option([], arguments(ctx))
   >>= (
     args =>

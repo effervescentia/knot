@@ -10,7 +10,7 @@ module Assert = {
   include Assert.Make({
     type t = module_statement_t;
 
-    let parser = ((_, ctx, _)) => Parser.parse(Declaration.parser(ctx));
+    let parser = ((_, ctx)) => Parser.parse(Declaration.parser(ctx));
 
     let test =
       Alcotest.(

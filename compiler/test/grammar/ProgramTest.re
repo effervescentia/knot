@@ -8,7 +8,7 @@ module Program = Grammar.Program;
 module Target = {
   type t = program_t;
 
-  let parser = ((ctx, _, _)) => ctx |> Program.main |> Parser.parse;
+  let parser = ((ctx, _)) => ctx |> Program.main |> Parser.parse;
 
   let test =
     Alcotest.(
@@ -31,7 +31,7 @@ module AssertImports =
   Assert.Make({
     include Target;
 
-    let parser = ((ctx, _, _)) => ctx |> Program.imports |> Parser.parse;
+    let parser = ((ctx, _)) => ctx |> Program.imports |> Parser.parse;
   });
 module Assert = Assert.Make(Target);
 

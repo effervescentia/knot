@@ -3,7 +3,6 @@ include Error;
 
 module AST = AST;
 module BinaryTree = BinaryTree;
-module ClosureContext = ClosureContext;
 module Config = Config;
 module Constants = Constants;
 module Cursor = Cursor;

@@ -10,7 +10,7 @@ module Assert = {
   include Assert.Make({
     type t = Node.Raw.t((export_t, declaration_t));
 
-    let parser = ((_, ctx, _)) =>
+    let parser = ((_, ctx)) =>
       Parser.parse(Declaration.function_(ctx, AST.of_named_export));
 
     let test =

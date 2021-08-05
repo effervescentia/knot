@@ -191,6 +191,26 @@ let _extract_type_err =
           |> concat,
         ),
       )
+    | DuplicateIdentifier(id) => (
+        "Identifier Already Defined",
+        [
+          [
+            id
+            |> Identifier.to_string
+            |> Print.bad
+            |> Print.fmt(
+                 "a variable with the same name (%s) already exists in the local scope or an inherited scope",
+               )
+            |> string,
+          ]
+          |> newline,
+        ]
+        |> newline,
+        Some(
+          [_print_resolution(("change the name of this variable", None))]
+          |> concat,
+        ),
+      )
     | ExternalNotFound(namespace, id) => (
         "External Not Found",
         [

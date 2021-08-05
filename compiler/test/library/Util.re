@@ -11,15 +11,6 @@ module CommonUtil = {
     |> List.to_seq
     |> DefinitionTable.from_seq;
   };
-
-  let scope_to_closure = (scope: list((string, Type.Raw.t))) =>
-    ClosureContext.create(
-      ~scope=
-        scope
-        |> List.map(Tuple.map_fst2(AST.of_public))
-        |> List.to_seq
-        |> NestedHashtbl.from_seq,
-    );
 };
 
 module RawUtil = {

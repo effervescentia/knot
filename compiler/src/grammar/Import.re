@@ -11,17 +11,13 @@ let main_import =
   >|= Tuple.split2(Node.Raw.value % of_public, Node.Raw.cursor)
   >|= (import => [(of_main_import(import), Node.Raw.cursor(import))]);
 
-let named_import = (ctx: ModuleContext.t) => {
-  let closure_ctx = ClosureContext.from_module(ctx);
-
-  Identifier.parser(closure_ctx)
+let named_import = (ctx: ModuleContext.t) =>
+  Identifier.parser(ctx)
   >>= (
     id =>
-      Keyword.as_
-      >> Identifier.parser(closure_ctx)
-      >|= (label => (id, Some(label)))
+      Keyword.as_ >> Identifier.parser(ctx) >|= (label => (id, Some(label)))
   )
-  <|> (Identifier.parser(closure_ctx) >|= (id => (id, None)))
+  <|> (Identifier.parser(ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= Node.Raw.value
@@ -34,7 +30,6 @@ let named_import = (ctx: ModuleContext.t) => {
           ),
         )
       );
-};
 
 let parser = (ctx: ModuleContext.t) =>
   Keyword.import

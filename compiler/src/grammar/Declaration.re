@@ -1,138 +1,22 @@
 open Kore;
 open AST;
 
-module TypeResolver = {
-  let _bind_node = (cursor: Cursor.t, x) => (x, cursor);
-  let _bind_typed_node = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
+module Analyzer = Analyze.Analyzer;
+module Scope = Analyze.Scope;
 
-  let res_prim = ((prim, cursor): Raw.primitive_t): primitive_t =>
-    Type.(
-      switch (prim) {
-      | Nil => (Nil, Valid(`Nil))
-      | Boolean(bool) => (Boolean(bool), Valid(`Boolean))
-      | Number(Integer(_) as int) => (Number(int), Valid(`Integer))
-      | Number(Float(_) as float) => (Number(float), Valid(`Float))
-      | String(str) => (String(str), Valid(`String))
-      }
-    )
-    |> _bind_typed_node(cursor);
+let _scope_of_context = (ctx: ModuleContext.t) =>
+  Scope.create(ctx.namespace_context.namespace, ctx.namespace_context.report);
 
-  let rec res_stmt = (stmt: Raw.statement_t): statement_t =>
-    switch (stmt) {
-    | Variable(id, expr) => res_expr(expr) |> (x => Variable(id, x))
-    | Expression(expr) => Expression(res_expr(expr))
-    }
-
-  and res_expr = ((expr, cursor): Raw.expression_t): expression_t =>
-    (
-      switch (expr) {
-      | Primitive(prim) =>
-        res_prim(prim) |> (x => (Primitive(x), Node.type_(x)))
-      | JSX(jsx) => (JSX(res_jsx(jsx)), Valid(`Element))
-      | Group(expr) => res_expr(expr) |> (x => (Group(x), Node.type_(x)))
-      | Closure(stmts) =>
-        stmts
-        |> List.map(res_stmt)
-        |> (
-          xs => (
-            Closure(xs),
-            xs |> List.last |> Option.map(TypeOf.statement) |?: Valid(`Nil),
-          )
-        )
-      | Identifier((id, cursor)) => (
-          Identifier((id, Valid(`Abstract(Unknown)), cursor)),
-          /* TODO: implement */
-          Valid(`Abstract(Unknown)),
-        )
-      | UnaryOp(op, expr) => (
-          UnaryOp(op, res_expr(expr)),
-          /* TODO: implement */
-          Valid(`Abstract(Unknown)),
-        )
-      | BinaryOp(op, lhs, rhs) => (
-          BinaryOp(op, res_expr(lhs), res_expr(rhs)),
-          /* TODO: implement */
-          Valid(`Abstract(Unknown)),
-        )
-      }
-    )
-    |> _bind_typed_node(cursor)
-
-  and res_jsx = ((jsx, cursor): Raw.jsx_t): jsx_t =>
-    (
-      switch (jsx) {
-      | Tag(id, attrs, children) => (
-          Tag(
-            id,
-            attrs |> List.map(res_attr),
-            children |> List.map(res_child),
-          ),
-          Type.Valid(`Element),
-        )
-      | Fragment(children) => (
-          Fragment(children |> List.map(res_child)),
-          Type.Valid(`Element),
-        )
-      }
-    )
-    |> _bind_typed_node(cursor)
-
-  and res_attr = ((attr, cursor): Raw.jsx_attribute_t): jsx_attribute_t =>
-    (
-      switch (attr) {
-      | ID(id) => (ID(id), Type.Valid(`String))
-      | Class(id, expr) => (
-          Class(id, expr |> Option.map(res_expr)),
-          Type.Valid(`String),
-        )
-      | Property(id, expr) =>
-        expr
-        |> Option.map(res_expr)
-        |> (
-          x => (
-            Property(id, x),
-            x |> Option.map(Node.type_) |?: Type.Valid(`Abstract(Unknown)),
-          )
-        )
-      }
-    )
-    |> _bind_typed_node(cursor)
-
-  and res_child = ((attr, cursor): Raw.jsx_child_t): jsx_child_t =>
-    (
-      switch (attr) {
-      | Text(text) => (
-          Text((
-            Node.Raw.value(text),
-            Type.Valid(`String),
-            Node.Raw.cursor(text),
-          )),
-          Type.Valid(`String),
-        )
-      | Node(jsx) => (Node(res_jsx(jsx)), Type.Valid(`Element))
-      | InlineExpression(expr) =>
-        res_expr(expr) |> (x => (InlineExpression(x), Node.type_(x)))
-      }
-    )
-    |> _bind_typed_node(cursor);
-};
-
-let constant = (ctx: ModuleContext.t, f) => {
-  let closure_ctx = ClosureContext.from_module(ctx);
-
+let constant = (ctx: ModuleContext.t, f) =>
   Keyword.const
   >>= Node.Raw.cursor
   % (
     start =>
-      Operator.assign(
-        Identifier.parser(closure_ctx),
-        Expression.parser(closure_ctx),
-      )
+      Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
         ((id, raw_expr)) => {
-          let expr = TypeResolver.res_expr(raw_expr);
-
-          /* ctx |> ModuleContext.define(Node.Raw.value(id), TypeOf.node(expr)); */
+          let scope = _scope_of_context(ctx);
+          let expr = Analyzer.res_expr(scope, raw_expr);
 
           (
             (
@@ -145,29 +29,20 @@ let constant = (ctx: ModuleContext.t, f) => {
       )
       |> M.terminated
   );
-};
 
-let function_ = (ctx: ModuleContext.t, f) => {
-  let closure_ctx = ClosureContext.from_module(ctx);
-
+let function_ = (ctx: ModuleContext.t, f) =>
   Keyword.func
   >>= Node.Raw.cursor
   % (
     start =>
-      Identifier.parser(closure_ctx)
+      Identifier.parser(ctx)
       >>= (
-        id => {
-          let child_ctx = ClosureContext.child(closure_ctx);
-
-          Lambda.parser(child_ctx)
+        id =>
+          Lambda.parser(ctx)
           >|= (
             ((raw_args, raw_res, cursor)) => {
-              let ctx_cursor =
-                Cursor.join(
-                  Node.Raw.cursor(raw_res),
-                  Node.Raw.cursor(raw_res),
-                );
-              let res = TypeResolver.res_expr(raw_res);
+              let scope = _scope_of_context(ctx);
+              let res = Analyzer.res_expr(scope, raw_res);
               let args =
                 raw_args
                 |> List.map(((arg, cursor): Raw.argument_t) =>
@@ -175,7 +50,8 @@ let function_ = (ctx: ModuleContext.t, f) => {
                        {
                          name: arg.name,
                          default:
-                           arg.default |> Option.map(TypeResolver.res_expr),
+                           arg.default
+                           |> Option.map(Analyzer.res_expr(scope)),
                          type_: None,
                        },
                        /* TODO: implement */
@@ -183,8 +59,6 @@ let function_ = (ctx: ModuleContext.t, f) => {
                        cursor,
                      )
                    );
-
-              child_ctx |> ClosureContext.save(ctx_cursor);
 
               (
                 (
@@ -211,12 +85,10 @@ let function_ = (ctx: ModuleContext.t, f) => {
                 Cursor.join(start, cursor),
               );
             }
-          );
-        }
+          )
       )
       |> M.terminated
   );
-};
 
 let parser = (ctx: ModuleContext.t) =>
   option(of_named_export, of_main_export <$ Keyword.main)

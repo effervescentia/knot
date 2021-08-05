@@ -6,4 +6,3 @@ module Resolver = Resolve.Resolver;
 module Generator = Generate.Generator;
 module Module = Resolve.Module;
 module ImportGraph = Resolve.ImportGraph;
-module TypeOf = Grammar.TypeOf;

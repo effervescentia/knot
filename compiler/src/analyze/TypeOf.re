@@ -4,6 +4,7 @@ let statement =
   AST.(
     fun
     | Expression(expr) => Node.type_(expr)
+    /* variable declarations result in a `nil` value */
     | Variable(_) => Valid(`Nil)
   );
 

@@ -18,11 +18,14 @@ module Error = {
     | TypeMismatch('a, 'a)
     | NotAssignable('a, Trait.t)
     | ExternalNotFound(Namespace.t, Export.t)
-    | TypeResolutionFailed;
+    | TypeResolutionFailed
+    | DuplicateIdentifier(Identifier.t);
 
   let to_string = (type_to_string: 'a => string) =>
     fun
     | NotFound(id) => id |> Identifier.to_string |> Print.fmt("NotFound<%s>")
+    | DuplicateIdentifier(id) =>
+      id |> Identifier.to_string |> Print.fmt("DuplicateIdentifier<%s>")
     | NotAssignable(type_, trait) =>
       Print.fmt(
         "NotAssignable<%s, %s>",
@@ -193,7 +196,12 @@ and to_raw = (type_: t): Raw.t =>
     Invalid(NotAssignable(to_raw(t), trait))
   | Invalid(TypeMismatch(lhs, rhs)) =>
     Invalid(TypeMismatch(to_raw(lhs), to_raw(rhs)))
-  | Invalid((ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err) =>
+  | Invalid(
+      (
+        ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
+        TypeResolutionFailed
+      ) as err,
+    ) =>
     Invalid(err)
   }
 
@@ -201,7 +209,10 @@ and err_to_strong_err = (err: error_t): Raw.error_t =>
   switch (err) {
   | NotAssignable(t, trait) => NotAssignable(to_raw(t), trait)
   | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
-  | (ExternalNotFound(_) | NotFound(_) | TypeResolutionFailed) as err => err
+  | (
+      ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
+      TypeResolutionFailed
+    ) as err => err
   };
 
 let rec to_string = (type_: t) =>
@@ -251,5 +262,8 @@ and err_of_raw_err = (err: Raw.error_t): error_t =>
   switch (err) {
   | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
   | NotAssignable(x, y) => NotAssignable(of_raw(x), y)
-  | (NotFound(_) | ExternalNotFound(_) | TypeResolutionFailed) as err => err
+  | (
+      ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
+      TypeResolutionFailed
+    ) as err => err
   };

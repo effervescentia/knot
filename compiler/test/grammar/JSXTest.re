@@ -9,7 +9,7 @@ module Assert =
   Assert.Make({
     type t = jsx_t;
 
-    let parser = ((_, _, ctx)) =>
+    let parser = ((_, ctx)) =>
       JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
 
     let test =
@@ -293,13 +293,7 @@ let suite =
             |> as_raw_node,
           ),
         ]
-        |> Assert.parse_many(
-             ~cls_context=
-               scope_to_closure([
-                 ("fizz", Strong(`Integer)),
-                 ("buzz", Strong(`Boolean)),
-               ]),
-           )
+        |> Assert.parse_many
     ),
     "parse single child"
     >: (
@@ -438,9 +432,7 @@ let suite =
               |> as_raw_node,
             ),
           ]
-          |> Assert.parse_many(
-               ~cls_context=scope_to_closure([("fizz", Strong(`Boolean))]),
-             )
+          |> Assert.parse_many
         ) {
         | CompileError(x) =>
           x

@@ -17,7 +17,7 @@ module Fragment = {
 let _attribute =
     (
       ~prefix=M.alpha <|> Character.underscore,
-      ctx: ClosureContext.t,
+      ctx: ModuleContext.t,
       (term, expr),
     ) =>
   Operator.assign(
@@ -48,15 +48,15 @@ let _attribute =
 let _self_closing =
   Tag.self_close >|= Node.Raw.cursor >|= (end_cursor => ([], end_cursor));
 
-let rec parser = (ctx: ClosureContext.t, x, input) =>
+let rec parser = (ctx: ModuleContext.t, x, input) =>
   (choice([fragment(ctx, x), tag(ctx, x)]) |> M.lexeme)(input)
 
-and fragment = (ctx: ClosureContext.t, x) =>
+and fragment = (ctx: ModuleContext.t, x) =>
   children(ctx, x)
   |> M.between(Fragment.open_, Fragment.close)
   >|= Tuple.split2(Node.Raw.value % of_frag, Node.Raw.cursor)
 
-and tag = (ctx: ClosureContext.t, x) =>
+and tag = (ctx: ModuleContext.t, x) =>
   Tag.open_
   >> M.identifier
   >>= (
@@ -94,7 +94,7 @@ and tag = (ctx: ClosureContext.t, x) =>
       )
   )
 
-and attributes = (ctx: ClosureContext.t, x) =>
+and attributes = (ctx: ModuleContext.t, x) =>
   choice([
     _attribute(ctx, x)
     >|= (
@@ -123,7 +123,7 @@ and attributes = (ctx: ClosureContext.t, x) =>
   ])
   |> many
 
-and children = (ctx: ClosureContext.t, x) =>
+and children = (ctx: ModuleContext.t, x) =>
   choice([node(ctx, x), inline_expr(ctx, x), text]) |> M.lexeme |> many
 
 and text =
@@ -142,10 +142,10 @@ and text =
         Node.Raw.cursor,
       )
 
-and node = (ctx: ClosureContext.t, x) =>
+and node = (ctx: ModuleContext.t, x) =>
   parser(ctx, x) >|= (node => (of_node(node), Node.Raw.cursor(node)))
 
-and inline_expr = (ctx: ClosureContext.t, (_, expr)) =>
+and inline_expr = (ctx: ModuleContext.t, (_, expr)) =>
   expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
   >|= Tuple.split2(Node.Raw.value % of_inline_expr, Node.Raw.cursor);

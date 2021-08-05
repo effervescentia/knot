@@ -8,7 +8,7 @@ module Assert =
   Assert.Make({
     type t = expression_t;
 
-    let parser = ((_, _, ctx)) => ctx |> Expression.parser |> Parser.parse;
+    let parser = ((_, ctx)) => ctx |> Expression.parser |> Parser.parse;
 
     let test =
       Alcotest.(
@@ -37,16 +37,12 @@ let suite =
           ("foo", "foo" |> of_public |> as_raw_node |> of_id |> as_raw_node),
           ("bar", "bar" |> of_public |> as_raw_node |> of_id |> as_raw_node),
         ]
-        |> Assert.parse_many(
-             ~report=ignore,
-             ~cls_context=scope_to_closure([("bar", Strong(`Integer))]),
-           )
+        |> Assert.parse_many(~report=ignore)
     ),
     "parse group"
     >: (
       () =>
         Assert.parse(
-          ~cls_context=scope_to_closure([("foo", Strong(`Boolean))]),
           "(foo)",
           "foo"
           |> of_public
@@ -96,9 +92,7 @@ let suite =
             |> as_raw_node,
           ),
         ]
-        |> Assert.parse_many(
-             ~cls_context=scope_to_closure([("foo", Strong(`String))]),
-           )
+        |> Assert.parse_many
     ),
     "parse unary"
     >: (
@@ -275,18 +269,7 @@ let suite =
             |> as_raw_node,
           ),
         ]
-        |> Assert.parse_many(
-             ~cls_context=
-               scope_to_closure([
-                 ("a", Strong(`Boolean)),
-                 ("b", Strong(`Integer)),
-                 ("c", Strong(`Float)),
-                 ("e", Strong(`Float)),
-                 ("f", Strong(`Integer)),
-                 ("g", Strong(`Boolean)),
-                 ("h", Strong(`Boolean)),
-               ]),
-           )
+        |> Assert.parse_many
     ),
     "parse left-associative"
     >: (
@@ -308,14 +291,7 @@ let suite =
                |> as_raw_node,
              )
            )
-        |> Assert.parse_many(
-             ~cls_context=
-               scope_to_closure([
-                 ("a", Strong(`Integer)),
-                 ("b", Strong(`Integer)),
-                 ("c", Strong(`Integer)),
-               ]),
-           );
+        |> Assert.parse_many;
 
         [("/", of_div_op)]
         |> List.map(((op, tag)) =>
@@ -334,14 +310,7 @@ let suite =
                |> as_raw_node,
              )
            )
-        |> Assert.parse_many(
-             ~cls_context=
-               scope_to_closure([
-                 ("a", Strong(`Integer)),
-                 ("b", Strong(`Integer)),
-                 ("c", Strong(`Integer)),
-               ]),
-           );
+        |> Assert.parse_many;
 
         [("&&", of_and_op), ("||", of_or_op)]
         |> List.map(((op, tag)) =>
@@ -360,14 +329,8 @@ let suite =
                |> as_raw_node,
              )
            )
-        |> Assert.parse_many(
-             ~cls_context=
-               scope_to_closure([
-                 ("a", Strong(`Boolean)),
-                 ("b", Strong(`Boolean)),
-                 ("c", Strong(`Boolean)),
-               ]),
-           );
+        |> Assert.parse_many;
+
         [
           ("<=", of_lte_op),
           ("<", of_lt_op),
@@ -390,15 +353,8 @@ let suite =
                |> as_raw_node,
              )
            )
-        |> Assert.parse_many(
-             ~report=ignore,
-             ~cls_context=
-               scope_to_closure([
-                 ("a", weak_unknown),
-                 ("b", weak_unknown),
-                 ("c", weak_unknown),
-               ]),
-           );
+        |> Assert.parse_many(~report=ignore);
+
         [("==", of_eq_op), ("!=", of_ineq_op)]
         |> List.map(((op, tag)) =>
              (
@@ -416,15 +372,7 @@ let suite =
                |> as_raw_node,
              )
            )
-        |> Assert.parse_many(
-             ~report=ignore,
-             ~cls_context=
-               scope_to_closure([
-                 ("a", weak_unknown),
-                 ("b", weak_unknown),
-                 ("c", weak_unknown),
-               ]),
-           );
+        |> Assert.parse_many(~report=ignore);
       }
     ),
     "parse right-associative"
@@ -446,14 +394,7 @@ let suite =
             |> as_raw_node,
           ),
         ]
-        |> Assert.parse_many(
-             ~cls_context=
-               scope_to_closure([
-                 ("a", Strong(`Integer)),
-                 ("b", Strong(`Integer)),
-                 ("c", Strong(`Integer)),
-               ]),
-           );
+        |> Assert.parse_many;
 
         [
           (
@@ -471,9 +412,8 @@ let suite =
             |> as_raw_node,
           ),
         ]
-        |> Assert.parse_many(
-             ~cls_context=scope_to_closure([("a", Strong(`Integer))]),
-           );
+        |> Assert.parse_many;
+
         [
           (
             "! ! ! a",
@@ -490,9 +430,7 @@ let suite =
             |> as_raw_node,
           ),
         ]
-        |> Assert.parse_many(
-             ~cls_context=scope_to_closure([("a", Strong(`Boolean))]),
-           );
+        |> Assert.parse_many;
       }
     ),
   ];

@@ -24,8 +24,16 @@
       "name": "knot.lib",
       "namespace": "Knot"
     },
+    "src/analyze": {
+      "require": [
+        "knot.parse"
+      ],
+      "name": "knot.analyze",
+      "namespace": "Analyze"
+    },
     "src/grammar": {
       "require": [
+        "knot.analyze",
         "knot.parse"
       ],
       "name": "knot.grammar",

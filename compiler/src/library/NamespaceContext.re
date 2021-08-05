@@ -1,9 +1,13 @@
 open Reference;
 
 type t = {
+  /* unique identifier for this namespace */
   namespace: Namespace.t,
+  /* the active module table for the compiler instance */
   modules: ModuleTable.t,
+  /* error reporting callback */
   report: Error.compile_err => unit,
+  /* error reporting callback */
   mutable inner_modules: list((Module.t, DefinitionTable.t, Cursor.t)),
 };
 
