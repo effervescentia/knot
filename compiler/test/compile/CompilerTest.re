@@ -119,7 +119,7 @@ let suite =
             (
               __entry,
               ModuleTable.{
-                types: __types,
+                exports: __types,
                 ast: __ast,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
@@ -185,7 +185,7 @@ let suite =
             (
               __entry,
               ModuleTable.{
-                types: __types,
+                exports: __types,
                 ast: __ast,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",

@@ -1,9 +1,10 @@
 open Reference;
 
-type scope_tree_t = RangeTree.t(option(Hashtbl.t(Export.t, Type.t)));
+type type_table_t = Hashtbl.t(Export.t, Type.t);
+type scope_tree_t = RangeTree.t(option(type_table_t));
 
 type entry_t = {
-  types: Hashtbl.t(Export.t, Type.t),
+  exports: type_table_t,
   ast: AST.program_t,
   scopes: scope_tree_t,
   raw: string,
@@ -40,7 +41,7 @@ let add =
   Hashtbl.replace(
     table,
     id,
-    {ast, types: exports |> List.to_seq |> Hashtbl.of_seq, scopes, raw},
+    {ast, exports: exports |> List.to_seq |> Hashtbl.of_seq, scopes, raw},
   );
 
 /**
@@ -56,7 +57,7 @@ let add_type =
   if (Hashtbl.mem(table, namespace)) {
     let members = Hashtbl.find(table, namespace);
 
-    Hashtbl.replace(members.types, id, value);
+    Hashtbl.replace(members.exports, id, value);
   };
 
 /**
@@ -69,13 +70,13 @@ let to_string = (~debug=false, table: t): string =>
        key
        |> Hashtbl.find(table)
        |> (
-         ({ast, raw, types}) =>
+         ({ast, raw, exports}) =>
            ast
            |> AST.Debug.print_ast
            |> Print.fmt(
                 "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
                 Reference.Namespace.to_string(key),
-                types
+                exports
                 |> Hashtbl.to_string(Export.to_string, Type.to_string)
                 |> Pretty.to_string,
                 raw,

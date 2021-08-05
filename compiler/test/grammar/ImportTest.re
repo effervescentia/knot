@@ -148,7 +148,7 @@ let suite =
                        "bar" |> of_internal,
                        ModuleTable.{
                          ast: [],
-                         types:
+                         exports:
                            [
                              (Export.Main, Type.Valid(`Nil)),
                              (
@@ -221,7 +221,7 @@ let suite =
                        "bar" |> of_internal,
                        ModuleTable.{
                          ast: [],
-                         types:
+                         exports:
                            [(Export.Main, Type.Valid(`Nil))]
                            |> List.to_seq
                            |> Hashtbl.of_seq,

@@ -34,7 +34,7 @@ let suite =
               (
                 __id,
                 ModuleTable.{
-                  types:
+                  exports:
                     _create_table(
                       AST.[
                         (
@@ -71,7 +71,7 @@ let suite =
               (
                 __id,
                 ModuleTable.{
-                  types:
+                  exports:
                     _create_table([
                       (
                         Export.Named("new_type" |> AST.of_public),

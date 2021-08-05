@@ -62,7 +62,7 @@ let __ns_context =
           "bar" |> of_internal,
           ModuleTable.{
             ast: [],
-            types:
+            exports:
               [(Export.Main, Type.Valid(`String))]
               |> List.to_seq
               |> Hashtbl.of_seq,
@@ -135,7 +135,7 @@ let suite =
                     "bar" |> of_internal,
                     ModuleTable.{
                       ast: [],
-                      types:
+                      exports:
                         [(Export.Main, Type.Valid(`Boolean))]
                         |> List.to_seq
                         |> Hashtbl.of_seq,

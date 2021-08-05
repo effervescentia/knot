@@ -28,7 +28,7 @@ let __context =
           "bar" |> of_internal,
           ModuleTable.{
             ast: [],
-            types:
+            exports:
               [(Export.Main, Type.Valid(`Boolean))]
               |> List.to_seq
               |> Hashtbl.of_seq,
