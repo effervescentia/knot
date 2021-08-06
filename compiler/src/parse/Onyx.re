@@ -151,7 +151,7 @@ let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 let get_cursor =
   LazyStream.(
     fun
-    | Cons(r, _) as input => Some((Input.point(r), input))
+    | Cons(r, _) as input => Some((Input.get_point(r), input))
     | Nil => None
   );
 
@@ -159,7 +159,7 @@ let get_cursor =
  matches a single character
  */
 let satisfy = (f: 'a => bool) =>
-  any >>= (x => Input.value(x) |> (v => f(v) ? return(x) : none));
+  any >>= (x => Input.get_value(x) |> (v => f(v) ? return(x) : none));
 
 /**
  matches a single character

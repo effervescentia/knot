@@ -21,7 +21,7 @@ let lexeme = x => spaces >> x;
 let between = (l, r, x) =>
   map3(
     (l', x', r') =>
-      Node.Raw.(create(x', Range.join(range(l'), range(r')))),
+      Node.Raw.(create(x', Range.join(get_range(l'), get_range(r')))),
     l,
     x,
     r,
@@ -61,7 +61,7 @@ let glyph = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Input.point
+          >|= Input.get_point
           >|= (end_ => Node.Raw.create((), Range.create(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
@@ -83,7 +83,7 @@ let keyword = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Input.point
+          >|= Input.get_point
           >|= (end_ => Node.Raw.create(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
@@ -112,14 +112,14 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
  */
 let string =
   Character.quote
-  >|= Input.point
+  >|= Input.get_point
   >>= (
     start => {
       let rec loop = f =>
         choice([
           /* end of string sequence */
           Character.quote
-          >|= Input.point
+          >|= Input.get_point
           >|= (
             end_ =>
               Node.Raw.create(
@@ -130,11 +130,11 @@ let string =
           /* capture escaped characters */
           Character.back_slash
           >> any
-          >|= Input.value
+          >|= Input.get_value
           >>= (c => loop(rs => f([__back_slash, c, ...rs]))),
           /* capture characters of the string */
           none_of([C.Character.quote, C.Character.eol])
-          >|= Input.value
+          >|= Input.get_value
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);
 

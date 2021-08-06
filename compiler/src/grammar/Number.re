@@ -6,10 +6,11 @@ let integer =
   many1(M.digit)
   >|= Input.join
   >|= (
-    node => (
-      node |> Node.Raw.value |> Int64.of_string |> AST.of_int,
-      Node.Raw.range(node),
-    )
+    node =>
+      Node.Raw.(
+        node |> get_value |> Int64.of_string |> AST.of_int,
+        get_range(node),
+      )
   )
   |> M.lexeme;
 
@@ -22,9 +23,9 @@ let float =
   >|= (
     ((x, y)) => (
       {
-        let integer = x |> Node.Raw.value |> String.drop_all_prefix("0");
+        let integer = x |> Node.Raw.get_value |> String.drop_all_prefix("0");
         let integer_precision = integer |> String.length;
-        let fraction = y |> Node.Raw.value |> String.drop_all_suffix("0");
+        let fraction = y |> Node.Raw.get_value |> String.drop_all_suffix("0");
         let fraction_precision = String.length(fraction);
 
         (
@@ -39,7 +40,7 @@ let float =
         )
         |> of_float;
       },
-      Node.Raw.(Range.join(range(x), range(y))),
+      Node.Raw.(Range.join(get_range(x), get_range(y))),
     )
   )
   |> M.lexeme;

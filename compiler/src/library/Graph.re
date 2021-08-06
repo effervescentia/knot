@@ -58,8 +58,8 @@ let empty = (): t('a) => create([], []);
 
 /* getters */
 
-let nodes = (graph: t('a)): list('a) => graph.nodes;
-let edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
+let get_nodes = (graph: t('a)): list('a) => graph.nodes;
+let get_edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
 
 /* methods */
 

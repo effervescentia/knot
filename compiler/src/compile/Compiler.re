@@ -30,7 +30,7 @@ let __module_table_size = 64;
 let _get_exports = ast =>
   ast
   |> List.map(
-       Node.Raw.value
+       Node.Raw.get_value
        % (
          fun
          /* ignore all private declarations */
@@ -41,12 +41,12 @@ let _get_exports = ast =>
            []
 
          | AST.Declaration(NamedExport(id), decl) => [
-             (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
+             (Export.Named(Node.Raw.get_value(id)), Node.get_type(decl)),
            ]
 
          | AST.Declaration(MainExport(id), decl) => [
-             (Export.Named(Node.Raw.value(id)), Node.type_(decl)),
-             (Export.Main, Node.type_(decl)),
+             (Export.Named(Node.Raw.get_value(id)), Node.get_type(decl)),
+             (Export.Main, Node.get_type(decl)),
            ]
 
          | _ => []

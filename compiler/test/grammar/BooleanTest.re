@@ -16,7 +16,7 @@ module Assert =
         check(
           testable(
             pp =>
-              Node.Raw.value
+              Node.Raw.get_value
               % Raw.Debug.print_prim
               % Pretty.to_string
               % Format.pp_print_string(pp),

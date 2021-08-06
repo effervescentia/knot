@@ -208,8 +208,8 @@ module Make = (T: ASTParams) => {
     let print_untyped_node = (label, print_value, x) =>
       Common.Debug.print_node(
         label,
-        x |> Node.Raw.value |> print_value,
-        Node.Raw.range(x),
+        x |> Node.Raw.get_value |> print_value,
+        Node.Raw.get_range(x),
       );
 
     let print_ns = Namespace.to_string % string;
@@ -370,8 +370,8 @@ module Raw =
 
     type node_t('a) = Node.Raw.t('a);
 
-    let get_value = Node.Raw.value;
-    let get_range = Node.Raw.range;
+    let get_value = Node.Raw.get_value;
+    let get_range = Node.Raw.get_range;
 
     let print_node = (label, print_value, x) =>
       Common.Debug.print_node(
@@ -386,9 +386,9 @@ include Make({
 
   type node_t('a) = Node.t('a);
 
-  let get_value = Node.value;
-  let get_type = Node.type_;
-  let get_range = Node.range;
+  let get_value = Node.get_value;
+  let get_type = Node.get_type;
+  let get_range = Node.get_range;
 
   let print_node = (label, print_value, x) =>
     Common.Debug.print_typed_node(
@@ -440,23 +440,23 @@ module Debug = {
   include Debug;
 
   let print_decl = ((name, decl)) =>
-    switch (Node.value(decl)) {
+    switch (Node.get_value(decl)) {
     | Constant(expr) =>
       print_entity(
-        ~range=Node.range(decl),
+        ~range=Node.get_range(decl),
         ~children=[
           print_entity(
             ~range=
               switch (name) {
               | MainExport(x)
-              | NamedExport(x) => Node.Raw.range(x)
+              | NamedExport(x) => Node.Raw.get_range(x)
               },
             ~children=[
               switch (name) {
               | MainExport(id) =>
-                [string("(main) "), id |> Node.Raw.value |> print_id]
+                [string("(main) "), id |> Node.Raw.get_value |> print_id]
                 |> concat
-              | NamedExport(id) => id |> Node.Raw.value |> print_id
+              | NamedExport(id) => id |> Node.Raw.get_value |> print_id
               },
             ],
             "Name",
@@ -511,7 +511,7 @@ module Debug = {
             ~children=
               imports
               |> List.map(
-                   Node.Raw.value
+                   Node.Raw.get_value
                    % (
                      fun
                      | MainImport(name) =>

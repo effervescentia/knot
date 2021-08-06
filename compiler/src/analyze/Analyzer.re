@@ -25,7 +25,7 @@ let rec res_stmt =
         Type.Valid(`Nil),
       )
     | Expression(expr) =>
-      res_expr(scope, expr) |> (x => (Expression(x), Node.type_(x)))
+      res_expr(scope, expr) |> (x => (Expression(x), Node.get_type(x)))
     }
   )
   |> _bind_typed_node(range)
@@ -35,10 +35,10 @@ and res_expr =
   (
     switch (expr) {
     | Primitive(prim) =>
-      res_prim(prim) |> (x => (Primitive(x), Node.type_(x)))
+      res_prim(prim) |> (x => (Primitive(x), Node.get_type(x)))
     | JSX(jsx) => (JSX(res_jsx(scope, jsx)), Valid(`Element))
     | Group(expr) =>
-      res_expr(scope, expr) |> (x => (Group(x), Node.type_(x)))
+      res_expr(scope, expr) |> (x => (Group(x), Node.get_type(x)))
     | Closure(stmts) =>
       stmts
       |> List.map(res_stmt(Scope.child(scope, range)))
@@ -47,7 +47,7 @@ and res_expr =
           Closure(xs),
           xs
           |> List.last
-          |> Option.map(Node.value % TypeOf.statement)
+          |> Option.map(Node.get_value % TypeOf.statement)
           |?: Valid(`Nil),
         )
       )
@@ -104,7 +104,7 @@ and res_attr =
       |> (
         x => (
           Property(id, x),
-          x |> Option.map(Node.type_) |?: Type.Valid(`Abstract(Unknown)),
+          x |> Option.map(Node.get_type) |?: Type.Valid(`Abstract(Unknown)),
         )
       )
     }
@@ -116,15 +116,16 @@ and res_child = (scope: Scope.t, (attr, range): Raw.jsx_child_t): jsx_child_t =>
     switch (attr) {
     | Text(text) => (
         Text((
-          Node.Raw.value(text),
+          Node.Raw.get_value(text),
           Type.Valid(`String),
-          Node.Raw.range(text),
+          Node.Raw.get_range(text),
         )),
         Type.Valid(`String),
       )
     | Node(jsx) => (Node(res_jsx(scope, jsx)), Type.Valid(`Element))
     | InlineExpression(expr) =>
-      res_expr(scope, expr) |> (x => (InlineExpression(x), Node.type_(x)))
+      res_expr(scope, expr)
+      |> (x => (InlineExpression(x), Node.get_type(x)))
     }
   )
   |> _bind_typed_node(range);

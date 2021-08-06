@@ -33,17 +33,17 @@ let rec gen_expression =
   | Primitive((String(x), _, _)) => JavaScript_AST.String(x)
   | Primitive((Nil, _, _)) => JavaScript_AST.Null
   | Identifier(value) =>
-    JavaScript_AST.Identifier(value |> Node.value |> Identifier.to_string)
+    JavaScript_AST.Identifier(value |> Node.get_value |> Identifier.to_string)
   | Group(value) =>
-    JavaScript_AST.Group(value |> Node.value |> gen_expression)
+    JavaScript_AST.Group(value |> Node.get_value |> gen_expression)
 
   | Closure([]) => JavaScript_AST.(Null)
   | Closure(values) => {
       let rec loop = (
         fun
         | [] => []
-        | [x] => x |> Node.value |> gen_statement(~is_last=true)
-        | [x, ...xs] => (x |> Node.value |> gen_statement) @ loop(xs)
+        | [x] => x |> Node.get_value |> gen_statement(~is_last=true)
+        | [x, ...xs] => (x |> Node.get_value |> gen_statement) @ loop(xs)
       );
 
       values |> loop |> JavaScript_AST.iife;
@@ -51,22 +51,24 @@ let rec gen_expression =
 
   | UnaryOp(op, value) => value |> gen_unary_op(op)
   | BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
-  | JSX(value) => value |> Node.value |> gen_jsx
+  | JSX(value) => value |> Node.get_value |> gen_jsx
 
 and gen_statement = (~is_last=false) =>
   fun
   | Variable(name, value) =>
     [
       JavaScript_AST.Variable(
-        name |> Node.Raw.value |> Identifier.to_string,
-        value |> Node.value |> gen_expression,
+        name |> Node.Raw.get_value |> Identifier.to_string,
+        value |> Node.get_value |> gen_expression,
       ),
     ]
     @ (is_last ? [JavaScript_AST.Return(Some(Null))] : [])
   | Expression(value) => [
       is_last
-        ? JavaScript_AST.Return(Some(value |> Node.value |> gen_expression))
-        : JavaScript_AST.Expression(value |> Node.value |> gen_expression),
+        ? JavaScript_AST.Return(
+            Some(value |> Node.get_value |> gen_expression),
+          )
+        : JavaScript_AST.Expression(value |> Node.get_value |> gen_expression),
     ]
 
 and gen_unary_op = (op, value) =>
@@ -76,7 +78,7 @@ and gen_unary_op = (op, value) =>
     | Positive => "+"
     | Not => "!"
     },
-    Group(value |> Node.value |> gen_expression),
+    Group(value |> Node.get_value |> gen_expression),
   )
 
 and gen_binary_op = {
@@ -84,8 +86,8 @@ and gen_binary_op = {
     JavaScript_AST.Group(
       BinaryOp(
         symbol,
-        lhs |> Node.value |> gen_expression,
-        rhs |> Node.value |> gen_expression,
+        lhs |> Node.get_value |> gen_expression,
+        rhs |> Node.get_value |> gen_expression,
       ),
     );
 
@@ -107,8 +109,8 @@ and gen_binary_op = {
         JavaScript_AST.FunctionCall(
           DotAccess(Identifier("Math"), "pow"),
           [
-            lhs |> Node.value |> gen_expression,
-            rhs |> Node.value |> gen_expression,
+            lhs |> Node.get_value |> gen_expression,
+            rhs |> Node.get_value |> gen_expression,
           ],
         )
     );
@@ -120,12 +122,12 @@ and gen_jsx =
     JavaScript_AST.FunctionCall(
       _jsx_util("createTag"),
       [
-        String(name |> Node.Raw.value |> Identifier.to_string),
+        String(name |> Node.Raw.get_value |> Identifier.to_string),
         ...List.is_empty(attrs) && List.is_empty(values)
              ? []
              : [
                gen_jsx_attrs(attrs),
-               ...values |> List.map(Node.value % gen_jsx_child),
+               ...values |> List.map(Node.get_value % gen_jsx_child),
              ],
       ],
     )
@@ -133,14 +135,14 @@ and gen_jsx =
   | Fragment(values) =>
     JavaScript_AST.FunctionCall(
       _jsx_util("createFragment"),
-      values |> List.map(Node.value % gen_jsx_child),
+      values |> List.map(Node.get_value % gen_jsx_child),
     )
 
 and gen_jsx_child =
   fun
-  | Node(value) => value |> Node.value |> gen_jsx
-  | Text(value) => JavaScript_AST.String(Node.value(value))
-  | InlineExpression(value) => value |> Node.value |> gen_expression
+  | Node(value) => value |> Node.get_value |> gen_jsx
+  | Text(value) => JavaScript_AST.String(Node.get_value(value))
+  | InlineExpression(value) => value |> Node.get_value |> gen_expression
 
 and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
   if (List.is_empty(attrs)) {
@@ -151,19 +153,20 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
       attrs
       |> List.fold_left(
            ((c, p)) =>
-             Node.value
+             Node.get_value
              % (
                fun
                | Property(name, expr) => (
                    c,
                    [
                      (
-                       name |> Node.Raw.value |> Identifier.to_string,
+                       name |> Node.Raw.get_value |> Identifier.to_string,
                        switch (expr) {
-                       | Some(expr) => expr |> Node.value |> gen_expression
+                       | Some(expr) =>
+                         expr |> Node.get_value |> gen_expression
                        | None =>
                          JavaScript_AST.Identifier(
-                           name |> Node.Raw.value |> Identifier.to_string,
+                           name |> Node.Raw.get_value |> Identifier.to_string,
                          )
                        },
                      ),
@@ -174,7 +177,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    [
                      JavaScript_AST.String(
                        name
-                       |> Node.Raw.value
+                       |> Node.Raw.get_value
                        |> Identifier.to_string
                        |> Print.fmt(".%s"),
                      ),
@@ -186,10 +189,10 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    [
                      JavaScript_AST.Group(
                        Ternary(
-                         expr |> Node.value |> gen_expression,
+                         expr |> Node.get_value |> gen_expression,
                          String(
                            name
-                           |> Node.Raw.value
+                           |> Node.Raw.get_value
                            |> Identifier.to_string
                            |> Print.fmt(".%s"),
                          ),
@@ -205,7 +208,9 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    [
                      (
                        __id_prop,
-                       String(name |> Node.Raw.value |> Identifier.to_string),
+                       String(
+                         name |> Node.Raw.get_value |> Identifier.to_string,
+                       ),
                      ),
                      ...p,
                    ],
@@ -238,8 +243,8 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
 
 let gen_constant = (name: untyped_identifier_t, value: expression_t) =>
   JavaScript_AST.Variable(
-    name |> Node.Raw.value |> Identifier.to_string,
-    value |> Node.value |> gen_expression,
+    name |> Node.Raw.get_value |> Identifier.to_string,
+    value |> Node.get_value |> gen_expression,
   );
 
 let gen_function =
@@ -247,25 +252,27 @@ let gen_function =
   JavaScript_AST.(
     Expression(
       Function(
-        Some(name |> Node.Raw.value |> Identifier.to_string),
+        Some(name |> Node.Raw.get_value |> Identifier.to_string),
         args
         |> List.map(
-             Node.value
-             % (({name}) => name |> Node.Raw.value |> Identifier.to_string),
+             Node.get_value
+             % (
+               ({name}) => name |> Node.Raw.get_value |> Identifier.to_string
+             ),
            ),
         (
           args
           |> List.filter_map(
-               Node.value
+               Node.get_value
                % (
                  fun
                  | {name, default: Some(default)} =>
                    Some(
                      Assignment(
                        Identifier(
-                         name |> Node.Raw.value |> Identifier.to_string,
+                         name |> Node.Raw.get_value |> Identifier.to_string,
                        ),
-                       default |> Node.value |> gen_expression,
+                       default |> Node.get_value |> gen_expression,
                      ),
                    )
                  | _ => None
@@ -273,13 +280,14 @@ let gen_function =
              )
         )
         @ (
-          switch (Node.value(expr)) {
+          switch (Node.get_value(expr)) {
           | Closure(stmts) =>
             let rec loop = (
               fun
               | [] => []
-              | [x] => x |> Node.value |> gen_statement(~is_last=true)
-              | [x, ...xs] => (x |> Node.value |> gen_statement) @ loop(xs)
+              | [x] => x |> Node.get_value |> gen_statement(~is_last=true)
+              | [x, ...xs] =>
+                (x |> Node.get_value |> gen_statement) @ loop(xs)
             );
 
             loop(stmts);
@@ -292,13 +300,13 @@ let gen_function =
 
 let gen_declaration = (name: untyped_identifier_t, decl: declaration_t) =>
   (
-    switch (Node.value(decl)) {
+    switch (Node.get_value(decl)) {
     | Constant(value) => [gen_constant(name, value)]
     | Function(args, expr) => [gen_function(name, args, expr)]
     }
   )
   @ (
-    switch (Node.Raw.value(name)) {
+    switch (Node.Raw.get_value(name)) {
     | Public(name) => [JavaScript_AST.Export(name, None)]
     | _ => []
     }
@@ -318,7 +326,7 @@ let generate = (resolve: resolve_t, ast: program_t) => {
     ast
     |> List.fold_left(
          ((i, d)) =>
-           Node.Raw.value
+           Node.Raw.get_value
            % (
              fun
              | Import(namespace, imports) => (
@@ -328,25 +336,31 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                      resolve(namespace),
                      imports
                      |> List.map(
-                          Node.Raw.value
+                          Node.Raw.get_value
                           % (
                             fun
                             | MainImport(id) => (
                                 __main_export,
                                 Some(
-                                  id |> Node.Raw.value |> Identifier.to_string,
+                                  id
+                                  |> Node.Raw.get_value
+                                  |> Identifier.to_string,
                                 ),
                               )
                             | NamedImport(id, Some(label)) => (
-                                id |> Node.Raw.value |> Identifier.to_string,
+                                id
+                                |> Node.Raw.get_value
+                                |> Identifier.to_string,
                                 Some(
                                   label
-                                  |> Node.Raw.value
+                                  |> Node.Raw.get_value
                                   |> Identifier.to_string,
                                 ),
                               )
                             | NamedImport(id, None) => (
-                                id |> Node.Raw.value |> Identifier.to_string,
+                                id
+                                |> Node.Raw.get_value
+                                |> Identifier.to_string,
                                 None,
                               )
                           ),
@@ -365,7 +379,7 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                  @ gen_declaration(name, decl)
                  @ [
                    JavaScript_AST.Export(
-                     name |> Node.Raw.value |> Identifier.to_string,
+                     name |> Node.Raw.get_value |> Identifier.to_string,
                      Some(__main_export),
                    ),
                  ],

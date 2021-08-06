@@ -52,20 +52,20 @@ let suite =
           ),
         )
     ),
-    "nodes()"
+    "get_nodes()"
     >: (
       () =>
         Assert.string_list(
           ["foo", "bar", "fizz", "buzz"],
-          Graph.nodes(__acyclic_graph),
+          Graph.get_nodes(__acyclic_graph),
         )
     ),
-    "edges()"
+    "get_edges()"
     >: (
       () =>
         Assert.string_pair_list(
           [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
-          Graph.edges(__acyclic_graph),
+          Graph.get_edges(__acyclic_graph),
         )
     ),
     "has_node()"

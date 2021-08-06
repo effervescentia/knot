@@ -3,7 +3,7 @@ open Kore;
 let statement =
   AST.(
     fun
-    | Expression(expr) => Node.type_(expr)
+    | Expression(expr) => Node.get_type(expr)
     /* variable declarations result in a `nil` value */
     | Variable(_) => Valid(`Nil)
   );
@@ -11,7 +11,7 @@ let statement =
 let declaration =
   AST.(
     fun
-    | Constant(const) => Node.type_(const)
+    | Constant(const) => Node.get_type(const)
     /* TODO: extract argument types */
     | Function(args, res) =>
       Valid(
@@ -19,11 +19,11 @@ let declaration =
           args
           |> List.map((({name}, type_, _)) =>
                (
-                 name |> Node.Raw.value |> Reference.Identifier.to_string,
+                 name |> Node.Raw.get_value |> Reference.Identifier.to_string,
                  type_,
                )
              ),
-          Node.type_(res),
+          Node.get_type(res),
         )),
       )
   );

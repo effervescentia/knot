@@ -3,19 +3,19 @@ open AST.Raw;
 open Type.Raw;
 
 let primitive =
-  Primitive.parser >|= (prim => (of_prim(prim), Node.Raw.range(prim)));
+  Primitive.parser >|= (prim => (of_prim(prim), Node.Raw.get_range(prim)));
 
 let identifier = (ctx: ModuleContext.t) =>
-  Identifier.parser(ctx) >|= (id => (of_id(id), Node.Raw.range(id)));
+  Identifier.parser(ctx) >|= (id => (of_id(id), Node.Raw.get_range(id)));
 
 let jsx = (ctx: ModuleContext.t, x) =>
-  JSX.parser(ctx, x) >|= (jsx => (of_jsx(jsx), Node.Raw.range(jsx)));
+  JSX.parser(ctx, x) >|= (jsx => (of_jsx(jsx), Node.Raw.get_range(jsx)));
 
 let group = x =>
   M.between(Symbol.open_group, Symbol.close_group, x)
   >|= (
     node => {
-      Node.Raw.(node |> value |> of_group, range(node));
+      Node.Raw.(node |> get_value |> of_group, get_range(node));
     }
   );
 
@@ -23,7 +23,7 @@ let closure = (ctx: ModuleContext.t, x) =>
   Statement.parser(ctx, x)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= Node.Raw.(Tuple.split2(value, range))
+  >|= Node.Raw.(Tuple.split2(get_value, get_range))
   >|= (
     ((stmts, range)) => {
       (of_closure(stmts), range);

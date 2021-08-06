@@ -7,7 +7,8 @@ let __content = "hello world\n";
 let _read_stream = stream => {
   let chars = ref([]);
 
-  stream |> Stream.iter(Input.value % (char => chars := [char, ...chars^]));
+  stream
+  |> Stream.iter(Input.get_value % (char => chars := [char, ...chars^]));
 
   List.rev(chars^) |> String.of_uchars;
 };

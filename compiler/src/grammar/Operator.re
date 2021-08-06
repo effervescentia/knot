@@ -1,11 +1,11 @@
 open Kore;
 open AST.Raw;
 
-let _unary_op = (ctx, f, expr) => (f(expr), Node.Raw.range(expr));
+let _unary_op = (ctx, f, expr) => (f(expr), Node.Raw.get_range(expr));
 
 let _binary_op = (ctx, f, (l, r)) => (
   (l, r) |> f,
-  Node.Raw.(Range.join(range(l), range(r))),
+  Node.Raw.(Range.join(get_range(l), get_range(r))),
 );
 
 let assign = (id, x) => M.binary_op(id, Symbol.assign, x);

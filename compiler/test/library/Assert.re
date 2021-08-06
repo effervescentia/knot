@@ -14,8 +14,8 @@ module Compare = {
           x =>
             Print.fmt(
               "%s@%s",
-              [x |> Input.value] |> String.of_uchars,
-              x |> Input.point |> Point.to_string,
+              [Input.get_value(x)] |> String.of_uchars,
+              x |> Input.get_point |> Point.to_string,
             )
         )
         % Format.pp_print_string(pp),

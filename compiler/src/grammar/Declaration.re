@@ -9,7 +9,7 @@ let _scope_of_context = (ctx: ModuleContext.t) =>
 
 let constant = (ctx: ModuleContext.t, f) =>
   Keyword.const
-  >>= Node.Raw.range
+  >>= Node.Raw.get_range
   % (
     start =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
@@ -19,8 +19,11 @@ let constant = (ctx: ModuleContext.t, f) =>
           let expr = Analyzer.res_expr(scope, raw_expr);
 
           (
-            (f(id), (of_const(expr), Node.type_(expr), Node.range(expr))),
-            Range.join(start, Node.range(expr)),
+            (
+              f(id),
+              (of_const(expr), Node.get_type(expr), Node.get_range(expr)),
+            ),
+            Range.join(start, Node.get_range(expr)),
           );
         }
       )
@@ -29,7 +32,7 @@ let constant = (ctx: ModuleContext.t, f) =>
 
 let function_ = (ctx: ModuleContext.t, f) =>
   Keyword.func
-  >>= Node.Raw.range
+  >>= Node.Raw.get_range
   % (
     start =>
       Identifier.parser(ctx)
@@ -68,12 +71,12 @@ let function_ = (ctx: ModuleContext.t, f) =>
                         |> List.map((({name}, type_, _)) =>
                              (
                                name
-                               |> Node.Raw.value
+                               |> Node.Raw.get_value
                                |> Reference.Identifier.to_string,
                                type_,
                              )
                            ),
-                        Node.type_(res),
+                        Node.get_type(res),
                       )),
                     ),
                     range,

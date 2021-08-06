@@ -8,8 +8,8 @@ let namespace = imports =>
 
 let main_import =
   M.identifier
-  >|= Node.Raw.(Tuple.split2(value % of_public, range))
-  >|= (import => [(of_main_import(import), Node.Raw.range(import))]);
+  >|= Node.Raw.(Tuple.split2(get_value % of_public, get_range))
+  >|= (import => [(of_main_import(import), Node.Raw.get_range(import))]);
 
 let named_import = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)
@@ -20,14 +20,14 @@ let named_import = (ctx: ModuleContext.t) =>
   <|> (Identifier.parser(ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= Node.Raw.value
+  >|= Node.Raw.get_value
   >|= List.map(((name, label) as import) =>
         (
           of_named_import(import),
           Node.Raw.(
             Range.join(
-              range(name),
-              label |> Option.map(range) |?: range(name),
+              get_range(name),
+              label |> Option.map(get_range) |?: get_range(name),
             )
           ),
         )
@@ -35,7 +35,7 @@ let named_import = (ctx: ModuleContext.t) =>
 
 let parser = (ctx: ModuleContext.t) =>
   Keyword.import
-  >>= Node.Raw.range
+  >>= Node.Raw.get_range
   % (
     start =>
       choice([main_import, named_import(ctx)])
@@ -45,7 +45,7 @@ let parser = (ctx: ModuleContext.t) =>
       >>= namespace
       >@= (
         ((namespace, imports)) => {
-          let import = namespace |> Node.Raw.value |> ModuleContext.import;
+          let import = namespace |> Node.Raw.get_value |> ModuleContext.import;
 
           imports
           |> List.iter(
@@ -55,14 +55,15 @@ let parser = (ctx: ModuleContext.t) =>
                | (NamedImport((id, _), None), range) =>
                  ctx |> import((Named(id), range), id)
                | (NamedImport((id, _), Some(label)), range) =>
-                 ctx |> import((Named(id), range), Node.Raw.value(label)),
+                 ctx
+                 |> import((Named(id), range), Node.Raw.get_value(label)),
              );
         }
       )
       >|= (
         ((namespace, imports)) => (
-          (Node.Raw.value(namespace), imports) |> of_import,
-          Range.join(start, Node.Raw.range(namespace)),
+          (Node.Raw.get_value(namespace), imports) |> of_import,
+          Range.join(start, Node.Raw.get_range(namespace)),
         )
       )
       |> M.terminated

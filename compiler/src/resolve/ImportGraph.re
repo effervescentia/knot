@@ -58,7 +58,7 @@ let rec prune_subtree = (~removed=ref([]), node: 'a, graph: t) => {
   removed^;
 };
 
-let get_modules = (graph: t) => graph.imports |> Graph.nodes;
+let get_modules = (graph: t) => graph.imports |> Graph.get_nodes;
 
 let get_imported_by = (entry: Namespace.t, graph: t) =>
   graph.imports |> Graph.get_children(entry);
@@ -70,7 +70,7 @@ let find_cycles = (graph: t) => graph.imports |> Graph.find_all_unique_cycles;
 
 let find_missing = (graph: t) =>
   graph.imports
-  |> Graph.edges
+  |> Graph.get_edges
   |> List.filter_map(
        snd
        % (child => Graph.has_node(child, graph.imports) ? None : Some(child)),

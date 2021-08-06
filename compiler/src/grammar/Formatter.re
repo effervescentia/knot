@@ -68,12 +68,13 @@ let rec fmt_jsx =
   | Tag(name, attrs, children) =>
     [
       string("<"),
-      name |> Node.Raw.value |> fmt_id,
+      name |> Node.Raw.get_value |> fmt_id,
       List.is_empty(attrs)
         ? Nil
         : attrs
           |> List.map(
-               Node.value % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
+               Node.get_value
+               % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
              )
           |> concat,
       List.is_empty(children)
@@ -82,11 +83,16 @@ let rec fmt_jsx =
             [string(">")] |> newline,
             children
             |> List.map(
-                 Node.value % (child => [fmt_jsx_child(child)] |> newline),
+                 Node.get_value
+                 % (child => [fmt_jsx_child(child)] |> newline),
                )
             |> concat
             |> indent(2),
-            [string("</"), name |> Node.Raw.value |> fmt_id, string(">")]
+            [
+              string("</"),
+              name |> Node.Raw.get_value |> fmt_id,
+              string(">"),
+            ]
             |> concat,
           ]
           |> concat,
@@ -99,7 +105,7 @@ let rec fmt_jsx =
       : [
           [string("<>")] |> newline,
           children
-          |> List.map(Node.value % fmt_jsx_child)
+          |> List.map(Node.get_value % fmt_jsx_child)
           |> concat
           |> indent(2),
           string("</>"),
@@ -108,30 +114,31 @@ let rec fmt_jsx =
 
 and fmt_jsx_child =
   fun
-  | Node(jsx) => jsx |> Node.value |> fmt_jsx
-  | Text(s) => s |> Node.value |> string
+  | Node(jsx) => jsx |> Node.get_value |> fmt_jsx
+  | Text(s) => s |> Node.get_value |> string
   | InlineExpression(expr) =>
-    [string("{"), expr |> Node.value |> fmt_expression, string("}")]
+    [string("{"), expr |> Node.get_value |> fmt_expression, string("}")]
     |> concat
 
 and fmt_jsx_attr = attr =>
   (
     switch (attr) {
     | Class(name, value) => (
-        [string("."), name |> Node.Raw.value |> fmt_id] |> concat,
+        [string("."), name |> Node.Raw.get_value |> fmt_id] |> concat,
         value,
       )
     | ID(name) => (
-        [string("#"), name |> Node.Raw.value |> fmt_id] |> concat,
+        [string("#"), name |> Node.Raw.get_value |> fmt_id] |> concat,
         None,
       )
-    | Property(name, value) => (name |> Node.Raw.value |> fmt_id, value)
+    | Property(name, value) => (name |> Node.Raw.get_value |> fmt_id, value)
     }
   )
   |> (
     fun
     | (name, Some(expr)) =>
-      [name, string("="), expr |> Node.value |> fmt_jsx_attr_expr] |> concat
+      [name, string("="), expr |> Node.get_value |> fmt_jsx_attr_expr]
+      |> concat
 
     | (name, None) => name
   )
@@ -149,9 +156,9 @@ and fmt_jsx_attr_expr = x =>
 
 and fmt_expression =
   fun
-  | Primitive(prim) => prim |> Node.value |> fmt_prim
-  | Identifier(name) => name |> Node.value |> fmt_id
-  | JSX(jsx) => jsx |> Node.value |> fmt_jsx
+  | Primitive(prim) => prim |> Node.get_value |> fmt_prim
+  | Identifier(name) => name |> Node.get_value |> fmt_id
+  | JSX(jsx) => jsx |> Node.get_value |> fmt_jsx
   /* collapse parentheses around unary values */
   | Group((
       (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
@@ -160,19 +167,19 @@ and fmt_expression =
     )) =>
     fmt_expression(expr)
   | Group(expr) =>
-    [string("("), expr |> Node.value |> fmt_expression, string(")")]
+    [string("("), expr |> Node.get_value |> fmt_expression, string(")")]
     |> concat
   | BinaryOp(op, lhs, rhs) =>
     [
-      lhs |> Node.value |> fmt_expression,
+      lhs |> Node.get_value |> fmt_expression,
       __space,
       fmt_binary_op(op),
       __space,
-      rhs |> Node.value |> fmt_expression,
+      rhs |> Node.get_value |> fmt_expression,
     ]
     |> concat
   | UnaryOp(op, expr) =>
-    [fmt_unary_op(op), expr |> Node.value |> fmt_expression] |> concat
+    [fmt_unary_op(op), expr |> Node.get_value |> fmt_expression] |> concat
   | Closure(stmts) =>
     List.is_empty(stmts)
       ? string("{}")
@@ -180,7 +187,7 @@ and fmt_expression =
           [string("{")] |> newline,
           stmts
           |> List.map(stmt =>
-               [stmt |> Node.value |> fmt_statement] |> newline
+               [stmt |> Node.get_value |> fmt_statement] |> newline
              )
           |> concat
           |> indent(2),
@@ -193,11 +200,11 @@ and fmt_statement = stmt =>
     switch (stmt) {
     | Variable(name, expr) => [
         string("let "),
-        name |> Node.Raw.value |> fmt_id,
+        name |> Node.Raw.get_value |> fmt_id,
         string(" = "),
-        expr |> Node.value |> fmt_expression,
+        expr |> Node.get_value |> fmt_expression,
       ]
-    | Expression(expr) => [expr |> Node.value |> fmt_expression]
+    | Expression(expr) => [expr |> Node.get_value |> fmt_expression]
     }
   )
   @ [__semicolon]
@@ -205,33 +212,33 @@ and fmt_statement = stmt =>
 
 let fmt_declaration = ((name, decl)) =>
   (
-    switch (Node.value(decl)) {
+    switch (Node.get_value(decl)) {
     | Constant(expr) => [
         string("const "),
-        name |> Node.Raw.value |> fmt_id,
+        name |> Node.Raw.get_value |> fmt_id,
         string(" = "),
-        expr |> Node.value |> fmt_expression,
+        expr |> Node.get_value |> fmt_expression,
         __semicolon,
       ]
     | Function(args, expr) => [
         string("func "),
-        name |> Node.Raw.value |> fmt_id,
+        name |> Node.Raw.get_value |> fmt_id,
         List.is_empty(args)
           ? Nil
           : [
               string("("),
               args
               |> List.map(
-                   Node.value
+                   Node.get_value
                    % (
                      ({name, default, type_}) =>
                        [
-                         name |> Node.Raw.value |> fmt_id,
+                         name |> Node.Raw.get_value |> fmt_id,
                          switch (default) {
                          | Some(expr) =>
                            [
                              string(" = "),
-                             expr |> Node.value |> fmt_expression,
+                             expr |> Node.get_value |> fmt_expression,
                            ]
                            |> concat
                          | None => Nil
@@ -246,8 +253,8 @@ let fmt_declaration = ((name, decl)) =>
             ]
             |> concat,
         string(" -> "),
-        expr |> Node.value |> fmt_expression,
-        switch (Node.value(expr)) {
+        expr |> Node.get_value |> fmt_expression,
+        switch (Node.get_value(expr)) {
         | Closure(_) => Nil
         | _ => __semicolon
         },
@@ -260,7 +267,7 @@ let fmt_imports = stmts => {
   let (internal_imports, external_imports) =
     stmts
     |> List.filter_map(
-         Node.Raw.value
+         Node.Raw.get_value
          % (
            fun
            | Import(namespace, imports) => Some((namespace, imports))
@@ -292,13 +299,16 @@ let fmt_imports = stmts => {
                imports
                |> List.fold_left(
                     ((m, n)) =>
-                      Node.Raw.value
+                      Node.Raw.get_value
                       % (
                         fun
-                        | MainImport(id) => (Some(Node.Raw.value(id)), n)
+                        | MainImport(id) => (
+                            Some(Node.Raw.get_value(id)),
+                            n,
+                          )
                         | NamedImport(id, label) => (
                             m,
-                            [(Node.Raw.value(id), label), ...n],
+                            [(Node.Raw.get_value(id), label), ...n],
                           )
                       ),
                     (None, []),
@@ -334,7 +344,7 @@ let fmt_imports = stmts => {
                             ...switch (label) {
                                | Some(label) => [
                                    string(" as "),
-                                   label |> Node.Raw.value |> fmt_id,
+                                   label |> Node.Raw.get_value |> fmt_id,
                                  ]
                                | None => []
                                },
@@ -366,7 +376,7 @@ let fmt_declarations = stmts => {
   let declarations =
     stmts
     |> List.filter_map(
-         Node.Raw.value
+         Node.Raw.get_value
          % (
            fun
            | Declaration(MainExport(name) | NamedExport(name), decl) =>

@@ -5,9 +5,9 @@ let reserved = (ctx: ModuleContext.t) =>
   >|= (
     name => {
       ParseError(
-        ReservedKeyword(Node.Raw.value(name)),
+        ReservedKeyword(Node.Raw.get_value(name)),
         ctx.namespace_context.namespace,
-        Node.Raw.range(name),
+        Node.Raw.get_range(name),
       )
       |> ModuleContext.report(ctx);
 
@@ -19,4 +19,6 @@ let named = M.identifier;
 
 let parser = (ctx: ModuleContext.t) =>
   choice([reserved(ctx), named])
-  >|= Node.Raw.(Tuple.split2(value % Reference.Identifier.of_string, range));
+  >|= Node.Raw.(
+        Tuple.split2(get_value % Reference.Identifier.of_string, get_range)
+      );

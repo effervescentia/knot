@@ -21,32 +21,32 @@ let _attribute =
       (term, expr),
     ) =>
   Operator.assign(
-    M.identifier(~prefix) >|= Node.Raw.(Tuple.split2(value, range)),
+    M.identifier(~prefix) >|= Node.Raw.(Tuple.split2(get_value, get_range)),
     expr(ctx)
     |> M.between(Symbol.open_group, Symbol.close_group)
-    >|= Node.Raw.value
+    >|= Node.Raw.get_value
     <|> term(ctx),
   )
   >|= (
     ((name, value)) => (
       name,
       Some(value),
-      Range.join(snd(name), Node.Raw.range(value)),
+      Range.join(snd(name), Node.Raw.get_range(value)),
     )
   )
   <|> (
     M.identifier(~prefix)
     >|= (
       id => (
-        id |> Node.Raw.(Tuple.split2(value, range)),
+        id |> Node.Raw.(Tuple.split2(get_value, get_range)),
         None,
-        Node.Raw.range(id),
+        Node.Raw.get_range(id),
       )
     )
   );
 
 let _self_closing =
-  Tag.self_close >|= Node.Raw.range >|= (end_range => ([], end_range));
+  Tag.self_close >|= Node.Raw.get_range >|= (end_range => ([], end_range));
 
 let rec parser = (ctx: ModuleContext.t, x, input) =>
   (choice([fragment(ctx, x), tag(ctx, x)]) |> M.lexeme)(input)
@@ -54,7 +54,7 @@ let rec parser = (ctx: ModuleContext.t, x, input) =>
 and fragment = (ctx: ModuleContext.t, x) =>
   children(ctx, x)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= Node.Raw.(Tuple.split2(value % of_frag, range))
+  >|= Node.Raw.(Tuple.split2(get_value % of_frag, get_range))
 
 and tag = (ctx: ModuleContext.t, x) =>
   Tag.open_
@@ -69,10 +69,10 @@ and tag = (ctx: ModuleContext.t, x) =>
           >>= (
             cs =>
               id
-              |> Node.Raw.value
+              |> Node.Raw.get_value
               |> M.keyword
               |> M.between(Tag.open_end, Tag.close)
-              >|= Node.Raw.range
+              >|= Node.Raw.get_range
               >|= (end_range => (cs, end_range))
           )
           <|> _self_closing
@@ -82,15 +82,15 @@ and tag = (ctx: ModuleContext.t, x) =>
                 id
                 |> Node.Raw.(
                      Tuple.split2(
-                       value % Reference.Identifier.of_string,
-                       range,
+                       get_value % Reference.Identifier.of_string,
+                       get_range,
                      )
                    ),
                 attrs,
                 cs,
               )
               |> of_tag,
-              Range.join(Node.Raw.range(id), end_range),
+              Range.join(Node.Raw.get_range(id), end_range),
             )
           )
       )
@@ -116,9 +116,12 @@ and attributes = (ctx: ModuleContext.t, x) =>
     M.identifier(~prefix=Character.octothorp)
     >|= Node.Raw.(
           Tuple.split2(
-            Tuple.split2(value % String.drop_left(1) % of_public, range)
+            Tuple.split2(
+              get_value % String.drop_left(1) % of_public,
+              get_range,
+            )
             % of_jsx_id,
-            range,
+            get_range,
           )
         ),
   ])
@@ -135,15 +138,15 @@ and text =
   >|= Input.join
   >|= Node.Raw.(
         Tuple.split2(
-          Tuple.split2(value % String.trim, range) % of_text,
-          range,
+          Tuple.split2(get_value % String.trim, get_range) % of_text,
+          get_range,
         )
       )
 
 and node = (ctx: ModuleContext.t, x) =>
-  parser(ctx, x) >|= (node => (of_node(node), Node.Raw.range(node)))
+  parser(ctx, x) >|= (node => (of_node(node), Node.Raw.get_range(node)))
 
 and inline_expr = (ctx: ModuleContext.t, (_, expr)) =>
   expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= Node.Raw.(Tuple.split2(value % of_inline_expr, range));
+  >|= Node.Raw.(Tuple.split2(get_value % of_inline_expr, get_range));

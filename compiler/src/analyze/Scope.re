@@ -48,7 +48,10 @@ let rec exists = (name: string, scope: t): bool =>
 let rec resolve =
         ((name, range) as id: Node.Raw.t(string), scope: t)
         : option(Type.Raw.t) =>
-  switch (Hashtbl.find_opt(scope.types, Node.Raw.value(id)), scope.parent) {
+  switch (
+    Hashtbl.find_opt(scope.types, Node.Raw.get_value(id)),
+    scope.parent,
+  ) {
   | (Some(_) as result, _) => result
   | (_, Some(parent)) => parent |> resolve(id)
   | _ =>

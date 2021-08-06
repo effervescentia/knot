@@ -50,29 +50,31 @@ let handler =
         ({ast}) =>
           ast
           |> List.filter_map(
-               Node.Raw.value
+               Node.Raw.get_value
                % AST.(
                    fun
                    | Declaration(MainExport(name) | NamedExport(name), decl) => {
-                       let range = Node.Raw.range(name);
+                       let range = Node.Raw.get_range(name);
                        let name =
-                         name |> Node.Raw.value |> Identifier.to_string;
-                       let type_ = Node.type_(decl);
+                         name |> Node.Raw.get_value |> Identifier.to_string;
+                       let type_ = Node.get_type(decl);
 
                        Some(
-                         switch (Node.value(decl)) {
+                         switch (Node.get_value(decl)) {
                          | Constant(expr) => {
                              name,
                              detail: Type.to_string(type_),
                              range,
-                             full_range: Range.join(range, Node.range(expr)),
+                             full_range:
+                               Range.join(range, Node.get_range(expr)),
                              kind: Capabilities.Variable,
                            }
                          | Function(args, expr) => {
                              name,
                              detail: Type.to_string(type_),
                              range,
-                             full_range: Range.join(range, Node.range(expr)),
+                             full_range:
+                               Range.join(range, Node.get_range(expr)),
                              kind: Capabilities.Function,
                            }
                          },

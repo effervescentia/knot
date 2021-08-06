@@ -12,25 +12,28 @@ let arguments = (ctx: ModuleContext.t) =>
       )
       >|= (
         ((name, default)) => {
-          let name_range = Node.Raw.range(name);
+          let name_range = Node.Raw.get_range(name);
 
           (
             {name, default, type_: None},
             Range.join(
               name_range,
-              default |> Option.map(Node.Raw.range) |?: name_range,
+              default |> Option.map(Node.Raw.get_range) |?: name_range,
             ),
           );
         }
       ),
       Identifier.parser(ctx)
       >|= (
-        name => ({name, default: None, type_: None}, Node.Raw.range(name))
+        name => (
+          {name, default: None, type_: None},
+          Node.Raw.get_range(name),
+        )
       ),
     ])
     |> sep_by(Symbol.comma),
   )
-  >|= Node.Raw.value;
+  >|= Node.Raw.get_value;
 
 let parser = (ctx: ModuleContext.t) =>
   option([], arguments(ctx))
@@ -44,7 +47,7 @@ let parser = (ctx: ModuleContext.t) =>
             expr => (
               args,
               expr,
-              Range.join(Node.Raw.range(start), Node.Raw.range(expr)),
+              Node.Raw.(Range.join(get_range(start), get_range(expr))),
             )
           )
       )

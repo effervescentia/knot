@@ -21,12 +21,14 @@ let suite =
         [(__input, Input.create(__uchar, __point))]
         |> Assert.(test_many(char))
     ),
-    "value()"
+    "get_value()"
     >: (
-      () => [(__uchar, Input.value(__input))] |> Assert.(test_many(uchar))
+      () =>
+        [(__uchar, Input.get_value(__input))] |> Assert.(test_many(uchar))
     ),
-    "point()"
+    "get_point()"
     >: (
-      () => [(__point, Input.point(__input))] |> Assert.(test_many(point))
+      () =>
+        [(__point, Input.get_point(__input))] |> Assert.(test_many(point))
     ),
   ];

@@ -21,7 +21,7 @@ let imports = (namespace, input) =>
     | Some(stmts) =>
       stmts
       |> List.filter_map(
-           Node.Raw.value
+           Node.Raw.get_value
            % (
              fun
              | AST.Import(namespace, _) => Some(namespace)

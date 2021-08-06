@@ -16,9 +16,9 @@ let create = (value: 'a, type_: Type.t, range: Range.t): t('a) => (
 
 /* getters */
 
-let value = (node: t('a)): 'a => Tuple.fst3(node);
-let type_ = (node: t('a)): Type.t => Tuple.snd3(node);
-let range = (node: t('a)): Range.t => Tuple.thd3(node);
+let get_value = (node: t('a)): 'a => Tuple.fst3(node);
+let get_type = (node: t('a)): Type.t => Tuple.snd3(node);
+let get_range = (node: t('a)): Range.t => Tuple.thd3(node);
 
 module Raw = {
   /**
@@ -32,6 +32,6 @@ module Raw = {
 
   /* getters */
 
-  let value = (node: t('a)): 'a => fst(node);
-  let range = (node: t('a)): Range.t => snd(node);
+  let get_value = (node: t('a)): 'a => fst(node);
+  let get_range = (node: t('a)): Range.t => snd(node);
 };

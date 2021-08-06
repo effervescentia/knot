@@ -52,7 +52,7 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
          |> List.map(((namespace, ModuleTable.{ast})) =>
               ast
               |> List.filter_map(
-                   Node.Raw.value
+                   Node.Raw.get_value
                    % AST.(
                        fun
                        | Declaration(
@@ -67,12 +67,12 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                                     compiler.config.source_dir,
                                   ),
                              );
-                           let range = Node.Raw.range(name);
+                           let range = Node.Raw.get_range(name);
                            let name =
-                             name |> Node.Raw.value |> Identifier.to_string;
+                             name |> Node.Raw.get_value |> Identifier.to_string;
 
                            Some(
-                             switch (Node.value(decl)) {
+                             switch (Node.get_value(decl)) {
                              | Constant(expr) => {
                                  uri,
                                  name,
