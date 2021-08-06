@@ -18,7 +18,7 @@ let __ast_fixture = "
 let __foo = Namespace.Internal("foo");
 let __bar = Namespace.Internal("bar");
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __context =
   NamespaceContext.create(
@@ -72,28 +72,28 @@ let suite =
                 [
                   "foo"
                   |> of_public
-                  |> as_raw_node(~cursor=Cursor.range((2, 10), (2, 12)))
+                  |> as_raw_node(~range=Range.create((2, 10), (2, 12)))
                   |> of_main_import
                   |> as_raw_node,
                 ],
               )
               |> of_import,
               (
-                ("ABC" |> of_public, Cursor.range((4, 9), (4, 11)))
+                ("ABC" |> of_public, Range.create((4, 9), (4, 11)))
                 |> of_named_export,
                 (
                   123 |> Int64.of_int |> of_int |> of_num,
                   Type.Valid(`Integer),
-                  Cursor.range((4, 15), (4, 17)),
+                  Range.create((4, 15), (4, 17)),
                 )
                 |> of_prim
                 |> as_node(
-                     ~cursor=Cursor.range((4, 15), (4, 17)),
+                     ~range=Range.create((4, 15), (4, 17)),
                      Type.Valid(`Integer),
                    )
                 |> of_const
                 |> as_node(
-                     ~cursor=Cursor.range((4, 15), (4, 17)),
+                     ~range=Range.create((4, 15), (4, 17)),
                      Type.Valid(`Integer),
                    ),
               )

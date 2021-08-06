@@ -16,7 +16,7 @@ type compile_err =
   | ImportCycle(list(string))
   | UnresolvedModule(string)
   | FileNotFound(string)
-  | ParseError(parse_err, Namespace.t, Cursor.t)
+  | ParseError(parse_err, Namespace.t, Range.t)
   | InvalidModule(Namespace.t);
 
 exception CompileError(list(compile_err));
@@ -44,7 +44,7 @@ let _compile_err_to_string =
     name |> Print.fmt("could not resolve module: %s")
   | FileNotFound(path) =>
     path |> Print.fmt("could not find file with path: %s")
-  | ParseError(err, namespace, cursor) =>
+  | ParseError(err, namespace, _) =>
     Print.fmt(
       "error found while parsing %s: %s",
       namespace |> Namespace.to_string,

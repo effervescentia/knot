@@ -15,7 +15,7 @@ let __program =
     |> as_raw_node,
   ];
 let __table = ModuleTable.create(1);
-let __scope_tree = BinaryTree.create((Cursor.(expand(zero)), None));
+let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let _create_table = items => items |> List.to_seq |> Hashtbl.of_seq;
 

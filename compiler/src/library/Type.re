@@ -161,7 +161,7 @@ and valid_t = [ primitive_t | container_t(t) | abstract_t(Trait.t)]
 
 and error_t = Error.t(t);
 
-let from_result = (res: result(valid_t, error_t)) =>
+let of_result = (res: result(valid_t, error_t)) =>
   switch (res) {
   | Ok(x) => Valid(x)
   | Error(err) => Invalid(err)

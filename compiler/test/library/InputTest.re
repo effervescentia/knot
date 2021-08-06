@@ -1,17 +1,13 @@
 open Kore;
 
 let __uchar = Uchar.of_char('z');
-let __cursor = Cursor.point(4, 0);
-let __input = (__uchar, __cursor);
+let __point = Point.create(4, 0);
+let __input = (__uchar, __point);
 
 let _assert_context =
   Alcotest.(
     check(
-      testable(
-        (pp, cursor) =>
-          cursor |> Cursor.to_string |> Format.pp_print_string(pp),
-        (==),
-      ),
+      testable(pp => Point.to_string % Format.pp_print_string(pp), (==)),
       "cursor matches",
     )
   );
@@ -22,16 +18,15 @@ let suite =
     "create()"
     >: (
       () =>
-        [(__input, Input.create(__uchar, __cursor))]
+        [(__input, Input.create(__uchar, __point))]
         |> Assert.(test_many(char))
     ),
     "value()"
     >: (
       () => [(__uchar, Input.value(__input))] |> Assert.(test_many(uchar))
     ),
-    "cursor()"
+    "point()"
     >: (
-      () =>
-        [(__cursor, Input.cursor(__input))] |> Assert.(test_many(cursor))
+      () => [(__point, Input.point(__input))] |> Assert.(test_many(point))
     ),
   ];

@@ -25,7 +25,7 @@ module Assert =
       );
   });
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let suite =
   "Grammar.Import"

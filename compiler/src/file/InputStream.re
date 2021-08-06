@@ -1,17 +1,17 @@
 open Kore;
 
-let _to_cursor = (cursor, decoder) =>
+let _to_point = (cursor, decoder) =>
   cursor
-    ? Cursor.point(Uutf.decoder_line(decoder), Uutf.decoder_col(decoder))
-    : Cursor.zero;
+    ? Point.create(Uutf.decoder_line(decoder), Uutf.decoder_col(decoder))
+    : Point.zero;
 
 let _to_stream = (cursor, decoder) =>
   Stream.from(_ =>
     switch (Uutf.decode(decoder)) {
     | `Uchar(uchar) =>
-      Some(Input.create(uchar, _to_cursor(cursor, decoder)))
+      Some(Input.create(uchar, _to_point(cursor, decoder)))
     | `Malformed(uchar) =>
-      Some(Input.create(Uutf.u_rep, _to_cursor(cursor, decoder)))
+      Some(Input.create(Uutf.u_rep, _to_point(cursor, decoder)))
     | `End => None
     | `Await => assert(false)
     }
@@ -38,14 +38,14 @@ let to_string = (stream: t): string => {
   Buffer.contents(buffer);
 };
 
-let __initial = Cursor.{line: 0, column: 0};
+let __initial = Point.zero;
 
 let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
   let stream = of_string(contents);
   let buffer = Buffer.create(8);
 
   let rec loop = (start, end_) => {
-    switch (Stream.peek(stream) |?> Tuple.map_snd2(Cursor.expand % fst)) {
+    switch (Stream.peek(stream)) {
     | Some((uchar, cursor)) =>
       Stream.junk(stream);
 
@@ -58,7 +58,7 @@ let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
           loop(cursor, cursor);
         } else {
           let token = buffer |> Buffer.contents;
-          let node = Node.Raw.create(token, Cursor.Range(start, end_));
+          let node = Node.Raw.create(token, Range.create(start, end_));
 
           buffer |> Buffer.clear;
 

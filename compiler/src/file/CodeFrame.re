@@ -2,13 +2,14 @@ open Kore;
 
 exception SourceNotAvailable;
 
-let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
+let print = (~buffer_lines=2, contents: string, range: Range.t) => {
   let buffer = Buffer.create(100);
   let lines = contents |> String.split_on_char('\n');
-  let (start, end_) = Cursor.expand(cursor);
+  let start = Range.get_start(range);
+  let end_ = Range.get_end(range);
 
-  let first_line = max(start.line - buffer_lines, 0);
-  let last_line = end_.line + buffer_lines;
+  let first_line = max(Point.get_line(start) - buffer_lines, 0);
+  let last_line = Point.get_line(end_) + buffer_lines;
   let line_number_width = last_line |> string_of_int |> String.length;
 
   let rec loop = row =>
@@ -21,7 +22,8 @@ let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
     } else if (row <= last_line) {
       switch (List.nth_opt(lines, row - 1)) {
       | Some(line) =>
-        let is_highlight = row >= start.line && row <= end_.line;
+        let is_highlight =
+          row >= Point.get_line(start) && row <= Point.get_line(end_);
 
         Print.fmt(
           " %s %s %s\n",
@@ -33,13 +35,13 @@ let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
         |> Buffer.add_string(buffer);
 
         if (is_highlight) {
-          let is_start_line = row == start.line;
-          let is_end_line = row == end_.line;
+          let is_start_line = row == Point.get_line(start);
+          let is_end_line = row == Point.get_line(end_);
           let line_length = line |> String.length;
           let unhighlighted_prefix_length =
-            is_start_line ? start.column - 1 : 0;
+            is_start_line ? Point.get_column(start) - 1 : 0;
           let unhighlighted_suffix_length =
-            is_end_line ? line_length - end_.column : 0;
+            is_end_line ? line_length - Point.get_column(end_) : 0;
 
           Buffer.add_string(
             buffer,
@@ -63,7 +65,7 @@ let print = (~buffer_lines=2, contents: string, cursor: Cursor.t) => {
 
         loop(row + 1);
 
-      | None => row < end_.line ? raise(SourceNotAvailable) : ()
+      | None => row < Point.get_line(end_) ? raise(SourceNotAvailable) : ()
       };
     };
 

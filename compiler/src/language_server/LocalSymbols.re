@@ -11,8 +11,8 @@ type document_symbol_t = {
   name: string,
   detail: string,
   kind: Capabilities.symbol_t,
-  range: Cursor.range_t,
-  full_range: Cursor.range_t,
+  range: Range.t,
+  full_range: Range.t,
 };
 
 let request =
@@ -54,8 +54,7 @@ let handler =
                % AST.(
                    fun
                    | Declaration(MainExport(name) | NamedExport(name), decl) => {
-                       let name_cursor = Node.Raw.cursor(name);
-                       let range = Cursor.expand(name_cursor);
+                       let range = Node.Raw.range(name);
                        let name =
                          name |> Node.Raw.value |> Identifier.to_string;
                        let type_ = Node.type_(decl);
@@ -66,18 +65,14 @@ let handler =
                              name,
                              detail: Type.to_string(type_),
                              range,
-                             full_range:
-                               Cursor.join(name_cursor, Node.cursor(expr))
-                               |> Cursor.expand,
+                             full_range: Range.join(range, Node.range(expr)),
                              kind: Capabilities.Variable,
                            }
                          | Function(args, expr) => {
                              name,
                              detail: Type.to_string(type_),
                              range,
-                             full_range:
-                               Cursor.join(name_cursor, Node.cursor(expr))
-                               |> Cursor.expand,
+                             full_range: Range.join(range, Node.range(expr)),
                              kind: Capabilities.Function,
                            }
                          },

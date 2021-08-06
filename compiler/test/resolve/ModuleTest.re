@@ -14,7 +14,7 @@ let __program = [
       |> of_int
       |> of_num
       |> as_node(
-           ~cursor=Cursor.range((4, 15), (4, 17)),
+           ~range=Range.create((4, 15), (4, 17)),
            Type.Valid(`Integer),
          )
       |> of_prim

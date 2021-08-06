@@ -1,10 +1,10 @@
 open Kore;
 open AST;
 
-let _bind_node = (cursor: Cursor.t, x) => (x, cursor);
-let _bind_typed_node = (cursor: Cursor.t, (x, y)) => (x, y, cursor);
+let _bind_node = (range: Range.t, x) => (x, range);
+let _bind_typed_node = (range: Range.t, (x, y)) => (x, y, range);
 
-let res_prim = ((prim, cursor): Raw.primitive_t): primitive_t =>
+let res_prim = ((prim, range): Raw.primitive_t): primitive_t =>
   Type.(
     switch (prim) {
     | Nil => (Nil, Valid(`Nil))
@@ -14,10 +14,10 @@ let res_prim = ((prim, cursor): Raw.primitive_t): primitive_t =>
     | String(str) => (String(str), Valid(`String))
     }
   )
-  |> _bind_typed_node(cursor);
+  |> _bind_typed_node(range);
 
 let rec res_stmt =
-        (scope: Scope.t, (stmt, cursor): Raw.statement_t): statement_t =>
+        (scope: Scope.t, (stmt, range): Raw.statement_t): statement_t =>
   (
     switch (stmt) {
     | Variable(id, expr) => (
@@ -28,10 +28,10 @@ let rec res_stmt =
       res_expr(scope, expr) |> (x => (Expression(x), Node.type_(x)))
     }
   )
-  |> _bind_typed_node(cursor)
+  |> _bind_typed_node(range)
 
 and res_expr =
-    (scope: Scope.t, (expr, cursor): Raw.expression_t): expression_t =>
+    (scope: Scope.t, (expr, range): Raw.expression_t): expression_t =>
   (
     switch (expr) {
     | Primitive(prim) =>
@@ -41,7 +41,7 @@ and res_expr =
       res_expr(scope, expr) |> (x => (Group(x), Node.type_(x)))
     | Closure(stmts) =>
       stmts
-      |> List.map(res_stmt(Scope.child(scope, cursor)))
+      |> List.map(res_stmt(Scope.child(scope, range)))
       |> (
         xs => (
           Closure(xs),
@@ -51,8 +51,8 @@ and res_expr =
           |?: Valid(`Nil),
         )
       )
-    | Identifier((id, cursor)) => (
-        Identifier((id, Valid(`Abstract(Unknown)), cursor)),
+    | Identifier((id, range)) => (
+        Identifier((id, Valid(`Abstract(Unknown)), range)),
         /* TODO: implement */
         Valid(`Abstract(Unknown)),
       )
@@ -68,9 +68,9 @@ and res_expr =
       )
     }
   )
-  |> _bind_typed_node(cursor)
+  |> _bind_typed_node(range)
 
-and res_jsx = (scope: Scope.t, (jsx, cursor): Raw.jsx_t): jsx_t =>
+and res_jsx = (scope: Scope.t, (jsx, range): Raw.jsx_t): jsx_t =>
   (
     switch (jsx) {
     | Tag(id, attrs, children) => (
@@ -87,10 +87,10 @@ and res_jsx = (scope: Scope.t, (jsx, cursor): Raw.jsx_t): jsx_t =>
       )
     }
   )
-  |> _bind_typed_node(cursor)
+  |> _bind_typed_node(range)
 
 and res_attr =
-    (scope: Scope.t, (attr, cursor): Raw.jsx_attribute_t): jsx_attribute_t =>
+    (scope: Scope.t, (attr, range): Raw.jsx_attribute_t): jsx_attribute_t =>
   (
     switch (attr) {
     | ID(id) => (ID(id), Type.Valid(`String))
@@ -109,17 +109,16 @@ and res_attr =
       )
     }
   )
-  |> _bind_typed_node(cursor)
+  |> _bind_typed_node(range)
 
-and res_child =
-    (scope: Scope.t, (attr, cursor): Raw.jsx_child_t): jsx_child_t =>
+and res_child = (scope: Scope.t, (attr, range): Raw.jsx_child_t): jsx_child_t =>
   (
     switch (attr) {
     | Text(text) => (
         Text((
           Node.Raw.value(text),
           Type.Valid(`String),
-          Node.Raw.cursor(text),
+          Node.Raw.range(text),
         )),
         Type.Valid(`String),
       )
@@ -128,4 +127,4 @@ and res_child =
       res_expr(scope, expr) |> (x => (InlineExpression(x), Node.type_(x)))
     }
   )
-  |> _bind_typed_node(cursor);
+  |> _bind_typed_node(range);

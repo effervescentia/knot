@@ -22,7 +22,7 @@ let __config =
     fail_fast: true,
   };
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __types =
   AST.[(Export.Named("ABC" |> of_public), Valid(`Integer))]
@@ -32,16 +32,16 @@ let __types =
 let __ast =
   AST.[
     (
-      ("ABC" |> of_public, Cursor.range((1, 7), (1, 9))) |> of_named_export,
+      ("ABC" |> of_public, Range.create((1, 7), (1, 9))) |> of_named_export,
       (
         123 |> Int64.of_int |> of_int |> of_num,
         Valid(`Integer),
-        Cursor.range((1, 13), (1, 15)),
+        Range.create((1, 13), (1, 15)),
       )
       |> of_prim
-      |> as_node(~cursor=Cursor.range((1, 13), (1, 15)), Valid(`Integer))
+      |> as_node(~range=Range.create((1, 13), (1, 15)), Valid(`Integer))
       |> of_const
-      |> as_node(~cursor=Cursor.range((1, 13), (1, 15)), Valid(`Integer)),
+      |> as_node(~range=Range.create((1, 13), (1, 15)), Valid(`Integer)),
     )
     |> of_decl,
   ]

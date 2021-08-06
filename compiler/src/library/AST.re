@@ -42,14 +42,14 @@ module Common = {
       [string(" "), string(name), string("=\""), value, string("\"")]
       |> concat;
 
-    let print_entity = (~attrs=[], ~children=[], ~cursor=?, name) =>
+    let print_entity = (~attrs=[], ~children=[], ~range=?, name) =>
       [
         [
           string("<"),
           string(name),
-          switch (cursor) {
-          | Some(cursor) =>
-            [string("@"), cursor |> Cursor.to_string |> string] |> concat
+          switch (range) {
+          | Some(range) =>
+            [string("@"), range |> Range.to_string |> string] |> concat
           | None => Nil
           },
           attrs |> List.map(print_attr) |> concat,
@@ -69,16 +69,16 @@ module Common = {
       ]
       |> concat;
 
-    let print_node = (~attrs=[], label, value, cursor) =>
-      print_entity(~attrs, ~cursor, ~children=[value], label);
+    let print_node = (~attrs=[], label, value, range) =>
+      print_entity(~attrs, ~range, ~children=[value], label);
 
-    let print_typed_node = (~attrs=[], label, value, type_, cursor) =>
+    let print_typed_node = (~attrs=[], label, value, type_, range) =>
       print_entity(
         ~attrs=[
           ("type", type_ |> Type.to_string |> Pretty.string),
           ...attrs,
         ],
-        ~cursor,
+        ~range,
         ~children=[value],
         label,
       );
@@ -91,7 +91,7 @@ module type ASTParams = {
   type node_t('a);
 
   let get_value: node_t('a) => 'a;
-  let get_cursor: node_t('a) => Cursor.t;
+  let get_range: node_t('a) => Range.t;
 
   let print_node: (string, 'a => Pretty.t, node_t('a)) => Pretty.t;
 };
@@ -209,7 +209,7 @@ module Make = (T: ASTParams) => {
       Common.Debug.print_node(
         label,
         x |> Node.Raw.value |> print_value,
-        Node.Raw.cursor(x),
+        Node.Raw.range(x),
       );
 
     let print_ns = Namespace.to_string % string;
@@ -371,13 +371,13 @@ module Raw =
     type node_t('a) = Node.Raw.t('a);
 
     let get_value = Node.Raw.value;
-    let get_cursor = Node.Raw.cursor;
+    let get_range = Node.Raw.range;
 
     let print_node = (label, print_value, x) =>
       Common.Debug.print_node(
         label,
         x |> get_value |> print_value,
-        get_cursor(x),
+        get_range(x),
       );
   });
 
@@ -388,14 +388,14 @@ include Make({
 
   let get_value = Node.value;
   let get_type = Node.type_;
-  let get_cursor = Node.cursor;
+  let get_range = Node.range;
 
   let print_node = (label, print_value, x) =>
     Common.Debug.print_typed_node(
       label,
       x |> get_value |> print_value,
       get_type(x),
-      get_cursor(x),
+      get_range(x),
     );
 });
 
@@ -443,13 +443,13 @@ module Debug = {
     switch (Node.value(decl)) {
     | Constant(expr) =>
       print_entity(
-        ~cursor=Node.cursor(decl),
+        ~range=Node.range(decl),
         ~children=[
           print_entity(
-            ~cursor=
+            ~range=
               switch (name) {
               | MainExport(x)
-              | NamedExport(x) => Node.Raw.cursor(x)
+              | NamedExport(x) => Node.Raw.range(x)
               },
             ~children=[
               switch (name) {
@@ -501,9 +501,9 @@ module Debug = {
   let print_mod_stmt =
     (
       fun
-      | (Import(namespace, imports), cursor) => [
+      | (Import(namespace, imports), range) => [
           print_entity(
-            ~cursor,
+            ~range,
             ~attrs=[
               ("namespace", print_ns(namespace)),
               ("main", print_ns(namespace)),
@@ -521,13 +521,13 @@ module Debug = {
                            print_untyped_node("Name", print_id, name),
                          ],
                        )
-                     | NamedImport(name, Some((label, label_cursor))) =>
+                     | NamedImport(name, Some((label, label_range))) =>
                        print_entity(
                          "Named",
                          ~children=[
                            print_untyped_node("Name", print_id, name),
                            print_entity(
-                             ~cursor=label_cursor,
+                             ~range=label_range,
                              ~children=[print_id(label)],
                              "As",
                            ),
@@ -545,9 +545,9 @@ module Debug = {
             "Import",
           ),
         ]
-      | (Declaration(name, decl), cursor) => [
+      | (Declaration(name, decl), range) => [
           print_entity(
-            ~cursor,
+            ~range,
             ~children=[(name, decl) |> print_decl],
             "Declaration",
           ),

@@ -8,7 +8,7 @@ type t = {
   /* error reporting callback */
   report: Error.compile_err => unit,
   /* error reporting callback */
-  mutable inner_modules: list((Module.t, DefinitionTable.t, Cursor.t)),
+  mutable inner_modules: list((Module.t, DefinitionTable.t, Range.t)),
 };
 
 /* static */
@@ -49,7 +49,7 @@ let define_module =
     (
       module_: Module.t,
       definitions: DefinitionTable.t,
-      cursor: Cursor.t,
+      range: Range.t,
       ctx: t,
     ) =>
-  ctx.inner_modules = ctx.inner_modules @ [(module_, definitions, cursor)];
+  ctx.inner_modules = ctx.inner_modules @ [(module_, definitions, range)];

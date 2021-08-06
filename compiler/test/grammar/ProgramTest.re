@@ -37,7 +37,7 @@ module Assert = Assert.Make(Target);
 
 let __main_import = "import foo from \"@/bar\"";
 let __const_decl = "const foo = nil";
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
+let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __main_import_ast =
   (

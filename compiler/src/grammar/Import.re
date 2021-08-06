@@ -8,8 +8,8 @@ let namespace = imports =>
 
 let main_import =
   M.identifier
-  >|= Tuple.split2(Node.Raw.value % of_public, Node.Raw.cursor)
-  >|= (import => [(of_main_import(import), Node.Raw.cursor(import))]);
+  >|= Node.Raw.(Tuple.split2(value % of_public, range))
+  >|= (import => [(of_main_import(import), Node.Raw.range(import))]);
 
 let named_import = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)
@@ -24,16 +24,18 @@ let named_import = (ctx: ModuleContext.t) =>
   >|= List.map(((name, label) as import) =>
         (
           of_named_import(import),
-          Cursor.join(
-            Node.Raw.cursor(name),
-            label |> Option.map(Node.Raw.cursor) |?: Node.Raw.cursor(name),
+          Node.Raw.(
+            Range.join(
+              range(name),
+              label |> Option.map(range) |?: range(name),
+            )
           ),
         )
       );
 
 let parser = (ctx: ModuleContext.t) =>
   Keyword.import
-  >>= Node.Raw.cursor
+  >>= Node.Raw.range
   % (
     start =>
       choice([main_import, named_import(ctx)])
@@ -48,19 +50,19 @@ let parser = (ctx: ModuleContext.t) =>
           imports
           |> List.iter(
                fun
-               | (MainImport((alias, _)), cursor) =>
-                 ctx |> import((Main, cursor), alias)
-               | (NamedImport((id, _), None), cursor) =>
-                 ctx |> import((Named(id), cursor), id)
-               | (NamedImport((id, _), Some(label)), cursor) =>
-                 ctx |> import((Named(id), cursor), Node.Raw.value(label)),
+               | (MainImport((alias, _)), range) =>
+                 ctx |> import((Main, range), alias)
+               | (NamedImport((id, _), None), range) =>
+                 ctx |> import((Named(id), range), id)
+               | (NamedImport((id, _), Some(label)), range) =>
+                 ctx |> import((Named(id), range), Node.Raw.value(label)),
              );
         }
       )
       >|= (
         ((namespace, imports)) => (
           (Node.Raw.value(namespace), imports) |> of_import,
-          Cursor.join(start, Node.Raw.cursor(namespace)),
+          Range.join(start, Node.Raw.range(namespace)),
         )
       )
       |> M.terminated

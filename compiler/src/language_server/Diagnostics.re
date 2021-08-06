@@ -41,12 +41,12 @@ let report = (source_dir: string, errs) => {
   errs
   |> List.iter(
        fun
-       | ParseError(err, namespace, cursor) =>
+       | ParseError(err, namespace, range) =>
          Hashtbl.replace(
            grouped_errs,
            namespace,
            (Hashtbl.find_opt(grouped_errs, namespace) |?: [])
-           @ [(err, Cursor.expand(cursor))],
+           @ [(err, range)],
          )
        | _ => (),
      );

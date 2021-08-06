@@ -8,7 +8,7 @@ let integer =
   >|= (
     node => (
       node |> Node.Raw.value |> Int64.of_string |> AST.of_int,
-      Node.Raw.cursor(node),
+      Node.Raw.range(node),
     )
   )
   |> M.lexeme;
@@ -39,7 +39,7 @@ let float =
         )
         |> of_float;
       },
-      Cursor.join(Node.Raw.cursor(x), Node.Raw.cursor(y)),
+      Node.Raw.(Range.join(range(x), range(y))),
     )
   )
   |> M.lexeme;

@@ -12,20 +12,20 @@ let arguments = (ctx: ModuleContext.t) =>
       )
       >|= (
         ((name, default)) => {
-          let name_cursor = Node.Raw.cursor(name);
+          let name_range = Node.Raw.range(name);
 
           (
             {name, default, type_: None},
-            Cursor.join(
-              name_cursor,
-              default |> Option.map(Node.Raw.cursor) |?: name_cursor,
+            Range.join(
+              name_range,
+              default |> Option.map(Node.Raw.range) |?: name_range,
             ),
           );
         }
       ),
       Identifier.parser(ctx)
       >|= (
-        name => ({name, default: None, type_: None}, Node.Raw.cursor(name))
+        name => ({name, default: None, type_: None}, Node.Raw.range(name))
       ),
     ])
     |> sep_by(Symbol.comma),
@@ -44,7 +44,7 @@ let parser = (ctx: ModuleContext.t) =>
             expr => (
               args,
               expr,
-              Cursor.join(Node.Raw.cursor(start), Node.Raw.cursor(expr)),
+              Range.join(Node.Raw.range(start), Node.Raw.range(expr)),
             )
           )
       )

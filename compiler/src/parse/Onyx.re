@@ -151,7 +151,7 @@ let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 let get_cursor =
   LazyStream.(
     fun
-    | Cons(r, _) as input => Some((Input.cursor(r), input))
+    | Cons(r, _) as input => Some((Input.point(r), input))
     | Nil => None
   );
 

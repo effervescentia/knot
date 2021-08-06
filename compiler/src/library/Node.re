@@ -4,34 +4,34 @@ open Infix;
 /**
  container for working on fragments of an source document
  */
-type t('a) = ('a, Type.t, Cursor.t);
+type t('a) = ('a, Type.t, Range.t);
 
 /* static */
 
-let create = (value: 'a, type_: Type.t, cursor: Cursor.t): t('a) => (
+let create = (value: 'a, type_: Type.t, range: Range.t): t('a) => (
   value,
   type_,
-  cursor,
+  range,
 );
 
 /* getters */
 
 let value = (node: t('a)): 'a => Tuple.fst3(node);
 let type_ = (node: t('a)): Type.t => Tuple.snd3(node);
-let cursor = (node: t('a)): Cursor.t => Tuple.thd3(node);
+let range = (node: t('a)): Range.t => Tuple.thd3(node);
 
 module Raw = {
   /**
  container for working on fragments of an source document
  */
-  type t('a) = ('a, Cursor.t);
+  type t('a) = ('a, Range.t);
 
   /* static */
 
-  let create = (value: 'a, cursor: Cursor.t): t('a) => (value, cursor);
+  let create = (value: 'a, range: Range.t): t('a) => (value, range);
 
   /* getters */
 
   let value = (node: t('a)): 'a => fst(node);
-  let cursor = (node: t('a)): Cursor.t => snd(node);
+  let range = (node: t('a)): Range.t => snd(node);
 };

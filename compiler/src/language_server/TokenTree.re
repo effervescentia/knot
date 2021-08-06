@@ -8,7 +8,7 @@ type token_t =
 
 type t = RangeTree.t(token_t);
 
-let __skip: t = BinaryTree.create((Cursor.(expand(zero)), Skip));
+let __skip: t = BinaryTree.create((Range.zero, Skip));
 
 let _join = (left: t, right: t) =>
   switch (left, right) {
@@ -25,18 +25,13 @@ let _join = (left: t, right: t) =>
 
 let _fold = f => List.fold_left((acc, x) => _join(acc, f(x)), __skip);
 
-let _wrap = (cursor, tree: t) =>
-  cursor
-  |> Cursor.expand
-  |> (
-    range =>
-      tree.value |> fst == range
-        ? tree : BinaryTree.create(~left=tree, (range, Join))
-  );
+let _wrap = (range, tree: t) =>
+  tree.value |> fst == range
+    ? tree : BinaryTree.create(~left=tree, (range, Join));
 
-let of_untyped_id = (id, cursor) =>
-  BinaryTree.create((Cursor.expand(cursor), Identifier(id)));
-let of_id = (id, _, cursor) => of_untyped_id(id, cursor);
+let of_untyped_id = (id, range) =>
+  BinaryTree.create((range, Identifier(id)));
+let of_id = (id, _, range) => of_untyped_id(id, range);
 
 let rec of_list = (xs: list(t)): t =>
   switch (xs) {
@@ -54,21 +49,18 @@ let rec of_list = (xs: list(t)): t =>
 let rec of_expr =
   fun
   | AST.Primitive(prim) =>
-    BinaryTree.create((
-      prim |> Node.cursor |> Cursor.expand,
-      Primitive(Node.value(prim)),
-    ))
+    BinaryTree.create((prim |> Node.range, Primitive(Node.value(prim))))
   | AST.Identifier(id) => id |> Tuple.reduce3(of_id)
-  | AST.JSX(jsx) => jsx |> Node.value |> of_jsx |> _wrap(Node.cursor(jsx))
+  | AST.JSX(jsx) => jsx |> Node.value |> of_jsx |> _wrap(Node.range(jsx))
   | AST.Group(expr) =>
-    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+    expr |> Node.value |> of_expr |> _wrap(Node.range(expr))
   | AST.BinaryOp(_, lhs, rhs) =>
     _join(
-      lhs |> Node.value |> of_expr |> _wrap(Node.cursor(lhs)),
-      rhs |> Node.value |> of_expr |> _wrap(Node.cursor(rhs)),
+      lhs |> Node.value |> of_expr |> _wrap(Node.range(lhs)),
+      rhs |> Node.value |> of_expr |> _wrap(Node.range(rhs)),
     )
   | AST.UnaryOp(_, expr) =>
-    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+    expr |> Node.value |> of_expr |> _wrap(Node.range(expr))
   | AST.Closure(stmts) => stmts |> List.map(Node.value % of_stmt) |> of_list
 
 and of_jsx =
@@ -76,7 +68,7 @@ and of_jsx =
   | AST.Fragment(children) =>
     children
     |> List.map(child =>
-         child |> Node.value |> of_jsx_child |> _wrap(Node.cursor(child))
+         child |> Node.value |> of_jsx_child |> _wrap(Node.range(child))
        )
     |> of_list
 
@@ -85,25 +77,25 @@ and of_jsx =
     @ (
       attrs
       |> List.map(attr =>
-           attr |> Node.value |> of_jsx_attr |> _wrap(Node.cursor(attr))
+           attr |> Node.value |> of_jsx_attr |> _wrap(Node.range(attr))
          )
     )
     @ (
       children
       |> List.map(child =>
-           child |> Node.value |> of_jsx_child |> _wrap(Node.cursor(child))
+           child |> Node.value |> of_jsx_child |> _wrap(Node.range(child))
          )
     )
     |> of_list
 
 and of_jsx_child =
   fun
-  | AST.Node(tag) => tag |> Node.value |> of_jsx |> _wrap(Node.cursor(tag))
+  | AST.Node(tag) => tag |> Node.value |> of_jsx |> _wrap(Node.range(tag))
   | AST.InlineExpression(expr) =>
-    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+    expr |> Node.value |> of_expr |> _wrap(Node.range(expr))
   | AST.Text(text) =>
     BinaryTree.create((
-      text |> Node.cursor |> Cursor.expand,
+      Node.range(text),
       Primitive(String(Node.value(text))),
     ))
 
@@ -116,7 +108,7 @@ and of_jsx_attr =
   | AST.Property(id, Some(expr)) =>
     _join(
       id |> Tuple.reduce2(of_untyped_id),
-      expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr)),
+      expr |> Node.value |> of_expr |> _wrap(Node.range(expr)),
     )
 
 and of_stmt =
@@ -124,15 +116,15 @@ and of_stmt =
   | AST.Variable(name, expr) =>
     _join(
       name |> Tuple.reduce2(of_untyped_id),
-      expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr)),
+      expr |> Node.value |> of_expr |> _wrap(Node.range(expr)),
     )
   | AST.Expression(expr) =>
-    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr));
+    expr |> Node.value |> of_expr |> _wrap(Node.range(expr));
 
 let of_decl =
   fun
   | AST.Constant(expr) =>
-    expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr))
+    expr |> Node.value |> of_expr |> _wrap(Node.range(expr))
   | AST.Function(args, expr) =>
     _join(
       args
@@ -145,7 +137,7 @@ let of_decl =
              }
            ),
          ),
-      expr |> Node.value |> of_expr |> _wrap(Node.cursor(expr)),
+      expr |> Node.value |> of_expr |> _wrap(Node.range(expr)),
     );
 
 let of_import =
@@ -177,7 +169,7 @@ let to_string = (tree: t) =>
       | Identifier(id) => Identifier.to_string(id)
       | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
       },
-      Cursor.Range(start, end_) |> Cursor.to_string,
+      Range.create(start, end_) |> Range.to_string,
     )
     |> String.trim
   );

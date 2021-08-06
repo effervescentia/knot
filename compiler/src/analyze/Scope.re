@@ -7,7 +7,7 @@ type t = {
   types: Hashtbl.t(string, Type.Raw.t),
   /* error reporting callback */
   report: compile_err => unit,
-  mutable children: list((t, Cursor.t)),
+  mutable children: list((t, Range.t)),
 };
 
 /* static */
@@ -28,10 +28,10 @@ let create =
 
 /* methods */
 
-let child = (parent: t, cursor: Cursor.t): t => {
+let child = (parent: t, range: Range.t): t => {
   let child = create(~parent, parent.namespace, parent.report);
 
-  parent.children = parent.children @ [(child, cursor)];
+  parent.children = parent.children @ [(child, range)];
 
   child;
 };
@@ -46,7 +46,7 @@ let rec exists = (name: string, scope: t): bool =>
   );
 
 let rec resolve =
-        ((name, cursor) as id: Node.Raw.t(string), scope: t)
+        ((name, range) as id: Node.Raw.t(string), scope: t)
         : option(Type.Raw.t) =>
   switch (Hashtbl.find_opt(scope.types, Node.Raw.value(id)), scope.parent) {
   | (Some(_) as result, _) => result
@@ -55,21 +55,19 @@ let rec resolve =
     let type_err =
       Type.Error.DuplicateIdentifier(Identifier.of_string(name));
 
-    scope.report(ParseError(TypeError(type_err), scope.namespace, cursor));
+    scope.report(ParseError(TypeError(type_err), scope.namespace, range));
 
     Some(Invalid(type_err));
   };
 
 let _safe_define =
-    ((name, cursor): Node.Raw.t(string), type_: Type.Raw.t, scope: t) =>
+    ((name, range): Node.Raw.t(string), type_: Type.Raw.t, scope: t) =>
   (
     if (scope |> exists(name)) {
       let type_err =
         Type.Error.DuplicateIdentifier(Identifier.of_string(name));
 
-      scope.report(
-        ParseError(TypeError(type_err), scope.namespace, cursor),
-      );
+      scope.report(ParseError(TypeError(type_err), scope.namespace, range));
 
       Type.Raw.Invalid(type_err);
     } else {

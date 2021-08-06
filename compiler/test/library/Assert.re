@@ -15,15 +15,18 @@ module Compare = {
             Print.fmt(
               "%s@%s",
               [x |> Input.value] |> String.of_uchars,
-              x |> Input.cursor |> Cursor.to_string,
+              x |> Input.point |> Point.to_string,
             )
         )
         % Format.pp_print_string(pp),
       (==),
     );
 
-  let cursor =
-    testable(pp => Cursor.to_string % Format.pp_print_string(pp), (==));
+  let point =
+    testable(pp => Point.to_string % Format.pp_print_string(pp), (==));
+
+  let range =
+    testable(pp => Range.to_string % Format.pp_print_string(pp), (==));
 
   let graph =
     testable(
@@ -58,7 +61,9 @@ module Compare = {
 
 let char = Alcotest.(check(Compare.input, "input matches"));
 
-let cursor = Alcotest.(check(Compare.cursor, "cursor matches"));
+let point = Alcotest.(check(Compare.point, "point matches"));
+
+let range = Alcotest.(check(Compare.range, "range matches"));
 
 let graph = Alcotest.(check(Compare.graph, "graph matches"));
 

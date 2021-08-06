@@ -11,7 +11,7 @@ type symbol_info_t = {
   name: string,
   uri: string,
   kind: Capabilities.symbol_t,
-  range: Cursor.range_t,
+  range: Range.t,
 };
 
 let request =
@@ -67,8 +67,7 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                                     compiler.config.source_dir,
                                   ),
                              );
-                           let range =
-                             name |> Node.Raw.cursor |> Cursor.expand;
+                           let range = Node.Raw.range(name);
                            let name =
                              name |> Node.Raw.value |> Identifier.to_string;
 

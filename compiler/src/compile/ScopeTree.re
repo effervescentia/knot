@@ -25,9 +25,9 @@ let rec _join =
          )
        );
 
-let rec of_def_tbl = (~cursor=?, definitions: DefinitionTable.t): t => {
+let rec of_def_tbl = (~range=?, definitions: DefinitionTable.t): t => {
   definitions.children
-  |> List.map(((x, cursor)) => of_def_tbl(~cursor, x))
+  |> List.map(((x, range)) => of_def_tbl(~range, x))
   |> List.divide
   |> Tuple.map2(_join)
   |> (
@@ -39,42 +39,33 @@ let rec of_def_tbl = (~cursor=?, definitions: DefinitionTable.t): t => {
       BinaryTree.create(
         ~left=head,
         ~right=tail,
-        (
-          cursor |?> Cursor.expand |?: (start, end_),
-          Some(definitions.scope),
-        ),
+        (range |?: (start, end_), Some(definitions.scope)),
       )
-    | (Some({value: (only_cursor, _)} as only), None)
-    | (None, Some({value: (only_cursor, _)} as only)) =>
+    | (Some({value: (only_range, _)} as only), None)
+    | (None, Some({value: (only_range, _)} as only)) =>
       BinaryTree.create(
         ~left=only,
-        (cursor |?> Cursor.expand |?: only_cursor, Some(definitions.scope)),
+        (range |?: only_range, Some(definitions.scope)),
       )
     | (None, None) =>
-      BinaryTree.create((
-        cursor |?: Cursor.zero |> Cursor.expand,
-        Some(definitions.scope),
-      ))
+      BinaryTree.create((range |?: Range.zero, Some(definitions.scope)))
   );
 };
 
-let rec of_context = (~cursor=?, context: NamespaceContext.t): t => {
+let rec of_context = (~range=?, context: NamespaceContext.t): t => {
   context.inner_modules
-  |> List.map(((_, x, cursor)) => of_def_tbl(~cursor, x))
+  |> List.map(((_, x, range)) => of_def_tbl(~range, x))
   |> _join
-  |?: BinaryTree.create((
-        cursor |?: Cursor.zero |> Cursor.expand,
-        Some(Hashtbl.create(0)),
-      ));
+  |?: BinaryTree.create((range |?: Range.zero, Some(Hashtbl.create(0))));
 };
 
 let find_scope =
-    (point: Cursor.point_t, tree: t): option(Hashtbl.t(Export.t, Type.t)) =>
+    (point: Point.t, tree: t): option(Hashtbl.t(Export.t, Type.t)) =>
   BinaryTree.search(
     (left, right) =>
-      if (Cursor.is_in_range(left.value |> fst, point)) {
+      if (Range.contains(left.value |> fst, point)) {
         Some(left);
-      } else if (Cursor.is_in_range(right.value |> fst, point)) {
+      } else if (Range.contains(right.value |> fst, point)) {
         Some(right);
       } else {
         None;
@@ -83,6 +74,5 @@ let find_scope =
   )
   |?< snd;
 
-let find_type =
-    (id: Identifier.t, point: Cursor.point_t, tree: t): option(Type.t) =>
+let find_type = (id: Identifier.t, point: Point.t, tree: t): option(Type.t) =>
   find_scope(point, tree) |?< (types => Hashtbl.find_opt(types, Named(id)));

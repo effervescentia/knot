@@ -34,7 +34,7 @@ let get_external_scope = (ctx: t) =>
   ctx.externals
   |> Hashtbl.to_seq
   |> Seq.map(Tuple.map_snd2(Type.to_raw))
-  |> NestedHashtbl.from_seq;
+  |> NestedHashtbl.of_seq;
 
 /**
  report a compile error
@@ -54,7 +54,7 @@ let define = (name: Identifier.t, type_: Type.t, ctx: t) =>
 let import =
     (
       namespace: Namespace.t,
-      (id, cursor): (Export.t, Cursor.t),
+      (id, range): (Export.t, Range.t),
       label: Identifier.t,
       ctx: t,
     ) => {
@@ -65,7 +65,7 @@ let import =
       Error.ParseError(
         TypeError(Type.err_to_strong_err(err)),
         ctx.namespace_context.namespace,
-        cursor,
+        range,
       )
       |> report(ctx);
 

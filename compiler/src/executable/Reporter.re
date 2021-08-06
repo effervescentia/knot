@@ -25,13 +25,17 @@ let _print_err = (~index, path, title, content) =>
   [
     Print.fmt("%d) %s", index + 1, title) |> Print.bad |> string,
     switch (path) {
-    | Some((Module.{relative, full}, cursor)) =>
+    | Some((Module.{relative, full}, range)) =>
       let cursor_suffix =
-        Cursor.(
-          switch (cursor) {
-          | Range({line, column}, _)
-          | Point({line, column}) => Print.fmt(":%d:%d", line, column)
-          }
+        range
+        |> Range.get_start
+        |> (
+          start =>
+            Print.fmt(
+              ":%d:%d",
+              Point.get_line(start),
+              Point.get_column(start),
+            )
         );
 
       [
@@ -295,12 +299,12 @@ let _extract_compile_err = resolver =>
       resolver
       |> Resolver.resolve_module(~skip_cache=true, namespace)
       |> Module.get_path
-      |?> (x => (x, Cursor.zero)),
+      |?> (x => (x, Range.zero)),
       "Invalid Module",
       Print.fmt("failed to parse module") |> string,
     )
 
-  | ParseError(err, namespace, cursor) =>
+  | ParseError(err, namespace, range) =>
     _extract_parse_err(err)
     |> Tuple.reduce3((title, description, resolutions) => {
          let module_ =
@@ -311,12 +315,12 @@ let _extract_compile_err = resolver =>
            resolver
            |> Resolver.resolve_module(~skip_cache=true, namespace)
            |> Module.get_path
-           |?> (x => (x, cursor)),
+           |?> (x => (x, range)),
            title,
            [
              description,
              switch (module_) {
-             | Ok(x) => File.CodeFrame.print(x, cursor) |> string
+             | Ok(x) => File.CodeFrame.print(x, range) |> string
              | Error(_) => [string("code frame not available")] |> newline
              },
              switch (resolutions) {

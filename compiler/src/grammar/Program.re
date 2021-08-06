@@ -19,7 +19,7 @@ let main: t =
     |> NamespaceContext.define_module(
          Root,
          module_ctx.definitions,
-         Cursor.zero,
+         Range.zero,
        );
 
     choice([Import.parser(module_ctx), Declaration.parser(module_ctx)])

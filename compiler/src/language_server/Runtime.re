@@ -69,10 +69,8 @@ let analyze_module =
   | None => None
   };
 
-let scan_for_token = (point: Cursor.point_t) =>
-  File.InputStream.scan(node =>
-    Cursor.is_in_range(node |> Node.Raw.cursor |> Cursor.expand, point)
-  );
+let scan_for_token = (point: Point.t) =>
+  File.InputStream.scan(node => Range.contains(Node.Raw.range(node), point));
 
 let purge_module = (path: string, runtime: t) =>
   switch (runtime |> resolve(path)) {

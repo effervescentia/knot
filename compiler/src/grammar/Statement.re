@@ -3,17 +3,15 @@ open AST.Raw;
 
 let variable = (ctx: ModuleContext.t, expr) =>
   Keyword.let_
-  >>= Node.Raw.cursor
+  >>= Node.Raw.range
   % (
     start =>
       Operator.assign(Identifier.parser(ctx), expr(ctx))
-      >|= (
-        x => (of_var(x), Cursor.join(start, x |> snd |> Node.Raw.cursor))
-      )
+      >|= (x => (of_var(x), Range.join(start, x |> snd |> Node.Raw.range)))
   );
 
 let expression = (ctx: ModuleContext.t, expr) =>
-  expr(ctx) >|= (x => (of_expr(x), Node.Raw.cursor(x)));
+  expr(ctx) >|= (x => (of_expr(x), Node.Raw.range(x)));
 
 let parser = (ctx: ModuleContext.t, expr) =>
   choice([variable(ctx, expr), expression(ctx, expr)]) |> M.terminated;

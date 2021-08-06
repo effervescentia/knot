@@ -2,14 +2,14 @@ open Kore;
 open Reference;
 
 module CommonUtil = {
-  let as_raw_node = (~cursor=Cursor.zero, x) => (x, cursor);
-  let as_node = (~cursor=Cursor.zero, type_, x) => (x, type_, cursor);
+  let as_raw_node = (~range=Range.zero, x) => (x, range);
+  let as_node = (~range=Range.zero, type_, x) => (x, type_, range);
 
   let to_scope = (types: list((string, Type.t))): DefinitionTable.t => {
     types
     |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
     |> List.to_seq
-    |> DefinitionTable.from_seq;
+    |> DefinitionTable.of_seq;
   };
 };
 
@@ -87,12 +87,12 @@ let print_compile_err =
   | FileNotFound(path) => path |> Print.fmt("FileNotFound<%s>")
   | InvalidModule(namespace) =>
     namespace |> Namespace.to_string |> Print.fmt("InvalidModule<%s>")
-  | ParseError(err, namespace, cursor) =>
+  | ParseError(err, namespace, range) =>
     Print.fmt(
       "ParseError<%s, %s, %s>",
       parse_err_to_string(err),
       Namespace.to_string(namespace),
-      Cursor.to_string(cursor),
+      Range.to_string(range),
     );
 
 let print_errs =

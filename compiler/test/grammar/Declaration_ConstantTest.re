@@ -63,7 +63,7 @@ let suite =
             (Export.Named(of_public("buzz")), Valid(`Float)),
           ]
           |> List.to_seq
-          |> DefinitionTable.from_seq;
+          |> DefinitionTable.of_seq;
 
         Assert.parse(
           ~mod_context=x => ModuleContext.create(~definitions, x),

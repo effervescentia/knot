@@ -21,7 +21,7 @@ let suite =
 ",
             CodeFrame.print(
               __file_contents,
-              Cursor.range((3, 1), (3, 12)),
+              Range.create((3, 1), (3, 12)),
             ),
           ),
           (
@@ -33,7 +33,7 @@ let suite =
  6 │ \n",
             CodeFrame.print(
               __file_contents,
-              Cursor.range((4, 8), (4, 10)),
+              Range.create((4, 8), (4, 10)),
             ),
           ),
         ]

@@ -37,20 +37,20 @@ let symbol =
     | TypeParameter => 26
   );
 
-let range = ((start, end_): Cursor.range_t) =>
+let range = ((start, end_): Range.t) =>
   `Assoc([
     (
       "start",
       `Assoc([
-        ("line", `Int(start.line - 1)),
-        ("character", `Int(start.column - 1)),
+        ("line", `Int(Point.get_line(start) - 1)),
+        ("character", `Int(Point.get_column(start) - 1)),
       ]),
     ),
     (
       "end",
       `Assoc([
-        ("line", `Int(end_.line - 1)),
-        ("character", `Int(end_.column)),
+        ("line", `Int(Point.get_line(end_) - 1)),
+        ("character", `Int(Point.get_column(end_))),
       ]),
     ),
   ]);

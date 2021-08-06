@@ -12,7 +12,7 @@ let create = (~parent: option(t('a, 'b))=?, size: int) => {
   table: Hashtbl.create(size),
 };
 
-let from_seq = (seq: Seq.t(('a, 'b))): t('a, 'b) => {
+let of_seq = (seq: Seq.t(('a, 'b))): t('a, 'b) => {
   parent: None,
   table: Hashtbl.of_seq(seq),
 };

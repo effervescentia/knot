@@ -1,7 +1,6 @@
 open Kore;
 
 let tests = [
-  CursorTest.suite,
   FilenameTest.suite,
   FunctionalTest.suite,
   GraphTest.suite,
@@ -11,8 +10,10 @@ let tests = [
   IntTest.suite,
   ListTest.suite,
   ModuleTableTest.suite,
+  PointTest.suite,
   PrettyTest.suite,
   PrintTest.suite,
+  RangeTest.suite,
   StringTest.suite,
   TupleTest.suite,
 ];

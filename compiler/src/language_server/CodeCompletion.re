@@ -39,7 +39,7 @@ let handler =
       {params: {text_document: {uri}, position: {line, character}}} as req:
         request_t(params_t),
     ) => {
-  let point = Cursor.{line, column: character};
+  let point = Point.create(line, character);
 
   switch (runtime |> Runtime.resolve(uri)) {
   | Some((namespace, {compiler})) =>

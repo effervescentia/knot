@@ -15,7 +15,7 @@ let request =
     {text_document, position};
   });
 
-let response = (range: Cursor.range_t, contents: string) =>
+let response = (range: Range.t, contents: string) =>
   `Assoc([
     (
       "contents",
@@ -34,7 +34,7 @@ let handler =
       {params: {text_document: {uri}, position: {line, character}}} as req:
         request_t(params_t),
     ) => {
-  let point = Cursor.{line, column: character};
+  let point = Point.create(line, character);
 
   switch (runtime |> Runtime.resolve(uri)) {
   | Some((namespace, {compiler, contexts} as ctx)) =>
@@ -87,17 +87,15 @@ let handler =
               | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
                 Some((
                   kwd |> Print.fmt("(keyword) %s"),
-                  Node.Raw.cursor(node),
+                  Node.Raw.range(node),
                 ))
               | _ => None
               }
           )
           |> (
             fun
-            | Some((message, cursor)) =>
-              message
-              |> response(Cursor.expand(cursor))
-              |> Protocol.reply(req)
+            | Some((message, range)) =>
+              message |> response(range) |> Protocol.reply(req)
             | None => Protocol.reply(req, Response.hover_empty)
           );
         }

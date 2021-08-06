@@ -9,7 +9,7 @@ let _scope_of_context = (ctx: ModuleContext.t) =>
 
 let constant = (ctx: ModuleContext.t, f) =>
   Keyword.const
-  >>= Node.Raw.cursor
+  >>= Node.Raw.range
   % (
     start =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
@@ -19,11 +19,8 @@ let constant = (ctx: ModuleContext.t, f) =>
           let expr = Analyzer.res_expr(scope, raw_expr);
 
           (
-            (
-              f(id),
-              (of_const(expr), Node.type_(expr), Node.cursor(expr)),
-            ),
-            Cursor.join(start, Node.cursor(expr)),
+            (f(id), (of_const(expr), Node.type_(expr), Node.range(expr))),
+            Range.join(start, Node.range(expr)),
           );
         }
       )
@@ -32,7 +29,7 @@ let constant = (ctx: ModuleContext.t, f) =>
 
 let function_ = (ctx: ModuleContext.t, f) =>
   Keyword.func
-  >>= Node.Raw.cursor
+  >>= Node.Raw.range
   % (
     start =>
       Identifier.parser(ctx)
@@ -40,12 +37,12 @@ let function_ = (ctx: ModuleContext.t, f) =>
         id =>
           Lambda.parser(ctx)
           >|= (
-            ((raw_args, raw_res, cursor)) => {
+            ((raw_args, raw_res, range)) => {
               let scope = _scope_of_context(ctx);
               let res = Analyzer.res_expr(scope, raw_res);
               let args =
                 raw_args
-                |> List.map(((arg, cursor): Raw.argument_t) =>
+                |> List.map(((arg, range): Raw.argument_t) =>
                      (
                        {
                          name: arg.name,
@@ -56,7 +53,7 @@ let function_ = (ctx: ModuleContext.t, f) =>
                        },
                        /* TODO: implement */
                        Type.Valid(`Abstract(Unknown)),
-                       cursor,
+                       range,
                      )
                    );
 
@@ -79,10 +76,10 @@ let function_ = (ctx: ModuleContext.t, f) =>
                         Node.type_(res),
                       )),
                     ),
-                    cursor,
+                    range,
                   ),
                 ),
-                Cursor.join(start, cursor),
+                Range.join(start, range),
               );
             }
           )
