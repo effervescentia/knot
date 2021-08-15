@@ -36,7 +36,6 @@ let log_config =
     ]
     |> List.to_seq
     |> Hashtbl.of_seq
-    |> Hashtbl.to_string(Functional.identity, Functional.identity)
-    |> Pretty.to_string,
+    |> Hashtbl.to_string(Functional.identity, Functional.identity),
   );
 };

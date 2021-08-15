@@ -555,6 +555,9 @@ module Debug = {
     )
     % newline;
 
-  let print_ast = (program: program_t): string =>
-    program |> List.map(print_mod_stmt) |> concat |> to_string;
+  let print_ast = (program: program_t): Pretty.t =>
+    program |> List.map(print_mod_stmt) |> concat;
 };
+
+let to_string = (program: program_t): string =>
+  program |> Debug.print_ast |> Pretty.to_string;

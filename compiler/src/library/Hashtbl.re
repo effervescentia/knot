@@ -1,3 +1,5 @@
+open Infix;
+
 /**
  Extension of the standard Hashtbl module with additional functionality.
  */
@@ -11,10 +13,19 @@ let compare = (~compare=(==), l, r) =>
        mem(r, key) && compare(find(l, key), find(r, key))
      );
 
-let to_string =
+let map = (map: (('a, 'b)) => ('c, 'd), tbl: t('a, 'b)): t('c, 'd) =>
+  tbl |> to_seq |> Seq.map(map) |> of_seq;
+
+let map_keys = (map_key: 'a => 'c, tbl: t('a, 'b)): t('c, 'b) =>
+  tbl |> map(Tuple.map_fst2(map_key));
+
+let map_values = (map_value: 'b => 'c, tbl: t('a, 'b)): t('a, 'c) =>
+  tbl |> map(Tuple.map_snd2(map_value));
+
+let print =
     (
       key_to_string: 'a => string,
-      value_to_string: 'b => string,
+      print_value: 'b => Pretty.t,
       tbl: t('a, 'b),
     ) =>
   Pretty.(
@@ -27,7 +38,7 @@ let to_string =
            [
              key |> key_to_string |> string,
              string(": "),
-             find(tbl, key) |> value_to_string |> string,
+             find(tbl, key) |> print_value,
            ]
            |> newline
          )
@@ -37,3 +48,14 @@ let to_string =
     ]
     |> concat
   );
+
+let to_string =
+    (
+      key_to_string: 'a => string,
+      value_to_string: 'b => string,
+      tbl: t('a, 'b),
+    )
+    : string =>
+  tbl
+  |> print(key_to_string, value_to_string % Pretty.string)
+  |> Pretty.to_string;

@@ -60,12 +60,14 @@ let rec of_context = (~range=?, context: NamespaceContext.t): t => {
 };
 
 let find_scope =
-    (point: Point.t, tree: t): option(Hashtbl.t(Export.t, Type.t)) =>
+    (point: Point.t, tree: t): option(Hashtbl.t(Export.t, Type.t)) => {
+  let contains = Range.contains_point(point);
+
   BinaryTree.search(
     (left, right) =>
-      if (Range.contains(left.value |> fst, point)) {
+      if (left.value |> fst |> contains) {
         Some(left);
-      } else if (Range.contains(right.value |> fst, point)) {
+      } else if (right.value |> fst |> contains) {
         Some(right);
       } else {
         None;
@@ -73,6 +75,7 @@ let find_scope =
     tree,
   )
   |?< snd;
+};
 
 let find_type = (id: Identifier.t, point: Point.t, tree: t): option(Type.t) =>
   find_scope(point, tree) |?< (types => Hashtbl.find_opt(types, Named(id)));

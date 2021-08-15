@@ -1,4 +1,5 @@
 open Reference;
+open Infix;
 
 type type_table_t = Hashtbl.t(Export.t, Type.t);
 type scope_tree_t = RangeTree.t(option(type_table_t));
@@ -63,23 +64,20 @@ let add_type =
 /**
  print a string representation for debugging
  */
-let to_string = (~debug=false, table: t): string =>
-  Hashtbl.to_seq_keys(table)
-  |> List.of_seq
-  |> Print.many(~separator="\n", key =>
-       key
-       |> Hashtbl.find(table)
-       |> (
-         ({ast, raw, exports}) =>
-           ast
-           |> AST.Debug.print_ast
-           |> Print.fmt(
-                "/* %s */\n\nexports: %s\n\nraw: \n\"%s\"\n\n%s",
-                Reference.Namespace.to_string(key),
-                exports
-                |> Hashtbl.to_string(Export.to_string, Type.to_string)
-                |> Pretty.to_string,
-                raw,
-              )
-       )
-     );
+let to_string = (table: t): string =>
+  table
+  |> Hashtbl.map_values(({ast, raw, exports}) =>
+       [
+         ("ast", ast |> AST.Debug.print_ast),
+         (
+           "exports",
+           exports
+           |> Hashtbl.print(Export.to_string, Type.to_string % Pretty.string),
+         ),
+         ("raw", Pretty.string(raw)),
+       ]
+       |> List.to_seq
+       |> Hashtbl.of_seq
+       |> Hashtbl.print(Functional.identity, Functional.identity)
+     )
+  |> Hashtbl.to_string(Namespace.to_string, Pretty.to_string);

@@ -21,7 +21,7 @@ let get_end = ((_, x): t): Point.t => x;
  */
 let join = ((start, _): t, (_, end_): t): t => (start, end_);
 
-let contains = ((start, end_): t, point: Point.t) =>
+let contains_point = (point: Point.t, (start, end_): t) =>
   Point.(
     Int.contains((start, end_) |> Tuple.map2(get_line), get_line(point))
     && (
@@ -39,6 +39,9 @@ let contains = ((start, end_): t, point: Point.t) =>
       }
     )
   );
+
+let contains = ((start, end_): t, target: t) =>
+  contains_point(start, target) && contains_point(end_, target);
 
 let to_string = ((start, end_): t) =>
   Point.(

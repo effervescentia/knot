@@ -34,7 +34,7 @@ let module_ =
 let program =
   Alcotest.(
     check(
-      testable(pp => AST.Debug.print_ast % Format.pp_print_string(pp), (==)),
+      testable(pp => AST.to_string % Format.pp_print_string(pp), (==)),
       "program matches",
     )
   );

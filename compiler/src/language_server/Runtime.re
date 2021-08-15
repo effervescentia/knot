@@ -70,9 +70,7 @@ let analyze_module =
   };
 
 let scan_for_token = (point: Point.t) =>
-  File.InputStream.scan(node =>
-    Range.contains(Node.Raw.get_range(node), point)
-  );
+  File.InputStream.scan(Node.Raw.get_range % Range.contains_point(point));
 
 let purge_module = (path: string, runtime: t) =>
   switch (runtime |> resolve(path)) {

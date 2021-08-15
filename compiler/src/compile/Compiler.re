@@ -96,7 +96,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
       }
     );
 
-  let modules = Hashtbl.create(__module_table_size);
+  let modules = ModuleTable.create(__module_table_size);
 
   {dispatch, config, graph, modules, resolver};
 };
