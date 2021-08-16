@@ -33,8 +33,7 @@
     },
     "src/grammar": {
       "require": [
-        "knot.analyze",
-        "knot.parse"
+        "knot.analyze"
       ],
       "name": "knot.grammar",
       "namespace": "Grammar"
@@ -90,7 +89,6 @@
     },
     "src/executable": {
       "require": [
-        "knot.compile",
         "knot.lang_server",
         "yaml"
       ],
