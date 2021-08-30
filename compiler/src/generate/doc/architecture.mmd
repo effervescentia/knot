@@ -1,0 +1,25 @@
+graph LR
+  in(( ))
+  out(( ))
+  target{{Target.t}}
+  result{{Pretty.t}}
+
+  in --> |input| target
+  target --> Generator
+
+  subgraph knot.generate
+    Generator --> choice{ }
+
+    choice --> |target == javascript| JavaScript_Generator --> JavaScript_Formatter
+  end
+
+  subgraph knot.grammar
+    Formatter
+  end
+
+  choice --> |target == knot| Formatter
+
+  Formatter --> result
+  JavaScript_Formatter --> result
+
+  result --> |output| out

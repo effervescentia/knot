@@ -1,0 +1,29 @@
+flowchart LR
+  in(( ))
+  out(( ))
+
+  subgraph knot.exec
+    Build
+    Bundle
+    Develop
+    Format
+    Lint
+    LSP
+    Watch
+  end
+
+  subgraph knotc
+    Main
+  end
+
+  in --> |command| knot.exec
+
+  Build --> Main
+  Bundle --> Main
+  Develop --> Main
+  Format --> Main
+  Lint --> Main
+  LSP --> Main
+  Watch --> Main
+
+  Main --> out

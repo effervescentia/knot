@@ -1,0 +1,15 @@
+graph LR
+  in(( ))
+  out(( ))
+  ast{{"(AST.Raw.*, Scope.t)"}}
+  result{{AST.*}}
+
+  subgraph knot.analyze
+    Analyzer
+    TypeOf
+
+    TypeOf --> Analyzer
+  end
+
+  in --> |input| ast --> Analyzer
+  Analyzer --> result --> |output| out

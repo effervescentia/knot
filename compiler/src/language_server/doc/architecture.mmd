@@ -1,0 +1,33 @@
+flowchart LR
+  in(( ))
+
+  subgraph knot.lang_server
+    Protocol
+    Server
+    Event
+    Runtime
+
+    Protocol --> Event
+    Event --> Server
+    Runtime <-.-> Server
+
+    Server --> |initialize| Initialize
+
+    Server --> |textDocument/didOpen| FileOpen
+    Server --> |textDocument/didClose| FileClose
+    Server --> |textDocument/didChange| FileChange
+
+    Server --> |textDocument/hover| Hover
+
+    Server --> |textDocument/definition| GoToDefinition
+
+    Server --> |textDocument/completion| CodeCompletion
+
+    Server --> |textDocument/documentSymbol| LocalSymbols
+
+    Server --> |workspace/symbol| WorkspaceSymbols
+
+    Server --> |textDocument/formatting| Format
+  end
+
+  in --> |stdin| stream{{Stream.t}} --> Protocol
