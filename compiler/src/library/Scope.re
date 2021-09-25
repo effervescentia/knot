@@ -1,13 +1,13 @@
-open Kore;
 open Reference;
 
 type t = {
   namespace: Namespace.t,
+  range: Range.t,
   parent: option(t),
   types: Hashtbl.t(string, Type.Raw.t),
   /* error reporting callback */
-  report: compile_err => unit,
-  mutable children: list((t, Range.t)),
+  report: Error.compile_err => unit,
+  mutable children: list(t),
 };
 
 /* static */
@@ -16,10 +16,12 @@ let create =
     (
       ~parent: option(t)=?,
       namespace: Namespace.t,
-      report: compile_err => unit,
+      range: Range.t,
+      report: Error.compile_err => unit,
     )
     : t => {
   namespace,
+  range,
   parent,
   types: Hashtbl.create(0),
   report,
@@ -29,9 +31,9 @@ let create =
 /* methods */
 
 let child = (parent: t, range: Range.t): t => {
-  let child = create(~parent, parent.namespace, parent.report);
+  let child = create(~parent, parent.namespace, range, parent.report);
 
-  parent.children = parent.children @ [(child, range)];
+  parent.children = parent.children @ [child];
 
   child;
 };

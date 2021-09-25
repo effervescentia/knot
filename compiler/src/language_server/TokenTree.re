@@ -53,7 +53,7 @@ let rec of_expr =
       prim |> Node.get_range,
       Primitive(Node.get_value(prim)),
     ))
-  | AST.Identifier(id) => id |> Tuple.reduce3(of_id)
+  | AST.Identifier(id) => id |> Tuple.join3(of_id)
   | AST.JSX(jsx) =>
     jsx |> Node.get_value |> of_jsx |> _wrap(Node.get_range(jsx))
   | AST.Group(expr) =>
@@ -81,7 +81,7 @@ and of_jsx =
     |> of_list
 
   | AST.Tag(id, attrs, children) =>
-    [id |> Tuple.reduce2(of_untyped_id)]
+    [id |> Tuple.join2(of_untyped_id)]
     @ (
       attrs
       |> List.map(attr =>
@@ -116,13 +116,13 @@ and of_jsx_child =
 
 and of_jsx_attr =
   fun
-  | AST.ID(id) => id |> Tuple.reduce2(of_untyped_id)
+  | AST.ID(id) => id |> Tuple.join2(of_untyped_id)
   | AST.Class(id, None)
-  | AST.Property(id, None) => id |> Tuple.reduce2(of_untyped_id)
+  | AST.Property(id, None) => id |> Tuple.join2(of_untyped_id)
   | AST.Class(id, Some(expr))
   | AST.Property(id, Some(expr)) =>
     _join(
-      id |> Tuple.reduce2(of_untyped_id),
+      id |> Tuple.join2(of_untyped_id),
       expr |> Node.get_value |> of_expr |> _wrap(Node.get_range(expr)),
     )
 
@@ -130,7 +130,7 @@ and of_stmt =
   fun
   | AST.Variable(name, expr) =>
     _join(
-      name |> Tuple.reduce2(of_untyped_id),
+      name |> Tuple.join2(of_untyped_id),
       expr |> Node.get_value |> of_expr |> _wrap(Node.get_range(expr)),
     )
   | AST.Expression(expr) =>
@@ -147,7 +147,7 @@ let of_decl =
            Node.get_value
            % (
              (AST.{name, default}) => {
-               ...name |> Tuple.reduce2(of_untyped_id),
+               ...name |> Tuple.join2(of_untyped_id),
                right: default |?> Node.get_value % of_expr,
              }
            ),
@@ -158,11 +158,11 @@ let of_decl =
 let of_import =
   fun
   | AST.MainImport(id)
-  | AST.NamedImport(id, None) => id |> Tuple.reduce2(of_untyped_id)
+  | AST.NamedImport(id, None) => id |> Tuple.join2(of_untyped_id)
   | AST.NamedImport(id, Some(alias)) =>
     (id, alias)
-    |> Tuple.map2(Tuple.reduce2(of_untyped_id))
-    |> Tuple.reduce2(_join);
+    |> Tuple.map2(Tuple.join2(of_untyped_id))
+    |> Tuple.join2(_join);
 
 let of_mod_stmt =
   fun
@@ -170,7 +170,7 @@ let of_mod_stmt =
     imports |> _fold(Node.Raw.get_value % of_import)
   | AST.Declaration(MainExport(id) | NamedExport(id), decl) =>
     _join(
-      id |> Tuple.reduce2(of_untyped_id),
+      id |> Tuple.join2(of_untyped_id),
       decl |> Node.get_value |> of_decl,
     );
 

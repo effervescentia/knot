@@ -101,7 +101,7 @@ module Raw = {
       : props
         |> List.map(
              Tuple.map_snd2(type_to_string)
-             % Tuple.reduce2(Print.fmt("%s: %s")),
+             % Tuple.join2(Print.fmt("%s: %s")),
            )
         |> List.intersperse(", ")
         |> String.join
@@ -113,8 +113,7 @@ module Raw = {
       "Function<(%s), %s>",
       args
       |> List.map(
-           Tuple.map_snd2(type_to_string)
-           % Tuple.reduce2(Print.fmt("%s: %s")),
+           Tuple.map_snd2(type_to_string) % Tuple.join2(Print.fmt("%s: %s")),
          )
       |> List.intersperse(", ")
       |> String.join,

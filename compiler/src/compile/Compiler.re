@@ -133,17 +133,18 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
   |> (
     fun
     | Ok(raw) => {
-        let ast = raw |> File.IO.read_string |> Parser.ast(context);
-
-        compiler.modules
-        |> ModuleTable.add(
-             namespace,
-             ast,
-             _get_exports(ast),
-             ScopeTree.of_context(context),
-             raw,
-           );
+        let _ast = raw |> File.IO.read_string |> Parser.ast(context);
+        ();
       }
+    /* TODO: uncomment */
+    /* compiler.modules
+       |> ModuleTable.add(
+            namespace,
+            ast,
+            _get_exports(ast),
+            ScopeTree.of_context(context),
+            raw,
+          ); */
     | Error(errs) => Report(errs) |> compiler.dispatch
   );
 };

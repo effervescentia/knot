@@ -10,10 +10,7 @@ type t =
   | JavaScript(module_t)
   | Knot;
 
-let extension_of =
-  fun
-  | JavaScript(_) => ".js"
-  | Knot => Constants.file_extension;
+/* static */
 
 let of_string =
   fun
@@ -21,6 +18,13 @@ let of_string =
   | x when x == javascript_common => Some(JavaScript(Common))
   | x when x == knot => Some(Knot)
   | _ => None;
+
+/* methods */
+
+let extension_of =
+  fun
+  | JavaScript(_) => ".js"
+  | Knot => Constants.file_extension;
 
 let to_string =
   fun

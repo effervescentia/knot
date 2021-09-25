@@ -36,6 +36,26 @@ let suite =
         ]
         |> Assert.(test_many(string))
     ),
+    "drop_all_prefix()"
+    >: (
+      () =>
+        [
+          ("bar", String.drop_all_prefix("foo", "foobar")),
+          ("bar", String.drop_all_prefix("foo", "foofoofoobar")),
+          ("foobar", String.drop_all_prefix("fizz", "foobar")),
+        ]
+        |> Assert.(test_many(string))
+    ),
+    "drop_all_suffix()"
+    >: (
+      () =>
+        [
+          ("foo", String.drop_all_suffix("bar", "foobar")),
+          ("foo", String.drop_all_suffix("bar", "foobarbarbar")),
+          ("foobar", String.drop_all_suffix("fizz", "foobar")),
+        ]
+        |> Assert.(test_many(string))
+    ),
     "find_index()"
     >: (
       () =>
@@ -48,10 +68,24 @@ let suite =
         ]
         |> Assert.(test_many(opt_int))
     ),
+    "replace()"
+    >: (
+      () =>
+        [
+          ("fiZZbuZZ", String.replace('z', 'Z', "fizzbuzz")),
+          ("fizzbuzz", String.replace('a', 'Z', "fizzbuzz")),
+        ]
+        |> Assert.(test_many(string))
+    ),
     "split()"
     >: (
       () =>
-        [(("foo", "bar"), String.split(": ", "foo: bar"))]
+        [
+          (("foo", "bar"), String.split(": ", "foo: bar")),
+          (("foobar", ""), String.split(":", "foobar")),
+          (("", "foobar"), String.split("", "foobar")),
+          (("", ""), String.split("", "")),
+        ]
         |> Assert.(test_many(string_pair))
     ),
   ];

@@ -49,11 +49,17 @@ let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
 
 /* static */
 
+/**
+ create a graph from lists of nodes and edges
+ */
 let create = (nodes: list('a), edges: list(edge_t('a))): t('a) => {
   nodes,
   edges,
 };
 
+/**
+ create an empty graph
+ */
 let empty = (): t('a) => create([], []);
 
 /* getters */
@@ -63,9 +69,15 @@ let get_edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
 
 /* methods */
 
+/**
+ check if a [node] exists in the [graph]
+ */
 let has_node = (node: 'a, graph: t('a)): bool =>
   graph.nodes |> List.mem(node);
 
+/**
+ get the edges connected to a [node] in the [graph]
+ */
 let get_edges_of = (node: 'a, graph: t('a)): list(edge_t('a)) =>
   graph
   |> _fold_edges(
@@ -73,6 +85,9 @@ let get_edges_of = (node: 'a, graph: t('a)): list(edge_t('a)) =>
        [],
      );
 
+/**
+ get a list of nodes in the [graph] that share an edge with a [node]
+ */
 let get_neighbors = (node: 'a, graph: t('a)): list('a) =>
   graph
   |> _fold_edges(
@@ -82,6 +97,9 @@ let get_neighbors = (node: 'a, graph: t('a)): list('a) =>
        [],
      );
 
+/**
+ get a list of nodes in the [graph] which are a parent of a [node]
+ */
 let get_parents = (node: 'a, graph: t('a)): list('a) =>
   graph
   |> _fold_edges(
@@ -90,6 +108,9 @@ let get_parents = (node: 'a, graph: t('a)): list('a) =>
        [],
      );
 
+/**
+ get a list of nodes in the [graph] which are a child of a [node]
+ */
 let get_children = (node: 'a, graph: t('a)): list('a) =>
   graph
   |> _fold_edges(
@@ -98,15 +119,27 @@ let get_children = (node: 'a, graph: t('a)): list('a) =>
        [],
      );
 
+/**
+ check if a [node] in the [graph] has no parents
+ */
 let is_root_node = (node: 'a, graph: t('a)): bool =>
   graph |> get_parents(node) |> List.length |> (==)(0);
 
+/**
+ get a list of all nodes in the [graph] that have no parents
+ */
 let find_roots = (graph: t('a)): list('a) =>
   graph.nodes |> List.filter(node => is_root_node(node, graph));
 
+/**
+ add a [node] to the [graph]
+ */
 let add_node = (node: 'a, graph: t('a)) =>
   graph.nodes = List.incl(node, graph.nodes);
 
+/**
+ add an edge between a [parent] and a [child] in the [graph]
+ */
 let add_edge = (parent: 'a, child: 'a, graph: t('a)) => {
   if (!List.mem(parent, graph.nodes) || !List.mem(child, graph.nodes)) {
     raise(InvalidEdge);
@@ -115,6 +148,9 @@ let add_edge = (parent: 'a, child: 'a, graph: t('a)) => {
   graph.edges = List.incl((parent, child), graph.edges);
 };
 
+/**
+ combine and de-duplicate the nodes and edges of two graphs
+ */
 let union = (lhs: t('a), rhs: t('a)): t('a) => {
   nodes:
     lhs.nodes
@@ -126,16 +162,28 @@ let union = (lhs: t('a), rhs: t('a)): t('a) => {
     |> List.fold_left((acc, edge) => List.incl(edge, acc), []),
 };
 
+/**
+ remove a [node] from the [graph]
+ */
 let remove_node = (node: 'a, graph: t('a)) =>
   graph.nodes = List.excl(node, graph.nodes);
 
+/**
+ remove edges from the [graph] that connect to [node] as the child
+ */
 let remove_edges_to = (node: 'a, graph: t('a)) =>
   graph.edges = graph.edges |> List.filter(edge => !_is_edge_to(node, edge));
 
+/**
+ remove edges from the [graph] that connect from [node] as the parent
+ */
 let remove_edges_from = (node: 'a, graph: t('a)) =>
   graph.edges =
     graph.edges |> List.filter(edge => !_is_edge_from(node, edge));
 
+/**
+ find cycles in the [graph] that involve a [target_node]
+ */
 let find_cycles = (target_node: 'a, graph: t('a)): list(list('a)) => {
   let rec loop = (visited, node) => {
     let parents = graph |> get_parents(node);
@@ -153,15 +201,24 @@ let find_cycles = (target_node: 'a, graph: t('a)): list(list('a)) => {
   loop([target_node], target_node);
 };
 
+/**
+ find unique cycles in the [graph] that involve a list of [nodes]
+ */
 let find_unique_cycles = (nodes: list('a), graph: t('a)): list(list('a)) =>
   nodes
   |> List.map(node => find_cycles(node, graph))
   |> List.flatten
   |> List.uniq_by(List.compare_members);
 
+/**
+ find all unique cycles in the [graph]
+ */
 let find_all_unique_cycles = (graph: t('a)): list(list('a)) =>
   graph |> find_unique_cycles(graph.nodes);
 
+/**
+ check if a [graph] is acyclic
+ */
 let is_acyclic = (graph: t('a)): bool =>
   find_all_unique_cycles(graph) |> List.length |> (==)(0);
 

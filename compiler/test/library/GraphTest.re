@@ -152,6 +152,41 @@ let suite =
         | _ => Alcotest.fail("expected exception")
         }
     ),
+    "union()"
+    >: (
+      () => {
+        let graph =
+          Graph.union(
+            {
+              nodes: ["foo", "bar", "buzz"],
+              edges: [("buzz", "foo"), ("bar", "foo")],
+            },
+            {
+              nodes: ["foo", "fizz", "buzz", "foobar"],
+              edges: [
+                ("foo", "fizz"),
+                ("buzz", "fizz"),
+                ("buzz", "foo"),
+                ("bar", "foobar"),
+              ],
+            },
+          );
+
+        Assert.graph(
+          {
+            nodes: ["foobar", "fizz", "buzz", "bar", "foo"],
+            edges: [
+              ("bar", "foobar"),
+              ("buzz", "fizz"),
+              ("foo", "fizz"),
+              ("bar", "foo"),
+              ("buzz", "foo"),
+            ],
+          },
+          graph,
+        );
+      }
+    ),
     "remove_node()"
     >: (
       () => {
@@ -163,6 +198,35 @@ let suite =
           {
             nodes: ["foo", "bar", "fizz"],
             edges: [("foo", "fizz"), ("buzz", "fizz"), ("bar", "foo")],
+          },
+          graph,
+        );
+      }
+    ),
+    "remove_edges_to()"
+    >: (
+      () => {
+        let graph = _make_graph();
+
+        Graph.remove_edges_to("fizz", graph);
+
+        Assert.graph(
+          {nodes: ["foo", "bar", "fizz", "buzz"], edges: [("bar", "foo")]},
+          graph,
+        );
+      }
+    ),
+    "remove_edges_from()"
+    >: (
+      () => {
+        let graph = _make_graph();
+
+        Graph.remove_edges_from("buzz", graph);
+
+        Assert.graph(
+          {
+            nodes: ["foo", "bar", "fizz", "buzz"],
+            edges: [("foo", "fizz"), ("bar", "foo")],
           },
           graph,
         );

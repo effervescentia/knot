@@ -52,16 +52,19 @@ let suite =
     ),
     "compare_members()"
     >: (
-      () => {
-        List.compare_members([], []) |> Assert.true_;
-        List.compare_members([1], [1]) |> Assert.true_;
-        List.compare_members([1, 2], [2, 1]) |> Assert.true_;
-        List.compare_members([3, 1, 2], [2, 1, 3]) |> Assert.true_;
-        List.compare_members([3, 1, 2], [2, 1, 3]) |> Assert.true_;
-        List.compare_members([2, 2, 1, 2], [1, 1, 2]) |> Assert.true_;
-        List.compare_members([1], [2]) |> Assert.false_;
-        List.compare_members([1, 2], [2, 3]) |> Assert.false_;
-      }
+      () =>
+        [
+          (true, List.compare_members([], [])),
+          (true, List.compare_members([1], [1])),
+          (true, List.compare_members([1, 2], [2, 1])),
+          (true, List.compare_members([3, 1, 2], [2, 1, 3])),
+          (true, List.compare_members([3, 1, 2], [2, 1, 3])),
+          (true, List.compare_members([2, 2, 1, 2], [1, 1, 2])),
+          (false, List.compare_members([1], [2])),
+          (false, List.compare_members([1, 2], [2, 3])),
+          (false, List.compare_members([2], [2, 3])),
+        ]
+        |> Assert.(test_many(bool))
     ),
     "ends()"
     >: (
@@ -69,10 +72,34 @@ let suite =
         [((1, 1), List.ends([1])), ((1, 4), List.ends([1, 2, 3, 4]))]
         |> Assert.(test_many(int_pair))
     ),
+    "ends() - raise NoListMembers"
+    >: (
+      () =>
+        switch (List.ends([])) {
+        | exception List.NoListMembers => ()
+        | _ => Alcotest.fail("should raise NoListMembers")
+        }
+    ),
+    "repeat()"
+    >: (
+      () =>
+        [([1, 1, 1], List.repeat(3, 1))] |> Assert.(test_many(int_list))
+    ),
     "last()"
     >: (
       () =>
         [(Some(3), List.last([1, 2, 3])), (None, List.last([]))]
         |> Assert.(test_many(opt_int))
+    ),
+    "divide()"
+    >: (
+      () =>
+        [
+          (([1, 2], [3, 4]), List.divide([1, 2, 3, 4])),
+          (([1], [2, 3]), List.divide([1, 2, 3])),
+          (([1], []), List.divide([1])),
+          (([], []), List.divide([])),
+        ]
+        |> Assert.(test_many(pair_int_list))
     ),
   ];

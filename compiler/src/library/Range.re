@@ -19,8 +19,14 @@ let get_end = ((_, x): t): Point.t => x;
 /**
  combine two ranges
  */
-let join = ((start, _): t, (_, end_): t): t => (start, end_);
+let join = ((l_start, l_end): t, (r_start, r_end): t): t => (
+  Point.min(l_start, r_start),
+  Point.max(l_end, r_end),
+);
 
+/**
+ check if a point exists withing a range
+ */
 let contains_point = (point: Point.t, (start, end_): t) =>
   Point.(
     Int.contains((start, end_) |> Tuple.map2(get_line), get_line(point))
@@ -40,6 +46,9 @@ let contains_point = (point: Point.t, (start, end_): t) =>
     )
   );
 
+/**
+ check if one range is contained within the other
+ */
 let contains = ((start, end_): t, target: t) =>
   contains_point(start, target) && contains_point(end_, target);
 

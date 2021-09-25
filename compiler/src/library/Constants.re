@@ -7,6 +7,9 @@ let file_extension = ".kn";
 
 let private_prefix = "_";
 
+/**
+ single character symbols
+ */
 module Character = {
   let back_slash = '\\';
   let eol = '\n';
@@ -39,6 +42,9 @@ module Character = {
   let close_chevron = '>';
 };
 
+/**
+ multi-character symbols
+ */
 module Glyph = {
   let logical_and = "&&";
   let logical_or = "||";
@@ -60,6 +66,9 @@ module Glyph = {
   let lambda = "->";
 };
 
+/**
+ language keywords
+ */
 module Keyword = {
   let import = "import";
   let from = "from";
@@ -72,5 +81,8 @@ module Keyword = {
   let false_ = "false";
   let as_ = "as";
 
+  /**
+   reserved keywords cannot be used as the name of a variable
+   */
   let reserved = [import, from, main, const, let_, nil, true_, false_, as_];
 };

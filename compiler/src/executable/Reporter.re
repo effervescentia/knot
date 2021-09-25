@@ -306,7 +306,7 @@ let _extract_compile_err = resolver =>
 
   | ParseError(err, namespace, range) =>
     _extract_parse_err(err)
-    |> Tuple.reduce3((title, description, resolutions) => {
+    |> Tuple.join3((title, description, resolutions) => {
          let module_ =
            Resolver.resolve_module(namespace, resolver)
            |> Module.read_to_string;
@@ -371,7 +371,7 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
     |> List.mapi((index, err) =>
          err
          |> _extract_compile_err(resolver)
-         |> Tuple.reduce3((path, title, content) =>
+         |> Tuple.join3((path, title, content) =>
               _print_err(~index, path, title, content)
             )
        )

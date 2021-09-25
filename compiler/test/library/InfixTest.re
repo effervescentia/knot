@@ -42,4 +42,20 @@ let suite =
         [(1, Some(1) |!: (() => 2)), (2, None |!: (() => 2))]
         |> Assert.(test_many(int))
     ),
+    "(|?<)"
+    >: (
+      () =>
+        [
+          (Some(3), Some(1) |?< (x => Some(x + 2))),
+          (None, None |?< (x => Some(x + 2))),
+          (None, Some(1) |?< (_ => None)),
+        ]
+        |> Assert.(test_many(opt_int))
+    ),
+    "(|?>)"
+    >: (
+      () =>
+        [(Some(3), Some(1) |?> (+)(2)), (None, None |?> (+)(2))]
+        |> Assert.(test_many(opt_int))
+    ),
   ];

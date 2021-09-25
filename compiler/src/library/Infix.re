@@ -4,6 +4,9 @@
 
 let (%) = (f, g, x) => g(f(x));
 
+/**
+ concatenate two optional lists
+ */
 let (@?) = (l, r) =>
   switch (l, r) {
   | (None, None) => None
@@ -12,26 +15,31 @@ let (@?) = (l, r) =>
   | (_, Some(_) as r) => r
   };
 
-let (|?:) = (x, y) =>
-  switch (x) {
-  | Some(x') => x'
-  | None => y
-  };
-
+/**
+ unpack the option [x] or fallback to the result of calling [y]
+ */
 let (|!:) = (x, y) =>
   switch (x) {
   | Some(x') => x'
   | None => y()
   };
 
-let (|?>) = (x, f) =>
-  switch (x) {
-  | Some(x') => Some(f(x'))
-  | None => None
-  };
+/**
+ unpack the option [x] or fallback to [y]
+ */
+let (|?:) = (x, y) => x |!: (() => y);
 
+/**
+ optionally map the value of [x] with [f]
+ where [f] must return an option
+ */
 let (|?<) = (x, f) =>
   switch (x) {
   | Some(x') => f(x')
   | None => None
   };
+
+/**
+ optionally map the value of [x] with [f]
+ */
+let (|?>) = (x, f) => x |?< (y => Some(f(y)));

@@ -4,7 +4,13 @@
 open Infix;
 open Reference;
 
+/**
+ common types that can be used to build resolved or Raw ASTs
+ */
 module Common = {
+  /**
+   supported binary operators
+   */
   type binary_operator_t =
     /* logical operators */
     | LogicalAnd
@@ -24,17 +30,29 @@ module Common = {
     | Multiply
     | Exponent;
 
+  /**
+   supported unary operators
+   */
   type unary_operator_t =
     | Not
     | Positive
     | Negative;
 
+  /**
+   supported numeric types
+   */
   type number_t =
     | Integer(Int64.t)
     | Float(float, int);
 
+  /**
+   an identifier that doesn't have an inherent type
+   */
   type untyped_identifier_t = Node.Raw.t(Identifier.t);
 
+  /**
+   utilities for debugging an AST
+   */
   module Debug = {
     open Pretty;
 
@@ -85,6 +103,9 @@ module Common = {
   };
 };
 
+/**
+ abstraction on the type of the nodes that makeup an AST
+ */
 module type ASTParams = {
   type type_t;
 
@@ -96,35 +117,77 @@ module type ASTParams = {
   let print_node: (string, 'a => Pretty.t, node_t('a)) => Pretty.t;
 };
 
+/**
+ contructor for AST modules
+ */
 module Make = (T: ASTParams) => {
   include Common;
 
+  /**
+   type container for AST nodes
+   */
   type type_t = T.type_t;
 
+  /**
+   an identifier AST node
+   */
   type identifier_t = T.node_t(Identifier.t);
 
+  /**
+   a primitive AST node
+   */
   type primitive_t = T.node_t(raw_primitive_t)
+  /**
+   supported primitive types
+   */
   and raw_primitive_t =
     | Nil
     | Boolean(bool)
     | Number(number_t)
     | String(string);
 
+  /**
+   a JSX AST node
+   */
   type jsx_t = T.node_t(raw_jsx_t)
+  /**
+   supported top-level JSX structures
+   */
   and raw_jsx_t =
     | Tag(untyped_identifier_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
+
+  /**
+   a JSX child AST node
+   */
   and jsx_child_t = T.node_t(raw_jsx_child_t)
+  /**
+   supported JSX children
+   */
   and raw_jsx_child_t =
     | Text(T.node_t(string))
     | Node(jsx_t)
     | InlineExpression(expression_t)
+
+  /**
+   a JSX attribute AST node
+   */
   and jsx_attribute_t = T.node_t(raw_jsx_attribute_t)
+  /**
+   supported JSX attributes
+   */
   and raw_jsx_attribute_t =
     | ID(untyped_identifier_t)
     | Class(untyped_identifier_t, option(expression_t))
     | Property(untyped_identifier_t, option(expression_t))
+
+  /**
+   an expression AST node
+   */
   and expression_t = T.node_t(raw_expression_t)
+  /**
+   supported expressions and type containers
+   */
   and raw_expression_t =
     | Primitive(primitive_t)
     | Identifier(identifier_t)
@@ -133,12 +196,25 @@ module Make = (T: ASTParams) => {
     | BinaryOp(binary_operator_t, expression_t, expression_t)
     | UnaryOp(unary_operator_t, expression_t)
     | Closure(list(statement_t))
+
+  /**
+   a statement AST node
+   */
   and statement_t = T.node_t(raw_statement_t)
+  /**
+   supported statement types
+   */
   and raw_statement_t =
     | Variable(untyped_identifier_t, expression_t)
     | Expression(expression_t);
 
+  /**
+   an AST node of an argument for a functional closure
+   */
   type argument_t = T.node_t(raw_argument_t)
+  /**
+   a node of an argument for a functional closure
+   */
   and raw_argument_t = {
     name: untyped_identifier_t,
     default: option(expression_t),
@@ -399,25 +475,49 @@ include Make({
     );
 });
 
+/**
+ a declaration AST node
+ */
 type declaration_t = Node.t(raw_declaration_t)
+/**
+ supported module declarations
+ */
 and raw_declaration_t =
   | Constant(expression_t)
   | Function(list(argument_t), expression_t);
 
+/**
+ an import AST node
+ */
 type import_t = Node.Raw.t(raw_import_t)
+/**
+ supported import types
+ */
 and raw_import_t =
   | MainImport(untyped_identifier_t)
   | NamedImport(untyped_identifier_t, option(untyped_identifier_t));
 
+/**
+ supported export types
+ */
 type export_t =
   | MainExport(untyped_identifier_t)
   | NamedExport(untyped_identifier_t);
 
+/**
+ module statement AST node
+ */
 type module_statement_t = Node.Raw.t(raw_module_statement_t)
+/**
+ supported top-level module statements
+ */
 and raw_module_statement_t =
   | Import(Namespace.t, list(import_t))
   | Declaration(export_t, declaration_t);
 
+/**
+ the AST of an entire module
+ */
 type program_t = list(module_statement_t);
 
 /* tag helpers */
@@ -434,6 +534,9 @@ let of_func = ((args, expr)) => Function(args, expr);
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
 
+/**
+ utilities for debugging an AST
+ */
 module Debug = {
   open Pretty;
 

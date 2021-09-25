@@ -16,7 +16,7 @@ let get_point = ((_, x): t): Point.t => x;
 /* methods */
 
 /**
- combine two inputs into a node
+ combine a list of inputs into a raw node
  */
 let join = (cs: list(t)): Node.Raw.t(string) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(get_point);

@@ -2,10 +2,13 @@ open Kore;
 open AST;
 
 module Analyzer = Analyze.Analyzer;
-module Scope = Analyze.Scope;
 
-let _scope_of_context = (ctx: ModuleContext.t) =>
-  Scope.create(ctx.namespace_context.namespace, ctx.namespace_context.report);
+let _scope_of_context = (ctx: ModuleContext.t, range: Range.t) =>
+  Scope.create(
+    ctx.namespace_context.namespace,
+    range,
+    ctx.namespace_context.report,
+  );
 
 let constant = (ctx: ModuleContext.t, f) =>
   Keyword.const
@@ -15,7 +18,7 @@ let constant = (ctx: ModuleContext.t, f) =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
         ((id, raw_expr)) => {
-          let scope = _scope_of_context(ctx);
+          let scope = _scope_of_context(ctx, Node.Raw.get_range(raw_expr));
           let expr = Analyzer.res_expr(scope, raw_expr);
 
           (
@@ -41,7 +44,7 @@ let function_ = (ctx: ModuleContext.t, f) =>
           Lambda.parser(ctx)
           >|= (
             ((raw_args, raw_res, range)) => {
-              let scope = _scope_of_context(ctx);
+              let scope = _scope_of_context(ctx, range);
               let res = Analyzer.res_expr(scope, raw_res);
               let args =
                 raw_args

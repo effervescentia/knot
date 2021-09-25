@@ -292,7 +292,7 @@ let fmt_imports = stmts => {
                     | External(name) => name
                   ),
               )
-           |> Tuple.reduce2(String.compare)
+           |> Tuple.join2(String.compare)
          )
          % List.map(((namespace, imports)) => {
              let (main_import, named_imports) =
@@ -336,7 +336,7 @@ let fmt_imports = stmts => {
                      |> List.sort((l, r) =>
                           (l, r)
                           |> Tuple.map2(fst % Identifier.to_string)
-                          |> Tuple.reduce2(String.compare)
+                          |> Tuple.join2(String.compare)
                         )
                      |> List.map(((id, label)) =>
                           [

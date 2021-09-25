@@ -1,14 +1,9 @@
 open Kore;
 open Reference;
 
-module Compiler = Compile.Compiler;
-module ScopeTree = Compile.ScopeTree;
-module ImportGraph = Resolve.ImportGraph;
-module InputStream = File.InputStream;
-
 let _subscribe = (channel: in_channel, handler: Event.t => unit): unit => {
   let stream = Stream.of_channel(channel);
-  let deserialize = Tuple.reduce2(Event.deserialize);
+  let deserialize = Tuple.join2(Event.deserialize);
 
   switch (Protocol.read_event(stream) |> deserialize) {
   | Some(Initialize(req) as event) =>

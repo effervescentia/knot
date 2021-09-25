@@ -70,6 +70,9 @@ let string_pair =
   Alcotest.(check(pair(string, string), "string pair matches"));
 let int_pair = Alcotest.(check(pair(int, int), "int pair matches"));
 
+let int_trio = Alcotest.(check(pair(int, int), "int trio matches"));
+
+let char_list = Alcotest.(check(list(char), "char list matches"));
 let string_list = Alcotest.(check(list(string), "string list matches"));
 let int_list = Alcotest.(check(list(int), "int list matches"));
 
@@ -77,6 +80,9 @@ let string_pair_list =
   Alcotest.(check(list(pair(string, string)), "string pair list matches"));
 let int_pair_list =
   Alcotest.(check(list(pair(int, int)), "int pair list matches"));
+
+let pair_int_list =
+  Alcotest.(check(pair(list(int), list(int)), "pair int list matches"));
 
 let hashtbl = (key_to_string, value_to_string) =>
   Alcotest.(

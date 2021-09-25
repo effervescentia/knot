@@ -19,7 +19,8 @@
         "tablecloth-native",
         "lwt",
         "lwt.unix",
-        "ANSITerminal"
+        "ANSITerminal",
+        "fmt"
       ],
       "name": "knot.lib",
       "namespace": "Knot"
@@ -226,6 +227,7 @@
     "@opam/dolog": "6.0.0",
     "@opam/dune": ">=1.6.0",
     "@opam/fileutils": "0.6.3",
+    "@opam/fmt": "0.8.9",
     "@opam/fswatch": "11-0.1.0",
     "@opam/fswatch_lwt": "11-0.1.0",
     "@opam/lwt": "5.4.0",
