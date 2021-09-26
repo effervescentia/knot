@@ -25,7 +25,7 @@ let suite =
         FileUtil.cp(~recurse=true, [messy_fixture_dir], temp_dir);
 
         Format.run(
-          ~report=_ => Util.print_errs % Assert.fail,
+          ~report=_ => ~@pp_dump_err_list % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
           {source_dir: __source_dir},
         );
@@ -54,7 +54,7 @@ let suite =
         FileUtil.cp(~recurse=true, [messy_cylic_fixture_dir], temp_dir);
 
         Format.run(
-          ~report=_ => Util.print_errs % Assert.fail,
+          ~report=_ => ~@pp_dump_err_list % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
           {source_dir: __source_dir},
         );
@@ -91,7 +91,7 @@ let suite =
         );
 
         Format.run(
-          ~report=_ => Util.print_errs % Assert.fail,
+          ~report=_ => ~@pp_dump_err_list % Assert.fail,
           {...__compiler_config, root_dir: temp_dir},
           {source_dir: __source_dir},
         );

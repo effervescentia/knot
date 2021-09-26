@@ -10,28 +10,22 @@ let suite =
     >: (
       () =>
         [(__char_stream, __chars |> Stream.of_list |> LazyStream.of_stream)]
-        |> Assert.(test_many(lazy_stream(String.make(1))))
+        |> Assert.(test_many(lazy_stream(Fmt.char)))
     ),
     "of_function()"
     >: (
       () =>
         [
-          (
-            __char_stream,
-            __chars |> Functional.generator |> LazyStream.of_function,
-          ),
-          (
-            LazyStream.Nil,
-            [] |> Functional.generator |> LazyStream.of_function,
-          ),
+          (__char_stream, __chars |> Fun.generator |> LazyStream.of_function),
+          (LazyStream.Nil, [] |> Fun.generator |> LazyStream.of_function),
         ]
-        |> Assert.(test_many(lazy_stream(String.make(1))))
+        |> Assert.(test_many(lazy_stream(Fmt.char)))
     ),
     "of_string()"
     >: (
       () =>
         [(__char_stream, LazyStream.of_string("foobar\n"))]
-        |> Assert.(test_many(lazy_stream(String.make(1))))
+        |> Assert.(test_many(lazy_stream(Fmt.char)))
     ),
     "of_channel()"
     >: (
@@ -39,7 +33,7 @@ let suite =
         let in_channel = open_in(input_fixture_path);
 
         Assert.lazy_stream(
-          String.make(1),
+          Fmt.char,
           __char_stream,
           LazyStream.of_channel(in_channel),
         );

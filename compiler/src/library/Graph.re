@@ -28,25 +28,6 @@ let _is_edge_to = (node: 'a, (_, child): edge_t('a)): bool => child == node;
 let _is_edge_from = (node: 'a, (parent, _): edge_t('a)): bool =>
   parent == node;
 
-let _merge_trees =
-    (depth: int, subtrees: list((int, list(string)))): list(string) =>
-  List.repeat(depth, ())
-  |> List.mapi((index, _) => {
-       subtrees
-       |> List.map(((width, rows)) =>
-            (List.length(rows) > index ? List.nth(rows, index) : "")
-            |> Print.fmt("%-*s", width)
-          )
-       |> String.join(~separator="")
-     });
-
-let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
-  let width =
-    rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
-
-  (width, rows |> List.map(Print.fmt("%-*s", width)));
-};
-
 /* static */
 
 /**
@@ -222,44 +203,74 @@ let find_all_unique_cycles = (graph: t('a)): list(list('a)) =>
 let is_acyclic = (graph: t('a)): bool =>
   find_all_unique_cycles(graph) |> List.length |> (==)(0);
 
+/* pretty printing */
+
+let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
+  let width =
+    rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
+
+  (width, rows |> List.map(Print.fmt("%-*s", width)));
+};
+
+let _pad_rows = (rows: list(string)): (int, list(string)) => {
+  let width =
+    rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
+
+  (width, rows |> List.map(Print.fmt("%-*s", width)));
+};
+
+let _merge_trees =
+    (depth: int, subtrees: list((int, list(string)))): list(string) =>
+  List.repeat(depth, ())
+  |> List.mapi((index, _) => {
+       subtrees
+       |> List.map(((width, rows)) =>
+            (List.length(rows) > index ? List.nth(rows, index) : "")
+            |> Print.fmt("%-*s", width)
+          )
+       |> String.join
+     });
+
 let rec _print_subtree =
         (
           ~ancestors=[],
-          node: 'a,
-          visited: ref(list('a)),
-          print_node: 'a => string,
+          ~visited: ref(list('a)),
+          pp_node: Fmt.t('a),
           graph: t('a),
+          node: 'a,
         )
         : (int, list(string)) => {
   let children = graph |> get_children(node);
 
   let subtrees =
-    List.mem(node, visited^)
-      ? List.length(children) == 0 ? [] : [_tree_of_rows(["[…]"])]
-      : children
-        |> {
-          visited := [node, ...visited^];
+    switch (List.mem(node, visited^), children) {
+    | (true, []) => []
+    | (true, _) => [_pad_rows(["[…]"])]
+    | (false, _) =>
+      visited := [node, ...visited^];
 
-          List.map(child =>
-            List.mem(child, ancestors)
-              ? _tree_of_rows([print_node(child), "|", "[cycle]"])
-              : _print_subtree(
-                  ~ancestors=[node, ...ancestors],
-                  child,
-                  visited,
-                  print_node,
-                  graph,
-                )
-          );
-        };
+      List.map(
+        child =>
+          List.mem(child, ancestors)
+            ? _tree_of_rows([child |> ~@pp_node, "|", "[cycle]"])
+            : _print_subtree(
+                ~ancestors=[node, ...ancestors],
+                ~visited,
+                pp_node,
+                graph,
+                child,
+              ),
+        children,
+      );
+    };
   let has_multiple_subtrees = List.length(subtrees) > 1;
   let depth = subtrees |> List.map(snd % List.length) |> Int.max_of;
 
-  let root_row = print_node(node);
+  let root_row = node |> ~@pp_node;
   let pipe_row =
     subtrees
     |> List.map(fst % (width => Print.fmt("%-*s", width, "|")))
-    |> String.join(~separator="");
+    |> String.join;
   let divider_rows =
     has_multiple_subtrees
       ? [
@@ -273,15 +284,14 @@ let rec _print_subtree =
                    : ","
              )
            )
-        |> String.join(~separator=""),
+        |> String.join,
       ]
       : [];
-
   let child_rows = _merge_trees(depth, subtrees);
 
   let rows = [root_row] @ divider_rows @ [pipe_row] @ child_rows;
 
-  _tree_of_rows(rows);
+  _pad_rows(rows);
 };
 
 /**
@@ -289,14 +299,19 @@ let rec _print_subtree =
 
  can handle cyclic graphs
  */
-let to_string = (print_node: 'a => string, graph: t('a)) => {
-  let roots = find_roots(graph);
-  let visited: ref(list('a)) = ref([]);
+let pp = (pp_node: Fmt.t('a)): Fmt.t(t('a)) =>
+  (ppf, graph: t('a)) => {
+    let roots = find_roots(graph);
+    let visited: ref(list('a)) = ref([]);
 
-  let printed =
-    roots
-    |> List.map(root => _print_subtree(root, visited, print_node, graph));
-  let depth = printed |> List.map(snd % List.length) |> Int.max_of;
+    let printed =
+      roots
+      |> List.map(root => _print_subtree(~visited, pp_node, graph, root));
+    let depth = printed |> List.map(snd % List.length) |> Int.max_of;
 
-  _merge_trees(depth, printed) |> String.join(~separator="\n");
-};
+    Fmt.pf(
+      ppf,
+      "%s",
+      _merge_trees(depth, printed) |> String.join(~separator="\n"),
+    );
+  };

@@ -69,7 +69,7 @@ let to_string = (cfg: option(Config.t), value: t): string =>
     |> Print.bold,
     switch (value.options) {
     | Some(options) =>
-      Print.many(~separator=", ", Functional.identity, options)
+      Print.many(~separator=", ", Fun.id, options)
       |> Print.bold
       |> Print.fmt(" (options: %s)")
     | None => ""

@@ -26,8 +26,9 @@ let log_config =
     (global: global_t, name: string, attributes: list((string, string))) => {
   name |> Print.green |> Print.bold |> Log.info("running %s command");
   Log.debug(
-    "%s config: %s",
+    "%s config: %a",
     name,
+    ~$Hashtbl.pp(Fmt.string, Fmt.string),
     [
       ("root_dir", global.root_dir),
       ("color", string_of_bool(global.color)),
@@ -35,7 +36,6 @@ let log_config =
       ...attributes,
     ]
     |> List.to_seq
-    |> Hashtbl.of_seq
-    |> Hashtbl.to_string(Functional.identity, Functional.identity),
+    |> Hashtbl.of_seq,
   );
 };

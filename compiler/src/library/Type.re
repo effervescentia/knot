@@ -6,10 +6,16 @@ module Trait = {
     | Number
     | Unknown;
 
-  let to_string =
-    fun
-    | Number => "Number"
-    | Unknown => "Unknown";
+  /* pretty printing */
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      (
+        fun
+        | Number => "Number"
+        | Unknown => "Unknown"
+      )
+      % Fmt.string(ppf);
 };
 
 module Error = {
@@ -21,30 +27,28 @@ module Error = {
     | TypeResolutionFailed
     | DuplicateIdentifier(Identifier.t);
 
-  let to_string = (type_to_string: 'a => string) =>
-    fun
-    | NotFound(id) => id |> Identifier.to_string |> Print.fmt("NotFound<%s>")
-    | DuplicateIdentifier(id) =>
-      id |> Identifier.to_string |> Print.fmt("DuplicateIdentifier<%s>")
-    | NotAssignable(type_, trait) =>
-      Print.fmt(
-        "NotAssignable<%s, %s>",
-        type_to_string(type_),
-        Trait.to_string(trait),
-      )
-    | TypeMismatch(lhs, rhs) =>
-      Print.fmt(
-        "TypeMismatch<%s, %s>",
-        type_to_string(lhs),
-        type_to_string(rhs),
-      )
-    | TypeResolutionFailed => "TypeResolutionFailed"
-    | ExternalNotFound(namespace, id) =>
-      Print.fmt(
-        "ExternalNotFound<%s#%s>",
-        Namespace.to_string(namespace),
-        Export.to_string(id),
-      );
+  /* pretty printing */
+
+  let pp = (pp_type: Fmt.t('a)): Fmt.t(t('a)) =>
+    ppf =>
+      fun
+      | NotFound(id) => Fmt.pf(ppf, "NotFound<%a>", Identifier.pp, id)
+      | DuplicateIdentifier(id) =>
+        Fmt.pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
+      | NotAssignable(type_, trait) =>
+        Fmt.pf(ppf, "NotAssignable<%a, %a>", pp_type, type_, Trait.pp, trait)
+      | TypeMismatch(lhs, rhs) =>
+        Fmt.pf(ppf, "TypeMismatch<%a, %a>", pp_type, lhs, pp_type, rhs)
+      | TypeResolutionFailed => Fmt.string(ppf, "TypeResolutionFailed")
+      | ExternalNotFound(namespace, id) =>
+        Fmt.pf(
+          ppf,
+          "ExternalNotFound<%a#%a>",
+          Namespace.pp,
+          namespace,
+          Export.pp,
+          id,
+        );
 };
 
 type abstract_t('a) = [ | `Abstract('a)];
@@ -76,80 +80,84 @@ module Raw = {
 
   and weak_t = [ primitive_t | container_t(t) | abstract_t(Trait.t)];
 
-  let primitive_to_string = (type_: primitive_t) =>
-    Constants.(
-      switch (type_) {
-      | `Nil => Keyword.nil
-      | `Boolean => "bool"
-      | `Integer => "int"
-      | `Float => "float"
-      | `String => "string"
-      | `Element => "element"
-      }
-    );
+  /* pretty printing */
 
-  let list_to_string = (type_to_string: 'a => string, t: 'a) =>
-    t |> type_to_string |> Print.fmt("List<%s>");
-
-  let abstract_to_string = (trait: Trait.t) =>
-    trait |> Trait.to_string |> Print.fmt("Abstract<%s>");
-
-  let struct_to_string =
-      (type_to_string: 'a => string, props: list((string, 'a))) =>
-    List.is_empty(props)
-      ? "{}"
-      : props
-        |> List.map(
-             Tuple.map_snd2(type_to_string)
-             % Tuple.join2(Print.fmt("%s: %s")),
-           )
-        |> List.intersperse(", ")
-        |> String.join
-        |> Print.fmt("{ %s }");
-
-  let function_to_string =
-      (type_to_string: 'a => string, args: list((string, 'a)), res: 'a) =>
-    Print.fmt(
-      "Function<(%s), %s>",
-      args
-      |> List.map(
-           Tuple.map_snd2(type_to_string) % Tuple.join2(Print.fmt("%s: %s")),
-         )
-      |> List.intersperse(", ")
-      |> String.join,
-      type_to_string(res),
-    );
-
-  let rec to_string = (type_: t) =>
-    switch (type_) {
-    | Strong(t) => strong_to_string(t)
-    | Invalid(err) => err |> Error.to_string(to_string)
-    | Weak({contents: weak_type}) =>
-      (
-        switch (weak_type) {
-        | Ok(ok_type) =>
-          switch (ok_type) {
-          | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-            primitive_to_string(x)
-          | `List(t) => t |> list_to_string(to_string)
-          | `Struct(props) => props |> struct_to_string(to_string)
-          | `Function(args, res) => function_to_string(to_string, args, res)
-          | `Abstract(trait) => abstract_to_string(trait)
-          }
-        | Error(err) => err |> Error.to_string(to_string)
+  let pp_primitive: Fmt.t(primitive_t) =
+    (ppf, type_: primitive_t) =>
+      Constants.(
+        switch (type_) {
+        | `Nil => Keyword.nil
+        | `Boolean => "bool"
+        | `Integer => "int"
+        | `Float => "float"
+        | `String => "string"
+        | `Element => "element"
         }
       )
-      |> Print.fmt("Weak<%s>")
-    }
+      |> Fmt.string(ppf);
 
-  and strong_to_string = (type_: strong_t) =>
-    switch (type_) {
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-      primitive_to_string(x)
-    | `List(t) => t |> list_to_string(to_string)
-    | `Struct(props) => props |> struct_to_string(to_string)
-    | `Function(args, res) => function_to_string(to_string, args, res)
-    };
+  let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
+    ppf => Fmt.pf(ppf, "List<%a>", pp_type);
+
+  let pp_abstract: Fmt.t(Trait.t) =
+    ppf => Fmt.pf(ppf, "Abstract<%a>", Trait.pp);
+
+  let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, 'a))) =>
+    (ppf, props: list((string, 'a))) =>
+      List.is_empty(props)
+        ? Fmt.string(ppf, "{}")
+        : props
+          |> List.map(Tuple.join2(name => Fmt.str("%s: %a", name, pp_type)))
+          |> List.intersperse(", ")
+          |> String.join
+          |> Fmt.pf(ppf, "{ %s }");
+
+  let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
+    (ppf, (args, res): (list((string, 'a)), 'a)) =>
+      Fmt.pf(
+        ppf,
+        "Function<(%s), %a>",
+        args
+        |> List.map(Tuple.join2(name => Fmt.str("%s: %a", name, pp_type)))
+        |> List.intersperse(", ")
+        |> String.join,
+        pp_type,
+        res,
+      );
+
+  let rec pp: Fmt.t(t) =
+    (ppf, type_: t) =>
+      switch (type_) {
+      | Strong(t) => pp_strong(ppf, t)
+      | Invalid(err) => Error.pp(pp, ppf, err)
+      | Weak({contents: weak_type}) =>
+        Fmt.pf(ppf, "Weak<%a>", pp_weak, weak_type)
+      }
+
+  and pp_weak: Fmt.t(result(weak_t, error_t)) =
+    ppf =>
+      fun
+      | Ok(ok_type) =>
+        switch (ok_type) {
+        | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
+          pp_primitive(ppf, t)
+        | `List(t) => pp_list(pp, ppf, t)
+        | `Struct(props) => pp_struct(pp, ppf, props)
+        | `Function(args, res) => pp_function(pp, ppf, (args, res))
+        | `Abstract(trait) => pp_abstract(ppf, trait)
+        }
+      | Error(err) => Error.pp(pp, ppf, err)
+
+  and pp_strong: Fmt.t(strong_t) =
+    (ppf, type_: strong_t) =>
+      switch (type_) {
+      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+        pp_primitive(ppf, x)
+
+      | `List(t) => pp_list(pp, ppf, t)
+      | `Struct(props) => pp_struct(pp, ppf, props)
+      | `Function(args, res) => pp_function(pp, ppf, (args, res))
+      };
 };
 
 type t =
@@ -214,21 +222,21 @@ and err_to_strong_err = (err: error_t): Raw.error_t =>
     ) as err => err
   };
 
-let rec to_string = (type_: t) =>
-  switch (type_) {
-  | Valid(t) => valid_to_string(t)
-  | Invalid(err) => err |> Error.to_string(to_string)
-  }
+let rec pp: Fmt.t(t) =
+  ppf =>
+    fun
+    | Valid(t) => pp_valid(ppf, t)
+    | Invalid(err) => Error.pp(pp, ppf, err)
 
-and valid_to_string = (type_: valid_t) =>
-  switch (type_) {
-  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-    Raw.primitive_to_string(x)
-  | `List(t) => t |> Raw.list_to_string(to_string)
-  | `Struct(props) => props |> Raw.struct_to_string(to_string)
-  | `Function(args, res) => Raw.function_to_string(to_string, args, res)
-  | `Abstract(trait) => Raw.abstract_to_string(trait)
-  };
+and pp_valid: Fmt.t(valid_t) =
+  ppf =>
+    fun
+    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
+      Raw.pp_primitive(ppf, t)
+    | `List(t) => Raw.pp_list(pp, ppf, t)
+    | `Struct(props) => Raw.pp_struct(pp, ppf, props)
+    | `Function(args, res) => Raw.pp_function(pp, ppf, (args, res))
+    | `Abstract(trait) => Raw.pp_abstract(ppf, trait);
 
 let rec of_raw = (type_: Raw.t): t =>
   switch (type_) {

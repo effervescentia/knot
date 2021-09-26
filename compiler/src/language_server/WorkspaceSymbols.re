@@ -69,7 +69,7 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                              );
                            let range = Node.Raw.get_range(name);
                            let name =
-                             name |> Node.Raw.get_value |> Identifier.to_string;
+                             name |> Node.Raw.get_value |> ~@Identifier.pp;
 
                            Some(
                              switch (Node.get_value(decl)) {

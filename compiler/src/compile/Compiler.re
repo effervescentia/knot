@@ -188,10 +188,12 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
          ) {
          | Ok(path) =>
            Log.debug(
-             "successfuly cached module %s to %s",
-             id |> Namespace.to_string,
+             "successfuly cached module %a to %s",
+             ~$Namespace.pp,
+             id,
              path,
-           )
+           );
+           ();
          | Error(errs) => Report(errs) |> compiler.dispatch
          }
        );

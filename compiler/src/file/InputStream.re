@@ -30,13 +30,7 @@ let of_string = (~cursor=true, s: string): t =>
 let of_channel = (~cursor=true, channel: in_channel): t =>
   decoder(`Channel(channel)) |> _to_stream(cursor);
 
-let to_string = (stream: t): string => {
-  let buffer = Buffer.create(Stream.count(stream));
-
-  stream |> Stream.iter(fst % Buffer.add_utf_8_uchar(buffer));
-
-  Buffer.contents(buffer);
-};
+/* methods */
 
 let __initial = Point.zero;
 
@@ -81,3 +75,14 @@ let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
 
   loop(__initial, __initial);
 };
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, stream: t) => {
+    let buffer = Buffer.create(Stream.count(stream));
+
+    stream |> Stream.iter(fst % Buffer.add_utf_8_uchar(buffer));
+
+    Fmt.buffer(ppf, buffer);
+  };

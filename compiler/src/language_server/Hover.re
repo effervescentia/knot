@@ -71,8 +71,8 @@ let handler =
       | Some((range, Identifier(id))) => {
           Hashtbl.find_opt(compiler.modules, namespace)
           |?< (({scopes}) => ScopeTree.find_type(id, point, scopes))
-          |?> (type_ => Type.to_string(type_))
-          |?> Print.fmt("%s: %s", Identifier.to_string(id))
+          |?> ~@Type.pp
+          |?> Fmt.str("%a: %s", Identifier.pp, id)
           |?: "(unknown)"
           |> response(range)
           |> Protocol.reply(req);

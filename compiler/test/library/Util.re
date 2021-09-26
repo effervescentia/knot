@@ -68,33 +68,3 @@ module ResultUtil = {
 
   let string_prim = of_string % as_string % of_prim % as_string;
 };
-
-let print_parse_err =
-  fun
-  | TypeError(err) =>
-    err
-    |> Type.(Error.to_string(Raw.to_string))
-    |> Print.fmt("TypeError<%s>")
-  | ReservedKeyword(name) => name |> Print.fmt("ReservedKeyword<%s>");
-
-let print_compile_err =
-  fun
-  | ImportCycle(cycles) =>
-    cycles
-    |> Print.many(~separator=" -> ", Functional.identity)
-    |> Print.fmt("ImportCycle<%s>")
-  | UnresolvedModule(name) => name |> Print.fmt("UnresolvedModule<%s>")
-  | FileNotFound(path) => path |> Print.fmt("FileNotFound<%s>")
-  | InvalidModule(namespace) =>
-    namespace |> Namespace.to_string |> Print.fmt("InvalidModule<%s>")
-  | ParseError(err, namespace, range) =>
-    Print.fmt(
-      "ParseError<%s, %s, %s>",
-      parse_err_to_string(err),
-      Namespace.to_string(namespace),
-      Range.to_string(range),
-    );
-
-let print_errs =
-  Print.many(~separator="\n\n", print_compile_err)
-  % Print.fmt("found some errors during compilation:\n\n%s");

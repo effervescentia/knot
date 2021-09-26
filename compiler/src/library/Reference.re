@@ -1,3 +1,5 @@
+open Infix;
+
 module Namespace = {
   type t =
     | Internal(string)
@@ -8,16 +10,22 @@ module Namespace = {
       ? Internal(value |> String.drop_prefix(Constants.root_dir))
       : External(value);
 
-  let to_string =
-    fun
-    | Internal(path) => Constants.root_dir ++ path
-    | External(path) => path;
-
   let to_path = (source_dir: string) =>
     fun
     | Internal(path) =>
       Filename.concat(source_dir, path ++ Constants.file_extension)
     | External(path) => path;
+
+  /* pretty printing */
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      (
+        fun
+        | Internal(path) => Constants.root_dir ++ path
+        | External(path) => path
+      )
+      % Fmt.string(ppf);
 };
 
 module Module = {
@@ -25,12 +33,14 @@ module Module = {
     | Root
     | Inner(string, option(t));
 
-  let rec to_string =
-    fun
-    | Root => "[root]"
-    | Inner(name, None) => name
-    | Inner(name, Some(parent)) =>
-      Print.fmt("%s.%s", to_string(parent), name);
+  /* pretty printing */
+
+  let rec pp: Fmt.t(t) =
+    ppf =>
+      fun
+      | Root => Fmt.string(ppf, "[root]")
+      | Inner(name, None) => Fmt.string(ppf, name)
+      | Inner(name, Some(parent)) => Fmt.pf(ppf, "%a.%s", pp, parent, name);
 };
 
 module Identifier = {
@@ -43,10 +53,16 @@ module Identifier = {
       ? Private(value |> String.drop_prefix(Constants.private_prefix))
       : Public(value);
 
-  let to_string =
-    fun
-    | Public(name) => name
-    | Private(name) => Constants.private_prefix ++ name;
+  /* pretty printing */
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      (
+        fun
+        | Public(name) => name
+        | Private(name) => Constants.private_prefix ++ name
+      )
+      % Fmt.string(ppf);
 };
 
 module Export = {
@@ -54,8 +70,11 @@ module Export = {
     | Main
     | Named(Identifier.t);
 
-  let to_string =
-    fun
-    | Main => "main"
-    | Named(name) => name |> Identifier.to_string;
+  /* pretty printing */
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      fun
+      | Main => Fmt.string(ppf, "main")
+      | Named(name) => Identifier.pp(ppf, name);
 };

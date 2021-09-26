@@ -8,7 +8,7 @@ let suite =
       () =>
         [
           ("", Print.opt(_ => "a", None)),
-          ("a", Print.opt(Functional.identity, Some("a"))),
+          ("a", Print.opt(Fun.id, Some("a"))),
         ]
         |> Assert.(test_many(string))
     ),
@@ -16,11 +16,8 @@ let suite =
     >: (
       () =>
         [
-          ("abc", Print.many(Functional.identity, ["a", "b", "c"])),
-          (
-            "a b c",
-            Print.many(~separator=" ", Functional.identity, ["a", "b", "c"]),
-          ),
+          ("abc", Print.many(Fun.id, ["a", "b", "c"])),
+          ("a b c", Print.many(~separator=" ", Fun.id, ["a", "b", "c"])),
         ]
         |> Assert.(test_many(string))
     ),

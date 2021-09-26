@@ -2,8 +2,8 @@
  Utilities for working with pairs and trios of values.
  */
 
-type t2('a) = ('a, 'a);
-type t3('a) = ('a, 'a, 'a);
+type t2('a, 'b) = ('a, 'b);
+type t3('a, 'b, 'c) = ('a, 'b, 'c);
 
 /* getters */
 
@@ -58,15 +58,17 @@ let split3 = (f0: 'a => 'b, f1: 'a => 'c, f2: 'a => 'd, x: 'a): ('b, 'c, 'd) => 
 
 /* pretty printing */
 
-let pp2 = (~pp_sep=Fmt.cut, ppa, ppb, ppf, (a, b)) => {
-  ppa(ppf, a);
-  pp_sep(ppf, ());
-  ppb(ppf, b);
-};
-let pp3 = (~pp_sep=Fmt.cut, ppa, ppb, ppc, ppf, (a, b, c)) => {
-  ppa(ppf, a);
-  pp_sep(ppf, ());
-  ppb(ppf, b);
-  pp_sep(ppf, ());
-  ppc(ppf, c);
-};
+let pp2 = (~pp_sep=Fmt.cut, ppa, ppb): Fmt.t(t2('a, 'b)) =>
+  (ppf, (a, b)) => {
+    ppa(ppf, a);
+    pp_sep(ppf, ());
+    ppb(ppf, b);
+  };
+let pp3 = (~pp_sep=Fmt.cut, ppa, ppb, ppc): Fmt.t(t3('a, 'b, 'c)) =>
+  (ppf, (a, b, c)) => {
+    ppa(ppf, a);
+    pp_sep(ppf, ());
+    ppb(ppf, b);
+    pp_sep(ppf, ());
+    ppc(ppf, c);
+  };

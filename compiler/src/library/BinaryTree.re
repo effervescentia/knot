@@ -1,10 +1,16 @@
+open Infix;
+
 type t('a) = {
   value: 'a,
   left: option(t('a)),
   right: option(t('a)),
 };
 
+/* static */
+
 let create = (~left=?, ~right=?, value: 'a) => {value, left, right};
+
+/* methods */
 
 let rec search = (choose: (t('a), t('a)) => option(t('a)), tree: t('a)) =>
   switch (tree) {
@@ -39,5 +45,7 @@ let rec to_graph = (tree: t('a)): Graph.t('a) =>
        Graph.create([tree.value], []),
      );
 
-let to_string = (print: 'a => string, tree: t('a)) =>
-  tree |> to_graph |> Graph.to_string(print);
+/* pretty printing */
+
+let pp = (pp_node: Fmt.t('a)): Fmt.t(t('a)) =>
+  (ppf, tree: t('a)) => tree |> to_graph |> Graph.pp(pp_node, ppf);

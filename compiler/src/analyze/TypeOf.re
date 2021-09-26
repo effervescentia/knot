@@ -19,7 +19,7 @@ let declaration =
           args
           |> List.map((({name}, type_, _)) =>
                (
-                 name |> Node.Raw.get_value |> Reference.Identifier.to_string,
+                 name |> Node.Raw.get_value |> ~@Reference.Identifier.pp,
                  type_,
                )
              ),

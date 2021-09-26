@@ -6,56 +6,52 @@ let __type_error =
 let suite =
   "Library.Error"
   >::: [
-    "parse_err_to_string()"
+    "pp_parse_err()"
     >: (
       () =>
         [
-          ("type error: NotFound<foo>", parse_err_to_string(__type_error)),
+          ("type error: NotFound<foo>", __type_error |> ~@pp_parse_err),
           (
             "reserved keyword foo cannot be used as an identifier",
-            parse_err_to_string(ReservedKeyword("foo")),
+            ReservedKeyword("foo") |> ~@pp_parse_err,
           ),
         ]
         |> Assert.(test_many(string))
     ),
-    "compile_err_to_string()"
+    "pp_compile_err()"
     >: (
       () =>
         [
           (
             "import cycle between the following modules: foo -> bar -> fizz -> foo",
-            compile_err_to_string(
-              ImportCycle(["foo", "bar", "fizz", "foo"]),
-            ),
+            ImportCycle(["foo", "bar", "fizz", "foo"]) |> ~@pp_compile_err,
           ),
           (
             "could not resolve module: foo",
-            compile_err_to_string(UnresolvedModule("foo")),
+            UnresolvedModule("foo") |> ~@pp_compile_err,
           ),
           (
             "could not find file with path: foo",
-            compile_err_to_string(FileNotFound("foo")),
+            FileNotFound("foo") |> ~@pp_compile_err,
           ),
           (
             "error found while parsing foo: type error: NotFound<foo>",
-            compile_err_to_string(
-              ParseError(
-                __type_error,
-                Reference.Namespace.of_string("foo"),
-                Range.zero,
-              ),
-            ),
+            ParseError(
+              __type_error,
+              Reference.Namespace.of_string("foo"),
+              Range.zero,
+            )
+            |> ~@pp_compile_err,
           ),
           (
             "failed to parse module: foo",
-            compile_err_to_string(
-              InvalidModule(Reference.Namespace.of_string("foo")),
-            ),
+            InvalidModule(Reference.Namespace.of_string("foo"))
+            |> ~@pp_compile_err,
           ),
         ]
         |> Assert.(test_many(string))
     ),
-    "print_errs()"
+    "pp_err_list()"
     >: (
       () =>
         [
@@ -65,7 +61,8 @@ let suite =
 could not resolve module: foo
 
 could not resolve module: bar",
-            print_errs([UnresolvedModule("foo"), UnresolvedModule("bar")]),
+            [UnresolvedModule("foo"), UnresolvedModule("bar")]
+            |> ~@pp_err_list,
           ),
         ]
         |> Assert.(test_many(string))

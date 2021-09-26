@@ -70,3 +70,12 @@ let cache = (cache: Cache.t) =>
       Error([FileNotFound(path.relative)]);
     }
   | Raw(_) => raise(NotImplemented);
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  ppf =>
+    fun
+    | Raw(s) => Fmt.pf(ppf, "raw: %s", s)
+    | File({full, relative}) =>
+      Fmt.pf(ppf, "full: %s, relative: %s", full, relative);

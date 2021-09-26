@@ -50,10 +50,7 @@ let __ast =
 let _assert_import_graph_structure =
   Alcotest.(
     check(
-      testable(
-        pp => Resolve.Debug.print_import_graph % Format.pp_print_string(pp),
-        (l, r) => l.imports == r.imports,
-      ),
+      testable(ImportGraph.pp, (l, r) => l.imports == r.imports),
       "import graph matches",
     )
   );

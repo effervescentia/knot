@@ -62,22 +62,37 @@ let add_type =
   };
 
 /**
- print a string representation for debugging
+ compare two ModuleTables by direct equality
  */
-let to_string = (table: t): string =>
-  table
-  |> Hashtbl.map_values(({ast, raw, exports}) =>
-       [
-         ("ast", ast |> AST.Debug.print_ast),
-         (
-           "exports",
-           exports
-           |> Hashtbl.print(Export.to_string, Type.to_string % Pretty.string),
-         ),
-         ("raw", Pretty.string(raw)),
-       ]
-       |> List.to_seq
-       |> Hashtbl.of_seq
-       |> Hashtbl.print(Functional.identity, Functional.identity)
-     )
-  |> Hashtbl.to_string(Namespace.to_string, Pretty.to_string);
+let compare: (t, t) => bool =
+  Hashtbl.compare(~compare=(x, y) =>
+    x.ast == y.ast && x.raw == y.raw && Hashtbl.compare(x.exports, y.exports)
+  );
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, table: t) =>
+    table
+    |> Hashtbl.map_values(({ast, raw, exports}) =>
+         [
+           ("ast", ast |> AST.Debug.print_ast),
+           (
+             "exports",
+             exports |> ~@Hashtbl.pp(Export.pp, Type.pp) |> Pretty.string,
+           ),
+           ("raw", Pretty.string(raw)),
+         ]
+         |> List.to_seq
+         |> Hashtbl.of_seq
+         |> ~@
+              Hashtbl.pp(Fmt.string, ppf =>
+                Pretty.to_string % Fmt.string(ppf)
+              )
+         |> Pretty.string
+       )
+    |> Hashtbl.pp(
+         Namespace.pp,
+         ppf => Pretty.to_string % Fmt.string(ppf),
+         ppf,
+       );

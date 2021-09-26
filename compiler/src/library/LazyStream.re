@@ -1,3 +1,5 @@
+open Infix;
+
 /**
  wrapper for working with a stream that is lazily evaluated
 
@@ -60,3 +62,8 @@ let to_list = (stream: t('a)): list('a) => {
 
   loop(stream);
 };
+
+/* pretty printing */
+
+let pp = (pp_value: Fmt.t('a)): Fmt.t(t('a)) =>
+  ppf => to_list % Fmt.list(~sep=Fmt.nop, pp_value, ppf);

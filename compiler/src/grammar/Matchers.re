@@ -138,7 +138,7 @@ let string =
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);
 
-      loop(Functional.identity);
+      loop(Fun.id);
     }
   )
   |> lexeme;

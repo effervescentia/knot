@@ -37,36 +37,80 @@ let throw = err => raise(CompileError([err]));
  */
 let throw_all = errs => raise(CompileError(errs));
 
-let parse_err_to_string =
-  fun
-  | TypeError(err) =>
-    err
-    |> Type.Error.to_string(Type.Raw.to_string)
-    |> Print.fmt("type error: %s")
-  | ReservedKeyword(name) =>
-    name |> Print.fmt("reserved keyword %s cannot be used as an identifier");
+/* pretty printing */
 
-let compile_err_to_string =
-  fun
-  | ImportCycle(cycles) =>
-    cycles
-    |> Print.many(~separator=" -> ", Functional.identity)
-    |> Print.fmt("import cycle between the following modules: %s")
-  | UnresolvedModule(name) =>
-    name |> Print.fmt("could not resolve module: %s")
-  | FileNotFound(path) =>
-    path |> Print.fmt("could not find file with path: %s")
-  | ParseError(err, namespace, _) =>
-    Print.fmt(
-      "error found while parsing %s: %s",
-      namespace |> Namespace.to_string,
-      err |> parse_err_to_string,
-    )
-  | InvalidModule(namespace) =>
-    namespace
-    |> Namespace.to_string
-    |> Print.fmt("failed to parse module: %s");
+let pp_parse_err: Fmt.t(parse_err) =
+  ppf =>
+    fun
+    | TypeError(err) =>
+      Fmt.pf(ppf, "type error: %a", Type.Error.pp(Type.Raw.pp), err)
+    | ReservedKeyword(name) =>
+      Fmt.pf(
+        ppf,
+        "reserved keyword %s cannot be used as an identifier",
+        name,
+      );
 
-let print_errs =
-  Print.many(~separator="\n\n", compile_err_to_string)
-  % Print.fmt("found some errors during compilation:\n\n%s");
+let pp_dump_parse_err: Fmt.t(parse_err) =
+  ppf =>
+    fun
+    | TypeError(err) =>
+      Fmt.pf(ppf, "TypeError<%a>", Type.(Error.pp(Raw.pp)), err)
+    | ReservedKeyword(name) => Fmt.pf(ppf, "ReservedKeyword<%s>", name);
+
+let pp_compile_err: Fmt.t(compile_err) =
+  ppf =>
+    fun
+    | ImportCycle(cycles) =>
+      cycles
+      |> Print.many(~separator=" -> ", Fun.id)
+      |> Fmt.pf(ppf, "import cycle between the following modules: %s")
+    | UnresolvedModule(name) =>
+      Fmt.pf(ppf, "could not resolve module: %s", name)
+    | FileNotFound(path) =>
+      Fmt.pf(ppf, "could not find file with path: %s", path)
+    | ParseError(err, namespace, _) =>
+      Fmt.pf(
+        ppf,
+        "error found while parsing %a: %a",
+        Namespace.pp,
+        namespace,
+        pp_parse_err,
+        err,
+      )
+    | InvalidModule(namespace) =>
+      Fmt.pf(ppf, "failed to parse module: %a", Namespace.pp, namespace);
+
+let pp_dump_compile_err: Fmt.t(compile_err) =
+  ppf =>
+    fun
+    | ImportCycle(cycles) =>
+      cycles
+      |> Print.many(~separator=" -> ", Fun.id)
+      |> Fmt.pf(ppf, "ImportCycle<%s>")
+    | UnresolvedModule(name) => Fmt.pf(ppf, "UnresolvedModule<%s>", name)
+    | FileNotFound(path) => Fmt.pf(ppf, "FileNotFound<%s>", path)
+    | InvalidModule(namespace) =>
+      Fmt.pf(ppf, "InvalidModule<%a>", Namespace.pp, namespace)
+    | ParseError(err, namespace, range) =>
+      Fmt.pf(
+        ppf,
+        "ParseError<%a, %a, %a>",
+        pp_dump_parse_err,
+        err,
+        Namespace.pp,
+        namespace,
+        Range.pp,
+        range,
+      );
+
+let pp_dump_err_list: Fmt.t(list(compile_err)) =
+  Fmt.list(~sep=Fmt.comma, pp_compile_err);
+
+let pp_err_list: Fmt.t(list(compile_err)) =
+  ppf =>
+    Fmt.pf(
+      ppf,
+      "found some errors during compilation:\n\n%a",
+      Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, "\n\n"), pp_compile_err),
+    );

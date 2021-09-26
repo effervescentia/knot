@@ -131,8 +131,8 @@ let suite =
 
         /* Assert.int(0, scope.seed^); */
         Assert.hashtbl(
-          Export.to_string,
-          Type.to_string,
+          ~@Export.pp,
+          ~@Type.pp,
           Type.[
             (Export.Named(of_public("bar")), Valid(`Float)),
             (Export.Named(of_public("fizz")), Valid(`Integer)),

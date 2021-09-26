@@ -437,7 +437,7 @@ let suite =
         ) {
         | CompileError(x) =>
           x
-          |> List.map(Knot.Error.compile_err_to_string)
+          |> List.map(~@Knot.Error.pp_compile_err)
           |> List.intersperse(", ")
           |> List.fold_left((++), "")
           |> Test.Assert.string("%s")

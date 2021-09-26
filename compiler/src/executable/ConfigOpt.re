@@ -182,7 +182,7 @@ let target = () => {
       ~alias="t",
       ~options=__targets,
       ~from_config=
-        cfg => cfg.target |?> Target.to_string % (x => Opt.Value.String(x)),
+        cfg => cfg.target |?> ~@Target.pp % (x => Opt.Value.String(x)),
       target_key,
       Symbol(__targets, x => value := Some(target_of_string(x))),
       "the target to compile to",

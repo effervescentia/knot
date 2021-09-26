@@ -38,7 +38,7 @@ let fmt_unary_op =
   )
   % string;
 
-let fmt_id = Identifier.to_string % string;
+let fmt_id = ~@Identifier.pp % string;
 
 let fmt_num =
   (
@@ -52,7 +52,7 @@ let fmt_string = s =>
   [__quotation_mark, s |> String.escaped |> string, __quotation_mark]
   |> concat;
 
-let fmt_ns = Namespace.to_string % fmt_string;
+let fmt_ns = ~@Namespace.pp % fmt_string;
 
 let fmt_prim =
   AST.(
@@ -320,8 +320,7 @@ let fmt_imports = stmts => {
                |> (
                  fun
                  | Some(id) =>
-                   [string(" "), Identifier.to_string(id) |> string]
-                   |> concat
+                   [string(" "), id |> ~@Identifier.pp |> string] |> concat
                  | None => Nil
                ),
                switch (main_import, named_imports) {
@@ -335,7 +334,7 @@ let fmt_imports = stmts => {
                      named_imports
                      |> List.sort((l, r) =>
                           (l, r)
-                          |> Tuple.map2(fst % Identifier.to_string)
+                          |> Tuple.map2(fst % ~@Identifier.pp)
                           |> Tuple.join2(String.compare)
                         )
                      |> List.map(((id, label)) =>

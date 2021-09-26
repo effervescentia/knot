@@ -41,8 +41,8 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
     build_key,
     [
       (out_dir_key, config.out_dir),
-      (target_key, Target.to_string(config.target)),
-      (entry_key, Namespace.to_string(config.entry)),
+      (target_key, config.target |> ~@Target.pp),
+      (entry_key, config.entry |> ~@Namespace.pp),
     ],
   );
 

@@ -120,7 +120,7 @@ let _extract_type_err =
             Print.fmt(
               "expected a type that implements the trait %s but found the type %s instead",
               trait |> _type_trait_to_string(Print.good),
-              t |> Type.Raw.to_string |> Print.bad,
+              t |> ~@Type.Raw.pp |> Print.bad,
             )
             |> string,
           ]
@@ -136,8 +136,8 @@ let _extract_type_err =
           [
             Print.fmt(
               "expected the type %s but found the type %s instead",
-              expected |> Type.Raw.to_string |> Print.good,
-              actual |> Type.Raw.to_string |> Print.bad,
+              expected |> ~@Type.Raw.pp |> Print.good,
+              actual |> ~@Type.Raw.pp |> Print.bad,
             )
             |> string,
           ]
@@ -152,7 +152,7 @@ let _extract_type_err =
         [
           [
             id
-            |> Identifier.to_string
+            |> ~@Identifier.pp
             |> Print.bad
             |> Print.fmt(
                  "unable to resolve an identifier %s in the local scope or any inherited scope",
@@ -166,7 +166,7 @@ let _extract_type_err =
           [
             _print_resolution((
               id
-              |> Identifier.to_string
+              |> ~@Identifier.pp
               |> Print.bad
               |> Print.fmt(
                    "check that the identifier %s is spelled correctly",
@@ -178,7 +178,7 @@ let _extract_type_err =
               Some(
                 [Print.fmt("const %s = …;"), Print.fmt("let %s = …;")]
                 |> List.map(fmt =>
-                     id |> Identifier.to_string |> Print.bold |> fmt |> string
+                     id |> ~@Identifier.pp |> Print.bold |> fmt |> string
                    ),
               ),
             )),
@@ -187,7 +187,7 @@ let _extract_type_err =
               Some(
                 [Print.fmt("import { %s } from \"…\";")]
                 |> List.map(fmt =>
-                     id |> Identifier.to_string |> Print.bold |> fmt |> string
+                     id |> ~@Identifier.pp |> Print.bold |> fmt |> string
                    ),
               ),
             )),
@@ -200,7 +200,7 @@ let _extract_type_err =
         [
           [
             id
-            |> Identifier.to_string
+            |> ~@Identifier.pp
             |> Print.bad
             |> Print.fmt(
                  "a variable with the same name (%s) already exists in the local scope or an inherited scope",
@@ -221,15 +221,15 @@ let _extract_type_err =
           (
             switch (id) {
             | Named(id) =>
-              Print.fmt(
+              Fmt.str(
                 "an export with the identifier %s could not be found in module %s",
-                id |> Identifier.to_string |> Print.bad,
-                namespace |> Namespace.to_string |> Print.bad,
+                id |> ~@Identifier.pp |> Print.bad,
+                namespace |> ~@Namespace.pp |> Print.bad,
               )
             | Main =>
-              Print.fmt(
+              Fmt.str(
                 "a main export could not be found in module %s",
-                namespace |> Namespace.to_string |> Print.bad,
+                namespace |> ~@Namespace.pp |> Print.bad,
               )
             }
           )
@@ -278,7 +278,7 @@ let _extract_compile_err = resolver =>
       None,
       "Import Cycle Found",
       cycles
-      |> Print.many(~separator=" -> ", Functional.identity)
+      |> Print.many(~separator=" -> ", Fun.id)
       |> Print.fmt("import cycle between the following modules: %s")
       |> string,
     )

@@ -56,14 +56,14 @@ let handler =
                    | Declaration(MainExport(name) | NamedExport(name), decl) => {
                        let range = Node.Raw.get_range(name);
                        let name =
-                         name |> Node.Raw.get_value |> Identifier.to_string;
+                         name |> Node.Raw.get_value |> ~@Identifier.pp;
                        let type_ = Node.get_type(decl);
 
                        Some(
                          switch (Node.get_value(decl)) {
                          | Constant(expr) => {
                              name,
-                             detail: Type.to_string(type_),
+                             detail: type_ |> ~@Type.pp,
                              range,
                              full_range:
                                Range.join(range, Node.get_range(expr)),
@@ -71,7 +71,7 @@ let handler =
                            }
                          | Function(args, expr) => {
                              name,
-                             detail: Type.to_string(type_),
+                             detail: type_ |> ~@Type.pp,
                              range,
                              full_range:
                                Range.join(range, Node.get_range(expr)),

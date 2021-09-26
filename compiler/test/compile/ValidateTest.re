@@ -17,7 +17,7 @@ let _assert_validate_result =
     check(
       result(
         testable((_, _) => (), (==)),
-        testable(pp => Util.print_errs % Format.pp_print_string(pp), (==)),
+        testable(pp_dump_err_list, (==)),
       ),
       "validate result matches",
     )

@@ -33,4 +33,7 @@ let min = (lhs: t, rhs: t): t => compare(lhs, rhs) <= 0 ? lhs : rhs;
  */
 let max = (lhs: t, rhs: t): t => compare(lhs, rhs) >= 0 ? lhs : rhs;
 
-let to_string = ((line, column): t) => Print.fmt("(%d:%d)", line, column);
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, (line, column): t) => Fmt.pf(ppf, "(%d:%d)", line, column);

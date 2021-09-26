@@ -52,13 +52,6 @@ let contains_point = (point: Point.t, (start, end_): t) =>
 let contains = ((start, end_): t, target: t) =>
   contains_point(start, target) && contains_point(end_, target);
 
-let to_string = ((start, end_): t) =>
-  Point.(
-    Print.fmt(
-      "(%d:%d - %d:%d)",
-      get_line(start),
-      get_column(start),
-      get_line(end_),
-      get_column(end_),
-    )
-  );
+/* pretty printing */
+
+let pp: Fmt.t(t) = Fmt.text_loc;

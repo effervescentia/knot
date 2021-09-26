@@ -10,7 +10,7 @@ open Reference;
 let no_import_cycles = (graph: ImportGraph.t) =>
   graph
   |> ImportGraph.find_cycles
-  |> (List.map(Namespace.to_string) |> List.map)
+  |> (List.map(~@Namespace.pp) |> List.map)
   |> (
     fun
     | [] => Ok()
@@ -23,7 +23,7 @@ let no_import_cycles = (graph: ImportGraph.t) =>
 let no_unresolved_modules = (graph: ImportGraph.t) =>
   graph
   |> ImportGraph.find_missing
-  |> List.map(Namespace.to_string)
+  |> List.map(~@Namespace.pp)
   |> (
     fun
     | [] => Ok()

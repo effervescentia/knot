@@ -33,7 +33,7 @@ let rec gen_expression =
   | Primitive((String(x), _, _)) => JavaScript_AST.String(x)
   | Primitive((Nil, _, _)) => JavaScript_AST.Null
   | Identifier(value) =>
-    JavaScript_AST.Identifier(value |> Node.get_value |> Identifier.to_string)
+    JavaScript_AST.Identifier(value |> Node.get_value |> ~@Identifier.pp)
   | Group(value) =>
     JavaScript_AST.Group(value |> Node.get_value |> gen_expression)
 
@@ -58,7 +58,7 @@ and gen_statement = (~is_last=false) =>
   | Variable(name, value) =>
     [
       JavaScript_AST.Variable(
-        name |> Node.Raw.get_value |> Identifier.to_string,
+        name |> Node.Raw.get_value |> ~@Identifier.pp,
         value |> Node.get_value |> gen_expression,
       ),
     ]
@@ -122,7 +122,7 @@ and gen_jsx =
     JavaScript_AST.FunctionCall(
       _jsx_util("createTag"),
       [
-        String(name |> Node.Raw.get_value |> Identifier.to_string),
+        String(name |> Node.Raw.get_value |> ~@Identifier.pp),
         ...List.is_empty(attrs) && List.is_empty(values)
              ? []
              : [
@@ -160,13 +160,13 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    c,
                    [
                      (
-                       name |> Node.Raw.get_value |> Identifier.to_string,
+                       name |> Node.Raw.get_value |> ~@Identifier.pp,
                        switch (expr) {
                        | Some(expr) =>
                          expr |> Node.get_value |> gen_expression
                        | None =>
                          JavaScript_AST.Identifier(
-                           name |> Node.Raw.get_value |> Identifier.to_string,
+                           name |> Node.Raw.get_value |> ~@Identifier.pp,
                          )
                        },
                      ),
@@ -178,7 +178,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                      JavaScript_AST.String(
                        name
                        |> Node.Raw.get_value
-                       |> Identifier.to_string
+                       |> ~@Identifier.pp
                        |> Print.fmt(".%s"),
                      ),
                      ...c,
@@ -193,7 +193,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                          String(
                            name
                            |> Node.Raw.get_value
-                           |> Identifier.to_string
+                           |> ~@Identifier.pp
                            |> Print.fmt(".%s"),
                          ),
                          String(""),
@@ -208,9 +208,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    [
                      (
                        __id_prop,
-                       String(
-                         name |> Node.Raw.get_value |> Identifier.to_string,
-                       ),
+                       String(name |> Node.Raw.get_value |> ~@Identifier.pp),
                      ),
                      ...p,
                    ],
@@ -243,7 +241,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
 
 let gen_constant = (name: untyped_identifier_t, value: expression_t) =>
   JavaScript_AST.Variable(
-    name |> Node.Raw.get_value |> Identifier.to_string,
+    name |> Node.Raw.get_value |> ~@Identifier.pp,
     value |> Node.get_value |> gen_expression,
   );
 
@@ -252,13 +250,11 @@ let gen_function =
   JavaScript_AST.(
     Expression(
       Function(
-        Some(name |> Node.Raw.get_value |> Identifier.to_string),
+        Some(name |> Node.Raw.get_value |> ~@Identifier.pp),
         args
         |> List.map(
              Node.get_value
-             % (
-               ({name}) => name |> Node.Raw.get_value |> Identifier.to_string
-             ),
+             % (({name}) => name |> Node.Raw.get_value |> ~@Identifier.pp),
            ),
         (
           args
@@ -270,7 +266,7 @@ let gen_function =
                    Some(
                      Assignment(
                        Identifier(
-                         name |> Node.Raw.get_value |> Identifier.to_string,
+                         name |> Node.Raw.get_value |> ~@Identifier.pp,
                        ),
                        default |> Node.get_value |> gen_expression,
                      ),
@@ -342,25 +338,19 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                             | MainImport(id) => (
                                 __main_export,
                                 Some(
-                                  id
-                                  |> Node.Raw.get_value
-                                  |> Identifier.to_string,
+                                  id |> Node.Raw.get_value |> ~@Identifier.pp,
                                 ),
                               )
                             | NamedImport(id, Some(label)) => (
-                                id
-                                |> Node.Raw.get_value
-                                |> Identifier.to_string,
+                                id |> Node.Raw.get_value |> ~@Identifier.pp,
                                 Some(
                                   label
                                   |> Node.Raw.get_value
-                                  |> Identifier.to_string,
+                                  |> ~@Identifier.pp,
                                 ),
                               )
                             | NamedImport(id, None) => (
-                                id
-                                |> Node.Raw.get_value
-                                |> Identifier.to_string,
+                                id |> Node.Raw.get_value |> ~@Identifier.pp,
                                 None,
                               )
                           ),
@@ -379,7 +369,7 @@ let generate = (resolve: resolve_t, ast: program_t) => {
                  @ gen_declaration(name, decl)
                  @ [
                    JavaScript_AST.Export(
-                     name |> Node.Raw.get_value |> Identifier.to_string,
+                     name |> Node.Raw.get_value |> ~@Identifier.pp,
                      Some(__main_export),
                    ),
                  ],

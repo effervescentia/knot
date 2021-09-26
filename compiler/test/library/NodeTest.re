@@ -18,7 +18,7 @@ let suite = [
             Node.create(__value, __type, __range),
           ),
         ]
-        |> Assert.(test_many(node(Functional.identity)))
+        |> Assert.(test_many(node(Fmt.string)))
     ),
     "get_value()"
     >: (
@@ -41,7 +41,7 @@ let suite = [
     >: (
       () =>
         [((__value, __range), Node.Raw.create(__value, __range))]
-        |> Assert.(test_many(raw_node(Functional.identity)))
+        |> Assert.(test_many(raw_node(Fmt.string)))
     ),
     "get_value()"
     >: (

@@ -75,7 +75,7 @@ let function_ = (ctx: ModuleContext.t, f) =>
                              (
                                name
                                |> Node.Raw.get_value
-                               |> Reference.Identifier.to_string,
+                               |> ~@Reference.Identifier.pp,
                                type_,
                              )
                            ),

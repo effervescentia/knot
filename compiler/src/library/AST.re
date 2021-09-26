@@ -67,7 +67,7 @@ module Common = {
           string(name),
           switch (range) {
           | Some(range) =>
-            [string("@"), range |> Range.to_string |> string] |> concat
+            [string("@"), range |> ~@Range.pp |> string] |> concat
           | None => Nil
           },
           attrs |> List.map(print_attr) |> concat,
@@ -92,10 +92,7 @@ module Common = {
 
     let print_typed_node = (~attrs=[], label, value, type_, range) =>
       print_entity(
-        ~attrs=[
-          ("type", type_ |> Type.to_string |> Pretty.string),
-          ...attrs,
-        ],
+        ~attrs=[("type", type_ |> ~@Type.pp |> Pretty.string), ...attrs],
         ~range,
         ~children=[value],
         label,
@@ -288,9 +285,9 @@ module Make = (T: ASTParams) => {
         Node.Raw.get_range(x),
       );
 
-    let print_ns = Namespace.to_string % string;
+    let print_ns = ~@Namespace.pp % string;
 
-    let print_id = Identifier.to_string % string;
+    let print_id = ~@Identifier.pp % string;
 
     let print_binary_op =
       fun
@@ -578,7 +575,7 @@ module Debug = {
                    [
                      print_untyped_node("Name", print_id, name),
                      print_entity(
-                       ~children=[type_ |> Type.to_string |> string],
+                       ~children=[type_ |> ~@Type.pp |> string],
                        "Type",
                      ),
                      ...switch (default) {

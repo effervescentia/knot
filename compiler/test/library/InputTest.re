@@ -36,6 +36,6 @@ let suite =
             ]),
           ),
         ]
-        |> Assert.(test_many(raw_node(Functional.identity)))
+        |> Assert.(test_many(raw_node(Fmt.string)))
     ),
   ];

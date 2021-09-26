@@ -97,7 +97,7 @@ let notify = (notification: Yojson.Basic.t) => {
 let report = errs =>
   send(
     Response.show_message(
-      errs |> print_errs |> Print.fmt("compilation failed with errors:\n%s"),
+      Fmt.str("compilation failed with errors:\n%a", pp_err_list, errs),
       Error,
     ),
   );

@@ -49,3 +49,9 @@ let resolve_module =
   /* resolve an external module */
   | (External(path), _) => raise(NotImplemented)
   };
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, resolver) =>
+    Fmt.pf(ppf, "cache: %s, root_dir: %s", resolver.cache, resolver.root_dir);

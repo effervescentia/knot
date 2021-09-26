@@ -30,3 +30,9 @@ let join = (cs: list(t)): Node.Raw.t(string) => {
  */
 let to_node = (x: t): Node.Raw.t(Uchar.t) =>
   Node.Raw.create(get_value(x), Range.create(get_point(x), get_point(x)));
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, (uchar, point): t) =>
+    Fmt.pf(ppf, "%a@%a", Uchar.pp, uchar, Point.pp, point);

@@ -12,16 +12,6 @@ type t =
   | Bundle(Bundle.config_t)
   | Develop(Develop.config_t);
 
-let to_string =
-  fun
-  | Build(_) => build_key
-  | Watch(_) => watch_key
-  | Format(_) => format_key
-  | Lint(_) => lint_key
-  | LSP(_) => lsp_key
-  | Bundle(_) => bundle_key
-  | Develop(_) => develop_key;
-
 let build = Build.cmd() |> Cmd.map(x => Build(x));
 let watch = Watch.cmd() |> Cmd.map(x => Watch(x));
 let format = Format.cmd() |> Cmd.map(x => Format(x));
@@ -39,3 +29,19 @@ let commands = [
   (bundle_key, " generate executable from source code"),
   (develop_key, " run a development server to enable continuous development"),
 ];
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  ppf =>
+    (
+      fun
+      | Build(_) => build_key
+      | Watch(_) => watch_key
+      | Format(_) => format_key
+      | Lint(_) => lint_key
+      | LSP(_) => lsp_key
+      | Bundle(_) => bundle_key
+      | Develop(_) => develop_key
+    )
+    % Fmt.string(ppf);

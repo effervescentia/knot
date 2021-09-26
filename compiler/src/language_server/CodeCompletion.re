@@ -48,7 +48,7 @@ let handler =
     |?> Hashtbl.to_seq
     % List.of_seq
     % List.map(((key, value)) =>
-        {label: Export.to_string(key), kind: Capabilities.Variable}
+        {label: key |> ~@Export.pp, kind: Capabilities.Variable}
       )
     |?: []
     |> response

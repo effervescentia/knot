@@ -29,6 +29,8 @@ let _wrap = (range, tree: t) =>
   tree.value |> fst == range
     ? tree : BinaryTree.create(~left=tree, (range, Join));
 
+/* static */
+
 let of_untyped_id = (id, range) =>
   BinaryTree.create((range, Identifier(id)));
 let of_id = (id, _, range) => of_untyped_id(id, range);
@@ -177,17 +179,24 @@ let of_mod_stmt =
 let of_ast = (program: AST.program_t) =>
   program |> _fold(Node.Raw.get_value % of_mod_stmt);
 
-let to_string = (tree: t) =>
-  BinaryTree.to_string((((start, end_), token)) =>
-    Print.fmt(
-      "%s %s",
-      switch (token) {
-      | Join => ""
-      | Skip => "[skip]"
-      | Identifier(id) => Identifier.to_string(id)
-      | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
-      },
-      Range.create(start, end_) |> Range.to_string,
-    )
-    |> String.trim
-  );
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, tree: t) =>
+    BinaryTree.pp(
+      (ppf, ((start, end_), token)) =>
+        Fmt.str(
+          "%s %s",
+          switch (token) {
+          | Join => ""
+          | Skip => "[skip]"
+          | Identifier(id) => id |> ~@Identifier.pp
+          | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
+          },
+          Range.create(start, end_) |> ~@Range.pp,
+        )
+        |> String.trim
+        |> Fmt.pf(ppf, "%s"),
+      ppf,
+      tree,
+    );

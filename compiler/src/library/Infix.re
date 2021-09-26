@@ -43,3 +43,13 @@ let (|?<) = (x, f) =>
  optionally map the value of [x] with [f]
  */
 let (|?>) = (x, f) => x |?< (y => Some(f(y)));
+
+/**
+ creates a stringifier from a pretty-printer
+ */
+let (~@) = (pp, x) => Fmt.str("%a", pp, x);
+
+/**
+ creates a channel writer from a pretty-printer
+ */
+let (~$) = pp => Format.formatter_of_out_channel % pp;

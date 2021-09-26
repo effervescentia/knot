@@ -83,3 +83,14 @@ let refresh_subtree = (id: Namespace.t, graph: t) => {
 
   (removed |> List.filter(id => !List.mem(id, added)), added);
 };
+
+/**
+ compare two ImportGraphs for equality
+ */
+let compare = (l: t, r: t): bool =>
+  l.imports == r.imports && l.get_imports === r.get_imports;
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, graph: t) => Graph.pp(Namespace.pp, ppf, graph.imports);

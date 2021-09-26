@@ -30,7 +30,7 @@ let print = (~buffer_lines=2, contents: string, range: Range.t) => {
           Print.fmt("%*d", line_number_width, row)
           |> (is_highlight ? Print.red : Print.grey),
           Print.grey("│"),
-          line |> (is_highlight ? Functional.identity : Print.grey),
+          line |> (is_highlight ? Fun.id : Print.grey),
         )
         |> Buffer.add_string(buffer);
 
