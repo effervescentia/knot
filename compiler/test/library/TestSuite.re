@@ -15,7 +15,6 @@ let tests =
     ModuleTableTest.suite,
     PointTest.suite,
     PrettyTest.suite,
-    PrintTest.suite,
     RangeTest.suite,
     StringTest.suite,
     TargetTest.suite,

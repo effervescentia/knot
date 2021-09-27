@@ -55,7 +55,7 @@ let handler =
           req,
           response(
             range,
-            Print.fmt(
+            Fmt.str(
               "type %s",
               switch (prim) {
               | Nil => "nil"
@@ -86,7 +86,7 @@ let handler =
               switch (Node.Raw.get_value(node)) {
               | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
                 Some((
-                  kwd |> Print.fmt("(keyword) %s"),
+                  kwd |> Fmt.str("(keyword) %s"),
                   Node.Raw.get_range(node),
                 ))
               | _ => None

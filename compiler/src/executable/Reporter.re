@@ -12,7 +12,7 @@ let _print_code_examples =
 
 let _print_resolution = ((description, examples)) =>
   [
-    [description |> Print.fmt("• %s") |> string] |> newline,
+    [description |> Fmt.str("• %s") |> string] |> newline,
     Newline,
     switch (examples) {
     | Some(examples) => [examples |> _print_code_examples] |> newline
@@ -23,7 +23,7 @@ let _print_resolution = ((description, examples)) =>
 
 let _print_err = (~index, path, title, content) =>
   [
-    Print.fmt("%d) %s", index + 1, title) |> Print.bad |> string,
+    Fmt.str("%d) %s", index + 1, title) |> ~@Fmt.bad_str |> string,
     switch (path) {
     | Some((Module.{relative, full}, range)) =>
       let cursor_suffix =
@@ -31,7 +31,7 @@ let _print_err = (~index, path, title, content) =>
         |> Range.get_start
         |> (
           start =>
-            Print.fmt(
+            Fmt.str(
               ":%d:%d",
               Point.get_line(start),
               Point.get_column(start),
@@ -41,11 +41,11 @@ let _print_err = (~index, path, title, content) =>
       [
         [
           string(" : "),
-          relative |> Print.cyan |> string,
-          cursor_suffix |> Print.grey |> string,
+          relative |> ~@Fmt.cyan_str |> string,
+          cursor_suffix |> ~@Fmt.grey_str |> string,
         ]
         |> newline,
-        [Print.fmt("(%s%s)", full, cursor_suffix) |> Print.grey |> string]
+        [Fmt.str("(%s%s)", full, cursor_suffix) |> ~@Fmt.grey_str |> string]
         |> newline,
       ]
       |> concat
@@ -57,20 +57,40 @@ let _print_err = (~index, path, title, content) =>
   ]
   |> concat;
 
+let _pp_type_trait = (pp_target: Fmt.t(string)): Fmt.t(Type.Trait.t) =>
+  ppf =>
+    Type.Trait.(
+      fun
+      | Unknown =>
+        "Unknown" |> Fmt.pf(ppf, "%a which can represent any type", pp_target)
+
+      | Number =>
+        Fmt.pf(
+          ppf,
+          "%a which is shared by the types %a and %a",
+          pp_target,
+          "number",
+          Fmt.bold_str,
+          "int",
+          Fmt.bold_str,
+          "float",
+        )
+    );
+
 let _type_trait_to_string = print_target =>
   Type.Trait.(
     fun
     | Unknown =>
-      "Unknown"
-      |> print_target
-      |> Print.fmt("%s which can represent any type")
+      "Unknown" |> print_target |> Fmt.str("%s which can represent any type")
 
     | Number =>
-      Print.fmt(
-        "%s which is shared by the types %s and %s",
+      Fmt.str(
+        "%s which is shared by the types %a and %a",
         print_target("number"),
-        Print.bold("int"),
-        Print.bold("float"),
+        Fmt.bold_str,
+        "int",
+        Fmt.bold_str,
+        "float",
       )
   );
 
@@ -91,7 +111,7 @@ let _extract_type_err =
              [
                lhs
                |> _type_trait_to_string(Print.bad)
-               |> Print.fmt(
+               |> Fmt.str(
                     "• the left-hand-side argument has the trait %s",
                   )
                |> string,
@@ -100,7 +120,7 @@ let _extract_type_err =
              [
                rhs
                |> _type_trait_to_string(Print.bad)
-               |> Print.fmt(
+               |> Fmt.str(
                     "• the right-hand-side argument has the trait %s",
                   )
                |> string,
@@ -117,10 +137,12 @@ let _extract_type_err =
         "Type Cannot Be Assigned",
         [
           [
-            Print.fmt(
-              "expected a type that implements the trait %s but found the type %s instead",
-              trait |> _type_trait_to_string(Print.good),
-              t |> ~@Type.Raw.pp |> Print.bad,
+            Fmt.str(
+              "expected a type that implements the trait %a but found the type %a instead",
+              _pp_type_trait(Fmt.good_str),
+              trait,
+              Fmt.bad(Type.Raw.pp),
+              t,
             )
             |> string,
           ]
@@ -134,10 +156,12 @@ let _extract_type_err =
         "Types Do Not Match",
         [
           [
-            Print.fmt(
-              "expected the type %s but found the type %s instead",
-              expected |> ~@Type.Raw.pp |> Print.good,
-              actual |> ~@Type.Raw.pp |> Print.bad,
+            Fmt.str(
+              "expected the type %a but found the type %a instead",
+              Fmt.good(Type.Raw.pp),
+              expected,
+              Fmt.bad(Type.Raw.pp),
+              actual,
             )
             |> string,
           ]
@@ -152,10 +176,9 @@ let _extract_type_err =
         [
           [
             id
-            |> ~@Identifier.pp
-            |> Print.bad
-            |> Print.fmt(
-                 "unable to resolve an identifier %s in the local scope or any inherited scope",
+            |> Fmt.str(
+                 "unable to resolve an identifier %a in the local scope or any inherited scope",
+                 Fmt.bad(Identifier.pp),
                )
             |> string,
           ]
@@ -166,28 +189,27 @@ let _extract_type_err =
           [
             _print_resolution((
               id
-              |> ~@Identifier.pp
-              |> Print.bad
-              |> Print.fmt(
-                   "check that the identifier %s is spelled correctly",
+              |> Fmt.str(
+                   "check that the identifier %a is spelled correctly",
+                   Fmt.bad(Identifier.pp),
                  ),
               None,
             )),
             _print_resolution((
               "define the value yourself",
               Some(
-                [Print.fmt("const %s = …;"), Print.fmt("let %s = …;")]
+                [Fmt.str("const %s = …;"), Fmt.str("let %s = …;")]
                 |> List.map(fmt =>
-                     id |> ~@Identifier.pp |> Print.bold |> fmt |> string
+                     id |> ~@Fmt.bold(Identifier.pp) |> fmt |> string
                    ),
               ),
             )),
             _print_resolution((
               "import the value from another module",
               Some(
-                [Print.fmt("import { %s } from \"…\";")]
+                [Fmt.str("import { %s } from \"…\";")]
                 |> List.map(fmt =>
-                     id |> ~@Identifier.pp |> Print.bold |> fmt |> string
+                     id |> ~@Fmt.bold(Identifier.pp) |> fmt |> string
                    ),
               ),
             )),
@@ -200,10 +222,9 @@ let _extract_type_err =
         [
           [
             id
-            |> ~@Identifier.pp
-            |> Print.bad
-            |> Print.fmt(
-                 "a variable with the same name (%s) already exists in the local scope or an inherited scope",
+            |> Fmt.str(
+                 "a variable with the same name (%a) already exists in the local scope or an inherited scope",
+                 Fmt.bad(Identifier.pp),
                )
             |> string,
           ]
@@ -222,14 +243,17 @@ let _extract_type_err =
             switch (id) {
             | Named(id) =>
               Fmt.str(
-                "an export with the identifier %s could not be found in module %s",
-                id |> ~@Identifier.pp |> Print.bad,
-                namespace |> ~@Namespace.pp |> Print.bad,
+                "an export with the identifier %a could not be found in module %a",
+                Fmt.bad(Identifier.pp),
+                id,
+                Fmt.bad(Namespace.pp),
+                namespace,
               )
             | Main =>
               Fmt.str(
-                "a main export could not be found in module %s",
-                namespace |> ~@Namespace.pp |> Print.bad,
+                "a main export could not be found in module %a",
+                Fmt.bad(Namespace.pp),
+                namespace,
               )
             }
           )
@@ -248,21 +272,26 @@ let _extract_parse_err =
   | ReservedKeyword(name) => (
       "Reserved Keyword",
       name
-      |> Print.bad
-      |> Print.fmt("the reserved keyword %s was used as an identifier")
+      |> Fmt.str(
+           "the reserved keyword %a was used as an identifier",
+           Fmt.bad_str,
+         )
       |> string,
       Some(
         [
           _print_resolution((
-            name
-            |> Print.bad
-            |> Print.fmt("check that the identifier %s is spelled correctly"),
+            Fmt.str(
+              "check that the identifier %a is spelled correctly",
+              Fmt.bad_str,
+              name,
+            ),
             None,
           )),
           _print_resolution((
-            Print.fmt(
-              "rename %s so that there is no conflict with reserved keywords (%s)",
-              name |> Print.bad,
+            Fmt.str(
+              "rename %a so that there is no conflict with reserved keywords (%s)",
+              Fmt.bad_str,
+              name,
               Constants.Keyword.reserved |> String.join(~separator=", "),
             ),
             None,
@@ -274,34 +303,31 @@ let _extract_parse_err =
 
 let _extract_compile_err = resolver =>
   fun
-  | ImportCycle(cycles) => (
+  | ImportCycle(cycles) as err => (
       None,
       "Import Cycle Found",
-      cycles
-      |> Print.many(~separator=" -> ", Fun.id)
-      |> Print.fmt("import cycle between the following modules: %s")
-      |> string,
+      err |> ~@pp_compile_err |> string,
     )
 
-  | UnresolvedModule(name) => (
+  | UnresolvedModule(name) as err => (
       None,
       "Unresolved Module",
-      name |> Print.fmt("could not resolve module: %s") |> string,
+      err |> ~@pp_compile_err |> string,
     )
 
-  | FileNotFound(path) => (
+  | FileNotFound(path) as err => (
       None,
       "File Not Found",
-      path |> Print.fmt("could not find file with path: %s") |> string,
+      err |> ~@pp_compile_err |> string,
     )
 
-  | InvalidModule(namespace) => (
+  | InvalidModule(namespace) as err => (
       resolver
       |> Resolver.resolve_module(~skip_cache=true, namespace)
       |> Module.get_path
       |?> (x => (x, Range.zero)),
       "Invalid Module",
-      Print.fmt("failed to parse module") |> string,
+      err |> ~@pp_compile_err |> string,
     )
 
   | ParseError(err, namespace, range) =>
@@ -342,17 +368,15 @@ let _extract_compile_err = resolver =>
 
 let report = (resolver: Resolver.t, errors: list(compile_err)) => {
   let header =
-    Print.fmt("%sFAILED%s", String.repeat(20, " "), String.repeat(20, " "));
+    Fmt.str("%sFAILED%s", String.repeat(20, " "), String.repeat(20, " "));
   let summary =
     [
-      Print.fmt(
-        "finished with %s and %s",
-        errors
-        |> List.length
-        |> string_of_int
-        |> Print.fmt("%s error(s)")
-        |> Print.red,
-        0 |> string_of_int |> Print.fmt("%s warning(s)") |> Print.yellow,
+      Fmt.str(
+        "finished with %a and %a",
+        Fmt.red(ppf => Fmt.pf(ppf, "%i error(s)")),
+        List.length(errors),
+        Fmt.yellow(ppf => Fmt.pf(ppf, "%i warning(s)")),
+        0,
       )
       |> string,
     ]
@@ -361,9 +385,11 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
 
   [
     Newline,
-    [horiz_border |> Print.fmt("╔%s╗") |> Print.bad |> string] |> newline,
-    [header |> Print.fmt("║%s║") |> Print.bad |> string] |> newline,
-    [horiz_border |> Print.fmt("╚%s╝") |> Print.bad |> string] |> newline,
+    [horiz_border |> Fmt.str("╔%s╗") |> ~@Fmt.bad_str |> string]
+    |> newline,
+    [header |> Fmt.str("║%s║") |> ~@Fmt.bad_str |> string] |> newline,
+    [horiz_border |> Fmt.str("╚%s╝") |> ~@Fmt.bad_str |> string]
+    |> newline,
     Newline,
     summary,
     Newline,

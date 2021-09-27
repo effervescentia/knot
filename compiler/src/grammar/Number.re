@@ -33,7 +33,7 @@ let float =
             (Float.of_string(integer), integer_precision);
           } else {
             (
-              Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
+              Fmt.str("%s.%s", integer, fraction) |> Float.of_string,
               integer_precision + fraction_precision,
             );
           }

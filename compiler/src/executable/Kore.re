@@ -47,4 +47,4 @@ let panic = (err: string) => {
 
 let target_of_string = x =>
   Target.of_string(x)
-  |!: (() => x |> Print.fmt("unknown target: '%s'") |> panic);
+  |!: (() => x |> Fmt.str("unknown target: '%s'") |> panic);

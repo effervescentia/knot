@@ -5,7 +5,7 @@ open Pretty;
 let _import_variable_name =
   String.replace('.', '_') % String.replace('/', '$');
 
-let fmt_string = String.escaped % Print.fmt("\"%s\"") % string;
+let fmt_string = String.escaped % Fmt.str("\"%s\"") % string;
 
 let rec fmt_expression = (module_type: Target.module_t) =>
   fun
@@ -222,7 +222,7 @@ and fmt_es6_export = (~alias=None, name: string) =>
   [
     string("export { "),
     string(name),
-    alias |?> Print.fmt(" as %s") % string |?: Nil,
+    alias |?> Fmt.str(" as %s") % string |?: Nil,
     string(" }"),
   ]
   |> concat;

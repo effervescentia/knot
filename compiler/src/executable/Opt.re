@@ -9,11 +9,14 @@ module Value = {
     | Int(int)
     | String(string);
 
-  let to_string =
-    fun
-    | Bool(x) => string_of_bool(x)
-    | Int(x) => string_of_int(x)
-    | String(x) => x;
+  /* pretty printing */
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      fun
+      | Bool(x) => Fmt.bool(ppf, x)
+      | Int(x) => Fmt.int(ppf, x)
+      | String(x) => Fmt.string(ppf, x);
 };
 
 type t = {
@@ -49,48 +52,71 @@ let create =
 };
 
 let to_args = (value: t): list((string, Arg.spec, string)) => [
-  (value.name |> Print.fmt("--%s"), value.spec, ""),
+  (value.name |> Fmt.str("--%s"), value.spec, ""),
   ...switch (value.alias) {
-     | Some(alias) => [(alias |> Print.fmt("-%s"), value.spec, "")]
+     | Some(alias) => [(alias |> Fmt.str("-%s"), value.spec, "")]
      | None => []
      },
 ];
 
-let to_string = (cfg: option(Config.t), value: t): string =>
-  Print.fmt(
-    "  %s%s%s%s\n\n    %s",
-    value.name
-    |> (
-      switch (value.alias) {
-      | Some(alias) => Print.fmt("-%s, --%s", alias)
-      | None => Print.fmt("--%s")
-      }
-    )
-    |> Print.bold,
-    switch (value.options) {
+/* pretty printing */
+
+let _pp_flag: Fmt.t((string, option(string))) =
+  (ppf, (name, alias)) =>
+    switch (alias) {
+    | Some(alias) => Fmt.pf(ppf, "-%s, --%s", alias, name)
+    | None => Fmt.pf(ppf, "--%s", name)
+    };
+
+let _pp_options: Fmt.t(option(list(string))) =
+  ppf =>
+    fun
     | Some(options) =>
-      Print.many(~separator=", ", Fun.id, options)
-      |> Print.bold
-      |> Print.fmt(" (options: %s)")
-    | None => ""
-    },
-    switch (value.default) {
+      Fmt.pf(
+        ppf,
+        " (options: %a)",
+        Fmt.bold(
+          Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, ", "), Fmt.string),
+        ),
+        options,
+      )
+    | None => Fmt.nop(ppf, ());
+
+let _pp_default: Fmt.t(option(Value.t)) =
+  ppf =>
+    fun
     | Some(default) =>
-      Value.to_string(default)
-      |> Print.bold
-      |> Print.fmt("\n    [default: %s]")
-    | None => ""
-    },
-    switch (cfg) {
+      Fmt.pf(ppf, "\n    [default: %a]", Fmt.bold(Value.pp), default)
+    | None => Fmt.nop(ppf, ());
+
+let _pp_config = (opt: t): Fmt.t(option(Config.t)) =>
+  ppf =>
+    fun
     | Some(cfg) =>
-      switch (value.from_config(cfg), value.default) {
+      switch (opt.from_config(cfg), opt.default) {
       | (Some(from_config), Some(default)) when from_config != default =>
-        Value.to_string(from_config)
-        |> Print.bold
-        |> Print.fmt("\n    [from config: %s]")
-      | _ => ""
+        Fmt.pf(
+          ppf,
+          "\n    [from config: %a]",
+          Fmt.bold(Value.pp),
+          from_config,
+        )
+      | _ => Fmt.nop(ppf, ())
       }
-    | None => ""
-    },
-    value.desc,
-  );
+    | None => Fmt.nop(ppf, ());
+
+let pp = (cfg: option(Config.t)): Fmt.t(t) =>
+  (ppf, value: t) =>
+    Fmt.pf(
+      ppf,
+      "  %a%a%a%a\n\n    %s",
+      Fmt.bold(_pp_flag),
+      (value.name, value.alias),
+      _pp_options,
+      value.options,
+      _pp_default,
+      value.default,
+      _pp_config(value),
+      cfg,
+      value.desc,
+    );

@@ -46,16 +46,15 @@ let read = (file: string): Config.t => {
          | (name, `Bool(value)) when name == debug_key => debug := value
          | (name, `Float(value)) when name == port_key =>
            port := value |> int_of_float
-         | (name, _) =>
-           name |> Print.fmt("invalid entry found: %s") |> panic,
+         | (name, _) => name |> Fmt.str("invalid entry found: %s") |> panic,
        )
   | Ok(`Null) => ()
   | Ok(_) =>
-    Print.fmt(
+    Fmt.str(
       "expected an object with some of the following keys: root_dir, source_dir, entry",
     )
     |> panic
-  | _ => file |> Print.fmt("failed to parse configuration file: %s") |> panic
+  | _ => file |> Fmt.str("failed to parse configuration file: %s") |> panic
   };
 
   {

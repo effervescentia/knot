@@ -62,9 +62,12 @@ let pp_compile_err: Fmt.t(compile_err) =
   ppf =>
     fun
     | ImportCycle(cycles) =>
-      cycles
-      |> Print.many(~separator=" -> ", Fun.id)
-      |> Fmt.pf(ppf, "import cycle between the following modules: %s")
+      Fmt.pf(
+        ppf,
+        "import cycle between the following modules: %a",
+        Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, " -> "), Fmt.string),
+        cycles,
+      )
     | UnresolvedModule(name) =>
       Fmt.pf(ppf, "could not resolve module: %s", name)
     | FileNotFound(path) =>
@@ -85,9 +88,12 @@ let pp_dump_compile_err: Fmt.t(compile_err) =
   ppf =>
     fun
     | ImportCycle(cycles) =>
-      cycles
-      |> Print.many(~separator=" -> ", Fun.id)
-      |> Fmt.pf(ppf, "ImportCycle<%s>")
+      Fmt.pf(
+        ppf,
+        "ImportCycle<%a>",
+        Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, " -> "), Fmt.string),
+        cycles,
+      )
     | UnresolvedModule(name) => Fmt.pf(ppf, "UnresolvedModule<%s>", name)
     | FileNotFound(path) => Fmt.pf(ppf, "FileNotFound<%s>", path)
     | InvalidModule(namespace) =>

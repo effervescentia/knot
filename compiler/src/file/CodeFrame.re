@@ -25,12 +25,14 @@ let print = (~buffer_lines=2, contents: string, range: Range.t) => {
         let is_highlight =
           row >= Point.get_line(start) && row <= Point.get_line(end_);
 
-        Print.fmt(
-          " %s %s %s\n",
-          Print.fmt("%*d", line_number_width, row)
-          |> (is_highlight ? Print.red : Print.grey),
-          Print.grey("│"),
-          line |> (is_highlight ? Fun.id : Print.grey),
+        Fmt.str(
+          " %a %a %a\n",
+          is_highlight ? Fmt.red_str : Fmt.grey_str,
+          Fmt.str("%*d", line_number_width, row),
+          Fmt.grey_str,
+          "│",
+          is_highlight ? Fmt.string : Fmt.grey_str,
+          line,
         )
         |> Buffer.add_string(buffer);
 
@@ -45,20 +47,21 @@ let print = (~buffer_lines=2, contents: string, range: Range.t) => {
 
           Buffer.add_string(
             buffer,
-            Print.fmt(
-              " %*s %s %*s%s\n",
+            Fmt.str(
+              " %*s %a %*s%a\n",
               line_number_width,
               "",
-              Print.grey("│"),
+              Fmt.grey_str,
+              "│",
               unhighlighted_prefix_length,
               "",
+              Fmt.red_str,
               String.repeat(
                 line_length
                 - unhighlighted_prefix_length
                 - unhighlighted_suffix_length,
                 "^",
-              )
-              |> Print.red,
+              ),
             ),
           );
         };

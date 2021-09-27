@@ -338,12 +338,12 @@ module Make = (T: ASTParams) => {
       | Nil => string("nil")
       | Boolean(bool) => bool |> string_of_bool |> string
       | Number(num) => num |> print_num |> string
-      | String(str) => str |> Print.fmt("\"%s\"") |> string
+      | String(str) => str |> Fmt.str("\"%s\"") |> string
 
     and print_num =
       fun
       | Integer(int) => Int64.to_string(int)
-      | Float(float, precision) => float |> Print.fmt("%.*f", precision)
+      | Float(float, precision) => float |> Fmt.str("%.*f", precision)
 
     and print_jsx =
       fun
@@ -383,8 +383,7 @@ module Make = (T: ASTParams) => {
     and print_jsx_child =
       fun
       | Node(jsx) => T.print_node("Node", print_jsx, jsx)
-      | Text(text) =>
-        T.print_node("Text", Print.fmt("\"%s\"") % string, text)
+      | Text(text) => T.print_node("Text", Fmt.str("\"%s\"") % string, text)
       | InlineExpression(expr) =>
         T.print_node("InlineExpression", print_expr, expr)
 

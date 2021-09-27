@@ -10,10 +10,10 @@ let () = {
 
   let (config, command) = Args.to_config();
 
-  Print.color := config.color;
+  Fmt.color := config.color;
   Log.init({debug: config.debug, timestamp: false});
 
-  config.name |> Print.good |> Log.info("project %s");
+  Log.info("project %a", ~$Fmt.good_str, config.name);
 
   switch (command) {
   | Build(cmd) => Build.run(config, cmd)

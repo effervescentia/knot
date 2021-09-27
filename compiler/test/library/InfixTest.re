@@ -12,9 +12,7 @@ let suite =
         [
           (
             "{[(a)]}",
-            (Print.fmt("(%s)") % Print.fmt("[%s]") % Print.fmt("{%s}"))(
-              "a",
-            ),
+            (Fmt.str("(%s)") % Fmt.str("[%s]") % Fmt.str("{%s}"))("a"),
           ),
         ]
         |> Assert.(test_many(string))

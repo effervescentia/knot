@@ -1,3 +1,5 @@
+open Extensions;
+
 /**
  container for a single unicode character and the point for its location
  in a source document
@@ -35,4 +37,4 @@ let to_node = (x: t): Node.Raw.t(Uchar.t) =>
 
 let pp: Fmt.t(t) =
   (ppf, (uchar, point): t) =>
-    Fmt.pf(ppf, "%a@%a", Uchar.pp, uchar, Point.pp, point);
+    Fmt.pf(ppf, "%a@%a", Fmt.uchar, uchar, Point.pp, point);

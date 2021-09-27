@@ -11,7 +11,7 @@ let __targets = [
 
 let _check_exists = (name, x) =>
   if (!Sys.file_exists(x)) {
-    x |> Print.fmt("%s does not exist: %s", name) |> panic;
+    Fmt.str("%s does not exist: %s", name, x) |> panic;
   };
 
 let _resolve =
@@ -60,7 +60,7 @@ let root_dir = (~default=default_config.root_dir, ()) => {
       value^ |> _resolve(cfg, x => x.root_dir, default) |> Filename.resolve;
 
     if (!Sys.file_exists(root_dir)) {
-      root_dir |> Print.fmt("root directory does not exist: %s") |> panic;
+      root_dir |> Fmt.str("root directory does not exist: %s") |> panic;
     };
 
     root_dir;
@@ -84,11 +84,7 @@ let port = (~default=default_config.port, ()) => {
     let port = value^ |> _resolve(cfg, x => x.port, default);
 
     if (port < __min_port || port > __max_port) {
-      Print.fmt(
-        "port must be in the range of %d to %d",
-        __min_port,
-        __max_port,
-      )
+      Fmt.str("port must be in the range of %d to %d", __min_port, __max_port)
       |> panic;
     };
 
@@ -108,9 +104,10 @@ let source_dir = (~default=default_config.source_dir, ()) => {
       ~from_config=cfg => Some(String(cfg.source_dir)),
       source_dir_key,
       String(x => value := Some(x)),
-      Print.fmt(
-        "the directory to reference source modules from, relative to %s",
-        Print.bold("root-dir"),
+      Fmt.str(
+        "the directory to reference source modules from, relative to %a",
+        Fmt.bold_str,
+        "root-dir",
       ),
     );
   let resolve = (cfg: option(Config.t), root_dir) => {
@@ -134,6 +131,7 @@ let source_dir = (~default=default_config.source_dir, ()) => {
 };
 
 let _check_entry_exists = _check_exists(entry_key);
+
 let entry = (~default=default_config.entry, ()) => {
   let value = ref(None);
   let opt =
@@ -143,9 +141,10 @@ let entry = (~default=default_config.entry, ()) => {
       ~from_config=cfg => Some(String(cfg.entry)),
       entry_key,
       String(x => value := Some(x)),
-      Print.fmt(
-        "the entry point for execution, relative to %s",
-        Print.bold("source-dir"),
+      Fmt.str(
+        "the entry point for execution, relative to %a",
+        Fmt.bold_str,
+        "source-dir",
       ),
     );
   let resolve = (cfg: option(Config.t), root_dir, source_dir) => {

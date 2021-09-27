@@ -1,5 +1,6 @@
 include Infix;
 include Error;
+include Extensions;
 
 module AST = AST;
 module BinaryTree = BinaryTree;
@@ -22,7 +23,6 @@ module NestedHashtbl = NestedHashtbl;
 module Node = Node;
 module Point = Point;
 module Pretty = Pretty;
-module Print = Print;
 module Range = Range;
 module RangeTree = RangeTree;
 module RangeTree2 = RangeTree2;
@@ -33,4 +33,3 @@ module String = String;
 module Target = Target;
 module Tuple = Tuple;
 module Type = Type;
-module Uchar = Uchar;

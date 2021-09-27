@@ -21,7 +21,7 @@ let suite =
 
         [
           (
-            Print.fmt("%s/my/path", cache),
+            Fmt.str("%s/my/path", cache),
             cache |> Cache.resolve_path("my/path"),
           ),
         ]
@@ -53,7 +53,7 @@ let suite =
       () => {
         let temp_dir = Util.get_temp_dir();
         let parent_dir =
-          Filename.concat(temp_dir, Print.fmt("%f", Sys.time()));
+          Filename.concat(temp_dir, Fmt.str("%f", Sys.time()));
         let path =
           Filename.concat(parent_dir, Util.temp_file_name("test", "txt"));
 

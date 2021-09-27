@@ -117,7 +117,7 @@ let suite =
       () =>
         [
           (
-            Print.fmt("%s; %s", __main_import, __const_decl),
+            Fmt.str("%s; %s", __main_import, __const_decl),
             [__main_import_ast, __const_decl_ast],
           ),
         ]
@@ -169,9 +169,7 @@ let suite =
     "parse imports only"
     >: (
       () =>
-        [
-          (__main_import |> Print.fmt("%s; gibberish"), [__main_import_ast]),
-        ]
+        [(__main_import |> Fmt.str("%s; gibberish"), [__main_import_ast])]
         |> AssertImports.parse_many(~ns_context=__ns_context)
     ),
   ];

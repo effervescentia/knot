@@ -15,12 +15,12 @@
   "buildDirs": {
     "src/library": {
       "require": [
+        "ANSITerminal",
         "dolog",
-        "tablecloth-native",
+        "fmt",
         "lwt",
         "lwt.unix",
-        "ANSITerminal",
-        "fmt"
+        "tablecloth-native"
       ],
       "name": "knot.lib",
       "namespace": "Knot"

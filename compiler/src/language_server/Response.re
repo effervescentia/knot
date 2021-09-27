@@ -3,7 +3,7 @@ open Kore;
 let serialize = json => {
   let content = Yojson.Basic.to_string(json);
 
-  Print.fmt("Content-Length: %d\r\n\r\n%s", String.length(content), content);
+  Fmt.str("Content-Length: %d\r\n\r\n%s", String.length(content), content);
 };
 
 let symbol =

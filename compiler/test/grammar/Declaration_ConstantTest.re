@@ -146,9 +146,9 @@ let suite =
         /* Assert.hashtbl(
              string_of_int,
              fun
-             | Ok(t) => t |> Type.trait_to_string |> Print.fmt("Ok(%s)")
+             | Ok(t) => t |> Type.trait_to_string |> Fmt.str("Ok(%s)")
              | Error((x, y)) =>
-               Print.fmt(
+               Fmt.str(
                  "Error(%s, %s)",
                  x |> Type.trait_to_string,
                  y |> Type.trait_to_string,

@@ -22,7 +22,7 @@ let gen_number = x =>
   JavaScript_AST.Number(
     switch (x) {
     | Integer(value) => Int64.to_string(value)
-    | Float(value, precision) => value |> Print.fmt("%.*g", precision)
+    | Float(value, precision) => value |> Fmt.str("%.*g", precision)
     },
   );
 
@@ -178,8 +178,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                      JavaScript_AST.String(
                        name
                        |> Node.Raw.get_value
-                       |> ~@Identifier.pp
-                       |> Print.fmt(".%s"),
+                       |> Fmt.str(".%a", Identifier.pp),
                      ),
                      ...c,
                    ],
@@ -193,8 +192,7 @@ and gen_jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                          String(
                            name
                            |> Node.Raw.get_value
-                           |> ~@Identifier.pp
-                           |> Print.fmt(".%s"),
+                           |> Fmt.str(".%a", Identifier.pp),
                          ),
                          String(""),
                        ),

@@ -209,14 +209,14 @@ let _tree_of_rows = (rows: list(string)): (int, list(string)) => {
   let width =
     rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
 
-  (width, rows |> List.map(Print.fmt("%-*s", width)));
+  (width, rows |> List.map(Fmt.str("%-*s", width)));
 };
 
 let _pad_rows = (rows: list(string)): (int, list(string)) => {
   let width =
     rows |> List.map(String.length) |> Int.max_of |> (+)(1) |> max(2);
 
-  (width, rows |> List.map(Print.fmt("%-*s", width)));
+  (width, rows |> List.map(Fmt.str("%-*s", width)));
 };
 
 let _merge_trees =
@@ -226,7 +226,7 @@ let _merge_trees =
        subtrees
        |> List.map(((width, rows)) =>
             (List.length(rows) > index ? List.nth(rows, index) : "")
-            |> Print.fmt("%-*s", width)
+            |> Fmt.str("%-*s", width)
           )
        |> String.join
      });
@@ -269,7 +269,7 @@ let rec _print_subtree =
   let root_row = node |> ~@pp_node;
   let pipe_row =
     subtrees
-    |> List.map(fst % (width => Print.fmt("%-*s", width, "|")))
+    |> List.map(fst % (width => Fmt.str("%-*s", width, "|")))
     |> String.join;
   let divider_rows =
     has_multiple_subtrees

@@ -28,7 +28,7 @@ module Make = (T: ParseTarget) => {
       | Some(actual) => T.test(expected, actual)
       | None =>
         source
-        |> Print.fmt("failed to parse input: '%s'")
+        |> Fmt.str("failed to parse input: '%s'")
         |> Alcotest.fail
         |> ignore
     );
@@ -68,7 +68,7 @@ module Make = (T: ParseTarget) => {
       |> (
         fun
         | Some(r) =>
-          source |> Print.fmt("parsed input: '%s'") |> Alcotest.fail |> ignore
+          source |> Fmt.str("parsed input: '%s'") |> Alcotest.fail |> ignore
         | None => ()
       )
     );

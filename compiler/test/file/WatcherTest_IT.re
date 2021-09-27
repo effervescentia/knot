@@ -102,7 +102,7 @@ let suite =
              fun
              | (name, Relocate) when name != path => {
                  cancel();
-                 Print.fmt("unexpected file added: %s", name) |> Assert.fail;
+                 Fmt.str("unexpected file added: %s", name) |> Assert.fail;
                }
              | _ => (),
            );

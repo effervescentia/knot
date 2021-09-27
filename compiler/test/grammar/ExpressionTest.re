@@ -116,11 +116,11 @@ let suite =
         |> List.map(((op, tag)) =>
              [
                (
-                 op |> Print.fmt("true%sfalse"),
+                 op |> Fmt.str("true%sfalse"),
                  (true |> bool_prim, false |> bool_prim) |> tag |> as_raw_node,
                ),
                (
-                 op |> Print.fmt(" true %s false "),
+                 op |> Fmt.str(" true %s false "),
                  (true |> bool_prim, false |> bool_prim) |> tag |> as_raw_node,
                ),
              ]
@@ -140,11 +140,11 @@ let suite =
         |> List.map(((op, tag)) =>
              [
                (
-                 op |> Print.fmt("123%s456"),
+                 op |> Fmt.str("123%s456"),
                  (123 |> int_prim, 456 |> int_prim) |> tag,
                ),
                (
-                 op |> Print.fmt(" 123 %s 456 "),
+                 op |> Fmt.str(" 123 %s 456 "),
                  (123 |> int_prim, 456 |> int_prim) |> tag,
                ),
              ]
@@ -164,11 +164,11 @@ let suite =
         |> List.map(((op, tag)) =>
              [
                (
-                 op |> Print.fmt("123%s456"),
+                 op |> Fmt.str("123%s456"),
                  (123 |> int_prim, 456 |> int_prim) |> tag |> as_raw_node,
                ),
                (
-                 op |> Print.fmt(" 123 %s 456 "),
+                 op |> Fmt.str(" 123 %s 456 "),
                  (123 |> int_prim, 456 |> int_prim) |> tag |> as_raw_node,
                ),
              ]
@@ -283,7 +283,7 @@ let suite =
         [("+", of_add_op), ("-", of_sub_op), ("*", of_mult_op)]
         |> List.map(((op, tag)) =>
              (
-               Print.fmt("a %s b %s c", op, op),
+               Fmt.str("a %s b %s c", op, op),
                (
                  (
                    "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
@@ -302,7 +302,7 @@ let suite =
         [("/", of_div_op)]
         |> List.map(((op, tag)) =>
              (
-               Print.fmt("a %s b %s c", op, op),
+               Fmt.str("a %s b %s c", op, op),
                (
                  (
                    "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
@@ -321,7 +321,7 @@ let suite =
         [("&&", of_and_op), ("||", of_or_op)]
         |> List.map(((op, tag)) =>
              (
-               Print.fmt("a %s b %s c", op, op),
+               Fmt.str("a %s b %s c", op, op),
                (
                  (
                    "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
@@ -345,7 +345,7 @@ let suite =
         ]
         |> List.map(((op, tag)) =>
              (
-               Print.fmt("a %s b %s c", op, op),
+               Fmt.str("a %s b %s c", op, op),
                (
                  (
                    "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
@@ -364,7 +364,7 @@ let suite =
         [("==", of_eq_op), ("!=", of_ineq_op)]
         |> List.map(((op, tag)) =>
              (
-               Print.fmt("a %s b %s c", op, op),
+               Fmt.str("a %s b %s c", op, op),
                (
                  (
                    "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,

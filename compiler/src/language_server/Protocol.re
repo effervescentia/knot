@@ -72,7 +72,7 @@ let watch_events =
 };
 
 let send = (res: Yojson.Basic.t) => {
-  res |> Response.serialize |> Print.fprintf(stdout, "%s");
+  res |> Response.serialize |> Printf.fprintf(stdout, "%s");
   flush(stdout);
 };
 

@@ -44,7 +44,7 @@ let fmt_num =
   (
     fun
     | Integer(int) => Int64.to_string(int)
-    | Float(float, precision) => float |> Print.fmt("%.*f", precision)
+    | Float(float, precision) => float |> Fmt.str("%.*f", precision)
   )
   % string;
 

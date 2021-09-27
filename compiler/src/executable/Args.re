@@ -3,26 +3,42 @@
  */
 open Kore;
 
-let _bold_items = List.map(((name, desc)) => (Print.bold(name), desc));
-
-let _pad_items = xs => {
+let _pp_command_list = (ppf, cmds) => {
   let offset =
-    xs
+    cmds
     |> List.map(((x, _)) => String.length(x))
     |> List.fold_left((acc, len) => len > acc ? len : acc, 0)
     |> (+)(2);
 
-  xs |> List.map(((cmd, desc)) => (Print.fmt("  %-*s", offset, cmd), desc));
+  Fmt.pf(
+    ppf,
+    "%a\n",
+    Fmt.list(
+      ~sep=(ppf, ()) => Fmt.string(ppf, "\n"),
+      (ppf, (cmd, desc)) =>
+        Fmt.pf(
+          ppf,
+          "%a%s",
+          ppf => Fmt.pf(ppf, "  %-*s", offset),
+          cmd |> ~@Fmt.bold_str,
+          desc,
+        ),
+    ),
+    cmds,
+  );
 };
 
-let _print_cmds =
-  _bold_items
-  % _pad_items
-  % Print.many(~separator="\n", ((cmd, desc)) => cmd ++ desc)
-  % print_endline;
+let _pp_opt_list = cfg =>
+  Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, "\n\n"), Opt.pp(cfg));
 
-let _print_opts = (cfg, xs) =>
-  Print.many(~separator="\n\n", Opt.to_string(cfg), xs) |> print_endline;
+let _pp_command: Fmt.t(Cmd.t('a)) =
+  (ppf, {name}) =>
+    Fmt.pf(
+      ppf,
+      "  %a [options]",
+      Fmt.bold(ppf => Fmt.pf(ppf, "knotc %s")),
+      name,
+    );
 
 let to_config = (): (global_t, RunCmd.t) => {
   let auto_config_file = ConfigFile.find(default_config.root_dir);
@@ -60,35 +76,42 @@ let to_config = (): (global_t, RunCmd.t) => {
     find_static_config(get_root_dir(static^));
 
     if (!is_ci) {
-      Print.color := true;
+      Fmt.color := true;
     };
-
-    let fmt_command = ({name}: Cmd.t('a)) =>
-      Print.fmt(
-        "  %s [options]",
-        name |> Print.fmt("knotc %s") |> Print.bold,
-      );
 
     switch (cmd^) {
     | None =>
-      Print.bold("knotc") |> Print.fmt("  %s <command> ...") |> print_endline;
+      Fmt.pr(
+        "  %a <command> ...\n%a\n%a",
+        Fmt.bold_str,
+        "knotc",
+        Fmt.bold_str,
+        "\nCOMMANDS\n",
+        _pp_command_list,
+        RunCmd.commands,
+      )
 
-      Print.bold("\nCOMMANDS\n") |> print_endline;
-
-      _print_cmds(RunCmd.commands);
     | Some(Cmd.{name, opts: command_opts} as cmd) =>
-      cmd |> fmt_command |> print_endline;
+      Fmt.pr("%a\n", _pp_command, cmd);
 
       if (!List.is_empty(command_opts)) {
-        Print.bold("\nCOMMAND OPTIONS\n") |> print_endline;
-
-        command_opts |> _print_opts(static^);
+        Fmt.pr(
+          "%a\n%a\n",
+          Fmt.bold_str,
+          "\nCOMMAND OPTIONS\n",
+          _pp_opt_list(static^),
+          command_opts,
+        );
       };
     };
 
-    Print.bold("\nOPTIONS\n") |> print_endline;
-
-    global_opts() |> _print_opts(static^);
+    Fmt.pr(
+      "%a\n%a\n",
+      Fmt.bold_str,
+      "\nOPTIONS\n",
+      _pp_opt_list(static^),
+      global_opts(),
+    );
 
     exit(2);
   }
@@ -104,7 +127,7 @@ let to_config = (): (global_t, RunCmd.t) => {
           path => {
             if (!Sys.file_exists(path)) {
               path
-              |> Print.fmt("unable to find the specified config file: %s")
+              |> Fmt.str("unable to find the specified config file: %s")
               |> panic;
             };
 
@@ -145,7 +168,7 @@ let to_config = (): (global_t, RunCmd.t) => {
         | (None, key) when key == lsp_key => set_cmd(RunCmd.lsp)
         | (None, key) when key == bundle_key => set_cmd(RunCmd.bundle)
         | (None, key) when key == develop_key => set_cmd(RunCmd.develop)
-        | _ => Print.fmt("unexpected argument: %s", x) |> panic
+        | _ => Fmt.str("unexpected argument: %s", x) |> panic
         },
       "knotc [options] <command>",
     )
@@ -157,8 +180,7 @@ let to_config = (): (global_t, RunCmd.t) => {
     cmd^
     |!: (
       () => {
-        _print_cmds(RunCmd.commands);
-        print_newline();
+        Fmt.pr("%a\n", _pp_command_list, RunCmd.commands);
 
         panic("must provide a command");
       }
@@ -171,8 +193,7 @@ let to_config = (): (global_t, RunCmd.t) => {
   | Some(path) =>
     path
     |> Filename.relative_to(Sys.getcwd())
-    |> Print.bold
-    |> Log.info("found config file: %s")
+    |> Log.info("found config file: %a", ~$Fmt.bold_str)
   | None => Log.warn("no config file found")
   };
 
