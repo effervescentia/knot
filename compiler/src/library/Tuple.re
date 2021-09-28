@@ -58,17 +58,8 @@ let split3 = (f0: 'a => 'b, f1: 'a => 'c, f2: 'a => 'd, x: 'a): ('b, 'c, 'd) => 
 
 /* pretty printing */
 
-let pp2 = (~pp_sep=Fmt.cut, ppa, ppb): Fmt.t(t2('a, 'b)) =>
-  (ppf, (a, b)) => {
-    ppa(ppf, a);
-    pp_sep(ppf, ());
-    ppb(ppf, b);
-  };
-let pp3 = (~pp_sep=Fmt.cut, ppa, ppb, ppc): Fmt.t(t3('a, 'b, 'c)) =>
-  (ppf, (a, b, c)) => {
-    ppa(ppf, a);
-    pp_sep(ppf, ());
-    ppb(ppf, b);
-    pp_sep(ppf, ());
-    ppc(ppf, c);
-  };
+let pp2 = (ppa, ppb): Fmt.t(t2('a, 'b)) =>
+  (ppf, (a, b)) => Fmt.pf(ppf, "(%a, %a)", ppa, a, ppb, b);
+
+let pp3 = (ppa, ppb, ppc): Fmt.t(t3('a, 'b, 'c)) =>
+  (ppf, (a, b, c)) => Fmt.pf(ppf, "(%a, %a, %a)", ppa, a, ppb, b, ppc, c);

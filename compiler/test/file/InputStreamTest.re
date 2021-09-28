@@ -33,4 +33,15 @@ let suite =
         close_in(in_);
       }
     ),
+    "pp()"
+    >: (
+      () => {
+        let in_ = open_in(fixture_path);
+
+        [(__content, in_ |> InputStream.of_channel |> ~@InputStream.pp)]
+        |> Assert.(test_many(string));
+
+        close_in(in_);
+      }
+    ),
   ];

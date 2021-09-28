@@ -78,4 +78,16 @@ let suite =
         [((3, 1, 2), Tuple.split3((+)(2), (-)(2), ( * )(2), 1))]
         |> Assert.(test_many(int_trio))
     ),
+    "pp2()"
+    >: (
+      () =>
+        [("(0, 1)", __pair |> ~@Tuple.pp2(Fmt.int, Fmt.int))]
+        |> Assert.(test_many(string))
+    ),
+    "pp3()"
+    >: (
+      () =>
+        [("(0, 1, 2)", __trio |> ~@Tuple.pp3(Fmt.int, Fmt.int, Fmt.int))]
+        |> Assert.(test_many(string))
+    ),
   ];

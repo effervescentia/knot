@@ -68,7 +68,7 @@ let _pp_flag: Fmt.t((string, option(string))) =
     | None => Fmt.pf(ppf, "--%s", name)
     };
 
-let _pp_options: Fmt.t(option(list(string))) =
+let _pp_option_list: Fmt.t(option(list(string))) =
   ppf =>
     fun
     | Some(options) =>
@@ -82,11 +82,13 @@ let _pp_options: Fmt.t(option(list(string))) =
       )
     | None => Fmt.nop(ppf, ());
 
+let _pp_attr = (label: string): Fmt.t(Value.t) =>
+  ppf => Fmt.pf(ppf, "\n    [%s: %a]", label, Fmt.bold(Value.pp));
+
 let _pp_default: Fmt.t(option(Value.t)) =
   ppf =>
     fun
-    | Some(default) =>
-      Fmt.pf(ppf, "\n    [default: %a]", Fmt.bold(Value.pp), default)
+    | Some(default) => _pp_attr("default", ppf, default)
     | None => Fmt.nop(ppf, ());
 
 let _pp_config = (opt: t): Fmt.t(option(Config.t)) =>
@@ -94,13 +96,9 @@ let _pp_config = (opt: t): Fmt.t(option(Config.t)) =>
     fun
     | Some(cfg) =>
       switch (opt.from_config(cfg), opt.default) {
-      | (Some(from_config), Some(default)) when from_config != default =>
-        Fmt.pf(
-          ppf,
-          "\n    [from config: %a]",
-          Fmt.bold(Value.pp),
-          from_config,
-        )
+      | (Some(from_config), Some(default)) when from_config == default =>
+        Fmt.nop(ppf, ())
+      | (Some(from_config), _) => _pp_attr("from config", ppf, from_config)
       | _ => Fmt.nop(ppf, ())
       }
     | None => Fmt.nop(ppf, ());
@@ -112,7 +110,7 @@ let pp = (cfg: option(Config.t)): Fmt.t(t) =>
       "  %a%a%a%a\n\n    %s",
       Fmt.bold(_pp_flag),
       (value.name, value.alias),
-      _pp_options,
+      _pp_option_list,
       value.options,
       _pp_default,
       value.default,

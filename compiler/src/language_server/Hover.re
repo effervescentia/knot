@@ -86,7 +86,7 @@ let handler =
               switch (Node.Raw.get_value(node)) {
               | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
                 Some((
-                  kwd |> Fmt.str("(keyword) %s"),
+                  Fmt.str("(keyword) %s", kwd),
                   Node.Raw.get_range(node),
                 ))
               | _ => None

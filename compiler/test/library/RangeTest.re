@@ -65,4 +65,17 @@ let suite =
         ]
         |> Assert.(test_many(bool))
     ),
+    "pp()"
+    >: (
+      () =>
+        [
+          ("3.5-4.8", __range |> ~@Range.pp),
+          (
+            "3.1-3.5",
+            Range.create(Point.create(3, 1), __start_point) |> ~@Range.pp,
+          ),
+          ("3.5", Range.create(__start_point, __start_point) |> ~@Range.pp),
+        ]
+        |> Assert.(test_many(string))
+    ),
   ];

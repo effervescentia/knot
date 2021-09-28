@@ -58,8 +58,8 @@ let suite =
       () => {
         let resolver = Resolver.create(__cache, __root_dir, __source_dir);
 
-        Alcotest.check_raises(
-          "should throw NotImplemented exception", NotImplemented, () =>
+        Assert.throws(
+          NotImplemented, "should throw NotImplemented exception", () =>
           Resolver.resolve_module(
             ~skip_cache=true,
             External(__path),
@@ -67,6 +67,23 @@ let suite =
           )
           |> ignore
         );
+      }
+    ),
+    "pp()"
+    >: (
+      () => {
+        let resolver = Resolver.create(__cache, __root_dir, __source_dir);
+
+        [
+          (
+            "Resolver {
+  cache: foo
+  root_dir: bar
+}",
+            resolver |> ~@Resolver.pp,
+          ),
+        ]
+        |> Assert.(test_many(string));
       }
     ),
   ];

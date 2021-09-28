@@ -108,9 +108,9 @@ let suite =
     "parse invalid"
     >: (
       () =>
-        Alcotest.check_raises(
-          "should throw InvalidModule",
+        Assert.throws(
           CompileError([InvalidModule(__foo)]),
+          "should throw InvalidModule",
           () =>
           _to_stream("foo bar") |> Parser.ast(__context) |> ignore
         )

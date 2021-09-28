@@ -6,6 +6,8 @@ module type Target = {
 
 let test_many = test => List.iter(((exp, act)) => test(exp, act));
 let test_all = (test, exp) => List.iter(act => test(exp, act));
+let throws = (exn, msg, test) =>
+  Alcotest.check_raises(msg, exn, () => test() |> ignore);
 
 module Make = (T: Target) => {
   include T;

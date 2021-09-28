@@ -31,13 +31,63 @@ let _pp_command_list = (ppf, cmds) => {
 let _pp_opt_list = cfg =>
   Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, "\n\n"), Opt.pp(cfg));
 
-let _pp_command: Fmt.t(Cmd.t('a)) =
+let _pp_sub_command: Fmt.t(Cmd.t('a)) =
   (ppf, {name}) =>
     Fmt.pf(
       ppf,
       "  %a [options]",
       Fmt.bold(ppf => Fmt.pf(ppf, "knotc %s")),
       name,
+    );
+
+let _pp_cmd_usage = (static_cfg): Fmt.t(option(Cmd.t(RunCmd.t))) =>
+  ppf =>
+    fun
+    | None =>
+      Fmt.pf(
+        ppf,
+        "  %a <command> ...\n%a\n%a",
+        Fmt.bold_str,
+        "knotc",
+        Fmt.bold_str,
+        "\nCOMMANDS\n",
+        _pp_command_list,
+        RunCmd.commands,
+      )
+
+    | Some(Cmd.{name, opts: command_opts} as cmd) =>
+      Fmt.pf(
+        ppf,
+        "%a\n%a",
+        _pp_sub_command,
+        cmd,
+        ppf =>
+          fun
+          | [] => Fmt.nop(ppf, ())
+          | opts =>
+            Fmt.pf(
+              ppf,
+              "%a\n%a\n",
+              Fmt.bold_str,
+              "\nCOMMAND OPTIONS\n",
+              _pp_opt_list(static_cfg),
+              opts,
+            ),
+        command_opts,
+      );
+
+let rec pp_usage:
+  Fmt.t((option(Cmd.t(RunCmd.t)), option(Config.t), list(Opt.t))) =
+  (ppf, (cmd, static_cfg, opts)) =>
+    Fmt.pf(
+      ppf,
+      "%a%a\n%a\n",
+      _pp_cmd_usage(static_cfg),
+      cmd,
+      Fmt.bold_str,
+      "\nOPTIONS\n",
+      _pp_opt_list(static_cfg),
+      opts,
     );
 
 let to_config = (): (global_t, RunCmd.t) => {
@@ -79,39 +129,7 @@ let to_config = (): (global_t, RunCmd.t) => {
       Fmt.color := true;
     };
 
-    switch (cmd^) {
-    | None =>
-      Fmt.pr(
-        "  %a <command> ...\n%a\n%a",
-        Fmt.bold_str,
-        "knotc",
-        Fmt.bold_str,
-        "\nCOMMANDS\n",
-        _pp_command_list,
-        RunCmd.commands,
-      )
-
-    | Some(Cmd.{name, opts: command_opts} as cmd) =>
-      Fmt.pr("%a\n", _pp_command, cmd);
-
-      if (!List.is_empty(command_opts)) {
-        Fmt.pr(
-          "%a\n%a\n",
-          Fmt.bold_str,
-          "\nCOMMAND OPTIONS\n",
-          _pp_opt_list(static^),
-          command_opts,
-        );
-      };
-    };
-
-    Fmt.pr(
-      "%a\n%a\n",
-      Fmt.bold_str,
-      "\nOPTIONS\n",
-      _pp_opt_list(static^),
-      global_opts(),
-    );
+    Fmt.pr("%a", pp_usage, (cmd^, static^, global_opts()));
 
     exit(2);
   }

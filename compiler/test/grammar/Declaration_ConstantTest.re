@@ -129,6 +129,7 @@ let suite =
           |> as_raw_node,
         );
 
+        /* TODO: uncomment assertions */
         /* Assert.int(0, scope.seed^); */
         Assert.hashtbl(
           ~@Export.pp,

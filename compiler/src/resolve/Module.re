@@ -75,7 +75,9 @@ let cache = (cache: Cache.t) =>
 
 let pp: Fmt.t(t) =
   ppf =>
-    fun
-    | Raw(s) => Fmt.pf(ppf, "raw: %s", s)
-    | File({full, relative}) =>
-      Fmt.pf(ppf, "full: %s, relative: %s", full, relative);
+    (
+      fun
+      | Raw(s) => [("raw", s)]
+      | File({full, relative}) => [("full", full), ("relative", relative)]
+    )
+    % Fmt.struct_("Module", Fmt.string, Fmt.string, ppf);

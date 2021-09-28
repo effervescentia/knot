@@ -18,6 +18,18 @@ let suite =
         ]
         |> Assert.(test_many(string))
     ),
+    "pp_dump_parse_err()"
+    >: (
+      () =>
+        [
+          ("TypeError<NotFound<foo>>", __type_error |> ~@pp_dump_parse_err),
+          (
+            "ReservedKeyword<foo>",
+            ReservedKeyword("foo") |> ~@pp_dump_parse_err,
+          ),
+        ]
+        |> Assert.(test_many(string))
+    ),
     "pp_compile_err()"
     >: (
       () =>
@@ -51,6 +63,40 @@ let suite =
         ]
         |> Assert.(test_many(string))
     ),
+    "pp_dump_compile_err()"
+    >: (
+      () =>
+        [
+          (
+            "ImportCycle<foo -> bar -> fizz -> foo>",
+            ImportCycle(["foo", "bar", "fizz", "foo"])
+            |> ~@pp_dump_compile_err,
+          ),
+          (
+            "UnresolvedModule<foo>",
+            UnresolvedModule("foo") |> ~@pp_dump_compile_err,
+          ),
+          (
+            "FileNotFound<foo>",
+            FileNotFound("foo") |> ~@pp_dump_compile_err,
+          ),
+          (
+            "ParseError<TypeError<NotFound<foo>>, foo, 0.0>",
+            ParseError(
+              __type_error,
+              Reference.Namespace.of_string("foo"),
+              Range.zero,
+            )
+            |> ~@pp_dump_compile_err,
+          ),
+          (
+            "InvalidModule<foo>",
+            InvalidModule(Reference.Namespace.of_string("foo"))
+            |> ~@pp_dump_compile_err,
+          ),
+        ]
+        |> Assert.(test_many(string))
+    ),
     "pp_err_list()"
     >: (
       () =>
@@ -63,6 +109,19 @@ could not resolve module: foo
 could not resolve module: bar",
             [UnresolvedModule("foo"), UnresolvedModule("bar")]
             |> ~@pp_err_list,
+          ),
+        ]
+        |> Assert.(test_many(string))
+    ),
+    "pp_dump_err_list()"
+    >: (
+      () =>
+        [
+          (
+            "UnresolvedModule<foo>,
+UnresolvedModule<bar>",
+            [UnresolvedModule("foo"), UnresolvedModule("bar")]
+            |> ~@pp_dump_err_list,
           ),
         ]
         |> Assert.(test_many(string))

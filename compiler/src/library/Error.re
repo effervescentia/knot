@@ -111,7 +111,7 @@ let pp_dump_compile_err: Fmt.t(compile_err) =
       );
 
 let pp_dump_err_list: Fmt.t(list(compile_err)) =
-  Fmt.list(~sep=Fmt.comma, pp_compile_err);
+  Fmt.list(~sep=Fmt.comma, pp_dump_compile_err);
 
 let pp_err_list: Fmt.t(list(compile_err)) =
   ppf =>

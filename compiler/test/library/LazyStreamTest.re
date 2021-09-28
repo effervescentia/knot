@@ -1,5 +1,6 @@
 open Kore;
 
+let __string = "foobar\n";
 let __chars = ['f', 'o', 'o', 'b', 'a', 'r', '\n'];
 let __char_stream = __chars |> Stream.of_list |> LazyStream.of_stream;
 
@@ -24,7 +25,7 @@ let suite =
     "of_string()"
     >: (
       () =>
-        [(__char_stream, LazyStream.of_string("foobar\n"))]
+        [(__char_stream, LazyStream.of_string(__string))]
         |> Assert.(test_many(lazy_stream(Fmt.char)))
     ),
     "of_channel()"
@@ -44,7 +45,18 @@ let suite =
     "to_list()"
     >: (
       () =>
-        [(__chars, "foobar\n" |> LazyStream.of_string |> LazyStream.to_list)]
+        [(__chars, __string |> LazyStream.of_string |> LazyStream.to_list)]
         |> Assert.(test_many(char_list))
+    ),
+    "pp()"
+    >: (
+      () =>
+        [
+          (
+            __string,
+            __string |> LazyStream.of_string |> ~@LazyStream.pp(Fmt.char),
+          ),
+        ]
+        |> Assert.(test_many(string))
     ),
   ];

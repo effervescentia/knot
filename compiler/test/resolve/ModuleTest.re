@@ -148,4 +148,21 @@ let suite =
         );
       }
     ),
+    "pp()"
+    >: (
+      () =>
+        [
+          ("Module {
+  raw: foo
+}", Module.Raw("foo") |> ~@Module.pp),
+          (
+            "Module {
+  full: foo
+  relative: bar
+}",
+            Module.File({full: "foo", relative: "bar"}) |> ~@Module.pp,
+          ),
+        ]
+        |> Assert.(test_many(string))
+    ),
   ];

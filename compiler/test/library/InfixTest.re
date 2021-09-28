@@ -56,4 +56,8 @@ let suite =
         [(Some(3), Some(1) |?> (+)(2)), (None, None |?> (+)(2))]
         |> Assert.(test_many(opt_int))
     ),
+    "(~@)"
+    >: (
+      () => [("foo", "foo" |> ~@Fmt.string)] |> Assert.(test_many(string))
+    ),
   ];

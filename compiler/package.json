@@ -188,6 +188,15 @@
       "name": "knot.exec_test",
       "namespace": "TestExecutable"
     },
+    "test/language_server": {
+      "require": [
+        "knot.test",
+        "knot.resolve_test",
+        "knot.lang_server"
+      ],
+      "name": "knot.lang_server_test",
+      "namespace": "TestLanguageServer"
+    },
     "test/unit": {
       "require": [
         "knot.lib_test",
@@ -197,6 +206,7 @@
         "knot.parse_test",
         "knot.generate_test",
         "knot.compile_test",
+        "knot.lang_server_test",
         "knot.exec_test"
       ],
       "main": "TestSuite",

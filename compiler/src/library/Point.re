@@ -35,5 +35,4 @@ let max = (lhs: t, rhs: t): t => compare(lhs, rhs) >= 0 ? lhs : rhs;
 
 /* pretty printing */
 
-let pp: Fmt.t(t) =
-  (ppf, (line, column): t) => Fmt.pf(ppf, "(%d:%d)", line, column);
+let pp: Fmt.t(t) = (ppf, point: t) => Fmt.text_loc(ppf, (point, point));

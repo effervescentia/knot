@@ -26,7 +26,7 @@ let pp = (pp_value: Fmt.t('a)): Fmt.t(t('a)) =>
   (ppf, (value, type_, range): t('a)) =>
     Fmt.pf(
       ppf,
-      "%a (%a) @ %a",
+      "%a (%a) %@ %a",
       pp_value,
       value,
       Type.pp,
@@ -54,5 +54,5 @@ module Raw = {
 
   let pp = (pp_value: Fmt.t('a)): Fmt.t(t('a)) =>
     (ppf, (value, range): t('a)) =>
-      Fmt.pf(ppf, "%a @ %a", pp_value, value, Range.pp, range);
+      Fmt.pf(ppf, "%a %@ %a", pp_value, value, Range.pp, range);
 };

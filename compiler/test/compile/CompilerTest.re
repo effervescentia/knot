@@ -134,9 +134,9 @@ let suite =
       () => {
         let compiler = Compiler.create(__config);
 
-        Alcotest.check_raises(
-          "should throw FileNotFound exception",
+        Assert.throws(
           CompileError([FileNotFound(__entry_filename)]),
+          "should throw FileNotFound exception",
           () =>
           compiler
           |> Compiler.process([__entry], _ =>
@@ -151,9 +151,9 @@ let suite =
         let compiler =
           Compiler.create({...__config, root_dir: __invalid_program_dir});
 
-        Alcotest.check_raises(
-          "should throw InvalidModule exception",
+        Assert.throws(
           CompileError([InvalidModule(__entry)]),
+          "should throw InvalidModule exception",
           () =>
           compiler
           |> Compiler.process([__entry], _ =>
@@ -201,9 +201,9 @@ let suite =
         let compiler =
           Compiler.create({...__config, root_dir: __cyclic_imports_dir});
 
-        Alcotest.check_raises(
-          "should throw ImportCycle exception",
+        Assert.throws(
           CompileError([ImportCycle(["@/entry", "@/cycle"])]),
+          "should throw ImportCycle exception",
           () =>
           compiler |> Compiler.init(__entry)
         );

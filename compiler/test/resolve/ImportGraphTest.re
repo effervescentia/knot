@@ -149,4 +149,18 @@ let suite =
         );
       }
     ),
+    "pp()"
+    >: (
+      () => {
+        let get_imports = id => id == __foo_id ? [__bar_id] : [];
+        let import_graph = _setup(get_imports);
+
+        Assert.string(
+          "@/foo \n\
+|     \n\
+bar   \n\      ",
+          import_graph |> ~@ImportGraph.pp,
+        );
+      }
+    ),
   ];

@@ -36,13 +36,33 @@ module Fmt = {
   let grey_str = grey(string);
 
   let good = pp => pp |> green |> bold;
-  let good_str = good(Fmt.string);
+  let good_str = good(string);
 
   let bad = pp => pp |> red |> bold;
-  let bad_str = bad(Fmt.string);
+  let bad_str = bad(string);
 
   let warn = pp => pp |> yellow |> bold;
-  let warn_str = warn(Fmt.string);
+  let warn_str = warn(string);
 
-  let uchar = (ppf, u) => pf(ppf, "U+%04X", Uchar.to_int(u));
+  let uchar = (ppf, uc) => {
+    let ui = Uchar.to_int(uc);
+    if (ui > 31 && ui < 127 || ui == 9 || ui == 10 || ui == 13) {
+      pf(ppf, "%s", Char.escaped(Uchar.to_char(uc)));
+    } else {
+      pf(ppf, "\\u{%x}", ui);
+    };
+  };
+
+  let attr = (pp_key: t('a), pp_value: t('b)): t(('a, 'b)) =>
+    (ppf, (key, value)) => pf(ppf, "@ %s: %s", key, value);
+
+  let struct_ = (name, pp_key: t('a), pp_value: t('b)): t(list(('a, 'b))) =>
+    ppf => {
+      pf(
+        ppf,
+        "@[<v 0>@<0>%s {@[<v>%a@]@ @<0>}@]",
+        name,
+        list(~sep=nop, attr(pp_key, pp_value)),
+      );
+    };
 };

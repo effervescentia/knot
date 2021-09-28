@@ -17,4 +17,18 @@ let suite =
         Hashtbl.compare(table_a, table_c) |> Assert.false_;
       }
     ),
+    "pp()"
+    >: (
+      () =>
+        [
+          (
+            "Hashtbl {
+  foo: bar
+}",
+            [("foo", "bar")]
+            |> ~@Fmt.struct_("Hashtbl", Fmt.string, Fmt.string),
+          ),
+        ]
+        |> Assert.(test_many(string))
+    ),
   ];

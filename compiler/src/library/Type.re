@@ -83,7 +83,7 @@ module Raw = {
   /* pretty printing */
 
   let pp_primitive: Fmt.t(primitive_t) =
-    (ppf, type_: primitive_t) =>
+    (ppf, type_) =>
       Constants.(
         switch (type_) {
         | `Nil => Keyword.nil
@@ -102,31 +102,39 @@ module Raw = {
   let pp_abstract: Fmt.t(Trait.t) =
     ppf => Fmt.pf(ppf, "Abstract<%a>", Trait.pp);
 
+  let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
+    (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
+
   let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, 'a))) =>
-    (ppf, props: list((string, 'a))) =>
+    (ppf, props) =>
       List.is_empty(props)
         ? Fmt.string(ppf, "{}")
-        : props
-          |> List.map(Tuple.join2(name => Fmt.str("%s: %a", name, pp_type)))
-          |> List.intersperse(", ")
-          |> String.join
-          |> Fmt.pf(ppf, "{ %s }");
+        : Fmt.pf(
+            ppf,
+            "{ %a }",
+            Fmt.list(
+              ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
+              pp_props(pp_type),
+            ),
+            props,
+          );
 
   let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
-    (ppf, (args, res): (list((string, 'a)), 'a)) =>
+    (ppf, (args, res)) =>
       Fmt.pf(
         ppf,
-        "Function<(%s), %a>",
-        args
-        |> List.map(Tuple.join2(name => Fmt.str("%s: %a", name, pp_type)))
-        |> List.intersperse(", ")
-        |> String.join,
+        "Function<(%a), %a>",
+        Fmt.list(
+          ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
+          pp_props(pp_type),
+        ),
+        args,
         pp_type,
         res,
       );
 
   let rec pp: Fmt.t(t) =
-    (ppf, type_: t) =>
+    (ppf, type_) =>
       switch (type_) {
       | Strong(t) => pp_strong(ppf, t)
       | Invalid(err) => Error.pp(pp, ppf, err)
@@ -149,7 +157,7 @@ module Raw = {
       | Error(err) => Error.pp(pp, ppf, err)
 
   and pp_strong: Fmt.t(strong_t) =
-    (ppf, type_: strong_t) =>
+    (ppf, type_) =>
       switch (type_) {
       | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
         pp_primitive(ppf, x)

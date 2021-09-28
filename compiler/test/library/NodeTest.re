@@ -34,6 +34,12 @@ let suite = [
       () =>
         [(__range, Node.get_range(__node))] |> Assert.(test_many(range))
     ),
+    "pp()"
+    >: (
+      () =>
+        [("foo (nil) @ 1.8-3.4", __node |> ~@Node.pp(Fmt.string))]
+        |> Assert.(test_many(string))
+    ),
   ],
   "Library.Node.Raw"
   >::: [
@@ -54,6 +60,12 @@ let suite = [
       () =>
         [(__range, Node.Raw.get_range(__raw_node))]
         |> Assert.(test_many(range))
+    ),
+    "pp()"
+    >: (
+      () =>
+        [("foo @ 1.8-3.4", __raw_node |> ~@Node.Raw.pp(Fmt.string))]
+        |> Assert.(test_many(string))
     ),
   ],
 ];

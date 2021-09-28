@@ -30,4 +30,17 @@ let suite =
         ]
         |> Assert.(test_many(string))
     ),
+    "pp()"
+    >: (
+      () =>
+        [
+          (Target.knot, Target.Knot |> ~@Target.pp),
+          (Target.javascript_es6, Target.JavaScript(ES6) |> ~@Target.pp),
+          (
+            Target.javascript_common,
+            Target.JavaScript(Common) |> ~@Target.pp,
+          ),
+        ]
+        |> Assert.(test_many(string))
+    ),
   ];

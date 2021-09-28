@@ -48,6 +48,6 @@ let suite =
     ),
     "pp()"
     >: (
-      () => [("(3:5)", __point |> ~@Point.pp)] |> Assert.(test_many(string))
+      () => [("3.5", __point |> ~@Point.pp)] |> Assert.(test_many(string))
     ),
   ];

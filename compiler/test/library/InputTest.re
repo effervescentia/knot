@@ -38,4 +38,8 @@ let suite =
         ]
         |> Assert.(test_many(raw_node(Fmt.string)))
     ),
+    "pp()"
+    >: (
+      () => [("z@4.0", __input |> ~@Input.pp)] |> Assert.(test_many(string))
+    ),
   ];
