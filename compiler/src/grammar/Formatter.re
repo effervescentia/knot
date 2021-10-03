@@ -7,413 +7,440 @@ let __space = string(" ");
 let __semicolon = string(";");
 let __quotation_mark = string("\"");
 
-let fmt_anon_id = id =>
-  "'" ++ String.make(1, char_of_int(97 + id)) |> string;
+let pp_binary_op: Fmt.t(binary_operator_t) =
+  ppf =>
+    (
+      fun
+      | LogicalAnd => "&&"
+      | LogicalOr => "||"
+      | Add => "+"
+      | Subtract => "-"
+      | Divide => "/"
+      | Multiply => "*"
+      | LessOrEqual => "<="
+      | LessThan => "<"
+      | GreaterOrEqual => ">="
+      | GreaterThan => ">"
+      | Equal => "=="
+      | Unequal => "!="
+      | Exponent => "^"
+    )
+    % Fmt.string(ppf);
 
-let fmt_binary_op =
-  (
+let pp_unary_op: Fmt.t(unary_operator_t) =
+  ppf =>
+    (
+      fun
+      | Not => "!"
+      | Positive => "+"
+      | Negative => "-"
+    )
+    % Fmt.string(ppf);
+
+let pp_num: Fmt.t(number_t) =
+  ppf =>
     fun
-    | LogicalAnd => "&&"
-    | LogicalOr => "||"
-    | Add => "+"
-    | Subtract => "-"
-    | Divide => "/"
-    | Multiply => "*"
-    | LessOrEqual => "<="
-    | LessThan => "<"
-    | GreaterOrEqual => ">="
-    | GreaterThan => ">"
-    | Equal => "=="
-    | Unequal => "!="
-    | Exponent => "^"
-  )
-  % string;
+    | Integer(int) => Fmt.int64(ppf, int)
+    | Float(float, precision) => Fmt.pf(ppf, "%.*f", precision, float);
 
-let fmt_unary_op =
-  (
+let pp_string: Fmt.t('a) =
+  (ppf, s) => s |> String.escaped |> Fmt.pf(ppf, "\"%s\"");
+
+let pp_ns: Fmt.t(Namespace.t) = ppf => ~@Namespace.pp % pp_string(ppf);
+
+let pp_prim: Fmt.t(raw_primitive_t) =
+  ppf =>
     fun
-    | Not => "!"
-    | Positive => "+"
-    | Negative => "-"
-  )
-  % string;
+    | Nil => Fmt.string(ppf, "nil")
+    | Boolean(true) => Fmt.string(ppf, "true")
+    | Boolean(false) => Fmt.string(ppf, "false")
+    | Number(num) => pp_num(ppf, num)
+    | String(str) => pp_string(ppf, str);
 
-let fmt_id = ~@Identifier.pp % string;
-
-let fmt_num =
-  (
+let rec pp_jsx: Fmt.t(raw_jsx_t) =
+  ppf =>
     fun
-    | Integer(int) => Int64.to_string(int)
-    | Float(float, precision) => float |> Fmt.str("%.*f", precision)
-  )
-  % string;
-
-let fmt_string = s =>
-  [__quotation_mark, s |> String.escaped |> string, __quotation_mark]
-  |> concat;
-
-let fmt_ns = ~@Namespace.pp % fmt_string;
-
-let fmt_prim =
-  AST.(
-    fun
-    | Nil => string("nil")
-    | Boolean(bool) => bool |> string_of_bool |> string
-    | Number(num) => fmt_num(num)
-    | String(str) => fmt_string(str)
-  );
-
-let rec fmt_jsx =
-  fun
-  | Tag(name, attrs, children) =>
-    [
-      string("<"),
-      name |> Node.Raw.get_value |> fmt_id,
-      List.is_empty(attrs)
-        ? Nil
-        : attrs
-          |> List.map(
-               Node.get_value
-               % (attr => [__space, fmt_jsx_attr(attr)] |> concat),
-             )
-          |> concat,
-      List.is_empty(children)
-        ? string(" />")
-        : [
-            [string(">")] |> newline,
-            children
-            |> List.map(
-                 Node.get_value
-                 % (child => [fmt_jsx_child(child)] |> newline),
-               )
-            |> concat
-            |> indent(2),
-            [
-              string("</"),
-              name |> Node.Raw.get_value |> fmt_id,
-              string(">"),
-            ]
-            |> concat,
-          ]
-          |> concat,
-    ]
-    |> concat
-
-  | Fragment(children) =>
-    List.is_empty(children)
-      ? string("<></>")
-      : [
-          [string("<>")] |> newline,
-          children
-          |> List.map(Node.get_value % fmt_jsx_child)
-          |> concat
-          |> indent(2),
-          string("</>"),
-        ]
-        |> concat
-
-and fmt_jsx_child =
-  fun
-  | Node(jsx) => jsx |> Node.get_value |> fmt_jsx
-  | Text(s) => s |> Node.get_value |> string
-  | InlineExpression(expr) =>
-    [string("{"), expr |> Node.get_value |> fmt_expression, string("}")]
-    |> concat
-
-and fmt_jsx_attr = attr =>
-  (
-    switch (attr) {
-    | Class(name, value) => (
-        [string("."), name |> Node.Raw.get_value |> fmt_id] |> concat,
-        value,
+    | Tag(name, attrs, []) =>
+      Fmt.pf(
+        ppf,
+        "<%a%a />",
+        Identifier.pp,
+        Node.Raw.get_value(name),
+        pp_jsx_attr_list,
+        attrs |> List.map(Node.get_value),
       )
-    | ID(name) => (
-        [string("#"), name |> Node.Raw.get_value |> fmt_id] |> concat,
-        None,
+    | Tag(name, attrs, children) =>
+      Fmt.(
+        pf(
+          ppf,
+          "<%a%a>%a</%a>",
+          Identifier.pp,
+          Node.Raw.get_value(name),
+          pp_jsx_attr_list,
+          attrs |> List.map(Node.get_value),
+          inner_box(list(~sep=nop, pp_jsx_child)),
+          children |> List.map(Node.get_value),
+          Identifier.pp,
+          Node.Raw.get_value(name),
+        )
       )
-    | Property(name, value) => (name |> Node.Raw.get_value |> fmt_id, value)
-    }
-  )
-  |> (
+
+    | Fragment([]) => Fmt.pf(ppf, "@ <></>")
+    | Fragment(children) =>
+      Fmt.pf(
+        ppf,
+        "@ <>%a</>",
+        Fmt.(inner_box(list(~sep=nop, pp_jsx_child))),
+        children |> List.map(Node.get_value),
+      )
+
+and pp_jsx_child: Fmt.t(raw_jsx_child_t) =
+  ppf =>
     fun
-    | (name, Some(expr)) =>
-      [name, string("="), expr |> Node.get_value |> fmt_jsx_attr_expr]
-      |> concat
+    | Node(jsx) => jsx |> Node.get_value |> Fmt.pf(ppf, "@ %a", pp_jsx)
+    | Text(text) => text |> Node.get_value |> Fmt.pf(ppf, "@ %s")
+    | InlineExpression(expr) =>
+      expr |> Node.get_value |> Fmt.pf(ppf, "@ {%a}", pp_expression)
 
-    | (name, None) => name
-  )
+and pp_jsx_attr_list: Fmt.t(list(raw_jsx_attribute_t)) =
+  ppf =>
+    fun
+    | [] => Fmt.nop(ppf, ())
+    | attrs =>
+      attrs
+      |> Fmt.list(~sep=Fmt.nop, ppf => Fmt.pf(ppf, " %a", pp_jsx_attr), ppf)
 
-and fmt_jsx_attr_expr = x =>
-  switch (x) {
-  | Primitive(_)
-  | Identifier(_)
-  | Group(_)
-  | Closure(_)
-  /* show tags or fragments with no children */
-  | JSX((Tag(_, _, []) | Fragment([]), _, _)) => fmt_expression(x)
-  | _ => [string("("), fmt_expression(x), string(")")] |> concat
-  }
+and pp_jsx_attr: Fmt.t(raw_jsx_attribute_t) =
+  (ppf, attr) =>
+    Fmt.pf(
+      ppf,
+      "%a%a",
+      ppf =>
+        fun
+        | Class(name, _) =>
+          Fmt.pf(ppf, ".%a", Identifier.pp, Node.Raw.get_value(name))
+        | ID(name) =>
+          Fmt.pf(ppf, "#%a", Identifier.pp, Node.Raw.get_value(name))
+        | Property(name, _) =>
+          name |> Node.Raw.get_value |> Identifier.pp(ppf),
+      attr,
+      ppf =>
+        fun
+        | Class(_, Some(expr))
+        | Property(_, Some(expr)) =>
+          expr |> Node.get_value |> Fmt.pf(ppf, "=%a", pp_jsx_attr_expr)
+        | _ => Fmt.nop(ppf, ()),
+      attr,
+    )
 
-and fmt_expression =
-  fun
-  | Primitive(prim) => prim |> Node.get_value |> fmt_prim
-  | Identifier(name) => name |> Node.get_value |> fmt_id
-  | JSX(jsx) => jsx |> Node.get_value |> fmt_jsx
-  /* collapse parentheses around unary values */
-  | Group((
-      (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
-      _,
-      _,
-    )) =>
-    fmt_expression(expr)
-  | Group(expr) =>
-    [string("("), expr |> Node.get_value |> fmt_expression, string(")")]
-    |> concat
-  | BinaryOp(op, lhs, rhs) =>
-    [
-      lhs |> Node.get_value |> fmt_expression,
-      __space,
-      fmt_binary_op(op),
-      __space,
-      rhs |> Node.get_value |> fmt_expression,
-    ]
-    |> concat
-  | UnaryOp(op, expr) =>
-    [fmt_unary_op(op), expr |> Node.get_value |> fmt_expression] |> concat
-  | Closure(stmts) =>
-    List.is_empty(stmts)
-      ? string("{}")
-      : [
-          [string("{")] |> newline,
-          stmts
-          |> List.map(stmt =>
-               [stmt |> Node.get_value |> fmt_statement] |> newline
-             )
-          |> concat
-          |> indent(2),
-          string("}"),
-        ]
-        |> concat
+and pp_jsx_attr_expr: Fmt.t(raw_expression_t) =
+  ppf =>
+    fun
+    | (
+        Primitive(_) | Identifier(_) | Group(_) | Closure(_) |
+        /* show tags or fragments with no children */
+        JSX((Tag(_, _, []) | Fragment([]), _, _))
+      ) as expr =>
+      pp_expression(ppf, expr)
+    | expr => Fmt.pf(ppf, "(%a)", pp_expression, expr)
 
-and fmt_statement = stmt =>
-  (
+and pp_expression: Fmt.t(raw_expression_t) =
+  ppf =>
+    fun
+    | Primitive(prim) => prim |> Node.get_value |> pp_prim(ppf)
+    | Identifier(name) => name |> Node.get_value |> Identifier.pp(ppf)
+    | JSX(jsx) => jsx |> Node.get_value |> pp_jsx(ppf)
+
+    /* collapse parentheses around unary values */
+    | Group((
+        (Primitive(_) | Identifier(_) | Group(_) | UnaryOp(_) | Closure(_)) as expr,
+        _,
+        _,
+      )) =>
+      pp_expression(ppf, expr)
+    | Group(expr) =>
+      expr |> Node.get_value |> Fmt.pf(ppf, "(%a)", pp_expression)
+
+    | BinaryOp(op, lhs, rhs) =>
+      Fmt.pf(
+        ppf,
+        "%a %a %a",
+        pp_expression,
+        Node.get_value(lhs),
+        pp_binary_op,
+        op,
+        pp_expression,
+        Node.get_value(rhs),
+      )
+
+    | UnaryOp(op, expr) =>
+      Fmt.pf(
+        ppf,
+        "%a%a",
+        pp_unary_op,
+        op,
+        pp_expression,
+        Node.get_value(expr),
+      )
+
+    | Closure([]) => Fmt.string(ppf, "{}")
+    | Closure(stmts) =>
+      stmts
+      |> List.map(Node.get_value)
+      |> Fmt.(pf(ppf, "{%a}", inner_box(list(~sep=nop, pp_statement))))
+
+and pp_statement: Fmt.t(raw_statement_t) =
+  (ppf, stmt) =>
     switch (stmt) {
-    | Variable(name, expr) => [
-        string("let "),
-        name |> Node.Raw.get_value |> fmt_id,
-        string(" = "),
-        expr |> Node.get_value |> fmt_expression,
-      ]
-    | Expression(expr) => [expr |> Node.get_value |> fmt_expression]
-    }
-  )
-  @ [__semicolon]
-  |> concat;
+    | Variable(name, expr) =>
+      Fmt.pf(
+        ppf,
+        "let %a = %a;",
+        Identifier.pp,
+        Node.Raw.get_value(name),
+        pp_expression,
+        Node.get_value(expr),
+      )
+    | Expression(expr) =>
+      expr |> Node.get_value |> Fmt.pf(ppf, "%a;", pp_expression)
+    };
 
-let fmt_declaration = ((name, decl)) =>
-  (
-    switch (Node.get_value(decl)) {
-    | Constant(expr) => [
-        string("const "),
-        name |> Node.Raw.get_value |> fmt_id,
-        string(" = "),
-        expr |> Node.get_value |> fmt_expression,
-        __semicolon,
-      ]
-    | Function(args, expr) => [
-        string("func "),
-        name |> Node.Raw.get_value |> fmt_id,
-        List.is_empty(args)
-          ? Nil
-          : [
-              string("("),
-              args
-              |> List.map(
-                   Node.get_value
-                   % (
-                     ({name, default, type_}) =>
-                       [
-                         name |> Node.Raw.get_value |> fmt_id,
-                         switch (default) {
-                         | Some(expr) =>
-                           [
-                             string(" = "),
-                             expr |> Node.get_value |> fmt_expression,
-                           ]
-                           |> concat
-                         | None => Nil
-                         },
-                       ]
-                       |> concat
-                   ),
-                 )
-              |> List.intersperse(string(", "))
-              |> concat,
-              string(")"),
-            ]
-            |> concat,
-        string(" -> "),
-        expr |> Node.get_value |> fmt_expression,
-        switch (Node.get_value(expr)) {
-        | Closure(_) => Nil
-        | _ => __semicolon
-        },
-      ]
-    }
-  )
-  |> newline;
-
-let fmt_imports = stmts => {
-  let (internal_imports, external_imports) =
-    stmts
-    |> List.filter_map(
-         Node.Raw.get_value
-         % (
-           fun
-           | Import(namespace, imports) => Some((namespace, imports))
-           | _ => None
-         ),
-       )
-    |> List.partition(
-         Namespace.(
-           fun
-           | (Internal(_), _) => true
-           | _ => false
-         ),
-       )
-    |> Tuple.map2(
-         List.sort((l, r) =>
-           (l, r)
-           |> Tuple.map2(
-                fst
-                % Namespace.(
-                    fun
-                    | Internal(name)
-                    | External(name) => name
-                  ),
-              )
-           |> Tuple.join2(String.compare)
-         )
-         % List.map(((namespace, imports)) => {
-             let (main_import, named_imports) =
-               imports
-               |> List.fold_left(
-                    ((m, n)) =>
-                      Node.Raw.get_value
-                      % (
-                        fun
-                        | MainImport(id) => (
-                            Some(Node.Raw.get_value(id)),
-                            n,
-                          )
-                        | NamedImport(id, label) => (
-                            m,
-                            [(Node.Raw.get_value(id), label), ...n],
-                          )
-                      ),
-                    (None, []),
-                  );
-
-             [
-               string("import"),
-               main_import
-               |> (
-                 fun
-                 | Some(id) =>
-                   [string(" "), id |> ~@Identifier.pp |> string] |> concat
-                 | None => Nil
-               ),
-               switch (main_import, named_imports) {
-               | (Some(_), [_, ..._]) => string(", ")
-               | _ => Nil
-               },
-               List.is_empty(named_imports)
-                 ? Nil
-                 : [
-                     string("{ "),
-                     named_imports
-                     |> List.sort((l, r) =>
-                          (l, r)
-                          |> Tuple.map2(fst % ~@Identifier.pp)
-                          |> Tuple.join2(String.compare)
-                        )
-                     |> List.map(((id, label)) =>
-                          [
-                            fmt_id(id),
-                            ...switch (label) {
-                               | Some(label) => [
-                                   string(" as "),
-                                   label |> Node.Raw.get_value |> fmt_id,
-                                 ]
-                               | None => []
-                               },
-                          ]
-                          |> concat
-                        )
-                     |> List.intersperse(string(", "))
-                     |> concat,
-                     string(" }"),
-                   ]
-                   |> concat,
-               string(" from "),
-               fmt_ns(namespace),
-               __semicolon,
-             ]
-             |> newline;
-           }),
-       );
-
-  external_imports
-  @ (
-    List.is_empty(external_imports) || List.is_empty(internal_imports)
-      ? [] : [Newline]
-  )
-  @ internal_imports;
-};
-
-let fmt_declarations = stmts => {
-  let declarations =
-    stmts
-    |> List.filter_map(
-         Node.Raw.get_value
-         % (
-           fun
-           | Declaration(MainExport(name) | NamedExport(name), decl) =>
-             Some((name, decl))
-           | _ => None
-         ),
-       );
-
-  let rec loop = (~acc=[]) =>
+let pp_function_body: Fmt.t(raw_expression_t) =
+  ppf =>
     fun
-    | [] => List.rev(acc)
-    /* do not add newline after the last statement */
-    | [x] => loop(~acc=[fmt_declaration(x), ...acc], [])
-    /* handle constant clustering logic */
-    | [(_, (Constant(_), _, _)) as x, ...xs] =>
-      switch (xs) {
-      /* no more statements, loop to return */
-      | []
-      /* followed by a constant, do not add newline */
-      | [(_, (Constant(_), _, _)), ..._] =>
-        loop(~acc=[fmt_declaration(x), ...acc], xs)
-      /* followed by other declarations, add a newline */
-      | _ => loop(~acc=[fmt_declaration(x), Newline, ...acc], xs)
-      }
-    /* not a constant, add a newline */
-    | [x, ...xs] => loop(~acc=[fmt_declaration(x), Newline, ...acc], xs);
+    | Closure(_) as expr => pp_expression(ppf, expr)
+    | expr => Fmt.pf(ppf, "%a;", pp_expression, expr);
 
-  loop(declarations);
-};
+let pp_function_arg: Fmt.t(raw_argument_t) =
+  (ppf, {name, default}) =>
+    Fmt.pf(
+      ppf,
+      "%a%a",
+      Identifier.pp,
+      Node.Raw.get_value(name),
+      ppf =>
+        fun
+        | Some(expr) =>
+          expr |> Node.get_value |> Fmt.pf(ppf, " = %a", pp_expression)
+        | None => Fmt.nop(ppf, ()),
+      default,
+    );
 
-let format = (program: program_t): Pretty.t => {
-  let imports = fmt_imports(program);
-  let declarations = fmt_declarations(program);
+let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
+  (ppf, (name, decl)) =>
+    switch (decl) {
+    | Constant(expr) =>
+      Fmt.pf(
+        ppf,
+        "const %a = %a;\n",
+        Identifier.pp,
+        name,
+        pp_expression,
+        Node.get_value(expr),
+      )
 
-  imports
-  @ (
-    List.is_empty(imports) || List.is_empty(declarations) ? [] : [Newline]
-  )
-  @ declarations
-  |> concat;
-};
+    | Function([], expr) =>
+      Fmt.pf(
+        ppf,
+        "func %a -> %a\n",
+        Identifier.pp,
+        name,
+        pp_function_body,
+        Node.get_value(expr),
+      )
+    | Function(args, expr) =>
+      Fmt.(
+        pf(
+          ppf,
+          "func %a(%a) -> %a\n",
+          Identifier.pp,
+          name,
+          list(
+            ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
+            ppf => Fmt.pf(ppf, " = %a", pp_function_arg),
+          ),
+          args |> List.map(Node.get_value),
+          pp_function_body,
+          Node.get_value(expr),
+        )
+      )
+    };
+
+type import_spec_t = (
+  Namespace.t,
+  option(Identifier.t),
+  list((Identifier.t, option(untyped_identifier_t))),
+);
+
+let pp_named_import: Fmt.t((Identifier.t, option(untyped_identifier_t))) =
+  ppf =>
+    fun
+    | (id, Some(label)) =>
+      Fmt.pf(
+        ppf,
+        "%a as %a",
+        Identifier.pp,
+        id,
+        Identifier.pp,
+        Node.Raw.get_value(label),
+      )
+    | (id, None) => Identifier.pp(ppf, id);
+
+let pp_import: Fmt.t(import_spec_t) =
+  (ppf, (namespace, main_import, named_imports)) =>
+    Fmt.pf(
+      ppf,
+      "import%a%a%a from %a;\n",
+      ppf =>
+        fun
+        | Some(id) => Fmt.pf(ppf, " %a", Identifier.pp, id)
+        | None => Fmt.nop(ppf, ()),
+      main_import,
+      ppf =>
+        fun
+        | (None, _)
+        | (_, []) => Fmt.nop(ppf, ())
+        | _ => Fmt.string(ppf, ", "),
+      (main_import, named_imports),
+      ppf =>
+        fun
+        | [] => Fmt.nop(ppf, ())
+        | imports =>
+          Fmt.pf(
+            ppf,
+            "{ %a }",
+            Fmt.list(
+              ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
+              pp_named_import,
+            ),
+            imports,
+          ),
+      named_imports,
+      Namespace.pp,
+      namespace,
+    );
+
+let pp_all_imports: Fmt.t((list(import_spec_t), list(import_spec_t))) =
+  (ppf, (internal_imports, external_imports)) =>
+    [external_imports, internal_imports]
+    |> Fmt.list(
+         ~sep=(ppf, ()) => Fmt.string(ppf, "\n"),
+         Fmt.list(~sep=Fmt.nop, pp_import),
+         ppf,
+       );
+
+let pp_declaration_list: Fmt.t(list((Identifier.t, raw_declaration_t))) =
+  ppf => {
+    let rec loop =
+      fun
+      | [] => Fmt.nop(ppf, ())
+
+      /* do not add newline after the last statement */
+      | [decl] => pp_declaration(ppf, decl)
+
+      /* handle constant clustering logic */
+      | [(_, Constant(_)) as decl, ...xs] =>
+        switch (xs) {
+        /* no more statements, loop to return */
+        | []
+        /* followed by a constant, do not add newline */
+        | [(_, Constant(_)), ..._] =>
+          pp_declaration(ppf, decl);
+
+          loop(xs);
+
+        /* followed by other declarations, add a newline */
+        | _ =>
+          Fmt.pf(ppf, "%a\n", pp_declaration, decl);
+
+          loop(xs);
+        }
+
+      /* not a constant, add a newline */
+      | [decl, ...xs] => Fmt.pf(ppf, "%a\n", pp_declaration, decl);
+
+    loop;
+  };
+
+let extract_imports = (program: program_t) =>
+  program
+  |> List.filter_map(
+       Node.Raw.get_value
+       % (
+         fun
+         | Import(namespace, imports) => Some((namespace, imports))
+         | _ => None
+       ),
+     )
+  |> List.partition(
+       Namespace.(
+         fun
+         | (Internal(_), _) => true
+         | _ => false
+       ),
+     )
+  |> Tuple.map2(
+       List.sort((l, r) =>
+         (l, r)
+         |> Tuple.map2(
+              fst
+              % Namespace.(
+                  fun
+                  | Internal(name)
+                  | External(name) => name
+                ),
+            )
+         |> Tuple.join2(String.compare)
+       )
+       % List.map(((namespace, imports)) => {
+           let (main_import, named_imports) =
+             imports
+             |> List.fold_left(
+                  ((m, n)) =>
+                    Node.Raw.get_value
+                    % (
+                      fun
+                      | MainImport(id) => (Some(Node.Raw.get_value(id)), n)
+                      | NamedImport(id, label) => (
+                          m,
+                          [(Node.Raw.get_value(id), label), ...n],
+                        )
+                    ),
+                  (None, []),
+                );
+
+           (namespace, main_import, named_imports);
+         }),
+     );
+
+let extract_declarations = (program: program_t) =>
+  program
+  |> List.filter_map(
+       Node.Raw.get_value
+       % (
+         fun
+         | Declaration(MainExport(name) | NamedExport(name), decl) =>
+           Some((Node.Raw.get_value(name), Node.get_value(decl)))
+         | _ => None
+       ),
+     );
+
+let format: Fmt.t(program_t) =
+  (ppf, program) => {
+    let imports = extract_imports(program);
+    let declarations = extract_declarations(program);
+
+    Fmt.pf(
+      ppf,
+      "%a%a%a",
+      pp_all_imports,
+      imports,
+      ppf =>
+        fun
+        | ([], []) => Fmt.nop(ppf, ())
+        | _ => Fmt.string(ppf, "\n"),
+      (fst(imports) @ snd(imports), declarations),
+      pp_declaration_list,
+      declarations,
+    );
+  };

@@ -56,13 +56,29 @@ module Fmt = {
   let attr = (pp_key: t('a), pp_value: t('b)): t(('a, 'b)) =>
     (ppf, (key, value)) => pf(ppf, "@ %s: %s", key, value);
 
+  let outer_box = (pp_value: t('a)): t('a) =>
+    ppf => pf(ppf, "@[<v 0>@<0>%a@]", pp_value);
+
+  let inner_box = (pp_value: t('a)): t('a) =>
+    ppf => pf(ppf, "@[<v>%a@]@ @<0>", pp_value);
+
   let struct_ = (name, pp_key: t('a), pp_value: t('b)): t(list(('a, 'b))) =>
-    ppf => {
-      pf(
+    outer_box(ppf =>
+      Fmt.pf(
         ppf,
-        "@[<v 0>@<0>%s {@[<v>%a@]@ @<0>}@]",
+        "%s {%a}",
         name,
-        list(~sep=nop, attr(pp_key, pp_value)),
-      );
-    };
+        inner_box(list(~sep=nop, attr(pp_key, pp_value))),
+      )
+    );
+  /*
+   let struct_ = (name, pp_key: t('a), pp_value: t('b)): t(list(('a, 'b))) =>
+     ppf => {
+       pf(
+         ppf,
+         "@[<v 0>@<0>%s {@[<v>%a@]@ @<0>}@]",
+         name,
+         list(~sep=nop, attr(pp_key, pp_value)),
+       );
+     }; */
 };

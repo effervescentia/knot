@@ -8,7 +8,7 @@ module Formatter = Grammar.Formatter;
 let suite =
   "Grammar.Formatter"
   >::: [
-    "fmt_binary_op()"
+    "pp_binary_op()"
     >: (
       () =>
         [
@@ -26,34 +26,27 @@ let suite =
           ("!=", Unequal),
           ("^", Exponent),
         ]
-        |> List.map(Tuple.map_snd2(fmt_binary_op % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_binary_op))
         |> Assert.(test_many(string))
     ),
-    "fmt_unary_op()"
+    "pp_unary_op()"
     >: (
       () =>
         [("!", Not), ("+", Positive), ("-", Negative)]
-        |> List.map(Tuple.map_snd2(fmt_unary_op % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_unary_op))
         |> Assert.(test_many(string))
     ),
-    "fmt_id()"
-    >: Identifier.(
-         () =>
-           [("fooBar", Public("fooBar")), ("_fooBar", Private("fooBar"))]
-           |> List.map(Tuple.map_snd2(fmt_id % Pretty.to_string))
-           |> Assert.(test_many(string))
-       ),
-    "fmt_ns()"
+    "pp_ns()"
     >: (
       () =>
         Namespace.[
           ("\"@/fooBar\"", Internal("fooBar")),
           ("\"fooBar\"", External("fooBar")),
         ]
-        |> List.map(Tuple.map_snd2(fmt_ns % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_ns))
         |> Assert.(test_many(string))
     ),
-    "fmt_num()"
+    "pp_num()"
     >: (
       () =>
         [
@@ -62,10 +55,10 @@ let suite =
           ("-9223372036854775808", Int64.min_int |> of_int),
           ("123.456", (123.456, 3) |> of_float),
         ]
-        |> List.map(Tuple.map_snd2(fmt_num % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_num))
         |> Assert.(test_many(string))
     ),
-    "fmt_prim()"
+    "pp_prim()"
     >: (
       () =>
         [
@@ -75,10 +68,10 @@ let suite =
           ("nil", nil),
           ("\"foo bar\"", "foo bar" |> of_string),
         ]
-        |> List.map(Tuple.map_snd2(fmt_prim % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_prim))
         |> Assert.(test_many(string))
     ),
-    "fmt_expression()"
+    "pp_expression()"
     >: (
       () =>
         [
@@ -134,10 +127,10 @@ let suite =
             |> of_jsx,
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_expression % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_expression))
         |> Assert.(test_many(string))
     ),
-    "fmt_jsx()"
+    "pp_jsx()"
     >: (
       () =>
         [
@@ -233,10 +226,10 @@ let suite =
             |> of_tag,
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_jsx % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_jsx))
         |> Assert.(test_many(string))
     ),
-    "fmt_jsx_attr()"
+    "pp_jsx_attr()"
     >: (
       () =>
         [
@@ -363,10 +356,10 @@ let suite =
           ),
           ("#bar", "bar" |> of_public |> as_raw_node |> of_jsx_id),
         ]
-        |> List.map(Tuple.map_snd2(fmt_jsx_attr % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_jsx_attr))
         |> Assert.(test_many(string))
     ),
-    "fmt_statement()"
+    "pp_statement()"
     >: (
       () =>
         [
@@ -380,32 +373,32 @@ let suite =
             |> of_var,
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_statement % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_statement))
         |> Assert.(test_many(string))
     ),
-    "fmt_declaration() - constant"
+    "pp_declaration() - constant"
     >: (
       () =>
         [
           (
             "const foo = nil;\n",
             (
-              "foo" |> of_public |> as_raw_node,
-              nil |> as_nil |> of_prim |> as_nil |> of_const |> as_nil,
+              "foo" |> of_public,
+              nil |> as_nil |> of_prim |> as_nil |> of_const,
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_declaration % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_declaration))
         |> Assert.(test_many(string))
     ),
-    "fmt_declaration() - function"
+    "pp_declaration() - function"
     >: (
       () =>
         [
           (
             "func foo(bar, fizz = 3) -> bar + fizz;\n",
             (
-              "foo" |> of_public |> as_raw_node,
+              "foo" |> of_public,
               (
                 [
                   {
@@ -428,8 +421,7 @@ let suite =
                 |> of_add_op
                 |> as_int,
               )
-              |> of_func
-              |> as_function([], Valid(`Integer)),
+              |> of_func,
             ),
           ),
           (
@@ -440,7 +432,7 @@ let suite =
 }
 ",
             (
-              "buzz" |> of_public |> as_raw_node,
+              "buzz" |> of_public,
               (
                 [],
                 [
@@ -462,15 +454,14 @@ let suite =
                 |> of_closure
                 |> as_int,
               )
-              |> of_func
-              |> as_function([], Valid(`Integer)),
+              |> of_func,
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(fmt_declaration % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@pp_declaration))
         |> Assert.(test_many(string))
     ),
-    "fmt_declarations()"
+    "pp_declarations()"
     >: (
       () =>
         [
@@ -479,29 +470,15 @@ let suite =
 const ABC = 123;
 ",
             [
-              (
-                "DEF" |> of_public |> as_raw_node |> of_named_export,
-                true |> bool_prim |> of_const |> as_bool,
-              )
-              |> of_decl
-              |> as_raw_node,
-              (
-                "ABC" |> of_public |> as_raw_node |> of_named_export,
-                123 |> int_prim |> of_const |> as_int,
-              )
-              |> of_decl
-              |> as_raw_node,
+              ("DEF" |> of_public, true |> bool_prim |> of_const),
+              ("ABC" |> of_public, 123 |> int_prim |> of_const),
             ],
           ),
         ]
-        |> List.map(
-             Tuple.map_snd2(
-               fmt_declarations % Pretty.concat % Pretty.to_string,
-             ),
-           )
+        |> List.map(Tuple.map_snd2(~@pp_declaration_list))
         |> Assert.(test_many(string))
     ),
-    "fmt_imports()"
+    "pp_imports()"
     >: (
       () =>
         [
@@ -509,79 +486,36 @@ const ABC = 123;
             "import bar, { Bar, Foo as foo } from \"bar\";
 import Fizz from \"buzz\";
 ",
-            [
-              (
-                "buzz" |> of_external,
-                [
-                  "Fizz"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_main_import
-                  |> as_raw_node,
-                ],
-              )
-              |> of_import,
-              (
-                "bar" |> of_external,
-                [
-                  "bar"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_main_import
-                  |> as_raw_node,
-                  (
-                    "Foo" |> of_public |> as_raw_node,
-                    Some("foo" |> of_public |> as_raw_node),
-                  )
-                  |> of_named_import
-                  |> as_raw_node,
-                  ("Bar" |> of_public |> as_raw_node, None)
-                  |> of_named_import
-                  |> as_raw_node,
-                ],
-              )
-              |> of_import,
-            ],
+            (
+              [],
+              [
+                ("buzz" |> of_external, Some("Fizz" |> of_public), []),
+                (
+                  "bar" |> of_external,
+                  Some("bar" |> of_public),
+                  [
+                    (
+                      "Foo" |> of_public,
+                      Some("foo" |> of_public |> as_raw_node),
+                    ),
+                    ("Bar" |> of_public, None),
+                  ],
+                ),
+              ],
+            ),
           ),
           (
             "import Fizz from \"buzz\";
 
 import Foo from \"@/bar\";
 ",
-            [
-              (
-                "bar" |> of_internal,
-                [
-                  "Foo"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_main_import
-                  |> as_raw_node,
-                ],
-              )
-              |> of_import,
-              (
-                "buzz" |> of_external,
-                [
-                  "Fizz"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_main_import
-                  |> as_raw_node,
-                ],
-              )
-              |> of_import,
-            ],
+            (
+              [("bar" |> of_internal, Some("Foo" |> of_public), [])],
+              [("buzz" |> of_external, Some("Fizz" |> of_public), [])],
+            ),
           ),
         ]
-        |> List.map(
-             Tuple.map_snd2(
-               List.map(as_raw_node)
-               % fmt_imports
-               % Pretty.concat
-               % Pretty.to_string,
-             ),
-           )
+        |> List.map(Tuple.map_snd2(~@pp_all_imports))
         |> Assert.(test_many(string))
     ),
     "format()"
@@ -641,9 +575,7 @@ const ABC = 123;
           ),
         ]
         |> List.map(
-             Tuple.map_snd2(
-               List.map(as_raw_node) % Formatter.format % Pretty.to_string,
-             ),
+             Tuple.map_snd2(List.map(as_raw_node) % ~@Formatter.format),
            )
         |> Assert.(test_many(string))
     ),

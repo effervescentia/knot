@@ -9,5 +9,5 @@ let generate = (target: Target.t, resolve: resolve_t) =>
     JavaScript_Generator.generate(resolve)
     % JavaScript_Formatter.format(module_type)
 
-  | Knot => Grammar.Formatter.format
+  | Knot => ~@Grammar.Formatter.format % Pretty.string
   };
