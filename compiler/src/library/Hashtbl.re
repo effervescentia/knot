@@ -1,4 +1,5 @@
 open Infix;
+open Extensions;
 
 /**
  Extension of the standard Hashtbl module with additional functionality.
@@ -37,6 +38,4 @@ let map_values = (map_value: 'b => 'c, tbl: t('a, 'b)): t('a, 'c) =>
 /* pretty printing */
 
 let pp = (pp_key: Fmt.t('a), pp_value: Fmt.t('b)): Fmt.t(t('a, 'b)) =>
-  Fmt.hashtbl((ppf, (key, value)) =>
-    Fmt.pf(ppf, "%a: %a", pp_key, key, pp_value, value)
-  );
+  Fmt.hashtbl(Fmt.attr(pp_key, pp_value));

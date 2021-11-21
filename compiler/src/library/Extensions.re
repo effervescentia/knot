@@ -47,38 +47,45 @@ module Fmt = {
   let uchar = (ppf, uc) => {
     let ui = Uchar.to_int(uc);
     if (ui > 31 && ui < 127 || ui == 9 || ui == 10 || ui == 13) {
-      pf(ppf, "%s", Char.escaped(Uchar.to_char(uc)));
+      string(ppf, Char.escaped(Uchar.to_char(uc)));
     } else {
       pf(ppf, "\\u{%x}", ui);
     };
   };
 
   let attr = (pp_key: t('a), pp_value: t('b)): t(('a, 'b)) =>
-    (ppf, (key, value)) => pf(ppf, "@ %s: %s", key, value);
+    (ppf, (key, value)) => pf(ppf, "%a: %a", pp_key, key, pp_value, value);
 
-  let outer_box = (pp_value: t('a)): t('a) =>
-    ppf => pf(ppf, "@[<v 0>@<0>%a@]", pp_value);
+  let root = (~indent=0, pp_value: t('a)): t('a) =>
+    ppf => vbox(~indent, pp_value, ppf);
 
-  let inner_box = (pp_value: t('a)): t('a) =>
-    ppf => pf(ppf, "@[<v>%a@]@ @<0>", pp_value);
+  let block = (pp_value: t('a)): t('a) =>
+    ppf => pf(ppf, "@;<0 2>@[<v 0>%a@]@,", pp_value);
 
-  let struct_ = (name, pp_key: t('a), pp_value: t('b)): t(list(('a, 'b))) =>
-    outer_box(ppf =>
-      Fmt.pf(
-        ppf,
-        "%s {%a}",
-        name,
-        inner_box(list(~sep=nop, attr(pp_key, pp_value))),
-      )
-    );
-  /*
-   let struct_ = (name, pp_key: t('a), pp_value: t('b)): t(list(('a, 'b))) =>
-     ppf => {
-       pf(
-         ppf,
-         "@[<v 0>@<0>%s {@[<v>%a@]@ @<0>}@]",
-         name,
-         list(~sep=nop, attr(pp_key, pp_value)),
-       );
-     }; */
+  let arguments = (pp_value: t('a)): t(list('a)) =>
+    ppf =>
+      fun
+      | [] => pf(ppf, "()")
+      | xs =>
+        pf(
+          ppf,
+          "@[<hv 0>(%a)@]",
+          list(~sep=(ppf, ()) => pf(ppf, ",@ "), pp_value),
+          xs,
+        );
+
+  let closure = (pp_value: t('a)): t(list('a)) =>
+    ppf =>
+      fun
+      | [] => pf(ppf, "{ }")
+      | xs => pf(ppf, "{%a}", block(list(~sep=cut, pp_value)), xs);
+
+  let entity = (pp_sig: t('a), pp_entry: t('b)): t(('a, list('b))) =>
+    (ppf, (sig_, entries)) =>
+      pf(ppf, "@[<hv 0>%a@ @]%a", pp_sig, sig_, closure(pp_entry), entries);
+
+  let struct_ =
+      (name: string, pp_key: t('a), pp_value: t('b)): t(list(('a, 'b))) =>
+    (ppf, attrs) =>
+      entity(string, attr(pp_key, pp_value), ppf, (name, attrs));
 };

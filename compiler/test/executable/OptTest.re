@@ -18,9 +18,8 @@ let suite =
       () =>
         [
           (
-            "  --foo
-
-    used to control the application of foo",
+            "--foo
+  \n  used to control the application of foo",
             Opt.create(
               "foo",
               Arg.Bool(ignore),
@@ -29,11 +28,11 @@ let suite =
             |> ~@Opt.pp(None),
           ),
           (
-            "  -f, --foo (options: fizz, buzz)
-    [default: true]
-    [from config: false]
-
-    used to control the application of foo",
+            "-f, --foo
+  [options: fizz, buzz]
+  [default: true]
+  [from config: false]
+  \n  used to control the application of foo",
             Opt.create(
               ~alias="f",
               ~default=Bool(true),
@@ -46,10 +45,9 @@ let suite =
             |> ~@Opt.pp(Some(__config)),
           ),
           (
-            "  --foo
-    [default: true]
-
-    used to control the application of foo",
+            "--foo
+  [default: true]
+  \n  used to control the application of foo",
             Opt.create(
               ~default=Bool(true),
               ~from_config=_ => Some(Bool(true)),

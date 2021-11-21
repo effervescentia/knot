@@ -3,9 +3,7 @@ open AST;
 open Reference;
 open Pretty;
 
-let __space = string(" ");
-let __semicolon = string(";");
-let __quotation_mark = string("\"");
+let __default_margin = 120;
 
 let pp_binary_op: Fmt.t(binary_operator_t) =
   ppf =>
@@ -38,10 +36,12 @@ let pp_unary_op: Fmt.t(unary_operator_t) =
     % Fmt.string(ppf);
 
 let pp_num: Fmt.t(number_t) =
-  ppf =>
-    fun
-    | Integer(int) => Fmt.int64(ppf, int)
-    | Float(float, precision) => Fmt.pf(ppf, "%.*f", precision, float);
+  Fmt.(
+    ppf =>
+      fun
+      | Integer(int) => int64(ppf, int)
+      | Float(float, precision) => pf(ppf, "%.*f", precision, float)
+  );
 
 let pp_string: Fmt.t('a) =
   (ppf, s) => s |> String.escaped |> Fmt.pf(ppf, "\"%s\"");
@@ -49,89 +49,96 @@ let pp_string: Fmt.t('a) =
 let pp_ns: Fmt.t(Namespace.t) = ppf => ~@Namespace.pp % pp_string(ppf);
 
 let pp_prim: Fmt.t(raw_primitive_t) =
-  ppf =>
-    fun
-    | Nil => Fmt.string(ppf, "nil")
-    | Boolean(true) => Fmt.string(ppf, "true")
-    | Boolean(false) => Fmt.string(ppf, "false")
-    | Number(num) => pp_num(ppf, num)
-    | String(str) => pp_string(ppf, str);
+  Fmt.(
+    ppf =>
+      fun
+      | Nil => string(ppf, "nil")
+      | Boolean(true) => string(ppf, "true")
+      | Boolean(false) => string(ppf, "false")
+      | Number(num) => pp_num(ppf, num)
+      | String(str) => pp_string(ppf, str)
+  );
 
 let rec pp_jsx: Fmt.t(raw_jsx_t) =
-  ppf =>
-    fun
-    | Tag(name, attrs, []) =>
-      Fmt.pf(
-        ppf,
-        "<%a%a />",
-        Identifier.pp,
-        Node.Raw.get_value(name),
-        pp_jsx_attr_list,
-        attrs |> List.map(Node.get_value),
-      )
-    | Tag(name, attrs, children) =>
-      Fmt.(
+  Fmt.(
+    ppf =>
+      fun
+      | Tag(name, attrs, []) =>
         pf(
           ppf,
-          "<%a%a>%a</%a>",
+          "@[<h><%a%a@ />@]",
           Identifier.pp,
           Node.Raw.get_value(name),
           pp_jsx_attr_list,
           attrs |> List.map(Node.get_value),
-          inner_box(list(~sep=nop, pp_jsx_child)),
+        )
+      | Tag(name, attrs, children) =>
+        pf(
+          ppf,
+          "@[<h><%a%a>@]%a</%a>",
+          Identifier.pp,
+          Node.Raw.get_value(name),
+          pp_jsx_attr_list,
+          attrs |> List.map(Node.get_value),
+          block(list(~sep=cut, pp_jsx_child)),
           children |> List.map(Node.get_value),
           Identifier.pp,
           Node.Raw.get_value(name),
         )
-      )
 
-    | Fragment([]) => Fmt.pf(ppf, "@ <></>")
-    | Fragment(children) =>
-      Fmt.pf(
-        ppf,
-        "@ <>%a</>",
-        Fmt.(inner_box(list(~sep=nop, pp_jsx_child))),
-        children |> List.map(Node.get_value),
-      )
+      | Fragment([]) => pf(ppf, "<></>")
+      | Fragment(children) =>
+        pf(
+          ppf,
+          "<>%a</>",
+          block(list(~sep=cut, pp_jsx_child)),
+          children |> List.map(Node.get_value),
+        )
+  )
 
 and pp_jsx_child: Fmt.t(raw_jsx_child_t) =
-  ppf =>
-    fun
-    | Node(jsx) => jsx |> Node.get_value |> Fmt.pf(ppf, "@ %a", pp_jsx)
-    | Text(text) => text |> Node.get_value |> Fmt.pf(ppf, "@ %s")
-    | InlineExpression(expr) =>
-      expr |> Node.get_value |> Fmt.pf(ppf, "@ {%a}", pp_expression)
+  Fmt.(
+    ppf =>
+      fun
+      | Node(jsx) => jsx |> Node.get_value |> pf(ppf, "%a", pp_jsx)
+      | Text(text) => text |> Node.get_value |> string(ppf)
+      | InlineExpression(expr) =>
+        expr |> Node.get_value |> pf(ppf, "{%a}", pp_expression)
+  )
 
 and pp_jsx_attr_list: Fmt.t(list(raw_jsx_attribute_t)) =
-  ppf =>
-    fun
-    | [] => Fmt.nop(ppf, ())
-    | attrs =>
-      attrs
-      |> Fmt.list(~sep=Fmt.nop, ppf => Fmt.pf(ppf, " %a", pp_jsx_attr), ppf)
+  Fmt.(
+    ppf =>
+      fun
+      | [] => nop(ppf, ())
+      | attrs =>
+        attrs |> list(~sep=nop, ppf => pf(ppf, "@ %a", pp_jsx_attr), ppf)
+  )
 
 and pp_jsx_attr: Fmt.t(raw_jsx_attribute_t) =
-  (ppf, attr) =>
-    Fmt.pf(
-      ppf,
-      "%a%a",
-      ppf =>
-        fun
-        | Class(name, _) =>
-          Fmt.pf(ppf, ".%a", Identifier.pp, Node.Raw.get_value(name))
-        | ID(name) =>
-          Fmt.pf(ppf, "#%a", Identifier.pp, Node.Raw.get_value(name))
-        | Property(name, _) =>
-          name |> Node.Raw.get_value |> Identifier.pp(ppf),
-      attr,
-      ppf =>
-        fun
-        | Class(_, Some(expr))
-        | Property(_, Some(expr)) =>
-          expr |> Node.get_value |> Fmt.pf(ppf, "=%a", pp_jsx_attr_expr)
-        | _ => Fmt.nop(ppf, ()),
-      attr,
-    )
+  Fmt.(
+    (ppf, attr) =>
+      pf(
+        ppf,
+        "%a%a",
+        ppf =>
+          fun
+          | Class(name, _) =>
+            pf(ppf, ".%a", Identifier.pp, Node.Raw.get_value(name))
+          | ID(name) =>
+            pf(ppf, "#%a", Identifier.pp, Node.Raw.get_value(name))
+          | Property(name, _) =>
+            name |> Node.Raw.get_value |> Identifier.pp(ppf),
+        attr,
+        ppf =>
+          fun
+          | Class(_, Some(expr))
+          | Property(_, Some(expr)) =>
+            expr |> Node.get_value |> pf(ppf, "=%a", pp_jsx_attr_expr)
+          | _ => nop(ppf, ()),
+        attr,
+      )
+  )
 
 and pp_jsx_attr_expr: Fmt.t(raw_expression_t) =
   ppf =>
@@ -187,7 +194,7 @@ and pp_expression: Fmt.t(raw_expression_t) =
     | Closure(stmts) =>
       stmts
       |> List.map(Node.get_value)
-      |> Fmt.(pf(ppf, "{%a}", inner_box(list(~sep=nop, pp_statement))))
+      |> Fmt.(pf(ppf, "{%a}", block(list(~sep=cut, pp_statement))))
 
 and pp_statement: Fmt.t(raw_statement_t) =
   (ppf, stmt) =>
@@ -232,7 +239,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
     | Constant(expr) =>
       Fmt.pf(
         ppf,
-        "const %a = %a;\n",
+        "const %a = %a;@,",
         Identifier.pp,
         name,
         pp_expression,
@@ -242,7 +249,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
     | Function([], expr) =>
       Fmt.pf(
         ppf,
-        "func %a -> %a\n",
+        "@[<v 0>func %a -> %a@]@,",
         Identifier.pp,
         name,
         pp_function_body,
@@ -252,13 +259,10 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "func %a(%a) -> %a\n",
+          "@[<v 0>func @[<h>%a(%a)@] -> %a@]@,",
           Identifier.pp,
           name,
-          list(
-            ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
-            ppf => Fmt.pf(ppf, " = %a", pp_function_arg),
-          ),
+          list(~sep=Fmt.comma, ppf => pp_function_arg(ppf)),
           args |> List.map(Node.get_value),
           pp_function_body,
           Node.get_value(expr),
@@ -288,46 +292,36 @@ let pp_named_import: Fmt.t((Identifier.t, option(untyped_identifier_t))) =
 
 let pp_import: Fmt.t(import_spec_t) =
   (ppf, (namespace, main_import, named_imports)) =>
-    Fmt.pf(
-      ppf,
-      "import%a%a%a from %a;\n",
-      ppf =>
-        fun
-        | Some(id) => Fmt.pf(ppf, " %a", Identifier.pp, id)
-        | None => Fmt.nop(ppf, ()),
-      main_import,
-      ppf =>
-        fun
-        | (None, _)
-        | (_, []) => Fmt.nop(ppf, ())
-        | _ => Fmt.string(ppf, ", "),
-      (main_import, named_imports),
-      ppf =>
-        fun
-        | [] => Fmt.nop(ppf, ())
-        | imports =>
-          Fmt.pf(
-            ppf,
-            "{ %a }",
-            Fmt.list(
-              ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
-              pp_named_import,
-            ),
-            imports,
-          ),
-      named_imports,
-      Namespace.pp,
-      namespace,
+    Fmt.(
+      pf(
+        ppf,
+        "import%a%a%a from %a;@,",
+        ppf =>
+          fun
+          | Some(id) => pf(ppf, " %a", Identifier.pp, id)
+          | None => nop(ppf, ()),
+        main_import,
+        ppf =>
+          fun
+          | (None, _)
+          | (_, []) => nop(ppf, ())
+          | _ => comma(ppf, ()),
+        (main_import, named_imports),
+        ppf =>
+          fun
+          | [] => nop(ppf, ())
+          | imports =>
+            pf(ppf, "{ %a }", list(~sep=comma, pp_named_import), imports),
+        named_imports,
+        Namespace.pp,
+        namespace,
+      )
     );
 
 let pp_all_imports: Fmt.t((list(import_spec_t), list(import_spec_t))) =
   (ppf, (internal_imports, external_imports)) =>
     [external_imports, internal_imports]
-    |> Fmt.list(
-         ~sep=(ppf, ()) => Fmt.string(ppf, "\n"),
-         Fmt.list(~sep=Fmt.nop, pp_import),
-         ppf,
-       );
+    |> Fmt.(list(~sep=cut, list(~sep=nop, pp_import), ppf));
 
 let pp_declaration_list: Fmt.t(list((Identifier.t, raw_declaration_t))) =
   ppf => {
@@ -351,13 +345,13 @@ let pp_declaration_list: Fmt.t(list((Identifier.t, raw_declaration_t))) =
 
         /* followed by other declarations, add a newline */
         | _ =>
-          Fmt.pf(ppf, "%a\n", pp_declaration, decl);
+          Fmt.pf(ppf, "%a@,", pp_declaration, decl);
 
           loop(xs);
         }
 
       /* not a constant, add a newline */
-      | [decl, ...xs] => Fmt.pf(ppf, "%a\n", pp_declaration, decl);
+      | [decl, ...xs] => Fmt.pf(ppf, "%a@,", pp_declaration, decl);
 
     loop;
   };
@@ -425,22 +419,32 @@ let extract_declarations = (program: program_t) =>
        ),
      );
 
-let format: Fmt.t(program_t) =
+let format = (~margin=__default_margin): Fmt.t(program_t) =>
   (ppf, program) => {
-    let imports = extract_imports(program);
-    let declarations = extract_declarations(program);
+    let orig_margin = Format.get_margin();
+    Format.set_margin(margin);
 
-    Fmt.pf(
-      ppf,
-      "%a%a%a",
-      pp_all_imports,
-      imports,
-      ppf =>
-        fun
-        | ([], []) => Fmt.nop(ppf, ())
-        | _ => Fmt.string(ppf, "\n"),
-      (fst(imports) @ snd(imports), declarations),
-      pp_declaration_list,
-      declarations,
-    );
+    program
+    |> Tuple.split2(extract_imports, extract_declarations)
+    |> Fmt.(
+         root(
+           (ppf, (imports, declarations)) =>
+             pf(
+               ppf,
+               "%a%a%a@?",
+               pp_all_imports,
+               imports,
+               ppf =>
+                 fun
+                 | ([], []) => nop(ppf, ())
+                 | _ => cut(ppf, ()),
+               (fst(imports) @ snd(imports), declarations),
+               pp_declaration_list,
+               declarations,
+             ),
+           ppf,
+         )
+       );
+
+    Format.set_margin(orig_margin);
   };

@@ -45,9 +45,9 @@ let (|?<) = (x, f) =>
 let (|?>) = (x, f) => x |?< (y => Some(f(y)));
 
 /**
- creates a stringifier from a pretty-printer
+ creates a to_string method from a pretty-printer
  */
-let (~@) = (pp, x) => Fmt.str("%a", pp, x);
+let (~@) = Fmt.to_to_string;
 
 /**
  creates a channel writer from a pretty-printer

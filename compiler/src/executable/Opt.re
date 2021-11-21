@@ -68,27 +68,20 @@ let _pp_flag: Fmt.t((string, option(string))) =
     | None => Fmt.pf(ppf, "--%s", name)
     };
 
+let _pp_attr = (label: string, pp_value: Fmt.t('a)): Fmt.t('a) =>
+  ppf => Fmt.pf(ppf, "@[<h 0>[%s: %a]@]@,", label, Fmt.bold(pp_value));
+
 let _pp_option_list: Fmt.t(option(list(string))) =
   ppf =>
     fun
     | Some(options) =>
-      Fmt.pf(
-        ppf,
-        " (options: %a)",
-        Fmt.bold(
-          Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, ", "), Fmt.string),
-        ),
-        options,
-      )
+      _pp_attr("options", Fmt.(list(~sep=comma, string)), ppf, options)
     | None => Fmt.nop(ppf, ());
-
-let _pp_attr = (label: string): Fmt.t(Value.t) =>
-  ppf => Fmt.pf(ppf, "\n    [%s: %a]", label, Fmt.bold(Value.pp));
 
 let _pp_default: Fmt.t(option(Value.t)) =
   ppf =>
     fun
-    | Some(default) => _pp_attr("default", ppf, default)
+    | Some(default) => _pp_attr("default", Value.pp, ppf, default)
     | None => Fmt.nop(ppf, ());
 
 let _pp_config = (opt: t): Fmt.t(option(Config.t)) =>
@@ -98,23 +91,26 @@ let _pp_config = (opt: t): Fmt.t(option(Config.t)) =>
       switch (opt.from_config(cfg), opt.default) {
       | (Some(from_config), Some(default)) when from_config == default =>
         Fmt.nop(ppf, ())
-      | (Some(from_config), _) => _pp_attr("from config", ppf, from_config)
+      | (Some(from_config), _) =>
+        _pp_attr("from config", Value.pp, ppf, from_config)
       | _ => Fmt.nop(ppf, ())
       }
     | None => Fmt.nop(ppf, ());
 
 let pp = (cfg: option(Config.t)): Fmt.t(t) =>
-  (ppf, value: t) =>
-    Fmt.pf(
-      ppf,
-      "  %a%a%a%a\n\n    %s",
-      Fmt.bold(_pp_flag),
-      (value.name, value.alias),
-      _pp_option_list,
-      value.options,
-      _pp_default,
-      value.default,
-      _pp_config(value),
-      cfg,
-      value.desc,
-    );
+  Fmt.(
+    (ppf, value) =>
+      pf(
+        ppf,
+        "@[<v 0>@[%a@]@;<0 2>@[<v 0>%a%a%a@,@[<h 0>%s@]@]@]",
+        bold(_pp_flag),
+        (value.name, value.alias),
+        _pp_option_list,
+        value.options,
+        _pp_default,
+        value.default,
+        _pp_config(value),
+        cfg,
+        value.desc,
+      )
+  );

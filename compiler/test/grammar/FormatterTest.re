@@ -127,7 +127,7 @@ let suite =
             |> of_jsx,
           ),
         ]
-        |> List.map(Tuple.map_snd2(~@pp_expression))
+        |> List.map(Tuple.map_snd2(~@Fmt.root(pp_expression)))
         |> Assert.(test_many(string))
     ),
     "pp_jsx()"
@@ -226,7 +226,7 @@ let suite =
             |> of_tag,
           ),
         ]
-        |> List.map(Tuple.map_snd2(~@pp_jsx))
+        |> List.map(Tuple.map_snd2(~@Fmt.root(pp_jsx)))
         |> Assert.(test_many(string))
     ),
     "pp_jsx_attr()"
@@ -356,7 +356,7 @@ let suite =
           ),
           ("#bar", "bar" |> of_public |> as_raw_node |> of_jsx_id),
         ]
-        |> List.map(Tuple.map_snd2(~@pp_jsx_attr))
+        |> List.map(Tuple.map_snd2(~@Fmt.root(pp_jsx_attr)))
         |> Assert.(test_many(string))
     ),
     "pp_statement()"

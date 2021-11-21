@@ -35,10 +35,9 @@ COMMANDS
 OPTIONS
 
   --foo
-
-    used to control the application of foo
+    \n    used to control the application of foo
 ",
-            (None, None, [__opt]) |> ~@Args.pp_usage,
+            (None, None, [__opt]),
           ),
           (
             "  knotc foo [options]
@@ -46,16 +45,15 @@ OPTIONS
 COMMAND OPTIONS
 
   --foo
-
-    used to control the application of foo
+    \n    used to control the application of foo
 
 OPTIONS
 
-  -b, --bar (options: fizz, buzz)
+  -b, --bar
+    [options: fizz, buzz]
     [default: true]
     [from config: false]
-
-    used to control the application of bar
+    \n    used to control the application of bar
 ",
             (
               Some(
@@ -77,10 +75,10 @@ OPTIONS
                   "used to control the application of bar",
                 ),
               ],
-            )
-            |> ~@Args.pp_usage,
+            ),
           ),
         ]
+        |> List.map(Tuple.map_snd2(~@Args.pp_usage))
         |> Assert.(test_many(string))
     ),
   ];

@@ -309,9 +309,8 @@ let pp = (pp_node: Fmt.t('a)): Fmt.t(t('a)) =>
       |> List.map(root => _print_subtree(~visited, pp_node, graph, root));
     let depth = printed |> List.map(snd % List.length) |> Int.max_of;
 
-    Fmt.pf(
+    Fmt.string(
       ppf,
-      "%s",
       _merge_trees(depth, printed) |> String.join(~separator="\n"),
     );
   };

@@ -185,7 +185,8 @@ let pp: Fmt.t(t) =
   (ppf, tree: t) =>
     BinaryTree.pp(
       (ppf, ((start, end_), token)) =>
-        Fmt.str(
+        Fmt.pf(
+          ppf,
           "%s %s",
           switch (token) {
           | Join => ""
@@ -194,9 +195,7 @@ let pp: Fmt.t(t) =
           | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
           },
           Range.create(start, end_) |> ~@Range.pp,
-        )
-        |> String.trim
-        |> Fmt.pf(ppf, "%s"),
+        ),
       ppf,
       tree,
     );

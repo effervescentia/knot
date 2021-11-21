@@ -54,10 +54,10 @@ let resolve_module =
 
 let pp: Fmt.t(t) =
   (ppf, resolver) =>
-    Fmt.struct_(
-      "Resolver",
-      Fmt.string,
-      Fmt.string,
-      ppf,
-      [("cache", resolver.cache), ("root_dir", resolver.root_dir)],
+    Fmt.(
+      root(
+        struct_("Resolver", string, string),
+        ppf,
+        [("cache", resolver.cache), ("root_dir", resolver.root_dir)],
+      )
     );

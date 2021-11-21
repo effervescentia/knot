@@ -26,7 +26,7 @@ let suite =
   foo: bar
 }",
             [("foo", "bar")]
-            |> ~@Fmt.struct_("Hashtbl", Fmt.string, Fmt.string),
+            |> ~@Fmt.(root(struct_("Hashtbl", string, string))),
           ),
         ]
         |> Assert.(test_many(string))

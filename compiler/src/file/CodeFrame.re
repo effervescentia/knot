@@ -27,8 +27,10 @@ let print = (~buffer_lines=2, contents: string, range: Range.t) => {
 
         Fmt.str(
           " %a %a %a\n",
-          is_highlight ? Fmt.red_str : Fmt.grey_str,
-          Fmt.str("%*d", line_number_width, row),
+          (is_highlight ? Fmt.red : Fmt.grey)(ppf =>
+            Fmt.pf(ppf, "%*d", line_number_width)
+          ),
+          row,
           Fmt.grey_str,
           "│",
           is_highlight ? Fmt.string : Fmt.grey_str,

@@ -13,25 +13,22 @@ let suite =
       () =>
         [
           (
-            "  --debug
-    [default: false]
-
-    enable a higher level of logging",
+            "--debug
+  [default: false]
+  \n  enable a higher level of logging",
             ConfigOpt.debug() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --debug
-    [default: true]
-
-    enable a higher level of logging",
+            "--debug
+  [default: true]
+  \n  enable a higher level of logging",
             ConfigOpt.debug(~default=true, ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --debug
-    [default: false]
-    [from config: true]
-
-    enable a higher level of logging",
+            "--debug
+  [default: false]
+  [from config: true]
+  \n  enable a higher level of logging",
             ConfigOpt.debug()
             |> fst
             |> ~@Opt.pp(Some({...__config, debug: true})),
@@ -44,18 +41,16 @@ let suite =
       () =>
         [
           (
-            "  -r, --root-dir
-    [default: foo]
-
-    the root directory to reference modules from",
+            "-r, --root-dir
+  [default: foo]
+  \n  the root directory to reference modules from",
             ConfigOpt.root_dir(~default="foo", ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -r, --root-dir
-    [default: foo]
-    [from config: bar]
-
-    the root directory to reference modules from",
+            "-r, --root-dir
+  [default: foo]
+  [from config: bar]
+  \n  the root directory to reference modules from",
             ConfigOpt.root_dir(~default="foo", ())
             |> fst
             |> ~@Opt.pp(Some({...__config, root_dir: "bar"})),
@@ -68,25 +63,22 @@ let suite =
       () =>
         [
           (
-            "  -p, --port
-    [default: 1337]
-
-    the port the server runs on",
+            "-p, --port
+  [default: 1337]
+  \n  the port the server runs on",
             ConfigOpt.port() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -p, --port
-    [default: 3000]
-
-    the port the server runs on",
+            "-p, --port
+  [default: 3000]
+  \n  the port the server runs on",
             ConfigOpt.port(~default=3000, ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -p, --port
-    [default: 1337]
-    [from config: 3000]
-
-    the port the server runs on",
+            "-p, --port
+  [default: 1337]
+  [from config: 3000]
+  \n  the port the server runs on",
             ConfigOpt.port()
             |> fst
             |> ~@Opt.pp(Some({...__config, port: 3000})),
@@ -99,25 +91,22 @@ let suite =
       () =>
         [
           (
-            "  -s, --source-dir
-    [default: src]
-
-    the directory to reference source modules from, relative to root-dir",
+            "-s, --source-dir
+  [default: src]
+  \n  the directory to reference source modules from, relative to root-dir",
             ConfigOpt.source_dir() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -s, --source-dir
-    [default: foo]
-
-    the directory to reference source modules from, relative to root-dir",
+            "-s, --source-dir
+  [default: foo]
+  \n  the directory to reference source modules from, relative to root-dir",
             ConfigOpt.source_dir(~default="foo", ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -s, --source-dir
-    [default: src]
-    [from config: foo]
-
-    the directory to reference source modules from, relative to root-dir",
+            "-s, --source-dir
+  [default: src]
+  [from config: foo]
+  \n  the directory to reference source modules from, relative to root-dir",
             ConfigOpt.source_dir()
             |> fst
             |> ~@Opt.pp(Some({...__config, source_dir: "foo"})),
@@ -130,25 +119,22 @@ let suite =
       () =>
         [
           (
-            "  -e, --entry
-    [default: main.kn]
-
-    the entry point for execution, relative to source-dir",
+            "-e, --entry
+  [default: main.kn]
+  \n  the entry point for execution, relative to source-dir",
             ConfigOpt.entry() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -e, --entry
-    [default: foo]
-
-    the entry point for execution, relative to source-dir",
+            "-e, --entry
+  [default: foo]
+  \n  the entry point for execution, relative to source-dir",
             ConfigOpt.entry(~default="foo", ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -e, --entry
-    [default: main.kn]
-    [from config: foo]
-
-    the entry point for execution, relative to source-dir",
+            "-e, --entry
+  [default: main.kn]
+  [from config: foo]
+  \n  the entry point for execution, relative to source-dir",
             ConfigOpt.entry()
             |> fst
             |> ~@Opt.pp(Some({...__config, entry: "foo"})),
@@ -161,16 +147,16 @@ let suite =
       () =>
         [
           (
-            "  -t, --target (options: javascript-es6, javascript-common, knot)
-
-    the target to compile to",
+            "-t, --target
+  [options: javascript-es6, javascript-common, knot]
+  \n  the target to compile to",
             ConfigOpt.target() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -t, --target (options: javascript-es6, javascript-common, knot)
-    [from config: knot]
-
-    the target to compile to",
+            "-t, --target
+  [options: javascript-es6, javascript-common, knot]
+  [from config: knot]
+  \n  the target to compile to",
             ConfigOpt.target()
             |> fst
             |> ~@Opt.pp(Some({...__config, target: Some(Knot)})),
@@ -183,25 +169,22 @@ let suite =
       () =>
         [
           (
-            "  -o, --out-dir
-    [default: build]
-
-    the directory to write compiled files to",
+            "-o, --out-dir
+  [default: build]
+  \n  the directory to write compiled files to",
             ConfigOpt.out_dir() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -o, --out-dir
-    [default: foo]
-
-    the directory to write compiled files to",
+            "-o, --out-dir
+  [default: foo]
+  \n  the directory to write compiled files to",
             ConfigOpt.out_dir(~default="foo", ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  -o, --out-dir
-    [default: build]
-    [from config: bar]
-
-    the directory to write compiled files to",
+            "-o, --out-dir
+  [default: build]
+  [from config: bar]
+  \n  the directory to write compiled files to",
             ConfigOpt.out_dir()
             |> fst
             |> ~@Opt.pp(Some({...__config, out_dir: "bar"})),
@@ -214,25 +197,22 @@ let suite =
       () =>
         [
           (
-            "  --fix
-    [default: false]
-
-    automatically apply fixes",
+            "--fix
+  [default: false]
+  \n  automatically apply fixes",
             ConfigOpt.fix() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --fix
-    [default: true]
-
-    automatically apply fixes",
+            "--fix
+  [default: true]
+  \n  automatically apply fixes",
             ConfigOpt.fix(~default=true, ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --fix
-    [default: false]
-    [from config: true]
-
-    automatically apply fixes",
+            "--fix
+  [default: false]
+  [from config: true]
+  \n  automatically apply fixes",
             ConfigOpt.fix()
             |> fst
             |> ~@Opt.pp(Some({...__config, fix: true})),
@@ -245,25 +225,22 @@ let suite =
       () =>
         [
           (
-            "  --color
-    [default: true]
-
-    allow color in logs",
+            "--color
+  [default: true]
+  \n  allow color in logs",
             ConfigOpt.color() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --color
-    [default: false]
-
-    allow color in logs",
+            "--color
+  [default: false]
+  \n  allow color in logs",
             ConfigOpt.color(~default=false, ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --color
-    [default: true]
-    [from config: false]
-
-    allow color in logs",
+            "--color
+  [default: true]
+  [from config: false]
+  \n  allow color in logs",
             ConfigOpt.color()
             |> fst
             |> ~@Opt.pp(Some({...__config, color: false})),
@@ -276,25 +253,22 @@ let suite =
       () =>
         [
           (
-            "  --fail-fast
-    [default: false]
-
-    fail as soon as the first error is encountered",
+            "--fail-fast
+  [default: false]
+  \n  fail as soon as the first error is encountered",
             ConfigOpt.fail_fast() |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --fail-fast
-    [default: true]
-
-    fail as soon as the first error is encountered",
+            "--fail-fast
+  [default: true]
+  \n  fail as soon as the first error is encountered",
             ConfigOpt.fail_fast(~default=true, ()) |> fst |> ~@Opt.pp(None),
           ),
           (
-            "  --fail-fast
-    [default: false]
-    [from config: true]
-
-    fail as soon as the first error is encountered",
+            "--fail-fast
+  [default: false]
+  [from config: true]
+  \n  fail as soon as the first error is encountered",
             ConfigOpt.fail_fast()
             |> fst
             |> ~@Opt.pp(Some({...__config, fail_fast: true})),

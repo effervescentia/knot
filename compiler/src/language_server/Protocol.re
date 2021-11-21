@@ -1,13 +1,14 @@
 open Kore;
 
 let __content_length_header = "Content-Length";
+let __line_break = "\r\n";
 
 let rec read_headers = stream => {
   let rec loop = buffer => {
     let buffer = buffer ++ (Stream.next(stream) |> String.make(1));
 
-    if (String.ends_with("\r\n", buffer)) {
-      buffer |> String.drop_all_suffix("\r\n");
+    if (String.ends_with(__line_break, buffer)) {
+      buffer |> String.drop_all_suffix(__line_break);
     } else {
       loop(buffer);
     };
@@ -95,9 +96,4 @@ let notify = (notification: Yojson.Basic.t) => {
 };
 
 let report = errs =>
-  send(
-    Response.show_message(
-      Fmt.str("compilation failed with errors:\n%a", pp_err_list, errs),
-      Error,
-    ),
-  );
+  send(Response.show_message(errs |> ~@pp_err_list, Error));

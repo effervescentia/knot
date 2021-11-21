@@ -111,11 +111,8 @@ module Raw = {
         ? Fmt.string(ppf, "{}")
         : Fmt.pf(
             ppf,
-            "{ %a }",
-            Fmt.list(
-              ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
-              pp_props(pp_type),
-            ),
+            "@[<h>{ %a }@]",
+            Fmt.list(~sep=Fmt.comma, pp_props(pp_type)),
             props,
           );
 
@@ -123,11 +120,8 @@ module Raw = {
     (ppf, (args, res)) =>
       Fmt.pf(
         ppf,
-        "Function<(%a), %a>",
-        Fmt.list(
-          ~sep=(ppf, ()) => Fmt.string(ppf, ", "),
-          pp_props(pp_type),
-        ),
+        "@[<h>Function<(%a), %a>@]",
+        Fmt.list(~sep=Fmt.comma, pp_props(pp_type)),
         args,
         pp_type,
         res,

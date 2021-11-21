@@ -3,6 +3,12 @@
  */
 open Kore;
 
+let _pp_section = (pp_value: Fmt.t('a)): Fmt.t((string, 'a)) =>
+  Fmt.(
+    (ppf, (label, value)) =>
+      pf(ppf, "%a@,%a", bold_str, label, block(pp_value), value)
+  );
+
 let _pp_command_list = (ppf, cmds) => {
   let offset =
     cmds
@@ -10,85 +16,76 @@ let _pp_command_list = (ppf, cmds) => {
     |> List.fold_left((acc, len) => len > acc ? len : acc, 0)
     |> (+)(2);
 
-  Fmt.pf(
-    ppf,
-    "%a\n",
-    Fmt.list(
-      ~sep=(ppf, ()) => Fmt.string(ppf, "\n"),
+  Fmt.(
+    list(
       (ppf, (cmd, desc)) =>
-        Fmt.pf(
-          ppf,
-          "%a%s",
-          ppf => Fmt.pf(ppf, "  %-*s", offset),
-          cmd |> ~@Fmt.bold_str,
-          desc,
-        ),
-    ),
-    cmds,
+        pf(ppf, "%a%s", bold(ppf => pf(ppf, "%-*s", offset)), cmd, desc),
+      ppf,
+      cmds,
+    )
   );
 };
 
 let _pp_opt_list = cfg =>
-  Fmt.list(~sep=(ppf, ()) => Fmt.string(ppf, "\n\n"), Opt.pp(cfg));
+  Fmt.(list(~sep=(ppf, ()) => string(ppf, "@,@,"), Opt.pp(cfg)));
 
 let _pp_sub_command: Fmt.t(Cmd.t('a)) =
-  (ppf, {name}) =>
-    Fmt.pf(
-      ppf,
-      "  %a [options]",
-      Fmt.bold(ppf => Fmt.pf(ppf, "knotc %s")),
-      name,
-    );
+  Fmt.(
+    (ppf, {name}) =>
+      pf(ppf, "  %a [options]", bold(ppf => pf(ppf, "knotc %s")), name)
+  );
 
 let _pp_cmd_usage = (static_cfg): Fmt.t(option(Cmd.t(RunCmd.t))) =>
-  ppf =>
-    fun
-    | None =>
-      Fmt.pf(
-        ppf,
-        "  %a <command> ...\n%a\n%a",
-        Fmt.bold_str,
-        "knotc",
-        Fmt.bold_str,
-        "\nCOMMANDS\n",
-        _pp_command_list,
-        RunCmd.commands,
-      )
+  Fmt.(
+    ppf =>
+      fun
+      | None =>
+        pf(
+          ppf,
+          "  %a <command> ...@,@,%a",
+          bold_str,
+          "knotc",
+          _pp_section(_pp_command_list),
+          ("COMMANDS", RunCmd.commands),
+        )
 
-    | Some(Cmd.{name, opts: command_opts} as cmd) =>
-      Fmt.pf(
-        ppf,
-        "%a\n%a",
-        _pp_sub_command,
-        cmd,
-        ppf =>
-          fun
-          | [] => Fmt.nop(ppf, ())
-          | opts =>
-            Fmt.pf(
-              ppf,
-              "%a\n%a\n",
-              Fmt.bold_str,
-              "\nCOMMAND OPTIONS\n",
-              _pp_opt_list(static_cfg),
-              opts,
-            ),
-        command_opts,
-      );
+      | Some(Cmd.{name, opts: command_opts} as cmd) =>
+        pf(
+          ppf,
+          "%a@,%a",
+          _pp_sub_command,
+          cmd,
+          ppf =>
+            fun
+            | [] => nop(ppf, ())
+            | opts =>
+              pf(
+                ppf,
+                "@,%a",
+                _pp_section(_pp_opt_list(static_cfg)),
+                ("COMMAND OPTIONS", opts),
+              ),
+          command_opts,
+        )
+  );
 
 let rec pp_usage:
   Fmt.t((option(Cmd.t(RunCmd.t)), option(Config.t), list(Opt.t))) =
-  (ppf, (cmd, static_cfg, opts)) =>
-    Fmt.pf(
-      ppf,
-      "%a%a\n%a\n",
-      _pp_cmd_usage(static_cfg),
-      cmd,
-      Fmt.bold_str,
-      "\nOPTIONS\n",
-      _pp_opt_list(static_cfg),
-      opts,
-    );
+  Fmt.(
+    (ppf, (cmd, static_cfg, opts)) =>
+      root(
+        ppf =>
+          pf(
+            ppf,
+            "%a@,%a",
+            _pp_cmd_usage(static_cfg),
+            cmd,
+            _pp_section(_pp_opt_list(static_cfg)),
+          ),
+        ppf,
+        ("OPTIONS", opts),
+      )
+  );
 
 let to_config = (): (global_t, RunCmd.t) => {
   let auto_config_file = ConfigFile.find(default_config.root_dir);
@@ -198,7 +195,7 @@ let to_config = (): (global_t, RunCmd.t) => {
     cmd^
     |!: (
       () => {
-        Fmt.pr("%a\n", _pp_command_list, RunCmd.commands);
+        Fmt.pr("%a@,", _pp_command_list, RunCmd.commands);
 
         panic("must provide a command");
       }
