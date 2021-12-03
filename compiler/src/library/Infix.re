@@ -1,6 +1,7 @@
 /**
  Custom binary operators.
  */
+open Extensions;
 
 let (%) = (f, g, x) => g(f(x));
 
@@ -47,7 +48,7 @@ let (|?>) = (x, f) => x |?< (y => Some(f(y)));
 /**
  creates a to_string method from a pretty-printer
  */
-let (~@) = Fmt.to_to_string;
+let (~@) = x => Fmt.root(x) |> Fmt.to_to_string;
 
 /**
  creates a channel writer from a pretty-printer

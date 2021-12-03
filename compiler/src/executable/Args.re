@@ -26,8 +26,7 @@ let _pp_command_list = (ppf, cmds) => {
   );
 };
 
-let _pp_opt_list = cfg =>
-  Fmt.(list(~sep=(ppf, ()) => string(ppf, "@,@,"), Opt.pp(cfg)));
+let _pp_opt_list = cfg => Fmt.(list(~sep=Sep.newline, Opt.pp(cfg)));
 
 let _pp_sub_command: Fmt.t(Cmd.t('a)) =
   Fmt.(
@@ -122,9 +121,7 @@ let to_config = (): (global_t, RunCmd.t) => {
   let rec usage = () => {
     find_static_config(get_root_dir(static^));
 
-    if (!is_ci) {
-      Fmt.color := true;
-    };
+    Fmt.color := !is_ci;
 
     Fmt.pr("%a", pp_usage, (cmd^, static^, global_opts()));
 

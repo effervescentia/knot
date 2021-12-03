@@ -80,7 +80,7 @@ let rec pp_jsx: Fmt.t(raw_jsx_t) =
           Node.Raw.get_value(name),
           pp_jsx_attr_list,
           attrs |> List.map(Node.get_value),
-          block(list(~sep=cut, pp_jsx_child)),
+          block(list(~sep=Sep.newline, pp_jsx_child)),
           children |> List.map(Node.get_value),
           Identifier.pp,
           Node.Raw.get_value(name),
@@ -91,7 +91,7 @@ let rec pp_jsx: Fmt.t(raw_jsx_t) =
         pf(
           ppf,
           "<>%a</>",
-          block(list(~sep=cut, pp_jsx_child)),
+          block(list(~sep=Sep.newline, pp_jsx_child)),
           children |> List.map(Node.get_value),
         )
   )
@@ -112,7 +112,7 @@ and pp_jsx_attr_list: Fmt.t(list(raw_jsx_attribute_t)) =
       fun
       | [] => nop(ppf, ())
       | attrs =>
-        attrs |> list(~sep=nop, ppf => pf(ppf, "@ %a", pp_jsx_attr), ppf)
+        attrs |> list(~sep=Sep.nop, ppf => pf(ppf, "@ %a", pp_jsx_attr), ppf)
   )
 
 and pp_jsx_attr: Fmt.t(raw_jsx_attribute_t) =
@@ -194,7 +194,7 @@ and pp_expression: Fmt.t(raw_expression_t) =
     | Closure(stmts) =>
       stmts
       |> List.map(Node.get_value)
-      |> Fmt.(pf(ppf, "{%a}", block(list(~sep=cut, pp_statement))))
+      |> Fmt.(pf(ppf, "{%a}", block(list(~sep=Sep.newline, pp_statement))))
 
 and pp_statement: Fmt.t(raw_statement_t) =
   (ppf, stmt) =>
@@ -262,7 +262,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
           "@[<v 0>func @[<h>%a(%a)@] -> %a@]@,",
           Identifier.pp,
           name,
-          list(~sep=Fmt.comma, ppf => pp_function_arg(ppf)),
+          list(~sep=Sep.comma, ppf => pp_function_arg(ppf)),
           args |> List.map(Node.get_value),
           pp_function_body,
           Node.get_value(expr),
@@ -310,8 +310,7 @@ let pp_import: Fmt.t(import_spec_t) =
         ppf =>
           fun
           | [] => nop(ppf, ())
-          | imports =>
-            pf(ppf, "{ %a }", list(~sep=comma, pp_named_import), imports),
+          | imports => pf(ppf, "{ %a }", list(pp_named_import), imports),
         named_imports,
         Namespace.pp,
         namespace,
@@ -321,7 +320,7 @@ let pp_import: Fmt.t(import_spec_t) =
 let pp_all_imports: Fmt.t((list(import_spec_t), list(import_spec_t))) =
   (ppf, (internal_imports, external_imports)) =>
     [external_imports, internal_imports]
-    |> Fmt.(list(~sep=cut, list(~sep=nop, pp_import), ppf));
+    |> Fmt.(list(~sep=Sep.newline, list(~sep=Sep.nop, pp_import), ppf));
 
 let pp_declaration_list: Fmt.t(list((Identifier.t, raw_declaration_t))) =
   ppf => {

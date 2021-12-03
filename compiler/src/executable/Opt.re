@@ -69,13 +69,12 @@ let _pp_flag: Fmt.t((string, option(string))) =
     };
 
 let _pp_attr = (label: string, pp_value: Fmt.t('a)): Fmt.t('a) =>
-  ppf => Fmt.pf(ppf, "@[<h 0>[%s: %a]@]@,", label, Fmt.bold(pp_value));
+  ppf => Fmt.pf(ppf, "[%s: %a]@,", label, Fmt.bold(pp_value));
 
 let _pp_option_list: Fmt.t(option(list(string))) =
   ppf =>
     fun
-    | Some(options) =>
-      _pp_attr("options", Fmt.(list(~sep=comma, string)), ppf, options)
+    | Some(options) => _pp_attr("options", Fmt.(list(string)), ppf, options)
     | None => Fmt.nop(ppf, ());
 
 let _pp_default: Fmt.t(option(Value.t)) =

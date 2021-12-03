@@ -5,6 +5,11 @@
 type t2('a, 'b) = ('a, 'b);
 type t3('a, 'b, 'c) = ('a, 'b, 'c);
 
+/* static */
+
+let with_fst2 = (x: 'a, y: 'b): t2('a, 'b) => (x, y);
+let with_snd2 = (x: 'a, y: 'b): t2('b, 'a) => (y, x);
+
 /* getters */
 
 let fst2 = ((x, y): ('a, 'b)): 'a => x;

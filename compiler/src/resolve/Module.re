@@ -80,4 +80,5 @@ let pp: Fmt.t(t) =
       | Raw(s) => [("raw", s)]
       | File({full, relative}) => [("full", full), ("relative", relative)]
     )
-    % Fmt.(root(struct_("Module", string, string), ppf));
+    % Tuple.with_fst2("Module")
+    % Fmt.(struct_(string, string, ppf));

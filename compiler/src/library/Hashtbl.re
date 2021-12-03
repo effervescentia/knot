@@ -38,4 +38,8 @@ let map_values = (map_value: 'b => 'c, tbl: t('a, 'b)): t('a, 'c) =>
 /* pretty printing */
 
 let pp = (pp_key: Fmt.t('a), pp_value: Fmt.t('b)): Fmt.t(t('a, 'b)) =>
-  Fmt.hashtbl(Fmt.attr(pp_key, pp_value));
+  pf =>
+    to_seq
+    % List.of_seq
+    % Tuple.with_fst2("Hashtbl")
+    % Fmt.struct_(pp_key, pp_value, pf);
