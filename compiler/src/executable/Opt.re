@@ -69,12 +69,13 @@ let _pp_flag: Fmt.t((string, option(string))) =
     };
 
 let _pp_attr = (label: string, pp_value: Fmt.t('a)): Fmt.t('a) =>
-  ppf => Fmt.pf(ppf, "[%s: %a]@,", label, Fmt.bold(pp_value));
+  Fmt.(ppf => pf(ppf, "[%s: %a]@,", label, bold(pp_value)));
 
 let _pp_option_list: Fmt.t(option(list(string))) =
   ppf =>
     fun
-    | Some(options) => _pp_attr("options", Fmt.(list(string)), ppf, options)
+    | Some(options) =>
+      _pp_attr("options", Fmt.(list(~sep=Sep.comma, string)), ppf, options)
     | None => Fmt.nop(ppf, ());
 
 let _pp_default: Fmt.t(option(Value.t)) =
@@ -98,12 +99,13 @@ let _pp_config = (opt: t): Fmt.t(option(Config.t)) =>
 
 let pp = (cfg: option(Config.t)): Fmt.t(t) =>
   Fmt.(
-    (ppf, value) =>
+    vbox((ppf, value) =>
       pf(
         ppf,
-        "@[<v 0>@[%a@]@;<0 2>@[<v 0>%a%a%a@,@[<h 0>%s@]@]@]",
+        "%a%t@[<v>%a%a%a@,%s@]",
         bold(_pp_flag),
         (value.name, value.alias),
+        indent,
         _pp_option_list,
         value.options,
         _pp_default,
@@ -112,4 +114,5 @@ let pp = (cfg: option(Config.t)): Fmt.t(t) =>
         cfg,
         value.desc,
       )
+    )
   );

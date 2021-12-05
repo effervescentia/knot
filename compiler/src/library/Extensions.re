@@ -68,20 +68,6 @@ module Fmt = {
 
   let indent = ppf => Format.pp_print_break(ppf, 0, __indent_spaces);
 
-  let indent_or_space = ppf =>
-    Format.pp_print_custom_break(
-      ppf,
-      ~fits=("", 1, ""),
-      ~breaks=("", __indent_spaces, ""),
-    );
-
-  let space_or_cop = ppf =>
-    Format.pp_print_custom_break(
-      ppf,
-      ~fits=("", 1, ""),
-      ~breaks=("", __indent_spaces, ""),
-    );
-
   /*
    print an indented value
    */

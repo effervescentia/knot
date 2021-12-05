@@ -80,7 +80,7 @@ let suite =
   cache: foo
   root_dir: bar
 }",
-            resolver |> ~@Resolver.pp,
+            resolver |> ~@Fmt.root(Resolver.pp),
           ),
         ]
         |> Assert.(test_many(string));

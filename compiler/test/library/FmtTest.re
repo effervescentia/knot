@@ -34,29 +34,18 @@ let suite =
     >: (
       () =>
         [
-          ("", [] |> (Fmt.(root(list(string))) |> Fmt.to_to_string)),
-          (
-            "a, b, c",
-            ["a", "b", "c"]
-            |> (Fmt.(root(box(list(string)))) |> Fmt.to_to_string),
-          ),
-          (
-            "a, b, c,
-",
-            ["a", "b", "c"]
-            |> (Fmt.(root(list(string))) |> Fmt.to_to_string),
-          ),
+          ("", [] |> ~@Fmt.(root(list(string)))),
+          ("a, b, c", ["a", "b", "c"] |> ~@Fmt.(root(box(list(string))))),
+          ("a, b, c,
+", ["a", "b", "c"] |> ~@Fmt.(root(list(string)))),
           (
             "a; b; c",
             ["a", "b", "c"]
-            |> (
-              Fmt.(root(box(list(~sep=Sep.of_sep(";"), string))))
-              |> Fmt.to_to_string
-            ),
+            |> ~@Fmt.(root(box(list(~sep=Sep.of_sep(";"), string)))),
           ),
           (
             "Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi",
-            __words |> (Fmt.(root(box(list(string)))) |> Fmt.to_to_string),
+            __words |> ~@Fmt.(root(box(list(string)))),
           ),
           (
             "Lorem,
@@ -72,7 +61,7 @@ et,
 ipsum,
 nisi,
 ",
-            __long_words |> (Fmt.(root(list(string))) |> Fmt.to_to_string),
+            __long_words |> ~@Fmt.(root(list(string))),
           ),
         ]
         |> Assert.(test_many(string))
@@ -85,14 +74,11 @@ nisi,
         let string_set_set = set(string_set);
 
         [
-          ("<>", [] |> (Fmt.(root(string_set)) |> Fmt.to_to_string)),
-          (
-            "<a, b, c>",
-            ["a", "b", "c"] |> (Fmt.(root(string_set)) |> Fmt.to_to_string),
-          ),
+          ("<>", [] |> ~@Fmt.(root(string_set))),
+          ("<a, b, c>", ["a", "b", "c"] |> ~@Fmt.(root(string_set))),
           (
             "<Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>",
-            __words |> (Fmt.(root(string_set)) |> Fmt.to_to_string),
+            __words |> ~@Fmt.(root(string_set)),
           ),
           (
             "<
@@ -109,20 +95,19 @@ nisi,
   ipsum,
   nisi,
 >",
-            __long_words |> (Fmt.(root(string_set)) |> Fmt.to_to_string),
+            __long_words |> ~@Fmt.(root(string_set)),
           ),
           (
             "<<a, b, c>, <d, e, f>>",
             [["a", "b", "c"], ["d", "e", "f"]]
-            |> (Fmt.(root(string_set_set)) |> Fmt.to_to_string),
+            |> ~@Fmt.(root(string_set_set)),
           ),
           (
             "<
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
 >",
-            [__words, __words]
-            |> (Fmt.(root(box(string_set_set))) |> Fmt.to_to_string),
+            [__words, __words] |> ~@Fmt.(root(box(string_set_set))),
           ),
           (
             "<
@@ -156,7 +141,7 @@ nisi,
   >,
 >",
             [__long_words, __long_words]
-            |> (Fmt.(root(box(string_set_set))) |> Fmt.to_to_string),
+            |> ~@Fmt.(root(box(string_set_set))),
           ),
         ]
         |> Assert.(test_many(string));
@@ -166,12 +151,8 @@ nisi,
     >: (
       () =>
         [
-          ("[]", [] |> (Fmt.(root(array(string))) |> Fmt.to_to_string)),
-          (
-            "[a, b, c]",
-            ["a", "b", "c"]
-            |> (Fmt.(root(array(string))) |> Fmt.to_to_string),
-          ),
+          ("[]", [] |> ~@Fmt.(root(array(string)))),
+          ("[a, b, c]", ["a", "b", "c"] |> ~@Fmt.(root(array(string)))),
         ]
         |> Assert.(test_many(string))
     ),
@@ -179,12 +160,8 @@ nisi,
     >: (
       () =>
         [
-          ("()", [] |> (Fmt.(root(tuple(string))) |> Fmt.to_to_string)),
-          (
-            "(a, b, c)",
-            ["a", "b", "c"]
-            |> (Fmt.(root(tuple(string))) |> Fmt.to_to_string),
-          ),
+          ("()", [] |> ~@Fmt.(root(tuple(string)))),
+          ("(a, b, c)", ["a", "b", "c"] |> ~@Fmt.(root(tuple(string)))),
         ]
         |> Assert.(test_many(string))
     ),
@@ -192,13 +169,10 @@ nisi,
     >: (
       () =>
         [
-          ("{ }", [] |> (Fmt.(root(closure(string))) |> Fmt.to_to_string)),
-          (
-            "{
+          ("{ }", [] |> ~@Fmt.(root(closure(string)))),
+          ("{
   foo
-}",
-            ["foo"] |> (Fmt.(root(closure(string))) |> Fmt.to_to_string),
-          ),
+}", ["foo"] |> ~@Fmt.(root(closure(string)))),
           (
             "{
   foo
@@ -206,8 +180,7 @@ nisi,
   fizz
   buzz
 }",
-            ["foo", "bar", "fizz", "buzz"]
-            |> (Fmt.(root(closure(string))) |> Fmt.to_to_string),
+            ["foo", "bar", "fizz", "buzz"] |> ~@Fmt.(root(closure(string))),
           ),
           (
             "{
@@ -221,17 +194,14 @@ nisi,
   }
 }",
             [["foo", "bar"], ["fizz", "buzz"]]
-            |> (Fmt.(root(closure(closure(string)))) |> Fmt.to_to_string),
+            |> ~@Fmt.(root(closure(closure(string)))),
           ),
           (
             "prefix {
   foo
 }",
             ["foo"]
-            |> (
-              Fmt.(root(ppf => pf(ppf, "prefix %a", closure(string))))
-              |> Fmt.to_to_string
-            ),
+            |> ~@Fmt.(root(ppf => pf(ppf, "prefix %a", closure(string)))),
           ),
         ]
         |> Assert.(test_many(string))
@@ -242,8 +212,7 @@ nisi,
         [
           (
             "foo: bar",
-            ("foo", "bar")
-            |> (Fmt.(root(attribute(string, string))) |> Fmt.to_to_string),
+            ("foo", "bar") |> ~@Fmt.(root(attribute(string, string))),
           ),
           (
             "foo: Laboris pariatur nisi nulla dolor aliqua est voluptate fugiat est commodo",
@@ -251,7 +220,7 @@ nisi,
               "foo",
               "Laboris pariatur nisi nulla dolor aliqua est voluptate fugiat est commodo",
             )
-            |> (Fmt.(root(attribute(string, string))) |> Fmt.to_to_string),
+            |> ~@Fmt.(root(attribute(string, string))),
           ),
         ]
         |> Assert.(test_many(string))
@@ -260,16 +229,12 @@ nisi,
     >: (
       () =>
         [
-          (
-            "{ }",
-            [] |> (Fmt.(root(record(string, string))) |> Fmt.to_to_string),
-          ),
+          ("{ }", [] |> ~@Fmt.(root(record(string, string)))),
           (
             "{
   foo: bar
 }",
-            [("foo", "bar")]
-            |> (Fmt.(root(record(string, string))) |> Fmt.to_to_string),
+            [("foo", "bar")] |> ~@Fmt.(root(record(string, string))),
           ),
           (
             "{
@@ -278,7 +243,7 @@ nisi,
   zipp: zapp
 }",
             [("foo", "bar"), ("fizz", "buzz"), ("zipp", "zapp")]
-            |> (Fmt.(root(record(string, string))) |> Fmt.to_to_string),
+            |> ~@Fmt.(root(record(string, string))),
           ),
           (
             "{
@@ -290,7 +255,7 @@ nisi,
                 "Est fugiat nostrud aliquip irure amet commodo voluptate excepteur pariatur esse ut mollit nisi exercitation",
               ),
             ]
-            |> (Fmt.(root(record(string, string))) |> Fmt.to_to_string),
+            |> ~@Fmt.(root(record(string, string))),
           ),
           (
             "{
@@ -302,10 +267,7 @@ nisi,
   }
 }",
             [("foo", [("fizz", "buzz")]), ("bar", [("zipp", "zapp")])]
-            |> (
-              Fmt.(root(record(string, record(string, string))))
-              |> Fmt.to_to_string
-            ),
+            |> ~@Fmt.(root(record(string, record(string, string)))),
           ),
         ]
         |> Assert.(test_many(string))

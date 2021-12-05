@@ -18,6 +18,7 @@ let _pp_command_list = (ppf, cmds) => {
 
   Fmt.(
     list(
+      ~sep=Sep.trailing_newline,
       (ppf, (cmd, desc)) =>
         pf(ppf, "%a%s", bold(ppf => pf(ppf, "%-*s", offset)), cmd, desc),
       ppf,

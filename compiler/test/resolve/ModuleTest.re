@@ -152,15 +152,19 @@ let suite =
     >: (
       () =>
         [
-          ("Module {
+          (
+            "Module {
   raw: foo
-}", Module.Raw("foo") |> ~@Module.pp),
+}",
+            Module.Raw("foo") |> ~@Fmt.root(Module.pp),
+          ),
           (
             "Module {
   full: foo
   relative: bar
 }",
-            Module.File({full: "foo", relative: "bar"}) |> ~@Module.pp,
+            Module.File({full: "foo", relative: "bar"})
+            |> ~@Fmt.root(Module.pp),
           ),
         ]
         |> Assert.(test_many(string))
