@@ -27,7 +27,7 @@ let suite =
             "Hashtbl {
   foo: bar
 }",
-            __table |> ~@Hashtbl.pp(Fmt.string, Fmt.string),
+            __table |> ~@Fmt.(root(Hashtbl.pp(string, string))),
           ),
         ]
         |> Assert.(test_many(string))

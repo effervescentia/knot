@@ -328,14 +328,15 @@ nisi,
     >: (
       () =>
         [
-          ("foo { }", ("foo", []) |> ~@Fmt.(entity(string, string))),
+          ("foo { }", ("foo", []) |> ~@Fmt.(root(entity(string, string)))),
           (
             "foo {
   a
   b
   c
 }",
-            ("foo", ["a", "b", "c"]) |> ~@Fmt.(entity(string, string)),
+            ("foo", ["a", "b", "c"])
+            |> ~@Fmt.(root(entity(string, string))),
           ),
           (
             "foo {
@@ -354,7 +355,7 @@ nisi,
               "foo",
               [("bar", ["a", "b", "c"]), ("fizz", ["1", "2", "3"])],
             )
-            |> ~@Fmt.(entity(string, entity(string, string))),
+            |> ~@Fmt.(root(entity(string, entity(string, string)))),
           ),
         ]
         |> Assert.(test_many(string))
@@ -363,7 +364,7 @@ nisi,
     >: (
       () =>
         [
-          ("foo { }", ("foo", []) |> ~@Fmt.(struct_(string, string))),
+          ("foo { }", ("foo", []) |> ~@Fmt.(root(struct_(string, string)))),
           (
             "foo {
   a: 1
@@ -371,14 +372,14 @@ nisi,
   c: 3
 }",
             ("foo", [("a", 1), ("b", 2), ("c", 3)])
-            |> ~@Fmt.(struct_(string, int)),
+            |> ~@Fmt.(root(struct_(string, int))),
           ),
           (
             "Hashtbl {
   foo: bar
 }",
             ("Hashtbl", [("foo", "bar")])
-            |> ~@Fmt.(struct_(string, string)),
+            |> ~@Fmt.(root(struct_(string, string))),
           ),
           (
             "foo {
@@ -400,7 +401,7 @@ nisi,
                 ("fizz", ("Fizz", [("d", 4), ("e", 5), ("f", 6)])),
               ],
             )
-            |> ~@Fmt.(struct_(string, struct_(string, int))),
+            |> ~@Fmt.(root(struct_(string, struct_(string, int)))),
           ),
         ]
         |> Assert.(test_many(string))

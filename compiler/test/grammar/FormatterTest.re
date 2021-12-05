@@ -5,6 +5,98 @@ open Reference;
 
 module Formatter = Grammar.Formatter;
 
+let __int_const = ("ABC" |> of_public, 123 |> int_prim |> of_const);
+let __bool_const = ("DEF" |> of_public, true |> bool_prim |> of_const);
+
+let __inline_function = (
+  "foo" |> of_public,
+  (
+    [
+      {name: "bar" |> of_public |> as_raw_node, default: None, type_: None}
+      |> as_int,
+      {
+        name: "fizz" |> of_public |> as_raw_node,
+        default: Some(3 |> int_prim),
+        type_: None,
+      }
+      |> as_int,
+    ],
+    (
+      "bar" |> of_public |> as_int |> of_id |> as_int,
+      "fizz" |> of_public |> as_int |> of_id |> as_int,
+    )
+    |> of_add_op
+    |> as_int,
+  )
+  |> of_func,
+);
+
+let __multiline_function = (
+  "buzz" |> of_public,
+  (
+    [],
+    [
+      ("zip" |> of_public |> as_raw_node, 3 |> int_prim) |> of_var |> as_nil,
+      ("zap" |> of_public |> as_raw_node, 4 |> int_prim) |> of_var |> as_nil,
+      (
+        "zip" |> of_public |> as_int |> of_id |> as_int,
+        "zap" |> of_public |> as_int |> of_id |> as_int,
+      )
+      |> of_mult_op
+      |> as_int
+      |> of_expr
+      |> as_int,
+    ]
+    |> of_closure
+    |> as_int,
+  )
+  |> of_func,
+);
+
+let __external_main_import = (
+  "buzz" |> of_external,
+  Some("Fizz" |> of_public),
+  [],
+);
+
+let __external_named_import = (
+  "bar" |> of_external,
+  Some("bar" |> of_public),
+  [
+    ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
+    ("Bar" |> of_public, None),
+  ],
+);
+
+let __internal_main_import = (
+  "bar" |> of_internal,
+  Some("Foo" |> of_public),
+  [],
+);
+
+let __internal_named_import = (
+  "bar" |> of_internal,
+  Some("bar" |> of_public),
+  [
+    ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
+    ("Bar" |> of_public, None),
+  ],
+);
+
+let __int_const_stmt =
+  (
+    "ABC" |> of_public |> as_raw_node |> of_named_export,
+    123 |> int_prim |> of_const |> as_int,
+  )
+  |> of_decl;
+
+let __import_stmt =
+  (
+    "bar" |> of_external,
+    ["Foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
+  )
+  |> of_import;
+
 let suite =
   "Grammar.Formatter"
   >::: [
@@ -381,7 +473,7 @@ let suite =
       () =>
         [
           (
-            "const foo = nil;\n",
+            "const foo = nil;",
             (
               "foo" |> of_public,
               nil |> as_nil |> of_prim |> as_nil |> of_const,
@@ -395,188 +487,141 @@ let suite =
     >: (
       () =>
         [
-          (
-            "func foo(bar, fizz = 3) -> bar + fizz;\n",
-            (
-              "foo" |> of_public,
-              (
-                [
-                  {
-                    name: "bar" |> of_public |> as_raw_node,
-                    default: None,
-                    type_: None,
-                  }
-                  |> as_int,
-                  {
-                    name: "fizz" |> of_public |> as_raw_node,
-                    default: Some(3 |> int_prim),
-                    type_: None,
-                  }
-                  |> as_int,
-                ],
-                (
-                  "bar" |> of_public |> as_int |> of_id |> as_int,
-                  "fizz" |> of_public |> as_int |> of_id |> as_int,
-                )
-                |> of_add_op
-                |> as_int,
-              )
-              |> of_func,
-            ),
-          ),
+          ("func foo(bar, fizz = 3) -> bar + fizz;", __inline_function),
           (
             "func buzz -> {
   let zip = 3;
   let zap = 4;
   zip * zap;
-}
-",
-            (
-              "buzz" |> of_public,
-              (
-                [],
-                [
-                  ("zip" |> of_public |> as_raw_node, 3 |> int_prim)
-                  |> of_var
-                  |> as_nil,
-                  ("zap" |> of_public |> as_raw_node, 4 |> int_prim)
-                  |> of_var
-                  |> as_nil,
-                  (
-                    "zip" |> of_public |> as_int |> of_id |> as_int,
-                    "zap" |> of_public |> as_int |> of_id |> as_int,
-                  )
-                  |> of_mult_op
-                  |> as_int
-                  |> of_expr
-                  |> as_int,
-                ]
-                |> of_closure
-                |> as_int,
-              )
-              |> of_func,
-            ),
+}",
+            __multiline_function,
           ),
         ]
         |> List.map(Tuple.map_snd2(~@pp_declaration))
         |> Assert.(test_many(string))
     ),
-    "pp_declarations()"
+    "pp_declaration_list()"
     >: (
       () =>
         [
+          ("", []),
+          ("const ABC = 123;", [__int_const]),
+          (
+            "const DEF = true;
+const ABC = 123;",
+            [__bool_const, __int_const],
+          ),
+          (
+            "const DEF = true;
+
+func foo(bar, fizz = 3) -> bar + fizz;
+
+const ABC = 123;",
+            [__bool_const, __inline_function, __int_const],
+          ),
+          (
+            "func foo(bar, fizz = 3) -> bar + fizz;
+
+const DEF = true;
+const ABC = 123;",
+            [__inline_function, __bool_const, __int_const],
+          ),
           (
             "const DEF = true;
 const ABC = 123;
-",
-            [
-              ("DEF" |> of_public, true |> bool_prim |> of_const),
-              ("ABC" |> of_public, 123 |> int_prim |> of_const),
-            ],
+
+func foo(bar, fizz = 3) -> bar + fizz;",
+            [__bool_const, __int_const, __inline_function],
           ),
         ]
-        |> List.map(Tuple.map_snd2(~@pp_declaration_list))
+        |> List.map(Tuple.map_snd2(~@Fmt.root(pp_declaration_list)))
         |> Assert.(test_many(string))
     ),
-    "pp_imports()"
+    "pp_all_imports()"
     >: (
       () =>
         [
           (
-            "import bar, { Bar, Foo as foo } from \"bar\";
-import Fizz from \"buzz\";
-",
+            "import Fizz from \"buzz\";
+import bar, { Foo as foo, Bar } from \"bar\";",
+            ([], [__external_main_import, __external_named_import]),
+          ),
+          (
+            "import Fizz from \"@/buzz\";
+import bar, { Foo as foo, Bar } from \"@/bar\";",
             (
-              [],
               [
-                ("buzz" |> of_external, Some("Fizz" |> of_public), []),
-                (
-                  "bar" |> of_external,
-                  Some("bar" |> of_public),
-                  [
-                    (
-                      "Foo" |> of_public,
-                      Some("foo" |> of_public |> as_raw_node),
-                    ),
-                    ("Bar" |> of_public, None),
-                  ],
-                ),
+                ("buzz" |> of_internal, Some("Fizz" |> of_public), []),
+                __internal_named_import,
               ],
+              [],
             ),
           ),
           (
             "import Fizz from \"buzz\";
 
-import Foo from \"@/bar\";
-",
-            (
-              [("bar" |> of_internal, Some("Foo" |> of_public), [])],
-              [("buzz" |> of_external, Some("Fizz" |> of_public), [])],
-            ),
+import Foo from \"@/bar\";",
+            ([__internal_main_import], [__external_main_import]),
           ),
         ]
-        |> List.map(Tuple.map_snd2(~@pp_all_imports))
+        |> List.map(Tuple.map_snd2(~@Fmt.root(pp_all_imports)))
         |> Assert.(test_many(string))
     ),
     "format()"
     >: (
       () =>
         [
-          ("", []),
-          (
-            "import Foo from \"bar\";\n",
-            [
-              (
-                "bar" |> of_external,
-                [
-                  "Foo"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_main_import
-                  |> as_raw_node,
-                ],
-              )
-              |> of_import,
-            ],
-          ),
-          (
-            "const ABC = 123;\n",
-            [
-              (
-                "ABC" |> of_public |> as_raw_node |> of_named_export,
-                123 |> int_prim |> of_const |> as_int,
-              )
-              |> of_decl,
-            ],
-          ),
+          ("\n", []),
+          ("import Foo from \"bar\";\n", [__import_stmt]),
+          ("const ABC = 123;\n", [__int_const_stmt]),
           (
             "import Foo from \"bar\";
 
-const ABC = 123;
-",
-            [
-              (
-                "bar" |> of_external,
-                [
-                  "Foo"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_main_import
-                  |> as_raw_node,
-                ],
-              )
-              |> of_import,
-              (
-                "ABC" |> of_public |> as_raw_node |> of_named_export,
-                123 |> int_prim |> of_const |> as_int,
-              )
-              |> of_decl,
-            ],
+const ABC = 123;\n",
+            [__import_stmt, __int_const_stmt],
           ),
         ]
         |> List.map(
              Tuple.map_snd2(List.map(as_raw_node) % ~@Formatter.format),
            )
         |> Assert.(test_many(string))
+    ),
+    "format() - sort imports"
+    >: (
+      () => {
+        let _main_import = (name, f) =>
+          (
+            name |> f,
+            [
+              name
+              |> String.capitalize_ascii
+              |> of_public
+              |> as_raw_node
+              |> of_main_import
+              |> as_raw_node,
+            ],
+          )
+          |> of_import;
+
+        [
+          (
+            "import Bar from \"bar\";
+import Foo from \"foo\";
+
+import Buzz from \"@/buzz\";
+import Fizz from \"@/fizz\";\n",
+            [
+              _main_import("buzz", of_internal),
+              _main_import("bar", of_external),
+              _main_import("fizz", of_internal),
+              _main_import("foo", of_external),
+            ],
+          ),
+        ]
+        |> List.map(
+             Tuple.map_snd2(List.map(as_raw_node) % ~@Formatter.format),
+           )
+        |> Assert.(test_many(string));
+      }
     ),
   ];

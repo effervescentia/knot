@@ -6,7 +6,7 @@ open Kore;
 let _pp_section = (pp_value: Fmt.t('a)): Fmt.t((string, 'a)) =>
   Fmt.(
     (ppf, (label, value)) =>
-      pf(ppf, "%a@,%a", bold_str, label, block(pp_value), value)
+      pf(ppf, "%a@,%a", bold_str, label, indented(pp_value), value)
   );
 
 let _pp_command_list = (ppf, cmds) => {
@@ -26,7 +26,7 @@ let _pp_command_list = (ppf, cmds) => {
   );
 };
 
-let _pp_opt_list = cfg => Fmt.(list(~sep=Sep.newline, Opt.pp(cfg)));
+let _pp_opt_list = cfg => Fmt.(list(~sep=Sep.trailing_newline, Opt.pp(cfg)));
 
 let _pp_sub_command: Fmt.t(Cmd.t('a)) =
   Fmt.(

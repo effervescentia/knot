@@ -2,6 +2,7 @@ open Kore;
 open AST;
 open Reference;
 open Pretty;
+open FormatterUtils;
 
 let __default_margin = 120;
 
@@ -80,7 +81,7 @@ let rec pp_jsx: Fmt.t(raw_jsx_t) =
           Node.Raw.get_value(name),
           pp_jsx_attr_list,
           attrs |> List.map(Node.get_value),
-          block(list(~sep=Sep.newline, pp_jsx_child)),
+          block(~layout=Vertical, ~sep=Sep.trailing_newline, pp_jsx_child),
           children |> List.map(Node.get_value),
           Identifier.pp,
           Node.Raw.get_value(name),
@@ -88,12 +89,16 @@ let rec pp_jsx: Fmt.t(raw_jsx_t) =
 
       | Fragment([]) => pf(ppf, "<></>")
       | Fragment(children) =>
-        pf(
-          ppf,
-          "<>%a</>",
-          block(list(~sep=Sep.newline, pp_jsx_child)),
-          children |> List.map(Node.get_value),
-        )
+        children
+        |> List.map(Node.get_value)
+        |> collection(
+             ~layout=Vertical,
+             ~sep=Sep.trailing_newline,
+             any("<>"),
+             any("</>"),
+             pp_jsx_child,
+             ppf,
+           )
   )
 
 and pp_jsx_child: Fmt.t(raw_jsx_child_t) =
@@ -192,9 +197,7 @@ and pp_expression: Fmt.t(raw_expression_t) =
 
     | Closure([]) => Fmt.string(ppf, "{}")
     | Closure(stmts) =>
-      stmts
-      |> List.map(Node.get_value)
-      |> Fmt.(pf(ppf, "{%a}", block(list(~sep=Sep.newline, pp_statement))))
+      stmts |> List.map(Node.get_value) |> Fmt.(closure(pp_statement, ppf))
 
 and pp_statement: Fmt.t(raw_statement_t) =
   (ppf, stmt) =>
@@ -239,7 +242,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
     | Constant(expr) =>
       Fmt.pf(
         ppf,
-        "const %a = %a;@,",
+        "const %a = %a;",
         Identifier.pp,
         name,
         pp_expression,
@@ -249,7 +252,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
     | Function([], expr) =>
       Fmt.pf(
         ppf,
-        "@[<v 0>func %a -> %a@]@,",
+        "@[<v 0>func %a -> %a@]",
         Identifier.pp,
         name,
         pp_function_body,
@@ -259,16 +262,45 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "@[<v 0>func @[<h>%a(%a)@] -> %a@]@,",
+          "@[<v 0>func @[<h>%a(%a)@] -> %a@]",
           Identifier.pp,
           name,
-          list(~sep=Sep.comma, ppf => pp_function_arg(ppf)),
+          list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
           args |> List.map(Node.get_value),
           pp_function_body,
           Node.get_value(expr),
         )
       )
     };
+
+let pp_declaration_list: Fmt.t(list((Identifier.t, raw_declaration_t))) =
+  ppf => {
+    let rec loop =
+      fun
+      | [] => Fmt.nop(ppf, ())
+
+      /* do not add newline after the last statement */
+      | [decl] => pp_declaration(ppf, decl)
+
+      /* handle constant clustering logic, separate with newlines */
+      | [(_, Constant(_)) as decl, ...[(_, Constant(_)), ..._] as xs] => {
+          pp_declaration(ppf, decl);
+          Fmt.cut(ppf, ());
+
+          loop(xs);
+        }
+
+      /* followed by declarations that are not constants, add a full line break */
+      | [decl, ...xs] => {
+          pp_declaration(ppf, decl);
+          Fmt.cut(ppf, ());
+          Fmt.cut(ppf, ());
+
+          loop(xs);
+        };
+
+    loop;
+  };
 
 type import_spec_t = (
   Namespace.t,
@@ -295,7 +327,7 @@ let pp_import: Fmt.t(import_spec_t) =
     Fmt.(
       pf(
         ppf,
-        "import%a%a%a from %a;@,",
+        "@[<hv>import%a%a%a from %a;@]",
         ppf =>
           fun
           | Some(id) => pf(ppf, " %a", Identifier.pp, id)
@@ -312,111 +344,61 @@ let pp_import: Fmt.t(import_spec_t) =
           | [] => nop(ppf, ())
           | imports => pf(ppf, "{ %a }", list(pp_named_import), imports),
         named_imports,
-        Namespace.pp,
+        pp_ns,
         namespace,
       )
     );
 
+let pp_import_list: Fmt.t(list(import_spec_t)) =
+  ppf => Fmt.(list(~layout=Vertical, ~sep=Sep.newline, pp_import, ppf));
+
 let pp_all_imports: Fmt.t((list(import_spec_t), list(import_spec_t))) =
-  (ppf, (internal_imports, external_imports)) =>
-    [external_imports, internal_imports]
-    |> Fmt.(list(~sep=Sep.newline, list(~sep=Sep.nop, pp_import), ppf));
+  ppf =>
+    fun
+    | ([], []) => Fmt.nop(ppf, ())
 
-let pp_declaration_list: Fmt.t(list((Identifier.t, raw_declaration_t))) =
-  ppf => {
-    let rec loop =
-      fun
-      | [] => Fmt.nop(ppf, ())
+    | (only_imports, [])
+    | ([], only_imports) => Fmt.(pp_import_list(ppf, only_imports))
 
-      /* do not add newline after the last statement */
-      | [decl] => pp_declaration(ppf, decl)
+    | (internal_imports, external_imports) =>
+      [external_imports, internal_imports]
+      |> Fmt.(
+           list(
+             ~layout=Vertical,
+             ~sep=Sep.double_newline,
+             pp_import_list,
+             ppf,
+           )
+         );
+/* let format = (~margin=__default_margin): Fmt.t(program_t) =>
+   (ppf, program) => {
+     let orig_margin = Format.get_margin();
+     Format.set_margin(margin);
 
-      /* handle constant clustering logic */
-      | [(_, Constant(_)) as decl, ...xs] =>
-        switch (xs) {
-        /* no more statements, loop to return */
-        | []
-        /* followed by a constant, do not add newline */
-        | [(_, Constant(_)), ..._] =>
-          pp_declaration(ppf, decl);
-
-          loop(xs);
-
-        /* followed by other declarations, add a newline */
-        | _ =>
-          Fmt.pf(ppf, "%a@,", pp_declaration, decl);
-
-          loop(xs);
-        }
-
-      /* not a constant, add a newline */
-      | [decl, ...xs] => Fmt.pf(ppf, "%a@,", pp_declaration, decl);
-
-    loop;
-  };
-
-let extract_imports = (program: program_t) =>
-  program
-  |> List.filter_map(
-       Node.Raw.get_value
-       % (
-         fun
-         | Import(namespace, imports) => Some((namespace, imports))
-         | _ => None
-       ),
-     )
-  |> List.partition(
-       Namespace.(
-         fun
-         | (Internal(_), _) => true
-         | _ => false
-       ),
-     )
-  |> Tuple.map2(
-       List.sort((l, r) =>
-         (l, r)
-         |> Tuple.map2(
-              fst
-              % Namespace.(
+     program
+     |> Tuple.split2(extract_imports, extract_declarations)
+     |> Fmt.(
+          page(
+            (ppf, (imports, declarations)) =>
+              pf(
+                ppf,
+                "%a%a%a",
+                pp_all_imports,
+                imports,
+                ppf =>
                   fun
-                  | Internal(name)
-                  | External(name) => name
-                ),
-            )
-         |> Tuple.join2(String.compare)
-       )
-       % List.map(((namespace, imports)) => {
-           let (main_import, named_imports) =
-             imports
-             |> List.fold_left(
-                  ((m, n)) =>
-                    Node.Raw.get_value
-                    % (
-                      fun
-                      | MainImport(id) => (Some(Node.Raw.get_value(id)), n)
-                      | NamedImport(id, label) => (
-                          m,
-                          [(Node.Raw.get_value(id), label), ...n],
-                        )
-                    ),
-                  (None, []),
-                );
+                  | ([], []) => nop(ppf, ())
+                  | _ => cut(ppf, ()),
+                (fst(imports) @ snd(imports), declarations),
+                pp_declaration_list,
+                declarations,
+              ),
+            ppf,
+          )
+        );
 
-           (namespace, main_import, named_imports);
-         }),
-     );
-
-let extract_declarations = (program: program_t) =>
-  program
-  |> List.filter_map(
-       Node.Raw.get_value
-       % (
-         fun
-         | Declaration(MainExport(name) | NamedExport(name), decl) =>
-           Some((Node.Raw.get_value(name), Node.get_value(decl)))
-         | _ => None
-       ),
-     );
+     Format.set_margin(orig_margin);
+   }; */
 
 let format = (~margin=__default_margin): Fmt.t(program_t) =>
   (ppf, program) => {
@@ -426,21 +408,25 @@ let format = (~margin=__default_margin): Fmt.t(program_t) =>
     program
     |> Tuple.split2(extract_imports, extract_declarations)
     |> Fmt.(
-         root(
+         page(
            (ppf, (imports, declarations)) =>
-             pf(
-               ppf,
-               "%a%a%a@?",
-               pp_all_imports,
-               imports,
-               ppf =>
-                 fun
-                 | ([], []) => nop(ppf, ())
-                 | _ => cut(ppf, ()),
-               (fst(imports) @ snd(imports), declarations),
-               pp_declaration_list,
-               declarations,
-             ),
+             switch (imports, declarations) {
+             | (([], []), []) => Fmt.nop(ppf, ())
+
+             | (_, []) => pp_all_imports(ppf, imports)
+
+             | (([], []), _) => pp_declaration_list(ppf, declarations)
+
+             | _ =>
+               pf(
+                 ppf,
+                 "%a@,@,%a",
+                 pp_all_imports,
+                 imports,
+                 pp_declaration_list,
+                 declarations,
+               )
+             },
            ppf,
          )
        );
