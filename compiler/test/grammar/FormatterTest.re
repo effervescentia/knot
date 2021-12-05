@@ -53,36 +53,6 @@ let __multiline_function = (
   |> of_func,
 );
 
-let __external_main_import = (
-  "buzz" |> of_external,
-  Some("Fizz" |> of_public),
-  [],
-);
-
-let __external_named_import = (
-  "bar" |> of_external,
-  Some("bar" |> of_public),
-  [
-    ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
-    ("Bar" |> of_public, None),
-  ],
-);
-
-let __internal_main_import = (
-  "bar" |> of_internal,
-  Some("Foo" |> of_public),
-  [],
-);
-
-let __internal_named_import = (
-  "bar" |> of_internal,
-  Some("bar" |> of_public),
-  [
-    ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
-    ("Bar" |> of_public, None),
-  ],
-);
-
 let __int_const_stmt =
   (
     "ABC" |> of_public |> as_raw_node |> of_named_export,
@@ -94,6 +64,20 @@ let __import_stmt =
   (
     "bar" |> of_external,
     ["Foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
+  )
+  |> of_import;
+
+let _main_import = (name, f) =>
+  (
+    name |> f,
+    [
+      name
+      |> String.capitalize_ascii
+      |> of_public
+      |> as_raw_node
+      |> of_main_import
+      |> as_raw_node,
+    ],
   )
   |> of_import;
 
@@ -537,35 +521,167 @@ func foo(bar, fizz = 3) -> bar + fizz;",
         |> List.map(Tuple.map_snd2(~@Fmt.root(pp_declaration_list)))
         |> Assert.(test_many(string))
     ),
-    "pp_all_imports()"
+    "pp_import()"
     >: (
       () =>
         [
           (
-            "import Fizz from \"buzz\";
-import bar, { Foo as foo, Bar } from \"bar\";",
-            ([], [__external_main_import, __external_named_import]),
+            "import Fizz from \"buzz\";",
+            ("buzz" |> of_external, Some("Fizz" |> of_public), []),
           ),
           (
-            "import Fizz from \"@/buzz\";
-import bar, { Foo as foo, Bar } from \"@/bar\";",
+            "import { Foo as foo, Bar } from \"buzz\";",
+            (
+              "buzz" |> of_external,
+              None,
+              [
+                ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
+                ("Bar" |> of_public, None),
+              ],
+            ),
+          ),
+          (
+            "import Fizz, { Foo as foo, Bar } from \"buzz\";",
+            (
+              "buzz" |> of_external,
+              Some("Fizz" |> of_public),
+              [
+                ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
+                ("Bar" |> of_public, None),
+              ],
+            ),
+          ),
+          (
+            "import {
+  Sit,
+  et,
+  dolore,
+  est,
+  aliqua,
+  in,
+  fugiat,
+  duis,
+  officia,
+  pariatur,
+  fugiat,
+  mollit,
+  eiusmod,
+  pariatur,
+  magna,
+} from \"buzz\";",
+            (
+              "buzz" |> of_external,
+              None,
+              [
+                "Sit",
+                "et",
+                "dolore",
+                "est",
+                "aliqua",
+                "in",
+                "fugiat",
+                "duis",
+                "officia",
+                "pariatur",
+                "fugiat",
+                "mollit",
+                "eiusmod",
+                "pariatur",
+                "magna",
+              ]
+              |> List.map(word => (word |> of_public, None)),
+            ),
+          ),
+          (
+            "import Foo, {
+  Sit,
+  et,
+  dolore,
+  est,
+  aliqua,
+  in,
+  fugiat,
+  duis,
+  officia,
+  pariatur,
+  fugiat,
+  mollit,
+  eiusmod,
+  pariatur,
+  magna,
+} from \"buzz\";",
+            (
+              "buzz" |> of_external,
+              Some("Foo" |> of_public),
+              [
+                "Sit",
+                "et",
+                "dolore",
+                "est",
+                "aliqua",
+                "in",
+                "fugiat",
+                "duis",
+                "officia",
+                "pariatur",
+                "fugiat",
+                "mollit",
+                "eiusmod",
+                "pariatur",
+                "magna",
+              ]
+              |> List.map(word => (word |> of_public, None)),
+            ),
+          ),
+        ]
+        |> List.map(Tuple.map_snd2(~@Fmt.root(pp_import)))
+        |> Assert.(test_many(string))
+    ),
+    "pp_all_imports()"
+    >: (
+      () => {
+        let _main_import = (name, f) => (
+          name |> f,
+          Some(name |> String.capitalize_ascii |> of_public),
+          [],
+        );
+
+        [
+          (
+            "import Foo from \"foo\";
+import Bar from \"bar\";",
+            (
+              [],
+              [
+                _main_import("foo", of_external),
+                _main_import("bar", of_external),
+              ],
+            ),
+          ),
+          (
+            "import Foo from \"@/foo\";
+import Bar from \"@/bar\";",
             (
               [
-                ("buzz" |> of_internal, Some("Fizz" |> of_public), []),
-                __internal_named_import,
+                _main_import("foo", of_internal),
+                _main_import("bar", of_internal),
               ],
               [],
             ),
           ),
           (
-            "import Fizz from \"buzz\";
+            "import Bar from \"bar\";
 
-import Foo from \"@/bar\";",
-            ([__internal_main_import], [__external_main_import]),
+import Foo from \"@/foo\";",
+            (
+              [_main_import("foo", of_internal)],
+              [_main_import("bar", of_external)],
+            ),
           ),
         ]
         |> List.map(Tuple.map_snd2(~@Fmt.root(pp_all_imports)))
-        |> Assert.(test_many(string))
+        |> Assert.(test_many(string));
+      }
     ),
     "format()"
     >: (
@@ -586,23 +702,9 @@ const ABC = 123;\n",
            )
         |> Assert.(test_many(string))
     ),
-    "format() - sort imports"
+    "format() - sort import statements"
     >: (
-      () => {
-        let _main_import = (name, f) =>
-          (
-            name |> f,
-            [
-              name
-              |> String.capitalize_ascii
-              |> of_public
-              |> as_raw_node
-              |> of_main_import
-              |> as_raw_node,
-            ],
-          )
-          |> of_import;
-
+      () =>
         [
           (
             "import Bar from \"bar\";
@@ -621,7 +723,39 @@ import Fizz from \"@/fizz\";\n",
         |> List.map(
              Tuple.map_snd2(List.map(as_raw_node) % ~@Formatter.format),
            )
-        |> Assert.(test_many(string));
-      }
+        |> Assert.(test_many(string))
+    ),
+    "format() - sort named imports"
+    >: (
+      () =>
+        [
+          (
+            "import { a, b, c, d } from \"foo\";\n",
+            [
+              (
+                "foo" |> of_external,
+                [
+                  ("d" |> of_public |> as_raw_node, None)
+                  |> of_named_import
+                  |> as_raw_node,
+                  ("c" |> of_public |> as_raw_node, None)
+                  |> of_named_import
+                  |> as_raw_node,
+                  ("b" |> of_public |> as_raw_node, None)
+                  |> of_named_import
+                  |> as_raw_node,
+                  ("a" |> of_public |> as_raw_node, None)
+                  |> of_named_import
+                  |> as_raw_node,
+                ],
+              )
+              |> of_import,
+            ],
+          ),
+        ]
+        |> List.map(
+             Tuple.map_snd2(List.map(as_raw_node) % ~@Formatter.format),
+           )
+        |> Assert.(test_many(string))
     ),
   ];

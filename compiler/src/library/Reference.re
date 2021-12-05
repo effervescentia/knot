@@ -10,22 +10,22 @@ module Namespace = {
       ? Internal(value |> String.drop_prefix(Constants.root_dir))
       : External(value);
 
+  /* methods */
+
   let to_path = (source_dir: string) =>
     fun
     | Internal(path) =>
       Filename.concat(source_dir, path ++ Constants.file_extension)
     | External(path) => path;
 
+  let to_string =
+    fun
+    | Internal(path) => Constants.root_dir ++ path
+    | External(path) => path;
+
   /* pretty printing */
 
-  let pp: Fmt.t(t) =
-    ppf =>
-      (
-        fun
-        | Internal(path) => Constants.root_dir ++ path
-        | External(path) => path
-      )
-      % Fmt.string(ppf);
+  let pp: Fmt.t(t) = ppf => to_string % Fmt.string(ppf);
 };
 
 module Module = {
@@ -53,16 +53,16 @@ module Identifier = {
       ? Private(value |> String.drop_prefix(Constants.private_prefix))
       : Public(value);
 
+  /* methods */
+
+  let to_string =
+    fun
+    | Public(name) => name
+    | Private(name) => Constants.private_prefix ++ name;
+
   /* pretty printing */
 
-  let pp: Fmt.t(t) =
-    ppf =>
-      (
-        fun
-        | Public(name) => name
-        | Private(name) => Constants.private_prefix ++ name
-      )
-      % Fmt.string(ppf);
+  let pp: Fmt.t(t) = ppf => to_string % Fmt.string(ppf);
 };
 
 module Export = {
@@ -70,11 +70,14 @@ module Export = {
     | Main
     | Named(Identifier.t);
 
+  /* methods */
+
+  let to_string =
+    fun
+    | Main => "main"
+    | Named(name) => Identifier.to_string(name);
+
   /* pretty printing */
 
-  let pp: Fmt.t(t) =
-    ppf =>
-      fun
-      | Main => Fmt.string(ppf, "main")
-      | Named(name) => Identifier.pp(ppf, name);
+  let pp: Fmt.t(t) = ppf => to_string % Fmt.string(ppf);
 };

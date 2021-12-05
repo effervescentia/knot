@@ -252,7 +252,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
     | Function([], expr) =>
       Fmt.pf(
         ppf,
-        "@[<v 0>func %a -> %a@]",
+        "@[<v>func %a -> %a@]",
         Identifier.pp,
         name,
         pp_function_body,
@@ -262,7 +262,7 @@ let pp_declaration: Fmt.t((Identifier.t, raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "@[<v 0>func @[<h>%a(%a)@] -> %a@]",
+          "@[<v>func @[<h>%a(%a)@] -> %a@]",
           Identifier.pp,
           name,
           list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
@@ -322,32 +322,50 @@ let pp_named_import: Fmt.t((Identifier.t, option(untyped_identifier_t))) =
       )
     | (id, None) => Identifier.pp(ppf, id);
 
+let pp_named_import_list:
+  Fmt.t(list((Identifier.t, option(untyped_identifier_t)))) =
+  (ppf, imports) => Fmt.(destruct(pp_named_import, ppf, imports));
+
+let pp_main_import: Fmt.t(option(Identifier.t)) =
+  ppf =>
+    fun
+    | Some(id) => Identifier.pp(ppf, id)
+    | None => Fmt.nop(ppf, ());
+
+let _pp_import_stmt = (pp_targets: Fmt.t('a)): Fmt.t(('a, Namespace.t)) =>
+  Fmt.(
+    hvbox((ppf, (targets, namespace)) =>
+      pf(ppf, "import %a from %a;", pp_targets, targets, pp_ns, namespace)
+    )
+  );
+
 let pp_import: Fmt.t(import_spec_t) =
-  (ppf, (namespace, main_import, named_imports)) =>
-    Fmt.(
-      pf(
+  ppf =>
+    fun
+    | (namespace, None, []) => Fmt.nop(ppf, ())
+
+    | (namespace, Some(main_import), []) =>
+      _pp_import_stmt(Identifier.pp, ppf, (main_import, namespace))
+
+    | (namespace, None, named_imports) =>
+      _pp_import_stmt(pp_named_import_list, ppf, (named_imports, namespace))
+
+    | (namespace, Some(main_import), named_imports) =>
+      _pp_import_stmt(
+        (ppf, (main, named)) =>
+          Fmt.(
+            pf(
+              ppf,
+              "%a, %a",
+              Identifier.pp,
+              main,
+              pp_named_import_list,
+              named,
+            )
+          ),
         ppf,
-        "@[<hv>import%a%a%a from %a;@]",
-        ppf =>
-          fun
-          | Some(id) => pf(ppf, " %a", Identifier.pp, id)
-          | None => nop(ppf, ()),
-        main_import,
-        ppf =>
-          fun
-          | (None, _)
-          | (_, []) => nop(ppf, ())
-          | _ => comma(ppf, ()),
-        (main_import, named_imports),
-        ppf =>
-          fun
-          | [] => nop(ppf, ())
-          | imports => pf(ppf, "{ %a }", list(pp_named_import), imports),
-        named_imports,
-        pp_ns,
-        namespace,
-      )
-    );
+        ((main_import, named_imports), namespace),
+      );
 
 let pp_import_list: Fmt.t(list(import_spec_t)) =
   ppf => Fmt.(list(~layout=Vertical, ~sep=Sep.newline, pp_import, ppf));
@@ -370,35 +388,6 @@ let pp_all_imports: Fmt.t((list(import_spec_t), list(import_spec_t))) =
              ppf,
            )
          );
-/* let format = (~margin=__default_margin): Fmt.t(program_t) =>
-   (ppf, program) => {
-     let orig_margin = Format.get_margin();
-     Format.set_margin(margin);
-
-     program
-     |> Tuple.split2(extract_imports, extract_declarations)
-     |> Fmt.(
-          page(
-            (ppf, (imports, declarations)) =>
-              pf(
-                ppf,
-                "%a%a%a",
-                pp_all_imports,
-                imports,
-                ppf =>
-                  fun
-                  | ([], []) => nop(ppf, ())
-                  | _ => cut(ppf, ()),
-                (fst(imports) @ snd(imports), declarations),
-                pp_declaration_list,
-                declarations,
-              ),
-            ppf,
-          )
-        );
-
-     Format.set_margin(orig_margin);
-   }; */
 
 let format = (~margin=__default_margin): Fmt.t(program_t) =>
   (ppf, program) => {

@@ -33,7 +33,15 @@ let _sort_imports =
              (None, []),
            );
 
-      (namespace, main_import, named_imports);
+      let sorted_named_imports =
+        named_imports
+        |> List.sort((l, r) =>
+             (l, r)
+             |> Tuple.map2(fst % Identifier.to_string)
+             |> Tuple.join2(String.compare)
+           );
+
+      (namespace, main_import, sorted_named_imports);
     });
 
 let extract_imports = (program: program_t) =>

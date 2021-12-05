@@ -66,12 +66,27 @@ module Fmt = {
   let page = (pp_value: t('a)): t('a) =>
     ppf => pf(ppf, "%a@.", root(pp_value));
 
-  let _indent = ppf => Format.pp_print_break(ppf, 0, __indent_spaces);
+  let indent = ppf => Format.pp_print_break(ppf, 0, __indent_spaces);
+
+  let indent_or_space = ppf =>
+    Format.pp_print_custom_break(
+      ppf,
+      ~fits=("", 1, ""),
+      ~breaks=("", __indent_spaces, ""),
+    );
+
+  let space_or_cop = ppf =>
+    Format.pp_print_custom_break(
+      ppf,
+      ~fits=("", 1, ""),
+      ~breaks=("", __indent_spaces, ""),
+    );
+
   /*
    print an indented value
    */
   let indented = (pp_value: t('a)): t('a) =>
-    ppf => pf(ppf, "%t%a", _indent, pp_value);
+    ppf => pf(ppf, "%t%a", indent, pp_value);
 
   let attribute = (pp_key: t('a), pp_value: t('b)): t(('a, 'b)) =>
     (ppf, (key, value)) => pf(ppf, "%a: %a", pp_key, key, pp_value, value);
@@ -175,10 +190,33 @@ module Fmt = {
 
   let entity = (pp_sig: t('a), pp_entry: t('b)): t(('a, list('b))) =>
     (ppf, (sig_, entries)) =>
-      pf(ppf, "@[<hv 0>%a@ @]%a", pp_sig, sig_, closure(pp_entry), entries);
+      pf(ppf, "@[<hv>%a@ @]%a", pp_sig, sig_, closure(pp_entry), entries);
 
   let struct_ =
       (pp_key: t('a), pp_value: t('b)): t((string, list(('a, 'b)))) =>
     (ppf, (name, attrs)) =>
       entity(string, attribute(pp_key, pp_value), ppf, (name, attrs));
+
+  let _space_or_indent = ppf =>
+    Format.pp_print_custom_break(
+      ppf,
+      ~fits=("", 1, ""),
+      ~breaks=("", __indent_spaces, ""),
+    );
+  let _space_or_comma = ppf =>
+    Format.pp_print_custom_break(
+      ppf,
+      ~fits=("", 1, ""),
+      ~breaks=(",", 0, ""),
+    );
+  let _destruct_comma_sep = Sep.of_sep(~trail=_space_or_comma, ",");
+
+  let destruct = (pp_entry, ppf, entries) =>
+    pf(
+      ppf,
+      "{%t%a}",
+      _space_or_indent,
+      list(~sep=_destruct_comma_sep, pp_entry),
+      entries,
+    );
 };
