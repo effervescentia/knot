@@ -1,10 +1,11 @@
 open Infix;
-open Extensions;
 
 /**
  Extension of the standard Hashtbl module with additional functionality.
  */
 include Stdlib.Hashtbl;
+
+module Fmt = Pretty.Formatters;
 
 /**
  compare two Hashtbls by direct equality, or by using a custom [compare] function

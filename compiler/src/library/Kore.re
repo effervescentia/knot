@@ -1,6 +1,5 @@
 include Infix;
 include Error;
-include Extensions;
 
 module AST = AST;
 module BinaryTree = BinaryTree;
@@ -9,6 +8,7 @@ module Constants = Constants;
 module DefinitionTable = DefinitionTable;
 module Filename = Filename;
 module Fun = Fun;
+module Fmt = Pretty.Formatters;
 module Graph = Graph;
 module Hashtbl = Hashtbl;
 module Input = Input;
@@ -22,7 +22,7 @@ module NamespaceContext = NamespaceContext;
 module NestedHashtbl = NestedHashtbl;
 module Node = Node;
 module Point = Point;
-module Pretty = Pretty;
+module Pretty = Pretty2;
 module Range = Range;
 module RangeTree = RangeTree;
 module RangeTree2 = RangeTree2;

@@ -36,11 +36,13 @@ module Module = {
   /* pretty printing */
 
   let rec pp: Fmt.t(t) =
-    ppf =>
-      fun
-      | Root => Fmt.string(ppf, "[root]")
-      | Inner(name, None) => Fmt.string(ppf, name)
-      | Inner(name, Some(parent)) => Fmt.pf(ppf, "%a.%s", pp, parent, name);
+    Fmt.(
+      ppf =>
+        fun
+        | Root => string(ppf, "[root]")
+        | Inner(name, None) => string(ppf, name)
+        | Inner(name, Some(parent)) => pf(ppf, "%a.%s", pp, parent, name)
+    );
 };
 
 module Identifier = {

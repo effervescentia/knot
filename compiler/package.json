@@ -13,6 +13,14 @@
     }
   },
   "buildDirs": {
+    "src/pretty": {
+      "require": [
+        "ANSITerminal",
+        "fmt"
+      ],
+      "name": "knot.pretty",
+      "namespace": "Pretty"
+    },
     "src/library": {
       "require": [
         "ANSITerminal",
@@ -20,7 +28,8 @@
         "fmt",
         "lwt",
         "lwt.unix",
-        "tablecloth-native"
+        "tablecloth-native",
+        "knot.pretty"
       ],
       "name": "knot.lib",
       "namespace": "Knot"
@@ -112,6 +121,14 @@
       "name": "knot.test",
       "namespace": "Test"
     },
+    "test/pretty": {
+      "require": [
+        "knot.test",
+        "knot.lib"
+      ],
+      "name": "knot.pretty_test",
+      "namespace": "TestPretty"
+    },
     "test/library": {
       "require": [
         "knot.test",
@@ -119,6 +136,15 @@
       ],
       "name": "knot.lib_test",
       "namespace": "TestLibrary"
+    },
+    "test/analyze": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.grammar"
+      ],
+      "name": "knot.analyze_test",
+      "namespace": "TestAnalyze"
     },
     "test/file": {
       "require": [
@@ -199,7 +225,9 @@
     },
     "test/unit": {
       "require": [
+        "knot.pretty_test",
         "knot.lib_test",
+        "knot.analyze_test",
         "knot.file_test",
         "knot.grammar_test",
         "knot.resolve_test",

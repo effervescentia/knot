@@ -67,7 +67,7 @@ let suite =
     >: (
       () =>
         [
-          (Number("123"), 123 |> Int64.of_int |> of_int),
+          (Number("123"), 123L |> of_int),
           (Number("9223372036854775807"), Int64.max_int |> of_int),
           (Number("-9223372036854775808"), Int64.min_int |> of_int),
           (Number("0"), (0.0, 0) |> of_float),

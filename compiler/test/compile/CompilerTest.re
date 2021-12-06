@@ -34,7 +34,7 @@ let __ast =
     (
       ("ABC" |> of_public, Range.create((1, 7), (1, 9))) |> of_named_export,
       (
-        123 |> Int64.of_int |> of_int |> of_num,
+        123L |> of_int |> of_num,
         Valid(`Integer),
         Range.create((1, 13), (1, 15)),
       )

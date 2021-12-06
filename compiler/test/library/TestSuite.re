@@ -1,5 +1,3 @@
-open Kore;
-
 let tests =
   [
     FilenameTest.suite,

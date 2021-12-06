@@ -34,7 +34,7 @@ let suite =
     >: (
       () =>
         ["123", " 123 "]
-        |> Assert.parse_all(Int64.of_int(123) |> AST.of_int |> as_raw_node)
+        |> Assert.parse_all(123L |> AST.of_int |> as_raw_node)
     ),
     "max integer"
     >: (

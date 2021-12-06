@@ -28,6 +28,18 @@ let map3 = (f: 'a => 'b, (x, y, z): ('a, 'a, 'a)): ('b, 'b, 'b) => (
   f(z),
 );
 
+let map_each2 = (f: 'a => 'c, g: 'b => 'd, (x, y): ('a, 'b)): ('c, 'd) => (
+  f(x),
+  g(y),
+);
+let map_each3 =
+    (f: 'a => 'd, g: 'b => 'e, h: 'c => 'f, (x, y, z): ('a, 'b, 'c))
+    : ('d, 'e, 'f) => (
+  f(x),
+  g(y),
+  h(z),
+);
+
 let map_fst2 = (f: 'a => 'c, (x, y): ('a, 'b)): ('c, 'b) => (f(x), y);
 let map_snd2 = (f: 'b => 'c, (x, y): ('a, 'b)): ('a, 'c) => (x, f(y));
 

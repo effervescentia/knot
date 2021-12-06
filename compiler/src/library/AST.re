@@ -51,10 +51,17 @@ module Common = {
   type untyped_identifier_t = Node.Raw.t(Identifier.t);
 
   /**
+   utilities for printing an AST
+   */
+  module Dump = {
+    open Pretty.Formatters;
+  };
+
+  /**
    utilities for debugging an AST
    */
   module Debug = {
-    open Pretty;
+    open Pretty2;
 
     let print_attr = ((name, value)) =>
       [string(" "), string(name), string("=\""), value, string("\"")]
@@ -92,7 +99,7 @@ module Common = {
 
     let print_typed_node = (~attrs=[], label, value, type_, range) =>
       print_entity(
-        ~attrs=[("type", type_ |> ~@Type.pp |> Pretty.string), ...attrs],
+        ~attrs=[("type", type_ |> ~@Type.pp |> string), ...attrs],
         ~range,
         ~children=[value],
         label,
@@ -111,7 +118,7 @@ module type ASTParams = {
   let get_value: node_t('a) => 'a;
   let get_range: node_t('a) => Range.t;
 
-  let print_node: (string, 'a => Pretty.t, node_t('a)) => Pretty.t;
+  let print_node: (string, 'a => Pretty2.t, node_t('a)) => Pretty2.t;
 };
 
 /**
@@ -273,7 +280,7 @@ module Make = (T: ASTParams) => {
   let nil = Nil;
 
   module Debug = {
-    open Pretty;
+    open Pretty2;
 
     include Debug;
 
@@ -530,11 +537,15 @@ let of_func = ((args, expr)) => Function(args, expr);
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
 
+module Dump = {
+  include Dump;
+};
+
 /**
  utilities for debugging an AST
  */
 module Debug = {
-  open Pretty;
+  open Pretty2;
 
   include Debug;
 
@@ -654,9 +665,9 @@ module Debug = {
     )
     % newline;
 
-  let print_ast = (program: program_t): Pretty.t =>
+  let print_ast = (program: program_t): Pretty2.t =>
     program |> List.map(print_mod_stmt) |> concat;
 };
 
 let to_string = (program: program_t): string =>
-  program |> Debug.print_ast |> Pretty.to_string;
+  program |> Debug.print_ast |> Pretty2.to_string;

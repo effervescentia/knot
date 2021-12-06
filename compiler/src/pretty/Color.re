@@ -1,6 +1,4 @@
-open Fmt;
-
-module ANSI = ANSITerminal;
+open Kore;
 
 let color = ref(false);
 

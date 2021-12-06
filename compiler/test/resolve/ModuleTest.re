@@ -9,8 +9,7 @@ let __program = [
   AST.(
     (
       "ABC" |> of_public |> as_raw_node |> of_named_export,
-      123
-      |> Int64.of_int
+      123L
       |> of_int
       |> of_num
       |> as_node(

@@ -82,7 +82,7 @@ let suite =
                 ("ABC" |> of_public, Range.create((4, 9), (4, 11)))
                 |> of_named_export,
                 (
-                  123 |> Int64.of_int |> of_int |> of_num,
+                  123L |> of_int |> of_num,
                   Type.Valid(`Integer),
                   Range.create((4, 15), (4, 17)),
                 )

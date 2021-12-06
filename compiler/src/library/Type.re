@@ -30,25 +30,27 @@ module Error = {
   /* pretty printing */
 
   let pp = (pp_type: Fmt.t('a)): Fmt.t(t('a)) =>
-    ppf =>
-      fun
-      | NotFound(id) => Fmt.pf(ppf, "NotFound<%a>", Identifier.pp, id)
-      | DuplicateIdentifier(id) =>
-        Fmt.pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
-      | NotAssignable(type_, trait) =>
-        Fmt.pf(ppf, "NotAssignable<%a, %a>", pp_type, type_, Trait.pp, trait)
-      | TypeMismatch(lhs, rhs) =>
-        Fmt.pf(ppf, "TypeMismatch<%a, %a>", pp_type, lhs, pp_type, rhs)
-      | TypeResolutionFailed => Fmt.string(ppf, "TypeResolutionFailed")
-      | ExternalNotFound(namespace, id) =>
-        Fmt.pf(
-          ppf,
-          "ExternalNotFound<%a#%a>",
-          Namespace.pp,
-          namespace,
-          Export.pp,
-          id,
-        );
+    Fmt.(
+      ppf =>
+        fun
+        | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
+        | DuplicateIdentifier(id) =>
+          pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
+        | NotAssignable(type_, trait) =>
+          pf(ppf, "NotAssignable<%a, %a>", pp_type, type_, Trait.pp, trait)
+        | TypeMismatch(lhs, rhs) =>
+          pf(ppf, "TypeMismatch<%a, %a>", pp_type, lhs, pp_type, rhs)
+        | TypeResolutionFailed => string(ppf, "TypeResolutionFailed")
+        | ExternalNotFound(namespace, id) =>
+          pf(
+            ppf,
+            "ExternalNotFound<%a#%a>",
+            Namespace.pp,
+            namespace,
+            Export.pp,
+            id,
+          )
+    );
 };
 
 type abstract_t('a) = [ | `Abstract('a)];
@@ -83,58 +85,66 @@ module Raw = {
   /* pretty printing */
 
   let pp_primitive: Fmt.t(primitive_t) =
-    (ppf, type_) =>
-      Constants.(
-        switch (type_) {
-        | `Nil => Keyword.nil
-        | `Boolean => "bool"
-        | `Integer => "int"
-        | `Float => "float"
-        | `String => "string"
-        | `Element => "element"
-        }
-      )
-      |> Fmt.string(ppf);
+    Fmt.(
+      (ppf, type_) =>
+        Constants.(
+          switch (type_) {
+          | `Nil => Keyword.nil
+          | `Boolean => "bool"
+          | `Integer => "int"
+          | `Float => "float"
+          | `String => "string"
+          | `Element => "element"
+          }
+        )
+        |> string(ppf)
+    );
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
-    ppf => Fmt.pf(ppf, "List<%a>", pp_type);
+    Fmt.(ppf => pf(ppf, "List<%a>", pp_type));
 
   let pp_abstract: Fmt.t(Trait.t) =
-    ppf => Fmt.pf(ppf, "Abstract<%a>", Trait.pp);
+    Fmt.(ppf => pf(ppf, "Abstract<%a>", Trait.pp));
 
   let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
     (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
 
   let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, 'a))) =>
-    (ppf, props) =>
-      List.is_empty(props)
-        ? Fmt.string(ppf, "{}")
-        : Fmt.pf(
-            ppf,
-            "@[<h>{ %a }@]",
-            Fmt.list(~sep=Fmt.comma, pp_props(pp_type)),
-            props,
-          );
+    Fmt.(
+      (ppf, props) =>
+        List.is_empty(props)
+          ? string(ppf, "{}")
+          : pf(
+              ppf,
+              "@[<h>{ %a }@]",
+              list(~sep=comma, pp_props(pp_type)),
+              props,
+            )
+    );
 
   let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
-    (ppf, (args, res)) =>
-      Fmt.pf(
-        ppf,
-        "@[<h>Function<(%a), %a>@]",
-        Fmt.list(~sep=Fmt.comma, pp_props(pp_type)),
-        args,
-        pp_type,
-        res,
-      );
+    Fmt.(
+      (ppf, (args, res)) =>
+        pf(
+          ppf,
+          "@[<h>Function<(%a), %a>@]",
+          list(~sep=comma, pp_props(pp_type)),
+          args,
+          pp_type,
+          res,
+        )
+    );
 
   let rec pp: Fmt.t(t) =
-    (ppf, type_) =>
-      switch (type_) {
-      | Strong(t) => pp_strong(ppf, t)
-      | Invalid(err) => Error.pp(pp, ppf, err)
-      | Weak({contents: weak_type}) =>
-        Fmt.pf(ppf, "Weak<%a>", pp_weak, weak_type)
-      }
+    Fmt.(
+      (ppf, type_) =>
+        switch (type_) {
+        | Strong(t) => pp_strong(ppf, t)
+        | Invalid(err) => Error.pp(pp, ppf, err)
+        | Weak({contents: weak_type}) =>
+          pf(ppf, "Weak<%a>", pp_weak, weak_type)
+        }
+    )
 
   and pp_weak: Fmt.t(result(weak_t, error_t)) =
     ppf =>

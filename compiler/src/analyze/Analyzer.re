@@ -24,6 +24,7 @@ let rec res_stmt =
         Variable(id, res_expr(scope, expr)),
         Type.Valid(`Nil),
       )
+
     | Expression(expr) =>
       res_expr(scope, expr) |> (x => (Expression(x), Node.get_type(x)))
     }
@@ -36,9 +37,12 @@ and res_expr =
     switch (expr) {
     | Primitive(prim) =>
       res_prim(prim) |> (x => (Primitive(x), Node.get_type(x)))
-    | JSX(jsx) => (JSX(res_jsx(scope, jsx)), Valid(`Element))
+
+    | JSX(jsx) => res_jsx(scope, jsx) |> (x => (JSX(x), Node.get_type(x)))
+
     | Group(expr) =>
       res_expr(scope, expr) |> (x => (Group(x), Node.get_type(x)))
+
     | Closure(stmts) =>
       stmts
       |> List.map(res_stmt(Scope.child(scope, range)))
@@ -51,16 +55,19 @@ and res_expr =
           |?: Valid(`Nil),
         )
       )
+
     | Identifier((id, range)) => (
         Identifier((id, Valid(`Abstract(Unknown)), range)),
         /* TODO: implement */
         Valid(`Abstract(Unknown)),
       )
+
     | UnaryOp(op, expr) => (
         UnaryOp(op, res_expr(scope, expr)),
         /* TODO: implement */
         Valid(`Abstract(Unknown)),
       )
+
     | BinaryOp(op, lhs, rhs) => (
         BinaryOp(op, res_expr(scope, lhs), res_expr(scope, rhs)),
         /* TODO: implement */
@@ -94,10 +101,12 @@ and res_attr =
   (
     switch (attr) {
     | ID(id) => (ID(id), Type.Valid(`String))
+
     | Class(id, expr) => (
         Class(id, expr |> Option.map(res_expr(scope))),
         Type.Valid(`String),
       )
+
     | Property(id, expr) =>
       expr
       |> Option.map(res_expr(scope))
@@ -122,7 +131,9 @@ and res_child = (scope: Scope.t, (attr, range): Raw.jsx_child_t): jsx_child_t =>
         )),
         Type.Valid(`String),
       )
+
     | Node(jsx) => (Node(res_jsx(scope, jsx)), Type.Valid(`Element))
+
     | InlineExpression(expr) =>
       res_expr(scope, expr)
       |> (x => (InlineExpression(x), Node.get_type(x)))

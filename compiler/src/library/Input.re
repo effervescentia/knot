@@ -1,4 +1,4 @@
-open Extensions;
+module Fmt = Pretty.Formatters;
 
 /**
  container for a single unicode character and the point for its location

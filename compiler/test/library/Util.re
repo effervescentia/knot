@@ -67,4 +67,8 @@ module ResultUtil = {
   let float_prim = of_float % of_num % as_float % of_prim % as_float;
 
   let string_prim = of_string % as_string % of_prim % as_string;
+
+  let jsx_node = of_tag % as_element % of_node;
+
+  let jsx_tag = of_tag % as_element % of_jsx;
 };

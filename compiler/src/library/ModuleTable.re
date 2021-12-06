@@ -1,6 +1,8 @@
 open Reference;
 open Infix;
 
+module Fmt = Pretty.Formatters;
+
 type type_table_t = Hashtbl.t(Export.t, Type.t);
 type scope_tree_t = RangeTree.t(option(type_table_t));
 
@@ -71,28 +73,18 @@ let compare: (t, t) => bool =
 
 /* pretty printing */
 
+let _pp_entry: Fmt.t(entry_t) =
+  (ppf, {ast, raw, exports}) =>
+    Fmt.(
+      [
+        ("ast", ast |> AST.Debug.print_ast |> Pretty2.to_string),
+        ("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp)),
+        ("raw", raw),
+      ]
+      |> List.to_seq
+      |> Hashtbl.of_seq
+      |> Hashtbl.pp(string, string, ppf)
+    );
+
 let pp: Fmt.t(t) =
-  (ppf, table: t) =>
-    table
-    |> Hashtbl.map_values(({ast, raw, exports}) =>
-         [
-           ("ast", ast |> AST.Debug.print_ast),
-           (
-             "exports",
-             exports |> ~@Hashtbl.pp(Export.pp, Type.pp) |> Pretty.string,
-           ),
-           ("raw", Pretty.string(raw)),
-         ]
-         |> List.to_seq
-         |> Hashtbl.of_seq
-         |> ~@
-              Hashtbl.pp(Fmt.string, ppf =>
-                Pretty.to_string % Fmt.string(ppf)
-              )
-         |> Pretty.string
-       )
-    |> Hashtbl.pp(
-         Namespace.pp,
-         ppf => Pretty.to_string % Fmt.string(ppf),
-         ppf,
-       );
+  (ppf, table: t) => Fmt.(table |> Hashtbl.pp(Namespace.pp, _pp_entry, ppf));
