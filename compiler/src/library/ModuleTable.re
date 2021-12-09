@@ -77,7 +77,7 @@ let _pp_entry: Fmt.t(entry_t) =
   (ppf, {ast, raw, exports}) =>
     Fmt.(
       [
-        ("ast", ast |> AST.Debug.print_ast |> Pretty2.to_string),
+        ("ast", ast |> ~@AST.Dump.pp),
         ("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp)),
         ("raw", raw),
       ]

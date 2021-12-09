@@ -14,10 +14,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp =>
-              AST.Debug.print_mod_stmt
-              % Pretty.to_string
-              % Format.pp_print_string(pp),
+            pp => AST.Dump.mod_stmt_to_entity % AST.Dump.Entity.pp(pp),
             (==),
           ),
           "program matches",

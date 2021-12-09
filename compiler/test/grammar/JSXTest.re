@@ -15,14 +15,7 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(
-            pp =>
-              Node.Raw.get_value
-              % Debug.print_jsx
-              % Pretty.to_string
-              % Format.pp_print_string(pp),
-            (==),
-          ),
+          testable(pp => Dump.jsx_to_entity % Dump.Entity.pp(pp), (==)),
           "program matches",
         )
       );

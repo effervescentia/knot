@@ -17,7 +17,7 @@ module Assert =
           testable(
             pp =>
               Node.Raw.get_value
-              % Raw.Debug.print_num
+              % Raw.Dump.num_to_string
               % Format.pp_print_string(pp),
             (==),
           ),

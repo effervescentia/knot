@@ -17,11 +17,19 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            pp =>
-              Node.Raw.get_value
-              % Debug.print_decl
-              % Pretty.to_string
-              % Format.pp_print_string(pp),
+            (pp, stmt) => {
+              let (export, decl) = Node.Raw.get_value(stmt);
+
+              Dump.raw_node_to_entity(
+                "Declaration",
+                ~children=[
+                  export |> Dump.export_to_entity,
+                  decl |> Dump.decl_to_entity,
+                ],
+                stmt,
+              )
+              |> Dump.Entity.pp(pp);
+            },
             (==),
           ),
           "program matches",

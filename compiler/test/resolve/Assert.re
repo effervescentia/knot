@@ -15,10 +15,7 @@ let module_ = Alcotest.(check(testable(Module.pp, (==)), "module matches"));
 
 let program =
   Alcotest.(
-    check(
-      testable(pp => AST.to_string % Format.pp_print_string(pp), (==)),
-      "program matches",
-    )
+    check(testable(pp => AST.Dump.pp(pp), (==)), "program matches")
   );
 
 let resolver =

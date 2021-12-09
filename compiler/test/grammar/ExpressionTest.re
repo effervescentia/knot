@@ -13,13 +13,7 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(
-            (pp, value) =>
-              Debug.(print_node("Expression", print_expr, value))
-              |> Pretty.to_string
-              |> Format.pp_print_string(pp),
-            (==),
-          ),
+          testable(pp => Dump.expr_to_entity % Dump.Entity.pp(pp), (==)),
           "program matches",
         )
       );

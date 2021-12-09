@@ -192,7 +192,10 @@ let pp: Fmt.t(t) =
           | Join => ""
           | Skip => "[skip]"
           | Identifier(id) => id |> ~@Identifier.pp
-          | Primitive(prim) => AST.Debug.print_prim(prim) |> Pretty.to_string
+          | Primitive(prim) =>
+            Node.create(prim, Valid(`Nil), Range.zero)
+            |> AST.Dump.prim_to_entity
+            |> ~@AST.Dump.Entity.pp
           },
           Range.create(start, end_) |> ~@Range.pp,
         ),
