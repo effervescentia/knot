@@ -55,6 +55,70 @@ module Common = {
    */
   module Dump = {
     open Pretty.Formatters;
+
+    module Entity = {
+      type t = {
+        name: string,
+        range: option(Range.t),
+        attributes: list(xml_attr_t(string)),
+        children: list(t),
+      };
+
+      /* static */
+
+      let create = (~attributes=[], ~children=[], ~range=None, name): t => {
+        name,
+        range,
+        attributes,
+        children,
+      };
+
+      /* methods */
+
+      let rec to_xml = ({name, range, attributes, children}: t) =>
+        Node(
+          switch (range) {
+          | Some(range) => Fmt.str("%s@%a", name, Range.pp, range)
+          | None => name
+          },
+          attributes,
+          children |> List.map(to_xml),
+        );
+
+      /* pretty printing */
+
+      let pp: Fmt.t(t) = ppf => to_xml % xml(string, ppf);
+    };
+
+    let _to_entity = (~range=?, ~type_=?, ~attributes=[], ~children=[], label) =>
+      Entity.create(
+        ~range,
+        ~attributes=
+          switch (type_) {
+          | Some(type_) => [("type", type_ |> ~@Type.pp), ...attributes]
+          | None => attributes
+          },
+        ~children,
+        label,
+      );
+
+    let raw_node_to_entity = (~attributes=[], ~children=[], label, raw_node) =>
+      _to_entity(
+        ~range=Node.Raw.get_range(raw_node),
+        ~attributes,
+        ~children,
+        label,
+      );
+
+    let node_to_entity =
+        (~range=?, ~type_=?, ~attributes=[], ~children=[], label, node) =>
+      _to_entity(
+        ~range=Node.get_range(node),
+        ~type_=Node.get_type(node),
+        ~attributes,
+        ~children,
+        label,
+      );
   };
 
   /**
@@ -119,6 +183,17 @@ module type ASTParams = {
   let get_range: node_t('a) => Range.t;
 
   let print_node: (string, 'a => Pretty2.t, node_t('a)) => Pretty2.t;
+
+  let pp_node: Fmt.t('a) => Fmt.t(node_t('a));
+
+  let node_to_entity:
+    (
+      ~attributes: list(Pretty.XML.xml_attr_t(string))=?,
+      ~children: list(Common.Dump.Entity.t)=?,
+      string,
+      node_t('a)
+    ) =>
+    Common.Dump.Entity.t;
 };
 
 /**
@@ -278,6 +353,214 @@ module Make = (T: ASTParams) => {
   let of_string = x => String(x);
   let of_num = x => Number(x);
   let nil = Nil;
+
+  module Dump = {
+    open Pretty.Formatters;
+
+    include Common.Dump;
+
+    let id_to_entity = (name, id) =>
+      raw_node_to_entity(
+        ~attributes=[
+          ("value", id |> Node.Raw.get_value |> Identifier.to_string),
+        ],
+        name,
+        id,
+      );
+
+    let num_to_string =
+      fun
+      | Integer(int) => int |> Int64.to_string
+      | Float(float, precision) => float |> Fmt.str("%.*f", precision);
+
+    let prim_to_entity = prim =>
+      (
+        switch (T.get_value(prim)) {
+        | Nil => T.node_to_entity("Nil")
+
+        | Boolean(bool) =>
+          T.node_to_entity(
+            ~attributes=[("value", string_of_bool(bool))],
+            "Boolean",
+          )
+
+        | Number(num) =>
+          T.node_to_entity(
+            ~attributes=[("value", num_to_string(num))],
+            "Number",
+          )
+
+        | String(str) =>
+          T.node_to_entity(
+            ~attributes=[("value", str |> ~@Fmt.quote(string))],
+            "String",
+          )
+        }
+      )(
+        prim,
+      );
+
+    let rec expr_to_entity = expr =>
+      (
+        switch (T.get_value(expr)) {
+        | Primitive(prim) =>
+          T.node_to_entity(~children=[prim_to_entity(prim)], "Primitive")
+
+        | Identifier(id) =>
+          T.node_to_entity(
+            ~attributes=[
+              ("value", id |> T.get_value |> Identifier.to_string),
+            ],
+            "Identifier",
+          )
+
+        | JSX(jsx) =>
+          T.node_to_entity(~children=[jsx_to_entity(jsx)], "JSX")
+
+        | Group(group) =>
+          T.node_to_entity(~children=[expr_to_entity(group)], "Group")
+
+        | Closure(stmts) =>
+          T.node_to_entity(
+            ~children=
+              stmts
+              |> List.map(stmt =>
+                   T.node_to_entity(
+                     ~children=[stmt_to_entity(stmt)],
+                     "Statement",
+                     stmt,
+                   )
+                 ),
+            "Closure",
+          )
+
+        | BinaryOp(op, lhs, rhs) =>
+          T.node_to_entity(
+            ~children=[
+              T.node_to_entity(~children=[expr_to_entity(lhs)], "LHS", lhs),
+              T.node_to_entity(~children=[expr_to_entity(rhs)], "RHS", rhs),
+            ],
+            switch (op) {
+            | LogicalAnd => "And"
+            | LogicalOr => "Or"
+            | Add => "Add"
+            | Subtract => "Sub"
+            | Divide => "Div"
+            | Multiply => "Mult"
+            | LessOrEqual => "LessOrEq"
+            | LessThan => "Less"
+            | GreaterOrEqual => "GreaterOrEq"
+            | GreaterThan => "Greater"
+            | Equal => "Equal"
+            | Unequal => "Unequal"
+            | Exponent => "Exponent"
+            },
+          )
+
+        | UnaryOp(op, expr) =>
+          T.node_to_entity(
+            ~children=[expr_to_entity(expr)],
+            switch (op) {
+            | Not => "Not"
+            | Positive => "Positive"
+            | Negative => "Negative"
+            },
+          )
+        }
+      )(
+        expr,
+      )
+
+    and jsx_to_entity = jsx =>
+      (
+        switch (T.get_value(jsx)) {
+        | Tag(name, attrs, children) =>
+          T.node_to_entity(
+            ~children=[
+              id_to_entity("Name", name),
+              Entity.create(
+                ~children=attrs |> List.map(jsx_attr_to_entity),
+                "Attributes",
+              ),
+              Entity.create(
+                ~children=children |> List.map(jsx_child_to_entity),
+                "Children",
+              ),
+            ],
+            "Tag",
+          )
+
+        | Fragment(children) =>
+          T.node_to_entity(
+            ~children=children |> List.map(jsx_child_to_entity),
+            "Fragment",
+          )
+        }
+      )(
+        jsx,
+      )
+
+    and jsx_child_to_entity = jsx_child =>
+      (
+        switch (T.get_value(jsx_child)) {
+        | Text(text) =>
+          T.node_to_entity(
+            ~attributes=[("value", T.get_value(text))],
+            "Text",
+          )
+
+        | Node(jsx) =>
+          T.node_to_entity(~children=[jsx_to_entity(jsx)], "Node")
+
+        | InlineExpression(expr) =>
+          T.node_to_entity(~children=[expr_to_entity(expr)], "InlineExpr")
+        }
+      )(
+        jsx_child,
+      )
+
+    and jsx_attr_to_entity = attr =>
+      (
+        (
+          switch (T.get_value(attr)) {
+          | Class(name, value) => ("Class", name, value)
+
+          | ID(name) => ("ID", name, None)
+
+          | Property(name, value) => ("Property", name, value)
+          }
+        )
+        |> Tuple.map_snd3(id_to_entity("Name"))
+        |> (
+          fun
+          | (entity, name_child, Some(expr)) =>
+            T.node_to_entity(
+              ~children=[name_child, expr_to_entity(expr)],
+              entity,
+            )
+          | (entity, name_child, None) =>
+            T.node_to_entity(~children=[name_child], entity)
+        )
+      )(
+        attr,
+      )
+
+    and stmt_to_entity = stmt =>
+      (
+        switch (T.get_value(stmt)) {
+        | Variable(name, expr) =>
+          T.node_to_entity(
+            "Variable",
+            ~children=[id_to_entity("Name", name), expr_to_entity(expr)],
+          )
+
+        | Expression(expr) =>
+          T.node_to_entity("Expression", ~children=[expr_to_entity(expr)])
+        }
+      )(
+        stmt,
+      );
+  };
 
   module Debug = {
     open Pretty2;
@@ -458,6 +741,12 @@ module Raw =
         x |> get_value |> print_value,
         get_range(x),
       );
+
+    let pp_node = (pp_value, ppf, (value, range)) =>
+      Common.Dump.Entity.create("") |> Common.Dump.Entity.pp(ppf);
+    let pp_node = (pp_value, ppf, (value, range)) => ();
+
+    let node_to_entity = Common.Dump.raw_node_to_entity;
   });
 
 include Make({
@@ -476,6 +765,11 @@ include Make({
       get_type(x),
       get_range(x),
     );
+
+  let pp_node = (pp_value, ppf, (value, type_, range)) => ();
+
+  let node_to_entity = (~attributes=[], ~children=[], label, node) =>
+    Common.Dump.node_to_entity(~attributes, ~children, label, node);
 });
 
 /**
@@ -539,6 +833,120 @@ let of_decl = ((name, x)) => Declaration(name, x);
 
 module Dump = {
   include Dump;
+
+  open Pretty.Formatters;
+
+  let export_to_entity =
+    fun
+    | MainExport(id) => id_to_entity("MainExport", id)
+    | NamedExport(id) => id_to_entity("NamedExport", id);
+
+  let decl_to_entity = decl =>
+    switch (Node.get_value(decl)) {
+    | Constant(expr) =>
+      node_to_entity(~children=[expr_to_entity(expr)], "Constant", decl)
+
+    | Function(args, expr) =>
+      node_to_entity(
+        ~children=[
+          Entity.create(
+            ~children=
+              args
+              |> List.map(arg => {
+                   let {name, default, type_} = Node.get_value(arg);
+                   let children = ref([id_to_entity("Name", name)]);
+
+                   switch (default) {
+                   | Some(default) =>
+                     children := [expr_to_entity(default), ...children^]
+                   | None => ()
+                   };
+
+                   switch (type_) {
+                   | Some(type_) =>
+                     children :=
+                       [
+                         node_to_entity(
+                           ~range=Node.get_range(type_),
+                           ~type_,
+                           "Type",
+                           type_,
+                         ),
+                         ...children^,
+                       ]
+                   | None => ()
+                   };
+
+                   node_to_entity(
+                     ~range=Node.get_range(arg),
+                     ~type_=Node.get_type(arg),
+                     ~children=children^,
+                     "Argument",
+                     arg,
+                   );
+                 }),
+            "Arguments",
+          ),
+          Entity.create(~children=[expr_to_entity(expr)], "Body"),
+        ],
+        "Function",
+        decl,
+      )
+    };
+
+  let import_to_entity = import =>
+    switch (Node.Raw.get_value(import)) {
+    | MainImport(name) =>
+      raw_node_to_entity(
+        ~children=[id_to_entity("Name", name)],
+        "MainImport",
+        import,
+      )
+
+    | NamedImport(name, Some((alias, alias_range))) =>
+      raw_node_to_entity(
+        ~children=[
+          id_to_entity("Name", name),
+          Entity.create(
+            ~range=Some(alias_range),
+            ~attributes=[("value", Identifier.to_string(alias))],
+            "Alias",
+          ),
+        ],
+        "NamedImport",
+        import,
+      )
+
+    | NamedImport(name, None) =>
+      raw_node_to_entity(
+        ~children=[id_to_entity("Name", name)],
+        "NamedImport",
+        import,
+      )
+    };
+
+  let mod_stmt_to_entity = mod_stmt =>
+    switch (Node.Raw.get_value(mod_stmt)) {
+    | Import(namespace, imports) =>
+      raw_node_to_entity(
+        ~attributes=[("namespace", Namespace.to_string(namespace))],
+        ~children=imports |> List.map(import_to_entity),
+        "Import",
+        mod_stmt,
+      )
+
+    | Declaration(name, decl) =>
+      raw_node_to_entity(
+        ~children=[export_to_entity(name), decl_to_entity(decl)],
+        "Declaration",
+        mod_stmt,
+      )
+    };
+
+  let to_entity = program =>
+    Entity.create(~children=program |> List.map(mod_stmt_to_entity), "AST");
+
+  let pp: Fmt.t(program_t) = ppf => to_entity % Entity.pp(ppf);
 };
 
 /**

@@ -1,1 +1,1 @@
-let tests = [ContainerTest.suite, XMLTest.suite];
+let tests = [ContainerTest.suite, FormattersTest.suite, XMLTest.suite];

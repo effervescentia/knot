@@ -1,6 +1,7 @@
 open Test.Infix;
 
-let () = "Unit Tests" >:::: TestPretty.TestSuite.tests;
+let () =
+  "Unit Tests" >:::: TestPretty.TestSuite.tests @ TestLibrary.TestSuite.tests;
 /*
  let () =
    "Unit Tests"

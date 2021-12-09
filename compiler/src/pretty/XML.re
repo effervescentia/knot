@@ -2,51 +2,49 @@ open Kore;
 open Whitespace;
 open Container;
 
-type tag_attr_t = (string, string);
+type xml_attr_t('a) = (string, 'a);
 
-type tag_t =
-  | Parent(string, list(tag_attr_t), list(tag_t))
-  | Child(string, list(tag_attr_t));
+type xml_t('a) =
+  | Node(string, list(xml_attr_t('a)), list(xml_t('a)));
 
-let tag_attr: Fmt.t(tag_attr_t) =
-  (ppf, (key, value)) => pf(ppf, "%s=%s", key, value);
+let node_attr = (pp_value: Fmt.t('a)): Fmt.t(xml_attr_t('a)) =>
+  (ppf, (key, value)) => pf(ppf, "%s=%a", key, pp_value, value);
 
-let _inline_tag_attr_sep = Sep.of_sep(~trail=ppf => sp(ppf, ()), "");
-let _tag_attr_sep = Sep.of_sep(~trail=ppf => cut(ppf, ()), "");
+let _inline_node_attr_sep = Sep.of_sep(~trail=ppf => sp(ppf, ()), "");
+let _node_attr_sep = Sep.of_sep(~trail=ppf => cut(ppf, ()), "");
 
-let rec xml: Fmt.t(tag_t) =
+let rec xml = (pp_attr: Fmt.t('a)): Fmt.t(xml_t('a)) =>
   ppf =>
     fun
-    | Parent(name, attrs, [])
-    | Child(name, attrs) =>
+    | Node(name, attrs, []) =>
       pf(
         ppf,
         "@[<hv><%s%t%a/>@]",
         name,
         space_or_indent,
-        list(~sep=_inline_tag_attr_sep, tag_attr),
+        list(~sep=_inline_node_attr_sep, node_attr(pp_attr)),
         attrs,
       )
 
-    | Parent(name, [], tags) =>
+    | Node(name, [], tags) =>
       pf(
         ppf,
         "@[<v><%s>%a</%s>@]",
         name,
-        block(~sep=Sep.trailing_newline, xml),
+        block(~layout=Vertical, ~sep=Sep.trailing_newline, xml(pp_attr)),
         tags,
         name,
       )
 
-    | Parent(name, attrs, tags) =>
+    | Node(name, attrs, tags) =>
       pf(
         ppf,
         "@[<v>@[<hv><%s%t%a>@]%a</%s>@]",
         name,
         space_or_indent,
-        list(~sep=_tag_attr_sep, tag_attr),
+        list(~sep=_node_attr_sep, node_attr(pp_attr)),
         attrs,
-        block(~sep=Sep.trailing_newline, xml),
+        block(~layout=Vertical, ~sep=Sep.trailing_newline, xml(pp_attr)),
         tags,
         name,
       );
