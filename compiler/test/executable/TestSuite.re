@@ -5,6 +5,7 @@ let unit_tests = [
   BuildTest.suite,
   ConfigOptTest.suite,
   OptTest.suite,
+  ReporterTest.suite,
   RunCmdTest.suite,
 ];
 

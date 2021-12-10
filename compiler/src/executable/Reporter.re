@@ -347,7 +347,7 @@ let _extract_compile_err = resolver =>
              description,
              switch (module_) {
              | Ok(x) => File.CodeFrame.print(x, range) |> string
-             | Error(_) => [string("code frame not available")] |> newline
+             | Error(_) => [string("[code frame not available]")] |> newline
              },
              switch (resolutions) {
              | Some(resolutions) =>
@@ -395,13 +395,17 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
     Newline,
     errors
     |> List.mapi((index, err) =>
-         err
-         |> _extract_compile_err(resolver)
-         |> Tuple.join3((path, title, content) =>
-              _print_err(~index, path, title, content)
-            )
+         [
+           err
+           |> _extract_compile_err(resolver)
+           |> Tuple.join3((path, title, content) =>
+                _print_err(~index, path, title, content)
+              ),
+           Newline,
+           Newline,
+         ]
        )
-    |> List.intersperse(Newline)
+    |> List.flatten
     |> concat,
     summary,
   ]
@@ -409,7 +413,7 @@ let report = (resolver: Resolver.t, errors: list(compile_err)) => {
 };
 
 let panic = (resolver: Resolver.t, errors: list(compile_err)) => {
-  report(resolver, errors) |> Writer.write(stderr);
+  report(resolver, errors) |> Writer.write_pretty(stderr);
 
   exit(2);
 };
