@@ -331,7 +331,7 @@ let _extract_compile_err = resolver =>
                    description,
                    ppf =>
                      fun
-                     | Ok(x) => File.CodeFrame.print(x, range) |> string(ppf)
+                     | Ok(x) => File.CodeFrame.pp(ppf, (x, range))
                      | Error(_) => pf(ppf, "@,@,[code frame not available]"),
                    module_,
                    ppf =>

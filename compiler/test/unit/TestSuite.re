@@ -4,6 +4,7 @@ let () =
   "Unit Tests"
   >:::: TestPretty.TestSuite.tests
   @ TestLibrary.TestSuite.tests
+  @ TestFile.TestSuite.unit_tests
   @ TestExecutable.TestSuite.unit_tests
   @ TestGenerate.TestSuite.tests;
 /*
