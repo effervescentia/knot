@@ -190,7 +190,9 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.res_jsx)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.(res_expr % res_jsx))),
+           )
         |> Assert.(test_many(jsx))
     ),
     "res_jsx() - fragment"
@@ -236,7 +238,9 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.res_jsx)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.(res_expr % res_jsx))),
+           )
         |> Assert.(test_many(jsx))
     ),
     "res_stmt() - variable"

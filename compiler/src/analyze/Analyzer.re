@@ -38,7 +38,8 @@ and res_expr =
     | Primitive(prim) =>
       res_prim(prim) |> (x => (Primitive(x), Node.get_type(x)))
 
-    | JSX(jsx) => res_jsx(scope, jsx) |> (x => (JSX(x), Node.get_type(x)))
+    | JSX(jsx) =>
+      res_jsx(res_expr(scope), jsx) |> (x => (JSX(x), Node.get_type(x)))
 
     | Group(expr) =>
       res_expr(scope, expr) |> (x => (Group(x), Node.get_type(x)))
@@ -77,19 +78,21 @@ and res_expr =
   )
   |> _bind_typed_node(range)
 
-and res_jsx = (scope: Scope.t, (jsx, range): Raw.jsx_t): jsx_t =>
+and res_jsx =
+    (res_expr: Raw.expression_t => expression_t, (jsx, range): Raw.jsx_t)
+    : jsx_t =>
   (
     switch (jsx) {
     | Tag(id, attrs, children) => (
         Tag(
           id,
-          attrs |> List.map(res_attr(scope)),
-          children |> List.map(res_child(scope)),
+          attrs |> List.map(res_attr(res_expr)),
+          children |> List.map(res_child(res_expr)),
         ),
         Type.Valid(`Element),
       )
     | Fragment(children) => (
-        Fragment(children |> List.map(res_child(scope))),
+        Fragment(children |> List.map(res_child(res_expr))),
         Type.Valid(`Element),
       )
     }
@@ -97,19 +100,23 @@ and res_jsx = (scope: Scope.t, (jsx, range): Raw.jsx_t): jsx_t =>
   |> _bind_typed_node(range)
 
 and res_attr =
-    (scope: Scope.t, (attr, range): Raw.jsx_attribute_t): jsx_attribute_t =>
+    (
+      res_expr: Raw.expression_t => expression_t,
+      (attr, range): Raw.jsx_attribute_t,
+    )
+    : jsx_attribute_t =>
   (
     switch (attr) {
     | ID(id) => (ID(id), Type.Valid(`String))
 
     | Class(id, expr) => (
-        Class(id, expr |> Option.map(res_expr(scope))),
+        Class(id, expr |> Option.map(res_expr)),
         Type.Valid(`String),
       )
 
     | Property(id, expr) =>
       expr
-      |> Option.map(res_expr(scope))
+      |> Option.map(res_expr)
       |> (
         x => (
           Property(id, x),
@@ -120,7 +127,12 @@ and res_attr =
   )
   |> _bind_typed_node(range)
 
-and res_child = (scope: Scope.t, (attr, range): Raw.jsx_child_t): jsx_child_t =>
+and res_child =
+    (
+      res_expr: Raw.expression_t => expression_t,
+      (attr, range): Raw.jsx_child_t,
+    )
+    : jsx_child_t =>
   (
     switch (attr) {
     | Text(text) => (
@@ -132,11 +144,10 @@ and res_child = (scope: Scope.t, (attr, range): Raw.jsx_child_t): jsx_child_t =>
         Type.Valid(`String),
       )
 
-    | Node(jsx) => (Node(res_jsx(scope, jsx)), Type.Valid(`Element))
+    | Node(jsx) => (Node(res_jsx(res_expr, jsx)), Type.Valid(`Element))
 
     | InlineExpression(expr) =>
-      res_expr(scope, expr)
-      |> (x => (InlineExpression(x), Node.get_type(x)))
+      res_expr(expr) |> (x => (InlineExpression(x), Node.get_type(x)))
     }
   )
   |> _bind_typed_node(range);
