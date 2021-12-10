@@ -1,6 +1,5 @@
 open Kore;
 open JavaScript_AST;
-open Pretty;
 
 let _import_variable_name =
   String.replace('.', '_') % String.replace('/', '$');

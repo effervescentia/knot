@@ -1,5 +1,4 @@
 open Kore;
-open Pretty;
 
 module Resolver = Resolve.Resolver;
 module Module = Resolve.Module;

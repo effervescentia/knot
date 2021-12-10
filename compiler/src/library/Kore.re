@@ -22,7 +22,6 @@ module NamespaceContext = NamespaceContext;
 module NestedHashtbl = NestedHashtbl;
 module Node = Node;
 module Point = Point;
-module Pretty = Pretty2;
 module Range = Range;
 module RangeTree = RangeTree;
 module RangeTree2 = RangeTree2;
