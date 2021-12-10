@@ -38,92 +38,76 @@ finished with 0 error(s) and 0 warning(s)
 finished with 11 error(s) and 0 warning(s)
 
 1) Import Cycle Found
+
   import cycle between the following modules: a -> b -> c -> d
 
 2) Unresolved Module
+
   could not resolve module: my_module
 
 3) File Not Found
+
   could not find file with path: /path/to/my/file
 
-4) Invalid Module : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+4) Invalid Module : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   failed to parse module: @/my_namespace
 
-5) Reserved Keyword : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+5) Reserved Keyword : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   the reserved keyword x was used as an identifier
+  \n  [code frame not available]
+  \n  try one of the following to resolve this issue:
+  \n    • check that the identifier x is spelled correctly
+    \n    • rename x so that there is no conflict with reserved keywords (import, from, main, const, let, nil, true, false, as)
 
-  [code frame not available]
+6) Type Resolution Failed : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
-  try one of the following to resolve this issue:
+  failed to resolve the type of an expression, this is likely an internal issue with the compiler
+  \n  [code frame not available]
 
-    • check that the identifier x is spelled correctly
-
-    • rename x so that there is no conflict with reserved keywords (import, from, main, const, let, nil, true, false, as)
-
-6) Type Resolution Failed : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
-
-
-
-  [code frame not available]
-
-7) Identifier Not Found : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+7) Identifier Not Found : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   unable to resolve an identifier my_id in the local scope or any inherited scope
-
-  [code frame not available]
-
-  try one of the following to resolve this issue:
-
-    • check that the identifier my_id is spelled correctly
-
-    • define the value yourself
-
-      const my_id = …;
+  \n  [code frame not available]
+  \n  try one of the following to resolve this issue:
+  \n    • check that the identifier my_id is spelled correctly
+    \n    • define the value yourself
+    \n      const my_id = …;
       // or
       let my_id = …;
+    \n    • import the value from another module
+    \n      import { my_id } from \"…\";
 
-    • import the value from another module
-
-      import { my_id } from \"…\";
-
-
-8) Types Do Not Match : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+8) Types Do Not Match : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   expected the type string but found the type int instead
+  \n  [code frame not available]
 
-  [code frame not available]
-
-9) Type Cannot Be Assigned : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+9) Type Cannot Be Assigned : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   expected a type that implements the trait number which is shared by the types int and float but found the type string instead
+  \n  [code frame not available]
 
-  [code frame not available]
-
-10) External Not Found : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+10) External Not Found : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   an export with the identifier my_export could not be found in module @/my_namespace
+  \n  [code frame not available]
 
-  [code frame not available]
-
-11) Identifier Already Defined : bar/my_namespace.kn:0:0
-  (foo/bar/my_namespace.kn:0:0)
+11) Identifier Already Defined : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
 
   a variable with the same name (my_export) already exists in the local scope or an inherited scope
-
-  [code frame not available]
-
-  try one of the following to resolve this issue:
-
-    • change the name of this variable
+  \n  [code frame not available]
+  \n  try one of the following to resolve this issue:
+  \n    • change the name of this variable
 
 finished with 11 error(s) and 0 warning(s)
 ",
