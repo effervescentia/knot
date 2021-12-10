@@ -14,9 +14,7 @@ let import_graph =
 let module_ = Alcotest.(check(testable(Module.pp, (==)), "module matches"));
 
 let program =
-  Alcotest.(
-    check(testable(pp => AST.Dump.pp(pp), (==)), "program matches")
-  );
+  Alcotest.(check(testable(AST.Dump.pp, (==)), "program matches"));
 
 let resolver =
   Alcotest.(check(testable(Resolver.pp, (==)), "resolver matches"));

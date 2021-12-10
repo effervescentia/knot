@@ -1,7 +1,6 @@
 open Kore;
 open AST;
 open Reference;
-open Pretty;
 
 let _sort_imports =
   List.sort((l, r) =>

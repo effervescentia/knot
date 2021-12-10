@@ -23,8 +23,11 @@ let suite =
 var ABC = 123;
 export { ABC };
 ",
-          Generator.generate(JavaScript(ES6), _ => "", __program)
-          |> Pretty.to_string,
+          __program
+          |> ~@(
+               (ppf, x) =>
+                 Generator.generate(JavaScript(ES6), _ => "", x, ppf)
+             ),
         )
     ),
   ];

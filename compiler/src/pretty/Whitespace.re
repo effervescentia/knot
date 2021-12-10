@@ -10,6 +10,3 @@ let space_or_indent = ppf =>
     ~fits=("", 1, ""),
     ~breaks=("", __indent_spaces, ""),
   );
-
-let space_or_comma = ppf =>
-  pp_print_custom_break(ppf, ~fits=("", 1, ""), ~breaks=(",", 0, ""));

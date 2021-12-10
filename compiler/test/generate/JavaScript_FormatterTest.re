@@ -22,22 +22,10 @@ module Compare = {
   open Alcotest;
 
   let expression = (module_type: Target.module_t) =>
-    testable(
-      pp =>
-        Formatter.fmt_expression(module_type)
-        % Pretty.to_string
-        % Format.pp_print_string(pp),
-      (==),
-    );
+    testable(Formatter.fmt_expression(module_type), (==));
 
   let statement = (module_type: Target.module_t) =>
-    testable(
-      pp =>
-        Formatter.fmt_statement(module_type)
-        % Pretty.to_string
-        % Format.pp_print_string(pp),
-      (==),
-    );
+    testable(Formatter.fmt_statement(module_type), (==));
 };
 
 let _assert_expression = (~module_type=Target.Common) =>
@@ -68,7 +56,7 @@ let suite =
           ("\"foo\\nbar\"", "foo\nbar"),
           ("\"foo \\\"bar\\\"\"", "foo \"bar\""),
         ]
-        |> List.map(Tuple.map_snd2(Formatter.fmt_string % Pretty.to_string))
+        |> List.map(Tuple.map_snd2(~@Formatter.fmt_string))
         |> Assert.(test_many(string))
     ),
     "fmt_expression()"
@@ -104,7 +92,7 @@ let suite =
             "foo ? 123 : 456",
             Ternary(Identifier("foo"), Number("123"), Number("456")),
           ),
-          ("function () {\n}", Function(None, [], [])),
+          ("function () { }", Function(None, [], [])),
           (
             "function foo(bar, fizz) {
   var x = 123;
@@ -135,7 +123,7 @@ let suite =
         ]
         |> List.map(
              Tuple.map_snd2(
-               Formatter.fmt_expression(Target.Common) % Pretty.to_string,
+               ~@Fmt.root(Formatter.fmt_expression(Target.Common)),
              ),
            )
         |> Assert.(test_many(string))
@@ -167,7 +155,7 @@ let suite =
         ]
         |> List.map(
              Tuple.map_snd2(
-               Formatter.fmt_statement(Target.Common) % Pretty.to_string,
+               ~@Fmt.root(Formatter.fmt_statement(Target.Common)),
              ),
            )
         |> Assert.(test_many(string))
@@ -196,7 +184,7 @@ let suite =
         ]
         |> List.map(
              Tuple.map_snd2(
-               Formatter.fmt_statement(Target.ES6) % Pretty.to_string,
+               ~@Fmt.root(Formatter.fmt_statement(Target.ES6)),
              ),
            )
         |> Assert.(test_many(string))
@@ -233,7 +221,7 @@ $import$__$foo$bar = null",
         ]
         |> List.map(
              Tuple.map_snd2(
-               Formatter.fmt_statement(Target.Common) % Pretty.to_string,
+               ~@Fmt.root(Formatter.fmt_statement(Target.Common)),
              ),
            )
         |> Assert.(test_many(string))
@@ -261,7 +249,7 @@ foo.bar = null;
           ),
         ]
         |> List.map(
-             Tuple.map_snd2(Formatter.format(Target.ES6) % Pretty.to_string),
+             Tuple.map_snd2(~@Fmt.root(Formatter.format(Target.ES6))),
            )
         |> Assert.(test_many(string))
     ),
@@ -290,9 +278,7 @@ foo.bar = null;
           ),
         ]
         |> List.map(
-             Tuple.map_snd2(
-               Formatter.format(Target.Common) % Pretty.to_string,
-             ),
+             Tuple.map_snd2(~@Fmt.root(Formatter.format(Target.Common))),
            )
         |> Assert.(test_many(string))
     ),

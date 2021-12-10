@@ -1,7 +1,6 @@
 open Kore;
 open AST;
 open Reference;
-open Pretty;
 open FormatterUtils;
 
 let __default_margin = 120;

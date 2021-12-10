@@ -129,7 +129,7 @@ let struct_ =
   (ppf, (name, attrs)) =>
     entity(string, attribute(pp_key, pp_value), ppf, (name, attrs));
 
-let _destruct_comma_sep = Sep.of_sep(~trail=space_or_comma, ",");
+let _destruct_comma_sep = Sep.(of_sep(~trail=Trail.space_or_comma, ","));
 
 let destruct = (pp_entry, ppf, entries) =>
   pf(

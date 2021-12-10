@@ -10,8 +10,8 @@ type xml_t('a) =
 let node_attr = (pp_value: Fmt.t('a)): Fmt.t(xml_attr_t('a)) =>
   (ppf, (key, value)) => pf(ppf, "%s=%a", key, pp_value, value);
 
-let _inline_node_attr_sep = Sep.of_sep(~trail=ppf => sp(ppf, ()), "");
-let _node_attr_sep = Sep.of_sep(~trail=ppf => cut(ppf, ()), "");
+let _inline_node_attr_sep = Sep.(of_sep(~trail=Trail.space, ""));
+let _node_attr_sep = Sep.(of_sep(~trail=Trail.newline, ""));
 
 let rec xml = (pp_attr: Fmt.t('a)): Fmt.t(xml_t('a)) =>
   ppf =>

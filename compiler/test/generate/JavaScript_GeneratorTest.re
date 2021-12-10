@@ -25,22 +25,10 @@ module Compare = {
   open Alcotest;
 
   let expression = (module_type: Target.module_t) =>
-    testable(
-      pp =>
-        Formatter.fmt_expression(module_type)
-        % Pretty.to_string
-        % Format.pp_print_string(pp),
-      (==),
-    );
+    testable(Formatter.fmt_expression(module_type), (==));
 
   let statement = (module_type: Target.module_t) =>
-    testable(
-      pp =>
-        Formatter.fmt_statement(module_type)
-        % Pretty.to_string
-        % Format.pp_print_string(pp),
-      (==),
-    );
+    testable(Formatter.fmt_statement(module_type), (==));
 };
 
 let _assert_expression = (~module_type=Target.Common) =>
