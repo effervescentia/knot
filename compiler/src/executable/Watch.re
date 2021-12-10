@@ -39,7 +39,7 @@ let run =
     (
       global: global_t,
       ~report=resolver =>
-                Reporter.report(resolver) % File.Writer.write_pretty(stderr),
+                Reporter.report(resolver) % File.Writer.write(stderr),
       config: config_t,
     ) => {
   Cmd.log_config(

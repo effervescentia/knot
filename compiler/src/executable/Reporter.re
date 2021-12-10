@@ -7,15 +7,15 @@ module Writer = File.Writer;
 
 let _print_code_examples =
   List.intersperse([Newline, string("// or"), Newline] |> concat)
-  % newline
+  % concat
   % indent(2);
 
 let _print_resolution = ((description, examples)) =>
   [
-    [description |> Fmt.str("• %s") |> string] |> newline,
-    Newline,
+    [description |> Fmt.str("• %s") |> string] |> concat,
     switch (examples) {
-    | Some(examples) => [examples |> _print_code_examples] |> newline
+    | Some(examples) =>
+      [Newline, Newline, examples |> _print_code_examples] |> concat
     | None => Nil
     },
   ]
@@ -50,7 +50,7 @@ let _print_err = (~index, path, title, content) =>
       ]
       |> concat
       |> indent(2);
-    | None => Newline
+    | None => Nil
     },
     Newline,
     [content |> indent(2)] |> concat,
@@ -135,56 +135,36 @@ let _extract_type_err =
        ) */
     | NotAssignable(t, trait) => (
         "Type Cannot Be Assigned",
-        [
-          [
-            Fmt.str(
-              "expected a type that implements the trait %a but found the type %a instead",
-              _pp_type_trait(Fmt.good_str),
-              trait,
-              Fmt.bad(Type.Raw.pp),
-              t,
-            )
-            |> string,
-          ]
-          |> newline,
-          Newline,
-        ]
-        |> concat,
+        Fmt.str(
+          "expected a type that implements the trait %a but found the type %a instead",
+          _pp_type_trait(Fmt.good_str),
+          trait,
+          Fmt.bad(Type.Raw.pp),
+          t,
+        )
+        |> string,
         None,
       )
     | TypeMismatch(expected, actual) => (
         "Types Do Not Match",
-        [
-          [
-            Fmt.str(
-              "expected the type %a but found the type %a instead",
-              Fmt.good(Type.Raw.pp),
-              expected,
-              Fmt.bad(Type.Raw.pp),
-              actual,
-            )
-            |> string,
-          ]
-          |> newline,
-          Newline,
-        ]
-        |> concat,
+        Fmt.str(
+          "expected the type %a but found the type %a instead",
+          Fmt.good(Type.Raw.pp),
+          expected,
+          Fmt.bad(Type.Raw.pp),
+          actual,
+        )
+        |> string,
         None,
       )
     | NotFound(id) => (
         "Identifier Not Found",
-        [
-          [
-            id
-            |> Fmt.str(
-                 "unable to resolve an identifier %a in the local scope or any inherited scope",
-                 Fmt.bad(Identifier.pp),
-               )
-            |> string,
-          ]
-          |> newline,
-        ]
-        |> newline,
+        id
+        |> Fmt.str(
+             "unable to resolve an identifier %a in the local scope or any inherited scope",
+             Fmt.bad(Identifier.pp),
+           )
+        |> string,
         Some(
           [
             _print_resolution((
@@ -214,23 +194,18 @@ let _extract_type_err =
               ),
             )),
           ]
-          |> concat,
+          |> List.intersperse([Newline, Newline] |> concat)
+          |> newline,
         ),
       )
     | DuplicateIdentifier(id) => (
         "Identifier Already Defined",
-        [
-          [
-            id
-            |> Fmt.str(
-                 "a variable with the same name (%a) already exists in the local scope or an inherited scope",
-                 Fmt.bad(Identifier.pp),
-               )
-            |> string,
-          ]
-          |> newline,
-        ]
-        |> newline,
+        id
+        |> Fmt.str(
+             "a variable with the same name (%a) already exists in the local scope or an inherited scope",
+             Fmt.bad(Identifier.pp),
+           )
+        |> string,
         Some(
           [_print_resolution(("change the name of this variable", None))]
           |> concat,
@@ -238,29 +213,25 @@ let _extract_type_err =
       )
     | ExternalNotFound(namespace, id) => (
         "External Not Found",
-        [
-          (
-            switch (id) {
-            | Named(id) =>
-              Fmt.str(
-                "an export with the identifier %a could not be found in module %a",
-                Fmt.bad(Identifier.pp),
-                id,
-                Fmt.bad(Namespace.pp),
-                namespace,
-              )
-            | Main =>
-              Fmt.str(
-                "a main export could not be found in module %a",
-                Fmt.bad(Namespace.pp),
-                namespace,
-              )
-            }
-          )
-          |> string,
-          Newline,
-        ]
-        |> newline,
+        (
+          switch (id) {
+          | Named(id) =>
+            Fmt.str(
+              "an export with the identifier %a could not be found in module %a",
+              Fmt.bad(Identifier.pp),
+              id,
+              Fmt.bad(Namespace.pp),
+              namespace,
+            )
+          | Main =>
+            Fmt.str(
+              "a main export could not be found in module %a",
+              Fmt.bad(Namespace.pp),
+              namespace,
+            )
+          }
+        )
+        |> string,
         None,
       )
     | TypeResolutionFailed => ("Type Resolution Failed", Pretty.Nil, None)
@@ -297,6 +268,7 @@ let _extract_parse_err =
             None,
           )),
         ]
+        |> List.intersperse([Newline, Newline] |> concat)
         |> concat,
       ),
     );
@@ -347,11 +319,14 @@ let _extract_compile_err = resolver =>
              description,
              switch (module_) {
              | Ok(x) => File.CodeFrame.print(x, range) |> string
-             | Error(_) => [string("[code frame not available]")] |> newline
+             | Error(_) =>
+               [Newline, Newline, string("[code frame not available]")]
+               |> concat
              },
              switch (resolutions) {
              | Some(resolutions) =>
                [
+                 Newline,
                  Newline,
                  [string("try one of the following to resolve this issue:")]
                  |> newline,
@@ -366,54 +341,58 @@ let _extract_compile_err = resolver =>
          );
        });
 
-let report = (resolver: Resolver.t, errors: list(compile_err)) => {
+let report =
+    (
+      resolver: Resolver.t,
+      errors: list(compile_err),
+      ppf: Stdlib.Format.formatter,
+    ) => {
   let header =
     Fmt.str("%sFAILED%s", String.repeat(20, " "), String.repeat(20, " "));
   let summary =
-    [
-      Fmt.str(
-        "finished with %a and %a",
-        Fmt.red(ppf => Fmt.pf(ppf, "%i error(s)")),
-        List.length(errors),
-        Fmt.yellow(ppf => Fmt.pf(ppf, "%i warning(s)")),
-        0,
-      )
-      |> string,
-    ]
-    |> newline;
-  let horiz_border = String.repeat(String.length(header), "═");
+    Fmt.str(
+      "finished with %a and %a",
+      Fmt.red(ppf => Fmt.pf(ppf, "%i error(s)")),
+      List.length(errors),
+      Fmt.yellow(ppf => Fmt.pf(ppf, "%i warning(s)")),
+      0,
+    );
 
-  [
-    Newline,
-    [horiz_border |> Fmt.str("╔%s╗") |> ~@Fmt.bad_str |> string]
-    |> newline,
-    [header |> Fmt.str("║%s║") |> ~@Fmt.bad_str |> string] |> newline,
-    [horiz_border |> Fmt.str("╚%s╝") |> ~@Fmt.bad_str |> string]
-    |> newline,
-    Newline,
-    summary,
-    Newline,
-    errors
-    |> List.mapi((index, err) =>
-         [
-           err
-           |> _extract_compile_err(resolver)
-           |> Tuple.join3((path, title, content) =>
-                _print_err(~index, path, title, content)
-              ),
-           Newline,
-           Newline,
-         ]
-       )
-    |> List.flatten
-    |> concat,
-    summary,
-  ]
-  |> concat;
+  let horiz_border = String.(repeat(length(header), "═"));
+
+  Fmt.(
+    page(
+      (ppf, ()) =>
+        pf(
+          ppf,
+          "\n%s\n%s\n%s\n\n%s\n%a\n%s",
+          horiz_border |> Fmt.str("╔%s╗") |> ~@Fmt.bad_str,
+          header |> Fmt.str("║%s║") |> ~@Fmt.bad_str,
+          horiz_border |> Fmt.str("╚%s╝") |> ~@Fmt.bad_str,
+          summary,
+          list(~layout=Vertical, ~sep=Sep.newline, (ppf, (index, err)) =>
+            [
+              err
+              |> _extract_compile_err(resolver)
+              |> Tuple.join3((path, title, content) =>
+                   _print_err(~index, path, title, content)
+                 ),
+            ]
+            |> Pretty.newline
+            |> Pretty.to_string
+            |> string(ppf)
+          ),
+          errors |> List.mapi(Tuple.with_fst2),
+          summary,
+        ),
+      ppf,
+      (),
+    )
+  );
 };
 
 let panic = (resolver: Resolver.t, errors: list(compile_err)) => {
-  report(resolver, errors) |> Writer.write_pretty(stderr);
+  report(resolver, errors) |> Writer.write(stderr);
 
   exit(2);
 };

@@ -27,7 +27,7 @@ finished with 0 error(s) and 0 warning(s)
 
 finished with 0 error(s) and 0 warning(s)
 ",
-            [] |> Reporter.report(__resolver) |> Pretty.to_string,
+            [] |> ~@((ppf, x) => Reporter.report(__resolver, x, ppf)),
           ),
           (
             "
@@ -35,18 +35,15 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 1 error(s) and 0 warning(s)
+finished with 11 error(s) and 0 warning(s)
 
 1) Import Cycle Found
-
   import cycle between the following modules: a -> b -> c -> d
 
 2) Unresolved Module
-
   could not resolve module: my_module
 
 3) File Not Found
-
   could not find file with path: /path/to/my/file
 
 4) Invalid Module : bar/my_namespace.kn:0:0
@@ -57,7 +54,9 @@ finished with 1 error(s) and 0 warning(s)
 5) Reserved Keyword : bar/my_namespace.kn:0:0
   (foo/bar/my_namespace.kn:0:0)
 
-  the reserved keyword x was used as an identifier [code frame not available]
+  the reserved keyword x was used as an identifier
+
+  [code frame not available]
 
   try one of the following to resolve this issue:
 
@@ -68,19 +67,38 @@ finished with 1 error(s) and 0 warning(s)
 6) Type Resolution Failed : bar/my_namespace.kn:0:0
   (foo/bar/my_namespace.kn:0:0)
 
-   [code frame not available]
 
-7) Type Resolution Failed : bar/my_namespace.kn:0:0
+
+  [code frame not available]
+
+7) Identifier Not Found : bar/my_namespace.kn:0:0
   (foo/bar/my_namespace.kn:0:0)
 
-   [code frame not available]
+  unable to resolve an identifier my_id in the local scope or any inherited scope
+
+  [code frame not available]
+
+  try one of the following to resolve this issue:
+
+    • check that the identifier my_id is spelled correctly
+
+    • define the value yourself
+
+      const my_id = …;
+      // or
+      let my_id = …;
+
+    • import the value from another module
+
+      import { my_id } from \"…\";
+
 
 8) Types Do Not Match : bar/my_namespace.kn:0:0
   (foo/bar/my_namespace.kn:0:0)
 
   expected the type string but found the type int instead
 
-   [code frame not available]
+  [code frame not available]
 
 9) Type Cannot Be Assigned : bar/my_namespace.kn:0:0
   (foo/bar/my_namespace.kn:0:0)
@@ -107,7 +125,7 @@ finished with 1 error(s) and 0 warning(s)
 
     • change the name of this variable
 
-finished with 1 error(s) and 0 warning(s)
+finished with 11 error(s) and 0 warning(s)
 ",
             [
               ImportCycle(["a", "b", "c", "d"]),
@@ -161,8 +179,7 @@ finished with 1 error(s) and 0 warning(s)
                 Range.zero,
               ),
             ]
-            |> Reporter.report(__resolver)
-            |> Pretty.to_string,
+            |> ~@((ppf, x) => Reporter.report(__resolver, x, ppf)),
           ),
         ]
         |> Assert.(test_many(string))
