@@ -151,3 +151,52 @@ and res_child =
     }
   )
   |> _bind_typed_node(range);
+
+let res_constant =
+    (res_expr: Raw.expression_t => expression_t, raw_expr: Raw.expression_t)
+    : declaration_t => {
+  let expr = res_expr(raw_expr);
+
+  Node.create(of_const(expr), Node.get_type(expr), Node.get_range(expr));
+};
+
+let res_function =
+    (
+      res_expr: Raw.expression_t => expression_t,
+      raw_args: list(Raw.argument_t),
+      raw_res: Raw.expression_t,
+      range: Range.t,
+    ) => {
+  let res = res_expr(raw_res);
+  let args =
+    raw_args
+    |> List.map(((arg, range): Raw.argument_t) =>
+         (
+           {
+             name: arg.name,
+             default: arg.default |> Option.map(res_expr),
+             type_: None,
+           },
+           /* TODO: implement */
+           Type.Valid(`Abstract(Unknown)),
+           range,
+         )
+       );
+
+  Node.create(
+    (args, res) |> of_func,
+    Type.Valid(
+      `Function((
+        args
+        |> List.map((({name}, type_, _)) =>
+             (
+               name |> Node.Raw.get_value |> Reference.Identifier.to_string,
+               type_,
+             )
+           ),
+        Node.get_type(res),
+      )),
+    ),
+    range,
+  );
+};

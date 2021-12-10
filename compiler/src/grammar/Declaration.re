@@ -17,17 +17,11 @@ let constant = (ctx: ModuleContext.t, f) =>
     start =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
-        ((id, raw_expr)) => {
-          let scope = _scope_of_context(ctx, Node.Raw.get_range(raw_expr));
-          let expr = Analyzer.res_expr(scope, raw_expr);
+        ((id, expr)) => {
+          let scope = _scope_of_context(ctx, Node.Raw.get_range(expr));
+          let const = Analyzer.(res_constant(res_expr(scope), expr));
 
-          (
-            (
-              f(id),
-              (of_const(expr), Node.get_type(expr), Node.get_range(expr)),
-            ),
-            Range.join(start, Node.get_range(expr)),
-          );
+          ((f(id), const), Range.join(start, Node.get_range(const)));
         }
       )
       |> M.terminated
@@ -43,50 +37,12 @@ let function_ = (ctx: ModuleContext.t, f) =>
         id =>
           Lambda.parser(ctx)
           >|= (
-            ((raw_args, raw_res, range)) => {
+            ((args, res, range)) => {
               let scope = _scope_of_context(ctx, range);
-              let res = Analyzer.res_expr(scope, raw_res);
-              let args =
-                raw_args
-                |> List.map(((arg, range): Raw.argument_t) =>
-                     (
-                       {
-                         name: arg.name,
-                         default:
-                           arg.default
-                           |> Option.map(Analyzer.res_expr(scope)),
-                         type_: None,
-                       },
-                       /* TODO: implement */
-                       Type.Valid(`Abstract(Unknown)),
-                       range,
-                     )
-                   );
+              let func =
+                Analyzer.(res_function(res_expr(scope), args, res, range));
 
-              (
-                (
-                  f(id),
-                  (
-                    (args, res) |> of_func,
-                    Type.Valid(
-                      `Function((
-                        args
-                        |> List.map((({name}, type_, _)) =>
-                             (
-                               name
-                               |> Node.Raw.get_value
-                               |> ~@Reference.Identifier.pp,
-                               type_,
-                             )
-                           ),
-                        Node.get_type(res),
-                      )),
-                    ),
-                    range,
-                  ),
-                ),
-                Range.join(start, range),
-              );
+              ((f(id), func), Range.join(start, range));
             }
           )
       )
