@@ -28,7 +28,7 @@ let factory = (namespace: Namespace.t, report: Error.compile_err => unit) => {
       ((id, _, _, _)) => id,
       ((_, factory, parent, range): (int, factory_t, option(t), Range.t)) => {
         let weak = () => {
-          let type_ = Type.Raw.Weak(ref(Ok(`Generic(weak_seed^))));
+          let type_ = Type.Raw.Weak(ref(Ok(`Generic((0, weak_seed^)))));
 
           weak_seed := weak_seed^ + 1;
 

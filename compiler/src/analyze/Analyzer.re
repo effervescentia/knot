@@ -74,7 +74,7 @@ and res_expr =
     | UnaryOp(op, expr) => (
         UnaryOp(op, res_expr(mode, scope, expr)),
         /* TODO: implement */
-        Valid(`Generic(0)),
+        Valid(`Generic((0, 0))),
       )
 
     | BinaryOp(op, lhs, rhs) => (
@@ -84,7 +84,7 @@ and res_expr =
           res_expr(mode, scope, rhs),
         ),
         /* TODO: implement */
-        Valid(`Generic(0)),
+        Valid(`Generic((0, 0))),
       )
     }
   )
@@ -133,7 +133,7 @@ and res_attr =
       |> (
         x => (
           Property(id, x),
-          x |> Option.map(Node.get_type) |?: Type.Valid(`Generic(0)),
+          x |> Option.map(Node.get_type) |?: Type.Valid(`Generic((0, 0))),
         )
       )
     }
@@ -180,7 +180,7 @@ let res_arg =
   let initial_type =
     default
     |> Option.map(Node.get_type % Type.to_raw)
-    |?: Type.Raw.Weak(ref(Ok(`Generic(0))));
+    |?: Type.Raw.Weak(ref(Ok(`Generic((0, 0)))));
 
   scope |> Scope.define(name, initial_type);
 

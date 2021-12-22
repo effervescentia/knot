@@ -57,7 +57,8 @@ module ResultUtil = {
   /* let as_unknown = x => as_node(Type.Valid(`Abstract(Unknown)), x); */
 
   /* let as_abstract = (trait, x) => as_node(Type.Valid(`Abstract(trait)), x); */
-  let as_generic = (id, x) => as_node(Type.Valid(`Generic(id)), x);
+  let as_generic = (scope_id, weak_id, x) =>
+    as_node(Type.Valid(`Generic((scope_id, weak_id))), x);
 
   let as_invalid = (err, x) => as_node(Type.Invalid(err), x);
 

@@ -55,7 +55,7 @@ module Error = {
 
 type abstract_t('a) = [ | `Abstract('a)];
 
-type generic_t = [ | `Generic(int)];
+type generic_t = [ | `Generic(int, int)];
 
 type container_t('a) = [
   | `List('a)
@@ -112,7 +112,11 @@ module Raw = {
   let pp_abstract: Fmt.t(Trait.t) =
     Fmt.(ppf => pf(ppf, "Abstract<%a>", Trait.pp));
 
-  let pp_generic: Fmt.t(int) = Fmt.(ppf => pf(ppf, "Generic<%d>"));
+  let pp_generic: Fmt.t((int, int)) =
+    Fmt.(
+      (ppf, (scope_id, weak_id)) =>
+        pf(ppf, "Generic<%d, %d>", scope_id, weak_id)
+    );
 
   let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
     (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
@@ -164,7 +168,8 @@ module Raw = {
         | `List(t) => pp_list(pp, ppf, t)
         | `Struct(props) => pp_struct(pp, ppf, props)
         | `Function(args, res) => pp_function(pp, ppf, (args, res))
-        | `Generic(id) => pp_generic(ppf, id)
+        | `Generic(scope_id, weak_id) =>
+          pp_generic(ppf, (scope_id, weak_id))
         }
       | Error(err) => Error.pp(pp, ppf, err)
 

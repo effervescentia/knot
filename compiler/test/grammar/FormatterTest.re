@@ -152,7 +152,7 @@ let suite =
       () =>
         [
           ("nil", nil |> as_nil |> of_prim),
-          ("fooBar", "fooBar" |> of_public |> as_generic(0) |> of_id),
+          ("fooBar", "fooBar" |> of_public |> as_generic(0, 0) |> of_id),
           ("123", 123 |> int_prim |> of_group),
           ("123", 123 |> int_prim |> of_group |> as_int |> of_group),
           (
@@ -223,7 +223,7 @@ let suite =
                 |> as_string,
                 ("buzz" |> of_public |> as_raw_node, None)
                 |> of_prop
-                |> as_generic(0),
+                |> as_generic(0, 0),
               ],
               [],
             )
@@ -316,9 +316,9 @@ let suite =
               Some(
                 "buzz"
                 |> of_public
-                |> as_generic(0)
+                |> as_generic(0, 0)
                 |> of_id
-                |> as_generic(0),
+                |> as_generic(0, 0),
               ),
             )
             |> of_prop,
