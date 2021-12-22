@@ -66,7 +66,7 @@ module Common = {
 
       /* static */
 
-      let create = (~attributes=[], ~children=[], ~range=None, name): t => {
+      let create = (~attributes=[], ~children=[], ~range=?, name): t => {
         name,
         range,
         attributes,
@@ -90,32 +90,37 @@ module Common = {
       let pp: Fmt.t(t) = ppf => to_xml % xml(string, ppf);
     };
 
-    let _to_entity = (~range=?, ~type_=?, ~attributes=[], ~children=[], label) =>
-      Entity.create(
-        ~range,
-        ~attributes=
-          switch (type_) {
-          | Some(type_) => [("type", type_ |> ~@Type.pp), ...attributes]
-          | None => attributes
-          },
-        ~children,
-        label,
-      );
+    let _attributes_with_type = (type_, pp_type, attributes) => [
+      ("type", type_ |> ~@pp_type),
+      ...attributes,
+    ];
 
     let raw_node_to_entity = (~attributes=[], ~children=[], label, raw_node) =>
-      _to_entity(
+      Entity.create(
         ~range=Node.Raw.get_range(raw_node),
         ~attributes,
         ~children,
         label,
       );
 
-    let node_to_entity =
-        (~range=?, ~type_=?, ~attributes=[], ~children=[], label, node) =>
-      _to_entity(
+    let analyzed_node_to_entity = (~attributes=[], ~children=[], label, node) =>
+      Entity.create(
         ~range=Node.get_range(node),
-        ~type_=Node.get_type(node),
-        ~attributes,
+        ~attributes=
+          _attributes_with_type(
+            Node.get_type(node),
+            Type.Raw.pp,
+            attributes,
+          ),
+        ~children,
+        label,
+      );
+
+    let node_to_entity = (~attributes=[], ~children=[], label, node) =>
+      Entity.create(
+        ~range=Node.get_range(node),
+        ~attributes=
+          _attributes_with_type(Node.get_type(node), Type.pp, attributes),
         ~children,
         label,
       );
@@ -522,10 +527,23 @@ module Raw =
     let node_to_entity = Common.Dump.raw_node_to_entity;
   });
 
+module Analyzed =
+  Make({
+    type type_t = Type.Raw.t;
+
+    type node_t('a) = Node.t('a, type_t);
+
+    let get_value = Node.get_value;
+    let get_type = Node.get_type;
+    let get_range = Node.get_range;
+
+    let node_to_entity = Common.Dump.analyzed_node_to_entity;
+  });
+
 include Make({
   type type_t = Type.t;
 
-  type node_t('a) = Node.t('a);
+  type node_t('a) = Node.t('a, type_t);
 
   let get_value = Node.get_value;
   let get_type = Node.get_type;
@@ -538,7 +556,7 @@ include Make({
 /**
  a declaration AST node
  */
-type declaration_t = Node.t(raw_declaration_t)
+type declaration_t = Node.t(raw_declaration_t, Type.t)
 /**
  supported module declarations
  */
@@ -604,58 +622,45 @@ module Dump = {
     | MainExport(id) => id_to_entity("MainExport", id)
     | NamedExport(id) => id_to_entity("NamedExport", id);
 
-  let decl_to_entity = decl =>
-    switch (Node.get_value(decl)) {
-    | Constant(expr) =>
-      node_to_entity(~children=[expr_to_entity(expr)], "Constant", decl)
+  let decl_to_entity: declaration_t => Entity.t =
+    decl =>
+      switch (Node.get_value(decl)) {
+      | Constant(expr) =>
+        node_to_entity(~children=[expr_to_entity(expr)], "Constant", decl)
 
-    | Function(args, expr) =>
-      node_to_entity(
-        ~children=[
-          Entity.create(
-            ~children=
-              args
-              |> List.map(arg => {
-                   let {name, default, type_} = Node.get_value(arg);
-                   let children = ref([id_to_entity("Name", name)]);
+      | Function(args, expr) =>
+        node_to_entity(
+          ~children=[
+            Entity.create(
+              ~children=
+                args
+                |> List.map(arg => {
+                     let {name, default, type_} = Node.get_value(arg);
+                     let children = ref([id_to_entity("Name", name)]);
 
-                   switch (default) {
-                   | Some(default) =>
-                     children := [expr_to_entity(default), ...children^]
-                   | None => ()
-                   };
+                     switch (default) {
+                     | Some(default) =>
+                       children := [expr_to_entity(default), ...children^]
+                     | None => ()
+                     };
 
-                   switch (type_) {
-                   | Some(type_) =>
-                     children :=
-                       [
-                         node_to_entity(
-                           ~range=Node.get_range(type_),
-                           ~type_,
-                           "Type",
-                           type_,
-                         ),
-                         ...children^,
-                       ]
-                   | None => ()
-                   };
+                     switch (type_) {
+                     | Some(type_) =>
+                       children :=
+                         [node_to_entity("Type", type_), ...children^]
+                     | None => ()
+                     };
 
-                   node_to_entity(
-                     ~range=Node.get_range(arg),
-                     ~type_=Node.get_type(arg),
-                     ~children=children^,
-                     "Argument",
-                     arg,
-                   );
-                 }),
-            "Arguments",
-          ),
-          Entity.create(~children=[expr_to_entity(expr)], "Body"),
-        ],
-        "Function",
-        decl,
-      )
-    };
+                     node_to_entity(~children=children^, "Argument", arg);
+                   }),
+              "Arguments",
+            ),
+            Entity.create(~children=[expr_to_entity(expr)], "Body"),
+          ],
+          "Function",
+          decl,
+        )
+      };
 
   let import_to_entity = import =>
     switch (Node.Raw.get_value(import)) {
@@ -671,7 +676,7 @@ module Dump = {
         ~children=[
           id_to_entity("Name", name),
           Entity.create(
-            ~range=Some(alias_range),
+            ~range=alias_range,
             ~attributes=[("value", Identifier.to_string(alias))],
             "Alias",
           ),

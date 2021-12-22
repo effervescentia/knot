@@ -219,7 +219,7 @@ let suite =
             <Class@0.0 type=string>
               <Name@0.0 value=fizz />
             </Class@0.0>
-            <Property@0.0 type=Abstract<Unknown>>
+            <Property@0.0 type=Generic<1, 3>>
               <Name@0.0 value=buzz />
             </Property@0.0>
           </Attributes>

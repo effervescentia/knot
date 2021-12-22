@@ -2,6 +2,7 @@ open Kore;
 open AST;
 
 module Analyzer = Analyze.Analyzer;
+module Resolver = Analyze.Resolver;
 
 let _create_scope = (range: Range.t, ctx: ModuleContext.t) =>
   Scope.create(
@@ -19,7 +20,7 @@ let constant = (ctx: ModuleContext.t, f) =>
       >|= (
         ((id, expr)) => {
           let scope = ctx |> _create_scope(Node.Raw.get_range(expr));
-          let const = Analyzer.res_constant(Resolve, scope, expr);
+          let const = Resolver.resolve_constant(scope, expr);
 
           ((f(id), const), Range.join(start, Node.get_range(const)));
         }
@@ -39,7 +40,7 @@ let function_ = (ctx: ModuleContext.t, f) =>
           >|= (
             ((args, res, range)) => {
               let scope = ctx |> _create_scope(range);
-              let func = Analyzer.res_function(scope, args, res, range);
+              let func = Resolver.resolve_function(scope, args, res, range);
 
               ((f(id), func), Range.join(start, range));
             }

@@ -80,14 +80,7 @@ let next_weak_type = (scope: t): Type.Raw.t => {
  check if there are any weak types defined in this or any child scope
  */
 let rec is_resolved = (scope: t): bool =>
-  scope.types
-  |> Hashtbl.to_seq_values
-  |> List.of_seq
-  |> List.for_all(
-       fun
-       | Type.Raw.Weak(_) => false
-       | _ => true,
-     )
+  Hashtbl.length(scope.weak_types) == 0
   && scope.children
   |> List.for_all(is_resolved);
 
@@ -137,30 +130,16 @@ let rec _resolve_raw =
   };
 
 /**
- lookup a type by its identifier in this and every parent scope
+ lookup a type by its identifier in this and every ancestor scope
 
  if the type does not exist then a NotFound error will be reported
  and an Invalid type containing the error details will be returned instead
  */
 let rec resolve =
-        ((name, range) as id: Node.Raw.t(Identifier.t), scope: t): Type.t =>
+        ((name, range) as id: Node.Raw.t(Identifier.t), scope: t)
+        : Type.Raw.t =>
   switch (Hashtbl.find_opt(scope.types, name), scope.parent) {
-  | (Some(result), _) =>
-    Type.of_raw(
-      (scope_id, weak_id) =>
-        switch (_resolve_raw(scope, scope_id, weak_id)) {
-        | Some(res) => res
-        | None =>
-          let type_err = Type.Error.TypeResolutionFailed;
-
-          scope.report(
-            ParseError(TypeError(type_err), scope.namespace, range),
-          );
-
-          Error(type_err);
-        },
-      result,
-    )
+  | (Some(type_), _) => type_
   | (_, Some(parent)) => parent |> resolve(id)
   | _ =>
     let type_err = Type.Error.NotFound(name);
@@ -168,4 +147,25 @@ let rec resolve =
     scope.report(ParseError(TypeError(type_err), scope.namespace, range));
 
     Invalid(type_err);
+  };
+
+/**
+ generate finalized type mappings for all registered weak types
+ */
+let finalize = (scope: t): Hashtbl.t((int, int), Type.t) =>
+  if (is_resolved(scope)) {
+    Hashtbl.create(0);
+  } else {
+    let rec loop = s =>
+      Seq.append(
+        s.weak_types
+        |> Hashtbl.to_seq
+        |> Seq.map(((weak_id, weak_type)) =>
+             Type.((s.id, weak_id), weak_type)
+           ),
+        s.children |> List.to_seq |> Seq.flat_map(loop),
+      );
+
+    /* scope |> loop |> Hashtbl.of_seq; */
+    Hashtbl.create(0);
   };

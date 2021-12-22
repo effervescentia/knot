@@ -28,6 +28,7 @@ module RangeTree2 = RangeTree2;
 module Reference = Reference;
 module Scope = Scope;
 module ScopeTree2 = ScopeTree2;
+module Seq = Seq;
 module String = String;
 module Target = Target;
 module Tuple = Tuple;

@@ -5,34 +5,66 @@ include Test.Assert;
 
 module Formatter = Grammar.Formatter;
 
+let analyzed_primitive =
+  Alcotest.(
+    check(
+      testable(Analyzed.Dump.(ppf => prim_to_entity % Entity.pp(ppf)), (==)),
+      "analyzed primitive matches",
+    )
+  );
+
 let primitive =
   Alcotest.(
     check(
-      testable(ppf => Dump.prim_to_entity % Dump.Entity.pp(ppf), (==)),
+      testable(Dump.(ppf => prim_to_entity % Entity.pp(ppf)), (==)),
       "primitive matches",
+    )
+  );
+
+let analyzed_expression =
+  Alcotest.(
+    check(
+      testable(Analyzed.Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
+      "analyzed expression matches",
     )
   );
 
 let expression =
   Alcotest.(
     check(
-      testable(ppf => Dump.expr_to_entity % Dump.Entity.pp(ppf), (==)),
+      testable(Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
       "expression matches",
+    )
+  );
+
+let analyzed_jsx =
+  Alcotest.(
+    check(
+      testable(Analyzed.Dump.(ppf => jsx_to_entity % Entity.pp(ppf)), (==)),
+      "analyzed jsx matches",
     )
   );
 
 let jsx =
   Alcotest.(
     check(
-      testable(ppf => Dump.jsx_to_entity % Dump.Entity.pp(ppf), (==)),
+      testable(Dump.(ppf => jsx_to_entity % Entity.pp(ppf)), (==)),
       "jsx matches",
+    )
+  );
+
+let analyzed_statement =
+  Alcotest.(
+    check(
+      testable(Analyzed.Dump.(ppf => stmt_to_entity % Entity.pp(ppf)), (==)),
+      "analyzed_statement matches",
     )
   );
 
 let statement =
   Alcotest.(
     check(
-      testable(ppf => Dump.stmt_to_entity % Dump.Entity.pp(ppf), (==)),
+      testable(Dump.(ppf => stmt_to_entity % Entity.pp(ppf)), (==)),
       "statement matches",
     )
   );
@@ -40,7 +72,7 @@ let statement =
 let declaration =
   Alcotest.(
     check(
-      testable(ppf => Dump.decl_to_entity % Dump.Entity.pp(ppf), (==)),
+      testable(Dump.(ppf => decl_to_entity % Entity.pp(ppf)), (==)),
       "declaration matches",
     )
   );

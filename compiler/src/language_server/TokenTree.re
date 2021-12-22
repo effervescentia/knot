@@ -193,7 +193,7 @@ let pp: Fmt.t(t) =
           | Skip => "[skip]"
           | Identifier(id) => id |> ~@Identifier.pp
           | Primitive(prim) =>
-            Node.create(prim, Valid(`Nil), Range.zero)
+            Node.create(prim, Type.Valid(`Nil), Range.zero)
             |> AST.Dump.prim_to_entity
             |> ~@AST.Dump.Entity.pp
           },

@@ -264,19 +264,10 @@ and pp_valid: Fmt.t(valid_t) =
     | `Function(args, res) => Raw.pp_function(pp, ppf, (args, res))
     | `Generic(id) => Raw.pp_generic(ppf, id);
 
-let rec of_raw =
-        (
-          get_weak: (int, int) => result(Raw.weak_t, Raw.error_t),
-          type_: Raw.t,
-        )
-        : t =>
+let rec of_raw = (get_weak: (int, int) => t, type_: Raw.t): t =>
   switch (type_) {
   | Strong(t) => Valid(valid_of_strong(of_raw(get_weak), t))
-  | Weak(scope_id, weak_id) =>
-    switch (get_weak(scope_id, weak_id)) {
-    | Ok(t) => Valid(valid_of_weak(of_raw(get_weak), t))
-    | Error(err) => Invalid(err_of_raw_err(of_raw(get_weak), err))
-    }
+  | Weak(scope_id, weak_id) => get_weak(scope_id, weak_id)
   | Invalid(err) => Invalid(err_of_raw_err(of_raw(get_weak), err))
   }
 

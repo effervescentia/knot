@@ -37,7 +37,7 @@ let suite = [
     "pp()"
     >: (
       () =>
-        [("foo (nil) @ 1.8-3.4", __node |> ~@Node.pp(Fmt.string))]
+        [("foo (nil) @ 1.8-3.4", __node |> ~@Node.pp(Fmt.string, Type.pp))]
         |> Assert.(test_many(string))
     ),
   ],

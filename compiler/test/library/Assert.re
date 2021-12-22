@@ -27,7 +27,8 @@ module Compare = {
   let raw_node = (pp_value: Fmt.t('a)) =>
     testable(Node.Raw.pp(pp_value), (==));
 
-  let node = (pp_value: Fmt.t('a)) => testable(Node.pp(pp_value), (==));
+  let node = (pp_value: Fmt.t('a)) =>
+    testable(Node.pp(pp_value, Type.pp), (==));
 
   let type_ = testable(Type.pp, (==));
 

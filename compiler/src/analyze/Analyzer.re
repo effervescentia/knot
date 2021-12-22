@@ -1,221 +1,199 @@
 open Kore;
 open AST;
 open Reference;
+open Type.Raw;
 
 let _bind_node = (range: Range.t, x) => (x, range);
 let _bind_typed_node = (range: Range.t, (x, y)) => (x, y, range);
 
-type mode_t =
-  | Analyze
-  | Resolve;
-
-let res_prim = ((prim, range): Raw.primitive_t): primitive_t =>
-  Type.(
+let analyze_prim = ((prim, range): Raw.primitive_t): Analyzed.primitive_t =>
+  (
     switch (prim) {
-    | Nil => (Nil, Valid(`Nil))
-    | Boolean(bool) => (Boolean(bool), Valid(`Boolean))
-    | Number(Integer(_) as int) => (Number(int), Valid(`Integer))
-    | Number(Float(_) as float) => (Number(float), Valid(`Float))
-    | String(str) => (String(str), Valid(`String))
+    | Raw.Nil => (Analyzed.Nil, Strong(`Nil))
+    | Raw.Boolean(bool) => (Analyzed.Boolean(bool), Strong(`Boolean))
+    | Raw.Number(Integer(_) as int) => (
+        Analyzed.Number(int),
+        Strong(`Integer),
+      )
+    | Raw.Number(Float(_) as float) => (
+        Analyzed.Number(float),
+        Strong(`Float),
+      )
+    | Raw.String(str) => (Analyzed.String(str), Strong(`String))
     }
   )
   |> _bind_typed_node(range);
 
-let rec res_stmt =
-        (mode: mode_t, scope: Scope.t, (stmt, range): Raw.statement_t)
-        : statement_t =>
+let rec analyze_stmt =
+        (scope: Scope.t, (stmt, range): Raw.statement_t)
+        : Analyzed.statement_t =>
   (
     switch (stmt) {
-    | Variable(id, expr) => (
-        Variable(id, res_expr(mode, scope, expr)),
-        Type.Valid(`Nil),
+    | Raw.Variable(id, expr) => (
+        Analyzed.Variable(id, analyze_expr(scope, expr)),
+        Strong(`Nil),
       )
 
-    | Expression(expr) =>
-      res_expr(mode, scope, expr)
-      |> (x => (Expression(x), Node.get_type(x)))
+    | Raw.Expression(expr) =>
+      analyze_expr(scope, expr)
+      |> (x => (Analyzed.Expression(x), Node.get_type(x)))
     }
   )
   |> _bind_typed_node(range)
 
-and res_expr =
-    (mode: mode_t, scope: Scope.t, (expr, range): Raw.expression_t)
-    : expression_t =>
+and analyze_expr =
+    (scope: Scope.t, (expr, range): Raw.expression_t): Analyzed.expression_t =>
   (
     switch (expr) {
-    | Primitive(prim) =>
-      res_prim(prim) |> (x => (Primitive(x), Node.get_type(x)))
+    | Raw.Primitive(prim) =>
+      analyze_prim(prim)
+      |> (x => (Analyzed.Primitive(x), Node.get_type(x)))
 
-    | JSX(jsx) =>
-      res_jsx(res_expr(mode, scope), jsx)
-      |> (x => (JSX(x), Node.get_type(x)))
+    | Raw.JSX(jsx) =>
+      analyze_jsx(analyze_expr(scope), jsx)
+      |> (x => (Analyzed.JSX(x), Node.get_type(x)))
 
-    | Group(expr) =>
-      res_expr(mode, scope, expr) |> (x => (Group(x), Node.get_type(x)))
+    | Raw.Group(expr) =>
+      analyze_expr(scope, expr)
+      |> (x => (Analyzed.Group(x), Node.get_type(x)))
 
-    | Closure(stmts) =>
+    | Raw.Closure(stmts) =>
       stmts
-      |> List.map(res_stmt(mode, Scope.create_child(scope, range)))
+      |> List.map(analyze_stmt(Scope.create_child(scope, range)))
       |> (
         xs => (
-          Closure(xs),
+          Analyzed.Closure(xs),
           xs
           |> List.last
-          |> Option.map(Node.get_value % TypeOf.statement)
-          |?: Valid(`Nil),
+          |> Option.map(
+               Node.get_value
+               % (
+                 fun
+                 | Analyzed.Expression(expr) => Node.get_type(expr)
+                 /* variable declarations result in a `nil` value */
+                 | Analyzed.Variable(_) => Strong(`Nil)
+               ),
+             )
+          /* empty closures result in a `nil` value */
+          |?: Strong(`Nil),
         )
       )
 
-    | Identifier((name, range) as id) =>
+    | Raw.Identifier((name, range) as id) =>
       let type_ = scope |> Scope.resolve(id);
 
-      (Identifier((name, type_, range)), type_);
+      (Analyzed.Identifier((name, type_, range)), type_);
 
-    | UnaryOp(op, expr) => (
-        UnaryOp(op, res_expr(mode, scope, expr)),
+    | Raw.UnaryOp(op, expr) => (
+        Analyzed.UnaryOp(op, analyze_expr(scope, expr)),
         /* TODO: implement */
-        Valid(`Generic((0, 0))),
+        Strong(`Generic((0, 0))),
       )
 
-    | BinaryOp(op, lhs, rhs) => (
-        BinaryOp(
+    | Raw.BinaryOp(op, lhs, rhs) => (
+        Analyzed.BinaryOp(
           op,
-          res_expr(mode, scope, lhs),
-          res_expr(mode, scope, rhs),
+          analyze_expr(scope, lhs),
+          analyze_expr(scope, rhs),
         ),
         /* TODO: implement */
-        Valid(`Generic((0, 0))),
+        Strong(`Generic((0, 0))),
       )
     }
   )
   |> _bind_typed_node(range)
 
-and res_jsx =
-    (res_expr: Raw.expression_t => expression_t, (jsx, range): Raw.jsx_t)
-    : jsx_t =>
+and analyze_jsx =
+    (
+      analyze_expr: Raw.expression_t => Analyzed.expression_t,
+      (jsx, range): Raw.jsx_t,
+    )
+    : Analyzed.jsx_t =>
   (
     switch (jsx) {
-    | Tag(id, attrs, children) => (
-        Tag(
+    | Raw.Tag(id, attrs, children) => (
+        Analyzed.Tag(
           id,
-          attrs |> List.map(res_attr(res_expr)),
-          children |> List.map(res_child(res_expr)),
+          attrs |> List.map(analyze_jsx_attr(analyze_expr)),
+          children |> List.map(analyze_jsx_child(analyze_expr)),
         ),
-        Type.Valid(`Element),
+        Strong(`Element),
       )
 
-    | Fragment(children) => (
-        Fragment(children |> List.map(res_child(res_expr))),
-        Type.Valid(`Element),
+    | Raw.Fragment(children) => (
+        Analyzed.Fragment(
+          children |> List.map(analyze_jsx_child(analyze_expr)),
+        ),
+        Strong(`Element),
       )
     }
   )
   |> _bind_typed_node(range)
 
-and res_attr =
+and analyze_jsx_attr =
     (
-      res_expr: Raw.expression_t => expression_t,
+      analyze_expr: Raw.expression_t => Analyzed.expression_t,
       (attr, range): Raw.jsx_attribute_t,
     )
-    : jsx_attribute_t =>
+    : Analyzed.jsx_attribute_t =>
   (
     switch (attr) {
-    | ID(id) => (ID(id), Type.Valid(`String))
+    | Raw.ID(id) => (Analyzed.ID(id), Strong(`String))
 
-    | Class(id, expr) => (
-        Class(id, expr |> Option.map(res_expr)),
-        Type.Valid(`String),
+    | Raw.Class(id, expr) => (
+        Analyzed.Class(id, expr |> Option.map(analyze_expr)),
+        Strong(`String),
       )
 
-    | Property(id, expr) =>
+    | Raw.Property(id, expr) =>
       expr
-      |> Option.map(res_expr)
+      |> Option.map(analyze_expr)
       |> (
         x => (
-          Property(id, x),
-          x |> Option.map(Node.get_type) |?: Type.Valid(`Generic((0, 0))),
+          Analyzed.Property(id, x),
+          x |> Option.map(Node.get_type) |?: Strong(`Generic((0, 0))),
         )
       )
     }
   )
   |> _bind_typed_node(range)
 
-and res_child =
+and analyze_jsx_child =
     (
-      res_expr: Raw.expression_t => expression_t,
+      analyze_expr: Raw.expression_t => Analyzed.expression_t,
       (attr, range): Raw.jsx_child_t,
     )
-    : jsx_child_t =>
+    : Analyzed.jsx_child_t =>
   (
     switch (attr) {
-    | Text(text) => (
-        Text((
+    | Raw.Text(text) => (
+        Analyzed.Text((
           Node.Raw.get_value(text),
-          Type.Valid(`String),
+          Strong(`String),
           Node.Raw.get_range(text),
         )),
-        Type.Valid(`String),
+        Strong(`String),
       )
 
-    | Node(jsx) => (Node(res_jsx(res_expr, jsx)), Type.Valid(`Element))
+    | Raw.Node(jsx) => (
+        Analyzed.Node(analyze_jsx(analyze_expr, jsx)),
+        Strong(`Element),
+      )
 
-    | InlineExpression(expr) =>
-      res_expr(expr) |> (x => (InlineExpression(x), Node.get_type(x)))
+    | Raw.InlineExpression(expr) =>
+      analyze_expr(expr)
+      |> (x => (Analyzed.InlineExpression(x), Node.get_type(x)))
     }
   )
   |> _bind_typed_node(range);
 
-let res_constant =
-    (mode: mode_t, scope: Scope.t, raw_expr: Raw.expression_t): declaration_t => {
-  let expr = res_expr(mode, scope, raw_expr);
-
-  Node.(create(of_const(expr), get_type(expr), get_range(expr)));
-};
-
-let res_arg =
-    (mode: mode_t, scope: Scope.t, (arg, range): Raw.argument_t)
-    : (raw_argument_t, Type.Raw.t, Range.t) => {
+let analyze_arg =
+    (scope: Scope.t, (arg, range): Raw.argument_t): Analyzed.argument_t => {
   let name = arg.name;
-  let default = arg.default |> Option.map(res_expr(mode, scope));
-  let initial_type =
-    default
-    |> Option.map(Node.get_type % Type.to_raw)
-    |?: Type.Raw.Weak(0, 0);
+  let default = arg.default |> Option.map(analyze_expr(scope));
+  let initial_type = default |> Option.map(Node.get_type) |?: Weak(0, 0);
 
   scope |> Scope.define(name, initial_type);
 
   ({name, default, type_: None}, initial_type, range);
-};
-
-let res_function =
-    (
-      scope: Scope.t,
-      raw_args: list(Raw.argument_t),
-      raw_result: Raw.expression_t,
-      range: Range.t,
-    ) => {
-  let typed_args = raw_args |> List.map(res_arg(Analyze, scope));
-  let result = res_expr(Analyze, scope, raw_result);
-
-  if (Scope.is_resolved(scope)) {
-    ();
-      /* return fully resolved function */
-  } else {
-    ();
-      /* convert any weak types to strong types and re-analyze */
-  };
-
-  Node.create(
-    ([], result) |> of_func,
-    Type.Valid(
-      `Function((
-        []
-        |> List.map((({name}, type_, _)) =>
-             (name |> Node.Raw.get_value |> Identifier.to_string, type_)
-           ),
-        Node.get_type(result),
-      )),
-    ),
-    range,
-  );
 };
