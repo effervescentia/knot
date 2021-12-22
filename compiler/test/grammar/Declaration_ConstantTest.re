@@ -17,7 +17,7 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            (pp, stmt) => {
+            (ppf, stmt) => {
               let (export, decl) = Node.Raw.get_value(stmt);
 
               Dump.raw_node_to_entity(
@@ -28,7 +28,7 @@ module Assert = {
                 ],
                 stmt,
               )
-              |> Dump.Entity.pp(pp);
+              |> Dump.Entity.pp(ppf);
             },
             (==),
           ),

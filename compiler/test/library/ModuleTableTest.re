@@ -4,7 +4,7 @@ open Reference;
 
 let __id = Namespace.Internal("foo");
 let __types: list((Export.t, Type.t)) = [
-  (Named(AST.of_public("bar")), Valid(`Abstract(Unknown))),
+  (Named(AST.of_public("bar")), Valid(`Generic(3))),
 ];
 let __program =
   AST.[
@@ -39,7 +39,7 @@ let suite =
                       AST.[
                         (
                           Export.Named("bar" |> of_public),
-                          Type.Valid(`Abstract(Unknown)),
+                          Type.Valid(`Generic(3)),
                         ),
                       ],
                     ),

@@ -55,6 +55,8 @@ module Error = {
 
 type abstract_t('a) = [ | `Abstract('a)];
 
+type generic_t = [ | `Generic(int)];
+
 type container_t('a) = [
   | `List('a)
   | `Struct(list((string, 'a)))
@@ -74,13 +76,17 @@ module Raw = {
   type t =
     | Strong(strong_t)
     | Weak(ref(result(weak_t, error_t)))
-    | Invalid(Error.t(t))
+    | Invalid(error_t)
 
   and error_t = Error.t(t)
 
-  and strong_t = [ primitive_t | container_t(t)]
+  and strong_t = [ primitive_t | container_t(t) | generic_t]
 
-  and weak_t = [ primitive_t | container_t(t) | abstract_t(Trait.t)];
+  and weak_t = [ primitive_t | container_t(t) | generic_t];
+
+  /* static */
+
+  /* let unknown = Weak(ref(Ok(`Abstract(Trait.Unknown)))); */
 
   /* pretty printing */
 
@@ -105,6 +111,8 @@ module Raw = {
 
   let pp_abstract: Fmt.t(Trait.t) =
     Fmt.(ppf => pf(ppf, "Abstract<%a>", Trait.pp));
+
+  let pp_generic: Fmt.t(int) = Fmt.(ppf => pf(ppf, "Generic<%d>"));
 
   let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
     (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
@@ -156,7 +164,7 @@ module Raw = {
         | `List(t) => pp_list(pp, ppf, t)
         | `Struct(props) => pp_struct(pp, ppf, props)
         | `Function(args, res) => pp_function(pp, ppf, (args, res))
-        | `Abstract(trait) => pp_abstract(ppf, trait)
+        | `Generic(id) => pp_generic(ppf, id)
         }
       | Error(err) => Error.pp(pp, ppf, err)
 
@@ -169,14 +177,15 @@ module Raw = {
       | `List(t) => pp_list(pp, ppf, t)
       | `Struct(props) => pp_struct(pp, ppf, props)
       | `Function(args, res) => pp_function(pp, ppf, (args, res))
+      | `Generic(id) => pp_generic(ppf, id)
       };
 };
 
 type t =
   | Valid(valid_t)
-  | Invalid(Error.t(t))
+  | Invalid(error_t)
 
-and valid_t = [ primitive_t | container_t(t) | abstract_t(Trait.t)]
+and valid_t = [ primitive_t | container_t(t) | generic_t]
 
 and error_t = Error.t(t);
 
@@ -205,7 +214,7 @@ let rec _valid_to_raw = (type_: valid_t): Raw.t =>
     Strong(
       `Function((args |> List.map(Tuple.map_snd2(to_raw)), to_raw(res))),
     )
-  | `Abstract(_) as x => Weak(ref(Ok(x)))
+  | `Generic(_) as x => Strong(x)
   }
 
 and to_raw = (type_: t): Raw.t =>
@@ -248,7 +257,7 @@ and pp_valid: Fmt.t(valid_t) =
     | `List(t) => Raw.pp_list(pp, ppf, t)
     | `Struct(props) => Raw.pp_struct(pp, ppf, props)
     | `Function(args, res) => Raw.pp_function(pp, ppf, (args, res))
-    | `Abstract(trait) => Raw.pp_abstract(ppf, trait);
+    | `Generic(id) => Raw.pp_generic(ppf, id);
 
 let rec of_raw = (type_: Raw.t): t =>
   switch (type_) {
@@ -265,6 +274,7 @@ and valid_of_strong = (type_: Raw.strong_t): valid_t =>
   | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
   | `Function(args, res) =>
     `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
+  | `Generic(t) => `Generic(t)
   }
 
 and valid_of_weak = (type_: Raw.weak_t): valid_t =>
@@ -274,8 +284,21 @@ and valid_of_weak = (type_: Raw.weak_t): valid_t =>
   | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
   | `Function(args, res) =>
     `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
-  | `Abstract(t) => `Abstract(t)
+  | `Generic(t) => `Generic(t)
   }
+
+/* and strong_of_weak = (type_: Raw.weak_t): Raw.strong_t =>
+   switch (type_) {
+   | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
+   | `List(Weak({current: Ok(x)})) => `List(Strong(strong_of_weak(x)))
+   | `List(Weak({current: Error(x)})) => `List(Invalid(x))
+   | `List((Strong(_) | Invalid(_)) as x) => `List(x)
+   | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
+   | `Function(args, res) =>
+     `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
+   | `Abstract(t) => `Abstract(t)
+   | t => t
+   } */
 
 and err_of_raw_err = (err: Raw.error_t): error_t =>
   switch (err) {

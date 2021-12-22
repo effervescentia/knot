@@ -14,7 +14,10 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(pp => Raw.Dump.prim_to_entity % Dump.Entity.pp(pp), (==)),
+          testable(
+            ppf => Raw.Dump.prim_to_entity % Dump.Entity.pp(ppf),
+            (==),
+          ),
           "program matches",
         )
       );

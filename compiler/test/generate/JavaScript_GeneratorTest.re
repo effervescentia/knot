@@ -88,7 +88,7 @@ let suite =
           (Null, nil |> as_nil |> of_prim),
           (
             Identifier("fooBar"),
-            "fooBar" |> of_public |> as_unknown |> of_id,
+            "fooBar" |> of_public |> as_generic(0) |> of_id,
           ),
           (Group(Number("123")), 123 |> int_prim |> of_group),
           (
@@ -369,15 +369,19 @@ let suite =
               [
                 ("foo" |> of_public |> as_raw_node, None)
                 |> of_prop
-                |> as_unknown,
+                |> as_generic(0),
                 (
                   "bar" |> of_public |> as_raw_node,
                   Some(
-                    "fizz" |> of_public |> as_unknown |> of_id |> as_unknown,
+                    "fizz"
+                    |> of_public
+                    |> as_generic(0)
+                    |> of_id
+                    |> as_generic(0),
                   ),
                 )
                 |> of_prop
-                |> as_unknown,
+                |> as_generic(0),
               ],
               [],
             )
@@ -434,7 +438,7 @@ let suite =
             [
               ("foo" |> of_public |> as_raw_node, None)
               |> of_prop
-              |> as_unknown,
+              |> as_generic(0),
             ],
           ),
           (
@@ -442,10 +446,16 @@ let suite =
             [
               (
                 "foo" |> of_public |> as_raw_node,
-                Some("bar" |> of_public |> as_unknown |> of_id |> as_unknown),
+                Some(
+                  "bar"
+                  |> of_public
+                  |> as_generic(0)
+                  |> of_id
+                  |> as_generic(0),
+                ),
               )
               |> of_prop
-              |> as_unknown,
+              |> as_generic(0),
             ],
           ),
           (
@@ -453,7 +463,7 @@ let suite =
             [
               ("foo" |> of_public |> as_raw_node, None)
               |> of_jsx_class
-              |> as_unknown,
+              |> as_generic(0),
             ],
           ),
           (
@@ -476,7 +486,7 @@ let suite =
             [
               ("bar" |> of_public |> as_raw_node, None)
               |> of_jsx_class
-              |> as_unknown,
+              |> as_generic(0),
               (
                 "foo" |> of_public |> as_raw_node,
                 Some(
@@ -484,12 +494,14 @@ let suite =
                 ),
               )
               |> of_jsx_class
-              |> as_unknown,
+              |> as_generic(0),
             ],
           ),
           (
             Object([("id", String("foo"))]),
-            ["foo" |> of_public |> as_raw_node |> of_jsx_id |> as_unknown],
+            [
+              "foo" |> of_public |> as_raw_node |> of_jsx_id |> as_generic(0),
+            ],
           ),
         ]
         |> List.map(Tuple.map_snd2(Generator.gen_jsx_attrs))

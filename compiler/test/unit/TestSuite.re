@@ -2,10 +2,12 @@ open Test.Infix;
 
 let () =
   "Unit Tests"
-  >:::: TestPretty.TestSuite.tests
+  >:::: TestAnalyze.TestSuite.tests
+  @ TestPretty.TestSuite.tests
   @ TestLibrary.TestSuite.tests
   @ TestFile.TestSuite.unit_tests
   @ TestExecutable.TestSuite.unit_tests
+  @ TestGrammar.TestSuite.tests
   @ TestGenerate.TestSuite.tests;
 /*
  let () =

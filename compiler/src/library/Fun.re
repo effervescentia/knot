@@ -18,3 +18,25 @@ let generator = (values: list('a)) => {
     };
   };
 };
+
+/**
+ memoize a function
+ */
+let memo = (get_key: 'a => 'b, f: 'a => 'c): ('a => 'c) => {
+  let past = ref([]);
+
+  let rec loop = x => {
+    let key = get_key(x);
+
+    try(List.assoc(key, past^)) {
+    | Not_found =>
+      let value = f(x);
+
+      past := [(key, value), ...past^];
+
+      value;
+    };
+  };
+
+  loop;
+};

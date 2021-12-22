@@ -183,7 +183,9 @@ let complex_jsx_const = [
         ("fizz" |> of_public |> as_raw_node, None)
         |> of_jsx_class
         |> as_string,
-        ("buzz" |> of_public |> as_raw_node, None) |> of_prop |> as_unknown,
+        ("buzz" |> of_public |> as_raw_node, None)
+        |> of_prop
+        |> as_generic(0),
       ],
       [
         ("Bar" |> of_public |> as_raw_node, [], [])

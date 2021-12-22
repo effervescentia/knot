@@ -1,4 +1,5 @@
 open Kore;
+open AST;
 
 include Test.Assert;
 
@@ -7,7 +8,7 @@ module Formatter = Grammar.Formatter;
 let primitive =
   Alcotest.(
     check(
-      testable(pp => Node.get_value % Formatter.pp_prim(pp), (==)),
+      testable(ppf => Dump.prim_to_entity % Dump.Entity.pp(ppf), (==)),
       "primitive matches",
     )
   );
@@ -15,7 +16,7 @@ let primitive =
 let expression =
   Alcotest.(
     check(
-      testable(pp => Node.get_value % Formatter.pp_expression(pp), (==)),
+      testable(ppf => Dump.expr_to_entity % Dump.Entity.pp(ppf), (==)),
       "expression matches",
     )
   );
@@ -23,7 +24,7 @@ let expression =
 let jsx =
   Alcotest.(
     check(
-      testable(pp => Node.get_value % Formatter.pp_jsx(pp), (==)),
+      testable(ppf => Dump.jsx_to_entity % Dump.Entity.pp(ppf), (==)),
       "jsx matches",
     )
   );
@@ -31,7 +32,15 @@ let jsx =
 let statement =
   Alcotest.(
     check(
-      testable(pp => Node.get_value % Formatter.pp_statement(pp), (==)),
+      testable(ppf => Dump.stmt_to_entity % Dump.Entity.pp(ppf), (==)),
       "statement matches",
+    )
+  );
+
+let declaration =
+  Alcotest.(
+    check(
+      testable(ppf => Dump.decl_to_entity % Dump.Entity.pp(ppf), (==)),
+      "declaration matches",
     )
   );

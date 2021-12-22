@@ -3,13 +3,6 @@ open AST;
 
 module Analyzer = Analyze.Analyzer;
 
-let _scope_of_context = (ctx: ModuleContext.t, range: Range.t) =>
-  Scope.create(
-    ctx.namespace_context.namespace,
-    range,
-    ctx.namespace_context.report,
-  );
-
 let constant = (ctx: ModuleContext.t, f) =>
   Keyword.const
   >>= Node.Raw.get_range
@@ -18,8 +11,16 @@ let constant = (ctx: ModuleContext.t, f) =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
         ((id, expr)) => {
-          let scope = _scope_of_context(ctx, Node.Raw.get_range(expr));
-          let const = Analyzer.(res_constant(res_expr(scope), expr));
+          let scope = ctx.scope.create(Node.Raw.get_range(expr));
+
+          let const =
+            switch (
+              scope
+              |> Scope.peek(() => Analyzer.res_constant(Analyze, scope, expr))
+            ) {
+            | Some(const) => const
+            | None => Analyzer.res_constant(Resolve, scope, expr)
+            };
 
           ((f(id), const), Range.join(start, Node.get_range(const)));
         }
@@ -38,9 +39,8 @@ let function_ = (ctx: ModuleContext.t, f) =>
           Lambda.parser(ctx)
           >|= (
             ((args, res, range)) => {
-              let scope = _scope_of_context(ctx, range);
-              let func =
-                Analyzer.(res_function(res_expr(scope), args, res, range));
+              let scope = ctx.scope.create(range);
+              let func = Analyzer.res_function(scope, args, res, range);
 
               ((f(id), func), Range.join(start, range));
             }

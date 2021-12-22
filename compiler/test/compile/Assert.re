@@ -6,7 +6,7 @@ let compiler =
   Alcotest.(
     check(
       testable(
-        (pp, _) => "" |> Format.pp_print_string(pp),
+        (ppf, _) => "" |> Format.pp_print_string(ppf),
         Compile.Compiler.(
           (l, r) => {
             Alcotest.check(

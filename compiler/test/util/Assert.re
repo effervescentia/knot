@@ -20,18 +20,18 @@ module Make = (T: Target) => {
 module Compare = {
   let uchar =
     Alcotest.testable(
-      (pp, uchar) => {
+      (ppf, uchar) => {
         let buffer = Buffer.create(1);
         Buffer.add_utf_8_uchar(buffer, uchar);
 
-        Buffer.contents(buffer) |> Format.pp_print_string(pp);
+        Buffer.contents(buffer) |> Format.pp_print_string(ppf);
       },
       (==),
     );
 
   let hashtbl = (key_to_string, value_to_string) =>
     Alcotest.testable(
-      (pp, tbl) =>
+      (ppf, tbl) =>
         tbl
         |> Hashtbl.to_seq_keys
         |> List.of_seq
@@ -44,7 +44,7 @@ module Compare = {
            )
         |> List.fold_left((++), "")
         |> Printf.sprintf("{\n%s}")
-        |> Format.pp_print_string(pp),
+        |> Format.pp_print_string(ppf),
       (l, r) =>
         Hashtbl.length(l) == Hashtbl.length(r)
         && Hashtbl.to_seq_keys(l)

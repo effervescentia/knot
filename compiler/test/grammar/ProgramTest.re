@@ -14,7 +14,10 @@ module Target = {
     Alcotest.(
       check(
         list(
-          testable(pp => Dump.mod_stmt_to_entity % Dump.Entity.pp(pp), (==)),
+          testable(
+            ppf => Dump.mod_stmt_to_entity % Dump.Entity.pp(ppf),
+            (==),
+          ),
         ),
         "program matches",
       )

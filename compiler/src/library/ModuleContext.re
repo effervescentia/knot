@@ -3,6 +3,7 @@ open Reference;
 type externals_t = Hashtbl.t(Identifier.t, Type.t);
 
 type t = {
+  scope: Scope.factory_t,
   /* types that have been imported into the scope */
   externals: externals_t,
   /* types that have been defined within the scope */
@@ -20,6 +21,7 @@ let create =
       namespace_context: NamespaceContext.t,
     )
     : t => {
+  scope: Scope.factory(namespace_context.namespace, namespace_context.report),
   externals,
   definitions,
   namespace_context,

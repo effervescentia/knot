@@ -15,10 +15,10 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            pp =>
+            ppf =>
               Node.Raw.get_value
               % Raw.Dump.num_to_string
-              % Format.pp_print_string(pp),
+              % Format.pp_print_string(ppf),
             (==),
           ),
           "program matches",
