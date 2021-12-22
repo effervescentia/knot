@@ -75,7 +75,7 @@ type primitive_t = [
 module Raw = {
   type t =
     | Strong(strong_t)
-    | Weak(ref(result(weak_t, error_t)))
+    | Weak(int, int)
     | Invalid(error_t)
 
   and error_t = Error.t(t)
@@ -153,8 +153,8 @@ module Raw = {
         switch (type_) {
         | Strong(t) => pp_strong(ppf, t)
         | Invalid(err) => Error.pp(pp, ppf, err)
-        | Weak({contents: weak_type}) =>
-          pf(ppf, "Weak<%a>", pp_weak, weak_type)
+        | Weak(scope_id, weak_id) =>
+          pf(ppf, "Weak<%d, %d>", scope_id, weak_id)
         }
     )
 
@@ -264,15 +264,23 @@ and pp_valid: Fmt.t(valid_t) =
     | `Function(args, res) => Raw.pp_function(pp, ppf, (args, res))
     | `Generic(id) => Raw.pp_generic(ppf, id);
 
-let rec of_raw = (type_: Raw.t): t =>
+let rec of_raw =
+        (
+          get_weak: (int, int) => result(Raw.weak_t, Raw.error_t),
+          type_: Raw.t,
+        )
+        : t =>
   switch (type_) {
-  | Strong(t) => Valid(valid_of_strong(t))
-  | Weak({contents: Ok(t)}) => Valid(valid_of_weak(t))
-  | Weak({contents: Error(err)}) => Invalid(err_of_raw_err(err))
-  | Invalid(err) => Invalid(err_of_raw_err(err))
+  | Strong(t) => Valid(valid_of_strong(of_raw(get_weak), t))
+  | Weak(scope_id, weak_id) =>
+    switch (get_weak(scope_id, weak_id)) {
+    | Ok(t) => Valid(valid_of_weak(of_raw(get_weak), t))
+    | Error(err) => Invalid(err_of_raw_err(of_raw(get_weak), err))
+    }
+  | Invalid(err) => Invalid(err_of_raw_err(of_raw(get_weak), err))
   }
 
-and valid_of_strong = (type_: Raw.strong_t): valid_t =>
+and valid_of_strong = (of_raw: Raw.t => t, type_: Raw.strong_t): valid_t =>
   switch (type_) {
   | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
   | `List(x) => `List(of_raw(x))
@@ -282,7 +290,7 @@ and valid_of_strong = (type_: Raw.strong_t): valid_t =>
   | `Generic(t) => `Generic(t)
   }
 
-and valid_of_weak = (type_: Raw.weak_t): valid_t =>
+and valid_of_weak = (of_raw: Raw.t => t, type_: Raw.weak_t): valid_t =>
   switch (type_) {
   | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
   | `List(x) => `List(of_raw(x))
@@ -305,7 +313,7 @@ and valid_of_weak = (type_: Raw.weak_t): valid_t =>
    | t => t
    } */
 
-and err_of_raw_err = (err: Raw.error_t): error_t =>
+and err_of_raw_err = (of_raw: Raw.t => t, err: Raw.error_t): error_t =>
   switch (err) {
   | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
   | NotAssignable(x, y) => NotAssignable(of_raw(x), y)

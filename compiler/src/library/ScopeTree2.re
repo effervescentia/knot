@@ -7,7 +7,8 @@ type t('a) = RangeTree2.t(Hashtbl.t(string, Type.t));
 
 let rec of_scope = (scope: Scope.t): t('a) =>
   Node(
-    scope.types |> Hashtbl.map_values(Type.of_raw),
+    Hashtbl.create(0),
+    /* scope.types |> Hashtbl.map_values(Type.of_raw), */
     scope.range,
     scope.children |> List.map(of_scope),
   );

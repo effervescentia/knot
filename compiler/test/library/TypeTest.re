@@ -130,7 +130,7 @@ let suite = [
             Ok(`Function((__raw_props, Raw.Strong(`Boolean))))
             |> ~@Raw.pp_weak,
           ),
-          ("Generic<3>", Ok(`Generic((0, 3))) |> ~@Raw.pp_weak),
+          ("Generic<1, 3>", Ok(`Generic((1, 3))) |> ~@Raw.pp_weak),
           /* (
                "Abstract<Unknown>",
                Ok(`Abstract(Trait.Unknown)) |> ~@Raw.pp_weak,
@@ -151,7 +151,7 @@ let suite = [
             "TypeResolutionFailed",
             Raw.Invalid(TypeResolutionFailed) |> ~@Raw.pp,
           ),
-          ("Weak<string>", Raw.Weak({contents: Ok(`String)}) |> ~@Raw.pp),
+          ("Weak<2, 3>", Raw.Weak(2, 3) |> ~@Raw.pp),
         ]
         |> Assert.(test_many(string))
     ),
@@ -170,7 +170,7 @@ let suite = [
             `Function((__props, Valid(`Boolean))) |> ~@pp_valid,
           ),
           /* ("Abstract<Unknown>", `Abstract(Trait.Unknown) |> ~@pp_valid), */
-          ("Generic<3>", `Generic((0, 3)) |> ~@pp_valid),
+          ("Generic<1, 3>", `Generic((1, 3)) |> ~@pp_valid),
         ]
         |> Assert.(test_many(string))
     ),
@@ -186,7 +186,7 @@ let suite = [
             Valid(`Function((__props, Valid(`Boolean)))) |> ~@pp,
           ),
           /* ("Abstract<Unknown>", Valid(`Abstract(Trait.Unknown)) |> ~@pp), */
-          ("Generic<3>", Valid(`Generic((0, 3))) |> ~@pp),
+          ("Generic<1, 3>", Valid(`Generic((1, 3))) |> ~@pp),
           (
             "TypeResolutionFailed",
             Invalid(Error.TypeResolutionFailed) |> ~@pp,

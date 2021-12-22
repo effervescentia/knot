@@ -55,7 +55,7 @@ and res_expr =
 
     | Closure(stmts) =>
       stmts
-      |> List.map(res_stmt(mode, Scope.child(scope, range)))
+      |> List.map(res_stmt(mode, Scope.create_child(scope, range)))
       |> (
         xs => (
           Closure(xs),
@@ -180,7 +180,7 @@ let res_arg =
   let initial_type =
     default
     |> Option.map(Node.get_type % Type.to_raw)
-    |?: Type.Raw.Weak(ref(Ok(`Generic((0, 0)))));
+    |?: Type.Raw.Weak(0, 0);
 
   scope |> Scope.define(name, initial_type);
 

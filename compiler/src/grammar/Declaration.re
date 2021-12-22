@@ -3,6 +3,13 @@ open AST;
 
 module Analyzer = Analyze.Analyzer;
 
+let _create_scope = (range: Range.t, ctx: ModuleContext.t) =>
+  Scope.create(
+    ctx.namespace_context.namespace,
+    ctx.namespace_context.report,
+    range,
+  );
+
 let constant = (ctx: ModuleContext.t, f) =>
   Keyword.const
   >>= Node.Raw.get_range
@@ -11,16 +18,8 @@ let constant = (ctx: ModuleContext.t, f) =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
         ((id, expr)) => {
-          let scope = ctx.scope.create(Node.Raw.get_range(expr));
-
-          let const =
-            switch (
-              scope
-              |> Scope.peek(() => Analyzer.res_constant(Analyze, scope, expr))
-            ) {
-            | Some(const) => const
-            | None => Analyzer.res_constant(Resolve, scope, expr)
-            };
+          let scope = ctx |> _create_scope(Node.Raw.get_range(expr));
+          let const = Analyzer.res_constant(Resolve, scope, expr);
 
           ((f(id), const), Range.join(start, Node.get_range(const)));
         }
@@ -39,7 +38,7 @@ let function_ = (ctx: ModuleContext.t, f) =>
           Lambda.parser(ctx)
           >|= (
             ((args, res, range)) => {
-              let scope = ctx.scope.create(range);
+              let scope = ctx |> _create_scope(range);
               let func = Analyzer.res_function(scope, args, res, range);
 
               ((f(id), func), Range.join(start, range));

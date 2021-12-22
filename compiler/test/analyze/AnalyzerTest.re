@@ -5,7 +5,7 @@ open Util;
 module Analyzer = Analyze.Analyzer;
 
 let _create_scope = name =>
-  Scope.factory(Namespace.of_string(name), ignore).create(Range.zero);
+  Scope.create(Namespace.of_string(name), ignore, Range.zero);
 let _create_id = Identifier.of_string % CommonUtil.as_raw_node;
 
 let __empty_scope = _create_scope("foo");
@@ -139,8 +139,7 @@ let suite =
     "res_expr() - identifier"
     >: (
       () => {
-        let id_name = "foo";
-        let id = Identifier.of_string(id_name);
+        let id = Identifier.of_string("foo");
 
         [
           {
@@ -163,7 +162,7 @@ let suite =
             let scope = {
               ..._create_scope("bar"),
               types:
-                [(id_name, Type.Raw.Invalid(type_err))]
+                [(id, Type.Raw.Invalid(type_err))]
                 |> List.to_seq
                 |> Hashtbl.of_seq,
             };
@@ -184,7 +183,7 @@ let suite =
             let scope = {
               ..._create_scope("bar"),
               types:
-                [(id_name, Type.Raw.Strong(`Boolean))]
+                [(id, Type.Raw.Strong(`Boolean))]
                 |> List.to_seq
                 |> Hashtbl.of_seq,
             };
@@ -201,7 +200,7 @@ let suite =
             let parent_scope = {
               ..._create_scope("parent"),
               types:
-                [(id_name, Type.Raw.Strong(`String))]
+                [(id, Type.Raw.Strong(`String))]
                 |> List.to_seq
                 |> Hashtbl.of_seq,
             };

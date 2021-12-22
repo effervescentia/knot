@@ -22,7 +22,8 @@ module RawUtil = {
   let as_invalid = (err, x) => as_node(Invalid(err), x);
 
   /* let as_abstract = (id, x) => as_node(Weak(ref(Ok(`Abstract(id)))), x); */
-  let as_generic = (id, x) => as_node(Weak(ref(Ok(`Generic(id)))), x);
+  let as_weak = (scope_id, weak_id, x) =>
+    as_node(Weak(scope_id, weak_id), x);
 
   let nil_prim = nil |> as_raw_node |> of_prim |> as_raw_node;
 

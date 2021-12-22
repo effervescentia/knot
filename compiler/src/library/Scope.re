@@ -1,68 +1,85 @@
 open Infix;
 open Reference;
 
-type factory_t = {
-  seed: ref(int),
-  create: (~parent: t=?, Range.t) => t,
-}
-and t = {
-  factory: factory_t,
-  weak: unit => Type.Raw.t,
+type t = {
+  id: int,
   namespace: Namespace.t,
   range: Range.t,
   parent: option(t),
-  types: Hashtbl.t(string, Type.Raw.t),
+  types: Hashtbl.t(Identifier.t, Type.Raw.t),
+  weak_types: Hashtbl.t(int, result(Type.Raw.weak_t, Type.Raw.error_t)),
+  mutable children: list(t),
   /* error reporting callback */
   report: Error.compile_err => unit,
-  mutable children: list(t),
 };
 
 /* static */
 
-let factory = (namespace: Namespace.t, report: Error.compile_err => unit) => {
-  let seed = ref(0);
-  let weak_seed = ref(0);
+let rec _with_root = (f: t => 'a, scope: t): 'a =>
+  switch (scope.parent) {
+  | Some(parent) => _with_root(f, parent)
+  | None => f(scope)
+  };
 
-  let create_memo =
-    Fun.memo(
-      ((id, _, _, _)) => id,
-      ((_, factory, parent, range): (int, factory_t, option(t), Range.t)) => {
-        let weak = () => {
-          let type_ = Type.Raw.Weak(ref(Ok(`Generic((0, weak_seed^)))));
+let _count_scopes =
+  _with_root(
+    {
+      let rec count = scope =>
+        List.length(scope.children)
+        + (scope.children |> List.map(count) |> List.fold_left((+), 0));
 
-          weak_seed := weak_seed^ + 1;
+      count;
+    },
+  );
 
-          type_;
-        };
-
-        let scope = {
-          factory,
-          weak,
-          namespace,
-          range,
-          parent,
-          report,
-          types: Hashtbl.create(0),
-          children: [],
-        };
-
-        seed := seed^ + 1;
-
-        scope;
-      },
-    );
-  let rec create_ = (~parent: option(t)=?, range: Range.t) =>
-    create_memo((seed^, {seed, create: create_}, parent, range));
-
-  {seed, create: create_};
+let create =
+    (
+      namespace: Namespace.t,
+      report: Error.compile_err => unit,
+      ~parent: option(t)=?,
+      range: Range.t,
+    )
+    : t => {
+  id: parent |> Option.map(_count_scopes) |?: 0,
+  namespace,
+  range,
+  parent,
+  types: Hashtbl.create(0),
+  weak_types: Hashtbl.create(0),
+  children: [],
+  report,
 };
 
 /* methods */
 
 /**
- check that no weak types are scheduled with this or any child scope
+ create a new child scope from a parent scope and register them with each other
  */
-let is_resolved = (scope: t) =>
+let create_child = (parent: t, range: Range.t): t => {
+  let child = create(~parent, parent.namespace, parent.report, range);
+
+  parent.children = parent.children @ [child];
+
+  child;
+};
+
+/**
+ creates a new weak type that can be uniquely identified by
+ a combination of the embedded scope_id and the weak_id values
+ */
+let next_weak_type = (scope: t): Type.Raw.t => {
+  let weak_id = Hashtbl.length(scope.weak_types);
+  let weak_type = Type.Raw.Weak(scope.id, weak_id);
+
+  Hashtbl.add(scope.weak_types, weak_id, Ok(`Generic((scope.id, weak_id))));
+
+  weak_type;
+};
+
+/**
+ check if there are any weak types defined in this or any child scope
+ */
+let rec is_resolved = (scope: t): bool =>
   scope.types
   |> Hashtbl.to_seq_values
   |> List.of_seq
@@ -70,30 +87,14 @@ let is_resolved = (scope: t) =>
        fun
        | Type.Raw.Weak(_) => false
        | _ => true,
-     );
+     )
+  && scope.children
+  |> List.for_all(is_resolved);
 
-let peek = (resolve: unit => 'a, scope: t) => {
-  let seed = scope.factory.seed^;
-  let result = resolve();
-
-  if (is_resolved(scope)) {
-    Some(result);
-  } else {
-    scope.factory.seed := seed;
-
-    None;
-  };
-};
-
-let child = (parent: t, range: Range.t): t => {
-  let scope = parent.factory.create(~parent, range);
-
-  parent.children = parent.children @ [scope];
-
-  scope;
-};
-
-let rec exists = (name: string, scope: t): bool =>
+/**
+ check if a type is defined matching the provided identifier
+ */
+let rec exists = (name: Identifier.t, scope: t): bool =>
   Hashtbl.mem(scope.types, name)
   || (
     switch (scope.parent) {
@@ -102,31 +103,16 @@ let rec exists = (name: string, scope: t): bool =>
     }
   );
 
-let rec resolve =
-        ((name, range) as id: Node.Raw.t(Identifier.t), scope: t): Type.t =>
-  switch (
-    Hashtbl.find_opt(
-      scope.types,
-      id |> Node.Raw.get_value |> Identifier.to_string,
-    ),
-    scope.parent,
-  ) {
-  | (Some(result), _) => Type.of_raw(result)
-  | (_, Some(parent)) => parent |> resolve(id)
-  | _ =>
-    let type_err = Type.Error.NotFound(name);
+/**
+ define a type given an identifier and the type value
 
-    scope.report(ParseError(TypeError(type_err), scope.namespace, range));
-
-    Invalid(type_err);
-  };
-
-let _safe_define =
-    ((name, range): Node.Raw.t(Identifier.t), type_: Type.Raw.t, scope: t) => {
-  let key = Identifier.to_string(name);
-
+ if the type already exists then a DuplicateIdentifier error will be reported
+ and an Invalid type containing the error details will be applied instead
+ */
+let define =
+    ((name, range): Node.Raw.t(Identifier.t), type_: Type.Raw.t, scope: t) =>
   (
-    if (scope |> exists(key)) {
+    if (scope |> exists(name)) {
       let type_err = Type.Error.DuplicateIdentifier(name);
 
       scope.report(ParseError(TypeError(type_err), scope.namespace, range));
@@ -136,23 +122,50 @@ let _safe_define =
       type_;
     }
   )
-  |> Hashtbl.replace(scope.types, key);
-};
+  |> Hashtbl.add(scope.types, name);
 
-let define = (id: Node.Raw.t(Identifier.t), type_: Type.Raw.t, scope: t) =>
-  _safe_define(id, type_, scope);
+let rec _resolve_raw =
+        (scope: t, scope_id: int, weak_id: int)
+        : option(result(Type.Raw.weak_t, Type.Raw.error_t)) =>
+  if (scope.id == scope_id) {
+    Hashtbl.find_opt(scope.weak_types, weak_id);
+  } else {
+    switch (scope.parent) {
+    | Some(parent) => _resolve_raw(parent, scope_id, weak_id)
+    | None => None
+    };
+  };
 
-/* let define_weak =
-     (~trait=Type.Trait.Unknown, id: Node.Raw.t(Identifier.t), scope: t) =>
-   _safe_define(id, Type.Raw.Weak(ref(Ok(`Abstract(trait)))), scope); */
+/**
+ lookup a type by its identifier in this and every parent scope
 
-let finalize = (scope: t) =>
-  scope.types
-  |> Hashtbl.to_seq
-  |> Seq.map(((key, value)) => (key, value))
-  |> Seq.map(
-       fun
-       /* | (key, Type.Raw.Weak(weak)) => (key, Type.Raw.) */
-       | x => x,
-     )
-  |> Hashtbl.replace_seq(scope.types);
+ if the type does not exist then a NotFound error will be reported
+ and an Invalid type containing the error details will be returned instead
+ */
+let rec resolve =
+        ((name, range) as id: Node.Raw.t(Identifier.t), scope: t): Type.t =>
+  switch (Hashtbl.find_opt(scope.types, name), scope.parent) {
+  | (Some(result), _) =>
+    Type.of_raw(
+      (scope_id, weak_id) =>
+        switch (_resolve_raw(scope, scope_id, weak_id)) {
+        | Some(res) => res
+        | None =>
+          let type_err = Type.Error.TypeResolutionFailed;
+
+          scope.report(
+            ParseError(TypeError(type_err), scope.namespace, range),
+          );
+
+          Error(type_err);
+        },
+      result,
+    )
+  | (_, Some(parent)) => parent |> resolve(id)
+  | _ =>
+    let type_err = Type.Error.NotFound(name);
+
+    scope.report(ParseError(TypeError(type_err), scope.namespace, range));
+
+    Invalid(type_err);
+  };
