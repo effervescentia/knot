@@ -26,8 +26,6 @@ let _resolve_node =
   );
 };
 
-/* let finalize_decl = (decl: declaration_t): declaration_t => ; */
-
 let resolve_primitive =
     (mapping: mapping_t, expr: Analyzed.primitive_t): primitive_t =>
   _resolve_node(
@@ -118,7 +116,7 @@ and resolve_jsx_child =
 
 let resolve_constant =
     (scope: Scope.t, raw_expr: Raw.expression_t): declaration_t => {
-  let analyzed_expr = Analyzer.analyze_expr(scope, raw_expr);
+  let analyzed_expr = Analyzer.analyze_expression(scope, raw_expr);
   let mapping = Scope.finalize(scope);
 
   let expr = resolve_expression(mapping, analyzed_expr);
@@ -146,7 +144,7 @@ let resolve_function =
       range: Range.t,
     ) => {
   let analyzed_args = raw_args |> List.map(Analyzer.analyze_arg(scope));
-  let analyzed_result = Analyzer.analyze_expr(scope, raw_result);
+  let analyzed_result = Analyzer.analyze_expression(scope, raw_result);
   let mapping = Scope.finalize(scope);
 
   let args = analyzed_args |> List.map(resolve_arg(mapping));

@@ -74,10 +74,11 @@ let suite =
                   |> of_public
                   |> as_raw_node(~range=Range.create((2, 10), (2, 12)))
                   |> of_main_import
-                  |> as_raw_node,
+                  |> as_raw_node(~range=Range.create((2, 10), (2, 12))),
                 ],
               )
-              |> of_import,
+              |> of_import
+              |> as_raw_node(~range=Range.create((2, 3), (2, 25))),
               (
                 ("ABC" |> of_public, Range.create((4, 9), (4, 11)))
                 |> of_named_export,
@@ -97,9 +98,9 @@ let suite =
                      Type.Valid(`Integer),
                    ),
               )
-              |> of_decl,
-            ]
-            |> List.map(as_raw_node),
+              |> of_decl
+              |> as_raw_node(~range=Range.create((4, 3), (4, 17))),
+            ],
             _to_stream(__ast_fixture) |> Parser.ast(__context),
           ),
         ]

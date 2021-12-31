@@ -14,7 +14,7 @@ let __id = _create_id("foo");
 let suite =
   "Analyze.Analyzer"
   >::: [
-    "res_prim()"
+    "analyze_primitive()"
     >: (
       () =>
         [
@@ -39,12 +39,12 @@ let suite =
         |> List.map(
              Tuple.map_each2(
                Tuple.join2(AnalyzedUtil.as_node),
-               RawUtil.as_raw_node % Analyzer.analyze_prim,
+               RawUtil.as_raw_node % Analyzer.analyze_primitive,
              ),
            )
         |> Assert.(test_many(analyzed_primitive))
     ),
-    "res_expr() - primitive"
+    "analyze_expression() - primitive"
     >: (
       () =>
         [
@@ -53,10 +53,12 @@ let suite =
             RawUtil.(__empty_scope, int_prim(123)),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expr)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expression)),
+           )
         |> Assert.(test_many(analyzed_expression))
     ),
-    "res_expr() - jsx"
+    "analyze_expression() - jsx"
     >: (
       () =>
         [
@@ -68,10 +70,12 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expr)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expression)),
+           )
         |> Assert.(test_many(analyzed_expression))
     ),
-    "res_expr() - group"
+    "analyze_expression() - group"
     >: (
       () =>
         [
@@ -85,10 +89,12 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expr)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expression)),
+           )
         |> Assert.(test_many(analyzed_expression))
     ),
-    "res_expr() - closure"
+    "analyze_expression() - closure"
     >: (
       () =>
         [
@@ -125,10 +131,12 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expr)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expression)),
+           )
         |> Assert.(test_many(analyzed_expression))
     ),
-    "res_expr() - identifier"
+    "analyze_expression() - identifier"
     >: (
       () => {
         let id = Identifier.of_string("foo");
@@ -212,7 +220,9 @@ let suite =
             );
           },
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expr)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_expression)),
+           )
         |> Assert.(test_many(analyzed_expression));
       }
     ),
@@ -282,7 +292,7 @@ let suite =
         ]
         |> List.map(
              Tuple.map_snd2(
-               Tuple.join2(Analyzer.(analyze_expr % analyze_jsx)),
+               Tuple.join2(Analyzer.(analyze_expression % analyze_jsx)),
              ),
            )
         |> Assert.(test_many(analyzed_jsx))
@@ -332,12 +342,12 @@ let suite =
         ]
         |> List.map(
              Tuple.map_snd2(
-               Tuple.join2(Analyzer.(analyze_expr % analyze_jsx)),
+               Tuple.join2(Analyzer.(analyze_expression % analyze_jsx)),
              ),
            )
         |> Assert.(test_many(analyzed_jsx))
     ),
-    "res_stmt() - variable"
+    "analyze_statement() - variable"
     >: (
       () =>
         [
@@ -351,10 +361,12 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_stmt)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_statement)),
+           )
         |> Assert.(test_many(analyzed_statement))
     ),
-    "res_stmt() - expression"
+    "analyze_statement() - expression"
     >: (
       () =>
         [
@@ -366,7 +378,9 @@ let suite =
             ),
           ),
         ]
-        |> List.map(Tuple.map_snd2(Tuple.join2(Analyzer.analyze_stmt)))
+        |> List.map(
+             Tuple.map_snd2(Tuple.join2(Analyzer.analyze_statement)),
+           )
         |> Assert.(test_many(analyzed_statement))
     ),
   ];
