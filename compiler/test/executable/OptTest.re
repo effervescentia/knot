@@ -13,51 +13,56 @@ let __opt =
 let suite =
   "Executable.Opt"
   >::: [
-    "pp()"
+    "pp() - with description"
     >: (
       () =>
-        [
-          (
-            "--foo
+        Assert.string(
+          "--foo
   \n  used to control the application of foo",
-            Opt.create(
-              "foo",
-              Arg.Bool(ignore),
-              "used to control the application of foo",
-            )
-            |> ~@Opt.pp(None),
-          ),
-          (
-            "-f, --foo
+          Opt.create(
+            "foo",
+            Arg.Bool(ignore),
+            "used to control the application of foo",
+          )
+          |> ~@Opt.pp(None),
+        )
+    ),
+    "pp() - with attribute"
+    >: (
+      () =>
+        Assert.string(
+          "--foo
+  [default: true]
+  \n  used to control the application of foo",
+          Opt.create(
+            ~default=Bool(true),
+            ~from_config=_ => Some(Bool(true)),
+            "foo",
+            Arg.Bool(ignore),
+            "used to control the application of foo",
+          )
+          |> ~@Opt.pp(Some(__config)),
+        )
+    ),
+    "pp() - with many attributes and alias"
+    >: (
+      () =>
+        Assert.string(
+          "-f, --foo
   [options: fizz, buzz]
   [default: true]
   [from config: false]
   \n  used to control the application of foo",
-            Opt.create(
-              ~alias="f",
-              ~default=Bool(true),
-              ~from_config=_ => Some(Bool(false)),
-              ~options=["fizz", "buzz"],
-              "foo",
-              Arg.Bool(ignore),
-              "used to control the application of foo",
-            )
-            |> ~@Opt.pp(Some(__config)),
-          ),
-          (
-            "--foo
-  [default: true]
-  \n  used to control the application of foo",
-            Opt.create(
-              ~default=Bool(true),
-              ~from_config=_ => Some(Bool(true)),
-              "foo",
-              Arg.Bool(ignore),
-              "used to control the application of foo",
-            )
-            |> ~@Opt.pp(Some(__config)),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Opt.create(
+            ~alias="f",
+            ~default=Bool(true),
+            ~from_config=_ => Some(Bool(false)),
+            ~options=["fizz", "buzz"],
+            "foo",
+            Arg.Bool(ignore),
+            "used to control the application of foo",
+          )
+          |> ~@Opt.pp(Some(__config)),
+        )
     ),
   ];

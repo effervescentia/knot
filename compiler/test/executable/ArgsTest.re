@@ -15,12 +15,11 @@ let __opt =
 let suite =
   "Executable.Args"
   >::: [
-    "pp_usage()"
+    "pp_usage() - root command usage"
     >: (
       () =>
-        [
-          (
-            "  knotc <command> ...
+        Assert.string(
+          "  knotc <command> ...
 
 COMMANDS
 
@@ -37,10 +36,14 @@ OPTIONS
   --foo
     \n    used to control the application of foo
 ",
-            (None, None, [__opt]),
-          ),
-          (
-            "  knotc foo [options]
+          (None, None, [__opt]) |> ~@Args.pp_usage,
+        )
+    ),
+    "pp_usage() - sub-command usage"
+    >: (
+      () =>
+        Assert.string(
+          "  knotc foo [options]
 
 COMMAND OPTIONS
 
@@ -55,30 +58,28 @@ OPTIONS
     [from config: false]
     \n    used to control the application of bar
 ",
-            (
-              Some(
-                Cmd.{
-                  name: "foo",
-                  opts: [__opt],
-                  resolve: (_, _) => RunCmd.Develop({port: 8080}),
-                },
-              ),
-              Some(Config.defaults(false)),
-              [
-                Opt.create(
-                  ~alias="b",
-                  ~default=Bool(true),
-                  ~from_config=_ => Some(Bool(false)),
-                  ~options=["fizz", "buzz"],
-                  "bar",
-                  Arg.Bool(ignore),
-                  "used to control the application of bar",
-                ),
-              ],
+          (
+            Some(
+              Cmd.{
+                name: "foo",
+                opts: [__opt],
+                resolve: (_, _) => RunCmd.Develop({port: 8080}),
+              },
             ),
-          ),
-        ]
-        |> List.map(Tuple.map_snd2(~@Args.pp_usage))
-        |> Assert.(test_many(string))
+            Some(Config.defaults(false)),
+            [
+              Opt.create(
+                ~alias="b",
+                ~default=Bool(true),
+                ~from_config=_ => Some(Bool(false)),
+                ~options=["fizz", "buzz"],
+                "bar",
+                Arg.Bool(ignore),
+                "used to control the application of bar",
+              ),
+            ],
+          )
+          |> ~@Args.pp_usage,
+        )
     ),
   ];

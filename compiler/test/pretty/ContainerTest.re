@@ -242,56 +242,72 @@ nisi,
           ["foo"] |> ~@root(ppf => pf(ppf, "prefix %a", closure(string))),
         )
     ),
-    "attribute()"
+    "attribute() - short value"
     >: (
       () =>
-        [
-          ("foo: bar", ("foo", "bar") |> ~@root(attribute(string, string))),
-          (
-            "foo: Laboris pariatur nisi nulla dolor aliqua est voluptate fugiat est commodo",
-            (
-              "foo",
-              "Laboris pariatur nisi nulla dolor aliqua est voluptate fugiat est commodo",
-            )
-            |> ~@root(attribute(string, string)),
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "foo: bar",
+          ("foo", "bar") |> ~@root(attribute(string, string)),
+        )
     ),
-    "record()"
+    "attribute() - long value"
     >: (
       () =>
-        [
-          ("{ }", [] |> ~@root(record(string, string))),
+        Assert.string(
+          "foo: Laboris pariatur nisi nulla dolor aliqua est voluptate fugiat est commodo",
           (
-            "{
+            "foo",
+            "Laboris pariatur nisi nulla dolor aliqua est voluptate fugiat est commodo",
+          )
+          |> ~@root(attribute(string, string)),
+        )
+    ),
+    "record() - empty"
+    >: (() => Assert.string("{ }", [] |> ~@root(record(string, string)))),
+    "record() - one entry"
+    >: (
+      () =>
+        Assert.string(
+          "{
   foo: bar
 }",
-            [("foo", "bar")] |> ~@root(record(string, string)),
-          ),
-          (
-            "{
+          [("foo", "bar")] |> ~@root(record(string, string)),
+        )
+    ),
+    "record() - multiple entries"
+    >: (
+      () =>
+        Assert.string(
+          "{
   foo: bar
   fizz: buzz
   zipp: zapp
 }",
-            [("foo", "bar"), ("fizz", "buzz"), ("zipp", "zapp")]
-            |> ~@root(record(string, string)),
-          ),
-          (
-            "{
+          [("foo", "bar"), ("fizz", "buzz"), ("zipp", "zapp")]
+          |> ~@root(record(string, string)),
+        )
+    ),
+    "record() - long value"
+    >: (
+      () =>
+        Assert.string(
+          "{
   foo: Est fugiat nostrud aliquip irure amet commodo voluptate excepteur pariatur esse ut mollit nisi exercitation
 }",
-            [
-              (
-                "foo",
-                "Est fugiat nostrud aliquip irure amet commodo voluptate excepteur pariatur esse ut mollit nisi exercitation",
-              ),
-            ]
-            |> ~@root(record(string, string)),
-          ),
-          (
-            "{
+          [
+            (
+              "foo",
+              "Est fugiat nostrud aliquip irure amet commodo voluptate excepteur pariatur esse ut mollit nisi exercitation",
+            ),
+          ]
+          |> ~@root(record(string, string)),
+        )
+    ),
+    "record() - nested"
+    >: (
+      () =>
+        Assert.string(
+          "{
   foo: {
     fizz: buzz
   }
@@ -299,27 +315,35 @@ nisi,
     zipp: zapp
   }
 }",
-            [("foo", [("fizz", "buzz")]), ("bar", [("zipp", "zapp")])]
-            |> ~@root(record(string, record(string, string))),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          [("foo", [("fizz", "buzz")]), ("bar", [("zipp", "zapp")])]
+          |> ~@root(record(string, record(string, string))),
+        )
     ),
-    "entity()"
+    "entity() - empty"
     >: (
       () =>
-        [
-          ("foo { }", ("foo", []) |> ~@root(entity(string, string))),
-          (
-            "foo {
+        Assert.string(
+          "foo { }",
+          ("foo", []) |> ~@root(entity(string, string)),
+        )
+    ),
+    "entity() - not empty"
+    >: (
+      () =>
+        Assert.string(
+          "foo {
   a
   b
   c
 }",
-            ("foo", ["a", "b", "c"]) |> ~@root(entity(string, string)),
-          ),
-          (
-            "foo {
+          ("foo", ["a", "b", "c"]) |> ~@root(entity(string, string)),
+        )
+    ),
+    "entity() - nested"
+    >: (
+      () =>
+        Assert.string(
+          "foo {
   bar {
     a
     b
@@ -331,38 +355,36 @@ nisi,
     3
   }
 }",
-            (
-              "foo",
-              [("bar", ["a", "b", "c"]), ("fizz", ["1", "2", "3"])],
-            )
-            |> ~@root(entity(string, entity(string, string))),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          ("foo", [("bar", ["a", "b", "c"]), ("fizz", ["1", "2", "3"])])
+          |> ~@root(entity(string, entity(string, string))),
+        )
     ),
-    "struct_()"
+    "struct_() - empty"
     >: (
       () =>
-        [
-          ("foo { }", ("foo", []) |> ~@root(struct_(string, string))),
-          (
-            "foo {
+        Assert.string(
+          "foo { }",
+          ("foo", []) |> ~@root(struct_(string, string)),
+        )
+    ),
+    "struct_() - not empty"
+    >: (
+      () =>
+        Assert.string(
+          "foo {
   a: 1
   b: 2
   c: 3
 }",
-            ("foo", [("a", 1), ("b", 2), ("c", 3)])
-            |> ~@root(struct_(string, int)),
-          ),
-          (
-            "Hashtbl {
-  foo: bar
-}",
-            ("Hashtbl", [("foo", "bar")])
-            |> ~@root(struct_(string, string)),
-          ),
-          (
-            "foo {
+          ("foo", [("a", 1), ("b", 2), ("c", 3)])
+          |> ~@root(struct_(string, int)),
+        )
+    ),
+    "struct_() - nested"
+    >: (
+      () =>
+        Assert.string(
+          "foo {
   bar: Bar {
     a: 1
     b: 2
@@ -374,16 +396,14 @@ nisi,
     f: 6
   }
 }",
-            (
-              "foo",
-              [
-                ("bar", ("Bar", [("a", 1), ("b", 2), ("c", 3)])),
-                ("fizz", ("Fizz", [("d", 4), ("e", 5), ("f", 6)])),
-              ],
-            )
-            |> ~@root(struct_(string, struct_(string, int))),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          (
+            "foo",
+            [
+              ("bar", ("Bar", [("a", 1), ("b", 2), ("c", 3)])),
+              ("fizz", ("Fizz", [("d", 4), ("e", 5), ("f", 6)])),
+            ],
+          )
+          |> ~@root(struct_(string, struct_(string, int))),
+        )
     ),
   ];

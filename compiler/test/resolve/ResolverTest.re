@@ -13,12 +13,11 @@ let suite =
   >::: [
     "create()"
     >: (
-      () => {
+      () =>
         Assert.resolver(
           {cache: __cache, root_dir: __root_dir, source_dir: __source_dir},
           Resolver.create(__cache, __root_dir, __source_dir),
-        );
-      }
+        )
     ),
     "resolve_module() - resolve from cache"
     >: (
@@ -74,16 +73,13 @@ let suite =
       () => {
         let resolver = Resolver.create(__cache, __root_dir, __source_dir);
 
-        [
-          (
-            "Resolver {
+        Assert.string(
+          "Resolver {
   cache: foo
   root_dir: bar
 }",
-            resolver |> ~@Fmt.root(Resolver.pp),
-          ),
-        ]
-        |> Assert.(test_many(string));
+          resolver |> ~@Fmt.root(Resolver.pp),
+        );
       }
     ),
   ];

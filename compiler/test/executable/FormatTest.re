@@ -31,10 +31,11 @@ let suite =
         );
 
         Async.on_tick(() => {
-          output_file |> Sys.file_exists |> Assert.true_;
-          output_file
-          |> Util.read_file_to_string
-          |> Assert.string("const ABC = 123;\n");
+          Assert.true_(Sys.file_exists(output_file));
+          Assert.string(
+            "const ABC = 123;\n",
+            Util.read_file_to_string(output_file),
+          );
 
           resolve();
         })
@@ -60,15 +61,17 @@ let suite =
         );
 
         Async.on_tick(() => {
-          main_file |> Sys.file_exists |> Assert.true_;
-          main_file
-          |> Util.read_file_to_string
-          |> Assert.string("import Utils from \"@/utils\";\n");
+          Assert.true_(Sys.file_exists(main_file));
+          Assert.string(
+            "import Utils from \"@/utils\";\n",
+            Util.read_file_to_string(main_file),
+          );
 
-          utils_file |> Sys.file_exists |> Assert.true_;
-          utils_file
-          |> Util.read_file_to_string
-          |> Assert.string("import Main from \"@/main\";\n");
+          Assert.true_(Sys.file_exists(utils_file));
+          Assert.string(
+            "import Main from \"@/main\";\n",
+            Util.read_file_to_string(utils_file),
+          );
 
           resolve();
         })
@@ -97,10 +100,11 @@ let suite =
         );
 
         Async.on_tick(() => {
-          main_file |> Sys.file_exists |> Assert.true_;
-          main_file
-          |> Util.read_file_to_string
-          |> Assert.string("import Utils from \"@/utils\";\n");
+          Assert.true_(Sys.file_exists(main_file));
+          Assert.string(
+            "import Utils from \"@/utils\";\n",
+            Util.read_file_to_string(main_file),
+          );
 
           resolve();
         })

@@ -33,15 +33,14 @@ let suite =
           },
         );
 
-        output_file |> Sys.file_exists |> Assert.true_;
-        output_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+        Assert.true_(Sys.file_exists(output_file));
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var ABC = 123;
 exports.ABC = ABC;
 ",
-           );
+          Util.read_file_to_string(output_file),
+        );
       }
     ),
     "run() - complex"
@@ -67,10 +66,8 @@ exports.ABC = ABC;
         [main_file, app_file, constants_file]
         |> List.iter(Sys.file_exists % Assert.true_);
 
-        main_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var $import$_$common$constants = require(\"./common/constants\");
 var TIMEOUT = $import$_$common$constants.main;
 $import$_$common$constants = null;
@@ -80,25 +77,26 @@ $import$_$App = null;
 var ABC = 123;
 exports.ABC = ABC;
 ",
-           );
-        app_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+          Util.read_file_to_string(main_file),
+        );
+
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var App = $knot.jsx.createTag(\"div\", null, \"hello world\");
 exports.App = App;
 exports.main = App;
 ",
-           );
-        constants_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+          Util.read_file_to_string(app_file),
+        );
+
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var TIMEOUT = 100;
 exports.TIMEOUT = TIMEOUT;
 exports.main = TIMEOUT;
 ",
-           );
+          Util.read_file_to_string(constants_file),
+        );
       }
     ),
   ];

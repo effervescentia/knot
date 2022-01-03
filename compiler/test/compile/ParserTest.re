@@ -48,63 +48,62 @@ let _to_stream = string =>
 let suite =
   "Compile.Parser"
   >::: [
-    "parse imports"
+    "parse imports - empty file"
     >: (
       () =>
-        AST.[
-          (
-            [of_external("bar"), of_external("buzz")],
-            _to_stream(__import_fixture) |> Parser.imports(__foo),
-          ),
-          ([], _to_stream("") |> Parser.imports(__foo)),
-        ]
-        |> Assert.(test_many(list_namespace))
+        Assert.list_namespace([], _to_stream("") |> Parser.imports(__foo))
     ),
-    "parse AST"
+    "parse imports - module with imports"
     >: (
       () =>
-        [
-          ([], _to_stream("") |> Parser.ast(__context)),
-          (
-            AST.[
+        Assert.list_namespace(
+          AST.[of_external("bar"), of_external("buzz")],
+          _to_stream(__import_fixture) |> Parser.imports(__foo),
+        )
+    ),
+    "parse AST - empty file"
+    >: (() => Assert.program([], _to_stream("") |> Parser.ast(__context))),
+    "parse AST - module with declarations and imports"
+    >: (
+      () =>
+        Assert.program(
+          AST.[
+            (
+              __bar,
+              [
+                "foo"
+                |> of_public
+                |> as_raw_node(~range=Range.create((2, 10), (2, 12)))
+                |> of_main_import
+                |> as_raw_node(~range=Range.create((2, 10), (2, 12))),
+              ],
+            )
+            |> of_import
+            |> as_raw_node(~range=Range.create((2, 3), (2, 25))),
+            (
+              ("ABC" |> of_public, Range.create((4, 9), (4, 11)))
+              |> of_named_export,
               (
-                __bar,
-                [
-                  "foo"
-                  |> of_public
-                  |> as_raw_node(~range=Range.create((2, 10), (2, 12)))
-                  |> of_main_import
-                  |> as_raw_node(~range=Range.create((2, 10), (2, 12))),
-                ],
+                123L |> of_int |> of_num,
+                Type.Valid(`Integer),
+                Range.create((4, 15), (4, 17)),
               )
-              |> of_import
-              |> as_raw_node(~range=Range.create((2, 3), (2, 25))),
-              (
-                ("ABC" |> of_public, Range.create((4, 9), (4, 11)))
-                |> of_named_export,
-                (
-                  123L |> of_int |> of_num,
-                  Type.Valid(`Integer),
-                  Range.create((4, 15), (4, 17)),
-                )
-                |> of_prim
-                |> as_node(
-                     ~range=Range.create((4, 15), (4, 17)),
-                     Type.Valid(`Integer),
-                   )
-                |> of_const
-                |> as_node(
-                     ~range=Range.create((4, 15), (4, 17)),
-                     Type.Valid(`Integer),
-                   ),
-              )
-              |> of_decl
-              |> as_raw_node(~range=Range.create((4, 3), (4, 17))),
-            ],
-            _to_stream(__ast_fixture) |> Parser.ast(__context),
-          ),
-        ]
-        |> Assert.(test_many(program))
+              |> of_prim
+              |> as_node(
+                   ~range=Range.create((4, 15), (4, 17)),
+                   Type.Valid(`Integer),
+                 )
+              |> of_const
+              |> as_node(
+                   ~range=Range.create((4, 15), (4, 17)),
+                   Type.Valid(`Integer),
+                 ),
+            )
+            |> of_decl
+            |> as_raw_node(~range=Range.create((4, 3), (4, 17))),
+          ],
+          _to_stream(__ast_fixture) |> Parser.ast(__context),
+        )
     ),
     "parse invalid"
     >: (

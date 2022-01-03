@@ -45,25 +45,23 @@ let suite =
         Assert.module_(Module.File(path), Module.of_file(path));
       }
     ),
-    "exists()"
+    "exists() - raw module does exist"
+    >: (() => Assert.true_(Module.exists(Module.Raw("foo")))),
+    "exists() - file module does not exist"
     >: (
       () =>
-        [
-          (true, Module.exists(Module.Raw("foo"))),
-          (
-            false,
-            Module.exists(
-              Module.File({relative: "./bar", full: "/foo/bar"}),
-            ),
+        Assert.false_(
+          Module.exists(Module.File({relative: "./bar", full: "/foo/bar"})),
+        )
+    ),
+    "exists() - file module does exist"
+    >: (
+      () =>
+        Assert.true_(
+          Module.exists(
+            Module.File({relative: "./bar", full: fixture_path}),
           ),
-          (
-            true,
-            Module.exists(
-              Module.File({relative: "./bar", full: fixture_path}),
-            ),
-          ),
-        ]
-        |> Assert.(test_many(bool))
+        )
     ),
     "read() - raw"
     >: (
@@ -73,7 +71,7 @@ let suite =
         let program =
           Module.read(
             stream => {
-              Util.read_lazy_char_stream(stream) |> Assert.string(content);
+              Assert.string(content, Util.read_lazy_char_stream(stream));
               __program;
             },
             Module.Raw(content),
@@ -127,11 +125,11 @@ let suite =
           )
           |> Result.get_ok;
 
-        Filename.concat(cache, relative_path)
-        |> Sys.file_exists
-        |> Assert.true_;
-        cached_path |> String.starts_with(cache) |> Assert.true_;
-        cached_path |> String.ends_with(relative_path) |> Assert.true_;
+        Assert.true_(
+          Sys.file_exists(Filename.concat(cache, relative_path)),
+        );
+        Assert.true_(String.starts_with(cache, cached_path));
+        Assert.true_(String.ends_with(relative_path, cached_path));
       }
     ),
     "cache() - file does not exist"
@@ -147,25 +145,26 @@ let suite =
         );
       }
     ),
-    "pp()"
+    "pp() - raw"
     >: (
       () =>
-        [
-          (
-            "Module {
+        Assert.string(
+          "Module {
   raw: foo
 }",
-            Module.Raw("foo") |> ~@Fmt.root(Module.pp),
-          ),
-          (
-            "Module {
+          Module.Raw("foo") |> ~@Fmt.root(Module.pp),
+        )
+    ),
+    "pp() - file"
+    >: (
+      () =>
+        Assert.string(
+          "Module {
   full: foo
   relative: bar
 }",
-            Module.File({full: "foo", relative: "bar"})
-            |> ~@Fmt.root(Module.pp),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Module.File({full: "foo", relative: "bar"})
+          |> ~@Fmt.root(Module.pp),
+        )
     ),
   ];

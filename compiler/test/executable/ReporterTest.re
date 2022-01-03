@@ -13,12 +13,11 @@ let __resolver =
 let suite =
   "Executable.Reporter"
   >::: [
-    "report()"
+    "report() - no errors or warnings"
     >: (
       () =>
-        [
-          (
-            "
+        Assert.string(
+          "
 ╔══════════════════════════════════════════════╗
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
@@ -27,10 +26,14 @@ finished with 0 error(s) and 0 warning(s)
 
 finished with 0 error(s) and 0 warning(s)
 ",
-            [] |> ~@((ppf, x) => Reporter.report(__resolver, x, ppf)),
-          ),
-          (
-            "
+          [] |> ~@((ppf, x) => Reporter.report(__resolver, x, ppf)),
+        )
+    ),
+    "report() - all errors"
+    >: (
+      () =>
+        Assert.string(
+          "
 ╔══════════════════════════════════════════════╗
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
@@ -111,61 +114,55 @@ finished with 11 error(s) and 0 warning(s)
 
 finished with 11 error(s) and 0 warning(s)
 ",
-            [
-              ImportCycle(["a", "b", "c", "d"]),
-              UnresolvedModule("my_module"),
-              FileNotFound("/path/to/my/file"),
-              InvalidModule(__namespace),
-              ParseError(ReservedKeyword("x"), __namespace, Range.zero),
-              ParseError(
-                TypeError(TypeResolutionFailed),
-                __namespace,
-                Range.zero,
-              ),
-              ParseError(
-                TypeError(
-                  NotFound(Reference.Identifier.of_string("my_id")),
-                ),
-                __namespace,
-                Range.zero,
-              ),
-              ParseError(
-                TypeError(TypeMismatch(Strong(`String), Strong(`Integer))),
-                __namespace,
-                Range.zero,
-              ),
-              ParseError(
-                TypeError(
-                  NotAssignable(Strong(`String), Type.Trait.Number),
-                ),
-                __namespace,
-                Range.zero,
-              ),
-              ParseError(
-                TypeError(
-                  ExternalNotFound(
-                    __namespace,
-                    Reference.(
-                      Export.Named(Identifier.of_string("my_export"))
-                    ),
+          [
+            ImportCycle(["a", "b", "c", "d"]),
+            UnresolvedModule("my_module"),
+            FileNotFound("/path/to/my/file"),
+            InvalidModule(__namespace),
+            ParseError(ReservedKeyword("x"), __namespace, Range.zero),
+            ParseError(
+              TypeError(TypeResolutionFailed),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(NotFound(Reference.Identifier.of_string("my_id"))),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(TypeMismatch(Strong(`String), Strong(`Integer))),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(NotAssignable(Strong(`String), Type.Trait.Number)),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                ExternalNotFound(
+                  __namespace,
+                  Reference.(
+                    Export.Named(Identifier.of_string("my_export"))
                   ),
                 ),
-                __namespace,
-                Range.zero,
               ),
-              ParseError(
-                TypeError(
-                  DuplicateIdentifier(
-                    Reference.Identifier.of_string("my_export"),
-                  ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                DuplicateIdentifier(
+                  Reference.Identifier.of_string("my_export"),
                 ),
-                __namespace,
-                Range.zero,
               ),
-            ]
-            |> ~@((ppf, x) => Reporter.report(__resolver, x, ppf)),
-          ),
-        ]
-        |> Assert.(test_many(string))
+              __namespace,
+              Range.zero,
+            ),
+          ]
+          |> ~@((ppf, x) => Reporter.report(__resolver, x, ppf)),
+        )
     ),
   ];

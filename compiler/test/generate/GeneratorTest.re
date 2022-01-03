@@ -15,7 +15,7 @@ let __program = [
 let suite =
   "Generate.Generator"
   >::: [
-    "generate() - JavaScript"
+    "generate() - javascript with es6 modules"
     >: (
       () =>
         Assert.string(

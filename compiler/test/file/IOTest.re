@@ -24,8 +24,8 @@ let suite =
 
         IO.clone(fixture_path, target);
 
-        target |> Sys.file_exists |> Assert.true_;
-        target |> Util.read_file_to_string |> Assert.string(__content);
+        Assert.true_(Sys.file_exists(target));
+        Assert.string(__content, Util.read_file_to_string(target));
       }
     ),
   ];

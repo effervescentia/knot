@@ -10,9 +10,10 @@ let suite =
     "create()"
     >: (
       () =>
-        Cache.create("myProject")
-        |> String.starts_with(Filename.get_temp_dir_name())
-        |> Assert.true_
+        Assert.true_(
+          Cache.create("myProject")
+          |> String.starts_with(Filename.get_temp_dir_name()),
+        )
     ),
     "resolve_path()"
     >: (
@@ -26,13 +27,13 @@ let suite =
       }
     ),
     "file_exists() - file does exist"
-    >: (() => "." |> Cache.file_exists(fixture_path) |> Assert.true_),
+    >: (() => Assert.true_(Cache.file_exists(fixture_path, "."))),
     "file_exists() - file does not exist"
     >: (
       () =>
-        "."
-        |> Cache.file_exists("path/to/nonexistent/file.oops")
-        |> Assert.false_
+        Assert.false_(
+          Cache.file_exists("path/to/nonexistent/file.oops", "."),
+        )
     ),
     "open_file()"
     >: (
@@ -57,9 +58,9 @@ let suite =
         Util.write_to_file(path, __content);
         Cache.destroy(parent_dir);
 
-        path |> Sys.file_exists |> Assert.false_;
-        parent_dir |> Sys.file_exists |> Assert.false_;
-        temp_dir |> Sys.file_exists |> Assert.true_;
+        Assert.false_(Sys.file_exists(path));
+        Assert.false_(Sys.file_exists(parent_dir));
+        Assert.true_(Sys.file_exists(temp_dir));
       }
     ),
   ];
