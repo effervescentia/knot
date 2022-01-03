@@ -1,16 +1,16 @@
 open Kore;
 
 let tests = [
-  /* NilTest.suite,
-     BooleanTest.suite,
-     NumberTest.suite,
-     StringTest.suite, */
+  Declaration_ConstantTest.suite,
+  Declaration_FunctionTest.suite,
+  DeclarationTest.suite,
+  ExpressionTest.suite,
   FormatterTest.suite,
-  /* JSXTest.suite,
-     ExpressionTest.suite,
-     Declaration_ConstantTest.suite,
-     Declaration_FunctionTest.suite,
-     DeclarationTest.suite,
-     ImportTest.suite,
-     ProgramTest.suite, */
+  ImportTest.suite,
+  JSXTest.suite,
+  NumberTest.suite,
+  Primitive_BooleanTest.suite,
+  Primitive_NilTest.suite,
+  Primitive_StringTest.suite,
+  ProgramTest.suite,
 ];

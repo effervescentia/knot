@@ -13,8 +13,8 @@ let suite =
       () => {
         let watcher = Watcher.create(__temp_dir, __extensions);
 
-        watcher.dir |> Assert.string(__temp_dir);
-        watcher.extensions |> Assert.string_list(__extensions);
+        Assert.string(__temp_dir, watcher.dir);
+        Assert.string_list(__extensions, watcher.extensions);
       }
     ),
   ];

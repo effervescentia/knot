@@ -6,10 +6,12 @@ module Response = LanguageServer.Response;
 let suite =
   "LanguageServer.Response"
   >::: [
-    "serialize()"
+    "serialize() - empty"
     >: (
       () =>
-        [("Content-Length: 2\r\n\r\n{}", Response.serialize(`Assoc([])))]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "Content-Length: 2\r\n\r\n{}",
+          Response.serialize(`Assoc([])),
+        )
     ),
   ];

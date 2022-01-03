@@ -16,41 +16,56 @@ let __words = [
 ];
 let __long_words = ["Lorem", "ea", ...__words];
 
+let _set = x => box(collection(any("<"), any(">"), x));
+let _string_set = _set(string);
+let _string_set_set = _set(_string_set);
+
 let suite =
   "Pretty.Container"
   >::: [
     "root()"
-    >: (
-      () =>
-        [("<foo></foo>", "<foo></foo>" |> ~@root(string))]
-        |> Assert.(test_many(string))
-    ),
+    >: (() => Assert.string("<foo></foo>", "<foo></foo>" |> ~@root(string))),
     "page()"
+    >: (() => Assert.string("<foo></foo>
+", "<foo></foo>" |> ~@page(string))),
+    "list() - empty"
+    >: (() => Assert.string("", [] |> ~@root(list(string)))),
+    "list() - comma separated"
     >: (
       () =>
-        [("<foo></foo>
-", "<foo></foo>" |> ~@page(string))]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "a, b, c",
+          ["a", "b", "c"] |> ~@root(box(list(string))),
+        )
     ),
-    "list()"
+    "list() - trailing comma"
     >: (
       () =>
-        [
-          ("", [] |> ~@root(list(string))),
-          ("a, b, c", ["a", "b", "c"] |> ~@root(box(list(string)))),
-          ("a, b, c,
-", ["a", "b", "c"] |> ~@root(list(string))),
-          (
-            "a; b; c",
-            ["a", "b", "c"]
-            |> ~@root(box(list(~sep=Sep.of_sep(";"), string))),
-          ),
-          (
-            "Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi",
-            __words |> ~@root(box(list(string))),
-          ),
-          (
-            "Lorem,
+        Assert.string("a, b, c,
+", ["a", "b", "c"] |> ~@root(list(string)))
+    ),
+    "list() - semicolon separated"
+    >: (
+      () =>
+        Assert.string(
+          "a; b; c",
+          ["a", "b", "c"]
+          |> ~@root(box(list(~sep=Sep.of_sep(";"), string))),
+        )
+    ),
+    "list() - do not break line when content fits"
+    >: (
+      () =>
+        Assert.string(
+          "Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi",
+          __words |> ~@root(box(list(string))),
+        )
+    ),
+    "list() - break line when too long"
+    >: (
+      () =>
+        Assert.string(
+          "Lorem,
 ea,
 Sint,
 eiusmod,
@@ -63,27 +78,29 @@ et,
 ipsum,
 nisi,
 ",
-            __long_words |> ~@root(list(string)),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          __long_words |> ~@root(list(string)),
+        )
     ),
-    "collection()"
+    "collection() - empty"
+    >: (() => Assert.string("<>", [] |> ~@root(_string_set))),
+    "collection() - comma separated"
     >: (
-      () => {
-        let set = x => box(collection(any("<"), any(">"), x));
-        let string_set = set(string);
-        let string_set_set = set(string_set);
-
-        [
-          ("<>", [] |> ~@root(string_set)),
-          ("<a, b, c>", ["a", "b", "c"] |> ~@root(string_set)),
-          (
-            "<Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>",
-            __words |> ~@root(string_set),
-          ),
-          (
-            "<
+      () =>
+        Assert.string("<a, b, c>", ["a", "b", "c"] |> ~@root(_string_set))
+    ),
+    "collection() - do not break line when content fits"
+    >: (
+      () =>
+        Assert.string(
+          "<Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>",
+          __words |> ~@root(_string_set),
+        )
+    ),
+    "collection() - break line when too long"
+    >: (
+      () =>
+        Assert.string(
+          "<
   Lorem,
   ea,
   Sint,
@@ -97,21 +114,33 @@ nisi,
   ipsum,
   nisi,
 >",
-            __long_words |> ~@root(string_set),
-          ),
-          (
-            "<<a, b, c>, <d, e, f>>",
-            [["a", "b", "c"], ["d", "e", "f"]] |> ~@root(string_set_set),
-          ),
-          (
-            "<
+          __long_words |> ~@root(_string_set),
+        )
+    ),
+    "collection() - nested inline"
+    >: (
+      () =>
+        Assert.string(
+          "<<a, b, c>, <d, e, f>>",
+          [["a", "b", "c"], ["d", "e", "f"]] |> ~@root(_string_set_set),
+        )
+    ),
+    "collection() - nested break line"
+    >: (
+      () =>
+        Assert.string(
+          "<
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
 >",
-            [__words, __words] |> ~@root(box(string_set_set)),
-          ),
-          (
-            "<
+          [__words, __words] |> ~@root(box(_string_set_set)),
+        )
+    ),
+    "collection() - nested breaking all lines"
+    >: (
+      () =>
+        Assert.string(
+          "<
   <
     Lorem,
     ea,
@@ -141,49 +170,55 @@ nisi,
     nisi,
   >,
 >",
-            [__long_words, __long_words] |> ~@root(box(string_set_set)),
-          ),
-        ]
-        |> Assert.(test_many(string));
-      }
+          [__long_words, __long_words] |> ~@root(box(_string_set_set)),
+        )
     ),
-    "array()"
+    "array() - empty"
+    >: (() => Assert.string("[]", [] |> ~@root(array(string)))),
+    "array() - not empty"
     >: (
       () =>
-        [
-          ("[]", [] |> ~@root(array(string))),
-          ("[a, b, c]", ["a", "b", "c"] |> ~@root(array(string))),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "[a, b, c]",
+          ["a", "b", "c"] |> ~@root(array(string)),
+        )
     ),
-    "tuple()"
+    "tuple() - empty"
+    >: (() => Assert.string("()", [] |> ~@root(tuple(string)))),
+    "tuple() - not empty"
     >: (
       () =>
-        [
-          ("()", [] |> ~@root(tuple(string))),
-          ("(a, b, c)", ["a", "b", "c"] |> ~@root(tuple(string))),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "(a, b, c)",
+          ["a", "b", "c"] |> ~@root(tuple(string)),
+        )
     ),
-    "closure()"
+    "closure() - empty"
+    >: (() => Assert.string("{ }", [] |> ~@root(closure(string)))),
+    "closure() - one entry"
     >: (
-      () =>
-        [
-          ("{ }", [] |> ~@root(closure(string))),
-          ("{
+      () => Assert.string("{
   foo
-}", ["foo"] |> ~@root(closure(string))),
-          (
-            "{
+}", ["foo"] |> ~@root(closure(string)))
+    ),
+    "closure() - many entries"
+    >: (
+      () =>
+        Assert.string(
+          "{
   foo
   bar
   fizz
   buzz
 }",
-            ["foo", "bar", "fizz", "buzz"] |> ~@root(closure(string)),
-          ),
-          (
-            "{
+          ["foo", "bar", "fizz", "buzz"] |> ~@root(closure(string)),
+        )
+    ),
+    "closure() - nested"
+    >: (
+      () =>
+        Assert.string(
+          "{
   {
     foo
     bar
@@ -193,17 +228,19 @@ nisi,
     buzz
   }
 }",
-            [["foo", "bar"], ["fizz", "buzz"]]
-            |> ~@root(closure(closure(string))),
-          ),
-          (
-            "prefix {
+          [["foo", "bar"], ["fizz", "buzz"]]
+          |> ~@root(closure(closure(string))),
+        )
+    ),
+    "closure() - prefixed"
+    >: (
+      () =>
+        Assert.string(
+          "prefix {
   foo
 }",
-            ["foo"] |> ~@root(ppf => pf(ppf, "prefix %a", closure(string))),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          ["foo"] |> ~@root(ppf => pf(ppf, "prefix %a", closure(string))),
+        )
     ),
     "attribute()"
     >: (

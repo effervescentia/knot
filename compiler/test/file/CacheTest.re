@@ -19,31 +19,27 @@ let suite =
       () => {
         let cache = "foo/bar/cache";
 
-        [
-          (
-            Fmt.str("%s/my/path", cache),
-            cache |> Cache.resolve_path("my/path"),
-          ),
-        ]
-        |> Assert.(test_many(string));
+        Assert.string(
+          Fmt.str("%s/my/path", cache),
+          cache |> Cache.resolve_path("my/path"),
+        );
       }
     ),
-    "file_exists()"
+    "file_exists() - file does exist"
+    >: (() => "." |> Cache.file_exists(fixture_path) |> Assert.true_),
+    "file_exists() - file does not exist"
     >: (
       () =>
-        [
-          (true, "." |> Cache.file_exists(fixture_path)),
-          (false, "." |> Cache.file_exists("path/to/nonexistent/file.oops")),
-        ]
-        |> Assert.(test_many(bool))
+        "."
+        |> Cache.file_exists("path/to/nonexistent/file.oops")
+        |> Assert.false_
     ),
     "open_file()"
     >: (
       () => {
         let open_file = Cache.open_file("read_me.txt", fixture_dir);
 
-        [(__content, Util.read_channel_to_string(open_file))]
-        |> Assert.(test_many(string));
+        Assert.string(__content, Util.read_channel_to_string(open_file));
 
         close_in(open_file);
       }
@@ -61,12 +57,9 @@ let suite =
         Util.write_to_file(path, __content);
         Cache.destroy(parent_dir);
 
-        [
-          (false, Sys.file_exists(path)),
-          (false, Sys.file_exists(parent_dir)),
-          (true, Sys.file_exists(temp_dir)),
-        ]
-        |> Assert.(test_many(bool));
+        path |> Sys.file_exists |> Assert.false_;
+        parent_dir |> Sys.file_exists |> Assert.false_;
+        temp_dir |> Sys.file_exists |> Assert.true_;
       }
     ),
   ];

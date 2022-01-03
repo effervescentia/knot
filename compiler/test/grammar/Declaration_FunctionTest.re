@@ -39,7 +39,7 @@ module Assert = {
 };
 
 let suite =
-  "Grammar.Declaration (Function)"
+  "Grammar.Declaration | Function"
   >::: [
     "no parse"
     >: (

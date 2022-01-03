@@ -24,7 +24,7 @@ module Assert =
   });
 
 let suite =
-  "Grammar.Primitive (Nil)"
+  "Grammar.Primitive | Nil"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
     "parse"

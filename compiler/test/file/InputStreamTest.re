@@ -19,16 +19,20 @@ let suite =
     "of_string()"
     >: (
       () =>
-        [(__content, __content |> InputStream.of_string |> _read_stream)]
-        |> Assert.(test_many(string))
+        Assert.string(
+          __content,
+          __content |> InputStream.of_string |> _read_stream,
+        )
     ),
     "of_channel()"
     >: (
       () => {
         let in_ = open_in(fixture_path);
 
-        [(__content, in_ |> InputStream.of_channel |> _read_stream)]
-        |> Assert.(test_many(string));
+        Assert.string(
+          __content,
+          in_ |> InputStream.of_channel |> _read_stream,
+        );
 
         close_in(in_);
       }
@@ -38,8 +42,10 @@ let suite =
       () => {
         let in_ = open_in(fixture_path);
 
-        [(__content, in_ |> InputStream.of_channel |> ~@InputStream.pp)]
-        |> Assert.(test_many(string));
+        Assert.string(
+          __content,
+          in_ |> InputStream.of_channel |> ~@InputStream.pp,
+        );
 
         close_in(in_);
       }

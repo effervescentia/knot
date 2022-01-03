@@ -9,7 +9,7 @@ module Assert =
 
     type t = Raw.primitive_t;
 
-    let parser = _ => Parser.parse(Primitive.string);
+    let parser = _ => Parser.parse(Primitive.boolean);
 
     let test =
       Alcotest.(
@@ -24,21 +24,19 @@ module Assert =
   });
 
 let suite =
-  "Grammar.Primitive (String)"
+  "Grammar.Primitive | Boolean"
   >::: [
     "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
-    "parse"
+    "parse true"
     >: (
       () =>
-        ["\"foo\"", " \"foo\" "]
-        |> Assert.parse_all(AST.Raw.of_string("foo") |> as_raw_node)
+        ["true", " true "]
+        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_raw_node)
     ),
-    "with escape characters"
+    "parse false"
     >: (
       () =>
-        Assert.parse(
-          "\"foo\\\"bar\"",
-          AST.Raw.of_string("foo\\\"bar") |> as_raw_node,
-        )
+        ["false", " false "]
+        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_raw_node)
     ),
   ];
