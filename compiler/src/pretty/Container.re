@@ -33,7 +33,7 @@ let _list_box =
 /**
    print a list of values divided by separators and spaces
    automatically breaks each item onto separate lines for long lists
-   set `~trail=true` to show a trailing seprator for long lists
+   set `~trail=true` to show a trailing separator for long lists
    */
 let list =
     (~layout=Horizontal, ~sep=Sep.trailing_comma, pp_value: t('a))

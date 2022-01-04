@@ -16,7 +16,7 @@ module Character = {
   let quote = '"';
   let period = '.';
   let comma = ',';
-  let octothorp = '#';
+  let octothorpe = '#';
   let underscore = '_';
   let semicolon = ';';
   let equal_sign = '=';

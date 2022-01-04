@@ -83,7 +83,7 @@ let intersperse = TList.intersperse;
 let split_at = (index: int, xs: list('a)) => TList.split_at(~index, xs);
 
 /**
- split a list [xs] into two equalish sized lists
+ split a list [xs] into two equal-ish sized lists
  */
 let divide = (xs: list('a)) =>
   switch (xs) {

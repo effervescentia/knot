@@ -113,7 +113,7 @@ and attributes = (ctx: ModuleContext.t, x) =>
         range,
       )
     ),
-    M.identifier(~prefix=Character.octothorp)
+    M.identifier(~prefix=Character.octothorpe)
     >|= Node.Raw.(
           Tuple.split2(
             Tuple.split2(

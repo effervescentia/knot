@@ -149,7 +149,7 @@ module type ASTParams = {
 };
 
 /**
- contructor for AST modules
+ constructor for AST modules
  */
 module Make = (T: ASTParams) => {
   include Common;

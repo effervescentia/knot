@@ -52,7 +52,7 @@ let suite =
         let utils_file = Filename.concat(temp_dir, "utils.kn");
         let (promise, resolve) = Async.wait();
 
-        FileUtil.cp(~recurse=true, [messy_cylic_fixture_dir], temp_dir);
+        FileUtil.cp(~recurse=true, [messy_cyclic_fixture_dir], temp_dir);
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
