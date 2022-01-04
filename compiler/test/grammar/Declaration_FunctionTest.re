@@ -44,7 +44,7 @@ let suite =
     "no parse"
     >: (
       () =>
-        [
+        Assert.parse_none([
           "gibberish",
           "func",
           "func foo",
@@ -53,50 +53,58 @@ let suite =
           "func foo () -> {",
           "func foo ->",
           "func foo -> {",
-        ]
-        |> Assert.no_parse
+        ])
     ),
-    "parse"
+    "parse - inline with no arguments"
     >: (
       () =>
-        [
+        Assert.parse(
           (
-            "func foo -> nil",
-            (
-              "foo" |> of_public |> as_raw_node |> of_named_export,
-              ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
-            )
-            |> as_raw_node,
-          ),
+            "foo" |> of_public |> as_raw_node |> of_named_export,
+            ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
+          )
+          |> as_raw_node,
+          "func foo -> nil",
+        )
+    ),
+    "parse - with body and no arguments"
+    >: (
+      () =>
+        Assert.parse(
           (
-            "func foo -> { nil }",
-            (
-              "foo" |> of_public |> as_raw_node |> of_named_export,
-              ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
-              |> of_func
-              |> as_function([], Valid(`Nil)),
-            )
-            |> as_raw_node,
-          ),
+            "foo" |> of_public |> as_raw_node |> of_named_export,
+            ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
+            |> of_func
+            |> as_function([], Valid(`Nil)),
+          )
+          |> as_raw_node,
+          "func foo -> { nil }",
+        )
+    ),
+    "parse - inline with empty arguments"
+    >: (
+      () =>
+        Assert.parse(
           (
-            "func foo () -> nil",
-            (
-              "foo" |> of_public |> as_raw_node |> of_named_export,
-              ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
-            )
-            |> as_raw_node,
-          ),
+            "foo" |> of_public |> as_raw_node |> of_named_export,
+            ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
+          )
+          |> as_raw_node,
+          "func foo () -> nil",
+        )
+    ),
+    "parse - with body and empty arguments"
+    >: (
+      () =>
+        Assert.parse(
           (
-            "func foo () -> { nil }",
-            (
-              "foo" |> of_public |> as_raw_node |> of_named_export,
-              ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
-              |> of_func
-              |> as_function([], Valid(`Nil)),
-            )
-            |> as_raw_node,
-          ),
-        ]
-        |> Assert.parse_many
+            "foo" |> of_public |> as_raw_node |> of_named_export,
+            ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
+            |> of_func
+            |> as_function([], Valid(`Nil)),
+          )
+          |> as_raw_node,
+          "func foo () -> { nil }",
+        )
     ),
   ];

@@ -3,13 +3,9 @@ open Kore;
 let suite =
   "Library.List"
   >::: [
-    "is_empty()"
-    >: (
-      () => {
-        List.is_empty([]) |> Assert.true_;
-        List.is_empty([1, 2, 3]) |> Assert.false_;
-      }
-    ),
+    "is_empty() - is empty" >: (() => Assert.true_(List.is_empty([]))),
+    "is_empty() - is not empty"
+    >: (() => Assert.false_(List.is_empty([1, 2, 3]))),
     "incl() - empty" >: (() => Assert.int_list([0], List.incl(0, []))),
     "incl() - item exists"
     >: (() => Assert.int_list([1, 2, 3], List.incl(2, [1, 2, 3]))),
@@ -61,10 +57,9 @@ let suite =
     "ends() - raise NoListMembers"
     >: (
       () =>
-        switch (List.ends([])) {
-        | exception List.NoListMembers => ()
-        | _ => Alcotest.fail("should raise NoListMembers")
-        }
+        Assert.throws(List.NoListMembers, "should raise NoListMembers", () =>
+          List.ends([])
+        )
     ),
     "repeat()" >: (() => Assert.int_list([1, 1, 1], List.repeat(3, 1))),
     "last() - empty" >: (() => Assert.opt_int(None, List.last([]))),

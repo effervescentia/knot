@@ -8,15 +8,17 @@ let suite =
     "compare()"
     >: (
       () => {
-        Hashtbl.compare(__table, Hashtbl.copy(__table)) |> Assert.true_;
+        Assert.true_(Hashtbl.compare(__table, Hashtbl.copy(__table)));
 
         let big_table = Hashtbl.create(10);
         Hashtbl.add(big_table, "foo", "bar");
-        Hashtbl.compare(__table, big_table) |> Assert.true_;
+
+        Assert.true_(Hashtbl.compare(__table, big_table));
 
         let different_table =
           [("fizz", "buzz")] |> List.to_seq |> Hashtbl.of_seq;
-        Hashtbl.compare(__table, different_table) |> Assert.false_;
+
+        Assert.false_(Hashtbl.compare(__table, different_table));
       }
     ),
     "pp()"

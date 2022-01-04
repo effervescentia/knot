@@ -26,19 +26,21 @@ module Assert =
 let suite =
   "Grammar.Primitive | String"
   >::: [
-    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse"
     >: (
       () =>
-        ["\"foo\"", " \"foo\" "]
-        |> Assert.parse_all(AST.Raw.of_string("foo") |> as_raw_node)
+        Assert.parse_all(
+          AST.Raw.of_string("foo") |> as_raw_node,
+          ["\"foo\"", " \"foo\" "],
+        )
     ),
     "with escape characters"
     >: (
       () =>
         Assert.parse(
-          "\"foo\\\"bar\"",
           AST.Raw.of_string("foo\\\"bar") |> as_raw_node,
+          "\"foo\\\"bar\"",
         )
     ),
   ];

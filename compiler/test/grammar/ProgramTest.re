@@ -76,49 +76,48 @@ let __ns_context =
 let suite =
   "Grammar.Program"
   >::: [
-    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse import"
     >: (
       () =>
-        [(__main_import, [__main_import_ast])]
-        |> Assert.parse_many(~ns_context=__ns_context)
+        Assert.parse(
+          ~ns_context=__ns_context,
+          [__main_import_ast],
+          __main_import,
+        )
     ),
-    "parse declaration"
+    "parse single declaration"
+    >: (() => Assert.parse([__const_decl_ast], __const_decl)),
+    "parse multiple declarations"
     >: (
       () =>
-        [
-          (__const_decl, [__const_decl_ast]),
-          (
-            __const_decl ++ "; const bar = foo",
-            [
-              __const_decl_ast,
-              (
-                "bar" |> of_public |> as_raw_node |> of_named_export,
-                "foo"
-                |> of_public
-                |> as_nil
-                |> of_id
-                |> as_nil
-                |> of_const
-                |> as_nil,
-              )
-              |> of_decl
-              |> as_raw_node,
-            ],
-          ),
-        ]
-        |> Assert.parse_many
+        Assert.parse(
+          [
+            __const_decl_ast,
+            (
+              "bar" |> of_public |> as_raw_node |> of_named_export,
+              "foo"
+              |> of_public
+              |> as_nil
+              |> of_id
+              |> as_nil
+              |> of_const
+              |> as_nil,
+            )
+            |> of_decl
+            |> as_raw_node,
+          ],
+          __const_decl ++ "; const bar = foo",
+        )
     ),
     "parse import and declaration"
     >: (
       () =>
-        [
-          (
-            Fmt.str("%s; %s", __main_import, __const_decl),
-            [__main_import_ast, __const_decl_ast],
-          ),
-        ]
-        |> Assert.parse_many(~ns_context=__ns_context)
+        Assert.parse(
+          ~ns_context=__ns_context,
+          [__main_import_ast, __const_decl_ast],
+          Fmt.str("%s; %s", __main_import, __const_decl),
+        )
     ),
     "parse import with dependent declaration"
     >: (
@@ -145,7 +144,6 @@ let suite =
                 |> Hashtbl.of_seq,
               Internal("mock"),
             ),
-          __main_import ++ "; const bar = foo",
           [
             __main_import_ast,
             (
@@ -161,12 +159,16 @@ let suite =
             |> of_decl
             |> as_raw_node,
           ],
+          __main_import ++ "; const bar = foo",
         )
     ),
     "parse imports only"
     >: (
       () =>
-        [(__main_import |> Fmt.str("%s; gibberish"), [__main_import_ast])]
-        |> AssertImports.parse_many(~ns_context=__ns_context)
+        AssertImports.parse(
+          ~ns_context=__ns_context,
+          [__main_import_ast],
+          __main_import |> Fmt.str("%s; gibberish"),
+        )
     ),
   ];

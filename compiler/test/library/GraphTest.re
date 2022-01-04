@@ -68,13 +68,10 @@ let suite =
           Graph.get_edges(__acyclic_graph),
         )
     ),
-    "has_node()"
-    >: (
-      () => {
-        Graph.has_node("fizz", __acyclic_graph) |> Assert.true_;
-        Graph.has_node("foobar", __acyclic_graph) |> Assert.false_;
-      }
-    ),
+    "has_node() - does have node"
+    >: (() => Assert.true_(Graph.has_node("fizz", __acyclic_graph))),
+    "has_node() - does not have node"
+    >: (() => Assert.false_(Graph.has_node("foobar", __acyclic_graph))),
     "get_edges_of()"
     >: (
       () =>
@@ -147,10 +144,9 @@ let suite =
     "add_edge() - add invalid edge"
     >: (
       () =>
-        switch (Graph.add_edge("hi", "low", _make_graph())) {
-        | exception Graph.InvalidEdge => ()
-        | _ => Alcotest.fail("expected exception")
-        }
+        Assert.throws(Graph.InvalidEdge, "should raise InvalidEdge", () =>
+          Graph.add_edge("hi", "low", _make_graph())
+        )
     ),
     "union()"
     >: (
@@ -261,13 +257,10 @@ let suite =
              ["bar", "fizz", "foo"],
            ])
     ),
-    "is_acyclic()"
-    >: (
-      () => {
-        __acyclic_graph |> Graph.is_acyclic |> Assert.true_;
-        __cyclic_graph |> Graph.is_acyclic |> Assert.false_;
-      }
-    ),
+    "is_acyclic() - has no cycles"
+    >: (() => Assert.true_(Graph.is_acyclic(__acyclic_graph))),
+    "is_acyclic() - has cycles"
+    >: (() => Assert.false_(Graph.is_acyclic(__cyclic_graph))),
     "pp()"
     >: (
       () =>

@@ -31,33 +31,27 @@ let suite =
     "parse"
     >: (
       () =>
-        [
+        Assert.parse(
           (
-            "const foo = nil",
-            (
-              "foo" |> of_public |> as_raw_node |> of_named_export,
-              nil_prim |> of_const |> as_nil,
-            )
-            |> of_decl
-            |> as_raw_node,
-          ),
-        ]
-        |> Assert.parse_many
+            "foo" |> of_public |> as_raw_node |> of_named_export,
+            nil_prim |> of_const |> as_nil,
+          )
+          |> of_decl
+          |> as_raw_node,
+          "const foo = nil",
+        )
     ),
     "parse main"
     >: (
       () =>
-        [
+        Assert.parse(
           (
-            "main const foo = nil",
-            (
-              "foo" |> of_public |> as_raw_node |> of_main_export,
-              nil_prim |> of_const |> as_nil,
-            )
-            |> of_decl
-            |> as_raw_node,
-          ),
-        ]
-        |> Assert.parse_many
+            "foo" |> of_public |> as_raw_node |> of_main_export,
+            nil_prim |> of_const |> as_nil,
+          )
+          |> of_decl
+          |> as_raw_node,
+          "main const foo = nil",
+        )
     ),
   ];

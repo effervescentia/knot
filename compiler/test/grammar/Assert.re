@@ -2,6 +2,10 @@ open Kore;
 
 include Test.Assert;
 
+let _mock_ns_context = report =>
+  NamespaceContext.create(~report, Internal("mock"));
+let _mock_module_context = x => ModuleContext.create(x);
+
 module type ParseTarget = {
   include Test.Assert.Target;
 
@@ -14,11 +18,11 @@ module Make = (T: ParseTarget) => {
   let parse =
       (
         ~report=throw,
-        ~ns_context=NamespaceContext.create(~report, Internal("mock")),
-        ~mod_context=x => ModuleContext.create(x),
+        ~ns_context=_mock_ns_context(report),
+        ~mod_context=_mock_module_context,
         ~cursor=false,
-        source,
         expected,
+        source,
       ) =>
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
@@ -33,43 +37,40 @@ module Make = (T: ParseTarget) => {
         |> ignore
     );
 
-  let parse_many =
-      (
-        ~report=throw,
-        ~ns_context=NamespaceContext.create(~report, Internal("mock")),
-        ~mod_context=x => ModuleContext.create(x),
-        ~cursor=false,
-      ) =>
-    List.iter(((i, o)) =>
-      parse(~ns_context, ~mod_context, ~report, ~cursor, i, o)
-    );
-
   let parse_all =
       (
         ~report=throw,
-        ~ns_context=NamespaceContext.create(~report, Internal("mock")),
-        ~mod_context=x => ModuleContext.create(x),
+        ~ns_context=_mock_ns_context(report),
+        ~mod_context=_mock_module_context,
         ~cursor=false,
         o,
       ) =>
-    List.iter(i => parse(~ns_context, ~mod_context, ~report, ~cursor, i, o));
+    List.iter(parse(~ns_context, ~mod_context, ~report, ~cursor, o));
 
   let no_parse =
       (
         ~report=throw,
-        ~ns_context=NamespaceContext.create(~report, Internal("mock")),
-        ~mod_context=x => ModuleContext.create(x),
+        ~ns_context=_mock_ns_context(report),
+        ~mod_context=_mock_module_context,
+        ~cursor=false,
+        source,
+      ) =>
+    InputStream.of_string(~cursor, source)
+    |> LazyStream.of_stream
+    |> T.parser((ns_context, mod_context(ns_context)))
+    |> (
+      fun
+      | Some(r) =>
+        source |> Fmt.str("parsed input: '%s'") |> Alcotest.fail |> ignore
+      | None => ()
+    );
+
+  let parse_none =
+      (
+        ~report=throw,
+        ~ns_context=_mock_ns_context(report),
+        ~mod_context=_mock_module_context,
         ~cursor=false,
       ) =>
-    List.iter(source =>
-      InputStream.of_string(~cursor, source)
-      |> LazyStream.of_stream
-      |> T.parser((ns_context, mod_context(ns_context)))
-      |> (
-        fun
-        | Some(r) =>
-          source |> Fmt.str("parsed input: '%s'") |> Alcotest.fail |> ignore
-        | None => ()
-      )
-    );
+    List.iter(no_parse(~report, ~ns_context, ~mod_context, ~cursor));
 };

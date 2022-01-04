@@ -44,22 +44,19 @@ let suite =
     "no parse"
     >: (
       () =>
-        ["gibberish", "const", "const foo", "const foo ="] |> Assert.no_parse
+        Assert.parse_none(["gibberish", "const", "const foo", "const foo ="])
     ),
     "parse"
     >: (
       () =>
-        [
+        Assert.parse(
           (
-            "const foo = nil",
-            (
-              "foo" |> of_public |> as_raw_node |> of_named_export,
-              nil_prim |> of_const |> as_nil,
-            )
-            |> as_raw_node,
-          ),
-        ]
-        |> Assert.parse_many
+            "foo" |> of_public |> as_raw_node |> of_named_export,
+            nil_prim |> of_const |> as_nil,
+          )
+          |> as_raw_node,
+          "const foo = nil",
+        )
     ),
     "parse with complex derived type"
     >: (
@@ -75,11 +72,6 @@ let suite =
 
         Assert.parse(
           ~mod_context=x => ModuleContext.create(~definitions, x),
-          "const foo = {
-            let x = bar;
-            let y = x > fizz && x != buzz;
-            y || x + 1 <= 5;
-          }",
           (
             "foo" |> of_public |> as_raw_node |> of_named_export,
             [
@@ -135,6 +127,11 @@ let suite =
             |> as_bool,
           )
           |> as_raw_node,
+          "const foo = {
+            let x = bar;
+            let y = x > fizz && x != buzz;
+            y || x + 1 <= 5;
+          }",
         );
 
         /* TODO: uncomment assertions */

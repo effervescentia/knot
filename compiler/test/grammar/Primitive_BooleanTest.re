@@ -26,17 +26,21 @@ module Assert =
 let suite =
   "Grammar.Primitive | Boolean"
   >::: [
-    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse true"
     >: (
       () =>
-        ["true", " true "]
-        |> Assert.parse_all(AST.Raw.of_bool(true) |> as_raw_node)
+        Assert.parse_all(
+          AST.Raw.of_bool(true) |> as_raw_node,
+          ["true", " true "],
+        )
     ),
     "parse false"
     >: (
       () =>
-        ["false", " false "]
-        |> Assert.parse_all(AST.Raw.of_bool(false) |> as_raw_node)
+        Assert.parse_all(
+          AST.Raw.of_bool(false) |> as_raw_node,
+          ["false", " false "],
+        )
     ),
   ];
