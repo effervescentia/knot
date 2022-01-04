@@ -10,189 +10,224 @@ let __raw_props = [
 let suite = [
   "Library.Type.Error"
   >::: [
-    "pp()"
+    "pp() - not found"
     >: (
       () =>
-        [
-          (
-            "NotFound<foo>",
-            Error.NotFound(Public("foo")) |> ~@Error.pp(pp),
-          ),
-          (
-            "DuplicateIdentifier<foo>",
-            Error.DuplicateIdentifier(Public("foo")) |> ~@Error.pp(pp),
-          ),
-          (
-            "NotAssignable<nil, Unknown>",
-            Error.NotAssignable(Valid(`Nil), Trait.Unknown)
-            |> ~@Error.pp(pp),
-          ),
-          (
-            "ExternalNotFound<@/foo#main>",
-            Error.ExternalNotFound(Internal("foo"), Main) |> ~@Error.pp(pp),
-          ),
-          (
-            "TypeResolutionFailed",
-            Error.TypeResolutionFailed |> ~@Error.pp(pp),
-          ),
-          (
-            "TypeMismatch<nil, string>",
-            Error.TypeMismatch(Valid(`Nil), Valid(`String))
-            |> ~@Error.pp(pp),
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "NotFound<foo>",
+          Error.NotFound(Public("foo")) |> ~@Error.pp(pp),
+        )
+    ),
+    "pp() - duplicate identifier"
+    >: (
+      () =>
+        Assert.string(
+          "DuplicateIdentifier<foo>",
+          Error.DuplicateIdentifier(Public("foo")) |> ~@Error.pp(pp),
+        )
+    ),
+    "pp() - not assignable"
+    >: (
+      () =>
+        Assert.string(
+          "NotAssignable<nil, Unknown>",
+          Error.NotAssignable(Valid(`Nil), Trait.Unknown) |> ~@Error.pp(pp),
+        )
+    ),
+    "pp() - external not found"
+    >: (
+      () =>
+        Assert.string(
+          "ExternalNotFound<@/foo#main>",
+          Error.ExternalNotFound(Internal("foo"), Main) |> ~@Error.pp(pp),
+        )
+    ),
+    "pp() - type resolution failed"
+    >: (
+      () =>
+        Assert.string(
+          "TypeResolutionFailed",
+          Error.TypeResolutionFailed |> ~@Error.pp(pp),
+        )
+    ),
+    "pp() - type mismatch"
+    >: (
+      () =>
+        Assert.string(
+          "TypeMismatch<nil, string>",
+          Error.TypeMismatch(Valid(`Nil), Valid(`String)) |> ~@Error.pp(pp),
+        )
     ),
   ],
   "Library.Type.Raw"
   >::: [
-    "pp_primitive()"
-    >: (
-      () =>
-        [
-          ("nil", `Nil |> ~@Raw.pp_primitive),
-          ("bool", `Boolean |> ~@Raw.pp_primitive),
-          ("int", `Integer |> ~@Raw.pp_primitive),
-          ("float", `Float |> ~@Raw.pp_primitive),
-          ("string", `String |> ~@Raw.pp_primitive),
-          ("element", `Element |> ~@Raw.pp_primitive),
-        ]
-        |> Assert.(test_many(string))
-    ),
+    "pp_primitive() - nil"
+    >: (() => Assert.string("nil", `Nil |> ~@Raw.pp_primitive)),
+    "pp_primitive() - boolean"
+    >: (() => Assert.string("bool", `Boolean |> ~@Raw.pp_primitive)),
+    "pp_primitive() - integer"
+    >: (() => Assert.string("int", `Integer |> ~@Raw.pp_primitive)),
+    "pp_primitive() - float"
+    >: (() => Assert.string("float", `Float |> ~@Raw.pp_primitive)),
+    "pp_primitive() - string"
+    >: (() => Assert.string("string", `String |> ~@Raw.pp_primitive)),
+    "pp_primitive() - element"
+    >: (() => Assert.string("element", `Element |> ~@Raw.pp_primitive)),
     "pp_list()"
     >: (
       () =>
-        [("List<nil>", `Nil |> ~@Raw.pp_list(Raw.pp_primitive))]
-        |> Assert.(test_many(string))
+        Assert.string("List<nil>", `Nil |> ~@Raw.pp_list(Raw.pp_primitive))
     ),
     "pp_abstract()"
     >: (
       () =>
-        [("Abstract<Unknown>", Trait.Unknown |> ~@Raw.pp_abstract)]
-        |> Assert.(test_many(string))
+        Assert.string("Abstract<Unknown>", Trait.Unknown |> ~@Raw.pp_abstract)
     ),
-    "pp_struct()"
+    "pp_struct() - empty"
+    >: (() => Assert.string("{}", [] |> ~@Raw.pp_struct(pp))),
+    "pp_struct() - with properties"
     >: (
       () =>
-        [
-          ("{}", [] |> ~@Raw.pp_struct(pp)),
-          ("{ foo: nil, bar: string }", __props |> ~@Raw.pp_struct(pp)),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "{ foo: nil, bar: string }",
+          __props |> ~@Raw.pp_struct(pp),
+        )
     ),
-    "pp_function()"
+    "pp_function() - empty"
     >: (
       () =>
-        [
-          (
-            "Function<(), bool>",
-            ([], Valid(`Boolean)) |> ~@Raw.pp_function(pp),
-          ),
-          (
-            "Function<(foo: nil, bar: string), int>",
-            (__props, Valid(`Integer)) |> ~@Raw.pp_function(pp),
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "Function<(), bool>",
+          ([], Valid(`Boolean)) |> ~@Raw.pp_function(pp),
+        )
     ),
-    "pp_strong()"
+    "pp_function() - with argument and return types"
     >: (
       () =>
-        [
-          ("bool", `Boolean |> ~@Raw.pp_strong),
-          ("List<string>", `List(Raw.Strong(`String)) |> ~@Raw.pp_strong),
-          (
-            "{ foo: nil, bar: string }",
-            `Struct(__raw_props) |> ~@Raw.pp_strong,
-          ),
-          (
-            "Function<(foo: nil, bar: string), bool>",
-            `Function((__raw_props, Raw.Strong(`Boolean))) |> ~@Raw.pp_strong,
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "Function<(foo: nil, bar: string), int>",
+          (__props, Valid(`Integer)) |> ~@Raw.pp_function(pp),
+        )
     ),
-    "pp_weak()"
+    "pp_strong() - primitive"
+    >: (() => Assert.string("bool", `Boolean |> ~@Raw.pp_strong)),
+    "pp_strong() - list"
     >: (
       () =>
-        [
-          ("bool", Ok(`Boolean) |> ~@Raw.pp_weak),
-          (
-            "List<string>",
-            Ok(`List(Raw.Strong(`String))) |> ~@Raw.pp_weak,
-          ),
-          (
-            "{ foo: nil, bar: string }",
-            Ok(`Struct(__raw_props)) |> ~@Raw.pp_weak,
-          ),
-          (
-            "Function<(foo: nil, bar: string), bool>",
-            Ok(`Function((__raw_props, Raw.Strong(`Boolean))))
-            |> ~@Raw.pp_weak,
-          ),
-          ("Generic<1, 3>", Ok(`Generic((1, 3))) |> ~@Raw.pp_weak),
-          /* (
-               "Abstract<Unknown>",
-               Ok(`Abstract(Trait.Unknown)) |> ~@Raw.pp_weak,
-             ), */
-          (
-            "TypeResolutionFailed",
-            Error(Error.TypeResolutionFailed) |> ~@Raw.pp_weak,
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "List<string>",
+          `List(Raw.Strong(`String)) |> ~@Raw.pp_strong,
+        )
     ),
-    "pp()"
+    "pp_strong() - struct"
     >: (
       () =>
-        [
-          ("bool", Raw.Strong(`Boolean) |> ~@Raw.pp),
-          (
-            "TypeResolutionFailed",
-            Raw.Invalid(TypeResolutionFailed) |> ~@Raw.pp,
-          ),
-          ("Weak<2, 3>", Raw.Weak(2, 3) |> ~@Raw.pp),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "{ foo: nil, bar: string }",
+          `Struct(__raw_props) |> ~@Raw.pp_strong,
+        )
+    ),
+    "pp_strong() - function"
+    >: (
+      () =>
+        Assert.string(
+          "Function<(foo: nil, bar: string), bool>",
+          `Function((__raw_props, Raw.Strong(`Boolean))) |> ~@Raw.pp_strong,
+        )
+    ),
+    "pp_weak() - primitive"
+    >: (() => Assert.string("bool", Ok(`Boolean) |> ~@Raw.pp_weak)),
+    "pp_weak() - list"
+    >: (
+      () =>
+        Assert.string(
+          "List<string>",
+          Ok(`List(Raw.Strong(`String))) |> ~@Raw.pp_weak,
+        )
+    ),
+    "pp_weak() - struct"
+    >: (
+      () =>
+        Assert.string(
+          "{ foo: nil, bar: string }",
+          Ok(`Struct(__raw_props)) |> ~@Raw.pp_weak,
+        )
+    ),
+    "pp_weak() - function"
+    >: (
+      () =>
+        Assert.string(
+          "Function<(foo: nil, bar: string), bool>",
+          Ok(`Function((__raw_props, Raw.Strong(`Boolean))))
+          |> ~@Raw.pp_weak,
+        )
+    ),
+    "pp_weak() - generic"
+    >: (
+      () =>
+        Assert.string(
+          "Generic<1, 3>",
+          Ok(`Generic((1, 3))) |> ~@Raw.pp_weak,
+        )
+    ),
+    /* "pp_weak() - abstract" >: (() => Assert.string("Abstract<Unknown>", Ok(`Abstract(Trait.Unknown)) |> ~@Raw.pp_weak)), */
+    "pp_weak() - error"
+    >: (
+      () =>
+        Assert.string(
+          "TypeResolutionFailed",
+          Error(Error.TypeResolutionFailed) |> ~@Raw.pp_weak,
+        )
+    ),
+    "pp() - strong"
+    >: (() => Assert.string("bool", Raw.Strong(`Boolean) |> ~@Raw.pp)),
+    "pp() - weak"
+    >: (() => Assert.string("Weak<2, 3>", Raw.Weak(2, 3) |> ~@Raw.pp)),
+    "pp() - invalid"
+    >: (
+      () =>
+        Assert.string(
+          "TypeResolutionFailed",
+          Raw.Invalid(TypeResolutionFailed) |> ~@Raw.pp,
+        )
     ),
   ],
   "Library.Type"
   >::: [
-    "pp_valid()"
+    "pp_valid() - primitive"
+    >: (() => Assert.string("bool", `Boolean |> ~@pp_valid)),
+    "pp_valid() - list"
     >: (
       () =>
-        [
-          ("bool", `Boolean |> ~@pp_valid),
-          ("List<string>", `List(Valid(`String)) |> ~@pp_valid),
-          ("{ foo: nil, bar: string }", `Struct(__props) |> ~@pp_valid),
-          (
-            "Function<(foo: nil, bar: string), bool>",
-            `Function((__props, Valid(`Boolean))) |> ~@pp_valid,
-          ),
-          /* ("Abstract<Unknown>", `Abstract(Trait.Unknown) |> ~@pp_valid), */
-          ("Generic<1, 3>", `Generic((1, 3)) |> ~@pp_valid),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string("List<string>", `List(Valid(`String)) |> ~@pp_valid)
     ),
-    "pp()"
+    "pp_valid() - struct"
     >: (
       () =>
-        [
-          ("bool", Valid(`Boolean) |> ~@pp),
-          ("List<string>", Valid(`List(Valid(`String))) |> ~@pp),
-          ("{ foo: nil, bar: string }", Valid(`Struct(__props)) |> ~@pp),
-          (
-            "Function<(foo: nil, bar: string), bool>",
-            Valid(`Function((__props, Valid(`Boolean)))) |> ~@pp,
-          ),
-          /* ("Abstract<Unknown>", Valid(`Abstract(Trait.Unknown)) |> ~@pp), */
-          ("Generic<1, 3>", Valid(`Generic((1, 3))) |> ~@pp),
-          (
-            "TypeResolutionFailed",
-            Invalid(Error.TypeResolutionFailed) |> ~@pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "{ foo: nil, bar: string }",
+          `Struct(__props) |> ~@pp_valid,
+        )
+    ),
+    "pp_valid() - function"
+    >: (
+      () =>
+        Assert.string(
+          "Function<(foo: nil, bar: string), bool>",
+          `Function((__props, Valid(`Boolean))) |> ~@pp_valid,
+        )
+    ),
+    /* "pp_valid() - abstract" >: (() => Assert.string("Abstract<Unknown>", `Abstract(Trait.Unknown) |> ~@pp_valid)), */
+    "pp_valid() - generic"
+    >: (() => Assert.string("Generic<1, 3>", `Generic((1, 3)) |> ~@pp_valid)),
+    "pp() - valid" >: (() => Assert.string("bool", Valid(`Boolean) |> ~@pp)),
+    "pp() - invalid"
+    >: (
+      () =>
+        Assert.string(
+          "TypeResolutionFailed",
+          Invalid(Error.TypeResolutionFailed) |> ~@pp,
+        )
     ),
   ],
 ];

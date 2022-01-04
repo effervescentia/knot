@@ -4,55 +4,55 @@ open Reference;
 let suite = [
   "Library.Reference.Namespace"
   >::: [
-    "pp()"
+    "pp() - internal"
     >: (
       () =>
-        [
-          ("@/foo", Namespace.Internal("foo") |> ~@Namespace.pp),
-          ("foo", Namespace.External("foo") |> ~@Namespace.pp),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string("@/foo", Namespace.Internal("foo") |> ~@Namespace.pp)
+    ),
+    "pp() - external"
+    >: (
+      () => Assert.string("foo", Namespace.External("foo") |> ~@Namespace.pp)
     ),
   ],
   "Library.Reference.Module"
   >::: [
-    "pp()"
+    "pp() - root"
+    >: (() => Assert.string("[root]", Module.Root |> ~@Module.pp)),
+    "pp() - inner"
+    >: (() => Assert.string("foo", Module.Inner("foo", None) |> ~@Module.pp)),
+    "pp() - nested"
     >: (
       () =>
-        [
-          ("[root]", Module.Root |> ~@Module.pp),
-          ("foo", Module.Inner("foo", None) |> ~@Module.pp),
-          (
-            "bar.foo",
-            Module.Inner("foo", Some(Inner("bar", None))) |> ~@Module.pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "bar.foo",
+          Module.Inner("foo", Some(Inner("bar", None))) |> ~@Module.pp,
+        )
     ),
   ],
   "Library.Reference.Identifier"
   >::: [
-    "pp()"
+    "pp() - public"
+    >: (
+      () => Assert.string("foo", Identifier.Public("foo") |> ~@Identifier.pp)
+    ),
+    "pp() - private"
     >: (
       () =>
-        [
-          ("foo", Identifier.Public("foo") |> ~@Identifier.pp),
-          ("_foo", Identifier.Private("foo") |> ~@Identifier.pp),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string("_foo", Identifier.Private("foo") |> ~@Identifier.pp)
     ),
   ],
   "Library.Reference.Export"
   >::: [
-    "pp()"
+    "pp() - main export"
+    >: (() => Assert.string("main", Export.Main |> ~@Export.pp)),
+    "pp() - public export"
+    >: (
+      () => Assert.string("foo", Export.Named(Public("foo")) |> ~@Export.pp)
+    ),
+    "pp() - private export"
     >: (
       () =>
-        [
-          ("main", Export.Main |> ~@Export.pp),
-          ("foo", Export.Named(Public("foo")) |> ~@Export.pp),
-          ("_foo", Export.Named(Private("foo")) |> ~@Export.pp),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string("_foo", Export.Named(Private("foo")) |> ~@Export.pp)
     ),
   ],
 ];

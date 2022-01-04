@@ -271,21 +271,18 @@ let suite =
     "pp()"
     >: (
       () =>
-        [
-          (
-            "a                   \n\
+        Assert.string(
+          "a                   \n\
 |------,            \n\
 |      |            \n\
 c      b            \n\
 |-,-,  |------,-,   \n\
 | | |  |      | |   \n\
 g f e  c      e d   \n       |            \n       […]        "
-            |> String.replace(' ', 'x'),
-            __branching_graph
-            |> ~@Graph.pp(Fmt.string)
-            |> String.replace(' ', 'x'),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          |> String.replace(' ', 'x'),
+          __branching_graph
+          |> ~@Graph.pp(Fmt.string)
+          |> String.replace(' ', 'x'),
+        )
     ),
   ];

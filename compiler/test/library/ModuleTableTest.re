@@ -28,31 +28,28 @@ let suite =
         __table
         |> ModuleTable.add(__id, __program, __types, __scope_tree, "foo");
 
-        [
-          (
-            _create_table([
-              (
-                __id,
-                ModuleTable.{
-                  exports:
-                    _create_table(
-                      AST.[
-                        (
-                          Export.Named("bar" |> of_public),
-                          Type.Valid(`Generic((0, 3))),
-                        ),
-                      ],
-                    ),
-                  ast: __program,
-                  scopes: __scope_tree,
-                  raw: "foo",
-                },
-              ),
-            ]),
-            __table,
-          ),
-        ]
-        |> Assert.(test_many(module_table));
+        Assert.module_table(
+          _create_table([
+            (
+              __id,
+              ModuleTable.{
+                exports:
+                  _create_table(
+                    AST.[
+                      (
+                        Export.Named("bar" |> of_public),
+                        Type.Valid(`Generic((0, 3))),
+                      ),
+                    ],
+                  ),
+                ast: __program,
+                scopes: __scope_tree,
+                raw: "foo",
+              },
+            ),
+          ]),
+          __table,
+        );
       }
     ),
     "add_type() - add type to existing module"
@@ -65,29 +62,26 @@ let suite =
              Valid(`Float),
            );
 
-        [
-          (
-            _create_table([
-              (
-                __id,
-                ModuleTable.{
-                  exports:
-                    _create_table([
-                      (
-                        Export.Named("new_type" |> AST.of_public),
-                        Type.Valid(`Float),
-                      ),
-                    ]),
-                  ast: __program,
-                  scopes: __scope_tree,
-                  raw: "foo",
-                },
-              ),
-            ]),
-            __table,
-          ),
-        ]
-        |> Assert.(test_many(module_table));
+        Assert.module_table(
+          _create_table([
+            (
+              __id,
+              ModuleTable.{
+                exports:
+                  _create_table([
+                    (
+                      Export.Named("new_type" |> AST.of_public),
+                      Type.Valid(`Float),
+                    ),
+                  ]),
+                ast: __program,
+                scopes: __scope_tree,
+                raw: "foo",
+              },
+            ),
+          ]),
+          __table,
+        );
       }
     ),
     "add_type() - add type to an unknown module"
@@ -100,7 +94,7 @@ let suite =
              Valid(`Float),
            );
 
-        [(original_table, __table)] |> Assert.(test_many(module_table));
+        Assert.module_table(original_table, __table);
       }
     ),
   ];

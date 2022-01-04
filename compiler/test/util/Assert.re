@@ -4,17 +4,11 @@ module type Target = {
   let test: (t, t) => unit;
 };
 
-let test_many = test => List.iter(((exp, act)) => test(exp, act));
-let test_all = (test, exp) => List.iter(act => test(exp, act));
 let throws = (exn, msg, test) =>
   Alcotest.check_raises(msg, exn, () => test() |> ignore);
 
 module Make = (T: Target) => {
   include T;
-
-  let test_many = List.iter(((i, o)) => test(o, i));
-
-  let test_all = o => List.iter(i => test(o, i));
 };
 
 module Compare = {

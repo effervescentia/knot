@@ -22,14 +22,11 @@ let suite =
     "pp()"
     >: (
       () =>
-        [
-          (
-            "Hashtbl {
+        Assert.string(
+          "Hashtbl {
   foo: bar
 }",
-            __table |> ~@Fmt.(root(Hashtbl.pp(string, string))),
-          ),
-        ]
-        |> Assert.(test_many(string))
+          __table |> ~@Fmt.(root(Hashtbl.pp(string, string))),
+        )
     ),
   ];

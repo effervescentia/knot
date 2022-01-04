@@ -6,86 +6,76 @@ let suite =
     "of_uchars()"
     >: (
       () =>
-        [
-          (
-            "abc",
-            String.of_uchars([
-              Uchar.of_char('a'),
-              Uchar.of_char('b'),
-              Uchar.of_char('c'),
-            ]),
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "abc",
+          String.of_uchars([
+            Uchar.of_char('a'),
+            Uchar.of_char('b'),
+            Uchar.of_char('c'),
+          ]),
+        )
     ),
     "drop_prefix()"
-    >: (
-      () =>
-        [
-          ("bar", String.drop_prefix("foo", "foobar")),
-          ("foobar", String.drop_prefix("fizz", "foobar")),
-        ]
-        |> Assert.(test_many(string))
-    ),
+    >: (() => Assert.string("bar", String.drop_prefix("foo", "foobar"))),
+    "drop_prefix() - prefix not found"
+    >: (() => Assert.string("foobar", String.drop_prefix("fizz", "foobar"))),
     "drop_suffix()"
+    >: (() => Assert.string("foo", String.drop_suffix("bar", "foobar"))),
+    "drop_suffix() - suffix not found"
+    >: (() => Assert.string("foobar", String.drop_suffix("fizz", "foobar"))),
+    "drop_all_prefix() - single prefix"
+    >: (() => Assert.string("bar", String.drop_all_prefix("foo", "foobar"))),
+    "drop_all_prefix() - repeated prefix"
     >: (
       () =>
-        [
-          ("foo", String.drop_suffix("bar", "foobar")),
-          ("foobar", String.drop_suffix("fizz", "foobar")),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string("bar", String.drop_all_prefix("foo", "foofoofoobar"))
     ),
-    "drop_all_prefix()"
+    "drop_all_prefix() - prefix not found"
+    >: (
+      () => Assert.string("foobar", String.drop_all_prefix("fizz", "foobar"))
+    ),
+    "drop_all_suffix() - single suffix"
+    >: (() => Assert.string("foo", String.drop_all_suffix("bar", "foobar"))),
+    "drop_all_suffix() - repeated suffix"
     >: (
       () =>
-        [
-          ("bar", String.drop_all_prefix("foo", "foobar")),
-          ("bar", String.drop_all_prefix("foo", "foofoofoobar")),
-          ("foobar", String.drop_all_prefix("fizz", "foobar")),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string("foo", String.drop_all_suffix("bar", "foobarbarbar"))
     ),
-    "drop_all_suffix()"
+    "drop_all_suffix() - suffix not found"
+    >: (
+      () => Assert.string("foobar", String.drop_all_suffix("fizz", "foobar"))
+    ),
+    "find_index() - substring"
+    >: (() => Assert.opt_int(Some(3), String.find_index("bar", "foobar"))),
+    "find_index() - not found"
+    >: (() => Assert.opt_int(None, String.find_index("fizz", "foobar"))),
+    "find_index() - blank pattern"
+    >: (() => Assert.opt_int(Some(0), String.find_index("", "foobar"))),
+    "find_index() - blank string"
+    >: (() => Assert.opt_int(None, String.find_index("foo", ""))),
+    "find_index() - empty string match"
+    >: (() => Assert.opt_int(Some(0), String.find_index("", ""))),
+    "replace() - pattern found"
+    >: (
+      () => Assert.string("fiZZbuZZ", String.replace('z', 'Z', "fizzbuzz"))
+    ),
+    "replace() - pattern not found"
+    >: (
+      () => Assert.string("fizzbuzz", String.replace('a', 'Z', "fizzbuzz"))
+    ),
+    "split() - separator found"
     >: (
       () =>
-        [
-          ("foo", String.drop_all_suffix("bar", "foobar")),
-          ("foo", String.drop_all_suffix("bar", "foobarbarbar")),
-          ("foobar", String.drop_all_suffix("fizz", "foobar")),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string_pair(("foo", "bar"), String.split(": ", "foo: bar"))
     ),
-    "find_index()"
+    "split() - separator not found"
     >: (
-      () =>
-        [
-          (Some(3), String.find_index("bar", "foobar")),
-          (None, String.find_index("fizz", "foobar")),
-          (Some(0), String.find_index("", "foobar")),
-          (None, String.find_index("foo", "")),
-          (Some(0), String.find_index("", "")),
-        ]
-        |> Assert.(test_many(opt_int))
+      () => Assert.string_pair(("foobar", ""), String.split(":", "foobar"))
     ),
-    "replace()"
+    "split() - blank separator"
     >: (
-      () =>
-        [
-          ("fiZZbuZZ", String.replace('z', 'Z', "fizzbuzz")),
-          ("fizzbuzz", String.replace('a', 'Z', "fizzbuzz")),
-        ]
-        |> Assert.(test_many(string))
+      () => Assert.string_pair(("", "foobar"), String.split("", "foobar"))
     ),
-    "split()"
-    >: (
-      () =>
-        [
-          (("foo", "bar"), String.split(": ", "foo: bar")),
-          (("foobar", ""), String.split(":", "foobar")),
-          (("", "foobar"), String.split("", "foobar")),
-          (("", ""), String.split("", "")),
-        ]
-        |> Assert.(test_many(string_pair))
-    ),
+    "split() - empty string"
+    >: (() => Assert.string_pair(("", ""), String.split("", ""))),
   ];

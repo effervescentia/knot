@@ -7,75 +7,79 @@ let __range = Range.create(__start_point, __end_point);
 let suite =
   "Library.Range"
   >::: [
-    "zero"
-    >: (
-      () => [(((0, 0), (0, 0)), Range.zero)] |> Assert.(test_many(range))
-    ),
+    "zero" >: (() => Assert.range(((0, 0), (0, 0)), Range.zero)),
     "get_start()"
+    >: (() => Assert.point(__start_point, Range.get_start(__range))),
+    "get_end()" >: (() => Assert.point(__end_point, Range.get_end(__range))),
+    "join() - in order"
     >: (
       () =>
-        [(__start_point, Range.get_start(__range))]
-        |> Assert.(test_many(point))
+        Assert.range(
+          Range.create(__start_point, (8, 11)),
+          Range.join(__range, ((5, 1), (8, 11))),
+        )
     ),
-    "get_end()"
+    "join() - out of order"
     >: (
       () =>
-        [(__end_point, Range.get_end(__range))]
-        |> Assert.(test_many(point))
+        Assert.range(
+          Range.create(__start_point, (8, 11)),
+          Range.join(((5, 1), (8, 11)), __range),
+        )
     ),
-    "join()"
+    "contains_point() - point is within range"
     >: (
-      () =>
-        [
-          (
-            Range.create(__start_point, (8, 11)),
-            Range.join(__range, ((5, 1), (8, 11))),
-          ),
-          (
-            Range.create(__start_point, (8, 11)),
-            Range.join(((5, 1), (8, 11)), __range),
-          ),
-        ]
-        |> Assert.(test_many(range))
+      () => Assert.true_(Range.contains_point(Point.create(3, 10), __range))
     ),
-    "contains_point()"
+    "contains_point() - point is first in range"
+    >: (() => Assert.true_(Range.contains_point(__start_point, __range))),
+    "contains_point() - point is last in range"
+    >: (() => Assert.true_(Range.contains_point(__end_point, __range))),
+    "contains_point() - point is below range"
     >: (
-      () =>
-        [
-          (true, Range.contains_point(Point.create(3, 10), __range)),
-          (true, Range.contains_point(__start_point, __range)),
-          (true, Range.contains_point(__end_point, __range)),
-          (false, Range.contains_point(Point.create(2, 0), __range)),
-          (false, Range.contains_point(Point.create(5, 0), __range)),
-        ]
-        |> Assert.(test_many(bool))
+      () => Assert.false_(Range.contains_point(Point.create(2, 0), __range))
     ),
-    "contains()"
+    "contains_point() - point is above range"
     >: (
-      () =>
-        [
-          (true, Range.contains(__range, __range)),
-          (false, Range.contains(((1, 1), (2, 11)), __range)),
-          (false, Range.contains(((1, 1), (4, 0)), __range)),
-          (false, Range.contains(((1, 1), (8, 11)), __range)),
-          (false, Range.contains(((2, 11), (8, 11)), __range)),
-          (false, Range.contains(((5, 1), (8, 11)), __range)),
-          (false, Range.contains((__start_point, (8, 11)), __range)),
-          (false, Range.contains(((5, 1), __end_point), __range)),
-        ]
-        |> Assert.(test_many(bool))
+      () => Assert.false_(Range.contains_point(Point.create(5, 0), __range))
     ),
-    "pp()"
+    "contains() - range contains itself"
+    >: (() => Assert.true_(Range.contains(__range, __range))),
+    "contains() - below target range"
+    >: (() => Assert.false_(Range.contains(((1, 1), (2, 11)), __range))),
+    "contains() - starting point is below target range"
+    >: (() => Assert.false_(Range.contains(((1, 1), (4, 0)), __range))),
+    "contains() - starting point is below, and end point is above, target range"
+    >: (() => Assert.false_(Range.contains(((1, 1), (8, 11)), __range))),
+    "contains() - end point is above target range"
+    >: (() => Assert.false_(Range.contains(((5, 1), (8, 11)), __range))),
+    "contains() - end point is above target range"
+    >: (() => Assert.false_(Range.contains(((5, 1), (8, 11)), __range))),
+    "contains() - extends beyond end of target range"
     >: (
       () =>
-        [
-          ("3.5-4.8", __range |> ~@Range.pp),
-          (
-            "3.1-3.5",
-            Range.create(Point.create(3, 1), __start_point) |> ~@Range.pp,
-          ),
-          ("3.5", Range.create(__start_point, __start_point) |> ~@Range.pp),
-        ]
-        |> Assert.(test_many(string))
+        Assert.false_(Range.contains((__start_point, (8, 11)), __range))
+    ),
+    "contains() - extends beyond start of target range"
+    >: (
+      () => Assert.false_(Range.contains(((5, 1), __end_point), __range))
+    ),
+    "pp() - multiple lines"
+    >: (() => Assert.string("3.5-4.8", __range |> ~@Range.pp)),
+    "pp() - single lines"
+    >: (
+      () =>
+        Assert.string(
+          "3.1-3.5",
+          Range.create(Point.create(3, 1), __start_point) |> ~@Range.pp,
+        )
+    ),
+    "pp() - single character"
+    >: (
+      () =>
+        Assert.string(
+          "3.5",
+          Range.create(__start_point, __start_point) |> ~@Range.pp,
+        )
     ),
   ];

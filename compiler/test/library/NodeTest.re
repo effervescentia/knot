@@ -12,33 +12,22 @@ let suite = [
     "create()"
     >: (
       () =>
-        [
-          (
-            (__value, __type, __range),
-            Node.create(__value, __type, __range),
-          ),
-        ]
-        |> Assert.(test_many(node(Fmt.string)))
+        Assert.node(
+          Fmt.string,
+          (__value, __type, __range),
+          Node.create(__value, __type, __range),
+        )
     ),
-    "get_value()"
-    >: (
-      () =>
-        [(__value, Node.get_value(__node))] |> Assert.(test_many(string))
-    ),
-    "get_type()"
-    >: (
-      () => [(__type, Node.get_type(__node))] |> Assert.(test_many(type_))
-    ),
-    "get_range()"
-    >: (
-      () =>
-        [(__range, Node.get_range(__node))] |> Assert.(test_many(range))
-    ),
+    "get_value()" >: (() => Assert.string(__value, Node.get_value(__node))),
+    "get_type()" >: (() => Assert.type_(__type, Node.get_type(__node))),
+    "get_range()" >: (() => Assert.range(__range, Node.get_range(__node))),
     "pp()"
     >: (
       () =>
-        [("foo (nil) @ 1.8-3.4", __node |> ~@Node.pp(Fmt.string, Type.pp))]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "foo (nil) @ 1.8-3.4",
+          __node |> ~@Node.pp(Fmt.string, Type.pp),
+        )
     ),
   ],
   "Library.Node.Raw"
@@ -46,26 +35,23 @@ let suite = [
     "create()"
     >: (
       () =>
-        [((__value, __range), Node.Raw.create(__value, __range))]
-        |> Assert.(test_many(raw_node(Fmt.string)))
+        Assert.raw_node(
+          Fmt.string,
+          (__value, __range),
+          Node.Raw.create(__value, __range),
+        )
     ),
     "get_value()"
-    >: (
-      () =>
-        [(__value, Node.Raw.get_value(__raw_node))]
-        |> Assert.(test_many(string))
-    ),
+    >: (() => Assert.string(__value, Node.Raw.get_value(__raw_node))),
     "get_range()"
-    >: (
-      () =>
-        [(__range, Node.Raw.get_range(__raw_node))]
-        |> Assert.(test_many(range))
-    ),
+    >: (() => Assert.range(__range, Node.Raw.get_range(__raw_node))),
     "pp()"
     >: (
       () =>
-        [("foo @ 1.8-3.4", __raw_node |> ~@Node.Raw.pp(Fmt.string))]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "foo @ 1.8-3.4",
+          __raw_node |> ~@Node.Raw.pp(Fmt.string),
+        )
     ),
   ],
 ];

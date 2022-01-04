@@ -6,9 +6,4 @@ let __range = Range.create(__start_point, __end_point);
 
 let suite =
   "Library.Scope"
-  >::: [
-    "zero"
-    >: (
-      () => [(((0, 0), (0, 0)), Range.zero)] |> Assert.(test_many(range))
-    ),
-  ];
+  >::: ["zero" >: (() => Assert.range(((0, 0), (0, 0)), Range.zero))];

@@ -6,12 +6,11 @@ open Util.ResultUtil;
 let suite =
   "Library.AST"
   >::: [
-    "Dump.pp() - prim"
+    "Dump.pp() - nil primitive"
     >: (
       () =>
-        [
-          (
-            "<AST>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=nil_const />
     <Constant@0.0 type=nil>
@@ -21,10 +20,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.nil_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.nil_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - integer primitive"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=int_const />
     <Constant@0.0 type=int>
@@ -34,10 +37,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.int_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.int_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - float primitive"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=float_const />
     <Constant@0.0 type=float>
@@ -47,10 +54,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.float_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.float_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - boolean primitive"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=bool_const />
     <Constant@0.0 type=bool>
@@ -60,10 +71,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.bool_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.bool_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - string primitive"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=string_const />
     <Constant@0.0 type=string>
@@ -73,17 +88,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.string_const |> ~@Dump.pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Fixtures.string_const |> ~@Dump.pp,
+        )
     ),
-    "Dump.pp() - expr"
+    "Dump.pp() - identifier expression"
     >: (
       () =>
-        [
-          (
-            "<AST>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=identifier_const />
     <Constant@0.0 type=int>
@@ -91,10 +103,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.identifier_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.identifier_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - JSX expression"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=jsx_const />
     <Constant@0.0 type=element>
@@ -108,10 +124,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.jsx_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.jsx_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - group expression"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=group_const />
     <Constant@0.0 type=int>
@@ -123,10 +143,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.group_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.group_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - closure expression"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=closure_const />
     <Constant@0.0 type=bool>
@@ -158,10 +182,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.closure_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.closure_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - binary operation"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=and_bool_const />
     <Constant@0.0 type=bool>
@@ -180,10 +208,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.and_bool_const |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.and_bool_const |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - unary operation"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=negative_int_const />
     <Constant@0.0 type=int>
@@ -195,17 +227,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.negative_int_const |> ~@Dump.pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Fixtures.negative_int_const |> ~@Dump.pp,
+        )
     ),
     "Dump.pp() - jsx"
     >: (
       () =>
-        [
-          (
-            "<AST>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=complex_jsx_const />
     <Constant@0.0 type=element>
@@ -246,17 +275,14 @@ let suite =
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.complex_jsx_const |> ~@Dump.pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Fixtures.complex_jsx_const |> ~@Dump.pp,
+        )
     ),
-    "Dump.pp() - function"
+    "Dump.pp() - inline function"
     >: (
       () =>
-        [
-          (
-            "<AST>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=inline_function />
     <Function@0.0 type=Function<(foo: int, bar: int), int>>
@@ -284,10 +310,14 @@ let suite =
     </Function@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.inline_function |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.inline_function |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - multiline function"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=multiline_function />
     <Function@0.0 type=Function<(foo: int, bar: int), int>>
@@ -327,38 +357,36 @@ let suite =
     </Function@0.0>
   </Declaration@0.0>
 </AST>",
-            Fixtures.multiline_function |> ~@Dump.pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Fixtures.multiline_function |> ~@Dump.pp,
+        )
     ),
-    "Dump.pp() - import"
+    "Dump.pp() - main import"
     >: (
       () =>
-        [
-          (
-            "<AST>
+        Assert.string(
+          "<AST>
   <Import@0.0 namespace=main_import>
     <MainImport@0.0>
       <Name@0.0 value=Foo />
     </MainImport@0.0>
   </Import@0.0>
 </AST>",
-            Fixtures.main_import |> ~@Dump.pp,
-          ),
-          (
-            "<AST>
+          Fixtures.main_import |> ~@Dump.pp,
+        )
+    ),
+    "Dump.pp() - named import"
+    >: (
+      () =>
+        Assert.string(
+          "<AST>
   <Import@0.0 namespace=named_import>
     <NamedImport@0.0>
       <Name@0.0 value=foo />
     </NamedImport@0.0>
   </Import@0.0>
 </AST>",
-            Fixtures.named_import |> ~@Dump.pp,
-          ),
-        ]
-        |> Assert.(test_many(string))
+          Fixtures.named_import |> ~@Dump.pp,
+        )
     ),
-    "Dump.pp() - program"
-    >: (() => [("<AST />", [] |> ~@Dump.pp)] |> Assert.(test_many(string))),
+    "Dump.pp() - program" >: (() => Assert.string("<AST />", [] |> ~@Dump.pp)),
   ];

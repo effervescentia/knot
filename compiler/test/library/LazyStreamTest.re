@@ -10,23 +10,38 @@ let suite =
     "of_stream()"
     >: (
       () =>
-        [(__char_stream, __chars |> Stream.of_list |> LazyStream.of_stream)]
-        |> Assert.(test_many(lazy_stream(Fmt.char)))
+        Assert.lazy_stream(
+          Fmt.char,
+          __char_stream,
+          __chars |> Stream.of_list |> LazyStream.of_stream,
+        )
     ),
-    "of_function()"
+    "of_function() - empty"
     >: (
       () =>
-        [
-          (__char_stream, __chars |> Fun.generator |> LazyStream.of_function),
-          (LazyStream.Nil, [] |> Fun.generator |> LazyStream.of_function),
-        ]
-        |> Assert.(test_many(lazy_stream(Fmt.char)))
+        Assert.lazy_stream(
+          Fmt.char,
+          LazyStream.Nil,
+          [] |> Fun.generator |> LazyStream.of_function,
+        )
+    ),
+    "of_function() - not empty"
+    >: (
+      () =>
+        Assert.lazy_stream(
+          Fmt.char,
+          __char_stream,
+          __chars |> Fun.generator |> LazyStream.of_function,
+        )
     ),
     "of_string()"
     >: (
       () =>
-        [(__char_stream, LazyStream.of_string(__string))]
-        |> Assert.(test_many(lazy_stream(Fmt.char)))
+        Assert.lazy_stream(
+          Fmt.char,
+          __char_stream,
+          LazyStream.of_string(__string),
+        )
     ),
     "of_channel()"
     >: (
@@ -45,18 +60,17 @@ let suite =
     "to_list()"
     >: (
       () =>
-        [(__chars, __string |> LazyStream.of_string |> LazyStream.to_list)]
-        |> Assert.(test_many(char_list))
+        Assert.char_list(
+          __chars,
+          __string |> LazyStream.of_string |> LazyStream.to_list,
+        )
     ),
     "pp()"
     >: (
       () =>
-        [
-          (
-            __string,
-            __string |> LazyStream.of_string |> ~@LazyStream.pp(Fmt.char),
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          __string,
+          __string |> LazyStream.of_string |> ~@LazyStream.pp(Fmt.char),
+        )
     ),
   ];

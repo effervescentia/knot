@@ -3,7 +3,6 @@ let tests =
     ASTTest.suite,
     FilenameTest.suite,
     ErrorTest.suite,
-    FmtTest.suite,
     FunTest.suite,
     GraphTest.suite,
     HashtblTest.suite,
