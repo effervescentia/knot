@@ -31,9 +31,9 @@ let closure = (ctx: ModuleContext.t, x) =>
   );
 
 /*
- each expression has a precedence denoted by its suffix
+  each expression has a precedence denoted by its suffix
 
- the parser with the highest precedence should be matched first
+  the parser with the highest precedence should be matched first
  */
 
 /* || */

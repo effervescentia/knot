@@ -170,7 +170,6 @@ let suite = [
           Ok(`Generic((1, 3))) |> ~@Raw.pp_weak,
         )
     ),
-    /* "pp_weak() - abstract" >: (() => Assert.string("Abstract<Unknown>", Ok(`Abstract(Trait.Unknown)) |> ~@Raw.pp_weak)), */
     "pp_weak() - error"
     >: (
       () =>
@@ -217,7 +216,6 @@ let suite = [
           `Function((__props, Valid(`Boolean))) |> ~@pp_valid,
         )
     ),
-    /* "pp_valid() - abstract" >: (() => Assert.string("Abstract<Unknown>", `Abstract(Trait.Unknown) |> ~@pp_valid)), */
     "pp_valid() - generic"
     >: (() => Assert.string("Generic<1, 3>", `Generic((1, 3)) |> ~@pp_valid)),
     "pp() - valid" >: (() => Assert.string("bool", Valid(`Boolean) |> ~@pp)),

@@ -84,10 +84,6 @@ module Raw = {
 
   and weak_t = [ primitive_t | container_t(t) | generic_t];
 
-  /* static */
-
-  /* let unknown = Weak(ref(Ok(`Abstract(Trait.Unknown)))); */
-
   /* pretty printing */
 
   let pp_primitive: Fmt.t(primitive_t) =
@@ -291,6 +287,7 @@ and valid_of_weak = (of_raw: Raw.t => t, type_: Raw.weak_t): valid_t =>
   | `Generic(t) => `Generic(t)
   }
 
+/* TODO: may need this logic elsewhere as part of type resolution */
 /* and strong_of_weak = (type_: Raw.weak_t): Raw.strong_t =>
    switch (type_) {
    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t

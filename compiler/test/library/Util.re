@@ -21,7 +21,6 @@ module RawUtil = {
 
   let as_invalid = (err, x) => as_node(Invalid(err), x);
 
-  /* let as_abstract = (id, x) => as_node(Weak(ref(Ok(`Abstract(id)))), x); */
   let as_weak = (scope_id, weak_id, x) =>
     as_node(Weak(scope_id, weak_id), x);
 
@@ -39,7 +38,6 @@ module RawUtil = {
   let jsx_node = of_tag % as_raw_node % of_node;
 
   let jsx_tag = of_tag % as_raw_node % of_jsx;
-  /* let weak_unknown = Weak(ref(Ok(`Abstract(Type.Trait.Unknown)))); */
 };
 
 module AnalyzedUtil = {
@@ -56,9 +54,7 @@ module AnalyzedUtil = {
   let as_element = x => as_node(Strong(`Element), x);
   let as_function = (args, res, x) =>
     as_node(Strong(`Function((args, res))), x);
-  /* let as_unknown = x => as_node(Type.Valid(`Abstract(Unknown)), x); */
 
-  /* let as_abstract = (trait, x) => as_node(Type.Valid(`Abstract(trait)), x); */
   let as_generic = (scope_id, weak_id, x) =>
     as_node(Strong(`Generic((scope_id, weak_id))), x);
 
@@ -93,9 +89,7 @@ module ResultUtil = {
   let as_element = x => as_node(Valid(`Element), x);
   let as_function = (args, res, x) =>
     as_node(Valid(`Function((args, res))), x);
-  /* let as_unknown = x => as_node(Type.Valid(`Abstract(Unknown)), x); */
 
-  /* let as_abstract = (trait, x) => as_node(Type.Valid(`Abstract(trait)), x); */
   let as_generic = (scope_id, weak_id, x) =>
     as_node(Valid(`Generic((scope_id, weak_id))), x);
 

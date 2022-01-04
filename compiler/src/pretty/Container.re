@@ -14,7 +14,7 @@ let root = (pp_value: t('a)): t('a) => vbox(pp_value);
 let page = (pp_value: t('a)): t('a) =>
   ppf => pf(ppf, "%a@.", root(pp_value));
 
-/*
+/**
  print an indented value
  */
 let indented = (pp_value: t('a)): t('a) =>
@@ -57,7 +57,7 @@ let list =
         pf(ppf, "%a%t", _list_box(layout, print), xs, sep.trail);
       };
 
-/*
+/**
  print an indented list of values divided by separators
  */
 let block =
@@ -69,7 +69,7 @@ let block =
 
     | xs => indented(list(~layout, ~sep, pp_value), ppf, xs);
 
-/*
+/**
  print a list of values divided by separators
  and bookended by open and close symbols
  */

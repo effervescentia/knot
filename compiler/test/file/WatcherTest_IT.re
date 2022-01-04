@@ -21,11 +21,7 @@ let _test_watch = (check, watcher) => {
     |> Watcher.(
          watch(
            List.iter(((path, action)) =>
-             check((
-               /* resolve, */
-               path |> String.drop_prefix("/private"),
-               action,
-             ))
+             check((path |> String.drop_prefix("/private"), action))
            ),
          )
        )
