@@ -33,7 +33,7 @@ exception CompileError(list(compile_err));
 let throw = err => raise(CompileError([err]));
 
 /**
- raise multple compiler errors
+ raise multiple compiler errors
  */
 let throw_all = errs => raise(CompileError(errs));
 
