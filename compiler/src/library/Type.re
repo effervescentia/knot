@@ -23,6 +23,7 @@ module Error = {
     | NotFound(Identifier.t)
     | TypeMismatch('a, 'a)
     | NotAssignable('a, Trait.t)
+    | NotNarrowable('a, 'a)
     | ExternalNotFound(Namespace.t, Export.t)
     | TypeResolutionFailed
     | DuplicateIdentifier(Identifier.t);
@@ -38,6 +39,8 @@ module Error = {
           pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
         | NotAssignable(type_, trait) =>
           pf(ppf, "NotAssignable<%a, %a>", pp_type, type_, Trait.pp, trait)
+        | NotNarrowable(lhs, rhs) =>
+          pf(ppf, "NotNarrowable<%a, %a>", pp_type, lhs, pp_type, rhs)
         | TypeMismatch(lhs, rhs) =>
           pf(ppf, "TypeMismatch<%a, %a>", pp_type, lhs, pp_type, rhs)
         | TypeResolutionFailed => string(ppf, "TypeResolutionFailed")
@@ -80,9 +83,7 @@ module Raw = {
 
   and error_t = Error.t(t)
 
-  and strong_t = [ primitive_t | container_t(t) | generic_t]
-
-  and weak_t = [ primitive_t | container_t(t) | generic_t];
+  and strong_t = [ primitive_t | container_t(t) | generic_t];
 
   /* pretty printing */
 
@@ -154,7 +155,7 @@ module Raw = {
         }
     )
 
-  and pp_weak: Fmt.t(result(weak_t, error_t)) =
+  and pp_weak: Fmt.t(result(strong_t, error_t)) =
     ppf =>
       fun
       | Ok(ok_type) =>
@@ -225,6 +226,8 @@ and to_raw = (type_: t): Raw.t =>
     Invalid(NotAssignable(to_raw(t), trait))
   | Invalid(TypeMismatch(lhs, rhs)) =>
     Invalid(TypeMismatch(to_raw(lhs), to_raw(rhs)))
+  | Invalid(NotNarrowable(lhs, rhs)) =>
+    Invalid(NotNarrowable(to_raw(lhs), to_raw(rhs)))
   | Invalid(
       (
         ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
@@ -238,6 +241,7 @@ and err_to_strong_err = (err: error_t): Raw.error_t =>
   switch (err) {
   | NotAssignable(t, trait) => NotAssignable(to_raw(t), trait)
   | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
+  | NotNarrowable(lhs, rhs) => NotNarrowable(to_raw(lhs), to_raw(rhs))
   | (
       ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
       TypeResolutionFailed
@@ -277,33 +281,10 @@ and valid_of_strong = (of_raw: Raw.t => t, type_: Raw.strong_t): valid_t =>
   | `Generic(t) => `Generic(t)
   }
 
-and valid_of_weak = (of_raw: Raw.t => t, type_: Raw.weak_t): valid_t =>
-  switch (type_) {
-  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
-  | `List(x) => `List(of_raw(x))
-  | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
-  | `Function(args, res) =>
-    `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
-  | `Generic(t) => `Generic(t)
-  }
-
-/* TODO: may need this logic elsewhere as part of type resolution */
-/* and strong_of_weak = (type_: Raw.weak_t): Raw.strong_t =>
-   switch (type_) {
-   | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
-   | `List(Weak({current: Ok(x)})) => `List(Strong(strong_of_weak(x)))
-   | `List(Weak({current: Error(x)})) => `List(Invalid(x))
-   | `List((Strong(_) | Invalid(_)) as x) => `List(x)
-   | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
-   | `Function(args, res) =>
-     `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
-   | `Abstract(t) => `Abstract(t)
-   | t => t
-   } */
-
 and err_of_raw_err = (of_raw: Raw.t => t, err: Raw.error_t): error_t =>
   switch (err) {
   | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
+  | NotNarrowable(lhs, rhs) => NotNarrowable(of_raw(lhs), of_raw(rhs))
   | NotAssignable(x, y) => NotAssignable(of_raw(x), y)
   | (
       ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |

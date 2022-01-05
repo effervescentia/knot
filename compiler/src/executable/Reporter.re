@@ -133,6 +133,24 @@ let _extract_type_err =
         [],
       )
 
+    | NotNarrowable(narrowed, actual) => (
+        "Type Cannot be Narrowed",
+        Fmt.(
+          (
+            ppf =>
+              pf(
+                ppf,
+                "found the type %a which cannot be narrowed to %a",
+                good(Type.Raw.pp),
+                narrowed,
+                bad(Type.Raw.pp),
+                actual,
+              )
+          )
+        ),
+        [],
+      )
+
     | NotFound(id) => (
         "Identifier Not Found",
         (

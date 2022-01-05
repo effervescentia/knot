@@ -4,6 +4,7 @@ open AST;
 include Test.Assert;
 
 module Formatter = Grammar.Formatter;
+module Analyzer = Analyze.Analyzer;
 
 let analyzed_primitive =
   Alcotest.(
@@ -21,11 +22,13 @@ let primitive =
     )
   );
 
-let analyzed_expression =
+let analyzed_expression = (expected, actual) =>
   Alcotest.(
     check(
       testable(Analyzed.Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
       "analyzed expression matches",
+      expected,
+      actual |> Tuple.join2(Analyzer.analyze_expression),
     )
   );
 

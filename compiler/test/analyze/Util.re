@@ -1,6 +1,8 @@
 open Kore;
 open Reference;
 
+module Analyzer = Analyze.Analyzer;
+
 include TestLibrary.Util;
 
 let create_scope = name =>

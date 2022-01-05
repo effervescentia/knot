@@ -1,13 +1,18 @@
 open Infix;
 open Reference;
 
+/**
+ this should never occur in practice, but not sure how to ensure that in the code
+ */
+exception WeakTypeNotFound;
+
 type t = {
   id: int,
   namespace: Namespace.t,
   range: Range.t,
   parent: option(t),
   types: Hashtbl.t(Identifier.t, Type.Raw.t),
-  weak_types: Hashtbl.t(int, result(Type.Raw.weak_t, Type.Raw.error_t)),
+  weak_types: Hashtbl.t(int, result(Type.Raw.strong_t, Type.Raw.error_t)),
   mutable children: list(t),
   /* error reporting callback */
   report: Error.compile_err => unit,
@@ -51,6 +56,12 @@ let create =
 };
 
 /* methods */
+
+let _report_raw = (err, range: Range.t, scope: t) => {
+  scope.report(ParseError(TypeError(err), scope.namespace, range));
+
+  Type.Raw.Invalid(err);
+};
 
 /**
  create a new child scope from a parent scope and register them with each other
@@ -119,7 +130,7 @@ let define =
 
 let rec _resolve_raw =
         (scope: t, scope_id: int, weak_id: int)
-        : option(result(Type.Raw.weak_t, Type.Raw.error_t)) =>
+        : option(result(Type.Raw.strong_t, Type.Raw.error_t)) =>
   if (scope.id == scope_id) {
     Hashtbl.find_opt(scope.weak_types, weak_id);
   } else {
@@ -149,6 +160,78 @@ let rec resolve =
     Invalid(type_err);
   };
 
+let rec _find_weak =
+        (scope_id: int, weak_id: int, scope: t)
+        : (t, result(Type.Raw.strong_t, Type.Raw.error_t)) =>
+  switch (scope_id === scope.id, scope.parent) {
+  | (true, _) => (
+      scope,
+      try(Hashtbl.find(scope.weak_types, weak_id)) {
+      | Not_found => raise(WeakTypeNotFound)
+      },
+    )
+  | (_, Some(parent)) => _find_weak(scope_id, weak_id, parent)
+  | _ => raise(WeakTypeNotFound)
+  };
+
+/**
+ infer a type from the scope
+ */
+let infer =
+    (
+      validate: Type.Raw.strong_t => bool,
+      narrow: Type.Raw.t => Type.Raw.strong_t,
+      node: Node.t('a, Type.Raw.t),
+      scope: t,
+    ) => {
+  let type_ = Node.get_type(node);
+
+  (
+    switch (type_) {
+    /* incoming type meets requirements and can be forwarded */
+    | Type.Raw.Strong(t) when validate(t) => Ok(type_)
+
+    /* weak type needs to be looked up and resolved */
+    /* TODO: maybe revert to keeping a ref in the type itself as well as in the lookup to avoid this */
+    | Type.Raw.Weak(scope_id, weak_id) =>
+      let (weak_scope, weak_type) = scope |> _find_weak(scope_id, weak_id);
+
+      switch (weak_type) {
+      /* incoming type meets requirements and can be forwarded */
+      | Ok(t) when validate(t) => Ok(type_)
+
+      /* generic type should be narrowed and the incoming type will be forwarded */
+      | Ok(`Generic(_)) =>
+        let narrowed = narrow(type_);
+
+        Hashtbl.replace(weak_scope.weak_types, weak_id, Ok(narrowed));
+
+        Ok(type_);
+
+      /* other weak types cannot be narrowed */
+      | _ =>
+        Error(
+          Type.Error.NotNarrowable(
+            Type.Raw.Strong(narrow(type_)),
+            switch (weak_type) {
+            | Ok(t) => Type.Raw.Strong(t)
+            | Error(err) => Type.Raw.Invalid(err)
+            },
+          ),
+        )
+      };
+
+    /* type does not match the strong type */
+    | _ => Error(Type.Error.TypeMismatch(Strong(narrow(type_)), type_))
+    }
+  )
+  |> (
+    fun
+    | Ok(type_) => type_
+    | Error(err) => scope |> _report_raw(err, Node.get_range(node))
+  );
+};
+
 /**
  generate finalized type mappings for all registered weak types
  */
@@ -166,6 +249,8 @@ let finalize = (scope: t): Hashtbl.t((int, int), Type.t) =>
         s.children |> List.to_seq |> Seq.flat_map(loop),
       );
 
+    /* TODO: do this again? */
     /* scope |> loop |> Hashtbl.of_seq; */
+
     Hashtbl.create(0);
   };

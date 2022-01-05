@@ -85,11 +85,30 @@ and analyze_expression =
 
       (Analyzed.Identifier((name, type_, range)), type_);
 
-    | Raw.UnaryOp(op, expr) => (
-        Analyzed.UnaryOp(op, analyze_expression(scope, expr)),
-        /* TODO: implement */
-        Strong(`Generic((0, 0))),
-      )
+    | Raw.UnaryOp((Negative | Positive) as op, expr) =>
+      let x = analyze_expression(scope, expr);
+
+      (
+        Analyzed.UnaryOp(op, x),
+        scope
+        |> Scope.infer(
+             fun
+             | `Integer
+             | `Float => true
+             | _ => false,
+             /* TODO: narrows the type to an integer for now, use numeric trait when introduced */
+             _ => `Integer,
+             x,
+           ),
+      );
+
+    | Raw.UnaryOp(Not as op, expr) =>
+      let x = analyze_expression(scope, expr);
+
+      (
+        Analyzed.UnaryOp(op, x),
+        scope |> Scope.infer((==)(`Boolean), _ => `Boolean, x),
+      );
 
     | Raw.BinaryOp(op, lhs, rhs) => (
         Analyzed.BinaryOp(

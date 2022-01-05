@@ -55,6 +55,8 @@ module AnalyzedUtil = {
   let as_function = (args, res, x) =>
     as_node(Strong(`Function((args, res))), x);
 
+  let as_weak = (scope_id, weak_id, x) =>
+    as_node(Weak(scope_id, weak_id), x);
   let as_generic = (scope_id, weak_id, x) =>
     as_node(Strong(`Generic((scope_id, weak_id))), x);
 
