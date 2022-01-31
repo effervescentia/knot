@@ -216,18 +216,6 @@ let _extract_type_err =
         },
         [],
       )
-
-    | TypeResolutionFailed => (
-        "Type Resolution Failed",
-        (
-          ppf =>
-            Fmt.pf(
-              ppf,
-              "failed to resolve the type of an expression, this is likely an internal issue with the compiler",
-            )
-        ),
-        [],
-      )
   );
 
 let _extract_parse_err =

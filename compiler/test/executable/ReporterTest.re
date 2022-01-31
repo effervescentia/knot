@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 10 error(s) and 0 warning(s)
+finished with 9 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -66,13 +66,7 @@ finished with 10 error(s) and 0 warning(s)
   \n    • check that the identifier x is spelled correctly
     \n    • rename x so that there is no conflict with reserved keywords (import, from, main, const, let, nil, true, false, as)
 
-6) Type Resolution Failed : bar/my_namespace.kn:0.0
-  (foo/bar/my_namespace.kn:0.0)
-
-  failed to resolve the type of an expression, this is likely an internal issue with the compiler
-  \n  [code frame not available]
-
-7) Identifier Not Found : bar/my_namespace.kn:0.0
+6) Identifier Not Found : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   unable to resolve an identifier my_id in the local scope or any inherited scope
@@ -86,19 +80,19 @@ finished with 10 error(s) and 0 warning(s)
     \n    • import the value from another module
     \n      import { my_id } from \"…\";
 
-8) Types Do Not Match : bar/my_namespace.kn:0.0
+7) Types Do Not Match : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   expected the type string but found the type int instead
   \n  [code frame not available]
 
-9) External Not Found : bar/my_namespace.kn:0.0
+8) External Not Found : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   an export with the identifier my_export could not be found in module @/my_namespace
   \n  [code frame not available]
 
-10) Identifier Already Defined : bar/my_namespace.kn:0.0
+9) Identifier Already Defined : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   a variable with the same name (my_export) already exists in the local scope or an inherited scope
@@ -106,7 +100,7 @@ finished with 10 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • change the name of this variable
 
-finished with 10 error(s) and 0 warning(s)
+finished with 9 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -114,11 +108,6 @@ finished with 10 error(s) and 0 warning(s)
             FileNotFound("/path/to/my/file"),
             InvalidModule(__namespace),
             ParseError(ReservedKeyword("x"), __namespace, Range.zero),
-            ParseError(
-              TypeError(TypeResolutionFailed),
-              __namespace,
-              Range.zero,
-            ),
             ParseError(
               TypeError(NotFound(Reference.Identifier.of_string("my_id"))),
               __namespace,

@@ -24,7 +24,6 @@ module Error = {
     | TypeMismatch('a, 'a)
     | NotNarrowable('a, 'a)
     | ExternalNotFound(Namespace.t, Export.t)
-    | TypeResolutionFailed
     | DuplicateIdentifier(Identifier.t);
 
   /* pretty printing */
@@ -40,7 +39,6 @@ module Error = {
           pf(ppf, "NotNarrowable<%a, %a>", pp_type, lhs, pp_type, rhs)
         | TypeMismatch(lhs, rhs) =>
           pf(ppf, "TypeMismatch<%a, %a>", pp_type, lhs, pp_type, rhs)
-        | TypeResolutionFailed => string(ppf, "TypeResolutionFailed")
         | ExternalNotFound(namespace, id) =>
           pf(
             ppf,
@@ -224,10 +222,7 @@ and to_raw = (type_: t): Raw.t =>
   | Invalid(NotNarrowable(lhs, rhs)) =>
     Invalid(NotNarrowable(to_raw(lhs), to_raw(rhs)))
   | Invalid(
-      (
-        ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
-        TypeResolutionFailed
-      ) as err,
+      (ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_)) as err,
     ) =>
     Invalid(err)
   }
@@ -236,10 +231,7 @@ and err_to_strong_err = (err: error_t): Raw.error_t =>
   switch (err) {
   | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
   | NotNarrowable(lhs, rhs) => NotNarrowable(to_raw(lhs), to_raw(rhs))
-  | (
-      ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
-      TypeResolutionFailed
-    ) as err => err
+  | (ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_)) as err => err
   };
 
 let rec pp: Fmt.t(t) =
@@ -279,8 +271,5 @@ and err_of_raw_err = (of_raw: Raw.t => t, err: Raw.error_t): error_t =>
   switch (err) {
   | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
   | NotNarrowable(lhs, rhs) => NotNarrowable(of_raw(lhs), of_raw(rhs))
-  | (
-      ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
-      TypeResolutionFailed
-    ) as err => err
+  | (ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_)) as err => err
   };

@@ -34,14 +34,6 @@ let suite = [
           Error.ExternalNotFound(Internal("foo"), Main) |> ~@Error.pp(pp),
         )
     ),
-    "pp() - type resolution failed"
-    >: (
-      () =>
-        Assert.string(
-          "TypeResolutionFailed",
-          Error.TypeResolutionFailed |> ~@Error.pp(pp),
-        )
-    ),
     "pp() - type mismatch"
     >: (
       () =>
@@ -162,26 +154,10 @@ let suite = [
           Ok(`Generic((1, 3))) |> ~@Raw.pp_weak,
         )
     ),
-    "pp_weak() - error"
-    >: (
-      () =>
-        Assert.string(
-          "TypeResolutionFailed",
-          Error(Error.TypeResolutionFailed) |> ~@Raw.pp_weak,
-        )
-    ),
     "pp() - strong"
     >: (() => Assert.string("bool", Raw.Strong(`Boolean) |> ~@Raw.pp)),
     "pp() - weak"
     >: (() => Assert.string("Weak<2, 3>", Raw.Weak(2, 3) |> ~@Raw.pp)),
-    "pp() - invalid"
-    >: (
-      () =>
-        Assert.string(
-          "TypeResolutionFailed",
-          Raw.Invalid(TypeResolutionFailed) |> ~@Raw.pp,
-        )
-    ),
   ],
   "Library.Type"
   >::: [
@@ -211,13 +187,5 @@ let suite = [
     "pp_valid() - generic"
     >: (() => Assert.string("Generic<1, 3>", `Generic((1, 3)) |> ~@pp_valid)),
     "pp() - valid" >: (() => Assert.string("bool", Valid(`Boolean) |> ~@pp)),
-    "pp() - invalid"
-    >: (
-      () =>
-        Assert.string(
-          "TypeResolutionFailed",
-          Invalid(Error.TypeResolutionFailed) |> ~@pp,
-        )
-    ),
   ],
 ];
