@@ -97,24 +97,6 @@ let _pp_type_trait = (pp_target: Fmt.t(string)): Fmt.t(Type.Trait.t) =>
 let _extract_type_err =
   Type.Error.(
     fun
-    | NotAssignable(t, trait) => (
-        "Type Cannot Be Assigned",
-        Fmt.(
-          (
-            ppf =>
-              pf(
-                ppf,
-                "expected a type that implements the trait %a but found the type %a instead",
-                _pp_type_trait(good_str),
-                trait,
-                bad(Type.Raw.pp),
-                t,
-              )
-          )
-        ),
-        [],
-      )
-
     | TypeMismatch(expected, actual) => (
         "Types Do Not Match",
         Fmt.(

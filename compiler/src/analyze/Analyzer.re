@@ -6,6 +6,13 @@ open Type.Raw;
 let _bind_node = (range: Range.t, x) => (x, range);
 let _bind_typed_node = (range: Range.t, (x, y)) => (x, y, range);
 
+let _is_boolean = (==)(`Boolean);
+let _is_numeric =
+  fun
+  | `Integer
+  | `Float => true
+  | _ => false;
+
 let analyze_primitive =
     ((prim, range): Raw.primitive_t): Analyzed.primitive_t =>
   (
@@ -87,38 +94,160 @@ and analyze_expression =
 
     | Raw.UnaryOp((Negative | Positive) as op, expr) =>
       let x = analyze_expression(scope, expr);
-
-      (
-        Analyzed.UnaryOp(op, x),
+      let (type_, _) =
         scope
-        |> Scope.infer(
-             fun
-             | `Integer
-             | `Float => true
-             | _ => false,
+        |> Scope.test_and_narrow(
+             _is_numeric,
              /* TODO: narrows the type to an integer for now, use numeric trait when introduced */
-             _ => `Integer,
+             `Integer,
              x,
-           ),
-      );
+           );
+
+      (Analyzed.UnaryOp(op, x), type_);
 
     | Raw.UnaryOp(Not as op, expr) =>
       let x = analyze_expression(scope, expr);
+      let (type_, _) =
+        scope |> Scope.test_and_narrow(_is_boolean, `Boolean, x);
 
-      (
-        Analyzed.UnaryOp(op, x),
-        scope |> Scope.infer((==)(`Boolean), _ => `Boolean, x),
-      );
+      (Analyzed.UnaryOp(op, x), type_);
 
-    | Raw.BinaryOp(op, lhs, rhs) => (
-        Analyzed.BinaryOp(
-          op,
-          analyze_expression(scope, lhs),
-          analyze_expression(scope, rhs),
-        ),
-        /* TODO: implement */
-        Strong(`Generic((0, 0))),
-      )
+    | Raw.BinaryOp((LogicalAnd | LogicalOr) as op, lhs, rhs) =>
+      let l = analyze_expression(scope, lhs);
+      let r = analyze_expression(scope, rhs);
+
+      scope |> Scope.test_and_narrow(_is_boolean, `Boolean, l) |> ignore;
+      scope |> Scope.test_and_narrow(_is_boolean, `Boolean, r) |> ignore;
+
+      /* logic operations will always result in a boolean type */
+      (Analyzed.BinaryOp(op, l, r), Strong(`Boolean));
+
+    | Raw.BinaryOp((Add | Subtract | Multiply) as op, lhs, rhs) =>
+      let l = analyze_expression(scope, lhs);
+      let r = analyze_expression(scope, rhs);
+
+      /* TODO: narrows the type to an integer for now, use numeric trait when introduced */
+      let (l_type, l_actual_type) =
+        scope |> Scope.test_and_narrow(_is_numeric, `Integer, l);
+      let (r_type, r_actual_type) =
+        scope |> Scope.test_and_narrow(_is_numeric, `Integer, r);
+
+      let res_type =
+        switch (l_actual_type, r_actual_type) {
+        /* if both are integers then the resulting type is also an integer */
+        | (Some(`Integer), Some(`Integer)) => Strong(`Integer)
+
+        /* if either is a float then the resulting type must be a float */
+        | (Some(`Float), _)
+        | (_, Some(`Float)) => Strong(`Float)
+
+        | _
+            when
+              switch (l_type, r_type) {
+              /* fall back to integer when either type is invalid */
+              | (Invalid(_), _)
+              | (_, Invalid(_)) => true
+
+              | _ => false
+              } =>
+          Strong(`Integer)
+
+        | (Some(lt), Some(rt)) =>
+          scope
+          |> Scope.report_raw(TypeMismatch(Strong(lt), Strong(rt)), range)
+
+        /* fall back to integer when either type is invalid */
+        | _ => Strong(`Integer)
+        };
+
+      (Analyzed.BinaryOp(op, l, r), res_type);
+
+    | Raw.BinaryOp((Divide | Exponent) as op, lhs, rhs) =>
+      let l = analyze_expression(scope, lhs);
+      let r = analyze_expression(scope, rhs);
+
+      /* TODO: narrows the type to an integer for now, use numeric trait when introduced */
+      scope |> Scope.test_and_narrow(_is_numeric, `Integer, l) |> ignore;
+      scope |> Scope.test_and_narrow(_is_numeric, `Integer, r) |> ignore;
+
+      /* divide and exponent will always result in a float type */
+      (Analyzed.BinaryOp(op, l, r), Strong(`Float));
+
+    | Raw.BinaryOp(
+        (LessOrEqual | LessThan | GreaterOrEqual | GreaterThan) as op,
+        lhs,
+        rhs,
+      ) =>
+      let l = analyze_expression(scope, lhs);
+      let r = analyze_expression(scope, rhs);
+
+      /* TODO: narrows the type to an integer for now, use numeric trait when introduced */
+      scope |> Scope.test_and_narrow(_is_numeric, `Integer, l) |> ignore;
+      scope |> Scope.test_and_narrow(_is_numeric, `Integer, r) |> ignore;
+
+      (Analyzed.BinaryOp(op, l, r), Strong(`Boolean));
+
+    | Raw.BinaryOp((Equal | Unequal) as op, lhs, rhs) =>
+      let l = analyze_expression(scope, lhs);
+      let r = analyze_expression(scope, rhs);
+
+      /* only analyze types when types do not match */
+      let res_type =
+        /* guarantee we these aren't the same weak type */
+        if (Node.get_type(l) != Node.get_type(r)) {
+          /* FIXME: these cases are complex, it would be nice if it could be more clear */
+          switch (
+            scope |> Scope.resolve_type(l),
+            scope |> Scope.resolve_type(r),
+          ) {
+          /* return the left type when equal */
+          | (Strong(lt) | Weak(_, _, lt), Strong(rt) | Weak(_, _, rt))
+              when lt == rt =>
+            Node.get_type(l)
+
+          /*
+            TODO: this can likely be improved as these generic types may be
+            narrowed to the same type later in the type analysis
+           */
+          /* throw error on different generic types */
+          | (Weak(_, _, `Generic(_) as lt), Weak(_, _, `Generic(_) as rt)) =>
+            scope
+            |> Scope.report_raw(
+                 Type.Error.TypeMismatch(Strong(lt), Strong(rt)),
+                 range,
+               )
+
+          /* strong types narrow weak generic types */
+          | (Strong(t), Weak(weak_scope, weak_id, `Generic(_)))
+          | (Weak(weak_scope, weak_id, `Generic(_)), Strong(t)) =>
+            Hashtbl.replace(weak_scope.weak_types, weak_id, Ok(t));
+
+            Type.Raw.Strong(t);
+
+          /* throw error on other different types */
+          | (Strong(lt) | Weak(_, _, lt), Strong(rt) | Weak(_, _, rt)) =>
+            scope
+            |> Scope.report_raw(
+                 Type.Error.TypeMismatch(Strong(lt), Strong(rt)),
+                 range,
+               )
+
+          /* throw error on invalid right type */
+          | (Strong(t) | Weak(_, _, t), Invalid(err)) =>
+            scope
+            |> Scope.report_raw(
+                 Type.Error.TypeMismatch(Strong(t), Invalid(err)),
+                 range,
+               )
+
+          /* fallback to left type error */
+          | (Invalid(_), _) => Node.get_type(l)
+          };
+        } else {
+          Node.get_type(l);
+        };
+
+      (Analyzed.BinaryOp(op, l, r), res_type);
     }
   )
   |> _bind_typed_node(range)

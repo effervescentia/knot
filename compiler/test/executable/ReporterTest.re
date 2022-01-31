@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 11 error(s) and 0 warning(s)
+finished with 10 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -92,19 +92,13 @@ finished with 11 error(s) and 0 warning(s)
   expected the type string but found the type int instead
   \n  [code frame not available]
 
-9) Type Cannot Be Assigned : bar/my_namespace.kn:0.0
-  (foo/bar/my_namespace.kn:0.0)
-
-  expected a type that implements the trait number which is shared by the types int and float but found the type string instead
-  \n  [code frame not available]
-
-10) External Not Found : bar/my_namespace.kn:0.0
+9) External Not Found : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   an export with the identifier my_export could not be found in module @/my_namespace
   \n  [code frame not available]
 
-11) Identifier Already Defined : bar/my_namespace.kn:0.0
+10) Identifier Already Defined : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   a variable with the same name (my_export) already exists in the local scope or an inherited scope
@@ -112,7 +106,7 @@ finished with 11 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • change the name of this variable
 
-finished with 11 error(s) and 0 warning(s)
+finished with 10 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -132,11 +126,6 @@ finished with 11 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(TypeMismatch(Strong(`String), Strong(`Integer))),
-              __namespace,
-              Range.zero,
-            ),
-            ParseError(
-              TypeError(NotAssignable(Strong(`String), Type.Trait.Number)),
               __namespace,
               Range.zero,
             ),

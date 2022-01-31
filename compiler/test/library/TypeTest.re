@@ -26,14 +26,6 @@ let suite = [
           Error.DuplicateIdentifier(Public("foo")) |> ~@Error.pp(pp),
         )
     ),
-    "pp() - not assignable"
-    >: (
-      () =>
-        Assert.string(
-          "NotAssignable<nil, Unknown>",
-          Error.NotAssignable(Valid(`Nil), Trait.Unknown) |> ~@Error.pp(pp),
-        )
-    ),
     "pp() - external not found"
     >: (
       () =>

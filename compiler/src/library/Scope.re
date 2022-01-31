@@ -18,6 +18,12 @@ type t = {
   report: Error.compile_err => unit,
 };
 
+/* returned by [resolve_type] */
+type resolved_t =
+  | Strong(Type.Raw.strong_t)
+  | Weak(t, int, Type.Raw.strong_t)
+  | Invalid(Type.Raw.error_t);
+
 /* static */
 
 let rec _with_root = (f: t => 'a, scope: t): 'a =>
@@ -57,7 +63,7 @@ let create =
 
 /* methods */
 
-let _report_raw = (err, range: Range.t, scope: t) => {
+let report_raw = (err, range: Range.t, scope: t) => {
   scope.report(ParseError(TypeError(err), scope.namespace, range));
 
   Type.Raw.Invalid(err);
@@ -160,7 +166,10 @@ let rec resolve =
     Invalid(type_err);
   };
 
-let rec _find_weak =
+/**
+ lookup a weak type by its unique identifiers
+ */
+let rec find_weak =
         (scope_id: int, weak_id: int, scope: t)
         : (t, result(Type.Raw.strong_t, Type.Raw.error_t)) =>
   switch (scope_id === scope.id, scope.parent) {
@@ -170,65 +179,84 @@ let rec _find_weak =
       | Not_found => raise(WeakTypeNotFound)
       },
     )
-  | (_, Some(parent)) => _find_weak(scope_id, weak_id, parent)
+  | (_, Some(parent)) => find_weak(scope_id, weak_id, parent)
   | _ => raise(WeakTypeNotFound)
   };
 
 /**
- infer a type from the scope
+ resolve a type in the scope to get its current value (accounts for weak type redirection)
  */
-let infer =
+let resolve_type = (node: Node.t('a, Type.Raw.t), scope: t): resolved_t =>
+  switch (Node.get_type(node)) {
+  /* incoming type meets requirements and can be forwarded */
+  | Type.Raw.Strong(t) => Strong(t)
+
+  /* weak type needs to be looked up and resolved */
+  /* TODO: maybe revert to keeping a ref in the type itself as well as in the lookup to avoid this */
+  | Type.Raw.Weak(scope_id, weak_id) =>
+    let (weak_scope, weak_type) = scope |> find_weak(scope_id, weak_id);
+
+    switch (weak_type) {
+    /* incoming type meets requirements and can be forwarded */
+    | Ok(t) => Weak(weak_scope, weak_id, t)
+
+    /* other weak types cannot be narrowed */
+    | Error(err) => Invalid(err)
+    };
+
+  /* type does not match the strong type */
+  | Type.Raw.Invalid(err) => Invalid(err)
+  };
+
+/**
+ test a type in the scope and narrow it if it can be narrowed
+ */
+let test_and_narrow =
     (
       validate: Type.Raw.strong_t => bool,
-      narrow: Type.Raw.t => Type.Raw.strong_t,
+      narrowed: Type.Raw.strong_t,
       node: Node.t('a, Type.Raw.t),
       scope: t,
     ) => {
-  let type_ = Node.get_type(node);
+  let type_ = scope |> resolve_type(node);
 
   (
     switch (type_) {
     /* incoming type meets requirements and can be forwarded */
-    | Type.Raw.Strong(t) when validate(t) => Ok(type_)
-
-    /* weak type needs to be looked up and resolved */
-    /* TODO: maybe revert to keeping a ref in the type itself as well as in the lookup to avoid this */
-    | Type.Raw.Weak(scope_id, weak_id) =>
-      let (weak_scope, weak_type) = scope |> _find_weak(scope_id, weak_id);
-
-      switch (weak_type) {
-      /* incoming type meets requirements and can be forwarded */
-      | Ok(t) when validate(t) => Ok(type_)
-
-      /* generic type should be narrowed and the incoming type will be forwarded */
-      | Ok(`Generic(_)) =>
-        let narrowed = narrow(type_);
-
-        Hashtbl.replace(weak_scope.weak_types, weak_id, Ok(narrowed));
-
-        Ok(type_);
-
-      /* other weak types cannot be narrowed */
-      | _ =>
-        Error(
-          Type.Error.NotNarrowable(
-            Type.Raw.Strong(narrow(type_)),
-            switch (weak_type) {
-            | Ok(t) => Type.Raw.Strong(t)
-            | Error(err) => Type.Raw.Invalid(err)
-            },
-          ),
-        )
-      };
+    | Strong(t)
+    | Weak(_, _, t) when validate(t) => Ok((Node.get_type(node), Some(t)))
 
     /* type does not match the strong type */
-    | _ => Error(Type.Error.TypeMismatch(Strong(narrow(type_)), type_))
+    | Strong(t) =>
+      Error(
+        Type.Error.TypeMismatch(
+          Type.Raw.Strong(narrowed),
+          Type.Raw.Strong(t),
+        ),
+      )
+
+    /* weak generic type can be narrowed */
+    | Weak(weak_scope, weak_id, `Generic(_)) =>
+      Hashtbl.replace(weak_scope.weak_types, weak_id, Ok(narrowed));
+
+      Ok((Node.get_type(node), Some(narrowed)));
+
+    /* other weak types cannot be narrowed */
+    | Weak(weak_scope, weak_id, weak_type) =>
+      Error(
+        Type.Error.NotNarrowable(
+          Type.Raw.Strong(narrowed),
+          Type.Raw.Strong(weak_type),
+        ),
+      )
+
+    | Invalid(err) => Ok((Type.Raw.Invalid(err), None))
     }
   )
   |> (
     fun
-    | Ok(type_) => type_
-    | Error(err) => scope |> _report_raw(err, Node.get_range(node))
+    | Ok(result) => result
+    | Error(err) => (scope |> report_raw(err, Node.get_range(node)), None)
   );
 };
 

@@ -6,6 +6,22 @@ include Test.Assert;
 module Formatter = Grammar.Formatter;
 module Analyzer = Analyze.Analyzer;
 
+let weak_type =
+  Alcotest.(
+    check(
+      testable(
+        ppf =>
+          Fmt.result(
+            ~ok=Type.Raw.pp_strong,
+            ~error=Type.Error.pp(Type.Raw.pp),
+            ppf,
+          ),
+        (==),
+      ),
+      "weak type matches",
+    )
+  );
+
 let analyzed_primitive =
   Alcotest.(
     check(

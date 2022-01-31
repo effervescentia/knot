@@ -10,7 +10,7 @@ let _assert_weak_type =
   Alcotest.(check(testable(Type.Raw.pp_weak, (==)), "weak type matches"));
 
 let suite =
-  "Analyze.Analyzer | NotOp"
+  "Analyze.Analyzer | Not Operation"
   >::: [
     "boolean primitive"
     >: (

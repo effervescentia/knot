@@ -22,7 +22,6 @@ module Error = {
   type t('a) =
     | NotFound(Identifier.t)
     | TypeMismatch('a, 'a)
-    | NotAssignable('a, Trait.t)
     | NotNarrowable('a, 'a)
     | ExternalNotFound(Namespace.t, Export.t)
     | TypeResolutionFailed
@@ -37,8 +36,6 @@ module Error = {
         | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
         | DuplicateIdentifier(id) =>
           pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
-        | NotAssignable(type_, trait) =>
-          pf(ppf, "NotAssignable<%a, %a>", pp_type, type_, Trait.pp, trait)
         | NotNarrowable(lhs, rhs) =>
           pf(ppf, "NotNarrowable<%a, %a>", pp_type, lhs, pp_type, rhs)
         | TypeMismatch(lhs, rhs) =>
@@ -222,8 +219,6 @@ let rec _valid_to_raw = (type_: valid_t): Raw.t =>
 and to_raw = (type_: t): Raw.t =>
   switch (type_) {
   | Valid(t) => _valid_to_raw(t)
-  | Invalid(NotAssignable(t, trait)) =>
-    Invalid(NotAssignable(to_raw(t), trait))
   | Invalid(TypeMismatch(lhs, rhs)) =>
     Invalid(TypeMismatch(to_raw(lhs), to_raw(rhs)))
   | Invalid(NotNarrowable(lhs, rhs)) =>
@@ -239,7 +234,6 @@ and to_raw = (type_: t): Raw.t =>
 
 and err_to_strong_err = (err: error_t): Raw.error_t =>
   switch (err) {
-  | NotAssignable(t, trait) => NotAssignable(to_raw(t), trait)
   | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
   | NotNarrowable(lhs, rhs) => NotNarrowable(to_raw(lhs), to_raw(rhs))
   | (
@@ -285,7 +279,6 @@ and err_of_raw_err = (of_raw: Raw.t => t, err: Raw.error_t): error_t =>
   switch (err) {
   | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
   | NotNarrowable(lhs, rhs) => NotNarrowable(of_raw(lhs), of_raw(rhs))
-  | NotAssignable(x, y) => NotAssignable(of_raw(x), y)
   | (
       ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_) |
       TypeResolutionFailed
