@@ -5,7 +5,7 @@ type t = (Point.t, Point.t);
 
 /* static */
 
-let create = (start: Point.t, end_: Point.t) => (start, end_);
+let create = (start: Point.t, end_: Point.t): t => (start, end_);
 
 let zero = create(Point.zero, Point.zero);
 
