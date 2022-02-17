@@ -15,6 +15,7 @@ let tests = [
   JSXTest.suite,
   NumberTest.suite,
   Primitive_BooleanTest.suite,
+  Primitive_BooleanTestV2.suite,
   Primitive_NilTest.suite,
   Primitive_StringTest.suite,
   ProgramTest.suite,
