@@ -1,6 +1,6 @@
 open Kore;
 
-module Number = Grammar.Number;
+module Number = Grammar.NumberV2;
 module U = Util.RawUtilV2;
 
 module Assert =
