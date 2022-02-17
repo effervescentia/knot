@@ -1,6 +1,6 @@
 open Kore;
 
-module Primitive = Grammar.Primitive;
+module Primitive = Grammar.PrimitiveV2;
 module U = Util.RawUtilV2;
 
 module Assert =
@@ -23,7 +23,7 @@ module Assert =
   });
 
 let suite =
-  "Grammar.Primitive | String"
+  "Grammar.Primitive | StringV2"
   >::: [
     "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse"

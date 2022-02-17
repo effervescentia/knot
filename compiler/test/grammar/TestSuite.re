@@ -17,6 +17,8 @@ let tests = [
   Primitive_BooleanTest.suite,
   Primitive_BooleanTestV2.suite,
   Primitive_NilTest.suite,
+  Primitive_NilTestV2.suite,
   Primitive_StringTest.suite,
+  Primitive_StringTestV2.suite,
   ProgramTest.suite,
 ];
