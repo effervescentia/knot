@@ -57,7 +57,7 @@ module Common = {
   /**
    an identifier that doesn't have an inherent type
    */
-  type untyped_identifier_t = Node.Raw.t(Identifier.t);
+  type identifier_t = Node.Raw.t(Identifier.t);
 
   /**
    utilities for printing an AST
@@ -166,11 +166,6 @@ module Make = (Params: ASTParams) => {
   type node_t('a) = Node.t('a, type_t);
 
   /**
-   an identifier AST node
-   */
-  type identifier_t = node_t(Identifier.t);
-
-  /**
    a JSX AST node
    */
   type jsx_t = node_t(raw_jsx_t)
@@ -178,7 +173,7 @@ module Make = (Params: ASTParams) => {
    supported top-level JSX structures
    */
   and raw_jsx_t =
-    | Tag(untyped_identifier_t, list(jsx_attribute_t), list(jsx_child_t))
+    | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
 
   /**
@@ -202,9 +197,9 @@ module Make = (Params: ASTParams) => {
    supported JSX attributes
    */
   and raw_jsx_attribute_t =
-    | ID(untyped_identifier_t)
-    | Class(untyped_identifier_t, option(expression_t))
-    | Property(untyped_identifier_t, option(expression_t))
+    | ID(identifier_t)
+    | Class(identifier_t, option(expression_t))
+    | Property(identifier_t, option(expression_t))
 
   /**
    an expression AST node
@@ -230,7 +225,7 @@ module Make = (Params: ASTParams) => {
    supported statement types
    */
   and raw_statement_t =
-    | Variable(untyped_identifier_t, expression_t)
+    | Variable(identifier_t, expression_t)
     | Expression(expression_t);
 
   /**
@@ -241,7 +236,7 @@ module Make = (Params: ASTParams) => {
    a node of an argument for a functional closure
    */
   and raw_argument_t = {
-    name: untyped_identifier_t,
+    name: identifier_t,
     default: option(expression_t),
     type_: option(node_t(Type.t)),
   };
@@ -341,7 +336,7 @@ module Make = (Params: ASTParams) => {
         | Identifier(id) =>
           typed_node_to_entity(
             ~attributes=[
-              ("value", id |> Node.get_value |> Identifier.to_string),
+              ("value", id |> Node.Raw.get_value |> Identifier.to_string),
             ],
             "Identifier",
           )
@@ -569,15 +564,15 @@ type import_t = Node.Raw.t(raw_import_t)
  supported import types
  */
 and raw_import_t =
-  | MainImport(untyped_identifier_t)
-  | NamedImport(untyped_identifier_t, option(untyped_identifier_t));
+  | MainImport(identifier_t)
+  | NamedImport(identifier_t, option(identifier_t));
 
 /**
  supported export types
  */
 type export_t =
-  | MainExport(untyped_identifier_t)
-  | NamedExport(untyped_identifier_t);
+  | MainExport(identifier_t)
+  | NamedExport(identifier_t);
 
 /**
  module statement AST node

@@ -73,6 +73,22 @@ module Make = (Params: AssertParams) => {
         ~cursor=false,
       ) =>
     List.iter(no_parse(~report, ~ns_context, ~mod_context, ~cursor));
+
+  let parse_throws =
+      (
+        ~report=throw,
+        ~ns_context=_mock_ns_context(report),
+        ~mod_context=_mock_module_context,
+        ~cursor=false,
+        err,
+        message,
+        source,
+      ) =>
+    throws(err, message, () =>
+      InputStream.of_string(~cursor, source)
+      |> LazyStream.of_stream
+      |> Params.parser((ns_context, mod_context(ns_context)))
+    );
 };
 
 module type TypedParserParams = {

@@ -21,7 +21,10 @@ let lexeme = x => spaces >> x;
 let between = (l, r, x) =>
   map3(
     (l', x', r') =>
-      Node.Raw.(create(x', Range.join(get_range(l'), get_range(r')))),
+      Node.Raw.create(
+        x',
+        Range.join(Node.Raw.get_range(l'), Node.Raw.get_range(r')),
+      ),
     l,
     x,
     r,

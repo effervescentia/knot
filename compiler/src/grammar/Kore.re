@@ -16,7 +16,6 @@ type string_parser_t = parser_t(NR.t(string));
 
 type primitive_parser_t = parser_t(N.t(AR.primitive_t, TR.t));
 
-type untyped_identifier_parser_t = parser_t(AR.untyped_identifier_t);
 type identifier_parser_t = parser_t(AR.identifier_t);
 
 type jsx_parser_t = parser_t(AR.jsx_t);
