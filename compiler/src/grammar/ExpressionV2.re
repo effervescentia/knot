@@ -5,7 +5,7 @@ let primitive: expression_parser_t =
 
 let identifier = (ctx: ModuleContext.t): expression_parser_t =>
   IdentifierV2.parser(ctx)
-  >|= NR.wrap(AR.of_id)
+  >|= NR.map_value(AR.of_id)
   >|= N.of_raw(TR.Valid(`Unknown));
 
 let jsx =

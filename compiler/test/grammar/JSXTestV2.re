@@ -71,7 +71,6 @@ let suite =
                 "fizz" |> AR.of_public |> U.as_raw_node,
                 "buzz"
                 |> AR.of_public
-                |> U.as_raw_node
                 |> AR.of_id
                 |> U.as_unknown
                 |> Option.some,
@@ -119,7 +118,6 @@ let suite =
                 [
                   "buzz"
                   |> AR.of_public
-                  |> U.as_raw_node
                   |> AR.of_id
                   |> U.as_unknown
                   |> AR.of_expr
@@ -443,7 +441,6 @@ let suite =
                 "bar" |> AR.of_public |> U.as_raw_node,
                 "fizz"
                 |> AR.of_public
-                |> U.as_raw_node
                 |> AR.of_id
                 |> U.as_unknown
                 |> Option.some,

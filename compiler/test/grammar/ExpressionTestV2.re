@@ -23,11 +23,11 @@ let _generate_spaced_identifier_ops =
     (
       (
         (
-          "a" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
-          "b" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
+          "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
+          "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
         )
         |> tag,
-        "c" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
+        "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
       )
       |> tag,
       Fmt.str("a %s b %s c", op, op),
@@ -71,10 +71,7 @@ let suite =
     "parse identifier"
     >: (
       () =>
-        Assert.parse(
-          "foo" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
-          "foo",
-        )
+        Assert.parse("foo" |> AR.of_public |> AR.of_id |> U.as_unknown, "foo")
     ),
     "parse group"
     >: (
@@ -82,7 +79,6 @@ let suite =
         Assert.parse(
           "foo"
           |> AR.of_public
-          |> U.as_raw_node
           |> AR.of_id
           |> U.as_unknown
           |> AR.of_group
@@ -97,7 +93,6 @@ let suite =
           [
             "foo"
             |> AR.of_public
-            |> U.as_raw_node
             |> AR.of_id
             |> U.as_unknown
             |> AR.of_expr
@@ -107,17 +102,13 @@ let suite =
             |> U.as_nil,
             (
               "y" |> AR.of_public |> U.as_raw_node,
-              "foo"
-              |> AR.of_public
-              |> U.as_raw_node
-              |> AR.of_id
-              |> U.as_unknown,
+              "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
             |> AR.of_var
             |> U.as_nil,
             (
               "z" |> AR.of_public |> U.as_raw_node,
-              "y" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
+              "y" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
             |> AR.of_var
             |> U.as_nil,
@@ -249,33 +240,17 @@ let suite =
           (
             (
               (
-                "a" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
+                "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
                 (
                   (
-                    "b"
-                    |> AR.of_public
-                    |> U.as_raw_node
-                    |> AR.of_id
-                    |> U.as_unknown,
-                    "c"
-                    |> AR.of_public
-                    |> U.as_raw_node
-                    |> AR.of_id
-                    |> U.as_unknown,
+                    "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                    "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
                   )
                   |> AR.of_gt_op
                   |> U.as_bool,
                   (
-                    "e"
-                    |> AR.of_public
-                    |> U.as_raw_node
-                    |> AR.of_id
-                    |> U.as_unknown,
-                    "f"
-                    |> AR.of_public
-                    |> U.as_raw_node
-                    |> AR.of_id
-                    |> U.as_unknown,
+                    "e" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                    "f" |> AR.of_public |> AR.of_id |> U.as_unknown,
                   )
                   |> AR.of_lte_op
                   |> U.as_bool,
@@ -288,12 +263,8 @@ let suite =
               |> AR.of_and_op
               |> U.as_bool,
               (
-                "g" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
-                "h"
-                |> AR.of_public
-                |> U.as_raw_node
-                |> AR.of_id
-                |> U.as_unknown,
+                "g" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                "h" |> AR.of_public |> AR.of_id |> U.as_unknown,
               )
               |> AR.of_or_op
               |> U.as_bool
@@ -370,10 +341,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "a" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
+            "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
             (
-              "b" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
-              "c" |> AR.of_public |> U.as_raw_node |> AR.of_id |> U.as_unknown,
+              "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+              "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
             |> AR.of_expo_op
             |> U.as_float,
@@ -389,7 +360,6 @@ let suite =
         Assert.parse(
           "a"
           |> AR.of_public
-          |> U.as_raw_node
           |> AR.of_id
           |> U.as_unknown
           |> AR.of_neg_op
@@ -407,7 +377,6 @@ let suite =
         Assert.parse(
           "a"
           |> AR.of_public
-          |> U.as_raw_node
           |> AR.of_id
           |> U.as_unknown
           |> AR.of_not_op

@@ -210,7 +210,7 @@ module Make = (Params: ASTParams) => {
    */
   and raw_expression_t =
     | Primitive(primitive_t)
-    | Identifier(identifier_t)
+    | Identifier(Identifier.t)
     | JSX(jsx_t)
     | Group(expression_t)
     | BinaryOp(binary_operator_t, expression_t, expression_t)
@@ -335,9 +335,7 @@ module Make = (Params: ASTParams) => {
 
         | Identifier(id) =>
           typed_node_to_entity(
-            ~attributes=[
-              ("value", id |> Node.Raw.get_value |> Identifier.to_string),
-            ],
+            ~attributes=[("value", Identifier.to_string(id))],
             "Identifier",
           )
 
