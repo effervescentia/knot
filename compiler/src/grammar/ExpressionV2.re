@@ -20,7 +20,9 @@ let group = (parse_expr: expression_parser_t): expression_parser_t =>
       N.create(AR.of_group(expr), N.get_type(expr), range)
   );
 
-let closure = (ctx: ModuleContext.t, parse_expr): expression_parser_t =>
+let closure =
+    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    : expression_parser_t =>
   StatementV2.parser(ctx, parse_expr)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
@@ -83,7 +85,7 @@ and expr_6 = (ctx: ModuleContext.t): expression_parser_t =>
   chainr1(expr_7(ctx), OperatorV2.expo(ctx))
 
 /* !, +, - */
-and expr_7 = (ctx: ModuleContext.t, input) =>
+and expr_7 = (ctx: ModuleContext.t): expression_parser_t =>
   M.unary_op(
     expr_8(ctx),
     choice([
@@ -91,15 +93,16 @@ and expr_7 = (ctx: ModuleContext.t, input) =>
       OperatorV2.positive(ctx),
       OperatorV2.negative(ctx),
     ]),
-    input,
   )
 
 /* {}, () */
-and expr_8 = (ctx: ModuleContext.t, input) =>
-  choice([closure(ctx, expr_0), expr_0(ctx) |> group, term(ctx)], input)
+and expr_8 = (ctx: ModuleContext.t): expression_parser_t =>
+  /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
+  input =>
+    choice([closure(ctx, expr_0), expr_0(ctx) |> group, term(ctx)], input)
 
 /* 2, foo, <bar /> */
-and term = (ctx: ModuleContext.t, input) =>
-  choice([primitive, identifier(ctx), jsx(ctx, (expr_4, expr_0))], input);
+and term = (ctx: ModuleContext.t): expression_parser_t =>
+  choice([primitive, identifier(ctx), jsx(ctx, (expr_4, expr_0))]);
 
 let parser = expr_0;

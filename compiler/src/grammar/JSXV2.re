@@ -42,7 +42,7 @@ let _self_closing = Tag.self_close >|= NR.map_value(() => []);
 let rec parser =
         (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
         : jsx_parser_t =>
-  /* do not attempt to simplify this `input` away or JSX parsing will loop forever */
+  /* do not attempt to simplify this `input` argument away or JSX parsing will loop forever */
   input =>
     (choice([fragment(ctx, parsers), tag(ctx, parsers)]) |> M.lexeme)(
       input,
