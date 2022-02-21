@@ -76,7 +76,7 @@ let suite =
                 |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_unknown,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -97,7 +97,7 @@ let suite =
                 "buzz" |> U.string_prim |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_string,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -128,7 +128,7 @@ let suite =
                 |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_unknown,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -152,7 +152,7 @@ let suite =
                 |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_int,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -176,7 +176,7 @@ let suite =
                 |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_bool,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -197,7 +197,7 @@ let suite =
                 true |> U.bool_prim |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_bool,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -218,7 +218,7 @@ let suite =
                 3 |> U.int_prim |> AR.of_neg_op |> U.as_int |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_int,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -242,7 +242,7 @@ let suite =
                 |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_element,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -260,7 +260,7 @@ let suite =
             [
               ("fizz" |> AR.of_public |> U.as_raw_node, None)
               |> AR.of_prop
-              |> U.as_unknown,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -278,7 +278,7 @@ let suite =
             [
               ("fizz" |> AR.of_public |> U.as_raw_node, None)
               |> AR.of_jsx_class
-              |> U.as_bool,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -298,7 +298,7 @@ let suite =
               |> AR.of_public
               |> U.as_raw_node
               |> AR.of_jsx_id
-              |> U.as_string,
+              |> U.as_raw_node,
             ],
             [],
           )
@@ -391,7 +391,7 @@ let suite =
                 4 |> U.int_prim |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_int,
+              |> U.as_raw_node,
             ],
             [
               ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
@@ -446,10 +446,10 @@ let suite =
                 |> Option.some,
               )
               |> AR.of_prop
-              |> U.as_unknown,
+              |> U.as_raw_node,
               ("buzz" |> AR.of_public |> U.as_raw_node, None)
               |> AR.of_jsx_class
-              |> U.as_bool,
+              |> U.as_raw_node,
             ],
             [],
           )

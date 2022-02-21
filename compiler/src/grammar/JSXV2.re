@@ -99,9 +99,8 @@ and property_attribute =
   _attribute(ctx, parsers)
   >|= (
     ((name, value, range)) =>
-      N.create(
+      NR.create(
         (name |> NR.map_value(AR.of_public), value) |> AR.of_prop,
-        value |> Option.map(N.get_type) |?: TR.Valid(`Unknown),
         range,
       )
   )
@@ -112,11 +111,9 @@ and class_attribute =
   _attribute(~prefix=Character.period, ctx, parsers)
   >|= (
     ((name, value, range)) =>
-      N.create(
+      NR.create(
         (name |> NR.map_value(String.drop_left(1) % AR.of_public), value)
         |> AR.of_jsx_class,
-        /* classes are dynamic boolean values */
-        TR.Valid(`Boolean),
         range,
       )
   )
@@ -125,8 +122,6 @@ and id_attribute: jsx_attribute_parser_t =
   M.identifier(~prefix=Character.octothorpe)
   >|= NR.map_value(String.drop_left(1) % AR.of_public)
   >|= NR.wrap(AR.of_jsx_id)
-  /* identifiers are static string values */
-  >|= N.of_raw(TR.Valid(`String))
 
 and attributes =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)

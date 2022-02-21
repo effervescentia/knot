@@ -192,7 +192,7 @@ module Make = (Params: ASTParams) => {
   /**
    a JSX attribute AST node
    */
-  and jsx_attribute_t = node_t(raw_jsx_attribute_t)
+  and jsx_attribute_t = Node.Raw.t(raw_jsx_attribute_t)
   /**
    supported JSX attributes
    */
@@ -455,7 +455,7 @@ module Make = (Params: ASTParams) => {
     and jsx_attr_to_entity = attr =>
       (
         (
-          switch (Node.get_value(attr)) {
+          switch (Node.Raw.get_value(attr)) {
           | Class(name, value) => ("Class", name, value)
 
           | ID(name) => ("ID", name, None)
@@ -467,12 +467,12 @@ module Make = (Params: ASTParams) => {
         |> (
           fun
           | (entity, name_child, Some(expr)) =>
-            typed_node_to_entity(
+            untyped_node_to_entity(
               ~children=[name_child, expr_to_entity(expr)],
               entity,
             )
           | (entity, name_child, None) =>
-            typed_node_to_entity(~children=[name_child], entity)
+            untyped_node_to_entity(~children=[name_child], entity)
         )
       )(
         attr,
