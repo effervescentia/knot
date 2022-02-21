@@ -153,7 +153,7 @@ and text: jsx_child_parser_t =
   >|= Input.join
   >|= NR.map_value(String.trim)
   >|= N.of_raw(TR.Valid(`String))
-  >|= N.wrap(AR.of_text)
+  >|= N.map_value(AR.of_text)
 
 and node =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)

@@ -185,7 +185,7 @@ module Make = (Params: ASTParams) => {
    */
   and raw_jsx_child_t =
     /* TODO: collapse this (and Node?) to not require redundant types and ranges */
-    | Text(node_t(string))
+    | Text(string)
     | Node(jsx_t)
     | InlineExpression(expression_t)
 
@@ -437,10 +437,7 @@ module Make = (Params: ASTParams) => {
       (
         switch (Node.get_value(jsx_child)) {
         | Text(text) =>
-          typed_node_to_entity(
-            ~attributes=[("value", Node.get_value(text))],
-            "Text",
-          )
+          typed_node_to_entity(~attributes=[("value", text)], "Text")
 
         | Node(jsx) =>
           typed_node_to_entity(~children=[jsx_to_entity(jsx)], "Node")

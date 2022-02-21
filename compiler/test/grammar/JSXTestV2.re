@@ -372,7 +372,7 @@ let suite =
           (
             "Foo" |> AR.of_public |> U.as_raw_node,
             [],
-            ["bar \"or\" 123" |> U.as_string |> AR.of_text |> U.as_string],
+            ["bar \"or\" 123" |> AR.of_text |> U.as_string],
           )
           |> AR.of_tag
           |> U.as_element,
@@ -412,7 +412,7 @@ let suite =
             "Foo" |> AR.of_public |> U.as_raw_node,
             [],
             [
-              "bar" |> U.as_string |> AR.of_text |> U.as_string,
+              "bar" |> AR.of_text |> U.as_string,
               (U.int_prim(1), U.int_prim(2))
               |> AR.of_add_op
               |> U.as_int
@@ -422,7 +422,7 @@ let suite =
               |> U.jsx_node
               |> U.as_element,
               "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_string,
-              "buzz" |> U.as_string |> AR.of_text |> U.as_string,
+              "buzz" |> AR.of_text |> U.as_string,
             ],
           )
           |> AR.of_tag
