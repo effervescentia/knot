@@ -3,11 +3,11 @@ open Kore;
 let reserved = (ctx: ModuleContext.t) =>
   choice(Constants.Keyword.reserved |> List.map(M.keyword))
   >|= (
-    name => {
+    ((name_value, name_range) as name) => {
       ParseError(
-        ReservedKeyword(NR.get_value(name)),
+        ReservedKeyword(name_value),
         ctx.namespace_context.namespace,
-        NR.get_range(name),
+        name_range,
       )
       |> ModuleContext.report(ctx);
 

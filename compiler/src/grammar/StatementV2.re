@@ -6,14 +6,14 @@ let variable =
   Keyword.let_
   >|= NR.get_range
   >>= (
-    start =>
+    start_range =>
       Operator.assign(IdentifierV2.parser(ctx), parse_expr(ctx))
       >|= (
         ((_, expr) as var) =>
           N.create(
             AR.of_var(var),
             TR.Valid(`Nil),
-            Range.join(start, N.get_range(expr)),
+            Range.join(start_range, N.get_range(expr)),
           )
       )
   );

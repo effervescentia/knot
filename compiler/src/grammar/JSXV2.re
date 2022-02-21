@@ -25,7 +25,7 @@ let _attribute =
     M.identifier(~prefix),
     parse_expr(ctx)
     |> M.between(Symbol.open_group, Symbol.close_group)
-    >|= fst
+    >|= (((expr, range)) => N.map_range(_ => range, expr))
     <|> parse_term(ctx),
   )
   >|= (
@@ -53,8 +53,7 @@ and fragment =
   children(ctx, parsers)
   |> M.between(Fragment.open_, Fragment.close)
   >|= (
-    ((frag, range)) =>
-      N.create(AR.of_frag(frag), TR.Valid(`Element), range)
+    ((xs, range)) => N.create(AR.of_frag(xs), TR.Valid(`Element), range)
   )
 
 and tag =
@@ -74,7 +73,7 @@ and tag =
               |> NR.get_value
               |> M.keyword
               |> M.between(Tag.open_end, Tag.close)
-              >|= snd
+              >|= NR.get_range
               >|= NR.create(cs)
           )
           <|> _self_closing
@@ -88,7 +87,7 @@ and tag =
                 )
                 |> AR.of_tag,
                 TR.Valid(`Element),
-                Range.join(NR.get_range(id), NR.get_range(cs)),
+                NR.join_ranges(id, cs),
               )
           )
       )
@@ -116,6 +115,7 @@ and class_attribute =
       N.create(
         (name |> NR.map_value(String.drop_left(1) % AR.of_public), value)
         |> AR.of_jsx_class,
+        /* classes are dynamic boolean values */
         TR.Valid(`Boolean),
         range,
       )
@@ -125,6 +125,7 @@ and id_attribute: jsx_attribute_parser_t =
   M.identifier(~prefix=Character.octothorpe)
   >|= NR.map_value(String.drop_left(1) % AR.of_public)
   >|= NR.wrap(AR.of_jsx_id)
+  /* identifiers are static string values */
   >|= N.of_raw(TR.Valid(`String))
 
 and attributes =
