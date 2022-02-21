@@ -156,10 +156,8 @@ and text: jsx_child_parser_t =
 
 and node =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
-    : jsx_child_parser_t => {
-  Fmt.epr("node parser");
-  parser(ctx, parsers) >|= N.wrap(AR.of_node);
-}
+    : jsx_child_parser_t =>
+  parser(ctx, parsers) >|= N.wrap(AR.of_node)
 
 and inline_expr =
     (ctx: ModuleContext.t, (_, parse_expr): expression_parsers_arg_t)

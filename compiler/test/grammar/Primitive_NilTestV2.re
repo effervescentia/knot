@@ -5,12 +5,12 @@ module U = Util.RawUtilV2;
 
 module Assert =
   Assert.MakePrimitive({
-    let parser = Primitive.nil;
+    let parser = Primitive.parser;
   });
 
 let suite =
   "Grammar.Primitive | NilV2"
   >::: [
     "no parse" >: (() => Assert.no_parse("gibberish")),
-    "parse" >: (() => Assert.parse_all(AR.nil |> U.as_nil, ["nil", " nil "])),
+    "parse" >: (() => Assert.parse_all(U.as_nil(AR.nil), ["nil", " nil "])),
   ];

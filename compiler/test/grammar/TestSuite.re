@@ -5,6 +5,7 @@ let tests = [
   Declaration_FunctionTest.suite,
   DeclarationTest.suite,
   ExpressionTest.suite,
+  ExpressionTestV2.suite,
   Formatter_DeclarationTest.suite,
   Formatter_ExpressionTest.suite,
   Formatter_ImportTest.suite,
@@ -23,4 +24,5 @@ let tests = [
   Primitive_StringTest.suite,
   Primitive_StringTestV2.suite,
   ProgramTest.suite,
+  StatementTest.suite,
 ];

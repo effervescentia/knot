@@ -4,22 +4,8 @@ module Primitive = Grammar.PrimitiveV2;
 module U = Util.RawUtilV2;
 
 module Assert =
-  Assert.Make({
-    type t = N.t(AR.primitive_t, TR.t);
-
-    let parser = _ => Parser.parse(Primitive.string);
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            ppf =>
-              AR.typed_node_to_entity("Primitive") % A.Dump.Entity.pp(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
+  Assert.MakePrimitive({
+    let parser = Primitive.parser;
   });
 
 let suite =
@@ -30,7 +16,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          AR.of_string("foo") |> U.as_string,
+          "foo" |> AR.of_string |> U.as_string,
           ["\"foo\"", " \"foo\" "],
         )
     ),
@@ -38,7 +24,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          AR.of_string("foo\\\"bar") |> U.as_string,
+          "foo\\\"bar" |> AR.of_string |> U.as_string,
           "\"foo\\\"bar\"",
         )
     ),

@@ -5,7 +5,7 @@ module U = Util.RawUtilV2;
 
 module Assert =
   Assert.MakePrimitive({
-    let parser = Primitive.boolean;
+    let parser = Primitive.parser;
   });
 
 let suite =
@@ -15,13 +15,13 @@ let suite =
     "parse true"
     >: (
       () =>
-        Assert.parse_all(AR.of_bool(true) |> U.as_bool, ["true", " true "])
+        Assert.parse_all(true |> AR.of_bool |> U.as_bool, ["true", " true "])
     ),
     "parse false"
     >: (
       () =>
         Assert.parse_all(
-          AR.of_bool(false) |> U.as_bool,
+          false |> AR.of_bool |> U.as_bool,
           ["false", " false "],
         )
     ),

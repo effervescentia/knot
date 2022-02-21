@@ -4,9 +4,6 @@ module Expression = Grammar.ExpressionV2;
 module JSX = Grammar.JSXV2;
 module U = Util.RawUtilV2;
 
-let _mock_parser = x =>
-  Parse.Onyx.(Grammar.Matchers.keyword(x) >|= (_ => 3 |> U.int_prim));
-
 module Assert =
   Assert.Make({
     type t = AR.jsx_t;
@@ -265,7 +262,7 @@ let suite =
             [
               ("fizz" |> AR.of_public |> U.as_raw_node, None)
               |> AR.of_prop
-              |> U.as_bool,
+              |> U.as_unknown,
             ],
             [],
           )
