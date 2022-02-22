@@ -180,7 +180,6 @@ module Make = (Params: ASTParams) => {
    supported JSX children
    */
   and raw_jsx_child_t =
-    /* TODO: collapse this (and Node?) to not require redundant types and ranges */
     | Text(string)
     | Node(jsx_t)
     | InlineExpression(expression_t)
