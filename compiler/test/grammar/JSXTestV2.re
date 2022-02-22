@@ -6,7 +6,7 @@ module U = Util.RawUtilV2;
 
 module Assert =
   Assert.Make({
-    type t = AR.jsx_t;
+    type t = NR.t(AR.jsx_t);
 
     let parser = ((_, ctx)) =>
       JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
@@ -14,7 +14,18 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(ppf => AR.Dump.(jsx_to_entity % Entity.pp(ppf)), (==)),
+          testable(
+            (ppf, jsx) =>
+              AR.Dump.(
+                jsx
+                |> untyped_node_to_entity(
+                     ~children=[jsx |> NR.get_value |> jsx_to_entity],
+                     "JSX",
+                   )
+                |> Entity.pp(ppf)
+              ),
+            (==),
+          ),
           "program matches",
         )
       );
@@ -30,7 +41,7 @@ let suite =
         Assert.parse_all(
           ("Foo" |> AR.of_public |> U.as_raw_node, [], [])
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
     ),
@@ -40,12 +51,12 @@ let suite =
         Assert.parse_all(
           ("Foo" |> AR.of_public |> U.as_raw_node, [], [])
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           ["<Foo/>", " < Foo / > "],
         )
     ),
     "parse empty fragment"
-    >: (() => Assert.parse([] |> AR.of_frag |> U.as_element, "<></>")),
+    >: (() => Assert.parse([] |> AR.of_frag |> U.as_raw_node, "<></>")),
     "parse fragment with children"
     >: (
       () =>
@@ -53,10 +64,10 @@ let suite =
           [
             ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
             |> U.jsx_node
-            |> U.as_element,
+            |> U.as_raw_node,
           ]
           |> AR.of_frag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<><Bar /></>",
         )
     ),
@@ -81,7 +92,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=buzz />",
         )
     ),
@@ -102,7 +113,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=\"buzz\" />",
         )
     ),
@@ -133,7 +144,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz={ buzz; } />",
         )
     ),
@@ -157,7 +168,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=1 + 2 />",
         )
     ),
@@ -181,7 +192,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=(1 > 2) />",
         )
     ),
@@ -202,7 +213,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=(true) />",
         )
     ),
@@ -223,7 +234,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=-3 />",
         )
     ),
@@ -247,7 +258,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz=<buzz /> />",
         )
     ),
@@ -265,7 +276,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo fizz />",
         )
     ),
@@ -283,7 +294,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo .fizz />",
         )
     ),
@@ -303,7 +314,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo #fizz />",
         )
     ),
@@ -317,11 +328,11 @@ let suite =
             [
               ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
               |> U.jsx_node
-              |> U.as_element,
+              |> U.as_raw_node,
             ],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo><Bar /></Foo>",
         )
     ),
@@ -337,11 +348,11 @@ let suite =
               |> AR.of_add_op
               |> U.as_int
               |> AR.of_inline_expr
-              |> U.as_int,
+              |> U.as_raw_node,
             ],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo>{1 + 2}</Foo>",
         )
     ),
@@ -357,11 +368,11 @@ let suite =
               |> U.jsx_tag
               |> U.as_element
               |> AR.of_inline_expr
-              |> U.as_element,
+              |> U.as_raw_node,
             ],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo>{<Bar />}</Foo>",
         )
     ),
@@ -372,10 +383,10 @@ let suite =
           (
             "Foo" |> AR.of_public |> U.as_raw_node,
             [],
-            ["bar \"or\" 123" |> AR.of_text |> U.as_string],
+            ["bar \"or\" 123" |> AR.of_text |> U.as_raw_node],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo> bar \"or\" 123 </Foo>",
         )
     ),
@@ -396,11 +407,11 @@ let suite =
             [
               ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
               |> U.jsx_node
-              |> U.as_element,
+              |> U.as_raw_node,
             ],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo bar=4><Bar /></Foo>",
         )
     ),
@@ -412,21 +423,21 @@ let suite =
             "Foo" |> AR.of_public |> U.as_raw_node,
             [],
             [
-              "bar" |> AR.of_text |> U.as_string,
+              "bar" |> AR.of_text |> U.as_raw_node,
               (U.int_prim(1), U.int_prim(2))
               |> AR.of_add_op
               |> U.as_int
               |> AR.of_inline_expr
-              |> U.as_int,
+              |> U.as_raw_node,
               ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
               |> U.jsx_node
-              |> U.as_element,
-              "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_string,
-              "buzz" |> AR.of_text |> U.as_string,
+              |> U.as_raw_node,
+              "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_raw_node,
+              "buzz" |> AR.of_text |> U.as_raw_node,
             ],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
         )
     ),
@@ -454,7 +465,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_element,
+          |> U.as_raw_node,
           "<Foo bar=fizz .buzz />",
         )
     ),

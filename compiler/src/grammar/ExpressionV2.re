@@ -11,7 +11,9 @@ let identifier = (ctx: ModuleContext.t): expression_parser_t =>
 let jsx =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
     : expression_parser_t =>
-  JSXV2.parser(ctx, parsers) >|= N.wrap(AR.of_jsx);
+  JSXV2.parser(ctx, parsers)
+  >|= N.of_raw(TR.Valid(`Element))
+  >|= N.map_value(AR.of_jsx);
 
 let group = (parse_expr: expression_parser_t): expression_parser_t =>
   M.between(Symbol.open_group, Symbol.close_group, parse_expr)

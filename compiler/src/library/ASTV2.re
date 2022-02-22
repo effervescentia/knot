@@ -168,18 +168,14 @@ module Make = (Params: ASTParams) => {
   /**
    a JSX AST node
    */
-  type jsx_t = node_t(raw_jsx_t)
-  /**
-   supported top-level JSX structures
-   */
-  and raw_jsx_t =
+  type jsx_t =
     | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
 
   /**
    a JSX child AST node
    */
-  and jsx_child_t = node_t(raw_jsx_child_t)
+  and jsx_child_t = Node.Raw.t(raw_jsx_child_t)
   /**
    supported JSX children
    */
@@ -404,46 +400,41 @@ module Make = (Params: ASTParams) => {
         expr,
       )
 
-    and jsx_to_entity = jsx =>
-      (
-        switch (Node.get_value(jsx)) {
-        | Tag(name, attrs, children) =>
-          typed_node_to_entity(
-            ~children=[
-              id_to_entity("Name", name),
-              Entity.create(
-                ~children=attrs |> List.map(jsx_attr_to_entity),
-                "Attributes",
-              ),
-              Entity.create(
-                ~children=children |> List.map(jsx_child_to_entity),
-                "Children",
-              ),
-            ],
-            "Tag",
-          )
+    and jsx_to_entity =
+      fun
+      | Tag(name, attrs, children) =>
+        Entity.create(
+          ~children=[
+            id_to_entity("Name", name),
+            Entity.create(
+              ~children=attrs |> List.map(jsx_attr_to_entity),
+              "Attributes",
+            ),
+            Entity.create(
+              ~children=children |> List.map(jsx_child_to_entity),
+              "Children",
+            ),
+          ],
+          "Tag",
+        )
 
-        | Fragment(children) =>
-          typed_node_to_entity(
-            ~children=children |> List.map(jsx_child_to_entity),
-            "Fragment",
-          )
-        }
-      )(
-        jsx,
-      )
+      | Fragment(children) =>
+        Entity.create(
+          ~children=children |> List.map(jsx_child_to_entity),
+          "Fragment",
+        )
 
     and jsx_child_to_entity = jsx_child =>
       (
-        switch (Node.get_value(jsx_child)) {
+        switch (Node.Raw.get_value(jsx_child)) {
         | Text(text) =>
-          typed_node_to_entity(~attributes=[("value", text)], "Text")
+          untyped_node_to_entity(~attributes=[("value", text)], "Text")
 
         | Node(jsx) =>
-          typed_node_to_entity(~children=[jsx_to_entity(jsx)], "Node")
+          untyped_node_to_entity(~children=[jsx_to_entity(jsx)], "Node")
 
         | InlineExpression(expr) =>
-          typed_node_to_entity(
+          untyped_node_to_entity(
             ~children=[expr_to_entity(expr)],
             "InlineExpr",
           )

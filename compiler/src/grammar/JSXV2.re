@@ -52,9 +52,7 @@ and fragment =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
   children(ctx, parsers)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= (
-    ((xs, range)) => N.create(AR.of_frag(xs), TR.Valid(`Element), range)
-  )
+  >|= (((xs, range)) => NR.create(AR.of_frag(xs), range))
 
 and tag =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
@@ -79,14 +77,13 @@ and tag =
           <|> _self_closing
           >|= (
             cs =>
-              N.create(
+              NR.create(
                 (
                   id |> NR.map_value(Identifier.of_string),
                   attrs,
                   NR.get_value(cs),
                 )
                 |> AR.of_tag,
-                TR.Valid(`Element),
                 NR.join_ranges(id, cs),
               )
           )
@@ -147,20 +144,16 @@ and text: jsx_child_parser_t =
   )
   >|= Input.join
   >|= NR.map_value(String.trim)
-  >|= N.of_raw(TR.Valid(`String))
-  >|= N.map_value(AR.of_text)
+  >|= NR.map_value(AR.of_text)
 
 and node =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
     : jsx_child_parser_t =>
-  parser(ctx, parsers) >|= N.wrap(AR.of_node)
+  parser(ctx, parsers) >|= NR.map_value(AR.of_node)
 
 and inline_expr =
     (ctx: ModuleContext.t, (_, parse_expr): expression_parsers_arg_t)
     : jsx_child_parser_t =>
   parse_expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= (
-    ((expr, range)) =>
-      N.create(AR.of_inline_expr(expr), N.get_type(expr), range)
-  );
+  >|= NR.map_value(AR.of_inline_expr);
