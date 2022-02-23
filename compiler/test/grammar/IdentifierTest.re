@@ -7,7 +7,8 @@ module Assert =
   Assert.Make({
     type t = AR.identifier_t;
 
-    let parser = ((_, ctx)) => ctx |> Identifier.parser |> Parser.parse;
+    let parser = ((_, ctx)) =>
+      ctx |> Identifier.parser |> Assert.parse_completely |> Parser.parse;
 
     let test =
       Alcotest.(
@@ -17,13 +18,13 @@ module Assert =
               A.Dump.(
                 id
                 |> untyped_node_to_entity(
-                     "Identifier",
                      ~attributes=[
                        (
                          "value",
                          id |> NR.get_value |> Reference.Identifier.to_string,
                        ),
                      ],
+                     "Identifier",
                    )
                 |> Entity.pp(ppf)
               ),

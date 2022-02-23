@@ -18,6 +18,7 @@ module Character = {
   let comma = ',';
   let octothorpe = '#';
   let underscore = '_';
+  let colon = ':';
   let semicolon = ';';
   let equal_sign = '=';
 
@@ -64,6 +65,8 @@ module Glyph = {
   let open_end_tag = "</";
 
   let lambda = "->";
+
+  let list_type_suffix = "[]";
 };
 
 /**
@@ -80,6 +83,13 @@ module Keyword = {
   let true_ = "true";
   let false_ = "false";
   let as_ = "as";
+
+  /* primitive types */
+  let boolean = "boolean";
+  let integer = "integer";
+  let float = "float";
+  let string = "string";
+  let element = "element";
 
   /**
    reserved keywords cannot be used as the name of a variable

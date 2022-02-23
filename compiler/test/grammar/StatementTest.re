@@ -9,7 +9,9 @@ module Assert =
     type t = AR.statement_t;
 
     let parser = ((_, ctx)) =>
-      Statement.parser(ctx, Expression.parser) |> Parser.parse;
+      Statement.parser(ctx, Expression.parser)
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(

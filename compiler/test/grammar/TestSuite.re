@@ -25,4 +25,5 @@ let tests = [
   Primitive_StringTestV2.suite,
   ProgramTest.suite,
   StatementTest.suite,
+  TypingTest.suite,
 ];

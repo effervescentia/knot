@@ -234,6 +234,16 @@ let sep_by1 = (sep, x) => x <~> many(sep >> x);
 let sep_by = (sep, x) => sep_by1(sep, x) <|> return([]);
 
 /**
+ matches a pattern that has a [suffix]
+
+ associativity: {i left-to-right}
+ */
+let suffixed_by = (suffix, x) => {
+  let rec loop = a => suffix >>= (f => loop(f(a))) <|> return(a);
+  x >>= loop;
+};
+
+/**
  matches a pattern [n+1] times separated by operator [op]
 
  associativity: {i left-to-right}

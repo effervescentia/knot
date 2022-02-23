@@ -131,6 +131,106 @@ module Common = {
   };
 };
 
+module TypeExpression = {
+  type t = Node.Raw.t(raw_t)
+
+  and raw_t =
+    | Nil
+    | Boolean
+    | Integer
+    | Float
+    | String
+    | Element
+    | Group(t)
+    | List(t)
+    | Struct(list((Node.Raw.t(string), t)))
+    | Function(list(t), t);
+
+  /* tag helpers */
+
+  let of_group = x => Group(x);
+  let of_list = x => List(x);
+  let of_struct = props => Struct(props);
+  let of_function = ((args, res)) => Function(args, res);
+
+  module Dump = {
+    include Common.Dump;
+
+    let rec to_entity = type_ =>
+      (
+        switch (Node.Raw.get_value(type_)) {
+        | Nil => untyped_node_to_entity("Nil")
+
+        | Boolean => untyped_node_to_entity("Boolean")
+
+        | Integer => untyped_node_to_entity("Integer")
+
+        | Float => untyped_node_to_entity("Float")
+
+        | String => untyped_node_to_entity("String")
+
+        | Element => untyped_node_to_entity("Element")
+
+        | Group(t) =>
+          untyped_node_to_entity(~children=[to_entity(t)], "Group")
+
+        | List(t) =>
+          untyped_node_to_entity(~children=[to_entity(t)], "List")
+
+        | Struct(props) =>
+          untyped_node_to_entity(
+            ~children=
+              props
+              |> List.map(((key, value)) =>
+                   Entity.create(
+                     ~children=[
+                       untyped_node_to_entity(
+                         ~attributes=[("name", Node.Raw.get_value(key))],
+                         "Key",
+                         key,
+                       ),
+                       untyped_node_to_entity(
+                         ~children=[to_entity(value)],
+                         "Value",
+                         value,
+                       ),
+                     ],
+                     "Property",
+                   )
+                 ),
+            "Struct",
+          )
+
+        | Function(args, res) =>
+          untyped_node_to_entity(
+            ~children=[
+              Entity.create(
+                ~children=
+                  args
+                  |> List.map(arg =>
+                       untyped_node_to_entity(
+                         ~children=[to_entity(arg)],
+                         "Argument",
+                         arg,
+                       )
+                     ),
+                "Arguments",
+              ),
+              untyped_node_to_entity(
+                ~children=[to_entity(res)],
+                "Result",
+                res,
+              ),
+            ],
+            "Function",
+          )
+        }
+      )(
+        type_,
+      );
+  };
+};
+
 /**
  abstraction on the type of the nodes that makeup an AST
  */
@@ -233,7 +333,7 @@ module Make = (Params: ASTParams) => {
   and raw_argument_t = {
     name: identifier_t,
     default: option(expression_t),
-    type_: option(node_t(Type.t)),
+    type_: option(TypeExpression.t),
   };
 
   /* tag helpers */
@@ -628,7 +728,10 @@ module Dump = {
                      switch (type_) {
                      | Some(type_) =>
                        children :=
-                         [typed_node_to_entity("Type", type_), ...children^]
+                         [
+                           untyped_node_to_entity("Type", type_),
+                           ...children^,
+                         ]
                      | None => ()
                      };
 

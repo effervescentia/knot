@@ -3,6 +3,7 @@ open Kore;
 module C = C.Character;
 module M = Matchers;
 
+let colon = M.symbol(C.colon);
 let semicolon = M.symbol(C.semicolon);
 let comma = M.symbol(C.comma);
 

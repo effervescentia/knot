@@ -30,6 +30,7 @@ let sub = (ctx: ModuleContext.t) =>
 
 let div = (ctx: ModuleContext.t) =>
   of_div_op |> _binary_op(ctx) <$ Symbol.divide;
+/* this parser intentionally follows a different pattern than the others */
 let expo = (ctx: ModuleContext.t) =>
   ((l, r) => (l, r) |> _binary_op(ctx, of_expo_op)) <$ Symbol.exponent;
 

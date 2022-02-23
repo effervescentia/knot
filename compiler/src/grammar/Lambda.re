@@ -2,37 +2,38 @@ open Kore;
 open AST.Raw;
 
 let arguments = (ctx: ModuleContext.t) =>
-  M.between(
-    Symbol.open_group,
-    Symbol.close_group,
-    choice([
-      Operator.assign(
-        Identifier.parser(ctx),
-        Expression.parser(ctx) >|= Option.some,
-      )
-      >|= (
-        ((name, default)) => {
-          let name_range = Node.Raw.get_range(name);
-
-          (
-            {name, default, type_: None},
-            Range.join(
-              name_range,
-              default |> Option.map(Node.Raw.get_range) |?: name_range,
-            ),
-          );
-        }
-      ),
-      Identifier.parser(ctx)
-      >|= (
-        name => (
-          {name, default: None, type_: None},
-          Node.Raw.get_range(name),
-        )
-      ),
-    ])
-    |> sep_by(Symbol.comma),
+  Identifier.parser(ctx)
+  >>= (
+    id =>
+      Typing.expression_parser
+      >|= ((type_, default) => (id, Some(type_), default))
+      |> option(default => (id, None, default))
   )
+  >>= (
+    f =>
+      Symbol.assign
+      >> Expression.parser(ctx)
+      >|= Option.some
+      >|= f
+      |> option(f(None))
+  )
+  >|= (
+    ((name, type_, default)) => {
+      let name_range = Node.Raw.get_range(name);
+
+      (
+        {name, default, type_: None},
+        Range.join(
+          name_range,
+          default
+          |> Option.map(Node.Raw.get_range)
+          |?: (type_ |> Option.map(Node.Raw.get_range) |?: name_range),
+        ),
+      );
+    }
+  )
+  |> sep_by(Symbol.comma)
+  |> M.between(Symbol.open_group, Symbol.close_group)
   >|= Node.Raw.get_value;
 
 let parser = (ctx: ModuleContext.t) =>

@@ -8,6 +8,9 @@ let _mock_ns_context = report =>
   NamespaceContext.create(~report, Internal("mock"));
 let _mock_module_context = x => ModuleContext.create(x);
 
+let parse_completely = x =>
+  Parse.Onyx.(x << (eof() |> Grammar.Matchers.lexeme));
+
 module type AssertParams = {
   include Test.Assert.Target;
 
@@ -106,7 +109,8 @@ module MakeTyped = (Params: TypedParserParams) =>
   Make({
     type t = N.t(Params.value_t, Params.type_t);
 
-    let parser = ctx => Parser.parse(Params.parser(ctx));
+    let parser = ctx =>
+      Params.parser(ctx) |> parse_completely |> Parser.parse;
 
     let test =
       Alcotest.(

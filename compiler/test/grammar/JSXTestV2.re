@@ -9,7 +9,9 @@ module Assert =
     type t = NR.t(AR.jsx_t);
 
     let parser = ((_, ctx)) =>
-      JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
+      JSX.parser(ctx, (Expression.expr_4, Expression.parser))
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(

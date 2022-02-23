@@ -12,3 +12,5 @@ let equality = M.glyph(G.equality);
 let inequality = M.glyph(G.inequality);
 
 let lambda = M.glyph(G.lambda);
+
+let list_type_suffix = M.glyph(G.list_type_suffix);
