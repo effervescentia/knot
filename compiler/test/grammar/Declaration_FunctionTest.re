@@ -1,17 +1,16 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
 open Reference;
 
 module Declaration = Grammar.Declaration;
+module U = Util.ResultUtilV2;
 
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = Node.Raw.t((export_t, declaration_t));
+    type t = Node.Raw.t((A.export_t, A.declaration_t));
 
     let parser = ((_, ctx)) =>
-      Declaration.function_(ctx, AST.of_named_export)
+      Declaration.function_(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 
@@ -22,15 +21,17 @@ module Assert = {
             (ppf, stmt) => {
               let (export, decl) = Node.Raw.get_value(stmt);
 
-              Dump.raw_node_to_entity(
-                "Declaration",
-                ~children=[
-                  export |> Dump.export_to_entity,
-                  decl |> Dump.decl_to_entity,
-                ],
-                stmt,
-              )
-              |> Dump.Entity.pp(ppf);
+              A.Dump.(
+                untyped_node_to_entity(
+                  "Declaration",
+                  ~children=[
+                    export |> export_to_entity,
+                    decl |> decl_to_entity,
+                  ],
+                  stmt,
+                )
+                |> Entity.pp(ppf)
+              );
             },
             (==),
           ),
@@ -62,10 +63,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> of_public |> as_raw_node |> of_named_export,
-            ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(`Nil)),
           )
-          |> as_raw_node,
+          |> U.as_raw_node,
           "func foo -> nil",
         )
     ),
@@ -74,12 +75,17 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> of_public |> as_raw_node |> of_named_export,
-            ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
-            |> of_func
-            |> as_function([], Valid(`Nil)),
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            (
+              [],
+              [U.nil_prim |> A.of_expr |> U.as_nil]
+              |> A.of_closure
+              |> U.as_nil,
+            )
+            |> A.of_func
+            |> U.as_function([], Valid(`Nil)),
           )
-          |> as_raw_node,
+          |> U.as_raw_node,
           "func foo -> { nil }",
         )
     ),
@@ -88,10 +94,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> of_public |> as_raw_node |> of_named_export,
-            ([], nil_prim) |> of_func |> as_function([], Valid(`Nil)),
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(`Nil)),
           )
-          |> as_raw_node,
+          |> U.as_raw_node,
           "func foo () -> nil",
         )
     ),
@@ -100,13 +106,44 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> of_public |> as_raw_node |> of_named_export,
-            ([], [nil_prim |> of_expr |> as_nil] |> of_closure |> as_nil)
-            |> of_func
-            |> as_function([], Valid(`Nil)),
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            (
+              [],
+              [U.nil_prim |> A.of_expr |> U.as_nil]
+              |> A.of_closure
+              |> U.as_nil,
+            )
+            |> A.of_func
+            |> U.as_function([], Valid(`Nil)),
           )
-          |> as_raw_node,
+          |> U.as_raw_node,
           "func foo () -> { nil }",
+        )
+    ),
+    "parse - with arguments"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            (
+              [
+                A.{
+                  name: "fizz" |> A.of_public |> U.as_raw_node,
+                  type_: None,
+                  default: None,
+                }
+                |> U.as_int,
+              ],
+              [U.nil_prim |> A.of_expr |> U.as_nil]
+              |> A.of_closure
+              |> U.as_nil,
+            )
+            |> A.of_func
+            |> U.as_function([], Valid(`Nil)),
+          )
+          |> U.as_raw_node,
+          "func foo (fizz, buzz) -> {}",
         )
     ),
   ];

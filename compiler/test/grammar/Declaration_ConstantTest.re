@@ -1,17 +1,16 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
 open Reference;
 
 module Declaration = Grammar.Declaration;
+module U = Util.ResultUtilV2;
 
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = Node.Raw.t((export_t, declaration_t));
+    type t = NR.t((A.export_t, A.declaration_t));
 
     let parser = ((_, ctx)) =>
-      Declaration.constant(ctx, AST.of_named_export)
+      Declaration.constant(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 
@@ -22,15 +21,17 @@ module Assert = {
             (ppf, stmt) => {
               let (export, decl) = Node.Raw.get_value(stmt);
 
-              Dump.raw_node_to_entity(
-                "Declaration",
-                ~children=[
-                  export |> Dump.export_to_entity,
-                  decl |> Dump.decl_to_entity,
-                ],
-                stmt,
-              )
-              |> Dump.Entity.pp(ppf);
+              A.Dump.(
+                untyped_node_to_entity(
+                  "Declaration",
+                  ~children=[
+                    export |> export_to_entity,
+                    decl |> decl_to_entity,
+                  ],
+                  stmt,
+                )
+                |> Entity.pp(ppf)
+              );
             },
             (==),
           ),
@@ -53,10 +54,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> of_public |> as_raw_node |> of_named_export,
-            nil_prim |> of_const |> as_nil,
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            U.nil_prim |> A.of_const |> U.as_nil,
           )
-          |> as_raw_node,
+          |> U.as_raw_node,
           "const foo = nil",
         )
     ),
@@ -65,9 +66,9 @@ let suite =
       () => {
         let definitions =
           Type.[
-            (Export.Named(of_public("bar")), Valid(`Float)),
-            (Export.Named(of_public("fizz")), Valid(`Integer)),
-            (Export.Named(of_public("buzz")), Valid(`Float)),
+            (Export.Named(A.of_public("bar")), Valid(`Float)),
+            (Export.Named(A.of_public("fizz")), Valid(`Integer)),
+            (Export.Named(A.of_public("buzz")), Valid(`Float)),
           ]
           |> List.to_seq
           |> DefinitionTable.of_seq;
@@ -75,60 +76,60 @@ let suite =
         Assert.parse(
           ~mod_context=x => ModuleContext.create(~definitions, x),
           (
-            "foo" |> of_public |> as_raw_node |> of_named_export,
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
             [
               (
-                "x" |> of_public |> as_raw_node,
-                "bar" |> of_public |> as_float |> of_id |> as_float,
+                "x" |> A.of_public |> U.as_raw_node,
+                "bar" |> A.of_public |> A.of_id |> U.as_float,
               )
-              |> of_var
-              |> as_nil,
+              |> A.of_var
+              |> U.as_nil,
               (
-                "y" |> of_public |> as_raw_node,
+                "y" |> A.of_public |> U.as_raw_node,
                 (
                   (
-                    "x" |> of_public |> as_float |> of_id |> as_float,
-                    "fizz" |> of_public |> as_int |> of_id |> as_int,
+                    "x" |> A.of_public |> A.of_id |> U.as_float,
+                    "fizz" |> A.of_public |> A.of_id |> U.as_int,
                   )
-                  |> of_gt_op
-                  |> as_bool,
+                  |> A.of_gt_op
+                  |> U.as_bool,
                   (
-                    "x" |> of_public |> as_float |> of_id |> as_float,
-                    "buzz" |> of_public |> as_float |> of_id |> as_float,
+                    "x" |> A.of_public |> A.of_id |> U.as_float,
+                    "buzz" |> A.of_public |> A.of_id |> U.as_float,
                   )
-                  |> of_ineq_op
-                  |> as_bool,
+                  |> A.of_ineq_op
+                  |> U.as_bool,
                 )
-                |> of_and_op
-                |> as_bool,
+                |> A.of_and_op
+                |> U.as_bool,
               )
-              |> of_var
-              |> as_bool,
+              |> A.of_var
+              |> U.as_bool,
               (
-                "y" |> of_public |> as_bool |> of_id |> as_bool,
+                "y" |> A.of_public |> A.of_id |> U.as_bool,
                 (
                   (
-                    "x" |> of_public |> as_float |> of_id |> as_float,
-                    1 |> int_prim,
+                    "x" |> A.of_public |> A.of_id |> U.as_float,
+                    1 |> U.int_prim,
                   )
-                  |> of_add_op
-                  |> as_float,
-                  5 |> int_prim,
+                  |> A.of_add_op
+                  |> U.as_float,
+                  5 |> U.int_prim,
                 )
-                |> of_lte_op
-                |> as_bool,
+                |> A.of_lte_op
+                |> U.as_bool,
               )
-              |> of_or_op
-              |> as_bool
-              |> of_expr
-              |> as_bool,
+              |> A.of_or_op
+              |> U.as_bool
+              |> A.of_expr
+              |> U.as_bool,
             ]
-            |> of_closure
-            |> as_bool
-            |> of_const
-            |> as_bool,
+            |> A.of_closure
+            |> U.as_bool
+            |> A.of_const
+            |> U.as_bool,
           )
-          |> as_raw_node,
+          |> U.as_raw_node,
           "const foo = {
             let x = bar;
             let y = x > fizz && x != buzz;
@@ -142,10 +143,10 @@ let suite =
           ~@Export.pp,
           ~@Type.pp,
           Type.[
-            (Export.Named(of_public("bar")), Valid(`Float)),
-            (Export.Named(of_public("fizz")), Valid(`Integer)),
-            (Export.Named(of_public("buzz")), Valid(`Float)),
-            (Export.Named(of_public("foo")), Valid(`Boolean)),
+            (Export.Named(A.of_public("bar")), Valid(`Float)),
+            (Export.Named(A.of_public("fizz")), Valid(`Integer)),
+            (Export.Named(A.of_public("buzz")), Valid(`Float)),
+            (Export.Named(A.of_public("foo")), Valid(`Boolean)),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,

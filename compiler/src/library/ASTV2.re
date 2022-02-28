@@ -8,35 +8,7 @@ open Reference;
  common types that can be used to build resolved or Raw ASTs
  */
 module Common = {
-  /**
-   supported binary operators
-   */
-  type binary_operator_t =
-    /* logical operators */
-    | LogicalAnd
-    | LogicalOr
-    /* comparative operators */
-    | LessOrEqual
-    | LessThan
-    | GreaterOrEqual
-    | GreaterThan
-    /* equality operators */
-    | Equal
-    | Unequal
-    /* arithmetic operators */
-    | Add
-    | Subtract
-    | Divide
-    | Multiply
-    | Exponent;
-
-  /**
-   supported unary operators
-   */
-  type unary_operator_t =
-    | Not
-    | Positive
-    | Negative;
+  include AST_Operator;
 
   /**
    supported numeric types
@@ -64,6 +36,8 @@ module Common = {
    */
   module Dump = {
     open Pretty.Formatters;
+
+    include AST_Operator.Dump;
 
     module Entity = {
       type t = {
@@ -308,8 +282,8 @@ module Make = (Params: ASTParams) => {
     | Identifier(Identifier.t)
     | JSX(jsx_t)
     | Group(expression_t)
-    | BinaryOp(binary_operator_t, expression_t, expression_t)
-    | UnaryOp(unary_operator_t, expression_t)
+    | BinaryOp(binary_t, expression_t, expression_t)
+    | UnaryOp(unary_t, expression_t)
     | Closure(list(statement_t))
 
   /**
@@ -350,27 +324,29 @@ module Make = (Params: ASTParams) => {
   let of_group = x => Group(x);
   let of_closure = xs => Closure(xs);
 
-  let of_not_op = x => UnaryOp(Not, x);
-  let of_neg_op = x => UnaryOp(Negative, x);
-  let of_pos_op = x => UnaryOp(Positive, x);
+  let of_unary_op = ((op, x)) => UnaryOp(op, x);
+  let of_not_op = x => (Not, x) |> of_unary_op;
+  let of_neg_op = x => (Negative, x) |> of_unary_op;
+  let of_pos_op = x => (Positive, x) |> of_unary_op;
 
-  let of_and_op = ((l, r)) => BinaryOp(LogicalAnd, l, r);
-  let of_or_op = ((l, r)) => BinaryOp(LogicalOr, l, r);
+  let of_binary_op = ((op, l, r)) => BinaryOp(op, l, r);
+  let of_and_op = ((l, r)) => (LogicalAnd, l, r) |> of_binary_op;
+  let of_or_op = ((l, r)) => (LogicalOr, l, r) |> of_binary_op;
 
-  let of_mult_op = ((l, r)) => BinaryOp(Multiply, l, r);
-  let of_div_op = ((l, r)) => BinaryOp(Divide, l, r);
-  let of_add_op = ((l, r)) => BinaryOp(Add, l, r);
-  let of_sub_op = ((l, r)) => BinaryOp(Subtract, l, r);
+  let of_mult_op = ((l, r)) => (Multiply, l, r) |> of_binary_op;
+  let of_div_op = ((l, r)) => (Divide, l, r) |> of_binary_op;
+  let of_add_op = ((l, r)) => (Add, l, r) |> of_binary_op;
+  let of_sub_op = ((l, r)) => (Subtract, l, r) |> of_binary_op;
 
-  let of_lt_op = ((l, r)) => BinaryOp(LessThan, l, r);
-  let of_lte_op = ((l, r)) => BinaryOp(LessOrEqual, l, r);
-  let of_gt_op = ((l, r)) => BinaryOp(GreaterThan, l, r);
-  let of_gte_op = ((l, r)) => BinaryOp(GreaterOrEqual, l, r);
+  let of_lt_op = ((l, r)) => (LessThan, l, r) |> of_binary_op;
+  let of_lte_op = ((l, r)) => (LessOrEqual, l, r) |> of_binary_op;
+  let of_gt_op = ((l, r)) => (GreaterThan, l, r) |> of_binary_op;
+  let of_gte_op = ((l, r)) => (GreaterOrEqual, l, r) |> of_binary_op;
 
-  let of_eq_op = ((l, r)) => BinaryOp(Equal, l, r);
-  let of_ineq_op = ((l, r)) => BinaryOp(Unequal, l, r);
+  let of_eq_op = ((l, r)) => (Equal, l, r) |> of_binary_op;
+  let of_ineq_op = ((l, r)) => (Unequal, l, r) |> of_binary_op;
 
-  let of_expo_op = ((l, r)) => BinaryOp(Exponent, l, r);
+  let of_expo_op = ((l, r)) => (Exponent, l, r) |> of_binary_op;
 
   let of_jsx = x => JSX(x);
   let of_frag = xs => Fragment(xs);
@@ -468,31 +444,13 @@ module Make = (Params: ASTParams) => {
                 rhs,
               ),
             ],
-            switch (op) {
-            | LogicalAnd => "And"
-            | LogicalOr => "Or"
-            | Add => "Add"
-            | Subtract => "Sub"
-            | Divide => "Div"
-            | Multiply => "Mult"
-            | LessOrEqual => "LessOrEq"
-            | LessThan => "Less"
-            | GreaterOrEqual => "GreaterOrEq"
-            | GreaterThan => "Greater"
-            | Equal => "Equal"
-            | Unequal => "Unequal"
-            | Exponent => "Exponent"
-            },
+            binary_to_string(op),
           )
 
         | UnaryOp(op, expr) =>
           typed_node_to_entity(
             ~children=[expr_to_entity(expr)],
-            switch (op) {
-            | Not => "Not"
-            | Positive => "Positive"
-            | Negative => "Negative"
-            },
+            unary_to_string(op),
           )
         }
       )(
@@ -633,7 +591,7 @@ include Make({
 /**
  a declaration AST node
  */
-type declaration_t = Node.t(raw_declaration_t, TypeV2.t)
+type declaration_t = node_t(raw_declaration_t)
 /**
  supported module declarations
  */

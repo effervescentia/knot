@@ -2,8 +2,6 @@ open Kore;
 
 module TE = ASTV2.TypeExpression;
 
-type type_expression_parser_t = parser_t(TE.t);
-
 let primitive_types =
   TE.[
     (Keyword.nil, Nil),
@@ -40,6 +38,7 @@ let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =
   >>= (id => Symbol.colon >> parse_expr >|= (expr => (id, expr)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
+  /* TODO: sort the props here by property name */
   >|= NR.map_value(props => TE.of_struct(props));
 
 let function_ =

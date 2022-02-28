@@ -1,8 +1,7 @@
 open Kore;
-open AST.Raw;
 
 let arguments = (ctx: ModuleContext.t) =>
-  Identifier.parser(ctx)
+  IdentifierV2.parser(ctx)
   >>= (
     id =>
       Typing.expression_parser
@@ -12,44 +11,42 @@ let arguments = (ctx: ModuleContext.t) =>
   >>= (
     f =>
       Symbol.assign
-      >> Expression.parser(ctx)
+      >> ExpressionV2.parser(ctx)
       >|= Option.some
       >|= f
       |> option(f(None))
   )
   >|= (
     ((name, type_, default)) => {
-      let name_range = Node.Raw.get_range(name);
+      let name_range = NR.get_range(name);
 
-      (
-        {name, default, type_: None},
+      N.create(
+        AR.{name, default, type_: None},
+        default |> Option.map(N.get_type) |?: TR.(`Unknown),
         Range.join(
           name_range,
           default
-          |> Option.map(Node.Raw.get_range)
-          |?: (type_ |> Option.map(Node.Raw.get_range) |?: name_range),
+          |> Option.map(N.get_range)
+          |?: (type_ |> Option.map(NR.get_range) |?: name_range),
         ),
       );
     }
   )
   |> sep_by(Symbol.comma)
   |> M.between(Symbol.open_group, Symbol.close_group)
-  >|= Node.Raw.get_value;
+  >|= NR.get_value;
 
 let parser = (ctx: ModuleContext.t) =>
   option([], arguments(ctx))
   >>= (
     args =>
       Glyph.lambda
+      >|= NR.get_range
       >>= (
-        start =>
-          Expression.parser(ctx)
+        start_range =>
+          ExpressionV2.parser(ctx)
           >|= (
-            expr => (
-              args,
-              expr,
-              Node.Raw.(Range.join(get_range(start), get_range(expr))),
-            )
+            expr => (args, expr, Range.join(start_range, N.get_range(expr)))
           )
       )
   );

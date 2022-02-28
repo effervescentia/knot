@@ -4,7 +4,7 @@ let integer: number_parser_t =
   many1(M.digit)
   >|= Input.join
   >|= NR.map_value(Int64.of_string % AR.of_int)
-  >|= N.of_raw(TR.Valid(`Integer))
+  >|= N.of_raw(TR.(`Integer))
   |> M.lexeme;
 
 let float: number_parser_t =
@@ -33,7 +33,7 @@ let float: number_parser_t =
         )
         |> AR.of_float;
 
-      N.create(components, TR.Valid(`Float), NR.join_ranges(x, y));
+      N.create(components, TR.(`Float), NR.join_ranges(x, y));
     }
   )
   |> M.lexeme;

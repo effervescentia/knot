@@ -1,12 +1,11 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
 open Reference;
 
 module Program = Grammar.Program;
+module U = Util.ResultUtilV2;
 
 module Target = {
-  type t = program_t;
+  type t = A.program_t;
 
   let parser = ((ctx, _)) => ctx |> Program.main |> Parser.parse;
 
@@ -15,7 +14,7 @@ module Target = {
       check(
         list(
           testable(
-            ppf => Dump.mod_stmt_to_entity % Dump.Entity.pp(ppf),
+            ppf => A.Dump.(mod_stmt_to_entity % Entity.pp(ppf)),
             (==),
           ),
         ),
@@ -38,25 +37,27 @@ let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __main_import_ast =
   (
-    "bar" |> of_internal,
-    ["foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
+    "bar" |> A.of_internal,
+    [
+      "foo" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+    ],
   )
-  |> of_import
-  |> as_raw_node;
+  |> A.of_import
+  |> U.as_raw_node;
 let __const_decl_ast =
   (
-    "foo" |> of_public |> as_raw_node |> of_named_export,
-    nil_prim |> of_const |> as_nil,
+    "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    U.nil_prim |> A.of_const |> U.as_nil,
   )
-  |> of_decl
-  |> as_raw_node;
+  |> A.of_decl
+  |> U.as_raw_node;
 
 let __ns_context =
   NamespaceContext.create(
     ~modules=
       [
         (
-          "bar" |> of_internal,
+          "bar" |> A.of_internal,
           ModuleTable.{
             ast: [],
             exports:
@@ -95,17 +96,16 @@ let suite =
           [
             __const_decl_ast,
             (
-              "bar" |> of_public |> as_raw_node |> of_named_export,
+              "bar" |> A.of_public |> U.as_raw_node |> A.of_named_export,
               "foo"
-              |> of_public
-              |> as_nil
-              |> of_id
-              |> as_nil
-              |> of_const
-              |> as_nil,
+              |> A.of_public
+              |> A.of_id
+              |> U.as_nil
+              |> A.of_const
+              |> U.as_nil,
             )
-            |> of_decl
-            |> as_raw_node,
+            |> A.of_decl
+            |> U.as_raw_node,
           ],
           __const_decl ++ "; const bar = foo",
         )
@@ -128,7 +128,7 @@ let suite =
               ~modules=
                 [
                   (
-                    "bar" |> of_internal,
+                    "bar" |> A.of_internal,
                     ModuleTable.{
                       ast: [],
                       exports:
@@ -147,17 +147,16 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> of_public |> as_raw_node |> of_named_export,
+              "bar" |> A.of_public |> U.as_raw_node |> A.of_named_export,
               "foo"
-              |> of_public
-              |> as_bool
-              |> of_id
-              |> as_bool
-              |> of_const
-              |> as_nil,
+              |> A.of_public
+              |> A.of_id
+              |> U.as_bool
+              |> A.of_const
+              |> U.as_nil,
             )
-            |> of_decl
-            |> as_raw_node,
+            |> A.of_decl
+            |> U.as_raw_node,
           ],
           __main_import ++ "; const bar = foo",
         )

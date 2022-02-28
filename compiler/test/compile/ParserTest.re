@@ -1,8 +1,10 @@
 open Kore;
-open Util.ResultUtil;
-open Reference;
 
+module Namespace = Reference.Namespace;
+module Export = Reference.Export;
 module Parser = Compile.Parser;
+module U = Util.ResultUtilV2;
+module A = ASTV2;
 
 let __import_fixture = "
   import foo from \"bar\";
@@ -23,9 +25,9 @@ let __scope_tree = BinaryTree.create((Range.zero, None));
 let __context =
   NamespaceContext.create(
     ~modules=
-      AST.[
+      [
         (
-          "bar" |> of_internal,
+          "bar" |> A.of_internal,
           ModuleTable.{
             ast: [],
             exports:
@@ -57,50 +59,48 @@ let suite =
     >: (
       () =>
         Assert.list_namespace(
-          AST.[of_external("bar"), of_external("buzz")],
+          [A.of_external("bar"), A.of_external("buzz")],
           _to_stream(__import_fixture) |> Parser.imports(__foo),
         )
     ),
     "parse AST - empty file"
-    >: (() => Assert.program([], _to_stream("") |> Parser.ast(__context))),
+    >: (() => Assert.programV2([], _to_stream("") |> Parser.ast(__context))),
     "parse AST - module with declarations and imports"
     >: (
       () =>
-        Assert.program(
-          AST.[
+        Assert.programV2(
+          [
             (
               __bar,
               [
                 "foo"
-                |> of_public
-                |> as_raw_node(~range=Range.create((2, 10), (2, 12)))
-                |> of_main_import
-                |> as_raw_node(~range=Range.create((2, 10), (2, 12))),
+                |> A.of_public
+                |> U.as_raw_node(~range=Range.create((2, 10), (2, 12)))
+                |> A.of_main_import
+                |> U.as_raw_node(~range=Range.create((2, 10), (2, 12))),
               ],
             )
-            |> of_import
-            |> as_raw_node(~range=Range.create((2, 3), (2, 25))),
+            |> A.of_import
+            |> U.as_raw_node(~range=Range.create((2, 3), (2, 25))),
             (
-              ("ABC" |> of_public, Range.create((4, 9), (4, 11)))
-              |> of_named_export,
-              (
-                123L |> of_int |> of_num,
-                Type.Valid(`Integer),
-                Range.create((4, 15), (4, 17)),
-              )
-              |> of_prim
-              |> as_node(
+              ("ABC" |> A.of_public, Range.create((4, 9), (4, 11)))
+              |> A.of_named_export,
+              123L
+              |> A.of_int
+              |> A.of_num
+              |> A.of_prim
+              |> U.as_node(
                    ~range=Range.create((4, 15), (4, 17)),
-                   Type.Valid(`Integer),
+                   TypeV2.Valid(`Integer),
                  )
-              |> of_const
-              |> as_node(
+              |> A.of_const
+              |> U.as_node(
                    ~range=Range.create((4, 15), (4, 17)),
-                   Type.Valid(`Integer),
+                   TypeV2.Valid(`Integer),
                  ),
             )
-            |> of_decl
-            |> as_raw_node(~range=Range.create((4, 3), (4, 17))),
+            |> A.of_decl
+            |> U.as_raw_node(~range=Range.create((4, 3), (4, 17))),
           ],
           _to_stream(__ast_fixture) |> Parser.ast(__context),
         )

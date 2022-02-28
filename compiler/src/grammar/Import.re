@@ -1,30 +1,31 @@
 open Kore;
-open AST;
 
 let namespace = imports =>
   M.string
-  >|= Tuple.map_fst2(Reference.Namespace.of_string)
+  >|= NR.map_value(Reference.Namespace.of_string)
   >|= (namespace => (namespace, imports));
 
 let main_import =
   M.identifier
-  >|= Node.Raw.(Tuple.split2(get_value % of_public, get_range))
-  >|= (import => [(of_main_import(import), Node.Raw.get_range(import))]);
+  >|= NR.map_value(A.of_public)
+  >|= (import => [import |> NR.wrap(A.of_main_import)]);
 
 let named_import = (ctx: ModuleContext.t) =>
-  Identifier.parser(ctx)
+  IdentifierV2.parser(ctx)
   >>= (
     id =>
-      Keyword.as_ >> Identifier.parser(ctx) >|= (label => (id, Some(label)))
+      Keyword.as_
+      >> IdentifierV2.parser(ctx)
+      >|= (label => (id, Some(label)))
   )
-  <|> (Identifier.parser(ctx) >|= (id => (id, None)))
+  <|> (IdentifierV2.parser(ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= Node.Raw.get_value
+  >|= NR.get_value
   >|= List.map(((name, label) as import) =>
         (
-          of_named_import(import),
-          Node.Raw.(
+          A.of_named_import(import),
+          NR.(
             Range.join(
               get_range(name),
               label |> Option.map(get_range) |?: get_range(name),
@@ -35,7 +36,7 @@ let named_import = (ctx: ModuleContext.t) =>
 
 let parser = (ctx: ModuleContext.t) =>
   Keyword.import
-  >>= Node.Raw.get_range
+  >>= NR.get_range
   % (
     start =>
       choice([main_import, named_import(ctx)])
@@ -45,25 +46,26 @@ let parser = (ctx: ModuleContext.t) =>
       >>= namespace
       >@= (
         ((namespace, imports)) => {
-          let import = namespace |> Node.Raw.get_value |> ModuleContext.import;
+          let import = namespace |> NR.get_value |> ModuleContext.import;
 
           imports
           |> List.iter(
                fun
-               | (MainImport((alias, _)), range) =>
+               | (A.MainImport((alias, _)), range) =>
                  ctx |> import((Main, range), alias)
-               | (NamedImport((id, _), None), range) =>
+
+               | (A.NamedImport((id, _), None), range) =>
                  ctx |> import((Named(id), range), id)
-               | (NamedImport((id, _), Some(label)), range) =>
-                 ctx
-                 |> import((Named(id), range), Node.Raw.get_value(label)),
+
+               | (A.NamedImport((id, _), Some(label)), range) =>
+                 ctx |> import((Named(id), range), NR.get_value(label)),
              );
         }
       )
       >|= (
         ((namespace, imports)) => (
-          (Node.Raw.get_value(namespace), imports) |> of_import,
-          Range.join(start, Node.Raw.get_range(namespace)),
+          (NR.get_value(namespace), imports) |> A.of_import,
+          Range.join(start, NR.get_range(namespace)),
         )
       )
       |> M.terminated

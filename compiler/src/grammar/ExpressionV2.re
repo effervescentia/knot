@@ -6,13 +6,13 @@ let primitive: expression_parser_t =
 let identifier = (ctx: ModuleContext.t): expression_parser_t =>
   IdentifierV2.parser(ctx)
   >|= NR.map_value(AR.of_id)
-  >|= N.of_raw(TR.Valid(`Unknown));
+  >|= N.of_raw(TR.(`Unknown));
 
 let jsx =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
     : expression_parser_t =>
   JSXV2.parser(ctx, parsers)
-  >|= N.of_raw(TR.Valid(`Element))
+  >|= N.of_raw(TR.(`Element))
   >|= N.map_value(AR.of_jsx);
 
 let group = (parse_expr: expression_parser_t): expression_parser_t =>
@@ -35,7 +35,7 @@ let closure =
       N.create(
         AR.of_closure(stmts),
         /* if the statement list is empty the return type is nil */
-        last_stmt |> Option.map(N.get_type) |?: TR.Valid(`Nil),
+        last_stmt |> Option.map(N.get_type) |?: TR.(`Nil),
         range,
       );
     }

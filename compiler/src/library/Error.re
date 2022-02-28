@@ -13,6 +13,7 @@ exception WatchFailed(string);
  */
 type parse_err =
   | TypeError(Type.Raw.error_t)
+  | TypeErrorV2(TypeV2.error_t)
   | ReservedKeyword(string);
 
 /**
@@ -45,6 +46,7 @@ let pp_parse_err: Fmt.t(parse_err) =
       fun
       | TypeError(err) =>
         pf(ppf, "type error: %a", Type.Error.pp(Type.Raw.pp), err)
+      | TypeErrorV2(err) => pf(ppf, "type error: %a", TypeV2.pp_error, err)
       | ReservedKeyword(name) =>
         pf(ppf, "reserved keyword %s cannot be used as an identifier", name)
   );
@@ -55,6 +57,7 @@ let pp_dump_parse_err: Fmt.t(parse_err) =
       fun
       | TypeError(err) =>
         pf(ppf, "TypeError<%a>", Type.(Error.pp(Raw.pp)), err)
+      | TypeErrorV2(err) => pf(ppf, "TypeError<%a>", TypeV2.pp_error, err)
       | ReservedKeyword(name) => pf(ppf, "ReservedKeyword<%s>", name)
   );
 

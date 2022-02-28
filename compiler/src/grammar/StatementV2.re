@@ -12,7 +12,7 @@ let variable =
         ((_, expr) as var) =>
           N.create(
             AR.of_var(var),
-            TR.Valid(`Nil),
+            TR.(`Nil),
             Range.join(start_range, N.get_range(expr)),
           )
       )

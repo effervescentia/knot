@@ -23,15 +23,15 @@ module RawUtilV2 = {
 
   /* typecasting utilities */
 
-  let as_unknown = x => as_node(TR.Valid(`Unknown), x);
-  let as_nil = x => as_node(TR.Valid(`Nil), x);
-  let as_bool = x => as_node(TR.Valid(`Boolean), x);
-  let as_int = x => as_node(TR.Valid(`Integer), x);
-  let as_float = x => as_node(TR.Valid(`Float), x);
-  let as_string = x => as_node(TR.Valid(`String), x);
-  let as_element = x => as_node(TR.Valid(`Element), x);
+  let as_unknown = x => as_node(TR.(`Unknown), x);
+  let as_nil = x => as_node(TR.(`Nil), x);
+  let as_bool = x => as_node(TR.(`Boolean), x);
+  let as_int = x => as_node(TR.(`Integer), x);
+  let as_float = x => as_node(TR.(`Float), x);
+  let as_string = x => as_node(TR.(`String), x);
+  let as_element = x => as_node(TR.(`Element), x);
   let as_function = (args, res, x) =>
-    as_node(TR.Valid(`Function((args, res))), x);
+    as_node(TR.(`Function((args, res))), x);
 
   /* primitive factories */
 

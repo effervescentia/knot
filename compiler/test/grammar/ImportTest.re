@@ -1,12 +1,12 @@
 open Kore;
-open Util.CommonUtil;
 open Reference;
 
 module Import = Grammar.Import;
+module U = Util.CommonUtil;
 
 module Assert =
   Assert.Make({
-    type t = AST.module_statement_t;
+    type t = A.module_statement_t;
 
     let parser = ((_, ctx)) =>
       Import.parser(ctx) |> Assert.parse_completely |> Parser.parse;
@@ -15,7 +15,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            ppf => AST.Dump.mod_stmt_to_entity % AST.Dump.Entity.pp(ppf),
+            ppf => A.Dump.(mod_stmt_to_entity % Entity.pp(ppf)),
             (==),
           ),
           "program matches",
@@ -28,16 +28,16 @@ let __scope_tree = BinaryTree.create((Range.zero, None));
 let __context_with_named_exports =
   NamespaceContext.create(
     ~modules=
-      AST.[
+      [
         (
-          "bar" |> of_internal,
+          "bar" |> A.of_internal,
           ModuleTable.{
             ast: [],
             exports:
               [
                 (Export.Main, Type.Valid(`Nil)),
-                (Export.Named("bar" |> of_public), Type.Valid(`Boolean)),
-                (Export.Named("foo" |> of_public), Type.Valid(`String)),
+                (Export.Named("bar" |> A.of_public), Type.Valid(`Boolean)),
+                (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
               ]
               |> List.to_seq
               |> Hashtbl.of_seq,
@@ -54,9 +54,9 @@ let __context_with_named_exports =
 let __context_with_main_export =
   NamespaceContext.create(
     ~modules=
-      AST.[
+      [
         (
-          "bar" |> of_internal,
+          "bar" |> A.of_internal,
           ModuleTable.{
             ast: [],
             exports:
@@ -91,20 +91,18 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          AST.(
-            (
-              "bar" |> of_internal,
-              [
-                "foo"
-                |> of_public
-                |> as_raw_node
-                |> of_main_import
-                |> as_raw_node,
-              ],
-            )
-            |> of_import
-            |> as_raw_node
-          ),
+          (
+            "bar" |> A.of_internal,
+            [
+              "foo"
+              |> A.of_public
+              |> U.as_raw_node
+              |> A.of_main_import
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_import
+          |> U.as_raw_node,
           "import foo from \"@/bar\"",
         )
     ),
@@ -113,7 +111,7 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          AST.(("bar" |> of_internal, []) |> of_import |> as_raw_node),
+          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_raw_node,
           "import {} from \"@/bar\"",
         )
     ),
@@ -122,18 +120,16 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          AST.(
-            (
-              "bar" |> of_internal,
-              [
-                ("foo" |> of_public |> as_raw_node, None)
-                |> of_named_import
-                |> as_raw_node,
-              ],
-            )
-            |> of_import
-            |> as_raw_node
-          ),
+          (
+            "bar" |> A.of_internal,
+            [
+              ("foo" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_named_import
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_import
+          |> U.as_raw_node,
           "import { foo } from \"@/bar\"",
         )
     ),
@@ -142,21 +138,19 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          AST.(
-            (
-              "bar" |> of_internal,
-              [
-                (
-                  "foo" |> of_public |> as_raw_node,
-                  Some("bar" |> of_public |> as_raw_node),
-                )
-                |> of_named_import
-                |> as_raw_node,
-              ],
-            )
-            |> of_import
-            |> as_raw_node
-          ),
+          (
+            "bar" |> A.of_internal,
+            [
+              (
+                "foo" |> A.of_public |> U.as_raw_node,
+                Some("bar" |> A.of_public |> U.as_raw_node),
+              )
+              |> A.of_named_import
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_import
+          |> U.as_raw_node,
           "import { foo as bar } from \"@/bar\"",
         )
     ),
@@ -165,29 +159,27 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          AST.(
-            (
-              "bar" |> of_internal,
-              [
-                "fizz"
-                |> of_public
-                |> as_raw_node
-                |> of_main_import
-                |> as_raw_node,
-                ("foo" |> of_public |> as_raw_node, None)
-                |> of_named_import
-                |> as_raw_node,
-                (
-                  "bar" |> of_public |> as_raw_node,
-                  Some("Bar" |> of_public |> as_raw_node),
-                )
-                |> of_named_import
-                |> as_raw_node,
-              ],
-            )
-            |> of_import
-            |> as_raw_node
-          ),
+          (
+            "bar" |> A.of_internal,
+            [
+              "fizz"
+              |> A.of_public
+              |> U.as_raw_node
+              |> A.of_main_import
+              |> U.as_raw_node,
+              ("foo" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_named_import
+              |> U.as_raw_node,
+              (
+                "bar" |> A.of_public |> U.as_raw_node,
+                Some("Bar" |> A.of_public |> U.as_raw_node),
+              )
+              |> A.of_named_import
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_import
+          |> U.as_raw_node,
           "import fizz, { foo, bar as Bar } from \"@/bar\"",
         )
     ),
@@ -196,21 +188,19 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          AST.(
-            (
-              "bar" |> of_internal,
-              [
-                ("foo" |> of_public |> as_raw_node, None)
-                |> of_named_import
-                |> as_raw_node,
-                ("bar" |> of_public |> as_raw_node, None)
-                |> of_named_import
-                |> as_raw_node,
-              ],
-            )
-            |> of_import
-            |> as_raw_node
-          ),
+          (
+            "bar" |> A.of_internal,
+            [
+              ("foo" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_named_import
+              |> U.as_raw_node,
+              ("bar" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_named_import
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_import
+          |> U.as_raw_node,
           "import { foo, bar, } from \"@/bar\"",
         )
     ),
@@ -219,20 +209,18 @@ let suite =
       () =>
         Assert.parse_all(
           ~ns_context=__context_with_main_export,
-          AST.(
-            (
-              "bar" |> of_internal,
-              [
-                "foo"
-                |> of_public
-                |> as_raw_node
-                |> of_main_import
-                |> as_raw_node,
-              ],
-            )
-            |> of_import
-            |> as_raw_node
-          ),
+          (
+            "bar" |> A.of_internal,
+            [
+              "foo"
+              |> A.of_public
+              |> U.as_raw_node
+              |> A.of_main_import
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_import
+          |> U.as_raw_node,
           [
             "import foo from \"@/bar\";",
             "  import  foo  from   \"@/bar\"  ;  ",
