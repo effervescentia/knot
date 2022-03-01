@@ -3,8 +3,8 @@ open Reference;
 
 module A = AST;
 module AR = AST.Raw;
-module T = TypeV2;
-module TR = TypeV2.Raw;
+module T = Type;
+module TR = Type.Raw;
 
 module CommonUtil = {
   let as_raw_node = (~range=Range.zero, x) => Node.Raw.create(x, range);

@@ -114,7 +114,7 @@ finished with 9 error(s) and 0 warning(s)
               Range.zero,
             ),
             ParseError(
-              TypeError(TypeMismatch(Strong(`String), Strong(`Integer))),
+              TypeError(TypeMismatch(Valid(`String), Valid(`Integer))),
               __namespace,
               Range.zero,
             ),

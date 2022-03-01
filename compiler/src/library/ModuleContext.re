@@ -1,6 +1,6 @@
 open Reference;
 
-type externals_t = Hashtbl.t(Identifier.t, TypeV2.t);
+type externals_t = Hashtbl.t(Identifier.t, Type.t);
 
 type t = {
   /* types that have been imported into the scope */
@@ -42,7 +42,7 @@ let report = (ctx: t, err: Error.compile_err) =>
 /**
  define a new declaration within the module
  */
-let define = (name: Identifier.t, type_: TypeV2.t, ctx: t) =>
+let define = (name: Identifier.t, type_: Type.t, ctx: t) =>
   ctx.definitions |> DefinitionTable.add(Export.Named(name), type_);
 
 /**
@@ -55,12 +55,12 @@ let import =
       label: Identifier.t,
       ctx: t,
     ) => {
-  let type_: TypeV2.t =
+  let type_: Type.t =
     switch (ctx.namespace_context |> NamespaceContext.lookup(namespace, id)) {
     | Ok(t) => t
     | Error(err) =>
       Error.ParseError(
-        TypeErrorV2(err),
+        TypeError(err),
         ctx.namespace_context.namespace,
         range,
       )

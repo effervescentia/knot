@@ -47,7 +47,7 @@ let suite =
         Assert.throws(
           CompileError([
             ParseError(
-              TypeErrorV2(InvalidJSXInlineExpression(type_)),
+              TypeError(InvalidJSXInlineExpression(type_)),
               __namespace,
               Range.zero,
             ),
@@ -130,7 +130,7 @@ let suite =
         Assert.throws(
           CompileError([
             ParseError(
-              TypeErrorV2(InvalidJSXClassExpression(Valid(`String))),
+              TypeError(InvalidJSXClassExpression(Valid(`String))),
               __namespace,
               Range.zero,
             ),

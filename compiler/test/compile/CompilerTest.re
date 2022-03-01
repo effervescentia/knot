@@ -6,7 +6,7 @@ module ImportGraph = Resolve.ImportGraph;
 module Module = Resolve.Module;
 module U = Util.ResultUtil;
 module A = AST;
-module T = TypeV2;
+module T = Type;
 
 let __valid_program_dir = "./test/compile/.fixtures/valid_program";
 let __invalid_program_dir = "./test/compile/.fixtures/invalid_program";

@@ -3,7 +3,7 @@ open Infix;
 
 module Fmt = Pretty.Formatters;
 
-type type_table_t = Hashtbl.t(Export.t, TypeV2.t);
+type type_table_t = Hashtbl.t(Export.t, Type.t);
 type scope_tree_t = RangeTree.t(option(type_table_t));
 
 type entry_t = {
@@ -36,7 +36,7 @@ let add =
     (
       id: Namespace.t,
       ast: AST.program_t,
-      exports: list((Export.t, TypeV2.t)),
+      exports: list((Export.t, Type.t)),
       scopes: scope_tree_t,
       raw: string,
       table: t,
@@ -78,7 +78,7 @@ let _pp_entry: Fmt.t(entry_t) =
     Fmt.(
       [
         ("ast", ast |> ~@AST.Dump.pp),
-        ("exports", exports |> ~@Hashtbl.pp(Export.pp, TypeV2.pp)),
+        ("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp)),
         ("raw", raw),
       ]
       |> List.to_seq

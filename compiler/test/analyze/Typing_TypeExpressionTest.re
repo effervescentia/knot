@@ -10,12 +10,12 @@ let suite =
     "nil"
     >: (
       () =>
-        Assert.typeV2(Valid(`Nil), TypingAnalyzer.eval_type_expression(Nil))
+        Assert.type_(Valid(`Nil), TypingAnalyzer.eval_type_expression(Nil))
     ),
     "boolean"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`Boolean),
           TypingAnalyzer.eval_type_expression(Boolean),
         )
@@ -23,7 +23,7 @@ let suite =
     "integer"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`Integer),
           TypingAnalyzer.eval_type_expression(Integer),
         )
@@ -31,7 +31,7 @@ let suite =
     "float"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`Float),
           TypingAnalyzer.eval_type_expression(Float),
         )
@@ -39,7 +39,7 @@ let suite =
     "string"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`String),
           TypingAnalyzer.eval_type_expression(String),
         )
@@ -47,7 +47,7 @@ let suite =
     "element"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`Element),
           TypingAnalyzer.eval_type_expression(Element),
         )
@@ -55,7 +55,7 @@ let suite =
     "grouped type"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`String),
           TE.String
           |> U.as_raw_node
@@ -70,7 +70,7 @@ let suite =
     "list type"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(`List(Valid(`Boolean))),
           TE.Boolean
           |> U.as_raw_node
@@ -81,7 +81,7 @@ let suite =
     "struct type"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(
             `Struct([("foo", Valid(`Boolean)), ("bar", Valid(`String))]),
           ),
@@ -96,7 +96,7 @@ let suite =
     "function type"
     >: (
       () =>
-        Assert.typeV2(
+        Assert.type_(
           Valid(
             `Function((
               [Valid(`Boolean), Valid(`String)],

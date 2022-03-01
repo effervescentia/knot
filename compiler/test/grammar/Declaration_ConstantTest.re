@@ -138,7 +138,6 @@ let suite =
         );
 
         /* TODO: uncomment assertions */
-        /* Assert.int(0, scope.seed^); */
         Assert.hashtbl(
           ~@Export.pp,
           ~@T.pp,
@@ -152,19 +151,6 @@ let suite =
           |> Hashtbl.of_seq,
           definitions.scope,
         );
-        /* Assert.hashtbl(
-             string_of_int,
-             fun
-             | Ok(t) => t |> Type.trait_to_string |> Fmt.str("Ok(%s)")
-             | Error((x, y)) =>
-               Fmt.str(
-                 "Error(%s, %s)",
-                 x |> Type.trait_to_string,
-                 y |> Type.trait_to_string,
-               ),
-             [] |> List.to_seq |> Hashtbl.of_seq,
-             scope.anonymous,
-           ); */
       }
     ),
   ];

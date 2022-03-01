@@ -65,7 +65,7 @@ let handler =
                        switch (Node.get_value(decl)) {
                        | Constant(expr) => {
                            name,
-                           detail: type_ |> ~@TypeV2.pp,
+                           detail: type_ |> ~@Type.pp,
                            range,
                            full_range:
                              Range.join(range, Node.get_range(expr)),
@@ -73,7 +73,7 @@ let handler =
                          }
                        | Function(args, expr) => {
                            name,
-                           detail: type_ |> ~@TypeV2.pp,
+                           detail: type_ |> ~@Type.pp,
                            range,
                            full_range:
                              Range.join(range, Node.get_range(expr)),

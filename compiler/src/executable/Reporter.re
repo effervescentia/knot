@@ -72,151 +72,107 @@ let _pp_err:
     );
   };
 
-let _pp_type_trait = (pp_target: Fmt.t(string)): Fmt.t(Type.Trait.t) =>
-  ppf =>
-    Type.Trait.(
-      fun
-      | Unknown =>
-        Fmt.pf(ppf, "%a which can represent any type", pp_target, "Unknown")
-
-      | Number =>
-        Fmt.(
-          pf(
-            ppf,
-            "%a which is shared by the types %a and %a",
-            pp_target,
-            "number",
-            bold_str,
-            "int",
-            bold_str,
-            "float",
-          )
-        )
-    );
-
 let _extract_type_err =
-  Type.Error.(
-    fun
-    | TypeMismatch(expected, actual) => (
-        "Types Do Not Match",
-        Fmt.(
-          (
-            ppf =>
-              pf(
-                ppf,
-                "expected the type %a but found the type %a instead",
-                good(Type.Raw.pp),
-                expected,
-                bad(Type.Raw.pp),
-                actual,
-              )
-          )
-        ),
-        [],
-      )
-
-    | NotNarrowable(narrowed, actual) => (
-        "Type Cannot be Narrowed",
-        Fmt.(
-          (
-            ppf =>
-              pf(
-                ppf,
-                "found the type %a which cannot be narrowed to %a",
-                good(Type.Raw.pp),
-                narrowed,
-                bad(Type.Raw.pp),
-                actual,
-              )
-          )
-        ),
-        [],
-      )
-
-    | NotFound(id) => (
-        "Identifier Not Found",
+  fun
+  | Type.TypeMismatch(expected, actual) => (
+      "Types Do Not Match",
+      Fmt.(
         (
           ppf =>
-            Fmt.pf(
+            pf(
               ppf,
-              "unable to resolve an identifier %a in the local scope or any inherited scope",
-              Fmt.bad(Identifier.pp),
-              id,
+              "expected the type %a but found the type %a instead",
+              good(Type.pp),
+              expected,
+              bad(Type.pp),
+              actual,
             )
-        ),
-        [
-          (
-            (
-              ppf =>
-                Fmt.pf(
-                  ppf,
-                  "check that the identifier %a is spelled correctly",
-                  Fmt.bad(Identifier.pp),
-                  id,
-                )
-            ),
-            [],
-          ),
-          (
-            (ppf => Fmt.string(ppf, "define the value yourself")),
-            Fmt.[str("const %s = …;"), str("let %s = …;")]
-            |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
-          ),
-          (
-            (ppf => Fmt.string(ppf, "import the value from another module")),
-            Fmt.[str("import { %s } from \"…\";")]
-            |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
-          ),
-        ],
-      )
+        )
+      ),
+      [],
+    )
 
-    | DuplicateIdentifier(id) => (
-        "Identifier Already Defined",
+  | Type.NotFound(id) => (
+      "Identifier Not Found",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "unable to resolve an identifier %a in the local scope or any inherited scope",
+            Fmt.bad(Identifier.pp),
+            id,
+          )
+      ),
+      [
         (
-          ppf =>
-            Fmt.pf(
-              ppf,
-              "a variable with the same name (%a) already exists in the local scope or an inherited scope",
-              Fmt.bad(Identifier.pp),
-              id,
-            )
-        ),
-        [
-          ((ppf => Fmt.string(ppf, "change the name of this variable")), []),
-        ],
-      )
-
-    | ExternalNotFound(namespace, id) => (
-        "External Not Found",
-        switch (id) {
-        | Named(id) => (
+          (
             ppf =>
               Fmt.pf(
                 ppf,
-                "an export with the identifier %a could not be found in module %a",
+                "check that the identifier %a is spelled correctly",
                 Fmt.bad(Identifier.pp),
                 id,
-                Fmt.bad(Namespace.pp),
+              )
+          ),
+          [],
+        ),
+        (
+          (ppf => Fmt.string(ppf, "define the value yourself")),
+          Fmt.[str("const %s = …;"), str("let %s = …;")]
+          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+        ),
+        (
+          (ppf => Fmt.string(ppf, "import the value from another module")),
+          Fmt.[str("import { %s } from \"…\";")]
+          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+        ),
+      ],
+    )
+
+  | Type.DuplicateIdentifier(id) => (
+      "Identifier Already Defined",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "a variable with the same name (%a) already exists in the local scope or an inherited scope",
+            Fmt.bad(Identifier.pp),
+            id,
+          )
+      ),
+      [((ppf => Fmt.string(ppf, "change the name of this variable")), [])],
+    )
+
+  | Type.ExternalNotFound(namespace, id) => (
+      "External Not Found",
+      switch (id) {
+      | Named(id) => (
+          ppf =>
+            Fmt.pf(
+              ppf,
+              "an export with the identifier %a could not be found in module %a",
+              Fmt.bad(Identifier.pp),
+              id,
+              Fmt.bad(Namespace.pp),
+              namespace,
+            )
+        )
+
+      | Main =>
+        Fmt.(
+          (
+            ppf =>
+              pf(
+                ppf,
+                "a main export could not be found in module %a",
+                bad(Namespace.pp),
                 namespace,
               )
           )
-
-        | Main =>
-          Fmt.(
-            (
-              ppf =>
-                pf(
-                  ppf,
-                  "a main export could not be found in module %a",
-                  bad(Namespace.pp),
-                  namespace,
-                )
-            )
-          )
-        },
-        [],
-      )
-  );
+        )
+      },
+      [],
+    );
 
 let _extract_parse_err =
   fun

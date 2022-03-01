@@ -1,88 +1,14 @@
 open Infix;
 open Reference;
 
-module Trait = {
-  type t =
-    | Number
-    | Unknown;
+exception UnknownTypeEncountered;
+
+module Primitive = {
+  type t = [ | `Nil | `Boolean | `Integer | `Float | `String | `Element];
 
   /* pretty printing */
 
   let pp: Fmt.t(t) =
-    ppf =>
-      (
-        fun
-        | Number => "Number"
-        | Unknown => "Unknown"
-      )
-      % Fmt.string(ppf);
-};
-
-module Error = {
-  type t('a) =
-    | NotFound(Identifier.t)
-    | TypeMismatch('a, 'a)
-    | NotNarrowable('a, 'a)
-    | ExternalNotFound(Namespace.t, Export.t)
-    | DuplicateIdentifier(Identifier.t);
-
-  /* pretty printing */
-
-  let pp = (pp_type: Fmt.t('a)): Fmt.t(t('a)) =>
-    Fmt.(
-      ppf =>
-        fun
-        | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
-        | DuplicateIdentifier(id) =>
-          pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
-        | NotNarrowable(lhs, rhs) =>
-          pf(ppf, "NotNarrowable<%a, %a>", pp_type, lhs, pp_type, rhs)
-        | TypeMismatch(lhs, rhs) =>
-          pf(ppf, "TypeMismatch<%a, %a>", pp_type, lhs, pp_type, rhs)
-        | ExternalNotFound(namespace, id) =>
-          pf(
-            ppf,
-            "ExternalNotFound<%a#%a>",
-            Namespace.pp,
-            namespace,
-            Export.pp,
-            id,
-          )
-    );
-};
-
-type abstract_t('a) = [ | `Abstract('a)];
-
-type generic_t = [ | `Generic(int, int)];
-
-type container_t('a) = [
-  | `List('a)
-  | `Struct(list((string, 'a)))
-  | `Function(list((string, 'a)), 'a)
-];
-
-type primitive_t = [
-  | `Nil
-  | `Boolean
-  | `Integer
-  | `Float
-  | `String
-  | `Element
-];
-
-module Raw = {
-  type t =
-    | Strong(strong_t)
-    | Weak(int, int)
-    | Invalid(error_t)
-
-  and error_t = Error.t(t)
-
-  and strong_t = [ primitive_t | container_t(t) | generic_t];
-
-  /* pretty printing */
-
-  let pp_primitive: Fmt.t(primitive_t) =
     Fmt.(
       (ppf, type_) =>
         Constants.(
@@ -97,18 +23,17 @@ module Raw = {
         )
         |> string(ppf)
     );
+};
+
+module Container = {
+  type t('a) = [
+    | `List('a)
+    | `Struct(list((string, 'a)))
+    | `Function(list('a), 'a)
+  ];
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
     Fmt.(ppf => pf(ppf, "List<%a>", pp_type));
-
-  let pp_abstract: Fmt.t(Trait.t) =
-    Fmt.(ppf => pf(ppf, "Abstract<%a>", Trait.pp));
-
-  let pp_generic: Fmt.t((int, int)) =
-    Fmt.(
-      (ppf, (scope_id, weak_id)) =>
-        pf(ppf, "Generic<%d, %d>", scope_id, weak_id)
-    );
 
   let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
     (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
@@ -126,150 +51,153 @@ module Raw = {
             )
     );
 
-  let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
+  let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list('a), 'a)) =>
     Fmt.(
       (ppf, (args, res)) =>
         pf(
           ppf,
           "@[<h>Function<(%a), %a>@]",
-          list(~sep=comma, pp_props(pp_type)),
+          list(~sep=comma, pp_type),
           args,
           pp_type,
           res,
         )
     );
+};
+
+module Raw = {
+  type unknown_t = [ | `Unknown];
+
+  /**
+   this type is used during the initial parsing phase to allow early type inference
+   this also avoid needing more than 2 type-safe AST variants to throughout compilation
+   */
+  type t = [ Primitive.t | Container.t(t) | unknown_t];
 
   let rec pp: Fmt.t(t) =
-    Fmt.(
-      (ppf, type_) =>
-        switch (type_) {
-        | Strong(t) => pp_strong(ppf, t)
-        | Invalid(err) => Error.pp(pp, ppf, err)
-        | Weak(scope_id, weak_id) =>
-          pf(ppf, "Weak<%d, %d>", scope_id, weak_id)
-        }
-    )
-
-  and pp_weak: Fmt.t(result(strong_t, error_t)) =
-    ppf =>
-      fun
-      | Ok(ok_type) =>
-        switch (ok_type) {
-        | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
-          pp_primitive(ppf, t)
-        | `List(t) => pp_list(pp, ppf, t)
-        | `Struct(props) => pp_struct(pp, ppf, props)
-        | `Function(args, res) => pp_function(pp, ppf, (args, res))
-        | `Generic(scope_id, weak_id) =>
-          pp_generic(ppf, (scope_id, weak_id))
-        }
-      | Error(err) => Error.pp(pp, ppf, err)
-
-  and pp_strong: Fmt.t(strong_t) =
     (ppf, type_) =>
       switch (type_) {
       | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
-        pp_primitive(ppf, x)
+        Primitive.pp(ppf, x)
 
-      | `List(t) => pp_list(pp, ppf, t)
-      | `Struct(props) => pp_struct(pp, ppf, props)
-      | `Function(args, res) => pp_function(pp, ppf, (args, res))
-      | `Generic(id) => pp_generic(ppf, id)
+      | `List(t) => Container.pp_list(pp, ppf, t)
+
+      | `Struct(props) => Container.pp_struct(pp, ppf, props)
+
+      | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+
+      | `Unknown => Fmt.string(ppf, "Unknown")
       };
 };
 
+/**
+ the final type attributed to elements within the fully-typed AST
+ */
 type t =
   | Valid(valid_t)
-  | Invalid(error_t)
+  | Invalid(invalid_t)
 
-and valid_t = [ primitive_t | container_t(t) | generic_t]
+and valid_t = [ Primitive.t | Container.t(t)]
 
-and error_t = Error.t(t);
+and invalid_t =
+  | NotInferrable;
 
-let of_result = (res: result(valid_t, error_t)) =>
-  switch (res) {
-  | Ok(x) => Valid(x)
-  | Error(err) => Invalid(err)
-  };
+type error_t =
+  | NotFound(Identifier.t)
+  | ExternalNotFound(Namespace.t, Export.t)
+  | DuplicateIdentifier(Identifier.t)
+  | TypeMismatch(t, t)
+  | InvalidUnaryOperation(AST_Operator.unary_t, t)
+  | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
+  | InvalidJSXInlineExpression(t)
+  | InvalidJSXClassExpression(t)
+  | UntypedFunctionArgument(Identifier.t);
 
 /* methods */
-
-let to_result = (res: t) =>
-  switch (res) {
-  | Valid(x) => Ok(x)
-  | Invalid(err) => Error(err)
-  };
-
-let rec _valid_to_raw = (type_: valid_t): Raw.t =>
-  switch (type_) {
-  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
-    Strong(t)
-
-  | `List(x) => Strong(`List(to_raw(x)))
-  | `Struct(xs) => Strong(`Struct(xs |> List.map(Tuple.map_snd2(to_raw))))
-  | `Function(args, res) =>
-    Strong(
-      `Function((args |> List.map(Tuple.map_snd2(to_raw)), to_raw(res))),
-    )
-  | `Generic(_) as x => Strong(x)
-  }
-
-and to_raw = (type_: t): Raw.t =>
-  switch (type_) {
-  | Valid(t) => _valid_to_raw(t)
-  | Invalid(TypeMismatch(lhs, rhs)) =>
-    Invalid(TypeMismatch(to_raw(lhs), to_raw(rhs)))
-  | Invalid(NotNarrowable(lhs, rhs)) =>
-    Invalid(NotNarrowable(to_raw(lhs), to_raw(rhs)))
-  | Invalid(
-      (ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_)) as err,
-    ) =>
-    Invalid(err)
-  }
-
-and err_to_strong_err = (err: error_t): Raw.error_t =>
-  switch (err) {
-  | TypeMismatch(lhs, rhs) => TypeMismatch(to_raw(lhs), to_raw(rhs))
-  | NotNarrowable(lhs, rhs) => NotNarrowable(to_raw(lhs), to_raw(rhs))
-  | (ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_)) as err => err
-  };
 
 let rec pp: Fmt.t(t) =
   ppf =>
     fun
     | Valid(t) => pp_valid(ppf, t)
-    | Invalid(err) => Error.pp(pp, ppf, err)
+    | Invalid(err) => pp_invalid(ppf, err)
 
 and pp_valid: Fmt.t(valid_t) =
   ppf =>
     fun
     | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
-      Raw.pp_primitive(ppf, t)
-    | `List(t) => Raw.pp_list(pp, ppf, t)
-    | `Struct(props) => Raw.pp_struct(pp, ppf, props)
-    | `Function(args, res) => Raw.pp_function(pp, ppf, (args, res))
-    | `Generic(id) => Raw.pp_generic(ppf, id);
+      Primitive.pp(ppf, t)
+    | `List(t) => Container.pp_list(pp, ppf, t)
+    | `Struct(props) => Container.pp_struct(pp, ppf, props)
+    | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
 
-let rec of_raw = (get_weak: (int, int) => t, type_: Raw.t): t =>
-  switch (type_) {
-  | Strong(t) => Valid(valid_of_strong(of_raw(get_weak), t))
-  | Weak(scope_id, weak_id) => get_weak(scope_id, weak_id)
-  | Invalid(err) => Invalid(err_of_raw_err(of_raw(get_weak), err))
-  }
+and pp_invalid: Fmt.t(invalid_t) =
+  ppf =>
+    fun
+    | NotInferrable => Fmt.pf(ppf, "NotInferrable");
 
-and valid_of_strong = (of_raw: Raw.t => t, type_: Raw.strong_t): valid_t =>
-  switch (type_) {
-  | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t => t
-  | `List(x) => `List(of_raw(x))
-  | `Struct(xs) => `Struct(xs |> List.map(Tuple.map_snd2(of_raw)))
+let pp_error: Fmt.t(error_t) =
+  Fmt.(
+    ppf =>
+      fun
+      | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
+
+      | DuplicateIdentifier(id) =>
+        pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
+
+      | UntypedFunctionArgument(id) =>
+        pf(ppf, "UntypedFunctionArgument<%a>", Identifier.pp, id)
+
+      | ExternalNotFound(namespace, id) =>
+        pf(
+          ppf,
+          "ExternalNotFound<%a#%a>",
+          Namespace.pp,
+          namespace,
+          Export.pp,
+          id,
+        )
+
+      | TypeMismatch(lhs, rhs) =>
+        pf(ppf, "TypeMismatch<%a, %a>", pp, lhs, pp, rhs)
+
+      | InvalidUnaryOperation(op, type_) =>
+        pf(
+          ppf,
+          "InvalidUnaryOperation<%s, %a>",
+          AST_Operator.Dump.unary_to_string(op),
+          pp,
+          type_,
+        )
+
+      | InvalidBinaryOperation(op, lhs, rhs) =>
+        pf(
+          ppf,
+          "InvalidBinaryOperation<%s, %a, %a>",
+          AST_Operator.Dump.binary_to_string(op),
+          pp,
+          lhs,
+          pp,
+          rhs,
+        )
+
+      | InvalidJSXInlineExpression(type_) =>
+        pf(ppf, "InvalidJSXInlineExpression<%a>", pp, type_)
+
+      | InvalidJSXClassExpression(type_) =>
+        pf(ppf, "InvalidJSXClassExpression<%a>", pp, type_)
+  );
+
+let rec of_raw = (raw_type: Raw.t): t =>
+  switch (raw_type) {
+  | (`Nil | `Integer | `Float | `Boolean | `String | `Element) as t =>
+    Valid(t)
+
+  | `List(t) => Valid(`List(of_raw(t)))
+
+  | `Struct(ts) => Valid(`Struct(ts |> List.map(Tuple.map_snd2(of_raw))))
+
   | `Function(args, res) =>
-    `Function((args |> List.map(Tuple.map_snd2(of_raw)), of_raw(res)))
-  | `Generic(t) => `Generic(t)
-  }
+    Valid(`Function((args |> List.map(of_raw), of_raw(res))))
 
-and err_of_raw_err = (of_raw: Raw.t => t, err: Raw.error_t): error_t =>
-  switch (err) {
-  | TypeMismatch(lhs, rhs) => TypeMismatch(of_raw(lhs), of_raw(rhs))
-  | NotNarrowable(lhs, rhs) => NotNarrowable(of_raw(lhs), of_raw(rhs))
-  | (ExternalNotFound(_) | DuplicateIdentifier(_) | NotFound(_)) as err => err
+  | `Unknown => raise(UnknownTypeEncountered)
   };

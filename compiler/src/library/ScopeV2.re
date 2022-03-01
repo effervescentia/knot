@@ -8,7 +8,7 @@ type t = {
   range: Range.t,
   parent: option(t),
   mutable children: list(t),
-  types: Hashtbl.t(Identifier.t, TypeV2.t),
+  types: Hashtbl.t(Identifier.t, Type.t),
   /* error reporting callback */
   report: Error.compile_err => unit,
 };
@@ -53,7 +53,7 @@ let create_child = (range: Range.t, parent: t): t => {
 /**
  find a type in this or any parent scope
  */
-let rec lookup = (id: Identifier.t, scope: t): option(TypeV2.t) => {
+let rec lookup = (id: Identifier.t, scope: t): option(Type.t) => {
   switch (scope.parent, Hashtbl.find_opt(scope.types, id)) {
   | (_, Some(type_)) => Some(type_)
 
@@ -67,14 +67,14 @@ let rec lookup = (id: Identifier.t, scope: t): option(TypeV2.t) => {
  define a new type in this scope
  */
 let define =
-    (id: Identifier.t, type_: TypeV2.t, scope: t): option(TypeV2.error_t) => {
+    (id: Identifier.t, type_: Type.t, scope: t): option(Type.error_t) => {
   let result =
-    scope |> lookup(id) |> Option.map(_ => TypeV2.DuplicateIdentifier(id));
+    scope |> lookup(id) |> Option.map(_ => Type.DuplicateIdentifier(id));
 
   Hashtbl.add(scope.types, id, type_);
 
   result;
 };
 
-let report_type_err = (scope: t, range: Range.t, err: TypeV2.error_t) =>
-  scope.report(ParseError(TypeErrorV2(err), scope.namespace, range));
+let report_type_err = (scope: t, range: Range.t, err: Type.error_t) =>
+  scope.report(ParseError(TypeError(err), scope.namespace, range));

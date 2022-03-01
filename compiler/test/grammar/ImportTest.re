@@ -35,12 +35,9 @@ let __context_with_named_exports =
             ast: [],
             exports:
               [
-                (Export.Main, TypeV2.Valid(`Nil)),
-                (
-                  Export.Named("bar" |> A.of_public),
-                  TypeV2.Valid(`Boolean),
-                ),
-                (Export.Named("foo" |> A.of_public), TypeV2.Valid(`String)),
+                (Export.Main, Type.Valid(`Nil)),
+                (Export.Named("bar" |> A.of_public), Type.Valid(`Boolean)),
+                (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
               ]
               |> List.to_seq
               |> Hashtbl.of_seq,
@@ -63,7 +60,7 @@ let __context_with_main_export =
           ModuleTable.{
             ast: [],
             exports:
-              [(Export.Main, TypeV2.Valid(`Nil))]
+              [(Export.Main, Type.Valid(`Nil))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,

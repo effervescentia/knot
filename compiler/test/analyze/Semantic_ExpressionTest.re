@@ -90,11 +90,7 @@ let suite =
       () =>
         Assert.throws(
           CompileError([
-            ParseError(
-              TypeErrorV2(NotFound(__id)),
-              __namespace,
-              Range.zero,
-            ),
+            ParseError(TypeError(NotFound(__id)), __namespace, Range.zero),
           ]),
           "should throw NotFound",
           () =>

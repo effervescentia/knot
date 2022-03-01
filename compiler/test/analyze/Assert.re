@@ -7,7 +7,7 @@ module Formatter = Grammar.Formatter;
 let type_error =
   Alcotest.(
     check(
-      testable(ppf => Fmt.option(~none=Fmt.nop, TypeV2.pp_error, ppf), (==)),
+      testable(ppf => Fmt.option(~none=Fmt.nop, Type.pp_error, ppf), (==)),
       "type error matches",
     )
   );

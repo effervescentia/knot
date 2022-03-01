@@ -31,7 +31,7 @@ let __context =
           ModuleTable.{
             ast: [],
             exports:
-              [(Export.Main, TypeV2.Valid(`Boolean))]
+              [(Export.Main, Type.Valid(`Boolean))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
@@ -91,12 +91,12 @@ let suite =
               |> A.of_prim
               |> U.as_node(
                    ~range=Range.create((4, 15), (4, 17)),
-                   TypeV2.Valid(`Integer),
+                   Type.Valid(`Integer),
                  )
               |> A.of_const
               |> U.as_node(
                    ~range=Range.create((4, 15), (4, 17)),
-                   TypeV2.Valid(`Integer),
+                   Type.Valid(`Integer),
                  ),
             )
             |> A.of_decl

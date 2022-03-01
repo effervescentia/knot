@@ -105,7 +105,7 @@ let suite =
         Assert.throws(
           CompileError([
             ParseError(
-              TypeErrorV2(InvalidUnaryOperation(Not, Valid(`String))),
+              TypeError(InvalidUnaryOperation(Not, Valid(`String))),
               __namespace,
               Range.zero,
             ),

@@ -549,11 +549,11 @@ module Make = (Params: ASTParams) => {
 
 module Raw =
   Make({
-    type type_t = TypeV2.Raw.t;
+    type type_t = Type.Raw.t;
 
     let node_to_entity = (~attributes=[], ~children=[], label, node) =>
       Common.Dump.node_to_entity(
-        TypeV2.Raw.pp,
+        Type.Raw.pp,
         ~attributes,
         ~children,
         label,
@@ -562,16 +562,10 @@ module Raw =
   });
 
 include Make({
-  type type_t = TypeV2.t;
+  type type_t = Type.t;
 
   let node_to_entity = (~attributes=[], ~children=[], label, node) =>
-    Common.Dump.node_to_entity(
-      TypeV2.pp,
-      ~attributes,
-      ~children,
-      label,
-      node,
-    );
+    Common.Dump.node_to_entity(Type.pp, ~attributes, ~children, label, node);
 });
 
 /**

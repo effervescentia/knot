@@ -32,8 +32,6 @@ module Compare = {
 
   let type_ = testable(Type.pp, (==));
 
-  let typeV2 = testable(TypeV2.pp, (==));
-
   let target = testable(Target.pp, (==));
 
   exception LazyStreamLengthMismatch;
@@ -85,8 +83,6 @@ let node = pp_value =>
   Alcotest.(check(Compare.node(pp_value), "node matches"));
 
 let type_ = Alcotest.(check(Compare.type_, "type matches"));
-
-let typeV2 = Alcotest.(check(Compare.typeV2, "type v2 matches"));
 
 let target = Alcotest.(check(Compare.target, "target matches"));
 let opt_target = Alcotest.(check(option(Compare.target), "target matches"));

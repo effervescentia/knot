@@ -1,7 +1,6 @@
 open Kore;
 
-let __type_error =
-  TypeError(Type.Error.NotFound(Reference.Identifier.Public("foo")));
+let __type_error = TypeError(NotFound(Public("foo")));
 
 let suite =
   "Library.Error"

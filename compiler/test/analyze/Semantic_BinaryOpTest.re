@@ -259,7 +259,7 @@ let suite =
         Assert.throws(
           CompileError([
             ParseError(
-              TypeErrorV2(
+              TypeError(
                 InvalidBinaryOperation(
                   LogicalAnd,
                   Valid(`String),

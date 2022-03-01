@@ -7,7 +7,7 @@ module NR = Node.Raw;
 module A = AST;
 module AR = AST.Raw;
 
-module T = TypeV2;
-module TR = TypeV2.Raw;
+module T = Type;
+module TR = Type.Raw;
 
 module S = ScopeV2;

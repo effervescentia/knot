@@ -5,7 +5,7 @@ open ModuleAliases;
 module U = Util.RawUtil;
 
 let __id = Namespace.Internal("foo");
-let __types: list((Export.t, TypeV2.t)) = [
+let __types: list((Export.t, Type.t)) = [
   (Named(A.of_public("bar")), Valid(`Element)),
 ];
 let __program = [
@@ -41,7 +41,7 @@ let suite =
                   _create_table([
                     (
                       Export.Named(A.of_public("bar")),
-                      TypeV2.Valid(`Element),
+                      Type.Valid(`Element),
                     ),
                   ]),
                 ast: __program,
@@ -73,7 +73,7 @@ let suite =
                   _create_table([
                     (
                       Export.Named(A.of_public("new_type")),
-                      TypeV2.Valid(`Float),
+                      Type.Valid(`Float),
                     ),
                   ]),
                 ast: __program,
