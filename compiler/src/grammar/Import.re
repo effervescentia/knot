@@ -43,8 +43,10 @@ let parser = (ctx: ModuleContext.t) =>
       << Keyword.from
       >>= namespace
       >@= (
-        ((namespace, imports)) => {
-          let import = namespace |> NR.get_value |> ModuleContext.import;
+        (((namespace, namespace_range), imports)) => {
+          ctx |> ModuleContext.assert_module(namespace, namespace_range);
+
+          let import = ModuleContext.import(namespace);
 
           imports
           |> List.iter(

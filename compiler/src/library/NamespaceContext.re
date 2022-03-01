@@ -29,12 +29,18 @@ let create =
 /* methods */
 
 /**
+ find a module by its namespace
+ */
+let find_module = (namespace: Namespace.t, ctx: t) =>
+  ModuleTable.find(namespace, ctx.modules);
+
+/**
  find the type of an export from a different module
  */
-let lookup = (namespace: Namespace.t, id: Export.t, ctx: t) => {
+let find_export = (namespace: Namespace.t, id: Export.t, ctx: t) => {
   let type_err = Type.ExternalNotFound(namespace, id);
 
-  switch (ModuleTable.find(namespace, ctx.modules)) {
+  switch (ctx |> find_module(namespace)) {
   | Some({exports}) =>
     switch (Hashtbl.find_opt(exports, id)) {
     | Some(t) => Ok(t)

@@ -17,6 +17,7 @@ let read = (file: string): Config.t => {
   let color = ref(default_config.color);
   let fix = ref(default_config.fix);
   let fail_fast = ref(default_config.fail_fast);
+  let log_imports = ref(default_config.log_imports);
   let debug = ref(default_config.debug);
   let port = ref(default_config.port);
 
@@ -42,6 +43,8 @@ let read = (file: string): Config.t => {
          | (name, `Bool(value)) when name == fix_key => fix := value
          | (name, `Bool(value)) when name == fail_fast_key =>
            fail_fast := value
+         | (name, `Bool(value)) when name == log_imports_key =>
+           log_imports := value
          | (name, `Bool(value)) when name == color_key => color := value
          | (name, `Bool(value)) when name == debug_key => debug := value
          | (name, `Float(value)) when name == port_key =>
@@ -67,6 +70,7 @@ let read = (file: string): Config.t => {
     color: color^,
     fix: fix^,
     fail_fast: fail_fast^,
+    log_imports: log_imports^,
     debug: debug^,
     port: port^,
   };

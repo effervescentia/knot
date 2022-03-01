@@ -21,6 +21,7 @@ let __config =
     root_dir: __valid_program_dir,
     source_dir: __source_dir,
     fail_fast: true,
+    log_imports: false,
   };
 
 let __scope_tree = BinaryTree.create((Range.zero, None));

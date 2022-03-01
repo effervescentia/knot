@@ -16,6 +16,7 @@ let suite =
             source_dir: "source",
             out_dir: "output",
             fail_fast: true,
+            log_imports: false,
           })
           |> ~@RunCmd.pp,
         )

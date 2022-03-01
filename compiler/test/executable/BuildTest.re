@@ -30,6 +30,7 @@ let suite =
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
+            log_imports: false,
           },
         );
 
@@ -60,6 +61,7 @@ exports.ABC = ABC;
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
+            log_imports: false,
           },
         );
 

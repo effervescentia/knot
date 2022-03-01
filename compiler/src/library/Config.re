@@ -9,6 +9,7 @@ type t = {
   color: bool,
   fix: bool,
   fail_fast: bool,
+  log_imports: bool,
   port: int,
 };
 
@@ -28,5 +29,6 @@ let defaults = (is_ci: bool) => {
   color: !is_ci,
   fix: false,
   fail_fast: false,
+  log_imports: false,
   port: default_port,
 };

@@ -9,6 +9,7 @@ type config_t = {
   out_dir: string,
   entry: Namespace.t,
   fail_fast: bool,
+  log_imports: bool,
 };
 
 let cmd = () => {
@@ -17,6 +18,7 @@ let cmd = () => {
   let (target_opt, get_target) = ConfigOpt.target();
   let (entry_opt, get_entry) = ConfigOpt.entry();
   let (fail_fast_opt, get_fail_fast) = ConfigOpt.fail_fast();
+  let (log_imports_opt, get_log_imports) = ConfigOpt.log_imports();
 
   Cmd.create(
     build_key,
@@ -30,6 +32,7 @@ let cmd = () => {
         out_dir: get_out_dir(static, global.root_dir),
         entry: get_entry(static, global.root_dir, source_dir),
         fail_fast: get_fail_fast(static),
+        log_imports: get_log_imports(static),
       };
     },
   );
@@ -54,6 +57,7 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
         root_dir: global.root_dir,
         source_dir: config.source_dir,
         fail_fast: config.fail_fast,
+        log_imports: config.log_imports,
       },
     );
 

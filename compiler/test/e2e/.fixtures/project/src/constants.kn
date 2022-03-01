@@ -19,3 +19,6 @@ const groupConst = (3 * 2) + (1 + 6 / (2 - 5) * 3);
 const logicalAndConst = trueConst && falseConst;
 const logicalOrConst = trueConst || falseConst;
 const logicalNegationConst = !(true && false);
+
+const jsxTagConst = <div #foo .bar fizz=(123 + 456) />
+const jsxFragConst = <>hello</>

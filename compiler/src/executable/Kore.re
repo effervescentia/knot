@@ -21,6 +21,7 @@ let debug_key = "debug";
 let color_key = "color";
 let fix_key = "fix";
 let fail_fast_key = "fail_fast";
+let log_imports_key = "log_imports";
 let port_key = "port";
 
 let is_ci =

@@ -271,3 +271,19 @@ let fail_fast = (~default=default_config.fail_fast, ()) => {
 
   (opt, resolve);
 };
+
+let log_imports = (~default=default_config.log_imports, ()) => {
+  let value = ref(None);
+  let opt =
+    Opt.create(
+      ~default=Bool(default),
+      ~from_config=cfg => Some(Bool(cfg.log_imports)),
+      log_imports_key,
+      Unit(() => value := Some(true)),
+      "print a graph describing the dependencies between modules",
+    );
+  let resolve = (cfg: option(Config.t)) =>
+    value^ |> _resolve(cfg, x => x.log_imports, default);
+
+  (opt, resolve);
+};

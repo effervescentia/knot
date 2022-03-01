@@ -40,6 +40,7 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
         root_dir: global.root_dir,
         source_dir: config.source_dir,
         fail_fast: false,
+        log_imports: false,
       },
     );
 

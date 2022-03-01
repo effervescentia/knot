@@ -8,6 +8,7 @@ type config_t = {
   root_dir: string,
   source_dir: string,
   fail_fast: bool,
+  log_imports: bool,
 };
 
 type action_t =

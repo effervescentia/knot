@@ -19,13 +19,23 @@ type parse_err =
  errors encountered while compiling
  */
 type compile_err =
-  | ImportCycle(list(string))
-  | UnresolvedModule(string)
-  | FileNotFound(string)
+  /* issues encountered while parsing and analyzing */
   | ParseError(parse_err, Namespace.t, Range.t)
+  /* import cycle exists between modules */
+  | ImportCycle(list(string))
+  /* unable to retrieve a file from the filesystem */
+  | FileNotFound(string)
+  /* module could not be resolved */
+  | UnresolvedModule(string)
+  /* module did not contain any imports or declarations */
   | InvalidModule(Namespace.t);
 
 exception CompileError(list(compile_err));
+
+/**
+ used to represent failures in the logic of the compiler itself
+ */
+exception SystemError;
 
 /**
  raise a single compiler error
