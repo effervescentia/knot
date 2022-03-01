@@ -1,21 +1,33 @@
 open Kore;
-open Util.RawUtil;
-open AST.Raw;
 
-module Expression = Grammar.Expression;
-module JSX = Grammar.JSX;
+module Expression = Grammar.ExpressionV2;
+module JSX = Grammar.JSXV2;
+module U = Util.RawUtilV2;
 
 module Assert =
   Assert.Make({
-    type t = jsx_t;
+    type t = NR.t(AR.jsx_t);
 
     let parser = ((_, ctx)) =>
-      JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
+      JSX.parser(ctx, (Expression.expr_4, Expression.parser))
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(ppf => Dump.jsx_to_entity % Dump.Entity.pp(ppf), (==)),
+          testable(
+            (ppf, jsx) =>
+              AR.Dump.(
+                jsx
+                |> untyped_node_to_entity(
+                     ~children=[jsx |> NR.get_value |> jsx_to_entity],
+                     "JSX",
+                   )
+                |> Entity.pp(ppf)
+              ),
+            (==),
+          ),
           "program matches",
         )
       );
@@ -29,7 +41,9 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("Foo" |> of_public |> as_raw_node, [], []) |> of_tag |> as_raw_node,
+          ("Foo" |> AR.of_public |> U.as_raw_node, [], [])
+          |> AR.of_tag
+          |> U.as_raw_node,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
     ),
@@ -37,23 +51,25 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("Foo" |> of_public |> as_raw_node, [], []) |> of_tag |> as_raw_node,
+          ("Foo" |> AR.of_public |> U.as_raw_node, [], [])
+          |> AR.of_tag
+          |> U.as_raw_node,
           ["<Foo/>", " < Foo / > "],
         )
     ),
     "parse empty fragment"
-    >: (() => Assert.parse([] |> of_frag |> as_raw_node, "<></>")),
+    >: (() => Assert.parse([] |> AR.of_frag |> U.as_raw_node, "<></>")),
     "parse fragment with children"
     >: (
       () =>
         Assert.parse(
           [
-            ("Bar" |> of_public |> as_raw_node, [], [])
-            |> jsx_node
-            |> as_raw_node,
+            ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+            |> U.jsx_node
+            |> U.as_raw_node,
           ]
-          |> of_frag
-          |> as_raw_node,
+          |> AR.of_frag
+          |> U.as_raw_node,
           "<><Bar /></>",
         )
     ),
@@ -62,24 +78,23 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
+                "fizz" |> AR.of_public |> U.as_raw_node,
                 "buzz"
-                |> of_public
-                |> as_raw_node
-                |> of_id
-                |> as_raw_node
+                |> AR.of_public
+                |> AR.of_id
+                |> U.as_unknown
                 |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=buzz />",
         )
     ),
@@ -88,19 +103,19 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
-                "buzz" |> string_prim |> Option.some,
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                "buzz" |> U.string_prim |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=\"buzz\" />",
         )
     ),
@@ -109,30 +124,29 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
+                "fizz" |> AR.of_public |> U.as_raw_node,
                 [
                   "buzz"
-                  |> of_public
-                  |> as_raw_node
-                  |> of_id
-                  |> as_raw_node
-                  |> of_expr
-                  |> as_raw_node,
+                  |> AR.of_public
+                  |> AR.of_id
+                  |> U.as_unknown
+                  |> AR.of_expr
+                  |> U.as_unknown,
                 ]
-                |> of_closure
-                |> as_raw_node
+                |> AR.of_closure
+                |> U.as_unknown
                 |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz={ buzz; } />",
         )
     ),
@@ -141,22 +155,22 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
-                (1 |> int_prim, 2 |> int_prim)
-                |> of_add_op
-                |> as_raw_node
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                (U.int_prim(1), U.int_prim(2))
+                |> AR.of_add_op
+                |> U.as_int
                 |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=1 + 2 />",
         )
     ),
@@ -165,22 +179,22 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
-                (1 |> int_prim, 2 |> int_prim)
-                |> of_gt_op
-                |> as_raw_node
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                (U.int_prim(1), U.int_prim(2))
+                |> AR.of_gt_op
+                |> U.as_bool
                 |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=(1 > 2) />",
         )
     ),
@@ -189,19 +203,19 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
-                bool_prim(true) |> Option.some,
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                true |> U.bool_prim |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=(true) />",
         )
     ),
@@ -210,19 +224,19 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
-                3 |> int_prim |> of_neg_op |> as_raw_node |> Option.some,
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                3 |> U.int_prim |> AR.of_neg_op |> U.as_int |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=-3 />",
         )
     ),
@@ -231,22 +245,22 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "fizz" |> of_public |> as_raw_node,
-                ("buzz" |> of_public |> as_raw_node, [], [])
-                |> jsx_tag
-                |> as_raw_node
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                ("buzz" |> AR.of_public |> U.as_raw_node, [], [])
+                |> U.jsx_tag
+                |> U.as_element
                 |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz=<buzz /> />",
         )
     ),
@@ -255,16 +269,16 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
-              ("fizz" |> of_public |> as_raw_node, None)
-              |> of_prop
-              |> as_raw_node,
+              ("fizz" |> AR.of_public |> U.as_raw_node, None)
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo fizz />",
         )
     ),
@@ -273,16 +287,16 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
-              ("fizz" |> of_public |> as_raw_node, None)
-              |> of_jsx_class
-              |> as_raw_node,
+              ("fizz" |> AR.of_public |> U.as_raw_node, None)
+              |> AR.of_jsx_class
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo .fizz />",
         )
     ),
@@ -291,12 +305,18 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
-            ["fizz" |> of_public |> as_raw_node |> of_jsx_id |> as_raw_node],
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              "fizz"
+              |> AR.of_public
+              |> U.as_raw_node
+              |> AR.of_jsx_id
+              |> U.as_raw_node,
+            ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo #fizz />",
         )
     ),
@@ -305,16 +325,16 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [],
             [
-              ("Bar" |> of_public |> as_raw_node, [], [])
-              |> jsx_node
-              |> as_raw_node,
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_node
+              |> U.as_raw_node,
             ],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo><Bar /></Foo>",
         )
     ),
@@ -323,18 +343,18 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [],
             [
-              (1 |> int_prim, 2 |> int_prim)
-              |> of_add_op
-              |> as_raw_node
-              |> of_inline_expr
-              |> as_raw_node,
+              (U.int_prim(1), U.int_prim(2))
+              |> AR.of_add_op
+              |> U.as_int
+              |> AR.of_inline_expr
+              |> U.as_raw_node,
             ],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo>{1 + 2}</Foo>",
         )
     ),
@@ -343,18 +363,18 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [],
             [
-              ("Bar" |> of_public |> as_raw_node, [], [])
-              |> jsx_tag
-              |> as_raw_node
-              |> of_inline_expr
-              |> as_raw_node,
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_tag
+              |> U.as_element
+              |> AR.of_inline_expr
+              |> U.as_raw_node,
             ],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo>{<Bar />}</Foo>",
         )
     ),
@@ -363,12 +383,12 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [],
-            ["bar \"or\" 123" |> as_raw_node |> of_text |> as_raw_node],
+            ["bar \"or\" 123" |> AR.of_text |> U.as_raw_node],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo> bar \"or\" 123 </Foo>",
         )
     ),
@@ -377,20 +397,23 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
-              ("bar" |> of_public |> as_raw_node, 4 |> int_prim |> Option.some)
-              |> of_prop
-              |> as_raw_node,
+              (
+                "bar" |> AR.of_public |> U.as_raw_node,
+                4 |> U.int_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
             ],
             [
-              ("Bar" |> of_public |> as_raw_node, [], [])
-              |> jsx_node
-              |> as_raw_node,
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_node
+              |> U.as_raw_node,
             ],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo bar=4><Bar /></Foo>",
         )
     ),
@@ -399,24 +422,24 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [],
             [
-              "bar" |> as_raw_node |> of_text |> as_raw_node,
-              (1 |> int_prim, 2 |> int_prim)
-              |> of_add_op
-              |> as_raw_node
-              |> of_inline_expr
-              |> as_raw_node,
-              ("Bar" |> of_public |> as_raw_node, [], [])
-              |> jsx_node
-              |> as_raw_node,
-              "fizz" |> string_prim |> of_inline_expr |> as_raw_node,
-              "buzz" |> as_raw_node |> of_text |> as_raw_node,
+              "bar" |> AR.of_text |> U.as_raw_node,
+              (U.int_prim(1), U.int_prim(2))
+              |> AR.of_add_op
+              |> U.as_int
+              |> AR.of_inline_expr
+              |> U.as_raw_node,
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_node
+              |> U.as_raw_node,
+              "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_raw_node,
+              "buzz" |> AR.of_text |> U.as_raw_node,
             ],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
         )
     ),
@@ -425,27 +448,26 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> AR.of_public |> U.as_raw_node,
             [
               (
-                "bar" |> of_public |> as_raw_node,
+                "bar" |> AR.of_public |> U.as_raw_node,
                 "fizz"
-                |> of_public
-                |> as_raw_node
-                |> of_id
-                |> as_raw_node
+                |> AR.of_public
+                |> AR.of_id
+                |> U.as_unknown
                 |> Option.some,
               )
-              |> of_prop
-              |> as_raw_node,
-              ("buzz" |> of_public |> as_raw_node, None)
-              |> of_jsx_class
-              |> as_raw_node,
+              |> AR.of_prop
+              |> U.as_raw_node,
+              ("buzz" |> AR.of_public |> U.as_raw_node, None)
+              |> AR.of_jsx_class
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag
-          |> as_raw_node,
+          |> AR.of_tag
+          |> U.as_raw_node,
           "<Foo bar=fizz .buzz />",
         )
     ),

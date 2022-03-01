@@ -1,26 +1,11 @@
 open Kore;
-open Util.RawUtil;
 
-module Primitive = Grammar.Primitive;
+module Primitive = Grammar.PrimitiveV2;
+module U = Util.RawUtilV2;
 
 module Assert =
-  Assert.Make({
-    open AST;
-
-    type t = Raw.primitive_t;
-
-    let parser = _ => Parser.parse(Primitive.string);
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            ppf => Raw.Dump.prim_to_entity % Dump.Entity.pp(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
+  Assert.MakePrimitive({
+    let parser = Primitive.parser;
   });
 
 let suite =
@@ -31,7 +16,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          AST.Raw.of_string("foo") |> as_raw_node,
+          "foo" |> AR.of_string |> U.as_string,
           ["\"foo\"", " \"foo\" "],
         )
     ),
@@ -39,7 +24,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          AST.Raw.of_string("foo\\\"bar") |> as_raw_node,
+          "foo\\\"bar" |> AR.of_string |> U.as_string,
           "\"foo\\\"bar\"",
         )
     ),

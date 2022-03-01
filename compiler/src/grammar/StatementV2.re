@@ -7,7 +7,7 @@ let variable =
   >|= NR.get_range
   >>= (
     start_range =>
-      Operator.assign(IdentifierV2.parser(ctx), parse_expr(ctx))
+      OperatorV2.assign(IdentifierV2.parser(ctx), parse_expr(ctx))
       >|= (
         ((_, expr) as var) =>
           N.create(

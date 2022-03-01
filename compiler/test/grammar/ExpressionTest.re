@@ -1,19 +1,19 @@
 open Kore;
-open AST.Raw;
-open Util.RawUtil;
 
-module Expression = Grammar.Expression;
+module Expression = Grammar.ExpressionV2;
+module U = Util.RawUtilV2;
 
 module Assert =
   Assert.Make({
-    type t = expression_t;
+    type t = AR.expression_t;
 
-    let parser = ((_, ctx)) => ctx |> Expression.parser |> Parser.parse;
+    let parser = ((_, ctx)) =>
+      ctx |> Expression.parser |> Assert.parse_completely |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(ppf => Dump.expr_to_entity % Dump.Entity.pp(ppf), (==)),
+          testable(ppf => AR.Dump.(expr_to_entity % Entity.pp(ppf)), (==)),
           "program matches",
         )
       );
@@ -24,15 +24,13 @@ let _generate_spaced_identifier_ops =
     (
       (
         (
-          "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
-          "b" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+          "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
+          "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
         )
-        |> tag
-        |> as_raw_node,
-        "c" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+        |> tag,
+        "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
       )
-      |> tag
-      |> as_raw_node,
+      |> tag,
       Fmt.str("a %s b %s c", op, op),
     )
   );
@@ -40,11 +38,11 @@ let _generate_spaced_bool_ops = (~lhs=true, ~rhs=false) =>
   List.map(((tag, op)) =>
     [
       (
-        (bool_prim(lhs), bool_prim(rhs)) |> tag |> as_raw_node,
+        (U.bool_prim(lhs), U.bool_prim(rhs)) |> tag |> U.as_bool,
         Fmt.str("%b%s%b", lhs, op, rhs),
       ),
       (
-        (bool_prim(lhs), bool_prim(rhs)) |> tag |> as_raw_node,
+        (U.bool_prim(lhs), U.bool_prim(rhs)) |> tag |> U.as_bool,
         Fmt.str(" %b %s %b ", lhs, op, rhs),
       ),
     ]
@@ -53,11 +51,11 @@ let _generate_spaced_int_ops = (~lhs=123, ~rhs=456) =>
   List.map(((tag, op)) =>
     [
       (
-        (int_prim(lhs), int_prim(rhs)) |> tag |> as_raw_node,
+        (U.int_prim(lhs), U.int_prim(rhs)) |> tag,
         Fmt.str("%d%s%d", lhs, op, rhs),
       ),
       (
-        (int_prim(lhs), int_prim(rhs)) |> tag |> as_raw_node,
+        (U.int_prim(lhs), U.int_prim(rhs)) |> tag,
         Fmt.str(" %d %s %d ", lhs, op, rhs),
       ),
     ]
@@ -70,36 +68,22 @@ let suite =
   "Grammar.Expression"
   >::: [
     "no parse" >: (() => Assert.no_parse("~gibberish")),
-    "parse primitive" >: (() => Assert.parse(123 |> int_prim, "123")),
-    "parse public identifier"
+    "parse primitive" >: (() => Assert.parse(U.int_prim(123), "123")),
+    "parse identifier"
     >: (
       () =>
-        Assert.parse(
-          ~report=ignore,
-          "foo" |> of_public |> as_raw_node |> of_id |> as_raw_node,
-          "foo",
-        )
-    ),
-    "parse private identifier"
-    >: (
-      () =>
-        Assert.parse(
-          ~report=ignore,
-          "foo" |> of_private |> as_raw_node |> of_id |> as_raw_node,
-          "_foo",
-        )
+        Assert.parse("foo" |> AR.of_public |> AR.of_id |> U.as_unknown, "foo")
     ),
     "parse group"
     >: (
       () =>
         Assert.parse(
           "foo"
-          |> of_public
-          |> as_raw_node
-          |> of_id
-          |> as_raw_node
-          |> of_group
-          |> as_raw_node,
+          |> AR.of_public
+          |> AR.of_id
+          |> U.as_unknown
+          |> AR.of_group
+          |> U.as_unknown,
           "(foo)",
         )
     ),
@@ -109,35 +93,34 @@ let suite =
         Assert.parse(
           [
             "foo"
-            |> of_public
-            |> as_raw_node
-            |> of_id
-            |> as_raw_node
-            |> of_expr
-            |> as_raw_node,
-            ("x" |> of_public |> as_raw_node, false |> bool_prim)
-            |> of_var
-            |> as_raw_node,
+            |> AR.of_public
+            |> AR.of_id
+            |> U.as_unknown
+            |> AR.of_expr
+            |> U.as_unknown,
+            ("x" |> AR.of_public |> U.as_raw_node, U.bool_prim(false))
+            |> AR.of_var
+            |> U.as_nil,
             (
-              "y" |> of_public |> as_raw_node,
-              "foo" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+              "y" |> AR.of_public |> U.as_raw_node,
+              "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
-            |> of_var
-            |> as_raw_node,
+            |> AR.of_var
+            |> U.as_nil,
             (
-              "z" |> of_public |> as_raw_node,
-              "y" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+              "z" |> AR.of_public |> U.as_raw_node,
+              "y" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
-            |> of_var
-            |> as_raw_node,
-            (1 |> int_prim, 2 |> int_prim)
-            |> of_add_op
-            |> as_raw_node
-            |> of_expr
-            |> as_raw_node,
+            |> AR.of_var
+            |> U.as_nil,
+            (U.int_prim(1), U.int_prim(2))
+            |> AR.of_add_op
+            |> U.as_int
+            |> AR.of_expr
+            |> U.as_int,
           ]
-          |> of_closure
-          |> as_raw_node,
+          |> AR.of_closure
+          |> U.as_int,
           "{
             foo;
             let x = false;
@@ -149,18 +132,22 @@ let suite =
     ),
     "parse unary - negative"
     >: (
-      () => Assert.parse(123 |> int_prim |> of_neg_op |> as_raw_node, "-123")
+      () =>
+        Assert.parse(123 |> U.int_prim |> AR.of_neg_op |> U.as_int, "-123")
     ),
     "parse unary - logical not"
     >: (
       () =>
-        Assert.parse(true |> bool_prim |> of_not_op |> as_raw_node, "!true")
+        Assert.parse(
+          true |> U.bool_prim |> AR.of_not_op |> U.as_bool,
+          "!true",
+        )
     ),
     "parse boolean logic"
     >: (
       () =>
         _assert_parse_many(
-          [(of_and_op, "&&"), (of_or_op, "||")]
+          [(AR.of_and_op, "&&"), (AR.of_or_op, "||")]
           |> _generate_spaced_bool_ops
           |> List.flatten,
         )
@@ -170,10 +157,10 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (of_add_op, "+"),
-            (of_sub_op, "-"),
-            (of_mult_op, "*"),
-            (of_div_op, "/"),
+            (AR.of_add_op % U.as_int, "+"),
+            (AR.of_sub_op % U.as_int, "-"),
+            (AR.of_mult_op % U.as_int, "*"),
+            (AR.of_div_op % U.as_float, "/"),
           ]
           |> _generate_spaced_int_ops
           |> List.flatten,
@@ -184,10 +171,10 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (of_lte_op, "<="),
-            (of_lt_op, "<"),
-            (of_gte_op, ">="),
-            (of_gt_op, ">"),
+            (AR.of_lte_op % U.as_bool, "<="),
+            (AR.of_lt_op % U.as_bool, "<"),
+            (AR.of_gte_op % U.as_bool, ">="),
+            (AR.of_gt_op % U.as_bool, ">"),
           ]
           |> _generate_spaced_int_ops
           |> List.flatten,
@@ -200,95 +187,97 @@ let suite =
           (
             (
               (
-                int_prim(2),
+                U.int_prim(2),
                 (
-                  int_prim(3),
-                  (int_prim(4), int_prim(5)) |> of_expo_op |> as_raw_node,
+                  U.int_prim(3),
+                  (U.int_prim(4), U.int_prim(5))
+                  |> AR.of_expo_op
+                  |> U.as_float,
                 )
-                |> of_mult_op
-                |> as_raw_node,
+                |> AR.of_mult_op
+                |> U.as_float,
               )
-              |> of_add_op
-              |> as_raw_node,
-              (int_prim(6) |> of_neg_op |> as_raw_node, int_prim(7))
-              |> of_div_op
-              |> as_raw_node,
+              |> AR.of_add_op
+              |> U.as_float,
+              (6 |> U.int_prim |> AR.of_neg_op |> U.as_int, U.int_prim(7))
+              |> AR.of_div_op
+              |> U.as_float,
             )
-            |> of_sub_op
-            |> as_raw_node,
+            |> AR.of_sub_op
+            |> U.as_float,
             "2 + 3 * 4 ^ 5 - -6 / 7",
           ),
           (
             (
-              (int_prim(2), int_prim(3))
-              |> of_add_op
-              |> as_raw_node
-              |> of_group
-              |> as_raw_node,
+              (U.int_prim(2), U.int_prim(3))
+              |> AR.of_add_op
+              |> U.as_int
+              |> AR.of_group
+              |> U.as_int,
               (
-                int_prim(4),
+                U.int_prim(4),
                 (
-                  int_prim(5),
-                  (int_prim(6), int_prim(7))
-                  |> of_div_op
-                  |> as_raw_node
-                  |> of_group
-                  |> as_raw_node
-                  |> of_neg_op
-                  |> as_raw_node,
+                  U.int_prim(5),
+                  (U.int_prim(6), U.int_prim(7))
+                  |> AR.of_div_op
+                  |> U.as_float
+                  |> AR.of_group
+                  |> U.as_float
+                  |> AR.of_neg_op
+                  |> U.as_float,
                 )
-                |> of_sub_op
-                |> as_raw_node
-                |> of_group
-                |> as_raw_node,
+                |> AR.of_sub_op
+                |> U.as_float
+                |> AR.of_group
+                |> U.as_float,
               )
-              |> of_expo_op
-              |> as_raw_node,
+              |> AR.of_expo_op
+              |> U.as_float,
             )
-            |> of_mult_op
-            |> as_raw_node,
+            |> AR.of_mult_op
+            |> U.as_float,
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
           ),
           (
             (
               (
-                "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+                "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
                 (
                   (
-                    "b" |> of_public |> as_raw_node |> of_id |> as_raw_node,
-                    "c" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+                    "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                    "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
                   )
-                  |> of_gt_op
-                  |> as_raw_node,
+                  |> AR.of_gt_op
+                  |> U.as_bool,
                   (
-                    "e" |> of_public |> as_raw_node |> of_id |> as_raw_node,
-                    "f" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+                    "e" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                    "f" |> AR.of_public |> AR.of_id |> U.as_unknown,
                   )
-                  |> of_lte_op
-                  |> as_raw_node,
+                  |> AR.of_lte_op
+                  |> U.as_bool,
                 )
-                |> of_or_op
-                |> as_raw_node
-                |> of_group
-                |> as_raw_node,
+                |> AR.of_or_op
+                |> U.as_bool
+                |> AR.of_group
+                |> U.as_bool,
               )
-              |> of_and_op
-              |> as_raw_node,
+              |> AR.of_and_op
+              |> U.as_bool,
               (
-                "g" |> of_public |> as_raw_node |> of_id |> as_raw_node,
-                "h" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+                "g" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                "h" |> AR.of_public |> AR.of_id |> U.as_unknown,
               )
-              |> of_or_op
-              |> as_raw_node
-              |> of_group
-              |> as_raw_node
-              |> of_not_op
-              |> as_raw_node
-              |> of_group
-              |> as_raw_node,
+              |> AR.of_or_op
+              |> U.as_bool
+              |> AR.of_group
+              |> U.as_bool
+              |> AR.of_not_op
+              |> U.as_bool
+              |> AR.of_group
+              |> U.as_bool,
             )
-            |> of_and_op
-            |> as_raw_node,
+            |> AR.of_and_op
+            |> U.as_bool,
             "a && (b > c || e <= f) && (!(g || h))",
           ),
         ])
@@ -297,7 +286,11 @@ let suite =
     >: (
       () =>
         _assert_parse_many(
-          [(of_add_op, "+"), (of_sub_op, "-"), (of_mult_op, "*")]
+          [
+            (AR.of_add_op % U.as_unknown, "+"),
+            (AR.of_sub_op % U.as_unknown, "-"),
+            (AR.of_mult_op % U.as_unknown, "*"),
+          ]
           |> _generate_spaced_identifier_ops,
         )
     ),
@@ -305,7 +298,8 @@ let suite =
     >: (
       () =>
         _assert_parse_many(
-          [(of_div_op, "/")] |> _generate_spaced_identifier_ops,
+          [(AR.of_div_op % U.as_float, "/")]
+          |> _generate_spaced_identifier_ops,
         )
     ),
     "parse left-associative - logical and, logical or"
@@ -313,10 +307,8 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (of_lte_op, "<="),
-            (of_lt_op, "<"),
-            (of_gte_op, ">="),
-            (of_gt_op, ">"),
+            (AR.of_and_op % U.as_bool, "&&"),
+            (AR.of_or_op % U.as_bool, "||"),
           ]
           |> _generate_spaced_identifier_ops,
         )
@@ -325,12 +317,11 @@ let suite =
     >: (
       () =>
         _assert_parse_many(
-          ~report=ignore,
           [
-            (of_lte_op, "<="),
-            (of_lt_op, "<"),
-            (of_gte_op, ">="),
-            (of_gt_op, ">"),
+            (AR.of_lte_op % U.as_bool, "<="),
+            (AR.of_lt_op % U.as_bool, "<"),
+            (AR.of_gte_op % U.as_bool, ">="),
+            (AR.of_gt_op % U.as_bool, ">"),
           ]
           |> _generate_spaced_identifier_ops,
         )
@@ -339,8 +330,10 @@ let suite =
     >: (
       () =>
         _assert_parse_many(
-          ~report=ignore,
-          [(of_eq_op, "=="), (of_ineq_op, "!=")]
+          [
+            (AR.of_eq_op % U.as_bool, "=="),
+            (AR.of_ineq_op % U.as_bool, "!="),
+          ]
           |> _generate_spaced_identifier_ops,
         )
     ),
@@ -349,16 +342,16 @@ let suite =
       () =>
         Assert.parse(
           (
-            "a" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+            "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
             (
-              "b" |> of_public |> as_raw_node |> of_id |> as_raw_node,
-              "c" |> of_public |> as_raw_node |> of_id |> as_raw_node,
+              "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+              "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
-            |> of_expo_op
-            |> as_raw_node,
+            |> AR.of_expo_op
+            |> U.as_float,
           )
-          |> of_expo_op
-          |> as_raw_node,
+          |> AR.of_expo_op
+          |> U.as_float,
           "a ^ b ^ c",
         )
     ),
@@ -367,16 +360,15 @@ let suite =
       () =>
         Assert.parse(
           "a"
-          |> of_public
-          |> as_raw_node
-          |> of_id
-          |> as_raw_node
-          |> of_neg_op
-          |> as_raw_node
-          |> of_neg_op
-          |> as_raw_node
-          |> of_neg_op
-          |> as_raw_node,
+          |> AR.of_public
+          |> AR.of_id
+          |> U.as_unknown
+          |> AR.of_neg_op
+          |> U.as_unknown
+          |> AR.of_neg_op
+          |> U.as_unknown
+          |> AR.of_neg_op
+          |> U.as_unknown,
           "- - - a",
         )
     ),
@@ -385,16 +377,15 @@ let suite =
       () =>
         Assert.parse(
           "a"
-          |> of_public
-          |> as_raw_node
-          |> of_id
-          |> as_raw_node
-          |> of_not_op
-          |> as_raw_node
-          |> of_not_op
-          |> as_raw_node
-          |> of_not_op
-          |> as_raw_node,
+          |> AR.of_public
+          |> AR.of_id
+          |> U.as_unknown
+          |> AR.of_not_op
+          |> U.as_bool
+          |> AR.of_not_op
+          |> U.as_bool
+          |> AR.of_not_op
+          |> U.as_bool,
           "! ! ! a",
         )
     ),

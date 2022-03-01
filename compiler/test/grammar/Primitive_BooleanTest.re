@@ -1,26 +1,11 @@
 open Kore;
-open Util.RawUtil;
 
-module Primitive = Grammar.Primitive;
+module Primitive = Grammar.PrimitiveV2;
+module U = Util.RawUtilV2;
 
 module Assert =
-  Assert.Make({
-    open AST;
-
-    type t = Raw.primitive_t;
-
-    let parser = _ => Parser.parse(Primitive.boolean);
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            ppf => Raw.Dump.prim_to_entity % Dump.Entity.pp(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
+  Assert.MakePrimitive({
+    let parser = Primitive.parser;
   });
 
 let suite =
@@ -30,16 +15,13 @@ let suite =
     "parse true"
     >: (
       () =>
-        Assert.parse_all(
-          AST.Raw.of_bool(true) |> as_raw_node,
-          ["true", " true "],
-        )
+        Assert.parse_all(true |> AR.of_bool |> U.as_bool, ["true", " true "])
     ),
     "parse false"
     >: (
       () =>
         Assert.parse_all(
-          AST.Raw.of_bool(false) |> as_raw_node,
+          false |> AR.of_bool |> U.as_bool,
           ["false", " false "],
         )
     ),
