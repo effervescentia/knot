@@ -254,9 +254,11 @@
     "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
-    "test": "npm run test.unit && npm run test.integration && npm run test:e2e 1> /dev/null",
+    "test": "npm run test.unit && npm run test.integration && npm run test.e2e 1> /dev/null",
     "test.unit": "esy x UnitTests.exe --show-errors",
-    "test.integration": "esy x IntegrationTests.exe --show-errors"
+    "test.integration": "esy x IntegrationTests.exe --show-errors",
+    "test.e2e": "esy x knotc.exe build -r ./test/e2e/.fixtures/project",
+    "test.e2e.debug": "npm run test:e2e -- -debug"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",

@@ -54,6 +54,23 @@ let (>>=) = (x, f, input) =>
   };
 
 /**
+ {b negative_lookahead}
+
+ if parser [x] succeeds, attempt to match parser [y]
+ if parser [y] fails return the result of [x] without advancing the stream
+ */
+let (<<!) = (x, y) => {
+  x
+  >>= (
+    (r, input) =>
+      switch (y(input)) {
+      | Some(x) => None
+      | None => Some((r, input))
+      }
+  );
+};
+
+/**
  {b map_result}
 
  if parser [x] succeeds, transform the result with [f]

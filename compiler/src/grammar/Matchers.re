@@ -90,7 +90,8 @@ let keyword = (s: string) =>
           >|= (end_ => Node.Raw.create(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
-      loop(s |> String.to_seq |> List.of_seq);
+      loop(s |> String.to_seq |> List.of_seq)
+      <<! (alpha_num <|> Character.underscore);
     }
   )
   |> lexeme;
