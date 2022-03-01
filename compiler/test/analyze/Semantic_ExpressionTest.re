@@ -2,7 +2,7 @@ open Kore;
 
 module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
-module URaw = Util.RawUtilV2;
+module URaw = Util.RawUtil;
 module URes = Util.ResultUtilV2;
 
 let __id = Identifier.of_string("foo");

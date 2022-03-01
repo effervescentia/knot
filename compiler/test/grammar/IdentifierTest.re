@@ -1,7 +1,7 @@
 open Kore;
 
 module Identifier = Grammar.Identifier;
-module U = Util.RawUtilV2;
+module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({

@@ -2,7 +2,7 @@ open Kore;
 
 module Expression = Grammar.Expression;
 module JSX = Grammar.JSX;
-module U = Util.RawUtilV2;
+module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({

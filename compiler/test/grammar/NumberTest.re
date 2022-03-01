@@ -1,7 +1,7 @@
 open Kore;
 
 module Number = Grammar.Number;
-module U = Util.RawUtilV2;
+module U = Util.RawUtil;
 
 module Assert =
   Assert.MakeTyped({

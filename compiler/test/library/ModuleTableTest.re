@@ -2,7 +2,7 @@ open Kore;
 open Reference;
 open ModuleAliases;
 
-module U = Util.RawUtilV2;
+module U = Util.RawUtil;
 
 let __id = Namespace.Internal("foo");
 let __types: list((Export.t, TypeV2.t)) = [

@@ -18,7 +18,7 @@ module CommonUtil = {
   };
 };
 
-module RawUtilV2 = {
+module RawUtil = {
   include CommonUtil;
 
   /* typecasting utilities */
@@ -46,8 +46,6 @@ module RawUtilV2 = {
   let jsx_node = AR.of_tag % AR.of_node;
   let jsx_tag = AR.of_tag % AR.of_jsx;
 };
-
-module RawUtil = RawUtilV2;
 
 module ResultUtil = {
   open AST;

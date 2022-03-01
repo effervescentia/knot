@@ -2,7 +2,7 @@ open Kore;
 
 module TypingAnalyzer = Analyze.Typing;
 module TE = ASTV2.TypeExpression;
-module U = Util.RawUtilV2;
+module U = Util.RawUtil;
 
 let suite =
   "Analyze.Typing | Type Expression"
