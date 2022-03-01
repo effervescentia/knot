@@ -1,17 +1,17 @@
 open Kore;
 
 let primitive: expression_parser_t =
-  PrimitiveV2.parser >|= N.map_value(AR.of_prim);
+  Primitive.parser >|= N.map_value(AR.of_prim);
 
 let identifier = (ctx: ModuleContext.t): expression_parser_t =>
-  IdentifierV2.parser(ctx)
+  Identifier.parser(ctx)
   >|= NR.map_value(AR.of_id)
   >|= N.of_raw(TR.(`Unknown));
 
 let jsx =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
     : expression_parser_t =>
-  JSXV2.parser(ctx, parsers)
+  JSX.parser(ctx, parsers)
   >|= N.of_raw(TR.(`Element))
   >|= N.map_value(AR.of_jsx);
 
@@ -25,7 +25,7 @@ let group = (parse_expr: expression_parser_t): expression_parser_t =>
 let closure =
     (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
     : expression_parser_t =>
-  StatementV2.parser(ctx, parse_expr)
+  Statement.parser(ctx, parse_expr)
   |> many
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= (
@@ -49,51 +49,48 @@ let closure =
 
 /* || */
 let rec expr_0 = (ctx: ModuleContext.t): expression_parser_t =>
-  chainl1(expr_1(ctx), OperatorV2.logical_or(ctx))
+  chainl1(expr_1(ctx), Operator.logical_or(ctx))
 
 /* && */
 and expr_1 = (ctx: ModuleContext.t): expression_parser_t =>
-  chainl1(expr_2(ctx), OperatorV2.logical_and(ctx))
+  chainl1(expr_2(ctx), Operator.logical_and(ctx))
 
 /* ==, != */
 and expr_2 = (ctx: ModuleContext.t): expression_parser_t =>
-  chainl1(
-    expr_3(ctx),
-    OperatorV2.equality(ctx) <|> OperatorV2.inequality(ctx),
-  )
+  chainl1(expr_3(ctx), Operator.equality(ctx) <|> Operator.inequality(ctx))
 
 /* <=, <, >=, > */
 and expr_3 = (ctx: ModuleContext.t): expression_parser_t =>
   chainl1(
     expr_4(ctx),
     choice([
-      OperatorV2.less_or_eql(ctx),
-      OperatorV2.less_than(ctx),
-      OperatorV2.greater_or_eql(ctx),
-      OperatorV2.greater_than(ctx),
+      Operator.less_or_eql(ctx),
+      Operator.less_than(ctx),
+      Operator.greater_or_eql(ctx),
+      Operator.greater_than(ctx),
     ]),
   )
 
 /* +, - */
 and expr_4 = (ctx: ModuleContext.t): expression_parser_t =>
-  chainl1(expr_5(ctx), OperatorV2.add(ctx) <|> OperatorV2.sub(ctx))
+  chainl1(expr_5(ctx), Operator.add(ctx) <|> Operator.sub(ctx))
 
 /* *, / */
 and expr_5 = (ctx: ModuleContext.t): expression_parser_t =>
-  chainl1(expr_6(ctx), OperatorV2.mult(ctx) <|> OperatorV2.div(ctx))
+  chainl1(expr_6(ctx), Operator.mult(ctx) <|> Operator.div(ctx))
 
 /* ^ */
 and expr_6 = (ctx: ModuleContext.t): expression_parser_t =>
-  chainr1(expr_7(ctx), OperatorV2.expo(ctx))
+  chainr1(expr_7(ctx), Operator.expo(ctx))
 
 /* !, +, - */
 and expr_7 = (ctx: ModuleContext.t): expression_parser_t =>
   M.unary_op(
     expr_8(ctx),
     choice([
-      OperatorV2.not(ctx),
-      OperatorV2.positive(ctx),
-      OperatorV2.negative(ctx),
+      Operator.not(ctx),
+      Operator.positive(ctx),
+      Operator.negative(ctx),
     ]),
   )
 

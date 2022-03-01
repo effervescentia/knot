@@ -1,7 +1,7 @@
 open Kore;
 
 let arguments = (ctx: ModuleContext.t) =>
-  IdentifierV2.parser(ctx)
+  Identifier.parser(ctx)
   >>= (
     id =>
       Typing.expression_parser
@@ -11,7 +11,7 @@ let arguments = (ctx: ModuleContext.t) =>
   >>= (
     f =>
       Symbol.assign
-      >> ExpressionV2.parser(ctx)
+      >> Expression.parser(ctx)
       >|= Option.some
       >|= f
       |> option(f(None))
@@ -44,7 +44,7 @@ let parser = (ctx: ModuleContext.t) =>
       >|= NR.get_range
       >>= (
         start_range =>
-          ExpressionV2.parser(ctx)
+          Expression.parser(ctx)
           >|= (
             expr => (args, expr, Range.join(start_range, N.get_range(expr)))
           )

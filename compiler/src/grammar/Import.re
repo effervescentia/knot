@@ -11,14 +11,12 @@ let main_import =
   >|= (import => [import |> NR.wrap(A.of_main_import)]);
 
 let named_import = (ctx: ModuleContext.t) =>
-  IdentifierV2.parser(ctx)
+  Identifier.parser(ctx)
   >>= (
     id =>
-      Keyword.as_
-      >> IdentifierV2.parser(ctx)
-      >|= (label => (id, Some(label)))
+      Keyword.as_ >> Identifier.parser(ctx) >|= (label => (id, Some(label)))
   )
-  <|> (IdentifierV2.parser(ctx) >|= (id => (id, None)))
+  <|> (Identifier.parser(ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   >|= NR.get_value

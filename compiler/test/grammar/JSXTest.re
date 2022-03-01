@@ -1,7 +1,7 @@
 open Kore;
 
-module Expression = Grammar.ExpressionV2;
-module JSX = Grammar.JSXV2;
+module Expression = Grammar.Expression;
+module JSX = Grammar.JSX;
 module U = Util.RawUtilV2;
 
 module Assert =

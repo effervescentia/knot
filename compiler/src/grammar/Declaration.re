@@ -14,7 +14,7 @@ let constant = (ctx: ModuleContext.t, f): declaration_parser_t =>
   >|= NR.get_range
   >>= (
     start =>
-      OperatorV2.assign(IdentifierV2.parser(ctx), ExpressionV2.parser(ctx))
+      Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
         ((id, (_, _, expr_range) as raw_expr)) => {
           let scope = ctx |> _create_scope(expr_range);
@@ -38,7 +38,7 @@ let function_ = (ctx: ModuleContext.t, f): declaration_parser_t =>
   >>= NR.get_range
   % (
     start =>
-      IdentifierV2.parser(ctx)
+      Identifier.parser(ctx)
       >>= (
         id =>
           Lambda.parser(ctx)

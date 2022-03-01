@@ -21,7 +21,7 @@ let _attribute =
       ctx: ModuleContext.t,
       (parse_term, parse_expr): expression_parsers_arg_t,
     ) =>
-  OperatorV2.assign(
+  Operator.assign(
     M.identifier(~prefix),
     parse_expr(ctx)
     |> M.between(Symbol.open_group, Symbol.close_group)

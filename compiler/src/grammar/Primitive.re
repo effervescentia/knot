@@ -13,7 +13,7 @@ let boolean: primitive_parser_t =
     >|= N.of_raw(TR.(`Boolean))
   );
 
-let number: primitive_parser_t = NumberV2.parser >|= N.map_value(AR.of_num);
+let number: primitive_parser_t = Number.parser >|= N.map_value(AR.of_num);
 
 let string: primitive_parser_t =
   M.string >|= NR.map_value(AR.of_string) >|= N.of_raw(TR.(`String));

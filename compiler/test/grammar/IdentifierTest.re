@@ -1,6 +1,6 @@
 open Kore;
 
-module Identifier = Grammar.IdentifierV2;
+module Identifier = Grammar.Identifier;
 module U = Util.RawUtilV2;
 
 module Assert =

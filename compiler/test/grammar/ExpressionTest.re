@@ -1,6 +1,6 @@
 open Kore;
 
-module Expression = Grammar.ExpressionV2;
+module Expression = Grammar.Expression;
 module U = Util.RawUtilV2;
 
 module Assert =
