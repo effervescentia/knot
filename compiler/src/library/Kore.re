@@ -2,7 +2,6 @@ include Infix;
 include Error;
 
 module AST = AST;
-module ASTV2 = ASTV2;
 module BinaryTree = BinaryTree;
 module Config = Config;
 module Constants = Constants;

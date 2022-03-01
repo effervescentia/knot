@@ -3,7 +3,7 @@ open Kore;
 module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
-module URes = Util.ResultUtilV2;
+module URes = Util.ResultUtil;
 
 let __id = Identifier.of_string("foo");
 let __namespace = Reference.Namespace.of_string("foo");

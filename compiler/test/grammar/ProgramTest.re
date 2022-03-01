@@ -2,7 +2,7 @@ open Kore;
 open Reference;
 
 module Program = Grammar.Program;
-module U = Util.ResultUtilV2;
+module U = Util.ResultUtil;
 
 module Target = {
   type t = A.program_t;

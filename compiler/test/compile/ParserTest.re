@@ -3,8 +3,8 @@ open Kore;
 module Namespace = Reference.Namespace;
 module Export = Reference.Export;
 module Parser = Compile.Parser;
-module U = Util.ResultUtilV2;
-module A = ASTV2;
+module U = Util.ResultUtil;
+module A = AST;
 
 let __import_fixture = "
   import foo from \"bar\";
@@ -64,11 +64,11 @@ let suite =
         )
     ),
     "parse AST - empty file"
-    >: (() => Assert.programV2([], _to_stream("") |> Parser.ast(__context))),
+    >: (() => Assert.program([], _to_stream("") |> Parser.ast(__context))),
     "parse AST - module with declarations and imports"
     >: (
       () =>
-        Assert.programV2(
+        Assert.program(
           [
             (
               __bar,

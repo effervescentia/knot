@@ -1,30 +1,19 @@
 open Kore;
-open Util.ResultUtil;
 
 module Module = Resolve.Module;
+module U = Util.ResultUtil;
 
 exception MockError;
 
-let __program = [
-  AST.(
+let __program =
+  AST.[
     (
-      "ABC" |> of_public |> as_raw_node |> of_named_export,
-      123L
-      |> of_int
-      |> of_num
-      |> as_node(
-           ~range=Range.create((4, 15), (4, 17)),
-           Type.Valid(`Integer),
-         )
-      |> of_prim
-      |> as_int
-      |> of_const
-      |> as_int,
+      "ABC" |> of_public |> U.as_raw_node |> of_named_export,
+      123L |> of_int |> of_num |> of_prim |> U.as_int |> of_const |> U.as_int,
     )
     |> of_decl
-    |> as_raw_node
-  ),
-];
+    |> U.as_raw_node,
+  ];
 
 let suite =
   "Resolve.Module"

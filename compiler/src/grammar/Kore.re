@@ -46,4 +46,4 @@ type import_parser_t = parser_t(list(A.import_t));
 
 type declaration_parser_t = parser_t(NR.t((A.export_t, A.declaration_t)));
 
-type type_expression_parser_t = parser_t(ASTV2.TypeExpression.t);
+type type_expression_parser_t = parser_t(AST.TypeExpression.t);

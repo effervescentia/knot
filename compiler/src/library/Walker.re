@@ -6,7 +6,7 @@ type target_t =
   | Declaration(AST.declaration_t)
   | Statement(AST.statement_t)
   | Expression(AST.expression_t)
-  | Identifier(AST.identifier_t)
+  | Identifier(Reference.Identifier.t)
   | JSX(AST.jsx_t)
   | JSXChild(AST.jsx_child_t)
   | JSXAttribute(AST.jsx_attribute_t)
@@ -77,26 +77,25 @@ and _bind_jsx = (f, x) => {
   iter_jsx(f, x);
 }
 and iter_jsx = f =>
-  Node.get_value
-  % AST.(
-      fun
-      | Fragment(children) => children |> List.iter(_bind_jsx_child(f))
-      | Tag(_, attrs, children) => {
-          attrs
-          |> List.iter(x => {
-               f(JSXAttribute(x));
-               iter_jsx_attr(f, x);
-             });
-          children |> List.iter(_bind_jsx_child(f));
-        }
-    )
+  AST.(
+    fun
+    | Fragment(children) => children |> List.iter(_bind_jsx_child(f))
+    | Tag(_, attrs, children) => {
+        attrs
+        |> List.iter(x => {
+             f(JSXAttribute(x));
+             iter_jsx_attr(f, x);
+           });
+        children |> List.iter(_bind_jsx_child(f));
+      }
+  )
 
 and _bind_jsx_child = (f, x) => {
   f(JSXChild(x));
   iter_jsx_child(f, x);
 }
 and iter_jsx_child = f =>
-  Node.get_value
+  Node.Raw.get_value
   % AST.(
       fun
       | Node(x) => _bind_jsx(f, x)
@@ -105,7 +104,7 @@ and iter_jsx_child = f =>
     )
 
 and iter_jsx_attr = f =>
-  Node.get_value
+  Node.Raw.get_value
   % AST.(
       fun
       | Class(_, Some(x))

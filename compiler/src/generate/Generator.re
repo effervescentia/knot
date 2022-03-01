@@ -7,7 +7,7 @@ let generate =
     (
       target: Target.t,
       resolve: resolve_t,
-      program: ASTV2.program_t,
+      program: AST.program_t,
       ppf: Format.formatter,
     ) =>
   switch (target) {

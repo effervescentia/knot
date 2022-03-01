@@ -4,8 +4,8 @@ open Reference;
 module Compiler = Compile.Compiler;
 module ImportGraph = Resolve.ImportGraph;
 module Module = Resolve.Module;
-module U = Util.ResultUtilV2;
-module A = ASTV2;
+module U = Util.ResultUtil;
+module A = AST;
 module T = TypeV2;
 
 let __valid_program_dir = "./test/compile/.fixtures/valid_program";

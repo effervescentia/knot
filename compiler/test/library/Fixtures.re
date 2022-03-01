@@ -1,18 +1,19 @@
 open Kore;
-open AST;
-open Reference;
-open Util.ResultUtil;
+
+module Identifier = Reference.Identifier;
+module A = AST;
+module U = Util.ResultUtil;
 
 /**
  `const nil_const = nil;`
  */
 let nil_const = [
   (
-    "nil_const" |> of_public |> as_raw_node |> of_named_export,
-    nil_prim |> of_const |> as_nil,
+    "nil_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    U.nil_prim |> A.of_const |> U.as_nil,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -20,11 +21,11 @@ let nil_const = [
  */
 let int_const = [
   (
-    "int_const" |> of_public |> as_raw_node |> of_named_export,
-    123 |> int_prim |> of_const |> as_int,
+    "int_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    123 |> U.int_prim |> A.of_const |> U.as_int,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -32,11 +33,11 @@ let int_const = [
  */
 let float_const = [
   (
-    "float_const" |> of_public |> as_raw_node |> of_named_export,
-    (123.0, 3) |> float_prim |> of_const |> as_float,
+    "float_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    (123.0, 3) |> U.float_prim |> A.of_const |> U.as_float,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -44,11 +45,11 @@ let float_const = [
  */
 let bool_const = [
   (
-    "bool_const" |> of_public |> as_raw_node |> of_named_export,
-    true |> bool_prim |> of_const |> as_bool,
+    "bool_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    true |> U.bool_prim |> A.of_const |> U.as_bool,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -56,11 +57,11 @@ let bool_const = [
  */
 let string_const = [
   (
-    "string_const" |> of_public |> as_raw_node |> of_named_export,
-    "foo" |> string_prim |> of_const |> as_string,
+    "string_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    "foo" |> U.string_prim |> A.of_const |> U.as_string,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -68,17 +69,16 @@ let string_const = [
  */
 let identifier_const = [
   (
-    "identifier_const" |> of_public |> as_raw_node |> of_named_export,
+    "identifier_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
     "foo"
     |> Identifier.of_string
-    |> as_int
-    |> of_id
-    |> as_int
-    |> of_const
-    |> as_int,
+    |> A.of_id
+    |> U.as_int
+    |> A.of_const
+    |> U.as_int,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -86,15 +86,15 @@ let identifier_const = [
  */
 let jsx_const = [
   (
-    "jsx_const" |> of_public |> as_raw_node |> of_named_export,
-    ("Foo" |> Identifier.of_string |> as_raw_node, [], [])
-    |> jsx_tag
-    |> as_element
-    |> of_const
-    |> as_element,
+    "jsx_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    ("Foo" |> Identifier.of_string |> U.as_raw_node, [], [])
+    |> U.jsx_tag
+    |> U.as_element
+    |> A.of_const
+    |> U.as_element,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -102,11 +102,11 @@ let jsx_const = [
  */
 let group_const = [
   (
-    "group_const" |> of_public |> as_raw_node |> of_named_export,
-    123 |> int_prim |> of_group |> as_int |> of_const |> as_int,
+    "group_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_const |> U.as_int,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -118,23 +118,23 @@ let group_const = [
  */
 let closure_const = [
   (
-    "closure_const" |> of_public |> as_raw_node |> of_named_export,
+    "closure_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
     [
-      ("foo" |> Identifier.of_string |> as_raw_node, 123 |> int_prim)
-      |> of_var
-      |> as_nil,
-      ("bar" |> Identifier.of_string |> as_raw_node, nil_prim)
-      |> of_var
-      |> as_nil,
-      false |> bool_prim |> of_expr |> as_bool,
+      ("foo" |> Identifier.of_string |> U.as_raw_node, 123 |> U.int_prim)
+      |> A.of_var
+      |> U.as_nil,
+      ("bar" |> Identifier.of_string |> U.as_raw_node, U.nil_prim)
+      |> A.of_var
+      |> U.as_nil,
+      false |> U.bool_prim |> A.of_expr |> U.as_bool,
     ]
-    |> of_closure
-    |> as_bool
-    |> of_const
-    |> as_bool,
+    |> A.of_closure
+    |> U.as_bool
+    |> A.of_const
+    |> U.as_bool,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -142,15 +142,15 @@ let closure_const = [
  */
 let and_bool_const = [
   (
-    "and_bool_const" |> of_public |> as_raw_node |> of_named_export,
-    (true |> bool_prim, false |> bool_prim)
-    |> of_and_op
-    |> as_bool
-    |> of_const
-    |> as_bool,
+    "and_bool_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    (true |> U.bool_prim, false |> U.bool_prim)
+    |> A.of_and_op
+    |> U.as_bool
+    |> A.of_const
+    |> U.as_bool,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -158,11 +158,11 @@ let and_bool_const = [
  */
 let negative_int_const = [
   (
-    "negative_int_const" |> of_public |> as_raw_node |> of_named_export,
-    123 |> int_prim |> of_neg_op |> as_int |> of_const |> as_int,
+    "negative_int_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    123 |> U.int_prim |> A.of_neg_op |> U.as_int |> A.of_const |> U.as_int,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -175,36 +175,35 @@ let negative_int_const = [
  */
 let complex_jsx_const = [
   (
-    "complex_jsx_const" |> of_public |> as_raw_node |> of_named_export,
+    "complex_jsx_const" |> A.of_public |> U.as_raw_node |> A.of_named_export,
     (
-      "Foo" |> of_public |> as_raw_node,
+      "Foo" |> A.of_public |> U.as_raw_node,
       [
-        "bar" |> of_public |> as_raw_node |> of_jsx_id |> as_string,
-        ("fizz" |> of_public |> as_raw_node, None)
-        |> of_jsx_class
-        |> as_string,
-        ("buzz" |> of_public |> as_raw_node, None)
-        |> of_prop
-        |> as_generic(1, 3),
+        "bar" |> A.of_public |> U.as_raw_node |> A.of_jsx_id |> U.as_raw_node,
+        ("fizz" |> A.of_public |> U.as_raw_node, None)
+        |> A.of_jsx_class
+        |> U.as_raw_node,
+        ("buzz" |> A.of_public |> U.as_raw_node, None)
+        |> A.of_prop
+        |> U.as_raw_node,
       ],
       [
-        ("Bar" |> of_public |> as_raw_node, [], [])
-        |> of_tag
-        |> as_element
-        |> of_node
-        |> as_element,
-        nil_prim |> of_inline_expr |> as_nil,
-        "fizzbuzz" |> as_string |> of_text |> as_string,
-        [] |> of_frag |> as_element |> of_node |> as_element,
+        ("Bar" |> A.of_public |> U.as_raw_node, [], [])
+        |> A.of_tag
+        |> A.of_node
+        |> U.as_raw_node,
+        U.nil_prim |> A.of_inline_expr |> U.as_raw_node,
+        "fizzbuzz" |> A.of_text |> U.as_raw_node,
+        [] |> A.of_frag |> A.of_node |> U.as_raw_node,
       ],
     )
-    |> jsx_tag
-    |> as_element
-    |> of_const
-    |> as_element,
+    |> U.jsx_tag
+    |> U.as_element
+    |> A.of_const
+    |> U.as_element,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -212,33 +211,34 @@ let complex_jsx_const = [
  */
 let inline_function = [
   (
-    "inline_function" |> of_public |> as_raw_node |> of_named_export,
+    "inline_function" |> A.of_public |> U.as_raw_node |> A.of_named_export,
     (
       [
-        {name: "foo" |> of_public |> as_raw_node, default: None, type_: None}
-        |> as_int,
-        {
-          name: "bar" |> of_public |> as_raw_node,
-          default: Some(3 |> int_prim),
+        A.{
+          name: "foo" |> A.of_public |> U.as_raw_node,
+          default: None,
           type_: None,
         }
-        |> as_int,
+        |> U.as_int,
+        A.{
+          name: "bar" |> A.of_public |> U.as_raw_node,
+          default: Some(3 |> U.int_prim),
+          type_: None,
+        }
+        |> U.as_int,
       ],
       (
-        "foo" |> of_public |> as_int |> of_id |> as_int,
-        "bar" |> of_public |> as_int |> of_id |> as_int,
+        "foo" |> A.of_public |> A.of_id |> U.as_int,
+        "bar" |> A.of_public |> A.of_id |> U.as_int,
       )
-      |> of_add_op
-      |> as_int,
+      |> A.of_add_op
+      |> U.as_int,
     )
-    |> of_func
-    |> as_function(
-         [("foo", Valid(`Integer)), ("bar", Valid(`Integer))],
-         Valid(`Integer),
-       ),
+    |> A.of_func
+    |> U.as_function([Valid(`Integer), Valid(`Integer)], Valid(`Integer)),
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -250,32 +250,33 @@ let inline_function = [
  */
 let multiline_function = [
   (
-    "multiline_function" |> of_public |> as_raw_node |> of_named_export,
+    "multiline_function" |> A.of_public |> U.as_raw_node |> A.of_named_export,
     (
       [],
       [
-        ("zip" |> of_public |> as_raw_node, 3 |> int_prim) |> of_var |> as_nil,
-        ("zap" |> of_public |> as_raw_node, 4 |> int_prim) |> of_var |> as_nil,
+        ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
+        |> A.of_var
+        |> U.as_nil,
+        ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
+        |> A.of_var
+        |> U.as_nil,
         (
-          "zip" |> of_public |> as_int |> of_id |> as_int,
-          "zap" |> of_public |> as_int |> of_id |> as_int,
+          "zip" |> A.of_public |> A.of_id |> U.as_int,
+          "zap" |> A.of_public |> A.of_id |> U.as_int,
         )
-        |> of_mult_op
-        |> as_int
-        |> of_expr
-        |> as_int,
+        |> A.of_mult_op
+        |> U.as_int
+        |> A.of_expr
+        |> U.as_int,
       ]
-      |> of_closure
-      |> as_int,
+      |> A.of_closure
+      |> U.as_int,
     )
-    |> of_func
-    |> as_function(
-         [("foo", Valid(`Integer)), ("bar", Valid(`Integer))],
-         Valid(`Integer),
-       ),
+    |> A.of_func
+    |> U.as_function([Valid(`Integer), Valid(`Integer)], Valid(`Integer)),
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 /**
@@ -283,11 +284,13 @@ let multiline_function = [
  */
 let main_import = [
   (
-    "main_import" |> of_external,
-    ["Foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
+    "main_import" |> A.of_external,
+    [
+      "Foo" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+    ],
   )
-  |> of_import
-  |> as_raw_node,
+  |> A.of_import
+  |> U.as_raw_node,
 ];
 
 /**
@@ -295,13 +298,13 @@ let main_import = [
  */
 let named_import = [
   (
-    "named_import" |> of_external,
+    "named_import" |> A.of_external,
     [
-      ("foo" |> of_public |> as_raw_node, None)
-      |> of_named_import
-      |> as_raw_node,
+      ("foo" |> A.of_public |> U.as_raw_node, None)
+      |> A.of_named_import
+      |> U.as_raw_node,
     ],
   )
-  |> of_import
-  |> as_raw_node,
+  |> A.of_import
+  |> U.as_raw_node,
 ];

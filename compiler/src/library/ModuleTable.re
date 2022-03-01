@@ -8,7 +8,7 @@ type scope_tree_t = RangeTree.t(option(type_table_t));
 
 type entry_t = {
   exports: type_table_t,
-  ast: ASTV2.program_t,
+  ast: AST.program_t,
   scopes: scope_tree_t,
   raw: string,
 };
@@ -35,7 +35,7 @@ let find = (id: Namespace.t, table: t) => Hashtbl.find_opt(table, id);
 let add =
     (
       id: Namespace.t,
-      ast: ASTV2.program_t,
+      ast: AST.program_t,
       exports: list((Export.t, TypeV2.t)),
       scopes: scope_tree_t,
       raw: string,
@@ -77,7 +77,7 @@ let _pp_entry: Fmt.t(entry_t) =
   (ppf, {ast, raw, exports}) =>
     Fmt.(
       [
-        ("ast", ast |> ~@ASTV2.Dump.pp),
+        ("ast", ast |> ~@AST.Dump.pp),
         ("exports", exports |> ~@Hashtbl.pp(Export.pp, TypeV2.pp)),
         ("raw", raw),
       ]

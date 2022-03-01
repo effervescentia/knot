@@ -53,7 +53,7 @@ let handler =
                Node.Raw.get_value
                % (
                  fun
-                 | ASTV2.Declaration(
+                 | AST.Declaration(
                      MainExport(name) | NamedExport(name),
                      decl,
                    ) => {

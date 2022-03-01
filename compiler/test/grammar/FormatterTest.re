@@ -1,7 +1,7 @@
 open Kore;
 
 module Formatter = Grammar.Formatter;
-module U = Util.ResultUtilV2;
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Formatter"

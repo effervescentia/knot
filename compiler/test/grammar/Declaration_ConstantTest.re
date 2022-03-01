@@ -2,7 +2,7 @@ open Kore;
 
 module Export = Reference.Export;
 module Declaration = Grammar.Declaration;
-module U = Util.ResultUtilV2;
+module U = Util.ResultUtil;
 
 module Assert = {
   include Assert;

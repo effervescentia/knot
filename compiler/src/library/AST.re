@@ -8,35 +8,7 @@ open Reference;
  common types that can be used to build resolved or Raw ASTs
  */
 module Common = {
-  /**
-   supported binary operators
-   */
-  type binary_operator_t =
-    /* logical operators */
-    | LogicalAnd
-    | LogicalOr
-    /* comparative operators */
-    | LessOrEqual
-    | LessThan
-    | GreaterOrEqual
-    | GreaterThan
-    /* equality operators */
-    | Equal
-    | Unequal
-    /* arithmetic operators */
-    | Add
-    | Subtract
-    | Divide
-    | Multiply
-    | Exponent;
-
-  /**
-   supported unary operators
-   */
-  type unary_operator_t =
-    | Not
-    | Positive
-    | Negative;
+  include AST_Operator;
 
   /**
    supported numeric types
@@ -46,15 +18,26 @@ module Common = {
     | Float(float, int);
 
   /**
+   a primitive AST node
+   */
+  type primitive_t =
+    | Nil
+    | Boolean(bool)
+    | Number(number_t)
+    | String(string);
+
+  /**
    an identifier that doesn't have an inherent type
    */
-  type untyped_identifier_t = Node.Raw.t(Identifier.t);
+  type identifier_t = Node.Raw.t(Identifier.t);
 
   /**
    utilities for printing an AST
    */
   module Dump = {
     open Pretty.Formatters;
+
+    include AST_Operator.Dump;
 
     module Entity = {
       type t = {
@@ -95,7 +78,8 @@ module Common = {
       ...attributes,
     ];
 
-    let raw_node_to_entity = (~attributes=[], ~children=[], label, raw_node) =>
+    let untyped_node_to_entity =
+        (~attributes=[], ~children=[], label, raw_node) =>
       Entity.create(
         ~range=Node.Raw.get_range(raw_node),
         ~attributes,
@@ -103,26 +87,120 @@ module Common = {
         label,
       );
 
-    let analyzed_node_to_entity = (~attributes=[], ~children=[], label, node) =>
+    let node_to_entity =
+        (
+          pp_type: Fmt.t('b),
+          ~attributes=[],
+          ~children=[],
+          label,
+          node: Node.t('a, 'b),
+        ) =>
       Entity.create(
         ~range=Node.get_range(node),
         ~attributes=
-          _attributes_with_type(
-            Node.get_type(node),
-            Type.Raw.pp,
-            attributes,
-          ),
+          _attributes_with_type(Node.get_type(node), pp_type, attributes),
         ~children,
         label,
       );
+  };
+};
 
-    let node_to_entity = (~attributes=[], ~children=[], label, node) =>
-      Entity.create(
-        ~range=Node.get_range(node),
-        ~attributes=
-          _attributes_with_type(Node.get_type(node), Type.pp, attributes),
-        ~children,
-        label,
+module TypeExpression = {
+  type t = Node.Raw.t(raw_t)
+
+  and raw_t =
+    | Nil
+    | Boolean
+    | Integer
+    | Float
+    | String
+    | Element
+    | Group(t)
+    | List(t)
+    | Struct(list((Node.Raw.t(string), t)))
+    | Function(list(t), t);
+
+  /* tag helpers */
+
+  let of_group = x => Group(x);
+  let of_list = x => List(x);
+  let of_struct = props => Struct(props);
+  let of_function = ((args, res)) => Function(args, res);
+
+  module Dump = {
+    include Common.Dump;
+
+    let rec to_entity = type_ =>
+      (
+        switch (Node.Raw.get_value(type_)) {
+        | Nil => untyped_node_to_entity("Nil")
+
+        | Boolean => untyped_node_to_entity("Boolean")
+
+        | Integer => untyped_node_to_entity("Integer")
+
+        | Float => untyped_node_to_entity("Float")
+
+        | String => untyped_node_to_entity("String")
+
+        | Element => untyped_node_to_entity("Element")
+
+        | Group(t) =>
+          untyped_node_to_entity(~children=[to_entity(t)], "Group")
+
+        | List(t) =>
+          untyped_node_to_entity(~children=[to_entity(t)], "List")
+
+        | Struct(props) =>
+          untyped_node_to_entity(
+            ~children=
+              props
+              |> List.map(((key, value)) =>
+                   Entity.create(
+                     ~children=[
+                       untyped_node_to_entity(
+                         ~attributes=[("name", Node.Raw.get_value(key))],
+                         "Key",
+                         key,
+                       ),
+                       untyped_node_to_entity(
+                         ~children=[to_entity(value)],
+                         "Value",
+                         value,
+                       ),
+                     ],
+                     "Property",
+                   )
+                 ),
+            "Struct",
+          )
+
+        | Function(args, res) =>
+          untyped_node_to_entity(
+            ~children=[
+              Entity.create(
+                ~children=
+                  args
+                  |> List.map(arg =>
+                       untyped_node_to_entity(
+                         ~children=[to_entity(arg)],
+                         "Argument",
+                         arg,
+                       )
+                     ),
+                "Arguments",
+              ),
+              untyped_node_to_entity(
+                ~children=[to_entity(res)],
+                "Result",
+                res,
+              ),
+            ],
+            "Function",
+          )
+        }
+      )(
+        type_,
       );
   };
 };
@@ -133,17 +211,12 @@ module Common = {
 module type ASTParams = {
   type type_t;
 
-  type node_t('a);
-
-  let get_value: node_t('a) => 'a;
-  let get_range: node_t('a) => Range.t;
-
   let node_to_entity:
     (
       ~attributes: list(Pretty.XML.xml_attr_t(string))=?,
       ~children: list(Common.Dump.Entity.t)=?,
       string,
-      node_t('a)
+      Node.t('a, type_t)
     ) =>
     Common.Dump.Entity.t;
 };
@@ -151,105 +224,90 @@ module type ASTParams = {
 /**
  constructor for AST modules
  */
-module Make = (T: ASTParams) => {
+module Make = (Params: ASTParams) => {
   include Common;
 
-  /**
-   type container for AST nodes
-   */
-  type type_t = T.type_t;
+  let typed_node_to_entity = Params.node_to_entity;
 
   /**
-   an identifier AST node
+   type for AST expression nodes
    */
-  type identifier_t = T.node_t(Identifier.t);
+  type type_t = Params.type_t;
 
   /**
-   a primitive AST node
+   container for AST nodes
    */
-  type primitive_t = T.node_t(raw_primitive_t)
-  /**
-   supported primitive types
-   */
-  and raw_primitive_t =
-    | Nil
-    | Boolean(bool)
-    | Number(number_t)
-    | String(string);
+  type node_t('a) = Node.t('a, type_t);
 
   /**
    a JSX AST node
    */
-  type jsx_t = T.node_t(raw_jsx_t)
-  /**
-   supported top-level JSX structures
-   */
-  and raw_jsx_t =
-    | Tag(untyped_identifier_t, list(jsx_attribute_t), list(jsx_child_t))
+  type jsx_t =
+    | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
 
   /**
    a JSX child AST node
    */
-  and jsx_child_t = T.node_t(raw_jsx_child_t)
+  and jsx_child_t = Node.Raw.t(raw_jsx_child_t)
   /**
    supported JSX children
    */
   and raw_jsx_child_t =
-    | Text(T.node_t(string))
+    | Text(string)
     | Node(jsx_t)
     | InlineExpression(expression_t)
 
   /**
    a JSX attribute AST node
    */
-  and jsx_attribute_t = T.node_t(raw_jsx_attribute_t)
+  and jsx_attribute_t = Node.Raw.t(raw_jsx_attribute_t)
   /**
    supported JSX attributes
    */
   and raw_jsx_attribute_t =
-    | ID(untyped_identifier_t)
-    | Class(untyped_identifier_t, option(expression_t))
-    | Property(untyped_identifier_t, option(expression_t))
+    | ID(identifier_t)
+    | Class(identifier_t, option(expression_t))
+    | Property(identifier_t, option(expression_t))
 
   /**
    an expression AST node
    */
-  and expression_t = T.node_t(raw_expression_t)
+  and expression_t = node_t(raw_expression_t)
   /**
    supported expressions and type containers
    */
   and raw_expression_t =
     | Primitive(primitive_t)
-    | Identifier(identifier_t)
+    | Identifier(Identifier.t)
     | JSX(jsx_t)
     | Group(expression_t)
-    | BinaryOp(binary_operator_t, expression_t, expression_t)
-    | UnaryOp(unary_operator_t, expression_t)
+    | BinaryOp(binary_t, expression_t, expression_t)
+    | UnaryOp(unary_t, expression_t)
     | Closure(list(statement_t))
 
   /**
    a statement AST node
    */
-  and statement_t = T.node_t(raw_statement_t)
+  and statement_t = node_t(raw_statement_t)
   /**
    supported statement types
    */
   and raw_statement_t =
-    | Variable(untyped_identifier_t, expression_t)
+    | Variable(identifier_t, expression_t)
     | Expression(expression_t);
 
   /**
    an AST node of an argument for a functional closure
    */
-  type argument_t = T.node_t(raw_argument_t)
+  type argument_t = node_t(raw_argument_t)
   /**
    a node of an argument for a functional closure
    */
   and raw_argument_t = {
-    name: untyped_identifier_t,
+    name: identifier_t,
     default: option(expression_t),
-    type_: option(T.node_t(Type.t)),
+    type_: option(TypeExpression.t),
   };
 
   /* tag helpers */
@@ -266,27 +324,29 @@ module Make = (T: ASTParams) => {
   let of_group = x => Group(x);
   let of_closure = xs => Closure(xs);
 
-  let of_not_op = x => UnaryOp(Not, x);
-  let of_neg_op = x => UnaryOp(Negative, x);
-  let of_pos_op = x => UnaryOp(Positive, x);
+  let of_unary_op = ((op, x)) => UnaryOp(op, x);
+  let of_not_op = x => (Not, x) |> of_unary_op;
+  let of_neg_op = x => (Negative, x) |> of_unary_op;
+  let of_pos_op = x => (Positive, x) |> of_unary_op;
 
-  let of_and_op = ((l, r)) => BinaryOp(LogicalAnd, l, r);
-  let of_or_op = ((l, r)) => BinaryOp(LogicalOr, l, r);
+  let of_binary_op = ((op, l, r)) => BinaryOp(op, l, r);
+  let of_and_op = ((l, r)) => (LogicalAnd, l, r) |> of_binary_op;
+  let of_or_op = ((l, r)) => (LogicalOr, l, r) |> of_binary_op;
 
-  let of_mult_op = ((l, r)) => BinaryOp(Multiply, l, r);
-  let of_div_op = ((l, r)) => BinaryOp(Divide, l, r);
-  let of_add_op = ((l, r)) => BinaryOp(Add, l, r);
-  let of_sub_op = ((l, r)) => BinaryOp(Subtract, l, r);
+  let of_mult_op = ((l, r)) => (Multiply, l, r) |> of_binary_op;
+  let of_div_op = ((l, r)) => (Divide, l, r) |> of_binary_op;
+  let of_add_op = ((l, r)) => (Add, l, r) |> of_binary_op;
+  let of_sub_op = ((l, r)) => (Subtract, l, r) |> of_binary_op;
 
-  let of_lt_op = ((l, r)) => BinaryOp(LessThan, l, r);
-  let of_lte_op = ((l, r)) => BinaryOp(LessOrEqual, l, r);
-  let of_gt_op = ((l, r)) => BinaryOp(GreaterThan, l, r);
-  let of_gte_op = ((l, r)) => BinaryOp(GreaterOrEqual, l, r);
+  let of_lt_op = ((l, r)) => (LessThan, l, r) |> of_binary_op;
+  let of_lte_op = ((l, r)) => (LessOrEqual, l, r) |> of_binary_op;
+  let of_gt_op = ((l, r)) => (GreaterThan, l, r) |> of_binary_op;
+  let of_gte_op = ((l, r)) => (GreaterOrEqual, l, r) |> of_binary_op;
 
-  let of_eq_op = ((l, r)) => BinaryOp(Equal, l, r);
-  let of_ineq_op = ((l, r)) => BinaryOp(Unequal, l, r);
+  let of_eq_op = ((l, r)) => (Equal, l, r) |> of_binary_op;
+  let of_ineq_op = ((l, r)) => (Unequal, l, r) |> of_binary_op;
 
-  let of_expo_op = ((l, r)) => BinaryOp(Exponent, l, r);
+  let of_expo_op = ((l, r)) => (Exponent, l, r) |> of_binary_op;
 
   let of_jsx = x => JSX(x);
   let of_frag = xs => Fragment(xs);
@@ -312,7 +372,7 @@ module Make = (T: ASTParams) => {
     include Common.Dump;
 
     let id_to_entity = (name, id) =>
-      raw_node_to_entity(
+      untyped_node_to_entity(
         ~attributes=[
           ("value", id |> Node.Raw.get_value |> Identifier.to_string),
         ],
@@ -325,59 +385,43 @@ module Make = (T: ASTParams) => {
       | Integer(int) => int |> Int64.to_string
       | Float(float, precision) => float |> Fmt.str("%.*f", precision);
 
-    let prim_to_entity = prim =>
-      (
-        switch (T.get_value(prim)) {
-        | Nil => T.node_to_entity("Nil")
+    let prim_to_string =
+      fun
+      | Nil => "Nil"
 
-        | Boolean(bool) =>
-          T.node_to_entity(
-            ~attributes=[("value", string_of_bool(bool))],
-            "Boolean",
-          )
+      | Boolean(bool) => Fmt.str("Boolean(%b)", bool)
 
-        | Number(num) =>
-          T.node_to_entity(
-            ~attributes=[("value", num_to_string(num))],
-            "Number",
-          )
+      | Number(num) => num |> num_to_string |> Fmt.str("Number(%s)")
 
-        | String(str) =>
-          T.node_to_entity(
-            ~attributes=[("value", str |> ~@Fmt.quote(string))],
-            "String",
-          )
-        }
-      )(
-        prim,
-      );
+      | String(str) => str |> String.escaped |> Fmt.str("String(\"%s\")");
 
     let rec expr_to_entity = expr =>
       (
-        switch (T.get_value(expr)) {
+        switch (Node.get_value(expr)) {
         | Primitive(prim) =>
-          T.node_to_entity(~children=[prim_to_entity(prim)], "Primitive")
+          typed_node_to_entity(
+            ~attributes=[("value", prim_to_string(prim))],
+            "Primitive",
+          )
 
         | Identifier(id) =>
-          T.node_to_entity(
-            ~attributes=[
-              ("value", id |> T.get_value |> Identifier.to_string),
-            ],
+          typed_node_to_entity(
+            ~attributes=[("value", Identifier.to_string(id))],
             "Identifier",
           )
 
         | JSX(jsx) =>
-          T.node_to_entity(~children=[jsx_to_entity(jsx)], "JSX")
+          typed_node_to_entity(~children=[jsx_to_entity(jsx)], "JSX")
 
         | Group(group) =>
-          T.node_to_entity(~children=[expr_to_entity(group)], "Group")
+          typed_node_to_entity(~children=[expr_to_entity(group)], "Group")
 
         | Closure(stmts) =>
-          T.node_to_entity(
+          typed_node_to_entity(
             ~children=
               stmts
               |> List.map(stmt =>
-                   T.node_to_entity(
+                   typed_node_to_entity(
                      ~children=[stmt_to_entity(stmt)],
                      "Statement",
                      stmt,
@@ -387,85 +431,70 @@ module Make = (T: ASTParams) => {
           )
 
         | BinaryOp(op, lhs, rhs) =>
-          T.node_to_entity(
+          typed_node_to_entity(
             ~children=[
-              T.node_to_entity(~children=[expr_to_entity(lhs)], "LHS", lhs),
-              T.node_to_entity(~children=[expr_to_entity(rhs)], "RHS", rhs),
+              typed_node_to_entity(
+                ~children=[expr_to_entity(lhs)],
+                "LHS",
+                lhs,
+              ),
+              typed_node_to_entity(
+                ~children=[expr_to_entity(rhs)],
+                "RHS",
+                rhs,
+              ),
             ],
-            switch (op) {
-            | LogicalAnd => "And"
-            | LogicalOr => "Or"
-            | Add => "Add"
-            | Subtract => "Sub"
-            | Divide => "Div"
-            | Multiply => "Mult"
-            | LessOrEqual => "LessOrEq"
-            | LessThan => "Less"
-            | GreaterOrEqual => "GreaterOrEq"
-            | GreaterThan => "Greater"
-            | Equal => "Equal"
-            | Unequal => "Unequal"
-            | Exponent => "Exponent"
-            },
+            binary_to_string(op),
           )
 
         | UnaryOp(op, expr) =>
-          T.node_to_entity(
+          typed_node_to_entity(
             ~children=[expr_to_entity(expr)],
-            switch (op) {
-            | Not => "Not"
-            | Positive => "Positive"
-            | Negative => "Negative"
-            },
+            unary_to_string(op),
           )
         }
       )(
         expr,
       )
 
-    and jsx_to_entity = jsx =>
-      (
-        switch (T.get_value(jsx)) {
-        | Tag(name, attrs, children) =>
-          T.node_to_entity(
-            ~children=[
-              id_to_entity("Name", name),
-              Entity.create(
-                ~children=attrs |> List.map(jsx_attr_to_entity),
-                "Attributes",
-              ),
-              Entity.create(
-                ~children=children |> List.map(jsx_child_to_entity),
-                "Children",
-              ),
-            ],
-            "Tag",
-          )
+    and jsx_to_entity =
+      fun
+      | Tag(name, attrs, children) =>
+        Entity.create(
+          ~children=[
+            id_to_entity("Name", name),
+            Entity.create(
+              ~children=attrs |> List.map(jsx_attr_to_entity),
+              "Attributes",
+            ),
+            Entity.create(
+              ~children=children |> List.map(jsx_child_to_entity),
+              "Children",
+            ),
+          ],
+          "Tag",
+        )
 
-        | Fragment(children) =>
-          T.node_to_entity(
-            ~children=children |> List.map(jsx_child_to_entity),
-            "Fragment",
-          )
-        }
-      )(
-        jsx,
-      )
+      | Fragment(children) =>
+        Entity.create(
+          ~children=children |> List.map(jsx_child_to_entity),
+          "Fragment",
+        )
 
     and jsx_child_to_entity = jsx_child =>
       (
-        switch (T.get_value(jsx_child)) {
+        switch (Node.Raw.get_value(jsx_child)) {
         | Text(text) =>
-          T.node_to_entity(
-            ~attributes=[("value", T.get_value(text))],
-            "Text",
-          )
+          untyped_node_to_entity(~attributes=[("value", text)], "Text")
 
         | Node(jsx) =>
-          T.node_to_entity(~children=[jsx_to_entity(jsx)], "Node")
+          untyped_node_to_entity(~children=[jsx_to_entity(jsx)], "Node")
 
         | InlineExpression(expr) =>
-          T.node_to_entity(~children=[expr_to_entity(expr)], "InlineExpr")
+          untyped_node_to_entity(
+            ~children=[expr_to_entity(expr)],
+            "InlineExpr",
+          )
         }
       )(
         jsx_child,
@@ -474,7 +503,7 @@ module Make = (T: ASTParams) => {
     and jsx_attr_to_entity = attr =>
       (
         (
-          switch (T.get_value(attr)) {
+          switch (Node.Raw.get_value(attr)) {
           | Class(name, value) => ("Class", name, value)
 
           | ID(name) => ("ID", name, None)
@@ -486,12 +515,12 @@ module Make = (T: ASTParams) => {
         |> (
           fun
           | (entity, name_child, Some(expr)) =>
-            T.node_to_entity(
+            untyped_node_to_entity(
               ~children=[name_child, expr_to_entity(expr)],
               entity,
             )
           | (entity, name_child, None) =>
-            T.node_to_entity(~children=[name_child], entity)
+            untyped_node_to_entity(~children=[name_child], entity)
         )
       )(
         attr,
@@ -499,15 +528,18 @@ module Make = (T: ASTParams) => {
 
     and stmt_to_entity = stmt =>
       (
-        switch (T.get_value(stmt)) {
+        switch (Node.get_value(stmt)) {
         | Variable(name, expr) =>
-          T.node_to_entity(
+          typed_node_to_entity(
             "Variable",
             ~children=[id_to_entity("Name", name), expr_to_entity(expr)],
           )
 
         | Expression(expr) =>
-          T.node_to_entity("Expression", ~children=[expr_to_entity(expr)])
+          typed_node_to_entity(
+            "Expression",
+            ~children=[expr_to_entity(expr)],
+          )
         }
       )(
         stmt,
@@ -517,46 +549,35 @@ module Make = (T: ASTParams) => {
 
 module Raw =
   Make({
-    type type_t = Type.Raw.t;
+    type type_t = TypeV2.Raw.t;
 
-    type node_t('a) = Node.Raw.t('a);
-
-    let get_value = Node.Raw.get_value;
-    let get_range = Node.Raw.get_range;
-
-    let node_to_entity = Common.Dump.raw_node_to_entity;
-  });
-
-module Analyzed =
-  Make({
-    type type_t = Type.Raw.t;
-
-    type node_t('a) = Node.t('a, type_t);
-
-    let get_value = Node.get_value;
-    let get_type = Node.get_type;
-    let get_range = Node.get_range;
-
-    let node_to_entity = Common.Dump.analyzed_node_to_entity;
+    let node_to_entity = (~attributes=[], ~children=[], label, node) =>
+      Common.Dump.node_to_entity(
+        TypeV2.Raw.pp,
+        ~attributes,
+        ~children,
+        label,
+        node,
+      );
   });
 
 include Make({
-  type type_t = Type.t;
-
-  type node_t('a) = Node.t('a, type_t);
-
-  let get_value = Node.get_value;
-  let get_type = Node.get_type;
-  let get_range = Node.get_range;
+  type type_t = TypeV2.t;
 
   let node_to_entity = (~attributes=[], ~children=[], label, node) =>
-    Common.Dump.node_to_entity(~attributes, ~children, label, node);
+    Common.Dump.node_to_entity(
+      TypeV2.pp,
+      ~attributes,
+      ~children,
+      label,
+      node,
+    );
 });
 
 /**
  a declaration AST node
  */
-type declaration_t = Node.t(raw_declaration_t, Type.t)
+type declaration_t = node_t(raw_declaration_t)
 /**
  supported module declarations
  */
@@ -572,15 +593,15 @@ type import_t = Node.Raw.t(raw_import_t)
  supported import types
  */
 and raw_import_t =
-  | MainImport(untyped_identifier_t)
-  | NamedImport(untyped_identifier_t, option(untyped_identifier_t));
+  | MainImport(identifier_t)
+  | NamedImport(identifier_t, option(identifier_t));
 
 /**
  supported export types
  */
 type export_t =
-  | MainExport(untyped_identifier_t)
-  | NamedExport(untyped_identifier_t);
+  | MainExport(identifier_t)
+  | NamedExport(identifier_t);
 
 /**
  module statement AST node
@@ -626,10 +647,14 @@ module Dump = {
     decl =>
       switch (Node.get_value(decl)) {
       | Constant(expr) =>
-        node_to_entity(~children=[expr_to_entity(expr)], "Constant", decl)
+        typed_node_to_entity(
+          ~children=[expr_to_entity(expr)],
+          "Constant",
+          decl,
+        )
 
       | Function(args, expr) =>
-        node_to_entity(
+        typed_node_to_entity(
           ~children=[
             Entity.create(
               ~children=
@@ -647,11 +672,18 @@ module Dump = {
                      switch (type_) {
                      | Some(type_) =>
                        children :=
-                         [node_to_entity("Type", type_), ...children^]
+                         [
+                           untyped_node_to_entity("Type", type_),
+                           ...children^,
+                         ]
                      | None => ()
                      };
 
-                     node_to_entity(~children=children^, "Argument", arg);
+                     typed_node_to_entity(
+                       ~children=children^,
+                       "Argument",
+                       arg,
+                     );
                    }),
               "Arguments",
             ),
@@ -665,19 +697,21 @@ module Dump = {
   let import_to_entity = import =>
     switch (Node.Raw.get_value(import)) {
     | MainImport(name) =>
-      raw_node_to_entity(
+      untyped_node_to_entity(
         ~children=[id_to_entity("Name", name)],
         "MainImport",
         import,
       )
 
-    | NamedImport(name, Some((alias, alias_range))) =>
-      raw_node_to_entity(
+    | NamedImport(name, Some(alias)) =>
+      untyped_node_to_entity(
         ~children=[
           id_to_entity("Name", name),
           Entity.create(
-            ~range=alias_range,
-            ~attributes=[("value", Identifier.to_string(alias))],
+            ~range=Node.Raw.get_range(alias),
+            ~attributes=[
+              ("value", alias |> Node.Raw.get_value |> Identifier.to_string),
+            ],
             "Alias",
           ),
         ],
@@ -686,7 +720,7 @@ module Dump = {
       )
 
     | NamedImport(name, None) =>
-      raw_node_to_entity(
+      untyped_node_to_entity(
         ~children=[id_to_entity("Name", name)],
         "NamedImport",
         import,
@@ -696,7 +730,7 @@ module Dump = {
   let mod_stmt_to_entity = mod_stmt =>
     switch (Node.Raw.get_value(mod_stmt)) {
     | Import(namespace, imports) =>
-      raw_node_to_entity(
+      untyped_node_to_entity(
         ~attributes=[("namespace", Namespace.to_string(namespace))],
         ~children=imports |> List.map(import_to_entity),
         "Import",
@@ -704,7 +738,7 @@ module Dump = {
       )
 
     | Declaration(name, decl) =>
-      raw_node_to_entity(
+      untyped_node_to_entity(
         ~children=[export_to_entity(name), decl_to_entity(decl)],
         "Declaration",
         mod_stmt,

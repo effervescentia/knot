@@ -1,7 +1,7 @@
 open Kore;
 
 module Generator = Generate.Generator;
-module U = Util.ResultUtilV2;
+module U = Util.ResultUtil;
 
 let __program = [
   (

@@ -24,7 +24,7 @@ let imports = (namespace, input) =>
            Node.Raw.get_value
            % (
              fun
-             | ASTV2.Import(namespace, _) => Some(namespace)
+             | AST.Import(namespace, _) => Some(namespace)
              | _ => None
            ),
          )

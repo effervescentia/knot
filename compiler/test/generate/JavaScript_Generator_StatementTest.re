@@ -3,7 +3,7 @@ open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
-module U = Util.ResultUtilV2;
+module U = Util.ResultUtil;
 
 let _assert_statement_list =
   Alcotest.(

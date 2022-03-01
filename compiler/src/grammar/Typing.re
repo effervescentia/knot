@@ -1,6 +1,6 @@
 open Kore;
 
-module TE = ASTV2.TypeExpression;
+module TE = AST.TypeExpression;
 
 let primitive_types =
   TE.[

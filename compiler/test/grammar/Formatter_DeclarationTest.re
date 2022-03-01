@@ -1,7 +1,7 @@
 open Kore;
 
 module Formatter = Grammar.Formatter;
-module U = Util.ResultUtilV2;
+module U = Util.ResultUtil;
 
 let __int_const = ("ABC" |> A.of_public, 123 |> U.int_prim |> A.of_const);
 let __bool_const = ("DEF" |> A.of_public, true |> U.bool_prim |> A.of_const);

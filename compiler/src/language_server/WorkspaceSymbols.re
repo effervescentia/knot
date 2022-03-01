@@ -55,7 +55,7 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
                    Node.Raw.get_value
                    % (
                      fun
-                     | ASTV2.Declaration(
+                     | AST.Declaration(
                          MainExport(name) | NamedExport(name),
                          decl,
                        ) => {

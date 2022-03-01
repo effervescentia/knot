@@ -1,7 +1,7 @@
 open Kore;
 
 module Typing = Grammar.Typing;
-module TE = ASTV2.TypeExpression;
+module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
 module Assert =
