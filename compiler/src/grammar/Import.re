@@ -44,8 +44,6 @@ let parser = (ctx: ModuleContext.t) =>
       >>= namespace
       >@= (
         (((namespace, namespace_range), imports)) => {
-          ctx |> ModuleContext.assert_module(namespace, namespace_range);
-
           let import = ModuleContext.import(namespace);
 
           imports

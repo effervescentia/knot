@@ -46,7 +46,7 @@ let find_export = (namespace: Namespace.t, id: Export.t, ctx: t) => {
     | Some(t) => Ok(t)
     | None => Error(type_err)
     }
-  | None => Error(type_err)
+  | None => Ok(Invalid(NotInferrable))
   };
 };
 

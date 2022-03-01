@@ -61,15 +61,6 @@ let declare = (~main=false, name: Identifier.t, type_: Type.t, ctx: t) => {
 };
 
 /**
- asserts that a module exists and has been parsed
- */
-let assert_module = (namespace: Namespace.t, range: Range.t, ctx: t) =>
-  switch (ctx.namespace_context |> NamespaceContext.find_module(namespace)) {
-  | Some(_) => ()
-  | None => raise(Error.SystemError)
-  };
-
-/**
  find the type of an export from a different module and import it into the current scope
  */
 let import =

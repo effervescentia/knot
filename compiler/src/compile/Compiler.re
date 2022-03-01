@@ -173,6 +173,10 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   compiler.graph |> ImportGraph.init(entry);
   compiler.dispatch(Flush);
 
+  if (compiler.config.log_imports) {
+    Log.info("imports:\n%a", ~$ImportGraph.pp, compiler.graph);
+  };
+
   /* check if import graph is valid */
   compiler |> validate;
 
@@ -188,7 +192,7 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
          ) {
          | Ok(path) =>
            Log.debug(
-             "successfuly cached module %a to %s",
+             "successfully cached module %a to %s",
              ~$Namespace.pp,
              id,
              path,

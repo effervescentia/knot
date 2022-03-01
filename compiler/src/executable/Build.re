@@ -22,7 +22,14 @@ let cmd = () => {
 
   Cmd.create(
     build_key,
-    [source_dir_opt, out_dir_opt, target_opt, entry_opt, fail_fast_opt],
+    [
+      source_dir_opt,
+      out_dir_opt,
+      target_opt,
+      entry_opt,
+      fail_fast_opt,
+      log_imports_opt,
+    ],
     (static, global) => {
       let source_dir = get_source_dir(static, global.root_dir);
 
