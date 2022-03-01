@@ -1,97 +1,43 @@
 open Kore;
-open AST;
 
-include Test.Assert;
+include TestLibrary.Assert;
 
 module Formatter = Grammar.Formatter;
-module Analyzer = Analyze.Analyzer;
 
-let weak_type =
+let type_error =
   Alcotest.(
     check(
-      testable(
-        ppf =>
-          Fmt.result(
-            ~ok=Type.Raw.pp_strong,
-            ~error=Type.Error.pp(Type.Raw.pp),
-            ppf,
-          ),
-        (==),
-      ),
-      "weak type matches",
+      testable(ppf => Fmt.option(~none=Fmt.nop, TypeV2.pp_error, ppf), (==)),
+      "type error matches",
     )
   );
 
-let analyzed_primitive =
+let expression = (expected, actual) =>
   Alcotest.(
     check(
-      testable(Analyzed.Dump.(ppf => prim_to_entity % Entity.pp(ppf)), (==)),
-      "analyzed primitive matches",
-    )
-  );
-
-let primitive =
-  Alcotest.(
-    check(
-      testable(Dump.(ppf => prim_to_entity % Entity.pp(ppf)), (==)),
-      "primitive matches",
-    )
-  );
-
-let analyzed_expression = (expected, actual) =>
-  Alcotest.(
-    check(
-      testable(Analyzed.Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
-      "analyzed expression matches",
-      expected,
-      actual |> Tuple.join2(Analyzer.analyze_expression),
-    )
-  );
-
-let expression =
-  Alcotest.(
-    check(
-      testable(Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
+      testable(ASTV2.Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
       "expression matches",
+      expected,
+      actual,
     )
   );
 
-let analyzed_jsx =
+let jsx = (expected, actual) =>
   Alcotest.(
     check(
-      testable(Analyzed.Dump.(ppf => jsx_to_entity % Entity.pp(ppf)), (==)),
-      "analyzed jsx matches",
-    )
-  );
-
-let jsx =
-  Alcotest.(
-    check(
-      testable(Dump.(ppf => jsx_to_entity % Entity.pp(ppf)), (==)),
+      testable(ASTV2.Dump.(ppf => jsx_to_entity % Entity.pp(ppf)), (==)),
       "jsx matches",
+      expected,
+      actual,
     )
   );
 
-let analyzed_statement =
+let statement = (expected, actual) =>
   Alcotest.(
     check(
-      testable(Analyzed.Dump.(ppf => stmt_to_entity % Entity.pp(ppf)), (==)),
-      "analyzed_statement matches",
-    )
-  );
-
-let statement =
-  Alcotest.(
-    check(
-      testable(Dump.(ppf => stmt_to_entity % Entity.pp(ppf)), (==)),
+      testable(ASTV2.Dump.(ppf => stmt_to_entity % Entity.pp(ppf)), (==)),
       "statement matches",
-    )
-  );
-
-let declaration =
-  Alcotest.(
-    check(
-      testable(Dump.(ppf => decl_to_entity % Entity.pp(ppf)), (==)),
-      "declaration matches",
+      expected,
+      actual,
     )
   );

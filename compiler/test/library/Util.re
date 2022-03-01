@@ -151,6 +151,7 @@ module ResultUtilV2 = {
 
   /* typecasting utilities */
 
+  let as_invalid = (inv, x) => as_node(T.Invalid(inv), x);
   let as_nil = x => as_node(T.Valid(`Nil), x);
   let as_bool = x => as_node(T.Valid(`Boolean), x);
   let as_int = x => as_node(T.Valid(`Integer), x);

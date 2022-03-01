@@ -54,7 +54,7 @@ let check_jsx_inline_expression: T.t => option(T.error_t) =
   /* assume this has been reported already and ignore */
   | Invalid(_) => None
 
-  | Valid(`Nil | `Boolean | `Integer | `Float | `Element) => None
+  | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
 
   | type_ => Some(InvalidJSXInlineExpression(type_));
 
@@ -86,6 +86,13 @@ let rec eval_type_expression: A.TypeExpression.raw_t => T.t =
                  ),
                ),
           ),
+        )
+      | Function(args, res) =>
+        Valid(
+          `Function((
+            args |> List.map(NR.get_value % eval_type_expression),
+            res |> NR.get_value |> eval_type_expression,
+          )),
         )
       }
     );

@@ -1,7 +1,5 @@
 open Kore;
 
-module Analyzer = Analyze.Analyzer;
-module Resolver = Analyze.Resolver;
 module SemanticAnalyzer = Analyze.Semantic;
 
 let _create_scope = (range: Range.t, ctx: ModuleContext.t) =>

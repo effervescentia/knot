@@ -1,13 +1,13 @@
 open Kore;
 
 let tests = [
-  Analyzer_AddOpTest.suite,
-  Analyzer_ExpressionTest.suite,
-  Analyzer_IdentifierTest.suite,
-  Analyzer_JSXTest.suite,
-  Analyzer_NegativeOpTest.suite,
-  Analyzer_NotOpTest.suite,
-  Analyzer_PositiveOpTest.suite,
-  Analyzer_PrimitiveTest.suite,
-  Analyzer_StatementTest.suite,
+  Semantic_BinaryOpTest.suite,
+  Semantic_ExpressionTest.suite,
+  Semantic_JSXTest.suite,
+  Semantic_StatementTest.suite,
+  Semantic_UnaryOpTest.suite,
+  Typing_BinaryOpTest.suite,
+  Typing_JSXTest.suite,
+  Typing_TypeExpressionTest.suite,
+  Typing_UnaryOpTest.suite,
 ];

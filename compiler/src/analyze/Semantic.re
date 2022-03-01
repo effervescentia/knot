@@ -94,15 +94,16 @@ and analyze_expression =
       let type_opt = scope |> S.lookup(id);
 
       let type_ =
-        switch (type_opt) {
-        | None =>
-          let err = T.NotFound(id);
+        type_opt
+        |!: (
+          () => {
+            let err = T.NotFound(id);
 
-          err |> S.report_type_err(scope, range);
+            err |> S.report_type_err(scope, range);
 
-          T.Invalid(NotInferrable);
-        | Some(t) => t
-        };
+            T.Invalid(NotInferrable);
+          }
+        );
 
       (A.of_id(id), type_);
 

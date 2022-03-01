@@ -1,6 +1,6 @@
 open Kore;
-open Reference;
 
+module Export = Reference.Export;
 module Declaration = Grammar.Declaration;
 module U = Util.ResultUtilV2;
 
