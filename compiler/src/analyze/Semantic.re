@@ -216,14 +216,23 @@ let analyze_argument =
       let expr = raw_expr |> analyze_expression(scope);
 
       (A.{name, default: Some(expr), type_: None}, N.get_type(expr));
-    /* | {name, default: None, type_: Some(type_expr)} =>
-       let x = 3;
 
-       (A.{name, default: None, type_: Some(type_expr)}, x); */
-    /* | {name, default: Some(raw_expr), type_: Some(type_expr)} =>
-       let y = 4;
+    | {name, default: None, type_: Some(type_expr)} =>
+      let type_ = type_expr |> NR.get_value |> Typing.eval_type_expression;
 
-       (A.{name, default: Some(_), type_: Some(_)}, y); */
+      (A.{name, default: None, type_: Some(type_expr)}, type_);
+
+    | {name, default: Some(raw_expr), type_: Some(type_expr)} =>
+      let expr = raw_expr |> analyze_expression(scope);
+      let expr_type = N.get_type(expr);
+      let type_ = type_expr |> NR.get_value |> Typing.eval_type_expression;
+
+      if (expr_type != type_) {
+        T.TypeMismatch(type_, expr_type)
+        |> S.report_type_err(scope, N.get_range(expr));
+      };
+
+      (A.{name, default: Some(expr), type_: Some(type_expr)}, type_);
     };
 
   N.create(arg, type_, range);

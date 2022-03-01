@@ -1,6 +1,7 @@
 open Kore;
 
 let tests = [
+  Semantic_ArgumentTest.suite,
   Semantic_BinaryOpTest.suite,
   Semantic_ExpressionTest.suite,
   Semantic_JSXTest.suite,
