@@ -1,6 +1,8 @@
 open Kore;
-open AST;
-open Reference;
+open ModuleAliases;
+
+module Namespace = Reference.Namespace;
+module Identifier = Reference.Identifier;
 
 let _sort_imports =
   List.sort((l, r) =>
@@ -20,13 +22,13 @@ let _sort_imports =
         imports
         |> List.fold_left(
              ((m, n)) =>
-               Node.Raw.get_value
+               NR.get_value
                % (
                  fun
-                 | MainImport(id) => (Some(Node.Raw.get_value(id)), n)
-                 | NamedImport(id, label) => (
+                 | A.MainImport(id) => (Some(NR.get_value(id)), n)
+                 | A.NamedImport(id, label) => (
                      m,
-                     [(Node.Raw.get_value(id), label), ...n],
+                     [(NR.get_value(id), label), ...n],
                    )
                ),
              (None, []),
@@ -43,13 +45,13 @@ let _sort_imports =
       (namespace, main_import, sorted_named_imports);
     });
 
-let extract_imports = (program: program_t) =>
+let extract_imports = (program: A.program_t) =>
   program
   |> List.filter_map(
-       Node.Raw.get_value
+       NR.get_value
        % (
          fun
-         | Import(namespace, imports) => Some((namespace, imports))
+         | A.Import(namespace, imports) => Some((namespace, imports))
          | _ => None
        ),
      )
@@ -62,14 +64,14 @@ let extract_imports = (program: program_t) =>
      )
   |> Tuple.map2(_sort_imports);
 
-let extract_declarations = (program: program_t) =>
+let extract_declarations = (program: A.program_t) =>
   program
   |> List.filter_map(
-       Node.Raw.get_value
+       NR.get_value
        % (
          fun
-         | Declaration(MainExport(name) | NamedExport(name), decl) =>
-           Some((Node.Raw.get_value(name), Node.get_value(decl)))
+         | A.Declaration(MainExport(name) | NamedExport(name), decl) =>
+           Some((NR.get_value(name), Node.get_value(decl)))
          | _ => None
        ),
      );

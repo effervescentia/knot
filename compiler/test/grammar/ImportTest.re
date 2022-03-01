@@ -1,7 +1,7 @@
 open Kore;
-open Reference;
 
 module Import = Grammar.Import;
+module Export = Reference.Export;
 module U = Util.CommonUtil;
 
 module Assert =
@@ -35,9 +35,12 @@ let __context_with_named_exports =
             ast: [],
             exports:
               [
-                (Export.Main, Type.Valid(`Nil)),
-                (Export.Named("bar" |> A.of_public), Type.Valid(`Boolean)),
-                (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
+                (Export.Main, TypeV2.Valid(`Nil)),
+                (
+                  Export.Named("bar" |> A.of_public),
+                  TypeV2.Valid(`Boolean),
+                ),
+                (Export.Named("foo" |> A.of_public), TypeV2.Valid(`String)),
               ]
               |> List.to_seq
               |> Hashtbl.of_seq,
@@ -60,7 +63,7 @@ let __context_with_main_export =
           ModuleTable.{
             ast: [],
             exports:
-              [(Export.Main, Type.Valid(`Nil))]
+              [(Export.Main, TypeV2.Valid(`Nil))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,

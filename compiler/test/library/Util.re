@@ -10,7 +10,7 @@ module CommonUtil = {
   let as_raw_node = (~range=Range.zero, x) => Node.Raw.create(x, range);
   let as_node = (~range=Range.zero, type_, x) => (x, type_, range);
 
-  let to_scope = (types: list((string, Type.t))): DefinitionTable.t => {
+  let to_scope = (types: list((string, TypeV2.t))): DefinitionTable.t => {
     types
     |> List.map(Tuple.map_fst2(AST.of_public % (x => Export.Named(x))))
     |> List.to_seq

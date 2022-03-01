@@ -1,56 +1,62 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
-open Reference;
 
 module Formatter = Grammar.Formatter;
+module U = Util.ResultUtilV2;
 
-let __int_const = ("ABC" |> of_public, 123 |> int_prim |> of_const);
-let __bool_const = ("DEF" |> of_public, true |> bool_prim |> of_const);
+let __int_const = ("ABC" |> A.of_public, 123 |> U.int_prim |> A.of_const);
+let __bool_const = ("DEF" |> A.of_public, true |> U.bool_prim |> A.of_const);
 
 let __inline_function = (
-  "foo" |> of_public,
+  "foo" |> A.of_public,
   (
     [
-      {name: "bar" |> of_public |> as_raw_node, default: None, type_: None}
-      |> as_int,
-      {
-        name: "fizz" |> of_public |> as_raw_node,
-        default: Some(3 |> int_prim),
+      A.{
+        name: "bar" |> A.of_public |> U.as_raw_node,
+        default: None,
         type_: None,
       }
-      |> as_int,
+      |> U.as_int,
+      A.{
+        name: "fizz" |> A.of_public |> U.as_raw_node,
+        default: Some(3 |> U.int_prim),
+        type_: None,
+      }
+      |> U.as_int,
     ],
     (
-      "bar" |> of_public |> as_int |> of_id |> as_int,
-      "fizz" |> of_public |> as_int |> of_id |> as_int,
+      "bar" |> A.of_public |> A.of_id |> U.as_int,
+      "fizz" |> A.of_public |> A.of_id |> U.as_int,
     )
-    |> of_add_op
-    |> as_int,
+    |> A.of_add_op
+    |> U.as_int,
   )
-  |> of_func,
+  |> A.of_func,
 );
 
 let __multiline_function = (
-  "buzz" |> of_public,
+  "buzz" |> A.of_public,
   (
     [],
     [
-      ("zip" |> of_public |> as_raw_node, 3 |> int_prim) |> of_var |> as_nil,
-      ("zap" |> of_public |> as_raw_node, 4 |> int_prim) |> of_var |> as_nil,
+      ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
+      |> A.of_var
+      |> U.as_nil,
+      ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
+      |> A.of_var
+      |> U.as_nil,
       (
-        "zip" |> of_public |> as_int |> of_id |> as_int,
-        "zap" |> of_public |> as_int |> of_id |> as_int,
+        "zip" |> A.of_public |> A.of_id |> U.as_int,
+        "zap" |> A.of_public |> A.of_id |> U.as_int,
       )
-      |> of_mult_op
-      |> as_int
-      |> of_expr
-      |> as_int,
+      |> A.of_mult_op
+      |> U.as_int
+      |> A.of_expr
+      |> U.as_int,
     ]
-    |> of_closure
-    |> as_int,
+    |> A.of_closure
+    |> U.as_int,
   )
-  |> of_func,
+  |> A.of_func,
 );
 
 let _assert_declaration = (expected, actual) =>
@@ -66,10 +72,7 @@ let suite =
       () =>
         _assert_declaration(
           "const foo = nil;",
-          (
-            "foo" |> of_public,
-            nil |> as_nil |> of_prim |> as_nil |> of_const,
-          ),
+          (A.of_public("foo"), A.of_const(U.nil_prim)),
         )
     ),
     "pp_declaration() - inline function"

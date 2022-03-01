@@ -1,19 +1,23 @@
 open Kore;
-open Util.RawUtil;
 open Reference;
+open ModuleAliases;
+
+module U = Util.RawUtilV2;
 
 let __id = Namespace.Internal("foo");
-let __types: list((Export.t, Type.t)) = [
-  (Named(AST.of_public("bar")), Valid(`Generic((0, 3)))),
+let __types: list((Export.t, TypeV2.t)) = [
+  (Named(A.of_public("bar")), Valid(`Element)),
 ];
-let __program =
-  AST.[
-    Import(
-      "foo" |> of_internal,
-      ["bar" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
-    )
-    |> as_raw_node,
-  ];
+let __program = [
+  (
+    "foo" |> A.of_internal,
+    [
+      "bar" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+    ],
+  )
+  |> A.of_import
+  |> U.as_raw_node,
+];
 let __table = ModuleTable.create(1);
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
@@ -34,14 +38,12 @@ let suite =
               __id,
               ModuleTable.{
                 exports:
-                  _create_table(
-                    AST.[
-                      (
-                        Export.Named("bar" |> of_public),
-                        Type.Valid(`Generic((0, 3))),
-                      ),
-                    ],
-                  ),
+                  _create_table([
+                    (
+                      Export.Named(A.of_public("bar")),
+                      TypeV2.Valid(`Element),
+                    ),
+                  ]),
                 ast: __program,
                 scopes: __scope_tree,
                 raw: "foo",
@@ -58,7 +60,7 @@ let suite =
         __table |> ModuleTable.add(__id, __program, [], __scope_tree, "foo");
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named("new_type" |> AST.of_public)),
+             (__id, Export.Named(A.of_public("new_type"))),
              Valid(`Float),
            );
 
@@ -70,8 +72,8 @@ let suite =
                 exports:
                   _create_table([
                     (
-                      Export.Named("new_type" |> AST.of_public),
-                      Type.Valid(`Float),
+                      Export.Named(A.of_public("new_type")),
+                      TypeV2.Valid(`Float),
                     ),
                   ]),
                 ast: __program,
@@ -90,7 +92,7 @@ let suite =
         let original_table = Hashtbl.copy(__table);
         __table
         |> ModuleTable.add_type(
-             (__id, Named(AST.of_public("new_type"))),
+             (__id, Named(A.of_public("new_type"))),
              Valid(`Float),
            );
 

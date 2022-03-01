@@ -1,9 +1,7 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
-open Reference;
 
 module Formatter = Grammar.Formatter;
+module U = Util.ResultUtilV2;
 
 let _assert_expression = (expected, actual) =>
   Assert.string(expected, actual |> ~@Fmt.root(pp_expression));
@@ -11,22 +9,19 @@ let _assert_expression = (expected, actual) =>
 let suite =
   "Grammar.Formatter | Expression"
   >::: [
-    "primitive" >: (() => _assert_expression("nil", nil |> as_nil |> of_prim)),
+    "primitive" >: (() => _assert_expression("nil", A.nil |> A.of_prim)),
     "identifier"
     >: (
-      () =>
-        _assert_expression(
-          "fooBar",
-          "fooBar" |> of_public |> as_generic(0, 0) |> of_id,
-        )
+      () => _assert_expression("fooBar", "fooBar" |> A.of_public |> A.of_id)
     ),
-    "group" >: (() => _assert_expression("123", 123 |> int_prim |> of_group)),
+    "group"
+    >: (() => _assert_expression("123", 123 |> U.int_prim |> A.of_group)),
     "nested group"
     >: (
       () =>
         _assert_expression(
           "123",
-          123 |> int_prim |> of_group |> as_int |> of_group,
+          123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_group,
         )
     ),
     "grouped binary operation"
@@ -34,10 +29,10 @@ let suite =
       () =>
         _assert_expression(
           "(123 + 456)",
-          (123 |> int_prim, 456 |> int_prim)
-          |> of_add_op
-          |> as_int
-          |> of_group,
+          (123 |> U.int_prim, 456 |> U.int_prim)
+          |> A.of_add_op
+          |> U.as_int
+          |> A.of_group,
         )
     ),
     "nested grouped binary operation"
@@ -45,12 +40,12 @@ let suite =
       () =>
         _assert_expression(
           "(123 + 456)",
-          (123 |> int_prim, 456 |> int_prim)
-          |> of_add_op
-          |> as_int
-          |> of_group
-          |> as_int
-          |> of_group,
+          (123 |> U.int_prim, 456 |> U.int_prim)
+          |> A.of_add_op
+          |> U.as_int
+          |> A.of_group
+          |> U.as_int
+          |> A.of_group,
         )
     ),
     "closure"
@@ -63,21 +58,21 @@ let suite =
   nil;
 }",
           [
-            true |> bool_prim |> of_expr |> as_bool,
-            false |> bool_prim |> of_expr |> as_bool,
-            nil_prim |> of_expr |> as_nil,
+            true |> U.bool_prim |> A.of_expr |> U.as_bool,
+            false |> U.bool_prim |> A.of_expr |> U.as_bool,
+            U.nil_prim |> A.of_expr |> U.as_nil,
           ]
-          |> of_closure,
+          |> A.of_closure,
         )
     ),
     "unary operation"
-    >: (() => _assert_expression("!true", true |> bool_prim |> of_not_op)),
+    >: (() => _assert_expression("!true", true |> U.bool_prim |> A.of_not_op)),
     "binary operation"
     >: (
       () =>
         _assert_expression(
           "true || false",
-          (true |> bool_prim, false |> bool_prim) |> of_or_op,
+          (true |> U.bool_prim, false |> U.bool_prim) |> A.of_or_op,
         )
     ),
     "JSX"
@@ -88,13 +83,12 @@ let suite =
   bar
 </Foo>",
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> A.of_public |> U.as_raw_node,
             [],
-            ["bar" |> as_string |> of_text |> as_string],
+            ["bar" |> A.of_text |> U.as_raw_node],
           )
-          |> of_tag
-          |> as_element
-          |> of_jsx,
+          |> A.of_tag
+          |> A.of_jsx,
         )
     ),
   ];

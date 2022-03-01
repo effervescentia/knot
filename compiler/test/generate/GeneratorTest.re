@@ -1,15 +1,15 @@
 open Kore;
-open Util.ResultUtil;
 
 module Generator = Generate.Generator;
+module U = Util.ResultUtilV2;
 
 let __program = [
   (
-    "ABC" |> of_public |> as_raw_node |> of_named_export,
-    123 |> int_prim |> of_const |> as_int,
+    "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    123 |> U.int_prim |> A.of_const |> U.as_int,
   )
-  |> of_decl
-  |> as_raw_node,
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 let suite =

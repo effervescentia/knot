@@ -71,7 +71,7 @@ let handler =
       | Some((range, Identifier(id))) => {
           Hashtbl.find_opt(compiler.modules, namespace)
           |?< (({scopes}) => ScopeTree.find_type(id, point, scopes))
-          |?> ~@Type.pp
+          |?> ~@TypeV2.pp
           |?> Fmt.str("%a: %s", Identifier.pp, id)
           |?: "(unknown)"
           |> response(range)

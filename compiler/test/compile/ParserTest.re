@@ -31,7 +31,7 @@ let __context =
           ModuleTable.{
             ast: [],
             exports:
-              [(Export.Main, Type.Valid(`Boolean))]
+              [(Export.Main, TypeV2.Valid(`Boolean))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,

@@ -1,9 +1,7 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
-open Reference;
 
 module Formatter = Grammar.Formatter;
+module U = Util.ResultUtilV2;
 
 let _assert_jsx = (expected, actual) =>
   Assert.string(expected, actual |> ~@Fmt.root(pp_jsx));
@@ -18,29 +16,34 @@ let suite =
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> of_public |> as_raw_node, [], []) |> of_tag,
+          ("Foo" |> A.of_public |> U.as_raw_node, [], []) |> A.of_tag,
         )
     ),
-    "pp_jsx() - empty fragment" >: (() => _assert_jsx("<></>", [] |> of_frag)),
+    "pp_jsx() - empty fragment"
+    >: (() => _assert_jsx("<></>", [] |> A.of_frag)),
     "pp_jsx() - tag with attributes"
     >: (
       () =>
         _assert_jsx(
           "<Foo #bar .fizz buzz />",
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> A.of_public |> U.as_raw_node,
             [
-              "bar" |> of_public |> as_raw_node |> of_jsx_id |> as_string,
-              ("fizz" |> of_public |> as_raw_node, None)
-              |> of_jsx_class
-              |> as_string,
-              ("buzz" |> of_public |> as_raw_node, None)
-              |> of_prop
-              |> as_generic(0, 0),
+              "bar"
+              |> A.of_public
+              |> U.as_raw_node
+              |> A.of_jsx_id
+              |> U.as_raw_node,
+              ("fizz" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_jsx_class
+              |> U.as_raw_node,
+              ("buzz" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_prop
+              |> U.as_raw_node,
             ],
             [],
           )
-          |> of_tag,
+          |> A.of_tag,
         )
     ),
     "pp_jsx() - tag with nested text"
@@ -51,11 +54,11 @@ let suite =
   bar
 </Foo>",
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> A.of_public |> U.as_raw_node,
             [],
-            ["bar" |> as_string |> of_text |> as_string],
+            ["bar" |> A.of_text |> U.as_raw_node],
           )
-          |> of_tag,
+          |> A.of_tag,
         )
     ),
     "pp_jsx() - tag with nested expression"
@@ -66,17 +69,17 @@ let suite =
   {1 + 5}
 </Foo>",
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> A.of_public |> U.as_raw_node,
             [],
             [
-              (1 |> int_prim, 5 |> int_prim)
-              |> of_add_op
-              |> as_int
-              |> of_inline_expr
-              |> as_element,
+              (1 |> U.int_prim, 5 |> U.int_prim)
+              |> A.of_add_op
+              |> U.as_int
+              |> A.of_inline_expr
+              |> U.as_raw_node,
             ],
           )
-          |> of_tag,
+          |> A.of_tag,
         )
     ),
     "pp_jsx() - tag with nested tag"
@@ -89,21 +92,20 @@ let suite =
   </Bar>
 </Foo>",
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> A.of_public |> U.as_raw_node,
             [],
             [
               (
-                "Bar" |> of_public |> as_raw_node,
+                "Bar" |> A.of_public |> U.as_raw_node,
                 [],
-                ["fizzbuzz" |> as_string |> of_text |> as_string],
+                ["fizzbuzz" |> A.of_text |> U.as_raw_node],
               )
-              |> of_tag
-              |> as_element
-              |> of_node
-              |> as_element,
+              |> A.of_tag
+              |> A.of_node
+              |> U.as_raw_node,
             ],
           )
-          |> of_tag,
+          |> A.of_tag,
         )
     ),
     "pp_jsx() - tag with multiple children"
@@ -116,19 +118,18 @@ let suite =
   Hello, World!
 </Foo>",
           (
-            "Foo" |> of_public |> as_raw_node,
+            "Foo" |> A.of_public |> U.as_raw_node,
             [],
             [
-              ("Bar" |> of_public |> as_raw_node, [], [])
-              |> of_tag
-              |> as_element
-              |> of_node
-              |> as_element,
-              nil_prim |> of_inline_expr |> as_nil,
-              "Hello, World!" |> as_string |> of_text |> as_string,
+              ("Bar" |> A.of_public |> U.as_raw_node, [], [])
+              |> A.of_tag
+              |> A.of_node
+              |> U.as_raw_node,
+              U.nil_prim |> A.of_inline_expr |> U.as_raw_node,
+              "Hello, World!" |> A.of_text |> U.as_raw_node,
             ],
           )
-          |> of_tag,
+          |> A.of_tag,
         )
     ),
     "pp_jsx_attr() - property with primitive value"
@@ -136,8 +137,8 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=123",
-          ("fizz" |> of_public |> as_raw_node, Some(123 |> int_prim))
-          |> of_prop,
+          ("fizz" |> A.of_public |> U.as_raw_node, Some(123 |> U.int_prim))
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with identifier value"
@@ -146,16 +147,10 @@ let suite =
         _assert_jsx_attr(
           "fizz=buzz",
           (
-            "fizz" |> of_public |> as_raw_node,
-            Some(
-              "buzz"
-              |> of_public
-              |> as_generic(0, 0)
-              |> of_id
-              |> as_generic(0, 0),
-            ),
+            "fizz" |> A.of_public |> U.as_raw_node,
+            Some("buzz" |> A.of_public |> A.of_id |> U.as_int),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with binary operation value"
@@ -164,10 +159,12 @@ let suite =
         _assert_jsx_attr(
           "fizz=(1 + 2)",
           (
-            "fizz" |> of_public |> as_raw_node,
-            Some((1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int),
+            "fizz" |> A.of_public |> U.as_raw_node,
+            Some(
+              (1 |> U.int_prim, 2 |> U.int_prim) |> A.of_add_op |> U.as_int,
+            ),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with grouped binary operation value"
@@ -176,16 +173,16 @@ let suite =
         _assert_jsx_attr(
           "fizz=(1 + 2)",
           (
-            "fizz" |> of_public |> as_raw_node,
+            "fizz" |> A.of_public |> U.as_raw_node,
             Some(
-              (1 |> int_prim, 2 |> int_prim)
-              |> of_add_op
-              |> as_int
-              |> of_group
-              |> as_int,
+              (1 |> U.int_prim, 2 |> U.int_prim)
+              |> A.of_add_op
+              |> U.as_int
+              |> A.of_group
+              |> U.as_int,
             ),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with negative value"
@@ -194,10 +191,10 @@ let suite =
         _assert_jsx_attr(
           "fizz=(-1)",
           (
-            "fizz" |> of_public |> as_raw_node,
-            Some(1 |> int_prim |> of_neg_op |> as_int),
+            "fizz" |> A.of_public |> U.as_raw_node,
+            Some(1 |> U.int_prim |> A.of_neg_op |> U.as_int),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with boolean value"
@@ -206,12 +203,17 @@ let suite =
         _assert_jsx_attr(
           "fizz=true",
           (
-            "fizz" |> of_public |> as_raw_node,
+            "fizz" |> A.of_public |> U.as_raw_node,
             Some(
-              true |> bool_prim |> of_group |> as_bool |> of_group |> as_bool,
+              true
+              |> U.bool_prim
+              |> A.of_group
+              |> U.as_bool
+              |> A.of_group
+              |> U.as_bool,
             ),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with closure value"
@@ -223,17 +225,17 @@ let suite =
   false;
 }",
           (
-            "fizz" |> of_public |> as_raw_node,
+            "fizz" |> A.of_public |> U.as_raw_node,
             Some(
               [
-                true |> bool_prim |> of_expr |> as_bool,
-                false |> bool_prim |> of_expr |> as_bool,
+                true |> U.bool_prim |> A.of_expr |> U.as_bool,
+                false |> U.bool_prim |> A.of_expr |> U.as_bool,
               ]
-              |> of_closure
-              |> as_bool,
+              |> A.of_closure
+              |> U.as_bool,
             ),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with inline JSX value"
@@ -242,16 +244,15 @@ let suite =
         _assert_jsx_attr(
           "fizz=<Buzz />",
           (
-            "fizz" |> of_public |> as_raw_node,
+            "fizz" |> A.of_public |> U.as_raw_node,
             Some(
-              ("Buzz" |> of_public |> as_raw_node, [], [])
-              |> of_tag
-              |> as_element
-              |> of_jsx
-              |> as_element,
+              ("Buzz" |> A.of_public |> U.as_raw_node, [], [])
+              |> A.of_tag
+              |> A.of_jsx
+              |> U.as_element,
             ),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with multiline JSX value"
@@ -262,26 +263,24 @@ let suite =
   <Foo />
 </Buzz>)",
           (
-            "fizz" |> of_public |> as_raw_node,
+            "fizz" |> A.of_public |> U.as_raw_node,
             Some(
               (
-                "Buzz" |> of_public |> as_raw_node,
+                "Buzz" |> A.of_public |> U.as_raw_node,
                 [],
                 [
-                  ("Foo" |> of_public |> as_raw_node, [], [])
-                  |> of_tag
-                  |> as_element
-                  |> of_node
-                  |> as_element,
+                  ("Foo" |> A.of_public |> U.as_raw_node, [], [])
+                  |> A.of_tag
+                  |> A.of_node
+                  |> U.as_raw_node,
                 ],
               )
-              |> of_tag
-              |> as_element
-              |> of_jsx
-              |> as_element,
+              |> A.of_tag
+              |> A.of_jsx
+              |> U.as_element,
             ),
           )
-          |> of_prop,
+          |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with punned value"
@@ -289,7 +288,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "buzz",
-          ("buzz" |> of_public |> as_raw_node, None) |> of_prop,
+          ("buzz" |> A.of_public |> U.as_raw_node, None) |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - dynamic class name"
@@ -297,8 +296,8 @@ let suite =
       () =>
         _assert_jsx_attr(
           ".fizz=true",
-          ("fizz" |> of_public |> as_raw_node, Some(true |> bool_prim))
-          |> of_jsx_class,
+          ("fizz" |> A.of_public |> U.as_raw_node, Some(true |> U.bool_prim))
+          |> A.of_jsx_class,
         )
     ),
     "pp_jsx_attr() - static class name"
@@ -306,7 +305,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           ".fizz",
-          ("fizz" |> of_public |> as_raw_node, None) |> of_jsx_class,
+          ("fizz" |> A.of_public |> U.as_raw_node, None) |> A.of_jsx_class,
         )
     ),
     "pp_jsx_attr() - identifier name"
@@ -314,7 +313,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "#bar",
-          "bar" |> of_public |> as_raw_node |> of_jsx_id,
+          "bar" |> A.of_public |> U.as_raw_node |> A.of_jsx_id,
         )
     ),
   ];

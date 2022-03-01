@@ -51,37 +51,39 @@ let handler =
           ast
           |> List.filter_map(
                Node.Raw.get_value
-               % AST.(
-                   fun
-                   | Declaration(MainExport(name) | NamedExport(name), decl) => {
-                       let range = Node.Raw.get_range(name);
-                       let name =
-                         name |> Node.Raw.get_value |> ~@Identifier.pp;
-                       let type_ = Node.get_type(decl);
+               % (
+                 fun
+                 | ASTV2.Declaration(
+                     MainExport(name) | NamedExport(name),
+                     decl,
+                   ) => {
+                     let range = Node.Raw.get_range(name);
+                     let name = name |> Node.Raw.get_value |> ~@Identifier.pp;
+                     let type_ = Node.get_type(decl);
 
-                       Some(
-                         switch (Node.get_value(decl)) {
-                         | Constant(expr) => {
-                             name,
-                             detail: type_ |> ~@Type.pp,
-                             range,
-                             full_range:
-                               Range.join(range, Node.get_range(expr)),
-                             kind: Capabilities.Variable,
-                           }
-                         | Function(args, expr) => {
-                             name,
-                             detail: type_ |> ~@Type.pp,
-                             range,
-                             full_range:
-                               Range.join(range, Node.get_range(expr)),
-                             kind: Capabilities.Function,
-                           }
-                         },
-                       );
-                     }
-                   | Import(_) => None
-                 ),
+                     Some(
+                       switch (Node.get_value(decl)) {
+                       | Constant(expr) => {
+                           name,
+                           detail: type_ |> ~@TypeV2.pp,
+                           range,
+                           full_range:
+                             Range.join(range, Node.get_range(expr)),
+                           kind: Capabilities.Variable,
+                         }
+                       | Function(args, expr) => {
+                           name,
+                           detail: type_ |> ~@TypeV2.pp,
+                           range,
+                           full_range:
+                             Range.join(range, Node.get_range(expr)),
+                           kind: Capabilities.Function,
+                         }
+                       },
+                     );
+                   }
+                 | _ => None
+               ),
              )
       )
       |?: [];

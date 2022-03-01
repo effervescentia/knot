@@ -65,10 +65,10 @@ let suite =
     >: (
       () => {
         let definitions =
-          Type.[
-            (Export.Named(A.of_public("bar")), Valid(`Float)),
-            (Export.Named(A.of_public("fizz")), Valid(`Integer)),
-            (Export.Named(A.of_public("buzz")), Valid(`Float)),
+          [
+            (Export.Named(A.of_public("bar")), T.Valid(`Float)),
+            (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
+            (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
           ]
           |> List.to_seq
           |> DefinitionTable.of_seq;
@@ -141,12 +141,12 @@ let suite =
         /* Assert.int(0, scope.seed^); */
         Assert.hashtbl(
           ~@Export.pp,
-          ~@Type.pp,
-          Type.[
-            (Export.Named(A.of_public("bar")), Valid(`Float)),
-            (Export.Named(A.of_public("fizz")), Valid(`Integer)),
-            (Export.Named(A.of_public("buzz")), Valid(`Float)),
-            (Export.Named(A.of_public("foo")), Valid(`Boolean)),
+          ~@T.pp,
+          [
+            (Export.Named(A.of_public("bar")), T.Valid(`Float)),
+            (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
+            (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
+            (Export.Named(A.of_public("foo")), T.Valid(`Boolean)),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,

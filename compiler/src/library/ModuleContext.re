@@ -1,6 +1,6 @@
 open Reference;
 
-type externals_t = Hashtbl.t(Identifier.t, Type.t);
+type externals_t = Hashtbl.t(Identifier.t, TypeV2.t);
 
 type t = {
   /* types that have been imported into the scope */
@@ -31,10 +31,7 @@ let create =
  convert the imported externals into a scope
  */
 let get_external_scope = (ctx: t) =>
-  ctx.externals
-  |> Hashtbl.to_seq
-  |> Seq.map(Tuple.map_snd2(Type.to_raw))
-  |> NestedHashtbl.of_seq;
+  ctx.externals |> Hashtbl.to_seq |> NestedHashtbl.of_seq;
 
 /**
  report a compile error
@@ -45,7 +42,7 @@ let report = (ctx: t, err: Error.compile_err) =>
 /**
  define a new declaration within the module
  */
-let define = (name: Identifier.t, type_: Type.t, ctx: t) =>
+let define = (name: Identifier.t, type_: TypeV2.t, ctx: t) =>
   ctx.definitions |> DefinitionTable.add(Export.Named(name), type_);
 
 /**
@@ -58,18 +55,18 @@ let import =
       label: Identifier.t,
       ctx: t,
     ) => {
-  let type_: Type.t =
+  let type_: TypeV2.t =
     switch (ctx.namespace_context |> NamespaceContext.lookup(namespace, id)) {
-    | Ok(t) => Valid(t)
+    | Ok(t) => t
     | Error(err) =>
       Error.ParseError(
-        TypeError(Type.err_to_strong_err(err)),
+        TypeErrorV2(err),
         ctx.namespace_context.namespace,
         range,
       )
       |> report(ctx);
 
-      Invalid(err);
+      Invalid(NotInferrable);
     };
 
   Hashtbl.replace(ctx.externals, label, type_);

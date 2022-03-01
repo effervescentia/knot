@@ -1,9 +1,9 @@
 open Kore;
-open Util.ResultUtil;
 open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module U = Util.ResultUtilV2;
 
 let _assert_statement_list =
   Alcotest.(
@@ -32,10 +32,10 @@ let _assert_function = (expected, actual) =>
   );
 
 let __variable_declaration =
-  ("fooBar" |> of_public |> as_raw_node, int_prim(123)) |> of_var;
+  ("fooBar" |> A.of_public |> U.as_raw_node, U.int_prim(123)) |> A.of_var;
 
 let __expression =
-  (int_prim(123), int_prim(456)) |> of_eq_op |> as_int |> of_expr;
+  (U.int_prim(123), U.int_prim(456)) |> A.of_eq_op |> U.as_int |> A.of_expr;
 
 let suite =
   "Generate.JavaScript_Generator | Statement"
@@ -85,7 +85,7 @@ let suite =
       () =>
         _assert_constant(
           Variable("foo", Number("123")),
-          ("foo" |> of_public |> as_raw_node, int_prim(123)),
+          ("foo" |> A.of_public |> U.as_raw_node, U.int_prim(123)),
         )
     ),
     "function - return primitive value"
@@ -100,16 +100,16 @@ let suite =
             ),
           ),
           (
-            "foo" |> of_public |> as_raw_node,
+            "foo" |> A.of_public |> U.as_raw_node,
             [
-              {
-                name: "bar" |> of_public |> as_raw_node,
+              A.{
+                name: "bar" |> A.of_public |> U.as_raw_node,
                 default: None,
                 type_: None,
               }
-              |> as_nil,
+              |> U.as_nil,
             ],
-            int_prim(123),
+            U.int_prim(123),
           ),
         )
     ),
@@ -132,18 +132,18 @@ let suite =
             ),
           ),
           (
-            "foo" |> of_public |> as_raw_node,
+            "foo" |> A.of_public |> U.as_raw_node,
             [
-              {
-                name: "bar" |> of_public |> as_raw_node,
-                default: Some(int_prim(123)),
+              A.{
+                name: "bar" |> A.of_public |> U.as_raw_node,
+                default: Some(U.int_prim(123)),
                 type_: None,
               }
-              |> as_nil,
+              |> U.as_nil,
             ],
-            ("bar" |> of_public |> as_int |> of_id |> as_int, int_prim(5))
-            |> of_add_op
-            |> as_int,
+            ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
+            |> A.of_add_op
+            |> U.as_int,
           ),
         )
     ),
@@ -168,23 +168,23 @@ let suite =
             ),
           ),
           (
-            "foo" |> of_public |> as_raw_node,
+            "foo" |> A.of_public |> U.as_raw_node,
             [],
             [
-              ("buzz" |> of_public |> as_raw_node, int_prim(2))
-              |> of_var
-              |> as_nil,
+              ("buzz" |> A.of_public |> U.as_raw_node, U.int_prim(2))
+              |> A.of_var
+              |> U.as_nil,
               (
-                "buzz" |> of_public |> as_int |> of_id |> as_int,
-                "buzz" |> of_public |> as_int |> of_id |> as_int,
+                "buzz" |> A.of_public |> A.of_id |> U.as_int,
+                "buzz" |> A.of_public |> A.of_id |> U.as_int,
               )
-              |> of_div_op
-              |> as_float
-              |> of_expr
-              |> as_float,
+              |> A.of_div_op
+              |> U.as_float
+              |> A.of_expr
+              |> U.as_float,
             ]
-            |> of_closure
-            |> as_float,
+            |> A.of_closure
+            |> U.as_float,
           ),
         )
     ),

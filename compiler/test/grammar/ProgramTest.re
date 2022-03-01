@@ -61,7 +61,7 @@ let __ns_context =
           ModuleTable.{
             ast: [],
             exports:
-              [(Export.Main, Type.Valid(`String))]
+              [(Export.Main, TypeV2.Valid(`String))]
               |> List.to_seq
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
@@ -132,7 +132,7 @@ let suite =
                     ModuleTable.{
                       ast: [],
                       exports:
-                        [(Export.Main, Type.Valid(`Boolean))]
+                        [(Export.Main, TypeV2.Valid(`Boolean))]
                         |> List.to_seq
                         |> Hashtbl.of_seq,
                       scopes: __scope_tree,

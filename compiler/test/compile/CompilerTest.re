@@ -1,11 +1,12 @@
 open Kore;
-open Util.ResultUtil;
-open Type;
 open Reference;
 
 module Compiler = Compile.Compiler;
 module ImportGraph = Resolve.ImportGraph;
 module Module = Resolve.Module;
+module U = Util.ResultUtilV2;
+module A = ASTV2;
+module T = TypeV2;
 
 let __valid_program_dir = "./test/compile/.fixtures/valid_program";
 let __invalid_program_dir = "./test/compile/.fixtures/invalid_program";
@@ -25,27 +26,32 @@ let __config =
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __types =
-  AST.[(Export.Named("ABC" |> of_public), Valid(`Integer))]
+  [(Export.Named("ABC" |> A.of_public), T.Valid(`Integer))]
   |> List.to_seq
   |> Hashtbl.of_seq;
 
 let __ast =
-  AST.[
+  [
     (
-      ("ABC" |> of_public, Range.create((1, 7), (1, 9))) |> of_named_export,
-      (
-        123L |> of_int |> of_num,
-        Valid(`Integer),
-        Range.create((1, 13), (1, 15)),
-      )
-      |> of_prim
-      |> as_node(~range=Range.create((1, 13), (1, 15)), Valid(`Integer))
-      |> of_const
-      |> as_node(~range=Range.create((1, 13), (1, 15)), Valid(`Integer)),
+      ("ABC" |> A.of_public, Range.create((1, 7), (1, 9)))
+      |> A.of_named_export,
+      123L
+      |> A.of_int
+      |> A.of_num
+      |> A.of_prim
+      |> U.as_node(
+           ~range=Range.create((1, 13), (1, 15)),
+           T.Valid(`Integer),
+         )
+      |> A.of_const
+      |> U.as_node(
+           ~range=Range.create((1, 13), (1, 15)),
+           T.Valid(`Integer),
+         ),
     )
-    |> of_decl,
+    |> A.of_decl,
   ]
-  |> List.map(as_raw_node);
+  |> List.map(U.as_raw_node);
 
 let _assert_import_graph_structure =
   Alcotest.(

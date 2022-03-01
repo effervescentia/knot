@@ -561,20 +561,6 @@ module Raw =
       );
   });
 
-module Temporary =
-  Make({
-    type type_t = (int, int);
-
-    let node_to_entity = (~attributes=[], ~children=[], label, node) =>
-      Common.Dump.node_to_entity(
-        Fmt.(pair(int, int)),
-        ~attributes,
-        ~children,
-        label,
-        node,
-      );
-  });
-
 include Make({
   type type_t = TypeV2.t;
 

@@ -1,9 +1,9 @@
 open Kore;
-open Util.ResultUtil;
 open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module U = Util.ResultUtilV2;
 
 let _assert_expression = (expected, actual) =>
   Alcotest.(
@@ -38,26 +38,19 @@ let suite =
   >::: [
     "boolean - true"
     >: (
-      () =>
-        _assert_expression(
-          Boolean(true),
-          true |> of_bool |> as_bool |> of_prim,
-        )
+      () => _assert_expression(Boolean(true), true |> A.of_bool |> A.of_prim)
     ),
     "boolean - false"
     >: (
       () =>
-        _assert_expression(
-          Boolean(false),
-          false |> of_bool |> as_bool |> of_prim,
-        )
+        _assert_expression(Boolean(false), false |> A.of_bool |> A.of_prim)
     ),
     "string - no special characters"
     >: (
       () =>
         _assert_expression(
           String("hello world"),
-          "hello world" |> of_string |> as_string |> of_prim,
+          "hello world" |> A.of_string |> A.of_prim,
         )
     ),
     "string - escaped quotation marks"
@@ -65,16 +58,16 @@ let suite =
       () =>
         _assert_expression(
           String("escaped quotes (\")"),
-          "escaped quotes (\")" |> of_string |> as_string |> of_prim,
+          "escaped quotes (\")" |> A.of_string |> A.of_prim,
         )
     ),
-    "null" >: (() => _assert_expression(Null, nil |> as_nil |> of_prim)),
+    "null" >: (() => _assert_expression(Null, A.nil |> A.of_prim)),
     "identifier"
     >: (
       () =>
         _assert_expression(
           Identifier("fooBar"),
-          "fooBar" |> of_public |> as_generic(0, 0) |> of_id,
+          "fooBar" |> A.of_public |> A.of_id,
         )
     ),
     "group"
@@ -82,7 +75,7 @@ let suite =
       () =>
         _assert_expression(
           Group(Number("123")),
-          123 |> int_prim |> of_group,
+          123 |> U.int_prim |> A.of_group,
         )
     ),
     "iife - iife with return value"
@@ -109,18 +102,18 @@ let suite =
             [],
           ),
           [
-            (123 |> int_prim, 456 |> int_prim)
-            |> of_eq_op
-            |> as_int
-            |> of_expr
-            |> as_int,
-            (678 |> int_prim, 910 |> int_prim)
-            |> of_add_op
-            |> as_int
-            |> of_expr
-            |> as_int,
+            (U.int_prim(123), U.int_prim(456))
+            |> A.of_eq_op
+            |> U.as_int
+            |> A.of_expr
+            |> U.as_int,
+            (U.int_prim(678), U.int_prim(910))
+            |> A.of_add_op
+            |> U.as_int
+            |> A.of_expr
+            |> U.as_int,
           ]
-          |> of_closure,
+          |> A.of_closure,
         )
     ),
     "iife - variable declaration"
@@ -138,11 +131,11 @@ let suite =
             [],
           ),
           [
-            ("foo" |> of_public |> as_raw_node, 456 |> int_prim)
-            |> of_var
-            |> as_nil,
+            ("foo" |> A.of_public |> U.as_raw_node, U.int_prim(456))
+            |> A.of_var
+            |> U.as_nil,
           ]
-          |> of_closure,
+          |> A.of_closure,
         )
     ),
     "binary operation - logical and"
@@ -150,7 +143,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("&&", Boolean(true), Boolean(false))),
-          (LogicalAnd, true |> bool_prim, false |> bool_prim),
+          (LogicalAnd, U.bool_prim(true), U.bool_prim(false)),
         )
     ),
     "binary operation - logical or"
@@ -158,7 +151,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("||", Boolean(true), Boolean(false))),
-          (LogicalOr, true |> bool_prim, false |> bool_prim),
+          (LogicalOr, U.bool_prim(true), U.bool_prim(false)),
         )
     ),
     "binary operation - less than or equal"
@@ -166,7 +159,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("<=", Number("123"), Number("456"))),
-          (LessOrEqual, 123 |> int_prim, 456 |> int_prim),
+          (LessOrEqual, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - less than"
@@ -174,7 +167,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("<", Number("123"), Number("456"))),
-          (LessThan, 123 |> int_prim, 456 |> int_prim),
+          (LessThan, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - greater than or equal"
@@ -182,7 +175,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp(">=", Number("123"), Number("456"))),
-          (GreaterOrEqual, 123 |> int_prim, 456 |> int_prim),
+          (GreaterOrEqual, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - greater than"
@@ -190,7 +183,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp(">", Number("123"), Number("456"))),
-          (GreaterThan, 123 |> int_prim, 456 |> int_prim),
+          (GreaterThan, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - equal"
@@ -198,7 +191,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("===", Number("123"), Number("456"))),
-          (Equal, 123 |> int_prim, 456 |> int_prim),
+          (Equal, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - unequal"
@@ -206,7 +199,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("!==", Number("123"), Number("456"))),
-          (Unequal, 123 |> int_prim, 456 |> int_prim),
+          (Unequal, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - add"
@@ -214,7 +207,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("+", Number("123"), Number("456"))),
-          (Add, 123 |> int_prim, 456 |> int_prim),
+          (Add, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - subtract"
@@ -222,7 +215,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("-", Number("123"), Number("456"))),
-          (Subtract, 123 |> int_prim, 456 |> int_prim),
+          (Subtract, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - multiply"
@@ -230,7 +223,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("*", Number("123"), Number("456"))),
-          (Multiply, 123 |> int_prim, 456 |> int_prim),
+          (Multiply, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - divide"
@@ -238,7 +231,7 @@ let suite =
       () =>
         _assert_binary_op(
           Group(BinaryOp("/", Number("123"), Number("456"))),
-          (Divide, 123 |> int_prim, 456 |> int_prim),
+          (Divide, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "binary operation - exponent"
@@ -249,7 +242,7 @@ let suite =
             DotAccess(Identifier("Math"), "pow"),
             [Number("123"), Number("456")],
           ),
-          (Exponent, 123 |> int_prim, 456 |> int_prim),
+          (Exponent, U.int_prim(123), U.int_prim(456)),
         )
     ),
     "unary operation - logical negation"
@@ -257,7 +250,7 @@ let suite =
       () =>
         _assert_unary_op(
           UnaryOp("!", Group(Boolean(true))),
-          (Not, true |> bool_prim),
+          (Not, U.bool_prim(true)),
         )
     ),
     "unary operation - positive"
@@ -265,7 +258,7 @@ let suite =
       () =>
         _assert_unary_op(
           UnaryOp("+", Group(Number("123"))),
-          (Positive, 123 |> int_prim),
+          (Positive, U.int_prim(123)),
         )
     ),
     "unary operation - negative"
@@ -273,7 +266,7 @@ let suite =
       () =>
         _assert_unary_op(
           UnaryOp("-", Group(Number("123"))),
-          (Negative, 123 |> int_prim),
+          (Negative, U.int_prim(123)),
         )
     ),
   ];

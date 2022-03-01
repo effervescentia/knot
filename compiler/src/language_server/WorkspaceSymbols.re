@@ -53,48 +53,45 @@ let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
               ast
               |> List.filter_map(
                    Node.Raw.get_value
-                   % AST.(
-                       fun
-                       | Declaration(
-                           MainExport(name) | NamedExport(name),
-                           decl,
-                         ) => {
-                           let uri =
-                             Filename.concat(
-                               uri,
-                               namespace
-                               |> Namespace.to_path(
-                                    compiler.config.source_dir,
-                                  ),
-                             );
-                           let range = Node.Raw.get_range(name);
-                           let name =
-                             name |> Node.Raw.get_value |> ~@Identifier.pp;
-
-                           Some(
-                             switch (Node.get_value(decl)) {
-                             | Constant(expr) => {
-                                 uri,
-                                 name,
-                                 range,
-                                 kind: Capabilities.Variable,
-                               }
-                             | Function(args, expr) => {
-                                 uri,
-                                 name,
-                                 range,
-                                 kind: Capabilities.Function,
-                               }
-                             },
+                   % (
+                     fun
+                     | ASTV2.Declaration(
+                         MainExport(name) | NamedExport(name),
+                         decl,
+                       ) => {
+                         let uri =
+                           Filename.concat(
+                             uri,
+                             namespace
+                             |> Namespace.to_path(compiler.config.source_dir),
                            );
-                         }
-                       | Import(_) => None
-                     ),
+                         let range = Node.Raw.get_range(name);
+                         let name =
+                           name |> Node.Raw.get_value |> ~@Identifier.pp;
+
+                         Some(
+                           switch (Node.get_value(decl)) {
+                           | Constant(expr) => {
+                               uri,
+                               name,
+                               range,
+                               kind: Capabilities.Variable,
+                             }
+                           | Function(args, expr) => {
+                               uri,
+                               name,
+                               range,
+                               kind: Capabilities.Function,
+                             }
+                           },
+                         );
+                       }
+                     | _ => None
+                   ),
                  )
             )
          |> List.flatten
        )
     |> List.flatten;
-
-  response(symbols) |> Protocol.reply(req);
+  ();
 };

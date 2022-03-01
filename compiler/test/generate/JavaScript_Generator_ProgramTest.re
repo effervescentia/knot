@@ -1,25 +1,31 @@
 open Kore;
-open Util.ResultUtil;
 open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module U = Util.ResultUtilV2;
 
 let __resolved = "../foo/bar";
 let __program =
   [
     (
-      "foo/bar" |> of_internal,
-      ["Foo" |> of_public |> as_raw_node |> of_main_import |> as_raw_node],
+      "foo/bar" |> A.of_internal,
+      [
+        "Foo"
+        |> A.of_public
+        |> U.as_raw_node
+        |> A.of_main_import
+        |> U.as_raw_node,
+      ],
     )
-    |> of_import,
+    |> A.of_import,
     (
-      "ABC" |> of_public |> as_raw_node |> of_named_export,
-      123 |> int_prim |> of_const |> as_int,
+      "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+      123 |> U.int_prim |> A.of_const |> U.as_int,
     )
-    |> of_decl,
+    |> A.of_decl,
   ]
-  |> List.map(as_raw_node);
+  |> List.map(U.as_raw_node);
 
 let _assert_declaration = (expected, actual) =>
   Alcotest.(
@@ -49,8 +55,8 @@ let suite =
         _assert_declaration(
           [Variable("foo", Number("123")), Export("foo", None)],
           (
-            "foo" |> of_public |> as_raw_node,
-            123 |> int_prim |> of_const |> as_int,
+            "foo" |> A.of_public |> U.as_raw_node,
+            123 |> U.int_prim |> A.of_const |> U.as_int,
           ),
         )
     ),
@@ -60,8 +66,8 @@ let suite =
         _assert_declaration(
           [Variable("_foo", Number("123"))],
           (
-            "foo" |> of_private |> as_raw_node,
-            123 |> int_prim |> of_const |> as_int,
+            "foo" |> A.of_private |> U.as_raw_node,
+            123 |> U.int_prim |> A.of_const |> U.as_int,
           ),
         )
     ),
@@ -79,7 +85,7 @@ let suite =
           ],
           (
             path => {
-              Assert.namespace("foo/bar" |> of_internal, path);
+              Assert.namespace("foo/bar" |> A.of_internal, path);
               __resolved;
             },
             __program,

@@ -1,13 +1,11 @@
 open Kore;
-open AST;
-open Util.ResultUtil;
-open Reference;
 
 module Formatter = Grammar.Formatter;
+module U = Util.ResultUtilV2;
 
 let _main_import = (name, f) => (
   name |> f,
-  Some(name |> String.capitalize_ascii |> of_public),
+  Some(name |> String.capitalize_ascii |> A.of_public),
   [],
 );
 
@@ -22,7 +20,7 @@ let suite =
       () =>
         _assert_import(
           "import Fizz from \"buzz\";",
-          ("buzz" |> of_external, Some("Fizz" |> of_public), []),
+          ("buzz" |> A.of_external, Some("Fizz" |> A.of_public), []),
         )
     ),
     "pp_import() - named imports"
@@ -31,11 +29,14 @@ let suite =
         _assert_import(
           "import { Foo as foo, Bar } from \"buzz\";",
           (
-            "buzz" |> of_external,
+            "buzz" |> A.of_external,
             None,
             [
-              ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
-              ("Bar" |> of_public, None),
+              (
+                "Foo" |> A.of_public,
+                Some("foo" |> A.of_public |> U.as_raw_node),
+              ),
+              ("Bar" |> A.of_public, None),
             ],
           ),
         )
@@ -46,11 +47,14 @@ let suite =
         _assert_import(
           "import Fizz, { Foo as foo, Bar } from \"buzz\";",
           (
-            "buzz" |> of_external,
-            Some("Fizz" |> of_public),
+            "buzz" |> A.of_external,
+            Some("Fizz" |> A.of_public),
             [
-              ("Foo" |> of_public, Some("foo" |> of_public |> as_raw_node)),
-              ("Bar" |> of_public, None),
+              (
+                "Foo" |> A.of_public,
+                Some("foo" |> A.of_public |> U.as_raw_node),
+              ),
+              ("Bar" |> A.of_public, None),
             ],
           ),
         )
@@ -77,7 +81,7 @@ let suite =
   magna,
 } from \"buzz\";",
           (
-            "buzz" |> of_external,
+            "buzz" |> A.of_external,
             None,
             [
               "Sit",
@@ -96,7 +100,7 @@ let suite =
               "pariatur",
               "magna",
             ]
-            |> List.map(word => (word |> of_public, None)),
+            |> List.map(word => (word |> A.of_public, None)),
           ),
         )
     ),
@@ -122,8 +126,8 @@ let suite =
   magna,
 } from \"buzz\";",
           (
-            "buzz" |> of_external,
-            Some("Foo" |> of_public),
+            "buzz" |> A.of_external,
+            Some("Foo" |> A.of_public),
             [
               "Sit",
               "et",
@@ -141,7 +145,7 @@ let suite =
               "pariatur",
               "magna",
             ]
-            |> List.map(word => (word |> of_public, None)),
+            |> List.map(word => (word |> A.of_public, None)),
           ),
         )
     ),
@@ -154,8 +158,8 @@ import Bar from \"bar\";",
           (
             [],
             [
-              _main_import("foo", of_external),
-              _main_import("bar", of_external),
+              _main_import("foo", A.of_external),
+              _main_import("bar", A.of_external),
             ],
           )
           |> ~@Fmt.root(pp_all_imports),
@@ -169,8 +173,8 @@ import Bar from \"bar\";",
 import Bar from \"@/bar\";",
           (
             [
-              _main_import("foo", of_internal),
-              _main_import("bar", of_internal),
+              _main_import("foo", A.of_internal),
+              _main_import("bar", A.of_internal),
             ],
             [],
           )
@@ -185,8 +189,8 @@ import Bar from \"@/bar\";",
 
 import Foo from \"@/foo\";",
           (
-            [_main_import("foo", of_internal)],
-            [_main_import("bar", of_external)],
+            [_main_import("foo", A.of_internal)],
+            [_main_import("bar", A.of_external)],
           )
           |> ~@Fmt.root(pp_all_imports),
         )
