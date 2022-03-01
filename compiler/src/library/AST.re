@@ -637,6 +637,24 @@ module Dump = {
     | MainExport(id) => id_to_entity("MainExport", id)
     | NamedExport(id) => id_to_entity("NamedExport", id);
 
+  let argument_to_entity = arg => {
+    let {name, default, type_} = Node.get_value(arg);
+    let children = ref([id_to_entity("Name", name)]);
+
+    switch (default) {
+    | Some(default) => children := [expr_to_entity(default), ...children^]
+    | None => ()
+    };
+
+    switch (type_) {
+    | Some(type_) =>
+      children := [untyped_node_to_entity("Type", type_), ...children^]
+    | None => ()
+    };
+
+    typed_node_to_entity(~children=children^, "Argument", arg);
+  };
+
   let decl_to_entity: declaration_t => Entity.t =
     decl =>
       switch (Node.get_value(decl)) {
@@ -651,34 +669,7 @@ module Dump = {
         typed_node_to_entity(
           ~children=[
             Entity.create(
-              ~children=
-                args
-                |> List.map(arg => {
-                     let {name, default, type_} = Node.get_value(arg);
-                     let children = ref([id_to_entity("Name", name)]);
-
-                     switch (default) {
-                     | Some(default) =>
-                       children := [expr_to_entity(default), ...children^]
-                     | None => ()
-                     };
-
-                     switch (type_) {
-                     | Some(type_) =>
-                       children :=
-                         [
-                           untyped_node_to_entity("Type", type_),
-                           ...children^,
-                         ]
-                     | None => ()
-                     };
-
-                     typed_node_to_entity(
-                       ~children=children^,
-                       "Argument",
-                       arg,
-                     );
-                   }),
+              ~children=args |> List.map(argument_to_entity),
               "Arguments",
             ),
             Entity.create(~children=[expr_to_entity(expr)], "Body"),

@@ -227,9 +227,13 @@ let analyze_argument =
       let expr_type = N.get_type(expr);
       let type_ = type_expr |> NR.get_value |> Typing.eval_type_expression;
 
-      if (expr_type != type_) {
+      switch (expr_type, type_) {
+      | (Valid(_), Valid(_)) when expr_type != type_ =>
         T.TypeMismatch(type_, expr_type)
-        |> S.report_type_err(scope, N.get_range(expr));
+        |> S.report_type_err(scope, N.get_range(expr))
+
+      /* ignore cases where either type is invalid or when types are equal */
+      | _ => ()
       };
 
       (A.{name, default: Some(expr), type_: Some(type_expr)}, type_);
