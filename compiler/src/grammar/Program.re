@@ -18,7 +18,7 @@ let main: t =
     ctx
     |> NamespaceContext.define_module(
          Root,
-         module_ctx.definitions,
+         module_ctx.declarations,
          Range.zero,
        );
 

@@ -3,12 +3,14 @@ open Infix;
 module Identifier = Reference.Identifier;
 module Namespace = Reference.Namespace;
 
+type type_lookup_t = Hashtbl.t(Identifier.t, Type.t);
+
 type t = {
   namespace: Namespace.t,
   range: Range.t,
   parent: option(t),
   mutable children: list(t),
-  types: Hashtbl.t(Identifier.t, Type.t),
+  types: type_lookup_t,
   /* error reporting callback */
   report: Error.compile_err => unit,
 };

@@ -8,7 +8,7 @@ type t = {
   /* error reporting callback */
   report: Error.compile_err => unit,
   /* error reporting callback */
-  mutable inner_modules: list((Module.t, DefinitionTable.t, Range.t)),
+  mutable inner_modules: list((Module.t, DeclarationTable.t, Range.t)),
 };
 
 /* static */
@@ -47,8 +47,8 @@ let lookup = (namespace: Namespace.t, id: Export.t, ctx: t) => {
 let define_module =
     (
       module_: Module.t,
-      definitions: DefinitionTable.t,
+      declarations: DeclarationTable.t,
       range: Range.t,
       ctx: t,
     ) =>
-  ctx.inner_modules = ctx.inner_modules @ [(module_, definitions, range)];
+  ctx.inner_modules = ctx.inner_modules @ [(module_, declarations, range)];

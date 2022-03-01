@@ -153,7 +153,7 @@ let suite =
               |> A.of_id
               |> U.as_bool
               |> A.of_const
-              |> U.as_nil,
+              |> U.as_bool,
             )
             |> A.of_decl
             |> U.as_raw_node,

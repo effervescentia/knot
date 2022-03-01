@@ -16,3 +16,12 @@ let of_seq = (seq: Seq.t((Export.t, Type.t))): t =>
 
 let add = (key: Export.t, type_: Type.t, tbl: t): unit =>
   Hashtbl.add(tbl.scope, key, type_);
+
+let to_lookup_seq = (tbl: t): Seq.t((Identifier.t, Type.t)) =>
+  tbl.scope
+  |> Hashtbl.to_seq
+  |> Seq.filter_map(
+       fun
+       | (Export.Main, _) => None
+       | (Export.Named(id), type_) => Some((id, type_)),
+     );

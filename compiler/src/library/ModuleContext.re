@@ -1,12 +1,10 @@
 open Reference;
 
-type externals_t = Hashtbl.t(Identifier.t, Type.t);
-
 type t = {
   /* types that have been imported into the scope */
-  externals: externals_t,
-  /* types that have been defined within the scope */
-  definitions: DefinitionTable.t,
+  externals: Scope.type_lookup_t,
+  /* types that have been declared within the scope */
+  declarations: DeclarationTable.t,
   /* parent namespace context */
   namespace_context: NamespaceContext.t,
 };
@@ -16,22 +14,34 @@ type t = {
 let create =
     (
       ~externals=Hashtbl.create(0),
-      ~definitions=DefinitionTable.create(),
+      ~declarations=DeclarationTable.create(),
       namespace_context: NamespaceContext.t,
     )
     : t => {
   externals,
-  definitions,
+  declarations,
   namespace_context,
 };
 
 /* methods */
 
-/**
- convert the imported externals into a scope
- */
-let get_external_scope = (ctx: t) =>
-  ctx.externals |> Hashtbl.to_seq |> NestedHashtbl.of_seq;
+/* compile all externals and declarations into a scope */
+let to_scope = (range: Range.t, ctx: t): Scope.t => {
+  let types =
+    DeclarationTable.to_lookup_seq(ctx.declarations)
+    |> Seq.append(Hashtbl.to_seq(ctx.externals))
+    |> Hashtbl.of_seq;
+
+  {
+    ...
+      Scope.create(
+        ctx.namespace_context.namespace,
+        ctx.namespace_context.report,
+        range,
+      ),
+    types,
+  };
+};
 
 /**
  report a compile error
@@ -40,10 +50,15 @@ let report = (ctx: t, err: Error.compile_err) =>
   ctx.namespace_context.report(err);
 
 /**
- define a new declaration within the module
+ add a new declaration to the module
  */
-let define = (name: Identifier.t, type_: Type.t, ctx: t) =>
-  ctx.definitions |> DefinitionTable.add(Export.Named(name), type_);
+let declare = (~main=false, name: Identifier.t, type_: Type.t, ctx: t) => {
+  ctx.declarations |> DeclarationTable.add(Export.Named(name), type_);
+
+  if (main) {
+    ctx.declarations |> DeclarationTable.add(Export.Main, type_);
+  };
+};
 
 /**
  find the type of an export from a different module and import it into the current scope

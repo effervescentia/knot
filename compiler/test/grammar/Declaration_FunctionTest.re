@@ -3,6 +3,7 @@ open Reference;
 
 module Declaration = Grammar.Declaration;
 module U = Util.ResultUtil;
+module TE = A.TypeExpression;
 
 module Assert = {
   include Assert;
@@ -120,7 +121,31 @@ let suite =
           "func foo () -> { nil }",
         )
     ),
-    "parse - with arguments"
+    "parse - with typed argument"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            (
+              [
+                A.{
+                  name: "fizz" |> A.of_public |> U.as_raw_node,
+                  type_: Some(U.as_raw_node(TE.Integer)),
+                  default: None,
+                }
+                |> U.as_int,
+              ],
+              [] |> A.of_closure |> U.as_nil,
+            )
+            |> A.of_func
+            |> U.as_function([Valid(`Integer)], Valid(`Nil)),
+          )
+          |> U.as_raw_node,
+          "func foo (fizz: integer) -> {}",
+        )
+    ),
+    "parse - with argument with default"
     >: (
       () =>
         Assert.parse(
@@ -131,19 +156,41 @@ let suite =
                 A.{
                   name: "fizz" |> A.of_public |> U.as_raw_node,
                   type_: None,
-                  default: None,
+                  default: Some(U.string_prim("bar")),
                 }
-                |> U.as_int,
+                |> U.as_string,
               ],
-              [U.nil_prim |> A.of_expr |> U.as_nil]
-              |> A.of_closure
-              |> U.as_nil,
+              [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_func
-            |> U.as_function([], Valid(`Nil)),
+            |> U.as_function([Valid(`String)], Valid(`Nil)),
           )
           |> U.as_raw_node,
-          "func foo (fizz, buzz) -> {}",
+          "func foo (fizz = \"bar\") -> {}",
+        )
+    ),
+    "parse - with typed argument with default"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            (
+              [
+                A.{
+                  name: "fizz" |> A.of_public |> U.as_raw_node,
+                  type_: Some(U.as_raw_node(TE.Boolean)),
+                  default: Some(U.bool_prim(true)),
+                }
+                |> U.as_bool,
+              ],
+              [] |> A.of_closure |> U.as_nil,
+            )
+            |> A.of_func
+            |> U.as_function([Valid(`Boolean)], Valid(`Nil)),
+          )
+          |> U.as_raw_node,
+          "func foo (fizz: boolean = true) -> {}",
         )
     ),
   ];

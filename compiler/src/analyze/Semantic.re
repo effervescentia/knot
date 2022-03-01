@@ -191,7 +191,7 @@ and analyze_statement =
       |> S.define(NR.get_value(id), type_)
       |> Option.iter(S.report_type_err(scope, NR.get_range(id)));
 
-      ((id, analyzed) |> A.of_var, type_);
+      ((id, analyzed) |> A.of_var, T.Valid(`Nil));
 
     | Expression(expr) =>
       let analyzed = analyze_expression(scope, expr);

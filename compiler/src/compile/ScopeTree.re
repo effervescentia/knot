@@ -25,8 +25,8 @@ let rec _join =
          )
        );
 
-let rec of_def_tbl = (~range=?, definitions: DefinitionTable.t): t => {
-  definitions.children
+let rec of_def_tbl = (~range=?, declarations: DeclarationTable.t): t => {
+  declarations.children
   |> List.map(((x, range)) => of_def_tbl(~range, x))
   |> List.divide
   |> Tuple.map2(_join)
@@ -39,16 +39,16 @@ let rec of_def_tbl = (~range=?, definitions: DefinitionTable.t): t => {
       BinaryTree.create(
         ~left=head,
         ~right=tail,
-        (range |?: (start, end_), Some(definitions.scope)),
+        (range |?: (start, end_), Some(declarations.scope)),
       )
     | (Some({value: (only_range, _)} as only), None)
     | (None, Some({value: (only_range, _)} as only)) =>
       BinaryTree.create(
         ~left=only,
-        (range |?: only_range, Some(definitions.scope)),
+        (range |?: only_range, Some(declarations.scope)),
       )
     | (None, None) =>
-      BinaryTree.create((range |?: Range.zero, Some(definitions.scope)))
+      BinaryTree.create((range |?: Range.zero, Some(declarations.scope)))
   );
 };
 

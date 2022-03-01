@@ -64,17 +64,17 @@ let suite =
     "parse with complex derived type"
     >: (
       () => {
-        let definitions =
+        let declarations =
           [
             (Export.Named(A.of_public("bar")), T.Valid(`Float)),
             (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
             (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
           ]
           |> List.to_seq
-          |> DefinitionTable.of_seq;
+          |> DeclarationTable.of_seq;
 
         Assert.parse(
-          ~mod_context=x => ModuleContext.create(~definitions, x),
+          ~mod_context=x => ModuleContext.create(~declarations, x),
           (
             "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
             [
@@ -104,7 +104,7 @@ let suite =
                 |> U.as_bool,
               )
               |> A.of_var
-              |> U.as_bool,
+              |> U.as_nil,
               (
                 "y" |> A.of_public |> A.of_id |> U.as_bool,
                 (
@@ -149,7 +149,7 @@ let suite =
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,
-          definitions.scope,
+          declarations.scope,
         );
       }
     ),

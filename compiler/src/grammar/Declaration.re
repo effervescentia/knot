@@ -2,12 +2,13 @@ open Kore;
 
 module SemanticAnalyzer = Analyze.Semantic;
 
+let _is_main: A.export_t => bool =
+  fun
+  | MainExport(_) => true
+  | NamedExport(_) => false;
+
 let _create_scope = (range: Range.t, ctx: ModuleContext.t) =>
-  Scope.create(
-    ctx.namespace_context.namespace,
-    ctx.namespace_context.report,
-    range,
-  );
+  ctx |> ModuleContext.to_scope(range);
 
 let constant = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.const
@@ -22,12 +23,16 @@ let constant = (ctx: ModuleContext.t, f): declaration_parser_t =>
           let type_ = N.get_type(expr);
           let const = expr |> N.wrap(A.of_const);
           let range = Range.join(start, expr_range);
+          let export_id = f(id);
 
-          scope
-          |> S.define(NR.get_value(id), type_)
-          |> Option.iter(S.report_type_err(scope, NR.get_range(id)));
+          ctx
+          |> ModuleContext.declare(
+               ~main=_is_main(export_id),
+               NR.get_value(id),
+               type_,
+             );
 
-          NR.create((f(id), const), range);
+          NR.create((export_id, const), range);
         }
       )
       |> M.terminated
@@ -67,9 +72,18 @@ let function_ = (ctx: ModuleContext.t, f): declaration_parser_t =>
                     N.get_type(res),
                   )),
                 );
+              let export_id = f(id);
+
+              ctx
+              |> ModuleContext.declare(
+                   ~main=_is_main(export_id),
+                   NR.get_value(id),
+                   type_,
+                 );
+
               let func = N.create((args, res) |> A.of_func, type_, range);
 
-              NR.create((f(id), func), Range.join(start, range));
+              NR.create((export_id, func), Range.join(start, range));
             }
           )
       )

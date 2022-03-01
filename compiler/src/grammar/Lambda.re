@@ -4,7 +4,8 @@ let arguments = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
-      Typing.expression_parser
+      Symbol.colon
+      >> Typing.expression_parser
       >|= ((type_, default) => (id, Some(type_), default))
       |> option(default => (id, None, default))
   )
@@ -21,7 +22,7 @@ let arguments = (ctx: ModuleContext.t) =>
       let name_range = NR.get_range(name);
 
       N.create(
-        AR.{name, default, type_: None},
+        AR.{name, default, type_},
         default |> Option.map(N.get_type) |?: TR.(`Unknown),
         Range.join(
           name_range,
