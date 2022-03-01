@@ -30,28 +30,24 @@ let __types =
   |> List.to_seq
   |> Hashtbl.of_seq;
 
-let __ast =
-  [
-    (
-      ("ABC" |> A.of_public, Range.create((1, 7), (1, 9)))
-      |> A.of_named_export,
-      123L
-      |> A.of_int
-      |> A.of_num
-      |> A.of_prim
-      |> U.as_node(
-           ~range=Range.create((1, 13), (1, 15)),
-           T.Valid(`Integer),
-         )
-      |> A.of_const
-      |> U.as_node(
-           ~range=Range.create((1, 13), (1, 15)),
-           T.Valid(`Integer),
-         ),
-    )
-    |> A.of_decl,
-  ]
-  |> List.map(U.as_raw_node);
+let __ast = [
+  (
+    ("ABC" |> A.of_public, Range.create((1, 7), (1, 9)))
+    |> A.of_named_export,
+    123L
+    |> A.of_int
+    |> A.of_num
+    |> A.of_prim
+    |> U.as_node(
+         ~range=Range.create((1, 13), (1, 15)),
+         T.Valid(`Integer),
+       )
+    |> A.of_const
+    |> U.as_node(~range=Range.create((1, 13), (1, 15)), T.Valid(`Integer)),
+  )
+  |> A.of_decl
+  |> U.as_raw_node(~range=Range.create((1, 1), (1, 15))),
+];
 
 let _assert_import_graph_structure =
   Alcotest.(
