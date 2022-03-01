@@ -3,7 +3,7 @@ open Kore;
 module SemanticAnalyzer = Analyze.Semantic;
 
 let _create_scope = (range: Range.t, ctx: ModuleContext.t) =>
-  ScopeV2.create(
+  Scope.create(
     ctx.namespace_context.namespace,
     ctx.namespace_context.report,
     range,

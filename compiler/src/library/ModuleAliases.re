@@ -10,4 +10,4 @@ module AR = AST.Raw;
 module T = Type;
 module TR = Type.Raw;
 
-module S = ScopeV2;
+module S = Scope;
