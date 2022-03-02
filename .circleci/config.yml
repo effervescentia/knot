@@ -320,6 +320,11 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: runtime
+          to: plugins/runtime
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
