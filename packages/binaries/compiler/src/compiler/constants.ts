@@ -5,10 +5,8 @@ export const INFINITE_ATTEMPTS = 100;
 export const ATTEMPT_TIMEOUT = 1000;
 
 export const DEFAULT_OPTIONS = {
-  compiler: {
-    module: 'es6'
-  },
-  config: process.cwd(),
+  target: 'javascript-es6',
+  rootDir: process.cwd(),
   debug: false,
   plugins: {
     jsx: '@knot/react-plugin',

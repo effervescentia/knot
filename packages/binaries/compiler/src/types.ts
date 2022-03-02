@@ -15,7 +15,7 @@ export interface Options {
   readonly port: number;
   readonly debug: boolean;
   readonly knot: string;
-  readonly config: string;
+  readonly rootDir: string;
   readonly plugins: Plugins;
   readonly target: 'javascript-es6' | 'javascript-common';
 }

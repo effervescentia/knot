@@ -16,8 +16,8 @@ function startCompiler(options: FullOptions): void {
     options.port,
     '--target',
     options.target,
-    '--config',
-    options.config,
+    '--root-dir',
+    options.rootDir,
     ...(options.debug ? ['--debug'] : [])
   ];
   const [cmd, ...args] = (options.knot || KNOT_BINARY).split(/\s+/);
@@ -40,10 +40,6 @@ class Compiler {
     const mergedOptions: Options = {
       ...DEFAULT_OPTIONS,
       ...options,
-      compiler: {
-        ...DEFAULT_OPTIONS.compiler,
-        ...options.compiler
-      },
       plugins: {
         ...DEFAULT_OPTIONS.plugins,
         ...options.plugins
