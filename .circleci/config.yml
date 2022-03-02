@@ -285,7 +285,7 @@ jobs:
           command: |
             sudo apt update
             sudo apt install fswatch
-            ldconfig
+            sudo ldconfig
       - compiler_install
       - run:
           name: Build
