@@ -17,9 +17,7 @@ export interface Options {
   readonly knot: string;
   readonly config: string;
   readonly plugins: Plugins;
-  readonly compiler: {
-    readonly module: 'es6' | 'common';
-  };
+  readonly target: 'javascript-es6' | 'javascript-common';
 }
 
 export type OptionOverrides = DeepPartial<Options>;
