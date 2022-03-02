@@ -7,4 +7,4 @@ import * as platform from '@knot/platform';
 // @ts-ignore
 import * as style from '@knot/style';
 
-export { platform, jsx, style };
+export default { platform, jsx, style };

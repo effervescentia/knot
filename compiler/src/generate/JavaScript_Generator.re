@@ -313,8 +313,8 @@ let gen_view =
           |> List.mapi((index, A.{name, default}) => {
                let id = name |> NR.get_value |> ~@Identifier.pp;
 
-               Assignment(
-                 Identifier(id),
+               Variable(
+                 id,
                  FunctionCall(
                    __knot_prop,
                    [Identifier(__view_props), String(id)]

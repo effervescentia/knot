@@ -215,8 +215,8 @@ let suite =
               Some("foo"),
               ["$props$"],
               [
-                Assignment(
-                  Identifier("bar"),
+                Variable(
+                  "bar",
                   FunctionCall(
                     DotAccess(
                       DotAccess(Identifier("$knot"), "platform"),
