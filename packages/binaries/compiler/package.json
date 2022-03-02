@@ -30,6 +30,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@knot/runtime": "1.0.0",
     "@types/yargs": "^13.0.4",
     "cross-fetch": "^3.0.4",
     "execa": "^2.0.4",

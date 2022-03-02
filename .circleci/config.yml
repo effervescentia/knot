@@ -207,6 +207,9 @@ commands:
           from: common
           to: plugins/common
       - restore_pkg:
+          from: runtime
+          to: plugins/runtime
+      - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
       - restore_pkg:
@@ -252,6 +255,7 @@ jobs:
             - packages/plugins/bundler/rollup/node_modules
             - packages/plugins/bundler/browserify/node_modules
             - packages/plugins/common/node_modules
+            - packages/plugins/runtime/node_modules
             - packages/plugins/compiler/browser/node_modules
             - packages/plugins/compiler/jss/node_modules
             - packages/plugins/compiler/react/node_modules
@@ -343,6 +347,18 @@ jobs:
       - build_pkg:
           pkg: common
           path: packages/plugins/common
+
+  test_runtime:
+    executor:
+      name: node/default
+      tag: 15.9.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: runtime
+          path: packages/plugins/runtime
 
   test_plugin_utils:
     executor:
@@ -551,7 +567,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: '11.0.0'
+      xcode: "11.0.0"
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -630,8 +646,12 @@ workflows:
     jobs:
       - install_node
       - test_compiler_binary
+      - test_runtime:
+          requires:
+            - install_node
       - test_compiler:
           requires:
+            - test_runtime
             - install_node
       - test_cli:
           requires:

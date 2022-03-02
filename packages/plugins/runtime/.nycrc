@@ -1,0 +1,8 @@
+{
+  "include": [
+    "build/**"
+  ],
+  "exclude": [
+    "**/*.test.js"
+  ]
+}
