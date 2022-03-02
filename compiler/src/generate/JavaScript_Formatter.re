@@ -1,6 +1,8 @@
 open Kore;
 open JavaScript_AST;
 
+let __import_prefix = "$import$";
+
 let _import_variable_name =
   String.replace('.', '_') % String.replace('/', '$');
 
@@ -142,7 +144,8 @@ and fmt_common_named_imports:
     switch (imports) {
     | [] => Fmt.nop(ppf, ())
     | _ =>
-      let temp_variable_name = "$import$" ++ _import_variable_name(namespace);
+      let temp_variable_name =
+        __import_prefix ++ _import_variable_name(namespace);
       let statements =
         [
           Variable(

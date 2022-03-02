@@ -577,7 +577,8 @@ type declaration_t = node_t(raw_declaration_t)
  */
 and raw_declaration_t =
   | Constant(expression_t)
-  | Function(list(argument_t), expression_t);
+  | Function(list(argument_t), expression_t)
+  | View(list(argument_t), expression_t);
 
 /**
  an import AST node
@@ -623,6 +624,7 @@ let of_named_export = x => NamedExport(x);
 
 let of_const = x => Constant(x);
 let of_func = ((args, expr)) => Function(args, expr);
+let of_view = ((props, expr)) => View(props, expr);
 
 let of_import = ((namespace, main)) => Import(namespace, main);
 let of_decl = ((name, x)) => Declaration(name, x);
@@ -637,7 +639,7 @@ module Dump = {
     | MainExport(id) => id_to_entity("MainExport", id)
     | NamedExport(id) => id_to_entity("NamedExport", id);
 
-  let argument_to_entity = arg => {
+  let argument_to_entity = (label, arg) => {
     let {name, default, type_} = Node.get_value(arg);
     let children = ref([id_to_entity("Name", name)]);
 
@@ -652,7 +654,7 @@ module Dump = {
     | None => ()
     };
 
-    typed_node_to_entity(~children=children^, "Argument", arg);
+    typed_node_to_entity(~children=children^, label, arg);
   };
 
   let decl_to_entity: declaration_t => Entity.t =
@@ -669,12 +671,25 @@ module Dump = {
         typed_node_to_entity(
           ~children=[
             Entity.create(
-              ~children=args |> List.map(argument_to_entity),
+              ~children=args |> List.map(argument_to_entity("Argument")),
               "Arguments",
             ),
             Entity.create(~children=[expr_to_entity(expr)], "Body"),
           ],
           "Function",
+          decl,
+        )
+
+      | View(props, expr) =>
+        typed_node_to_entity(
+          ~children=[
+            Entity.create(
+              ~children=props |> List.map(argument_to_entity("Property")),
+              "Properties",
+            ),
+            Entity.create(~children=[expr_to_entity(expr)], "Body"),
+          ],
+          "View",
           decl,
         )
       };

@@ -45,7 +45,10 @@ let statement = (expected, actual) =>
 let argument = (expected, actual) =>
   Alcotest.(
     check(
-      testable(AST.Dump.(ppf => argument_to_entity % Entity.pp(ppf)), (==)),
+      testable(
+        AST.Dump.(ppf => argument_to_entity("Argument") % Entity.pp(ppf)),
+        (==),
+      ),
       "argument matches",
       expected,
       actual,

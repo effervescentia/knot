@@ -1,7 +1,5 @@
 import { destructureWithDefault } from './utils';
 
-const PARAMETER_MAP = '$$KNOT_PARAM_MAP$$';
-
 interface StylePlugin {
   readonly resolve: (jss: Record<string, any>) => Record<string, string>;
 }
@@ -17,27 +15,13 @@ export function prop<T>(
 export function arg<T>(
   argumentsObj: readonly any[],
   index: number,
-  name: string,
   defaultVal: T
 ): T | undefined {
-  if (argumentsObj.length === 0) {
-    return undefined;
+  if (argumentsObj.length - 1 < index) {
+    return defaultVal;
   }
 
-  const hasDefaults = argumentsObj.length > 3;
-  const hasParamMap =
-    argumentsObj.length === 1 &&
-    typeof argumentsObj[0] === 'object' &&
-    PARAMETER_MAP in argumentsObj[0];
-  const [key, args] = hasParamMap
-    ? [name, argumentsObj[0]]
-    : [index, argumentsObj];
-
-  if (hasDefaults) {
-    return destructureWithDefault(args, key, defaultVal);
-  } else {
-    return args[key];
-  }
+  return argumentsObj[index];
 }
 
 export function style(

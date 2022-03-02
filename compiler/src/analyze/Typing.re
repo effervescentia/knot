@@ -49,14 +49,14 @@ let check_jsx_class_expression: T.t => option(T.error_t) =
 
   | type_ => Some(InvalidJSXClassExpression(type_));
 
-let check_jsx_inline_expression: T.t => option(T.error_t) =
+let check_jsx_primitive_expression: T.t => option(T.error_t) =
   fun
   /* assume this has been reported already and ignore */
   | Invalid(_) => None
 
   | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
 
-  | type_ => Some(InvalidJSXInlineExpression(type_));
+  | type_ => Some(InvalidJSXPrimitiveExpression(type_));
 
 let rec eval_type_expression: A.TypeExpression.raw_t => T.t =
   type_expr =>

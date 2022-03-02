@@ -57,7 +57,7 @@ and analyze_jsx_child =
       let type_ = N.get_type(expr);
 
       type_
-      |> Typing.check_jsx_inline_expression
+      |> Typing.check_jsx_primitive_expression
       |> Option.iter(expr |> N.get_range |> S.report_type_err(scope));
 
       A.of_inline_expr(expr);
@@ -240,4 +240,42 @@ let analyze_argument =
     };
 
   N.create(arg, type_, range);
+};
+
+let rec _check_default_arguments =
+        (~require_default=false, scope: S.t, args: list(A.argument_t)) =>
+  switch (args, require_default) {
+  | ([], _) => ()
+
+  | ([(A.{name, default: None}, _, range), ...xs], true) =>
+    Type.DefaultArgumentMissing(NR.get_value(name))
+    |> S.report_type_err(scope, range);
+
+    _check_default_arguments(~require_default, scope, xs);
+
+  | ([(A.{default: Some(_)}, _, _), ...xs], _) =>
+    _check_default_arguments(~require_default=true, scope, xs)
+
+  | ([x, ...xs], _) => _check_default_arguments(~require_default, scope, xs)
+  };
+
+let analyze_argument_list =
+    (scope: S.t, raw_args: list(AR.argument_t)): list(A.argument_t) => {
+  let args = raw_args |> List.map(analyze_argument(scope));
+
+  _check_default_arguments(scope, args);
+
+  args;
+};
+
+let analyze_view_body =
+    (scope: S.t, raw_body: AR.expression_t): A.expression_t => {
+  let body = raw_body |> analyze_expression(scope);
+  let type_ = N.get_type(body);
+
+  type_
+  |> Typing.check_jsx_primitive_expression
+  |> Option.iter(body |> N.get_range |> S.report_type_err(scope));
+
+  body;
 };

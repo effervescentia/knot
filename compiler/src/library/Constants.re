@@ -78,6 +78,7 @@ module Keyword = {
   let main = "main";
   let const = "const";
   let func = "func";
+  let view = "view";
   let let_ = "let";
   let nil = "nil";
   let true_ = "true";

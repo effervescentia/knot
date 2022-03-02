@@ -123,7 +123,7 @@ let suite =
               Range.zero,
             ),
           ]),
-          "should throw TypeMismatch error",
+          "should throw UntypedFunctionArgument error",
           () =>
           AR.{name: URaw.as_raw_node(__id), default: None, type_: None}
           |> URaw.as_unknown
@@ -139,6 +139,44 @@ let suite =
           AR.{name: URaw.as_raw_node(__id), default: None, type_: None}
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__scope),
+        )
+    ),
+    "report DefaultArgumentMissing on gaps in default arguments"
+    >: (
+      () =>
+        Assert.throws(
+          CompileError([
+            ParseError(
+              TypeError(
+                DefaultArgumentMissing(Identifier.of_string("bar")),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+          ]),
+          "should throw DefaultArgumentMissing error",
+          () =>
+          [
+            AR.{
+              name: "fizz" |> Identifier.of_string |> URaw.as_raw_node,
+              default: None,
+              type_: Some(URaw.as_raw_node(TE.Boolean)),
+            }
+            |> URaw.as_unknown,
+            AR.{
+              name: "buzz" |> Identifier.of_string |> URaw.as_raw_node,
+              default: Some(URaw.bool_prim(true)),
+              type_: None,
+            }
+            |> URaw.as_unknown,
+            AR.{
+              name: "bar" |> Identifier.of_string |> URaw.as_raw_node,
+              default: None,
+              type_: Some(URaw.as_raw_node(TE.Boolean)),
+            }
+            |> URaw.as_unknown,
+          ]
+          |> SemanticAnalyzer.analyze_argument_list(__throw_scope)
         )
     ),
   ];

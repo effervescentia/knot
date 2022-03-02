@@ -35,7 +35,7 @@ let suite =
           |> SemanticAnalyzer.analyze_jsx(__throw_scope),
         )
     ),
-    "report InvalidJSXInlineExpression error with invalid inline expression"
+    "report InvalidJSXPrimitiveExpression error with invalid inline expression"
     >: (
       () => {
         let type_ = T.Valid(`Function(([], Valid(`Boolean))));
@@ -47,12 +47,12 @@ let suite =
         Assert.throws(
           CompileError([
             ParseError(
-              TypeError(InvalidJSXInlineExpression(type_)),
+              TypeError(InvalidJSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
           ]),
-          "should throw InvalidJSXInlineExpression",
+          "should throw InvalidJSXPrimitiveExpression",
           () =>
           (
             URaw.as_raw_node(__id),
@@ -67,6 +67,32 @@ let suite =
           )
           |> AR.of_tag
           |> SemanticAnalyzer.analyze_jsx(scope)
+        );
+      }
+    ),
+    "report InvalidJSXPrimitiveExpression error with invalid view body"
+    >: (
+      () => {
+        let type_ = T.Valid(`Function(([], Valid(`Boolean))));
+        let scope = {
+          ...__throw_scope,
+          types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
+        };
+
+        Assert.throws(
+          CompileError([
+            ParseError(
+              TypeError(InvalidJSXPrimitiveExpression(type_)),
+              __namespace,
+              Range.zero,
+            ),
+          ]),
+          "should throw InvalidJSXPrimitiveExpression",
+          () =>
+          __id
+          |> AR.of_id
+          |> URaw.as_unknown
+          |> SemanticAnalyzer.analyze_view_body(scope)
         );
       }
     ),

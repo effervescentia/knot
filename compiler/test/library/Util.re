@@ -61,6 +61,8 @@ module ResultUtil = {
   let as_element = x => as_node(T.Valid(`Element), x);
   let as_function = (args, res, x) =>
     as_node(T.Valid(`Function((args, res))), x);
+  let as_view = (props, res, x) =>
+    as_node(T.Valid(`View((props, res))), x);
 
   /* primitive factories */
 

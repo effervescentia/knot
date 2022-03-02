@@ -30,6 +30,7 @@ module Container = {
     | `List('a)
     | `Struct(list((string, 'a)))
     | `Function(list('a), 'a)
+    | `View(list((string, 'a)), 'a)
   ];
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
@@ -63,6 +64,19 @@ module Container = {
           res,
         )
     );
+
+  let pp_view = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
+    Fmt.(
+      (ppf, (props, res)) =>
+        pf(
+          ppf,
+          "@[<h>View<(%a), %a>@]",
+          list(~sep=comma, pp_props(pp_type)),
+          props,
+          pp_type,
+          res,
+        )
+    );
 };
 
 module Raw = {
@@ -85,6 +99,8 @@ module Raw = {
       | `Struct(props) => Container.pp_struct(pp, ppf, props)
 
       | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+
+      | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
 
       | `Unknown => Fmt.string(ppf, "Unknown")
       };
@@ -109,9 +125,10 @@ type error_t =
   | TypeMismatch(t, t)
   | InvalidUnaryOperation(AST_Operator.unary_t, t)
   | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
-  | InvalidJSXInlineExpression(t)
+  | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
-  | UntypedFunctionArgument(Identifier.t);
+  | UntypedFunctionArgument(Identifier.t)
+  | DefaultArgumentMissing(Identifier.t);
 
 /* methods */
 
@@ -129,6 +146,7 @@ and pp_valid: Fmt.t(valid_t) =
     | `List(t) => Container.pp_list(pp, ppf, t)
     | `Struct(props) => Container.pp_struct(pp, ppf, props)
     | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+    | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
 
 and pp_invalid: Fmt.t(invalid_t) =
   ppf =>
@@ -180,11 +198,14 @@ let pp_error: Fmt.t(error_t) =
           rhs,
         )
 
-      | InvalidJSXInlineExpression(type_) =>
-        pf(ppf, "InvalidJSXInlineExpression<%a>", pp, type_)
+      | InvalidJSXPrimitiveExpression(type_) =>
+        pf(ppf, "InvalidJSXPrimitiveExpression<%a>", pp, type_)
 
       | InvalidJSXClassExpression(type_) =>
         pf(ppf, "InvalidJSXClassExpression<%a>", pp, type_)
+
+      | DefaultArgumentMissing(id) =>
+        pf(ppf, "DefaultArgumentMissing<%a>", Identifier.pp, id)
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>
@@ -198,6 +219,9 @@ let rec of_raw = (raw_type: Raw.t): t =>
 
   | `Function(args, res) =>
     Valid(`Function((args |> List.map(of_raw), of_raw(res))))
+
+  | `View(props, res) =>
+    Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))
 
   | `Unknown => raise(UnknownTypeEncountered)
   };

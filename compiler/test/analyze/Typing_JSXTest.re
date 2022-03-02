@@ -34,7 +34,9 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          TypingAnalyzer.check_jsx_inline_expression(Invalid(NotInferrable)),
+          TypingAnalyzer.check_jsx_primitive_expression(
+            Invalid(NotInferrable),
+          ),
         )
     ),
     "inline expression with non-function types"
@@ -51,7 +53,7 @@ let suite =
         |> List.iter(type_ =>
              Assert.type_error(
                None,
-               TypingAnalyzer.check_jsx_inline_expression(type_),
+               TypingAnalyzer.check_jsx_primitive_expression(type_),
              )
            )
     ),
@@ -60,11 +62,11 @@ let suite =
       () =>
         Assert.type_error(
           Some(
-            InvalidJSXInlineExpression(
+            InvalidJSXPrimitiveExpression(
               Valid(`Function(([], Valid(`Nil)))),
             ),
           ),
-          TypingAnalyzer.check_jsx_inline_expression(
+          TypingAnalyzer.check_jsx_primitive_expression(
             Valid(`Function(([], Valid(`Nil)))),
           ),
         )

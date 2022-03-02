@@ -7,6 +7,7 @@ let from = M.keyword(K.from);
 let main = M.keyword(K.main);
 let const = M.keyword(K.const);
 let func = M.keyword(K.func);
+let view = M.keyword(K.view);
 let let_ = M.keyword(K.let_);
 let nil = M.keyword(K.nil);
 let true_ = M.keyword(K.true_);

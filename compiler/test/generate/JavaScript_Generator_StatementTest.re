@@ -30,6 +30,15 @@ let _assert_function = (expected, actual) =>
       actual |> Tuple.join3(Generator.gen_function),
     )
   );
+let _assert_view = (expected, actual) =>
+  Alcotest.(
+    check(
+      Assert.Compare.statement(Target.Common),
+      "javascript view matches",
+      expected,
+      actual |> Tuple.join3(Generator.gen_view),
+    )
+  );
 
 let __variable_declaration =
   ("fooBar" |> A.of_public |> U.as_raw_node, U.int_prim(123)) |> A.of_var;
@@ -122,7 +131,16 @@ let suite =
               Some("foo"),
               ["bar"],
               [
-                Assignment(Identifier("bar"), Number("123")),
+                Assignment(
+                  Identifier("bar"),
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "platform"),
+                      "arg",
+                    ),
+                    [Identifier("arguments"), Number("0"), Number("123")],
+                  ),
+                ),
                 Return(
                   Some(
                     Group(BinaryOp("+", Identifier("bar"), Number("5"))),
@@ -185,6 +203,49 @@ let suite =
             ]
             |> A.of_closure
             |> U.as_float,
+          ),
+        )
+    ),
+    "view - property with default value"
+    >: (
+      () =>
+        _assert_view(
+          Expression(
+            Function(
+              Some("foo"),
+              ["$props$"],
+              [
+                Assignment(
+                  Identifier("bar"),
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "platform"),
+                      "prop",
+                    ),
+                    [Identifier("$props$"), String("bar"), Number("123")],
+                  ),
+                ),
+                Return(
+                  Some(
+                    Group(BinaryOp("+", Identifier("bar"), Number("5"))),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          (
+            "foo" |> A.of_public |> U.as_raw_node,
+            [
+              A.{
+                name: "bar" |> A.of_public |> U.as_raw_node,
+                default: Some(U.int_prim(123)),
+                type_: None,
+              }
+              |> U.as_nil,
+            ],
+            ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
+            |> A.of_add_op
+            |> U.as_int,
           ),
         )
     ),
