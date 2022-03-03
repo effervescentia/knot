@@ -233,7 +233,7 @@ jobs:
   install_node:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -271,7 +271,7 @@ jobs:
   test_compiler_binary:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -285,8 +285,6 @@ jobs:
           command: |
             sudo apt update
             sudo apt install fswatch
-            sudo ldconfig
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
       - compiler_install
       - run:
           name: Build
@@ -316,7 +314,7 @@ jobs:
   test_compiler:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -333,7 +331,7 @@ jobs:
   test_cli:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -345,7 +343,7 @@ jobs:
   test_common:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -357,7 +355,7 @@ jobs:
   test_runtime:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -369,7 +367,7 @@ jobs:
   test_plugin_utils:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -381,7 +379,7 @@ jobs:
   test_browser_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -393,7 +391,7 @@ jobs:
   test_react_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -413,7 +411,7 @@ jobs:
   test_vue_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -433,7 +431,7 @@ jobs:
   test_jss_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -445,7 +443,7 @@ jobs:
   test_webpack_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -456,7 +454,7 @@ jobs:
   test_browserify_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -467,7 +465,7 @@ jobs:
   test_rollup_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -603,7 +601,7 @@ jobs:
   compile_linux:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -624,7 +622,7 @@ jobs:
   release:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
