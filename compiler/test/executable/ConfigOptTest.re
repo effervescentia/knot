@@ -295,13 +295,14 @@ let suite =
           Fmt.str(
             "--color
   [default: %b]
-  [from config: false]
+  [from config: %b]
   \n  allow color in logs",
             !is_ci,
+            is_ci,
           ),
           ConfigOpt.color()
           |> fst
-          |> ~@Opt.pp(Some({...__config, color: false})),
+          |> ~@Opt.pp(Some({...__config, color: is_ci})),
         )
     ),
     "fail_fast() - default"
