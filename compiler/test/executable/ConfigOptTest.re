@@ -3,6 +3,8 @@ open Kore;
 module Opt = Executable.Opt;
 module ConfigOpt = Executable.ConfigOpt;
 
+let is_ci = Executable.Kore.is_ci;
+
 let __config = Config.defaults(false);
 
 let suite =
@@ -267,9 +269,12 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "--color
-  [default: true]
+          Fmt.str(
+            "--color
+  [default: %b]
   \n  allow color in logs",
+            !is_ci,
+          ),
           ConfigOpt.color() |> fst |> ~@Opt.pp(None),
         )
     ),
@@ -287,10 +292,13 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "--color
-  [default: true]
+          Fmt.str(
+            "--color
+  [default: %b]
   [from config: false]
   \n  allow color in logs",
+            !is_ci,
+          ),
           ConfigOpt.color()
           |> fst
           |> ~@Opt.pp(Some({...__config, color: false})),
@@ -310,23 +318,56 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "--color
-  [default: false]
-  \n  allow color in logs",
-          ConfigOpt.color(~default=false, ()) |> fst |> ~@Opt.pp(None),
+          "--fail-fast
+  [default: true]
+  \n  fail as soon as the first error is encountered",
+          ConfigOpt.fail_fast(~default=true, ()) |> fst |> ~@Opt.pp(None),
         )
     ),
     "fail_fast() - with value inherited from config"
     >: (
       () =>
         Assert.string(
-          "--color
-  [default: true]
-  [from config: false]
-  \n  allow color in logs",
-          ConfigOpt.color()
+          "--fail-fast
+  [default: false]
+  [from config: true]
+  \n  fail as soon as the first error is encountered",
+          ConfigOpt.fail_fast()
           |> fst
-          |> ~@Opt.pp(Some({...__config, color: false})),
+          |> ~@Opt.pp(Some({...__config, fail_fast: true})),
+        )
+    ),
+    "log_imports() - default"
+    >: (
+      () =>
+        Assert.string(
+          "--log-imports
+  [default: false]
+  \n  print a graph describing the dependencies between modules",
+          ConfigOpt.log_imports() |> fst |> ~@Opt.pp(None),
+        )
+    ),
+    "log_imports() - overridden default"
+    >: (
+      () =>
+        Assert.string(
+          "--log-imports
+  [default: true]
+  \n  print a graph describing the dependencies between modules",
+          ConfigOpt.log_imports(~default=true, ()) |> fst |> ~@Opt.pp(None),
+        )
+    ),
+    "log_imports() - with value inherited from config"
+    >: (
+      () =>
+        Assert.string(
+          "--log-imports
+  [default: false]
+  [from config: true]
+  \n  print a graph describing the dependencies between modules",
+          ConfigOpt.log_imports()
+          |> fst
+          |> ~@Opt.pp(Some({...__config, log_imports: true})),
         )
     ),
   ];
