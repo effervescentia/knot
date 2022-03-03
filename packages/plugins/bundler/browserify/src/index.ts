@@ -10,10 +10,7 @@ function browserifyKnot(
 ): void {
   const configuredOptions: OptionOverrides = {
     ...options,
-    compiler: {
-      ...options.compiler,
-      module: 'common'
-    }
+    target: 'javascript-common'
   };
 
   const compiler = new KnotCompiler(configuredOptions);

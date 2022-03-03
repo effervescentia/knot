@@ -285,6 +285,9 @@ jobs:
           command: |
             sudo apt update
             sudo apt install fswatch
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
+            sudo ldconfig
       - compiler_install
       - run:
           name: Build
