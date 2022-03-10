@@ -2,6 +2,8 @@ module Tester = Alcotest_engine.Cli.Make(Alcotest.Unix, Lwt);
 
 include Tester;
 
+exception AsyncFailure;
+
 let run_test = (fn, args) => {
   let (async_ex, async_waker) = Lwt.wait();
   let handle_exn = ex => {
@@ -26,11 +28,37 @@ let on_tick = (~ticks=1, callback) => {
   () => Lwt_timeout.stop(timeout);
 };
 
-let await_succcess = () =>
-  on_tick(~ticks=2, () => Assert.fail("test did not finish in time"));
-
 let wait = () => {
   let (promise, resolver) = Lwt.wait();
 
   (promise, Lwt.wakeup(resolver));
+};
+
+let delay = (timeout, f) =>
+  Lwt.(async(() => Lwt_unix.sleep(timeout) >>= (() => return(f()))));
+
+let fail_after = timeout =>
+  Lwt.(Lwt_unix.sleep(timeout) >>= (() => fail(AsyncFailure)));
+
+let await_success = (~ticks=2, ()) => {
+  let (promise, resolve) = wait();
+  let cancel =
+    on_tick(~ticks, () => Assert.fail("test did not finish in time"));
+  let resolve' = () => {
+    cancel();
+    resolve();
+  };
+
+  (promise, resolve');
+};
+
+let await_failure = (~ticks=2, ()) => {
+  let (promise, resolve) = wait();
+  let cancel = on_tick(~ticks, resolve);
+  let reject = err => {
+    cancel();
+    Assert.fail(err);
+  };
+
+  (promise, reject);
 };

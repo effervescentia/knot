@@ -10,13 +10,7 @@ type t = {
   extensions: list(string),
 };
 
-type action_t =
-  | Add
-  | Remove
-  | Update
-  | Relocate;
-
-type dispatch_t = list((string, action_t)) => unit;
+type dispatch_t = list((string, FilesystemDriver.action_t)) => unit;
 
 let _ext_matches = (path: string, watcher: t): bool =>
   watcher.extensions |> List.exists(ext => String.ends_with(ext, path));
@@ -51,6 +45,7 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
            Event.(
              event => {
                let path = event.path |> String.drop_prefix(watcher.dir);
+               let path = path == "" ? "/" : path;
 
                print_endline("file found: " ++ path);
                print_endline(
@@ -62,45 +57,8 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
                  ),
                );
 
-               (
-                 switch (event.flags) {
-                 /*
-                   ignore directories and symlinks
-                   using a negation check as some platforms do not use the IsFile flag
-                  */
-                 | flags
-                     when
-                       [IsDir, IsSymLink]
-                       |> List.exists(flag => Array.mem(flag, flags)) =>
-                   None
-
-                 /* ignore files with the wrong extension */
-                 | flags when !(watcher |> _ext_matches(event.path)) => None
-
-                 | flags when Array.mem(Created, flags) => Some(Add)
-
-                 | flags when Array.mem(Updated, flags) => Some(Update)
-
-                 | flags when Array.mem(Removed, flags) => Some(Remove)
-
-                 | flags
-                     when
-                       [Renamed, MovedFrom, MovedTo]
-                       |> List.exists(flag => Array.mem(flag, flags)) =>
-                   Some(Relocate)
-
-                 /* ignore these flags if they appear on their own */
-                 | [|NoOp | Overflow|] => None
-
-                 /* treat everything else as an update */
-                 | _ => Some(Update)
-                 }
-               )
-               |> (
-                 fun
-                 | Some(action) => Some((path, action))
-                 | None => None
-               );
+               FilesystemDriver.handle(event.path, event.flags)
+               |> Option.map(action => (path, action));
              }
            ),
          )

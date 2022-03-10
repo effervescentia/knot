@@ -76,4 +76,6 @@ let suite =
     >: (() => Assert.pair_int_list(([1], [2, 3]), List.divide([1, 2, 3]))),
     "divide() - one item"
     >: (() => Assert.pair_int_list(([1], []), List.divide([1]))),
+    "is_empty() - empty" >: (() => Assert.true_(List.is_empty([]))),
+    "is_empty() - not empty" >: (() => Assert.false_(List.is_empty([1]))),
   ];

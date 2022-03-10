@@ -91,3 +91,8 @@ let divide = (xs: list('a)) =>
   | [_] => (xs, [])
   | _ => xs |> split_at(length(xs) / 2)
   };
+
+/**
+ returns [true] if the list is empty
+ */
+let is_empty = (xs: list('a)): bool => length(xs) == 0;

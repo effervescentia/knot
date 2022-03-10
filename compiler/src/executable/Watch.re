@@ -3,6 +3,7 @@
  */
 open Kore;
 open Fswatch;
+open File.FilesystemDriver;
 
 module Watcher = File.Watcher;
 
@@ -83,7 +84,7 @@ let run =
          |> List.map(((path, action)) => {
               let id = Namespace.Internal(path);
               switch (action) {
-              | Add => compiler |> Compiler.add_module(id)
+              | Add => compiler |> Compiler.upsert_module(id)
               | Update => compiler |> Compiler.update_module(id) |> snd
               | Remove => compiler |> Compiler.remove_module(id)
               | Relocate => compiler |> Compiler.relocate_module(id) |> snd

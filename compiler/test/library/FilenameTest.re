@@ -3,6 +3,13 @@ open Kore;
 let suite =
   "Library.Filename"
   >::: [
+    "split()"
+    >: (
+      () => {
+        Assert.string_list(["foo"], Filename.split("foo"));
+        Assert.string_list(["foo", "bar"], Filename.split("foo/bar"));
+      }
+    ),
     "normalize()"
     >: (
       () => {

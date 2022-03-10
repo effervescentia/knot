@@ -19,7 +19,7 @@ let write_to_file = (path, s) => {
 };
 
 let append_to_file = (path, s) => {
-  let out = open_out_gen([Open_append], 0o666, path);
+  let out = open_out_gen([Open_creat, Open_append, Open_text], 0o666, path);
   Printf.fprintf(out, "%s", s);
 
   close_out(out);
