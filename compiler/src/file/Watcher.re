@@ -21,6 +21,26 @@ type dispatch_t = list((string, action_t)) => unit;
 let _ext_matches = (path: string, watcher: t): bool =>
   watcher.extensions |> List.exists(ext => String.ends_with(ext, path));
 
+let _flag_to_string: Fswatch.Event.flag => string =
+  Fswatch.Event.(
+    fun
+    | NoOp => "NoOp"
+    | PlatformSpecific => "PlatformSpecific"
+    | Created => "Created"
+    | Updated => "Updated"
+    | Removed => "Removed"
+    | Renamed => "Renamed"
+    | OwnerModified => "OwnerModified"
+    | AttributeModified => "AttributeModified"
+    | MovedFrom => "MovedFrom"
+    | MovedTo => "MovedTo"
+    | IsFile => "IsFile"
+    | IsDir => "IsDir"
+    | IsSymLink => "IsSymLink"
+    | Link => "Link"
+    | Overflow => "Overflow"
+  );
+
 let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
   Lwt_mvar.take(msgBox)
   >>= (
@@ -31,6 +51,16 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
            Event.(
              event => {
                let path = event.path |> String.drop_prefix(watcher.dir);
+
+               print_endline("file found: " ++ path);
+               print_endline(
+                 "flags: "
+                 ++ (
+                   event.flags
+                   |> Array.map(_flag_to_string)
+                   |> Array.fold_left((++), "")
+                 ),
+               );
 
                (
                  switch (event.flags) {
