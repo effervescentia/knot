@@ -64,16 +64,35 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
 
                (
                  switch (event.flags) {
-                 | flags when !Array.mem(IsFile, flags) => None
+                 /*
+                   ignore directories and symlinks
+                   using a negation check as some platforms do not use the IsFile flag
+                  */
+                 | flags
+                     when
+                       [IsDir, IsSymLink]
+                       |> List.exists(flag => Array.mem(flag, flags)) =>
+                   None
+
+                 /* ignore files with the wrong extension */
                  | flags when !(watcher |> _ext_matches(event.path)) => None
+
                  | flags when Array.mem(Created, flags) => Some(Add)
+
                  | flags when Array.mem(Updated, flags) => Some(Update)
+
                  | flags when Array.mem(Removed, flags) => Some(Remove)
+
                  | flags
                      when
                        [Renamed, MovedFrom, MovedTo]
                        |> List.exists(flag => Array.mem(flag, flags)) =>
                    Some(Relocate)
+
+                 /* ignore these flags if they appear on their own */
+                 | [|NoOp | Overflow|] => None
+
+                 /* treat everything else as an update */
                  | _ => Some(Update)
                  }
                )
