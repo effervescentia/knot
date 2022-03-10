@@ -313,6 +313,8 @@ jobs:
       - persist:
           from: compiler/_esy/default/store/i/knot-*
           to: knot
+      - store_artifacts:
+          path: ~/project/compiler/_build/_tests
 
   test_compiler:
     executor:
