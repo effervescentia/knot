@@ -263,8 +263,8 @@ let compile =
     (target: Target.t, output_dir: string, entry: Namespace.t, compiler: t) => {
   compiler |> init(entry);
 
-  FileUtil.rm(~recurse=true, [output_dir]);
-  FileUtil.mkdir(~parent=true, output_dir);
+  [output_dir] |> FileUtil.rm(~recurse=true);
+  output_dir |> FileUtil.mkdir(~parent=true);
 
   compiler |> emit_output(target, output_dir);
 

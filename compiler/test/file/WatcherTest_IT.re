@@ -3,16 +3,16 @@ open File.FilesystemDriver;
 
 module Watcher = File.Watcher;
 
-exception WatcherTestFailed;
-
 let __extensions = [".txt"];
+let __init_file = "init.txt";
+let __new_file = "new.txt";
 
 let _setup0 = id => {
   let temp_dir = Util.get_temp_dir();
   let parent_dir = Filename.concat(temp_dir, Fmt.str("test_%s", id));
-  let path = Filename.concat(parent_dir, "init.txt");
+  let path = Filename.concat(parent_dir, __init_file);
 
-  FileUtil.mkdir(~parent=true, parent_dir);
+  parent_dir |> FileUtil.mkdir(~parent=true);
 
   (parent_dir, path);
 };
@@ -20,10 +20,10 @@ let _setup0 = id => {
 let _setup = id => {
   let temp_dir = Util.get_temp_dir();
   let parent_dir = Filename.concat(temp_dir, Fmt.str("test_%s", id));
-  let path = Filename.concat(parent_dir, "init.txt");
+  let path = Filename.concat(parent_dir, __init_file);
 
-  FileUtil.mkdir(~parent=true, parent_dir);
-  Util.write_to_file(path, "hello world");
+  parent_dir |> FileUtil.mkdir(~parent=true);
+  path |> Util.write_to_file("hello world");
 
   (parent_dir, path);
 };
@@ -92,18 +92,15 @@ let _setup3 = (id, listener) => {
     watcher
     |> Watcher.watch(
          List.iter(
-           Tuple.map_fst2(String.drop_prefix("/private"))
-           % (
-             fun
-             | (path, Add) when ! is_setup^ && path == init_file => {
-                 print_endline("SETTTTTUP: " ++ path);
-                 print_endline("init_file: " ++ init_file);
-                 is_setup := true;
-                 resolve();
-               }
-             | x when is_setup^ => listener(x)
-             | _ => ()
-           ),
+           fun
+           | (path, Add) when ! is_setup^ && path == __init_file => {
+               print_endline("SETTTTTUP: " ++ path);
+               print_endline("init_file: " ++ init_file);
+               is_setup := true;
+               resolve();
+             }
+           | x when is_setup^ => listener(x)
+           | _ => print_endline("skipped did not find: " ++ init_file),
          ),
        )
   );
@@ -111,8 +108,8 @@ let _setup3 = (id, listener) => {
   Async.delay(
     1.0,
     () => {
-      FileUtil.mkdir(~parent=true, parent_dir);
-      Util.write_to_file(init_file, "hello world");
+      parent_dir |> FileUtil.mkdir(~parent=true);
+      init_file |> Util.write_to_file("hello world");
     },
   );
 
@@ -143,11 +140,11 @@ let suite =
                | (path, Add) => resolve(path)
                | _ => (),
              );
-           let new_file = Filename.concat(parent_dir, "added.txt");
+           let new_file = Filename.concat(parent_dir, __new_file);
 
            let action =
              Lwt.bind(setup, () =>
-               Util.write_to_file(new_file, "new file") |> Lwt.return
+               new_file |> Util.write_to_file("new file") |> Lwt.return
              );
 
            let result = done' |> Lwt.map(Assert.string(new_file));
@@ -162,7 +159,7 @@ let suite =
            let watcher = Watcher.create(parent_dir, __extensions);
            let (promise, resolve) = Async.await_success();
            let watch_disabled = ref(true);
-           let new_file = Filename.concat(parent_dir, "added.txt");
+           let new_file = Filename.concat(parent_dir, __new_file);
 
            watcher
            |> _test_watch(
@@ -177,7 +174,7 @@ let suite =
 
            Async.on_tick(() => {
              watch_disabled := false;
-             Util.write_to_file(new_file, "new file");
+             new_file |> Util.write_to_file("new file");
            })
            |> ignore;
 
@@ -204,10 +201,8 @@ let suite =
 
            Async.on_tick(() => {
              watch_disabled := false;
-             Util.write_to_file(
-               Filename.concat(parent_dir, "added.c"),
-               "new file",
-             );
+             Filename.concat(parent_dir, "added.c")
+              |> Util.write_to_file("new file");
            })
            |> ignore;
 
@@ -261,7 +256,7 @@ let suite =
            /* Lwt.bind(
                 setup,
                 () => {
-                  Util.append_to_file(init_file, "more content");
+                  init_file |> Util.append_to_file("more content");
                   promise;
                 },
               ); */
@@ -279,14 +274,14 @@ let suite =
             | (path, Add) => resolve(path)
             | _ => (),
           );
-        let new_file = Filename.concat(parent_dir, "added.txt");
+        let new_file = Filename.concat(parent_dir, __new_file);
 
         let action =
           Lwt.bind(setup, () =>
-            Util.write_to_file(new_file, "hello world") |> Lwt.return
+            new_file |> Util.write_to_file("hello world") |> Lwt.return
           );
 
-        let result = done' |> Lwt.map(Assert.string(new_file));
+        let result = done' |> Lwt.map(Assert.string(__new_file));
 
         [[result, action] |> Lwt.join, fail] |> Lwt.choose;
       }
@@ -306,7 +301,7 @@ let suite =
            let new_dir = Filename.concat(parent_dir, "added_dir");
 
            let action =
-             Lwt.bind(setup, () => FileUtil.mkdir(new_dir) |> Lwt.return);
+             Lwt.bind(setup, () => new_dir |> FileUtil.mkdir |> Lwt.return);
 
            let result = done' |> Lwt.map(Assert.string(new_dir));
 
@@ -327,11 +322,9 @@ let suite =
           );
 
         let action =
-          Lwt.bind(setup, () =>
-            [init_file] |> FileUtil.rm(~recurse=true) |> Lwt.return
-          );
+          Lwt.bind(setup, () => [init_file] |> FileUtil.rm |> Lwt.return);
 
-        let result = done' |> Lwt.map(Assert.string(init_file));
+        let result = done' |> Lwt.map(Assert.string(__init_file));
 
         [[result, action] |> Lwt.join, fail] |> Lwt.choose;
       }
@@ -354,7 +347,7 @@ let suite =
             [parent_dir] |> FileUtil.rm(~recurse=true) |> Lwt.return
           );
 
-        let result = done' |> Lwt.map(Assert.string(parent_dir));
+        let result = done' |> Lwt.map(Assert.string("."));
 
         [[result, action] |> Lwt.join, fail] |> Lwt.choose;
       }

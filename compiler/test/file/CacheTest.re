@@ -54,8 +54,8 @@ let suite =
         let path =
           Filename.concat(parent_dir, Util.temp_file_name("test", "txt"));
 
-        FileUtil.mkdir(~parent=true, parent_dir);
-        Util.write_to_file(path, __content);
+        parent_dir |> FileUtil.mkdir(~parent=true);
+        path |> Util.write_to_file(__content);
         Cache.destroy(parent_dir);
 
         Assert.false_(Sys.file_exists(path));

@@ -35,6 +35,12 @@ let _flag_to_string: Fswatch.Event.flag => string =
     | Overflow => "Overflow"
   );
 
+let _drop_platform_prefix =
+  switch (Platform.get()) {
+  | Darwin => String.drop_prefix("/private")
+  | _ => Fun.id
+  };
+
 let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
   Lwt_mvar.take(msgBox)
   >>= (
@@ -44,8 +50,9 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
       |> List.filter_map(
            Event.(
              event => {
-               let path = event.path |> String.drop_prefix(watcher.dir);
-               let path = path == "" ? "/" : path;
+               let path = _drop_platform_prefix(event.path);
+               let path = path |> Filename.relative_to(watcher.dir);
+               let path = path == "" ? "." : path;
 
                print_endline("file found: " ++ path);
                print_endline(
@@ -57,8 +64,10 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
                  ),
                );
 
-               FilesystemDriver.handle(event.path, event.flags)
-               |> Option.map(action => (path, action));
+               watcher |> _ext_matches(event.path)
+                 ? FilesystemDriver.handle(event.path, event.flags)
+                   |> Option.map(action => (path, action))
+                 : None;
              }
            ),
          )
