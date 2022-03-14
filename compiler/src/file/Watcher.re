@@ -51,16 +51,6 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
                let path = path |> Filename.relative_to(watcher.dir);
                let path = path == "" ? "." : path;
 
-               print_endline("file found: " ++ path);
-               print_endline(
-                 "flags: "
-                 ++ (
-                   event.flags
-                   |> Array.map(_flag_to_string)
-                   |> Array.fold_left((++), "")
-                 ),
-               );
-
                watcher.driver(event.path, event.flags)
                |> Option.map(action => (path, action));
              }

@@ -28,13 +28,11 @@ let _setup = (test_id, listener) => {
            | (path, Add)
                when
                  ! is_setup^ && path == Filename.concat(test_id, __init_file) => {
-               print_endline("SETTTTTUP: " ++ path);
-               print_endline("init_file: " ++ init_file);
                is_setup := true;
                resolve();
              }
            | x when is_setup^ => listener(x)
-           | _ => print_endline("skipped did not find: " ++ init_file),
+           | _ => (),
          ),
        )
   );
