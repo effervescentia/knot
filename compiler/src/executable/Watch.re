@@ -14,6 +14,8 @@ type config_t = {
   entry: Namespace.t,
 };
 
+let _is_source_file = String.ends_with(Constants.file_extension);
+
 let cmd = () => {
   let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
   let (out_dir_opt, get_out_dir) = ConfigOpt.out_dir();
@@ -74,8 +76,7 @@ let run =
 
   Log.info("initial compilation successful");
 
-  let watcher =
-    Watcher.create(config.source_dir, [Constants.file_extension]);
+  let watcher = Watcher.create(config.source_dir);
 
   watcher
   |> Watcher.(
@@ -84,10 +85,14 @@ let run =
          |> List.map(((path, action)) => {
               let id = Namespace.Internal(path);
               switch (action) {
-              | Add => compiler |> Compiler.upsert_module(id)
-              | Update => compiler |> Compiler.update_module(id) |> snd
-              | Remove => compiler |> Compiler.remove_module(id)
-              | Relocate => compiler |> Compiler.relocate_module(id) |> snd
+              | Add when _is_source_file(path) =>
+                compiler |> Compiler.upsert_module(id)
+              | Update when _is_source_file(path) =>
+                compiler |> Compiler.update_module(id) |> snd
+              | Remove when _is_source_file(path) =>
+                compiler |> Compiler.remove_module(id)
+
+              | _ => []
               };
             })
          |> List.flatten

@@ -75,3 +75,24 @@ let rec remove = (path: list(string), tree: t): unit =>
     };
   | _ => ()
   };
+
+let rec to_graph = (~parent=[], tree: t): Graph.t((list(string), string)) => {
+  let graph = Graph.create([(parent, tree.name)], []);
+  let path = parent @ [tree.name];
+
+  tree.children
+  |> List.fold_left(
+       (acc, child) => {
+         let res = to_graph(~parent=path, child) |> Graph.union(acc);
+
+         res |> Graph.add_edge((parent, tree.name), (path, child.name));
+
+         res;
+       },
+       graph,
+     );
+};
+
+let pp: Fmt.t(t) =
+  ppf =>
+    to_graph % Graph.pp((ppf, (_, path)) => Fmt.string(ppf, path), ppf);

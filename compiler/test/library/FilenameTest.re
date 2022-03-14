@@ -124,4 +124,8 @@ let suite =
         );
       }
     ),
+    "join()"
+    >: (
+      () => Assert.string("a/b/c/d/e", ["a/b", "c", "d/e"] |> Filename.join)
+    ),
   ];

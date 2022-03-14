@@ -11,10 +11,9 @@ let suite =
     "create()"
     >: (
       () => {
-        let watcher = Watcher.create(__temp_dir, __extensions);
+        let watcher = Watcher.create(__temp_dir);
 
         Assert.string(__temp_dir, watcher.dir);
-        Assert.string_list(__extensions, watcher.extensions);
       }
     ),
   ];

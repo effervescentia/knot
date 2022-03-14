@@ -1,6 +1,8 @@
 /**
  Extension of the standard Filename module with additional functionality.
  */
+open Infix;
+
 include Stdlib.Filename;
 
 let __relative_prefix = current_dir_name ++ dir_sep;
@@ -83,3 +85,15 @@ and resolve = (path: string) =>
   } else {
     normalize(path);
   };
+
+let join = (parts: list(string)) => {
+  parts
+  |> List.fold_left(
+       Tuple.fold2(
+         fun
+         | ("", part) => part
+         | (acc, part) => concat(acc, part),
+       ),
+       "",
+     );
+};

@@ -73,6 +73,10 @@ let split3 = (f0: 'a => 'b, f1: 'a => 'c, f2: 'a => 'd, x: 'a): ('b, 'c, 'd) => 
   f2(x),
 );
 
+let fold2 = (f: (('a, 'b)) => 'c, x: 'a, y: 'b): 'c => f((x, y));
+let fold3 = (f: (('a, 'b, 'c)) => 'd, x: 'a, y: 'b, z: 'c): 'd =>
+  f((x, y, z));
+
 /* pretty printing */
 
 let pp2 = (ppa, ppb): Fmt.t(t2('a, 'b)) =>

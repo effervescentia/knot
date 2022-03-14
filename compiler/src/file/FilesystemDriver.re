@@ -3,11 +3,12 @@ open Kore;
 type action_t =
   | Add
   | Remove
-  | Update
-  | Relocate;
+  | Update;
+
+type t = (string, array(Fswatch.Event.flag)) => option(action_t);
 
 module type T = {
-  let handle: (string, array(Fswatch.Event.flag)) => option(action_t);
+  let create: (unit, string, array(Fswatch.Event.flag)) => option(action_t);
 };
 
 module Make = (Driver: T) => {
@@ -25,40 +26,66 @@ let _is_update =
     )
   );
 
-module Darwin = {
-  let tree = FileTree.create();
+let _is_add =
+  Fswatch.Event.(
+    Array.exists(
+      fun
+      | MovedTo
+      | Renamed
+      | Created => true
+      | _ => false,
+    )
+  );
 
-  include Make({
+let _is_remove =
+  Fswatch.Event.(
+    Array.exists(
+      fun
+      | MovedFrom
+      | Removed => true
+      | _ => false,
+    )
+  );
+
+module Darwin =
+  Make({
     open Fswatch.Event;
 
-    let handle = (path, flags) => {
-      let path' = Filename.split(path);
-      let file_exists = tree |> FileTree.exists(path');
+    let create = () => {
+      let tree = FileTree.create();
 
-      switch (file_exists) {
-      /* file was created */
-      | false when flags |> Array.mem(Created) =>
-        Lwt.async(() => tree |> FileTree.add(path') |> Lwt.return);
-        Some(Add);
+      (path, flags) => {
+        let path' = Filename.split(path);
+        let file_exists = tree |> FileTree.exists(path');
 
-      /* file was removed */
-      | true when flags |> Array.mem(Removed) =>
-        Lwt.async(() => tree |> FileTree.remove(path') |> Lwt.return);
-        Some(Remove);
+        switch (file_exists) {
+        /* file was removed */
+        | _ when _is_remove(flags) =>
+          tree |> FileTree.remove(path');
+          Some(Remove);
 
-      /* file was updated */
-      | _ when _is_update(flags) =>
-        if (!file_exists) {
-          Lwt.async(() => tree |> FileTree.add(path') |> Lwt.return);
+        | true when flags |> Array.mem(Renamed) =>
+          tree |> FileTree.remove(path');
+          Some(Remove);
+
+        /* file was added */
+        | false when _is_add(flags) =>
+          tree |> FileTree.add(path');
+          Some(Add);
+
+        /* file was updated */
+        | _ when _is_update(flags) =>
+          if (!file_exists) {
+            tree |> FileTree.add(path');
+          };
+
+          Some(Update);
+
+        | _ => None
         };
-
-        Some(Update);
-
-      | _ => None
       };
     };
   });
-};
 
 module Linux = Darwin;
 
@@ -67,11 +94,11 @@ module Windows = Linux;
 module Cygwin = Linux;
 
 include Make({
-  let handle =
+  let create =
     switch (Platform.get()) {
-    | Darwin => Darwin.handle
-    | Linux => Linux.handle
-    | Windows => Windows.handle
-    | Cygwin => Cygwin.handle
+    | Darwin => Darwin.create
+    | Linux => Linux.create
+    | Windows => Windows.create
+    | Cygwin => Cygwin.create
     };
 });

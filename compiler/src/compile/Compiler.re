@@ -322,14 +322,6 @@ let remove_module = (id: Namespace.t, compiler: t) => {
 };
 
 /**
- move a module to a new location
- */
-let relocate_module = (id: Namespace.t, compiler: t) =>
-  resolve(~skip_cache=true, compiler, id) |> Module.exists
-    ? update_module(id, compiler)
-    : remove_module(id, compiler) |> (removed => (removed, []));
-
-/**
  add or update a module by providing the raw text
  */
 let insert_module = (id: Namespace.t, contents: string, compiler: t) => {

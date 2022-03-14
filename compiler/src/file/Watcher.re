@@ -7,13 +7,10 @@ open Lwt;
  */
 type t = {
   dir: string,
-  extensions: list(string),
+  driver: FilesystemDriver.t,
 };
 
 type dispatch_t = list((string, FilesystemDriver.action_t)) => unit;
-
-let _ext_matches = (path: string, watcher: t): bool =>
-  watcher.extensions |> List.exists(ext => String.ends_with(ext, path));
 
 let _flag_to_string: Fswatch.Event.flag => string =
   Fswatch.Event.(
@@ -64,34 +61,27 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
                  ),
                );
 
-               watcher |> _ext_matches(event.path)
-                 ? FilesystemDriver.handle(event.path, event.flags)
-                   |> Option.map(action => (path, action))
-                 : None;
+               watcher.driver(event.path, event.flags)
+               |> Option.map(action => (path, action));
              }
            ),
          )
       |> dispatch;
 
-      /*
-        TODO: might have to change this back to stdout
-        the thinking is that all log messages are written to stderr so shouldn't have
-        anything to flush on stdout
-       */
-      flush(stderr);
+      flush(stdout);
       _listen(dispatch, watcher, msgBox);
     }
   );
 
 /* static */
 
-let create = (dir: string, extensions: list(string)) => {
+let create = (dir: string) => {
   switch (init_library()) {
   | Status.FSW_OK => ()
   | status => raise(WatchFailed(Status.t_to_string(status)))
   };
 
-  {dir, extensions};
+  {dir, driver: FilesystemDriver.create()};
 };
 
 /* methods */
