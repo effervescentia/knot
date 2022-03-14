@@ -44,151 +44,119 @@ let _setup = (test_id, listener) => {
   (promise, test_dir);
 };
 
+let test_darwin = () => {
+  let test_id = "watch_filesystem_manipulation";
+  let fail = Async.fail_after(30.0);
+  let (add_file, done_add_file) = Async.wait();
+  let (add_dir, done_add_dir) = Async.wait();
+  let (add_nested_file, done_add_nested_file) = Async.wait();
+  let (remove_file, done_remove_file) = Async.wait();
+  let (remove_dir, done_remove_dir) = Async.wait();
+  let (remove_nested_file, done_remove_nested_file) = Async.wait();
+  let (update_file, done_update_file) = Async.wait();
+  let (move_file_add, done_move_file_add) = Async.wait();
+  let (move_file_remove, done_move_file_remove) = Async.wait();
+
+  let (setup, test_dir) =
+    _setup(
+      test_id,
+      fun
+      | (path, Add) when path == Filename.concat(test_id, __new_file) =>
+        done_add_file()
+
+      | (path, Add) when path == Filename.concat(test_id, __new_dir) =>
+        done_add_dir()
+
+      | (path, Add)
+          when path == Filename.join([test_id, __new_dir, __new_file]) =>
+        done_add_nested_file()
+
+      | (path, Add) when path == Filename.concat(test_id, __renamed_file) =>
+        done_move_file_add()
+
+      | (path, Remove) when path == Filename.concat(test_id, __new_file) =>
+        done_remove_file()
+
+      | (path, Remove) when path == Filename.concat(test_id, __new_dir) =>
+        done_remove_dir()
+
+      | (path, Remove)
+          when path == Filename.join([test_id, __new_dir, __new_file]) =>
+        done_remove_nested_file()
+
+      | (path, Remove) when path == Filename.concat(test_id, __init_file) =>
+        done_move_file_remove()
+
+      | (path, Update) when path == Filename.concat(test_id, __new_file) =>
+        done_update_file()
+
+      | _ => (),
+    );
+
+  let new_file = Filename.concat(test_dir, __new_file);
+  let new_dir = Filename.concat(test_dir, __new_dir);
+  let new_nested_file = Filename.concat(new_dir, __new_file);
+  let renamed_file = Filename.concat(test_dir, __renamed_file);
+
+  let actions =
+    Lwt.(
+      setup
+      >>= (
+        () => {
+          new_file |> Util.write_to_file("hello world");
+          add_file;
+        }
+      )
+      >>= (
+        () => {
+          new_file |> Util.append_to_file("more content");
+          update_file;
+        }
+      )
+      >>= (
+        () => {
+          [new_file] |> FileUtil.rm;
+          remove_file;
+        }
+      )
+      >>= (
+        () => {
+          FileUtil.mkdir(new_dir);
+          add_dir;
+        }
+      )
+      >>= (
+        () => {
+          new_nested_file |> Util.write_to_file("hello world");
+          add_nested_file;
+        }
+      )
+      >>= (
+        () => {
+          [new_dir] |> FileUtil.rm(~recurse=true);
+          [remove_dir, remove_nested_file] |> Lwt.join;
+        }
+      )
+      >>= (
+        () => {
+          FileUtil.mv(Filename.concat(test_dir, __init_file), renamed_file);
+          [move_file_add, move_file_remove] |> Lwt.join;
+        }
+      )
+    );
+
+  [actions, fail] |> Lwt.choose;
+};
+
 let suite =
   "File.Watcher"
   >::: [
-    /*
-     "watch() - rename file"
-     >~:: (
-       (_, ()) => {
-         let (parent_dir, path) = _setup("watch_rename");
-         let watcher = Watcher.create(parent_dir, __extensions);
-         let (promise, resolve) = Async.wait();
-         let cancel = Async.on_tick(~ticks=2, resolve);
-         let renamed_file = Filename.concat(parent_dir, "renamed.txt");
-         let end_ = () => {
-           cancel();
-           resolve();
-         };
-         let source_reported = ref(false);
-         let target_reported = ref(false);
-
-         Async.on_tick(() => FileUtil.mv(path, renamed_file)) |> ignore;
-
-         watcher
-         |> _test_watch(
-              fun
-              | (name, Relocate) when name == path =>
-                target_reported^ ? end_() : source_reported := true
-              | (name, Relocate) when name == renamed_file =>
-                source_reported^ ? end_() : target_reported := true
-              | _ => (),
-            );
-
-         promise;
-       }
-     ), */
     "watch() - filesystem manipulation"
     >~:: (
-      (_, ()) => {
-        let test_id = "watch_filesystem_manipulation";
-        let fail = Async.fail_after(30.0);
-        let (add_file, done_add_file) = Async.wait();
-        let (add_dir, done_add_dir) = Async.wait();
-        let (add_nested_file, done_add_nested_file) = Async.wait();
-        let (remove_file, done_remove_file) = Async.wait();
-        let (remove_dir, done_remove_dir) = Async.wait();
-        let (remove_nested_file, done_remove_nested_file) = Async.wait();
-        let (update_file, done_update_file) = Async.wait();
-        let (move_file_add, done_move_file_add) = Async.wait();
-        let (move_file_remove, done_move_file_remove) = Async.wait();
-
-        let (setup, test_dir) =
-          _setup(
-            test_id,
-            fun
-            | (path, Add) when path == Filename.concat(test_id, __new_file) =>
-              done_add_file()
-
-            | (path, Add) when path == Filename.concat(test_id, __new_dir) =>
-              done_add_dir()
-
-            | (path, Add)
-                when path == Filename.join([test_id, __new_dir, __new_file]) =>
-              done_add_nested_file()
-
-            | (path, Add)
-                when path == Filename.concat(test_id, __renamed_file) =>
-              done_move_file_add()
-
-            | (path, Remove)
-                when path == Filename.concat(test_id, __new_file) =>
-              done_remove_file()
-
-            | (path, Remove) when path == Filename.concat(test_id, __new_dir) =>
-              done_remove_dir()
-
-            | (path, Remove)
-                when path == Filename.join([test_id, __new_dir, __new_file]) =>
-              done_remove_nested_file()
-
-            | (path, Remove)
-                when path == Filename.concat(test_id, __init_file) =>
-              done_move_file_remove()
-
-            | (path, Update)
-                when path == Filename.concat(test_id, __new_file) =>
-              done_update_file()
-
-            | _ => (),
-          );
-
-        let new_file = Filename.concat(test_dir, __new_file);
-        let new_dir = Filename.concat(test_dir, __new_dir);
-        let new_nested_file = Filename.concat(new_dir, __new_file);
-        let renamed_file = Filename.concat(test_dir, __renamed_file);
-
-        let actions =
-          Lwt.(
-            setup
-            >>= (
-              () => {
-                new_file |> Util.write_to_file("hello world");
-                add_file;
-              }
-            )
-            >>= (
-              () => {
-                new_file |> Util.append_to_file("more content");
-                update_file;
-              }
-            )
-            >>= (
-              () => {
-                [new_file] |> FileUtil.rm;
-                remove_file;
-              }
-            )
-            >>= (
-              () => {
-                FileUtil.mkdir(new_dir);
-                add_dir;
-              }
-            )
-            >>= (
-              () => {
-                new_nested_file |> Util.write_to_file("hello world");
-                add_nested_file;
-              }
-            )
-            >>= (
-              () => {
-                [new_dir] |> FileUtil.rm(~recurse=true);
-                [remove_dir, remove_nested_file] |> Lwt.join;
-              }
-            )
-            >>= (
-              () => {
-                FileUtil.mv(
-                  Filename.concat(test_dir, __init_file),
-                  renamed_file,
-                );
-                [move_file_add, move_file_remove] |> Lwt.join;
-              }
-            )
-          );
-
-        [actions, fail] |> Lwt.choose;
-      }
+      _ =>
+        switch (File.Platform.get()) {
+        | Darwin => test_darwin
+        | _ => Lwt.return
+        }
     ),
   ];
