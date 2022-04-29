@@ -12,7 +12,7 @@ export default args => ({
   plugins: [
     knotPlugin({
       // WARNING: providing an override path for the knot compiler is not recommended
-      knot: args.configKnotc,
+      knotc: args.configKnotc,
       plugins: {
         jsx: '@knot/vue-plugin'
       }

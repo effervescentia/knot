@@ -35,6 +35,7 @@
     "cross-fetch": "^3.0.4",
     "execa": "^2.0.4",
     "fs-extra": "^8.1.0",
+    "json-rpc-2.0": "^1.1.0",
     "utility-types": "^3.10.0",
     "yargs": "^15.0.2"
   }

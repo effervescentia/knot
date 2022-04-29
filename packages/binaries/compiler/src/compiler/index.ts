@@ -1,7 +1,8 @@
-import execa from 'execa';
+import { JSONRPCClient } from 'json-rpc-2.0';
+import process from 'process';
 
-import { KNOT_BINARY } from '../config';
 import { OptionOverrides, Options } from '../types';
+import createClient from './client';
 import { DEFAULT_OPTIONS } from './constants';
 import * as Tasks from './tasks';
 
@@ -9,32 +10,11 @@ interface FullOptions extends Options {
   readonly baseUrl: string;
 }
 
-function startCompiler(options: FullOptions): void {
-  const knotArgs: ReadonlyArray<any> = [
-    'lsp',
-    '--port',
-    options.port,
-    '--target',
-    options.target,
-    '--root-dir',
-    options.rootDir,
-    ...(options.debug ? ['--debug'] : [])
-  ];
-  const [cmd, ...args] = (options.knot || KNOT_BINARY).split(/\s+/);
-  console.log(
-    `running knot using the command "${[cmd, ...args, ...knotArgs].join(' ')}"`
-  );
-
-  const proc = execa(cmd, [...args, ...knotArgs]);
-
-  proc.stdout.on('data', data => console.log(data.toString()));
-  proc.stderr.on('data', data => console.error(data.toString()));
-}
-
 class Compiler {
   public options: FullOptions;
   public isReady = false;
   public isRunning = false;
+  private client: JSONRPCClient;
 
   constructor(options: OptionOverrides) {
     const mergedOptions: Options = {
@@ -51,7 +31,15 @@ class Compiler {
       baseUrl: `http://localhost:${mergedOptions.port}`
     };
 
-    startCompiler(this.options);
+    this.client = createClient({
+      knotc: '',
+      rootDir: this.options.rootDir,
+      config: this.options.config
+    });
+
+    this.client.send<{}>('initialize', {
+      processId: process.pid
+    });
 
     this.isRunning = true;
   }

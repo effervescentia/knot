@@ -13,5 +13,6 @@ export const DEFAULT_OPTIONS = {
     platform: '@knot/browser-plugin',
     style: '@knot/jss-plugin'
   },
-  port: 1338
+  port: 1338,
+  config: '.knot.yml'
 } as Options;
