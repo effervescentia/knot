@@ -6,6 +6,6 @@
    ; The namespace that other packages/libraries will access this library through
    (name TestLanguageServer)
    ; Other libraries list this name in their package.json 'require' field to use this library.
-   (public_name knot.lang_server_test)
-   (libraries  knot.test knot.resolve_test knot.lang_server )
+   (public_name knot.language_server_test)
+   (libraries  knot.test knot.resolve_test knot.language_server )
 )

@@ -102,12 +102,12 @@
         "knot.compile",
         "knot.jsonrpc"
       ],
-      "name": "knot.lang_server",
+      "name": "knot.language_server",
       "namespace": "LanguageServer"
     },
     "src/executable": {
       "require": [
-        "knot.lang_server",
+        "knot.language_server",
         "yaml"
       ],
       "name": "knot.exec",
@@ -226,9 +226,9 @@
       "require": [
         "knot.test",
         "knot.resolve_test",
-        "knot.lang_server"
+        "knot.language_server"
       ],
-      "name": "knot.lang_server_test",
+      "name": "knot.language_server_test",
       "namespace": "TestLanguageServer"
     },
     "test/unit": {
@@ -242,7 +242,7 @@
         "knot.parse_test",
         "knot.generate_test",
         "knot.compile_test",
-        "knot.lang_server_test",
+        "knot.language_server_test",
         "knot.exec_test"
       ],
       "main": "TestSuite",

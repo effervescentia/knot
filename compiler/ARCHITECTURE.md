@@ -105,7 +105,7 @@ Transforms an InputStream into a valid AST.
 
 Maintains the compiled artifacts for all loaded modules. Resolves dependencies and compiles source modules to a target.
 
-## knot.lang_server
+## knot.language_server
 
 ___
 
