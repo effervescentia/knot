@@ -1,17 +1,16 @@
 open Kore;
-open Deserialize;
 
 type params_t = {
-  text_document: text_document_t,
-  position: position_t,
-  partial_result_token: option(progress_token),
+  text_document: Protocol.text_document_t,
+  position: Protocol.position_t,
+  partial_result_token: option(Protocol.progress_token),
 };
 
 let method_key = "textDocument/definition";
 
 let deserialize = json => {
-  let text_document = get_text_document(json);
-  let position = get_position(json);
+  let text_document = Deserialize.text_document(json);
+  let position = Deserialize.position(json);
 
   {text_document, position, partial_result_token: None};
 };

@@ -1,9 +1,8 @@
 open Kore;
-open Deserialize;
 
 type params_t = {
   query: string,
-  partial_result_token: option(progress_token),
+  partial_result_token: option(Protocol.progress_token),
 };
 
 type symbol_info_t = {
@@ -30,12 +29,12 @@ let response = (symbols: list(symbol_info_t)) =>
     |> List.map(({name, uri, kind, range}) =>
          `Assoc([
            ("name", `String(name)),
-           ("kind", `Int(kind |> Response.symbol)),
+           ("kind", `Int(kind |> Serialize.symbol)),
            (
              "location",
              `Assoc([
                ("uri", `String(file_schema ++ uri)),
-               ("range", range |> Response.range),
+               ("range", range |> Serialize.range),
              ]),
            ),
          ])
@@ -43,9 +42,9 @@ let response = (symbols: list(symbol_info_t)) =>
   );
 
 let handler: Runtime.request_handler_t(params_t) =
-  (runtime, params) => {
+  ({compilers}, params) => {
     let symbols =
-      runtime.compilers
+      compilers
       |> Hashtbl.to_seq_values
       |> List.of_seq
       |> List.map((Runtime.{uri, compiler}) =>

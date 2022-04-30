@@ -171,6 +171,9 @@ let _err_message = (~data=None, ~id=None, code: int, message: string) =>
     ],
   );
 
+let notification = (method: string, params: JSON.t) =>
+  _message([(__method_key, `String(method)), (__params_key, params)]);
+
 let response = (id: int, result: JSON.t) =>
   _res_message(~id=Some(id), [(__result_key, result)]);
 

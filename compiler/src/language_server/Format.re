@@ -1,5 +1,4 @@
 open Kore;
-open Deserialize;
 
 type formatting_options_t = {
   tab_size: int,
@@ -10,9 +9,9 @@ type formatting_options_t = {
 };
 
 type params_t = {
-  text_document: text_document_t,
+  text_document: Protocol.text_document_t,
   options: formatting_options_t,
-  partial_result_token: option(progress_token),
+  partial_result_token: option(Protocol.progress_token),
 };
 
 let method_key = "textDocument/formatting";
@@ -20,7 +19,7 @@ let method_key = "textDocument/formatting";
 let deserialize =
   JSON.Util.(
     json => {
-      let text_document = get_text_document(json);
+      let text_document = Deserialize.text_document(json);
       let options =
         json
         |> member("options")

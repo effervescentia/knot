@@ -1,5 +1,4 @@
 open Kore;
-open Deserialize;
 
 module Compiler = Compile.Compiler;
 
@@ -78,7 +77,7 @@ let deserialize =
           | `List(xs) =>
             xs
             |> List.map(x => {
-                 let uri = get_uri(x);
+                 let uri = Deserialize.uri(x);
                  let name = x |> member("name") |> to_string;
 
                  {uri, name};
@@ -149,7 +148,10 @@ let response = (name: string, workspace_support: bool) =>
   ]);
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({find_config, compilers}, {workspace_folders: folders, capabilities}) => {
+  (
+    {find_config, compilers} as runtime,
+    {workspace_folders: folders, capabilities},
+  ) => {
     /* TODO: handle the case where workspace folders are nested? */
     folders
     |?: []
@@ -170,7 +172,8 @@ let handler: Runtime.request_handler_t(params_t) =
            Compiler.create(
              ~report=
                _ =>
-                 Diagnostics.report(
+                 Diagnostics.send(
+                   runtime,
                    Filename.concat(root_dir, config.source_dir),
                  ),
              {

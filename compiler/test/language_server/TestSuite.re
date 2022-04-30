@@ -1,3 +1,3 @@
 open Kore;
 
-let tests = [ResponseTest.suite];
+let tests = [];

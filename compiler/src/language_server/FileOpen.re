@@ -1,28 +1,13 @@
 open Kore;
-open Deserialize;
 
-type params_t = {text_document: text_document_item_t};
+type params_t = {text_document: Protocol.text_document_item_t};
 
 let method_key = "textDocument/didOpen";
 
 let deserialize =
   JSON.Util.(
     json => {
-      let text_document =
-        json
-        |> member("textDocument")
-        |> (
-          fun
-          | `Assoc(_) as x => {
-              let uri = get_uri(x);
-              let language_id = x |> member("languageId") |> to_string;
-              let version = x |> member("version") |> to_int;
-              let text = x |> member("text") |> to_string;
-
-              {uri, language_id, version, text};
-            }
-          | x => raise(Type_error("textDocument", x))
-        );
+      let text_document = Deserialize.text_document_item(json);
 
       {text_document: text_document};
     }

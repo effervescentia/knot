@@ -1,12 +1,11 @@
 open Kore;
-open Deserialize;
 
-type params_t = {text_document: text_document_t};
+type params_t = {text_document: Protocol.text_document_t};
 
 let method_key = "textDocument/didClose";
 
 let deserialize = json => {
-  let text_document = get_text_document(json);
+  let text_document = Deserialize.text_document(json);
 
   {text_document: text_document};
 };

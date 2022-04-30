@@ -1,9 +1,8 @@
 open Kore;
-open Deserialize;
 
 type params_t = {
-  text_document: text_document_t,
-  position: position_t,
+  text_document: Protocol.text_document_t,
+  position: Protocol.position_t,
 };
 
 let method_key = "textDocument/hover";
@@ -11,8 +10,8 @@ let method_key = "textDocument/hover";
 let deserialize =
   JSON.Util.(
     json => {
-      let text_document = get_text_document(json);
-      let position = get_position(json);
+      let text_document = Deserialize.text_document(json);
+      let position = Deserialize.position(json);
 
       {text_document, position};
     }
@@ -27,7 +26,7 @@ let response = (range: Range.t, contents: string) =>
         ("value", `String(contents)),
       ]),
     ),
-    ("range", Response.range(range)),
+    ("range", Serialize.range(range)),
   ]);
 
 let handler: Runtime.request_handler_t(params_t) =

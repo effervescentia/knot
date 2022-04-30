@@ -1,9 +1,8 @@
 open Kore;
-open Deserialize;
 
 type params_t = {
-  text_document: text_document_t,
-  partial_result_token: option(progress_token),
+  text_document: Protocol.text_document_t,
+  partial_result_token: option(Protocol.progress_token),
 };
 
 type document_symbol_t = {
@@ -17,7 +16,7 @@ type document_symbol_t = {
 let method_key = "textDocument/documentSymbol";
 
 let deserialize = json => {
-  let text_document = get_text_document(json);
+  let text_document = Deserialize.text_document(json);
 
   {text_document, partial_result_token: None};
 };
@@ -28,10 +27,10 @@ let response = (symbols: list(document_symbol_t)) =>
     |> List.map(({name, detail, kind, range, full_range}) =>
          `Assoc([
            ("name", `String(name)),
-           ("kind", `Int(Response.symbol(kind))),
+           ("kind", `Int(Serialize.symbol(kind))),
            ("detail", `String(detail)),
-           ("range", Response.range(full_range)),
-           ("selectionRange", Response.range(range)),
+           ("range", Serialize.range(full_range)),
+           ("selectionRange", Serialize.range(range)),
          ])
        ),
   );

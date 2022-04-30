@@ -342,7 +342,7 @@ type t = {
   general: option(General.t),
 };
 
-open Yojson.Basic.Util;
+open JSON.Util;
 
 module Deserialize = {
   let _get_dynamic_registration =

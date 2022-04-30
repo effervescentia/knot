@@ -7,6 +7,7 @@ module Reader = Protocol.Reader;
 type t = {
   send: JSON.t => unit,
   reply: (int, Event.result_t) => unit,
+  notify: (string, JSON.t) => unit,
   watch: (Event.t => unit) => Lwt.t(unit),
 };
 
@@ -17,9 +18,12 @@ let create = (in_: in_channel, out: out_channel): t => {
 
   let send = Writer.write_to_channel(out);
 
+  let notify = (method, params) =>
+    Protocol.notification(method, params) |> send;
+
   let reply = id =>
     fun
-    | Ok(res) => Protocol.response(id, res) |> send
+    | Ok(results) => Protocol.response(id, results) |> send
     | Error(report) => report(id) |> send;
 
   let watch = handler =>
@@ -32,5 +36,5 @@ let create = (in_: in_channel, out: out_channel): t => {
       }
     });
 
-  {send, reply, watch};
+  {send, notify, reply, watch};
 };
