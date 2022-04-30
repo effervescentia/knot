@@ -7,9 +7,10 @@ let build_key = "build";
 let watch_key = "watch";
 let format_key = "format";
 let lint_key = "lint";
-let lsp_key = "lsp";
 let bundle_key = "bundle";
-let develop_key = "develop";
+let dev_serve_key = "dev_serve";
+let lang_serve_key = "lang_serve";
+let build_serve_key = "build_serve";
 
 let name_key = "name";
 let root_dir_key = "root_dir";

@@ -30,7 +30,7 @@ flowchart TD
     Runtime --> Server
     event_handlers --> Server
   end
-  Server --> LSP
+  Server --> LangServe
 
   %% exec
   subgraph knot.exec
@@ -38,10 +38,11 @@ flowchart TD
       Watch
       Format
       Build
-      LSP
       Lint
       Bundle
-      Develop
+      DevServe
+      LangServe
+      BuildServe
     end
   end
   commands --> knot

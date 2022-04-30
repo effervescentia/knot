@@ -4,11 +4,12 @@ flowchart LR
 
   subgraph knot.exec
     Build
+    BuildServe
     Bundle
-    Develop
+    DevServe
     Format
     Lint
-    LSP
+    LangServe
     Watch
   end
 
@@ -19,11 +20,12 @@ flowchart LR
   in --> |command| knot.exec
 
   Build --> Main
+  BuildServe --> Main
   Bundle --> Main
-  Develop --> Main
+  DevServe --> Main
   Format --> Main
+  LangServe --> Main
   Lint --> Main
-  LSP --> Main
   Watch --> Main
 
   Main --> out

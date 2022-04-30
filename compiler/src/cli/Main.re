@@ -20,8 +20,9 @@ let () = {
   | Watch(cmd) => Lwt_main.run @@ Watch.run(config, cmd)
   | Format(cmd) => Format.run(config, cmd)
   | Lint(cmd) => Lint.run(config, cmd)
-  | LSP(cmd) => Lwt_main.run @@ LSP.run(config, cmd)
   | Bundle(cmd) => Bundle.run(config, cmd)
-  | Develop(cmd) => Lwt_main.run @@ Develop.run(config, cmd)
+  | DevServe(cmd) => Lwt_main.run @@ DevServe.run(config, cmd)
+  | LangServe(cmd) => Lwt_main.run @@ LangServe.run(config, cmd)
+  | BuildServe(cmd) => Lwt_main.run @@ BuildServe.run(config, cmd)
   };
 };

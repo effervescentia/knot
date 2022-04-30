@@ -157,10 +157,6 @@ Handler for the `knot watch` CLI command. Compiles a program to some target then
 
 Handler for the `knot format` CLI command. Format the source files of a program using the official formatter.
 
-### LSP
-
-Handler for the `knot lsp` CLI command. Runs the official language server.
-
 ### Lint
 
 Handler for the `knot lint` CLI command. Runs the official linter.
@@ -169,9 +165,17 @@ Handler for the `knot lint` CLI command. Runs the official linter.
 
 Handler for the `knot bundle` CLI command. Runs the official bundler.
 
-### Develop
+### DevServe
 
-Handler for the `knot develop` CLI command. Runs the official development server.
+Handler for the `knot dev_serve` CLI command. Runs the official development server.
+
+### LangServe
+
+Handler for the `knot lang_serve` CLI command. Runs the official language server.
+
+### BuildServe
+
+Handler for the `knot build_serve` CLI command. Runs a JSONRPC build server that exposes incremental compilation methods.
 
 ## knot
 

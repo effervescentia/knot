@@ -45,7 +45,8 @@ let suite =
     ),
     "pp() - lint"
     >: (() => Assert.string("lint", RunCmd.Lint({fix: true}) |> ~@RunCmd.pp)),
-    "pp() - lsp" >: (() => Assert.string("lsp", RunCmd.LSP() |> ~@RunCmd.pp)),
+    "pp() - lang_serve"
+    >: (() => Assert.string("lang_serve", RunCmd.LangServe() |> ~@RunCmd.pp)),
     "pp() - bundle"
     >: (
       () =>
@@ -55,9 +56,12 @@ let suite =
           |> ~@RunCmd.pp,
         )
     ),
-    "pp() - develop"
+    "pp() - dev_serve"
     >: (
       () =>
-        Assert.string("develop", RunCmd.Develop({port: 8080}) |> ~@RunCmd.pp)
+        Assert.string(
+          "dev_serve",
+          RunCmd.DevServe({port: 8080}) |> ~@RunCmd.pp,
+        )
     ),
   ];

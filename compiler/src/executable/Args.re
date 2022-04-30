@@ -178,9 +178,12 @@ let to_config = (): (global_t, RunCmd.t) => {
         | (None, key) when key == watch_key => set_cmd(RunCmd.watch)
         | (None, key) when key == format_key => set_cmd(RunCmd.format)
         | (None, key) when key == lint_key => set_cmd(RunCmd.lint)
-        | (None, key) when key == lsp_key => set_cmd(RunCmd.lsp)
         | (None, key) when key == bundle_key => set_cmd(RunCmd.bundle)
-        | (None, key) when key == develop_key => set_cmd(RunCmd.develop)
+        | (None, key) when key == dev_serve_key => set_cmd(RunCmd.dev_serve)
+        | (None, key) when key == lang_serve_key =>
+          set_cmd(RunCmd.lang_serve)
+        | (None, key) when key == build_serve_key =>
+          set_cmd(RunCmd.build_serve)
         | _ => Fmt.str("unexpected argument: %s", x) |> panic
         },
       "knotc [options] <command>",
