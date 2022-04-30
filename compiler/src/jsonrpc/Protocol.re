@@ -19,9 +19,11 @@ module Event = {
     | Request(int, string, JSON.t)
     | Notification(string, JSON.t);
 
-  type result_t = result(JSON.t, (int, string, option(JSON.t)));
+  type result_t = result(JSON.t, int => JSON.t);
 
   type request_handler_t('a, 'b) = ('a, 'b) => result_t;
+
+  type notification_handler_t('a, 'b) = ('a, 'b) => unit;
 };
 
 module Error = {

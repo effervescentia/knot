@@ -2,7 +2,9 @@ open Kore;
 
 type params_t = {root_dir: string};
 
-let deserialize_params =
+let method_key = "initialize";
+
+let deserialize =
   JSON.Util.(
     json => {
       let root_dir = json |> member("root_dir") |> to_string;

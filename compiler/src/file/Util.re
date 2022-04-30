@@ -1,6 +1,6 @@
 open Kore;
 
-let __root_dir = "knot";
+let __root_dir = Target.knot;
 
 /**
  get the name of a unique folder within the temporary file directory

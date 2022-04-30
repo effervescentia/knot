@@ -26,7 +26,7 @@ let notification = (uri: string, errs) =>
              `Assoc([
                ("range", Response.range(range)),
                ("severity", `Int(severity(Error))),
-               ("source", `String("knot")),
+               ("source", `String(Target.knot)),
                ("message", `String(err |> ~@Knot.Error.pp_parse_err)),
              ])
            ),

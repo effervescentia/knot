@@ -1,6 +1,5 @@
 open Kore;
 open Deserialize;
-open Yojson.Basic.Util;
 
 type params_t = {
   query: string,
@@ -14,12 +13,16 @@ type symbol_info_t = {
   range: Range.t,
 };
 
-let request =
-  request(json => {
-    let query = json |> member("query") |> to_string;
+let method_key = "workspace/symbol";
 
-    {query, partial_result_token: None};
-  });
+let deserialize =
+  JSON.Util.(
+    json => {
+      let query = json |> member("query") |> to_string;
+
+      {query, partial_result_token: None};
+    }
+  );
 
 let response = (symbols: list(symbol_info_t)) =>
   `List(
@@ -37,61 +40,64 @@ let response = (symbols: list(symbol_info_t)) =>
            ),
          ])
        ),
-  )
-  |> Response.wrap;
+  );
 
-let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
-  let symbols =
-    runtime.compilers
-    |> Hashtbl.to_seq_values
-    |> List.of_seq
-    |> List.map((Runtime.{uri, compiler}) =>
-         compiler.modules
-         |> Hashtbl.to_seq
-         |> List.of_seq
-         |> List.map(((namespace, ModuleTable.{ast})) =>
-              ast
-              |> List.filter_map(
-                   Node.Raw.get_value
-                   % (
-                     fun
-                     | AST.Declaration(
-                         MainExport(name) | NamedExport(name),
-                         decl,
-                       ) => {
-                         let uri =
-                           Filename.concat(
-                             uri,
-                             namespace
-                             |> Namespace.to_path(compiler.config.source_dir),
+let handler: Runtime.request_handler_t(params_t) =
+  (runtime, params) => {
+    let symbols =
+      runtime.compilers
+      |> Hashtbl.to_seq_values
+      |> List.of_seq
+      |> List.map((Runtime.{uri, compiler}) =>
+           compiler.modules
+           |> Hashtbl.to_seq
+           |> List.of_seq
+           |> List.map(((namespace, ModuleTable.{ast})) =>
+                ast
+                |> List.filter_map(
+                     Node.Raw.get_value
+                     % (
+                       fun
+                       | AST.Declaration(
+                           MainExport(name) | NamedExport(name),
+                           decl,
+                         ) => {
+                           let uri =
+                             Filename.concat(
+                               uri,
+                               namespace
+                               |> Namespace.to_path(
+                                    compiler.config.source_dir,
+                                  ),
+                             );
+                           let range = Node.Raw.get_range(name);
+                           let name =
+                             name |> Node.Raw.get_value |> ~@Identifier.pp;
+
+                           Some(
+                             switch (Node.get_value(decl)) {
+                             | Constant(expr) => {
+                                 uri,
+                                 name,
+                                 range,
+                                 kind: Capabilities.Variable,
+                               }
+                             | Function(args, expr) => {
+                                 uri,
+                                 name,
+                                 range,
+                                 kind: Capabilities.Function,
+                               }
+                             },
                            );
-                         let range = Node.Raw.get_range(name);
-                         let name =
-                           name |> Node.Raw.get_value |> ~@Identifier.pp;
+                         }
+                       | _ => None
+                     ),
+                   )
+              )
+           |> List.flatten
+         )
+      |> List.flatten;
 
-                         Some(
-                           switch (Node.get_value(decl)) {
-                           | Constant(expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Variable,
-                             }
-                           | Function(args, expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Function,
-                             }
-                           },
-                         );
-                       }
-                     | _ => None
-                   ),
-                 )
-            )
-         |> List.flatten
-       )
-    |> List.flatten;
-  ();
-};
+    Result.ok(`Null);
+  };

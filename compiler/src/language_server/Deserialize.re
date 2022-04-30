@@ -1,5 +1,5 @@
 open Kore;
-open Yojson.Basic.Util;
+open JSON.Util;
 
 type request_t('a) = {
   jsonrpc: string,

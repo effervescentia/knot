@@ -1,41 +1,41 @@
 open Kore;
 open Deserialize;
-open Yojson.Basic.Util;
 
 type params_t = {text_document: text_document_item_t};
 
-let notification =
-  notification(json => {
-    let text_document =
-      json
-      |> member("textDocument")
-      |> (
-        fun
-        | `Assoc(_) as x => {
-            let uri = get_uri(x);
-            let language_id = x |> member("languageId") |> to_string;
-            let version = x |> member("version") |> to_int;
-            let text = x |> member("text") |> to_string;
+let method_key = "textDocument/didOpen";
 
-            {uri, language_id, version, text};
-          }
-        | x => raise(Type_error("textDocument", x))
-      );
+let deserialize =
+  JSON.Util.(
+    json => {
+      let text_document =
+        json
+        |> member("textDocument")
+        |> (
+          fun
+          | `Assoc(_) as x => {
+              let uri = get_uri(x);
+              let language_id = x |> member("languageId") |> to_string;
+              let version = x |> member("version") |> to_int;
+              let text = x |> member("text") |> to_string;
 
-    {text_document: text_document};
-  });
+              {uri, language_id, version, text};
+            }
+          | x => raise(Type_error("textDocument", x))
+        );
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}}}: notification_t(params_t),
-    ) =>
-  switch (runtime |> Runtime.resolve(uri)) {
-  | Some((namespace, {compiler, contexts} as ctx)) =>
-    let added = compiler |> Compiler.upsert_module(namespace);
+      {text_document: text_document};
+    }
+  );
 
-    compiler |> Compiler.incremental(added);
-    Runtime.analyze_module(namespace, ctx) |> ignore;
+let handler: Runtime.notification_handler_t(params_t) =
+  (runtime, {text_document: {uri}}) =>
+    switch (runtime |> Runtime.resolve(uri)) {
+    | Some((namespace, {compiler, contexts} as ctx)) =>
+      let added = compiler |> Compiler.upsert_module(namespace);
 
-  | None => ()
-  };
+      compiler |> Compiler.incremental(added);
+      Runtime.analyze_module(namespace, ctx) |> ignore;
+
+    | None => ()
+    };

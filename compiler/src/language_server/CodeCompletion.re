@@ -1,6 +1,5 @@
 open Kore;
 open Deserialize;
-open Yojson.Basic.Util;
 
 type params_t = {
   text_document: text_document_t,
@@ -13,13 +12,14 @@ type completion_item = {
   kind: Capabilities.symbol_t,
 };
 
-let request =
-  request(json => {
-    let text_document = get_text_document(json);
-    let position = get_position(json);
+let method_key = "textDocument/completion";
 
-    {text_document, position, partial_result_token: None};
-  });
+let deserialize = json => {
+  let text_document = get_text_document(json);
+  let position = get_position(json);
+
+  {text_document, position, partial_result_token: None};
+};
 
 let response = (items: list(completion_item)) =>
   `List(
@@ -30,30 +30,25 @@ let response = (items: list(completion_item)) =>
            ("kind", `Int(Response.symbol(kind))),
          ])
        ),
-  )
-  |> Response.wrap;
+  );
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}, position: {line, character}}} as req:
-        request_t(params_t),
-    ) => {
-  let point = Point.create(line, character);
+let handler: Runtime.request_handler_t(params_t) =
+  (runtime: Runtime.t, {text_document: {uri}, position: {line, character}}) => {
+    let point = Point.create(line, character);
 
-  switch (runtime |> Runtime.resolve(uri)) {
-  | Some((namespace, {compiler})) =>
-    Hashtbl.find_opt(compiler.modules, namespace)
-    |?< (({scopes}) => ScopeTree.find_scope(point, scopes))
-    |?> Hashtbl.to_seq
-    % List.of_seq
-    % List.map(((key, value)) =>
-        {label: key |> ~@Export.pp, kind: Capabilities.Variable}
-      )
-    |?: []
-    |> response
-    |> Protocol.reply(req)
+    switch (runtime |> Runtime.resolve(uri)) {
+    | Some((namespace, {compiler})) =>
+      Hashtbl.find_opt(compiler.modules, namespace)
+      |?< (({scopes}) => ScopeTree.find_scope(point, scopes))
+      |?> Hashtbl.to_seq
+      % List.of_seq
+      % List.map(((key, value)) =>
+          {label: key |> ~@Export.pp, kind: Capabilities.Variable}
+        )
+      |?: []
+      |> response
+      |> Result.ok
 
-  | None => Protocol.reply(req, response([]))
+    | None => response([]) |> Result.ok
+    };
   };
-};

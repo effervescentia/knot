@@ -1,6 +1,5 @@
 open Kore;
 open Deserialize;
-open Yojson.Basic.Util;
 
 type params_t = {
   text_document: text_document_t,
@@ -15,12 +14,13 @@ type document_symbol_t = {
   full_range: Range.t,
 };
 
-let request =
-  request(json => {
-    let text_document = get_text_document(json);
+let method_key = "textDocument/documentSymbol";
 
-    {text_document, partial_result_token: None};
-  });
+let deserialize = json => {
+  let text_document = get_text_document(json);
+
+  {text_document, partial_result_token: None};
+};
 
 let response = (symbols: list(document_symbol_t)) =>
   `List(
@@ -34,61 +34,58 @@ let response = (symbols: list(document_symbol_t)) =>
            ("selectionRange", Response.range(range)),
          ])
        ),
-  )
-  |> Response.wrap;
+  );
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}}} as req: request_t(params_t),
-    ) =>
-  switch (runtime |> Runtime.resolve(uri)) {
-  | Some((namespace, {compiler})) =>
-    let symbols =
-      Hashtbl.find_opt(compiler.modules, namespace)
-      |?> (
-        ({ast}) =>
-          ast
-          |> List.filter_map(
-               Node.Raw.get_value
-               % (
-                 fun
-                 | AST.Declaration(
-                     MainExport(name) | NamedExport(name),
-                     decl,
-                   ) => {
-                     let range = Node.Raw.get_range(name);
-                     let name = name |> Node.Raw.get_value |> ~@Identifier.pp;
-                     let type_ = Node.get_type(decl);
+let handler: Runtime.request_handler_t(params_t) =
+  (runtime, {text_document: {uri}}) =>
+    switch (runtime |> Runtime.resolve(uri)) {
+    | Some((namespace, {compiler})) =>
+      let symbols =
+        Hashtbl.find_opt(compiler.modules, namespace)
+        |?> (
+          ({ast}) =>
+            ast
+            |> List.filter_map(
+                 Node.Raw.get_value
+                 % (
+                   fun
+                   | AST.Declaration(
+                       MainExport(name) | NamedExport(name),
+                       decl,
+                     ) => {
+                       let range = Node.Raw.get_range(name);
+                       let name =
+                         name |> Node.Raw.get_value |> ~@Identifier.pp;
+                       let type_ = Node.get_type(decl);
 
-                     Some(
-                       switch (Node.get_value(decl)) {
-                       | Constant(expr) => {
-                           name,
-                           detail: type_ |> ~@Type.pp,
-                           range,
-                           full_range:
-                             Range.join(range, Node.get_range(expr)),
-                           kind: Capabilities.Variable,
-                         }
-                       | Function(args, expr) => {
-                           name,
-                           detail: type_ |> ~@Type.pp,
-                           range,
-                           full_range:
-                             Range.join(range, Node.get_range(expr)),
-                           kind: Capabilities.Function,
-                         }
-                       },
-                     );
-                   }
-                 | _ => None
-               ),
-             )
-      )
-      |?: [];
+                       Some(
+                         switch (Node.get_value(decl)) {
+                         | Constant(expr) => {
+                             name,
+                             detail: type_ |> ~@Type.pp,
+                             range,
+                             full_range:
+                               Range.join(range, Node.get_range(expr)),
+                             kind: Capabilities.Variable,
+                           }
+                         | Function(args, expr) => {
+                             name,
+                             detail: type_ |> ~@Type.pp,
+                             range,
+                             full_range:
+                               Range.join(range, Node.get_range(expr)),
+                             kind: Capabilities.Function,
+                           }
+                         },
+                       );
+                     }
+                   | _ => None
+                 ),
+               )
+        )
+        |?: [];
 
-    response(symbols) |> Protocol.reply(req);
+      symbols |> response |> Result.ok;
 
-  | None => ()
-  };
+    | None => Result.ok(`Null)
+    };

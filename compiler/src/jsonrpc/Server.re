@@ -20,8 +20,7 @@ let create = (in_: in_channel, out: out_channel): t => {
   let reply = id =>
     fun
     | Ok(res) => Protocol.response(id, res) |> send
-    | Error((code, message, data)) =>
-      Protocol.error(~data, id, code, message) |> send;
+    | Error(report) => report(id) |> send;
 
   let watch = handler =>
     Lwt.wrap(() => {
