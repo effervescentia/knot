@@ -1,9 +1,5 @@
 open Kore;
 
-type request_t =
-  | Request(int, string, JSON.t)
-  | Notification(string, JSON.t);
-
 let __content_length_header = "Content-Length";
 let __line_break = "\r\n";
 let __line_break_chars = String.to_list(__line_break);
@@ -17,6 +13,16 @@ let __code_key = "code";
 let __message_key = "message";
 let __data_key = "data";
 let __version = "2.0";
+
+module Event = {
+  type t =
+    | Request(int, string, JSON.t)
+    | Notification(string, JSON.t);
+
+  type result_t = result(JSON.t, (int, string, option(JSON.t)));
+
+  type request_handler_t('a, 'b) = ('a, 'b) => result_t;
+};
 
 module Error = {
   type t =
@@ -96,28 +102,33 @@ module Reader = {
     loop(length);
   };
 
-  let _deserialize = (data: string): request_t => {
-    let json =
-      try(JSON.from_string(data)) {
-      | _ => raise(BuiltinError(ParseError))
-      };
+  let _deserialize =
+    JSON.Util.(
+      (data: string) => (
+        {
+          let json =
+            try(JSON.from_string(data)) {
+            | _ => raise(BuiltinError(ParseError))
+            };
 
-    try({
-      let id = JSON.Util.(json |> member(__id_key));
-      let method = JSON.Util.(json |> member(__method_key) |> to_string);
-      let params = JSON.Util.(json |> member(__params_key));
+          try({
+            let id = json |> member(__id_key);
+            let method = json |> member(__method_key) |> to_string;
+            let params = json |> member(__params_key);
 
-      switch (id, params) {
-      | (`Null, `Assoc(_) | `List(_)) => Notification(method, params)
-      | (`Int(id), `Assoc(_) | `List(_)) => Request(id, method, params)
-      | _ => raise(BuiltinError(InvalidRequest))
-      };
-    }) {
-    | _ => raise(BuiltinError(InvalidRequest))
-    };
-  };
+            switch (id, params) {
+            | (`Null, `Assoc(_) | `List(_)) => Notification(method, params)
+            | (`Int(id), `Assoc(_) | `List(_)) => Request(id, method, params)
+            | _ => raise(BuiltinError(InvalidRequest))
+            };
+          }) {
+          | _ => raise(BuiltinError(InvalidRequest))
+          };
+        }: Event.t
+      )
+    );
 
-  let read_from_stream = (stream: Stream.t(char)): request_t => {
+  let read_from_stream = (stream: Stream.t(char)): Event.t => {
     let headers = _read_headers(stream);
 
     Stream.junk(stream);
@@ -158,10 +169,10 @@ let _err_message = (~data=None, ~id=None, code: int, message: string) =>
     ],
   );
 
-let response = (result: JSON.t, id: int) =>
+let response = (id: int, result: JSON.t) =>
   _res_message(~id=Some(id), [(__result_key, result)]);
 
-let error = (~data=?, code: int, message: string, id: int) =>
+let error = (~data=None, id: int, code: int, message: string) =>
   _err_message(~data, ~id=Some(id), code, message);
 
 let builtin_error = (~id: option(int)=?, code: Error.t) =>

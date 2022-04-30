@@ -105,6 +105,14 @@
       "name": "knot.language_server",
       "namespace": "LanguageServer"
     },
+    "src/build_server": {
+      "require": [
+        "knot.compile",
+        "knot.jsonrpc"
+      ],
+      "name": "knot.build_server",
+      "namespace": "BuildServer"
+    },
     "src/executable": {
       "require": [
         "knot.language_server",
@@ -230,6 +238,15 @@
       ],
       "name": "knot.language_server_test",
       "namespace": "TestLanguageServer"
+    },
+    "test/build_server": {
+      "require": [
+        "knot.test",
+        "knot.resolve_test",
+        "knot.build_server"
+      ],
+      "name": "knot.build_server_test",
+      "namespace": "TestBuildServer"
     },
     "test/unit": {
       "require": [
