@@ -1,11 +1,54 @@
-import { JSONRPCSuccessResponse } from 'json-rpc-2.0';
-
 export enum Method {
-  INITIALIZE = 'initialize'
+  MODULE_FETCH = 'module/fetch',
+  MODULE_STATUS = 'module/status',
+  MODULE_ADD = 'module/add',
+  MODULE_INVALIDATE = 'module/invalidate',
+
+  STATUS = 'compiler/status',
+  RESET = 'compiler/reset'
 }
 
-export interface InitializeParams {
-  root_dir: string;
+export interface ModuleParams {
+  path: string;
 }
 
-export interface InitializeResult {}
+/* module/fetch */
+
+export type ModuleFetchParams = ModuleParams;
+
+export interface ModuleFetchResult {
+  data: string;
+}
+
+/* module/status */
+
+export enum ModuleStatus {
+  PENDING = 'pending',
+  COMPLETE = 'complete',
+  FAILED = 'failed'
+}
+
+export type ModuleStatusParams = ModuleParams;
+
+export interface ModuleStatusResult {
+  status: ModuleStatus;
+}
+
+/* compiler/status */
+
+export enum Status {
+  IDLE = 'idle',
+  COMPLETE = 'complete'
+}
+
+export interface StatusResult {
+  status: Status;
+}
+
+/* module/add */
+
+export type ModuleAddParams = ModuleParams;
+
+/* module/invalidate */
+
+export type ModuleInvalidateParams = ModuleParams;

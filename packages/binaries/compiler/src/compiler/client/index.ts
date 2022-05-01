@@ -1,7 +1,17 @@
+import execa from 'execa';
 import { JSONRPCClient } from 'json-rpc-2.0';
 
 import { KNOTC_BINARY } from '../../config';
-import { InitializeParams, Method } from '../protocol';
+import {
+  Method,
+  ModuleAddParams,
+  ModuleFetchParams,
+  ModuleFetchResult,
+  ModuleInvalidateParams,
+  ModuleStatusParams,
+  ModuleStatusResult,
+  StatusResult
+} from '../protocol';
 import createRPC from './rpc';
 
 export interface ClientOptions {
@@ -20,11 +30,20 @@ export interface ClientOptions {
 }
 
 class Client {
+  private static handleError(message: string): (err: Error) => never {
+    return err => {
+      console.error(message, err);
+
+      throw new Error(message);
+    };
+  }
+
+  private proc: execa.ExecaChildProcess;
   private rpc: JSONRPCClient;
 
   constructor(options: ClientOptions) {
     const knotArgs = [
-      'lang_serve',
+      'build_serve',
       '--root-dir',
       options.rootDir,
       '--config',
@@ -36,11 +55,46 @@ class Client {
     console.log('starting language server');
     console.log(`> ${[cmd, ...allArgs].join(' ')}`);
 
-    this.rpc = createRPC({ cmd, args: allArgs });
+    this.proc = execa(cmd, allArgs);
+    this.rpc = createRPC(this.proc);
   }
 
-  async initialize(params: InitializeParams): Promise<{}> {
-    return this.rpc.request(Method.INITIALIZE, params);
+  public async fetchModule(
+    params: ModuleFetchParams
+  ): Promise<ModuleFetchResult> {
+    return this.rpc
+      .request(Method.MODULE_FETCH, params)
+      .then(
+        undefined,
+        Client.handleError('unable to fetch module from compiler')
+      );
+  }
+
+  public async moduleStatus(
+    params: ModuleStatusParams
+  ): Promise<ModuleStatusResult> {
+    return this.rpc.request(Method.MODULE_STATUS, params);
+  }
+
+  public async addModule(params: ModuleAddParams): Promise<void> {
+    return this.rpc.notify(Method.MODULE_ADD, params);
+  }
+
+  public async invalidateModule(params: ModuleInvalidateParams): Promise<void> {
+    return this.rpc.notify(Method.MODULE_INVALIDATE, params);
+  }
+
+  public async reset(): Promise<void> {
+    return this.rpc.request(Method.RESET);
+  }
+
+  public async status(): Promise<StatusResult> {
+    return this.rpc.request(Method.STATUS);
+  }
+
+  public terminate(): void {
+    this.rpc.rejectAllPendingRequests('terminated');
+    this.proc.kill('SIGTERM', { forceKillAfterTimeout: 2000 });
   }
 }
 

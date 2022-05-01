@@ -1,14 +1,8 @@
 import { DeepPartial } from 'utility-types';
 
-export enum ServerStatus {
-  IDLE = 'idle',
-  COMPLETE = 'complete'
-}
-
-export enum ModuleStatus {
-  PENDING = 'pending',
-  COMPLETE = 'complete',
-  FAILED = 'failed'
+export enum Target {
+  JAVASCRIPT_ES6 = 'javascript-es6',
+  JAVASCRIPT_COMMON = 'javascript-common'
 }
 
 export interface Options {
@@ -18,7 +12,7 @@ export interface Options {
   readonly rootDir: string;
   readonly config: string;
   readonly plugins: Plugins;
-  readonly target: 'javascript-es6' | 'javascript-common';
+  readonly target: Target;
 }
 
 export type OptionOverrides = DeepPartial<Options>;

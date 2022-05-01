@@ -1,7 +1,10 @@
 import execa from 'execa';
 import { JSONRPCClient } from 'json-rpc-2.0';
 
+const LINE_BREAK = '\r\n\r\n';
+
 export interface RPCOptions {
+  proc: execa.ExecaChildProcess;
   /**
    * path to the binary being executed
    */
@@ -12,26 +15,31 @@ export interface RPCOptions {
   args?: string[];
 }
 
-const createRPC = ({ cmd, args = [] }: RPCOptions) => {
-  const proc = execa(cmd, args);
-
+const createRPC = (proc: execa.ExecaChildProcess) => {
   proc.stderr.on('data', data => console.error(data.toString()));
 
   const rpc = new JSONRPCClient(async rpcRequest => {
     const json = JSON.stringify(rpcRequest);
     console.error(json);
 
-    proc.stdin.write(`Content-Length: ${json.length}\r\n\r\n${json}`, 'utf8');
+    proc.stdin.write(
+      `Content-Length: ${json.length}${LINE_BREAK}${json}`,
+      'utf8'
+    );
   });
 
   proc.stdout.on('data', data => {
     const dataStr = data.toString();
-    const [, content] = dataStr.split('\r\n\r\n');
+    const [, content] = dataStr.split(LINE_BREAK);
 
     rpc.receive(JSON.parse(content));
   });
 
-  return rpc;
+  return Object.assign(rpc, {
+    terminate() {
+      proc.kill('SIGTERM', { forceKillAfterTimeout: 1500 });
+    }
+  });
 };
 
 export default createRPC;

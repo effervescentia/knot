@@ -2,8 +2,9 @@
 
 import { OptionOverrides, Options } from '../types';
 import Client from './client';
-import { DEFAULT_OPTIONS } from './constants';
-import * as Tasks from './tasks';
+import { DEFAULT_OPTIONS, INFINITE_ATTEMPTS } from './constants';
+import { ModuleStatus, Status } from './protocol';
+import { pollingPromise } from './utils';
 
 interface FullOptions extends Options {
   readonly baseUrl: string;
@@ -36,45 +37,24 @@ class Compiler {
       config: this.options.config
     });
 
-    this.client.initialize({ root_dir: this.options.rootDir });
-
     this.isRunning = true;
   }
 
-  public async add(path: string): Promise<void | Response> {
-    await this.awaitReady();
-
-    return Tasks.addModule(this.options, path);
+  private async awaitStatus(targetStatus: Status): Promise<void> {
+    return pollingPromise((resolve, reject) =>
+      this.client
+        .status()
+        .then(({ status }) => (status === targetStatus ? resolve() : reject()))
+        .catch(reject)
+    );
   }
 
-  public awaitComplete(): Promise<void> {
-    return Tasks.awaitCompilationComplete(this.options);
+  public async awaitComplete(): Promise<void> {
+    return this.awaitStatus(Status.COMPLETE);
   }
 
-  public awaitModule(path: string): Promise<void> {
-    return Tasks.awaitModuleComplete(this.options, path);
-  }
-
-  public close(): Promise<void | Response> {
-    if (!this.isRunning) {
-      return Promise.resolve();
-    }
-
-    this.isRunning = false;
-
-    return Tasks.killServer(this.options);
-  }
-
-  public async generate(path: string): Promise<void | string> {
-    return Tasks.generateModule(this.options, path);
-  }
-
-  public invalidate(path: string): Promise<void | Response> {
-    return Tasks.invalidateModule(this.options, path);
-  }
-
-  public awaitIdle(): Promise<void> {
-    return Tasks.awaitServerIdle(this.options);
+  public async awaitIdle(): Promise<void> {
+    return this.awaitStatus(Status.IDLE);
   }
 
   public async awaitReady(): Promise<void> {
@@ -83,6 +63,49 @@ class Compiler {
 
       this.isReady = true;
     }
+  }
+
+  public close(): void {
+    if (!this.isRunning) return;
+
+    this.isRunning = false;
+    this.client.terminate();
+  }
+
+  /* module methods */
+
+  public async add(path: string): Promise<void> {
+    await this.awaitReady();
+
+    return this.client.addModule({ path });
+  }
+
+  public async awaitModule(path: string): Promise<void> {
+    return pollingPromise(
+      (resolve, reject, abort) =>
+        this.client.moduleStatus({ path }).then(({ status }) => {
+          switch (status) {
+            case ModuleStatus.COMPLETE:
+              return resolve();
+            case ModuleStatus.FAILED:
+              return abort(new Error(`module "${path}" failed to compile`));
+            default:
+              return reject();
+          }
+        }),
+      INFINITE_ATTEMPTS,
+      50
+    );
+  }
+
+  public async fetch(path: string): Promise<string> {
+    const { data } = await this.client.fetchModule({ path });
+
+    return data;
+  }
+
+  public async invalidate(path: string): Promise<void> {
+    return this.client.invalidateModule({ path });
   }
 }
 
