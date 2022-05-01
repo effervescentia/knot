@@ -11,7 +11,7 @@ const LSP_BINARY =
   '/Users/benteichman/development/knot/compiler/_esy/default/store/i/knot-94e894a7/bin/knotc.exe';
 
 export function activate(_context: ExtensionContext) {
-  const args = ['lsp', '--color', 'false'];
+  const args = ['lang_serve', '--color', 'false'];
   const debugArgs = [...args, '--debug'];
 
   const serverOptions: ServerOptions = {

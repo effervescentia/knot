@@ -1,8 +1,7 @@
-import { JSONRPCClient } from 'json-rpc-2.0';
-import process from 'process';
+/* eslint-disable @typescript-eslint/camelcase */
 
 import { OptionOverrides, Options } from '../types';
-import createClient from './client';
+import Client from './client';
 import { DEFAULT_OPTIONS } from './constants';
 import * as Tasks from './tasks';
 
@@ -14,7 +13,7 @@ class Compiler {
   public options: FullOptions;
   public isReady = false;
   public isRunning = false;
-  private client: JSONRPCClient;
+  private client: Client;
 
   constructor(options: OptionOverrides) {
     const mergedOptions: Options = {
@@ -31,15 +30,13 @@ class Compiler {
       baseUrl: `http://localhost:${mergedOptions.port}`
     };
 
-    this.client = createClient({
+    this.client = new Client({
       knotc: '',
       rootDir: this.options.rootDir,
       config: this.options.config
     });
 
-    this.client.send<{}>('initialize', {
-      processId: process.pid
-    });
+    this.client.initialize({ root_dir: this.options.rootDir });
 
     this.isRunning = true;
   }

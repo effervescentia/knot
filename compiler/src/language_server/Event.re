@@ -59,13 +59,13 @@ let deserialize =
     | Request(id, method, params) when method == Format.method_key =>
       params |> Format.deserialize |> of_format(id) |> Option.some
 
-    | Request(id, method, params) when method == FileOpen.method_key =>
+    | Notification(method, params) when method == FileOpen.method_key =>
       params |> FileOpen.deserialize |> of_file_open |> Option.some
 
-    | Request(id, method, params) when method == FileClose.method_key =>
+    | Notification(method, params) when method == FileClose.method_key =>
       params |> FileClose.deserialize |> of_file_close |> Option.some
 
-    | Request(id, method, params) when method == FileChange.method_key =>
+    | Notification(method, params) when method == FileChange.method_key =>
       params |> FileChange.deserialize |> of_file_change |> Option.some
 
     | _ => None

@@ -23,7 +23,7 @@ let create = (in_: in_channel, out: out_channel): t => {
 
   let reply = id =>
     fun
-    | Ok(results) => Protocol.response(id, results) |> send
+    | Ok(result) => Protocol.response(id, result) |> send
     | Error(report) => report(id) |> send;
 
   let watch = handler =>

@@ -1,33 +1,11 @@
-type DocumentUri = string;
+import { JSONRPCSuccessResponse } from 'json-rpc-2.0';
 
-export type TraceValue = 'off' | 'messages' | 'verbose';
-
-export interface ClientCapabilities {
-  workspace?: {};
+export enum Method {
+  INITIALIZE = 'initialize'
 }
 
-export interface WorkspaceFolder {
-  uri: DocumentUri;
-  name: string;
+export interface InitializeParams {
+  root_dir: string;
 }
 
-export interface InitializeRequest {
-  processId: number | null;
-
-  clientInfo?: {
-    name: string;
-    version?: string;
-  };
-
-  locale?: string;
-
-  rootUri: DocumentUri | null;
-
-  initializationOptions?: any;
-
-  capabilities: ClientCapabilities;
-
-  trace?: TraceValue;
-
-  workspaceFolders?: WorkspaceFolder[] | null;
-}
+export interface InitializeResult {}
