@@ -238,16 +238,18 @@ let emit_output = (target: Target.t, output_dir: string, compiler: t) =>
                let out = open_out(path);
 
                (ModuleTable.{ast}) => {
-                 Generator.generate(
-                   target,
-                   fun
-                   | Internal(path) =>
-                     Filename.concat(output_dir, path)
-                     |> Filename.relative_to(parent_dir)
-                   | External(_) => raise(NotImplemented),
-                   ast,
-                 )
-                 |> Writer.write(out);
+                 Writer.write(out, ppf =>
+                   Generator.pp(
+                     target,
+                     fun
+                     | Internal(path) =>
+                       Filename.concat(output_dir, path)
+                       |> Filename.relative_to(parent_dir)
+                     | External(_) => raise(NotImplemented),
+                     ppf,
+                     ast,
+                   )
+                 );
                  close_out(out);
                };
              }
@@ -272,6 +274,12 @@ let compile =
 
   Log.info("compilation successful");
 };
+
+/**
+ get a module by its namespace
+ */
+let get_module = (id: Namespace.t, compiler: t) =>
+  compiler.modules |> ModuleTable.find(id);
 
 /**
  add a new module (and its import graph) to a compiler
@@ -344,4 +352,5 @@ let insert_module = (id: Namespace.t, contents: string, compiler: t) => {
 /**
  destroy any resources reserved by the compiler
  */
+
 let teardown = (compiler: t) => compiler.resolver.cache |> Cache.destroy;

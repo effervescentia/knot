@@ -50,9 +50,12 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
     global,
     build_key,
     [
+      (source_dir_key, config.source_dir),
       (out_dir_key, config.out_dir),
       (target_key, config.target |> ~@Target.pp),
       (entry_key, config.entry |> ~@Namespace.pp),
+      (fail_fast_key, string_of_bool(config.fail_fast)),
+      (log_imports_key, string_of_bool(config.log_imports)),
     ],
   );
 

@@ -2,7 +2,6 @@
  Utilities for the "lang_serve" command.
  */
 open Kore;
-open Lwt.Infix;
 
 module Server = LanguageServer.Server;
 

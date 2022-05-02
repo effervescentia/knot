@@ -1,21 +1,28 @@
 open Kore;
 open Reference;
 
-let start = (config: Config.t) => {
+type config_t = {
+  name: string,
+  root_dir: string,
+  source_dir: string,
+  target: Target.t,
+};
+
+let start = (config: config_t) => {
   let server = JSONRPC.Server.create(stdin, stdout);
   let compiler =
     Compiler.create(
       ~report=_ => ignore,
       {
-        name: config.name |?: Filename.basename(config.root_dir),
+        name: config.name,
         root_dir: config.root_dir,
         source_dir: config.source_dir,
-        fail_fast: config.fail_fast,
-        log_imports: config.log_imports,
+        fail_fast: false,
+        log_imports: false,
       },
     );
 
-  let runtime = Runtime.{server, compiler};
+  let runtime = Runtime.{server, compiler, target: config.target};
 
   server.watch(
     Event.deserialize

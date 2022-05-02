@@ -15,7 +15,7 @@ let __program = [
 let suite =
   "Generate.Generator"
   >::: [
-    "generate() - javascript with es6 modules"
+    "pp() - javascript with es6 modules"
     >: (
       () =>
         Assert.string(
@@ -23,11 +23,7 @@ let suite =
 var ABC = 123;
 export { ABC };
 ",
-          __program
-          |> ~@(
-               (ppf, x) =>
-                 Generator.generate(JavaScript(ES6), _ => "", x, ppf)
-             ),
+          __program |> ~@Generator.pp(JavaScript(ES6), _ => ""),
         )
     ),
   ];

@@ -115,6 +115,7 @@
     },
     "src/executable": {
       "require": [
+        "knot.build_server",
         "knot.language_server",
         "yaml"
       ],

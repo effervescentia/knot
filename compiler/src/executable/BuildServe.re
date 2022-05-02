@@ -2,20 +2,40 @@
  Utilities for the "build_serve" command.
  */
 open Kore;
-open Lwt.Infix;
 
-module Server = LanguageServer.Server;
+module Server = BuildServer.Server;
 
-type config_t = unit;
+type config_t = {
+  source_dir: string,
+  target: Target.t,
+};
 
 let cmd = () => {
-  Cmd.create(build_serve_key, [], (_, _) => ());
+  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
+  let (target_opt, get_target) = ConfigOpt.target();
+
+  Cmd.create(
+    build_serve_key,
+    [source_dir_opt, target_opt],
+    (static, global) => {
+      let source_dir = get_source_dir(static, global.root_dir);
+
+      {target: get_target(static), source_dir};
+    },
+  );
 };
 
 let run = (global: global_t, config: config_t) => {
-  Cmd.log_config(global, build_serve_key, []);
-
-  Server.start(folder =>
-    ConfigFile.find(folder) |?> ConfigFile.read |?: default_config
+  Cmd.log_config(
+    global,
+    build_serve_key,
+    [(target_key, config.target |> ~@Target.pp)],
   );
+
+  Server.start({
+    name: global.name,
+    root_dir: global.root_dir,
+    source_dir: config.source_dir,
+    target: config.target,
+  });
 };

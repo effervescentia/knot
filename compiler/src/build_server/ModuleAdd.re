@@ -7,6 +7,5 @@ let method_key = "module/add";
 let deserialize = Deserialize.module_params;
 
 let handler: Runtime.notification_handler_t(params_t) =
-  (_, _) => {
-    ();
-  };
+  ({compiler}, {path}) =>
+    compiler |> Compiler.upsert_module(Namespace.of_string(path)) |> ignore;
