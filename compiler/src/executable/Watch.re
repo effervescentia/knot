@@ -9,6 +9,7 @@ module Watcher = File.Watcher;
 
 type config_t = {
   target: Target.t,
+  root_dir: string,
   source_dir: string,
   out_dir: string,
   entry: Namespace.t,
@@ -16,42 +17,46 @@ type config_t = {
 
 let _is_source_file = String.ends_with(Constants.file_extension);
 
-let cmd = () => {
-  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
-  let (out_dir_opt, get_out_dir) = ConfigOpt.out_dir();
-  let (target_opt, get_target) = ConfigOpt.target();
-  let (entry_opt, get_entry) = ConfigOpt.entry();
+let command_key = "watch";
 
-  Cmd.create(
-    watch_key,
-    [source_dir_opt, out_dir_opt, target_opt, entry_opt],
+let command = () => {
+  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
+  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
+  let (out_dir_arg, get_out_dir) = Arguments.out_dir();
+  let (entry_arg, get_entry) = Arguments.entry();
+  let (target_arg, get_target) = Arguments.target();
+
+  Command.create(
+    command_key,
+    [root_dir_arg, source_dir_arg, out_dir_arg, target_arg, entry_arg],
     (static, global) => {
-      let source_dir = get_source_dir(static, global.root_dir);
+      let root_dir = get_root_dir(static);
+      let source_dir = get_source_dir(static, root_dir);
+      let out_dir = get_out_dir(static, root_dir);
+      let entry = get_entry(static, root_dir, source_dir);
+      let target = get_target(static);
 
-      {
-        target: get_target(static),
-        source_dir,
-        out_dir: get_out_dir(static, global.root_dir),
-        entry: get_entry(static, global.root_dir, source_dir),
-      };
+      {root_dir, source_dir, out_dir, entry, target};
     },
   );
 };
 
 let run =
     (
-      global: global_t,
+      global: Config.global_t,
       ~report=resolver =>
                 Reporter.report(resolver) % File.Writer.write(stderr),
       config: config_t,
     ) => {
-  Cmd.log_config(
+  Util.log_config(
     global,
-    watch_key,
+    command_key,
     [
+      (root_dir_key, config.root_dir),
+      (source_dir_key, config.source_dir),
       (out_dir_key, config.out_dir),
-      (target_key, config.target |> ~@Target.pp),
       (entry_key, config.entry |> ~@Namespace.pp),
+      (target_key, config.target |> ~@Target.pp),
     ],
   );
 
@@ -60,7 +65,7 @@ let run =
       ~report,
       {
         name: global.name,
-        root_dir: global.root_dir,
+        root_dir: config.root_dir,
         source_dir: config.source_dir,
         fail_fast: false,
         log_imports: false,

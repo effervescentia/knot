@@ -5,18 +5,26 @@ open Kore;
 
 type config_t = {port: int};
 
-let cmd = () => {
-  let (port_opt, get_port) = ConfigOpt.port();
+let command_key = "dev_serve";
 
-  Cmd.create(dev_serve_key, [port_opt], (static, _) =>
-    {port: get_port(static)}
+let command = () => {
+  let (port_arg, get_port) = Arguments.port();
+
+  Command.create(
+    command_key,
+    [port_arg],
+    (static, _) => {
+      let port = get_port(static);
+
+      {port: port};
+    },
   );
 };
 
-let run = (global: global_t, config: config_t): Lwt.t(unit) => {
-  Cmd.log_config(
+let run = (global: Config.global_t, config: config_t): Lwt.t(unit) => {
+  Util.log_config(
     global,
-    dev_serve_key,
+    command_key,
     [(port_key, string_of_int(config.port))],
   );
 

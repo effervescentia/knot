@@ -1,17 +1,15 @@
 open Kore;
 
-module Opt = Executable.Opt;
-
 let __config = Config.defaults(false);
 let __opt =
-  Opt.create(
+  Argument.create(
     "foo",
     Arg.Bool(ignore),
     "used to control the application of foo",
   );
 
 let suite =
-  "Executable.Opt"
+  "Library.Argument"
   >::: [
     "pp() - with description"
     >: (
@@ -19,12 +17,12 @@ let suite =
         Assert.string(
           "--foo
   \n  used to control the application of foo",
-          Opt.create(
+          Argument.create(
             "foo",
             Arg.Bool(ignore),
             "used to control the application of foo",
           )
-          |> ~@Opt.pp(None),
+          |> ~@Argument.pp(None),
         )
     ),
     "pp() - with attribute"
@@ -34,14 +32,14 @@ let suite =
           "--foo
   [default: true]
   \n  used to control the application of foo",
-          Opt.create(
+          Argument.create(
             ~default=Bool(true),
             ~from_config=_ => Some(Bool(true)),
             "foo",
             Arg.Bool(ignore),
             "used to control the application of foo",
           )
-          |> ~@Opt.pp(Some(__config)),
+          |> ~@Argument.pp(Some(__config)),
         )
     ),
     "pp() - with many attributes and alias"
@@ -53,7 +51,7 @@ let suite =
   [default: true]
   [from config: false]
   \n  used to control the application of foo",
-          Opt.create(
+          Argument.create(
             ~alias="f",
             ~default=Bool(true),
             ~from_config=_ => Some(Bool(false)),
@@ -62,7 +60,7 @@ let suite =
             Arg.Bool(ignore),
             "used to control the application of foo",
           )
-          |> ~@Opt.pp(Some(__config)),
+          |> ~@Argument.pp(Some(__config)),
         )
     ),
   ];

@@ -3,24 +3,35 @@
  */
 open Kore;
 
-type config_t = {source_dir: string};
+type config_t = {
+  root_dir: string,
+  source_dir: string,
+};
 
-let cmd = () => {
-  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
+let command_key = "format";
 
-  Cmd.create(
-    format_key,
-    [source_dir_opt],
+let command = () => {
+  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
+  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
+
+  Command.create(
+    command_key,
+    [root_dir_arg, source_dir_arg],
     (static, global) => {
-      let source_dir = get_source_dir(static, global.root_dir);
+      let root_dir = get_root_dir(static);
+      let source_dir = get_source_dir(static, root_dir);
 
-      {source_dir: source_dir};
+      {root_dir, source_dir};
     },
   );
 };
 
-let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
-  Cmd.log_config(global, format_key, []);
+let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
+  Util.log_config(
+    global,
+    command_key,
+    [(root_dir_key, config.root_dir), (source_dir_key, config.source_dir)],
+  );
 
   let compiler =
     Compiler.create(
@@ -37,14 +48,14 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
           % (errors => List.is_empty(errors) ? () : report(resolver, errors)),
       {
         name: global.name,
-        root_dir: global.root_dir,
+        root_dir: config.root_dir,
         source_dir: config.source_dir,
         fail_fast: false,
         log_imports: false,
       },
     );
 
-  let source_path = Filename.concat(global.root_dir, config.source_dir);
+  let source_path = Filename.concat(config.root_dir, config.source_dir);
 
   let files =
     FileUtil.find(
@@ -76,7 +87,7 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
   compiler
   |> Compiler.emit_output(
        Target.Knot,
-       Filename.concat(global.root_dir, config.source_dir),
+       Filename.concat(config.root_dir, config.source_dir),
      );
   compiler |> Compiler.teardown;
 };

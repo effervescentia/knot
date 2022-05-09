@@ -1,7 +1,7 @@
 /**
- Command line arg parsing utilities.
+ Command argument parsing utilities.
  */
-open Kore;
+module Fmt = Pretty.Formatters;
 
 module Value = {
   type t =
@@ -51,7 +51,7 @@ let create =
   options,
 };
 
-let to_args = (value: t): list((string, Arg.spec, string)) => [
+let expand = (value: t): list((string, Arg.spec, string)) => [
   (value.name |> Fmt.str("--%s"), value.spec, ""),
   ...switch (value.alias) {
      | Some(alias) => [(alias |> Fmt.str("-%s"), value.spec, "")]
@@ -102,7 +102,7 @@ let pp = (cfg: option(Config.t)): Fmt.t(t) =>
     vbox((ppf, value) =>
       pf(
         ppf,
-        "%a%t@[<v>%a%a%a@,%s@]",
+        "%a%t@[<v>%a%a%a%s@]",
         bold(_pp_flag),
         (value.name, value.alias),
         indent,

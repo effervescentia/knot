@@ -5,6 +5,7 @@ open Kore;
 
 type config_t = {
   target: Target.t,
+  root_dir: string,
   source_dir: string,
   out_dir: string,
   entry: Namespace.t,
@@ -12,48 +13,52 @@ type config_t = {
   log_imports: bool,
 };
 
-let cmd = () => {
-  let (source_dir_opt, get_source_dir) = ConfigOpt.source_dir();
-  let (out_dir_opt, get_out_dir) = ConfigOpt.out_dir();
-  let (target_opt, get_target) = ConfigOpt.target();
-  let (entry_opt, get_entry) = ConfigOpt.entry();
-  let (fail_fast_opt, get_fail_fast) = ConfigOpt.fail_fast();
-  let (log_imports_opt, get_log_imports) = ConfigOpt.log_imports();
+let command_key = "build";
 
-  Cmd.create(
-    build_key,
+let command = () => {
+  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
+  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
+  let (out_dir_arg, get_out_dir) = Arguments.out_dir();
+  let (entry_arg, get_entry) = Arguments.entry();
+  let (target_arg, get_target) = Arguments.target();
+  let (fail_fast_arg, get_fail_fast) = Arguments.fail_fast();
+  let (log_imports_arg, get_log_imports) = Arguments.log_imports();
+
+  Command.create(
+    command_key,
     [
-      source_dir_opt,
-      out_dir_opt,
-      target_opt,
-      entry_opt,
-      fail_fast_opt,
-      log_imports_opt,
+      root_dir_arg,
+      source_dir_arg,
+      out_dir_arg,
+      entry_arg,
+      target_arg,
+      fail_fast_arg,
+      log_imports_arg,
     ],
     (static, global) => {
-      let source_dir = get_source_dir(static, global.root_dir);
+      let root_dir = get_root_dir(static);
+      let source_dir = get_source_dir(static, root_dir);
+      let out_dir = get_out_dir(static, root_dir);
+      let entry = get_entry(static, root_dir, source_dir);
+      let target = get_target(static);
+      let fail_fast = get_fail_fast(static);
+      let log_imports = get_log_imports(static);
 
-      {
-        target: get_target(static),
-        source_dir,
-        out_dir: get_out_dir(static, global.root_dir),
-        entry: get_entry(static, global.root_dir, source_dir),
-        fail_fast: get_fail_fast(static),
-        log_imports: get_log_imports(static),
-      };
+      {root_dir, source_dir, out_dir, entry, target, fail_fast, log_imports};
     },
   );
 };
 
-let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
-  Cmd.log_config(
+let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
+  Util.log_config(
     global,
-    build_key,
+    command_key,
     [
+      (root_dir_key, config.root_dir),
       (source_dir_key, config.source_dir),
       (out_dir_key, config.out_dir),
-      (target_key, config.target |> ~@Target.pp),
       (entry_key, config.entry |> ~@Namespace.pp),
+      (target_key, config.target |> ~@Target.pp),
       (fail_fast_key, string_of_bool(config.fail_fast)),
       (log_imports_key, string_of_bool(config.log_imports)),
     ],
@@ -64,7 +69,7 @@ let run = (global: global_t, ~report=Reporter.panic, config: config_t) => {
       ~report,
       {
         name: global.name,
-        root_dir: global.root_dir,
+        root_dir: config.root_dir,
         source_dir: config.source_dir,
         fail_fast: config.fail_fast,
         log_imports: config.log_imports,

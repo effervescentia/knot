@@ -1,12 +1,11 @@
 open Kore;
 
 let unit_tests = [
-  ArgsTest.suite,
   BuildTest.suite,
-  ConfigOptTest.suite,
-  OptTest.suite,
+  ArgumentsTest.suite,
   ReporterTest.suite,
-  RunCmdTest.suite,
+  TaskTest.suite,
+  UsageTest.suite,
 ];
 
 let integration_tests = [FormatTest.suite];

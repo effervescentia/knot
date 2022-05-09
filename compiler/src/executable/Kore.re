@@ -3,14 +3,7 @@ include Reference;
 
 module Compiler = Compile.Compiler;
 
-let build_key = "build";
-let watch_key = "watch";
-let format_key = "format";
-let lint_key = "lint";
-let bundle_key = "bundle";
-let dev_serve_key = "dev_serve";
-let lang_serve_key = "lang_serve";
-let build_serve_key = "build_serve";
+let binary_name = "knotc";
 
 let name_key = "name";
 let root_dir_key = "root_dir";
@@ -25,21 +18,12 @@ let fail_fast_key = "fail_fast";
 let log_imports_key = "log_imports";
 let port_key = "port";
 
-let is_ci =
+let is_ci_env =
   switch (Sys.getenv_opt("CI")) {
   | Some("")
   | None => false
   | Some(_) => true
   };
-
-let default_config = Knot.Config.defaults(is_ci);
-
-type global_t = {
-  debug: bool,
-  color: bool,
-  name: string,
-  root_dir: string,
-};
 
 let panic = (err: string) => {
   Log.fatal("%s", err);

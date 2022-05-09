@@ -2,14 +2,7 @@ open Kore;
 
 module Format = Executable.Format;
 
-let __compiler_config =
-  Executable.Kore.{
-    name: "foo",
-    root_dir: "placeholder",
-
-    debug: false,
-    color: false,
-  };
+let __compiler_config = Config.{name: "foo", debug: false, color: false};
 let __source_dir = ".";
 
 let suite =
@@ -26,8 +19,8 @@ let suite =
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          {...__compiler_config, root_dir: temp_dir},
-          {source_dir: __source_dir},
+          __compiler_config,
+          {root_dir: temp_dir, source_dir: __source_dir},
         );
 
         Async.on_tick(() => {
@@ -56,8 +49,8 @@ let suite =
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          {...__compiler_config, root_dir: temp_dir},
-          {source_dir: __source_dir},
+          __compiler_config,
+          {root_dir: temp_dir, source_dir: __source_dir},
         );
 
         Async.on_tick(() => {
@@ -95,8 +88,8 @@ let suite =
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          {...__compiler_config, root_dir: temp_dir},
-          {source_dir: __source_dir},
+          __compiler_config,
+          {root_dir: temp_dir, source_dir: __source_dir},
         );
 
         Async.on_tick(() => {

@@ -28,10 +28,10 @@ let _resolve =
   | (None, None) => default
   };
 
-let debug = (~default=default_config.debug, ()) => {
+let debug = (~default=ConfigFile.defaults.debug, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~default=Bool(default),
       ~from_config=cfg => Some(Bool(cfg.debug)),
       debug_key,
@@ -41,13 +41,13 @@ let debug = (~default=default_config.debug, ()) => {
   let resolve = (cfg: option(Config.t)) =>
     value^ |> _resolve(cfg, x => x.debug, default);
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let root_dir = (~default=default_config.root_dir, ()) => {
+let root_dir = (~default=ConfigFile.defaults.root_dir, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~alias="r",
       ~default=String(default),
       ~from_config=cfg => Some(String(cfg.root_dir)),
@@ -66,13 +66,13 @@ let root_dir = (~default=default_config.root_dir, ()) => {
     root_dir;
   };
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let port = (~default=default_config.port, ()) => {
+let port = (~default=ConfigFile.defaults.port, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~alias="p",
       ~default=Int(default),
       ~from_config=cfg => Some(Int(cfg.port)),
@@ -91,14 +91,14 @@ let port = (~default=default_config.port, ()) => {
     port;
   };
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
 let _check_source_dir_exists = _check_exists("source directory");
-let source_dir = (~default=default_config.source_dir, ()) => {
+let source_dir = (~default=ConfigFile.defaults.source_dir, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~alias="s",
       ~default=String(default),
       ~from_config=cfg => Some(String(cfg.source_dir)),
@@ -127,15 +127,15 @@ let source_dir = (~default=default_config.source_dir, ()) => {
     };
   };
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
 let _check_entry_exists = _check_exists(entry_key);
 
-let entry = (~default=default_config.entry, ()) => {
+let entry = (~default=ConfigFile.defaults.entry, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~alias="e",
       ~default=String(default),
       ~from_config=cfg => Some(String(cfg.entry)),
@@ -171,17 +171,17 @@ let entry = (~default=default_config.entry, ()) => {
     );
   };
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
 let target = () => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~alias="t",
       ~options=__targets,
       ~from_config=
-        cfg => cfg.target |?> ~@Target.pp % (x => Opt.Value.String(x)),
+        cfg => cfg.target |?> ~@Target.pp % (x => Argument.Value.String(x)),
       target_key,
       Symbol(__targets, x => value := Some(target_of_string(x))),
       "the target to compile to",
@@ -193,13 +193,13 @@ let target = () => {
     | (_, _) => panic("must provide a target for compilation")
     };
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let out_dir = (~default=default_config.out_dir, ()) => {
+let out_dir = (~default=ConfigFile.defaults.out_dir, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~alias="o",
       ~default=String(default),
       ~from_config=cfg => Some(String(cfg.out_dir)),
@@ -221,13 +221,13 @@ let out_dir = (~default=default_config.out_dir, ()) => {
     | (None, None) => Filename.concat(root_dir, default)
     };
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let fix = (~default=default_config.fix, ()) => {
+let fix = (~default=ConfigFile.defaults.fix, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~default=Bool(default),
       ~from_config=cfg => Some(Bool(cfg.fix)),
       fix_key,
@@ -237,13 +237,13 @@ let fix = (~default=default_config.fix, ()) => {
   let resolve = (cfg: option(Config.t)) =>
     value^ |> _resolve(cfg, x => x.fix, default);
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let color = (~default=default_config.color, ()) => {
+let color = (~default=ConfigFile.defaults.color, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~default=Bool(default),
       ~from_config=cfg => Some(Bool(cfg.color)),
       color_key,
@@ -253,13 +253,13 @@ let color = (~default=default_config.color, ()) => {
   let resolve = (cfg: option(Config.t)) =>
     value^ |> _resolve(cfg, x => x.color, default);
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let fail_fast = (~default=default_config.fail_fast, ()) => {
+let fail_fast = (~default=ConfigFile.defaults.fail_fast, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~default=Bool(default),
       ~from_config=cfg => Some(Bool(cfg.fail_fast)),
       fail_fast_key,
@@ -269,13 +269,13 @@ let fail_fast = (~default=default_config.fail_fast, ()) => {
   let resolve = (cfg: option(Config.t)) =>
     value^ |> _resolve(cfg, x => x.fail_fast, default);
 
-  (opt, resolve);
+  (argument, resolve);
 };
 
-let log_imports = (~default=default_config.log_imports, ()) => {
+let log_imports = (~default=ConfigFile.defaults.log_imports, ()) => {
   let value = ref(None);
-  let opt =
-    Opt.create(
+  let argument =
+    Argument.create(
       ~default=Bool(default),
       ~from_config=cfg => Some(Bool(cfg.log_imports)),
       log_imports_key,
@@ -285,5 +285,5 @@ let log_imports = (~default=default_config.log_imports, ()) => {
   let resolve = (cfg: option(Config.t)) =>
     value^ |> _resolve(cfg, x => x.log_imports, default);
 
-  (opt, resolve);
+  (argument, resolve);
 };

@@ -1,6 +1,4 @@
-open Knot.Kore;
-
-open Executable;
+open Kore;
 
 /**
  execution entrypoint
@@ -8,7 +6,7 @@ open Executable;
 let () = {
   Log.init({debug: false, timestamp: false});
 
-  let (config, command) = Args.to_config();
+  let (config, command) = Terminal.read();
 
   Fmt.color := config.color;
   Log.init({debug: config.debug, timestamp: false});
@@ -16,13 +14,13 @@ let () = {
   Log.info("project %a", ~$Fmt.good_str, config.name);
 
   switch (command) {
-  | Build(cmd) => Build.run(config, cmd)
-  | Watch(cmd) => Lwt_main.run @@ Watch.run(config, cmd)
-  | Format(cmd) => Format.run(config, cmd)
-  | Lint(cmd) => Lint.run(config, cmd)
-  | Bundle(cmd) => Bundle.run(config, cmd)
-  | DevServe(cmd) => Lwt_main.run @@ DevServe.run(config, cmd)
-  | LangServe(cmd) => Lwt_main.run @@ LangServe.run(config, cmd)
-  | BuildServe(cmd) => Lwt_main.run @@ BuildServe.run(config, cmd)
+  | Build(cmd) => Executable.Build.run(config, cmd)
+  | Watch(cmd) => Lwt_main.run @@ Executable.Watch.run(config, cmd)
+  | Format(cmd) => Executable.Format.run(config, cmd)
+  | Lint(cmd) => Executable.Lint.run(config, cmd)
+  | Bundle(cmd) => Executable.Bundle.run(config, cmd)
+  | DevServe(cmd) => Lwt_main.run @@ Executable.DevServe.run(config, cmd)
+  | LangServe(cmd) => Lwt_main.run @@ Executable.LangServe.run(config, cmd)
+  | BuildServe(cmd) => Lwt_main.run @@ Executable.BuildServe.run(config, cmd)
   };
 };

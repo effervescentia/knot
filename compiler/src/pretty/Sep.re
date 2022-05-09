@@ -45,4 +45,7 @@ let comma = of_sep(~trail=Trail.nop, ",");
 let trailing_newline = create(~trail=ppf => cut(ppf, ()), cut);
 let newline = create(cut);
 
-let double_newline = create((ppf, ()) => pf(ppf, "@,@,"));
+let _double_newline_hint = (ppf, ()) => pf(ppf, "@,@,");
+let double_newline = create(_double_newline_hint);
+let trailing_double_newline =
+  create(~trail=ppf => cut(ppf, ()), _double_newline_hint);

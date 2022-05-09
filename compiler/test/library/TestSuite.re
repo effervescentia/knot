@@ -1,5 +1,6 @@
 let tests =
   [
+    ArgumentTest.suite,
     ASTTest.suite,
     FilenameTest.suite,
     ErrorTest.suite,

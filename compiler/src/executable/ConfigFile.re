@@ -1,25 +1,27 @@
 /**
- Parse command line args into config.
+ Parser for `.knot.yml` config files.
  */
 open Kore;
 
-let name = ".knot.yml";
+let file_name = ".knot.yml";
 
-let find = File.Util.find_up(name);
+let defaults = Knot.Config.defaults(is_ci_env);
+
+let find = File.Util.find_up(file_name);
 
 let read = (file: string): Config.t => {
-  let root_dir = ref(file |> Filename.dirname);
-  let project_name = ref(default_config.name);
-  let source_dir = ref(default_config.source_dir);
-  let out_dir = ref(default_config.out_dir);
-  let target = ref(default_config.target);
-  let entry = ref(default_config.entry);
-  let color = ref(default_config.color);
-  let fix = ref(default_config.fix);
-  let fail_fast = ref(default_config.fail_fast);
-  let log_imports = ref(default_config.log_imports);
-  let debug = ref(default_config.debug);
-  let port = ref(default_config.port);
+  let root_dir = ref(Filename.dirname(file));
+  let project_name = ref(defaults.name);
+  let source_dir = ref(defaults.source_dir);
+  let out_dir = ref(defaults.out_dir);
+  let target = ref(defaults.target);
+  let entry = ref(defaults.entry);
+  let color = ref(defaults.color);
+  let fix = ref(defaults.fix);
+  let fail_fast = ref(defaults.fail_fast);
+  let log_imports = ref(defaults.log_imports);
+  let debug = ref(defaults.debug);
+  let port = ref(defaults.port);
 
   Log.debug("looking for config file: %s", file);
 
@@ -31,15 +33,15 @@ let read = (file: string): Config.t => {
          | (name, `String(value)) when name == name_key =>
            project_name := Some(value)
          | (name, `String(value)) when name == root_dir_key =>
-           root_dir := value |> Filename.resolve
+           root_dir := Filename.resolve(value)
          | (name, `String(value)) when name == source_dir_key =>
            source_dir := value
          | (name, `String(value)) when name == out_dir_key =>
            out_dir := value
-
+         | (name, `String(value)) when name == entry_key => entry := value
          | (name, `String(value)) when name == target_key =>
            target := Some(target_of_string(value))
-         | (name, `String(value)) when name == entry_key => entry := value
+
          | (name, `Bool(value)) when name == fix_key => fix := value
          | (name, `Bool(value)) when name == fail_fast_key =>
            fail_fast := value
@@ -47,16 +49,21 @@ let read = (file: string): Config.t => {
            log_imports := value
          | (name, `Bool(value)) when name == color_key => color := value
          | (name, `Bool(value)) when name == debug_key => debug := value
+
          | (name, `Float(value)) when name == port_key =>
            port := value |> int_of_float
+
          | (name, _) => name |> Fmt.str("invalid entry found: %s") |> panic,
        )
+
   | Ok(`Null) => ()
+
   | Ok(_) =>
     Fmt.str(
       "expected an object with some of the following keys: root_dir, source_dir, entry",
     )
     |> panic
+
   | _ => file |> Fmt.str("failed to parse configuration file: %s") |> panic
   };
 

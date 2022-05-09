@@ -3,13 +3,7 @@ open Kore;
 module Build = Executable.Build;
 
 let __entry = Reference.Namespace.Internal("main");
-let __compiler_config =
-  Executable.Kore.{
-    name: "foo",
-    root_dir: simple_fixture_dir,
-    debug: false,
-    color: false,
-  };
+let __compiler_config = Config.{name: "foo", debug: false, color: false};
 let __source_dir = ".";
 
 let suite =
@@ -26,6 +20,7 @@ let suite =
           __compiler_config,
           {
             target: Target.(JavaScript(Common)),
+            root_dir: simple_fixture_dir,
             source_dir: __source_dir,
             out_dir: temp_dir,
             entry: __entry,
@@ -54,9 +49,10 @@ exports.ABC = ABC;
 
         Build.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          {...__compiler_config, root_dir: complex_fixture_dir},
+          __compiler_config,
           {
             target: Target.(JavaScript(Common)),
+            root_dir: complex_fixture_dir,
             source_dir: "src",
             out_dir: temp_dir,
             entry: __entry,

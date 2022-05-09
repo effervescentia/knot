@@ -1,8 +1,10 @@
 include Infix;
 include Error;
 
+module Argument = Argument;
 module AST = AST;
 module BinaryTree = BinaryTree;
+module Command = Command;
 module Config = Config;
 module Constants = Constants;
 module DeclarationTable = DeclarationTable;

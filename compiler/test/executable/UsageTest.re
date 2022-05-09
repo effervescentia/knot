@@ -1,19 +1,17 @@
 open Kore;
 
-module Args = Executable.Args;
-module Cmd = Executable.Cmd;
-module Opt = Executable.Opt;
-module RunCmd = Executable.RunCmd;
+module Usage = Executable.Usage;
+module Task = Executable.Task;
 
-let __opt =
-  Opt.create(
+let __arg =
+  Argument.create(
     "foo",
     Arg.Bool(ignore),
     "used to control the application of foo",
   );
 
 let suite =
-  "Executable.Args"
+  "Executable.Usage"
   >::: [
     "pp_usage() - root command usage"
     >: (
@@ -37,7 +35,7 @@ OPTIONS
   --foo
     \n    used to control the application of foo
 ",
-          (None, None, [__opt]) |> ~@Args.pp_usage,
+          (None, None, [__arg]) |> ~@Usage.pp,
         )
     ),
     "pp_usage() - sub-command usage"
@@ -61,15 +59,15 @@ OPTIONS
 ",
           (
             Some(
-              Cmd.{
+              Command.{
                 name: "foo",
-                opts: [__opt],
-                resolve: (_, _) => RunCmd.DevServe({port: 8080}),
+                arguments: [__arg],
+                resolve: (_, _) => Task.DevServe({port: 8080}),
               },
             ),
             Some(Config.defaults(false)),
             [
-              Opt.create(
+              Argument.create(
                 ~alias="b",
                 ~default=Bool(true),
                 ~from_config=_ => Some(Bool(false)),
@@ -80,7 +78,7 @@ OPTIONS
               ),
             ],
           )
-          |> ~@Args.pp_usage,
+          |> ~@Usage.pp,
         )
     ),
   ];
