@@ -159,25 +159,11 @@ let handler: Runtime.request_handler_t(params_t) =
          Log.info("creating compiler for '%s' project (%s)", name, uri);
 
          let config = find_config(uri);
-         let root_dir =
-           Filename.(
-             (
-               is_relative(config.root_dir)
-                 ? concat(uri, config.root_dir) : config.root_dir
-             )
-             |> resolve
-           );
-
          let compiler =
            Compiler.create(
-             ~report=
-               _ =>
-                 Diagnostics.send(
-                   runtime,
-                   Filename.concat(root_dir, config.source_dir),
-                 ),
+             ~report=_ => Diagnostics.send(runtime, config.source_dir),
              {
-               root_dir,
+               root_dir: config.root_dir,
                source_dir: config.source_dir,
                name,
                fail_fast: false,

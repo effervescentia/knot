@@ -31,14 +31,9 @@ let resolve = (path: string, {compilers}: t) =>
   |> (
     fun
     | Some({compiler} as context) => {
-        let source_dir =
-          Filename.concat(
-            compiler.config.root_dir,
-            compiler.config.source_dir,
-          );
         let relative =
           path
-          |> Filename.relative_to(source_dir)
+          |> Filename.relative_to(compiler.config.source_dir)
           |> String.drop_suffix(Constants.file_extension)
           |> (++)(Constants.root_dir);
 

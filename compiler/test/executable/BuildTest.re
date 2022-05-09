@@ -3,8 +3,8 @@ open Kore;
 module Build = Executable.Build;
 
 let __entry = Reference.Namespace.Internal("main");
-let __compiler_config = Config.{name: "foo", debug: false, color: false};
-let __source_dir = ".";
+let __compiler_config =
+  Config.{name: "foo", debug: false, color: false, working_dir: "."};
 
 let suite =
   "Executable.Build"
@@ -21,7 +21,7 @@ let suite =
           {
             target: Target.(JavaScript(Common)),
             root_dir: simple_fixture_dir,
-            source_dir: __source_dir,
+            source_dir: simple_fixture_dir,
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
@@ -53,7 +53,7 @@ exports.ABC = ABC;
           {
             target: Target.(JavaScript(Common)),
             root_dir: complex_fixture_dir,
-            source_dir: "src",
+            source_dir: Filename.concat(complex_fixture_dir, "src"),
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,

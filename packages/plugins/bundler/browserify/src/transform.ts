@@ -8,7 +8,7 @@ function flushTransformed(compiler: KnotCompiler, file: string): FlushCallback {
       await compiler.add(file);
       await compiler.awaitModule(file);
 
-      const compiled = await compiler.generate(file);
+      const compiled = await compiler.fetch(file);
 
       if (compiled) {
         this.push(compiled);

@@ -16,7 +16,7 @@ let suite =
       () =>
         Assert.string(
           "--foo
-  \n  used to control the application of foo",
+  used to control the application of foo",
           Argument.create(
             "foo",
             Arg.Bool(ignore),
@@ -31,7 +31,7 @@ let suite =
         Assert.string(
           "--foo
   [default: true]
-  \n  used to control the application of foo",
+  used to control the application of foo",
           Argument.create(
             ~default=Bool(true),
             ~from_config=_ => Some(Bool(true)),
@@ -50,7 +50,7 @@ let suite =
   [options: fizz, buzz]
   [default: true]
   [from config: false]
-  \n  used to control the application of foo",
+  used to control the application of foo",
           Argument.create(
             ~alias="f",
             ~default=Bool(true),

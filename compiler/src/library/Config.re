@@ -17,6 +17,7 @@ type global_t = {
   debug: bool,
   color: bool,
   name: string,
+  working_dir: string,
 };
 
 let default_source_dir = "src";

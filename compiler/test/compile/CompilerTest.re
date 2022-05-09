@@ -19,7 +19,7 @@ let __config =
   Compiler.{
     name: "foo",
     root_dir: __valid_program_dir,
-    source_dir: __source_dir,
+    source_dir: __valid_program_dir,
     fail_fast: true,
     log_imports: false,
   };
@@ -202,7 +202,11 @@ let suite =
     >: (
       () => {
         let compiler =
-          Compiler.create({...__config, root_dir: __cyclic_imports_dir});
+          Compiler.create({
+            ...__config,
+            root_dir: __cyclic_imports_dir,
+            source_dir: __cyclic_imports_dir,
+          });
 
         Assert.throws(
           CompileError([ImportCycle(["@/entry", "@/cycle"])]),

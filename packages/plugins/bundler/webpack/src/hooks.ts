@@ -46,13 +46,11 @@ export function terminationHook(
   compiler: WebpackCompiler,
   context: Context
 ): void {
-  compiler.hooks.done.tapPromise(context.name, () => {
+  compiler.hooks.done.tap(context.name, () => {
     if (context.watching) {
       context.successiveRun = true;
-
-      return Promise.resolve();
     } else {
-      return context.knotCompiler.close();
+      context.knotCompiler.close();
     }
   });
 }

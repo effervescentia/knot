@@ -32,8 +32,9 @@ class Compiler {
     };
 
     this.client = new Client({
-      knotc: '',
+      knotc: this.options.knotc,
       rootDir: this.options.rootDir,
+      target: this.options.target,
       config: this.options.config
     });
 

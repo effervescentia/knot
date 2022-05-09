@@ -22,7 +22,7 @@ let command = () => {
     command_key,
     [root_dir_arg, source_dir_arg, target_arg],
     (static, global) => {
-      let root_dir = get_root_dir(static);
+      let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir);
       let target = get_target(static);
 

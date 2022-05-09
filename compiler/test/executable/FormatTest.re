@@ -2,7 +2,8 @@ open Kore;
 
 module Format = Executable.Format;
 
-let __compiler_config = Config.{name: "foo", debug: false, color: false};
+let __compiler_config =
+  Config.{name: "foo", debug: false, color: false, working_dir: "."};
 let __source_dir = ".";
 
 let suite =

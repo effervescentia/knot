@@ -10,7 +10,7 @@ export = function loader(): void {
 
   options.compilerInstance
     .awaitModule(path)
-    .then(() => options.compilerInstance.generate(path))
+    .then(() => options.compilerInstance.fetch(path))
     .then(result => {
       if (options.debug) {
         log.debug('%s: %s', path, result);

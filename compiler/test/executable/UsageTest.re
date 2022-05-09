@@ -33,7 +33,7 @@ COMMANDS
 OPTIONS
 
   --foo
-    \n    used to control the application of foo
+    used to control the application of foo
 ",
           (None, None, [__arg]) |> ~@Usage.pp,
         )
@@ -47,7 +47,7 @@ OPTIONS
 COMMAND OPTIONS
 
   --foo
-    \n    used to control the application of foo
+    used to control the application of foo
 
 OPTIONS
 
@@ -55,7 +55,7 @@ OPTIONS
     [options: fizz, buzz]
     [default: true]
     [from config: false]
-    \n    used to control the application of bar
+    used to control the application of bar
 ",
           (
             Some(

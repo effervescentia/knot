@@ -18,7 +18,7 @@ let command = () => {
     command_key,
     [root_dir_arg, source_dir_arg],
     (static, global) => {
-      let root_dir = get_root_dir(static);
+      let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir);
 
       {root_dir, source_dir};
@@ -55,8 +55,6 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
       },
     );
 
-  let source_path = Filename.concat(config.root_dir, config.source_dir);
-
   let files =
     FileUtil.find(
       And(
@@ -66,11 +64,11 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
           And(Is_readable, Is_writeable),
         ),
       ),
-      source_path,
+      config.source_dir,
       (acc, path) => [path, ...acc],
       [],
     )
-    |> List.map(Filename.relative_to(source_path));
+    |> List.map(Filename.relative_to(config.source_dir));
 
   files |> List.iter(Log.debug("formatting file: %s"));
 
@@ -84,10 +82,6 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
 
   compiler
   |> Compiler.process(modules, Compiler.resolve(~skip_cache=true, compiler));
-  compiler
-  |> Compiler.emit_output(
-       Target.Knot,
-       Filename.concat(config.root_dir, config.source_dir),
-     );
+  compiler |> Compiler.emit_output(Target.Knot, config.source_dir);
   compiler |> Compiler.teardown;
 };

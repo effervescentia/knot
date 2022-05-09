@@ -36,10 +36,10 @@ let command = () => {
       log_imports_arg,
     ],
     (static, global) => {
-      let root_dir = get_root_dir(static);
+      let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir);
       let out_dir = get_out_dir(static, root_dir);
-      let entry = get_entry(static, root_dir, source_dir);
+      let entry = get_entry(static, source_dir);
       let target = get_target(static);
       let fail_fast = get_fail_fast(static);
       let log_imports = get_log_imports(static);

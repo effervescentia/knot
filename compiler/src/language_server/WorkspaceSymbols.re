@@ -66,7 +66,10 @@ let handler: Runtime.request_handler_t(params_t) =
                                uri,
                                namespace
                                |> Namespace.to_path(
-                                    compiler.config.source_dir,
+                                    compiler.config.source_dir
+                                    |> Filename.relative_to(
+                                         compiler.config.root_dir,
+                                       ),
                                   ),
                              );
                            let range = Node.Raw.get_range(name);

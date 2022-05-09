@@ -2,6 +2,7 @@ import execa from 'execa';
 import { JSONRPCClient } from 'json-rpc-2.0';
 
 import { KNOTC_BINARY } from '../../config';
+import { Target } from '../../types';
 import {
   Method,
   ModuleAddParams,
@@ -23,6 +24,10 @@ export interface ClientOptions {
    * root directory of the target knot project
    */
   rootDir: string;
+  /**
+   * the compilation target
+   */
+  target: Target;
   /**
    * location of the knot config file [default `.knot.yml`]
    */
@@ -52,7 +57,7 @@ class Client {
     const [cmd, ...args] = (options.knotc || KNOTC_BINARY).split(/\s+/);
     const allArgs = [...args, ...knotArgs];
 
-    console.log('starting language server');
+    console.log('starting compiler');
     console.log(`> ${[cmd, ...allArgs].join(' ')}`);
 
     this.proc = execa(cmd, allArgs);

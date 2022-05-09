@@ -1,6 +1,5 @@
 {
   "type": "object",
-
   "properties": {
     "port": {
       "type": "number"
@@ -11,16 +10,19 @@
     "config": {
       "type": "string"
     },
-    "knot": {
+    "knotc": {
       "type": "string"
     },
-    "compiler": {
-      "type": "object",
-      "properties": {
-        "module": {
-          "type": "string"
-        }
-      }
+    "rootDir": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string",
+      "enum": [
+        "knot",
+        "javascript-common",
+        "javascript-es6"
+      ]
     },
     "plugins": {
       "type": "object",
@@ -37,6 +39,5 @@
       }
     }
   },
-
   "additionalProperties": false
 }

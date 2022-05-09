@@ -4,7 +4,9 @@ include Reference;
 module Compiler = Compile.Compiler;
 
 let binary_name = "knotc";
+let config_file_name = ".knot.yml";
 
+let config_key = "config";
 let name_key = "name";
 let root_dir_key = "root_dir";
 let source_dir_key = "source_dir";

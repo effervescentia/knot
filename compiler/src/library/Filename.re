@@ -79,9 +79,9 @@ and relative_to = (target: string, source: string) => {
 /**
  resolve the absolute form of [path]
  */
-and resolve = (path: string) =>
+and resolve = (~cwd=Sys.getcwd(), path: string) =>
   if (is_relative(path)) {
-    concat(Sys.getcwd(), path);
+    concat(cwd, path);
   } else {
     normalize(path);
   };

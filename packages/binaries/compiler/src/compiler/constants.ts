@@ -1,11 +1,11 @@
-import { Options } from '../types';
+import { Options, Target } from '../types';
 
 export const MAX_ATTEMPTS = 10;
 export const INFINITE_ATTEMPTS = 100;
 export const ATTEMPT_TIMEOUT = 1000;
 
 export const DEFAULT_OPTIONS = {
-  target: 'javascript-es6',
+  target: Target.JAVASCRIPT_ES6,
   rootDir: process.cwd(),
   debug: false,
   plugins: {

@@ -62,7 +62,12 @@ let _get_exports = ast =>
  */
 let create = (~report=_ => throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
-  let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
+  let resolver =
+    Resolver.create(
+      cache,
+      config.root_dir,
+      config.source_dir |> Filename.relative_to(config.root_dir),
+    );
 
   let errors = ref([]);
   let dispatch =

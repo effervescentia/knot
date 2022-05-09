@@ -6,7 +6,7 @@ open Kore;
 let () = {
   Log.init({debug: false, timestamp: false});
 
-  let (config, command) = Terminal.read();
+  let (config, command) = Processor.run();
 
   Fmt.color := config.color;
   Log.init({debug: config.debug, timestamp: false});

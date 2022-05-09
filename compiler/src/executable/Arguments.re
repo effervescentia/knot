@@ -28,6 +28,30 @@ let _resolve =
   | (None, None) => default
   };
 
+let config_file = (~default=None, ()) => {
+  let value = ref(default);
+  let argument =
+    Argument.create(
+      ~alias="c",
+      ~default=?default |> Option.map(x => Argument.Value.String(x)),
+      config_key,
+      String(
+        Filename.resolve
+        % (
+          path => {
+            path |> _check_exists("config file");
+
+            value := Some(path);
+          }
+        ),
+      ),
+      "the location of a knot config file",
+    );
+  let resolve = () => value^;
+
+  (argument, resolve);
+};
+
 let debug = (~default=ConfigFile.defaults.debug, ()) => {
   let value = ref(None);
   let argument =
@@ -55,13 +79,13 @@ let root_dir = (~default=ConfigFile.defaults.root_dir, ()) => {
       String(x => value := Some(x)),
       "the root directory to reference modules from",
     );
-  let resolve = (cfg: option(Config.t)) => {
+  let resolve = (cfg: option(Config.t), working_dir: string) => {
     let root_dir =
-      value^ |> _resolve(cfg, x => x.root_dir, default) |> Filename.resolve;
+      value^
+      |> _resolve(cfg, x => x.root_dir, default)
+      |> Filename.resolve(~cwd=working_dir);
 
-    if (!Sys.file_exists(root_dir)) {
-      root_dir |> Fmt.str("root directory does not exist: %s") |> panic;
-    };
+    root_dir |> _check_exists("root directory");
 
     root_dir;
   };
@@ -94,7 +118,6 @@ let port = (~default=ConfigFile.defaults.port, ()) => {
   (argument, resolve);
 };
 
-let _check_source_dir_exists = _check_exists("source directory");
 let source_dir = (~default=ConfigFile.defaults.source_dir, ()) => {
   let value = ref(None);
   let argument =
@@ -110,28 +133,32 @@ let source_dir = (~default=ConfigFile.defaults.source_dir, ()) => {
         "root-dir",
       ),
     );
-  let resolve = (cfg: option(Config.t), root_dir) => {
-    switch (cfg, value^) {
-    | (_, Some(value)) =>
-      let source_dir = Filename.resolve(value);
-      _check_source_dir_exists(source_dir);
-      source_dir |> Filename.relative_to(root_dir);
-    | (Some(cfg), None) =>
-      let source_dir = cfg.source_dir;
-      _check_source_dir_exists(Filename.concat(root_dir, source_dir));
-      source_dir;
-    | (None, None) =>
-      let source_dir = default;
-      _check_source_dir_exists(Filename.concat(root_dir, source_dir));
-      source_dir;
+  let resolve = (cfg: option(Config.t), root_dir: string) => {
+    let source_dir =
+      value^
+      |> _resolve(cfg, x => x.source_dir, default)
+      |> Filename.resolve(~cwd=root_dir);
+
+    source_dir |> _check_exists("source directory");
+
+    if (!String.starts_with(root_dir, source_dir)) {
+      Fmt.str(
+        "source directory %a must be within root directory %a",
+        Fmt.bold_str,
+        source_dir,
+        Fmt.bold_str,
+        root_dir,
+      )
+      |> panic;
     };
+
+    source_dir;
   };
 
   (argument, resolve);
 };
 
 let _check_entry_exists = _check_exists(entry_key);
-
 let entry = (~default=ConfigFile.defaults.entry, ()) => {
   let value = ref(None);
   let argument =
@@ -147,23 +174,21 @@ let entry = (~default=ConfigFile.defaults.entry, ()) => {
         "source-dir",
       ),
     );
-  let resolve = (cfg: option(Config.t), root_dir, source_dir) => {
-    let source_path = Filename.concat(root_dir, source_dir);
-
+  let resolve = (cfg: option(Config.t), source_dir) => {
     Namespace.Internal(
       (
         switch (cfg, value^) {
         | (_, Some(value)) =>
           let entry = Filename.resolve(value);
           _check_entry_exists(entry);
-          entry |> Filename.relative_to(source_path);
+          entry |> Filename.relative_to(source_dir);
         | (Some(cfg), None) =>
           let entry = cfg.entry;
-          _check_entry_exists(Filename.concat(source_path, entry));
+          _check_entry_exists(Filename.concat(source_dir, entry));
           entry;
         | (None, None) =>
           let entry = default;
-          _check_entry_exists(Filename.concat(source_path, entry));
+          _check_entry_exists(Filename.concat(source_dir, entry));
           entry;
         }
       )
@@ -207,19 +232,11 @@ let out_dir = (~default=ConfigFile.defaults.out_dir, ()) => {
       String(x => value := Some(x)),
       "the directory to write compiled files to",
     );
+  /* no need to check if it exists since we can create it */
   let resolve = (cfg: option(Config.t), root_dir: string) =>
-    switch (cfg, value^) {
-    | (_, Some(value)) => Filename.resolve(value)
-    | (Some(cfg), None) =>
-      let out_dir = cfg.out_dir;
-
-      if (Filename.is_relative(out_dir)) {
-        Filename.concat(root_dir, out_dir);
-      } else {
-        out_dir;
-      };
-    | (None, None) => Filename.concat(root_dir, default)
-    };
+    value^
+    |> _resolve(cfg, x => x.out_dir, default)
+    |> Filename.resolve(~cwd=root_dir);
 
   (argument, resolve);
 };
