@@ -258,6 +258,31 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
           N.get_value(expr),
         )
       )
+
+    | View([], expr) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>view %a -> %a@]",
+          Identifier.pp,
+          name,
+          pp_function_body,
+          N.get_value(expr),
+        )
+      )
+    | View(props, expr) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>view @[<h>%a(%a)@] -> %a@]",
+          Identifier.pp,
+          name,
+          list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
+          props |> List.map(N.get_value),
+          pp_function_body,
+          N.get_value(expr),
+        )
+      )
     };
 
 let pp_declaration_list: Fmt.t(list((Identifier.t, A.raw_declaration_t))) =

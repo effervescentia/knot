@@ -59,6 +59,73 @@ let __multiline_function = (
   |> A.of_func,
 );
 
+let __inline_view = (
+  "foo" |> A.of_public,
+  (
+    [
+      A.{
+        name: "bar" |> A.of_public |> U.as_raw_node,
+        default: None,
+        type_: None,
+      }
+      |> U.as_int,
+      A.{
+        name: "fizz" |> A.of_public |> U.as_raw_node,
+        default: Some(3 |> U.int_prim),
+        type_: None,
+      }
+      |> U.as_int,
+    ],
+    [
+      (
+        "bar" |> A.of_public |> A.of_id |> U.as_int,
+        "fizz" |> A.of_public |> A.of_id |> U.as_int,
+      )
+      |> A.of_add_op
+      |> U.as_int
+      |> A.of_inline_expr
+      |> U.as_raw_node,
+    ]
+    |> A.of_frag
+    |> A.of_jsx
+    |> U.as_element,
+  )
+  |> A.of_view,
+);
+
+let __multiline_view = (
+  "buzz" |> A.of_public,
+  (
+    [],
+    [
+      ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
+      |> A.of_var
+      |> U.as_nil,
+      ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
+      |> A.of_var
+      |> U.as_nil,
+      [
+        (
+          "zip" |> A.of_public |> A.of_id |> U.as_int,
+          "zap" |> A.of_public |> A.of_id |> U.as_int,
+        )
+        |> A.of_mult_op
+        |> U.as_int
+        |> A.of_inline_expr
+        |> U.as_raw_node,
+      ]
+      |> A.of_frag
+      |> A.of_jsx
+      |> U.as_element
+      |> A.of_expr
+      |> U.as_element,
+    ]
+    |> A.of_closure
+    |> U.as_int,
+  )
+  |> A.of_view,
+);
+
 let _assert_declaration = (expected, actual) =>
   Assert.string(expected, actual |> ~@Fmt.root(pp_declaration));
 let _assert_declaration_list = (expected, actual) =>
@@ -93,6 +160,30 @@ let suite =
   zip * zap;
 }",
           __multiline_function,
+        )
+    ),
+    "pp_declaration() - inline view"
+    >: (
+      () =>
+        _assert_declaration(
+          "view foo(bar, fizz = 3) -> <>
+  {bar + fizz}
+</>;",
+          __inline_view,
+        )
+    ),
+    "pp_declaration() - multiline view"
+    >: (
+      () =>
+        _assert_declaration(
+          "view buzz -> {
+  let zip = 3;
+  let zap = 4;
+  <>
+    {zip * zap}
+  </>;
+}",
+          __multiline_view,
         )
     ),
     "pp_declaration_list() - empty"

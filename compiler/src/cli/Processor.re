@@ -96,13 +96,13 @@ let run = (): (Config.global_t, Task.t) => {
     exit(2);
   };
 
-  if (config_file^ == None) {
-    Log.warn("no config file found");
-  };
-
   /* handle command if found */
   switch (command^) {
   | Some({resolve: resolve_command_config}) =>
+    if (config_file^ == None) {
+      Log.warn("no config file found");
+    };
+
     let working_dir =
       switch (config_file^) {
       | Some(path) => Filename.dirname(path)
