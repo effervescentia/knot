@@ -4,7 +4,6 @@ module Format = Executable.Format;
 
 let __compiler_config =
   Config.{name: "foo", debug: false, color: false, working_dir: "."};
-let __source_dir = ".";
 
 let suite =
   "Executable.Format"
@@ -20,8 +19,8 @@ let suite =
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          __compiler_config,
-          {root_dir: temp_dir, source_dir: __source_dir},
+          {...__compiler_config, working_dir: temp_dir},
+          {root_dir: temp_dir, source_dir: temp_dir},
         );
 
         Async.on_tick(() => {
@@ -50,8 +49,8 @@ let suite =
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          __compiler_config,
-          {root_dir: temp_dir, source_dir: __source_dir},
+          {...__compiler_config, working_dir: temp_dir},
+          {root_dir: temp_dir, source_dir: temp_dir},
         );
 
         Async.on_tick(() => {
@@ -89,8 +88,8 @@ let suite =
 
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
-          __compiler_config,
-          {root_dir: temp_dir, source_dir: __source_dir},
+          {...__compiler_config, working_dir: temp_dir},
+          {root_dir: temp_dir, source_dir: temp_dir},
         );
 
         Async.on_tick(() => {
