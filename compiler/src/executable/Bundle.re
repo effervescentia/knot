@@ -12,16 +12,16 @@ type config_t = {
 let command_key = "bundle";
 
 let command = () => {
-  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
-  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
-  let (out_dir_arg, get_out_dir) = Arguments.out_dir();
+  let (root_dir_arg, get_root_dir) = Arg_RootDir.create();
+  let (source_dir_arg, get_source_dir) = Arg_SourceDir.create();
+  let (out_dir_arg, get_out_dir) = Arg_OutDir.create();
 
   Command.create(
     command_key,
     [root_dir_arg, source_dir_arg, out_dir_arg],
     (static, global) => {
       let root_dir = get_root_dir(static, global.working_dir);
-      let source_dir = get_source_dir(static, root_dir);
+      let source_dir = get_source_dir(static, root_dir).relative;
       let out_dir = get_out_dir(static, root_dir);
 
       {root_dir, source_dir, out_dir};

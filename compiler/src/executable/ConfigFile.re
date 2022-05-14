@@ -30,8 +30,9 @@ let describe_error =
     );
 
 let read = (file: string): result(Config.t, config_file_error_t) => {
-  let root_dir = ref(Filename.dirname(file));
   let project_name = ref(defaults.name);
+  let working_dir = ref(Filename.dirname(file));
+  let root_dir = ref(defaults.root_dir);
   let source_dir = ref(defaults.source_dir);
   let out_dir = ref(defaults.out_dir);
   let target = ref(defaults.target);
@@ -46,6 +47,7 @@ let read = (file: string): result(Config.t, config_file_error_t) => {
   let build_config = () =>
     Config.{
       name: project_name^,
+      working_dir: working_dir^,
       root_dir: root_dir^,
       source_dir: source_dir^,
       out_dir: out_dir^,

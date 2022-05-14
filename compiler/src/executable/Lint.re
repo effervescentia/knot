@@ -11,8 +11,8 @@ type config_t = {
 let command_key = "lint";
 
 let command = () => {
-  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
-  let (fix_arg, get_fix) = Arguments.fix();
+  let (root_dir_arg, get_root_dir) = Arg_RootDir.create();
+  let (fix_arg, get_fix) = Arg_Fix.create();
 
   Command.create(
     command_key,

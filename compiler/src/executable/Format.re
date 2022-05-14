@@ -11,15 +11,15 @@ type config_t = {
 let command_key = "format";
 
 let command = () => {
-  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
-  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
+  let (root_dir_arg, get_root_dir) = Arg_RootDir.create();
+  let (source_dir_arg, get_source_dir) = Arg_SourceDir.create();
 
   Command.create(
     command_key,
     [root_dir_arg, source_dir_arg],
     (static, global) => {
       let root_dir = get_root_dir(static, global.working_dir);
-      let source_dir = get_source_dir(static, root_dir);
+      let source_dir = get_source_dir(static, root_dir).relative;
 
       {root_dir, source_dir};
     },

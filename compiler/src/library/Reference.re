@@ -10,6 +10,8 @@ module Namespace = {
       ? Internal(value |> String.drop_prefix(Constants.root_dir))
       : External(value);
 
+  let of_internal = value => Internal(value);
+
   /* methods */
 
   let to_path = (source_dir: string) =>

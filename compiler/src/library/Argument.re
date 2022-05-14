@@ -59,6 +59,20 @@ let expand = (value: t): list((string, Arg.spec, string)) => [
      },
 ];
 
+let resolve =
+    (
+      cfg: option(Config.t),
+      select: Config.t => 'a,
+      default: 'a,
+      value: option('a),
+    )
+    : 'a =>
+  switch (cfg, value) {
+  | (_, Some(value)) => value
+  | (Some(cfg), None) => select(cfg)
+  | (None, None) => default
+  };
+
 /* pretty printing */
 
 let _pp_flag: Fmt.t((string, option(string))) =

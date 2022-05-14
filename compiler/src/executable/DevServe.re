@@ -8,7 +8,7 @@ type config_t = {port: int};
 let command_key = "dev_serve";
 
 let command = () => {
-  let (port_arg, get_port) = Arguments.port();
+  let (port_arg, get_port) = Arg_Port.create();
 
   Command.create(
     command_key,

@@ -3,11 +3,17 @@ include Reference;
 
 module Compiler = Compile.Compiler;
 
+type path_t = {
+  relative: string,
+  absolute: string,
+};
+
 let binary_name = "knotc";
 let config_file_name = ".knot.yml";
 
 let config_key = "config";
 let name_key = "name";
+let cwd_key = "cwd";
 let root_dir_key = "root_dir";
 let source_dir_key = "source_dir";
 let out_dir_key = "out_dir";

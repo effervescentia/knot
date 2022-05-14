@@ -16,13 +16,13 @@ type config_t = {
 let command_key = "build";
 
 let command = () => {
-  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
-  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
-  let (out_dir_arg, get_out_dir) = Arguments.out_dir();
-  let (entry_arg, get_entry) = Arguments.entry();
-  let (target_arg, get_target) = Arguments.target();
-  let (fail_fast_arg, get_fail_fast) = Arguments.fail_fast();
-  let (log_imports_arg, get_log_imports) = Arguments.log_imports();
+  let (root_dir_arg, get_root_dir) = Arg_RootDir.create();
+  let (source_dir_arg, get_source_dir) = Arg_SourceDir.create();
+  let (out_dir_arg, get_out_dir) = Arg_OutDir.create();
+  let (entry_arg, get_entry) = Arg_Entry.create();
+  let (target_arg, get_target) = Arg_Target.create();
+  let (fail_fast_arg, get_fail_fast) = Arg_FailFast.create();
+  let (log_imports_arg, get_log_imports) = Arg_LogImports.create();
 
   Command.create(
     command_key,
@@ -39,12 +39,20 @@ let command = () => {
       let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir);
       let out_dir = get_out_dir(static, root_dir);
-      let entry = get_entry(static, source_dir);
+      let entry = get_entry(static, source_dir.absolute);
       let target = get_target(static);
       let fail_fast = get_fail_fast(static);
       let log_imports = get_log_imports(static);
 
-      {root_dir, source_dir, out_dir, entry, target, fail_fast, log_imports};
+      {
+        root_dir,
+        source_dir: source_dir.relative,
+        out_dir,
+        entry,
+        target,
+        fail_fast,
+        log_imports,
+      };
     },
   );
 };

@@ -20,3 +20,8 @@ let log_config =
     |> Hashtbl.of_seq,
   );
 };
+
+let assert_exists = (name, x) =>
+  if (!Sys.file_exists(x)) {
+    Fmt.str("%s does not exist: %s", name, x) |> panic;
+  };

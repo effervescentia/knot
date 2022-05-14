@@ -2,11 +2,7 @@
  Parse command line args into config.
  */
 open Kore;
-
-module Task = Executable.Task;
-module ConfigFile = Executable.ConfigFile;
-module Arguments = Executable.Arguments;
-module Usage = Executable.Usage;
+open Executable;
 
 let __commands = [
   Task.build,
@@ -46,20 +42,23 @@ let run = (): (Config.global_t, Task.t) => {
   let static_config = ref(None);
 
   /* arguments */
-  let (config_file_arg, get_config_file) =
-    Arguments.config_file(
-      ~default=ConfigFile.find(ConfigFile.defaults.root_dir),
-      (),
-    );
-  let (debug_arg, get_debug) = Arguments.debug();
-  let (color_arg, get_color) = Arguments.color();
+  let (cwd_arg, get_cwd) = Arg_CWD.create(~default=Sys.getcwd(), ());
+  let (config_file_arg, get_config_file) = Arg_Config.create();
+  let (debug_arg, get_debug) = Arg_Debug.create();
+  let (color_arg, get_color) = Arg_Color.create();
   let help_arg =
     Argument.create(
       "help",
       Unit(() => need_help := true),
       "display this list of options",
     );
-  let global_arguments = [config_file_arg, debug_arg, color_arg, help_arg];
+  let global_arguments = [
+    cwd_arg,
+    config_file_arg,
+    debug_arg,
+    color_arg,
+    help_arg,
+  ];
   /* replaces the inbuilt -help arg */
   let hidden_arguments = [("-help", Arg.Unit(() => need_help := true), "")];
   let initial_arguments = _expand_args(global_arguments) @ hidden_arguments;

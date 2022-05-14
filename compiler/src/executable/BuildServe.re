@@ -14,16 +14,16 @@ type config_t = {
 let command_key = "build_serve";
 
 let command = () => {
-  let (root_dir_arg, get_root_dir) = Arguments.root_dir();
-  let (source_dir_arg, get_source_dir) = Arguments.source_dir();
-  let (target_arg, get_target) = Arguments.target();
+  let (root_dir_arg, get_root_dir) = Arg_RootDir.create();
+  let (source_dir_arg, get_source_dir) = Arg_SourceDir.create();
+  let (target_arg, get_target) = Arg_Target.create();
 
   Command.create(
     command_key,
     [root_dir_arg, source_dir_arg, target_arg],
     (static, global) => {
       let root_dir = get_root_dir(static, global.working_dir);
-      let source_dir = get_source_dir(static, root_dir);
+      let source_dir = get_source_dir(static, root_dir).relative;
       let target = get_target(static);
 
       {root_dir, source_dir, target};

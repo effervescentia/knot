@@ -1,5 +1,6 @@
 type t = {
   name: option(string),
+  working_dir: string,
   root_dir: string,
   source_dir: string,
   out_dir: string,
@@ -27,7 +28,8 @@ let default_port = 1337;
 
 let defaults = (is_ci_env: bool) => {
   name: None,
-  root_dir: Sys.getcwd(),
+  working_dir: Sys.getcwd(),
+  root_dir: ".",
   source_dir: default_source_dir,
   out_dir: default_out_dir,
   entry: default_entry,
