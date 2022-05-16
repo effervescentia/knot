@@ -3,6 +3,15 @@ include Reference;
 
 module Compiler = Compile.Compiler;
 
+type fatal_error_t =
+  | MissingCommand
+  | InvalidArgument(string, string)
+  | UnexpectedArgument(string)
+  | UnknownTarget(string)
+  | InvalidConfigFile(string, string);
+
+exception FatalError(fatal_error_t);
+
 type path_t = {
   relative: string,
   absolute: string,
@@ -33,12 +42,7 @@ let is_ci_env =
   | Some(_) => true
   };
 
-let panic = (err: string) => {
-  Log.fatal("%s", err);
-
-  exit(2);
-};
+let fatal = err => raise(FatalError(err));
 
 let target_of_string = x =>
-  Target.of_string(x)
-  |!: (() => x |> Fmt.str("unknown target: '%s'") |> panic);
+  Target.of_string(x) |!: (() => UnknownTarget(x) |> fatal);

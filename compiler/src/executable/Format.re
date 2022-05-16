@@ -26,12 +26,13 @@ let command = () => {
   );
 };
 
+let extract_config = (config: config_t) => [
+  (root_dir_key, config.root_dir),
+  (source_dir_key, config.source_dir),
+];
+
 let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
-  Util.log_config(
-    global,
-    command_key,
-    [(root_dir_key, config.root_dir), (source_dir_key, config.source_dir)],
-  );
+  Util.log_config(global, command_key, extract_config(config));
 
   let compiler =
     Compiler.create(

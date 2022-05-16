@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_SourceDir = Executable.Arg_SourceDir;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_SourceDir"
   >::: [
@@ -39,7 +37,7 @@ let suite =
   the directory to reference source modules from, relative to root dir",
           Arg_SourceDir.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, source_dir: "foo"})),
+          |> ~@Argument.pp(Some({...Config.defaults, source_dir: "foo"})),
         )
     ),
   ];

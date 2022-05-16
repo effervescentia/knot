@@ -3,7 +3,9 @@ open Kore;
 let __min_port = 1024;
 let __max_port = 49151;
 
-let create = (~default=ConfigFile.defaults.port, ()) => {
+let _is_in_range = Int.contains((__min_port, __max_port));
+
+let create = (~default=Config.defaults.port, ()) => {
   let value = ref(None);
   let argument =
     Argument.create(
@@ -17,9 +19,12 @@ let create = (~default=ConfigFile.defaults.port, ()) => {
   let resolve = (cfg: option(Config.t)) => {
     let port = value^ |> Argument.resolve(cfg, x => x.port, default);
 
-    if (port < __min_port || port > __max_port) {
-      Fmt.str("port must be in the range of %d to %d", __min_port, __max_port)
-      |> panic;
+    if (!_is_in_range(port)) {
+      InvalidArgument(
+        port_key,
+        Fmt.str("port must be in the range %d-%d", __min_port, __max_port),
+      )
+      |> fatal;
     };
 
     port;

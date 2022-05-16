@@ -22,7 +22,9 @@ let create = () => {
     switch (cfg, value^) {
     | (_, Some(value)) => value
     | (Some({target: Some(target)}), None) => target
-    | (_, _) => panic("must provide a target for compilation")
+    | (_, _) =>
+      InvalidArgument(target_key, "must provide a target for compilation")
+      |> fatal
     };
 
   (argument, resolve);

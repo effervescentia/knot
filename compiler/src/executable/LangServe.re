@@ -13,7 +13,8 @@ let command = () => {
   Command.create(command_key, [], (_, _) => ());
 };
 
-let _find_config = folder => {
+let _find_config = (global: Config.global_t, folder) => {
+  let default_config = ConfigFile.get_defaults(~color=global.color, ());
   let config =
     switch (ConfigFile.find(folder)) {
     | Some(file) =>
@@ -24,9 +25,9 @@ let _find_config = folder => {
         |> ConfigFile.describe_error
         |> Log.warn("cannot use config file '%s'\n%s", file);
 
-        ConfigFile.defaults;
+        default_config;
       }
-    | None => ConfigFile.defaults
+    | None => default_config
     };
 
   let root_dir = Filename.resolve(~cwd=folder, config.root_dir);
@@ -36,8 +37,10 @@ let _find_config = folder => {
   {...config, root_dir, source_dir, out_dir};
 };
 
-let run = (global: Config.global_t, config: config_t) => {
-  Util.log_config(global, command_key, []);
+let extract_config = (config: config_t) => [];
 
-  Server.start(_find_config);
+let run = (global: Config.global_t, config: config_t) => {
+  Util.log_config(global, command_key, extract_config(config));
+
+  global |> _find_config |> Server.start;
 };

@@ -41,6 +41,14 @@ let command = () => {
   );
 };
 
+let extract_config = (config: config_t) => [
+  (root_dir_key, config.root_dir),
+  (source_dir_key, config.source_dir),
+  (out_dir_key, config.out_dir),
+  (entry_key, config.entry |> ~@Namespace.pp),
+  (target_key, config.target |> ~@Target.pp),
+];
+
 let run =
     (
       global: Config.global_t,
@@ -48,17 +56,7 @@ let run =
                 Reporter.report(resolver) % File.Writer.write(stderr),
       config: config_t,
     ) => {
-  Util.log_config(
-    global,
-    command_key,
-    [
-      (root_dir_key, config.root_dir),
-      (source_dir_key, config.source_dir),
-      (out_dir_key, config.out_dir),
-      (entry_key, config.entry |> ~@Namespace.pp),
-      (target_key, config.target |> ~@Target.pp),
-    ],
-  );
+  Util.log_config(global, command_key, extract_config(config));
 
   let compiler =
     Compiler.create(

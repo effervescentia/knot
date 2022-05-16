@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_LogImports = Executable.Arg_LogImports;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_LogImports"
   >::: [
@@ -39,7 +37,7 @@ let suite =
   print a graph describing the dependencies between modules",
           Arg_LogImports.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, log_imports: true})),
+          |> ~@Argument.pp(Some({...Config.defaults, log_imports: true})),
         )
     ),
   ];

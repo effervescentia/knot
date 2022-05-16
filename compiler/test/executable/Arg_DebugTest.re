@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_Debug = Executable.Arg_Debug;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_Debug"
   >::: [
@@ -37,7 +35,7 @@ let suite =
   enable a higher level of logging",
           Arg_Debug.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, debug: true})),
+          |> ~@Argument.pp(Some({...Config.defaults, debug: true})),
         )
     ),
   ];

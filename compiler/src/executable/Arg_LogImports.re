@@ -1,6 +1,6 @@
 open Kore;
 
-let create = (~default=ConfigFile.defaults.log_imports, ()) => {
+let create = (~default=Config.defaults.log_imports, ()) => {
   let value = ref(None);
   let argument =
     Argument.create(

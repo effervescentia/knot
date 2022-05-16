@@ -29,8 +29,6 @@ type t = {
   options: option(list(string)),
 };
 
-let _to_kebab_case = String.replace('_', '-');
-
 let create =
     (
       ~alias=?,
@@ -42,7 +40,7 @@ let create =
       desc: string,
     )
     : t => {
-  name: _to_kebab_case(name),
+  name: String.to_kebab_case(name),
   spec,
   desc,
   alias,

@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_Entry = Executable.Arg_Entry;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_Entry"
   >::: [
@@ -37,7 +35,7 @@ let suite =
   the entry point for execution, relative to source dir",
           Arg_Entry.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, entry: "foo"})),
+          |> ~@Argument.pp(Some({...Config.defaults, entry: "foo"})),
         )
     ),
   ];

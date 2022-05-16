@@ -26,15 +26,13 @@ let command = () => {
   );
 };
 
+let extract_config = (config: config_t) => [
+  (root_dir_key, config.root_dir),
+  (fix_key, string_of_bool(config.fix)),
+];
+
 let run = (global: Config.global_t, config: config_t) => {
-  Util.log_config(
-    global,
-    command_key,
-    [
-      (root_dir_key, config.root_dir),
-      (fix_key, string_of_bool(config.fix)),
-    ],
-  );
+  Util.log_config(global, command_key, extract_config(config));
 
   ();
 };

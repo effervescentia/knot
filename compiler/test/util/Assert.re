@@ -61,6 +61,7 @@ let int = Alcotest.(check(int, "int matches"));
 let uchar = Alcotest.(check(Compare.uchar, "uchar matches"));
 
 let opt_int = Alcotest.(check(option(int), "int matches"));
+let opt_string = Alcotest.(check(option(string), "string matches"));
 
 let string_pair =
   Alcotest.(check(pair(string, string), "string pair matches"));

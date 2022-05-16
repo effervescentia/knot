@@ -2,9 +2,6 @@ open Kore;
 
 module Arg_Color = Executable.Arg_Color;
 
-let __is_ci_env = Executable.Kore.is_ci_env;
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_Color"
   >::: [
@@ -12,12 +9,9 @@ let suite =
     >: (
       () =>
         Assert.string(
-          Fmt.str(
-            "--color
-  [default: %b]
-  allow color in logs",
-            !__is_ci_env,
-          ),
+          Fmt.str("--color
+  [default: false]
+  allow color in logs"),
           Arg_Color.create() |> fst |> ~@Argument.pp(None),
         )
     ),
@@ -26,9 +20,9 @@ let suite =
       () =>
         Assert.string(
           "--color
-  [default: false]
+  [default: true]
   allow color in logs",
-          Arg_Color.create(~default=false, ()) |> fst |> ~@Argument.pp(None),
+          Arg_Color.create(~default=true, ()) |> fst |> ~@Argument.pp(None),
         )
     ),
     "create() - with value inherited from config"
@@ -37,15 +31,14 @@ let suite =
         Assert.string(
           Fmt.str(
             "--color
-  [default: %b]
+  [default: false]
   [from config: %b]
   allow color in logs",
-            !__is_ci_env,
-            __is_ci_env,
+            true,
           ),
           Arg_Color.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, color: __is_ci_env})),
+          |> ~@Argument.pp(Some({...Config.defaults, color: true})),
         )
     ),
   ];

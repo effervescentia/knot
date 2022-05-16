@@ -1,6 +1,6 @@
 open Kore;
 
-let create = (~default=ConfigFile.defaults.entry, ()) => {
+let create = (~default=Config.defaults.entry, ()) => {
   let value = ref(None);
   let argument =
     Argument.create(
@@ -24,14 +24,17 @@ let create = (~default=ConfigFile.defaults.entry, ()) => {
     absolute_entry |> Util.assert_exists(entry_key);
 
     if (!String.starts_with(source_dir, absolute_entry)) {
-      Fmt.str(
-        "entry must be a path within the source directory %a, but found %a",
-        Fmt.bold_str,
-        source_dir,
-        Fmt.bold_str,
-        absolute_entry,
+      InvalidArgument(
+        entry_key,
+        Fmt.str(
+          "entry must be a path within the source directory %a, but found %a",
+          Fmt.bold_str,
+          source_dir,
+          Fmt.bold_str,
+          absolute_entry,
+        ),
       )
-      |> panic;
+      |> fatal;
     };
 
     absolute_entry

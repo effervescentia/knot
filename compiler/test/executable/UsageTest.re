@@ -65,7 +65,7 @@ OPTIONS
                 resolve: (_, _) => Task.DevServe({port: 8080}),
               },
             ),
-            Some(Config.defaults(false)),
+            Some(Config.defaults),
             [
               Argument.create(
                 ~alias="b",

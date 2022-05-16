@@ -78,4 +78,12 @@ let suite =
     ),
     "split() - empty string"
     >: (() => Assert.string_pair(("", ""), String.split("", ""))),
+    "to_kebab_case()"
+    >: (
+      () =>
+        Assert.string(
+          "foo-bar-fizz-buzz",
+          String.to_kebab_case("foo_bar_fizz_buzz"),
+        )
+    ),
   ];

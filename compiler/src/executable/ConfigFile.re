@@ -10,7 +10,7 @@ type config_file_error_t =
 
 exception ConfigFileError(config_file_error_t);
 
-let defaults = Knot.Config.defaults(is_ci_env);
+let get_defaults = (~color=!is_ci_env, ()) => {...Config.defaults, color};
 
 let find = File.Util.find_up(config_file_name);
 
@@ -29,9 +29,10 @@ let describe_error =
       target_key,
     );
 
-let read = (file: string): result(Config.t, config_file_error_t) => {
+let read =
+    (~defaults=Config.defaults, file: string)
+    : result(Config.t, config_file_error_t) => {
   let project_name = ref(defaults.name);
-  let working_dir = ref(Filename.dirname(file));
   let root_dir = ref(defaults.root_dir);
   let source_dir = ref(defaults.source_dir);
   let out_dir = ref(defaults.out_dir);
@@ -47,7 +48,6 @@ let read = (file: string): result(Config.t, config_file_error_t) => {
   let build_config = () =>
     Config.{
       name: project_name^,
-      working_dir: working_dir^,
       root_dir: root_dir^,
       source_dir: source_dir^,
       out_dir: out_dir^,
@@ -70,7 +70,7 @@ let read = (file: string): result(Config.t, config_file_error_t) => {
            | (name, `String(value)) when name == name_key =>
              project_name := Some(value)
            | (name, `String(value)) when name == root_dir_key =>
-             root_dir := Filename.resolve(value)
+             root_dir := value
            | (name, `String(value)) when name == source_dir_key =>
              source_dir := value
            | (name, `String(value)) when name == out_dir_key =>
@@ -103,6 +103,7 @@ let read = (file: string): result(Config.t, config_file_error_t) => {
     }
   ) {
   | value => Ok(value)
+
   | exception (ConfigFileError(err)) => Error(err)
   };
 };

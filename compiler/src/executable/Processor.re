@@ -2,56 +2,45 @@
  Parse command line args into config.
  */
 open Kore;
-open Executable;
 
-let __commands = [
-  Task.build,
-  Task.watch,
-  Task.format,
-  Task.lint,
-  Task.bundle,
-  Task.dev_serve,
-  Task.lang_serve,
-  Task.build_serve,
+let _commands = () => [
+  Task.build(),
+  Task.watch(),
+  Task.format(),
+  Task.lint(),
+  Task.bundle(),
+  Task.dev_serve(),
+  Task.lang_serve(),
+  Task.build_serve(),
 ];
 
-let _read_config = file =>
-  switch (ConfigFile.read(file)) {
+let _read_config = (defaults, file) =>
+  switch (ConfigFile.read(~defaults, file)) {
   | Ok(config) =>
-    file
-    |> Filename.relative_to(Sys.getcwd())
-    |> Log.info("found config file: %a", ~$Fmt.bold_str);
+    file |> Log.info("found config file %a", ~$Fmt.bold_str);
 
     config;
 
   | Error(err) =>
-    err
-    |> ConfigFile.describe_error
-    |> Fmt.str("cannot to use config file: %a\n%s", Fmt.bold_str, file)
-    |> panic
+    InvalidConfigFile(file, ConfigFile.describe_error(err)) |> fatal
   };
 
 let _expand_args = List.map(Argument.expand) % List.flatten;
 
-let run = (): (Config.global_t, Task.t) => {
-  Fmt.color := !is_ci_env;
-
-  let need_help = ref(false);
+let run =
+    (~cwd=Sys.getcwd(), ~argv=Sys.argv, ~color=!is_ci_env, ())
+    : (Config.global_t, Task.t) => {
   let command = ref(None);
   let config_file = ref(None);
   let static_config = ref(None);
+  let default_config = ConfigFile.get_defaults(~color, ());
 
   /* arguments */
-  let (cwd_arg, get_cwd) = Arg_CWD.create(~default=Sys.getcwd(), ());
+  let (cwd_arg, get_cwd) = Arg_CWD.create(~default=cwd, ());
   let (config_file_arg, get_config_file) = Arg_Config.create();
   let (debug_arg, get_debug) = Arg_Debug.create();
-  let (color_arg, get_color) = Arg_Color.create();
-  let help_arg =
-    Argument.create(
-      "help",
-      Unit(() => need_help := true),
-      "display this list of options",
-    );
+  let (color_arg, get_color) = Arg_Color.create(~default=color, ());
+  let ((help_arg, hidden_help_arg), get_help) = Arg_Help.create();
   let global_arguments = [
     cwd_arg,
     config_file_arg,
@@ -60,39 +49,53 @@ let run = (): (Config.global_t, Task.t) => {
     help_arg,
   ];
   /* replaces the inbuilt -help arg */
-  let hidden_arguments = [("-help", Arg.Unit(() => need_help := true), "")];
+  let hidden_arguments = [hidden_help_arg];
   let initial_arguments = _expand_args(global_arguments) @ hidden_arguments;
   let arguments = ref(initial_arguments);
 
   /* parse arguments */
-  Arg.parse_dynamic(
+  Arg.parse_argv_dynamic(
+    ~current=ref(0),
+    argv,
     arguments,
     arg =>
       if (command^ == None) {
-        switch (__commands |> List.find_opt(Command.(cmd => cmd.name == arg))) {
+        switch (
+          _commands() |> List.find_opt(Command.(cmd => cmd.name == arg))
+        ) {
         | Some(cmd) =>
           command := Some(cmd);
           arguments := _expand_args(cmd.arguments) @ initial_arguments;
 
-        | _ => arg |> Fmt.str("unexpected argument: %s") |> panic
+        | _ => UnexpectedArgument(arg) |> fatal
         };
       },
     Fmt.str("%s [options] <command>", binary_name),
   );
 
-  get_config_file()
+  let cwd_override = get_cwd();
+  let cwd_temp = cwd_override |?: cwd;
+
+  (
+    switch (get_config_file(cwd_temp)) {
+    | Some(_) as config => config
+    | None => ConfigFile.find(cwd_temp)
+    }
+  )
   |> Option.iter(path => {
-       let config = _read_config(path);
+       let config = _read_config(default_config, path);
 
        config_file := Some(path);
        static_config := Some(config);
      });
 
-  /* print usage information if any help flags passed */
-  if (need_help^) {
-    Fmt.pr("%a", Usage.pp, (command^, static_config^, global_arguments));
+  let static_config = static_config^;
 
-    exit(2);
+  /* print usage information if any help flags passed */
+  if (get_help()) {
+    Fmt.pr("%a", Usage.pp, (command^, static_config, global_arguments));
+
+    exit(0);
   };
 
   /* handle command if found */
@@ -105,15 +108,15 @@ let run = (): (Config.global_t, Task.t) => {
     let working_dir =
       switch (config_file^) {
       | Some(path) => Filename.dirname(path)
-      | None => Sys.getcwd()
+      | _ => cwd_temp
       };
 
     let global_config =
       Config.{
-        debug: get_debug(static_config^),
-        color: get_color(static_config^),
+        debug: get_debug(static_config),
+        color: get_color(static_config),
         name:
-          switch (static_config^) {
+          switch (static_config) {
           | Some({name: Some(name)}) => name
           | _ => Filename.basename(working_dir)
           },
@@ -122,11 +125,11 @@ let run = (): (Config.global_t, Task.t) => {
 
     Fmt.color := global_config.color;
 
-    (global_config, resolve_command_config(static_config^, global_config));
+    (global_config, resolve_command_config(static_config, global_config));
 
   | None =>
     Fmt.pr("%a@,", Usage.pp_command_list, Usage.commands);
 
-    panic("must provide a command");
+    fatal(MissingCommand);
   };
 };

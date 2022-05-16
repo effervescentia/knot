@@ -1,16 +1,15 @@
 open Kore;
 
-let create = (~default=ConfigFile.defaults.working_dir, ()) => {
-  let value = ref(default);
+let create = (~default=Sys.getcwd(), ()) => {
+  let value = ref(None);
   let argument =
     Argument.create(
       ~default=String(default),
-      ~from_config=cfg => Some(String(cfg.working_dir)),
       cwd_key,
-      String(x => value := x),
+      String(x => value := Some(x)),
       "the working directory to execute knot commands in",
     );
-  let resolve = () => value^;
+  let resolve = () => value^ |> Option.map(Filename.resolve(~cwd=default));
 
   (argument, resolve);
 };

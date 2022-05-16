@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_Port = Executable.Arg_Port;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_Port"
   >::: [
@@ -37,7 +35,7 @@ let suite =
   the port the server runs on",
           Arg_Port.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, port: 3000})),
+          |> ~@Argument.pp(Some({...Config.defaults, port: 3000})),
         )
     ),
   ];

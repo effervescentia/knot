@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_Fix = Executable.Arg_Fix;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_Fix"
   >::: [
@@ -37,7 +35,7 @@ let suite =
   automatically apply fixes",
           Arg_Fix.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, fix: true})),
+          |> ~@Argument.pp(Some({...Config.defaults, fix: true})),
         )
     ),
   ];

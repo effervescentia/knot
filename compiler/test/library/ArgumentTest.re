@@ -1,6 +1,5 @@
 open Kore;
 
-let __config = Config.defaults(false);
 let __opt =
   Argument.create(
     "foo",
@@ -39,7 +38,7 @@ let suite =
             Arg.Bool(ignore),
             "used to control the application of foo",
           )
-          |> ~@Argument.pp(Some(__config)),
+          |> ~@Argument.pp(Some(Config.defaults)),
         )
     ),
     "pp() - with many attributes and alias"
@@ -60,7 +59,7 @@ let suite =
             Arg.Bool(ignore),
             "used to control the application of foo",
           )
-          |> ~@Argument.pp(Some(__config)),
+          |> ~@Argument.pp(Some(Config.defaults)),
         )
     ),
   ];

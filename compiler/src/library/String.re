@@ -109,3 +109,20 @@ let split = (pattern: string, value: string) =>
 
   | None => (value, "")
   };
+
+/**
+ * converts strings from snake-case to kebab-case
+ *
+ * ex/ "foo_bar" -> "foo-bar"
+ */
+let to_kebab_case = replace('_', '-');
+
+/**
+ * converts strings from snake-case to pascal-case
+ *
+ * ex/ "foo_bar" -> "FooBar"
+ */
+let to_pascal_case =
+  split_on_char('_')
+  % List.map(lowercase_ascii % capitalize_ascii)
+  % join(~separator="");

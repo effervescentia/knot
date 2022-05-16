@@ -21,12 +21,12 @@ let command = () => {
   );
 };
 
+let extract_config = (config: config_t) => [
+  (port_key, string_of_int(config.port)),
+];
+
 let run = (global: Config.global_t, config: config_t): Lwt.t(unit) => {
-  Util.log_config(
-    global,
-    command_key,
-    [(port_key, string_of_int(config.port))],
-  );
+  Util.log_config(global, command_key, extract_config(config));
 
   Lwt.return();
 };

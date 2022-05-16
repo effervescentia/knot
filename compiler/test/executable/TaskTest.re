@@ -9,7 +9,15 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "build",
+          "BuildTask {
+  root_dir: root
+  source_dir: source
+  out_dir: output
+  entry: foo
+  target: knot
+  fail_fast: true
+  log_imports: false
+}",
           Task.Build({
             root_dir: "root",
             source_dir: "source",
@@ -19,14 +27,20 @@ let suite =
             fail_fast: true,
             log_imports: false,
           })
-          |> ~@Task.pp,
+          |> ~@Fmt.root(Task.pp),
         )
     ),
     "pp() - watch"
     >: (
       () =>
         Assert.string(
-          "watch",
+          "WatchTask {
+  root_dir: root
+  source_dir: source
+  out_dir: output
+  entry: foo
+  target: knot
+}",
           Task.Watch({
             root_dir: "root",
             source_dir: "source",
@@ -34,56 +48,82 @@ let suite =
             entry: Reference.Namespace.External("foo"),
             target: Target.Knot,
           })
-          |> ~@Task.pp,
+          |> ~@Fmt.root(Task.pp),
         )
     ),
     "pp() - format"
     >: (
       () =>
         Assert.string(
-          "format",
-          Task.Format({root_dir: "root", source_dir: "source"}) |> ~@Task.pp,
+          "FormatTask {
+  root_dir: root
+  source_dir: source
+}",
+          Task.Format({root_dir: "root", source_dir: "source"})
+          |> ~@Fmt.root(Task.pp),
         )
     ),
     "pp() - lint"
     >: (
       () =>
         Assert.string(
-          "lint",
-          Task.Lint({root_dir: "root", fix: true}) |> ~@Task.pp,
+          "LintTask {
+  root_dir: root
+  fix: true
+}",
+          Task.Lint({root_dir: "root", fix: true}) |> ~@Fmt.root(Task.pp),
         )
     ),
     "pp() - bundle"
     >: (
       () =>
         Assert.string(
-          "bundle",
+          "BundleTask {
+  root_dir: root
+  source_dir: source
+  out_dir: output
+}",
           Task.Bundle({
             root_dir: "root",
             source_dir: "source",
             out_dir: "output",
           })
-          |> ~@Task.pp,
+          |> ~@Fmt.root(Task.pp),
         )
     ),
     "pp() - lang_serve"
-    >: (() => Assert.string("lang_serve", Task.LangServe() |> ~@Task.pp)),
+    >: (
+      () =>
+        Assert.string(
+          "LangServeTask { }",
+          Task.LangServe() |> ~@Fmt.root(Task.pp),
+        )
+    ),
     "pp() - build_serve"
     >: (
       () =>
         Assert.string(
-          "build_serve",
+          "BuildServeTask {
+  root_dir: root
+  source_dir: source
+  target: knot
+}",
           Task.BuildServe({
             root_dir: "root",
             source_dir: "source",
             target: Target.Knot,
           })
-          |> ~@Task.pp,
+          |> ~@Fmt.root(Task.pp),
         )
     ),
     "pp() - dev_serve"
     >: (
       () =>
-        Assert.string("dev_serve", Task.DevServe({port: 8080}) |> ~@Task.pp)
+        Assert.string(
+          "DevServeTask {
+  port: 8080
+}",
+          Task.DevServe({port: 8080}) |> ~@Fmt.root(Task.pp),
+        )
     ),
   ];

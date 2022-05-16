@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_Target = Executable.Arg_Target;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_Target"
   >::: [
@@ -17,6 +15,7 @@ let suite =
           Arg_Target.create() |> fst |> ~@Argument.pp(None),
         )
     ),
+    /* TODO: this seems like a duplicate of the next test */
     "create() - overridden default"
     >: (
       () =>
@@ -27,7 +26,7 @@ let suite =
   the target to compile to",
           Arg_Target.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, target: Some(Knot)})),
+          |> ~@Argument.pp(Some({...Config.defaults, target: Some(Knot)})),
         )
     ),
     "create() - with value inherited from config"
@@ -40,7 +39,7 @@ let suite =
   the target to compile to",
           Arg_Target.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, target: Some(Knot)})),
+          |> ~@Argument.pp(Some({...Config.defaults, target: Some(Knot)})),
         )
     ),
   ];

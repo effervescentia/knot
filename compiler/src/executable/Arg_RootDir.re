@@ -1,6 +1,6 @@
 open Kore;
 
-let create = (~default=ConfigFile.defaults.root_dir, ()) => {
+let create = (~default=Config.defaults.root_dir, ()) => {
   let value = ref(None);
   let argument =
     Argument.create(
@@ -9,7 +9,7 @@ let create = (~default=ConfigFile.defaults.root_dir, ()) => {
       ~from_config=cfg => Some(String(cfg.root_dir)),
       root_dir_key,
       String(x => value := Some(x)),
-      "the root directory to reference modules from",
+      "the root directory used to resolve paths within the project",
     );
   let resolve = (cfg: option(Config.t), working_dir: string) => {
     let root_dir =

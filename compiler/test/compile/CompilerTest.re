@@ -8,9 +8,11 @@ module U = Util.ResultUtil;
 module A = AST;
 module T = Type;
 
-let __valid_program_dir = "./test/compile/.fixtures/valid_program";
-let __invalid_program_dir = "./test/compile/.fixtures/invalid_program";
-let __cyclic_imports_dir = "./test/compile/.fixtures/cyclic_imports";
+let _fixture = Filename.concat("./test/compile/.fixtures");
+
+let __valid_program_dir = _fixture("valid_program");
+let __invalid_program_dir = _fixture("invalid_program");
+let __cyclic_imports_dir = _fixture("cyclic_imports");
 let __source_dir = ".";
 let __entry_module = "entry";
 let __entry_filename = "entry.kn";

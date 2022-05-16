@@ -4,21 +4,21 @@
 open Kore;
 
 let commands = [
-  (Task.build.name, " compile files to target in output directory"),
-  (Task.watch.name, " run build and incrementally rebuild changed files"),
-  (Task.format.name, " update code style and spacing"),
-  (Task.lint.name, " analyze code style and report on anti-patterns"),
-  (Task.bundle.name, " generate executable from source code"),
+  (Build.command_key, " compile files to target in output directory"),
+  (Watch.command_key, " run build and incrementally rebuild changed files"),
+  (Format.command_key, " update code style and spacing"),
+  (Lint.command_key, " analyze code style and report on anti-patterns"),
+  (Bundle.command_key, " generate executable from source code"),
   (
-    Task.dev_serve.name,
+    DevServe.command_key,
     " run a development server to enable continuous development",
   ),
   (
-    Task.lang_serve.name,
+    LangServe.command_key,
     " run an LSP-compliant server for integration with IDEs",
   ),
   (
-    Task.build_serve.name,
+    BuildServe.command_key,
     " run a JSONRPC server that can perform incremental compilation",
   ),
 ];

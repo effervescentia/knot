@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_OutDir = Executable.Arg_OutDir;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_OutDir"
   >::: [
@@ -37,7 +35,7 @@ let suite =
   the directory to write compiled files to",
           Arg_OutDir.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, out_dir: "bar"})),
+          |> ~@Argument.pp(Some({...Config.defaults, out_dir: "bar"})),
         )
     ),
   ];

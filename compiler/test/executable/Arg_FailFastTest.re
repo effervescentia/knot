@@ -2,8 +2,6 @@ open Kore;
 
 module Arg_FailFast = Executable.Arg_FailFast;
 
-let __config = Config.defaults(false);
-
 let suite =
   "Executable.Arg_FailFast"
   >::: [
@@ -39,7 +37,7 @@ let suite =
   fail as soon as the first error is encountered",
           Arg_FailFast.create()
           |> fst
-          |> ~@Argument.pp(Some({...__config, fail_fast: true})),
+          |> ~@Argument.pp(Some({...Config.defaults, fail_fast: true})),
         )
     ),
   ];
