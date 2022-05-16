@@ -86,4 +86,12 @@ let suite =
           String.to_kebab_case("foo_bar_fizz_buzz"),
         )
     ),
+    "to_pascal_case()"
+    >: (
+      () =>
+        Assert.string(
+          "FooBarFizzBuzz",
+          String.to_pascal_case("foo_bar_fizz_buzz"),
+        )
+    ),
   ];
