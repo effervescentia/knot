@@ -21,7 +21,7 @@ let suite =
           {
             target: Target.(JavaScript(Common)),
             root_dir: simple_fixture_dir,
-            source_dir: simple_fixture_dir,
+            source_dir: ".",
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
@@ -53,7 +53,7 @@ exports.ABC = ABC;
           {
             target: Target.(JavaScript(Common)),
             root_dir: complex_fixture_dir,
-            source_dir: Filename.concat(complex_fixture_dir, "src"),
+            source_dir: "src",
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,

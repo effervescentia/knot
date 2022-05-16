@@ -21,7 +21,7 @@ let __config =
   Compiler.{
     name: "foo",
     root_dir: __valid_program_dir,
-    source_dir: __valid_program_dir,
+    source_dir: ".",
     fail_fast: true,
     log_imports: false,
   };
@@ -207,7 +207,7 @@ let suite =
           Compiler.create({
             ...__config,
             root_dir: __cyclic_imports_dir,
-            source_dir: __cyclic_imports_dir,
+            source_dir: ".",
           });
 
         Assert.throws(

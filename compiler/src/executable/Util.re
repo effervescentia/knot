@@ -15,7 +15,7 @@ let log_config =
       name: string,
       attributes: list((string, string)),
     ) => {
-  Log.info("running %a command", ~$Fmt.bold(Fmt.green(Fmt.string)), name);
+  Log.info("running %s command", name |> ~@Fmt.bold(Fmt.green(Fmt.string)));
   Log.debug(
     "%s config: %a",
     name,

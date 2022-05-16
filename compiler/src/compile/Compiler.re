@@ -62,12 +62,7 @@ let _get_exports = ast =>
  */
 let create = (~report=_ => throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
-  let resolver =
-    Resolver.create(
-      cache,
-      config.root_dir,
-      config.source_dir |> Filename.relative_to(config.root_dir),
-    );
+  let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
   let errors = ref([]);
   let dispatch =
@@ -270,10 +265,13 @@ let compile =
     (target: Target.t, output_dir: string, entry: Namespace.t, compiler: t) => {
   compiler |> init(entry);
 
-  [output_dir] |> FileUtil.rm(~recurse=true);
-  output_dir |> FileUtil.mkdir(~parent=true);
+  let absolute_output_dir =
+    output_dir |> Filename.resolve(~cwd=compiler.config.root_dir);
 
-  compiler |> emit_output(target, output_dir);
+  [absolute_output_dir] |> FileUtil.rm(~recurse=true);
+  absolute_output_dir |> FileUtil.mkdir(~parent=true);
+
+  compiler |> emit_output(target, absolute_output_dir);
 
   /* generate output files */
 
