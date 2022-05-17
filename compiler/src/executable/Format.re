@@ -34,6 +34,9 @@ let extract_config = (config: config_t) => [
 let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
   Util.log_config(global, command_key, extract_config(config));
 
+  let pp_relative = Fmt.relative_path(global.working_dir);
+  let target_dir =
+    config.source_dir |> Filename.resolve(~cwd=config.root_dir);
   let compiler =
     Compiler.create(
       ~report=
@@ -56,6 +59,8 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
       },
     );
 
+  Log.info("reading modules from %s", target_dir |> ~@pp_relative);
+
   let files =
     FileUtil.find(
       And(
@@ -65,24 +70,33 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
           And(Is_readable, Is_writeable),
         ),
       ),
-      config.source_dir,
+      target_dir,
       (acc, path) => [path, ...acc],
       [],
-    )
-    |> List.map(Filename.relative_to(config.source_dir));
+    );
 
-  files |> List.iter(Log.debug("formatting file: %s"));
+  files
+  |> List.iter(
+       ~@Fmt.relative_path(target_dir) % Log.debug("formatting file %s"),
+     );
 
   let modules =
     files
-    |> List.map(path =>
-         Namespace.Internal(
-           path |> String.drop_suffix(Constants.file_extension),
-         )
+    |> List.map(
+         Filename.relative_to(target_dir)
+         % String.drop_suffix(Constants.file_extension)
+         % Namespace.of_internal,
        );
 
   compiler
   |> Compiler.process(modules, Compiler.resolve(~skip_cache=true, compiler));
-  compiler |> Compiler.emit_output(Target.Knot, config.source_dir);
-  compiler |> Compiler.teardown;
+  compiler |> Compiler.emit_output(Target.Knot, target_dir);
+
+  Log.info(
+    "formatted %s file(s)",
+    files |> List.length |> ~@Fmt.(info(int)),
+  );
+  Log.info("%s", "done!" |> ~@Fmt.good_str);
+
+  Compiler.teardown(compiler);
 };

@@ -48,8 +48,3 @@ let (|?>) = (x, f) => x |?< (y => Some(f(y)));
  creates a to_string method from a pretty-printer
  */
 let (~@) = Pretty.Formatters.to_to_string;
-
-/**
- creates a channel writer from a pretty-printer
- */
-let (~$) = pp => Format.formatter_of_out_channel % pp;

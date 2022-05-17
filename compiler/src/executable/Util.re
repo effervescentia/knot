@@ -2,7 +2,6 @@ open Kore;
 
 let extract_global_config = (global: Config.global_t) => [
   (name_key, global.name),
-  (cwd_key, global.working_dir),
   (color_key, string_of_bool(global.color)),
   (debug_key, string_of_bool(global.debug)),
 ];
@@ -17,13 +16,12 @@ let log_config =
     ) => {
   Log.info("running command %s", name |> ~@Fmt.info_str);
   Log.debug(
-    "%s config: %a",
-    name,
-    ~$pp_attributes,
+    "command configuration\n%s",
     (
       Fmt.str("%sConfig", String.to_pascal_case(name)),
       extract_global_config(global) @ attributes,
-    ),
+    )
+    |> ~@pp_attributes,
   );
 };
 

@@ -17,7 +17,7 @@ let _commands = () => [
 let _read_config = (defaults, cwd, file) =>
   switch (ConfigFile.read(~defaults, file)) {
   | Ok(config) =>
-    Log.info("found config file %a", ~$Fmt.relative_path(cwd), file);
+    Log.info("found config file %s", file |> ~@Fmt.relative_path(cwd));
 
     config;
 

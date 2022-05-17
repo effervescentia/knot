@@ -127,7 +127,12 @@ let entity = (pp_sig: t('a), pp_entry: t('b)): t(('a, list('b))) =>
 let struct_ =
     (pp_key: t('a), pp_value: t('b)): t((string, list(('a, 'b)))) =>
   (ppf, (name, attrs)) =>
-    entity(string, attribute(pp_key, pp_value), ppf, (name, attrs));
+    entity(
+      Color.bold(string),
+      attribute(Color.bold(pp_key), pp_value),
+      ppf,
+      (name, attrs),
+    );
 
 let _destruct_comma_sep = Sep.(of_sep(~trail=Trail.space_or_comma, ","));
 

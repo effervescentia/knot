@@ -85,14 +85,15 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
     );
 
   Log.info(
-    "reading modules from %a",
-    ~$pp_relative,
-    config.source_dir |> Filename.resolve(~cwd=config.root_dir),
+    "reading modules from %s",
+    config.source_dir
+    |> Filename.resolve(~cwd=config.root_dir)
+    |> ~@pp_relative,
   );
 
   compiler |> Compiler.compile(config.target, out_dir, config.entry);
 
-  Log.info("output result to %a", ~$pp_relative, out_dir);
+  Log.info("output result to %s", out_dir |> ~@pp_relative);
   Log.info("%s", "done!" |> ~@Fmt.good_str);
 
   Compiler.teardown(compiler);
