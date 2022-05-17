@@ -40,6 +40,8 @@ let extract_config = (config: config_t) => [
 let run = (global: Config.global_t, config: config_t) => {
   Util.log_config(global, command_key, extract_config(config));
 
+  Log.info("%s", "starting build server" |> ~@Fmt.warn_str);
+
   Server.start({
     name: global.name,
     root_dir: config.root_dir,

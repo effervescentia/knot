@@ -1,6 +1,7 @@
 /**
  Utilities for working with pairs and trios of values.
  */
+module Fmt = Pretty.Formatters;
 
 type t2('a, 'b) = ('a, 'b);
 type t3('a, 'b, 'c) = ('a, 'b, 'c);

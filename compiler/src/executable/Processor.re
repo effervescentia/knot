@@ -14,10 +14,10 @@ let _commands = () => [
   Task.build_serve(),
 ];
 
-let _read_config = (defaults, file) =>
+let _read_config = (defaults, cwd, file) =>
   switch (ConfigFile.read(~defaults, file)) {
   | Ok(config) =>
-    file |> Log.info("found config file %a", ~$Fmt.bold_str);
+    Log.info("found config file %a", ~$Fmt.relative_path(cwd), file);
 
     config;
 
@@ -83,7 +83,7 @@ let run =
     }
   )
   |> Option.iter(path => {
-       let config = _read_config(default_config, path);
+       let config = _read_config(default_config, cwd_temp, path);
 
        config_file := Some(path);
        static_config := Some(config);

@@ -15,7 +15,7 @@ let _run = () => {
 
   Log.init({debug: config.debug, timestamp: false});
 
-  Log.info("project %s", config.name |> ~@Fmt.good_str);
+  Log.info("found project %s", config.name |> ~@Fmt.info_str);
 
   switch (command) {
   | Build(cmd) => Executable.Build.run(config, cmd)

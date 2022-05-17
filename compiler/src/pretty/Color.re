@@ -26,11 +26,17 @@ let green_str = green(string);
 let cyan = pp => ansi([ANSI.cyan], pp);
 let cyan_str = cyan(string);
 
+let purple = pp => ansi([ANSI.blue], pp);
+let purple_str = purple(string);
+
 let yellow = pp => ansi([ANSI.yellow], pp);
 let yellow_str = yellow(string);
 
 let grey = pp => ansi_code(90, pp);
 let grey_str = grey(string);
+
+let info = pp => pp |> purple |> bold;
+let info_str = info(string);
 
 let good = pp => pp |> green |> bold;
 let good_str = good(string);

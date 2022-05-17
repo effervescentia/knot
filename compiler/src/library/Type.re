@@ -47,7 +47,7 @@ module Container = {
           : pf(
               ppf,
               "@[<h>{ %a }@]",
-              list(~sep=comma, pp_props(pp_type)),
+              list(~sep=Sep.comma, pp_props(pp_type)),
               props,
             )
     );
@@ -58,7 +58,7 @@ module Container = {
         pf(
           ppf,
           "@[<h>Function<(%a), %a>@]",
-          list(~sep=comma, pp_type),
+          list(~sep=Sep.comma, pp_type),
           args,
           pp_type,
           res,
@@ -71,7 +71,7 @@ module Container = {
         pf(
           ppf,
           "@[<h>View<(%a), %a>@]",
-          list(~sep=comma, pp_props(pp_type)),
+          list(~sep=Sep.comma, pp_props(pp_type)),
           props,
           pp_type,
           res,

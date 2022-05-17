@@ -70,6 +70,8 @@ let extract_config = (config: config_t) => [
 let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
   Util.log_config(global, command_key, extract_config(config));
 
+  let pp_relative = Fmt.relative_path(global.working_dir);
+  let out_dir = config.out_dir |> Filename.resolve(~cwd=config.root_dir);
   let compiler =
     Compiler.create(
       ~report,
@@ -82,6 +84,16 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
       },
     );
 
-  compiler |> Compiler.compile(config.target, config.out_dir, config.entry);
+  Log.info(
+    "reading modules from %a",
+    ~$pp_relative,
+    config.source_dir |> Filename.resolve(~cwd=config.root_dir),
+  );
+
+  compiler |> Compiler.compile(config.target, out_dir, config.entry);
+
+  Log.info("output result to %a", ~$pp_relative, out_dir);
+  Log.info("%s", "done!" |> ~@Fmt.good_str);
+
   Compiler.teardown(compiler);
 };

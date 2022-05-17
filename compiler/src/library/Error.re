@@ -37,6 +37,8 @@ exception CompileError(list(compile_err));
  */
 exception SystemError;
 
+let __arrow_sep = Fmt.(Sep.create((ppf, ()) => string(ppf, " -> ")));
+
 /**
  raise a single compiler error
  */
@@ -74,7 +76,7 @@ let pp_compile_err: Fmt.t(compile_err) =
         pf(
           ppf,
           "import cycle between the following modules: %a",
-          list(~sep=(ppf, ()) => string(ppf, " -> "), string),
+          list(~sep=__arrow_sep, string),
           cycles,
         )
       | UnresolvedModule(name) =>
@@ -99,12 +101,7 @@ let pp_dump_compile_err: Fmt.t(compile_err) =
     ppf =>
       fun
       | ImportCycle(cycles) =>
-        pf(
-          ppf,
-          "ImportCycle<%a>",
-          list(~sep=(ppf, ()) => string(ppf, " -> "), string),
-          cycles,
-        )
+        pf(ppf, "ImportCycle<%a>", list(~sep=__arrow_sep, string), cycles)
       | UnresolvedModule(name) => pf(ppf, "UnresolvedModule<%s>", name)
       | FileNotFound(path) => pf(ppf, "FileNotFound<%s>", path)
       | InvalidModule(namespace) =>
@@ -123,7 +120,7 @@ let pp_dump_compile_err: Fmt.t(compile_err) =
   );
 
 let pp_dump_err_list: Fmt.t(list(compile_err)) =
-  Fmt.(list(~sep=comma, pp_dump_compile_err));
+  Fmt.(list(~sep=Sep.comma, pp_dump_compile_err));
 
 let pp_err_list: Fmt.t(list(compile_err)) =
   ppf =>
@@ -131,6 +128,6 @@ let pp_err_list: Fmt.t(list(compile_err)) =
       pf(
         ppf,
         "found some errors during compilation:\n\n%a",
-        list(~sep=(ppf, ()) => string(ppf, "\n\n"), pp_compile_err),
+        list(~sep=Sep.double_newline, pp_compile_err),
       )
     );

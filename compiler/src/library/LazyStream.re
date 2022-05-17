@@ -66,4 +66,4 @@ let to_list = (stream: t('a)): list('a) => {
 /* pretty printing */
 
 let pp = (pp_value: Fmt.t('a)): Fmt.t(t('a)) =>
-  Fmt.(ppf => to_list % list(~sep=nop, pp_value, ppf));
+  Fmt.(ppf => to_list % list(~sep=Sep.nop, pp_value, ppf));
