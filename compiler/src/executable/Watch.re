@@ -61,7 +61,6 @@ let run =
   let source_dir =
     config.source_dir |> Filename.resolve(~cwd=config.root_dir);
   let out_dir = config.out_dir |> Filename.resolve(~cwd=config.root_dir);
-  let pp_cwd_relative = Fmt.relative_path(global.working_dir);
   let compiler =
     Compiler.create(
       ~report,
@@ -74,26 +73,26 @@ let run =
       },
     );
 
-  Log.info("watching for changes in %s", source_dir |> ~@pp_cwd_relative);
-  Log.info("writing results to %s", out_dir |> ~@pp_cwd_relative);
-
   Sys.set_signal(
     Sys.sigterm,
     Sys.Signal_handle(_ => Compiler.teardown(compiler)),
   );
 
+  Log.info("running initial compilation");
+
   compiler
   |> Compiler.compile(~skip_cache=true, config.target, out_dir, config.entry);
-
-  Log.info(
-    "%s",
-    "initial compilation done, watching for changes" |> ~@Fmt.yellow_str,
-  );
 
   let pp_source_relative = (ppf, relative) =>
     (relative, relative |> Filename.resolve(~cwd=source_dir))
     |> Fmt.captioned(ppf);
   let watcher = Watcher.create(source_dir);
+
+  Log.info("%s", Fmt.str("starting file watcher") |> ~@Fmt.warn_str);
+  Log.info(
+    "watching for changes in %s",
+    source_dir |> ~@Fmt.relative_path(global.working_dir),
+  );
 
   watcher
   |> Watcher.(
@@ -127,6 +126,11 @@ let run =
          |> List.flatten
          |> (
            updated => {
+             Log.info(
+               "compiling %s module(s)",
+               updated |> List.length |> ~@Fmt.(info(int)),
+             );
+
              compiler |> Compiler.incremental(updated);
 
              updated
@@ -138,11 +142,7 @@ let run =
                      )
                 );
 
-             Log.info(
-               "%s",
-               "incremental compilation done, watching for more changes"
-               |> ~@Fmt.yellow_str,
-             );
+             Log.info("watching for more changes");
            }
          )
        )

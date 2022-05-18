@@ -29,22 +29,53 @@ let start = (config: config_t) => {
     % Option.iter(
         Event.(
           fun
-          | ModuleFetch(id, params) =>
-            ModuleFetch.handler(runtime, params) |> server.reply(id)
+          | ModuleFetch(id, params) => {
+              Log.debug(
+                "received %s",
+                ModuleFetch.method_key |> ~@Fmt.bold_str,
+              );
 
-          | ModuleStatus(id, params) =>
-            ModuleStatus.handler(runtime, params) |> server.reply(id)
+              ModuleFetch.handler(runtime, params) |> server.reply(id);
+            }
 
-          | Status(id, params) =>
-            Status.handler(runtime, params) |> server.reply(id)
+          | ModuleStatus(id, params) => {
+              Log.debug(
+                "received %s",
+                ModuleStatus.method_key |> ~@Fmt.bold_str,
+              );
 
-          | Reset(id, params) =>
-            Reset.handler(runtime, params) |> server.reply(id)
+              ModuleStatus.handler(runtime, params) |> server.reply(id);
+            }
 
-          | ModuleAdd(params) => ModuleAdd.handler(runtime, params)
+          | Status(id, params) => {
+              Log.debug("received %s", Status.method_key |> ~@Fmt.bold_str);
 
-          | ModuleInvalidate(params) =>
-            ModuleInvalidate.handler(runtime, params)
+              Status.handler(runtime, params) |> server.reply(id);
+            }
+
+          | Reset(id, params) => {
+              Log.debug("received %s", Reset.method_key |> ~@Fmt.bold_str);
+
+              Reset.handler(runtime, params) |> server.reply(id);
+            }
+
+          | ModuleAdd(params) => {
+              Log.debug(
+                "received %s",
+                ModuleAdd.method_key |> ~@Fmt.bold_str,
+              );
+
+              ModuleAdd.handler(runtime, params);
+            }
+
+          | ModuleInvalidate(params) => {
+              Log.debug(
+                "received %s",
+                ModuleInvalidate.method_key |> ~@Fmt.bold_str,
+              );
+
+              ModuleInvalidate.handler(runtime, params);
+            }
         ),
       ),
   );
