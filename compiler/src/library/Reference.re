@@ -14,10 +14,9 @@ module Namespace = {
 
   /* methods */
 
-  let to_path = (source_dir: string) =>
+  let to_path = (~ext=Constants.file_extension, parent_dir: string) =>
     fun
-    | Internal(path) =>
-      Filename.concat(source_dir, path ++ Constants.file_extension)
+    | Internal(path) => Filename.concat(parent_dir, path ++ ext)
     | External(path) => path;
 
   let to_string =

@@ -90,7 +90,7 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
 
   compiler
   |> Compiler.process(modules, Compiler.resolve(~skip_cache=true, compiler));
-  compiler |> Compiler.emit_output(Target.Knot, target_dir);
+  compiler |> Compiler.emit(Target.Knot, target_dir);
 
   Log.info(
     "formatted %s file(s)",

@@ -93,7 +93,7 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
 
   compiler |> Compiler.compile(config.target, out_dir, config.entry);
 
-  Log.info("output result to %s", out_dir |> ~@pp_relative);
+  Log.info("wrote result to %s", out_dir |> ~@pp_relative);
   Log.info("%s", "done!" |> ~@Fmt.good_str);
 
   Compiler.teardown(compiler);

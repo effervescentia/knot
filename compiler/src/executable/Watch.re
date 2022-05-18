@@ -58,6 +58,10 @@ let run =
     ) => {
   Util.log_config(global, command_key, extract_config(config));
 
+  let source_dir =
+    config.source_dir |> Filename.resolve(~cwd=config.root_dir);
+  let out_dir = config.out_dir |> Filename.resolve(~cwd=config.root_dir);
+  let pp_cwd_relative = Fmt.relative_path(global.working_dir);
   let compiler =
     Compiler.create(
       ~report,
@@ -70,36 +74,77 @@ let run =
       },
     );
 
+  Log.info("watching for changes in %s", source_dir |> ~@pp_cwd_relative);
+  Log.info("writing results to %s", out_dir |> ~@pp_cwd_relative);
+
   Sys.set_signal(
     Sys.sigterm,
     Sys.Signal_handle(_ => Compiler.teardown(compiler)),
   );
 
-  compiler |> Compiler.init(~skip_cache=true, config.entry);
+  compiler
+  |> Compiler.compile(~skip_cache=true, config.target, out_dir, config.entry);
 
-  Log.info("initial compilation successful");
+  Log.info(
+    "%s",
+    "initial compilation done, watching for changes" |> ~@Fmt.yellow_str,
+  );
 
-  let watcher = Watcher.create(config.source_dir);
+  let pp_source_relative = (ppf, relative) =>
+    (relative, relative |> Filename.resolve(~cwd=source_dir))
+    |> Fmt.captioned(ppf);
+  let watcher = Watcher.create(source_dir);
 
   watcher
   |> Watcher.(
        watch(actions =>
          actions
          |> List.map(((path, action)) => {
-              let id = Namespace.Internal(path);
+              let namespace =
+                Namespace.Internal(
+                  path |> String.drop_suffix(Constants.file_extension),
+                );
+
               switch (action) {
               | Add when _is_source_file(path) =>
-                compiler |> Compiler.upsert_module(id)
+                Log.debug("file added %s", path |> ~@pp_source_relative);
+
+                compiler |> Compiler.upsert_module(namespace);
               | Update when _is_source_file(path) =>
-                compiler |> Compiler.update_module(id) |> snd
+                Log.debug("file updated %s", path |> ~@pp_source_relative);
+
+                compiler |> Compiler.update_module(namespace) |> snd;
               | Remove when _is_source_file(path) =>
-                compiler |> Compiler.remove_module(id)
+                Log.debug("file removed %s", path |> ~@pp_source_relative);
+
+                compiler |> Compiler.remove_module(namespace) |> ignore;
+
+                [];
 
               | _ => []
               };
             })
          |> List.flatten
-         |> (updated => compiler |> Compiler.incremental(updated))
+         |> (
+           updated => {
+             compiler |> Compiler.incremental(updated);
+
+             updated
+             |> List.iter(namespace =>
+                  Hashtbl.find_opt(compiler.modules, namespace)
+                  |> Option.iter(
+                       compiler
+                       |> Compiler.emit_one(config.target, out_dir, namespace),
+                     )
+                );
+
+             Log.info(
+               "%s",
+               "incremental compilation done, watching for more changes"
+               |> ~@Fmt.yellow_str,
+             );
+           }
+         )
        )
      );
 };

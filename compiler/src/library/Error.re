@@ -72,28 +72,38 @@ let pp_compile_err: Fmt.t(compile_err) =
   ppf =>
     Fmt.(
       fun
-      | ImportCycle(cycles) =>
+      /* import cycles should always involve at least 1 module */
+      | ImportCycle([]) => raise(SystemError)
+
+      | ImportCycle([self_import]) =>
+        pf(ppf, "the module %a imports itself", bold_str, self_import)
+
+      | ImportCycle([first, ..._] as cycles) =>
         pf(
           ppf,
-          "import cycle between the following modules: %a",
-          list(~sep=__arrow_sep, string),
-          cycles,
+          "import cycle found between modules %a",
+          list(~sep=__arrow_sep, bold_str),
+          cycles @ [first],
         )
+
       | UnresolvedModule(name) =>
-        pf(ppf, "could not resolve module: %s", name)
+        pf(ppf, "could not resolve module %a", bold_str, name)
+
       | FileNotFound(path) =>
-        pf(ppf, "could not find file with path: %s", path)
+        pf(ppf, "could not find file with path %a", bold_str, path)
+
       | ParseError(err, namespace, _) =>
         pf(
           ppf,
           "error found while parsing %a: %a",
-          Namespace.pp,
+          bold(Namespace.pp),
           namespace,
           pp_parse_err,
           err,
         )
+
       | InvalidModule(namespace) =>
-        pf(ppf, "failed to parse module: %a", Namespace.pp, namespace)
+        pf(ppf, "failed to parse module %a", bold(Namespace.pp), namespace)
     );
 
 let pp_dump_compile_err: Fmt.t(compile_err) =

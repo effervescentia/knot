@@ -144,6 +144,11 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
              ScopeTree.of_context(context),
              raw,
            );
+
+        Log.debug(
+          "processed module %s",
+          namespace |> ~@Fmt.bold(Namespace.pp),
+        );
       }
     | Error(errs) => Report(errs) |> compiler.dispatch
   );
@@ -158,6 +163,8 @@ let process =
       resolve: Namespace.t => Module.t,
       {modules} as compiler: t,
     ) => {
+  Log.debug("%s", "processing modules" |> ~@Fmt.yellow_str);
+
   namespaces
   |> List.iter(namespace =>
        process_one(namespace, resolve(namespace), compiler)
@@ -181,8 +188,9 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   compiler |> validate;
 
   let modules = ImportGraph.get_modules(compiler.graph);
-
   if (!skip_cache) {
+    Log.debug("%s", "caching modules" |> ~@Fmt.yellow_str);
+
     /* cache snapshot of modules on disk */
     modules
     |> List.iter(id =>
@@ -192,12 +200,10 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
          ) {
          | Ok(path) =>
            Log.debug(
-             "successfully cached module %s to %s",
-             id |> ~@Namespace.pp,
-             path,
-           );
-           ();
-         | Error(errs) => Report(errs) |> compiler.dispatch
+             "cached module %s",
+             (Namespace.to_string(id), path) |> ~@Fmt.captioned,
+           )
+         | Error(module_errors) => Report(module_errors) |> compiler.dispatch
          }
        );
   };
@@ -212,62 +218,81 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
 let incremental = (ids: list(Namespace.t), compiler: t) => {
   compiler |> validate;
   compiler |> process(ids, resolve(~skip_cache=true, compiler));
-
   /* generate output files */
-
-  Log.info("incremental compilation successful");
 };
+
+/**
+ use the ASTs of a single module to generate a file in the target format
+ */
+let emit_one =
+    (
+      target: Target.t,
+      output_dir: string,
+      namespace: Namespace.t,
+      compiler: t,
+    ) =>
+  switch (namespace) {
+  | Internal(_) =>
+    namespace
+    |> Namespace.to_path(~ext=Target.extension_of(target), output_dir)
+    |> (
+      path => {
+        let parent_dir = Filename.dirname(path);
+
+        parent_dir |> FileUtil.mkdir(~parent=true);
+
+        let out = open_out(path);
+
+        Log.debug(
+          "writing module %s",
+          path |> ~@Fmt.relative_path(output_dir),
+        );
+
+        (ModuleTable.{ast}) => {
+          Writer.write(out, ppf =>
+            Generator.pp(
+              target,
+              fun
+              | Internal(path) =>
+                Filename.concat(output_dir, path)
+                |> Filename.relative_to(parent_dir)
+              | External(_) => raise(NotImplemented),
+              ppf,
+              ast,
+            )
+          );
+          close_out(out);
+        };
+      }
+    )
+  | External(_) => raise(NotImplemented)
+  };
 
 /**
  use the ASTs of parsed modules to generate files in the target format
  */
-let emit_output = (target: Target.t, output_dir: string, compiler: t) =>
+let emit = (target: Target.t, output_dir: string, compiler: t) =>
   compiler.modules
-  |> Hashtbl.iter(
-       Namespace.(
-         fun
-         | Internal(name) =>
-           Filename.concat(output_dir, name ++ Target.extension_of(target))
-           |> (
-             path => {
-               let parent_dir = Filename.dirname(path);
-
-               parent_dir |> FileUtil.mkdir(~parent=true);
-
-               let out = open_out(path);
-
-               (ModuleTable.{ast}) => {
-                 Writer.write(out, ppf =>
-                   Generator.pp(
-                     target,
-                     fun
-                     | Internal(path) =>
-                       Filename.concat(output_dir, path)
-                       |> Filename.relative_to(parent_dir)
-                     | External(_) => raise(NotImplemented),
-                     ppf,
-                     ast,
-                   )
-                 );
-                 close_out(out);
-               };
-             }
-           )
-         | External(_) => raise(NotImplemented)
-       ),
+  |> Hashtbl.iter(namespace =>
+       compiler |> emit_one(target, output_dir, namespace)
      );
 
 /**
  compile the entire program to the target
  */
 let compile =
-    (target: Target.t, output_dir: string, entry: Namespace.t, compiler: t) => {
-  compiler |> init(entry);
+    (
+      ~skip_cache=false,
+      target: Target.t,
+      output_dir: string,
+      entry: Namespace.t,
+      compiler: t,
+    ) => {
+  compiler |> init(~skip_cache, entry);
 
-  [output_dir] |> FileUtil.rm(~recurse=true);
-  output_dir |> FileUtil.mkdir(~parent=true);
+  File.IO.purge(output_dir);
 
-  compiler |> emit_output(target, output_dir);
+  compiler |> emit(target, output_dir);
 };
 
 /**
@@ -345,6 +370,11 @@ let insert_module = (id: Namespace.t, contents: string, compiler: t) => {
 };
 
 /**
+
+
+
+
+
  destroy any resources reserved by the compiler
  */
 

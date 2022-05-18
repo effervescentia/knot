@@ -50,10 +50,10 @@ let _pp_err:
           | Some((Module.{relative, full}, range)) => {
               pf(
                 ppf,
-                " : %a:%a%a",
+                " : %a%a%a",
                 cyan_str,
                 relative,
-                grey(text_loc),
+                grey(ppf => pf(ppf, ":%a", text_loc)),
                 range,
                 indented(
                   vbox(
@@ -129,6 +129,7 @@ let _extract_type_err =
       ],
     )
 
+  /* FIXME: this isn't being reported */
   | Type.DuplicateIdentifier(id) => (
       "Identifier Already Defined",
       (
@@ -164,7 +165,9 @@ let _extract_type_err =
             ppf =>
               pf(
                 ppf,
-                "a main export could not be found in module %a",
+                "a %a export could not be found in module %a",
+                bad_str,
+                Constants.Keyword.main,
                 bad(Namespace.pp),
                 namespace,
               )
@@ -215,7 +218,9 @@ let _extract_parse_err =
                   "rename %a so that there is no conflict with reserved keywords (%s)",
                   bad_str,
                   name,
-                  Constants.Keyword.reserved |> String.join(~separator=", "),
+                  Constants.Keyword.reserved
+                  |> List.map(~@bold_str)
+                  |> String.join(~separator=", "),
                 )
             )
           ),
@@ -290,7 +295,7 @@ let _extract_compile_err = resolver =>
                      | _ =>
                        pf(
                          ppf,
-                         "@,@,try one of the following to resolve this issue:@,%a",
+                         "@,try one of the following to resolve this issue:@.%a",
                          block(
                            ~layout=Vertical,
                            ~sep=Sep.double_newline,
@@ -320,9 +325,9 @@ let _pp_header: Fmt.t(string) =
       pf(
         ppf,
         "%s@,%s@,%s",
-        border |> Fmt.str("╔%s╗"),
-        header |> Fmt.str("║%s║"),
-        border |> Fmt.str("╚%s╝"),
+        border |> str("╔%s╗"),
+        header |> str("║%s║"),
+        border |> str("╚%s╝"),
       )
     );
   };
@@ -334,9 +339,9 @@ let _pp_summary: Fmt.t((int, int)) =
         ppf,
         "finished with %a and %a",
         red_str,
-        Fmt.str("%i error(s)", error_count),
+        str("%i error(s)", error_count),
         yellow_str,
-        Fmt.str("%i warning(s)", warning_count),
+        str("%i warning(s)", warning_count),
       )
     );
 
@@ -363,7 +368,7 @@ let report =
             |> Tuple.join3((path, title, content) =>
                  (index, path, title, content)
                )
-            |> Fmt.pf(ppf, "%a@,@,", _pp_err)
+            |> pf(ppf, "%a@,@,", _pp_err)
           ),
           errors |> List.mapi(Tuple.with_fst2),
           summary,
