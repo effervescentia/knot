@@ -20,6 +20,7 @@ let __branching_graph =
       ("b", "c"),
     ],
   );
+let __converging_graph = Graph.invert(__branching_graph);
 let __cyclic_graph =
   Graph.create(
     ["foo", "bar", "fizz", "buzz", "fee", "fie", "foe"],
@@ -94,6 +95,30 @@ let suite =
         Assert.string_list(
           ["buzz", "foo"],
           Graph.get_parents("fizz", __acyclic_graph),
+        )
+    ),
+    "get_ancestors() - acyclic branching"
+    >: (
+      () =>
+        Assert.string_list(
+          ["b", "a"],
+          __branching_graph |> Graph.get_ancestors("d"),
+        )
+    ),
+    "get_ancestors() - acyclic converging"
+    >: (
+      () =>
+        Assert.string_list(
+          ["c", "e", "d", "g", "f"],
+          __converging_graph |> Graph.get_ancestors("b"),
+        )
+    ),
+    "get_ancestors() - cyclic"
+    >: (
+      () =>
+        Assert.string_list(
+          ["bar", "foe", "foo", "fizz"],
+          __cyclic_graph |> Graph.get_ancestors("fie"),
         )
     ),
     "get_children()"

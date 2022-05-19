@@ -342,11 +342,12 @@ let upsert_module = (id: Namespace.t, compiler: t) =>
  will also be removed
  */
 let remove_module = (id: Namespace.t, compiler: t) => {
-  let removed = compiler.graph |> ImportGraph.prune_subtree(id);
+  let (removed, _) as result =
+    compiler.graph |> ImportGraph.remove_module(id);
 
   removed |> List.iter(id => compiler.modules |> ModuleTable.remove(id));
 
-  removed;
+  result;
 };
 
 /**
@@ -370,12 +371,14 @@ let insert_module = (id: Namespace.t, contents: string, compiler: t) => {
 };
 
 /**
+ reset the state of the compiler
+ */
+let reset = ({graph, modules}: t) => {
+  ImportGraph.clear(graph);
+  Hashtbl.clear(modules);
+};
 
-
-
-
-
+/**
  destroy any resources reserved by the compiler
  */
-
 let teardown = (compiler: t) => compiler.resolver.cache |> Cache.destroy;

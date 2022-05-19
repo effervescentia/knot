@@ -20,7 +20,7 @@ test('invalidateModule() - path does not match regex', t => {
 test('invalidateModule() - path does match regex', async t => {
   const filePath = 'myPath.kn';
   const compiler = {
-    invalidate: target => {
+    update: target => {
       t.is(target, filePath);
 
       return Promise.resolve();
@@ -35,7 +35,7 @@ test('invalidateModule() - path does match regex', async t => {
 test('invalidateModule() - invalidation fails', async t => {
   t.plan(1);
   const compiler = {
-    invalidate: _ => Promise.reject()
+    update: _ => Promise.reject()
   } as KnotCompiler;
   const kill = () => Promise.resolve(t.pass());
 

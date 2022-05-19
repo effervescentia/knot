@@ -1,4 +1,4 @@
-# `module/invalidate`
+# `module/update`
 
 ## Parameters
 
@@ -9,8 +9,7 @@
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 99,
-  "method": "module/invalidate",
+  "method": "module/update",
   "params": {
     "path": "/path/to/file.kn"
   }

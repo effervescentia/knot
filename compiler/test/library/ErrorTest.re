@@ -41,7 +41,7 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "import cycle between the following modules: foo -> bar -> fizz -> foo",
+          "import cycle found between modules foo -> bar -> fizz -> foo",
           ImportCycle(["foo", "bar", "fizz", "foo"]) |> ~@pp_compile_err,
         )
     ),
@@ -49,7 +49,7 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "could not resolve module: foo",
+          "could not resolve module foo",
           UnresolvedModule("foo") |> ~@pp_compile_err,
         )
     ),
@@ -57,7 +57,7 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "could not find file with path: foo",
+          "could not find file with path foo",
           FileNotFound("foo") |> ~@pp_compile_err,
         )
     ),
@@ -78,7 +78,7 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "failed to parse module: foo",
+          "failed to parse module foo",
           InvalidModule(Reference.Namespace.of_string("foo"))
           |> ~@pp_compile_err,
         )

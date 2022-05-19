@@ -7,7 +7,7 @@
 ## Result
 
 ```ts
-type Status = 'idle' | 'running' | 'complete';
+type Status = 'none' | 'pending' | 'ok' | 'error';
 ```
 
 - `status` (*Status*): the compilation status of the module
@@ -34,7 +34,7 @@ type Status = 'idle' | 'running' | 'complete';
   "jsonrpc": "2.0",
   "id": 99,
   "result": {
-    "status": "running"
+    "status": "ok"
   }
 }
 ```

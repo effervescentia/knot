@@ -1,7 +1,18 @@
+import { fromEntries } from '@knot/common';
+import Emittery from 'emittery';
 import execa from 'execa';
-import { JSONRPCClient } from 'json-rpc-2.0';
+import {
+  isJSONRPCRequest,
+  isJSONRPCResponse,
+  JSONRPCClient
+} from 'json-rpc-2.0';
 
-const LINE_BREAK = '\r\n\r\n';
+import { NotificationMap } from '../protocol';
+
+const NEWLINE = '\r\n';
+const CONTENT_LENGTH_HEADER = 'Content-Length';
+const HEADER_SEPARATOR = ': ';
+const LINE_BREAK = NEWLINE + NEWLINE;
 
 export interface RPCOptions {
   proc: execa.ExecaChildProcess;
@@ -15,27 +26,54 @@ export interface RPCOptions {
   args?: string[];
 }
 
-const createRPC = (proc: execa.ExecaChildProcess) => {
-  proc.stderr.on('data', data => console.error(data.toString()));
+export interface RPCClient extends JSONRPCClient {
+  emitter: Emittery<NotificationMap>;
+  terminate(): void;
+}
 
+const createRPC = (proc: execa.ExecaChildProcess): RPCClient => {
+  const emitter = new Emittery<NotificationMap>();
   const rpc = new JSONRPCClient(async rpcRequest => {
     const json = JSON.stringify(rpcRequest);
-    console.error(json);
+    const message = `${CONTENT_LENGTH_HEADER}${HEADER_SEPARATOR}${json.length}${LINE_BREAK}${json}`;
 
-    proc.stdin.write(
-      `Content-Length: ${json.length}${LINE_BREAK}${json}`,
-      'utf8'
-    );
+    proc.stdin.write(message, 'utf-8');
   });
 
-  proc.stdout.on('data', data => {
-    const dataStr = data.toString();
-    const [, content] = dataStr.split(LINE_BREAK);
+  const read = (data: string) => {
+    const headerBreak = data.indexOf(LINE_BREAK);
+    const rawHeaders = data.slice(0, headerBreak);
+    const rest = data.slice(headerBreak + LINE_BREAK.length);
 
-    rpc.receive(JSON.parse(content));
+    const headers = fromEntries(
+      rawHeaders
+        .split(NEWLINE)
+        .map(rawHeader => rawHeader.split(HEADER_SEPARATOR) as [string, string])
+    );
+
+    const contentLength = Number(headers[CONTENT_LENGTH_HEADER] ?? 0);
+    const content = rest.slice(0, contentLength);
+    const message = JSON.parse(content);
+
+    if (isJSONRPCRequest(message)) {
+      emitter.emit<any>(message.method, message.params);
+    } else if (isJSONRPCResponse(message)) {
+      rpc.receive(message);
+    }
+
+    if (rest?.length > contentLength) {
+      read(rest.slice(contentLength));
+    }
+  };
+
+  proc.stdout.on('data', data => {
+    const dataStr = Buffer.from(data).toString();
+
+    read(dataStr);
   });
 
   return Object.assign(rpc, {
+    emitter,
     terminate() {
       proc.kill('SIGTERM', { forceKillAfterTimeout: 1500 });
     }

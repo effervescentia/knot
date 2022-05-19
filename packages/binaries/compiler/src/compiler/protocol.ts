@@ -2,10 +2,16 @@ export enum Method {
   MODULE_FETCH = 'module/fetch',
   MODULE_STATUS = 'module/status',
   MODULE_ADD = 'module/add',
-  MODULE_INVALIDATE = 'module/invalidate',
+  MODULE_UPDATE = 'module/update',
+  MODULE_REMOVE = 'module/remove',
 
   STATUS = 'compiler/status',
-  RESET = 'compiler/reset'
+  RESET = 'compiler/reset',
+  ERROR = 'compiler/error'
+}
+
+export interface NotificationMap {
+  [Method.ERROR]: CompilerErrorParams;
 }
 
 export interface ModuleParams {
@@ -23,9 +29,10 @@ export interface ModuleFetchResult {
 /* module/status */
 
 export enum ModuleStatus {
+  NONE = 'none',
   PENDING = 'pending',
-  COMPLETE = 'complete',
-  FAILED = 'failed'
+  OK = 'ok',
+  ERROR = 'error'
 }
 
 export type ModuleStatusParams = ModuleParams;
@@ -38,7 +45,7 @@ export interface ModuleStatusResult {
 
 export enum Status {
   IDLE = 'idle',
-  COMPLETE = 'complete'
+  RUNNING = 'running'
 }
 
 export interface StatusResult {
@@ -49,6 +56,40 @@ export interface StatusResult {
 
 export type ModuleAddParams = ModuleParams;
 
-/* module/invalidate */
+/* module/update */
 
-export type ModuleInvalidateParams = ModuleParams;
+export type ModuleUpdateParams = ModuleParams;
+
+/* module/remove */
+
+export type ModuleRemoveParams = ModuleParams;
+
+/* compiler/error */
+
+export enum CompilerErrorType {
+  FILE_NOT_FOUND = 'file_not_found',
+  UNRESOLVED_MODULE = 'unresolved_module',
+  INVALID_MODULE = 'invalid_module',
+  IMPORT_CYCLE = 'import_cycle'
+}
+
+export enum ModuleErrorType {}
+
+export interface BaseError {
+  message: string;
+}
+
+export interface CompilerError extends BaseError {
+  type: CompilerErrorType;
+}
+
+export interface ModuleError extends BaseError {
+  type: ModuleErrorType;
+  path: string;
+}
+
+export type AnyError = CompilerError | ModuleError;
+
+export interface CompilerErrorParams {
+  errors: AnyError[];
+}

@@ -2,6 +2,7 @@ open Kore;
 
 let __content_length_header = "Content-Length";
 let __line_break = "\r\n";
+let __double_line_break = __line_break ++ __line_break;
 let __line_break_chars = String.to_list(__line_break);
 let __jsonrpc_key = "jsonrpc";
 let __method_key = "method";
@@ -58,15 +59,18 @@ module Writer = {
     let content = JSON.to_string(json);
 
     Fmt.str(
-      "%s: %d\r\n\r\n%s",
+      "%s: %d%s%s",
       __content_length_header,
       String.length(content),
+      __double_line_break,
       content,
     );
   };
 
-  let write_to_channel = (out: out_channel, json: JSON.t): unit =>
+  let write_to_channel = (out: out_channel, json: JSON.t): unit => {
     json |> _serialize |> Printf.fprintf(out, "%s");
+    flush(out);
+  };
 };
 
 module Reader = {
@@ -114,13 +118,26 @@ module Reader = {
             };
 
           try({
-            let id = json |> member(__id_key);
-            let method = json |> member(__method_key) |> to_string;
+            let id = json |> member(__id_key) |> to_int_option;
+            let method_ = json |> member(__method_key) |> to_string;
             let params = json |> member(__params_key);
 
             switch (id, params) {
-            | (`Null, `Assoc(_) | `List(_)) => Notification(method, params)
-            | (`Int(id), `Assoc(_) | `List(_)) => Request(id, method, params)
+            | (None, `Assoc(_) | `List(_) | `Null) =>
+              Log.debug(
+                "received %s notification",
+                method_ |> ~@Fmt.bold_str,
+              );
+
+              Notification(method_, params);
+            | (Some(id), `Assoc(_) | `List(_) | `Null) =>
+              Log.debug(
+                "received %s %s request",
+                id |> Fmt.str("#%i") |> ~@Fmt.grey_str,
+                method_ |> ~@Fmt.bold_str,
+              );
+
+              Request(id, method_, params);
             | _ => raise(BuiltinError(InvalidRequest))
             };
           }) {

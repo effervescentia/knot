@@ -90,6 +90,25 @@ let get_parents = (node: 'a, graph: t('a)): list('a) =>
      );
 
 /**
+ get a list of nodes in the [graph] which are ancestors of a [node]
+ */
+let get_ancestors = (node: 'a, graph: t('a)): list('a) => {
+  let ancestors = ref([]);
+
+  let rec loop = target => {
+    let parents = graph |> get_parents(target) |> List.excl_all(ancestors^);
+
+    ancestors := ancestors^ @ parents;
+
+    parents |> List.iter(loop);
+  };
+
+  loop(node);
+
+  ancestors^ |> List.excl(node);
+};
+
+/**
  get a list of nodes in the [graph] which are a child of a [node]
  */
 let get_children = (node: 'a, graph: t('a)): list('a) =>
@@ -201,7 +220,24 @@ let find_all_unique_cycles = (graph: t('a)): list(list('a)) =>
  check if a [graph] is acyclic
  */
 let is_acyclic = (graph: t('a)): bool =>
-  find_all_unique_cycles(graph) |> List.length |> (==)(0);
+  find_all_unique_cycles(graph) |> List.is_empty;
+
+/**
+ clone a [graph] with the direction of edges reversed
+ */
+let invert = (graph: t('a)): t('a) =>
+  create(
+    graph.nodes,
+    graph.edges |> List.map(((start, end_)) => (end_, start)),
+  );
+
+/**
+ remove all nodes and edges from the [graph]
+ */
+let clear = (graph: t('a)) => {
+  graph.nodes = [];
+  graph.edges = [];
+};
 
 /* pretty printing */
 
@@ -231,16 +267,23 @@ let _merge_trees =
        |> String.join
      });
 
+let _pp_node = (graph: t('a), pp_value: Fmt.t('a)): Fmt.t('a) =>
+  Fmt.(
+    (ppf, node) =>
+      (pf(ppf, graph |> has_node(node) ? "%a" : "(%a)"))(pp_value, node)
+  );
+
 let rec _print_subtree =
         (
           ~ancestors=[],
           ~visited: ref(list('a)),
-          pp_node: Fmt.t('a),
+          pp_value: Fmt.t('a),
           graph: t('a),
           node: 'a,
         )
         : (int, list(string)) => {
   let children = graph |> get_children(node);
+  let pp_node = _pp_node(graph, pp_value);
 
   let subtrees =
     switch (List.mem(node, visited^), children) {
@@ -256,7 +299,7 @@ let rec _print_subtree =
             : _print_subtree(
                 ~ancestors=[node, ...ancestors],
                 ~visited,
-                pp_node,
+                pp_value,
                 graph,
                 child,
               ),
@@ -299,14 +342,14 @@ let rec _print_subtree =
 
  can handle cyclic graphs
  */
-let pp = (pp_node: Fmt.t('a)): Fmt.t(t('a)) =>
+let pp = (pp_value: Fmt.t('a)): Fmt.t(t('a)) =>
   (ppf, graph: t('a)) => {
     let roots = find_roots(graph);
     let visited: ref(list('a)) = ref([]);
 
     let printed =
       roots
-      |> List.map(root => _print_subtree(~visited, pp_node, graph, root));
+      |> List.map(root => _print_subtree(~visited, pp_value, graph, root));
     let depth = printed |> List.map(snd % List.length) |> Int.max_of;
 
     Fmt.string(

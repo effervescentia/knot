@@ -6,14 +6,16 @@ type t =
   | Status(int, Status.params_t)
   | Reset(int, Reset.params_t)
   | ModuleAdd(ModuleAdd.params_t)
-  | ModuleInvalidate(ModuleInvalidate.params_t);
+  | ModuleUpdate(ModuleUpdate.params_t)
+  | ModuleRemove(ModuleRemove.params_t);
 
 let of_module_fetch = (id, params) => ModuleFetch(id, params);
 let of_module_status = (id, params) => ModuleStatus(id, params);
 let of_status = (id, params) => Status(id, params);
 let of_reset = (id, params) => Reset(id, params);
 let of_module_add = params => ModuleAdd(params);
-let of_module_invalidate = params => ModuleInvalidate(params);
+let of_module_update = params => ModuleUpdate(params);
+let of_module_remove = params => ModuleRemove(params);
 
 let deserialize =
   JSONRPC.Protocol.Event.(
@@ -36,10 +38,16 @@ let deserialize =
     | Notification(key, params) when key == ModuleAdd.method_key =>
       params |> ModuleAdd.deserialize |> of_module_add |> Option.some
 
-    | Notification(key, params) when key == ModuleInvalidate.method_key =>
+    | Notification(key, params) when key == ModuleUpdate.method_key =>
       params
-      |> ModuleInvalidate.deserialize
-      |> of_module_invalidate
+      |> ModuleUpdate.deserialize
+      |> of_module_update
+      |> Option.some
+
+    | Notification(key, params) when key == ModuleRemove.method_key =>
+      params
+      |> ModuleRemove.deserialize
+      |> of_module_remove
       |> Option.some
 
     | _ => None

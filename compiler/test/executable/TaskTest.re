@@ -107,11 +107,13 @@ let suite =
   root_dir: root
   source_dir: source
   target: knot
+  log_imports: false
 }",
           Task.BuildServe({
             root_dir: "root",
             source_dir: "source",
             target: Target.Knot,
+            log_imports: false,
           })
           |> ~@Fmt.root(Task.pp),
         )

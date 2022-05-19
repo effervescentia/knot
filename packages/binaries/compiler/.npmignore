@@ -1,1 +1,3 @@
 esyInstallRelease.js
+build/**/*.test.js
+build/**/*.fixture.js

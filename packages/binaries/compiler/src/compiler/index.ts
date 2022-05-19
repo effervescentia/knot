@@ -6,18 +6,14 @@ import { DEFAULT_OPTIONS, INFINITE_ATTEMPTS } from './constants';
 import { ModuleStatus, Status } from './protocol';
 import { pollingPromise } from './utils';
 
-interface FullOptions extends Options {
-  readonly baseUrl: string;
-}
-
 class Compiler {
-  public options: FullOptions;
+  public options: Options;
   public isReady = false;
   public isRunning = false;
   private client: Client;
 
   constructor(options: OptionOverrides) {
-    const mergedOptions: Options = {
+    this.options = {
       ...DEFAULT_OPTIONS,
       ...options,
       plugins: {
@@ -26,16 +22,12 @@ class Compiler {
       }
     };
 
-    this.options = {
-      ...mergedOptions,
-      baseUrl: `http://localhost:${mergedOptions.port}`
-    };
-
     this.client = new Client({
       knotc: this.options.knotc,
-      rootDir: this.options.rootDir,
+      cwd: this.options.cwd,
       target: this.options.target,
-      config: this.options.config
+      config: this.options.config,
+      debug: this.options.debug
     });
 
     this.isRunning = true;
@@ -51,7 +43,7 @@ class Compiler {
   }
 
   public async awaitComplete(): Promise<void> {
-    return this.awaitStatus(Status.COMPLETE);
+    return this.awaitStatus(Status.RUNNING);
   }
 
   public async awaitIdle(): Promise<void> {
@@ -86,9 +78,9 @@ class Compiler {
       (resolve, reject, abort) =>
         this.client.moduleStatus({ path }).then(({ status }) => {
           switch (status) {
-            case ModuleStatus.COMPLETE:
+            case ModuleStatus.OK:
               return resolve();
-            case ModuleStatus.FAILED:
+            case ModuleStatus.ERROR:
               return abort(new Error(`module "${path}" failed to compile`));
             default:
               return reject();
@@ -105,8 +97,8 @@ class Compiler {
     return data;
   }
 
-  public async invalidate(path: string): Promise<void> {
-    return this.client.invalidateModule({ path });
+  public async update(path: string): Promise<void> {
+    return this.client.updateModule({ path });
   }
 }
 

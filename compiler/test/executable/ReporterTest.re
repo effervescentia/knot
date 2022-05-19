@@ -42,20 +42,20 @@ finished with 9 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
-  import cycle between the following modules: a -> b -> c -> d
+  import cycle between the following modules a -> b -> c -> d -> a
 
 2) Unresolved Module
 
-  could not resolve module: my_module
+  could not resolve module my_module
 
 3) File Not Found
 
-  could not find file with path: /path/to/my/file
+  could not find file with path /path/to/my/file
 
 4) Invalid Module : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
-  failed to parse module: @/my_namespace
+  failed to parse module @/my_namespace
 
 5) Reserved Keyword : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)

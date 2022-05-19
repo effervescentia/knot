@@ -9,4 +9,9 @@ let deserialize = ignore;
 let response = () => `Null;
 
 let handler: Runtime.request_handler_t(params_t) =
-  (_, _) => response() |> Result.ok;
+  (runtime, _) => {
+    Compiler.reset(runtime.compiler);
+    runtime.status = Idle;
+
+    response() |> Result.ok;
+  };

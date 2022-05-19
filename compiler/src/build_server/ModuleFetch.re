@@ -11,21 +11,22 @@ let deserialize = Deserialize.module_params;
 let response = (data: string) => `Assoc([("data", `String(data))]);
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({compiler}, {path}) => {
-    let namespace = Namespace.of_string(path);
+  ({compiler, target}, {path}) => {
+    let namespace = Namespace.of_path(path);
 
     switch (compiler |> Compiler.get_module(namespace)) {
     | Some({ast}) =>
       ast
       |> ~@
            Generator.pp(
-             Target.Knot,
+             target,
              fun
              | Internal(path) => path
              | External(_) => raise(NotImplemented),
            )
       |> response
       |> Result.ok
+
     | None => Error(id => JSONRPC.Protocol.builtin_error(~id, InternalError))
     };
   };

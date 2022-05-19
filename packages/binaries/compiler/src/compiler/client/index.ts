@@ -1,5 +1,6 @@
+import { noop } from '@knot/common';
+import chalk from 'chalk';
 import execa from 'execa';
-import { JSONRPCClient } from 'json-rpc-2.0';
 
 import { KNOTC_BINARY } from '../../config';
 import { Target } from '../../types';
@@ -8,30 +9,35 @@ import {
   ModuleAddParams,
   ModuleFetchParams,
   ModuleFetchResult,
-  ModuleInvalidateParams,
+  ModuleRemoveParams,
   ModuleStatusParams,
   ModuleStatusResult,
+  ModuleUpdateParams,
   StatusResult
 } from '../protocol';
-import createRPC from './rpc';
+import createRPC, { RPCClient } from './rpc';
 
 export interface ClientOptions {
   /**
+   * working directory for running the `knotc` binary
+   */
+  cwd: string;
+  /**
    * path to the `knotc` binary
    */
-  knotc: string;
-  /**
-   * root directory of the target knot project
-   */
-  rootDir: string;
+  knotc?: string;
   /**
    * the compilation target
    */
-  target: Target;
+  target?: Target;
   /**
    * location of the knot config file [default `.knot.yml`]
    */
-  config: string;
+  config?: string;
+  /**
+   * enable debug logs from `knotc`
+   */
+  debug?: boolean;
 }
 
 class Client {
@@ -44,24 +50,41 @@ class Client {
   }
 
   private proc: execa.ExecaChildProcess;
-  private rpc: JSONRPCClient;
+  private rpc: RPCClient;
+  private unsubscribeErrorHandler: VoidFunction = noop;
 
   constructor(options: ClientOptions) {
     const knotArgs = [
       'build_serve',
-      '--root-dir',
-      options.rootDir,
-      '--config',
-      options.config
+      '--cwd',
+      options.cwd,
+      ...(options.config ? ['--config', options.config] : []),
+      ...(options.target ? ['--target', options.target] : []),
+      ...(options.debug ? ['--debug', '--log-imports'] : [])
     ];
     const [cmd, ...args] = (options.knotc || KNOTC_BINARY).split(/\s+/);
     const allArgs = [...args, ...knotArgs];
 
-    console.log('starting compiler');
-    console.log(`> ${[cmd, ...allArgs].join(' ')}`);
+    if (options.debug) {
+      console.error('starting compiler');
+      console.error(`> ${[cmd, ...allArgs].join(' ')}`);
+    }
 
     this.proc = execa(cmd, allArgs);
     this.rpc = createRPC(this.proc);
+
+    if (!options.debug) return;
+
+    this.unsubscribeErrorHandler = this.rpc.emitter.on(
+      Method.ERROR,
+      ({ errors }) => {
+        errors.forEach(error =>
+          console.error(`ERROR ${error.type}: ${chalk.red(error.message)}`)
+        );
+      }
+    );
+
+    this.proc.stderr.on('data', data => console.error(data.toString()));
   }
 
   public async fetchModule(
@@ -85,8 +108,12 @@ class Client {
     return this.rpc.notify(Method.MODULE_ADD, params);
   }
 
-  public async invalidateModule(params: ModuleInvalidateParams): Promise<void> {
-    return this.rpc.notify(Method.MODULE_INVALIDATE, params);
+  public async updateModule(params: ModuleUpdateParams): Promise<void> {
+    return this.rpc.notify(Method.MODULE_UPDATE, params);
+  }
+
+  public async removeModule(params: ModuleRemoveParams): Promise<void> {
+    return this.rpc.notify(Method.MODULE_REMOVE, params);
   }
 
   public async reset(): Promise<void> {
@@ -98,6 +125,8 @@ class Client {
   }
 
   public terminate(): void {
+    this.unsubscribeErrorHandler();
+    this.unsubscribeErrorHandler = noop;
     this.rpc.rejectAllPendingRequests('terminated');
     this.proc.kill('SIGTERM', { forceKillAfterTimeout: 2000 });
   }

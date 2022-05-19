@@ -44,7 +44,7 @@ export function invalidateModule(
   kill: Kill
 ): (path: string) => void {
   return invalidPath =>
-    isKnot(invalidPath) && knotCompiler.invalidate(invalidPath).catch(kill);
+    isKnot(invalidPath) && knotCompiler.update(invalidPath).catch(kill);
 }
 
 export function addModuleLoader(

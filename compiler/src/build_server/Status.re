@@ -6,7 +6,11 @@ let method_key = "compiler/status";
 
 let deserialize = ignore;
 
-let response = () => `Null;
+let response =
+  Runtime.(
+    (status: Status.t) =>
+      `Assoc([("status", `String(Status.to_string(status)))])
+  );
 
 let handler: Runtime.request_handler_t(params_t) =
-  (_, _) => response() |> Result.ok;
+  ({status}, _) => response(status) |> Result.ok;

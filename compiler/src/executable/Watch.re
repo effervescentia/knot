@@ -99,26 +99,23 @@ let run =
        watch(actions =>
          actions
          |> List.map(((path, action)) => {
-              let namespace =
-                Namespace.Internal(
-                  path |> String.drop_suffix(Constants.file_extension),
-                );
+              let namespace = Namespace.of_path(path);
 
               switch (action) {
               | Add when _is_source_file(path) =>
                 Log.debug("file added %s", path |> ~@pp_source_relative);
 
                 compiler |> Compiler.upsert_module(namespace);
+
               | Update when _is_source_file(path) =>
                 Log.debug("file updated %s", path |> ~@pp_source_relative);
 
                 compiler |> Compiler.update_module(namespace) |> snd;
+
               | Remove when _is_source_file(path) =>
                 Log.debug("file removed %s", path |> ~@pp_source_relative);
 
-                compiler |> Compiler.remove_module(namespace) |> ignore;
-
-                [];
+                compiler |> Compiler.remove_module(namespace) |> snd;
 
               | _ => []
               };
@@ -135,7 +132,8 @@ let run =
 
              updated
              |> List.iter(namespace =>
-                  Hashtbl.find_opt(compiler.modules, namespace)
+                  compiler
+                  |> Compiler.get_module(namespace)
                   |> Option.iter(
                        compiler
                        |> Compiler.emit_one(config.target, out_dir, namespace),

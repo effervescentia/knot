@@ -1,18 +1,14 @@
 import { DeepPartial } from 'utility-types';
 
+import { ClientOptions } from './compiler/client';
+
 export enum Target {
   JAVASCRIPT_ES6 = 'javascript-es6',
   JAVASCRIPT_COMMON = 'javascript-common'
 }
 
-export interface Options {
-  readonly port: number;
-  readonly debug: boolean;
-  readonly knotc: string;
-  readonly rootDir: string;
-  readonly config: string;
+export interface Options extends ClientOptions {
   readonly plugins: Plugins;
-  readonly target: Target;
 }
 
 export type OptionOverrides = DeepPartial<Options>;

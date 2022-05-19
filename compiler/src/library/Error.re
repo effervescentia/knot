@@ -37,7 +37,7 @@ exception CompileError(list(compile_err));
  */
 exception SystemError;
 
-let __arrow_sep = Fmt.(Sep.create((ppf, ()) => string(ppf, " -> ")));
+let __arrow_sep = Fmt.Sep.(of_sep(~trail=Trail.nop, " ->"));
 
 /**
  raise a single compiler error
@@ -78,12 +78,12 @@ let pp_compile_err: Fmt.t(compile_err) =
       | ImportCycle([self_import]) =>
         pf(ppf, "the module %a imports itself", bold_str, self_import)
 
-      | ImportCycle([first, ..._] as cycles) =>
+      | ImportCycle(cycles) =>
         pf(
           ppf,
           "import cycle found between modules %a",
           list(~sep=__arrow_sep, bold_str),
-          cycles @ [first],
+          cycles,
         )
 
       | UnresolvedModule(name) =>

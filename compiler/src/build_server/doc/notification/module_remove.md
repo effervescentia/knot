@@ -1,4 +1,4 @@
-# `module/add`
+# `module/remove`
 
 ## Parameters
 
@@ -9,7 +9,7 @@
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "module/add",
+  "method": "module/remove",
   "params": {
     "path": "/path/to/file.kn"
   }

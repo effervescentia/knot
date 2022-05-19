@@ -5,12 +5,15 @@ module Namespace = {
     | Internal(string)
     | External(string);
 
+  let of_internal = value => Internal(value);
+
   let of_string = value =>
     value |> String.starts_with(Constants.root_dir)
-      ? Internal(value |> String.drop_prefix(Constants.root_dir))
+      ? value |> String.drop_prefix(Constants.root_dir) |> of_internal
       : External(value);
 
-  let of_internal = value => Internal(value);
+  let of_path = value =>
+    value |> String.drop_suffix(Constants.file_extension) |> of_internal;
 
   /* methods */
 

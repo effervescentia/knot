@@ -7,7 +7,7 @@
 ## Result
 
 ```ts
-type Status = 'idle' | 'running' | 'complete';
+type Status = 'idle' | 'running';
 ```
 
 - `status` (*Status*): the status of the compiler

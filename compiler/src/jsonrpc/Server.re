@@ -23,7 +23,14 @@ let create = (in_: in_channel, out: out_channel): t => {
 
   let reply = id =>
     fun
-    | Ok(result) => Protocol.response(id, result) |> send
+    | Ok(result) => {
+        Log.debug(
+          "sending %s response",
+          id |> Fmt.str("#%i") |> ~@Fmt.grey_str,
+        );
+
+        Protocol.response(id, result) |> send;
+      }
     | Error(report) => report(id) |> send;
 
   let watch = handler =>

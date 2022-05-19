@@ -49,6 +49,7 @@ let suite =
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
                source_dir: "lib",
                target: Target.JavaScript(Common),
+               log_imports: true,
              }),
            ))
     ),
@@ -72,6 +73,7 @@ let suite =
                root_dir: no_target_fixture_dir,
                source_dir: "src",
                target: Target.Knot,
+               log_imports: false,
              }),
            ))
     ),
@@ -95,6 +97,7 @@ let suite =
                root_dir: js_target_fixture_dir,
                source_dir: "src",
                target: Target.Knot,
+               log_imports: false,
              }),
            ))
     ),
@@ -119,6 +122,7 @@ let suite =
                  Filename.concat(path_alternative_fixture_dir, "root"),
                source_dir: "src",
                target: Target.JavaScript(Common),
+               log_imports: false,
              }),
            ))
     ),
@@ -143,6 +147,7 @@ let suite =
                  Filename.concat(path_override_fixture_dir, "project"),
                source_dir: "lib",
                target: Target.JavaScript(Common),
+               log_imports: true,
              }),
            ))
     ),
@@ -166,6 +171,7 @@ let suite =
                root_dir: path_alternative_fixture_dir,
                source_dir: "lib",
                target: Target.JavaScript(Common),
+               log_imports: false,
              }),
            ))
     ),
@@ -189,6 +195,7 @@ let suite =
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
                source_dir: "src",
                target: Target.JavaScript(Common),
+               log_imports: true,
              }),
            ))
     ),

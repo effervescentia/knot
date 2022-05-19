@@ -37,23 +37,35 @@ let rec add_module = (~added=ref([]), id: Namespace.t, graph: t) => {
 
 let init = (entry: Namespace.t) => add_module(entry) % ignore;
 
-let rec prune_subtree = (~removed=ref([]), node: 'a, graph: t) => {
-  let children = graph.imports |> Graph.get_children(node);
+let remove_module = (node: 'a, graph: t) => {
+  let ancestors = graph.imports |> Graph.get_ancestors(node);
 
   graph.imports |> Graph.remove_node(node);
   graph.imports |> Graph.remove_edges_from(node);
 
-  removed := removed^ |> List.incl(node);
+  ([node], ancestors);
+};
 
-  children
-  |> List.iter(child =>
-       if (graph.imports
-           |> Graph.get_parents(child)
-           |> List.length
-           |> (==)(0)) {
-         graph |> prune_subtree(~removed, child) |> ignore;
-       }
-     );
+let prune_subtree = (node: 'a, graph: t) => {
+  let removed = ref([]);
+
+  let rec loop = target => {
+    let children = graph.imports |> Graph.get_children(target);
+
+    graph.imports |> Graph.remove_node(target);
+    graph.imports |> Graph.remove_edges_from(target);
+
+    removed := removed^ |> List.incl(target);
+
+    children
+    |> List.iter(child =>
+         if (graph.imports |> Graph.get_parents(child) |> List.is_empty) {
+           loop(child);
+         }
+       );
+  };
+
+  loop(node);
 
   removed^;
 };
@@ -81,7 +93,7 @@ let refresh_subtree = (id: Namespace.t, graph: t) => {
   let removed = graph |> prune_subtree(id);
   let added = graph |> add_module(id);
 
-  (removed |> List.filter(id => !List.mem(id, added)), added);
+  (removed |> List.excl_all(added), added);
 };
 
 /**
@@ -89,6 +101,11 @@ let refresh_subtree = (id: Namespace.t, graph: t) => {
  */
 let compare = (l: t, r: t): bool =>
   l.imports == r.imports && l.get_imports === r.get_imports;
+
+/**
+ remove all imports from the graph
+ */
+let clear = ({imports}: t) => Graph.clear(imports);
 
 /* pretty printing */
 
