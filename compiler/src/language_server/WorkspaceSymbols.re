@@ -51,51 +51,58 @@ let handler: Runtime.request_handler_t(params_t) =
            compiler.modules
            |> Hashtbl.to_seq
            |> List.of_seq
-           |> List.map(((namespace, ModuleTable.{ast})) =>
-                ast
-                |> List.filter_map(
-                     Node.Raw.get_value
-                     % (
-                       fun
-                       | AST.Declaration(
-                           MainExport(name) | NamedExport(name),
-                           decl,
-                         ) => {
-                           let uri =
-                             Filename.concat(
-                               uri,
-                               namespace
-                               |> Namespace.to_path(
-                                    compiler.config.source_dir
-                                    |> Filename.relative_to(
-                                         compiler.config.root_dir,
-                                       ),
-                                  ),
-                             );
-                           let range = Node.Raw.get_range(name);
-                           let name =
-                             name |> Node.Raw.get_value |> ~@Identifier.pp;
+           |> List.map(
+                fun
+                | (
+                    namespace,
+                    ModuleTable.(Valid({ast}) | Invalid({ast}, _)),
+                  ) =>
+                  ast
+                  |> List.filter_map(
+                       Node.Raw.get_value
+                       % (
+                         fun
+                         | AST.Declaration(
+                             MainExport(name) | NamedExport(name),
+                             decl,
+                           ) => {
+                             let uri =
+                               Filename.concat(
+                                 uri,
+                                 namespace
+                                 |> Namespace.to_path(
+                                      compiler.config.source_dir
+                                      |> Filename.relative_to(
+                                           compiler.config.root_dir,
+                                         ),
+                                    ),
+                               );
+                             let range = Node.Raw.get_range(name);
+                             let name =
+                               name |> Node.Raw.get_value |> ~@Identifier.pp;
 
-                           Some(
-                             switch (Node.get_value(decl)) {
-                             | Constant(expr) => {
-                                 uri,
-                                 name,
-                                 range,
-                                 kind: Capabilities.Variable,
-                               }
-                             | Function(args, expr) => {
-                                 uri,
-                                 name,
-                                 range,
-                                 kind: Capabilities.Function,
-                               }
-                             },
-                           );
-                         }
-                       | _ => None
-                     ),
-                   )
+                             Some(
+                               switch (Node.get_value(decl)) {
+                               | Constant(expr) => {
+                                   uri,
+                                   name,
+                                   range,
+                                   kind: Capabilities.Variable,
+                                 }
+                               | Function(args, expr) => {
+                                   uri,
+                                   name,
+                                   range,
+                                   kind: Capabilities.Function,
+                                 }
+                               },
+                             );
+                           }
+                         | _ => None
+                       ),
+                     )
+
+                | _ => [],
               )
            |> List.flatten
          )

@@ -13,10 +13,16 @@ type entry_t = {
   raw: string,
 };
 
+type status_t =
+  | Pending
+  | Purged
+  | Valid(entry_t)
+  | Invalid(entry_t, list(Error.compile_err));
+
 /**
  table for storing module ASTs
  */
-type t = Hashtbl.t(Namespace.t, entry_t);
+type t = Hashtbl.t(Namespace.t, status_t);
 
 /* static */
 
@@ -44,7 +50,12 @@ let add =
   Hashtbl.replace(
     table,
     id,
-    {ast, exports: exports |> List.to_seq |> Hashtbl.of_seq, scopes, raw},
+    Valid({
+      ast,
+      exports: exports |> List.to_seq |> Hashtbl.of_seq,
+      scopes,
+      raw,
+    }),
   );
 
 /**
@@ -57,18 +68,29 @@ let remove = (id: Namespace.t, table: t) => Hashtbl.remove(table, id);
  */
 let add_type =
     ((namespace, id): (Namespace.t, Export.t), value: 'a, table: t) =>
-  if (Hashtbl.mem(table, namespace)) {
-    let members = Hashtbl.find(table, namespace);
+  switch (Hashtbl.find_opt(table, namespace)) {
+  | Some(Valid(entry) | Invalid(entry, _)) =>
+    Hashtbl.replace(entry.exports, id, value)
 
-    Hashtbl.replace(members.exports, id, value);
+  | _ => ()
   };
+
+let _compare_entry = (x, y) =>
+  x.ast == y.ast && x.raw == y.raw && Hashtbl.compare(x.exports, y.exports);
 
 /**
  compare two ModuleTables by direct equality
  */
 let compare: (t, t) => bool =
   Hashtbl.compare(~compare=(x, y) =>
-    x.ast == y.ast && x.raw == y.raw && Hashtbl.compare(x.exports, y.exports)
+    switch (x, y) {
+    | (Valid(x_entry), Valid(y_entry)) => _compare_entry(x_entry, y_entry)
+
+    | (Invalid(x_entry, x_errors), Invalid(y_entry, y_errors)) =>
+      _compare_entry(x_entry, y_entry) && x_errors == y_errors
+
+    | _ => x == y
+    }
   );
 
 /* pretty printing */
@@ -86,5 +108,14 @@ let _pp_entry: Fmt.t(entry_t) =
       |> Hashtbl.pp(string, string, ppf)
     );
 
+let _pp_status: Fmt.t(status_t) =
+  ppf =>
+    fun
+    | Valid(entry) => Fmt.pf(ppf, "Valid(%a)", _pp_entry, entry)
+    | Invalid(entry, _) => Fmt.pf(ppf, "Invalid(%a)", _pp_entry, entry)
+    | Purged => Fmt.pf(ppf, "Purged")
+    | Pending => Fmt.pf(ppf, "Pending");
+
 let pp: Fmt.t(t) =
-  (ppf, table: t) => Fmt.(table |> Hashtbl.pp(Namespace.pp, _pp_entry, ppf));
+  (ppf, table: t) =>
+    Fmt.(table |> Hashtbl.pp(Namespace.pp, _pp_status, ppf));

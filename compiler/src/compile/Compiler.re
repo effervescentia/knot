@@ -248,21 +248,27 @@ let emit_one =
           path |> ~@Fmt.relative_path(output_dir),
         );
 
-        (ModuleTable.{ast}) => {
-          Writer.write(out, ppf =>
-            Generator.pp(
-              target,
-              fun
-              | Internal(path) =>
-                Filename.concat(output_dir, path)
-                |> Filename.relative_to(parent_dir)
-              | External(_) => raise(NotImplemented),
-              ppf,
-              ast,
-            )
-          );
-          close_out(out);
-        };
+        ModuleTable.(
+          fun
+          | Valid({ast}) => {
+              Writer.write(out, ppf =>
+                Generator.pp(
+                  target,
+                  fun
+                  | Internal(path) =>
+                    Filename.concat(output_dir, path)
+                    |> Filename.relative_to(parent_dir)
+                  | External(_) => raise(NotImplemented),
+                  ppf,
+                  ast,
+                )
+              );
+
+              close_out(out);
+            }
+
+          | _ => ()
+        );
       }
     )
   | External(_) => raise(NotImplemented)

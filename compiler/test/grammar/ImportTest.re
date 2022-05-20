@@ -31,7 +31,7 @@ let __context_with_named_exports =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.{
+          ModuleTable.Valid({
             ast: [],
             exports:
               [
@@ -43,7 +43,7 @@ let __context_with_named_exports =
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
             raw: "foo",
-          },
+          }),
         ),
       ]
       |> List.to_seq
@@ -57,7 +57,7 @@ let __context_with_main_export =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.{
+          ModuleTable.Valid({
             ast: [],
             exports:
               [(Export.Main, Type.Valid(`Nil))]
@@ -65,7 +65,7 @@ let __context_with_main_export =
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
             raw: "foo",
-          },
+          }),
         ),
       ]
       |> List.to_seq

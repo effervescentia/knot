@@ -28,7 +28,7 @@ let __context =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.{
+          ModuleTable.Valid({
             ast: [],
             exports:
               [(Export.Main, Type.Valid(`Boolean))]
@@ -36,7 +36,7 @@ let __context =
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
             raw: "foo",
-          },
+          }),
         ),
       ]
       |> List.to_seq

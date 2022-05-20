@@ -58,7 +58,7 @@ let __ns_context =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.{
+          ModuleTable.Valid({
             ast: [],
             exports:
               [(Export.Main, Type.Valid(`String))]
@@ -66,7 +66,7 @@ let __ns_context =
               |> Hashtbl.of_seq,
             scopes: __scope_tree,
             raw: "foo",
-          },
+          }),
         ),
       ]
       |> List.to_seq
@@ -129,7 +129,7 @@ let suite =
                 [
                   (
                     "bar" |> A.of_internal,
-                    ModuleTable.{
+                    ModuleTable.Valid({
                       ast: [],
                       exports:
                         [(Export.Main, Type.Valid(`Boolean))]
@@ -137,7 +137,7 @@ let suite =
                         |> Hashtbl.of_seq,
                       scopes: __scope_tree,
                       raw: "foo",
-                    },
+                    }),
                   ),
                 ]
                 |> List.to_seq

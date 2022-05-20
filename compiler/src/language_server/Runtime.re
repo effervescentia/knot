@@ -61,13 +61,14 @@ let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
 let analyze_module =
     (namespace: Namespace.t, {compiler, contexts}: compiler_context_t) =>
   switch (Hashtbl.find_opt(compiler.modules, namespace)) {
-  | Some({ast}) =>
+  | Some(Valid({ast}) | Invalid({ast}, _)) =>
     let tokens = TokenTree.of_ast(ast);
 
     Hashtbl.add(contexts, namespace, {tokens: tokens});
 
     Some(tokens);
-  | None => None
+
+  | _ => None
   };
 
 let scan_for_token = (point: Point.t) =>

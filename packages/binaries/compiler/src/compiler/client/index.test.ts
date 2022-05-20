@@ -1,5 +1,6 @@
 import test from 'ava';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 
 import { Target } from '../../types';
@@ -23,7 +24,7 @@ const APP_MODULE = 'App.kn';
 const CONSTANTS_MODULE = 'common/constants.kn';
 
 const createFixture = async (source: string) => {
-  const fixture = await fs.promises.mkdtemp('fixture');
+  const fixture = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'fixture'));
 
   await fs.copy(source, fixture, { recursive: true });
 
@@ -65,7 +66,7 @@ test('processes a module', t =>
       path: MAIN_MODULE
     });
 
-    t.is(moduleStatus, ModuleStatus.OK);
+    t.is(moduleStatus, ModuleStatus.VALID);
 
     const { data } = await client.fetchModule({ path: MAIN_MODULE });
 
@@ -142,7 +143,7 @@ test('purges root module safely', t =>
 
     t.is(status, Status.IDLE);
     t.is(mainStatus, ModuleStatus.NONE);
-    t.is(appStatus, ModuleStatus.OK);
+    t.is(appStatus, ModuleStatus.VALID);
   }));
 
 test('purges leaf module and reprocesses', t =>

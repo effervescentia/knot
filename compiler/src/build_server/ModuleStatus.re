@@ -4,15 +4,17 @@ module Status = {
   type t =
     | None
     | Pending
-    | Ok
-    | Error;
+    | Purged
+    | Valid
+    | Invalid;
 
   let to_string =
     fun
     | None => "none"
     | Pending => "pending"
-    | Ok => "ok"
-    | Error => "error";
+    | Purged => "purged"
+    | Valid => "valid"
+    | Invalid => "invalid";
 };
 
 type params_t = Protocol.module_params_t;
@@ -30,7 +32,10 @@ let handler: Runtime.request_handler_t(params_t) =
 
     (
       switch (compiler |> Compiler.get_module(namespace)) {
-      | Some(_) => Status.Ok
+      | Some(Valid(_)) => Status.Valid
+      | Some(Invalid(_)) => Status.Invalid
+      | Some(Pending) => Status.Pending
+      | Some(Purged) => Status.Purged
       | None =>
         compiler.graph |> Resolve.ImportGraph.has_module(namespace)
           ? Status.Pending : Status.None

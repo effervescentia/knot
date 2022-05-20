@@ -120,12 +120,12 @@ let suite =
           [
             (
               __entry,
-              ModuleTable.{
+              ModuleTable.Valid({
                 exports: __types,
                 ast: __ast,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
-              },
+              }),
             ),
           ]
           |> List.to_seq
@@ -186,12 +186,12 @@ let suite =
           [
             (
               __entry,
-              ModuleTable.{
+              ModuleTable.Valid({
                 exports: __types,
                 ast: __ast,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
-              },
+              }),
             ),
           ]
           |> List.to_seq

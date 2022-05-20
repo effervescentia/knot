@@ -31,8 +31,9 @@ export interface ModuleFetchResult {
 export enum ModuleStatus {
   NONE = 'none',
   PENDING = 'pending',
-  OK = 'ok',
-  ERROR = 'error'
+  PURGED = 'purged',
+  VALID = 'valid',
+  INVALID = 'invalid'
 }
 
 export type ModuleStatusParams = ModuleParams;

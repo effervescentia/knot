@@ -78,9 +78,9 @@ class Compiler {
       (resolve, reject, abort) =>
         this.client.moduleStatus({ path }).then(({ status }) => {
           switch (status) {
-            case ModuleStatus.OK:
+            case ModuleStatus.VALID:
               return resolve();
-            case ModuleStatus.ERROR:
+            case ModuleStatus.INVALID:
               return abort(new Error(`module "${path}" failed to compile`));
             default:
               return reject();

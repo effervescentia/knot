@@ -41,12 +41,13 @@ let find_export = (namespace: Namespace.t, id: Export.t, ctx: t) => {
   let type_err = Type.ExternalNotFound(namespace, id);
 
   switch (ctx |> find_module(namespace)) {
-  | Some({exports}) =>
+  | Some(Valid({exports}) | Invalid({exports}, _)) =>
     switch (Hashtbl.find_opt(exports, id)) {
     | Some(t) => Ok(t)
     | None => Error(type_err)
     }
-  | None => Ok(Invalid(NotInferrable))
+
+  | _ => Ok(Invalid(NotInferrable))
   };
 };
 

@@ -7,10 +7,10 @@
 ## Result
 
 ```ts
-type Status = 'none' | 'pending' | 'ok' | 'error';
+type ModuleStatus = 'none' | 'pending' | 'purged' | 'valid' | 'invalid';
 ```
 
-- `status` (*Status*): the compilation status of the module
+- `status` (*ModuleStatus*): the compilation status of the module
 
 ## Examples
 
@@ -34,7 +34,7 @@ type Status = 'none' | 'pending' | 'ok' | 'error';
   "jsonrpc": "2.0",
   "id": 99,
   "result": {
-    "status": "ok"
+    "status": "valid"
   }
 }
 ```

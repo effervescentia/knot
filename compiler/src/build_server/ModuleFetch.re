@@ -15,7 +15,7 @@ let handler: Runtime.request_handler_t(params_t) =
     let namespace = Namespace.of_path(path);
 
     switch (compiler |> Compiler.get_module(namespace)) {
-    | Some({ast}) =>
+    | Some(Valid({ast}) | Invalid({ast}, _)) =>
       ast
       |> ~@
            Generator.pp(
@@ -27,6 +27,6 @@ let handler: Runtime.request_handler_t(params_t) =
       |> response
       |> Result.ok
 
-    | None => Error(id => JSONRPC.Protocol.builtin_error(~id, InternalError))
+    | _ => Error(id => JSONRPC.Protocol.builtin_error(~id, InternalError))
     };
   };

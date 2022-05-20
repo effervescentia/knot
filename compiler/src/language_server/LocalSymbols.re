@@ -40,48 +40,49 @@ let handler: Runtime.request_handler_t(params_t) =
     switch (runtime |> Runtime.resolve(uri)) {
     | Some((namespace, {compiler})) =>
       let symbols =
-        Hashtbl.find_opt(compiler.modules, namespace)
-        |?> (
-          ({ast}) =>
-            ast
-            |> List.filter_map(
-                 Node.Raw.get_value
-                 % (
-                   fun
-                   | AST.Declaration(
-                       MainExport(name) | NamedExport(name),
-                       decl,
-                     ) => {
-                       let range = Node.Raw.get_range(name);
-                       let name =
-                         name |> Node.Raw.get_value |> ~@Identifier.pp;
-                       let type_ = Node.get_type(decl);
-
-                       Some(
-                         switch (Node.get_value(decl)) {
-                         | Constant(expr) => {
-                             name,
-                             detail: type_ |> ~@Type.pp,
-                             range,
-                             full_range:
-                               Range.join(range, Node.get_range(expr)),
-                             kind: Capabilities.Variable,
-                           }
-                         | Function(args, expr) => {
-                             name,
-                             detail: type_ |> ~@Type.pp,
-                             range,
-                             full_range:
-                               Range.join(range, Node.get_range(expr)),
-                             kind: Capabilities.Function,
-                           }
-                         },
-                       );
-                     }
-                   | _ => None
-                 ),
-               )
+        Option.bind(
+          Hashtbl.find_opt(compiler.modules, namespace),
+          fun
+          | Valid({ast})
+          | Invalid({ast}, _) => Some(ast)
+          | _ => None,
         )
+        |?> List.filter_map(
+              Node.Raw.get_value
+              % (
+                fun
+                | AST.Declaration(
+                    MainExport(name) | NamedExport(name),
+                    decl,
+                  ) => {
+                    let range = Node.Raw.get_range(name);
+                    let name = name |> Node.Raw.get_value |> ~@Identifier.pp;
+                    let type_ = Node.get_type(decl);
+
+                    Some(
+                      switch (Node.get_value(decl)) {
+                      | Constant(expr) => {
+                          name,
+                          detail: type_ |> ~@Type.pp,
+                          range,
+                          full_range:
+                            Range.join(range, Node.get_range(expr)),
+                          kind: Capabilities.Variable,
+                        }
+                      | Function(args, expr) => {
+                          name,
+                          detail: type_ |> ~@Type.pp,
+                          range,
+                          full_range:
+                            Range.join(range, Node.get_range(expr)),
+                          kind: Capabilities.Function,
+                        }
+                      },
+                    );
+                  }
+                | _ => None
+              ),
+            )
         |?: [];
 
       symbols |> response |> Result.ok;

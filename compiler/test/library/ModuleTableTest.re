@@ -36,7 +36,7 @@ let suite =
           _create_table([
             (
               __id,
-              ModuleTable.{
+              ModuleTable.Valid({
                 exports:
                   _create_table([
                     (
@@ -47,7 +47,7 @@ let suite =
                 ast: __program,
                 scopes: __scope_tree,
                 raw: "foo",
-              },
+              }),
             ),
           ]),
           __table,
@@ -68,7 +68,7 @@ let suite =
           _create_table([
             (
               __id,
-              ModuleTable.{
+              ModuleTable.Valid({
                 exports:
                   _create_table([
                     (
@@ -79,7 +79,7 @@ let suite =
                 ast: __program,
                 scopes: __scope_tree,
                 raw: "foo",
-              },
+              }),
             ),
           ]),
           __table,
