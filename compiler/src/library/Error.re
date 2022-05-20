@@ -137,7 +137,7 @@ let pp_err_list: Fmt.t(list(compile_err)) =
     Fmt.(
       pf(
         ppf,
-        "found some errors during compilation:\n\n%a",
-        list(~sep=Sep.double_newline, pp_compile_err),
+        "found some errors during compilation:@.@,%a",
+        block(~layout=Vertical, ~sep=Sep.double_newline, pp_compile_err),
       )
     );

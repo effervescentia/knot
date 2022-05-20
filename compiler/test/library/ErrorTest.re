@@ -135,9 +135,8 @@ let suite =
         Assert.string(
           "found some errors during compilation:
 
-could not resolve module: foo
-
-could not resolve module: bar",
+  could not resolve module foo
+  \n  could not resolve module bar",
           [UnresolvedModule("foo"), UnresolvedModule("bar")]
           |> ~@pp_err_list,
         )
@@ -146,8 +145,7 @@ could not resolve module: bar",
     >: (
       () =>
         Assert.string(
-          "UnresolvedModule<foo>,
-UnresolvedModule<bar>",
+          "UnresolvedModule<foo>, UnresolvedModule<bar>",
           [UnresolvedModule("foo"), UnresolvedModule("bar")]
           |> ~@pp_dump_err_list,
         )

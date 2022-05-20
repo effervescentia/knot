@@ -295,11 +295,13 @@ let _extract_compile_err = resolver =>
                      | _ =>
                        pf(
                          ppf,
-                         "@,try one of the following to resolve this issue:@.%a",
-                         block(
-                           ~layout=Vertical,
-                           ~sep=Sep.double_newline,
-                           _pp_resolution,
+                         "@,@,@[<hv>try one of the following to resolve this issue:@,%a@]",
+                         indented(
+                           list(
+                             ~layout=Vertical,
+                             ~sep=Sep.double_newline,
+                             _pp_resolution,
+                           ),
                          ),
                          resolutions,
                        ),
@@ -362,15 +364,18 @@ let report =
           bad(_pp_header),
           "FAILED",
           summary,
-          list(~layout=Vertical, ~sep=Sep.nop, (ppf, (index, err)) =>
-            err
-            |> _extract_compile_err(resolver)
-            |> Tuple.join3((path, title, content) =>
-                 (index, path, title, content)
-               )
-            |> pf(ppf, "%a@,@,", _pp_err)
+          list(
+            ~layout=Vertical,
+            ~sep=Sep.trailing_double_newline,
+            page(_pp_err),
           ),
-          errors |> List.mapi(Tuple.with_fst2),
+          errors
+          |> List.mapi(index =>
+               _extract_compile_err(resolver)
+               % Tuple.join3((path, title, content) =>
+                   (index, path, title, content)
+                 )
+             ),
           summary,
         ),
       ppf,

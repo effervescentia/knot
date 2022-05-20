@@ -42,7 +42,7 @@ finished with 9 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
-  import cycle between the following modules a -> b -> c -> d -> a
+  import cycle found between modules a -> b -> c -> d
 
 2) Unresolved Module
 
