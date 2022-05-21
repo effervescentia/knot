@@ -64,11 +64,17 @@ let suite =
         )
     ),
     "parse AST - empty file"
-    >: (() => Assert.program([], _to_stream("") |> Parser.ast(__context))),
+    >: (
+      () =>
+        Assert.result_program(
+          Ok([]),
+          _to_stream("") |> Parser.ast(__context),
+        )
+    ),
     "parse AST - module with declarations and imports"
     >: (
       () =>
-        Assert.program(
+        Assert.result_program(
           [
             (
               __bar,
@@ -101,18 +107,17 @@ let suite =
             )
             |> A.of_decl
             |> U.as_raw_node(~range=Range.create((4, 3), (4, 17))),
-          ],
+          ]
+          |> Result.ok,
           _to_stream(__ast_fixture) |> Parser.ast(__context),
         )
     ),
     "parse invalid"
     >: (
       () =>
-        Assert.throws(
-          CompileError([InvalidModule(__foo)]),
-          "should throw InvalidModule",
-          () =>
-          _to_stream("foo bar") |> Parser.ast(__context) |> ignore
+        Assert.result_program(
+          Error(InvalidModule(__foo)),
+          _to_stream("foo bar") |> Parser.ast(__context),
         )
     ),
   ];

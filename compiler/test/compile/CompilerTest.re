@@ -99,21 +99,60 @@ let suite =
           Compiler.create(__config),
         )
     ),
-    "process() - parse all modules into their AST"
+    "validate() - catch cyclic imports"
+    >: (
+      () => {
+        let foo = Namespace.Internal("foo");
+        let bar = Namespace.Internal("bar");
+        let compiler = {
+          ...Compiler.create(__config),
+          graph: ImportGraph.create(_ => []),
+        };
+
+        compiler.graph.imports.nodes = [foo, bar];
+        compiler.graph.imports.edges = [(foo, bar), (bar, foo)];
+
+        Assert.throws(
+          CompileError([ImportCycle(["@/bar", "@/foo"])]),
+          "should throw ImportCycle exception",
+          () =>
+          Compiler.validate(compiler)
+        );
+      }
+    ),
+    "validate() - catch unresolved module"
+    >: (
+      () => {
+        let foo = Namespace.Internal("foo");
+        let bar = Namespace.Internal("bar");
+        let compiler = {
+          ...Compiler.create(__config),
+          graph: ImportGraph.create(_ => []),
+        };
+
+        compiler.graph.imports.nodes = [foo];
+        compiler.graph.imports.edges = [(foo, bar)];
+
+        Assert.throws(
+          CompileError([UnresolvedModule("@/bar")]),
+          "should throw UnresolvedModule exception",
+          () =>
+          Compiler.validate(compiler)
+        );
+      }
+    ),
+    "process_one() - parse a single module into its AST"
     >: (
       () => {
         let compiler = Compiler.create(__config);
 
         compiler
-        |> Compiler.process(
-             [__entry],
-             id => {
-               Assert.namespace(__entry, id);
-               Module.File({
-                 relative: __entry_filename,
-                 full: Filename.concat(__valid_program_dir, __entry_filename),
-               });
-             },
+        |> Compiler.process_one(
+             __entry,
+             Module.File({
+               relative: __entry_filename,
+               full: Filename.concat(__valid_program_dir, __entry_filename),
+             }),
            );
 
         Assert.module_table(
@@ -125,6 +164,104 @@ let suite =
                 ast: __ast,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
+              }),
+            ),
+          ]
+          |> List.to_seq
+          |> Hashtbl.of_seq,
+          compiler.modules,
+        );
+      }
+    ),
+    "process() - parse all modules into their AST"
+    >: (
+      () => {
+        let other = Namespace.Internal("other");
+        let compiler = Compiler.create(__config);
+
+        compiler
+        |> Compiler.process(
+             [__entry, other],
+             fun
+             | ns when ns == __entry =>
+               Module.File({
+                 relative: __entry_filename,
+                 full: Filename.concat(__valid_program_dir, __entry_filename),
+               })
+             | ns when ns == other =>
+               Module.File({
+                 relative: "other.kn",
+                 full: Filename.concat(__valid_program_dir, "other.kn"),
+               })
+             | ns =>
+               ns
+               |> Namespace.to_string
+               |> Fmt.str("module %s not expected")
+               |> Assert.fail,
+           );
+
+        Assert.module_table(
+          [
+            (
+              __entry,
+              ModuleTable.Valid({
+                exports: __types,
+                ast: __ast,
+                scopes: __scope_tree,
+                raw: "const ABC = 123;\n",
+              }),
+            ),
+            (
+              other,
+              ModuleTable.Valid({
+                exports:
+                  [(Export.Named("BAR" |> A.of_public), T.Valid(`String))]
+                  |> List.to_seq
+                  |> Hashtbl.of_seq,
+                ast: [
+                  (
+                    __entry,
+                    [
+                      (
+                        "ABC"
+                        |> A.of_public
+                        |> U.as_raw_node(
+                             ~range=Range.create((1, 10), (1, 12)),
+                           ),
+                        None,
+                      )
+                      |> A.of_named_import
+                      |> U.as_raw_node(
+                           ~range=Range.create((1, 10), (1, 12)),
+                         ),
+                    ],
+                  )
+                  |> A.of_import
+                  |> U.as_raw_node(~range=Range.create((1, 1), (1, 29))),
+                  (
+                    ("BAR" |> A.of_public, Range.create((3, 7), (3, 9)))
+                    |> A.of_named_export,
+                    "bar"
+                    |> A.of_string
+                    |> A.of_prim
+                    |> U.as_node(
+                         ~range=Range.create((3, 13), (3, 17)),
+                         T.Valid(`String),
+                       )
+                    |> A.of_const
+                    |> U.as_node(
+                         ~range=Range.create((3, 13), (3, 17)),
+                         T.Valid(`String),
+                       ),
+                  )
+                  |> A.of_decl
+                  |> U.as_raw_node(~range=Range.create((3, 1), (3, 17))),
+                ],
+                scopes: __scope_tree,
+                raw: "import { ABC } from \"@/entry\";
+
+const BAR = \"bar\";
+",
               }),
             ),
           ]
@@ -171,7 +308,7 @@ let suite =
         );
       }
     ),
-    "init() - parse single module into AST"
+    "init() - process project source files"
     >: (
       () => {
         let compiler = Compiler.create(__config);

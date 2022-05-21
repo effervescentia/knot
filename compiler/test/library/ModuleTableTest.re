@@ -30,7 +30,17 @@ let suite =
     >: (
       () => {
         __table
-        |> ModuleTable.add(__id, __program, __types, __scope_tree, "foo");
+        |> ModuleTable.(
+             add(
+               __id,
+               Valid({
+                 ast: __program,
+                 exports: _create_table(__types),
+                 scopes: __scope_tree,
+                 raw: "foo",
+               }),
+             )
+           );
 
         Assert.module_table(
           _create_table([
@@ -57,7 +67,16 @@ let suite =
     "add_type() - add type to existing module"
     >: (
       () => {
-        __table |> ModuleTable.add(__id, __program, [], __scope_tree, "foo");
+        __table
+        |> ModuleTable.add(
+             __id,
+             Valid({
+               ast: __program,
+               exports: Hashtbl.create(0),
+               scopes: __scope_tree,
+               raw: "foo",
+             }),
+           );
         __table
         |> ModuleTable.add_type(
              (__id, Export.Named(A.of_public("new_type"))),
