@@ -99,6 +99,37 @@ let suite =
         );
       }
     ),
+    "get_modules()"
+    >: (
+      () => {
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+
+        Assert.list_namespace(
+          [N.fizz, N.bar, N.foo],
+          ImportGraph.get_modules(import_graph),
+        );
+      }
+    ),
+    "get_imported_by()"
+    >: (
+      () => {
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+
+        Assert.list_namespace(
+          [N.bar],
+          import_graph |> ImportGraph.get_imported_by(N.foo),
+        );
+      }
+    ),
+    "has_module()"
+    >: (
+      () => {
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+
+        Assert.true_(import_graph |> ImportGraph.has_module(N.foo));
+        Assert.false_(import_graph |> ImportGraph.has_module(N.buzz));
+      }
+    ),
     "find_missing()"
     >: (
       () => {
@@ -122,11 +153,11 @@ let suite =
               _create_resolver(~default=[N.buzz], [(N.buzz, [])]),
           };
 
-        let (removed, added) =
+        let (removed, updated) =
           import_graph |> ImportGraph.refresh_subtree(N.bar);
 
         Assert.list_namespace([N.fizz], removed);
-        Assert.list_namespace([N.buzz, N.bar], added);
+        Assert.list_namespace([N.buzz, N.bar], updated);
         Assert.import_graph(
           {
             ...import_graph,
@@ -136,6 +167,19 @@ let suite =
                 [(N.bar, N.buzz), (N.foo, N.bar)],
               ),
           },
+          import_graph,
+        );
+      }
+    ),
+    "clear()"
+    >: (
+      () => {
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+
+        ImportGraph.clear(import_graph);
+
+        Assert.import_graph(
+          {...import_graph, imports: Graph.empty()},
           import_graph,
         );
       }

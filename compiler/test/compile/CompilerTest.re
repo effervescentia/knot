@@ -7,6 +7,8 @@ module Module = Resolve.Module;
 module U = Util.ResultUtil;
 module A = AST;
 module T = Type;
+module P = Fixtures.Program;
+module N = Fixtures.Namespace;
 
 let _fixture = Filename.concat("./test/compile/.fixtures");
 
@@ -14,9 +16,7 @@ let __valid_program_dir = _fixture("valid_program");
 let __invalid_program_dir = _fixture("invalid_program");
 let __cyclic_imports_dir = _fixture("cyclic_imports");
 let __source_dir = ".";
-let __entry_module = "entry";
 let __entry_filename = "entry.kn";
-let __entry = Namespace.Internal(__entry_module);
 let __config =
   Compiler.{
     name: "foo",
@@ -33,24 +33,21 @@ let __types =
   |> List.to_seq
   |> Hashtbl.of_seq;
 
-let __ast = [
-  (
-    ("ABC" |> A.of_public, Range.create((1, 7), (1, 9)))
-    |> A.of_named_export,
-    123L
-    |> A.of_int
-    |> A.of_num
-    |> A.of_prim
-    |> U.as_node(
-         ~range=Range.create((1, 13), (1, 15)),
-         T.Valid(`Integer),
-       )
-    |> A.of_const
-    |> U.as_node(~range=Range.create((1, 13), (1, 15)), T.Valid(`Integer)),
-  )
-  |> A.of_decl
-  |> U.as_raw_node(~range=Range.create((1, 1), (1, 15))),
-];
+let _create_module = (root_dir, namespace) =>
+  Module.File({
+    relative: Namespace.to_path("", namespace),
+    full: namespace |> Namespace.to_path(root_dir),
+  });
+
+let _create_resolver = (root_dir, allowed, namespace) =>
+  if (List.mem(namespace, allowed)) {
+    _create_module(root_dir, namespace);
+  } else {
+    namespace
+    |> Namespace.to_string
+    |> Fmt.str("module %s not expected")
+    |> Assert.fail;
+  };
 
 let _assert_import_graph_structure =
   Alcotest.(
@@ -102,15 +99,13 @@ let suite =
     "validate() - catch cyclic imports"
     >: (
       () => {
-        let foo = Namespace.Internal("foo");
-        let bar = Namespace.Internal("bar");
         let compiler = {
           ...Compiler.create(__config),
           graph: ImportGraph.create(_ => []),
         };
 
-        compiler.graph.imports.nodes = [foo, bar];
-        compiler.graph.imports.edges = [(foo, bar), (bar, foo)];
+        compiler.graph.imports.nodes = [N.foo, N.bar];
+        compiler.graph.imports.edges = [(N.foo, N.bar), (N.bar, N.foo)];
 
         Assert.throws(
           CompileError([ImportCycle(["@/bar", "@/foo"])]),
@@ -123,15 +118,13 @@ let suite =
     "validate() - catch unresolved module"
     >: (
       () => {
-        let foo = Namespace.Internal("foo");
-        let bar = Namespace.Internal("bar");
         let compiler = {
           ...Compiler.create(__config),
           graph: ImportGraph.create(_ => []),
         };
 
-        compiler.graph.imports.nodes = [foo];
-        compiler.graph.imports.edges = [(foo, bar)];
+        compiler.graph.imports.nodes = [N.foo];
+        compiler.graph.imports.edges = [(N.foo, N.bar)];
 
         Assert.throws(
           CompileError([UnresolvedModule("@/bar")]),
@@ -148,20 +141,17 @@ let suite =
 
         compiler
         |> Compiler.process_one(
-             __entry,
-             Module.File({
-               relative: __entry_filename,
-               full: Filename.concat(__valid_program_dir, __entry_filename),
-             }),
+             N.entry,
+             _create_module(__valid_program_dir, N.entry),
            );
 
         Assert.module_table(
           [
             (
-              __entry,
+              N.entry,
               ModuleTable.Valid({
                 exports: __types,
-                ast: __ast,
+                ast: P.const_int,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
               }),
@@ -176,87 +166,33 @@ let suite =
     "process() - parse all modules into their AST"
     >: (
       () => {
-        let other = Namespace.Internal("other");
         let compiler = Compiler.create(__config);
 
         compiler
         |> Compiler.process(
-             [__entry, other],
-             fun
-             | ns when ns == __entry =>
-               Module.File({
-                 relative: __entry_filename,
-                 full: Filename.concat(__valid_program_dir, __entry_filename),
-               })
-             | ns when ns == other =>
-               Module.File({
-                 relative: "other.kn",
-                 full: Filename.concat(__valid_program_dir, "other.kn"),
-               })
-             | ns =>
-               ns
-               |> Namespace.to_string
-               |> Fmt.str("module %s not expected")
-               |> Assert.fail,
+             [N.entry, N.other],
+             _create_resolver(__valid_program_dir, [N.entry, N.other]),
            );
 
         Assert.module_table(
           [
             (
-              __entry,
+              N.entry,
               ModuleTable.Valid({
                 exports: __types,
-                ast: __ast,
+                ast: P.const_int,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
               }),
             ),
             (
-              other,
+              N.other,
               ModuleTable.Valid({
                 exports:
                   [(Export.Named("BAR" |> A.of_public), T.Valid(`String))]
                   |> List.to_seq
                   |> Hashtbl.of_seq,
-                ast: [
-                  (
-                    __entry,
-                    [
-                      (
-                        "ABC"
-                        |> A.of_public
-                        |> U.as_raw_node(
-                             ~range=Range.create((1, 10), (1, 12)),
-                           ),
-                        None,
-                      )
-                      |> A.of_named_import
-                      |> U.as_raw_node(
-                           ~range=Range.create((1, 10), (1, 12)),
-                         ),
-                    ],
-                  )
-                  |> A.of_import
-                  |> U.as_raw_node(~range=Range.create((1, 1), (1, 29))),
-                  (
-                    ("BAR" |> A.of_public, Range.create((3, 7), (3, 9)))
-                    |> A.of_named_export,
-                    "bar"
-                    |> A.of_string
-                    |> A.of_prim
-                    |> U.as_node(
-                         ~range=Range.create((3, 13), (3, 17)),
-                         T.Valid(`String),
-                       )
-                    |> A.of_const
-                    |> U.as_node(
-                         ~range=Range.create((3, 13), (3, 17)),
-                         T.Valid(`String),
-                       ),
-                  )
-                  |> A.of_decl
-                  |> U.as_raw_node(~range=Range.create((3, 1), (3, 17))),
-                ],
+                ast: P.import_and_const,
                 scopes: __scope_tree,
                 raw: "import { ABC } from \"@/entry\";
 
@@ -281,7 +217,7 @@ const BAR = \"bar\";
           "should throw FileNotFound exception",
           () =>
           compiler
-          |> Compiler.process([__entry], _ =>
+          |> Compiler.process([N.entry], _ =>
                Module.File({relative: __entry_filename, full: "foo"})
              )
         );
@@ -294,16 +230,13 @@ const BAR = \"bar\";
           Compiler.create({...__config, root_dir: __invalid_program_dir});
 
         Assert.throws(
-          CompileError([InvalidModule(__entry)]),
+          CompileError([InvalidModule(N.entry)]),
           "should throw InvalidModule exception",
           () =>
           compiler
-          |> Compiler.process([__entry], _ =>
-               Module.File({
-                 relative: __entry_filename,
-                 full:
-                   Filename.concat(__invalid_program_dir, __entry_filename),
-               })
+          |> Compiler.process(
+               [N.entry],
+               _create_resolver(__invalid_program_dir, [N.entry]),
              )
         );
       }
@@ -313,19 +246,19 @@ const BAR = \"bar\";
       () => {
         let compiler = Compiler.create(__config);
 
-        compiler |> Compiler.init(__entry);
+        compiler |> Compiler.init(N.entry);
 
         _assert_import_graph_structure(
-          {imports: Graph.create([__entry], []), get_imports: _ => []},
+          {imports: Graph.create([N.entry], []), get_imports: _ => []},
           compiler.graph,
         );
         Assert.module_table(
           [
             (
-              __entry,
+              N.entry,
               ModuleTable.Valid({
                 exports: __types,
-                ast: __ast,
+                ast: P.const_int,
                 scopes: __scope_tree,
                 raw: "const ABC = 123;\n",
               }),
@@ -351,7 +284,7 @@ const BAR = \"bar\";
           CompileError([ImportCycle(["@/entry", "@/cycle"])]),
           "should throw ImportCycle exception",
           () =>
-          compiler |> Compiler.init(__entry)
+          compiler |> Compiler.init(N.entry)
         );
       }
     ),

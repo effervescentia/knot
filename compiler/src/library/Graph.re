@@ -223,6 +223,11 @@ let is_acyclic = (graph: t('a)): bool =>
   find_all_unique_cycles(graph) |> List.is_empty;
 
 /**
+ clone a [graph]
+ */
+let clone = (graph: t('a)): t('a) => create(graph.nodes, graph.edges);
+
+/**
  clone a [graph] with the direction of edges reversed
  */
 let invert = (graph: t('a)): t('a) =>

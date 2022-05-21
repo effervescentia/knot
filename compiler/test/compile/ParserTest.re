@@ -5,20 +5,9 @@ module Export = Reference.Export;
 module Parser = Compile.Parser;
 module U = Util.ResultUtil;
 module A = AST;
-
-let __import_fixture = "
-  import foo from \"bar\";
-  import fizz from \"buzz\";
-
-  const ABC = 123;
- ";
-let __ast_fixture = "
-  import foo from \"@/bar\";
-
-  const ABC = 123;
- ";
-let __foo = Namespace.Internal("foo");
-let __bar = Namespace.Internal("bar");
+module N = Fixtures.Namespace;
+module R = Fixtures.Raw;
+module P = Fixtures.Program;
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
@@ -27,7 +16,7 @@ let __context =
     ~modules=
       [
         (
-          "bar" |> A.of_internal,
+          N.bar,
           ModuleTable.Valid({
             ast: [],
             exports:
@@ -41,7 +30,7 @@ let __context =
       ]
       |> List.to_seq
       |> Hashtbl.of_seq,
-    __foo,
+    N.foo,
   );
 
 let _to_stream = string =>
@@ -53,71 +42,41 @@ let suite =
     "parse imports - empty file"
     >: (
       () =>
-        Assert.list_namespace([], _to_stream("") |> Parser.imports(__foo))
+        Assert.list_namespace([], "" |> _to_stream |> Parser.imports(N.foo))
     ),
     "parse imports - module with imports"
     >: (
       () =>
         Assert.list_namespace(
           [A.of_external("bar"), A.of_external("buzz")],
-          _to_stream(__import_fixture) |> Parser.imports(__foo),
+          R.multiple_import |> _to_stream |> Parser.imports(N.foo),
         )
     ),
     "parse AST - empty file"
     >: (
       () =>
-        Assert.result_program(
-          Ok([]),
-          _to_stream("") |> Parser.ast(__context),
+        Assert.program(
+          [],
+          "" |> _to_stream |> Parser.ast(__context) |> Result.get_ok,
         )
     ),
     "parse AST - module with declarations and imports"
     >: (
       () =>
-        Assert.result_program(
-          [
-            (
-              __bar,
-              [
-                "foo"
-                |> A.of_public
-                |> U.as_raw_node(~range=Range.create((2, 10), (2, 12)))
-                |> A.of_main_import
-                |> U.as_raw_node(~range=Range.create((2, 10), (2, 12))),
-              ],
-            )
-            |> A.of_import
-            |> U.as_raw_node(~range=Range.create((2, 3), (2, 25))),
-            (
-              ("ABC" |> A.of_public, Range.create((4, 9), (4, 11)))
-              |> A.of_named_export,
-              123L
-              |> A.of_int
-              |> A.of_num
-              |> A.of_prim
-              |> U.as_node(
-                   ~range=Range.create((4, 15), (4, 17)),
-                   Type.Valid(`Integer),
-                 )
-              |> A.of_const
-              |> U.as_node(
-                   ~range=Range.create((4, 15), (4, 17)),
-                   Type.Valid(`Integer),
-                 ),
-            )
-            |> A.of_decl
-            |> U.as_raw_node(~range=Range.create((4, 3), (4, 17))),
-          ]
-          |> Result.ok,
-          _to_stream(__ast_fixture) |> Parser.ast(__context),
+        Assert.program(
+          P.single_import,
+          R.single_import
+          |> _to_stream
+          |> Parser.ast(__context)
+          |> Result.get_ok,
         )
     ),
     "parse invalid"
     >: (
       () =>
         Assert.result_program(
-          Error(InvalidModule(__foo)),
-          _to_stream("foo bar") |> Parser.ast(__context),
+          Error(InvalidModule(N.foo)),
+          "foo bar" |> _to_stream |> Parser.ast(__context),
         )
     ),
   ];
