@@ -63,6 +63,25 @@ let suite =
         );
       }
     ),
+    "remove_module()"
+    >: (
+      () => {
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+
+        let (removed, updated) =
+          import_graph |> ImportGraph.remove_module(N.bar);
+
+        Assert.list_namespace([N.bar], removed);
+        Assert.list_namespace([N.foo], updated);
+        Assert.import_graph(
+          {
+            ...import_graph,
+            imports: Graph.create([N.fizz, N.foo], [(N.foo, N.bar)]),
+          },
+          import_graph,
+        );
+      }
+    ),
     "prune_subtree()"
     >: (
       () => {
