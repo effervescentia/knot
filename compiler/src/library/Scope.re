@@ -70,8 +70,7 @@ let rec lookup = (id: Identifier.t, scope: t): option(Type.t) => {
  */
 let define =
     (id: Identifier.t, type_: Type.t, scope: t): option(Type.error_t) => {
-  let result =
-    scope |> lookup(id) |> Option.map(_ => Type.DuplicateIdentifier(id));
+  let result = scope |> lookup(id) |?> (_ => Type.DuplicateIdentifier(id));
 
   Hashtbl.add(scope.types, id, type_);
 

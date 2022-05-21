@@ -256,8 +256,8 @@ let suite =
     "report InvalidBinaryOperation error on unexpected expression types"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(
                 InvalidBinaryOperation(
@@ -269,8 +269,7 @@ let suite =
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw InvalidBinaryOperation",
+          ],
           () =>
           (AR.LogicalAnd, URaw.string_prim("foo"), URaw.nil_prim)
           |> AR.of_binary_op

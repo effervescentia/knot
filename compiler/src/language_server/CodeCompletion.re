@@ -37,19 +37,14 @@ let handler: Runtime.request_handler_t(params_t) =
 
     switch (runtime |> Runtime.resolve(uri)) {
     | Some((namespace, {compiler})) =>
-      Option.bind(
-        Hashtbl.find_opt(compiler.modules, namespace),
-        fun
-        | Valid({scopes})
-        | Invalid({scopes}, _) => Some(scopes)
-        | _ => None,
-      )
+      Hashtbl.find_opt(compiler.modules, namespace)
+      |?< ModuleTable.(get_entry_data % Option.map(({scopes}) => scopes))
       |?< ScopeTree.find_scope(point)
       |?> Hashtbl.to_seq
-      % List.of_seq
-      % List.map(((key, value)) =>
-          {label: key |> ~@Export.pp, kind: Capabilities.Variable}
-        )
+      |?> List.of_seq
+      |?> List.map(((key, value)) =>
+            {label: key |> ~@Export.pp, kind: Capabilities.Variable}
+          )
       |?: []
       |> response
       |> Result.ok

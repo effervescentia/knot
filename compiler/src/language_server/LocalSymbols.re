@@ -40,13 +40,8 @@ let handler: Runtime.request_handler_t(params_t) =
     switch (runtime |> Runtime.resolve(uri)) {
     | Some((namespace, {compiler})) =>
       let symbols =
-        Option.bind(
-          Hashtbl.find_opt(compiler.modules, namespace),
-          fun
-          | Valid({ast})
-          | Invalid({ast}, _) => Some(ast)
-          | _ => None,
-        )
+        Hashtbl.find_opt(compiler.modules, namespace)
+        |?< ModuleTable.(get_entry_data % Option.map(({ast}) => ast))
         |?> List.filter_map(
               Node.Raw.get_value
               % (

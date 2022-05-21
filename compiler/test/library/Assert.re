@@ -101,3 +101,12 @@ let compile_errors =
   Alcotest.(
     check(testable(pp_dump_err_list, (==)), "compile error matches")
   );
+
+let throws_compile_errors = (expected, f) =>
+  switch (f()) {
+  | exception (CompileError(errs)) => compile_errors(expected, errs)
+
+  | _ =>
+    Fmt.str("expected compile error(s) %a", pp_dump_err_list, expected)
+    |> fail
+  };

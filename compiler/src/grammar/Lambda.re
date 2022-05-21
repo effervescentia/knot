@@ -23,12 +23,10 @@ let arguments = (ctx: ModuleContext.t) =>
 
       N.create(
         AR.{name, default, type_},
-        default |> Option.map(N.get_type) |?: TR.(`Unknown),
+        default |?> N.get_type |?: TR.(`Unknown),
         Range.join(
           name_range,
-          default
-          |> Option.map(N.get_range)
-          |?: (type_ |> Option.map(NR.get_range) |?: name_range),
+          default |?> N.get_range |?: (type_ |?> NR.get_range |?: name_range),
         ),
       );
     }

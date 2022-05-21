@@ -14,19 +14,18 @@ let handler: Runtime.request_handler_t(params_t) =
   ({compiler, target}, {path}) => {
     let namespace = Namespace.of_path(path);
 
-    switch (compiler |> Compiler.get_module(namespace)) {
-    | Some(Valid({ast}) | Invalid({ast}, _)) =>
-      ast
-      |> ~@
-           Generator.pp(
-             target,
-             fun
-             | Internal(path) => path
-             | External(_) => raise(NotImplemented),
-           )
-      |> response
-      |> Result.ok
-
-    | _ => Error(id => JSONRPC.Protocol.builtin_error(~id, InternalError))
-    };
+    compiler
+    |> Compiler.get_module(namespace)
+    |?< ModuleTable.(get_entry_data % Option.map(({ast}) => ast))
+    |?> ~@
+          Generator.pp(
+            target,
+            fun
+            | Internal(path) => path
+            | External(_) => raise(NotImplemented),
+          )
+    |?> response
+    |> Option.to_result(~none=id =>
+         JSONRPC.Protocol.builtin_error(~id, InternalError)
+       );
   };

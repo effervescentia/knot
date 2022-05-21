@@ -26,7 +26,7 @@ let named_import = (ctx: ModuleContext.t) =>
           NR.(
             Range.join(
               get_range(name),
-              label |> Option.map(get_range) |?: get_range(name),
+              label |?> get_range |?: get_range(name),
             )
           ),
         )

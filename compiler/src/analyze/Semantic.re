@@ -24,7 +24,7 @@ and analyze_jsx_attribute =
     | ID(id) => A.of_jsx_id(id)
 
     | Class(id, raw_expr) =>
-      let expr_opt = raw_expr |> Option.map(analyze_expression(scope));
+      let expr_opt = raw_expr |?> analyze_expression(scope);
 
       expr_opt
       |> Option.iter(expr => {
@@ -38,7 +38,7 @@ and analyze_jsx_attribute =
       (id, expr_opt) |> A.of_jsx_class;
 
     | Property(id, expr) =>
-      (id, expr |> Option.map(analyze_expression(scope))) |> A.of_prop
+      (id, expr |?> analyze_expression(scope)) |> A.of_prop
     };
 
   NR.create(jsx_attr, range);
@@ -83,8 +83,7 @@ and analyze_expression =
     /* use the type of the last analyzed statement or nil when empty */
     | Closure(stmts) =>
       let analyzed = stmts |> List.map(analyze_statement(scope));
-      let type_ =
-        analyzed |> List.last |> Option.map(N.get_type) |?: T.Valid(`Nil);
+      let type_ = analyzed |> List.last |?> N.get_type |?: T.Valid(`Nil);
 
       (A.of_closure(analyzed), type_);
 

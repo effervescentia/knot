@@ -88,11 +88,8 @@ let suite =
     "report NotFound exception on unrecognized identifier"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
-            ParseError(TypeError(NotFound(__id)), __namespace, Range.zero),
-          ]),
-          "should throw NotFound",
+        Assert.throws_compile_errors(
+          [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
           () =>
           __id
           |> AR.of_id

@@ -93,15 +93,14 @@ let suite =
     "report TypeMismatch on unmatched types"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(TypeMismatch(T.Valid(`Boolean), T.Valid(`String))),
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw TypeMismatch error",
+          ],
           () =>
           AR.{
             name: URaw.as_raw_node(__id),
@@ -115,15 +114,14 @@ let suite =
     "report UntypedFunctionArgument when no type information available"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(UntypedFunctionArgument(__id)),
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw UntypedFunctionArgument error",
+          ],
           () =>
           AR.{name: URaw.as_raw_node(__id), default: None, type_: None}
           |> URaw.as_unknown
@@ -144,8 +142,8 @@ let suite =
     "report DefaultArgumentMissing on gaps in default arguments"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(
                 DefaultArgumentMissing(Identifier.of_string("bar")),
@@ -153,8 +151,7 @@ let suite =
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw DefaultArgumentMissing error",
+          ],
           () =>
           [
             AR.{

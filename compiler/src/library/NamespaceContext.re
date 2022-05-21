@@ -1,3 +1,4 @@
+open Infix;
 open Reference;
 
 type t = {
@@ -40,15 +41,19 @@ let find_module = (namespace: Namespace.t, ctx: t) =>
 let find_export = (namespace: Namespace.t, id: Export.t, ctx: t) => {
   let type_err = Type.ExternalNotFound(namespace, id);
 
-  switch (ctx |> find_module(namespace)) {
-  | Some(Valid({exports}) | Invalid({exports}, _)) =>
-    switch (Hashtbl.find_opt(exports, id)) {
-    | Some(t) => Ok(t)
-    | None => Error(type_err)
-    }
+  ctx
+  |> find_module(namespace)
+  |?< ModuleTable.(get_entry_data % Option.map(({exports}) => exports))
+  |> (
+    fun
+    | Some(exports) =>
+      switch (Hashtbl.find_opt(exports, id)) {
+      | Some(t) => Ok(t)
+      | None => Error(type_err)
+      }
 
-  | _ => Ok(Invalid(NotInferrable))
-  };
+    | None => Ok(Invalid(NotInferrable))
+  );
 };
 
 let define_module =

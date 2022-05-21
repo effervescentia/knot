@@ -34,10 +34,7 @@ let exists = (path: list(string), tree: t): bool =>
   tree |> find(path) |> Option.is_some;
 
 let is_leaf = (path: list(string), tree: t): bool =>
-  tree
-  |> find(path)
-  |> Option.map(node => List.is_empty(node.children))
-  |?: false;
+  tree |> find(path) |?> (node => List.is_empty(node.children)) |?: false;
 
 let rec add = (path: list(string), tree: t): unit =>
   switch (path) {

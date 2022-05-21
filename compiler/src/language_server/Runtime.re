@@ -60,16 +60,18 @@ let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
 
 let analyze_module =
     (namespace: Namespace.t, {compiler, contexts}: compiler_context_t) =>
-  switch (Hashtbl.find_opt(compiler.modules, namespace)) {
-  | Some(Valid({ast}) | Invalid({ast}, _)) =>
-    let tokens = TokenTree.of_ast(ast);
+  compiler.modules
+  |> ModuleTable.find(namespace)
+  |?< ModuleTable.get_entry_data
+  |?> (
+    (ModuleTable.{ast}) => {
+      let tokens = TokenTree.of_ast(ast);
 
-    Hashtbl.add(contexts, namespace, {tokens: tokens});
+      Hashtbl.add(contexts, namespace, {tokens: tokens});
 
-    Some(tokens);
-
-  | _ => None
-  };
+      tokens;
+    }
+  );
 
 let scan_for_token = (point: Point.t) =>
   File.InputStream.scan(Node.Raw.get_range % Range.contains_point(point));

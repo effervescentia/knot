@@ -35,7 +35,7 @@ let closure =
       N.create(
         AR.of_closure(stmts),
         /* if the statement list is empty the return type is nil */
-        last_stmt |> Option.map(N.get_type) |?: TR.(`Nil),
+        last_stmt |?> N.get_type |?: TR.(`Nil),
         range,
       );
     }

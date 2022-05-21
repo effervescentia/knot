@@ -128,4 +128,40 @@ module Program = {
     |> A.of_decl
     |> U.as_raw_node(~range=Range.create((4, 3), (4, 17))),
   ];
+
+  let invalid_foo = [
+    (
+      N.bar,
+      [
+        (
+          "BAR"
+          |> A.of_public
+          |> U.as_raw_node(~range=Range.create((1, 10), (1, 12))),
+          None,
+        )
+        |> A.of_named_import
+        |> U.as_raw_node(~range=Range.create((1, 10), (1, 12))),
+      ],
+    )
+    |> A.of_import
+    |> U.as_raw_node(~range=Range.create((1, 1), (1, 27))),
+    (
+      ("const" |> A.of_public, Range.create((3, 7), (3, 11)))
+      |> A.of_named_export,
+      "foo"
+      |> A.of_string
+      |> A.of_prim
+      |> U.as_node(
+           ~range=Range.create((3, 15), (3, 19)),
+           Type.Valid(`String),
+         )
+      |> A.of_const
+      |> U.as_node(
+           ~range=Range.create((3, 15), (3, 19)),
+           Type.Valid(`String),
+         ),
+    )
+    |> A.of_decl
+    |> U.as_raw_node(~range=Range.create((3, 1), (3, 19))),
+  ];
 };

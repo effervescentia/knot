@@ -27,22 +27,18 @@ let (|!:) = (x, y) =>
 /**
  unpack the option [x] or fallback to [y]
  */
-let (|?:) = (x, y) => x |!: (() => y);
+let (|?:) = (x, y) => Option.value(~default=y, x);
 
 /**
  optionally map the value of [x] with [f]
  where [f] must return an option
  */
-let (|?<) = (x, f) =>
-  switch (x) {
-  | Some(x') => f(x')
-  | None => None
-  };
+let (|?<) = Option.bind;
 
 /**
  optionally map the value of [x] with [f]
  */
-let (|?>) = (x, f) => x |?< (y => Some(f(y)));
+let (|?>) = (x, f) => Option.map(f, x);
 
 /**
  creates a to_string method from a pretty-printer

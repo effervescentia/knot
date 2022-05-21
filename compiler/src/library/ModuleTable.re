@@ -17,7 +17,7 @@ type entry_t =
   | Pending
   | Purged
   | Valid(data_t)
-  | Invalid(data_t, list(Error.compile_err));
+  | Invalid(option(data_t), list(Error.compile_err));
 
 /**
  table for storing module ASTs
@@ -64,7 +64,7 @@ let prepare = (id: Namespace.t, table: t) =>
 let add_type =
     ((namespace, id): (Namespace.t, Export.t), value: 'a, table: t) =>
   switch (Hashtbl.find_opt(table, namespace)) {
-  | Some(Valid({exports}) | Invalid({exports}, _)) =>
+  | Some(Valid({exports}) | Invalid(Some({exports}), _)) =>
     Hashtbl.replace(exports, id, value)
 
   | _ => ()
@@ -81,12 +81,21 @@ let compare: (t, t) => bool =
     switch (x, y) {
     | (Valid(x_data), Valid(y_data)) => _compare_data(x_data, y_data)
 
-    | (Invalid(x_data, x_errors), Invalid(y_data, y_errors)) =>
+    | (Invalid(Some(x_data), x_errors), Invalid(Some(y_data), y_errors)) =>
       _compare_data(x_data, y_data) && x_errors == y_errors
 
     | _ => x == y
     }
   );
+
+/**
+ unpack data from an entry as an option
+ */
+let get_entry_data: entry_t => option(data_t) =
+  fun
+  | Valid(data) => Some(data)
+  | Invalid(Some(_) as data, _) => data
+  | _ => None;
 
 /* pretty printing */
 
@@ -107,7 +116,17 @@ let _pp_entry: Fmt.t(entry_t) =
   ppf =>
     fun
     | Valid(data) => Fmt.pf(ppf, "Valid(%a)", _pp_data, data)
-    | Invalid(data, _) => Fmt.pf(ppf, "Invalid(%a)", _pp_data, data)
+    | Invalid(data, errs) =>
+      Fmt.(
+        pf(
+          ppf,
+          "Invalid(%a, %a)",
+          option(_pp_data),
+          data,
+          Error.pp_dump_err_list,
+          errs,
+        )
+      )
     | Purged => Fmt.pf(ppf, "Purged")
     | Pending => Fmt.pf(ppf, "Pending");
 

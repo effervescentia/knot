@@ -52,7 +52,7 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
                let path = path == "" ? "." : path;
 
                watcher.driver(event.path, event.flags)
-               |> Option.map(action => (path, action));
+               |?> Tuple.with_fst2(path);
              }
            ),
          )

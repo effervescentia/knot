@@ -64,13 +64,10 @@ let handler: Runtime.request_handler_t(params_t) =
           |> Result.ok
 
         | Some((range, Identifier(id))) => {
-            Option.bind(
-              Hashtbl.find_opt(compiler.modules, namespace),
-              fun
-              | Valid({scopes})
-              | Invalid({scopes}, _) => Some(scopes)
-              | _ => None,
-            )
+            Hashtbl.find_opt(compiler.modules, namespace)
+            |?< ModuleTable.(
+                  get_entry_data % Option.map(({scopes}) => scopes)
+                )
             |?< ScopeTree.find_type(id, point)
             |?> ~@Type.pp
             |?> Fmt.str("%a: %s", Identifier.pp, id)
@@ -80,13 +77,8 @@ let handler: Runtime.request_handler_t(params_t) =
           }
 
         | Some(_) => {
-            Option.bind(
-              Hashtbl.find_opt(compiler.modules, namespace),
-              fun
-              | Valid({raw})
-              | Invalid({raw}, _) => Some(raw)
-              | _ => None,
-            )
+            Hashtbl.find_opt(compiler.modules, namespace)
+            |?< ModuleTable.(get_entry_data % Option.map(({raw}) => raw))
             |?< Runtime.scan_for_token(point)
             |?< (
               node =>

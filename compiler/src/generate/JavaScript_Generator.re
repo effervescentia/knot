@@ -320,7 +320,7 @@ let gen_view =
                    [Identifier(__view_props), String(id)]
                    @ (
                      default
-                     |> Option.map(x => [x |> N.get_value |> gen_expression])
+                     |?> (x => [x |> N.get_value |> gen_expression])
                      |?: []
                    ),
                  ),

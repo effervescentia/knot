@@ -9,7 +9,7 @@ let create = (~default=Sys.getcwd(), ()) => {
       String(x => value := Some(x)),
       "the working directory to execute knot commands in",
     );
-  let resolve = () => value^ |> Option.map(Filename.resolve(~cwd=default));
+  let resolve = () => value^ |?> Filename.resolve(~cwd=default);
 
   (argument, resolve);
 };

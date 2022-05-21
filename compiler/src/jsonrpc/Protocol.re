@@ -156,7 +156,7 @@ module Reader = {
     let content_length =
       headers
       |> List.assoc_opt(__content_length_header)
-      |> Option.map(int_of_string)
+      |?> int_of_string
       |?: 0;
 
     let content = stream |> _read_content(content_length);
@@ -167,10 +167,7 @@ module Reader = {
 
 /* helpers */
 
-let _id_prop = id => (
-  __id_key,
-  id |> Option.map(id' => `Int(id')) |?: `Null,
-);
+let _id_prop = id => (__id_key, id |?> (id' => `Int(id')) |?: `Null);
 let _message = props =>
   `Assoc([(__jsonrpc_key, `String(__version)), ...props]);
 let _res_message = (~id=None, props) => _message([_id_prop(id), ...props]);
@@ -182,7 +179,7 @@ let _err_message = (~data=None, ~id=None, code: int, message: string) =>
         __error_key,
         `Assoc(
           [(__code_key, `Int(code)), (__message_key, `String(message))]
-          @ (data |> Option.map(data' => [(__data_key, data')]) |?: []),
+          @ (data |?> (data' => [(__data_key, data')]) |?: []),
         ),
       ),
     ],

@@ -60,7 +60,7 @@ let _assert_import_graph_structure =
 let suite =
   "Compile.Compiler"
   >::: [
-    "create() - use global error handler"
+    "create()"
     >: (
       () =>
         Assert.compiler(
@@ -78,23 +78,40 @@ let suite =
           Compiler.create(__config),
         )
     ),
-    "create() - use custom error handler"
+    "#dispatch() - test default error handler with fail_fast"
     >: (
-      () =>
-        Assert.compiler(
-          {
-            config: __config,
-            graph: ImportGraph.create(_ => []),
-            modules: ModuleTable.create(1),
-            resolver: {
-              cache: "",
-              root_dir: __valid_program_dir,
-              source_dir: __source_dir,
-            },
-            dispatch: _ => (),
-          },
-          Compiler.create(__config),
-        )
+      () => {
+        let errors = [InvalidModule(N.foo)];
+        let compiler = Compiler.create(__config);
+
+        Assert.throws_compile_errors(errors, () =>
+          compiler.dispatch(Report(errors))
+        );
+      }
+    ),
+    "#dispatch() - test default error handler without fail_fast"
+    >: (
+      () => {
+        let errors = [InvalidModule(N.foo)];
+        let compiler = Compiler.create({...__config, fail_fast: false});
+
+        compiler.dispatch(Report(errors));
+
+        Assert.throws_compile_errors(errors, () => compiler.dispatch(Flush));
+      }
+    ),
+    "#dispatch() - test custom error handler"
+    >: (
+      () => {
+        let errors = [InvalidModule(N.foo)];
+        let compiler =
+          Compiler.create(
+            ~report=_ => Assert.compile_errors(errors),
+            __config,
+          );
+
+        compiler.dispatch(Report(errors));
+      }
     ),
     "validate() - catch cyclic imports"
     >: (
@@ -107,10 +124,7 @@ let suite =
         compiler.graph.imports.nodes = [N.foo, N.bar];
         compiler.graph.imports.edges = [(N.foo, N.bar), (N.bar, N.foo)];
 
-        Assert.throws(
-          CompileError([ImportCycle(["@/bar", "@/foo"])]),
-          "should throw ImportCycle exception",
-          () =>
+        Assert.throws_compile_errors([ImportCycle(["@/bar", "@/foo"])], () =>
           Compiler.validate(compiler)
         );
       }
@@ -126,10 +140,7 @@ let suite =
         compiler.graph.imports.nodes = [N.foo];
         compiler.graph.imports.edges = [(N.foo, N.bar)];
 
-        Assert.throws(
-          CompileError([UnresolvedModule("@/bar")]),
-          "should throw UnresolvedModule exception",
-          () =>
+        Assert.throws_compile_errors([UnresolvedModule("@/bar")], () =>
           Compiler.validate(compiler)
         );
       }
@@ -160,6 +171,59 @@ let suite =
           |> List.to_seq
           |> Hashtbl.of_seq,
           compiler.modules,
+        );
+      }
+    ),
+    "process_one() - records errors captured during parsing"
+    >: (
+      () => {
+        let expected = [
+          ParseError(
+            ReservedKeyword("const"),
+            N.foo,
+            Range.create((3, 7), (3, 11)),
+          ),
+        ];
+        let compiler = Compiler.create({...__config, fail_fast: false});
+
+        compiler
+        |> Compiler.process_one(
+             N.foo,
+             _create_module(__invalid_program_dir, N.foo),
+           );
+
+        Assert.module_table(
+          [
+            (
+              N.foo,
+              ModuleTable.Invalid(
+                Some({
+                  exports:
+                    [
+                      (
+                        Export.Named("const" |> A.of_public),
+                        T.Valid(`String),
+                      ),
+                    ]
+                    |> List.to_seq
+                    |> Hashtbl.of_seq,
+                  ast: P.invalid_foo,
+                  scopes: __scope_tree,
+                  raw: "import { BAR } from \"@/bar\";
+
+const const = \"foo\";
+",
+                }),
+                expected,
+              ),
+            ),
+          ]
+          |> List.to_seq
+          |> Hashtbl.of_seq,
+          compiler.modules,
+        );
+        Assert.throws_compile_errors(expected, () =>
+          compiler.dispatch(Flush)
         );
       }
     ),
@@ -212,10 +276,7 @@ const BAR = \"bar\";
       () => {
         let compiler = Compiler.create(__config);
 
-        Assert.throws(
-          CompileError([FileNotFound(__entry_filename)]),
-          "should throw FileNotFound exception",
-          () =>
+        Assert.throws_compile_errors([FileNotFound(__entry_filename)], () =>
           compiler
           |> Compiler.process([N.entry], _ =>
                Module.File({relative: __entry_filename, full: "foo"})
@@ -229,10 +290,7 @@ const BAR = \"bar\";
         let compiler =
           Compiler.create({...__config, root_dir: __invalid_program_dir});
 
-        Assert.throws(
-          CompileError([InvalidModule(N.entry)]),
-          "should throw InvalidModule exception",
-          () =>
+        Assert.throws_compile_errors([InvalidModule(N.entry)], () =>
           compiler
           |> Compiler.process(
                [N.entry],
@@ -280,10 +338,8 @@ const BAR = \"bar\";
             source_dir: ".",
           });
 
-        Assert.throws(
-          CompileError([ImportCycle(["@/entry", "@/cycle"])]),
-          "should throw ImportCycle exception",
-          () =>
+        Assert.throws_compile_errors(
+          [ImportCycle(["@/entry", "@/cycle"])], () =>
           compiler |> Compiler.init(N.entry)
         );
       }

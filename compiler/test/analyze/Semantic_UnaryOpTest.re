@@ -102,15 +102,14 @@ let suite =
     "report InvalidUnaryOperation error on unexpected inner expression type"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(InvalidUnaryOperation(Not, Valid(`String))),
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw InvalidUnaryOperation",
+          ],
           () =>
           (AR.Not, URaw.string_prim("foo"))
           |> AR.of_unary_op

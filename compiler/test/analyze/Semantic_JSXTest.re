@@ -44,15 +44,14 @@ let suite =
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
         };
 
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(InvalidJSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw InvalidJSXPrimitiveExpression",
+          ],
           () =>
           (
             URaw.as_raw_node(__id),
@@ -79,15 +78,14 @@ let suite =
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
         };
 
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(InvalidJSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw InvalidJSXPrimitiveExpression",
+          ],
           () =>
           __id
           |> AR.of_id
@@ -153,15 +151,14 @@ let suite =
     "throw InvalidJSXClassExpression error on jsx with invalid class expression"
     >: (
       () =>
-        Assert.throws(
-          CompileError([
+        Assert.throws_compile_errors(
+          [
             ParseError(
               TypeError(InvalidJSXClassExpression(Valid(`String))),
               __namespace,
               Range.zero,
             ),
-          ]),
-          "should throw InvalidJSXClassExpression",
+          ],
           () =>
           (
             URaw.as_raw_node(__id),

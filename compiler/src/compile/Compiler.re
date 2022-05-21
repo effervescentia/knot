@@ -124,17 +124,16 @@ let cache_modules = (modules, compiler) => {
   /* cache snapshot of modules on disk */
   modules
   |> List.iter(id =>
-       switch (
-         resolve(~skip_cache=true, compiler, id)
-         |> Module.cache(compiler.resolver.cache)
-       ) {
-       | Ok(path) =>
-         Log.debug(
-           "cached module %s",
-           (Namespace.to_string(id), path) |> ~@Fmt.captioned,
-         )
-       | Error(module_errors) => Report(module_errors) |> compiler.dispatch
-       }
+       resolve(~skip_cache=true, compiler, id)
+       |> Module.cache(compiler.resolver.cache)
+       |> Result.fold(
+            ~ok=
+              Tuple.with_fst2(Namespace.to_string(id))
+              % ~@Fmt.captioned
+              % Log.debug("cached module %s"),
+            ~error=module_errors =>
+            Report(module_errors) |> compiler.dispatch
+          )
      );
 };
 
@@ -195,7 +194,10 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
               );
             } else {
               compiler.modules
-              |> ModuleTable.add(namespace, Invalid(data, module_errors^));
+              |> ModuleTable.add(
+                   namespace,
+                   Invalid(Some(data), module_errors^),
+                 );
 
               Log.debug(
                 "processed module %s with %s",
@@ -208,6 +210,9 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
 
         | Error(err) => {
             Report([err]) |> compiler.dispatch;
+
+            compiler.modules
+            |> ModuleTable.add(namespace, Invalid(None, [err]));
 
             Log.debug(
               "failed to process module %s",
@@ -299,28 +304,23 @@ let emit_one =
           path |> ~@Fmt.relative_path(output_dir),
         );
 
-        ModuleTable.(
-          fun
-          | Valid({ast})
-          | Invalid({ast}, _) => {
-              Writer.write(out, ppf =>
-                Generator.pp(
-                  target,
-                  fun
-                  | Internal(path) =>
-                    Filename.concat(output_dir, path)
-                    |> Filename.relative_to(parent_dir)
-                  | External(_) => raise(NotImplemented),
-                  ppf,
-                  ast,
-                )
-              );
+        ModuleTable.get_entry_data
+        % Option.iter((ModuleTable.{ast}) => {
+            Writer.write(out, ppf =>
+              Generator.pp(
+                target,
+                fun
+                | Internal(path) =>
+                  Filename.concat(output_dir, path)
+                  |> Filename.relative_to(parent_dir)
+                | External(_) => raise(NotImplemented),
+                ppf,
+                ast,
+              )
+            );
 
-              close_out(out);
-            }
-
-          | _ => ()
-        );
+            close_out(out);
+          });
       }
     )
   | External(_) => raise(NotImplemented)
@@ -450,5 +450,5 @@ let reset = ({graph, modules}: t) => {
  */
 let teardown = (compiler: t) => {
   reset(compiler);
-  compiler.resolver.cache |> Cache.destroy;
+  Cache.destroy(compiler.resolver.cache);
 };
