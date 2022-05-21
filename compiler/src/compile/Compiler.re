@@ -55,6 +55,27 @@ let _get_exports = ast =>
      )
   |> List.flatten;
 
+let _create_dispatch = (config, report) => {
+  let errors = ref([]);
+  let dispatch =
+    fun
+    | Report(errs) =>
+      if (config.fail_fast) {
+        report(errs);
+      } else {
+        errors := errors^ @ errs;
+      }
+    | Flush =>
+      switch (errors^) {
+      | [] => ()
+      | errs =>
+        errors := [];
+        report(errs);
+      };
+
+  (errors, dispatch);
+};
+
 let _prepare_modules = (modules: list(Namespace.t), compiler: t) =>
   modules |> List.iter(id => compiler.modules |> ModuleTable.prepare(id));
 let _purge_modules = (modules: list(Namespace.t), compiler: t) =>
@@ -69,22 +90,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
-  let errors = ref([]);
-  let dispatch =
-    fun
-    | Report(errs) =>
-      if (config.fail_fast) {
-        report(resolver, errs);
-      } else {
-        errors := errors^ @ errs;
-      }
-    | Flush =>
-      switch (errors^) {
-      | [] => ()
-      | errs =>
-        errors := [];
-        report(resolver, errs);
-      };
+  let (errors, dispatch) = _create_dispatch(config, report(resolver));
 
   let graph =
     ImportGraph.create(namespace =>
@@ -111,6 +117,26 @@ let create = (~report=_ => throw_all, config: config_t): t => {
 
 let resolve = (~skip_cache=false, compiler, id) =>
   Resolver.resolve_module(~skip_cache, id, compiler.resolver);
+
+let cache_modules = (modules, compiler) => {
+  Log.debug("%s", "caching modules" |> ~@Fmt.yellow_str);
+
+  /* cache snapshot of modules on disk */
+  modules
+  |> List.iter(id =>
+       switch (
+         resolve(~skip_cache=true, compiler, id)
+         |> Module.cache(compiler.resolver.cache)
+       ) {
+       | Ok(path) =>
+         Log.debug(
+           "cached module %s",
+           (Namespace.to_string(id), path) |> ~@Fmt.captioned,
+         )
+       | Error(module_errors) => Report(module_errors) |> compiler.dispatch
+       }
+     );
+};
 
 /**
  check for import cycles and missing modules
@@ -231,23 +257,7 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   compiler |> _prepare_modules(modules);
 
   if (!skip_cache) {
-    Log.debug("%s", "caching modules" |> ~@Fmt.yellow_str);
-
-    /* cache snapshot of modules on disk */
-    modules
-    |> List.iter(id =>
-         switch (
-           resolve(~skip_cache=true, compiler, id)
-           |> Module.cache(compiler.resolver.cache)
-         ) {
-         | Ok(path) =>
-           Log.debug(
-             "cached module %s",
-             (Namespace.to_string(id), path) |> ~@Fmt.captioned,
-           )
-         | Error(module_errors) => Report(module_errors) |> compiler.dispatch
-         }
-       );
+    compiler |> cache_modules(modules);
   };
 
   /* parse modules to AST */
