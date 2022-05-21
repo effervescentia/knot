@@ -2,20 +2,21 @@ open Kore;
 open Fmt;
 open Pretty.XML;
 
+module X = Fixtures.XML;
+
+let _empty_node = name => Node(name, [], []);
+
 let suite =
   "Pretty.XML"
   >::: [
     "empty tag"
-    >: (
-      () => Assert.string("<foo />", Node("foo", [], []) |> ~@xml(string))
-    ),
+    >: (() => Assert.string("<foo />", _empty_node("foo") |> ~@xml(string))),
     "with few attributes"
     >: (
       () =>
         Assert.string(
           "<foo fizz=buzz zip=zap />",
-          Node("foo", [("fizz", "buzz"), ("zip", "zap")], [])
-          |> ~@xml(string),
+          X.with_few_attributes |> ~@xml(string),
         )
     ),
     "with many attributes"
@@ -31,20 +32,7 @@ let suite =
   deserunt=pariatur
   ipsum=pariatur
 />",
-          Node(
-            "foo",
-            [
-              ("Ut", "ex"),
-              ("ex", "veniam"),
-              ("nostrud", "dolor"),
-              ("tempor", "mollit"),
-              ("id", "commodo"),
-              ("deserunt", "pariatur"),
-              ("ipsum", "pariatur"),
-            ],
-            [],
-          )
-          |> ~@xml(string),
+          X.with_many_attributes |> ~@xml(string),
         )
     ),
     "with single child"
@@ -54,7 +42,7 @@ let suite =
           "<foo>
   <bar />
 </foo>",
-          Node("foo", [], [Node("bar", [], [])]) |> ~@xml(string),
+          Node("foo", [], [_empty_node("bar")]) |> ~@xml(string),
         )
     ),
     "with many children"
@@ -69,11 +57,7 @@ let suite =
           Node(
             "foo",
             [],
-            [
-              Node("bar", [], []),
-              Node("fizz", [], []),
-              Node("buzz", [], []),
-            ],
+            [_empty_node("bar"), _empty_node("fizz"), _empty_node("buzz")],
           )
           |> ~@xml(string),
         )
@@ -85,11 +69,7 @@ let suite =
           "<foo fizz=buzz zip=zap>
   <bar />
 </foo>",
-          Node(
-            "foo",
-            [("fizz", "buzz"), ("zip", "zap")],
-            [Node("bar", [], [])],
-          )
+          Node("foo", X.few_attributes, [_empty_node("bar")])
           |> ~@xml(string),
         )
     ),
@@ -97,29 +77,20 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "<foo>
-  <bar fizz=buzz zip=zap />
-</foo>",
-          Node(
-            "foo",
-            [],
-            [Node("bar", [("fizz", "buzz"), ("zip", "zap")], [])],
-          )
-          |> ~@xml(string),
+          "<bar>
+  <foo fizz=buzz zip=zap />
+</bar>",
+          Node("bar", [], [X.with_few_attributes]) |> ~@xml(string),
         )
     ),
     "with few attributes and child tag with few attributes"
     >: (
       () =>
         Assert.string(
-          "<foo fizz=buzz zip=zap>
-  <bar fizz=buzz zip=zap />
-</foo>",
-          Node(
-            "foo",
-            [("fizz", "buzz"), ("zip", "zap")],
-            [Node("bar", [("fizz", "buzz"), ("zip", "zap")], [])],
-          )
+          "<bar fizz=buzz zip=zap>
+  <foo fizz=buzz zip=zap />
+</bar>",
+          Node("bar", X.few_attributes, [X.with_few_attributes])
           |> ~@xml(string),
         )
     ),
@@ -140,16 +111,8 @@ let suite =
 </foo>",
           Node(
             "foo",
-            [
-              ("Ut", "ex"),
-              ("ex", "veniam"),
-              ("nostrud", "dolor"),
-              ("tempor", "mollit"),
-              ("id", "commodo"),
-              ("deserunt", "pariatur"),
-              ("ipsum", "pariatur"),
-            ],
-            [Node("bar", [("fizz", "buzz"), ("zip", "zap")], [])],
+            X.many_attributes,
+            [Node("bar", X.few_attributes, [])],
           )
           |> ~@xml(string),
         )
@@ -158,8 +121,8 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "<foo fizz=buzz zip=zap>
-  <bar
+          "<bar fizz=buzz zip=zap>
+  <foo
     Ut=ex
     ex=veniam
     nostrud=dolor
@@ -168,26 +131,8 @@ let suite =
     deserunt=pariatur
     ipsum=pariatur
   />
-</foo>",
-          Node(
-            "foo",
-            [("fizz", "buzz"), ("zip", "zap")],
-            [
-              Node(
-                "bar",
-                [
-                  ("Ut", "ex"),
-                  ("ex", "veniam"),
-                  ("nostrud", "dolor"),
-                  ("tempor", "mollit"),
-                  ("id", "commodo"),
-                  ("deserunt", "pariatur"),
-                  ("ipsum", "pariatur"),
-                ],
-                [],
-              ),
-            ],
-          )
+</bar>",
+          Node("bar", X.few_attributes, [X.with_many_attributes])
           |> ~@xml(string),
         )
     ),
@@ -195,7 +140,7 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "<foo
+          "<bar
   Ut=ex
   ex=veniam
   nostrud=dolor
@@ -204,7 +149,7 @@ let suite =
   deserunt=pariatur
   ipsum=pariatur
 >
-  <bar
+  <foo
     Ut=ex
     ex=veniam
     nostrud=dolor
@@ -213,34 +158,8 @@ let suite =
     deserunt=pariatur
     ipsum=pariatur
   />
-</foo>",
-          Node(
-            "foo",
-            [
-              ("Ut", "ex"),
-              ("ex", "veniam"),
-              ("nostrud", "dolor"),
-              ("tempor", "mollit"),
-              ("id", "commodo"),
-              ("deserunt", "pariatur"),
-              ("ipsum", "pariatur"),
-            ],
-            [
-              Node(
-                "bar",
-                [
-                  ("Ut", "ex"),
-                  ("ex", "veniam"),
-                  ("nostrud", "dolor"),
-                  ("tempor", "mollit"),
-                  ("id", "commodo"),
-                  ("deserunt", "pariatur"),
-                  ("ipsum", "pariatur"),
-                ],
-                [],
-              ),
-            ],
-          )
+</bar>",
+          Node("bar", X.many_attributes, [X.with_many_attributes])
           |> ~@xml(string),
         )
     ),

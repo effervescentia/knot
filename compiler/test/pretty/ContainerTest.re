@@ -2,19 +2,7 @@ open Kore;
 open Fmt;
 open Pretty.Container;
 
-let __words = [
-  "Sint",
-  "eiusmod",
-  "quis",
-  "consectetur",
-  "cillum",
-  "nulla",
-  "est",
-  "et",
-  "ipsum",
-  "nisi",
-];
-let __long_words = ["Lorem", "ea", ...__words];
+module L = Fixtures.List;
 
 let _set = x => box(collection(any("<"), any(">"), x));
 let _string_set = _set(string);
@@ -31,26 +19,16 @@ let suite =
     "list() - empty"
     >: (() => Assert.string("", [] |> ~@root(list(string)))),
     "list() - comma separated"
-    >: (
-      () =>
-        Assert.string(
-          "a, b, c",
-          ["a", "b", "c"] |> ~@root(box(list(string))),
-        )
-    ),
+    >: (() => Assert.string("a, b, c", L.abc |> ~@root(box(list(string))))),
     "list() - trailing comma"
-    >: (
-      () =>
-        Assert.string("a, b, c,
-", ["a", "b", "c"] |> ~@root(list(string)))
-    ),
+    >: (() => Assert.string("a, b, c,
+", L.abc |> ~@root(list(string)))),
     "list() - semicolon separated"
     >: (
       () =>
         Assert.string(
           "a; b; c",
-          ["a", "b", "c"]
-          |> ~@root(box(list(~sep=Sep.of_sep(";"), string))),
+          L.abc |> ~@root(box(list(~sep=Sep.of_sep(";"), string))),
         )
     ),
     "list() - do not break line when content fits"
@@ -58,7 +36,7 @@ let suite =
       () =>
         Assert.string(
           "Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi",
-          __words |> ~@root(box(list(string))),
+          L.many |> ~@root(box(list(string))),
         )
     ),
     "list() - break line when too long"
@@ -78,22 +56,19 @@ et,
 ipsum,
 nisi,
 ",
-          __long_words |> ~@root(list(string)),
+          L.too_many |> ~@root(list(string)),
         )
     ),
     "collection() - empty"
     >: (() => Assert.string("<>", [] |> ~@root(_string_set))),
     "collection() - comma separated"
-    >: (
-      () =>
-        Assert.string("<a, b, c>", ["a", "b", "c"] |> ~@root(_string_set))
-    ),
+    >: (() => Assert.string("<a, b, c>", L.abc |> ~@root(_string_set))),
     "collection() - do not break line when content fits"
     >: (
       () =>
         Assert.string(
           "<Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>",
-          __words |> ~@root(_string_set),
+          L.many |> ~@root(_string_set),
         )
     ),
     "collection() - break line when too long"
@@ -114,7 +89,7 @@ nisi,
   ipsum,
   nisi,
 >",
-          __long_words |> ~@root(_string_set),
+          L.too_many |> ~@root(_string_set),
         )
     ),
     "collection() - nested inline"
@@ -122,7 +97,7 @@ nisi,
       () =>
         Assert.string(
           "<<a, b, c>, <d, e, f>>",
-          [["a", "b", "c"], ["d", "e", "f"]] |> ~@root(_string_set_set),
+          [L.abc, L.def] |> ~@root(_string_set_set),
         )
     ),
     "collection() - nested break line"
@@ -133,7 +108,7 @@ nisi,
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
 >",
-          [__words, __words] |> ~@root(box(_string_set_set)),
+          [L.many, L.many] |> ~@root(box(_string_set_set)),
         )
     ),
     "collection() - nested breaking all lines"
@@ -170,29 +145,17 @@ nisi,
     nisi,
   >,
 >",
-          [__long_words, __long_words] |> ~@root(box(_string_set_set)),
+          [L.too_many, L.too_many] |> ~@root(box(_string_set_set)),
         )
     ),
     "array() - empty"
     >: (() => Assert.string("[]", [] |> ~@root(array(string)))),
     "array() - not empty"
-    >: (
-      () =>
-        Assert.string(
-          "[a, b, c]",
-          ["a", "b", "c"] |> ~@root(array(string)),
-        )
-    ),
+    >: (() => Assert.string("[a, b, c]", L.abc |> ~@root(array(string)))),
     "tuple() - empty"
     >: (() => Assert.string("()", [] |> ~@root(tuple(string)))),
     "tuple() - not empty"
-    >: (
-      () =>
-        Assert.string(
-          "(a, b, c)",
-          ["a", "b", "c"] |> ~@root(tuple(string)),
-        )
-    ),
+    >: (() => Assert.string("(a, b, c)", L.abc |> ~@root(tuple(string)))),
     "closure() - empty"
     >: (() => Assert.string("{ }", [] |> ~@root(closure(string)))),
     "closure() - one entry"
@@ -206,12 +169,18 @@ nisi,
       () =>
         Assert.string(
           "{
-  foo
-  bar
-  fizz
-  buzz
+  Sint
+  eiusmod
+  quis
+  consectetur
+  cillum
+  nulla
+  est
+  et
+  ipsum
+  nisi
 }",
-          ["foo", "bar", "fizz", "buzz"] |> ~@root(closure(string)),
+          L.many |> ~@root(closure(string)),
         )
     ),
     "closure() - nested"
@@ -279,12 +248,11 @@ nisi,
       () =>
         Assert.string(
           "{
-  foo: bar
-  fizz: buzz
-  zipp: zapp
+  a: 1
+  b: 2
+  c: 3
 }",
-          [("foo", "bar"), ("fizz", "buzz"), ("zipp", "zapp")]
-          |> ~@root(record(string, string)),
+          L.a1b2c3 |> ~@root(record(string, int)),
         )
     ),
     "record() - long value"
@@ -336,7 +304,7 @@ nisi,
   b
   c
 }",
-          ("foo", ["a", "b", "c"]) |> ~@root(entity(string, string)),
+          ("foo", L.abc) |> ~@root(entity(string, string)),
         )
     ),
     "entity() - nested"
@@ -350,12 +318,12 @@ nisi,
     c
   }
   fizz {
-    1
-    2
-    3
+    d
+    e
+    f
   }
 }",
-          ("foo", [("bar", ["a", "b", "c"]), ("fizz", ["1", "2", "3"])])
+          ("foo", [("bar", L.abc), ("fizz", L.def)])
           |> ~@root(entity(string, entity(string, string))),
         )
     ),
@@ -376,8 +344,7 @@ nisi,
   b: 2
   c: 3
 }",
-          ("foo", [("a", 1), ("b", 2), ("c", 3)])
-          |> ~@root(struct_(string, int)),
+          ("foo", L.a1b2c3) |> ~@root(struct_(string, int)),
         )
     ),
     "struct_() - nested"
@@ -398,10 +365,7 @@ nisi,
 }",
           (
             "foo",
-            [
-              ("bar", ("Bar", [("a", 1), ("b", 2), ("c", 3)])),
-              ("fizz", ("Fizz", [("d", 4), ("e", 5), ("f", 6)])),
-            ],
+            [("bar", ("Bar", L.a1b2c3)), ("fizz", ("Fizz", L.d4e5f6))],
           )
           |> ~@root(struct_(string, struct_(string, int))),
         )
