@@ -5,16 +5,6 @@ module U = Util.ResultUtil;
 
 exception MockError;
 
-let __program =
-  AST.[
-    (
-      "ABC" |> of_public |> U.as_raw_node |> of_named_export,
-      123L |> of_int |> of_num |> of_prim |> U.as_int |> of_const |> U.as_int,
-    )
-    |> of_decl
-    |> U.as_raw_node,
-  ];
-
 let suite =
   "Resolve.Module"
   >::: [
@@ -61,13 +51,13 @@ let suite =
           Module.read(
             stream => {
               Assert.string(content, Util.read_lazy_char_stream(stream));
-              __program;
+              Fixtures.Program.const_int;
             },
             Module.Raw(content),
           )
           |> Result.get_ok;
 
-        Assert.program(__program, program);
+        Assert.program(Fixtures.Program.const_int, program);
       }
     ),
     "read() - file exists"
@@ -80,13 +70,13 @@ let suite =
                 "hello world\n",
                 Util.read_lazy_char_stream(stream),
               );
-              __program;
+              Fixtures.Program.const_int;
             },
             Module.File({relative: "foo", full: fixture_path}),
           )
           |> Result.get_ok;
 
-        Assert.program(__program, program);
+        Assert.program(Fixtures.Program.const_int, program);
       }
     ),
     "read() - file does not exist"

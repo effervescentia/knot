@@ -1,19 +1,12 @@
 open Kore;
 
 module ImportGraph = Resolve.ImportGraph;
+module N = Fixtures.Namespace;
 
-let __foo_id = Reference.Namespace.Internal("foo");
-let __bar_id = Reference.Namespace.External("bar");
-let __fizz_id = Reference.Namespace.Internal("fizz");
-let __buzz_id = Reference.Namespace.External("buzz");
+let _create_resolver = (~default=[], entries, id) =>
+  entries |> List.assoc_opt(id) |?: default;
 
-let _setup = get_imports => {
-  let import_graph = ImportGraph.create(get_imports);
-
-  import_graph |> ImportGraph.init(__foo_id);
-
-  import_graph;
-};
+let _create_graph = imports => ImportGraph.{imports, get_imports: _ => []};
 
 let suite =
   "Resolve.ImportGraph"
@@ -21,7 +14,8 @@ let suite =
     "create()"
     >: (
       () => {
-        let get_imports = id => id == __foo_id ? [__bar_id] : [];
+        let get_imports = _ => [];
+
         let import_graph = ImportGraph.create(get_imports);
 
         Assert.import_graph(
@@ -33,15 +27,13 @@ let suite =
     "init()"
     >: (
       () => {
-        let get_imports = id => id == __foo_id ? [__bar_id] : [];
-        let import_graph = _setup(get_imports);
+        let get_imports = _create_resolver([(N.foo, [N.bar])]);
+        let import_graph = ImportGraph.create(get_imports);
+
+        import_graph |> ImportGraph.init(N.foo);
 
         Assert.import_graph(
-          {
-            imports:
-              Graph.create([__bar_id, __foo_id], [(__foo_id, __bar_id)]),
-            get_imports,
-          },
+          {imports: Fixtures.Graph.two_node(), get_imports},
           import_graph,
         );
       }
@@ -49,26 +41,23 @@ let suite =
     "add_module()"
     >: (
       () => {
-        let get_imports = id =>
-          id == __foo_id
-            ? [__bar_id] : id == __fizz_id ? [__buzz_id, __bar_id] : [];
-        let import_graph = _setup(get_imports);
+        let import_graph =
+          ImportGraph.{
+            imports: Fixtures.Graph.two_node(),
+            get_imports: _create_resolver([(N.fizz, [N.buzz, N.bar])]),
+          };
 
-        let added = import_graph |> ImportGraph.add_module(__fizz_id);
+        let added = import_graph |> ImportGraph.add_module(N.fizz);
 
-        Assert.list_namespace([__buzz_id, __fizz_id], added);
+        Assert.list_namespace([N.buzz, N.fizz], added);
         Assert.import_graph(
           {
+            ...import_graph,
             imports:
               Graph.create(
-                [__buzz_id, __fizz_id, __bar_id, __foo_id],
-                [
-                  (__fizz_id, __bar_id),
-                  (__fizz_id, __buzz_id),
-                  (__foo_id, __bar_id),
-                ],
+                [N.buzz, N.fizz, N.bar, N.foo],
+                [(N.fizz, N.bar), (N.fizz, N.buzz), (N.foo, N.bar)],
               ),
-            get_imports,
           },
           import_graph,
         );
@@ -77,29 +66,15 @@ let suite =
     "prune_subtree()"
     >: (
       () => {
-        let get_imports = id =>
-          id == __foo_id ? [__bar_id] : id == __bar_id ? [__fizz_id] : [];
-        let import_graph = _setup(get_imports);
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
 
+        let removed = import_graph |> ImportGraph.prune_subtree(N.bar);
+
+        Assert.list_namespace([N.fizz, N.bar], removed);
         Assert.import_graph(
           {
-            imports:
-              Graph.create(
-                [__fizz_id, __bar_id, __foo_id],
-                [(__foo_id, __bar_id), (__bar_id, __fizz_id)],
-              ),
-            get_imports,
-          },
-          import_graph,
-        );
-
-        let removed = import_graph |> ImportGraph.prune_subtree(__bar_id);
-
-        Assert.list_namespace([__fizz_id, __bar_id], removed);
-        Assert.import_graph(
-          {
-            imports: Graph.create([__foo_id], [(__foo_id, __bar_id)]),
-            get_imports,
+            ...import_graph,
+            imports: Graph.create([N.foo], [(N.foo, N.bar)]),
           },
           import_graph,
         );
@@ -108,14 +83,12 @@ let suite =
     "find_missing()"
     >: (
       () => {
-        let get_imports = id =>
-          id == __foo_id ? [__bar_id] : id == __bar_id ? [__fizz_id] : [];
-        let import_graph = _setup(get_imports);
+        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
 
-        import_graph |> ImportGraph.prune_subtree(__bar_id) |> ignore;
+        import_graph |> ImportGraph.prune_subtree(N.bar) |> ignore;
 
         Assert.list_namespace(
-          [__bar_id],
+          [N.bar],
           import_graph |> ImportGraph.find_missing,
         );
       }
@@ -123,27 +96,26 @@ let suite =
     "refresh_subtree()"
     >: (
       () => {
-        let get_imports = id =>
-          id == __foo_id ? [__bar_id] : id == __bar_id ? [__fizz_id] : [];
-        let new_get_imports = id => id == __buzz_id ? [] : [__buzz_id];
-        let import_graph = {
-          ..._setup(get_imports),
-          get_imports: new_get_imports,
-        };
+        let import_graph =
+          ImportGraph.{
+            imports: Fixtures.Graph.three_node(),
+            get_imports:
+              _create_resolver(~default=[N.buzz], [(N.buzz, [])]),
+          };
 
         let (removed, added) =
-          import_graph |> ImportGraph.refresh_subtree(__bar_id);
+          import_graph |> ImportGraph.refresh_subtree(N.bar);
 
-        Assert.list_namespace([__fizz_id], removed);
-        Assert.list_namespace([__buzz_id, __bar_id], added);
+        Assert.list_namespace([N.fizz], removed);
+        Assert.list_namespace([N.buzz, N.bar], added);
         Assert.import_graph(
           {
+            ...import_graph,
             imports:
               Graph.create(
-                [__buzz_id, __bar_id, __foo_id],
-                [(__bar_id, __buzz_id), (__foo_id, __bar_id)],
+                [N.buzz, N.bar, N.foo],
+                [(N.bar, N.buzz), (N.foo, N.bar)],
               ),
-            get_imports: new_get_imports,
           },
           import_graph,
         );
@@ -152,8 +124,7 @@ let suite =
     "pp()"
     >: (
       () => {
-        let get_imports = id => id == __foo_id ? [__bar_id] : [];
-        let import_graph = _setup(get_imports);
+        let import_graph = Fixtures.Graph.two_node() |> _create_graph;
 
         Assert.string(
           "@/foo \n\
