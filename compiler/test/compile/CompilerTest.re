@@ -198,12 +198,12 @@ let suite =
           [
             (
               Nx.foo,
-              ModuleTable.Invalid(
+              ModuleTable.Partial(
                 "import { BAR } from \"@/bar\";
 
 const const = \"foo\";
 ",
-                Some({
+                {
                   exports:
                     [
                       (
@@ -215,7 +215,7 @@ const const = \"foo\";
                     |> Hashtbl.of_seq,
                   ast: Px.invalid_foo,
                   scopes: __scope_tree,
-                }),
+                },
                 expected,
               ),
             ),

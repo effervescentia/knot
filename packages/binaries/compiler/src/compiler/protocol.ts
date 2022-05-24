@@ -33,6 +33,7 @@ export enum ModuleStatus {
   PENDING = 'pending',
   PURGED = 'purged',
   VALID = 'valid',
+  PARTIAL = 'partial',
   INVALID = 'invalid'
 }
 

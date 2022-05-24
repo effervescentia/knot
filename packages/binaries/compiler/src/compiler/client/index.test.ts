@@ -271,7 +271,7 @@ test('recovers from error state', async t => {
 
   await fs.promises.writeFile(
     path.join(cwd, 'src', CONSTANTS_MODULE),
-    'main const const = 100;',
+    'main const const = "foo";',
     'utf-8'
   );
 
@@ -281,11 +281,16 @@ test('recovers from error state', async t => {
   })(async client => {
     await client.addModule({ path: MAIN_MODULE });
 
-    // const { status: mainStatus } = await client.moduleStatus({
-    //   path: MAIN_MODULE
-    // });
+    const [
+      { status: mainStatus },
+      { status: constantsStatus }
+    ] = await Promise.all([
+      client.moduleStatus({ path: MAIN_MODULE }),
+      client.moduleStatus({ path: CONSTANTS_MODULE })
+    ]);
 
-    // t.is(mainStatus, ModuleStatus.PENDING);
+    t.is(mainStatus, ModuleStatus.PARTIAL);
+    t.is(constantsStatus, ModuleStatus.PARTIAL);
 
     await fs.promises.writeFile(
       path.join(cwd, 'src', CONSTANTS_MODULE),
@@ -295,12 +300,21 @@ test('recovers from error state', async t => {
 
     await client.updateModule({ path: CONSTANTS_MODULE });
 
-    const [{ status }, { data: nextConstantsData }] = await Promise.all([
+    const [
+      { status },
+      { status: nextMainStatus },
+      { status: nextConstantsStatus },
+      { data: nextConstantsData }
+    ] = await Promise.all([
       client.status(),
+      client.moduleStatus({ path: MAIN_MODULE }),
+      client.moduleStatus({ path: CONSTANTS_MODULE }),
       client.fetchModule({ path: CONSTANTS_MODULE })
     ]);
 
     t.is(status, Status.IDLE);
+    t.is(nextMainStatus, ModuleStatus.VALID);
+    t.is(nextConstantsStatus, ModuleStatus.VALID);
     t.is(nextConstantsData, Fixture.COMPLEX_CONSTANTS);
   });
 });

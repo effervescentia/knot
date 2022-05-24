@@ -6,7 +6,7 @@ exports.FOO = FOO;
 export const COMPLEX_MAIN = `import $knot from "@knot/runtime";
 import { main as TIMEOUT } from "./common/constants";
 import { main as App } from "./App";
-var ABC = 123;
+var ABC = (123 / TIMEOUT);
 export { ABC };
 `;
 

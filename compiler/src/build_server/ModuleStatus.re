@@ -6,6 +6,7 @@ module Status = {
     | Pending
     | Purged
     | Valid
+    | Partial
     | Invalid;
 
   let to_string =
@@ -14,6 +15,7 @@ module Status = {
     | Pending => "pending"
     | Purged => "purged"
     | Valid => "valid"
+    | Partial => "partial"
     | Invalid => "invalid";
 };
 
@@ -33,6 +35,7 @@ let handler: Runtime.request_handler_t(params_t) =
     (
       switch (compiler |> Compiler.get_module(namespace)) {
       | Some(Valid(_)) => Status.Valid
+      | Some(Partial(_)) => Status.Partial
       | Some(Invalid(_)) => Status.Invalid
       | Some(Pending) => Status.Pending
       | Some(Purged) => Status.Purged

@@ -213,7 +213,7 @@ let process_one =
              compiler.modules
              |> ModuleTable.add(
                   namespace,
-                  Invalid(raw, Some(data), module_errors^),
+                  Partial(raw, data, module_errors^),
                 );
 
              Log.debug(
@@ -229,7 +229,7 @@ let process_one =
            Report([err]) |> compiler.dispatch;
 
            compiler.modules
-           |> ModuleTable.add(namespace, Invalid(raw, None, [err]));
+           |> ModuleTable.add(namespace, Invalid(raw, [err]));
 
            Log.debug(
              "failed to process module %s",

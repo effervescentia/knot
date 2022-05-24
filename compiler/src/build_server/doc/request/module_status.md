@@ -7,7 +7,7 @@
 ## Result
 
 ```ts
-type ModuleStatus = 'none' | 'pending' | 'purged' | 'valid' | 'invalid';
+type ModuleStatus = 'none' | 'pending' | 'purged' | 'valid' | 'partial' | 'invalid';
 ```
 
 - `status` (*ModuleStatus*): the compilation status of the module

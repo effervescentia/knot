@@ -72,7 +72,7 @@ $import$_$common$constants = null;
 var $import$_$App = require(\"./App\");
 var App = $import$_$App.main;
 $import$_$App = null;
-var ABC = 123;
+var ABC = (123 / TIMEOUT);
 exports.ABC = ABC;
 ",
           Util.read_file_to_string(main_file),
