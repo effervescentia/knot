@@ -33,12 +33,14 @@ let suite =
         |> ModuleTable.(
              add(
                __id,
-               Valid({
-                 ast: __program,
-                 exports: _create_table(__types),
-                 scopes: __scope_tree,
-                 raw: "foo",
-               }),
+               Valid(
+                 "foo",
+                 {
+                   ast: __program,
+                   exports: _create_table(__types),
+                   scopes: __scope_tree,
+                 },
+               ),
              )
            );
 
@@ -46,18 +48,20 @@ let suite =
           _create_table([
             (
               __id,
-              ModuleTable.Valid({
-                exports:
-                  _create_table([
-                    (
-                      Export.Named(A.of_public("bar")),
-                      Type.Valid(`Element),
-                    ),
-                  ]),
-                ast: __program,
-                scopes: __scope_tree,
-                raw: "foo",
-              }),
+              ModuleTable.Valid(
+                "foo",
+                {
+                  exports:
+                    _create_table([
+                      (
+                        Export.Named(A.of_public("bar")),
+                        Type.Valid(`Element),
+                      ),
+                    ]),
+                  ast: __program,
+                  scopes: __scope_tree,
+                },
+              ),
             ),
           ]),
           __table,
@@ -70,12 +74,14 @@ let suite =
         __table
         |> ModuleTable.add(
              __id,
-             Valid({
-               ast: __program,
-               exports: Hashtbl.create(0),
-               scopes: __scope_tree,
-               raw: "foo",
-             }),
+             Valid(
+               "foo",
+               {
+                 ast: __program,
+                 exports: Hashtbl.create(0),
+                 scopes: __scope_tree,
+               },
+             ),
            );
         __table
         |> ModuleTable.add_type(
@@ -87,18 +93,20 @@ let suite =
           _create_table([
             (
               __id,
-              ModuleTable.Valid({
-                exports:
-                  _create_table([
-                    (
-                      Export.Named(A.of_public("new_type")),
-                      Type.Valid(`Float),
-                    ),
-                  ]),
-                ast: __program,
-                scopes: __scope_tree,
-                raw: "foo",
-              }),
+              ModuleTable.Valid(
+                "foo",
+                {
+                  exports:
+                    _create_table([
+                      (
+                        Export.Named(A.of_public("new_type")),
+                        Type.Valid(`Float),
+                      ),
+                    ]),
+                  ast: __program,
+                  scopes: __scope_tree,
+                },
+              ),
             ),
           ]),
           __table,

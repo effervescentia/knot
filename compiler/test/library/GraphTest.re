@@ -129,6 +129,30 @@ let suite =
           Graph.get_children("foo", __acyclic_graph),
         )
     ),
+    "get_descendants() - acyclic branching"
+    >: (
+      () =>
+        Assert.string_list(
+          ["c", "b", "g", "f", "e", "d"],
+          __branching_graph |> Graph.get_descendants("a"),
+        )
+    ),
+    "get_descendants() - acyclic converging"
+    >: (
+      () =>
+        Assert.string_list(
+          ["b", "a"],
+          __converging_graph |> Graph.get_descendants("d"),
+        )
+    ),
+    "get_descendants() - cyclic"
+    >: (
+      () =>
+        Assert.string_list(
+          ["foe", "bar", "fizz", "foo"],
+          __cyclic_graph |> Graph.get_descendants("fie"),
+        )
+    ),
     "add_node()"
     >: (
       () => {

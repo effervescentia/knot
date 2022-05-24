@@ -12,7 +12,5 @@ let handler: Runtime.notification_handler_t(params_t) =
     |> Util.process_incremental(() => {
          let namespace = Namespace.of_path(path);
 
-         runtime.compiler
-         |> Compiler.upsert_module(namespace)
-         |> Tuple.with_fst2([]);
+         runtime.compiler |> Compiler.upsert_module(namespace);
        });

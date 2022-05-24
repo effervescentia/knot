@@ -10,14 +10,13 @@ type data_t = {
   exports: type_table_t,
   ast: AST.program_t,
   scopes: scope_tree_t,
-  raw: string,
 };
 
 type entry_t =
   | Pending
   | Purged
-  | Valid(data_t)
-  | Invalid(option(data_t), list(Error.compile_err));
+  | Valid(string, data_t)
+  | Invalid(string, option(data_t), list(Error.compile_err));
 
 /**
  table for storing module ASTs
@@ -59,19 +58,34 @@ let prepare = (id: Namespace.t, table: t) =>
   Hashtbl.replace(table, id, Pending);
 
 /**
+ unpack raw source code from an entry as an option
+ */
+let get_entry_raw: entry_t => option(string) =
+  fun
+  | Valid(raw, _) => Some(raw)
+  /* | Invalid(Some(_) as data, _) => data */
+  | _ => None;
+
+/**
+ unpack data from an entry as an option
+ */
+let get_entry_data: entry_t => option(data_t) =
+  fun
+  | Valid(_, data) => Some(data)
+  | Invalid(_, Some(_) as data, _) => data
+  | _ => None;
+
+/**
  declare the type of an export member of an existing module
  */
 let add_type =
     ((namespace, id): (Namespace.t, Export.t), value: 'a, table: t) =>
-  switch (Hashtbl.find_opt(table, namespace)) {
-  | Some(Valid({exports}) | Invalid(Some({exports}), _)) =>
-    Hashtbl.replace(exports, id, value)
-
-  | _ => ()
-  };
+  Hashtbl.find_opt(table, namespace)
+  |?< get_entry_data
+  |> Option.iter(({exports}) => Hashtbl.replace(exports, id, value));
 
 let _compare_data = (x, y) =>
-  x.ast == y.ast && x.raw == y.raw && Hashtbl.compare(x.exports, y.exports);
+  x.ast == y.ast && Hashtbl.compare(x.exports, y.exports);
 
 /**
  compare two ModuleTables by direct equality
@@ -79,33 +93,27 @@ let _compare_data = (x, y) =>
 let compare: (t, t) => bool =
   Hashtbl.compare(~compare=(x, y) =>
     switch (x, y) {
-    | (Valid(x_data), Valid(y_data)) => _compare_data(x_data, y_data)
+    | (Valid(x_raw, x_data), Valid(y_raw, y_data)) =>
+      x_raw == y_raw && _compare_data(x_data, y_data)
 
-    | (Invalid(Some(x_data), x_errors), Invalid(Some(y_data), y_errors)) =>
-      _compare_data(x_data, y_data) && x_errors == y_errors
+    | (
+        Invalid(x_raw, Some(x_data), x_errors),
+        Invalid(y_raw, Some(y_data), y_errors),
+      ) =>
+      x_raw == y_raw && _compare_data(x_data, y_data) && x_errors == y_errors
 
     | _ => x == y
     }
   );
 
-/**
- unpack data from an entry as an option
- */
-let get_entry_data: entry_t => option(data_t) =
-  fun
-  | Valid(data) => Some(data)
-  | Invalid(Some(_) as data, _) => data
-  | _ => None;
-
 /* pretty printing */
 
 let _pp_data: Fmt.t(data_t) =
-  (ppf, {ast, raw, exports}) =>
+  (ppf, {ast, exports}) =>
     Fmt.(
       [
         ("ast", ast |> ~@AST.Dump.pp),
         ("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp)),
-        ("raw", raw),
       ]
       |> List.to_seq
       |> Hashtbl.of_seq
@@ -115,12 +123,13 @@ let _pp_data: Fmt.t(data_t) =
 let _pp_entry: Fmt.t(entry_t) =
   ppf =>
     fun
-    | Valid(data) => Fmt.pf(ppf, "Valid(%a)", _pp_data, data)
-    | Invalid(data, errs) =>
+    | Valid(raw, data) => Fmt.pf(ppf, "Valid(%s, %a)", raw, _pp_data, data)
+    | Invalid(raw, data, errs) =>
       Fmt.(
         pf(
           ppf,
-          "Invalid(%a, %a)",
+          "Invalid(%s, %a, %a)",
+          raw,
           option(_pp_data),
           data,
           Error.pp_dump_err_list,

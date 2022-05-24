@@ -85,3 +85,13 @@ let hashtbl = (key_to_string, value_to_string) =>
   Alcotest.(
     check(Compare.hashtbl(key_to_string, value_to_string), "hashtbl matches")
   );
+
+let file_exists = file =>
+  if (!Sys.file_exists(file)) {
+    file |> Fmt.str("expected file %s to exist") |> Alcotest.fail;
+  };
+
+let no_file_exists = file =>
+  if (Sys.file_exists(file)) {
+    file |> Fmt.str("expected file %s to not exist") |> Alcotest.fail;
+  };

@@ -79,7 +79,7 @@ let _create_dispatch = (config, report) => {
 let _prepare_modules = (modules: list(Namespace.t), compiler: t) =>
   modules |> List.iter(id => compiler.modules |> ModuleTable.prepare(id));
 let _purge_modules = (modules: list(Namespace.t), compiler: t) =>
-  modules |> List.iter(id => compiler.modules |> ModuleTable.prepare(id));
+  modules |> List.iter(id => compiler.modules |> ModuleTable.purge(id));
 
 /* static */
 
@@ -151,7 +151,31 @@ let validate = (compiler: t) => {
   compiler.dispatch(Flush);
 };
 
-let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
+let parse_module =
+    (module_: Module.t, context: NamespaceContext.t, compiler: t) => {
+  module_
+  |> Module.read_to_string
+  |> (
+    fun
+    | Ok(raw) => {
+        let ast = raw |> File.IO.read_string |> Parser.ast(context);
+
+        Some((raw, ast));
+      }
+
+    | Error(errs) => {
+        Report(errs) |> compiler.dispatch;
+
+        None;
+      }
+  );
+};
+
+/**
+ parse a single module and add to table
+ */
+let process_one =
+    (~flush=true, namespace: Namespace.t, module_: Module.t, compiler: t) => {
   let module_errors = ref([]);
 
   let context =
@@ -166,63 +190,57 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
       namespace,
     );
 
-  module_
-  |> Module.read_to_string
-  |> (
-    fun
-    | Ok(raw) =>
-      raw
-      |> File.IO.read_string
-      |> Parser.ast(context)
-      |> (
-        fun
-        | Ok(ast) => {
-            let data =
-              ModuleTable.{
-                ast,
-                raw,
-                exports: _get_exports(ast) |> List.to_seq |> Hashtbl.of_seq,
-                scopes: ScopeTree.of_context(context),
-              };
+  compiler
+  |> parse_module(module_, context)
+  |> Option.iter(
+       fun
+       | (raw, Ok(ast)) => {
+           let data =
+             ModuleTable.{
+               ast,
+               exports: _get_exports(ast) |> List.to_seq |> Hashtbl.of_seq,
+               scopes: ScopeTree.of_context(context),
+             };
 
-            if (List.is_empty(module_errors^)) {
-              compiler.modules |> ModuleTable.add(namespace, Valid(data));
+           if (List.is_empty(module_errors^)) {
+             compiler.modules |> ModuleTable.add(namespace, Valid(raw, data));
 
-              Log.debug(
-                "processed module %s",
-                namespace |> ~@Fmt.bold(Namespace.pp),
-              );
-            } else {
-              compiler.modules
-              |> ModuleTable.add(
-                   namespace,
-                   Invalid(Some(data), module_errors^),
-                 );
+             Log.debug(
+               "processed module %s",
+               namespace |> ~@Fmt.bold(Namespace.pp),
+             );
+           } else {
+             compiler.modules
+             |> ModuleTable.add(
+                  namespace,
+                  Invalid(raw, Some(data), module_errors^),
+                );
 
-              Log.debug(
-                "processed module %s with %s",
-                namespace |> ~@Fmt.bold(Namespace.pp),
-                List.length(module_errors^)
-                |> ~@Fmt.(red(ppf => pf(ppf, "%a error(s)", bold(int)))),
-              );
-            };
-          }
+             Log.debug(
+               "processed module %s with %s",
+               namespace |> ~@Fmt.bold(Namespace.pp),
+               List.length(module_errors^)
+               |> ~@Fmt.(red(ppf => pf(ppf, "%a error(s)", bold(int)))),
+             );
+           };
+         }
 
-        | Error(err) => {
-            Report([err]) |> compiler.dispatch;
+       | (raw, Error(err)) => {
+           Report([err]) |> compiler.dispatch;
 
-            compiler.modules
-            |> ModuleTable.add(namespace, Invalid(None, [err]));
+           compiler.modules
+           |> ModuleTable.add(namespace, Invalid(raw, None, [err]));
 
-            Log.debug(
-              "failed to process module %s",
-              namespace |> ~@Fmt.bad(Namespace.pp),
-            );
-          }
-      )
+           Log.debug(
+             "failed to process module %s",
+             namespace |> ~@Fmt.bad(Namespace.pp),
+           );
+         },
+     );
 
-    | Error(errs) => Report(errs) |> compiler.dispatch
-  );
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
 };
 
 /**
@@ -230,6 +248,7 @@ let process_one = (namespace: Namespace.t, module_: Module.t, compiler: t) => {
  */
 let process =
     (
+      ~flush=true,
       namespaces: list(Namespace.t),
       resolve: Namespace.t => Module.t,
       {modules} as compiler: t,
@@ -238,10 +257,12 @@ let process =
 
   namespaces
   |> List.iter(namespace =>
-       process_one(namespace, resolve(namespace), compiler)
+       compiler |> process_one(~flush=false, namespace, resolve(namespace))
      );
 
-  compiler.dispatch(Flush);
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
 };
 
 /**
@@ -256,7 +277,7 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   };
 
   /* check if import graph is valid */
-  compiler |> validate;
+  validate(compiler);
 
   let modules = ImportGraph.get_modules(compiler.graph);
   compiler |> _prepare_modules(modules);
@@ -265,16 +286,18 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
     compiler |> cache_modules(modules);
   };
 
-  /* parse modules to AST */
-  compiler |> process(modules, resolve(~skip_cache, compiler));
+  let resolver = compiler |> resolve(~skip_cache);
+  compiler |> process(modules, resolver);
 };
 
 /**
  re-evaluate a subset of the import graph
  */
-let incremental = (ids: list(Namespace.t), compiler: t) => {
-  compiler |> validate;
-  compiler |> process(ids, resolve(~skip_cache=true, compiler));
+let incremental = (~flush=true, ids: list(Namespace.t), compiler: t) => {
+  let resolver = compiler |> resolve(~skip_cache=true);
+
+  validate(compiler);
+  compiler |> process(~flush, ids, resolver);
 };
 
 /**
@@ -363,16 +386,13 @@ let get_module = (id: Namespace.t, compiler: t) =>
  add a new module (and its import graph) to a compiler
  */
 let add_module = (id: Namespace.t, compiler: t) => {
-  let modules =
-    if (compiler.graph |> ImportGraph.has_module(id)) {
-      compiler.graph |> ImportGraph.get_imported_by(id);
-    } else {
-      compiler.graph |> ImportGraph.add_module(id);
-    };
+  let added = compiler.graph |> ImportGraph.add_module(id);
+  let dependents = compiler.graph |> ImportGraph.get_dependents(id);
+  let updated = added @ dependents;
 
-  compiler |> _prepare_modules(modules);
+  compiler |> _prepare_modules(updated);
 
-  modules;
+  updated;
 };
 
 /**
@@ -395,9 +415,9 @@ let update_module = (id: Namespace.t, compiler: t) => {
  */
 let upsert_module = (id: Namespace.t, compiler: t) =>
   if (compiler.graph |> ImportGraph.has_module(id)) {
-    compiler |> update_module(id) |> snd;
+    compiler |> update_module(id);
   } else {
-    compiler |> add_module(id);
+    compiler |> add_module(id) |> Tuple.with_fst2([]);
   };
 
 /**
@@ -407,42 +427,48 @@ let upsert_module = (id: Namespace.t, compiler: t) =>
  will also be removed
  */
 let remove_module = (id: Namespace.t, compiler: t) => {
-  let (removed, updated) as result =
-    compiler.graph |> ImportGraph.remove_module(id);
+  let removed = compiler.graph |> ImportGraph.prune_subtree(id);
+  let updated = compiler.graph |> ImportGraph.get_dependents(id);
 
   compiler |> _purge_modules(removed);
   compiler |> _prepare_modules(updated);
 
-  result;
+  (removed, updated);
 };
 
 /**
- add or update a module by providing the raw text
+ incrementally compile a module from the raw text
  */
-let insert_raw_module = (id: Namespace.t, contents: string, compiler: t) => {
+let inject_raw = (~flush=true, id: Namespace.t, contents: string, compiler: t) => {
   if (!(compiler.graph |> ImportGraph.has_module(id))) {
     compiler.graph.imports |> Graph.add_node(id);
   };
 
-  let imports = contents |> File.IO.read_string |> Parser.imports(id);
   let added = ref([id]);
+  let imports =
+    contents
+    |> File.IO.read_string
+    |> Parser.imports(id)
+    |> List.filter(x => !ImportGraph.has_module(x, compiler.graph));
 
   imports
-  |> List.iter(id =>
-       compiler.graph |> ImportGraph.add_module(~added, id) |> ignore
-     );
+  |> List.iter(child_id => {
+       compiler.graph |> ImportGraph.add_module(~added, child_id) |> ignore;
+       compiler.graph |> ImportGraph.add_dependency(id, child_id);
+     });
 
   compiler |> _prepare_modules(added^);
-  compiler |> incremental(added^ |> List.excl(id));
-  compiler |> process_one(id, Raw(contents));
+  compiler |> incremental(~flush=false, added^ |> List.excl(id));
+  compiler |> process_one(~flush, id, Raw(contents));
 };
 
 /**
  reset the state of the compiler
  */
-let reset = ({graph, modules}: t) => {
+let reset = ({graph, modules, resolver}: t) => {
   ImportGraph.clear(graph);
   Hashtbl.reset(modules);
+  File.IO.purge(resolver.cache);
 };
 
 /**

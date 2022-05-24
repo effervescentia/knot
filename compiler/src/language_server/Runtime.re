@@ -50,9 +50,9 @@ let resolve = (path: string, {compilers}: t) =>
 
 let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
   if (!(compiler.graph |> ImportGraph.has_module(namespace))) {
-    let added = compiler |> Compiler.add_module(namespace);
+    let updated = compiler |> Compiler.add_module(namespace);
 
-    compiler |> Compiler.incremental(added);
+    compiler |> Compiler.incremental(updated);
     /* module does not exist in module table */
   } else if (!Hashtbl.mem(compiler.modules, namespace)) {
     compiler |> Compiler.incremental([namespace]);

@@ -31,7 +31,7 @@ let handler: Runtime.notification_handler_t(params_t) =
     | (Some(contents), Some((namespace, {compiler, contexts} as ctx))) =>
       let silent_compiler = {...compiler, dispatch: ignore};
 
-      silent_compiler |> Compiler.insert_raw_module(namespace, contents);
+      silent_compiler |> Compiler.inject_raw(namespace, contents);
       Runtime.analyze_module(namespace, {...ctx, compiler: silent_compiler})
       |> ignore;
 

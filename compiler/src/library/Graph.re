@@ -120,6 +120,26 @@ let get_children = (node: 'a, graph: t('a)): list('a) =>
      );
 
 /**
+ get a list of nodes in the [graph] which are ancestors of a [node]
+ */
+let get_descendants = (node: 'a, graph: t('a)): list('a) => {
+  let descendants = ref([]);
+
+  let rec loop = target => {
+    let children =
+      graph |> get_children(target) |> List.excl_all(descendants^);
+
+    descendants := descendants^ @ children;
+
+    children |> List.iter(loop);
+  };
+
+  loop(node);
+
+  descendants^ |> List.excl(node);
+};
+
+/**
  check if a [node] in the [graph] has no parents
  */
 let is_root_node = (node: 'a, graph: t('a)): bool =>

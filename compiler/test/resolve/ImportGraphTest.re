@@ -1,7 +1,8 @@
 open Kore;
 
 module ImportGraph = Resolve.ImportGraph;
-module N = Fixtures.Namespace;
+module Nx = Fixtures.Namespace;
+module Gx = Fixtures.Graph;
 
 let _create_resolver = (~default=[], entries, id) =>
   entries |> List.assoc_opt(id) |?: default;
@@ -27,13 +28,13 @@ let suite =
     "init()"
     >: (
       () => {
-        let get_imports = _create_resolver([(N.foo, [N.bar])]);
+        let get_imports = _create_resolver([(Nx.foo, [Nx.bar])]);
         let import_graph = ImportGraph.create(get_imports);
 
-        import_graph |> ImportGraph.init(N.foo);
+        import_graph |> ImportGraph.init(Nx.foo);
 
         Assert.import_graph(
-          {imports: Fixtures.Graph.two_node(), get_imports},
+          {imports: Gx.two_node(), get_imports},
           import_graph,
         );
       }
@@ -43,40 +44,21 @@ let suite =
       () => {
         let import_graph =
           ImportGraph.{
-            imports: Fixtures.Graph.two_node(),
-            get_imports: _create_resolver([(N.fizz, [N.buzz, N.bar])]),
+            imports: Gx.two_node(),
+            get_imports: _create_resolver([(Nx.fizz, [Nx.buzz, Nx.bar])]),
           };
 
-        let added = import_graph |> ImportGraph.add_module(N.fizz);
+        let added = import_graph |> ImportGraph.add_module(Nx.fizz);
 
-        Assert.list_namespace([N.buzz, N.fizz], added);
+        Assert.list_namespace([Nx.buzz, Nx.fizz], added);
         Assert.import_graph(
           {
             ...import_graph,
             imports:
               Graph.create(
-                [N.buzz, N.fizz, N.bar, N.foo],
-                [(N.fizz, N.bar), (N.fizz, N.buzz), (N.foo, N.bar)],
+                [Nx.buzz, Nx.fizz, Nx.bar, Nx.foo],
+                [(Nx.fizz, Nx.bar), (Nx.fizz, Nx.buzz), (Nx.foo, Nx.bar)],
               ),
-          },
-          import_graph,
-        );
-      }
-    ),
-    "remove_module()"
-    >: (
-      () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
-
-        let (removed, updated) =
-          import_graph |> ImportGraph.remove_module(N.bar);
-
-        Assert.list_namespace([N.bar], removed);
-        Assert.list_namespace([N.foo], updated);
-        Assert.import_graph(
-          {
-            ...import_graph,
-            imports: Graph.create([N.fizz, N.foo], [(N.foo, N.bar)]),
           },
           import_graph,
         );
@@ -85,15 +67,15 @@ let suite =
     "prune_subtree()"
     >: (
       () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+        let import_graph = Gx.three_node() |> _create_graph;
 
-        let removed = import_graph |> ImportGraph.prune_subtree(N.bar);
+        let removed = import_graph |> ImportGraph.prune_subtree(Nx.bar);
 
-        Assert.list_namespace([N.fizz, N.bar], removed);
+        Assert.list_namespace([Nx.fizz, Nx.bar], removed);
         Assert.import_graph(
           {
             ...import_graph,
-            imports: Graph.create([N.foo], [(N.foo, N.bar)]),
+            imports: Graph.create([Nx.foo], [(Nx.foo, Nx.bar)]),
           },
           import_graph,
         );
@@ -102,43 +84,32 @@ let suite =
     "get_modules()"
     >: (
       () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+        let import_graph = Gx.three_node() |> _create_graph;
 
         Assert.list_namespace(
-          [N.fizz, N.bar, N.foo],
+          [Nx.fizz, Nx.bar, Nx.foo],
           ImportGraph.get_modules(import_graph),
-        );
-      }
-    ),
-    "get_imported_by()"
-    >: (
-      () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
-
-        Assert.list_namespace(
-          [N.bar],
-          import_graph |> ImportGraph.get_imported_by(N.foo),
         );
       }
     ),
     "has_module()"
     >: (
       () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+        let import_graph = Gx.three_node() |> _create_graph;
 
-        Assert.true_(import_graph |> ImportGraph.has_module(N.foo));
-        Assert.false_(import_graph |> ImportGraph.has_module(N.buzz));
+        Assert.true_(import_graph |> ImportGraph.has_module(Nx.foo));
+        Assert.false_(import_graph |> ImportGraph.has_module(Nx.buzz));
       }
     ),
     "find_missing()"
     >: (
       () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+        let import_graph = Gx.three_node() |> _create_graph;
 
-        import_graph |> ImportGraph.prune_subtree(N.bar) |> ignore;
+        import_graph |> ImportGraph.prune_subtree(Nx.bar) |> ignore;
 
         Assert.list_namespace(
-          [N.bar],
+          [Nx.bar],
           import_graph |> ImportGraph.find_missing,
         );
       }
@@ -148,23 +119,23 @@ let suite =
       () => {
         let import_graph =
           ImportGraph.{
-            imports: Fixtures.Graph.three_node(),
+            imports: Gx.three_node(),
             get_imports:
-              _create_resolver(~default=[N.buzz], [(N.buzz, [])]),
+              _create_resolver(~default=[Nx.buzz], [(Nx.buzz, [])]),
           };
 
         let (removed, updated) =
-          import_graph |> ImportGraph.refresh_subtree(N.bar);
+          import_graph |> ImportGraph.refresh_subtree(Nx.bar);
 
-        Assert.list_namespace([N.fizz], removed);
-        Assert.list_namespace([N.buzz, N.bar], updated);
+        Assert.list_namespace([Nx.fizz], removed);
+        Assert.list_namespace([Nx.buzz, Nx.bar], updated);
         Assert.import_graph(
           {
             ...import_graph,
             imports:
               Graph.create(
-                [N.buzz, N.bar, N.foo],
-                [(N.bar, N.buzz), (N.foo, N.bar)],
+                [Nx.buzz, Nx.bar, Nx.foo],
+                [(Nx.bar, Nx.buzz), (Nx.foo, Nx.bar)],
               ),
           },
           import_graph,
@@ -174,7 +145,7 @@ let suite =
     "clear()"
     >: (
       () => {
-        let import_graph = Fixtures.Graph.three_node() |> _create_graph;
+        let import_graph = Gx.three_node() |> _create_graph;
 
         ImportGraph.clear(import_graph);
 
@@ -187,7 +158,7 @@ let suite =
     "pp()"
     >: (
       () => {
-        let import_graph = Fixtures.Graph.two_node() |> _create_graph;
+        let import_graph = Gx.two_node() |> _create_graph;
 
         Assert.string(
           "@/foo \n\

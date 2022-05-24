@@ -2,7 +2,7 @@ open Kore;
 open Fmt;
 open Pretty.XML;
 
-module X = Fixtures.XML;
+module Xx = Fixtures.XML;
 
 let _empty_node = name => Node(name, [], []);
 
@@ -16,7 +16,7 @@ let suite =
       () =>
         Assert.string(
           "<foo fizz=buzz zip=zap />",
-          X.with_few_attributes |> ~@xml(string),
+          Xx.with_few_attributes |> ~@xml(string),
         )
     ),
     "with many attributes"
@@ -32,7 +32,7 @@ let suite =
   deserunt=pariatur
   ipsum=pariatur
 />",
-          X.with_many_attributes |> ~@xml(string),
+          Xx.with_many_attributes |> ~@xml(string),
         )
     ),
     "with single child"
@@ -69,7 +69,7 @@ let suite =
           "<foo fizz=buzz zip=zap>
   <bar />
 </foo>",
-          Node("foo", X.few_attributes, [_empty_node("bar")])
+          Node("foo", Xx.few_attributes, [_empty_node("bar")])
           |> ~@xml(string),
         )
     ),
@@ -80,7 +80,7 @@ let suite =
           "<bar>
   <foo fizz=buzz zip=zap />
 </bar>",
-          Node("bar", [], [X.with_few_attributes]) |> ~@xml(string),
+          Node("bar", [], [Xx.with_few_attributes]) |> ~@xml(string),
         )
     ),
     "with few attributes and child tag with few attributes"
@@ -90,7 +90,7 @@ let suite =
           "<bar fizz=buzz zip=zap>
   <foo fizz=buzz zip=zap />
 </bar>",
-          Node("bar", X.few_attributes, [X.with_few_attributes])
+          Node("bar", Xx.few_attributes, [Xx.with_few_attributes])
           |> ~@xml(string),
         )
     ),
@@ -111,8 +111,8 @@ let suite =
 </foo>",
           Node(
             "foo",
-            X.many_attributes,
-            [Node("bar", X.few_attributes, [])],
+            Xx.many_attributes,
+            [Node("bar", Xx.few_attributes, [])],
           )
           |> ~@xml(string),
         )
@@ -132,7 +132,7 @@ let suite =
     ipsum=pariatur
   />
 </bar>",
-          Node("bar", X.few_attributes, [X.with_many_attributes])
+          Node("bar", Xx.few_attributes, [Xx.with_many_attributes])
           |> ~@xml(string),
         )
     ),
@@ -159,7 +159,7 @@ let suite =
     ipsum=pariatur
   />
 </bar>",
-          Node("bar", X.many_attributes, [X.with_many_attributes])
+          Node("bar", Xx.many_attributes, [Xx.with_many_attributes])
           |> ~@xml(string),
         )
     ),

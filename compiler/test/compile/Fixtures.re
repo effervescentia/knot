@@ -4,6 +4,12 @@ module U = Util.ResultUtil;
 module A = AST;
 module T = Type;
 
+let _fixture = Filename.concat("./test/compile/.fixtures");
+
+let valid_program_dir = _fixture("valid_program");
+let invalid_program_dir = _fixture("invalid_program");
+let cyclic_imports_dir = _fixture("cyclic_imports");
+
 module Namespace = {
   open Reference.Namespace;
 
@@ -11,6 +17,21 @@ module Namespace = {
   let other = Internal("other");
   let foo = Internal("foo");
   let bar = Internal("bar");
+};
+
+module Compiler = {
+  module Compiler = Compile.Compiler;
+
+  let config =
+    Compiler.{
+      name: "foo",
+      root_dir: valid_program_dir,
+      source_dir: ".",
+      fail_fast: true,
+      log_imports: false,
+    };
+
+  let cyclic_config = {...config, root_dir: cyclic_imports_dir};
 };
 
 module Raw = {
@@ -164,4 +185,27 @@ module Program = {
     |> A.of_decl
     |> U.as_raw_node(~range=Range.create((3, 1), (3, 19))),
   ];
+};
+
+module Output = {
+  let const_int = "var $knot = require(\"@knot/runtime\");
+var ABC = 123;
+exports.ABC = ABC;
+";
+
+  let import_and_const = "var $knot = require(\"@knot/runtime\");
+var $import$_$entry = require(\"./entry\");
+var ABC = $import$_$entry.ABC;
+$import$_$entry = null;
+var BAR = \"bar\";
+exports.BAR = BAR;
+";
+
+  let single_import = "var $knot = require(\"@knot/runtime\");
+var $import$_$bar = require(\"./bar\");
+var foo = $import$_$bar.main;
+$import$_$bar = null;
+var ABC = 123;
+exports.ABC = ABC;
+";
 };

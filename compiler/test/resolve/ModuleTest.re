@@ -104,9 +104,7 @@ let suite =
           )
           |> Result.get_ok;
 
-        Assert.true_(
-          Sys.file_exists(Filename.concat(cache, relative_path)),
-        );
+        Assert.file_exists(Filename.concat(cache, relative_path));
         Assert.true_(String.starts_with(cache, cached_path));
         Assert.true_(String.ends_with(relative_path, cached_path));
       }

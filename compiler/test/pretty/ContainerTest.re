@@ -2,7 +2,7 @@ open Kore;
 open Fmt;
 open Pretty.Container;
 
-module L = Fixtures.List;
+module Lx = Fixtures.List;
 
 let _set = x => box(collection(any("<"), any(">"), x));
 let _string_set = _set(string);
@@ -19,16 +19,18 @@ let suite =
     "list() - empty"
     >: (() => Assert.string("", [] |> ~@root(list(string)))),
     "list() - comma separated"
-    >: (() => Assert.string("a, b, c", L.abc |> ~@root(box(list(string))))),
+    >: (
+      () => Assert.string("a, b, c", Lx.abc |> ~@root(box(list(string))))
+    ),
     "list() - trailing comma"
     >: (() => Assert.string("a, b, c,
-", L.abc |> ~@root(list(string)))),
+", Lx.abc |> ~@root(list(string)))),
     "list() - semicolon separated"
     >: (
       () =>
         Assert.string(
           "a; b; c",
-          L.abc |> ~@root(box(list(~sep=Sep.of_sep(";"), string))),
+          Lx.abc |> ~@root(box(list(~sep=Sep.of_sep(";"), string))),
         )
     ),
     "list() - do not break line when content fits"
@@ -36,7 +38,7 @@ let suite =
       () =>
         Assert.string(
           "Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi",
-          L.many |> ~@root(box(list(string))),
+          Lx.many |> ~@root(box(list(string))),
         )
     ),
     "list() - break line when too long"
@@ -56,19 +58,19 @@ et,
 ipsum,
 nisi,
 ",
-          L.too_many |> ~@root(list(string)),
+          Lx.too_many |> ~@root(list(string)),
         )
     ),
     "collection() - empty"
     >: (() => Assert.string("<>", [] |> ~@root(_string_set))),
     "collection() - comma separated"
-    >: (() => Assert.string("<a, b, c>", L.abc |> ~@root(_string_set))),
+    >: (() => Assert.string("<a, b, c>", Lx.abc |> ~@root(_string_set))),
     "collection() - do not break line when content fits"
     >: (
       () =>
         Assert.string(
           "<Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>",
-          L.many |> ~@root(_string_set),
+          Lx.many |> ~@root(_string_set),
         )
     ),
     "collection() - break line when too long"
@@ -89,7 +91,7 @@ nisi,
   ipsum,
   nisi,
 >",
-          L.too_many |> ~@root(_string_set),
+          Lx.too_many |> ~@root(_string_set),
         )
     ),
     "collection() - nested inline"
@@ -97,7 +99,7 @@ nisi,
       () =>
         Assert.string(
           "<<a, b, c>, <d, e, f>>",
-          [L.abc, L.def] |> ~@root(_string_set_set),
+          [Lx.abc, Lx.def] |> ~@root(_string_set_set),
         )
     ),
     "collection() - nested break line"
@@ -108,7 +110,7 @@ nisi,
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
   <Sint, eiusmod, quis, consectetur, cillum, nulla, est, et, ipsum, nisi>,
 >",
-          [L.many, L.many] |> ~@root(box(_string_set_set)),
+          [Lx.many, Lx.many] |> ~@root(box(_string_set_set)),
         )
     ),
     "collection() - nested breaking all lines"
@@ -145,17 +147,17 @@ nisi,
     nisi,
   >,
 >",
-          [L.too_many, L.too_many] |> ~@root(box(_string_set_set)),
+          [Lx.too_many, Lx.too_many] |> ~@root(box(_string_set_set)),
         )
     ),
     "array() - empty"
     >: (() => Assert.string("[]", [] |> ~@root(array(string)))),
     "array() - not empty"
-    >: (() => Assert.string("[a, b, c]", L.abc |> ~@root(array(string)))),
+    >: (() => Assert.string("[a, b, c]", Lx.abc |> ~@root(array(string)))),
     "tuple() - empty"
     >: (() => Assert.string("()", [] |> ~@root(tuple(string)))),
     "tuple() - not empty"
-    >: (() => Assert.string("(a, b, c)", L.abc |> ~@root(tuple(string)))),
+    >: (() => Assert.string("(a, b, c)", Lx.abc |> ~@root(tuple(string)))),
     "closure() - empty"
     >: (() => Assert.string("{ }", [] |> ~@root(closure(string)))),
     "closure() - one entry"
@@ -180,7 +182,7 @@ nisi,
   ipsum
   nisi
 }",
-          L.many |> ~@root(closure(string)),
+          Lx.many |> ~@root(closure(string)),
         )
     ),
     "closure() - nested"
@@ -252,7 +254,7 @@ nisi,
   b: 2
   c: 3
 }",
-          L.a1b2c3 |> ~@root(record(string, int)),
+          Lx.a1b2c3 |> ~@root(record(string, int)),
         )
     ),
     "record() - long value"
@@ -304,7 +306,7 @@ nisi,
   b
   c
 }",
-          ("foo", L.abc) |> ~@root(entity(string, string)),
+          ("foo", Lx.abc) |> ~@root(entity(string, string)),
         )
     ),
     "entity() - nested"
@@ -323,7 +325,7 @@ nisi,
     f
   }
 }",
-          ("foo", [("bar", L.abc), ("fizz", L.def)])
+          ("foo", [("bar", Lx.abc), ("fizz", Lx.def)])
           |> ~@root(entity(string, entity(string, string))),
         )
     ),
@@ -344,7 +346,7 @@ nisi,
   b: 2
   c: 3
 }",
-          ("foo", L.a1b2c3) |> ~@root(struct_(string, int)),
+          ("foo", Lx.a1b2c3) |> ~@root(struct_(string, int)),
         )
     ),
     "struct_() - nested"
@@ -365,7 +367,7 @@ nisi,
 }",
           (
             "foo",
-            [("bar", ("Bar", L.a1b2c3)), ("fizz", ("Fizz", L.d4e5f6))],
+            [("bar", ("Bar", Lx.a1b2c3)), ("fizz", ("Fizz", Lx.d4e5f6))],
           )
           |> ~@root(struct_(string, struct_(string, int))),
         )

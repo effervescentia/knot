@@ -58,15 +58,17 @@ let __ns_context =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.Valid({
-            ast: [],
-            exports:
-              [(Export.Main, Type.Valid(`String))]
-              |> List.to_seq
-              |> Hashtbl.of_seq,
-            scopes: __scope_tree,
-            raw: "foo",
-          }),
+          ModuleTable.Valid(
+            "foo",
+            {
+              ast: [],
+              exports:
+                [(Export.Main, Type.Valid(`String))]
+                |> List.to_seq
+                |> Hashtbl.of_seq,
+              scopes: __scope_tree,
+            },
+          ),
         ),
       ]
       |> List.to_seq
@@ -129,15 +131,17 @@ let suite =
                 [
                   (
                     "bar" |> A.of_internal,
-                    ModuleTable.Valid({
-                      ast: [],
-                      exports:
-                        [(Export.Main, Type.Valid(`Boolean))]
-                        |> List.to_seq
-                        |> Hashtbl.of_seq,
-                      scopes: __scope_tree,
-                      raw: "foo",
-                    }),
+                    ModuleTable.Valid(
+                      "foo",
+                      {
+                        ast: [],
+                        exports:
+                          [(Export.Main, Type.Valid(`Boolean))]
+                          |> List.to_seq
+                          |> Hashtbl.of_seq,
+                        scopes: __scope_tree,
+                      },
+                    ),
                   ),
                 ]
                 |> List.to_seq

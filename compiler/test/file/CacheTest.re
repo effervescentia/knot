@@ -58,9 +58,9 @@ let suite =
         path |> Util.write_to_file(__content);
         Cache.destroy(parent_dir);
 
-        Assert.false_(Sys.file_exists(path));
-        Assert.false_(Sys.file_exists(parent_dir));
-        Assert.true_(Sys.file_exists(temp_dir));
+        Assert.no_file_exists(path);
+        Assert.no_file_exists(parent_dir);
+        Assert.file_exists(temp_dir);
       }
     ),
   ];

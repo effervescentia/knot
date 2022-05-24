@@ -25,3 +25,9 @@ let compiler =
       "compiler matches",
     )
   );
+
+let file_contents = (expected, file) => {
+  let actual = File.IO.read_to_string(file);
+
+  string(expected, actual);
+};

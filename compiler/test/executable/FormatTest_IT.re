@@ -24,7 +24,7 @@ let suite =
         );
 
         Async.on_tick(() => {
-          Assert.true_(Sys.file_exists(output_file));
+          Assert.file_exists(output_file);
           Assert.string(
             "const ABC = 123;\n",
             Util.read_file_to_string(output_file),
@@ -54,13 +54,13 @@ let suite =
         );
 
         Async.on_tick(() => {
-          Assert.true_(Sys.file_exists(main_file));
+          Assert.file_exists(main_file);
           Assert.string(
             "import Utils from \"@/utils\";\n",
             Util.read_file_to_string(main_file),
           );
 
-          Assert.true_(Sys.file_exists(utils_file));
+          Assert.file_exists(utils_file);
           Assert.string(
             "import Main from \"@/main\";\n",
             Util.read_file_to_string(utils_file),
@@ -93,7 +93,7 @@ let suite =
         );
 
         Async.on_tick(() => {
-          Assert.true_(Sys.file_exists(main_file));
+          Assert.file_exists(main_file);
           Assert.string(
             "import Utils from \"@/utils\";\n",
             Util.read_file_to_string(main_file),

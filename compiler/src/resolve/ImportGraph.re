@@ -18,6 +18,9 @@ let create = (get_imports: Namespace.t => list(Namespace.t)): t => {
 
 /* methods */
 
+let rec add_dependency = (source: Namespace.t, target: Namespace.t, graph: t) =>
+  graph.imports |> Graph.add_edge(source, target);
+
 let rec add_module = (~added=ref([]), id: Namespace.t, graph: t) => {
   Graph.add_node(id, graph.imports);
 
@@ -29,22 +32,13 @@ let rec add_module = (~added=ref([]), id: Namespace.t, graph: t) => {
          add_module(~added, child_id, graph) |> ignore;
        };
 
-       graph.imports |> Graph.add_edge(id, child_id);
+       graph |> add_dependency(id, child_id);
      });
 
   added^;
 };
 
 let init = (entry: Namespace.t) => add_module(entry) % ignore;
-
-let remove_module = (node: 'a, graph: t) => {
-  let ancestors = graph.imports |> Graph.get_ancestors(node);
-
-  graph.imports |> Graph.remove_node(node);
-  graph.imports |> Graph.remove_edges_from(node);
-
-  ([node], ancestors);
-};
 
 let prune_subtree = (node: 'a, graph: t) => {
   let removed = ref([]);
@@ -72,8 +66,11 @@ let prune_subtree = (node: 'a, graph: t) => {
 
 let get_modules = (graph: t) => graph.imports |> Graph.get_nodes;
 
-let get_imported_by = (entry: Namespace.t, graph: t) =>
-  graph.imports |> Graph.get_children(entry);
+let get_dependents = (entry: Namespace.t, graph: t) =>
+  graph.imports |> Graph.get_ancestors(entry);
+
+let get_dependencies = (entry: Namespace.t, graph: t) =>
+  graph.imports |> Graph.get_descendants(entry);
 
 let has_module = (entry: Namespace.t, graph: t) =>
   graph.imports |> Graph.has_node(entry);

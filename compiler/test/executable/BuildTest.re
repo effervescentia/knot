@@ -29,7 +29,7 @@ let suite =
           },
         );
 
-        Assert.true_(Sys.file_exists(output_file));
+        Assert.file_exists(output_file);
         Assert.string(
           "var $knot = require(\"@knot/runtime\");
 var ABC = 123;
@@ -62,7 +62,7 @@ exports.ABC = ABC;
         );
 
         [main_file, app_file, constants_file]
-        |> List.iter(Sys.file_exists % Assert.true_);
+        |> List.iter(Assert.file_exists);
 
         Assert.string(
           "var $knot = require(\"@knot/runtime\");

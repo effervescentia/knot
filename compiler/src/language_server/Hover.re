@@ -78,7 +78,7 @@ let handler: Runtime.request_handler_t(params_t) =
 
         | Some(_) => {
             Hashtbl.find_opt(compiler.modules, namespace)
-            |?< ModuleTable.(get_entry_data % Option.map(({raw}) => raw))
+            |?< ModuleTable.get_entry_raw
             |?< Runtime.scan_for_token(point)
             |?< (
               node =>

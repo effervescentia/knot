@@ -31,19 +31,24 @@ let __context_with_named_exports =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.Valid({
-            ast: [],
-            exports:
-              [
-                (Export.Main, Type.Valid(`Nil)),
-                (Export.Named("bar" |> A.of_public), Type.Valid(`Boolean)),
-                (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
-              ]
-              |> List.to_seq
-              |> Hashtbl.of_seq,
-            scopes: __scope_tree,
-            raw: "foo",
-          }),
+          ModuleTable.Valid(
+            "foo",
+            {
+              ast: [],
+              exports:
+                [
+                  (Export.Main, Type.Valid(`Nil)),
+                  (
+                    Export.Named("bar" |> A.of_public),
+                    Type.Valid(`Boolean),
+                  ),
+                  (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
+                ]
+                |> List.to_seq
+                |> Hashtbl.of_seq,
+              scopes: __scope_tree,
+            },
+          ),
         ),
       ]
       |> List.to_seq
@@ -57,15 +62,17 @@ let __context_with_main_export =
       [
         (
           "bar" |> A.of_internal,
-          ModuleTable.Valid({
-            ast: [],
-            exports:
-              [(Export.Main, Type.Valid(`Nil))]
-              |> List.to_seq
-              |> Hashtbl.of_seq,
-            scopes: __scope_tree,
-            raw: "foo",
-          }),
+          ModuleTable.Valid(
+            "foo",
+            {
+              ast: [],
+              exports:
+                [(Export.Main, Type.Valid(`Nil))]
+                |> List.to_seq
+                |> Hashtbl.of_seq,
+              scopes: __scope_tree,
+            },
+          ),
         ),
       ]
       |> List.to_seq

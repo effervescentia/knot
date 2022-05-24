@@ -22,7 +22,7 @@ module Compare = {
 
   let range = testable(Range.pp, (==));
 
-  let graph = testable(Graph.pp(Fmt.string), (==));
+  let graph = pp_value => testable(Graph.pp(pp_value), (==));
 
   let raw_node = (pp_value: Fmt.t('a)) =>
     testable(Node.Raw.pp(pp_value), (==));
@@ -74,7 +74,12 @@ let point = Alcotest.(check(Compare.point, "point matches"));
 
 let range = Alcotest.(check(Compare.range, "range matches"));
 
-let graph = Alcotest.(check(Compare.graph, "graph matches"));
+let graph = Alcotest.(check(Compare.graph(Fmt.string), "graph matches"));
+
+let namespace_graph =
+  Alcotest.(
+    check(Compare.graph(Reference.Namespace.pp), "namespace graph matches")
+  );
 
 let raw_node = pp_value =>
   Alcotest.(check(Compare.raw_node(pp_value), "raw node matches"));

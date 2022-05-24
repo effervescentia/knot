@@ -2,7 +2,7 @@ open Kore;
 
 module ImportGraph = Resolve.ImportGraph;
 module Validate = Compile.Validate;
-module N = Fixtures.Namespace;
+module Nx = Fixtures.Namespace;
 
 let __graph =
   ImportGraph.{imports: Fixtures.Graph.two_node, get_imports: _ => []};
@@ -30,7 +30,7 @@ let suite =
       () => {
         let graph = {
           ...__graph,
-          imports: Graph.create([N.foo], [(N.foo, N.foo)]),
+          imports: Graph.create([Nx.foo], [(Nx.foo, Nx.foo)]),
         };
 
         _assert_invalid(
@@ -46,7 +46,7 @@ let suite =
       () => {
         let graph = {
           ...__graph,
-          imports: Graph.create([N.foo], [(N.foo, N.bar)]),
+          imports: Graph.create([Nx.foo], [(Nx.foo, Nx.bar)]),
         };
 
         _assert_invalid(
