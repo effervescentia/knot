@@ -17,7 +17,7 @@ let handler: Runtime.notification_handler_t(params_t) =
   (runtime, {text_document: {uri}}) =>
     switch (runtime |> Runtime.resolve(uri)) {
     | Some((namespace, {compiler, contexts} as ctx)) =>
-      let (_, updated) = compiler |> Compiler.upsert_module(namespace);
+      let updated = compiler |> Compiler.upsert_module(namespace);
 
       compiler |> Compiler.incremental(updated);
       Runtime.analyze_module(namespace, ctx) |> ignore;

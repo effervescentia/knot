@@ -40,14 +40,18 @@ let rec add_module = (~added=ref([]), id: Namespace.t, graph: t) => {
 
 let init = (entry: Namespace.t) => add_module(entry) % ignore;
 
+let remove_module = (id: Namespace.t, graph: t) => {
+  graph.imports |> Graph.remove_node(id);
+  graph.imports |> Graph.remove_edges_from(id);
+};
+
 let prune_subtree = (node: 'a, graph: t) => {
   let removed = ref([]);
 
   let rec loop = target => {
     let children = graph.imports |> Graph.get_children(target);
 
-    graph.imports |> Graph.remove_node(target);
-    graph.imports |> Graph.remove_edges_from(target);
+    graph |> remove_module(target);
 
     removed := removed^ |> List.incl(target);
 
@@ -85,13 +89,6 @@ let find_missing = (graph: t) =>
        % (child => Graph.has_node(child, graph.imports) ? None : Some(child)),
      )
   |> List.uniq_by((==));
-
-let refresh_subtree = (id: Namespace.t, graph: t) => {
-  let removed = graph |> prune_subtree(id);
-  let added = graph |> add_module(id);
-
-  (removed |> List.excl_all(added), added);
-};
 
 /**
  compare two ImportGraphs for equality

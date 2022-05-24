@@ -586,15 +586,14 @@ exports.BAR = BAR;
           },
         };
 
-        let (removed, updated) = compiler |> Compiler.update_module(Nx.bar);
+        let updated = compiler |> Compiler.update_module(Nx.bar);
 
-        Assert.list_namespace([Nx.entry, Nx.bar], updated);
-        Assert.list_namespace([Nx.other], removed);
+        Assert.list_namespace([Nx.entry, Nx.bar, Nx.foo], updated);
         Assert.module_table(
           [
+            (Nx.foo, ModuleTable.Pending),
             (Nx.bar, ModuleTable.Pending),
             (Nx.entry, ModuleTable.Pending),
-            (Nx.other, ModuleTable.Purged),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,
@@ -620,11 +619,7 @@ exports.BAR = BAR;
         compiler |> Compiler.remove_module(Nx.bar) |> ignore;
 
         Assert.module_table(
-          [
-            (Nx.foo, ModuleTable.Pending),
-            (Nx.bar, ModuleTable.Purged),
-            (Nx.other, ModuleTable.Purged),
-          ]
+          [(Nx.foo, ModuleTable.Pending), (Nx.bar, ModuleTable.Purged)]
           |> List.to_seq
           |> Hashtbl.of_seq,
           compiler.modules,

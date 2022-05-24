@@ -105,12 +105,12 @@ let run =
               | Add when _is_source_file(path) =>
                 Log.debug("file added %s", path |> ~@pp_source_relative);
 
-                compiler |> Compiler.upsert_module(namespace) |> snd;
+                compiler |> Compiler.upsert_module(namespace);
 
               | Update when _is_source_file(path) =>
                 Log.debug("file updated %s", path |> ~@pp_source_relative);
 
-                compiler |> Compiler.update_module(namespace) |> snd;
+                compiler |> Compiler.upsert_module(namespace);
 
               | Remove when _is_source_file(path) =>
                 Log.debug("file removed %s", path |> ~@pp_source_relative);

@@ -5,6 +5,7 @@ import execa from 'execa';
 import { KNOTC_BINARY } from '../../config';
 import { Target } from '../../types';
 import {
+  AnyError,
   Method,
   ModuleAddParams,
   ModuleFetchParams,
@@ -75,13 +76,8 @@ class Client {
 
     if (!options.debug) return;
 
-    this.unsubscribeErrorHandler = this.rpc.emitter.on(
-      Method.ERROR,
-      ({ errors }) => {
-        errors.forEach(error =>
-          console.error(`ERROR ${error.type}: ${chalk.red(error.message)}`)
-        );
-      }
+    this.replaceErrorHandler(error =>
+      console.error(`ERROR ${error.type}: ${chalk.red(error.message)}`)
     );
 
     this.proc.stderr.on('data', data => console.error(data.toString()));
@@ -124,9 +120,22 @@ class Client {
     return this.rpc.request(Method.STATUS);
   }
 
-  public terminate(): void {
+  public removeErrorHandler() {
     this.unsubscribeErrorHandler();
     this.unsubscribeErrorHandler = noop;
+  }
+
+  public replaceErrorHandler(listener: (error: AnyError) => void) {
+    this.removeErrorHandler();
+
+    this.unsubscribeErrorHandler = this.unsubscribeErrorHandler = this.rpc.emitter.on(
+      Method.ERROR,
+      ({ errors }) => errors.forEach(listener)
+    );
+  }
+
+  public terminate(): void {
+    this.removeErrorHandler();
     this.rpc.rejectAllPendingRequests('terminated');
     this.proc.kill('SIGTERM', { forceKillAfterTimeout: 2000 });
   }

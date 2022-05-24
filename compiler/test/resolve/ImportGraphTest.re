@@ -64,6 +64,22 @@ let suite =
         );
       }
     ),
+    "remove_module()"
+    >: (
+      () => {
+        let import_graph = Gx.three_node() |> _create_graph;
+
+        import_graph |> ImportGraph.remove_module(Nx.bar);
+
+        Assert.import_graph(
+          {
+            ...import_graph,
+            imports: Graph.create([Nx.fizz, Nx.foo], [(Nx.foo, Nx.bar)]),
+          },
+          import_graph,
+        );
+      }
+    ),
     "prune_subtree()"
     >: (
       () => {
@@ -111,34 +127,6 @@ let suite =
         Assert.list_namespace(
           [Nx.bar],
           import_graph |> ImportGraph.find_missing,
-        );
-      }
-    ),
-    "refresh_subtree()"
-    >: (
-      () => {
-        let import_graph =
-          ImportGraph.{
-            imports: Gx.three_node(),
-            get_imports:
-              _create_resolver(~default=[Nx.buzz], [(Nx.buzz, [])]),
-          };
-
-        let (removed, updated) =
-          import_graph |> ImportGraph.refresh_subtree(Nx.bar);
-
-        Assert.list_namespace([Nx.fizz], removed);
-        Assert.list_namespace([Nx.buzz, Nx.bar], updated);
-        Assert.import_graph(
-          {
-            ...import_graph,
-            imports:
-              Graph.create(
-                [Nx.buzz, Nx.bar, Nx.foo],
-                [(Nx.bar, Nx.buzz), (Nx.foo, Nx.bar)],
-              ),
-          },
-          import_graph,
         );
       }
     ),

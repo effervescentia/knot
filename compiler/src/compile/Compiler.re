@@ -401,13 +401,9 @@ let add_module = (id: Namespace.t, compiler: t) => {
  all imports will be recalculated
  */
 let update_module = (id: Namespace.t, compiler: t) => {
-  let (removed, updated) as result =
-    compiler.graph |> ImportGraph.refresh_subtree(id);
+  compiler.graph |> ImportGraph.remove_module(id);
 
-  compiler |> _purge_modules(removed);
-  compiler |> _prepare_modules(updated);
-
-  result;
+  compiler |> add_module(id);
 };
 
 /**
@@ -417,7 +413,7 @@ let upsert_module = (id: Namespace.t, compiler: t) =>
   if (compiler.graph |> ImportGraph.has_module(id)) {
     compiler |> update_module(id);
   } else {
-    compiler |> add_module(id) |> Tuple.with_fst2([]);
+    compiler |> add_module(id);
   };
 
 /**
@@ -427,8 +423,10 @@ let upsert_module = (id: Namespace.t, compiler: t) =>
  will also be removed
  */
 let remove_module = (id: Namespace.t, compiler: t) => {
-  let removed = compiler.graph |> ImportGraph.prune_subtree(id);
+  let removed = [id];
   let updated = compiler.graph |> ImportGraph.get_dependents(id);
+
+  compiler.graph |> ImportGraph.remove_module(id);
 
   compiler |> _purge_modules(removed);
   compiler |> _prepare_modules(updated);

@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 
 import { Target } from '../../types';
-import { ModuleStatus, Status } from '../protocol';
+import { CompilerErrorType, ModuleStatus, Status } from '../protocol';
 import Client, { ClientOptions } from '.';
 import * as Fixture from './index.fixture';
 
@@ -142,7 +142,7 @@ test('purges root module safely', t =>
     ]);
 
     t.is(status, Status.IDLE);
-    t.is(mainStatus, ModuleStatus.NONE);
+    t.is(mainStatus, ModuleStatus.PURGED);
     t.is(appStatus, ModuleStatus.VALID);
   }));
 
@@ -151,23 +151,35 @@ test('purges leaf module and reprocesses', t =>
     cwd: COMPLEX_FIXTURE,
     target: Target.JAVASCRIPT_ES6
   })(async client => {
+    const errorPromise = new Promise(resolve => {
+      client.replaceErrorHandler(error => {
+        client.removeErrorHandler();
+        resolve(error);
+      });
+    });
+
     await client.addModule({ path: MAIN_MODULE });
     await client.removeModule({ path: APP_MODULE });
 
     const [
       { status },
-      // { status: mainStatus },
+      { status: mainStatus },
       { status: appStatus }
     ] = await Promise.all([
       client.status(),
-      // client.moduleStatus({ path: MAIN_MODULE }),
+      client.moduleStatus({ path: MAIN_MODULE }),
       client.moduleStatus({ path: APP_MODULE })
     ]);
 
     t.is(status, Status.IDLE);
-    // FIXME: this module should now have an error
-    // t.is(mainStatus, ModuleStatus.ERROR);
-    t.is(appStatus, ModuleStatus.NONE);
+    t.is(mainStatus, ModuleStatus.VALID);
+    t.is(appStatus, ModuleStatus.PURGED);
+
+    const error = await errorPromise;
+    t.deepEqual(error, {
+      type: CompilerErrorType.UNRESOLVED_MODULE,
+      message: "cannot resolve module '@/App'"
+    });
   }));
 
 test('resets compilation context', t =>
