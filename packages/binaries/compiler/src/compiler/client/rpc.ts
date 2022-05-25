@@ -32,12 +32,18 @@ export interface RPCClient extends JSONRPCClient {
 }
 
 const createRPC = (proc: execa.ExecaChildProcess): RPCClient => {
+  proc.stdin.setDefaultEncoding('utf8');
+
   const emitter = new Emittery<NotificationMap>();
   const rpc = new JSONRPCClient(async rpcRequest => {
     const json = JSON.stringify(rpcRequest);
     const message = `${CONTENT_LENGTH_HEADER}${HEADER_SEPARATOR}${json.length}${LINE_BREAK}${json}`;
 
-    proc.stdin.write(message, 'utf-8');
+    proc.stdin.write(message, err => {
+      if (err) {
+        console.error(err);
+      }
+    });
   });
 
   const read = (data: string) => {

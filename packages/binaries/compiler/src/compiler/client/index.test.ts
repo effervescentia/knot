@@ -215,7 +215,7 @@ test('updates module incrementally', async t => {
   await fs.promises.writeFile(
     path.join(cwd, 'src', barModule),
     'const BAR = 123;',
-    'utf-8'
+    'utf8'
   );
 
   await runWithClient({
@@ -243,7 +243,7 @@ export { BAR };
 
 main const TIMEOUT = 100;
 `,
-      'utf-8'
+      'utf8'
     );
 
     await client.updateModule({ path: CONSTANTS_MODULE });
@@ -272,7 +272,7 @@ test('recovers from error state', async t => {
   await fs.promises.writeFile(
     path.join(cwd, 'src', CONSTANTS_MODULE),
     'main const const = "foo";',
-    'utf-8'
+    'utf8'
   );
 
   await runWithClient({
@@ -295,7 +295,7 @@ test('recovers from error state', async t => {
     await fs.promises.writeFile(
       path.join(cwd, 'src', CONSTANTS_MODULE),
       `main const TIMEOUT = 100;`,
-      'utf-8'
+      'utf8'
     );
 
     await client.updateModule({ path: CONSTANTS_MODULE });

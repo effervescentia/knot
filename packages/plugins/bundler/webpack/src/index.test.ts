@@ -4,7 +4,7 @@ import test from 'ava';
 import KnotCompilerPlugin from '.';
 
 test('construct', t => {
-  const options = { port: 90210 } as Options;
+  const options = { debug: true } as Options;
 
   const plugin = new KnotCompilerPlugin(options);
 

@@ -8,6 +8,7 @@
     "build": "webpack --mode production",
     "dev": "webpack --watch --mode development",
     "start": "webpack-dev-server --mode development",
+    "start:debug": "npx --node-arg=--inspect webpack-dev-server --mode development",
     "start:hidden": "npm run start -- --no-open",
     "analyze": "npm run build -- --env.analyze",
     "test": "npm run test:e2e",

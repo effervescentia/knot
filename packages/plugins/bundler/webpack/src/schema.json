@@ -1,9 +1,6 @@
 {
   "type": "object",
   "properties": {
-    "port": {
-      "type": "number"
-    },
     "debug": {
       "type": "boolean"
     },
@@ -13,7 +10,7 @@
     "knotc": {
       "type": "string"
     },
-    "rootDir": {
+    "cwd": {
       "type": "string"
     },
     "target": {
