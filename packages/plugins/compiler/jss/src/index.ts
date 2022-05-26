@@ -7,7 +7,7 @@ import units from './units';
 
 JSS.setup(jssPreset());
 
-export const main = {
+export default {
   ...properties,
 
   visibility: 'visibility',
@@ -34,5 +34,5 @@ export const main = {
 
   classes(...classNames: string[]): string {
     return classNames.join(' ');
-  }
+  },
 };

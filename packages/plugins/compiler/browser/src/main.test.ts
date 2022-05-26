@@ -1,8 +1,8 @@
 import test from 'ava';
 
-import { prop } from '.';
+import { prop } from './main';
 
-test('prop()', t => {
+test('prop()', (t) => {
   const myValue = 123;
   const options = { myKey: myValue };
 

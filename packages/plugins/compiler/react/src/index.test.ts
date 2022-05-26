@@ -2,7 +2,7 @@ import { isMultisetEqual } from '@knot/common';
 import test, { ExecutionContext } from 'ava';
 import * as React from 'react';
 
-import { main } from '.';
+import main from '.';
 
 function hasKeys<T extends object>(
   t: ExecutionContext,
@@ -17,20 +17,20 @@ function hasKeys<T extends object>(
   );
 }
 
-test('includes keys', t =>
+test('includes keys', (t) =>
   hasKeys(t, main, [
     'createComponent',
     'createElement',
     'createFragment',
     'render',
-    'withState'
+    'withState',
   ]));
 
-test('createElement()', t => {
+test('createElement()', (t) => {
   t.is(main.createElement, React.createElement);
 });
 
-test('render()', t => {
+test('render()', (t) => {
   const elementId = 'myApp';
 
   const rootEl = document.createElement('div');
@@ -42,7 +42,7 @@ test('render()', t => {
   t.is(document.getElementById(elementId).innerHTML, '<h1>Hello, World!</h1>');
 });
 
-test('withState()', t => {
+test('withState()', (t) => {
   const Component = main.withState(
     () => ({ get: () => null }),
     () => null

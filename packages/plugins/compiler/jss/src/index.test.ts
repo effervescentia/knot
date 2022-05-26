@@ -1,11 +1,11 @@
 import test from 'ava';
 
-import { main } from '.';
+import main from '.';
 import colors from './colors';
 import properties from './properties';
 import units from './units';
 
-test('includes keys', t => {
+test('includes keys', (t) => {
   const keys = Object.keys(main);
 
   t.plan(keys.length);
@@ -23,6 +23,6 @@ test('includes keys', t => {
     'str',
 
     'resolve',
-    'classes'
-  ].forEach(key => t.true(keys.includes(key)));
+    'classes',
+  ].forEach((key) => t.true(keys.includes(key)));
 });
