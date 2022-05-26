@@ -9,8 +9,6 @@ let deserialize = Deserialize.module_params;
 let handler: Runtime.notification_handler_t(params_t) =
   (runtime, {path}) =>
     runtime
-    |> Util.process_incremental(() => {
-         let namespace = Namespace.of_path(path);
-
-         runtime.compiler |> Compiler.remove_module(namespace);
-       });
+    |> Util.process_incremental(path, namespace =>
+         runtime.compiler |> Compiler.remove_module(namespace)
+       );

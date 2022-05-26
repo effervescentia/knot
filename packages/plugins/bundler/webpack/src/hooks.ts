@@ -5,7 +5,7 @@ import { Context, Kill } from './types';
 import {
   addModuleLoader,
   discoverDependencies,
-  invalidateModule
+  invalidateModule,
 } from './utils';
 
 import WebpackCompiler = Webpack.Compiler;
@@ -67,8 +67,8 @@ export function resolutionHook(
   compiler: WebpackCompiler,
   { name, options }: Context
 ): void {
-  compiler.hooks.normalModuleFactory.tap(name, nmf => {
-    nmf.hooks.beforeResolve.tap(name, mod => {
+  compiler.hooks.normalModuleFactory.tap(name, (nmf) => {
+    nmf.hooks.beforeResolve.tap(name, (mod) => {
       const resolved = resolveLibrary(mod.request, options);
       if (resolved) {
         mod.request = resolved;
@@ -100,7 +100,7 @@ const HOOKS: Readonly<Hook[]> = [
   terminationHook,
   invalidationHook,
   resolutionHook,
-  compilationHook
+  compilationHook,
 ];
 
 export default HOOKS;

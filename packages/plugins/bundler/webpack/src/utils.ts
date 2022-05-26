@@ -9,7 +9,7 @@ import WebpackModule = Webpack.loader.LoaderContext;
 export function createTerminator(
   knotCompiler: KnotCompiler
 ): (err: Error) => Promise<void> {
-  return async err => {
+  return async (err) => {
     console.error('compilation failed with error: ', err);
     console.log('waiting for compiler to shut down...');
     await knotCompiler.close();
@@ -22,7 +22,7 @@ export function createTerminator(
 export function resolveLibrary(
   options: Options
 ): (mod: WebpackModule) => WebpackModule {
-  return mod => {
+  return (mod) => {
     if (!mod) {
       return mod;
     }
@@ -43,7 +43,7 @@ export function invalidateModule(
   knotCompiler: KnotCompiler,
   kill: Kill
 ): (path: string) => void {
-  return invalidPath =>
+  return (invalidPath) =>
     isKnot(invalidPath) && knotCompiler.update(invalidPath).catch(kill);
 }
 
@@ -61,7 +61,7 @@ export function discoverDependencies(
   knotCompiler: KnotCompiler,
   kill: Kill
 ): (mod: any) => Promise<any> {
-  return async mod => {
+  return async (mod) => {
     const knotDeps = mod.dependencies.filter(({ request }) => isKnot(request));
 
     if (knotDeps.length === 0) {

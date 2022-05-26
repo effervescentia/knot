@@ -10,6 +10,6 @@ export const DEFAULT_OPTIONS: Options = {
   plugins: {
     jsx: '@knot/react-plugin',
     platform: '@knot/browser-plugin',
-    style: '@knot/jss-plugin'
-  }
+    style: '@knot/jss-plugin',
+  },
 };

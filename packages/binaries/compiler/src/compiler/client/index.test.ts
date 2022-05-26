@@ -31,145 +31,141 @@ const createFixture = async (source: string) => {
   return fixture;
 };
 
-const runWithClient = (options: Partial<ClientOptions> = {}) => async (
-  test: (client: Client) => Promise<any>
-) => {
-  const client = new Client({
-    knotc: LOCAL_BINARY,
-    cwd: JS_TARGET_FIXTURE,
-    ...options
-  });
+const runWithClient =
+  (overrides: Partial<ClientOptions> = {}) =>
+  async (
+    test: (client: Client, resolve: (file: string) => string) => Promise<any>
+  ) => {
+    const options = {
+      knotc: LOCAL_BINARY,
+      cwd: JS_TARGET_FIXTURE,
+      ...overrides,
+    };
+    const client = new Client(options);
 
-  try {
-    await test(client);
-  } finally {
-    client.terminate();
-  }
-};
+    try {
+      await test(client, (file) => path.join(options.cwd, 'src', file));
+    } finally {
+      client.terminate();
+    }
+  };
 
-test('starts with idle status', t =>
-  runWithClient()(async client => {
+test('starts with idle status', (t) =>
+  runWithClient()(async (client) => {
     const { status } = await client.status();
 
     t.is(status, Status.IDLE);
   }));
 
-test('processes a module', t =>
-  runWithClient()(async client => {
-    await client.addModule({ path: MAIN_MODULE });
+test('processes a module', (t) =>
+  runWithClient()(async (client, resolve) => {
+    await client.addModule({ path: resolve(MAIN_MODULE) });
 
     const { status } = await client.status();
 
     t.is(status, Status.IDLE);
 
     const { status: moduleStatus } = await client.moduleStatus({
-      path: MAIN_MODULE
+      path: resolve(MAIN_MODULE),
     });
 
     t.is(moduleStatus, ModuleStatus.VALID);
 
-    const { data } = await client.fetchModule({ path: MAIN_MODULE });
+    const { data } = await client.fetchModule({ path: resolve(MAIN_MODULE) });
 
     t.is(data, Fixture.SIMPLE_MAIN);
   }));
 
-test('processes multiple modules', t =>
+test('processes multiple modules', (t) =>
   runWithClient({
     cwd: COMPLEX_FIXTURE,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
-    await client.addModule({ path: MAIN_MODULE });
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
+    await client.addModule({ path: resolve(MAIN_MODULE) });
 
-    const [
-      { data: mainData },
-      { data: appData },
-      { data: constData }
-    ] = await Promise.all([
-      client.fetchModule({ path: MAIN_MODULE }),
-      client.fetchModule({ path: APP_MODULE }),
-      client.fetchModule({ path: CONSTANTS_MODULE })
-    ]);
+    const [{ data: mainData }, { data: appData }, { data: constData }] =
+      await Promise.all([
+        client.fetchModule({ path: resolve(MAIN_MODULE) }),
+        client.fetchModule({ path: resolve(APP_MODULE) }),
+        client.fetchModule({ path: resolve(CONSTANTS_MODULE) }),
+      ]);
 
     t.is(mainData, Fixture.COMPLEX_MAIN);
     t.is(appData, Fixture.COMPLEX_APP);
     t.is(constData, Fixture.COMPLEX_CONSTANTS);
   }));
 
-test('processes modules incrementally', t =>
+test('processes modules incrementally', (t) =>
   runWithClient({
     cwd: COMPLEX_FIXTURE,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
-    await client.addModule({ path: APP_MODULE });
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
+    await client.addModule({ path: resolve(APP_MODULE) });
 
-    const { data: appData } = await client.fetchModule({ path: APP_MODULE });
+    const { data: appData } = await client.fetchModule({
+      path: resolve(APP_MODULE),
+    });
 
     t.is(appData, Fixture.COMPLEX_APP);
 
     const { status: moduleStatus } = await client.moduleStatus({
-      path: MAIN_MODULE
+      path: resolve(MAIN_MODULE),
     });
 
     t.is(moduleStatus, ModuleStatus.NONE);
 
-    await client.addModule({ path: MAIN_MODULE });
+    await client.addModule({ path: resolve(MAIN_MODULE) });
 
     const [{ data: mainData }, { data: constData }] = await Promise.all([
-      client.fetchModule({ path: MAIN_MODULE }),
-      client.fetchModule({ path: CONSTANTS_MODULE })
+      client.fetchModule({ path: resolve(MAIN_MODULE) }),
+      client.fetchModule({ path: resolve(CONSTANTS_MODULE) }),
     ]);
 
     t.is(mainData, Fixture.COMPLEX_MAIN);
     t.is(constData, Fixture.COMPLEX_CONSTANTS);
   }));
 
-test('purges root module safely', t =>
+test('purges root module safely', (t) =>
   runWithClient({
     cwd: COMPLEX_FIXTURE,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
-    await client.addModule({ path: MAIN_MODULE });
-    await client.removeModule({ path: MAIN_MODULE });
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
+    await client.addModule({ path: resolve(MAIN_MODULE) });
+    await client.removeModule({ path: resolve(MAIN_MODULE) });
 
-    const [
-      { status },
-      { status: mainStatus },
-      { status: appStatus }
-    ] = await Promise.all([
-      client.status(),
-      client.moduleStatus({ path: MAIN_MODULE }),
-      client.moduleStatus({ path: APP_MODULE })
-    ]);
+    const [{ status }, { status: mainStatus }, { status: appStatus }] =
+      await Promise.all([
+        client.status(),
+        client.moduleStatus({ path: resolve(MAIN_MODULE) }),
+        client.moduleStatus({ path: resolve(APP_MODULE) }),
+      ]);
 
     t.is(status, Status.IDLE);
     t.is(mainStatus, ModuleStatus.PURGED);
     t.is(appStatus, ModuleStatus.VALID);
   }));
 
-test('purges leaf module and reprocesses', t =>
+test('purges leaf module and reprocesses', (t) =>
   runWithClient({
     cwd: COMPLEX_FIXTURE,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
-    const errorPromise = new Promise(resolve => {
-      client.replaceErrorHandler(error => {
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
+    const errorPromise = new Promise((resolve) => {
+      client.replaceErrorHandler((error) => {
         client.removeErrorHandler();
         resolve(error);
       });
     });
 
-    await client.addModule({ path: MAIN_MODULE });
-    await client.removeModule({ path: APP_MODULE });
+    await client.addModule({ path: resolve(MAIN_MODULE) });
+    await client.removeModule({ path: resolve(APP_MODULE) });
 
-    const [
-      { status },
-      { status: mainStatus },
-      { status: appStatus }
-    ] = await Promise.all([
-      client.status(),
-      client.moduleStatus({ path: MAIN_MODULE }),
-      client.moduleStatus({ path: APP_MODULE })
-    ]);
+    const [{ status }, { status: mainStatus }, { status: appStatus }] =
+      await Promise.all([
+        client.status(),
+        client.moduleStatus({ path: resolve(MAIN_MODULE) }),
+        client.moduleStatus({ path: resolve(APP_MODULE) }),
+      ]);
 
     t.is(status, Status.IDLE);
     t.is(mainStatus, ModuleStatus.VALID);
@@ -178,28 +174,28 @@ test('purges leaf module and reprocesses', t =>
     const error = await errorPromise;
     t.deepEqual(error, {
       type: CompilerErrorType.UNRESOLVED_MODULE,
-      message: "cannot resolve module '@/App'"
+      message: "cannot resolve module '@/App'",
     });
   }));
 
-test('resets compilation context', t =>
+test('resets compilation context', (t) =>
   runWithClient({
     cwd: COMPLEX_FIXTURE,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
-    await client.addModule({ path: MAIN_MODULE });
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
+    await client.addModule({ path: resolve(MAIN_MODULE) });
     await client.reset();
 
     const [
       { status },
       { status: mainStatus },
       { status: appStatus },
-      { status: constStatus }
+      { status: constStatus },
     ] = await Promise.all([
       client.status(),
-      client.moduleStatus({ path: MAIN_MODULE }),
-      client.moduleStatus({ path: APP_MODULE }),
-      client.moduleStatus({ path: CONSTANTS_MODULE })
+      client.moduleStatus({ path: resolve(MAIN_MODULE) }),
+      client.moduleStatus({ path: resolve(APP_MODULE) }),
+      client.moduleStatus({ path: resolve(CONSTANTS_MODULE) }),
     ]);
 
     t.is(status, Status.IDLE);
@@ -208,7 +204,7 @@ test('resets compilation context', t =>
     t.is(constStatus, ModuleStatus.NONE);
   }));
 
-test('updates module incrementally', async t => {
+test('updates module incrementally', async (t) => {
   const barModule = 'bar.kn';
   const cwd = await createFixture(COMPLEX_FIXTURE);
 
@@ -220,14 +216,16 @@ test('updates module incrementally', async t => {
 
   await runWithClient({
     cwd,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
     await Promise.all([
-      client.addModule({ path: MAIN_MODULE }),
-      client.addModule({ path: barModule })
+      client.addModule({ path: resolve(MAIN_MODULE) }),
+      client.addModule({ path: resolve(barModule) }),
     ]);
 
-    const { data: barData } = await client.fetchModule({ path: barModule });
+    const { data: barData } = await client.fetchModule({
+      path: resolve(barModule),
+    });
 
     t.is(
       barData,
@@ -246,11 +244,11 @@ main const TIMEOUT = 100;
       'utf8'
     );
 
-    await client.updateModule({ path: CONSTANTS_MODULE });
+    await client.updateModule({ path: resolve(CONSTANTS_MODULE) });
 
     const [{ status }, { data: nextConstantsData }] = await Promise.all([
       client.status(),
-      client.fetchModule({ path: CONSTANTS_MODULE })
+      client.fetchModule({ path: resolve(CONSTANTS_MODULE) }),
     ]);
 
     t.is(status, Status.IDLE);
@@ -266,7 +264,7 @@ export { TIMEOUT as main };
   });
 });
 
-test('recovers from error state', async t => {
+test('recovers from error state', async (t) => {
   const cwd = await createFixture(COMPLEX_FIXTURE);
 
   await fs.promises.writeFile(
@@ -277,17 +275,15 @@ test('recovers from error state', async t => {
 
   await runWithClient({
     cwd,
-    target: Target.JAVASCRIPT_ES6
-  })(async client => {
-    await client.addModule({ path: MAIN_MODULE });
+    target: Target.JAVASCRIPT_ES6,
+  })(async (client, resolve) => {
+    await client.addModule({ path: resolve(MAIN_MODULE) });
 
-    const [
-      { status: mainStatus },
-      { status: constantsStatus }
-    ] = await Promise.all([
-      client.moduleStatus({ path: MAIN_MODULE }),
-      client.moduleStatus({ path: CONSTANTS_MODULE })
-    ]);
+    const [{ status: mainStatus }, { status: constantsStatus }] =
+      await Promise.all([
+        client.moduleStatus({ path: resolve(MAIN_MODULE) }),
+        client.moduleStatus({ path: resolve(CONSTANTS_MODULE) }),
+      ]);
 
     t.is(mainStatus, ModuleStatus.PARTIAL);
     t.is(constantsStatus, ModuleStatus.PARTIAL);
@@ -298,18 +294,18 @@ test('recovers from error state', async t => {
       'utf8'
     );
 
-    await client.updateModule({ path: CONSTANTS_MODULE });
+    await client.updateModule({ path: resolve(CONSTANTS_MODULE) });
 
     const [
       { status },
       { status: nextMainStatus },
       { status: nextConstantsStatus },
-      { data: nextConstantsData }
+      { data: nextConstantsData },
     ] = await Promise.all([
       client.status(),
-      client.moduleStatus({ path: MAIN_MODULE }),
-      client.moduleStatus({ path: CONSTANTS_MODULE }),
-      client.fetchModule({ path: CONSTANTS_MODULE })
+      client.moduleStatus({ path: resolve(MAIN_MODULE) }),
+      client.moduleStatus({ path: resolve(CONSTANTS_MODULE) }),
+      client.fetchModule({ path: resolve(CONSTANTS_MODULE) }),
     ]);
 
     t.is(status, Status.IDLE);

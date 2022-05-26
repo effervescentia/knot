@@ -9,10 +9,8 @@ let deserialize = Deserialize.module_params;
 let handler: Runtime.notification_handler_t(params_t) =
   (runtime, {path}) =>
     runtime
-    |> Util.process_incremental(() => {
-         let namespace = Namespace.of_path(path);
-
+    |> Util.process_incremental(path, namespace =>
          runtime.compiler
          |> Compiler.upsert_module(namespace)
-         |> Tuple.with_fst2([]);
-       });
+         |> Tuple.with_fst2([])
+       );

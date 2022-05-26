@@ -14,9 +14,9 @@ import {
   ModuleStatusParams,
   ModuleStatusResult,
   ModuleUpdateParams,
-  StatusResult
+  StatusResult,
 } from '../protocol';
-import createRPC, { RPCClient } from './rpc';
+import RPCClient from './rpc';
 
 export interface ClientOptions {
   /**
@@ -43,7 +43,7 @@ export interface ClientOptions {
 
 class Client {
   private static handleError(message: string): (err: Error) => never {
-    return err => {
+    return (err) => {
       console.error(message, err);
 
       throw new Error(message);
@@ -61,7 +61,7 @@ class Client {
       options.cwd,
       ...(options.config ? ['--config', options.config] : []),
       ...(options.target ? ['--target', options.target] : []),
-      ...(options.debug ? ['--debug', '--log-imports'] : [])
+      ...(options.debug ? ['--debug', '--log-imports'] : []),
     ];
     const [cmd, ...args] = (options.knotc || KNOTC_BINARY).split(/\s+/);
     const allArgs = [...args, ...knotArgs];
@@ -72,15 +72,15 @@ class Client {
     }
 
     this.proc = execa(cmd, allArgs);
-    this.rpc = createRPC(this.proc);
+    this.rpc = new RPCClient(this.proc, { debug: options.debug });
 
     if (!options.debug) return;
 
-    this.replaceErrorHandler(error =>
+    this.replaceErrorHandler((error) =>
       console.error(`ERROR ${error.type}: ${chalk.red(error.message)}`)
     );
 
-    this.proc.stderr.on('data', data => console.error(data.toString()));
+    this.proc.stderr.on('data', (data) => console.error(data.toString()));
   }
 
   public async fetchModule(
@@ -128,7 +128,7 @@ class Client {
   public replaceErrorHandler(listener: (error: AnyError) => void) {
     this.removeErrorHandler();
 
-    this.unsubscribeErrorHandler = this.unsubscribeErrorHandler = this.rpc.emitter.on(
+    this.unsubscribeErrorHandler = this.unsubscribeErrorHandler = this.rpc.on(
       Method.ERROR,
       ({ errors }) => errors.forEach(listener)
     );
@@ -136,8 +136,7 @@ class Client {
 
   public terminate(): void {
     this.removeErrorHandler();
-    this.rpc.rejectAllPendingRequests('terminated');
-    this.proc.kill('SIGTERM', { forceKillAfterTimeout: 2000 });
+    this.rpc.terminate();
   }
 }
 

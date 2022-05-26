@@ -6,25 +6,25 @@ import * as Webpack from 'webpack';
 import {
   addModuleLoader,
   discoverDependencies,
-  invalidateModule
+  invalidateModule,
 } from './utils';
 
 import WebpackModule = Webpack.loader.LoaderContext;
 
-test('invalidateModule() - path does not match regex', t => {
+test('invalidateModule() - path does not match regex', (t) => {
   const onInvalidate = invalidateModule(null, null);
 
   t.false(onInvalidate('myPath'));
 });
 
-test('invalidateModule() - path does match regex', async t => {
+test('invalidateModule() - path does match regex', async (t) => {
   const filePath = 'myPath.kn';
   const compiler = {
-    update: target => {
+    update: (target) => {
       t.is(target, filePath);
 
       return Promise.resolve();
-    }
+    },
   } as KnotCompiler;
   const kill = () => null;
 
@@ -32,10 +32,10 @@ test('invalidateModule() - path does match regex', async t => {
   await onInvalidate(filePath);
 });
 
-test('invalidateModule() - invalidation fails', async t => {
+test('invalidateModule() - invalidation fails', async (t) => {
   t.plan(1);
   const compiler = {
-    update: _ => Promise.reject()
+    update: (_) => Promise.reject(),
   } as KnotCompiler;
   const kill = () => Promise.resolve(t.pass());
 
@@ -43,31 +43,31 @@ test('invalidateModule() - invalidation fails', async t => {
   await onInvalidate('myPath.kn');
 });
 
-test('addModuleLoader() - path does not match regex', t => {
+test('addModuleLoader() - path does not match regex', (t) => {
   const loaders: ReadonlyArray<any> = [];
 
   addModuleLoader(null)(null, {
     loaders,
-    request: 'myModule'
+    request: 'myModule',
   } as WebpackModule);
 
   t.deepEqual(loaders, []);
 });
 
-test('addModuleLoader() - path does match regex', t => {
+test('addModuleLoader() - path does match regex', (t) => {
   const loader = { loader: 'my-loader' } as Webpack.Loader;
   const loaders: ReadonlyArray<any> = [];
 
   addModuleLoader(loader)(null, {
     loaders,
-    request: 'myModule.kn'
+    request: 'myModule.kn',
   } as WebpackModule);
 
   t.is(loaders.length, 1);
   t.is(loaders[0], loader);
 });
 
-test('addModuleLoader() - called with the same module multiple times', t => {
+test('addModuleLoader() - called with the same module multiple times', (t) => {
   const loader = { loader: 'my-loader' } as Webpack.Loader;
   const loaders: ReadonlyArray<any> = [];
   const mod = { loaders, request: 'myModule.kn' } as WebpackModule;
@@ -78,10 +78,10 @@ test('addModuleLoader() - called with the same module multiple times', t => {
   t.is(loaders.length, 1);
 });
 
-test('discoverDependencies() - no matching dependencies', async t => {
+test('discoverDependencies() - no matching dependencies', async (t) => {
   t.plan(0);
 
-  const compiler = { add: _ => t.fail() } as KnotCompiler;
+  const compiler = { add: (_) => t.fail() } as KnotCompiler;
 
   const onDiscover = discoverDependencies(compiler, null);
 
@@ -89,12 +89,12 @@ test('discoverDependencies() - no matching dependencies', async t => {
   await onDiscover({
     dependencies: [
       { request: 'some-module.js' },
-      { request: 'other-module.ts' }
-    ]
+      { request: 'other-module.ts' },
+    ],
   });
 });
 
-test('discoverDependencies() - some matching dependencies', async t => {
+test('discoverDependencies() - some matching dependencies', async (t) => {
   t.plan(2);
 
   const sourceDir = 'source/code';
@@ -105,7 +105,7 @@ test('discoverDependencies() - some matching dependencies', async t => {
 
   let attempts = 0;
   const compiler = {
-    add: async target => {
+    add: async (target) => {
       attempts++;
 
       switch (attempts) {
@@ -116,7 +116,7 @@ test('discoverDependencies() - some matching dependencies', async t => {
         default:
           return t.fail();
       }
-    }
+    },
   } as KnotCompiler;
 
   const onDiscover = discoverDependencies(compiler, null);
@@ -125,8 +125,8 @@ test('discoverDependencies() - some matching dependencies', async t => {
       dep1,
       { request: 'some-module.js' },
       { request: 'other-module.ts' },
-      dep2
+      dep2,
     ],
-    resource: `${sourceDir}/entry.kn`
+    resource: `${sourceDir}/entry.kn`,
   });
 });

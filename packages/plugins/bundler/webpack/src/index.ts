@@ -17,11 +17,11 @@ export default class KnotWebpackPlugin {
   constructor(options: OptionOverrides = {}) {
     const configuredOptions: OptionOverrides = {
       ...options,
-      target: Target.JAVASCRIPT_COMMON
+      target: Target.JAVASCRIPT_COMMON,
     };
 
     validateOptions(schema as JSONSchema7, configuredOptions, {
-      name: KnotWebpackPlugin.name
+      name: KnotWebpackPlugin.name,
     });
 
     this.options = configuredOptions;
@@ -33,7 +33,7 @@ export default class KnotWebpackPlugin {
     const context = createContext(knotCompiler);
     const kill = createTerminator(knotCompiler);
 
-    HOOKS.forEach(hook => hook(compiler, context, kill));
+    HOOKS.forEach((hook) => hook(compiler, context, kill));
   }
 }
 
@@ -44,12 +44,12 @@ function createContext(knotCompiler: KnotCompiler): Context {
       loader: path.resolve(__dirname, './loader'),
       options: {
         ...knotCompiler.options,
-        compilerInstance: knotCompiler
-      }
+        compilerInstance: knotCompiler,
+      },
     },
     name: KnotWebpackPlugin.name,
     options: knotCompiler.options,
     successiveRun: false,
-    watching: false
+    watching: false,
   };
 }

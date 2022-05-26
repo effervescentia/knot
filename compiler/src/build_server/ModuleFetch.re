@@ -11,8 +11,8 @@ let deserialize = Deserialize.module_params;
 let response = (data: string) => `Assoc([("data", `String(data))]);
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({compiler, target}, {path}) => {
-    let namespace = Namespace.of_path(path);
+  ({compiler, target} as runtime, {path}) => {
+    let namespace = runtime |> Util.resolve_namespace(path) |> Result.get_ok;
 
     compiler
     |> Compiler.get_module(namespace)

@@ -6,19 +6,19 @@ module.exports = {
     'sonarjs',
     'optimize-regex',
     'filenames',
-    'simple-import-sort'
+    'simple-import-sort',
   ],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'prettier',
     'plugin:eslint-comments/recommended',
     'plugin:sonarjs/recommended',
-    'plugin:promise/recommended'
+    'plugin:promise/recommended',
   ],
   rules: {
     'prettier/prettier': 'error',
     'optimize-regex/optimize-regex': 'error',
-    'simple-import-sort/sort': 'error',
+    'simple-import-sort/imports': 'error',
     'eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
 
     // disabled
@@ -26,6 +26,6 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     'filenames/match-regex': 'off',
-    'filenames/match-exported': 'off'
-  }
+    'filenames/match-exported': 'off',
+  },
 };
