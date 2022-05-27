@@ -581,6 +581,11 @@ and raw_declaration_t =
   | View(list(argument_t), expression_t);
 
 /**
+ a stdlib import AST node
+ */
+type standard_import_t = Node.Raw.t((identifier_t, option(identifier_t)));
+
+/**
  an import AST node
  */
 type import_t = Node.Raw.t(raw_import_t)
@@ -606,6 +611,7 @@ type module_statement_t = Node.Raw.t(raw_module_statement_t)
  supported top-level module statements
  */
 and raw_module_statement_t =
+  | StandardImport(list(standard_import_t))
   | Import(Namespace.t, list(import_t))
   | Declaration(export_t, declaration_t);
 
@@ -626,7 +632,8 @@ let of_const = x => Constant(x);
 let of_func = ((args, expr)) => Function(args, expr);
 let of_view = ((props, expr)) => View(props, expr);
 
-let of_import = ((namespace, main)) => Import(namespace, main);
+let of_standard_import = imports => StandardImport(imports);
+let of_import = ((namespace, imports)) => Import(namespace, imports);
 let of_decl = ((name, x)) => Declaration(name, x);
 
 module Dump = {
@@ -727,8 +734,41 @@ module Dump = {
       )
     };
 
+  let standard_import_to_entity = import =>
+    switch (Node.Raw.get_value(import)) {
+    | (name, Some(alias)) =>
+      untyped_node_to_entity(
+        ~children=[
+          id_to_entity("Name", name),
+          Entity.create(
+            ~range=Node.Raw.get_range(alias),
+            ~attributes=[
+              ("value", alias |> Node.Raw.get_value |> Identifier.to_string),
+            ],
+            "Alias",
+          ),
+        ],
+        "Import",
+        import,
+      )
+
+    | (name, None) =>
+      untyped_node_to_entity(
+        ~children=[id_to_entity("Name", name)],
+        "Import",
+        import,
+      )
+    };
+
   let mod_stmt_to_entity = mod_stmt =>
     switch (Node.Raw.get_value(mod_stmt)) {
+    | StandardImport(imports) =>
+      untyped_node_to_entity(
+        ~children=imports |> List.map(standard_import_to_entity),
+        "StandardImport",
+        mod_stmt,
+      )
+
     | Import(namespace, imports) =>
       untyped_node_to_entity(
         ~attributes=[("namespace", Namespace.to_string(namespace))],

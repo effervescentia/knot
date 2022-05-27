@@ -3,7 +3,10 @@ open Infix;
 module Namespace = {
   type t =
     | Internal(string)
-    | External(string);
+    | External(string)
+    | Stdlib;
+
+  /* static */
 
   let of_internal = value => Internal(value);
 
