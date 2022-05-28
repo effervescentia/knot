@@ -5,6 +5,15 @@ module Processor = Executable.Processor;
 module Task = Executable.Task;
 
 let __binary = "knotc.exe";
+let __stdlib = "stdlib.kd";
+let __config =
+  Config.{
+    name: "",
+    working_dir: "",
+    color: false,
+    debug: false,
+    stdlib: __stdlib,
+  };
 
 let suite =
   "Executable.Processor | Lint"
@@ -16,14 +25,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "lint"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Lint({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -38,14 +46,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "lint", "--root-dir", "root"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Lint({
                root_dir:
@@ -61,14 +68,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "lint", "--root-dir", "project"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Lint({
                root_dir:
@@ -84,14 +90,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "lint", "--fix"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Lint({root_dir: path_alternative_fixture_dir, fix: true}),
            ))
@@ -103,14 +108,13 @@ let suite =
           ~cwd=bool_flags_fixture_dir,
           ~argv=[|__binary, "lint", "--fix"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "bool_flags",
                working_dir: bool_flags_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Lint({root_dir: bool_flags_fixture_dir, fix: true}),
            ))

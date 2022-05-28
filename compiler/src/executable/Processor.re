@@ -28,7 +28,7 @@ let _read_config = (defaults, cwd, file) =>
 let _expand_args = List.map(Argument.expand) % List.flatten;
 
 let run =
-    (~cwd=Sys.getcwd(), ~argv=Sys.argv, ~color=!is_ci_env, ())
+    (~cwd=Sys.getcwd(), ~argv=Sys.argv, ~color=!is_ci_env, stdlib: string)
     : (Config.global_t, Task.t) => {
   let command = ref(None);
   let config_file = ref(None);
@@ -121,6 +121,7 @@ let run =
           | _ => Filename.basename(working_dir)
           },
         working_dir,
+        stdlib,
       };
 
     Fmt.color := global_config.color;

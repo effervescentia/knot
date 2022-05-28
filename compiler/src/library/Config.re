@@ -22,6 +22,7 @@ type global_t = {
   color: bool,
   name: string,
   working_dir: string,
+  stdlib: string,
 };
 
 let default_source_dir = "src";

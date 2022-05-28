@@ -3,7 +3,13 @@ open Kore;
 module Format = Executable.Format;
 
 let __compiler_config =
-  Config.{name: "foo", debug: false, color: false, working_dir: "."};
+  Config.{
+    name: "foo",
+    debug: false,
+    color: false,
+    working_dir: ".",
+    stdlib: "stdlib.kd",
+  };
 
 let suite =
   "Executable.Format"

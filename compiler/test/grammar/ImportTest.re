@@ -234,4 +234,32 @@ let suite =
           ],
         )
     ),
+    "parse - standard named import"
+    >: (
+      () =>
+        Assert.parse(
+          ~ns_context=__context_with_named_exports,
+          [("foo" |> A.of_public |> U.as_raw_node, None) |> U.as_raw_node]
+          |> A.of_standard_import
+          |> U.as_raw_node,
+          "import { foo }",
+        )
+    ),
+    "parse - standard named import with alias"
+    >: (
+      () =>
+        Assert.parse(
+          ~ns_context=__context_with_named_exports,
+          [
+            (
+              "foo" |> A.of_public |> U.as_raw_node,
+              Some("bar" |> A.of_public |> U.as_raw_node),
+            )
+            |> U.as_raw_node,
+          ]
+          |> A.of_standard_import
+          |> U.as_raw_node,
+          "import { foo as bar }",
+        )
+    ),
   ];

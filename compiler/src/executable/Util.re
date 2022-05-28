@@ -4,6 +4,7 @@ let extract_global_config = (global: Config.global_t) => [
   (name_key, global.name),
   (color_key, string_of_bool(global.color)),
   (debug_key, string_of_bool(global.debug)),
+  ("stdlib", global.stdlib),
 ];
 
 let pp_attributes = ppf => Fmt.struct_(Fmt.string, Fmt.string, ppf);

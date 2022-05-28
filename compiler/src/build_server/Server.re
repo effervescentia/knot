@@ -7,6 +7,7 @@ type config_t = {
   source_dir: string,
   target: Target.t,
   log_imports: bool,
+  stdlib: string,
 };
 
 let start = (config: config_t) => {
@@ -20,8 +21,11 @@ let start = (config: config_t) => {
         source_dir: config.source_dir,
         fail_fast: false,
         log_imports: false,
+        stdlib: config.stdlib,
       },
     );
+
+  Compiler.add_standard_library(compiler);
 
   let runtime =
     Runtime.{

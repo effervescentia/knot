@@ -32,7 +32,7 @@ module Assert =
   });
 
 let suite =
-  "Grammar.Typing"
+  "Grammar.Typing | Expression"
   >::: [
     "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse nil type" >: (() => Assert.parse(U.as_raw_node(TE.Nil), "nil")),

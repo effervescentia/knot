@@ -5,6 +5,7 @@ module Processor = Executable.Processor;
 module Task = Executable.Task;
 
 let __binary = "knotc.exe";
+let __stdlib = "stdlib.kd";
 
 let suite =
   "Executable.Processor"
@@ -19,7 +20,7 @@ let suite =
               ~cwd=global_config_fixture_dir,
               ~argv=[|__binary, "lang_serve"|],
               ~color=false,
-              (),
+              __stdlib,
             )
             |> Assert.task_with_config((
                  Config.{
@@ -27,6 +28,7 @@ let suite =
                    working_dir: global_config_fixture_dir,
                    color: true,
                    debug: true,
+                   stdlib: __stdlib,
                  },
                  Task.LangServe(),
                )),
@@ -39,7 +41,7 @@ let suite =
           ~cwd=fixture_dir,
           ~argv=[|__binary, "lang_serve", "--cwd", "nested/deeper"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
@@ -47,6 +49,7 @@ let suite =
                working_dir: Filename.concat(nested_fixture_dir, "deeper"),
                color: false,
                debug: false,
+               stdlib: __stdlib,
              },
              Task.LangServe(),
            ))
@@ -60,10 +63,16 @@ let suite =
         Processor.run(
           ~argv=[|__binary, "lang_serve", "--cwd", working_dir|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
-             Config.{name: "nested", working_dir, color: false, debug: false},
+             Config.{
+               name: "nested",
+               working_dir,
+               color: false,
+               debug: false,
+               stdlib: __stdlib,
+             },
              Task.LangServe(),
            ));
       }
@@ -82,10 +91,16 @@ let suite =
             "nested/deeper/.knot.yml",
           |],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
-             Config.{name: "nested", working_dir, color: false, debug: false},
+             Config.{
+               name: "nested",
+               working_dir,
+               color: false,
+               debug: false,
+               stdlib: __stdlib,
+             },
              Task.LangServe(),
            ));
       }
@@ -100,10 +115,16 @@ let suite =
         Processor.run(
           ~argv=[|__binary, "lang_serve", "--config", config_file|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
-             Config.{name: "nested", working_dir, color: false, debug: false},
+             Config.{
+               name: "nested",
+               working_dir,
+               color: false,
+               debug: false,
+               stdlib: __stdlib,
+             },
              Task.LangServe(),
            ));
       }
@@ -124,7 +145,7 @@ let suite =
             "root",
           |],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
@@ -132,6 +153,7 @@ let suite =
                working_dir: Filename.concat(nested_fixture_dir, "deeper"),
                color: false,
                debug: false,
+               stdlib: __stdlib,
              },
              Task.Lint({
                root_dir: Filename.concat(nested_fixture_dir, "deeper/root"),
@@ -149,7 +171,7 @@ let suite =
               ~cwd=no_target_fixture_dir,
               ~argv=[|__binary, "lang_serve"|],
               ~color=true,
-              (),
+              __stdlib,
             )
             |> Assert.task_with_config((
                  Config.{
@@ -157,6 +179,7 @@ let suite =
                    working_dir: no_target_fixture_dir,
                    color: true,
                    debug: false,
+                   stdlib: __stdlib,
                  },
                  Task.LangServe(),
                )),
@@ -169,7 +192,7 @@ let suite =
           ~cwd=no_target_fixture_dir,
           ~argv=[|__binary, "lang_serve", "--color", "true"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
@@ -177,6 +200,7 @@ let suite =
                working_dir: no_target_fixture_dir,
                color: true,
                debug: false,
+               stdlib: __stdlib,
              },
              Task.LangServe(),
            ))
@@ -188,7 +212,7 @@ let suite =
           ~cwd=global_config_fixture_dir,
           ~argv=[|__binary, "lang_serve", "--color", "false"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
@@ -196,6 +220,7 @@ let suite =
                working_dir: global_config_fixture_dir,
                color: false,
                debug: true,
+               stdlib: __stdlib,
              },
              Task.LangServe(),
            ))
@@ -207,7 +232,7 @@ let suite =
           ~cwd=no_target_fixture_dir,
           ~argv=[|__binary, "lang_serve", "--debug"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
@@ -215,6 +240,7 @@ let suite =
                working_dir: no_target_fixture_dir,
                color: false,
                debug: true,
+               stdlib: __stdlib,
              },
              Task.LangServe(),
            ))
@@ -226,7 +252,7 @@ let suite =
           ~cwd=bool_flags_fixture_dir,
           ~argv=[|__binary, "lang_serve", "--debug"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
@@ -234,6 +260,7 @@ let suite =
                working_dir: bool_flags_fixture_dir,
                color: false,
                debug: true,
+               stdlib: __stdlib,
              },
              Task.LangServe(),
            ))

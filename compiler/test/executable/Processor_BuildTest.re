@@ -5,6 +5,15 @@ module Processor = Executable.Processor;
 module Task = Executable.Task;
 
 let __binary = "knotc.exe";
+let __stdlib = "stdlib.kd";
+let __config =
+  Config.{
+    name: "",
+    working_dir: "",
+    color: false,
+    debug: false,
+    stdlib: __stdlib,
+  };
 
 let suite =
   "Executable.Processor | Build"
@@ -25,7 +34,7 @@ let suite =
             ~cwd=no_target_fixture_dir,
             ~argv=[|__binary, "build"|],
             ~color=false,
-            (),
+            __stdlib,
           )
         )
     ),
@@ -36,14 +45,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "build"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -63,14 +71,13 @@ let suite =
           ~cwd=no_target_fixture_dir,
           ~argv=[|__binary, "build", "--target", "knot"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "no_target",
                working_dir: no_target_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: no_target_fixture_dir,
@@ -90,14 +97,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "build", "--target", "javascript-es6"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -117,14 +123,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "build", "--root-dir", "root"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir:
@@ -145,14 +150,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "build", "--root-dir", "project"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir:
@@ -173,14 +177,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "build", "--source-dir", "lib"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: path_alternative_fixture_dir,
@@ -200,14 +203,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "build", "--source-dir", "src"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -227,14 +229,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "build", "--out-dir", "output"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: path_alternative_fixture_dir,
@@ -254,14 +255,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "build", "--out-dir", "build"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -281,14 +281,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "build", "--entry", "index.kn"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: path_alternative_fixture_dir,
@@ -308,14 +307,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "build", "--entry", "main.kn"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -335,14 +333,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "build", "--fail-fast"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: path_alternative_fixture_dir,
@@ -362,14 +359,13 @@ let suite =
           ~cwd=bool_flags_fixture_dir,
           ~argv=[|__binary, "build", "--fail-fast"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "bool_flags",
                working_dir: bool_flags_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: bool_flags_fixture_dir,
@@ -389,14 +385,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "build", "--log-imports"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: path_alternative_fixture_dir,
@@ -416,14 +411,13 @@ let suite =
           ~cwd=bool_flags_fixture_dir,
           ~argv=[|__binary, "build", "--log-imports"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "bool_flags",
                working_dir: bool_flags_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Build({
                root_dir: bool_flags_fixture_dir,

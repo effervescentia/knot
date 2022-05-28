@@ -5,6 +5,15 @@ module Processor = Executable.Processor;
 module Task = Executable.Task;
 
 let __binary = "knotc.exe";
+let __stdlib = "stdlib.kd";
+let __config =
+  Config.{
+    name: "",
+    working_dir: "",
+    color: false,
+    debug: false,
+    stdlib: __stdlib,
+  };
 
 let suite =
   "Executable.Processor | Watch"
@@ -25,7 +34,7 @@ let suite =
             ~cwd=no_target_fixture_dir,
             ~argv=[|__binary, "watch"|],
             ~color=false,
-            (),
+            __stdlib,
           )
         )
     ),
@@ -36,14 +45,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "watch"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -61,14 +69,13 @@ let suite =
           ~cwd=no_target_fixture_dir,
           ~argv=[|__binary, "watch", "--target", "knot"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "no_target",
                working_dir: no_target_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: no_target_fixture_dir,
@@ -86,14 +93,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "watch", "--target", "javascript-es6"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -111,14 +117,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "watch", "--root-dir", "root"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir:
@@ -137,14 +142,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "watch", "--root-dir", "project"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir:
@@ -163,14 +167,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "watch", "--source-dir", "lib"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: path_alternative_fixture_dir,
@@ -188,14 +191,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "watch", "--source-dir", "src"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -213,14 +215,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "watch", "--out-dir", "output"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: path_alternative_fixture_dir,
@@ -238,14 +239,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "watch", "--out-dir", "build"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -263,14 +263,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "watch", "--entry", "index.kn"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: path_alternative_fixture_dir,
@@ -288,14 +287,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "watch", "--entry", "main.kn"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Watch({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),

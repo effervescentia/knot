@@ -149,7 +149,7 @@ let response = (name: string, workspace_support: bool) =>
 
 let handler: Runtime.request_handler_t(params_t) =
   (
-    {find_config, compilers} as runtime,
+    {find_config, compilers, stdlib} as runtime,
     {workspace_folders: folders, capabilities},
   ) => {
     /* TODO: handle the case where workspace folders are nested? */
@@ -168,8 +168,11 @@ let handler: Runtime.request_handler_t(params_t) =
                name,
                fail_fast: false,
                log_imports: false,
+               stdlib,
              },
            );
+
+         Compiler.add_standard_library(compiler);
 
          Hashtbl.add(
            compilers,

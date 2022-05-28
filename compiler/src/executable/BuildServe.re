@@ -52,5 +52,6 @@ let run = (global: Config.global_t, config: config_t) => {
     source_dir: config.source_dir,
     target: config.target,
     log_imports: config.log_imports,
+    stdlib: global.stdlib,
   });
 };

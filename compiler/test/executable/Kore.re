@@ -24,3 +24,5 @@ let full_config_file = _fixture("full_config.yml");
 let unexpected_prop_config_file = _fixture("unexpected_prop_config.yml");
 let invalid_format_config_file = _fixture("invalid_format_config.yml");
 let cannot_parse_config_file = _fixture("cannot_parse_config.yml");
+
+let empty_library_file = _fixture("empty_library.kd");

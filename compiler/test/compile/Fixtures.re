@@ -29,6 +29,7 @@ module Compiler = {
       source_dir: ".",
       fail_fast: true,
       log_imports: false,
+      stdlib: "stdlib.kd",
     };
 
   let cyclic_config = {...config, root_dir: cyclic_imports_dir};

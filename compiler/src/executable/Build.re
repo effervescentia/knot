@@ -81,8 +81,11 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
         source_dir: config.source_dir,
         fail_fast: config.fail_fast,
         log_imports: config.log_imports,
+        stdlib: global.stdlib,
       },
     );
+
+  Compiler.add_standard_library(compiler);
 
   Log.info(
     "reading modules from %s",

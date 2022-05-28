@@ -6,7 +6,9 @@ module Fmt = Pretty.Formatters;
 type type_table_t = Hashtbl.t(Export.t, Type.t);
 type scope_tree_t = RangeTree.t(option(type_table_t));
 
-type data_t = {
+type library_t = {exports: type_table_t};
+
+type module_t = {
   exports: type_table_t,
   ast: AST.program_t,
   scopes: scope_tree_t,
@@ -15,8 +17,9 @@ type data_t = {
 type entry_t =
   | Pending
   | Purged
-  | Valid(string, data_t)
-  | Partial(string, data_t, list(Error.compile_err))
+  | Library(string, library_t)
+  | Valid(string, module_t)
+  | Partial(string, module_t, list(Error.compile_err))
   | Invalid(string, list(Error.compile_err));
 
 /**
@@ -70,7 +73,7 @@ let get_entry_raw: entry_t => option(string) =
 /**
  unpack data from an entry as an option
  */
-let get_entry_data: entry_t => option(data_t) =
+let get_entry_data: entry_t => option(module_t) =
   fun
   | Valid(_, data) => Some(data)
   | Partial(_, data, _) => Some(data)
@@ -106,7 +109,16 @@ let compare: (t, t) => bool =
 
 /* pretty printing */
 
-let _pp_data: Fmt.t(data_t) =
+let _pp_library: Fmt.t(library_t) =
+  (ppf, {exports}) =>
+    Fmt.(
+      [("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp))]
+      |> List.to_seq
+      |> Hashtbl.of_seq
+      |> Hashtbl.pp(string, string, ppf)
+    );
+
+let _pp_module: Fmt.t(module_t) =
   (ppf, {ast, exports}) =>
     Fmt.(
       [
@@ -121,14 +133,17 @@ let _pp_data: Fmt.t(data_t) =
 let _pp_entry: Fmt.t(entry_t) =
   ppf =>
     fun
-    | Valid(raw, data) => Fmt.pf(ppf, "Valid(%s, %a)", raw, _pp_data, data)
+    | Library(raw, library) =>
+      Fmt.pf(ppf, "Library(%s, %a)", raw, _pp_library, library)
+    | Valid(raw, module_) =>
+      Fmt.pf(ppf, "Valid(%s, %a)", raw, _pp_module, module_)
     | Partial(raw, data, errs) =>
       Fmt.(
         pf(
           ppf,
           "Partial(%s, %a, %a)",
           raw,
-          _pp_data,
+          _pp_module,
           data,
           Error.pp_dump_err_list,
           errs,

@@ -70,8 +70,11 @@ let run =
         source_dir: config.source_dir,
         fail_fast: false,
         log_imports: false,
+        stdlib: global.stdlib,
       },
     );
+
+  Compiler.add_standard_library(compiler);
 
   Sys.set_signal(
     Sys.sigterm,

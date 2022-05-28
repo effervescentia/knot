@@ -9,6 +9,7 @@ type config_t = {
   source_dir: string,
   fail_fast: bool,
   log_imports: bool,
+  stdlib: string,
 };
 
 type action_t =
@@ -28,7 +29,41 @@ type t = {
 
 let __module_table_size = 64;
 
-let _get_exports = ast =>
+let _get_library_exports = ast =>
+  ast
+  |> List.map(
+       Node.Raw.get_value
+       % (
+         fun
+         | AST.TypeDefinition.Module((id, _), stmts) => (
+             Export.Named(AST.of_public(id)),
+             Type.Valid(
+               `Struct(
+                 stmts
+                 |> List.filter_map(
+                      Node.Raw.get_value
+                      % (
+                        fun
+                        | AST.TypeDefinition.Declaration(
+                            (id, _),
+                            (type_, _),
+                          ) =>
+                          Some((
+                            id,
+                            Analyze.Typing.eval_type_expression(type_),
+                          ))
+                        | _ => None
+                      ),
+                    ),
+               ),
+             ),
+           )
+       ),
+     )
+  |> List.to_seq
+  |> Hashtbl.of_seq;
+
+let _get_module_exports = ast =>
   ast
   |> List.map(
        Node.Raw.get_value
@@ -123,6 +158,7 @@ let cache_modules = (modules, compiler) => {
 
   /* cache snapshot of modules on disk */
   modules
+  |> List.filter((!=)(Namespace.Stdlib))
   |> List.iter(id =>
        resolve(~skip_cache=true, compiler, id)
        |> Module.cache(compiler.resolver.cache)
@@ -152,13 +188,17 @@ let validate = (compiler: t) => {
 };
 
 let parse_module =
-    (module_: Module.t, context: NamespaceContext.t, compiler: t) => {
+    (
+      module_: Module.t,
+      parser: Grammar.Program.input_t => result('a, compile_err),
+      compiler: t,
+    ) => {
   module_
   |> Module.read_to_string
   |> (
     fun
     | Ok(raw) => {
-        let ast = raw |> File.IO.read_string |> Parser.ast(context);
+        let ast = raw |> File.IO.read_string |> parser;
 
         Some((raw, ast));
       }
@@ -191,19 +231,21 @@ let process_one =
     );
 
   compiler
-  |> parse_module(module_, context)
+  |> parse_module(module_, Parser.ast(context))
   |> Option.iter(
        fun
        | (raw, Ok(ast)) => {
-           let data =
+           let module_ =
              ModuleTable.{
                ast,
-               exports: _get_exports(ast) |> List.to_seq |> Hashtbl.of_seq,
+               exports:
+                 _get_module_exports(ast) |> List.to_seq |> Hashtbl.of_seq,
                scopes: ScopeTree.of_context(context),
              };
 
            if (List.is_empty(module_errors^)) {
-             compiler.modules |> ModuleTable.add(namespace, Valid(raw, data));
+             compiler.modules
+             |> ModuleTable.add(namespace, Valid(raw, module_));
 
              Log.debug(
                "processed module %s",
@@ -213,7 +255,7 @@ let process_one =
              compiler.modules
              |> ModuleTable.add(
                   namespace,
-                  Partial(raw, data, module_errors^),
+                  Partial(raw, module_, module_errors^),
                 );
 
              Log.debug(
@@ -256,6 +298,7 @@ let process =
   Log.debug("%s", "processing modules" |> ~@Fmt.yellow_str);
 
   namespaces
+  |> List.filter((!=)(Namespace.Stdlib))
   |> List.iter(namespace =>
        compiler |> process_one(~flush=false, namespace, resolve(namespace))
      );
@@ -336,7 +379,8 @@ let emit_one =
                 | Internal(path) =>
                   Filename.concat(output_dir, path)
                   |> Filename.relative_to(parent_dir)
-                | External(_) => raise(NotImplemented),
+                | External(_) => raise(NotImplemented)
+                | Stdlib => raise(NotImplemented),
                 ppf,
                 ast,
               )
@@ -347,6 +391,7 @@ let emit_one =
       }
     )
   | External(_) => raise(NotImplemented)
+  | Stdlib => raise(NotImplemented)
   };
 
 /**
@@ -354,8 +399,10 @@ let emit_one =
  */
 let emit = (target: Target.t, output_dir: string, compiler: t) =>
   compiler.modules
-  |> Hashtbl.iter(namespace =>
-       compiler |> emit_one(target, output_dir, namespace)
+  |> Hashtbl.iter((namespace, entry) =>
+       if (namespace != Namespace.Stdlib) {
+         emit_one(target, output_dir, namespace, compiler, entry);
+       }
      );
 
 /**
@@ -458,6 +505,39 @@ let inject_raw = (~flush=true, id: Namespace.t, contents: string, compiler: t) =
   compiler |> _prepare_modules(added^);
   compiler |> incremental(~flush=false, added^ |> List.excl(id));
   compiler |> process_one(~flush, id, Raw(contents));
+};
+
+/**
+ register type definitions for the standard library
+ */
+let add_standard_library = (~flush=true, compiler: t) => {
+  compiler.graph.imports |> Graph.add_node(Reference.Namespace.Stdlib);
+
+  Log.info(
+    "reading standard library %s",
+    compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
+  );
+
+  compiler
+  |> parse_module(
+       Module.File({relative: "", full: compiler.config.stdlib}),
+       Parser.definition,
+     )
+  |> Option.iter(
+       fun
+       | (raw, Ok(ast)) => {
+           let library = ModuleTable.{exports: _get_library_exports(ast)};
+
+           compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
+
+           Log.debug("added standard library to compiler context");
+         }
+       | (_, Error(_)) => Log.error("failed to load standard library"),
+     );
+
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
 };
 
 /**

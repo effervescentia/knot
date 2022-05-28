@@ -1,6 +1,7 @@
 open Kore;
 
 module TE = AST.TypeExpression;
+module TD = AST.TypeDefinition;
 
 let primitive_types =
   TE.[
@@ -35,7 +36,7 @@ let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
 
 let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   M.identifier(~prefix=M.alpha)
-  >>= (id => Symbol.colon >> parse_expr >|= (expr => (id, expr)))
+  >>= (id => Symbol.colon >> parse_expr >|= Tuple.with_fst2(id))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   /* TODO: sort the props here by property name */
@@ -77,3 +78,44 @@ and expr_1: type_expression_parser_t =
     );
 
 let expression_parser = expr_0;
+
+let _module_statement = (kwd, f) =>
+  kwd
+  >|= NR.get_range
+  >>= (
+    start =>
+      M.identifier(~prefix=M.alpha)
+      >>= (
+        id =>
+          Symbol.colon
+          >> expression_parser
+          >|= (((_, range) as expr) => NR.create((id, expr) |> f, start))
+      )
+  );
+
+let declaration: type_module_statement_parser_t =
+  _module_statement(Keyword.decl, TD.of_declaration);
+
+let type_: type_module_statement_parser_t =
+  _module_statement(Keyword.type_, TD.of_type);
+
+let module_statement: type_module_statement_parser_t =
+  choice([declaration, type_]) |> M.terminated;
+
+let module_parser: type_module_parser_t =
+  Keyword.module_
+  >|= NR.get_range
+  >>= (
+    start =>
+      M.identifier(~prefix=M.alpha)
+      >>= (
+        id =>
+          module_statement
+          |> many
+          |> M.between(Symbol.open_closure, Symbol.close_closure)
+          >|= (
+            ((stmts, range)) =>
+              NR.create((id, stmts) |> TD.of_module, range)
+          )
+      )
+  );

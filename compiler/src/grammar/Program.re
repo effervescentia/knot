@@ -26,3 +26,5 @@ let main: t =
     |> many
     |> _program;
   };
+
+let definition = Typing.module_parser |> many |> _program;

@@ -44,5 +44,5 @@ let run = (global: Config.global_t, config: config_t) => {
 
   Log.info("%s", "starting language server" |> ~@Fmt.warn_str);
 
-  global |> _find_config |> Server.start;
+  global |> _find_config |> Server.start(global.stdlib);
 };

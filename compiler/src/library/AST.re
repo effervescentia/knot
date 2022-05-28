@@ -205,6 +205,63 @@ module TypeExpression = {
   };
 };
 
+module TypeDefinition = {
+  type module_statement_t = Node.Raw.t(raw_module_statement_t)
+
+  and raw_module_statement_t =
+    | Declaration(Node.Raw.t(string), TypeExpression.t)
+    | Type(Node.Raw.t(string), TypeExpression.t);
+
+  type module_t = Node.Raw.t(raw_module_t)
+
+  and raw_module_t =
+    | Module(Node.Raw.t(string), list(module_statement_t));
+
+  type t = list(module_t);
+
+  /* tag helpers */
+
+  let of_declaration = ((id, type_)) => Declaration(id, type_);
+  let of_type = ((id, type_)) => Type(id, type_);
+  let of_module = ((id, stmts)) => Module(id, stmts);
+
+  module Dump = {
+    include Common.Dump;
+
+    let to_entity = module_ =>
+      switch (Node.Raw.get_value(module_)) {
+      | Module((name, _), stmts) =>
+        untyped_node_to_entity(
+          ~attributes=[("name", name)],
+          ~children=
+            stmts
+            |> List.map(
+                 Node.Raw.get_value
+                 % (
+                   fun
+                   | Declaration(id, type_) =>
+                     untyped_node_to_entity(
+                       ~attributes=[("id", Node.Raw.get_value(id))],
+                       ~children=[TypeExpression.Dump.to_entity(type_)],
+                       "Declaration",
+                       id,
+                     )
+                   | Type(id, type_) =>
+                     untyped_node_to_entity(
+                       ~attributes=[("id", Node.Raw.get_value(id))],
+                       ~children=[TypeExpression.Dump.to_entity(type_)],
+                       "Type",
+                       id,
+                     )
+                 ),
+               ),
+          "Module",
+          module_,
+        )
+      };
+  };
+};
+
 /**
  abstraction on the type of the nodes that makeup an AST
  */

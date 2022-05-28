@@ -42,3 +42,15 @@ let ast = (ctx: NamespaceContext.t, input: Program.input_t) =>
     | Some(stmts) => Ok(stmts)
     | None => Error(InvalidModule(ctx.namespace))
   );
+
+/**
+ parses entire document to extract type modules and definitions
+ */
+let definition = (input: Program.input_t) =>
+  input
+  |> parse(Program.definition)
+  |> (
+    fun
+    | Some(modules_) => Ok(modules_)
+    | None => Ok([])
+  );

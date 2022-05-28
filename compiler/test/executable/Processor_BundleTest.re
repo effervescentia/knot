@@ -5,6 +5,15 @@ module Processor = Executable.Processor;
 module Task = Executable.Task;
 
 let __binary = "knotc.exe";
+let __stdlib = "stdlib.kd";
+let __config =
+  Config.{
+    name: "",
+    working_dir: "",
+    color: false,
+    debug: false,
+    stdlib: __stdlib,
+  };
 
 let suite =
   "Executable.Processor | Bundle"
@@ -16,14 +25,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "bundle"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -39,14 +47,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "bundle", "--root-dir", "root"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir:
@@ -63,14 +70,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "bundle", "--root-dir", "project"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir:
@@ -87,14 +93,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "bundle", "--source-dir", "lib"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir: path_alternative_fixture_dir,
@@ -110,14 +115,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "bundle", "--source-dir", "src"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
@@ -133,14 +137,13 @@ let suite =
           ~cwd=path_alternative_fixture_dir,
           ~argv=[|__binary, "bundle", "--out-dir", "output"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_alternative",
                working_dir: path_alternative_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir: path_alternative_fixture_dir,
@@ -156,14 +159,13 @@ let suite =
           ~cwd=path_override_fixture_dir,
           ~argv=[|__binary, "bundle", "--out-dir", "build"|],
           ~color=false,
-          (),
+          __stdlib,
         )
         |> Assert.task_with_config((
              Config.{
+               ...__config,
                name: "path_override",
                working_dir: path_override_fixture_dir,
-               color: false,
-               debug: false,
              },
              Task.Bundle({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),

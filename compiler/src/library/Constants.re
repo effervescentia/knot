@@ -84,6 +84,9 @@ module Keyword = {
   let true_ = "true";
   let false_ = "false";
   let as_ = "as";
+  let decl = "decl";
+  let type_ = "type";
+  let module_ = "module";
 
   /* primitive types */
   let boolean = "boolean";

@@ -4,7 +4,13 @@ module Build = Executable.Build;
 
 let __entry = Reference.Namespace.Internal("main");
 let __compiler_config =
-  Config.{name: "foo", debug: false, color: false, working_dir: "."};
+  Config.{
+    name: "foo",
+    debug: false,
+    color: false,
+    working_dir: ".",
+    stdlib: empty_library_file,
+  };
 
 let suite =
   "Executable.Build"

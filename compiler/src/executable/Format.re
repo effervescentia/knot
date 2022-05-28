@@ -56,6 +56,7 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
         source_dir: config.source_dir,
         fail_fast: false,
         log_imports: false,
+        stdlib: global.stdlib,
       },
     );
 
