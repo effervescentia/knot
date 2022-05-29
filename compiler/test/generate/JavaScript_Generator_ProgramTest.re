@@ -19,6 +19,14 @@ let __program =
       ],
     )
     |> A.of_import,
+    [
+      (
+        "Fizz" |> A.of_public |> U.as_raw_node,
+        "Buzz" |> A.of_public |> U.as_raw_node |> Option.some,
+      )
+      |> U.as_raw_node,
+    ]
+    |> A.of_standard_import,
     (
       "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
       123 |> U.int_prim |> A.of_const |> U.as_int,
@@ -80,6 +88,10 @@ let suite =
           [
             DefaultImport("@knot/runtime", "$knot"),
             Import("../foo/bar", [("main", Some("Foo"))]),
+            Variable(
+              "Buzz",
+              DotAccess(DotAccess(Identifier("$knot"), "stdlib"), "Fizz"),
+            ),
             Variable("ABC", Number("123")),
             Export("ABC", None),
           ],

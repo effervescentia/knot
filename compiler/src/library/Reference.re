@@ -6,6 +6,8 @@ module Namespace = {
     | External(string)
     | Stdlib;
 
+  exception CannotExtractPath;
+
   /* static */
 
   let of_internal = value => Internal(value);
@@ -23,12 +25,14 @@ module Namespace = {
   let to_path = (~ext=Constants.file_extension, parent_dir: string) =>
     fun
     | Internal(path) => Filename.concat(parent_dir, path ++ ext)
-    | External(path) => path;
+    | External(path) => path
+    | Stdlib => raise(CannotExtractPath);
 
   let to_string =
     fun
     | Internal(path) => Constants.root_dir ++ path
-    | External(path) => path;
+    | External(path) => path
+    | Stdlib => "stdlib";
 
   /* pretty printing */
 

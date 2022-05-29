@@ -21,6 +21,7 @@ let _knot_util = (util, property) =>
   );
 let _jsx_util = _knot_util("jsx");
 let _platform_util = _knot_util("platform");
+let _stdlib_util = _knot_util("stdlib");
 
 let __knot_arg = _platform_util("arg");
 let __knot_prop = _platform_util("prop");
@@ -405,6 +406,35 @@ let generate = (resolve: resolve_t, ast: A.program_t) => {
                         ),
                    ),
                  ],
+                 d,
+               )
+             | A.StandardImport(imports) => (
+                 i
+                 @ (
+                   imports
+                   |> List.map(
+                        NR.get_value
+                        % (
+                          fun
+                          | (id, Some(alias)) =>
+                            JavaScript_AST.Variable(
+                              alias |> NR.get_value |> ~@Identifier.pp,
+                              id
+                              |> NR.get_value
+                              |> ~@Identifier.pp
+                              |> _stdlib_util,
+                            )
+                          | (id, None) => {
+                              let name = id |> NR.get_value |> ~@Identifier.pp;
+
+                              JavaScript_AST.Variable(
+                                name,
+                                _stdlib_util(name),
+                              );
+                            }
+                        ),
+                      )
+                 ),
                  d,
                )
              | A.Declaration(NamedExport(name), decl) => (

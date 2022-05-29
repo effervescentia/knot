@@ -1,10 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
+import * as main from './main';
+export * from './main';
 
-// @ts-ignore
-import jsx from '@knot/jsx';
-// @ts-ignore
-import platform from '@knot/platform';
-// @ts-ignore
-import style from '@knot/style';
-
-export default { platform, jsx, style };
+export default main;

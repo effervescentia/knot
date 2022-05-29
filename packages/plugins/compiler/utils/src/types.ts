@@ -5,6 +5,7 @@ export interface PropsType {
   $$_state?: any;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 export interface StateFactory<S extends object = {}> {
   prop<K extends keyof S>(name: K, property: S[K]): S[K];
 
@@ -17,18 +18,14 @@ export interface StateFactory<S extends object = {}> {
 }
 
 export interface JSXPlugin<T, R> {
-  createComponent(name: string, component: (props: PropsType) => R): T;
+  // createComponent(name: string, component: (props: PropsType) => R): T;
 
-  createElement(
-    element: string | T,
-    props?: PropsType | null,
-    ...children: R[]
-  ): R;
+  createTag(element: string | T, props?: PropsType | null, ...children: R[]): R;
 
-  withState(
-    createState: (factory: StateFactory) => { readonly get: () => any },
-    component: T
-  ): T;
+  // withState(
+  //   createState: (factory: StateFactory) => { readonly get: () => any },
+  //   component: T
+  // ): T;
 
   createFragment(...children: R[]): R;
 

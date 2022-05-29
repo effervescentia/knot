@@ -2,7 +2,7 @@ import { isMultisetEqual } from '@knot/common';
 import test, { ExecutionContext } from 'ava';
 import * as React from 'react';
 
-import main from '.';
+import main from './main';
 
 function hasKeys<T extends object>(
   t: ExecutionContext,
@@ -19,15 +19,15 @@ function hasKeys<T extends object>(
 
 test('includes keys', (t) =>
   hasKeys(t, main, [
-    'createComponent',
-    'createElement',
+    // 'createComponent',
+    'createTag',
     'createFragment',
     'render',
-    'withState',
+    // 'withState',
   ]));
 
-test('createElement()', (t) => {
-  t.is(main.createElement, React.createElement);
+test('createTag()', (t) => {
+  t.is(main.createTag, React.createElement);
 });
 
 test('render()', (t) => {
@@ -42,13 +42,13 @@ test('render()', (t) => {
   t.is(document.getElementById(elementId).innerHTML, '<h1>Hello, World!</h1>');
 });
 
-test('withState()', (t) => {
-  const Component = main.withState(
-    () => ({ get: () => null }),
-    () => null
-  ) as any;
-  const instance = new Component({});
+// test('withState()', (t) => {
+//   const Component = main.withState(
+//     () => ({ get: () => null }),
+//     () => null
+//   ) as any;
+//   const instance = new Component({});
 
-  t.true(instance instanceof React.Component);
-  hasKeys(t, instance, ['_state', 'props', 'context', 'refs', 'updater']);
-});
+//   t.true(instance instanceof React.Component);
+//   hasKeys(t, instance, ['_state', 'props', 'context', 'refs', 'updater']);
+// });

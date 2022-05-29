@@ -84,6 +84,7 @@ let report =
          | _ => None,
        );
 
-  `Assoc([("errors", `List(errors'))]) |> server.notify(method_key);
-  ();
+  if (!List.is_empty(errors')) {
+    `Assoc([("errors", `List(errors'))]) |> server.notify(method_key);
+  };
 };
