@@ -2,6 +2,8 @@ open Executable.Kore;
 
 module Processor = Executable.Processor;
 
+let __stdlib = Util.find_resource("stdlib.kd");
+
 let _panic = (err: string) => {
   Log.fatal("%s", err);
 
@@ -11,7 +13,7 @@ let _panic = (err: string) => {
 let _run = () => {
   Fmt.color := !is_ci_env;
 
-  let (config, command) = Processor.run("stdlib.kd");
+  let (config, command) = Processor.run(__stdlib);
 
   Log.init({debug: config.debug, timestamp: false});
 

@@ -9,3 +9,16 @@
    (public_name knotc.exe)  ;  From package.json name field
    (libraries  knot.exec dune-site ) ;  From package.json require field (array of strings)
 )
+ 
+ (install
+   (package knot)
+   (section (site (knot res)))
+   (files 
+     (res/stdlib.kd as stdlib.kd)
+   )
+ )
+ (generate_sites_module
+   (module Injected)
+   (sites knot)
+   (sourceroot)
+ )
