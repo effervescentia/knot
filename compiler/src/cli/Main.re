@@ -2,12 +2,6 @@ open Executable.Kore;
 
 module Processor = Executable.Processor;
 
-let stdlib =
-  Filename.concat(
-    Sys.argv[0] |> Filename.dirname |> Filename.dirname,
-    "share/knot/lib/stdlib.kd",
-  );
-
 let _panic = (err: string) => {
   Log.fatal("%s", err);
 
@@ -17,7 +11,7 @@ let _panic = (err: string) => {
 let _run = () => {
   Fmt.color := !is_ci_env;
 
-  let (config, command) = Processor.run(stdlib);
+  let (config, command) = Processor.run("stdlib.kd");
 
   Log.init({debug: config.debug, timestamp: false});
 

@@ -34,10 +34,7 @@ module Make = (Params: AssertParams) => {
       fun
       | Some(actual) => Params.test(expected, actual)
       | None =>
-        source
-        |> Fmt.str("failed to parse input: '%s'")
-        |> Alcotest.fail
-        |> ignore
+        source |> Alcotest.failf("failed to parse input: '%s'") |> ignore
     );
 
   let parse_all =
@@ -63,8 +60,7 @@ module Make = (Params: AssertParams) => {
     |> Params.parser((ns_context, mod_context(ns_context)))
     |> (
       fun
-      | Some(r) =>
-        source |> Fmt.str("parsed input: '%s'") |> Alcotest.fail |> ignore
+      | Some(r) => source |> Alcotest.failf("parsed input: '%s'") |> ignore
       | None => ()
     );
 

@@ -124,7 +124,8 @@
     },
     "src/cli": {
       "require": [
-        "knot.exec"
+        "knot.exec",
+        "dune-site"
       ],
       "main": "Main",
       "name": "knotc.exe"
@@ -132,6 +133,7 @@
     "test/util": {
       "require": [
         "alcotest",
+        "alcotest-lwt",
         "lwt",
         "lwt.unix"
       ],
@@ -289,9 +291,11 @@
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.2",
-    "@opam/alcotest": "1.2.3",
+    "@opam/alcotest": "1.5.0",
+    "@opam/alcotest-lwt": "1.5.0",
     "@opam/dolog": "6.0.0",
-    "@opam/dune": ">=1.6.0",
+    "@opam/dune": "3.2.0",
+    "@opam/dune-site": "3.2.0",
     "@opam/fileutils": "0.6.3",
     "@opam/fmt": "0.8.9",
     "@opam/fswatch": "11-0.1.0",

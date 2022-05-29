@@ -11,9 +11,9 @@ depends: [
   "dune" {>= "1.3"}
   "dune-configurator"
   "ctypes" {>= "0.14.0"}
-  "ppx_sexp_conv" {>= "v0.9.0" & < "v0.15"}
-  "sexplib" {< "v0.15"}
-  "rresult"
+  "ppx_sexp_conv" {>= "v0.9.0"}
+  "sexplib"
+  "rresult" {< "0.7.0"}
   "fmt"
   "logs"
   "bos"

@@ -50,7 +50,7 @@ module Compare = {
     );
 };
 
-let fail = Alcotest.fail;
+let fail = msg => Alcotest.fail(msg);
 
 let bool = Alcotest.(check(bool, "boolean matches"));
 let true_ = Alcotest.(check(bool, "is true", true));
@@ -88,10 +88,10 @@ let hashtbl = (key_to_string, value_to_string) =>
 
 let file_exists = file =>
   if (!Sys.file_exists(file)) {
-    file |> Fmt.str("expected file %s to exist") |> Alcotest.fail;
+    file |> Alcotest.failf("expected file %s to exist");
   };
 
 let no_file_exists = file =>
   if (Sys.file_exists(file)) {
-    file |> Fmt.str("expected file %s to not exist") |> Alcotest.fail;
+    file |> Alcotest.failf("expected file %s to not exist");
   };
