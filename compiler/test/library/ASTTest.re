@@ -28,8 +28,8 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=int_const />
-    <Constant@0.0 type=int>
-      <Primitive@0.0 type=int value=Number(123) />
+    <Constant@0.0 type=integer>
+      <Primitive@0.0 type=integer value=Number(123) />
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
@@ -58,8 +58,8 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=bool_const />
-    <Constant@0.0 type=bool>
-      <Primitive@0.0 type=bool value=Boolean(true) />
+    <Constant@0.0 type=boolean>
+      <Primitive@0.0 type=boolean value=Boolean(true) />
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
@@ -88,8 +88,8 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=identifier_const />
-    <Constant@0.0 type=int>
-      <Identifier@0.0 type=int value=foo />
+    <Constant@0.0 type=integer>
+      <Identifier@0.0 type=integer value=foo />
     </Constant@0.0>
   </Declaration@0.0>
 </AST>",
@@ -124,9 +124,9 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=group_const />
-    <Constant@0.0 type=int>
-      <Group@0.0 type=int>
-        <Primitive@0.0 type=int value=Number(123) />
+    <Constant@0.0 type=integer>
+      <Group@0.0 type=integer>
+        <Primitive@0.0 type=integer value=Number(123) />
       </Group@0.0>
     </Constant@0.0>
   </Declaration@0.0>
@@ -141,12 +141,12 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=closure_const />
-    <Constant@0.0 type=bool>
-      <Closure@0.0 type=bool>
+    <Constant@0.0 type=boolean>
+      <Closure@0.0 type=boolean>
         <Statement@0.0 type=nil>
           <Variable@0.0 type=nil>
             <Name@0.0 value=foo />
-            <Primitive@0.0 type=int value=Number(123) />
+            <Primitive@0.0 type=integer value=Number(123) />
           </Variable@0.0>
         </Statement@0.0>
         <Statement@0.0 type=nil>
@@ -155,9 +155,9 @@ let suite =
             <Primitive@0.0 type=nil value=Nil />
           </Variable@0.0>
         </Statement@0.0>
-        <Statement@0.0 type=bool>
-          <Expression@0.0 type=bool>
-            <Primitive@0.0 type=bool value=Boolean(false) />
+        <Statement@0.0 type=boolean>
+          <Expression@0.0 type=boolean>
+            <Primitive@0.0 type=boolean value=Boolean(false) />
           </Expression@0.0>
         </Statement@0.0>
       </Closure@0.0>
@@ -174,13 +174,13 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=and_bool_const />
-    <Constant@0.0 type=bool>
-      <And@0.0 type=bool>
-        <LHS@0.0 type=bool>
-          <Primitive@0.0 type=bool value=Boolean(true) />
+    <Constant@0.0 type=boolean>
+      <And@0.0 type=boolean>
+        <LHS@0.0 type=boolean>
+          <Primitive@0.0 type=boolean value=Boolean(true) />
         </LHS@0.0>
-        <RHS@0.0 type=bool>
-          <Primitive@0.0 type=bool value=Boolean(false) />
+        <RHS@0.0 type=boolean>
+          <Primitive@0.0 type=boolean value=Boolean(false) />
         </RHS@0.0>
       </And@0.0>
     </Constant@0.0>
@@ -196,9 +196,9 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=negative_int_const />
-    <Constant@0.0 type=int>
-      <Negative@0.0 type=int>
-        <Primitive@0.0 type=int value=Number(123) />
+    <Constant@0.0 type=integer>
+      <Negative@0.0 type=integer>
+        <Primitive@0.0 type=integer value=Number(123) />
       </Negative@0.0>
     </Constant@0.0>
   </Declaration@0.0>
@@ -259,23 +259,23 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=inline_function />
-    <Function@0.0 type=Function<(int, int), int>>
+    <Function@0.0 type=(integer, integer) -> integer>
       <Arguments>
-        <Argument@0.0 type=int>
+        <Argument@0.0 type=integer>
           <Name@0.0 value=foo />
         </Argument@0.0>
-        <Argument@0.0 type=int>
-          <Primitive@0.0 type=int value=Number(3) />
+        <Argument@0.0 type=integer>
+          <Primitive@0.0 type=integer value=Number(3) />
           <Name@0.0 value=bar />
         </Argument@0.0>
       </Arguments>
       <Body>
-        <Add@0.0 type=int>
-          <LHS@0.0 type=int>
-            <Identifier@0.0 type=int value=foo />
+        <Add@0.0 type=integer>
+          <LHS@0.0 type=integer>
+            <Identifier@0.0 type=integer value=foo />
           </LHS@0.0>
-          <RHS@0.0 type=int>
-            <Identifier@0.0 type=int value=bar />
+          <RHS@0.0 type=integer>
+            <Identifier@0.0 type=integer value=bar />
           </RHS@0.0>
         </Add@0.0>
       </Body>
@@ -292,30 +292,30 @@ let suite =
           "<AST>
   <Declaration@0.0>
     <NamedExport@0.0 value=multiline_function />
-    <Function@0.0 type=Function<(int, int), int>>
+    <Function@0.0 type=(integer, integer) -> integer>
       <Arguments />
       <Body>
-        <Closure@0.0 type=int>
+        <Closure@0.0 type=integer>
           <Statement@0.0 type=nil>
             <Variable@0.0 type=nil>
               <Name@0.0 value=zip />
-              <Primitive@0.0 type=int value=Number(3) />
+              <Primitive@0.0 type=integer value=Number(3) />
             </Variable@0.0>
           </Statement@0.0>
           <Statement@0.0 type=nil>
             <Variable@0.0 type=nil>
               <Name@0.0 value=zap />
-              <Primitive@0.0 type=int value=Number(4) />
+              <Primitive@0.0 type=integer value=Number(4) />
             </Variable@0.0>
           </Statement@0.0>
-          <Statement@0.0 type=int>
-            <Expression@0.0 type=int>
-              <Mult@0.0 type=int>
-                <LHS@0.0 type=int>
-                  <Identifier@0.0 type=int value=zip />
+          <Statement@0.0 type=integer>
+            <Expression@0.0 type=integer>
+              <Mult@0.0 type=integer>
+                <LHS@0.0 type=integer>
+                  <Identifier@0.0 type=integer value=zip />
                 </LHS@0.0>
-                <RHS@0.0 type=int>
-                  <Identifier@0.0 type=int value=zap />
+                <RHS@0.0 type=integer>
+                  <Identifier@0.0 type=integer value=zap />
                 </RHS@0.0>
               </Mult@0.0>
             </Expression@0.0>

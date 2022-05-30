@@ -39,6 +39,7 @@ let handler: Runtime.request_handler_t(params_t) =
       | Some(Invalid(_)) => Status.Invalid
       | Some(Pending) => Status.Pending
       | Some(Purged) => Status.Purged
+      | Some(Library(_)) => Status.None
       | None =>
         compiler.graph |> Resolve.ImportGraph.has_module(namespace)
           ? Status.Pending : Status.None

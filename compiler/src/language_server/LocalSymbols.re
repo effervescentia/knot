@@ -72,6 +72,14 @@ let handler: Runtime.request_handler_t(params_t) =
                             Range.join(range, Node.get_range(expr)),
                           kind: Capabilities.Function,
                         }
+                      | View(props, expr) => {
+                          name,
+                          detail: type_ |> ~@Type.pp,
+                          range,
+                          full_range:
+                            Range.join(range, Node.get_range(expr)),
+                          kind: Capabilities.Function,
+                        }
                       },
                     );
                   }

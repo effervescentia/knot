@@ -4,8 +4,12 @@ module Resolver = Resolve.Resolver;
 module Module = Resolve.Module;
 module Writer = File.Writer;
 
+let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
+
 let _example_sep =
   Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@,// or@,")));
+let _or_sep =
+  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@ or@ ")));
 
 let _pp_resolution: Fmt.t((Stdlib.Format.formatter => unit, list(string))) =
   (ppf, (description, examples)) =>
@@ -81,7 +85,7 @@ let _extract_type_err =
           ppf =>
             pf(
               ppf,
-              "expected the type %a but found the type %a instead",
+              "expected the type %a but received %a",
               good(Type.pp),
               expected,
               bad(Type.pp),
@@ -144,6 +148,7 @@ let _extract_type_err =
       [((ppf => Fmt.string(ppf, "change the name of this variable")), [])],
     )
 
+  /* FIXME: this isn't being reported */
   | Type.ExternalNotFound(namespace, id) => (
       "External Not Found",
       switch (id) {
@@ -175,6 +180,204 @@ let _extract_type_err =
         )
       },
       [],
+    )
+
+  | Type.InvalidUnaryOperation(operator, type_) => (
+      "Invalid Unary Operation",
+      (
+        switch (operator) {
+        | Not => ("NOT (!)", [Type.Valid(`Boolean)])
+
+        | Positive => ("ABSOLUTE (+)", __numeric_types)
+
+        | Negative => ("NEGATE (-)", __numeric_types)
+        }
+      )
+      |> (
+        ((operator, expected)) =>
+          Fmt.(
+            ppf =>
+              pf(
+                ppf,
+                "the %a unary operator expects an expression of type %a but received %a",
+                Fmt.bold_str,
+                operator,
+                list(~sep=_or_sep, good(Type.pp)),
+                expected,
+                bad(Type.pp),
+                type_,
+              )
+          )
+      ),
+      [],
+    )
+
+  | Type.InvalidBinaryOperation(operator, lhs_type, rhs_type) => (
+      "Invalid Binary Operation",
+      {
+        let print_static_error = ((operator, expected)) => {
+          let pp_expected = (ppf, type_) =>
+            (expected |> List.mem(type_) ? Fmt.good : Fmt.bad)(
+              Type.pp,
+              ppf,
+              type_,
+            );
+
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "the %a binary operator expects both arguments to be of type %a but received %a and %a",
+                  Fmt.bold_str,
+                  operator,
+                  list(~sep=_or_sep, good(Type.pp)),
+                  expected,
+                  pp_expected,
+                  lhs_type,
+                  pp_expected,
+                  rhs_type,
+                )
+            )
+          );
+        };
+        let print_equality_error = operator =>
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "the %a binary operator expects both arguments to be of the same type but received %a and %a",
+                  Fmt.bold_str,
+                  "EQUAL (==)",
+                  bad(Type.pp),
+                  lhs_type,
+                  bad(Type.pp),
+                  rhs_type,
+                )
+            )
+          );
+
+        switch (operator) {
+        | LogicalAnd =>
+          ("AND (&&)", [Type.Valid(`Boolean)]) |> print_static_error
+        | LogicalOr =>
+          ("OR (||)", [Type.Valid(`Boolean)]) |> print_static_error
+
+        | LessOrEqual =>
+          ("LESS THAN OR EQUAL (<=)", __numeric_types) |> print_static_error
+        | LessThan => ("LESS THAN (<)", __numeric_types) |> print_static_error
+        | GreaterOrEqual =>
+          ("GREATER THAN OR EQUAL (>=)", __numeric_types)
+          |> print_static_error
+        | GreaterThan =>
+          ("GREATER THAN (>)", __numeric_types) |> print_static_error
+
+        | Equal => print_equality_error("EQUAL (==)")
+        | Unequal => print_equality_error("NOT EQUAL (!=)")
+
+        | Add => ("ADD (+)", __numeric_types) |> print_static_error
+        | Subtract => ("SUBTRACT (-)", __numeric_types) |> print_static_error
+        | Divide => ("DIVIDE (/)", __numeric_types) |> print_static_error
+        | Multiply => ("MULTIPLY (*)", __numeric_types) |> print_static_error
+        | Exponent => ("EXPONENT (^)", __numeric_types) |> print_static_error
+        };
+      },
+      [],
+    )
+
+  | Type.InvalidJSXPrimitiveExpression(type_) => (
+      "Invalid JSX Primitive Expression",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "jsx only supports rendering primitive values inline but received %a",
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [
+        (
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>convert the value to have a primitive type@,@[<h>ie. %a@]@]",
+                  list(~layout=Horizontal, Type.pp),
+                  [
+                    Type.Valid(`Nil),
+                    Type.Valid(`Boolean),
+                    Type.Valid(`Integer),
+                    Type.Valid(`Float),
+                    Type.Valid(`String),
+                    Type.Valid(`Element),
+                  ],
+                )
+            )
+          ),
+          [],
+        ),
+      ],
+    )
+
+  | Type.InvalidJSXClassExpression(type_) => (
+      "Invalid JSX Class Expression",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "jsx classes can only be controlled with arguments of type %a but received %a",
+              good(Type.pp),
+              Type.Valid(`Boolean),
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.UntypedFunctionArgument(id) => (
+      "Untyped Function Argument",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "the function argument %a must define a type",
+            Fmt.bad(Reference.Identifier.pp),
+            id,
+          )
+      ),
+      [],
+    )
+
+  | Type.DefaultArgumentMissing(id) => (
+      "Default Argument Missing",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "the function argument %a must define a default value",
+            Fmt.bad(Reference.Identifier.pp),
+            id,
+          )
+      ),
+      [
+        (
+          Fmt.(
+            (
+              ppf =>
+                pf(ppf, "remove default values from all preceding arguments")
+            )
+          ),
+          [],
+        ),
+      ],
     );
 
 let _extract_parse_err =

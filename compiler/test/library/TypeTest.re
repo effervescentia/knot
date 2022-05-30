@@ -11,9 +11,10 @@ let __raw_props = [("foo", TR.(`Nil)), ("bar", TR.(`String))];
 let suite = [
   "Library.Type.Raw"
   >::: [
-    "pp() - primitive" >: (() => Assert.string("bool", `Boolean |> ~@TR.pp)),
+    "pp() - primitive"
+    >: (() => Assert.string("boolean", `Boolean |> ~@TR.pp)),
     "pp() - list"
-    >: (() => Assert.string("List<string>", `List(`String) |> ~@TR.pp)),
+    >: (() => Assert.string("string[]", `List(`String) |> ~@TR.pp)),
     "pp() - struct"
     >: (
       () =>
@@ -26,7 +27,7 @@ let suite = [
     >: (
       () =>
         Assert.string(
-          "Function<(nil, string), bool>",
+          "(nil, string) -> boolean",
           `Function((__raw_args, `Boolean)) |> ~@TR.pp,
         )
     ),
@@ -34,14 +35,11 @@ let suite = [
   "Library.Type"
   >::: [
     "pp_valid() - primitive"
-    >: (() => Assert.string("bool", `Boolean |> ~@T.pp_valid)),
+    >: (() => Assert.string("boolean", `Boolean |> ~@T.pp_valid)),
     "pp_valid() - list"
     >: (
       () =>
-        Assert.string(
-          "List<string>",
-          `List(T.Valid(`String)) |> ~@T.pp_valid,
-        )
+        Assert.string("string[]", `List(T.Valid(`String)) |> ~@T.pp_valid)
     ),
     "pp_valid() - struct"
     >: (
@@ -55,7 +53,7 @@ let suite = [
     >: (
       () =>
         Assert.string(
-          "Function<(nil, string), bool>",
+          "(nil, string) -> boolean",
           `Function((__args, T.Valid(`Boolean))) |> ~@T.pp_valid,
         )
     ),
@@ -104,6 +102,6 @@ let suite = [
         )
     ),
     "pp() - valid"
-    >: (() => Assert.string("bool", T.Valid(`Boolean) |> ~@T.pp)),
+    >: (() => Assert.string("boolean", T.Valid(`Boolean) |> ~@T.pp)),
   ],
 ];

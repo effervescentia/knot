@@ -22,7 +22,8 @@ let handler: Runtime.request_handler_t(params_t) =
             target,
             fun
             | Internal(path) => path
-            | External(_) => raise(NotImplemented),
+            | External(_)
+            | Stdlib => raise(NotImplemented),
           )
     |?> response
     |> Option.to_result(~none=id =>

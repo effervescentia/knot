@@ -14,11 +14,11 @@ module Primitive = {
         Constants.(
           switch (type_) {
           | `Nil => Keyword.nil
-          | `Boolean => "bool"
-          | `Integer => "int"
-          | `Float => "float"
-          | `String => "string"
-          | `Element => "element"
+          | `Boolean => Keyword.boolean
+          | `Integer => Keyword.integer
+          | `Float => Keyword.float
+          | `String => Keyword.string
+          | `Element => Keyword.element
           }
         )
         |> string(ppf)
@@ -34,7 +34,7 @@ module Container = {
   ];
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
-    Fmt.(ppf => pf(ppf, "List<%a>", pp_type));
+    Fmt.(ppf => pf(ppf, "%a[]", pp_type));
 
   let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
     (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
@@ -57,7 +57,7 @@ module Container = {
       (ppf, (args, res)) =>
         pf(
           ppf,
-          "@[<h>Function<(%a), %a>@]",
+          "@[<h>(%a) -> %a@]",
           list(~sep=Sep.comma, pp_type),
           args,
           pp_type,
@@ -130,7 +130,7 @@ type error_t =
   | UntypedFunctionArgument(Identifier.t)
   | DefaultArgumentMissing(Identifier.t);
 
-/* methods */
+/* pretty printing */
 
 let rec pp: Fmt.t(t) =
   ppf =>

@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 9 error(s) and 0 warning(s)
+finished with 15 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -83,7 +83,7 @@ finished with 9 error(s) and 0 warning(s)
 7) Types Do Not Match : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
-  expected the type string but found the type int instead
+  expected the type string but received integer
   \n  [code frame not available]
 
 8) External Not Found : bar/my_namespace.kn:0.0
@@ -100,7 +100,48 @@ finished with 9 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • change the name of this variable
 
-finished with 9 error(s) and 0 warning(s)
+10) Invalid Unary Operation : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  the NEGATE (-) unary operator expects an expression of type float or integer but received string
+  \n  [code frame not available]
+
+11) Invalid Binary Operation : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  the AND (&&) binary operator expects both arguments to be of type boolean but received string and integer
+  \n  [code frame not available]
+
+12) Invalid JSX Primitive Expression : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  jsx only supports rendering primitive values inline but received string[]
+  \n  [code frame not available]
+  \n  try one of the following to resolve this issue:
+  \n    • convert the value to have a primitive type
+        ie. nil, boolean, integer, float, string, element
+
+13) Invalid JSX Class Expression : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  jsx classes can only be controlled with arguments of type boolean but received integer
+  \n  [code frame not available]
+
+14) Untyped Function Argument : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  the function argument my_argument must define a type
+  \n  [code frame not available]
+
+15) Default Argument Missing : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  the function argument my_argument must define a default value
+  \n  [code frame not available]
+  \n  try one of the following to resolve this issue:
+  \n    • remove default values from all preceding arguments
+
+finished with 15 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -134,6 +175,56 @@ finished with 9 error(s) and 0 warning(s)
               TypeError(
                 DuplicateIdentifier(
                   Reference.Identifier.of_string("my_export"),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidUnaryOperation(Negative, Type.Valid(`String)),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidBinaryOperation(
+                  LogicalAnd,
+                  Type.Valid(`String),
+                  Type.Valid(`Integer),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidJSXPrimitiveExpression(
+                  Type.Valid(`List(Valid(`String))),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(InvalidJSXClassExpression(Type.Valid(`Integer))),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                UntypedFunctionArgument(
+                  Reference.Identifier.of_string("my_argument"),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                DefaultArgumentMissing(
+                  Reference.Identifier.of_string("my_argument"),
                 ),
               ),
               __namespace,
