@@ -42,16 +42,16 @@ let closure =
   );
 
 let dot_access = {
-  let rec loop = obj =>
+  let rec loop = expr =>
     Symbol.period
     >> M.identifier
     >>= (
       prop =>
         loop(
           N.create(
-            (obj, prop) |> AR.of_dot_access,
+            (expr, prop) |> AR.of_dot_access,
             (
-              switch (N.get_type(obj)) {
+              switch (N.get_type(expr)) {
               | `Struct(props) =>
                 props |> List.assoc_opt(NR.get_value(prop))
               | _ => None
@@ -62,7 +62,30 @@ let dot_access = {
           ),
         )
     )
-    |> option(obj);
+    |> option(expr);
+
+  loop;
+};
+
+let function_call = (parse_expr: expression_parser_t) => {
+  let rec loop = expr =>
+    parse_expr
+    |> M.comma_sep
+    |> M.between(Symbol.open_group, Symbol.close_group)
+    >>= (
+      args =>
+        loop(
+          N.create(
+            (expr, NR.get_value(args)) |> AR.of_func_call,
+            switch (N.get_type(expr)) {
+            | `Function(_, result) => result
+            | _ => TR.(`Unknown)
+            },
+            NR.get_range(args),
+          ),
+        )
+    )
+    |> option(expr);
 
   loop;
 };
@@ -120,12 +143,17 @@ and expr_7 = (ctx: ModuleContext.t): expression_parser_t =>
     ]),
   )
 
-/* foo.bar */
+/* foo(bar) */
 and expr_8 = (ctx: ModuleContext.t): expression_parser_t =>
-  expr_9(ctx) >>= dot_access
+  /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
+  input => (expr_9(ctx) >>= (expr_0(ctx) |> function_call))(input)
+
+/* foo.bar */
+and expr_9 = (ctx: ModuleContext.t): expression_parser_t =>
+  expr_10(ctx) >>= dot_access
 
 /* {}, () */
-and expr_9 = (ctx: ModuleContext.t): expression_parser_t =>
+and expr_10 = (ctx: ModuleContext.t): expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice([closure(ctx, expr_0), expr_0(ctx) |> group, term(ctx)], input)

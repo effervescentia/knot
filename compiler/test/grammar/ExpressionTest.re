@@ -183,6 +183,77 @@ let suite =
           "{ foo; }.bar",
         )
     ),
+    "parse function call - identifier root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+            ["bar" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "foo(bar)",
+        )
+    ),
+    "parse function call - group root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo"
+            |> AR.of_public
+            |> AR.of_id
+            |> U.as_unknown
+            |> AR.of_group
+            |> U.as_unknown,
+            ["bar" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "(foo)(bar)",
+        )
+    ),
+    "parse function call - closure root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            [
+              "foo"
+              |> AR.of_public
+              |> AR.of_id
+              |> U.as_unknown
+              |> AR.of_expr
+              |> U.as_unknown,
+            ]
+            |> AR.of_closure
+            |> U.as_unknown,
+            ["bar" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "{ foo; }(bar)",
+        )
+    ),
+    "parse function call - dot access root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            (
+              "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+              U.as_raw_node("bar"),
+            )
+            |> AR.of_dot_access
+            |> U.as_unknown,
+            ["fizz" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "foo.bar(fizz)",
+        )
+    ),
     "parse unary - negative"
     >: (
       () =>
