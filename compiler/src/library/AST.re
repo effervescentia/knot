@@ -342,6 +342,7 @@ module Make = (Params: ASTParams) => {
     | BinaryOp(binary_t, expression_t, expression_t)
     | UnaryOp(unary_t, expression_t)
     | Closure(list(statement_t))
+    | DotAccess(expression_t, Node.Raw.t(string))
 
   /**
    a statement AST node
@@ -380,6 +381,7 @@ module Make = (Params: ASTParams) => {
   let of_id = x => Identifier(x);
   let of_group = x => Group(x);
   let of_closure = xs => Closure(xs);
+  let of_dot_access = ((expr, prop)) => DotAccess(expr, prop);
 
   let of_unary_op = ((op, x)) => UnaryOp(op, x);
   let of_not_op = x => (Not, x) |> of_unary_op;
@@ -509,6 +511,9 @@ module Make = (Params: ASTParams) => {
             ~children=[expr_to_entity(expr)],
             unary_to_string(op),
           )
+
+        | DotAccess(expr, (prop, _)) =>
+          typed_node_to_entity(~children=[expr_to_entity(expr)], prop)
         }
       )(
         expr,

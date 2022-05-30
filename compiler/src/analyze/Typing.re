@@ -40,6 +40,18 @@ let check_binary_operation: (A.binary_t, (T.t, T.t)) => option(T.error_t) =
       | _ => Some(InvalidBinaryOperation(op, lhs, rhs))
       };
 
+let check_dot_access: (string, T.t) => option(T.error_t) =
+  prop =>
+    fun
+    /* assume this has been reported already and ignore */
+    | Invalid(_) => None
+
+    | Valid(`Struct(props))
+        when props |> List.exists(((name, _)) => name == prop) =>
+      None
+
+    | type_ => Some(InvalidJSXPrimitiveExpression(type_));
+
 let check_jsx_class_expression: T.t => option(T.error_t) =
   fun
   /* assume this has been reported already and ignore */

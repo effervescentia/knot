@@ -127,6 +127,7 @@ type error_t =
   | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
   | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
+  | InvalidDotAccess(t, string)
   | UntypedFunctionArgument(Identifier.t)
   | DefaultArgumentMissing(Identifier.t);
 
@@ -203,6 +204,9 @@ let pp_error: Fmt.t(error_t) =
 
       | InvalidJSXClassExpression(type_) =>
         pf(ppf, "InvalidJSXClassExpression<%a>", pp, type_)
+
+      | InvalidDotAccess(type_, prop) =>
+        pf(ppf, "InvalidDotAccess<%a, %s>", pp, type_, prop)
 
       | DefaultArgumentMissing(id) =>
         pf(ppf, "DefaultArgumentMissing<%a>", Identifier.pp, id)

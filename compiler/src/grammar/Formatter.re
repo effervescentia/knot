@@ -186,6 +186,15 @@ and pp_expression: Fmt.t(A.raw_expression_t) =
     | Closure(stmts) =>
       stmts |> List.map(N.get_value) |> Fmt.(closure(pp_statement, ppf))
 
+    | DotAccess(expr, prop) =>
+      Fmt.pf(
+        ppf,
+        "%a.%s",
+        pp_expression,
+        N.get_value(expr),
+        NR.get_value(prop),
+      )
+
 and pp_statement: Fmt.t(A.raw_statement_t) =
   (ppf, stmt) =>
     switch (stmt) {

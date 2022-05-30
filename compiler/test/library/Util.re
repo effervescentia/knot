@@ -59,6 +59,7 @@ module ResultUtil = {
   let as_float = x => as_node(T.Valid(`Float), x);
   let as_string = x => as_node(T.Valid(`String), x);
   let as_element = x => as_node(T.Valid(`Element), x);
+  let as_struct = (props, x) => as_node(T.Valid(`Struct(props)), x);
   let as_function = (args, res, x) =>
     as_node(T.Valid(`Function((args, res))), x);
   let as_view = (props, res, x) =>

@@ -65,6 +65,8 @@ let rec of_expr =
     expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.Closure(stmts), _, range) =>
     stmts |> List.map(N.get_value % of_stmt) |> of_list
+  | (A.DotAccess(expr, props), _, range) =>
+    expr |> of_expr |> _wrap(N.get_range(expr))
 
 and of_jsx =
   fun

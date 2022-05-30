@@ -115,4 +115,29 @@ let suite =
         );
       }
     ),
+    "resolve dot access"
+    >: (
+      () => {
+        let scope = {
+          ...S.create(__namespace, throw, Range.zero),
+          types:
+            [(__id, T.Valid(`Struct([("foo", T.Valid(`Boolean))])))]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        Assert.expression(
+          (
+            __id |> A.of_id |> URes.as_struct([("foo", T.Valid(`Boolean))]),
+            URes.as_raw_node("foo"),
+          )
+          |> A.of_dot_access
+          |> URes.as_bool,
+          (__id |> AR.of_id |> URaw.as_unknown, URaw.as_raw_node("foo"))
+          |> AR.of_dot_access
+          |> URaw.as_unknown
+          |> SemanticAnalyzer.analyze_expression(scope),
+        );
+      }
+    ),
   ];

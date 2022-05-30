@@ -78,6 +78,10 @@ and iter_expr = f => {
              f(Statement(x));
              iter_stmt(f, x);
            })
+      | DotAccess(expr, prop) => {
+          f(Expression(expr));
+          iter_expr(f, expr);
+        }
     );
 }
 

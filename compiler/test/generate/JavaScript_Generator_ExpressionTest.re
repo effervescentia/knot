@@ -138,6 +138,21 @@ let suite =
           |> A.of_closure,
         )
     ),
+    "dot access"
+    >: (
+      () =>
+        _assert_expression(
+          DotAccess(Identifier("foo"), "bar"),
+          (
+            "foo"
+            |> A.of_public
+            |> A.of_id
+            |> U.as_struct([("bar", T.Valid(`String))]),
+            U.as_raw_node("bar"),
+          )
+          |> A.of_dot_access,
+        )
+    ),
     "binary operation - logical and"
     >: (
       () =>

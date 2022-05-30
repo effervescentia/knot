@@ -62,6 +62,11 @@ let rec gen_expression =
   | A.UnaryOp(op, value) => value |> gen_unary_op(op)
   | A.BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
   | A.JSX(value) => gen_jsx(value)
+  | A.DotAccess(expr, prop) =>
+    JavaScript_AST.DotAccess(
+      expr |> N.get_value |> gen_expression,
+      NR.get_value(prop),
+    )
 
 and gen_statement = (~is_last=false) =>
   fun

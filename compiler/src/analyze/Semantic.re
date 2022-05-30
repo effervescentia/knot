@@ -173,6 +173,28 @@ and analyze_expression =
           }
         },
       );
+
+    | DotAccess(expr, prop) =>
+      let analyzed_expr = analyze_expression(scope, expr);
+      let type_expr = N.get_type(analyzed_expr);
+
+      type_expr
+      |> Typing.check_dot_access(NR.get_value(prop))
+      |> Option.iter(S.report_type_err(scope, range));
+
+      (
+        (analyzed_expr, prop) |> A.of_dot_access,
+        (
+          switch (type_expr) {
+          | Valid(`Struct(props)) =>
+            props
+            |> List.find_opt(fst % (==)(NR.get_value(prop)))
+            |> Option.map(snd)
+          | _ => None
+          }
+        )
+        |?: Invalid(NotInferrable),
+      );
     };
 
   N.create(expr, type_, range);

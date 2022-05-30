@@ -24,6 +24,21 @@ let suite =
           123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_group,
         )
     ),
+    "dot access"
+    >: (
+      () =>
+        _assert_expression(
+          "foo.bar",
+          (
+            "foo"
+            |> A.of_public
+            |> A.of_id
+            |> U.as_struct([("bar", T.Valid(`Boolean))]),
+            U.as_raw_node("bar"),
+          )
+          |> A.of_dot_access,
+        )
+    ),
     "grouped binary operation"
     >: (
       () =>

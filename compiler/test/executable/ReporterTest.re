@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 15 error(s) and 0 warning(s)
+finished with 16 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -127,13 +127,20 @@ finished with 15 error(s) and 0 warning(s)
   jsx classes can only be controlled with arguments of type boolean but received integer
   \n  [code frame not available]
 
-14) Untyped Function Argument : bar/my_namespace.kn:0.0
+14) Invalid Dot Access : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  dot access can only be performed on values with struct types
+  expected a value matching the type { my_prop: any } but received integer
+  \n  [code frame not available]
+
+15) Untyped Function Argument : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a type
   \n  [code frame not available]
 
-15) Default Argument Missing : bar/my_namespace.kn:0.0
+16) Default Argument Missing : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a default value
@@ -141,7 +148,7 @@ finished with 15 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • remove default values from all preceding arguments
 
-finished with 15 error(s) and 0 warning(s)
+finished with 16 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -209,6 +216,11 @@ finished with 15 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(InvalidJSXClassExpression(Type.Valid(`Integer))),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(InvalidDotAccess(Type.Valid(`Integer), "my_prop")),
               __namespace,
               Range.zero,
             ),

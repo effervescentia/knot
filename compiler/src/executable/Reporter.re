@@ -342,6 +342,26 @@ let _extract_type_err =
       [],
     )
 
+  | Type.InvalidDotAccess(type_, prop) => (
+      "Invalid Dot Access",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>dot access can only be performed on values with %a types@,expected a value matching the type %a but received %a@]",
+              good_str,
+              "struct",
+              good_str,
+              Fmt.str("{ %s: any }", prop),
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
   | Type.UntypedFunctionArgument(id) => (
       "Untyped Function Argument",
       (
