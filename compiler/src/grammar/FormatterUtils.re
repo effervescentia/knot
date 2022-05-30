@@ -13,6 +13,7 @@ let _sort_imports =
              fun
              | Internal(name)
              | External(name) => name
+             | Stdlib => ""
            ),
        )
     |> Tuple.join2(String.compare)

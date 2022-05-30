@@ -136,6 +136,20 @@ let of_decl =
            ),
          ),
       expr |> of_expr |> _wrap(N.get_range(expr)),
+    )
+  | A.View(props, expr) =>
+    _join(
+      props
+      |> _fold(
+           N.get_value
+           % (
+             (A.{name, default}) => {
+               ...name |> Tuple.join2(of_untyped_id),
+               right: default |?> of_expr,
+             }
+           ),
+         ),
+      expr |> of_expr |> _wrap(N.get_range(expr)),
     );
 
 let of_import =
@@ -149,6 +163,19 @@ let of_import =
 
 let of_mod_stmt =
   fun
+  | A.StandardImport(imports) =>
+    imports
+    |> _fold(
+         NR.get_value
+         % (
+           fun
+           | (id, None) => id |> Tuple.join2(of_untyped_id)
+           | (id, Some(alias)) =>
+             (id, alias)
+             |> Tuple.map2(Tuple.join2(of_untyped_id))
+             |> Tuple.join2(_join)
+         ),
+       )
   | A.Import(namespace, imports) =>
     imports |> _fold(NR.get_value % of_import)
   | A.Declaration(MainExport(id) | NamedExport(id), decl) =>

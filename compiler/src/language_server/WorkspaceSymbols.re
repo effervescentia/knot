@@ -96,6 +96,12 @@ let handler: Runtime.request_handler_t(params_t) =
                                      range,
                                      kind: Capabilities.Function,
                                    }
+                                 | View(props, expr) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Function,
+                                   }
                                  },
                                );
                              }
@@ -109,6 +115,8 @@ let handler: Runtime.request_handler_t(params_t) =
            |> List.flatten
          )
       |> List.flatten;
+
+    ignore(symbols);
 
     Result.ok(`Null);
   };

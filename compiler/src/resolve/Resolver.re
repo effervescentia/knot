@@ -48,6 +48,7 @@ let resolve_module =
     )
   /* resolve an external module */
   | (External(path), _) => raise(NotImplemented)
+  | (Stdlib, _) => raise(NotImplemented)
   };
 
 /* pretty printing */

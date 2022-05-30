@@ -28,6 +28,11 @@ and iter_mod_stmt = f =>
           iter_decl(f, decl);
         }
       | Import(_, imports) => imports |> List.iter(x => f(Import(x)))
+      | StandardImport(imports) =>
+        imports
+        |> List.iter(
+             Node.Raw.map_value(AST.of_named_import) % (x => f(Import(x))),
+           )
     )
 
 and iter_decl = f =>
@@ -37,6 +42,10 @@ and iter_decl = f =>
       | Constant(expr) => _bind_expr(f, expr)
       | Function(args, expr) =>
         (args |> List.filter_map(arg => Node.get_value(arg).default))
+        @ [expr]
+        |> List.iter(_bind_expr(f))
+      | View(props, expr) =>
+        (props |> List.filter_map(arg => Node.get_value(arg).default))
         @ [expr]
         |> List.iter(_bind_expr(f))
     )
