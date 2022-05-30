@@ -61,12 +61,17 @@ let rec of_expr =
       lhs |> of_expr |> _wrap(N.get_range(lhs)),
       rhs |> of_expr |> _wrap(N.get_range(rhs)),
     )
-  | (A.UnaryOp(_, expr), _, range) =>
+  | (A.UnaryOp(_, expr), _, _) =>
     expr |> of_expr |> _wrap(N.get_range(expr))
-  | (A.Closure(stmts), _, range) =>
+  | (A.Closure(stmts), _, _) =>
     stmts |> List.map(N.get_value % of_stmt) |> of_list
-  | (A.DotAccess(expr, props), _, range) =>
+  | (A.DotAccess(expr, props), _, _) =>
     expr |> of_expr |> _wrap(N.get_range(expr))
+  | (A.FunctionCall(expr, args), _, range) =>
+    _join(
+      expr |> of_expr |> _wrap(N.get_range(expr)),
+      args |> List.map(of_expr) |> of_list,
+    )
 
 and of_jsx =
   fun

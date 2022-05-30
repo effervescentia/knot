@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 16 error(s) and 0 warning(s)
+finished with 17 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -134,13 +134,20 @@ finished with 16 error(s) and 0 warning(s)
   expected a value matching the type { my_prop: any } but received integer
   \n  [code frame not available]
 
-15) Untyped Function Argument : bar/my_namespace.kn:0.0
+15) Invalid Function Call : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  function calls can only be performed on values with function types
+  expected a value matching the type (string, nil) -> any but received integer
+  \n  [code frame not available]
+
+16) Untyped Function Argument : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a type
   \n  [code frame not available]
 
-16) Default Argument Missing : bar/my_namespace.kn:0.0
+17) Default Argument Missing : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a default value
@@ -148,7 +155,7 @@ finished with 16 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • remove default values from all preceding arguments
 
-finished with 16 error(s) and 0 warning(s)
+finished with 17 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -221,6 +228,16 @@ finished with 16 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(InvalidDotAccess(Type.Valid(`Integer), "my_prop")),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidFunctionCall(
+                  Type.Valid(`Integer),
+                  [Type.Valid(`String), Type.Valid(`Nil)],
+                ),
+              ),
               __namespace,
               Range.zero,
             ),

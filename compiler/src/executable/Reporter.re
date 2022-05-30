@@ -362,6 +362,32 @@ let _extract_type_err =
       [],
     )
 
+  | Type.InvalidFunctionCall(type_, args) => (
+      "Invalid Function Call",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>function calls can only be performed on values with %a types@,expected a value matching the type %a but received %a@]",
+              good_str,
+              "function",
+              good(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a) -> any@]",
+                  list(~layout=Horizontal, Type.pp),
+                )
+              ),
+              args,
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
   | Type.UntypedFunctionArgument(id) => (
       "Untyped Function Argument",
       (

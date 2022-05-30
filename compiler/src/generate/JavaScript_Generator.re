@@ -67,6 +67,11 @@ let rec gen_expression =
       expr |> N.get_value |> gen_expression,
       NR.get_value(prop),
     )
+  | A.FunctionCall(expr, args) =>
+    JavaScript_AST.FunctionCall(
+      expr |> N.get_value |> gen_expression,
+      args |> List.map(N.get_value % gen_expression),
+    )
 
 and gen_statement = (~is_last=false) =>
   fun

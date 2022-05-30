@@ -195,6 +195,18 @@ and pp_expression: Fmt.t(A.raw_expression_t) =
         NR.get_value(prop),
       )
 
+    | FunctionCall(expr, args) =>
+      Fmt.(
+        pf(
+          ppf,
+          "%a@[<hv>(%a)@]",
+          pp_expression,
+          N.get_value(expr),
+          list(~sep=Sep.trailing_comma, pp_expression),
+          args |> List.map(N.get_value),
+        )
+      )
+
 and pp_statement: Fmt.t(A.raw_statement_t) =
   (ppf, stmt) =>
     switch (stmt) {
@@ -261,7 +273,7 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
           "@[<v>func @[<h>%a(%a)@] -> %a@]",
           Identifier.pp,
           name,
-          list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
+          list(~sep=Sep.trailing_comma, pp_function_arg),
           args |> List.map(N.get_value),
           pp_function_body,
           N.get_value(expr),

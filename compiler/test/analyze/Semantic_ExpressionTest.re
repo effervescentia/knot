@@ -121,7 +121,7 @@ let suite =
         let scope = {
           ...S.create(__namespace, throw, Range.zero),
           types:
-            [(__id, T.Valid(`Struct([("foo", T.Valid(`Boolean))])))]
+            [(__id, T.Valid(`Struct([("foo", Valid(`Boolean))])))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -135,6 +135,38 @@ let suite =
           |> URes.as_bool,
           (__id |> AR.of_id |> URaw.as_unknown, URaw.as_raw_node("foo"))
           |> AR.of_dot_access
+          |> URaw.as_unknown
+          |> SemanticAnalyzer.analyze_expression(scope),
+        );
+      }
+    ),
+    "resolve function call"
+    >: (
+      () => {
+        let scope = {
+          ...S.create(__namespace, throw, Range.zero),
+          types:
+            [
+              (
+                __id,
+                T.Valid(`Function(([Valid(`Integer)], Valid(`String)))),
+              ),
+            ]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        Assert.expression(
+          (
+            __id
+            |> A.of_id
+            |> URes.as_function([T.Valid(`Integer)], T.Valid(`String)),
+            [URes.int_prim(123)],
+          )
+          |> A.of_func_call
+          |> URes.as_string,
+          (__id |> AR.of_id |> URaw.as_unknown, [URaw.int_prim(123)])
+          |> AR.of_func_call
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_expression(scope),
         );

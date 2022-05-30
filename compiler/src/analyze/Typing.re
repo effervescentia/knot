@@ -50,7 +50,39 @@ let check_dot_access: (string, T.t) => option(T.error_t) =
         when props |> List.exists(((name, _)) => name == prop) =>
       None
 
-    | type_ => Some(InvalidJSXPrimitiveExpression(type_));
+    | type_ => Some(InvalidDotAccess(type_, prop));
+
+let check_function_call: ((T.t, list(T.t))) => option(T.error_t) =
+  fun
+  /* assume this have been reported already and ignore */
+  | (Invalid(_), _) => None
+
+  | (Valid(`Function(args, _)) as func_type, actual_args) =>
+    if (List.length(args) != List.length(actual_args)) {
+      Some(InvalidFunctionCall(func_type, actual_args));
+    } else {
+      List.combine(args, actual_args)
+      |> List.fold_left(
+           (err, args) =>
+             Option.(
+               switch (err, args) {
+               | (Some(_), _) => err
+
+               | (_, (T.Valid(_), T.Valid(_))) when fst(args) == snd(args) =>
+                 None
+
+               /* ignore it if the actual arg type is invalid */
+               | (_, (T.Valid(_), T.Invalid(_))) => None
+
+               | _ => Some(T.InvalidFunctionCall(func_type, actual_args))
+               }
+             ),
+           None,
+         );
+    }
+
+  | (expr_type, arg_types) =>
+    Some(InvalidFunctionCall(expr_type, arg_types));
 
 let check_jsx_class_expression: T.t => option(T.error_t) =
   fun

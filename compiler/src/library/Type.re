@@ -128,6 +128,7 @@ type error_t =
   | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
   | InvalidDotAccess(t, string)
+  | InvalidFunctionCall(t, list(t))
   | UntypedFunctionArgument(Identifier.t)
   | DefaultArgumentMissing(Identifier.t);
 
@@ -207,6 +208,16 @@ let pp_error: Fmt.t(error_t) =
 
       | InvalidDotAccess(type_, prop) =>
         pf(ppf, "InvalidDotAccess<%a, %s>", pp, type_, prop)
+
+      | InvalidFunctionCall(type_, expected_args) =>
+        pf(
+          ppf,
+          "InvalidFunctionCall<%a, %a>",
+          pp,
+          type_,
+          list(pp),
+          expected_args,
+        )
 
       | DefaultArgumentMissing(id) =>
         pf(ppf, "DefaultArgumentMissing<%a>", Identifier.pp, id)

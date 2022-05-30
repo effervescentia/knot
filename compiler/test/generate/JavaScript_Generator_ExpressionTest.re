@@ -153,6 +153,21 @@ let suite =
           |> A.of_dot_access,
         )
     ),
+    "function call"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(Identifier("foo"), [Identifier("bar")]),
+          (
+            "foo"
+            |> A.of_public
+            |> A.of_id
+            |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
+            ["bar" |> A.of_public |> A.of_id |> U.as_string],
+          )
+          |> A.of_func_call,
+        )
+    ),
     "binary operation - logical and"
     >: (
       () =>

@@ -195,6 +195,24 @@ and analyze_expression =
         )
         |?: Invalid(NotInferrable),
       );
+
+    | FunctionCall(expr, args) =>
+      let analyzed_expr = analyze_expression(scope, expr);
+      let analyzed_args = args |> List.map(analyze_expression(scope));
+      let type_expr = N.get_type(analyzed_expr);
+      let type_args = analyzed_args |> List.map(N.get_type);
+
+      (type_expr, type_args)
+      |> Typing.check_function_call
+      |> Option.iter(S.report_type_err(scope, range));
+
+      (
+        (analyzed_expr, analyzed_args) |> A.of_func_call,
+        switch (type_expr) {
+        | Valid(`Function(args, result)) => result
+        | _ => Invalid(NotInferrable)
+        },
+      );
     };
 
   N.create(expr, type_, range);

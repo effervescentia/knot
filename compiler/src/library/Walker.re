@@ -78,9 +78,10 @@ and iter_expr = f => {
              f(Statement(x));
              iter_stmt(f, x);
            })
-      | DotAccess(expr, prop) => {
-          f(Expression(expr));
-          iter_expr(f, expr);
+      | DotAccess(expr, prop) => _bind_expr(f, expr)
+      | FunctionCall(expr, args) => {
+          _bind_expr(f, expr);
+          args |> List.iter(_bind_expr(f));
         }
     );
 }
