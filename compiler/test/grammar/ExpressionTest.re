@@ -130,6 +130,59 @@ let suite =
           }",
         )
     ),
+    "parse dot access - identifier root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+            U.as_raw_node("bar"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "foo.bar",
+        )
+    ),
+    "parse dot access - group root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo"
+            |> AR.of_public
+            |> AR.of_id
+            |> U.as_unknown
+            |> AR.of_group
+            |> U.as_unknown,
+            U.as_raw_node("bar"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "(foo).bar",
+        )
+    ),
+    "parse dot access - closure root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            [
+              "foo"
+              |> AR.of_public
+              |> AR.of_id
+              |> U.as_unknown
+              |> AR.of_expr
+              |> U.as_unknown,
+            ]
+            |> AR.of_closure
+            |> U.as_unknown,
+            U.as_raw_node("bar"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "{ foo; }.bar",
+        )
+    ),
     "parse unary - negative"
     >: (
       () =>
@@ -335,6 +388,29 @@ let suite =
             (AR.of_ineq_op % U.as_bool, "!="),
           ]
           |> _generate_spaced_identifier_ops,
+        )
+    ),
+    "parse left-associative - dot access"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            (
+              (
+                "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                U.as_raw_node("b"),
+              )
+              |> AR.of_dot_access
+              |> U.as_unknown,
+              U.as_raw_node("c"),
+            )
+            |> AR.of_dot_access
+            |> U.as_unknown,
+            U.as_raw_node("d"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "a.b.c.d",
         )
     ),
     "parse right-associative - exponent"

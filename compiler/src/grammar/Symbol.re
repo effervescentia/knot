@@ -5,6 +5,7 @@ module M = Matchers;
 
 let colon = M.symbol(C.colon);
 let semicolon = M.symbol(C.semicolon);
+let period = M.symbol(C.period);
 let comma = M.symbol(C.comma);
 
 let not = M.symbol(C.exclamation_mark);

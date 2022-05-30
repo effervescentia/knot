@@ -297,7 +297,7 @@ let suite =
           )
           |> AR.of_tag
           |> U.as_raw_node,
-          "<Foo .fizz />",
+          "<Foo :fizz />",
         )
     ),
     "parse property with identifier"
@@ -468,7 +468,7 @@ let suite =
           )
           |> AR.of_tag
           |> U.as_raw_node,
-          "<Foo bar=fizz .buzz />",
+          "<Foo bar=fizz :buzz />",
         )
     ),
   ];

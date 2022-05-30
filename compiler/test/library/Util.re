@@ -30,6 +30,7 @@ module RawUtil = {
   let as_float = x => as_node(TR.(`Float), x);
   let as_string = x => as_node(TR.(`String), x);
   let as_element = x => as_node(TR.(`Element), x);
+  let as_struct = (props, x) => as_node(TR.(`Struct(props)), x);
   let as_function = (args, res, x) =>
     as_node(TR.(`Function((args, res))), x);
 

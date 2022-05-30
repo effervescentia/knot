@@ -41,6 +41,32 @@ let closure =
     }
   );
 
+let dot_access = {
+  let rec loop = obj =>
+    Symbol.period
+    >> M.identifier
+    >>= (
+      prop =>
+        loop(
+          N.create(
+            (obj, prop) |> AR.of_dot_access,
+            (
+              switch (N.get_type(obj)) {
+              | `Struct(props) =>
+                props |> List.assoc_opt(NR.get_value(prop))
+              | _ => None
+              }
+            )
+            |?: TR.(`Unknown),
+            NR.get_range(prop),
+          ),
+        )
+    )
+    |> option(obj);
+
+  loop;
+};
+
 /*
   each expression has a precedence denoted by its suffix
 
@@ -94,8 +120,12 @@ and expr_7 = (ctx: ModuleContext.t): expression_parser_t =>
     ]),
   )
 
-/* {}, () */
+/* foo.bar */
 and expr_8 = (ctx: ModuleContext.t): expression_parser_t =>
+  expr_9(ctx) >>= dot_access
+
+/* {}, () */
+and expr_9 = (ctx: ModuleContext.t): expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice([closure(ctx, expr_0), expr_0(ctx) |> group, term(ctx)], input)

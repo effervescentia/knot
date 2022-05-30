@@ -105,7 +105,7 @@ and property_attribute =
 and class_attribute =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_parser_t =>
-  _attribute(~prefix=Character.period, ctx, parsers)
+  _attribute(~prefix=Character.colon, ctx, parsers)
   >|= (
     ((name, value, range)) =>
       NR.create(
