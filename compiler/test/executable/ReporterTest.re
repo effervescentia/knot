@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 17 error(s) and 0 warning(s)
+finished with 21 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -127,27 +127,51 @@ finished with 17 error(s) and 0 warning(s)
   jsx classes can only be controlled with arguments of type boolean but received integer
   \n  [code frame not available]
 
-14) Invalid Dot Access : bar/my_namespace.kn:0.0
+14) Invalid JSX Tag : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  this jsx tag was expected to be of type view with props (my_attr: boolean) but received integer
+  \n  [code frame not available]
+
+15) Invalid JSX Attribute : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  this jsx tag expects the attribute my_attr to be of type integer but received boolean
+  \n  [code frame not available]
+
+16) Unexpected JSX Attribute : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  found an unexpected attribute my_attr with type boolean
+  \n  [code frame not available]
+
+17) Missing JSX Attributes : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  jsx tag MyTag is missing the attributes (my_bool: boolean, my_int: integer)
+  \n  [code frame not available]
+
+18) Invalid Dot Access : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   dot access can only be performed on values with struct types
   expected a value matching the type { my_prop: any } but received integer
   \n  [code frame not available]
 
-15) Invalid Function Call : bar/my_namespace.kn:0.0
+19) Invalid Function Call : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   function calls can only be performed on values with function types
   expected a value matching the type (string, nil) -> any but received integer
   \n  [code frame not available]
 
-16) Untyped Function Argument : bar/my_namespace.kn:0.0
+20) Untyped Function Argument : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a type
   \n  [code frame not available]
 
-17) Default Argument Missing : bar/my_namespace.kn:0.0
+21) Default Argument Missing : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a default value
@@ -155,7 +179,7 @@ finished with 17 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • remove default values from all preceding arguments
 
-finished with 17 error(s) and 0 warning(s)
+finished with 21 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -223,6 +247,48 @@ finished with 17 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(InvalidJSXClassExpression(Type.Valid(`Integer))),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidJSXTag(
+                  Reference.Identifier.of_string("MyTag"),
+                  Type.Valid(`Integer),
+                  [("my_attr", Type.Valid(`Boolean))],
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidJSXAttribute(
+                  "my_attr",
+                  Type.Valid(`Integer),
+                  Type.Valid(`Boolean),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                UnexpectedJSXAttribute("my_attr", Type.Valid(`Boolean)),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                MissingJSXAttributes(
+                  Reference.Identifier.of_string("MyTag"),
+                  [
+                    ("my_bool", Type.Valid(`Boolean)),
+                    ("my_int", Type.Valid(`Integer)),
+                  ],
+                ),
+              ),
               __namespace,
               Range.zero,
             ),

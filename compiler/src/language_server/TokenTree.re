@@ -82,8 +82,9 @@ and of_jsx =
        )
     |> of_list
 
-  | A.Tag(id, attrs, children) =>
-    [id |> Tuple.join2(of_untyped_id)]
+  | A.Tag((id, range), attrs, children)
+  | A.Component((id, _, range), attrs, children) =>
+    [of_untyped_id(id, range)]
     @ (
       attrs
       |> List.map(attr =>

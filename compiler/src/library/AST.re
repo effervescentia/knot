@@ -301,6 +301,11 @@ module Make = (Params: ASTParams) => {
    */
   type jsx_t =
     | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
+    | Component(
+        node_t(Identifier.t),
+        list(jsx_attribute_t),
+        list(jsx_child_t),
+      )
     | Fragment(list(jsx_child_t))
 
   /**
@@ -412,6 +417,8 @@ module Make = (Params: ASTParams) => {
   let of_jsx = x => JSX(x);
   let of_frag = xs => Fragment(xs);
   let of_tag = ((name, attrs, children)) => Tag(name, attrs, children);
+  let of_component = ((id, attrs, children)) =>
+    Component(id, attrs, children);
   let of_prop = ((name, value)) => Property(name, value);
   let of_jsx_class = ((name, value)) => Class(name, value);
   let of_jsx_id = name => ID(name);
@@ -553,6 +560,28 @@ module Make = (Params: ASTParams) => {
             ),
           ],
           "Tag",
+        )
+
+      | Component(view, attrs, children) =>
+        Entity.create(
+          ~children=[
+            view
+            |> typed_node_to_entity(
+                 ~attributes=[
+                   ("name", view |> Node.get_value |> Identifier.to_string),
+                 ],
+                 "Identifier",
+               ),
+            Entity.create(
+              ~children=attrs |> List.map(jsx_attr_to_entity),
+              "Attributes",
+            ),
+            Entity.create(
+              ~children=children |> List.map(jsx_child_to_entity),
+              "Children",
+            ),
+          ],
+          "Component",
         )
 
       | Fragment(children) =>

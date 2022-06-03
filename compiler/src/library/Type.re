@@ -127,6 +127,10 @@ type error_t =
   | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
   | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
+  | InvalidJSXTag(Identifier.t, t, list((string, t)))
+  | UnexpectedJSXAttribute(string, t)
+  | InvalidJSXAttribute(string, t, t)
+  | MissingJSXAttributes(Identifier.t, list((string, t)))
   | InvalidDotAccess(t, string)
   | InvalidFunctionCall(t, list(t))
   | UntypedFunctionArgument(Identifier.t)
@@ -217,6 +221,42 @@ let pp_error: Fmt.t(error_t) =
           type_,
           list(pp),
           expected_args,
+        )
+
+      | InvalidJSXTag(id, type_, expected_attrs) =>
+        pf(
+          ppf,
+          "InvalidJSXTag<%a, %a, %a>",
+          Identifier.pp,
+          id,
+          pp,
+          type_,
+          record(string, pp),
+          expected_attrs,
+        )
+
+      | UnexpectedJSXAttribute(name, type_) =>
+        pf(ppf, "UnexpectedJSXAttribute<%s, %a>", name, pp, type_)
+
+      | InvalidJSXAttribute(name, expected_type, actual_type) =>
+        pf(
+          ppf,
+          "InvalidJSXAttribute<%s, %a, %a>",
+          name,
+          pp,
+          expected_type,
+          pp,
+          actual_type,
+        )
+
+      | MissingJSXAttributes(id, attrs) =>
+        pf(
+          ppf,
+          "MissingJSXAttributes<%a, @[<hv>%a@]>",
+          Identifier.pp,
+          id,
+          record(string, pp),
+          attrs,
         )
 
       | DefaultArgumentMissing(id) =>

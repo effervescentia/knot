@@ -136,20 +136,34 @@ and gen_binary_op = {
     );
 }
 
+and gen_jsx_element = (expr, attrs, values) =>
+  JavaScript_AST.FunctionCall(
+    __jsx_create_tag,
+    [
+      expr,
+      ...List.is_empty(attrs) && List.is_empty(values)
+           ? []
+           : [
+             gen_jsx_attrs(attrs),
+             ...values |> List.map(NR.get_value % gen_jsx_child),
+           ],
+    ],
+  )
+
 and gen_jsx =
   fun
   | A.Tag(name, attrs, values) =>
-    JavaScript_AST.FunctionCall(
-      __jsx_create_tag,
-      [
-        String(name |> NR.get_value |> ~@Identifier.pp),
-        ...List.is_empty(attrs) && List.is_empty(values)
-             ? []
-             : [
-               gen_jsx_attrs(attrs),
-               ...values |> List.map(NR.get_value % gen_jsx_child),
-             ],
-      ],
+    gen_jsx_element(
+      String(name |> NR.get_value |> ~@Identifier.pp),
+      attrs,
+      values,
+    )
+
+  | A.Component(id, attrs, values) =>
+    gen_jsx_element(
+      Identifier(id |> N.get_value |> ~@Identifier.pp),
+      attrs,
+      values,
     )
 
   | A.Fragment(values) =>

@@ -4,5 +4,5 @@
 
 (package
   (name knot)
-  (sites (share res))
+  (sites (share res) (share assets))
 )

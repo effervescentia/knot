@@ -1,0 +1,7 @@
+import {} from "@/expressions";
+import {} from "@/functions";
+import {} from "@/jsx";
+import {} from "@/primitives";
+import {} from "@/views";
+
+const app = <app />;

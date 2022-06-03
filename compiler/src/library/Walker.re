@@ -102,6 +102,15 @@ and iter_jsx = f =>
            });
         children |> List.iter(_bind_jsx_child(f));
       }
+    | Component(id, attrs, children) => {
+        f(Identifier(Node.get_value(id)));
+        attrs
+        |> List.iter(x => {
+             f(JSXAttribute(x));
+             iter_jsx_attr(f, x);
+           });
+        children |> List.iter(_bind_jsx_child(f));
+      }
   )
 
 and _bind_jsx_child = (f, x) => {

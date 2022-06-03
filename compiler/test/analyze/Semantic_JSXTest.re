@@ -6,6 +6,7 @@ module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
 let __id = Identifier.of_string("foo");
+let __component_id = Identifier.of_string("Foo");
 let __namespace = Reference.Namespace.of_string("foo");
 let __throw_scope = S.create(__namespace, throw, Range.zero);
 
@@ -172,5 +173,177 @@ let suite =
           |> AR.of_tag
           |> SemanticAnalyzer.analyze_jsx(__throw_scope)
         )
+    ),
+    "throw InvalidJSXTag error on jsx with incorrect type"
+    >: (
+      () => {
+        let scope = {
+          ...__throw_scope,
+          types:
+            [(__component_id, T.Valid(`Integer))]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        Assert.throws_compile_errors(
+          [
+            ParseError(
+              TypeError(
+                InvalidJSXTag(
+                  __component_id,
+                  Valid(`Integer),
+                  [("bar", Valid(`Boolean))],
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+          ],
+          () =>
+          (
+            URaw.as_raw_node(__component_id),
+            [
+              (
+                "bar" |> A.of_public |> URaw.as_raw_node,
+                true |> URaw.bool_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> URaw.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> SemanticAnalyzer.analyze_jsx(scope)
+        );
+      }
+    ),
+    "throw InvalidJSXAttribute and UnexpectedJSXAttribute errors on jsx with incorrect attributes"
+    >: (
+      () => {
+        let errors = ref([]);
+        let scope = {
+          ...__throw_scope,
+          report: err => errors := errors^ @ [err],
+          types:
+            [
+              (
+                __component_id,
+                T.Valid(
+                  `View((
+                    [("fizz", T.Valid(`Boolean))],
+                    T.Valid(`Element),
+                  )),
+                ),
+              ),
+            ]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        (
+          URaw.as_raw_node(__component_id),
+          [
+            (
+              "fizz" |> A.of_public |> URaw.as_raw_node,
+              "bar" |> URaw.string_prim |> Option.some,
+            )
+            |> AR.of_prop
+            |> URaw.as_raw_node,
+            (
+              "buzz" |> A.of_public |> URaw.as_raw_node,
+              true |> URaw.bool_prim |> Option.some,
+            )
+            |> AR.of_prop
+            |> URaw.as_raw_node,
+          ],
+          [],
+        )
+        |> AR.of_tag
+        |> SemanticAnalyzer.analyze_jsx(scope)
+        |> ignore;
+
+        Assert.compile_errors(
+          [
+            ParseError(
+              TypeError(UnexpectedJSXAttribute("buzz", Valid(`Boolean))),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidJSXAttribute(
+                  "fizz",
+                  Valid(`Boolean),
+                  Valid(`String),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+          ],
+          errors^,
+        );
+      }
+    ),
+    "resolve jsx with valid attributes"
+    >: (
+      () => {
+        let errors = ref([]);
+        let view_type =
+          T.Valid(
+            `View((
+              [("fizz", T.Valid(`Boolean)), ("buzz", T.Valid(`String))],
+              T.Valid(`Element),
+            )),
+          );
+        let scope = {
+          ...__throw_scope,
+          report: err => errors := errors^ @ [err],
+          types:
+            [(__component_id, view_type)] |> List.to_seq |> Hashtbl.of_seq,
+        };
+
+        Assert.jsx(
+          (
+            __component_id |> URes.as_node(view_type),
+            [
+              (
+                "fizz" |> A.of_public |> URes.as_raw_node,
+                true |> URes.bool_prim |> Option.some,
+              )
+              |> A.of_prop
+              |> URes.as_raw_node,
+              (
+                "buzz" |> A.of_public |> URes.as_raw_node,
+                "bar" |> URes.string_prim |> Option.some,
+              )
+              |> A.of_prop
+              |> URes.as_raw_node,
+            ],
+            [],
+          )
+          |> A.of_component,
+          (
+            URaw.as_raw_node(__component_id),
+            [
+              (
+                "fizz" |> A.of_public |> URaw.as_raw_node,
+                true |> URaw.bool_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> URaw.as_raw_node,
+              (
+                "buzz" |> A.of_public |> URaw.as_raw_node,
+                "bar" |> URaw.string_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> URaw.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> SemanticAnalyzer.analyze_jsx(scope),
+        );
+      }
     ),
   ];

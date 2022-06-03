@@ -1,0 +1,3 @@
+open Kore;
+
+let test = () => ();

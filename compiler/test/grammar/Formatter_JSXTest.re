@@ -19,6 +19,15 @@ let suite =
           ("Foo" |> A.of_public |> U.as_raw_node, [], []) |> A.of_tag,
         )
     ),
+    "pp_jsx() - empty component"
+    >: (
+      () =>
+        _assert_jsx(
+          "<Foo />",
+          ("Foo" |> A.of_public |> U.as_view([], T.Valid(`Element)), [], [])
+          |> A.of_component,
+        )
+    ),
     "pp_jsx() - empty fragment"
     >: (() => _assert_jsx("<></>", [] |> A.of_frag)),
     "pp_jsx() - tag with attributes"

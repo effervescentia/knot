@@ -61,6 +61,137 @@ let suite =
           "escaped quotes (\")" |> A.of_string |> A.of_prim,
         )
     ),
+    "jsx - render empty tag"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
+            [String("foo")],
+          ),
+          ("foo" |> A.of_public |> U.as_raw_node, [], [])
+          |> A.of_tag
+          |> A.of_jsx,
+        )
+    ),
+    "jsx - render tag with attributes"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
+            [
+              String("foo"),
+              Object([
+                (
+                  "className",
+                  BinaryOp(
+                    "+",
+                    Group(
+                      Ternary(Boolean(true), String(".buzz"), String("")),
+                    ),
+                    String(".fizz"),
+                  ),
+                ),
+                ("zip", String("zap")),
+                ("id", String("bar")),
+              ]),
+            ],
+          ),
+          (
+            "foo" |> A.of_public |> U.as_raw_node,
+            [
+              "bar"
+              |> A.of_public
+              |> U.as_raw_node
+              |> A.of_jsx_id
+              |> U.as_raw_node,
+              ("fizz" |> A.of_public |> U.as_raw_node, None)
+              |> A.of_jsx_class
+              |> U.as_raw_node,
+              (
+                "buzz" |> A.of_public |> U.as_raw_node,
+                true |> A.of_bool |> A.of_prim |> U.as_bool |> Option.some,
+              )
+              |> A.of_jsx_class
+              |> U.as_raw_node,
+              (
+                "zip" |> A.of_public |> U.as_raw_node,
+                "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,
+              )
+              |> A.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> A.of_tag
+          |> A.of_jsx,
+        )
+    ),
+    "jsx - render component"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
+            [Identifier("Foo")],
+          ),
+          ("Foo" |> A.of_public |> U.as_view([], T.Valid(`Element)), [], [])
+          |> A.of_component
+          |> A.of_jsx,
+        )
+    ),
+    "jsx - deeply nested tags"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
+            [
+              String("foo"),
+              Null,
+              FunctionCall(
+                DotAccess(
+                  DotAccess(Identifier("$knot"), "jsx"),
+                  "createTag",
+                ),
+                [
+                  Identifier("Bar"),
+                  Null,
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "jsx"),
+                      "createTag",
+                    ),
+                    [String("fizz")],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          (
+            "foo" |> A.of_public |> U.as_raw_node,
+            [],
+            [
+              (
+                "Bar" |> A.of_public |> U.as_view([], T.Valid(`Element)),
+                [],
+                [
+                  ("fizz" |> A.of_public |> U.as_raw_node, [], [])
+                  |> A.of_tag
+                  |> A.of_node
+                  |> U.as_raw_node,
+                ],
+              )
+              |> A.of_component
+              |> A.of_node
+              |> U.as_raw_node,
+            ],
+          )
+          |> A.of_tag
+          |> A.of_jsx,
+        )
+    ),
     "null" >: (() => _assert_expression(Null, A.nil |> A.of_prim)),
     "identifier"
     >: (

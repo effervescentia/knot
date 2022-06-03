@@ -1,5 +1,7 @@
 open Kore;
 
+module S = Set.Make(Stdlib.String);
+
 let check_unary_operation: (A.unary_t, T.t) => option(T.error_t) =
   op =>
     fun
@@ -81,8 +83,82 @@ let check_function_call: ((T.t, list(T.t))) => option(T.error_t) =
          );
     }
 
-  | (expr_type, arg_types) =>
-    Some(InvalidFunctionCall(expr_type, arg_types));
+  | (expr_type, args) => Some(InvalidFunctionCall(expr_type, args));
+
+let check_jsx_render:
+  ((Reference.Identifier.t, T.t, list((string, (T.t, Range.t))))) =>
+  list((T.error_t, option(Range.t))) =
+  fun
+  /* assume this have been reported already and ignore */
+  | (_, Invalid(_), _) => []
+
+  | (id, Valid(`View(attrs, _)), actual_attrs) => {
+      let keys =
+        attrs
+        @ (actual_attrs |> List.map(Tuple.map_snd2(fst)))
+        |> List.map(fst)
+        |> List.uniq_by((==));
+
+      let (invalid, missing) =
+        keys
+        |> List.fold_left(
+             ((invalid, missing) as acc, key) => {
+               let expected = attrs |> List.assoc_opt(key);
+               let actual = actual_attrs |> List.assoc_opt(key);
+
+               switch (expected, actual) {
+               | (Some(expected'), Some(actual')) =>
+                 switch (expected', actual') {
+                 | (T.Invalid(_), _)
+                 | (_, (T.Invalid(_), _)) => acc
+                 | (T.Valid(_), (T.Valid(_), _))
+                     when expected' == fst(actual') => acc
+                 | (T.Valid(_), (T.Valid(_) as actual_type, range)) => (
+                     invalid
+                     @ [
+                       (
+                         T.InvalidJSXAttribute(key, expected', actual_type),
+                         Some(range),
+                       ),
+                     ],
+                     missing,
+                   )
+                 }
+
+               | (Some(expected'), None) => (
+                   invalid,
+                   missing @ [(key, expected')],
+                 )
+
+               | (None, Some((actual', range))) => (
+                   invalid
+                   @ [
+                     (T.UnexpectedJSXAttribute(key, actual'), Some(range)),
+                   ],
+                   missing,
+                 )
+
+               | (None, None) => acc
+               };
+             },
+             ([], []),
+           );
+
+      if (!List.is_empty(invalid)) {
+        invalid;
+      } else if (!List.is_empty(missing)) {
+        [(T.MissingJSXAttributes(id, missing), None)];
+      } else {
+        [];
+      };
+    }
+
+  | (id, expr_type, attrs) => [
+      (
+        InvalidJSXTag(id, expr_type, attrs |> List.map(Tuple.map_snd2(fst))),
+        None,
+      ),
+    ];
 
 let check_jsx_class_expression: T.t => option(T.error_t) =
   fun

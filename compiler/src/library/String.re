@@ -26,6 +26,7 @@ let of_uchars = (cs: list(Uchar.t)) =>
 /* methods */
 
 let to_list = TString.to_list;
+let is_capitalized = TString.is_capitalized;
 
 let join = (~separator="", xs: list(string)): string =>
   TString.join(~sep=separator, xs);

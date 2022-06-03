@@ -342,6 +342,94 @@ let _extract_type_err =
       [],
     )
 
+  | Type.InvalidJSXTag(id, type_, props) => (
+      "Invalid JSX Tag",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "this jsx tag was expected to be of type %a with props %a but received %a",
+              good_str,
+              Constants.Keyword.view,
+              good(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a)@]",
+                  list(~layout=Horizontal, attribute(string, Type.pp)),
+                )
+              ),
+              props,
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidJSXAttribute(key, expected, actual) => (
+      "Invalid JSX Attribute",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "this jsx tag expects the attribute %a to be of type %a but received %a",
+              bad_str,
+              key,
+              good(Type.pp),
+              expected,
+              bad(Type.pp),
+              actual,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.UnexpectedJSXAttribute(key, type_) => (
+      "Unexpected JSX Attribute",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "found an unexpected attribute %a with type %a",
+              bad_str,
+              key,
+              good(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.MissingJSXAttributes(id, missing) => (
+      "Missing JSX Attributes",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "jsx tag %a is missing the attributes %a",
+            Identifier.pp,
+            id,
+            Fmt.(
+              bad(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a)@]",
+                  list(~layout=Horizontal, attribute(string, Type.pp)),
+                )
+              )
+            ),
+            missing,
+          )
+      ),
+      [],
+    )
+
   | Type.InvalidDotAccess(type_, prop) => (
       "Invalid Dot Access",
       Fmt.(

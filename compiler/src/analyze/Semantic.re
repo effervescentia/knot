@@ -5,15 +5,46 @@ type reporter_t = (Range.t, T.invalid_t) => unit;
 let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
   switch (raw_jsx) {
   | Tag(id, attrs, children) =>
-    (
-      id,
-      attrs |> List.map(analyze_jsx_attribute(scope)),
-      children |> List.map(analyze_jsx_child(scope)),
-    )
-    |> A.of_tag
+    let analyzed_attrs = attrs |> List.map(analyze_jsx_attribute(scope));
+    let analyzed_children = children |> List.map(analyze_jsx_child(scope));
+    let is_tag_capitalized =
+      id
+      |> NR.get_value
+      |> Reference.Identifier.to_string
+      |> String.is_capitalized;
+
+    if (is_tag_capitalized) {
+      let id_type =
+        scope |> S.lookup(NR.get_value(id)) |?: T.Invalid(NotInferrable);
+      let props =
+        analyzed_attrs
+        |> List.filter_map(
+             fun
+             | (A.Property(name, Some(expr)), range) =>
+               Some((
+                 name |> NR.get_value |> Reference.Identifier.to_string,
+                 (N.get_type(expr), range),
+               ))
+             | (_, range) => None,
+           );
+
+      (NR.get_value(id), id_type, props)
+      |> Typing.check_jsx_render
+      |> List.iter(((err, err_range)) =>
+           S.report_type_err(scope, err_range |?: NR.get_range(id), err)
+         );
+
+      (id |> N.of_raw(id_type), analyzed_attrs, analyzed_children)
+      |> A.of_component;
+    } else {
+      (id, analyzed_attrs, analyzed_children) |> A.of_tag;
+    };
 
   | Fragment(children) =>
     children |> List.map(analyze_jsx_child(scope)) |> A.of_frag
+
+  /* this should never be called, component delegation is determined at this point */
+  | Component(_) => raise(SystemError)
   }
 
 and analyze_jsx_attribute =

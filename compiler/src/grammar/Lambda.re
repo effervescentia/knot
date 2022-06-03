@@ -31,7 +31,7 @@ let arguments = (ctx: ModuleContext.t) =>
       );
     }
   )
-  |> sep_by(Symbol.comma)
+  |> M.comma_sep
   |> M.between(Symbol.open_group, Symbol.close_group)
   >|= NR.get_value;
 

@@ -59,28 +59,31 @@ let pp_prim: Fmt.t(A.primitive_t) =
 let rec pp_jsx: Fmt.t(A.jsx_t) =
   ppf =>
     fun
-    | Tag(name, attrs, []) =>
+    | Tag((name, _), attrs, [])
+    | Component((name, _, _), attrs, []) =>
       Fmt.pf(
         ppf,
         "@[<h><%a%a@ />@]",
         Identifier.pp,
-        NR.get_value(name),
+        name,
         pp_jsx_attr_list,
         attrs |> List.map(NR.get_value),
       )
-    | Tag(name, attrs, children) =>
+
+    | Tag((name, _), attrs, children)
+    | Component((name, _, _), attrs, children) =>
       Fmt.(
         pf(
           ppf,
           "@[<h><%a%a>@]%a</%a>",
           Identifier.pp,
-          NR.get_value(name),
+          name,
           pp_jsx_attr_list,
           attrs |> List.map(NR.get_value),
           block(~layout=Vertical, ~sep=Sep.trailing_newline, pp_jsx_child),
           children |> List.map(NR.get_value),
           Identifier.pp,
-          NR.get_value(name),
+          name,
         )
       )
 
