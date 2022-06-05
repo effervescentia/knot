@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-include Test.Assert;
+include TestLibrary.Assert;
 
 let rec directory = (expected: string, actual: string) => {
   let expected_files = FileUtil.ls(expected);

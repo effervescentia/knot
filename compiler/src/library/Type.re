@@ -121,7 +121,9 @@ and invalid_t =
 type error_t =
   | NotFound(Identifier.t)
   | ExternalNotFound(Namespace.t, Export.t)
+  /* FIXME: not reported */
   | DuplicateIdentifier(Identifier.t)
+  /* FIXME: not reported */
   | TypeMismatch(t, t)
   | InvalidUnaryOperation(AST_Operator.unary_t, t)
   | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
@@ -133,7 +135,9 @@ type error_t =
   | MissingJSXAttributes(Identifier.t, list((string, t)))
   | InvalidDotAccess(t, string)
   | InvalidFunctionCall(t, list(t))
+  /* FIXME: not reported */
   | UntypedFunctionArgument(Identifier.t)
+  /* FIXME: not reported */
   | DefaultArgumentMissing(Identifier.t);
 
 /* pretty printing */

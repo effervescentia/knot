@@ -1,0 +1,45 @@
+const not_found_variable = not_found;
+
+const duplicate_variable = 123;
+const duplicate_variable = 123;
+
+func two_args_function(first_arg: string, second_arg: boolean) -> nil;
+
+const invalid_not_variable = !"string";
+const invalid_absolute_variable = +true;
+const invalid_negated_variable = -nil;
+
+const invalid_and_variable = "string" && nil;
+const invalid_or_variable = <div /> || 123;
+const invalid_lte_variable = false <= "string";
+const invalid_lt_variable = nil < true;
+const invalid_gte_variable = two_args_function >= <div />;
+const invalid_gt_variable = "string" > (true || false);
+const invalid_equality_variable = 123 == 456.78;
+const invalid_inequality_variable = nil != "";
+const invalid_add_variable = "first" + "second";
+const invalid_subtract_variable = true - false;
+const invalid_divide_variable = nil / {};
+const invalid_multiply_variable = "string" * 10;
+const invalid_multiply_variable = true ^ nil;
+
+const invalid_jsx_expr_variable = <div>{two_args_function}</div>;
+
+const invalid_jsx_class_variable = <div :invalid_class="string" />;
+
+const NotView = nil;
+const invalid_jsx_tag_variable = <NotView />;
+
+view TwoAttrsView(first_attr: string, second_attr: boolean) -> nil;
+
+const unexpected_attr_variable = <TwoAttrsView unexpected_attr=true />;
+
+const invalid_attr_variable = <TwoAttrsView first_attr=true />;
+
+const missing_attrs_variable = <TwoAttrsView />;
+
+const invalid_dot_access_variable = (true).property;
+
+const invalid_func_call_variable = ("string")(123, 456.78);
+
+func untyped_arg_function(first_arg: boolean, second_arg) -> nil;

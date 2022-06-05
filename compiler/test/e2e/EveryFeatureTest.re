@@ -1,25 +1,8 @@
 open Kore;
 
-module Compiler = Compile.Compiler;
 module Build = Executable.Build;
-module Processor = Executable.Processor;
 
-let __stdlib = Resource.Asset.find("stdlib.kd");
-let __cwd = _fixture("every_feature");
-
-let _process_build_cmd = argv => {
-  let (global, cmd) =
-    Processor.run(~cwd=__cwd, ~argv, ~color=false, __stdlib);
-  let config =
-    cmd
-    |> (
-      fun
-      | Build(cfg) => cfg
-      | _ => Assert.fail("expected to resolve the build command")
-    );
-
-  (global, config);
-};
+let __cwd = fixture("every_feature");
 
 let suite =
   "Build | Every Feature"
@@ -36,7 +19,7 @@ let suite =
           "--out-dir",
           out_dir,
         |];
-        let (global, config) = _process_build_cmd(argv);
+        let (global, config) = process_build_cmd(__cwd, argv);
 
         Build.run(~report=_ => throw_all, global, config);
 
@@ -58,7 +41,7 @@ let suite =
           "--out-dir",
           out_dir,
         |];
-        let (global, config) = _process_build_cmd(argv);
+        let (global, config) = process_build_cmd(__cwd, argv);
 
         Build.run(~report=_ => throw_all, global, config);
 
@@ -80,7 +63,7 @@ let suite =
           "--out-dir",
           out_dir,
         |];
-        let (global, config) = _process_build_cmd(argv);
+        let (global, config) = process_build_cmd(__cwd, argv);
 
         Build.run(~report=_ => throw_all, global, config);
 
