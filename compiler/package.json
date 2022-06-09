@@ -306,21 +306,7 @@
         "dune-site"
       ],
       "main": "Main",
-      "name": "knotc.exe",
-      "rawBuildConfigFooter": [
-        "(install",
-        "  (package knot)",
-        "  (section (site (knot res)))",
-        "  (files ",
-        "    (res/stdlib.kd as stdlib.kd)",
-        "  )",
-        ")",
-        "(generate_sites_module",
-        "  (module Injected)",
-        "  (sites knot)",
-        "  (sourceroot)",
-        ")"
-      ]
+      "name": "knotc.exe"
     }
   },
   "scripts": {
