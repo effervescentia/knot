@@ -7,7 +7,7 @@ let __cwd = fixture("every_feature");
 let suite =
   "Build | Every Feature"
   >::: [
-    "JavaScript ES6"
+    "javascript - es6"
     >: (
       () => {
         let out_dir = "build/es6";
@@ -29,7 +29,7 @@ let suite =
         );
       }
     ),
-    "JavaScript Common"
+    "javascript - common"
     >: (
       () => {
         let out_dir = "build/common";
@@ -51,7 +51,7 @@ let suite =
         );
       }
     ),
-    "Knot"
+    "knot"
     >: (
       () => {
         let out_dir = "build/knot";

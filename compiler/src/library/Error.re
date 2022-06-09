@@ -23,10 +23,13 @@ type compile_err =
   | ParseError(parse_err, Namespace.t, Range.t)
   /* import cycle exists between modules */
   | ImportCycle(list(string))
+  /* FIXME: not reported in e2e tests */
   /* unable to retrieve a file from the filesystem */
   | FileNotFound(string)
+  /* FIXME: not reported */
   /* module could not be resolved */
   | UnresolvedModule(string)
+  /* FIXME: not reported */
   /* module did not contain any imports or declarations */
   | InvalidModule(Namespace.t);
 

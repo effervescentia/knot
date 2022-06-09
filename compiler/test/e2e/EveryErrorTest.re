@@ -3,12 +3,15 @@ open Kore;
 module Build = Executable.Build;
 
 let __semantic_cwd = fixture("every_semantic_error");
+let __syntax_cwd = fixture("every_syntax_error");
+let __program_cwd = fixture("every_program_error");
 let __semantic_namespace = Reference.Namespace.of_internal("semantic");
+let __syntax_namespace = Reference.Namespace.of_internal("syntax");
 
 let suite =
   "Build | Every Error"
   >::: [
-    "Semantic"
+    "semantic errors"
     >: (
       () => {
         let errors = ref([]);
@@ -291,6 +294,47 @@ let suite =
               Reference.Namespace.of_internal("main"),
               Range.create((1, 10), (1, 21)),
             ),
+          ],
+          errors^,
+        );
+      }
+    ),
+    "syntax errors"
+    >: (
+      () => {
+        let errors = ref([]);
+        let argv = [|"knotc", "build"|];
+        let (global, config) = process_build_cmd(__syntax_cwd, argv);
+
+        Build.run(~report=_ => (@)(errors^) % (:=)(errors), global, config);
+
+        Assert.compile_errors(
+          [
+            ParseError(
+              ReservedKeyword("const"),
+              __syntax_namespace,
+              Range.create((1, 7), (1, 11)),
+            ),
+          ],
+          errors^,
+        );
+      }
+    ),
+    "program errors"
+    >: (
+      () => {
+        let errors = ref([]);
+        let argv = [|"knotc", "build"|];
+        let (global, config) = process_build_cmd(__program_cwd, argv);
+
+        Build.run(~report=_ => (@)(errors^) % (:=)(errors), global, config);
+
+        Assert.compile_errors(
+          [
+            /* InvalidModule(Reference.Namespace.of_internal("empty")), */
+            FileNotFound("src/does_not_exist.kn"),
+            /* FIXME: this should only be reported once */
+            FileNotFound("src/does_not_exist.kn"),
           ],
           errors^,
         );
