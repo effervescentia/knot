@@ -1,44 +1,41 @@
 open Kore;
 
-let integer =
+let integer: number_parser_t =
   many1(M.digit)
   >|= Input.join
-  >|= (
-    block => (
-      block |> Block.value |> Int64.of_string |> AST.of_int,
-      Type.K_Strong(K_Integer),
-      block |> Block.cursor,
-    )
-  )
+  >|= NR.map_value(Int64.of_string % AR.of_int)
+  >|= N.of_raw(TR.(`Integer))
   |> M.lexeme;
 
-let float =
+let float: number_parser_t =
   M.binary_op(
     many1(M.digit) >|= Input.join,
     Character.period,
     many1(M.digit) >|= Input.join,
   )
   >|= (
-    ((x, y)) => (
-      {
-        let integer = x |> Block.value |> String.drop_all_prefix("0");
-        let integer_precision = integer |> String.length;
-        let fraction = y |> Block.value |> String.drop_all_suffix("0");
-        let fraction_precision = fraction |> String.length;
+    ((x, y)) => {
+      let integer = x |> NR.get_value |> String.drop_all_prefix("0");
+      let integer_precision = integer |> String.length;
+      let fraction = y |> NR.get_value |> String.drop_all_suffix("0");
+      let fraction_precision = String.length(fraction);
 
-        if (fraction == "") {
-          AST.of_float((integer |> Float.of_string, integer_precision));
-        } else {
-          AST.of_float((
-            Print.fmt("%s.%s", integer, fraction) |> Float.of_string,
-            integer_precision + fraction_precision,
-          ));
-        };
-      },
-      Type.K_Strong(K_Float),
-      Cursor.join(x |> Block.cursor, y |> Block.cursor),
-    )
+      let components =
+        (
+          if (fraction == "") {
+            (Float.of_string(integer), integer_precision);
+          } else {
+            (
+              Fmt.str("%s.%s", integer, fraction) |> Float.of_string,
+              integer_precision + fraction_precision,
+            );
+          }
+        )
+        |> AR.of_float;
+
+      N.create(components, TR.(`Float), NR.join_ranges(x, y));
+    }
   )
   |> M.lexeme;
 
-let parser = choice([float, integer]);
+let parser: number_parser_t = choice([float, integer]);

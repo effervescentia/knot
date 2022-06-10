@@ -5,8 +5,17 @@ include Stdlib.List;
 
 module TList = Tablecloth.List;
 
+exception NoListMembers;
+
+/**
+ check if a list is empty
+ */
 let is_empty = (xs: list('a)): bool => length(xs) |> (==)(0);
 
+/**
+ return a list containing the items from [xs]
+ including [x] if it was not already present
+ */
 let incl = (x: 'a, xs: list('a)): list('a) =>
   if (mem(x, xs)) {
     xs;
@@ -14,6 +23,10 @@ let incl = (x: 'a, xs: list('a)): list('a) =>
     [x, ...xs];
   };
 
+/**
+ return a list containing the items from [xs]
+ with all instances of [x] removed
+ */
 let excl = (x: 'a, xs: list('a)): list('a) =>
   if (mem(x, xs)) {
     xs |> filter((!=)(x));
@@ -21,23 +34,44 @@ let excl = (x: 'a, xs: list('a)): list('a) =>
     xs;
   };
 
+/**
+ exclude all items [ys] from a list [xs]
+ */
 let excl_all = (xs: list('a), ys: list('a)): list('a) =>
   filter(y => !mem(y, xs), ys);
 
+/**
+ use [compare] to filter out duplicate values from a list
+ */
 let uniq_by = (compare: ('a, 'a) => bool) =>
   fold_left((acc, x) => exists(compare(x), acc) ? acc : [x, ...acc], []);
 
-let compare_members = (l: list('a), r: list('a)): bool =>
-  l |> for_all(x => mem(x, r));
+/**
+ check if both lists contain the same members
+ */
+let compare_members = (ls: list('a), rs: list('a)): bool =>
+  ls |> for_all(x => mem(x, rs)) && rs |> for_all(x => mem(x, ls));
 
-let ends = (l: list('a)): ('a, 'a) => (
-  nth(l, 0),
-  length(l) - 1 |> nth(l),
-);
+/**
+ get the first and last members of the list
+ raises [NoListMembers] if the list is empty
+ */
+let ends = (xs: list('a)): ('a, 'a) =>
+  if (is_empty(xs)) {
+    raise(NoListMembers);
+  } else {
+    (nth(xs, 0), length(xs) - 1 |> nth(xs));
+  };
 
+/**
+ generate a list by repeating a [value] a number of times
+ */
 let repeat = (count: int, value: 'a): list('a) =>
   TList.repeat(~count, value);
 
+/**
+ optionally get the last item of a list [xs]
+ */
 let last = (xs: list('a)): option('a) =>
   switch (xs) {
   | [] => None
@@ -48,9 +82,17 @@ let intersperse = TList.intersperse;
 
 let split_at = (index: int, xs: list('a)) => TList.split_at(~index, xs);
 
+/**
+ split a list [xs] into two equal-ish sized lists
+ */
 let divide = (xs: list('a)) =>
   switch (xs) {
   | []
   | [_] => (xs, [])
-  | _ => xs |> split_at((xs |> length) / 2)
+  | _ => xs |> split_at(length(xs) / 2)
   };
+
+/**
+ returns [true] if the list is empty
+ */
+let is_empty = (xs: list('a)): bool => length(xs) == 0;

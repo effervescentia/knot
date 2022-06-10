@@ -1,174 +1,152 @@
 open Kore;
 open JavaScript_AST;
 
+let __import_prefix = "$import$";
+
 let _import_variable_name =
   String.replace('.', '_') % String.replace('/', '$');
 
-let fmt_string = String.escaped % Print.fmt("\"%s\"") % Pretty.string;
+let _object_sep = Fmt.Sep.(of_sep(~trail=Trail.newline, ","));
 
-let rec fmt_expression = (module_type: Target.module_t) =>
-  fun
-  | Null => "null" |> Pretty.string
-  | Boolean(x) => x |> string_of_bool |> Pretty.string
-  | Number(x) => x |> Pretty.string
-  | String(x) => x |> fmt_string
-  | Group(Group(_) as x) => x |> fmt_expression(module_type)
-  | Group(x) =>
-    [
-      "(" |> Pretty.string,
-      x |> fmt_expression(module_type),
-      ")" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | Identifier(x) => x |> Pretty.string
-  | DotAccess(expr, name) =>
-    [
-      expr |> fmt_expression(module_type),
-      "." |> Pretty.string,
-      name |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | FunctionCall(expr, args) =>
-    [
-      expr |> fmt_expression(module_type),
-      "(" |> Pretty.string,
-      args
-      |> List.map(fmt_expression(module_type))
-      |> List.intersperse(", " |> Pretty.string)
-      |> Pretty.concat,
-      ")" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | UnaryOp(op, x) =>
-    [op |> Pretty.string, x |> fmt_expression(module_type)] |> Pretty.concat
-  | BinaryOp(op, l, r) =>
-    [
-      l |> fmt_expression(module_type),
-      " " |> Pretty.string,
-      op |> Pretty.string,
-      " " |> Pretty.string,
-      r |> fmt_expression(module_type),
-    ]
-    |> Pretty.concat
-  | Ternary(x, y, z) =>
-    [
-      x |> fmt_expression(module_type),
-      " ? " |> Pretty.string,
-      y |> fmt_expression(module_type),
-      " : " |> Pretty.string,
-      z |> fmt_expression(module_type),
-    ]
-    |> Pretty.concat
-  | Function(name, args, stmts) =>
-    [
-      "function " |> Pretty.string,
-      switch (name) {
-      | Some(name) => name |> Pretty.string
-      | None => Pretty.Nil
-      },
-      "(" |> Pretty.string,
-      args
-      |> List.map(Pretty.string)
-      |> List.intersperse(", " |> Pretty.string)
-      |> Pretty.concat,
-      [") {" |> Pretty.string] |> Pretty.newline,
-      stmts
-      |> List.map(stmt =>
-           [fmt_statement(module_type, stmt), ";" |> Pretty.string]
-           |> Pretty.newline
-         )
-      |> Pretty.concat
-      |> Pretty.indent(2),
-      "}" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | Object(props) =>
-    props |> List.is_empty
-      ? "{}" |> Pretty.string
-      : [
-          ["{" |> Pretty.string] |> Pretty.newline,
-          props
-          |> List.map(((name, expr)) =>
-               [
-                 name |> Pretty.string,
-                 ": " |> Pretty.string,
-                 expr |> fmt_expression(module_type),
-               ]
-               |> Pretty.concat
-             )
-          |> List.intersperse(["," |> Pretty.string] |> Pretty.newline)
-          |> Pretty.concat
-          |> Pretty.indent(2),
-          [Pretty.Newline, "}" |> Pretty.string] |> Pretty.concat,
-        ]
-        |> Pretty.concat
+let fmt_string: Fmt.t(string) =
+  ppf => String.escaped % Fmt.(quote(string, ppf));
 
-and fmt_statement = (module_type: Target.module_t, stmt) =>
-  switch (stmt) {
-  | Expression(x) => [x |> fmt_expression(module_type)] |> Pretty.concat
-  | Variable(name, expr) =>
-    [
-      "var " |> Pretty.string,
-      name |> Pretty.string,
-      " = " |> Pretty.string,
-      expr |> fmt_expression(module_type),
-    ]
-    |> Pretty.concat
-  | Assignment(lhs, rhs) =>
-    [
-      lhs |> fmt_expression(module_type),
-      " = " |> Pretty.string,
-      rhs |> fmt_expression(module_type),
-    ]
-    |> Pretty.concat
-  | Return(expr) =>
-    [
-      "return" |> Pretty.string,
+let rec fmt_expression = (module_type: Target.module_t): Fmt.t(expression_t) =>
+  ppf =>
+    fun
+    | Null => Fmt.string(ppf, "null")
+    | Boolean(x) => Fmt.bool(ppf, x)
+    | Number(x) => Fmt.string(ppf, x)
+    | String(x) => fmt_string(ppf, x)
+    | Group(Group(_) as x) => fmt_expression(module_type, ppf, x)
+    | Group(x) => Fmt.pf(ppf, "(%a)", fmt_expression(module_type), x)
+    | Identifier(x) => Fmt.string(ppf, x)
+    | DotAccess(expr, name) =>
+      Fmt.pf(ppf, "%a.%s", fmt_expression(module_type), expr, name)
+    | FunctionCall(expr, args) =>
+      Fmt.(
+        pf(
+          ppf,
+          "%a(%a)",
+          fmt_expression(module_type),
+          expr,
+          list(~sep=Sep.comma, fmt_expression(module_type)),
+          args,
+        )
+      )
+    | UnaryOp(op, x) =>
+      Fmt.pf(ppf, "%s%a", op, fmt_expression(module_type), x)
+    | BinaryOp(op, l, r) =>
+      Fmt.(
+        pf(
+          ppf,
+          "%a %s %a",
+          fmt_expression(module_type),
+          l,
+          op,
+          fmt_expression(module_type),
+          r,
+        )
+      )
+    | Ternary(x, y, z) =>
+      Fmt.(
+        pf(
+          ppf,
+          "%a ? %a : %a",
+          fmt_expression(module_type),
+          x,
+          fmt_expression(module_type),
+          y,
+          fmt_expression(module_type),
+          z,
+        )
+      )
+    | Function(name, args, stmts) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>function %a(%a) %a@]",
+          option(string),
+          name,
+          list(~sep=Sep.comma, string),
+          args,
+          closure(ppf => pf(ppf, "%a;", fmt_statement(module_type))),
+          stmts,
+        )
+      )
+    | Object([]) => Fmt.string(ppf, "{}")
+    | Object(props) =>
+      Fmt.(
+        collection(
+          ~layout=Vertical,
+          ~sep=_object_sep,
+          any("{"),
+          any("}"),
+          (ppf, (name, expr)) =>
+            pf(ppf, "%s: %a", name, fmt_expression(module_type), expr),
+          ppf,
+          props,
+        )
+      )
+
+and fmt_statement = (module_type: Target.module_t): Fmt.t(statement_t) =>
+  ppf =>
+    fun
+    | Expression(x) => fmt_expression(module_type, ppf, x)
+    | Variable(name, expr) =>
+      Fmt.pf(ppf, "var %s = %a", name, fmt_expression(module_type), expr)
+    | Assignment(lhs, rhs) =>
+      Fmt.pf(
+        ppf,
+        "%a = %a",
+        fmt_expression(module_type),
+        lhs,
+        fmt_expression(module_type),
+        rhs,
+      )
+    | Return(expr) =>
       switch (expr) {
       | Some(expr) =>
-        [" " |> Pretty.string, expr |> fmt_expression(module_type)]
-        |> Pretty.concat
-      | None => Pretty.Nil
-      },
-    ]
-    |> Pretty.concat
-  | DefaultImport(namespace, id) =>
-    switch (module_type) {
-    | ES6 => fmt_es6_default_import(namespace, id)
-    | Common => fmt_common_default_import(namespace, id)
-    }
-  | Import(namespace, imports) =>
-    switch (module_type) {
-    | ES6 => fmt_es6_named_imports(namespace, imports)
-    | Common => fmt_common_named_imports(namespace, imports)
-    }
-  | Export(id, alias) =>
-    switch (module_type) {
-    | ES6 => fmt_es6_export(~alias, id)
-    | Common => fmt_common_export(~alias, id)
-    }
-  | EmptyExport =>
-    switch (module_type) {
-    | ES6 => ["export {}" |> Pretty.string] |> Pretty.concat
-    | Common =>
-      Assignment(DotAccess(Identifier("module"), "exports"), Object([]))
-      |> fmt_statement(module_type)
-    }
-  }
+        Fmt.pf(ppf, "return %a", fmt_expression(module_type), expr)
+      | None => Fmt.string(ppf, "return")
+      }
+    | DefaultImport(namespace, id) =>
+      switch (module_type) {
+      | ES6 => fmt_es6_default_import(ppf, (namespace, id))
+      | Common => fmt_common_default_import(ppf, (namespace, id))
+      }
+    | Import(namespace, imports) =>
+      switch (module_type) {
+      | ES6 => fmt_es6_named_imports(ppf, (namespace, imports))
+      | Common => fmt_common_named_imports(ppf, (namespace, imports))
+      }
+    | Export(id, alias) =>
+      switch (module_type) {
+      | ES6 => fmt_es6_export(ppf, (id, alias))
+      | Common => fmt_common_export(ppf, (id, alias))
+      }
+    | EmptyExport =>
+      switch (module_type) {
+      | ES6 => Fmt.string(ppf, "export {}")
+      | Common =>
+        Assignment(DotAccess(Identifier("module"), "exports"), Object([]))
+        |> fmt_statement(module_type, ppf)
+      }
 
-and fmt_common_default_import = (namespace: string, id: string) =>
-  Variable(id, FunctionCall(Identifier("require"), [String(namespace)]))
-  |> fmt_statement(Target.Common)
+and fmt_common_default_import: Fmt.t((string, string)) =
+  (ppf, (namespace, id)) =>
+    Variable(id, FunctionCall(Identifier("require"), [String(namespace)]))
+    |> fmt_statement(Target.Common, ppf)
 
-and fmt_common_named_imports =
-    (namespace: string, imports: list((string, option(string)))) =>
-  (
-    imports |> List.is_empty
-      ? []
-      : {
-        let temp_variable_name =
-          "$import$" ++ _import_variable_name(namespace);
-
+and fmt_common_named_imports:
+  Fmt.t((string, list((string, option(string))))) =
+  (ppf, (namespace, imports)) =>
+    switch (imports) {
+    | [] => Fmt.nop(ppf, ())
+    | _ =>
+      let temp_variable_name =
+        __import_prefix ++ _import_variable_name(namespace);
+      let statements =
         [
           Variable(
             temp_variable_name,
@@ -191,69 +169,65 @@ and fmt_common_named_imports =
                  ),
              )
         )
-        @ [Assignment(Identifier(temp_variable_name), Null)]
-        |> List.map(fmt_statement(Target.Common))
-        |> List.intersperse([";" |> Pretty.string] |> Pretty.newline);
-      }
-  )
-  |> Pretty.concat
+        @ [Assignment(Identifier(temp_variable_name), Null)];
 
-and fmt_common_export = (~alias=None, name: string) =>
-  Assignment(
-    DotAccess(Identifier("exports"), alias |?: name),
-    Identifier(name),
-  )
-  |> fmt_statement(Target.Common)
-
-and fmt_es6_default_import = (namespace: string, id: string) =>
-  [
-    "import " |> Pretty.string,
-    id |> Pretty.string,
-    " from " |> Pretty.string,
-    namespace |> fmt_string,
-  ]
-  |> Pretty.concat
-
-and fmt_es6_named_imports =
-    (namespace: string, imports: list((string, option(string)))) =>
-  (
-    imports |> List.is_empty
-      ? []
-      : [
-        "import { " |> Pretty.string,
-        imports
-        |> List.map(
-             fun
-             | (id, Some(label)) =>
-               [
-                 id |> Pretty.string,
-                 " as " |> Pretty.string,
-                 label |> Pretty.string,
-               ]
-               |> Pretty.concat
-             | (id, None) => id |> Pretty.string,
+      statements
+      |> Fmt.(
+           list(
+             ~layout=Vertical,
+             ~sep=Sep.(of_sep(~trail=Trail.nop, ";")),
+             fmt_statement(Target.Common),
+             ppf,
            )
-        |> List.intersperse(", " |> Pretty.string)
-        |> Pretty.concat,
-        " } from " |> Pretty.string,
-        namespace |> fmt_string,
-      ]
-  )
-  |> Pretty.concat
+         );
+    }
 
-and fmt_es6_export = (~alias=None, name: string) =>
-  [
-    "export { " |> Pretty.string,
-    name |> Pretty.string,
-    alias |?> Print.fmt(" as %s") % Pretty.string |?: Pretty.Nil,
-    " }" |> Pretty.string,
-  ]
-  |> Pretty.concat;
+and fmt_common_export: Fmt.t((string, option(string))) =
+  (ppf, (name, alias)) =>
+    Assignment(
+      DotAccess(Identifier("exports"), alias |?: name),
+      Identifier(name),
+    )
+    |> fmt_statement(Target.Common, ppf)
 
-let format = (module_type: Target.module_t, program: program_t): Pretty.t =>
-  program
-  |> List.map(stmt =>
-       [fmt_statement(module_type, stmt), ";" |> Pretty.string]
-       |> Pretty.newline
-     )
-  |> Pretty.concat;
+and fmt_es6_default_import: Fmt.t((string, string)) =
+  (ppf, (namespace, id)) =>
+    Fmt.pf(ppf, "import %s from %a", id, fmt_string, namespace)
+
+and _fmt_aliasable_entries: Fmt.t((string, option(string))) =
+  ppf =>
+    fun
+    | (id, Some(label)) => Fmt.pf(ppf, "%s as %s", id, label)
+    | (id, None) => Fmt.string(ppf, id)
+
+and fmt_es6_named_imports: Fmt.t((string, list((string, option(string))))) =
+  (ppf, (namespace, imports)) =>
+    switch (imports) {
+    | [] => Fmt.nop(ppf, ())
+    | _ =>
+      Fmt.(
+        pf(
+          ppf,
+          "import { %a } from %a",
+          list(~sep=Sep.comma, _fmt_aliasable_entries),
+          imports,
+          fmt_string,
+          namespace,
+        )
+      )
+    }
+
+and fmt_es6_export: Fmt.t((string, option(string))) =
+  (ppf, (name, alias)) =>
+    Fmt.(pf(ppf, "export { %a }", _fmt_aliasable_entries, (name, alias)));
+
+let format = (module_type: Target.module_t): Fmt.t(program_t) =>
+  ppf =>
+    Fmt.(
+      page(
+        list(~layout=Vertical, ~sep=Sep.newline, ppf =>
+          pf(ppf, "%a;", fmt_statement(module_type))
+        ),
+        ppf,
+      )
+    );

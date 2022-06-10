@@ -7,5 +7,6 @@ let back_slash = char(C.back_slash);
 let eol = char(C.eol);
 let quote = char(C.quote);
 let period = char(C.period);
-let octothorp = char(C.octothorp);
+let colon = char(C.colon);
+let octothorpe = char(C.octothorpe);
 let underscore = char(C.underscore);

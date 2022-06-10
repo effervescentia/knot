@@ -4,13 +4,13 @@ module Build = Executable.Build;
 
 let __entry = Reference.Namespace.Internal("main");
 let __compiler_config =
-  Executable.Kore.{
+  Config.{
     name: "foo",
-    root_dir: simple_fixture_dir,
     debug: false,
     color: false,
+    working_dir: ".",
+    stdlib: empty_library_file,
   };
-let __source_dir = ".";
 
 let suite =
   "Executable.Build"
@@ -22,26 +22,27 @@ let suite =
         let output_file = Filename.concat(temp_dir, "main.js");
 
         Build.run(
-          ~report=_ => Util.print_errs % Assert.fail,
+          ~report=_ => ~@pp_dump_err_list % Assert.fail,
           __compiler_config,
           {
             target: Target.(JavaScript(Common)),
-            source_dir: __source_dir,
+            root_dir: simple_fixture_dir,
+            source_dir: ".",
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
+            log_imports: false,
           },
         );
 
-        output_file |> Sys.file_exists |> Assert.true_;
-        output_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+        Assert.file_exists(output_file);
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var ABC = 123;
 exports.ABC = ABC;
 ",
-           );
+          Util.read_file_to_string(output_file),
+        );
       }
     ),
     "run() - complex"
@@ -53,52 +54,53 @@ exports.ABC = ABC;
         let constants_file = Filename.concat(temp_dir, "common/constants.js");
 
         Build.run(
-          ~report=_ => Util.print_errs % Assert.fail,
-          {...__compiler_config, root_dir: complex_fixture_dir},
+          ~report=_ => ~@pp_dump_err_list % Assert.fail,
+          __compiler_config,
           {
             target: Target.(JavaScript(Common)),
+            root_dir: complex_fixture_dir,
             source_dir: "src",
             out_dir: temp_dir,
             entry: __entry,
             fail_fast: true,
+            log_imports: false,
           },
         );
 
         [main_file, app_file, constants_file]
-        |> List.iter(Sys.file_exists % Assert.true_);
+        |> List.iter(Assert.file_exists);
 
-        main_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var $import$_$common$constants = require(\"./common/constants\");
 var TIMEOUT = $import$_$common$constants.main;
 $import$_$common$constants = null;
 var $import$_$App = require(\"./App\");
 var App = $import$_$App.main;
 $import$_$App = null;
-var ABC = 123;
+var ABC = (123 / TIMEOUT);
 exports.ABC = ABC;
 ",
-           );
-        app_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+          Util.read_file_to_string(main_file),
+        );
+
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var App = $knot.jsx.createTag(\"div\", null, \"hello world\");
 exports.App = App;
 exports.main = App;
 ",
-           );
-        constants_file
-        |> Util.read_file_to_string
-        |> Assert.string(
-             "var $knot = require(\"@knot/runtime\");
+          Util.read_file_to_string(app_file),
+        );
+
+        Assert.string(
+          "var $knot = require(\"@knot/runtime\");
 var TIMEOUT = 100;
 exports.TIMEOUT = TIMEOUT;
 exports.main = TIMEOUT;
 ",
-           );
+          Util.read_file_to_string(constants_file),
+        );
       }
     ),
   ];

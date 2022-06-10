@@ -1,8 +1,15 @@
+open Infix;
+
 /**
  Extension of the standard Hashtbl module with additional functionality.
  */
 include Stdlib.Hashtbl;
 
+module Fmt = Pretty.Formatters;
+
+/**
+ compare two Hashtbls by direct equality, or by using a custom [compare] function
+ */
 let compare = (~compare=(==), l, r) =>
   length(l) == length(r)
   && to_seq_keys(l)
@@ -11,27 +18,29 @@ let compare = (~compare=(==), l, r) =>
        mem(r, key) && compare(find(l, key), find(r, key))
      );
 
-let to_string =
-    (
-      key_to_string: 'a => string,
-      value_to_string: 'b => string,
-      tbl: t('a, 'b),
-    ) =>
-  [
-    ["{" |> Pretty.string] |> Pretty.newline,
-    tbl
-    |> to_seq_keys
-    |> List.of_seq
-    |> List.map(key =>
-         [
-           key |> key_to_string |> Pretty.string,
-           ": " |> Pretty.string,
-           find(tbl, key) |> value_to_string |> Pretty.string,
-         ]
-         |> Pretty.newline
-       )
-    |> Pretty.concat
-    |> Pretty.indent(2),
-    "}" |> Pretty.string,
-  ]
-  |> Pretty.concat;
+/**
+ map the entries of a [tbl]
+ */
+let map = (map: (('a, 'b)) => ('c, 'd), tbl: t('a, 'b)): t('c, 'd) =>
+  tbl |> to_seq |> Seq.map(map) |> of_seq;
+
+/**
+ map the keys of a [tbl]
+ */
+let map_keys = (map_key: 'a => 'c, tbl: t('a, 'b)): t('c, 'b) =>
+  tbl |> map(Tuple.map_fst2(map_key));
+
+/**
+ map the values of a [tbl]
+ */
+let map_values = (map_value: 'b => 'c, tbl: t('a, 'b)): t('a, 'c) =>
+  tbl |> map(Tuple.map_snd2(map_value));
+
+/* pretty printing */
+
+let pp = (pp_key: Fmt.t('a), pp_value: Fmt.t('b)): Fmt.t(t('a, 'b)) =>
+  pf =>
+    to_seq
+    % List.of_seq
+    % Tuple.with_fst2("Hashtbl")
+    % Fmt.struct_(pp_key, pp_value, pf);

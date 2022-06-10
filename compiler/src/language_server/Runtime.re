@@ -11,9 +11,16 @@ type compiler_context_t = {
 };
 
 type t = {
+  server: JSONRPC.Server.t,
   find_config: string => Config.t,
   compilers: Hashtbl.t(string, compiler_context_t),
+  stdlib: string,
 };
+
+type request_handler_t('a) = JSONRPC.Protocol.Event.request_handler_t(t, 'a);
+
+type notification_handler_t('a) =
+  JSONRPC.Protocol.Event.notification_handler_t(t, 'a);
 
 let resolve = (path: string, {compilers}: t) =>
   compilers
@@ -25,18 +32,13 @@ let resolve = (path: string, {compilers}: t) =>
   |> (
     fun
     | Some({compiler} as context) => {
-        let source_dir =
-          Filename.concat(
-            compiler.config.root_dir,
-            compiler.config.source_dir,
-          );
         let relative =
           path
-          |> Filename.relative_to(source_dir)
+          |> Filename.relative_to(compiler.config.source_dir)
           |> String.drop_suffix(Constants.file_extension)
           |> (++)(Constants.root_dir);
 
-        Some((relative |> Namespace.of_string, context));
+        Some((Namespace.of_string(relative), context));
       }
     | None => {
         Log.warn(
@@ -49,9 +51,9 @@ let resolve = (path: string, {compilers}: t) =>
 
 let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
   if (!(compiler.graph |> ImportGraph.has_module(namespace))) {
-    let added = compiler |> Compiler.add_module(namespace);
+    let updated = compiler |> Compiler.add_module(namespace);
 
-    compiler |> Compiler.incremental(added);
+    compiler |> Compiler.incremental(updated);
     /* module does not exist in module table */
   } else if (!Hashtbl.mem(compiler.modules, namespace)) {
     compiler |> Compiler.incremental([namespace]);
@@ -59,20 +61,21 @@ let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
 
 let analyze_module =
     (namespace: Namespace.t, {compiler, contexts}: compiler_context_t) =>
-  switch (Hashtbl.find_opt(compiler.modules, namespace)) {
-  | Some({ast}) =>
-    let tokens = ast |> TokenTree.of_ast;
+  compiler.modules
+  |> ModuleTable.find(namespace)
+  |?< ModuleTable.get_entry_data
+  |?> (
+    (ModuleTable.{ast}) => {
+      let tokens = TokenTree.of_ast(ast);
 
-    Hashtbl.add(contexts, namespace, {tokens: tokens});
+      Hashtbl.add(contexts, namespace, {tokens: tokens});
 
-    Some(tokens);
-  | None => None
-  };
-
-let scan_for_token = (point: Cursor.point_t) =>
-  File.InputStream.scan(block =>
-    Cursor.is_in_range(block |> Block.cursor |> Cursor.expand, point)
+      tokens;
+    }
   );
+
+let scan_for_token = (point: Point.t) =>
+  File.InputStream.scan(Node.Raw.get_range % Range.contains_point(point));
 
 let purge_module = (path: string, runtime: t) =>
   switch (runtime |> resolve(path)) {

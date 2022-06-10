@@ -10,40 +10,37 @@ let suite =
     "create()"
     >: (
       () =>
-        Cache.create("myProject")
-        |> String.starts_with(Filename.get_temp_dir_name())
-        |> Assert.true_
+        Assert.true_(
+          Cache.create("myProject")
+          |> String.starts_with(Filename.get_temp_dir_name()),
+        )
     ),
     "resolve_path()"
     >: (
       () => {
         let cache = "foo/bar/cache";
 
-        [
-          (
-            Print.fmt("%s/my/path", cache),
-            cache |> Cache.resolve_path("my/path"),
-          ),
-        ]
-        |> Assert.(test_many(string));
+        Assert.string(
+          Fmt.str("%s/my/path", cache),
+          cache |> Cache.resolve_path("my/path"),
+        );
       }
     ),
-    "file_exists()"
+    "file_exists() - file does exist"
+    >: (() => Assert.true_(Cache.file_exists(fixture_path, "."))),
+    "file_exists() - file does not exist"
     >: (
       () =>
-        [
-          (true, "." |> Cache.file_exists(fixture_path)),
-          (false, "." |> Cache.file_exists("path/to/nonexistent/file.oops")),
-        ]
-        |> Assert.(test_many(bool))
+        Assert.false_(
+          Cache.file_exists("path/to/nonexistent/file.oops", "."),
+        )
     ),
     "open_file()"
     >: (
       () => {
         let open_file = Cache.open_file("read_me.txt", fixture_dir);
 
-        [(__content, Util.read_channel_to_string(open_file))]
-        |> Assert.(test_many(string));
+        Assert.string(__content, Util.read_channel_to_string(open_file));
 
         close_in(open_file);
       }
@@ -53,20 +50,17 @@ let suite =
       () => {
         let temp_dir = Util.get_temp_dir();
         let parent_dir =
-          Filename.concat(temp_dir, Print.fmt("%f", Sys.time()));
+          Filename.concat(temp_dir, Fmt.str("%f", Sys.time()));
         let path =
           Filename.concat(parent_dir, Util.temp_file_name("test", "txt"));
 
-        FileUtil.mkdir(~parent=true, parent_dir);
-        Util.write_to_file(path, __content);
+        parent_dir |> FileUtil.mkdir(~parent=true);
+        path |> Util.write_to_file(__content);
         Cache.destroy(parent_dir);
 
-        [
-          (false, Sys.file_exists(path)),
-          (false, Sys.file_exists(parent_dir)),
-          (true, Sys.file_exists(temp_dir)),
-        ]
-        |> Assert.(test_many(bool));
+        Assert.no_file_exists(path);
+        Assert.no_file_exists(parent_dir);
+        Assert.file_exists(temp_dir);
       }
     ),
   ];

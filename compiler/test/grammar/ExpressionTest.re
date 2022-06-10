@@ -1,508 +1,539 @@
 open Kore;
-open AST;
-open Util;
 
 module Expression = Grammar.Expression;
+module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = expression_t;
+    type t = AR.expression_t;
 
-    let parser = ctx => Parser.parse(Expression.parser(ctx));
+    let parser = ((_, ctx)) =>
+      ctx |> Expression.parser |> Assert.parse_completely |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(
-            (pp, (value, type_, cursor)) =>
-              Debug.print_typed_lexeme(
-                "Expression",
-                value |> Debug.print_expr,
-                type_,
-                cursor,
-              )
-              |> Pretty.to_string
-              |> Format.pp_print_string(pp),
-            (==),
-          ),
+          testable(ppf => AR.Dump.(expr_to_entity % Entity.pp(ppf)), (==)),
           "program matches",
         )
       );
   });
 
+let _generate_spaced_identifier_ops =
+  List.map(((tag, op)) =>
+    (
+      (
+        (
+          "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
+          "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+        )
+        |> tag,
+        "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
+      )
+      |> tag,
+      Fmt.str("a %s b %s c", op, op),
+    )
+  );
+let _generate_spaced_bool_ops = (~lhs=true, ~rhs=false) =>
+  List.map(((tag, op)) =>
+    [
+      (
+        (U.bool_prim(lhs), U.bool_prim(rhs)) |> tag |> U.as_bool,
+        Fmt.str("%b%s%b", lhs, op, rhs),
+      ),
+      (
+        (U.bool_prim(lhs), U.bool_prim(rhs)) |> tag |> U.as_bool,
+        Fmt.str(" %b %s %b ", lhs, op, rhs),
+      ),
+    ]
+  );
+let _generate_spaced_int_ops = (~lhs=123, ~rhs=456) =>
+  List.map(((tag, op)) =>
+    [
+      (
+        (U.int_prim(lhs), U.int_prim(rhs)) |> tag,
+        Fmt.str("%d%s%d", lhs, op, rhs),
+      ),
+      (
+        (U.int_prim(lhs), U.int_prim(rhs)) |> tag,
+        Fmt.str(" %d %s %d ", lhs, op, rhs),
+      ),
+    ]
+  );
+
+let _assert_parse_many = (~report=throw) =>
+  List.iter(Tuple.join2(Assert.parse(~report)));
+
 let suite =
   "Grammar.Expression"
   >::: [
-    "no parse" >: (() => ["~gibberish"] |> Assert.no_parse),
-    "parse primitive" >: (() => Assert.parse("123", 123 |> int_prim)),
+    "no parse" >: (() => Assert.no_parse("~gibberish")),
+    "parse primitive" >: (() => Assert.parse(U.int_prim(123), "123")),
     "parse identifier"
     >: (
       () =>
-        [
-          (
-            "foo",
-            "foo"
-            |> of_public
-            |> as_lexeme
-            |> of_id
-            |> as_invalid(NotFound(Public("foo"))),
-          ),
-          ("bar", "bar" |> of_public |> as_lexeme |> of_id |> as_int),
-        ]
-        |> Assert.parse_many(
-             ~report=ignore,
-             ~scope=to_scope([("bar", K_Strong(K_Integer))]),
-           )
+        Assert.parse("foo" |> AR.of_public |> AR.of_id |> U.as_unknown, "foo")
     ),
     "parse group"
     >: (
       () =>
         Assert.parse(
-          ~scope=to_scope([("foo", K_Strong(K_Boolean))]),
-          "(foo)",
           "foo"
-          |> of_public
-          |> as_lexeme
-          |> of_id
-          |> as_bool
-          |> of_group
-          |> as_bool,
+          |> AR.of_public
+          |> AR.of_id
+          |> U.as_unknown
+          |> AR.of_group
+          |> U.as_unknown,
+          "(foo)",
         )
     ),
     "parse closure"
     >: (
       () =>
-        [
-          (
-            "{
+        Assert.parse(
+          [
+            "foo"
+            |> AR.of_public
+            |> AR.of_id
+            |> U.as_unknown
+            |> AR.of_expr
+            |> U.as_unknown,
+            ("x" |> AR.of_public |> U.as_raw_node, U.bool_prim(false))
+            |> AR.of_var
+            |> U.as_nil,
+            (
+              "y" |> AR.of_public |> U.as_raw_node,
+              "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+            )
+            |> AR.of_var
+            |> U.as_nil,
+            (
+              "z" |> AR.of_public |> U.as_raw_node,
+              "y" |> AR.of_public |> AR.of_id |> U.as_unknown,
+            )
+            |> AR.of_var
+            |> U.as_nil,
+            (U.int_prim(1), U.int_prim(2))
+            |> AR.of_add_op
+            |> U.as_int
+            |> AR.of_expr
+            |> U.as_int,
+          ]
+          |> AR.of_closure
+          |> U.as_int,
+          "{
             foo;
             let x = false;
             let y = foo;
             let z = y;
             1 + 2;
           }",
-            [
-              "foo" |> of_public |> as_lexeme |> of_id |> as_string |> of_expr,
-              ("x" |> of_public |> as_lexeme, false |> bool_prim) |> of_var,
-              (
-                "y" |> of_public |> as_lexeme,
-                "foo" |> of_public |> as_lexeme |> of_id |> as_string,
-              )
-              |> of_var,
-              (
-                "z" |> of_public |> as_lexeme,
-                "y" |> of_public |> as_lexeme |> of_id |> as_string,
-              )
-              |> of_var,
-              (1 |> int_prim, 2 |> int_prim) |> of_add_op |> as_int |> of_expr,
-            ]
-            |> of_closure
-            |> as_int,
-          ),
-        ]
-        |> Assert.parse_many(
-             ~scope=to_scope([("foo", K_Strong(K_String))]),
-           )
+        )
     ),
-    "parse unary"
+    "parse dot access - identifier root"
     >: (
       () =>
-        [
-          ("-123", 123 |> int_prim |> of_neg_op |> as_int),
-          ("!true", true |> bool_prim |> of_not_op |> as_bool),
-        ]
-        |> Assert.parse_many
+        Assert.parse(
+          (
+            "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+            U.as_raw_node("bar"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "foo.bar",
+        )
+    ),
+    "parse dot access - group root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo"
+            |> AR.of_public
+            |> AR.of_id
+            |> U.as_unknown
+            |> AR.of_group
+            |> U.as_unknown,
+            U.as_raw_node("bar"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "(foo).bar",
+        )
+    ),
+    "parse dot access - closure root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            [
+              "foo"
+              |> AR.of_public
+              |> AR.of_id
+              |> U.as_unknown
+              |> AR.of_expr
+              |> U.as_unknown,
+            ]
+            |> AR.of_closure
+            |> U.as_unknown,
+            U.as_raw_node("bar"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "{ foo; }.bar",
+        )
+    ),
+    "parse function call - identifier root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+            ["bar" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "foo(bar)",
+        )
+    ),
+    "parse function call - group root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo"
+            |> AR.of_public
+            |> AR.of_id
+            |> U.as_unknown
+            |> AR.of_group
+            |> U.as_unknown,
+            ["bar" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "(foo)(bar)",
+        )
+    ),
+    "parse function call - closure root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            [
+              "foo"
+              |> AR.of_public
+              |> AR.of_id
+              |> U.as_unknown
+              |> AR.of_expr
+              |> U.as_unknown,
+            ]
+            |> AR.of_closure
+            |> U.as_unknown,
+            ["bar" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "{ foo; }(bar)",
+        )
+    ),
+    "parse function call - dot access root"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            (
+              "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
+              U.as_raw_node("bar"),
+            )
+            |> AR.of_dot_access
+            |> U.as_unknown,
+            ["fizz" |> AR.of_public |> AR.of_id |> U.as_unknown],
+          )
+          |> AR.of_func_call
+          |> U.as_unknown,
+          "foo.bar(fizz)",
+        )
+    ),
+    "parse unary - negative"
+    >: (
+      () =>
+        Assert.parse(123 |> U.int_prim |> AR.of_neg_op |> U.as_int, "-123")
+    ),
+    "parse unary - logical not"
+    >: (
+      () =>
+        Assert.parse(
+          true |> U.bool_prim |> AR.of_not_op |> U.as_bool,
+          "!true",
+        )
     ),
     "parse boolean logic"
     >: (
       () =>
-        [("&&", of_and_op), ("||", of_or_op)]
-        |> List.map(((op, tag)) =>
-             [
-               (
-                 op |> Print.fmt("true%sfalse"),
-                 (true |> bool_prim, false |> bool_prim) |> tag |> as_bool,
-               ),
-               (
-                 op |> Print.fmt(" true %s false "),
-                 (true |> bool_prim, false |> bool_prim) |> tag |> as_bool,
-               ),
-             ]
-           )
-        |> List.flatten
-        |> Assert.parse_many
+        _assert_parse_many(
+          [(AR.of_and_op, "&&"), (AR.of_or_op, "||")]
+          |> _generate_spaced_bool_ops
+          |> List.flatten,
+        )
     ),
     "parse arithmetic"
     >: (
       () =>
-        [
-          ("+", of_add_op % as_int),
-          ("-", of_sub_op % as_int),
-          ("*", of_mult_op % as_int),
-          ("/", of_div_op % as_float),
-        ]
-        |> List.map(((op, tag)) =>
-             [
-               (
-                 op |> Print.fmt("123%s456"),
-                 (123 |> int_prim, 456 |> int_prim) |> tag,
-               ),
-               (
-                 op |> Print.fmt(" 123 %s 456 "),
-                 (123 |> int_prim, 456 |> int_prim) |> tag,
-               ),
-             ]
-           )
-        |> List.flatten
-        |> Assert.parse_many
+        _assert_parse_many(
+          [
+            (AR.of_add_op % U.as_int, "+"),
+            (AR.of_sub_op % U.as_int, "-"),
+            (AR.of_mult_op % U.as_int, "*"),
+            (AR.of_div_op % U.as_float, "/"),
+          ]
+          |> _generate_spaced_int_ops
+          |> List.flatten,
+        )
     ),
     "parse comparison"
     >: (
       () =>
-        [
-          ("<=", of_lte_op),
-          ("<", of_lt_op),
-          (">=", of_gte_op),
-          (">", of_gt_op),
-        ]
-        |> List.map(((op, tag)) =>
-             [
-               (
-                 op |> Print.fmt("123%s456"),
-                 (123 |> int_prim, 456 |> int_prim) |> tag |> as_bool,
-               ),
-               (
-                 op |> Print.fmt(" 123 %s 456 "),
-                 (123 |> int_prim, 456 |> int_prim) |> tag |> as_bool,
-               ),
-             ]
-           )
-        |> List.flatten
-        |> Assert.parse_many
+        _assert_parse_many(
+          [
+            (AR.of_lte_op % U.as_bool, "<="),
+            (AR.of_lt_op % U.as_bool, "<"),
+            (AR.of_gte_op % U.as_bool, ">="),
+            (AR.of_gt_op % U.as_bool, ">"),
+          ]
+          |> _generate_spaced_int_ops
+          |> List.flatten,
+        )
     ),
     "parse complex expression"
     >: (
       () =>
-        [
+        _assert_parse_many([
           (
+            (
+              (
+                U.int_prim(2),
+                (
+                  U.int_prim(3),
+                  (U.int_prim(4), U.int_prim(5))
+                  |> AR.of_expo_op
+                  |> U.as_float,
+                )
+                |> AR.of_mult_op
+                |> U.as_float,
+              )
+              |> AR.of_add_op
+              |> U.as_float,
+              (6 |> U.int_prim |> AR.of_neg_op |> U.as_int, U.int_prim(7))
+              |> AR.of_div_op
+              |> U.as_float,
+            )
+            |> AR.of_sub_op
+            |> U.as_float,
             "2 + 3 * 4 ^ 5 - -6 / 7",
-            (
-              (
-                int_prim(2),
-                (
-                  int_prim(3),
-                  (int_prim(4), int_prim(5)) |> of_expo_op |> as_float,
-                )
-                |> of_mult_op
-                |> as_float,
-              )
-              |> of_add_op
-              |> as_float,
-              (int_prim(6) |> of_neg_op |> as_int, int_prim(7))
-              |> of_div_op
-              |> as_float,
-            )
-            |> of_sub_op
-            |> as_float,
           ),
           (
+            (
+              (U.int_prim(2), U.int_prim(3))
+              |> AR.of_add_op
+              |> U.as_int
+              |> AR.of_group
+              |> U.as_int,
+              (
+                U.int_prim(4),
+                (
+                  U.int_prim(5),
+                  (U.int_prim(6), U.int_prim(7))
+                  |> AR.of_div_op
+                  |> U.as_float
+                  |> AR.of_group
+                  |> U.as_float
+                  |> AR.of_neg_op
+                  |> U.as_float,
+                )
+                |> AR.of_sub_op
+                |> U.as_float
+                |> AR.of_group
+                |> U.as_float,
+              )
+              |> AR.of_expo_op
+              |> U.as_float,
+            )
+            |> AR.of_mult_op
+            |> U.as_float,
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
-            (
-              (int_prim(2), int_prim(3))
-              |> of_add_op
-              |> as_int
-              |> of_group
-              |> as_int,
-              (
-                int_prim(4),
-                (
-                  int_prim(5),
-                  (int_prim(6), int_prim(7))
-                  |> of_div_op
-                  |> as_float
-                  |> of_group
-                  |> as_float
-                  |> of_neg_op
-                  |> as_float,
-                )
-                |> of_sub_op
-                |> as_float
-                |> of_group
-                |> as_float,
-              )
-              |> of_expo_op
-              |> as_float,
-            )
-            |> of_mult_op
-            |> as_float,
           ),
           (
+            (
+              (
+                "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                (
+                  (
+                    "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                    "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                  )
+                  |> AR.of_gt_op
+                  |> U.as_bool,
+                  (
+                    "e" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                    "f" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                  )
+                  |> AR.of_lte_op
+                  |> U.as_bool,
+                )
+                |> AR.of_or_op
+                |> U.as_bool
+                |> AR.of_group
+                |> U.as_bool,
+              )
+              |> AR.of_and_op
+              |> U.as_bool,
+              (
+                "g" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                "h" |> AR.of_public |> AR.of_id |> U.as_unknown,
+              )
+              |> AR.of_or_op
+              |> U.as_bool
+              |> AR.of_group
+              |> U.as_bool
+              |> AR.of_not_op
+              |> U.as_bool
+              |> AR.of_group
+              |> U.as_bool,
+            )
+            |> AR.of_and_op
+            |> U.as_bool,
             "a && (b > c || e <= f) && (!(g || h))",
+          ),
+        ])
+    ),
+    "parse left-associative - add, subtract, multiply"
+    >: (
+      () =>
+        _assert_parse_many(
+          [
+            (AR.of_add_op % U.as_unknown, "+"),
+            (AR.of_sub_op % U.as_unknown, "-"),
+            (AR.of_mult_op % U.as_unknown, "*"),
+          ]
+          |> _generate_spaced_identifier_ops,
+        )
+    ),
+    "parse left-associative - divide"
+    >: (
+      () =>
+        _assert_parse_many(
+          [(AR.of_div_op % U.as_float, "/")]
+          |> _generate_spaced_identifier_ops,
+        )
+    ),
+    "parse left-associative - logical and, logical or"
+    >: (
+      () =>
+        _assert_parse_many(
+          [
+            (AR.of_and_op % U.as_bool, "&&"),
+            (AR.of_or_op % U.as_bool, "||"),
+          ]
+          |> _generate_spaced_identifier_ops,
+        )
+    ),
+    "parse left-associative - comparison"
+    >: (
+      () =>
+        _assert_parse_many(
+          [
+            (AR.of_lte_op % U.as_bool, "<="),
+            (AR.of_lt_op % U.as_bool, "<"),
+            (AR.of_gte_op % U.as_bool, ">="),
+            (AR.of_gt_op % U.as_bool, ">"),
+          ]
+          |> _generate_spaced_identifier_ops,
+        )
+    ),
+    "parse left-associative - equality"
+    >: (
+      () =>
+        _assert_parse_many(
+          [
+            (AR.of_eq_op % U.as_bool, "=="),
+            (AR.of_ineq_op % U.as_bool, "!="),
+          ]
+          |> _generate_spaced_identifier_ops,
+        )
+    ),
+    "parse left-associative - dot access"
+    >: (
+      () =>
+        Assert.parse(
+          (
             (
               (
-                "a" |> of_public |> as_lexeme |> of_id |> as_bool,
-                (
-                  (
-                    "b" |> of_public |> as_lexeme |> of_id |> as_int,
-                    "c" |> of_public |> as_lexeme |> of_id |> as_float,
-                  )
-                  |> of_gt_op
-                  |> as_bool,
-                  (
-                    "e" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "f" |> of_public |> as_lexeme |> of_id |> as_int,
-                  )
-                  |> of_lte_op
-                  |> as_bool,
-                )
-                |> of_or_op
-                |> as_bool
-                |> of_group
-                |> as_bool,
+                "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
+                U.as_raw_node("b"),
               )
-              |> of_and_op
-              |> as_bool,
-              (
-                "g" |> of_public |> as_lexeme |> of_id |> as_bool,
-                "h" |> of_public |> as_lexeme |> of_id |> as_bool,
-              )
-              |> of_or_op
-              |> as_bool
-              |> of_group
-              |> as_bool
-              |> of_not_op
-              |> as_bool
-              |> of_group
-              |> as_bool,
+              |> AR.of_dot_access
+              |> U.as_unknown,
+              U.as_raw_node("c"),
             )
-            |> of_and_op
-            |> as_bool,
-          ),
-        ]
-        |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("a", K_Strong(K_Boolean)),
-                 ("b", K_Strong(K_Integer)),
-                 ("c", K_Strong(K_Float)),
-                 ("e", K_Strong(K_Float)),
-                 ("f", K_Strong(K_Integer)),
-                 ("g", K_Strong(K_Boolean)),
-                 ("h", K_Strong(K_Boolean)),
-               ]),
-           )
+            |> AR.of_dot_access
+            |> U.as_unknown,
+            U.as_raw_node("d"),
+          )
+          |> AR.of_dot_access
+          |> U.as_unknown,
+          "a.b.c.d",
+        )
     ),
-    "parse left-associative"
+    "parse right-associative - exponent"
     >: (
-      () => {
-        [("+", of_add_op), ("-", of_sub_op), ("*", of_mult_op)]
-        |> List.map(((op, tag)) =>
-             (
-               Print.fmt("a %s b %s c", op, op),
-               (
-                 (
-                   "a" |> of_public |> as_lexeme |> of_id |> as_int,
-                   "b" |> of_public |> as_lexeme |> of_id |> as_int,
-                 )
-                 |> tag
-                 |> as_int,
-                 "c" |> of_public |> as_lexeme |> of_id |> as_int,
-               )
-               |> tag
-               |> as_int,
-             )
-           )
-        |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("a", K_Strong(K_Integer)),
-                 ("b", K_Strong(K_Integer)),
-                 ("c", K_Strong(K_Integer)),
-               ]),
-           );
-
-        [("/", of_div_op)]
-        |> List.map(((op, tag)) =>
-             (
-               Print.fmt("a %s b %s c", op, op),
-               (
-                 (
-                   "a" |> of_public |> as_lexeme |> of_id |> as_int,
-                   "b" |> of_public |> as_lexeme |> of_id |> as_int,
-                 )
-                 |> tag
-                 |> as_float,
-                 "c" |> of_public |> as_lexeme |> of_id |> as_int,
-               )
-               |> tag
-               |> as_float,
-             )
-           )
-        |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("a", K_Strong(K_Integer)),
-                 ("b", K_Strong(K_Integer)),
-                 ("c", K_Strong(K_Integer)),
-               ]),
-           );
-
-        [("&&", of_and_op), ("||", of_or_op)]
-        |> List.map(((op, tag)) =>
-             (
-               Print.fmt("a %s b %s c", op, op),
-               (
-                 (
-                   "a" |> of_public |> as_lexeme |> of_id |> as_bool,
-                   "b" |> of_public |> as_lexeme |> of_id |> as_bool,
-                 )
-                 |> tag
-                 |> as_bool,
-                 "c" |> of_public |> as_lexeme |> of_id |> as_bool,
-               )
-               |> tag
-               |> as_bool,
-             )
-           )
-        |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("a", K_Strong(K_Boolean)),
-                 ("b", K_Strong(K_Boolean)),
-                 ("c", K_Strong(K_Boolean)),
-               ]),
-           );
-        [
-          ("<=", of_lte_op),
-          ("<", of_lt_op),
-          (">=", of_gte_op),
-          (">", of_gt_op),
-        ]
-        |> List.map(((op, tag)) =>
-             (
-               Print.fmt("a %s b %s c", op, op),
-               (
-                 (
-                   "a" |> of_public |> as_lexeme |> of_id |> as_weak(0),
-                   "b" |> of_public |> as_lexeme |> of_id |> as_weak(1),
-                 )
-                 |> tag
-                 |> as_invalid(NotAssignable(K_Weak(0), K_Numeric)),
-                 "c" |> of_public |> as_lexeme |> of_id |> as_weak(2),
-               )
-               |> tag
-               |> as_invalid(
-                    NotAssignable(
-                      K_Invalid(NotAssignable(K_Weak(0), K_Numeric)),
-                      K_Numeric,
-                    ),
-                  ),
-             )
-           )
-        |> Assert.parse_many(
-             ~report=ignore,
-             ~scope=
-               to_scope([
-                 ("a", K_Weak(0)),
-                 ("b", K_Weak(1)),
-                 ("c", K_Weak(2)),
-               ]),
-           );
-        [("==", of_eq_op), ("!=", of_ineq_op)]
-        |> List.map(((op, tag)) =>
-             (
-               Print.fmt("a %s b %s c", op, op),
-               (
-                 (
-                   "a" |> of_public |> as_lexeme |> of_id |> as_weak(0),
-                   "b" |> of_public |> as_lexeme |> of_id |> as_weak(1),
-                 )
-                 |> tag
-                 |> as_invalid(TypeMismatch(K_Weak(0), K_Weak(1))),
-                 "c" |> of_public |> as_lexeme |> of_id |> as_weak(2),
-               )
-               |> tag
-               |> as_invalid(
-                    TypeMismatch(
-                      K_Invalid(TypeMismatch(K_Weak(0), K_Weak(1))),
-                      K_Weak(2),
-                    ),
-                  ),
-             )
-           )
-        |> Assert.parse_many(
-             ~report=ignore,
-             ~scope=
-               to_scope([
-                 ("a", K_Weak(0)),
-                 ("b", K_Weak(1)),
-                 ("c", K_Weak(2)),
-               ]),
-           );
-      }
-    ),
-    "parse right-associative"
-    >: (
-      () => {
-        [
+      () =>
+        Assert.parse(
           (
-            "a ^ b ^ c",
+            "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
             (
-              "a" |> of_public |> as_lexeme |> of_id |> as_int,
-              (
-                "b" |> of_public |> as_lexeme |> of_id |> as_int,
-                "c" |> of_public |> as_lexeme |> of_id |> as_int,
-              )
-              |> of_expo_op
-              |> as_float,
+              "b" |> AR.of_public |> AR.of_id |> U.as_unknown,
+              "c" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
-            |> of_expo_op
-            |> as_float,
-          ),
-        ]
-        |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("a", K_Strong(K_Integer)),
-                 ("b", K_Strong(K_Integer)),
-                 ("c", K_Strong(K_Integer)),
-               ]),
-           );
-
-        [
-          (
-            "- - - a",
-            "a"
-            |> of_public
-            |> as_lexeme
-            |> of_id
-            |> as_int
-            |> of_neg_op
-            |> as_int
-            |> of_neg_op
-            |> as_int
-            |> of_neg_op
-            |> as_int,
-          ),
-        ]
-        |> Assert.parse_many(~scope=to_scope([("a", K_Strong(K_Integer))]));
-        [
-          (
-            "! ! ! a",
-            "a"
-            |> of_public
-            |> as_lexeme
-            |> of_id
-            |> as_bool
-            |> of_not_op
-            |> as_bool
-            |> of_not_op
-            |> as_bool
-            |> of_not_op
-            |> as_bool,
-          ),
-        ]
-        |> Assert.parse_many(~scope=to_scope([("a", K_Strong(K_Boolean))]));
-      }
+            |> AR.of_expo_op
+            |> U.as_float,
+          )
+          |> AR.of_expo_op
+          |> U.as_float,
+          "a ^ b ^ c",
+        )
+    ),
+    "parse right-associative - negative"
+    >: (
+      () =>
+        Assert.parse(
+          "a"
+          |> AR.of_public
+          |> AR.of_id
+          |> U.as_unknown
+          |> AR.of_neg_op
+          |> U.as_unknown
+          |> AR.of_neg_op
+          |> U.as_unknown
+          |> AR.of_neg_op
+          |> U.as_unknown,
+          "- - - a",
+        )
+    ),
+    "parse right-associative - logical not"
+    >: (
+      () =>
+        Assert.parse(
+          "a"
+          |> AR.of_public
+          |> AR.of_id
+          |> U.as_unknown
+          |> AR.of_not_op
+          |> U.as_bool
+          |> AR.of_not_op
+          |> U.as_bool
+          |> AR.of_not_op
+          |> U.as_bool,
+          "! ! ! a",
+        )
     ),
   ];

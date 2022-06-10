@@ -54,7 +54,7 @@ let read = f =>
 let read_to_string =
   fun
   | File(path) as x when !exists(x) => Error([FileNotFound(path.relative)])
-  | File({full}) => Ok(full |> IO.read_to_string)
+  | File({full}) => Ok(IO.read_to_string(full))
   | Raw(s) => Ok(s);
 
 let cache = (cache: Cache.t) =>
@@ -70,3 +70,15 @@ let cache = (cache: Cache.t) =>
       Error([FileNotFound(path.relative)]);
     }
   | Raw(_) => raise(NotImplemented);
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  ppf =>
+    (
+      fun
+      | Raw(s) => [("raw", s)]
+      | File({full, relative}) => [("full", full), ("relative", relative)]
+    )
+    % Tuple.with_fst2("Module")
+    % Fmt.(struct_(string, string, ppf));

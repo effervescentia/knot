@@ -1,26 +1,31 @@
 open Kore;
-open Util;
-open AST;
 
 module Expression = Grammar.Expression;
 module JSX = Grammar.JSX;
+module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = jsx_t;
+    type t = NR.t(AR.jsx_t);
 
-    let parser = ctx =>
-      JSX.parser(ctx, (Expression.expr_4, Expression.parser)) |> Parser.parse;
+    let parser = ((_, ctx)) =>
+      JSX.parser(ctx, (Expression.expr_4, Expression.parser))
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
-            pp =>
-              fst
-              % Debug.print_jsx
-              % Pretty.to_string
-              % Format.pp_print_string(pp),
+            (ppf, jsx) =>
+              AR.Dump.(
+                jsx
+                |> untyped_node_to_entity(
+                     ~children=[jsx |> NR.get_value |> jsx_to_entity],
+                     "JSX",
+                   )
+                |> Entity.pp(ppf)
+              ),
             (==),
           ),
           "program matches",
@@ -31,413 +36,439 @@ module Assert =
 let suite =
   "Grammar.JSX"
   >::: [
-    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse tag"
     >: (
       () =>
-        [
-          (
-            "<Foo></Foo>",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
-          ),
-          (
-            " < Foo > < / Foo > ",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
-          ),
-        ]
-        |> Assert.parse_many
+        Assert.parse_all(
+          ("Foo" |> AR.of_public |> U.as_raw_node, [], [])
+          |> AR.of_tag
+          |> U.as_raw_node,
+          ["<Foo></Foo>", " < Foo > < / Foo > "],
+        )
     ),
     "parse self-closing tag"
     >: (
       () =>
-        [
-          (
-            "<Foo/>",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
-          ),
-          (
-            " < Foo / > ",
-            ("Foo" |> of_public |> as_lexeme, [], []) |> of_tag |> as_lexeme,
-          ),
-        ]
-        |> Assert.parse_many
+        Assert.parse_all(
+          ("Foo" |> AR.of_public |> U.as_raw_node, [], [])
+          |> AR.of_tag
+          |> U.as_raw_node,
+          ["<Foo/>", " < Foo / > "],
+        )
     ),
-    "parse fragment"
+    "parse empty fragment"
+    >: (() => Assert.parse([] |> AR.of_frag |> U.as_raw_node, "<></>")),
+    "parse fragment with children"
     >: (
       () =>
-        [
-          ("<></>", [] |> of_frag |> as_lexeme),
-          (
-            "<><Bar /></>",
-            [
-              ("Bar" |> of_public |> as_lexeme, [], [])
-              |> jsx_node
-              |> as_lexeme,
-            ]
-            |> of_frag
-            |> as_lexeme,
-          ),
-        ]
-        |> Assert.parse_many
-    ),
-    "parse attributes"
-    >: (
-      () =>
-        [
-          (
-            "<Foo fizz=buzz />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  "buzz"
-                  |> of_public
-                  |> as_lexeme
-                  |> of_id
-                  |> as_bool
-                  |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz=\"buzz\" />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  "buzz" |> string_prim |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz={ buzz; } />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  [
-                    "buzz"
-                    |> of_public
-                    |> as_lexeme
-                    |> of_id
-                    |> as_bool
-                    |> of_expr,
-                  ]
-                  |> of_closure
-                  |> as_bool
-                  |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz=1 + 2 />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  (1 |> int_prim, 2 |> int_prim)
-                  |> of_add_op
-                  |> as_int
-                  |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz=(1 > 2) />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  (1 |> int_prim, 2 |> int_prim)
-                  |> of_gt_op
-                  |> as_bool
-                  |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz=(true) />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  bool_prim(true) |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz=-3 />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  3 |> int_prim |> of_neg_op |> as_int |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz=<buzz /> />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                (
-                  "fizz" |> of_public |> as_lexeme,
-                  ("buzz" |> of_public |> as_lexeme, [], [])
-                  |> jsx_tag
-                  |> as_element
-                  |> Option.some,
-                )
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo fizz />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                ("fizz" |> of_public |> as_lexeme, None)
-                |> of_prop
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo .fizz />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [
-                ("fizz" |> of_public |> as_lexeme, None)
-                |> of_jsx_class
-                |> as_lexeme,
-              ],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo #fizz />",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              ["fizz" |> of_public |> as_lexeme |> of_jsx_id |> as_lexeme],
-              [],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-        ]
-        |> Assert.parse_many(
-             ~scope=
-               to_scope([
-                 ("fizz", K_Strong(K_Integer)),
-                 ("buzz", K_Strong(K_Boolean)),
-               ]),
-           )
-    ),
-    "parse single child"
-    >: (
-      () =>
-        [
-          (
-            "<Foo><Bar /></Foo>",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [],
-              [
-                ("Bar" |> of_public |> as_lexeme, [], [])
-                |> jsx_node
-                |> as_lexeme,
-              ],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo>{1 + 2}</Foo>",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [],
-              [
-                (1 |> int_prim, 2 |> int_prim)
-                |> of_add_op
-                |> as_int
-                |> of_inline_expr
-                |> as_lexeme,
-              ],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo>{<Bar />}</Foo>",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [],
-              [
-                ("Bar" |> of_public |> as_lexeme, [], [])
-                |> jsx_tag
-                |> as_element
-                |> of_inline_expr
-                |> as_lexeme,
-              ],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-          (
-            "<Foo> bar \"or\" 123 </Foo>",
-            (
-              "Foo" |> of_public |> as_lexeme,
-              [],
-              ["bar \"or\" 123" |> as_lexeme |> of_text |> as_lexeme],
-            )
-            |> of_tag
-            |> as_lexeme,
-          ),
-        ]
-        |> Assert.parse_many
-    ),
-    "parse complex"
-    >: (
-      () =>
-        try(
+        Assert.parse(
           [
-            (
-              "<Foo bar=4><Bar /></Foo>",
-              (
-                "Foo" |> of_public |> as_lexeme,
-                [
-                  (
-                    "bar" |> of_public |> as_lexeme,
-                    4 |> int_prim |> Option.some,
-                  )
-                  |> of_prop
-                  |> as_lexeme,
-                ],
-                [
-                  ("Bar" |> of_public |> as_lexeme, [], [])
-                  |> jsx_node
-                  |> as_lexeme,
-                ],
-              )
-              |> of_tag
-              |> as_lexeme,
-            ),
-            (
-              "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
-              (
-                "Foo" |> of_public |> as_lexeme,
-                [],
-                [
-                  "bar" |> as_lexeme |> of_text |> as_lexeme,
-                  (1 |> int_prim, 2 |> int_prim)
-                  |> of_add_op
-                  |> as_int
-                  |> of_inline_expr
-                  |> as_lexeme,
-                  ("Bar" |> of_public |> as_lexeme, [], [])
-                  |> jsx_node
-                  |> as_lexeme,
-                  "fizz" |> string_prim |> of_inline_expr |> as_lexeme,
-                  "buzz" |> as_lexeme |> of_text |> as_lexeme,
-                ],
-              )
-              |> of_tag
-              |> as_lexeme,
-            ),
-            (
-              "<Foo bar=fizz .buzz />",
-              (
-                "Foo" |> of_public |> as_lexeme,
-                [
-                  (
-                    "bar" |> of_public |> as_lexeme,
-                    "fizz"
-                    |> of_public
-                    |> as_lexeme
-                    |> of_id
-                    |> as_bool
-                    |> Option.some,
-                  )
-                  |> of_prop
-                  |> as_lexeme,
-                  ("buzz" |> of_public |> as_lexeme, None)
-                  |> of_jsx_class
-                  |> as_lexeme,
-                ],
-                [],
-              )
-              |> of_tag
-              |> as_lexeme,
-            ),
+            ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+            |> U.jsx_node
+            |> U.as_raw_node,
           ]
-          |> Assert.parse_many(
-               ~scope=to_scope([("fizz", K_Strong(K_Boolean))]),
-             )
-        ) {
-        | CompileError(x) =>
-          x
-          |> List.map(Knot.Error._compile_err_to_string)
-          |> List.intersperse(", ")
-          |> List.fold_left((++), "")
-          |> Test.Assert.string("%s")
-        }
+          |> AR.of_frag
+          |> U.as_raw_node,
+          "<><Bar /></>",
+        )
+    ),
+    "parse property with identifier value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                "buzz"
+                |> AR.of_public
+                |> AR.of_id
+                |> U.as_unknown
+                |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=buzz />",
+        )
+    ),
+    "parse property with string value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                "buzz" |> U.string_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=\"buzz\" />",
+        )
+    ),
+    "parse property with closure value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                [
+                  "buzz"
+                  |> AR.of_public
+                  |> AR.of_id
+                  |> U.as_unknown
+                  |> AR.of_expr
+                  |> U.as_unknown,
+                ]
+                |> AR.of_closure
+                |> U.as_unknown
+                |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz={ buzz; } />",
+        )
+    ),
+    "parse property with expression value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                (U.int_prim(1), U.int_prim(2))
+                |> AR.of_add_op
+                |> U.as_int
+                |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=1 + 2 />",
+        )
+    ),
+    "parse property with grouped expression value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                (U.int_prim(1), U.int_prim(2))
+                |> AR.of_gt_op
+                |> U.as_bool
+                |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=(1 > 2) />",
+        )
+    ),
+    "parse property with grouped boolean value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                true |> U.bool_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=(true) />",
+        )
+    ),
+    "parse property with negative integer value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                3 |> U.int_prim |> AR.of_neg_op |> U.as_int |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=-3 />",
+        )
+    ),
+    "parse property with JSX value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "fizz" |> AR.of_public |> U.as_raw_node,
+                ("buzz" |> AR.of_public |> U.as_raw_node, [], [])
+                |> U.jsx_tag
+                |> U.as_element
+                |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz=<buzz /> />",
+        )
+    ),
+    "parse property with punned value"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              ("fizz" |> AR.of_public |> U.as_raw_node, None)
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo fizz />",
+        )
+    ),
+    "parse property with static class name"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              ("fizz" |> AR.of_public |> U.as_raw_node, None)
+              |> AR.of_jsx_class
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo :fizz />",
+        )
+    ),
+    "parse property with identifier"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              "fizz"
+              |> AR.of_public
+              |> U.as_raw_node
+              |> AR.of_jsx_id
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo #fizz />",
+        )
+    ),
+    "parse single tag child"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [],
+            [
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_node
+              |> U.as_raw_node,
+            ],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo><Bar /></Foo>",
+        )
+    ),
+    "parse single inline expression child"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [],
+            [
+              (U.int_prim(1), U.int_prim(2))
+              |> AR.of_add_op
+              |> U.as_int
+              |> AR.of_inline_expr
+              |> U.as_raw_node,
+            ],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo>{1 + 2}</Foo>",
+        )
+    ),
+    "parse single JSX inline expression child"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [],
+            [
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_tag
+              |> U.as_element
+              |> AR.of_inline_expr
+              |> U.as_raw_node,
+            ],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo>{<Bar />}</Foo>",
+        )
+    ),
+    "parse single text child"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [],
+            ["bar \"or\" 123" |> AR.of_text |> U.as_raw_node],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo> bar \"or\" 123 </Foo>",
+        )
+    ),
+    "parse complex - nested with attributes"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "bar" |> AR.of_public |> U.as_raw_node,
+                4 |> U.int_prim |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+            ],
+            [
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_node
+              |> U.as_raw_node,
+            ],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo bar=4><Bar /></Foo>",
+        )
+    ),
+    "parse complex - multiple inline children of different types"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [],
+            [
+              "bar" |> AR.of_text |> U.as_raw_node,
+              (U.int_prim(1), U.int_prim(2))
+              |> AR.of_add_op
+              |> U.as_int
+              |> AR.of_inline_expr
+              |> U.as_raw_node,
+              ("Bar" |> AR.of_public |> U.as_raw_node, [], [])
+              |> U.jsx_node
+              |> U.as_raw_node,
+              "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_raw_node,
+              "buzz" |> AR.of_text |> U.as_raw_node,
+            ],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
+        )
+    ),
+    "parse complex - multiple attributes different types"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "Foo" |> AR.of_public |> U.as_raw_node,
+            [
+              (
+                "bar" |> AR.of_public |> U.as_raw_node,
+                "fizz"
+                |> AR.of_public
+                |> AR.of_id
+                |> U.as_unknown
+                |> Option.some,
+              )
+              |> AR.of_prop
+              |> U.as_raw_node,
+              ("buzz" |> AR.of_public |> U.as_raw_node, None)
+              |> AR.of_jsx_class
+              |> U.as_raw_node,
+            ],
+            [],
+          )
+          |> AR.of_tag
+          |> U.as_raw_node,
+          "<Foo bar=fizz :buzz />",
+        )
     ),
   ];

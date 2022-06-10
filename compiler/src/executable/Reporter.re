@@ -4,409 +4,721 @@ module Resolver = Resolve.Resolver;
 module Module = Resolve.Module;
 module Writer = File.Writer;
 
-let _print_code_examples =
-  List.intersperse(
-    [Pretty.Newline, "// or" |> Pretty.string, Pretty.Newline]
-    |> Pretty.concat,
-  )
-  % Pretty.newline
-  % Pretty.indent(2);
+let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
 
-let _print_resolution = ((description, examples)) =>
-  [
-    [description |> Print.fmt("• %s") |> Pretty.string] |> Pretty.newline,
-    Pretty.Newline,
-    switch (examples) {
-    | Some(examples) => [examples |> _print_code_examples] |> Pretty.newline
-    | None => Pretty.Nil
-    },
-  ]
-  |> Pretty.concat;
+let _example_sep =
+  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@,// or@,")));
+let _or_sep =
+  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@ or@ ")));
 
-let _print_err = (~index, path, title, content) =>
-  [
-    Print.fmt("%d) %s", index + 1, title) |> Print.bad |> Pretty.string,
-    switch (path) {
-    | Some((Module.{relative, full}, cursor)) =>
-      let cursor_suffix =
-        Cursor.(
-          switch (cursor) {
-          | Range({line, column}, _)
-          | Point({line, column}) => Print.fmt(":%d:%d", line, column)
-          }
-        );
-
-      [
-        [
-          " : " |> Pretty.string,
-          relative |> Print.cyan |> Pretty.string,
-          cursor_suffix |> Print.grey |> Pretty.string,
-        ]
-        |> Pretty.newline,
-        [
-          Print.fmt("(%s%s)", full, cursor_suffix)
-          |> Print.grey
-          |> Pretty.string,
-        ]
-        |> Pretty.newline,
-      ]
-      |> Pretty.concat
-      |> Pretty.indent(2);
-    | None => Pretty.Newline
-    },
-    Pretty.Newline,
-    [content |> Pretty.indent(2)] |> Pretty.concat,
-  ]
-  |> Pretty.concat;
-
-let _type_trait_to_string = print_target =>
-  Type.(
-    fun
-    | K_Unknown =>
-      "Unknown"
-      |> print_target
-      |> Print.fmt("%s which can represent any type")
-
-    | K_Exactly(t) =>
-      t |> Type.strong_to_string |> Print.fmt("Exactly<%s>") |> print_target
-
-    | K_Numeric =>
-      Print.fmt(
-        "%s which is shared by the types %s and %s",
-        "Numeric" |> print_target,
-        "int" |> Print.bold,
-        "float" |> Print.bold,
+let _pp_resolution: Fmt.t((Stdlib.Format.formatter => unit, list(string))) =
+  (ppf, (description, examples)) =>
+    Fmt.(
+      pf(
+        ppf,
+        "• %t%a",
+        description,
+        ppf =>
+          fun
+          | [] => nop(ppf, ())
+          | _ =>
+            pf(
+              ppf,
+              "@,%a",
+              block(~layout=Vertical, ~sep=_example_sep, string),
+              examples,
+            ),
+        examples,
       )
+    );
 
-    | K_Iterable(t) =>
-      t
-      |> Type.trait_to_string
-      |> Print.fmt("Iterable<%s>")
-      |> print_target
-      |> Print.fmt(
-           "%s which is used for containers of sequential data such as a list",
-         )
-
-    | K_Structural(traits) =>
-      traits
-      |> Print.many(~separator=", ", ((name, trait)) =>
-           Print.fmt("%s: %s", name, trait |> Type.trait_to_string)
-         )
-      |> Print.fmt("Structural<{ %s }>")
-      |> print_target
-      |> Print.fmt(
-           "'%s' which is used for containers of data keyed by strings",
-         )
-
-    | K_Callable(args, result) =>
-      Print.fmt(
-        "Callable<[ %s ], %s>",
-        args |> Print.many(~separator=", ", Type.trait_to_string),
-        result |> Type.trait_to_string,
+let _pp_err:
+  Fmt.t(
+    (
+      int,
+      string,
+      option((Module.path_t, Range.t)),
+      Stdlib.Format.formatter => unit,
+    ),
+  ) =
+  (ppf, (index, title, path, content)) => {
+    Fmt.(
+      pf(
+        ppf,
+        "%a%a@,%a",
+        bad_str,
+        str("%d) %s", index + 1, title),
+        ppf =>
+          fun
+          | None => nop(ppf, ())
+          | Some((Module.{relative, full}, range)) => {
+              pf(
+                ppf,
+                " : %a%a%a",
+                cyan_str,
+                relative,
+                grey(ppf => pf(ppf, ":%a", text_loc)),
+                range,
+                indented(
+                  vbox(
+                    grey((ppf, ()) =>
+                      pf(ppf, "(%s:%a)", full, text_loc, range)
+                    ),
+                  ),
+                ),
+                (),
+              );
+            },
+        path,
+        indented(vbox(ppf => pf(ppf, "%t"))),
+        content,
       )
-      |> print_target
-      |> Print.fmt("'%s' which is used for functions")
-  );
+    );
+  };
 
 let _extract_type_err =
-  Type.(
-    fun
-    | TraitConflict(lhs, rhs) => (
-        "Types Have Conflicting Traits",
-        [
-          [
-            "the types of the arguments in this operation are not compatible with each other:"
-            |> Pretty.string,
-          ]
-          |> Pretty.newline,
-          Pretty.Newline,
-          [
-            [
-              lhs
-              |> _type_trait_to_string(Print.bad)
-              |> Print.fmt(
-                   "• the left-hand-side argument has the trait %s",
-                 )
-              |> Pretty.string,
-            ]
-            |> Pretty.newline,
-            [
-              rhs
-              |> _type_trait_to_string(Print.bad)
-              |> Print.fmt(
-                   "• the right-hand-side argument has the trait %s",
-                 )
-              |> Pretty.string,
-            ]
-            |> Pretty.newline,
-          ]
-          |> Pretty.concat,
-          Pretty.Newline,
-        ]
-        |> Pretty.concat,
-        None,
-      )
-    | NotAssignable(t, trait) => (
-        "Type Cannot Be Assigned",
-        [
-          [
-            Print.fmt(
-              "expected a type that implements the trait %s but found the type %s instead",
-              trait |> _type_trait_to_string(Print.good),
-              t |> Type.to_string |> Print.bad,
+  fun
+  | Type.TypeMismatch(expected, actual) => (
+      "Types Do Not Match",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "expected the type %a but received %a",
+              good(Type.pp),
+              expected,
+              bad(Type.pp),
+              actual,
             )
-            |> Pretty.string,
-          ]
-          |> Pretty.newline,
-          Pretty.Newline,
-        ]
-        |> Pretty.concat,
-        None,
-      )
-    | TypeMismatch(expected, actual) => (
-        "Types Do Not Match",
-        [
-          [
-            Print.fmt(
-              "expected the type %s but found the type %s instead",
-              expected |> Type.to_string |> Print.good,
-              actual |> Type.to_string |> Print.bad,
-            )
-            |> Pretty.string,
-          ]
-          |> Pretty.newline,
-          Pretty.Newline,
-        ]
-        |> Pretty.concat,
-        None,
-      )
-    | NotFound(id) => (
-        "Identifier Not Found",
-        [
-          [
-            id
-            |> Identifier.to_string
-            |> Print.bad
-            |> Print.fmt(
-                 "unable to resolve an identifier %s in the local scope or any inherited scope",
-               )
-            |> Pretty.string,
-          ]
-          |> Pretty.newline,
-        ]
-        |> Pretty.newline,
-        Some(
-          [
-            _print_resolution((
-              id
-              |> Identifier.to_string
-              |> Print.bad
-              |> Print.fmt(
-                   "check that the identifier %s is spelled correctly",
-                 ),
-              None,
-            )),
-            _print_resolution((
-              "define the value yourself",
-              Some(
-                [Print.fmt("const %s = …;"), Print.fmt("let %s = …;")]
-                |> List.map(fmt =>
-                     id
-                     |> Identifier.to_string
-                     |> Print.bold
-                     |> fmt
-                     |> Pretty.string
-                   ),
-              ),
-            )),
-            _print_resolution((
-              "import the value from another module",
-              Some(
-                [Print.fmt("import { %s } from \"…\";")]
-                |> List.map(fmt =>
-                     id
-                     |> Identifier.to_string
-                     |> Print.bold
-                     |> fmt
-                     |> Pretty.string
-                   ),
-              ),
-            )),
-          ]
-          |> Pretty.concat,
-        ),
-      )
-    | ExternalNotFound(namespace, id) => (
-        "External Not Found",
-        [
-          (
-            switch (id) {
-            | Named(id) =>
-              Print.fmt(
-                "an export with the identifier %s could not be found in module %s",
-                id |> Identifier.to_string |> Print.bad,
-                namespace |> Namespace.to_string |> Print.bad,
-              )
-            | Main =>
-              Print.fmt(
-                "a main export could not be found in module %s",
-                namespace |> Namespace.to_string |> Print.bad,
-              )
-            }
+        )
+      ),
+      [],
+    )
+
+  | Type.NotFound(id) => (
+      "Identifier Not Found",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "unable to resolve an identifier %a in the local scope or any inherited scope",
+            Fmt.bad(Identifier.pp),
+            id,
           )
-          |> Pretty.string,
-          Pretty.Newline,
-        ]
-        |> Pretty.newline,
-        None,
+      ),
+      [
+        (
+          (
+            ppf =>
+              Fmt.pf(
+                ppf,
+                "check that the identifier %a is spelled correctly",
+                Fmt.bad(Identifier.pp),
+                id,
+              )
+          ),
+          [],
+        ),
+        (
+          (ppf => Fmt.string(ppf, "define the value yourself")),
+          Fmt.[str("const %s = …;"), str("let %s = …;")]
+          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+        ),
+        (
+          (ppf => Fmt.string(ppf, "import the value from another module")),
+          Fmt.[str("import { %s } from \"…\";")]
+          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+        ),
+      ],
+    )
+
+  /* FIXME: this isn't being reported */
+  | Type.DuplicateIdentifier(id) => (
+      "Identifier Already Defined",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "a variable with the same name (%a) already exists in the local scope or an inherited scope",
+            Fmt.bad(Identifier.pp),
+            id,
+          )
+      ),
+      [((ppf => Fmt.string(ppf, "change the name of this variable")), [])],
+    )
+
+  /* FIXME: this isn't being reported */
+  | Type.ExternalNotFound(namespace, id) => (
+      "External Not Found",
+      switch (id) {
+      | Named(id) => (
+          ppf =>
+            Fmt.pf(
+              ppf,
+              "an export with the identifier %a could not be found in module %a",
+              Fmt.bad(Identifier.pp),
+              id,
+              Fmt.bad(Namespace.pp),
+              namespace,
+            )
+        )
+
+      | Main =>
+        Fmt.(
+          (
+            ppf =>
+              pf(
+                ppf,
+                "a %a export could not be found in module %a",
+                bad_str,
+                Constants.Keyword.main,
+                bad(Namespace.pp),
+                namespace,
+              )
+          )
+        )
+      },
+      [],
+    )
+
+  | Type.InvalidUnaryOperation(operator, type_) => (
+      "Invalid Unary Operation",
+      (
+        switch (operator) {
+        | Not => ("NOT (!)", [Type.Valid(`Boolean)])
+
+        | Positive => ("ABSOLUTE (+)", __numeric_types)
+
+        | Negative => ("NEGATE (-)", __numeric_types)
+        }
       )
-  );
+      |> (
+        ((operator, expected)) =>
+          Fmt.(
+            ppf =>
+              pf(
+                ppf,
+                "the %a unary operator expects an expression of type %a but received %a",
+                Fmt.bold_str,
+                operator,
+                list(~sep=_or_sep, good(Type.pp)),
+                expected,
+                bad(Type.pp),
+                type_,
+              )
+          )
+      ),
+      [],
+    )
+
+  | Type.InvalidBinaryOperation(operator, lhs_type, rhs_type) => (
+      "Invalid Binary Operation",
+      {
+        let print_static_error = ((operator, expected)) => {
+          let pp_expected = (ppf, type_) =>
+            (expected |> List.mem(type_) ? Fmt.good : Fmt.bad)(
+              Type.pp,
+              ppf,
+              type_,
+            );
+
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "the %a binary operator expects both arguments to be of type %a but received %a and %a",
+                  Fmt.bold_str,
+                  operator,
+                  list(~sep=_or_sep, good(Type.pp)),
+                  expected,
+                  pp_expected,
+                  lhs_type,
+                  pp_expected,
+                  rhs_type,
+                )
+            )
+          );
+        };
+        let print_equality_error = operator =>
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "the %a binary operator expects both arguments to be of the same type but received %a and %a",
+                  Fmt.bold_str,
+                  "EQUAL (==)",
+                  bad(Type.pp),
+                  lhs_type,
+                  bad(Type.pp),
+                  rhs_type,
+                )
+            )
+          );
+
+        switch (operator) {
+        | LogicalAnd =>
+          ("AND (&&)", [Type.Valid(`Boolean)]) |> print_static_error
+        | LogicalOr =>
+          ("OR (||)", [Type.Valid(`Boolean)]) |> print_static_error
+
+        | LessOrEqual =>
+          ("LESS THAN OR EQUAL (<=)", __numeric_types) |> print_static_error
+        | LessThan => ("LESS THAN (<)", __numeric_types) |> print_static_error
+        | GreaterOrEqual =>
+          ("GREATER THAN OR EQUAL (>=)", __numeric_types)
+          |> print_static_error
+        | GreaterThan =>
+          ("GREATER THAN (>)", __numeric_types) |> print_static_error
+
+        | Equal => print_equality_error("EQUAL (==)")
+        | Unequal => print_equality_error("NOT EQUAL (!=)")
+
+        | Add => ("ADD (+)", __numeric_types) |> print_static_error
+        | Subtract => ("SUBTRACT (-)", __numeric_types) |> print_static_error
+        | Divide => ("DIVIDE (/)", __numeric_types) |> print_static_error
+        | Multiply => ("MULTIPLY (*)", __numeric_types) |> print_static_error
+        | Exponent => ("EXPONENT (^)", __numeric_types) |> print_static_error
+        };
+      },
+      [],
+    )
+
+  | Type.InvalidJSXPrimitiveExpression(type_) => (
+      "Invalid JSX Primitive Expression",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "jsx only supports rendering primitive values inline but received %a",
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [
+        (
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>convert the value to have a primitive type@,@[<h>ie. %a@]@]",
+                  list(~layout=Horizontal, Type.pp),
+                  [
+                    Type.Valid(`Nil),
+                    Type.Valid(`Boolean),
+                    Type.Valid(`Integer),
+                    Type.Valid(`Float),
+                    Type.Valid(`String),
+                    Type.Valid(`Element),
+                  ],
+                )
+            )
+          ),
+          [],
+        ),
+      ],
+    )
+
+  | Type.InvalidJSXClassExpression(type_) => (
+      "Invalid JSX Class Expression",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "jsx classes can only be controlled with arguments of type %a but received %a",
+              good(Type.pp),
+              Type.Valid(`Boolean),
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidJSXTag(id, type_, props) => (
+      "Invalid JSX Tag",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "this jsx tag was expected to be of type %a with props %a but received %a",
+              good_str,
+              Constants.Keyword.view,
+              good(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a)@]",
+                  list(~layout=Horizontal, attribute(string, Type.pp)),
+                )
+              ),
+              props,
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidJSXAttribute(key, expected, actual) => (
+      "Invalid JSX Attribute",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "this jsx tag expects the attribute %a to be of type %a but received %a",
+              bad_str,
+              key,
+              good(Type.pp),
+              expected,
+              bad(Type.pp),
+              actual,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.UnexpectedJSXAttribute(key, type_) => (
+      "Unexpected JSX Attribute",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "found an unexpected attribute %a with type %a",
+              bad_str,
+              key,
+              good(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.MissingJSXAttributes(id, missing) => (
+      "Missing JSX Attributes",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "jsx tag %a is missing the attributes %a",
+            Identifier.pp,
+            id,
+            Fmt.(
+              bad(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a)@]",
+                  list(~layout=Horizontal, attribute(string, Type.pp)),
+                )
+              )
+            ),
+            missing,
+          )
+      ),
+      [],
+    )
+
+  | Type.InvalidDotAccess(type_, prop) => (
+      "Invalid Dot Access",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>dot access can only be performed on values with %a types@,expected a value matching the type %a but received %a@]",
+              good_str,
+              "struct",
+              good_str,
+              Fmt.str("{ %s: any }", prop),
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidFunctionCall(type_, args) => (
+      "Invalid Function Call",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>function calls can only be performed on values with %a types@,expected a value matching the type %a but received %a@]",
+              good_str,
+              "function",
+              good(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a) -> any@]",
+                  list(~layout=Horizontal, Type.pp),
+                )
+              ),
+              args,
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.UntypedFunctionArgument(id) => (
+      "Untyped Function Argument",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "the function argument %a must define a type",
+            Fmt.bad(Reference.Identifier.pp),
+            id,
+          )
+      ),
+      [],
+    )
+
+  | Type.DefaultArgumentMissing(id) => (
+      "Default Argument Missing",
+      (
+        ppf =>
+          Fmt.pf(
+            ppf,
+            "the function argument %a must define a default value",
+            Fmt.bad(Reference.Identifier.pp),
+            id,
+          )
+      ),
+      [
+        (
+          Fmt.(
+            (
+              ppf =>
+                pf(ppf, "remove default values from all preceding arguments")
+            )
+          ),
+          [],
+        ),
+      ],
+    );
 
 let _extract_parse_err =
   fun
   | TypeError(err) => _extract_type_err(err)
+
   | ReservedKeyword(name) => (
       "Reserved Keyword",
-      name
-      |> Print.bad
-      |> Print.fmt("the reserved keyword %s was used as an identifier")
-      |> Pretty.string,
-      Some(
-        [
-          _print_resolution((
-            name
-            |> Print.bad
-            |> Print.fmt("check that the identifier %s is spelled correctly"),
-            None,
-          )),
-          _print_resolution((
-            Print.fmt(
-              "rename %s so that there is no conflict with reserved keywords (%s)",
-              name |> Print.bad,
-              Constants.Keyword.reserved |> String.join(~separator=", "),
-            ),
-            None,
-          )),
-        ]
-        |> Pretty.concat,
+      (
+        ppf =>
+          Fmt.(
+            pf(
+              ppf,
+              "the reserved keyword %a was used as an identifier",
+              bad_str,
+              name,
+            )
+          )
       ),
+      [
+        (
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "check that the identifier %a is spelled correctly",
+                  bad_str,
+                  name,
+                )
+            )
+          ),
+          [],
+        ),
+        (
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "rename %a so that there is no conflict with reserved keywords (%s)",
+                  bad_str,
+                  name,
+                  Constants.Keyword.reserved
+                  |> List.map(~@bold_str)
+                  |> String.join(~separator=", "),
+                )
+            )
+          ),
+          [],
+        ),
+      ],
     );
 
 let _extract_compile_err = resolver =>
   fun
-  | ImportCycle(cycles) => (
-      None,
+  | ImportCycle(cycles) as err => (
       "Import Cycle Found",
-      cycles
-      |> Print.many(~separator=" -> ", Functional.identity)
-      |> Print.fmt("import cycle between the following modules: %s")
-      |> Pretty.string,
+      None,
+      (ppf => err |> pp_compile_err(ppf)),
     )
 
-  | UnresolvedModule(name) => (
-      None,
+  | UnresolvedModule(name) as err => (
       "Unresolved Module",
-      name |> Print.fmt("could not resolve module: %s") |> Pretty.string,
-    )
-
-  | FileNotFound(path) => (
       None,
-      "File Not Found",
-      path |> Print.fmt("could not find file with path: %s") |> Pretty.string,
+      (ppf => err |> pp_compile_err(ppf)),
     )
 
-  | InvalidModule(namespace) => (
+  | FileNotFound(path) as err => (
+      "File Not Found",
+      None,
+      (ppf => err |> pp_compile_err(ppf)),
+    )
+
+  | InvalidModule(namespace) as err => (
+      "Invalid Module",
       resolver
       |> Resolver.resolve_module(~skip_cache=true, namespace)
       |> Module.get_path
-      |?> (x => (x, Cursor.zero)),
-      "Invalid Module",
-      Print.fmt("failed to parse module") |> Pretty.string,
+      |?> (x => (x, Range.zero)),
+      (ppf => err |> pp_compile_err(ppf)),
     )
 
-  | ParseError(err, namespace, cursor) =>
+  | ParseError(err, namespace, range) =>
     _extract_parse_err(err)
-    |> Tuple.reduce3((title, description, resolutions) => {
+    |> Tuple.join3((title, description, resolutions) => {
          let module_ =
            Resolver.resolve_module(namespace, resolver)
            |> Module.read_to_string;
 
          (
+           title,
            resolver
            |> Resolver.resolve_module(~skip_cache=true, namespace)
            |> Module.get_path
-           |?> (x => (x, cursor)),
-           title,
-           [
-             description,
-             switch (module_) {
-             | Ok(x) => File.CodeFrame.print(x, cursor) |> Pretty.string
-             | Error(_) =>
-               ["code frame not available" |> Pretty.string] |> Pretty.newline
-             },
-             switch (resolutions) {
-             | Some(resolutions) =>
-               [
-                 Pretty.Newline,
-                 [
-                   "try one of the following to resolve this issue:"
-                   |> Pretty.string,
-                 ]
-                 |> Pretty.newline,
-                 Pretty.Newline,
-                 resolutions |> Pretty.indent(2),
-               ]
-               |> Pretty.concat
-             | None => Pretty.Nil
-             },
-           ]
-           |> Pretty.concat,
+           |?> (x => (x, range)),
+           (
+             ppf =>
+               Fmt.(
+                 pf(
+                   ppf,
+                   "%t%a%a",
+                   description,
+                   ppf =>
+                     fun
+                     | Ok(x) =>
+                       pf(
+                         ppf,
+                         "@,@.@[<v 0>%a@]",
+                         ppf => File.CodeFrame.pp(ppf),
+                         (x, range),
+                       )
+                     | Error(_) => pf(ppf, "@,@,[code frame not available]"),
+                   module_,
+                   ppf =>
+                     fun
+                     | [] => nop(ppf, ())
+                     | _ =>
+                       pf(
+                         ppf,
+                         "@,@,@[<hv>try one of the following to resolve this issue:@,%a@]",
+                         indented(
+                           list(
+                             ~layout=Vertical,
+                             ~sep=Sep.double_newline,
+                             _pp_resolution,
+                           ),
+                         ),
+                         resolutions,
+                       ),
+                   resolutions,
+                 )
+               )
+           ),
          );
        });
 
-let report = (resolver: Resolver.t, errors: list(compile_err)) => {
-  let header =
-    Print.fmt("%sFAILED%s", String.repeat(20, " "), String.repeat(20, " "));
-  let summary =
-    [
-      Print.fmt(
-        "finished with %s and %s",
-        errors
-        |> List.length
-        |> string_of_int
-        |> Print.fmt("%s error(s)")
-        |> Print.red,
-        0 |> string_of_int |> Print.fmt("%s warning(s)") |> Print.yellow,
-      )
-      |> Pretty.string,
-    ]
-    |> Pretty.newline;
-  let horiz_border = String.repeat(header |> String.length, "═");
+let _pp_header: Fmt.t(string) =
+  (ppf, title) => {
+    let header =
+      Fmt.str(
+        "%s%s%s",
+        String.repeat(20, " "),
+        title,
+        String.repeat(20, " "),
+      );
+    let border = String.(repeat(length(header), "═"));
 
-  [
-    Pretty.Newline,
-    [horiz_border |> Print.fmt("╔%s╗") |> Print.bad |> Pretty.string]
-    |> Pretty.newline,
-    [header |> Print.fmt("║%s║") |> Print.bad |> Pretty.string]
-    |> Pretty.newline,
-    [horiz_border |> Print.fmt("╚%s╝") |> Print.bad |> Pretty.string]
-    |> Pretty.newline,
-    Pretty.Newline,
-    summary,
-    Pretty.Newline,
-    errors
-    |> List.mapi((index, err) =>
-         err
-         |> _extract_compile_err(resolver)
-         |> Tuple.reduce3((path, title, content) =>
-              _print_err(~index, path, title, content)
-            )
-       )
-    |> List.intersperse(Pretty.Newline)
-    |> Pretty.concat,
-    summary,
-  ]
-  |> Pretty.concat;
+    Fmt.(
+      pf(
+        ppf,
+        "%s@,%s@,%s",
+        border |> str("╔%s╗"),
+        header |> str("║%s║"),
+        border |> str("╚%s╝"),
+      )
+    );
+  };
+
+let _pp_summary: Fmt.t((int, int)) =
+  (ppf, (error_count, warning_count)) =>
+    Fmt.(
+      pf(
+        ppf,
+        "finished with %a and %a",
+        red_str,
+        str("%i error(s)", error_count),
+        yellow_str,
+        str("%i warning(s)", warning_count),
+      )
+    );
+
+let report =
+    (
+      resolver: Resolver.t,
+      errors: list(compile_err),
+      ppf: Stdlib.Format.formatter,
+    ) => {
+  let summary = (List.length(errors), 0) |> ~@_pp_summary;
+
+  Fmt.(
+    page(
+      (ppf, ()) =>
+        pf(
+          ppf,
+          "@,%a@,@,%s@,@,%a%s",
+          bad(_pp_header),
+          "FAILED",
+          summary,
+          list(
+            ~layout=Vertical,
+            ~sep=Sep.trailing_double_newline,
+            page(_pp_err),
+          ),
+          errors
+          |> List.mapi(index =>
+               _extract_compile_err(resolver)
+               % Tuple.join3((path, title, content) =>
+                   (index, path, title, content)
+                 )
+             ),
+          summary,
+        ),
+      ppf,
+      (),
+    )
+  );
 };
 
 let panic = (resolver: Resolver.t, errors: list(compile_err)) => {

@@ -11,16 +11,22 @@ module Program = Grammar.Program;
 
  anything that cannot be parsed as an import statement will be ignored
  */
-let imports = (namespace, input) =>
-  parse(Program.imports(Context.create(~report=ignore, namespace)), input)
+let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
+  parse(
+    namespace |> NamespaceContext.create(~report=ignore) |> Program.imports,
+    input,
+  )
   |> (
     fun
     | Some(stmts) =>
       stmts
       |> List.filter_map(
-           fun
-           | AST.Import(namespace, _) => Some(namespace)
-           | _ => None,
+           Node.Raw.get_value
+           % (
+             fun
+             | AST.Import(namespace, _) => Some(namespace)
+             | _ => None
+           ),
          )
     | None => []
   );
@@ -28,13 +34,23 @@ let imports = (namespace, input) =>
 /**
  parses entire document to extract imports, declarations and type information
  */
-let ast = (ctx, input) =>
-  parse(Program.main(ctx), input)
+let ast = (ctx: NamespaceContext.t, input: Program.input_t) =>
+  input
+  |> parse(Program.main(ctx))
   |> (
     fun
-    | Some(stmts) => stmts
-    | None => {
-        ctx.report(InvalidModule(ctx.namespace));
-        [];
-      }
+    | Some(stmts) => Ok(stmts)
+    | None => Error(InvalidModule(ctx.namespace))
+  );
+
+/**
+ parses entire document to extract type modules and definitions
+ */
+let definition = (input: Program.input_t) =>
+  input
+  |> parse(Program.definition)
+  |> (
+    fun
+    | Some(modules_) => Ok(modules_)
+    | None => Ok([])
   );

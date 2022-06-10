@@ -1,15 +1,18 @@
 /**
- Utitlities for converting module AST into JavaScript code.
+ Utilities for converting module AST into JavaScript code.
  */
 open Kore;
-open AST;
-open Reference;
+open ModuleAliases;
+
+module Identifier = Reference.Identifier;
 
 let __util_lib = "$knot";
 let __runtime_namespace = "@knot/runtime";
 let __class_name_prop = "className";
+let __arguments_object = "arguments";
 let __id_prop = "id";
 let __main_export = "main";
+let __view_props = "$props$";
 
 let _knot_util = (util, property) =>
   JavaScript_AST.DotAccess(
@@ -17,121 +20,165 @@ let _knot_util = (util, property) =>
     property,
   );
 let _jsx_util = _knot_util("jsx");
+let _platform_util = _knot_util("platform");
+let _stdlib_util = _knot_util("stdlib");
 
-let number = x =>
+let __knot_arg = _platform_util("arg");
+let __knot_prop = _platform_util("prop");
+let __jsx_create_tag = _jsx_util("createTag");
+let __jsx_create_fragment = _jsx_util("createFragment");
+
+let gen_number = x =>
   JavaScript_AST.Number(
     switch (x) {
-    | Integer(value) => value |> Int64.to_string
-    | Float(value, precision) => value |> Print.fmt("%.*g", precision)
+    | A.Integer(value) => Int64.to_string(value)
+    | A.Float(value, precision) => value |> Fmt.str("%.*g", precision)
     },
   );
 
-let rec expression =
+let rec gen_expression =
   fun
-  | Primitive((Boolean(x), _, _)) => JavaScript_AST.Boolean(x)
-  | Primitive((Number(x), _, _)) => x |> number
-  | Primitive((String(x), _, _)) => JavaScript_AST.String(x)
-  | Primitive((Nil, _, _)) => JavaScript_AST.Null
-  | Identifier((value, _)) =>
-    JavaScript_AST.Identifier(value |> Identifier.to_string)
-  | Group((value, _, _)) => JavaScript_AST.Group(value |> expression)
+  | A.Primitive(Boolean(x)) => JavaScript_AST.Boolean(x)
+  | A.Primitive(Number(x)) => gen_number(x)
+  | A.Primitive(String(x)) => JavaScript_AST.String(x)
+  | A.Primitive(Nil) => JavaScript_AST.Null
+  | A.Identifier(value) =>
+    JavaScript_AST.Identifier(value |> ~@Identifier.pp)
+  | A.Group(value) =>
+    JavaScript_AST.Group(value |> N.get_value |> gen_expression)
 
-  | Closure([]) => JavaScript_AST.(Null)
-  | Closure(values) => {
+  | A.Closure([]) => JavaScript_AST.(Null)
+  | A.Closure(values) => {
       let rec loop = (
         fun
         | [] => []
-        | [x] => statement(~is_last=true, x)
-        | [x, ...xs] => statement(x) @ loop(xs)
+        | [x] => x |> N.get_value |> gen_statement(~is_last=true)
+        | [x, ...xs] => (x |> N.get_value |> gen_statement) @ loop(xs)
       );
 
       values |> loop |> JavaScript_AST.iife;
     }
 
-  | UnaryOp(op, value) => value |> unary_op(op)
-  | BinaryOp(op, lhs, rhs) => binary_op(op, lhs, rhs)
-  | JSX((value, _)) => value |> jsx
+  | A.UnaryOp(op, value) => value |> gen_unary_op(op)
+  | A.BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
+  | A.JSX(value) => gen_jsx(value)
+  | A.DotAccess(expr, prop) =>
+    JavaScript_AST.DotAccess(
+      expr |> N.get_value |> gen_expression,
+      NR.get_value(prop),
+    )
+  | A.FunctionCall(expr, args) =>
+    JavaScript_AST.FunctionCall(
+      expr |> N.get_value |> gen_expression,
+      args |> List.map(N.get_value % gen_expression),
+    )
 
-and statement = (~is_last=false) =>
+and gen_statement = (~is_last=false) =>
   fun
-  | Variable((name, _), (value, _, _)) =>
+  | A.Variable(name, value) =>
     [
       JavaScript_AST.Variable(
-        name |> Identifier.to_string,
-        value |> expression,
+        name |> NR.get_value |> ~@Identifier.pp,
+        value |> N.get_value |> gen_expression,
       ),
     ]
     @ (is_last ? [JavaScript_AST.Return(Some(Null))] : [])
-  | Expression((value, _, _)) => [
+  | A.Expression(value) => [
       is_last
-        ? JavaScript_AST.Return(Some(value |> expression))
-        : JavaScript_AST.Expression(value |> expression),
+        ? JavaScript_AST.Return(
+            Some(value |> N.get_value |> gen_expression),
+          )
+        : JavaScript_AST.Expression(value |> N.get_value |> gen_expression),
     ]
 
-and unary_op = (op, (value, _, _)) =>
+and gen_unary_op = (op, value) =>
   JavaScript_AST.UnaryOp(
     switch (op) {
-    | Negative => "-"
-    | Positive => "+"
-    | Not => "!"
+    | A.Negative => "-"
+    | A.Positive => "+"
+    | A.Not => "!"
     },
-    Group(value |> expression),
+    Group(value |> N.get_value |> gen_expression),
   )
 
-and binary_op = {
-  let op = (symbol, (lhs, _, _), (rhs, _, _)) =>
+and gen_binary_op = {
+  let op = (symbol, lhs, rhs) =>
     JavaScript_AST.Group(
-      BinaryOp(symbol, lhs |> expression, rhs |> expression),
+      BinaryOp(
+        symbol,
+        lhs |> N.get_value |> gen_expression,
+        rhs |> N.get_value |> gen_expression,
+      ),
     );
 
   fun
-  | LogicalAnd => op("&&")
-  | LogicalOr => op("||")
-  | LessOrEqual => op("<=")
-  | LessThan => op("<")
-  | GreaterOrEqual => op(">=")
-  | GreaterThan => op(">")
-  | Equal => op("===")
-  | Unequal => op("!==")
-  | Add => op("+")
-  | Subtract => op("-")
-  | Multiply => op("*")
-  | Divide => op("/")
-  | Exponent => (
-      ((lhs, _, _), (rhs, _, _)) =>
+  | A.LogicalAnd => op("&&")
+  | A.LogicalOr => op("||")
+  | A.LessOrEqual => op("<=")
+  | A.LessThan => op("<")
+  | A.GreaterOrEqual => op(">=")
+  | A.GreaterThan => op(">")
+  | A.Equal => op("===")
+  | A.Unequal => op("!==")
+  | A.Add => op("+")
+  | A.Subtract => op("-")
+  | A.Multiply => op("*")
+  | A.Divide => op("/")
+  | A.Exponent => (
+      (lhs, rhs) =>
         JavaScript_AST.FunctionCall(
           DotAccess(Identifier("Math"), "pow"),
-          [lhs |> expression, rhs |> expression],
+          [
+            lhs |> N.get_value |> gen_expression,
+            rhs |> N.get_value |> gen_expression,
+          ],
         )
     );
 }
 
-and jsx =
+and gen_jsx_element = (expr, attrs, values) =>
+  JavaScript_AST.FunctionCall(
+    __jsx_create_tag,
+    [
+      expr,
+      ...List.is_empty(attrs) && List.is_empty(values)
+           ? []
+           : [
+             gen_jsx_attrs(attrs),
+             ...values |> List.map(NR.get_value % gen_jsx_child),
+           ],
+    ],
+  )
+
+and gen_jsx =
   fun
-  | Tag((name, _), attrs, values) =>
-    JavaScript_AST.FunctionCall(
-      _jsx_util("createTag"),
-      [
-        String(name |> Identifier.to_string),
-        ...List.is_empty(attrs) && List.is_empty(values)
-             ? []
-             : [attrs |> jsx_attrs, ...values |> List.map(fst % jsx_child)],
-      ],
+  | A.Tag(name, attrs, values) =>
+    gen_jsx_element(
+      String(name |> NR.get_value |> ~@Identifier.pp),
+      attrs,
+      values,
     )
 
-  | Fragment(values) =>
-    JavaScript_AST.FunctionCall(
-      _jsx_util("createFragment"),
-      values |> List.map(fst % jsx_child),
+  | A.Component(id, attrs, values) =>
+    gen_jsx_element(
+      Identifier(id |> N.get_value |> ~@Identifier.pp),
+      attrs,
+      values,
     )
 
-and jsx_child =
-  fun
-  | Node((value, _)) => value |> jsx
-  | Text((value, _)) => JavaScript_AST.String(value)
-  | InlineExpression((value, _, _)) => value |> expression
+  | A.Fragment(values) =>
+    JavaScript_AST.FunctionCall(
+      __jsx_create_fragment,
+      values |> List.map(NR.get_value % gen_jsx_child),
+    )
 
-and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
+and gen_jsx_child =
+  fun
+  | A.Node(value) => gen_jsx(value)
+  | A.Text(value) => JavaScript_AST.String(value)
+  | A.InlineExpression(value) => value |> N.get_value |> gen_expression
+
+and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
   if (List.is_empty(attrs)) {
     JavaScript_AST.Null;
   } else {
@@ -140,41 +187,43 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
       attrs
       |> List.fold_left(
            ((c, p)) =>
-             fst
+             NR.get_value
              % (
                fun
-               | Property((name, _), expr) => (
+               | A.Property(name, expr) => (
                    c,
                    [
                      (
-                       name |> Identifier.to_string,
+                       name |> NR.get_value |> ~@Identifier.pp,
                        switch (expr) {
-                       | Some((expr, _, _)) => expr |> expression
+                       | Some(expr) => expr |> N.get_value |> gen_expression
                        | None =>
                          JavaScript_AST.Identifier(
-                           name |> Identifier.to_string,
+                           name |> NR.get_value |> ~@Identifier.pp,
                          )
                        },
                      ),
                      ...p,
                    ],
                  )
-               | Class((name, _), None) => (
+               | A.Class(name, None) => (
                    [
                      JavaScript_AST.String(
-                       name |> Identifier.to_string |> Print.fmt(".%s"),
+                       name |> NR.get_value |> Fmt.str(".%a", Identifier.pp),
                      ),
                      ...c,
                    ],
                    p,
                  )
-               | Class((name, _), Some((expr, _, _))) => (
+               | A.Class(name, Some(expr)) => (
                    [
                      JavaScript_AST.Group(
                        Ternary(
-                         expr |> expression,
+                         expr |> N.get_value |> gen_expression,
                          String(
-                           name |> Identifier.to_string |> Print.fmt(".%s"),
+                           name
+                           |> NR.get_value
+                           |> Fmt.str(".%a", Identifier.pp),
                          ),
                          String(""),
                        ),
@@ -183,10 +232,13 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
                    ],
                    p,
                  )
-               | ID((name, _)) => (
+               | A.ID(name) => (
                    c,
                    [
-                     (__id_prop, String(name |> Identifier.to_string)),
+                     (
+                       __id_prop,
+                       String(name |> NR.get_value |> ~@Identifier.pp),
+                     ),
                      ...p,
                    ],
                  )
@@ -216,68 +268,124 @@ and jsx_attrs = (attrs: list(jsx_attribute_t)) =>
     JavaScript_AST.Object(props);
   };
 
-let constant = ((name, _): identifier_t, (value, _, _): expression_t) =>
-  JavaScript_AST.Variable(name |> Identifier.to_string, value |> expression);
+let gen_constant = (name: A.identifier_t, value: A.expression_t) =>
+  JavaScript_AST.Variable(
+    name |> NR.get_value |> ~@Identifier.pp,
+    value |> N.get_value |> gen_expression,
+  );
 
-let function_ =
-    (
-      (name, _): identifier_t,
-      args: list((argument_t, Type.t)),
-      (expr, _, _): expression_t,
-    ) =>
+let gen_function =
+    (name: A.identifier_t, args: list(A.argument_t), expr: A.expression_t) =>
   JavaScript_AST.(
     Expression(
       Function(
-        Some(name |> Identifier.to_string),
+        Some(name |> NR.get_value |> ~@Identifier.pp),
         args
-        |> List.map((({name}, _)) => name |> fst |> Identifier.to_string),
+        |> List.map(
+             N.get_value
+             % ((A.{name}) => name |> NR.get_value |> ~@Identifier.pp),
+           ),
         (
           args
+          |> List.mapi((i, x) => (N.get_value(x), i))
           |> List.filter_map(
                fun
-               | ({name, default: Some((default, _, _))}, _) =>
+               | (A.{name, default: Some(default)}, index) =>
                  Some(
                    Assignment(
-                     Identifier(name |> fst |> Identifier.to_string),
-                     default |> expression,
+                     Identifier(name |> NR.get_value |> ~@Identifier.pp),
+                     FunctionCall(
+                       __knot_arg,
+                       [
+                         Identifier(__arguments_object),
+                         Number(string_of_int(index)),
+                         default |> N.get_value |> gen_expression,
+                       ],
+                     ),
                    ),
                  )
                | _ => None,
              )
         )
         @ (
-          switch (expr) {
+          switch (N.get_value(expr)) {
           | Closure(stmts) =>
             let rec loop = (
               fun
               | [] => []
-              | [x] => statement(~is_last=true, x)
-              | [x, ...xs] => statement(x) @ loop(xs)
+              | [x] => x |> N.get_value |> gen_statement(~is_last=true)
+              | [x, ...xs] => (x |> N.get_value |> gen_statement) @ loop(xs)
             );
 
-            stmts |> loop;
-          | _ => [Return(Some(expr |> expression))]
+            loop(stmts);
+          | raw_expr => [Return(Some(gen_expression(raw_expr)))]
           }
         ),
       ),
     )
   );
 
-let declaration = (name: identifier_t, decl: declaration_t) =>
+let gen_view =
+    (name: A.identifier_t, props: list(A.argument_t), expr: A.expression_t) =>
+  JavaScript_AST.(
+    Expression(
+      Function(
+        Some(name |> NR.get_value |> ~@Identifier.pp),
+        [__view_props],
+        (
+          props
+          |> List.map(N.get_value)
+          |> List.mapi((index, A.{name, default}) => {
+               let id = name |> NR.get_value |> ~@Identifier.pp;
+
+               Variable(
+                 id,
+                 FunctionCall(
+                   __knot_prop,
+                   [Identifier(__view_props), String(id)]
+                   @ (
+                     default
+                     |?> (x => [x |> N.get_value |> gen_expression])
+                     |?: []
+                   ),
+                 ),
+               );
+             })
+        )
+        @ (
+          switch (N.get_value(expr)) {
+          | Closure(stmts) =>
+            let rec loop = (
+              fun
+              | [] => []
+              | [x] => x |> N.get_value |> gen_statement(~is_last=true)
+              | [x, ...xs] => (x |> N.get_value |> gen_statement) @ loop(xs)
+            );
+
+            loop(stmts);
+          | raw_expr => [Return(Some(gen_expression(raw_expr)))]
+          }
+        ),
+      ),
+    )
+  );
+
+let gen_declaration = (name: A.identifier_t, decl: A.declaration_t) =>
   (
-    switch (decl) {
-    | Constant(value) => [constant(name, value)]
-    | Function(args, expr) => [function_(name, args, expr)]
+    switch (N.get_value(decl)) {
+    | Constant(value) => [gen_constant(name, value)]
+    | Function(args, expr) => [gen_function(name, args, expr)]
+    | View(props, expr) => [gen_view(name, props, expr)]
     }
   )
   @ (
-    switch (name |> fst) {
+    switch (NR.get_value(name)) {
     | Public(name) => [JavaScript_AST.Export(name, None)]
     | _ => []
     }
   );
 
-let generate = (resolve: resolve_t, ast: program_t) => {
+let generate = (resolve: resolve_t, ast: A.program_t) => {
   let resolve =
     resolve
     % (
@@ -291,51 +399,88 @@ let generate = (resolve: resolve_t, ast: program_t) => {
     ast
     |> List.fold_left(
          ((i, d)) =>
-           fun
-           | Import(namespace, imports) => (
-               i
-               @ [
-                 JavaScript_AST.Import(
-                   namespace |> resolve,
+           NR.get_value
+           % (
+             fun
+             | A.Import(namespace, imports) => (
+                 i
+                 @ [
+                   JavaScript_AST.Import(
+                     resolve(namespace),
+                     imports
+                     |> List.map(
+                          NR.get_value
+                          % (
+                            fun
+                            | A.MainImport(id) => (
+                                __main_export,
+                                Some(id |> NR.get_value |> ~@Identifier.pp),
+                              )
+                            | A.NamedImport(id, Some(label)) => (
+                                id |> NR.get_value |> ~@Identifier.pp,
+                                Some(
+                                  label |> NR.get_value |> ~@Identifier.pp,
+                                ),
+                              )
+                            | A.NamedImport(id, None) => (
+                                id |> NR.get_value |> ~@Identifier.pp,
+                                None,
+                              )
+                          ),
+                        ),
+                   ),
+                 ],
+                 d,
+               )
+             | A.StandardImport(imports) => (
+                 i
+                 @ (
                    imports
                    |> List.map(
-                        fun
-                        | MainImport((id, _)) => (
-                            __main_export,
-                            Some(id |> Identifier.to_string),
-                          )
-                        | NamedImport((id, _), Some((label, _))) => (
-                            id |> Identifier.to_string,
-                            Some(label |> Identifier.to_string),
-                          )
-                        | NamedImport((id, _), None) => (
-                            id |> Identifier.to_string,
-                            None,
-                          ),
-                      ),
+                        NR.get_value
+                        % (
+                          fun
+                          | (id, Some(alias)) =>
+                            JavaScript_AST.Variable(
+                              alias |> NR.get_value |> ~@Identifier.pp,
+                              id
+                              |> NR.get_value
+                              |> ~@Identifier.pp
+                              |> _stdlib_util,
+                            )
+                          | (id, None) => {
+                              let name = id |> NR.get_value |> ~@Identifier.pp;
+
+                              JavaScript_AST.Variable(
+                                name,
+                                _stdlib_util(name),
+                              );
+                            }
+                        ),
+                      )
                  ),
-               ],
-               d,
-             )
-           | Declaration(NamedExport(name), decl) => (
-               i,
-               d @ declaration(name, decl),
-             )
-           | Declaration(MainExport(name), decl) => (
-               i,
-               d
-               @ declaration(name, decl)
-               @ [
-                 JavaScript_AST.Export(
-                   name |> fst |> Identifier.to_string,
-                   Some(__main_export),
-                 ),
-               ],
-             ),
+                 d,
+               )
+             | A.Declaration(NamedExport(name), decl) => (
+                 i,
+                 d @ gen_declaration(name, decl),
+               )
+             | A.Declaration(MainExport(name), decl) => (
+                 i,
+                 d
+                 @ gen_declaration(name, decl)
+                 @ [
+                   JavaScript_AST.Export(
+                     name |> NR.get_value |> ~@Identifier.pp,
+                     Some(__main_export),
+                   ),
+                 ],
+               )
+           ),
          ([], []),
        );
 
-  declarations |> List.is_empty
+  List.is_empty(declarations)
     ? imports @ [JavaScript_AST.EmptyExport]
     : [
         JavaScript_AST.DefaultImport(__runtime_namespace, __util_lib),

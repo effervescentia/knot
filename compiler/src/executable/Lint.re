@@ -3,20 +3,36 @@
  */
 open Kore;
 
-type config_t = {fix: bool};
-
-let cmd = () => {
-  let (fix_opt, get_fix) = ConfigOpt.fix();
-
-  Cmd.create(lint_key, [fix_opt], (static, _) => {fix: get_fix(static)});
+type config_t = {
+  root_dir: string,
+  fix: bool,
 };
 
-let run = (global: global_t, config: config_t) => {
-  Cmd.log_config(
-    global,
-    lint_key,
-    [(fix_key, config.fix |> string_of_bool)],
+let command_key = "lint";
+
+let command = () => {
+  let (root_dir_arg, get_root_dir) = Arg_RootDir.create();
+  let (fix_arg, get_fix) = Arg_Fix.create();
+
+  Command.create(
+    command_key,
+    [root_dir_arg, fix_arg],
+    (static, global) => {
+      let root_dir = get_root_dir(static, global.working_dir);
+      let fix = get_fix(static);
+
+      {root_dir, fix};
+    },
   );
+};
+
+let extract_config = (config: config_t) => [
+  (root_dir_key, config.root_dir),
+  (fix_key, string_of_bool(config.fix)),
+];
+
+let run = (global: Config.global_t, config: config_t) => {
+  Util.log_config(global, command_key, extract_config(config));
 
   ();
 };

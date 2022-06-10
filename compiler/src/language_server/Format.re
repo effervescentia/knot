@@ -1,6 +1,4 @@
 open Kore;
-open Deserialize;
-open Yojson.Basic.Util;
 
 type formatting_options_t = {
   tab_size: int,
@@ -11,46 +9,44 @@ type formatting_options_t = {
 };
 
 type params_t = {
-  text_document: text_document_t,
+  text_document: Protocol.text_document_t,
   options: formatting_options_t,
-  partial_result_token: option(progress_token),
+  partial_result_token: option(Protocol.progress_token),
 };
 
-let request =
-  request(json => {
-    let text_document = json |> get_text_document;
-    let options =
-      json
-      |> member("options")
-      |> (
-        x => {
-          let tab_size = x |> member("tabSize") |> to_int;
-          let insert_spaces = x |> member("insertSpaces") |> to_bool;
-          let trim_trailing_whitespace =
-            x |> member("trimTrailingWhitespace") |> to_bool_option;
-          let insert_final_newline =
-            x |> member("insertFinalNewline") |> to_bool_option;
-          let trim_final_newlines =
-            x |> member("trimFinalNewlines") |> to_bool_option;
+let method_key = "textDocument/formatting";
 
-          {
-            tab_size,
-            insert_spaces,
-            trim_trailing_whitespace,
-            insert_final_newline,
-            trim_final_newlines,
-          };
-        }
-      );
+let deserialize =
+  JSON.Util.(
+    json => {
+      let text_document = Deserialize.text_document(json);
+      let options =
+        json
+        |> member("options")
+        |> (
+          x => {
+            let tab_size = x |> member("tabSize") |> to_int;
+            let insert_spaces = x |> member("insertSpaces") |> to_bool;
+            let trim_trailing_whitespace =
+              x |> member("trimTrailingWhitespace") |> to_bool_option;
+            let insert_final_newline =
+              x |> member("insertFinalNewline") |> to_bool_option;
+            let trim_final_newlines =
+              x |> member("trimFinalNewlines") |> to_bool_option;
 
-    {text_document, options, partial_result_token: None};
-  });
+            {
+              tab_size,
+              insert_spaces,
+              trim_trailing_whitespace,
+              insert_final_newline,
+              trim_final_newlines,
+            };
+          }
+        );
 
-let response = () => `Null |> Response.wrap;
+      {text_document, options, partial_result_token: None};
+    }
+  );
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}}} as req: request_t(params_t),
-    ) =>
-  response() |> Protocol.reply(req);
+let handler: Runtime.request_handler_t(params_t) =
+  (runtime, {text_document: {uri}}) => Result.ok(`Null);

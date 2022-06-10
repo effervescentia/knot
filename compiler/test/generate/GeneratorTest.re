@@ -1,19 +1,21 @@
 open Kore;
-open Util;
 
 module Generator = Generate.Generator;
+module U = Util.ResultUtil;
 
 let __program = [
-  of_decl((
-    "ABC" |> of_public |> as_lexeme |> of_named_export,
-    123 |> int_prim |> of_const,
-  )),
+  (
+    "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    123 |> U.int_prim |> A.of_const |> U.as_int,
+  )
+  |> A.of_decl
+  |> U.as_raw_node,
 ];
 
 let suite =
   "Generate.Generator"
   >::: [
-    "generate() - JavaScript"
+    "pp() - javascript with es6 modules"
     >: (
       () =>
         Assert.string(
@@ -21,8 +23,7 @@ let suite =
 var ABC = 123;
 export { ABC };
 ",
-          Generator.generate(JavaScript(ES6), _ => "", __program)
-          |> Pretty.to_string,
+          __program |> ~@Generator.pp(JavaScript(ES6), _ => ""),
         )
     ),
   ];

@@ -4,32 +4,28 @@ module type Target = {
   let test: (t, t) => unit;
 };
 
-let test_many = test => List.iter(((exp, act)) => test(exp, act));
-let test_all = (test, exp) => List.iter(act => test(exp, act));
+let throws = (exn, msg, test) =>
+  Alcotest.check_raises(msg, exn, () => test() |> ignore);
 
 module Make = (T: Target) => {
   include T;
-
-  let test_many = List.iter(((i, o)) => test(o, i));
-
-  let test_all = o => List.iter(i => test(o, i));
 };
 
 module Compare = {
   let uchar =
     Alcotest.testable(
-      (pp, uchar) => {
+      (ppf, uchar) => {
         let buffer = Buffer.create(1);
         Buffer.add_utf_8_uchar(buffer, uchar);
 
-        Buffer.contents(buffer) |> Format.pp_print_string(pp);
+        Buffer.contents(buffer) |> Format.pp_print_string(ppf);
       },
       (==),
     );
 
   let hashtbl = (key_to_string, value_to_string) =>
     Alcotest.testable(
-      (pp, tbl) =>
+      (ppf, tbl) =>
         tbl
         |> Hashtbl.to_seq_keys
         |> List.of_seq
@@ -42,7 +38,7 @@ module Compare = {
            )
         |> List.fold_left((++), "")
         |> Printf.sprintf("{\n%s}")
-        |> Format.pp_print_string(pp),
+        |> Format.pp_print_string(ppf),
       (l, r) =>
         Hashtbl.length(l) == Hashtbl.length(r)
         && Hashtbl.to_seq_keys(l)
@@ -54,7 +50,7 @@ module Compare = {
     );
 };
 
-let fail = Alcotest.fail;
+let fail = msg => Alcotest.fail(msg);
 
 let bool = Alcotest.(check(bool, "boolean matches"));
 let true_ = Alcotest.(check(bool, "is true", true));
@@ -65,11 +61,15 @@ let int = Alcotest.(check(int, "int matches"));
 let uchar = Alcotest.(check(Compare.uchar, "uchar matches"));
 
 let opt_int = Alcotest.(check(option(int), "int matches"));
+let opt_string = Alcotest.(check(option(string), "string matches"));
 
 let string_pair =
   Alcotest.(check(pair(string, string), "string pair matches"));
 let int_pair = Alcotest.(check(pair(int, int), "int pair matches"));
 
+let int_trio = Alcotest.(check(pair(int, int), "int trio matches"));
+
+let char_list = Alcotest.(check(list(char), "char list matches"));
 let string_list = Alcotest.(check(list(string), "string list matches"));
 let int_list = Alcotest.(check(list(int), "int list matches"));
 
@@ -78,7 +78,20 @@ let string_pair_list =
 let int_pair_list =
   Alcotest.(check(list(pair(int, int)), "int pair list matches"));
 
+let pair_int_list =
+  Alcotest.(check(pair(list(int), list(int)), "pair int list matches"));
+
 let hashtbl = (key_to_string, value_to_string) =>
   Alcotest.(
     check(Compare.hashtbl(key_to_string, value_to_string), "hashtbl matches")
   );
+
+let file_exists = file =>
+  if (!Sys.file_exists(file)) {
+    file |> Alcotest.failf("expected file %s to exist");
+  };
+
+let no_file_exists = file =>
+  if (Sys.file_exists(file)) {
+    file |> Alcotest.failf("expected file %s to not exist");
+  };

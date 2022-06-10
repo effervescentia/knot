@@ -87,8 +87,8 @@ await compiler.add('./someFile.kn');
 // wait for the file to be compiled
 await compiler.awaitModule('./someFile.kn');
 
-// receive the comiled file contents
-const compiled = await compiler.generate('./someFile.kn');
+// receive the compiled file contents
+const compiled = await compiler.fetch('./someFile.kn');
 
 // kill the compiler server and end the connection
 await compiler.close();

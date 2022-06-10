@@ -5,7 +5,7 @@ import { Context, Kill } from './types';
 import {
   addModuleLoader,
   discoverDependencies,
-  invalidateModule
+  invalidateModule,
 } from './utils';
 
 import WebpackCompiler = Webpack.Compiler;
@@ -46,13 +46,11 @@ export function terminationHook(
   compiler: WebpackCompiler,
   context: Context
 ): void {
-  compiler.hooks.done.tapPromise(context.name, () => {
+  compiler.hooks.done.tap(context.name, () => {
     if (context.watching) {
       context.successiveRun = true;
-
-      return Promise.resolve();
     } else {
-      return context.knotCompiler.close();
+      context.knotCompiler.close();
     }
   });
 }
@@ -69,8 +67,8 @@ export function resolutionHook(
   compiler: WebpackCompiler,
   { name, options }: Context
 ): void {
-  compiler.hooks.normalModuleFactory.tap(name, nmf => {
-    nmf.hooks.beforeResolve.tap(name, mod => {
+  compiler.hooks.normalModuleFactory.tap(name, (nmf) => {
+    nmf.hooks.beforeResolve.tap(name, (mod) => {
       const resolved = resolveLibrary(mod.request, options);
       if (resolved) {
         mod.request = resolved;
@@ -102,7 +100,7 @@ const HOOKS: Readonly<Hook[]> = [
   terminationHook,
   invalidationHook,
   resolutionHook,
-  compilationHook
+  compilationHook,
 ];
 
 export default HOOKS;

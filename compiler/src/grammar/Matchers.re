@@ -20,8 +20,7 @@ let lexeme = x => spaces >> x;
 
 let between = (l, r, x) =>
   map3(
-    (l', x', r') =>
-      Block.create(x', Cursor.join(Block.cursor(l'), Block.cursor(r'))),
+    (l', x', r') => Node.Raw.create(x', Node.Raw.join_ranges(l', r')),
     l,
     x,
     r,
@@ -34,7 +33,7 @@ let rec unary_op = (x, op) => op >>= (f => unary_op(x, op) >|= f) <|> x;
 /**
  matches a single character
  */
-let symbol = x => char(x) >|= Input.to_block |> lexeme;
+let symbol = x => char(x) >|= Input.to_node |> lexeme;
 
 /**
  matches a pattern that may be terminated by a semicolon
@@ -46,8 +45,8 @@ let terminated = x => x << (C.Character.semicolon |> symbol |> optional);
  */
 let comma_sep = x =>
   x
-  |> sep_by(C.Character.comma |> symbol)
-  << optional(C.Character.comma |> symbol);
+  |> sep_by(symbol(C.Character.comma))
+  << optional(symbol(C.Character.comma));
 
 /**
  matches a sequence of characters but tolerates spaces in between
@@ -61,8 +60,8 @@ let glyph = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Input.cursor
-          >|= (end_ => Block.create((), Cursor.join(start, end_)))
+          >|= Input.get_point
+          >|= (end_ => Node.Raw.create((), Range.create(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -83,11 +82,12 @@ let keyword = (s: string) =>
         | [] => assert(false)
         | [c] =>
           char(c)
-          >|= Input.cursor
-          >|= (end_ => Block.create(s, Cursor.join(start, end_)))
+          >|= Input.get_point
+          >|= (end_ => Node.Raw.create(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
-      loop(s |> String.to_seq |> List.of_seq);
+      loop(s |> String.to_seq |> List.of_seq)
+      <<! (alpha_num <|> Character.underscore);
     }
   )
   |> lexeme;
@@ -112,33 +112,33 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
  */
 let string =
   Character.quote
-  >|= Input.cursor
+  >|= Input.get_point
   >>= (
     start => {
       let rec loop = f =>
         choice([
           /* end of string sequence */
           Character.quote
-          >|= Input.cursor
+          >|= Input.get_point
           >|= (
             end_ =>
-              Block.create(
+              Node.Raw.create(
                 f([]) |> String.of_uchars,
-                Cursor.join(start, end_),
+                Range.create(start, end_),
               )
           ),
           /* capture escaped characters */
           Character.back_slash
           >> any
-          >|= Input.value
+          >|= Input.get_value
           >>= (c => loop(rs => f([__back_slash, c, ...rs]))),
           /* capture characters of the string */
           none_of([C.Character.quote, C.Character.eol])
-          >|= Input.value
+          >|= Input.get_value
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);
 
-      loop(Functional.identity);
+      loop(Fun.id);
     }
   )
   |> lexeme;

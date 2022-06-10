@@ -1,41 +1,160 @@
 open Kore;
 
-let constant = (ctx: Context.t, f) =>
+module SemanticAnalyzer = Analyze.Semantic;
+
+let _is_main: A.export_t => bool =
+  fun
+  | MainExport(_) => true
+  | NamedExport(_) => false;
+
+let _create_scope = (range: Range.t, ctx: ModuleContext.t) =>
+  ctx |> ModuleContext.to_scope(range);
+
+let constant = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.const
-  >> Operator.assign(
-       Identifier.parser(ctx),
-       Expression.parser(ctx) >|= AST.of_const,
-     )
-  >|= (
-    (((id, _) as x, decl)) => {
-      ctx.scope |> Scope.define(id, decl |> TypeOf.declaration);
-
-      (f(x), decl);
-    }
-  )
-  |> M.terminated;
-
-let function_ = (ctx: Context.t, f) =>
-  Keyword.func
-  >> Identifier.parser(ctx)
+  >|= NR.get_range
   >>= (
-    id => {
-      let child_ctx = ctx |> Context.child;
-
-      Lambda.parser(child_ctx)
+    start =>
+      Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
-        ((args, (_, _, expr_cursor) as expr)) => {
-          let ctx_cursor = Cursor.join(expr_cursor, expr_cursor);
+        ((id, (_, _, expr_range) as raw_expr)) => {
+          let scope = ctx |> _create_scope(expr_range);
+          let expr = raw_expr |> SemanticAnalyzer.analyze_expression(scope);
+          let type_ = N.get_type(expr);
+          let const = expr |> N.wrap(A.of_const);
+          let range = Range.join(start, expr_range);
+          let export_id = f(id);
 
-          Context.submit(ctx_cursor, child_ctx);
+          ctx
+          |> ModuleContext.declare(
+               ~main=_is_main(export_id),
+               NR.get_value(id),
+               type_,
+             );
 
-          (f(id), (args, expr) |> AST.of_func);
+          NR.create((export_id, const), range);
         }
-      );
-    }
-  )
-  |> M.terminated;
+      )
+      |> M.terminated
+  );
 
-let parser = (ctx: Context.t) =>
-  option(AST.of_named_export, AST.of_main_export <$ Keyword.main)
-  >>= (f => choice([constant(ctx, f), function_(ctx, f)]) >|= AST.of_decl);
+let function_ = (ctx: ModuleContext.t, f): declaration_parser_t =>
+  Keyword.func
+  >>= NR.get_range
+  % (
+    start =>
+      Identifier.parser(ctx)
+      >>= (
+        id =>
+          Lambda.parser(ctx)
+          >|= (
+            ((raw_args, raw_res, range)) => {
+              let scope = ctx |> _create_scope(range);
+              let args =
+                raw_args |> SemanticAnalyzer.analyze_argument_list(scope);
+
+              args
+              |> List.iter(((arg, arg_type, arg_range)) =>
+                   scope
+                   |> S.define(A.(arg.name) |> NR.get_value, arg_type)
+                   |> Option.iter(S.report_type_err(scope, arg_range))
+                 );
+
+              let res_scope = scope |> S.create_child(N.get_range(raw_res));
+              let res =
+                raw_res |> SemanticAnalyzer.analyze_expression(res_scope);
+
+              let type_ =
+                T.Valid(
+                  `Function((
+                    args |> List.map(N.get_type),
+                    N.get_type(res),
+                  )),
+                );
+              let export_id = f(id);
+
+              ctx
+              |> ModuleContext.declare(
+                   ~main=_is_main(export_id),
+                   NR.get_value(id),
+                   type_,
+                 );
+
+              let func = N.create((args, res) |> A.of_func, type_, range);
+
+              NR.create((export_id, func), Range.join(start, range));
+            }
+          )
+      )
+      |> M.terminated
+  );
+
+let view = (ctx: ModuleContext.t, f): declaration_parser_t =>
+  Keyword.view
+  >>= NR.get_range
+  % (
+    start =>
+      Identifier.parser(ctx)
+      >>= (
+        id =>
+          Lambda.parser(ctx)
+          >|= (
+            ((raw_props, raw_res, range)) => {
+              let scope = ctx |> _create_scope(range);
+              let props =
+                raw_props
+                |> List.map(SemanticAnalyzer.analyze_argument(scope));
+
+              props
+              |> List.iter(((arg, arg_type, arg_range)) =>
+                   scope
+                   |> S.define(A.(arg.name) |> NR.get_value, arg_type)
+                   |> Option.iter(S.report_type_err(scope, arg_range))
+                 );
+
+              let res_scope = scope |> S.create_child(N.get_range(raw_res));
+              let res =
+                raw_res |> SemanticAnalyzer.analyze_view_body(res_scope);
+
+              let prop_types =
+                props
+                |> List.map(
+                     Tuple.split2(
+                       N.get_value
+                       % A.(
+                           prop =>
+                             prop.name
+                             |> NR.get_value
+                             |> Reference.Identifier.to_string
+                         ),
+                       N.get_type,
+                     ),
+                   );
+              let type_ = T.Valid(`View((prop_types, N.get_type(res))));
+              let export_id = f(id);
+
+              ctx
+              |> ModuleContext.declare(
+                   ~main=_is_main(export_id),
+                   NR.get_value(id),
+                   type_,
+                 );
+
+              let view = N.create((props, res) |> A.of_view, type_, range);
+
+              NR.create((export_id, view), Range.join(start, range));
+            }
+          )
+      )
+      |> M.terminated
+  );
+
+let parser = (ctx: ModuleContext.t) =>
+  A.of_main_export
+  <$ Keyword.main
+  |> option(A.of_named_export)
+  >>= (
+    f =>
+      choice([constant(ctx, f), function_(ctx, f), view(ctx, f)])
+      >|= Tuple.map_fst2(A.of_decl)
+  );

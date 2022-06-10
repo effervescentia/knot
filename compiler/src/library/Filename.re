@@ -1,10 +1,12 @@
 /**
  Extension of the standard Filename module with additional functionality.
  */
+open Infix;
+
 include Stdlib.Filename;
 
 let __relative_prefix = current_dir_name ++ dir_sep;
-let __dir_sep_char = List.nth(dir_sep |> String.to_list, 0);
+let __dir_sep_char = List.nth(String.to_list(dir_sep), 0);
 
 let _drop_current_dirs =
   List.filter(value => value != "" && value != current_dir_name);
@@ -32,11 +34,16 @@ let _merge_parent_dirs = parts => {
 };
 
 /**
+ split a [path] into its constituent parts
+ */
+let split = (path: string): list(string) =>
+  String.split_on_char(__dir_sep_char, path);
+
+/**
  simplify [path] to its most basic form
  */
 let normalize = (path: string) => {
-  let parts =
-    String.split_on_char(__dir_sep_char, path) |> _drop_current_dirs;
+  let parts = split(path) |> _drop_current_dirs;
 
   (String.starts_with(dir_sep, path) ? dir_sep : "")
   ++ (parts |> _merge_parent_dirs |> String.join(~separator=dir_sep));
@@ -72,9 +79,21 @@ and relative_to = (target: string, source: string) => {
 /**
  resolve the absolute form of [path]
  */
-and resolve = (path: string) =>
+and resolve = (~cwd=Sys.getcwd(), path: string) =>
   if (is_relative(path)) {
-    concat(Sys.getcwd(), path);
+    concat(cwd, path);
   } else {
     normalize(path);
   };
+
+let join = (parts: list(string)) => {
+  parts
+  |> List.fold_left(
+       Tuple.fold2(
+         fun
+         | ("", part) => part
+         | (acc, part) => concat(acc, part),
+       ),
+       "",
+     );
+};

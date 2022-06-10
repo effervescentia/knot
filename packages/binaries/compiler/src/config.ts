@@ -1,5 +1,5 @@
-import nodePath from 'path';
+import path from 'path';
 
-export const path = nodePath.join(__dirname, '..', '..', 'bin', 'knotc.exe');
+export const binary = path.join(__dirname, '..', '..', 'bin', 'knotc.exe');
 
-export const KNOT_BINARY = process.env.KNOT_BINARY || path;
+export const KNOTC_BINARY = process.env.KNOTC_BINARY || binary;

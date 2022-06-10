@@ -48,4 +48,15 @@ let resolve_module =
     )
   /* resolve an external module */
   | (External(path), _) => raise(NotImplemented)
+  | (Stdlib, _) => raise(NotImplemented)
   };
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, resolver) =>
+    (
+      "Resolver",
+      [("cache", resolver.cache), ("root_dir", resolver.root_dir)],
+    )
+    |> Fmt.(struct_(string, string, ppf));

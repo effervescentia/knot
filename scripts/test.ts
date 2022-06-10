@@ -1,6 +1,4 @@
-import { concurrent, series } from 'nps-utils';
-
-const eslintCommand = 'eslint --quiet "src/**/*.ts"';
+import { series } from 'nps-utils';
 
 export default {
   default: {
@@ -19,24 +17,13 @@ export default {
   lint: {
     default: {
       description: 'run code linters',
-      script: concurrent.nps('test.lint.eslint', 'test.lint.prettier')
+      script: 'eslint --quiet "src/**/*.ts"'
     },
 
     ci: series(
       'mkdir -p reports/eslint',
-      concurrent.nps(
-        'test.lint.eslint --format junit > reports/eslint/report.xml',
-        'test.lint.prettier'
-      )
-    ),
-    eslint: {
-      description: 'run eslint',
-      script: eslintCommand
-    },
-    prettier: {
-      description: 'run prettier',
-      script: 'prettier "src/**/*.ts" --list-different'
-    }
+      'test.lint --format junit > reports/eslint/report.xml'
+    )
   },
   unit: {
     default: {

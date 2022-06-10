@@ -1,59 +1,27 @@
 open Kore;
+open Resolve;
 
 include TestLibrary.Assert;
 
 let import_graph =
   Alcotest.(
     check(
-      testable(
-        pp => Resolve.Debug.print_import_graph % Format.pp_print_string(pp),
-        (l, r) => l.imports == r.imports && l.get_imports === r.get_imports,
-      ),
+      testable(ImportGraph.pp, ImportGraph.compare),
       "import graph matches",
     )
   );
 
-let module_ =
-  Alcotest.(
-    check(
-      testable(
-        pp =>
-          Resolve.Module.(
-            fun
-            | Raw(s) => Print.fmt("raw: %s", s)
-            | File({full, relative}) =>
-              Print.fmt("full: %s, relative: %s", full, relative)
-          )
-          % Format.pp_print_string(pp),
-        (==),
-      ),
-      "module matches",
-    )
-  );
+let module_ = Alcotest.(check(testable(Module.pp, (==)), "module matches"));
 
 let program =
+  Alcotest.(check(testable(AST.Dump.pp, (==)), "program matches"));
+let result_program =
   Alcotest.(
     check(
-      testable(pp => Debug.print_ast % Format.pp_print_string(pp), (==)),
-      "program matches",
+      result(testable(AST.Dump.pp, (==)), testable(pp_compile_err, (==))),
+      "program result matches",
     )
   );
 
 let resolver =
-  Alcotest.(
-    check(
-      testable(
-        Resolve.Resolver.(
-          (pp, resolver) =>
-            Print.fmt(
-              "cache: %s, root_dir: %s",
-              resolver.cache,
-              resolver.root_dir,
-            )
-            |> Format.pp_print_string(pp)
-        ),
-        (==),
-      ),
-      "resolver matches",
-    )
-  );
+  Alcotest.(check(testable(Resolver.pp, (==)), "resolver matches"));

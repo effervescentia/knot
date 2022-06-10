@@ -1,17 +1,17 @@
 open Kore;
 
-let _to_cursor = (cursor, decoder) =>
+let _to_point = (cursor, decoder) =>
   cursor
-    ? Cursor.point(Uutf.decoder_line(decoder), Uutf.decoder_col(decoder))
-    : Cursor.zero;
+    ? Point.create(Uutf.decoder_line(decoder), Uutf.decoder_col(decoder))
+    : Point.zero;
 
 let _to_stream = (cursor, decoder) =>
   Stream.from(_ =>
     switch (Uutf.decode(decoder)) {
     | `Uchar(uchar) =>
-      Some(Input.create(uchar, _to_cursor(cursor, decoder)))
+      Some(Input.create(uchar, _to_point(cursor, decoder)))
     | `Malformed(uchar) =>
-      Some(Input.create(Uutf.u_rep, _to_cursor(cursor, decoder)))
+      Some(Input.create(Uutf.u_rep, _to_point(cursor, decoder)))
     | `End => None
     | `Await => assert(false)
     }
@@ -30,26 +30,20 @@ let of_string = (~cursor=true, s: string): t =>
 let of_channel = (~cursor=true, channel: in_channel): t =>
   decoder(`Channel(channel)) |> _to_stream(cursor);
 
-let to_string = (stream: t): string => {
-  let buffer = Buffer.create(stream |> Stream.count);
+/* methods */
 
-  stream |> Stream.iter(fst % Buffer.add_utf_8_uchar(buffer));
+let __initial = Point.zero;
 
-  buffer |> Buffer.contents;
-};
-
-let __initial = Cursor.{line: 0, column: 0};
-
-let scan = (predicate: Block.t(string) => bool, contents: string) => {
+let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
   let stream = of_string(contents);
   let buffer = Buffer.create(8);
 
   let rec loop = (start, end_) => {
-    switch (stream |> Stream.peek |?> Tuple.map_snd2(Cursor.expand % fst)) {
+    switch (Stream.peek(stream)) {
     | Some((uchar, cursor)) =>
-      stream |> Stream.junk;
+      Stream.junk(stream);
 
-      switch (uchar |> Uchar.to_char) {
+      switch (Uchar.to_char(uchar)) {
       | ' '
       | '\n'
       | '\r'
@@ -58,12 +52,12 @@ let scan = (predicate: Block.t(string) => bool, contents: string) => {
           loop(cursor, cursor);
         } else {
           let token = buffer |> Buffer.contents;
-          let block = Block.create(token, Cursor.Range(start, end_));
+          let node = Node.Raw.create(token, Range.create(start, end_));
 
           buffer |> Buffer.clear;
 
-          if (predicate(block)) {
-            Some(block);
+          if (predicate(node)) {
+            Some(node);
           } else {
             loop(start, end_);
           };
@@ -81,3 +75,14 @@ let scan = (predicate: Block.t(string) => bool, contents: string) => {
 
   loop(__initial, __initial);
 };
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, stream: t) => {
+    let buffer = Buffer.create(Stream.count(stream));
+
+    stream |> Stream.iter(fst % Buffer.add_utf_8_uchar(buffer));
+
+    Fmt.buffer(ppf, buffer);
+  };

@@ -1,24 +1,38 @@
 open Kore;
-open AST;
-open Util;
-open Reference;
 
+module Export = Reference.Export;
 module Declaration = Grammar.Declaration;
+module U = Util.ResultUtil;
 
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = (export_t, declaration_t);
+    type t = NR.t((A.export_t, A.declaration_t));
 
-    let parser = ctx =>
-      Parser.parse(Declaration.constant(ctx, AST.of_named_export));
+    let parser = ((_, ctx)) =>
+      Declaration.constant(ctx, A.of_named_export)
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
-            pp =>
-              Debug.print_decl % Pretty.to_string % Format.pp_print_string(pp),
+            (ppf, stmt) => {
+              let (export, decl) = Node.Raw.get_value(stmt);
+
+              A.Dump.(
+                untyped_node_to_entity(
+                  "Declaration",
+                  ~children=[
+                    export |> export_to_entity,
+                    decl |> decl_to_entity,
+                  ],
+                  stmt,
+                )
+                |> Entity.pp(ppf)
+              );
+            },
             (==),
           ),
           "program matches",
@@ -28,122 +42,114 @@ module Assert = {
 };
 
 let suite =
-  "Grammar.Declaration (Constant)"
+  "Grammar.Declaration | Constant"
   >::: [
     "no parse"
     >: (
       () =>
-        ["gibberish", "const", "const foo", "const foo ="] |> Assert.no_parse
+        Assert.parse_none(["gibberish", "const", "const foo", "const foo ="])
     ),
     "parse"
     >: (
       () =>
-        [
+        Assert.parse(
           (
-            "const foo = nil",
-            (
-              "foo" |> of_public |> as_lexeme |> of_named_export,
-              nil_prim |> of_const,
-            ),
-          ),
-        ]
-        |> Assert.parse_many
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            U.nil_prim |> A.of_const |> U.as_nil,
+          )
+          |> U.as_raw_node,
+          "const foo = nil",
+        )
     ),
     "parse with complex derived type"
     >: (
       () => {
-        let scope =
-          to_scope([
-            ("bar", K_Strong(K_Float)),
-            ("fizz", K_Strong(K_Integer)),
-            ("buzz", K_Strong(K_Float)),
-          ]);
+        let declarations =
+          [
+            (Export.Named(A.of_public("bar")), T.Valid(`Float)),
+            (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
+            (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
+          ]
+          |> List.to_seq
+          |> DeclarationTable.of_seq;
 
         Assert.parse(
-          ~scope,
+          ~mod_context=x => ModuleContext.create(~declarations, x),
+          (
+            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            [
+              (
+                "x" |> A.of_public |> U.as_raw_node,
+                "bar" |> A.of_public |> A.of_id |> U.as_float,
+              )
+              |> A.of_var
+              |> U.as_nil,
+              (
+                "y" |> A.of_public |> U.as_raw_node,
+                (
+                  (
+                    "x" |> A.of_public |> A.of_id |> U.as_float,
+                    "fizz" |> A.of_public |> A.of_id |> U.as_int,
+                  )
+                  |> A.of_gt_op
+                  |> U.as_bool,
+                  (
+                    "x" |> A.of_public |> A.of_id |> U.as_float,
+                    "buzz" |> A.of_public |> A.of_id |> U.as_float,
+                  )
+                  |> A.of_ineq_op
+                  |> U.as_bool,
+                )
+                |> A.of_and_op
+                |> U.as_bool,
+              )
+              |> A.of_var
+              |> U.as_nil,
+              (
+                "y" |> A.of_public |> A.of_id |> U.as_bool,
+                (
+                  (
+                    "x" |> A.of_public |> A.of_id |> U.as_float,
+                    1 |> U.int_prim,
+                  )
+                  |> A.of_add_op
+                  |> U.as_float,
+                  5 |> U.int_prim,
+                )
+                |> A.of_lte_op
+                |> U.as_bool,
+              )
+              |> A.of_or_op
+              |> U.as_bool
+              |> A.of_expr
+              |> U.as_bool,
+            ]
+            |> A.of_closure
+            |> U.as_bool
+            |> A.of_const
+            |> U.as_bool,
+          )
+          |> U.as_raw_node,
           "const foo = {
             let x = bar;
             let y = x > fizz && x != buzz;
             y || x + 1 <= 5;
           }",
-          (
-            "foo" |> of_public |> as_lexeme |> of_named_export,
-            [
-              (
-                "x" |> of_public |> as_lexeme,
-                "bar" |> of_public |> as_lexeme |> of_id |> as_float,
-              )
-              |> of_var,
-              (
-                "y" |> of_public |> as_lexeme,
-                (
-                  (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "fizz" |> of_public |> as_lexeme |> of_id |> as_int,
-                  )
-                  |> of_gt_op
-                  |> as_bool,
-                  (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    "buzz" |> of_public |> as_lexeme |> of_id |> as_float,
-                  )
-                  |> of_ineq_op
-                  |> as_bool,
-                )
-                |> of_and_op
-                |> as_bool,
-              )
-              |> of_var,
-              (
-                "y" |> of_public |> as_lexeme |> of_id |> as_bool,
-                (
-                  (
-                    "x" |> of_public |> as_lexeme |> of_id |> as_float,
-                    1 |> int_prim,
-                  )
-                  |> of_add_op
-                  |> as_float,
-                  5 |> int_prim,
-                )
-                |> of_lte_op
-                |> as_bool,
-              )
-              |> of_or_op
-              |> as_bool
-              |> of_expr,
-            ]
-            |> of_closure
-            |> as_bool
-            |> of_const,
-          ),
         );
 
-        Assert.int(0, scope.seed^);
+        /* TODO: uncomment assertions */
         Assert.hashtbl(
-          Export.to_string,
-          Type.to_string,
+          ~@Export.pp,
+          ~@T.pp,
           [
-            (Export.Named("bar" |> of_public), Type.K_Strong(K_Float)),
-            (Export.Named("fizz" |> of_public), Type.K_Strong(K_Integer)),
-            (Export.Named("buzz" |> of_public), Type.K_Strong(K_Float)),
-            (Export.Named("foo" |> of_public), Type.K_Strong(K_Boolean)),
+            (Export.Named(A.of_public("bar")), T.Valid(`Float)),
+            (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
+            (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
+            (Export.Named(A.of_public("foo")), T.Valid(`Boolean)),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,
-          scope.types,
-        );
-        Assert.hashtbl(
-          string_of_int,
-          fun
-          | Ok(t) => t |> Type.trait_to_string |> Print.fmt("Ok(%s)")
-          | Error((x, y)) =>
-            Print.fmt(
-              "Error(%s, %s)",
-              x |> Type.trait_to_string,
-              y |> Type.trait_to_string,
-            ),
-          [] |> List.to_seq |> Hashtbl.of_seq,
-          scope.anonymous,
+          declarations.scope,
         );
       }
     ),

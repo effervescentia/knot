@@ -1,0 +1,1 @@
+main view Greet(name: string) -> name;

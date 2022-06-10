@@ -1,30 +1,21 @@
 open Kore;
 
-let nil =
-  Keyword.nil
-  >|= Block.cursor
-  >|= (cursor => (AST.nil, Type.K_Strong(K_Nil), cursor));
+let nil: primitive_parser_t =
+  Keyword.nil >|= NR.map_value(_ => AR.nil) >|= N.of_raw(TR.(`Nil));
 
-let boolean =
+let boolean: primitive_parser_t =
   Keyword.true_
-  >|= Block.cursor
-  >|= (cursor => (true |> AST.of_bool, Type.K_Strong(K_Boolean), cursor))
+  >|= NR.map_value(_ => AR.of_bool(true))
+  >|= N.of_raw(TR.(`Boolean))
   <|> (
     Keyword.false_
-    >|= Block.cursor
-    >|= (cursor => (false |> AST.of_bool, Type.K_Strong(K_Boolean), cursor))
+    >|= NR.map_value(_ => AR.of_bool(false))
+    >|= N.of_raw(TR.(`Boolean))
   );
 
-let number = Number.parser >|= Tuple.map_fst3(AST.of_num);
+let number: primitive_parser_t = Number.parser >|= N.map_value(AR.of_num);
 
-let string =
-  M.string
-  >|= (
-    block => (
-      block |> Block.value |> AST.of_string,
-      Type.K_Strong(K_String),
-      block |> Block.cursor,
-    )
-  );
+let string: primitive_parser_t =
+  M.string >|= NR.map_value(AR.of_string) >|= N.of_raw(TR.(`String));
 
-let parser = choice([nil, boolean, number, string]);
+let parser: primitive_parser_t = choice([nil, boolean, number, string]);

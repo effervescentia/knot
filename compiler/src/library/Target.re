@@ -1,3 +1,5 @@
+open Infix;
+
 let javascript_es6 = "javascript-es6";
 let javascript_common = "javascript-common";
 let knot = "knot";
@@ -10,10 +12,7 @@ type t =
   | JavaScript(module_t)
   | Knot;
 
-let extension_of =
-  fun
-  | JavaScript(_) => ".js"
-  | Knot => Constants.file_extension;
+/* static */
 
 let of_string =
   fun
@@ -22,8 +21,21 @@ let of_string =
   | x when x == knot => Some(Knot)
   | _ => None;
 
-let to_string =
+/* methods */
+
+let extension_of =
   fun
-  | JavaScript(ES6) => javascript_es6
-  | JavaScript(Common) => javascript_common
-  | Knot => knot;
+  | JavaScript(_) => ".js"
+  | Knot => Constants.file_extension;
+
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  ppf =>
+    (
+      fun
+      | JavaScript(ES6) => javascript_es6
+      | JavaScript(Common) => javascript_common
+      | Knot => knot
+    )
+    % Fmt.string(ppf);

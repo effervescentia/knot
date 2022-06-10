@@ -46,9 +46,17 @@ let read_to_string = (path: string): string => {
       loop(buffer);
     | `End =>
       close_in(channel);
-      buffer |> Buffer.contents;
+      Buffer.contents(buffer);
     | `Await => assert(false)
     };
 
   Buffer.create(in_channel_length(channel)) |> loop;
+};
+
+/**
+ * delete and recreate a directory
+ */
+let purge = (dir: string) => {
+  [dir] |> FileUtil.rm(~recurse=true);
+  dir |> FileUtil.mkdir(~parent=true);
 };

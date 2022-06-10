@@ -20,7 +20,7 @@ export default env => ({
     }),
     new KnotPlugin({
       // debug: true,
-      knot: env && env.knotc
+      knotc: env && env.knotc
     })
   ],
 

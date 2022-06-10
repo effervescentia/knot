@@ -1,5 +1,6 @@
 open Kore;
-open AST;
+
+module Identifier = Reference.Identifier;
 
 module Tag = {
   let open_ = M.symbol(C.Character.open_chevron);
@@ -15,133 +16,144 @@ module Fragment = {
 };
 
 let _attribute =
-    (~prefix=M.alpha <|> Character.underscore, ctx: Context.t, (term, expr)) =>
+    (
+      ~prefix=M.alpha <|> Character.underscore,
+      ctx: ModuleContext.t,
+      (parse_term, parse_expr): expression_parsers_arg_t,
+    ) =>
   Operator.assign(
-    M.identifier(~prefix) >|= Tuple.split2(Block.value, Block.cursor),
-    expr(ctx)
+    M.identifier(~prefix),
+    parse_expr(ctx)
     |> M.between(Symbol.open_group, Symbol.close_group)
-    >|= Block.value
-    <|> term(ctx),
+    >|= (((expr, range)) => N.map_range(_ => range, expr))
+    <|> parse_term(ctx),
   )
   >|= (
     ((name, value)) => (
       name,
       Some(value),
-      Cursor.join(name |> snd, Tuple.thd3(value)),
+      Range.join(NR.get_range(name), N.get_range(value)),
     )
   )
-  <|> (
-    M.identifier(~prefix)
-    >|= (
-      id => (
-        id |> Tuple.split2(Block.value, Block.cursor),
-        None,
-        id |> Block.cursor,
-      )
+  <|> (M.identifier(~prefix) >|= (id => (id, None, NR.get_range(id))));
+
+let _self_closing = Tag.self_close >|= NR.map_value(() => []);
+
+let rec parser =
+        (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+        : jsx_parser_t =>
+  /* do not attempt to simplify this `input` argument away or JSX parsing will loop forever */
+  input =>
+    (choice([fragment(ctx, parsers), tag(ctx, parsers)]) |> M.lexeme)(
+      input,
     )
-  );
 
-let _self_closing =
-  Tag.self_close >|= Block.cursor >|= (end_cursor => ([], end_cursor));
-
-let rec parser = (ctx: Context.t, x, input) =>
-  (choice([fragment(ctx, x), tag(ctx, x)]) |> M.lexeme)(input)
-
-and fragment = (ctx: Context.t, x) =>
-  children(ctx, x)
+and fragment =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
+  children(ctx, parsers)
   |> M.between(Fragment.open_, Fragment.close)
-  >|= Tuple.split2(Block.value % of_frag, Block.cursor)
+  >|= (((xs, range)) => NR.create(AR.of_frag(xs), range))
 
-and tag = (ctx: Context.t, x) =>
+and tag =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
   Tag.open_
   >> M.identifier
   >>= (
     id =>
-      attributes(ctx, x)
+      attributes(ctx, parsers)
       >>= (
         attrs =>
           Tag.close
-          >> children(ctx, x)
+          >> children(ctx, parsers)
           >>= (
             cs =>
               id
-              |> Block.value
+              |> NR.get_value
               |> M.keyword
               |> M.between(Tag.open_end, Tag.close)
-              >|= Block.cursor
-              >|= (end_cursor => (cs, end_cursor))
+              >|= NR.get_range
+              >|= NR.create(cs)
           )
           <|> _self_closing
           >|= (
-            ((cs, end_cursor)) => (
-              (
-                id
-                |> Tuple.split2(
-                     Block.value % Reference.Identifier.of_string,
-                     Block.cursor,
-                   ),
-                attrs,
-                cs,
+            cs =>
+              NR.create(
+                (
+                  id |> NR.map_value(Identifier.of_string),
+                  attrs,
+                  NR.get_value(cs),
+                )
+                |> AR.of_tag,
+                NR.join_ranges(id, cs),
               )
-              |> of_tag,
-              Cursor.join(id |> Block.cursor, end_cursor),
-            )
           )
       )
   )
 
-and attributes = (ctx: Context.t, x) =>
+and property_attribute =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    : jsx_attribute_parser_t =>
+  _attribute(ctx, parsers)
+  >|= (
+    ((name, value, range)) =>
+      NR.create(
+        (name |> NR.map_value(AR.of_public), value) |> AR.of_prop,
+        range,
+      )
+  )
+
+and class_attribute =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    : jsx_attribute_parser_t =>
+  _attribute(~prefix=Character.colon, ctx, parsers)
+  >|= (
+    ((name, value, range)) =>
+      NR.create(
+        (name |> NR.map_value(String.drop_left(1) % AR.of_public), value)
+        |> AR.of_jsx_class,
+        range,
+      )
+  )
+
+and id_attribute: jsx_attribute_parser_t =
+  M.identifier(~prefix=Character.octothorpe)
+  >|= NR.map_value(String.drop_left(1) % AR.of_public)
+  >|= NR.wrap(AR.of_jsx_id)
+
+and attributes =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    : jsx_attribute_list_parser_t =>
   choice([
-    _attribute(ctx, x)
-    >|= (
-      ((name, value, cursor)) => (
-        (name |> Tuple.map_fst2(of_public), value) |> of_prop,
-        cursor,
-      )
-    ),
-    _attribute(~prefix=Character.period, ctx, x)
-    >|= (
-      ((name, value, cursor)) => (
-        (name |> Tuple.map_fst2(String.drop_left(1) % of_public), value)
-        |> of_jsx_class,
-        cursor,
-      )
-    ),
-    M.identifier(~prefix=Character.octothorp)
-    >|= Tuple.split2(
-          Tuple.split2(
-            Block.value % String.drop_left(1) % of_public,
-            Block.cursor,
-          )
-          % of_jsx_id,
-          Block.cursor,
-        ),
+    property_attribute(ctx, parsers),
+    class_attribute(ctx, parsers),
+    id_attribute,
   ])
   |> many
 
-and children = (ctx: Context.t, x) =>
-  choice([node(ctx, x), inline_expr(ctx, x), text]) |> M.lexeme |> many
+and children =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    : jsx_child_list_parser_t =>
+  choice([node(ctx, parsers), inline_expr(ctx, parsers), text])
+  |> M.lexeme
+  |> many
 
-and text =
-  none_of([C.Character.open_brace, C.Character.open_chevron])
+and text: jsx_child_parser_t =
+  none_of(C.Character.[open_brace, open_chevron])
   <~> (
-    none_of([
-      C.Character.open_brace,
-      C.Character.open_chevron,
-      C.Character.close_chevron,
-    ])
-    |> many
+    none_of(C.Character.[open_brace, open_chevron, close_chevron]) |> many
   )
   >|= Input.join
-  >|= Tuple.split2(
-        Tuple.split2(Block.value % String.trim, Block.cursor) % of_text,
-        Block.cursor,
-      )
+  >|= NR.map_value(String.trim)
+  >|= NR.map_value(AR.of_text)
 
-and node = (ctx: Context.t, x) =>
-  parser(ctx, x) >|= (((_, cursor) as node) => (node |> of_node, cursor))
+and node =
+    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    : jsx_child_parser_t =>
+  parser(ctx, parsers) >|= NR.map_value(AR.of_node)
 
-and inline_expr = (ctx: Context.t, (_, expr)) =>
-  expr(ctx)
+and inline_expr =
+    (ctx: ModuleContext.t, (_, parse_expr): expression_parsers_arg_t)
+    : jsx_child_parser_t =>
+  parse_expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
-  >|= Tuple.split2(Block.value % of_inline_expr, Block.cursor);
+  >|= NR.map_value(AR.of_inline_expr);

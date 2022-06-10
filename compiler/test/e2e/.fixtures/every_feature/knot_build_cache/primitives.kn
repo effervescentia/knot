@@ -1,0 +1,13 @@
+import { ExplicitNilView } from "@/views";
+
+const nil_variable = nil;
+const true_variable = true;
+const false_variable = false;
+const positive_integer_variable = 123;
+const negative_integer_variable = -123;
+const positive_float_variable = 456.78000;
+const negative_float_variable = -456.78000;
+const string_variable = "abc";
+const empty_tag_variable = <div />;
+const empty_component_variable = <ExplicitNilView />;
+const empty_fragment_variable = <></>;

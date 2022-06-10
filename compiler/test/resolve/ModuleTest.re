@@ -1,29 +1,9 @@
 open Kore;
-open Util;
 
 module Module = Resolve.Module;
+module U = Util.ResultUtil;
 
 exception MockError;
-
-let __program = [
-  AST.(
-    (
-      "ABC" |> of_public |> Util.as_lexeme |> of_named_export,
-      123
-      |> Int64.of_int
-      |> of_int
-      |> of_num
-      |> as_typed_lexeme(
-           ~cursor=Cursor.range((4, 15), (4, 17)),
-           Type.K_Strong(K_Integer),
-         )
-      |> of_prim
-      |> as_int
-      |> of_const,
-    )
-    |> of_decl
-  ),
-];
 
 let suite =
   "Resolve.Module"
@@ -44,25 +24,23 @@ let suite =
         Assert.module_(Module.File(path), Module.of_file(path));
       }
     ),
-    "exists()"
+    "exists() - raw module does exist"
+    >: (() => Assert.true_(Module.exists(Module.Raw("foo")))),
+    "exists() - file module does not exist"
     >: (
       () =>
-        [
-          (true, Module.exists(Module.Raw("foo"))),
-          (
-            false,
-            Module.exists(
-              Module.File({relative: "./bar", full: "/foo/bar"}),
-            ),
+        Assert.false_(
+          Module.exists(Module.File({relative: "./bar", full: "/foo/bar"})),
+        )
+    ),
+    "exists() - file module does exist"
+    >: (
+      () =>
+        Assert.true_(
+          Module.exists(
+            Module.File({relative: "./bar", full: fixture_path}),
           ),
-          (
-            true,
-            Module.exists(
-              Module.File({relative: "./bar", full: fixture_path}),
-            ),
-          ),
-        ]
-        |> Assert.(test_many(bool))
+        )
     ),
     "read() - raw"
     >: (
@@ -72,14 +50,14 @@ let suite =
         let program =
           Module.read(
             stream => {
-              Util.read_lazy_char_stream(stream) |> Assert.string(content);
-              __program;
+              Assert.string(content, Util.read_lazy_char_stream(stream));
+              Fixtures.Program.const_int;
             },
             Module.Raw(content),
           )
           |> Result.get_ok;
 
-        Assert.program(__program, program);
+        Assert.program(Fixtures.Program.const_int, program);
       }
     ),
     "read() - file exists"
@@ -92,13 +70,13 @@ let suite =
                 "hello world\n",
                 Util.read_lazy_char_stream(stream),
               );
-              __program;
+              Fixtures.Program.const_int;
             },
             Module.File({relative: "foo", full: fixture_path}),
           )
           |> Result.get_ok;
 
-        Assert.program(__program, program);
+        Assert.program(Fixtures.Program.const_int, program);
       }
     ),
     "read() - file does not exist"
@@ -126,11 +104,9 @@ let suite =
           )
           |> Result.get_ok;
 
-        Filename.concat(cache, relative_path)
-        |> Sys.file_exists
-        |> Assert.true_;
-        cached_path |> String.starts_with(cache) |> Assert.true_;
-        cached_path |> String.ends_with(relative_path) |> Assert.true_;
+        Assert.file_exists(Filename.concat(cache, relative_path));
+        Assert.true_(String.starts_with(cache, cached_path));
+        Assert.true_(String.ends_with(relative_path, cached_path));
       }
     ),
     "cache() - file does not exist"
@@ -145,5 +121,27 @@ let suite =
           |> Result.get_error,
         );
       }
+    ),
+    "pp() - raw"
+    >: (
+      () =>
+        Assert.string(
+          "Module {
+  raw: foo
+}",
+          Module.Raw("foo") |> ~@Fmt.root(Module.pp),
+        )
+    ),
+    "pp() - file"
+    >: (
+      () =>
+        Assert.string(
+          "Module {
+  full: foo
+  relative: bar
+}",
+          Module.File({full: "foo", relative: "bar"})
+          |> ~@Fmt.root(Module.pp),
+        )
     ),
   ];

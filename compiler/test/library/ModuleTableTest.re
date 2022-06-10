@@ -1,21 +1,27 @@
 open Kore;
-open Util;
 open Reference;
+open ModuleAliases;
+
+module U = Util.RawUtil;
 
 let __id = Namespace.Internal("foo");
-let __types = AST.[(Export.Named("bar" |> of_public), Type.K_Weak(0))];
-let __program =
-  AST.[
-    Import(
-      "foo" |> of_internal,
-      ["bar" |> of_public |> as_lexeme |> of_main_import],
-    ),
-  ];
+let __types: list((Export.t, Type.t)) = [
+  (Named(A.of_public("bar")), Valid(`Element)),
+];
+let __program = [
+  (
+    "foo" |> A.of_internal,
+    [
+      "bar" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+    ],
+  )
+  |> A.of_import
+  |> U.as_raw_node,
+];
 let __table = ModuleTable.create(1);
+let __scope_tree = BinaryTree.create((Range.zero, None));
 
-let __scope_tree = BinaryTree.create((Cursor.zero |> Cursor.expand, None));
-
-let _create_table = items => List.to_seq(items) |> Hashtbl.of_seq;
+let _create_table = items => items |> List.to_seq |> Hashtbl.of_seq;
 
 let suite =
   "Compile.ModuleTable"
@@ -24,67 +30,87 @@ let suite =
     >: (
       () => {
         __table
-        |> ModuleTable.add(__id, __program, __types, __scope_tree, "foo");
+        |> ModuleTable.(
+             add(
+               __id,
+               Valid(
+                 "foo",
+                 {
+                   ast: __program,
+                   exports: _create_table(__types),
+                   scopes: __scope_tree,
+                 },
+               ),
+             )
+           );
 
-        [
-          (
-            _create_table([
-              (
-                __id,
-                ModuleTable.{
-                  types:
-                    _create_table(
-                      AST.[
-                        (Export.Named("bar" |> of_public), Type.K_Weak(0)),
-                      ],
-                    ),
+        Assert.module_table(
+          _create_table([
+            (
+              __id,
+              ModuleTable.Valid(
+                "foo",
+                {
+                  exports:
+                    _create_table([
+                      (
+                        Export.Named(A.of_public("bar")),
+                        Type.Valid(`Element),
+                      ),
+                    ]),
                   ast: __program,
                   scopes: __scope_tree,
-                  raw: "foo",
                 },
               ),
-            ]),
-            __table,
-          ),
-        ]
-        |> Assert.(test_many(module_table));
+            ),
+          ]),
+          __table,
+        );
       }
     ),
     "add_type() - add type to existing module"
     >: (
       () => {
-        __table |> ModuleTable.add(__id, __program, [], __scope_tree, "foo");
+        __table
+        |> ModuleTable.add(
+             __id,
+             Valid(
+               "foo",
+               {
+                 ast: __program,
+                 exports: Hashtbl.create(0),
+                 scopes: __scope_tree,
+               },
+             ),
+           );
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named("new_type" |> AST.of_public)),
-             Type.K_Strong(K_Float),
+             (__id, Export.Named(A.of_public("new_type"))),
+             Valid(`Float),
            );
 
-        [
-          (
-            _create_table([
-              (
-                __id,
-                ModuleTable.{
-                  types:
-                    _create_table(
-                      AST.[
-                        (
-                          Export.Named("new_type" |> of_public),
-                          Type.K_Strong(K_Float),
-                        ),
-                      ],
-                    ),
+        Assert.module_table(
+          _create_table([
+            (
+              __id,
+              ModuleTable.Valid(
+                "foo",
+                {
+                  exports:
+                    _create_table([
+                      (
+                        Export.Named(A.of_public("new_type")),
+                        Type.Valid(`Float),
+                      ),
+                    ]),
                   ast: __program,
                   scopes: __scope_tree,
-                  raw: "foo",
                 },
               ),
-            ]),
-            __table,
-          ),
-        ]
-        |> Assert.(test_many(module_table));
+            ),
+          ]),
+          __table,
+        );
       }
     ),
     "add_type() - add type to an unknown module"
@@ -93,11 +119,11 @@ let suite =
         let original_table = Hashtbl.copy(__table);
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named("new_type" |> AST.of_public)),
-             Type.K_Strong(K_Float),
+             (__id, Named(A.of_public("new_type"))),
+             Valid(`Float),
            );
 
-        [(original_table, __table)] |> Assert.(test_many(module_table));
+        Assert.module_table(original_table, __table);
       }
     ),
   ];

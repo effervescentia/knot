@@ -1,3 +1,1 @@
-import Plugin from './main';
-
-export { Plugin as main };
+export { default } from './main';

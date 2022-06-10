@@ -1,0 +1,3 @@
+module JSX {
+  decl render: (jsx, string) -> nil;
+}

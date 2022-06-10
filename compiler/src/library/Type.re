@@ -1,210 +1,286 @@
-/**
- Definition of types and interfaces that exist in the Knot language.
- */
 open Infix;
 open Reference;
 
-type t =
-  | K_Strong(strong_t)
-  | K_Weak(int)
-  /* used to indicate types which have failed to resolve due to a compile-time error */
-  | K_Invalid(type_err)
+exception UnknownTypeEncountered;
 
-and strong_t =
-  | K_Nil
-  | K_Boolean
-  | K_Integer
-  | K_Float
-  | K_String
-  | K_Element
-  | K_Function(list((string, t)), t)
-  | K_Anonymous(int, trait_t)
+module Primitive = {
+  type t = [ | `Nil | `Boolean | `Integer | `Float | `String | `Element];
+
+  /* pretty printing */
+
+  let pp: Fmt.t(t) =
+    Fmt.(
+      (ppf, type_) =>
+        Constants.(
+          switch (type_) {
+          | `Nil => Keyword.nil
+          | `Boolean => Keyword.boolean
+          | `Integer => Keyword.integer
+          | `Float => Keyword.float
+          | `String => Keyword.string
+          | `Element => Keyword.element
+          }
+        )
+        |> string(ppf)
+    );
+};
+
+module Container = {
+  type t('a) = [
+    | `List('a)
+    | `Struct(list((string, 'a)))
+    | `Function(list('a), 'a)
+    | `View(list((string, 'a)), 'a)
+  ];
+
+  let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
+    Fmt.(ppf => pf(ppf, "%a[]", pp_type));
+
+  let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
+    (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
+
+  let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, 'a))) =>
+    Fmt.(
+      (ppf, props) =>
+        List.is_empty(props)
+          ? string(ppf, "{}")
+          : pf(
+              ppf,
+              "@[<h>{ %a }@]",
+              list(~sep=Sep.comma, pp_props(pp_type)),
+              props,
+            )
+    );
+
+  let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list('a), 'a)) =>
+    Fmt.(
+      (ppf, (args, res)) =>
+        pf(
+          ppf,
+          "@[<h>(%a) -> %a@]",
+          list(~sep=Sep.comma, pp_type),
+          args,
+          pp_type,
+          res,
+        )
+    );
+
+  let pp_view = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
+    Fmt.(
+      (ppf, (props, res)) =>
+        pf(
+          ppf,
+          "@[<h>View<(%a), %a>@]",
+          list(~sep=Sep.comma, pp_props(pp_type)),
+          props,
+          pp_type,
+          res,
+        )
+    );
+};
+
+module Raw = {
+  type unknown_t = [ | `Unknown];
+
+  /**
+   this type is used during the initial parsing phase to allow early type inference
+   this also avoid needing more than 2 type-safe AST variants to throughout compilation
+   */
+  type t = [ Primitive.t | Container.t(t) | unknown_t];
+
+  let rec pp: Fmt.t(t) =
+    (ppf, type_) =>
+      switch (type_) {
+      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+        Primitive.pp(ppf, x)
+
+      | `List(t) => Container.pp_list(pp, ppf, t)
+
+      | `Struct(props) => Container.pp_struct(pp, ppf, props)
+
+      | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+
+      | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
+
+      | `Unknown => Fmt.string(ppf, "Unknown")
+      };
+};
 
 /**
- describes constraints on a type during type resolution
+ the final type attributed to elements within the fully-typed AST
  */
-and trait_t =
-  | K_Unknown
-  /* used to describe functions */
-  | K_Callable(list(trait_t), trait_t)
-  /* used to describe iterable structures */
-  | K_Iterable(trait_t)
-  /* used to describe floats and integers */
-  | K_Numeric
-  /* used to describe structural interfaces */
-  | K_Structural(list((string, trait_t)))
-  /* used to describe exact types, should only be used while parsing and be hardened to the wrapped type */
-  | K_Exactly(strong_t)
+type t =
+  | Valid(valid_t)
+  | Invalid(invalid_t)
 
-and type_err =
-  | TraitConflict(trait_t, trait_t)
-  | NotAssignable(t, trait_t)
-  | TypeMismatch(t, t)
+and valid_t = [ Primitive.t | Container.t(t)]
+
+and invalid_t =
+  | NotInferrable;
+
+type error_t =
   | NotFound(Identifier.t)
-  | ExternalNotFound(Namespace.t, Export.t);
+  | ExternalNotFound(Namespace.t, Export.t)
+  /* FIXME: not reported */
+  | DuplicateIdentifier(Identifier.t)
+  /* FIXME: not reported */
+  | TypeMismatch(t, t)
+  | InvalidUnaryOperation(AST_Operator.unary_t, t)
+  | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
+  | InvalidJSXPrimitiveExpression(t)
+  | InvalidJSXClassExpression(t)
+  | InvalidJSXTag(Identifier.t, t, list((string, t)))
+  | UnexpectedJSXAttribute(string, t)
+  | InvalidJSXAttribute(string, t, t)
+  | MissingJSXAttributes(Identifier.t, list((string, t)))
+  | InvalidDotAccess(t, string)
+  | InvalidFunctionCall(t, list(t))
+  /* FIXME: not reported */
+  | UntypedFunctionArgument(Identifier.t)
+  /* FIXME: not reported */
+  | DefaultArgumentMissing(Identifier.t);
 
-let restrict = (lhs: trait_t, rhs: trait_t): option(trait_t) =>
-  switch (lhs, rhs) {
-  /* placeholder for other first-class types */
-  | (K_Callable(_), K_Callable(_))
-  | (K_Iterable(_), K_Iterable(_))
-  | (K_Structural(_), K_Structural(_)) => None
+/* pretty printing */
 
-  | (l, r) when l == r => Some(l)
+let rec pp: Fmt.t(t) =
+  ppf =>
+    fun
+    | Valid(t) => pp_valid(ppf, t)
+    | Invalid(err) => pp_invalid(ppf, err)
 
-  | (K_Exactly(l), K_Exactly(r)) when l == r => Some(K_Exactly(l))
+and pp_valid: Fmt.t(valid_t) =
+  ppf =>
+    fun
+    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
+      Primitive.pp(ppf, t)
+    | `List(t) => Container.pp_list(pp, ppf, t)
+    | `Struct(props) => Container.pp_struct(pp, ppf, props)
+    | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+    | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
 
-  | (K_Numeric, K_Exactly(K_Integer))
-  | (K_Exactly(K_Integer), K_Numeric) => Some(K_Exactly(K_Integer))
+and pp_invalid: Fmt.t(invalid_t) =
+  ppf =>
+    fun
+    | NotInferrable => Fmt.pf(ppf, "NotInferrable");
 
-  | (K_Numeric, K_Exactly(K_Float))
-  | (K_Exactly(K_Float), K_Numeric) => Some(K_Exactly(K_Float))
+let pp_error: Fmt.t(error_t) =
+  Fmt.(
+    ppf =>
+      fun
+      | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
 
-  | _ => None
+      | DuplicateIdentifier(id) =>
+        pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
+
+      | UntypedFunctionArgument(id) =>
+        pf(ppf, "UntypedFunctionArgument<%a>", Identifier.pp, id)
+
+      | ExternalNotFound(namespace, id) =>
+        pf(
+          ppf,
+          "ExternalNotFound<%a#%a>",
+          Namespace.pp,
+          namespace,
+          Export.pp,
+          id,
+        )
+
+      | TypeMismatch(lhs, rhs) =>
+        pf(ppf, "TypeMismatch<%a, %a>", pp, lhs, pp, rhs)
+
+      | InvalidUnaryOperation(op, type_) =>
+        pf(
+          ppf,
+          "InvalidUnaryOperation<%s, %a>",
+          AST_Operator.Dump.unary_to_string(op),
+          pp,
+          type_,
+        )
+
+      | InvalidBinaryOperation(op, lhs, rhs) =>
+        pf(
+          ppf,
+          "InvalidBinaryOperation<%s, %a, %a>",
+          AST_Operator.Dump.binary_to_string(op),
+          pp,
+          lhs,
+          pp,
+          rhs,
+        )
+
+      | InvalidJSXPrimitiveExpression(type_) =>
+        pf(ppf, "InvalidJSXPrimitiveExpression<%a>", pp, type_)
+
+      | InvalidJSXClassExpression(type_) =>
+        pf(ppf, "InvalidJSXClassExpression<%a>", pp, type_)
+
+      | InvalidDotAccess(type_, prop) =>
+        pf(ppf, "InvalidDotAccess<%a, %s>", pp, type_, prop)
+
+      | InvalidFunctionCall(type_, expected_args) =>
+        pf(
+          ppf,
+          "InvalidFunctionCall<%a, %a>",
+          pp,
+          type_,
+          list(pp),
+          expected_args,
+        )
+
+      | InvalidJSXTag(id, type_, expected_attrs) =>
+        pf(
+          ppf,
+          "InvalidJSXTag<%a, %a, %a>",
+          Identifier.pp,
+          id,
+          pp,
+          type_,
+          record(string, pp),
+          expected_attrs,
+        )
+
+      | UnexpectedJSXAttribute(name, type_) =>
+        pf(ppf, "UnexpectedJSXAttribute<%s, %a>", name, pp, type_)
+
+      | InvalidJSXAttribute(name, expected_type, actual_type) =>
+        pf(
+          ppf,
+          "InvalidJSXAttribute<%s, %a, %a>",
+          name,
+          pp,
+          expected_type,
+          pp,
+          actual_type,
+        )
+
+      | MissingJSXAttributes(id, attrs) =>
+        pf(
+          ppf,
+          "MissingJSXAttributes<%a, @[<hv>%a@]>",
+          Identifier.pp,
+          id,
+          record(string, pp),
+          attrs,
+        )
+
+      | DefaultArgumentMissing(id) =>
+        pf(ppf, "DefaultArgumentMissing<%a>", Identifier.pp, id)
+  );
+
+let rec of_raw = (raw_type: Raw.t): t =>
+  switch (raw_type) {
+  | (`Nil | `Integer | `Float | `Boolean | `String | `Element) as t =>
+    Valid(t)
+
+  | `List(t) => Valid(`List(of_raw(t)))
+
+  | `Struct(ts) => Valid(`Struct(ts |> List.map(Tuple.map_snd2(of_raw))))
+
+  | `Function(args, res) =>
+    Valid(`Function((args |> List.map(of_raw), of_raw(res))))
+
+  | `View(props, res) =>
+    Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))
+
+  | `Unknown => raise(UnknownTypeEncountered)
   };
-
-let generalize = (lhs: trait_t, rhs: trait_t): option(trait_t) =>
-  switch (lhs, rhs) {
-  /* placeholder for other first-class types */
-  | (K_Callable(_), K_Callable(_))
-  | (K_Iterable(_), K_Iterable(_))
-  | (K_Structural(_), K_Structural(_)) => None
-
-  | (l, r) when l == r => Some(l)
-
-  | (K_Exactly(l), K_Exactly(r)) when l == r => Some(K_Exactly(l))
-
-  | (K_Numeric, K_Exactly(K_Integer | K_Float))
-  | (K_Exactly(K_Integer | K_Float), K_Numeric)
-  | (K_Exactly(K_Integer | K_Float), K_Exactly(K_Integer | K_Float)) =>
-    Some(K_Numeric)
-
-  | _ => None
-  };
-
-let rec _type_to_string =
-  fun
-  | K_Invalid(err) =>
-    ["Invalid<" |> Pretty.string, err |> _err_to_string, ">" |> Pretty.string]
-    |> Pretty.concat
-
-  | K_Weak(id) =>
-    [
-      "Weak<" |> Pretty.string,
-      id |> string_of_int |> Pretty.string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | K_Strong(t) => t |> _strong_to_string
-
-and _strong_to_string =
-  fun
-  | K_Nil => "nil" |> Pretty.string
-  | K_Boolean => "bool" |> Pretty.string
-  | K_Integer => "int" |> Pretty.string
-  | K_Float => "float" |> Pretty.string
-  | K_String => "string" |> Pretty.string
-  | K_Element => "element" |> Pretty.string
-  | K_Function(args, result) =>
-    [
-      "(" |> Pretty.string,
-      args
-      |> List.map(((name, type_)) =>
-           [
-             name |> Pretty.string,
-             ": " |> Pretty.string,
-             type_ |> _type_to_string,
-           ]
-           |> Pretty.concat
-         )
-      |> List.intersperse(", " |> Pretty.string)
-      |> Pretty.concat,
-      ") -> " |> Pretty.string,
-      result |> _type_to_string,
-    ]
-    |> Pretty.concat
-  | K_Anonymous(id, trait) =>
-    [
-      "Anonymous<" |> Pretty.string,
-      id |> string_of_int |> Pretty.string,
-      trait |> _trait_to_string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-
-and _trait_to_string =
-  fun
-  | K_Numeric => "Numeric" |> Pretty.string
-  | K_Callable(arguments, result) =>
-    [
-      "Callable<(" |> Pretty.string,
-      arguments
-      |> List.map(_trait_to_string)
-      |> List.intersperse(", " |> Pretty.string)
-      |> Pretty.concat,
-      "), " |> Pretty.string,
-      result |> _trait_to_string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | K_Iterable(t) =>
-    [
-      "Iterable<" |> Pretty.string,
-      t |> _trait_to_string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | K_Structural(_) => "Structural" |> Pretty.string
-  | K_Exactly(t) => t |> _strong_to_string
-  | K_Unknown => "unknown" |> Pretty.string
-
-and _err_to_string =
-  fun
-  | TraitConflict(x, y) =>
-    [
-      "TraitConflict<" |> Pretty.string,
-      x |> _trait_to_string,
-      ", " |> Pretty.string,
-      y |> _trait_to_string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | NotAssignable(x, y) =>
-    [
-      "NotAssignable<" |> Pretty.string,
-      x |> _type_to_string,
-      ", " |> Pretty.string,
-      y |> _trait_to_string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | TypeMismatch(x, y) =>
-    [
-      "TypeMismatch<" |> Pretty.string,
-      x |> _type_to_string,
-      ", " |> Pretty.string,
-      y |> _type_to_string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | NotFound(x) =>
-    [
-      "NotFound<" |> Pretty.string,
-      x |> Identifier.to_string |> Pretty.string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat
-  | ExternalNotFound(namespace, id) =>
-    [
-      "ExternalNotFound<" |> Pretty.string,
-      namespace |> Namespace.to_string |> Pretty.string,
-      "#" |> Pretty.string,
-      id |> Export.to_string |> Pretty.string,
-      ">" |> Pretty.string,
-    ]
-    |> Pretty.concat;
-
-let to_string = _type_to_string % Pretty.to_string;
-let strong_to_string = _strong_to_string % Pretty.to_string;
-let trait_to_string = _trait_to_string % Pretty.to_string;
-let err_to_string = _err_to_string % Pretty.to_string;

@@ -1,25 +1,27 @@
 open Kore;
-open Deserialize;
-open Yojson.Basic.Util;
 
 type params_t = {
   query: string,
-  partial_result_token: option(progress_token),
+  partial_result_token: option(Protocol.progress_token),
 };
 
 type symbol_info_t = {
   name: string,
   uri: string,
   kind: Capabilities.symbol_t,
-  range: Cursor.range_t,
+  range: Range.t,
 };
 
-let request =
-  request(json => {
-    let query = json |> member("query") |> to_string;
+let method_key = "workspace/symbol";
 
-    {query, partial_result_token: None};
-  });
+let deserialize =
+  JSON.Util.(
+    json => {
+      let query = json |> member("query") |> to_string;
+
+      {query, partial_result_token: None};
+    }
+  );
 
 let response = (symbols: list(symbol_info_t)) =>
   `List(
@@ -27,71 +29,94 @@ let response = (symbols: list(symbol_info_t)) =>
     |> List.map(({name, uri, kind, range}) =>
          `Assoc([
            ("name", `String(name)),
-           ("kind", `Int(kind |> Response.symbol)),
+           ("kind", `Int(kind |> Serialize.symbol)),
            (
              "location",
              `Assoc([
                ("uri", `String(file_schema ++ uri)),
-               ("range", range |> Response.range),
+               ("range", range |> Serialize.range),
              ]),
            ),
          ])
        ),
-  )
-  |> Response.wrap;
+  );
 
-let handler = (runtime: Runtime.t, req: request_t(params_t)) => {
-  let symbols =
-    runtime.compilers
-    |> Hashtbl.to_seq_values
-    |> List.of_seq
-    |> List.map((Runtime.{uri, compiler}) =>
-         compiler.modules
-         |> Hashtbl.to_seq
-         |> List.of_seq
-         |> List.map(((namespace, ModuleTable.{ast})) =>
-              ast
-              |> List.filter_map(
-                   AST.(
-                     fun
-                     | Declaration(
-                         MainExport(name) | NamedExport(name),
-                         decl,
-                       ) => {
-                         let uri =
-                           Filename.concat(
-                             uri,
-                             namespace
-                             |> Namespace.to_path(compiler.config.source_dir),
-                           );
-                         let range = name |> Block.cursor |> Cursor.expand;
-                         let name =
-                           name |> Block.value |> Identifier.to_string;
+let handler: Runtime.request_handler_t(params_t) =
+  ({compilers}, params) => {
+    let symbols =
+      compilers
+      |> Hashtbl.to_seq_values
+      |> List.of_seq
+      |> List.map((Runtime.{uri, compiler}) =>
+           compiler.modules
+           |> Hashtbl.to_seq
+           |> List.of_seq
+           |> List.map(
+                Tuple.map_snd2(
+                  ModuleTable.(get_entry_data % Option.map(({ast}) => ast)),
+                )
+                % (
+                  fun
+                  | (namespace, Some(ast)) =>
+                    ast
+                    |> List.filter_map(
+                         Node.Raw.get_value
+                         % (
+                           fun
+                           | AST.Declaration(
+                               MainExport(name) | NamedExport(name),
+                               decl,
+                             ) => {
+                               let uri =
+                                 Filename.concat(
+                                   uri,
+                                   namespace
+                                   |> Namespace.to_path(
+                                        compiler.config.source_dir
+                                        |> Filename.relative_to(
+                                             compiler.config.root_dir,
+                                           ),
+                                      ),
+                                 );
+                               let range = Node.Raw.get_range(name);
+                               let name =
+                                 name |> Node.Raw.get_value |> ~@Identifier.pp;
 
-                         Some(
-                           switch (decl) {
-                           | Constant(expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Variable,
+                               Some(
+                                 switch (Node.get_value(decl)) {
+                                 | Constant(expr) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Variable,
+                                   }
+                                 | Function(args, expr) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Function,
+                                   }
+                                 | View(props, expr) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Function,
+                                   }
+                                 },
+                               );
                              }
-                           | Function(args, expr) => {
-                               uri,
-                               name,
-                               range,
-                               kind: Capabilities.Function,
-                             }
-                           },
-                         );
-                       }
-                     | Import(_) => None
-                   ),
-                 )
-            )
-         |> List.flatten
-       )
-    |> List.flatten;
+                           | _ => None
+                         ),
+                       )
 
-  response(symbols) |> Protocol.reply(req);
-};
+                  | _ => []
+                ),
+              )
+           |> List.flatten
+         )
+      |> List.flatten;
+
+    ignore(symbols);
+
+    Result.ok(`Null);
+  };

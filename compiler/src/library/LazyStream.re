@@ -1,3 +1,5 @@
+open Infix;
+
 /**
  wrapper for working with a stream that is lazily evaluated
 
@@ -10,6 +12,9 @@ type t('a) =
 
 /* static */
 
+/**
+ construct a LazyStream of values from a standard Stream of values
+ */
 let of_stream = (stream: Stream.t('a)): t('a) => {
   let rec next = stream =>
     try(Cons(Stream.next(stream), lazy(next(stream)))) {
@@ -19,6 +24,9 @@ let of_stream = (stream: Stream.t('a)): t('a) => {
   next(stream);
 };
 
+/**
+ construct a LazyStream from a generator function
+ */
 let of_function = (f: unit => option('a)): t('a) => {
   let rec next = f =>
     switch (f()) {
@@ -29,8 +37,33 @@ let of_function = (f: unit => option('a)): t('a) => {
   next(f);
 };
 
+/**
+ construct a LazyStream of characters from a string
+ */
 let of_string = (str: string): t(char) =>
   str |> Stream.of_string |> of_stream;
 
+/**
+ construct a LazyStream of characters from an input channel
+ */
 let of_channel = (ic: in_channel): t(char) =>
   ic |> Stream.of_channel |> of_stream;
+
+/* methods */
+
+/**
+ resolve all values in the stream into a list
+ */
+let to_list = (stream: t('a)): list('a) => {
+  let rec loop =
+    fun
+    | Cons(x, next) => [x, ...loop(Lazy.force(next))]
+    | Nil => [];
+
+  loop(stream);
+};
+
+/* pretty printing */
+
+let pp = (pp_value: Fmt.t('a)): Fmt.t(t('a)) =>
+  Fmt.(ppf => to_list % list(~sep=Sep.nop, pp_value, ppf));

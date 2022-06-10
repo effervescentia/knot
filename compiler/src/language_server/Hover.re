@@ -1,61 +1,56 @@
 open Kore;
-open Deserialize;
-open Yojson.Basic.Util;
 
 type params_t = {
-  text_document: text_document_t,
-  position: position_t,
+  text_document: Protocol.text_document_t,
+  position: Protocol.position_t,
 };
 
-let request =
-  request(json => {
-    let text_document = json |> get_text_document;
-    let position = json |> get_position;
+let method_key = "textDocument/hover";
 
-    {text_document, position};
-  });
+let deserialize =
+  JSON.Util.(
+    json => {
+      let text_document = Deserialize.text_document(json);
+      let position = Deserialize.position(json);
 
-let response = (range: Cursor.range_t, contents: string) =>
+      {text_document, position};
+    }
+  );
+
+let response = (range: Range.t, contents: string) =>
   `Assoc([
     (
       "contents",
       `Assoc([
-        ("language", `String("knot")),
+        ("language", `String(Target.knot)),
         ("value", `String(contents)),
       ]),
     ),
-    ("range", range |> Response.range),
-  ])
-  |> Response.wrap;
+    ("range", Serialize.range(range)),
+  ]);
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}, position: {line, character}}} as req:
-        request_t(params_t),
-    ) => {
-  let point = Cursor.{line, column: character};
+let handler: Runtime.request_handler_t(params_t) =
+  (runtime, {text_document: {uri}, position: {line, character}}) => {
+    let point = Point.create(line, character);
 
-  switch (runtime |> Runtime.resolve(uri)) {
-  | Some((namespace, {compiler, contexts} as ctx)) =>
-    let find_token = RangeTree.find_leaf(point);
+    switch (runtime |> Runtime.resolve(uri)) {
+    | Some((namespace, {compiler, contexts} as ctx)) =>
+      let find_token = RangeTree.find_leaf(point);
 
-    (
-      switch (Hashtbl.find_opt(contexts, namespace)) {
-      | Some({tokens}) => find_token(tokens)
-      | None =>
-        Runtime.force_compile(namespace, compiler);
-        Runtime.analyze_module(namespace, ctx) |?< find_token;
-      }
-    )
-    |> (
-      fun
-      | Some((range, Primitive(prim))) =>
-        Protocol.reply(
-          req,
+      (
+        switch (Hashtbl.find_opt(contexts, namespace)) {
+        | Some({tokens}) => find_token(tokens)
+        | None =>
+          Runtime.force_compile(namespace, compiler);
+          Runtime.analyze_module(namespace, ctx) |?< find_token;
+        }
+      )
+      |> (
+        fun
+        | Some((range, Primitive(prim))) =>
           response(
             range,
-            Print.fmt(
+            Fmt.str(
               "type %s",
               switch (prim) {
               | Nil => "nil"
@@ -65,47 +60,48 @@ let handler =
               | Number(Integer(_)) => "int"
               },
             ),
-          ),
-        )
-
-      | Some((range, Identifier(id))) => {
-          Hashtbl.find_opt(compiler.modules, namespace)
-          |?< (({scopes}) => ScopeTree.find_type(id, point, scopes))
-          |?> (type_ => Type.to_string(type_))
-          |?> Print.fmt("%s: %s", id |> Identifier.to_string)
-          |?: "(unknown)"
-          |> response(range)
-          |> Protocol.reply(req);
-        }
-
-      | Some(_) => {
-          Hashtbl.find_opt(compiler.modules, namespace)
-          |?< (({raw}) => raw |> Runtime.scan_for_token(point))
-          |?< (
-            block =>
-              switch (block |> Block.value) {
-              | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
-                Some((
-                  kwd |> Print.fmt("(keyword) %s"),
-                  block |> Block.cursor,
-                ))
-              | _ => None
-              }
           )
-          |> (
-            fun
-            | Some((message, cursor)) =>
-              message
-              |> response(cursor |> Cursor.expand)
-              |> Protocol.reply(req)
-            | None => Protocol.reply(req, Response.hover_empty)
-          );
-        }
+          |> Result.ok
 
-      | None =>
-        Protocol.reply(req, Response.error(InvalidRequest, "no token found"))
-    );
+        | Some((range, Identifier(id))) => {
+            Hashtbl.find_opt(compiler.modules, namespace)
+            |?< ModuleTable.(
+                  get_entry_data % Option.map(({scopes}) => scopes)
+                )
+            |?< ScopeTree.find_type(id, point)
+            |?> ~@Type.pp
+            |?> Fmt.str("%a: %s", Identifier.pp, id)
+            |?: "(unknown)"
+            |> response(range)
+            |> Result.ok;
+          }
 
-  | None => ()
+        | Some(_) => {
+            Hashtbl.find_opt(compiler.modules, namespace)
+            |?< ModuleTable.get_entry_raw
+            |?< Runtime.scan_for_token(point)
+            |?< (
+              node =>
+                switch (Node.Raw.get_value(node)) {
+                | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
+                  Some((
+                    Fmt.str("(keyword) %s", kwd),
+                    Node.Raw.get_range(node),
+                  ))
+                | _ => None
+                }
+            )
+            |> (
+              fun
+              | Some((message, range)) =>
+                message |> response(range) |> Result.ok
+              | None => Result.ok(`Null)
+            );
+          }
+
+        | None => Result.ok(`Null)
+      );
+
+    | None => Result.ok(`Null)
+    };
   };
-};

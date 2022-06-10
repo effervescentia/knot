@@ -1,120 +1,81 @@
 open Infix;
-open Reference;
 
-exception AnonymousTypeNotFound;
+module Identifier = Reference.Identifier;
+module Namespace = Reference.Namespace;
 
-/**
- container for closure definitions while parsing
- */
+type type_lookup_t = Hashtbl.t(Identifier.t, Type.t);
+
 type t = {
-  /* seed for new anonymous types */
-  seed: ref(int),
-  modules: ModuleTable.t,
-  types: Hashtbl.t(Export.t, Type.t),
-  anonymous:
-    Hashtbl.t(int, result(Type.trait_t, (Type.trait_t, Type.trait_t))),
+  namespace: Namespace.t,
+  range: Range.t,
+  parent: option(t),
+  mutable children: list(t),
+  types: type_lookup_t,
+  /* error reporting callback */
+  report: Error.compile_err => unit,
 };
 
 /* static */
 
+let rec _with_root = (f: t => 'a, scope: t): 'a =>
+  switch (scope.parent) {
+  | Some(parent) => _with_root(f, parent)
+  | None => f(scope)
+  };
+
 let create =
     (
-      ~parent=?,
-      ~seed=ref(0),
-      ~anonymous=Hashtbl.create(0),
-      ~modules=ModuleTable.create(0),
-      (),
+      namespace: Namespace.t,
+      report: Error.compile_err => unit,
+      ~parent: option(t)=?,
+      range: Range.t,
     )
     : t => {
-  seed,
-  anonymous,
-  modules,
-  types:
-    switch (parent) {
-    | Some(parent) => Hashtbl.copy(parent.types)
-    | None => Hashtbl.create(1)
-    },
+  namespace,
+  range,
+  parent,
+  children: [],
+  types: Hashtbl.create(0),
+  report,
 };
 
 /* methods */
 
-let clone = (parent: t): t => {
-  ...parent,
-  anonymous: Hashtbl.copy(parent.anonymous),
-  types: Hashtbl.copy(parent.types),
+/**
+ create a new child scope from a parent scope and register them with each other
+ */
+let create_child = (range: Range.t, parent: t): t => {
+  let child = create(~parent, parent.namespace, parent.report, range);
+
+  parent.children = parent.children @ [child];
+
+  child;
 };
 
 /**
- define a new variable within the scope
+ find a type in this or any parent scope
  */
-let define = (name: Identifier.t, type_: Type.t, scope: t) =>
-  Hashtbl.replace(scope.types, Named(name), type_);
+let rec lookup = (id: Identifier.t, scope: t): option(Type.t) => {
+  switch (scope.parent, Hashtbl.find_opt(scope.types, id)) {
+  | (_, Some(type_)) => Some(type_)
 
-/**
- find the type of an export from a different module
- */
-let lookup = (namespace: Namespace.t, id: Export.t, scope: t) => {
-  let type_err = Type.ExternalNotFound(namespace, id);
+  | (Some(parent), _) => parent |> lookup(id)
 
-  switch (ModuleTable.find(namespace, scope.modules)) {
-  | Some({types}) =>
-    switch (Hashtbl.find_opt(types, id)) {
-    | Some(t) => Ok(t)
-    | None => Error(type_err)
-    }
-  | None => Error(type_err)
+  | _ => None
   };
 };
 
 /**
- create a new weak anonymous type and add it to the local scope
+ define a new type in this scope
  */
-let weak = (scope: t): Type.t => {
-  let seed = scope.seed^;
-  let type_ = Type.K_Weak(seed);
+let define =
+    (id: Identifier.t, type_: Type.t, scope: t): option(Type.error_t) => {
+  let result = scope |> lookup(id) |?> (_ => Type.DuplicateIdentifier(id));
 
-  Hashtbl.add(scope.anonymous, seed, Ok(Type.K_Unknown));
-  scope.seed := seed + 1;
+  Hashtbl.add(scope.types, id, type_);
 
-  type_;
+  result;
 };
 
-/**
- update a weak anonymous type
- */
-let infer = (id: int, new_trait: Type.trait_t, scope: t) =>
-  switch (Hashtbl.find_opt(scope.anonymous, id)) {
-  | Some(Ok(existing_trait)) =>
-    switch (Type.restrict(existing_trait, new_trait)) {
-    | Some(trait) => Hashtbl.replace(scope.anonymous, id, Ok(trait))
-    | None =>
-      Hashtbl.replace(
-        scope.anonymous,
-        id,
-        Error((existing_trait, new_trait)),
-      )
-    }
-  | None => Hashtbl.replace(scope.anonymous, id, Ok(new_trait))
-  | _ => ()
-  };
-
-/**
- lift a weak anonymous type from a lower scope
- provides a unique id if still an anonymous type
- */
-let lift = (id: int, source: t, target: t) =>
-  switch (Hashtbl.find_opt(source.anonymous, id)) {
-  | Some(Ok(K_Exactly(t))) =>
-    let seed = target.seed^;
-    target.seed := seed + 1;
-
-    Type.K_Strong(t);
-  | Some(Ok(trait)) =>
-    let seed = target.seed^;
-    target.seed := seed + 1;
-
-    Type.K_Strong(K_Anonymous(seed, trait));
-  /* TODO: move this function up so invalid type can be reported by context */
-  | Some(Error((x, y))) => Type.K_Invalid(TraitConflict(x, y))
-  | None => raise(AnonymousTypeNotFound)
-  };
+let report_type_err = (scope: t, range: Range.t, err: Type.error_t) =>
+  scope.report(ParseError(TypeError(err), scope.namespace, range));

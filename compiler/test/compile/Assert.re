@@ -6,7 +6,7 @@ let compiler =
   Alcotest.(
     check(
       testable(
-        (pp, _) => "" |> Format.pp_print_string(pp),
+        (ppf, _) => "" |> Format.pp_print_string(ppf),
         Compile.Compiler.(
           (l, r) => {
             Alcotest.check(
@@ -25,3 +25,9 @@ let compiler =
       "compiler matches",
     )
   );
+
+let file_contents = (expected, file) => {
+  let actual = File.IO.read_to_string(file);
+
+  string(expected, actual);
+};

@@ -1,41 +1,26 @@
 open Kore;
-open Deserialize;
-open Yojson.Basic.Util;
 
-type params_t = {text_document: text_document_item_t};
+type params_t = {text_document: Protocol.text_document_item_t};
 
-let notification =
-  notification(json => {
-    let text_document =
-      json
-      |> member("textDocument")
-      |> (
-        fun
-        | `Assoc(_) as x => {
-            let uri = x |> get_uri;
-            let language_id = x |> member("languageId") |> to_string;
-            let version = x |> member("version") |> to_int;
-            let text = x |> member("text") |> to_string;
+let method_key = "textDocument/didOpen";
 
-            {uri, language_id, version, text};
-          }
-        | x => raise(Type_error("textDocument", x))
-      );
+let deserialize =
+  JSON.Util.(
+    json => {
+      let text_document = Deserialize.text_document_item(json);
 
-    {text_document: text_document};
-  });
+      {text_document: text_document};
+    }
+  );
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}}}: notification_t(params_t),
-    ) =>
-  switch (runtime |> Runtime.resolve(uri)) {
-  | Some((namespace, {compiler, contexts} as ctx)) =>
-    let added = compiler |> Compiler.upsert_module(namespace);
+let handler: Runtime.notification_handler_t(params_t) =
+  (runtime, {text_document: {uri}}) =>
+    switch (runtime |> Runtime.resolve(uri)) {
+    | Some((namespace, {compiler, contexts} as ctx)) =>
+      let updated = compiler |> Compiler.upsert_module(namespace);
 
-    compiler |> Compiler.incremental(added);
-    Runtime.analyze_module(namespace, ctx) |> ignore;
+      compiler |> Compiler.incremental(updated);
+      Runtime.analyze_module(namespace, ctx) |> ignore;
 
-  | None => ()
-  };
+    | None => ()
+    };

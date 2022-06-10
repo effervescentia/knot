@@ -1,6 +1,6 @@
 open Kore;
 
-let __root_dir = "knot";
+let __root_dir = Target.knot;
 
 /**
  get the name of a unique folder within the temporary file directory
@@ -23,4 +23,14 @@ let find_up = (name: string, from: string) => {
     };
 
   loop(from);
+};
+
+/* get the name of the operating system */
+let uname = (): string => {
+  let ic = Unix.open_process_in("uname");
+  let os = input_line(ic);
+
+  close_in(ic);
+
+  os;
 };

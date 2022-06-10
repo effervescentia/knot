@@ -27,7 +27,7 @@ export default (env: Environment = {}) => ({
     new KnotPlugin({
       // debug: true,
       // WARNING: providing an override path for the knot compiler is not recommended
-      knot: env.knotc,
+      knotc: env.knotc,
       plugins: {
         jsx: '@knot/vue-plugin'
       }

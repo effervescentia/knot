@@ -1,6 +1,4 @@
 open Kore;
-open Deserialize;
-open Yojson.Basic.Util;
 
 type severity =
   | Error
@@ -15,6 +13,8 @@ let severity =
   | Information => 3
   | Hint => 4;
 
+let method_key = "textDocument/publishDiagnostics";
+
 let notification = (uri: string, errs) =>
   `Assoc([
     ("uri", `String(uri)),
@@ -24,38 +24,39 @@ let notification = (uri: string, errs) =>
         errs
         |> List.map(((err, range)) =>
              `Assoc([
-               ("range", range |> Response.range),
+               ("range", Serialize.range(range)),
                ("severity", `Int(severity(Error))),
-               ("source", `String("knot")),
-               ("message", `String(err |> Knot.Error._parse_err_to_string)),
+               ("source", `String(Target.knot)),
+               ("message", `String(err |> ~@Knot.Error.pp_parse_err)),
              ])
            ),
       ),
     ),
-  ])
-  |> Response.wrap_notification("textDocument/publishDiagnostics");
+  ]);
 
-let report = (source_dir: string, errs) => {
+let send =
+    ({server}: Runtime.t, source_dir: string, errs: list(compile_err)) => {
   let grouped_errs = Hashtbl.create(1);
 
   errs
   |> List.iter(
        fun
-       | ParseError(err, namespace, cursor) =>
+       | ParseError(err, namespace, range) =>
          Hashtbl.replace(
            grouped_errs,
            namespace,
            (Hashtbl.find_opt(grouped_errs, namespace) |?: [])
-           @ [(err, cursor |> Cursor.expand)],
+           @ [(err, range)],
          )
        | _ => (),
      );
 
   grouped_errs
   |> Hashtbl.to_seq
-  |> Seq.iter(((namespace, errs)) =>
+  |> List.of_seq
+  |> List.iter(((namespace, errs)) =>
        errs
        |> notification(namespace |> Namespace.to_path(source_dir))
-       |> Protocol.notify
+       |> server.notify(method_key)
      );
 };

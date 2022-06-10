@@ -9,37 +9,38 @@ let suite =
     "(%)"
     >: (
       () =>
-        [
-          (
-            "{[(a)]}",
-            (Print.fmt("(%s)") % Print.fmt("[%s]") % Print.fmt("{%s}"))(
-              "a",
-            ),
-          ),
-        ]
-        |> Assert.(test_many(string))
+        Assert.string(
+          "{[(a)]}",
+          (Fmt.str("(%s)") % Fmt.str("[%s]") % Fmt.str("{%s}"))("a"),
+        )
     ),
-    "(@?)"
+    "(@?) - concat empty"
+    >: (() => _assert_opt_int_list(Some([]), Some([]) @? Some([]))),
+    "(@?) - concat"
     >: (
       () =>
-        [
-          (Some([]), Some([]) @? Some([])),
-          (Some([1, 2, 3, 4]), Some([1, 2]) @? Some([3, 4])),
-          (Some([1, 2]), Some([1, 2]) @? None),
-          (Some([3, 4]), None @? Some([3, 4])),
-          (None, None @? None),
-        ]
-        |> Assert.test_many(_assert_opt_int_list)
+        _assert_opt_int_list(
+          Some([1, 2, 3, 4]),
+          Some([1, 2]) @? Some([3, 4]),
+        )
     ),
-    "(|?:)"
-    >: (
-      () =>
-        [(1, Some(1) |?: 2), (2, None |?: 2)] |> Assert.(test_many(int))
-    ),
-    "(|!:)"
-    >: (
-      () =>
-        [(1, Some(1) |!: (() => 2)), (2, None |!: (() => 2))]
-        |> Assert.(test_many(int))
-    ),
+    "(@?) - select lhs"
+    >: (() => _assert_opt_int_list(Some([1, 2]), Some([1, 2]) @? None)),
+    "(@?) - select rhs"
+    >: (() => _assert_opt_int_list(Some([3, 4]), None @? Some([3, 4]))),
+    "(@?) - return empty" >: (() => _assert_opt_int_list(None, None @? None)),
+    "(|?:) - has value" >: (() => Assert.int(1, Some(1) |?: 2)),
+    "(|?:) - has no value" >: (() => Assert.int(2, None |?: 2)),
+    "(|!:) - has value" >: (() => Assert.int(1, Some(1) |!: (() => 2))),
+    "(|!:) - has no value" >: (() => Assert.int(2, None |!: (() => 2))),
+    "(|?<) - has value"
+    >: (() => Assert.opt_int(Some(3), Some(1) |?< (x => Some(x + 2)))),
+    "(|?<) - has no value"
+    >: (() => Assert.opt_int(None, None |?< (x => Some(x + 2)))),
+    "(|?<) - transformer to none"
+    >: (() => Assert.opt_int(None, Some(1) |?< (_ => None))),
+    "(|?>) - has value"
+    >: (() => Assert.opt_int(Some(3), Some(1) |?> (+)(2))),
+    "(|?>) - has no value" >: (() => Assert.opt_int(None, None |?> (+)(2))),
+    "(~@)" >: (() => Assert.string("foo", "foo" |> ~@Fmt.string)),
   ];

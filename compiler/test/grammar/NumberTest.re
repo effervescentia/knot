@@ -1,56 +1,49 @@
 open Kore;
-open Util;
 
 module Number = Grammar.Number;
+module U = Util.RawUtil;
 
 module Assert =
-  Assert.Make({
-    type t = (AST.number_t, Type.t, Cursor.t);
+  Assert.MakeTyped({
+    type value_t = AR.number_t;
+    type type_t = TR.t;
 
-    let parser = _ => Parser.parse(Number.parser);
+    let parser = _ => Number.parser;
 
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            pp => Tuple.fst3 % Debug.print_num % Format.pp_print_string(pp),
-            (==),
-          ),
-          "program matches",
-        )
-      );
+    let pp_value = ppf => A.Dump.num_to_string % Fmt.string(ppf);
+    let pp_type = TR.pp;
   });
 
 let suite =
   "Grammar.Number"
   >::: [
-    "no parse" >: (() => ["gibberish"] |> Assert.no_parse),
+    "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse integer"
     >: (
-      () =>
-        ["123", " 123 "]
-        |> Assert.parse_all(Int64.of_int(123) |> AST.of_int |> as_int)
+      () => Assert.parse_all(123L |> AR.of_int |> U.as_int, ["123", " 123 "])
     ),
     "max integer"
     >: (
       () =>
         Assert.parse(
+          Int64.max_int |> AR.of_int |> U.as_int,
           "9223372036854775807",
-          Int64.max_int |> AST.of_int |> as_int,
         )
     ),
     "parse float"
     >: (
       () =>
-        ["123.45", " 123.45 "]
-        |> Assert.parse_all((123.45, 5) |> AST.of_float |> as_float)
+        Assert.parse_all(
+          (123.45, 5) |> AR.of_float |> U.as_float,
+          ["123.45", " 123.45 "],
+        )
     ),
     "max float"
     >: (
       () =>
         Assert.parse(
+          (Float.max_float, 309) |> AR.of_float |> U.as_float,
           "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000",
-          (Float.max_float, 309) |> AST.of_float |> as_float,
         )
     ),
   ];

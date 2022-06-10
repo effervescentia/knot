@@ -54,6 +54,23 @@ let (>>=) = (x, f, input) =>
   };
 
 /**
+ {b negative_lookahead}
+
+ if parser [x] succeeds, attempt to match parser [y]
+ if parser [y] fails return the result of [x] without advancing the stream
+ */
+let (<<!) = (x, y) => {
+  x
+  >>= (
+    (r, input) =>
+      switch (y(input)) {
+      | Some(x) => None
+      | None => Some((r, input))
+      }
+  );
+};
+
+/**
  {b map_result}
 
  if parser [x] succeeds, transform the result with [f]
@@ -151,7 +168,7 @@ let (<~>) = (x, xs) => x >>= (r => xs >|= (rs => [r, ...rs]));
 let get_cursor =
   LazyStream.(
     fun
-    | Cons(r, _) as input => Some((Input.cursor(r), input))
+    | Cons(r, _) as input => Some((Input.get_point(r), input))
     | Nil => None
   );
 
@@ -159,7 +176,7 @@ let get_cursor =
  matches a single character
  */
 let satisfy = (f: 'a => bool) =>
-  any >>= (x => Input.value(x) |> (v => f(v) ? return(x) : none));
+  any >>= (x => Input.get_value(x) |> (v => f(v) ? return(x) : none));
 
 /**
  matches a single character
@@ -232,6 +249,16 @@ let sep_by1 = (sep, x) => x <~> many(sep >> x);
  matches a pattern [0] or more times divided by separator [sep]
  */
 let sep_by = (sep, x) => sep_by1(sep, x) <|> return([]);
+
+/**
+ matches a pattern that has a [suffix]
+
+ associativity: {i left-to-right}
+ */
+let suffixed_by = (suffix, x) => {
+  let rec loop = a => suffix >>= (f => loop(f(a))) <|> return(a);
+  x >>= loop;
+};
 
 /**
  matches a pattern [n+1] times separated by operator [op]

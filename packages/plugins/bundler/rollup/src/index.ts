@@ -50,7 +50,7 @@ function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
         await compiler.add(id);
         await compiler.awaitModule(id);
 
-        const compiled = await compiler.generate(id);
+        const compiled = await compiler.fetch(id);
         if (compiled) {
           return {
             code: compiled,
@@ -62,8 +62,8 @@ function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
       return null;
     },
 
-    async buildEnd() {
-      await compiler.close();
+    buildEnd() {
+      compiler.close();
     }
   };
 }

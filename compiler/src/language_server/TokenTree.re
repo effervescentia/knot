@@ -1,14 +1,15 @@
 open Kore;
+open ModuleAliases;
 
 type token_t =
   | Skip
   | Join
   | Identifier(Identifier.t)
-  | Primitive(AST.raw_primitive_t);
+  | Primitive(A.primitive_t);
 
 type t = RangeTree.t(token_t);
 
-let __skip: t = BinaryTree.create((Cursor.zero |> Cursor.expand, Skip));
+let __skip: t = BinaryTree.create((Range.zero, Skip));
 
 let _join = (left: t, right: t) =>
   switch (left, right) {
@@ -25,17 +26,14 @@ let _join = (left: t, right: t) =>
 
 let _fold = f => List.fold_left((acc, x) => _join(acc, f(x)), __skip);
 
-let _wrap = (cursor, tree: t) =>
-  cursor
-  |> Cursor.expand
-  |> (
-    range =>
-      tree.value |> fst == range
-        ? tree : BinaryTree.create(~left=tree, (range, Join))
-  );
+let _wrap = (range, tree: t) =>
+  tree.value |> fst == range
+    ? tree : BinaryTree.create(~left=tree, (range, Join));
 
-let of_id = (id, cursor) =>
-  BinaryTree.create((cursor |> Cursor.expand, Identifier(id)));
+/* static */
+
+let of_untyped_id = (id, range) =>
+  BinaryTree.create((range, Identifier(id)));
 
 let rec of_list = (xs: list(t)): t =>
   switch (xs) {
@@ -52,112 +50,165 @@ let rec of_list = (xs: list(t)): t =>
 
 let rec of_expr =
   fun
-  | AST.Primitive((prim, _, cursor)) =>
-    BinaryTree.create((cursor |> Cursor.expand, Primitive(prim)))
-  | AST.Identifier(id) => id |> Tuple.reduce2(of_id)
-  | AST.JSX((jsx, cursor)) => of_jsx(jsx) |> _wrap(cursor)
-  | AST.Group((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
-  | AST.BinaryOp(_, (left, _, l_cursor), (right, _, r_cursor)) =>
+  | (A.Primitive(prim), _, range) =>
+    BinaryTree.create((range, Primitive(prim)))
+  | (A.Identifier(id), _, range) => of_untyped_id(id, range)
+  | (A.JSX(jsx), _, range) => jsx |> of_jsx |> _wrap(range)
+  | (A.Group(expr), _, range) =>
+    expr |> of_expr |> _wrap(N.get_range(expr))
+  | (A.BinaryOp(_, lhs, rhs), _, range) =>
     _join(
-      of_expr(left) |> _wrap(l_cursor),
-      of_expr(right) |> _wrap(r_cursor),
+      lhs |> of_expr |> _wrap(N.get_range(lhs)),
+      rhs |> of_expr |> _wrap(N.get_range(rhs)),
     )
-  | AST.UnaryOp(_, (expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
-  | AST.Closure(stmts) => stmts |> List.map(of_stmt) |> of_list
+  | (A.UnaryOp(_, expr), _, _) =>
+    expr |> of_expr |> _wrap(N.get_range(expr))
+  | (A.Closure(stmts), _, _) =>
+    stmts |> List.map(N.get_value % of_stmt) |> of_list
+  | (A.DotAccess(expr, props), _, _) =>
+    expr |> of_expr |> _wrap(N.get_range(expr))
+  | (A.FunctionCall(expr, args), _, range) =>
+    _join(
+      expr |> of_expr |> _wrap(N.get_range(expr)),
+      args |> List.map(of_expr) |> of_list,
+    )
 
 and of_jsx =
   fun
-  | AST.Fragment(children) =>
+  | A.Fragment(children) =>
     children
-    |> List.map(((child, cursor)) => of_jsx_child(child) |> _wrap(cursor))
+    |> List.map(child =>
+         child |> of_jsx_child |> _wrap(NR.get_range(child))
+       )
     |> of_list
 
-  | AST.Tag(id, attrs, children) =>
-    [id |> Tuple.reduce2(of_id)]
+  | A.Tag((id, range), attrs, children)
+  | A.Component((id, _, range), attrs, children) =>
+    [of_untyped_id(id, range)]
     @ (
       attrs
-      |> List.map(((attr, cursor)) => attr |> of_jsx_attr |> _wrap(cursor))
+      |> List.map(attr =>
+           attr |> NR.get_value |> of_jsx_attr |> _wrap(NR.get_range(attr))
+         )
     )
     @ (
       children
-      |> List.map(((child, cursor)) =>
-           child |> of_jsx_child |> _wrap(cursor)
+      |> List.map(child =>
+           child |> of_jsx_child |> _wrap(NR.get_range(child))
          )
     )
     |> of_list
 
 and of_jsx_child =
   fun
-  | AST.Node((tag, cursor)) => tag |> of_jsx |> _wrap(cursor)
-  | AST.InlineExpression((expr, _, cursor)) =>
-    expr |> of_expr |> _wrap(cursor)
-  | AST.Text((text, cursor)) =>
-    BinaryTree.create((
-      cursor |> Cursor.expand,
-      Primitive(AST.String(text)),
-    ))
+  | (A.Node(tag), range) => tag |> of_jsx |> _wrap(range)
+  | (A.InlineExpression(expr), range) =>
+    expr |> of_expr |> _wrap(N.get_range(expr))
+  | (A.Text(text), range) =>
+    BinaryTree.create((range, Primitive(String(text))))
 
 and of_jsx_attr =
   fun
-  | AST.ID(id) => id |> Tuple.reduce2(of_id)
-  | AST.Class(id, None)
-  | AST.Property(id, None) => id |> Tuple.reduce2(of_id)
-  | AST.Class(id, Some((expr, _, cursor)))
-  | AST.Property(id, Some((expr, _, cursor))) =>
-    _join(id |> Tuple.reduce2(of_id), expr |> of_expr |> _wrap(cursor))
+  | A.ID(id) => id |> Tuple.join2(of_untyped_id)
+  | A.Class(id, None)
+  | A.Property(id, None) => id |> Tuple.join2(of_untyped_id)
+  | A.Class(id, Some(expr))
+  | A.Property(id, Some(expr)) =>
+    _join(
+      id |> Tuple.join2(of_untyped_id),
+      expr |> of_expr |> _wrap(N.get_range(expr)),
+    )
 
 and of_stmt =
   fun
-  | AST.Variable(name, (expr, _, expr_cursor)) =>
+  | A.Variable(name, expr) =>
     _join(
-      name |> Tuple.reduce2(of_id),
-      of_expr(expr) |> _wrap(expr_cursor),
+      name |> Tuple.join2(of_untyped_id),
+      expr |> of_expr |> _wrap(N.get_range(expr)),
     )
-  | AST.Expression((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor);
+  | A.Expression(expr) => expr |> of_expr |> _wrap(N.get_range(expr));
 
 let of_decl =
   fun
-  | AST.Constant((expr, _, cursor)) => of_expr(expr) |> _wrap(cursor)
-  | AST.Function(args, (expr, _, cursor)) =>
+  | A.Constant(expr) => expr |> of_expr |> _wrap(N.get_range(expr))
+  | A.Function(args, expr) =>
     _join(
       args
-      |> _fold(((AST.{name, default}, _)) =>
-           {
-             ...name |> Tuple.reduce2(of_id),
-             right: default |?> Tuple.fst3 % of_expr,
-           }
+      |> _fold(
+           N.get_value
+           % (
+             (A.{name, default}) => {
+               ...name |> Tuple.join2(of_untyped_id),
+               right: default |?> of_expr,
+             }
+           ),
          ),
-      of_expr(expr) |> _wrap(cursor),
+      expr |> of_expr |> _wrap(N.get_range(expr)),
+    )
+  | A.View(props, expr) =>
+    _join(
+      props
+      |> _fold(
+           N.get_value
+           % (
+             (A.{name, default}) => {
+               ...name |> Tuple.join2(of_untyped_id),
+               right: default |?> of_expr,
+             }
+           ),
+         ),
+      expr |> of_expr |> _wrap(N.get_range(expr)),
     );
 
 let of_import =
   fun
-  | AST.MainImport(id)
-  | AST.NamedImport(id, None) => id |> Tuple.reduce2(of_id)
-  | AST.NamedImport(id, Some(alias)) =>
-    (id, alias) |> Tuple.map2(Tuple.reduce2(of_id)) |> Tuple.reduce2(_join);
+  | A.MainImport(id)
+  | A.NamedImport(id, None) => id |> Tuple.join2(of_untyped_id)
+  | A.NamedImport(id, Some(alias)) =>
+    (id, alias)
+    |> Tuple.map2(Tuple.join2(of_untyped_id))
+    |> Tuple.join2(_join);
 
 let of_mod_stmt =
   fun
-  | AST.Import(namespace, imports) => imports |> _fold(of_import)
-  | AST.Declaration(MainExport(id) | NamedExport(id), decl) =>
-    _join(id |> Tuple.reduce2(of_id), of_decl(decl));
+  | A.StandardImport(imports) =>
+    imports
+    |> _fold(
+         NR.get_value
+         % (
+           fun
+           | (id, None) => id |> Tuple.join2(of_untyped_id)
+           | (id, Some(alias)) =>
+             (id, alias)
+             |> Tuple.map2(Tuple.join2(of_untyped_id))
+             |> Tuple.join2(_join)
+         ),
+       )
+  | A.Import(namespace, imports) =>
+    imports |> _fold(NR.get_value % of_import)
+  | A.Declaration(MainExport(id) | NamedExport(id), decl) =>
+    _join(id |> Tuple.join2(of_untyped_id), decl |> N.get_value |> of_decl);
 
-let of_ast = (program: AST.program_t) => program |> _fold(of_mod_stmt);
+let of_ast = (program: A.program_t) =>
+  program |> _fold(NR.get_value % of_mod_stmt);
 
-let to_string = (tree: t) =>
-  BinaryTree.to_string(
-    (((start, end_), token)) =>
-      Print.fmt(
-        "%s %s",
-        switch (token) {
-        | Join => ""
-        | Skip => "[skip]"
-        | Identifier(id) => Identifier.to_string(id)
-        | Primitive(prim) => Debug.print_prim(prim) |> Pretty.to_string
-        },
-        Cursor.Range(start, end_) |> Debug.print_cursor,
-      )
-      |> String.trim,
-    tree,
-  );
+/* pretty printing */
+
+let pp: Fmt.t(t) =
+  (ppf, tree: t) =>
+    BinaryTree.pp(
+      (ppf, ((start, end_), token)) =>
+        Fmt.pf(
+          ppf,
+          "%s %s",
+          switch (token) {
+          | Join => ""
+          | Skip => "[skip]"
+          | Identifier(id) => id |> ~@Identifier.pp
+          | Primitive(prim) => prim |> A.Dump.prim_to_string
+          },
+          Range.create(start, end_) |> ~@Range.pp,
+        ),
+      ppf,
+      tree,
+    );

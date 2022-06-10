@@ -1,0 +1,37 @@
+view ExplicitNilView -> nil;
+
+view ImplicitNilView -> {}
+
+view NoPropertiesView -> nil;
+
+view PropertiedView(data_nil,
+                    data_true,
+                    data_false,
+                    data_positive_integer,
+                    data_negative_integer,
+                    data_positive_float,
+                    data_negative_float,
+                    data_string,
+                    data_tag,
+                    data_fragment) -> nil;
+
+view DefaultedView(data_nil = nil,
+                   data_true = true,
+                   data_false = false,
+                   data_positive_integer = 123,
+                   data_negative_integer = -123,
+                   data_positive_float = 456.78000,
+                   data_negative_float = -456.78000,
+                   data_string = "abc",
+                   data_tag = <div />,
+                   data_fragment = <></>) -> nil;
+
+view PartialView(first, second = false) -> nil;
+
+view ExpressionView(lhs, rhs) -> lhs + rhs;
+
+view ClosureView(lhs, rhs) -> {
+  let lhs_int = lhs * 10;
+  let rhs_float = rhs / 13;
+  lhs_int <= rhs_float;
+}

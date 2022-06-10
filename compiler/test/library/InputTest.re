@@ -1,37 +1,28 @@
 open Kore;
 
 let __uchar = Uchar.of_char('z');
-let __cursor = Cursor.point(4, 0);
-let __input = (__uchar, __cursor);
-
-let _assert_context =
-  Alcotest.(
-    check(
-      testable(
-        (pp, cursor) =>
-          cursor |> Debug.print_cursor |> Format.pp_print_string(pp),
-        (==),
-      ),
-      "cursor matches",
-    )
-  );
+let __point = Point.create(4, 0);
+let __input = (__uchar, __point);
 
 let suite =
   "Library.Input"
   >::: [
     "create()"
+    >: (() => Assert.input(__input, Input.create(__uchar, __point))),
+    "get_value()" >: (() => Assert.uchar(__uchar, Input.get_value(__input))),
+    "get_point()" >: (() => Assert.point(__point, Input.get_point(__input))),
+    "join()"
     >: (
       () =>
-        [(__input, Input.create(__uchar, __cursor))]
-        |> Assert.(test_many(char))
+        Assert.raw_node(
+          Fmt.string,
+          Node.Raw.create("foo", Range.create((1, 1), (1, 3))),
+          Input.join([
+            (Uchar.of_char('f'), Point.create(1, 1)),
+            (Uchar.of_char('o'), Point.create(1, 2)),
+            (Uchar.of_char('o'), Point.create(1, 3)),
+          ]),
+        )
     ),
-    "value()"
-    >: (
-      () => [(__uchar, Input.value(__input))] |> Assert.(test_many(uchar))
-    ),
-    "cursor()"
-    >: (
-      () =>
-        [(__cursor, Input.cursor(__input))] |> Assert.(test_many(cursor))
-    ),
+    "pp()" >: (() => Assert.string("z@4.0", __input |> ~@Input.pp)),
   ];

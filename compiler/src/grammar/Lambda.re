@@ -1,36 +1,51 @@
 open Kore;
 
-let arguments = (ctx: Context.t) =>
-  M.between(
-    Symbol.open_group,
-    Symbol.close_group,
-    choice([
-      Operator.assign(
-        Identifier.parser(ctx),
-        Expression.parser(ctx) >|= Option.some,
-      )
-      >|= (
-        ((id, default)) => {
-          let type_ =
-            switch (default) {
-            | Some((_, t, _)) =>
-              ctx.scope |> Scope.define(id |> fst, t);
-              t;
-            | None => ctx.scope |> Scope.weak
-            };
-
-          (AST.{name: id, default}, type_);
-        }
-      ),
-      Identifier.parser(ctx)
-      >|= (id => (AST.{name: id, default: None}, ctx.scope |> Scope.weak)),
-    ])
-    |> sep_by(Symbol.comma),
+let arguments = (ctx: ModuleContext.t) =>
+  Identifier.parser(ctx)
+  >>= (
+    id =>
+      Symbol.colon
+      >> Typing.expression_parser
+      >|= ((type_, default) => (id, Some(type_), default))
+      |> option(default => (id, None, default))
   )
-  >|= Block.value;
+  >>= (
+    f =>
+      Symbol.assign
+      >> Expression.parser(ctx)
+      >|= Option.some
+      >|= f
+      |> option(f(None))
+  )
+  >|= (
+    ((name, type_, default)) => {
+      let name_range = NR.get_range(name);
 
-let parser = (ctx: Context.t) =>
+      N.create(
+        AR.{name, default, type_},
+        default |?> N.get_type |?: TR.(`Unknown),
+        Range.join(
+          name_range,
+          default |?> N.get_range |?: (type_ |?> NR.get_range |?: name_range),
+        ),
+      );
+    }
+  )
+  |> M.comma_sep
+  |> M.between(Symbol.open_group, Symbol.close_group)
+  >|= NR.get_value;
+
+let parser = (ctx: ModuleContext.t) =>
   option([], arguments(ctx))
   >>= (
-    args => Glyph.lambda >> Expression.parser(ctx) >|= (expr => (args, expr))
+    args =>
+      Glyph.lambda
+      >|= NR.get_range
+      >>= (
+        start_range =>
+          Expression.parser(ctx)
+          >|= (
+            expr => (args, expr, Range.join(start_range, N.get_range(expr)))
+          )
+      )
   );

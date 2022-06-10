@@ -21,7 +21,9 @@ export const DEFAULT_SCRIPTS = {
   doc
 };
 
-export function extendScripts(scripts: object = {}): object {
+export function extendScripts<T extends object = {}>(
+  scripts: T = {} as T
+): { options: Options; scripts: typeof DEFAULT_SCRIPTS & T } {
   return {
     options: DEFAULT_OPTIONS,
 

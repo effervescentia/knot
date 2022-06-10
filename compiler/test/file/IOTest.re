@@ -12,8 +12,7 @@ let suite =
       () => {
         let (stream, close) = IO.read_stream(fixture_path);
 
-        [(__content, Util.read_lazy_char_stream(stream))]
-        |> Assert.(test_many(string));
+        Assert.string(__content, Util.read_lazy_char_stream(stream));
 
         close();
       }
@@ -25,8 +24,8 @@ let suite =
 
         IO.clone(fixture_path, target);
 
-        Sys.file_exists(target) |> Assert.true_;
-        Util.read_file_to_string(target) |> Assert.string(__content);
+        Assert.file_exists(target);
+        Assert.string(__content, Util.read_file_to_string(target));
       }
     ),
   ];

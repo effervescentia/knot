@@ -1,23 +1,18 @@
 open Kore;
 
-let reserved = (ctx: Context.t) =>
-  choice(Constants.Keyword.reserved |> List.map(M.keyword))
+let parser = (ctx: ModuleContext.t): identifier_parser_t =>
+  M.identifier
   >|= (
-    name => {
-      ctx.report(
+    ((name_value, name_range) as name) => {
+      if (Constants.Keyword.reserved |> List.mem(name_value)) {
         ParseError(
-          ReservedKeyword(name |> Block.value),
-          ctx.namespace,
-          name |> Block.cursor,
-        ),
-      );
+          ReservedKeyword(name_value),
+          ctx.namespace_context.namespace,
+          name_range,
+        )
+        |> ModuleContext.report(ctx);
+      };
 
-      name;
+      name |> NR.map_value(Reference.Identifier.of_string);
     }
   );
-
-let named = M.identifier;
-
-let parser = (ctx: Context.t) =>
-  choice([reserved(ctx), named])
-  >|= Tuple.split2(Block.value % Reference.Identifier.of_string, Block.cursor);

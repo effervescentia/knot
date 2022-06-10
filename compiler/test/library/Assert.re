@@ -7,60 +7,93 @@ module Compare = {
 
   include Test.Assert.Compare;
 
-  let input =
-    testable(
-      pp =>
-        (
-          x =>
-            Print.fmt(
-              "%s@%s",
-              [x |> Input.value] |> String.of_uchars,
-              x |> Input.cursor |> Debug.print_cursor,
-            )
+  let trio =
+    Alcotest.(
+      (a, b, c) =>
+        testable(
+          Tuple.pp3(pp(a), pp(b), pp(c)), ((a1, b1, c1), (a2, b2, c2)) =>
+          equal(a, a1, a2) && equal(b, b1, b2) && equal(c, c1, c2)
         )
-        % Format.pp_print_string(pp),
-      (==),
     );
 
-  let cursor =
-    testable(pp => Debug.print_cursor % Format.pp_print_string(pp), (==));
+  let input = testable(Input.pp, (==));
 
-  let graph =
+  let point = testable(Point.pp, (==));
+
+  let range = testable(Range.pp, (==));
+
+  let graph = pp_value => testable(Graph.pp(pp_value), (==));
+
+  let raw_node = (pp_value: Fmt.t('a)) =>
+    testable(Node.Raw.pp(pp_value), (==));
+
+  let node = (pp_value: Fmt.t('a)) =>
+    testable(Node.pp(pp_value, Type.pp), (==));
+
+  let type_ = testable(Type.pp, (==));
+
+  let target = testable(Target.pp, (==));
+
+  exception LazyStreamLengthMismatch;
+
+  let lazy_stream = (pp_value: Fmt.t('a)) =>
     testable(
-      pp =>
-        Graph.to_string(Functional.identity) % Format.pp_print_string(pp),
-      (==),
+      LazyStream.pp(pp_value),
+      (expected, actual) => {
+        let rec loop =
+          LazyStream.(
+            fun
+            | (Cons(l, next_l), Cons(r, next_r)) => {
+                let (ls, rs) =
+                  loop((Lazy.force(next_l), Lazy.force(next_r)));
+
+                ([l, ...ls], [r, ...rs]);
+              }
+            | (Nil, Nil) => ([], [])
+            | _ => raise(LazyStreamLengthMismatch)
+          );
+
+        switch (loop((expected, actual))) {
+        | (expected_values, actual_values) => expected_values == actual_values
+        | exception LazyStreamLengthMismatch => false
+        };
+      },
     );
 
-  let namespace =
-    testable(
-      pp => Reference.Namespace.to_string % Format.pp_print_string(pp),
-      (==),
-    );
+  let namespace = testable(Reference.Namespace.pp, (==));
 
-  let module_table =
-    testable(
-      pp => Debug.print_module_table % Format.pp_print_string(pp),
-      ModuleTable.(
-        (l, r) =>
-          Hashtbl.compare(
-            ~compare=
-              (x, y) =>
-                x.ast == y.ast
-                && x.raw == y.raw
-                && Hashtbl.compare(x.types, y.types),
-            l,
-            r,
-          )
-      ),
-    );
+  let module_table = testable(ModuleTable.pp, ModuleTable.compare);
 };
 
-let char = Alcotest.(check(Compare.input, "input matches"));
+let int_trio =
+  Alcotest.(check(Compare.trio(int, int, int), "int trio matches"));
 
-let cursor = Alcotest.(check(Compare.cursor, "cursor matches"));
+let input = Alcotest.(check(Compare.input, "input matches"));
 
-let graph = Alcotest.(check(Compare.graph, "graph matches"));
+let point = Alcotest.(check(Compare.point, "point matches"));
+
+let range = Alcotest.(check(Compare.range, "range matches"));
+
+let graph = Alcotest.(check(Compare.graph(Fmt.string), "graph matches"));
+
+let namespace_graph =
+  Alcotest.(
+    check(Compare.graph(Reference.Namespace.pp), "namespace graph matches")
+  );
+
+let raw_node = pp_value =>
+  Alcotest.(check(Compare.raw_node(pp_value), "raw node matches"));
+
+let node = pp_value =>
+  Alcotest.(check(Compare.node(pp_value), "node matches"));
+
+let type_ = Alcotest.(check(Compare.type_, "type matches"));
+
+let target = Alcotest.(check(Compare.target, "target matches"));
+let opt_target = Alcotest.(check(option(Compare.target), "target matches"));
+
+let lazy_stream = pp_value =>
+  Alcotest.(check(Compare.lazy_stream(pp_value), "lazy stream matches"));
 
 let namespace = Alcotest.(check(Compare.namespace, "namespace matches"));
 let list_namespace =
@@ -71,8 +104,14 @@ let module_table =
 
 let compile_errors =
   Alcotest.(
-    check(
-      testable(pp => Util.print_errs % Format.pp_print_string(pp), (==)),
-      "compile error matches",
-    )
+    check(testable(pp_dump_err_list, (==)), "compile error matches")
   );
+
+let throws_compile_errors = (expected, f) =>
+  switch (f()) {
+  | exception (CompileError(errs)) => compile_errors(expected, errs)
+
+  | _ =>
+    Fmt.str("expected compile error(s) %a", pp_dump_err_list, expected)
+    |> fail
+  };

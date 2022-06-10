@@ -13,97 +13,23 @@
     }
   },
   "buildDirs": {
-    "src/library": {
-      "require": [
-        "dolog",
-        "tablecloth-native",
-        "lwt",
-        "lwt.unix",
-        "ANSITerminal"
-      ],
-      "name": "knot.lib",
-      "namespace": "Knot"
-    },
-    "src/grammar": {
-      "require": [
-        "knot.parse"
-      ],
-      "name": "knot.grammar",
-      "namespace": "Grammar"
-    },
-    "src/file": {
-      "require": [
-        "knot.lib",
-        "fileutils",
-        "uutf",
-        "fswatch",
-        "fswatch_lwt"
-      ],
-      "name": "knot.file",
-      "namespace": "File"
-    },
-    "src/resolve": {
-      "require": [
-        "knot.file"
-      ],
-      "name": "knot.resolve",
-      "namespace": "Resolve"
-    },
-    "src/parse": {
-      "require": [
-        "knot.lib"
-      ],
-      "name": "knot.parse",
-      "namespace": "Parse"
-    },
-    "src/generate": {
-      "require": [
-        "knot.grammar"
-      ],
-      "name": "knot.generate",
-      "namespace": "Generate"
-    },
-    "src/compile": {
-      "require": [
-        "knot.file",
-        "knot.resolve",
-        "knot.generate"
-      ],
-      "name": "knot.compile",
-      "namespace": "Compile"
-    },
-    "src/language_server": {
-      "require": [
-        "knot.compile",
-        "yojson"
-      ],
-      "name": "knot.lang_server",
-      "namespace": "LanguageServer"
-    },
-    "src/executable": {
-      "require": [
-        "knot.compile",
-        "knot.lang_server",
-        "yaml"
-      ],
-      "name": "knot.exec",
-      "namespace": "Executable"
-    },
-    "src/cli": {
-      "require": [
-        "knot.exec"
-      ],
-      "main": "Main",
-      "name": "knotc.exe"
-    },
     "test/util": {
       "require": [
         "alcotest",
+        "alcotest-lwt",
         "lwt",
         "lwt.unix"
       ],
       "name": "knot.test",
       "namespace": "Test"
+    },
+    "test/pretty": {
+      "require": [
+        "knot.test",
+        "knot.lib"
+      ],
+      "name": "knot.pretty_test",
+      "namespace": "TestPretty"
     },
     "test/library": {
       "require": [
@@ -112,6 +38,15 @@
       ],
       "name": "knot.lib_test",
       "namespace": "TestLibrary"
+    },
+    "test/analyze": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.grammar"
+      ],
+      "name": "knot.analyze_test",
+      "namespace": "TestAnalyze"
     },
     "test/file": {
       "require": [
@@ -181,15 +116,36 @@
       "name": "knot.exec_test",
       "namespace": "TestExecutable"
     },
+    "test/language_server": {
+      "require": [
+        "knot.test",
+        "knot.resolve_test",
+        "knot.language_server"
+      ],
+      "name": "knot.language_server_test",
+      "namespace": "TestLanguageServer"
+    },
+    "test/build_server": {
+      "require": [
+        "knot.test",
+        "knot.resolve_test",
+        "knot.build_server"
+      ],
+      "name": "knot.build_server_test",
+      "namespace": "TestBuildServer"
+    },
     "test/unit": {
       "require": [
+        "knot.pretty_test",
         "knot.lib_test",
+        "knot.analyze_test",
         "knot.file_test",
         "knot.grammar_test",
         "knot.resolve_test",
         "knot.parse_test",
         "knot.generate_test",
         "knot.compile_test",
+        "knot.language_server_test",
         "knot.exec_test"
       ],
       "main": "TestSuite",
@@ -202,6 +158,155 @@
       ],
       "main": "TestSuite",
       "name": "IntegrationTests.exe"
+    },
+    "test/e2e": {
+      "require": [
+        "knot.file_test",
+        "knot.exec_test",
+        "knot.resource"
+      ],
+      "main": "TestSuite",
+      "name": "E2ETests.exe"
+    },
+    "src/pretty": {
+      "require": [
+        "ANSITerminal",
+        "fmt"
+      ],
+      "name": "knot.pretty",
+      "namespace": "Pretty"
+    },
+    "src/library": {
+      "require": [
+        "ANSITerminal",
+        "dolog",
+        "fmt",
+        "lwt",
+        "lwt.unix",
+        "tablecloth-native",
+        "knot.pretty"
+      ],
+      "name": "knot.lib",
+      "namespace": "Knot"
+    },
+    "src/jsonrpc": {
+      "require": [
+        "knot.lib",
+        "yojson"
+      ],
+      "name": "knot.jsonrpc",
+      "namespace": "JSONRPC"
+    },
+    "src/analyze": {
+      "require": [
+        "knot.parse"
+      ],
+      "name": "knot.analyze",
+      "namespace": "Analyze"
+    },
+    "src/grammar": {
+      "require": [
+        "knot.analyze"
+      ],
+      "name": "knot.grammar",
+      "namespace": "Grammar"
+    },
+    "src/file": {
+      "require": [
+        "knot.lib",
+        "fileutils",
+        "uutf",
+        "fswatch",
+        "fswatch_lwt"
+      ],
+      "name": "knot.file",
+      "namespace": "File"
+    },
+    "src/resolve": {
+      "require": [
+        "knot.file"
+      ],
+      "name": "knot.resolve",
+      "namespace": "Resolve"
+    },
+    "src/parse": {
+      "require": [
+        "knot.lib"
+      ],
+      "name": "knot.parse",
+      "namespace": "Parse"
+    },
+    "src/generate": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.generate",
+      "namespace": "Generate"
+    },
+    "src/compile": {
+      "require": [
+        "knot.file",
+        "knot.resolve",
+        "knot.generate"
+      ],
+      "name": "knot.compile",
+      "namespace": "Compile"
+    },
+    "src/language_server": {
+      "require": [
+        "knot.compile",
+        "knot.jsonrpc"
+      ],
+      "name": "knot.language_server",
+      "namespace": "LanguageServer"
+    },
+    "src/build_server": {
+      "require": [
+        "knot.compile",
+        "knot.jsonrpc"
+      ],
+      "name": "knot.build_server",
+      "namespace": "BuildServer"
+    },
+    "src/executable": {
+      "require": [
+        "knot.build_server",
+        "knot.language_server",
+        "yaml"
+      ],
+      "name": "knot.exec",
+      "namespace": "Executable"
+    },
+    "src/resource": {
+      "require": [
+        "knot.lib",
+        "dune-site"
+      ],
+      "name": "knot.resource",
+      "namespace": "Resource",
+      "rawBuildConfigFooter": [
+        "(install",
+        "  (package knot)",
+        "  (section (site (knot assets)))",
+        "  (files ",
+        "    (assets/stdlib.kd as stdlib.kd)",
+        "  )",
+        ")",
+        "(generate_sites_module",
+        "  (module Injected)",
+        "  (sites knot)",
+        "  (sourceroot)",
+        ")"
+      ]
+    },
+    "src/cli": {
+      "require": [
+        "knot.exec",
+        "knot.resource",
+        "dune-site"
+      ],
+      "main": "Main",
+      "name": "knotc.exe"
     }
   },
   "scripts": {
@@ -209,17 +314,23 @@
     "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
-    "test": "npm run test.unit && npm run test.integration && npm run test:e2e 1> /dev/null",
+    "test": "npm run test.unit && npm run test.integration && npm run test.e2e && npm run test.smoke 1> /dev/null",
     "test.unit": "esy x UnitTests.exe --show-errors",
-    "test.integration": "esy x IntegrationTests.exe --show-errors"
+    "test.integration": "esy x IntegrationTests.exe --show-errors",
+    "test.e2e": "esy x E2ETests.exe --show-errors",
+    "test.smoke": "esy x knotc.exe build -r ./test/smoke/.fixtures/project",
+    "test.smoke.debug": "npm run test:smoke -- -debug"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.2",
-    "@opam/alcotest": "1.2.3",
+    "@opam/alcotest": "1.5.0",
+    "@opam/alcotest-lwt": "1.5.0",
     "@opam/dolog": "6.0.0",
-    "@opam/dune": ">=1.6.0",
+    "@opam/dune": "3.2.0",
+    "@opam/dune-site": "3.2.0",
     "@opam/fileutils": "0.6.3",
+    "@opam/fmt": "0.8.9",
     "@opam/fswatch": "11-0.1.0",
     "@opam/fswatch_lwt": "11-0.1.0",
     "@opam/lwt": "5.4.0",

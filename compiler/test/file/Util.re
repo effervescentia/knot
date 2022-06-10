@@ -3,7 +3,7 @@ open Kore;
 include TestLibrary.Util;
 
 let temp_file_name = (name, ext) =>
-  Print.fmt("%s_%f.%s", name, Sys.time(), ext);
+  Fmt.str("%s_%f.%s", name, Sys.time(), ext);
 
 let get_temp_dir = () =>
   Filename.concat(
@@ -11,16 +11,16 @@ let get_temp_dir = () =>
     Sys.time() |> string_of_float,
   );
 
-let write_to_file = (path, s) => {
+let write_to_file = (s, path) => {
   let out = open_out(path);
-  Print.fprintf(out, "%s", s);
+  Printf.fprintf(out, "%s", s);
 
   close_out(out);
 };
 
-let append_to_file = (path, s) => {
-  let out = open_out_gen([Open_append], 0o666, path);
-  Print.fprintf(out, "%s", s);
+let append_to_file = (s, path) => {
+  let out = open_out_gen([Open_creat, Open_append, Open_text], 0o666, path);
+  Printf.fprintf(out, "%s", s);
 
   close_out(out);
 };

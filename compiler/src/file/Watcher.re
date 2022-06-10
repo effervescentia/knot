@@ -7,19 +7,36 @@ open Lwt;
  */
 type t = {
   dir: string,
-  extensions: list(string),
+  driver: FilesystemDriver.t,
 };
 
-type action_t =
-  | Add
-  | Remove
-  | Update
-  | Relocate;
+type dispatch_t = list((string, FilesystemDriver.action_t)) => unit;
 
-type dispatch_t = list((string, action_t)) => unit;
+let _flag_to_string: Fswatch.Event.flag => string =
+  Fswatch.Event.(
+    fun
+    | NoOp => "NoOp"
+    | PlatformSpecific => "PlatformSpecific"
+    | Created => "Created"
+    | Updated => "Updated"
+    | Removed => "Removed"
+    | Renamed => "Renamed"
+    | OwnerModified => "OwnerModified"
+    | AttributeModified => "AttributeModified"
+    | MovedFrom => "MovedFrom"
+    | MovedTo => "MovedTo"
+    | IsFile => "IsFile"
+    | IsDir => "IsDir"
+    | IsSymLink => "IsSymLink"
+    | Link => "Link"
+    | Overflow => "Overflow"
+  );
 
-let _ext_matches = (path: string, watcher: t): bool =>
-  watcher.extensions |> List.exists(ext => String.ends_with(ext, path));
+let _drop_platform_prefix =
+  switch (Platform.get()) {
+  | Darwin => String.drop_prefix("/private")
+  | _ => Fun.id
+  };
 
 let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
   Lwt_mvar.take(msgBox)
@@ -30,52 +47,31 @@ let rec _listen = (dispatch: dispatch_t, watcher: t, msgBox) =>
       |> List.filter_map(
            Event.(
              event => {
-               let path = event.path |> String.drop_prefix(watcher.dir);
+               let path = _drop_platform_prefix(event.path);
+               let path = path |> Filename.relative_to(watcher.dir);
+               let path = path == "" ? "." : path;
 
-               (
-                 switch (event.flags) {
-                 | flags when !Array.mem(IsFile, flags) => None
-                 | flags when !(watcher |> _ext_matches(event.path)) => None
-                 | flags when Array.mem(Created, flags) => Some(Add)
-                 | flags when Array.mem(Updated, flags) => Some(Update)
-                 | flags when Array.mem(Removed, flags) => Some(Remove)
-                 | flags
-                     when
-                       [Renamed, MovedFrom, MovedTo]
-                       |> List.exists(flag => Array.mem(flag, flags)) =>
-                   Some(Relocate)
-                 | _ => Some(Update)
-                 }
-               )
-               |> (
-                 fun
-                 | Some(action) => Some((path, action))
-                 | None => None
-               );
+               watcher.driver(event.path, event.flags)
+               |?> Tuple.with_fst2(path);
              }
            ),
          )
       |> dispatch;
 
-      /*
-        TODO: might have to change this back to stdout
-        the thinking is that all log messages are written to stderr so shouldn't have
-        anything to flush on stdout
-       */
-      flush(stderr);
+      flush(stdout);
       _listen(dispatch, watcher, msgBox);
     }
   );
 
 /* static */
 
-let create = (dir: string, extensions: list(string)) => {
+let create = (dir: string) => {
   switch (init_library()) {
   | Status.FSW_OK => ()
   | status => raise(WatchFailed(Status.t_to_string(status)))
   };
 
-  {dir, extensions};
+  {dir, driver: FilesystemDriver.create()};
 };
 
 /* methods */

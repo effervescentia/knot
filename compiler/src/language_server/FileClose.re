@@ -1,19 +1,15 @@
 open Kore;
-open Deserialize;
-open Yojson.Basic.Util;
 
-type params_t = {text_document: text_document_t};
+type params_t = {text_document: Protocol.text_document_t};
 
-let notification =
-  notification(json => {
-    let text_document = json |> get_text_document;
+let method_key = "textDocument/didClose";
 
-    {text_document: text_document};
-  });
+let deserialize = json => {
+  let text_document = Deserialize.text_document(json);
 
-let handler =
-    (
-      runtime: Runtime.t,
-      {params: {text_document: {uri}}}: notification_t(params_t),
-    ) =>
-  runtime |> Runtime.purge_module(uri);
+  {text_document: text_document};
+};
+
+let handler: Runtime.notification_handler_t(params_t) =
+  (runtime, {text_document: {uri}}) =>
+    runtime |> Runtime.purge_module(uri);

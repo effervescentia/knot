@@ -1,18 +1,35 @@
 open Kore;
 
+let _import_named = (ctx, import) =>
+  fun
+  | (((id, _), None), range) =>
+    ctx |> import((Reference.Export.Named(id), range), id)
+
+  | (((id, _), Some(label)), range) =>
+    ctx |> import((Reference.Export.Named(id), range), NR.get_value(label));
+
+let _import_module = (ctx, imports, import) =>
+  imports
+  |> List.iter(
+       fun
+       | (A.MainImport((alias, _)), range) =>
+         ctx |> import((Reference.Export.Main, range), alias)
+
+       | (A.NamedImport(id, alias), range) =>
+         _import_named(ctx, import, ((id, alias), range)),
+     );
+
 let namespace = imports =>
   M.string
-  >|= Block.value
-  >|= Reference.Namespace.of_string
+  >|= NR.map_value(Reference.Namespace.of_string)
   >|= (namespace => (namespace, imports));
 
 let main_import =
   M.identifier
-  >|= Tuple.split2(Block.value % AST.of_public, Block.cursor)
-  >|= AST.of_main_import
-  >|= (x => [x]);
+  >|= NR.map_value(A.of_public)
+  >|= (import => [import |> NR.wrap(A.of_main_import)]);
 
-let named_import = (ctx: Context.t) =>
+let named_imports = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
@@ -21,29 +38,62 @@ let named_import = (ctx: Context.t) =>
   <|> (Identifier.parser(ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= Block.value
-  >|= List.map(AST.of_named_import);
+  >|= NR.map_value(
+        List.map(((name, label) as import) =>
+          (
+            import,
+            NR.(
+              Range.join(
+                get_range(name),
+                label |?> get_range |?: get_range(name),
+              )
+            ),
+          )
+        ),
+      );
 
-let parser = (ctx: Context.t) =>
+let module_import = (ctx: ModuleContext.t) =>
   Keyword.import
-  >> (choice([main_import, named_import(ctx)]) |> M.comma_sep)
-  >|= List.flatten
-  << Keyword.from
-  >>= namespace
-  >@= (
-    ((namespace, imports)) =>
-      imports
-      |> List.iter(
-           AST.(
-             fun
-             | MainImport((alias, cursor)) =>
-               ctx |> Context.import(namespace, (Main, cursor), alias)
-             | NamedImport((id, cursor), None) =>
-               ctx |> Context.import(namespace, (Named(id), cursor), id)
-             | NamedImport((id, cursor), Some((label, _))) =>
-               ctx |> Context.import(namespace, (Named(id), cursor), label)
-           ),
-         )
-  )
-  >|= AST.of_import
-  |> M.terminated;
+  >>= NR.get_range
+  % (
+    start =>
+      choice([
+        main_import,
+        named_imports(ctx)
+        >|= NR.get_value
+        >|= List.map(NR.map_value(A.of_named_import)),
+      ])
+      |> M.comma_sep
+      >|= List.flatten
+      << Keyword.from
+      >>= namespace
+      >@= (
+        (((namespace, _), imports)) =>
+          namespace |> ModuleContext.import |> _import_module(ctx, imports)
+      )
+      >|= (
+        ((namespace, imports)) => (
+          (NR.get_value(namespace), imports) |> A.of_import,
+          Range.join(start, NR.get_range(namespace)),
+        )
+      )
+  );
+
+let standard_import = (ctx: ModuleContext.t) =>
+  Keyword.import
+  >>= NR.get_range
+  % (
+    start =>
+      named_imports(ctx)
+      >@= NR.get_value
+      % List.iter(_import_named(ctx, ModuleContext.import(Stdlib)))
+      >|= (
+        ((imports, imports_range)) => (
+          A.of_standard_import(imports),
+          Range.join(start, imports_range),
+        )
+      )
+  );
+
+let parser = (ctx: ModuleContext.t) =>
+  choice([module_import(ctx), standard_import(ctx)]) |> M.terminated;

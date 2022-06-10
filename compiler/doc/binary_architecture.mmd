@@ -1,0 +1,53 @@
+flowchart TD
+  %% file
+  subgraph knot.file
+    Watcher
+  end
+  Watcher --> Watch
+
+  %% compile
+  subgraph knot.compile
+    Compiler
+  end
+  Compiler --> Build
+  Compiler --> Format
+  Compiler --> Runtime
+  Compiler --> Watch
+
+  %% language_server
+  subgraph knot.language_server
+    subgraph event_handlers
+      Initialize
+      CodeCompletion
+      GoToDefinition
+      Hover
+      LocalSymbols
+      WorkspaceSymbols
+    end
+    Server
+    Runtime
+
+    Runtime --> Server
+    event_handlers --> Server
+  end
+  Server --> LangServe
+
+  %% exec
+  subgraph knot.exec
+    subgraph commands
+      Watch
+      Format
+      Build
+      Lint
+      Bundle
+      DevServe
+      LangServe
+      BuildServe
+    end
+  end
+  commands --> knot
+
+  %% cli
+  subgraph knot
+    Main
+  end

@@ -1,0 +1,9 @@
+target: javascript-common
+root_dir: root
+source_dir: lib
+out_dir: out
+entry: index.kn
+fail_fast: true
+log_imports: true
+fix: true
+port: 1338

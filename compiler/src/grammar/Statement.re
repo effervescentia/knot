@@ -1,12 +1,30 @@
 open Kore;
 
-let variable = (ctx: Context.t, expr) =>
+let variable =
+    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    : statement_parser_t =>
   Keyword.let_
-  >> Operator.assign(Identifier.parser(ctx), expr(ctx))
-  >@= ((((id, _), (_, t, _))) => ctx.scope |> Scope.define(id, t))
-  >|= AST.of_var;
+  >|= NR.get_range
+  >>= (
+    start_range =>
+      Operator.assign(Identifier.parser(ctx), parse_expr(ctx))
+      >|= (
+        ((_, expr) as var) =>
+          N.create(
+            AR.of_var(var),
+            TR.(`Nil),
+            Range.join(start_range, N.get_range(expr)),
+          )
+      )
+  );
 
-let expression = (ctx: Context.t, expr) => expr(ctx) >|= AST.of_expr;
+let expression =
+    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    : statement_parser_t =>
+  parse_expr(ctx) >|= N.wrap(AR.of_expr);
 
-let parser = (ctx: Context.t, expr) =>
-  choice([variable(ctx, expr), expression(ctx, expr)]) |> M.terminated;
+let parser =
+    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    : statement_parser_t =>
+  choice([variable(ctx, parse_expr), expression(ctx, parse_expr)])
+  |> M.terminated;

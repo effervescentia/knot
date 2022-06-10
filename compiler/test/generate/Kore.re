@@ -1,3 +1,3 @@
 include Knot.Kore;
-include AST;
+include ModuleAliases;
 include Test.Infix;

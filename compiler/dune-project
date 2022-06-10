@@ -1,2 +1,8 @@
-(lang dune 1.6)
- (name knot)
+(lang dune 3.2)
+(using dune_site 0.1)
+(name knot)
+
+(package
+  (name knot)
+  (sites (share res) (share assets))
+)

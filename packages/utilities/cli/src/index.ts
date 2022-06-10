@@ -6,7 +6,7 @@ import {
   bundlerPrompt,
   frameworkPrompt,
   httpsPrompt,
-  projectNamePrompt
+  projectNamePrompt,
 } from './prompts';
 import { scaffoldProject } from './scaffold';
 
@@ -15,8 +15,9 @@ const program = new Command('knot');
 program.version(pkg.version);
 
 program
-  .command('init [target_dir]')
+  .command('init')
   .description('Setup a new knot project')
+  .argument('[target_dir]', 'directory to generate a knot project in', '.')
   .action(async (targetDir = '.') => {
     const { frameworkType } = await frameworkPrompt();
     const { bundlerType } = await bundlerPrompt(frameworkType);
@@ -34,12 +35,12 @@ program
       projectName,
       frameworkType,
       bundlerType,
-      targetDir
+      targetDir,
     });
   });
 
-program.parse(process.argv);
-
-if (!program.args.length) {
+if (process.argv.length === 2) {
   program.help();
 }
+
+program.parse(process.argv);

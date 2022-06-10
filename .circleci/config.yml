@@ -207,6 +207,9 @@ commands:
           from: common
           to: plugins/common
       - restore_pkg:
+          from: runtime
+          to: plugins/runtime
+      - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
       - restore_pkg:
@@ -230,7 +233,7 @@ jobs:
   install_node:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -252,6 +255,7 @@ jobs:
             - packages/plugins/bundler/rollup/node_modules
             - packages/plugins/bundler/browserify/node_modules
             - packages/plugins/common/node_modules
+            - packages/plugins/runtime/node_modules
             - packages/plugins/compiler/browser/node_modules
             - packages/plugins/compiler/jss/node_modules
             - packages/plugins/compiler/react/node_modules
@@ -267,7 +271,7 @@ jobs:
   test_compiler_binary:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -281,7 +285,9 @@ jobs:
           command: |
             sudo apt update
             sudo apt install fswatch
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/x86_64-linux-gnu/libfswatch.so
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
+            sudo ldconfig
       - compiler_install
       - run:
           name: Build
@@ -307,15 +313,22 @@ jobs:
       - persist:
           from: compiler/_esy/default/store/i/knot-*
           to: knot
+      - store_artifacts:
+          path: ~/project/compiler/_build/_tests
 
   test_compiler:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: runtime
+          to: plugins/runtime
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
@@ -323,7 +336,7 @@ jobs:
   test_cli:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -335,7 +348,7 @@ jobs:
   test_common:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -344,10 +357,22 @@ jobs:
           pkg: common
           path: packages/plugins/common
 
+  test_runtime:
+    executor:
+      name: node/default
+      tag: 17.6.0
+    environment:
+      NODE_OPTIONS: --max_old_space_size=4096
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: runtime
+          path: packages/plugins/runtime
+
   test_plugin_utils:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -359,7 +384,7 @@ jobs:
   test_browser_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -371,7 +396,7 @@ jobs:
   test_react_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -391,7 +416,7 @@ jobs:
   test_vue_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -411,7 +436,7 @@ jobs:
   test_jss_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -423,7 +448,7 @@ jobs:
   test_webpack_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -434,7 +459,7 @@ jobs:
   test_browserify_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -445,7 +470,7 @@ jobs:
   test_rollup_plugin:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -551,7 +576,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: '11.0.0'
+      xcode: "11.0.0"
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -581,7 +606,7 @@ jobs:
   compile_linux:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -602,7 +627,7 @@ jobs:
   release:
     executor:
       name: node/default
-      tag: 15.9.0
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -630,8 +655,12 @@ workflows:
     jobs:
       - install_node
       - test_compiler_binary
+      - test_runtime:
+          requires:
+            - install_node
       - test_compiler:
           requires:
+            - test_runtime
             - install_node
       - test_cli:
           requires:
