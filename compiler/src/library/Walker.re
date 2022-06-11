@@ -48,6 +48,16 @@ and iter_decl = f =>
         (props |> List.filter_map(arg => Node.get_value(arg).default))
         @ [expr]
         |> List.iter(_bind_expr(f))
+      | Style(props, rule_sets) =>
+        (props |> List.filter_map(arg => Node.get_value(arg).default))
+        @ (
+          rule_sets
+          |> List.map(
+               Node.Raw.get_value % snd % List.map(Node.Raw.get_value % snd),
+             )
+          |> List.flatten
+        )
+        |> List.iter(_bind_expr(f))
     )
 
 and iter_stmt = f =>
@@ -130,7 +140,7 @@ and iter_jsx_attr = f =>
   Node.Raw.get_value
   % AST.(
       fun
-      | Class(_, Some(x))
-      | Property(_, Some(x)) => _bind_expr(f, x)
+      | Property(_, Some(x))
+      | Class(_, Some(x)) => _bind_expr(f, x)
       | _ => ()
     );

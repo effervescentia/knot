@@ -51,6 +51,7 @@ let handler: Runtime.request_handler_t(params_t) =
                     decl,
                   ) => {
                     let range = Node.Raw.get_range(name);
+                    let full_range = Range.join(range, Node.get_range(decl));
                     let name = name |> Node.Raw.get_value |> ~@Identifier.pp;
                     let type_ = Node.get_type(decl);
 
@@ -60,24 +61,28 @@ let handler: Runtime.request_handler_t(params_t) =
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
-                          full_range:
-                            Range.join(range, Node.get_range(expr)),
+                          full_range,
                           kind: Capabilities.Variable,
                         }
                       | Function(args, expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
-                          full_range:
-                            Range.join(range, Node.get_range(expr)),
+                          full_range,
                           kind: Capabilities.Function,
                         }
                       | View(props, expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
-                          full_range:
-                            Range.join(range, Node.get_range(expr)),
+                          full_range,
+                          kind: Capabilities.Function,
+                        }
+                      | Style(args, rule_sets) => {
+                          name,
+                          detail: type_ |> ~@Type.pp,
+                          range,
+                          full_range,
                           kind: Capabilities.Function,
                         }
                       },

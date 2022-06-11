@@ -39,6 +39,15 @@ let _assert_view = (expected, actual) =>
       actual |> Tuple.join3(Generator.gen_view),
     )
   );
+let _assert_style = (expected, actual) =>
+  Alcotest.(
+    check(
+      Assert.Compare.statement(Target.Common),
+      "javascript style matches",
+      expected,
+      actual |> Tuple.join3(Generator.gen_style),
+    )
+  );
 
 let __variable_declaration =
   ("fooBar" |> A.of_public |> U.as_raw_node, U.int_prim(123)) |> A.of_var;
@@ -246,6 +255,67 @@ let suite =
             ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,
+          ),
+        )
+    ),
+    "style - property with default value"
+    >: (
+      () =>
+        _assert_style(
+          Expression(
+            Function(
+              Some("foo"),
+              ["$props$"],
+              [
+                Variable(
+                  "bar",
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "platform"),
+                      "prop",
+                    ),
+                    [Identifier("$props$"), String("bar"), Number("123")],
+                  ),
+                ),
+                Return(
+                  Some(
+                    Object([
+                      (".fizz", Object([("height", Number("2"))])),
+                      ("#buzz", Object([("width", Number("10"))])),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          (
+            "foo" |> A.of_public |> U.as_raw_node,
+            [
+              A.{
+                name: "bar" |> A.of_public |> U.as_raw_node,
+                default: Some(U.int_prim(123)),
+                type_: None,
+              }
+              |> U.as_nil,
+            ],
+            [
+              (
+                A.Class("fizz" |> A.of_public |> U.as_raw_node),
+                [
+                  ("height" |> A.of_public |> U.as_raw_node, U.int_prim(2))
+                  |> U.as_raw_node,
+                ],
+              )
+              |> U.as_raw_node,
+              (
+                A.ID("buzz" |> A.of_public |> U.as_raw_node),
+                [
+                  ("width" |> A.of_public |> U.as_raw_node, U.int_prim(10))
+                  |> U.as_raw_node,
+                ],
+              )
+              |> U.as_raw_node,
+            ],
           ),
         )
     ),

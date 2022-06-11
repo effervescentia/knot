@@ -128,36 +128,34 @@ and of_stmt =
     )
   | A.Expression(expr) => expr |> of_expr |> _wrap(N.get_range(expr));
 
+let of_args = args =>
+  args
+  |> _fold(
+       N.get_value
+       % (
+         (A.{name, default}) => {
+           ...name |> Tuple.join2(of_untyped_id),
+           right: default |?> of_expr,
+         }
+       ),
+     );
+
 let of_decl =
   fun
   | A.Constant(expr) => expr |> of_expr |> _wrap(N.get_range(expr))
   | A.Function(args, expr) =>
-    _join(
-      args
-      |> _fold(
-           N.get_value
-           % (
-             (A.{name, default}) => {
-               ...name |> Tuple.join2(of_untyped_id),
-               right: default |?> of_expr,
-             }
-           ),
-         ),
-      expr |> of_expr |> _wrap(N.get_range(expr)),
-    )
+    _join(of_args(args), expr |> of_expr |> _wrap(N.get_range(expr)))
   | A.View(props, expr) =>
+    _join(of_args(props), expr |> of_expr |> _wrap(N.get_range(expr)))
+  | A.Style(args, rule_sets) =>
     _join(
-      props
-      |> _fold(
-           N.get_value
-           % (
-             (A.{name, default}) => {
-               ...name |> Tuple.join2(of_untyped_id),
-               right: default |?> of_expr,
-             }
-           ),
-         ),
-      expr |> of_expr |> _wrap(N.get_range(expr)),
+      of_args(args),
+      rule_sets
+      |> List.map(
+           NR.get_value % snd % List.map(NR.get_value % snd % of_expr),
+         )
+      |> List.flatten
+      |> of_list,
     );
 
 let of_import =

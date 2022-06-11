@@ -126,16 +126,15 @@ and pp_jsx_attr: Fmt.t(A.raw_jsx_attribute_t) =
         "%a%a",
         ppf =>
           fun
+          | A.Property(name, _) => name |> NR.get_value |> Identifier.pp(ppf)
           | A.Class(name, _) =>
             pf(ppf, ".%a", Identifier.pp, NR.get_value(name))
-          | A.ID(name) => pf(ppf, "#%a", Identifier.pp, NR.get_value(name))
-          | A.Property(name, _) =>
-            name |> NR.get_value |> Identifier.pp(ppf),
+          | A.ID(name) => pf(ppf, "#%a", Identifier.pp, NR.get_value(name)),
         attr,
         ppf =>
           fun
-          | A.Class(_, Some(expr))
-          | A.Property(_, Some(expr)) =>
+          | A.Property(_, Some(expr))
+          | A.Class(_, Some(expr)) =>
             expr |> N.get_value |> pf(ppf, "=%a", pp_jsx_attr_expr)
           | _ => nop(ppf, ()),
         attr,
@@ -247,6 +246,34 @@ let pp_function_arg: Fmt.t(A.raw_argument_t) =
       default,
     );
 
+let pp_style_matcher: Fmt.t(A.style_matcher_t) =
+  ppf =>
+    fun
+    | Class(id) => Fmt.pf(ppf, ".%a", Identifier.pp, Node.Raw.get_value(id))
+    | ID(id) => Fmt.pf(ppf, "#%a", Identifier.pp, Node.Raw.get_value(id));
+
+let pp_style_rule: Fmt.t(A.raw_style_rule_t) =
+  (ppf, (key, value)) =>
+    Fmt.(
+      pf(
+        ppf,
+        "%a;",
+        attribute(Identifier.pp, pp_expression),
+        (Node.Raw.get_value(key), Node.get_value(value)),
+      )
+    );
+
+let pp_style_rule_set: Fmt.t(A.raw_style_rule_set_t) =
+  (ppf, (matcher, rules)) =>
+    Fmt.(
+      entity(
+        pp_style_matcher,
+        pp_style_rule,
+        ppf,
+        (matcher, rules |> List.map(Node.Raw.get_value)),
+      )
+    );
+
 let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
   (ppf, (name, decl)) =>
     switch (decl) {
@@ -305,6 +332,31 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
           props |> List.map(N.get_value),
           pp_function_body,
           N.get_value(expr),
+        )
+      )
+
+    | Style([], rule_sets) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>style %a -> %a@]",
+          Identifier.pp,
+          name,
+          closure(pp_style_rule_set),
+          rule_sets |> List.map(Node.Raw.get_value),
+        )
+      )
+    | Style(props, rule_sets) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>style @[<h>%a(%a)@] -> %a@]",
+          Identifier.pp,
+          name,
+          list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
+          props |> List.map(N.get_value),
+          closure(pp_style_rule_set),
+          rule_sets |> List.map(Node.Raw.get_value),
         )
       )
     };

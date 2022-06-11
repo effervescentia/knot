@@ -370,12 +370,81 @@ let gen_view =
     )
   );
 
+let gen_style =
+    (
+      name: A.identifier_t,
+      args: list(A.argument_t),
+      rule_sets: list(A.style_rule_set_t),
+    ) =>
+  JavaScript_AST.(
+    Expression(
+      Function(
+        Some(name |> NR.get_value |> ~@Identifier.pp),
+        [__view_props],
+        (
+          args
+          |> List.map(N.get_value)
+          |> List.mapi((index, A.{name, default}) => {
+               let id = name |> NR.get_value |> ~@Identifier.pp;
+
+               Variable(
+                 id,
+                 FunctionCall(
+                   __knot_prop,
+                   [Identifier(__view_props), String(id)]
+                   @ (
+                     default
+                     |?> (x => [x |> N.get_value |> gen_expression])
+                     |?: []
+                   ),
+                 ),
+               );
+             })
+        )
+        @ [
+          Return(
+            Object(
+              rule_sets
+              |> List.map(
+                   NR.get_value
+                   % (
+                     ((matcher, rules)) => (
+                       switch (matcher) {
+                       | A.Class(id) =>
+                         id |> NR.get_value |> Fmt.str(".%a", Identifier.pp)
+                       | A.ID(id) =>
+                         id |> NR.get_value |> Fmt.str("#%a", Identifier.pp)
+                       },
+                       Object(
+                         rules
+                         |> List.map(
+                              NR.get_value
+                              % (
+                                ((key, value)) => (
+                                  key |> NR.get_value |> ~@Identifier.pp,
+                                  value |> N.get_value |> gen_expression,
+                                )
+                              ),
+                            ),
+                       ),
+                     )
+                   ),
+                 ),
+            )
+            |> Option.some,
+          ),
+        ],
+      ),
+    )
+  );
+
 let gen_declaration = (name: A.identifier_t, decl: A.declaration_t) =>
   (
     switch (N.get_value(decl)) {
     | Constant(value) => [gen_constant(name, value)]
     | Function(args, expr) => [gen_function(name, args, expr)]
     | View(props, expr) => [gen_view(name, props, expr)]
+    | Style(args, rule_sets) => [gen_style(name, args, rule_sets)]
     }
   )
   @ (

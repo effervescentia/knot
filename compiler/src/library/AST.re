@@ -677,6 +677,16 @@ include Make({
     Common.Dump.node_to_entity(Type.pp, ~attributes, ~children, label, node);
 });
 
+type style_matcher_t =
+  | Class(identifier_t)
+  | ID(identifier_t);
+
+type style_rule_t = Node.Raw.t(raw_style_rule_t)
+and raw_style_rule_t = (identifier_t, expression_t);
+
+type style_rule_set_t = Node.Raw.t(raw_style_rule_set_t)
+and raw_style_rule_set_t = (style_matcher_t, list(style_rule_t));
+
 /**
  a declaration AST node
  */
@@ -687,7 +697,8 @@ type declaration_t = node_t(raw_declaration_t)
 and raw_declaration_t =
   | Constant(expression_t)
   | Function(list(argument_t), expression_t)
-  | View(list(argument_t), expression_t);
+  | View(list(argument_t), expression_t)
+  | Style(list(argument_t), list(style_rule_set_t));
 
 /**
  a stdlib import AST node
@@ -740,6 +751,7 @@ let of_named_export = x => NamedExport(x);
 let of_const = x => Constant(x);
 let of_func = ((args, expr)) => Function(args, expr);
 let of_view = ((props, expr)) => View(props, expr);
+let of_style = ((args, rule_sets)) => Style(args, rule_sets);
 
 let of_standard_import = imports => StandardImport(imports);
 let of_import = ((namespace, imports)) => Import(namespace, imports);
@@ -754,6 +766,11 @@ module Dump = {
     fun
     | MainExport(id) => id_to_entity("MainExport", id)
     | NamedExport(id) => id_to_entity("NamedExport", id);
+
+  let style_matcher_to_entity =
+    fun
+    | Class(id) => id_to_entity("ClassMatcher", id)
+    | ID(id) => id_to_entity("IDMatcher", id);
 
   let argument_to_entity = (label, arg) => {
     let {name, default, type_} = Node.get_value(arg);
@@ -806,6 +823,50 @@ module Dump = {
             Entity.create(~children=[expr_to_entity(expr)], "Body"),
           ],
           "View",
+          decl,
+        )
+
+      | Style(props, rule_sets) =>
+        typed_node_to_entity(
+          ~children=[
+            Entity.create(
+              ~children=props |> List.map(argument_to_entity("Property")),
+              "Properties",
+            ),
+            Entity.create(
+              ~children=
+                rule_sets
+                |> List.map((((matcher, rules), _) as rule_set) =>
+                     untyped_node_to_entity(
+                       ~children=[
+                         style_matcher_to_entity(matcher),
+                         Entity.create(
+                           ~children=
+                             rules
+                             |> List.map((((key, value), _) as rule) =>
+                                  untyped_node_to_entity(
+                                    ~children=[
+                                      id_to_entity("Key", key),
+                                      Entity.create(
+                                        ~children=[expr_to_entity(value)],
+                                        "Value",
+                                      ),
+                                    ],
+                                    "Rule",
+                                    rule,
+                                  )
+                                ),
+                           "Rules",
+                         ),
+                       ],
+                       "RuleSet",
+                       rule_set,
+                     )
+                   ),
+              "RuleSets",
+            ),
+          ],
+          "Style",
           decl,
         )
       };

@@ -102,6 +102,12 @@ let handler: Runtime.request_handler_t(params_t) =
                                      range,
                                      kind: Capabilities.Function,
                                    }
+                                 | Style(args, rule_sets) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Function,
+                                   }
                                  },
                                );
                              }

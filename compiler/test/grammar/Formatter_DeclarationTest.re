@@ -126,6 +126,45 @@ let __multiline_view = (
   |> A.of_view,
 );
 
+let __style = (
+  "foo" |> A.of_public,
+  (
+    [
+      A.{
+        name: "bar" |> A.of_public |> U.as_raw_node,
+        default: None,
+        type_: None,
+      }
+      |> U.as_int,
+      A.{
+        name: "fizz" |> A.of_public |> U.as_raw_node,
+        default: Some(3 |> U.int_prim),
+        type_: None,
+      }
+      |> U.as_int,
+    ],
+    [
+      (
+        A.ID("hero" |> A.of_public |> U.as_raw_node),
+        [
+          ("width" |> A.of_public |> U.as_raw_node, U.int_prim(10))
+          |> U.as_raw_node,
+        ],
+      )
+      |> U.as_raw_node,
+      (
+        A.Class("button" |> A.of_public |> U.as_raw_node),
+        [
+          ("height" |> A.of_public |> U.as_raw_node, U.int_prim(2))
+          |> U.as_raw_node,
+        ],
+      )
+      |> U.as_raw_node,
+    ],
+  )
+  |> A.of_style,
+);
+
 let _assert_declaration = (expected, actual) =>
   Assert.string(expected, actual |> ~@Fmt.root(pp_declaration));
 let _assert_declaration_list = (expected, actual) =>
@@ -184,6 +223,21 @@ let suite =
   </>;
 }",
           __multiline_view,
+        )
+    ),
+    "pp_declaration() - style"
+    >: (
+      () =>
+        _assert_declaration(
+          "style foo(bar, fizz = 3) -> {
+  #hero {
+    width: 10;
+  }
+  .button {
+    height: 2;
+  }
+}",
+          __style,
         )
     ),
     "pp_declaration_list() - empty"
