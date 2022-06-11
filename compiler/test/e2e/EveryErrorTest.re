@@ -294,6 +294,30 @@ let suite =
               Reference.Namespace.of_internal("main"),
               Range.create((1, 10), (1, 21)),
             ),
+            ParseError(
+              TypeError(
+                ExternalNotFound(
+                  Reference.Namespace.of_internal("private"),
+                  Reference.Export.Named(
+                    Reference.Identifier.of_string("_HIDDEN"),
+                  ),
+                ),
+              ),
+              Reference.Namespace.of_internal("main"),
+              Range.create((2, 10), (2, 16)),
+            ),
+            ParseError(
+              TypeError(
+                ExternalNotFound(
+                  Reference.Namespace.of_internal("private"),
+                  Reference.Export.Named(
+                    Reference.Identifier.of_string("_MAIN_ONLY"),
+                  ),
+                ),
+              ),
+              Reference.Namespace.of_internal("main"),
+              Range.create((3, 10), (3, 19)),
+            ),
           ],
           errors^,
         );

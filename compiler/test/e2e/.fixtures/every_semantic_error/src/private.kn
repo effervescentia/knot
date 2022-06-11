@@ -1,0 +1,3 @@
+const _HIDDEN = "not exported";
+
+main const _MAIN_ONLY = "only main export";
