@@ -67,7 +67,8 @@ let dot_access = {
   loop;
 };
 
-let function_call = (parse_expr: expression_parser_t) => {
+let function_call =
+    (parse_term: expression_parser_t, parse_expr: expression_parser_t) => {
   let rec loop = expr =>
     parse_expr
     |> M.comma_sep
@@ -87,8 +88,20 @@ let function_call = (parse_expr: expression_parser_t) => {
     )
     |> option(expr);
 
-  loop;
+  parse_term >>= loop;
 };
+
+let unary_op =
+    (ctx: ModuleContext.t, parse_expr: expression_parser_t)
+    : expression_parser_t =>
+  M.unary_op(
+    parse_expr,
+    choice([
+      Operator.not(ctx),
+      Operator.positive(ctx),
+      Operator.negative(ctx),
+    ]),
+  );
 
 /*
   each expression has a precedence denoted by its suffix
@@ -134,19 +147,12 @@ and expr_6 = (ctx: ModuleContext.t): expression_parser_t =>
 
 /* !, +, - */
 and expr_7 = (ctx: ModuleContext.t): expression_parser_t =>
-  M.unary_op(
-    expr_8(ctx),
-    choice([
-      Operator.not(ctx),
-      Operator.positive(ctx),
-      Operator.negative(ctx),
-    ]),
-  )
+  unary_op(ctx, expr_8(ctx))
 
 /* foo(bar) */
 and expr_8 = (ctx: ModuleContext.t): expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
-  input => (expr_9(ctx) >>= (expr_0(ctx) |> function_call))(input)
+  input => (function_call(expr_9(ctx), expr_0(ctx)))(input)
 
 /* foo.bar */
 and expr_9 = (ctx: ModuleContext.t): expression_parser_t =>
@@ -158,8 +164,12 @@ and expr_10 = (ctx: ModuleContext.t): expression_parser_t =>
   input =>
     choice([closure(ctx, expr_0), expr_0(ctx) |> group, term(ctx)], input)
 
+and jsx_term = (ctx: ModuleContext.t): expression_parser_t =>
+  /* skip dot access to avoid conflict with class attribute syntax */
+  unary_op(ctx, function_call(expr_10(ctx), expr_0(ctx)))
+
 /* 2, foo, <bar /> */
 and term = (ctx: ModuleContext.t): expression_parser_t =>
-  choice([primitive, identifier(ctx), jsx(ctx, (expr_4, expr_0))]);
+  choice([primitive, identifier(ctx), jsx(ctx, (jsx_term, expr_0))]);
 
 let parser = expr_0;

@@ -9,7 +9,7 @@ module Assert =
     type t = NR.t(AR.jsx_t);
 
     let parser = ((_, ctx)) =>
-      JSX.parser(ctx, (Expression.expr_4, Expression.parser))
+      JSX.parser(ctx, (Expression.jsx_term, Expression.parser))
       |> Assert.parse_completely
       |> Parser.parse;
 
@@ -159,9 +159,9 @@ let suite =
             [
               (
                 "fizz" |> AR.of_public |> U.as_raw_node,
-                (U.int_prim(1), U.int_prim(2))
-                |> AR.of_add_op
-                |> U.as_int
+                ("buzz" |> AR.of_public |> AR.of_id |> U.as_unknown, [])
+                |> AR.of_func_call
+                |> U.as_unknown
                 |> Option.some,
               )
               |> AR.of_prop
@@ -171,7 +171,7 @@ let suite =
           )
           |> AR.of_tag
           |> U.as_raw_node,
-          "<Foo fizz=1 + 2 />",
+          "<Foo fizz=buzz() />",
         )
     ),
     "parse property with grouped expression value"
@@ -297,7 +297,7 @@ let suite =
           )
           |> AR.of_tag
           |> U.as_raw_node,
-          "<Foo :fizz />",
+          "<Foo .fizz />",
         )
     ),
     "parse property with identifier"
@@ -468,7 +468,7 @@ let suite =
           )
           |> AR.of_tag
           |> U.as_raw_node,
-          "<Foo bar=fizz :buzz />",
+          "<Foo bar=fizz .buzz />",
         )
     ),
   ];
