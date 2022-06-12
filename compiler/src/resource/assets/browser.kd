@@ -1,0 +1,4 @@
+plugin style {
+  decl px: (integer) -> string;
+  decl in: (integer) -> string;
+}

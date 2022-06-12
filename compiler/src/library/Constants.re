@@ -79,6 +79,7 @@ module Keyword = {
   let const = "const";
   let func = "func";
   let view = "view";
+  let style = "style";
   let let_ = "let";
   let nil = "nil";
   let true_ = "true";
@@ -98,5 +99,18 @@ module Keyword = {
   /**
    reserved keywords cannot be used as the name of a variable
    */
-  let reserved = [import, from, main, const, let_, nil, true_, false_, as_];
+  let reserved = [
+    import,
+    from,
+    main,
+    const,
+    func,
+    view,
+    style,
+    let_,
+    nil,
+    true_,
+    false_,
+    as_,
+  ];
 };

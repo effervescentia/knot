@@ -31,6 +31,7 @@ module Container = {
     | `Struct(list((string, 'a)))
     | `Function(list('a), 'a)
     | `View(list((string, 'a)), 'a)
+    | `Style(list('a), list(string), list(string))
   ];
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
@@ -77,6 +78,23 @@ module Container = {
           res,
         )
     );
+
+  let pp_style =
+      (pp_type: Fmt.t('a))
+      : Fmt.t((list('a), list(string), list(string))) =>
+    Fmt.(
+      (ppf, (args, ids, classes)) =>
+        pf(
+          ppf,
+          "@[<h>Style<(%a), %a, %a>@]",
+          list(~sep=Sep.comma, pp_type),
+          args,
+          list(string),
+          ids,
+          list(string),
+          classes,
+        )
+    );
 };
 
 module Raw = {
@@ -101,6 +119,9 @@ module Raw = {
       | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
 
       | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
+
+      | `Style(args, ids, classes) =>
+        Container.pp_style(pp, ppf, (args, ids, classes))
 
       | `Unknown => Fmt.string(ppf, "Unknown")
       };
@@ -157,6 +178,8 @@ and pp_valid: Fmt.t(valid_t) =
     | `Struct(props) => Container.pp_struct(pp, ppf, props)
     | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
     | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
+    | `Style(args, ids, classes) =>
+      Container.pp_style(pp, ppf, (args, ids, classes))
 
 and pp_invalid: Fmt.t(invalid_t) =
   ppf =>
@@ -281,6 +304,9 @@ let rec of_raw = (raw_type: Raw.t): t =>
 
   | `View(props, res) =>
     Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))
+
+  | `Style(args, ids, classes) =>
+    Valid(`Style((args |> List.map(of_raw), ids, classes)))
 
   | `Unknown => raise(UnknownTypeEncountered)
   };

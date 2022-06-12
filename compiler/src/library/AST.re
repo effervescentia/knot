@@ -748,6 +748,9 @@ let of_named_import = ((x, y)) => NamedImport(x, y);
 let of_main_export = x => MainExport(x);
 let of_named_export = x => NamedExport(x);
 
+let of_class_matcher = x => Class(x);
+let of_id_matcher = x => ID(x);
+
 let of_const = x => Constant(x);
 let of_func = ((args, expr)) => Function(args, expr);
 let of_view = ((props, expr)) => View(props, expr);
