@@ -156,19 +156,20 @@ let module_statement: type_module_statement_parser_t =
   choice([declaration, enumerated, type_]) |> M.terminated;
 
 let module_parser: type_module_parser_t =
-  Keyword.module_
-  >|= NR.get_range
-  >>= (
-    start =>
-      M.identifier(~prefix=M.alpha)
-      >>= (
-        id =>
-          module_statement
-          |> many
-          |> M.between(Symbol.open_closure, Symbol.close_closure)
-          >|= (
-            ((stmts, range)) =>
-              NR.create((id, stmts) |> TD.of_module, range)
-          )
-      )
-  );
+  ctx =>
+    Keyword.module_
+    >|= NR.get_range
+    >>= (
+      start =>
+        M.identifier(~prefix=M.alpha)
+        >>= (
+          id =>
+            module_statement
+            |> many
+            |> M.between(Symbol.open_closure, Symbol.close_closure)
+            >|= (
+              ((stmts, range)) =>
+                NR.create((id, stmts) |> TD.of_module, range)
+            )
+        )
+    );

@@ -10,7 +10,11 @@ module Assert =
     type t = TD.module_t;
 
     let parser = _ =>
-      Typing.module_parser |> Assert.parse_completely |> Parser.parse;
+      Typing.module_parser(
+        TypingNamespaceContext.create(Namespace.of_string("test_namespace")),
+      )
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(

@@ -520,10 +520,12 @@ let add_standard_library = (~flush=true, compiler: t) => {
     compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
   );
 
+  let ctx = TypingNamespaceContext.create(Namespace.Stdlib);
+
   compiler
   |> parse_module(
        Module.File({relative: "", full: compiler.config.stdlib}),
-       Parser.definition,
+       Parser.definition(ctx),
      )
   |> Option.iter(
        fun
