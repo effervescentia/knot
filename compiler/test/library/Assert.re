@@ -30,6 +30,9 @@ module Compare = {
   let node = (pp_value: Fmt.t('a)) =>
     testable(Node.pp(pp_value, Type.pp), (==));
 
+  let untyped_node = (pp_value: Fmt.t('a)) =>
+    testable(Node2.pp_untyped(pp_value), (==));
+
   let type_ = testable(Type.pp, (==));
 
   let target = testable(Target.pp, (==));
@@ -86,6 +89,9 @@ let raw_node = pp_value =>
 
 let node = pp_value =>
   Alcotest.(check(Compare.node(pp_value), "node matches"));
+
+let untyped_node = pp_value =>
+  Alcotest.(check(Compare.untyped_node(pp_value), "untyped node matches"));
 
 let type_ = Alcotest.(check(Compare.type_, "type matches"));
 

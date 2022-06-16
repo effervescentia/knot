@@ -5,11 +5,11 @@ module U = Util.ResultUtil;
 
 let __program = [
   (
-    "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    "ABC" |> A.of_public |> U.as_untyped |> A.of_named_export,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
   |> A.of_decl
-  |> U.as_raw_node,
+  |> U.as_untyped,
 ];
 
 let suite =

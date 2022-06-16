@@ -44,7 +44,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_raw_node(TD.Module(U.as_raw_node("Foo"), [])),
+          U.as_untyped(TD.Module(U.as_untyped("Foo"), [])),
           "module Foo {}",
         )
     ),
@@ -52,13 +52,13 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_raw_node(
+          U.as_untyped(
             TD.Module(
-              U.as_raw_node("Foo"),
+              U.as_untyped("Foo"),
               [
-                (U.as_raw_node("bar"), U.as_raw_node(TE.String))
+                (U.as_untyped("bar"), U.as_untyped(TE.String))
                 |> TD.of_declaration
-                |> U.as_raw_node,
+                |> U.as_untyped,
               ],
             ),
           ),
@@ -71,13 +71,13 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_raw_node(
+          U.as_untyped(
             TD.Module(
-              U.as_raw_node("Foo"),
+              U.as_untyped("Foo"),
               [
-                (U.as_raw_node("bar"), U.as_raw_node(TE.Float))
+                (U.as_untyped("bar"), U.as_untyped(TE.Float))
                 |> TD.of_type
-                |> U.as_raw_node,
+                |> U.as_untyped,
               ],
             ),
           ),
@@ -90,22 +90,25 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_raw_node(
+          U.as_untyped(
             TD.Module(
-              U.as_raw_node("Foo"),
+              U.as_untyped("Foo"),
               [
                 (
-                  U.as_raw_node("bar"),
+                  U.as_untyped("bar"),
                   [
                     (
-                      "Verified",
-                      [U.as_raw_node(TE.Integer), U.as_raw_node(TE.String)],
+                      U.as_untyped("Verified"),
+                      [U.as_untyped(TE.Integer), U.as_untyped(TE.String)],
                     ),
-                    ("Unverified", [U.as_raw_node(TE.String)]),
+                    (
+                      U.as_untyped("Unverified"),
+                      [U.as_untyped(TE.String)],
+                    ),
                   ],
                 )
                 |> TD.of_enum
-                |> U.as_raw_node,
+                |> U.as_untyped,
               ],
             ),
           ),
@@ -120,30 +123,30 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_raw_node(
+          U.as_untyped(
             TD.Module(
-              U.as_raw_node("Foo"),
+              U.as_untyped("Foo"),
               [
-                (U.as_raw_node("foo"), U.as_raw_node(TE.Boolean))
+                (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
                 |> TD.of_type
-                |> U.as_raw_node,
-                (U.as_raw_node("bar"), U.as_raw_node(TE.Integer))
+                |> U.as_untyped,
+                (U.as_untyped("bar"), U.as_untyped(TE.Integer))
                 |> TD.of_type
-                |> U.as_raw_node,
-                (U.as_raw_node("fizz"), U.as_raw_node(TE.Float))
+                |> U.as_untyped,
+                (U.as_untyped("fizz"), U.as_untyped(TE.Float))
                 |> TD.of_declaration
-                |> U.as_raw_node,
+                |> U.as_untyped,
                 (
-                  U.as_raw_node("buzz"),
-                  U.as_raw_node(
+                  U.as_untyped("buzz"),
+                  U.as_untyped(
                     TE.Function(
-                      [U.as_raw_node(TE.Element)],
-                      U.as_raw_node(TE.String),
+                      [U.as_untyped(TE.Element)],
+                      U.as_untyped(TE.String),
                     ),
                   ),
                 )
                 |> TD.of_declaration
-                |> U.as_raw_node,
+                |> U.as_untyped,
               ],
             ),
           ),

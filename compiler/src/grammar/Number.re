@@ -3,8 +3,8 @@ open Kore;
 let integer: number_parser_t =
   many1(M.digit)
   >|= Input.join
-  >|= NR.map_value(Int64.of_string % AR.of_int)
-  >|= N.of_raw(TR.(`Integer))
+  >|= N2.map(Int64.of_string % AR.of_int)
+  >|= N2.add_type(TR.(`Integer))
   |> M.lexeme;
 
 let float: number_parser_t =
@@ -15,9 +15,9 @@ let float: number_parser_t =
   )
   >|= (
     ((x, y)) => {
-      let integer = x |> NR.get_value |> String.drop_all_prefix("0");
+      let integer = x |> fst |> String.drop_all_prefix("0");
       let integer_precision = integer |> String.length;
-      let fraction = y |> NR.get_value |> String.drop_all_suffix("0");
+      let fraction = y |> fst |> String.drop_all_suffix("0");
       let fraction_precision = String.length(fraction);
 
       let components =
@@ -33,7 +33,7 @@ let float: number_parser_t =
         )
         |> AR.of_float;
 
-      N.create(components, TR.(`Float), NR.join_ranges(x, y));
+      N2.typed(components, TR.(`Float), N2.join_ranges(x, y));
     }
   )
   |> M.lexeme;

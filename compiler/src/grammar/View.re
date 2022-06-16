@@ -4,7 +4,7 @@ module SemanticAnalyzer = Analyze.Semantic;
 
 let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.view
-  >>= NR.get_range
+  >>= N2.get_range
   % (
     start =>
       Identifier.parser(ctx)
@@ -19,13 +19,15 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                 |> List.map(SemanticAnalyzer.analyze_argument(scope));
 
               props
-              |> List.iter(((arg, arg_type, arg_range)) =>
+              |> List.iter(arg =>
                    scope
-                   |> S.define(A.(arg.name) |> NR.get_value, arg_type)
-                   |> Option.iter(S.report_type_err(scope, arg_range))
+                   |> S.define(A.(fst(arg).name) |> fst, N2.get_type(arg))
+                   |> Option.iter(
+                        S.report_type_err(scope, N2.get_range(arg)),
+                      )
                  );
 
-              let res_scope = scope |> S.create_child(N.get_range(raw_res));
+              let res_scope = scope |> S.create_child(N2.get_range(raw_res));
               let res =
                 raw_res |> SemanticAnalyzer.analyze_view_body(res_scope);
 
@@ -33,29 +35,27 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                 props
                 |> List.map(
                      Tuple.split2(
-                       N.get_value
+                       fst
                        % A.(
                            prop =>
-                             prop.name
-                             |> NR.get_value
-                             |> Reference.Identifier.to_string
+                             prop.name |> fst |> Reference.Identifier.to_string
                          ),
-                       N.get_type,
+                       N2.get_type,
                      ),
                    );
-              let type_ = T.Valid(`View((prop_types, N.get_type(res))));
+              let type_ = T.Valid(`View((prop_types, N2.get_type(res))));
               let export_id = f(id);
 
               ctx
               |> ModuleContext.declare(
                    ~main=Util.is_main(export_id),
-                   NR.get_value(id),
+                   fst(id),
                    type_,
                  );
 
-              let view = N.create((props, res) |> A.of_view, type_, range);
+              let view = N2.typed((props, res) |> A.of_view, type_, range);
 
-              NR.create((export_id, view), Range.join(start, range));
+              N2.untyped((export_id, view), Range.join(start, range));
             }
           )
       )

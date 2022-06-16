@@ -1,4 +1,5 @@
 open Kore;
+open ModuleAliases;
 
 type params_t = {
   text_document: Protocol.text_document_t,
@@ -43,20 +44,20 @@ let handler: Runtime.request_handler_t(params_t) =
         Hashtbl.find_opt(compiler.modules, namespace)
         |?< ModuleTable.(get_entry_data % Option.map(({ast}) => ast))
         |?> List.filter_map(
-              Node.Raw.get_value
+              fst
               % (
                 fun
                 | AST.Declaration(
                     MainExport(name) | NamedExport(name),
                     decl,
                   ) => {
-                    let range = Node.Raw.get_range(name);
-                    let full_range = Range.join(range, Node.get_range(decl));
-                    let name = name |> Node.Raw.get_value |> ~@Identifier.pp;
-                    let type_ = Node.get_type(decl);
+                    let range = N2.get_range(name);
+                    let full_range = N2.join_ranges(name, decl);
+                    let name = name |> fst |> ~@Identifier.pp;
+                    let type_ = N2.get_type(decl);
 
                     Some(
-                      switch (Node.get_value(decl)) {
+                      switch (fst(decl)) {
                       | Constant(expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,

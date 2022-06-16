@@ -95,7 +95,7 @@ module type TypedParserParams = {
   type type_t;
 
   let parser:
-    parser_context_t => Grammar.Kore.parser_t(N.t(value_t, type_t));
+    parser_context_t => Grammar.Kore.parser_t(N2.t(value_t, type_t));
 
   let pp_value: Fmt.t(value_t);
   let pp_type: Fmt.t(type_t);
@@ -103,7 +103,7 @@ module type TypedParserParams = {
 
 module MakeTyped = (Params: TypedParserParams) =>
   Make({
-    type t = N.t(Params.value_t, Params.type_t);
+    type t = N2.t(Params.value_t, Params.type_t);
 
     let parser = ctx =>
       Params.parser(ctx) |> parse_completely |> Parser.parse;
@@ -119,7 +119,7 @@ module MakeTyped = (Params: TypedParserParams) =>
                      Params.pp_type,
                      "Parsed",
                      ~attributes=[
-                       ("value", node |> N.get_value |> ~@Params.pp_value),
+                       ("value", node |> fst |> ~@Params.pp_value),
                      ],
                    )
                 |> Entity.pp(ppf)
@@ -132,7 +132,7 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Grammar.Kore.parser_t(N.t(AR.primitive_t, TR.t));
+  let parser: Grammar.Kore.parser_t(N2.t(AR.primitive_t, TR.t));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>

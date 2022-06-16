@@ -6,8 +6,6 @@ let __trio = (0, 1, 2);
 let suite =
   "Library.Tuple"
   >::: [
-    "fst2()" >: (() => Assert.int(0, Tuple.fst2(__pair))),
-    "snd2()" >: (() => Assert.int(1, Tuple.snd2(__pair))),
     "fst3()" >: (() => Assert.int(0, Tuple.fst3(__trio))),
     "snd3()" >: (() => Assert.int(1, Tuple.snd3(__trio))),
     "thd3()" >: (() => Assert.int(2, Tuple.thd3(__trio))),

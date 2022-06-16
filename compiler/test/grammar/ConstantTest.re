@@ -7,7 +7,7 @@ module U = Util.ResultUtil;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = NR.t((A.export_t, A.declaration_t));
+    type t = N2.t((A.export_t, A.declaration_t), unit);
 
     let parser = ((_, ctx)) =>
       Constant.parser(ctx, A.of_named_export)
@@ -19,7 +19,7 @@ module Assert = {
         check(
           testable(
             (ppf, stmt) => {
-              let (export, decl) = Node.Raw.get_value(stmt);
+              let (export, decl) = fst(stmt);
 
               A.Dump.(
                 untyped_node_to_entity(
@@ -54,10 +54,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
             U.nil_prim |> A.of_const |> U.as_nil,
           )
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "const foo = nil",
         )
     ),
@@ -76,16 +76,16 @@ let suite =
         Assert.parse(
           ~mod_context=x => ModuleContext.create(~declarations, x),
           (
-            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
             [
               (
-                "x" |> A.of_public |> U.as_raw_node,
+                "x" |> A.of_public |> U.as_untyped,
                 "bar" |> A.of_public |> A.of_id |> U.as_float,
               )
               |> A.of_var
               |> U.as_nil,
               (
-                "y" |> A.of_public |> U.as_raw_node,
+                "y" |> A.of_public |> U.as_untyped,
                 (
                   (
                     "x" |> A.of_public |> A.of_id |> U.as_float,
@@ -129,7 +129,7 @@ let suite =
             |> A.of_const
             |> U.as_bool,
           )
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "const foo = {
             let x = bar;
             let y = x > fizz && x != buzz;

@@ -4,6 +4,10 @@
 open Infix;
 open Reference;
 
+module N2 = Node2;
+
+type untyped_t('a) = N2.t('a, unit);
+
 /**
  common types that can be used to build resolved or Raw ASTs
  */
@@ -29,7 +33,7 @@ module Common = {
   /**
    an identifier that doesn't have an inherent type
    */
-  type identifier_t = Node.Raw.t(Identifier.t);
+  type identifier_t = untyped_t(Identifier.t);
 
   /**
    utilities for printing an AST
@@ -79,9 +83,9 @@ module Common = {
     ];
 
     let untyped_node_to_entity =
-        (~attributes=[], ~children=[], label, raw_node) =>
+        (~attributes=[], ~children=[], label, raw_node: untyped_t('a)) =>
       Entity.create(
-        ~range=Node.Raw.get_range(raw_node),
+        ~range=N2.get_range(raw_node),
         ~attributes,
         ~children,
         label,
@@ -93,12 +97,12 @@ module Common = {
           ~attributes=[],
           ~children=[],
           label,
-          node: Node.t('a, 'b),
+          node: N2.t('a, 'b),
         ) =>
       Entity.create(
-        ~range=Node.get_range(node),
+        ~range=N2.get_range(node),
         ~attributes=
-          _attributes_with_type(Node.get_type(node), pp_type, attributes),
+          _attributes_with_type(N2.get_type(node), pp_type, attributes),
         ~children,
         label,
       );
@@ -106,7 +110,7 @@ module Common = {
 };
 
 module TypeExpression = {
-  type t = Node.Raw.t(raw_t)
+  type t = untyped_t(raw_t)
 
   and raw_t =
     | Nil
@@ -117,7 +121,7 @@ module TypeExpression = {
     | Element
     | Group(t)
     | List(t)
-    | Struct(list((Node.Raw.t(string), t)))
+    | Struct(list((untyped_t(string), t)))
     | Function(list(t), t);
 
   /* tag helpers */
@@ -132,7 +136,7 @@ module TypeExpression = {
 
     let rec to_entity = type_ =>
       (
-        switch (Node.Raw.get_value(type_)) {
+        switch (fst(type_)) {
         | Nil => untyped_node_to_entity("Nil")
 
         | Boolean => untyped_node_to_entity("Boolean")
@@ -159,7 +163,7 @@ module TypeExpression = {
                    Entity.create(
                      ~children=[
                        untyped_node_to_entity(
-                         ~attributes=[("name", Node.Raw.get_value(key))],
+                         ~attributes=[("name", fst(key))],
                          "Key",
                          key,
                        ),
@@ -206,20 +210,20 @@ module TypeExpression = {
 };
 
 module TypeDefinition = {
-  type module_statement_t = Node.Raw.t(raw_module_statement_t)
+  type module_statement_t = untyped_t(raw_module_statement_t)
 
   and raw_module_statement_t =
-    | Declaration(Node.Raw.t(string), TypeExpression.t)
-    | Type(Node.Raw.t(string), TypeExpression.t)
+    | Declaration(untyped_t(string), TypeExpression.t)
+    | Type(untyped_t(string), TypeExpression.t)
     | Enumerated(
-        Node.Raw.t(string),
-        list((string, list(TypeExpression.t))),
+        untyped_t(string),
+        list((untyped_t(string), list(TypeExpression.t))),
       );
 
-  type module_t = Node.Raw.t(raw_module_t)
+  type module_t = untyped_t(raw_module_t)
 
   and raw_module_t =
-    | Module(Node.Raw.t(string), list(module_statement_t));
+    | Module(untyped_t(string), list(module_statement_t));
 
   type t = list(module_t);
 
@@ -234,38 +238,38 @@ module TypeDefinition = {
     include Common.Dump;
 
     let to_entity = module_ =>
-      switch (Node.Raw.get_value(module_)) {
+      switch (fst(module_)) {
       | Module((name, _), stmts) =>
         untyped_node_to_entity(
           ~attributes=[("name", name)],
           ~children=
             stmts
             |> List.map(
-                 Node.Raw.get_value
+                 fst
                  % (
                    fun
                    | Declaration(id, type_) =>
                      untyped_node_to_entity(
-                       ~attributes=[("id", Node.Raw.get_value(id))],
+                       ~attributes=[("id", fst(id))],
                        ~children=[TypeExpression.Dump.to_entity(type_)],
                        "Declaration",
                        id,
                      )
                    | Type(id, type_) =>
                      untyped_node_to_entity(
-                       ~attributes=[("id", Node.Raw.get_value(id))],
+                       ~attributes=[("id", fst(id))],
                        ~children=[TypeExpression.Dump.to_entity(type_)],
                        "Type",
                        id,
                      )
                    | Enumerated(id, variants) =>
                      untyped_node_to_entity(
-                       ~attributes=[("id", Node.Raw.get_value(id))],
+                       ~attributes=[("id", fst(id))],
                        ~children=
                          variants
                          |> List.map(((name, args)) =>
                               Entity.create(
-                                ~attributes=[("name", name)],
+                                ~attributes=[("name", fst(name))],
                                 ~children=
                                   args
                                   |> List.map(TypeExpression.Dump.to_entity),
@@ -295,7 +299,7 @@ module type ASTParams = {
       ~attributes: list(Pretty.XML.xml_attr_t(string))=?,
       ~children: list(Common.Dump.Entity.t)=?,
       string,
-      Node.t('a, type_t)
+      N2.t('a, type_t)
     ) =>
     Common.Dump.Entity.t;
 };
@@ -316,7 +320,7 @@ module Make = (Params: ASTParams) => {
   /**
    container for AST nodes
    */
-  type node_t('a) = Node.t('a, type_t);
+  type node_t('a) = N2.t('a, type_t);
 
   /**
    a JSX AST node
@@ -333,7 +337,7 @@ module Make = (Params: ASTParams) => {
   /**
    a JSX child AST node
    */
-  and jsx_child_t = Node.Raw.t(raw_jsx_child_t)
+  and jsx_child_t = untyped_t(raw_jsx_child_t)
   /**
    supported JSX children
    */
@@ -345,7 +349,7 @@ module Make = (Params: ASTParams) => {
   /**
    a JSX attribute AST node
    */
-  and jsx_attribute_t = Node.Raw.t(raw_jsx_attribute_t)
+  and jsx_attribute_t = untyped_t(raw_jsx_attribute_t)
   /**
    supported JSX attributes
    */
@@ -369,7 +373,7 @@ module Make = (Params: ASTParams) => {
     | BinaryOp(binary_t, expression_t, expression_t)
     | UnaryOp(unary_t, expression_t)
     | Closure(list(statement_t))
-    | DotAccess(expression_t, Node.Raw.t(string))
+    | DotAccess(expression_t, untyped_t(string))
     | FunctionCall(expression_t, list(expression_t))
 
   /**
@@ -463,9 +467,7 @@ module Make = (Params: ASTParams) => {
 
     let id_to_entity = (name, id) =>
       untyped_node_to_entity(
-        ~attributes=[
-          ("value", id |> Node.Raw.get_value |> Identifier.to_string),
-        ],
+        ~attributes=[("value", id |> fst |> Identifier.to_string)],
         name,
         id,
       );
@@ -487,7 +489,7 @@ module Make = (Params: ASTParams) => {
 
     let rec expr_to_entity = expr =>
       (
-        switch (Node.get_value(expr)) {
+        switch (fst(expr)) {
         | Primitive(prim) =>
           typed_node_to_entity(
             ~attributes=[("value", prim_to_string(prim))],
@@ -589,9 +591,7 @@ module Make = (Params: ASTParams) => {
           ~children=[
             view
             |> typed_node_to_entity(
-                 ~attributes=[
-                   ("name", view |> Node.get_value |> Identifier.to_string),
-                 ],
+                 ~attributes=[("name", view |> fst |> Identifier.to_string)],
                  "Identifier",
                ),
             Entity.create(
@@ -614,7 +614,7 @@ module Make = (Params: ASTParams) => {
 
     and jsx_child_to_entity = jsx_child =>
       (
-        switch (Node.Raw.get_value(jsx_child)) {
+        switch (fst(jsx_child)) {
         | Text(text) =>
           untyped_node_to_entity(~attributes=[("value", text)], "Text")
 
@@ -634,7 +634,7 @@ module Make = (Params: ASTParams) => {
     and jsx_attr_to_entity = attr =>
       (
         (
-          switch (Node.Raw.get_value(attr)) {
+          switch (fst(attr)) {
           | Class(name, value) => ("Class", name, value)
 
           | ID(name) => ("ID", name, None)
@@ -659,7 +659,7 @@ module Make = (Params: ASTParams) => {
 
     and stmt_to_entity = stmt =>
       (
-        switch (Node.get_value(stmt)) {
+        switch (fst(stmt)) {
         | Variable(name, expr) =>
           typed_node_to_entity(
             "Variable",
@@ -703,10 +703,10 @@ type style_matcher_t =
   | Class(identifier_t)
   | ID(identifier_t);
 
-type style_rule_t = Node.Raw.t(raw_style_rule_t)
+type style_rule_t = untyped_t(raw_style_rule_t)
 and raw_style_rule_t = (identifier_t, expression_t);
 
-type style_rule_set_t = Node.Raw.t(raw_style_rule_set_t)
+type style_rule_set_t = untyped_t(raw_style_rule_set_t)
 and raw_style_rule_set_t = (style_matcher_t, list(style_rule_t));
 
 /**
@@ -726,12 +726,12 @@ and raw_declaration_t =
 /**
  a stdlib import AST node
  */
-type standard_import_t = Node.Raw.t((identifier_t, option(identifier_t)));
+type standard_import_t = untyped_t((identifier_t, option(identifier_t)));
 
 /**
  an import AST node
  */
-type import_t = Node.Raw.t(raw_import_t)
+type import_t = untyped_t(raw_import_t)
 /**
  supported import types
  */
@@ -749,7 +749,7 @@ type export_t =
 /**
  module statement AST node
  */
-type module_statement_t = Node.Raw.t(raw_module_statement_t)
+type module_statement_t = untyped_t(raw_module_statement_t)
 /**
  supported top-level module statements
  */
@@ -800,7 +800,7 @@ module Dump = {
     | ID(id) => id_to_entity("IDMatcher", id);
 
   let argument_to_entity = (label, arg) => {
-    let {name, default, type_} = Node.get_value(arg);
+    let {name, default, type_} = fst(arg);
     let children = ref([id_to_entity("Name", name)]);
 
     switch (default) {
@@ -819,7 +819,7 @@ module Dump = {
 
   let decl_to_entity: declaration_t => Entity.t =
     decl =>
-      switch (Node.get_value(decl)) {
+      switch (fst(decl)) {
       | Constant(expr) =>
         typed_node_to_entity(
           ~children=[expr_to_entity(expr)],
@@ -834,17 +834,14 @@ module Dump = {
             |> List.map(((name, args)) =>
                  Entity.create(
                    ~attributes=[
-                     (
-                       "name",
-                       name |> Node.Raw.get_value |> Identifier.to_string,
-                     ),
+                     ("name", name |> fst |> Identifier.to_string),
                    ],
                    ~children=
                      args
                      |> List.map(arg =>
                           typed_node_to_entity(
                             ~children=[
-                              (Node.get_value(arg), Node.get_range(arg))
+                              N2.drop_type(arg)
                               |> TypeExpression.Dump.to_entity,
                             ],
                             "Argument",
@@ -930,7 +927,7 @@ module Dump = {
       };
 
   let import_to_entity = import =>
-    switch (Node.Raw.get_value(import)) {
+    switch (fst(import)) {
     | MainImport(name) =>
       untyped_node_to_entity(
         ~children=[id_to_entity("Name", name)],
@@ -943,10 +940,8 @@ module Dump = {
         ~children=[
           id_to_entity("Name", name),
           Entity.create(
-            ~range=Node.Raw.get_range(alias),
-            ~attributes=[
-              ("value", alias |> Node.Raw.get_value |> Identifier.to_string),
-            ],
+            ~range=N2.get_range(alias),
+            ~attributes=[("value", alias |> fst |> Identifier.to_string)],
             "Alias",
           ),
         ],
@@ -963,16 +958,14 @@ module Dump = {
     };
 
   let standard_import_to_entity = import =>
-    switch (Node.Raw.get_value(import)) {
+    switch (fst(import)) {
     | (name, Some(alias)) =>
       untyped_node_to_entity(
         ~children=[
           id_to_entity("Name", name),
           Entity.create(
-            ~range=Node.Raw.get_range(alias),
-            ~attributes=[
-              ("value", alias |> Node.Raw.get_value |> Identifier.to_string),
-            ],
+            ~range=N2.get_range(alias),
+            ~attributes=[("value", alias |> fst |> Identifier.to_string)],
             "Alias",
           ),
         ],
@@ -989,7 +982,7 @@ module Dump = {
     };
 
   let mod_stmt_to_entity = mod_stmt =>
-    switch (Node.Raw.get_value(mod_stmt)) {
+    switch (fst(mod_stmt)) {
     | StandardImport(imports) =>
       untyped_node_to_entity(
         ~children=imports |> List.map(standard_import_to_entity),

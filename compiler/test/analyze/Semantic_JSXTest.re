@@ -18,18 +18,18 @@ let suite =
       () =>
         Assert.jsx(
           (
-            URes.as_raw_node(__id),
+            URes.as_untyped(__id),
             [],
             [
-              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_raw_node,
+              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
             ],
           )
           |> A.of_tag,
           (
-            URaw.as_raw_node(__id),
+            URaw.as_untyped(__id),
             [],
             [
-              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_raw_node,
+              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
             ],
           )
           |> AR.of_tag
@@ -55,14 +55,14 @@ let suite =
           ],
           () =>
           (
-            URaw.as_raw_node(__id),
+            URaw.as_untyped(__id),
             [],
             [
               __id
               |> AR.of_id
               |> URaw.as_unknown
               |> AR.of_inline_expr
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
             ],
           )
           |> AR.of_tag
@@ -100,21 +100,21 @@ let suite =
       () =>
         Assert.jsx(
           (
-            URes.as_raw_node(__id),
+            URes.as_untyped(__id),
             [
-              (URes.as_raw_node(__id), None)
+              (URes.as_untyped(__id), None)
               |> A.of_jsx_class
-              |> URes.as_raw_node,
+              |> URes.as_untyped,
             ],
             [],
           )
           |> A.of_tag,
           (
-            URaw.as_raw_node(__id),
+            URaw.as_untyped(__id),
             [
-              (URaw.as_raw_node(__id), None)
+              (URaw.as_untyped(__id), None)
               |> AR.of_jsx_class
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
             ],
             [],
           )
@@ -127,21 +127,21 @@ let suite =
       () =>
         Assert.jsx(
           (
-            URes.as_raw_node(__id),
+            URes.as_untyped(__id),
             [
-              (URes.as_raw_node(__id), Some(URes.bool_prim(true)))
+              (URes.as_untyped(__id), Some(URes.bool_prim(true)))
               |> A.of_jsx_class
-              |> URes.as_raw_node,
+              |> URes.as_untyped,
             ],
             [],
           )
           |> A.of_tag,
           (
-            URaw.as_raw_node(__id),
+            URaw.as_untyped(__id),
             [
-              (URaw.as_raw_node(__id), Some(URaw.bool_prim(true)))
+              (URaw.as_untyped(__id), Some(URaw.bool_prim(true)))
               |> AR.of_jsx_class
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
             ],
             [],
           )
@@ -162,11 +162,11 @@ let suite =
           ],
           () =>
           (
-            URaw.as_raw_node(__id),
+            URaw.as_untyped(__id),
             [
-              (URaw.as_raw_node(__id), Some(URaw.string_prim("foo")))
+              (URaw.as_untyped(__id), Some(URaw.string_prim("foo")))
               |> AR.of_jsx_class
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
             ],
             [],
           )
@@ -201,14 +201,14 @@ let suite =
           ],
           () =>
           (
-            URaw.as_raw_node(__component_id),
+            URaw.as_untyped(__component_id),
             [
               (
-                "bar" |> A.of_public |> URaw.as_raw_node,
+                "bar" |> A.of_public |> URaw.as_untyped,
                 true |> URaw.bool_prim |> Option.some,
               )
               |> AR.of_prop
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
             ],
             [],
           )
@@ -241,20 +241,20 @@ let suite =
         };
 
         (
-          URaw.as_raw_node(__component_id),
+          URaw.as_untyped(__component_id),
           [
             (
-              "fizz" |> A.of_public |> URaw.as_raw_node,
+              "fizz" |> A.of_public |> URaw.as_untyped,
               "bar" |> URaw.string_prim |> Option.some,
             )
             |> AR.of_prop
-            |> URaw.as_raw_node,
+            |> URaw.as_untyped,
             (
-              "buzz" |> A.of_public |> URaw.as_raw_node,
+              "buzz" |> A.of_public |> URaw.as_untyped,
               true |> URaw.bool_prim |> Option.some,
             )
             |> AR.of_prop
-            |> URaw.as_raw_node,
+            |> URaw.as_untyped,
           ],
           [],
         )
@@ -305,39 +305,39 @@ let suite =
 
         Assert.jsx(
           (
-            __component_id |> URes.as_node(view_type),
+            __component_id |> URes.as_typed(view_type),
             [
               (
-                "fizz" |> A.of_public |> URes.as_raw_node,
+                "fizz" |> A.of_public |> URes.as_untyped,
                 true |> URes.bool_prim |> Option.some,
               )
               |> A.of_prop
-              |> URes.as_raw_node,
+              |> URes.as_untyped,
               (
-                "buzz" |> A.of_public |> URes.as_raw_node,
+                "buzz" |> A.of_public |> URes.as_untyped,
                 "bar" |> URes.string_prim |> Option.some,
               )
               |> A.of_prop
-              |> URes.as_raw_node,
+              |> URes.as_untyped,
             ],
             [],
           )
           |> A.of_component,
           (
-            URaw.as_raw_node(__component_id),
+            URaw.as_untyped(__component_id),
             [
               (
-                "fizz" |> A.of_public |> URaw.as_raw_node,
+                "fizz" |> A.of_public |> URaw.as_untyped,
                 true |> URaw.bool_prim |> Option.some,
               )
               |> AR.of_prop
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
               (
-                "buzz" |> A.of_public |> URaw.as_raw_node,
+                "buzz" |> A.of_public |> URaw.as_untyped,
                 "bar" |> URaw.string_prim |> Option.some,
               )
               |> AR.of_prop
-              |> URaw.as_raw_node,
+              |> URaw.as_untyped,
             ],
             [],
           )

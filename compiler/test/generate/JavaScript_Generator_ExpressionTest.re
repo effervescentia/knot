@@ -69,7 +69,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          ("foo" |> A.of_public |> U.as_raw_node, [], [])
+          ("foo" |> A.of_public |> U.as_untyped, [], [])
           |> A.of_tag
           |> A.of_jsx,
         )
@@ -99,28 +99,28 @@ let suite =
             ],
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [
               "bar"
               |> A.of_public
-              |> U.as_raw_node
+              |> U.as_untyped
               |> A.of_jsx_id
-              |> U.as_raw_node,
-              ("fizz" |> A.of_public |> U.as_raw_node, None)
+              |> U.as_untyped,
+              ("fizz" |> A.of_public |> U.as_untyped, None)
               |> A.of_jsx_class
-              |> U.as_raw_node,
+              |> U.as_untyped,
               (
-                "buzz" |> A.of_public |> U.as_raw_node,
+                "buzz" |> A.of_public |> U.as_untyped,
                 true |> A.of_bool |> A.of_prim |> U.as_bool |> Option.some,
               )
               |> A.of_jsx_class
-              |> U.as_raw_node,
+              |> U.as_untyped,
               (
-                "zip" |> A.of_public |> U.as_raw_node,
+                "zip" |> A.of_public |> U.as_untyped,
                 "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,
               )
               |> A.of_prop
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
             [],
           )
@@ -170,22 +170,22 @@ let suite =
             ],
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [],
             [
               (
                 "Bar" |> A.of_public |> U.as_view([], T.Valid(`Element)),
                 [],
                 [
-                  ("fizz" |> A.of_public |> U.as_raw_node, [], [])
+                  ("fizz" |> A.of_public |> U.as_untyped, [], [])
                   |> A.of_tag
                   |> A.of_node
-                  |> U.as_raw_node,
+                  |> U.as_untyped,
                 ],
               )
               |> A.of_component
               |> A.of_node
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_tag
@@ -262,7 +262,7 @@ let suite =
             [],
           ),
           [
-            ("foo" |> A.of_public |> U.as_raw_node, U.int_prim(456))
+            ("foo" |> A.of_public |> U.as_untyped, U.int_prim(456))
             |> A.of_var
             |> U.as_nil,
           ]
@@ -279,7 +279,7 @@ let suite =
             |> A.of_public
             |> A.of_id
             |> U.as_struct([("bar", T.Valid(`String))]),
-            U.as_raw_node("bar"),
+            U.as_untyped("bar"),
           )
           |> A.of_dot_access,
         )

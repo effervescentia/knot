@@ -98,17 +98,17 @@ let suite =
             |> U.as_unknown
             |> AR.of_expr
             |> U.as_unknown,
-            ("x" |> AR.of_public |> U.as_raw_node, U.bool_prim(false))
+            ("x" |> AR.of_public |> U.as_untyped, U.bool_prim(false))
             |> AR.of_var
             |> U.as_nil,
             (
-              "y" |> AR.of_public |> U.as_raw_node,
+              "y" |> AR.of_public |> U.as_untyped,
               "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
             |> AR.of_var
             |> U.as_nil,
             (
-              "z" |> AR.of_public |> U.as_raw_node,
+              "z" |> AR.of_public |> U.as_untyped,
               "y" |> AR.of_public |> AR.of_id |> U.as_unknown,
             )
             |> AR.of_var
@@ -136,7 +136,7 @@ let suite =
         Assert.parse(
           (
             "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
-            U.as_raw_node("bar"),
+            U.as_untyped("bar"),
           )
           |> AR.of_dot_access
           |> U.as_unknown,
@@ -154,7 +154,7 @@ let suite =
             |> U.as_unknown
             |> AR.of_group
             |> U.as_unknown,
-            U.as_raw_node("bar"),
+            U.as_untyped("bar"),
           )
           |> AR.of_dot_access
           |> U.as_unknown,
@@ -176,7 +176,7 @@ let suite =
             ]
             |> AR.of_closure
             |> U.as_unknown,
-            U.as_raw_node("bar"),
+            U.as_untyped("bar"),
           )
           |> AR.of_dot_access
           |> U.as_unknown,
@@ -243,7 +243,7 @@ let suite =
           (
             (
               "foo" |> AR.of_public |> AR.of_id |> U.as_unknown,
-              U.as_raw_node("bar"),
+              U.as_untyped("bar"),
             )
             |> AR.of_dot_access
             |> U.as_unknown,
@@ -469,15 +469,15 @@ let suite =
             (
               (
                 "a" |> AR.of_public |> AR.of_id |> U.as_unknown,
-                U.as_raw_node("b"),
+                U.as_untyped("b"),
               )
               |> AR.of_dot_access
               |> U.as_unknown,
-              U.as_raw_node("c"),
+              U.as_untyped("c"),
             )
             |> AR.of_dot_access
             |> U.as_unknown,
-            U.as_raw_node("d"),
+            U.as_untyped("d"),
           )
           |> AR.of_dot_access
           |> U.as_unknown,

@@ -7,7 +7,7 @@ let __int_const = ("ABC" |> A.of_public, 123 |> U.int_prim |> A.of_const);
 
 let __int_const_stmt =
   (
-    "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    "ABC" |> A.of_public |> U.as_untyped |> A.of_named_export,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
   |> A.of_decl;
@@ -16,7 +16,7 @@ let __import_stmt =
   (
     "bar" |> A.of_external,
     [
-      "Foo" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+      "Foo" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
     ],
   )
   |> A.of_import;
@@ -29,7 +29,7 @@ let suite =
       () =>
         Assert.string(
           "\n",
-          [] |> List.map(U.as_raw_node) |> ~@Formatter.format,
+          [] |> List.map(U.as_untyped) |> ~@Formatter.format,
         )
     ),
     "import only"
@@ -37,7 +37,7 @@ let suite =
       () =>
         Assert.string(
           "import Foo from \"bar\";\n",
-          [__import_stmt] |> List.map(U.as_raw_node) |> ~@Formatter.format,
+          [__import_stmt] |> List.map(U.as_untyped) |> ~@Formatter.format,
         )
     ),
     "declaration only"
@@ -45,7 +45,7 @@ let suite =
       () =>
         Assert.string(
           "const ABC = 123;\n",
-          [__int_const_stmt] |> List.map(U.as_raw_node) |> ~@Formatter.format,
+          [__int_const_stmt] |> List.map(U.as_untyped) |> ~@Formatter.format,
         )
     ),
     "import and declaration"
@@ -56,7 +56,7 @@ let suite =
 
 const ABC = 123;\n",
           [__import_stmt, __int_const_stmt]
-          |> List.map(U.as_raw_node)
+          |> List.map(U.as_untyped)
           |> ~@Formatter.format,
         )
     ),
@@ -70,9 +70,9 @@ const ABC = 123;\n",
               name
               |> String.capitalize_ascii
               |> A.of_public
-              |> U.as_raw_node
+              |> U.as_untyped
               |> A.of_main_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import;
@@ -89,7 +89,7 @@ import Fizz from \"@/fizz\";\n",
             _main_import("fizz", A.of_internal),
             _main_import("foo", A.of_external),
           ]
-          |> List.map(U.as_raw_node)
+          |> List.map(U.as_untyped)
           |> ~@Formatter.format,
         );
       }
@@ -103,23 +103,23 @@ import Fizz from \"@/fizz\";\n",
             (
               "foo" |> A.of_external,
               [
-                ("d" |> A.of_public |> U.as_raw_node, None)
+                ("d" |> A.of_public |> U.as_untyped, None)
                 |> A.of_named_import
-                |> U.as_raw_node,
-                ("c" |> A.of_public |> U.as_raw_node, None)
+                |> U.as_untyped,
+                ("c" |> A.of_public |> U.as_untyped, None)
                 |> A.of_named_import
-                |> U.as_raw_node,
-                ("b" |> A.of_public |> U.as_raw_node, None)
+                |> U.as_untyped,
+                ("b" |> A.of_public |> U.as_untyped, None)
                 |> A.of_named_import
-                |> U.as_raw_node,
-                ("a" |> A.of_public |> U.as_raw_node, None)
+                |> U.as_untyped,
+                ("a" |> A.of_public |> U.as_untyped, None)
                 |> A.of_named_import
-                |> U.as_raw_node,
+                |> U.as_untyped,
               ],
             )
             |> A.of_import,
           ]
-          |> List.map(U.as_raw_node)
+          |> List.map(U.as_untyped)
           |> ~@Formatter.format,
         )
     ),

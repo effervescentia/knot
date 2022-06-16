@@ -19,10 +19,7 @@ module Assert =
                 id
                 |> untyped_node_to_entity(
                      ~attributes=[
-                       (
-                         "value",
-                         id |> NR.get_value |> Reference.Identifier.to_string,
-                       ),
+                       ("value", id |> fst |> Reference.Identifier.to_string),
                      ],
                      "Identifier",
                    )
@@ -40,9 +37,9 @@ let suite =
   >::: [
     "no parse" >: (() => Assert.no_parse("~gibberish")),
     "parse public identifier"
-    >: (() => Assert.parse("foo" |> AR.of_public |> U.as_raw_node, "foo")),
+    >: (() => Assert.parse("foo" |> AR.of_public |> U.as_untyped, "foo")),
     "parse private identifier"
-    >: (() => Assert.parse("foo" |> AR.of_private |> U.as_raw_node, "_foo")),
+    >: (() => Assert.parse("foo" |> AR.of_private |> U.as_untyped, "_foo")),
     "throw error on reserved keywords"
     >: (
       () =>

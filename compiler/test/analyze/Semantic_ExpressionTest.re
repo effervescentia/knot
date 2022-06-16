@@ -63,11 +63,11 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          (URes.as_raw_node(__id), [], [])
+          (URes.as_untyped(__id), [], [])
           |> A.of_tag
           |> A.of_jsx
           |> URes.as_element,
-          (URaw.as_raw_node(__id), [], [])
+          (URaw.as_untyped(__id), [], [])
           |> AR.of_tag
           |> AR.of_jsx
           |> URaw.as_unknown
@@ -129,11 +129,11 @@ let suite =
         Assert.expression(
           (
             __id |> A.of_id |> URes.as_struct([("foo", T.Valid(`Boolean))]),
-            URes.as_raw_node("foo"),
+            URes.as_untyped("foo"),
           )
           |> A.of_dot_access
           |> URes.as_bool,
-          (__id |> AR.of_id |> URaw.as_unknown, URaw.as_raw_node("foo"))
+          (__id |> AR.of_id |> URaw.as_unknown, URaw.as_untyped("foo"))
           |> AR.of_dot_access
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_expression(scope),

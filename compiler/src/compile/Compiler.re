@@ -1,4 +1,5 @@
 open Kore;
+open ModuleAliases;
 
 module Namespace = Reference.Namespace;
 module Export = Reference.Export;
@@ -32,7 +33,7 @@ let __module_table_size = 64;
 let _get_library_exports = ast =>
   ast
   |> List.map(
-       Node.Raw.get_value
+       fst
        % (
          fun
          | AST.TypeDefinition.Module((id, _), stmts) => (
@@ -41,7 +42,7 @@ let _get_library_exports = ast =>
                `Struct(
                  stmts
                  |> List.filter_map(
-                      Node.Raw.get_value
+                      fst
                       % (
                         fun
                         | AST.TypeDefinition.Declaration(
@@ -66,7 +67,7 @@ let _get_library_exports = ast =>
 let _get_module_exports = ast =>
   ast
   |> List.map(
-       Node.Raw.get_value
+       fst
        % (
          fun
          /* ignore all private declarations */
@@ -76,13 +77,13 @@ let _get_module_exports = ast =>
            ) =>
            []
 
-         | AST.Declaration(NamedExport(id), decl) => [
-             (Export.Named(Node.Raw.get_value(id)), Node.get_type(decl)),
+         | AST.Declaration(NamedExport((id, _)), decl) => [
+             (Export.Named(id), N2.get_type(decl)),
            ]
 
-         | AST.Declaration(MainExport(id), decl) => [
-             (Export.Named(Node.Raw.get_value(id)), Node.get_type(decl)),
-             (Export.Main, Node.get_type(decl)),
+         | AST.Declaration(MainExport((id, _)), decl) => [
+             (Export.Named(id), N2.get_type(decl)),
+             (Export.Main, N2.get_type(decl)),
            ]
 
          | _ => []

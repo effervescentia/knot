@@ -34,7 +34,7 @@ let suite =
             [
               (
                 "Foo" |> A.of_public,
-                Some("foo" |> A.of_public |> U.as_raw_node),
+                Some("foo" |> A.of_public |> U.as_untyped),
               ),
               ("Bar" |> A.of_public, None),
             ],
@@ -52,7 +52,7 @@ let suite =
             [
               (
                 "Foo" |> A.of_public,
-                Some("foo" |> A.of_public |> U.as_raw_node),
+                Some("foo" |> A.of_public |> U.as_untyped),
               ),
               ("Bar" |> A.of_public, None),
             ],

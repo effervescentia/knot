@@ -86,7 +86,7 @@ let check_function_call: ((T.t, list(T.t))) => option(T.error_t) =
   | (expr_type, args) => Some(InvalidFunctionCall(expr_type, args));
 
 let check_jsx_render:
-  ((Reference.Identifier.t, T.t, list((string, (T.t, Range.t))))) =>
+  ((Reference.Identifier.t, T.t, list((string, A.untyped_t(T.t))))) =>
   list((T.error_t, option(Range.t))) =
   fun
   /* assume this have been reported already and ignore */
@@ -107,18 +107,17 @@ let check_jsx_render:
                let actual = actual_attrs |> List.assoc_opt(key);
 
                switch (expected, actual) {
-               | (Some(expected'), Some(actual')) =>
-                 switch (expected', actual') {
+               | (Some(expected'), Some((actual_value, _) as actual')) =>
+                 switch (expected', actual_value) {
                  | (T.Invalid(_), _)
-                 | (_, (T.Invalid(_), _)) => acc
-                 | (T.Valid(_), (T.Valid(_), _))
-                     when expected' == fst(actual') => acc
-                 | (T.Valid(_), (T.Valid(_) as actual_type, range)) => (
+                 | (_, T.Invalid(_)) => acc
+                 | (T.Valid(_), T.Valid(_)) when expected' == actual_value => acc
+                 | (T.Valid(_), T.Valid(_)) => (
                      invalid
                      @ [
                        (
-                         T.InvalidJSXAttribute(key, expected', actual_type),
-                         Some(range),
+                         T.InvalidJSXAttribute(key, expected', actual_value),
+                         Some(N2.get_range(actual')),
                        ),
                      ],
                      missing,
@@ -130,10 +129,13 @@ let check_jsx_render:
                    missing @ [(key, expected')],
                  )
 
-               | (None, Some((actual', range))) => (
+               | (None, Some(actual')) => (
                    invalid
                    @ [
-                     (T.UnexpectedJSXAttribute(key, actual'), Some(range)),
+                     (
+                       T.UnexpectedJSXAttribute(key, fst(actual')),
+                       Some(N2.get_range(actual')),
+                     ),
                    ],
                    missing,
                  )
@@ -190,28 +192,22 @@ let rec eval_type_expression: A.TypeExpression.raw_t => T.t =
       | Element => Valid(`Element)
 
       /* use the type of the inner expression to determine type */
-      | Group(x) => x |> NR.get_value |> eval_type_expression
+      | Group((x, _)) => eval_type_expression(x)
 
       /* use the type of the inner expression to determine type of list items */
-      | List(x) => Valid(`List(x |> NR.get_value |> eval_type_expression))
+      | List((x, _)) => Valid(`List(eval_type_expression(x)))
 
       | Struct(xs) =>
         Valid(
           `Struct(
-            xs
-            |> List.map(
-                 Tuple.map_each2(
-                   NR.get_value,
-                   NR.get_value % eval_type_expression,
-                 ),
-               ),
+            xs |> List.map(Tuple.map_each2(fst, fst % eval_type_expression)),
           ),
         )
-      | Function(args, res) =>
+      | Function(args, (res, _)) =>
         Valid(
           `Function((
-            args |> List.map(NR.get_value % eval_type_expression),
-            res |> NR.get_value |> eval_type_expression,
+            args |> List.map(fst % eval_type_expression),
+            eval_type_expression(res),
           )),
         )
       }

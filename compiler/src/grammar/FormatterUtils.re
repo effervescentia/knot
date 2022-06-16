@@ -24,13 +24,13 @@ let _sort_imports =
         imports
         |> List.fold_left(
              ((m, n)) =>
-               NR.get_value
+               fst
                % (
                  fun
-                 | A.MainImport(id) => (Some(NR.get_value(id)), n)
+                 | A.MainImport(id) => (Some(fst(id)), n)
                  | A.NamedImport(id, label) => (
                      m,
-                     [(NR.get_value(id), label), ...n],
+                     [(fst(id), label), ...n],
                    )
                ),
              (None, []),
@@ -50,7 +50,7 @@ let _sort_imports =
 let extract_imports = (program: A.program_t) =>
   program
   |> List.filter_map(
-       NR.get_value
+       fst
        % (
          fun
          | A.Import(namespace, imports) => Some((namespace, imports))
@@ -69,11 +69,11 @@ let extract_imports = (program: A.program_t) =>
 let extract_declarations = (program: A.program_t) =>
   program
   |> List.filter_map(
-       NR.get_value
+       fst
        % (
          fun
          | A.Declaration(MainExport(name) | NamedExport(name), decl) =>
-           Some((NR.get_value(name), Node.get_value(decl)))
+           Some((fst(name), fst(decl)))
          | _ => None
        ),
      );

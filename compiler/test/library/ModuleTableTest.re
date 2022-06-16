@@ -12,11 +12,11 @@ let __program = [
   (
     "foo" |> A.of_internal,
     [
-      "bar" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+      "bar" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
     ],
   )
   |> A.of_import
-  |> U.as_raw_node,
+  |> U.as_untyped,
 ];
 let __table = ModuleTable.create(1);
 let __scope_tree = BinaryTree.create((Range.zero, None));

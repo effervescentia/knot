@@ -39,18 +39,18 @@ let __main_import_ast =
   (
     "bar" |> A.of_internal,
     [
-      "foo" |> A.of_public |> U.as_raw_node |> A.of_main_import |> U.as_raw_node,
+      "foo" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
     ],
   )
   |> A.of_import
-  |> U.as_raw_node;
+  |> U.as_untyped;
 let __const_decl_ast =
   (
-    "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+    "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
     U.nil_prim |> A.of_const |> U.as_nil,
   )
   |> A.of_decl
-  |> U.as_raw_node;
+  |> U.as_untyped;
 
 let __ns_context =
   NamespaceContext.create(
@@ -98,7 +98,7 @@ let suite =
           [
             __const_decl_ast,
             (
-              "bar" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+              "bar" |> A.of_public |> U.as_untyped |> A.of_named_export,
               "foo"
               |> A.of_public
               |> A.of_id
@@ -107,7 +107,7 @@ let suite =
               |> U.as_nil,
             )
             |> A.of_decl
-            |> U.as_raw_node,
+            |> U.as_untyped,
           ],
           __const_decl ++ "; const bar = foo",
         )
@@ -151,7 +151,7 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+              "bar" |> A.of_public |> U.as_untyped |> A.of_named_export,
               "foo"
               |> A.of_public
               |> A.of_id
@@ -160,7 +160,7 @@ let suite =
               |> U.as_bool,
             )
             |> A.of_decl
-            |> U.as_raw_node,
+            |> U.as_untyped,
           ],
           __main_import ++ "; const bar = foo",
         )

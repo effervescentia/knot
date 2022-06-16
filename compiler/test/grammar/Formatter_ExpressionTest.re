@@ -34,7 +34,7 @@ let suite =
             |> A.of_public
             |> A.of_id
             |> U.as_struct([("bar", T.Valid(`Boolean))]),
-            U.as_raw_node("bar"),
+            U.as_untyped("bar"),
           )
           |> A.of_dot_access,
         )
@@ -113,9 +113,9 @@ let suite =
   bar
 </Foo>",
           (
-            "Foo" |> A.of_public |> U.as_raw_node,
+            "Foo" |> A.of_public |> U.as_untyped,
             [],
-            ["bar" |> A.of_text |> U.as_raw_node],
+            ["bar" |> A.of_text |> U.as_untyped],
           )
           |> A.of_tag
           |> A.of_jsx,

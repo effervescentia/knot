@@ -10,15 +10,15 @@ type parser_t('a) = stream_t => option(('a, stream_t));
 
 /* concrete parser types */
 
-type number_parser_t = parser_t(N.t(AR.number_t, TR.t));
+type number_parser_t = parser_t(N2.t(AR.number_t, TR.t));
 
-type string_parser_t = parser_t(NR.t(string));
+type string_parser_t = parser_t(N2.t(string, unit));
 
-type primitive_parser_t = parser_t(N.t(AR.primitive_t, TR.t));
+type primitive_parser_t = parser_t(N2.t(AR.primitive_t, TR.t));
 
 type identifier_parser_t = parser_t(AR.identifier_t);
 
-type jsx_parser_t = parser_t(NR.t(AR.jsx_t));
+type jsx_parser_t = parser_t(N2.t(AR.jsx_t, unit));
 
 type jsx_attribute_parser_t = parser_t(AR.jsx_attribute_t);
 type jsx_attribute_list_parser_t = parser_t(list(AR.jsx_attribute_t));
@@ -44,7 +44,8 @@ type lambda_parser_t =
 
 type import_parser_t = parser_t(list(A.import_t));
 
-type declaration_parser_t = parser_t(NR.t((A.export_t, A.declaration_t)));
+type declaration_parser_t =
+  parser_t(N2.t((A.export_t, A.declaration_t), unit));
 
 type type_expression_parser_t = parser_t(AST.TypeExpression.t);
 

@@ -8,7 +8,7 @@ module U = Util.ResultUtil;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = NR.t((A.export_t, A.declaration_t));
+    type t = N2.t((A.export_t, A.declaration_t), unit);
 
     let parser = ((_, ctx)) =>
       Enumerated.parser(ctx, A.of_named_export)
@@ -20,7 +20,7 @@ module Assert = {
         check(
           testable(
             (ppf, stmt) => {
-              let (export, decl) = Node.Raw.get_value(stmt);
+              let (export, decl) = fst(stmt);
 
               A.Dump.(
                 untyped_node_to_entity(
@@ -51,10 +51,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
             [] |> A.of_enum |> U.as_enum([]),
           )
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "enum foo =",
         )
     ),
@@ -63,10 +63,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
             [] |> A.of_enum |> U.as_enum([]),
           )
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "enum foo = |",
         )
     ),
@@ -75,17 +75,17 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
             [
               (
-                "OnlyOption" |> Reference.Identifier.of_string |> U.as_raw_node,
+                "OnlyOption" |> Reference.Identifier.of_string |> U.as_untyped,
                 [],
               ),
             ]
             |> A.of_enum
             |> U.as_enum([("OnlyOption", [])]),
           )
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "enum foo = OnlyOption",
         )
     ),
@@ -94,14 +94,14 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Account" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+            "Account" |> A.of_public |> U.as_untyped |> A.of_named_export,
             [
               (
-                "Verified" |> Reference.Identifier.of_string |> U.as_raw_node,
+                "Verified" |> Reference.Identifier.of_string |> U.as_untyped,
                 [U.as_int(TE.Integer), U.as_string(TE.String)],
               ),
               (
-                "Unverified" |> Reference.Identifier.of_string |> U.as_raw_node,
+                "Unverified" |> Reference.Identifier.of_string |> U.as_untyped,
                 [TE.String |> U.as_string],
               ),
             ]
@@ -111,7 +111,7 @@ let suite =
                  ("Unverified", [T.Valid(`String)]),
                ]),
           )
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "enum Account =
   | Verified(integer, string)
   | Unverified(string)",

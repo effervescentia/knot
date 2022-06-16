@@ -43,7 +43,7 @@ let suite =
       () =>
         Assert.parse_all(
           (
-            "foo" |> AR.of_public |> U.as_raw_node,
+            "foo" |> AR.of_public |> U.as_untyped,
             (
               "bar" |> AR.of_public |> AR.of_id |> U.as_unknown,
               U.int_prim(3),

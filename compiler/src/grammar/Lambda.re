@@ -19,33 +19,30 @@ let arguments = (ctx: ModuleContext.t) =>
   )
   >|= (
     ((name, type_, default)) => {
-      let name_range = NR.get_range(name);
+      let name_range = N2.get_range(name);
 
-      N.create(
+      N2.typed(
         AR.{name, default, type_},
-        default |?> N.get_type |?: TR.(`Unknown),
+        default |?> N2.get_type |?: TR.(`Unknown),
         Range.join(
           name_range,
-          default |?> N.get_range |?: (type_ |?> NR.get_range |?: name_range),
+          default |?> N2.get_range |?: (type_ |?> N2.get_range |?: name_range),
         ),
       );
     }
   )
   |> M.comma_sep
   |> M.between(Symbol.open_group, Symbol.close_group)
-  >|= NR.get_value;
+  >|= fst;
 
 let parser = (ctx: ModuleContext.t) =>
   option([], arguments(ctx))
   >>= (
     args =>
       Glyph.lambda
-      >|= NR.get_range
       >>= (
-        start_range =>
+        lambda =>
           Expression.parser(ctx)
-          >|= (
-            expr => (args, expr, Range.join(start_range, N.get_range(expr)))
-          )
+          >|= (expr => (args, expr, N2.join_ranges(lambda, expr)))
       )
   );

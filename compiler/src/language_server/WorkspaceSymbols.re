@@ -1,4 +1,5 @@
 open Kore;
+open ModuleAliases;
 
 type params_t = {
   query: string,
@@ -60,7 +61,7 @@ let handler: Runtime.request_handler_t(params_t) =
                   | (namespace, Some(ast)) =>
                     ast
                     |> List.filter_map(
-                         Node.Raw.get_value
+                         fst
                          % (
                            fun
                            | AST.Declaration(
@@ -78,12 +79,11 @@ let handler: Runtime.request_handler_t(params_t) =
                                            ),
                                       ),
                                  );
-                               let range = Node.Raw.get_range(name);
-                               let name =
-                                 name |> Node.Raw.get_value |> ~@Identifier.pp;
+                               let range = N2.get_range(name);
+                               let name = name |> fst |> ~@Identifier.pp;
 
                                Some(
-                                 switch (Node.get_value(decl)) {
+                                 switch (fst(decl)) {
                                  | Constant(expr) => {
                                      uri,
                                      name,

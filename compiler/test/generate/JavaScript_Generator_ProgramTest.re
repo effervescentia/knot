@@ -11,29 +11,25 @@ let __program =
     (
       "foo/bar" |> A.of_internal,
       [
-        "Foo"
-        |> A.of_public
-        |> U.as_raw_node
-        |> A.of_main_import
-        |> U.as_raw_node,
+        "Foo" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
       ],
     )
     |> A.of_import,
     [
       (
-        "Fizz" |> A.of_public |> U.as_raw_node,
-        "Buzz" |> A.of_public |> U.as_raw_node |> Option.some,
+        "Fizz" |> A.of_public |> U.as_untyped,
+        "Buzz" |> A.of_public |> U.as_untyped |> Option.some,
       )
-      |> U.as_raw_node,
+      |> U.as_untyped,
     ]
     |> A.of_standard_import,
     (
-      "ABC" |> A.of_public |> U.as_raw_node |> A.of_named_export,
+      "ABC" |> A.of_public |> U.as_untyped |> A.of_named_export,
       123 |> U.int_prim |> A.of_const |> U.as_int,
     )
     |> A.of_decl,
   ]
-  |> List.map(U.as_raw_node);
+  |> List.map(U.as_untyped);
 
 let _assert_declaration = (expected, actual) =>
   Alcotest.(
@@ -63,7 +59,7 @@ let suite =
         _assert_declaration(
           [Variable("foo", Number("123")), Export("foo", None)],
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             123 |> U.int_prim |> A.of_const |> U.as_int,
           ),
         )
@@ -74,7 +70,7 @@ let suite =
         _assert_declaration(
           [Variable("_foo", Number("123"))],
           (
-            "foo" |> A.of_private |> U.as_raw_node,
+            "foo" |> A.of_private |> U.as_untyped,
             123 |> U.int_prim |> A.of_const |> U.as_int,
           ),
         )

@@ -26,6 +26,7 @@ module NamespaceContext = NamespaceContext;
 module TypingNamespaceContext = TypingNamespaceContext;
 module NestedHashtbl = NestedHashtbl;
 module Node = Node;
+module Node2 = Node2;
 module Point = Point;
 module Range = Range;
 module RangeTree = RangeTree;

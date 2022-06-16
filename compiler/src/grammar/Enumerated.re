@@ -4,7 +4,7 @@ module SemanticAnalyzer = Analyze.Semantic;
 
 let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.enum
-  >|= NR.get_range
+  >|= N2.get_range
   >>= (
     start =>
       Typing.type_variants(ctx)
@@ -15,13 +15,13 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
           let variants =
             raw_variants
             |> List.map(
-                 NR.get_value
+                 fst
                  % Tuple.map_snd2(
                      List.map(type_expr =>
                        type_expr
-                       |> N.of_raw(
+                       |> N2.add_type(
                             type_expr
-                            |> NR.get_value
+                            |> fst
                             |> Analyze.Typing.eval_type_expression,
                           )
                      ),
@@ -33,8 +33,8 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                 variants
                 |> List.map(
                      Tuple.map_each2(
-                       NR.get_value % Reference.Identifier.to_string,
-                       List.map(N.get_type),
+                       fst % Reference.Identifier.to_string,
+                       List.map(N2.get_type),
                      ),
                    ),
               ),
@@ -42,19 +42,19 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
           let range =
             Range.join(
               start,
-              raw_variants |> List.last |?> NR.get_range |?: start,
+              raw_variants |> List.last |?> N2.get_range |?: start,
             );
-          let enum = N.create(A.of_enum(variants), type_, range);
+          let enum = N2.typed(A.of_enum(variants), type_, range);
           let export_id = f(id);
 
           ctx
           |> ModuleContext.declare(
                ~main=Util.is_main(export_id),
-               NR.get_value(id),
+               fst(id),
                type_,
              );
 
-          NR.create((export_id, enum), range);
+          N2.untyped((export_id, enum), range);
         }
       )
       |> M.terminated

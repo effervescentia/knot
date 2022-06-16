@@ -13,9 +13,6 @@ let with_snd2 = (x: 'a, y: 'b): t2('b, 'a) => (y, x);
 
 /* getters */
 
-let fst2 = ((x, y): ('a, 'b)): 'a => x;
-let snd2 = ((x, y): ('a, 'b)): 'b => y;
-
 let fst3 = ((x, y, z): ('a, 'b, 'c)): 'a => x;
 let snd3 = ((x, y, z): ('a, 'b, 'c)): 'b => y;
 let thd3 = ((x, y, z): ('a, 'b, 'c)): 'c => z;

@@ -11,13 +11,13 @@ let __inline_function = (
   (
     [
       A.{
-        name: "bar" |> A.of_public |> U.as_raw_node,
+        name: "bar" |> A.of_public |> U.as_untyped,
         default: None,
         type_: None,
       }
       |> U.as_int,
       A.{
-        name: "fizz" |> A.of_public |> U.as_raw_node,
+        name: "fizz" |> A.of_public |> U.as_untyped,
         default: Some(3 |> U.int_prim),
         type_: None,
       }
@@ -38,10 +38,10 @@ let __multiline_function = (
   (
     [],
     [
-      ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
+      ("zip" |> A.of_public |> U.as_untyped, 3 |> U.int_prim)
       |> A.of_var
       |> U.as_nil,
-      ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
+      ("zap" |> A.of_public |> U.as_untyped, 4 |> U.int_prim)
       |> A.of_var
       |> U.as_nil,
       (
@@ -64,13 +64,13 @@ let __inline_view = (
   (
     [
       A.{
-        name: "bar" |> A.of_public |> U.as_raw_node,
+        name: "bar" |> A.of_public |> U.as_untyped,
         default: None,
         type_: None,
       }
       |> U.as_int,
       A.{
-        name: "fizz" |> A.of_public |> U.as_raw_node,
+        name: "fizz" |> A.of_public |> U.as_untyped,
         default: Some(3 |> U.int_prim),
         type_: None,
       }
@@ -84,7 +84,7 @@ let __inline_view = (
       |> A.of_add_op
       |> U.as_int
       |> A.of_inline_expr
-      |> U.as_raw_node,
+      |> U.as_untyped,
     ]
     |> A.of_frag
     |> A.of_jsx
@@ -98,10 +98,10 @@ let __multiline_view = (
   (
     [],
     [
-      ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
+      ("zip" |> A.of_public |> U.as_untyped, 3 |> U.int_prim)
       |> A.of_var
       |> U.as_nil,
-      ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
+      ("zap" |> A.of_public |> U.as_untyped, 4 |> U.int_prim)
       |> A.of_var
       |> U.as_nil,
       [
@@ -112,7 +112,7 @@ let __multiline_view = (
         |> A.of_mult_op
         |> U.as_int
         |> A.of_inline_expr
-        |> U.as_raw_node,
+        |> U.as_untyped,
       ]
       |> A.of_frag
       |> A.of_jsx
@@ -131,13 +131,13 @@ let __style = (
   (
     [
       A.{
-        name: "bar" |> A.of_public |> U.as_raw_node,
+        name: "bar" |> A.of_public |> U.as_untyped,
         default: None,
         type_: None,
       }
       |> U.as_int,
       A.{
-        name: "fizz" |> A.of_public |> U.as_raw_node,
+        name: "fizz" |> A.of_public |> U.as_untyped,
         default: Some(3 |> U.int_prim),
         type_: None,
       }
@@ -145,21 +145,21 @@ let __style = (
     ],
     [
       (
-        A.ID("hero" |> A.of_public |> U.as_raw_node),
+        A.ID("hero" |> A.of_public |> U.as_untyped),
         [
-          ("width" |> A.of_public |> U.as_raw_node, U.int_prim(10))
-          |> U.as_raw_node,
+          ("width" |> A.of_public |> U.as_untyped, U.int_prim(10))
+          |> U.as_untyped,
         ],
       )
-      |> U.as_raw_node,
+      |> U.as_untyped,
       (
-        A.Class("button" |> A.of_public |> U.as_raw_node),
+        A.Class("button" |> A.of_public |> U.as_untyped),
         [
-          ("height" |> A.of_public |> U.as_raw_node, U.int_prim(2))
-          |> U.as_raw_node,
+          ("height" |> A.of_public |> U.as_untyped, U.int_prim(2))
+          |> U.as_untyped,
         ],
       )
-      |> U.as_raw_node,
+      |> U.as_untyped,
     ],
   )
   |> A.of_style,
@@ -207,16 +207,16 @@ let suite =
           (
             A.of_public("Digits"),
             A.of_enum([
-              ("Zero" |> A.of_public |> U.as_raw_node, []),
-              ("One" |> A.of_public |> U.as_raw_node, []),
-              ("Two" |> A.of_public |> U.as_raw_node, []),
-              ("Three" |> A.of_public |> U.as_raw_node, []),
-              ("Four" |> A.of_public |> U.as_raw_node, []),
-              ("Five" |> A.of_public |> U.as_raw_node, []),
-              ("Six" |> A.of_public |> U.as_raw_node, []),
-              ("Seven" |> A.of_public |> U.as_raw_node, []),
-              ("Eight" |> A.of_public |> U.as_raw_node, []),
-              ("Nine" |> A.of_public |> U.as_raw_node, []),
+              ("Zero" |> A.of_public |> U.as_untyped, []),
+              ("One" |> A.of_public |> U.as_untyped, []),
+              ("Two" |> A.of_public |> U.as_untyped, []),
+              ("Three" |> A.of_public |> U.as_untyped, []),
+              ("Four" |> A.of_public |> U.as_untyped, []),
+              ("Five" |> A.of_public |> U.as_untyped, []),
+              ("Six" |> A.of_public |> U.as_untyped, []),
+              ("Seven" |> A.of_public |> U.as_untyped, []),
+              ("Eight" |> A.of_public |> U.as_untyped, []),
+              ("Nine" |> A.of_public |> U.as_untyped, []),
             ]),
           ),
         )

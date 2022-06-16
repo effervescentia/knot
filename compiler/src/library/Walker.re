@@ -1,5 +1,7 @@
 open Infix;
 
+module N2 = Node2;
+
 type target_t =
   | ModuleStatement(AST.module_statement_t)
   | Import(AST.import_t)
@@ -20,7 +22,7 @@ let rec iter = (f: target_t => unit, prog: AST.program_t) =>
      })
 
 and iter_mod_stmt = f =>
-  Node.Raw.get_value
+  fst
   % AST.(
       fun
       | Declaration(_, decl) => {
@@ -30,39 +32,35 @@ and iter_mod_stmt = f =>
       | Import(_, imports) => imports |> List.iter(x => f(Import(x)))
       | StandardImport(imports) =>
         imports
-        |> List.iter(
-             Node.Raw.map_value(AST.of_named_import) % (x => f(Import(x))),
-           )
+        |> List.iter(N2.map(AST.of_named_import) % (x => f(Import(x))))
     )
 
 and iter_decl = f =>
-  Node.get_value
+  fst
   % AST.(
       fun
       | Constant(expr) => _bind_expr(f, expr)
       | Enumerated(variants) => ()
       | Function(args, expr) =>
-        (args |> List.filter_map(arg => Node.get_value(arg).default))
+        (args |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))
       | View(props, expr) =>
-        (props |> List.filter_map(arg => Node.get_value(arg).default))
+        (props |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))
       | Style(props, rule_sets) =>
-        (props |> List.filter_map(arg => Node.get_value(arg).default))
+        (props |> List.filter_map(((arg, _)) => arg.default))
         @ (
           rule_sets
-          |> List.map(
-               Node.Raw.get_value % snd % List.map(Node.Raw.get_value % snd),
-             )
+          |> List.map(fst % snd % List.map(fst % snd))
           |> List.flatten
         )
         |> List.iter(_bind_expr(f))
     )
 
 and iter_stmt = f =>
-  Node.get_value
+  fst
   % (
     fun
     | AST.Expression(expr) => _bind_expr(f, expr)
@@ -74,7 +72,7 @@ and _bind_expr = (f, x) => {
   iter_expr(f, x);
 }
 and iter_expr = f => {
-  Node.get_value
+  fst
   % AST.(
       fun
       | Primitive(x) => f(Primitive(x))
@@ -113,8 +111,8 @@ and iter_jsx = f =>
            });
         children |> List.iter(_bind_jsx_child(f));
       }
-    | Component(id, attrs, children) => {
-        f(Identifier(Node.get_value(id)));
+    | Component((id, _), attrs, children) => {
+        f(Identifier(id));
         attrs
         |> List.iter(x => {
              f(JSXAttribute(x));
@@ -129,7 +127,7 @@ and _bind_jsx_child = (f, x) => {
   iter_jsx_child(f, x);
 }
 and iter_jsx_child = f =>
-  Node.Raw.get_value
+  fst
   % AST.(
       fun
       | Node(x) => _bind_jsx(f, x)
@@ -138,7 +136,7 @@ and iter_jsx_child = f =>
     )
 
 and iter_jsx_attr = f =>
-  Node.Raw.get_value
+  fst
   % AST.(
       fun
       | Property(_, Some(x))

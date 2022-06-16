@@ -15,14 +15,13 @@ let primitive_types =
 
 let primitive: type_expression_parser_t =
   choice(
-    primitive_types
-    |> List.map(((kwd, prim)) => kwd >|= NR.map_value(_ => prim)),
+    primitive_types |> List.map(((kwd, prim)) => kwd >|= N2.map(_ => prim)),
   );
 
 let group = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
   |> M.between(Symbol.open_group, Symbol.close_group)
-  >|= NR.map_value(TE.of_group);
+  >|= N2.map(TE.of_group);
 
 let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
@@ -30,7 +29,7 @@ let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
        Glyph.list_type_suffix
        >|= (
          (suffix, expr) =>
-           NR.create(TE.of_list(expr), NR.join_ranges(expr, suffix))
+           N2.untyped(TE.of_list(expr), N2.join_ranges(expr, suffix))
        ),
      );
 
@@ -40,7 +39,7 @@ let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
   /* TODO: sort the props here by property name */
-  >|= NR.map_value(props => TE.of_struct(props));
+  >|= N2.map(props => TE.of_struct(props));
 
 let function_ =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
@@ -48,14 +47,14 @@ let function_ =
   |> M.comma_sep
   |> M.between(Symbol.open_group, Symbol.close_group)
   >>= (
-    ((args, args_range)) =>
+    args =>
       Glyph.lambda
       >> parse_expr
       >|= (
         res =>
-          NR.create(
-            TE.of_function((args, res)),
-            Range.join(args_range, NR.get_range(res)),
+          N2.untyped(
+            TE.of_function((fst(args), res)),
+            N2.join_ranges(args, res),
           )
       )
   );
@@ -81,7 +80,7 @@ let expression_parser = expr_0;
 
 let _module_statement = (kwd, parser, f) =>
   kwd
-  >|= NR.get_range
+  >|= N2.get_range
   >>= (
     start =>
       M.identifier(~prefix=M.alpha)
@@ -91,7 +90,7 @@ let _module_statement = (kwd, parser, f) =>
           >> parser
           >|= (
             ((res, range)) =>
-              NR.create((id, res) |> f, Range.join(start, range |?: start))
+              N2.untyped((id, res) |> f, Range.join(start, range |?: start))
           )
       )
   );
@@ -103,8 +102,8 @@ let _type_variant = (ctx: ModuleContext.t) =>
       expression_parser
       |> M.comma_sep
       |> M.between(Symbol.open_group, Symbol.close_group)
-      |> option(([], NR.get_range(id)))
-      >|= NR.map_value(Tuple.with_fst2(id))
+      |> option(id |> N2.map(_ => []))
+      >|= N2.map(Tuple.with_fst2(id))
   );
 
 let type_variants = (ctx: ModuleContext.t) =>
@@ -115,7 +114,7 @@ let declaration: type_module_statement_parser_t =
   _module_statement(
     Keyword.decl,
     expression_parser
-    >|= (expr => (expr, expr |> NR.get_range |> Option.some)),
+    >|= (expr => (expr, expr |> N2.get_range |> Option.some)),
     TD.of_declaration,
   );
 
@@ -129,13 +128,15 @@ let enumerated: type_module_statement_parser_t =
     )
     >|= (
       variants => {
-        let variant_range = variants |> List.last |?> NR.get_range;
+        let variant_range = variants |> List.last |?> N2.get_range;
 
         (
           variants
           |> List.map(
-               NR.get_value
-               % Tuple.map_fst2(NR.get_value % Reference.Identifier.to_string),
+               fst
+               % Tuple.map_fst2(
+                   Tuple.map_fst2(Reference.Identifier.to_string),
+                 ),
              ),
           variant_range,
         );
@@ -148,7 +149,7 @@ let type_: type_module_statement_parser_t =
   _module_statement(
     Keyword.type_,
     expression_parser
-    >|= (expr => (expr, expr |> NR.get_range |> Option.some)),
+    >|= (expr => (expr, expr |> N2.get_range |> Option.some)),
     TD.of_type,
   );
 
@@ -158,9 +159,8 @@ let module_statement: type_module_statement_parser_t =
 let module_parser: type_module_parser_t =
   ctx =>
     Keyword.module_
-    >|= NR.get_range
     >>= (
-      start =>
+      _ =>
         M.identifier(~prefix=M.alpha)
         >>= (
           id =>
@@ -168,8 +168,11 @@ let module_parser: type_module_parser_t =
             |> many
             |> M.between(Symbol.open_closure, Symbol.close_closure)
             >|= (
-              ((stmts, range)) =>
-                NR.create((id, stmts) |> TD.of_module, range)
+              stmts =>
+                N2.untyped(
+                  (id, fst(stmts)) |> TD.of_module,
+                  N2.get_range(stmts),
+                )
             )
         )
     );

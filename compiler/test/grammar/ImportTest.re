@@ -103,13 +103,13 @@ let suite =
             [
               "foo"
               |> A.of_public
-              |> U.as_raw_node
+              |> U.as_untyped
               |> A.of_main_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import foo from \"@/bar\"",
         )
     ),
@@ -118,7 +118,7 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_raw_node,
+          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_untyped,
           "import {} from \"@/bar\"",
         )
     ),
@@ -130,13 +130,13 @@ let suite =
           (
             "bar" |> A.of_internal,
             [
-              ("foo" |> A.of_public |> U.as_raw_node, None)
+              ("foo" |> A.of_public |> U.as_untyped, None)
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo } from \"@/bar\"",
         )
     ),
@@ -149,15 +149,15 @@ let suite =
             "bar" |> A.of_internal,
             [
               (
-                "foo" |> A.of_public |> U.as_raw_node,
-                Some("bar" |> A.of_public |> U.as_raw_node),
+                "foo" |> A.of_public |> U.as_untyped,
+                Some("bar" |> A.of_public |> U.as_untyped),
               )
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo as bar } from \"@/bar\"",
         )
     ),
@@ -171,22 +171,22 @@ let suite =
             [
               "fizz"
               |> A.of_public
-              |> U.as_raw_node
+              |> U.as_untyped
               |> A.of_main_import
-              |> U.as_raw_node,
-              ("foo" |> A.of_public |> U.as_raw_node, None)
+              |> U.as_untyped,
+              ("foo" |> A.of_public |> U.as_untyped, None)
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
               (
-                "bar" |> A.of_public |> U.as_raw_node,
-                Some("Bar" |> A.of_public |> U.as_raw_node),
+                "bar" |> A.of_public |> U.as_untyped,
+                Some("Bar" |> A.of_public |> U.as_untyped),
               )
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import fizz, { foo, bar as Bar } from \"@/bar\"",
         )
     ),
@@ -198,16 +198,16 @@ let suite =
           (
             "bar" |> A.of_internal,
             [
-              ("foo" |> A.of_public |> U.as_raw_node, None)
+              ("foo" |> A.of_public |> U.as_untyped, None)
               |> A.of_named_import
-              |> U.as_raw_node,
-              ("bar" |> A.of_public |> U.as_raw_node, None)
+              |> U.as_untyped,
+              ("bar" |> A.of_public |> U.as_untyped, None)
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo, bar, } from \"@/bar\"",
         )
     ),
@@ -221,13 +221,13 @@ let suite =
             [
               "foo"
               |> A.of_public
-              |> U.as_raw_node
+              |> U.as_untyped
               |> A.of_main_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           [
             "import foo from \"@/bar\";",
             "  import  foo  from   \"@/bar\"  ;  ",
@@ -239,9 +239,9 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          [("foo" |> A.of_public |> U.as_raw_node, None) |> U.as_raw_node]
+          [("foo" |> A.of_public |> U.as_untyped, None) |> U.as_untyped]
           |> A.of_standard_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo }",
         )
     ),
@@ -252,13 +252,13 @@ let suite =
           ~ns_context=__context_with_named_exports,
           [
             (
-              "foo" |> A.of_public |> U.as_raw_node,
-              Some("bar" |> A.of_public |> U.as_raw_node),
+              "foo" |> A.of_public |> U.as_untyped,
+              Some("bar" |> A.of_public |> U.as_untyped),
             )
-            |> U.as_raw_node,
+            |> U.as_untyped,
           ]
           |> A.of_standard_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo as bar }",
         )
     ),

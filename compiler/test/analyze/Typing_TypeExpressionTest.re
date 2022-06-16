@@ -58,11 +58,11 @@ let suite =
         Assert.type_(
           Valid(`String),
           TE.String
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
           |> TypingAnalyzer.eval_type_expression,
         )
@@ -73,7 +73,7 @@ let suite =
         Assert.type_(
           Valid(`List(Valid(`Boolean))),
           TE.Boolean
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_list
           |> TypingAnalyzer.eval_type_expression,
         )
@@ -86,8 +86,8 @@ let suite =
             `Struct([("foo", Valid(`Boolean)), ("bar", Valid(`String))]),
           ),
           [
-            (U.as_raw_node("foo"), U.as_raw_node(TE.Boolean)),
-            (U.as_raw_node("bar"), U.as_raw_node(TE.String)),
+            (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
+            (U.as_untyped("bar"), U.as_untyped(TE.String)),
           ]
           |> TE.of_struct
           |> TypingAnalyzer.eval_type_expression,
@@ -104,8 +104,8 @@ let suite =
             )),
           ),
           (
-            [U.as_raw_node(TE.Boolean), U.as_raw_node(TE.String)],
-            U.as_raw_node(TE.Element),
+            [U.as_untyped(TE.Boolean), U.as_untyped(TE.String)],
+            U.as_untyped(TE.Element),
           )
           |> TE.of_function
           |> TypingAnalyzer.eval_type_expression,

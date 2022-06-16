@@ -4,7 +4,7 @@ module SemanticAnalyzer = Analyze.Semantic;
 
 let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.func
-  >>= NR.get_range
+  >>= N2.get_range
   % (
     start =>
       Identifier.parser(ctx)
@@ -18,21 +18,23 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                 raw_args |> SemanticAnalyzer.analyze_argument_list(scope);
 
               args
-              |> List.iter(((arg, arg_type, arg_range)) =>
+              |> List.iter(arg =>
                    scope
-                   |> S.define(A.(arg.name) |> NR.get_value, arg_type)
-                   |> Option.iter(S.report_type_err(scope, arg_range))
+                   |> S.define(A.(fst(arg).name) |> fst, N2.get_type(arg))
+                   |> Option.iter(
+                        S.report_type_err(scope, N2.get_range(arg)),
+                      )
                  );
 
-              let res_scope = scope |> S.create_child(N.get_range(raw_res));
+              let res_scope = scope |> S.create_child(N2.get_range(raw_res));
               let res =
                 raw_res |> SemanticAnalyzer.analyze_expression(res_scope);
 
               let type_ =
                 T.Valid(
                   `Function((
-                    args |> List.map(N.get_type),
-                    N.get_type(res),
+                    args |> List.map(N2.get_type),
+                    N2.get_type(res),
                   )),
                 );
               let export_id = f(id);
@@ -40,13 +42,13 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
               ctx
               |> ModuleContext.declare(
                    ~main=Util.is_main(export_id),
-                   NR.get_value(id),
+                   fst(id),
                    type_,
                  );
 
-              let func = N.create((args, res) |> A.of_func, type_, range);
+              let func = N2.typed((args, res) |> A.of_func, type_, range);
 
-              NR.create((export_id, func), Range.join(start, range));
+              N2.untyped((export_id, func), Range.join(start, range));
             }
           )
       )

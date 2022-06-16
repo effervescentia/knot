@@ -60,7 +60,7 @@ let _assert_style = (expected, actual) =>
   );
 
 let __variable_declaration =
-  ("fooBar" |> A.of_public |> U.as_raw_node, U.int_prim(123)) |> A.of_var;
+  ("fooBar" |> A.of_public |> U.as_untyped, U.int_prim(123)) |> A.of_var;
 
 let __expression =
   (U.int_prim(123), U.int_prim(456)) |> A.of_eq_op |> U.as_int |> A.of_expr;
@@ -113,7 +113,7 @@ let suite =
       () =>
         _assert_constant(
           Variable("foo", Number("123")),
-          ("foo" |> A.of_public |> U.as_raw_node, U.int_prim(123)),
+          ("foo" |> A.of_public |> U.as_untyped, U.int_prim(123)),
         )
     ),
     "enum"
@@ -159,14 +159,14 @@ let suite =
             ]),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [
               (
-                "Verified" |> A.of_public |> U.as_raw_node,
+                "Verified" |> A.of_public |> U.as_untyped,
                 [U.as_int(TE.Integer), U.as_string(TE.String)],
               ),
               (
-                "Unverified" |> A.of_public |> U.as_raw_node,
+                "Unverified" |> A.of_public |> U.as_untyped,
                 [U.as_string(TE.String)],
               ),
             ],
@@ -185,10 +185,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: "bar" |> A.of_public |> U.as_untyped,
                 default: None,
                 type_: None,
               }
@@ -226,10 +226,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: "bar" |> A.of_public |> U.as_untyped,
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
@@ -262,10 +262,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [],
             [
-              ("buzz" |> A.of_public |> U.as_raw_node, U.int_prim(2))
+              ("buzz" |> A.of_public |> U.as_untyped, U.int_prim(2))
               |> A.of_var
               |> U.as_nil,
               (
@@ -310,10 +310,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: "bar" |> A.of_public |> U.as_untyped,
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
@@ -356,10 +356,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            "foo" |> A.of_public |> U.as_untyped,
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: "bar" |> A.of_public |> U.as_untyped,
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
@@ -367,21 +367,21 @@ let suite =
             ],
             [
               (
-                A.Class("fizz" |> A.of_public |> U.as_raw_node),
+                A.Class("fizz" |> A.of_public |> U.as_untyped),
                 [
-                  ("height" |> A.of_public |> U.as_raw_node, U.int_prim(2))
-                  |> U.as_raw_node,
+                  ("height" |> A.of_public |> U.as_untyped, U.int_prim(2))
+                  |> U.as_untyped,
                 ],
               )
-              |> U.as_raw_node,
+              |> U.as_untyped,
               (
-                A.ID("buzz" |> A.of_public |> U.as_raw_node),
+                A.ID("buzz" |> A.of_public |> U.as_untyped),
                 [
-                  ("width" |> A.of_public |> U.as_raw_node, U.int_prim(10))
-                  |> U.as_raw_node,
+                  ("width" |> A.of_public |> U.as_untyped, U.int_prim(10))
+                  |> U.as_untyped,
                 ],
               )
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           ),
         )
