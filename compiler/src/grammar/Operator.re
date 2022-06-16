@@ -1,14 +1,14 @@
 open Kore;
 
 let _unary_op = (ctx, ~type_: option(TR.t)=?, f, x) =>
-  N2.typed(f(x), type_ |?: N2.get_type(x), N2.get_range(x));
+  N.typed(f(x), type_ |?: N.get_type(x), N.get_range(x));
 
 let _binary_op = (ctx, ~get_type=_ => TR.(`Unknown), f, (l, r)) =>
-  N2.typed((l, r) |> f, (l, r) |> get_type, N2.join_ranges(l, r));
+  N.typed((l, r) |> f, (l, r) |> get_type, N.join_ranges(l, r));
 
 let _get_arithmetic_result_type =
   TR.(
-    Tuple.map2(N2.get_type)
+    Tuple.map2(N.get_type)
     % (
       fun
       | (`Float, _)

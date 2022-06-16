@@ -52,22 +52,22 @@ let rec of_expr =
   fun
   | (A.Primitive(prim), (_, range)) =>
     BinaryTree.create((range, Primitive(prim)))
-  | (A.Identifier(id), (_, range)) => N2.untyped(id, range) |> of_untyped_id
+  | (A.Identifier(id), (_, range)) => N.untyped(id, range) |> of_untyped_id
   | (A.JSX(jsx), (_, range)) => jsx |> of_jsx |> _wrap(range)
   | (A.Group(expr), (_, range)) =>
-    expr |> of_expr |> _wrap(N2.get_range(expr))
+    expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.BinaryOp(_, lhs, rhs), (_, range)) =>
     _join(
-      lhs |> of_expr |> _wrap(N2.get_range(lhs)),
-      rhs |> of_expr |> _wrap(N2.get_range(rhs)),
+      lhs |> of_expr |> _wrap(N.get_range(lhs)),
+      rhs |> of_expr |> _wrap(N.get_range(rhs)),
     )
-  | (A.UnaryOp(_, expr), _) => expr |> of_expr |> _wrap(N2.get_range(expr))
+  | (A.UnaryOp(_, expr), _) => expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
   | (A.DotAccess(expr, props), _) =>
-    expr |> of_expr |> _wrap(N2.get_range(expr))
+    expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.FunctionCall(expr, args), (_, range)) =>
     _join(
-      expr |> of_expr |> _wrap(N2.get_range(expr)),
+      expr |> of_expr |> _wrap(N.get_range(expr)),
       args |> List.map(of_expr) |> of_list,
     )
 
@@ -75,24 +75,22 @@ and of_jsx =
   fun
   | A.Fragment(children) =>
     children
-    |> List.map(child =>
-         child |> of_jsx_child |> _wrap(N2.get_range(child))
-       )
+    |> List.map(child => child |> of_jsx_child |> _wrap(N.get_range(child)))
     |> of_list
 
   | A.Tag((id, (_, range)), attrs, children)
   | A.Component((id, (_, range)), attrs, children) =>
-    [N2.untyped(id, range) |> of_untyped_id]
+    [N.untyped(id, range) |> of_untyped_id]
     @ (
       attrs
       |> List.map(attr =>
-           attr |> fst |> of_jsx_attr |> _wrap(N2.get_range(attr))
+           attr |> fst |> of_jsx_attr |> _wrap(N.get_range(attr))
          )
     )
     @ (
       children
       |> List.map(child =>
-           child |> of_jsx_child |> _wrap(N2.get_range(child))
+           child |> of_jsx_child |> _wrap(N.get_range(child))
          )
     )
     |> of_list
@@ -101,7 +99,7 @@ and of_jsx_child =
   fun
   | (A.Node(tag), (_, range)) => tag |> of_jsx |> _wrap(range)
   | (A.InlineExpression(expr), (_, range)) =>
-    expr |> of_expr |> _wrap(N2.get_range(expr))
+    expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.Text(text), (_, range)) =>
     BinaryTree.create((range, Primitive(String(text))))
 
@@ -112,16 +110,13 @@ and of_jsx_attr =
   | A.Property(id, None) => of_untyped_id(id)
   | A.Class(id, Some(expr))
   | A.Property(id, Some(expr)) =>
-    _join(of_untyped_id(id), expr |> of_expr |> _wrap(N2.get_range(expr)))
+    _join(of_untyped_id(id), expr |> of_expr |> _wrap(N.get_range(expr)))
 
 and of_stmt =
   fun
   | A.Variable(name, expr) =>
-    _join(
-      of_untyped_id(name),
-      expr |> of_expr |> _wrap(N2.get_range(expr)),
-    )
-  | A.Expression(expr) => expr |> of_expr |> _wrap(N2.get_range(expr));
+    _join(of_untyped_id(name), expr |> of_expr |> _wrap(N.get_range(expr)))
+  | A.Expression(expr) => expr |> of_expr |> _wrap(N.get_range(expr));
 
 let of_args = args =>
   args
@@ -137,16 +132,16 @@ let of_args = args =>
 
 let of_decl =
   fun
-  | A.Constant(expr) => expr |> of_expr |> _wrap(N2.get_range(expr))
+  | A.Constant(expr) => expr |> of_expr |> _wrap(N.get_range(expr))
   | A.Enumerated(variants) =>
     variants
     |> List.map(((name, args)) => [of_untyped_id(name)])
     |> List.flatten
     |> of_list
   | A.Function(args, expr) =>
-    _join(of_args(args), expr |> of_expr |> _wrap(N2.get_range(expr)))
+    _join(of_args(args), expr |> of_expr |> _wrap(N.get_range(expr)))
   | A.View(props, expr) =>
-    _join(of_args(props), expr |> of_expr |> _wrap(N2.get_range(expr)))
+    _join(of_args(props), expr |> of_expr |> _wrap(N.get_range(expr)))
   | A.Style(args, rule_sets) =>
     _join(
       of_args(args),

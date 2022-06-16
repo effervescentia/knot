@@ -82,12 +82,9 @@ let handler: Runtime.request_handler_t(params_t) =
             |?< Runtime.scan_for_token(point)
             |?< (
               node =>
-                switch (Node.Raw.get_value(node)) {
+                switch (fst(node)) {
                 | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
-                  Some((
-                    Fmt.str("(keyword) %s", kwd),
-                    Node.Raw.get_range(node),
-                  ))
+                  Some((Fmt.str("(keyword) %s", kwd), Node.get_range(node)))
                 | _ => None
                 }
             )

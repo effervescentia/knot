@@ -79,7 +79,7 @@ let handler: Runtime.request_handler_t(params_t) =
                                            ),
                                       ),
                                  );
-                               let range = N2.get_range(name);
+                               let range = N.get_range(name);
                                let name = name |> fst |> ~@Identifier.pp;
 
                                Some(

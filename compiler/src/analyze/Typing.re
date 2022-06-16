@@ -117,7 +117,7 @@ let check_jsx_render:
                      @ [
                        (
                          T.InvalidJSXAttribute(key, expected', actual_value),
-                         Some(N2.get_range(actual')),
+                         Some(N.get_range(actual')),
                        ),
                      ],
                      missing,
@@ -134,7 +134,7 @@ let check_jsx_render:
                    @ [
                      (
                        T.UnexpectedJSXAttribute(key, fst(actual')),
-                       Some(N2.get_range(actual')),
+                       Some(N.get_range(actual')),
                      ),
                    ],
                    missing,

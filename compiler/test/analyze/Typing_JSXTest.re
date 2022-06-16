@@ -153,8 +153,8 @@ let suite =
               )),
             ),
             [
-              ("bar", N2.untyped(T.Valid(`Nil), bar_range)),
-              ("foo", N2.untyped(T.Valid(`Integer), foo_range)),
+              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
+              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,
@@ -182,8 +182,8 @@ let suite =
             __id,
             T.Valid(`View(([], T.Valid(`Element)))),
             [
-              ("foo", N2.untyped(T.Valid(`Integer), foo_range)),
-              ("bar", N2.untyped(T.Valid(`Nil), bar_range)),
+              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
+              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,
@@ -246,8 +246,8 @@ let suite =
               )),
             ),
             [
-              ("foo", N2.untyped(T.Valid(`Integer), foo_range)),
-              ("bar", N2.untyped(T.Valid(`Nil), bar_range)),
+              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
+              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,

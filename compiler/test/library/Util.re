@@ -5,14 +5,11 @@ module A = AST;
 module AR = AST.Raw;
 module T = Type;
 module TR = Type.Raw;
-module N2 = Node2;
 
 module CommonUtil = {
-  let as_raw_node = (~range=Range.zero, x) => Node.Raw.create(x, range);
-  let as_untyped = (~range=Range.zero, x) => N2.untyped(x, range);
-  let as_node = (~range=Range.zero, type_, x) =>
-    Node.create(x, type_, range);
-  let as_typed = (~range=Range.zero, type_, x) => N2.typed(x, type_, range);
+  let as_untyped = (~range=Range.zero, x) => Node.untyped(x, range);
+  let as_typed = (~range=Range.zero, type_, x) =>
+    Node.typed(x, type_, range);
 
   let to_scope = (types: list((string, T.t))): DeclarationTable.t => {
     types

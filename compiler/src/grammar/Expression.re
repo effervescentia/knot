@@ -1,26 +1,22 @@
 open Kore;
 
-let primitive: expression_parser_t = Primitive.parser >|= N2.map(AR.of_prim);
+let primitive: expression_parser_t = Primitive.parser >|= N.map(AR.of_prim);
 
 let identifier = (ctx: ModuleContext.t): expression_parser_t =>
-  Identifier.parser(ctx) >|= N2.map(AR.of_id) >|= N2.add_type(TR.(`Unknown));
+  Identifier.parser(ctx) >|= N.map(AR.of_id) >|= N.add_type(TR.(`Unknown));
 
 let jsx =
     (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
     : expression_parser_t =>
   JSX.parser(ctx, parsers)
-  >|= N2.add_type(TR.(`Element))
-  >|= N2.map(AR.of_jsx);
+  >|= N.add_type(TR.(`Element))
+  >|= N.map(AR.of_jsx);
 
 let group = (parse_expr: expression_parser_t): expression_parser_t =>
   M.between(Symbol.open_group, Symbol.close_group, parse_expr)
   >|= (
     ((expr, _) as expr_node) =>
-      N2.typed(
-        AR.of_group(expr),
-        N2.get_type(expr),
-        N2.get_range(expr_node),
-      )
+      N.typed(AR.of_group(expr), N.get_type(expr), N.get_range(expr_node))
   );
 
 let closure =
@@ -33,11 +29,11 @@ let closure =
     ((stmts, _) as stmts_node) => {
       let last_stmt = List.last(stmts);
 
-      N2.typed(
+      N.typed(
         AR.of_closure(stmts),
         /* if the statement list is empty the return type is nil */
-        last_stmt |?> N2.get_type |?: TR.(`Nil),
-        N2.get_range(stmts_node),
+        last_stmt |?> N.get_type |?: TR.(`Nil),
+        N.get_range(stmts_node),
       );
     }
   );
@@ -49,16 +45,16 @@ let dot_access = {
     >>= (
       prop =>
         loop(
-          N2.typed(
+          N.typed(
             (expr, prop) |> AR.of_dot_access,
             (
-              switch (N2.get_type(expr)) {
+              switch (N.get_type(expr)) {
               | `Struct(props) => props |> List.assoc_opt(fst(prop))
               | _ => None
               }
             )
             |?: TR.(`Unknown),
-            N2.get_range(prop),
+            N.get_range(prop),
           ),
         )
     )
@@ -76,13 +72,13 @@ let function_call =
     >>= (
       args =>
         loop(
-          N2.typed(
+          N.typed(
             (expr, fst(args)) |> AR.of_func_call,
-            switch (N2.get_type(expr)) {
+            switch (N.get_type(expr)) {
             | `Function(_, result) => result
             | _ => TR.(`Unknown)
             },
-            N2.get_range(args),
+            N.get_range(args),
           ),
         )
     )

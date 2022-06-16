@@ -7,7 +7,7 @@ module U = Util.ResultUtil;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N2.t((A.export_t, A.declaration_t), unit);
+    type t = N.t((A.export_t, A.declaration_t), unit);
 
     let parser = ((_, ctx)) =>
       Constant.parser(ctx, A.of_named_export)

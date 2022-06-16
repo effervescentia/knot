@@ -3,14 +3,11 @@ open Kore;
 let _import_named = (ctx: ModuleContext.t, import) =>
   fun
   | (((id, _), None), _) as no_alias =>
-    ctx |> import((Reference.Export.Named(id), N2.get_range(no_alias)), id)
+    ctx |> import((Reference.Export.Named(id), N.get_range(no_alias)), id)
 
   | (((id, _), Some((alias, _))), _) as with_alias =>
     ctx
-    |> import(
-         (Reference.Export.Named(id), N2.get_range(with_alias)),
-         alias,
-       );
+    |> import((Reference.Export.Named(id), N.get_range(with_alias)), alias);
 
 let _import_module = (ctx, imports, import) =>
   imports
@@ -18,28 +15,25 @@ let _import_module = (ctx, imports, import) =>
        fun
        | (A.MainImport((alias, _)), _) as main_import =>
          ctx
-         |> import(
-              (Reference.Export.Main, N2.get_range(main_import)),
-              alias,
-            )
+         |> import((Reference.Export.Main, N.get_range(main_import)), alias)
 
        | (A.NamedImport(id, alias), _) as named_import =>
          _import_named(
            ctx,
            import,
-           N2.untyped((id, alias), N2.get_range(named_import)),
+           N.untyped((id, alias), N.get_range(named_import)),
          ),
      );
 
 let namespace = imports =>
   M.string
-  >|= N2.map(Reference.Namespace.of_string)
+  >|= N.map(Reference.Namespace.of_string)
   >|= (namespace => (namespace, imports));
 
 let main_import =
   M.identifier
-  >|= N2.map(A.of_public)
-  >|= (import => [import |> N2.wrap(A.of_main_import)]);
+  >|= N.map(A.of_public)
+  >|= (import => [import |> N.wrap(A.of_main_import)]);
 
 let named_imports = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)
@@ -50,9 +44,9 @@ let named_imports = (ctx: ModuleContext.t) =>
   <|> (Identifier.parser(ctx) >|= (id => (id, None)))
   |> M.comma_sep
   |> M.between(Symbol.open_closure, Symbol.close_closure)
-  >|= N2.map(
+  >|= N.map(
         List.map(((name, alias) as import) =>
-          N2.untyped(import, N2.join_ranges(name, alias |?: name))
+          N.untyped(import, N.join_ranges(name, alias |?: name))
         ),
       );
 
@@ -62,7 +56,7 @@ let module_import = (ctx: ModuleContext.t) =>
     kwd =>
       choice([
         main_import,
-        named_imports(ctx) >|= fst >|= List.map(N2.map(A.of_named_import)),
+        named_imports(ctx) >|= fst >|= List.map(N.map(A.of_named_import)),
       ])
       |> M.comma_sep
       >|= List.flatten
@@ -74,9 +68,9 @@ let module_import = (ctx: ModuleContext.t) =>
       )
       >|= (
         ((namespace, imports)) =>
-          N2.untyped(
+          N.untyped(
             (fst(namespace), imports) |> A.of_import,
-            N2.join_ranges(kwd, namespace),
+            N.join_ranges(kwd, namespace),
           )
       )
   );
@@ -90,9 +84,9 @@ let standard_import = (ctx: ModuleContext.t) =>
       % List.iter(_import_named(ctx, ModuleContext.import(Stdlib)))
       >|= (
         imports =>
-          N2.untyped(
+          N.untyped(
             A.of_standard_import(fst(imports)),
-            N2.join_ranges(kwd, imports),
+            N.join_ranges(kwd, imports),
           )
       )
   );

@@ -20,7 +20,7 @@ let alpha_num = digit <|> alpha;
 let lexeme = x => spaces >> x;
 
 let between = (l, r, x) =>
-  map3((l', x', r') => N2.untyped(x', N2.join_ranges(l', r')), l, x, r);
+  map3((l', x', r') => N.untyped(x', N.join_ranges(l', r')), l, x, r);
 
 let binary_op = (lx, op, rx) => map3((l, _, r) => (l, r), lx, op, rx);
 
@@ -57,7 +57,7 @@ let glyph = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.get_point
-          >|= (end_ => N2.untyped((), Range.create(start, end_)))
+          >|= (end_ => N.untyped((), Range.create(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -79,7 +79,7 @@ let keyword = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.get_point
-          >|= (end_ => N2.untyped(s, Range.create(start, end_)))
+          >|= (end_ => N.untyped(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq)
@@ -118,7 +118,7 @@ let string =
           >|= Input.get_point
           >|= (
             end_ =>
-              N2.untyped(
+              N.untyped(
                 f([]) |> String.of_uchars,
                 Range.create(start, end_),
               )

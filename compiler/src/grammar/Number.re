@@ -3,8 +3,8 @@ open Kore;
 let integer: number_parser_t =
   many1(M.digit)
   >|= Input.join
-  >|= N2.map(Int64.of_string % AR.of_int)
-  >|= N2.add_type(TR.(`Integer))
+  >|= N.map(Int64.of_string % AR.of_int)
+  >|= N.add_type(TR.(`Integer))
   |> M.lexeme;
 
 let float: number_parser_t =
@@ -33,7 +33,7 @@ let float: number_parser_t =
         )
         |> AR.of_float;
 
-      N2.typed(components, TR.(`Float), N2.join_ranges(x, y));
+      N.typed(components, TR.(`Float), N.join_ranges(x, y));
     }
   )
   |> M.lexeme;

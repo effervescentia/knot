@@ -4,7 +4,7 @@ module SemanticAnalyzer = Analyze.Semantic;
 
 let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.enum
-  >|= N2.get_range
+  >|= N.get_range
   >>= (
     start =>
       Typing.type_variants(ctx)
@@ -19,7 +19,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                  % Tuple.map_snd2(
                      List.map(type_expr =>
                        type_expr
-                       |> N2.add_type(
+                       |> N.add_type(
                             type_expr
                             |> fst
                             |> Analyze.Typing.eval_type_expression,
@@ -34,7 +34,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                 |> List.map(
                      Tuple.map_each2(
                        fst % Reference.Identifier.to_string,
-                       List.map(N2.get_type),
+                       List.map(N.get_type),
                      ),
                    ),
               ),
@@ -42,9 +42,9 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
           let range =
             Range.join(
               start,
-              raw_variants |> List.last |?> N2.get_range |?: start,
+              raw_variants |> List.last |?> N.get_range |?: start,
             );
-          let enum = N2.typed(A.of_enum(variants), type_, range);
+          let enum = N.typed(A.of_enum(variants), type_, range);
           let export_id = f(id);
 
           ctx
@@ -54,7 +54,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                type_,
              );
 
-          N2.untyped((export_id, enum), range);
+          N.untyped((export_id, enum), range);
         }
       )
       |> M.terminated

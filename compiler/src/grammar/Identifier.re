@@ -8,12 +8,12 @@ let parser = (ctx: ModuleContext.t): identifier_parser_t =>
         ParseError(
           ReservedKeyword(name_value),
           ctx.namespace_context.namespace,
-          N2.get_range(name),
+          N.get_range(name),
         )
         |> ModuleContext.report(ctx);
       };
 
-      N2.untyped(name_value, N2.get_range(name))
-      |> N2.map(Reference.Identifier.of_string);
+      N.untyped(name_value, N.get_range(name))
+      |> N.map(Reference.Identifier.of_string);
     }
   );

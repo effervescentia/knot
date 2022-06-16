@@ -24,14 +24,11 @@ module Compare = {
 
   let graph = pp_value => testable(Graph.pp(pp_value), (==));
 
-  let raw_node = (pp_value: Fmt.t('a)) =>
-    testable(Node.Raw.pp(pp_value), (==));
-
-  let node = (pp_value: Fmt.t('a)) =>
-    testable(Node.pp(pp_value, Type.pp), (==));
-
   let untyped_node = (pp_value: Fmt.t('a)) =>
-    testable(Node2.pp_untyped(pp_value), (==));
+    testable(Node.pp_untyped(pp_value), (==));
+
+  let typed_node = (pp_value: Fmt.t('a), pp_type: Fmt.t('b)) =>
+    testable(Node.pp(pp_value, pp_type), (==));
 
   let type_ = testable(Type.pp, (==));
 
@@ -84,14 +81,13 @@ let namespace_graph =
     check(Compare.graph(Reference.Namespace.pp), "namespace graph matches")
   );
 
-let raw_node = pp_value =>
-  Alcotest.(check(Compare.raw_node(pp_value), "raw node matches"));
-
-let node = pp_value =>
-  Alcotest.(check(Compare.node(pp_value), "node matches"));
-
 let untyped_node = pp_value =>
   Alcotest.(check(Compare.untyped_node(pp_value), "untyped node matches"));
+
+let typed_node = (pp_value, pp_type) =>
+  Alcotest.(
+    check(Compare.typed_node(pp_value, pp_type), "typed node matches")
+  );
 
 let type_ = Alcotest.(check(Compare.type_, "type matches"));
 

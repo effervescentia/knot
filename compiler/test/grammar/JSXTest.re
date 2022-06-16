@@ -6,7 +6,7 @@ module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = N2.t(AR.jsx_t, unit);
+    type t = N.t(AR.jsx_t, unit);
 
     let parser = ((_, ctx)) =>
       JSX.parser(ctx, (Expression.jsx_term, Expression.parser))

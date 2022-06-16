@@ -51,10 +51,10 @@ let handler: Runtime.request_handler_t(params_t) =
                     MainExport(name) | NamedExport(name),
                     decl,
                   ) => {
-                    let range = N2.get_range(name);
-                    let full_range = N2.join_ranges(name, decl);
+                    let range = N.get_range(name);
+                    let full_range = N.join_ranges(name, decl);
                     let name = name |> fst |> ~@Identifier.pp;
-                    let type_ = N2.get_type(decl);
+                    let type_ = N.get_type(decl);
 
                     Some(
                       switch (fst(decl)) {

@@ -19,14 +19,14 @@ let arguments = (ctx: ModuleContext.t) =>
   )
   >|= (
     ((name, type_, default)) => {
-      let name_range = N2.get_range(name);
+      let name_range = N.get_range(name);
 
-      N2.typed(
+      N.typed(
         AR.{name, default, type_},
-        default |?> N2.get_type |?: TR.(`Unknown),
+        default |?> N.get_type |?: TR.(`Unknown),
         Range.join(
           name_range,
-          default |?> N2.get_range |?: (type_ |?> N2.get_range |?: name_range),
+          default |?> N.get_range |?: (type_ |?> N.get_range |?: name_range),
         ),
       );
     }
@@ -43,6 +43,6 @@ let parser = (ctx: ModuleContext.t) =>
       >>= (
         lambda =>
           Expression.parser(ctx)
-          >|= (expr => (args, expr, N2.join_ranges(lambda, expr)))
+          >|= (expr => (args, expr, N.join_ranges(lambda, expr)))
       )
   );

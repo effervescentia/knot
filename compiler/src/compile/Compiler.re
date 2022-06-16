@@ -78,12 +78,12 @@ let _get_module_exports = ast =>
            []
 
          | AST.Declaration(NamedExport((id, _)), decl) => [
-             (Export.Named(id), N2.get_type(decl)),
+             (Export.Named(id), N.get_type(decl)),
            ]
 
          | AST.Declaration(MainExport((id, _)), decl) => [
-             (Export.Named(id), N2.get_type(decl)),
-             (Export.Main, N2.get_type(decl)),
+             (Export.Named(id), N.get_type(decl)),
+             (Export.Main, N.get_type(decl)),
            ]
 
          | _ => []

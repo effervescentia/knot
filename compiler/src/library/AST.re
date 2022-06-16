@@ -4,9 +4,9 @@
 open Infix;
 open Reference;
 
-module N2 = Node2;
+module N = Node;
 
-type untyped_t('a) = N2.t('a, unit);
+type untyped_t('a) = N.t('a, unit);
 
 /**
  common types that can be used to build resolved or Raw ASTs
@@ -85,7 +85,7 @@ module Common = {
     let untyped_node_to_entity =
         (~attributes=[], ~children=[], label, raw_node: untyped_t('a)) =>
       Entity.create(
-        ~range=N2.get_range(raw_node),
+        ~range=N.get_range(raw_node),
         ~attributes,
         ~children,
         label,
@@ -97,12 +97,12 @@ module Common = {
           ~attributes=[],
           ~children=[],
           label,
-          node: N2.t('a, 'b),
+          node: N.t('a, 'b),
         ) =>
       Entity.create(
-        ~range=N2.get_range(node),
+        ~range=N.get_range(node),
         ~attributes=
-          _attributes_with_type(N2.get_type(node), pp_type, attributes),
+          _attributes_with_type(N.get_type(node), pp_type, attributes),
         ~children,
         label,
       );
@@ -299,7 +299,7 @@ module type ASTParams = {
       ~attributes: list(Pretty.XML.xml_attr_t(string))=?,
       ~children: list(Common.Dump.Entity.t)=?,
       string,
-      N2.t('a, type_t)
+      N.t('a, type_t)
     ) =>
     Common.Dump.Entity.t;
 };
@@ -320,7 +320,7 @@ module Make = (Params: ASTParams) => {
   /**
    container for AST nodes
    */
-  type node_t('a) = N2.t('a, type_t);
+  type node_t('a) = N.t('a, type_t);
 
   /**
    a JSX AST node
@@ -841,7 +841,7 @@ module Dump = {
                      |> List.map(arg =>
                           typed_node_to_entity(
                             ~children=[
-                              N2.drop_type(arg)
+                              N.drop_type(arg)
                               |> TypeExpression.Dump.to_entity,
                             ],
                             "Argument",
@@ -940,7 +940,7 @@ module Dump = {
         ~children=[
           id_to_entity("Name", name),
           Entity.create(
-            ~range=N2.get_range(alias),
+            ~range=N.get_range(alias),
             ~attributes=[("value", alias |> fst |> Identifier.to_string)],
             "Alias",
           ),
@@ -964,7 +964,7 @@ module Dump = {
         ~children=[
           id_to_entity("Name", name),
           Entity.create(
-            ~range=N2.get_range(alias),
+            ~range=N.get_range(alias),
             ~attributes=[("value", alias |> fst |> Identifier.to_string)],
             "Alias",
           ),

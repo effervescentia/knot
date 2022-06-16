@@ -16,5 +16,5 @@ let parser = (ctx: ModuleContext.t) =>
         Function.parser(ctx, f),
         View.parser(ctx, f),
       ])
-      >|= N2.map(A.of_decl)
+      >|= N.map(A.of_decl)
   );

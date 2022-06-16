@@ -1,7 +1,5 @@
 open Infix;
 
-module N2 = Node2;
-
 type target_t =
   | ModuleStatement(AST.module_statement_t)
   | Import(AST.import_t)
@@ -32,7 +30,7 @@ and iter_mod_stmt = f =>
       | Import(_, imports) => imports |> List.iter(x => f(Import(x)))
       | StandardImport(imports) =>
         imports
-        |> List.iter(N2.map(AST.of_named_import) % (x => f(Import(x))))
+        |> List.iter(Node.map(AST.of_named_import) % (x => f(Import(x))))
     )
 
 and iter_decl = f =>

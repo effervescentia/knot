@@ -19,7 +19,7 @@ let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
              | (A.Property((name, _), Some(expr)), range) =>
                Some((
                  Reference.Identifier.to_string(name),
-                 (N2.get_type(expr), range),
+                 (N.get_type(expr), range),
                ))
              | (_, range) => None,
            );
@@ -27,10 +27,10 @@ let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
       (fst(id), id_type, props)
       |> Typing.check_jsx_render
       |> List.iter(((err, err_range)) =>
-           S.report_type_err(scope, err_range |?: N2.get_range(id), err)
+           S.report_type_err(scope, err_range |?: N.get_range(id), err)
          );
 
-      (id |> N2.add_type(id_type), analyzed_attrs, analyzed_children)
+      (id |> N.add_type(id_type), analyzed_attrs, analyzed_children)
       |> A.of_component;
     } else {
       (id, analyzed_attrs, analyzed_children) |> A.of_tag;
@@ -54,11 +54,11 @@ and analyze_jsx_attribute =
 
       expr_opt
       |> Option.iter(expr => {
-           let type_ = N2.get_type(expr);
+           let type_ = N.get_type(expr);
 
            type_
            |> Typing.check_jsx_class_expression
-           |> Option.iter(expr |> N2.get_range |> S.report_type_err(scope));
+           |> Option.iter(expr |> N.get_range |> S.report_type_err(scope));
          });
 
       (id, expr_opt) |> A.of_jsx_class;
@@ -67,7 +67,7 @@ and analyze_jsx_attribute =
       (id, expr |?> analyze_expression(scope)) |> A.of_prop
     };
 
-  N2.untyped(jsx_attr, N2.get_range(raw_jsx_attr));
+  N.untyped(jsx_attr, N.get_range(raw_jsx_attr));
 }
 
 and analyze_jsx_child =
@@ -80,40 +80,40 @@ and analyze_jsx_child =
 
     | InlineExpression(raw_expr) =>
       let expr = raw_expr |> analyze_expression(scope);
-      let type_ = N2.get_type(expr);
+      let type_ = N.get_type(expr);
 
       type_
       |> Typing.check_jsx_primitive_expression
-      |> Option.iter(expr |> N2.get_range |> S.report_type_err(scope));
+      |> Option.iter(expr |> N.get_range |> S.report_type_err(scope));
 
       A.of_inline_expr(expr);
     };
 
-  N2.untyped(jsx_child, N2.get_range(raw_jsx_child));
+  N.untyped(jsx_child, N.get_range(raw_jsx_child));
 }
 
 and analyze_expression =
     (scope: S.t, raw_expr: AR.expression_t): A.expression_t => {
-  let expr_range = N2.get_range(raw_expr);
+  let expr_range = N.get_range(raw_expr);
 
   let (expr, type_) =
     switch (fst(raw_expr)) {
     /* should always be able to rely on the parser to have typed these accurately */
     | Primitive(prim) => (
         A.of_prim(prim),
-        raw_expr |> N2.get_type |> T.of_raw,
+        raw_expr |> N.get_type |> T.of_raw,
       )
 
     /* use the type of the inner analyzed expression */
     | Group(expr) =>
       let analyzed = analyze_expression(scope, expr);
 
-      (A.of_group(analyzed), N2.get_type(analyzed));
+      (A.of_group(analyzed), N.get_type(analyzed));
 
     /* use the type of the last analyzed statement or nil when empty */
     | Closure(stmts) =>
       let analyzed = stmts |> List.map(analyze_statement(scope));
-      let type_ = analyzed |> List.last |?> N2.get_type |?: T.Valid(`Nil);
+      let type_ = analyzed |> List.last |?> N.get_type |?: T.Valid(`Nil);
 
       (A.of_closure(analyzed), type_);
 
@@ -138,7 +138,7 @@ and analyze_expression =
 
     | UnaryOp(op, expr) =>
       let analyzed = analyze_expression(scope, expr);
-      let type_ = N2.get_type(analyzed);
+      let type_ = N.get_type(analyzed);
 
       type_
       |> Typing.check_unary_operation(op)
@@ -164,8 +164,8 @@ and analyze_expression =
     | BinaryOp(op, lhs, rhs) =>
       let analyzed_lhs = analyze_expression(scope, lhs);
       let analyzed_rhs = analyze_expression(scope, rhs);
-      let type_lhs = N2.get_type(analyzed_lhs);
-      let type_rhs = N2.get_type(analyzed_rhs);
+      let type_lhs = N.get_type(analyzed_lhs);
+      let type_rhs = N.get_type(analyzed_rhs);
 
       (type_lhs, type_rhs)
       |> Typing.check_binary_operation(op)
@@ -206,7 +206,7 @@ and analyze_expression =
 
     | DotAccess(expr, prop) =>
       let analyzed_expr = analyze_expression(scope, expr);
-      let type_expr = N2.get_type(analyzed_expr);
+      let type_expr = N.get_type(analyzed_expr);
 
       type_expr
       |> Typing.check_dot_access(fst(prop))
@@ -229,8 +229,8 @@ and analyze_expression =
     | FunctionCall(expr, args) =>
       let analyzed_expr = analyze_expression(scope, expr);
       let analyzed_args = args |> List.map(analyze_expression(scope));
-      let type_expr = N2.get_type(analyzed_expr);
-      let type_args = analyzed_args |> List.map(N2.get_type);
+      let type_expr = N.get_type(analyzed_expr);
+      let type_args = analyzed_args |> List.map(N.get_type);
 
       (type_expr, type_args)
       |> Typing.check_function_call
@@ -245,7 +245,7 @@ and analyze_expression =
       );
     };
 
-  N2.typed(expr, type_, expr_range);
+  N.typed(expr, type_, expr_range);
 }
 
 and analyze_statement = (scope: S.t, raw_stmt: AR.statement_t): A.statement_t => {
@@ -253,21 +253,21 @@ and analyze_statement = (scope: S.t, raw_stmt: AR.statement_t): A.statement_t =>
     switch (fst(raw_stmt)) {
     | Variable(id, expr) =>
       let analyzed = analyze_expression(scope, expr);
-      let type_ = N2.get_type(analyzed);
+      let type_ = N.get_type(analyzed);
 
       scope
       |> S.define(fst(id), type_)
-      |> Option.iter(S.report_type_err(scope, N2.get_range(id)));
+      |> Option.iter(S.report_type_err(scope, N.get_range(id)));
 
       ((id, analyzed) |> A.of_var, T.Valid(`Nil));
 
     | Expression(expr) =>
       let analyzed = analyze_expression(scope, expr);
 
-      (A.of_expr(analyzed), N2.get_type(analyzed));
+      (A.of_expr(analyzed), N.get_type(analyzed));
     };
 
-  N2.typed(stmt, type_, N2.get_range(raw_stmt));
+  N.typed(stmt, type_, N.get_range(raw_stmt));
 };
 
 let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
@@ -275,14 +275,14 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
     switch (fst(raw_arg)) {
     | {name, default: None, type_: None} =>
       T.UntypedFunctionArgument(fst(name))
-      |> S.report_type_err(scope, N2.get_range(raw_arg));
+      |> S.report_type_err(scope, N.get_range(raw_arg));
 
       (A.{name, default: None, type_: None}, T.Invalid(NotInferrable));
 
     | {name, default: Some(raw_expr), type_: None} =>
       let expr = raw_expr |> analyze_expression(scope);
 
-      (A.{name, default: Some(expr), type_: None}, N2.get_type(expr));
+      (A.{name, default: Some(expr), type_: None}, N.get_type(expr));
 
     | {name, default: None, type_: Some(type_expr)} =>
       let type_ = type_expr |> fst |> Typing.eval_type_expression;
@@ -291,13 +291,13 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
 
     | {name, default: Some(raw_expr), type_: Some(type_expr)} =>
       let expr = raw_expr |> analyze_expression(scope);
-      let expr_type = N2.get_type(expr);
+      let expr_type = N.get_type(expr);
       let type_ = type_expr |> fst |> Typing.eval_type_expression;
 
       switch (expr_type, type_) {
       | (Valid(_), Valid(_)) when expr_type != type_ =>
         T.TypeMismatch(type_, expr_type)
-        |> S.report_type_err(scope, N2.get_range(expr))
+        |> S.report_type_err(scope, N.get_range(expr))
 
       /* ignore cases where either type is invalid or when types are equal */
       | _ => ()
@@ -306,7 +306,7 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
       (A.{name, default: Some(expr), type_: Some(type_expr)}, type_);
     };
 
-  N2.typed(arg, type_, N2.get_range(raw_arg));
+  N.typed(arg, type_, N.get_range(raw_arg));
 };
 
 let rec _check_default_arguments =
@@ -316,7 +316,7 @@ let rec _check_default_arguments =
 
   | ([(A.{name: (name, _), default: None}, _) as arg, ...xs], true) =>
     Type.DefaultArgumentMissing(name)
-    |> S.report_type_err(scope, N2.get_range(arg));
+    |> S.report_type_err(scope, N.get_range(arg));
 
     _check_default_arguments(~require_default, scope, xs);
 
@@ -338,11 +338,11 @@ let analyze_argument_list =
 let analyze_view_body =
     (scope: S.t, raw_body: AR.expression_t): A.expression_t => {
   let body = raw_body |> analyze_expression(scope);
-  let type_ = N2.get_type(body);
+  let type_ = N.get_type(body);
 
   type_
   |> Typing.check_jsx_primitive_expression
-  |> Option.iter(body |> N2.get_range |> S.report_type_err(scope));
+  |> Option.iter(body |> N.get_range |> S.report_type_err(scope));
 
   body;
 };

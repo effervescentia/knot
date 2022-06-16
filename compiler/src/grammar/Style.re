@@ -5,10 +5,10 @@ module SemanticAnalyzer = Analyze.Semantic;
 let style_rule_set = (ctx: ModuleContext.t) =>
   choice([
     M.identifier(~prefix=Character.period)
-    >|= N2.map(Reference.Identifier.of_string)
+    >|= N.map(Reference.Identifier.of_string)
     >|= A.of_class_matcher,
     M.identifier(~prefix=Character.octothorpe)
-    >|= N2.map(Reference.Identifier.of_string)
+    >|= N.map(Reference.Identifier.of_string)
     >|= A.of_id_matcher,
   ])
   >>= (
@@ -18,16 +18,16 @@ let style_rule_set = (ctx: ModuleContext.t) =>
         key =>
           Symbol.colon
           >> Expression.parser(ctx)
-          >|= (expr => N2.untyped((key, expr), N2.join_ranges(key, expr)))
+          >|= (expr => N.untyped((key, expr), N.join_ranges(key, expr)))
       )
       |> many
       |> M.between(Symbol.open_closure, Symbol.close_closure)
-      >|= N2.map(Tuple.with_fst2(matcher))
+      >|= N.map(Tuple.with_fst2(matcher))
   );
 
 let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.style
-  >>= N2.get_range
+  >>= N.get_range
   % (
     start =>
       Identifier.parser(ctx)
@@ -37,7 +37,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
           >>= (
             raw_args =>
               Glyph.lambda
-              >|= N2.get_range
+              >|= N.get_range
               >>= (
                 start_range =>
                   style_rule_set(ctx)
@@ -45,7 +45,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                   |> M.between(Symbol.open_closure, Symbol.close_closure)
                   >|= (
                     raw_rule_sets => {
-                      let range = N2.get_range(raw_rule_sets);
+                      let range = N.get_range(raw_rule_sets);
                       let scope = ctx |> Util.create_scope(range);
                       let args =
                         raw_args
@@ -56,10 +56,10 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                            scope
                            |> S.define(
                                 A.(fst(arg).name) |> fst,
-                                N2.get_type(arg),
+                                N.get_type(arg),
                               )
                            |> Option.iter(
-                                S.report_type_err(scope, N2.get_range(arg)),
+                                S.report_type_err(scope, N.get_range(arg)),
                               )
                          );
 
@@ -82,10 +82,10 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                         raw_rule_sets
                         |> fst
                         |> List.map(
-                             N2.map(
+                             N.map(
                                Tuple.map_snd2(
                                  List.map(
-                                   N2.map(
+                                   N.map(
                                      Tuple.map_snd2(
                                        SemanticAnalyzer.analyze_expression(
                                          scope,
@@ -100,7 +100,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                       let type_ =
                         T.Valid(
                           `Style((
-                            args |> List.map(N2.get_type),
+                            args |> List.map(N.get_type),
                             ids,
                             classes,
                           )),
@@ -115,13 +115,13 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                          );
 
                       let style =
-                        N2.typed(
+                        N.typed(
                           (args, res_rule_sets) |> A.of_style,
                           type_,
                           range,
                         );
 
-                      N2.untyped(
+                      N.untyped(
                         (export_id, style),
                         Range.join(start, range),
                       );
