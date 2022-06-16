@@ -14,6 +14,7 @@ let _sort_imports =
              | Internal(name)
              | External(name) => name
              | Stdlib => ""
+             | Ambient => ""
            ),
        )
     |> Tuple.join2(String.compare)

@@ -2,25 +2,14 @@ open Kore;
 
 module SemanticAnalyzer = Analyze.Semantic;
 
-let variant = (ctx: ModuleContext.t) =>
-  Identifier.parser(ctx)
-  >>= (
-    id =>
-      Typing.expression_parser
-      |> M.comma_sep
-      |> M.between(Symbol.open_group, Symbol.close_group)
-      |> option(([], NR.get_range(id)))
-      >|= NR.map_value(Tuple.with_fst2(id))
-  );
-
 let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
   Keyword.enum
   >|= NR.get_range
   >>= (
     start =>
-      optional(Symbol.vertical_bar)
-      >> (variant(ctx) |> sep_by(Symbol.vertical_bar))
+      Typing.type_variants(ctx)
       |> Operator.assign(Identifier.parser(ctx))
+      |> M.terminated
       >|= (
         ((id, raw_variants)) => {
           let variants =

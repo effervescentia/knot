@@ -1,4 +1,53 @@
-plugin style {
-  decl px: (integer) -> string;
-  decl in: (integer) -> string;
+@plugin("style")
+module Style {
+  enum Length:
+    | Ch(float)
+    | Em(float)
+    | Ex(float)
+    | Ic(float)
+    | Rem(float)
+
+    | Vh(float)
+    | Vw(float)
+    | Vmax(float)
+    | Vmin(float)
+    | Vb(float)
+    | Vi(float)
+
+    | Px(float)
+    | Cm(float)
+    | Mm(float)
+    | Q(float)
+    | In(float)
+    | Pc(float)
+    | Pt(float);
+
+  decl height: Length -> nil;
+  decl width: Length -> nil;
+}
+
+@plugin("style_expression")
+module StyleExpression {
+  import { Length } from Style;
+
+  decl ch: (float) -> Length;
+  decl em: (float) -> Length;
+  decl ex: (float) -> Length;
+  decl ic: (float) -> Length;
+  decl rem: (float) -> Length;
+
+  decl vh: (float) -> Length;
+  decl vw: (float) -> Length;
+  decl vmax: (float) -> Length;
+  decl vmin: (float) -> Length;
+  decl vb: (float) -> Length;
+  decl vi: (float) -> Length;
+
+  decl px: (float) -> Length;
+  decl cm: (float) -> Length;
+  decl mm: (float) -> Length;
+  decl Q: (float) -> Length;
+  decl in: (float) -> Length;
+  decl pc: (float) -> Length;
+  decl pt: (float) -> Length;
 }

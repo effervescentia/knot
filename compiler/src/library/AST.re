@@ -210,7 +210,11 @@ module TypeDefinition = {
 
   and raw_module_statement_t =
     | Declaration(Node.Raw.t(string), TypeExpression.t)
-    | Type(Node.Raw.t(string), TypeExpression.t);
+    | Type(Node.Raw.t(string), TypeExpression.t)
+    | Enumerated(
+        Node.Raw.t(string),
+        list((string, list(TypeExpression.t))),
+      );
 
   type module_t = Node.Raw.t(raw_module_t)
 
@@ -223,6 +227,7 @@ module TypeDefinition = {
 
   let of_declaration = ((id, type_)) => Declaration(id, type_);
   let of_type = ((id, type_)) => Type(id, type_);
+  let of_enum = ((id, variants)) => Enumerated(id, variants);
   let of_module = ((id, stmts)) => Module(id, stmts);
 
   module Dump = {
@@ -251,6 +256,23 @@ module TypeDefinition = {
                        ~attributes=[("id", Node.Raw.get_value(id))],
                        ~children=[TypeExpression.Dump.to_entity(type_)],
                        "Type",
+                       id,
+                     )
+                   | Enumerated(id, variants) =>
+                     untyped_node_to_entity(
+                       ~attributes=[("id", Node.Raw.get_value(id))],
+                       ~children=
+                         variants
+                         |> List.map(((name, args)) =>
+                              Entity.create(
+                                ~attributes=[("name", name)],
+                                ~children=
+                                  args
+                                  |> List.map(TypeExpression.Dump.to_entity),
+                                "Variant",
+                              )
+                            ),
+                       "Enumerated",
                        id,
                      )
                  ),

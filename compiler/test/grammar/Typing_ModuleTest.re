@@ -82,6 +82,36 @@ let suite =
 }",
         )
     ),
+    "parse module with enum"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_raw_node(
+            TD.Module(
+              U.as_raw_node("Foo"),
+              [
+                (
+                  U.as_raw_node("bar"),
+                  [
+                    (
+                      "Verified",
+                      [U.as_raw_node(TE.Integer), U.as_raw_node(TE.String)],
+                    ),
+                    ("Unverified", [U.as_raw_node(TE.String)]),
+                  ],
+                )
+                |> TD.of_enum
+                |> U.as_raw_node,
+              ],
+            ),
+          ),
+          "module Foo {
+  enum bar:
+    | Verified(integer, string)
+    | Unverified(string);
+}",
+        )
+    ),
     "parse module with declarations and types"
     >: (
       () =>

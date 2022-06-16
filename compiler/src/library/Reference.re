@@ -4,6 +4,7 @@ module Namespace = {
   type t =
     | Internal(string)
     | External(string)
+    | Ambient
     | Stdlib;
 
   exception CannotExtractPath;
@@ -26,12 +27,14 @@ module Namespace = {
     fun
     | Internal(path) => Filename.concat(parent_dir, path ++ ext)
     | External(path) => path
+    | Ambient
     | Stdlib => raise(CannotExtractPath);
 
   let to_string =
     fun
     | Internal(path) => Constants.root_dir ++ path
     | External(path) => path
+    | Ambient => "ambient"
     | Stdlib => "stdlib";
 
   /* pretty printing */

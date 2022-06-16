@@ -79,7 +79,7 @@ and expr_1: type_expression_parser_t =
 
 let expression_parser = expr_0;
 
-let _module_statement = (kwd, f) =>
+let _module_statement = (kwd, parser, f) =>
   kwd
   >|= NR.get_range
   >>= (
@@ -88,19 +88,72 @@ let _module_statement = (kwd, f) =>
       >>= (
         id =>
           Symbol.colon
-          >> expression_parser
-          >|= (((_, range) as expr) => NR.create((id, expr) |> f, start))
+          >> parser
+          >|= (
+            ((res, range)) =>
+              NR.create((id, res) |> f, Range.join(start, range |?: start))
+          )
       )
   );
 
+let _type_variant = (ctx: ModuleContext.t) =>
+  Identifier.parser(ctx)
+  >>= (
+    id =>
+      expression_parser
+      |> M.comma_sep
+      |> M.between(Symbol.open_group, Symbol.close_group)
+      |> option(([], NR.get_range(id)))
+      >|= NR.map_value(Tuple.with_fst2(id))
+  );
+
+let type_variants = (ctx: ModuleContext.t) =>
+  optional(Symbol.vertical_bar)
+  >> (_type_variant(ctx) |> sep_by(Symbol.vertical_bar));
+
 let declaration: type_module_statement_parser_t =
-  _module_statement(Keyword.decl, TD.of_declaration);
+  _module_statement(
+    Keyword.decl,
+    expression_parser
+    >|= (expr => (expr, expr |> NR.get_range |> Option.some)),
+    TD.of_declaration,
+  );
+
+let enumerated: type_module_statement_parser_t =
+  _module_statement(
+    Keyword.enum,
+    type_variants(
+      ModuleContext.create(
+        NamespaceContext.create(Reference.Namespace.Ambient),
+      ),
+    )
+    >|= (
+      variants => {
+        let variant_range = variants |> List.last |?> NR.get_range;
+
+        (
+          variants
+          |> List.map(
+               NR.get_value
+               % Tuple.map_fst2(NR.get_value % Reference.Identifier.to_string),
+             ),
+          variant_range,
+        );
+      }
+    ),
+    TD.of_enum,
+  );
 
 let type_: type_module_statement_parser_t =
-  _module_statement(Keyword.type_, TD.of_type);
+  _module_statement(
+    Keyword.type_,
+    expression_parser
+    >|= (expr => (expr, expr |> NR.get_range |> Option.some)),
+    TD.of_type,
+  );
 
 let module_statement: type_module_statement_parser_t =
-  choice([declaration, type_]) |> M.terminated;
+  choice([declaration, enumerated, type_]) |> M.terminated;
 
 let module_parser: type_module_parser_t =
   Keyword.module_

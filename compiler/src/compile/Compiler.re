@@ -379,7 +379,8 @@ let emit_one =
                 | Internal(path) =>
                   Filename.concat(output_dir, path)
                   |> Filename.relative_to(parent_dir)
-                | External(_) => raise(NotImplemented)
+                | External(_)
+                | Ambient
                 | Stdlib => raise(NotImplemented),
                 ppf,
                 ast,
@@ -390,7 +391,8 @@ let emit_one =
           });
       }
     )
-  | External(_) => raise(NotImplemented)
+  | External(_)
+  | Ambient
   | Stdlib => raise(NotImplemented)
   };
 
