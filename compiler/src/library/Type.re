@@ -29,7 +29,9 @@ module Container = {
   type t('a) = [
     | `List('a)
     | `Struct(list((string, 'a)))
+    | `Enumerated(list((string, list('a))))
     | `Function(list('a), 'a)
+    /* entities */
     | `View(list((string, 'a)), 'a)
     | `Style(list('a), list(string), list(string))
   ];
@@ -50,6 +52,24 @@ module Container = {
               "@[<h>{ %a }@]",
               list(~sep=Sep.comma, pp_props(pp_type)),
               props,
+            )
+    );
+
+  let pp_enumerated =
+      (pp_type: Fmt.t('a)): Fmt.t(list((string, list('a)))) =>
+    Fmt.(
+      (ppf, variants) =>
+        List.is_empty(variants)
+          ? string(ppf, "|")
+          : pf(
+              ppf,
+              "@[<h>%a@]",
+              list(~sep=Sep.newline, (ppf, (id, args)) =>
+                List.is_empty(args)
+                  ? string(ppf, id)
+                  : pf(ppf, "| %s(%a)", id, list(pp_type), args)
+              ),
+              variants,
             )
     );
 
@@ -116,6 +136,8 @@ module Raw = {
 
       | `Struct(props) => Container.pp_struct(pp, ppf, props)
 
+      | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
+
       | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
 
       | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
@@ -176,6 +198,7 @@ and pp_valid: Fmt.t(valid_t) =
       Primitive.pp(ppf, t)
     | `List(t) => Container.pp_list(pp, ppf, t)
     | `Struct(props) => Container.pp_struct(pp, ppf, props)
+    | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
     | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
     | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
     | `Style(args, ids, classes) =>
@@ -298,6 +321,9 @@ let rec of_raw = (raw_type: Raw.t): t =>
   | `List(t) => Valid(`List(of_raw(t)))
 
   | `Struct(ts) => Valid(`Struct(ts |> List.map(Tuple.map_snd2(of_raw))))
+
+  | `Enumerated(ts) =>
+    Valid(`Enumerated(ts |> List.map(Tuple.map_snd2(List.map(of_raw)))))
 
   | `Function(args, res) =>
     Valid(`Function((args |> List.map(of_raw), of_raw(res))))

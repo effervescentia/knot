@@ -64,6 +64,13 @@ let handler: Runtime.request_handler_t(params_t) =
                           full_range,
                           kind: Capabilities.Variable,
                         }
+                      | Enumerated(variants) => {
+                          name,
+                          detail: type_ |> ~@Type.pp,
+                          range,
+                          full_range,
+                          kind: Capabilities.Enum,
+                        }
                       | Function(args, expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,

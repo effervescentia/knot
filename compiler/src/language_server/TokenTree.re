@@ -143,6 +143,16 @@ let of_args = args =>
 let of_decl =
   fun
   | A.Constant(expr) => expr |> of_expr |> _wrap(N.get_range(expr))
+  | A.Enumerated(variants) =>
+    variants
+    |> List.map(((name, args)) =>
+         [
+           name |> Tuple.join2(of_untyped_id),
+           ...args |> List.map(Tuple.join2(of_untyped_id)),
+         ]
+       )
+    |> List.flatten
+    |> of_list
   | A.Function(args, expr) =>
     _join(of_args(args), expr |> of_expr |> _wrap(N.get_range(expr)))
   | A.View(props, expr) =>

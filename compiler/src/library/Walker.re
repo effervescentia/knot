@@ -40,6 +40,7 @@ and iter_decl = f =>
   % AST.(
       fun
       | Constant(expr) => _bind_expr(f, expr)
+      | Enumerated(variants) => ()
       | Function(args, expr) =>
         (args |> List.filter_map(arg => Node.get_value(arg).default))
         @ [expr]

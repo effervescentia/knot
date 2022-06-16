@@ -7,6 +7,7 @@ let colon = M.symbol(C.colon);
 let semicolon = M.symbol(C.semicolon);
 let period = M.symbol(C.period);
 let comma = M.symbol(C.comma);
+let vertical_bar = M.symbol(C.vertical_bar);
 
 let not = M.symbol(C.exclamation_mark);
 let negative = M.symbol(C.minus_sign);

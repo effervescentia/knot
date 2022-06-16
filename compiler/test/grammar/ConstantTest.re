@@ -1,7 +1,7 @@
 open Kore;
 
 module Export = Reference.Export;
-module Declaration = Grammar.Declaration;
+module Constant = Grammar.Constant;
 module U = Util.ResultUtil;
 
 module Assert = {
@@ -10,7 +10,7 @@ module Assert = {
     type t = NR.t((A.export_t, A.declaration_t));
 
     let parser = ((_, ctx)) =>
-      Declaration.constant(ctx, A.of_named_export)
+      Constant.parser(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 

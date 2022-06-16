@@ -287,6 +287,30 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
         N.get_value(expr),
       )
 
+    | Enumerated([]) => Fmt.(pf(ppf, "enum %a = | ;", Identifier.pp, name))
+    | Enumerated(variants) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>enum %a =%a;@]",
+          Identifier.pp,
+          name,
+          block(~layout=Vertical, ~sep=Sep.space, (ppf, (name, args)) =>
+            pf(
+              ppf,
+              "@[<h>| %a%a@]",
+              Identifier.pp,
+              NR.get_value(name),
+              (ppf, args) =>
+                List.is_empty(args)
+                  ? () : pf(ppf, "(%a)", list(Identifier.pp), args),
+              args |> List.map(NR.get_value),
+            )
+          ),
+          variants,
+        )
+      )
+
     | Function([], expr) =>
       Fmt.pf(
         ppf,

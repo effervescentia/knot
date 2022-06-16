@@ -64,7 +64,7 @@ finished with 21 error(s) and 0 warning(s)
   \n  [code frame not available]
   \n  try one of the following to resolve this issue:
   \n    • check that the identifier x is spelled correctly
-    \n    • rename x so that there is no conflict with reserved keywords (import, from, main, const, let, nil, true, false, as)
+    \n    • rename x so that there is no conflict with reserved keywords (import, from, main, const, enum, func, view, style, let, nil, true, false, as)
 
 6) Identifier Not Found : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)

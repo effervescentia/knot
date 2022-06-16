@@ -1,7 +1,7 @@
 open Kore;
 open Reference;
 
-module Declaration = Grammar.Declaration;
+module Function = Grammar.Function;
 module U = Util.ResultUtil;
 module TE = A.TypeExpression;
 
@@ -11,7 +11,7 @@ module Assert = {
     type t = Node.Raw.t((A.export_t, A.declaration_t));
 
     let parser = ((_, ctx)) =>
-      Declaration.function_(ctx, A.of_named_export)
+      Function.parser(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 

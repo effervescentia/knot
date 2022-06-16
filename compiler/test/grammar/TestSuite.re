@@ -1,9 +1,7 @@
 open Kore;
 
 let tests = [
-  Declaration_ConstantTest.suite,
-  Declaration_FunctionTest.suite,
-  Declaration_ViewTest.suite,
+  ConstantTest.suite,
   DeclarationTest.suite,
   ExpressionTest.suite,
   Formatter_DeclarationTest.suite,
@@ -12,6 +10,7 @@ let tests = [
   Formatter_JSXTest.suite,
   Formatter_ModuleTest.suite,
   FormatterTest.suite,
+  FunctionTest.suite,
   IdentifierTest.suite,
   ImportTest.suite,
   JSXTest.suite,
@@ -23,4 +22,5 @@ let tests = [
   StatementTest.suite,
   Typing_ExpressionTest.suite,
   Typing_ModuleTest.suite,
+  ViewTest.suite,
 ];

@@ -6,6 +6,7 @@ let import = M.keyword(K.import);
 let from = M.keyword(K.from);
 let main = M.keyword(K.main);
 let const = M.keyword(K.const);
+let enum = M.keyword(K.enum);
 let func = M.keyword(K.func);
 let view = M.keyword(K.view);
 let style = M.keyword(K.style);

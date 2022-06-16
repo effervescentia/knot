@@ -274,6 +274,39 @@ let gen_constant = (name: A.identifier_t, value: A.expression_t) =>
     value |> N.get_value |> gen_expression,
   );
 
+let gen_enumerated =
+    (
+      name: A.identifier_t,
+      variants: list((A.identifier_t, list(A.identifier_t))),
+    ) => {
+  let name_str = name |> NR.get_value |> ~@Identifier.pp;
+
+  JavaScript_AST.Variable(
+    name_str,
+    Object(
+      variants
+      |> List.map(((id, args)) => {
+           let arg_name = id |> NR.get_value |> ~@Identifier.pp;
+
+           (
+             arg_name,
+             JavaScript_AST.Function(
+               Some(arg_name),
+               args |> List.map(NR.get_value % ~@Identifier.pp),
+               [
+                 Return(
+                   Some(
+                     Array([DotAccess(Identifier(name_str), arg_name)]),
+                   ),
+                 ),
+               ],
+             ),
+           );
+         }),
+    ),
+  );
+};
+
 let gen_function =
     (name: A.identifier_t, args: list(A.argument_t), expr: A.expression_t) =>
   JavaScript_AST.(
@@ -442,6 +475,7 @@ let gen_declaration = (name: A.identifier_t, decl: A.declaration_t) =>
   (
     switch (N.get_value(decl)) {
     | Constant(value) => [gen_constant(name, value)]
+    | Enumerated(variants) => [gen_enumerated(name, variants)]
     | Function(args, expr) => [gen_function(name, args, expr)]
     | View(props, expr) => [gen_view(name, props, expr)]
     | Style(args, rule_sets) => [gen_style(name, args, rule_sets)]

@@ -181,6 +181,46 @@ let suite =
           (A.of_public("foo"), A.of_const(U.nil_prim)),
         )
     ),
+    "pp_declaration() - empty enumerated"
+    >: (
+      () =>
+        _assert_declaration(
+          "enum Account = | ;",
+          (A.of_public("Account"), A.of_enum([])),
+        )
+    ),
+    "pp_declaration() - multiline enumerated"
+    >: (
+      () =>
+        _assert_declaration(
+          "enum Digits =
+  | Zero
+  | One
+  | Two
+  | Three
+  | Four
+  | Five
+  | Six
+  | Seven
+  | Eight
+  | Nine;",
+          (
+            A.of_public("Digits"),
+            A.of_enum([
+              ("Zero" |> A.of_public |> U.as_raw_node, []),
+              ("One" |> A.of_public |> U.as_raw_node, []),
+              ("Two" |> A.of_public |> U.as_raw_node, []),
+              ("Three" |> A.of_public |> U.as_raw_node, []),
+              ("Four" |> A.of_public |> U.as_raw_node, []),
+              ("Five" |> A.of_public |> U.as_raw_node, []),
+              ("Six" |> A.of_public |> U.as_raw_node, []),
+              ("Seven" |> A.of_public |> U.as_raw_node, []),
+              ("Eight" |> A.of_public |> U.as_raw_node, []),
+              ("Nine" |> A.of_public |> U.as_raw_node, []),
+            ]),
+          ),
+        )
+    ),
     "pp_declaration() - inline function"
     >: (
       () =>

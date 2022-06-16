@@ -696,6 +696,7 @@ type declaration_t = node_t(raw_declaration_t)
  */
 and raw_declaration_t =
   | Constant(expression_t)
+  | Enumerated(list((identifier_t, list(identifier_t))))
   | Function(list(argument_t), expression_t)
   | View(list(argument_t), expression_t)
   | Style(list(argument_t), list(style_rule_set_t));
@@ -752,6 +753,7 @@ let of_class_matcher = x => Class(x);
 let of_id_matcher = x => ID(x);
 
 let of_const = x => Constant(x);
+let of_enum = variants => Enumerated(variants);
 let of_func = ((args, expr)) => Function(args, expr);
 let of_view = ((props, expr)) => View(props, expr);
 let of_style = ((args, rule_sets)) => Style(args, rule_sets);
@@ -800,6 +802,41 @@ module Dump = {
         typed_node_to_entity(
           ~children=[expr_to_entity(expr)],
           "Constant",
+          decl,
+        )
+
+      | Enumerated(variants) =>
+        typed_node_to_entity(
+          ~children=
+            variants
+            |> List.map(((name, args)) =>
+                 Entity.create(
+                   ~attributes=[
+                     (
+                       "name",
+                       name |> Node.Raw.get_value |> Identifier.to_string,
+                     ),
+                   ],
+                   ~children=
+                     args
+                     |> List.map(arg =>
+                          untyped_node_to_entity(
+                            ~attributes=[
+                              (
+                                "type",
+                                arg
+                                |> Node.Raw.get_value
+                                |> Identifier.to_string,
+                              ),
+                            ],
+                            "Argument",
+                            arg,
+                          )
+                        ),
+                   "Variant",
+                 )
+               ),
+          "Enumerated",
           decl,
         )
 

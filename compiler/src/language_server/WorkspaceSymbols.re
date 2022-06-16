@@ -90,6 +90,12 @@ let handler: Runtime.request_handler_t(params_t) =
                                      range,
                                      kind: Capabilities.Variable,
                                    }
+                                 | Enumerated(variants) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Enum,
+                                   }
                                  | Function(args, expr) => {
                                      uri,
                                      name,

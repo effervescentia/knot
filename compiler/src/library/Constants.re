@@ -21,6 +21,7 @@ module Character = {
   let colon = ':';
   let semicolon = ';';
   let equal_sign = '=';
+  let vertical_bar = '|';
 
   let exclamation_mark = '!';
   let caret = '^';
@@ -77,6 +78,7 @@ module Keyword = {
   let from = "from";
   let main = "main";
   let const = "const";
+  let enum = "enum";
   let func = "func";
   let view = "view";
   let style = "style";
@@ -104,6 +106,7 @@ module Keyword = {
     from,
     main,
     const,
+    enum,
     func,
     view,
     style,
