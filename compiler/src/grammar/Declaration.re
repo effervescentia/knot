@@ -12,7 +12,7 @@ let parser = (ctx: ModuleContext.t) =>
     f =>
       choice([
         Constant.parser(ctx, f),
-        /* Enumerator.parser(ctx, f), */
+        Enumerated.parser(ctx, f),
         Function.parser(ctx, f),
         View.parser(ctx, f),
       ])

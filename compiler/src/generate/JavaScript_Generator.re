@@ -277,7 +277,8 @@ let gen_constant = (name: A.identifier_t, value: A.expression_t) =>
 let gen_enumerated =
     (
       name: A.identifier_t,
-      variants: list((A.identifier_t, list(A.identifier_t))),
+      variants:
+        list((A.identifier_t, list(A.node_t(A.TypeExpression.raw_t)))),
     ) => {
   let name_str = name |> NR.get_value |> ~@Identifier.pp;
 
@@ -286,17 +287,25 @@ let gen_enumerated =
     Object(
       variants
       |> List.map(((id, args)) => {
-           let arg_name = id |> NR.get_value |> ~@Identifier.pp;
+           let variant_name = id |> NR.get_value |> ~@Identifier.pp;
+           let arg_ids =
+             args |> List.mapi((index, _) => Util.gen_variable(index));
 
            (
-             arg_name,
+             variant_name,
              JavaScript_AST.Function(
-               Some(arg_name),
-               args |> List.map(NR.get_value % ~@Identifier.pp),
+               Some(variant_name),
+               arg_ids,
                [
                  Return(
                    Some(
-                     Array([DotAccess(Identifier(name_str), arg_name)]),
+                     Array([
+                       DotAccess(Identifier(name_str), variant_name),
+                       ...arg_ids
+                          |> List.map(arg_id =>
+                               JavaScript_AST.Identifier(arg_id)
+                             ),
+                     ]),
                    ),
                  ),
                ],

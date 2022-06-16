@@ -3,6 +3,7 @@ open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module TE = AST.TypeExpression;
 module U = Util.ResultUtil;
 
 let _assert_statement_list =
@@ -19,6 +20,15 @@ let _assert_constant = (expected, actual) =>
       "javascript constant matches",
       expected,
       actual |> Tuple.join2(Generator.gen_constant),
+    )
+  );
+let _assert_enum = (expected, actual) =>
+  Alcotest.(
+    check(
+      Assert.Compare.statement(Target.Common),
+      "javascript enum matches",
+      expected,
+      actual |> Tuple.join2(Generator.gen_enumerated),
     )
   );
 let _assert_function = (expected, actual) =>
@@ -104,6 +114,63 @@ let suite =
         _assert_constant(
           Variable("foo", Number("123")),
           ("foo" |> A.of_public |> U.as_raw_node, U.int_prim(123)),
+        )
+    ),
+    "enum"
+    >: (
+      () =>
+        _assert_enum(
+          Variable(
+            "foo",
+            Object([
+              (
+                "Verified",
+                Function(
+                  Some("Verified"),
+                  ["a", "b"],
+                  [
+                    Return(
+                      Array([
+                        DotAccess(Identifier("foo"), "Verified"),
+                        Identifier("a"),
+                        Identifier("b"),
+                      ])
+                      |> Option.some,
+                    ),
+                  ],
+                ),
+              ),
+              (
+                "Unverified",
+                Function(
+                  Some("Unverified"),
+                  ["a"],
+                  [
+                    Return(
+                      Array([
+                        DotAccess(Identifier("foo"), "Unverified"),
+                        Identifier("a"),
+                      ])
+                      |> Option.some,
+                    ),
+                  ],
+                ),
+              ),
+            ]),
+          ),
+          (
+            "foo" |> A.of_public |> U.as_raw_node,
+            [
+              (
+                "Verified" |> A.of_public |> U.as_raw_node,
+                [U.as_int(TE.Integer), U.as_string(TE.String)],
+              ),
+              (
+                "Unverified" |> A.of_public |> U.as_raw_node,
+                [U.as_string(TE.String)],
+              ),
+            ],
+          ),
         )
     ),
     "function - return primitive value"

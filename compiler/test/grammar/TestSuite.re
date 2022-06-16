@@ -3,6 +3,7 @@ open Kore;
 let tests = [
   ConstantTest.suite,
   DeclarationTest.suite,
+  EnumeratedTest.suite,
   ExpressionTest.suite,
   Formatter_DeclarationTest.suite,
   Formatter_ExpressionTest.suite,

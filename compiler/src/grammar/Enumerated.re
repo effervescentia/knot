@@ -6,45 +6,67 @@ let variant = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
-      option(
-        ([], NR.get_range(id)),
-        Identifier.parser(ctx)
-        |> many
-        |> M.between(Symbol.open_group, Symbol.close_group),
-      )
+      Typing.expression_parser
+      |> M.comma_sep
+      |> M.between(Symbol.open_group, Symbol.close_group)
+      |> option(([], NR.get_range(id)))
+      >|= NR.map_value(Tuple.with_fst2(id))
   );
 
-/* let scope = ctx |> Util.create_scope(expr_range);
-   let expr = raw_expr |> SemanticAnalyzer.analyze_expression(scope);
-   let type_ = N.get_type(expr);
-   let const = expr |> N.wrap(A.of_const);
-   let range = Range.join(start, expr_range);
-   let export_id = f(id); */
+let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
+  Keyword.enum
+  >|= NR.get_range
+  >>= (
+    start =>
+      optional(Symbol.vertical_bar)
+      >> (variant(ctx) |> sep_by(Symbol.vertical_bar))
+      |> Operator.assign(Identifier.parser(ctx))
+      >|= (
+        ((id, raw_variants)) => {
+          let variants =
+            raw_variants
+            |> List.map(
+                 NR.get_value
+                 % Tuple.map_snd2(
+                     List.map(type_expr =>
+                       type_expr
+                       |> N.of_raw(
+                            type_expr
+                            |> NR.get_value
+                            |> Analyze.Typing.eval_type_expression,
+                          )
+                     ),
+                   ),
+               );
+          let type_ =
+            T.Valid(
+              `Enumerated(
+                variants
+                |> List.map(
+                     Tuple.map_each2(
+                       NR.get_value % Reference.Identifier.to_string,
+                       List.map(N.get_type),
+                     ),
+                   ),
+              ),
+            );
+          let range =
+            Range.join(
+              start,
+              raw_variants |> List.last |?> NR.get_range |?: start,
+            );
+          let enum = N.create(A.of_enum(variants), type_, range);
+          let export_id = f(id);
 
-/* let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
-   Keyword.enum
-   >|= NR.get_range
-   >>= (
-     start =>
-       optional(Symbol.vertical_bar)
-       >> (Expression.parser(ctx) |> sep_by(Symbol.vertical_bar))
-       |> Operator.assign(Identifier.parser(ctx))
-       >|= (
-         ((id, raw_variants)) => {
+          ctx
+          |> ModuleContext.declare(
+               ~main=Util.is_main(export_id),
+               NR.get_value(id),
+               type_,
+             );
 
-           let type_ = T.Valid(`String);
-           let range = start;
-           let export_id = f(id);
-
-           ctx
-           |> ModuleContext.declare(
-                ~main=Util.is_main(export_id),
-                NR.get_value(id),
-                type_,
-              );
-
-           NR.create((export_id, const), range);
-         }
-       )
-       |> M.terminated
-   ); */
+          NR.create((export_id, enum), range);
+        }
+      )
+      |> M.terminated
+  );

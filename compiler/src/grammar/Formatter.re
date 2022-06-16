@@ -3,6 +3,7 @@ open FormatterUtils;
 
 module Namespace = Reference.Namespace;
 module Identifier = Reference.Identifier;
+module C = Constants;
 
 let __default_margin = 120;
 
@@ -10,18 +11,18 @@ let pp_binary_op: Fmt.t(A.binary_t) =
   ppf =>
     (
       fun
-      | A.LogicalAnd => "&&"
-      | A.LogicalOr => "||"
+      | A.LogicalAnd => C.Glyph.logical_and
+      | A.LogicalOr => C.Glyph.logical_or
       | A.Add => "+"
       | A.Subtract => "-"
       | A.Divide => "/"
       | A.Multiply => "*"
-      | A.LessOrEqual => "<="
+      | A.LessOrEqual => C.Glyph.less_or_eql
       | A.LessThan => "<"
-      | A.GreaterOrEqual => ">="
+      | A.GreaterOrEqual => C.Glyph.greater_or_eql
       | A.GreaterThan => ">"
-      | A.Equal => "=="
-      | A.Unequal => "!="
+      | A.Equal => C.Glyph.equality
+      | A.Unequal => C.Glyph.inequality
       | A.Exponent => "^"
     )
     % Fmt.string(ppf);
@@ -30,11 +31,11 @@ let pp_unary_op: Fmt.t(A.unary_t) =
   ppf =>
     (
       fun
-      | A.Not => "!"
-      | A.Positive => "+"
-      | A.Negative => "-"
+      | A.Not => C.Character.exclamation_mark
+      | A.Positive => C.Character.plus_sign
+      | A.Negative => C.Character.minus_sign
     )
-    % Fmt.string(ppf);
+    % Fmt.char(ppf);
 
 let pp_num: Fmt.t(A.number_t) =
   ppf =>
@@ -47,12 +48,44 @@ let pp_string: Fmt.t('a) =
 
 let pp_ns: Fmt.t(Namespace.t) = ppf => ~@Namespace.pp % pp_string(ppf);
 
+let rec pp_type_expr: Fmt.t(A.TypeExpression.raw_t) =
+  ppf =>
+    fun
+    | Nil => Fmt.string(ppf, C.Keyword.nil)
+    | Boolean => Fmt.string(ppf, C.Keyword.boolean)
+    | Integer => Fmt.string(ppf, C.Keyword.integer)
+    | Float => Fmt.string(ppf, C.Keyword.float)
+    | String => Fmt.string(ppf, C.Keyword.string)
+    | Element => Fmt.string(ppf, C.Keyword.element)
+    | Group(expr) => Fmt.pf(ppf, "(%a)", pp_type_expr, NR.get_value(expr))
+    | List(expr) => Fmt.pf(ppf, "[%a]", pp_type_expr, NR.get_value(expr))
+    | Struct(props) =>
+      Fmt.(
+        record(
+          string,
+          pp_type_expr,
+          ppf,
+          props |> List.map(Tuple.map_each2(NR.get_value, NR.get_value)),
+        )
+      )
+    | Function(args, res) =>
+      Fmt.(
+        pf(
+          ppf,
+          "(%a) -> %a",
+          list(~sep=Sep.comma, pp_type_expr),
+          args |> List.map(NR.get_value),
+          pp_type_expr,
+          NR.get_value(res),
+        )
+      );
+
 let pp_prim: Fmt.t(A.primitive_t) =
   ppf =>
     fun
-    | Nil => Fmt.string(ppf, "nil")
-    | Boolean(true) => Fmt.string(ppf, "true")
-    | Boolean(false) => Fmt.string(ppf, "false")
+    | Nil => Fmt.string(ppf, C.Keyword.nil)
+    | Boolean(true) => Fmt.string(ppf, C.Keyword.true_)
+    | Boolean(false) => Fmt.string(ppf, C.Keyword.false_)
     | Number(num) => pp_num(ppf, num)
     | String(str) => pp_string(ppf, str);
 
@@ -303,8 +336,8 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
               NR.get_value(name),
               (ppf, args) =>
                 List.is_empty(args)
-                  ? () : pf(ppf, "(%a)", list(Identifier.pp), args),
-              args |> List.map(NR.get_value),
+                  ? () : pf(ppf, "(%a)", list(pp_type_expr), args),
+              args |> List.map(N.get_value),
             )
           ),
           variants,

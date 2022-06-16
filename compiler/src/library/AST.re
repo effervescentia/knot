@@ -696,7 +696,7 @@ type declaration_t = node_t(raw_declaration_t)
  */
 and raw_declaration_t =
   | Constant(expression_t)
-  | Enumerated(list((identifier_t, list(identifier_t))))
+  | Enumerated(list((identifier_t, list(node_t(TypeExpression.raw_t)))))
   | Function(list(argument_t), expression_t)
   | View(list(argument_t), expression_t)
   | Style(list(argument_t), list(style_rule_set_t));
@@ -820,14 +820,10 @@ module Dump = {
                    ~children=
                      args
                      |> List.map(arg =>
-                          untyped_node_to_entity(
-                            ~attributes=[
-                              (
-                                "type",
-                                arg
-                                |> Node.Raw.get_value
-                                |> Identifier.to_string,
-                              ),
+                          typed_node_to_entity(
+                            ~children=[
+                              (Node.get_value(arg), Node.get_range(arg))
+                              |> TypeExpression.Dump.to_entity,
                             ],
                             "Argument",
                             arg,

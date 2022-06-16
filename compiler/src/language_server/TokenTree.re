@@ -145,12 +145,7 @@ let of_decl =
   | A.Constant(expr) => expr |> of_expr |> _wrap(N.get_range(expr))
   | A.Enumerated(variants) =>
     variants
-    |> List.map(((name, args)) =>
-         [
-           name |> Tuple.join2(of_untyped_id),
-           ...args |> List.map(Tuple.join2(of_untyped_id)),
-         ]
-       )
+    |> List.map(((name, args)) => [name |> Tuple.join2(of_untyped_id)])
     |> List.flatten
     |> of_list
   | A.Function(args, expr) =>
