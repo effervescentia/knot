@@ -17,7 +17,7 @@ let of_seq = (seq: Seq.t((Export.t, Type.t))): t =>
 let add = (key: Export.t, type_: Type.t, tbl: t): unit =>
   Hashtbl.add(tbl.scope, key, type_);
 
-let to_lookup_seq = (tbl: t): Seq.t((Identifier.t, Type.t)) =>
+let to_lookup_seq = (tbl: t): Seq.t((string, Type.t)) =>
   tbl.scope
   |> Hashtbl.to_seq
   |> Seq.filter_map(

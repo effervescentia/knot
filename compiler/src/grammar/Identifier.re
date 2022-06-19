@@ -13,7 +13,6 @@ let parser = (ctx: ModuleContext.t): identifier_parser_t =>
         |> ModuleContext.report(ctx);
       };
 
-      N.untyped(name_value, N.get_range(name))
-      |> N.map(Reference.Identifier.of_string);
+      N.untyped(name_value, N.get_range(name));
     }
   );

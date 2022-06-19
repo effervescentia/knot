@@ -18,7 +18,7 @@ let __entry_filename = "entry.kn";
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __types =
-  [(Export.Named("ABC" |> A.of_public), T.Valid(`Integer))]
+  [(Export.Named("ABC"), T.Valid(`Integer))]
   |> List.to_seq
   |> Hashtbl.of_seq;
 
@@ -205,12 +205,7 @@ const const = \"foo\";
 ",
                 {
                   exports:
-                    [
-                      (
-                        Export.Named("const" |> A.of_public),
-                        T.Valid(`String),
-                      ),
-                    ]
+                    [(Export.Named("const"), T.Valid(`String))]
                     |> List.to_seq
                     |> Hashtbl.of_seq,
                   ast: Px.invalid_foo,
@@ -261,9 +256,7 @@ const BAR = \"bar\";
 ",
                 {
                   exports:
-                    [
-                      (Export.Named("BAR" |> A.of_public), T.Valid(`String)),
-                    ]
+                    [(Export.Named("BAR"), T.Valid(`String))]
                     |> List.to_seq
                     |> Hashtbl.of_seq,
                   ast: Px.import_and_const,

@@ -38,11 +38,8 @@ let __context_with_named_exports =
               exports:
                 [
                   (Export.Main, Type.Valid(`Nil)),
-                  (
-                    Export.Named("bar" |> A.of_public),
-                    Type.Valid(`Boolean),
-                  ),
-                  (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
+                  (Export.Named("bar"), Type.Valid(`Boolean)),
+                  (Export.Named("foo"), Type.Valid(`String)),
                 ]
                 |> List.to_seq
                 |> Hashtbl.of_seq,
@@ -100,13 +97,7 @@ let suite =
           ~ns_context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
-            [
-              "foo"
-              |> A.of_public
-              |> U.as_untyped
-              |> A.of_main_import
-              |> U.as_untyped,
-            ],
+            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
           )
           |> A.of_import
           |> U.as_untyped,
@@ -130,9 +121,7 @@ let suite =
           (
             "bar" |> A.of_internal,
             [
-              ("foo" |> A.of_public |> U.as_untyped, None)
-              |> A.of_named_import
-              |> U.as_untyped,
+              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
             ],
           )
           |> A.of_import
@@ -148,10 +137,7 @@ let suite =
           (
             "bar" |> A.of_internal,
             [
-              (
-                "foo" |> A.of_public |> U.as_untyped,
-                Some("bar" |> A.of_public |> U.as_untyped),
-              )
+              (U.as_untyped("foo"), Some(U.as_untyped("bar")))
               |> A.of_named_import
               |> U.as_untyped,
             ],
@@ -169,18 +155,11 @@ let suite =
           (
             "bar" |> A.of_internal,
             [
-              "fizz"
-              |> A.of_public
-              |> U.as_untyped
-              |> A.of_main_import
-              |> U.as_untyped,
-              ("foo" |> A.of_public |> U.as_untyped, None)
+              "fizz" |> U.as_untyped |> A.of_main_import |> U.as_untyped,
+              (U.as_untyped("foo"), None)
               |> A.of_named_import
               |> U.as_untyped,
-              (
-                "bar" |> A.of_public |> U.as_untyped,
-                Some("Bar" |> A.of_public |> U.as_untyped),
-              )
+              (U.as_untyped("bar"), Some(U.as_untyped("Bar")))
               |> A.of_named_import
               |> U.as_untyped,
             ],
@@ -198,10 +177,8 @@ let suite =
           (
             "bar" |> A.of_internal,
             [
-              ("foo" |> A.of_public |> U.as_untyped, None)
-              |> A.of_named_import
-              |> U.as_untyped,
-              ("bar" |> A.of_public |> U.as_untyped, None)
+              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
+              (U.as_untyped("bar"), None)
               |> A.of_named_import
               |> U.as_untyped,
             ],
@@ -218,13 +195,7 @@ let suite =
           ~ns_context=__context_with_main_export,
           (
             "bar" |> A.of_internal,
-            [
-              "foo"
-              |> A.of_public
-              |> U.as_untyped
-              |> A.of_main_import
-              |> U.as_untyped,
-            ],
+            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
           )
           |> A.of_import
           |> U.as_untyped,
@@ -239,7 +210,7 @@ let suite =
       () =>
         Assert.parse(
           ~ns_context=__context_with_named_exports,
-          [("foo" |> A.of_public |> U.as_untyped, None) |> U.as_untyped]
+          [(U.as_untyped("foo"), None) |> U.as_untyped]
           |> A.of_standard_import
           |> U.as_untyped,
           "import { foo }",
@@ -251,11 +222,7 @@ let suite =
         Assert.parse(
           ~ns_context=__context_with_named_exports,
           [
-            (
-              "foo" |> A.of_public |> U.as_untyped,
-              Some("bar" |> A.of_public |> U.as_untyped),
-            )
-            |> U.as_untyped,
+            (U.as_untyped("foo"), Some(U.as_untyped("bar"))) |> U.as_untyped,
           ]
           |> A.of_standard_import
           |> U.as_untyped,

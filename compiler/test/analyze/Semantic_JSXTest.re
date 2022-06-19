@@ -1,12 +1,11 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
-let __id = Identifier.of_string("foo");
-let __component_id = Identifier.of_string("Foo");
+let __id = "foo";
+let __component_id = "Foo";
 let __namespace = Reference.Namespace.of_string("foo");
 let __throw_scope = S.create(__namespace, throw, Range.zero);
 
@@ -203,10 +202,7 @@ let suite =
           (
             URaw.as_untyped(__component_id),
             [
-              (
-                "bar" |> A.of_public |> URaw.as_untyped,
-                true |> URaw.bool_prim |> Option.some,
-              )
+              (URaw.as_untyped("bar"), true |> URaw.bool_prim |> Option.some)
               |> AR.of_prop
               |> URaw.as_untyped,
             ],
@@ -244,15 +240,12 @@ let suite =
           URaw.as_untyped(__component_id),
           [
             (
-              "fizz" |> A.of_public |> URaw.as_untyped,
+              URaw.as_untyped("fizz"),
               "bar" |> URaw.string_prim |> Option.some,
             )
             |> AR.of_prop
             |> URaw.as_untyped,
-            (
-              "buzz" |> A.of_public |> URaw.as_untyped,
-              true |> URaw.bool_prim |> Option.some,
-            )
+            (URaw.as_untyped("buzz"), true |> URaw.bool_prim |> Option.some)
             |> AR.of_prop
             |> URaw.as_untyped,
           ],
@@ -307,14 +300,11 @@ let suite =
           (
             __component_id |> URes.as_typed(view_type),
             [
-              (
-                "fizz" |> A.of_public |> URes.as_untyped,
-                true |> URes.bool_prim |> Option.some,
-              )
+              (URes.as_untyped("fizz"), true |> URes.bool_prim |> Option.some)
               |> A.of_prop
               |> URes.as_untyped,
               (
-                "buzz" |> A.of_public |> URes.as_untyped,
+                URes.as_untyped("buzz"),
                 "bar" |> URes.string_prim |> Option.some,
               )
               |> A.of_prop
@@ -326,14 +316,11 @@ let suite =
           (
             URaw.as_untyped(__component_id),
             [
-              (
-                "fizz" |> A.of_public |> URaw.as_untyped,
-                true |> URaw.bool_prim |> Option.some,
-              )
+              (URaw.as_untyped("fizz"), true |> URaw.bool_prim |> Option.some)
               |> AR.of_prop
               |> URaw.as_untyped,
               (
-                "buzz" |> A.of_public |> URaw.as_untyped,
+                URaw.as_untyped("buzz"),
                 "bar" |> URaw.string_prim |> Option.some,
               )
               |> AR.of_prop

@@ -4,7 +4,7 @@ open ModuleAliases;
 type token_t =
   | Skip
   | Join
-  | Identifier(Identifier.t)
+  | Identifier(string)
   | Primitive(A.primitive_t);
 
 type t = RangeTree.t(token_t);
@@ -189,7 +189,7 @@ let pp: Fmt.t(t) =
           switch (token) {
           | Join => ""
           | Skip => "[skip]"
-          | Identifier(id) => id |> ~@Identifier.pp
+          | Identifier(id) => id
           | Primitive(prim) => prim |> A.Dump.prim_to_string
           },
           Range.create(start, end_) |> ~@Range.pp,

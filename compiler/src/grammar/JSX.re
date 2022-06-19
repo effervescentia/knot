@@ -1,7 +1,5 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
-
 module Tag = {
   let open_ = M.symbol(C.Character.open_chevron);
   let close = M.symbol(C.Character.close_chevron);
@@ -76,8 +74,7 @@ and tag =
           >|= (
             cs =>
               N.untyped(
-                (id |> N.map(Identifier.of_string), attrs, fst(cs))
-                |> AR.of_tag,
+                (id, attrs, fst(cs)) |> AR.of_tag,
                 N.join_ranges(id, cs),
               )
           )
@@ -89,8 +86,7 @@ and property_attribute =
     : jsx_attribute_parser_t =>
   _attribute(ctx, parsers)
   >|= (
-    ((name, value, range)) =>
-      N.untyped((name |> N.map(AR.of_public), value) |> AR.of_prop, range)
+    ((name, value, range)) => N.untyped((name, value) |> AR.of_prop, range)
   )
 
 and class_attribute =
@@ -100,15 +96,14 @@ and class_attribute =
   >|= (
     ((name, value, range)) =>
       N.untyped(
-        (name |> N.map(String.drop_left(1) % AR.of_public), value)
-        |> AR.of_jsx_class,
+        (name |> N.map(String.drop_left(1)), value) |> AR.of_jsx_class,
         range,
       )
   )
 
 and id_attribute: jsx_attribute_parser_t =
   M.identifier(~prefix=Character.octothorpe)
-  >|= N.map(String.drop_left(1) % AR.of_public)
+  >|= N.map(String.drop_left(1))
   >|= N.wrap(AR.of_jsx_id)
 
 and attributes =

@@ -60,7 +60,7 @@ let _assert_style = (expected, actual) =>
   );
 
 let __variable_declaration =
-  ("fooBar" |> A.of_public |> U.as_untyped, U.int_prim(123)) |> A.of_var;
+  (U.as_untyped("fooBar"), U.int_prim(123)) |> A.of_var;
 
 let __expression =
   (U.int_prim(123), U.int_prim(456)) |> A.of_eq_op |> U.as_int |> A.of_expr;
@@ -113,7 +113,7 @@ let suite =
       () =>
         _assert_constant(
           Variable("foo", Number("123")),
-          ("foo" |> A.of_public |> U.as_untyped, U.int_prim(123)),
+          (U.as_untyped("foo"), U.int_prim(123)),
         )
     ),
     "enum"
@@ -159,16 +159,13 @@ let suite =
             ]),
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [
               (
-                "Verified" |> A.of_public |> U.as_untyped,
+                U.as_untyped("Verified"),
                 [U.as_int(TE.Integer), U.as_string(TE.String)],
               ),
-              (
-                "Unverified" |> A.of_public |> U.as_untyped,
-                [U.as_string(TE.String)],
-              ),
+              (U.as_untyped("Unverified"), [U.as_string(TE.String)]),
             ],
           ),
         )
@@ -185,13 +182,9 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [
-              A.{
-                name: "bar" |> A.of_public |> U.as_untyped,
-                default: None,
-                type_: None,
-              }
+              A.{name: U.as_untyped("bar"), default: None, type_: None}
               |> U.as_nil,
             ],
             U.int_prim(123),
@@ -226,16 +219,16 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_untyped,
+                name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
               |> U.as_nil,
             ],
-            ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
+            ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,
           ),
@@ -262,16 +255,11 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [],
             [
-              ("buzz" |> A.of_public |> U.as_untyped, U.int_prim(2))
-              |> A.of_var
-              |> U.as_nil,
-              (
-                "buzz" |> A.of_public |> A.of_id |> U.as_int,
-                "buzz" |> A.of_public |> A.of_id |> U.as_int,
-              )
+              (U.as_untyped("buzz"), U.int_prim(2)) |> A.of_var |> U.as_nil,
+              ("buzz" |> A.of_id |> U.as_int, "buzz" |> A.of_id |> U.as_int)
               |> A.of_div_op
               |> U.as_float
               |> A.of_expr
@@ -310,16 +298,16 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_untyped,
+                name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
               |> U.as_nil,
             ],
-            ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
+            ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,
           ),
@@ -356,10 +344,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_untyped,
+                name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
@@ -367,19 +355,13 @@ let suite =
             ],
             [
               (
-                A.Class("fizz" |> A.of_public |> U.as_untyped),
-                [
-                  ("height" |> A.of_public |> U.as_untyped, U.int_prim(2))
-                  |> U.as_untyped,
-                ],
+                A.Class(U.as_untyped("fizz")),
+                [(U.as_untyped("height"), U.int_prim(2)) |> U.as_untyped],
               )
               |> U.as_untyped,
               (
-                A.ID("buzz" |> A.of_public |> U.as_untyped),
-                [
-                  ("width" |> A.of_public |> U.as_untyped, U.int_prim(10))
-                  |> U.as_untyped,
-                ],
+                A.ID(U.as_untyped("buzz")),
+                [(U.as_untyped("width"), U.int_prim(10)) |> U.as_untyped],
               )
               |> U.as_untyped,
             ],

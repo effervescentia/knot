@@ -80,7 +80,7 @@ let handler: Runtime.request_handler_t(params_t) =
                                       ),
                                  );
                                let range = N.get_range(name);
-                               let name = name |> fst |> ~@Identifier.pp;
+                               let name = fst(name);
 
                                Some(
                                  switch (fst(decl)) {

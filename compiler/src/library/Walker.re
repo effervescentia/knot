@@ -6,7 +6,7 @@ type target_t =
   | Declaration(AST.declaration_t)
   | Statement(AST.statement_t)
   | Expression(AST.expression_t)
-  | Identifier(Reference.Identifier.t)
+  | Identifier(string)
   | JSX(AST.jsx_t)
   | JSXChild(AST.jsx_child_t)
   | JSXAttribute(AST.jsx_attribute_t)

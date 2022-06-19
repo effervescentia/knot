@@ -31,12 +31,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
             T.Valid(
               `Enumerated(
                 variants
-                |> List.map(
-                     Tuple.map_each2(
-                       fst % Reference.Identifier.to_string,
-                       List.map(N.get_type),
-                     ),
-                   ),
+                |> List.map(Tuple.map_each2(fst, List.map(N.get_type))),
               ),
             );
           let range =

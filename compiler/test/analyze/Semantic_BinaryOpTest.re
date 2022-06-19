@@ -1,11 +1,10 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
-let __id = Identifier.of_string("foo");
+let __id = "foo";
 let __namespace = Reference.Namespace.of_string("foo");
 let __scope = S.create(__namespace, ignore, Range.zero);
 let __throw_scope = S.create(__namespace, throw, Range.zero);

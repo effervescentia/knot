@@ -31,9 +31,7 @@ let namespace = imports =>
   >|= (namespace => (namespace, imports));
 
 let main_import =
-  M.identifier
-  >|= N.map(A.of_public)
-  >|= (import => [import |> N.wrap(A.of_main_import)]);
+  M.identifier >|= (import => [import |> N.wrap(A.of_main_import)]);
 
 let named_imports = (ctx: ModuleContext.t) =>
   Identifier.parser(ctx)

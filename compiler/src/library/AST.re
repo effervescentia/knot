@@ -33,7 +33,7 @@ module Common = {
   /**
    an identifier that doesn't have an inherent type
    */
-  type identifier_t = untyped_t(Identifier.t);
+  type identifier_t = untyped_t(string);
 
   /**
    utilities for printing an AST
@@ -327,11 +327,7 @@ module Make = (Params: ASTParams) => {
    */
   type jsx_t =
     | Tag(identifier_t, list(jsx_attribute_t), list(jsx_child_t))
-    | Component(
-        node_t(Identifier.t),
-        list(jsx_attribute_t),
-        list(jsx_child_t),
-      )
+    | Component(node_t(string), list(jsx_attribute_t), list(jsx_child_t))
     | Fragment(list(jsx_child_t))
 
   /**
@@ -367,7 +363,7 @@ module Make = (Params: ASTParams) => {
    */
   and raw_expression_t =
     | Primitive(primitive_t)
-    | Identifier(Identifier.t)
+    | Identifier(string)
     | JSX(jsx_t)
     | Group(expression_t)
     | BinaryOp(binary_t, expression_t, expression_t)
@@ -404,9 +400,6 @@ module Make = (Params: ASTParams) => {
 
   let of_internal = namespace => Namespace.Internal(namespace);
   let of_external = namespace => Namespace.External(namespace);
-
-  let of_public = name => Identifier.Public(name);
-  let of_private = name => Identifier.Private(name);
 
   let of_var = ((name, x)) => Variable(name, x);
   let of_expr = x => Expression(x);
@@ -466,11 +459,7 @@ module Make = (Params: ASTParams) => {
     include Common.Dump;
 
     let id_to_entity = (name, id) =>
-      untyped_node_to_entity(
-        ~attributes=[("value", id |> fst |> Identifier.to_string)],
-        name,
-        id,
-      );
+      untyped_node_to_entity(~attributes=[("value", fst(id))], name, id);
 
     let num_to_string =
       fun
@@ -497,10 +486,7 @@ module Make = (Params: ASTParams) => {
           )
 
         | Identifier(id) =>
-          typed_node_to_entity(
-            ~attributes=[("value", Identifier.to_string(id))],
-            "Identifier",
-          )
+          typed_node_to_entity(~attributes=[("value", id)], "Identifier")
 
         | JSX(jsx) =>
           typed_node_to_entity(~children=[jsx_to_entity(jsx)], "JSX")
@@ -591,7 +577,7 @@ module Make = (Params: ASTParams) => {
           ~children=[
             view
             |> typed_node_to_entity(
-                 ~attributes=[("name", view |> fst |> Identifier.to_string)],
+                 ~attributes=[("name", fst(view))],
                  "Identifier",
                ),
             Entity.create(
@@ -803,16 +789,15 @@ module Dump = {
     let {name, default, type_} = fst(arg);
     let children = ref([id_to_entity("Name", name)]);
 
-    switch (default) {
-    | Some(default) => children := [expr_to_entity(default), ...children^]
-    | None => ()
-    };
+    default
+    |> Option.iter(default =>
+         children := [expr_to_entity(default), ...children^]
+       );
 
-    switch (type_) {
-    | Some(type_) =>
-      children := [untyped_node_to_entity("Type", type_), ...children^]
-    | None => ()
-    };
+    type_
+    |> Option.iter(type_ =>
+         children := [untyped_node_to_entity("Type", type_), ...children^]
+       );
 
     typed_node_to_entity(~children=children^, label, arg);
   };
@@ -833,9 +818,7 @@ module Dump = {
             variants
             |> List.map(((name, args)) =>
                  Entity.create(
-                   ~attributes=[
-                     ("name", name |> fst |> Identifier.to_string),
-                   ],
+                   ~attributes=[("name", fst(name))],
                    ~children=
                      args
                      |> List.map(arg =>
@@ -941,7 +924,7 @@ module Dump = {
           id_to_entity("Name", name),
           Entity.create(
             ~range=N.get_range(alias),
-            ~attributes=[("value", alias |> fst |> Identifier.to_string)],
+            ~attributes=[("value", fst(alias))],
             "Alias",
           ),
         ],
@@ -965,7 +948,7 @@ module Dump = {
           id_to_entity("Name", name),
           Entity.create(
             ~range=N.get_range(alias),
-            ~attributes=[("value", alias |> fst |> Identifier.to_string)],
+            ~attributes=[("value", fst(alias))],
             "Alias",
           ),
         ],

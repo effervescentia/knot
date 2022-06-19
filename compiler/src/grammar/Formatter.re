@@ -2,7 +2,6 @@ open Kore;
 open FormatterUtils;
 
 module Namespace = Reference.Namespace;
-module Identifier = Reference.Identifier;
 module C = Constants;
 
 let __default_margin = 120;
@@ -96,8 +95,7 @@ let rec pp_jsx: Fmt.t(A.jsx_t) =
     | Component((name, _), attrs, []) =>
       Fmt.pf(
         ppf,
-        "@[<h><%a%a@ />@]",
-        Identifier.pp,
+        "@[<h><%s%a@ />@]",
         name,
         pp_jsx_attr_list,
         attrs |> List.map(fst),
@@ -108,14 +106,12 @@ let rec pp_jsx: Fmt.t(A.jsx_t) =
       Fmt.(
         pf(
           ppf,
-          "@[<h><%a%a>@]%a</%a>",
-          Identifier.pp,
+          "@[<h><%s%a>@]%a</%s>",
           name,
           pp_jsx_attr_list,
           attrs |> List.map(fst),
           block(~layout=Vertical, ~sep=Sep.trailing_newline, pp_jsx_child),
           children |> List.map(fst),
-          Identifier.pp,
           name,
         )
       )
@@ -158,9 +154,9 @@ and pp_jsx_attr: Fmt.t(A.raw_jsx_attribute_t) =
         "%a%a",
         ppf =>
           fun
-          | A.Property((name, _), _) => Identifier.pp(ppf, name)
-          | A.Class((name, _), _) => pf(ppf, ".%a", Identifier.pp, name)
-          | A.ID((name, _)) => pf(ppf, "#%a", Identifier.pp, name),
+          | A.Property((name, _), _) => Fmt.string(ppf, name)
+          | A.Class((name, _), _) => pf(ppf, ".%s", name)
+          | A.ID((name, _)) => pf(ppf, "#%s", name),
         attr,
         ppf =>
           fun
@@ -187,7 +183,7 @@ and pp_expression: Fmt.t(A.raw_expression_t) =
   ppf =>
     fun
     | Primitive(prim) => prim |> pp_prim(ppf)
-    | Identifier(name) => name |> Identifier.pp(ppf)
+    | Identifier(name) => Fmt.string(ppf, name)
     | JSX(jsx) => jsx |> pp_jsx(ppf)
 
     /* collapse parentheses around unary values */
@@ -236,7 +232,7 @@ and pp_statement: Fmt.t(A.raw_statement_t) =
   (ppf, stmt) =>
     switch (stmt) {
     | Variable((name, _), (expr, _)) =>
-      Fmt.pf(ppf, "let %a = %a;", Identifier.pp, name, pp_expression, expr)
+      Fmt.pf(ppf, "let %s = %a;", name, pp_expression, expr)
     | Expression((expr, _)) => Fmt.pf(ppf, "%a;", pp_expression, expr)
     };
 
@@ -250,8 +246,7 @@ let pp_function_arg: Fmt.t(A.raw_argument_t) =
   (ppf, {name: (name, _), default}) =>
     Fmt.pf(
       ppf,
-      "%a%a",
-      Identifier.pp,
+      "%s%a",
       name,
       ppf =>
         fun
@@ -263,14 +258,12 @@ let pp_function_arg: Fmt.t(A.raw_argument_t) =
 let pp_style_matcher: Fmt.t(A.style_matcher_t) =
   ppf =>
     fun
-    | Class((id, _)) => Fmt.pf(ppf, ".%a", Identifier.pp, id)
-    | ID((id, _)) => Fmt.pf(ppf, "#%a", Identifier.pp, id);
+    | Class((id, _)) => Fmt.pf(ppf, ".%s", id)
+    | ID((id, _)) => Fmt.pf(ppf, "#%s", id);
 
 let pp_style_rule: Fmt.t(A.raw_style_rule_t) =
   (ppf, ((key, _), (value, _))) =>
-    Fmt.(
-      pf(ppf, "%a;", attribute(Identifier.pp, pp_expression), (key, value))
-    );
+    Fmt.(pf(ppf, "%a;", attribute(string, pp_expression), (key, value)));
 
 let pp_style_rule_set: Fmt.t(A.raw_style_rule_set_t) =
   (ppf, (matcher, rules)) =>
@@ -283,26 +276,24 @@ let pp_style_rule_set: Fmt.t(A.raw_style_rule_set_t) =
       )
     );
 
-let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
+let pp_declaration: Fmt.t((string, A.raw_declaration_t)) =
   (ppf, (name, decl)) =>
     switch (decl) {
     | Constant((expr, _)) =>
-      Fmt.pf(ppf, "const %a = %a;", Identifier.pp, name, pp_expression, expr)
+      Fmt.pf(ppf, "const %s = %a;", name, pp_expression, expr)
 
-    | Enumerated([]) => Fmt.(pf(ppf, "enum %a = | ;", Identifier.pp, name))
+    | Enumerated([]) => Fmt.(pf(ppf, "enum %s = | ;", name))
     | Enumerated(variants) =>
       Fmt.(
         pf(
           ppf,
-          "@[<v>enum %a =%a;@]",
-          Identifier.pp,
+          "@[<v>enum %s =%a;@]",
           name,
           block(
             ~layout=Vertical, ~sep=Sep.space, (ppf, ((arg_name, _), args)) =>
             pf(
               ppf,
-              "@[<h>| %a%a@]",
-              Identifier.pp,
+              "@[<h>| %s%a@]",
               arg_name,
               (ppf, args) =>
                 List.is_empty(args)
@@ -315,20 +306,12 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
       )
 
     | Function([], (expr, _)) =>
-      Fmt.pf(
-        ppf,
-        "@[<v>func %a -> %a@]",
-        Identifier.pp,
-        name,
-        pp_function_body,
-        expr,
-      )
+      Fmt.pf(ppf, "@[<v>func %s -> %a@]", name, pp_function_body, expr)
     | Function(args, (expr, _)) =>
       Fmt.(
         pf(
           ppf,
-          "@[<v>func @[<h>%a(%a)@] -> %a@]",
-          Identifier.pp,
+          "@[<v>func @[<h>%s(%a)@] -> %a@]",
           name,
           list(~sep=Sep.trailing_comma, pp_function_arg),
           args |> List.map(fst),
@@ -338,22 +321,12 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
       )
 
     | View([], (expr, _)) =>
-      Fmt.(
-        pf(
-          ppf,
-          "@[<v>view %a -> %a@]",
-          Identifier.pp,
-          name,
-          pp_function_body,
-          expr,
-        )
-      )
+      Fmt.(pf(ppf, "@[<v>view %s -> %a@]", name, pp_function_body, expr))
     | View(props, (expr, _)) =>
       Fmt.(
         pf(
           ppf,
-          "@[<v>view @[<h>%a(%a)@] -> %a@]",
-          Identifier.pp,
+          "@[<v>view @[<h>%s(%a)@] -> %a@]",
           name,
           list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
           props |> List.map(fst),
@@ -366,8 +339,7 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "@[<v>style %a -> %a@]",
-          Identifier.pp,
+          "@[<v>style %s -> %a@]",
           name,
           closure(pp_style_rule_set),
           rule_sets |> List.map(fst),
@@ -377,8 +349,7 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "@[<v>style @[<h>%a(%a)@] -> %a@]",
-          Identifier.pp,
+          "@[<v>style @[<h>%s(%a)@] -> %a@]",
           name,
           list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
           props |> List.map(fst),
@@ -388,7 +359,7 @@ let pp_declaration: Fmt.t((Identifier.t, A.raw_declaration_t)) =
       )
     };
 
-let pp_declaration_list: Fmt.t(list((Identifier.t, A.raw_declaration_t))) =
+let pp_declaration_list: Fmt.t(list((string, A.raw_declaration_t))) =
   ppf => {
     let rec loop =
       fun
@@ -419,25 +390,23 @@ let pp_declaration_list: Fmt.t(list((Identifier.t, A.raw_declaration_t))) =
 
 type import_spec_t = (
   Namespace.t,
-  option(Identifier.t),
-  list((Identifier.t, option(A.identifier_t))),
+  option(string),
+  list((string, option(A.identifier_t))),
 );
 
-let pp_named_import: Fmt.t((Identifier.t, option(A.identifier_t))) =
+let pp_named_import: Fmt.t((string, option(A.identifier_t))) =
   ppf =>
     fun
-    | (id, Some((label, _))) =>
-      Fmt.pf(ppf, "%a as %a", Identifier.pp, id, Identifier.pp, label)
-    | (id, None) => Identifier.pp(ppf, id);
+    | (id, Some((label, _))) => Fmt.pf(ppf, "%s as %s", id, label)
+    | (id, None) => Fmt.string(ppf, id);
 
-let pp_named_import_list:
-  Fmt.t(list((Identifier.t, option(A.identifier_t)))) =
+let pp_named_import_list: Fmt.t(list((string, option(A.identifier_t)))) =
   (ppf, imports) => Fmt.(destruct(pp_named_import, ppf, imports));
 
-let pp_main_import: Fmt.t(option(Identifier.t)) =
+let pp_main_import: Fmt.t(option(string)) =
   ppf =>
     fun
-    | Some(id) => Identifier.pp(ppf, id)
+    | Some(id) => Fmt.string(ppf, id)
     | None => Fmt.nop(ppf, ());
 
 let _pp_import_stmt = (pp_targets: Fmt.t('a)): Fmt.t(('a, Namespace.t)) =>
@@ -453,7 +422,7 @@ let pp_import: Fmt.t(import_spec_t) =
     | (namespace, None, []) => Fmt.nop(ppf, ())
 
     | (namespace, Some(main_import), []) =>
-      _pp_import_stmt(Identifier.pp, ppf, (main_import, namespace))
+      _pp_import_stmt(Fmt.string, ppf, (main_import, namespace))
 
     | (namespace, None, named_imports) =>
       _pp_import_stmt(pp_named_import_list, ppf, (named_imports, namespace))
@@ -461,16 +430,7 @@ let pp_import: Fmt.t(import_spec_t) =
     | (namespace, Some(main_import), named_imports) =>
       _pp_import_stmt(
         (ppf, (main, named)) =>
-          Fmt.(
-            pf(
-              ppf,
-              "%a, %a",
-              Identifier.pp,
-              main,
-              pp_named_import_list,
-              named,
-            )
-          ),
+          Fmt.(pf(ppf, "%s, %a", main, pp_named_import_list, named)),
         ppf,
         ((main_import, named_imports), namespace),
       );

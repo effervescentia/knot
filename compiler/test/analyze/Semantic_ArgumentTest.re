@@ -1,12 +1,11 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 module TE = AST.TypeExpression;
 
-let __id = Identifier.of_string("foo");
+let __id = "foo";
 let __namespace = Reference.Namespace.of_string("foo");
 let __scope = S.create(__namespace, ignore, Range.zero);
 let __throw_scope = S.create(__namespace, throw, Range.zero);
@@ -145,9 +144,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(
-                DefaultArgumentMissing(Identifier.of_string("bar")),
-              ),
+              TypeError(DefaultArgumentMissing("bar")),
               __namespace,
               Range.zero,
             ),
@@ -155,19 +152,19 @@ let suite =
           () =>
           [
             AR.{
-              name: "fizz" |> Identifier.of_string |> URaw.as_untyped,
+              name: URaw.as_untyped("fizz"),
               default: None,
               type_: Some(URaw.as_untyped(TE.Boolean)),
             }
             |> URaw.as_unknown,
             AR.{
-              name: "buzz" |> Identifier.of_string |> URaw.as_untyped,
+              name: URaw.as_untyped("buzz"),
               default: Some(URaw.bool_prim(true)),
               type_: None,
             }
             |> URaw.as_unknown,
             AR.{
-              name: "bar" |> Identifier.of_string |> URaw.as_untyped,
+              name: URaw.as_untyped("bar"),
               default: None,
               type_: Some(URaw.as_untyped(TE.Boolean)),
             }

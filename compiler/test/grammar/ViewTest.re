@@ -64,7 +64,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             ([], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
           )
           |> U.as_untyped,
@@ -76,7 +76,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             (
               [],
               [U.nil_prim |> A.of_expr |> U.as_nil]
@@ -95,7 +95,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             ([], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
           )
           |> U.as_untyped,
@@ -107,7 +107,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             (
               [],
               [U.nil_prim |> A.of_expr |> U.as_nil]
@@ -126,11 +126,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             (
               [
                 A.{
-                  name: "fizz" |> A.of_public |> U.as_untyped,
+                  name: U.as_untyped("fizz"),
                   type_: Some(U.as_untyped(TE.Integer)),
                   default: None,
                 }
@@ -150,11 +150,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             (
               [
                 A.{
-                  name: "fizz" |> A.of_public |> U.as_untyped,
+                  name: U.as_untyped("fizz"),
                   type_: None,
                   default: Some(U.string_prim("bar")),
                 }
@@ -174,11 +174,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             (
               [
                 A.{
-                  name: "fizz" |> A.of_public |> U.as_untyped,
+                  name: U.as_untyped("fizz"),
                   type_: Some(U.as_untyped(TE.Boolean)),
                   default: Some(U.bool_prim(true)),
                 }

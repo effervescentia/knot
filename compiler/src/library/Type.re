@@ -162,26 +162,26 @@ and invalid_t =
   | NotInferrable;
 
 type error_t =
-  | NotFound(Identifier.t)
+  | NotFound(string)
   | ExternalNotFound(Namespace.t, Export.t)
   /* FIXME: not reported */
-  | DuplicateIdentifier(Identifier.t)
+  | DuplicateIdentifier(string)
   /* FIXME: not reported */
   | TypeMismatch(t, t)
   | InvalidUnaryOperation(AST_Operator.unary_t, t)
   | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
   | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
-  | InvalidJSXTag(Identifier.t, t, list((string, t)))
+  | InvalidJSXTag(string, t, list((string, t)))
   | UnexpectedJSXAttribute(string, t)
   | InvalidJSXAttribute(string, t, t)
-  | MissingJSXAttributes(Identifier.t, list((string, t)))
+  | MissingJSXAttributes(string, list((string, t)))
   | InvalidDotAccess(t, string)
   | InvalidFunctionCall(t, list(t))
   /* FIXME: not reported */
-  | UntypedFunctionArgument(Identifier.t)
+  | UntypedFunctionArgument(string)
   /* FIXME: not reported */
-  | DefaultArgumentMissing(Identifier.t);
+  | DefaultArgumentMissing(string);
 
 /* pretty printing */
 
@@ -213,13 +213,12 @@ let pp_error: Fmt.t(error_t) =
   Fmt.(
     ppf =>
       fun
-      | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
+      | NotFound(id) => pf(ppf, "NotFound<%s>", id)
 
-      | DuplicateIdentifier(id) =>
-        pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
+      | DuplicateIdentifier(id) => pf(ppf, "DuplicateIdentifier<%s>", id)
 
       | UntypedFunctionArgument(id) =>
-        pf(ppf, "UntypedFunctionArgument<%a>", Identifier.pp, id)
+        pf(ppf, "UntypedFunctionArgument<%s>", id)
 
       | ExternalNotFound(namespace, id) =>
         pf(
@@ -276,8 +275,7 @@ let pp_error: Fmt.t(error_t) =
       | InvalidJSXTag(id, type_, expected_attrs) =>
         pf(
           ppf,
-          "InvalidJSXTag<%a, %a, %a>",
-          Identifier.pp,
+          "InvalidJSXTag<%s, %a, %a>",
           id,
           pp,
           type_,
@@ -302,15 +300,14 @@ let pp_error: Fmt.t(error_t) =
       | MissingJSXAttributes(id, attrs) =>
         pf(
           ppf,
-          "MissingJSXAttributes<%a, @[<hv>%a@]>",
-          Identifier.pp,
+          "MissingJSXAttributes<%s, @[<hv>%a@]>",
           id,
           record(string, pp),
           attrs,
         )
 
       | DefaultArgumentMissing(id) =>
-        pf(ppf, "DefaultArgumentMissing<%a>", Identifier.pp, id)
+        pf(ppf, "DefaultArgumentMissing<%s>", id)
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>

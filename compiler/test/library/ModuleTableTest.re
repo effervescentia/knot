@@ -6,14 +6,12 @@ module U = Util.RawUtil;
 
 let __id = Namespace.Internal("foo");
 let __types: list((Export.t, Type.t)) = [
-  (Named(A.of_public("bar")), Valid(`Element)),
+  (Named("bar"), Valid(`Element)),
 ];
 let __program = [
   (
     "foo" |> A.of_internal,
-    [
-      "bar" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
-    ],
+    ["bar" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
   )
   |> A.of_import
   |> U.as_untyped,
@@ -53,10 +51,7 @@ let suite =
                 {
                   exports:
                     _create_table([
-                      (
-                        Export.Named(A.of_public("bar")),
-                        Type.Valid(`Element),
-                      ),
+                      (Export.Named("bar"), Type.Valid(`Element)),
                     ]),
                   ast: __program,
                   scopes: __scope_tree,
@@ -85,7 +80,7 @@ let suite =
            );
         __table
         |> ModuleTable.add_type(
-             (__id, Export.Named(A.of_public("new_type"))),
+             (__id, Export.Named("new_type")),
              Valid(`Float),
            );
 
@@ -98,10 +93,7 @@ let suite =
                 {
                   exports:
                     _create_table([
-                      (
-                        Export.Named(A.of_public("new_type")),
-                        Type.Valid(`Float),
-                      ),
+                      (Export.Named("new_type"), Type.Valid(`Float)),
                     ]),
                   ast: __program,
                   scopes: __scope_tree,
@@ -118,10 +110,7 @@ let suite =
       () => {
         let original_table = Hashtbl.copy(__table);
         __table
-        |> ModuleTable.add_type(
-             (__id, Named(A.of_public("new_type"))),
-             Valid(`Float),
-           );
+        |> ModuleTable.add_type((__id, Named("new_type")), Valid(`Float));
 
         Assert.module_table(original_table, __table);
       }

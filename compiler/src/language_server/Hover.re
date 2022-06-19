@@ -70,7 +70,7 @@ let handler: Runtime.request_handler_t(params_t) =
                 )
             |?< ScopeTree.find_type(id, point)
             |?> ~@Type.pp
-            |?> Fmt.str("%a: %s", Identifier.pp, id)
+            |?> Fmt.str("%s: %s", id)
             |?: "(unknown)"
             |> response(range)
             |> Result.ok;

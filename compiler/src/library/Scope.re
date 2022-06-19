@@ -1,9 +1,8 @@
 open Infix;
 
-module Identifier = Reference.Identifier;
 module Namespace = Reference.Namespace;
 
-type type_lookup_t = Hashtbl.t(Identifier.t, Type.t);
+type type_lookup_t = Hashtbl.t(string, Type.t);
 
 type t = {
   namespace: Namespace.t,
@@ -55,7 +54,7 @@ let create_child = (range: Range.t, parent: t): t => {
 /**
  find a type in this or any parent scope
  */
-let rec lookup = (id: Identifier.t, scope: t): option(Type.t) => {
+let rec lookup = (id: string, scope: t): option(Type.t) => {
   switch (scope.parent, Hashtbl.find_opt(scope.types, id)) {
   | (_, Some(type_)) => Some(type_)
 
@@ -68,8 +67,7 @@ let rec lookup = (id: Identifier.t, scope: t): option(Type.t) => {
 /**
  define a new type in this scope
  */
-let define =
-    (id: Identifier.t, type_: Type.t, scope: t): option(Type.error_t) => {
+let define = (id: string, type_: Type.t, scope: t): option(Type.error_t) => {
   let result = scope |> lookup(id) |?> (_ => Type.DuplicateIdentifier(id));
 
   Hashtbl.add(scope.types, id, type_);

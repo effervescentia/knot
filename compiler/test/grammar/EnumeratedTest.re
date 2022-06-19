@@ -51,7 +51,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             [] |> A.of_enum |> U.as_enum([]),
           )
           |> U.as_untyped,
@@ -63,7 +63,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             [] |> A.of_enum |> U.as_enum([]),
           )
           |> U.as_untyped,
@@ -75,13 +75,8 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
-            [
-              (
-                "OnlyOption" |> Reference.Identifier.of_string |> U.as_untyped,
-                [],
-              ),
-            ]
+            "foo" |> U.as_untyped |> A.of_named_export,
+            [(U.as_untyped("OnlyOption"), [])]
             |> A.of_enum
             |> U.as_enum([("OnlyOption", [])]),
           )
@@ -94,16 +89,13 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Account" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "Account" |> U.as_untyped |> A.of_named_export,
             [
               (
-                "Verified" |> Reference.Identifier.of_string |> U.as_untyped,
+                U.as_untyped("Verified"),
                 [U.as_int(TE.Integer), U.as_string(TE.String)],
               ),
-              (
-                "Unverified" |> Reference.Identifier.of_string |> U.as_untyped,
-                [TE.String |> U.as_string],
-              ),
+              (U.as_untyped("Unverified"), [TE.String |> U.as_string]),
             ]
             |> A.of_enum
             |> U.as_enum([

@@ -3,11 +3,11 @@ open Kore;
 module Formatter = Grammar.Formatter;
 module U = Util.ResultUtil;
 
-let __int_const = ("ABC" |> A.of_public, 123 |> U.int_prim |> A.of_const);
+let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
 
 let __int_const_stmt =
   (
-    "ABC" |> A.of_public |> U.as_untyped |> A.of_named_export,
+    "ABC" |> U.as_untyped |> A.of_named_export,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
   |> A.of_decl;
@@ -15,9 +15,7 @@ let __int_const_stmt =
 let __import_stmt =
   (
     "bar" |> A.of_external,
-    [
-      "Foo" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
-    ],
+    ["Foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
   )
   |> A.of_import;
 
@@ -69,7 +67,6 @@ const ABC = 123;\n",
             [
               name
               |> String.capitalize_ascii
-              |> A.of_public
               |> U.as_untyped
               |> A.of_main_import
               |> U.as_untyped,
@@ -103,16 +100,14 @@ import Fizz from \"@/fizz\";\n",
             (
               "foo" |> A.of_external,
               [
-                ("d" |> A.of_public |> U.as_untyped, None)
+                (U.as_untyped("d"), None) |> A.of_named_import |> U.as_untyped,
+                (U.as_untyped("c"), None)
                 |> A.of_named_import
                 |> U.as_untyped,
-                ("c" |> A.of_public |> U.as_untyped, None)
+                (U.as_untyped("b"), None)
                 |> A.of_named_import
                 |> U.as_untyped,
-                ("b" |> A.of_public |> U.as_untyped, None)
-                |> A.of_named_import
-                |> U.as_untyped,
-                ("a" |> A.of_public |> U.as_untyped, None)
+                (U.as_untyped("a"), None)
                 |> A.of_named_import
                 |> U.as_untyped,
               ],

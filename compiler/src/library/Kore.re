@@ -8,6 +8,7 @@ module Command = Command;
 module Config = Config;
 module Constants = Constants;
 module DeclarationTable = DeclarationTable;
+module DefinitionTable = DefinitionTable;
 module Filename = Filename;
 module Fun = Fun;
 module Fmt = Fmt;

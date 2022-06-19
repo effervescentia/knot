@@ -86,7 +86,7 @@ let check_function_call: ((T.t, list(T.t))) => option(T.error_t) =
   | (expr_type, args) => Some(InvalidFunctionCall(expr_type, args));
 
 let check_jsx_render:
-  ((Reference.Identifier.t, T.t, list((string, A.untyped_t(T.t))))) =>
+  ((string, T.t, list((string, A.untyped_t(T.t))))) =>
   list((T.error_t, option(Range.t))) =
   fun
   /* assume this have been reported already and ignore */

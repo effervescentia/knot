@@ -38,15 +38,13 @@ let __scope_tree = BinaryTree.create((Range.zero, None));
 let __main_import_ast =
   (
     "bar" |> A.of_internal,
-    [
-      "foo" |> A.of_public |> U.as_untyped |> A.of_main_import |> U.as_untyped,
-    ],
+    ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
   )
   |> A.of_import
   |> U.as_untyped;
 let __const_decl_ast =
   (
-    "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+    "foo" |> U.as_untyped |> A.of_named_export,
     U.nil_prim |> A.of_const |> U.as_nil,
   )
   |> A.of_decl
@@ -98,13 +96,8 @@ let suite =
           [
             __const_decl_ast,
             (
-              "bar" |> A.of_public |> U.as_untyped |> A.of_named_export,
-              "foo"
-              |> A.of_public
-              |> A.of_id
-              |> U.as_nil
-              |> A.of_const
-              |> U.as_nil,
+              "bar" |> U.as_untyped |> A.of_named_export,
+              "foo" |> A.of_id |> U.as_nil |> A.of_const |> U.as_nil,
             )
             |> A.of_decl
             |> U.as_untyped,
@@ -151,13 +144,8 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> A.of_public |> U.as_untyped |> A.of_named_export,
-              "foo"
-              |> A.of_public
-              |> A.of_id
-              |> U.as_bool
-              |> A.of_const
-              |> U.as_bool,
+              "bar" |> U.as_untyped |> A.of_named_export,
+              "foo" |> A.of_id |> U.as_bool |> A.of_const |> U.as_bool,
             )
             |> A.of_decl
             |> U.as_untyped,

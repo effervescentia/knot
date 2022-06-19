@@ -53,7 +53,7 @@ let handler: Runtime.request_handler_t(params_t) =
                   ) => {
                     let range = N.get_range(name);
                     let full_range = N.join_ranges(name, decl);
-                    let name = name |> fst |> ~@Identifier.pp;
+                    let name = fst(name);
                     let type_ = N.get_type(decl);
 
                     Some(

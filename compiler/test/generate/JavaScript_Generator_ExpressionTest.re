@@ -69,9 +69,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          ("foo" |> A.of_public |> U.as_untyped, [], [])
-          |> A.of_tag
-          |> A.of_jsx,
+          (U.as_untyped("foo"), [], []) |> A.of_tag |> A.of_jsx,
         )
     ),
     "jsx - render tag with attributes"
@@ -99,24 +97,18 @@ let suite =
             ],
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [
-              "bar"
-              |> A.of_public
-              |> U.as_untyped
-              |> A.of_jsx_id
-              |> U.as_untyped,
-              ("fizz" |> A.of_public |> U.as_untyped, None)
-              |> A.of_jsx_class
-              |> U.as_untyped,
+              "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
+              (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
               (
-                "buzz" |> A.of_public |> U.as_untyped,
+                U.as_untyped("buzz"),
                 true |> A.of_bool |> A.of_prim |> U.as_bool |> Option.some,
               )
               |> A.of_jsx_class
               |> U.as_untyped,
               (
-                "zip" |> A.of_public |> U.as_untyped,
+                U.as_untyped("zip"),
                 "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,
               )
               |> A.of_prop
@@ -136,7 +128,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [Identifier("Foo")],
           ),
-          ("Foo" |> A.of_public |> U.as_view([], T.Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [])
           |> A.of_component
           |> A.of_jsx,
         )
@@ -170,14 +162,14 @@ let suite =
             ],
           ),
           (
-            "foo" |> A.of_public |> U.as_untyped,
+            U.as_untyped("foo"),
             [],
             [
               (
-                "Bar" |> A.of_public |> U.as_view([], T.Valid(`Element)),
+                "Bar" |> U.as_view([], T.Valid(`Element)),
                 [],
                 [
-                  ("fizz" |> A.of_public |> U.as_untyped, [], [])
+                  (U.as_untyped("fizz"), [], [])
                   |> A.of_tag
                   |> A.of_node
                   |> U.as_untyped,
@@ -194,13 +186,7 @@ let suite =
     ),
     "null" >: (() => _assert_expression(Null, A.nil |> A.of_prim)),
     "identifier"
-    >: (
-      () =>
-        _assert_expression(
-          Identifier("fooBar"),
-          "fooBar" |> A.of_public |> A.of_id,
-        )
-    ),
+    >: (() => _assert_expression(Identifier("fooBar"), A.of_id("fooBar"))),
     "group"
     >: (
       () =>
@@ -261,11 +247,7 @@ let suite =
             ),
             [],
           ),
-          [
-            ("foo" |> A.of_public |> U.as_untyped, U.int_prim(456))
-            |> A.of_var
-            |> U.as_nil,
-          ]
+          [(U.as_untyped("foo"), U.int_prim(456)) |> A.of_var |> U.as_nil]
           |> A.of_closure,
         )
     ),
@@ -275,10 +257,7 @@ let suite =
         _assert_expression(
           DotAccess(Identifier("foo"), "bar"),
           (
-            "foo"
-            |> A.of_public
-            |> A.of_id
-            |> U.as_struct([("bar", T.Valid(`String))]),
+            "foo" |> A.of_id |> U.as_struct([("bar", T.Valid(`String))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,
@@ -291,10 +270,9 @@ let suite =
           FunctionCall(Identifier("foo"), [Identifier("bar")]),
           (
             "foo"
-            |> A.of_public
             |> A.of_id
             |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
-            ["bar" |> A.of_public |> A.of_id |> U.as_string],
+            ["bar" |> A.of_id |> U.as_string],
           )
           |> A.of_func_call,
         )

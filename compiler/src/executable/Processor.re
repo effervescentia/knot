@@ -76,12 +76,8 @@ let run =
   let cwd_override = get_cwd();
   let cwd_temp = cwd_override |?: cwd;
 
-  (
-    switch (get_config_file(cwd_temp)) {
-    | Some(_) as config => config
-    | None => ConfigFile.find(cwd_temp)
-    }
-  )
+  get_config_file(cwd_temp)
+  |?| ConfigFile.find(cwd_temp)
   |> Option.iter(path => {
        let config = _read_config(default_config, cwd_temp, path);
 

@@ -18,7 +18,7 @@ let _assert_errors_with_ranges =
     )
   );
 
-let __id = Reference.Identifier.of_string("Foo");
+let __id = "Foo";
 
 let suite =
   "Analyze.Typing | JSX"

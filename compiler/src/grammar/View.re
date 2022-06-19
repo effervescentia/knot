@@ -35,11 +35,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                 props
                 |> List.map(
                      Tuple.split2(
-                       fst
-                       % A.(
-                           prop =>
-                             prop.name |> fst |> Reference.Identifier.to_string
-                         ),
+                       fst % A.(prop => fst(prop.name)),
                        N.get_type,
                      ),
                    );

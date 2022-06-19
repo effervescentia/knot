@@ -188,7 +188,7 @@ finished with 21 error(s) and 0 warning(s)
             InvalidModule(__namespace),
             ParseError(ReservedKeyword("x"), __namespace, Range.zero),
             ParseError(
-              TypeError(NotFound(Reference.Identifier.of_string("my_id"))),
+              TypeError(NotFound("my_id")),
               __namespace,
               Range.zero,
             ),
@@ -201,20 +201,14 @@ finished with 21 error(s) and 0 warning(s)
               TypeError(
                 ExternalNotFound(
                   __namespace,
-                  Reference.(
-                    Export.Named(Identifier.of_string("my_export"))
-                  ),
+                  Reference.(Export.Named("my_export")),
                 ),
               ),
               __namespace,
               Range.zero,
             ),
             ParseError(
-              TypeError(
-                DuplicateIdentifier(
-                  Reference.Identifier.of_string("my_export"),
-                ),
-              ),
+              TypeError(DuplicateIdentifier("my_export")),
               __namespace,
               Range.zero,
             ),
@@ -253,7 +247,7 @@ finished with 21 error(s) and 0 warning(s)
             ParseError(
               TypeError(
                 InvalidJSXTag(
-                  Reference.Identifier.of_string("MyTag"),
+                  "MyTag",
                   Type.Valid(`Integer),
                   [("my_attr", Type.Valid(`Boolean))],
                 ),
@@ -282,7 +276,7 @@ finished with 21 error(s) and 0 warning(s)
             ParseError(
               TypeError(
                 MissingJSXAttributes(
-                  Reference.Identifier.of_string("MyTag"),
+                  "MyTag",
                   [
                     ("my_bool", Type.Valid(`Boolean)),
                     ("my_int", Type.Valid(`Integer)),
@@ -308,20 +302,12 @@ finished with 21 error(s) and 0 warning(s)
               Range.zero,
             ),
             ParseError(
-              TypeError(
-                UntypedFunctionArgument(
-                  Reference.Identifier.of_string("my_argument"),
-                ),
-              ),
+              TypeError(UntypedFunctionArgument("my_argument")),
               __namespace,
               Range.zero,
             ),
             ParseError(
-              TypeError(
-                DefaultArgumentMissing(
-                  Reference.Identifier.of_string("my_argument"),
-                ),
-              ),
+              TypeError(DefaultArgumentMissing("my_argument")),
               __namespace,
               Range.zero,
             ),

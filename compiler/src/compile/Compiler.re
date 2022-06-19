@@ -37,7 +37,7 @@ let _get_library_exports = ast =>
        % (
          fun
          | AST.TypeDefinition.Module((id, _), stmts) => (
-             Export.Named(AST.of_public(id)),
+             Export.Named(id),
              Type.Valid(
                `Struct(
                  stmts
@@ -70,13 +70,6 @@ let _get_module_exports = ast =>
        fst
        % (
          fun
-         /* ignore all private declarations */
-         | AST.Declaration(
-             MainExport((Private(_), _)) | NamedExport((Private(_), _)),
-             _,
-           ) =>
-           []
-
          | AST.Declaration(NamedExport((id, _)), decl) => [
              (Export.Named(id), N.get_type(decl)),
            ]

@@ -59,39 +59,17 @@ module Module = {
     );
 };
 
-module Identifier = {
-  type t =
-    | Private(string)
-    | Public(string);
-
-  let of_string = value =>
-    value |> String.starts_with(Constants.private_prefix)
-      ? Private(value |> String.drop_prefix(Constants.private_prefix))
-      : Public(value);
-
-  /* methods */
-
-  let to_string =
-    fun
-    | Public(name) => name
-    | Private(name) => Constants.private_prefix ++ name;
-
-  /* pretty printing */
-
-  let pp: Fmt.t(t) = ppf => to_string % Fmt.string(ppf);
-};
-
 module Export = {
   type t =
     | Main
-    | Named(Identifier.t);
+    | Named(string);
 
   /* methods */
 
   let to_string =
     fun
     | Main => "main"
-    | Named(name) => Identifier.to_string(name);
+    | Named(name) => name;
 
   /* pretty printing */
 

@@ -78,8 +78,8 @@ let scan_for_token = (point: Point.t) =>
   File.InputStream.scan(Node.get_range % Range.contains_point(point));
 
 let purge_module = (path: string, runtime: t) =>
-  switch (runtime |> resolve(path)) {
-  | Some((namespace, {compiler, contexts})) =>
-    Hashtbl.remove(contexts, namespace)
-  | None => ()
-  };
+  runtime
+  |> resolve(path)
+  |> Option.iter(((namespace, {compiler, contexts})) =>
+       Hashtbl.remove(contexts, namespace)
+     );

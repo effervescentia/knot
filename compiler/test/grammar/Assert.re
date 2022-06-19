@@ -58,11 +58,9 @@ module Make = (Params: AssertParams) => {
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
     |> Params.parser((ns_context, mod_context(ns_context)))
-    |> (
-      fun
-      | Some(r) => source |> Alcotest.failf("parsed input: '%s'") |> ignore
-      | None => ()
-    );
+    |> Option.iter(_ =>
+         source |> Alcotest.failf("parsed input: '%s'") |> ignore
+       );
 
   let parse_none =
       (

@@ -9,13 +9,3 @@ type t = {
   /* error reporting callback */
   mutable inner_modules: list((Module.t, Hashtbl.t(Export.t, Type.t))),
 };
-
-/* static */
-
-let create = (~report=Error.throw, namespace: Namespace.t): t => {
-  namespace,
-  report,
-  inner_modules: [],
-};
-
-/* methods */

@@ -54,7 +54,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             U.nil_prim |> A.of_const |> U.as_nil,
           )
           |> U.as_untyped,
@@ -66,9 +66,9 @@ let suite =
       () => {
         let declarations =
           [
-            (Export.Named(A.of_public("bar")), T.Valid(`Float)),
-            (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
-            (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
+            (Export.Named("bar"), T.Valid(`Float)),
+            (Export.Named("fizz"), T.Valid(`Integer)),
+            (Export.Named("buzz"), T.Valid(`Float)),
           ]
           |> List.to_seq
           |> DeclarationTable.of_seq;
@@ -76,26 +76,20 @@ let suite =
         Assert.parse(
           ~mod_context=x => ModuleContext.create(~declarations, x),
           (
-            "foo" |> A.of_public |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped |> A.of_named_export,
             [
-              (
-                "x" |> A.of_public |> U.as_untyped,
-                "bar" |> A.of_public |> A.of_id |> U.as_float,
-              )
+              (U.as_untyped("x"), "bar" |> A.of_id |> U.as_float)
               |> A.of_var
               |> U.as_nil,
               (
-                "y" |> A.of_public |> U.as_untyped,
+                U.as_untyped("y"),
                 (
-                  (
-                    "x" |> A.of_public |> A.of_id |> U.as_float,
-                    "fizz" |> A.of_public |> A.of_id |> U.as_int,
-                  )
+                  ("x" |> A.of_id |> U.as_float, "fizz" |> A.of_id |> U.as_int)
                   |> A.of_gt_op
                   |> U.as_bool,
                   (
-                    "x" |> A.of_public |> A.of_id |> U.as_float,
-                    "buzz" |> A.of_public |> A.of_id |> U.as_float,
+                    "x" |> A.of_id |> U.as_float,
+                    "buzz" |> A.of_id |> U.as_float,
                   )
                   |> A.of_ineq_op
                   |> U.as_bool,
@@ -106,12 +100,9 @@ let suite =
               |> A.of_var
               |> U.as_nil,
               (
-                "y" |> A.of_public |> A.of_id |> U.as_bool,
+                "y" |> A.of_id |> U.as_bool,
                 (
-                  (
-                    "x" |> A.of_public |> A.of_id |> U.as_float,
-                    1 |> U.int_prim,
-                  )
+                  ("x" |> A.of_id |> U.as_float, 1 |> U.int_prim)
                   |> A.of_add_op
                   |> U.as_float,
                   5 |> U.int_prim,
@@ -142,10 +133,10 @@ let suite =
           ~@Export.pp,
           ~@T.pp,
           [
-            (Export.Named(A.of_public("bar")), T.Valid(`Float)),
-            (Export.Named(A.of_public("fizz")), T.Valid(`Integer)),
-            (Export.Named(A.of_public("buzz")), T.Valid(`Float)),
-            (Export.Named(A.of_public("foo")), T.Valid(`Boolean)),
+            (Export.Named("bar"), T.Valid(`Float)),
+            (Export.Named("fizz"), T.Valid(`Integer)),
+            (Export.Named("buzz"), T.Valid(`Float)),
+            (Export.Named("foo"), T.Valid(`Boolean)),
           ]
           |> List.to_seq
           |> Hashtbl.of_seq,

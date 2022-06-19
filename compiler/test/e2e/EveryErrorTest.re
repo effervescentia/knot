@@ -23,9 +23,7 @@ let suite =
         Assert.compile_errors(
           [
             ParseError(
-              TypeError(
-                NotFound(Reference.Identifier.of_string("not_found")),
-              ),
+              TypeError(NotFound("not_found")),
               __semantic_namespace,
               Range.create((1, 28), (1, 36)),
             ),
@@ -214,13 +212,7 @@ let suite =
               Range.create((28, 56), (28, 63)),
             ),
             ParseError(
-              TypeError(
-                InvalidJSXTag(
-                  Reference.Identifier.of_string("NotView"),
-                  Type.Valid(`Nil),
-                  [],
-                ),
-              ),
+              TypeError(InvalidJSXTag("NotView", Type.Valid(`Nil), [])),
               __semantic_namespace,
               Range.create((31, 35), (31, 41)),
             ),
@@ -248,7 +240,7 @@ let suite =
             ParseError(
               TypeError(
                 MissingJSXAttributes(
-                  Reference.Identifier.of_string("TwoAttrsView"),
+                  "TwoAttrsView",
                   [
                     ("second_attr", Type.Valid(`Boolean)),
                     ("first_attr", Type.Valid(`String)),
@@ -274,11 +266,7 @@ let suite =
               Range.create((43, 46), (43, 58)),
             ),
             ParseError(
-              TypeError(
-                UntypedFunctionArgument(
-                  Reference.Identifier.of_string("second_arg"),
-                ),
-              ),
+              TypeError(UntypedFunctionArgument("second_arg")),
               __semantic_namespace,
               Range.create((45, 47), (45, 56)),
             ),
@@ -286,9 +274,7 @@ let suite =
               TypeError(
                 ExternalNotFound(
                   __semantic_namespace,
-                  Reference.Export.Named(
-                    Reference.Identifier.of_string("DoesNotExist"),
-                  ),
+                  Reference.Export.Named("DoesNotExist"),
                 ),
               ),
               Reference.Namespace.of_internal("main"),
@@ -298,9 +284,7 @@ let suite =
               TypeError(
                 ExternalNotFound(
                   Reference.Namespace.of_internal("private"),
-                  Reference.Export.Named(
-                    Reference.Identifier.of_string("_HIDDEN"),
-                  ),
+                  Reference.Export.Named("_HIDDEN"),
                 ),
               ),
               Reference.Namespace.of_internal("main"),
@@ -310,9 +294,7 @@ let suite =
               TypeError(
                 ExternalNotFound(
                   Reference.Namespace.of_internal("private"),
-                  Reference.Export.Named(
-                    Reference.Identifier.of_string("_MAIN_ONLY"),
-                  ),
+                  Reference.Export.Named("_MAIN_ONLY"),
                 ),
               ),
               Reference.Namespace.of_internal("main"),

@@ -77,5 +77,5 @@ let find_scope =
   |?< snd;
 };
 
-let find_type = (id: Identifier.t, point: Point.t, tree: t): option(Type.t) =>
+let find_type = (id: string, point: Point.t, tree: t): option(Type.t) =>
   find_scope(point, tree) |?< (types => Hashtbl.find_opt(types, Named(id)));

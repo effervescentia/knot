@@ -13,7 +13,7 @@ module CommonUtil = {
 
   let to_scope = (types: list((string, T.t))): DeclarationTable.t => {
     types
-    |> List.map(Tuple.map_fst2(A.of_public % (x => Export.Named(x))))
+    |> List.map(Tuple.map_fst2(x => Export.Named(x)))
     |> List.to_seq
     |> DeclarationTable.of_seq;
   };

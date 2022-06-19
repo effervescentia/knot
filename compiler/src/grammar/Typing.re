@@ -111,48 +111,45 @@ let type_variants = (ctx: ModuleContext.t) =>
   >> (_type_variant(ctx) |> sep_by(Symbol.vertical_bar));
 
 let declaration: type_module_statement_parser_t =
-  _module_statement(
-    Keyword.decl,
-    expression_parser >|= (expr => (expr, expr |> N.get_range |> Option.some)),
-    TD.of_declaration,
-  );
+  ctx =>
+    _module_statement(
+      Keyword.decl,
+      expression_parser
+      >|= (expr => (expr, expr |> N.get_range |> Option.some)),
+      TD.of_declaration,
+    );
 
 let enumerated: type_module_statement_parser_t =
-  _module_statement(
-    Keyword.enum,
-    type_variants(
-      ModuleContext.create(
-        NamespaceContext.create(Reference.Namespace.Ambient),
-      ),
-    )
-    >|= (
-      variants => {
-        let variant_range = variants |> List.last |?> N.get_range;
+  ctx =>
+    _module_statement(
+      Keyword.enum,
+      type_variants(
+        ModuleContext.create(
+          NamespaceContext.create(Reference.Namespace.Ambient),
+        ),
+      )
+      >|= (
+        variants => {
+          let variant_range = variants |> List.last |?> N.get_range;
 
-        (
-          variants
-          |> List.map(
-               fst
-               % Tuple.map_fst2(
-                   Tuple.map_fst2(Reference.Identifier.to_string),
-                 ),
-             ),
-          variant_range,
-        );
-      }
-    ),
-    TD.of_enum,
-  );
+          (variants |> List.map(fst), variant_range);
+        }
+      ),
+      TD.of_enum,
+    );
 
 let type_: type_module_statement_parser_t =
-  _module_statement(
-    Keyword.type_,
-    expression_parser >|= (expr => (expr, expr |> N.get_range |> Option.some)),
-    TD.of_type,
-  );
+  ctx =>
+    _module_statement(
+      Keyword.type_,
+      expression_parser
+      >|= (expr => (expr, expr |> N.get_range |> Option.some)),
+      TD.of_type,
+    );
 
 let module_statement: type_module_statement_parser_t =
-  choice([declaration, enumerated, type_]) |> M.terminated;
+  ctx =>
+    choice([declaration(ctx), enumerated(ctx), type_(ctx)]) |> M.terminated;
 
 let module_parser: type_module_parser_t =
   ctx =>
@@ -161,8 +158,10 @@ let module_parser: type_module_parser_t =
       _ =>
         M.identifier(~prefix=M.alpha)
         >>= (
-          id =>
-            module_statement
+          id => {
+            let module_ctx = TypingModuleContext.create(ctx);
+
+            module_statement(module_ctx)
             |> many
             |> M.between(Symbol.open_closure, Symbol.close_closure)
             >|= (
@@ -171,6 +170,7 @@ let module_parser: type_module_parser_t =
                   (id, fst(stmts)) |> TD.of_module,
                   N.get_range(stmts),
                 )
-            )
+            );
+          }
         )
     );

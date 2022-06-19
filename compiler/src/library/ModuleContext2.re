@@ -8,19 +8,3 @@ type t = {
   /* parent namespace context */
   namespace_context: TypingNamespaceContext.t,
 };
-
-/* static */
-
-let create =
-    (
-      ~externals=Hashtbl.create(0),
-      ~declarations=Hashtbl.create(0),
-      namespace_context: TypingNamespaceContext.t,
-    )
-    : t => {
-  externals,
-  declarations,
-  namespace_context,
-};
-
-/* methods */

@@ -2,7 +2,6 @@ open Kore;
 open ModuleAliases;
 
 module Namespace = Reference.Namespace;
-module Identifier = Reference.Identifier;
 
 let _sort_imports =
   List.sort((l, r) =>
@@ -39,9 +38,7 @@ let _sort_imports =
       let sorted_named_imports =
         named_imports
         |> List.sort((l, r) =>
-             (l, r)
-             |> Tuple.map2(fst % Identifier.to_string)
-             |> Tuple.join2(String.compare)
+             (l, r) |> Tuple.map2(fst) |> Tuple.join2(String.compare)
            );
 
       (namespace, main_import, sorted_named_imports);

@@ -103,7 +103,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "unable to resolve an identifier %a in the local scope or any inherited scope",
-            Fmt.bad(Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -114,7 +114,7 @@ let _extract_type_err =
               Fmt.pf(
                 ppf,
                 "check that the identifier %a is spelled correctly",
-                Fmt.bad(Identifier.pp),
+                Fmt.bad_str,
                 id,
               )
           ),
@@ -123,12 +123,12 @@ let _extract_type_err =
         (
           (ppf => Fmt.string(ppf, "define the value yourself")),
           Fmt.[str("const %s = …;"), str("let %s = …;")]
-          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+          |> List.map(fmt => id |> ~@Fmt.bold_str |> fmt),
         ),
         (
           (ppf => Fmt.string(ppf, "import the value from another module")),
           Fmt.[str("import { %s } from \"…\";")]
-          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+          |> List.map(fmt => id |> ~@Fmt.bold_str |> fmt),
         ),
       ],
     )
@@ -141,7 +141,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "a variable with the same name (%a) already exists in the local scope or an inherited scope",
-            Fmt.bad(Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -157,7 +157,7 @@ let _extract_type_err =
             Fmt.pf(
               ppf,
               "an export with the identifier %a could not be found in module %a",
-              Fmt.bad(Identifier.pp),
+              Fmt.bad_str,
               id,
               Fmt.bad(Namespace.pp),
               namespace,
@@ -412,8 +412,7 @@ let _extract_type_err =
         ppf =>
           Fmt.pf(
             ppf,
-            "jsx tag %a is missing the attributes %a",
-            Identifier.pp,
+            "jsx tag %s is missing the attributes %a",
             id,
             Fmt.(
               bad(ppf =>
@@ -483,7 +482,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "the function argument %a must define a type",
-            Fmt.bad(Reference.Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -497,7 +496,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "the function argument %a must define a default value",
-            Fmt.bad(Reference.Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),

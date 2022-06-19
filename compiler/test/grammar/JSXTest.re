@@ -41,9 +41,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("Foo" |> AR.of_public |> U.as_untyped, [], [])
-          |> AR.of_tag
-          |> U.as_untyped,
+          (U.as_untyped("Foo"), [], []) |> AR.of_tag |> U.as_untyped,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
     ),
@@ -51,9 +49,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("Foo" |> AR.of_public |> U.as_untyped, [], [])
-          |> AR.of_tag
-          |> U.as_untyped,
+          (U.as_untyped("Foo"), [], []) |> AR.of_tag |> U.as_untyped,
           ["<Foo/>", " < Foo / > "],
         )
     ),
@@ -63,11 +59,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          [
-            ("Bar" |> AR.of_public |> U.as_untyped, [], [])
-            |> U.jsx_node
-            |> U.as_untyped,
-          ]
+          [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped]
           |> AR.of_frag
           |> U.as_untyped,
           "<><Bar /></>",
@@ -78,15 +70,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "fizz" |> AR.of_public |> U.as_untyped,
-                "buzz"
-                |> AR.of_public
-                |> AR.of_id
-                |> U.as_unknown
-                |> Option.some,
+                U.as_untyped("fizz"),
+                "buzz" |> AR.of_id |> U.as_unknown |> Option.some,
               )
               |> AR.of_prop
               |> U.as_untyped,
@@ -103,12 +91,9 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
-              (
-                "fizz" |> AR.of_public |> U.as_untyped,
-                "buzz" |> U.string_prim |> Option.some,
-              )
+              (U.as_untyped("fizz"), "buzz" |> U.string_prim |> Option.some)
               |> AR.of_prop
               |> U.as_untyped,
             ],
@@ -124,13 +109,12 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "fizz" |> AR.of_public |> U.as_untyped,
+                U.as_untyped("fizz"),
                 [
                   "buzz"
-                  |> AR.of_public
                   |> AR.of_id
                   |> U.as_unknown
                   |> AR.of_expr
@@ -155,11 +139,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "fizz" |> AR.of_public |> U.as_untyped,
-                ("buzz" |> AR.of_public |> AR.of_id |> U.as_unknown, [])
+                U.as_untyped("fizz"),
+                ("buzz" |> AR.of_id |> U.as_unknown, [])
                 |> AR.of_func_call
                 |> U.as_unknown
                 |> Option.some,
@@ -179,10 +163,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "fizz" |> AR.of_public |> U.as_untyped,
+                U.as_untyped("fizz"),
                 (U.int_prim(1), U.int_prim(2))
                 |> AR.of_gt_op
                 |> U.as_bool
@@ -203,12 +187,9 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
-              (
-                "fizz" |> AR.of_public |> U.as_untyped,
-                true |> U.bool_prim |> Option.some,
-              )
+              (U.as_untyped("fizz"), true |> U.bool_prim |> Option.some)
               |> AR.of_prop
               |> U.as_untyped,
             ],
@@ -224,10 +205,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "fizz" |> AR.of_public |> U.as_untyped,
+                U.as_untyped("fizz"),
                 3 |> U.int_prim |> AR.of_neg_op |> U.as_int |> Option.some,
               )
               |> AR.of_prop
@@ -245,11 +226,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "fizz" |> AR.of_public |> U.as_untyped,
-                ("buzz" |> AR.of_public |> U.as_untyped, [], [])
+                U.as_untyped("fizz"),
+                (U.as_untyped("buzz"), [], [])
                 |> U.jsx_tag
                 |> U.as_element
                 |> Option.some,
@@ -269,12 +250,8 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
-            [
-              ("fizz" |> AR.of_public |> U.as_untyped, None)
-              |> AR.of_prop
-              |> U.as_untyped,
-            ],
+            U.as_untyped("Foo"),
+            [(U.as_untyped("fizz"), None) |> AR.of_prop |> U.as_untyped],
             [],
           )
           |> AR.of_tag
@@ -287,11 +264,9 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
-              ("fizz" |> AR.of_public |> U.as_untyped, None)
-              |> AR.of_jsx_class
-              |> U.as_untyped,
+              (U.as_untyped("fizz"), None) |> AR.of_jsx_class |> U.as_untyped,
             ],
             [],
           )
@@ -305,14 +280,8 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
-            [
-              "fizz"
-              |> AR.of_public
-              |> U.as_untyped
-              |> AR.of_jsx_id
-              |> U.as_untyped,
-            ],
+            U.as_untyped("Foo"),
+            ["fizz" |> U.as_untyped |> AR.of_jsx_id |> U.as_untyped],
             [],
           )
           |> AR.of_tag
@@ -325,13 +294,9 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [],
-            [
-              ("Bar" |> AR.of_public |> U.as_untyped, [], [])
-              |> U.jsx_node
-              |> U.as_untyped,
-            ],
+            [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],
           )
           |> AR.of_tag
           |> U.as_untyped,
@@ -343,7 +308,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [],
             [
               (U.int_prim(1), U.int_prim(2))
@@ -363,10 +328,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [],
             [
-              ("Bar" |> AR.of_public |> U.as_untyped, [], [])
+              (U.as_untyped("Bar"), [], [])
               |> U.jsx_tag
               |> U.as_element
               |> AR.of_inline_expr
@@ -383,7 +348,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [],
             ["bar \"or\" 123" |> AR.of_text |> U.as_untyped],
           )
@@ -397,20 +362,13 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
-              (
-                "bar" |> AR.of_public |> U.as_untyped,
-                4 |> U.int_prim |> Option.some,
-              )
+              (U.as_untyped("bar"), 4 |> U.int_prim |> Option.some)
               |> AR.of_prop
               |> U.as_untyped,
             ],
-            [
-              ("Bar" |> AR.of_public |> U.as_untyped, [], [])
-              |> U.jsx_node
-              |> U.as_untyped,
-            ],
+            [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],
           )
           |> AR.of_tag
           |> U.as_untyped,
@@ -422,7 +380,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [],
             [
               "bar" |> AR.of_text |> U.as_untyped,
@@ -431,9 +389,7 @@ let suite =
               |> U.as_int
               |> AR.of_inline_expr
               |> U.as_untyped,
-              ("Bar" |> AR.of_public |> U.as_untyped, [], [])
-              |> U.jsx_node
-              |> U.as_untyped,
+              (U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped,
               "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_untyped,
               "buzz" |> AR.of_text |> U.as_untyped,
             ],
@@ -448,21 +404,15 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Foo" |> AR.of_public |> U.as_untyped,
+            U.as_untyped("Foo"),
             [
               (
-                "bar" |> AR.of_public |> U.as_untyped,
-                "fizz"
-                |> AR.of_public
-                |> AR.of_id
-                |> U.as_unknown
-                |> Option.some,
+                U.as_untyped("bar"),
+                "fizz" |> AR.of_id |> U.as_unknown |> Option.some,
               )
               |> AR.of_prop
               |> U.as_untyped,
-              ("buzz" |> AR.of_public |> U.as_untyped, None)
-              |> AR.of_jsx_class
-              |> U.as_untyped,
+              (U.as_untyped("buzz"), None) |> AR.of_jsx_class |> U.as_untyped,
             ],
             [],
           )

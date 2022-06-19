@@ -7,8 +7,7 @@ let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
   | Tag(id, attrs, children) =>
     let analyzed_attrs = attrs |> List.map(analyze_jsx_attribute(scope));
     let analyzed_children = children |> List.map(analyze_jsx_child(scope));
-    let is_tag_capitalized =
-      id |> fst |> Reference.Identifier.to_string |> String.is_capitalized;
+    let is_tag_capitalized = id |> fst |> String.is_capitalized;
 
     if (is_tag_capitalized) {
       let id_type = scope |> S.lookup(fst(id)) |?: T.Invalid(NotInferrable);
@@ -17,10 +16,7 @@ let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
         |> List.filter_map(
              fun
              | (A.Property((name, _), Some(expr)), range) =>
-               Some((
-                 Reference.Identifier.to_string(name),
-                 (N.get_type(expr), range),
-               ))
+               Some((name, (N.get_type(expr), range)))
              | (_, range) => None,
            );
 

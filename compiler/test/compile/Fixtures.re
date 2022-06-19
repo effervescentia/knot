@@ -61,10 +61,7 @@ module Program = {
 
   let const_int = [
     (
-      U.as_untyped(
-        ~range=Range.create((1, 7), (1, 9)),
-        "ABC" |> A.of_public,
-      )
+      U.as_untyped(~range=Range.create((1, 7), (1, 9)), "ABC")
       |> A.of_named_export,
       123L
       |> A.of_int
@@ -89,9 +86,7 @@ module Program = {
       N.entry,
       [
         (
-          "ABC"
-          |> A.of_public
-          |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
+          "ABC" |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
           None,
         )
         |> A.of_named_import
@@ -101,10 +96,7 @@ module Program = {
     |> A.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 29))),
     (
-      U.as_untyped(
-        ~range=Range.create((3, 7), (3, 9)),
-        "BAR" |> A.of_public,
-      )
+      U.as_untyped(~range=Range.create((3, 7), (3, 9)), "BAR")
       |> A.of_named_export,
       "bar"
       |> A.of_string
@@ -128,7 +120,6 @@ module Program = {
       N.bar,
       [
         "foo"
-        |> A.of_public
         |> U.as_untyped(~range=Range.create((2, 10), (2, 12)))
         |> A.of_main_import
         |> U.as_untyped(~range=Range.create((2, 10), (2, 12))),
@@ -137,10 +128,7 @@ module Program = {
     |> A.of_import
     |> U.as_untyped(~range=Range.create((2, 3), (2, 25))),
     (
-      U.as_untyped(
-        ~range=Range.create((4, 9), (4, 11)),
-        "ABC" |> A.of_public,
-      )
+      U.as_untyped(~range=Range.create((4, 9), (4, 11)), "ABC")
       |> A.of_named_export,
       123L
       |> A.of_int
@@ -165,9 +153,7 @@ module Program = {
       N.bar,
       [
         (
-          "BAR"
-          |> A.of_public
-          |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
+          "BAR" |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
           None,
         )
         |> A.of_named_import
@@ -177,10 +163,7 @@ module Program = {
     |> A.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 27))),
     (
-      U.as_untyped(
-        ~range=Range.create((3, 7), (3, 11)),
-        "const" |> A.of_public,
-      )
+      U.as_untyped(~range=Range.create((3, 7), (3, 11)), "const")
       |> A.of_named_export,
       "foo"
       |> A.of_string

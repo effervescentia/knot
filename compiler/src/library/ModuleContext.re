@@ -52,7 +52,7 @@ let report = (ctx: t, err: Error.compile_err) =>
 /**
  add a new declaration to the module
  */
-let declare = (~main=false, name: Identifier.t, type_: Type.t, ctx: t) => {
+let declare = (~main=false, name: string, type_: Type.t, ctx: t) => {
   ctx.declarations |> DeclarationTable.add(Export.Named(name), type_);
 
   if (main) {
@@ -67,7 +67,7 @@ let import =
     (
       namespace: Namespace.t,
       (id, range): (Export.t, Range.t),
-      label: Identifier.t,
+      label: string,
       ctx: t,
     ) => {
   let type_: Type.t =

@@ -4,12 +4,8 @@ module SemanticAnalyzer = Analyze.Semantic;
 
 let style_rule_set = (ctx: ModuleContext.t) =>
   choice([
-    M.identifier(~prefix=Character.period)
-    >|= N.map(Reference.Identifier.of_string)
-    >|= A.of_class_matcher,
-    M.identifier(~prefix=Character.octothorpe)
-    >|= N.map(Reference.Identifier.of_string)
-    >|= A.of_id_matcher,
+    M.identifier(~prefix=Character.period) >|= A.of_class_matcher,
+    M.identifier(~prefix=Character.octothorpe) >|= A.of_id_matcher,
   ])
   >>= (
     matcher =>
@@ -74,9 +70,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                                | A.Class(id) => (ids, classes @ [id]),
                              ([], []),
                            )
-                        |> Tuple.map2(
-                             List.map(fst % Reference.Identifier.to_string),
-                           );
+                        |> Tuple.map2(List.map(fst));
 
                       let res_rule_sets =
                         raw_rule_sets
