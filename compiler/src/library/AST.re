@@ -127,6 +127,7 @@ module TypeExpression = {
 
   /* tag helpers */
 
+  let of_id = x => Identifier(x);
   let of_group = x => Group(x);
   let of_list = x => List(x);
   let of_struct = props => Struct(props);

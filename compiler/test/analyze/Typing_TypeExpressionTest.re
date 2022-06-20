@@ -57,6 +57,22 @@ let suite =
           TypingAnalyzer.eval_type_expression(__empty_defs, Element),
         )
     ),
+    "identifier"
+    >: (
+      () => {
+        let defs = DefinitionTable.create();
+
+        Hashtbl.replace(defs.declared.types, "foo", Valid(`Boolean));
+
+        Assert.type_(
+          Valid(`Boolean),
+          TypingAnalyzer.eval_type_expression(
+            defs,
+            Identifier(U.as_untyped("foo")),
+          ),
+        );
+      }
+    ),
     "grouped type"
     >: (
       () =>

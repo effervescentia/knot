@@ -59,6 +59,8 @@ let function_ =
       )
   );
 
+let identifier: type_expression_parser_t = M.identifier >|= N.wrap(TE.of_id);
+
 /*
   each type expression has a precedence denoted by its suffix
 
@@ -72,7 +74,13 @@ let rec expr_0: type_expression_parser_t = input => (list(expr_1))(input)
 and expr_1: type_expression_parser_t =
   input =>
     choice(
-      [function_(expr_0), group(expr_0), struct_(expr_0), primitive],
+      [
+        function_(expr_0),
+        group(expr_0),
+        struct_(expr_0),
+        primitive,
+        identifier,
+      ],
       input,
     );
 

@@ -1,7 +1,7 @@
 open Kore;
 
 module Resolver = Resolve.Resolver;
-module Module = Resolve.Module;
+module Source = Resolve.Source;
 module Writer = File.Writer;
 
 let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
@@ -37,7 +37,7 @@ let _pp_err:
     (
       int,
       string,
-      option((Module.path_t, Range.t)),
+      option((Source.path_t, Range.t)),
       Stdlib.Format.formatter => unit,
     ),
   ) =
@@ -51,7 +51,7 @@ let _pp_err:
         ppf =>
           fun
           | None => nop(ppf, ())
-          | Some((Module.{relative, full}, range)) => {
+          | Some((Source.{relative, full}, range)) => {
               pf(
                 ppf,
                 " : %a%a%a",
@@ -589,7 +589,7 @@ let _extract_compile_err = resolver =>
       "Invalid Module",
       resolver
       |> Resolver.resolve_module(~skip_cache=true, namespace)
-      |> Module.get_path
+      |> Source.get_path
       |?> (x => (x, Range.zero)),
       (ppf => err |> pp_compile_err(ppf)),
     )
@@ -599,13 +599,13 @@ let _extract_compile_err = resolver =>
     |> Tuple.join3((title, description, resolutions) => {
          let module_ =
            Resolver.resolve_module(namespace, resolver)
-           |> Module.read_to_string;
+           |> Source.read_to_string;
 
          (
            title,
            resolver
            |> Resolver.resolve_module(~skip_cache=true, namespace)
-           |> Module.get_path
+           |> Source.get_path
            |?> (x => (x, range)),
            (
              ppf =>

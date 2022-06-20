@@ -3,7 +3,7 @@ open Reference;
 
 module Compiler = Compile.Compiler;
 module ImportGraph = Resolve.ImportGraph;
-module Module = Resolve.Module;
+module Source = Resolve.Source;
 module U = Util.ResultUtil;
 module A = AST;
 module T = Type;
@@ -23,7 +23,7 @@ let __types =
   |> Hashtbl.of_seq;
 
 let _create_module = (root_dir, namespace) =>
-  Module.File({
+  Source.File({
     relative: Namespace.to_path("", namespace),
     full: namespace |> Namespace.to_path(root_dir),
   });
@@ -279,7 +279,7 @@ const BAR = \"bar\";
         Assert.throws_compile_errors([FileNotFound(__entry_filename)], () =>
           compiler
           |> Compiler.process([Nx.entry], _ =>
-               Module.File({relative: __entry_filename, full: "foo"})
+               Source.File({relative: __entry_filename, full: "foo"})
              )
         );
       }

@@ -1,44 +1,44 @@
 open Kore;
 
-module Module = Resolve.Module;
+module Source = Resolve.Source;
 module U = Util.ResultUtil;
 
 exception MockError;
 
 let suite =
-  "Resolve.Module"
+  "Resolve.Source"
   >::: [
     "of_string()"
     >: (
       () => {
         let content = "foo";
 
-        Assert.module_(Module.Raw(content), Module.of_string(content));
+        Assert.source(Source.Raw(content), Source.of_string(content));
       }
     ),
     "of_file()"
     >: (
       () => {
-        let path = Module.{relative: "./bar", full: "/foo/bar"};
+        let path = Source.{relative: "./bar", full: "/foo/bar"};
 
-        Assert.module_(Module.File(path), Module.of_file(path));
+        Assert.source(Source.File(path), Source.of_file(path));
       }
     ),
     "exists() - raw module does exist"
-    >: (() => Assert.true_(Module.exists(Module.Raw("foo")))),
+    >: (() => Assert.true_(Source.exists(Source.Raw("foo")))),
     "exists() - file module does not exist"
     >: (
       () =>
         Assert.false_(
-          Module.exists(Module.File({relative: "./bar", full: "/foo/bar"})),
+          Source.exists(Source.File({relative: "./bar", full: "/foo/bar"})),
         )
     ),
     "exists() - file module does exist"
     >: (
       () =>
         Assert.true_(
-          Module.exists(
-            Module.File({relative: "./bar", full: fixture_path}),
+          Source.exists(
+            Source.File({relative: "./bar", full: fixture_path}),
           ),
         )
     ),
@@ -48,12 +48,12 @@ let suite =
         let content = "foo";
 
         let program =
-          Module.read(
+          Source.read(
             stream => {
               Assert.string(content, Util.read_lazy_char_stream(stream));
               Fixtures.Program.const_int;
             },
-            Module.Raw(content),
+            Source.Raw(content),
           )
           |> Result.get_ok;
 
@@ -64,7 +64,7 @@ let suite =
     >: (
       () => {
         let program =
-          Module.read(
+          Source.read(
             stream => {
               Assert.string(
                 "hello world\n",
@@ -72,7 +72,7 @@ let suite =
               );
               Fixtures.Program.const_int;
             },
-            Module.File({relative: "foo", full: fixture_path}),
+            Source.File({relative: "foo", full: fixture_path}),
           )
           |> Result.get_ok;
 
@@ -86,7 +86,7 @@ let suite =
 
         Assert.compile_errors(
           [FileNotFound(relative)],
-          Module.read(_ => [], Module.File({relative, full: "bar"}))
+          Source.read(_ => [], Source.File({relative, full: "bar"}))
           |> Result.get_error,
         );
       }
@@ -98,7 +98,7 @@ let suite =
         let cache = Util.get_temp_dir();
 
         let cached_path =
-          Module.cache(
+          Source.cache(
             cache,
             File({relative: relative_path, full: fixture_path}),
           )
@@ -117,7 +117,7 @@ let suite =
 
         Assert.compile_errors(
           [FileNotFound(relative_path)],
-          Module.cache(cache, File({relative: relative_path, full: "bar"}))
+          Source.cache(cache, File({relative: relative_path, full: "bar"}))
           |> Result.get_error,
         );
       }
@@ -126,22 +126,22 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "Module {
+          "Source {
   raw: foo
 }",
-          Module.Raw("foo") |> ~@Fmt.root(Module.pp),
+          Source.Raw("foo") |> ~@Fmt.root(Source.pp),
         )
     ),
     "pp() - file"
     >: (
       () =>
         Assert.string(
-          "Module {
+          "Source {
   full: foo
   relative: bar
 }",
-          Module.File({full: "foo", relative: "bar"})
-          |> ~@Fmt.root(Module.pp),
+          Source.File({full: "foo", relative: "bar"})
+          |> ~@Fmt.root(Source.pp),
         )
     ),
   ];

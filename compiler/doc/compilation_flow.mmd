@@ -7,7 +7,7 @@ flowchart LR
 
   %% compile
   subgraph Compiler
-    Resolver --> Module --> InputStream --> Parser
+    Resolver --> Source --> InputStream --> Parser
   end
   Parser --> Generator --> Writer --> Y([**compiled code**])
 

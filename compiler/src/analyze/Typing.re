@@ -192,7 +192,8 @@ let rec eval_type_expression:
       | String => Valid(`String)
       | Element => Valid(`Element)
 
-      | Identifier(_) => Invalid(NotInferrable)
+      | Identifier((id, _)) =>
+        defs |> DefinitionTable.resolve_type(id) |?: Invalid(NotInferrable)
 
       /* use the type of the inner expression to determine type */
       | Group((x, _)) => eval_type_expression(defs, x)

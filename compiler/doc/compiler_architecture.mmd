@@ -23,7 +23,7 @@ flowchart TD
   end
   Cache --> Resolver
   Writer --> Compiler
-  IO --> Module
+  IO --> Source
 
   %% compile
   subgraph knot.compile
@@ -34,9 +34,9 @@ flowchart TD
   %% resolve
   subgraph knot.resolve
     Resolver
-    Module
+    Source
 
-    Module --> Resolver
+    Source --> Resolver
   end
   Parser --> Compiler
   Resolver --> Compiler

@@ -1,1 +1,1 @@
-let tests = [ImportGraphTest.suite, ModuleTest.suite, ResolverTest.suite];
+let tests = [ImportGraphTest.suite, ResolverTest.suite, SourceTest.suite];

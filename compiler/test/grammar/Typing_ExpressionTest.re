@@ -34,7 +34,7 @@ module Assert =
 let suite =
   "Grammar.Typing | Expression"
   >::: [
-    "no parse" >: (() => Assert.no_parse("gibberish")),
+    "no parse" >: (() => Assert.no_parse("#!@e13")),
     "parse nil type" >: (() => Assert.parse(U.as_untyped(TE.Nil), "nil")),
     "parse boolean type"
     >: (() => Assert.parse(U.as_untyped(TE.Boolean), "boolean")),
@@ -46,6 +46,11 @@ let suite =
     >: (() => Assert.parse(U.as_untyped(TE.String), "string")),
     "parse element type"
     >: (() => Assert.parse(U.as_untyped(TE.Element), "element")),
+    "parse type identifier"
+    >: (
+      () =>
+        Assert.parse("foo" |> U.as_untyped |> TE.of_id |> U.as_untyped, "foo")
+    ),
     "parse simple group type"
     >: (
       () =>

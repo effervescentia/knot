@@ -24,8 +24,8 @@ let suite =
         let resolver = Resolver.create(__cache, __root_dir, __source_dir);
         let relative = Filename.concat(__source_dir, __path);
 
-        Assert.module_(
-          Resolve.Module.File({
+        Assert.source(
+          Resolve.Source.File({
             relative,
             full: Filename.concat(__cache, relative),
           }),
@@ -38,8 +38,8 @@ let suite =
       () => {
         let resolver = Resolver.create(__cache, __root_dir, __source_dir);
 
-        Assert.module_(
-          Resolve.Module.File({
+        Assert.source(
+          Resolve.Source.File({
             relative: Filename.concat(__source_dir, __path),
             full: Filename.join([__root_dir, __source_dir, __path]),
           }),

@@ -86,6 +86,37 @@ let suite =
 }",
         )
     ),
+    "parse module with dependent types"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_untyped(
+            TD.Module(
+              U.as_untyped("Foo"),
+              [
+                (U.as_untyped("bar"), U.as_untyped(TE.Float))
+                |> TD.of_type
+                |> U.as_untyped,
+                (
+                  U.as_untyped("foo"),
+                  "bar"
+                  |> U.as_untyped
+                  |> TE.of_id
+                  |> U.as_untyped
+                  |> TE.of_list
+                  |> U.as_untyped,
+                )
+                |> TD.of_type
+                |> U.as_untyped,
+              ],
+            ),
+          ),
+          "module Foo {
+  type bar: float;
+  type foo: bar[];
+}",
+        )
+    ),
     "parse module with enum"
     >: (
       () =>

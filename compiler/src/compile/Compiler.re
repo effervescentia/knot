@@ -92,7 +92,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
       switch (
         resolver
         |> Resolver.resolve_module(~skip_cache=true, namespace)
-        |> Module.read(Parser.imports(namespace))
+        |> Source.read(Parser.imports(namespace))
       ) {
       | Ok(x) => x
       | Error(errs)
@@ -121,7 +121,7 @@ let cache_modules = (modules, compiler) => {
   |> List.filter((!=)(Namespace.Stdlib))
   |> List.iter(id =>
        resolve(~skip_cache=true, compiler, id)
-       |> Module.cache(compiler.resolver.cache)
+       |> Source.cache(compiler.resolver.cache)
        |> Result.fold(
             ~ok=
               Tuple.with_fst2(Namespace.to_string(id))
@@ -149,12 +149,12 @@ let validate = (compiler: t) => {
 
 let parse_module =
     (
-      module_: Module.t,
+      source: Source.t,
       parser: Grammar.Program.input_t => result('a, compile_err),
       compiler: t,
     ) => {
-  module_
-  |> Module.read_to_string
+  source
+  |> Source.read_to_string
   |> (
     fun
     | Ok(raw) => {
@@ -175,7 +175,7 @@ let parse_module =
  parse a single module and add to table
  */
 let process_one =
-    (~flush=true, namespace: Namespace.t, module_: Module.t, compiler: t) => {
+    (~flush=true, namespace: Namespace.t, source: Source.t, compiler: t) => {
   let module_errors = ref([]);
 
   let context =
@@ -191,7 +191,7 @@ let process_one =
     );
 
   compiler
-  |> parse_module(module_, Parser.ast(context))
+  |> parse_module(source, Parser.ast(context))
   |> Option.iter(
        fun
        | (raw, Ok(ast)) => {
@@ -252,7 +252,7 @@ let process =
     (
       ~flush=true,
       namespaces: list(Namespace.t),
-      resolve: Namespace.t => Module.t,
+      resolve: Namespace.t => Source.t,
       {modules} as compiler: t,
     ) => {
   Log.debug("%s", "processing modules" |> ~@Fmt.yellow_str);
@@ -470,6 +470,38 @@ let inject_raw = (~flush=true, id: Namespace.t, contents: string, compiler: t) =
 };
 
 /**
+ * parse and process a type definition module
+ */
+let process_definition =
+    (namespace: Namespace.t, source: Source.t, compiler: t) => {
+  let ctx = NamespaceContext2.create(namespace);
+
+  compiler
+  |> parse_module(source, Parser.definition(ctx))
+  |> Option.map(
+       fun
+       | (raw, Ok(ast)) => {
+           let exports =
+             NamespaceContext2.generate_types(ctx)
+             |> List.filter_map(
+                  Reference.(
+                    fun
+                    | (Module.Inner(name, _), type_) =>
+                      Some((Export.Named(name), type_))
+                    | _ => None
+                  ),
+                )
+             |> List.to_seq
+             |> Hashtbl.of_seq;
+
+           Some((raw, ast, exports));
+         }
+       | (_, Error(_)) => None,
+     )
+  |> Option.join;
+};
+
+/**
  register type definitions for the standard library
  */
 let add_standard_library = (~flush=true, compiler: t) => {
@@ -480,38 +512,22 @@ let add_standard_library = (~flush=true, compiler: t) => {
     compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
   );
 
-  let ctx = NamespaceContext2.create(Namespace.Stdlib);
+  let namespace = Reference.Namespace.Stdlib;
+  let source = Source.File({relative: "", full: compiler.config.stdlib});
 
   compiler
-  |> parse_module(
-       Module.File({relative: "", full: compiler.config.stdlib}),
-       Parser.definition(ctx),
-     )
-  |> Option.iter(
-       fun
-       | (raw, Ok(ast)) => {
-           let library =
-             ModuleTable.{
-               exports:
-                 NamespaceContext2.generate_types(ctx)
-                 |> List.filter_map(
-                      Reference.(
-                        fun
-                        | (Module.Inner(name, _), type_) =>
-                          Some((Export.Named(name), type_))
-                        | _ => None
-                      ),
-                    )
-                 |> List.to_seq
-                 |> Hashtbl.of_seq,
-             };
+  |> process_definition(namespace, source)
+  |> (
+    fun
+    | Some((raw, ast, exports)) => {
+        let library = ModuleTable.{exports: exports};
 
-           compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
+        compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
 
-           Log.debug("added standard library to compiler context");
-         }
-       | (_, Error(_)) => Log.error("failed to load standard library"),
-     );
+        Log.debug("added standard library to compiler context");
+      }
+    | _ => Log.error("failed to load standard library")
+  );
 
   if (flush) {
     compiler.dispatch(Flush);
