@@ -30,40 +30,6 @@ type t = {
 
 let __module_table_size = 64;
 
-let _get_library_exports = ast =>
-  ast
-  |> List.map(
-       fst
-       % (
-         fun
-         | AST.TypeDefinition.Module((id, _), stmts) => (
-             Export.Named(id),
-             Type.Valid(
-               `Struct(
-                 stmts
-                 |> List.filter_map(
-                      fst
-                      % (
-                        fun
-                        | AST.TypeDefinition.Declaration(
-                            (id, _),
-                            (type_, _),
-                          ) =>
-                          Some((
-                            id,
-                            Analyze.Typing.eval_type_expression(type_),
-                          ))
-                        | _ => None
-                      ),
-                    ),
-               ),
-             ),
-           )
-       ),
-     )
-  |> List.to_seq
-  |> Hashtbl.of_seq;
-
 let _get_module_exports = ast =>
   ast
   |> List.map(
@@ -514,7 +480,7 @@ let add_standard_library = (~flush=true, compiler: t) => {
     compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
   );
 
-  let ctx = TypingNamespaceContext.create(Namespace.Stdlib);
+  let ctx = NamespaceContext2.create(Namespace.Stdlib);
 
   compiler
   |> parse_module(
@@ -524,7 +490,21 @@ let add_standard_library = (~flush=true, compiler: t) => {
   |> Option.iter(
        fun
        | (raw, Ok(ast)) => {
-           let library = ModuleTable.{exports: _get_library_exports(ast)};
+           let library =
+             ModuleTable.{
+               exports:
+                 NamespaceContext2.generate_types(ctx)
+                 |> List.filter_map(
+                      Reference.(
+                        fun
+                        | (Module.Inner(name, _), type_) =>
+                          Some((Export.Named(name), type_))
+                        | _ => None
+                      ),
+                    )
+                 |> List.to_seq
+                 |> Hashtbl.of_seq,
+             };
 
            compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
 

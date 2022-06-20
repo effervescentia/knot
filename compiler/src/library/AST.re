@@ -119,6 +119,7 @@ module TypeExpression = {
     | Float
     | String
     | Element
+    | Identifier(untyped_t(string))
     | Group(t)
     | List(t)
     | Struct(list((untyped_t(string), t)))
@@ -148,6 +149,9 @@ module TypeExpression = {
         | String => untyped_node_to_entity("String")
 
         | Element => untyped_node_to_entity("Element")
+
+        | Identifier((name, _)) =>
+          untyped_node_to_entity(~attributes=[("name", name)], "Identifier")
 
         | Group(t) =>
           untyped_node_to_entity(~children=[to_entity(t)], "Group")

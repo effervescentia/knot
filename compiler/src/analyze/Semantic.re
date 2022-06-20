@@ -281,14 +281,20 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
       (A.{name, default: Some(expr), type_: None}, N.get_type(expr));
 
     | {name, default: None, type_: Some(type_expr)} =>
-      let type_ = type_expr |> fst |> Typing.eval_type_expression;
+      let type_ =
+        type_expr
+        |> fst
+        |> Typing.eval_type_expression(DefinitionTable.create());
 
       (A.{name, default: None, type_: Some(type_expr)}, type_);
 
     | {name, default: Some(raw_expr), type_: Some(type_expr)} =>
       let expr = raw_expr |> analyze_expression(scope);
       let expr_type = N.get_type(expr);
-      let type_ = type_expr |> fst |> Typing.eval_type_expression;
+      let type_ =
+        type_expr
+        |> fst
+        |> Typing.eval_type_expression(DefinitionTable.create());
 
       switch (expr_type, type_) {
       | (Valid(_), Valid(_)) when expr_type != type_ =>

@@ -159,7 +159,10 @@ let module_statement: type_module_statement_parser_t =
             |> List.map(
                  Tuple.map_each2(
                    fst,
-                   List.map(fst % Analyze.Typing.eval_type_expression),
+                   List.map(
+                     fst
+                     % Analyze.Typing.eval_type_expression(ctx.definitions),
+                   ),
                  ),
                );
           let enum_type = T.Valid(`Enumerated(variants));
@@ -180,13 +183,15 @@ let module_statement: type_module_statement_parser_t =
         }
 
       | TD.Type((id, _), (expr, _)) => {
-          let type_ = Analyze.Typing.eval_type_expression(expr);
+          let type_ =
+            expr |> Analyze.Typing.eval_type_expression(ctx.definitions);
 
           ctx.definitions |> DefinitionTable.define_type(id, type_);
         }
 
       | TD.Declaration((id, _), (expr, _)) => {
-          let type_ = Analyze.Typing.eval_type_expression(expr);
+          let type_ =
+            expr |> Analyze.Typing.eval_type_expression(ctx.definitions);
 
           ctx.definitions |> DefinitionTable.define_value(id, type_);
         }

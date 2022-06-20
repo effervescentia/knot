@@ -180,8 +180,9 @@ let check_jsx_primitive_expression: T.t => option(T.error_t) =
 
   | type_ => Some(InvalidJSXPrimitiveExpression(type_));
 
-let rec eval_type_expression: A.TypeExpression.raw_t => T.t =
-  type_expr =>
+let rec eval_type_expression:
+  (DefinitionTable.t, A.TypeExpression.raw_t) => T.t =
+  (defs, type_expr) =>
     A.TypeExpression.(
       switch (type_expr) {
       | Nil => Valid(`Nil)
@@ -191,23 +192,28 @@ let rec eval_type_expression: A.TypeExpression.raw_t => T.t =
       | String => Valid(`String)
       | Element => Valid(`Element)
 
+      | Identifier(_) => Invalid(NotInferrable)
+
       /* use the type of the inner expression to determine type */
-      | Group((x, _)) => eval_type_expression(x)
+      | Group((x, _)) => eval_type_expression(defs, x)
 
       /* use the type of the inner expression to determine type of list items */
-      | List((x, _)) => Valid(`List(eval_type_expression(x)))
+      | List((x, _)) => Valid(`List(eval_type_expression(defs, x)))
 
       | Struct(xs) =>
         Valid(
           `Struct(
-            xs |> List.map(Tuple.map_each2(fst, fst % eval_type_expression)),
+            xs
+            |> List.map(
+                 Tuple.map_each2(fst, fst % eval_type_expression(defs)),
+               ),
           ),
         )
       | Function(args, (res, _)) =>
         Valid(
           `Function((
-            args |> List.map(fst % eval_type_expression),
-            eval_type_expression(res),
+            args |> List.map(fst % eval_type_expression(defs)),
+            eval_type_expression(defs, res),
           )),
         )
       }

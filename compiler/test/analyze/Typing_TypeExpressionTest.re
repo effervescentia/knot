@@ -4,20 +4,25 @@ module TypingAnalyzer = Analyze.Typing;
 module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
+let __empty_defs = DefinitionTable.create();
+
 let suite =
   "Analyze.Typing | Type Expression"
   >::: [
     "nil"
     >: (
       () =>
-        Assert.type_(Valid(`Nil), TypingAnalyzer.eval_type_expression(Nil))
+        Assert.type_(
+          Valid(`Nil),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Nil),
+        )
     ),
     "boolean"
     >: (
       () =>
         Assert.type_(
           Valid(`Boolean),
-          TypingAnalyzer.eval_type_expression(Boolean),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Boolean),
         )
     ),
     "integer"
@@ -25,7 +30,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Integer),
-          TypingAnalyzer.eval_type_expression(Integer),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Integer),
         )
     ),
     "float"
@@ -33,7 +38,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Float),
-          TypingAnalyzer.eval_type_expression(Float),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Float),
         )
     ),
     "string"
@@ -41,7 +46,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`String),
-          TypingAnalyzer.eval_type_expression(String),
+          TypingAnalyzer.eval_type_expression(__empty_defs, String),
         )
     ),
     "element"
@@ -49,7 +54,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Element),
-          TypingAnalyzer.eval_type_expression(Element),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Element),
         )
     ),
     "grouped type"
@@ -64,7 +69,7 @@ let suite =
           |> TE.of_group
           |> U.as_untyped
           |> TE.of_group
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
     "list type"
@@ -75,7 +80,7 @@ let suite =
           TE.Boolean
           |> U.as_untyped
           |> TE.of_list
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
     "struct type"
@@ -90,7 +95,7 @@ let suite =
             (U.as_untyped("bar"), U.as_untyped(TE.String)),
           ]
           |> TE.of_struct
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
     "function type"
@@ -108,7 +113,7 @@ let suite =
             U.as_untyped(TE.Element),
           )
           |> TE.of_function
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
   ];

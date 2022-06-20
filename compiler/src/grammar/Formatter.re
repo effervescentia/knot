@@ -56,6 +56,7 @@ let rec pp_type_expr: Fmt.t(A.TypeExpression.raw_t) =
     | Float => Fmt.string(ppf, C.Keyword.float)
     | String => Fmt.string(ppf, C.Keyword.string)
     | Element => Fmt.string(ppf, C.Keyword.element)
+    | Identifier((name, _)) => Fmt.string(ppf, name)
     | Group((expr, _)) => Fmt.pf(ppf, "(%a)", pp_type_expr, expr)
     | List((expr, _)) => Fmt.pf(ppf, "[%a]", pp_type_expr, expr)
     | Struct(props) =>
