@@ -49,8 +49,8 @@ type declaration_parser_t =
 
 type type_expression_parser_t = parser_t(AST.TypeExpression.t);
 
-type type_module_statement_parser_t = TypingModuleContext.t =>
-  parser_t(AST.TypeDefinition.module_statement_t);
+type type_module_statement_parser_t =
+  ModuleContext2.t => parser_t(AST.TypeDefinition.module_statement_t);
 
 type type_module_parser_t =
-  TypingNamespaceContext.t => parser_t(AST.TypeDefinition.module_t);
+  NamespaceContext2.t => parser_t(AST.TypeDefinition.module_t);

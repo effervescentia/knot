@@ -210,15 +210,14 @@ module TypeExpression = {
 };
 
 module TypeDefinition = {
+  type variant_t = (untyped_t(string), list(TypeExpression.t));
+
   type module_statement_t = untyped_t(raw_module_statement_t)
 
   and raw_module_statement_t =
     | Declaration(untyped_t(string), TypeExpression.t)
     | Type(untyped_t(string), TypeExpression.t)
-    | Enumerated(
-        untyped_t(string),
-        list((untyped_t(string), list(TypeExpression.t))),
-      );
+    | Enumerated(untyped_t(string), list(variant_t));
 
   type module_t = untyped_t(raw_module_t)
 

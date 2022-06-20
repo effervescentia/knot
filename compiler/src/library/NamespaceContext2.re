@@ -1,4 +1,3 @@
-open Infix;
 open Reference;
 
 type t = {
@@ -6,6 +5,22 @@ type t = {
   namespace: Namespace.t,
   /* error reporting callback */
   report: Error.compile_err => unit,
-  /* error reporting callback */
-  mutable inner_modules: list((Module.t, Hashtbl.t(Export.t, Type.t))),
+  /* module exports */
+  mutable modules: list((Module.t, DefinitionTable.t)),
 };
+
+/* static */
+
+let create = (~report=Error.throw, namespace: Namespace.t) => {
+  namespace,
+  report,
+  modules: [],
+};
+
+/* methods */
+
+let generate_types = (ctx: t) =>
+  ctx.modules
+  |> List.map(((module_, exports)) =>
+       (module_, DefinitionTable.generate_export_value(exports))
+     );

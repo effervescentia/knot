@@ -46,7 +46,7 @@ let ast = (ctx: NamespaceContext.t, input: Program.input_t) =>
 /**
  parses entire document to extract type modules and definitions
  */
-let definition = (ctx: TypingNamespaceContext.t, input: Program.input_t) =>
+let definition = (ctx: NamespaceContext2.t, input: Program.input_t) =>
   input
   |> parse(Program.definition(ctx))
   |> (

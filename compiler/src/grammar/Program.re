@@ -27,5 +27,5 @@ let main: t =
     |> _program;
   };
 
-let definition = (ctx: TypingNamespaceContext.t) =>
+let definition = (ctx: NamespaceContext2.t) =>
   Typing.module_parser(ctx) |> many |> _program;

@@ -11,7 +11,7 @@ module Assert =
 
     let parser = _ =>
       Typing.module_parser(
-        TypingNamespaceContext.create(Namespace.of_string("test_namespace")),
+        NamespaceContext2.create(Namespace.of_string("test_namespace")),
       )
       |> Assert.parse_completely
       |> Parser.parse;

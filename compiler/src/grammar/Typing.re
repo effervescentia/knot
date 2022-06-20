@@ -149,7 +149,49 @@ let type_: type_module_statement_parser_t =
 
 let module_statement: type_module_statement_parser_t =
   ctx =>
-    choice([declaration(ctx), enumerated(ctx), type_(ctx)]) |> M.terminated;
+    choice([declaration(ctx), enumerated(ctx), type_(ctx)])
+    >@= fst
+    % (
+      fun
+      | TD.Enumerated((id, _), raw_variants) => {
+          let variants =
+            raw_variants
+            |> List.map(
+                 Tuple.map_each2(
+                   fst,
+                   List.map(fst % Analyze.Typing.eval_type_expression),
+                 ),
+               );
+          let enum_type = T.Valid(`Enumerated(variants));
+          let value_type =
+            T.Valid(
+              `Struct(
+                variants
+                |> List.map(
+                     Tuple.map_snd2(args =>
+                       T.Valid(`Function((args, enum_type)))
+                     ),
+                   ),
+              ),
+            );
+
+          ctx.definitions |> DefinitionTable.define_type(id, enum_type);
+          ctx.definitions |> DefinitionTable.define_value(id, value_type);
+        }
+
+      | TD.Type((id, _), (expr, _)) => {
+          let type_ = Analyze.Typing.eval_type_expression(expr);
+
+          ctx.definitions |> DefinitionTable.define_type(id, type_);
+        }
+
+      | TD.Declaration((id, _), (expr, _)) => {
+          let type_ = Analyze.Typing.eval_type_expression(expr);
+
+          ctx.definitions |> DefinitionTable.define_value(id, type_);
+        }
+    )
+    |> M.terminated;
 
 let module_parser: type_module_parser_t =
   ctx =>
@@ -159,7 +201,8 @@ let module_parser: type_module_parser_t =
         M.identifier(~prefix=M.alpha)
         >>= (
           id => {
-            let module_ctx = TypingModuleContext.create(ctx);
+            let module_ctx =
+              ModuleContext2.create(Inner(fst(id), None), ctx);
 
             module_statement(module_ctx)
             |> many

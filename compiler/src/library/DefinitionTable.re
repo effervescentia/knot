@@ -12,16 +12,12 @@ type t = {
 
 /* static */
 
-let create = (): t => {
-  imported: {
-    types: Hashtbl.create(0),
-    values: Hashtbl.create(0),
-  },
-  declared: {
-    types: Hashtbl.create(0),
-    values: Hashtbl.create(0),
-  },
+let create_lookup = (): lookup_t => {
+  types: Hashtbl.create(0),
+  values: Hashtbl.create(0),
 };
+
+let create = (): t => {imported: create_lookup(), declared: create_lookup()};
 
 /* methods */
 
@@ -41,3 +37,8 @@ let resolve_type = (id: string, table: t) =>
 let resolve_value = (id: string, table: t) =>
   Hashtbl.find_opt(table.declared.types, id)
   |?| Hashtbl.find_opt(table.imported.types, id);
+
+let generate_export_value = (table: t) =>
+  Type.Valid(
+    `Struct(table.declared.values |> Hashtbl.to_seq |> List.of_seq),
+  );

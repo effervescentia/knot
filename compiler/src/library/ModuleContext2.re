@@ -1,10 +1,19 @@
 open Reference;
 
 type t = {
-  /* types that have been imported into the scope */
-  externals: Scope.type_lookup_t,
-  /* types that have been declared within the scope */
-  declarations: Hashtbl.t(Export.t, Type.t),
+  /* definitions available withing the module scope */
+  definitions: DefinitionTable.t,
+  module_: Module.t,
   /* parent namespace context */
-  namespace_context: TypingNamespaceContext.t,
+  parent: NamespaceContext2.t,
+};
+
+/* static */
+
+let create = (module_: Module.t, parent: NamespaceContext2.t) => {
+  let definitions = DefinitionTable.create();
+
+  parent.modules = parent.modules @ [(module_, definitions)];
+
+  {definitions, module_, parent};
 };
