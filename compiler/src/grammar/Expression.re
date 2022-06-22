@@ -50,6 +50,15 @@ let dot_access = {
             (
               switch (N.get_type(expr)) {
               | `Struct(props) => props |> List.assoc_opt(fst(prop))
+              | `Module(entries) =>
+                entries
+                |> List.find_map(
+                     fun
+                     | (name, T.Container.Value(type_))
+                         when name == fst(prop) =>
+                       Some(type_)
+                     | _ => None,
+                   )
               | _ => None
               }
             )

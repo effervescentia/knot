@@ -22,5 +22,5 @@ let create = (~report=Error.throw, namespace: Namespace.t) => {
 let generate_types = (ctx: t) =>
   ctx.modules
   |> List.map(((module_, exports)) =>
-       (module_, DefinitionTable.generate_export_value(exports))
+       (module_, DefinitionTable.to_module_type(exports))
      );

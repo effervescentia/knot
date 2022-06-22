@@ -26,6 +26,10 @@ module Primitive = {
 };
 
 module Container = {
+  type module_entry_t('a) =
+    | Type('a)
+    | Value('a);
+
   type t('a) = [
     | `List('a)
     | `Struct(list((string, 'a)))
@@ -34,6 +38,7 @@ module Container = {
     /* entities */
     | `View(list((string, 'a)), 'a)
     | `Style(list('a), list(string), list(string))
+    | `Module(list((string, module_entry_t('a))))
   ];
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
@@ -115,6 +120,22 @@ module Container = {
           classes,
         )
     );
+
+  let pp_module =
+      (pp_type: Fmt.t('a)): Fmt.t(list((string, module_entry_t('a)))) =>
+    Fmt.(
+      (ppf, entries) =>
+        pf(
+          ppf,
+          "@[<h>Module<%a>@]",
+          record(string, ppf =>
+            fun
+            | Type(t)
+            | Value(t) => pp_type(ppf, t)
+          ),
+          entries,
+        )
+    );
 };
 
 module Raw = {
@@ -144,6 +165,8 @@ module Raw = {
 
       | `Style(args, ids, classes) =>
         Container.pp_style(pp, ppf, (args, ids, classes))
+
+      | `Module(entries) => Container.pp_module(pp, ppf, entries)
 
       | `Unknown => Fmt.string(ppf, "Unknown")
       };
@@ -203,6 +226,7 @@ and pp_valid: Fmt.t(valid_t) =
     | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
     | `Style(args, ids, classes) =>
       Container.pp_style(pp, ppf, (args, ids, classes))
+    | `Module(entries) => Container.pp_module(pp, ppf, entries)
 
 and pp_invalid: Fmt.t(invalid_t) =
   ppf =>
@@ -330,6 +354,22 @@ let rec of_raw = (raw_type: Raw.t): t =>
 
   | `Style(args, ids, classes) =>
     Valid(`Style((args |> List.map(of_raw), ids, classes)))
+
+  | `Module(entries) =>
+    Valid(
+      `Module(
+        entries
+        |> List.map(
+             Tuple.map_snd2(
+               Container.(
+                 fun
+                 | Type(t) => Type(of_raw(t))
+                 | Value(t) => Value(of_raw(t))
+               ),
+             ),
+           ),
+      ),
+    )
 
   | `Unknown => raise(UnknownTypeEncountered)
   };

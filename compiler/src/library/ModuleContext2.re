@@ -13,6 +13,18 @@ type t = {
 let create = (module_: Module.t, parent: NamespaceContext2.t) => {
   let definitions = DefinitionTable.create();
 
+  parent.modules
+  |> List.iter(
+       fun
+       | (Module.Root, _) => raise(Error.NotImplemented)
+       | (Module.Inner(name, _), table) =>
+         table
+         |> DefinitionTable.import(
+              name,
+              DefinitionTable.to_module_type(table),
+            ),
+     );
+
   parent.modules = parent.modules @ [(module_, definitions)];
 
   {definitions, module_, parent};

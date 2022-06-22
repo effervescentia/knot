@@ -52,6 +52,10 @@ let check_dot_access: (string, T.t) => option(T.error_t) =
         when props |> List.exists(((name, _)) => name == prop) =>
       None
 
+    | Valid(`Module(entries))
+        when entries |> List.exists(((name, _)) => name == prop) =>
+      None
+
     | type_ => Some(InvalidDotAccess(type_, prop));
 
 let check_function_call: ((T.t, list(T.t))) => option(T.error_t) =
@@ -210,6 +214,7 @@ let rec eval_type_expression:
                ),
           ),
         )
+
       | Function(args, (res, _)) =>
         Valid(
           `Function((

@@ -77,7 +77,7 @@ The entrypoint for grammar parsing utilities.
 
 ___
 
-### Module
+### Source
 
 Represent a source code module with utilities for reading.
 

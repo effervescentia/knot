@@ -38,7 +38,20 @@ let resolve_value = (id: string, table: t) =>
   Hashtbl.find_opt(table.declared.types, id)
   |?| Hashtbl.find_opt(table.imported.types, id);
 
-let generate_export_value = (table: t) =>
+let to_module_type = (table: t) =>
   Type.Valid(
-    `Struct(table.declared.values |> Hashtbl.to_seq |> List.of_seq),
+    `Module(
+      (
+        table.declared.types
+        |> Hashtbl.to_seq
+        |> List.of_seq
+        |> List.map(Tuple.map_snd2(t => Type.Container.Type(t)))
+      )
+      @ (
+        table.declared.values
+        |> Hashtbl.to_seq
+        |> List.of_seq
+        |> List.map(Tuple.map_snd2(t => Type.Container.Value(t)))
+      ),
+    ),
   );

@@ -201,21 +201,29 @@ and analyze_expression =
       );
 
     | DotAccess(expr, prop) =>
+      let prop_name = fst(prop);
       let analyzed_expr = analyze_expression(scope, expr);
       let type_expr = N.get_type(analyzed_expr);
 
       type_expr
-      |> Typing.check_dot_access(fst(prop))
+      |> Typing.check_dot_access(prop_name)
       |> Option.iter(S.report_type_err(scope, expr_range));
 
       (
         (analyzed_expr, prop) |> A.of_dot_access,
         (
           switch (type_expr) {
-          | Valid(`Struct(props)) =>
-            props
-            |> List.find_opt(fst % (==)(fst(prop)))
-            |> Option.map(snd)
+          | Valid(`Struct(props)) => props |> List.assoc_opt(prop_name)
+
+          | Valid(`Module(entries)) =>
+            entries
+            |> List.find_map(
+                 fun
+                 | (name, T.Container.Value(t)) when name == prop_name =>
+                   Some(t)
+                 | _ => None,
+               )
+
           | _ => None
           }
         )
