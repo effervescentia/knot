@@ -10,9 +10,9 @@ module Assert =
     type t = TD.module_t;
 
     let parser = _ =>
-      Typing.module_parser(
-        NamespaceContext2.create(Namespace.of_string("test_namespace")),
-      )
+      Namespace.of_string("test_namespace")
+      |> ParseContext.create
+      |> Typing.module_parser
       |> Assert.parse_completely
       |> Parser.parse;
 

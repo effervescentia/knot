@@ -34,6 +34,8 @@ module Compare = {
 
   let target = testable(Target.pp, (==));
 
+  let symbols = testable(SymbolTable.Symbols.pp, (==));
+
   exception LazyStreamLengthMismatch;
 
   let lazy_stream = (pp_value: Fmt.t('a)) =>
@@ -93,6 +95,8 @@ let type_ = Alcotest.(check(Compare.type_, "type matches"));
 
 let target = Alcotest.(check(Compare.target, "target matches"));
 let opt_target = Alcotest.(check(option(Compare.target), "target matches"));
+
+let symbols = Alcotest.(check(Compare.symbols, "parse context matches"));
 
 let lazy_stream = pp_value =>
   Alcotest.(check(Compare.lazy_stream(pp_value), "lazy stream matches"));

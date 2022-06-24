@@ -124,7 +124,14 @@ let declaration: type_module_statement_parser_t =
       Keyword.decl,
       expression_parser
       >|= (expr => (expr, expr |> N.get_range |> Option.some)),
-      TD.of_declaration,
+      (((id, _), (raw_expr, _)) as res) => {
+        let type_ =
+          raw_expr |> Analyze.Typing.eval_type_expression(ctx.symbols);
+
+        ctx.symbols |> SymbolTable.declare_value(id, type_);
+
+        TD.of_declaration(res);
+      },
     );
 
 let enumerated: type_module_statement_parser_t =
@@ -143,7 +150,35 @@ let enumerated: type_module_statement_parser_t =
           (variants |> List.map(fst), variant_range);
         }
       ),
-      TD.of_enum,
+      (((id, _), raw_variants) as res) => {
+        let variants =
+          raw_variants
+          |> List.map(
+               Tuple.map_each2(
+                 fst,
+                 List.map(
+                   fst % Analyze.Typing.eval_type_expression(ctx.symbols),
+                 ),
+               ),
+             );
+        let enum_type = T.Valid(`Enumerated(variants));
+        let value_type =
+          T.Valid(
+            `Struct(
+              variants
+              |> List.map(
+                   Tuple.map_snd2(args =>
+                     T.Valid(`Function((args, enum_type)))
+                   ),
+                 ),
+            ),
+          );
+
+        ctx.symbols |> SymbolTable.declare_type(id, enum_type);
+        ctx.symbols |> SymbolTable.declare_value(id, value_type);
+
+        TD.of_enum(res);
+      },
     );
 
 let type_: type_module_statement_parser_t =
@@ -152,81 +187,77 @@ let type_: type_module_statement_parser_t =
       Keyword.type_,
       expression_parser
       >|= (expr => (expr, expr |> N.get_range |> Option.some)),
-      TD.of_type,
+      (((id, _), (raw_expr, _)) as res) => {
+        let type_ =
+          raw_expr |> Analyze.Typing.eval_type_expression(ctx.symbols);
+
+        ctx.symbols |> SymbolTable.declare_type(id, type_);
+
+        TD.of_type(res);
+      },
     );
 
 let module_statement: type_module_statement_parser_t =
   ctx =>
-    choice([declaration(ctx), enumerated(ctx), type_(ctx)])
-    >@= fst
-    % (
-      fun
-      | TD.Enumerated((id, _), raw_variants) => {
-          let variants =
-            raw_variants
-            |> List.map(
-                 Tuple.map_each2(
-                   fst,
-                   List.map(
-                     fst
-                     % Analyze.Typing.eval_type_expression(ctx.definitions),
-                   ),
-                 ),
-               );
-          let enum_type = T.Valid(`Enumerated(variants));
-          let value_type =
-            T.Valid(
-              `Struct(
-                variants
-                |> List.map(
-                     Tuple.map_snd2(args =>
-                       T.Valid(`Function((args, enum_type)))
-                     ),
-                   ),
-              ),
-            );
-
-          ctx.definitions |> DefinitionTable.define_type(id, enum_type);
-          ctx.definitions |> DefinitionTable.define_value(id, value_type);
-        }
-
-      | TD.Type((id, _), (expr, _)) => {
-          let type_ =
-            expr |> Analyze.Typing.eval_type_expression(ctx.definitions);
-
-          ctx.definitions |> DefinitionTable.define_type(id, type_);
-        }
-
-      | TD.Declaration((id, _), (expr, _)) => {
-          let type_ =
-            expr |> Analyze.Typing.eval_type_expression(ctx.definitions);
-
-          ctx.definitions |> DefinitionTable.define_value(id, type_);
-        }
-    )
-    |> M.terminated;
+    choice([declaration(ctx), enumerated(ctx), type_(ctx)]) |> M.terminated;
 
 let module_parser: type_module_parser_t =
   ctx =>
     Keyword.module_
-    >>= (
-      _ =>
-        M.identifier(~prefix=M.alpha)
-        >>= (
-          id => {
-            let module_ctx =
-              ModuleContext2.create(Inner(fst(id), None), ctx);
+    >> (
+      M.identifier(~prefix=M.alpha)
+      >>= (
+        id => {
+          let module_ctx = ParseContext.create_module(ctx);
 
-            module_statement(module_ctx)
-            |> many
-            |> M.between(Symbol.open_closure, Symbol.close_closure)
-            >|= (
-              stmts =>
-                N.untyped(
-                  (id, fst(stmts)) |> TD.of_module,
-                  N.get_range(stmts),
-                )
-            );
-          }
-        )
+          module_statement(module_ctx)
+          |> many
+          |> M.between(Symbol.open_closure, Symbol.close_closure)
+          >|= (
+            stmts => {
+              let SymbolTable.Symbols.{types, values} =
+                module_ctx.symbols.declared;
+
+              if (!List.is_empty(types)) {
+                ctx.symbols
+                |> SymbolTable.declare_type(
+                     fst(id),
+                     Valid(
+                       `Module(
+                         types
+                         |> List.map(
+                              Tuple.map_snd2(type_ =>
+                                Type.Container.Type(type_)
+                              ),
+                            ),
+                       ),
+                     ),
+                   );
+              };
+
+              if (!List.is_empty(values)) {
+                ctx.symbols
+                |> SymbolTable.declare_value(
+                     fst(id),
+                     Valid(
+                       `Module(
+                         values
+                         |> List.map(
+                              Tuple.map_snd2(type_ =>
+                                Type.Container.Value(type_)
+                              ),
+                            ),
+                       ),
+                     ),
+                   );
+              };
+
+              N.untyped(
+                (id, fst(stmts)) |> TD.of_module,
+                N.get_range(stmts),
+              );
+            }
+          );
+        }
+      )
     );

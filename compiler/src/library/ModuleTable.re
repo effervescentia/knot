@@ -79,15 +79,6 @@ let get_entry_data: entry_t => option(module_t) =
   | Partial(_, data, _) => Some(data)
   | _ => None;
 
-/**
- declare the type of an export member of an existing module
- */
-let add_type =
-    ((namespace, id): (Namespace.t, Export.t), value: 'a, table: t) =>
-  Hashtbl.find_opt(table, namespace)
-  |?< get_entry_data
-  |> Option.iter(({exports}) => Hashtbl.replace(exports, id, value));
-
 let _compare_data = (x, y) =>
   x.ast == y.ast && Hashtbl.compare(x.exports, y.exports);
 

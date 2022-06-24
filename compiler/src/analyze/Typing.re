@@ -185,7 +185,7 @@ let check_jsx_primitive_expression: T.t => option(T.error_t) =
   | type_ => Some(InvalidJSXPrimitiveExpression(type_));
 
 let rec eval_type_expression:
-  (DefinitionTable.t, A.TypeExpression.raw_t) => T.t =
+  (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
   (defs, type_expr) =>
     A.TypeExpression.(
       switch (type_expr) {
@@ -197,7 +197,7 @@ let rec eval_type_expression:
       | Element => Valid(`Element)
 
       | Identifier((id, _)) =>
-        defs |> DefinitionTable.resolve_type(id) |?: Invalid(NotInferrable)
+        defs |> SymbolTable.resolve_type(id) |?: Invalid(NotInferrable)
 
       /* use the type of the inner expression to determine type */
       | Group((x, _)) => eval_type_expression(defs, x)

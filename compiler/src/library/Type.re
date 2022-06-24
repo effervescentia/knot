@@ -130,7 +130,7 @@ module Container = {
           "@[<h>Module<%a>@]",
           record(string, ppf =>
             fun
-            | Type(t)
+            | Type(t) => pf(ppf, "type %a", pp_type, t)
             | Value(t) => pp_type(ppf, t)
           ),
           entries,

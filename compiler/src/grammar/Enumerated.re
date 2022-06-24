@@ -23,7 +23,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                             type_expr
                             |> fst
                             |> Analyze.Typing.eval_type_expression(
-                                 DefinitionTable.create(),
+                                 SymbolTable.create(),
                                ),
                           )
                      ),

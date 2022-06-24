@@ -4,7 +4,7 @@ module TypingAnalyzer = Analyze.Typing;
 module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
-let __empty_defs = DefinitionTable.create();
+let __empty_defs = SymbolTable.create();
 
 let suite =
   "Analyze.Typing | Type Expression"
@@ -60,14 +60,15 @@ let suite =
     "identifier"
     >: (
       () => {
-        let defs = DefinitionTable.create();
+        let symbols = SymbolTable.create();
 
-        Hashtbl.replace(defs.declared.types, "foo", Valid(`Boolean));
+        symbols.declared.types =
+          symbols.declared.types @ [("foo", Valid(`Boolean))];
 
         Assert.type_(
           Valid(`Boolean),
           TypingAnalyzer.eval_type_expression(
-            defs,
+            symbols,
             Identifier(U.as_untyped("foo")),
           ),
         );

@@ -292,7 +292,7 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
       let type_ =
         type_expr
         |> fst
-        |> Typing.eval_type_expression(DefinitionTable.create());
+        |> Typing.eval_type_expression(SymbolTable.create());
 
       (A.{name, default: None, type_: Some(type_expr)}, type_);
 
@@ -302,7 +302,7 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
       let type_ =
         type_expr
         |> fst
-        |> Typing.eval_type_expression(DefinitionTable.create());
+        |> Typing.eval_type_expression(SymbolTable.create());
 
       switch (expr_type, type_) {
       | (Valid(_), Valid(_)) when expr_type != type_ =>
