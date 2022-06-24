@@ -86,7 +86,7 @@ and expr_1: type_expression_parser_t =
 
 let expression_parser = expr_0;
 
-let _module_statement = (kwd, parser, f) =>
+let _define_statement = (kwd, parser, f) =>
   kwd
   >|= N.get_range
   >>= (
@@ -120,8 +120,8 @@ let type_variants = (ctx: ParseContext.t) =>
 
 let declaration: type_module_statement_parser_t =
   ctx =>
-    _module_statement(
-      Keyword.decl,
+    _define_statement(
+      Keyword.declare,
       expression_parser
       >|= (expr => (expr, expr |> N.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {
@@ -136,7 +136,7 @@ let declaration: type_module_statement_parser_t =
 
 let enumerated: type_module_statement_parser_t =
   ctx =>
-    _module_statement(
+    _define_statement(
       Keyword.enum,
       type_variants(ctx)
       >|= (
@@ -179,7 +179,7 @@ let enumerated: type_module_statement_parser_t =
 
 let type_: type_module_statement_parser_t =
   ctx =>
-    _module_statement(
+    _define_statement(
       Keyword.type_,
       expression_parser
       >|= (expr => (expr, expr |> N.get_range |> Option.some)),
@@ -197,7 +197,7 @@ let module_statement: type_module_statement_parser_t =
   ctx =>
     choice([declaration(ctx), enumerated(ctx), type_(ctx)]) |> M.terminated;
 
-let module_parser: type_module_parser_t =
+let module_: type_module_parser_t =
   ctx =>
     Keyword.module_
     >> (
@@ -249,7 +249,7 @@ let module_parser: type_module_parser_t =
               };
 
               N.untyped(
-                (id, fst(stmts)) |> TD.of_module,
+                (id, fst(stmts), []) |> TD.of_module,
                 N.get_range(stmts),
               );
             }
@@ -257,3 +257,32 @@ let module_parser: type_module_parser_t =
         }
       )
     );
+
+let decorator: type_module_parser_t =
+  ctx =>
+    _define_statement(
+      Keyword.decorator,
+      expression_parser
+      |> M.comma_sep
+      |> M.between(Symbol.open_group, Symbol.close_group)
+      >>= (
+        args =>
+          Keyword.on
+          >> Keyword.module_
+          >|= N.get_range
+          % (range => ((fst(args), T.DecoratorTarget.Module), Some(range)))
+      ),
+      ((id, (args, target))) => {
+        let arg_types =
+          args
+          |> List.map(fst % Analyze.Typing.eval_type_expression(ctx.symbols));
+        let type_ = T.Valid(`Decorator((arg_types, target)));
+
+        ctx.symbols |> SymbolTable.declare_value(fst(id), type_);
+
+        (id, args, target) |> TD.of_decorator;
+      },
+    );
+
+let root_parser: type_module_parser_t =
+  ctx => choice([decorator(ctx), module_(ctx)]);

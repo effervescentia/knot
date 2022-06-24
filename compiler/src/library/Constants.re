@@ -22,6 +22,7 @@ module Character = {
   let semicolon = ';';
   let equal_sign = '=';
   let vertical_bar = '|';
+  let at_sign = '@';
 
   let exclamation_mark = '!';
   let caret = '^';
@@ -87,7 +88,9 @@ module Keyword = {
   let true_ = "true";
   let false_ = "false";
   let as_ = "as";
-  let decl = "decl";
+  let on = "on";
+  let declare = "declare";
+  let decorator = "decorator";
   let type_ = "type";
   let module_ = "module";
 

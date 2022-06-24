@@ -3,6 +3,19 @@ open Reference;
 
 exception UnknownTypeEncountered;
 
+module DecoratorTarget = {
+  type t =
+    | Module;
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      (
+        fun
+        | Module => "module"
+      )
+      % Fmt.string(ppf);
+};
+
 module Primitive = {
   type t = [ | `Nil | `Boolean | `Integer | `Float | `String | `Element];
 
@@ -35,6 +48,7 @@ module Container = {
     | `Struct(list((string, 'a)))
     | `Enumerated(list((string, list('a))))
     | `Function(list('a), 'a)
+    | `Decorator(list('a), DecoratorTarget.t)
     /* entities */
     | `View(list((string, 'a)), 'a)
     | `Style(list('a), list(string), list(string))
@@ -88,6 +102,20 @@ module Container = {
           args,
           pp_type,
           res,
+        )
+    );
+
+  let pp_decorator =
+      (pp_type: Fmt.t('a)): Fmt.t((list('a), DecoratorTarget.t)) =>
+    Fmt.(
+      (ppf, (args, target)) =>
+        pf(
+          ppf,
+          "@[<h>(%a) on %a@]",
+          list(~sep=Sep.comma, pp_type),
+          args,
+          DecoratorTarget.pp,
+          target,
         )
     );
 
@@ -161,6 +189,9 @@ module Raw = {
 
       | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
 
+      | `Decorator(args, target) =>
+        Container.pp_decorator(pp, ppf, (args, target))
+
       | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
 
       | `Style(args, ids, classes) =>
@@ -223,6 +254,8 @@ and pp_valid: Fmt.t(valid_t) =
     | `Struct(props) => Container.pp_struct(pp, ppf, props)
     | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
     | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+    | `Decorator(args, target) =>
+      Container.pp_decorator(pp, ppf, (args, target))
     | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
     | `Style(args, ids, classes) =>
       Container.pp_style(pp, ppf, (args, ids, classes))
@@ -348,6 +381,9 @@ let rec of_raw = (raw_type: Raw.t): t =>
 
   | `Function(args, res) =>
     Valid(`Function((args |> List.map(of_raw), of_raw(res))))
+
+  | `Decorator(args, target) =>
+    Valid(`Decorator((args |> List.map(of_raw), target)))
 
   | `View(props, res) =>
     Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))

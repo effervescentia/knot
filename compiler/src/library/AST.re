@@ -227,23 +227,52 @@ module TypeDefinition = {
   type module_t = untyped_t(raw_module_t)
 
   and raw_module_t =
-    | Module(untyped_t(string), list(module_statement_t));
+    | Decorator(
+        untyped_t(string),
+        list(TypeExpression.t),
+        Type.DecoratorTarget.t,
+      )
+    | Module(
+        untyped_t(string),
+        list(module_statement_t),
+        list((untyped_t(string), list(unit))),
+      );
 
   type t = list(module_t);
 
   /* tag helpers */
 
+  let of_decorator = ((id, args, target)) => Decorator(id, args, target);
   let of_declaration = ((id, type_)) => Declaration(id, type_);
   let of_type = ((id, type_)) => Type(id, type_);
   let of_enum = ((id, variants)) => Enumerated(id, variants);
-  let of_module = ((id, stmts)) => Module(id, stmts);
+  let of_module = ((id, stmts, decorators)) =>
+    Module(id, stmts, decorators);
 
   module Dump = {
     include Common.Dump;
 
     let to_entity = module_ =>
       switch (fst(module_)) {
-      | Module((name, _), stmts) =>
+      | Decorator(id, args, target) =>
+        untyped_node_to_entity(
+          ~attributes=[
+            ("id", fst(id)),
+            ("target", target |> ~@Type.DecoratorTarget.pp),
+          ],
+          ~children=
+            args
+            |> List.map(arg =>
+                 Entity.create(
+                   ~children=[TypeExpression.Dump.to_entity(arg)],
+                   "Argument",
+                 )
+               ),
+          "Decorator",
+          id,
+        )
+
+      | Module((name, _), stmts, decorators) =>
         untyped_node_to_entity(
           ~attributes=[("name", name)],
           ~children=
@@ -259,6 +288,7 @@ module TypeDefinition = {
                        "Declaration",
                        id,
                      )
+
                    | Type(id, type_) =>
                      untyped_node_to_entity(
                        ~attributes=[("id", fst(id))],
@@ -266,6 +296,7 @@ module TypeDefinition = {
                        "Type",
                        id,
                      )
+
                    | Enumerated(id, variants) =>
                      untyped_node_to_entity(
                        ~attributes=[("id", fst(id))],

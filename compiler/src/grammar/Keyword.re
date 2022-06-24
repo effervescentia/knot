@@ -15,7 +15,9 @@ let nil = M.keyword(K.nil);
 let true_ = M.keyword(K.true_);
 let false_ = M.keyword(K.false_);
 let as_ = M.keyword(K.as_);
-let decl = M.keyword(K.decl);
+let on = M.keyword(K.on);
+let declare = M.keyword(K.declare);
+let decorator = M.keyword(K.decorator);
 let type_ = M.keyword(K.type_);
 let module_ = M.keyword(K.module_);
 

@@ -495,8 +495,12 @@ let add_standard_library = (~flush=true, compiler: t) => {
   compiler.graph.imports |> Graph.add_node(Reference.Namespace.Stdlib);
 
   Log.info(
-    "reading standard library %s",
-    compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
+    "reading %s",
+    (
+      "standard library",
+      compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
+    )
+    |> ~@Fmt.captioned,
   );
 
   let namespace = Reference.Namespace.Stdlib;

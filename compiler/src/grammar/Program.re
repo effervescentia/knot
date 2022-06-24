@@ -15,4 +15,4 @@ let main: t =
     |> _program;
 
 let definition = (ctx: ParseContext.t) =>
-  Typing.module_parser(ctx) |> many |> _program;
+  Typing.root_parser(ctx) |> many |> _program;

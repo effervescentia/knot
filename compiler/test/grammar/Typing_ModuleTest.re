@@ -12,7 +12,7 @@ module Assert =
     let parser = _ =>
       Namespace.of_string("test_namespace")
       |> ParseContext.create
-      |> Typing.module_parser
+      |> Typing.root_parser
       |> Assert.parse_completely
       |> Parser.parse;
 
@@ -44,7 +44,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_untyped(TD.Module(U.as_untyped("Foo"), [])),
+          U.as_untyped(TD.Module(U.as_untyped("Foo"), [], [])),
           "module Foo {}",
         )
     ),
@@ -60,10 +60,11 @@ let suite =
                 |> TD.of_declaration
                 |> U.as_untyped,
               ],
+              [],
             ),
           ),
           "module Foo {
-  decl bar: string;
+  declare bar: string;
 }",
         )
     ),
@@ -79,6 +80,7 @@ let suite =
                 |> TD.of_type
                 |> U.as_untyped,
               ],
+              [],
             ),
           ),
           "module Foo {
@@ -109,6 +111,7 @@ let suite =
                 |> TD.of_type
                 |> U.as_untyped,
               ],
+              [],
             ),
           ),
           "module Foo {
@@ -141,6 +144,7 @@ let suite =
                 |> TD.of_enum
                 |> U.as_untyped,
               ],
+              [],
             ),
           ),
           "module Foo {
@@ -179,14 +183,15 @@ let suite =
                 |> TD.of_declaration
                 |> U.as_untyped,
               ],
+              [],
             ),
           ),
           "module Foo {
   type foo: boolean;
   type bar: integer;
 
-  decl fizz: float;
-  decl buzz: (element) -> string;
+  declare fizz: float;
+  declare buzz: (element) -> string;
 }",
         )
     ),

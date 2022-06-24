@@ -22,32 +22,30 @@ module Style {
     | Pc(float)
     | Pt(float);
 
-  decl height: Length -> nil;
-  decl width: Length -> nil;
+  declare height: Length -> nil;
+  declare width: Length -> nil;
 }
 
 @plugin("style_expression")
 module StyleExpression {
-  import { Length } from Style;
+  declare ch: (float) -> Style.Length;
+  declare em: (float) -> Style.Length;
+  declare ex: (float) -> Style.Length;
+  declare ic: (float) -> Style.Length;
+  declare rem: (float) -> Style.Length;
 
-  decl ch: (float) -> Length;
-  decl em: (float) -> Length;
-  decl ex: (float) -> Length;
-  decl ic: (float) -> Length;
-  decl rem: (float) -> Length;
+  declare vh: (float) -> Style.Length;
+  declare vw: (float) -> Style.Length;
+  declare vmax: (float) -> Style.Length;
+  declare vmin: (float) -> Style.Length;
+  declare vb: (float) -> Style.Length;
+  declare vi: (float) -> Style.Length;
 
-  decl vh: (float) -> Length;
-  decl vw: (float) -> Length;
-  decl vmax: (float) -> Length;
-  decl vmin: (float) -> Length;
-  decl vb: (float) -> Length;
-  decl vi: (float) -> Length;
-
-  decl px: (float) -> Length;
-  decl cm: (float) -> Length;
-  decl mm: (float) -> Length;
-  decl Q: (float) -> Length;
-  decl in: (float) -> Length;
-  decl pc: (float) -> Length;
-  decl pt: (float) -> Length;
+  declare px: (float) -> Style.Length;
+  declare cm: (float) -> Style.Length;
+  declare mm: (float) -> Style.Length;
+  declare Q: (float) -> Style.Length;
+  declare in: (float) -> Style.Length;
+  declare pc: (float) -> Style.Length;
+  declare pt: (float) -> Style.Length;
 }
