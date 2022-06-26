@@ -42,23 +42,6 @@ module Namespace = {
   let pp: Fmt.t(t) = ppf => to_string % Fmt.string(ppf);
 };
 
-module Module = {
-  type t =
-    | Root
-    | Inner(string, option(t));
-
-  /* pretty printing */
-
-  let rec pp: Fmt.t(t) =
-    Fmt.(
-      ppf =>
-        fun
-        | Root => string(ppf, "[root]")
-        | Inner(name, None) => string(ppf, name)
-        | Inner(name, Some(parent)) => pf(ppf, "%a.%s", pp, parent, name)
-    );
-};
-
 module Export = {
   type t =
     | Main

@@ -473,32 +473,43 @@ let inject_raw = (~flush=true, id: Namespace.t, contents: string, compiler: t) =
  * parse and process a type definition module
  */
 let process_definition =
-    (namespace: Namespace.t, source: Source.t, compiler: t) => {
-  let ctx = NamespaceContext2.create(namespace);
+    (~flush=true, namespace: Namespace.t, source: Source.t, compiler: t) => {
+  let module_errors = ref([]);
+  let ctx =
+    ParseContext.create(
+      ~report=
+        err => {
+          module_errors := module_errors^ @ [err];
 
-  compiler
-  |> parse_module(source, Parser.definition(ctx))
-  |> Option.map(
-       fun
-       | (raw, Ok(ast)) => {
-           let exports =
-             NamespaceContext2.generate_types(ctx)
-             |> List.filter_map(
-                  Reference.(
-                    fun
-                    | (Module.Inner(name, _), type_) =>
-                      Some((Export.Named(name), type_))
-                    | _ => None
-                  ),
-                )
-             |> List.to_seq
-             |> Hashtbl.of_seq;
+          Report([err]) |> compiler.dispatch;
+        },
+      namespace,
+    );
 
-           Some((raw, ast, exports));
-         }
-       | (_, Error(_)) => None,
-     )
-  |> Option.join;
+  let result =
+    compiler
+    |> parse_module(source, Parser.definition(ctx))
+    |> Option.map(
+         fun
+         | (raw, Ok(ast)) => {
+             /* TODO: make this also export types, probs reuse SymbolTable */
+             let exports =
+               ctx.symbols.declared.values
+               |> List.map(Tuple.map_fst2(name => Export.Named(name)))
+               |> List.to_seq
+               |> Hashtbl.of_seq;
+
+             Some((raw, ast, exports));
+           }
+         | (_, Error(_)) => None,
+       )
+    |> Option.join;
+
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
+
+  result;
 };
 
 /**
@@ -516,7 +527,7 @@ let add_standard_library = (~flush=true, compiler: t) => {
   let source = Source.File({relative: "", full: compiler.config.stdlib});
 
   compiler
-  |> process_definition(namespace, source)
+  |> process_definition(~flush=false, namespace, source)
   |> (
     fun
     | Some((raw, ast, exports)) => {

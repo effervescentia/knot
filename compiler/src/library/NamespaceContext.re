@@ -9,7 +9,7 @@ type t = {
   /* error reporting callback */
   report: Error.compile_err => unit,
   /* error reporting callback */
-  mutable inner_modules: list((Module.t, DeclarationTable.t, Range.t)),
+  mutable inner_modules: list((string, DeclarationTable.t, Range.t)),
 };
 
 /* static */
@@ -58,7 +58,7 @@ let find_export = (namespace: Namespace.t, id: Export.t, ctx: t) => {
 
 let define_module =
     (
-      module_: Module.t,
+      module_: string,
       declarations: DeclarationTable.t,
       range: Range.t,
       ctx: t,

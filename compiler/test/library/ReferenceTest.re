@@ -14,21 +14,6 @@ let suite = [
       () => Assert.string("foo", Namespace.External("foo") |> ~@Namespace.pp)
     ),
   ],
-  "Library.Reference.Module"
-  >::: [
-    "pp() - root"
-    >: (() => Assert.string("[root]", Module.Root |> ~@Module.pp)),
-    "pp() - inner"
-    >: (() => Assert.string("foo", Module.Inner("foo", None) |> ~@Module.pp)),
-    "pp() - nested"
-    >: (
-      () =>
-        Assert.string(
-          "bar.foo",
-          Module.Inner("foo", Some(Inner("bar", None))) |> ~@Module.pp,
-        )
-    ),
-  ],
   "Library.Reference.Export"
   >::: [
     "pp() - main export"
