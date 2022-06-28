@@ -1,7 +1,7 @@
 open Kore;
 open Reference;
 
-type t = RangeTree.t(option(Hashtbl.t(Export.t, Type.t)));
+type t = RangeTree.t(option(list((Export.t, Type.t))));
 
 let rec _join =
   fun
@@ -58,11 +58,11 @@ let rec of_context = (~range=?, context: ParseContext.t): t => {
   []
   /* |> List.map(((_, x, range)) => of_def_tbl(~range, x)) */
   |> _join
-  |?: BinaryTree.create((range |?: Range.zero, Some(Hashtbl.create(0))));
+  |?: BinaryTree.create((range |?: Range.zero, Some([])));
 };
 
 let find_scope =
-    (point: Point.t, tree: t): option(Hashtbl.t(Export.t, Type.t)) => {
+    (point: Point.t, tree: t): option(list((Export.t, Type.t))) => {
   let contains = Range.contains_point(point);
 
   BinaryTree.search(
@@ -80,4 +80,4 @@ let find_scope =
 };
 
 let find_type = (id: string, point: Point.t, tree: t): option(Type.t) =>
-  find_scope(point, tree) |?< (types => Hashtbl.find_opt(types, Named(id)));
+  find_scope(point, tree) |?< List.assoc_opt(Export.Named(id));

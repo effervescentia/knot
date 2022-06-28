@@ -3,13 +3,14 @@ open Infix;
 
 module Fmt = Pretty.Formatters;
 
+type exports_t = list((Export.t, Type.t));
 type type_table_t = Hashtbl.t(Export.t, Type.t);
-type scope_tree_t = RangeTree.t(option(type_table_t));
+type scope_tree_t = RangeTree.t(option(exports_t));
 
-type library_t = {exports: type_table_t};
+type library_t = {symbols: SymbolTable.t};
 
 type module_t = {
-  exports: type_table_t,
+  symbols: SymbolTable.t,
   ast: AST.program_t,
   scopes: scope_tree_t,
 };
@@ -79,8 +80,7 @@ let get_entry_data: entry_t => option(module_t) =
   | Partial(_, data, _) => Some(data)
   | _ => None;
 
-let _compare_data = (x, y) =>
-  x.ast == y.ast && Hashtbl.compare(x.exports, y.exports);
+let _compare_data = (x, y) => x.ast == y.ast && x.symbols == y.symbols;
 
 /**
  compare two ModuleTables by direct equality
@@ -101,20 +101,20 @@ let compare: (t, t) => bool =
 /* pretty printing */
 
 let _pp_library: Fmt.t(library_t) =
-  (ppf, {exports}) =>
+  (ppf, {symbols}) =>
     Fmt.(
-      [("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp))]
+      [("symbols", symbols |> ~@SymbolTable.pp)]
       |> List.to_seq
       |> Hashtbl.of_seq
       |> Hashtbl.pp(string, string, ppf)
     );
 
 let _pp_module: Fmt.t(module_t) =
-  (ppf, {ast, exports}) =>
+  (ppf, {ast, symbols}) =>
     Fmt.(
       [
         ("ast", ast |> ~@AST.Dump.pp),
-        ("exports", exports |> ~@Hashtbl.pp(Export.pp, Type.pp)),
+        ("symbols", symbols |> ~@SymbolTable.pp),
       ]
       |> List.to_seq
       |> Hashtbl.of_seq

@@ -50,6 +50,13 @@ let __const_decl_ast =
   |> A.of_decl
   |> U.as_untyped;
 
+let _create_module =
+    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+  ast: [],
+  scopes: __scope_tree,
+  symbols: SymbolTable.of_export_list(exports),
+};
+
 let __context =
   ParseContext.create(
     ~modules=
@@ -58,14 +65,7 @@ let __context =
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            {
-              ast: [],
-              exports:
-                [(Export.Main, Type.Valid(`String))]
-                |> List.to_seq
-                |> Hashtbl.of_seq,
-              scopes: __scope_tree,
-            },
+            _create_module([(Export.Main, Type.Valid(`String))]),
           ),
         ),
       ]
@@ -122,14 +122,7 @@ let suite =
                     "bar" |> A.of_internal,
                     ModuleTable.Valid(
                       "foo",
-                      {
-                        ast: [],
-                        exports:
-                          [(Export.Main, Type.Valid(`Boolean))]
-                          |> List.to_seq
-                          |> Hashtbl.of_seq,
-                        scopes: __scope_tree,
-                      },
+                      _create_module([(Export.Main, Type.Valid(`Boolean))]),
                     ),
                   ),
                 ]

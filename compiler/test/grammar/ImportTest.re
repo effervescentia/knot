@@ -25,6 +25,13 @@ module Assert =
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
+let _create_module =
+    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+  ast: [],
+  scopes: __scope_tree,
+  symbols: SymbolTable.of_export_list(exports),
+};
+
 let __context_with_named_exports =
   ParseContext.create(
     ~modules=
@@ -33,18 +40,11 @@ let __context_with_named_exports =
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            {
-              ast: [],
-              exports:
-                [
-                  (Export.Main, Type.Valid(`Nil)),
-                  (Export.Named("bar"), Type.Valid(`Boolean)),
-                  (Export.Named("foo"), Type.Valid(`String)),
-                ]
-                |> List.to_seq
-                |> Hashtbl.of_seq,
-              scopes: __scope_tree,
-            },
+            _create_module([
+              (Export.Main, Type.Valid(`Nil)),
+              (Export.Named("bar"), Type.Valid(`Boolean)),
+              (Export.Named("foo"), Type.Valid(`String)),
+            ]),
           ),
         ),
       ]
@@ -61,14 +61,7 @@ let __context_with_main_export =
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            {
-              ast: [],
-              exports:
-                [(Export.Main, Type.Valid(`Nil))]
-                |> List.to_seq
-                |> Hashtbl.of_seq,
-              scopes: __scope_tree,
-            },
+            _create_module([(Export.Main, Type.Valid(`Nil))]),
           ),
         ),
       ]

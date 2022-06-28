@@ -21,6 +21,13 @@ let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let _create_table = items => items |> List.to_seq |> Hashtbl.of_seq;
 
+let _create_module =
+    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+  ast: __program,
+  scopes: __scope_tree,
+  symbols: SymbolTable.of_export_list(exports),
+};
+
 let suite =
   "Compile.ModuleTable"
   >::: [
@@ -28,19 +35,7 @@ let suite =
     >: (
       () => {
         __table
-        |> ModuleTable.(
-             add(
-               __id,
-               Valid(
-                 "foo",
-                 {
-                   ast: __program,
-                   exports: _create_table(__types),
-                   scopes: __scope_tree,
-                 },
-               ),
-             )
-           );
+        |> ModuleTable.(add(__id, Valid("foo", _create_module(__types))));
 
         Assert.module_table(
           _create_table([
@@ -48,14 +43,9 @@ let suite =
               __id,
               ModuleTable.Valid(
                 "foo",
-                {
-                  exports:
-                    _create_table([
-                      (Export.Named("bar"), Type.Valid(`Element)),
-                    ]),
-                  ast: __program,
-                  scopes: __scope_tree,
-                },
+                _create_module([
+                  (Export.Named("bar"), Type.Valid(`Element)),
+                ]),
               ),
             ),
           ]),

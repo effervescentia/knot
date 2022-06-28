@@ -179,13 +179,11 @@ let process_one =
   |> Option.iter(
        fun
        | (raw, Ok(ast)) => {
-           let exports = SymbolTable.to_export_list(context.symbols);
-
            let module_ =
              ModuleTable.{
                ast,
-               exports: exports |> List.to_seq |> Hashtbl.of_seq,
                scopes: ScopeTree.of_context(context),
+               symbols: context.symbols,
              };
 
            if (List.is_empty(module_errors^)) {
@@ -477,14 +475,7 @@ let process_definition =
     |> Option.map(
          fun
          | (raw, Ok(ast)) => {
-             /* TODO: make this also export types, probs reuse SymbolTable */
-             let exports =
-               ctx.symbols.declared.values
-               |> List.map(Tuple.map_fst2(name => Export.Named(name)))
-               |> List.to_seq
-               |> Hashtbl.of_seq;
-
-             Some((raw, ast, exports));
+             Some((raw, ast, ctx.symbols));
            }
          | (_, Error(_)) => None,
        )
@@ -515,8 +506,8 @@ let add_standard_library = (~flush=true, compiler: t) => {
   |> process_definition(~flush=false, namespace, source)
   |> (
     fun
-    | Some((raw, ast, exports)) => {
-        let library = ModuleTable.{exports: exports};
+    | Some((raw, ast, symbols)) => {
+        let library = ModuleTable.{symbols: symbols};
 
         compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
 

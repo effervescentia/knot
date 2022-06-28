@@ -40,8 +40,6 @@ let handler: Runtime.request_handler_t(params_t) =
       Hashtbl.find_opt(compiler.modules, namespace)
       |?< ModuleTable.(get_entry_data % Option.map(({scopes}) => scopes))
       |?< ScopeTree.find_scope(point)
-      |?> Hashtbl.to_seq
-      |?> List.of_seq
       |?> List.map(((key, value)) =>
             {label: key |> ~@Export.pp, kind: Capabilities.Variable}
           )

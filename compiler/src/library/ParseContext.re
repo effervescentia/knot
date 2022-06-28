@@ -54,15 +54,50 @@ let report = (err: Error.parse_err, range: Range.t, ctx: t) =>
  */
 let import = (namespace: Namespace.t, id: Export.t, alias: string, ctx: t) => {
   let module_ = ctx.modules |> ModuleTable.find(namespace);
-  let export =
+  let symbols =
     module_
-    |?< ModuleTable.(get_entry_data % Option.map(({exports}) => exports))
-    |?< (exports => Hashtbl.find_opt(exports, id));
+    |?< ModuleTable.(get_entry_data % Option.map(({symbols}) => symbols));
 
-  ctx.symbols
-  |> SymbolTable.import(alias, export |?: Type.Invalid(NotInferrable));
+  let type_export =
+    symbols
+    |?< SymbolTable.(
+          symbols' =>
+            switch (id) {
+            | Named(id') => symbols'.declared.types |> List.assoc_opt(id')
+            | Main => symbols'.main
+            }
+        );
 
-  export |> Option.to_result(~none=Type.ExternalNotFound(namespace, id));
+  let value_export =
+    symbols
+    |?< SymbolTable.(
+          symbols' =>
+            switch (id) {
+            | Named(id') => symbols'.declared.values |> List.assoc_opt(id')
+            | Main => symbols'.main
+            }
+        );
+
+  switch (value_export, type_export) {
+  | (None, None) =>
+    let invalid_type = Type.Invalid(NotInferrable);
+    ctx.symbols |> SymbolTable.import_type(alias, invalid_type);
+    ctx.symbols |> SymbolTable.import_value(alias, invalid_type);
+
+    Error(Type.ExternalNotFound(namespace, id));
+
+  | _ =>
+    type_export
+    |> Option.iter(type_ =>
+         ctx.symbols |> SymbolTable.import_type(alias, type_)
+       );
+    value_export
+    |> Option.iter(type_ =>
+         ctx.symbols |> SymbolTable.import_value(alias, type_)
+       );
+
+    Ok((type_export, value_export));
+  };
 };
 
 /**

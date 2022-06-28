@@ -1,5 +1,7 @@
 open Infix;
 
+module Export = Reference.Export;
+
 type types_t = list((string, Type.t));
 
 module Symbols = {
@@ -52,9 +54,37 @@ let create = (): t => {
   main: None,
 };
 
+let of_export_list = (exports: list((Export.t, Type.t))): t => {
+  let main =
+    exports
+    |> List.find_map(
+         fun
+         | (Export.Main, type_) => Some(type_)
+         | _ => None,
+       );
+  let named =
+    exports
+    |> List.filter_map(
+         fun
+         | (Export.Named(name), type_) => Some((name, type_))
+         | _ => None,
+       );
+  {
+    ...create(),
+    main,
+    declared: {
+      types: [],
+      values: named,
+    },
+  };
+};
+
 /* methods */
 
-let import = (id: string, type_: Type.t, table: t) =>
+let import_type = (id: string, type_: Type.t, table: t) =>
+  table.imported.types = table.imported.types @ [(id, type_)];
+
+let import_value = (id: string, type_: Type.t, table: t) =>
   table.imported.values = table.imported.values @ [(id, type_)];
 
 let declare_type = (id: string, type_: Type.t, table: t) =>
@@ -92,13 +122,6 @@ let to_module_type = (table: t): Type.t =>
         ),
       ),
     )
-  );
-
-let to_export_list = (ctx: t): list((Reference.Export.t, Type.t)) =>
-  (ctx.main |> Option.map(type_ => [(Reference.Export.Main, type_)]) |?: [])
-  @ (
-    ctx.declared.values
-    |> List.map(((name, type_)) => (Reference.Export.Named(name), type_))
   );
 
 /* pretty printing */

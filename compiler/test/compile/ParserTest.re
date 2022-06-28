@@ -11,6 +11,13 @@ module Px = Fixtures.Program;
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
+let _create_module =
+    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+  ast: [],
+  scopes: __scope_tree,
+  symbols: SymbolTable.of_export_list(exports),
+};
+
 let __context =
   ParseContext.create(
     ~modules=
@@ -19,14 +26,7 @@ let __context =
           Nx.bar,
           ModuleTable.Valid(
             "foo",
-            {
-              ast: [],
-              exports:
-                [(Export.Main, Type.Valid(`Boolean))]
-                |> List.to_seq
-                |> Hashtbl.of_seq,
-              scopes: __scope_tree,
-            },
+            _create_module([(Export.Main, Type.Valid(`Boolean))]),
           ),
         ),
       ]
