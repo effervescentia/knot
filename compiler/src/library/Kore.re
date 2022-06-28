@@ -7,7 +7,6 @@ module BinaryTree = BinaryTree;
 module Command = Command;
 module Config = Config;
 module Constants = Constants;
-module DeclarationTable = DeclarationTable;
 module SymbolTable = SymbolTable;
 module Filename = Filename;
 module Fun = Fun;

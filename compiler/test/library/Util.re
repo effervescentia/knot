@@ -10,13 +10,6 @@ module CommonUtil = {
   let as_untyped = (~range=Range.zero, x) => Node.untyped(x, range);
   let as_typed = (~range=Range.zero, type_, x) =>
     Node.typed(x, type_, range);
-
-  let to_scope = (types: list((string, T.t))): DeclarationTable.t => {
-    types
-    |> List.map(Tuple.map_fst2(x => Export.Named(x)))
-    |> List.to_seq
-    |> DeclarationTable.of_seq;
-  };
 };
 
 module RawUtil = {
