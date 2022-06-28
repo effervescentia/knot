@@ -138,7 +138,7 @@ let enumerated: type_module_statement_parser_t =
   ctx =>
     _module_statement(
       Keyword.enum,
-      type_variants(ParseContext.create(Ambient))
+      type_variants(ctx)
       >|= (
         variants => {
           let variant_range = variants |> List.last |?> N.get_range;

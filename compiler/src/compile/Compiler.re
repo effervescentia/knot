@@ -31,26 +31,6 @@ type t = {
 
 let __module_table_size = 64;
 
-let _get_module_exports = ast =>
-  ast
-  |> List.map(
-       fst
-       % (
-         fun
-         | AST.Declaration(NamedExport((id, _)), decl) => [
-             (Export.Named(id), N.get_type(decl)),
-           ]
-
-         | AST.Declaration(MainExport((id, _)), decl) => [
-             (Export.Named(id), N.get_type(decl)),
-             (Export.Main, N.get_type(decl)),
-           ]
-
-         | _ => []
-       ),
-     )
-  |> List.flatten;
-
 let _create_dispatch = (config, report) => {
   let errors = ref([]);
   let dispatch =
@@ -199,11 +179,12 @@ let process_one =
   |> Option.iter(
        fun
        | (raw, Ok(ast)) => {
+           let exports = SymbolTable.to_export_list(context.symbols);
+
            let module_ =
              ModuleTable.{
                ast,
-               exports:
-                 _get_module_exports(ast) |> List.to_seq |> Hashtbl.of_seq,
+               exports: exports |> List.to_seq |> Hashtbl.of_seq,
                scopes: ScopeTree.of_context(context),
              };
 

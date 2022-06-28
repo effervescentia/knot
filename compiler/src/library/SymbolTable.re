@@ -94,6 +94,13 @@ let to_module_type = (table: t): Type.t =>
     )
   );
 
+let to_export_list = (ctx: t): list((Reference.Export.t, Type.t)) =>
+  (ctx.main |> Option.map(type_ => [(Reference.Export.Main, type_)]) |?: [])
+  @ (
+    ctx.declared.values
+    |> List.map(((name, type_)) => (Reference.Export.Named(name), type_))
+  );
+
 /* pretty printing */
 
 let pp: Fmt.t(t) =

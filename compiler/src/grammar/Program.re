@@ -6,19 +6,13 @@ type t = (ParseContext.t, input_t) => output_t;
 
 let _program = x => x << (eof() |> M.lexeme);
 
-let imports: t =
-  ctx =>
-    choice([ctx |> ParseContext.create_module |> Import.parser, any >> none])
-    |> many;
+let imports: t = ctx => choice([Import.parser(ctx), any >> none]) |> many;
 
 let main: t =
-  ctx => {
-    let module_ctx = ParseContext.create_module(ctx);
-
-    choice([Import.parser(module_ctx), Declaration.parser(module_ctx)])
+  ctx =>
+    choice([Import.parser(ctx), Declaration.parser(ctx)])
     |> many
     |> _program;
-  };
 
 let definition = (ctx: ParseContext.t) =>
   Typing.module_parser(ctx) |> many |> _program;
