@@ -35,6 +35,12 @@ let excl = (x: 'a, xs: list('a)): list('a) =>
   };
 
 /**
+ include all items [ys] into a list [xs] if not already present
+ */
+let incl_all = (xs: list('a), ys: list('a)): list('a) =>
+  fold_left((acc, y) => incl(y, acc), xs, ys);
+
+/**
  exclude all items [ys] from a list [xs]
  */
 let excl_all = (xs: list('a), ys: list('a)): list('a) =>
@@ -79,6 +85,10 @@ let last = (xs: list('a)): option('a) =>
   };
 
 let intersperse = TList.intersperse;
+
+let partition =
+    (predicate: 'a => bool, xs: list('a)): (list('a), list('a)) =>
+  TList.partition(~f=predicate, xs);
 
 let split_at = (index: int, xs: list('a)) => TList.split_at(~index, xs);
 

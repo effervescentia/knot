@@ -9,7 +9,7 @@ let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
 let _example_sep =
   Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@,// or@,")));
 let _or_sep =
-  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@ or@ ")));
+  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, " or ")));
 
 let _pp_resolution: Fmt.t((Stdlib.Format.formatter => unit, list(string))) =
   (ppf, (description, examples)) =>

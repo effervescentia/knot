@@ -14,6 +14,7 @@ type config_t = {
 };
 
 type action_t =
+  | Fatal(list(compile_err))
   | Report(list(compile_err))
   | Flush;
 
@@ -54,12 +55,15 @@ let _create_dispatch = (config, report) => {
   let errors = ref([]);
   let dispatch =
     fun
+    | Fatal(errs) => report(errs)
+
     | Report(errs) =>
       if (config.fail_fast) {
         report(errs);
       } else {
         errors := errors^ @ errs;
       }
+
     | Flush =>
       switch (errors^) {
       | [] => ()
@@ -141,7 +145,7 @@ let validate = (compiler: t) => {
   |> List.iter(validate =>
        compiler.graph
        |> validate
-       |> Result.iter_error(errs => Report(errs) |> compiler.dispatch)
+       |> Result.iter_error(errs => Fatal(errs) |> compiler.dispatch)
      );
 
   compiler.dispatch(Flush);
@@ -282,7 +286,7 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   /* check if import graph is valid */
   validate(compiler);
 
-  let modules = ImportGraph.get_modules(compiler.graph);
+  let modules = ImportGraph.get_ordered_modules(compiler.graph);
   compiler |> _prepare_modules(modules);
 
   if (!skip_cache) {

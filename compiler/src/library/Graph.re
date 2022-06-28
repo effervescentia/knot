@@ -51,6 +51,12 @@ let get_edges = (graph: t('a)): list(edge_t('a)) => graph.edges;
 /* methods */
 
 /**
+ check if a [graph] is empty of nodes and edges
+ */
+let is_empty = (graph: t('a)): bool =>
+  List.is_empty(graph.nodes) && List.is_empty(graph.edges);
+
+/**
  check if a [node] exists in the [graph]
  */
 let has_node = (node: 'a, graph: t('a)): bool =>
@@ -120,7 +126,7 @@ let get_children = (node: 'a, graph: t('a)): list('a) =>
      );
 
 /**
- get a list of nodes in the [graph] which are ancestors of a [node]
+ get a list of nodes in the [graph] which are descendants of a [node]
  */
 let get_descendants = (node: 'a, graph: t('a)): list('a) => {
   let descendants = ref([]);
@@ -143,13 +149,25 @@ let get_descendants = (node: 'a, graph: t('a)): list('a) => {
  check if a [node] in the [graph] has no parents
  */
 let is_root_node = (node: 'a, graph: t('a)): bool =>
-  graph |> get_parents(node) |> List.length |> (==)(0);
+  graph |> get_parents(node) |> List.is_empty;
+
+/**
+ check if a [node] in the [graph] has no children
+ */
+let is_leaf_node = (node: 'a, graph: t('a)): bool =>
+  graph |> get_children(node) |> List.is_empty;
 
 /**
  get a list of all nodes in the [graph] that have no parents
  */
 let find_roots = (graph: t('a)): list('a) =>
   graph.nodes |> List.filter(node => is_root_node(node, graph));
+
+/**
+ get a list of all nodes in the [graph] that have no parents
+ */
+let find_leaves = (graph: t('a)): list('a) =>
+  graph.nodes |> List.filter(node => is_leaf_node(node, graph));
 
 /**
  add a [node] to the [graph]
@@ -200,6 +218,15 @@ let remove_edges_to = (node: 'a, graph: t('a)) =>
 let remove_edges_from = (node: 'a, graph: t('a)) =>
   graph.edges =
     graph.edges |> List.filter(edge => !_is_edge_from(node, edge));
+
+/**
+ remove a [node] and its associated edges from the [graph]
+ */
+let remove_node_and_edges = (node: 'a, graph: t('a)) => {
+  graph |> remove_node(node);
+  graph |> remove_edges_from(node);
+  graph |> remove_edges_to(node);
+};
 
 /**
  find cycles in the [graph] that involve a [target_node]
@@ -262,6 +289,45 @@ let invert = (graph: t('a)): t('a) =>
 let clear = (graph: t('a)) => {
   graph.nodes = [];
   graph.edges = [];
+};
+
+/**
+ get the nodes of an acyclic [graph] in reverse dependency order (leaves -> roots)
+ if the [graph] is found to be cyclic then insertion order will be respected instead
+ */
+let get_ordered_nodes = (graph: t('a)): list('a) => {
+  let subject = clone(graph);
+  let ordered = ref([]);
+
+  let rec loop = (~init=?, ()) => {
+    let (leaves, carry) =
+      init
+      |> Option.map(List.partition(node => is_leaf_node(node, subject)))
+      |?: (find_leaves(subject), []);
+
+    /* add all the leaves to the ordered list */
+    ordered := ordered^ @ leaves;
+
+    /* find the next targets to consider as leaves */
+    let next =
+      [carry, ...leaves |> List.map(leaf => get_parents(leaf, subject))]
+      |> List.fold_left(List.incl_all, []);
+
+    /* remove all leaves from the graph */
+    leaves |> List.iter(leaf => remove_node_and_edges(leaf, subject));
+
+    if (is_empty(subject)) {
+      ordered^;
+    } else {
+      loop(~init=next, ());
+    };
+  };
+
+  if (is_acyclic(graph)) {
+    loop();
+  } else {
+    get_nodes(graph);
+  };
 };
 
 /* pretty printing */
