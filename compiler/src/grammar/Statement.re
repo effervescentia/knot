@@ -1,7 +1,7 @@
 open Kore;
 
 let variable =
-    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t)
     : statement_parser_t =>
   Keyword.let_
   >>= (
@@ -14,12 +14,12 @@ let variable =
   );
 
 let expression =
-    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t)
     : statement_parser_t =>
   parse_expr(ctx) >|= N.wrap(AR.of_expr);
 
 let parser =
-    (ctx: ModuleContext.t, parse_expr: contextual_expression_parser_t)
+    (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t)
     : statement_parser_t =>
   choice([variable(ctx, parse_expr), expression(ctx, parse_expr)])
   |> M.terminated;

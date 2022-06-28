@@ -9,7 +9,7 @@ module Assert = {
   include Assert.Make({
     type t = N.t((A.export_t, A.declaration_t), unit);
 
-    let parser = ((_, ctx)) =>
+    let parser = ctx =>
       Constant.parser(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
@@ -64,17 +64,20 @@ let suite =
     "parse with complex derived type"
     >: (
       () => {
-        let declarations =
-          [
-            (Export.Named("bar"), T.Valid(`Float)),
-            (Export.Named("fizz"), T.Valid(`Integer)),
-            (Export.Named("buzz"), T.Valid(`Float)),
-          ]
-          |> List.to_seq
-          |> DeclarationTable.of_seq;
+        let symbols = {
+          ...SymbolTable.create(),
+          declared: {
+            values: [
+              ("bar", T.Valid(`Float)),
+              ("fizz", T.Valid(`Integer)),
+              ("buzz", T.Valid(`Float)),
+            ],
+            types: [],
+          },
+        };
 
         Assert.parse(
-          ~mod_context=x => ModuleContext.create(~declarations, x),
+          ~context=ParseContext.create(~symbols, Namespace.Internal("foo")),
           (
             "foo" |> U.as_untyped |> A.of_named_export,
             [
@@ -128,19 +131,14 @@ let suite =
           }",
         );
 
-        /* TODO: uncomment assertions */
-        Assert.hashtbl(
-          ~@Export.pp,
-          ~@T.pp,
+        Assert.symbol_assoc_list(
           [
-            (Export.Named("bar"), T.Valid(`Float)),
-            (Export.Named("fizz"), T.Valid(`Integer)),
-            (Export.Named("buzz"), T.Valid(`Float)),
-            (Export.Named("foo"), T.Valid(`Boolean)),
-          ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
-          declarations.scope,
+            ("bar", T.Valid(`Float)),
+            ("fizz", T.Valid(`Integer)),
+            ("buzz", T.Valid(`Float)),
+            ("foo", T.Valid(`Boolean)),
+          ],
+          symbols.declared.values,
         );
       }
     ),

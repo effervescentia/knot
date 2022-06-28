@@ -103,7 +103,7 @@ let _module_statement = (kwd, parser, f) =>
       )
   );
 
-let _type_variant = (ctx: ModuleContext.t) =>
+let _type_variant = (ctx: ParseContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
@@ -114,7 +114,7 @@ let _type_variant = (ctx: ModuleContext.t) =>
       >|= N.map(Tuple.with_fst2(id))
   );
 
-let type_variants = (ctx: ModuleContext.t) =>
+let type_variants = (ctx: ParseContext.t) =>
   optional(Symbol.vertical_bar)
   >> (_type_variant(ctx) |> sep_by(Symbol.vertical_bar));
 
@@ -138,11 +138,7 @@ let enumerated: type_module_statement_parser_t =
   ctx =>
     _module_statement(
       Keyword.enum,
-      type_variants(
-        ModuleContext.create(
-          NamespaceContext.create(Reference.Namespace.Ambient),
-        ),
-      )
+      type_variants(ParseContext.create(Ambient))
       >|= (
         variants => {
           let variant_range = variants |> List.last |?> N.get_range;

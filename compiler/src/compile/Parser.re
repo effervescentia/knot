@@ -13,7 +13,7 @@ module Program = Grammar.Program;
  */
 let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
   parse(
-    namespace |> NamespaceContext.create(~report=ignore) |> Program.imports,
+    namespace |> ParseContext.create(~report=ignore) |> Program.imports,
     input,
   )
   |> (
@@ -34,7 +34,7 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
 /**
  parses entire document to extract imports, declarations and type information
  */
-let ast = (ctx: NamespaceContext.t, input: Program.input_t) =>
+let ast = (ctx: ParseContext.t, input: Program.input_t) =>
   input
   |> parse(Program.main(ctx))
   |> (

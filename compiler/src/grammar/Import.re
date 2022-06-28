@@ -1,21 +1,25 @@
 open Kore;
 
-let _import_named = (ctx: ModuleContext.t, import) =>
+let _import_named = (ctx: ParseContext.t, import) =>
   fun
   | (((id, _), None), _) as no_alias =>
-    ctx |> import((Reference.Export.Named(id), N.get_range(no_alias)), id)
+    ctx
+    |> import(Reference.Export.Named(id), id)
+    |> Result.map_error(Tuple.with_snd2(N.get_range(no_alias)))
 
   | (((id, _), Some((alias, _))), _) as with_alias =>
     ctx
-    |> import((Reference.Export.Named(id), N.get_range(with_alias)), alias);
+    |> import(Reference.Export.Named(id), alias)
+    |> Result.map_error(Tuple.with_snd2(N.get_range(with_alias)));
 
 let _import_module = (ctx, imports, import) =>
   imports
-  |> List.iter(
+  |> List.map(
        fun
        | (A.MainImport((alias, _)), _) as main_import =>
          ctx
-         |> import((Reference.Export.Main, N.get_range(main_import)), alias)
+         |> import(Reference.Export.Main, alias)
+         |> Result.map_error(Tuple.with_snd2(N.get_range(main_import)))
 
        | (A.NamedImport(id, alias), _) as named_import =>
          _import_named(
@@ -33,7 +37,7 @@ let namespace = imports =>
 let main_import =
   M.identifier >|= (import => [import |> N.wrap(A.of_main_import)]);
 
-let named_imports = (ctx: ModuleContext.t) =>
+let named_imports = (ctx: ParseContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
@@ -48,7 +52,7 @@ let named_imports = (ctx: ModuleContext.t) =>
         ),
       );
 
-let module_import = (ctx: ModuleContext.t) =>
+let module_import = (ctx: ParseContext.t) =>
   Keyword.import
   >>= (
     kwd =>
@@ -62,7 +66,14 @@ let module_import = (ctx: ModuleContext.t) =>
       >>= namespace
       >@= (
         (((namespace, _), imports)) =>
-          namespace |> ModuleContext.import |> _import_module(ctx, imports)
+          namespace
+          |> ParseContext.import
+          |> _import_module(ctx, imports)
+          |> List.iter(
+               Result.iter_error(((err, range)) =>
+                 ctx |> ParseContext.report(TypeError(err), range)
+               ),
+             )
       )
       >|= (
         ((namespace, imports)) =>
@@ -73,13 +84,16 @@ let module_import = (ctx: ModuleContext.t) =>
       )
   );
 
-let standard_import = (ctx: ModuleContext.t) =>
+let standard_import = (ctx: ParseContext.t) =>
   Keyword.import
   >>= (
     kwd =>
       named_imports(ctx)
       >@= fst
-      % List.iter(_import_named(ctx, ModuleContext.import(Stdlib)))
+      % List.iter(
+          _import_named(ctx, ParseContext.import(Stdlib))
+          % Result.iter_error(x => ()),
+        )
       >|= (
         imports =>
           N.untyped(
@@ -89,5 +103,5 @@ let standard_import = (ctx: ModuleContext.t) =>
       )
   );
 
-let parser = (ctx: ModuleContext.t) =>
+let parser = (ctx: ParseContext.t) =>
   choice([module_import(ctx), standard_import(ctx)]) |> M.terminated;

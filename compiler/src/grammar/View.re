@@ -2,7 +2,7 @@ open Kore;
 
 module SemanticAnalyzer = Analyze.Semantic;
 
-let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
+let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
   Keyword.view
   >>= N.get_range
   % (
@@ -13,7 +13,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
           Lambda.parser(ctx)
           >|= (
             ((raw_props, raw_res, range)) => {
-              let scope = ctx |> Util.create_scope(range);
+              let scope = ctx |> ParseContext.to_scope(range);
               let props =
                 raw_props
                 |> List.map(SemanticAnalyzer.analyze_argument(scope));
@@ -42,8 +42,8 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
               let type_ = T.Valid(`View((prop_types, N.get_type(res))));
               let export_id = f(id);
 
-              ctx
-              |> ModuleContext.declare(
+              ctx.symbols
+              |> SymbolTable.declare_value(
                    ~main=Util.is_main(export_id),
                    fst(id),
                    type_,

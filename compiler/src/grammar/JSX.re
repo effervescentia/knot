@@ -16,7 +16,7 @@ module Fragment = {
 let _attribute =
     (
       ~prefix=M.alpha <|> Character.underscore,
-      ctx: ModuleContext.t,
+      ctx: ParseContext.t,
       (parse_term, parse_expr): expression_parsers_arg_t,
     ) =>
   Operator.assign(
@@ -37,8 +37,7 @@ let _attribute =
 let _self_closing = Tag.self_close >|= N.map(() => []);
 
 let rec parser =
-        (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
-        : jsx_parser_t =>
+        (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
   /* do not attempt to simplify this `input` argument away or JSX parsing will loop forever */
   input =>
     (choice([fragment(ctx, parsers), tag(ctx, parsers)]) |> M.lexeme)(
@@ -46,13 +45,13 @@ let rec parser =
     )
 
 and fragment =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
   children(ctx, parsers)
   |> M.between(Fragment.open_, Fragment.close)
   >|= N.map(AR.of_frag)
 
 and tag =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
   Tag.open_
   >> M.identifier
   >>= (
@@ -82,7 +81,7 @@ and tag =
   )
 
 and property_attribute =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_parser_t =>
   _attribute(ctx, parsers)
   >|= (
@@ -90,7 +89,7 @@ and property_attribute =
   )
 
 and class_attribute =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_parser_t =>
   _attribute(~prefix=Character.period, ctx, parsers)
   >|= (
@@ -107,7 +106,7 @@ and id_attribute: jsx_attribute_parser_t =
   >|= N.wrap(AR.of_jsx_id)
 
 and attributes =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_list_parser_t =>
   choice([
     property_attribute(ctx, parsers),
@@ -117,7 +116,7 @@ and attributes =
   |> many
 
 and children =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_child_list_parser_t =>
   choice([node(ctx, parsers), inline_expr(ctx, parsers), text])
   |> M.lexeme
@@ -132,12 +131,12 @@ and text: jsx_child_parser_t =
   >|= N.map(String.trim % AR.of_text)
 
 and node =
-    (ctx: ModuleContext.t, parsers: expression_parsers_arg_t)
+    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_child_parser_t =>
   parser(ctx, parsers) >|= N.map(AR.of_node)
 
 and inline_expr =
-    (ctx: ModuleContext.t, (_, parse_expr): expression_parsers_arg_t)
+    (ctx: ParseContext.t, (_, parse_expr): expression_parsers_arg_t)
     : jsx_child_parser_t =>
   parse_expr(ctx)
   |> M.between(Symbol.open_inline_expr, Symbol.close_inline_expr)

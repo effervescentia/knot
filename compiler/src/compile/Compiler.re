@@ -179,7 +179,7 @@ let process_one =
   let module_errors = ref([]);
 
   let context =
-    NamespaceContext.create(
+    ParseContext.create(
       ~modules=compiler.modules,
       ~report=
         err => {

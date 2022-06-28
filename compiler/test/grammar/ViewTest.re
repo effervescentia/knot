@@ -10,7 +10,7 @@ module Assert = {
   include Assert.Make({
     type t = N.t((A.export_t, A.declaration_t), unit);
 
-    let parser = ((_, ctx)) =>
+    let parser = ctx =>
       View.parser(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;

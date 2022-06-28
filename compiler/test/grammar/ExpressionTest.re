@@ -7,7 +7,7 @@ module Assert =
   Assert.Make({
     type t = AR.expression_t;
 
-    let parser = ((_, ctx)) =>
+    let parser = ctx =>
       ctx |> Expression.parser |> Assert.parse_completely |> Parser.parse;
 
     let test =

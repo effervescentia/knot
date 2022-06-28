@@ -86,6 +86,9 @@ let hashtbl = (key_to_string, value_to_string) =>
     check(Compare.hashtbl(key_to_string, value_to_string), "hashtbl matches")
   );
 
+let symbol_assoc_list = value_to_string =>
+  Alcotest.(check(list(pair(string, value_to_string)), "hashtbl matches"));
+
 let file_exists = file =>
   if (!Sys.file_exists(file)) {
     file |> Alcotest.failf("expected file %s to exist");

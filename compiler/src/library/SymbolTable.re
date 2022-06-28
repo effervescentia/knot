@@ -41,6 +41,7 @@ module Symbols = {
 type t = {
   imported: Symbols.t,
   declared: Symbols.t,
+  mutable main: option(Type.t),
 };
 
 /* static */
@@ -48,6 +49,7 @@ type t = {
 let create = (): t => {
   imported: Symbols.create(),
   declared: Symbols.create(),
+  main: None,
 };
 
 /* methods */
@@ -58,8 +60,13 @@ let import = (id: string, type_: Type.t, table: t) =>
 let declare_type = (id: string, type_: Type.t, table: t) =>
   table.declared.types = table.declared.types @ [(id, type_)];
 
-let declare_value = (id: string, type_: Type.t, table: t) =>
+let declare_value = (~main=false, id: string, type_: Type.t, table: t) => {
   table.declared.values = table.declared.values @ [(id, type_)];
+
+  if (main) {
+    table.main = Some(type_);
+  };
+};
 
 let resolve_type = (~no_imports=false, id: string, table: t): option(Type.t) =>
   table.declared.types

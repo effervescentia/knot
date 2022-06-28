@@ -8,7 +8,7 @@ module Assert =
   Assert.Make({
     type t = A.module_statement_t;
 
-    let parser = ((_, ctx)) =>
+    let parser = ctx =>
       Import.parser(ctx) |> Assert.parse_completely |> Parser.parse;
 
     let test =
@@ -26,7 +26,7 @@ module Assert =
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __context_with_named_exports =
-  NamespaceContext.create(
+  ParseContext.create(
     ~modules=
       [
         (
@@ -54,7 +54,7 @@ let __context_with_named_exports =
   );
 
 let __context_with_main_export =
-  NamespaceContext.create(
+  ParseContext.create(
     ~modules=
       [
         (
@@ -94,7 +94,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
@@ -108,7 +108,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           ("bar" |> A.of_internal, []) |> A.of_import |> U.as_untyped,
           "import {} from \"@/bar\"",
         )
@@ -117,7 +117,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
@@ -133,7 +133,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
@@ -151,7 +151,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
@@ -173,7 +173,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
@@ -192,7 +192,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ~ns_context=__context_with_main_export,
+          ~context=__context_with_main_export,
           (
             "bar" |> A.of_internal,
             ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
@@ -209,7 +209,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           [(U.as_untyped("foo"), None) |> U.as_untyped]
           |> A.of_standard_import
           |> U.as_untyped,
@@ -220,7 +220,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           [
             (U.as_untyped("foo"), Some(U.as_untyped("bar"))) |> U.as_untyped,
           ]

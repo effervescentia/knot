@@ -180,6 +180,11 @@ let suite =
       () => {
         let expected = [
           ParseError(
+            TypeError(ExternalNotFound(Nx.bar, Named("BAR"))),
+            Nx.foo,
+            Range.create((1, 10), (1, 12)),
+          ),
+          ParseError(
             ReservedKeyword("const"),
             Nx.foo,
             Range.create((3, 7), (3, 11)),

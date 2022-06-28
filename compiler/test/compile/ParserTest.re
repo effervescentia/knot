@@ -12,7 +12,7 @@ module Px = Fixtures.Program;
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __context =
-  NamespaceContext.create(
+  ParseContext.create(
     ~modules=
       [
         (

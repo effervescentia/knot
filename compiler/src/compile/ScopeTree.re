@@ -52,8 +52,10 @@ let rec of_def_tbl = (~range=?, declarations: DeclarationTable.t): t => {
   );
 };
 
-let rec of_context = (~range=?, context: NamespaceContext.t): t => {
-  context.inner_modules
+let rec of_context = (~range=?, context: ParseContext.t): t => {
+  /* TODO: re-implement this with ParseContext */
+  /* context.inner_modules */
+  []
   |> List.map(((_, x, range)) => of_def_tbl(~range, x))
   |> _join
   |?: BinaryTree.create((range |?: Range.zero, Some(Hashtbl.create(0))));

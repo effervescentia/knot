@@ -27,7 +27,7 @@ type jsx_child_parser_t = parser_t(AR.jsx_child_t);
 type jsx_child_list_parser_t = parser_t(list(AR.jsx_child_t));
 
 type expression_parser_t = parser_t(AR.expression_t);
-type contextual_expression_parser_t = ModuleContext.t => expression_parser_t;
+type contextual_expression_parser_t = ParseContext.t => expression_parser_t;
 
 type expression_parsers_arg_t = (
   /* parses a "term" */

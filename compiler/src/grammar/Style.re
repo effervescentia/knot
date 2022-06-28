@@ -2,7 +2,7 @@ open Kore;
 
 module SemanticAnalyzer = Analyze.Semantic;
 
-let style_rule_set = (ctx: ModuleContext.t) =>
+let style_rule_set = (ctx: ParseContext.t) =>
   choice([
     M.identifier(~prefix=Character.period) >|= A.of_class_matcher,
     M.identifier(~prefix=Character.octothorpe) >|= A.of_id_matcher,
@@ -21,7 +21,7 @@ let style_rule_set = (ctx: ModuleContext.t) =>
       >|= N.map(Tuple.with_fst2(matcher))
   );
 
-let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
+let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
   Keyword.style
   >>= N.get_range
   % (
@@ -42,7 +42,7 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                   >|= (
                     raw_rule_sets => {
                       let range = N.get_range(raw_rule_sets);
-                      let scope = ctx |> Util.create_scope(range);
+                      let scope = ctx |> ParseContext.to_scope(range);
                       let args =
                         raw_args
                         |> SemanticAnalyzer.analyze_argument_list(scope);
@@ -101,8 +101,8 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
                         );
                       let export_id = f(id);
 
-                      ctx
-                      |> ModuleContext.declare(
+                      ctx.symbols
+                      |> SymbolTable.declare_value(
                            ~main=Util.is_main(export_id),
                            fst(id),
                            type_,

@@ -7,7 +7,7 @@ module U = Util.ResultUtil;
 module Target = {
   type t = A.program_t;
 
-  let parser = ((ctx, _)) => ctx |> Program.main |> Parser.parse;
+  let parser = Program.main % Parser.parse;
 
   let test =
     Alcotest.(
@@ -27,7 +27,7 @@ module AssertImports =
   Assert.Make({
     include Target;
 
-    let parser = ((ctx, _)) => ctx |> Program.imports |> Parser.parse;
+    let parser = Program.imports % Parser.parse;
   });
 module Assert = Assert.Make(Target);
 
@@ -50,8 +50,8 @@ let __const_decl_ast =
   |> A.of_decl
   |> U.as_untyped;
 
-let __ns_context =
-  NamespaceContext.create(
+let __context =
+  ParseContext.create(
     ~modules=
       [
         (
@@ -81,11 +81,7 @@ let suite =
     "parse import"
     >: (
       () =>
-        Assert.parse(
-          ~ns_context=__ns_context,
-          [__main_import_ast],
-          __main_import,
-        )
+        Assert.parse(~context=__context, [__main_import_ast], __main_import)
     ),
     "parse single declaration"
     >: (() => Assert.parse([__const_decl_ast], __const_decl)),
@@ -109,7 +105,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__ns_context,
+          ~context=__context,
           [__main_import_ast, __const_decl_ast],
           Fmt.str("%s; %s", __main_import, __const_decl),
         )
@@ -118,8 +114,8 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=
-            NamespaceContext.create(
+          ~context=
+            ParseContext.create(
               ~modules=
                 [
                   (
@@ -157,7 +153,7 @@ let suite =
     >: (
       () =>
         AssertImports.parse(
-          ~ns_context=__ns_context,
+          ~context=__context,
           [__main_import_ast],
           __main_import |> Fmt.str("%s; gibberish"),
         )

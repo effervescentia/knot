@@ -1,6 +1,6 @@
 open Kore;
 
-let arguments = (ctx: ModuleContext.t) =>
+let arguments = (ctx: ParseContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
@@ -35,7 +35,7 @@ let arguments = (ctx: ModuleContext.t) =>
   |> M.between(Symbol.open_group, Symbol.close_group)
   >|= fst;
 
-let parser = (ctx: ModuleContext.t) =>
+let parser = (ctx: ParseContext.t) =>
   option([], arguments(ctx))
   >>= (
     args =>

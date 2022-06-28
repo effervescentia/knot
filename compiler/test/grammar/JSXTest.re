@@ -8,7 +8,7 @@ module Assert =
   Assert.Make({
     type t = N.t(AR.jsx_t, unit);
 
-    let parser = ((_, ctx)) =>
+    let parser = ctx =>
       JSX.parser(ctx, (Expression.jsx_term, Expression.parser))
       |> Assert.parse_completely
       |> Parser.parse;

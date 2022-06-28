@@ -2,7 +2,7 @@ open Kore;
 
 module SemanticAnalyzer = Analyze.Semantic;
 
-let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
+let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
   Keyword.enum
   >|= N.get_range
   >>= (
@@ -44,8 +44,8 @@ let parser = (ctx: ModuleContext.t, f): declaration_parser_t =>
           let enum = N.typed(A.of_enum(variants), type_, range);
           let export_id = f(id);
 
-          ctx
-          |> ModuleContext.declare(
+          ctx.symbols
+          |> SymbolTable.declare_value(
                ~main=Util.is_main(export_id),
                fst(id),
                type_,
