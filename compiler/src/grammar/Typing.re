@@ -228,19 +228,27 @@ let module_: type_module_parser_t =
                   let SymbolTable.Symbols.{types, values} =
                     module_ctx.symbols.declared;
 
+                  let decorators =
+                    raw_decorators
+                    |> List.map(
+                         Analyze.Semantic.analyze_decorator(ctx, Module),
+                       );
+
                   if (!List.is_empty(types)) {
                     ctx.symbols
                     |> SymbolTable.declare_type(
                          fst(id),
                          Valid(
-                           `Module(
+                           `Module((
                              types
                              |> List.map(
                                   Tuple.map_snd2(type_ =>
                                     Type.Container.Type(type_)
                                   ),
                                 ),
-                           ),
+                             /* TODO */
+                             [],
+                           )),
                          ),
                        );
                   };
@@ -250,23 +258,19 @@ let module_: type_module_parser_t =
                     |> SymbolTable.declare_value(
                          fst(id),
                          Valid(
-                           `Module(
+                           `Module((
                              values
                              |> List.map(
                                   Tuple.map_snd2(type_ =>
                                     Type.Container.Value(type_)
                                   ),
                                 ),
-                           ),
+                             /* TODO */
+                             [],
+                           )),
                          ),
                        );
                   };
-
-                  let decorators =
-                    raw_decorators
-                    |> List.map(
-                         Analyze.Semantic.analyze_decorator(ctx, Module),
-                       );
 
                   N.untyped(
                     (id, fst(stmts), decorators) |> TD.of_module,

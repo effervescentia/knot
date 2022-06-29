@@ -52,7 +52,7 @@ let check_dot_access: (string, T.t) => option(T.error_t) =
         when props |> List.exists(((name, _)) => name == prop) =>
       None
 
-    | Valid(`Module(entries))
+    | Valid(`Module(entries, _))
         when entries |> List.exists(((name, _)) => name == prop) =>
       None
 

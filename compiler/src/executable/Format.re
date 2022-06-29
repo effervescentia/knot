@@ -6,6 +6,7 @@ open Kore;
 type config_t = {
   root_dir: string,
   source_dir: string,
+  ambient: string,
 };
 
 let command_key = "format";
@@ -17,11 +18,12 @@ let command = () => {
   Command.create(
     command_key,
     [root_dir_arg, source_dir_arg],
-    (static, global) => {
+    (static, global, argv) => {
       let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir).relative;
+      let ambient = Resource.Asset.find(~argv, Target.to_ambient_lib(Knot));
 
-      {root_dir, source_dir};
+      {root_dir, source_dir, ambient};
     },
   );
 };
@@ -29,6 +31,7 @@ let command = () => {
 let extract_config = (config: config_t) => [
   (root_dir_key, config.root_dir),
   (source_dir_key, config.source_dir),
+  (ambient_key, config.ambient),
 ];
 
 let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
@@ -57,6 +60,7 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
         fail_fast: false,
         log_imports: false,
         stdlib: global.stdlib,
+        ambient: config.ambient,
       },
     );
 

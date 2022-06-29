@@ -45,17 +45,25 @@ module Container = {
     | Type('a)
     | Value('a);
 
-  type t('a) = [
+  type value_t('a) = [
     | `List('a)
     | `Struct(list((string, 'a)))
     | `Enumerated(list((string, list('a))))
     | `Function(list('a), 'a)
-    | `Decorator(list('a), DecoratorTarget.t)
-    /* entities */
+  ];
+
+  type decorator_t('a) = [ | `Decorator(list('a), DecoratorTarget.t)];
+
+  type entity_t('a) = [
     | `View(list((string, 'a)), 'a)
     | `Style(list('a), list(string), list(string))
-    | `Module(list((string, module_entry_t('a))))
+    | `Module(
+        list((string, module_entry_t('a))),
+        list((string, list('a))),
+      )
   ];
+
+  type t('a) = [ value_t('a) | decorator_t('a) | entity_t('a)];
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
     Fmt.(ppf => pf(ppf, "%a[]", pp_type));
@@ -152,18 +160,26 @@ module Container = {
     );
 
   let pp_module =
-      (pp_type: Fmt.t('a)): Fmt.t(list((string, module_entry_t('a)))) =>
+      (pp_type: Fmt.t('a))
+      : Fmt.t(
+          (
+            list((string, module_entry_t('a))),
+            list((string, list('a))),
+          ),
+        ) =>
     Fmt.(
-      (ppf, entries) =>
+      (ppf, (entries, decorators)) =>
         pf(
           ppf,
-          "@[<h>Module<%a>@]",
+          "@[<h>Module<%a, %a>@]",
           record(string, ppf =>
             fun
             | Type(t) => pf(ppf, "type %a", pp_type, t)
             | Value(t) => pp_type(ppf, t)
           ),
           entries,
+          record(string, list(pp_type)),
+          decorators,
         )
     );
 };
@@ -199,7 +215,8 @@ module Raw = {
       | `Style(args, ids, classes) =>
         Container.pp_style(pp, ppf, (args, ids, classes))
 
-      | `Module(entries) => Container.pp_module(pp, ppf, entries)
+      | `Module(entries, decorators) =>
+        Container.pp_module(pp, ppf, (entries, decorators))
 
       | `Unknown => Fmt.string(ppf, "Unknown")
       };
@@ -415,9 +432,9 @@ let rec of_raw = (raw_type: Raw.t): t =>
   | `Style(args, ids, classes) =>
     Valid(`Style((args |> List.map(of_raw), ids, classes)))
 
-  | `Module(entries) =>
+  | `Module(entries, decorators) =>
     Valid(
-      `Module(
+      `Module((
         entries
         |> List.map(
              Tuple.map_snd2(
@@ -428,7 +445,8 @@ let rec of_raw = (raw_type: Raw.t): t =>
                ),
              ),
            ),
-      ),
+        decorators |> List.map(Tuple.map_snd2(List.map(of_raw))),
+      )),
     )
 
   | `Unknown => raise(UnknownTypeEncountered)

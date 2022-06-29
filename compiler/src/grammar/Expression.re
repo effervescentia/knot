@@ -50,7 +50,7 @@ let dot_access = {
             (
               switch (N.get_type(expr)) {
               | `Struct(props) => props |> List.assoc_opt(fst(prop))
-              | `Module(entries) =>
+              | `Module(entries, _) =>
                 entries
                 |> List.find_map(
                      fun

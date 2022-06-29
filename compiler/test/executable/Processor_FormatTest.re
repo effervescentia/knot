@@ -36,6 +36,7 @@ let suite =
              Task.Format({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
                source_dir: "lib",
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -58,6 +59,7 @@ let suite =
                root_dir:
                  Filename.concat(path_alternative_fixture_dir, "root"),
                source_dir: "src",
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -80,6 +82,7 @@ let suite =
                root_dir:
                  Filename.concat(path_override_fixture_dir, "project"),
                source_dir: "lib",
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -101,6 +104,7 @@ let suite =
              Task.Format({
                root_dir: path_alternative_fixture_dir,
                source_dir: "lib",
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -122,6 +126,7 @@ let suite =
              Task.Format({
                root_dir: Filename.concat(path_override_fixture_dir, "root"),
                source_dir: "src",
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),

@@ -17,7 +17,7 @@ let command = () => {
   Command.create(
     command_key,
     [root_dir_arg, fix_arg],
-    (static, global) => {
+    (static, global, _) => {
       let root_dir = get_root_dir(static, global.working_dir);
       let fix = get_fix(static);
 

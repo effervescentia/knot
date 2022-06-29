@@ -272,6 +272,7 @@
       "require": [
         "knot.build_server",
         "knot.language_server",
+        "knot.resource",
         "yaml"
       ],
       "name": "knot.exec",

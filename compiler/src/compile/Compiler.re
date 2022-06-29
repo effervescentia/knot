@@ -11,6 +11,7 @@ type config_t = {
   fail_fast: bool,
   log_imports: bool,
   stdlib: string,
+  ambient: string,
 };
 
 type action_t =
@@ -509,11 +510,40 @@ let add_standard_library = (~flush=true, compiler: t) => {
     | Some((raw, ast, symbols)) => {
         let library = ModuleTable.{symbols: symbols};
 
-        compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
+        compiler.modules |> ModuleTable.add(namespace, Library(raw, library));
 
         Log.debug("added standard library to compiler context");
       }
     | _ => Log.error("failed to load standard library")
+  );
+
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
+};
+
+let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
+  let namespace = Reference.Namespace.Ambient;
+  let source = Source.File({relative: "", full: compiler.config.ambient});
+
+  compiler
+  |> process_definition(~flush=false, namespace, source)
+  |> (
+    fun
+    | Some((raw, ast, symbols)) => {
+        ();
+          /* ast
+             |> List.iter(
+                  fst
+                  % (
+                    fun
+                    | A.TypeDefinition.Module(_, _, [_, ..._] as decorators) => ()
+                    | _ => ()
+                  ),
+                ); */
+      }
+    /* Log.debug("added standard library to compiler context"); */
+    | _ => Log.error("failed to scan ambient library for plugins")
   );
 
   if (flush) {

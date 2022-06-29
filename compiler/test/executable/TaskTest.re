@@ -17,6 +17,7 @@ let suite =
   target: knot
   fail_fast: true
   log_imports: false
+  ambient: ambient.kd
 }",
           Task.Build({
             root_dir: "root",
@@ -26,6 +27,7 @@ let suite =
             target: Target.Knot,
             fail_fast: true,
             log_imports: false,
+            ambient: "ambient.kd",
           })
           |> ~@Fmt.root(Task.pp),
         )
@@ -40,6 +42,7 @@ let suite =
   out_dir: output
   entry: foo
   target: knot
+  ambient: ambient.kd
 }",
           Task.Watch({
             root_dir: "root",
@@ -47,6 +50,7 @@ let suite =
             out_dir: "output",
             entry: Reference.Namespace.External("foo"),
             target: Target.Knot,
+            ambient: "ambient.kd",
           })
           |> ~@Fmt.root(Task.pp),
         )
@@ -58,8 +62,13 @@ let suite =
           "FormatTask {
   root_dir: root
   source_dir: source
+  ambient: ambient.kd
 }",
-          Task.Format({root_dir: "root", source_dir: "source"})
+          Task.Format({
+            root_dir: "root",
+            source_dir: "source",
+            ambient: "ambient.kd",
+          })
           |> ~@Fmt.root(Task.pp),
         )
     ),
@@ -108,12 +117,14 @@ let suite =
   source_dir: source
   target: knot
   log_imports: false
+  ambient: ambient.kd
 }",
           Task.BuildServe({
             root_dir: "root",
             source_dir: "source",
             target: Target.Knot,
             log_imports: false,
+            ambient: "ambient.kd",
           })
           |> ~@Fmt.root(Task.pp),
         )

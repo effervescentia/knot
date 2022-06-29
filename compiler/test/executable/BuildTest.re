@@ -32,6 +32,7 @@ let suite =
             entry: __entry,
             fail_fast: true,
             log_imports: false,
+            ambient: "",
           },
         );
 
@@ -64,6 +65,7 @@ exports.ABC = ABC;
             entry: __entry,
             fail_fast: true,
             log_imports: false,
+            ambient: "",
           },
         );
 

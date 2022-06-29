@@ -215,7 +215,7 @@ and analyze_expression =
           switch (type_expr) {
           | Valid(`Struct(props)) => props |> List.assoc_opt(prop_name)
 
-          | Valid(`Module(entries)) =>
+          | Valid(`Module(entries, _)) =>
             entries
             |> List.find_map(
                  fun

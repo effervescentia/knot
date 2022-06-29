@@ -13,6 +13,7 @@ type config_t = {
   source_dir: string,
   out_dir: string,
   entry: Namespace.t,
+  ambient: string,
 };
 
 let _is_source_file = String.ends_with(Constants.file_extension);
@@ -29,14 +30,21 @@ let command = () => {
   Command.create(
     command_key,
     [root_dir_arg, source_dir_arg, out_dir_arg, target_arg, entry_arg],
-    (static, global) => {
+    (static, global, argv) => {
       let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir);
       let out_dir = get_out_dir(static, root_dir);
       let entry = get_entry(static, source_dir.absolute);
-      let target = get_target(static);
+      let (target, ambient) = get_target(~argv, static);
 
-      {root_dir, source_dir: source_dir.relative, out_dir, entry, target};
+      {
+        root_dir,
+        source_dir: source_dir.relative,
+        out_dir,
+        entry,
+        target,
+        ambient,
+      };
     },
   );
 };
@@ -47,6 +55,7 @@ let extract_config = (config: config_t) => [
   (out_dir_key, config.out_dir),
   (entry_key, config.entry |> ~@Namespace.pp),
   (target_key, config.target |> ~@Target.pp),
+  (ambient_key, config.ambient),
 ];
 
 let run =
@@ -71,6 +80,7 @@ let run =
         fail_fast: false,
         log_imports: false,
         stdlib: global.stdlib,
+        ambient: config.ambient,
       },
     );
 

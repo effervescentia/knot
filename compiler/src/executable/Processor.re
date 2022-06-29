@@ -122,7 +122,10 @@ let run =
 
     Fmt.color := global_config.color;
 
-    (global_config, resolve_command_config(static_config, global_config));
+    (
+      global_config,
+      resolve_command_config(static_config, global_config, argv),
+    );
 
   | None =>
     Fmt.pr("%a@,", Usage.pp_command_list, Usage.commands);

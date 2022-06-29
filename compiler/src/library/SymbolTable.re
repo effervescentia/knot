@@ -111,7 +111,7 @@ let resolve_value = (~no_imports=false, id: string, table: t): option(Type.t) =>
 let to_module_type = (table: t): Type.t =>
   Type.(
     Valid(
-      `Module(
+      `Module((
         (
           table.declared.types
           |> List.map(Tuple.map_snd2(t => Container.Type(t)))
@@ -120,7 +120,8 @@ let to_module_type = (table: t): Type.t =>
           table.declared.values
           |> List.map(Tuple.map_snd2(t => Container.Value(t)))
         ),
-      ),
+        [],
+      )),
     )
   );
 

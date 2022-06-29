@@ -61,6 +61,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -87,6 +88,7 @@ let suite =
                target: Target.Knot,
                fail_fast: false,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -113,6 +115,7 @@ let suite =
                target: Target.JavaScript(ES6),
                fail_fast: true,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -140,6 +143,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: false,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -167,6 +171,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -193,6 +198,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: false,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -219,6 +225,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -245,6 +252,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: false,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -271,6 +279,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -297,6 +306,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: false,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -323,6 +333,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -349,6 +360,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -375,6 +387,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: true,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -401,6 +414,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: false,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -427,6 +441,7 @@ let suite =
                target: Target.JavaScript(Common),
                fail_fast: false,
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),

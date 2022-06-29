@@ -28,6 +28,14 @@ let extension_of =
   | JavaScript(_) => ".js"
   | Knot => Constants.file_extension;
 
+let to_ambient_lib =
+  (
+    fun
+    | Knot => "core"
+    | JavaScript(_) => "browser"
+  )
+  % Fmt.str("ambient/%s.kd");
+
 /* pretty printing */
 
 let pp: Fmt.t(t) =

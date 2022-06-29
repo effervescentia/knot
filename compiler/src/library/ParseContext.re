@@ -12,6 +12,7 @@ type t = {
   modules: ModuleTable.t,
   /* the symbols in context for this module */
   symbols: SymbolTable.t,
+  plugins: list((string, SymbolTable.t)),
 };
 
 /* static */
@@ -27,6 +28,7 @@ let create =
   report,
   modules,
   symbols,
+  plugins: [],
 };
 
 let create_module = (parent: t): t =>

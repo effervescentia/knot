@@ -13,7 +13,7 @@ let command = () => {
   Command.create(
     command_key,
     [port_arg],
-    (static, _) => {
+    (static, _, _) => {
       let port = get_port(static);
 
       {port: port};
