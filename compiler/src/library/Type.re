@@ -5,13 +5,15 @@ exception UnknownTypeEncountered;
 
 module DecoratorTarget = {
   type t =
-    | Module;
+    | Module
+    | Style;
 
   let pp: Fmt.t(t) =
     ppf =>
       (
         fun
-        | Module => "module"
+        | Module => Constants.Keyword.module_
+        | Style => Constants.Keyword.style
       )
       % Fmt.string(ppf);
 };
@@ -235,7 +237,9 @@ type error_t =
   /* FIXME: not reported */
   | UntypedFunctionArgument(string)
   /* FIXME: not reported */
-  | DefaultArgumentMissing(string);
+  | DefaultArgumentMissing(string)
+  | InvalidDecoratorInvocation(t, list(t))
+  | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t);
 
 /* pretty printing */
 
@@ -365,6 +369,26 @@ let pp_error: Fmt.t(error_t) =
 
       | DefaultArgumentMissing(id) =>
         pf(ppf, "DefaultArgumentMissing<%s>", id)
+
+      | InvalidDecoratorInvocation(type_, expected_args) =>
+        pf(
+          ppf,
+          "InvalidDecoratorInvocation<%a, %a>",
+          pp,
+          type_,
+          list(pp),
+          expected_args,
+        )
+
+      | DecoratorTargetMismatch(lhs, rhs) =>
+        pf(
+          ppf,
+          "DecoratorTargetMismatch<%a, %a>",
+          DecoratorTarget.pp,
+          lhs,
+          DecoratorTarget.pp,
+          rhs,
+        )
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>

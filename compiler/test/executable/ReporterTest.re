@@ -38,7 +38,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 21 error(s) and 0 warning(s)
+finished with 23 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -179,7 +179,20 @@ finished with 21 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • remove default values from all preceding arguments
 
-finished with 21 error(s) and 0 warning(s)
+22) Invalid Decorator Invocation : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  decorator invocations can only be performed on values with decorator types
+  expected a value matching the type (string, nil) on target but received integer
+  \n  [code frame not available]
+
+23) Decorator Target Mismatch : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  this decorator can only target a module but found style
+  \n  [code frame not available]
+
+finished with 23 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -308,6 +321,26 @@ finished with 21 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(DefaultArgumentMissing("my_argument")),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                InvalidDecoratorInvocation(
+                  Type.Valid(`Integer),
+                  [Type.Valid(`String), Type.Valid(`Nil)],
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
+                DecoratorTargetMismatch(
+                  Type.DecoratorTarget.Module,
+                  Type.DecoratorTarget.Style,
+                ),
+              ),
               __namespace,
               Range.zero,
             ),

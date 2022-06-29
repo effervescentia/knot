@@ -8,8 +8,7 @@ module Assert =
   Assert.Make({
     type t = A.module_statement_t;
 
-    let parser = ctx =>
-      Import.parser(ctx) |> Assert.parse_completely |> Parser.parse;
+    let parser = Import.parser % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

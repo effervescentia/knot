@@ -290,9 +290,7 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
 
     | {name, default: None, type_: Some(type_expr)} =>
       let type_ =
-        type_expr
-        |> fst
-        |> Typing.eval_type_expression(SymbolTable.create());
+        type_expr |> fst |> Typing.eval_type_expression(SymbolTable.create());
 
       (A.{name, default: None, type_: Some(type_expr)}, type_);
 
@@ -300,9 +298,7 @@ let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
       let expr = raw_expr |> analyze_expression(scope);
       let expr_type = N.get_type(expr);
       let type_ =
-        type_expr
-        |> fst
-        |> Typing.eval_type_expression(SymbolTable.create());
+        type_expr |> fst |> Typing.eval_type_expression(SymbolTable.create());
 
       switch (expr_type, type_) {
       | (Valid(_), Valid(_)) when expr_type != type_ =>
@@ -355,4 +351,57 @@ let analyze_view_body =
   |> Option.iter(body |> N.get_range |> S.report_type_err(scope));
 
   body;
+};
+
+let analyze_decorator =
+    (ctx: ParseContext.t, target: T.DecoratorTarget.t, raw_decorator) => {
+  let decorator =
+    raw_decorator
+    |> N.map(
+         Tuple.map_fst2(
+           N.map_type(type_ => type_ |?: T.Invalid(NotInferrable)),
+         ),
+       );
+
+  raw_decorator
+  |> (
+    (((id, args), _) as node) => {
+      let args_types = args |> List.map(N.get_type);
+
+      switch (N.get_type(id)) {
+      | Some(T.Valid(`Decorator(_, expected_target)))
+          when expected_target != target =>
+        ctx
+        |> ParseContext.report(
+             TypeError(DecoratorTargetMismatch(expected_target, target)),
+             N.get_range(id),
+           )
+
+      | Some(T.Valid(`Decorator(expected_args, _)))
+          when
+            List.length(expected_args) == List.length(args_types)
+            && List.for_all2((==), expected_args, args_types) =>
+        ()
+
+      /* forward invalid types */
+      | Some(T.Invalid(_)) => ()
+
+      | Some(type_) =>
+        ctx
+        |> ParseContext.report(
+             TypeError(InvalidDecoratorInvocation(type_, args_types)),
+             N.get_range(node),
+           )
+
+      | None =>
+        ctx
+        |> ParseContext.report(
+             TypeError(NotFound(fst(id))),
+             N.get_range(id),
+           )
+      };
+    }
+  );
+
+  decorator;
 };

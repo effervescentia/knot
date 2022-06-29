@@ -3,7 +3,7 @@ open Kore;
 module Typing = Grammar.Typing;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
-module U = Util.RawUtil;
+module U = Util.ResultUtil;
 
 module Assert =
   Assert.Make({
@@ -11,7 +11,24 @@ module Assert =
 
     let parser = _ =>
       Namespace.of_string("test_namespace")
-      |> ParseContext.create
+      |> ParseContext.create(
+           ~symbols=
+             SymbolTable.of_export_list([
+               (
+                 Reference.Export.Named("fizz"),
+                 T.Valid(`Decorator(([], Module))),
+               ),
+               (
+                 Reference.Export.Named("buzz"),
+                 T.Valid(
+                   `Decorator((
+                     [Valid(`Integer), Valid(`Boolean)],
+                     Module,
+                   )),
+                 ),
+               ),
+             ]),
+         )
       |> Typing.root_parser
       |> Assert.parse_completely
       |> Parser.parse;
@@ -46,6 +63,79 @@ let suite =
         Assert.parse(
           U.as_untyped(TD.Module(U.as_untyped("Foo"), [], [])),
           "module Foo {}",
+        )
+    ),
+    "parse module with decorator"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_untyped(
+            TD.Module(
+              U.as_untyped("Foo"),
+              [],
+              [("fizz" |> U.as_decorator([], Module), []) |> U.as_untyped],
+            ),
+          ),
+          "@fizz
+module Foo {}",
+        )
+    ),
+    "parse module with decorator and arguments"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_untyped(
+            TD.Module(
+              U.as_untyped("Foo"),
+              [],
+              [
+                (
+                  "buzz"
+                  |> U.as_decorator(
+                       [Valid(`Integer), Valid(`Boolean)],
+                       Module,
+                     ),
+                  [
+                    123L |> A.of_int |> A.of_num |> U.as_int,
+                    false |> A.of_bool |> U.as_bool,
+                  ],
+                )
+                |> U.as_untyped,
+              ],
+            ),
+          ),
+          "@buzz(123, false)
+module Foo {}",
+        )
+    ),
+    "parse module with multiple decorators"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_untyped(
+            TD.Module(
+              U.as_untyped("Foo"),
+              [],
+              [
+                ("fizz" |> U.as_decorator([], Module), []) |> U.as_untyped,
+                (
+                  "buzz"
+                  |> U.as_decorator(
+                       [Valid(`Integer), Valid(`Boolean)],
+                       Module,
+                     ),
+                  [
+                    123L |> A.of_int |> A.of_num |> U.as_int,
+                    false |> A.of_bool |> U.as_bool,
+                  ],
+                )
+                |> U.as_untyped,
+              ],
+            ),
+          ),
+          "@fizz
+@buzz(123, false)
+module Foo {}",
         )
     ),
     "parse module with declaration"

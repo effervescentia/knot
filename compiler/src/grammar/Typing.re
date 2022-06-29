@@ -197,65 +197,86 @@ let module_statement: type_module_statement_parser_t =
   ctx =>
     choice([declaration(ctx), enumerated(ctx), type_(ctx)]) |> M.terminated;
 
+let _module_decorator = (ctx: ParseContext.t) =>
+  Decorator.parser(Primitive.parser)
+  >|= N.map(((id, args)) =>
+        (
+          id |> N.add_type(ctx.symbols |> SymbolTable.resolve_value(fst(id))),
+          args |> List.map(N.map_type(Type.of_raw)),
+        )
+      );
+
 let module_: type_module_parser_t =
   ctx =>
-    Keyword.module_
-    >> (
-      M.identifier(~prefix=M.alpha)
-      >>= (
-        id => {
-          let module_ctx = ParseContext.create_module(ctx);
+    _module_decorator(ctx)
+    |> many
+    |> option([])
+    >>= (
+      raw_decorators =>
+        Keyword.module_
+        >> (
+          M.identifier(~prefix=M.alpha)
+          >>= (
+            id => {
+              let module_ctx = ParseContext.create_module(ctx);
 
-          module_statement(module_ctx)
-          |> many
-          |> M.between(Symbol.open_closure, Symbol.close_closure)
-          >|= (
-            stmts => {
-              let SymbolTable.Symbols.{types, values} =
-                module_ctx.symbols.declared;
+              module_statement(module_ctx)
+              |> many
+              |> M.between(Symbol.open_closure, Symbol.close_closure)
+              >|= (
+                stmts => {
+                  let SymbolTable.Symbols.{types, values} =
+                    module_ctx.symbols.declared;
 
-              if (!List.is_empty(types)) {
-                ctx.symbols
-                |> SymbolTable.declare_type(
-                     fst(id),
-                     Valid(
-                       `Module(
-                         types
-                         |> List.map(
-                              Tuple.map_snd2(type_ =>
-                                Type.Container.Type(type_)
-                              ),
-                            ),
-                       ),
-                     ),
-                   );
-              };
+                  if (!List.is_empty(types)) {
+                    ctx.symbols
+                    |> SymbolTable.declare_type(
+                         fst(id),
+                         Valid(
+                           `Module(
+                             types
+                             |> List.map(
+                                  Tuple.map_snd2(type_ =>
+                                    Type.Container.Type(type_)
+                                  ),
+                                ),
+                           ),
+                         ),
+                       );
+                  };
 
-              if (!List.is_empty(values)) {
-                ctx.symbols
-                |> SymbolTable.declare_value(
-                     fst(id),
-                     Valid(
-                       `Module(
-                         values
-                         |> List.map(
-                              Tuple.map_snd2(type_ =>
-                                Type.Container.Value(type_)
-                              ),
-                            ),
-                       ),
-                     ),
-                   );
-              };
+                  if (!List.is_empty(values)) {
+                    ctx.symbols
+                    |> SymbolTable.declare_value(
+                         fst(id),
+                         Valid(
+                           `Module(
+                             values
+                             |> List.map(
+                                  Tuple.map_snd2(type_ =>
+                                    Type.Container.Value(type_)
+                                  ),
+                                ),
+                           ),
+                         ),
+                       );
+                  };
 
-              N.untyped(
-                (id, fst(stmts), []) |> TD.of_module,
-                N.get_range(stmts),
+                  let decorators =
+                    raw_decorators
+                    |> List.map(
+                         Analyze.Semantic.analyze_decorator(ctx, Module),
+                       );
+
+                  N.untyped(
+                    (id, fst(stmts), decorators) |> TD.of_module,
+                    N.get_range(stmts),
+                  );
+                }
               );
             }
-          );
-        }
-      )
+          )
+        )
     );
 
 let decorator: type_module_parser_t =
@@ -271,7 +292,8 @@ let decorator: type_module_parser_t =
           >> Keyword.module_
           >|= N.get_range
           % (range => ((fst(args), T.DecoratorTarget.Module), Some(range)))
-      ),
+      )
+      |> M.terminated,
       ((id, (args, target))) => {
         let arg_types =
           args

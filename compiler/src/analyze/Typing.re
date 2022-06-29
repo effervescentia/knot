@@ -184,8 +184,7 @@ let check_jsx_primitive_expression: T.t => option(T.error_t) =
 
   | type_ => Some(InvalidJSXPrimitiveExpression(type_));
 
-let rec eval_type_expression:
-  (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
+let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
   (defs, type_expr) =>
     A.TypeExpression.(
       switch (type_expr) {

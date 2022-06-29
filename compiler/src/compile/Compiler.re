@@ -496,11 +496,7 @@ let add_standard_library = (~flush=true, compiler: t) => {
 
   Log.info(
     "reading %s",
-    (
-      "standard library",
-      compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
-    )
-    |> ~@Fmt.captioned,
+    ("standard library", compiler.config.stdlib) |> ~@Fmt.captioned,
   );
 
   let namespace = Reference.Namespace.Stdlib;

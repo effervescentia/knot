@@ -106,6 +106,24 @@ module Common = {
         ~children,
         label,
       );
+
+    let id_to_entity = (name, id) =>
+      untyped_node_to_entity(~attributes=[("value", fst(id))], name, id);
+
+    let num_to_string =
+      fun
+      | Integer(int) => int |> Int64.to_string
+      | Float(float, precision) => float |> Fmt.str("%.*f", precision);
+
+    let prim_to_string =
+      fun
+      | Nil => "Nil"
+
+      | Boolean(bool) => Fmt.str("Boolean(%b)", bool)
+
+      | Number(num) => num |> num_to_string |> Fmt.str("Number(%s)")
+
+      | String(str) => str |> String.escaped |> Fmt.str("String(\"%s\")");
   };
 };
 
@@ -217,6 +235,9 @@ module TypeExpression = {
 module TypeDefinition = {
   type variant_t = (untyped_t(string), list(TypeExpression.t));
 
+  type decorator_t('a) =
+    untyped_t((N.t(string, 'a), list(N.t(Common.primitive_t, 'a))));
+
   type module_statement_t = untyped_t(raw_module_statement_t)
 
   and raw_module_statement_t =
@@ -235,7 +256,7 @@ module TypeDefinition = {
     | Module(
         untyped_t(string),
         list(module_statement_t),
-        list((untyped_t(string), list(unit))),
+        list(decorator_t(Type.t)),
       );
 
   type t = list(module_t);
@@ -251,6 +272,35 @@ module TypeDefinition = {
 
   module Dump = {
     include Common.Dump;
+
+    let decorator_to_entity =
+        (
+          pp_type: Fmt.t('a),
+          ((id, args), _) as decorator: decorator_t('a),
+        ) =>
+      decorator
+      |> untyped_node_to_entity(
+           ~children=[
+             id
+             |> node_to_entity(
+                  pp_type,
+                  ~attributes=[("value", fst(id))],
+                  "Identifier",
+                ),
+             ...args
+                |> List.map(arg =>
+                     arg
+                     |> node_to_entity(
+                          pp_type,
+                          ~attributes=[
+                            ("value", arg |> fst |> prim_to_string),
+                          ],
+                          "Argument",
+                        )
+                   ),
+           ],
+           "Decorator",
+         );
 
     let to_entity = module_ =>
       switch (fst(module_)) {
@@ -276,46 +326,56 @@ module TypeDefinition = {
         untyped_node_to_entity(
           ~attributes=[("name", name)],
           ~children=
-            stmts
-            |> List.map(
-                 fst
-                 % (
-                   fun
-                   | Declaration(id, type_) =>
-                     untyped_node_to_entity(
-                       ~attributes=[("id", fst(id))],
-                       ~children=[TypeExpression.Dump.to_entity(type_)],
-                       "Declaration",
-                       id,
-                     )
+            (decorators |> List.map(decorator_to_entity(Type.pp)))
+            @ (
+              stmts
+              |> List.map(stmt =>
+                   stmt
+                   |> untyped_node_to_entity(
+                        ~children=[
+                          switch (fst(stmt)) {
+                          | Declaration((id, _), type_) =>
+                            Entity.create(
+                              ~attributes=[("id", id)],
+                              ~children=[
+                                TypeExpression.Dump.to_entity(type_),
+                              ],
+                              "Declaration",
+                            )
 
-                   | Type(id, type_) =>
-                     untyped_node_to_entity(
-                       ~attributes=[("id", fst(id))],
-                       ~children=[TypeExpression.Dump.to_entity(type_)],
-                       "Type",
-                       id,
-                     )
+                          | Type((id, _), type_) =>
+                            Entity.create(
+                              ~attributes=[("id", id)],
+                              ~children=[
+                                TypeExpression.Dump.to_entity(type_),
+                              ],
+                              "Type",
+                            )
 
-                   | Enumerated(id, variants) =>
-                     untyped_node_to_entity(
-                       ~attributes=[("id", fst(id))],
-                       ~children=
-                         variants
-                         |> List.map(((name, args)) =>
-                              Entity.create(
-                                ~attributes=[("name", fst(name))],
-                                ~children=
-                                  args
-                                  |> List.map(TypeExpression.Dump.to_entity),
-                                "Variant",
-                              )
-                            ),
-                       "Enumerated",
-                       id,
-                     )
-                 ),
-               ),
+                          | Enumerated((id, _), variants) =>
+                            Entity.create(
+                              ~attributes=[("id", id)],
+                              ~children=
+                                variants
+                                |> List.map(((name, args)) =>
+                                     Entity.create(
+                                       ~attributes=[("name", fst(name))],
+                                       ~children=
+                                         args
+                                         |> List.map(
+                                              TypeExpression.Dump.to_entity,
+                                            ),
+                                       "Variant",
+                                     )
+                                   ),
+                              "Enumerated",
+                            )
+                          },
+                        ],
+                        "Statement",
+                      )
+                 )
+            ),
           "Module",
           module_,
         )
@@ -492,24 +552,6 @@ module Make = (Params: ASTParams) => {
     open Pretty.Formatters;
 
     include Common.Dump;
-
-    let id_to_entity = (name, id) =>
-      untyped_node_to_entity(~attributes=[("value", fst(id))], name, id);
-
-    let num_to_string =
-      fun
-      | Integer(int) => int |> Int64.to_string
-      | Float(float, precision) => float |> Fmt.str("%.*f", precision);
-
-    let prim_to_string =
-      fun
-      | Nil => "Nil"
-
-      | Boolean(bool) => Fmt.str("Boolean(%b)", bool)
-
-      | Number(num) => num |> num_to_string |> Fmt.str("Number(%s)")
-
-      | String(str) => str |> String.escaped |> Fmt.str("String(\"%s\")");
 
     let rec expr_to_entity = expr =>
       (

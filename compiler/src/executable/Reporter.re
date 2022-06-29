@@ -511,6 +511,50 @@ let _extract_type_err =
           [],
         ),
       ],
+    )
+
+  | Type.InvalidDecoratorInvocation(type_, args) => (
+      "Invalid Decorator Invocation",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>decorator invocations can only be performed on values with %a types@,expected a value matching the type %a but received %a@]",
+              good_str,
+              "decorator",
+              good(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a) on target@]",
+                  list(~layout=Horizontal, Type.pp),
+                )
+              ),
+              args,
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.DecoratorTargetMismatch(lhs, rhs) => (
+      "Decorator Target Mismatch",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>this decorator can only target a %a but found %a@]",
+              good(Type.DecoratorTarget.pp),
+              lhs,
+              bad(Type.DecoratorTarget.pp),
+              rhs,
+            )
+        )
+      ),
+      [],
     );
 
 let _extract_parse_err =

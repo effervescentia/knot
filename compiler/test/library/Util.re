@@ -27,6 +27,8 @@ module RawUtil = {
   let as_struct = (props, x) => as_typed(TR.(`Struct(props)), x);
   let as_function = (args, res, x) =>
     as_typed(TR.(`Function((args, res))), x);
+  let as_decorator = (args, target, x) =>
+    as_typed(TR.(`Decorator((args, target))), x);
 
   /* primitive factories */
 
@@ -61,6 +63,8 @@ module ResultUtil = {
     as_typed(T.Valid(`Function((args, res))), x);
   let as_view = (props, res, x) =>
     as_typed(T.Valid(`View((props, res))), x);
+  let as_decorator = (args, target, x) =>
+    as_typed(T.Valid(`Decorator((args, target))), x);
 
   /* primitive factories */
 

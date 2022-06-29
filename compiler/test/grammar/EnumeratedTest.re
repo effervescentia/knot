@@ -43,7 +43,7 @@ module Assert = {
 };
 
 let suite =
-  "Grammar.Declaration | Enumerated"
+  "Grammar.Enumerated"
   >::: [
     "no parse" >: (() => Assert.parse_none(["gibberish", "enum", "enum foo"])),
     "parse empty"

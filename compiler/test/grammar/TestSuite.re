@@ -3,6 +3,7 @@ open Kore;
 let tests = [
   ConstantTest.suite,
   DeclarationTest.suite,
+  DecoratorTest.suite,
   EnumeratedTest.suite,
   ExpressionTest.suite,
   Formatter_DeclarationTest.suite,
@@ -21,6 +22,7 @@ let tests = [
   Primitive_StringTest.suite,
   ProgramTest.suite,
   StatementTest.suite,
+  Typing_DecoratorTest.suite,
   Typing_ExpressionTest.suite,
   Typing_ModuleTest.suite,
   ViewTest.suite,
