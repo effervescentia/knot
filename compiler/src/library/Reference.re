@@ -58,3 +58,26 @@ module Export = {
 
   let pp: Fmt.t(t) = ppf => to_string % Fmt.string(ppf);
 };
+
+module Plugin = {
+  exception InvalidPlugin(string);
+
+  let style_expression_key = "style_expression";
+  let style_rule_key = "style_rule";
+  let known = [style_expression_key, style_rule_key];
+
+  type t =
+    | StyleExpression
+    | StyleRule;
+
+  let of_string =
+    fun
+    | x when x == style_expression_key => StyleExpression
+    | x when x == style_rule_key => StyleRule
+    | name => raise(InvalidPlugin(name));
+
+  let to_string =
+    fun
+    | StyleExpression => style_expression_key
+    | StyleRule => style_rule_key;
+};

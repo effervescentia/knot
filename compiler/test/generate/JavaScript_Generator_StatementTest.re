@@ -355,12 +355,12 @@ let suite =
             ],
             [
               (
-                A.Class(U.as_untyped("fizz")),
+                A.MatchClass(U.as_untyped("fizz")),
                 [(U.as_untyped("height"), U.int_prim(2)) |> U.as_untyped],
               )
               |> U.as_untyped,
               (
-                A.ID(U.as_untyped("buzz")),
+                A.MatchID(U.as_untyped("buzz")),
                 [(U.as_untyped("width"), U.int_prim(10)) |> U.as_untyped],
               )
               |> U.as_untyped,

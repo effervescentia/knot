@@ -11,6 +11,8 @@ let __arguments_object = "arguments";
 let __id_prop = "id";
 let __main_export = "main";
 let __view_props = "$props$";
+let __self = "$";
+let __style_rules = "$rules$";
 
 let _knot_util = (util, property) =>
   JavaScript_AST.DotAccess(
@@ -18,6 +20,7 @@ let _knot_util = (util, property) =>
     property,
   );
 let _jsx_util = _knot_util("jsx");
+let _style_util = _knot_util("style");
 let _platform_util = _knot_util("platform");
 let _stdlib_util = _knot_util("stdlib");
 
@@ -40,7 +43,14 @@ let rec gen_expression =
   | A.Primitive(Number(x)) => gen_number(x)
   | A.Primitive(String(x)) => JavaScript_AST.String(x)
   | A.Primitive(Nil) => JavaScript_AST.Null
-  | A.Identifier(value) => JavaScript_AST.Identifier(value)
+  | A.Identifier(value) =>
+    value |> String.starts_with(__self)
+      ? JavaScript_AST.DotAccess(
+          Identifier(__self),
+          value |> String.drop_prefix(__self),
+        )
+      : JavaScript_AST.Identifier(value)
+
   | A.Group((value, _)) => JavaScript_AST.Group(gen_expression(value))
 
   | A.Closure([]) => JavaScript_AST.(Null)
@@ -383,6 +393,8 @@ let gen_style =
              })
         )
         @ [
+          Variable(__self, _style_util("styleExpressionPlugin")),
+          Variable(__style_rules, _style_util("styleRulePlugin")),
           Return(
             Object(
               rule_sets
@@ -391,8 +403,8 @@ let gen_style =
                    % (
                      ((matcher, rules)) => (
                        switch (matcher) {
-                       | A.Class((id, _)) => Fmt.str(".%s", id)
-                       | A.ID((id, _)) => Fmt.str("#%s", id)
+                       | A.MatchClass((id, _)) => Fmt.str(".%s", id)
+                       | A.MatchID((id, _)) => Fmt.str("#%s", id)
                        },
                        Object(
                          rules
@@ -401,7 +413,13 @@ let gen_style =
                               % (
                                 (((key, _), (value, _))) => (
                                   key,
-                                  gen_expression(value),
+                                  FunctionCall(
+                                    DotAccess(
+                                      Identifier(__style_rules),
+                                      key,
+                                    ),
+                                    [gen_expression(value)],
+                                  ),
                                 )
                               ),
                             ),

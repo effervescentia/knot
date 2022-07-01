@@ -93,7 +93,17 @@ let rec fmt_expression = (module_type: Target.module_t): Fmt.t(expression_t) =>
           any("{"),
           any("}"),
           (ppf, (name, expr)) =>
-            pf(ppf, "%s: %a", name, fmt_expression(module_type), expr),
+            pf(
+              ppf,
+              "%a: %a",
+              (ppf, x) =>
+                String.is_first_alpha(x)
+                  ? Fmt.string(ppf, x)
+                  : Fmt.pf(ppf, "[\"%s\"]", String.escaped(x)),
+              name,
+              fmt_expression(module_type),
+              expr,
+            ),
           ppf,
           props,
         )

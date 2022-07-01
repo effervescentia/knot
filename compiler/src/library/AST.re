@@ -383,8 +383,8 @@ include Make({
 });
 
 type style_matcher_t =
-  | Class(identifier_t)
-  | ID(identifier_t);
+  | MatchClass(identifier_t)
+  | MatchID(identifier_t);
 
 type style_rule_t = untyped_t(raw_style_rule_t)
 and raw_style_rule_t = (identifier_t, expression_t);
@@ -454,8 +454,8 @@ let of_named_import = ((x, y)) => NamedImport(x, y);
 let of_main_export = x => MainExport(x);
 let of_named_export = x => NamedExport(x);
 
-let of_class_matcher = x => Class(x);
-let of_id_matcher = x => ID(x);
+let of_class_matcher = x => MatchClass(x);
+let of_id_matcher = x => MatchID(x);
 
 let of_const = x => Constant(x);
 let of_enum = variants => Enumerated(variants);
@@ -479,8 +479,8 @@ module Dump = {
 
   let style_matcher_to_entity =
     fun
-    | Class(id) => id_to_entity("ClassMatcher", id)
-    | ID(id) => id_to_entity("IDMatcher", id);
+    | MatchClass(id) => id_to_entity("ClassMatcher", id)
+    | MatchID(id) => id_to_entity("IDMatcher", id);
 
   let argument_to_entity = (label, arg) => {
     let {name, default, type_} = fst(arg);

@@ -1,4 +1,4 @@
-@plugin("style")
+@plugin("style_rule")
 module Style {
   enum Length:
     | Ch(float)
@@ -9,8 +9,8 @@ module Style {
 
     | Vh(float)
     | Vw(float)
-    | Vmax(float)
-    | Vmin(float)
+    | VMax(float)
+    | VMin(float)
     | Vb(float)
     | Vi(float)
 

@@ -32,9 +32,6 @@ type t = {
 
 let __module_table_size = 64;
 let __plugin_decorator_key = "plugin";
-let __style_plugin = "style";
-let __style_expression_plugin = "style_expression";
-let __known_plugins = [__style_plugin, __style_expression_plugin];
 
 let _create_dispatch = (config, report) => {
   let errors = ref([]);
@@ -563,8 +560,12 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
            | (key, _, _) when key != __plugin_decorator_key => ()
 
            | (key, [A.String(name)], T.Valid(`Module(entries))) =>
-             if (__known_plugins |> List.mem(name)) {
-               compiler.modules |> ModuleTable.add_plugin(name, entries);
+             if (Reference.Plugin.known |> List.mem(name)) {
+               compiler.modules
+               |> ModuleTable.add_plugin(
+                    Reference.Plugin.of_string(name),
+                    entries,
+                  );
 
                Log.debug(
                  "registered ambient %s types in compiler context",

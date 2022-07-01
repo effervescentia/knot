@@ -22,6 +22,7 @@ let tests = [
   Primitive_StringTest.suite,
   ProgramTest.suite,
   StatementTest.suite,
+  StyleTest.suite,
   Typing_DecoratorTest.suite,
   Typing_ExpressionTest.suite,
   Typing_ModuleTest.suite,

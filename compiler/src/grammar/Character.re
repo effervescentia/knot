@@ -10,3 +10,4 @@ let period = char(C.period);
 let colon = char(C.colon);
 let octothorpe = char(C.octothorpe);
 let underscore = char(C.underscore);
+let dollar_sign = char(C.dollar_sign);

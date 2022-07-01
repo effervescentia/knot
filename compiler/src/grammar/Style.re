@@ -4,8 +4,12 @@ module SemanticAnalyzer = Analyze.Semantic;
 
 let style_rule_set = (ctx: ParseContext.t) =>
   choice([
-    M.identifier(~prefix=Character.period) >|= A.of_class_matcher,
-    M.identifier(~prefix=Character.octothorpe) >|= A.of_id_matcher,
+    M.identifier(~prefix=Character.period)
+    >|= N.map(String.drop_prefix("."))
+    >|= A.of_class_matcher,
+    M.identifier(~prefix=Character.octothorpe)
+    >|= N.map(String.drop_prefix("#"))
+    >|= A.of_id_matcher,
   ])
   >>= (
     matcher =>
@@ -15,6 +19,7 @@ let style_rule_set = (ctx: ParseContext.t) =>
           Symbol.colon
           >> Expression.parser(ctx)
           >|= (expr => N.untyped((key, expr), N.join_ranges(key, expr)))
+          |> M.terminated
       )
       |> many
       |> M.between(Symbol.open_closure, Symbol.close_closure)
@@ -42,7 +47,10 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
                   >|= (
                     raw_rule_sets => {
                       let range = N.get_range(raw_rule_sets);
-                      let scope = ctx |> ParseContext.to_scope(range);
+                      let scope = ctx |> Scope.of_parse_context(range);
+
+                      Scope.inject_plugin_types(StyleExpression, scope);
+
                       let args =
                         raw_args
                         |> SemanticAnalyzer.analyze_argument_list(scope);
@@ -66,11 +74,13 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
                         |> List.fold_left(
                              ((ids, classes)) =>
                                fun
-                               | A.ID(id) => (ids @ [id], classes)
-                               | A.Class(id) => (ids, classes @ [id]),
+                               | A.MatchID((id, _)) => (ids @ [id], classes)
+                               | A.MatchClass((id, _)) => (
+                                   ids,
+                                   classes @ [id],
+                                 ),
                              ([], []),
-                           )
-                        |> Tuple.map2(List.map(fst));
+                           );
 
                       let res_rule_sets =
                         raw_rule_sets

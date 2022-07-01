@@ -63,6 +63,8 @@ module ResultUtil = {
     as_typed(T.Valid(`Function((args, res))), x);
   let as_view = (props, res, x) =>
     as_typed(T.Valid(`View((props, res))), x);
+  let as_style = (props, ids, classes, x) =>
+    as_typed(T.Valid(`Style((props, ids, classes))), x);
   let as_decorator = (args, target, x) =>
     as_typed(T.Valid(`Decorator((args, target))), x);
 

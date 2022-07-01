@@ -13,7 +13,7 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
           Lambda.parser(ctx)
           >|= (
             ((raw_args, raw_res, range)) => {
-              let scope = ctx |> ParseContext.to_scope(range);
+              let scope = ctx |> Scope.of_parse_context(range);
               let args =
                 raw_args |> SemanticAnalyzer.analyze_argument_list(scope);
 

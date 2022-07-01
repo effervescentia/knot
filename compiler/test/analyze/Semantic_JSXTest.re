@@ -7,7 +7,8 @@ module URes = Util.ResultUtil;
 let __id = "foo";
 let __component_id = "Foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __throw_scope = S.create(__namespace, throw, Range.zero);
+let __context = ParseContext.create(~report=ignore, __namespace);
+let __throw_scope = S.create({...__context, report: throw}, Range.zero);
 
 let suite =
   "Analyze.Semantic | JSX"
@@ -219,7 +220,10 @@ let suite =
         let errors = ref([]);
         let scope = {
           ...__throw_scope,
-          report: err => errors := errors^ @ [err],
+          context: {
+            ...__context,
+            report: err => errors := errors^ @ [err],
+          },
           types:
             [
               (
@@ -291,7 +295,10 @@ let suite =
           );
         let scope = {
           ...__throw_scope,
-          report: err => errors := errors^ @ [err],
+          context: {
+            ...__context,
+            report: err => errors := errors^ @ [err],
+          },
           types:
             [(__component_id, view_type)] |> List.to_seq |> Hashtbl.of_seq,
         };

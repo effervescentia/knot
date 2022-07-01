@@ -1,0 +1,9 @@
+main style GlobalStyle -> {
+  #app {
+    height: $px(20.0);
+  }
+
+  .header {
+
+  }
+}

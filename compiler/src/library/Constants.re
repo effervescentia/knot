@@ -23,6 +23,7 @@ module Character = {
   let equal_sign = '=';
   let vertical_bar = '|';
   let at_sign = '@';
+  let dollar_sign = '$';
 
   let exclamation_mark = '!';
   let caret = '^';

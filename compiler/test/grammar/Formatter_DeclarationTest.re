@@ -110,12 +110,12 @@ let __style = (
     ],
     [
       (
-        A.ID(U.as_untyped("hero")),
+        A.MatchID(U.as_untyped("hero")),
         [(U.as_untyped("width"), U.int_prim(10)) |> U.as_untyped],
       )
       |> U.as_untyped,
       (
-        A.Class(U.as_untyped("button")),
+        A.MatchClass(U.as_untyped("button")),
         [(U.as_untyped("height"), U.int_prim(2)) |> U.as_untyped],
       )
       |> U.as_untyped,

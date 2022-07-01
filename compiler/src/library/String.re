@@ -7,6 +7,11 @@ include Stdlib.String;
 
 module TString = Tablecloth.String;
 
+let __first_alpha = 97;
+let __last_alpha = __first_alpha + 25;
+
+let _is_alpha_char = Int.contains((__first_alpha, __last_alpha));
+
 /* static */
 
 /**
@@ -127,3 +132,14 @@ let to_pascal_case =
   split_on_char('_')
   % List.map(lowercase_ascii % capitalize_ascii)
   % join(~separator="");
+
+let is_first_alpha =
+  lowercase_ascii
+  % (
+    (lowercase: string) => {
+      length(lowercase) != 0
+      && get(lowercase, 0)
+      |> int_of_char
+      |> _is_alpha_char;
+    }
+  );

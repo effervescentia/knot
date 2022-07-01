@@ -1,7 +1,7 @@
 import test from 'ava';
 
-import main from '.';
 import colors from './colors';
+import main from './main';
 import properties from './properties';
 import units from './units';
 

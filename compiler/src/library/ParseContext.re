@@ -12,7 +12,6 @@ type t = {
   modules: ModuleTable.t,
   /* the symbols in context for this module */
   symbols: SymbolTable.t,
-  plugins: list((string, SymbolTable.t)),
 };
 
 /* static */
@@ -28,7 +27,6 @@ let create =
   report,
   modules,
   symbols,
-  plugins: [],
 };
 
 let create_module = (parent: t): t =>
@@ -100,17 +98,4 @@ let import = (namespace: Namespace.t, id: Export.t, alias: string, ctx: t) => {
 
     Ok((type_export, value_export));
   };
-};
-
-/**
- convert to a scope for use within a function or other closure
- */
-let to_scope = (range: Range.t, ctx: t): Scope.t => {
-  let types =
-    ctx.symbols.imported.values
-    @ ctx.symbols.declared.values
-    |> List.to_seq
-    |> Hashtbl.of_seq;
-
-  {...Scope.create(ctx.namespace, ctx.report, range), types};
 };

@@ -9,7 +9,7 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
       Operator.assign(Identifier.parser(ctx), Expression.parser(ctx))
       >|= (
         ((id, raw_expr)) => {
-          let scope = ctx |> ParseContext.to_scope(N.get_range(raw_expr));
+          let scope = ctx |> Scope.of_parse_context(N.get_range(raw_expr));
           let expr = raw_expr |> SemanticAnalyzer.analyze_expression(scope);
           let type_ = N.get_type(expr);
           let const = expr |> N.wrap(A.of_const);

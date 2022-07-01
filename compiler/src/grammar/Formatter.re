@@ -261,8 +261,8 @@ let pp_function_arg: Fmt.t(A.raw_argument_t) =
 let pp_style_matcher: Fmt.t(A.style_matcher_t) =
   ppf =>
     fun
-    | Class((id, _)) => Fmt.pf(ppf, ".%s", id)
-    | ID((id, _)) => Fmt.pf(ppf, "#%s", id);
+    | MatchClass((id, _)) => Fmt.pf(ppf, ".%s", id)
+    | MatchID((id, _)) => Fmt.pf(ppf, "#%s", id);
 
 let pp_style_rule: Fmt.t(A.raw_style_rule_t) =
   (ppf, ((key, _), (value, _))) =>

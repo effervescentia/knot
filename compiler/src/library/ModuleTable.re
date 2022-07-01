@@ -29,7 +29,7 @@ type entry_t =
  */
 type t = {
   modules: Hashtbl.t(Namespace.t, entry_t),
-  mutable plugins: list((string, module_entries_t)),
+  mutable plugins: list((Plugin.t, module_entries_t)),
   mutable globals: module_entries_t,
 };
 
@@ -59,7 +59,7 @@ let add = (id: Namespace.t, entry: entry_t, {modules}: t) =>
 /**
  add types for a plugin module
  */
-let add_plugin = (plugin: string, types: module_entries_t, table: t) =>
+let add_plugin = (plugin: Plugin.t, types: module_entries_t, table: t) =>
   table.plugins = table.plugins @ [(plugin, types)];
 
 /**
