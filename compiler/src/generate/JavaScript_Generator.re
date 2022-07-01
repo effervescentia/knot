@@ -358,7 +358,8 @@ let gen_view =
         @ (
           mixins
           |> List.concat_map(mixin => {
-               let style_name = _style_name(fst(mixin));
+               let mixin_name = fst(mixin);
+               let style_name = _style_name(mixin_name);
 
                [
                  Variable(
@@ -367,7 +368,7 @@ let gen_view =
                      __knot_style,
                      [
                        DotAccess(Identifier(__util_lib), "style"),
-                       FunctionCall(Identifier(fst(mixin)), []),
+                       FunctionCall(Identifier(mixin_name), []),
                      ],
                    ),
                  ),
