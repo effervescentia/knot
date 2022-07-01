@@ -52,7 +52,7 @@ let check_dot_access: (string, T.t) => option(T.error_t) =
         when props |> List.exists(((name, _)) => name == prop) =>
       None
 
-    | Valid(`Module(entries, _))
+    | Valid(`Module(entries))
         when entries |> List.exists(((name, _)) => name == prop) =>
       None
 
@@ -221,5 +221,19 @@ let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
             eval_type_expression(defs, res),
           )),
         )
+
+      | DotAccess((root, _), (prop, _)) =>
+        switch (root |> eval_type_expression(defs)) {
+        | Valid(`Module(entries)) =>
+          entries
+          |> List.find_map(
+               fun
+               | (id, T.Container.Type(type_)) when id == prop =>
+                 Some(type_)
+               | _ => None,
+             )
+          |?: Invalid(NotInferrable)
+        | _ => Invalid(NotInferrable)
+        }
       }
     );

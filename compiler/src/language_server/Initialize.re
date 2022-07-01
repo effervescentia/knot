@@ -173,7 +173,7 @@ let handler: Runtime.request_handler_t(params_t) =
              },
            );
 
-         Compiler.add_standard_library(compiler);
+         Compiler.prepare(compiler);
 
          Hashtbl.add(
            compilers,

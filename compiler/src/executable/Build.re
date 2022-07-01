@@ -89,7 +89,7 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
       },
     );
 
-  Compiler.add_standard_library(compiler);
+  Compiler.prepare(compiler);
 
   Log.info(
     "reading modules from %s",

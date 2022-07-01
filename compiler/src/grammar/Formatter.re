@@ -78,7 +78,9 @@ let rec pp_type_expr: Fmt.t(A.TypeExpression.raw_t) =
           pp_type_expr,
           res,
         )
-      );
+      )
+    | DotAccess((root, _), (prop, _)) =>
+      Fmt.pf(ppf, "%a.%s", pp_type_expr, root, prop);
 
 let pp_prim: Fmt.t(A.primitive_t) =
   ppf =>

@@ -27,7 +27,7 @@ let start = (config: config_t) => {
       },
     );
 
-  Compiler.add_standard_library(compiler);
+  Compiler.prepare(compiler);
 
   let runtime =
     Runtime.{

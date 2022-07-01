@@ -11,7 +11,7 @@ let response = () => `Null;
 let handler: Runtime.request_handler_t(params_t) =
   (runtime, _) => {
     Compiler.reset(runtime.compiler);
-    Compiler.add_standard_library(runtime.compiler);
+    Compiler.prepare(runtime.compiler);
     runtime.status = Idle;
 
     response() |> Result.ok;

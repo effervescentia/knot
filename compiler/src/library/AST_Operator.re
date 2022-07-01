@@ -1,6 +1,6 @@
 /**
-   supported binary operators
-   */
+ supported binary operators
+ */
 type binary_t =
   /* logical operators */
   | LogicalAnd
@@ -21,8 +21,8 @@ type binary_t =
   | Exponent;
 
 /**
-   supported unary operators
-   */
+ supported unary operators
+ */
 type unary_t =
   | Not
   | Positive

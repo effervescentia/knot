@@ -291,6 +291,8 @@
         "  (section (site (knot assets)))",
         "  (files ",
         "    (assets/stdlib.kd as stdlib.kd)",
+        "    (assets/ambient/core.kd as ambient/core.kd)",
+        "    (assets/ambient/browser.kd as ambient/browser.kd)",
         "  )",
         ")",
         "(generate_sites_module",

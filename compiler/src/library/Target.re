@@ -34,7 +34,8 @@ let to_ambient_lib =
     | Knot => "core"
     | JavaScript(_) => "browser"
   )
-  % Fmt.str("ambient/%s.kd");
+  % Fmt.str("%s.kd")
+  % Filename.concat("ambient");
 
 /* pretty printing */
 

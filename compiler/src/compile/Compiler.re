@@ -28,9 +28,16 @@ type t = {
   modules: ModuleTable.t,
   resolver: Resolver.t,
   dispatch: action_t => unit,
+  mutable plugins:
+    list((string, list((string, Type.Container.module_entry_t(Type.t))))),
+  mutable globals: list((string, Type.Container.module_entry_t(Type.t))),
 };
 
 let __module_table_size = 64;
+let __plugin_decorator_key = "plugin";
+let __style_plugin = "style";
+let __style_expression_plugin = "style_expression";
+let __known_plugins = [__style_plugin, __style_expression_plugin];
 
 let _create_dispatch = (config, report) => {
   let errors = ref([]);
@@ -90,7 +97,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
 
   let modules = ModuleTable.create(__module_table_size);
 
-  {dispatch, config, graph, modules, resolver};
+  {dispatch, config, graph, modules, resolver, plugins: [], globals: []};
 };
 
 /* methods */
@@ -467,6 +474,25 @@ let process_definition =
 
           Report([err]) |> compiler.dispatch;
         },
+      ~symbols={
+        ...SymbolTable.create(),
+        imported: {
+          values:
+            compiler.globals
+            |> List.filter_map(
+                 fun
+                 | (id, Type.Container.Value(type_)) => Some((id, type_))
+                 | _ => None,
+               ),
+          types:
+            compiler.globals
+            |> List.filter_map(
+                 fun
+                 | (id, Type.Container.Type(type_)) => Some((id, type_))
+                 | _ => None,
+               ),
+        },
+      },
       namespace,
     );
 
@@ -493,15 +519,15 @@ let process_definition =
  register type definitions for the standard library
  */
 let add_standard_library = (~flush=true, compiler: t) => {
-  compiler.graph.imports |> Graph.add_node(Reference.Namespace.Stdlib);
+  let namespace = Reference.Namespace.Stdlib;
+  let source = Source.File({relative: "", full: compiler.config.stdlib});
+
+  compiler.graph.imports |> Graph.add_node(namespace);
 
   Log.info(
     "reading %s",
     ("standard library", compiler.config.stdlib) |> ~@Fmt.captioned,
   );
-
-  let namespace = Reference.Namespace.Stdlib;
-  let source = Source.File({relative: "", full: compiler.config.stdlib});
 
   compiler
   |> process_definition(~flush=false, namespace, source)
@@ -511,6 +537,14 @@ let add_standard_library = (~flush=true, compiler: t) => {
         let library = ModuleTable.{symbols: symbols};
 
         compiler.modules |> ModuleTable.add(namespace, Library(raw, library));
+        compiler.globals =
+          symbols.declared.values
+          |> List.filter_map(
+               fun
+               | (id, T.Valid(`Decorator(_)) as type_) =>
+                 Some((id, Type.Container.Value(type_)))
+               | _ => None,
+             );
 
         Log.debug("added standard library to compiler context");
       }
@@ -526,29 +560,50 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
   let namespace = Reference.Namespace.Ambient;
   let source = Source.File({relative: "", full: compiler.config.ambient});
 
+  Log.info(
+    "scanning %s",
+    ("ambient library", compiler.config.ambient) |> ~@Fmt.captioned,
+  );
+
   compiler
   |> process_definition(~flush=false, namespace, source)
   |> (
     fun
-    | Some((raw, ast, symbols)) => {
-        ();
-          /* ast
-             |> List.iter(
-                  fst
-                  % (
-                    fun
-                    | A.TypeDefinition.Module(_, _, [_, ..._] as decorators) => ()
-                    | _ => ()
-                  ),
-                ); */
-      }
-    /* Log.debug("added standard library to compiler context"); */
+    | Some((raw, ast, symbols)) =>
+      symbols.decorated
+      |> List.iter(
+           fun
+           | (key, _, _) when key != __plugin_decorator_key => ()
+
+           | (key, [A.String(name)], T.Valid(`Module(entries))) =>
+             if (__known_plugins |> List.mem(name)) {
+               compiler.plugins = compiler.plugins @ [(name, entries)];
+
+               Log.debug(
+                 "registered ambient %s types in compiler context",
+                 name |> ~@Fmt.info_str,
+               );
+             } else {
+               Log.error(
+                 "failed to register unknown %s ambient types",
+                 name |> ~@Fmt.bad_str,
+               );
+             }
+
+           | (key, _, _) => Log.error("failed to register invalid plugin"),
+         )
+
     | _ => Log.error("failed to scan ambient library for plugins")
   );
 
   if (flush) {
     compiler.dispatch(Flush);
   };
+};
+
+let prepare = (compiler: t) => {
+  add_standard_library(compiler);
+  scan_ambient_library_for_plugins(compiler);
 };
 
 /**

@@ -70,6 +70,8 @@ let suite =
               source_dir: ".",
             },
             dispatch: _ => (),
+            plugins: [],
+            globals: [],
           },
           Compiler.create(Cx.config),
         )

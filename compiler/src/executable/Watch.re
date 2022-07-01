@@ -84,7 +84,7 @@ let run =
       },
     );
 
-  Compiler.add_standard_library(compiler);
+  Compiler.prepare(compiler);
 
   Sys.set_signal(
     Sys.sigterm,

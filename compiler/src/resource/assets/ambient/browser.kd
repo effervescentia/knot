@@ -22,8 +22,8 @@ module Style {
     | Pc(float)
     | Pt(float);
 
-  declare height: Length -> nil;
-  declare width: Length -> nil;
+  declare height: (Length) -> nil;
+  declare width: (Length) -> nil;
 }
 
 @plugin("style_expression")

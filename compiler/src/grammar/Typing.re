@@ -61,6 +61,21 @@ let function_ =
 
 let identifier: type_expression_parser_t = M.identifier >|= N.wrap(TE.of_id);
 
+let dot_access = {
+  let rec loop = expr =>
+    Symbol.period
+    >> M.identifier
+    >>= (
+      prop =>
+        loop(
+          N.untyped((expr, prop) |> TE.of_dot_access, N.get_range(prop)),
+        )
+    )
+    |> option(expr);
+
+  loop;
+};
+
 /*
   each type expression has a precedence denoted by its suffix
 
@@ -70,8 +85,11 @@ let identifier: type_expression_parser_t = M.identifier >|= N.wrap(TE.of_id);
 /* element[], float[][][] */
 let rec expr_0: type_expression_parser_t = input => (list(expr_1))(input)
 
+/* foo.bar */
+and expr_1: type_expression_parser_t = input => (expr_2 >>= dot_access)(input)
+
 /* nil, (string), (integer, float) -> boolean, { foo: string } */
-and expr_1: type_expression_parser_t =
+and expr_2: type_expression_parser_t =
   input =>
     choice(
       [
@@ -210,7 +228,6 @@ let module_: type_module_parser_t =
   ctx =>
     _module_decorator(ctx)
     |> many
-    |> option([])
     >>= (
       raw_decorators =>
         Keyword.module_
@@ -227,53 +244,64 @@ let module_: type_module_parser_t =
                 stmts => {
                   let SymbolTable.Symbols.{types, values} =
                     module_ctx.symbols.declared;
+                  let module_types =
+                    types
+                    |> List.map(
+                         Tuple.map_snd2(type_ => Type.Container.Type(type_)),
+                       );
+                  let module_values =
+                    values
+                    |> List.map(
+                         Tuple.map_snd2(type_ => Type.Container.Value(type_)),
+                       );
+                  let has_types = !List.is_empty(module_types);
+                  let has_values = !List.is_empty(module_values);
 
                   let decorators =
                     raw_decorators
                     |> List.map(
                          Analyze.Semantic.analyze_decorator(ctx, Module),
                        );
+                  let valid_decorators =
+                    decorators
+                    |> List.filter_map(
+                         fun
+                         | ((((id, _), args), _), true) =>
+                           Some((id, args |> List.map(fst)))
+                         | _ => None,
+                       );
 
-                  if (!List.is_empty(types)) {
+                  if (has_types) {
                     ctx.symbols
                     |> SymbolTable.declare_type(
                          fst(id),
-                         Valid(
-                           `Module((
-                             types
-                             |> List.map(
-                                  Tuple.map_snd2(type_ =>
-                                    Type.Container.Type(type_)
-                                  ),
-                                ),
-                             /* TODO */
-                             [],
-                           )),
-                         ),
+                         Valid(`Module(module_types)),
                        );
                   };
 
-                  if (!List.is_empty(values)) {
+                  if (has_values) {
                     ctx.symbols
                     |> SymbolTable.declare_value(
                          fst(id),
-                         Valid(
-                           `Module((
-                             values
-                             |> List.map(
-                                  Tuple.map_snd2(type_ =>
-                                    Type.Container.Value(type_)
-                                  ),
-                                ),
-                             /* TODO */
-                             [],
-                           )),
-                         ),
+                         Valid(`Module(module_values)),
                        );
                   };
 
+                  let decorated_type =
+                    T.Valid(`Module(module_types @ module_values));
+                  valid_decorators
+                  |> List.iter(((id, args)) =>
+                       ctx.symbols
+                       |> SymbolTable.declare_decorated(
+                            id,
+                            args,
+                            decorated_type,
+                          )
+                     );
+
                   N.untyped(
-                    (id, fst(stmts), decorators) |> TD.of_module,
+                    (id, fst(stmts), decorators |> List.map(fst))
+                    |> TD.of_module,
                     N.get_range(stmts),
                   );
                 }
