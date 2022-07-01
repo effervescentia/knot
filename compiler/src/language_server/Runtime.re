@@ -55,7 +55,7 @@ let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
 
     compiler |> Compiler.incremental(updated);
     /* module does not exist in module table */
-  } else if (!Hashtbl.mem(compiler.modules, namespace)) {
+  } else if (!ModuleTable.mem(namespace, compiler.modules)) {
     compiler |> Compiler.incremental([namespace]);
   };
 

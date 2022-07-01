@@ -62,6 +62,12 @@ module Container = {
 
   type t('a) = [ value_t('a) | decorator_t('a) | entity_t('a)];
 
+  let pp_module_entry = (pp_type: Fmt.t('a)): Fmt.t(module_entry_t('a)) =>
+    ppf =>
+      fun
+      | Type(t) => Fmt.pf(ppf, "type %a", pp_type, t)
+      | Value(t) => pp_type(ppf, t);
+
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
     Fmt.(ppf => pf(ppf, "%a[]", pp_type));
 
@@ -163,11 +169,7 @@ module Container = {
         pf(
           ppf,
           "@[<h>Module<%a>@]",
-          record(string, ppf =>
-            fun
-            | Type(t) => pf(ppf, "type %a", pp_type, t)
-            | Value(t) => pp_type(ppf, t)
-          ),
+          record(string, pp_module_entry(pp_type)),
           entries,
         )
     );

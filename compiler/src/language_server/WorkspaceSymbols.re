@@ -50,8 +50,7 @@ let handler: Runtime.request_handler_t(params_t) =
       |> List.of_seq
       |> List.map((Runtime.{uri, compiler}) =>
            compiler.modules
-           |> Hashtbl.to_seq
-           |> List.of_seq
+           |> ModuleTable.to_module_list
            |> List.map(
                 Tuple.map_snd2(
                   ModuleTable.(get_entry_data % Option.map(({ast}) => ast)),

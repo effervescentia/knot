@@ -28,9 +28,6 @@ type t = {
   modules: ModuleTable.t,
   resolver: Resolver.t,
   dispatch: action_t => unit,
-  mutable plugins:
-    list((string, list((string, Type.Container.module_entry_t(Type.t))))),
-  mutable globals: list((string, Type.Container.module_entry_t(Type.t))),
 };
 
 let __module_table_size = 64;
@@ -97,7 +94,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
 
   let modules = ModuleTable.create(__module_table_size);
 
-  {dispatch, config, graph, modules, resolver, plugins: [], globals: []};
+  {dispatch, config, graph, modules, resolver};
 };
 
 /* methods */
@@ -352,7 +349,7 @@ let emit_one =
  */
 let emit = (target: Target.t, output_dir: string, compiler: t) =>
   compiler.modules
-  |> Hashtbl.iter((namespace, entry) =>
+  |> ModuleTable.iter((namespace, entry) =>
        if (namespace != Namespace.Stdlib) {
          emit_one(target, output_dir, namespace, compiler, entry);
        }
@@ -477,20 +474,8 @@ let process_definition =
       ~symbols={
         ...SymbolTable.create(),
         imported: {
-          values:
-            compiler.globals
-            |> List.filter_map(
-                 fun
-                 | (id, Type.Container.Value(type_)) => Some((id, type_))
-                 | _ => None,
-               ),
-          types:
-            compiler.globals
-            |> List.filter_map(
-                 fun
-                 | (id, Type.Container.Type(type_)) => Some((id, type_))
-                 | _ => None,
-               ),
+          values: ModuleTable.get_global_values(compiler.modules),
+          types: ModuleTable.get_global_types(compiler.modules),
         },
       },
       namespace,
@@ -537,14 +522,16 @@ let add_standard_library = (~flush=true, compiler: t) => {
         let library = ModuleTable.{symbols: symbols};
 
         compiler.modules |> ModuleTable.add(namespace, Library(raw, library));
-        compiler.globals =
-          symbols.declared.values
-          |> List.filter_map(
-               fun
-               | (id, T.Valid(`Decorator(_)) as type_) =>
-                 Some((id, Type.Container.Value(type_)))
-               | _ => None,
-             );
+        compiler.modules
+        |> ModuleTable.set_globals(
+             symbols.declared.values
+             |> List.filter_map(
+                  fun
+                  | (id, T.Valid(`Decorator(_)) as type_) =>
+                    Some((id, Type.Container.Value(type_)))
+                  | _ => None,
+                ),
+           );
 
         Log.debug("added standard library to compiler context");
       }
@@ -577,7 +564,7 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
 
            | (key, [A.String(name)], T.Valid(`Module(entries))) =>
              if (__known_plugins |> List.mem(name)) {
-               compiler.plugins = compiler.plugins @ [(name, entries)];
+               compiler.modules |> ModuleTable.add_plugin(name, entries);
 
                Log.debug(
                  "registered ambient %s types in compiler context",
@@ -609,10 +596,10 @@ let prepare = (compiler: t) => {
 /**
  reset the state of the compiler
  */
-let reset = ({graph, modules, resolver}: t) => {
-  ImportGraph.clear(graph);
-  Hashtbl.reset(modules);
-  File.IO.purge(resolver.cache);
+let reset = (compiler: t) => {
+  ImportGraph.clear(compiler.graph);
+  ModuleTable.reset(compiler.modules);
+  File.IO.purge(compiler.resolver.cache);
 };
 
 /**
@@ -620,5 +607,6 @@ let reset = ({graph, modules, resolver}: t) => {
  */
 let teardown = (compiler: t) => {
   reset(compiler);
+
   Cache.destroy(compiler.resolver.cache);
 };

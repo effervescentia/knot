@@ -37,7 +37,8 @@ let handler: Runtime.request_handler_t(params_t) =
 
     switch (runtime |> Runtime.resolve(uri)) {
     | Some((namespace, {compiler})) =>
-      Hashtbl.find_opt(compiler.modules, namespace)
+      compiler.modules
+      |> ModuleTable.find(namespace)
       |?< ModuleTable.(get_entry_data % Option.map(({scopes}) => scopes))
       |?< ScopeTree.find_scope(point)
       |?> List.map(((key, value)) =>

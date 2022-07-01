@@ -64,7 +64,8 @@ let handler: Runtime.request_handler_t(params_t) =
           |> Result.ok
 
         | Some((range, Identifier(id))) => {
-            Hashtbl.find_opt(compiler.modules, namespace)
+            compiler.modules
+            |> ModuleTable.find(namespace)
             |?< ModuleTable.(
                   get_entry_data % Option.map(({scopes}) => scopes)
                 )
@@ -77,7 +78,8 @@ let handler: Runtime.request_handler_t(params_t) =
           }
 
         | Some(_) => {
-            Hashtbl.find_opt(compiler.modules, namespace)
+            compiler.modules
+            |> ModuleTable.find(namespace)
             |?< ModuleTable.get_entry_raw
             |?< Runtime.scan_for_token(point)
             |?< (

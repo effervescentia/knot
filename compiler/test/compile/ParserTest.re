@@ -18,6 +18,13 @@ let _create_module =
   symbols: SymbolTable.of_export_list(exports),
 };
 
+let _create_module_table = modules =>
+  ModuleTable.{
+    modules: modules |> List.to_seq |> Hashtbl.of_seq,
+    plugins: [],
+    globals: [],
+  };
+
 let __context =
   ParseContext.create(
     ~modules=
@@ -30,8 +37,7 @@ let __context =
           ),
         ),
       ]
-      |> List.to_seq
-      |> Hashtbl.of_seq,
+      |> _create_module_table,
     Nx.foo,
   );
 

@@ -19,7 +19,12 @@ let __program = [
 let __table = ModuleTable.create(1);
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
-let _create_table = items => items |> List.to_seq |> Hashtbl.of_seq;
+let _create_table = items =>
+  ModuleTable.{
+    modules: items |> List.to_seq |> Hashtbl.of_seq,
+    plugins: [],
+    globals: [],
+  };
 
 let _create_module =
     (exports: list((Export.t, Type.t))): ModuleTable.module_t => {

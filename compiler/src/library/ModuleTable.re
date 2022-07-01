@@ -4,8 +4,9 @@ open Infix;
 module Fmt = Pretty.Formatters;
 
 type exports_t = list((Export.t, Type.t));
-type type_table_t = Hashtbl.t(Export.t, Type.t);
 type scope_tree_t = RangeTree.t(option(exports_t));
+type module_entries_t =
+  list((string, Type.Container.module_entry_t(Type.t)));
 
 type library_t = {symbols: SymbolTable.t};
 
@@ -26,41 +27,63 @@ type entry_t =
 /**
  table for storing module ASTs
  */
-type t = Hashtbl.t(Namespace.t, entry_t);
+type t = {
+  modules: Hashtbl.t(Namespace.t, entry_t),
+  mutable plugins: list((string, module_entries_t)),
+  mutable globals: module_entries_t,
+};
 
 /* static */
 
 /**
  construct a new table for module information
  */
-let create = (size: int): t => Hashtbl.create(size);
+let create = (size: int): t => {
+  modules: Hashtbl.create(size),
+  plugins: [],
+  globals: [],
+};
 
 /* methods */
 
-let find = (id: Namespace.t, table: t) => Hashtbl.find_opt(table, id);
+let find = (id: Namespace.t, {modules}: t) => Hashtbl.find_opt(modules, id);
+
+let mem = (id: Namespace.t, {modules}: t) => Hashtbl.mem(modules, id);
 
 /**
  add a module with associated export types and AST
  */
-let add = (id: Namespace.t, entry: entry_t, table: t) =>
-  Hashtbl.replace(table, id, entry);
+let add = (id: Namespace.t, entry: entry_t, {modules}: t) =>
+  Hashtbl.replace(modules, id, entry);
+
+/**
+ add types for a plugin module
+ */
+let add_plugin = (plugin: string, types: module_entries_t, table: t) =>
+  table.plugins = table.plugins @ [(plugin, types)];
+
+/**
+ set global types
+ */
+let set_globals = (globals: module_entries_t, table: t) =>
+  table.globals = globals;
 
 /**
  remove an entry from the table
  */
-let remove = (id: Namespace.t, table: t) => Hashtbl.remove(table, id);
+let remove = (id: Namespace.t, {modules}: t) => Hashtbl.remove(modules, id);
 
 /**
  purge an entry from the table
  */
-let purge = (id: Namespace.t, table: t) =>
-  Hashtbl.replace(table, id, Purged);
+let purge = (id: Namespace.t, {modules}: t) =>
+  Hashtbl.replace(modules, id, Purged);
 
 /**
  prepare a pending entry in the table
  */
-let prepare = (id: Namespace.t, table: t) =>
-  Hashtbl.replace(table, id, Pending);
+let prepare = (id: Namespace.t, {modules}: t) =>
+  Hashtbl.replace(modules, id, Pending);
 
 /**
  unpack raw source code from an entry as an option
@@ -80,23 +103,63 @@ let get_entry_data: entry_t => option(module_t) =
   | Partial(_, data, _) => Some(data)
   | _ => None;
 
+let get_global_values = ({globals}: t) =>
+  globals
+  |> List.filter_map(
+       fun
+       | (id, Type.Container.Value(type_)) => Some((id, type_))
+       | _ => None,
+     );
+
+let get_global_types = ({globals}: t) =>
+  globals
+  |> List.filter_map(
+       fun
+       | (id, Type.Container.Type(type_)) => Some((id, type_))
+       | _ => None,
+     );
+
 let _compare_data = (x, y) => x.ast == y.ast && x.symbols == y.symbols;
 
 /**
  compare two ModuleTables by direct equality
  */
 let compare: (t, t) => bool =
-  Hashtbl.compare(~compare=(x, y) =>
-    switch (x, y) {
-    | (Valid(x_raw, x_data), Valid(y_raw, y_data)) =>
-      x_raw == y_raw && _compare_data(x_data, y_data)
+  (lhs, rhs) =>
+    lhs.plugins == rhs.plugins
+    && lhs.globals == rhs.globals
+    && Hashtbl.compare(
+         ~compare=
+           (x, y) =>
+             switch (x, y) {
+             | (Valid(x_raw, x_data), Valid(y_raw, y_data)) =>
+               x_raw == y_raw && _compare_data(x_data, y_data)
 
-    | (Partial(x_raw, x_data, x_errors), Partial(y_raw, y_data, y_errors)) =>
-      x_raw == y_raw && _compare_data(x_data, y_data) && x_errors == y_errors
+             | (
+                 Partial(x_raw, x_data, x_errors),
+                 Partial(y_raw, y_data, y_errors),
+               ) =>
+               x_raw == y_raw
+               && _compare_data(x_data, y_data)
+               && x_errors == y_errors
 
-    | _ => x == y
-    }
-  );
+             | _ => x == y
+             },
+         lhs.modules,
+         rhs.modules,
+       );
+
+let iter = (f: (Namespace.t, entry_t) => unit, table: t) =>
+  Hashtbl.iter(f, table.modules);
+
+let reset = (table: t) => {
+  table.plugins = [];
+  table.globals = [];
+  Hashtbl.reset(table.modules);
+};
+
+let to_module_list = ({modules}: t) =>
+  modules |> Hashtbl.to_seq |> List.of_seq;
 
 /* pretty printing */
 
@@ -146,4 +209,27 @@ let _pp_entry: Fmt.t(entry_t) =
     | Pending => Fmt.pf(ppf, "Pending");
 
 let pp: Fmt.t(t) =
-  (ppf, table: t) => Fmt.(table |> Hashtbl.pp(Namespace.pp, _pp_entry, ppf));
+  (ppf, table: t) =>
+    Fmt.struct_(
+      Fmt.string,
+      Fmt.string,
+      ppf,
+      (
+        "ModuleTable",
+        [
+          ("plugins", ""),
+          (
+            "globals",
+            table.globals
+            |> ~@
+                 Fmt.(
+                   record(string, Type.Container.pp_module_entry(Type.pp))
+                 ),
+          ),
+          (
+            "modules",
+            table.modules |> ~@Hashtbl.pp(Namespace.pp, _pp_entry),
+          ),
+        ],
+      ),
+    );

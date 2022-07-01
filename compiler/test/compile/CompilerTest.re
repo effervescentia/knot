@@ -53,6 +53,13 @@ let _create_module =
   },
 };
 
+let _create_module_table = modules =>
+  ModuleTable.{
+    modules: modules |> List.to_seq |> Hashtbl.of_seq,
+    plugins: [],
+    globals: [],
+  };
+
 let suite =
   "Compile.Compiler"
   >::: [
@@ -70,8 +77,6 @@ let suite =
               source_dir: ".",
             },
             dispatch: _ => (),
-            plugins: [],
-            globals: [],
           },
           Compiler.create(Cx.config),
         )
@@ -183,8 +188,7 @@ let suite =
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -234,8 +238,7 @@ const const = \"foo\";
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
         Assert.throws_compile_errors(expected, () =>
@@ -284,8 +287,7 @@ const BAR = \"bar\";
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -348,8 +350,7 @@ const BAR = \"bar\";
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -406,8 +407,7 @@ const BAR = \"bar\";
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -469,8 +469,7 @@ const BAR = \"bar\";
                 ModuleTable.Valid("", _create_module(Px.single_import)),
               ),
             ]
-            |> List.to_seq
-            |> Hashtbl.of_seq,
+            |> _create_module_table,
         };
 
         compiler |> Compiler.emit(Target.JavaScript(Common), output_dir);
@@ -536,8 +535,7 @@ exports.BAR = BAR;
         Assert.list_namespace([Nx.entry, Nx.other], updated);
         Assert.module_table(
           [(Nx.entry, ModuleTable.Pending), (Nx.other, ModuleTable.Pending)]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -586,8 +584,7 @@ exports.BAR = BAR;
             (Nx.bar, ModuleTable.Pending),
             (Nx.entry, ModuleTable.Pending),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -611,8 +608,7 @@ exports.BAR = BAR;
 
         Assert.module_table(
           [(Nx.foo, ModuleTable.Pending), (Nx.bar, ModuleTable.Purged)]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
