@@ -46,7 +46,7 @@ let _assert_view = (expected, actual) =>
       Assert.Compare.statement(Target.Common),
       "javascript view matches",
       expected,
-      actual |> Tuple.join3(Generator.gen_view),
+      actual |> Tuple.join4(Generator.gen_view),
     )
   );
 let _assert_style = (expected, actual) =>
@@ -307,6 +307,7 @@ let suite =
               }
               |> U.as_nil,
             ],
+            [],
             ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,

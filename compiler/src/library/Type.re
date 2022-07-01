@@ -247,7 +247,8 @@ type error_t =
   | DefaultArgumentMissing(string)
   | InvalidDecoratorInvocation(t, list(t))
   | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t)
-  | UnknownStyleRule(string);
+  | UnknownStyleRule(string)
+  | InvalidViewMixin(t);
 
 /* pretty printing */
 
@@ -399,6 +400,8 @@ let pp_error: Fmt.t(error_t) =
         )
 
       | UnknownStyleRule(rule) => pf(ppf, "UnknownStyleRule<%s>", rule)
+
+      | InvalidViewMixin(type_) => pf(ppf, "InvalidViewMixin<%a>", pp, type_)
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>

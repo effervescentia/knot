@@ -24,6 +24,7 @@ module Character = {
   let vertical_bar = '|';
   let at_sign = '@';
   let dollar_sign = '$';
+  let tilde = '~';
 
   let exclamation_mark = '!';
   let caret = '^';

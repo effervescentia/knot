@@ -35,14 +35,29 @@ let arguments = (ctx: ParseContext.t) =>
   |> M.between(Symbol.open_group, Symbol.close_group)
   >|= fst;
 
-let parser = (ctx: ParseContext.t) =>
-  option([], arguments(ctx))
+let _full_parser = (~mixins, ctx: ParseContext.t) =>
+  arguments(ctx)
+  |> option([])
   >>= (
     args =>
-      Glyph.lambda
+      (
+        mixins
+          ? Symbol.mixin >> M.identifier |> many1 |> option([]) : return([])
+      )
       >>= (
-        lambda =>
-          Expression.parser(ctx)
-          >|= (expr => (args, expr, N.join_ranges(lambda, expr)))
+        mixins =>
+          Glyph.lambda
+          >>= (
+            lambda =>
+              Expression.parser(ctx)
+              >|= (expr => (args, mixins, expr, N.join_ranges(lambda, expr)))
+          )
       )
   );
+
+let parser_with_mixins = (ctx: ParseContext.t) =>
+  _full_parser(~mixins=true, ctx);
+
+let parser = (ctx: ParseContext.t) =>
+  _full_parser(~mixins=false, ctx)
+  >|= (((args, _, expr, range)) => (args, expr, range));

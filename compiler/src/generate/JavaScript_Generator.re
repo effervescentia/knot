@@ -26,8 +26,13 @@ let _stdlib_util = _knot_util("stdlib");
 
 let __knot_arg = _platform_util("arg");
 let __knot_prop = _platform_util("prop");
+let __knot_style = _platform_util("style");
 let __jsx_create_tag = _jsx_util("createTag");
 let __jsx_create_fragment = _jsx_util("createFragment");
+
+let _style_name = Fmt.str("$style_%s");
+let _class_name = Fmt.str("$class_%s");
+let _id_name = Fmt.str("$id_%s");
 
 let gen_number = x =>
   JavaScript_AST.Number(
@@ -185,7 +190,7 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
                    ],
                  )
                | A.Class((name, _), None) => (
-                   [JavaScript_AST.String(Fmt.str(".%s", name)), ...c],
+                   [JavaScript_AST.Identifier(_class_name(name)), ...c],
                    p,
                  )
                | A.Class((name, _), Some((expr, _))) => (
@@ -193,7 +198,7 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
                      JavaScript_AST.Group(
                        Ternary(
                          gen_expression(expr),
-                         String(Fmt.str(".%s", name)),
+                         Identifier(_class_name(name)),
                          String(""),
                        ),
                      ),
@@ -328,6 +333,7 @@ let gen_view =
     (
       (name, _): A.identifier_t,
       props: list(A.argument_t),
+      mixins: list(N.t(string, T.t)),
       (expr, _): A.expression_t,
     ) =>
   JavaScript_AST.(
@@ -347,6 +353,36 @@ let gen_view =
                    @ (default |?> (((x, _)) => [gen_expression(x)]) |?: []),
                  ),
                )
+             })
+        )
+        @ (
+          mixins
+          |> List.concat_map(mixin => {
+               let style_name = _style_name(fst(mixin));
+
+               [
+                 Variable(
+                   style_name,
+                   FunctionCall(
+                     __knot_style,
+                     [
+                       DotAccess(Identifier(__util_lib), "style"),
+                       FunctionCall(Identifier(fst(mixin)), []),
+                     ],
+                   ),
+                 ),
+                 ...switch (N.get_type(mixin)) {
+                    | T.Valid(`Style(_, ids, classes)) =>
+                      classes
+                      |> List.map(name =>
+                           Variable(
+                             _class_name(name),
+                             DotAccess(Identifier(style_name), name),
+                           )
+                         )
+                    | _ => []
+                    },
+               ];
              })
         )
         @ (
@@ -441,7 +477,7 @@ let gen_declaration = (name: A.identifier_t, (decl, _): A.declaration_t) =>
     | Constant(value) => [gen_constant(name, value)]
     | Enumerated(variants) => [gen_enumerated(name, variants)]
     | Function(args, expr) => [gen_function(name, args, expr)]
-    | View(props, expr) => [gen_view(name, props, expr)]
+    | View(props, mixins, expr) => [gen_view(name, props, mixins, expr)]
     | Style(args, rule_sets) => [gen_style(name, args, rule_sets)]
     }
   )

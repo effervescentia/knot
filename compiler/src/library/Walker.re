@@ -43,7 +43,7 @@ and iter_decl = f =>
         (args |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))
-      | View(props, expr) =>
+      | View(props, mixins, expr) =>
         (props |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))

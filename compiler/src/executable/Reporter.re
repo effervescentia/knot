@@ -571,6 +571,24 @@ let _extract_type_err =
         )
       ),
       [],
+    )
+
+  | Type.InvalidViewMixin(type_) => (
+      "Invalid View Mixin",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>views can only accept mixins of type %a but found %a@]",
+              good_str,
+              "style",
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
     );
 
 let _extract_parse_err =

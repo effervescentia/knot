@@ -101,7 +101,7 @@ let handler: Runtime.request_handler_t(params_t) =
                                      range,
                                      kind: Capabilities.Function,
                                    }
-                                 | View(props, expr) => {
+                                 | View(props, mixins, expr) => {
                                      uri,
                                      name,
                                      range,

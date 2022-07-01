@@ -1,1 +1,5 @@
-main view Greet(name: string) -> name;
+style GreetStyle -> {
+  .root {}
+}
+
+main view Greet(name: string) ~ GreetStyle -> <div .root>{name}</div>;

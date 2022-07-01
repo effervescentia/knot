@@ -65,7 +65,7 @@ let suite =
         Assert.parse(
           (
             "foo" |> U.as_untyped |> A.of_named_export,
-            ([], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
+            ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
           )
           |> U.as_untyped,
           "view foo -> nil",
@@ -78,6 +78,7 @@ let suite =
           (
             "foo" |> U.as_untyped |> A.of_named_export,
             (
+              [],
               [],
               [U.nil_prim |> A.of_expr |> U.as_nil]
               |> A.of_closure
@@ -96,7 +97,7 @@ let suite =
         Assert.parse(
           (
             "foo" |> U.as_untyped |> A.of_named_export,
-            ([], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
+            ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
           )
           |> U.as_untyped,
           "view foo () -> nil",
@@ -109,6 +110,7 @@ let suite =
           (
             "foo" |> U.as_untyped |> A.of_named_export,
             (
+              [],
               [],
               [U.nil_prim |> A.of_expr |> U.as_nil]
               |> A.of_closure
@@ -136,6 +138,7 @@ let suite =
                 }
                 |> U.as_int,
               ],
+              [],
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
@@ -160,6 +163,7 @@ let suite =
                 }
                 |> U.as_string,
               ],
+              [],
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
@@ -184,6 +188,7 @@ let suite =
                 }
                 |> U.as_bool,
               ],
+              [],
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view

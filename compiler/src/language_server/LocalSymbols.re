@@ -80,7 +80,7 @@ let handler: Runtime.request_handler_t(params_t) =
                           full_range,
                           kind: Capabilities.Function,
                         }
-                      | View(props, expr) => {
+                      | View(props, mixins, expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,

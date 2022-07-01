@@ -140,7 +140,7 @@ let of_decl =
     |> of_list
   | A.Function(args, expr) =>
     _join(of_args(args), expr |> of_expr |> _wrap(N.get_range(expr)))
-  | A.View(props, expr) =>
+  | A.View(props, mixins, expr) =>
     _join(of_args(props), expr |> of_expr |> _wrap(N.get_range(expr)))
   | A.Style(args, rule_sets) =>
     _join(

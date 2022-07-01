@@ -56,6 +56,7 @@ let __inline_view = (
       }
       |> U.as_int,
     ],
+    [],
     [
       ("bar" |> A.of_id |> U.as_int, "fizz" |> A.of_id |> U.as_int)
       |> A.of_add_op
@@ -73,6 +74,7 @@ let __inline_view = (
 let __multiline_view = (
   "buzz",
   (
+    [],
     [],
     [
       (U.as_untyped("zip"), 3 |> U.int_prim) |> A.of_var |> U.as_nil,

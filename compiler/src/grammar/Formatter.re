@@ -323,16 +323,21 @@ let pp_declaration: Fmt.t((string, A.raw_declaration_t)) =
         )
       )
 
-    | View([], (expr, _)) =>
+    | View([], [], (expr, _)) =>
       Fmt.(pf(ppf, "@[<v>view %s -> %a@]", name, pp_function_body, expr))
-    | View(props, (expr, _)) =>
+    | View(props, mixins, (expr, _)) =>
       Fmt.(
         pf(
           ppf,
-          "@[<v>view @[<h>%s(%a)@] -> %a@]",
+          "@[<v>view @[<h>%s(%a)@] %a-> %a@]",
           name,
           list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
           props |> List.map(fst),
+          (ppf, xs) =>
+            if (!List.is_empty(xs)) {
+              pf(ppf, "~ %a ", list(~sep=Sep.comma, string), xs);
+            },
+          mixins |> List.map(fst),
           pp_function_body,
           expr,
         )

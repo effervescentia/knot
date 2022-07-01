@@ -403,7 +403,7 @@ and raw_declaration_t =
   | Constant(expression_t)
   | Enumerated(list((identifier_t, list(node_t(TypeExpression.raw_t)))))
   | Function(list(argument_t), expression_t)
-  | View(list(argument_t), expression_t)
+  | View(list(argument_t), list(Node.t(string, Type.t)), expression_t)
   | Style(list(argument_t), list(style_rule_set_t));
 
 /**
@@ -460,7 +460,7 @@ let of_id_matcher = x => MatchID(x);
 let of_const = x => Constant(x);
 let of_enum = variants => Enumerated(variants);
 let of_func = ((args, expr)) => Function(args, expr);
-let of_view = ((props, expr)) => View(props, expr);
+let of_view = ((props, mixins, expr)) => View(props, mixins, expr);
 let of_style = ((args, rule_sets)) => Style(args, rule_sets);
 
 let of_standard_import = imports => StandardImport(imports);
@@ -548,12 +548,16 @@ module Dump = {
           decl,
         )
 
-      | View(props, expr) =>
+      | View(props, mixins, expr) =>
         typed_node_to_entity(
           ~children=[
             Entity.create(
               ~children=props |> List.map(argument_to_entity("Property")),
               "Properties",
+            ),
+            Entity.create(
+              ~children=mixins |> List.map(node_to_entity(Type.pp, "Mixin")),
+              "Mixins",
             ),
             Entity.create(~children=[expr_to_entity(expr)], "Body"),
           ],
