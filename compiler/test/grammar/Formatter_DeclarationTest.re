@@ -111,12 +111,24 @@ let __style = (
     [
       (
         A.MatchID(U.as_untyped("hero")),
-        [(U.as_untyped("width"), U.int_prim(10)) |> U.as_untyped],
+        [
+          (
+            "width" |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+            U.int_prim(10),
+          )
+          |> U.as_untyped,
+        ],
       )
       |> U.as_untyped,
       (
         A.MatchClass(U.as_untyped("button")),
-        [(U.as_untyped("height"), U.int_prim(2)) |> U.as_untyped],
+        [
+          (
+            "height" |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+            U.int_prim(2),
+          )
+          |> U.as_untyped,
+        ],
       )
       |> U.as_untyped,
     ],

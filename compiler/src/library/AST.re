@@ -387,7 +387,7 @@ type style_matcher_t =
   | MatchID(identifier_t);
 
 type style_rule_t = untyped_t(raw_style_rule_t)
-and raw_style_rule_t = (identifier_t, expression_t);
+and raw_style_rule_t = (Node.t(string, Type.t), expression_t);
 
 type style_rule_set_t = untyped_t(raw_style_rule_set_t)
 and raw_style_rule_set_t = (style_matcher_t, list(style_rule_t));
@@ -581,7 +581,12 @@ module Dump = {
                              |> List.map((((key, value), _) as rule) =>
                                   untyped_node_to_entity(
                                     ~children=[
-                                      id_to_entity("Key", key),
+                                      node_to_entity(
+                                        Type.pp,
+                                        ~attributes=[("value", fst(key))],
+                                        "Key",
+                                        key,
+                                      ),
                                       Entity.create(
                                         ~children=[expr_to_entity(value)],
                                         "Value",

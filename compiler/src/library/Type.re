@@ -246,7 +246,8 @@ type error_t =
   /* FIXME: not reported */
   | DefaultArgumentMissing(string)
   | InvalidDecoratorInvocation(t, list(t))
-  | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t);
+  | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t)
+  | UnknownStyleRule(string);
 
 /* pretty printing */
 
@@ -396,6 +397,8 @@ let pp_error: Fmt.t(error_t) =
           DecoratorTarget.pp,
           rhs,
         )
+
+      | UnknownStyleRule(rule) => pf(ppf, "UnknownStyleRule<%s>", rule)
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>

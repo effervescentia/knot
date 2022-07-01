@@ -2,7 +2,7 @@ open Kore;
 
 module SemanticAnalyzer = Analyze.Semantic;
 
-let style_rule_set = (ctx: ParseContext.t) =>
+let style_rule_set = (ctx: ParseContext.t, rule_scope: Scope.t) =>
   choice([
     M.identifier(~prefix=Character.period)
     >|= N.map(String.drop_prefix("."))
@@ -15,10 +15,38 @@ let style_rule_set = (ctx: ParseContext.t) =>
     matcher =>
       Identifier.parser(ctx)
       >>= (
-        key =>
+        rule =>
           Symbol.colon
           >> Expression.parser(ctx)
-          >|= (expr => N.untyped((key, expr), N.join_ranges(key, expr)))
+          >|= (
+            expr => {
+              let found_type = rule_scope |> Scope.lookup(fst(rule));
+
+              switch (found_type) {
+              /* only allow single-argument void functions to be treated as rules */
+              | Some(Valid(`Function([_], Valid(`Nil)))) => ()
+
+              | _ =>
+                ctx
+                |> ParseContext.report(
+                     TypeError(UnknownStyleRule(fst(rule))),
+                     N.get_range(rule),
+                   )
+              };
+
+              N.untyped(
+                (
+                  N.typed(
+                    fst(rule),
+                    found_type |?: T.Invalid(NotInferrable),
+                    N.get_range(rule),
+                  ),
+                  expr,
+                ),
+                N.join_ranges(rule, expr),
+              );
+            }
+          )
           |> M.terminated
       )
       |> many
@@ -40,8 +68,16 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
               Glyph.lambda
               >|= N.get_range
               >>= (
-                start_range =>
-                  style_rule_set(ctx)
+                start_range => {
+                  let rule_scope = Scope.create(ctx, Range.zero);
+
+                  Scope.inject_plugin_types(
+                    ~prefix="",
+                    StyleRule,
+                    rule_scope,
+                  );
+
+                  style_rule_set(ctx, rule_scope)
                   |> many
                   |> M.between(Symbol.open_closure, Symbol.close_closure)
                   >|= (
@@ -82,6 +118,8 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
                              ([], []),
                            );
 
+                      let analyze_expr =
+                        SemanticAnalyzer.analyze_expression(scope);
                       let res_rule_sets =
                         raw_rule_sets
                         |> fst
@@ -89,13 +127,38 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
                              N.map(
                                Tuple.map_snd2(
                                  List.map(
-                                   N.map(
-                                     Tuple.map_snd2(
-                                       SemanticAnalyzer.analyze_expression(
-                                         scope,
-                                       ),
-                                     ),
-                                   ),
+                                   N.map(((rule, raw_expr)) => {
+                                     let expr = analyze_expr(raw_expr);
+
+                                     switch (
+                                       N.get_type(rule),
+                                       N.get_type(expr),
+                                     ) {
+                                     | (
+                                         T.Valid(
+                                           `Function(
+                                             [arg_type],
+                                             Valid(`Nil),
+                                           ),
+                                         ),
+                                         expr_type,
+                                       )
+                                         when arg_type != expr_type =>
+                                       ctx
+                                       |> ParseContext.report(
+                                            TypeError(
+                                              TypeMismatch(
+                                                arg_type,
+                                                expr_type,
+                                              ),
+                                            ),
+                                            N.get_range(expr),
+                                          )
+                                     | _ => ()
+                                     };
+
+                                     (rule, expr);
+                                   }),
                                  ),
                                ),
                              ),
@@ -130,9 +193,9 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
                         Range.join(start, range),
                       );
                     }
-                  )
+                  );
+                }
               )
           )
       )
-      |> M.terminated
   );

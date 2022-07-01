@@ -555,6 +555,22 @@ let _extract_type_err =
         )
       ),
       [],
+    )
+
+  | Type.UnknownStyleRule(rule) => (
+      "Unknown Style Rule",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>the style rule %a was not recognized for the target platform@]",
+              bad_str,
+              rule,
+            )
+        )
+      ),
+      [],
     );
 
 let _extract_parse_err =

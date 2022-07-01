@@ -332,11 +332,47 @@ let suite =
                     [Identifier("$props$"), String("bar"), Number("123")],
                   ),
                 ),
+                Variable(
+                  "$",
+                  DotAccess(
+                    DotAccess(Identifier("$knot"), "style"),
+                    "styleExpressionPlugin",
+                  ),
+                ),
+                Variable(
+                  "$rules$",
+                  DotAccess(
+                    DotAccess(Identifier("$knot"), "style"),
+                    "styleRulePlugin",
+                  ),
+                ),
                 Return(
                   Some(
                     Object([
-                      (".fizz", Object([("height", Number("2"))])),
-                      ("#buzz", Object([("width", Number("10"))])),
+                      (
+                        ".fizz",
+                        Object([
+                          (
+                            "height",
+                            FunctionCall(
+                              DotAccess(Identifier("$rules$"), "height"),
+                              [Number("2")],
+                            ),
+                          ),
+                        ]),
+                      ),
+                      (
+                        "#buzz",
+                        Object([
+                          (
+                            "width",
+                            FunctionCall(
+                              DotAccess(Identifier("$rules$"), "width"),
+                              [Number("10")],
+                            ),
+                          ),
+                        ]),
+                      ),
                     ]),
                   ),
                 ),
@@ -356,12 +392,26 @@ let suite =
             [
               (
                 A.MatchClass(U.as_untyped("fizz")),
-                [(U.as_untyped("height"), U.int_prim(2)) |> U.as_untyped],
+                [
+                  (
+                    "height"
+                    |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+                    U.int_prim(2),
+                  )
+                  |> U.as_untyped,
+                ],
               )
               |> U.as_untyped,
               (
                 A.MatchID(U.as_untyped("buzz")),
-                [(U.as_untyped("width"), U.int_prim(10)) |> U.as_untyped],
+                [
+                  (
+                    "width"
+                    |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+                    U.int_prim(10),
+                  )
+                  |> U.as_untyped,
+                ],
               )
               |> U.as_untyped,
             ],
