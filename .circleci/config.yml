@@ -72,6 +72,17 @@ commands:
       - run:
           name: Setup Lerna
           command: yarn global add lerna
+  setup_fswatch:
+    description: install fswatch
+    steps:
+      - run:
+          name: Setup fswatch
+          command: |
+            sudo apt update
+            sudo apt install fswatch
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
+            sudo ldconfig
   persist:
     description: persist a directory to the workspace
     parameters:
@@ -280,14 +291,7 @@ jobs:
       - restore_linux_node_cache
       - setup_yarn
       - setup_esy
-      - run:
-          name: Install fswatch
-          command: |
-            sudo apt update
-            sudo apt install fswatch
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
-            sudo ldconfig
+      - setup_fswatch
       - compiler_install
       - run:
           name: Build
@@ -317,12 +321,14 @@ jobs:
           path: ~/project/compiler/_build/_tests
 
   test_compiler:
-    docker:
-      - image: cypress/base:10
+    executor:
+      name: node/default
+      tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
+      - setup_fswatch
       - attach_workspace:
           at: /tmp/workspace
       - restore_pkg:
