@@ -34,7 +34,7 @@ export const mapKeys = <
   obj: T,
   mapKey: (key: keyof T) => K
 ): Record<K, T[keyof T]> =>
-  mapEntries<T, Record<K, T[keyof T]>>(obj, entries =>
+  mapEntries<T, Record<K, T[keyof T]>>(obj, (entries) =>
     entries.map(([key, value]) => [mapKey(key), value])
   );
 
@@ -42,14 +42,14 @@ export const mapValues = <T extends object, R>(
   obj: T,
   mapValue: (value: T[keyof T]) => R
 ): Record<keyof T, R> =>
-  mapEntries<T, Record<keyof T, R>>(obj, entries =>
+  mapEntries<T, Record<keyof T, R>>(obj, (entries) =>
     entries.map(([key, value]) => [key, mapValue(value)])
   );
 
 export const filterEntries = <T extends object>(
   obj: T,
   filter: (entry: Entry<T>) => boolean
-) => mapEntries(obj, entries => entries.filter(filter));
+) => mapEntries(obj, (entries) => entries.filter(filter));
 
 export const filterKeys = <T extends object>(
   obj: T,
@@ -73,11 +73,11 @@ export const groupReduce = <
 ): Record<keyof G, R> => {
   const keys: (keyof G)[] = Object.keys(groups);
   const group = fromEntries<Record<keyof G, R>>(
-    keys.map(key => [key, factory()])
+    keys.map((key) => [key, factory()])
   );
   const entries = Object.entries(obj) as Entry<T>[];
 
-  entries.forEach(entry => {
+  entries.forEach((entry) => {
     for (const key of keys) {
       if (groups[key](entry)) {
         group[key] = reduce(group[key], entry);

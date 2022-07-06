@@ -1,4 +1,9 @@
-export type ClassType<A extends any[] = any[], I extends {} = {}> = {
+export type EmptyObject = Record<never, never>;
+
+export type ClassType<
+  A extends any[] = any[],
+  I extends object = EmptyObject
+> = {
   new (...args: A): I;
 };
 
