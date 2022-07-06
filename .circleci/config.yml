@@ -335,6 +335,7 @@ jobs:
       - run:
           name: Restore knotc.exe from Workspace
           command: |
+            mkdir -p compiler/_esy/default/build/install/default/bin
             mv /tmp/workspace/knotc compiler/_esy/default/build/install/default/bin/knotc.exe
       - build_pkg:
           pkg: compiler
