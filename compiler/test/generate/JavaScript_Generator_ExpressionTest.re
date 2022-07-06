@@ -83,12 +83,21 @@ let suite =
               Object([
                 (
                   "className",
-                  BinaryOp(
-                    "+",
-                    Group(
-                      Ternary(Boolean(true), String(".buzz"), String("")),
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "style"),
+                      "classes",
                     ),
-                    String(".fizz"),
+                    [
+                      Group(
+                        Ternary(
+                          Boolean(true),
+                          Identifier("$class_buzz"),
+                          String(""),
+                        ),
+                      ),
+                      Identifier("$class_fizz"),
+                    ],
                   ),
                 ),
                 ("zip", String("zap")),
