@@ -4,7 +4,7 @@ import {
   BundlerType,
   FRAMEWORK_BUNDLERS,
   FRAMEWORKS,
-  FrameworkType
+  FrameworkType,
 } from './contants';
 
 export const frameworkPrompt = () =>
@@ -14,7 +14,7 @@ export const frameworkPrompt = () =>
     choices: FRAMEWORKS,
     message: 'Which rendering library do you want to use?',
     name: 'frameworkType',
-    type: 'list'
+    type: 'list',
   });
 
 export const bundlerPrompt = (frameworkType: FrameworkType) =>
@@ -24,7 +24,7 @@ export const bundlerPrompt = (frameworkType: FrameworkType) =>
     choices: FRAMEWORK_BUNDLERS[frameworkType],
     message: 'Which bundler do you want to use?',
     name: 'bundlerType',
-    type: 'list'
+    type: 'list',
   });
 
 export const httpsPrompt = () =>
@@ -34,7 +34,7 @@ export const httpsPrompt = () =>
     default: true,
     message: 'Do you want to use HTTPS when running locally?',
     name: 'isHTTPS',
-    type: 'confirm'
+    type: 'confirm',
   });
 
 export const projectNamePrompt = () =>
@@ -44,7 +44,7 @@ export const projectNamePrompt = () =>
     message: 'What is the name of your project?',
     name: 'projectName',
     type: 'input',
-    filter: value => value.trim(),
-    validate: value =>
-      value.trim().length !== 0 || 'Project name must not be empty'
+    filter: (value) => value.trim(),
+    validate: (value) =>
+      value.trim().length !== 0 || 'Project name must not be empty',
   });
