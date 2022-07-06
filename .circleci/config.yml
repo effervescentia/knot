@@ -322,7 +322,6 @@ jobs:
       tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
-      KNOTC_BINARY: /tmp/workspace/knotc
     steps:
       - checkout
       - attach_workspace:
@@ -333,6 +332,10 @@ jobs:
       - restore_pkg:
           from: common
           to: plugins/common
+      - run:
+          name: Restore knotc.exe from Workspace
+          command: |
+            mv /tmp/workspace/knotc compiler/_esy/default/build/install/default/bin/knotc.exe
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
