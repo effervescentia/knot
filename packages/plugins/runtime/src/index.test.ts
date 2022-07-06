@@ -1,4 +1,3 @@
-import { JSXPlugin } from '@knot/plugin-utils';
 import test from 'ava';
 import mock from 'mock-require';
 
@@ -10,6 +9,6 @@ import knot from '.';
 
 test('utils', (t) => {
   t.deepEqual(knot.platform, {});
-  t.deepEqual(knot.jsx, {} as JSXPlugin<unknown, unknown>);
+  t.deepEqual(knot.jsx, {} as any);
   t.deepEqual(knot.style, {});
 });
