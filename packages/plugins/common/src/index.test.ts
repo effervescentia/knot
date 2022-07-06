@@ -31,4 +31,5 @@ test('includes keys', (t) =>
     'groupReduce',
     'groupValues',
     'groupEntries',
+    'createEnumerated',
   ]));

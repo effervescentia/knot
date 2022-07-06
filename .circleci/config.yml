@@ -658,10 +658,6 @@ workflows:
       - test_runtime:
           requires:
             - install_node
-      - test_compiler:
-          requires:
-            - test_runtime
-            - install_node
       - test_cli:
           requires:
             - install_node
@@ -685,6 +681,10 @@ workflows:
       - test_jss_plugin:
           requires:
             - test_common
+      - test_compiler:
+          requires:
+            - test_common
+            - test_runtime
       - test_webpack_plugin:
           requires:
             - test_compiler
