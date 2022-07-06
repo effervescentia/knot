@@ -18,9 +18,10 @@ test('--help', async (t) => {
 
 Options:
   -V, --version      output the version number
-  -h, --help         output usage information
+  -h, --help         display help for command
 
 Commands:
-  init [target_dir]  Setup a new knot project`
+  init [target_dir]  Setup a new knot project
+  help [command]     display help for command`
   );
 });
