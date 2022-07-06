@@ -16,11 +16,5 @@ function hasKeys<T extends object>(
   );
 }
 
-test('includes keys', t =>
-  hasKeys(t, main, [
-    'createComponent',
-    'createElement',
-    'createFragment',
-    'render',
-    'withState'
-  ]));
+test('includes keys', (t) =>
+  hasKeys(t, main, ['createTag', 'createFragment', 'render']));

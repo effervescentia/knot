@@ -28,7 +28,7 @@ class VueStateFactory<S extends object> implements StateFactory<S> {
 
   build(state: S) {
     const observed = Vue.observable(
-      fromEntries<S>(this.properties.map(name => [name, state[name]]))
+      fromEntries<S>(this.properties.map((name) => [name, state[name]]))
     );
 
     const result = {} as S;
@@ -36,20 +36,20 @@ class VueStateFactory<S extends object> implements StateFactory<S> {
     Object.defineProperties(
       result,
       fromEntries<PropertyDescriptorMap>(
-        this.properties.map(name => [
+        this.properties.map((name) => [
           name as string,
           {
             configurable: false,
             enumerable: true,
             get() {
               return observed[name];
-            }
-          }
+            },
+          },
         ])
       )
     );
 
-    this.mutators.forEach(name => {
+    this.mutators.forEach((name) => {
       result[name] = state[name];
     });
 
