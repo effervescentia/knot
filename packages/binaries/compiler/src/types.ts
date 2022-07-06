@@ -4,7 +4,7 @@ import { ClientOptions } from './compiler/client';
 
 export enum Target {
   JAVASCRIPT_ES6 = 'javascript-es6',
-  JAVASCRIPT_COMMON = 'javascript-common'
+  JAVASCRIPT_COMMON = 'javascript-common',
 }
 
 export interface Options extends ClientOptions {

@@ -168,7 +168,7 @@ test('purges leaf module and reprocesses', (t) =>
       ]);
 
     t.is(status, Status.IDLE);
-    t.is(mainStatus, ModuleStatus.VALID);
+    t.is(mainStatus, ModuleStatus.PARTIAL);
     t.is(appStatus, ModuleStatus.PURGED);
 
     const error = await errorPromise;

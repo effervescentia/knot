@@ -1,8 +1,6 @@
 import baseFetch from 'cross-fetch';
 
-type ArgumentTypes<F extends Function> = F extends (...args: infer A) => any
-  ? A
-  : never;
+type ArgumentTypes<F> = F extends (...args: infer A) => any ? A : never;
 
 export class NetworkError extends Error {
   constructor(msg: string, public statusCode: number) {

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
-
 import { OptionOverrides, Options } from '../types';
 import Client from './client';
 import { DEFAULT_OPTIONS, INFINITE_ATTEMPTS } from './constants';
@@ -18,8 +16,8 @@ class Compiler {
       ...options,
       plugins: {
         ...DEFAULT_OPTIONS.plugins,
-        ...options.plugins
-      }
+        ...options.plugins,
+      },
     };
 
     this.client = new Client({
@@ -27,7 +25,7 @@ class Compiler {
       cwd: this.options.cwd,
       target: this.options.target,
       config: this.options.config,
-      debug: this.options.debug
+      debug: this.options.debug,
     });
 
     this.isRunning = true;

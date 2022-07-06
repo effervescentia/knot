@@ -7,7 +7,7 @@ export enum Method {
 
   STATUS = 'compiler/status',
   RESET = 'compiler/reset',
-  ERROR = 'compiler/error'
+  ERROR = 'compiler/error',
 }
 
 export interface NotificationMap {
@@ -34,7 +34,7 @@ export enum ModuleStatus {
   PURGED = 'purged',
   VALID = 'valid',
   PARTIAL = 'partial',
-  INVALID = 'invalid'
+  INVALID = 'invalid',
 }
 
 export type ModuleStatusParams = ModuleParams;
@@ -47,7 +47,7 @@ export interface ModuleStatusResult {
 
 export enum Status {
   IDLE = 'idle',
-  RUNNING = 'running'
+  RUNNING = 'running',
 }
 
 export interface StatusResult {
@@ -72,7 +72,7 @@ export enum CompilerErrorType {
   FILE_NOT_FOUND = 'file_not_found',
   UNRESOLVED_MODULE = 'unresolved_module',
   INVALID_MODULE = 'invalid_module',
-  IMPORT_CYCLE = 'import_cycle'
+  IMPORT_CYCLE = 'import_cycle',
 }
 
 export enum ModuleErrorType {}
