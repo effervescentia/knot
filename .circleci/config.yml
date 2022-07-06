@@ -317,9 +317,8 @@ jobs:
           path: ~/project/compiler/_build/_tests
 
   test_compiler:
-    executor:
-      name: node/default
-      tag: 17.6.0
+    docker:
+      - image: cypress/base:10
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
