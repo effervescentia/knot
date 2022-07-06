@@ -40,7 +40,7 @@ executors:
         environment:
           ## this enables colors in the output
           TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
+          KNOTC_BINARY: /tmp/workspace/knotc
           NODE_OPTIONS: --max_old_space_size=4096
 
 commands:
@@ -311,8 +311,8 @@ jobs:
           paths:
             - ~/project/compiler/_export
       - persist:
-          from: compiler/_esy/default/store/i/knot-*
-          to: knot
+          from: compiler/_esy/default/build/install/default/bin/knotc.exe
+          to: knotc
       - store_artifacts:
           path: ~/project/compiler/_build/_tests
 
@@ -322,6 +322,7 @@ jobs:
       tag: 17.6.0
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
+      KNOTC_BINARY: /tmp/workspace/knotc
     steps:
       - checkout
       - attach_workspace:
@@ -691,8 +692,7 @@ workflows:
             - test_common
       - test_compiler:
           requires:
-            - test_common
-            - test_runtime
+            - test_compiler_binary
       - test_webpack_plugin:
           requires:
             - test_compiler
