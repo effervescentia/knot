@@ -222,15 +222,15 @@ let suite =
           /* TODO: allow these to be referenced */
           /* "style Foo -> {
                #bar {
-                 height: px(20)
+                 height: $px(20.0)
                }
 
                #fizz {
-                 width: px(10)
+                 width: $px(10.0)
                }
 
                .buzz {
-                 color: red
+                 color: $red
                }
              }", */
         )
