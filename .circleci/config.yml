@@ -684,7 +684,7 @@ workflows:
             - test_plugin_utils
       - test_jss_plugin:
           requires:
-            - install_node
+            - test_common
       - test_webpack_plugin:
           requires:
             - test_compiler
