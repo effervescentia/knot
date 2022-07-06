@@ -29,6 +29,7 @@ let __knot_prop = _platform_util("prop");
 let __knot_style = _platform_util("style");
 let __jsx_create_tag = _jsx_util("createTag");
 let __jsx_create_fragment = _jsx_util("createFragment");
+let __style_classes = _style_util("classes");
 
 let _style_name = Fmt.str("$style_%s");
 let _class_name = Fmt.str("$class_%s");
@@ -217,15 +218,7 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
         : [
           (
             __class_name_prop,
-            {
-              let rec loop =
-                fun
-                | [] => JavaScript_AST.String("")
-                | [x] => x
-                | [x, ...xs] => JavaScript_AST.BinaryOp("+", x, loop(xs));
-
-              loop(classes);
-            },
+            JavaScript_AST.FunctionCall(__style_classes, classes),
           ),
           ...props,
         ];
