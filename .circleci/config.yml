@@ -16,12 +16,12 @@ defaults:
       - macos_node_cache-v1-{{ checksum "yarn.lock" }}
       - macos_node_cache-v1
   linux_compiler_cache: &linux_compiler_cache
-    key: linux_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
+    key: linux_compiler_cache-v2-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
   linux_compiler_cache_keys: &linux_compiler_cache_keys
     keys:
-      - linux_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
-      - linux_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}
-      - linux_compiler_cache-v1
+      - linux_compiler_cache-v2-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
+      - linux_compiler_cache-v2-{{ checksum "compiler/esy.lock/index.json" }}
+      - linux_compiler_cache-v2
   macos_compiler_cache: &macos_compiler_cache
     key: macos_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
   macos_compiler_cache_keys: &macos_compiler_cache_keys
