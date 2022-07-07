@@ -30,13 +30,16 @@ defaults:
       - macos_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}
       - macos_compiler_cache-v1
 
-orbs:
-  node: circleci/node@4.2.0
-
 executors:
+  node:
+    docker:
+      - image: cimg/node:17.8.0
+        environment:
+          NODE_OPTIONS: --max_old_space_size=4096
   node-cypress:
     docker:
       - image: cypress/base:17.8.0
+        working_directory: ~/app
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -210,6 +213,7 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
+      - setup_fswatch
       - restore_pkg:
           from: compiler
           to: binaries/compiler
@@ -247,11 +251,7 @@ commands:
 
 jobs:
   install_node:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_node_cache
@@ -285,11 +285,7 @@ jobs:
             - packages/examples/webpack-vue/node_modules
 
   test_compiler_binary:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -322,11 +318,7 @@ jobs:
           path: ~/project/compiler/_build/_tests
 
   test_compiler:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - setup_fswatch
@@ -348,11 +340,7 @@ jobs:
           path: packages/binaries/compiler
 
   test_cli:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -360,11 +348,7 @@ jobs:
           path: packages/utilities/cli
 
   test_common:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -372,11 +356,7 @@ jobs:
           path: packages/plugins/common
 
   test_runtime:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -384,11 +364,7 @@ jobs:
           path: packages/plugins/runtime
 
   test_plugin_utils:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -396,11 +372,7 @@ jobs:
           path: packages/plugins/compiler/utils
 
   test_browser_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -408,11 +380,7 @@ jobs:
           path: packages/plugins/compiler/browser
 
   test_react_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -428,11 +396,7 @@ jobs:
           path: packages/plugins/compiler/react
 
   test_vue_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -448,11 +412,7 @@ jobs:
           path: packages/plugins/compiler/vue
 
   test_jss_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -465,11 +425,7 @@ jobs:
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -481,11 +437,7 @@ jobs:
           bundler: webpack
 
   test_browserify_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -497,11 +449,7 @@ jobs:
           bundler: browserify
 
   test_rollup_plugin:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -514,7 +462,6 @@ jobs:
 
   test_webpack_react:
     executor: node-cypress
-    working_directory: ~/app
     steps:
       - checkout
       - setup_test_example:
@@ -528,7 +475,6 @@ jobs:
 
   test_browserify_react:
     executor: node-cypress
-    working_directory: ~/app
     steps:
       - checkout
       - setup_test_example:
@@ -545,7 +491,6 @@ jobs:
 
   test_rollup_react:
     executor: node-cypress
-    working_directory: ~/app
     steps:
       - checkout
       - setup_test_example:
@@ -562,7 +507,6 @@ jobs:
 
   test_webpack_vue:
     executor: node-cypress
-    working_directory: ~/app
     steps:
       - checkout
       - setup_test_example:
@@ -576,7 +520,6 @@ jobs:
 
   test_browserify_vue:
     executor: node-cypress
-    working_directory: ~/app
     steps:
       - checkout
       - setup_test_example:
@@ -593,7 +536,6 @@ jobs:
 
   test_rollup_vue:
     executor: node-cypress
-    working_directory: ~/app
     steps:
       - checkout
       - setup_test_example:
@@ -638,11 +580,7 @@ jobs:
             - ~/.cache
 
   compile_linux:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -659,11 +597,7 @@ jobs:
           to: compiler_linux
 
   release:
-    executor:
-      name: node/default
-      tag: 17.6.0
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_node_cache
