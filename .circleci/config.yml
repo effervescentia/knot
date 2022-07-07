@@ -85,7 +85,7 @@ commands:
       - run:
           name: Setup fswatch
           command: |
-            <<# parameters.sudo >>sudo<</ parameters.sudo >> bash <<"EOF"
+            <<# parameters.sudo >>sudo<</ parameters.sudo >> bash \\<<"EOF"
               apt update
               apt install fswatch
               ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
