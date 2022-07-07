@@ -77,15 +77,21 @@ commands:
           command: yarn global add lerna
   setup_fswatch:
     description: install fswatch
+    parameters:
+      sudo:
+        type: boolean
+        default: true
     steps:
       - run:
           name: Setup fswatch
           command: |
-            sudo apt update
-            sudo apt install fswatch
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
-            sudo ldconfig
+            <<# parameters.sudo >>sudo<</ parameters.sudo >> bash <<"EOF"
+              apt update
+              apt install fswatch
+              ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
+              ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
+              ldconfig
+            EOF
   persist:
     description: persist a directory to the workspace
     parameters:
@@ -213,7 +219,8 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
-      - setup_fswatch
+      - setup_fswatch:
+          sudo: false
       - restore_pkg:
           from: compiler
           to: binaries/compiler
