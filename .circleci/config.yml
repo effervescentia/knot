@@ -290,7 +290,6 @@ jobs:
       - setup_yarn
       - setup_esy
       - setup_fswatch
-      - compiler_install
       - run:
           name: Import Dependencies
           working_directory: ./compiler
@@ -298,6 +297,7 @@ jobs:
             if [ -d ./_export ]; then
               esy import-build ./_export/*.tar.gz
             fi
+      - compiler_install
       - run:
           name: Build
           working_directory: ./compiler
