@@ -225,8 +225,7 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
-      - setup_fswatch:
-          sudo: false
+      - setup_fswatch
       - restore_pkg:
           from: compiler
           to: binaries/compiler
