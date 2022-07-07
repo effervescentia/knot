@@ -36,7 +36,7 @@ orbs:
 executors:
   node-cypress:
     docker:
-      - image: cypress/base:10
+      - image: cypress/base:17.8.0
         environment:
           ## this enables colors in the output
           TERM: xterm
@@ -487,6 +487,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
       - test_bundler_plugin:
           bundler: browserify
 
@@ -500,6 +503,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
       - test_bundler_plugin:
           bundler: rollup
 
