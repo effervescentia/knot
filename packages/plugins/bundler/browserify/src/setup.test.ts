@@ -3,7 +3,7 @@ import { BrowserifyObject } from 'browserify';
 
 import { addExtension } from './setup';
 
-test('addExtension(): add extensions', t => {
+test('addExtension(): add extensions', (t) => {
   const bundle = { _extensions: ['.js'] } as BrowserifyObject;
 
   addExtension(bundle);
@@ -11,7 +11,7 @@ test('addExtension(): add extensions', t => {
   t.deepEqual(bundle._extensions, ['.knot', '.kn', '.js']);
 });
 
-test('addExtension(): skip adding existing extension', t => {
+test('addExtension(): skip adding existing extension', (t) => {
   const bundle = { _extensions: ['.js', '.kn'] } as BrowserifyObject;
 
   addExtension(bundle);

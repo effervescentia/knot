@@ -179,8 +179,6 @@ commands:
       bundler:
         type: string
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
       - run:
           name: Restore Compiler
           working_directory: ./packages
@@ -471,6 +469,11 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
       - test_bundler_plugin:
           bundler: webpack
 
@@ -482,6 +485,8 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
       - test_bundler_plugin:
           bundler: browserify
 
@@ -493,6 +498,8 @@ jobs:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
       - test_bundler_plugin:
           bundler: rollup
 
