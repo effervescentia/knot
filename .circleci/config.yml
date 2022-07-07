@@ -139,6 +139,13 @@ commands:
     description: use esy to install Compiler OCaml dependencies
     steps:
       - run:
+          name: Import Dependencies
+          working_directory: ./compiler
+          command: |
+            if [ -d ./_export ]; then
+              esy import-build ./_export/*.tar.gz
+            fi
+      - run:
           name: Install Compiler Dependencies
           working_directory: ./compiler
           command: esy install --cache-tarballs-path=./_esyinstall && esy pesy
@@ -290,13 +297,6 @@ jobs:
       - setup_yarn
       - setup_esy
       - setup_fswatch
-      - run:
-          name: Import Dependencies
-          working_directory: ./compiler
-          command: |
-            if [ -d ./_export ]; then
-              esy import-build ./_export/*.tar.gz
-            fi
       - compiler_install
       - run:
           name: Build
