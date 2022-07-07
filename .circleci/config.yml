@@ -319,7 +319,7 @@ jobs:
             - ~/project/compiler/_esyinstall
             - ~/project/compiler/_export
       - persist:
-          from: compiler/_release/bin/knotc.exe
+          from: compiler/_esy/default/build-release/install/default/bin/knotc.exe
           to: knotc
       - store_artifacts:
           path: ~/project/compiler/_build/_tests
