@@ -41,15 +41,6 @@ executors:
       - image: cimg/node:17.8.0-browsers
         environment:
           KNOTC_BINARY: /tmp/workspace/knotc
-          NODE_OPTIONS: --max_old_space_size=4096
-  node-cypress:
-    working_directory: ~/app
-    docker:
-      - image: cypress/base:17.8.0
-        environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOTC_BINARY: /tmp/workspace/knotc
           NODE_OPTIONS: --max_old_space_size=4096 --openssl-legacy-provider
 
 commands:
