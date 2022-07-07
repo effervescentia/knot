@@ -50,7 +50,7 @@ executors:
           ## this enables colors in the output
           TERM: xterm
           KNOTC_BINARY: /tmp/workspace/knotc
-          NODE_OPTIONS: --max_old_space_size=4096
+          NODE_OPTIONS: --max_old_space_size=4096 --openssl-legacy-provider
 
 commands:
   restore_linux_node_cache:
