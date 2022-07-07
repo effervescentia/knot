@@ -1,15 +1,15 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 module TE = AST.TypeExpression;
 
-let __id = Identifier.of_string("foo");
+let __id = "foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __scope = S.create(__namespace, ignore, Range.zero);
-let __throw_scope = S.create(__namespace, throw, Range.zero);
+let __context = ParseContext.create(~report=ignore, __namespace);
+let __scope = S.create(__context, Range.zero);
+let __throw_scope = S.create({...__context, report: throw}, Range.zero);
 
 let suite =
   "Analyze.Semantic | Argument"
@@ -19,13 +19,13 @@ let suite =
       () =>
         Assert.argument(
           A.{
-            name: URes.as_raw_node(__id),
+            name: URes.as_untyped(__id),
             default: Some(URes.string_prim("bar")),
             type_: None,
           }
           |> URes.as_string,
           AR.{
-            name: URaw.as_raw_node(__id),
+            name: URaw.as_untyped(__id),
             default: Some(URaw.string_prim("bar")),
             type_: None,
           }
@@ -38,15 +38,15 @@ let suite =
       () =>
         Assert.argument(
           A.{
-            name: URes.as_raw_node(__id),
+            name: URes.as_untyped(__id),
             default: None,
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URes.as_bool,
           AR.{
-            name: URaw.as_raw_node(__id),
+            name: URaw.as_untyped(__id),
             default: None,
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__scope),
@@ -57,15 +57,15 @@ let suite =
       () =>
         Assert.argument(
           A.{
-            name: URes.as_raw_node(__id),
+            name: URes.as_untyped(__id),
             default: Some(URes.bool_prim(true)),
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URes.as_bool,
           AR.{
-            name: URaw.as_raw_node(__id),
+            name: URaw.as_untyped(__id),
             default: Some(URaw.bool_prim(true)),
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__scope),
@@ -76,15 +76,15 @@ let suite =
       () =>
         Assert.argument(
           A.{
-            name: URes.as_raw_node(__id),
+            name: URes.as_untyped(__id),
             default: Some(__id |> A.of_id |> URes.as_invalid(NotInferrable)),
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URes.as_bool,
           AR.{
-            name: URaw.as_raw_node(__id),
+            name: URaw.as_untyped(__id),
             default: Some(__id |> AR.of_id |> URaw.as_unknown),
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__scope),
@@ -103,9 +103,9 @@ let suite =
           ],
           () =>
           AR.{
-            name: URaw.as_raw_node(__id),
+            name: URaw.as_untyped(__id),
             default: Some(URaw.string_prim("bar")),
-            type_: Some(URaw.as_raw_node(TE.Boolean)),
+            type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__throw_scope)
@@ -123,7 +123,7 @@ let suite =
             ),
           ],
           () =>
-          AR.{name: URaw.as_raw_node(__id), default: None, type_: None}
+          AR.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__throw_scope)
         )
@@ -132,9 +132,9 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          A.{name: URes.as_raw_node(__id), default: None, type_: None}
+          A.{name: URes.as_untyped(__id), default: None, type_: None}
           |> URes.as_invalid(NotInferrable),
-          AR.{name: URaw.as_raw_node(__id), default: None, type_: None}
+          AR.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_argument(__scope),
         )
@@ -145,9 +145,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(
-                DefaultArgumentMissing(Identifier.of_string("bar")),
-              ),
+              TypeError(DefaultArgumentMissing("bar")),
               __namespace,
               Range.zero,
             ),
@@ -155,21 +153,21 @@ let suite =
           () =>
           [
             AR.{
-              name: "fizz" |> Identifier.of_string |> URaw.as_raw_node,
+              name: URaw.as_untyped("fizz"),
               default: None,
-              type_: Some(URaw.as_raw_node(TE.Boolean)),
+              type_: Some(URaw.as_untyped(TE.Boolean)),
             }
             |> URaw.as_unknown,
             AR.{
-              name: "buzz" |> Identifier.of_string |> URaw.as_raw_node,
+              name: URaw.as_untyped("buzz"),
               default: Some(URaw.bool_prim(true)),
               type_: None,
             }
             |> URaw.as_unknown,
             AR.{
-              name: "bar" |> Identifier.of_string |> URaw.as_raw_node,
+              name: URaw.as_untyped("bar"),
               default: None,
-              type_: Some(URaw.as_raw_node(TE.Boolean)),
+              type_: Some(URaw.as_untyped(TE.Boolean)),
             }
             |> URaw.as_unknown,
           ]

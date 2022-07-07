@@ -63,18 +63,14 @@ let suite = [
     ),
     "pp_error() - not found"
     >: (
-      () =>
-        Assert.string(
-          "NotFound<foo>",
-          T.NotFound(Public("foo")) |> ~@T.pp_error,
-        )
+      () => Assert.string("NotFound<foo>", T.NotFound("foo") |> ~@T.pp_error)
     ),
     "pp_error() - duplicate identifier"
     >: (
       () =>
         Assert.string(
           "DuplicateIdentifier<foo>",
-          T.DuplicateIdentifier(Public("foo")) |> ~@T.pp_error,
+          T.DuplicateIdentifier("foo") |> ~@T.pp_error,
         )
     ),
     "pp_error() - untyped function argument"
@@ -82,7 +78,7 @@ let suite = [
       () =>
         Assert.string(
           "UntypedFunctionArgument<foo>",
-          T.UntypedFunctionArgument(Public("foo")) |> ~@T.pp_error,
+          T.UntypedFunctionArgument("foo") |> ~@T.pp_error,
         )
     ),
     "pp() - external not found"

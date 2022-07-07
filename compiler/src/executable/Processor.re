@@ -76,12 +76,8 @@ let run =
   let cwd_override = get_cwd();
   let cwd_temp = cwd_override |?: cwd;
 
-  (
-    switch (get_config_file(cwd_temp)) {
-    | Some(_) as config => config
-    | None => ConfigFile.find(cwd_temp)
-    }
-  )
+  get_config_file(cwd_temp)
+  |?| ConfigFile.find(cwd_temp)
   |> Option.iter(path => {
        let config = _read_config(default_config, cwd_temp, path);
 
@@ -126,7 +122,10 @@ let run =
 
     Fmt.color := global_config.color;
 
-    (global_config, resolve_command_config(static_config, global_config));
+    (
+      global_config,
+      resolve_command_config(static_config, global_config, argv),
+    );
 
   | None =>
     Fmt.pr("%a@,", Usage.pp_command_list, Usage.commands);

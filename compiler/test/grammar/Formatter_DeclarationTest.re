@@ -3,30 +3,22 @@ open Kore;
 module Formatter = Grammar.Formatter;
 module U = Util.ResultUtil;
 
-let __int_const = ("ABC" |> A.of_public, 123 |> U.int_prim |> A.of_const);
-let __bool_const = ("DEF" |> A.of_public, true |> U.bool_prim |> A.of_const);
+let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
+let __bool_const = ("DEF", true |> U.bool_prim |> A.of_const);
 
 let __inline_function = (
-  "foo" |> A.of_public,
+  "foo",
   (
     [
+      A.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
       A.{
-        name: "bar" |> A.of_public |> U.as_raw_node,
-        default: None,
-        type_: None,
-      }
-      |> U.as_int,
-      A.{
-        name: "fizz" |> A.of_public |> U.as_raw_node,
+        name: U.as_untyped("fizz"),
         default: Some(3 |> U.int_prim),
         type_: None,
       }
       |> U.as_int,
     ],
-    (
-      "bar" |> A.of_public |> A.of_id |> U.as_int,
-      "fizz" |> A.of_public |> A.of_id |> U.as_int,
-    )
+    ("bar" |> A.of_id |> U.as_int, "fizz" |> A.of_id |> U.as_int)
     |> A.of_add_op
     |> U.as_int,
   )
@@ -34,20 +26,13 @@ let __inline_function = (
 );
 
 let __multiline_function = (
-  "buzz" |> A.of_public,
+  "buzz",
   (
     [],
     [
-      ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
-      |> A.of_var
-      |> U.as_nil,
-      ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
-      |> A.of_var
-      |> U.as_nil,
-      (
-        "zip" |> A.of_public |> A.of_id |> U.as_int,
-        "zap" |> A.of_public |> A.of_id |> U.as_int,
-      )
+      (U.as_untyped("zip"), 3 |> U.int_prim) |> A.of_var |> U.as_nil,
+      (U.as_untyped("zap"), 4 |> U.int_prim) |> A.of_var |> U.as_nil,
+      ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
       |> A.of_mult_op
       |> U.as_int
       |> A.of_expr
@@ -60,31 +45,24 @@ let __multiline_function = (
 );
 
 let __inline_view = (
-  "foo" |> A.of_public,
+  "foo",
   (
     [
+      A.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
       A.{
-        name: "bar" |> A.of_public |> U.as_raw_node,
-        default: None,
-        type_: None,
-      }
-      |> U.as_int,
-      A.{
-        name: "fizz" |> A.of_public |> U.as_raw_node,
+        name: U.as_untyped("fizz"),
         default: Some(3 |> U.int_prim),
         type_: None,
       }
       |> U.as_int,
     ],
+    [],
     [
-      (
-        "bar" |> A.of_public |> A.of_id |> U.as_int,
-        "fizz" |> A.of_public |> A.of_id |> U.as_int,
-      )
+      ("bar" |> A.of_id |> U.as_int, "fizz" |> A.of_id |> U.as_int)
       |> A.of_add_op
       |> U.as_int
       |> A.of_inline_expr
-      |> U.as_raw_node,
+      |> U.as_untyped,
     ]
     |> A.of_frag
     |> A.of_jsx
@@ -94,25 +72,19 @@ let __inline_view = (
 );
 
 let __multiline_view = (
-  "buzz" |> A.of_public,
+  "buzz",
   (
     [],
+    [],
     [
-      ("zip" |> A.of_public |> U.as_raw_node, 3 |> U.int_prim)
-      |> A.of_var
-      |> U.as_nil,
-      ("zap" |> A.of_public |> U.as_raw_node, 4 |> U.int_prim)
-      |> A.of_var
-      |> U.as_nil,
+      (U.as_untyped("zip"), 3 |> U.int_prim) |> A.of_var |> U.as_nil,
+      (U.as_untyped("zap"), 4 |> U.int_prim) |> A.of_var |> U.as_nil,
       [
-        (
-          "zip" |> A.of_public |> A.of_id |> U.as_int,
-          "zap" |> A.of_public |> A.of_id |> U.as_int,
-        )
+        ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
         |> A.of_mult_op
         |> U.as_int
         |> A.of_inline_expr
-        |> U.as_raw_node,
+        |> U.as_untyped,
       ]
       |> A.of_frag
       |> A.of_jsx
@@ -127,17 +99,12 @@ let __multiline_view = (
 );
 
 let __style = (
-  "foo" |> A.of_public,
+  "foo",
   (
     [
+      A.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
       A.{
-        name: "bar" |> A.of_public |> U.as_raw_node,
-        default: None,
-        type_: None,
-      }
-      |> U.as_int,
-      A.{
-        name: "fizz" |> A.of_public |> U.as_raw_node,
+        name: U.as_untyped("fizz"),
         default: Some(3 |> U.int_prim),
         type_: None,
       }
@@ -145,21 +112,27 @@ let __style = (
     ],
     [
       (
-        A.ID("hero" |> A.of_public |> U.as_raw_node),
+        A.MatchID(U.as_untyped("hero")),
         [
-          ("width" |> A.of_public |> U.as_raw_node, U.int_prim(10))
-          |> U.as_raw_node,
+          (
+            "width" |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+            U.int_prim(10),
+          )
+          |> U.as_untyped,
         ],
       )
-      |> U.as_raw_node,
+      |> U.as_untyped,
       (
-        A.Class("button" |> A.of_public |> U.as_raw_node),
+        A.MatchClass(U.as_untyped("button")),
         [
-          ("height" |> A.of_public |> U.as_raw_node, U.int_prim(2))
-          |> U.as_raw_node,
+          (
+            "height" |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+            U.int_prim(2),
+          )
+          |> U.as_untyped,
         ],
       )
-      |> U.as_raw_node,
+      |> U.as_untyped,
     ],
   )
   |> A.of_style,
@@ -178,7 +151,47 @@ let suite =
       () =>
         _assert_declaration(
           "const foo = nil;",
-          (A.of_public("foo"), A.of_const(U.nil_prim)),
+          ("foo", A.of_const(U.nil_prim)),
+        )
+    ),
+    "pp_declaration() - empty enumerated"
+    >: (
+      () =>
+        _assert_declaration(
+          "enum Account = | ;",
+          ("Account", A.of_enum([])),
+        )
+    ),
+    "pp_declaration() - multiline enumerated"
+    >: (
+      () =>
+        _assert_declaration(
+          "enum Digits =
+  | Zero
+  | One
+  | Two
+  | Three
+  | Four
+  | Five
+  | Six
+  | Seven
+  | Eight
+  | Nine;",
+          (
+            "Digits",
+            A.of_enum([
+              (U.as_untyped("Zero"), []),
+              (U.as_untyped("One"), []),
+              (U.as_untyped("Two"), []),
+              (U.as_untyped("Three"), []),
+              (U.as_untyped("Four"), []),
+              (U.as_untyped("Five"), []),
+              (U.as_untyped("Six"), []),
+              (U.as_untyped("Seven"), []),
+              (U.as_untyped("Eight"), []),
+              (U.as_untyped("Nine"), []),
+            ]),
+          ),
         )
     ),
     "pp_declaration() - inline function"

@@ -25,6 +25,15 @@ let (|!:) = (x, y) =>
   };
 
 /**
+ forward the option [x] if truthy or fallback to [y]
+ */
+let (|?|) = (x, y) =>
+  switch (x) {
+  | Some(_) => x
+  | None => y
+  };
+
+/**
  unpack the option [x] or fallback to [y]
  */
 let (|?:) = (x, y) => Option.value(~default=y, x);

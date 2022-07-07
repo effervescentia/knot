@@ -1,14 +1,14 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
-let __id = Identifier.of_string("foo");
+let __id = "foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __scope = S.create(__namespace, ignore, Range.zero);
-let __throw_scope = S.create(__namespace, throw, Range.zero);
+let __context = ParseContext.create(~report=ignore, __namespace);
+let __scope = S.create(__context, Range.zero);
+let __throw_scope = S.create({...__context, report: throw}, Range.zero);
 
 let suite =
   "Analyze.Semantic | Expression"
@@ -63,11 +63,11 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          (URes.as_raw_node(__id), [], [])
+          (URes.as_untyped(__id), [], [])
           |> A.of_tag
           |> A.of_jsx
           |> URes.as_element,
-          (URaw.as_raw_node(__id), [], [])
+          (URaw.as_untyped(__id), [], [])
           |> AR.of_tag
           |> AR.of_jsx
           |> URaw.as_unknown
@@ -101,7 +101,7 @@ let suite =
     >: (
       () => {
         let scope = {
-          ...S.create(__namespace, throw, Range.zero),
+          ...__throw_scope,
           types:
             [(__id, T.Valid(`Boolean))] |> List.to_seq |> Hashtbl.of_seq,
         };
@@ -119,7 +119,7 @@ let suite =
     >: (
       () => {
         let scope = {
-          ...S.create(__namespace, throw, Range.zero),
+          ...__throw_scope,
           types:
             [(__id, T.Valid(`Struct([("foo", Valid(`Boolean))])))]
             |> List.to_seq
@@ -129,11 +129,11 @@ let suite =
         Assert.expression(
           (
             __id |> A.of_id |> URes.as_struct([("foo", T.Valid(`Boolean))]),
-            URes.as_raw_node("foo"),
+            URes.as_untyped("foo"),
           )
           |> A.of_dot_access
           |> URes.as_bool,
-          (__id |> AR.of_id |> URaw.as_unknown, URaw.as_raw_node("foo"))
+          (__id |> AR.of_id |> URaw.as_unknown, URaw.as_untyped("foo"))
           |> AR.of_dot_access
           |> URaw.as_unknown
           |> SemanticAnalyzer.analyze_expression(scope),
@@ -144,7 +144,7 @@ let suite =
     >: (
       () => {
         let scope = {
-          ...S.create(__namespace, throw, Range.zero),
+          ...__throw_scope,
           types:
             [
               (

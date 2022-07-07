@@ -3,6 +3,7 @@ open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module TE = AST.TypeExpression;
 module U = Util.ResultUtil;
 
 let _assert_statement_list =
@@ -21,6 +22,15 @@ let _assert_constant = (expected, actual) =>
       actual |> Tuple.join2(Generator.gen_constant),
     )
   );
+let _assert_enum = (expected, actual) =>
+  Alcotest.(
+    check(
+      Assert.Compare.statement(Target.Common),
+      "javascript enum matches",
+      expected,
+      actual |> Tuple.join2(Generator.gen_enumerated),
+    )
+  );
 let _assert_function = (expected, actual) =>
   Alcotest.(
     check(
@@ -36,7 +46,7 @@ let _assert_view = (expected, actual) =>
       Assert.Compare.statement(Target.Common),
       "javascript view matches",
       expected,
-      actual |> Tuple.join3(Generator.gen_view),
+      actual |> Tuple.join4(Generator.gen_view),
     )
   );
 let _assert_style = (expected, actual) =>
@@ -50,7 +60,7 @@ let _assert_style = (expected, actual) =>
   );
 
 let __variable_declaration =
-  ("fooBar" |> A.of_public |> U.as_raw_node, U.int_prim(123)) |> A.of_var;
+  (U.as_untyped("fooBar"), U.int_prim(123)) |> A.of_var;
 
 let __expression =
   (U.int_prim(123), U.int_prim(456)) |> A.of_eq_op |> U.as_int |> A.of_expr;
@@ -103,7 +113,61 @@ let suite =
       () =>
         _assert_constant(
           Variable("foo", Number("123")),
-          ("foo" |> A.of_public |> U.as_raw_node, U.int_prim(123)),
+          (U.as_untyped("foo"), U.int_prim(123)),
+        )
+    ),
+    "enum"
+    >: (
+      () =>
+        _assert_enum(
+          Variable(
+            "foo",
+            Object([
+              (
+                "Verified",
+                Function(
+                  Some("Verified"),
+                  ["a", "b"],
+                  [
+                    Return(
+                      Array([
+                        DotAccess(Identifier("foo"), "Verified"),
+                        Identifier("a"),
+                        Identifier("b"),
+                      ])
+                      |> Option.some,
+                    ),
+                  ],
+                ),
+              ),
+              (
+                "Unverified",
+                Function(
+                  Some("Unverified"),
+                  ["a"],
+                  [
+                    Return(
+                      Array([
+                        DotAccess(Identifier("foo"), "Unverified"),
+                        Identifier("a"),
+                      ])
+                      |> Option.some,
+                    ),
+                  ],
+                ),
+              ),
+            ]),
+          ),
+          (
+            U.as_untyped("foo"),
+            [
+              (
+                U.as_untyped("Verified"),
+                [U.as_int(TE.Integer), U.as_string(TE.String)],
+              ),
+              (U.as_untyped("Unverified"), [U.as_string(TE.String)]),
+            ],
+          ),
         )
     ),
     "function - return primitive value"
@@ -118,13 +182,9 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("foo"),
             [
-              A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
-                default: None,
-                type_: None,
-              }
+              A.{name: U.as_untyped("bar"), default: None, type_: None}
               |> U.as_nil,
             ],
             U.int_prim(123),
@@ -159,16 +219,16 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("foo"),
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
               |> U.as_nil,
             ],
-            ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
+            ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,
           ),
@@ -195,16 +255,11 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("foo"),
             [],
             [
-              ("buzz" |> A.of_public |> U.as_raw_node, U.int_prim(2))
-              |> A.of_var
-              |> U.as_nil,
-              (
-                "buzz" |> A.of_public |> A.of_id |> U.as_int,
-                "buzz" |> A.of_public |> A.of_id |> U.as_int,
-              )
+              (U.as_untyped("buzz"), U.int_prim(2)) |> A.of_var |> U.as_nil,
+              ("buzz" |> A.of_id |> U.as_int, "buzz" |> A.of_id |> U.as_int)
               |> A.of_div_op
               |> U.as_float
               |> A.of_expr
@@ -243,16 +298,17 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("foo"),
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
               |> U.as_nil,
             ],
-            ("bar" |> A.of_public |> A.of_id |> U.as_int, U.int_prim(5))
+            [],
+            ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,
           ),
@@ -277,11 +333,47 @@ let suite =
                     [Identifier("$props$"), String("bar"), Number("123")],
                   ),
                 ),
+                Variable(
+                  "$",
+                  DotAccess(
+                    DotAccess(Identifier("$knot"), "style"),
+                    "styleExpressionPlugin",
+                  ),
+                ),
+                Variable(
+                  "$rules$",
+                  DotAccess(
+                    DotAccess(Identifier("$knot"), "style"),
+                    "styleRulePlugin",
+                  ),
+                ),
                 Return(
                   Some(
                     Object([
-                      (".fizz", Object([("height", Number("2"))])),
-                      ("#buzz", Object([("width", Number("10"))])),
+                      (
+                        ".fizz",
+                        Object([
+                          (
+                            "height",
+                            FunctionCall(
+                              DotAccess(Identifier("$rules$"), "height"),
+                              [Number("2")],
+                            ),
+                          ),
+                        ]),
+                      ),
+                      (
+                        "#buzz",
+                        Object([
+                          (
+                            "width",
+                            FunctionCall(
+                              DotAccess(Identifier("$rules$"), "width"),
+                              [Number("10")],
+                            ),
+                          ),
+                        ]),
+                      ),
                     ]),
                   ),
                 ),
@@ -289,10 +381,10 @@ let suite =
             ),
           ),
           (
-            "foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("foo"),
             [
               A.{
-                name: "bar" |> A.of_public |> U.as_raw_node,
+                name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
               }
@@ -300,21 +392,29 @@ let suite =
             ],
             [
               (
-                A.Class("fizz" |> A.of_public |> U.as_raw_node),
+                A.MatchClass(U.as_untyped("fizz")),
                 [
-                  ("height" |> A.of_public |> U.as_raw_node, U.int_prim(2))
-                  |> U.as_raw_node,
+                  (
+                    "height"
+                    |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+                    U.int_prim(2),
+                  )
+                  |> U.as_untyped,
                 ],
               )
-              |> U.as_raw_node,
+              |> U.as_untyped,
               (
-                A.ID("buzz" |> A.of_public |> U.as_raw_node),
+                A.MatchID(U.as_untyped("buzz")),
                 [
-                  ("width" |> A.of_public |> U.as_raw_node, U.int_prim(10))
-                  |> U.as_raw_node,
+                  (
+                    "width"
+                    |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+                    U.int_prim(10),
+                  )
+                  |> U.as_untyped,
                 ],
               )
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           ),
         )

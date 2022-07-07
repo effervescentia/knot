@@ -4,20 +4,25 @@ module TypingAnalyzer = Analyze.Typing;
 module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
+let __empty_defs = SymbolTable.create();
+
 let suite =
   "Analyze.Typing | Type Expression"
   >::: [
     "nil"
     >: (
       () =>
-        Assert.type_(Valid(`Nil), TypingAnalyzer.eval_type_expression(Nil))
+        Assert.type_(
+          Valid(`Nil),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Nil),
+        )
     ),
     "boolean"
     >: (
       () =>
         Assert.type_(
           Valid(`Boolean),
-          TypingAnalyzer.eval_type_expression(Boolean),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Boolean),
         )
     ),
     "integer"
@@ -25,7 +30,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Integer),
-          TypingAnalyzer.eval_type_expression(Integer),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Integer),
         )
     ),
     "float"
@@ -33,7 +38,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Float),
-          TypingAnalyzer.eval_type_expression(Float),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Float),
         )
     ),
     "string"
@@ -41,7 +46,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`String),
-          TypingAnalyzer.eval_type_expression(String),
+          TypingAnalyzer.eval_type_expression(__empty_defs, String),
         )
     ),
     "element"
@@ -49,8 +54,25 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Element),
-          TypingAnalyzer.eval_type_expression(Element),
+          TypingAnalyzer.eval_type_expression(__empty_defs, Element),
         )
+    ),
+    "identifier"
+    >: (
+      () => {
+        let symbols = SymbolTable.create();
+
+        symbols.declared.types =
+          symbols.declared.types @ [("foo", Valid(`Boolean))];
+
+        Assert.type_(
+          Valid(`Boolean),
+          TypingAnalyzer.eval_type_expression(
+            symbols,
+            Identifier(U.as_untyped("foo")),
+          ),
+        );
+      }
     ),
     "grouped type"
     >: (
@@ -58,13 +80,13 @@ let suite =
         Assert.type_(
           Valid(`String),
           TE.String
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
     "list type"
@@ -73,9 +95,9 @@ let suite =
         Assert.type_(
           Valid(`List(Valid(`Boolean))),
           TE.Boolean
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_list
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
     "struct type"
@@ -86,11 +108,11 @@ let suite =
             `Struct([("foo", Valid(`Boolean)), ("bar", Valid(`String))]),
           ),
           [
-            (U.as_raw_node("foo"), U.as_raw_node(TE.Boolean)),
-            (U.as_raw_node("bar"), U.as_raw_node(TE.String)),
+            (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
+            (U.as_untyped("bar"), U.as_untyped(TE.String)),
           ]
           |> TE.of_struct
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
     "function type"
@@ -104,11 +126,11 @@ let suite =
             )),
           ),
           (
-            [U.as_raw_node(TE.Boolean), U.as_raw_node(TE.String)],
-            U.as_raw_node(TE.Element),
+            [U.as_untyped(TE.Boolean), U.as_untyped(TE.String)],
+            U.as_untyped(TE.Element),
           )
           |> TE.of_function
-          |> TypingAnalyzer.eval_type_expression,
+          |> TypingAnalyzer.eval_type_expression(__empty_defs),
         )
     ),
   ];

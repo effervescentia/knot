@@ -27,10 +27,10 @@ module Program = {
   let const_int =
     AST.[
       (
-        "ABC" |> of_public |> U.as_raw_node |> of_named_export,
+        "ABC" |> U.as_untyped |> of_named_export,
         123L |> of_int |> of_num |> of_prim |> U.as_int |> of_const |> U.as_int,
       )
       |> of_decl
-      |> U.as_raw_node,
+      |> U.as_untyped,
     ];
 };

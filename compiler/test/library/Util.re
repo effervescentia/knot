@@ -7,15 +7,9 @@ module T = Type;
 module TR = Type.Raw;
 
 module CommonUtil = {
-  let as_raw_node = (~range=Range.zero, x) => Node.Raw.create(x, range);
-  let as_node = (~range=Range.zero, type_, x) => (x, type_, range);
-
-  let to_scope = (types: list((string, T.t))): DeclarationTable.t => {
-    types
-    |> List.map(Tuple.map_fst2(A.of_public % (x => Export.Named(x))))
-    |> List.to_seq
-    |> DeclarationTable.of_seq;
-  };
+  let as_untyped = (~range=Range.zero, x) => Node.untyped(x, range);
+  let as_typed = (~range=Range.zero, type_, x) =>
+    Node.typed(x, type_, range);
 };
 
 module RawUtil = {
@@ -23,16 +17,18 @@ module RawUtil = {
 
   /* typecasting utilities */
 
-  let as_unknown = x => as_node(TR.(`Unknown), x);
-  let as_nil = x => as_node(TR.(`Nil), x);
-  let as_bool = x => as_node(TR.(`Boolean), x);
-  let as_int = x => as_node(TR.(`Integer), x);
-  let as_float = x => as_node(TR.(`Float), x);
-  let as_string = x => as_node(TR.(`String), x);
-  let as_element = x => as_node(TR.(`Element), x);
-  let as_struct = (props, x) => as_node(TR.(`Struct(props)), x);
+  let as_unknown = x => as_typed(TR.(`Unknown), x);
+  let as_nil = x => as_typed(TR.(`Nil), x);
+  let as_bool = x => as_typed(TR.(`Boolean), x);
+  let as_int = x => as_typed(TR.(`Integer), x);
+  let as_float = x => as_typed(TR.(`Float), x);
+  let as_string = x => as_typed(TR.(`String), x);
+  let as_element = x => as_typed(TR.(`Element), x);
+  let as_struct = (props, x) => as_typed(TR.(`Struct(props)), x);
   let as_function = (args, res, x) =>
-    as_node(TR.(`Function((args, res))), x);
+    as_typed(TR.(`Function((args, res))), x);
+  let as_decorator = (args, target, x) =>
+    as_typed(TR.(`Decorator((args, target))), x);
 
   /* primitive factories */
 
@@ -53,18 +49,24 @@ module ResultUtil = {
 
   /* typecasting utilities */
 
-  let as_invalid = (inv, x) => as_node(T.Invalid(inv), x);
-  let as_nil = x => as_node(T.Valid(`Nil), x);
-  let as_bool = x => as_node(T.Valid(`Boolean), x);
-  let as_int = x => as_node(T.Valid(`Integer), x);
-  let as_float = x => as_node(T.Valid(`Float), x);
-  let as_string = x => as_node(T.Valid(`String), x);
-  let as_element = x => as_node(T.Valid(`Element), x);
-  let as_struct = (props, x) => as_node(T.Valid(`Struct(props)), x);
+  let as_invalid = (inv, x) => as_typed(T.Invalid(inv), x);
+  let as_nil = x => as_typed(T.Valid(`Nil), x);
+  let as_bool = x => as_typed(T.Valid(`Boolean), x);
+  let as_int = x => as_typed(T.Valid(`Integer), x);
+  let as_float = x => as_typed(T.Valid(`Float), x);
+  let as_string = x => as_typed(T.Valid(`String), x);
+  let as_element = x => as_typed(T.Valid(`Element), x);
+  let as_enum = (variants, x) =>
+    as_typed(T.Valid(`Enumerated(variants)), x);
+  let as_struct = (props, x) => as_typed(T.Valid(`Struct(props)), x);
   let as_function = (args, res, x) =>
-    as_node(T.Valid(`Function((args, res))), x);
+    as_typed(T.Valid(`Function((args, res))), x);
   let as_view = (props, res, x) =>
-    as_node(T.Valid(`View((props, res))), x);
+    as_typed(T.Valid(`View((props, res))), x);
+  let as_style = (props, ids, classes, x) =>
+    as_typed(T.Valid(`Style((props, ids, classes))), x);
+  let as_decorator = (args, target, x) =>
+    as_typed(T.Valid(`Decorator((args, target))), x);
 
   /* primitive factories */
 

@@ -14,9 +14,9 @@ let suite =
     "join()"
     >: (
       () =>
-        Assert.raw_node(
+        Assert.untyped_node(
           Fmt.string,
-          Node.Raw.create("foo", Range.create((1, 1), (1, 3))),
+          Node.untyped("foo", Range.create((1, 1), (1, 3))),
           Input.join([
             (Uchar.of_char('f'), Point.create(1, 1)),
             (Uchar.of_char('o'), Point.create(1, 2)),

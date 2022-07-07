@@ -8,7 +8,7 @@ module Assert =
   Assert.Make({
     type t = AR.statement_t;
 
-    let parser = ((_, ctx)) =>
+    let parser = ctx =>
       Statement.parser(ctx, Expression.parser)
       |> Assert.parse_completely
       |> Parser.parse;
@@ -30,7 +30,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("foo" |> AR.of_public |> AR.of_id |> U.as_unknown, U.int_prim(3))
+          ("foo" |> AR.of_id |> U.as_unknown, U.int_prim(3))
           |> AR.of_add_op
           |> U.as_unknown
           |> AR.of_expr
@@ -43,11 +43,8 @@ let suite =
       () =>
         Assert.parse_all(
           (
-            "foo" |> AR.of_public |> U.as_raw_node,
-            (
-              "bar" |> AR.of_public |> AR.of_id |> U.as_unknown,
-              U.int_prim(3),
-            )
+            U.as_untyped("foo"),
+            ("bar" |> AR.of_id |> U.as_unknown, U.int_prim(3))
             |> AR.of_add_op
             |> U.as_unknown,
           )

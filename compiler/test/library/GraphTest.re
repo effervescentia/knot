@@ -69,6 +69,15 @@ let suite =
           Graph.get_edges(__acyclic_graph),
         )
     ),
+    "is_empty() - without nodes or edges"
+    >: (() => Assert.true_(Graph.empty() |> Graph.is_empty)),
+    "is_empty() - with nodes"
+    >: (() => Assert.false_(Graph.create(["foo"], []) |> Graph.is_empty)),
+    "is_empty() - with edges"
+    >: (
+      () =>
+        Assert.false_(Graph.create([], [("foo", "bar")]) |> Graph.is_empty)
+    ),
     "has_node() - does have node"
     >: (() => Assert.true_(Graph.has_node("fizz", __acyclic_graph))),
     "has_node() - does not have node"
@@ -310,6 +319,22 @@ let suite =
     >: (() => Assert.true_(Graph.is_acyclic(__acyclic_graph))),
     "is_acyclic() - has cycles"
     >: (() => Assert.false_(Graph.is_acyclic(__cyclic_graph))),
+    "get_ordered_nodes() - has no cycles"
+    >: (
+      () =>
+        Assert.string_list(
+          ["d", "e", "f", "g", "c", "b", "a"],
+          Graph.get_ordered_nodes(__branching_graph),
+        )
+    ),
+    "get_ordered_nodes() - has cycles"
+    >: (
+      () =>
+        Assert.string_list(
+          __cyclic_graph.nodes,
+          Graph.get_ordered_nodes(__cyclic_graph),
+        )
+    ),
     "pp()"
     >: (
       () =>

@@ -8,8 +8,7 @@ module Assert =
   Assert.Make({
     type t = A.module_statement_t;
 
-    let parser = ((_, ctx)) =>
-      Import.parser(ctx) |> Assert.parse_completely |> Parser.parse;
+    let parser = Import.parser % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
@@ -25,58 +24,53 @@ module Assert =
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
+let _create_module =
+    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+  ast: [],
+  scopes: __scope_tree,
+  symbols: SymbolTable.of_export_list(exports),
+};
+
+let _create_module_table = modules =>
+  ModuleTable.{
+    modules: modules |> List.to_seq |> Hashtbl.of_seq,
+    plugins: [],
+    globals: [],
+  };
+
 let __context_with_named_exports =
-  NamespaceContext.create(
+  ParseContext.create(
     ~modules=
       [
         (
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            {
-              ast: [],
-              exports:
-                [
-                  (Export.Main, Type.Valid(`Nil)),
-                  (
-                    Export.Named("bar" |> A.of_public),
-                    Type.Valid(`Boolean),
-                  ),
-                  (Export.Named("foo" |> A.of_public), Type.Valid(`String)),
-                ]
-                |> List.to_seq
-                |> Hashtbl.of_seq,
-              scopes: __scope_tree,
-            },
+            _create_module([
+              (Export.Main, Type.Valid(`Nil)),
+              (Export.Named("bar"), Type.Valid(`Boolean)),
+              (Export.Named("foo"), Type.Valid(`String)),
+            ]),
           ),
         ),
       ]
-      |> List.to_seq
-      |> Hashtbl.of_seq,
+      |> _create_module_table,
     Internal("mock"),
   );
 
 let __context_with_main_export =
-  NamespaceContext.create(
+  ParseContext.create(
     ~modules=
       [
         (
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            {
-              ast: [],
-              exports:
-                [(Export.Main, Type.Valid(`Nil))]
-                |> List.to_seq
-                |> Hashtbl.of_seq,
-              scopes: __scope_tree,
-            },
+            _create_module([(Export.Main, Type.Valid(`Nil))]),
           ),
         ),
       ]
-      |> List.to_seq
-      |> Hashtbl.of_seq,
+      |> _create_module_table,
     Internal("mock"),
   );
 
@@ -97,19 +91,13 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
-            [
-              "foo"
-              |> A.of_public
-              |> U.as_raw_node
-              |> A.of_main_import
-              |> U.as_raw_node,
-            ],
+            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import foo from \"@/bar\"",
         )
     ),
@@ -117,8 +105,8 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
-          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_raw_node,
+          ~context=__context_with_named_exports,
+          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_untyped,
           "import {} from \"@/bar\"",
         )
     ),
@@ -126,17 +114,15 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
-              ("foo" |> A.of_public |> U.as_raw_node, None)
-              |> A.of_named_import
-              |> U.as_raw_node,
+              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo } from \"@/bar\"",
         )
     ),
@@ -144,20 +130,17 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
-              (
-                "foo" |> A.of_public |> U.as_raw_node,
-                Some("bar" |> A.of_public |> U.as_raw_node),
-              )
+              (U.as_untyped("foo"), Some(U.as_untyped("bar")))
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo as bar } from \"@/bar\"",
         )
     ),
@@ -165,28 +148,21 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
-              "fizz"
-              |> A.of_public
-              |> U.as_raw_node
-              |> A.of_main_import
-              |> U.as_raw_node,
-              ("foo" |> A.of_public |> U.as_raw_node, None)
+              "fizz" |> U.as_untyped |> A.of_main_import |> U.as_untyped,
+              (U.as_untyped("foo"), None)
               |> A.of_named_import
-              |> U.as_raw_node,
-              (
-                "bar" |> A.of_public |> U.as_raw_node,
-                Some("Bar" |> A.of_public |> U.as_raw_node),
-              )
+              |> U.as_untyped,
+              (U.as_untyped("bar"), Some(U.as_untyped("Bar")))
               |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import fizz, { foo, bar as Bar } from \"@/bar\"",
         )
     ),
@@ -194,20 +170,18 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
             [
-              ("foo" |> A.of_public |> U.as_raw_node, None)
+              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
+              (U.as_untyped("bar"), None)
               |> A.of_named_import
-              |> U.as_raw_node,
-              ("bar" |> A.of_public |> U.as_raw_node, None)
-              |> A.of_named_import
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo, bar, } from \"@/bar\"",
         )
     ),
@@ -215,19 +189,13 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ~ns_context=__context_with_main_export,
+          ~context=__context_with_main_export,
           (
             "bar" |> A.of_internal,
-            [
-              "foo"
-              |> A.of_public
-              |> U.as_raw_node
-              |> A.of_main_import
-              |> U.as_raw_node,
-            ],
+            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
           )
           |> A.of_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           [
             "import foo from \"@/bar\";",
             "  import  foo  from   \"@/bar\"  ;  ",
@@ -238,10 +206,10 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
-          [("foo" |> A.of_public |> U.as_raw_node, None) |> U.as_raw_node]
+          ~context=__context_with_named_exports,
+          [(U.as_untyped("foo"), None) |> U.as_untyped]
           |> A.of_standard_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo }",
         )
     ),
@@ -249,16 +217,12 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ~ns_context=__context_with_named_exports,
+          ~context=__context_with_named_exports,
           [
-            (
-              "foo" |> A.of_public |> U.as_raw_node,
-              Some("bar" |> A.of_public |> U.as_raw_node),
-            )
-            |> U.as_raw_node,
+            (U.as_untyped("foo"), Some(U.as_untyped("bar"))) |> U.as_untyped,
           ]
           |> A.of_standard_import
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "import { foo as bar }",
         )
     ),

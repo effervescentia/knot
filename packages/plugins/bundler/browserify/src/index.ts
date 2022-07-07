@@ -10,7 +10,7 @@ function browserifyKnot(
 ): void {
   const configuredOptions: OptionOverrides = {
     ...options,
-    target: Target.JAVASCRIPT_COMMON
+    target: Target.JAVASCRIPT_COMMON,
   };
 
   const compiler = new KnotCompiler(configuredOptions);
@@ -19,7 +19,7 @@ function browserifyKnot(
 
   browser.transform(transformFile(compiler));
 
-  browser.on('bundle', bundle => bundle.on('end', () => compiler.close()));
+  browser.on('bundle', (bundle) => bundle.on('end', () => compiler.close()));
 
   browser.on('reset', () => setupPipeline(browser, compiler.options));
 }

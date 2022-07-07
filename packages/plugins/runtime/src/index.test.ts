@@ -7,8 +7,8 @@ mock('@knot/style', {});
 
 import knot from '.';
 
-test('utils', t => {
+test('utils', (t) => {
   t.deepEqual(knot.platform, {});
-  t.deepEqual(knot.jsx, {});
+  t.deepEqual(knot.jsx, {} as any);
   t.deepEqual(knot.style, {});
 });

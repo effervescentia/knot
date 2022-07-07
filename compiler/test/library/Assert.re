@@ -24,15 +24,17 @@ module Compare = {
 
   let graph = pp_value => testable(Graph.pp(pp_value), (==));
 
-  let raw_node = (pp_value: Fmt.t('a)) =>
-    testable(Node.Raw.pp(pp_value), (==));
+  let untyped_node = (pp_value: Fmt.t('a)) =>
+    testable(Node.pp_untyped(pp_value), (==));
 
-  let node = (pp_value: Fmt.t('a)) =>
-    testable(Node.pp(pp_value, Type.pp), (==));
+  let typed_node = (pp_value: Fmt.t('a), pp_type: Fmt.t('b)) =>
+    testable(Node.pp(pp_value, pp_type), (==));
 
   let type_ = testable(Type.pp, (==));
 
   let target = testable(Target.pp, (==));
+
+  let symbols = testable(SymbolTable.Symbols.pp, (==));
 
   exception LazyStreamLengthMismatch;
 
@@ -81,16 +83,20 @@ let namespace_graph =
     check(Compare.graph(Reference.Namespace.pp), "namespace graph matches")
   );
 
-let raw_node = pp_value =>
-  Alcotest.(check(Compare.raw_node(pp_value), "raw node matches"));
+let untyped_node = pp_value =>
+  Alcotest.(check(Compare.untyped_node(pp_value), "untyped node matches"));
 
-let node = pp_value =>
-  Alcotest.(check(Compare.node(pp_value), "node matches"));
+let typed_node = (pp_value, pp_type) =>
+  Alcotest.(
+    check(Compare.typed_node(pp_value, pp_type), "typed node matches")
+  );
 
 let type_ = Alcotest.(check(Compare.type_, "type matches"));
 
 let target = Alcotest.(check(Compare.target, "target matches"));
 let opt_target = Alcotest.(check(option(Compare.target), "target matches"));
+
+let symbols = Alcotest.(check(Compare.symbols, "parse context matches"));
 
 let lazy_stream = pp_value =>
   Alcotest.(check(Compare.lazy_stream(pp_value), "lazy stream matches"));

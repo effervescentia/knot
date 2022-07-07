@@ -272,6 +272,7 @@
       "require": [
         "knot.build_server",
         "knot.language_server",
+        "knot.resource",
         "yaml"
       ],
       "name": "knot.exec",
@@ -290,6 +291,8 @@
         "  (section (site (knot assets)))",
         "  (files ",
         "    (assets/stdlib.kd as stdlib.kd)",
+        "    (assets/ambient/core.kd as ambient/core.kd)",
+        "    (assets/ambient/browser.kd as ambient/browser.kd)",
         "  )",
         ")",
         "(generate_sites_module",
@@ -318,7 +321,7 @@
     "test.unit": "esy x UnitTests.exe --show-errors",
     "test.integration": "esy x IntegrationTests.exe --show-errors",
     "test.e2e": "esy x E2ETests.exe --show-errors",
-    "test.smoke": "esy x knotc.exe build -r ./test/smoke/.fixtures/project",
+    "test.smoke": "esy x knotc.exe build --cwd ./test/smoke/.fixtures/project",
     "test.smoke.debug": "npm run test:smoke -- -debug"
   },
   "dependencies": {

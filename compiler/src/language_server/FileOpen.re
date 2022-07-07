@@ -15,12 +15,11 @@ let deserialize =
 
 let handler: Runtime.notification_handler_t(params_t) =
   (runtime, {text_document: {uri}}) =>
-    switch (runtime |> Runtime.resolve(uri)) {
-    | Some((namespace, {compiler, contexts} as ctx)) =>
-      let updated = compiler |> Compiler.upsert_module(namespace);
+    runtime
+    |> Runtime.resolve(uri)
+    |> Option.iter(((namespace, Runtime.{compiler, contexts} as ctx)) => {
+         let updated = compiler |> Compiler.upsert_module(namespace);
 
-      compiler |> Compiler.incremental(updated);
-      Runtime.analyze_module(namespace, ctx) |> ignore;
-
-    | None => ()
-    };
+         compiler |> Compiler.incremental(updated);
+         Runtime.analyze_module(namespace, ctx) |> ignore;
+       });

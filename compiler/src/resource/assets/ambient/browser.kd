@@ -1,0 +1,86 @@
+@plugin("style_rule")
+module Style {
+  enum Length:
+    | Ch(float)
+    | Em(float)
+    | Ex(float)
+    | Ic(float)
+    | Rem(float)
+
+    | Vh(float)
+    | Vw(float)
+    | VMax(float)
+    | VMin(float)
+    | Vb(float)
+    | Vi(float)
+
+    | Px(float)
+    | Cm(float)
+    | Mm(float)
+    | Q(float)
+    | In(float)
+    | Pc(float)
+    | Pt(float);
+
+  enum Color:
+    | Named(string);
+
+  declare height: (Length) -> nil;
+  declare width: (Length) -> nil;
+
+  declare color: (Color) -> nil;
+  declare backgroundColor: (Color) -> nil;
+  declare borderColor: (Color) -> nil;
+  declare outlineColor: (Color) -> nil;
+  declare textDecorationColor: (Color) -> nil;
+  declare textEmphasisColor: (Color) -> nil;
+  declare textShadow: (Color) -> nil;
+  declare caretColor: (Color) -> nil;
+  declare columnRuleColor: (Color) -> nil;
+  declare printColorAdjust: (Color) -> nil;
+}
+
+@plugin("style_expression")
+module StyleExpression {
+  declare ch: (float) -> Style.Length;
+  declare em: (float) -> Style.Length;
+  declare ex: (float) -> Style.Length;
+  declare ic: (float) -> Style.Length;
+  declare rem: (float) -> Style.Length;
+
+  declare vh: (float) -> Style.Length;
+  declare vw: (float) -> Style.Length;
+  declare vmax: (float) -> Style.Length;
+  declare vmin: (float) -> Style.Length;
+  declare vb: (float) -> Style.Length;
+  declare vi: (float) -> Style.Length;
+
+  declare px: (float) -> Style.Length;
+  declare cm: (float) -> Style.Length;
+  declare mm: (float) -> Style.Length;
+  declare Q: (float) -> Style.Length;
+  declare in: (float) -> Style.Length;
+  declare pc: (float) -> Style.Length;
+  declare pt: (float) -> Style.Length;
+
+  declare aqua: Style.Color;
+  declare black: Style.Color;
+  declare blue: Style.Color;
+  declare cyan: Style.Color;
+  declare fuchsia: Style.Color;
+  declare gold: Style.Color;
+  declare gray: Style.Color;
+  declare green: Style.Color;
+  declare lime: Style.Color;
+  declare magenta: Style.Color;
+  declare navy: Style.Color;
+  declare orange: Style.Color;
+  declare pink: Style.Color;
+  declare purple: Style.Color;
+  declare red: Style.Color;
+  declare teal: Style.Color;
+  declare turquoise: Style.Color;
+  declare violet: Style.Color;
+  declare white: Style.Color;
+  declare yellow: Style.Color;
+}

@@ -34,6 +34,7 @@ let fix_key = "fix";
 let fail_fast_key = "fail_fast";
 let log_imports_key = "log_imports";
 let port_key = "port";
+let ambient_key = "ambient";
 
 let is_ci_env =
   switch (Sys.getenv_opt("CI")) {

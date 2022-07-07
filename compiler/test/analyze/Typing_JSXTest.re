@@ -1,6 +1,7 @@
 open Kore;
 
 module TypingAnalyzer = Analyze.Typing;
+module U = Util.RawUtil;
 
 let _assert_errors_with_ranges =
   Alcotest.(
@@ -17,7 +18,7 @@ let _assert_errors_with_ranges =
     )
   );
 
-let __id = Reference.Identifier.of_string("Foo");
+let __id = "Foo";
 
 let suite =
   "Analyze.Typing | JSX"
@@ -115,8 +116,8 @@ let suite =
             __id,
             T.Valid(`Integer),
             [
-              ("foo", (T.Valid(`Boolean), Range.zero)),
-              ("bar", (T.Valid(`String), Range.zero)),
+              ("foo", T.Valid(`Boolean) |> U.as_untyped),
+              ("bar", T.Valid(`String) |> U.as_untyped),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,
@@ -152,8 +153,8 @@ let suite =
               )),
             ),
             [
-              ("bar", (T.Valid(`Nil), bar_range)),
-              ("foo", (T.Valid(`Integer), foo_range)),
+              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
+              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,
@@ -181,8 +182,8 @@ let suite =
             __id,
             T.Valid(`View(([], T.Valid(`Element)))),
             [
-              ("foo", (T.Valid(`Integer), foo_range)),
-              ("bar", (T.Valid(`Nil), bar_range)),
+              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
+              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,
@@ -245,8 +246,8 @@ let suite =
               )),
             ),
             [
-              ("foo", (T.Valid(`Integer), foo_range)),
-              ("bar", (T.Valid(`Nil), bar_range)),
+              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
+              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,
@@ -267,8 +268,8 @@ let suite =
               )),
             ),
             [
-              ("foo", (T.Valid(`Boolean), Range.zero)),
-              ("bar", (T.Valid(`Float), Range.zero)),
+              ("foo", T.Valid(`Boolean) |> U.as_untyped),
+              ("bar", T.Valid(`Float) |> U.as_untyped),
             ],
           )
           |> TypingAnalyzer.check_jsx_render,

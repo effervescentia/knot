@@ -1,14 +1,14 @@
 open Kore;
 
-module Identifier = Reference.Identifier;
 module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
-let __id = Identifier.of_string("foo");
+let __id = "foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __scope = S.create(__namespace, ignore, Range.zero);
-let __throw_scope = S.create(__namespace, throw, Range.zero);
+let __context = ParseContext.create(~report=ignore, __namespace);
+let __scope = S.create(__context, Range.zero);
+let __throw_scope = S.create({...__context, report: throw}, Range.zero);
 
 let suite =
   "Analyze.Semantic | Binary Operation"

@@ -5,7 +5,7 @@ export const isMultisetEqual = <T>(lhs: T[], rhs: T[]) => {
 
   const remaining = [...rhs];
 
-  return lhs.every(value => {
+  return lhs.every((value) => {
     const foundIndex = remaining.indexOf(value);
 
     if (foundIndex === -1) {

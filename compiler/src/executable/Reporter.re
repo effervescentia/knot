@@ -1,7 +1,7 @@
 open Kore;
 
 module Resolver = Resolve.Resolver;
-module Module = Resolve.Module;
+module Source = Resolve.Source;
 module Writer = File.Writer;
 
 let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
@@ -9,7 +9,7 @@ let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
 let _example_sep =
   Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@,// or@,")));
 let _or_sep =
-  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@ or@ ")));
+  Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, " or ")));
 
 let _pp_resolution: Fmt.t((Stdlib.Format.formatter => unit, list(string))) =
   (ppf, (description, examples)) =>
@@ -37,7 +37,7 @@ let _pp_err:
     (
       int,
       string,
-      option((Module.path_t, Range.t)),
+      option((Source.path_t, Range.t)),
       Stdlib.Format.formatter => unit,
     ),
   ) =
@@ -51,7 +51,7 @@ let _pp_err:
         ppf =>
           fun
           | None => nop(ppf, ())
-          | Some((Module.{relative, full}, range)) => {
+          | Some((Source.{relative, full}, range)) => {
               pf(
                 ppf,
                 " : %a%a%a",
@@ -103,7 +103,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "unable to resolve an identifier %a in the local scope or any inherited scope",
-            Fmt.bad(Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -114,7 +114,7 @@ let _extract_type_err =
               Fmt.pf(
                 ppf,
                 "check that the identifier %a is spelled correctly",
-                Fmt.bad(Identifier.pp),
+                Fmt.bad_str,
                 id,
               )
           ),
@@ -123,12 +123,12 @@ let _extract_type_err =
         (
           (ppf => Fmt.string(ppf, "define the value yourself")),
           Fmt.[str("const %s = …;"), str("let %s = …;")]
-          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+          |> List.map(fmt => id |> ~@Fmt.bold_str |> fmt),
         ),
         (
           (ppf => Fmt.string(ppf, "import the value from another module")),
           Fmt.[str("import { %s } from \"…\";")]
-          |> List.map(fmt => id |> ~@Fmt.bold(Identifier.pp) |> fmt),
+          |> List.map(fmt => id |> ~@Fmt.bold_str |> fmt),
         ),
       ],
     )
@@ -141,7 +141,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "a variable with the same name (%a) already exists in the local scope or an inherited scope",
-            Fmt.bad(Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -157,7 +157,7 @@ let _extract_type_err =
             Fmt.pf(
               ppf,
               "an export with the identifier %a could not be found in module %a",
-              Fmt.bad(Identifier.pp),
+              Fmt.bad_str,
               id,
               Fmt.bad(Namespace.pp),
               namespace,
@@ -412,8 +412,7 @@ let _extract_type_err =
         ppf =>
           Fmt.pf(
             ppf,
-            "jsx tag %a is missing the attributes %a",
-            Identifier.pp,
+            "jsx tag %s is missing the attributes %a",
             id,
             Fmt.(
               bad(ppf =>
@@ -483,7 +482,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "the function argument %a must define a type",
-            Fmt.bad(Reference.Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -497,7 +496,7 @@ let _extract_type_err =
           Fmt.pf(
             ppf,
             "the function argument %a must define a default value",
-            Fmt.bad(Reference.Identifier.pp),
+            Fmt.bad_str,
             id,
           )
       ),
@@ -512,6 +511,84 @@ let _extract_type_err =
           [],
         ),
       ],
+    )
+
+  | Type.InvalidDecoratorInvocation(type_, args) => (
+      "Invalid Decorator Invocation",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>decorator invocations can only be performed on values with %a types@,expected a value matching the type %a but received %a@]",
+              good_str,
+              "decorator",
+              good(ppf =>
+                pf(
+                  ppf,
+                  "@[<hv>(%a) on target@]",
+                  list(~layout=Horizontal, Type.pp),
+                )
+              ),
+              args,
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.DecoratorTargetMismatch(lhs, rhs) => (
+      "Decorator Target Mismatch",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>this decorator can only target a %a but found %a@]",
+              good(Type.DecoratorTarget.pp),
+              lhs,
+              bad(Type.DecoratorTarget.pp),
+              rhs,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.UnknownStyleRule(rule) => (
+      "Unknown Style Rule",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>the style rule %a was not recognized for the target platform@]",
+              bad_str,
+              rule,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidViewMixin(type_) => (
+      "Invalid View Mixin",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>views can only accept mixins of type %a but found %a@]",
+              good_str,
+              "style",
+              bad(Type.pp),
+              type_,
+            )
+        )
+      ),
+      [],
     );
 
 let _extract_parse_err =
@@ -590,7 +667,7 @@ let _extract_compile_err = resolver =>
       "Invalid Module",
       resolver
       |> Resolver.resolve_module(~skip_cache=true, namespace)
-      |> Module.get_path
+      |> Source.get_path
       |?> (x => (x, Range.zero)),
       (ppf => err |> pp_compile_err(ppf)),
     )
@@ -600,13 +677,13 @@ let _extract_compile_err = resolver =>
     |> Tuple.join3((title, description, resolutions) => {
          let module_ =
            Resolver.resolve_module(namespace, resolver)
-           |> Module.read_to_string;
+           |> Source.read_to_string;
 
          (
            title,
            resolver
            |> Resolver.resolve_module(~skip_cache=true, namespace)
-           |> Module.get_path
+           |> Source.get_path
            |?> (x => (x, range)),
            (
              ppf =>

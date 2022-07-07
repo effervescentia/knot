@@ -9,11 +9,8 @@ let _assert_expression = (expected, actual) =>
 let suite =
   "Grammar.Formatter | Expression"
   >::: [
-    "primitive" >: (() => _assert_expression("nil", A.nil |> A.of_prim)),
-    "identifier"
-    >: (
-      () => _assert_expression("fooBar", "fooBar" |> A.of_public |> A.of_id)
-    ),
+    "primitive" >: (() => _assert_expression("nil", A.of_prim(A.nil))),
+    "identifier" >: (() => _assert_expression("fooBar", A.of_id("fooBar"))),
     "group"
     >: (() => _assert_expression("123", 123 |> U.int_prim |> A.of_group)),
     "nested group"
@@ -30,11 +27,8 @@ let suite =
         _assert_expression(
           "foo.bar",
           (
-            "foo"
-            |> A.of_public
-            |> A.of_id
-            |> U.as_struct([("bar", T.Valid(`Boolean))]),
-            U.as_raw_node("bar"),
+            "foo" |> A.of_id |> U.as_struct([("bar", T.Valid(`Boolean))]),
+            U.as_untyped("bar"),
           )
           |> A.of_dot_access,
         )
@@ -46,10 +40,9 @@ let suite =
           "foo(bar)",
           (
             "foo"
-            |> A.of_public
             |> A.of_id
             |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
-            ["bar" |> A.of_public |> A.of_id |> U.as_string],
+            ["bar" |> A.of_id |> U.as_string],
           )
           |> A.of_func_call,
         )
@@ -112,11 +105,7 @@ let suite =
           "<Foo>
   bar
 </Foo>",
-          (
-            "Foo" |> A.of_public |> U.as_raw_node,
-            [],
-            ["bar" |> A.of_text |> U.as_raw_node],
-          )
+          (U.as_untyped("Foo"), [], ["bar" |> A.of_text |> U.as_untyped])
           |> A.of_tag
           |> A.of_jsx,
         )

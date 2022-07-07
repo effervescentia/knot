@@ -18,14 +18,20 @@ let create = () => {
       Symbol(__targets, x => value := Some(target_of_string(x))),
       "the target to compile to",
     );
-  let resolve = (cfg: option(Config.t)) =>
-    switch (cfg, value^) {
-    | (_, Some(value)) => value
-    | (Some({target: Some(target)}), None) => target
-    | (_, _) =>
-      InvalidArgument(target_key, "must provide a target for compilation")
-      |> fatal
-    };
+  let resolve = (~argv=Sys.argv, cfg: option(Config.t)) => {
+    let result =
+      switch (cfg, value^) {
+      | (_, Some(value)) => value
+      | (Some({target: Some(target)}), None) => target
+      | (_, _) =>
+        InvalidArgument(target_key, "must provide a target for compilation")
+        |> fatal
+      };
+    let ambient =
+      result |> Target.to_ambient_lib |> Resource.Asset.find(~argv);
+
+    (result, ambient);
+  };
 
   (argument, resolve);
 };

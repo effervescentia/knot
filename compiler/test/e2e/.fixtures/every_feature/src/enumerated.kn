@@ -1,0 +1,9 @@
+enum CardSuites =
+  | Spades
+  | Clubs
+  | Diamonds
+  | Hearts;
+
+enum Account =
+  | Verified(string, integer)
+  | Unverified(integer);

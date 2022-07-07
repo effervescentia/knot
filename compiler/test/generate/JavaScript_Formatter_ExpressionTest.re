@@ -105,6 +105,41 @@ let suite =
           ),
         )
     ),
+    "array - empty" >: (() => _assert_expression("[]", Array([]))),
+    "array - multiple properties"
+    >: (
+      () =>
+        _assert_expression(
+          "[1, 2, 3]",
+          Array([Number("1"), Number("2"), Number("3")]),
+        )
+    ),
+    "array - multiline properties"
+    >: (
+      () =>
+        _assert_expression(
+          "[
+  \"string1\",
+  \"string2\",
+  \"string3\",
+  \"string4\",
+  \"string5\",
+  \"string6\",
+  \"string7\",
+  \"string8\"
+]",
+          Array([
+            String("string1"),
+            String("string2"),
+            String("string3"),
+            String("string4"),
+            String("string5"),
+            String("string6"),
+            String("string7"),
+            String("string8"),
+          ]),
+        )
+    ),
     "object - empty" >: (() => _assert_expression("{}", Object([]))),
     "object - multiple properties"
     >: (

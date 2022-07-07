@@ -19,7 +19,7 @@ let command = () => {
   Command.create(
     command_key,
     [root_dir_arg, source_dir_arg, out_dir_arg],
-    (static, global) => {
+    (static, global, _) => {
       let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir).relative;
       let out_dir = get_out_dir(static, root_dir);

@@ -55,7 +55,7 @@ let force_compile = (namespace: Namespace.t, compiler: Compiler.t) =>
 
     compiler |> Compiler.incremental(updated);
     /* module does not exist in module table */
-  } else if (!Hashtbl.mem(compiler.modules, namespace)) {
+  } else if (!ModuleTable.mem(namespace, compiler.modules)) {
     compiler |> Compiler.incremental([namespace]);
   };
 
@@ -75,11 +75,11 @@ let analyze_module =
   );
 
 let scan_for_token = (point: Point.t) =>
-  File.InputStream.scan(Node.Raw.get_range % Range.contains_point(point));
+  File.InputStream.scan(Node.get_range % Range.contains_point(point));
 
 let purge_module = (path: string, runtime: t) =>
-  switch (runtime |> resolve(path)) {
-  | Some((namespace, {compiler, contexts})) =>
-    Hashtbl.remove(contexts, namespace)
-  | None => ()
-  };
+  runtime
+  |> resolve(path)
+  |> Option.iter(((namespace, {compiler, contexts})) =>
+       Hashtbl.remove(contexts, namespace)
+     );

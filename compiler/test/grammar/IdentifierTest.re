@@ -7,8 +7,7 @@ module Assert =
   Assert.Make({
     type t = AR.identifier_t;
 
-    let parser = ((_, ctx)) =>
-      ctx |> Identifier.parser |> Assert.parse_completely |> Parser.parse;
+    let parser = Identifier.parser % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
@@ -18,12 +17,7 @@ module Assert =
               A.Dump.(
                 id
                 |> untyped_node_to_entity(
-                     ~attributes=[
-                       (
-                         "value",
-                         id |> NR.get_value |> Reference.Identifier.to_string,
-                       ),
-                     ],
+                     ~attributes=[("value", fst(id))],
                      "Identifier",
                    )
                 |> Entity.pp(ppf)
@@ -40,9 +34,7 @@ let suite =
   >::: [
     "no parse" >: (() => Assert.no_parse("~gibberish")),
     "parse public identifier"
-    >: (() => Assert.parse("foo" |> AR.of_public |> U.as_raw_node, "foo")),
-    "parse private identifier"
-    >: (() => Assert.parse("foo" |> AR.of_private |> U.as_raw_node, "_foo")),
+    >: (() => Assert.parse(U.as_untyped("foo"), "foo")),
     "throw error on reserved keywords"
     >: (
       () =>

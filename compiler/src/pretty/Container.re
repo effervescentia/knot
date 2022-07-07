@@ -71,7 +71,7 @@ let block =
 
 /**
  print a list of values divided by separators
- and bookended by open and close symbols
+ and book-ended by open and close symbols
  */
 let collection =
     (

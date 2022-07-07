@@ -26,7 +26,7 @@ let suite =
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
           {...__compiler_config, working_dir: temp_dir},
-          {root_dir: temp_dir, source_dir: temp_dir},
+          {root_dir: temp_dir, source_dir: temp_dir, ambient: ""},
         );
 
         Async.on_tick(() => {
@@ -56,7 +56,7 @@ let suite =
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
           {...__compiler_config, working_dir: temp_dir},
-          {root_dir: temp_dir, source_dir: temp_dir},
+          {root_dir: temp_dir, source_dir: temp_dir, ambient: ""},
         );
 
         Async.on_tick(() => {
@@ -95,7 +95,7 @@ let suite =
         Format.run(
           ~report=_ => ~@pp_dump_err_list % Assert.fail,
           {...__compiler_config, working_dir: temp_dir},
-          {root_dir: temp_dir, source_dir: temp_dir},
+          {root_dir: temp_dir, source_dir: temp_dir, ambient: ""},
         );
 
         Async.on_tick(() => {

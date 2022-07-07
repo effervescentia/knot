@@ -1,3 +1,3 @@
-const render = require('./index.kn').main;
+const mount = require('./index.kn').main;
 
-render('app');
+mount('app');

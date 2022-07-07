@@ -11,6 +11,7 @@ type config_t = {
   entry: Namespace.t,
   fail_fast: bool,
   log_imports: bool,
+  ambient: string,
 };
 
 let command_key = "build";
@@ -35,12 +36,12 @@ let command = () => {
       fail_fast_arg,
       log_imports_arg,
     ],
-    (static, global) => {
+    (static, global, argv) => {
       let root_dir = get_root_dir(static, global.working_dir);
       let source_dir = get_source_dir(static, root_dir);
       let out_dir = get_out_dir(static, root_dir);
       let entry = get_entry(static, source_dir.absolute);
-      let target = get_target(static);
+      let (target, ambient) = get_target(~argv, static);
       let fail_fast = get_fail_fast(static);
       let log_imports = get_log_imports(static);
 
@@ -52,6 +53,7 @@ let command = () => {
         target,
         fail_fast,
         log_imports,
+        ambient,
       };
     },
   );
@@ -65,6 +67,7 @@ let extract_config = (config: config_t) => [
   (target_key, config.target |> ~@Target.pp),
   (fail_fast_key, string_of_bool(config.fail_fast)),
   (log_imports_key, string_of_bool(config.log_imports)),
+  (ambient_key, config.ambient),
 ];
 
 let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) => {
@@ -82,10 +85,11 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
         fail_fast: config.fail_fast,
         log_imports: config.log_imports,
         stdlib: global.stdlib,
+        ambient: config.ambient,
       },
     );
 
-  Compiler.add_standard_library(compiler);
+  Compiler.prepare(compiler);
 
   Log.info(
     "reading modules from %s",

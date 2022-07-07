@@ -13,6 +13,7 @@ let tests =
     LazyStreamTest.suite,
     ListTest.suite,
     ModuleTableTest.suite,
+    ParseContextTest.suite,
     PointTest.suite,
     RangeTest.suite,
     SeqTest.suite,

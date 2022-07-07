@@ -74,6 +74,16 @@ let rec fmt_expression = (module_type: Target.module_t): Fmt.t(expression_t) =>
           stmts,
         )
       )
+    | Array([]) => Fmt.string(ppf, "[]")
+    | Array(elements) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<hv>[%a]@]",
+          indented(list(~sep=_object_sep, fmt_expression(module_type))),
+          elements,
+        )
+      )
     | Object([]) => Fmt.string(ppf, "{}")
     | Object(props) =>
       Fmt.(
@@ -83,7 +93,17 @@ let rec fmt_expression = (module_type: Target.module_t): Fmt.t(expression_t) =>
           any("{"),
           any("}"),
           (ppf, (name, expr)) =>
-            pf(ppf, "%s: %a", name, fmt_expression(module_type), expr),
+            pf(
+              ppf,
+              "%a: %a",
+              (ppf, x) =>
+                String.is_first_alpha(x)
+                  ? Fmt.string(ppf, x)
+                  : Fmt.pf(ppf, "[\"%s\"]", String.escaped(x)),
+              name,
+              fmt_expression(module_type),
+              expr,
+            ),
           ppf,
           props,
         )

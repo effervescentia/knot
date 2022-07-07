@@ -62,7 +62,7 @@ OPTIONS
               Command.{
                 name: "foo",
                 arguments: [__arg],
-                resolve: (_, _) => Task.DevServe({port: 8080}),
+                resolve: (_, _, _) => Task.DevServe({port: 8080}),
               },
             ),
             Some(Config.defaults),

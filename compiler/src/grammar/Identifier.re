@@ -1,18 +1,19 @@
 open Kore;
 
-let parser = (ctx: ModuleContext.t): identifier_parser_t =>
-  M.identifier
+let parser = (ctx: ParseContext.t): identifier_parser_t =>
+  M.identifier(
+    ~prefix=M.alpha <|> Character.underscore <|> Character.dollar_sign,
+  )
   >|= (
-    ((name_value, name_range) as name) => {
+    ((name_value, _) as name) => {
       if (Constants.Keyword.reserved |> List.mem(name_value)) {
-        ParseError(
-          ReservedKeyword(name_value),
-          ctx.namespace_context.namespace,
-          name_range,
-        )
-        |> ModuleContext.report(ctx);
+        ctx
+        |> ParseContext.report(
+             ReservedKeyword(name_value),
+             N.get_range(name),
+           );
       };
 
-      name |> NR.map_value(Reference.Identifier.of_string);
+      N.untyped(name_value, N.get_range(name));
     }
   );

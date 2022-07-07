@@ -34,23 +34,28 @@ module Assert =
 let suite =
   "Grammar.Typing | Expression"
   >::: [
-    "no parse" >: (() => Assert.no_parse("gibberish")),
-    "parse nil type" >: (() => Assert.parse(U.as_raw_node(TE.Nil), "nil")),
+    "no parse" >: (() => Assert.no_parse("#!@e13")),
+    "parse nil type" >: (() => Assert.parse(U.as_untyped(TE.Nil), "nil")),
     "parse boolean type"
-    >: (() => Assert.parse(U.as_raw_node(TE.Boolean), "boolean")),
+    >: (() => Assert.parse(U.as_untyped(TE.Boolean), "boolean")),
     "parse integer type"
-    >: (() => Assert.parse(U.as_raw_node(TE.Integer), "integer")),
+    >: (() => Assert.parse(U.as_untyped(TE.Integer), "integer")),
     "parse float type"
-    >: (() => Assert.parse(U.as_raw_node(TE.Float), "float")),
+    >: (() => Assert.parse(U.as_untyped(TE.Float), "float")),
     "parse string type"
-    >: (() => Assert.parse(U.as_raw_node(TE.String), "string")),
+    >: (() => Assert.parse(U.as_untyped(TE.String), "string")),
     "parse element type"
-    >: (() => Assert.parse(U.as_raw_node(TE.Element), "element")),
+    >: (() => Assert.parse(U.as_untyped(TE.Element), "element")),
+    "parse type identifier"
+    >: (
+      () =>
+        Assert.parse("foo" |> U.as_untyped |> TE.of_id |> U.as_untyped, "foo")
+    ),
     "parse simple group type"
     >: (
       () =>
         Assert.parse_all(
-          TE.Boolean |> U.as_raw_node |> TE.of_group |> U.as_raw_node,
+          TE.Boolean |> U.as_untyped |> TE.of_group |> U.as_untyped,
           ["(boolean)", "( boolean )"],
         )
     ),
@@ -60,42 +65,42 @@ let suite =
         Assert.parse(
           [
             (
-              U.as_raw_node("foo"),
+              U.as_untyped("foo"),
               TE.Boolean
-              |> U.as_raw_node
+              |> U.as_untyped
               |> TE.of_list
-              |> U.as_raw_node
+              |> U.as_untyped
               |> TE.of_group
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ),
             (
-              U.as_raw_node("bar"),
+              U.as_untyped("bar"),
               (
-                [TE.Integer |> U.as_raw_node |> TE.of_group |> U.as_raw_node],
-                TE.Nil |> U.as_raw_node |> TE.of_group |> U.as_raw_node,
+                [TE.Integer |> U.as_untyped |> TE.of_group |> U.as_untyped],
+                TE.Nil |> U.as_untyped |> TE.of_group |> U.as_untyped,
               )
               |> TE.of_function
-              |> U.as_raw_node
+              |> U.as_untyped
               |> TE.of_group
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ),
           ]
           |> TE.of_struct
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_group
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "({ foo: (boolean[]), bar: (((integer)) -> (nil)) })",
         )
     ),
     "parse empty struct type"
-    >: (() => Assert.parse(U.as_raw_node(TE.of_struct([])), "{}")),
+    >: (() => Assert.parse(U.as_untyped(TE.of_struct([])), "{}")),
     "parse simple struct type"
     >: (
       () =>
         Assert.parse_all(
-          [(U.as_raw_node("foo"), U.as_raw_node(TE.Boolean))]
+          [(U.as_untyped("foo"), U.as_untyped(TE.Boolean))]
           |> TE.of_struct
-          |> U.as_raw_node,
+          |> U.as_untyped,
           ["{foo:boolean}", "{ foo : boolean }", "{ foo: boolean, }"],
         )
     ),
@@ -104,30 +109,30 @@ let suite =
       () =>
         Assert.parse(
           [
-            (U.as_raw_node("nil"), U.as_raw_node(TE.Nil)),
-            (U.as_raw_node("boolean"), U.as_raw_node(TE.Boolean)),
-            (U.as_raw_node("integer"), U.as_raw_node(TE.Integer)),
-            (U.as_raw_node("float"), U.as_raw_node(TE.Float)),
-            (U.as_raw_node("string"), U.as_raw_node(TE.String)),
-            (U.as_raw_node("element"), U.as_raw_node(TE.Element)),
+            (U.as_untyped("nil"), U.as_untyped(TE.Nil)),
+            (U.as_untyped("boolean"), U.as_untyped(TE.Boolean)),
+            (U.as_untyped("integer"), U.as_untyped(TE.Integer)),
+            (U.as_untyped("float"), U.as_untyped(TE.Float)),
+            (U.as_untyped("string"), U.as_untyped(TE.String)),
+            (U.as_untyped("element"), U.as_untyped(TE.Element)),
             (
-              U.as_raw_node("struct"),
+              U.as_untyped("struct"),
               [
-                (U.as_raw_node("foo"), U.as_raw_node(TE.Nil)),
-                (U.as_raw_node("bar"), U.as_raw_node(TE.Struct([]))),
+                (U.as_untyped("foo"), U.as_untyped(TE.Nil)),
+                (U.as_untyped("bar"), U.as_untyped(TE.Struct([]))),
               ]
               |> TE.of_struct
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ),
             (
-              U.as_raw_node("function"),
-              ([U.as_raw_node(TE.Boolean)], U.as_raw_node(TE.Integer))
+              U.as_untyped("function"),
+              ([U.as_untyped(TE.Boolean)], U.as_untyped(TE.Integer))
               |> TE.of_function
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ),
           ]
           |> TE.of_struct
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "{
             nil: nil,
             boolean: boolean,
@@ -147,7 +152,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ([], U.as_raw_node(TE.Nil)) |> TE.of_function |> U.as_raw_node,
+          ([], U.as_untyped(TE.Nil)) |> TE.of_function |> U.as_untyped,
           "() -> nil",
         )
     ),
@@ -156,11 +161,11 @@ let suite =
       () =>
         Assert.parse_all(
           (
-            [U.as_raw_node(TE.Boolean), U.as_raw_node(TE.Float)],
-            U.as_raw_node(TE.Element),
+            [U.as_untyped(TE.Boolean), U.as_untyped(TE.Float)],
+            U.as_untyped(TE.Element),
           )
           |> TE.of_function
-          |> U.as_raw_node,
+          |> U.as_untyped,
           [
             "(boolean,float)->element",
             "( boolean , float ) -> element",
@@ -174,17 +179,17 @@ let suite =
         Assert.parse(
           (
             [
-              [(U.as_raw_node("foo"), U.as_raw_node(TE.Nil))]
+              [(U.as_untyped("foo"), U.as_untyped(TE.Nil))]
               |> TE.of_struct
-              |> U.as_raw_node,
-              ([], U.as_raw_node(TE.Nil)) |> TE.of_function |> U.as_raw_node,
+              |> U.as_untyped,
+              ([], U.as_untyped(TE.Nil)) |> TE.of_function |> U.as_untyped,
             ],
-            ([U.as_raw_node(TE.Element)], U.as_raw_node(TE.Boolean))
+            ([U.as_untyped(TE.Element)], U.as_untyped(TE.Boolean))
             |> TE.of_function
-            |> U.as_raw_node,
+            |> U.as_untyped,
           )
           |> TE.of_function
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "({ foo: nil }, () -> nil) -> (element) -> boolean",
         )
     ),
@@ -192,7 +197,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          TE.Nil |> U.as_raw_node |> TE.of_list |> U.as_raw_node,
+          TE.Nil |> U.as_untyped |> TE.of_list |> U.as_untyped,
           ["nil[]", "nil [ ]"],
         )
     ),
@@ -201,13 +206,13 @@ let suite =
       () =>
         Assert.parse(
           TE.Float
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_list
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_list
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_list
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "float[][][]",
         )
     ),
@@ -217,27 +222,27 @@ let suite =
         Assert.parse(
           [
             (
-              U.as_raw_node("foo"),
-              TE.Nil |> U.as_raw_node |> TE.of_list |> U.as_raw_node,
+              U.as_untyped("foo"),
+              TE.Nil |> U.as_untyped |> TE.of_list |> U.as_untyped,
             ),
             (
-              U.as_raw_node("bar"),
+              U.as_untyped("bar"),
               (
-                [TE.Float |> U.as_raw_node |> TE.of_list |> U.as_raw_node],
-                TE.Integer |> U.as_raw_node |> TE.of_list |> U.as_raw_node,
+                [TE.Float |> U.as_untyped |> TE.of_list |> U.as_untyped],
+                TE.Integer |> U.as_untyped |> TE.of_list |> U.as_untyped,
               )
               |> TE.of_function
-              |> U.as_raw_node
+              |> U.as_untyped
               |> TE.of_group
-              |> U.as_raw_node
+              |> U.as_untyped
               |> TE.of_list
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ),
           ]
           |> TE.of_struct
-          |> U.as_raw_node
+          |> U.as_untyped
           |> TE.of_list
-          |> U.as_raw_node,
+          |> U.as_untyped,
           "{ foo: nil[], bar: ((float[]) -> integer[])[] }[]",
         )
     ),

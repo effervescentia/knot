@@ -10,7 +10,7 @@ type config_t = unit;
 let command_key = "lang_serve";
 
 let command = () => {
-  Command.create(command_key, [], (_, _) => ());
+  Command.create(command_key, [], (_, _, _) => ());
 };
 
 let _find_config = (global: Config.global_t, folder) => {

@@ -1,4 +1,5 @@
 open Kore;
+open ModuleAliases;
 
 type params_t = {
   text_document: Protocol.text_document_t,
@@ -40,29 +41,37 @@ let handler: Runtime.request_handler_t(params_t) =
     switch (runtime |> Runtime.resolve(uri)) {
     | Some((namespace, {compiler})) =>
       let symbols =
-        Hashtbl.find_opt(compiler.modules, namespace)
+        compiler.modules
+        |> ModuleTable.find(namespace)
         |?< ModuleTable.(get_entry_data % Option.map(({ast}) => ast))
         |?> List.filter_map(
-              Node.Raw.get_value
+              fst
               % (
                 fun
                 | AST.Declaration(
                     MainExport(name) | NamedExport(name),
                     decl,
                   ) => {
-                    let range = Node.Raw.get_range(name);
-                    let full_range = Range.join(range, Node.get_range(decl));
-                    let name = name |> Node.Raw.get_value |> ~@Identifier.pp;
-                    let type_ = Node.get_type(decl);
+                    let range = N.get_range(name);
+                    let full_range = N.join_ranges(name, decl);
+                    let name = fst(name);
+                    let type_ = N.get_type(decl);
 
                     Some(
-                      switch (Node.get_value(decl)) {
+                      switch (fst(decl)) {
                       | Constant(expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Variable,
+                        }
+                      | Enumerated(variants) => {
+                          name,
+                          detail: type_ |> ~@Type.pp,
+                          range,
+                          full_range,
+                          kind: Capabilities.Enum,
                         }
                       | Function(args, expr) => {
                           name,
@@ -71,7 +80,7 @@ let handler: Runtime.request_handler_t(params_t) =
                           full_range,
                           kind: Capabilities.Function,
                         }
-                      | View(props, expr) => {
+                      | View(props, mixins, expr) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,

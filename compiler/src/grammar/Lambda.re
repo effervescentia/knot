@@ -1,6 +1,6 @@
 open Kore;
 
-let arguments = (ctx: ModuleContext.t) =>
+let arguments = (ctx: ParseContext.t) =>
   Identifier.parser(ctx)
   >>= (
     id =>
@@ -19,33 +19,45 @@ let arguments = (ctx: ModuleContext.t) =>
   )
   >|= (
     ((name, type_, default)) => {
-      let name_range = NR.get_range(name);
+      let name_range = N.get_range(name);
 
-      N.create(
+      N.typed(
         AR.{name, default, type_},
         default |?> N.get_type |?: TR.(`Unknown),
         Range.join(
           name_range,
-          default |?> N.get_range |?: (type_ |?> NR.get_range |?: name_range),
+          default |?> N.get_range |?: (type_ |?> N.get_range |?: name_range),
         ),
       );
     }
   )
   |> M.comma_sep
   |> M.between(Symbol.open_group, Symbol.close_group)
-  >|= NR.get_value;
+  >|= fst;
 
-let parser = (ctx: ModuleContext.t) =>
-  option([], arguments(ctx))
+let _full_parser = (~mixins, ctx: ParseContext.t) =>
+  arguments(ctx)
+  |> option([])
   >>= (
     args =>
-      Glyph.lambda
-      >|= NR.get_range
+      (
+        mixins
+          ? Symbol.mixin >> M.identifier |> many1 |> option([]) : return([])
+      )
       >>= (
-        start_range =>
-          Expression.parser(ctx)
-          >|= (
-            expr => (args, expr, Range.join(start_range, N.get_range(expr)))
+        mixins =>
+          Glyph.lambda
+          >>= (
+            lambda =>
+              Expression.parser(ctx)
+              >|= (expr => (args, mixins, expr, N.join_ranges(lambda, expr)))
           )
       )
   );
+
+let parser_with_mixins = (ctx: ParseContext.t) =>
+  _full_parser(~mixins=true, ctx);
+
+let parser = (ctx: ParseContext.t) =>
+  _full_parser(~mixins=false, ctx)
+  >|= (((args, _, expr, range)) => (args, expr, range));

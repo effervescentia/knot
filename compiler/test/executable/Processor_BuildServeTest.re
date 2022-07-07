@@ -58,6 +58,7 @@ let suite =
                source_dir: "lib",
                target: Target.JavaScript(Common),
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -81,6 +82,7 @@ let suite =
                source_dir: "src",
                target: Target.Knot,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -104,6 +106,7 @@ let suite =
                source_dir: "src",
                target: Target.Knot,
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -128,6 +131,7 @@ let suite =
                source_dir: "src",
                target: Target.JavaScript(Common),
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -152,6 +156,7 @@ let suite =
                source_dir: "lib",
                target: Target.JavaScript(Common),
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -175,6 +180,7 @@ let suite =
                source_dir: "lib",
                target: Target.JavaScript(Common),
                log_imports: false,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -198,6 +204,7 @@ let suite =
                source_dir: "src",
                target: Target.JavaScript(Common),
                log_imports: true,
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),

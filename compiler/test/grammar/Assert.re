@@ -2,11 +2,18 @@ open Kore;
 
 include Test.Assert;
 
-type parser_context_t = (NamespaceContext.t, ModuleContext.t);
+module Compare = {
+  include Compare;
 
-let _mock_ns_context = report =>
-  NamespaceContext.create(~report, Internal("mock"));
-let _mock_module_context = x => ModuleContext.create(x);
+  let type_ = Alcotest.testable(Type.pp, (==));
+};
+
+let _mock_context = report => ParseContext.create(~report, Internal("mock"));
+
+let symbol_assoc_list =
+  Alcotest.(
+    check(list(pair(string, Compare.type_)), "symbol assoc list matches")
+  );
 
 let parse_completely = x =>
   Parse.Onyx.(x << (eof() |> Grammar.Matchers.lexeme));
@@ -14,22 +21,21 @@ let parse_completely = x =>
 module type AssertParams = {
   include Test.Assert.Target;
 
-  let parser: (parser_context_t, Grammar.Program.input_t) => option(t);
+  let parser: (ParseContext.t, Grammar.Program.input_t) => option(t);
 };
 
 module Make = (Params: AssertParams) => {
   let parse =
       (
         ~report=throw,
-        ~ns_context=_mock_ns_context(report),
-        ~mod_context=_mock_module_context,
+        ~context=_mock_context(report),
         ~cursor=false,
         expected,
         source,
       ) =>
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
-    |> Params.parser((ns_context, mod_context(ns_context)))
+    |> Params.parser(context)
     |> (
       fun
       | Some(actual) => Params.test(expected, actual)
@@ -38,46 +44,32 @@ module Make = (Params: AssertParams) => {
     );
 
   let parse_all =
-      (
-        ~report=throw,
-        ~ns_context=_mock_ns_context(report),
-        ~mod_context=_mock_module_context,
-        ~cursor=false,
-        o,
-      ) =>
-    List.iter(parse(~ns_context, ~mod_context, ~report, ~cursor, o));
+      (~report=throw, ~context=_mock_context(report), ~cursor=false, o) =>
+    List.iter(parse(~context, ~report, ~cursor, o));
 
   let no_parse =
-      (
-        ~report=throw,
-        ~ns_context=_mock_ns_context(report),
-        ~mod_context=_mock_module_context,
-        ~cursor=false,
-        source,
-      ) =>
+      (~report=throw, ~context=_mock_context(report), ~cursor=false, source) =>
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
-    |> Params.parser((ns_context, mod_context(ns_context)))
-    |> (
-      fun
-      | Some(r) => source |> Alcotest.failf("parsed input: '%s'") |> ignore
-      | None => ()
-    );
+    |> Params.parser(context)
+    |> Option.iter(_ =>
+         source |> Alcotest.failf("parsed input: '%s'") |> ignore
+       );
 
   let parse_none =
       (
         ~report=throw,
-        ~ns_context=_mock_ns_context(report),
-        ~mod_context=_mock_module_context,
+        ~context=_mock_context(report),
+        ~mod_context=_mock_context,
         ~cursor=false,
       ) =>
-    List.iter(no_parse(~report, ~ns_context, ~mod_context, ~cursor));
+    List.iter(no_parse(~report, ~context, ~cursor));
 
   let parse_throws =
       (
         ~report=throw,
-        ~ns_context=_mock_ns_context(report),
-        ~mod_context=_mock_module_context,
+        ~context=_mock_context(report),
+        ~mod_context=_mock_context,
         ~cursor=false,
         err,
         message,
@@ -86,7 +78,7 @@ module Make = (Params: AssertParams) => {
     throws(err, message, () =>
       InputStream.of_string(~cursor, source)
       |> LazyStream.of_stream
-      |> Params.parser((ns_context, mod_context(ns_context)))
+      |> Params.parser(context)
     );
 };
 
@@ -94,8 +86,7 @@ module type TypedParserParams = {
   type value_t;
   type type_t;
 
-  let parser:
-    parser_context_t => Grammar.Kore.parser_t(N.t(value_t, type_t));
+  let parser: ParseContext.t => Grammar.Kore.parser_t(N.t(value_t, type_t));
 
   let pp_value: Fmt.t(value_t);
   let pp_type: Fmt.t(type_t);
@@ -119,7 +110,7 @@ module MakeTyped = (Params: TypedParserParams) =>
                      Params.pp_type,
                      "Parsed",
                      ~attributes=[
-                       ("value", node |> N.get_value |> ~@Params.pp_value),
+                       ("value", node |> fst |> ~@Params.pp_value),
                      ],
                    )
                 |> Entity.pp(ppf)

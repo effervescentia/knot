@@ -10,5 +10,5 @@ const nestedJSXConst =
     </child>
     <sibling />
   </parent>;
-const nestedExprJSXConst = <container>{numericConst + 20}<middle />{stringConst + "one"}</container>;
+const nestedExprJSXConst = <container>{numericConst + 20}<middle />hello</container>;
 const fragmentJSXConst = <><div /><span /></>;

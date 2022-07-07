@@ -7,34 +7,26 @@ let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
   | Tag(id, attrs, children) =>
     let analyzed_attrs = attrs |> List.map(analyze_jsx_attribute(scope));
     let analyzed_children = children |> List.map(analyze_jsx_child(scope));
-    let is_tag_capitalized =
-      id
-      |> NR.get_value
-      |> Reference.Identifier.to_string
-      |> String.is_capitalized;
+    let is_tag_capitalized = id |> fst |> String.is_capitalized;
 
     if (is_tag_capitalized) {
-      let id_type =
-        scope |> S.lookup(NR.get_value(id)) |?: T.Invalid(NotInferrable);
+      let id_type = scope |> S.lookup(fst(id)) |?: T.Invalid(NotInferrable);
       let props =
         analyzed_attrs
         |> List.filter_map(
              fun
-             | (A.Property(name, Some(expr)), range) =>
-               Some((
-                 name |> NR.get_value |> Reference.Identifier.to_string,
-                 (N.get_type(expr), range),
-               ))
+             | (A.Property((name, _), Some(expr)), range) =>
+               Some((name, (N.get_type(expr), range)))
              | (_, range) => None,
            );
 
-      (NR.get_value(id), id_type, props)
+      (fst(id), id_type, props)
       |> Typing.check_jsx_render
       |> List.iter(((err, err_range)) =>
-           S.report_type_err(scope, err_range |?: NR.get_range(id), err)
+           S.report_type_err(scope, err_range |?: N.get_range(id), err)
          );
 
-      (id |> N.of_raw(id_type), analyzed_attrs, analyzed_children)
+      (id |> N.add_type(id_type), analyzed_attrs, analyzed_children)
       |> A.of_component;
     } else {
       (id, analyzed_attrs, analyzed_children) |> A.of_tag;
@@ -48,10 +40,9 @@ let rec analyze_jsx = (scope: S.t, raw_jsx: AR.jsx_t): A.jsx_t =>
   }
 
 and analyze_jsx_attribute =
-    (scope: S.t, (raw_jsx_attr, range): AR.jsx_attribute_t)
-    : A.jsx_attribute_t => {
+    (scope: S.t, raw_jsx_attr: AR.jsx_attribute_t): A.jsx_attribute_t => {
   let jsx_attr =
-    switch (raw_jsx_attr) {
+    switch (fst(raw_jsx_attr)) {
     | ID(id) => A.of_jsx_id(id)
 
     | Class(id, raw_expr) =>
@@ -72,13 +63,13 @@ and analyze_jsx_attribute =
       (id, expr |?> analyze_expression(scope)) |> A.of_prop
     };
 
-  NR.create(jsx_attr, range);
+  N.untyped(jsx_attr, N.get_range(raw_jsx_attr));
 }
 
 and analyze_jsx_child =
-    (scope: S.t, (raw_jsx_child, range): AR.jsx_child_t): A.jsx_child_t => {
+    (scope: S.t, raw_jsx_child: AR.jsx_child_t): A.jsx_child_t => {
   let jsx_child =
-    switch (raw_jsx_child) {
+    switch (fst(raw_jsx_child)) {
     | Text(text) => A.of_text(text)
 
     | Node(jsx) => jsx |> analyze_jsx(scope) |> A.of_node
@@ -94,16 +85,20 @@ and analyze_jsx_child =
       A.of_inline_expr(expr);
     };
 
-  NR.create(jsx_child, range);
+  N.untyped(jsx_child, N.get_range(raw_jsx_child));
 }
 
 and analyze_expression =
-    (scope: S.t, (raw_expr, raw_type, range): AR.expression_t)
-    : A.expression_t => {
+    (scope: S.t, raw_expr: AR.expression_t): A.expression_t => {
+  let expr_range = N.get_range(raw_expr);
+
   let (expr, type_) =
-    switch (raw_expr) {
+    switch (fst(raw_expr)) {
     /* should always be able to rely on the parser to have typed these accurately */
-    | Primitive(prim) => (A.of_prim(prim), T.of_raw(raw_type))
+    | Primitive(prim) => (
+        A.of_prim(prim),
+        raw_expr |> N.get_type |> T.of_raw,
+      )
 
     /* use the type of the inner analyzed expression */
     | Group(expr) =>
@@ -129,7 +124,7 @@ and analyze_expression =
           () => {
             let err = T.NotFound(id);
 
-            err |> S.report_type_err(scope, range);
+            err |> S.report_type_err(scope, expr_range);
 
             T.Invalid(NotInferrable);
           }
@@ -143,7 +138,7 @@ and analyze_expression =
 
       type_
       |> Typing.check_unary_operation(op)
-      |> Option.iter(S.report_type_err(scope, range));
+      |> Option.iter(S.report_type_err(scope, expr_range));
 
       (
         (op, analyzed) |> A.of_unary_op,
@@ -170,7 +165,7 @@ and analyze_expression =
 
       (type_lhs, type_rhs)
       |> Typing.check_binary_operation(op)
-      |> Option.iter(S.report_type_err(scope, range));
+      |> Option.iter(S.report_type_err(scope, expr_range));
 
       (
         (op, analyzed_lhs, analyzed_rhs) |> A.of_binary_op,
@@ -206,21 +201,29 @@ and analyze_expression =
       );
 
     | DotAccess(expr, prop) =>
+      let prop_name = fst(prop);
       let analyzed_expr = analyze_expression(scope, expr);
       let type_expr = N.get_type(analyzed_expr);
 
       type_expr
-      |> Typing.check_dot_access(NR.get_value(prop))
-      |> Option.iter(S.report_type_err(scope, range));
+      |> Typing.check_dot_access(prop_name)
+      |> Option.iter(S.report_type_err(scope, expr_range));
 
       (
         (analyzed_expr, prop) |> A.of_dot_access,
         (
           switch (type_expr) {
-          | Valid(`Struct(props)) =>
-            props
-            |> List.find_opt(fst % (==)(NR.get_value(prop)))
-            |> Option.map(snd)
+          | Valid(`Struct(props)) => props |> List.assoc_opt(prop_name)
+
+          | Valid(`Module(entries)) =>
+            entries
+            |> List.find_map(
+                 fun
+                 | (name, T.Container.Value(t)) when name == prop_name =>
+                   Some(t)
+                 | _ => None,
+               )
+
           | _ => None
           }
         )
@@ -235,7 +238,7 @@ and analyze_expression =
 
       (type_expr, type_args)
       |> Typing.check_function_call
-      |> Option.iter(S.report_type_err(scope, range));
+      |> Option.iter(S.report_type_err(scope, expr_range));
 
       (
         (analyzed_expr, analyzed_args) |> A.of_func_call,
@@ -246,20 +249,19 @@ and analyze_expression =
       );
     };
 
-  N.create(expr, type_, range);
+  N.typed(expr, type_, expr_range);
 }
 
-and analyze_statement =
-    (scope: S.t, (raw_stmt, _, range): AR.statement_t): A.statement_t => {
+and analyze_statement = (scope: S.t, raw_stmt: AR.statement_t): A.statement_t => {
   let (stmt, type_) =
-    switch (raw_stmt) {
+    switch (fst(raw_stmt)) {
     | Variable(id, expr) =>
       let analyzed = analyze_expression(scope, expr);
       let type_ = N.get_type(analyzed);
 
       scope
-      |> S.define(NR.get_value(id), type_)
-      |> Option.iter(S.report_type_err(scope, NR.get_range(id)));
+      |> S.define(fst(id), type_)
+      |> Option.iter(S.report_type_err(scope, N.get_range(id)));
 
       ((id, analyzed) |> A.of_var, T.Valid(`Nil));
 
@@ -269,16 +271,15 @@ and analyze_statement =
       (A.of_expr(analyzed), N.get_type(analyzed));
     };
 
-  N.create(stmt, type_, range);
+  N.typed(stmt, type_, N.get_range(raw_stmt));
 };
 
-let analyze_argument =
-    (scope: S.t, (raw_arg, _, range): AR.argument_t): A.argument_t => {
+let analyze_argument = (scope: S.t, raw_arg: AR.argument_t): A.argument_t => {
   let (arg, type_) =
-    switch (raw_arg) {
+    switch (fst(raw_arg)) {
     | {name, default: None, type_: None} =>
-      T.UntypedFunctionArgument(NR.get_value(name))
-      |> S.report_type_err(scope, range);
+      T.UntypedFunctionArgument(fst(name))
+      |> S.report_type_err(scope, N.get_range(raw_arg));
 
       (A.{name, default: None, type_: None}, T.Invalid(NotInferrable));
 
@@ -288,14 +289,16 @@ let analyze_argument =
       (A.{name, default: Some(expr), type_: None}, N.get_type(expr));
 
     | {name, default: None, type_: Some(type_expr)} =>
-      let type_ = type_expr |> NR.get_value |> Typing.eval_type_expression;
+      let type_ =
+        type_expr |> fst |> Typing.eval_type_expression(SymbolTable.create());
 
       (A.{name, default: None, type_: Some(type_expr)}, type_);
 
     | {name, default: Some(raw_expr), type_: Some(type_expr)} =>
       let expr = raw_expr |> analyze_expression(scope);
       let expr_type = N.get_type(expr);
-      let type_ = type_expr |> NR.get_value |> Typing.eval_type_expression;
+      let type_ =
+        type_expr |> fst |> Typing.eval_type_expression(SymbolTable.create());
 
       switch (expr_type, type_) {
       | (Valid(_), Valid(_)) when expr_type != type_ =>
@@ -309,7 +312,7 @@ let analyze_argument =
       (A.{name, default: Some(expr), type_: Some(type_expr)}, type_);
     };
 
-  N.create(arg, type_, range);
+  N.typed(arg, type_, N.get_range(raw_arg));
 };
 
 let rec _check_default_arguments =
@@ -317,13 +320,13 @@ let rec _check_default_arguments =
   switch (args, require_default) {
   | ([], _) => ()
 
-  | ([(A.{name, default: None}, _, range), ...xs], true) =>
-    Type.DefaultArgumentMissing(NR.get_value(name))
-    |> S.report_type_err(scope, range);
+  | ([(A.{name: (name, _), default: None}, _) as arg, ...xs], true) =>
+    Type.DefaultArgumentMissing(name)
+    |> S.report_type_err(scope, N.get_range(arg));
 
     _check_default_arguments(~require_default, scope, xs);
 
-  | ([(A.{default: Some(_)}, _, _), ...xs], _) =>
+  | ([(A.{default: Some(_)}, _), ...xs], _) =>
     _check_default_arguments(~require_default=true, scope, xs)
 
   | ([x, ...xs], _) => _check_default_arguments(~require_default, scope, xs)
@@ -348,4 +351,62 @@ let analyze_view_body =
   |> Option.iter(body |> N.get_range |> S.report_type_err(scope));
 
   body;
+};
+
+let analyze_decorator =
+    (ctx: ParseContext.t, target: T.DecoratorTarget.t, raw_decorator) => {
+  let decorator =
+    raw_decorator
+    |> N.map(
+         Tuple.map_fst2(
+           N.map_type(type_ => type_ |?: T.Invalid(NotInferrable)),
+         ),
+       );
+
+  let is_valid =
+    raw_decorator
+    |> (
+      (((id, args), _) as node) => {
+        let args_types = args |> List.map(N.get_type);
+
+        switch (N.get_type(id)) {
+        | Some(T.Valid(`Decorator(_, expected_target)))
+            when expected_target != target =>
+          ctx
+          |> ParseContext.report(
+               TypeError(DecoratorTargetMismatch(expected_target, target)),
+               N.get_range(id),
+             );
+
+          false;
+
+        | Some(T.Valid(`Decorator(expected_args, _)))
+            when
+              List.length(expected_args) == List.length(args_types)
+              && List.for_all2((==), expected_args, args_types) =>
+          true
+
+        /* forward invalid types */
+        | Some(T.Invalid(_)) => false
+
+        | Some(type_) =>
+          ctx
+          |> ParseContext.report(
+               TypeError(InvalidDecoratorInvocation(type_, args_types)),
+               N.get_range(node),
+             );
+          false;
+
+        | None =>
+          ctx
+          |> ParseContext.report(
+               TypeError(NotFound(fst(id))),
+               N.get_range(id),
+             );
+          false;
+        };
+      }
+    );
+
+  (decorator, is_valid);
 };

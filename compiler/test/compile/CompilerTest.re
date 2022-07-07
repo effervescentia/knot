@@ -3,7 +3,7 @@ open Reference;
 
 module Compiler = Compile.Compiler;
 module ImportGraph = Resolve.ImportGraph;
-module Module = Resolve.Module;
+module Source = Resolve.Source;
 module U = Util.ResultUtil;
 module A = AST;
 module T = Type;
@@ -17,20 +17,17 @@ let __entry_filename = "entry.kn";
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
-let __types =
-  [(Export.Named("ABC" |> A.of_public), T.Valid(`Integer))]
-  |> List.to_seq
-  |> Hashtbl.of_seq;
+let __types = [(Export.Named("ABC"), T.Valid(`Integer))];
 
-let _create_module = (root_dir, namespace) =>
-  Module.File({
+let _create_source = (root_dir, namespace) =>
+  Source.File({
     relative: Namespace.to_path("", namespace),
     full: namespace |> Namespace.to_path(root_dir),
   });
 
-let _create_module_resolver = (root_dir, allowed, namespace) =>
+let _create_source_resolver = (root_dir, allowed, namespace) =>
   if (List.mem(namespace, allowed)) {
-    _create_module(root_dir, namespace);
+    _create_source(root_dir, namespace);
   } else {
     namespace
     |> Namespace.to_string
@@ -40,6 +37,28 @@ let _create_module_resolver = (root_dir, allowed, namespace) =>
 
 let _create_import_resolver = (~default=[], entries, id) =>
   entries |> List.assoc_opt(id) |?: default;
+
+let _create_module =
+    (
+      ~imported=SymbolTable.Symbols.{values: [], types: []},
+      ~exports=__types,
+      ast: AST.program_t,
+    )
+    : ModuleTable.module_t => {
+  ast,
+  scopes: __scope_tree,
+  symbols: {
+    ...SymbolTable.of_export_list(exports),
+    imported,
+  },
+};
+
+let _create_module_table = modules =>
+  ModuleTable.{
+    modules: modules |> List.to_seq |> Hashtbl.of_seq,
+    plugins: [],
+    globals: [],
+  };
 
 let suite =
   "Compile.Compiler"
@@ -156,7 +175,7 @@ let suite =
         compiler
         |> Compiler.process_one(
              Nx.entry,
-             _create_module(Fx.valid_program_dir, Nx.entry),
+             _create_source(Fx.valid_program_dir, Nx.entry),
            );
 
         Assert.module_table(
@@ -165,12 +184,11 @@ let suite =
               Nx.entry,
               ModuleTable.Valid(
                 "const ABC = 123;\n",
-                {exports: __types, ast: Px.const_int, scopes: __scope_tree},
+                _create_module(Px.const_int),
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -179,6 +197,11 @@ let suite =
     >: (
       () => {
         let expected = [
+          ParseError(
+            TypeError(ExternalNotFound(Nx.bar, Named("BAR"))),
+            Nx.foo,
+            Range.create((1, 10), (1, 12)),
+          ),
           ParseError(
             ReservedKeyword("const"),
             Nx.foo,
@@ -191,7 +214,7 @@ let suite =
         |> Compiler.process_one(
              ~flush=false,
              Nx.foo,
-             _create_module(Fx.invalid_program_dir, Nx.foo),
+             _create_source(Fx.invalid_program_dir, Nx.foo),
            );
 
         Assert.module_table(
@@ -203,25 +226,19 @@ let suite =
 
 const const = \"foo\";
 ",
-                {
-                  exports:
-                    [
-                      (
-                        Export.Named("const" |> A.of_public),
-                        T.Valid(`String),
-                      ),
-                    ]
-                    |> List.to_seq
-                    |> Hashtbl.of_seq,
-                  ast: Px.invalid_foo,
-                  scopes: __scope_tree,
-                },
+                _create_module(
+                  ~imported={
+                    values: [("BAR", T.Invalid(NotInferrable))],
+                    types: [("BAR", T.Invalid(NotInferrable))],
+                  },
+                  ~exports=[(Export.Named("const"), T.Valid(`String))],
+                  Px.invalid_foo,
+                ),
                 expected,
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
         Assert.throws_compile_errors(expected, () =>
@@ -237,7 +254,7 @@ const const = \"foo\";
         compiler
         |> Compiler.process(
              [Nx.entry, Nx.other],
-             _create_module_resolver(
+             _create_source_resolver(
                Fx.valid_program_dir,
                [Nx.entry, Nx.other],
              ),
@@ -249,7 +266,7 @@ const const = \"foo\";
               Nx.entry,
               ModuleTable.Valid(
                 "const ABC = 123;\n",
-                {exports: __types, ast: Px.const_int, scopes: __scope_tree},
+                _create_module(Px.const_int),
               ),
             ),
             (
@@ -259,21 +276,18 @@ const const = \"foo\";
 
 const BAR = \"bar\";
 ",
-                {
-                  exports:
-                    [
-                      (Export.Named("BAR" |> A.of_public), T.Valid(`String)),
-                    ]
-                    |> List.to_seq
-                    |> Hashtbl.of_seq,
-                  ast: Px.import_and_const,
-                  scopes: __scope_tree,
-                },
+                _create_module(
+                  ~imported={
+                    values: [("ABC", T.Valid(`Integer))],
+                    types: [],
+                  },
+                  ~exports=[(Export.Named("BAR"), T.Valid(`String))],
+                  Px.import_and_const,
+                ),
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -286,7 +300,7 @@ const BAR = \"bar\";
         Assert.throws_compile_errors([FileNotFound(__entry_filename)], () =>
           compiler
           |> Compiler.process([Nx.entry], _ =>
-               Module.File({relative: __entry_filename, full: "foo"})
+               Source.File({relative: __entry_filename, full: "foo"})
              )
         );
       }
@@ -301,7 +315,7 @@ const BAR = \"bar\";
           compiler
           |> Compiler.process(
                [Nx.entry],
-               _create_module_resolver(Fx.invalid_program_dir, [Nx.entry]),
+               _create_source_resolver(Fx.invalid_program_dir, [Nx.entry]),
              )
         );
       }
@@ -332,12 +346,11 @@ const BAR = \"bar\";
               Nx.entry,
               ModuleTable.Valid(
                 "const ABC = 123;\n",
-                {exports: __types, ast: Px.const_int, scopes: __scope_tree},
+                _create_module(Px.const_int),
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -390,12 +403,11 @@ const BAR = \"bar\";
               Nx.entry,
               ModuleTable.Valid(
                 "const ABC = 123;\n",
-                {exports: __types, ast: Px.const_int, scopes: __scope_tree},
+                _create_module(Px.const_int),
               ),
             ),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -431,14 +443,7 @@ const BAR = \"bar\";
           output_dir,
           Nx.entry,
           compiler,
-          ModuleTable.Valid(
-            "",
-            {
-              ast: Px.import_and_const,
-              exports: __types,
-              scopes: __scope_tree,
-            },
-          ),
+          ModuleTable.Valid("", _create_module(Px.import_and_const)),
         );
 
         Assert.file_contents(
@@ -457,29 +462,14 @@ const BAR = \"bar\";
             [
               (
                 Nx.foo,
-                ModuleTable.Valid(
-                  "",
-                  {
-                    ast: Px.import_and_const,
-                    exports: __types,
-                    scopes: __scope_tree,
-                  },
-                ),
+                ModuleTable.Valid("", _create_module(Px.import_and_const)),
               ),
               (
                 Nx.bar,
-                ModuleTable.Valid(
-                  "",
-                  {
-                    ast: Px.single_import,
-                    exports: __types,
-                    scopes: __scope_tree,
-                  },
-                ),
+                ModuleTable.Valid("", _create_module(Px.single_import)),
               ),
             ]
-            |> List.to_seq
-            |> Hashtbl.of_seq,
+            |> _create_module_table,
         };
 
         compiler |> Compiler.emit(Target.JavaScript(Common), output_dir);
@@ -545,8 +535,7 @@ exports.BAR = BAR;
         Assert.list_namespace([Nx.entry, Nx.other], updated);
         Assert.module_table(
           [(Nx.entry, ModuleTable.Pending), (Nx.other, ModuleTable.Pending)]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -595,8 +584,7 @@ exports.BAR = BAR;
             (Nx.bar, ModuleTable.Pending),
             (Nx.entry, ModuleTable.Pending),
           ]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }
@@ -620,8 +608,7 @@ exports.BAR = BAR;
 
         Assert.module_table(
           [(Nx.foo, ModuleTable.Pending), (Nx.bar, ModuleTable.Purged)]
-          |> List.to_seq
-          |> Hashtbl.of_seq,
+          |> _create_module_table,
           compiler.modules,
         );
       }

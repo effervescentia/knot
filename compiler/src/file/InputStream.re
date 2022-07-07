@@ -34,7 +34,7 @@ let of_channel = (~cursor=true, channel: in_channel): t =>
 
 let __initial = Point.zero;
 
-let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
+let scan = (predicate: Node.t(string, unit) => bool, contents: string) => {
   let stream = of_string(contents);
   let buffer = Buffer.create(8);
 
@@ -52,7 +52,7 @@ let scan = (predicate: Node.Raw.t(string) => bool, contents: string) => {
           loop(cursor, cursor);
         } else {
           let token = buffer |> Buffer.contents;
-          let node = Node.Raw.create(token, Range.create(start, end_));
+          let node = Node.untyped(token, Range.create(start, end_));
 
           buffer |> Buffer.clear;
 

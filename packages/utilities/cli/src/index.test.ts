@@ -3,13 +3,13 @@ import test from 'ava';
 import pkg from '../package.json';
 import { cli } from './_suite';
 
-test('--version', async t => {
+test('--version', async (t) => {
   const { stdout } = await cli('--version');
 
   t.is(stdout, pkg.version);
 });
 
-test('--help', async t => {
+test('--help', async (t) => {
   const { stdout } = await cli('--help');
 
   t.is(
@@ -18,9 +18,10 @@ test('--help', async t => {
 
 Options:
   -V, --version      output the version number
-  -h, --help         output usage information
+  -h, --help         display help for command
 
 Commands:
-  init [target_dir]  Setup a new knot project`
+  init [target_dir]  Setup a new knot project
+  help [command]     display help for command`
   );
 });

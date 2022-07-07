@@ -64,30 +64,29 @@ let handler: Runtime.request_handler_t(params_t) =
           |> Result.ok
 
         | Some((range, Identifier(id))) => {
-            Hashtbl.find_opt(compiler.modules, namespace)
+            compiler.modules
+            |> ModuleTable.find(namespace)
             |?< ModuleTable.(
                   get_entry_data % Option.map(({scopes}) => scopes)
                 )
             |?< ScopeTree.find_type(id, point)
             |?> ~@Type.pp
-            |?> Fmt.str("%a: %s", Identifier.pp, id)
+            |?> Fmt.str("%s: %s", id)
             |?: "(unknown)"
             |> response(range)
             |> Result.ok;
           }
 
         | Some(_) => {
-            Hashtbl.find_opt(compiler.modules, namespace)
+            compiler.modules
+            |> ModuleTable.find(namespace)
             |?< ModuleTable.get_entry_raw
             |?< Runtime.scan_for_token(point)
             |?< (
               node =>
-                switch (Node.Raw.get_value(node)) {
+                switch (fst(node)) {
                 | ("import" | "const" | "from" | "main" | "let" | "as") as kwd =>
-                  Some((
-                    Fmt.str("(keyword) %s", kwd),
-                    Node.Raw.get_range(node),
-                  ))
+                  Some((Fmt.str("(keyword) %s", kwd), Node.get_range(node)))
                 | _ => None
                 }
             )

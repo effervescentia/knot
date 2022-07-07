@@ -21,6 +21,10 @@ module Character = {
   let colon = ':';
   let semicolon = ';';
   let equal_sign = '=';
+  let vertical_bar = '|';
+  let at_sign = '@';
+  let dollar_sign = '$';
+  let tilde = '~';
 
   let exclamation_mark = '!';
   let caret = '^';
@@ -77,14 +81,18 @@ module Keyword = {
   let from = "from";
   let main = "main";
   let const = "const";
+  let enum = "enum";
   let func = "func";
   let view = "view";
+  let style = "style";
   let let_ = "let";
   let nil = "nil";
   let true_ = "true";
   let false_ = "false";
   let as_ = "as";
-  let decl = "decl";
+  let on = "on";
+  let declare = "declare";
+  let decorator = "decorator";
   let type_ = "type";
   let module_ = "module";
 
@@ -98,5 +106,19 @@ module Keyword = {
   /**
    reserved keywords cannot be used as the name of a variable
    */
-  let reserved = [import, from, main, const, let_, nil, true_, false_, as_];
+  let reserved = [
+    import,
+    from,
+    main,
+    const,
+    enum,
+    func,
+    view,
+    style,
+    let_,
+    nil,
+    true_,
+    false_,
+    as_,
+  ];
 };

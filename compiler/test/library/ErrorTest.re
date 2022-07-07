@@ -1,6 +1,6 @@
 open Kore;
 
-let __type_error = TypeError(NotFound(Public("foo")));
+let __type_error = TypeError(NotFound("foo"));
 
 let suite =
   "Library.Error"

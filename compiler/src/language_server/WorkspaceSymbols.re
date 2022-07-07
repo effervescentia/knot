@@ -1,4 +1,5 @@
 open Kore;
+open ModuleAliases;
 
 type params_t = {
   query: string,
@@ -49,8 +50,7 @@ let handler: Runtime.request_handler_t(params_t) =
       |> List.of_seq
       |> List.map((Runtime.{uri, compiler}) =>
            compiler.modules
-           |> Hashtbl.to_seq
-           |> List.of_seq
+           |> ModuleTable.to_module_list
            |> List.map(
                 Tuple.map_snd2(
                   ModuleTable.(get_entry_data % Option.map(({ast}) => ast)),
@@ -60,7 +60,7 @@ let handler: Runtime.request_handler_t(params_t) =
                   | (namespace, Some(ast)) =>
                     ast
                     |> List.filter_map(
-                         Node.Raw.get_value
+                         fst
                          % (
                            fun
                            | AST.Declaration(
@@ -78,17 +78,22 @@ let handler: Runtime.request_handler_t(params_t) =
                                            ),
                                       ),
                                  );
-                               let range = Node.Raw.get_range(name);
-                               let name =
-                                 name |> Node.Raw.get_value |> ~@Identifier.pp;
+                               let range = N.get_range(name);
+                               let name = fst(name);
 
                                Some(
-                                 switch (Node.get_value(decl)) {
+                                 switch (fst(decl)) {
                                  | Constant(expr) => {
                                      uri,
                                      name,
                                      range,
                                      kind: Capabilities.Variable,
+                                   }
+                                 | Enumerated(variants) => {
+                                     uri,
+                                     name,
+                                     range,
+                                     kind: Capabilities.Enum,
                                    }
                                  | Function(args, expr) => {
                                      uri,
@@ -96,7 +101,7 @@ let handler: Runtime.request_handler_t(params_t) =
                                      range,
                                      kind: Capabilities.Function,
                                    }
-                                 | View(props, expr) => {
+                                 | View(props, mixins, expr) => {
                                      uri,
                                      name,
                                      range,

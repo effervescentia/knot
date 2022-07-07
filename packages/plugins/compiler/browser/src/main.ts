@@ -29,14 +29,19 @@ export function style(
   styles: Record<string, any>
 ): Record<string, string> {
   const jss = {};
+  const global = {};
 
   Object.keys(styles).forEach((key) => {
-    if (key[0] !== '.') {
-      return;
+    if (key[0] === '.') {
+      jss[key.slice(1)] = styles[key];
+    } else {
+      global[key] = styles[key];
     }
-
-    jss[key.slice(1)] = styles[key];
   });
+
+  if (Object.keys(global).length) {
+    jss['@global'] = global;
+  }
 
   return stylePlugin.resolve(jss);
 }

@@ -169,10 +169,11 @@ let handler: Runtime.request_handler_t(params_t) =
                fail_fast: false,
                log_imports: false,
                stdlib,
+               ambient: Target.to_ambient_lib(config.target |?: Knot),
              },
            );
 
-         Compiler.add_standard_library(compiler);
+         Compiler.prepare(compiler);
 
          Hashtbl.add(
            compilers,

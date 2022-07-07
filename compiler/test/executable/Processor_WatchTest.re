@@ -59,6 +59,7 @@ let suite =
                out_dir: "out",
                entry: Namespace.Internal("index"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -83,6 +84,7 @@ let suite =
                out_dir: "build",
                entry: Namespace.Internal("main"),
                target: Target.Knot,
+               ambient: "../share/knot/assets/ambient/core.kd",
              }),
            ))
     ),
@@ -107,6 +109,7 @@ let suite =
                out_dir: "out",
                entry: Namespace.Internal("index"),
                target: Target.JavaScript(ES6),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -132,6 +135,7 @@ let suite =
                out_dir: "build",
                entry: Namespace.Internal("main"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -157,6 +161,7 @@ let suite =
                out_dir: "out",
                entry: Namespace.Internal("index"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -181,6 +186,7 @@ let suite =
                out_dir: "build",
                entry: Namespace.Internal("main"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -205,6 +211,7 @@ let suite =
                out_dir: "out",
                entry: Namespace.Internal("index"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -229,6 +236,7 @@ let suite =
                out_dir: "output",
                entry: Namespace.Internal("main"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -253,6 +261,7 @@ let suite =
                out_dir: "build",
                entry: Namespace.Internal("index"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -277,6 +286,7 @@ let suite =
                out_dir: "build",
                entry: Namespace.Internal("index"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),
@@ -301,6 +311,7 @@ let suite =
                out_dir: "out",
                entry: Namespace.Internal("main"),
                target: Target.JavaScript(Common),
+               ambient: "../share/knot/assets/ambient/browser.kd",
              }),
            ))
     ),

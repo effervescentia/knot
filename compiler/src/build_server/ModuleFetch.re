@@ -23,6 +23,7 @@ let handler: Runtime.request_handler_t(params_t) =
             fun
             | Internal(path) => path
             | External(_)
+            | Ambient
             | Stdlib => raise(NotImplemented),
           )
     |?> response

@@ -2,7 +2,6 @@ open Kore;
 open ModuleAliases;
 
 module Namespace = Reference.Namespace;
-module Identifier = Reference.Identifier;
 
 let _sort_imports =
   List.sort((l, r) =>
@@ -14,6 +13,7 @@ let _sort_imports =
              | Internal(name)
              | External(name) => name
              | Stdlib => ""
+             | Ambient => ""
            ),
        )
     |> Tuple.join2(String.compare)
@@ -23,13 +23,13 @@ let _sort_imports =
         imports
         |> List.fold_left(
              ((m, n)) =>
-               NR.get_value
+               fst
                % (
                  fun
-                 | A.MainImport(id) => (Some(NR.get_value(id)), n)
+                 | A.MainImport(id) => (Some(fst(id)), n)
                  | A.NamedImport(id, label) => (
                      m,
-                     [(NR.get_value(id), label), ...n],
+                     [(fst(id), label), ...n],
                    )
                ),
              (None, []),
@@ -38,9 +38,7 @@ let _sort_imports =
       let sorted_named_imports =
         named_imports
         |> List.sort((l, r) =>
-             (l, r)
-             |> Tuple.map2(fst % Identifier.to_string)
-             |> Tuple.join2(String.compare)
+             (l, r) |> Tuple.map2(fst) |> Tuple.join2(String.compare)
            );
 
       (namespace, main_import, sorted_named_imports);
@@ -49,7 +47,7 @@ let _sort_imports =
 let extract_imports = (program: A.program_t) =>
   program
   |> List.filter_map(
-       NR.get_value
+       fst
        % (
          fun
          | A.Import(namespace, imports) => Some((namespace, imports))
@@ -68,11 +66,11 @@ let extract_imports = (program: A.program_t) =>
 let extract_declarations = (program: A.program_t) =>
   program
   |> List.filter_map(
-       NR.get_value
+       fst
        % (
          fun
          | A.Declaration(MainExport(name) | NamedExport(name), decl) =>
-           Some((NR.get_value(name), Node.get_value(decl)))
+           Some((fst(name), fst(decl)))
          | _ => None
        ),
      );

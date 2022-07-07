@@ -14,17 +14,14 @@ let suite =
     "pp_jsx() - empty tag"
     >: (
       () =>
-        _assert_jsx(
-          "<Foo />",
-          ("Foo" |> A.of_public |> U.as_raw_node, [], []) |> A.of_tag,
-        )
+        _assert_jsx("<Foo />", (U.as_untyped("Foo"), [], []) |> A.of_tag)
     ),
     "pp_jsx() - empty component"
     >: (
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> A.of_public |> U.as_view([], T.Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [])
           |> A.of_component,
         )
     ),
@@ -36,19 +33,11 @@ let suite =
         _assert_jsx(
           "<Foo #bar .fizz buzz />",
           (
-            "Foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("Foo"),
             [
-              "bar"
-              |> A.of_public
-              |> U.as_raw_node
-              |> A.of_jsx_id
-              |> U.as_raw_node,
-              ("fizz" |> A.of_public |> U.as_raw_node, None)
-              |> A.of_jsx_class
-              |> U.as_raw_node,
-              ("buzz" |> A.of_public |> U.as_raw_node, None)
-              |> A.of_prop
-              |> U.as_raw_node,
+              "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
+              (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
+              (U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped,
             ],
             [],
           )
@@ -62,11 +51,7 @@ let suite =
           "<Foo>
   bar
 </Foo>",
-          (
-            "Foo" |> A.of_public |> U.as_raw_node,
-            [],
-            ["bar" |> A.of_text |> U.as_raw_node],
-          )
+          (U.as_untyped("Foo"), [], ["bar" |> A.of_text |> U.as_untyped])
           |> A.of_tag,
         )
     ),
@@ -78,14 +63,14 @@ let suite =
   {1 + 5}
 </Foo>",
           (
-            "Foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("Foo"),
             [],
             [
               (1 |> U.int_prim, 5 |> U.int_prim)
               |> A.of_add_op
               |> U.as_int
               |> A.of_inline_expr
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_tag,
@@ -101,17 +86,17 @@ let suite =
   </Bar>
 </Foo>",
           (
-            "Foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("Foo"),
             [],
             [
               (
-                "Bar" |> A.of_public |> U.as_raw_node,
+                U.as_untyped("Bar"),
                 [],
-                ["fizzbuzz" |> A.of_text |> U.as_raw_node],
+                ["fizzbuzz" |> A.of_text |> U.as_untyped],
               )
               |> A.of_tag
               |> A.of_node
-              |> U.as_raw_node,
+              |> U.as_untyped,
             ],
           )
           |> A.of_tag,
@@ -127,15 +112,15 @@ let suite =
   Hello, World!
 </Foo>",
           (
-            "Foo" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("Foo"),
             [],
             [
-              ("Bar" |> A.of_public |> U.as_raw_node, [], [])
+              (U.as_untyped("Bar"), [], [])
               |> A.of_tag
               |> A.of_node
-              |> U.as_raw_node,
-              U.nil_prim |> A.of_inline_expr |> U.as_raw_node,
-              "Hello, World!" |> A.of_text |> U.as_raw_node,
+              |> U.as_untyped,
+              U.nil_prim |> A.of_inline_expr |> U.as_untyped,
+              "Hello, World!" |> A.of_text |> U.as_untyped,
             ],
           )
           |> A.of_tag,
@@ -146,8 +131,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=123",
-          ("fizz" |> A.of_public |> U.as_raw_node, Some(123 |> U.int_prim))
-          |> A.of_prop,
+          (U.as_untyped("fizz"), Some(123 |> U.int_prim)) |> A.of_prop,
         )
     ),
     "pp_jsx_attr() - property with identifier value"
@@ -155,10 +139,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=buzz",
-          (
-            "fizz" |> A.of_public |> U.as_raw_node,
-            Some("buzz" |> A.of_public |> A.of_id |> U.as_int),
-          )
+          (U.as_untyped("fizz"), Some("buzz" |> A.of_id |> U.as_int))
           |> A.of_prop,
         )
     ),
@@ -168,7 +149,7 @@ let suite =
         _assert_jsx_attr(
           "fizz=(1 + 2)",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(
               (1 |> U.int_prim, 2 |> U.int_prim) |> A.of_add_op |> U.as_int,
             ),
@@ -182,7 +163,7 @@ let suite =
         _assert_jsx_attr(
           "fizz=(1 + 2)",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(
               (1 |> U.int_prim, 2 |> U.int_prim)
               |> A.of_add_op
@@ -200,7 +181,7 @@ let suite =
         _assert_jsx_attr(
           "fizz=(-1)",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(1 |> U.int_prim |> A.of_neg_op |> U.as_int),
           )
           |> A.of_prop,
@@ -212,7 +193,7 @@ let suite =
         _assert_jsx_attr(
           "fizz=true",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(
               true
               |> U.bool_prim
@@ -234,7 +215,7 @@ let suite =
   false;
 }",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(
               [
                 true |> U.bool_prim |> A.of_expr |> U.as_bool,
@@ -253,9 +234,9 @@ let suite =
         _assert_jsx_attr(
           "fizz=<Buzz />",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(
-              ("Buzz" |> A.of_public |> U.as_raw_node, [], [])
+              (U.as_untyped("Buzz"), [], [])
               |> A.of_tag
               |> A.of_jsx
               |> U.as_element,
@@ -272,16 +253,16 @@ let suite =
   <Foo />
 </Buzz>)",
           (
-            "fizz" |> A.of_public |> U.as_raw_node,
+            U.as_untyped("fizz"),
             Some(
               (
-                "Buzz" |> A.of_public |> U.as_raw_node,
+                U.as_untyped("Buzz"),
                 [],
                 [
-                  ("Foo" |> A.of_public |> U.as_raw_node, [], [])
+                  (U.as_untyped("Foo"), [], [])
                   |> A.of_tag
                   |> A.of_node
-                  |> U.as_raw_node,
+                  |> U.as_untyped,
                 ],
               )
               |> A.of_tag
@@ -295,17 +276,14 @@ let suite =
     "pp_jsx_attr() - property with punned value"
     >: (
       () =>
-        _assert_jsx_attr(
-          "buzz",
-          ("buzz" |> A.of_public |> U.as_raw_node, None) |> A.of_prop,
-        )
+        _assert_jsx_attr("buzz", (U.as_untyped("buzz"), None) |> A.of_prop)
     ),
     "pp_jsx_attr() - dynamic class name"
     >: (
       () =>
         _assert_jsx_attr(
           ".fizz=true",
-          ("fizz" |> A.of_public |> U.as_raw_node, Some(true |> U.bool_prim))
+          (U.as_untyped("fizz"), Some(true |> U.bool_prim))
           |> A.of_jsx_class,
         )
     ),
@@ -314,15 +292,9 @@ let suite =
       () =>
         _assert_jsx_attr(
           ".fizz",
-          ("fizz" |> A.of_public |> U.as_raw_node, None) |> A.of_jsx_class,
+          (U.as_untyped("fizz"), None) |> A.of_jsx_class,
         )
     ),
     "pp_jsx_attr() - identifier name"
-    >: (
-      () =>
-        _assert_jsx_attr(
-          "#bar",
-          "bar" |> A.of_public |> U.as_raw_node |> A.of_jsx_id,
-        )
-    ),
+    >: (() => _assert_jsx_attr("#bar", "bar" |> U.as_untyped |> A.of_jsx_id)),
   ];

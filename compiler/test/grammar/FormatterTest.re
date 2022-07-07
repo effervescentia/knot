@@ -92,9 +92,7 @@ let suite =
       () =>
         Assert.string(
           "let foo = nil;",
-          ("foo" |> A.of_public |> U.as_raw_node, U.nil_prim)
-          |> A.of_var
-          |> ~@pp_statement,
+          (U.as_untyped("foo"), U.nil_prim) |> A.of_var |> ~@pp_statement,
         )
     ),
   ];

@@ -13,6 +13,7 @@ type expression_t =
   | BinaryOp(string, expression_t, expression_t)
   | Ternary(expression_t, expression_t, expression_t)
   | Function(option(string), list(string), list(statement_t))
+  | Array(list(expression_t))
   | Object(list((string, expression_t)))
 and statement_t =
   | Expression(expression_t)

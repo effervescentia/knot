@@ -8,6 +8,7 @@ type config_t = {
   target: Target.t,
   log_imports: bool,
   stdlib: string,
+  ambient: string,
 };
 
 let start = (config: config_t) => {
@@ -22,10 +23,11 @@ let start = (config: config_t) => {
         fail_fast: false,
         log_imports: false,
         stdlib: config.stdlib,
+        ambient: config.ambient,
       },
     );
 
-  Compiler.add_standard_library(compiler);
+  Compiler.prepare(compiler);
 
   let runtime =
     Runtime.{

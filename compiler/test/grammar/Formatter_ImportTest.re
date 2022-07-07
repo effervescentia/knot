@@ -5,7 +5,7 @@ module U = Util.ResultUtil;
 
 let _main_import = (name, f) => (
   name |> f,
-  Some(name |> String.capitalize_ascii |> A.of_public),
+  Some(String.capitalize_ascii(name)),
   [],
 );
 
@@ -20,7 +20,7 @@ let suite =
       () =>
         _assert_import(
           "import Fizz from \"buzz\";",
-          ("buzz" |> A.of_external, Some("Fizz" |> A.of_public), []),
+          ("buzz" |> A.of_external, Some("Fizz"), []),
         )
     ),
     "pp_import() - named imports"
@@ -31,13 +31,7 @@ let suite =
           (
             "buzz" |> A.of_external,
             None,
-            [
-              (
-                "Foo" |> A.of_public,
-                Some("foo" |> A.of_public |> U.as_raw_node),
-              ),
-              ("Bar" |> A.of_public, None),
-            ],
+            [("Foo", Some(U.as_untyped("foo"))), ("Bar", None)],
           ),
         )
     ),
@@ -48,14 +42,8 @@ let suite =
           "import Fizz, { Foo as foo, Bar } from \"buzz\";",
           (
             "buzz" |> A.of_external,
-            Some("Fizz" |> A.of_public),
-            [
-              (
-                "Foo" |> A.of_public,
-                Some("foo" |> A.of_public |> U.as_raw_node),
-              ),
-              ("Bar" |> A.of_public, None),
-            ],
+            Some("Fizz"),
+            [("Foo", Some(U.as_untyped("foo"))), ("Bar", None)],
           ),
         )
     ),
@@ -100,7 +88,7 @@ let suite =
               "pariatur",
               "magna",
             ]
-            |> List.map(word => (word |> A.of_public, None)),
+            |> List.map(word => (word, None)),
           ),
         )
     ),
@@ -127,7 +115,7 @@ let suite =
 } from \"buzz\";",
           (
             "buzz" |> A.of_external,
-            Some("Foo" |> A.of_public),
+            Some("Foo"),
             [
               "Sit",
               "et",
@@ -145,7 +133,7 @@ let suite =
               "pariatur",
               "magna",
             ]
-            |> List.map(word => (word |> A.of_public, None)),
+            |> List.map(word => (word, None)),
           ),
         )
     ),

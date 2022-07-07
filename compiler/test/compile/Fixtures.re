@@ -30,6 +30,7 @@ module Compiler = {
       fail_fast: true,
       log_imports: false,
       stdlib: "stdlib.kd",
+      ambient: "ambient.kd",
     };
 
   let cyclic_config = {...config, root_dir: cyclic_imports_dir};
@@ -61,24 +62,24 @@ module Program = {
 
   let const_int = [
     (
-      ("ABC" |> A.of_public, Range.create((1, 7), (1, 9)))
+      U.as_untyped(~range=Range.create((1, 7), (1, 9)), "ABC")
       |> A.of_named_export,
       123L
       |> A.of_int
       |> A.of_num
       |> A.of_prim
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
            T.Valid(`Integer),
          )
       |> A.of_const
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
            T.Valid(`Integer),
          ),
     )
     |> A.of_decl
-    |> U.as_raw_node(~range=Range.create((1, 1), (1, 15))),
+    |> U.as_untyped(~range=Range.create((1, 1), (1, 15))),
   ];
 
   let import_and_const = [
@@ -86,35 +87,33 @@ module Program = {
       N.entry,
       [
         (
-          "ABC"
-          |> A.of_public
-          |> U.as_raw_node(~range=Range.create((1, 10), (1, 12))),
+          "ABC" |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
           None,
         )
         |> A.of_named_import
-        |> U.as_raw_node(~range=Range.create((1, 10), (1, 12))),
+        |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
       ],
     )
     |> A.of_import
-    |> U.as_raw_node(~range=Range.create((1, 1), (1, 29))),
+    |> U.as_untyped(~range=Range.create((1, 1), (1, 29))),
     (
-      ("BAR" |> A.of_public, Range.create((3, 7), (3, 9)))
+      U.as_untyped(~range=Range.create((3, 7), (3, 9)), "BAR")
       |> A.of_named_export,
       "bar"
       |> A.of_string
       |> A.of_prim
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((3, 13), (3, 17)),
            T.Valid(`String),
          )
       |> A.of_const
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((3, 13), (3, 17)),
            T.Valid(`String),
          ),
     )
     |> A.of_decl
-    |> U.as_raw_node(~range=Range.create((3, 1), (3, 17))),
+    |> U.as_untyped(~range=Range.create((3, 1), (3, 17))),
   ];
 
   let single_import = [
@@ -122,33 +121,32 @@ module Program = {
       N.bar,
       [
         "foo"
-        |> A.of_public
-        |> U.as_raw_node(~range=Range.create((2, 10), (2, 12)))
+        |> U.as_untyped(~range=Range.create((2, 10), (2, 12)))
         |> A.of_main_import
-        |> U.as_raw_node(~range=Range.create((2, 10), (2, 12))),
+        |> U.as_untyped(~range=Range.create((2, 10), (2, 12))),
       ],
     )
     |> A.of_import
-    |> U.as_raw_node(~range=Range.create((2, 3), (2, 25))),
+    |> U.as_untyped(~range=Range.create((2, 3), (2, 25))),
     (
-      ("ABC" |> A.of_public, Range.create((4, 9), (4, 11)))
+      U.as_untyped(~range=Range.create((4, 9), (4, 11)), "ABC")
       |> A.of_named_export,
       123L
       |> A.of_int
       |> A.of_num
       |> A.of_prim
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
            Type.Valid(`Integer),
          )
       |> A.of_const
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
            Type.Valid(`Integer),
          ),
     )
     |> A.of_decl
-    |> U.as_raw_node(~range=Range.create((4, 3), (4, 17))),
+    |> U.as_untyped(~range=Range.create((4, 3), (4, 17))),
   ];
 
   let invalid_foo = [
@@ -156,35 +154,33 @@ module Program = {
       N.bar,
       [
         (
-          "BAR"
-          |> A.of_public
-          |> U.as_raw_node(~range=Range.create((1, 10), (1, 12))),
+          "BAR" |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
           None,
         )
         |> A.of_named_import
-        |> U.as_raw_node(~range=Range.create((1, 10), (1, 12))),
+        |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
       ],
     )
     |> A.of_import
-    |> U.as_raw_node(~range=Range.create((1, 1), (1, 27))),
+    |> U.as_untyped(~range=Range.create((1, 1), (1, 27))),
     (
-      ("const" |> A.of_public, Range.create((3, 7), (3, 11)))
+      U.as_untyped(~range=Range.create((3, 7), (3, 11)), "const")
       |> A.of_named_export,
       "foo"
       |> A.of_string
       |> A.of_prim
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
            Type.Valid(`String),
          )
       |> A.of_const
-      |> U.as_node(
+      |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
            Type.Valid(`String),
          ),
     )
     |> A.of_decl
-    |> U.as_raw_node(~range=Range.create((3, 1), (3, 19))),
+    |> U.as_untyped(~range=Range.create((3, 1), (3, 19))),
   ];
 };
 

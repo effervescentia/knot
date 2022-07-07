@@ -3,6 +3,21 @@ open Reference;
 
 exception UnknownTypeEncountered;
 
+module DecoratorTarget = {
+  type t =
+    | Module
+    | Style;
+
+  let pp: Fmt.t(t) =
+    ppf =>
+      (
+        fun
+        | Module => Constants.Keyword.module_
+        | Style => Constants.Keyword.style
+      )
+      % Fmt.string(ppf);
+};
+
 module Primitive = {
   type t = [ | `Nil | `Boolean | `Integer | `Float | `String | `Element];
 
@@ -26,12 +41,32 @@ module Primitive = {
 };
 
 module Container = {
-  type t('a) = [
+  type module_entry_t('a) =
+    | Type('a)
+    | Value('a);
+
+  type value_t('a) = [
     | `List('a)
     | `Struct(list((string, 'a)))
+    | `Enumerated(list((string, list('a))))
     | `Function(list('a), 'a)
-    | `View(list((string, 'a)), 'a)
   ];
+
+  type decorator_t('a) = [ | `Decorator(list('a), DecoratorTarget.t)];
+
+  type entity_t('a) = [
+    | `View(list((string, 'a)), 'a)
+    | `Style(list('a), list(string), list(string))
+    | `Module(list((string, module_entry_t('a))))
+  ];
+
+  type t('a) = [ value_t('a) | decorator_t('a) | entity_t('a)];
+
+  let pp_module_entry = (pp_type: Fmt.t('a)): Fmt.t(module_entry_t('a)) =>
+    ppf =>
+      fun
+      | Type(t) => Fmt.pf(ppf, "type %a", pp_type, t)
+      | Value(t) => pp_type(ppf, t);
 
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
     Fmt.(ppf => pf(ppf, "%a[]", pp_type));
@@ -52,6 +87,24 @@ module Container = {
             )
     );
 
+  let pp_enumerated =
+      (pp_type: Fmt.t('a)): Fmt.t(list((string, list('a)))) =>
+    Fmt.(
+      (ppf, variants) =>
+        List.is_empty(variants)
+          ? string(ppf, "|")
+          : pf(
+              ppf,
+              "@[<h>%a@]",
+              list(~sep=Sep.newline, (ppf, (id, args)) =>
+                List.is_empty(args)
+                  ? string(ppf, id)
+                  : pf(ppf, "| %s(%a)", id, list(pp_type), args)
+              ),
+              variants,
+            )
+    );
+
   let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list('a), 'a)) =>
     Fmt.(
       (ppf, (args, res)) =>
@@ -65,6 +118,20 @@ module Container = {
         )
     );
 
+  let pp_decorator =
+      (pp_type: Fmt.t('a)): Fmt.t((list('a), DecoratorTarget.t)) =>
+    Fmt.(
+      (ppf, (args, target)) =>
+        pf(
+          ppf,
+          "@[<h>(%a) on %a@]",
+          list(~sep=Sep.comma, pp_type),
+          args,
+          DecoratorTarget.pp,
+          target,
+        )
+    );
+
   let pp_view = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
     Fmt.(
       (ppf, (props, res)) =>
@@ -75,6 +142,35 @@ module Container = {
           props,
           pp_type,
           res,
+        )
+    );
+
+  let pp_style =
+      (pp_type: Fmt.t('a))
+      : Fmt.t((list('a), list(string), list(string))) =>
+    Fmt.(
+      (ppf, (args, ids, classes)) =>
+        pf(
+          ppf,
+          "@[<h>Style<(%a), %a, %a>@]",
+          list(~sep=Sep.comma, pp_type),
+          args,
+          list(string),
+          ids,
+          list(string),
+          classes,
+        )
+    );
+
+  let pp_module =
+      (pp_type: Fmt.t('a)): Fmt.t(list((string, module_entry_t('a)))) =>
+    Fmt.(
+      (ppf, entries) =>
+        pf(
+          ppf,
+          "@[<h>Module<%a>@]",
+          record(string, pp_module_entry(pp_type)),
+          entries,
         )
     );
 };
@@ -98,9 +194,19 @@ module Raw = {
 
       | `Struct(props) => Container.pp_struct(pp, ppf, props)
 
+      | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
+
       | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
 
+      | `Decorator(args, target) =>
+        Container.pp_decorator(pp, ppf, (args, target))
+
       | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
+
+      | `Style(args, ids, classes) =>
+        Container.pp_style(pp, ppf, (args, ids, classes))
+
+      | `Module(entries) => Container.pp_module(pp, ppf, entries)
 
       | `Unknown => Fmt.string(ppf, "Unknown")
       };
@@ -119,26 +225,30 @@ and invalid_t =
   | NotInferrable;
 
 type error_t =
-  | NotFound(Identifier.t)
+  | NotFound(string)
   | ExternalNotFound(Namespace.t, Export.t)
   /* FIXME: not reported */
-  | DuplicateIdentifier(Identifier.t)
+  | DuplicateIdentifier(string)
   /* FIXME: not reported */
   | TypeMismatch(t, t)
   | InvalidUnaryOperation(AST_Operator.unary_t, t)
   | InvalidBinaryOperation(AST_Operator.binary_t, t, t)
   | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
-  | InvalidJSXTag(Identifier.t, t, list((string, t)))
+  | InvalidJSXTag(string, t, list((string, t)))
   | UnexpectedJSXAttribute(string, t)
   | InvalidJSXAttribute(string, t, t)
-  | MissingJSXAttributes(Identifier.t, list((string, t)))
+  | MissingJSXAttributes(string, list((string, t)))
   | InvalidDotAccess(t, string)
   | InvalidFunctionCall(t, list(t))
   /* FIXME: not reported */
-  | UntypedFunctionArgument(Identifier.t)
+  | UntypedFunctionArgument(string)
   /* FIXME: not reported */
-  | DefaultArgumentMissing(Identifier.t);
+  | DefaultArgumentMissing(string)
+  | InvalidDecoratorInvocation(t, list(t))
+  | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t)
+  | UnknownStyleRule(string)
+  | InvalidViewMixin(t);
 
 /* pretty printing */
 
@@ -155,8 +265,14 @@ and pp_valid: Fmt.t(valid_t) =
       Primitive.pp(ppf, t)
     | `List(t) => Container.pp_list(pp, ppf, t)
     | `Struct(props) => Container.pp_struct(pp, ppf, props)
+    | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
     | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
+    | `Decorator(args, target) =>
+      Container.pp_decorator(pp, ppf, (args, target))
     | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
+    | `Style(args, ids, classes) =>
+      Container.pp_style(pp, ppf, (args, ids, classes))
+    | `Module(entries) => Container.pp_module(pp, ppf, entries)
 
 and pp_invalid: Fmt.t(invalid_t) =
   ppf =>
@@ -167,13 +283,12 @@ let pp_error: Fmt.t(error_t) =
   Fmt.(
     ppf =>
       fun
-      | NotFound(id) => pf(ppf, "NotFound<%a>", Identifier.pp, id)
+      | NotFound(id) => pf(ppf, "NotFound<%s>", id)
 
-      | DuplicateIdentifier(id) =>
-        pf(ppf, "DuplicateIdentifier<%a>", Identifier.pp, id)
+      | DuplicateIdentifier(id) => pf(ppf, "DuplicateIdentifier<%s>", id)
 
       | UntypedFunctionArgument(id) =>
-        pf(ppf, "UntypedFunctionArgument<%a>", Identifier.pp, id)
+        pf(ppf, "UntypedFunctionArgument<%s>", id)
 
       | ExternalNotFound(namespace, id) =>
         pf(
@@ -230,8 +345,7 @@ let pp_error: Fmt.t(error_t) =
       | InvalidJSXTag(id, type_, expected_attrs) =>
         pf(
           ppf,
-          "InvalidJSXTag<%a, %a, %a>",
-          Identifier.pp,
+          "InvalidJSXTag<%s, %a, %a>",
           id,
           pp,
           type_,
@@ -256,15 +370,38 @@ let pp_error: Fmt.t(error_t) =
       | MissingJSXAttributes(id, attrs) =>
         pf(
           ppf,
-          "MissingJSXAttributes<%a, @[<hv>%a@]>",
-          Identifier.pp,
+          "MissingJSXAttributes<%s, @[<hv>%a@]>",
           id,
           record(string, pp),
           attrs,
         )
 
       | DefaultArgumentMissing(id) =>
-        pf(ppf, "DefaultArgumentMissing<%a>", Identifier.pp, id)
+        pf(ppf, "DefaultArgumentMissing<%s>", id)
+
+      | InvalidDecoratorInvocation(type_, expected_args) =>
+        pf(
+          ppf,
+          "InvalidDecoratorInvocation<%a, %a>",
+          pp,
+          type_,
+          list(pp),
+          expected_args,
+        )
+
+      | DecoratorTargetMismatch(lhs, rhs) =>
+        pf(
+          ppf,
+          "DecoratorTargetMismatch<%a, %a>",
+          DecoratorTarget.pp,
+          lhs,
+          DecoratorTarget.pp,
+          rhs,
+        )
+
+      | UnknownStyleRule(rule) => pf(ppf, "UnknownStyleRule<%s>", rule)
+
+      | InvalidViewMixin(type_) => pf(ppf, "InvalidViewMixin<%a>", pp, type_)
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>
@@ -276,11 +413,36 @@ let rec of_raw = (raw_type: Raw.t): t =>
 
   | `Struct(ts) => Valid(`Struct(ts |> List.map(Tuple.map_snd2(of_raw))))
 
+  | `Enumerated(ts) =>
+    Valid(`Enumerated(ts |> List.map(Tuple.map_snd2(List.map(of_raw)))))
+
   | `Function(args, res) =>
     Valid(`Function((args |> List.map(of_raw), of_raw(res))))
 
+  | `Decorator(args, target) =>
+    Valid(`Decorator((args |> List.map(of_raw), target)))
+
   | `View(props, res) =>
     Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))
+
+  | `Style(args, ids, classes) =>
+    Valid(`Style((args |> List.map(of_raw), ids, classes)))
+
+  | `Module(entries) =>
+    Valid(
+      `Module(
+        entries
+        |> List.map(
+             Tuple.map_snd2(
+               Container.(
+                 fun
+                 | Type(t) => Type(of_raw(t))
+                 | Value(t) => Value(of_raw(t))
+               ),
+             ),
+           ),
+      ),
+    )
 
   | `Unknown => raise(UnknownTypeEncountered)
   };

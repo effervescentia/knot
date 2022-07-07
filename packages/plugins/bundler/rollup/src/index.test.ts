@@ -2,7 +2,7 @@ import test from 'ava';
 
 import knotRollupPlugin from '.';
 
-test('knotRollupPlugin()', t => {
+test('knotRollupPlugin()', (t) => {
   const plugin = knotRollupPlugin();
 
   t.is(plugin.name, 'knot');

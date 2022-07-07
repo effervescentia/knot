@@ -101,6 +101,13 @@ let compare = (l: t, r: t): bool =>
  */
 let clear = ({imports}: t) => Graph.clear(imports);
 
+/**
+ get all the module names in order of deepest to shallowest
+ this is useful to iterate over the modules in reverse dependency order
+ */
+let get_ordered_modules = (graph: t): list(Namespace.t) =>
+  Graph.get_ordered_nodes(graph.imports);
+
 /* pretty printing */
 
 let pp: Fmt.t(t) =

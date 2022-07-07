@@ -1,4 +1,5 @@
 open Kore;
+open ModuleAliases;
 
 module Namespace = Reference.Namespace;
 module Export = Reference.Export;
@@ -10,9 +11,11 @@ type config_t = {
   fail_fast: bool,
   log_imports: bool,
   stdlib: string,
+  ambient: string,
 };
 
 type action_t =
+  | Fatal(list(compile_err))
   | Report(list(compile_err))
   | Flush;
 
@@ -28,78 +31,21 @@ type t = {
 };
 
 let __module_table_size = 64;
-
-let _get_library_exports = ast =>
-  ast
-  |> List.map(
-       Node.Raw.get_value
-       % (
-         fun
-         | AST.TypeDefinition.Module((id, _), stmts) => (
-             Export.Named(AST.of_public(id)),
-             Type.Valid(
-               `Struct(
-                 stmts
-                 |> List.filter_map(
-                      Node.Raw.get_value
-                      % (
-                        fun
-                        | AST.TypeDefinition.Declaration(
-                            (id, _),
-                            (type_, _),
-                          ) =>
-                          Some((
-                            id,
-                            Analyze.Typing.eval_type_expression(type_),
-                          ))
-                        | _ => None
-                      ),
-                    ),
-               ),
-             ),
-           )
-       ),
-     )
-  |> List.to_seq
-  |> Hashtbl.of_seq;
-
-let _get_module_exports = ast =>
-  ast
-  |> List.map(
-       Node.Raw.get_value
-       % (
-         fun
-         /* ignore all private declarations */
-         | AST.Declaration(
-             MainExport((Private(_), _)) | NamedExport((Private(_), _)),
-             _,
-           ) =>
-           []
-
-         | AST.Declaration(NamedExport(id), decl) => [
-             (Export.Named(Node.Raw.get_value(id)), Node.get_type(decl)),
-           ]
-
-         | AST.Declaration(MainExport(id), decl) => [
-             (Export.Named(Node.Raw.get_value(id)), Node.get_type(decl)),
-             (Export.Main, Node.get_type(decl)),
-           ]
-
-         | _ => []
-       ),
-     )
-  |> List.flatten;
+let __plugin_decorator_key = "plugin";
 
 let _create_dispatch = (config, report) => {
   let errors = ref([]);
   let dispatch =
     fun
+    | Fatal(errs) => report(errs)
+
     | Report(errs) =>
       if (config.fail_fast) {
         report(errs);
       } else {
         errors := errors^ @ errs;
       }
+
     | Flush =>
       switch (errors^) {
       | [] => ()
@@ -132,7 +78,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
       switch (
         resolver
         |> Resolver.resolve_module(~skip_cache=true, namespace)
-        |> Module.read(Parser.imports(namespace))
+        |> Source.read(Parser.imports(namespace))
       ) {
       | Ok(x) => x
       | Error(errs)
@@ -161,7 +107,7 @@ let cache_modules = (modules, compiler) => {
   |> List.filter((!=)(Namespace.Stdlib))
   |> List.iter(id =>
        resolve(~skip_cache=true, compiler, id)
-       |> Module.cache(compiler.resolver.cache)
+       |> Source.cache(compiler.resolver.cache)
        |> Result.fold(
             ~ok=
               Tuple.with_fst2(Namespace.to_string(id))
@@ -181,7 +127,7 @@ let validate = (compiler: t) => {
   |> List.iter(validate =>
        compiler.graph
        |> validate
-       |> Result.iter_error(errs => Report(errs) |> compiler.dispatch)
+       |> Result.iter_error(errs => Fatal(errs) |> compiler.dispatch)
      );
 
   compiler.dispatch(Flush);
@@ -189,12 +135,12 @@ let validate = (compiler: t) => {
 
 let parse_module =
     (
-      module_: Module.t,
+      source: Source.t,
       parser: Grammar.Program.input_t => result('a, compile_err),
       compiler: t,
     ) => {
-  module_
-  |> Module.read_to_string
+  source
+  |> Source.read_to_string
   |> (
     fun
     | Ok(raw) => {
@@ -215,11 +161,11 @@ let parse_module =
  parse a single module and add to table
  */
 let process_one =
-    (~flush=true, namespace: Namespace.t, module_: Module.t, compiler: t) => {
+    (~flush=true, namespace: Namespace.t, source: Source.t, compiler: t) => {
   let module_errors = ref([]);
 
   let context =
-    NamespaceContext.create(
+    ParseContext.create(
       ~modules=compiler.modules,
       ~report=
         err => {
@@ -231,16 +177,15 @@ let process_one =
     );
 
   compiler
-  |> parse_module(module_, Parser.ast(context))
+  |> parse_module(source, Parser.ast(context))
   |> Option.iter(
        fun
        | (raw, Ok(ast)) => {
            let module_ =
              ModuleTable.{
                ast,
-               exports:
-                 _get_module_exports(ast) |> List.to_seq |> Hashtbl.of_seq,
                scopes: ScopeTree.of_context(context),
+               symbols: context.symbols,
              };
 
            if (List.is_empty(module_errors^)) {
@@ -292,7 +237,7 @@ let process =
     (
       ~flush=true,
       namespaces: list(Namespace.t),
-      resolve: Namespace.t => Module.t,
+      resolve: Namespace.t => Source.t,
       {modules} as compiler: t,
     ) => {
   Log.debug("%s", "processing modules" |> ~@Fmt.yellow_str);
@@ -322,7 +267,7 @@ let init = (~skip_cache=false, entry: Namespace.t, compiler: t) => {
   /* check if import graph is valid */
   validate(compiler);
 
-  let modules = ImportGraph.get_modules(compiler.graph);
+  let modules = ImportGraph.get_ordered_modules(compiler.graph);
   compiler |> _prepare_modules(modules);
 
   if (!skip_cache) {
@@ -379,7 +324,8 @@ let emit_one =
                 | Internal(path) =>
                   Filename.concat(output_dir, path)
                   |> Filename.relative_to(parent_dir)
-                | External(_) => raise(NotImplemented)
+                | External(_)
+                | Ambient
                 | Stdlib => raise(NotImplemented),
                 ppf,
                 ast,
@@ -390,7 +336,8 @@ let emit_one =
           });
       }
     )
-  | External(_) => raise(NotImplemented)
+  | External(_)
+  | Ambient
   | Stdlib => raise(NotImplemented)
   };
 
@@ -399,7 +346,7 @@ let emit_one =
  */
 let emit = (target: Target.t, output_dir: string, compiler: t) =>
   compiler.modules
-  |> Hashtbl.iter((namespace, entry) =>
+  |> ModuleTable.iter((namespace, entry) =>
        if (namespace != Namespace.Stdlib) {
          emit_one(target, output_dir, namespace, compiler, entry);
        }
@@ -508,45 +455,152 @@ let inject_raw = (~flush=true, id: Namespace.t, contents: string, compiler: t) =
 };
 
 /**
+ * parse and process a type definition module
+ */
+let process_definition =
+    (~flush=true, namespace: Namespace.t, source: Source.t, compiler: t) => {
+  let module_errors = ref([]);
+  let ctx =
+    ParseContext.create(
+      ~report=
+        err => {
+          module_errors := module_errors^ @ [err];
+
+          Report([err]) |> compiler.dispatch;
+        },
+      ~symbols={
+        ...SymbolTable.create(),
+        imported: {
+          values: ModuleTable.get_global_values(compiler.modules),
+          types: ModuleTable.get_global_types(compiler.modules),
+        },
+      },
+      namespace,
+    );
+
+  let result =
+    compiler
+    |> parse_module(source, Parser.definition(ctx))
+    |> Option.map(
+         fun
+         | (raw, Ok(ast)) => {
+             Some((raw, ast, ctx.symbols));
+           }
+         | (_, Error(_)) => None,
+       )
+    |> Option.join;
+
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
+
+  result;
+};
+
+/**
  register type definitions for the standard library
  */
 let add_standard_library = (~flush=true, compiler: t) => {
-  compiler.graph.imports |> Graph.add_node(Reference.Namespace.Stdlib);
+  let namespace = Reference.Namespace.Stdlib;
+  let source = Source.File({relative: "", full: compiler.config.stdlib});
+
+  compiler.graph.imports |> Graph.add_node(namespace);
 
   Log.info(
-    "reading standard library %s",
-    compiler.config.stdlib |> Fmt.str("(%s)") |> ~@Fmt.grey_str,
+    "reading %s",
+    ("standard library", compiler.config.stdlib) |> ~@Fmt.captioned,
   );
 
   compiler
-  |> parse_module(
-       Module.File({relative: "", full: compiler.config.stdlib}),
-       Parser.definition,
-     )
-  |> Option.iter(
-       fun
-       | (raw, Ok(ast)) => {
-           let library = ModuleTable.{exports: _get_library_exports(ast)};
+  |> process_definition(~flush=false, namespace, source)
+  |> (
+    fun
+    | Some((raw, ast, symbols)) => {
+        let library = ModuleTable.{symbols: symbols};
 
-           compiler.modules |> ModuleTable.add(Stdlib, Library(raw, library));
+        compiler.modules |> ModuleTable.add(namespace, Library(raw, library));
+        compiler.modules
+        |> ModuleTable.set_globals(
+             symbols.declared.values
+             |> List.filter_map(
+                  fun
+                  | (id, T.Valid(`Decorator(_)) as type_) =>
+                    Some((id, Type.Container.Value(type_)))
+                  | _ => None,
+                ),
+           );
 
-           Log.debug("added standard library to compiler context");
-         }
-       | (_, Error(_)) => Log.error("failed to load standard library"),
-     );
+        Log.debug("added standard library to compiler context");
+      }
+    | _ => Log.error("failed to load standard library")
+  );
 
   if (flush) {
     compiler.dispatch(Flush);
   };
 };
 
+let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
+  let namespace = Reference.Namespace.Ambient;
+  let source = Source.File({relative: "", full: compiler.config.ambient});
+
+  Log.info(
+    "scanning %s",
+    ("ambient library", compiler.config.ambient) |> ~@Fmt.captioned,
+  );
+
+  compiler
+  |> process_definition(~flush=false, namespace, source)
+  |> (
+    fun
+    | Some((raw, ast, symbols)) =>
+      symbols.decorated
+      |> List.iter(
+           fun
+           | (key, _, _) when key != __plugin_decorator_key => ()
+
+           | (key, [A.String(name)], T.Valid(`Module(entries))) =>
+             if (Reference.Plugin.known |> List.mem(name)) {
+               compiler.modules
+               |> ModuleTable.add_plugin(
+                    Reference.Plugin.of_string(name),
+                    entries,
+                  );
+
+               Log.debug(
+                 "registered ambient %s types in compiler context",
+                 name |> ~@Fmt.info_str,
+               );
+             } else {
+               Log.error(
+                 "failed to register unknown %s ambient types",
+                 name |> ~@Fmt.bad_str,
+               );
+             }
+
+           | (key, _, _) => Log.error("failed to register invalid plugin"),
+         )
+
+    | _ => Log.error("failed to scan ambient library for plugins")
+  );
+
+  if (flush) {
+    compiler.dispatch(Flush);
+  };
+};
+
+let prepare = (compiler: t) => {
+  add_standard_library(compiler);
+  scan_ambient_library_for_plugins(compiler);
+};
+
 /**
  reset the state of the compiler
  */
-let reset = ({graph, modules, resolver}: t) => {
-  ImportGraph.clear(graph);
-  Hashtbl.reset(modules);
-  File.IO.purge(resolver.cache);
+let reset = (compiler: t) => {
+  ImportGraph.clear(compiler.graph);
+  ModuleTable.reset(compiler.modules);
+  File.IO.purge(compiler.resolver.cache);
 };
 
 /**
@@ -554,5 +608,6 @@ let reset = ({graph, modules, resolver}: t) => {
  */
 let teardown = (compiler: t) => {
   reset(compiler);
+
   Cache.destroy(compiler.resolver.cache);
 };

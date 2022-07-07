@@ -20,18 +20,18 @@ let get_point = ((_, x): t): Point.t => x;
 /**
  combine a list of inputs into a raw node
  */
-let join = (cs: list(t)): Node.Raw.t(string) => {
+let join = (cs: list(t)): Node.t(string, unit) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(get_point);
   let value = cs |> List.map(get_value) |> String.of_uchars;
 
-  Node.Raw.create(value, Range.create(start, end_));
+  Node.untyped(value, Range.create(start, end_));
 };
 
 /**
  convert input into a node
  */
-let to_node = (x: t): Node.Raw.t(Uchar.t) =>
-  Node.Raw.create(get_value(x), Range.create(get_point(x), get_point(x)));
+let to_node = (x: t): Node.t(Uchar.t, unit) =>
+  Node.untyped(get_value(x), Range.create(get_point(x), get_point(x)));
 
 /* pretty printing */
 
