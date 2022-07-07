@@ -13,28 +13,28 @@ export default (env: Environment = {}) => ({
 
   output: {
     filename: 'app.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
   },
 
   resolve: {
-    extensions: ['.kn', '.js', '.json']
+    extensions: ['.kn', '.js', '.json'],
   },
 
   plugins: [
     new HtmlPlugin({
-      template: 'index.html'
+      template: 'index.html',
     }),
     new KnotPlugin({
-      // debug: true,
+      debug: true,
       // WARNING: providing an override path for the knot compiler is not recommended
-      knotc: env.knotc
+      knotc: env.knotc,
     }),
-    ...(env.analyze ? [new BundleAnalyzerPlugin()] : [])
+    ...(env.analyze ? [new BundleAnalyzerPlugin()] : []),
   ],
 
   devServer: {
     historyApiFallback: true,
     open: true,
-    port: 1337
-  }
+    port: 1337,
+  },
 });
