@@ -36,6 +36,12 @@ executors:
       - image: cimg/node:17.8.0
         environment:
           NODE_OPTIONS: --max_old_space_size=4096
+  node-browser:
+    docker:
+      - image: cimg/node:17.8.0-browsers
+        environment:
+          KNOTC_BINARY: /tmp/workspace/knotc
+          NODE_OPTIONS: --max_old_space_size=4096
   node-cypress:
     working_directory: ~/app
     docker:
@@ -468,7 +474,7 @@ jobs:
           bundler: rollup
 
   test_webpack_react:
-    executor: node-cypress
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -481,7 +487,7 @@ jobs:
           example: webpack-react
 
   test_browserify_react:
-    executor: node-cypress
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -497,7 +503,7 @@ jobs:
           example: browserify-react
 
   test_rollup_react:
-    executor: node-cypress
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -513,7 +519,7 @@ jobs:
           example: rollup-react
 
   test_webpack_vue:
-    executor: node-cypress
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -526,7 +532,7 @@ jobs:
           example: webpack-vue
 
   test_browserify_vue:
-    executor: node-cypress
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -542,7 +548,7 @@ jobs:
           example: browserify-vue
 
   test_rollup_vue:
-    executor: node-cypress
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
