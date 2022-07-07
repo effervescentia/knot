@@ -32,4 +32,5 @@ test('includes keys', (t) =>
     'groupValues',
     'groupEntries',
     'createEnumerated',
+    'IS_CI',
   ]));
