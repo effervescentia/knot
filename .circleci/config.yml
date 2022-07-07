@@ -37,9 +37,9 @@ executors:
         environment:
           NODE_OPTIONS: --max_old_space_size=4096
   node-cypress:
+    working_directory: ~/app
     docker:
       - image: cypress/base:17.8.0
-        working_directory: ~/app
         environment:
           ## this enables colors in the output
           TERM: xterm
