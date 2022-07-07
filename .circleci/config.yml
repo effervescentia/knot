@@ -292,6 +292,13 @@ jobs:
       - setup_fswatch
       - compiler_install
       - run:
+          name: Import Dependencies
+          working_directory: ./compiler
+          command: |
+            if [ -d ./_export ]; then
+              esy import-build ./_export/*.tar.gz
+            fi
+      - run:
           name: Build
           working_directory: ./compiler
           command: esy build
@@ -299,10 +306,15 @@ jobs:
           name: Test
           working_directory: ./compiler
           command: yarn test
+      - run:
+          name: Export Dependencies
+          working_directory: ./compiler
+          command: esy export-dependencies
       - save_cache:
           <<: *linux_compiler_cache
           paths:
             - ~/project/compiler/_esyinstall
+            - ~/project/compiler/_export
       - persist:
           from: compiler/_esy/default/build/install/default/bin/knotc.exe
           to: knotc
