@@ -141,7 +141,7 @@ commands:
       - run:
           name: Install Compiler Dependencies
           working_directory: ./compiler
-          command: esy install && esy pesy
+          command: esy install --cache-tarballs-path=./_esyinstall && esy pesy
   node_install:
     description: use yarn to install Node project dependencies
     steps:
@@ -294,24 +294,15 @@ jobs:
       - run:
           name: Build
           working_directory: ./compiler
-          command: |
-            if [ -e ./_export ]; then
-              esy import-build ./_export/*.tar.gz
-            fi
-
-            esy build
+          command: esy build
       - run:
           name: Test
           working_directory: ./compiler
           command: yarn test
-      - run:
-          name: Export Dependencies
-          working_directory: ./compiler
-          command: esy export-dependencies
       - save_cache:
           <<: *linux_compiler_cache
           paths:
-            - ~/project/compiler/_export
+            - ~/project/compiler/_esyinstall
       - persist:
           from: compiler/_esy/default/build/install/default/bin/knotc.exe
           to: knotc
