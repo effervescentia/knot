@@ -74,15 +74,11 @@ commands:
           command: yarn global add lerna
   setup_fswatch:
     description: install fswatch
-    parameters:
-      sudo:
-        type: boolean
-        default: true
     steps:
       - run:
           name: Setup fswatch
           command: |
-            <<# parameters.sudo >>sudo<</ parameters.sudo >> bash \<<"EOF"
+            sudo bash \<<"EOF"
               apt update
               apt install -y fswatch
               ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
@@ -217,6 +213,22 @@ commands:
           at: /tmp/workspace
       - setup_esy
       - setup_fswatch
+      - run:
+          name: Install Cypress Dependencies
+          command: |
+            sudo apt-get install \
+              libgtk2.0-0 \
+              libgtk-3-0 \
+              libgbm-dev \
+              libnotify-dev \
+              libgconf-2-4 \
+              libnss3 \
+              libxss1 \
+              libasound2 \
+              libxtst6 \
+              xauth \
+              xvfb
+            yarn cypress install
       - restore_pkg:
           from: compiler
           to: binaries/compiler
