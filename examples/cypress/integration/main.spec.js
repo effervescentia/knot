@@ -5,18 +5,18 @@ context('Main', () => {
     cy.visit('/');
   });
 
-  it('has routes', () => {
+  it.skip('has routes', () => {
     const routes = ['hello world', 'toggle', 'calculator', 'stylish'];
 
-    cy.get('#route-list').children()
+    cy.get('#route-list')
+      .children()
       .should('have.length', 4)
-      .each(($el, index) => cy.wrap($el)
-        .should('have.text', routes[index]));
+      .each(($el, index) => cy.wrap($el).should('have.text', routes[index]));
   });
 
-  it('visit greeting route', () => {
-    const isGreetingContent = () => cy.get('#router__content')
-      .should('have.text', 'Hello, World!');
+  it.skip('visit greeting route', () => {
+    const isGreetingContent = () =>
+      cy.get('#router__content').should('have.text', 'Hello, World!');
 
     isGreetingContent();
 
@@ -25,19 +25,19 @@ context('Main', () => {
     isGreetingContent();
   });
 
-  it('visit toggle route', () => {
+  it.skip('visit toggle route', () => {
     tryRoute('toggle');
 
     cy.get('#button--toggle').should('be.visible');
   });
 
-  it('visit calculator route', () => {
+  it.skip('visit calculator route', () => {
     tryRoute('calculator');
 
     cy.get('#calculator').should('be.visible');
   });
 
-  it('visit stylish route', () => {
+  it.skip('visit stylish route', () => {
     tryRoute('stylish');
 
     cy.get('#stylish').should('be.visible');

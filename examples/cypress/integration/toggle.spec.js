@@ -7,11 +7,11 @@ context('Toggle', () => {
     cy.get('#route--toggle').click();
   });
 
-  it('has initial value', () => {
+  it.skip('has initial value', () => {
     cy.get('#router__content').should('have.text', 'toggle:ON');
   });
 
-  it('updates value', () => {
+  it.skip('updates value', () => {
     cy.get('#button--toggle').click();
 
     cy.get('#router__content').should('have.text', 'toggle:OFF');

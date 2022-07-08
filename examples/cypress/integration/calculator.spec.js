@@ -7,12 +7,12 @@ context('Calculator', () => {
     cy.get('#route--calculator').click();
   });
 
-  it('has initial values', () => {
+  it.skip('has initial values', () => {
     cy.get('#calculator__result').should('have.text', '0');
     cy.get('#calculator__input').should('have.text', '0');
   });
 
-  it('updates values', () => {
+  it.skip('updates values', () => {
     cy.get('#button--6').click();
     cy.get('#button--0').click();
     cy.get('#calculator__input').should('have.text', '60');
@@ -21,7 +21,7 @@ context('Calculator', () => {
     cy.get('#calculator__result').should('have.text', '60');
   });
 
-  it('adds values', () => {
+  it.skip('adds values', () => {
     cy.get('#button--3').click();
     cy.get('#button--8').click();
     cy.get('#button--5').click();
@@ -37,7 +37,7 @@ context('Calculator', () => {
     cy.get('#calculator__result').should('have.text', '3878');
   });
 
-  it('subtracts values', () => {
+  it.skip('subtracts values', () => {
     cy.get('#button--2').click();
     cy.get('#button--7').click();
     cy.get('#button--add').click();
@@ -52,7 +52,7 @@ context('Calculator', () => {
     cy.get('#calculator__result').should('have.text', '-357');
   });
 
-  it('multiplies values', () => {
+  it.skip('multiplies values', () => {
     cy.get('#button--1').click();
     cy.get('#button--4').click();
     cy.get('#button--add').click();
@@ -65,7 +65,7 @@ context('Calculator', () => {
     cy.get('#calculator__result').should('have.text', '126');
   });
 
-  it('divides values', () => {
+  it.skip('divides values', () => {
     cy.get('#button--2').click();
     cy.get('#button--0').click();
     cy.get('#button--add').click();
@@ -78,7 +78,7 @@ context('Calculator', () => {
     cy.get('#calculator__result').should('have.text', '4');
   });
 
-  it('clears values', () => {
+  it.skip('clears values', () => {
     cy.get('#button--3').click();
     cy.get('#button--4').click();
     cy.get('#button--6').click();
