@@ -40,7 +40,7 @@ executors:
     docker:
       - image: cimg/node:17.8.0-browsers
         environment:
-          KNOTC_BINARY: /tmp/workspace/knotc
+          KNOTC_BINARY: /tmp/workspace/knotc_install/bin/knotc.exe
           NODE_OPTIONS: --max_old_space_size=4096 --openssl-legacy-provider
 
 commands:
@@ -237,7 +237,6 @@ commands:
               xauth \
               xvfb
             yarn cypress install
-      - restore_assets
       - restore_pkg:
           from: compiler
           to: binaries/compiler
@@ -336,11 +335,8 @@ jobs:
             - ~/project/compiler/_esyinstall
             - ~/project/compiler/_export
       - persist:
-          from: compiler/_esy/default/build-release/install/default/bin/knotc.exe
-          to: knotc
-      - persist:
-          from: /tmp/share/knot/assets
-          to: assets
+          from: compiler/_esy/default/build-release/install/default
+          to: knotc_install
       - store_artifacts:
           path: ~/project/compiler/_build/_tests
 
@@ -361,8 +357,7 @@ jobs:
           name: Restore knotc.exe from Workspace
           command: |
             mkdir -p compiler/_esy/default/build/install/default/bin
-            mv /tmp/workspace/knotc compiler/_esy/default/build/install/default/bin/knotc.exe
-      - restore_assets
+            mv /tmp/workspace/knotc_install compiler/_esy/default/build/install/default
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
