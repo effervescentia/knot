@@ -114,6 +114,14 @@ commands:
           name: Restore << parameters.from >> from Workspace
           command: |
             mv /tmp/workspace/<< parameters.from >> packages/<< parameters.to >>/build
+  restore_assets:
+    description: restore knot assets from build
+    steps:
+      - run:
+          name: Restore Assets
+          command: |
+            mkdir -p /tmp/share/knot/assets
+            mv /tmp/workspace/assets /tmp/share/knot/assets
   lerna_install:
     description: install dependencies for a particular package
     parameters:
@@ -229,6 +237,7 @@ commands:
               xauth \
               xvfb
             yarn cypress install
+      - restore_assets
       - restore_pkg:
           from: compiler
           to: binaries/compiler
@@ -329,6 +338,9 @@ jobs:
       - persist:
           from: compiler/_esy/default/build-release/install/default/bin/knotc.exe
           to: knotc
+      - persist:
+          from: /tmp/share/knot/assets
+          to: assets
       - store_artifacts:
           path: ~/project/compiler/_build/_tests
 
@@ -350,6 +362,7 @@ jobs:
           command: |
             mkdir -p compiler/_esy/default/build/install/default/bin
             mv /tmp/workspace/knotc compiler/_esy/default/build/install/default/bin/knotc.exe
+      - restore_assets
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
