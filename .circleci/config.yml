@@ -685,60 +685,60 @@ workflows:
             - test_react_plugin
             - test_jss_plugin
             - test_webpack_plugin
-      - test_browserify_react:
-          requires:
-            - test_compiler_binary
-            - test_browser_plugin
-            - test_react_plugin
-            - test_jss_plugin
-            - test_browserify_plugin
-      - test_rollup_react:
-          requires:
-            - test_compiler_binary
-            - test_browser_plugin
-            - test_react_plugin
-            - test_jss_plugin
-            - test_rollup_plugin
-      - test_webpack_vue:
-          requires:
-            - test_compiler_binary
-            - test_browser_plugin
-            - test_vue_plugin
-            - test_jss_plugin
-            - test_webpack_plugin
-      - test_browserify_vue:
-          requires:
-            - test_compiler_binary
-            - test_browser_plugin
-            - test_vue_plugin
-            - test_jss_plugin
-            - test_browserify_plugin
-      - test_rollup_vue:
-          requires:
-            - test_compiler_binary
-            - test_browser_plugin
-            - test_vue_plugin
-            - test_jss_plugin
-            - test_rollup_plugin
+      # - test_browserify_react:
+      #     requires:
+      #       - test_compiler_binary
+      #       - test_browser_plugin
+      #       - test_react_plugin
+      #       - test_jss_plugin
+      #       - test_browserify_plugin
+      # - test_rollup_react:
+      #     requires:
+      #       - test_compiler_binary
+      #       - test_browser_plugin
+      #       - test_react_plugin
+      #       - test_jss_plugin
+      #       - test_rollup_plugin
+      # - test_webpack_vue:
+      #     requires:
+      #       - test_compiler_binary
+      #       - test_browser_plugin
+      #       - test_vue_plugin
+      #       - test_jss_plugin
+      #       - test_webpack_plugin
+      # - test_browserify_vue:
+      #     requires:
+      #       - test_compiler_binary
+      #       - test_browser_plugin
+      #       - test_vue_plugin
+      #       - test_jss_plugin
+      #       - test_browserify_plugin
+      # - test_rollup_vue:
+      #     requires:
+      #       - test_compiler_binary
+      #       - test_browser_plugin
+      #       - test_vue_plugin
+      #       - test_jss_plugin
+      #       - test_rollup_plugin
       - compile_macos:
           requires:
             - test_webpack_react
-            - test_browserify_react
-            - test_rollup_react
-            - test_webpack_vue
-            - test_browserify_vue
-            - test_rollup_vue
+            # - test_browserify_react
+            # - test_rollup_react
+            # - test_webpack_vue
+            # - test_browserify_vue
+            # - test_rollup_vue
           filters:
             branches:
               only: master
       - compile_linux:
           requires:
             - test_webpack_react
-            - test_browserify_react
-            - test_rollup_react
-            - test_webpack_vue
-            - test_browserify_vue
-            - test_rollup_vue
+            # - test_browserify_react
+            # - test_rollup_react
+            # - test_webpack_vue
+            # - test_browserify_vue
+            # - test_rollup_vue
           filters:
             branches:
               only: master
