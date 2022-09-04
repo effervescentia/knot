@@ -1,0 +1,15 @@
+style EmptyStyle {}
+style NoArgsStyle() {}
+
+style IdentifierRuleStyle {
+  #foo {}
+}
+
+style ClassRuleStyle {
+  .foo {}
+}
+
+style MultipleRuleStyle {
+  #foo {}
+  .bar {}
+}

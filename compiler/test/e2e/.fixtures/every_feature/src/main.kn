@@ -4,5 +4,6 @@ import {} from "@/functions";
 import {} from "@/jsx";
 import {} from "@/primitives";
 import {} from "@/views";
+import {} from "@/styles";
 
 const app = <app />;

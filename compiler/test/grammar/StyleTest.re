@@ -53,10 +53,8 @@ let suite =
           "style",
           "style Foo",
           "style Foo ()",
-          "style Foo () ->",
-          "style Foo () -> {",
-          "style Foo ->",
-          "style Foo -> {",
+          "style Foo () {",
+          "style Foo {",
         ])
     ),
     "parse - with no arguments"
@@ -68,7 +66,7 @@ let suite =
             ([], []) |> A.of_style |> U.as_style([], [], []),
           )
           |> U.as_untyped,
-          "style Foo -> { }",
+          "style Foo { }",
         )
     ),
     "parse - with empty arguments"
@@ -80,7 +78,7 @@ let suite =
             ([], []) |> A.of_style |> U.as_style([], [], []),
           )
           |> U.as_untyped,
-          "style Foo () -> { }",
+          "style Foo () { }",
         )
     ),
     "parse - with typed argument"
@@ -104,7 +102,7 @@ let suite =
             |> U.as_style([Valid(`Integer)], [], []),
           )
           |> U.as_untyped,
-          "style Foo (fizz: integer) -> { }",
+          "style Foo (fizz: integer) { }",
         )
     ),
     "parse - with argument with default"
@@ -128,7 +126,7 @@ let suite =
             |> U.as_style([Valid(`String)], [], []),
           )
           |> U.as_untyped,
-          "style Foo (fizz = \"bar\") -> { }",
+          "style Foo (fizz = \"bar\") { }",
         )
     ),
     "parse - with typed argument with default"
@@ -152,7 +150,7 @@ let suite =
             |> U.as_style([Valid(`Boolean)], [], []),
           )
           |> U.as_untyped,
-          "style Foo (fizz: boolean = true) -> { }",
+          "style Foo (fizz: boolean = true) { }",
         )
     ),
     "parse - with empty class rule set"
@@ -169,7 +167,7 @@ let suite =
             |> U.as_style([], [], ["fizz"]),
           )
           |> U.as_untyped,
-          "style Foo -> {
+          "style Foo {
             .fizz {}
           }",
         )
@@ -185,7 +183,7 @@ let suite =
             |> U.as_style([], ["fizz"], []),
           )
           |> U.as_untyped,
-          "style Foo -> {
+          "style Foo {
             #fizz {}
           }",
         )
@@ -209,7 +207,7 @@ let suite =
             |> U.as_style([], ["bar", "fizz"], ["buzz"]),
           )
           |> U.as_untyped,
-          "style Foo -> {
+          "style Foo {
             #bar {
             }
 

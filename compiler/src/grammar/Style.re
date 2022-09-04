@@ -62,140 +62,111 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
       Identifier.parser(ctx)
       >>= (
         id =>
-          option([], Lambda.arguments(ctx))
+          option([], Lambda.arguments(ctx) >|= fst)
           >>= (
-            raw_args =>
-              Glyph.lambda
-              >|= N.get_range
-              >>= (
-                start_range => {
-                  let rule_scope = Scope.create(ctx, Range.zero);
+            raw_args => {
+              let rule_scope = Scope.create(ctx, Range.zero);
 
-                  Scope.inject_plugin_types(
-                    ~prefix="",
-                    StyleRule,
-                    rule_scope,
-                  );
+              Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
 
-                  style_rule_set(ctx, rule_scope)
-                  |> many
-                  |> M.between(Symbol.open_closure, Symbol.close_closure)
-                  >|= (
-                    raw_rule_sets => {
-                      let range = N.get_range(raw_rule_sets);
-                      let scope = ctx |> Scope.of_parse_context(range);
+              style_rule_set(ctx, rule_scope)
+              |> many
+              |> M.between(Symbol.open_closure, Symbol.close_closure)
+              >|= (
+                raw_rule_sets => {
+                  let range = N.get_range(raw_rule_sets);
+                  let scope = ctx |> Scope.of_parse_context(range);
 
-                      Scope.inject_plugin_types(StyleExpression, scope);
+                  Scope.inject_plugin_types(StyleExpression, scope);
 
-                      let args =
-                        raw_args
-                        |> SemanticAnalyzer.analyze_argument_list(scope);
+                  let args =
+                    raw_args |> SemanticAnalyzer.analyze_argument_list(scope);
 
-                      args
-                      |> List.iter(arg =>
-                           scope
-                           |> S.define(
-                                A.(fst(arg).name) |> fst,
-                                N.get_type(arg),
-                              )
-                           |> Option.iter(
-                                S.report_type_err(scope, N.get_range(arg)),
-                              )
-                         );
+                  args
+                  |> List.iter(arg =>
+                       scope
+                       |> S.define(
+                            A.(fst(arg).name) |> fst,
+                            N.get_type(arg),
+                          )
+                       |> Option.iter(
+                            S.report_type_err(scope, N.get_range(arg)),
+                          )
+                     );
 
-                      let (ids, classes) =
-                        raw_rule_sets
-                        |> fst
-                        |> List.map(fst % fst)
-                        |> List.fold_left(
-                             ((ids, classes)) =>
-                               fun
-                               | A.MatchID((id, _)) => (ids @ [id], classes)
-                               | A.MatchClass((id, _)) => (
-                                   ids,
-                                   classes @ [id],
-                                 ),
-                             ([], []),
-                           );
+                  let (ids, classes) =
+                    raw_rule_sets
+                    |> fst
+                    |> List.map(fst % fst)
+                    |> List.fold_left(
+                         ((ids, classes)) =>
+                           fun
+                           | A.MatchID((id, _)) => (ids @ [id], classes)
+                           | A.MatchClass((id, _)) => (ids, classes @ [id]),
+                         ([], []),
+                       );
 
-                      let analyze_expr =
-                        SemanticAnalyzer.analyze_expression(scope);
-                      let res_rule_sets =
-                        raw_rule_sets
-                        |> fst
-                        |> List.map(
-                             N.map(
-                               Tuple.map_snd2(
-                                 List.map(
-                                   N.map(((rule, raw_expr)) => {
-                                     let expr = analyze_expr(raw_expr);
+                  let analyze_expr =
+                    SemanticAnalyzer.analyze_expression(scope);
+                  let res_rule_sets =
+                    raw_rule_sets
+                    |> fst
+                    |> List.map(
+                         N.map(
+                           Tuple.map_snd2(
+                             List.map(
+                               N.map(((rule, raw_expr)) => {
+                                 let expr = analyze_expr(raw_expr);
 
-                                     switch (
-                                       N.get_type(rule),
-                                       N.get_type(expr),
-                                     ) {
-                                     | (
-                                         T.Valid(
-                                           `Function(
-                                             [arg_type],
-                                             Valid(`Nil),
-                                           ),
-                                         ),
-                                         expr_type,
-                                       )
-                                         when arg_type != expr_type =>
-                                       ctx
-                                       |> ParseContext.report(
-                                            TypeError(
-                                              TypeMismatch(
-                                                arg_type,
-                                                expr_type,
-                                              ),
-                                            ),
-                                            N.get_range(expr),
-                                          )
-                                     | _ => ()
-                                     };
+                                 switch (N.get_type(rule), N.get_type(expr)) {
+                                 | (
+                                     T.Valid(
+                                       `Function([arg_type], Valid(`Nil)),
+                                     ),
+                                     expr_type,
+                                   )
+                                     when arg_type != expr_type =>
+                                   ctx
+                                   |> ParseContext.report(
+                                        TypeError(
+                                          TypeMismatch(arg_type, expr_type),
+                                        ),
+                                        N.get_range(expr),
+                                      )
+                                 | _ => ()
+                                 };
 
-                                     (rule, expr);
-                                   }),
-                                 ),
-                               ),
+                                 (rule, expr);
+                               }),
                              ),
-                           );
+                           ),
+                         ),
+                       );
 
-                      let type_ =
-                        T.Valid(
-                          `Style((
-                            args |> List.map(N.get_type),
-                            ids,
-                            classes,
-                          )),
-                        );
-                      let export_id = f(id);
+                  let type_ =
+                    T.Valid(
+                      `Style((args |> List.map(N.get_type), ids, classes)),
+                    );
+                  let export_id = f(id);
 
-                      ctx.symbols
-                      |> SymbolTable.declare_value(
-                           ~main=Util.is_main(export_id),
-                           fst(id),
-                           type_,
-                         );
+                  ctx.symbols
+                  |> SymbolTable.declare_value(
+                       ~main=Util.is_main(export_id),
+                       fst(id),
+                       type_,
+                     );
 
-                      let style =
-                        N.typed(
-                          (args, res_rule_sets) |> A.of_style,
-                          type_,
-                          range,
-                        );
+                  let style =
+                    N.typed(
+                      (args, res_rule_sets) |> A.of_style,
+                      type_,
+                      range,
+                    );
 
-                      N.untyped(
-                        (export_id, style),
-                        Range.join(start, range),
-                      );
-                    }
-                  );
+                  N.untyped((export_id, style), Range.join(start, range));
                 }
-              )
+              );
+            }
           )
       )
   );
