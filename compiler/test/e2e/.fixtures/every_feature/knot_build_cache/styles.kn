@@ -1,16 +1,16 @@
-style EmptyStyle -> { }
+style EmptyStyle { }
 
-style NoArgsStyle -> { }
+style NoArgsStyle { }
 
-style IdentifierRuleStyle -> {
+style IdentifierRuleStyle {
   #foo { }
 }
 
-style ClassRuleStyle -> {
+style ClassRuleStyle {
   .foo { }
 }
 
-style MultipleRuleStyle -> {
+style MultipleRuleStyle {
   #foo { }
   .bar { }
 }

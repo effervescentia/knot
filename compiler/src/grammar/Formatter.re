@@ -347,7 +347,7 @@ let pp_declaration: Fmt.t((string, A.raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "@[<v>style %s -> %a@]",
+          "@[<v>style %s %a@]",
           name,
           closure(pp_style_rule_set),
           rule_sets |> List.map(fst),
@@ -357,7 +357,7 @@ let pp_declaration: Fmt.t((string, A.raw_declaration_t)) =
       Fmt.(
         pf(
           ppf,
-          "@[<v>style @[<h>%s(%a)@] -> %a@]",
+          "@[<v>style @[<h>%s(%a)@] %a@]",
           name,
           list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
           props |> List.map(fst),
