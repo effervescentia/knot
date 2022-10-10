@@ -1,5 +1,5 @@
 {
-  "checksum": "80a86cb8d2e13e3c2e35e0ac2d53ef39",
+  "checksum": "1bf45b1b0f358d3582d1f1e4f7bb6dc2",
   "root": "knot@link-dev:./package.json",
   "node": {
     "pesy@0.4.4@d41d8cd9": {
@@ -59,7 +59,6 @@
         "@opam/reason@opam:3.8.1@694249e6",
         "@opam/ocamlformat-rpc@opam:0.21.0@66ff145f",
         "@opam/ocaml-lsp-server@opam:1.10.5@e7db02d5",
-        "@opam/merlin@opam:4.6-413@33388eef",
         "@opam/dune-site@opam:3.2.0@f5206c91",
         "@opam/dune@opam:3.2.0@839192fb"
       ]
@@ -1308,36 +1307,6 @@
         "ocaml@4.13.1000@d41d8cd9", "@opam/dune@opam:3.2.0@839192fb"
       ]
     },
-    "@opam/merlin@opam:4.6-413@33388eef": {
-      "id": "@opam/merlin@opam:4.6-413@33388eef",
-      "name": "@opam/merlin",
-      "version": "opam:4.6-413",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/f3/f3dd371f84c4e85fefd8ac355e97297571222c875bf6595882de36cd247d90ee#sha256:f3dd371f84c4e85fefd8ac355e97297571222c875bf6595882de36cd247d90ee",
-          "archive:https://github.com/ocaml/merlin/releases/download/v4.6-413/merlin-4.6-413.tbz#sha256:f3dd371f84c4e85fefd8ac355e97297571222c875bf6595882de36cd247d90ee"
-        ],
-        "opam": {
-          "name": "merlin",
-          "version": "4.6-413",
-          "path": "esy.lock/opam/merlin.4.6-413"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.13.1000@d41d8cd9", "@opam/yojson@opam:2.0.2@eb65f292",
-        "@opam/dune@opam:3.2.0@839192fb",
-        "@opam/dot-merlin-reader@opam:4.5@2a523ca0",
-        "@opam/csexp@opam:1.5.1@8a8fb3a7", "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.13.1000@d41d8cd9", "@opam/yojson@opam:2.0.2@eb65f292",
-        "@opam/dune@opam:3.2.0@839192fb",
-        "@opam/dot-merlin-reader@opam:4.5@2a523ca0",
-        "@opam/csexp@opam:1.5.1@8a8fb3a7"
-      ]
-    },
     "@opam/menhirSdk@opam:20220210@b8921e41": {
       "id": "@opam/menhirSdk@opam:20220210@b8921e41",
       "name": "@opam/menhirSdk",
@@ -1918,35 +1887,6 @@
       "devDependencies": [
         "ocaml@4.13.1000@d41d8cd9", "@opam/base-unix@opam:base@87d0b2eb",
         "@opam/base-threads@opam:base@36803084"
-      ]
-    },
-    "@opam/dot-merlin-reader@opam:4.5@2a523ca0": {
-      "id": "@opam/dot-merlin-reader@opam:4.5@2a523ca0",
-      "name": "@opam/dot-merlin-reader",
-      "version": "opam:4.5",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://opam.ocaml.org/cache/sha256/f3/f3dd371f84c4e85fefd8ac355e97297571222c875bf6595882de36cd247d90ee#sha256:f3dd371f84c4e85fefd8ac355e97297571222c875bf6595882de36cd247d90ee",
-          "archive:https://github.com/ocaml/merlin/releases/download/v4.6-413/merlin-4.6-413.tbz#sha256:f3dd371f84c4e85fefd8ac355e97297571222c875bf6595882de36cd247d90ee"
-        ],
-        "opam": {
-          "name": "dot-merlin-reader",
-          "version": "4.5",
-          "path": "esy.lock/opam/dot-merlin-reader.4.5"
-        }
-      },
-      "overrides": [],
-      "dependencies": [
-        "ocaml@4.13.1000@d41d8cd9", "@opam/yojson@opam:2.0.2@eb65f292",
-        "@opam/ocamlfind@opam:1.9.5@c23112ba",
-        "@opam/dune@opam:3.2.0@839192fb", "@opam/csexp@opam:1.5.1@8a8fb3a7",
-        "@esy-ocaml/substs@0.0.1@d41d8cd9"
-      ],
-      "devDependencies": [
-        "ocaml@4.13.1000@d41d8cd9", "@opam/yojson@opam:2.0.2@eb65f292",
-        "@opam/ocamlfind@opam:1.9.5@c23112ba",
-        "@opam/dune@opam:3.2.0@839192fb", "@opam/csexp@opam:1.5.1@8a8fb3a7"
       ]
     },
     "@opam/dolog@opam:6.0.0@ccf8548a": {
