@@ -342,6 +342,7 @@
   "devDependencies": {
     "@opam/dune": "3.2.0",
     "@opam/dune-site": "3.2.0",
+    "@opam/reason": "3.8.1",
     "@opam/merlin": "4.6-412",
     "ocaml": "4.12.1001",
     "pesy": "0.4.4"
