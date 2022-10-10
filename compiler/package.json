@@ -343,8 +343,10 @@
     "@opam/dune": "3.2.0",
     "@opam/dune-site": "3.2.0",
     "@opam/reason": "3.8.1",
-    "@opam/merlin": "4.6-412",
-    "ocaml": "4.12.1001",
+    "@opam/merlin": "4.6-413",
+    "@opam/ocamlformat-rpc": "0.21.0",
+    "@opam/ocaml-lsp-server": "1.10.5",
+    "ocaml": "4.13.1000",
     "pesy": "0.4.4"
   }
 }
