@@ -110,4 +110,29 @@ let suite =
           |> A.of_jsx,
         )
     ),
+    "style"
+    >: (
+      () =>
+        _assert_expression(
+          "style {
+  height: $px(20),
+  color: $red,
+}",
+          [
+            (
+              "height" |> U.as_function([], T.Valid(`Nil)),
+              ("$px" |> A.of_id |> U.as_string, [20 |> U.int_prim])
+              |> A.of_func_call
+              |> U.as_string,
+            )
+            |> U.as_untyped,
+            (
+              "color" |> U.as_function([], T.Valid(`Nil)),
+              "$red" |> A.of_id |> U.as_string,
+            )
+            |> U.as_untyped,
+          ]
+          |> A.of_style,
+        )
+    ),
   ];

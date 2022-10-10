@@ -47,14 +47,6 @@ and iter_decl = f =>
         (props |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))
-      | Style(props, rule_sets) =>
-        (props |> List.filter_map(((arg, _)) => arg.default))
-        @ (
-          rule_sets
-          |> List.map(fst % snd % List.map(fst % snd))
-          |> List.flatten
-        )
-        |> List.iter(_bind_expr(f))
     )
 
 and iter_stmt = f =>
@@ -90,6 +82,8 @@ and iter_expr = f => {
           _bind_expr(f, expr);
           args |> List.iter(_bind_expr(f));
         }
+      | Style(rules) =>
+        rules |> List.map(fst % snd) |> List.iter(_bind_expr(f))
     );
 }
 

@@ -2,235 +2,127 @@ open Kore;
 open Reference;
 
 module Style = Grammar.Style;
-module U = Util.ResultUtil;
+module URaw = Util.RawUtil;
+module URes = Util.ResultUtil;
 module TE = A.TypeExpression;
 
-module Assert = {
-  include Assert;
-  include Assert.Make({
-    type t = N.t((A.export_t, A.declaration_t), unit);
+let __style_rule_type =
+  T.Valid(`Function(([Valid(`String)], Valid(`Nil))));
+let __module_table =
+  ModuleTable.create(
+    ~plugins=[
+      (
+        Plugin.StyleRule,
+        [
+          ("height", Value(__style_rule_type)),
+          ("color", Value(__style_rule_type)),
+        ],
+      ),
+      (
+        Plugin.StyleExpression,
+        [
+          (
+            "px",
+            Value(
+              T.Valid(`Function(([Valid(`Integer)], Valid(`String)))),
+            ),
+          ),
+          ("red", Value(T.Valid(`String))),
+        ],
+      ),
+    ],
+    0,
+  );
+let __context =
+  ParseContext.create(~modules=__module_table, Namespace.Internal("foo"));
 
-    let parser = ctx =>
-      Style.parser(ctx, A.of_named_export)
-      |> Assert.parse_completely
-      |> Parser.parse;
+module Assert =
+  Assert.Make({
+    type t = AR.expression_t;
+
+    let parser = Style.parser % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(
-            (ppf, stmt) => {
-              let (export, decl) = fst(stmt);
-
-              A.Dump.(
-                untyped_node_to_entity(
-                  "Declaration",
-                  ~children=[
-                    export |> export_to_entity,
-                    decl |> decl_to_entity,
-                  ],
-                  stmt,
-                )
-                |> Entity.pp(ppf)
-              );
-            },
-            (==),
-          ),
+          testable(ppf => AR.Dump.(expr_to_entity % Entity.pp(ppf)), (==)),
           "program matches",
         )
       );
   });
-};
 
 let suite =
   "Grammar.Style"
   >::: [
-    "no parse"
-    >: (
-      () =>
-        Assert.parse_none([
-          "gibberish",
-          "style",
-          "style Foo",
-          "style Foo ()",
-          "style Foo () {",
-          "style Foo {",
-        ])
-    ),
+    "no parse" >: (() => Assert.parse_none(["gibberish", "style", "style {"])),
     "parse - with no arguments"
+    >: (() => Assert.parse([] |> AR.of_style |> URaw.as_style, "style { }")),
+    "parse - with one rule"
     >: (
       () =>
         Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            ([], []) |> A.of_style |> U.as_style([], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo { }",
-        )
-    ),
-    "parse - with empty arguments"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            ([], []) |> A.of_style |> U.as_style([], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo () { }",
-        )
-    ),
-    "parse - with typed argument"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
+          ~context=__context,
+          [
             (
-              [
-                A.{
-                  name: U.as_untyped("fizz"),
-                  type_: Some(U.as_untyped(TE.Integer)),
-                  default: None,
-                }
-                |> U.as_int,
-              ],
-              [],
+              "color" |> URes.as_typed(__style_rule_type),
+              "$red" |> AR.of_id |> URaw.as_unknown,
             )
-            |> A.of_style
-            |> U.as_style([Valid(`Integer)], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo (fizz: integer) { }",
-        )
-    ),
-    "parse - with argument with default"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [
-                A.{
-                  name: U.as_untyped("fizz"),
-                  type_: None,
-                  default: Some(U.string_prim("bar")),
-                }
-                |> U.as_string,
-              ],
-              [],
-            )
-            |> A.of_style
-            |> U.as_style([Valid(`String)], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo (fizz = \"bar\") { }",
-        )
-    ),
-    "parse - with typed argument with default"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [
-                A.{
-                  name: U.as_untyped("fizz"),
-                  type_: Some(U.as_untyped(TE.Boolean)),
-                  default: Some(U.bool_prim(true)),
-                }
-                |> U.as_bool,
-              ],
-              [],
-            )
-            |> A.of_style
-            |> U.as_style([Valid(`Boolean)], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo (fizz: boolean = true) { }",
-        )
-    ),
-    "parse - with empty class rule set"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [],
-              [(A.MatchClass(U.as_untyped("fizz")), []) |> U.as_untyped],
-            )
-            |> A.of_style
-            |> U.as_style([], [], ["fizz"]),
-          )
-          |> U.as_untyped,
-          "style Foo {
-            .fizz {}
+            |> URaw.as_untyped,
+          ]
+          |> AR.of_style
+          |> URaw.as_style,
+          "style {
+            color: $red
           }",
         )
     ),
-    "parse - with empty identifier rule set"
+    "parse - with trailing comma"
     >: (
       () =>
         Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            ([], [(A.MatchID(U.as_untyped("fizz")), []) |> U.as_untyped])
-            |> A.of_style
-            |> U.as_style([], ["fizz"], []),
-          )
-          |> U.as_untyped,
-          "style Foo {
-            #fizz {}
+          ~context=__context,
+          [
+            (
+              "color" |> URes.as_typed(__style_rule_type),
+              "$red" |> AR.of_id |> URaw.as_unknown,
+            )
+            |> URaw.as_untyped,
+          ]
+          |> AR.of_style
+          |> URaw.as_style,
+          "style {
+            color: $red,
           }",
         )
     ),
-    "parse - with multiple rules and rule sets"
+    "parse - with multiple rules"
     >: (
       () =>
         Assert.parse(
-          ~context=ParseContext.create(Namespace.Internal("foo")),
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
+          ~context=__context,
+          [
             (
-              [],
-              [
-                (A.MatchID(U.as_untyped("bar")), []) |> U.as_untyped,
-                (A.MatchID(U.as_untyped("fizz")), []) |> U.as_untyped,
-                (A.MatchClass(U.as_untyped("buzz")), []) |> U.as_untyped,
-              ],
+              "height" |> URes.as_typed(__style_rule_type),
+              (
+                "$px" |> AR.of_id |> URaw.as_unknown,
+                [(20.0, 2) |> URaw.float_prim],
+              )
+              |> AR.of_func_call
+              |> URaw.as_unknown,
             )
-            |> A.of_style
-            |> U.as_style([], ["bar", "fizz"], ["buzz"]),
-          )
-          |> U.as_untyped,
-          "style Foo {
-            #bar {
-            }
-
-            #fizz {
-            }
-
-            .buzz {
-            }
+            |> URaw.as_untyped,
+            (
+              "color" |> URes.as_typed(__style_rule_type),
+              "$red" |> AR.of_id |> URaw.as_unknown,
+            )
+            |> URaw.as_untyped,
+          ]
+          |> AR.of_style
+          |> URaw.as_style,
+          "style {
+            height: $px(20.0),
+            color: $red
           }",
-          /* TODO: allow these to be referenced */
-          /* "style Foo -> {
-               #bar {
-                 height: $px(20.0)
-               }
-
-               #fizz {
-                 width: $px(10.0)
-               }
-
-               .buzz {
-                 color: $red
-               }
-             }", */
         )
     ),
   ];

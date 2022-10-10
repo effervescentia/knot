@@ -34,7 +34,7 @@ let parser = (ctx: ParseContext.t, f): declaration_parser_t =>
                        ctx.symbols |> SymbolTable.resolve_value(fst(mixin));
 
                      switch (mixin_type) {
-                     | Some(Valid(`Style(_))) => ()
+                     /* TODO: add state mixin support */
 
                      | Some(type_) =>
                        ctx

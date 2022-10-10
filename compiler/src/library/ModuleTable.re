@@ -38,9 +38,9 @@ type t = {
 /**
  construct a new table for module information
  */
-let create = (size: int): t => {
+let create = (~plugins=[], size: int): t => {
   modules: Hashtbl.create(size),
-  plugins: [],
+  plugins,
   globals: [],
 };
 

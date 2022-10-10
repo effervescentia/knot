@@ -87,13 +87,6 @@ let handler: Runtime.request_handler_t(params_t) =
                           full_range,
                           kind: Capabilities.Function,
                         }
-                      | Style(args, rule_sets) => {
-                          name,
-                          detail: type_ |> ~@Type.pp,
-                          range,
-                          full_range,
-                          kind: Capabilities.Function,
-                        }
                       },
                     );
                   }

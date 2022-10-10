@@ -14,6 +14,7 @@ and raw_t =
   | Float
   | String
   | Element
+  | Style
   | Identifier(untyped_t(string))
   | Group(t)
   | List(t)
@@ -47,6 +48,8 @@ module Dump = {
       | String => untyped_node_to_entity("String")
 
       | Element => untyped_node_to_entity("Element")
+
+      | Style => untyped_node_to_entity("Style")
 
       | Identifier((name, _)) =>
         untyped_node_to_entity(~attributes=[("name", name)], "Identifier")

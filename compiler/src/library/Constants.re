@@ -84,7 +84,6 @@ module Keyword = {
   let enum = "enum";
   let func = "func";
   let view = "view";
-  let style = "style";
   let let_ = "let";
   let nil = "nil";
   let true_ = "true";
@@ -102,6 +101,7 @@ module Keyword = {
   let float = "float";
   let string = "string";
   let element = "element";
+  let style = "style";
 
   /**
    reserved keywords cannot be used as the name of a variable

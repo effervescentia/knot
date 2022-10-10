@@ -182,6 +182,10 @@ and pp_jsx_attr_expr: Fmt.t(A.raw_expression_t) =
       pp_expression(ppf, expr)
     | expr => Fmt.pf(ppf, "(%a)", pp_expression, expr)
 
+and pp_style_rule: Fmt.t(A.raw_style_rule_t) =
+  (ppf, ((key, _), (value, _))) =>
+    Fmt.(pf(ppf, "%a,", attribute(string, pp_expression), (key, value)))
+
 and pp_expression: Fmt.t(A.raw_expression_t) =
   ppf =>
     fun
@@ -231,6 +235,16 @@ and pp_expression: Fmt.t(A.raw_expression_t) =
         )
       )
 
+    | Style(rules) =>
+      Fmt.(
+        pf(
+          ppf,
+          "@[<v>style %a@]",
+          closure(pp_style_rule),
+          rules |> List.map(fst),
+        )
+      )
+
 and pp_statement: Fmt.t(A.raw_statement_t) =
   (ppf, stmt) =>
     switch (stmt) {
@@ -256,27 +270,6 @@ let pp_function_arg: Fmt.t(A.raw_argument_t) =
         | Some((expr, _)) => Fmt.pf(ppf, " = %a", pp_expression, expr)
         | None => Fmt.nop(ppf, ()),
       default,
-    );
-
-let pp_style_matcher: Fmt.t(A.style_matcher_t) =
-  ppf =>
-    fun
-    | MatchClass((id, _)) => Fmt.pf(ppf, ".%s", id)
-    | MatchID((id, _)) => Fmt.pf(ppf, "#%s", id);
-
-let pp_style_rule: Fmt.t(A.raw_style_rule_t) =
-  (ppf, ((key, _), (value, _))) =>
-    Fmt.(pf(ppf, "%a;", attribute(string, pp_expression), (key, value)));
-
-let pp_style_rule_set: Fmt.t(A.raw_style_rule_set_t) =
-  (ppf, (matcher, rules)) =>
-    Fmt.(
-      entity(
-        pp_style_matcher,
-        pp_style_rule,
-        ppf,
-        (matcher, rules |> List.map(fst)),
-      )
     );
 
 let pp_declaration: Fmt.t((string, A.raw_declaration_t)) =
@@ -340,29 +333,6 @@ let pp_declaration: Fmt.t((string, A.raw_declaration_t)) =
           mixins |> List.map(fst),
           pp_function_body,
           expr,
-        )
-      )
-
-    | Style([], rule_sets) =>
-      Fmt.(
-        pf(
-          ppf,
-          "@[<v>style %s %a@]",
-          name,
-          closure(pp_style_rule_set),
-          rule_sets |> List.map(fst),
-        )
-      )
-    | Style(props, rule_sets) =>
-      Fmt.(
-        pf(
-          ppf,
-          "@[<v>style @[<h>%s(%a)@] %a@]",
-          name,
-          list(~sep=Sep.trailing_comma, ppf => pp_function_arg(ppf)),
-          props |> List.map(fst),
-          closure(pp_style_rule_set),
-          rule_sets |> List.map(fst),
         )
       )
     };
