@@ -325,7 +325,7 @@
     "test.smoke.debug": "npm run test:smoke -- -debug"
   },
   "dependencies": {
-    "@esy-ocaml/reason": "*",
+    "@esy-ocaml/reason": "3.7.0",
     "@opam/ANSITerminal": "0.8.2",
     "@opam/alcotest": "1.5.0",
     "@opam/alcotest-lwt": "1.5.0",
@@ -340,12 +340,12 @@
     "@opam/tablecloth-native": "0.0.7",
     "@opam/uutf": "1.0.2",
     "@opam/yaml": "2.1.0",
-    "@opam/yojson": "1.7.0"
+    "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@opam/merlin": "*",
-    "ocaml": "4.10.1002",
-    "pesy": "*",
-    "refmterr": "*"
+    "@opam/merlin": "3.8.0",
+    "ocaml": "4.10.2001",
+    "pesy": "0.4.4",
+    "refmterr": "3.3.2"
   }
 }
