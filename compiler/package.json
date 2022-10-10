@@ -340,12 +340,12 @@
     "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@opam/dune": "3.2.0",
-    "@opam/dune-site": "3.2.0",
+    "@opam/dune": "3.4.1",
+    "@opam/dune-site": "3.4.1",
     "@opam/reason": "3.8.1",
     "@opam/ocamlformat-rpc": "0.21.0",
-    "@opam/ocaml-lsp-server": "1.10.5",
-    "ocaml": "4.13.1000",
+    "@opam/ocaml-lsp-server": "1.13.1",
+    "ocaml": "4.14.0",
     "pesy": "0.4.4"
   }
 }
