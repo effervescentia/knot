@@ -340,12 +340,10 @@
     "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@esy-ocaml/reason": "3.7.0",
     "@opam/dune": "3.2.0",
     "@opam/dune-site": "3.2.0",
-    "@opam/merlin": "3.8.0",
-    "ocaml": "4.10.2001",
-    "pesy": "0.4.4",
-    "refmterr": "3.3.2"
+    "@opam/merlin": "4.6-412",
+    "ocaml": "4.12.1001",
+    "pesy": "0.4.4"
   }
 }
