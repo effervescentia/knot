@@ -325,13 +325,10 @@
     "test.smoke.debug": "npm run test:smoke -- -debug"
   },
   "dependencies": {
-    "@esy-ocaml/reason": "3.7.0",
     "@opam/ANSITerminal": "0.8.2",
     "@opam/alcotest": "1.5.0",
     "@opam/alcotest-lwt": "1.5.0",
     "@opam/dolog": "6.0.0",
-    "@opam/dune": "3.2.0",
-    "@opam/dune-site": "3.2.0",
     "@opam/fileutils": "0.6.3",
     "@opam/fmt": "0.8.9",
     "@opam/fswatch": "11-0.1.0",
@@ -343,6 +340,9 @@
     "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
+    "@esy-ocaml/reason": "3.7.0",
+    "@opam/dune": "3.2.0",
+    "@opam/dune-site": "3.2.0",
     "@opam/merlin": "3.8.0",
     "ocaml": "4.10.2001",
     "pesy": "0.4.4",
