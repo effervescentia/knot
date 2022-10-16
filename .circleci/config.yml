@@ -274,7 +274,7 @@ jobs:
       - setup_lerna
       - run:
           name: Install
-          command: lerna bootstrap -- --immutable
+          command: lerna bootstrap -- --immutable --ignore-optional
       - save_cache:
           <<: *linux_node_cache
           paths:
