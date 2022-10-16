@@ -122,7 +122,7 @@ commands:
     steps:
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/<< parameters.pkg >> -- --immutable --immutable-cache --ignore-optional
+          command: lerna bootstrap --scope=@knot/<< parameters.pkg >> -- --immutable --immutable-cache
   lerna_exec:
     description: execute a command on a particular package
     parameters:
@@ -274,7 +274,7 @@ jobs:
       - setup_lerna
       - run:
           name: Install
-          command: lerna bootstrap -- --immutable --ignore-optional
+          command: lerna bootstrap -- --immutable
       - save_cache:
           <<: *linux_node_cache
           paths:
