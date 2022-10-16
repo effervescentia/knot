@@ -1,15 +1,9 @@
-style EmptyStyle {}
-style NoArgsStyle() {}
+const emptyStyle = style {};
 
-style IdentifierRuleStyle {
-  #foo {}
-}
+const colorStyle = style {
+  mockColor: $mockRed,
+};
 
-style ClassRuleStyle {
-  .foo {}
-}
-
-style MultipleRuleStyle {
-  #foo {}
-  .bar {}
-}
+const rawColorStyle = style {
+  mockColor: "#dac33d",
+};

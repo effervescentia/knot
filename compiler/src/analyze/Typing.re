@@ -184,6 +184,20 @@ let check_jsx_primitive_expression: T.t => option(T.error_t) =
 
   | type_ => Some(InvalidJSXPrimitiveExpression(type_));
 
+let check_style_rule = (name): (((T.t, T.t)) => option(T.error_t)) =>
+  fun
+  /* assume this has been reported already and ignore */
+  | (_, Invalid(_))
+  | (Invalid(_), _) => None
+
+  | (arg_type, value_type) when arg_type == value_type => None
+
+  /* special override for raw string styles */
+  | (_, Valid(`String)) => None
+
+  | (expected_type, actual_type) =>
+    Some(InvalidStyleRule(name, expected_type, actual_type));
+
 let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
   (defs, type_expr) =>
     A.TypeExpression.(
@@ -194,6 +208,7 @@ let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
       | Float => Valid(`Float)
       | String => Valid(`String)
       | Element => Valid(`Element)
+      | Style => Valid(`Style)
 
       | Identifier((id, _)) =>
         defs |> SymbolTable.resolve_type(id) |?: Invalid(NotInferrable)

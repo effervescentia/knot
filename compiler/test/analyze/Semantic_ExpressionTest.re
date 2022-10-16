@@ -172,4 +172,83 @@ let suite =
         );
       }
     ),
+    "resolve style expression"
+    >: (
+      () => {
+        let fizz_type =
+          T.Valid(`Function(([Valid(`Integer)], Valid(`Boolean))));
+        let scope = {
+          ...__throw_scope,
+          context: {
+            ...__throw_scope.context,
+            modules: {
+              ...__throw_scope.context.modules,
+              plugins: [
+                (
+                  StyleExpression,
+                  [
+                    ("fizz", Value(fizz_type)),
+                    ("buzz", Value(Valid(`String))),
+                  ],
+                ),
+                (
+                  StyleRule,
+                  [
+                    (
+                      "foo",
+                      Value(
+                        Valid(
+                          `Function(([Valid(`Boolean)], Valid(`Nil))),
+                        ),
+                      ),
+                    ),
+                    (
+                      "bar",
+                      Value(
+                        Valid(
+                          `Function(([Valid(`Integer)], Valid(`Nil))),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            },
+          },
+        };
+
+        Assert.expression(
+          [
+            (
+              "foo" |> URes.as_bool,
+              (
+                "$fizz" |> A.of_id |> URes.as_typed(fizz_type),
+                [URes.int_prim(123)],
+              )
+              |> A.of_func_call
+              |> URes.as_bool,
+            )
+            |> URes.as_untyped,
+            ("bar" |> URes.as_int, "$buzz" |> A.of_id |> URes.as_string)
+            |> URes.as_untyped,
+          ]
+          |> A.of_style
+          |> URes.as_style,
+          [
+            (
+              "foo" |> URaw.as_unknown,
+              ("$fizz" |> AR.of_id |> URaw.as_unknown, [URaw.int_prim(123)])
+              |> AR.of_func_call
+              |> URaw.as_unknown,
+            )
+            |> URes.as_untyped,
+            ("bar" |> URaw.as_unknown, "$buzz" |> AR.of_id |> URaw.as_unknown)
+            |> URes.as_untyped,
+          ]
+          |> AR.of_style
+          |> URaw.as_style
+          |> SemanticAnalyzer.analyze_expression(scope),
+        );
+      }
+    ),
   ];

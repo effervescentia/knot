@@ -2,45 +2,20 @@ open Kore;
 open Reference;
 
 module Style = Grammar.Style;
-module URaw = Util.RawUtil;
-module URes = Util.ResultUtil;
+module Expression = Grammar.Expression;
+module U = Util.RawUtil;
 module TE = A.TypeExpression;
 
-let __style_rule_type =
-  T.Valid(`Function(([Valid(`String)], Valid(`Nil))));
-let __module_table =
-  ModuleTable.create(
-    ~plugins=[
-      (
-        Plugin.StyleRule,
-        [
-          ("height", Value(__style_rule_type)),
-          ("color", Value(__style_rule_type)),
-        ],
-      ),
-      (
-        Plugin.StyleExpression,
-        [
-          (
-            "px",
-            Value(
-              T.Valid(`Function(([Valid(`Integer)], Valid(`String)))),
-            ),
-          ),
-          ("red", Value(T.Valid(`String))),
-        ],
-      ),
-    ],
-    0,
-  );
-let __context =
-  ParseContext.create(~modules=__module_table, Namespace.Internal("foo"));
+let __context = ParseContext.create(Namespace.Internal("foo"));
 
 module Assert =
   Assert.Make({
     type t = AR.expression_t;
 
-    let parser = Style.parser % Assert.parse_completely % Parser.parse;
+    let parser = ctx =>
+      Style.parser(ctx, Expression.parser)
+      |> Assert.parse_completely
+      |> Parser.parse;
 
     let test =
       Alcotest.(
@@ -56,21 +31,18 @@ let suite =
   >::: [
     "no parse" >: (() => Assert.parse_none(["gibberish", "style", "style {"])),
     "parse - with no arguments"
-    >: (() => Assert.parse([] |> AR.of_style |> URaw.as_style, "style { }")),
+    >: (() => Assert.parse([] |> AR.of_style |> U.as_style, "style { }")),
     "parse - with one rule"
     >: (
       () =>
         Assert.parse(
           ~context=__context,
           [
-            (
-              "color" |> URes.as_typed(__style_rule_type),
-              "$red" |> AR.of_id |> URaw.as_unknown,
-            )
-            |> URaw.as_untyped,
+            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            |> U.as_untyped,
           ]
           |> AR.of_style
-          |> URaw.as_style,
+          |> U.as_style,
           "style {
             color: $red
           }",
@@ -82,14 +54,11 @@ let suite =
         Assert.parse(
           ~context=__context,
           [
-            (
-              "color" |> URes.as_typed(__style_rule_type),
-              "$red" |> AR.of_id |> URaw.as_unknown,
-            )
-            |> URaw.as_untyped,
+            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            |> U.as_untyped,
           ]
           |> AR.of_style
-          |> URaw.as_style,
+          |> U.as_style,
           "style {
             color: $red,
           }",
@@ -102,23 +71,20 @@ let suite =
           ~context=__context,
           [
             (
-              "height" |> URes.as_typed(__style_rule_type),
+              "height" |> U.as_unknown,
               (
-                "$px" |> AR.of_id |> URaw.as_unknown,
-                [(20.0, 2) |> URaw.float_prim],
+                "$px" |> AR.of_id |> U.as_unknown,
+                [(20.0, 2) |> U.float_prim],
               )
               |> AR.of_func_call
-              |> URaw.as_unknown,
+              |> U.as_unknown,
             )
-            |> URaw.as_untyped,
-            (
-              "color" |> URes.as_typed(__style_rule_type),
-              "$red" |> AR.of_id |> URaw.as_unknown,
-            )
-            |> URaw.as_untyped,
+            |> U.as_untyped,
+            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            |> U.as_untyped,
           ]
           |> AR.of_style
-          |> URaw.as_style,
+          |> U.as_style,
           "style {
             height: $px(20.0),
             color: $red

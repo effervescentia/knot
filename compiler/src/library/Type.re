@@ -253,6 +253,7 @@ type error_t =
   | InvalidDecoratorInvocation(t, list(t))
   | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t)
   | UnknownStyleRule(string)
+  | InvalidStyleRule(string, t, t)
   | InvalidViewMixin(t);
 
 /* pretty printing */
@@ -403,6 +404,17 @@ let pp_error: Fmt.t(error_t) =
         )
 
       | UnknownStyleRule(rule) => pf(ppf, "UnknownStyleRule<%s>", rule)
+
+      | InvalidStyleRule(rule, expected_type, actual_type) =>
+        pf(
+          ppf,
+          "InvalidStyleRule<%s, %a, %a>",
+          rule,
+          pp,
+          expected_type,
+          pp,
+          actual_type,
+        )
 
       | InvalidViewMixin(type_) => pf(ppf, "InvalidViewMixin<%a>", pp, type_)
   );

@@ -82,7 +82,7 @@ module Make = (Params: ASTParams) => {
   /**
    string key and style expression pair
    */
-  and raw_style_rule_t = (Node.t(string, Type.t), expression_t)
+  and raw_style_rule_t = (Node.t(string, type_t), expression_t)
 
   /**
    an expression AST node
@@ -271,8 +271,7 @@ module Make = (Params: ASTParams) => {
               |> List.map((((key, value), _) as rule) =>
                    untyped_node_to_entity(
                      ~children=[
-                       node_to_entity(
-                         Type.pp,
+                       typed_node_to_entity(
                          ~attributes=[("value", fst(key))],
                          "Key",
                          key,

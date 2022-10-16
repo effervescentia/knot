@@ -1,0 +1,12 @@
+@plugin("style_rule")
+module Style {
+  enum MockColor:
+    | Named(string);
+
+  declare mockColor: (MockColor) -> nil;
+}
+
+@plugin("style_expression")
+module StyleExpression {
+  declare mockRed: Style.MockColor;
+}

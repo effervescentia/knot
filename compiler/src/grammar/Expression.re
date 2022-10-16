@@ -175,6 +175,11 @@ and jsx_term = (ctx: ParseContext.t): expression_parser_t =>
 
 /* 2, foo, <bar /> */
 and term = (ctx: ParseContext.t): expression_parser_t =>
-  choice([primitive, identifier(ctx), jsx(ctx, (jsx_term, expr_0))]);
+  choice([
+    primitive,
+    Style.parser(ctx, expr_0),
+    identifier(ctx),
+    jsx(ctx, (jsx_term, expr_0)),
+  ]);
 
 let parser = expr_0;
