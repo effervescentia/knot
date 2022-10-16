@@ -16,11 +16,7 @@
     "usage": "nps help"
   },
   "resolutions": {
-    "fsevents": "2.3.2",
     "node-gyp": "9.2.0"
-  },
-  "optionalDependencies": {
-    "fsevents": "2.3.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.0.0",
