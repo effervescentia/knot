@@ -122,7 +122,7 @@ commands:
     steps:
       - run:
           name: Install
-          command: lerna bootstrap --scope=@knot/<< parameters.pkg >> -- --immutable --immutable-cache
+          command: lerna bootstrap --scope=@knot/<< parameters.pkg >> -- --immutable --immutable-cache --ignore-optional
   lerna_exec:
     description: execute a command on a particular package
     parameters:
