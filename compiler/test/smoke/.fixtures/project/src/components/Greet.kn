@@ -1,5 +1,3 @@
-style GreetStyle -> {
-  .root {}
-}
+const greetStyle = style {};
 
-main view Greet(name: string) ~ GreetStyle -> <div .root>{name}</div>;
+main view Greet(name: string) -> <div>{name}</div>;

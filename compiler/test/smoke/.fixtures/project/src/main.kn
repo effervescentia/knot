@@ -2,4 +2,4 @@ import {} from "@/utils/constants";
 import {} from "@/utils/jsx";
 import {} from "@/utils/functions";
 import Greet from "@/components/Greet";
-import Global from "@/styles/Global";
+import globalStyle from "@/styles/Global";
