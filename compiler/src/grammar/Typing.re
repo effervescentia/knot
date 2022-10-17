@@ -11,6 +11,7 @@ let primitive_types =
     (Keyword.float, Float),
     (Keyword.string, String),
     (Keyword.element, Element),
+    (Keyword.style, Style),
   ];
 
 let primitive: type_expression_parser_t =

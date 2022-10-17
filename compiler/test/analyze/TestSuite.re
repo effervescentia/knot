@@ -10,6 +10,7 @@ let tests = [
   TypingTest.suite,
   Typing_BinaryOpTest.suite,
   Typing_JSXTest.suite,
+  Typing_StyleTest.suite,
   Typing_TypeExpressionTest.suite,
   Typing_UnaryOpTest.suite,
 ];

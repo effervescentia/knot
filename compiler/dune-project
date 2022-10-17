@@ -1,8 +1,11 @@
-(lang dune 3.2)
+(lang dune 3.4)
+
 (using dune_site 0.1)
+
 (name knot)
 
 (package
-  (name knot)
-  (sites (share res) (share assets))
-)
+ (name knot)
+ (sites
+  (share res)
+  (share assets)))

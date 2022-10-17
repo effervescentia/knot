@@ -81,6 +81,7 @@ let rec gen_expression =
       gen_expression(expr),
       args |> List.map(fst % gen_expression),
     )
+  | A.Style(rules) => gen_style(rules)
 
 and gen_statement = (~is_last=false) =>
   fun
@@ -224,7 +225,33 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
         ];
 
     JavaScript_AST.Object(props);
-  };
+  }
+
+and gen_style = (rules: list(A.style_rule_t)) =>
+  JavaScript_AST.(
+    iife([
+      Variable(__self, _style_util("styleExpressionPlugin")),
+      Variable(__style_rules, _style_util("styleRulePlugin")),
+      Return(
+        Object(
+          rules
+          |> List.map(
+               fst
+               % (
+                 (((key, _), (value, _))) => (
+                   key,
+                   FunctionCall(
+                     DotAccess(Identifier(__style_rules), key),
+                     [gen_expression(value)],
+                   ),
+                 )
+               ),
+             ),
+        )
+        |> Option.some,
+      ),
+    ])
+  );
 
 let gen_constant = (name: A.identifier_t, value: A.expression_t) =>
   JavaScript_AST.Variable(fst(name), value |> fst |> gen_expression);
@@ -366,14 +393,8 @@ let gen_view =
                    ),
                  ),
                  ...switch (N.get_type(mixin)) {
-                    | T.Valid(`Style(_, ids, classes)) =>
-                      classes
-                      |> List.map(name =>
-                           Variable(
-                             _class_name(name),
-                             DotAccess(Identifier(style_name), name),
-                           )
-                         )
+                    // TODO: add state mixin support here
+
                     | _ => []
                     },
                ];
@@ -397,74 +418,6 @@ let gen_view =
     )
   );
 
-let gen_style =
-    (
-      (name, _): A.identifier_t,
-      args: list(A.argument_t),
-      rule_sets: list(A.style_rule_set_t),
-    ) =>
-  JavaScript_AST.(
-    Expression(
-      Function(
-        Some(name),
-        [__view_props],
-        (
-          args
-          |> List.map(fst)
-          |> List.mapi((index, A.{name: (name, _), default}) => {
-               Variable(
-                 name,
-                 FunctionCall(
-                   __knot_prop,
-                   [Identifier(__view_props), String(name)]
-                   @ (default |?> (((x, _)) => [gen_expression(x)]) |?: []),
-                 ),
-               )
-             })
-        )
-        @ [
-          Variable(__self, _style_util("styleExpressionPlugin")),
-          Variable(__style_rules, _style_util("styleRulePlugin")),
-          Return(
-            Object(
-              rule_sets
-              |> List.map(
-                   fst
-                   % (
-                     ((matcher, rules)) => (
-                       switch (matcher) {
-                       | A.MatchClass((id, _)) => Fmt.str(".%s", id)
-                       | A.MatchID((id, _)) => Fmt.str("#%s", id)
-                       },
-                       Object(
-                         rules
-                         |> List.map(
-                              fst
-                              % (
-                                (((key, _), (value, _))) => (
-                                  key,
-                                  FunctionCall(
-                                    DotAccess(
-                                      Identifier(__style_rules),
-                                      key,
-                                    ),
-                                    [gen_expression(value)],
-                                  ),
-                                )
-                              ),
-                            ),
-                       ),
-                     )
-                   ),
-                 ),
-            )
-            |> Option.some,
-          ),
-        ],
-      ),
-    )
-  );
-
 let gen_declaration = (name: A.identifier_t, (decl, _): A.declaration_t) =>
   (
     switch (decl) {
@@ -472,7 +425,6 @@ let gen_declaration = (name: A.identifier_t, (decl, _): A.declaration_t) =>
     | Enumerated(variants) => [gen_enumerated(name, variants)]
     | Function(args, expr) => [gen_function(name, args, expr)]
     | View(props, mixins, expr) => [gen_view(name, props, mixins, expr)]
-    | Style(args, rule_sets) => [gen_style(name, args, rule_sets)]
     }
   )
   @ [JavaScript_AST.Export(fst(name), None)];

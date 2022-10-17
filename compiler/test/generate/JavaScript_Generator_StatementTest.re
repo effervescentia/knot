@@ -49,15 +49,6 @@ let _assert_view = (expected, actual) =>
       actual |> Tuple.join4(Generator.gen_view),
     )
   );
-let _assert_style = (expected, actual) =>
-  Alcotest.(
-    check(
-      Assert.Compare.statement(Target.Common),
-      "javascript style matches",
-      expected,
-      actual |> Tuple.join3(Generator.gen_style),
-    )
-  );
 
 let __variable_declaration =
   (U.as_untyped("fooBar"), U.int_prim(123)) |> A.of_var;
@@ -311,111 +302,6 @@ let suite =
             ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
             |> U.as_int,
-          ),
-        )
-    ),
-    "style - property with default value"
-    >: (
-      () =>
-        _assert_style(
-          Expression(
-            Function(
-              Some("foo"),
-              ["$props$"],
-              [
-                Variable(
-                  "bar",
-                  FunctionCall(
-                    DotAccess(
-                      DotAccess(Identifier("$knot"), "platform"),
-                      "prop",
-                    ),
-                    [Identifier("$props$"), String("bar"), Number("123")],
-                  ),
-                ),
-                Variable(
-                  "$",
-                  DotAccess(
-                    DotAccess(Identifier("$knot"), "style"),
-                    "styleExpressionPlugin",
-                  ),
-                ),
-                Variable(
-                  "$rules$",
-                  DotAccess(
-                    DotAccess(Identifier("$knot"), "style"),
-                    "styleRulePlugin",
-                  ),
-                ),
-                Return(
-                  Some(
-                    Object([
-                      (
-                        ".fizz",
-                        Object([
-                          (
-                            "height",
-                            FunctionCall(
-                              DotAccess(Identifier("$rules$"), "height"),
-                              [Number("2")],
-                            ),
-                          ),
-                        ]),
-                      ),
-                      (
-                        "#buzz",
-                        Object([
-                          (
-                            "width",
-                            FunctionCall(
-                              DotAccess(Identifier("$rules$"), "width"),
-                              [Number("10")],
-                            ),
-                          ),
-                        ]),
-                      ),
-                    ]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          (
-            U.as_untyped("foo"),
-            [
-              A.{
-                name: U.as_untyped("bar"),
-                default: Some(U.int_prim(123)),
-                type_: None,
-              }
-              |> U.as_nil,
-            ],
-            [
-              (
-                A.MatchClass(U.as_untyped("fizz")),
-                [
-                  (
-                    "height"
-                    |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
-                    U.int_prim(2),
-                  )
-                  |> U.as_untyped,
-                ],
-              )
-              |> U.as_untyped,
-              (
-                A.MatchID(U.as_untyped("buzz")),
-                [
-                  (
-                    "width"
-                    |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
-                    U.int_prim(10),
-                  )
-                  |> U.as_untyped,
-                ],
-              )
-              |> U.as_untyped,
-            ],
           ),
         )
     ),

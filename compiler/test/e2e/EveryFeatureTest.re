@@ -2,7 +2,7 @@ open Kore;
 
 module Build = Executable.Build;
 
-let __empty_library_file = fixture("empty_library.kd");
+let __mock_library_file = fixture("mock_library.kd");
 let __cwd = fixture("every_feature");
 
 let suite =
@@ -25,7 +25,7 @@ let suite =
         Build.run(
           ~report=_ => throw_all,
           global,
-          {...config, ambient: __empty_library_file},
+          {...config, ambient: __mock_library_file},
         );
 
         Assert.directory(
@@ -47,13 +47,11 @@ let suite =
           out_dir,
         |];
         let (global, config) = process_build_cmd(__cwd, argv);
-
         Build.run(
           ~report=_ => throw_all,
           global,
-          {...config, ambient: __empty_library_file},
+          {...config, ambient: __mock_library_file},
         );
-
         Assert.directory(
           "common_build_cache" |> Filename.concat(__cwd),
           out_dir |> Filename.concat(__cwd),
@@ -73,13 +71,11 @@ let suite =
           out_dir,
         |];
         let (global, config) = process_build_cmd(__cwd, argv);
-
         Build.run(
           ~report=_ => throw_all,
           global,
-          {...config, ambient: __empty_library_file},
+          {...config, ambient: __mock_library_file},
         );
-
         Assert.directory(
           "knot_build_cache" |> Filename.concat(__cwd),
           out_dir |> Filename.concat(__cwd),

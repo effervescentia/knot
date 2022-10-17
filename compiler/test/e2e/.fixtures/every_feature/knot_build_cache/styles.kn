@@ -1,0 +1,7 @@
+const emptyStyle = style { };
+const colorStyle = style {
+                     mockColor: $mockRed,
+                   };
+const rawColorStyle = style {
+                        mockColor: "#dac33d",
+                      };

@@ -76,6 +76,15 @@ module Make = (Params: ASTParams) => {
     | Property(identifier_t, option(expression_t))
 
   /**
+   a style AST node
+   */
+  and style_rule_t = untyped_t(raw_style_rule_t)
+  /**
+   string key and style expression pair
+   */
+  and raw_style_rule_t = (Node.t(string, type_t), expression_t)
+
+  /**
    an expression AST node
    */
   and expression_t = node_t(raw_expression_t)
@@ -92,6 +101,7 @@ module Make = (Params: ASTParams) => {
     | Closure(list(statement_t))
     | DotAccess(expression_t, untyped_t(string))
     | FunctionCall(expression_t, list(expression_t))
+    | Style(list(style_rule_t))
 
   /**
    a statement AST node
@@ -129,6 +139,7 @@ module Make = (Params: ASTParams) => {
   let of_closure = xs => Closure(xs);
   let of_dot_access = ((expr, prop)) => DotAccess(expr, prop);
   let of_func_call = ((expr, args)) => FunctionCall(expr, args);
+  let of_style = rules => Style(rules);
 
   let of_unary_op = ((op, x)) => UnaryOp(op, x);
   let of_not_op = x => (Not, x) |> of_unary_op;
@@ -251,6 +262,30 @@ module Make = (Params: ASTParams) => {
               ),
             ],
             "FunctionCall",
+          )
+
+        | Style(rules) =>
+          typed_node_to_entity(
+            ~children=
+              rules
+              |> List.map((((key, value), _) as rule) =>
+                   untyped_node_to_entity(
+                     ~children=[
+                       typed_node_to_entity(
+                         ~attributes=[("value", fst(key))],
+                         "Key",
+                         key,
+                       ),
+                       Entity.create(
+                         ~children=[expr_to_entity(value)],
+                         "Value",
+                       ),
+                     ],
+                     "Rule",
+                     rule,
+                   )
+                 ),
+            "Style",
           )
         }
       )(
@@ -382,16 +417,6 @@ include Make({
     Dump.node_to_entity(Type.pp, ~attributes, ~children, label, node);
 });
 
-type style_matcher_t =
-  | MatchClass(identifier_t)
-  | MatchID(identifier_t);
-
-type style_rule_t = untyped_t(raw_style_rule_t)
-and raw_style_rule_t = (Node.t(string, Type.t), expression_t);
-
-type style_rule_set_t = untyped_t(raw_style_rule_set_t)
-and raw_style_rule_set_t = (style_matcher_t, list(style_rule_t));
-
 /**
  a declaration AST node
  */
@@ -403,8 +428,7 @@ and raw_declaration_t =
   | Constant(expression_t)
   | Enumerated(list((identifier_t, list(node_t(TypeExpression.raw_t)))))
   | Function(list(argument_t), expression_t)
-  | View(list(argument_t), list(Node.t(string, Type.t)), expression_t)
-  | Style(list(argument_t), list(style_rule_set_t));
+  | View(list(argument_t), list(Node.t(string, Type.t)), expression_t);
 
 /**
  a stdlib import AST node
@@ -454,14 +478,10 @@ let of_named_import = ((x, y)) => NamedImport(x, y);
 let of_main_export = x => MainExport(x);
 let of_named_export = x => NamedExport(x);
 
-let of_class_matcher = x => MatchClass(x);
-let of_id_matcher = x => MatchID(x);
-
 let of_const = x => Constant(x);
 let of_enum = variants => Enumerated(variants);
 let of_func = ((args, expr)) => Function(args, expr);
 let of_view = ((props, mixins, expr)) => View(props, mixins, expr);
-let of_style = ((args, rule_sets)) => Style(args, rule_sets);
 
 let of_standard_import = imports => StandardImport(imports);
 let of_import = ((namespace, imports)) => Import(namespace, imports);
@@ -476,11 +496,6 @@ module Dump = {
     fun
     | MainExport(id) => id_to_entity("MainExport", id)
     | NamedExport(id) => id_to_entity("NamedExport", id);
-
-  let style_matcher_to_entity =
-    fun
-    | MatchClass(id) => id_to_entity("ClassMatcher", id)
-    | MatchID(id) => id_to_entity("IDMatcher", id);
 
   let argument_to_entity = (label, arg) => {
     let {name, default, type_} = fst(arg);
@@ -562,55 +577,6 @@ module Dump = {
             Entity.create(~children=[expr_to_entity(expr)], "Body"),
           ],
           "View",
-          decl,
-        )
-
-      | Style(props, rule_sets) =>
-        typed_node_to_entity(
-          ~children=[
-            Entity.create(
-              ~children=props |> List.map(argument_to_entity("Property")),
-              "Properties",
-            ),
-            Entity.create(
-              ~children=
-                rule_sets
-                |> List.map((((matcher, rules), _) as rule_set) =>
-                     untyped_node_to_entity(
-                       ~children=[
-                         style_matcher_to_entity(matcher),
-                         Entity.create(
-                           ~children=
-                             rules
-                             |> List.map((((key, value), _) as rule) =>
-                                  untyped_node_to_entity(
-                                    ~children=[
-                                      node_to_entity(
-                                        Type.pp,
-                                        ~attributes=[("value", fst(key))],
-                                        "Key",
-                                        key,
-                                      ),
-                                      Entity.create(
-                                        ~children=[expr_to_entity(value)],
-                                        "Value",
-                                      ),
-                                    ],
-                                    "Rule",
-                                    rule,
-                                  )
-                                ),
-                           "Rules",
-                         ),
-                       ],
-                       "RuleSet",
-                       rule_set,
-                     )
-                   ),
-              "RuleSets",
-            ),
-          ],
-          "Style",
           decl,
         )
       };

@@ -325,27 +325,27 @@
     "test.smoke.debug": "npm run test:smoke -- -debug"
   },
   "dependencies": {
-    "@esy-ocaml/reason": "*",
     "@opam/ANSITerminal": "0.8.2",
     "@opam/alcotest": "1.5.0",
     "@opam/alcotest-lwt": "1.5.0",
     "@opam/dolog": "6.0.0",
-    "@opam/dune": "3.2.0",
-    "@opam/dune-site": "3.2.0",
+    "@opam/dune": "3.4.1",
+    "@opam/dune-site": "3.4.1",
     "@opam/fileutils": "0.6.3",
     "@opam/fmt": "0.8.9",
     "@opam/fswatch": "11-0.1.0",
     "@opam/fswatch_lwt": "11-0.1.0",
     "@opam/lwt": "5.4.0",
+    "@opam/reason": "3.8.1",
     "@opam/tablecloth-native": "0.0.7",
     "@opam/uutf": "1.0.2",
     "@opam/yaml": "2.1.0",
-    "@opam/yojson": "1.7.0"
+    "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@opam/merlin": "*",
-    "ocaml": "4.10.1002",
-    "pesy": "*",
-    "refmterr": "*"
+    "@opam/ocamlformat-rpc": "0.21.0",
+    "@opam/ocaml-lsp-server": "1.13.1",
+    "ocaml": "4.14.0",
+    "pesy": "0.4.4"
   }
 }

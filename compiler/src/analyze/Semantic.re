@@ -247,9 +247,63 @@ and analyze_expression =
         | _ => Invalid(NotInferrable)
         },
       );
+
+    | Style(rules) =>
+      let rule_scope = Scope.create_child(expr_range, scope);
+      let expression_scope = Scope.create_child(expr_range, scope);
+      Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
+      Scope.inject_plugin_types(StyleExpression, expression_scope);
+
+      let analyzed_rules =
+        rules
+        |> List.map(
+             N.map(
+               Tuple.map_each2(
+                 analyze_style_rule(rule_scope),
+                 analyze_expression(expression_scope),
+               ),
+             ),
+           );
+
+      analyzed_rules
+      |> List.map(
+           fst
+           % (
+             ((key, value)) =>
+               Typing.check_style_rule(
+                 fst(key),
+                 (Node.get_type(key), Node.get_type(value)),
+               )
+           ),
+         )
+      |> List.iter(
+           Option.iter(S.report_type_err(expression_scope, expr_range)),
+         );
+
+      (A.of_style(analyzed_rules), T.Valid(`Style));
     };
 
   N.typed(expr, type_, expr_range);
+}
+
+and analyze_style_rule = (scope: S.t, raw_rule: N.t(string, TR.t)) => {
+  let key = fst(raw_rule);
+  let type_ =
+    scope
+    |> Scope.lookup(key)
+    |> (
+      fun
+      | Some(Valid(`Function([Valid(_) as t], Valid(`Nil)))) => t
+      | _ => {
+          let err = T.UnknownStyleRule(key);
+
+          err |> S.report_type_err(scope, N.get_range(raw_rule));
+
+          T.Invalid(NotInferrable);
+        }
+    );
+
+  raw_rule |> N.add_type(type_);
 }
 
 and analyze_statement = (scope: S.t, raw_stmt: AR.statement_t): A.statement_t => {

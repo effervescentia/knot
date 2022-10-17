@@ -43,3 +43,11 @@ const invalid_dot_access_variable = (true).property;
 const invalid_func_call_variable = ("string")(123, 456.78);
 
 func untyped_arg_function(first_arg: boolean, second_arg) -> nil;
+
+const unknown_rule_style = style {
+  foo: "bar",
+};
+
+const invalid_rule_style = style {
+  mockColor: 123,
+};

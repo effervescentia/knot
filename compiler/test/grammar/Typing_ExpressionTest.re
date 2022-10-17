@@ -46,6 +46,8 @@ let suite =
     >: (() => Assert.parse(U.as_untyped(TE.String), "string")),
     "parse element type"
     >: (() => Assert.parse(U.as_untyped(TE.Element), "element")),
+    "parse style type"
+    >: (() => Assert.parse(U.as_untyped(TE.Style), "style")),
     "parse type identifier"
     >: (
       () =>

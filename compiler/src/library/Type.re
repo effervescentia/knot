@@ -19,7 +19,15 @@ module DecoratorTarget = {
 };
 
 module Primitive = {
-  type t = [ | `Nil | `Boolean | `Integer | `Float | `String | `Element];
+  type t = [
+    | `Nil
+    | `Boolean
+    | `Integer
+    | `Float
+    | `String
+    | `Element
+    | `Style
+  ];
 
   /* pretty printing */
 
@@ -34,6 +42,7 @@ module Primitive = {
           | `Float => Keyword.float
           | `String => Keyword.string
           | `Element => Keyword.element
+          | `Style => Keyword.style
           }
         )
         |> string(ppf)
@@ -56,7 +65,6 @@ module Container = {
 
   type entity_t('a) = [
     | `View(list((string, 'a)), 'a)
-    | `Style(list('a), list(string), list(string))
     | `Module(list((string, module_entry_t('a))))
   ];
 
@@ -187,7 +195,7 @@ module Raw = {
   let rec pp: Fmt.t(t) =
     (ppf, type_) =>
       switch (type_) {
-      | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as x =>
+      | (`Nil | `Boolean | `Integer | `Float | `String | `Element | `Style) as x =>
         Primitive.pp(ppf, x)
 
       | `List(t) => Container.pp_list(pp, ppf, t)
@@ -202,9 +210,6 @@ module Raw = {
         Container.pp_decorator(pp, ppf, (args, target))
 
       | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
-
-      | `Style(args, ids, classes) =>
-        Container.pp_style(pp, ppf, (args, ids, classes))
 
       | `Module(entries) => Container.pp_module(pp, ppf, entries)
 
@@ -248,6 +253,7 @@ type error_t =
   | InvalidDecoratorInvocation(t, list(t))
   | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t)
   | UnknownStyleRule(string)
+  | InvalidStyleRule(string, t, t)
   | InvalidViewMixin(t);
 
 /* pretty printing */
@@ -261,7 +267,7 @@ let rec pp: Fmt.t(t) =
 and pp_valid: Fmt.t(valid_t) =
   ppf =>
     fun
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element) as t =>
+    | (`Nil | `Boolean | `Integer | `Float | `String | `Element | `Style) as t =>
       Primitive.pp(ppf, t)
     | `List(t) => Container.pp_list(pp, ppf, t)
     | `Struct(props) => Container.pp_struct(pp, ppf, props)
@@ -270,8 +276,6 @@ and pp_valid: Fmt.t(valid_t) =
     | `Decorator(args, target) =>
       Container.pp_decorator(pp, ppf, (args, target))
     | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
-    | `Style(args, ids, classes) =>
-      Container.pp_style(pp, ppf, (args, ids, classes))
     | `Module(entries) => Container.pp_module(pp, ppf, entries)
 
 and pp_invalid: Fmt.t(invalid_t) =
@@ -401,12 +405,23 @@ let pp_error: Fmt.t(error_t) =
 
       | UnknownStyleRule(rule) => pf(ppf, "UnknownStyleRule<%s>", rule)
 
+      | InvalidStyleRule(rule, expected_type, actual_type) =>
+        pf(
+          ppf,
+          "InvalidStyleRule<%s, %a, %a>",
+          rule,
+          pp,
+          expected_type,
+          pp,
+          actual_type,
+        )
+
       | InvalidViewMixin(type_) => pf(ppf, "InvalidViewMixin<%a>", pp, type_)
   );
 
 let rec of_raw = (raw_type: Raw.t): t =>
   switch (raw_type) {
-  | (`Nil | `Integer | `Float | `Boolean | `String | `Element) as t =>
+  | (`Nil | `Integer | `Float | `Boolean | `String | `Element | `Style) as t =>
     Valid(t)
 
   | `List(t) => Valid(`List(of_raw(t)))
@@ -424,9 +439,6 @@ let rec of_raw = (raw_type: Raw.t): t =>
 
   | `View(props, res) =>
     Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))
-
-  | `Style(args, ids, classes) =>
-    Valid(`Style((args |> List.map(of_raw), ids, classes)))
 
   | `Module(entries) =>
     Valid(

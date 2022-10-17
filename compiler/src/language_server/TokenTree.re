@@ -70,6 +70,8 @@ let rec of_expr =
       expr |> of_expr |> _wrap(N.get_range(expr)),
       args |> List.map(of_expr) |> of_list,
     )
+  | (A.Style(rules), (_, range)) =>
+    rules |> List.map(fst % snd % of_expr) |> of_list
 
 and of_jsx =
   fun
@@ -141,15 +143,7 @@ let of_decl =
   | A.Function(args, expr) =>
     _join(of_args(args), expr |> of_expr |> _wrap(N.get_range(expr)))
   | A.View(props, mixins, expr) =>
-    _join(of_args(props), expr |> of_expr |> _wrap(N.get_range(expr)))
-  | A.Style(args, rule_sets) =>
-    _join(
-      of_args(args),
-      rule_sets
-      |> List.map(fst % snd % List.map(fst % snd % of_expr))
-      |> List.flatten
-      |> of_list,
-    );
+    _join(of_args(props), expr |> of_expr |> _wrap(N.get_range(expr)));
 
 let of_import =
   fun

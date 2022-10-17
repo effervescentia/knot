@@ -2,237 +2,93 @@ open Kore;
 open Reference;
 
 module Style = Grammar.Style;
-module U = Util.ResultUtil;
+module Expression = Grammar.Expression;
+module U = Util.RawUtil;
 module TE = A.TypeExpression;
 
-module Assert = {
-  include Assert;
-  include Assert.Make({
-    type t = N.t((A.export_t, A.declaration_t), unit);
+let __context = ParseContext.create(Namespace.Internal("foo"));
+
+module Assert =
+  Assert.Make({
+    type t = AR.expression_t;
 
     let parser = ctx =>
-      Style.parser(ctx, A.of_named_export)
+      Style.parser(ctx, Expression.parser)
       |> Assert.parse_completely
       |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(
-            (ppf, stmt) => {
-              let (export, decl) = fst(stmt);
-
-              A.Dump.(
-                untyped_node_to_entity(
-                  "Declaration",
-                  ~children=[
-                    export |> export_to_entity,
-                    decl |> decl_to_entity,
-                  ],
-                  stmt,
-                )
-                |> Entity.pp(ppf)
-              );
-            },
-            (==),
-          ),
+          testable(ppf => AR.Dump.(expr_to_entity % Entity.pp(ppf)), (==)),
           "program matches",
         )
       );
   });
-};
 
 let suite =
   "Grammar.Style"
   >::: [
-    "no parse"
-    >: (
-      () =>
-        Assert.parse_none([
-          "gibberish",
-          "style",
-          "style Foo",
-          "style Foo ()",
-          "style Foo () ->",
-          "style Foo () -> {",
-          "style Foo ->",
-          "style Foo -> {",
-        ])
-    ),
+    "no parse" >: (() => Assert.parse_none(["gibberish", "style", "style {"])),
     "parse - with no arguments"
+    >: (() => Assert.parse([] |> AR.of_style |> U.as_style, "style { }")),
+    "parse - with one rule"
     >: (
       () =>
         Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            ([], []) |> A.of_style |> U.as_style([], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo -> { }",
-        )
-    ),
-    "parse - with empty arguments"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            ([], []) |> A.of_style |> U.as_style([], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo () -> { }",
-        )
-    ),
-    "parse - with typed argument"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [
-                A.{
-                  name: U.as_untyped("fizz"),
-                  type_: Some(U.as_untyped(TE.Integer)),
-                  default: None,
-                }
-                |> U.as_int,
-              ],
-              [],
-            )
-            |> A.of_style
-            |> U.as_style([Valid(`Integer)], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo (fizz: integer) -> { }",
-        )
-    ),
-    "parse - with argument with default"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [
-                A.{
-                  name: U.as_untyped("fizz"),
-                  type_: None,
-                  default: Some(U.string_prim("bar")),
-                }
-                |> U.as_string,
-              ],
-              [],
-            )
-            |> A.of_style
-            |> U.as_style([Valid(`String)], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo (fizz = \"bar\") -> { }",
-        )
-    ),
-    "parse - with typed argument with default"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [
-                A.{
-                  name: U.as_untyped("fizz"),
-                  type_: Some(U.as_untyped(TE.Boolean)),
-                  default: Some(U.bool_prim(true)),
-                }
-                |> U.as_bool,
-              ],
-              [],
-            )
-            |> A.of_style
-            |> U.as_style([Valid(`Boolean)], [], []),
-          )
-          |> U.as_untyped,
-          "style Foo (fizz: boolean = true) -> { }",
-        )
-    ),
-    "parse - with empty class rule set"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            (
-              [],
-              [(A.MatchClass(U.as_untyped("fizz")), []) |> U.as_untyped],
-            )
-            |> A.of_style
-            |> U.as_style([], [], ["fizz"]),
-          )
-          |> U.as_untyped,
-          "style Foo -> {
-            .fizz {}
+          ~context=__context,
+          [
+            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            |> U.as_untyped,
+          ]
+          |> AR.of_style
+          |> U.as_style,
+          "style {
+            color: $red
           }",
         )
     ),
-    "parse - with empty identifier rule set"
+    "parse - with trailing comma"
     >: (
       () =>
         Assert.parse(
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
-            ([], [(A.MatchID(U.as_untyped("fizz")), []) |> U.as_untyped])
-            |> A.of_style
-            |> U.as_style([], ["fizz"], []),
-          )
-          |> U.as_untyped,
-          "style Foo -> {
-            #fizz {}
+          ~context=__context,
+          [
+            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            |> U.as_untyped,
+          ]
+          |> AR.of_style
+          |> U.as_style,
+          "style {
+            color: $red,
           }",
         )
     ),
-    "parse - with multiple rules and rule sets"
+    "parse - with multiple rules"
     >: (
       () =>
         Assert.parse(
-          ~context=ParseContext.create(Namespace.Internal("foo")),
-          (
-            "Foo" |> U.as_untyped |> A.of_named_export,
+          ~context=__context,
+          [
             (
-              [],
-              [
-                (A.MatchID(U.as_untyped("bar")), []) |> U.as_untyped,
-                (A.MatchID(U.as_untyped("fizz")), []) |> U.as_untyped,
-                (A.MatchClass(U.as_untyped("buzz")), []) |> U.as_untyped,
-              ],
+              "height" |> U.as_unknown,
+              (
+                "$px" |> AR.of_id |> U.as_unknown,
+                [(20.0, 2) |> U.float_prim],
+              )
+              |> AR.of_func_call
+              |> U.as_unknown,
             )
-            |> A.of_style
-            |> U.as_style([], ["bar", "fizz"], ["buzz"]),
-          )
-          |> U.as_untyped,
-          "style Foo -> {
-            #bar {
-            }
-
-            #fizz {
-            }
-
-            .buzz {
-            }
+            |> U.as_untyped,
+            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            |> U.as_untyped,
+          ]
+          |> AR.of_style
+          |> U.as_style,
+          "style {
+            height: $px(20.0),
+            color: $red
           }",
-          /* TODO: allow these to be referenced */
-          /* "style Foo -> {
-               #bar {
-                 height: $px(20.0)
-               }
-
-               #fizz {
-                 width: $px(10.0)
-               }
-
-               .buzz {
-                 color: $red
-               }
-             }", */
         )
     ),
   ];

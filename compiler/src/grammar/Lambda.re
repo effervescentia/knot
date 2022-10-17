@@ -32,11 +32,11 @@ let arguments = (ctx: ParseContext.t) =>
     }
   )
   |> M.comma_sep
-  |> M.between(Symbol.open_group, Symbol.close_group)
-  >|= fst;
+  |> M.between(Symbol.open_group, Symbol.close_group);
 
 let _full_parser = (~mixins, ctx: ParseContext.t) =>
   arguments(ctx)
+  >|= fst
   |> option([])
   >>= (
     args =>

@@ -15,6 +15,9 @@
     "release": "nps release",
     "usage": "nps help"
   },
+  "resolutions": {
+    "node-gyp": "9.2.0"
+  },
   "devDependencies": {
     "@commitlint/cli": "^8.0.0",
     "@commitlint/config-conventional": "^8.0.0",

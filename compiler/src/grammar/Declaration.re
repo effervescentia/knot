@@ -13,7 +13,6 @@ let parser = (ctx: ParseContext.t) =>
         Enumerated.parser(ctx, f),
         Function.parser(ctx, f),
         View.parser(ctx, f),
-        Style.parser(ctx, f),
       ])
       >|= N.map(A.of_decl)
   );

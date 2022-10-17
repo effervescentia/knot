@@ -33,6 +33,16 @@ let _assert_unary_op = (expected, actual) =>
     )
   );
 
+let _assert_style = (expected, actual) =>
+  Alcotest.(
+    check(
+      Assert.Compare.expression(Target.Common),
+      "javascript style matches",
+      expected,
+      actual |> Generator.gen_style,
+    )
+  );
+
 let suite =
   "Generate.JavaScript_Generator | Expression"
   >::: [
@@ -415,6 +425,71 @@ let suite =
         _assert_unary_op(
           UnaryOp("-", Group(Number("123"))),
           (Negative, U.int_prim(123)),
+        )
+    ),
+    "style - property with default value"
+    >: (
+      () =>
+        _assert_style(
+          FunctionCall(
+            Group(
+              Function(
+                None,
+                [],
+                [
+                  Variable(
+                    "$",
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "style"),
+                      "styleExpressionPlugin",
+                    ),
+                  ),
+                  Variable(
+                    "$rules$",
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "style"),
+                      "styleRulePlugin",
+                    ),
+                  ),
+                  Return(
+                    Some(
+                      Object([
+                        (
+                          "height",
+                          FunctionCall(
+                            DotAccess(Identifier("$rules$"), "height"),
+                            [Number("2")],
+                          ),
+                        ),
+                        (
+                          "width",
+                          FunctionCall(
+                            DotAccess(Identifier("$rules$"), "width"),
+                            [Number("10")],
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            [],
+          ),
+          [
+            (
+              "height"
+              |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+              U.int_prim(2),
+            )
+            |> U.as_untyped,
+            (
+              "width"
+              |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+              U.int_prim(10),
+            )
+            |> U.as_untyped,
+          ],
         )
     ),
   ];
