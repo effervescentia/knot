@@ -7,5 +7,5 @@
    (name Knot)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lib)
-   (libraries  ANSITerminal dolog fmt lwt lwt.unix tablecloth-native knot.pretty )
+   (libraries  ANSITerminal camlp-streams dolog fmt lwt lwt.unix tablecloth-native knot.pretty )
 )

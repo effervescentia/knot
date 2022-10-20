@@ -179,6 +179,7 @@
     "src/library": {
       "require": [
         "ANSITerminal",
+        "camlp-streams",
         "dolog",
         "fmt",
         "lwt",
@@ -328,6 +329,7 @@
     "@opam/ANSITerminal": "0.8.2",
     "@opam/alcotest": "1.5.0",
     "@opam/alcotest-lwt": "1.5.0",
+    "@opam/camlp-streams": "5.0.1",
     "@opam/dolog": "6.0.0",
     "@opam/dune": "3.4.1",
     "@opam/dune-site": "3.4.1",

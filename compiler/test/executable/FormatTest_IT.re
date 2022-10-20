@@ -29,15 +29,18 @@ let suite =
           {root_dir: temp_dir, source_dir: temp_dir, ambient: ""},
         );
 
-        Async.on_tick(() => {
-          Assert.file_exists(output_file);
-          Assert.string(
-            "const ABC = 123;\n",
-            Util.read_file_to_string(output_file),
-          );
+        Async.on_tick(
+          () => {
+            Assert.file_exists(output_file);
+            Assert.string(
+              "const ABC = 123;\n",
+              Util.read_file_to_string(output_file),
+            );
 
-          resolve();
-        })
+            resolve();
+          },
+          (),
+        )
         |> ignore;
 
         promise;
@@ -59,21 +62,24 @@ let suite =
           {root_dir: temp_dir, source_dir: temp_dir, ambient: ""},
         );
 
-        Async.on_tick(() => {
-          Assert.file_exists(main_file);
-          Assert.string(
-            "import Utils from \"@/utils\";\n",
-            Util.read_file_to_string(main_file),
-          );
+        Async.on_tick(
+          () => {
+            Assert.file_exists(main_file);
+            Assert.string(
+              "import Utils from \"@/utils\";\n",
+              Util.read_file_to_string(main_file),
+            );
 
-          Assert.file_exists(utils_file);
-          Assert.string(
-            "import Main from \"@/main\";\n",
-            Util.read_file_to_string(utils_file),
-          );
+            Assert.file_exists(utils_file);
+            Assert.string(
+              "import Main from \"@/main\";\n",
+              Util.read_file_to_string(utils_file),
+            );
 
-          resolve();
-        })
+            resolve();
+          },
+          (),
+        )
         |> ignore;
 
         promise;
@@ -98,15 +104,18 @@ let suite =
           {root_dir: temp_dir, source_dir: temp_dir, ambient: ""},
         );
 
-        Async.on_tick(() => {
-          Assert.file_exists(main_file);
-          Assert.string(
-            "import Utils from \"@/utils\";\n",
-            Util.read_file_to_string(main_file),
-          );
+        Async.on_tick(
+          () => {
+            Assert.file_exists(main_file);
+            Assert.string(
+              "import Utils from \"@/utils\";\n",
+              Util.read_file_to_string(main_file),
+            );
 
-          resolve();
-        })
+            resolve();
+          },
+          (),
+        )
         |> ignore;
 
         promise;

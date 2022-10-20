@@ -573,6 +573,26 @@ let _extract_type_err =
       [],
     )
 
+  | Type.InvalidStyleRule(rule, expected, actual) => (
+      "Unknown Style Rule",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>the style rule %a was expects a value of type %a but received %a@]",
+              bad_str,
+              rule,
+              good(Type.pp),
+              expected,
+              bad(Type.pp),
+              actual,
+            )
+        )
+      ),
+      [],
+    )
+
   | Type.InvalidViewMixin(type_) => (
       "Invalid View Mixin",
       Fmt.(

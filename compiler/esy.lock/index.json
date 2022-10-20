@@ -1,5 +1,5 @@
 {
-  "checksum": "cede309caa245c3106e1a60081e091e7",
+  "checksum": "22c4044e62cdd71b2ff4a5b7000df255",
   "root": "knot@link-dev:./package.json",
   "node": {
     "pesy@0.4.4@d41d8cd9": {
@@ -51,6 +51,7 @@
         "@opam/fileutils@opam:0.6.3@97178a43",
         "@opam/dune-site@opam:3.4.1@3b91fa5b",
         "@opam/dune@opam:3.4.1@84d54aea", "@opam/dolog@opam:6.0.0@ccf8548a",
+        "@opam/camlp-streams@opam:5.0.1@daaa0f94",
         "@opam/alcotest-lwt@opam:1.5.0@f1f00af0",
         "@opam/alcotest@opam:1.5.0@338d9572",
         "@opam/ANSITerminal@opam:0.8.2@0beec3a5"
