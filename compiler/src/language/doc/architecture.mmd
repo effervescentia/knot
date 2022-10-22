@@ -1,0 +1,18 @@
+graph TD
+  out(( ))
+  merge{ }
+  result{{Program.t}}
+
+  Primitive --> Expression
+  Identifier --> Expression
+  JSX --> Expression
+  Statement --> Expression
+  Expression --> Statement
+  Expression --> JSX
+  Statement --> Declaration
+  Identifier --> Declaration
+  Lambda --> Declaration
+  Declaration --> merge
+  Import --> merge
+  merge --> result
+  result --> |output| out

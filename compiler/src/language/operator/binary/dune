@@ -1,0 +1,11 @@
+
+; !!!! This dune file is generated from the package.json file by pesy. If you modify it by hand
+; !!!! your changes will be undone! Instead, edit the package.json and then rerun 'esy pesy' at the project root.
+; !!!! If you want to stop using pesy and manage this file by hand, change package.json's 'esy.build' command to: refmterr dune build -p  knot
+(library
+   ; The namespace that other packages/libraries will access this library through
+   (name KBinaryOperator)
+   ; Other libraries list this name in their package.json 'require' field to use this library.
+   (public_name knot.lang.operator.binary)
+   (libraries  knot.lang.operator.binary.equal knot.lang.operator.binary.unequal knot.lang.operator.binary.logical_and knot.lang.operator.binary.logical_or knot.lang.operator.binary.less_than knot.lang.operator.binary.less_or_equal knot.lang.operator.binary.greater_than knot.lang.operator.binary.greater_or_equal knot.lang.operator.binary.add knot.lang.operator.binary.subtract knot.lang.operator.binary.multiply knot.lang.operator.binary.divide knot.lang.operator.binary.exponentiate )
+)
