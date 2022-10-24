@@ -7,5 +7,5 @@
    (name TestGrammar)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.grammar_test)
-   (libraries  knot.test knot.lib_test knot.grammar knot.parse knot.file )
+   (libraries  knot.test knot.lib_test knot.lang knot.parse knot.file )
 )

@@ -5,7 +5,7 @@ module U = Util.RawUtil;
 
 module Assert =
   Assert.MakePrimitive({
-    let parser = Primitive.parser;
+    let parser = KPrimitive.Plugin.parse;
   });
 
 let suite =

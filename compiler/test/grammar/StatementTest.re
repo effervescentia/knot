@@ -1,7 +1,5 @@
 open Kore;
 
-module Expression = Grammar.Expression;
-module Statement = Grammar.Statement;
 module U = Util.RawUtil;
 
 module Assert =
@@ -9,7 +7,7 @@ module Assert =
     type t = AR.statement_t;
 
     let parser = ctx =>
-      Statement.parser(ctx, Expression.parser)
+      KStatement.Plugin.parse(ctx, KExpression.Plugin.parse)
       |> Assert.parse_completely
       |> Parser.parse;
 

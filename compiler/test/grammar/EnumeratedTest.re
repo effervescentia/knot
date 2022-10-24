@@ -1,7 +1,6 @@
 open Kore;
 
 module Export = Reference.Export;
-module Enumerated = Grammar.Enumerated;
 module TE = AST.TypeExpression;
 module U = Util.ResultUtil;
 
@@ -11,7 +10,7 @@ module Assert = {
     type t = N.t((A.export_t, A.declaration_t), unit);
 
     let parser = ctx =>
-      Enumerated.parser(ctx, A.of_named_export)
+      KEnumerated.Plugin.parse(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 

@@ -1,6 +1,7 @@
 open Knot.Kore;
 
 let parse = Parser.expression;
+let parse_jsx_term = Parser.jsx_term;
 
 let rec pp: Fmt.t(AST.raw_expression_t) =
   ppf =>

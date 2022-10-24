@@ -1,13 +1,13 @@
 open Kore;
 
-module Identifier = Grammar.Identifier;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
     type t = AR.identifier_t;
 
-    let parser = Identifier.parser % Assert.parse_completely % Parser.parse;
+    let parser =
+      KIdentifier.Plugin.parse % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

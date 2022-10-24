@@ -1,6 +1,6 @@
 open Kore;
 
-module Formatter = Grammar.Formatter;
+module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
 let _main_import = (name, f) => (

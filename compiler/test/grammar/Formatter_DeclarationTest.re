@@ -1,6 +1,6 @@
 open Kore;
 
-module Formatter = Grammar.Formatter;
+module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
 let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);

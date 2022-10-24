@@ -1,7 +1,6 @@
 open Kore;
 open Reference;
 
-module Declaration = Grammar.Declaration;
 module U = Util.ResultUtil;
 
 module Assert = {
@@ -9,7 +8,8 @@ module Assert = {
   include Assert.Make({
     type t = A.module_statement_t;
 
-    let parser = Declaration.parser % Assert.parse_completely % Parser.parse;
+    let parser =
+      KDeclaration.Plugin.parse % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

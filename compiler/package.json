@@ -61,7 +61,7 @@
       "require": [
         "knot.test",
         "knot.lib_test",
-        "knot.grammar",
+        "knot.lang",
         "knot.parse",
         "knot.file"
       ],

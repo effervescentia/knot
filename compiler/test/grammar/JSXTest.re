@@ -1,6 +1,5 @@
 open Kore;
 
-module Expression = Grammar.Expression;
 module JSX = Grammar.JSX;
 module U = Util.RawUtil;
 
@@ -9,7 +8,10 @@ module Assert =
     type t = N.t(AR.jsx_t, unit);
 
     let parser = ctx =>
-      JSX.parser(ctx, (Expression.jsx_term, Expression.parser))
+      JSX.parser(
+        ctx,
+        (KExpression.Plugin.parse_jsx_term, KExpression.Plugin.parse),
+      )
       |> Assert.parse_completely
       |> Parser.parse;
 
