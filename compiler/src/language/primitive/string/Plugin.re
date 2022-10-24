@@ -5,10 +5,7 @@ module Matchers = Grammar.Matchers;
 
 let type_ = `String;
 
-let parse: Grammar.Kore.primitive_parser_t =
-  Matchers.string
-  >|= Node.map(AST.Raw.of_string)
-  >|= Node.add_type(Type.Raw.(type_));
+let parse = Parser.string;
 
 let analyze = x => Node.add_type(Type.Valid(type_), x);
 

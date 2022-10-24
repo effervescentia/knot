@@ -240,9 +240,24 @@
       "name": "knot.lang.primitive.boolean",
       "namespace": "KBoolean"
     },
-    "src/language/primitive/number": {
+    "src/language/primitive/number/integer": {
       "require": [
         "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.number.integer",
+      "namespace": "KInteger"
+    },
+    "src/language/primitive/number/float": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.number.float",
+      "namespace": "KFloat"
+    },
+    "src/language/primitive/number": {
+      "require": [
+        "knot.lang.primitive.number.integer",
+        "knot.lang.primitive.number.float"
       ],
       "name": "knot.lang.primitive.number",
       "namespace": "KNumber"
