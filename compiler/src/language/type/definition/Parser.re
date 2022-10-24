@@ -1,7 +1,6 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Glyph = Grammar.Glyph;
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
 module Symbol = Grammar.Symbol;

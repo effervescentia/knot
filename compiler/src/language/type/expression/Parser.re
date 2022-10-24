@@ -1,7 +1,6 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Glyph = Grammar.Glyph;
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
 module Symbol = Grammar.Symbol;
@@ -35,7 +34,7 @@ let list =
     : Grammar.Kore.type_expression_parser_t =>
   parse_expr
   |> suffixed_by(
-       Glyph.list_type_suffix
+       Matchers.glyph("[]")
        >|= (
          (suffix, expr) =>
            Node.untyped(TE.of_list(expr), Node.join_ranges(expr, suffix))
@@ -60,7 +59,7 @@ let function_ =
   |> Matchers.between(Symbol.open_group, Symbol.close_group)
   >>= (
     args =>
-      Glyph.lambda
+      Matchers.glyph("->")
       >> parse_expr
       >|= (
         res =>

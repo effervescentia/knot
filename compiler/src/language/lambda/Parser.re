@@ -1,7 +1,6 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Glyph = Grammar.Glyph;
 module Matchers = Grammar.Matchers;
 module Symbol = Grammar.Symbol;
 
@@ -63,7 +62,7 @@ let _full_parser =
       )
       >>= (
         mixins =>
-          Glyph.lambda
+          Matchers.glyph("->")
           >>= (
             lambda =>
               parse_expression(ctx)
