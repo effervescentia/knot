@@ -76,7 +76,11 @@ let suite =
         };
 
         Assert.parse(
-          ~context=ParseContext.create(~symbols, Namespace.Internal("foo")),
+          ~context=
+            ParseContext.create(
+              ~symbols,
+              Reference.Namespace.Internal("foo"),
+            ),
           (
             "foo" |> U.as_untyped |> A.of_named_export,
             [

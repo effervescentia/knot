@@ -99,9 +99,15 @@ let __multiline_view = (
 );
 
 let _assert_declaration = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(pp_declaration));
+  Assert.string(
+    expected,
+    actual |> ~@Fmt.root(KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp)),
+  );
 let _assert_declaration_list = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(pp_declaration_list));
+  Assert.string(
+    expected,
+    actual |> ~@Fmt.root(Language.Formatter.pp_declaration_list),
+  );
 
 let suite =
   "Grammar.Formatter | Declaration"

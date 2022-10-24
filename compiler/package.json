@@ -43,7 +43,7 @@
       "require": [
         "knot.test",
         "knot.lib_test",
-        "knot.grammar"
+        "knot.lang"
       ],
       "name": "knot.analyze_test",
       "namespace": "TestAnalyze"
@@ -488,7 +488,7 @@
     },
     "src/language/expression/style": {
       "require": [
-        "knot.grammar"
+        "knot.lang.identifier"
       ],
       "name": "knot.lang.expression.style",
       "namespace": "KStyle"
@@ -603,7 +603,7 @@
     },
     "src/generate": {
       "require": [
-        "knot.grammar"
+        "knot.lang"
       ],
       "name": "knot.generate",
       "namespace": "Generate"

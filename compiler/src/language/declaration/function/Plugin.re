@@ -9,7 +9,7 @@ let pp:
     Fmt.(
       pf(
         ppf,
-        "@[<v>func @[<h>%s(%a)@] -> %a@]",
+        "@[<v>func @[<h>%s%a@] %a@]",
         name,
         KLambda.Plugin.pp_argument_list(pp_expression),
         args,

@@ -21,7 +21,7 @@ let parse_completely = x =>
 module type AssertParams = {
   include Test.Assert.Target;
 
-  let parser: (ParseContext.t, Grammar.Program.input_t) => option(t);
+  let parser: (ParseContext.t, Language.Program.input_t) => option(t);
 };
 
 module Make = (Params: AssertParams) => {
@@ -86,7 +86,7 @@ module type TypedParserParams = {
   type value_t;
   type type_t;
 
-  let parser: ParseContext.t => Grammar.Kore.parser_t(N.t(value_t, type_t));
+  let parser: ParseContext.t => Language.Kore.parser_t(N.t(value_t, type_t));
 
   let pp_value: Fmt.t(value_t);
   let pp_type: Fmt.t(type_t);
@@ -123,7 +123,7 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Grammar.Kore.parser_t(N.t(AR.primitive_t, TR.t));
+  let parser: Language.Kore.parser_t(N.t(AR.primitive_t, TR.t));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>

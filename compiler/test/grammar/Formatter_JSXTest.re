@@ -4,9 +4,15 @@ module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
 let _assert_jsx = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(pp_jsx));
+  Assert.string(
+    expected,
+    actual |> ~@Fmt.root(KSX.Plugin.pp(KExpression.Plugin.pp)),
+  );
 let _assert_jsx_attr = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(pp_jsx_attr));
+  Assert.string(
+    expected,
+    actual |> ~@Fmt.root(KSX.Formatter.pp_attr(KExpression.Plugin.pp)),
+  );
 
 let suite =
   "Grammar.Formatter | JSX"

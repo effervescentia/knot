@@ -1,7 +1,6 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Identifier = Grammar.Identifier;
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
 module Symbol = Grammar.Symbol;
@@ -12,7 +11,7 @@ let style_rule =
       rule_scope: Scope.t,
       parse_expr: Grammar.Kore.contextual_expression_parser_t,
     ) =>
-  Identifier.parser(ctx)
+  KIdentifier.Plugin.parse(ctx)
   >>= (
     rule =>
       Symbol.colon

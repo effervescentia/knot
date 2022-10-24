@@ -3,7 +3,6 @@ open Parse.Onyx;
 
 module Character = Grammar.Character;
 module Matchers = Grammar.Matchers;
-module Operator = Grammar.Operator;
 module Symbol = Grammar.Symbol;
 
 module Tag = {

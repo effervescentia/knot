@@ -1,6 +1,5 @@
 open Kore;
 
-module Typing = Grammar.Typing;
 module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
@@ -9,7 +8,7 @@ module Assert =
     type t = TE.t;
 
     let parser = _ =>
-      Typing.expression_parser |> Assert.parse_completely |> Parser.parse;
+      KTypeExpression.Plugin.parse |> Assert.parse_completely |> Parser.parse;
 
     let test =
       Alcotest.(

@@ -11,5 +11,5 @@ let pp = (target: Target.t, resolve: resolve_t): Fmt.t(AST.program_t) =>
       |> JavaScript_Generator.generate(resolve)
       |> JavaScript_Formatter.format(module_type, ppf)
 
-    | Knot => program |> Grammar.Formatter.format(ppf)
+    | Knot => program |> Language.Formatter.format(ppf)
     };

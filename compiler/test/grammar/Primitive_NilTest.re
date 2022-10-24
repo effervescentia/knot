@@ -1,6 +1,5 @@
 open Kore;
 
-module Primitive = Grammar.Primitive;
 module U = Util.RawUtil;
 
 module Assert =

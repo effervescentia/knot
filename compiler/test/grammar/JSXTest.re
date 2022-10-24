@@ -1,14 +1,13 @@
 open Kore;
 
-module JSX = Grammar.JSX;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = N.t(AR.jsx_t, unit);
+    type t = AR.expression_t;
 
     let parser = ctx =>
-      JSX.parser(
+      KSX.Plugin.parse(
         ctx,
         (KExpression.Plugin.parse_jsx_term, KExpression.Plugin.parse),
       )
@@ -18,18 +17,7 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(
-            (ppf, jsx) =>
-              AR.Dump.(
-                jsx
-                |> untyped_node_to_entity(
-                     ~children=[jsx |> fst |> jsx_to_entity],
-                     "JSX",
-                   )
-                |> Entity.pp(ppf)
-              ),
-            (==),
-          ),
+          testable(ppf => AR.Dump.(expr_to_entity % Entity.pp(ppf)), (==)),
           "program matches",
         )
       );
@@ -43,7 +31,10 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          (U.as_untyped("Foo"), [], []) |> AR.of_tag |> U.as_untyped,
+          (U.as_untyped("Foo"), [], [])
+          |> AR.of_tag
+          |> AR.of_jsx
+          |> U.as_element,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
     ),
@@ -51,19 +42,26 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          (U.as_untyped("Foo"), [], []) |> AR.of_tag |> U.as_untyped,
+          (U.as_untyped("Foo"), [], [])
+          |> AR.of_tag
+          |> AR.of_jsx
+          |> U.as_element,
           ["<Foo/>", " < Foo / > "],
         )
     ),
     "parse empty fragment"
-    >: (() => Assert.parse([] |> AR.of_frag |> U.as_untyped, "<></>")),
+    >: (
+      () =>
+        Assert.parse([] |> AR.of_frag |> AR.of_jsx |> U.as_element, "<></>")
+    ),
     "parse fragment with children"
     >: (
       () =>
         Assert.parse(
           [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped]
           |> AR.of_frag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<><Bar /></>",
         )
     ),
@@ -84,7 +82,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=buzz />",
         )
     ),
@@ -102,7 +101,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=\"buzz\" />",
         )
     ),
@@ -132,7 +132,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz={ buzz; } />",
         )
     ),
@@ -156,7 +157,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=buzz() />",
         )
     ),
@@ -180,7 +182,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=(1 > 2) />",
         )
     ),
@@ -198,7 +201,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=(true) />",
         )
     ),
@@ -219,7 +223,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=-3 />",
         )
     ),
@@ -243,7 +248,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz=<buzz /> />",
         )
     ),
@@ -257,7 +263,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo fizz />",
         )
     ),
@@ -273,7 +280,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo .fizz />",
         )
     ),
@@ -287,7 +295,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo #fizz />",
         )
     ),
@@ -301,7 +310,8 @@ let suite =
             [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo><Bar /></Foo>",
         )
     ),
@@ -321,7 +331,8 @@ let suite =
             ],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo>{1 + 2}</Foo>",
         )
     ),
@@ -341,7 +352,8 @@ let suite =
             ],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo>{<Bar />}</Foo>",
         )
     ),
@@ -355,7 +367,8 @@ let suite =
             ["bar \"or\" 123" |> AR.of_text |> U.as_untyped],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo> bar \"or\" 123 </Foo>",
         )
     ),
@@ -373,7 +386,8 @@ let suite =
             [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo bar=4><Bar /></Foo>",
         )
     ),
@@ -397,7 +411,8 @@ let suite =
             ],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
         )
     ),
@@ -419,7 +434,8 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> U.as_untyped,
+          |> AR.of_jsx
+          |> U.as_element,
           "<Foo bar=fizz .buzz />",
         )
     ),

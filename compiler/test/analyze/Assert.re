@@ -2,7 +2,7 @@ open Kore;
 
 include TestLibrary.Assert;
 
-module Formatter = Grammar.Formatter;
+module Formatter = Language.Formatter;
 
 let type_error =
   Alcotest.(
