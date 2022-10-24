@@ -43,7 +43,7 @@ let _attribute =
 
 let _self_closing = Tag.self_close >|= Node.map(() => []);
 
-let rec ksx =
+let rec _inner_ksx =
         (ctx: ParseContext.t, parsers: Grammar.Kore.expression_parsers_arg_t)
         : Grammar.Kore.jsx_parser_t =>
   /* do not attempt to simplify this `input` argument away or JSX parsing will loop forever */
@@ -146,7 +146,7 @@ and text: Grammar.Kore.jsx_child_parser_t =
 and node =
     (ctx: ParseContext.t, parsers: Grammar.Kore.expression_parsers_arg_t)
     : Grammar.Kore.jsx_child_parser_t =>
-  ksx(ctx, parsers) >|= Node.map(AST.Raw.of_node)
+  _inner_ksx(ctx, parsers) >|= Node.map(AST.Raw.of_node)
 
 and inline_expr =
     (
@@ -157,3 +157,10 @@ and inline_expr =
   parse_expr(ctx)
   |> Matchers.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
   >|= Node.map(AST.Raw.of_inline_expr);
+
+let ksx =
+    (ctx: ParseContext.t, parsers: Grammar.Kore.expression_parsers_arg_t)
+    : Grammar.Kore.expression_parser_t =>
+  _inner_ksx(ctx, parsers)
+  >|= Node.add_type(Type.Raw.(`Element))
+  >|= Node.map(AST.Raw.of_jsx);

@@ -14,5 +14,5 @@ let pp: Fmt.t(AST.primitive_t) =
     fun
     | Nil => KNil.Plugin.pp(ppf, ())
     | Boolean(x) => KBoolean.Plugin.pp(ppf, x)
-    | Number(num) => KNumber.Plugin.pp(ppf, num)
-    | String(str) => KString.Plugin.pp(ppf, str);
+    | Number(x) => KNumber.Plugin.pp(ppf, x)
+    | String(x) => KString.Plugin.pp(ppf, x);

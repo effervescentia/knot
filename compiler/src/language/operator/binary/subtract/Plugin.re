@@ -1,5 +1,4 @@
 open Knot.Kore;
-open Parse.Onyx;
 
 let parse = Parser.subtract;
 
