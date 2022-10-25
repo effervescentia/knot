@@ -1,7 +1,6 @@
 open Kore;
 open Reference;
 
-module Function = Grammar.Function;
 module U = Util.ResultUtil;
 module TE = A.TypeExpression;
 
@@ -11,7 +10,7 @@ module Assert = {
     type t = N.t((A.export_t, A.declaration_t), unit);
 
     let parser = ctx =>
-      Function.parser(ctx, A.of_named_export)
+      KFunction.Plugin.parse(ctx, A.of_named_export, KExpression.Plugin.parse)
       |> Assert.parse_completely
       |> Parser.parse;
 

@@ -5,7 +5,5 @@ let unit_tests = [
   CodeFrameTest.suite,
   InputStreamTest.suite,
   IOTest.suite,
-  WatcherTest_Unit.suite,
+  WatcherTest.suite,
 ];
-
-let integration_tests = [WatcherTest_IT.suite];

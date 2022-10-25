@@ -1,8 +1,6 @@
 open Kore;
 open Reference;
 
-module Style = Grammar.Style;
-module Expression = Grammar.Expression;
 module U = Util.RawUtil;
 module TE = A.TypeExpression;
 
@@ -13,7 +11,7 @@ module Assert =
     type t = AR.expression_t;
 
     let parser = ctx =>
-      Style.parser(ctx, Expression.parser)
+      KStyle.Plugin.parse(ctx, KExpression.Plugin.parse)
       |> Assert.parse_completely
       |> Parser.parse;
 

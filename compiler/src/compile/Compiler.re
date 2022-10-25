@@ -136,7 +136,7 @@ let validate = (compiler: t) => {
 let parse_module =
     (
       source: Source.t,
-      parser: Grammar.Program.input_t => result('a, compile_err),
+      parser: Language.Program.input_t => result('a, compile_err),
       compiler: t,
     ) => {
   source

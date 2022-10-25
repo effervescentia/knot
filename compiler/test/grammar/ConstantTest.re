@@ -1,7 +1,6 @@
 open Kore;
 
 module Export = Reference.Export;
-module Constant = Grammar.Constant;
 module U = Util.ResultUtil;
 
 module Assert = {
@@ -10,7 +9,7 @@ module Assert = {
     type t = N.t((A.export_t, A.declaration_t), unit);
 
     let parser = ctx =>
-      Constant.parser(ctx, A.of_named_export)
+      KConstant.Plugin.parse(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 
@@ -77,7 +76,11 @@ let suite =
         };
 
         Assert.parse(
-          ~context=ParseContext.create(~symbols, Namespace.Internal("foo")),
+          ~context=
+            ParseContext.create(
+              ~symbols,
+              Reference.Namespace.Internal("foo"),
+            ),
           (
             "foo" |> U.as_untyped |> A.of_named_export,
             [

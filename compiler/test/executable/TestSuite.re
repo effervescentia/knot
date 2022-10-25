@@ -27,5 +27,3 @@ let unit_tests = [
   ProcessorTest.suite,
   UsageTest.suite,
 ];
-
-let integration_tests = [FormatTest_IT.suite];

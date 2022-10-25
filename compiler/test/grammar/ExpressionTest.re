@@ -1,13 +1,13 @@
 open Kore;
 
-module Expression = Grammar.Expression;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
     type t = AR.expression_t;
 
-    let parser = Expression.parser % Assert.parse_completely % Parser.parse;
+    let parser =
+      KExpression.Plugin.parse % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

@@ -1,7 +1,5 @@
 open Kore;
 
-module Primitive = Grammar.Primitive;
-module Decorator = Grammar.Decorator;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
 module U = Util.RawUtil;
@@ -11,8 +9,8 @@ module Assert =
     type t = TD.decorator_t(TR.t);
 
     let parser = _ =>
-      Primitive.parser
-      |> Decorator.parser
+      KPrimitive.Plugin.parse
+      |> KDecorator.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
 

@@ -1,6 +1,5 @@
 open Kore;
 
-module Typing = Grammar.Typing;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
 module U = Util.RawUtil;
@@ -10,9 +9,9 @@ module Assert =
     type t = TD.module_t;
 
     let parser = _ =>
-      Namespace.of_string("test_namespace")
+      Reference.Namespace.of_string("test_namespace")
       |> ParseContext.create
-      |> Typing.root_parser
+      |> KTypeDefinition.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
 

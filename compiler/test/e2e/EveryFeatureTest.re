@@ -47,11 +47,13 @@ let suite =
           out_dir,
         |];
         let (global, config) = process_build_cmd(__cwd, argv);
+
         Build.run(
           ~report=_ => throw_all,
           global,
           {...config, ambient: __mock_library_file},
         );
+
         Assert.directory(
           "common_build_cache" |> Filename.concat(__cwd),
           out_dir |> Filename.concat(__cwd),
@@ -71,11 +73,13 @@ let suite =
           out_dir,
         |];
         let (global, config) = process_build_cmd(__cwd, argv);
+
         Build.run(
           ~report=_ => throw_all,
           global,
           {...config, ambient: __mock_library_file},
         );
+
         Assert.directory(
           "knot_build_cache" |> Filename.concat(__cwd),
           out_dir |> Filename.concat(__cwd),

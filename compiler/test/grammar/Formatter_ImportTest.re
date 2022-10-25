@@ -1,6 +1,6 @@
 open Kore;
 
-module Formatter = Grammar.Formatter;
+module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
 let _main_import = (name, f) => (
@@ -10,7 +10,7 @@ let _main_import = (name, f) => (
 );
 
 let _assert_import = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(pp_import));
+  Assert.string(expected, actual |> ~@Fmt.root(KImport.Plugin.pp));
 
 let suite =
   "Grammar.Formatter | Import"
@@ -150,7 +150,7 @@ import Bar from \"bar\";",
               _main_import("bar", A.of_external),
             ],
           )
-          |> ~@Fmt.root(pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
         )
     ),
     "pp_all_imports() - internal only"
@@ -166,7 +166,7 @@ import Bar from \"@/bar\";",
             ],
             [],
           )
-          |> ~@Fmt.root(pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
         )
     ),
     "pp_all_imports() - external and internal"
@@ -180,7 +180,7 @@ import Foo from \"@/foo\";",
             [_main_import("foo", A.of_internal)],
             [_main_import("bar", A.of_external)],
           )
-          |> ~@Fmt.root(pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
         )
     ),
   ];

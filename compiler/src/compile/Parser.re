@@ -4,7 +4,7 @@
 open Kore;
 open Parse.Parser;
 
-module Program = Grammar.Program;
+module Program = Language.Program;
 
 /**
  parses document head to extract only the import statements

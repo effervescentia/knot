@@ -43,7 +43,7 @@
       "require": [
         "knot.test",
         "knot.lib_test",
-        "knot.grammar"
+        "knot.lang"
       ],
       "name": "knot.analyze_test",
       "namespace": "TestAnalyze"
@@ -61,7 +61,7 @@
       "require": [
         "knot.test",
         "knot.lib_test",
-        "knot.grammar",
+        "knot.lang",
         "knot.parse",
         "knot.file"
       ],
@@ -151,14 +151,6 @@
       "main": "TestSuite",
       "name": "UnitTests.exe"
     },
-    "test/integration": {
-      "require": [
-        "knot.file_test",
-        "knot.exec_test"
-      ],
-      "main": "TestSuite",
-      "name": "IntegrationTests.exe"
-    },
     "test/e2e": {
       "require": [
         "knot.file_test",
@@ -212,6 +204,385 @@
       "name": "knot.grammar",
       "namespace": "Grammar"
     },
+    "src/language/identifier": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.identifier",
+      "namespace": "KIdentifier"
+    },
+    "src/language/decorator": {
+      "require": [
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.decorator",
+      "namespace": "KDecorator"
+    },
+    "src/language/primitive/nil": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.nil",
+      "namespace": "KNil"
+    },
+    "src/language/primitive/boolean": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.boolean",
+      "namespace": "KBoolean"
+    },
+    "src/language/primitive/number/integer": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.number.integer",
+      "namespace": "KInteger"
+    },
+    "src/language/primitive/number/float": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.number.float",
+      "namespace": "KFloat"
+    },
+    "src/language/primitive/number": {
+      "require": [
+        "knot.lang.primitive.number.integer",
+        "knot.lang.primitive.number.float"
+      ],
+      "name": "knot.lang.primitive.number",
+      "namespace": "KNumber"
+    },
+    "src/language/primitive/string": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.primitive.string",
+      "namespace": "KString"
+    },
+    "src/language/primitive": {
+      "require": [
+        "knot.lang.primitive.nil",
+        "knot.lang.primitive.boolean",
+        "knot.lang.primitive.number",
+        "knot.lang.primitive.string"
+      ],
+      "name": "knot.lang.primitive",
+      "namespace": "KPrimitive"
+    },
+    "src/language/type/expression": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.type.expression",
+      "namespace": "KTypeExpression"
+    },
+    "src/language/type/statement": {
+      "require": [
+        "knot.lang.type.expression",
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.type.statement",
+      "namespace": "KTypeStatement"
+    },
+    "src/language/type/definition": {
+      "require": [
+        "knot.lang.type.statement",
+        "knot.lang.decorator",
+        "knot.lang.primitive"
+      ],
+      "name": "knot.lang.type.definition",
+      "namespace": "KTypeDefinition"
+    },
+    "src/language/lambda": {
+      "require": [
+        "knot.lang.type.expression",
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.lambda",
+      "namespace": "KLambda"
+    },
+    "src/language/statement/effect": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.statement.effect",
+      "namespace": "KEffect"
+    },
+    "src/language/statement/variable": {
+      "require": [
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.statement.variable",
+      "namespace": "KVariable"
+    },
+    "src/language/statement": {
+      "require": [
+        "knot.lang.statement.effect",
+        "knot.lang.statement.variable"
+      ],
+      "name": "knot.lang.statement",
+      "namespace": "KStatement"
+    },
+    "src/language/operator/unary/logical_not": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.unary.logical_not",
+      "namespace": "KLogicalNot"
+    },
+    "src/language/operator/unary/absolute": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.unary.absolute",
+      "namespace": "KAbsolute"
+    },
+    "src/language/operator/unary/negative": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.unary.negative",
+      "namespace": "KNegative"
+    },
+    "src/language/operator/unary": {
+      "require": [
+        "knot.lang.operator.unary.logical_not",
+        "knot.lang.operator.unary.absolute",
+        "knot.lang.operator.unary.negative"
+      ],
+      "name": "knot.lang.operator.unary",
+      "namespace": "KUnaryOperator"
+    },
+    "src/language/operator/binary/equal": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.equal",
+      "namespace": "KEqual"
+    },
+    "src/language/operator/binary/unequal": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.unequal",
+      "namespace": "KUnequal"
+    },
+    "src/language/operator/binary/logical_and": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.logical_and",
+      "namespace": "KLogicalAnd"
+    },
+    "src/language/operator/binary/logical_or": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.logical_or",
+      "namespace": "KLogicalOr"
+    },
+    "src/language/operator/binary/less_than": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.less_than",
+      "namespace": "KLessThan"
+    },
+    "src/language/operator/binary/less_or_equal": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.less_or_equal",
+      "namespace": "KLessOrEqual"
+    },
+    "src/language/operator/binary/greater_than": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.greater_than",
+      "namespace": "KGreaterThan"
+    },
+    "src/language/operator/binary/greater_or_equal": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.greater_or_equal",
+      "namespace": "KGreaterOrEqual"
+    },
+    "src/language/operator/binary/add": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.add",
+      "namespace": "KAdd"
+    },
+    "src/language/operator/binary/subtract": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.subtract",
+      "namespace": "KSubtract"
+    },
+    "src/language/operator/binary/multiply": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.multiply",
+      "namespace": "KMultiply"
+    },
+    "src/language/operator/binary/divide": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.divide",
+      "namespace": "KDivide"
+    },
+    "src/language/operator/binary/exponentiate": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.operator.binary.exponentiate",
+      "namespace": "KExponentiate"
+    },
+    "src/language/operator/binary": {
+      "require": [
+        "knot.lang.operator.binary.equal",
+        "knot.lang.operator.binary.unequal",
+        "knot.lang.operator.binary.logical_and",
+        "knot.lang.operator.binary.logical_or",
+        "knot.lang.operator.binary.less_than",
+        "knot.lang.operator.binary.less_or_equal",
+        "knot.lang.operator.binary.greater_than",
+        "knot.lang.operator.binary.greater_or_equal",
+        "knot.lang.operator.binary.add",
+        "knot.lang.operator.binary.subtract",
+        "knot.lang.operator.binary.multiply",
+        "knot.lang.operator.binary.divide",
+        "knot.lang.operator.binary.exponentiate"
+      ],
+      "name": "knot.lang.operator.binary",
+      "namespace": "KBinaryOperator"
+    },
+    "src/language/expression/group": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.expression.group",
+      "namespace": "KGroup"
+    },
+    "src/language/expression/closure": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.expression.closure",
+      "namespace": "KClosure"
+    },
+    "src/language/expression/dot_access": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.expression.dot_access",
+      "namespace": "KDotAccess"
+    },
+    "src/language/expression/function_call": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.expression.function_call",
+      "namespace": "KFunctionCall"
+    },
+    "src/language/expression/style": {
+      "require": [
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.expression.style",
+      "namespace": "KStyle"
+    },
+    "src/language/expression/ksx": {
+      "require": [
+        "knot.grammar"
+      ],
+      "name": "knot.lang.expression.ksx",
+      "namespace": "KSX"
+    },
+    "src/language/expression": {
+      "require": [
+        "knot.lang.primitive",
+        "knot.lang.identifier",
+        "knot.lang.statement",
+        "knot.lang.operator.unary",
+        "knot.lang.operator.binary",
+        "knot.lang.expression.group",
+        "knot.lang.expression.closure",
+        "knot.lang.expression.dot_access",
+        "knot.lang.expression.function_call",
+        "knot.lang.expression.style",
+        "knot.lang.expression.ksx"
+      ],
+      "name": "knot.lang.expression",
+      "namespace": "KExpression"
+    },
+    "src/language/declaration/constant": {
+      "require": [
+        "knot.lang.expression"
+      ],
+      "name": "knot.lang.declaration.constant",
+      "namespace": "KConstant"
+    },
+    "src/language/declaration/enumerated": {
+      "require": [
+        "knot.lang.type.statement",
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.declaration.enumerated",
+      "namespace": "KEnumerated"
+    },
+    "src/language/declaration/function": {
+      "require": [
+        "knot.lang.identifier",
+        "knot.lang.lambda"
+      ],
+      "name": "knot.lang.declaration.function",
+      "namespace": "KFunction"
+    },
+    "src/language/declaration/view": {
+      "require": [
+        "knot.lang.identifier",
+        "knot.lang.lambda"
+      ],
+      "name": "knot.lang.declaration.view",
+      "namespace": "KView"
+    },
+    "src/language/declaration": {
+      "require": [
+        "knot.lang.declaration.constant",
+        "knot.lang.declaration.enumerated",
+        "knot.lang.declaration.function",
+        "knot.lang.declaration.view"
+      ],
+      "name": "knot.lang.declaration",
+      "namespace": "KDeclaration"
+    },
+    "src/language/import": {
+      "require": [
+        "knot.lang.identifier",
+        "knot.lang.primitive.string"
+      ],
+      "name": "knot.lang.import",
+      "namespace": "KImport"
+    },
+    "src/language": {
+      "require": [
+        "knot.lang.decorator",
+        "knot.lang.import",
+        "knot.lang.declaration",
+        "knot.lang.type.definition"
+      ],
+      "name": "knot.lang",
+      "namespace": "Language"
+    },
     "src/file": {
       "require": [
         "knot.lib",
@@ -239,7 +610,7 @@
     },
     "src/generate": {
       "require": [
-        "knot.grammar"
+        "knot.lang"
       ],
       "name": "knot.generate",
       "namespace": "Generate"
@@ -318,9 +689,8 @@
     "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
-    "test": "npm run test.unit && npm run test.integration && npm run test.e2e && npm run test.smoke 1> /dev/null",
+    "test": "npm run test.unit && npm run test.e2e && npm run test.smoke 1> /dev/null",
     "test.unit": "esy x UnitTests.exe --show-errors",
-    "test.integration": "esy x IntegrationTests.exe --show-errors",
     "test.e2e": "esy x E2ETests.exe --show-errors",
     "test.smoke": "esy x knotc.exe build --cwd ./test/smoke/.fixtures/project",
     "test.smoke.debug": "npm run test:smoke -- -debug"

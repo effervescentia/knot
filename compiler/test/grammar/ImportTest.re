@@ -1,6 +1,5 @@
 open Kore;
 
-module Import = Grammar.Import;
 module Export = Reference.Export;
 module U = Util.CommonUtil;
 
@@ -8,7 +7,7 @@ module Assert =
   Assert.Make({
     type t = A.module_statement_t;
 
-    let parser = Import.parser % Assert.parse_completely % Parser.parse;
+    let parser = KImport.Plugin.parse % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

@@ -45,6 +45,11 @@ let comma_sep = x =>
   << optional(symbol(C.Character.comma));
 
 /**
+ matches an assignment operation
+ */
+let assign = (id, x) => binary_op(id, symbol(C.Character.equal_sign), x);
+
+/**
  matches a sequence of characters but tolerates spaces in between
  */
 let glyph = (s: string) =>
