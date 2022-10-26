@@ -190,16 +190,9 @@
       "name": "knot.jsonrpc",
       "namespace": "JSONRPC"
     },
-    "src/analyze": {
-      "require": [
-        "knot.parse"
-      ],
-      "name": "knot.analyze",
-      "namespace": "Analyze"
-    },
     "src/grammar": {
       "require": [
-        "knot.analyze"
+        "knot.parse"
       ],
       "name": "knot.grammar",
       "namespace": "Grammar"

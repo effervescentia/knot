@@ -1,6 +1,5 @@
 open Kore;
 
-module TypingAnalyzer = Analyze.Typing;
 module U = Util.RawUtil;
 
 let _assert_errors_with_ranges =

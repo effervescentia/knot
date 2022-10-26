@@ -49,7 +49,7 @@ let analyze_argument:
         let type_ =
           type_expr
           |> fst
-          |> Analyze.Typing.eval_type_expression(SymbolTable.create());
+          |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
         (AST.{name, default: None, type_: Some(type_expr)}, type_);
 
@@ -59,7 +59,7 @@ let analyze_argument:
         let type_ =
           type_expr
           |> fst
-          |> Analyze.Typing.eval_type_expression(SymbolTable.create());
+          |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
         switch (expr_type, type_) {
         | (Valid(_), Valid(_)) when expr_type != type_ =>

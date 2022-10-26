@@ -127,8 +127,7 @@ let decorator: Grammar.Kore.type_module_parser_t =
       |> Matchers.terminated,
       ((id, (args, target))) => {
         let arg_types =
-          args
-          |> List.map(fst % Analyze.Typing.eval_type_expression(ctx.symbols));
+          args |> List.map(fst % KTypeExpression.Plugin.analyze(ctx.symbols));
         let type_ = Type.Valid(`Decorator((arg_types, target)));
 
         ctx.symbols |> SymbolTable.declare_value(fst(id), type_);

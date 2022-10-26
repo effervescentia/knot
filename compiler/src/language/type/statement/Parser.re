@@ -30,8 +30,7 @@ let declaration: Grammar.Kore.type_module_statement_parser_t =
       KTypeExpression.Plugin.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {
-        let type_ =
-          raw_expr |> Analyze.Typing.eval_type_expression(ctx.symbols);
+        let type_ = raw_expr |> KTypeExpression.Plugin.analyze(ctx.symbols);
 
         ctx.symbols |> SymbolTable.declare_value(id, type_);
 
@@ -57,9 +56,7 @@ let enumerated: Grammar.Kore.type_module_statement_parser_t =
           |> List.map(
                Tuple.map_each2(
                  fst,
-                 List.map(
-                   fst % Analyze.Typing.eval_type_expression(ctx.symbols),
-                 ),
+                 List.map(fst % KTypeExpression.Plugin.analyze(ctx.symbols)),
                ),
              );
         let enum_type = Type.Valid(`Enumerated(variants));
@@ -89,8 +86,7 @@ let type_: Grammar.Kore.type_module_statement_parser_t =
       KTypeExpression.Plugin.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {
-        let type_ =
-          raw_expr |> Analyze.Typing.eval_type_expression(ctx.symbols);
+        let type_ = raw_expr |> KTypeExpression.Plugin.analyze(ctx.symbols);
 
         ctx.symbols |> SymbolTable.declare_type(id, type_);
 

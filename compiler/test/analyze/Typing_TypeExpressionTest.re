@@ -1,6 +1,5 @@
 open Kore;
 
-module TypingAnalyzer = Analyze.Typing;
 module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
@@ -14,7 +13,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Nil),
-          TypingAnalyzer.eval_type_expression(__empty_defs, Nil),
+          KTypeExpression.Plugin.analyze(__empty_defs, Nil),
         )
     ),
     "boolean"
@@ -22,7 +21,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Boolean),
-          TypingAnalyzer.eval_type_expression(__empty_defs, Boolean),
+          KTypeExpression.Plugin.analyze(__empty_defs, Boolean),
         )
     ),
     "integer"
@@ -30,7 +29,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Integer),
-          TypingAnalyzer.eval_type_expression(__empty_defs, Integer),
+          KTypeExpression.Plugin.analyze(__empty_defs, Integer),
         )
     ),
     "float"
@@ -38,7 +37,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Float),
-          TypingAnalyzer.eval_type_expression(__empty_defs, Float),
+          KTypeExpression.Plugin.analyze(__empty_defs, Float),
         )
     ),
     "string"
@@ -46,7 +45,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`String),
-          TypingAnalyzer.eval_type_expression(__empty_defs, String),
+          KTypeExpression.Plugin.analyze(__empty_defs, String),
         )
     ),
     "element"
@@ -54,7 +53,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(`Element),
-          TypingAnalyzer.eval_type_expression(__empty_defs, Element),
+          KTypeExpression.Plugin.analyze(__empty_defs, Element),
         )
     ),
     "identifier"
@@ -67,7 +66,7 @@ let suite =
 
         Assert.type_(
           Valid(`Boolean),
-          TypingAnalyzer.eval_type_expression(
+          KTypeExpression.Plugin.analyze(
             symbols,
             Identifier(U.as_untyped("foo")),
           ),
@@ -86,7 +85,7 @@ let suite =
           |> TE.of_group
           |> U.as_untyped
           |> TE.of_group
-          |> TypingAnalyzer.eval_type_expression(__empty_defs),
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
     "list type"
@@ -97,7 +96,7 @@ let suite =
           TE.Boolean
           |> U.as_untyped
           |> TE.of_list
-          |> TypingAnalyzer.eval_type_expression(__empty_defs),
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
     "struct type"
@@ -112,7 +111,7 @@ let suite =
             (U.as_untyped("bar"), U.as_untyped(TE.String)),
           ]
           |> TE.of_struct
-          |> TypingAnalyzer.eval_type_expression(__empty_defs),
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
     "function type"
@@ -130,7 +129,7 @@ let suite =
             U.as_untyped(TE.Element),
           )
           |> TE.of_function
-          |> TypingAnalyzer.eval_type_expression(__empty_defs),
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
   ];

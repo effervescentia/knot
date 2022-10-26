@@ -1,10 +1,9 @@
-open Kore;
+open Knot.Kore;
 
-module S = Set.Make(Stdlib.String);
-
-let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
+let rec analyze_type_expression:
+  (SymbolTable.t, AST.TypeExpression.raw_t) => Type.t =
   (defs, type_expr) =>
-    A.TypeExpression.(
+    AST.TypeExpression.(
       switch (type_expr) {
       | Nil => Valid(`Nil)
       | Boolean => Valid(`Boolean)
@@ -18,17 +17,17 @@ let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
         defs |> SymbolTable.resolve_type(id) |?: Invalid(NotInferrable)
 
       /* use the type of the inner expression to determine type */
-      | Group((x, _)) => eval_type_expression(defs, x)
+      | Group((x, _)) => analyze_type_expression(defs, x)
 
       /* use the type of the inner expression to determine type of list items */
-      | List((x, _)) => Valid(`List(eval_type_expression(defs, x)))
+      | List((x, _)) => Valid(`List(analyze_type_expression(defs, x)))
 
       | Struct(xs) =>
         Valid(
           `Struct(
             xs
             |> List.map(
-                 Tuple.map_each2(fst, fst % eval_type_expression(defs)),
+                 Tuple.map_each2(fst, fst % analyze_type_expression(defs)),
                ),
           ),
         )
@@ -36,18 +35,18 @@ let rec eval_type_expression: (SymbolTable.t, A.TypeExpression.raw_t) => T.t =
       | Function(args, (res, _)) =>
         Valid(
           `Function((
-            args |> List.map(fst % eval_type_expression(defs)),
-            eval_type_expression(defs, res),
+            args |> List.map(fst % analyze_type_expression(defs)),
+            analyze_type_expression(defs, res),
           )),
         )
 
       | DotAccess((root, _), (prop, _)) =>
-        switch (root |> eval_type_expression(defs)) {
+        switch (root |> analyze_type_expression(defs)) {
         | Valid(`Module(entries)) =>
           entries
           |> List.find_map(
                fun
-               | (id, T.Container.Type(type_)) when id == prop =>
+               | (id, Type.Container.Type(type_)) when id == prop =>
                  Some(type_)
                | _ => None,
              )

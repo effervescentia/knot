@@ -26,7 +26,7 @@ let enumerated = (ctx: ParseContext.t, f): Grammar.Kore.declaration_parser_t =>
                        |> Node.add_type(
                             type_expr
                             |> fst
-                            |> Analyze.Typing.eval_type_expression(
+                            |> KTypeExpression.Plugin.analyze(
                                  SymbolTable.create(),
                                ),
                           )
