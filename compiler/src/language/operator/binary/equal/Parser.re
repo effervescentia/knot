@@ -5,6 +5,4 @@ module Matchers = Grammar.Matchers;
 module Util = Grammar.Util;
 
 let equal = (ctx: ParseContext.t) =>
-  AST.Raw.of_eq_op
-  |> Util.binary_op(ctx, ~get_type=_ => `Boolean)
-  <$ Matchers.glyph("==");
+  AST.Raw.of_eq_op |> Util.binary_op(ctx) <$ Matchers.glyph("==");

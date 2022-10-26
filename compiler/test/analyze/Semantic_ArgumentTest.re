@@ -28,7 +28,7 @@ let suite =
             default: Some(URaw.string_prim("bar")),
             type_: None,
           }
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
@@ -50,7 +50,7 @@ let suite =
             default: None,
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
@@ -72,7 +72,7 @@ let suite =
             default: Some(URaw.bool_prim(true)),
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
@@ -91,10 +91,10 @@ let suite =
           |> URes.as_bool,
           AR.{
             name: URaw.as_untyped(__id),
-            default: Some(__id |> AR.of_id |> URaw.as_unknown),
+            default: Some(__id |> AR.of_id |> URaw.as_node),
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
@@ -118,7 +118,7 @@ let suite =
             default: Some(URaw.string_prim("bar")),
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __throw_scope,
                KExpression.Plugin.analyze,
@@ -138,7 +138,7 @@ let suite =
           ],
           () =>
           AR.{name: URaw.as_untyped(__id), default: None, type_: None}
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __throw_scope,
                KExpression.Plugin.analyze,
@@ -152,7 +152,7 @@ let suite =
           A.{name: URes.as_untyped(__id), default: None, type_: None}
           |> URes.as_invalid(NotInferrable),
           AR.{name: URaw.as_untyped(__id), default: None, type_: None}
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
@@ -177,19 +177,19 @@ let suite =
               default: None,
               type_: Some(URaw.as_untyped(TE.Boolean)),
             }
-            |> URaw.as_unknown,
+            |> URaw.as_node,
             AR.{
               name: URaw.as_untyped("buzz"),
               default: Some(URaw.bool_prim(true)),
               type_: None,
             }
-            |> URaw.as_unknown,
+            |> URaw.as_node,
             AR.{
               name: URaw.as_untyped("bar"),
               default: None,
               type_: Some(URaw.as_untyped(TE.Boolean)),
             }
-            |> URaw.as_unknown,
+            |> URaw.as_node,
           ]
           |> KLambda.Plugin.analyze_argument_list(
                __throw_scope,

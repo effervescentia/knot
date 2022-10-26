@@ -11,14 +11,6 @@ let closure =
   |> many
   |> Matchers.between(Symbol.open_closure, Symbol.close_closure)
   >|= (
-    ((stmts, _) as stmts_node) => {
-      let last_stmt = List.last(stmts);
-
-      Node.typed(
-        AST.Raw.of_closure(stmts),
-        /* if the statement list is empty the return type is nil */
-        last_stmt |?> Node.get_type |?: Type.Raw.(`Nil),
-        Node.get_range(stmts_node),
-      );
-    }
+    ((stmts, _) as stmts_node) =>
+      Node.typed(AST.Raw.of_closure(stmts), (), Node.get_range(stmts_node))
   );

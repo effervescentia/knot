@@ -29,18 +29,18 @@ let suite =
   >::: [
     "no parse" >: (() => Assert.parse_none(["gibberish", "style", "style {"])),
     "parse - with no arguments"
-    >: (() => Assert.parse([] |> AR.of_style |> U.as_style, "style { }")),
+    >: (() => Assert.parse([] |> AR.of_style |> U.as_node, "style { }")),
     "parse - with one rule"
     >: (
       () =>
         Assert.parse(
           ~context=__context,
           [
-            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            ("color" |> U.as_node, "$red" |> AR.of_id |> U.as_node)
             |> U.as_untyped,
           ]
           |> AR.of_style
-          |> U.as_style,
+          |> U.as_node,
           "style {
             color: $red
           }",
@@ -52,11 +52,11 @@ let suite =
         Assert.parse(
           ~context=__context,
           [
-            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            ("color" |> U.as_node, "$red" |> AR.of_id |> U.as_node)
             |> U.as_untyped,
           ]
           |> AR.of_style
-          |> U.as_style,
+          |> U.as_node,
           "style {
             color: $red,
           }",
@@ -69,20 +69,17 @@ let suite =
           ~context=__context,
           [
             (
-              "height" |> U.as_unknown,
-              (
-                "$px" |> AR.of_id |> U.as_unknown,
-                [(20.0, 2) |> U.float_prim],
-              )
+              "height" |> U.as_node,
+              ("$px" |> AR.of_id |> U.as_node, [(20.0, 2) |> U.float_prim])
               |> AR.of_func_call
-              |> U.as_unknown,
+              |> U.as_node,
             )
             |> U.as_untyped,
-            ("color" |> U.as_unknown, "$red" |> AR.of_id |> U.as_unknown)
+            ("color" |> U.as_node, "$red" |> AR.of_id |> U.as_node)
             |> U.as_untyped,
           ]
           |> AR.of_style
-          |> U.as_style,
+          |> U.as_node,
           "style {
             height: $px(20.0),
             color: $red

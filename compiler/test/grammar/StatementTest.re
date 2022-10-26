@@ -28,11 +28,11 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("foo" |> AR.of_id |> U.as_unknown, U.int_prim(3))
+          ("foo" |> AR.of_id |> U.as_node, U.int_prim(3))
           |> AR.of_add_op
-          |> U.as_unknown
+          |> U.as_node
           |> AR.of_expr
-          |> U.as_unknown,
+          |> U.as_node,
           ["foo + 3", "foo + 3;"],
         )
     ),
@@ -42,12 +42,12 @@ let suite =
         Assert.parse_all(
           (
             U.as_untyped("foo"),
-            ("bar" |> AR.of_id |> U.as_unknown, U.int_prim(3))
+            ("bar" |> AR.of_id |> U.as_node, U.int_prim(3))
             |> AR.of_add_op
-            |> U.as_unknown,
+            |> U.as_node,
           )
           |> AR.of_var
-          |> U.as_nil,
+          |> U.as_node,
           ["let foo = bar + 3", "let foo = bar + 3;"],
         )
     ),

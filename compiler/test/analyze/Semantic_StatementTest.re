@@ -20,7 +20,7 @@ let suite =
           "foo"
           |> URaw.string_prim
           |> AR.of_expr
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KStatement.Plugin.analyze(__scope, KExpression.Plugin.analyze),
         )
     ),
@@ -32,7 +32,7 @@ let suite =
           "foo"
           |> URaw.string_prim
           |> AR.of_expr
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KStatement.Plugin.analyze(__scope, KExpression.Plugin.analyze),
         )
     ),

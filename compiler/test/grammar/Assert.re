@@ -123,16 +123,16 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Language.Kore.parser_t(N.t(AR.primitive_t, TR.t));
+  let parser: Language.Kore.parser_t(N.t(AR.primitive_t, unit));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>
   MakeTyped({
     type value_t = AR.primitive_t;
-    type type_t = TR.t;
+    type type_t = unit;
 
     let parser = _ => Params.parser;
 
     let pp_value = ppf => AR.Dump.prim_to_string % Fmt.string(ppf);
-    let pp_type = TR.pp;
+    let pp_type = (ppf, ()) => ();
   });

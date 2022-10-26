@@ -62,7 +62,7 @@ let suite =
             [
               __id
               |> AR.of_id
-              |> URaw.as_unknown
+              |> URaw.as_node
               |> AR.of_inline_expr
               |> URaw.as_untyped,
             ],
@@ -92,7 +92,7 @@ let suite =
           () =>
           __id
           |> AR.of_id
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KView.Analyzer.analyze_view_body(
                scope,
                KExpression.Plugin.analyze,

@@ -10,11 +10,11 @@ type parser_t('a) = stream_t => option(('a, stream_t));
 
 /* concrete parser types */
 
-type number_parser_t = parser_t(N.t(AR.number_t, TR.t));
+type number_parser_t = parser_t(N.t(AR.number_t, unit));
 
 type string_parser_t = parser_t(N.t(string, unit));
 
-type primitive_parser_t = parser_t(N.t(AR.primitive_t, TR.t));
+type primitive_parser_t = parser_t(N.t(AR.primitive_t, unit));
 
 type identifier_parser_t = parser_t(AR.identifier_t);
 

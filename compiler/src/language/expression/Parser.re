@@ -5,9 +5,7 @@ let primitive: Grammar.Kore.expression_parser_t =
   KPrimitive.Plugin.parse >|= Node.map(AST.Raw.of_prim);
 
 let identifier = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  KIdentifier.Plugin.parse(ctx)
-  >|= Node.map(AST.Raw.of_id)
-  >|= Node.add_type(Type.Raw.(`Unknown));
+  KIdentifier.Plugin.parse(ctx) >|= Node.map(AST.Raw.of_id);
 
 /*
   each expression has a precedence denoted by its suffix

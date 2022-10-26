@@ -28,7 +28,7 @@ let suite =
           "foo"
           |> URaw.string_prim
           |> AR.of_group
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -39,9 +39,9 @@ let suite =
           [123 |> URes.int_prim |> A.of_expr |> URes.as_int]
           |> A.of_closure
           |> URes.as_int,
-          [123 |> URaw.int_prim |> AR.of_expr |> URaw.as_int]
+          [123 |> URaw.int_prim |> AR.of_expr |> URaw.as_node]
           |> AR.of_closure
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -52,7 +52,7 @@ let suite =
           [] |> A.of_closure |> URes.as_nil,
           []
           |> AR.of_closure
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -67,7 +67,7 @@ let suite =
           (URaw.as_untyped(__id), [], [])
           |> AR.of_tag
           |> AR.of_jsx
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -78,7 +78,7 @@ let suite =
           __id |> A.of_id |> URes.as_invalid(NotInferrable),
           __id
           |> AR.of_id
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -90,7 +90,7 @@ let suite =
           () =>
           __id
           |> AR.of_id
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)
         )
     ),
@@ -107,7 +107,7 @@ let suite =
           __id |> A.of_id |> URes.as_bool,
           __id
           |> AR.of_id
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
       }
@@ -130,9 +130,9 @@ let suite =
           )
           |> A.of_dot_access
           |> URes.as_bool,
-          (__id |> AR.of_id |> URaw.as_unknown, URaw.as_untyped("foo"))
+          (__id |> AR.of_id |> URaw.as_node, URaw.as_untyped("foo"))
           |> AR.of_dot_access
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
       }
@@ -162,9 +162,9 @@ let suite =
           )
           |> A.of_func_call
           |> URes.as_string,
-          (__id |> AR.of_id |> URaw.as_unknown, [URaw.int_prim(123)])
+          (__id |> AR.of_id |> URaw.as_node, [URaw.int_prim(123)])
           |> AR.of_func_call
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
       }
@@ -233,17 +233,17 @@ let suite =
           |> URes.as_style,
           [
             (
-              "foo" |> URaw.as_unknown,
-              ("$fizz" |> AR.of_id |> URaw.as_unknown, [URaw.int_prim(123)])
+              "foo" |> URaw.as_node,
+              ("$fizz" |> AR.of_id |> URaw.as_node, [URaw.int_prim(123)])
               |> AR.of_func_call
-              |> URaw.as_unknown,
+              |> URaw.as_node,
             )
             |> URes.as_untyped,
-            ("bar" |> URaw.as_unknown, "$buzz" |> AR.of_id |> URaw.as_unknown)
+            ("bar" |> URaw.as_node, "$buzz" |> AR.of_id |> URaw.as_node)
             |> URes.as_untyped,
           ]
           |> AR.of_style
-          |> URaw.as_style
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
       }

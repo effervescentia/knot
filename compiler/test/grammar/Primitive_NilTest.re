@@ -11,5 +11,5 @@ let suite =
   "Grammar.Primitive | Nil"
   >::: [
     "no parse" >: (() => Assert.no_parse("gibberish")),
-    "parse" >: (() => Assert.parse_all(U.as_nil(AR.nil), ["nil", " nil "])),
+    "parse" >: (() => Assert.parse_all(U.as_node(AR.nil), ["nil", " nil "])),
   ];

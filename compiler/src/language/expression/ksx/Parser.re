@@ -161,6 +161,4 @@ and inline_expr =
 let ksx =
     (ctx: ParseContext.t, parsers: Grammar.Kore.expression_parsers_arg_t)
     : Grammar.Kore.expression_parser_t =>
-  _inner_ksx(ctx, parsers)
-  >|= Node.add_type(Type.Raw.(`Element))
-  >|= Node.map(AST.Raw.of_jsx);
+  _inner_ksx(ctx, parsers) >|= Node.map(AST.Raw.of_jsx);

@@ -34,7 +34,7 @@ let suite =
           (U.as_untyped("Foo"), [], [])
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
     ),
@@ -45,14 +45,13 @@ let suite =
           (U.as_untyped("Foo"), [], [])
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           ["<Foo/>", " < Foo / > "],
         )
     ),
     "parse empty fragment"
     >: (
-      () =>
-        Assert.parse([] |> AR.of_frag |> AR.of_jsx |> U.as_element, "<></>")
+      () => Assert.parse([] |> AR.of_frag |> AR.of_jsx |> U.as_node, "<></>")
     ),
     "parse fragment with children"
     >: (
@@ -61,7 +60,7 @@ let suite =
           [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped]
           |> AR.of_frag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<><Bar /></>",
         )
     ),
@@ -74,7 +73,7 @@ let suite =
             [
               (
                 U.as_untyped("fizz"),
-                "buzz" |> AR.of_id |> U.as_unknown |> Option.some,
+                "buzz" |> AR.of_id |> U.as_node |> Option.some,
               )
               |> AR.of_prop
               |> U.as_untyped,
@@ -83,7 +82,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=buzz />",
         )
     ),
@@ -102,7 +101,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=\"buzz\" />",
         )
     ),
@@ -115,15 +114,9 @@ let suite =
             [
               (
                 U.as_untyped("fizz"),
-                [
-                  "buzz"
-                  |> AR.of_id
-                  |> U.as_unknown
-                  |> AR.of_expr
-                  |> U.as_unknown,
-                ]
+                ["buzz" |> AR.of_id |> U.as_node |> AR.of_expr |> U.as_node]
                 |> AR.of_closure
-                |> U.as_unknown
+                |> U.as_node
                 |> Option.some,
               )
               |> AR.of_prop
@@ -133,7 +126,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz={ buzz; } />",
         )
     ),
@@ -146,9 +139,9 @@ let suite =
             [
               (
                 U.as_untyped("fizz"),
-                ("buzz" |> AR.of_id |> U.as_unknown, [])
+                ("buzz" |> AR.of_id |> U.as_node, [])
                 |> AR.of_func_call
-                |> U.as_unknown
+                |> U.as_node
                 |> Option.some,
               )
               |> AR.of_prop
@@ -158,7 +151,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=buzz() />",
         )
     ),
@@ -173,7 +166,7 @@ let suite =
                 U.as_untyped("fizz"),
                 (U.int_prim(1), U.int_prim(2))
                 |> AR.of_gt_op
-                |> U.as_bool
+                |> U.as_node
                 |> Option.some,
               )
               |> AR.of_prop
@@ -183,7 +176,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=(1 > 2) />",
         )
     ),
@@ -202,7 +195,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=(true) />",
         )
     ),
@@ -215,7 +208,7 @@ let suite =
             [
               (
                 U.as_untyped("fizz"),
-                3 |> U.int_prim |> AR.of_neg_op |> U.as_int |> Option.some,
+                3 |> U.int_prim |> AR.of_neg_op |> U.as_node |> Option.some,
               )
               |> AR.of_prop
               |> U.as_untyped,
@@ -224,7 +217,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=-3 />",
         )
     ),
@@ -239,7 +232,7 @@ let suite =
                 U.as_untyped("fizz"),
                 (U.as_untyped("buzz"), [], [])
                 |> U.jsx_tag
-                |> U.as_element
+                |> U.as_node
                 |> Option.some,
               )
               |> AR.of_prop
@@ -249,7 +242,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz=<buzz /> />",
         )
     ),
@@ -264,7 +257,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo fizz />",
         )
     ),
@@ -281,7 +274,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo .fizz />",
         )
     ),
@@ -296,7 +289,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo #fizz />",
         )
     ),
@@ -311,7 +304,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo><Bar /></Foo>",
         )
     ),
@@ -325,14 +318,14 @@ let suite =
             [
               (U.int_prim(1), U.int_prim(2))
               |> AR.of_add_op
-              |> U.as_int
+              |> U.as_node
               |> AR.of_inline_expr
               |> U.as_untyped,
             ],
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo>{1 + 2}</Foo>",
         )
     ),
@@ -346,14 +339,14 @@ let suite =
             [
               (U.as_untyped("Bar"), [], [])
               |> U.jsx_tag
-              |> U.as_element
+              |> U.as_node
               |> AR.of_inline_expr
               |> U.as_untyped,
             ],
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo>{<Bar />}</Foo>",
         )
     ),
@@ -368,7 +361,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo> bar \"or\" 123 </Foo>",
         )
     ),
@@ -387,7 +380,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo bar=4><Bar /></Foo>",
         )
     ),
@@ -402,7 +395,7 @@ let suite =
               "bar" |> AR.of_text |> U.as_untyped,
               (U.int_prim(1), U.int_prim(2))
               |> AR.of_add_op
-              |> U.as_int
+              |> U.as_node
               |> AR.of_inline_expr
               |> U.as_untyped,
               (U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped,
@@ -412,7 +405,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
         )
     ),
@@ -425,7 +418,7 @@ let suite =
             [
               (
                 U.as_untyped("bar"),
-                "fizz" |> AR.of_id |> U.as_unknown |> Option.some,
+                "fizz" |> AR.of_id |> U.as_node |> Option.some,
               )
               |> AR.of_prop
               |> U.as_untyped,
@@ -435,7 +428,7 @@ let suite =
           )
           |> AR.of_tag
           |> AR.of_jsx
-          |> U.as_element,
+          |> U.as_node,
           "<Foo bar=fizz .buzz />",
         )
     ),

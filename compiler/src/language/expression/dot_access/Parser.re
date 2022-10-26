@@ -13,22 +13,7 @@ let dot_access = {
         loop(
           Node.typed(
             (expr, prop) |> AST.Raw.of_dot_access,
-            (
-              switch (Node.get_type(expr)) {
-              | `Struct(props) => props |> List.assoc_opt(fst(prop))
-              | `Module(entries) =>
-                entries
-                |> List.find_map(
-                     fun
-                     | (name, Type.Container.Value(type_))
-                         when name == fst(prop) =>
-                       Some(type_)
-                     | _ => None,
-                   )
-              | _ => None
-              }
-            )
-            |?: Type.Raw.(`Unknown),
+            (),
             Node.get_range(prop),
           ),
         )

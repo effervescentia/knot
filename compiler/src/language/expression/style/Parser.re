@@ -19,14 +19,7 @@ let style_rule =
       >|= (
         expr => {
           Node.untyped(
-            (
-              Node.typed(
-                fst(rule),
-                Type.Raw.(`Unknown),
-                Node.get_range(rule),
-              ),
-              expr,
-            ),
+            (Node.typed(fst(rule), (), Node.get_range(rule)), expr),
             Node.join_ranges(rule, expr),
           );
         }
@@ -53,7 +46,7 @@ let style_expression =
         raw_rules =>
           Node.typed(
             AST.Raw.of_style(raw_rules |> fst),
-            `Style,
+            (),
             Node.join_ranges(start, raw_rules),
           )
       )

@@ -16,7 +16,10 @@ let _module_decorator = (ctx: ParseContext.t) =>
           |> Node.add_type(
                ctx.symbols |> SymbolTable.resolve_value(fst(id)),
              ),
-          args |> List.map(Node.map_type(Type.of_raw)),
+          args
+          |> List.map(arg =>
+               arg |> Node.add_type(arg |> fst |> KPrimitive.Plugin.analyze)
+             ),
         )
       );
 

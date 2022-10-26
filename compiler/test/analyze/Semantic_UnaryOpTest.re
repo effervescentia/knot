@@ -19,7 +19,7 @@ let suite =
           (A.Not, URes.bool_prim(true)) |> A.of_unary_op |> URes.as_bool,
           (AR.Not, URaw.bool_prim(true))
           |> AR.of_unary_op
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -30,9 +30,9 @@ let suite =
           (A.Not, __id |> A.of_id |> URes.as_invalid(NotInferrable))
           |> A.of_unary_op
           |> URes.as_bool,
-          (AR.Not, __id |> AR.of_id |> URaw.as_unknown)
+          (AR.Not, __id |> AR.of_id |> URaw.as_node)
           |> AR.of_unary_op
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
     ),
@@ -45,7 +45,7 @@ let suite =
                (op, URes.int_prim(123)) |> A.of_unary_op |> URes.as_int,
                (op, URaw.int_prim(123))
                |> AR.of_unary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -61,7 +61,7 @@ let suite =
                |> URes.as_float,
                (op, (123.456, 3) |> URaw.float_prim)
                |> AR.of_unary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -75,9 +75,9 @@ let suite =
                (op, __id |> A.of_id |> URes.as_invalid(NotInferrable))
                |> A.of_unary_op
                |> URes.as_invalid(NotInferrable),
-               (op, __id |> AR.of_id |> URaw.as_unknown)
+               (op, __id |> AR.of_id |> URaw.as_node)
                |> AR.of_unary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -93,7 +93,7 @@ let suite =
                |> URes.as_invalid(NotInferrable),
                (op, URaw.string_prim("foo"))
                |> AR.of_unary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -112,7 +112,7 @@ let suite =
           () =>
           (AR.Not, URaw.string_prim("foo"))
           |> AR.of_unary_op
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)
         )
     ),

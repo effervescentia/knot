@@ -14,13 +14,13 @@ let suite =
     "parse true"
     >: (
       () =>
-        Assert.parse_all(true |> AR.of_bool |> U.as_bool, ["true", " true "])
+        Assert.parse_all(true |> AR.of_bool |> U.as_node, ["true", " true "])
     ),
     "parse false"
     >: (
       () =>
         Assert.parse_all(
-          false |> AR.of_bool |> U.as_bool,
+          false |> AR.of_bool |> U.as_node,
           ["false", " false "],
         )
     ),

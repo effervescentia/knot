@@ -15,7 +15,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          "foo" |> AR.of_string |> U.as_string,
+          "foo" |> AR.of_string |> U.as_node,
           ["\"foo\"", " \"foo\" "],
         )
     ),
@@ -23,7 +23,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          "foo\\\"bar" |> AR.of_string |> U.as_string,
+          "foo\\\"bar" |> AR.of_string |> U.as_node,
           "\"foo\\\"bar\"",
         )
     ),

@@ -23,7 +23,7 @@ let suite =
                |> URes.as_bool,
                (op, URaw.bool_prim(true), URaw.bool_prim(false))
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -39,7 +39,7 @@ let suite =
                |> URes.as_bool,
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -55,7 +55,7 @@ let suite =
                |> URes.as_bool,
                (op, URaw.int_prim(123), URaw.int_prim(456))
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -71,7 +71,7 @@ let suite =
                |> URes.as_bool,
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -87,7 +87,7 @@ let suite =
                |> URes.as_bool,
                (op, URaw.string_prim("foo"), URaw.string_prim("bar"))
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -103,7 +103,7 @@ let suite =
                |> URes.as_bool,
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -119,7 +119,7 @@ let suite =
                |> URes.as_float,
                (op, URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -135,7 +135,7 @@ let suite =
                |> URes.as_float,
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -151,7 +151,7 @@ let suite =
                |> URes.as_int,
                (op, URaw.int_prim(123), URaw.int_prim(456))
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -167,7 +167,7 @@ let suite =
                |> URes.as_float,
                (op, URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -187,11 +187,11 @@ let suite =
                |> URes.as_float,
                (
                  op,
-                 __id |> AR.of_id |> URaw.as_unknown,
+                 __id |> AR.of_id |> URaw.as_node,
                  (45.6, 7) |> URaw.float_prim,
                )
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -209,9 +209,9 @@ let suite =
                )
                |> A.of_binary_op
                |> URes.as_invalid(NotInferrable),
-               (op, __id |> AR.of_id |> URaw.as_unknown, URaw.int_prim(456))
+               (op, __id |> AR.of_id |> URaw.as_node, URaw.int_prim(456))
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -229,9 +229,9 @@ let suite =
                )
                |> A.of_binary_op
                |> URes.as_invalid(NotInferrable),
-               (op, URaw.int_prim(456), __id |> AR.of_id |> URaw.as_unknown)
+               (op, URaw.int_prim(456), __id |> AR.of_id |> URaw.as_node)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -247,7 +247,7 @@ let suite =
                |> URes.as_invalid(NotInferrable),
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
-               |> URaw.as_unknown
+               |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
            )
@@ -272,7 +272,7 @@ let suite =
           () =>
           (AR.LogicalAnd, URaw.string_prim("foo"), URaw.nil_prim)
           |> AR.of_binary_op
-          |> URaw.as_unknown
+          |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)
         )
     ),

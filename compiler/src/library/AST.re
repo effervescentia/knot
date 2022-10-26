@@ -404,10 +404,16 @@ module Make = (Params: ASTParams) => {
 
 module Raw =
   Make({
-    type type_t = Type.Raw.t;
+    type type_t = unit;
 
     let node_to_entity = (~attributes=[], ~children=[], label, node) =>
-      Dump.node_to_entity(Type.Raw.pp, ~attributes, ~children, label, node);
+      Dump.node_to_entity(
+        (ppf, ()) => (),
+        ~attributes,
+        ~children,
+        label,
+        node,
+      );
   });
 
 include Make({

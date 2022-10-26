@@ -17,6 +17,7 @@ module RawUtil = {
 
   /* typecasting utilities */
 
+  let as_node = x => as_typed((), x);
   let as_unknown = x => as_typed(TR.(`Unknown), x);
   let as_nil = x => as_typed(TR.(`Nil), x);
   let as_bool = x => as_typed(TR.(`Boolean), x);
@@ -33,11 +34,11 @@ module RawUtil = {
 
   /* primitive factories */
 
-  let nil_prim = AR.nil |> AR.of_prim |> as_nil;
-  let bool_prim = AR.of_bool % AR.of_prim % as_bool;
-  let int_prim = Int64.of_int % AR.of_int % AR.of_num % AR.of_prim % as_int;
-  let float_prim = AR.of_float % AR.of_num % AR.of_prim % as_float;
-  let string_prim = AR.of_string % AR.of_prim % as_string;
+  let nil_prim = AR.nil |> AR.of_prim |> as_node;
+  let bool_prim = AR.of_bool % AR.of_prim % as_node;
+  let int_prim = Int64.of_int % AR.of_int % AR.of_num % AR.of_prim % as_node;
+  let float_prim = AR.of_float % AR.of_num % AR.of_prim % as_node;
+  let string_prim = AR.of_string % AR.of_prim % as_node;
 
   /* jsx factories */
 

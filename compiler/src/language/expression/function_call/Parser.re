@@ -18,10 +18,7 @@ let function_call =
         loop(
           Node.typed(
             (expr, fst(args)) |> AST.Raw.of_func_call,
-            switch (Node.get_type(expr)) {
-            | `Function(_, result) => result
-            | _ => Type.Raw.(`Unknown)
-            },
+            (),
             Node.get_range(args),
           ),
         )

@@ -15,8 +15,7 @@ let validate_style_rule =
   | (expected_type, actual_type) =>
     Some(InvalidStyleRule(name, expected_type, actual_type));
 
-let analyze_style_rule =
-    (scope: Scope.t, raw_rule: Node.t(string, Type.Raw.t)) => {
+let analyze_style_rule = (scope: Scope.t, raw_rule: Node.t(string, unit)) => {
   let key = fst(raw_rule);
   let type_ =
     scope

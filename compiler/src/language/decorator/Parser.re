@@ -15,10 +15,6 @@ let decorator = parse_expr =>
       |> Matchers.between(Symbol.open_group, Symbol.close_group)
       |> option(Node.untyped([], Node.get_range(id)))
       >|= (
-        args =>
-          Node.untyped(
-            (id |> Node.add_type(Type.Raw.(`Unknown)), fst(args)),
-            Node.join_ranges(id, args),
-          )
+        args => Node.untyped((id, fst(args)), Node.join_ranges(id, args))
       )
   );

@@ -31,7 +31,7 @@ let arguments =
 
       Node.typed(
         AST.Raw.{name, default, type_},
-        default |?> Node.get_type |?: Type.Raw.(`Unknown),
+        (),
         Range.join(
           name_range,
           default

@@ -6,7 +6,7 @@ module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = TD.decorator_t(TR.t);
+    type t = TD.decorator_t(unit);
 
     let parser = _ =>
       KPrimitive.Plugin.parse
@@ -20,7 +20,9 @@ module Assert =
           testable(
             (ppf, decorator) =>
               TD.Dump.(
-                decorator |> decorator_to_entity(TR.pp) |> Entity.pp(ppf)
+                decorator
+                |> decorator_to_entity((ppf, ()) => ())
+                |> Entity.pp(ppf)
               ),
             (==),
           ),
@@ -34,24 +36,21 @@ let suite =
   >::: [
     "no parse" >: (() => Assert.no_parse("gibberish")),
     "parse without arguments"
-    >: (
-      () => Assert.parse((U.as_unknown("foo"), []) |> U.as_untyped, "@foo")
-    ),
+    >: (() => Assert.parse((U.as_node("foo"), []) |> U.as_untyped, "@foo")),
     "parse with empty arguments"
     >: (
-      () =>
-        Assert.parse((U.as_unknown("foo"), []) |> U.as_untyped, "@foo()")
+      () => Assert.parse((U.as_node("foo"), []) |> U.as_untyped, "@foo()")
     ),
     "parse with arguments"
     >: (
       () =>
         Assert.parse(
           (
-            U.as_unknown("foo"),
+            U.as_node("foo"),
             [
-              123L |> AR.of_int |> AR.of_num |> U.as_int,
-              true |> AR.of_bool |> U.as_bool,
-              "bar" |> AR.of_string |> U.as_string,
+              123L |> AR.of_int |> AR.of_num |> U.as_node,
+              true |> AR.of_bool |> U.as_node,
+              "bar" |> AR.of_string |> U.as_node,
             ],
           )
           |> U.as_untyped,

@@ -30,7 +30,7 @@ let float =
         )
         |> AST.Raw.of_float;
 
-      Node.typed(components, Type.Raw.(`Float), Node.join_ranges(x, y));
+      Node.typed(components, (), Node.join_ranges(x, y));
     }
   )
   |> Matchers.lexeme;
