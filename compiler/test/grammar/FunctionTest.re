@@ -10,7 +10,7 @@ module Assert = {
     type t = N.t((A.export_t, A.declaration_t), unit);
 
     let parser = ctx =>
-      KFunction.Plugin.parse(ctx, A.of_named_export, KExpression.Plugin.parse)
+      KFunction.Plugin.parse(ctx, A.of_named_export)
       |> Assert.parse_completely
       |> Parser.parse;
 

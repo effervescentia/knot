@@ -3,15 +3,10 @@ open Parse.Onyx;
 
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
-module SemanticAnalyzer = Analyze.Semantic;
 module Util = Grammar.Util;
 
 let function_ =
-    (
-      ctx: ParseContext.t,
-      tag_export: AST.Raw.identifier_t => AST.export_t,
-      parse_expression: Grammar.Kore.contextual_expression_parser_t,
-    )
+    (ctx: ParseContext.t, tag_export: AST.Raw.identifier_t => AST.export_t)
     : Grammar.Kore.declaration_parser_t =>
   Keyword.func
   >>= Node.get_range
@@ -20,15 +15,19 @@ let function_ =
       KIdentifier.Plugin.parse(ctx)
       >>= (
         id =>
-          parse_expression
+          KExpression.Plugin.parse
           |> KLambda.Plugin.parse(ctx)
           >|= (
-            ((raw_args, raw_res, range)) => {
+            ((args, res, range)) => {
               let scope = ctx |> Scope.of_parse_context(range);
-              let args =
-                raw_args |> SemanticAnalyzer.analyze_argument_list(scope);
+              let args' =
+                args
+                |> KLambda.Plugin.analyze_argument_list(
+                     scope,
+                     KExpression.Plugin.analyze,
+                   );
 
-              args
+              args'
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
@@ -41,15 +40,14 @@ let function_ =
                  );
 
               let res_scope =
-                scope |> Scope.create_child(Node.get_range(raw_res));
-              let res =
-                raw_res |> SemanticAnalyzer.analyze_expression(res_scope);
+                scope |> Scope.create_child(Node.get_range(res));
+              let res' = res |> KExpression.Plugin.analyze(res_scope);
 
               let type_ =
                 Type.Valid(
                   `Function((
-                    args |> List.map(Node.get_type),
-                    Node.get_type(res),
+                    args' |> List.map(Node.get_type),
+                    Node.get_type(res'),
                   )),
                 );
               let export_id = tag_export(id);
@@ -62,7 +60,7 @@ let function_ =
                  );
 
               let func =
-                Node.typed((args, res) |> AST.of_func, type_, range);
+                Node.typed((args', res') |> AST.of_func, type_, range);
 
               Node.untyped((export_id, func), Range.join(start, range));
             }

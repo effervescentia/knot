@@ -1,13 +1,21 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-let parse =
+let parse: Grammar.Kore.primitive_parser_t =
   choice([
     KNil.Plugin.parse,
     KBoolean.Plugin.parse,
     KNumber.Plugin.parse,
     KString.Plugin.parse,
   ]);
+
+let analyze: AST.primitive_t => Type.t =
+  fun
+  | Nil => Valid(`Nil)
+  | Boolean(_) => Valid(`Boolean)
+  | Number(Integer(_)) => Valid(`Integer)
+  | Number(Float(_)) => Valid(`Float)
+  | String(_) => Valid(`String);
 
 let pp: Fmt.t(AST.primitive_t) =
   ppf =>

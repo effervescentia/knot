@@ -3,7 +3,6 @@ open Parse.Onyx;
 
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
-module SemanticAnalyzer = Analyze.Semantic;
 module Symbol = Grammar.Symbol;
 module Util = Grammar.Util;
 

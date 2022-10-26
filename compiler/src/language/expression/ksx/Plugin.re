@@ -1,5 +1,5 @@
 let parse = Parser.ksx;
 
-let pp = Formatter.pp_ksx;
+let analyze = Analyzer.analyze_root;
 
-let dump = pp;
+let pp = Formatter.pp_ksx;

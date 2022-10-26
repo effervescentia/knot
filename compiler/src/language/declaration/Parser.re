@@ -12,8 +12,8 @@ let declaration = (ctx: ParseContext.t) =>
       choice([
         KConstant.Plugin.parse(ctx, f),
         KEnumerated.Plugin.parse(ctx, f),
-        KExpression.Plugin.parse |> KFunction.Plugin.parse(ctx, f),
-        KExpression.Plugin.parse |> KView.Plugin.parse(ctx, f),
+        KFunction.Plugin.parse(ctx, f),
+        KView.Plugin.parse(ctx, f),
       ])
       >|= Node.map(AST.of_decl)
   );

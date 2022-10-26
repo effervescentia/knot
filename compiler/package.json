@@ -534,14 +534,14 @@
     "src/language/declaration/enumerated": {
       "require": [
         "knot.lang.type.statement",
-        "knot.lang.identifier"
+        "knot.lang.expression"
       ],
       "name": "knot.lang.declaration.enumerated",
       "namespace": "KEnumerated"
     },
     "src/language/declaration/function": {
       "require": [
-        "knot.lang.identifier",
+        "knot.lang.expression",
         "knot.lang.lambda"
       ],
       "name": "knot.lang.declaration.function",
@@ -549,7 +549,7 @@
     },
     "src/language/declaration/view": {
       "require": [
-        "knot.lang.identifier",
+        "knot.lang.expression",
         "knot.lang.lambda"
       ],
       "name": "knot.lang.declaration.view",

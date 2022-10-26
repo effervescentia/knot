@@ -3,15 +3,10 @@ open Parse.Onyx;
 
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
-module SemanticAnalyzer = Analyze.Semantic;
 module Util = Grammar.Util;
 
 let view =
-    (
-      ctx: ParseContext.t,
-      tag_export: AST.Raw.identifier_t => AST.export_t,
-      parse_expression: Grammar.Kore.contextual_expression_parser_t,
-    )
+    (ctx: ParseContext.t, tag_export: AST.Raw.identifier_t => AST.export_t)
     : Grammar.Kore.declaration_parser_t =>
   Keyword.view
   >>= Node.get_range
@@ -20,16 +15,21 @@ let view =
       KIdentifier.Plugin.parse(ctx)
       >>= (
         id =>
-          parse_expression
+          KExpression.Plugin.parse
           |> KLambda.Plugin.parse_with_mixins(ctx)
           >|= (
-            ((raw_props, raw_mixins, raw_res, range)) => {
+            ((props, mixins, res, range)) => {
               let scope = ctx |> Scope.of_parse_context(range);
-              let props =
-                raw_props
-                |> List.map(SemanticAnalyzer.analyze_argument(scope));
+              let props' =
+                props
+                |> List.map(
+                     KLambda.Plugin.analyze_argument(
+                       scope,
+                       KExpression.Plugin.analyze,
+                     ),
+                   );
 
-              props
+              props'
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
@@ -41,8 +41,8 @@ let view =
                       )
                  );
 
-              let mixins =
-                raw_mixins
+              let mixins' =
+                mixins
                 |> List.map(mixin => {
                      let mixin_type =
                        ctx.symbols |> SymbolTable.resolve_value(fst(mixin));
@@ -70,12 +70,16 @@ let view =
                    });
 
               let res_scope =
-                scope |> Scope.create_child(Node.get_range(raw_res));
-              let res =
-                raw_res |> SemanticAnalyzer.analyze_view_body(res_scope);
+                scope |> Scope.create_child(Node.get_range(res));
+              let res' =
+                res
+                |> Analyzer.analyze_view_body(
+                     res_scope,
+                     KExpression.Plugin.analyze,
+                   );
 
               let prop_types =
-                props
+                props'
                 |> List.map(
                      Tuple.split2(
                        fst % AST.(prop => fst(prop.name)),
@@ -83,7 +87,7 @@ let view =
                      ),
                    );
               let type_ =
-                Type.Valid(`View((prop_types, Node.get_type(res))));
+                Type.Valid(`View((prop_types, Node.get_type(res'))));
               let export_id = tag_export(id);
 
               ctx.symbols
@@ -95,7 +99,7 @@ let view =
 
               let view =
                 Node.typed(
-                  (props, mixins, res) |> AST.of_view,
+                  (props', mixins', res') |> AST.of_view,
                   type_,
                   range,
                 );

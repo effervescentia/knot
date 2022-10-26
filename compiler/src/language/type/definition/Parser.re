@@ -25,7 +25,7 @@ let module_: Grammar.Kore.type_module_parser_t =
     _module_decorator(ctx)
     |> many
     >>= (
-      raw_decorators =>
+      decorators =>
         Keyword.module_
         >> (
           Matchers.identifier(~prefix=Matchers.alpha)
@@ -53,13 +53,11 @@ let module_: Grammar.Kore.type_module_parser_t =
                   let has_types = !List.is_empty(module_types);
                   let has_values = !List.is_empty(module_values);
 
-                  let decorators =
-                    raw_decorators
-                    |> List.map(
-                         Analyze.Semantic.analyze_decorator(ctx, Module),
-                       );
-                  let valid_decorators =
+                  let decorators' =
                     decorators
+                    |> List.map(Analyzer.analyze_decorator(ctx, Module));
+                  let valid_decorators =
+                    decorators'
                     |> List.filter_map(
                          fun
                          | ((((id, _), args), _), true) =>
@@ -96,7 +94,7 @@ let module_: Grammar.Kore.type_module_parser_t =
                      );
 
                   Node.untyped(
-                    (id, fst(stmts), decorators |> List.map(fst))
+                    (id, fst(stmts), decorators' |> List.map(fst))
                     |> TD.of_module,
                     Node.get_range(stmts),
                   );

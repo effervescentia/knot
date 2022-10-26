@@ -3,7 +3,6 @@ open Parse.Onyx;
 
 module Keyword = Grammar.Keyword;
 module Matchers = Grammar.Matchers;
-module SemanticAnalyzer = Analyze.Semantic;
 module Util = Grammar.Util;
 
 let constant = (ctx: ParseContext.t, f): Grammar.Kore.declaration_parser_t =>
@@ -18,7 +17,7 @@ let constant = (ctx: ParseContext.t, f): Grammar.Kore.declaration_parser_t =>
         ((id, raw_expr)) => {
           let scope =
             ctx |> Scope.of_parse_context(Node.get_range(raw_expr));
-          let expr = raw_expr |> SemanticAnalyzer.analyze_expression(scope);
+          let expr = raw_expr |> KExpression.Plugin.analyze(scope);
           let type_ = Node.get_type(expr);
           let const = expr |> Node.wrap(AST.of_const);
           let range = Node.join_ranges(kwd, raw_expr);
