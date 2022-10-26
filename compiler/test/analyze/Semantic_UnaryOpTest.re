@@ -1,6 +1,5 @@
 open Kore;
 
-module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -21,7 +20,7 @@ let suite =
           (AR.Not, URaw.bool_prim(true))
           |> AR.of_unary_op
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "resolve invalid 'not' (!) operation as boolean type"
@@ -34,7 +33,7 @@ let suite =
           (AR.Not, __id |> AR.of_id |> URaw.as_unknown)
           |> AR.of_unary_op
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "resolve valid 'positive' (+) and 'negative' (-) operations as integer type"
@@ -47,7 +46,7 @@ let suite =
                (op, URaw.int_prim(123))
                |> AR.of_unary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -63,7 +62,7 @@ let suite =
                (op, (123.456, 3) |> URaw.float_prim)
                |> AR.of_unary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -79,7 +78,7 @@ let suite =
                (op, __id |> AR.of_id |> URaw.as_unknown)
                |> AR.of_unary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -95,7 +94,7 @@ let suite =
                (op, URaw.string_prim("foo"))
                |> AR.of_unary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -114,7 +113,7 @@ let suite =
           (AR.Not, URaw.string_prim("foo"))
           |> AR.of_unary_op
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__throw_scope)
+          |> KExpression.Plugin.analyze(__throw_scope)
         )
     ),
   ];

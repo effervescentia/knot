@@ -1,7 +1,5 @@
 open Kore;
 
-module TypingAnalyzer = Analyze.Typing;
-
 let suite =
   "Analyze.Typing | Binary"
   >::: [
@@ -11,7 +9,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Invalid(NotInferrable), T.Valid(`Boolean))
-          |> TypingAnalyzer.check_binary_operation(LogicalAnd),
+          |> KBinaryOperator.Analyzer.validate_binary_operation(LogicalAnd),
         )
     ),
     "with invalid rhs type"
@@ -20,7 +18,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Valid(`Boolean), T.Invalid(NotInferrable))
-          |> TypingAnalyzer.check_binary_operation(LogicalAnd),
+          |> KBinaryOperator.Analyzer.validate_binary_operation(LogicalAnd),
         )
     ),
     "'and' (&&) and 'or' (||) operations with boolean types"
@@ -31,7 +29,7 @@ let suite =
              Assert.type_error(
                None,
                (T.Valid(`Boolean), T.Valid(`Boolean))
-               |> TypingAnalyzer.check_binary_operation(op),
+               |> KBinaryOperator.Analyzer.validate_binary_operation(op),
              )
            )
     ),
@@ -49,7 +47,7 @@ let suite =
                  ),
                ),
                (T.Valid(`String), T.Valid(`Integer))
-               |> TypingAnalyzer.check_binary_operation(op),
+               |> KBinaryOperator.Analyzer.validate_binary_operation(op),
              )
            )
     ),
@@ -67,7 +65,8 @@ let suite =
              |> List.iter(types =>
                   Assert.type_error(
                     None,
-                    types |> TypingAnalyzer.check_binary_operation(op),
+                    types
+                    |> KBinaryOperator.Analyzer.validate_binary_operation(op),
                   )
                 )
            )
@@ -86,7 +85,7 @@ let suite =
                  ),
                ),
                (T.Valid(`String), T.Valid(`Boolean))
-               |> TypingAnalyzer.check_binary_operation(op),
+               |> KBinaryOperator.Analyzer.validate_binary_operation(op),
              )
            )
     ),
@@ -104,7 +103,8 @@ let suite =
              |> List.iter(types =>
                   Assert.type_error(
                     None,
-                    types |> TypingAnalyzer.check_binary_operation(op),
+                    types
+                    |> KBinaryOperator.Analyzer.validate_binary_operation(op),
                   )
                 )
            )
@@ -123,7 +123,7 @@ let suite =
                  ),
                ),
                (T.Valid(`String), T.Valid(`Boolean))
-               |> TypingAnalyzer.check_binary_operation(op),
+               |> KBinaryOperator.Analyzer.validate_binary_operation(op),
              )
            )
     ),
@@ -135,7 +135,7 @@ let suite =
              Assert.type_error(
                None,
                (T.Valid(`String), T.Valid(`String))
-               |> TypingAnalyzer.check_binary_operation(op),
+               |> KBinaryOperator.Analyzer.validate_binary_operation(op),
              )
            )
     ),
@@ -153,7 +153,7 @@ let suite =
                  ),
                ),
                (T.Valid(`String), T.Valid(`Integer))
-               |> TypingAnalyzer.check_binary_operation(op),
+               |> KBinaryOperator.Analyzer.validate_binary_operation(op),
              )
            )
     ),

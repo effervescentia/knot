@@ -1,6 +1,5 @@
 open Kore;
 
-module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -22,7 +21,7 @@ let suite =
           |> URaw.string_prim
           |> AR.of_expr
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_statement(__scope),
+          |> KStatement.Plugin.analyze(__scope, KExpression.Plugin.analyze),
         )
     ),
     "resolve nil for variable declaration"
@@ -34,7 +33,7 @@ let suite =
           |> URaw.string_prim
           |> AR.of_expr
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_statement(__scope),
+          |> KStatement.Plugin.analyze(__scope, KExpression.Plugin.analyze),
         )
     ),
   ];

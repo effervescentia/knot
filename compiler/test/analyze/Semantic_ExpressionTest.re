@@ -1,6 +1,5 @@
 open Kore;
 
-module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -18,9 +17,7 @@ let suite =
       () =>
         Assert.expression(
           URes.bool_prim(true),
-          true
-          |> URaw.bool_prim
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          true |> URaw.bool_prim |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "extract group inner expression type"
@@ -32,7 +29,7 @@ let suite =
           |> URaw.string_prim
           |> AR.of_group
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "extract last closure statement type"
@@ -45,7 +42,7 @@ let suite =
           [123 |> URaw.int_prim |> AR.of_expr |> URaw.as_int]
           |> AR.of_closure
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "resolve nil if closure empty"
@@ -56,7 +53,7 @@ let suite =
           []
           |> AR.of_closure
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "always resolve JSX as element type"
@@ -71,7 +68,7 @@ let suite =
           |> AR.of_tag
           |> AR.of_jsx
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "resolve NotInferrable type on unrecognized identifier"
@@ -82,7 +79,7 @@ let suite =
           __id
           |> AR.of_id
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__scope),
+          |> KExpression.Plugin.analyze(__scope),
         )
     ),
     "report NotFound exception on unrecognized identifier"
@@ -94,7 +91,7 @@ let suite =
           __id
           |> AR.of_id
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__throw_scope)
+          |> KExpression.Plugin.analyze(__throw_scope)
         )
     ),
     "resolve recognized identifier"
@@ -111,7 +108,7 @@ let suite =
           __id
           |> AR.of_id
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(scope),
+          |> KExpression.Plugin.analyze(scope),
         );
       }
     ),
@@ -136,7 +133,7 @@ let suite =
           (__id |> AR.of_id |> URaw.as_unknown, URaw.as_untyped("foo"))
           |> AR.of_dot_access
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(scope),
+          |> KExpression.Plugin.analyze(scope),
         );
       }
     ),
@@ -168,7 +165,7 @@ let suite =
           (__id |> AR.of_id |> URaw.as_unknown, [URaw.int_prim(123)])
           |> AR.of_func_call
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(scope),
+          |> KExpression.Plugin.analyze(scope),
         );
       }
     ),
@@ -247,7 +244,7 @@ let suite =
           ]
           |> AR.of_style
           |> URaw.as_style
-          |> SemanticAnalyzer.analyze_expression(scope),
+          |> KExpression.Plugin.analyze(scope),
         );
       }
     ),

@@ -1,6 +1,5 @@
 open Kore;
 
-module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 module TE = AST.TypeExpression;
@@ -30,7 +29,10 @@ let suite =
             type_: None,
           }
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__scope),
+          |> KLambda.Plugin.analyze_argument(
+               __scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "extract type expression type"
@@ -49,7 +51,10 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__scope),
+          |> KLambda.Plugin.analyze_argument(
+               __scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "resolve on matched valid types"
@@ -68,7 +73,10 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__scope),
+          |> KLambda.Plugin.analyze_argument(
+               __scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "resolve on invalid default expression type"
@@ -87,7 +95,10 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__scope),
+          |> KLambda.Plugin.analyze_argument(
+               __scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "report TypeMismatch on unmatched types"
@@ -108,7 +119,10 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__throw_scope)
+          |> KLambda.Plugin.analyze_argument(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             )
         )
     ),
     "report UntypedFunctionArgument when no type information available"
@@ -125,7 +139,10 @@ let suite =
           () =>
           AR.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__throw_scope)
+          |> KLambda.Plugin.analyze_argument(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             )
         )
     ),
     "resolve NotInferrable when no type information available"
@@ -136,7 +153,10 @@ let suite =
           |> URes.as_invalid(NotInferrable),
           AR.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_argument(__scope),
+          |> KLambda.Plugin.analyze_argument(
+               __scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "report DefaultArgumentMissing on gaps in default arguments"
@@ -171,7 +191,10 @@ let suite =
             }
             |> URaw.as_unknown,
           ]
-          |> SemanticAnalyzer.analyze_argument_list(__throw_scope)
+          |> KLambda.Plugin.analyze_argument_list(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             )
         )
     ),
   ];

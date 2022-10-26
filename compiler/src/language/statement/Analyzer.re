@@ -1,13 +1,17 @@
 open Knot.Kore;
 
 let analyze_statement:
-  (Scope.t, AST.Raw.expression_t => AST.expression_t, AST.Raw.statement_t) =>
+  (
+    Scope.t,
+    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
+    AST.Raw.statement_t
+  ) =>
   AST.statement_t =
   (scope, analyze_expression, node) =>
     (
       switch (node) {
       | (Variable(id, expr), _) =>
-        let expr' = analyze_expression(expr);
+        let expr' = analyze_expression(scope, expr);
 
         scope
         |> Scope.define(fst(id), Node.get_type(expr'))
@@ -16,7 +20,7 @@ let analyze_statement:
         ((id, expr') |> AST.of_var, Type.Valid(`Nil));
 
       | (Expression(expr), _) =>
-        let expr' = analyze_expression(expr);
+        let expr' = analyze_expression(scope, expr);
 
         (AST.of_expr(expr'), Node.get_type(expr'));
       }

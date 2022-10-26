@@ -47,7 +47,7 @@ let rec analyze_expression: (Scope.t, AST.Raw.expression_t) => AST.expression_t 
         let (stmts', type_) =
           KClosure.Plugin.analyze(
             scope,
-            s => KStatement.Plugin.analyze(s, analyze_expression(s)),
+            s => KStatement.Plugin.analyze(s, analyze_expression),
             stmts,
             node_range,
           );

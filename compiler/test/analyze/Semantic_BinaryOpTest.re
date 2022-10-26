@@ -1,6 +1,5 @@
 open Kore;
 
-module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -25,7 +24,7 @@ let suite =
                (op, URaw.bool_prim(true), URaw.bool_prim(false))
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -41,7 +40,7 @@ let suite =
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -57,7 +56,7 @@ let suite =
                (op, URaw.int_prim(123), URaw.int_prim(456))
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -73,7 +72,7 @@ let suite =
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -89,7 +88,7 @@ let suite =
                (op, URaw.string_prim("foo"), URaw.string_prim("bar"))
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -105,7 +104,7 @@ let suite =
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -121,7 +120,7 @@ let suite =
                (op, URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -137,7 +136,7 @@ let suite =
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -153,7 +152,7 @@ let suite =
                (op, URaw.int_prim(123), URaw.int_prim(456))
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -169,7 +168,7 @@ let suite =
                (op, URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -193,7 +192,7 @@ let suite =
                )
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -213,7 +212,7 @@ let suite =
                (op, __id |> AR.of_id |> URaw.as_unknown, URaw.int_prim(456))
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -233,7 +232,7 @@ let suite =
                (op, URaw.int_prim(456), __id |> AR.of_id |> URaw.as_unknown)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -249,7 +248,7 @@ let suite =
                (op, URaw.string_prim("foo"), URaw.nil_prim)
                |> AR.of_binary_op
                |> URaw.as_unknown
-               |> SemanticAnalyzer.analyze_expression(__scope),
+               |> KExpression.Plugin.analyze(__scope),
              )
            )
     ),
@@ -274,7 +273,7 @@ let suite =
           (AR.LogicalAnd, URaw.string_prim("foo"), URaw.nil_prim)
           |> AR.of_binary_op
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_expression(__throw_scope)
+          |> KExpression.Plugin.analyze(__throw_scope)
         )
     ),
   ];

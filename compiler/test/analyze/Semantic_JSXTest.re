@@ -1,6 +1,5 @@
 open Kore;
 
-module SemanticAnalyzer = Analyze.Semantic;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -33,7 +32,10 @@ let suite =
             ],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(__throw_scope),
+          |> KSX.Analyzer.analyze_jsx(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "report InvalidJSXPrimitiveExpression error with invalid inline expression"
@@ -66,7 +68,7 @@ let suite =
             ],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(scope)
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
         );
       }
     ),
@@ -91,7 +93,10 @@ let suite =
           __id
           |> AR.of_id
           |> URaw.as_unknown
-          |> SemanticAnalyzer.analyze_view_body(scope)
+          |> KView.Analyzer.analyze_view_body(
+               scope,
+               KExpression.Plugin.analyze,
+             )
         );
       }
     ),
@@ -119,7 +124,10 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(__throw_scope),
+          |> KSX.Analyzer.analyze_jsx(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "resolve jsx with valid class expression"
@@ -146,7 +154,10 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(__throw_scope),
+          |> KSX.Analyzer.analyze_jsx(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             ),
         )
     ),
     "throw InvalidJSXClassExpression error on jsx with invalid class expression"
@@ -171,7 +182,10 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(__throw_scope)
+          |> KSX.Analyzer.analyze_jsx(
+               __throw_scope,
+               KExpression.Plugin.analyze,
+             )
         )
     ),
     "throw InvalidJSXTag error on jsx with incorrect type"
@@ -210,7 +224,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(scope)
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
         );
       }
     ),
@@ -256,7 +270,7 @@ let suite =
           [],
         )
         |> AR.of_tag
-        |> SemanticAnalyzer.analyze_jsx(scope)
+        |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
         |> ignore;
 
         Assert.compile_errors(
@@ -336,7 +350,7 @@ let suite =
             [],
           )
           |> AR.of_tag
-          |> SemanticAnalyzer.analyze_jsx(scope),
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
         );
       }
     ),

@@ -1,7 +1,5 @@
 open Kore;
 
-module TypingAnalyzer = Analyze.Typing;
-
 let __rule_name = "foo";
 
 let suite =
@@ -13,7 +11,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Invalid(NotInferrable), T.Invalid(NotInferrable))
-          |> TypingAnalyzer.check_style_rule(__rule_name),
+          |> KStyle.Analyzer.validate_style_rule(__rule_name),
         )
     ),
     "with invalid rule type"
@@ -22,7 +20,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Invalid(NotInferrable), T.Valid(`Integer))
-          |> TypingAnalyzer.check_style_rule(__rule_name),
+          |> KStyle.Analyzer.validate_style_rule(__rule_name),
         )
     ),
     "with invalid rule expression type"
@@ -31,7 +29,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Valid(`Integer), T.Invalid(NotInferrable))
-          |> TypingAnalyzer.check_style_rule(__rule_name),
+          |> KStyle.Analyzer.validate_style_rule(__rule_name),
         )
     ),
     "with both types valid"
@@ -40,7 +38,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Valid(`Integer), T.Valid(`Integer))
-          |> TypingAnalyzer.check_style_rule(__rule_name),
+          |> KStyle.Analyzer.validate_style_rule(__rule_name),
         )
     ),
     "with raw string expression"
@@ -52,7 +50,7 @@ let suite =
             T.Valid(`Function(([T.Valid(`Integer)], T.Valid(`Nil)))),
             T.Valid(`String),
           )
-          |> TypingAnalyzer.check_style_rule(__rule_name),
+          |> KStyle.Analyzer.validate_style_rule(__rule_name),
         )
     ),
     "throws InvalidStyleRule"
@@ -67,7 +65,7 @@ let suite =
             ),
           ),
           (T.Valid(`Integer), T.Valid(`Boolean))
-          |> TypingAnalyzer.check_style_rule(__rule_name),
+          |> KStyle.Analyzer.validate_style_rule(__rule_name),
         )
     ),
   ];
