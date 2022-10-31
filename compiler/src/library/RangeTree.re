@@ -1,5 +1,3 @@
-open Infix;
-
 type entry_t('a) = (Range.t, 'a);
 type t('a) = BinaryTree.t(entry_t('a));
 
@@ -8,7 +6,10 @@ let find_leaf = (point: Point.t, tree: t('a)): option(entry_t('a)) => {
 
   tree
   |> BinaryTree.search(
-       ({value: (l_range, _)} as left, {value: (r_range, _)} as right) =>
+       (
+         {value: (l_range, _), _} as left,
+         {value: (r_range, _), _} as right,
+       ) =>
        if (contains(l_range)) {
          Some(left);
        } else if (contains(r_range)) {

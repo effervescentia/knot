@@ -125,7 +125,7 @@ let rec analyze_jsx:
                fun
                | (AST.Property((name, _), Some(expr)), range) =>
                  Some((name, (Node.get_type(expr), range)))
-               | (_, range) => None,
+               | _ => None,
              );
 
         (fst(id), id_type, props)
@@ -219,7 +219,7 @@ and analyze_jsx_child:
     Node.untyped(jsx_child', Node.get_range(jsx_child));
   };
 
-let rec analyze_root:
+let analyze_root:
   (
     Scope.t,
     (Scope.t, AST.Raw.expression_t) => AST.expression_t,

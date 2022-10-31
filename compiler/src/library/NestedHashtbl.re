@@ -1,5 +1,3 @@
-open Infix;
-
 type t('a, 'b) = {
   parent: option(t('a, 'b)),
   table: Hashtbl.t('a, 'b),
@@ -28,5 +26,5 @@ let rec find = (key: 'a, {table, parent}: t('a, 'b)): option('b) =>
   | _ => None
   };
 
-let set = (key: 'a, value: 'b, {table}: t('a, 'b)): unit =>
+let set = (key: 'a, value: 'b, {table, _}: t('a, 'b)): unit =>
   Hashtbl.replace(table, key, value);

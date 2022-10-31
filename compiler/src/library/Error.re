@@ -1,7 +1,6 @@
 /**
  Errors and utilities for problems encountered while compiling.
  */
-open Infix;
 open Reference;
 
 exception NotImplemented;

@@ -1,5 +1,3 @@
-open Infix;
-
 type t('a, 'b) = ('a, ('b, Range.t));
 
 /* static */

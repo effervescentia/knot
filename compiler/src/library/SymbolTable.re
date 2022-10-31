@@ -1,5 +1,3 @@
-open Infix;
-
 module Export = Reference.Export;
 
 type types_t = list((string, Type.t));
@@ -133,7 +131,7 @@ let to_module_type = (table: t): Type.t =>
 /* pretty printing */
 
 let pp: Fmt.t(t) =
-  (ppf, {imported, declared}) =>
+  (ppf, {imported, declared, _}) =>
     Fmt.(
       struct_(
         string,

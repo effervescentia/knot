@@ -4,5 +4,4 @@ open Parse.Onyx;
 module Symbol = Grammar.Symbol;
 module Util = Grammar.Util;
 
-let greater_than = (ctx: ParseContext.t) =>
-  AST.Raw.of_gt_op |> Util.binary_op(ctx) <$ Symbol.greater_than;
+let greater_than = Util.binary_op(AST.Raw.of_gt_op) <$ Symbol.greater_than;

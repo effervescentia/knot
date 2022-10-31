@@ -1,8 +1,6 @@
 /**
  Type expression Abstract Syntax Tree.
  */
-open Infix;
-open Reference;
 open AST_Common;
 
 type t = untyped_t(raw_t)

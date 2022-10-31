@@ -25,7 +25,7 @@ let generator = (values: list('a)) => {
 let memo = (get_key: 'a => 'b, f: 'a => 'c): ('a => 'c) => {
   let past = ref([]);
 
-  let rec loop = x => {
+  x => {
     let key = get_key(x);
 
     try(List.assoc(key, past^)) {
@@ -37,6 +37,4 @@ let memo = (get_key: 'a => 'b, f: 'a => 'c): ('a => 'c) => {
       value;
     };
   };
-
-  loop;
 };

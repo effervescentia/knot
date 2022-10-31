@@ -1,8 +1,6 @@
 /**
  Logging utilities.
  */
-open Infix;
-
 module Fmt = Pretty.Formatters;
 module ANSI = ANSITerminal;
 

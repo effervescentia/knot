@@ -2,7 +2,6 @@
  Type definition module Abstract Syntax Tree.
  */
 open Infix;
-open Reference;
 open AST_Common;
 
 module TypeExpression = AST_TypeExpression;

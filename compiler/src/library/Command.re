@@ -15,7 +15,7 @@ let create =
   resolve,
 };
 
-let map = (f, {resolve} as cmd: t('a)): t('b) => {
+let map = (f, {resolve, _} as cmd: t('a)): t('b) => {
   ...cmd,
   resolve: (static, global, argv) => f(resolve(static, global, argv)),
 };

@@ -46,14 +46,15 @@ let create = (~plugins=[], size: int): t => {
 
 /* methods */
 
-let find = (id: Namespace.t, {modules}: t) => Hashtbl.find_opt(modules, id);
+let find = (id: Namespace.t, {modules, _}: t) =>
+  Hashtbl.find_opt(modules, id);
 
-let mem = (id: Namespace.t, {modules}: t) => Hashtbl.mem(modules, id);
+let mem = (id: Namespace.t, {modules, _}: t) => Hashtbl.mem(modules, id);
 
 /**
  add a module with associated export types and AST
  */
-let add = (id: Namespace.t, entry: entry_t, {modules}: t) =>
+let add = (id: Namespace.t, entry: entry_t, {modules, _}: t) =>
   Hashtbl.replace(modules, id, entry);
 
 /**
@@ -71,18 +72,19 @@ let set_globals = (globals: module_entries_t, table: t) =>
 /**
  remove an entry from the table
  */
-let remove = (id: Namespace.t, {modules}: t) => Hashtbl.remove(modules, id);
+let remove = (id: Namespace.t, {modules, _}: t) =>
+  Hashtbl.remove(modules, id);
 
 /**
  purge an entry from the table
  */
-let purge = (id: Namespace.t, {modules}: t) =>
+let purge = (id: Namespace.t, {modules, _}: t) =>
   Hashtbl.replace(modules, id, Purged);
 
 /**
  prepare a pending entry in the table
  */
-let prepare = (id: Namespace.t, {modules}: t) =>
+let prepare = (id: Namespace.t, {modules, _}: t) =>
   Hashtbl.replace(modules, id, Pending);
 
 /**
@@ -103,7 +105,7 @@ let get_entry_data: entry_t => option(module_t) =
   | Partial(_, data, _) => Some(data)
   | _ => None;
 
-let get_global_values = ({globals}: t) =>
+let get_global_values = ({globals, _}: t) =>
   globals
   |> List.filter_map(
        fun
@@ -111,7 +113,7 @@ let get_global_values = ({globals}: t) =>
        | _ => None,
      );
 
-let get_global_types = ({globals}: t) =>
+let get_global_types = ({globals, _}: t) =>
   globals
   |> List.filter_map(
        fun
@@ -158,7 +160,7 @@ let reset = (table: t) => {
   Hashtbl.reset(table.modules);
 };
 
-let to_module_list = ({modules}: t) =>
+let to_module_list = ({modules, _}: t) =>
   modules |> Hashtbl.to_seq |> List.of_seq;
 
 /* pretty printing */
@@ -173,7 +175,7 @@ let _pp_library: Fmt.t(library_t) =
     );
 
 let _pp_module: Fmt.t(module_t) =
-  (ppf, {ast, symbols}) =>
+  (ppf, {ast, symbols, _}) =>
     Fmt.(
       [
         ("ast", ast |> ~@AST.Dump.pp),

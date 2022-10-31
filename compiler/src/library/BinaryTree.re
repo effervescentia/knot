@@ -1,5 +1,3 @@
-open Infix;
-
 type t('a) = {
   value: 'a,
   left: option(t('a)),
@@ -19,14 +17,14 @@ let rec search = (choose: (t('a), t('a)) => option(t('a)), tree: t('a)) =>
     | Some(result) => search(choose, result)
     | None => Some(value)
     }
-  | {value, left: Some(left)} as right
-  | {value, right: Some(right)} as left =>
+  | {value, left: Some(left), _} as right
+  | {value, right: Some(right), _} as left =>
     switch (choose(left, right)) {
     | None => Some(value)
     | Some(result) when result == tree => Some(value)
     | Some(result) => search(choose, result)
     }
-  | {value} => Some(value)
+  | {value, _} => Some(value)
   };
 
 let rec to_graph = (tree: t('a)): Graph.t('a) =>

@@ -56,7 +56,7 @@ let import = (namespace: Namespace.t, id: Export.t, alias: string, ctx: t) => {
   let module_ = ctx.modules |> ModuleTable.find(namespace);
   let symbols =
     module_
-    |?< ModuleTable.(get_entry_data % Option.map(({symbols}) => symbols));
+    |?< ModuleTable.(get_entry_data % Option.map(({symbols, _}) => symbols));
 
   let type_export =
     symbols

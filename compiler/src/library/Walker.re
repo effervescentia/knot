@@ -38,12 +38,12 @@ and iter_decl = f =>
   % AST.(
       fun
       | Constant(expr) => _bind_expr(f, expr)
-      | Enumerated(variants) => ()
+      | Enumerated(_) => ()
       | Function(args, expr) =>
         (args |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))
-      | View(props, mixins, expr) =>
+      | View(props, _, expr) =>
         (props |> List.filter_map(((arg, _)) => arg.default))
         @ [expr]
         |> List.iter(_bind_expr(f))
@@ -77,7 +77,7 @@ and iter_expr = f => {
              f(Statement(x));
              iter_stmt(f, x);
            })
-      | DotAccess(expr, prop) => _bind_expr(f, expr)
+      | DotAccess(expr, _) => _bind_expr(f, expr)
       | FunctionCall(expr, args) => {
           _bind_expr(f, expr);
           args |> List.iter(_bind_expr(f));

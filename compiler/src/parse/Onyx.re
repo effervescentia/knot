@@ -64,7 +64,7 @@ let (<<!) = (x, y) => {
   >>= (
     (r, input) =>
       switch (y(input)) {
-      | Some(x) => None
+      | Some(_) => None
       | None => Some((r, input))
       }
   );

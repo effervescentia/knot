@@ -2,7 +2,6 @@
  common types that can be used to build resolved or Raw ASTs
  */
 open Infix;
-open Reference;
 
 include AST_Primitive;
 include AST_Operator;

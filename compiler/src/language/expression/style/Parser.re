@@ -8,7 +8,6 @@ module Symbol = Grammar.Symbol;
 let style_rule =
     (
       ctx: ParseContext.t,
-      rule_scope: Scope.t,
       parse_expr: Grammar.Kore.contextual_expression_parser_t,
     ) =>
   KIdentifier.Plugin.parse(ctx)
@@ -39,7 +38,7 @@ let style_expression =
   Keyword.style
   >>= (
     start =>
-      style_rule(ctx, rule_scope, parse_expr)
+      style_rule(ctx, parse_expr)
       |> Matchers.comma_sep
       |> Matchers.between(Symbol.open_closure, Symbol.close_closure)
       >|= (

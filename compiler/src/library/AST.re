@@ -186,8 +186,6 @@ module Make = (Params: ASTParams) => {
   let nil = Nil;
 
   module Dump = {
-    open Pretty.Formatters;
-
     include AST_Common.Dump;
 
     let rec expr_to_entity = expr =>
@@ -408,7 +406,7 @@ module Raw =
 
     let node_to_entity = (~attributes=[], ~children=[], label, node) =>
       Dump.node_to_entity(
-        (ppf, ()) => (),
+        (_, ()) => (),
         ~attributes,
         ~children,
         label,
@@ -495,8 +493,6 @@ let of_decl = ((name, x)) => Declaration(name, x);
 
 module Dump = {
   include Dump;
-
-  open Pretty.Formatters;
 
   let export_to_entity =
     fun

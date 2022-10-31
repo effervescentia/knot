@@ -4,5 +4,4 @@ open Parse.Onyx;
 module Symbol = Grammar.Symbol;
 module Util = Grammar.Util;
 
-let less_than = (ctx: ParseContext.t) =>
-  AST.Raw.of_lt_op |> Util.binary_op(ctx) <$ Symbol.less_than;
+let less_than = Util.binary_op(AST.Raw.of_lt_op) <$ Symbol.less_than;

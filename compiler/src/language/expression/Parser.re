@@ -15,52 +15,43 @@ let identifier = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
 
 /* || */
 let rec expr_0 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  chainl1(expr_1(ctx), KLogicalOr.Plugin.parse(ctx))
+  chainl1(expr_1(ctx), KLogicalOr.Plugin.parse)
 
 /* && */
 and expr_1 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  chainl1(expr_2(ctx), KLogicalAnd.Plugin.parse(ctx))
+  chainl1(expr_2(ctx), KLogicalAnd.Plugin.parse)
 
 /* ==, != */
 and expr_2 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  chainl1(
-    expr_3(ctx),
-    KEqual.Plugin.parse(ctx) <|> KUnequal.Plugin.parse(ctx),
-  )
+  chainl1(expr_3(ctx), KEqual.Plugin.parse <|> KUnequal.Plugin.parse)
 
 /* <=, <, >=, > */
 and expr_3 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
   chainl1(
     expr_4(ctx),
     choice([
-      KLessOrEqual.Plugin.parse(ctx),
-      KLessThan.Plugin.parse(ctx),
-      KGreaterOrEqual.Plugin.parse(ctx),
-      KGreaterThan.Plugin.parse(ctx),
+      KLessOrEqual.Plugin.parse,
+      KLessThan.Plugin.parse,
+      KGreaterOrEqual.Plugin.parse,
+      KGreaterThan.Plugin.parse,
     ]),
   )
 
 /* +, - */
 and expr_4 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  chainl1(
-    expr_5(ctx),
-    KAdd.Plugin.parse(ctx) <|> KSubtract.Plugin.parse(ctx),
-  )
+  chainl1(expr_5(ctx), KAdd.Plugin.parse <|> KSubtract.Plugin.parse)
 
 /* *, / */
 and expr_5 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  chainl1(
-    expr_6(ctx),
-    KMultiply.Plugin.parse(ctx) <|> KDivide.Plugin.parse(ctx),
-  )
+  chainl1(expr_6(ctx), KMultiply.Plugin.parse <|> KDivide.Plugin.parse)
 
 /* ^ */
 and expr_6 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  chainr1(expr_7(ctx), KExponentiate.Plugin.parse(ctx))
+  chainr1(expr_7(ctx), KExponentiate.Plugin.parse)
 
 /* !, +, - */
 and expr_7 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
-  expr_8(ctx) |> KUnaryOperator.Plugin.parse(ctx)
+  expr_8(ctx) |> KUnaryOperator.Plugin.parse
 
 /* foo(bar) */
 and expr_8 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
@@ -87,7 +78,7 @@ and expr_10 = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
 and jsx_term = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>
   /* skip dot access to avoid conflict with class attribute syntax */
   KFunctionCall.Plugin.parse(expr_10(ctx), expr_0(ctx))
-  |> KUnaryOperator.Plugin.parse(ctx)
+  |> KUnaryOperator.Plugin.parse
 
 /* 2, foo, <bar /> */
 and term = (ctx: ParseContext.t): Grammar.Kore.expression_parser_t =>

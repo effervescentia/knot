@@ -54,7 +54,7 @@ let analyze_function_call:
       expr',
       args',
       switch (type_expr) {
-      | Valid(`Function(args, result)) => result
+      | Valid(`Function(_, result)) => result
       | _ => Invalid(NotInferrable)
       },
     );

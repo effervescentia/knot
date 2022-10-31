@@ -1,8 +1,6 @@
 /**
  Extension of the standard Filename module with additional functionality.
  */
-open Infix;
-
 include Stdlib.Filename;
 
 let __relative_prefix = current_dir_name ++ dir_sep;

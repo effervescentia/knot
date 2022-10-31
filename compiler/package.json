@@ -708,8 +708,8 @@
     "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@opam/ocamlformat-rpc": "0.21.0",
     "@opam/ocaml-lsp-server": "1.13.1",
+    "@opam/ocamlformat-rpc": "0.21.0",
     "ocaml": "4.14.0",
     "pesy": "0.4.4"
   }

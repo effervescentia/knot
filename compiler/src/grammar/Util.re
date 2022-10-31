@@ -5,9 +5,9 @@ let is_main: A.export_t => bool =
   | MainExport(_) => true
   | NamedExport(_) => false;
 
-let unary_op = (ctx, f, x) => N.typed(f(x), (), N.get_range(x));
+let unary_op = (f, x) => N.typed(f(x), (), N.get_range(x));
 
-let binary_op = (ctx, f, (l, r)) =>
+let binary_op = (f, (l, r)) =>
   Node.typed((l, r) |> f, (), Node.join_ranges(l, r));
 
 let define_statement = (kwd, parser, f) =>

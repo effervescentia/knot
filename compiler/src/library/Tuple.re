@@ -10,14 +10,14 @@ let with_snd2 = (x: 'a, y: 'b): ('b, 'a) => (y, x);
 
 /* getters */
 
-let fst3 = ((x, y, z): ('a, 'b, 'c)): 'a => x;
-let snd3 = ((x, y, z): ('a, 'b, 'c)): 'b => y;
-let thd3 = ((x, y, z): ('a, 'b, 'c)): 'c => z;
+let fst3 = ((x, _, _): ('a, 'b, 'c)): 'a => x;
+let snd3 = ((_, y, _): ('a, 'b, 'c)): 'b => y;
+let thd3 = ((_, _, z): ('a, 'b, 'c)): 'c => z;
 
-let fst4 = ((w, x, y, z): ('a, 'b, 'c, 'd)): 'a => w;
-let snd4 = ((w, x, y, z): ('a, 'b, 'c, 'd)): 'b => x;
-let thd4 = ((w, x, y, z): ('a, 'b, 'c, 'd)): 'c => y;
-let fth4 = ((w, x, y, z): ('a, 'b, 'c, 'd)): 'd => z;
+let fst4 = ((w, _, _, _): ('a, 'b, 'c, 'd)): 'a => w;
+let snd4 = ((_, x, _, _): ('a, 'b, 'c, 'd)): 'b => x;
+let thd4 = ((_, _, y, _): ('a, 'b, 'c, 'd)): 'c => y;
+let fth4 = ((_, _, _, z): ('a, 'b, 'c, 'd)): 'd => z;
 
 /* methods */
 
