@@ -1,4 +1,3 @@
-open Executable.Kore;
 open Kore;
 
 module Processor = Executable.Processor;

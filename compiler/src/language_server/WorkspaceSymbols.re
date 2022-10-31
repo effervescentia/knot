@@ -27,7 +27,7 @@ let deserialize =
 let response = (symbols: list(symbol_info_t)) =>
   `List(
     symbols
-    |> List.map(({name, uri, kind, range}) =>
+    |> List.map(({name, uri, kind, range, _}) =>
          `Assoc([
            ("name", `String(name)),
            ("kind", `Int(kind |> Serialize.symbol)),
@@ -43,17 +43,19 @@ let response = (symbols: list(symbol_info_t)) =>
   );
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({compilers}, params) => {
+  ({compilers, _}, _) => {
     let symbols =
       compilers
       |> Hashtbl.to_seq_values
       |> List.of_seq
-      |> List.map((Runtime.{uri, compiler}) =>
+      |> List.map((Runtime.{uri, compiler, _}) =>
            compiler.modules
            |> ModuleTable.to_module_list
            |> List.map(
                 Tuple.map_snd2(
-                  ModuleTable.(get_entry_data % Option.map(({ast}) => ast)),
+                  ModuleTable.(
+                    get_entry_data % Option.map(({ast, _}) => ast)
+                  ),
                 )
                 % (
                   fun
@@ -83,25 +85,25 @@ let handler: Runtime.request_handler_t(params_t) =
 
                                Some(
                                  switch (fst(decl)) {
-                                 | Constant(expr) => {
+                                 | Constant(_) => {
                                      uri,
                                      name,
                                      range,
                                      kind: Capabilities.Variable,
                                    }
-                                 | Enumerated(variants) => {
+                                 | Enumerated(_) => {
                                      uri,
                                      name,
                                      range,
                                      kind: Capabilities.Enum,
                                    }
-                                 | Function(args, expr) => {
+                                 | Function(_) => {
                                      uri,
                                      name,
                                      range,
                                      kind: Capabilities.Function,
                                    }
-                                 | View(props, mixins, expr) => {
+                                 | View(_) => {
                                      uri,
                                      name,
                                      range,

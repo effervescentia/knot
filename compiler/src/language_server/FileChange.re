@@ -26,9 +26,9 @@ let deserialize =
   );
 
 let handler: Runtime.notification_handler_t(params_t) =
-  (runtime, {text_document: {uri}, changes}) =>
+  (runtime, {text_document: {uri, _}, changes, _}) =>
     switch (List.last(changes), runtime |> Runtime.resolve(uri)) {
-    | (Some(contents), Some((namespace, {compiler, contexts} as ctx))) =>
+    | (Some(contents), Some((namespace, {compiler, _} as ctx))) =>
       let silent_compiler = {...compiler, dispatch: ignore};
 
       silent_compiler |> Compiler.inject_raw(namespace, contents);

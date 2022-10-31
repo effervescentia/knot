@@ -1,3 +1,1 @@
-open Kore;
-
 let tests = [];

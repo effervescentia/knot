@@ -57,19 +57,13 @@ module Make = (Params: AssertParams) => {
        );
 
   let parse_none =
-      (
-        ~report=throw,
-        ~context=_mock_context(report),
-        ~mod_context=_mock_context,
-        ~cursor=false,
-      ) =>
+      (~report=throw, ~context=_mock_context(report), ~cursor=false) =>
     List.iter(no_parse(~report, ~context, ~cursor));
 
   let parse_throws =
       (
         ~report=throw,
         ~context=_mock_context(report),
-        ~mod_context=_mock_context,
         ~cursor=false,
         err,
         message,
@@ -134,5 +128,5 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
     let parser = _ => Params.parser;
 
     let pp_value = ppf => AR.Dump.prim_to_string % Fmt.string(ppf);
-    let pp_type = (ppf, ()) => ();
+    let pp_type = (_, ()) => ();
   });

@@ -1,5 +1,3 @@
-open Kore;
-
 type params_t = {text_document: Protocol.text_document_t};
 
 let method_key = "textDocument/didClose";

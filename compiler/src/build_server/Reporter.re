@@ -6,12 +6,7 @@ let method_key = "compiler/error";
 
 let __arrow_sep = Fmt.Sep.(of_sep(~trail=Trail.nop, " ->"));
 
-let report =
-    (
-      server: JSONRPC.Server.t,
-      resolver: Resolver.t,
-      errors: list(compile_err),
-    ) => {
+let report = (server: JSONRPC.Server.t, errors: list(compile_err)) => {
   let errors' =
     errors
     |> List.filter_map(

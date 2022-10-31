@@ -436,13 +436,13 @@ const BAR = \"bar\";
     >: (
       () => {
         let output_dir = Util.get_temp_dir();
-        let compiler = Compiler.create(Cx.config);
+        // let compiler = Compiler.create(Cx.config);
 
         Compiler.emit_one(
           Target.JavaScript(Common),
           output_dir,
           Nx.entry,
-          compiler,
+          // compiler,
           ModuleTable.Valid("", _create_module(Px.import_and_const)),
         );
 

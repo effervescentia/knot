@@ -1,5 +1,3 @@
-open Kore;
-
 type expression_t =
   | Null
   | Boolean(bool)

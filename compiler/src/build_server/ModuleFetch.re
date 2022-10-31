@@ -11,12 +11,12 @@ let deserialize = Deserialize.module_params;
 let response = (data: string) => `Assoc([("data", `String(data))]);
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({compiler, target} as runtime, {path}) => {
+  ({compiler, target, _} as runtime, {path, _}) => {
     let namespace = runtime |> Util.resolve_namespace(path) |> Result.get_ok;
 
     compiler
     |> Compiler.get_module(namespace)
-    |?< ModuleTable.(get_entry_data % Option.map(({ast}) => ast))
+    |?< ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
     |?> ~@
           Generator.pp(
             target,

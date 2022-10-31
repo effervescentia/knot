@@ -249,7 +249,7 @@ let _extract_type_err =
                   ppf,
                   "the %a binary operator expects both arguments to be of the same type but received %a and %a",
                   Fmt.bold_str,
-                  "EQUAL (==)",
+                  operator,
                   bad(Type.pp),
                   lhs_type,
                   bad(Type.pp),
@@ -342,7 +342,7 @@ let _extract_type_err =
       [],
     )
 
-  | Type.InvalidJSXTag(id, type_, props) => (
+  | Type.InvalidJSXTag(_, type_, props) => (
       "Invalid JSX Tag",
       Fmt.(
         (
@@ -665,19 +665,19 @@ let _extract_parse_err =
 
 let _extract_compile_err = resolver =>
   fun
-  | ImportCycle(cycles) as err => (
+  | ImportCycle(_) as err => (
       "Import Cycle Found",
       None,
       (ppf => err |> pp_compile_err(ppf)),
     )
 
-  | UnresolvedModule(name) as err => (
+  | UnresolvedModule(_) as err => (
       "Unresolved Module",
       None,
       (ppf => err |> pp_compile_err(ppf)),
     )
 
-  | FileNotFound(path) as err => (
+  | FileNotFound(_) as err => (
       "File Not Found",
       None,
       (ppf => err |> pp_compile_err(ppf)),

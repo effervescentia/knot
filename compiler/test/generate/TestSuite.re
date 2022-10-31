@@ -1,5 +1,3 @@
-open Kore;
-
 let tests = [
   GeneratorTest.suite,
   JavaScript_Formatter_ExpressionTest.suite,

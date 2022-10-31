@@ -37,7 +37,7 @@ let _find_config = (global: Config.global_t, folder) => {
   {...config, root_dir, source_dir, out_dir};
 };
 
-let extract_config = (config: config_t) => [];
+let extract_config = (_: config_t) => [];
 
 let run = (global: Config.global_t, config: config_t) => {
   Util.log_config(global, command_key, extract_config(config));

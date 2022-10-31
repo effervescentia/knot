@@ -1,5 +1,3 @@
-open Kore;
-
 let unit_tests = [
   Arg_ColorTest.suite,
   Arg_DebugTest.suite,

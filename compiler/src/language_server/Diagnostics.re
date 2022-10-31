@@ -35,7 +35,7 @@ let notification = (uri: string, errs) =>
   ]);
 
 let send =
-    ({server}: Runtime.t, source_dir: string, errs: list(compile_err)) => {
+    ({server, _}: Runtime.t, source_dir: string, errs: list(compile_err)) => {
   let grouped_errs = Hashtbl.create(1);
 
   errs

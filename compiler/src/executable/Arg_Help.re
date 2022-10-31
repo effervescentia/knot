@@ -1,6 +1,6 @@
 open Kore;
 
-let create = (~default=false, ()) => {
+let create = () => {
   let value = ref(false);
   let argument =
     Argument.create(

@@ -13,9 +13,9 @@ let __skip: t = BinaryTree.create((Range.zero, Skip));
 
 let _join = (left: t, right: t) =>
   switch (left, right) {
-  | ({value: (_, Skip)}, {value: (_, Skip)}) => __skip
-  | (only, {value: (_, Skip)})
-  | ({value: (_, Skip)}, only) => only
+  | ({value: (_, Skip), _}, {value: (_, Skip), _}) => __skip
+  | (only, {value: (_, Skip), _})
+  | ({value: (_, Skip), _}, only) => only
   | _ =>
     BinaryTree.create(
       ~left,
@@ -41,9 +41,9 @@ let rec of_list = (xs: list(t)): t =>
   | [x] => x
   | _ =>
     switch (xs |> List.divide |> Tuple.map2(of_list)) {
-    | ({value: (_, Skip)}, {value: (_, Skip)}) => __skip
-    | ({value: (_, Skip)}, only)
-    | (only, {value: (_, Skip)}) => only
+    | ({value: (_, Skip), _}, {value: (_, Skip), _}) => __skip
+    | ({value: (_, Skip), _}, only)
+    | (only, {value: (_, Skip), _}) => only
     | (head, tail) => _join(head, tail)
     }
   };
@@ -54,24 +54,22 @@ let rec of_expr =
     BinaryTree.create((range, Primitive(prim)))
   | (A.Identifier(id), (_, range)) => N.untyped(id, range) |> of_untyped_id
   | (A.JSX(jsx), (_, range)) => jsx |> of_jsx |> _wrap(range)
-  | (A.Group(expr), (_, range)) =>
-    expr |> of_expr |> _wrap(N.get_range(expr))
-  | (A.BinaryOp(_, lhs, rhs), (_, range)) =>
+  | (A.Group(expr), _) => expr |> of_expr |> _wrap(N.get_range(expr))
+  | (A.BinaryOp(_, lhs, rhs), _) =>
     _join(
       lhs |> of_expr |> _wrap(N.get_range(lhs)),
       rhs |> of_expr |> _wrap(N.get_range(rhs)),
     )
   | (A.UnaryOp(_, expr), _) => expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
-  | (A.DotAccess(expr, props), _) =>
+  | (A.DotAccess(expr, _), _) =>
     expr |> of_expr |> _wrap(N.get_range(expr))
-  | (A.FunctionCall(expr, args), (_, range)) =>
+  | (A.FunctionCall(expr, args), _) =>
     _join(
       expr |> of_expr |> _wrap(N.get_range(expr)),
       args |> List.map(of_expr) |> of_list,
     )
-  | (A.Style(rules), (_, range)) =>
-    rules |> List.map(fst % snd % of_expr) |> of_list
+  | (A.Style(rules), _) => rules |> List.map(fst % snd % of_expr) |> of_list
 
 and of_jsx =
   fun
@@ -100,7 +98,7 @@ and of_jsx =
 and of_jsx_child =
   fun
   | (A.Node(tag), (_, range)) => tag |> of_jsx |> _wrap(range)
-  | (A.InlineExpression(expr), (_, range)) =>
+  | (A.InlineExpression(expr), _) =>
     expr |> of_expr |> _wrap(N.get_range(expr))
   | (A.Text(text), (_, range)) =>
     BinaryTree.create((range, Primitive(String(text))))
@@ -125,7 +123,7 @@ let of_args = args =>
   |> _fold(
        fst
        % (
-         (A.{name, default}) => {
+         (A.{name, default, _}) => {
            ...of_untyped_id(name),
            right: default |?> of_expr,
          }
@@ -137,12 +135,12 @@ let of_decl =
   | A.Constant(expr) => expr |> of_expr |> _wrap(N.get_range(expr))
   | A.Enumerated(variants) =>
     variants
-    |> List.map(((name, args)) => [of_untyped_id(name)])
+    |> List.map(((name, _)) => [of_untyped_id(name)])
     |> List.flatten
     |> of_list
   | A.Function(args, expr) =>
     _join(of_args(args), expr |> of_expr |> _wrap(N.get_range(expr)))
-  | A.View(props, mixins, expr) =>
+  | A.View(props, _, expr) =>
     _join(of_args(props), expr |> of_expr |> _wrap(N.get_range(expr)));
 
 let of_import =
@@ -165,7 +163,7 @@ let of_mod_stmt =
              (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join)
          ),
        )
-  | A.Import(namespace, imports) => imports |> _fold(fst % of_import)
+  | A.Import(_, imports) => imports |> _fold(fst % of_import)
   | A.Declaration(MainExport(id) | NamedExport(id), (decl, _)) =>
     _join(of_untyped_id(id), of_decl(decl));
 

@@ -25,7 +25,7 @@ let deserialize = json => {
 let response = (symbols: list(document_symbol_t)) =>
   `List(
     symbols
-    |> List.map(({name, detail, kind, range, full_range}) =>
+    |> List.map(({name, detail, kind, range, full_range, _}) =>
          `Assoc([
            ("name", `String(name)),
            ("kind", `Int(Serialize.symbol(kind))),
@@ -37,13 +37,13 @@ let response = (symbols: list(document_symbol_t)) =>
   );
 
 let handler: Runtime.request_handler_t(params_t) =
-  (runtime, {text_document: {uri}}) =>
+  (runtime, {text_document: {uri, _}, _}) =>
     switch (runtime |> Runtime.resolve(uri)) {
-    | Some((namespace, {compiler})) =>
+    | Some((namespace, {compiler, _})) =>
       let symbols =
         compiler.modules
         |> ModuleTable.find(namespace)
-        |?< ModuleTable.(get_entry_data % Option.map(({ast}) => ast))
+        |?< ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
         |?> List.filter_map(
               fst
               % (
@@ -59,28 +59,28 @@ let handler: Runtime.request_handler_t(params_t) =
 
                     Some(
                       switch (fst(decl)) {
-                      | Constant(expr) => {
+                      | Constant(_) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Variable,
                         }
-                      | Enumerated(variants) => {
+                      | Enumerated(_) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Enum,
                         }
-                      | Function(args, expr) => {
+                      | Function(_) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Function,
                         }
-                      | View(props, mixins, expr) => {
+                      | View(_) => {
                           name,
                           detail: type_ |> ~@Type.pp,
                           range,

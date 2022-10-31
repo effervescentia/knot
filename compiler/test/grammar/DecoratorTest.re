@@ -21,7 +21,7 @@ module Assert =
             (ppf, decorator) =>
               TD.Dump.(
                 decorator
-                |> decorator_to_entity((ppf, ()) => ())
+                |> decorator_to_entity((_, ()) => ())
                 |> Entity.pp(ppf)
               ),
             (==),

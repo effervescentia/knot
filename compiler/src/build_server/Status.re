@@ -1,5 +1,3 @@
-open Kore;
-
 type params_t = unit;
 
 let method_key = "compiler/status";
@@ -13,4 +11,4 @@ let response =
   );
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({status}, _) => response(status) |> Result.ok;
+  ({status, _}, _) => response(status) |> Result.ok;

@@ -1,5 +1,3 @@
-open Kore;
-
 include TestResolve.Assert;
 
 let compiler =

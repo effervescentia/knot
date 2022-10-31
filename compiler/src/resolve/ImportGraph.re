@@ -18,7 +18,7 @@ let create = (get_imports: Namespace.t => list(Namespace.t)): t => {
 
 /* methods */
 
-let rec add_dependency = (source: Namespace.t, target: Namespace.t, graph: t) =>
+let add_dependency = (source: Namespace.t, target: Namespace.t, graph: t) =>
   graph.imports |> Graph.add_edge(source, target);
 
 let rec add_module = (~added=ref([]), id: Namespace.t, graph: t) => {
@@ -99,7 +99,7 @@ let compare = (l: t, r: t): bool =>
 /**
  remove all imports from the graph
  */
-let clear = ({imports}: t) => Graph.clear(imports);
+let clear = ({imports, _}: t) => Graph.clear(imports);
 
 /**
  get all the module names in order of deepest to shallowest

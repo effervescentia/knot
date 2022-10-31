@@ -1,5 +1,3 @@
-open Kore;
-
 type t =
   | Linux
   | Darwin

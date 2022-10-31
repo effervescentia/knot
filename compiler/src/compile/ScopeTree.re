@@ -15,8 +15,8 @@ let rec _join =
          (
            fun
            | (
-               Some({value: ((start, _), _)} as left),
-               Some({value: ((_, end_), _)} as right),
+               Some({value: ((start, _), _), _} as left),
+               Some({value: ((_, end_), _), _} as right),
              ) =>
              Some(create(~left, ~right, ((start, end_), None)))
            | (Some(_) as only, _)
@@ -25,7 +25,7 @@ let rec _join =
          )
        );
 
-let rec of_context = (~range=?, context: ParseContext.t): t => {
+let of_context = (~range=?, ()): t => {
   /* TODO: re-implement this with ParseContext */
   [] |> _join |?: BinaryTree.create((range |?: Range.zero, Some([])));
 };

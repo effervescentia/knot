@@ -308,13 +308,13 @@ let gen_function =
     Expression(
       Function(
         Some(name),
-        args |> List.map(fst % ((A.{name: (name, _)}) => name)),
+        args |> List.map(fst % ((A.{name: (name, _), _}) => name)),
         (
           args
           |> List.mapi((i, (x, _)) => (x, i))
           |> List.filter_map(
                fun
-               | (A.{name: (name, _), default: Some(default)}, index) =>
+               | (A.{name: (name, _), default: Some(default), _}, index) =>
                  Some(
                    Assignment(
                      Identifier(name),
@@ -364,7 +364,7 @@ let gen_view =
         (
           props
           |> List.map(fst)
-          |> List.mapi((index, A.{name: (name, _), default}) => {
+          |> List.map((A.{name: (name, _), default, _}) => {
                Variable(
                  name,
                  FunctionCall(

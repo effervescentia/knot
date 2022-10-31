@@ -7,15 +7,12 @@ type params_t = {
 
 let method_key = "textDocument/hover";
 
-let deserialize =
-  JSON.Util.(
-    json => {
-      let text_document = Deserialize.text_document(json);
-      let position = Deserialize.position(json);
+let deserialize = json => {
+  let text_document = Deserialize.text_document(json);
+  let position = Deserialize.position(json);
 
-      {text_document, position};
-    }
-  );
+  {text_document, position};
+};
 
 let response = (range: Range.t, contents: string) =>
   `Assoc([
@@ -30,11 +27,11 @@ let response = (range: Range.t, contents: string) =>
   ]);
 
 let handler: Runtime.request_handler_t(params_t) =
-  (runtime, {text_document: {uri}, position: {line, character}}) => {
+  (runtime, {text_document: {uri, _}, position: {line, character, _}, _}) => {
     let point = Point.create(line, character);
 
     switch (runtime |> Runtime.resolve(uri)) {
-    | Some((namespace, {compiler, contexts} as ctx)) =>
+    | Some((namespace, {compiler, contexts, _} as ctx)) =>
       let find_token = RangeTree.find_leaf(point);
 
       (
@@ -67,7 +64,7 @@ let handler: Runtime.request_handler_t(params_t) =
             compiler.modules
             |> ModuleTable.find(namespace)
             |?< ModuleTable.(
-                  get_entry_data % Option.map(({scopes}) => scopes)
+                  get_entry_data % Option.map(({scopes, _}) => scopes)
                 )
             |?< ScopeTree.find_type(id, point)
             |?> ~@Type.pp

@@ -2,7 +2,6 @@
  Utilities for the "watch" command.
  */
 open Kore;
-open Fswatch;
 open File.FilesystemDriver;
 
 module Watcher = File.Watcher;
@@ -148,8 +147,7 @@ let run =
                   compiler
                   |> Compiler.get_module(namespace)
                   |> Option.iter(
-                       compiler
-                       |> Compiler.emit_one(config.target, out_dir, namespace),
+                       Compiler.emit_one(config.target, out_dir, namespace),
                      )
                 );
 

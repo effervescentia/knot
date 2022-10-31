@@ -1,5 +1,3 @@
-open Kore;
-
 type message_t =
   | Error
   | Warning
@@ -24,5 +22,5 @@ let notification = (message: string, type_: message_t) =>
     ),
   ]);
 
-let send = ({server}: Runtime.t, message: string, type_: message_t) =>
+let send = ({server, _}: Runtime.t, message: string, type_: message_t) =>
   notification(message, type_) |> server.notify(method_key);

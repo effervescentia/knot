@@ -29,7 +29,7 @@ let response = (status: Status.t) =>
   `Assoc([("status", `String(Status.to_string(status)))]);
 
 let handler: Runtime.request_handler_t(params_t) =
-  ({compiler} as runtime, {path}) => {
+  ({compiler, _} as runtime, {path, _}) => {
     let namespace = runtime |> Util.resolve_namespace(path) |> Result.get_ok;
 
     (

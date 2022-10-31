@@ -96,7 +96,7 @@ let run =
 
   /* handle command if found */
   switch (command^) {
-  | Some({resolve: resolve_command_config}) =>
+  | Some({resolve: resolve_command_config, _}) =>
     if (config_file^ == None) {
       Log.warn("no config file found");
     };
@@ -113,7 +113,7 @@ let run =
         color: get_color(static_config),
         name:
           switch (static_config) {
-          | Some({name: Some(name)}) => name
+          | Some({name: Some(name), _}) => name
           | _ => Filename.basename(working_dir)
           },
         working_dir,

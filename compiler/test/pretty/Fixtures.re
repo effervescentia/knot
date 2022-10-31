@@ -1,5 +1,3 @@
-open Kore;
-
 module XML = {
   open Pretty.XML;
 

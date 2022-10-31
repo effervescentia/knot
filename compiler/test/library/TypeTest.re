@@ -5,8 +5,8 @@ module TR = Type.Raw;
 
 let __args = [T.Valid(`Nil), T.Valid(`String)];
 let __props = [("foo", T.Valid(`Nil)), ("bar", T.Valid(`String))];
-let __raw_args = [TR.(`Nil), TR.(`String)];
-let __raw_props = [("foo", TR.(`Nil)), ("bar", TR.(`String))];
+let __raw_args = [`Nil, `String];
+let __raw_props = [("foo", `Nil), ("bar", `String)];
 
 let suite = [
   "Library.Type.Raw"

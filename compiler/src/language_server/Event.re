@@ -1,5 +1,3 @@
-open Kore;
-
 type t =
   | Initialize(int, Initialize.params_t)
   | Hover(int, Hover.params_t)

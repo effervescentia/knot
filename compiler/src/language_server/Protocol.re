@@ -1,5 +1,3 @@
-open Kore;
-
 type request_t('a) = {
   jsonrpc: string,
   id: int,

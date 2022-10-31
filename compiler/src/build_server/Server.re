@@ -1,5 +1,4 @@
 open Kore;
-open Reference;
 
 type config_t = {
   name: string,
@@ -15,7 +14,7 @@ let start = (config: config_t) => {
   let server = JSONRPC.Server.create(stdin, stdout);
   let compiler =
     Compiler.create(
-      ~report=Reporter.report(server),
+      ~report=_ => Reporter.report(server),
       {
         name: config.name,
         root_dir: config.root_dir,

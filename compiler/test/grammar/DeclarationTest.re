@@ -1,5 +1,4 @@
 open Kore;
-open Reference;
 
 module U = Util.ResultUtil;
 

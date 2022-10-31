@@ -32,16 +32,16 @@ let response = (items: list(completion_item)) =>
   );
 
 let handler: Runtime.request_handler_t(params_t) =
-  (runtime, {text_document: {uri}, position: {line, character}}) => {
+  (runtime, {text_document: {uri, _}, position: {line, character, _}, _}) => {
     let point = Point.create(line, character);
 
     switch (runtime |> Runtime.resolve(uri)) {
-    | Some((namespace, {compiler})) =>
+    | Some((namespace, {compiler, _})) =>
       compiler.modules
       |> ModuleTable.find(namespace)
-      |?< ModuleTable.(get_entry_data % Option.map(({scopes}) => scopes))
+      |?< ModuleTable.(get_entry_data % Option.map(({scopes, _}) => scopes))
       |?< ScopeTree.find_scope(point)
-      |?> List.map(((key, value)) =>
+      |?> List.map(((key, _)) =>
             {label: key |> ~@Export.pp, kind: Capabilities.Variable}
           )
       |?: []

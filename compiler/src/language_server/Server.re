@@ -1,5 +1,4 @@
 open Kore;
-open Reference;
 
 let start = (stdlib: string, find_config: string => Config.t) => {
   let server = JSONRPC.Server.create(stdin, stdout);

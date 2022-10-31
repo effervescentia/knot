@@ -1,5 +1,3 @@
-open Kore;
-
 type t =
   | ModuleFetch(int, ModuleFetch.params_t)
   | ModuleStatus(int, ModuleStatus.params_t)
@@ -39,16 +37,10 @@ let deserialize =
       params |> ModuleAdd.deserialize |> of_module_add |> Option.some
 
     | Notification(key, params) when key == ModuleUpdate.method_key =>
-      params
-      |> ModuleUpdate.deserialize
-      |> of_module_update
-      |> Option.some
+      params |> ModuleUpdate.deserialize |> of_module_update |> Option.some
 
     | Notification(key, params) when key == ModuleRemove.method_key =>
-      params
-      |> ModuleRemove.deserialize
-      |> of_module_remove
-      |> Option.some
+      params |> ModuleRemove.deserialize |> of_module_remove |> Option.some
 
     | _ => None
   );

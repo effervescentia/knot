@@ -7,7 +7,7 @@ let pp_body: Fmt.t(AST.raw_expression_t) => Fmt.t(AST.raw_expression_t) =
     | expr => Fmt.pf(ppf, "-> %a;", pp_expression, expr);
 
 let pp_argument: Fmt.t(AST.raw_expression_t) => Fmt.t(AST.raw_argument_t) =
-  (pp_expression, ppf, {name: (name, _), default}) =>
+  (pp_expression, ppf, {name: (name, _), default, _}) =>
     Fmt.pf(
       ppf,
       "%s%a",

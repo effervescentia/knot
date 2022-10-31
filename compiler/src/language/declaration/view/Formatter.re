@@ -10,7 +10,7 @@ let pp_view:
       AST.expression_t,
     ),
   ) =
-  (pp_expression, ppf, (name, args, mixins, (expr, _))) =>
+  (pp_expression, ppf, (name, args, _, (expr, _))) =>
     Fmt.(
       pf(
         ppf,

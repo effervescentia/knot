@@ -49,7 +49,7 @@ let pp_all_imports:
     | ([], []) => Fmt.nop(ppf, ())
 
     | (only_imports, [])
-    | ([], only_imports) => Fmt.(pp_import_list(ppf, only_imports))
+    | ([], only_imports) => pp_import_list(ppf, only_imports)
 
     | (internal_imports, external_imports) =>
       [external_imports, internal_imports]

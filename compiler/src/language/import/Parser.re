@@ -102,7 +102,7 @@ let standard_import = (ctx: ParseContext.t) =>
       >@= fst
       % List.iter(
           _import_named(ctx, ParseContext.import(Stdlib))
-          % Result.iter_error(x => ()),
+          % Result.iter_error(_ => ()),
         )
       >|= (
         imports =>

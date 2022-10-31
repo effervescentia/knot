@@ -54,7 +54,7 @@ let _create_dispatch = (config, report) => {
         report(errs);
       };
 
-  (errors, dispatch);
+  dispatch;
 };
 
 let _prepare_modules = (modules: list(Namespace.t), compiler: t) =>
@@ -71,7 +71,7 @@ let create = (~report=_ => throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
-  let (errors, dispatch) = _create_dispatch(config, report(resolver));
+  let dispatch = _create_dispatch(config, report(resolver));
 
   let graph =
     ImportGraph.create(namespace =>
@@ -184,7 +184,7 @@ let process_one =
            let module_ =
              ModuleTable.{
                ast,
-               scopes: ScopeTree.of_context(context),
+               scopes: ScopeTree.of_context(),
                symbols: context.symbols,
              };
 
@@ -238,7 +238,7 @@ let process =
       ~flush=true,
       namespaces: list(Namespace.t),
       resolve: Namespace.t => Source.t,
-      {modules} as compiler: t,
+      compiler: t,
     ) => {
   Log.debug("%s", "processing modules" |> ~@Fmt.yellow_str);
 
@@ -291,13 +291,7 @@ let incremental = (~flush=true, ids: list(Namespace.t), compiler: t) => {
 /**
  use the ASTs of a single module to generate a file in the target format
  */
-let emit_one =
-    (
-      target: Target.t,
-      output_dir: string,
-      namespace: Namespace.t,
-      compiler: t,
-    ) =>
+let emit_one = (target: Target.t, output_dir: string, namespace: Namespace.t) =>
   switch (namespace) {
   | Internal(_) =>
     namespace
@@ -316,7 +310,7 @@ let emit_one =
         );
 
         ModuleTable.get_entry_data
-        % Option.iter((ModuleTable.{ast}) => {
+        % Option.iter((ModuleTable.{ast, _}) => {
             Writer.write(out, ppf =>
               Generator.pp(
                 target,
@@ -348,7 +342,7 @@ let emit = (target: Target.t, output_dir: string, compiler: t) =>
   compiler.modules
   |> ModuleTable.iter((namespace, entry) =>
        if (namespace != Namespace.Stdlib) {
-         emit_one(target, output_dir, namespace, compiler, entry);
+         emit_one(target, output_dir, namespace, entry);
        }
      );
 
@@ -515,7 +509,7 @@ let add_standard_library = (~flush=true, compiler: t) => {
   |> process_definition(~flush=false, namespace, source)
   |> (
     fun
-    | Some((raw, ast, symbols)) => {
+    | Some((raw, _, symbols)) => {
         let library = ModuleTable.{symbols: symbols};
 
         compiler.modules |> ModuleTable.add(namespace, Library(raw, library));
@@ -553,13 +547,13 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
   |> process_definition(~flush=false, namespace, source)
   |> (
     fun
-    | Some((raw, ast, symbols)) =>
+    | Some((_, _, symbols)) =>
       symbols.decorated
       |> List.iter(
            fun
            | (key, _, _) when key != __plugin_decorator_key => ()
 
-           | (key, [A.String(name)], T.Valid(`Module(entries))) =>
+           | (_, [A.String(name)], T.Valid(`Module(entries))) =>
              if (Reference.Plugin.known |> List.mem(name)) {
                compiler.modules
                |> ModuleTable.add_plugin(
@@ -578,7 +572,7 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
                );
              }
 
-           | (key, _, _) => Log.error("failed to register invalid plugin"),
+           | _ => Log.error("failed to register invalid plugin"),
          )
 
     | _ => Log.error("failed to scan ambient library for plugins")

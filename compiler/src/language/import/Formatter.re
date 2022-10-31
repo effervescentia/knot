@@ -42,7 +42,7 @@ let _pp_import_stmt =
 let pp_import: Fmt.t(import_spec_t) =
   ppf =>
     fun
-    | (namespace, None, []) => Fmt.nop(ppf, ())
+    | (_, None, []) => Fmt.nop(ppf, ())
 
     | (namespace, Some(main_import), []) =>
       _pp_import_stmt(Fmt.string, ppf, (main_import, namespace))

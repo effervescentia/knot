@@ -34,7 +34,7 @@ let _pp_argument_list = cfg =>
 
 let _pp_sub_command: Fmt.t(Command.t('a)) =
   Fmt.(
-    (ppf, {name}) =>
+    (ppf, {name, _}) =>
       pf(
         ppf,
         "  %a [options]",
@@ -75,7 +75,7 @@ let _pp_cmd_usage = (static_cfg): Fmt.t(option(Command.t(Task.t))) =>
           ("COMMANDS", commands),
         )
 
-      | Some(Command.{name, arguments: cmd_args} as cmd) =>
+      | Some(Command.{arguments: cmd_args, _} as cmd) =>
         pf(
           ppf,
           "%a@,%a",
@@ -95,7 +95,7 @@ let _pp_cmd_usage = (static_cfg): Fmt.t(option(Command.t(Task.t))) =>
         )
   );
 
-let rec pp:
+let pp:
   Fmt.t((option(Command.t(Task.t)), option(Config.t), list(Argument.t))) =
   Fmt.(
     (ppf, (cmd, static_cfg, opts)) =>

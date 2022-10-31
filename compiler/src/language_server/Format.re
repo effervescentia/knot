@@ -49,4 +49,4 @@ let deserialize =
   );
 
 let handler: Runtime.request_handler_t(params_t) =
-  (runtime, {text_document: {uri}}) => Result.ok(`Null);
+  (_, _) => Result.ok(`Null);

@@ -149,8 +149,8 @@ let response = (name: string, workspace_support: bool) =>
 
 let handler: Runtime.request_handler_t(params_t) =
   (
-    {find_config, compilers, stdlib} as runtime,
-    {workspace_folders: folders, capabilities},
+    {find_config, compilers, stdlib, _} as runtime,
+    {workspace_folders: folders, capabilities, _},
   ) => {
     /* TODO: handle the case where workspace folders are nested? */
     folders

@@ -5,16 +5,16 @@ let rec validate_default_arguments =
   switch (args, require_default) {
   | ([], _) => ()
 
-  | ([(AST.{name: (name, _), default: None}, _) as arg, ...xs], true) =>
+  | ([(AST.{name: (name, _), default: None, _}, _) as arg, ...xs], true) =>
     Type.DefaultArgumentMissing(name)
     |> Scope.report_type_err(scope, Node.get_range(arg));
 
     validate_default_arguments(~require_default, scope, xs);
 
-  | ([(AST.{default: Some(_)}, _), ...xs], _) =>
+  | ([(AST.{default: Some(_), _}, _), ...xs], _) =>
     validate_default_arguments(~require_default=true, scope, xs)
 
-  | ([x, ...xs], _) =>
+  | ([_, ...xs], _) =>
     validate_default_arguments(~require_default, scope, xs)
   };
 

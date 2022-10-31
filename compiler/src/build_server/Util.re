@@ -24,7 +24,7 @@ let _pp_module_list =
   );
 
 let resolve_namespace =
-    (path: string, {compiler: {config}}: Runtime.t)
+    (path: string, {compiler: {config, _}, _}: Runtime.t)
     : result(Namespace.t, namespace_error_t) => {
   let source_dir = Filename.concat(config.root_dir, config.source_dir);
 

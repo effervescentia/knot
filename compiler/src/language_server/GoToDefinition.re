@@ -16,7 +16,7 @@ let deserialize = json => {
 };
 
 let handler: Runtime.request_handler_t(params_t) =
-  (runtime, {text_document: {uri}}) => {
+  (_, {text_document: {uri, _}, _}) => {
     Log.info("go to definition %s", uri);
 
     Result.ok(`Null);

@@ -192,7 +192,7 @@ let response = (id: int, result: JSON.t) =>
   _res_message(~id=Some(id), [(__result_key, result)]);
 
 let error = (~data=None, id: int, code: int, message: string) =>
-  _err_message(~data, ~id=Some(id), code, message);
+  _err_message(~id=Some(id), ~data, code, message);
 
-let builtin_error = (~id: option(int)=?, code: Error.t) =>
-  _err_message(Error.to_int(code), Error.get_message(code));
+let builtin_error = (~id=?, code: Error.t) =>
+  _err_message(~id=?Some(id), Error.to_int(code), Error.get_message(code));

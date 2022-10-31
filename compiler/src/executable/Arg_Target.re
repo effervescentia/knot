@@ -22,7 +22,7 @@ let create = () => {
     let result =
       switch (cfg, value^) {
       | (_, Some(value)) => value
-      | (Some({target: Some(target)}), None) => target
+      | (Some({target: Some(target), _}), None) => target
       | (_, _) =>
         InvalidArgument(target_key, "must provide a target for compilation")
         |> fatal

@@ -1,5 +1,4 @@
 open Kore;
-open Reference;
 
 module A = AST;
 module AR = AST.Raw;
@@ -18,19 +17,18 @@ module RawUtil = {
   /* typecasting utilities */
 
   let as_node = x => as_typed((), x);
-  let as_unknown = x => as_typed(TR.(`Unknown), x);
-  let as_nil = x => as_typed(TR.(`Nil), x);
-  let as_bool = x => as_typed(TR.(`Boolean), x);
-  let as_int = x => as_typed(TR.(`Integer), x);
-  let as_float = x => as_typed(TR.(`Float), x);
-  let as_string = x => as_typed(TR.(`String), x);
-  let as_element = x => as_typed(TR.(`Element), x);
-  let as_style = x => as_typed(TR.(`Style), x);
-  let as_struct = (props, x) => as_typed(TR.(`Struct(props)), x);
-  let as_function = (args, res, x) =>
-    as_typed(TR.(`Function((args, res))), x);
+  let as_unknown = x => as_typed(`Unknown, x);
+  let as_nil = x => as_typed(`Nil, x);
+  let as_bool = x => as_typed(`Boolean, x);
+  let as_int = x => as_typed(`Integer, x);
+  let as_float = x => as_typed(`Float, x);
+  let as_string = x => as_typed(`String, x);
+  let as_element = x => as_typed(`Element, x);
+  let as_style = x => as_typed(`Style, x);
+  let as_struct = (props, x) => as_typed(`Struct(props), x);
+  let as_function = (args, res, x) => as_typed(`Function((args, res)), x);
   let as_decorator = (args, target, x) =>
-    as_typed(TR.(`Decorator((args, target))), x);
+    as_typed(`Decorator((args, target)), x);
 
   /* primitive factories */
 

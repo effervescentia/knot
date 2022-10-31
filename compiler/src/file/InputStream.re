@@ -10,7 +10,7 @@ let _to_stream = (cursor, decoder) =>
     switch (Uutf.decode(decoder)) {
     | `Uchar(uchar) =>
       Some(Input.create(uchar, _to_point(cursor, decoder)))
-    | `Malformed(uchar) =>
+    | `Malformed(_) =>
       Some(Input.create(Uutf.u_rep, _to_point(cursor, decoder)))
     | `End => None
     | `Await => assert(false)

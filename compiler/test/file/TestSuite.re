@@ -1,5 +1,3 @@
-open Kore;
-
 let unit_tests = [
   CacheTest.suite,
   CodeFrameTest.suite,
