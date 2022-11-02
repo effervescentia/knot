@@ -20,7 +20,7 @@ let tests =
     StringTest.suite,
     TargetTest.suite,
     TupleTest.suite,
+    TypeTest.suite,
   ]
   @ ReferenceTest.suite
-  @ NodeTest.suite
-  @ TypeTest.suite;
+  @ NodeTest.suite;

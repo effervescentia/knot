@@ -1,37 +1,13 @@
 open Kore;
 
 module T = Type;
-module TR = Type.Raw;
 
 let __args = [T.Valid(`Nil), T.Valid(`String)];
 let __props = [("foo", T.Valid(`Nil)), ("bar", T.Valid(`String))];
 let __raw_args = [`Nil, `String];
 let __raw_props = [("foo", `Nil), ("bar", `String)];
 
-let suite = [
-  "Library.Type.Raw"
-  >::: [
-    "pp() - primitive"
-    >: (() => Assert.string("boolean", `Boolean |> ~@TR.pp)),
-    "pp() - list"
-    >: (() => Assert.string("string[]", `List(`String) |> ~@TR.pp)),
-    "pp() - struct"
-    >: (
-      () =>
-        Assert.string(
-          "{ foo: nil, bar: string }",
-          `Struct(__raw_props) |> ~@TR.pp,
-        )
-    ),
-    "pp() - function"
-    >: (
-      () =>
-        Assert.string(
-          "(nil, string) -> boolean",
-          `Function((__raw_args, `Boolean)) |> ~@TR.pp,
-        )
-    ),
-  ],
+let suite =
   "Library.Type"
   >::: [
     "pp_valid() - primitive"
@@ -99,5 +75,4 @@ let suite = [
     ),
     "pp() - valid"
     >: (() => Assert.string("boolean", T.Valid(`Boolean) |> ~@T.pp)),
-  ],
-];
+  ];

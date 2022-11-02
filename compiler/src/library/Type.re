@@ -183,40 +183,6 @@ module Container = {
     );
 };
 
-module Raw = {
-  type unknown_t = [ | `Unknown];
-
-  /**
-   this type is used during the initial parsing phase to allow early type inference
-   this also avoid needing more than 2 type-safe AST variants to throughout compilation
-   */
-  type t = [ Primitive.t | Container.t(t) | unknown_t];
-
-  let rec pp: Fmt.t(t) =
-    (ppf, type_) =>
-      switch (type_) {
-      | (`Nil | `Boolean | `Integer | `Float | `String | `Element | `Style) as x =>
-        Primitive.pp(ppf, x)
-
-      | `List(t) => Container.pp_list(pp, ppf, t)
-
-      | `Struct(props) => Container.pp_struct(pp, ppf, props)
-
-      | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
-
-      | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
-
-      | `Decorator(args, target) =>
-        Container.pp_decorator(pp, ppf, (args, target))
-
-      | `View(props, res) => Container.pp_view(pp, ppf, (props, res))
-
-      | `Module(entries) => Container.pp_module(pp, ppf, entries)
-
-      | `Unknown => Fmt.string(ppf, "Unknown")
-      };
-};
-
 /**
  the final type attributed to elements within the fully-typed AST
  */
@@ -418,43 +384,3 @@ let pp_error: Fmt.t(error_t) =
 
       | InvalidViewMixin(type_) => pf(ppf, "InvalidViewMixin<%a>", pp, type_)
   );
-
-let rec of_raw = (raw_type: Raw.t): t =>
-  switch (raw_type) {
-  | (`Nil | `Integer | `Float | `Boolean | `String | `Element | `Style) as t =>
-    Valid(t)
-
-  | `List(t) => Valid(`List(of_raw(t)))
-
-  | `Struct(ts) => Valid(`Struct(ts |> List.map(Tuple.map_snd2(of_raw))))
-
-  | `Enumerated(ts) =>
-    Valid(`Enumerated(ts |> List.map(Tuple.map_snd2(List.map(of_raw)))))
-
-  | `Function(args, res) =>
-    Valid(`Function((args |> List.map(of_raw), of_raw(res))))
-
-  | `Decorator(args, target) =>
-    Valid(`Decorator((args |> List.map(of_raw), target)))
-
-  | `View(props, res) =>
-    Valid(`View((props |> List.map(Tuple.map_snd2(of_raw)), of_raw(res))))
-
-  | `Module(entries) =>
-    Valid(
-      `Module(
-        entries
-        |> List.map(
-             Tuple.map_snd2(
-               Container.(
-                 fun
-                 | Type(t) => Type(of_raw(t))
-                 | Value(t) => Value(of_raw(t))
-               ),
-             ),
-           ),
-      ),
-    )
-
-  | `Unknown => raise(UnknownTypeEncountered)
-  };
