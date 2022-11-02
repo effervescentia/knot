@@ -1,12 +1,12 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
-module Util = Grammar.Util;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
+module Util = Parse.Util;
 
-let enumerated = (ctx: ParseContext.t, f): Grammar.Kore.declaration_parser_t =>
+let enumerated = (ctx: ParseContext.t, f): Parse.Kore.declaration_parser_t =>
   Keyword.enum
   >|= Node.get_range
   >>= (

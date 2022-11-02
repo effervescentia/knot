@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Matchers = Grammar.Matchers;
+module Matchers = Parse.Matchers;
 
 let integer =
   many1(Matchers.digit)

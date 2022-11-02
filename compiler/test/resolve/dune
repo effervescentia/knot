@@ -7,5 +7,5 @@
    (name TestResolve)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.resolve_test)
-   (libraries  knot.test knot.lib_test knot.file_test knot.grammar_test knot.resolve knot.grammar )
+   (libraries  knot.test knot.lib_test knot.file_test knot.grammar_test knot.resolve knot.parse )
 )

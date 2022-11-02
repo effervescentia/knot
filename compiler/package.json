@@ -75,7 +75,7 @@
         "knot.file_test",
         "knot.grammar_test",
         "knot.resolve",
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.resolve_test",
       "namespace": "TestResolve"
@@ -190,16 +190,9 @@
       "name": "knot.jsonrpc",
       "namespace": "JSONRPC"
     },
-    "src/grammar": {
-      "require": [
-        "knot.parse"
-      ],
-      "name": "knot.grammar",
-      "namespace": "Grammar"
-    },
     "src/language/identifier": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.identifier",
       "namespace": "KIdentifier"
@@ -213,28 +206,28 @@
     },
     "src/language/primitive/nil": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.primitive.nil",
       "namespace": "KNil"
     },
     "src/language/primitive/boolean": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.primitive.boolean",
       "namespace": "KBoolean"
     },
     "src/language/primitive/number/integer": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.primitive.number.integer",
       "namespace": "KInteger"
     },
     "src/language/primitive/number/float": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.primitive.number.float",
       "namespace": "KFloat"
@@ -249,7 +242,7 @@
     },
     "src/language/primitive/string": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.primitive.string",
       "namespace": "KString"
@@ -266,7 +259,7 @@
     },
     "src/language/type/expression": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.type.expression",
       "namespace": "KTypeExpression"
@@ -298,7 +291,7 @@
     },
     "src/language/statement/effect": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.statement.effect",
       "namespace": "KEffect"
@@ -320,21 +313,21 @@
     },
     "src/language/operator/unary/logical_not": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.unary.logical_not",
       "namespace": "KLogicalNot"
     },
     "src/language/operator/unary/absolute": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.unary.absolute",
       "namespace": "KAbsolute"
     },
     "src/language/operator/unary/negative": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.unary.negative",
       "namespace": "KNegative"
@@ -350,91 +343,91 @@
     },
     "src/language/operator/binary/equal": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.equal",
       "namespace": "KEqual"
     },
     "src/language/operator/binary/unequal": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.unequal",
       "namespace": "KUnequal"
     },
     "src/language/operator/binary/logical_and": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.logical_and",
       "namespace": "KLogicalAnd"
     },
     "src/language/operator/binary/logical_or": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.logical_or",
       "namespace": "KLogicalOr"
     },
     "src/language/operator/binary/less_than": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.less_than",
       "namespace": "KLessThan"
     },
     "src/language/operator/binary/less_or_equal": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.less_or_equal",
       "namespace": "KLessOrEqual"
     },
     "src/language/operator/binary/greater_than": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.greater_than",
       "namespace": "KGreaterThan"
     },
     "src/language/operator/binary/greater_or_equal": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.greater_or_equal",
       "namespace": "KGreaterOrEqual"
     },
     "src/language/operator/binary/add": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.add",
       "namespace": "KAdd"
     },
     "src/language/operator/binary/subtract": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.subtract",
       "namespace": "KSubtract"
     },
     "src/language/operator/binary/multiply": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.multiply",
       "namespace": "KMultiply"
     },
     "src/language/operator/binary/divide": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.divide",
       "namespace": "KDivide"
     },
     "src/language/operator/binary/exponentiate": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.operator.binary.exponentiate",
       "namespace": "KExponentiate"
@@ -460,28 +453,28 @@
     },
     "src/language/expression/group": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.expression.group",
       "namespace": "KGroup"
     },
     "src/language/expression/closure": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.expression.closure",
       "namespace": "KClosure"
     },
     "src/language/expression/dot_access": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.expression.dot_access",
       "namespace": "KDotAccess"
     },
     "src/language/expression/function_call": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.expression.function_call",
       "namespace": "KFunctionCall"
@@ -495,7 +488,7 @@
     },
     "src/language/expression/ksx": {
       "require": [
-        "knot.grammar"
+        "knot.parse"
       ],
       "name": "knot.lang.expression.ksx",
       "namespace": "KSX"
@@ -679,7 +672,7 @@
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
+    "dev": "sane 'esy build' --glob='src/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
     "test": "npm run test.unit && npm run test.e2e && npm run test.smoke 1> /dev/null",

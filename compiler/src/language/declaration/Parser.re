@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
+module Keyword = Parse.Keyword;
 
 let declaration = (ctx: ParseContext.t) =>
   AST.of_main_export

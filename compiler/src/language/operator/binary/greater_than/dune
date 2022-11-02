@@ -7,5 +7,5 @@
    (name KGreaterThan)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.operator.binary.greater_than)
-   (libraries  knot.grammar )
+   (libraries  knot.parse )
 )

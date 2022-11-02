@@ -1,8 +1,8 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Character = Grammar.Character;
-module Matchers = Grammar.Matchers;
+module Character = Parse.Character;
+module Matchers = Parse.Matchers;
 
 let float =
   Matchers.binary_op(

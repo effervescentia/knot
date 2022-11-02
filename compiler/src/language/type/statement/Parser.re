@@ -1,12 +1,12 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
-module Util = Grammar.Util;
+module Util = Parse.Util;
 
 let _type_variant = (ctx: ParseContext.t) =>
   KIdentifier.Plugin.parse(ctx)
@@ -23,7 +23,7 @@ let type_variant_list = (ctx: ParseContext.t) =>
   optional(Symbol.vertical_bar)
   >> (_type_variant(ctx) |> sep_by(Symbol.vertical_bar));
 
-let declaration: Grammar.Kore.type_module_statement_parser_t =
+let declaration: Parse.Kore.type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.declare,
@@ -38,7 +38,7 @@ let declaration: Grammar.Kore.type_module_statement_parser_t =
       },
     );
 
-let enumerated: Grammar.Kore.type_module_statement_parser_t =
+let enumerated: Parse.Kore.type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.enum,
@@ -79,7 +79,7 @@ let enumerated: Grammar.Kore.type_module_statement_parser_t =
       },
     );
 
-let type_: Grammar.Kore.type_module_statement_parser_t =
+let type_: Parse.Kore.type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.type_,
@@ -94,7 +94,7 @@ let type_: Grammar.Kore.type_module_statement_parser_t =
       },
     );
 
-let statement: Grammar.Kore.type_module_statement_parser_t =
+let statement: Parse.Kore.type_module_statement_parser_t =
   ctx =>
     choice([declaration(ctx), enumerated(ctx), type_(ctx)])
     |> Matchers.terminated;

@@ -1,13 +1,13 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 
 let arguments =
     (
       ctx: ParseContext.t,
-      parse_expression: Grammar.Kore.contextual_expression_parser_t,
+      parse_expression: Parse.Kore.contextual_expression_parser_t,
     ) =>
   KIdentifier.Plugin.parse(ctx)
   >>= (
@@ -48,7 +48,7 @@ let _full_parser =
     (
       ~mixins,
       ctx: ParseContext.t,
-      parse_expression: Grammar.Kore.contextual_expression_parser_t,
+      parse_expression: Parse.Kore.contextual_expression_parser_t,
     ) =>
   arguments(ctx, parse_expression)
   >|= fst
@@ -79,7 +79,7 @@ let lambda_with_mixins = (ctx: ParseContext.t) =>
 let lambda =
     (
       ctx: ParseContext.t,
-      parse_expression: Grammar.Kore.contextual_expression_parser_t,
+      parse_expression: Parse.Kore.contextual_expression_parser_t,
     ) =>
   _full_parser(~mixins=false, ctx, parse_expression)
   >|= (((args, _, expr, range)) => (args, expr, range));

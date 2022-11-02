@@ -1,9 +1,9 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Character = Grammar.Character;
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Character = Parse.Character;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 
 let decorator = parse_expr =>
   Matchers.identifier(~prefix=Character.at_sign)

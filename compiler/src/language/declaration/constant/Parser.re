@@ -1,11 +1,11 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
-module Util = Grammar.Util;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
+module Util = Parse.Util;
 
-let constant = (ctx: ParseContext.t, f): Grammar.Kore.declaration_parser_t =>
+let constant = (ctx: ParseContext.t, f): Parse.Kore.declaration_parser_t =>
   Keyword.const
   >>= (
     kwd =>

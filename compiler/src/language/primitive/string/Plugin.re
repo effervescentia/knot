@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-module Matchers = Grammar.Matchers;
+module Matchers = Parse.Matchers;
 
 let type_ = `String;
 

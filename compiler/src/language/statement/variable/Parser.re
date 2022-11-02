@@ -1,15 +1,15 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
 
 let variable =
     (
       ctx: ParseContext.t,
-      parse_expr: Grammar.Kore.contextual_expression_parser_t,
+      parse_expr: Parse.Kore.contextual_expression_parser_t,
     )
-    : Grammar.Kore.statement_parser_t =>
+    : Parse.Kore.statement_parser_t =>
   Keyword.let_
   >>= (
     kwd =>

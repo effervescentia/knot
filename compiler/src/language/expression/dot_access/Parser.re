@@ -1,8 +1,8 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 
 let dot_access = {
   let rec loop = expr =>

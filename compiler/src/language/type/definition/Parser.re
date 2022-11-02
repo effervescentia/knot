@@ -1,12 +1,12 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
-module Util = Grammar.Util;
+module Util = Parse.Util;
 
 let _module_decorator = (ctx: ParseContext.t) =>
   KDecorator.Plugin.parse(KPrimitive.Plugin.parse)
@@ -23,7 +23,7 @@ let _module_decorator = (ctx: ParseContext.t) =>
         )
       );
 
-let module_: Grammar.Kore.type_module_parser_t =
+let module_: Parse.Kore.type_module_parser_t =
   ctx =>
     _module_decorator(ctx)
     |> many
@@ -108,7 +108,7 @@ let module_: Grammar.Kore.type_module_parser_t =
         )
     );
 
-let decorator: Grammar.Kore.type_module_parser_t =
+let decorator: Parse.Kore.type_module_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.decorator,
@@ -139,5 +139,5 @@ let decorator: Grammar.Kore.type_module_parser_t =
       },
     );
 
-let type_definition: Grammar.Kore.type_module_parser_t =
+let type_definition: Parse.Kore.type_module_parser_t =
   ctx => choice([decorator(ctx), module_(ctx)]);

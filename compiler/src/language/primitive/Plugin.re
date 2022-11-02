@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-let parse: Grammar.Kore.primitive_parser_t =
+let parse: Parse.Kore.primitive_parser_t =
   choice([
     KNil.Plugin.parse,
     KBoolean.Plugin.parse,

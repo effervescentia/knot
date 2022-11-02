@@ -1,9 +1,9 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 
 let _import_named = (ctx: ParseContext.t, import) =>
   fun

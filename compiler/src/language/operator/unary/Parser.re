@@ -1,10 +1,10 @@
 open Parse.Onyx;
 
-module Matchers = Grammar.Matchers;
+module Matchers = Parse.Matchers;
 
 let unary_operation =
-    (parse_expr: Grammar.Kore.expression_parser_t)
-    : Grammar.Kore.expression_parser_t =>
+    (parse_expr: Parse.Kore.expression_parser_t)
+    : Parse.Kore.expression_parser_t =>
   Matchers.unary_op(
     parse_expr,
     choice([

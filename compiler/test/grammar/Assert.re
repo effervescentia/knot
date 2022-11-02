@@ -15,8 +15,7 @@ let symbol_assoc_list =
     check(list(pair(string, Compare.type_)), "symbol assoc list matches")
   );
 
-let parse_completely = x =>
-  Parse.Onyx.(x << (eof() |> Grammar.Matchers.lexeme));
+let parse_completely = x => Parse.Onyx.(x << (eof() |> Parse.Matchers.lexeme));
 
 module type AssertParams = {
   include Test.Assert.Target;

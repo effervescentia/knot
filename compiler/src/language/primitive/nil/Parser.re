@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
+module Keyword = Parse.Keyword;
 
-let nil: Grammar.Kore.primitive_parser_t =
+let nil: Parse.Kore.primitive_parser_t =
   Keyword.nil >|= Node.map(_ => AST.Raw.nil);

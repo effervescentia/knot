@@ -1,13 +1,13 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 
 let function_call =
     (
-      parse_term: Grammar.Kore.expression_parser_t,
-      parse_expr: Grammar.Kore.expression_parser_t,
+      parse_term: Parse.Kore.expression_parser_t,
+      parse_expr: Parse.Kore.expression_parser_t,
     ) => {
   let rec loop = expr =>
     parse_expr

@@ -1,12 +1,12 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Matchers = Grammar.Matchers;
-module Symbol = Grammar.Symbol;
+module Matchers = Parse.Matchers;
+module Symbol = Parse.Symbol;
 
 let closure =
-    (parse_stmt: Grammar.Kore.statement_parser_t)
-    : Grammar.Kore.expression_parser_t =>
+    (parse_stmt: Parse.Kore.statement_parser_t)
+    : Parse.Kore.expression_parser_t =>
   parse_stmt
   |> many
   |> Matchers.between(Symbol.open_closure, Symbol.close_closure)

@@ -1,5 +1,5 @@
-open Knot.Kore;
-open Parse.Onyx;
+open Kore;
+open Onyx;
 open ModuleAliases;
 
 module C = Constants;

@@ -1,13 +1,13 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Grammar.Keyword;
-module Matchers = Grammar.Matchers;
-module Util = Grammar.Util;
+module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
+module Util = Parse.Util;
 
 let function_ =
     (ctx: ParseContext.t, tag_export: AST.Raw.identifier_t => AST.export_t)
-    : Grammar.Kore.declaration_parser_t =>
+    : Parse.Kore.declaration_parser_t =>
   Keyword.func
   >>= Node.get_range
   % (
