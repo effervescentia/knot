@@ -1,12 +1,16 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
 module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
+module ParseContext = AST.ParseContext;
 module Symbol = Parse.Symbol;
-module Util = Parse.Util;
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
+module Util = AST.Util;
 
-let enumerated = (ctx: ParseContext.t, f): Parse.Kore.declaration_parser_t =>
+let enumerated = (ctx: ParseContext.t, f): declaration_parser_t =>
   Keyword.enum
   >|= Node.get_range
   >>= (
@@ -45,7 +49,7 @@ let enumerated = (ctx: ParseContext.t, f): Parse.Kore.declaration_parser_t =>
               start,
               raw_variants |> List.last |?> Node.get_range |?: start,
             );
-          let enum = Node.typed(AST.of_enum(variants), type_, range);
+          let enum = Node.typed(AST.Result.of_enum(variants), type_, range);
           let export_id = f(id);
 
           ctx.symbols

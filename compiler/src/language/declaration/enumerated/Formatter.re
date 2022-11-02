@@ -5,7 +5,12 @@ let pp_enumerated:
   Fmt.t(
     (
       string,
-      list((AST.identifier_t, list(AST.node_t(AST.TypeExpression.raw_t)))),
+      list(
+        (
+          AST.Result.identifier_t,
+          list(AST.Result.node_t(AST.TypeExpression.raw_t)),
+        ),
+      ),
     ),
   ) =
   (pp_type_expr, ppf) =>

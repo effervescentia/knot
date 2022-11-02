@@ -46,11 +46,11 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
         resolver =>
           List.filter(
             fun
-            | ImportCycle(_)
-            | UnresolvedModule(_)
-            | FileNotFound(_)
-            | ParseError(_)
-            | InvalidModule(_) => false,
+            | AST.Error.ImportCycle(_)
+            | AST.Error.UnresolvedModule(_)
+            | AST.Error.FileNotFound(_)
+            | AST.Error.ParseError(_)
+            | AST.Error.InvalidModule(_) => false,
           )
           % (errors => List.is_empty(errors) ? () : report(resolver, errors)),
       {

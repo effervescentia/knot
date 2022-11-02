@@ -3,6 +3,10 @@ open Reference;
 open ModuleAliases;
 
 module U = Util.RawUtil;
+module A = AST.Result;
+module ModuleTable = AST.ModuleTable;
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
 
 let __id = Namespace.Internal("foo");
 let __types: list((Export.t, Type.t)) = [

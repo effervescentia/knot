@@ -25,7 +25,7 @@ module Program = {
   module U = Util.ResultUtil;
 
   let const_int =
-    AST.[
+    AST.Result.[
       (
         "ABC" |> U.as_untyped |> of_named_export,
         123L |> of_int |> of_num |> of_prim |> U.as_int |> of_const |> U.as_int,

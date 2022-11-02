@@ -1,5 +1,6 @@
 open Kore;
 
+module AR = AST.Raw;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
 module U = Util.RawUtil;

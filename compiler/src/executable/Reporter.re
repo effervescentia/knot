@@ -1,7 +1,9 @@
 open Kore;
+open AST.Error;
 
 module Resolver = Resolve.Resolver;
 module Source = Resolve.Source;
+module Type = AST.Type;
 module Writer = File.Writer;
 
 let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];

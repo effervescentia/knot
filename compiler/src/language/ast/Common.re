@@ -1,10 +1,10 @@
 /**
  common types that can be used to build resolved or Raw ASTs
  */
-open Infix;
+open Knot.Kore;
 
-include AST_Primitive;
-include AST_Operator;
+include Primitive;
+include Operator;
 
 module N = Node;
 
@@ -21,8 +21,8 @@ type identifier_t = untyped_t(string);
 module Dump = {
   open Pretty.Formatters;
 
-  include AST_Primitive.Dump;
-  include AST_Operator.Dump;
+  include Primitive.Dump;
+  include Operator.Dump;
 
   module Entity = {
     type t = {

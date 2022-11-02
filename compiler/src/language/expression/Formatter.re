@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-let rec pp_expression: Fmt.t(AST.raw_expression_t) =
+let rec pp_expression: Fmt.t(AST.Result.raw_expression_t) =
   ppf =>
     fun
     | Primitive(prim) => prim |> KPrimitive.Plugin.pp(ppf)

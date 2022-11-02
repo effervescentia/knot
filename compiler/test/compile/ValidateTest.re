@@ -12,7 +12,7 @@ let _assert_validate_result =
     check(
       result(
         testable((_, _) => (), (==)),
-        testable(pp_dump_err_list, (==)),
+        testable(AST.Error.pp_dump_err_list, (==)),
       ),
       "validate result matches",
     )

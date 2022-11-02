@@ -1,10 +1,9 @@
 open Parse.Onyx;
+open AST.ParserTypes;
 
 module Matchers = Parse.Matchers;
 
-let unary_operation =
-    (parse_expr: Parse.Kore.expression_parser_t)
-    : Parse.Kore.expression_parser_t =>
+let unary_operation = (parse_expr: expression_parser_t): expression_parser_t =>
   Matchers.unary_op(
     parse_expr,
     choice([

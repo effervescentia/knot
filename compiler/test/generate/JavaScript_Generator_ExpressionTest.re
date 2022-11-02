@@ -1,8 +1,10 @@
 open Kore;
 open Generate.JavaScript_AST;
 
+module A = AST.Result;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module T = AST.Type;
 module U = Util.ResultUtil;
 
 let _assert_expression = (expected, actual) =>

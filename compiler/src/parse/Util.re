@@ -1,11 +1,6 @@
 open Kore;
 open Onyx;
 
-let is_main: A.export_t => bool =
-  fun
-  | MainExport(_) => true
-  | NamedExport(_) => false;
-
 let unary_op = (f, x) => N.typed(f(x), (), N.get_range(x));
 
 let binary_op = (f, (l, r)) =>

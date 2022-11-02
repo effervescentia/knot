@@ -1,5 +1,6 @@
 open Kore;
 
+module A = AST.Result;
 module Generator = Generate.Generator;
 module U = Util.ResultUtil;
 

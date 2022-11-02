@@ -1,5 +1,6 @@
 open Kore;
 
+module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =

@@ -1,5 +1,7 @@
 open Kore;
 
+module A = AST.Result;
+module T = AST.Type;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
 module U = Util.ResultUtil;
@@ -10,9 +12,9 @@ module Assert =
 
     let parser = _ =>
       Reference.Namespace.of_string("test_namespace")
-      |> ParseContext.create(
+      |> AST.ParseContext.create(
            ~symbols=
-             SymbolTable.of_export_list([
+             AST.SymbolTable.of_export_list([
                (
                  Reference.Export.Named("fizz"),
                  T.Valid(`Decorator(([], Module))),
@@ -37,7 +39,7 @@ module Assert =
         check(
           testable(
             (ppf, type_module) =>
-              A.Dump.(
+              AST.Result.Dump.(
                 type_module
                 |> untyped_node_to_entity(
                      ~children=[TD.Dump.to_entity(type_module)],

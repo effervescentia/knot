@@ -1,12 +1,11 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
 module Matchers = Parse.Matchers;
 module Symbol = Parse.Symbol;
 
-let group =
-    (parse_expr: Parse.Kore.expression_parser_t)
-    : Parse.Kore.expression_parser_t =>
+let group = (parse_expr: expression_parser_t): expression_parser_t =>
   Matchers.between(Symbol.open_group, Symbol.close_group, parse_expr)
   >|= (
     ((expr, _) as expr_node) =>

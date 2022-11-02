@@ -7,5 +7,5 @@
    (name KFunctionCall)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.expression.function_call)
-   (libraries  knot.parse )
+   (libraries  knot.lang.ast )
 )

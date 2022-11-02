@@ -1,5 +1,6 @@
 open Kore;
 
+module A = AST.Result;
 module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 

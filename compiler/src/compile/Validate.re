@@ -14,7 +14,8 @@ let no_import_cycles = (graph: ImportGraph.t) =>
   |> (
     fun
     | [] => Ok()
-    | cycles => Error(cycles |> List.map(cycle => ImportCycle(cycle)))
+    | cycles =>
+      Error(cycles |> List.map(cycle => AST.Error.ImportCycle(cycle)))
   );
 
 /**
@@ -27,5 +28,6 @@ let no_unresolved_modules = (graph: ImportGraph.t) =>
   |> (
     fun
     | [] => Ok()
-    | missing => Error(missing |> List.map(path => UnresolvedModule(path)))
+    | missing =>
+      Error(missing |> List.map(path => AST.Error.UnresolvedModule(path)))
   );

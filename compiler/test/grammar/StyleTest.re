@@ -1,10 +1,11 @@
 open Kore;
 open Reference;
 
+module AR = AST.Raw;
 module U = Util.RawUtil;
-module TE = A.TypeExpression;
+module TE = AST.TypeExpression;
 
-let __context = ParseContext.create(Namespace.Internal("foo"));
+let __context = AST.ParseContext.create(Namespace.Internal("foo"));
 
 module Assert =
   Assert.Make({

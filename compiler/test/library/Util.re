@@ -1,8 +1,8 @@
 open Kore;
 
-module A = AST;
+module A = AST.Result;
 module AR = AST.Raw;
-module T = Type;
+module T = AST.Type;
 
 module CommonUtil = {
   let as_untyped = (~range=Range.zero, x) => Node.untyped(x, range);

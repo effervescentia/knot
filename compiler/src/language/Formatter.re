@@ -3,7 +3,7 @@ open FormatterUtils;
 
 let __default_margin = 120;
 
-let pp_declaration_list: Fmt.t(list((string, A.raw_declaration_t))) =
+let pp_declaration_list: Fmt.t(list((string, AST.Result.raw_declaration_t))) =
   ppf => {
     let rec loop =
       fun
@@ -14,7 +14,10 @@ let pp_declaration_list: Fmt.t(list((string, A.raw_declaration_t))) =
         KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl)
 
       /* handle constant clustering logic, separate with newlines */
-      | [(_, A.Constant(_)) as decl, ...[(_, A.Constant(_)), ..._] as xs] => {
+      | [
+          (_, AST.Result.Constant(_)) as decl,
+          ...[(_, AST.Result.Constant(_)), ..._] as xs,
+        ] => {
           KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
           Fmt.cut(ppf, ());
 
@@ -62,7 +65,7 @@ let pp_all_imports:
            )
          );
 
-let format = (~margin=__default_margin): Fmt.t(A.program_t) =>
+let format = (~margin=__default_margin): Fmt.t(AST.Result.program_t) =>
   (ppf, program) => {
     let orig_margin = Format.get_margin();
     Format.set_margin(margin);

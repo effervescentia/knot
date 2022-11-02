@@ -1,6 +1,7 @@
 open Knot.Kore;
 
-let pp_closure: Fmt.t(AST.raw_statement_t) => Fmt.t(list(AST.statement_t)) =
+let pp_closure:
+  Fmt.t(AST.Result.raw_statement_t) => Fmt.t(list(AST.Result.statement_t)) =
   (pp_statement, ppf) =>
     fun
     | [] => Fmt.string(ppf, "{}")

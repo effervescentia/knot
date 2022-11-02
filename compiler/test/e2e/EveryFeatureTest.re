@@ -23,7 +23,7 @@ let suite =
         let (global, config) = process_build_cmd(__cwd, argv);
 
         Build.run(
-          ~report=_ => throw_all,
+          ~report=_ => AST.Error.throw_all,
           global,
           {...config, ambient: __mock_library_file},
         );
@@ -49,7 +49,7 @@ let suite =
         let (global, config) = process_build_cmd(__cwd, argv);
 
         Build.run(
-          ~report=_ => throw_all,
+          ~report=_ => AST.Error.throw_all,
           global,
           {...config, ambient: __mock_library_file},
         );
@@ -75,7 +75,7 @@ let suite =
         let (global, config) = process_build_cmd(__cwd, argv);
 
         Build.run(
-          ~report=_ => throw_all,
+          ~report=_ => AST.Error.throw_all,
           global,
           {...config, ambient: __mock_library_file},
         );

@@ -1,6 +1,9 @@
 open Kore;
 
-module Symbols = SymbolTable.Symbols;
+module ParseContext = AST.ParseContext;
+module SymbolTable = AST.SymbolTable;
+module Symbols = AST.SymbolTable.Symbols;
+module Type = AST.Type;
 
 let __symbols =
   Symbols.{

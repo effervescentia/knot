@@ -1,10 +1,10 @@
 /**
  Type definition module Abstract Syntax Tree.
  */
-open Infix;
-open AST_Common;
+open Knot.Kore;
+open Common;
 
-module TypeExpression = AST_TypeExpression;
+module TypeExpression = TypeExpression;
 
 type variant_t = (untyped_t(string), list(TypeExpression.t));
 

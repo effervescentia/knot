@@ -1,6 +1,11 @@
 open Kore;
 
+module A = AST.Result;
 module Export = Reference.Export;
+module ModuleTable = AST.ModuleTable;
+module ParseContext = AST.ParseContext;
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
 module U = Util.CommonUtil;
 
 module Assert =

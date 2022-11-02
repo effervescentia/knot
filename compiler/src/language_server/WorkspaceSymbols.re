@@ -1,6 +1,8 @@
 open Kore;
 open ModuleAliases;
 
+module ModuleTable = AST.ModuleTable;
+
 type params_t = {
   query: string,
   partial_result_token: option(Protocol.progress_token),
@@ -65,7 +67,7 @@ let handler: Runtime.request_handler_t(params_t) =
                          fst
                          % (
                            fun
-                           | AST.Declaration(
+                           | AST.Result.Declaration(
                                MainExport(name) | NamedExport(name),
                                decl,
                              ) => {

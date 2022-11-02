@@ -36,7 +36,7 @@ let exists =
 
 let read = f =>
   fun
-  | File(path) as x when !exists(x) => Error([FileNotFound(path.relative)])
+  | File(path) as x when !exists(x) => Error(path.relative)
   | File(path) =>
     IO.read_stream(path.full)
     |> (
@@ -53,7 +53,7 @@ let read = f =>
 
 let read_to_string =
   fun
-  | File(path) as x when !exists(x) => Error([FileNotFound(path.relative)])
+  | File(path) as x when !exists(x) => Error(path.relative)
   | File({full, _}) => Ok(IO.read_to_string(full))
   | Raw(s) => Ok(s);
 
@@ -67,7 +67,7 @@ let cache = (cache: Cache.t) =>
 
       Ok(cached_path);
     } else {
-      Error([FileNotFound(path.relative)]);
+      Error(path.relative);
     }
   | Raw(_) => raise(NotImplemented);
 

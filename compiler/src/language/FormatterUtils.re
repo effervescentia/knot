@@ -26,8 +26,8 @@ let _sort_imports =
                fst
                % (
                  fun
-                 | A.MainImport(id) => (Some(fst(id)), n)
-                 | A.NamedImport(id, label) => (
+                 | AST.Result.MainImport(id) => (Some(fst(id)), n)
+                 | AST.Result.NamedImport(id, label) => (
                      m,
                      [(fst(id), label), ...n],
                    )
@@ -44,13 +44,14 @@ let _sort_imports =
       (namespace, main_import, sorted_named_imports);
     });
 
-let extract_imports = (program: A.program_t) =>
+let extract_imports = (program: AST.Result.program_t) =>
   program
   |> List.filter_map(
        fst
        % (
          fun
-         | A.Import(namespace, imports) => Some((namespace, imports))
+         | AST.Result.Import(namespace, imports) =>
+           Some((namespace, imports))
          | _ => None
        ),
      )
@@ -63,13 +64,16 @@ let extract_imports = (program: A.program_t) =>
      )
   |> Tuple.map2(_sort_imports);
 
-let extract_declarations = (program: A.program_t) =>
+let extract_declarations = (program: AST.Result.program_t) =>
   program
   |> List.filter_map(
        fst
        % (
          fun
-         | A.Declaration(MainExport(name) | NamedExport(name), decl) =>
+         | AST.Result.Declaration(
+             MainExport(name) | NamedExport(name),
+             decl,
+           ) =>
            Some((fst(name), fst(decl)))
          | _ => None
        ),

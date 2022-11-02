@@ -1,6 +1,7 @@
 open Kore;
 
 module U = Util.RawUtil;
+module T = AST.Type;
 
 let _assert_errors_with_ranges =
   Alcotest.(
@@ -8,7 +9,7 @@ let _assert_errors_with_ranges =
       testable(
         Fmt.(
           list((ppf, (err, range)) =>
-            pf(ppf, "(%a, %a)", Type.pp_error, err, option(Range.pp), range)
+            pf(ppf, "(%a, %a)", T.pp_error, err, option(Range.pp), range)
           )
         ),
         (==),

@@ -4,6 +4,8 @@
 open Kore;
 open ModuleAliases;
 
+module A = AST.Result;
+
 let __util_lib = "$knot";
 let __runtime_namespace = "@knot/runtime";
 let __class_name_prop = "className";
@@ -260,7 +262,7 @@ let gen_enumerated =
     (
       name: A.identifier_t,
       variants:
-        list((A.identifier_t, list(A.node_t(A.TypeExpression.raw_t)))),
+        list((A.identifier_t, list(A.node_t(AST.TypeExpression.raw_t)))),
     ) => {
   let name_str = fst(name);
 
@@ -353,7 +355,7 @@ let gen_view =
     (
       (name, _): A.identifier_t,
       props: list(A.argument_t),
-      mixins: list(N.t(string, T.t)),
+      mixins: list(N.t(string, AST.Type.t)),
       (expr, _): A.expression_t,
     ) =>
   JavaScript_AST.(

@@ -1,8 +1,8 @@
 open Knot.Kore;
 
 let pp_function:
-  Fmt.t(AST.raw_expression_t) =>
-  Fmt.t((string, list(AST.argument_t), AST.expression_t)) =
+  Fmt.t(AST.Result.raw_expression_t) =>
+  Fmt.t((string, list(AST.Result.argument_t), AST.Result.expression_t)) =
   (pp_expression, ppf, (name, args, (expr, _))) =>
     Fmt.(
       pf(

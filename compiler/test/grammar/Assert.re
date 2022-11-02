@@ -2,6 +2,11 @@ open Kore;
 
 include Test.Assert;
 
+module A = AST.Result;
+module AR = AST.Raw;
+module ParseContext = AST.ParseContext;
+module Type = AST.Type;
+
 module Compare = {
   include Compare;
 
@@ -26,7 +31,7 @@ module type AssertParams = {
 module Make = (Params: AssertParams) => {
   let parse =
       (
-        ~report=throw,
+        ~report=AST.Error.throw,
         ~context=_mock_context(report),
         ~cursor=false,
         expected,
@@ -43,11 +48,21 @@ module Make = (Params: AssertParams) => {
     );
 
   let parse_all =
-      (~report=throw, ~context=_mock_context(report), ~cursor=false, o) =>
+      (
+        ~report=AST.Error.throw,
+        ~context=_mock_context(report),
+        ~cursor=false,
+        o,
+      ) =>
     List.iter(parse(~context, ~report, ~cursor, o));
 
   let no_parse =
-      (~report=throw, ~context=_mock_context(report), ~cursor=false, source) =>
+      (
+        ~report=AST.Error.throw,
+        ~context=_mock_context(report),
+        ~cursor=false,
+        source,
+      ) =>
     InputStream.of_string(~cursor, source)
     |> LazyStream.of_stream
     |> Params.parser(context)
@@ -56,12 +71,16 @@ module Make = (Params: AssertParams) => {
        );
 
   let parse_none =
-      (~report=throw, ~context=_mock_context(report), ~cursor=false) =>
+      (
+        ~report=AST.Error.throw,
+        ~context=_mock_context(report),
+        ~cursor=false,
+      ) =>
     List.iter(no_parse(~report, ~context, ~cursor));
 
   let parse_throws =
       (
-        ~report=throw,
+        ~report=AST.Error.throw,
         ~context=_mock_context(report),
         ~cursor=false,
         err,

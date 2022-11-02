@@ -1,8 +1,8 @@
 open Kore;
 
 module U = Util.ResultUtil;
-module A = AST;
-module T = Type;
+module A = AST.Result;
+module T = AST.Type;
 
 let _fixture = Filename.concat("./test/compile/.fixtures");
 
@@ -137,12 +137,12 @@ module Program = {
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
-           Type.Valid(`Integer),
+           T.Valid(`Integer),
          )
       |> A.of_const
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
-           Type.Valid(`Integer),
+           T.Valid(`Integer),
          ),
     )
     |> A.of_decl
@@ -171,12 +171,12 @@ module Program = {
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
-           Type.Valid(`String),
+           T.Valid(`String),
          )
       |> A.of_const
       |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
-           Type.Valid(`String),
+           T.Valid(`String),
          ),
     )
     |> A.of_decl

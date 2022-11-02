@@ -1,5 +1,8 @@
 open Knot.Kore;
 
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
+
 let rec analyze_type_expression:
   (SymbolTable.t, AST.TypeExpression.raw_t) => Type.t =
   (defs, type_expr) =>

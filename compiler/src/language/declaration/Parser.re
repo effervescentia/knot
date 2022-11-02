@@ -2,11 +2,12 @@ open Knot.Kore;
 open Parse.Onyx;
 
 module Keyword = Parse.Keyword;
+module ParseContext = AST.ParseContext;
 
 let declaration = (ctx: ParseContext.t) =>
-  AST.of_main_export
+  AST.Result.of_main_export
   <$ Keyword.main
-  |> option(AST.of_named_export)
+  |> option(AST.Result.of_named_export)
   >>= (
     f =>
       choice([
@@ -15,5 +16,5 @@ let declaration = (ctx: ParseContext.t) =>
         KFunction.Plugin.parse(ctx, f),
         KView.Plugin.parse(ctx, f),
       ])
-      >|= Node.map(AST.of_decl)
+      >|= Node.map(AST.Result.of_decl)
   );

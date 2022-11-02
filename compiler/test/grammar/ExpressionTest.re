@@ -1,5 +1,6 @@
 open Kore;
 
+module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
@@ -56,7 +57,7 @@ let _generate_spaced_int_ops = (~lhs=123, ~rhs=456) =>
     ]
   );
 
-let _assert_parse_many = (~report=throw) =>
+let _assert_parse_many = (~report=AST.Error.throw) =>
   List.iter(Tuple.join2(Assert.parse(~report)));
 
 let suite =

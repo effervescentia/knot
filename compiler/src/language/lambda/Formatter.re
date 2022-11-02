@@ -1,12 +1,14 @@
 open Knot.Kore;
 
-let pp_body: Fmt.t(AST.raw_expression_t) => Fmt.t(AST.raw_expression_t) =
+let pp_body:
+  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.raw_expression_t) =
   (pp_expression, ppf) =>
     fun
     | Closure(_) as expr => Fmt.pf(ppf, "-> %a", pp_expression, expr)
     | expr => Fmt.pf(ppf, "-> %a;", pp_expression, expr);
 
-let pp_argument: Fmt.t(AST.raw_expression_t) => Fmt.t(AST.raw_argument_t) =
+let pp_argument:
+  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.raw_argument_t) =
   (pp_expression, ppf, {name: (name, _), default, _}) =>
     Fmt.pf(
       ppf,
@@ -20,7 +22,7 @@ let pp_argument: Fmt.t(AST.raw_expression_t) => Fmt.t(AST.raw_argument_t) =
     );
 
 let pp_argument_list:
-  Fmt.t(AST.raw_expression_t) => Fmt.t(list(AST.argument_t)) =
+  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(list(AST.Result.argument_t)) =
   (pp_expression, ppf) =>
     fun
     | [] => Fmt.nop(ppf, ())

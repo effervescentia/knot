@@ -3,7 +3,7 @@ open Kore;
 module TE = AST.TypeExpression;
 module U = Util.RawUtil;
 
-let __empty_defs = SymbolTable.create();
+let __empty_defs = AST.SymbolTable.create();
 
 let suite =
   "Analyze.Typing | Type Expression"
@@ -59,7 +59,7 @@ let suite =
     "identifier"
     >: (
       () => {
-        let symbols = SymbolTable.create();
+        let symbols = AST.SymbolTable.create();
 
         symbols.declared.types =
           symbols.declared.types @ [("foo", Valid(`Boolean))];

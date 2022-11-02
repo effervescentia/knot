@@ -15,7 +15,7 @@ module Assert =
         check(
           testable(
             (ppf, type_expr) =>
-              A.Dump.(
+              AST.Result.Dump.(
                 type_expr
                 |> untyped_node_to_entity(
                      ~children=[TE.Dump.to_entity(type_expr)],

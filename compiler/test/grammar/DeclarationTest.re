@@ -1,5 +1,6 @@
 open Kore;
 
+module A = AST.Result;
 module U = Util.ResultUtil;
 
 module Assert = {
