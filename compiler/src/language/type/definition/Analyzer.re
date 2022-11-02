@@ -1,5 +1,8 @@
 open Knot.Kore;
 
+module Type = AST.Type;
+module ParseContext = AST.ParseContext;
+
 let analyze_decorator =
     (ctx: ParseContext.t, target: Type.DecoratorTarget.t, decorator) => {
   let decorator' =

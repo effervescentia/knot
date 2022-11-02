@@ -1,6 +1,10 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
+module ParseContext = AST.ParseContext;
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
 module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
 module Symbol = Parse.Symbol;
@@ -23,7 +27,7 @@ let type_variant_list = (ctx: ParseContext.t) =>
   optional(Symbol.vertical_bar)
   >> (_type_variant(ctx) |> sep_by(Symbol.vertical_bar));
 
-let declaration: Parse.Kore.type_module_statement_parser_t =
+let declaration: type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.declare,
@@ -38,7 +42,7 @@ let declaration: Parse.Kore.type_module_statement_parser_t =
       },
     );
 
-let enumerated: Parse.Kore.type_module_statement_parser_t =
+let enumerated: type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.enum,
@@ -79,7 +83,7 @@ let enumerated: Parse.Kore.type_module_statement_parser_t =
       },
     );
 
-let type_: Parse.Kore.type_module_statement_parser_t =
+let type_: type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.type_,
@@ -94,7 +98,7 @@ let type_: Parse.Kore.type_module_statement_parser_t =
       },
     );
 
-let statement: Parse.Kore.type_module_statement_parser_t =
+let statement: type_module_statement_parser_t =
   ctx =>
     choice([declaration(ctx), enumerated(ctx), type_(ctx)])
     |> Matchers.terminated;

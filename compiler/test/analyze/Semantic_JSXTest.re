@@ -1,13 +1,17 @@
 open Kore;
 
+module A = AST.Result;
+module AR = AST.Raw;
+module T = AST.Type;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
 let __id = "foo";
 let __component_id = "Foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __context = ParseContext.create(~report=ignore, __namespace);
-let __throw_scope = S.create({...__context, report: throw}, Range.zero);
+let __context = AST.ParseContext.create(~report=ignore, __namespace);
+let __throw_scope =
+  AST.Scope.create({...__context, report: AST.Error.throw}, Range.zero);
 
 let suite =
   "Analyze.Semantic | JSX"

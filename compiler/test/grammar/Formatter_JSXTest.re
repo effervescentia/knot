@@ -1,6 +1,8 @@
 open Kore;
 
+module A = AST.Result;
 module Formatter = Language.Formatter;
+module T = AST.Type;
 module U = Util.ResultUtil;
 
 let _assert_jsx = (expected, actual) =>

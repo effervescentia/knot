@@ -1,11 +1,15 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
 module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
+module ParseContext = AST.ParseContext;
 module Symbol = Parse.Symbol;
+module SymbolTable = AST.SymbolTable;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
+module Type = AST.Type;
 module Util = Parse.Util;
 
 let _module_decorator = (ctx: ParseContext.t) =>
@@ -23,7 +27,7 @@ let _module_decorator = (ctx: ParseContext.t) =>
         )
       );
 
-let module_: Parse.Kore.type_module_parser_t =
+let module_: type_module_parser_t =
   ctx =>
     _module_decorator(ctx)
     |> many
@@ -108,7 +112,7 @@ let module_: Parse.Kore.type_module_parser_t =
         )
     );
 
-let decorator: Parse.Kore.type_module_parser_t =
+let decorator: type_module_parser_t =
   ctx =>
     Util.define_statement(
       Keyword.decorator,
@@ -139,5 +143,5 @@ let decorator: Parse.Kore.type_module_parser_t =
       },
     );
 
-let type_definition: Parse.Kore.type_module_parser_t =
+let type_definition: type_module_parser_t =
   ctx => choice([decorator(ctx), module_(ctx)]);

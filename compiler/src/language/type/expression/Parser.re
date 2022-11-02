@@ -1,5 +1,6 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
 module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
@@ -17,21 +18,17 @@ let primitive_types =
     (Keyword.style, Style),
   ];
 
-let primitive: Parse.Kore.type_expression_parser_t =
+let primitive: type_expression_parser_t =
   choice(
     primitive_types |> List.map(((kwd, prim)) => kwd >|= Node.map(_ => prim)),
   );
 
-let group =
-    (parse_expr: Parse.Kore.type_expression_parser_t)
-    : Parse.Kore.type_expression_parser_t =>
+let group = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
   |> Matchers.between(Symbol.open_group, Symbol.close_group)
   >|= Node.map(TE.of_group);
 
-let list =
-    (parse_expr: Parse.Kore.type_expression_parser_t)
-    : Parse.Kore.type_expression_parser_t =>
+let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
   |> suffixed_by(
        Matchers.glyph("[]")
@@ -41,9 +38,7 @@ let list =
        ),
      );
 
-let struct_ =
-    (parse_expr: Parse.Kore.type_expression_parser_t)
-    : Parse.Kore.type_expression_parser_t =>
+let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   Matchers.identifier(~prefix=Matchers.alpha)
   >>= (id => Symbol.colon >> parse_expr >|= Tuple.with_fst2(id))
   |> Matchers.comma_sep
@@ -52,8 +47,7 @@ let struct_ =
   >|= Node.map(props => TE.of_struct(props));
 
 let function_ =
-    (parse_expr: Parse.Kore.type_expression_parser_t)
-    : Parse.Kore.type_expression_parser_t =>
+    (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
   |> Matchers.comma_sep
   |> Matchers.between(Symbol.open_group, Symbol.close_group)
@@ -70,7 +64,7 @@ let function_ =
       )
   );
 
-let identifier: Parse.Kore.type_expression_parser_t =
+let identifier: type_expression_parser_t =
   Matchers.identifier >|= Node.wrap(TE.of_id);
 
 let dot_access = {
@@ -98,15 +92,13 @@ let dot_access = {
  */
 
 /* element[], float[][][] */
-let rec expr_0: Parse.Kore.type_expression_parser_t =
-  input => (list(expr_1))(input)
+let rec expr_0: type_expression_parser_t = input => (list(expr_1))(input)
 
 /* foo.bar */
-and expr_1: Parse.Kore.type_expression_parser_t =
-  input => (expr_2 >>= dot_access)(input)
+and expr_1: type_expression_parser_t = input => (expr_2 >>= dot_access)(input)
 
 /* nil, (string), (integer, float) -> boolean, { foo: string } */
-and expr_2: Parse.Kore.type_expression_parser_t =
+and expr_2: type_expression_parser_t =
   input =>
     choice(
       [

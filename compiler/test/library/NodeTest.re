@@ -2,7 +2,7 @@ open Kore;
 
 let __value = "foo";
 let __range = Range.create((1, 8), (3, 4));
-let __type = Type.Valid(`Nil);
+let __type = AST.Type.Valid(`Nil);
 let __raw_node = (__value, __range);
 let __node = Node.typed(__value, __type, __range);
 
@@ -14,7 +14,7 @@ let suite = [
       () =>
         Assert.typed_node(
           Fmt.string,
-          Type.pp,
+          AST.Type.pp,
           (__value, (__type, __range)),
           Node.typed(__value, __type, __range),
         )
@@ -26,7 +26,7 @@ let suite = [
       () =>
         Assert.string(
           "foo (nil) @ 1.8-3.4",
-          __node |> ~@Node.pp(Fmt.string, Type.pp),
+          __node |> ~@Node.pp(Fmt.string, AST.Type.pp),
         )
     ),
   ],

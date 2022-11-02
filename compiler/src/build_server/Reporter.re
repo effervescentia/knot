@@ -1,4 +1,5 @@
 open Kore;
+open AST.Error;
 
 module Resolver = Resolve.Resolver;
 

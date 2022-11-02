@@ -27,7 +27,7 @@ let notification = (uri: string, errs) =>
                ("range", Serialize.range(range)),
                ("severity", `Int(severity(Error))),
                ("source", `String(Target.knot)),
-               ("message", `String(err |> ~@Knot.Error.pp_parse_err)),
+               ("message", `String(err |> ~@AST.Error.pp_parse_err)),
              ])
            ),
       ),
@@ -35,13 +35,17 @@ let notification = (uri: string, errs) =>
   ]);
 
 let send =
-    ({server, _}: Runtime.t, source_dir: string, errs: list(compile_err)) => {
+    (
+      {server, _}: Runtime.t,
+      source_dir: string,
+      errs: list(AST.Error.compile_err),
+    ) => {
   let grouped_errs = Hashtbl.create(1);
 
   errs
   |> List.iter(
        fun
-       | ParseError(err, namespace, range) =>
+       | AST.Error.ParseError(err, namespace, range) =>
          Hashtbl.replace(
            grouped_errs,
            namespace,

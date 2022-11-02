@@ -1,7 +1,10 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
-let parse: Parse.Kore.primitive_parser_t =
+module Type = AST.Type;
+
+let parse: primitive_parser_t =
   choice([
     KNil.Plugin.parse,
     KBoolean.Plugin.parse,
@@ -9,7 +12,7 @@ let parse: Parse.Kore.primitive_parser_t =
     KString.Plugin.parse,
   ]);
 
-let analyze: AST.primitive_t => Type.t =
+let analyze: AST.Result.primitive_t => Type.t =
   fun
   | Nil => Valid(`Nil)
   | Boolean(_) => Valid(`Boolean)
@@ -17,7 +20,7 @@ let analyze: AST.primitive_t => Type.t =
   | Number(Float(_)) => Valid(`Float)
   | String(_) => Valid(`String);
 
-let pp: Fmt.t(AST.primitive_t) =
+let pp: Fmt.t(AST.Result.primitive_t) =
   ppf =>
     fun
     | Nil => KNil.Plugin.pp(ppf, ())

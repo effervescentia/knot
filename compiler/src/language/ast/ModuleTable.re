@@ -1,5 +1,5 @@
+open Knot.Kore;
 open Reference;
-open Infix;
 
 module Fmt = Pretty.Formatters;
 
@@ -12,7 +12,7 @@ type library_t = {symbols: SymbolTable.t};
 
 type module_t = {
   symbols: SymbolTable.t,
-  ast: AST.program_t,
+  ast: Result.program_t,
   scopes: scope_tree_t,
 };
 
@@ -178,7 +178,7 @@ let _pp_module: Fmt.t(module_t) =
   (ppf, {ast, symbols, _}) =>
     Fmt.(
       [
-        ("ast", ast |> ~@AST.Dump.pp),
+        ("ast", ast |> ~@Result.Dump.pp),
         ("symbols", symbols |> ~@SymbolTable.pp),
       ]
       |> List.to_seq

@@ -4,6 +4,7 @@
 open Kore;
 open Parse.Parser;
 
+module ParseContext = AST.ParseContext;
 module Program = Language.Program;
 
 /**
@@ -24,7 +25,7 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
            fst
            % (
              fun
-             | AST.Import(namespace, _) => Some(namespace)
+             | AST.Result.Import(namespace, _) => Some(namespace)
              | _ => None
            ),
          )
@@ -40,7 +41,7 @@ let ast = (ctx: ParseContext.t, input: Program.input_t) =>
   |> (
     fun
     | Some(stmts) => Ok(stmts)
-    | None => Error(InvalidModule(ctx.namespace))
+    | None => Error(AST.Error.InvalidModule(ctx.namespace))
   );
 
 /**

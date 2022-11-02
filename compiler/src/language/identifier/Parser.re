@@ -1,10 +1,11 @@
 open Knot.Kore;
 open Parse.Onyx;
 
+module ParseContext = AST.ParseContext;
 module Character = Parse.Character;
 module Matchers = Parse.Matchers;
 
-let identifier = (ctx: ParseContext.t): Parse.Kore.identifier_parser_t =>
+let identifier = (ctx: ParseContext.t) =>
   Matchers.identifier(
     ~prefix=Matchers.alpha <|> Character.underscore <|> Character.dollar_sign,
   )

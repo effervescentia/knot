@@ -1,14 +1,12 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
 module Matchers = Parse.Matchers;
 module Symbol = Parse.Symbol;
 
 let function_call =
-    (
-      parse_term: Parse.Kore.expression_parser_t,
-      parse_expr: Parse.Kore.expression_parser_t,
-    ) => {
+    (parse_term: expression_parser_t, parse_expr: expression_parser_t) => {
   let rec loop = expr =>
     parse_expr
     |> Matchers.comma_sep

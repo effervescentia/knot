@@ -1,7 +1,13 @@
 open Kore;
 open Reference;
 
+module A = AST.Result;
+module AR = AST.Raw;
+module ModuleTable = AST.ModuleTable;
+module ParseContext = AST.ParseContext;
 module Program = Language.Program;
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
 module U = Util.ResultUtil;
 
 module Target = {
@@ -14,7 +20,7 @@ module Target = {
       check(
         list(
           testable(
-            ppf => A.Dump.(mod_stmt_to_entity % Entity.pp(ppf)),
+            ppf => AST.Result.Dump.(mod_stmt_to_entity % Entity.pp(ppf)),
             (==),
           ),
         ),

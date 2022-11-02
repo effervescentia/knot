@@ -1,7 +1,15 @@
 open Knot.Kore;
 
+module Scope = AST.Scope;
+module SymbolTable = AST.SymbolTable;
+module Type = AST.Type;
+
 let rec validate_default_arguments =
-        (~require_default=false, scope: Scope.t, args: list(AST.argument_t)) =>
+        (
+          ~require_default=false,
+          scope: Scope.t,
+          args: list(AST.Result.argument_t),
+        ) =>
   switch (args, require_default) {
   | ([], _) => ()
 
@@ -21,10 +29,10 @@ let rec validate_default_arguments =
 let analyze_argument:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
+    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
     AST.Raw.argument_t
   ) =>
-  AST.argument_t =
+  AST.Result.argument_t =
   (scope, analyze_expression, arg) => {
     let (arg', type_) =
       switch (fst(arg)) {
@@ -33,7 +41,7 @@ let analyze_argument:
         |> Scope.report_type_err(scope, Node.get_range(arg));
 
         (
-          AST.{name, default: None, type_: None},
+          AST.Result.{name, default: None, type_: None},
           Type.Invalid(NotInferrable),
         );
 
@@ -41,7 +49,7 @@ let analyze_argument:
         let expr' = expr |> analyze_expression(scope);
 
         (
-          AST.{name, default: Some(expr'), type_: None},
+          AST.Result.{name, default: Some(expr'), type_: None},
           Node.get_type(expr'),
         );
 
@@ -51,7 +59,7 @@ let analyze_argument:
           |> fst
           |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
-        (AST.{name, default: None, type_: Some(type_expr)}, type_);
+        (AST.Result.{name, default: None, type_: Some(type_expr)}, type_);
 
       | {name, default: Some(expr), type_: Some(type_expr)} =>
         let expr' = expr |> analyze_expression(scope);
@@ -79,10 +87,10 @@ let analyze_argument:
 let analyze_argument_list:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
+    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
     list(AST.Raw.argument_t)
   ) =>
-  list(AST.argument_t) =
+  list(AST.Result.argument_t) =
   (scope, analyze_expression, args) => {
     let args' =
       args |> List.map(analyze_argument(scope, analyze_expression));

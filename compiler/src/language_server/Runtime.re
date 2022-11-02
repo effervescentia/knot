@@ -1,6 +1,7 @@
 open Kore;
 
 module ImportGraph = Resolve.ImportGraph;
+module ModuleTable = AST.ModuleTable;
 
 type module_context_t = {tokens: TokenTree.t};
 

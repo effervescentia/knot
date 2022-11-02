@@ -1,4 +1,5 @@
 open Kore;
+open AST.Error;
 
 let __type_error = TypeError(NotFound("foo"));
 

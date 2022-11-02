@@ -1,6 +1,8 @@
 open Kore;
 open ModuleAliases;
 
+module ModuleTable = AST.ModuleTable;
+
 type params_t = {
   text_document: Protocol.text_document_t,
   partial_result_token: option(Protocol.progress_token),
@@ -48,7 +50,7 @@ let handler: Runtime.request_handler_t(params_t) =
               fst
               % (
                 fun
-                | AST.Declaration(
+                | AST.Result.Declaration(
                     MainExport(name) | NamedExport(name),
                     decl,
                   ) => {
@@ -61,28 +63,28 @@ let handler: Runtime.request_handler_t(params_t) =
                       switch (fst(decl)) {
                       | Constant(_) => {
                           name,
-                          detail: type_ |> ~@Type.pp,
+                          detail: type_ |> ~@AST.Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Variable,
                         }
                       | Enumerated(_) => {
                           name,
-                          detail: type_ |> ~@Type.pp,
+                          detail: type_ |> ~@AST.Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Enum,
                         }
                       | Function(_) => {
                           name,
-                          detail: type_ |> ~@Type.pp,
+                          detail: type_ |> ~@AST.Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Function,
                         }
                       | View(_) => {
                           name,
-                          detail: type_ |> ~@Type.pp,
+                          detail: type_ |> ~@AST.Type.pp,
                           range,
                           full_range,
                           kind: Capabilities.Function,

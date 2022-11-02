@@ -3,10 +3,12 @@ open Reference;
 
 module Compiler = Compile.Compiler;
 module ImportGraph = Resolve.ImportGraph;
+module ModuleTable = AST.ModuleTable;
 module Source = Resolve.Source;
+module SymbolTable = AST.SymbolTable;
 module U = Util.ResultUtil;
 module A = AST;
-module T = Type;
+module T = AST.Type;
 module Fx = Fixtures;
 module Px = Fixtures.Program;
 module Nx = Fixtures.Namespace;
@@ -42,7 +44,7 @@ let _create_module =
     (
       ~imported=SymbolTable.Symbols.{values: [], types: []},
       ~exports=__types,
-      ast: AST.program_t,
+      ast: AST.Result.program_t,
     )
     : ModuleTable.module_t => {
   ast,
@@ -84,7 +86,7 @@ let suite =
     "#dispatch() - test default error handler with fail_fast"
     >: (
       () => {
-        let errors = [InvalidModule(Nx.foo)];
+        let errors = [AST.Error.InvalidModule(Nx.foo)];
         let compiler = Compiler.create(Cx.config);
 
         Assert.throws_compile_errors(errors, () =>
@@ -95,7 +97,7 @@ let suite =
     "#dispatch() - test default error handler without fail_fast"
     >: (
       () => {
-        let errors = [InvalidModule(Nx.foo)];
+        let errors = [AST.Error.InvalidModule(Nx.foo)];
         let compiler = Compiler.create({...Cx.config, fail_fast: false});
 
         compiler.dispatch(Report(errors));
@@ -106,7 +108,7 @@ let suite =
     "#dispatch() - test custom error handler"
     >: (
       () => {
-        let errors = [InvalidModule(Nx.foo)];
+        let errors = [AST.Error.InvalidModule(Nx.foo)];
         let compiler =
           Compiler.create(
             ~report=_ => Assert.compile_errors(errors),
@@ -197,12 +199,12 @@ let suite =
     >: (
       () => {
         let expected = [
-          ParseError(
+          AST.Error.ParseError(
             TypeError(ExternalNotFound(Nx.bar, Named("BAR"))),
             Nx.foo,
             Range.create((1, 10), (1, 12)),
           ),
-          ParseError(
+          AST.Error.ParseError(
             ReservedKeyword("const"),
             Nx.foo,
             Range.create((3, 7), (3, 11)),

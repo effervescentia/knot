@@ -1,7 +1,7 @@
 /**
  Type expression Abstract Syntax Tree.
  */
-open AST_Common;
+open Common;
 
 type t = untyped_t(raw_t)
 

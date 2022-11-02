@@ -1,6 +1,8 @@
 open Kore;
 open ModuleAliases;
 
+module A = AST.Result;
+
 type token_t =
   | Skip
   | Join

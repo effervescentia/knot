@@ -7,5 +7,5 @@
    (name KNil)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.primitive.nil)
-   (libraries  knot.parse )
+   (libraries  knot.lang.ast )
 )

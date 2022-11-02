@@ -1,7 +1,10 @@
 open Knot.Kore;
 
+module Scope = AST.Scope;
+module Type = AST.Type;
+
 let validate_binary_operation:
-  (AST.binary_t, (Type.t, Type.t)) => option(Type.error_t) =
+  (AST.Result.binary_t, (Type.t, Type.t)) => option(Type.error_t) =
   op =>
     fun
     /* assume they have been reported already and ignore */
@@ -30,11 +33,11 @@ let validate_binary_operation:
 let analyze_binary_operation:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
-    (AST.binary_t, AST.Raw.expression_t, AST.Raw.expression_t),
+    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
+    (AST.Operator.binary_t, AST.Raw.expression_t, AST.Raw.expression_t),
     Range.t
   ) =>
-  (AST.expression_t, AST.expression_t, Type.t) =
+  (AST.Result.expression_t, AST.Result.expression_t, Type.t) =
   (scope, analyze_expression, (op, lhs, rhs), range) => {
     let lhs' = analyze_expression(scope, lhs);
     let rhs' = analyze_expression(scope, rhs);

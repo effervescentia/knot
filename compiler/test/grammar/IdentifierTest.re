@@ -1,5 +1,6 @@
 open Kore;
 
+module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
@@ -14,7 +15,7 @@ module Assert =
         check(
           testable(
             (ppf, id) =>
-              A.Dump.(
+              AST.Raw.Dump.(
                 id
                 |> untyped_node_to_entity(
                      ~attributes=[("value", fst(id))],
@@ -41,7 +42,7 @@ let suite =
         Constants.Keyword.reserved
         |> List.iter(keyword =>
              Assert.parse_throws(
-               CompileError([
+               AST.Error.CompileError([
                  ParseError(
                    ReservedKeyword(keyword),
                    Internal("mock"),

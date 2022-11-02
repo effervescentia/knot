@@ -84,8 +84,8 @@ let suite =
       () => {
         let relative = "foo.kn";
 
-        Assert.compile_errors(
-          [FileNotFound(relative)],
+        Assert.string(
+          relative,
           Source.read(_ => [], Source.File({relative, full: "bar"}))
           |> Result.get_error,
         );
@@ -115,8 +115,8 @@ let suite =
         let relative_path = "foo.txt";
         let cache = Util.get_temp_dir();
 
-        Assert.compile_errors(
-          [FileNotFound(relative_path)],
+        Assert.string(
+          relative_path,
           Source.cache(cache, File({relative: relative_path, full: "bar"}))
           |> Result.get_error,
         );

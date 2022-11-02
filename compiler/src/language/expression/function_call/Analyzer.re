@@ -1,5 +1,8 @@
 open Knot.Kore;
 
+module Scope = AST.Scope;
+module Type = AST.Type;
+
 let validate_function_call: ((Type.t, list(Type.t))) => option(Type.error_t) =
   fun
   /* assume this have been reported already and ignore */
@@ -35,11 +38,11 @@ let validate_function_call: ((Type.t, list(Type.t))) => option(Type.error_t) =
 let analyze_function_call:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
+    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
     (AST.Raw.expression_t, list(AST.Raw.expression_t)),
     Range.t
   ) =>
-  (AST.expression_t, list(AST.expression_t), Type.t) =
+  (AST.Result.expression_t, list(AST.Result.expression_t), Type.t) =
   (scope, analyze_expression, (expr, args), range) => {
     let expr' = analyze_expression(scope, expr);
     let args' = args |> List.map(analyze_expression(scope));

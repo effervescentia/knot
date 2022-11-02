@@ -1,4 +1,4 @@
-open Infix;
+open Knot.Kore;
 
 module Namespace = Reference.Namespace;
 

@@ -16,7 +16,7 @@ let handler: Runtime.request_handler_t(params_t) =
 
     compiler
     |> Compiler.get_module(namespace)
-    |?< ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
+    |?< AST.ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
     |?> ~@
           Generator.pp(
             target,

@@ -1,6 +1,8 @@
 open Kore;
 
+module A = AST.Result;
 module Export = Reference.Export;
+module T = AST.Type;
 module TE = AST.TypeExpression;
 module U = Util.ResultUtil;
 

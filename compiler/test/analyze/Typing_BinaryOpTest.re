@@ -1,5 +1,8 @@
 open Kore;
 
+module A = AST.Result;
+module T = AST.Type;
+
 let suite =
   "Analyze.Typing | Binary"
   >::: [

@@ -1,4 +1,4 @@
-open Infix;
+open Knot.Kore;
 open Reference;
 
 module Symbols = SymbolTable.Symbols;

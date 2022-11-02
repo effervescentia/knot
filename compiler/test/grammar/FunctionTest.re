@@ -1,7 +1,8 @@
 open Kore;
 
+module A = AST.Result;
 module U = Util.ResultUtil;
-module TE = A.TypeExpression;
+module TE = AST.TypeExpression;
 
 module Assert = {
   include Assert;

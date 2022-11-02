@@ -1,5 +1,7 @@
 open Kore;
 
+module T = AST.Type;
+
 let suite =
   "Analyze.Typing"
   >::: [

@@ -1,5 +1,7 @@
 open Kore;
 
+module T = AST.Type;
+
 let __rule_name = "foo";
 
 let suite =

@@ -1,5 +1,8 @@
 open Knot.Kore;
 
+module Scope = AST.Scope;
+module Type = AST.Type;
+
 let validate_style_rule =
     (name): (((Type.t, Type.t)) => option(Type.error_t)) =>
   fun
@@ -38,11 +41,11 @@ let analyze_style_rule = (scope: Scope.t, raw_rule: Node.t(string, unit)) => {
 let analyze_style:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
+    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
     list(AST.Raw.style_rule_t),
     Range.t
   ) =>
-  (list(AST.style_rule_t), Type.t) =
+  (list(AST.Result.style_rule_t), Type.t) =
   (scope, analyze_expression, rules, range) => {
     let rule_scope = scope |> Scope.create_child(range);
     let expression_scope = scope |> Scope.create_child(range);

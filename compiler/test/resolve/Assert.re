@@ -14,11 +14,14 @@ let import_graph =
 let source = Alcotest.(check(testable(Source.pp, (==)), "source matches"));
 
 let program =
-  Alcotest.(check(testable(AST.Dump.pp, (==)), "program matches"));
+  Alcotest.(check(testable(AST.Result.Dump.pp, (==)), "program matches"));
 let result_program =
   Alcotest.(
     check(
-      result(testable(AST.Dump.pp, (==)), testable(pp_compile_err, (==))),
+      result(
+        testable(AST.Result.Dump.pp, (==)),
+        testable(AST.Error.pp_compile_err, (==)),
+      ),
       "program result matches",
     )
   );

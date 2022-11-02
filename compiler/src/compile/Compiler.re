@@ -1,6 +1,7 @@
 open Kore;
 open ModuleAliases;
 
+module ModuleTable = AST.ModuleTable;
 module Namespace = Reference.Namespace;
 module Export = Reference.Export;
 
@@ -15,8 +16,8 @@ type config_t = {
 };
 
 type action_t =
-  | Fatal(list(compile_err))
-  | Report(list(compile_err))
+  | Fatal(list(AST.Error.compile_err))
+  | Report(list(AST.Error.compile_err))
   | Flush;
 
 /**
@@ -67,7 +68,7 @@ let _purge_modules = (modules: list(Namespace.t), compiler: t) =>
 /**
  construct a new compiler instance
  */
-let create = (~report=_ => throw_all, config: config_t): t => {
+let create = (~report=_ => AST.Error.throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
@@ -81,8 +82,11 @@ let create = (~report=_ => throw_all, config: config_t): t => {
         |> Source.read(Parser.imports(namespace))
       ) {
       | Ok(x) => x
-      | Error(errs)
-      | exception (CompileError(errs)) =>
+      | Error(path) =>
+        Report([AST.Error.FileNotFound(path)]) |> dispatch;
+        /* assume no imports if parsing failed */
+        [];
+      | exception (AST.Error.CompileError(errs)) =>
         Report(errs) |> dispatch;
         /* assume no imports if parsing failed */
         [];
@@ -113,8 +117,8 @@ let cache_modules = (modules, compiler) => {
               Tuple.with_fst2(Namespace.to_string(id))
               % ~@Fmt.captioned
               % Log.debug("cached module %s"),
-            ~error=module_errors =>
-            Report(module_errors) |> compiler.dispatch
+            ~error=path =>
+            Report([AST.Error.FileNotFound(path)]) |> compiler.dispatch
           )
      );
 };
@@ -136,7 +140,7 @@ let validate = (compiler: t) => {
 let parse_module =
     (
       source: Source.t,
-      parser: Language.Program.input_t => result('a, compile_err),
+      parser: Language.Program.input_t => result('a, AST.Error.compile_err),
       compiler: t,
     ) => {
   source
@@ -149,8 +153,8 @@ let parse_module =
         Some((raw, ast));
       }
 
-    | Error(errs) => {
-        Report(errs) |> compiler.dispatch;
+    | Error(path) => {
+        Report([AST.Error.FileNotFound(path)]) |> compiler.dispatch;
 
         None;
       }
@@ -165,7 +169,7 @@ let process_one =
   let module_errors = ref([]);
 
   let context =
-    ParseContext.create(
+    AST.ParseContext.create(
       ~modules=compiler.modules,
       ~report=
         err => {
@@ -455,7 +459,7 @@ let process_definition =
     (~flush=true, namespace: Namespace.t, source: Source.t, compiler: t) => {
   let module_errors = ref([]);
   let ctx =
-    ParseContext.create(
+    AST.ParseContext.create(
       ~report=
         err => {
           module_errors := module_errors^ @ [err];
@@ -463,7 +467,7 @@ let process_definition =
           Report([err]) |> compiler.dispatch;
         },
       ~symbols={
-        ...SymbolTable.create(),
+        ...AST.SymbolTable.create(),
         imported: {
           values: ModuleTable.get_global_values(compiler.modules),
           types: ModuleTable.get_global_types(compiler.modules),
@@ -518,8 +522,8 @@ let add_standard_library = (~flush=true, compiler: t) => {
              symbols.declared.values
              |> List.filter_map(
                   fun
-                  | (id, T.Valid(`Decorator(_)) as type_) =>
-                    Some((id, Type.Container.Value(type_)))
+                  | (id, AST.Type.Valid(`Decorator(_)) as type_) =>
+                    Some((id, AST.Type.Container.Value(type_)))
                   | _ => None,
                 ),
            );
@@ -553,7 +557,11 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
            fun
            | (key, _, _) when key != __plugin_decorator_key => ()
 
-           | (_, [A.String(name)], T.Valid(`Module(entries))) =>
+           | (
+               _,
+               [AST.Result.String(name)],
+               AST.Type.Valid(`Module(entries)),
+             ) =>
              if (Reference.Plugin.known |> List.mem(name)) {
                compiler.modules
                |> ModuleTable.add_plugin(

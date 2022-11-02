@@ -1,6 +1,6 @@
 open Kore;
 
-module T = Type;
+module T = AST.Type;
 
 let __args = [T.Valid(`Nil), T.Valid(`String)];
 let __props = [("foo", T.Valid(`Nil)), ("bar", T.Valid(`String))];

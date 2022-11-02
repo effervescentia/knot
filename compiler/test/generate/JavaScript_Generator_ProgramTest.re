@@ -1,6 +1,7 @@
 open Kore;
 open Generate.JavaScript_AST;
 
+module A = AST.Result;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
 module U = Util.ResultUtil;

@@ -7,5 +7,5 @@
    (name KExponentiate)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.operator.binary.exponentiate)
-   (libraries  knot.parse )
+   (libraries  knot.lang.ast )
 )

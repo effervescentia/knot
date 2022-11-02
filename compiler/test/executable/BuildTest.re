@@ -22,7 +22,7 @@ let suite =
         let output_file = Filename.concat(temp_dir, "main.js");
 
         Build.run(
-          ~report=_ => ~@pp_dump_err_list % Assert.fail,
+          ~report=_ => ~@AST.Error.pp_dump_err_list % Assert.fail,
           __compiler_config,
           {
             target: Target.(JavaScript(Common)),
@@ -55,7 +55,7 @@ exports.ABC = ABC;
         let constants_file = Filename.concat(temp_dir, "common/constants.js");
 
         Build.run(
-          ~report=_ => ~@pp_dump_err_list % Assert.fail,
+          ~report=_ => ~@AST.Error.pp_dump_err_list % Assert.fail,
           __compiler_config,
           {
             target: Target.(JavaScript(Common)),

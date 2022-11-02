@@ -1,5 +1,7 @@
 open Kore;
 
+module ModuleTable = AST.ModuleTable;
+
 type params_t = {
   text_document: Protocol.text_document_t,
   position: Protocol.position_t,
@@ -67,7 +69,7 @@ let handler: Runtime.request_handler_t(params_t) =
                   get_entry_data % Option.map(({scopes, _}) => scopes)
                 )
             |?< ScopeTree.find_type(id, point)
-            |?> ~@Type.pp
+            |?> ~@AST.Type.pp
             |?> Fmt.str("%s: %s", id)
             |?: "(unknown)"
             |> response(range)

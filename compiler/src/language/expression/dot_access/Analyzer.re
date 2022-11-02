@@ -1,5 +1,8 @@
 open Knot.Kore;
 
+module Scope = AST.Scope;
+module Type = AST.Type;
+
 let validate_dot_access: (string, Type.t) => option(Type.error_t) =
   prop =>
     fun
@@ -19,11 +22,11 @@ let validate_dot_access: (string, Type.t) => option(Type.error_t) =
 let analyze_dot_access:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.expression_t,
+    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
     (AST.Raw.expression_t, Node.t(string, unit)),
     Range.t
   ) =>
-  (AST.expression_t, Type.t) =
+  (AST.Result.expression_t, Type.t) =
   (scope, analyze_expression, (expr, prop), range) => {
     let prop_name = fst(prop);
     let expr' = analyze_expression(scope, expr);

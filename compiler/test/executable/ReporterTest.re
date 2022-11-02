@@ -1,6 +1,7 @@
 open Kore;
 
 module Reporter = Executable.Reporter;
+module Type = AST.Type;
 
 let __namespace = Reference.Namespace.Internal("my_namespace");
 let __resolver =

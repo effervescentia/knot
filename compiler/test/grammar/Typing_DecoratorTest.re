@@ -10,7 +10,7 @@ module Assert =
 
     let parser = _ =>
       Reference.Namespace.of_string("test_namespace")
-      |> ParseContext.create
+      |> AST.ParseContext.create
       |> KTypeDefinition.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -20,7 +20,7 @@ module Assert =
         check(
           testable(
             (ppf, type_module) =>
-              A.Dump.(
+              AST.Result.Dump.(
                 type_module
                 |> untyped_node_to_entity(
                      ~children=[TD.Dump.to_entity(type_module)],

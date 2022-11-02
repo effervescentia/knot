@@ -3,6 +3,7 @@ open Kore;
 include TestLibrary.Assert;
 
 module Formatter = Language.Formatter;
+module Type = AST.Type;
 
 let type_error =
   Alcotest.(
@@ -15,7 +16,10 @@ let type_error =
 let expression = (expected, actual) =>
   Alcotest.(
     check(
-      testable(AST.Dump.(ppf => expr_to_entity % Entity.pp(ppf)), (==)),
+      testable(
+        AST.Result.Dump.(ppf => expr_to_entity % Entity.pp(ppf)),
+        (==),
+      ),
       "expression matches",
       expected,
       actual,
@@ -25,7 +29,10 @@ let expression = (expected, actual) =>
 let jsx = (expected, actual) =>
   Alcotest.(
     check(
-      testable(AST.Dump.(ppf => jsx_to_entity % Entity.pp(ppf)), (==)),
+      testable(
+        AST.Result.Dump.(ppf => jsx_to_entity % Entity.pp(ppf)),
+        (==),
+      ),
       "jsx matches",
       expected,
       actual,
@@ -35,7 +42,10 @@ let jsx = (expected, actual) =>
 let statement = (expected, actual) =>
   Alcotest.(
     check(
-      testable(AST.Dump.(ppf => stmt_to_entity % Entity.pp(ppf)), (==)),
+      testable(
+        AST.Result.Dump.(ppf => stmt_to_entity % Entity.pp(ppf)),
+        (==),
+      ),
       "statement matches",
       expected,
       actual,
@@ -46,7 +56,9 @@ let argument = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        AST.Dump.(ppf => argument_to_entity("Argument") % Entity.pp(ppf)),
+        AST.Result.Dump.(
+          ppf => argument_to_entity("Argument") % Entity.pp(ppf)
+        ),
         (==),
       ),
       "argument matches",

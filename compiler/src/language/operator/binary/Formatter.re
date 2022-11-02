@@ -1,32 +1,34 @@
 open Knot.Kore;
 
-let pp_operator: Fmt.t(AST.binary_t) =
+let pp_operator: Fmt.t(AST.Result.binary_t) =
   ppf =>
     (
       fun
-      | AST.Equal => KEqual.Plugin.pp
-      | AST.Unequal => KUnequal.Plugin.pp
+      | AST.Result.Equal => KEqual.Plugin.pp
+      | AST.Result.Unequal => KUnequal.Plugin.pp
 
-      | AST.LogicalAnd => KLogicalAnd.Plugin.pp
-      | AST.LogicalOr => KLogicalOr.Plugin.pp
+      | AST.Result.LogicalAnd => KLogicalAnd.Plugin.pp
+      | AST.Result.LogicalOr => KLogicalOr.Plugin.pp
 
-      | AST.LessOrEqual => KLessOrEqual.Plugin.pp
-      | AST.LessThan => KLessThan.Plugin.pp
-      | AST.GreaterOrEqual => KGreaterOrEqual.Plugin.pp
-      | AST.GreaterThan => KGreaterThan.Plugin.pp
+      | AST.Result.LessOrEqual => KLessOrEqual.Plugin.pp
+      | AST.Result.LessThan => KLessThan.Plugin.pp
+      | AST.Result.GreaterOrEqual => KGreaterOrEqual.Plugin.pp
+      | AST.Result.GreaterThan => KGreaterThan.Plugin.pp
 
-      | AST.Add => KAdd.Plugin.pp
-      | AST.Subtract => KSubtract.Plugin.pp
-      | AST.Multiply => KMultiply.Plugin.pp
-      | AST.Divide => KDivide.Plugin.pp
+      | AST.Result.Add => KAdd.Plugin.pp
+      | AST.Result.Subtract => KSubtract.Plugin.pp
+      | AST.Result.Multiply => KMultiply.Plugin.pp
+      | AST.Result.Divide => KDivide.Plugin.pp
 
-      | AST.Exponent => KExponentiate.Plugin.pp
+      | AST.Result.Exponent => KExponentiate.Plugin.pp
     )
     % (pp => pp(ppf, ()));
 
 let pp_binary_operation:
-  Fmt.t(AST.raw_expression_t) =>
-  Fmt.t((AST.binary_t, AST.expression_t, AST.expression_t)) =
+  Fmt.t(AST.Result.raw_expression_t) =>
+  Fmt.t(
+    (AST.Result.binary_t, AST.Result.expression_t, AST.Result.expression_t),
+  ) =
   (pp_expression, ppf, (op, (lhs, _), (rhs, _))) =>
     Fmt.pf(
       ppf,

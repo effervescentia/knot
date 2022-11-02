@@ -30,11 +30,11 @@ module Compare = {
   let typed_node = (pp_value: Fmt.t('a), pp_type: Fmt.t('b)) =>
     testable(Node.pp(pp_value, pp_type), (==));
 
-  let type_ = testable(Type.pp, (==));
+  let type_ = testable(AST.Type.pp, (==));
 
   let target = testable(Target.pp, (==));
 
-  let symbols = testable(SymbolTable.Symbols.pp, (==));
+  let symbols = testable(AST.SymbolTable.Symbols.pp, (==));
 
   exception LazyStreamLengthMismatch;
 
@@ -64,7 +64,7 @@ module Compare = {
 
   let namespace = testable(Reference.Namespace.pp, (==));
 
-  let module_table = testable(ModuleTable.pp, ModuleTable.compare);
+  let module_table = testable(AST.ModuleTable.pp, AST.ModuleTable.compare);
 };
 
 let int_trio =
@@ -110,14 +110,22 @@ let module_table =
 
 let compile_errors =
   Alcotest.(
-    check(testable(pp_dump_err_list, (==)), "compile error matches")
+    check(
+      testable(AST.Error.pp_dump_err_list, (==)),
+      "compile error matches",
+    )
   );
 
 let throws_compile_errors = (expected, f) =>
   switch (f()) {
-  | exception (CompileError(errs)) => compile_errors(expected, errs)
+  | exception (AST.Error.CompileError(errs)) =>
+    compile_errors(expected, errs)
 
   | _ =>
-    Fmt.str("expected compile error(s) %a", pp_dump_err_list, expected)
+    Fmt.str(
+      "expected compile error(s) %a",
+      AST.Error.pp_dump_err_list,
+      expected,
+    )
     |> fail
   };

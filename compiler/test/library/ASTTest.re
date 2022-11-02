@@ -1,6 +1,6 @@
 open Kore;
 
-module A = AST;
+module A = AST.Result;
 module U = Util.ResultUtil;
 
 let suite =

@@ -1,11 +1,15 @@
 open Knot.Kore;
 open Parse.Onyx;
+open AST.ParserTypes;
 
+module ParseContext = AST.ParseContext;
+module Scope = AST.Scope;
+module SymbolTable = AST.SymbolTable;
 module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
-module Util = Parse.Util;
+module Util = AST.Util;
 
-let constant = (ctx: ParseContext.t, f): Parse.Kore.declaration_parser_t =>
+let constant = (ctx: ParseContext.t, f): declaration_parser_t =>
   Keyword.const
   >>= (
     kwd =>
@@ -19,7 +23,7 @@ let constant = (ctx: ParseContext.t, f): Parse.Kore.declaration_parser_t =>
             ctx |> Scope.of_parse_context(Node.get_range(raw_expr));
           let expr = raw_expr |> KExpression.Plugin.analyze(scope);
           let type_ = Node.get_type(expr);
-          let const = expr |> Node.wrap(AST.of_const);
+          let const = expr |> Node.wrap(AST.Result.of_const);
           let range = Node.join_ranges(kwd, raw_expr);
           let export_id = f(id);
 

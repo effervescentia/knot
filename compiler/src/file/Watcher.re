@@ -2,6 +2,8 @@ open Kore;
 open Fswatch;
 open Lwt;
 
+exception WatchFailed(string);
+
 /**
  watches a directory structure and reacts to files changing
  */
