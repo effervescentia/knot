@@ -3,6 +3,16 @@ open Kore;
 module A = AST.Result;
 module U = Util.ResultUtil;
 
+let dump =
+  Language.Program.program_to_xml(~@AST.Type.pp)
+  % ~@Pretty.XML.xml(Fmt.string);
+
+let rec get_xml_depth =
+  fun
+  | Pretty.XML.Node(name, attrs, children) =>
+    1
+    + (children |> List.map(get_xml_depth) |> List.fold_left(Stdlib.max, 0));
+
 let suite =
   "Library.AST"
   >::: [
@@ -10,352 +20,490 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=nil_const />
-    <Constant@0.0 type=nil>
-      <Primitive@0.0 type=nil value=Nil />
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.nil_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=nil_const />
+      <Entity range=0.0 type=nil>
+        <Constant>
+          <Expression range=0.0 type=nil>
+            <Nil />
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.nil_const),
         )
     ),
     "Dump.pp() - integer primitive"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=int_const />
-    <Constant@0.0 type=integer>
-      <Primitive@0.0 type=integer value=Number(123) />
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.int_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=int_const />
+      <Entity range=0.0 type=integer>
+        <Constant>
+          <Expression range=0.0 type=integer>
+            <Integer value=123 />
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.int_const),
         )
     ),
     "Dump.pp() - float primitive"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=float_const />
-    <Constant@0.0 type=float>
-      <Primitive@0.0 type=float value=Number(123.000) />
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.float_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=float_const />
+      <Entity range=0.0 type=float>
+        <Constant>
+          <Expression range=0.0 type=float>
+            <Float value=123.000 />
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.float_const),
         )
     ),
     "Dump.pp() - boolean primitive"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=bool_const />
-    <Constant@0.0 type=boolean>
-      <Primitive@0.0 type=boolean value=Boolean(true) />
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.bool_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=bool_const />
+      <Entity range=0.0 type=boolean>
+        <Constant>
+          <Expression range=0.0 type=boolean>
+            <Boolean value=true />
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.bool_const),
         )
     ),
     "Dump.pp() - string primitive"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=string_const />
-    <Constant@0.0 type=string>
-      <Primitive@0.0 type=string value=String(\"foo\") />
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.string_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=string_const />
+      <Entity range=0.0 type=string>
+        <Constant>
+          <Expression range=0.0 type=string>
+            <String value=\"foo\" />
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.string_const),
         )
     ),
     "Dump.pp() - identifier expression"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=identifier_const />
-    <Constant@0.0 type=integer>
-      <Identifier@0.0 type=integer value=foo />
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.identifier_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=identifier_const />
+      <Entity range=0.0 type=integer>
+        <Constant>
+          <Expression range=0.0 type=integer>
+            <Identifier name=foo />
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.identifier_const),
         )
     ),
     "Dump.pp() - JSX expression"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=jsx_const />
-    <Constant@0.0 type=element>
-      <JSX@0.0 type=element>
-        <Tag>
-          <Name@0.0 value=Foo />
-          <Attributes />
-          <Children />
-        </Tag>
-      </JSX@0.0>
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.jsx_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=jsx_const />
+      <Entity range=0.0 type=element>
+        <Constant>
+          <Expression range=0.0 type=element>
+            <KSX>
+              <Tag>
+                <Name range=0.0 value=Foo />
+              </Tag>
+            </KSX>
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.jsx_const),
         )
     ),
     "Dump.pp() - group expression"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=group_const />
-    <Constant@0.0 type=integer>
-      <Group@0.0 type=integer>
-        <Primitive@0.0 type=integer value=Number(123) />
-      </Group@0.0>
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.group_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=group_const />
+      <Entity range=0.0 type=integer>
+        <Constant>
+          <Expression range=0.0 type=integer>
+            <Group>
+              <Expression range=0.0 type=integer>
+                <Integer value=123 />
+              </Expression>
+            </Group>
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.group_const),
         )
     ),
     "Dump.pp() - closure expression"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=closure_const />
-    <Constant@0.0 type=boolean>
-      <Closure@0.0 type=boolean>
-        <Statement@0.0 type=nil>
-          <Variable@0.0 type=nil>
-            <Name@0.0 value=foo />
-            <Primitive@0.0 type=integer value=Number(123) />
-          </Variable@0.0>
-        </Statement@0.0>
-        <Statement@0.0 type=nil>
-          <Variable@0.0 type=nil>
-            <Name@0.0 value=bar />
-            <Primitive@0.0 type=nil value=Nil />
-          </Variable@0.0>
-        </Statement@0.0>
-        <Statement@0.0 type=boolean>
-          <Expression@0.0 type=boolean>
-            <Primitive@0.0 type=boolean value=Boolean(false) />
-          </Expression@0.0>
-        </Statement@0.0>
-      </Closure@0.0>
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.closure_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=closure_const />
+      <Entity range=0.0 type=boolean>
+        <Constant>
+          <Expression range=0.0 type=boolean>
+            <Closure>
+              <Statement range=0.0 type=nil>
+                <Variable>
+                  <Name range=0.0 value=foo />
+                  <Value>
+                    <Expression range=0.0 type=integer>
+                      <Integer value=123 />
+                    </Expression>
+                  </Value>
+                </Variable>
+              </Statement>
+              <Statement range=0.0 type=nil>
+                <Variable>
+                  <Name range=0.0 value=bar />
+                  <Value>
+                    <Expression range=0.0 type=nil>
+                      <Nil />
+                    </Expression>
+                  </Value>
+                </Variable>
+              </Statement>
+              <Statement range=0.0 type=boolean>
+                <Effect>
+                  <Expression range=0.0 type=boolean>
+                    <Boolean value=false />
+                  </Expression>
+                </Effect>
+              </Statement>
+            </Closure>
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.closure_const),
         )
     ),
     "Dump.pp() - binary operation"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=and_bool_const />
-    <Constant@0.0 type=boolean>
-      <And@0.0 type=boolean>
-        <LHS@0.0 type=boolean>
-          <Primitive@0.0 type=boolean value=Boolean(true) />
-        </LHS@0.0>
-        <RHS@0.0 type=boolean>
-          <Primitive@0.0 type=boolean value=Boolean(false) />
-        </RHS@0.0>
-      </And@0.0>
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.and_bool_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=and_bool_const />
+      <Entity range=0.0 type=boolean>
+        <Constant>
+          <Expression range=0.0 type=boolean>
+            <And>
+              <Left>
+                <Expression range=0.0 type=boolean>
+                  <Boolean value=true />
+                </Expression>
+              </Left>
+              <Right>
+                <Expression range=0.0 type=boolean>
+                  <Boolean value=false />
+                </Expression>
+              </Right>
+            </And>
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.and_bool_const),
         )
     ),
     "Dump.pp() - unary operation"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=negative_int_const />
-    <Constant@0.0 type=integer>
-      <Negative@0.0 type=integer>
-        <Primitive@0.0 type=integer value=Number(123) />
-      </Negative@0.0>
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.negative_int_const |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=negative_int_const />
+      <Entity range=0.0 type=integer>
+        <Constant>
+          <Expression range=0.0 type=integer>
+            <Negative>
+              <Expression range=0.0 type=integer>
+                <Integer value=123 />
+              </Expression>
+            </Negative>
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.negative_int_const),
         )
     ),
     "Dump.pp() - jsx"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=complex_jsx_const />
-    <Constant@0.0 type=element>
-      <JSX@0.0 type=element>
-        <Tag>
-          <Name@0.0 value=Foo />
-          <Attributes>
-            <ID@0.0>
-              <Name@0.0 value=bar />
-            </ID@0.0>
-            <Class@0.0>
-              <Name@0.0 value=fizz />
-            </Class@0.0>
-            <Property@0.0>
-              <Name@0.0 value=buzz />
-            </Property@0.0>
-          </Attributes>
-          <Children>
-            <Node@0.0>
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=complex_jsx_const />
+      <Entity range=0.0 type=element>
+        <Constant>
+          <Expression range=0.0 type=element>
+            <KSX>
               <Tag>
-                <Name@0.0 value=Bar />
-                <Attributes />
-                <Children />
+                <Name range=0.0 value=Foo />
+                <Attribute range=0.0>
+                  <ID range=0.0 value=bar />
+                </Attribute>
+                <Attribute range=0.0>
+                  <Class>
+                    <Name range=0.0 value=fizz />
+                  </Class>
+                </Attribute>
+                <Attribute range=0.0>
+                  <Property>
+                    <Name range=0.0 value=buzz />
+                  </Property>
+                </Attribute>
+                <Child range=0.0>
+                  <Node>
+                    <KSX>
+                      <Tag>
+                        <Name range=0.0 value=Bar />
+                      </Tag>
+                    </KSX>
+                  </Node>
+                </Child>
+                <Child range=0.0>
+                  <InlineExpression>
+                    <Expression range=0.0 type=nil>
+                      <Nil />
+                    </Expression>
+                  </InlineExpression>
+                </Child>
+                <Child range=0.0>
+                  <Text value=fizzbuzz />
+                </Child>
+                <Child range=0.0>
+                  <Node>
+                    <KSX>
+                      <Fragment />
+                    </KSX>
+                  </Node>
+                </Child>
               </Tag>
-            </Node@0.0>
-            <InlineExpr@0.0>
-              <Primitive@0.0 type=nil value=Nil />
-            </InlineExpr@0.0>
-            <Text@0.0 value=fizzbuzz />
-            <Node@0.0>
-              <Fragment />
-            </Node@0.0>
-          </Children>
-        </Tag>
-      </JSX@0.0>
-    </Constant@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.complex_jsx_const |> ~@A.Dump.pp,
+            </KSX>
+          </Expression>
+        </Constant>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.complex_jsx_const),
         )
     ),
     "Dump.pp() - inline function"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=inline_function />
-    <Function@0.0 type=(integer, integer) -> integer>
-      <Arguments>
-        <Argument@0.0 type=integer>
-          <Name@0.0 value=foo />
-        </Argument@0.0>
-        <Argument@0.0 type=integer>
-          <Primitive@0.0 type=integer value=Number(3) />
-          <Name@0.0 value=bar />
-        </Argument@0.0>
-      </Arguments>
-      <Body>
-        <Add@0.0 type=integer>
-          <LHS@0.0 type=integer>
-            <Identifier@0.0 type=integer value=foo />
-          </LHS@0.0>
-          <RHS@0.0 type=integer>
-            <Identifier@0.0 type=integer value=bar />
-          </RHS@0.0>
-        </Add@0.0>
-      </Body>
-    </Function@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.inline_function |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=inline_function />
+      <Entity range=0.0 type=(integer, integer) -> integer>
+        <Function>
+          <Parameter range=0.0 type=integer>
+            <Name range=0.0 value=foo />
+          </Parameter>
+          <Parameter range=0.0 type=integer>
+            <Name range=0.0 value=bar />
+            <Default>
+              <Expression range=0.0 type=integer>
+                <Integer value=3 />
+              </Expression>
+            </Default>
+          </Parameter>
+          <Body>
+            <Expression range=0.0 type=integer>
+              <Add>
+                <Left>
+                  <Expression range=0.0 type=integer>
+                    <Identifier name=foo />
+                  </Expression>
+                </Left>
+                <Right>
+                  <Expression range=0.0 type=integer>
+                    <Identifier name=bar />
+                  </Expression>
+                </Right>
+              </Add>
+            </Expression>
+          </Body>
+        </Function>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.inline_function),
         )
     ),
     "Dump.pp() - multiline function"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Declaration@0.0>
-    <NamedExport@0.0 value=multiline_function />
-    <Function@0.0 type=(integer, integer) -> integer>
-      <Arguments />
-      <Body>
-        <Closure@0.0 type=integer>
-          <Statement@0.0 type=nil>
-            <Variable@0.0 type=nil>
-              <Name@0.0 value=zip />
-              <Primitive@0.0 type=integer value=Number(3) />
-            </Variable@0.0>
-          </Statement@0.0>
-          <Statement@0.0 type=nil>
-            <Variable@0.0 type=nil>
-              <Name@0.0 value=zap />
-              <Primitive@0.0 type=integer value=Number(4) />
-            </Variable@0.0>
-          </Statement@0.0>
-          <Statement@0.0 type=integer>
-            <Expression@0.0 type=integer>
-              <Mult@0.0 type=integer>
-                <LHS@0.0 type=integer>
-                  <Identifier@0.0 type=integer value=zip />
-                </LHS@0.0>
-                <RHS@0.0 type=integer>
-                  <Identifier@0.0 type=integer value=zap />
-                </RHS@0.0>
-              </Mult@0.0>
-            </Expression@0.0>
-          </Statement@0.0>
-        </Closure@0.0>
-      </Body>
-    </Function@0.0>
-  </Declaration@0.0>
-</AST>",
-          Fixtures.multiline_function |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Declaration>
+      <NamedExport range=0.0 value=multiline_function />
+      <Entity range=0.0 type=(integer, integer) -> integer>
+        <Function>
+          <Body>
+            <Expression range=0.0 type=integer>
+              <Closure>
+                <Statement range=0.0 type=nil>
+                  <Variable>
+                    <Name range=0.0 value=zip />
+                    <Value>
+                      <Expression range=0.0 type=integer>
+                        <Integer value=3 />
+                      </Expression>
+                    </Value>
+                  </Variable>
+                </Statement>
+                <Statement range=0.0 type=nil>
+                  <Variable>
+                    <Name range=0.0 value=zap />
+                    <Value>
+                      <Expression range=0.0 type=integer>
+                        <Integer value=4 />
+                      </Expression>
+                    </Value>
+                  </Variable>
+                </Statement>
+                <Statement range=0.0 type=integer>
+                  <Effect>
+                    <Expression range=0.0 type=integer>
+                      <Mult>
+                        <Left>
+                          <Expression range=0.0 type=integer>
+                            <Identifier name=zip />
+                          </Expression>
+                        </Left>
+                        <Right>
+                          <Expression range=0.0 type=integer>
+                            <Identifier name=zap />
+                          </Expression>
+                        </Right>
+                      </Mult>
+                    </Expression>
+                  </Effect>
+                </Statement>
+              </Closure>
+            </Expression>
+          </Body>
+        </Function>
+      </Entity>
+    </Declaration>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.multiline_function),
         )
     ),
     "Dump.pp() - main import"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Import@0.0 namespace=main_import>
-    <MainImport@0.0>
-      <Name@0.0 value=Foo />
-    </MainImport@0.0>
-  </Import@0.0>
-</AST>",
-          Fixtures.main_import |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Import namespace=main_import>
+      <ImportTarget range=0.0>
+        <MainImport>
+          <Name range=0.0 value=Foo />
+        </MainImport>
+      </ImportTarget>
+    </Import>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.main_import),
         )
     ),
     "Dump.pp() - named import"
     >: (
       () =>
         Assert.string(
-          "<AST>
-  <Import@0.0 namespace=named_import>
-    <NamedImport@0.0>
-      <Name@0.0 value=foo />
-    </NamedImport@0.0>
-  </Import@0.0>
-</AST>",
-          Fixtures.named_import |> ~@A.Dump.pp,
+          "<Program>
+  <ModuleStatement range=0.0>
+    <Import namespace=named_import>
+      <ImportTarget range=0.0>
+        <NamedImport>
+          <Name range=0.0 value=foo />
+        </NamedImport>
+      </ImportTarget>
+    </Import>
+  </ModuleStatement>
+</Program>",
+          dump(Fixtures.named_import),
         )
     ),
-    "Dump.pp() - program"
-    >: (() => Assert.string("<AST />", [] |> ~@A.Dump.pp)),
+    "Dump.pp() - program" >: (() => Assert.string("<Program />", dump([]))),
   ];

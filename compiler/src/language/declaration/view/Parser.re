@@ -41,7 +41,7 @@ let view =
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
-                        AST.Result.(fst(arg).name) |> fst,
+                        AST.Expression.(fst(arg).name) |> fst,
                         Node.get_type(arg),
                       )
                    |> Option.iter(
@@ -90,7 +90,7 @@ let view =
                 props'
                 |> List.map(
                      Tuple.split2(
-                       fst % AST.Result.(prop => fst(prop.name)),
+                       fst % AST.Expression.(prop => fst(prop.name)),
                        Node.get_type,
                      ),
                    );

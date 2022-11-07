@@ -19,3 +19,55 @@ let main: t =
 
 let definition = (ctx: ParseContext.t) =>
   KTypeDefinition.Plugin.parse(ctx) |> many |> _program;
+
+let module_statement_to_xml:
+  (AST.Type.t => string, AST.Result.module_statement_t) => Fmt.xml_t(string) =
+  dump_type =>
+    Dump.node_to_xml(
+      ~unpack=
+        (
+          fun
+          | AST.Result.StandardImport(names) =>
+            Fmt.Node(
+              "StandardImport",
+              [],
+              names
+              |> List.map(
+                   Dump.node_to_xml(
+                     ~unpack=
+                       ((name, alias)) =>
+                         [
+                           Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+                           ...alias
+                              |> Option.map(alias' =>
+                                   [
+                                     Dump.node_to_xml(
+                                       ~dump_value=Fun.id,
+                                       "Alias",
+                                       alias',
+                                     ),
+                                   ]
+                                 )
+                              |?: [],
+                         ],
+                     "Import",
+                   ),
+                 ),
+            )
+          | AST.Result.Import(namespace, imports) =>
+            KImport.Plugin.to_xml((namespace, imports))
+          | AST.Result.Declaration(name, decl) =>
+            KDeclaration.Plugin.to_xml(dump_type, (name, decl))
+        )
+        % (x => [x]),
+      "ModuleStatement",
+    );
+
+let program_to_xml:
+  (AST.Type.t => string, AST.Result.program_t) => Fmt.xml_t(string) =
+  (dump_type, program) =>
+    Node(
+      "Program",
+      [],
+      program |> List.map(module_statement_to_xml(dump_type)),
+    );

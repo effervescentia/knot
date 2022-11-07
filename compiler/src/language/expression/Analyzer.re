@@ -10,14 +10,14 @@ let rec analyze_expression:
     (
       switch (node) {
       | (Primitive(prim), _) => (
-          AST.Result.Primitive(prim),
+          AST.Expression.Primitive(prim),
           KPrimitive.Plugin.analyze(prim),
         )
 
       | (Identifier(id), _) =>
         let type_ = KIdentifier.Plugin.analyze(scope, id, node_range);
 
-        (AST.Result.Identifier(id), type_);
+        (AST.Expression.Identifier(id), type_);
 
       | (UnaryOp(op, expr), _) =>
         let (expr', type_) =
@@ -28,7 +28,7 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Result.UnaryOp(op, expr'), type_);
+        (AST.Expression.UnaryOp(op, expr'), type_);
 
       | (BinaryOp(op, lhs, rhs), _) =>
         let (lhs', rhs', type_) =
@@ -39,12 +39,12 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Result.BinaryOp(op, lhs', rhs'), type_);
+        (AST.Expression.BinaryOp(op, lhs', rhs'), type_);
 
       | (Group(expr), _) =>
         let expr' = expr |> KGroup.Plugin.analyze(scope, analyze_expression);
 
-        (AST.Result.Group(expr'), Node.get_type(expr'));
+        (AST.Expression.Group(expr'), Node.get_type(expr'));
 
       | (Closure(stmts), _) =>
         let (stmts', type_) =
@@ -55,7 +55,7 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Result.Closure(stmts'), type_);
+        (AST.Expression.Closure(stmts'), type_);
 
       | (DotAccess(expr, prop), _) =>
         let (expr', type_) =
@@ -66,7 +66,7 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Result.DotAccess(expr', prop), type_);
+        (AST.Expression.DotAccess(expr', prop), type_);
 
       | (FunctionCall(expr, args), _) =>
         let (expr', args', type_) =
@@ -77,19 +77,19 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Result.FunctionCall(expr', args'), type_);
+        (AST.Expression.FunctionCall(expr', args'), type_);
 
       | (Style(rules), _) =>
         let (rules', type_) =
           KStyle.Plugin.analyze(scope, analyze_expression, rules, node_range);
 
-        (AST.Result.Style(rules'), type_);
+        (AST.Expression.Style(rules'), type_);
 
       | (JSX(jsx), _) =>
         let (jsx', type_) =
           KSX.Plugin.analyze(scope, analyze_expression, jsx);
 
-        (AST.Result.JSX(jsx'), type_);
+        (AST.Expression.JSX(jsx'), type_);
       }
     )
     |> (((value, type_)) => Node.typed(value, type_, node_range));

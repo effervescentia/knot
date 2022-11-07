@@ -20,21 +20,9 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            (ppf, stmt) => {
-              let (export, decl) = fst(stmt);
-
-              A.Dump.(
-                untyped_node_to_entity(
-                  "Enumerated",
-                  ~children=[
-                    export |> export_to_entity,
-                    decl |> decl_to_entity,
-                  ],
-                  stmt,
-                )
-                |> Entity.pp(ppf)
-              );
-            },
+            (ppf, stmt) =>
+              KDeclaration.Plugin.to_xml(~@Type.pp, fst(stmt))
+              |> Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "program matches",

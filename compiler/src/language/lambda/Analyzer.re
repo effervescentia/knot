@@ -41,7 +41,7 @@ let analyze_argument:
         |> Scope.report_type_err(scope, Node.get_range(arg));
 
         (
-          AST.Result.{name, default: None, type_: None},
+          AST.Expression.{name, default: None, type_: None},
           Type.Invalid(NotInferrable),
         );
 
@@ -49,7 +49,7 @@ let analyze_argument:
         let expr' = expr |> analyze_expression(scope);
 
         (
-          AST.Result.{name, default: Some(expr'), type_: None},
+          AST.Expression.{name, default: Some(expr'), type_: None},
           Node.get_type(expr'),
         );
 
@@ -59,7 +59,10 @@ let analyze_argument:
           |> fst
           |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
-        (AST.Result.{name, default: None, type_: Some(type_expr)}, type_);
+        (
+          AST.Expression.{name, default: None, type_: Some(type_expr)},
+          type_,
+        );
 
       | {name, default: Some(expr), type_: Some(type_expr)} =>
         let expr' = expr |> analyze_expression(scope);

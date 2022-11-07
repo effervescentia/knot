@@ -174,11 +174,11 @@ let _pp_library: Fmt.t(library_t) =
       |> Hashtbl.pp(string, string, ppf)
     );
 
-let _pp_module: Fmt.t(module_t) =
-  (ppf, {ast, symbols, _}) =>
+let _pp_module: Fmt.t(Result.program_t) => Fmt.t(module_t) =
+  (pp_program, ppf, {ast, symbols, _}) =>
     Fmt.(
       [
-        ("ast", ast |> ~@Result.Dump.pp),
+        ("ast", ast |> ~@pp_program),
         ("symbols", symbols |> ~@SymbolTable.pp),
       ]
       |> List.to_seq
@@ -186,20 +186,20 @@ let _pp_module: Fmt.t(module_t) =
       |> Hashtbl.pp(string, string, ppf)
     );
 
-let _pp_entry: Fmt.t(entry_t) =
-  ppf =>
+let _pp_entry: Fmt.t(Result.program_t) => Fmt.t(entry_t) =
+  (pp_program, ppf) =>
     fun
     | Library(raw, library) =>
       Fmt.pf(ppf, "Library(%s, %a)", raw, _pp_library, library)
     | Valid(raw, module_) =>
-      Fmt.pf(ppf, "Valid(%s, %a)", raw, _pp_module, module_)
+      Fmt.pf(ppf, "Valid(%s, %a)", raw, _pp_module(pp_program), module_)
     | Partial(raw, data, errs) =>
       Fmt.(
         pf(
           ppf,
           "Partial(%s, %a, %a)",
           raw,
-          _pp_module,
+          _pp_module(pp_program),
           data,
           Error.pp_dump_err_list,
           errs,
@@ -210,8 +210,8 @@ let _pp_entry: Fmt.t(entry_t) =
     | Purged => Fmt.pf(ppf, "Purged")
     | Pending => Fmt.pf(ppf, "Pending");
 
-let pp: Fmt.t(t) =
-  (ppf, table: t) =>
+let pp: Fmt.t(Result.program_t) => Fmt.t(t) =
+  (pp_program, ppf, table: t) =>
     Fmt.struct_(
       Fmt.string,
       Fmt.string,
@@ -230,7 +230,8 @@ let pp: Fmt.t(t) =
           ),
           (
             "modules",
-            table.modules |> ~@Hashtbl.pp(Namespace.pp, _pp_entry),
+            table.modules
+            |> ~@Hashtbl.pp(Namespace.pp, _pp_entry(pp_program)),
           ),
         ],
       ),

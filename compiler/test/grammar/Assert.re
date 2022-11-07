@@ -115,18 +115,13 @@ module MakeTyped = (Params: TypedParserParams) =>
       Alcotest.(
         check(
           testable(
-            (ppf, node) =>
-              A.Dump.(
-                node
-                |> node_to_entity(
-                     Params.pp_type,
-                     "Parsed",
-                     ~attributes=[
-                       ("value", node |> fst |> ~@Params.pp_value),
-                     ],
-                   )
-                |> Entity.pp(ppf)
-              ),
+            ppf =>
+              Dump.node_to_xml(
+                ~dump_type=x => x |> ~@Params.pp_type,
+                ~dump_value=x => x |> ~@Params.pp_value,
+                "Parsed",
+              )
+              % Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "parsed result matches",
@@ -145,6 +140,6 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
 
     let parser = _ => Params.parser;
 
-    let pp_value = ppf => AR.Dump.prim_to_string % Fmt.string(ppf);
+    let pp_value = ppf => KPrimitive.Plugin.to_xml % Fmt.xml(Fmt.string, ppf);
     let pp_type = (_, ()) => ();
   });

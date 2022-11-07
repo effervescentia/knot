@@ -14,15 +14,9 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            (ppf, id) =>
-              AST.Raw.Dump.(
-                id
-                |> untyped_node_to_entity(
-                     ~attributes=[("value", fst(id))],
-                     "Identifier",
-                   )
-                |> Entity.pp(ppf)
-              ),
+            ppf =>
+              Dump.node_to_xml(~dump_value=Fun.id, "Identifier")
+              % Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "program matches",

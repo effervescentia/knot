@@ -1,6 +1,7 @@
 open Kore;
 
 module A = AST.Result;
+module AE = AST.Expression;
 module U = Util.ResultUtil;
 module TE = AST.TypeExpression;
 
@@ -18,21 +19,9 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            (ppf, stmt) => {
-              let (export, decl) = fst(stmt);
-
-              A.Dump.(
-                untyped_node_to_entity(
-                  "Declaration",
-                  ~children=[
-                    export |> export_to_entity,
-                    decl |> decl_to_entity,
-                  ],
-                  stmt,
-                )
-                |> Entity.pp(ppf)
-              );
-            },
+            (ppf, stmt) =>
+              KDeclaration.Plugin.to_xml(~@AST.Type.pp, fst(stmt))
+              |> Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "program matches",
@@ -128,7 +117,7 @@ let suite =
             "foo" |> U.as_untyped |> A.of_named_export,
             (
               [
-                A.{
+                AE.{
                   name: U.as_untyped("fizz"),
                   type_: Some(U.as_untyped(TE.Integer)),
                   default: None,
@@ -152,7 +141,7 @@ let suite =
             "foo" |> U.as_untyped |> A.of_named_export,
             (
               [
-                A.{
+                AE.{
                   name: U.as_untyped("fizz"),
                   type_: None,
                   default: Some(U.string_prim("bar")),
@@ -176,7 +165,7 @@ let suite =
             "foo" |> U.as_untyped |> A.of_named_export,
             (
               [
-                A.{
+                AE.{
                   name: U.as_untyped("fizz"),
                   type_: Some(U.as_untyped(TE.Boolean)),
                   default: Some(U.bool_prim(true)),

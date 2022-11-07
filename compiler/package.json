@@ -34,7 +34,7 @@
     "test/library": {
       "require": [
         "knot.test",
-        "knot.lang.ast"
+        "knot.lang"
       ],
       "name": "knot.lib_test",
       "namespace": "TestLibrary"
@@ -715,4 +715,3 @@
     "pesy": "0.4.4"
   }
 }
-

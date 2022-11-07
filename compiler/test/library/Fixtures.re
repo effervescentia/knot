@@ -1,6 +1,7 @@
 open Kore;
 
 module A = AST.Result;
+module AE = AST.Expression;
 module U = Util.ResultUtil;
 
 /**
@@ -197,8 +198,8 @@ let inline_function = [
     "inline_function" |> U.as_untyped |> A.of_named_export,
     (
       [
-        A.{name: U.as_untyped("foo"), default: None, type_: None} |> U.as_int,
-        A.{
+        AE.{name: U.as_untyped("foo"), default: None, type_: None} |> U.as_int,
+        AE.{
           name: U.as_untyped("bar"),
           default: Some(3 |> U.int_prim),
           type_: None,

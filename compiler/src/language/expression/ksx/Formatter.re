@@ -80,14 +80,14 @@ and pp_attr:
         "%a%a",
         ppf =>
           fun
-          | AST.Result.Property((name, _), _) => Fmt.string(ppf, name)
-          | AST.Result.Class((name, _), _) => pf(ppf, ".%s", name)
-          | AST.Result.ID((name, _)) => pf(ppf, "#%s", name),
+          | AST.Expression.Property((name, _), _) => Fmt.string(ppf, name)
+          | AST.Expression.Class((name, _), _) => pf(ppf, ".%s", name)
+          | AST.Expression.ID((name, _)) => pf(ppf, "#%s", name),
         attr,
         ppf =>
           fun
-          | AST.Result.Property(_, Some((expr, _)))
-          | AST.Result.Class(_, Some((expr, _))) =>
+          | AST.Expression.Property(_, Some((expr, _)))
+          | AST.Expression.Class(_, Some((expr, _))) =>
             pf(ppf, "=%a", pp_attr_expr(pp_expression), expr)
           | _ => nop(ppf, ()),
         attr,

@@ -4,7 +4,7 @@ module Scope = AST.Scope;
 module Type = AST.Type;
 
 let validate_unary_operation:
-  (AST.Result.unary_t, Type.t) => option(Type.error_t) =
+  (AST.Operator.Unary.t, Type.t) => option(Type.error_t) =
   op =>
     fun
     /* assume this has been reported already and ignore */
@@ -22,7 +22,7 @@ let analyze_unary_operation:
   (
     Scope.t,
     (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    (AST.Result.unary_t, AST.Raw.expression_t),
+    (AST.Operator.Unary.t, AST.Raw.expression_t),
     Range.t
   ) =>
   (AST.Result.expression_t, Type.t) =

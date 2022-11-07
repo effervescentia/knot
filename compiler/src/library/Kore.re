@@ -6,6 +6,7 @@ module BinaryTree = BinaryTree;
 module Command = Command;
 module Config = Config;
 module Constants = Constants;
+module Dump = Dump;
 module Filename = Filename;
 module Fun = Fun;
 module Fmt = Fmt;

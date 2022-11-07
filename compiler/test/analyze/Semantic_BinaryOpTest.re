@@ -2,6 +2,7 @@ open Kore;
 
 module A = AST.Result;
 module AR = AST.Raw;
+module OB = AST.Operator.Binary;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -18,7 +19,7 @@ let suite =
     "resolve valid 'and' (&&) and 'or' (||) operations as boolean type"
     >: (
       () =>
-        [A.LogicalAnd, A.LogicalOr]
+        [OB.LogicalAnd, OB.LogicalOr]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.bool_prim(true), URes.bool_prim(false))
@@ -34,7 +35,7 @@ let suite =
     "resolve invalid 'and' (&&) and 'or' (||) operations as boolean type"
     >: (
       () =>
-        [A.LogicalAnd, A.LogicalOr]
+        [OB.LogicalAnd, OB.LogicalOr]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"), URes.nil_prim)
@@ -50,7 +51,7 @@ let suite =
     "resolve valid comparative operations (<, <=, >, >=) as boolean type"
     >: (
       () =>
-        [A.LessThan, A.LessOrEqual, A.GreaterThan, A.GreaterOrEqual]
+        [OB.LessThan, OB.LessOrEqual, OB.GreaterThan, OB.GreaterOrEqual]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.int_prim(123), URes.int_prim(456))
@@ -66,7 +67,7 @@ let suite =
     "resolve invalid comparative operations (<, <=, >, >=) as boolean type"
     >: (
       () =>
-        [A.LessThan, A.LessOrEqual, A.GreaterThan, A.GreaterOrEqual]
+        [OB.LessThan, OB.LessOrEqual, OB.GreaterThan, OB.GreaterOrEqual]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"), URes.nil_prim)
@@ -82,7 +83,7 @@ let suite =
     "resolve valid 'equal' (==) and 'unequal' (!=) operations as boolean type"
     >: (
       () =>
-        [A.Equal, A.Unequal]
+        [OB.Equal, OB.Unequal]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"), URes.string_prim("bar"))
@@ -98,7 +99,7 @@ let suite =
     "resolve invalid 'equal' (==) and 'unequal' (!=) operations as boolean type"
     >: (
       () =>
-        [A.Equal, A.Unequal]
+        [OB.Equal, OB.Unequal]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"), URes.nil_prim)
@@ -114,7 +115,7 @@ let suite =
     "resolve valid 'divide' (/) and 'exponent' (^) operations as float type"
     >: (
       () =>
-        [A.Divide, A.Exponent]
+        [OB.Divide, OB.Exponent]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.int_prim(123), (45.6, 7) |> URes.float_prim)
@@ -130,7 +131,7 @@ let suite =
     "resolve invalid 'divide' (/) and 'exponent' (^) operations as float type"
     >: (
       () =>
-        [A.Divide, A.Exponent]
+        [OB.Divide, OB.Exponent]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"), URes.nil_prim)
@@ -146,7 +147,7 @@ let suite =
     "resolve valid 'add' (+), 'subtract' (-) and 'multiply' (*) operations as integer type"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply]
+        [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.int_prim(123), URes.int_prim(456))
@@ -162,7 +163,7 @@ let suite =
     "resolve valid 'add' (+), 'subtract' (-) and 'multiply' (*) operations as float type"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply]
+        [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.int_prim(123), (45.6, 7) |> URes.float_prim)
@@ -178,7 +179,7 @@ let suite =
     "resolve partially valid 'add' (+), 'subtract' (-) and 'multiply' (*) operations as float type"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply]
+        [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
                (
@@ -202,7 +203,7 @@ let suite =
     "resolve 'add' (+), 'subtract' (-) and 'multiply' (*) operations as invalid LHS type"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply]
+        [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
                (
@@ -222,7 +223,7 @@ let suite =
     "resolve 'add' (+), 'subtract' (-) and 'multiply' (*) operations as invalid RHS type"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply]
+        [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
                (
@@ -242,7 +243,7 @@ let suite =
     "resolve NotInferrable for 'add' (+), 'subtract' (-) and 'multiply' (*) operations on invalid type"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply]
+        [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"), URes.nil_prim)
@@ -273,7 +274,7 @@ let suite =
             ),
           ],
           () =>
-          (AR.LogicalAnd, URaw.string_prim("foo"), URaw.nil_prim)
+          (OB.LogicalAnd, URaw.string_prim("foo"), URaw.nil_prim)
           |> AR.of_binary_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)

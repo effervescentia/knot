@@ -39,7 +39,7 @@ let function_ =
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
-                        AST.Result.(fst(arg).name) |> fst,
+                        AST.Expression.(fst(arg).name) |> fst,
                         Node.get_type(arg),
                       )
                    |> Option.iter(

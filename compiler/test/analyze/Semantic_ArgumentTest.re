@@ -1,6 +1,7 @@
 open Kore;
 
 module A = AST.Result;
+module AE = AST.Expression;
 module AR = AST.Raw;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
@@ -21,13 +22,13 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          A.{
+          AE.{
             name: URes.as_untyped(__id),
             default: Some(URes.string_prim("bar")),
             type_: None,
           }
           |> URes.as_string,
-          AR.{
+          AE.{
             name: URaw.as_untyped(__id),
             default: Some(URaw.string_prim("bar")),
             type_: None,
@@ -43,13 +44,13 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          A.{
+          AE.{
             name: URes.as_untyped(__id),
             default: None,
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URes.as_bool,
-          AR.{
+          AE.{
             name: URaw.as_untyped(__id),
             default: None,
             type_: Some(URaw.as_untyped(TE.Boolean)),
@@ -65,13 +66,13 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          A.{
+          AE.{
             name: URes.as_untyped(__id),
             default: Some(URes.bool_prim(true)),
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URes.as_bool,
-          AR.{
+          AE.{
             name: URaw.as_untyped(__id),
             default: Some(URaw.bool_prim(true)),
             type_: Some(URaw.as_untyped(TE.Boolean)),
@@ -87,13 +88,13 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          A.{
+          AE.{
             name: URes.as_untyped(__id),
             default: Some(__id |> A.of_id |> URes.as_invalid(NotInferrable)),
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URes.as_bool,
-          AR.{
+          AE.{
             name: URaw.as_untyped(__id),
             default: Some(__id |> AR.of_id |> URaw.as_node),
             type_: Some(URaw.as_untyped(TE.Boolean)),
@@ -117,7 +118,7 @@ let suite =
             ),
           ],
           () =>
-          AR.{
+          AE.{
             name: URaw.as_untyped(__id),
             default: Some(URaw.string_prim("bar")),
             type_: Some(URaw.as_untyped(TE.Boolean)),
@@ -141,7 +142,7 @@ let suite =
             ),
           ],
           () =>
-          AR.{name: URaw.as_untyped(__id), default: None, type_: None}
+          AE.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __throw_scope,
@@ -153,9 +154,9 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          A.{name: URes.as_untyped(__id), default: None, type_: None}
+          AE.{name: URes.as_untyped(__id), default: None, type_: None}
           |> URes.as_invalid(NotInferrable),
-          AR.{name: URaw.as_untyped(__id), default: None, type_: None}
+          AE.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_node
           |> KLambda.Plugin.analyze_argument(
                __scope,
@@ -176,19 +177,19 @@ let suite =
           ],
           () =>
           [
-            AR.{
+            AE.{
               name: URaw.as_untyped("fizz"),
               default: None,
               type_: Some(URaw.as_untyped(TE.Boolean)),
             }
             |> URaw.as_node,
-            AR.{
+            AE.{
               name: URaw.as_untyped("buzz"),
               default: Some(URaw.bool_prim(true)),
               type_: None,
             }
             |> URaw.as_node,
-            AR.{
+            AE.{
               name: URaw.as_untyped("bar"),
               default: None,
               type_: Some(URaw.as_untyped(TE.Boolean)),

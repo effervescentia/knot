@@ -5,6 +5,8 @@ open Kore;
 open ModuleAliases;
 
 module A = AST.Result;
+module AE = AST.Expression;
+module OB = AST.Operator.Binary;
 
 let __util_lib = "$knot";
 let __runtime_namespace = "@knot/runtime";
@@ -47,11 +49,11 @@ let gen_number = x =>
 
 let rec gen_expression =
   fun
-  | A.Primitive(Boolean(x)) => JavaScript_AST.Boolean(x)
-  | A.Primitive(Number(x)) => gen_number(x)
-  | A.Primitive(String(x)) => JavaScript_AST.String(x)
-  | A.Primitive(Nil) => JavaScript_AST.Null
-  | A.Identifier(value) =>
+  | AE.Primitive(Boolean(x)) => JavaScript_AST.Boolean(x)
+  | AE.Primitive(Number(x)) => gen_number(x)
+  | AE.Primitive(String(x)) => JavaScript_AST.String(x)
+  | AE.Primitive(Nil) => JavaScript_AST.Null
+  | AE.Identifier(value) =>
     value |> String.starts_with(__self)
       ? JavaScript_AST.DotAccess(
           Identifier(__self),
@@ -59,10 +61,10 @@ let rec gen_expression =
         )
       : JavaScript_AST.Identifier(value)
 
-  | A.Group((value, _)) => JavaScript_AST.Group(gen_expression(value))
+  | AE.Group((value, _)) => JavaScript_AST.Group(gen_expression(value))
 
-  | A.Closure([]) => JavaScript_AST.(Null)
-  | A.Closure(values) => {
+  | AE.Closure([]) => JavaScript_AST.(Null)
+  | AE.Closure(values) => {
       let rec loop = (
         fun
         | [] => []
@@ -73,24 +75,24 @@ let rec gen_expression =
       values |> loop |> JavaScript_AST.iife;
     }
 
-  | A.UnaryOp(op, value) => value |> gen_unary_op(op)
-  | A.BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
-  | A.JSX(value) => gen_jsx(value)
-  | A.DotAccess((expr, _), (prop, _)) =>
+  | AE.UnaryOp(op, value) => value |> gen_unary_op(op)
+  | AE.BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
+  | AE.JSX(value) => gen_jsx(value)
+  | AE.DotAccess((expr, _), (prop, _)) =>
     JavaScript_AST.DotAccess(gen_expression(expr), prop)
-  | A.FunctionCall((expr, _), args) =>
+  | AE.FunctionCall((expr, _), args) =>
     JavaScript_AST.FunctionCall(
       gen_expression(expr),
       args |> List.map(fst % gen_expression),
     )
-  | A.Style(rules) => gen_style(rules)
+  | AE.Style(rules) => gen_style(rules)
 
 and gen_statement = (~is_last=false) =>
   fun
-  | A.Variable((name, _), (value, _)) =>
+  | AE.Variable((name, _), (value, _)) =>
     [JavaScript_AST.Variable(name, gen_expression(value))]
     @ (is_last ? [JavaScript_AST.Return(Some(Null))] : [])
-  | A.Expression((value, _)) => [
+  | AE.Expression((value, _)) => [
       is_last
         ? JavaScript_AST.Return(Some(gen_expression(value)))
         : JavaScript_AST.Expression(gen_expression(value)),
@@ -99,9 +101,9 @@ and gen_statement = (~is_last=false) =>
 and gen_unary_op = (op, (value, _)) =>
   JavaScript_AST.UnaryOp(
     switch (op) {
-    | A.Negative => "-"
-    | A.Positive => "+"
-    | A.Not => "!"
+    | Negative => "-"
+    | Positive => "+"
+    | Not => "!"
     },
     Group(gen_expression(value)),
   )
@@ -113,19 +115,19 @@ and gen_binary_op = {
     );
 
   fun
-  | A.LogicalAnd => op("&&")
-  | A.LogicalOr => op("||")
-  | A.LessOrEqual => op("<=")
-  | A.LessThan => op("<")
-  | A.GreaterOrEqual => op(">=")
-  | A.GreaterThan => op(">")
-  | A.Equal => op("===")
-  | A.Unequal => op("!==")
-  | A.Add => op("+")
-  | A.Subtract => op("-")
-  | A.Multiply => op("*")
-  | A.Divide => op("/")
-  | A.Exponent => (
+  | OB.LogicalAnd => op("&&")
+  | OB.LogicalOr => op("||")
+  | OB.LessOrEqual => op("<=")
+  | OB.LessThan => op("<")
+  | OB.GreaterOrEqual => op(">=")
+  | OB.GreaterThan => op(">")
+  | OB.Equal => op("===")
+  | OB.Unequal => op("!==")
+  | OB.Add => op("+")
+  | OB.Subtract => op("-")
+  | OB.Multiply => op("*")
+  | OB.Divide => op("/")
+  | OB.Exponent => (
       ((lhs, _), (rhs, _)) =>
         JavaScript_AST.FunctionCall(
           DotAccess(Identifier("Math"), "pow"),
@@ -150,13 +152,13 @@ and gen_jsx_element = (expr, attrs, values) =>
 
 and gen_jsx =
   fun
-  | A.Tag((name, _), attrs, values) =>
+  | AE.Tag((name, _), attrs, values) =>
     gen_jsx_element(String(name), attrs, values)
 
-  | A.Component((id, _), attrs, values) =>
+  | AE.Component((id, _), attrs, values) =>
     gen_jsx_element(Identifier(id), attrs, values)
 
-  | A.Fragment(values) =>
+  | AE.Fragment(values) =>
     JavaScript_AST.FunctionCall(
       __jsx_create_fragment,
       values |> List.map(fst % gen_jsx_child),
@@ -164,9 +166,9 @@ and gen_jsx =
 
 and gen_jsx_child =
   fun
-  | A.Node(value) => gen_jsx(value)
-  | A.Text(value) => JavaScript_AST.String(value)
-  | A.InlineExpression((value, _)) => gen_expression(value)
+  | AE.Node(value) => gen_jsx(value)
+  | AE.Text(value) => JavaScript_AST.String(value)
+  | AE.InlineExpression((value, _)) => gen_expression(value)
 
 and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
   if (List.is_empty(attrs)) {
@@ -180,7 +182,7 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
              fst
              % (
                fun
-               | A.Property((name, _), expr) => (
+               | AE.Property((name, _), expr) => (
                    c,
                    [
                      (
@@ -193,11 +195,11 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
                      ...p,
                    ],
                  )
-               | A.Class((name, _), None) => (
+               | AE.Class((name, _), None) => (
                    [JavaScript_AST.Identifier(_class_name(name)), ...c],
                    p,
                  )
-               | A.Class((name, _), Some((expr, _))) => (
+               | AE.Class((name, _), Some((expr, _))) => (
                    [
                      JavaScript_AST.Group(
                        Ternary(
@@ -210,7 +212,10 @@ and gen_jsx_attrs = (attrs: list(A.jsx_attribute_t)) =>
                    ],
                    p,
                  )
-               | A.ID((name, _)) => (c, [(__id_prop, String(name)), ...p])
+               | AE.ID((name, _)) => (
+                   c,
+                   [(__id_prop, String(name)), ...p],
+                 )
              ),
            ([], []),
          );
@@ -310,13 +315,13 @@ let gen_function =
     Expression(
       Function(
         Some(name),
-        args |> List.map(fst % ((A.{name: (name, _), _}) => name)),
+        args |> List.map(fst % ((AE.{name: (name, _), _}) => name)),
         (
           args
           |> List.mapi((i, (x, _)) => (x, i))
           |> List.filter_map(
                fun
-               | (A.{name: (name, _), default: Some(default), _}, index) =>
+               | (AE.{name: (name, _), default: Some(default), _}, index) =>
                  Some(
                    Assignment(
                      Identifier(name),
@@ -366,7 +371,7 @@ let gen_view =
         (
           props
           |> List.map(fst)
-          |> List.map((A.{name: (name, _), default, _}) => {
+          |> List.map((AE.{name: (name, _), default, _}) => {
                Variable(
                  name,
                  FunctionCall(

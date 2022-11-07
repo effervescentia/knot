@@ -126,7 +126,7 @@ let rec analyze_jsx:
           attrs'
           |> List.filter_map(
                fun
-               | (AST.Result.Property((name, _), Some(expr)), range) =>
+               | (AST.Expression.Property((name, _), Some(expr)), range) =>
                  Some((name, (Node.get_type(expr), range)))
                | _ => None,
              );

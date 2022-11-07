@@ -8,6 +8,14 @@ type primitive_parser_t = Parse.Kore.parser_t(Node.t(Raw.primitive_t, unit));
 
 type identifier_parser_t = Parse.Kore.parser_t(Raw.identifier_t);
 
+type unary_op_parser_t =
+  Parse.Kore.parser_t(Raw.expression_t => Raw.expression_t);
+
+type binary_op_parser_t =
+  Parse.Kore.parser_t(
+    ((Raw.expression_t, Raw.expression_t)) => Raw.expression_t,
+  );
+
 type jsx_parser_t = Parse.Kore.parser_t(Node.t(Raw.jsx_t, unit));
 
 type jsx_attribute_parser_t = Parse.Kore.parser_t(Raw.jsx_attribute_t);

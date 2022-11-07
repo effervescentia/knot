@@ -1,36 +1,28 @@
-/**
+module Binary = {
+  /**
  supported binary operators
  */
-type binary_t =
-  /* logical operators */
-  | LogicalAnd
-  | LogicalOr
-  /* comparative operators */
-  | LessOrEqual
-  | LessThan
-  | GreaterOrEqual
-  | GreaterThan
-  /* equality operators */
-  | Equal
-  | Unequal
-  /* arithmetic operators */
-  | Add
-  | Subtract
-  | Divide
-  | Multiply
-  | Exponent;
+  type t =
+    /* logical operators */
+    | LogicalAnd
+    | LogicalOr
+    /* comparative operators */
+    | LessOrEqual
+    | LessThan
+    | GreaterOrEqual
+    | GreaterThan
+    /* equality operators */
+    | Equal
+    | Unequal
+    /* arithmetic operators */
+    | Add
+    | Subtract
+    | Divide
+    | Multiply
+    | Exponent;
 
-/**
- supported unary operators
- */
-type unary_t =
-  | Not
-  | Positive
-  | Negative;
-
-module Dump = {
-  let binary_to_string = op =>
-    switch (op) {
+  let to_string =
+    fun
     | LogicalAnd => "And"
     | LogicalOr => "Or"
     | Add => "Add"
@@ -43,13 +35,21 @@ module Dump = {
     | GreaterThan => "Greater"
     | Equal => "Equal"
     | Unequal => "Unequal"
-    | Exponent => "Exponent"
-    };
+    | Exponent => "Exponent";
+};
 
-  let unary_to_string = op =>
-    switch (op) {
+module Unary = {
+  /**
+ supported unary operators
+ */
+  type t =
+    | Not
+    | Positive
+    | Negative;
+
+  let to_string =
+    fun
     | Not => "Not"
     | Positive => "Positive"
-    | Negative => "Negative"
-    };
+    | Negative => "Negative";
 };

@@ -2,6 +2,7 @@ open Kore;
 
 module A = AST.Result;
 module AR = AST.Raw;
+module OU = AST.Operator.Unary;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
 
@@ -19,8 +20,8 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          (A.Not, URes.bool_prim(true)) |> A.of_unary_op |> URes.as_bool,
-          (AR.Not, URaw.bool_prim(true))
+          (OU.Not, URes.bool_prim(true)) |> A.of_unary_op |> URes.as_bool,
+          (OU.Not, URaw.bool_prim(true))
           |> AR.of_unary_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
@@ -30,10 +31,10 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          (A.Not, __id |> A.of_id |> URes.as_invalid(NotInferrable))
+          (OU.Not, __id |> A.of_id |> URes.as_invalid(NotInferrable))
           |> A.of_unary_op
           |> URes.as_bool,
-          (AR.Not, __id |> AR.of_id |> URaw.as_node)
+          (OU.Not, __id |> AR.of_id |> URaw.as_node)
           |> AR.of_unary_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
@@ -42,7 +43,7 @@ let suite =
     "resolve valid 'positive' (+) and 'negative' (-) operations as integer type"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.int_prim(123)) |> A.of_unary_op |> URes.as_int,
@@ -56,7 +57,7 @@ let suite =
     "resolve valid 'positive' (+) and 'negative' (-) operations as float type"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
                (op, (123.456, 3) |> URes.float_prim)
@@ -72,7 +73,7 @@ let suite =
     "resolve invalid 'positive' (+) and 'negative' (-) operations as inner expression type"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
                (op, __id |> A.of_id |> URes.as_invalid(NotInferrable))
@@ -88,7 +89,7 @@ let suite =
     "resolve NotInferrable type on non-numeric 'positive' (+) and 'negative' (-) operations"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
                (op, URes.string_prim("foo"))
@@ -113,7 +114,7 @@ let suite =
             ),
           ],
           () =>
-          (AR.Not, URaw.string_prim("foo"))
+          (OU.Not, URaw.string_prim("foo"))
           |> AR.of_unary_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)

@@ -18,7 +18,9 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            ppf => A.Dump.(mod_stmt_to_entity % Entity.pp(ppf)),
+            ppf =>
+              Language.Program.module_statement_to_xml(~@AST.Type.pp)
+              % Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "program matches",

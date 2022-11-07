@@ -13,7 +13,12 @@ module Assert =
     let test =
       Alcotest.(
         check(
-          testable(ppf => AR.Dump.(expr_to_entity % Entity.pp(ppf)), (==)),
+          testable(
+            ppf =>
+              KExpression.Plugin.to_xml(_ => "Unknown")
+              % Fmt.xml(Fmt.string, ppf),
+            (==),
+          ),
           "program matches",
         )
       );

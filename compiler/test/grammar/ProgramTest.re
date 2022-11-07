@@ -10,23 +10,17 @@ module SymbolTable = AST.SymbolTable;
 module Type = AST.Type;
 module U = Util.ResultUtil;
 
+let dump_program = ppf =>
+  Language.Program.program_to_xml(~@AST.Type.pp)
+  % Pretty.XML.xml(Fmt.string, ppf);
+
 module Target = {
   type t = A.program_t;
 
   let parser = Program.main % Parser.parse;
 
   let test =
-    Alcotest.(
-      check(
-        list(
-          testable(
-            ppf => AST.Result.Dump.(mod_stmt_to_entity % Entity.pp(ppf)),
-            (==),
-          ),
-        ),
-        "program matches",
-      )
-    );
+    Alcotest.(check(testable(dump_program, (==)), "program matches"));
 };
 
 module AssertImports =

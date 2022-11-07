@@ -3,6 +3,10 @@ open Resolve;
 
 include TestLibrary.Assert;
 
+let dump_program = ppf =>
+  Language.Program.program_to_xml(~@AST.Type.pp)
+  % Pretty.XML.xml(Fmt.string, ppf);
+
 let import_graph =
   Alcotest.(
     check(
@@ -14,12 +18,12 @@ let import_graph =
 let source = Alcotest.(check(testable(Source.pp, (==)), "source matches"));
 
 let program =
-  Alcotest.(check(testable(AST.Result.Dump.pp, (==)), "program matches"));
+  Alcotest.(check(testable(dump_program, (==)), "program matches"));
 let result_program =
   Alcotest.(
     check(
       result(
-        testable(AST.Result.Dump.pp, (==)),
+        testable(dump_program, (==)),
         testable(AST.Error.pp_compile_err, (==)),
       ),
       "program result matches",

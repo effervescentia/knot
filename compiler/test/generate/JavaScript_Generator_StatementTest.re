@@ -2,6 +2,7 @@ open Kore;
 open Generate.JavaScript_AST;
 
 module A = AST.Result;
+module AE = AST.Expression;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
 module TE = AST.TypeExpression;
@@ -176,7 +177,7 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              A.{name: U.as_untyped("bar"), default: None, type_: None}
+              AE.{name: U.as_untyped("bar"), default: None, type_: None}
               |> U.as_nil,
             ],
             U.int_prim(123),
@@ -213,7 +214,7 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              A.{
+              AE.{
                 name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,
@@ -292,7 +293,7 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              A.{
+              AE.{
                 name: U.as_untyped("bar"),
                 default: Some(U.int_prim(123)),
                 type_: None,

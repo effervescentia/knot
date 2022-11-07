@@ -4,7 +4,7 @@ module Scope = AST.Scope;
 module Type = AST.Type;
 
 let validate_binary_operation:
-  (AST.Result.binary_t, (Type.t, Type.t)) => option(Type.error_t) =
+  (AST.Operator.Binary.t, (Type.t, Type.t)) => option(Type.error_t) =
   op =>
     fun
     /* assume they have been reported already and ignore */
@@ -34,7 +34,7 @@ let analyze_binary_operation:
   (
     Scope.t,
     (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    (AST.Operator.binary_t, AST.Raw.expression_t, AST.Raw.expression_t),
+    (AST.Operator.Binary.t, AST.Raw.expression_t, AST.Raw.expression_t),
     Range.t
   ) =>
   (AST.Result.expression_t, AST.Result.expression_t, Type.t) =

@@ -1,6 +1,7 @@
 open Kore;
 
 module A = AST.Result;
+module OB = AST.Operator.Binary;
 module T = AST.Type;
 
 let suite =
@@ -27,7 +28,7 @@ let suite =
     "'and' (&&) and 'or' (||) operations with boolean types"
     >: (
       () =>
-        [A.LogicalAnd, A.LogicalOr]
+        [OB.LogicalAnd, OB.LogicalOr]
         |> List.iter(op =>
              Assert.type_error(
                None,
@@ -39,7 +40,7 @@ let suite =
     "'and' (&&) and 'or' (||) operations with non-boolean types"
     >: (
       () =>
-        [A.LogicalAnd, A.LogicalOr]
+        [OB.LogicalAnd, OB.LogicalOr]
         |> List.iter(op =>
              Assert.type_error(
                Some(
@@ -57,7 +58,7 @@ let suite =
     "arithmetic operations (+, -, *, /) with combination of integer and float types"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply, A.Divide]
+        [OB.Add, OB.Subtract, OB.Multiply, OB.Divide]
         |> List.iter(op =>
              [
                (T.Valid(`Integer), T.Valid(`Integer)),
@@ -77,7 +78,7 @@ let suite =
     "arithmetic operations (+, -, *, /) with non-numeric types"
     >: (
       () =>
-        [A.Add, A.Subtract, A.Multiply, A.Divide]
+        [OB.Add, OB.Subtract, OB.Multiply, OB.Divide]
         |> List.iter(op =>
              Assert.type_error(
                Some(
@@ -95,7 +96,7 @@ let suite =
     "comparative operations (<, <=, >, >=) with combination of integer and float types"
     >: (
       () =>
-        [A.LessThan, A.LessOrEqual, A.GreaterThan, A.GreaterOrEqual]
+        [OB.LessThan, OB.LessOrEqual, OB.GreaterThan, OB.GreaterOrEqual]
         |> List.iter(op =>
              [
                (T.Valid(`Integer), T.Valid(`Integer)),
@@ -115,7 +116,7 @@ let suite =
     "comparative operations (<, <=, >, >=) with non-numeric types"
     >: (
       () =>
-        [A.LessThan, A.LessOrEqual, A.GreaterThan, A.GreaterOrEqual]
+        [OB.LessThan, OB.LessOrEqual, OB.GreaterThan, OB.GreaterOrEqual]
         |> List.iter(op =>
              Assert.type_error(
                Some(
@@ -133,7 +134,7 @@ let suite =
     "'equal' (==) and 'unequal' (!=) operations with the equal types"
     >: (
       () =>
-        [A.Equal, A.Unequal]
+        [OB.Equal, OB.Unequal]
         |> List.iter(op =>
              Assert.type_error(
                None,
@@ -145,7 +146,7 @@ let suite =
     "'and' (&&) and 'or' (||) operations with non-equal types"
     >: (
       () =>
-        [A.Equal, A.Unequal]
+        [OB.Equal, OB.Unequal]
         |> List.iter(op =>
              Assert.type_error(
                Some(

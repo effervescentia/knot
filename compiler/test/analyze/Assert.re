@@ -17,7 +17,8 @@ let expression = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        AST.Result.Dump.(ppf => expr_to_entity % Entity.pp(ppf)),
+        ppf =>
+          KExpression.Plugin.to_xml(~@Type.pp) % Fmt.xml(Fmt.string, ppf),
         (==),
       ),
       "expression matches",
@@ -30,7 +31,9 @@ let jsx = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        AST.Result.Dump.(ppf => jsx_to_entity % Entity.pp(ppf)),
+        ppf =>
+          KSX.Plugin.to_xml(KExpression.Plugin.to_xml(~@Type.pp), ~@Type.pp)
+          % Fmt.xml(Fmt.string, ppf),
         (==),
       ),
       "jsx matches",
@@ -43,7 +46,12 @@ let statement = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        AST.Result.Dump.(ppf => stmt_to_entity % Entity.pp(ppf)),
+        ppf =>
+          KStatement.Plugin.to_xml(
+            KExpression.Plugin.to_xml(~@Type.pp),
+            ~@Type.pp,
+          )
+          % Fmt.xml(Fmt.string, ppf),
         (==),
       ),
       "statement matches",
@@ -56,9 +64,12 @@ let argument = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        AST.Result.Dump.(
-          ppf => argument_to_entity("Argument") % Entity.pp(ppf)
-        ),
+        ppf =>
+          KLambda.Plugin.argument_to_xml(
+            KExpression.Plugin.to_xml(~@AST.Type.pp),
+            ~@AST.Type.pp,
+          )
+          % Fmt.xml(Fmt.string, ppf),
         (==),
       ),
       "argument matches",

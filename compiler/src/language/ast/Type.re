@@ -202,8 +202,8 @@ type error_t =
   | DuplicateIdentifier(string)
   /* FIXME: not reported */
   | TypeMismatch(t, t)
-  | InvalidUnaryOperation(Operator.unary_t, t)
-  | InvalidBinaryOperation(Operator.binary_t, t, t)
+  | InvalidUnaryOperation(Operator.Unary.t, t)
+  | InvalidBinaryOperation(Operator.Binary.t, t, t)
   | InvalidJSXPrimitiveExpression(t)
   | InvalidJSXClassExpression(t)
   | InvalidJSXTag(string, t, list((string, t)))
@@ -277,7 +277,7 @@ let pp_error: Fmt.t(error_t) =
         pf(
           ppf,
           "InvalidUnaryOperation<%s, %a>",
-          Operator.Dump.unary_to_string(op),
+          Operator.Unary.to_string(op),
           pp,
           type_,
         )
@@ -286,7 +286,7 @@ let pp_error: Fmt.t(error_t) =
         pf(
           ppf,
           "InvalidBinaryOperation<%s, %a, %a>",
-          Operator.Dump.binary_to_string(op),
+          Operator.Binary.to_string(op),
           pp,
           lhs,
           pp,

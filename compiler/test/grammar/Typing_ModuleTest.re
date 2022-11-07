@@ -38,15 +38,8 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            (ppf, type_module) =>
-              AST.Result.Dump.(
-                type_module
-                |> untyped_node_to_entity(
-                     ~children=[TD.Dump.to_entity(type_module)],
-                     "TypeModule",
-                   )
-                |> Entity.pp(ppf)
-              ),
+            ppf =>
+              KTypeDefinition.Plugin.module_to_xml % Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "type definition matches",

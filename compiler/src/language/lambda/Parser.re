@@ -29,7 +29,7 @@ let arguments =
       let name_range = Node.get_range(name);
 
       Node.typed(
-        AST.Raw.{name, default, type_},
+        AST.Expression.{name, default, type_},
         (),
         Range.join(
           name_range,

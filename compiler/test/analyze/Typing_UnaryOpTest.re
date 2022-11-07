@@ -1,6 +1,7 @@
 open Kore;
 
 module A = AST.Result;
+module OU = AST.Operator.Unary;
 module T = AST.Type;
 
 let suite =
@@ -36,7 +37,7 @@ let suite =
     "'positive' (+) and 'negative' (-) operations with integer type"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.type_error(
                None,
@@ -48,7 +49,7 @@ let suite =
     "'positive' (+) and 'negative' (-) operations with float type"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.type_error(
                None,
@@ -60,7 +61,7 @@ let suite =
     "'positive' (+) and 'negative' (-) operations with non-numeric type"
     >: (
       () =>
-        [A.Positive, A.Negative]
+        [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.type_error(
                Some(InvalidUnaryOperation(op, Valid(`String))),

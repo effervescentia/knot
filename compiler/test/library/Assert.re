@@ -64,7 +64,14 @@ module Compare = {
 
   let namespace = testable(Reference.Namespace.pp, (==));
 
-  let module_table = testable(AST.ModuleTable.pp, AST.ModuleTable.compare);
+  let module_table =
+    testable(
+      AST.ModuleTable.pp((ppf, program) =>
+        Language.Program.program_to_xml(~@AST.Type.pp, program)
+        |> Pretty.XML.xml(Fmt.string, ppf)
+      ),
+      AST.ModuleTable.compare,
+    );
 };
 
 let int_trio =

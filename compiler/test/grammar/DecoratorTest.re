@@ -19,12 +19,9 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            (ppf, decorator) =>
-              TD.Dump.(
-                decorator
-                |> decorator_to_entity((_, ()) => ())
-                |> Entity.pp(ppf)
-              ),
+            ppf =>
+              KTypeDefinition.Plugin.decorator_to_xml
+              % Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "program matches",

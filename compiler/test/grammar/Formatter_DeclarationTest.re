@@ -1,6 +1,7 @@
 open Kore;
 
 module A = AST.Result;
+module AE = AST.Expression;
 module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
@@ -11,8 +12,8 @@ let __inline_function = (
   "foo",
   (
     [
-      A.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
-      A.{
+      AE.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
+      AE.{
         name: U.as_untyped("fizz"),
         default: Some(3 |> U.int_prim),
         type_: None,
@@ -49,8 +50,8 @@ let __inline_view = (
   "foo",
   (
     [
-      A.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
-      A.{
+      AE.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
+      AE.{
         name: U.as_untyped("fizz"),
         default: Some(3 |> U.int_prim),
         type_: None,

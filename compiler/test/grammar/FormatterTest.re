@@ -1,6 +1,8 @@
 open Kore;
 
 module A = AST.Result;
+module OB = AST.Operator.Binary;
+module OU = AST.Operator.Unary;
 module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
@@ -12,7 +14,7 @@ let suite =
       () =>
         Assert.string(
           "&&",
-          A.LogicalAnd |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LogicalAnd |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - logical or"
@@ -20,20 +22,20 @@ let suite =
       () =>
         Assert.string(
           "||",
-          A.LogicalOr |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LogicalOr |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - add"
     >: (
       () =>
-        Assert.string("+", A.Add |> ~@KBinaryOperator.Formatter.pp_operator)
+        Assert.string("+", OB.Add |> ~@KBinaryOperator.Formatter.pp_operator)
     ),
     "pp_binary_op() - subtract"
     >: (
       () =>
         Assert.string(
           "-",
-          A.Subtract |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Subtract |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - divide"
@@ -41,7 +43,7 @@ let suite =
       () =>
         Assert.string(
           "/",
-          A.Divide |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Divide |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - multiply"
@@ -49,7 +51,7 @@ let suite =
       () =>
         Assert.string(
           "*",
-          A.Multiply |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Multiply |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - less than or equal"
@@ -57,7 +59,7 @@ let suite =
       () =>
         Assert.string(
           "<=",
-          A.LessOrEqual |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LessOrEqual |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - less than"
@@ -65,7 +67,7 @@ let suite =
       () =>
         Assert.string(
           "<",
-          A.LessThan |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LessThan |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - greater than or equal"
@@ -73,7 +75,7 @@ let suite =
       () =>
         Assert.string(
           ">=",
-          A.GreaterOrEqual |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.GreaterOrEqual |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - greater than"
@@ -81,7 +83,7 @@ let suite =
       () =>
         Assert.string(
           ">",
-          A.GreaterThan |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.GreaterThan |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - equal"
@@ -89,7 +91,7 @@ let suite =
       () =>
         Assert.string(
           "==",
-          A.Equal |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Equal |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - unequal"
@@ -97,7 +99,7 @@ let suite =
       () =>
         Assert.string(
           "!=",
-          A.Unequal |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Unequal |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_binary_op() - exponent"
@@ -105,20 +107,20 @@ let suite =
       () =>
         Assert.string(
           "^",
-          A.Exponent |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Exponent |> ~@KBinaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_unary_op() - not"
     >: (
       () =>
-        Assert.string("!", A.Not |> ~@KUnaryOperator.Formatter.pp_operator)
+        Assert.string("!", OU.Not |> ~@KUnaryOperator.Formatter.pp_operator)
     ),
     "pp_unary_op() - positive"
     >: (
       () =>
         Assert.string(
           "+",
-          A.Positive |> ~@KUnaryOperator.Formatter.pp_operator,
+          OU.Positive |> ~@KUnaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_unary_op() - negative"
@@ -126,7 +128,7 @@ let suite =
       () =>
         Assert.string(
           "-",
-          A.Negative |> ~@KUnaryOperator.Formatter.pp_operator,
+          OU.Negative |> ~@KUnaryOperator.Formatter.pp_operator,
         )
     ),
     "pp_ns() - internal"

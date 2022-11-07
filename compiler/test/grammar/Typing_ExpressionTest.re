@@ -14,15 +14,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            (ppf, type_expr) =>
-              AST.Result.Dump.(
-                type_expr
-                |> untyped_node_to_entity(
-                     ~children=[TE.Dump.to_entity(type_expr)],
-                     "TypeExpression",
-                   )
-                |> Entity.pp(ppf)
-              ),
+            ppf => KTypeExpression.Plugin.to_xml % Fmt.xml(Fmt.string, ppf),
             (==),
           ),
           "program matches",
