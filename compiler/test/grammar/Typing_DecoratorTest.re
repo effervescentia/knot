@@ -19,8 +19,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            ppf =>
-              KTypeDefinition.Plugin.module_to_xml % Fmt.xml(Fmt.string, ppf),
+            ppf => KTypeDefinition.Plugin.module_to_xml % Fmt.xml_string(ppf),
             (==),
           ),
           "type definition matches",

@@ -2,15 +2,18 @@ open Knot.Kore;
 open Parse.Onyx;
 open AST.ParserTypes;
 
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
-module Symbol = Parse.Symbol;
 module SymbolTable = AST.SymbolTable;
 module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
 module Type = AST.Type;
 module Util = Parse.Util;
+
+type type_module_parser_t =
+  ParseContext.t => Parse.Kore.parser_t(AST.TypeDefinition.module_t);
+
+let _module_keyword = Matchers.keyword(Constants.Keyword.module_);
 
 let _module_decorator = (ctx: ParseContext.t) =>
   KDecorator.Plugin.parse(KPrimitive.Plugin.parse)
@@ -33,7 +36,7 @@ let module_: type_module_parser_t =
     |> many
     >>= (
       decorators =>
-        Keyword.module_
+        _module_keyword
         >> (
           Matchers.identifier(~prefix=Matchers.alpha)
           >>= (
@@ -42,7 +45,7 @@ let module_: type_module_parser_t =
 
               KTypeStatement.Plugin.parse(module_ctx)
               |> many
-              |> Matchers.between(Symbol.open_closure, Symbol.close_closure)
+              |> Matchers.between_braces
               >|= (
                 stmts => {
                   let SymbolTable.Symbols.{types, values} =
@@ -115,14 +118,14 @@ let module_: type_module_parser_t =
 let decorator: type_module_parser_t =
   ctx =>
     Util.define_statement(
-      Keyword.decorator,
+      Matchers.keyword(Constants.Keyword.decorator),
       KTypeExpression.Plugin.parse
       |> Matchers.comma_sep
-      |> Matchers.between(Symbol.open_group, Symbol.close_group)
+      |> Matchers.between_parentheses
       >>= (
         args =>
-          Keyword.on
-          >> Keyword.module_
+          Matchers.keyword(Constants.Keyword.on)
+          >> _module_keyword
           >|= Node.get_range
           % (
             range => (

@@ -11,17 +11,9 @@ let define_statement = (kwd, parser, f) =>
   >|= Node.get_range
   >>= (
     start =>
-      Matchers.identifier(~prefix=Matchers.alpha)
-      >>= (
-        id =>
-          Symbol.colon
-          >> parser
-          >|= (
-            ((res, range)) =>
-              Node.untyped(
-                (id, res) |> f,
-                Range.join(start, range |?: start),
-              )
-          )
+      Matchers.attribute(Matchers.identifier(~prefix=Matchers.alpha), parser)
+      >|= (
+        ((id, (res, range))) =>
+          Node.untyped((id, res) |> f, Range.join(start, range |?: start))
       )
   );

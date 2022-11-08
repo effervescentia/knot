@@ -5,12 +5,11 @@ open AST.ParserTypes;
 module ParseContext = AST.ParseContext;
 module Scope = AST.Scope;
 module SymbolTable = AST.SymbolTable;
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
 module Util = AST.Util;
 
 let constant = (ctx: ParseContext.t, f): declaration_parser_t =>
-  Keyword.const
+  Matchers.keyword(Constants.Keyword.const)
   >>= (
     kwd =>
       Matchers.assign(

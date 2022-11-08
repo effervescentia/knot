@@ -1,12 +1,12 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Keyword = Parse.Keyword;
+module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
 
 let declaration = (ctx: ParseContext.t) =>
   AST.Result.of_main_export
-  <$ Keyword.main
+  <$ Matchers.keyword(Constants.Keyword.main)
   |> option(AST.Result.of_named_export)
   >>= (
     f =>

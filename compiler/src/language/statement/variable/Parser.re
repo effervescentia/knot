@@ -3,13 +3,12 @@ open Parse.Onyx;
 open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
 
 let variable =
     (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t)
     : statement_parser_t =>
-  Keyword.let_
+  Matchers.keyword(Constants.Keyword.let_)
   >>= (
     kwd =>
       Matchers.assign(KIdentifier.Plugin.parse(ctx), parse_expr(ctx))

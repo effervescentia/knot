@@ -14,7 +14,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            ppf => KTypeExpression.Plugin.to_xml % Fmt.xml(Fmt.string, ppf),
+            ppf => KTypeExpression.Plugin.to_xml % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

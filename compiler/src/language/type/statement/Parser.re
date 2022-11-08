@@ -5,32 +5,28 @@ open AST.ParserTypes;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
 module Type = AST.Type;
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
-module TE = AST.TypeExpression;
 module TD = AST.TypeDefinition;
 module Util = Parse.Util;
 
-let _type_variant = (ctx: ParseContext.t) =>
+type type_module_statement_parser_t =
+  ParseContext.t => Parse.Kore.parser_t(AST.TypeDefinition.module_statement_t);
+
+let type_variant = (ctx: ParseContext.t) =>
   KIdentifier.Plugin.parse(ctx)
   >>= (
     id =>
       KTypeExpression.Plugin.parse
       |> Matchers.comma_sep
-      |> Matchers.between(Symbol.open_group, Symbol.close_group)
+      |> Matchers.between_parentheses
       |> option(id |> Node.map(_ => []))
       >|= Node.map(Tuple.with_fst2(id))
   );
 
-let type_variant_list = (ctx: ParseContext.t) =>
-  optional(Symbol.vertical_bar)
-  >> (_type_variant(ctx) |> sep_by(Symbol.vertical_bar));
-
 let declaration: type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
-      Keyword.declare,
+      Matchers.keyword(Constants.Keyword.declare),
       KTypeExpression.Plugin.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {
@@ -45,8 +41,9 @@ let declaration: type_module_statement_parser_t =
 let enumerated: type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
-      Keyword.enum,
-      type_variant_list(ctx)
+      Matchers.keyword(Constants.Keyword.enum),
+      type_variant(ctx)
+      |> Matchers.vertical_bar_sep
       >|= (
         variants => {
           let variant_range = variants |> List.last |?> Node.get_range;
@@ -86,7 +83,7 @@ let enumerated: type_module_statement_parser_t =
 let type_: type_module_statement_parser_t =
   ctx =>
     Util.define_statement(
-      Keyword.type_,
+      Matchers.keyword(Constants.Keyword.type_),
       KTypeExpression.Plugin.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {

@@ -48,3 +48,5 @@ let rec xml = (pp_attr: Fmt.t('a)): Fmt.t(xml_t('a)) =>
         tags,
         name,
       );
+
+let xml_string = xml(string);

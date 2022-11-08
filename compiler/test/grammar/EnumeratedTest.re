@@ -22,7 +22,7 @@ module Assert = {
           testable(
             (ppf, stmt) =>
               KDeclaration.Plugin.to_xml(~@Type.pp, fst(stmt))
-              |> Fmt.xml(Fmt.string, ppf),
+              |> Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

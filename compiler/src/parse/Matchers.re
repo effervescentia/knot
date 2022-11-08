@@ -4,7 +4,9 @@ open ModuleAliases;
 
 module C = Constants;
 
-let __back_slash = Uchar.of_char(C.Character.back_slash);
+let double_quote = char(C.Character.double_quote);
+let period = char(C.Character.period);
+let underscore = char(C.Character.underscore);
 
 let space = one_of([' ', '\t', '\n']);
 let spaces = skip_many(space);
@@ -45,9 +47,36 @@ let comma_sep = x =>
   << optional(symbol(C.Character.comma));
 
 /**
+ matches a pattern that is separated by vertical bars and may start with a vertical bar
+ */
+let vertical_bar_sep = x =>
+  optional(symbol(C.Character.vertical_bar))
+  >> (x |> sep_by(symbol(C.Character.vertical_bar)));
+
+/**
  matches an assignment operation
  */
 let assign = (id, x) => binary_op(id, symbol(C.Character.equal_sign), x);
+
+/**
+ matches an attribution operation
+ */
+let attribute = (key, value) =>
+  binary_op(key, symbol(C.Character.colon), value);
+
+let between_braces = x =>
+  between(
+    symbol(C.Character.open_brace),
+    symbol(C.Character.close_brace),
+    x,
+  );
+
+let between_parentheses = x =>
+  between(
+    symbol(C.Character.open_paren),
+    symbol(C.Character.close_paren),
+    x,
+  );
 
 /**
  matches a sequence of characters but tolerates spaces in between
@@ -87,8 +116,7 @@ let keyword = (s: string) =>
           >|= (end_ => N.untyped(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
-      loop(s |> String.to_seq |> List.of_seq)
-      <<! (alpha_num <|> Character.underscore);
+      loop(s |> String.to_seq |> List.of_seq) <<! (alpha_num <|> underscore);
     }
   )
   |> lexeme;
@@ -96,13 +124,8 @@ let keyword = (s: string) =>
 /**
  matches a sequence of alpha-numeric characters
  */
-let identifier = (~prefix=alpha <|> Character.underscore, input) =>
-  (
-    prefix
-    <~> (alpha_num <|> Character.underscore |> many)
-    >|= Input.join
-    |> lexeme
-  )(
+let identifier = (~prefix=alpha <|> underscore, input) =>
+  (prefix <~> (alpha_num <|> underscore |> many) >|= Input.join |> lexeme)(
     input,
   );
 
@@ -112,14 +135,14 @@ let identifier = (~prefix=alpha <|> Character.underscore, input) =>
  allows escaping characters with a '\' character
  */
 let string =
-  Character.quote
+  double_quote
   >|= Input.get_point
   >>= (
     start => {
       let rec loop = f =>
         choice([
           /* end of string sequence */
-          Character.quote
+          double_quote
           >|= Input.get_point
           >|= (
             end_ =>
@@ -129,12 +152,17 @@ let string =
               )
           ),
           /* capture escaped characters */
-          Character.back_slash
+          char(C.Character.back_slash)
           >> any
           >|= Input.get_value
-          >>= (c => loop(rs => f([__back_slash, c, ...rs]))),
+          >>= (
+            c =>
+              loop(rs =>
+                f([Uchar.of_char(C.Character.back_slash), c, ...rs])
+              )
+          ),
           /* capture characters of the string */
-          none_of([C.Character.quote, C.Character.eol])
+          none_of([C.Character.double_quote, C.Character.eol])
           >|= Input.get_value
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);

@@ -17,7 +17,7 @@ module Assert = {
           testable(
             ppf =>
               Language.Program.module_statement_to_xml(~@AST.Type.pp)
-              % Fmt.xml(Fmt.string, ppf),
+              % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

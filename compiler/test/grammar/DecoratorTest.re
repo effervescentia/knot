@@ -20,8 +20,7 @@ module Assert =
         check(
           testable(
             ppf =>
-              KTypeDefinition.Plugin.decorator_to_xml
-              % Fmt.xml(Fmt.string, ppf),
+              KTypeDefinition.Plugin.decorator_to_xml % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

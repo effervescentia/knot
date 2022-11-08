@@ -4,25 +4,18 @@ open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
 module Scope = AST.Scope;
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
 
 let style_rule =
     (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t) =>
-  KIdentifier.Plugin.parse(ctx)
-  >>= (
-    rule =>
-      Symbol.colon
-      >> parse_expr(ctx)
-      >|= (
-        expr => {
-          Node.untyped(
-            (Node.typed(fst(rule), (), Node.get_range(rule)), expr),
-            Node.join_ranges(rule, expr),
-          );
-        }
-      )
+  Matchers.attribute(KIdentifier.Plugin.parse(ctx), parse_expr(ctx))
+  >|= (
+    ((rule, expr)) => {
+      Node.untyped(
+        (Node.typed(fst(rule), (), Node.get_range(rule)), expr),
+        Node.join_ranges(rule, expr),
+      );
+    }
   );
 
 let style_expression =
@@ -32,12 +25,12 @@ let style_expression =
 
   Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
 
-  Keyword.style
+  Matchers.keyword(Constants.Keyword.style)
   >>= (
     start =>
       style_rule(ctx, parse_expr)
       |> Matchers.comma_sep
-      |> Matchers.between(Symbol.open_closure, Symbol.close_closure)
+      |> Matchers.between_braces
       >|= (
         raw_rules =>
           Node.typed(

@@ -2,7 +2,6 @@ open Knot.Kore;
 open Parse.Onyx;
 open AST.ParserTypes;
 
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
 module Scope = AST.Scope;
@@ -16,7 +15,7 @@ let function_ =
       tag_export: AST.Raw.identifier_t => AST.Result.export_t,
     )
     : declaration_parser_t =>
-  Keyword.func
+  Matchers.keyword(Constants.Keyword.func)
   >>= Node.get_range
   % (
     start =>

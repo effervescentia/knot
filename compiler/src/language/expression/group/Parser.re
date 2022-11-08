@@ -3,10 +3,10 @@ open Parse.Onyx;
 open AST.ParserTypes;
 
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
 
 let group = (parse_expr: expression_parser_t): expression_parser_t =>
-  Matchers.between(Symbol.open_group, Symbol.close_group, parse_expr)
+  parse_expr
+  |> Matchers.between_parentheses
   >|= (
     ((expr, _) as expr_node) =>
       Node.typed(

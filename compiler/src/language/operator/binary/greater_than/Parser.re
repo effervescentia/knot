@@ -1,8 +1,9 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module Symbol = Parse.Symbol;
+module Matchers = Parse.Matchers;
 module Util = Parse.Util;
 
 let greater_than: AST.ParserTypes.binary_op_parser_t =
-  Util.binary_op(AST.Raw.of_gt_op) <$ Symbol.greater_than;
+  Util.binary_op(AST.Raw.of_gt_op)
+  <$ Matchers.symbol(Constants.Character.close_chevron);

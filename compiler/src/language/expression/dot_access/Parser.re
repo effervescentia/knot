@@ -2,11 +2,10 @@ open Knot.Kore;
 open Parse.Onyx;
 
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
 
 let dot_access = {
   let rec loop = expr =>
-    Symbol.period
+    Matchers.period
     >> Matchers.identifier
     >>= (
       prop =>

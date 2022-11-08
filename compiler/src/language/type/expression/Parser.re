@@ -2,20 +2,20 @@ open Knot.Kore;
 open Parse.Onyx;
 open AST.ParserTypes;
 
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
 module TE = AST.TypeExpression;
+
+type type_expression_parser_t = Parse.Kore.parser_t(AST.TypeExpression.t);
 
 let primitive_types =
   TE.[
-    (Keyword.nil, Nil),
-    (Keyword.boolean, Boolean),
-    (Keyword.integer, Integer),
-    (Keyword.float, Float),
-    (Keyword.string, String),
-    (Keyword.element, Element),
-    (Keyword.style, Style),
+    (Matchers.keyword(Constants.Keyword.nil), Nil),
+    (Matchers.keyword(Constants.Keyword.boolean), Boolean),
+    (Matchers.keyword(Constants.Keyword.integer), Integer),
+    (Matchers.keyword(Constants.Keyword.float), Float),
+    (Matchers.keyword(Constants.Keyword.string), String),
+    (Matchers.keyword(Constants.Keyword.element), Element),
+    (Matchers.keyword(Constants.Keyword.style), Style),
   ];
 
 let primitive: type_expression_parser_t =
@@ -24,9 +24,7 @@ let primitive: type_expression_parser_t =
   );
 
 let group = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
-  parse_expr
-  |> Matchers.between(Symbol.open_group, Symbol.close_group)
-  >|= Node.map(TE.of_group);
+  parse_expr |> Matchers.between_parentheses >|= Node.map(TE.of_group);
 
 let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
@@ -39,10 +37,9 @@ let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
      );
 
 let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
-  Matchers.identifier(~prefix=Matchers.alpha)
-  >>= (id => Symbol.colon >> parse_expr >|= Tuple.with_fst2(id))
+  Matchers.attribute(Matchers.identifier(~prefix=Matchers.alpha), parse_expr)
   |> Matchers.comma_sep
-  |> Matchers.between(Symbol.open_closure, Symbol.close_closure)
+  |> Matchers.between_braces
   /* TODO: sort the props here by property name */
   >|= Node.map(props => TE.of_struct(props));
 
@@ -50,7 +47,7 @@ let function_ =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
   |> Matchers.comma_sep
-  |> Matchers.between(Symbol.open_group, Symbol.close_group)
+  |> Matchers.between_parentheses
   >>= (
     args =>
       Matchers.glyph("->")
@@ -69,7 +66,7 @@ let identifier: type_expression_parser_t =
 
 let dot_access = {
   let rec loop = expr =>
-    Symbol.period
+    Matchers.period
     >> Matchers.identifier
     >>= (
       prop =>

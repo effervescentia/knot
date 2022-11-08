@@ -3,9 +3,7 @@ open Parse.Onyx;
 open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
-module Character = Parse.Character;
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
 
 module Tag = {
   let open_ = Matchers.symbol(Constants.Character.open_chevron);
@@ -20,16 +18,33 @@ module Fragment = {
   let close = Matchers.glyph(Constants.Glyph.close_fragment);
 };
 
+type expression_parsers_arg_t = (
+  /* parses a "term" */
+  contextual_expression_parser_t,
+  /* parses an "expression" */
+  contextual_expression_parser_t,
+);
+
+type jsx_parser_t = Parse.Kore.parser_t(Node.t(AST.Raw.jsx_t, unit));
+
+type jsx_attribute_parser_t = Parse.Kore.parser_t(AST.Raw.jsx_attribute_t);
+type jsx_attribute_list_parser_t =
+  Parse.Kore.parser_t(list(AST.Raw.jsx_attribute_t));
+
+type jsx_child_parser_t = Parse.Kore.parser_t(AST.Raw.jsx_child_t);
+type jsx_child_list_parser_t =
+  Parse.Kore.parser_t(list(AST.Raw.jsx_child_t));
+
 let _attribute =
     (
-      ~prefix=Matchers.alpha <|> Character.underscore,
+      ~prefix=Matchers.alpha <|> Matchers.underscore,
       ctx: ParseContext.t,
       (parse_term, parse_expr): expression_parsers_arg_t,
     ) =>
   Matchers.assign(
     Matchers.identifier(~prefix),
     parse_expr(ctx)
-    |> Matchers.between(Symbol.open_group, Symbol.close_group)
+    |> Matchers.between_parentheses
     >|= (
       ((expr, _) as expr_group) =>
         Node.map_range(_ => Node.get_range(expr_group), expr)
@@ -101,7 +116,7 @@ and property_attribute =
 and class_attribute =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_parser_t =>
-  _attribute(~prefix=Character.period, ctx, parsers)
+  _attribute(~prefix=Matchers.period, ctx, parsers)
   >|= (
     ((name, value, range)) =>
       Node.untyped(
@@ -112,7 +127,7 @@ and class_attribute =
   )
 
 and id_attribute: jsx_attribute_parser_t =
-  Matchers.identifier(~prefix=Character.octothorpe)
+  Matchers.identifier(~prefix=char(Constants.Character.octothorpe))
   >|= Node.map(String.drop_left(1))
   >|= Node.wrap(AST.Raw.of_jsx_id)
 
@@ -151,7 +166,7 @@ and inline_expr =
     (ctx: ParseContext.t, (_, parse_expr): expression_parsers_arg_t)
     : jsx_child_parser_t =>
   parse_expr(ctx)
-  |> Matchers.between(Symbol.open_inline_expr, Symbol.close_inline_expr)
+  |> Matchers.between_braces
   >|= Node.map(AST.Raw.of_inline_expr);
 
 let ksx =

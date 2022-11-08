@@ -2,12 +2,14 @@ open Knot.Kore;
 open Parse.Onyx;
 
 module ParseContext = AST.ParseContext;
-module Character = Parse.Character;
 module Matchers = Parse.Matchers;
 
 let identifier = (ctx: ParseContext.t) =>
   Matchers.identifier(
-    ~prefix=Matchers.alpha <|> Character.underscore <|> Character.dollar_sign,
+    ~prefix=
+      Matchers.alpha
+      <|> Matchers.underscore
+      <|> char(Constants.Character.dollar_sign),
   )
   >|= (
     ((name_value, _) as name) => {

@@ -21,7 +21,7 @@ module Assert =
                 KExpression.Plugin.to_xml(_ => "Unknown"), _ =>
                 "Unknown"
               )
-              % Fmt.xml(Fmt.string, ppf),
+              % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

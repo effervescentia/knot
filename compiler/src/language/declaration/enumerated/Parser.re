@@ -2,20 +2,20 @@ open Knot.Kore;
 open Parse.Onyx;
 open AST.ParserTypes;
 
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
-module Symbol = Parse.Symbol;
 module SymbolTable = AST.SymbolTable;
 module Type = AST.Type;
 module Util = AST.Util;
 
 let enumerated = (ctx: ParseContext.t, f): declaration_parser_t =>
-  Keyword.enum
+  Matchers.keyword(Constants.Keyword.enum)
   >|= Node.get_range
   >>= (
     start =>
-      KTypeStatement.Plugin.parse_type_variant_list(ctx)
+      Matchers.vertical_bar_sep(
+        KTypeStatement.Plugin.parse_type_variant(ctx),
+      )
       |> Matchers.assign(KIdentifier.Plugin.parse(ctx))
       |> Matchers.terminated
       >|= (

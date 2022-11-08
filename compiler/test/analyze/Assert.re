@@ -17,8 +17,7 @@ let expression = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        ppf =>
-          KExpression.Plugin.to_xml(~@Type.pp) % Fmt.xml(Fmt.string, ppf),
+        ppf => KExpression.Plugin.to_xml(~@Type.pp) % Fmt.xml_string(ppf),
         (==),
       ),
       "expression matches",
@@ -33,7 +32,7 @@ let jsx = (expected, actual) =>
       testable(
         ppf =>
           KSX.Plugin.to_xml(KExpression.Plugin.to_xml(~@Type.pp), ~@Type.pp)
-          % Fmt.xml(Fmt.string, ppf),
+          % Fmt.xml_string(ppf),
         (==),
       ),
       "jsx matches",
@@ -51,7 +50,7 @@ let statement = (expected, actual) =>
             KExpression.Plugin.to_xml(~@Type.pp),
             ~@Type.pp,
           )
-          % Fmt.xml(Fmt.string, ppf),
+          % Fmt.xml_string(ppf),
         (==),
       ),
       "statement matches",
@@ -69,7 +68,7 @@ let argument = (expected, actual) =>
             KExpression.Plugin.to_xml(~@AST.Type.pp),
             ~@AST.Type.pp,
           )
-          % Fmt.xml(Fmt.string, ppf),
+          % Fmt.xml_string(ppf),
         (==),
       ),
       "argument matches",

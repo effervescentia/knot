@@ -117,11 +117,11 @@ module MakeTyped = (Params: TypedParserParams) =>
           testable(
             ppf =>
               Dump.node_to_xml(
-                ~dump_type=x => x |> ~@Params.pp_type,
-                ~dump_value=x => x |> ~@Params.pp_value,
+                ~dump_type=Params.pp_type |> (~@),
+                ~dump_value=Params.pp_value |> (~@),
                 "Parsed",
               )
-              % Fmt.xml(Fmt.string, ppf),
+              % Fmt.xml_string(ppf),
             (==),
           ),
           "parsed result matches",
@@ -140,6 +140,6 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
 
     let parser = _ => Params.parser;
 
-    let pp_value = ppf => KPrimitive.Plugin.to_xml % Fmt.xml(Fmt.string, ppf);
+    let pp_value = ppf => KPrimitive.Plugin.to_xml % Fmt.xml_string(ppf);
     let pp_type = (_, ()) => ();
   });

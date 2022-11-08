@@ -2,13 +2,12 @@ open Knot.Kore;
 open Parse.Onyx;
 open AST.ParserTypes;
 
-module Character = Parse.Character;
 module Matchers = Parse.Matchers;
 
 let float: number_parser_t =
   Matchers.binary_op(
     many1(Matchers.digit) >|= Input.join,
-    Character.period,
+    Matchers.period,
     many1(Matchers.digit) >|= Input.join,
   )
   >|= (

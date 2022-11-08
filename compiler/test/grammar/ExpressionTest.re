@@ -15,8 +15,7 @@ module Assert =
         check(
           testable(
             ppf =>
-              KExpression.Plugin.to_xml(_ => "Unknown")
-              % Fmt.xml(Fmt.string, ppf),
+              KExpression.Plugin.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

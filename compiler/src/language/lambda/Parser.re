@@ -4,21 +4,20 @@ open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
 
 let arguments =
     (ctx: ParseContext.t, parse_expression: contextual_expression_parser_t) =>
   KIdentifier.Plugin.parse(ctx)
   >>= (
     id =>
-      Symbol.colon
+      Matchers.symbol(Constants.Character.colon)
       >> KTypeExpression.Plugin.parse
       >|= ((type_, default) => (id, Some(type_), default))
       |> option(default => (id, None, default))
   )
   >>= (
     f =>
-      Symbol.assign
+      Matchers.symbol(Constants.Character.equal_sign)
       >> parse_expression(ctx)
       >|= Option.some
       >|= f
@@ -41,7 +40,7 @@ let arguments =
     }
   )
   |> Matchers.comma_sep
-  |> Matchers.between(Symbol.open_group, Symbol.close_group);
+  |> Matchers.between_parentheses;
 
 let _full_parser =
     (
@@ -56,7 +55,10 @@ let _full_parser =
     args =>
       (
         mixins
-          ? Symbol.mixin >> Matchers.identifier |> many1 |> option([])
+          ? Matchers.symbol(Constants.Character.tilde)
+            >> Matchers.identifier
+            |> many1
+            |> option([])
           : return([])
       )
       >>= (

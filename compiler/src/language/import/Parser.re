@@ -2,9 +2,10 @@ open Knot.Kore;
 open Parse.Onyx;
 
 module ParseContext = AST.ParseContext;
-module Keyword = Parse.Keyword;
 module Matchers = Parse.Matchers;
-module Symbol = Parse.Symbol;
+
+let _import_keyword = Matchers.keyword(Constants.Keyword.import);
+let _from_keyword = Matchers.keyword(Constants.Keyword.from);
 
 let _import_named = (ctx: ParseContext.t, import) =>
   fun
@@ -48,13 +49,13 @@ let named_imports = (ctx: ParseContext.t) =>
   KIdentifier.Plugin.parse(ctx)
   >>= (
     id =>
-      Keyword.as_
+      Matchers.keyword(Constants.Keyword.as_)
       >> KIdentifier.Plugin.parse(ctx)
       >|= (alias => (id, Some(alias)))
   )
   <|> (KIdentifier.Plugin.parse(ctx) >|= (id => (id, None)))
   |> Matchers.comma_sep
-  |> Matchers.between(Symbol.open_closure, Symbol.close_closure)
+  |> Matchers.between_braces
   >|= Node.map(
         List.map(((name, alias) as import) =>
           Node.untyped(import, Node.join_ranges(name, alias |?: name))
@@ -62,7 +63,7 @@ let named_imports = (ctx: ParseContext.t) =>
       );
 
 let module_import = (ctx: ParseContext.t) =>
-  Keyword.import
+  _import_keyword
   >>= (
     kwd =>
       choice([
@@ -73,7 +74,7 @@ let module_import = (ctx: ParseContext.t) =>
       ])
       |> Matchers.comma_sep
       >|= List.flatten
-      << Keyword.from
+      << _from_keyword
       >>= namespace
       >@= (
         (((namespace, _), imports)) =>
@@ -96,7 +97,7 @@ let module_import = (ctx: ParseContext.t) =>
   );
 
 let standard_import = (ctx: ParseContext.t) =>
-  Keyword.import
+  _import_keyword
   >>= (
     kwd =>
       named_imports(ctx)
