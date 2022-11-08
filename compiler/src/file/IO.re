@@ -1,7 +1,7 @@
 /**
  Utitilies to read files in as a compatible module format.
  */
-open Kore;
+open Knot.Kore;
 
 /**
  read a file as a lazy stream of unicode characters
@@ -34,7 +34,7 @@ let clone = (source: string, target: string) => {
  */
 let read_to_string = (path: string): string => {
   let channel = open_in(path);
-  let decoder = decoder(`Channel(channel));
+  let decoder = Decoder.of_channel(channel);
 
   let rec loop = buffer =>
     switch (Uutf.decode(decoder)) {

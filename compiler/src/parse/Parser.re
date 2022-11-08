@@ -1,3 +1,8 @@
+open Kore;
+
+type stream_t = LazyStream.t(Input.t);
+type t('a) = stream_t => option(('a, stream_t));
+
 /**
  Entrypoint for parsing a stream of unicode characters.
  */

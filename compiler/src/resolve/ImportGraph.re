@@ -1,5 +1,6 @@
-open Kore;
-open Reference;
+open Knot.Kore;
+
+module Namespace = Reference.Namespace;
 
 /**
  graph that manages the relationships between modules

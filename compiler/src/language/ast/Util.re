@@ -1,4 +1,4 @@
-let is_main: Result.export_t => bool =
+let is_main: Module.export_t => bool =
   fun
   | MainExport(_) => true
   | NamedExport(_) => false;

@@ -2,11 +2,6 @@
  Types and utilities for a module's Abstract Syntax Tree.
  */
 open Knot.Kore;
-open Reference;
-open Common;
-
-module TypeExpression = TypeExpression;
-module TypeDefinition = TypeDefinition;
 
 /**
  abstraction on the type of the nodes that makeup an AST
@@ -51,8 +46,8 @@ module Make = (Params: ASTParams) => {
 
   /* tag helpers */
 
-  let of_internal = namespace => Namespace.Internal(namespace);
-  let of_external = namespace => Namespace.External(namespace);
+  let of_internal = namespace => Reference.Namespace.Internal(namespace);
+  let of_external = namespace => Reference.Namespace.External(namespace);
 
   let of_var = ((name, x)) => Expression.Variable(name, x);
   let of_expr = x => Expression.Expression(x);

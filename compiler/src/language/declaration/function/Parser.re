@@ -12,7 +12,7 @@ module Util = AST.Util;
 let function_ =
     (
       ctx: ParseContext.t,
-      tag_export: AST.Raw.identifier_t => AST.Result.export_t,
+      tag_export: AST.Raw.identifier_t => AST.Module.export_t,
     )
     : declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.func)

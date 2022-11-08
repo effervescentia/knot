@@ -4,8 +4,10 @@
  May also allow for module data to be passed directly from an alternate source
  such as when operating as a Language Server for an IDE.
  */
-open Kore;
-open File;
+open Knot.Kore;
+
+module Cache = File.Cache;
+module IO = File.IO;
 
 type path_t = {
   full: string,

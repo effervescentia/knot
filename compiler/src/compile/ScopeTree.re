@@ -1,7 +1,9 @@
-open Kore;
-open Reference;
+open Knot.Kore;
 
-type t = RangeTree.t(option(list((Export.t, AST.Type.t))));
+module Export = Reference.Export;
+module Type = AST.Type;
+
+type t = RangeTree.t(option(list((Export.t, Type.t))));
 
 let rec _join =
   fun
@@ -31,7 +33,7 @@ let of_context = (~range=?, ()): t => {
 };
 
 let find_scope =
-    (point: Point.t, tree: t): option(list((Export.t, AST.Type.t))) => {
+    (point: Point.t, tree: t): option(list((Export.t, Type.t))) => {
   let contains = Range.contains_point(point);
 
   BinaryTree.search(
@@ -48,5 +50,5 @@ let find_scope =
   |?< snd;
 };
 
-let find_type = (id: string, point: Point.t, tree: t): option(AST.Type.t) =>
+let find_type = (id: string, point: Point.t, tree: t): option(Type.t) =>
   find_scope(point, tree) |?< List.assoc_opt(Export.Named(id));

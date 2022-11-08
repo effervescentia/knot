@@ -44,7 +44,7 @@ let _create_module =
     (
       ~imported=SymbolTable.Symbols.{values: [], types: []},
       ~exports=__types,
-      ast: AST.Result.program_t,
+      ast: AST.Module.program_t,
     )
     : ModuleTable.module_t => {
   ast,

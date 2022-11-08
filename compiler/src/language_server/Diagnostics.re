@@ -1,5 +1,7 @@
 open Kore;
 
+module Error = AST.Error;
+
 type severity =
   | Error
   | Warning
@@ -27,7 +29,7 @@ let notification = (uri: string, errs) =>
                ("range", Serialize.range(range)),
                ("severity", `Int(severity(Error))),
                ("source", `String(Target.knot)),
-               ("message", `String(err |> ~@AST.Error.pp_parse_err)),
+               ("message", `String(err |> ~@Error.pp_parse_err)),
              ])
            ),
       ),
@@ -38,14 +40,14 @@ let send =
     (
       {server, _}: Runtime.t,
       source_dir: string,
-      errs: list(AST.Error.compile_err),
+      errs: list(Error.compile_err),
     ) => {
   let grouped_errs = Hashtbl.create(1);
 
   errs
   |> List.iter(
        fun
-       | AST.Error.ParseError(err, namespace, range) =>
+       | Error.ParseError(err, namespace, range) =>
          Hashtbl.replace(
            grouped_errs,
            namespace,

@@ -1,9 +1,10 @@
 open Knot.Kore;
-open Reference;
 
 module Fmt = Pretty.Formatters;
+module Namespace = Reference.Namespace;
+module Plugin = Reference.Plugin;
 
-type exports_t = list((Export.t, Type.t));
+type exports_t = list((Reference.Export.t, Type.t));
 type scope_tree_t = RangeTree.t(option(exports_t));
 type module_entries_t =
   list((string, Type.Container.module_entry_t(Type.t)));
@@ -12,7 +13,7 @@ type library_t = {symbols: SymbolTable.t};
 
 type module_t = {
   symbols: SymbolTable.t,
-  ast: Result.program_t,
+  ast: Module.program_t,
   scopes: scope_tree_t,
 };
 
@@ -174,7 +175,7 @@ let _pp_library: Fmt.t(library_t) =
       |> Hashtbl.pp(string, string, ppf)
     );
 
-let _pp_module: Fmt.t(Result.program_t) => Fmt.t(module_t) =
+let _pp_module: Fmt.t(Module.program_t) => Fmt.t(module_t) =
   (pp_program, ppf, {ast, symbols, _}) =>
     Fmt.(
       [
@@ -186,7 +187,7 @@ let _pp_module: Fmt.t(Result.program_t) => Fmt.t(module_t) =
       |> Hashtbl.pp(string, string, ppf)
     );
 
-let _pp_entry: Fmt.t(Result.program_t) => Fmt.t(entry_t) =
+let _pp_entry: Fmt.t(Module.program_t) => Fmt.t(entry_t) =
   (pp_program, ppf) =>
     fun
     | Library(raw, library) =>
@@ -210,7 +211,7 @@ let _pp_entry: Fmt.t(Result.program_t) => Fmt.t(entry_t) =
     | Purged => Fmt.pf(ppf, "Purged")
     | Pending => Fmt.pf(ppf, "Pending");
 
-let pp: Fmt.t(Result.program_t) => Fmt.t(t) =
+let pp: Fmt.t(Module.program_t) => Fmt.t(t) =
   (pp_program, ppf, table: t) =>
     Fmt.struct_(
       Fmt.string,

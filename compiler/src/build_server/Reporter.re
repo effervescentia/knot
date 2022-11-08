@@ -1,8 +1,6 @@
 open Kore;
 open AST.Error;
 
-module Resolver = Resolve.Resolver;
-
 let method_key = "compiler/error";
 
 let __arrow_sep = Fmt.Sep.(of_sep(~trail=Trail.nop, " ->"));
@@ -38,7 +36,7 @@ let report = (server: JSONRPC.Server.t, errors: list(compile_err)) => {
                  namespace
                  |> Fmt.str(
                       "module '%a' did not contain valid source code",
-                      Namespace.pp,
+                      Reference.Namespace.pp,
                     ),
                ),
              ),

@@ -25,15 +25,14 @@ type expression_parsers_arg_t = (
   contextual_expression_parser_t,
 );
 
-type jsx_parser_t = Parse.Kore.parser_t(Node.t(AST.Raw.jsx_t, unit));
+type jsx_parser_t = Parse.Parser.t(Node.t(AST.Raw.jsx_t, unit));
 
-type jsx_attribute_parser_t = Parse.Kore.parser_t(AST.Raw.jsx_attribute_t);
+type jsx_attribute_parser_t = Parse.Parser.t(AST.Raw.jsx_attribute_t);
 type jsx_attribute_list_parser_t =
-  Parse.Kore.parser_t(list(AST.Raw.jsx_attribute_t));
+  Parse.Parser.t(list(AST.Raw.jsx_attribute_t));
 
-type jsx_child_parser_t = Parse.Kore.parser_t(AST.Raw.jsx_child_t);
-type jsx_child_list_parser_t =
-  Parse.Kore.parser_t(list(AST.Raw.jsx_child_t));
+type jsx_child_parser_t = Parse.Parser.t(AST.Raw.jsx_child_t);
+type jsx_child_list_parser_t = Parse.Parser.t(list(AST.Raw.jsx_child_t));
 
 let _attribute =
     (

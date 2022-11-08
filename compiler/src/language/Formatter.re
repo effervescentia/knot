@@ -1,37 +1,36 @@
-open Kore;
+open Knot.Kore;
 open FormatterUtils;
 
 let __default_margin = 120;
 
-let pp_declaration_list: Fmt.t(list((string, AST.Result.raw_declaration_t))) =
+let pp_declaration_list: Fmt.t(list((string, AST.Module.raw_declaration_t))) =
   ppf => {
     let rec loop =
-      fun
-      | [] => Fmt.nop(ppf, ())
+      AST.Module.(
+        fun
+        | [] => Fmt.nop(ppf, ())
 
-      /* do not add newline after the last statement */
-      | [decl] =>
-        KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl)
+        /* do not add newline after the last statement */
+        | [decl] =>
+          KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl)
 
-      /* handle constant clustering logic, separate with newlines */
-      | [
-          (_, AST.Result.Constant(_)) as decl,
-          ...[(_, AST.Result.Constant(_)), ..._] as xs,
-        ] => {
-          KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
-          Fmt.cut(ppf, ());
+        /* handle constant clustering logic, separate with newlines */
+        | [(_, Constant(_)) as decl, ...[(_, Constant(_)), ..._] as xs] => {
+            KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
+            Fmt.cut(ppf, ());
 
-          loop(xs);
-        }
+            loop(xs);
+          }
 
-      /* followed by declarations that are not constants, add a full line break */
-      | [decl, ...xs] => {
-          KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
-          Fmt.cut(ppf, ());
-          Fmt.cut(ppf, ());
+        /* followed by declarations that are not constants, add a full line break */
+        | [decl, ...xs] => {
+            KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
+            Fmt.cut(ppf, ());
+            Fmt.cut(ppf, ());
 
-          loop(xs);
-        };
+            loop(xs);
+          }
+      );
 
     loop;
   };
@@ -65,7 +64,7 @@ let pp_all_imports:
            )
          );
 
-let format = (~margin=__default_margin): Fmt.t(AST.Result.program_t) =>
+let format = (~margin=__default_margin): Fmt.t(AST.Module.program_t) =>
   (ppf, program) => {
     let orig_margin = Format.get_margin();
     Format.set_margin(margin);

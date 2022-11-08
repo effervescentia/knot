@@ -1,14 +1,9 @@
 open Kore;
 
-module A = AST.Result;
-module AE = AST.Expression;
-module U = Util.ResultUtil;
-module TE = AST.TypeExpression;
-
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N.t((A.export_t, A.declaration_t), unit);
+    type t = N.t((AM.export_t, AM.declaration_t), unit);
 
     let parser = ctx =>
       KFunction.Plugin.parse(ctx, A.of_named_export)

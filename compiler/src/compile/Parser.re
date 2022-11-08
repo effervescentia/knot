@@ -1,11 +1,12 @@
 /**
  Parsers to extract information from modules.
  */
-open Kore;
-open Parse.Parser;
+open Knot.Kore;
 
 module ParseContext = AST.ParseContext;
 module Program = Language.Program;
+
+let _parse = Parse.Parser.parse;
 
 /**
  parses document head to extract only the import statements
@@ -13,7 +14,7 @@ module Program = Language.Program;
  anything that cannot be parsed as an import statement will be ignored
  */
 let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
-  parse(
+  _parse(
     namespace |> ParseContext.create(~report=ignore) |> Program.imports,
     input,
   )
@@ -23,11 +24,11 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
       stmts
       |> List.filter_map(
            fst
-           % (
-             fun
-             | AST.Result.Import(namespace, _) => Some(namespace)
-             | _ => None
-           ),
+           % AST.Module.(
+               fun
+               | Import(namespace, _) => Some(namespace)
+               | _ => None
+             ),
          )
     | None => []
   );
@@ -37,7 +38,7 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
  */
 let ast = (ctx: ParseContext.t, input: Program.input_t) =>
   input
-  |> parse(Program.main(ctx))
+  |> _parse(Program.main(ctx))
   |> (
     fun
     | Some(stmts) => Ok(stmts)
@@ -49,7 +50,7 @@ let ast = (ctx: ParseContext.t, input: Program.input_t) =>
  */
 let definition = (ctx: ParseContext.t, input: Program.input_t) =>
   input
-  |> parse(Program.definition(ctx))
+  |> _parse(Program.definition(ctx))
   |> (
     fun
     | Some(modules_) => Ok(modules_)

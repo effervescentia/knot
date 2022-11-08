@@ -1,7 +1,5 @@
 open Kore;
 
-module Compiler = Compile.Compiler;
-
 type client_info_t = {
   name: string,
   version: option(string),

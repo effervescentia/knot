@@ -40,7 +40,7 @@ let create = (~default=Config.defaults.entry, ()) => {
     absolute_entry
     |> Filename.relative_to(source_dir)
     |> String.drop_suffix(Constants.file_extension)
-    |> Namespace.of_internal;
+    |> Reference.Namespace.of_internal;
   };
 
   (argument, resolve);

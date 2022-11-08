@@ -5,7 +5,7 @@ open AST.ParserTypes;
 module Matchers = Parse.Matchers;
 module TE = AST.TypeExpression;
 
-type type_expression_parser_t = Parse.Kore.parser_t(AST.TypeExpression.t);
+type type_expression_parser_t = Parse.Parser.t(AST.TypeExpression.t);
 
 let primitive_types =
   TE.[

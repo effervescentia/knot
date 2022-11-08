@@ -1,10 +1,9 @@
 open Kore;
-open AST.Error;
 
+module Namespace = Reference.Namespace;
 module Resolver = Resolve.Resolver;
 module Source = Resolve.Source;
 module Type = AST.Type;
-module Writer = File.Writer;
 
 let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
 
@@ -614,139 +613,144 @@ let _extract_type_err =
     );
 
 let _extract_parse_err =
-  fun
-  | TypeError(err) => _extract_type_err(err)
+  AST.Error.(
+    fun
+    | TypeError(err) => _extract_type_err(err)
 
-  | ReservedKeyword(name) => (
-      "Reserved Keyword",
-      (
-        ppf =>
-          Fmt.(
-            pf(
-              ppf,
-              "the reserved keyword %a was used as an identifier",
-              bad_str,
-              name,
-            )
-          )
-      ),
-      [
+    | ReservedKeyword(name) => (
+        "Reserved Keyword",
         (
-          Fmt.(
-            (
-              ppf =>
-                pf(
-                  ppf,
-                  "check that the identifier %a is spelled correctly",
-                  bad_str,
-                  name,
-                )
+          ppf =>
+            Fmt.(
+              pf(
+                ppf,
+                "the reserved keyword %a was used as an identifier",
+                bad_str,
+                name,
+              )
             )
-          ),
-          [],
         ),
-        (
-          Fmt.(
-            (
-              ppf =>
-                pf(
-                  ppf,
-                  "rename %a so that there is no conflict with reserved keywords (%s)",
-                  bad_str,
-                  name,
-                  Constants.Keyword.reserved
-                  |> List.map(~@bold_str)
-                  |> String.join(~separator=", "),
-                )
-            )
+        [
+          (
+            Fmt.(
+              (
+                ppf =>
+                  pf(
+                    ppf,
+                    "check that the identifier %a is spelled correctly",
+                    bad_str,
+                    name,
+                  )
+              )
+            ),
+            [],
           ),
-          [],
-        ),
-      ],
-    );
+          (
+            Fmt.(
+              (
+                ppf =>
+                  pf(
+                    ppf,
+                    "rename %a so that there is no conflict with reserved keywords (%s)",
+                    bad_str,
+                    name,
+                    Constants.Keyword.reserved
+                    |> List.map(~@bold_str)
+                    |> String.join(~separator=", "),
+                  )
+              )
+            ),
+            [],
+          ),
+        ],
+      )
+  );
 
 let _extract_compile_err = resolver =>
-  fun
-  | ImportCycle(_) as err => (
-      "Import Cycle Found",
-      None,
-      (ppf => err |> pp_compile_err(ppf)),
-    )
+  AST.Error.(
+    fun
+    | ImportCycle(_) as err => (
+        "Import Cycle Found",
+        None,
+        (ppf => err |> pp_compile_err(ppf)),
+      )
 
-  | UnresolvedModule(_) as err => (
-      "Unresolved Module",
-      None,
-      (ppf => err |> pp_compile_err(ppf)),
-    )
+    | UnresolvedModule(_) as err => (
+        "Unresolved Module",
+        None,
+        (ppf => err |> pp_compile_err(ppf)),
+      )
 
-  | FileNotFound(_) as err => (
-      "File Not Found",
-      None,
-      (ppf => err |> pp_compile_err(ppf)),
-    )
+    | FileNotFound(_) as err => (
+        "File Not Found",
+        None,
+        (ppf => err |> pp_compile_err(ppf)),
+      )
 
-  | InvalidModule(namespace) as err => (
-      "Invalid Module",
-      resolver
-      |> Resolver.resolve_module(~skip_cache=true, namespace)
-      |> Source.get_path
-      |?> (x => (x, Range.zero)),
-      (ppf => err |> pp_compile_err(ppf)),
-    )
+    | InvalidModule(namespace) as err => (
+        "Invalid Module",
+        resolver
+        |> Resolver.resolve_module(~skip_cache=true, namespace)
+        |> Source.get_path
+        |?> (x => (x, Range.zero)),
+        (ppf => err |> pp_compile_err(ppf)),
+      )
 
-  | ParseError(err, namespace, range) =>
-    _extract_parse_err(err)
-    |> Tuple.join3((title, description, resolutions) => {
-         let module_ =
-           Resolver.resolve_module(namespace, resolver)
-           |> Source.read_to_string;
+    | ParseError(err, namespace, range) =>
+      _extract_parse_err(err)
+      |> Tuple.join3((title, description, resolutions) => {
+           let module_ =
+             Resolver.resolve_module(namespace, resolver)
+             |> Source.read_to_string;
 
-         (
-           title,
-           resolver
-           |> Resolver.resolve_module(~skip_cache=true, namespace)
-           |> Source.get_path
-           |?> (x => (x, range)),
            (
-             ppf =>
-               Fmt.(
-                 pf(
-                   ppf,
-                   "%t%a%a",
-                   description,
-                   ppf =>
-                     fun
-                     | Ok(x) =>
-                       pf(
-                         ppf,
-                         "@,@.@[<v 0>%a@]",
-                         ppf => File.CodeFrame.pp(ppf),
-                         (x, range),
-                       )
-                     | Error(_) => pf(ppf, "@,@,[code frame not available]"),
-                   module_,
-                   ppf =>
-                     fun
-                     | [] => nop(ppf, ())
-                     | _ =>
-                       pf(
-                         ppf,
-                         "@,@,@[<hv>try one of the following to resolve this issue:@,%a@]",
-                         indented(
-                           list(
-                             ~layout=Vertical,
-                             ~sep=Sep.double_newline,
-                             _pp_resolution,
+             title,
+             resolver
+             |> Resolver.resolve_module(~skip_cache=true, namespace)
+             |> Source.get_path
+             |?> (x => (x, range)),
+             (
+               ppf =>
+                 Fmt.(
+                   pf(
+                     ppf,
+                     "%t%a%a",
+                     description,
+                     ppf =>
+                       fun
+                       | Ok(x) =>
+                         pf(
+                           ppf,
+                           "@,@.@[<v 0>%a@]",
+                           ppf => File.CodeFrame.pp(ppf),
+                           (x, range),
+                         )
+                       | Error(_) =>
+                         pf(ppf, "@,@,[code frame not available]"),
+                     module_,
+                     ppf =>
+                       fun
+                       | [] => nop(ppf, ())
+                       | _ =>
+                         pf(
+                           ppf,
+                           "@,@,@[<hv>try one of the following to resolve this issue:@,%a@]",
+                           indented(
+                             list(
+                               ~layout=Vertical,
+                               ~sep=Sep.double_newline,
+                               _pp_resolution,
+                             ),
                            ),
+                           resolutions,
                          ),
-                         resolutions,
-                       ),
-                   resolutions,
+                     resolutions,
+                   )
                  )
-               )
-           ),
-         );
-       });
+             ),
+           );
+         })
+  );
 
 let _pp_header: Fmt.t(string) =
   (ppf, title) => {
@@ -786,7 +790,7 @@ let _pp_summary: Fmt.t((int, int)) =
 let report =
     (
       resolver: Resolver.t,
-      errors: list(compile_err),
+      errors: list(AST.Error.compile_err),
       ppf: Stdlib.Format.formatter,
     ) => {
   let summary = (List.length(errors), 0) |> ~@_pp_summary;
@@ -820,8 +824,8 @@ let report =
   );
 };
 
-let panic = (resolver: Resolver.t, errors: list(compile_err)) => {
-  report(resolver, errors) |> Writer.write(stderr);
+let panic = (resolver: Resolver.t, errors: list(AST.Error.compile_err)) => {
+  report(resolver, errors) |> File.Writer.write(stderr);
 
   exit(2);
 };

@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 
 type t = {
   name: string,

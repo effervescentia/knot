@@ -1,6 +1,6 @@
 open Knot.Kore;
-open Reference;
 
+module Namespace = Reference.Namespace;
 module Symbols = SymbolTable.Symbols;
 
 type t = {
@@ -52,7 +52,8 @@ let report = (err: Error.parse_err, range: Range.t, ctx: t) =>
 /**
  find the type of an export from a different module and import it into the symbol table
  */
-let import = (namespace: Namespace.t, id: Export.t, alias: string, ctx: t) => {
+let import =
+    (namespace: Namespace.t, id: Reference.Export.t, alias: string, ctx: t) => {
   let module_ = ctx.modules |> ModuleTable.find(namespace);
   let symbols =
     module_

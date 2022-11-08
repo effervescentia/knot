@@ -1,6 +1,7 @@
 open Executable.Kore;
 open Kore;
 
+module Namespace = Reference.Namespace;
 module Processor = Executable.Processor;
 module Task = Executable.Task;
 

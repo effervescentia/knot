@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 
 let __asset_dirs = Injected.Sites.assets;
 

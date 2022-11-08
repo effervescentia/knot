@@ -1,16 +1,13 @@
 open Kore;
 
-module A = AST.Result;
 module Export = Reference.Export;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
-module T = AST.Type;
-module U = Util.ResultUtil;
 
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N.t((A.export_t, A.declaration_t), unit);
+    type t = N.t((AM.export_t, AM.declaration_t), unit);
 
     let parser = ctx =>
       KConstant.Plugin.parse(ctx, A.of_named_export)

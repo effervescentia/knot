@@ -3,6 +3,8 @@
  */
 open Kore;
 
+module Namespace = Reference.Namespace;
+
 type config_t = {
   target: Target.t,
   root_dir: string,

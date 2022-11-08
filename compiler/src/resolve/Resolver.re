@@ -1,4 +1,6 @@
-open Kore;
+open Knot.Kore;
+
+module Cache = File.Cache;
 
 /**
  resolves modules on disk based on an identifier

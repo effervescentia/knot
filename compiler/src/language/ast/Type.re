@@ -1,5 +1,4 @@
 open Knot.Kore;
-open Reference;
 
 exception UnknownTypeEncountered;
 
@@ -197,7 +196,7 @@ and invalid_t =
 
 type error_t =
   | NotFound(string)
-  | ExternalNotFound(Namespace.t, Export.t)
+  | ExternalNotFound(Reference.Namespace.t, Reference.Export.t)
   /* FIXME: not reported */
   | DuplicateIdentifier(string)
   /* FIXME: not reported */
@@ -264,9 +263,9 @@ let pp_error: Fmt.t(error_t) =
         pf(
           ppf,
           "ExternalNotFound<%a#%a>",
-          Namespace.pp,
+          Reference.Namespace.pp,
           namespace,
-          Export.pp,
+          Reference.Export.pp,
           id,
         )
 

@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 
 let _to_point = (cursor, decoder) =>
   cursor
@@ -17,6 +17,12 @@ let _to_stream = (cursor, decoder) =>
     }
   );
 
+let _decoder = input =>
+  Uutf.decoder(
+    ~nln=`Readline(Uchar.of_char(Constants.Character.eol)),
+    input,
+  );
+
 /**
  wrapper to ingest a stream of unicode characters
  */
@@ -24,11 +30,9 @@ type t = Stream.t(Input.t);
 
 /* static */
 
-let of_string = (~cursor=true, s: string): t =>
-  decoder(`String(s)) |> _to_stream(cursor);
+let of_string = (~cursor=true) => Decoder.of_string % _to_stream(cursor);
 
-let of_channel = (~cursor=true, channel: in_channel): t =>
-  decoder(`Channel(channel)) |> _to_stream(cursor);
+let of_channel = (~cursor=true) => Decoder.of_channel % _to_stream(cursor);
 
 /* methods */
 

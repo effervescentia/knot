@@ -1,39 +1,43 @@
 open Knot.Kore;
 open Parse.Onyx;
 
-module ParseContext = AST.ParseContext;
+module Export = Reference.Export;
+module Keyword = Constants.Keyword;
 module Matchers = Parse.Matchers;
+module ParseContext = AST.ParseContext;
 
-let _import_keyword = Matchers.keyword(Constants.Keyword.import);
-let _from_keyword = Matchers.keyword(Constants.Keyword.from);
+let _import_keyword = Matchers.keyword(Keyword.import);
+let _from_keyword = Matchers.keyword(Keyword.from);
 
 let _import_named = (ctx: ParseContext.t, import) =>
   fun
   | (((id, _), None), _) as no_alias =>
     ctx
-    |> import(Reference.Export.Named(id), id)
+    |> import(Export.Named(id), id)
     |> Result.map_error(Tuple.with_snd2(Node.get_range(no_alias)))
 
   | (((id, _), Some((alias, _))), _) as with_alias =>
     ctx
-    |> import(Reference.Export.Named(id), alias)
+    |> import(Export.Named(id), alias)
     |> Result.map_error(Tuple.with_snd2(Node.get_range(with_alias)));
 
 let _import_module = (ctx, imports, import) =>
   imports
   |> List.map(
-       fun
-       | (AST.Result.MainImport((alias, _)), _) as main_import =>
-         ctx
-         |> import(Reference.Export.Main, alias)
-         |> Result.map_error(Tuple.with_snd2(Node.get_range(main_import)))
+       AST.Module.(
+         fun
+         | (MainImport((alias, _)), _) as main_import =>
+           ctx
+           |> import(Export.Main, alias)
+           |> Result.map_error(Tuple.with_snd2(Node.get_range(main_import)))
 
-       | (AST.Result.NamedImport(id, alias), _) as named_import =>
-         _import_named(
-           ctx,
-           import,
-           Node.untyped((id, alias), Node.get_range(named_import)),
-         ),
+         | (NamedImport(id, alias), _) as named_import =>
+           _import_named(
+             ctx,
+             import,
+             Node.untyped((id, alias), Node.get_range(named_import)),
+           )
+       ),
      );
 
 let namespace = imports =>
@@ -49,7 +53,7 @@ let named_imports = (ctx: ParseContext.t) =>
   KIdentifier.Plugin.parse(ctx)
   >>= (
     id =>
-      Matchers.keyword(Constants.Keyword.as_)
+      Matchers.keyword(Keyword.as_)
       >> KIdentifier.Plugin.parse(ctx)
       >|= (alias => (id, Some(alias)))
   )

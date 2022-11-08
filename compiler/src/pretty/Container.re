@@ -1,5 +1,4 @@
 open Kore;
-open Whitespace;
 
 let __indent_spaces = 2;
 
@@ -18,7 +17,7 @@ let page = (pp_value: t('a)): t('a) =>
  print an indented value
  */
 let indented = (pp_value: t('a)): t('a) =>
-  ppf => pf(ppf, "%t%a", indent, pp_value);
+  ppf => pf(ppf, "%t%a", Whitespace.indent, pp_value);
 
 let attribute = (pp_key: t('a), pp_value: t('b)): t(('a, 'b)) =>
   (ppf, (key, value)) => pf(ppf, "%a: %a", pp_key, key, pp_value, value);
@@ -140,7 +139,7 @@ let destruct = (pp_entry, ppf, entries) =>
   pf(
     ppf,
     "{%t%a}",
-    space_or_indent,
+    Whitespace.space_or_indent,
     list(~sep=_destruct_comma_sep, pp_entry),
     entries,
   );

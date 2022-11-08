@@ -1,16 +1,13 @@
 open Kore;
 
-module A = AST.Result;
 module Export = Reference.Export;
 module ModuleTable = AST.ModuleTable;
 module ParseContext = AST.ParseContext;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
 module U = Util.CommonUtil;
 
 module Assert =
   Assert.Make({
-    type t = A.module_statement_t;
+    type t = AM.module_statement_t;
 
     let parser = KImport.Plugin.parse % Assert.parse_completely % Parser.parse;
 
@@ -19,7 +16,7 @@ module Assert =
         check(
           testable(
             ppf =>
-              Language.Program.module_statement_to_xml(~@AST.Type.pp)
+              Language.Program.module_statement_to_xml(~@T.pp)
               % Fmt.xml_string(ppf),
             (==),
           ),
@@ -30,11 +27,10 @@ module Assert =
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
-let _create_module =
-    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+let _create_module = (exports: list((Export.t, T.t))): ModuleTable.module_t => {
   ast: [],
   scopes: __scope_tree,
-  symbols: SymbolTable.of_export_list(exports),
+  symbols: AST.SymbolTable.of_export_list(exports),
 };
 
 let _create_module_table = modules =>
@@ -53,9 +49,9 @@ let __context_with_named_exports =
           ModuleTable.Valid(
             "foo",
             _create_module([
-              (Export.Main, Type.Valid(`Nil)),
-              (Export.Named("bar"), Type.Valid(`Boolean)),
-              (Export.Named("foo"), Type.Valid(`String)),
+              (Export.Main, T.Valid(`Nil)),
+              (Export.Named("bar"), T.Valid(`Boolean)),
+              (Export.Named("foo"), T.Valid(`String)),
             ]),
           ),
         ),
@@ -72,7 +68,7 @@ let __context_with_main_export =
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, Type.Valid(`Nil))]),
+            _create_module([(Export.Main, T.Valid(`Nil))]),
           ),
         ),
       ]

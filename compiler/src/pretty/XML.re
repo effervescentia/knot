@@ -1,6 +1,4 @@
 open Kore;
-open Whitespace;
-open Container;
 
 type xml_attr_t('a) = (string, 'a);
 
@@ -21,8 +19,8 @@ let rec xml = (pp_attr: Fmt.t('a)): Fmt.t(xml_t('a)) =>
         ppf,
         "@[<hv><%s%t%a/>@]",
         name,
-        space_or_indent,
-        list(~sep=_inline_node_attr_sep, node_attr(pp_attr)),
+        Whitespace.space_or_indent,
+        Container.list(~sep=_inline_node_attr_sep, node_attr(pp_attr)),
         attrs,
       )
 
@@ -31,7 +29,11 @@ let rec xml = (pp_attr: Fmt.t('a)): Fmt.t(xml_t('a)) =>
         ppf,
         "@[<v><%s>%a</%s>@]",
         name,
-        block(~layout=Vertical, ~sep=Sep.trailing_newline, xml(pp_attr)),
+        Container.block(
+          ~layout=Vertical,
+          ~sep=Sep.trailing_newline,
+          xml(pp_attr),
+        ),
         tags,
         name,
       )
@@ -41,10 +43,14 @@ let rec xml = (pp_attr: Fmt.t('a)): Fmt.t(xml_t('a)) =>
         ppf,
         "@[<v>@[<hv><%s%t%a>@]%a</%s>@]",
         name,
-        space_or_indent,
-        list(~sep=_node_attr_sep, node_attr(pp_attr)),
+        Whitespace.space_or_indent,
+        Container.list(~sep=_node_attr_sep, node_attr(pp_attr)),
         attrs,
-        block(~layout=Vertical, ~sep=Sep.trailing_newline, xml(pp_attr)),
+        Container.block(
+          ~layout=Vertical,
+          ~sep=Sep.trailing_newline,
+          xml(pp_attr),
+        ),
         tags,
         name,
       );

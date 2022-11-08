@@ -98,7 +98,7 @@ module type TypedParserParams = {
   type value_t;
   type type_t;
 
-  let parser: ParseContext.t => Language.Kore.parser_t(N.t(value_t, type_t));
+  let parser: ParseContext.t => Parse.Parser.t(N.t(value_t, type_t));
 
   let pp_value: Fmt.t(value_t);
   let pp_type: Fmt.t(type_t);
@@ -130,7 +130,7 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Language.Kore.parser_t(N.t(AR.primitive_t, unit));
+  let parser: Parse.Parser.t(N.t(AR.primitive_t, unit));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>

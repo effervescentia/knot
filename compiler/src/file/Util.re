@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 
 let __root_dir = Target.knot;
 

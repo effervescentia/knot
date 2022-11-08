@@ -1,7 +1,5 @@
 open Kore;
 
-module ImportGraph = Resolve.ImportGraph;
-
 module Status = {
   type t =
     | Idle

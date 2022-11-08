@@ -10,7 +10,7 @@ module TD = AST.TypeDefinition;
 module Util = Parse.Util;
 
 type type_module_statement_parser_t =
-  ParseContext.t => Parse.Kore.parser_t(AST.TypeDefinition.module_statement_t);
+  ParseContext.t => Parse.Parser.t(AST.TypeDefinition.module_statement_t);
 
 let type_variant = (ctx: ParseContext.t) =>
   KIdentifier.Plugin.parse(ctx)

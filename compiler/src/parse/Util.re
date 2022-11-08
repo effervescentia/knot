@@ -1,7 +1,7 @@
 open Kore;
 open Onyx;
 
-let unary_op = (f, x) => N.typed(f(x), (), N.get_range(x));
+let unary_op = (f, x) => Node.typed(f(x), (), Node.get_range(x));
 
 let binary_op = (f, (l, r)) =>
   Node.typed((l, r) |> f, (), Node.join_ranges(l, r));

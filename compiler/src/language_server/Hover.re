@@ -1,7 +1,5 @@
 open Kore;
 
-module ModuleTable = AST.ModuleTable;
-
 type params_t = {
   text_document: Protocol.text_document_t,
   position: Protocol.position_t,

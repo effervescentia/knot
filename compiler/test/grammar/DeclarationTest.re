@@ -1,12 +1,9 @@
 open Kore;
 
-module A = AST.Result;
-module U = Util.ResultUtil;
-
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = A.module_statement_t;
+    type t = AM.module_statement_t;
 
     let parser =
       KDeclaration.Plugin.parse % Assert.parse_completely % Parser.parse;

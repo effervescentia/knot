@@ -5,7 +5,7 @@ let parse = Parser.import;
 let pp = Formatter.pp_import;
 
 let to_xml:
-  ((Reference.Namespace.t, list(AST.Result.import_t))) => Fmt.xml_t(string) =
+  ((Reference.Namespace.t, list(AST.Module.import_t))) => Fmt.xml_t(string) =
   ((namespace, imports)) =>
     Node(
       "Import",
@@ -14,15 +14,15 @@ let to_xml:
       |> List.map(
            Dump.node_to_xml(
              ~unpack=
-               (
+               AST.Module.(
                  fun
-                 | AST.Result.MainImport(name) =>
+                 | MainImport(name) =>
                    Fmt.Node(
                      "MainImport",
                      [],
                      [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)],
                    )
-                 | AST.Result.NamedImport(name, alias) =>
+                 | NamedImport(name, alias) =>
                    Fmt.Node(
                      "NamedImport",
                      [],

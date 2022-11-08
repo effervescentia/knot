@@ -2,7 +2,8 @@
  Errors and utilities for problems encountered while compiling.
  */
 open Knot.Kore;
-open Reference;
+
+module Namespace = Reference.Namespace;
 
 /**
  errors encountered while parsing

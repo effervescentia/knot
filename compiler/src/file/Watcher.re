@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 open Fswatch;
 open Lwt;
 
@@ -14,25 +14,23 @@ type t = {
 
 type dispatch_t = list((string, FilesystemDriver.action_t)) => unit;
 
-let _flag_to_string: Fswatch.Event.flag => string =
-  Fswatch.Event.(
-    fun
-    | NoOp => "NoOp"
-    | PlatformSpecific => "PlatformSpecific"
-    | Created => "Created"
-    | Updated => "Updated"
-    | Removed => "Removed"
-    | Renamed => "Renamed"
-    | OwnerModified => "OwnerModified"
-    | AttributeModified => "AttributeModified"
-    | MovedFrom => "MovedFrom"
-    | MovedTo => "MovedTo"
-    | IsFile => "IsFile"
-    | IsDir => "IsDir"
-    | IsSymLink => "IsSymLink"
-    | Link => "Link"
-    | Overflow => "Overflow"
-  );
+let _flag_to_string: Event.flag => string =
+  fun
+  | NoOp => "NoOp"
+  | PlatformSpecific => "PlatformSpecific"
+  | Created => "Created"
+  | Updated => "Updated"
+  | Removed => "Removed"
+  | Renamed => "Renamed"
+  | OwnerModified => "OwnerModified"
+  | AttributeModified => "AttributeModified"
+  | MovedFrom => "MovedFrom"
+  | MovedTo => "MovedTo"
+  | IsFile => "IsFile"
+  | IsDir => "IsDir"
+  | IsSymLink => "IsSymLink"
+  | Link => "Link"
+  | Overflow => "Overflow";
 
 let _drop_platform_prefix =
   switch (Platform.get()) {

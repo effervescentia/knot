@@ -1,5 +1,6 @@
 open Kore;
 
+module Namespace = Reference.Namespace;
 module Status = Runtime.Status;
 
 type namespace_error_t =

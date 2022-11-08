@@ -11,7 +11,7 @@ module Type = AST.Type;
 module Util = Parse.Util;
 
 type type_module_parser_t =
-  ParseContext.t => Parse.Kore.parser_t(AST.TypeDefinition.module_t);
+  ParseContext.t => Parse.Parser.t(AST.TypeDefinition.module_t);
 
 let _module_keyword = Matchers.keyword(Constants.Keyword.module_);
 

@@ -1,21 +1,15 @@
 open Kore;
 open Reference;
 
-module A = AST.Result;
-module AR = AST.Raw;
 module ModuleTable = AST.ModuleTable;
 module ParseContext = AST.ParseContext;
 module Program = Language.Program;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
-module U = Util.ResultUtil;
 
 let dump_program = ppf =>
-  Language.Program.program_to_xml(~@AST.Type.pp)
-  % Pretty.XML.xml(Fmt.string, ppf);
+  Language.Program.program_to_xml(~@T.pp) % Pretty.XML.xml(Fmt.string, ppf);
 
 module Target = {
-  type t = A.program_t;
+  type t = AM.program_t;
 
   let parser = Program.main % Parser.parse;
 
@@ -50,11 +44,10 @@ let __const_decl_ast =
   |> A.of_decl
   |> U.as_untyped;
 
-let _create_module =
-    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+let _create_module = (exports: list((Export.t, T.t))): ModuleTable.module_t => {
   ast: [],
   scopes: __scope_tree,
-  symbols: SymbolTable.of_export_list(exports),
+  symbols: AST.SymbolTable.of_export_list(exports),
 };
 
 let _create_module_table = modules =>
@@ -72,7 +65,7 @@ let __context =
           "bar" |> A.of_internal,
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, Type.Valid(`String))]),
+            _create_module([(Export.Main, T.Valid(`String))]),
           ),
         ),
       ]
@@ -128,7 +121,7 @@ let suite =
                     "bar" |> A.of_internal,
                     ModuleTable.Valid(
                       "foo",
-                      _create_module([(Export.Main, Type.Valid(`Boolean))]),
+                      _create_module([(Export.Main, T.Valid(`Boolean))]),
                     ),
                   ),
                 ]

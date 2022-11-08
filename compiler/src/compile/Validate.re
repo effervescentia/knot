@@ -1,8 +1,11 @@
 /**
  Static analysis validators for compiler state.
  */
-open Kore;
-open Reference;
+open Knot.Kore;
+
+module Error = AST.Error;
+module ImportGraph = Resolve.ImportGraph;
+module Namespace = Reference.Namespace;
 
 /**
  validate that an import graph does not contain cyclic imports
@@ -14,8 +17,7 @@ let no_import_cycles = (graph: ImportGraph.t) =>
   |> (
     fun
     | [] => Ok()
-    | cycles =>
-      Error(cycles |> List.map(cycle => AST.Error.ImportCycle(cycle)))
+    | cycles => Error(cycles |> List.map(cycle => Error.ImportCycle(cycle)))
   );
 
 /**
@@ -29,5 +31,5 @@ let no_unresolved_modules = (graph: ImportGraph.t) =>
     fun
     | [] => Ok()
     | missing =>
-      Error(missing |> List.map(path => AST.Error.UnresolvedModule(path)))
+      Error(missing |> List.map(path => Error.UnresolvedModule(path)))
   );

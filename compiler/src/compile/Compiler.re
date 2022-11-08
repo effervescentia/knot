@@ -1,9 +1,16 @@
-open Kore;
-open ModuleAliases;
+open Knot.Kore;
 
+module Cache = File.Cache;
+module Error = AST.Error;
+module ImportGraph = Resolve.ImportGraph;
+module IO = File.IO;
 module ModuleTable = AST.ModuleTable;
 module Namespace = Reference.Namespace;
-module Export = Reference.Export;
+module ParseContext = AST.ParseContext;
+module Plugin = Reference.Plugin;
+module Resolver = Resolve.Resolver;
+module Source = Resolve.Source;
+module Type = AST.Type;
 
 type config_t = {
   name: string,
@@ -16,8 +23,8 @@ type config_t = {
 };
 
 type action_t =
-  | Fatal(list(AST.Error.compile_err))
-  | Report(list(AST.Error.compile_err))
+  | Fatal(list(Error.compile_err))
+  | Report(list(Error.compile_err))
   | Flush;
 
 /**
@@ -68,7 +75,7 @@ let _purge_modules = (modules: list(Namespace.t), compiler: t) =>
 /**
  construct a new compiler instance
  */
-let create = (~report=_ => AST.Error.throw_all, config: config_t): t => {
+let create = (~report=_ => Error.throw_all, config: config_t): t => {
   let cache = Cache.create(config.name);
   let resolver = Resolver.create(cache, config.root_dir, config.source_dir);
 
@@ -83,10 +90,10 @@ let create = (~report=_ => AST.Error.throw_all, config: config_t): t => {
       ) {
       | Ok(x) => x
       | Error(path) =>
-        Report([AST.Error.FileNotFound(path)]) |> dispatch;
+        Report([Error.FileNotFound(path)]) |> dispatch;
         /* assume no imports if parsing failed */
         [];
-      | exception (AST.Error.CompileError(errs)) =>
+      | exception (Error.CompileError(errs)) =>
         Report(errs) |> dispatch;
         /* assume no imports if parsing failed */
         [];
@@ -118,7 +125,7 @@ let cache_modules = (modules, compiler) => {
               % ~@Fmt.captioned
               % Log.debug("cached module %s"),
             ~error=path =>
-            Report([AST.Error.FileNotFound(path)]) |> compiler.dispatch
+            Report([Error.FileNotFound(path)]) |> compiler.dispatch
           )
      );
 };
@@ -140,7 +147,7 @@ let validate = (compiler: t) => {
 let parse_module =
     (
       source: Source.t,
-      parser: Language.Program.input_t => result('a, AST.Error.compile_err),
+      parser: Language.Program.input_t => result('a, Error.compile_err),
       compiler: t,
     ) => {
   source
@@ -148,13 +155,13 @@ let parse_module =
   |> (
     fun
     | Ok(raw) => {
-        let ast = raw |> File.IO.read_string |> parser;
+        let ast = raw |> IO.read_string |> parser;
 
         Some((raw, ast));
       }
 
     | Error(path) => {
-        Report([AST.Error.FileNotFound(path)]) |> compiler.dispatch;
+        Report([Error.FileNotFound(path)]) |> compiler.dispatch;
 
         None;
       }
@@ -169,7 +176,7 @@ let process_one =
   let module_errors = ref([]);
 
   let context =
-    AST.ParseContext.create(
+    ParseContext.create(
       ~modules=compiler.modules,
       ~report=
         err => {
@@ -315,8 +322,8 @@ let emit_one = (target: Target.t, output_dir: string, namespace: Namespace.t) =>
 
         ModuleTable.get_entry_data
         % Option.iter((ModuleTable.{ast, _}) => {
-            Writer.write(out, ppf =>
-              Generator.pp(
+            File.Writer.write(out, ppf =>
+              Generate.Generator.pp(
                 target,
                 fun
                 | Internal(path) =>
@@ -363,7 +370,7 @@ let compile =
     ) => {
   compiler |> init(~skip_cache, entry);
 
-  File.IO.purge(output_dir);
+  IO.purge(output_dir);
 
   compiler |> emit(target, output_dir);
 };
@@ -437,7 +444,7 @@ let inject_raw = (~flush=true, id: Namespace.t, contents: string, compiler: t) =
   let added = ref([id]);
   let imports =
     contents
-    |> File.IO.read_string
+    |> IO.read_string
     |> Parser.imports(id)
     |> List.filter(x => !ImportGraph.has_module(x, compiler.graph));
 
@@ -459,7 +466,7 @@ let process_definition =
     (~flush=true, namespace: Namespace.t, source: Source.t, compiler: t) => {
   let module_errors = ref([]);
   let ctx =
-    AST.ParseContext.create(
+    ParseContext.create(
       ~report=
         err => {
           module_errors := module_errors^ @ [err];
@@ -499,7 +506,7 @@ let process_definition =
  register type definitions for the standard library
  */
 let add_standard_library = (~flush=true, compiler: t) => {
-  let namespace = Reference.Namespace.Stdlib;
+  let namespace = Namespace.Stdlib;
   let source = Source.File({relative: "", full: compiler.config.stdlib});
 
   compiler.graph.imports |> Graph.add_node(namespace);
@@ -522,8 +529,8 @@ let add_standard_library = (~flush=true, compiler: t) => {
              symbols.declared.values
              |> List.filter_map(
                   fun
-                  | (id, AST.Type.Valid(`Decorator(_)) as type_) =>
-                    Some((id, AST.Type.Container.Value(type_)))
+                  | (id, Type.Valid(`Decorator(_)) as type_) =>
+                    Some((id, Type.Container.Value(type_)))
                   | _ => None,
                 ),
            );
@@ -539,7 +546,7 @@ let add_standard_library = (~flush=true, compiler: t) => {
 };
 
 let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
-  let namespace = Reference.Namespace.Ambient;
+  let namespace = Namespace.Ambient;
   let source = Source.File({relative: "", full: compiler.config.ambient});
 
   Log.info(
@@ -559,15 +566,12 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
 
            | (
                _,
-               [AST.Result.String(name)],
-               AST.Type.Valid(`Module(entries)),
+               [AST.Primitive.String(name)],
+               Type.Valid(`Module(entries)),
              ) =>
-             if (Reference.Plugin.known |> List.mem(name)) {
+             if (Plugin.known |> List.mem(name)) {
                compiler.modules
-               |> ModuleTable.add_plugin(
-                    Reference.Plugin.of_string(name),
-                    entries,
-                  );
+               |> ModuleTable.add_plugin(Plugin.of_string(name), entries);
 
                Log.debug(
                  "registered ambient %s types in compiler context",
@@ -602,7 +606,7 @@ let prepare = (compiler: t) => {
 let reset = (compiler: t) => {
   ImportGraph.clear(compiler.graph);
   ModuleTable.reset(compiler.modules);
-  File.IO.purge(compiler.resolver.cache);
+  IO.purge(compiler.resolver.cache);
 };
 
 /**

@@ -5,7 +5,7 @@ let parse = Parser.declaration;
 let pp = Formatter.pp_declaration;
 
 let to_xml:
-  (AST.Type.t => string, (AST.Result.export_t, AST.Result.declaration_t)) =>
+  (AST.Type.t => string, (AST.Module.export_t, AST.Module.declaration_t)) =>
   Fmt.xml_t(string) =
   (dump_type, (name, decl)) =>
     Node(
@@ -21,19 +21,18 @@ let to_xml:
         Dump.node_to_xml(
           ~dump_type,
           ~unpack=
-            (
+            AST.Module.(
               fun
-              | AST.Result.Constant(expr) =>
-                KConstant.Plugin.to_xml(dump_type, expr)
-              | AST.Result.Enumerated(variants) =>
+              | Constant(expr) => KConstant.Plugin.to_xml(dump_type, expr)
+              | Enumerated(variants) =>
                 KEnumerated.Plugin.to_xml(dump_type, variants)
-              | AST.Result.Function(parameters, body) =>
+              | Function(parameters, body) =>
                 KFunction.Plugin.to_xml(
                   KExpression.Plugin.to_xml(dump_type),
                   dump_type,
                   (parameters, body),
                 )
-              | AST.Result.View(parameters, mixins, body) =>
+              | View(parameters, mixins, body) =>
                 KView.Plugin.to_xml(
                   KExpression.Plugin.to_xml(dump_type),
                   dump_type,

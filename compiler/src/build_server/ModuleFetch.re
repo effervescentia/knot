@@ -1,7 +1,5 @@
 open Kore;
 
-module Generator = Generate.Generator;
-
 type params_t = Protocol.module_params_t;
 
 let method_key = "module/fetch";
@@ -18,7 +16,7 @@ let handler: Runtime.request_handler_t(params_t) =
     |> Compiler.get_module(namespace)
     |?< AST.ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
     |?> ~@
-          Generator.pp(
+          Generate.Generator.pp(
             target,
             fun
             | Internal(path) => path

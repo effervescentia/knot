@@ -1,10 +1,7 @@
 open Kore;
 
-module A = AST.Result;
 module OB = AST.Operator.Binary;
 module OU = AST.Operator.Unary;
-module Formatter = Language.Formatter;
-module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Formatter"

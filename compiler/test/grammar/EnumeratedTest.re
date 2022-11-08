@@ -1,15 +1,11 @@
 open Kore;
 
-module A = AST.Result;
 module Export = Reference.Export;
-module T = AST.Type;
-module TE = AST.TypeExpression;
-module U = Util.ResultUtil;
 
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N.t((A.export_t, A.declaration_t), unit);
+    type t = N.t((AM.export_t, AM.declaration_t), unit);
 
     let parser = ctx =>
       KEnumerated.Plugin.parse(ctx, A.of_named_export)

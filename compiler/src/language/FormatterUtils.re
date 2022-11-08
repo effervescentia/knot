@@ -1,5 +1,4 @@
-open Kore;
-open ModuleAliases;
+open Knot.Kore;
 
 module Namespace = Reference.Namespace;
 
@@ -24,14 +23,14 @@ let _sort_imports =
         |> List.fold_left(
              ((m, n)) =>
                fst
-               % (
-                 fun
-                 | AST.Result.MainImport(id) => (Some(fst(id)), n)
-                 | AST.Result.NamedImport(id, label) => (
-                     m,
-                     [(fst(id), label), ...n],
-                   )
-               ),
+               % AST.Module.(
+                   fun
+                   | MainImport(id) => (Some(fst(id)), n)
+                   | NamedImport(id, label) => (
+                       m,
+                       [(fst(id), label), ...n],
+                     )
+                 ),
              (None, []),
            );
 
@@ -44,16 +43,15 @@ let _sort_imports =
       (namespace, main_import, sorted_named_imports);
     });
 
-let extract_imports = (program: AST.Result.program_t) =>
+let extract_imports = (program: AST.Module.program_t) =>
   program
   |> List.filter_map(
        fst
-       % (
-         fun
-         | AST.Result.Import(namespace, imports) =>
-           Some((namespace, imports))
-         | _ => None
-       ),
+       % AST.Module.(
+           fun
+           | Import(namespace, imports) => Some((namespace, imports))
+           | _ => None
+         ),
      )
   |> List.partition(
        Namespace.(
@@ -64,17 +62,14 @@ let extract_imports = (program: AST.Result.program_t) =>
      )
   |> Tuple.map2(_sort_imports);
 
-let extract_declarations = (program: AST.Result.program_t) =>
+let extract_declarations = (program: AST.Module.program_t) =>
   program
   |> List.filter_map(
        fst
-       % (
-         fun
-         | AST.Result.Declaration(
-             MainExport(name) | NamedExport(name),
-             decl,
-           ) =>
-           Some((fst(name), fst(decl)))
-         | _ => None
-       ),
+       % AST.Module.(
+           fun
+           | Declaration(MainExport(name) | NamedExport(name), decl) =>
+             Some((fst(name), fst(decl)))
+           | _ => None
+         ),
      );

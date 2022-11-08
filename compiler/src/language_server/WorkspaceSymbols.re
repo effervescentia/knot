@@ -1,7 +1,4 @@
 open Kore;
-open ModuleAliases;
-
-module ModuleTable = AST.ModuleTable;
 
 type params_t = {
   query: string,
@@ -65,57 +62,57 @@ let handler: Runtime.request_handler_t(params_t) =
                     ast
                     |> List.filter_map(
                          fst
-                         % (
-                           fun
-                           | AST.Result.Declaration(
-                               MainExport(name) | NamedExport(name),
-                               decl,
-                             ) => {
-                               let uri =
-                                 Filename.concat(
-                                   uri,
-                                   namespace
-                                   |> Namespace.to_path(
-                                        compiler.config.source_dir
-                                        |> Filename.relative_to(
-                                             compiler.config.root_dir,
-                                           ),
-                                      ),
-                                 );
-                               let range = N.get_range(name);
-                               let name = fst(name);
+                         % AST.Module.(
+                             fun
+                             | Declaration(
+                                 MainExport(name) | NamedExport(name),
+                                 decl,
+                               ) => {
+                                 let uri =
+                                   Filename.concat(
+                                     uri,
+                                     namespace
+                                     |> Namespace.to_path(
+                                          compiler.config.source_dir
+                                          |> Filename.relative_to(
+                                               compiler.config.root_dir,
+                                             ),
+                                        ),
+                                   );
+                                 let range = Node.get_range(name);
+                                 let name = fst(name);
 
-                               Some(
-                                 switch (fst(decl)) {
-                                 | Constant(_) => {
-                                     uri,
-                                     name,
-                                     range,
-                                     kind: Capabilities.Variable,
-                                   }
-                                 | Enumerated(_) => {
-                                     uri,
-                                     name,
-                                     range,
-                                     kind: Capabilities.Enum,
-                                   }
-                                 | Function(_) => {
-                                     uri,
-                                     name,
-                                     range,
-                                     kind: Capabilities.Function,
-                                   }
-                                 | View(_) => {
-                                     uri,
-                                     name,
-                                     range,
-                                     kind: Capabilities.Function,
-                                   }
-                                 },
-                               );
-                             }
-                           | _ => None
-                         ),
+                                 Some(
+                                   switch (fst(decl)) {
+                                   | Constant(_) => {
+                                       uri,
+                                       name,
+                                       range,
+                                       kind: Capabilities.Variable,
+                                     }
+                                   | Enumerated(_) => {
+                                       uri,
+                                       name,
+                                       range,
+                                       kind: Capabilities.Enum,
+                                     }
+                                   | Function(_) => {
+                                       uri,
+                                       name,
+                                       range,
+                                       kind: Capabilities.Function,
+                                     }
+                                   | View(_) => {
+                                       uri,
+                                       name,
+                                       range,
+                                       kind: Capabilities.Function,
+                                     }
+                                   },
+                                 );
+                               }
+                             | _ => None
+                           ),
                        )
 
                   | _ => []

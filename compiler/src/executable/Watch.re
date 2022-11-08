@@ -2,8 +2,8 @@
  Utilities for the "watch" command.
  */
 open Kore;
-open File.FilesystemDriver;
 
+module Namespace = Reference.Namespace;
 module Watcher = File.Watcher;
 
 type config_t = {
@@ -113,24 +113,26 @@ let run =
          |> List.map(((path, action)) => {
               let namespace = Namespace.of_path(path);
 
-              switch (action) {
-              | Add when _is_source_file(path) =>
-                Log.debug("file added %s", path |> ~@pp_source_relative);
+              File.FilesystemDriver.(
+                switch (action) {
+                | Add when _is_source_file(path) =>
+                  Log.debug("file added %s", path |> ~@pp_source_relative);
 
-                compiler |> Compiler.upsert_module(namespace);
+                  compiler |> Compiler.upsert_module(namespace);
 
-              | Update when _is_source_file(path) =>
-                Log.debug("file updated %s", path |> ~@pp_source_relative);
+                | Update when _is_source_file(path) =>
+                  Log.debug("file updated %s", path |> ~@pp_source_relative);
 
-                compiler |> Compiler.upsert_module(namespace);
+                  compiler |> Compiler.upsert_module(namespace);
 
-              | Remove when _is_source_file(path) =>
-                Log.debug("file removed %s", path |> ~@pp_source_relative);
+                | Remove when _is_source_file(path) =>
+                  Log.debug("file removed %s", path |> ~@pp_source_relative);
 
-                compiler |> Compiler.remove_module(namespace) |> snd;
+                  compiler |> Compiler.remove_module(namespace) |> snd;
 
-              | _ => []
-              };
+                | _ => []
+                }
+              );
             })
          |> List.flatten
          |> (

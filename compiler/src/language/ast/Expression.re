@@ -1,9 +1,5 @@
 open Knot.Kore;
-open Reference;
 open Common;
-
-module TypeExpression = TypeExpression;
-module TypeDefinition = TypeDefinition;
 
 /**
    a JSX AST node

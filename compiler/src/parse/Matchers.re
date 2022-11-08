@@ -1,12 +1,11 @@
 open Kore;
 open Onyx;
-open ModuleAliases;
 
-module C = Constants;
+module Character = Constants.Character;
 
-let double_quote = char(C.Character.double_quote);
-let period = char(C.Character.period);
-let underscore = char(C.Character.underscore);
+let double_quote = char(Character.double_quote);
+let period = char(Character.period);
+let underscore = char(Character.underscore);
 
 let space = one_of([' ', '\t', '\n']);
 let spaces = skip_many(space);
@@ -22,7 +21,12 @@ let alpha_num = digit <|> alpha;
 let lexeme = x => spaces >> x;
 
 let between = (l, r, x) =>
-  map3((l', x', r') => N.untyped(x', N.join_ranges(l', r')), l, x, r);
+  map3(
+    (l', x', r') => Node.untyped(x', Node.join_ranges(l', r')),
+    l,
+    x,
+    r,
+  );
 
 let binary_op = (lx, op, rx) => map3((l, _, r) => (l, r), lx, op, rx);
 
@@ -36,47 +40,37 @@ let symbol = x => char(x) >|= Input.to_node |> lexeme;
 /**
  matches a pattern that may be terminated by a semicolon
  */
-let terminated = x => x << (C.Character.semicolon |> symbol |> optional);
+let terminated = x => x << (Character.semicolon |> symbol |> optional);
 
 /**
  matches a pattern that is separated by commas and may be terminated with a comma
  */
 let comma_sep = x =>
-  x
-  |> sep_by(symbol(C.Character.comma))
-  << optional(symbol(C.Character.comma));
+  x |> sep_by(symbol(Character.comma)) << optional(symbol(Character.comma));
 
 /**
  matches a pattern that is separated by vertical bars and may start with a vertical bar
  */
 let vertical_bar_sep = x =>
-  optional(symbol(C.Character.vertical_bar))
-  >> (x |> sep_by(symbol(C.Character.vertical_bar)));
+  optional(symbol(Character.vertical_bar))
+  >> (x |> sep_by(symbol(Character.vertical_bar)));
 
 /**
  matches an assignment operation
  */
-let assign = (id, x) => binary_op(id, symbol(C.Character.equal_sign), x);
+let assign = (id, x) => binary_op(id, symbol(Character.equal_sign), x);
 
 /**
  matches an attribution operation
  */
 let attribute = (key, value) =>
-  binary_op(key, symbol(C.Character.colon), value);
+  binary_op(key, symbol(Character.colon), value);
 
 let between_braces = x =>
-  between(
-    symbol(C.Character.open_brace),
-    symbol(C.Character.close_brace),
-    x,
-  );
+  between(symbol(Character.open_brace), symbol(Character.close_brace), x);
 
 let between_parentheses = x =>
-  between(
-    symbol(C.Character.open_paren),
-    symbol(C.Character.close_paren),
-    x,
-  );
+  between(symbol(Character.open_paren), symbol(Character.close_paren), x);
 
 /**
  matches a sequence of characters but tolerates spaces in between
@@ -91,7 +85,7 @@ let glyph = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.get_point
-          >|= (end_ => N.untyped((), Range.create(start, end_)))
+          >|= (end_ => Node.untyped((), Range.create(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -113,7 +107,7 @@ let keyword = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.get_point
-          >|= (end_ => N.untyped(s, Range.create(start, end_)))
+          >|= (end_ => Node.untyped(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq) <<! (alpha_num <|> underscore);
@@ -146,23 +140,21 @@ let string =
           >|= Input.get_point
           >|= (
             end_ =>
-              N.untyped(
+              Node.untyped(
                 f([]) |> String.of_uchars,
                 Range.create(start, end_),
               )
           ),
           /* capture escaped characters */
-          char(C.Character.back_slash)
+          char(Character.back_slash)
           >> any
           >|= Input.get_value
           >>= (
             c =>
-              loop(rs =>
-                f([Uchar.of_char(C.Character.back_slash), c, ...rs])
-              )
+              loop(rs => f([Uchar.of_char(Character.back_slash), c, ...rs]))
           ),
           /* capture characters of the string */
-          none_of([C.Character.double_quote, C.Character.eol])
+          none_of([Character.double_quote, Character.eol])
           >|= Input.get_value
           >>= (c => loop(rs => f([c, ...rs]))),
         ]);

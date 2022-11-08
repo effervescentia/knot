@@ -1,8 +1,9 @@
 include Knot.Kore;
-include Reference;
 
-module JSON = Yojson.Basic;
 module Compiler = Compile.Compiler;
+module JSON = Yojson.Basic;
+module ModuleTable = AST.ModuleTable;
+module Namespace = Reference.Namespace;
 module ScopeTree = Compile.ScopeTree;
 
 let file_schema = "file://";

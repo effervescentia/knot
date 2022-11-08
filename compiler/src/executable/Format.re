@@ -90,7 +90,7 @@ let run = (global: Config.global_t, ~report=Reporter.panic, config: config_t) =>
     |> List.map(
          Filename.relative_to(target_dir)
          % String.drop_suffix(Constants.file_extension)
-         % Namespace.of_internal,
+         % Reference.Namespace.of_internal,
        );
 
   compiler
