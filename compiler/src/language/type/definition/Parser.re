@@ -1,14 +1,10 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
-module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
-module TE = AST.TypeExpression;
-module TD = AST.TypeDefinition;
 module Type = AST.Type;
-module Util = Parse.Util;
 
 type type_module_parser_t =
   ParseContext.t => Parse.Parser.t(AST.TypeDefinition.module_t);
@@ -105,7 +101,7 @@ let module_: type_module_parser_t =
 
                   Node.untyped(
                     (id, fst(stmts), decorators' |> List.map(fst))
-                    |> TD.of_module,
+                    |> AST.TypeDefinition.of_module,
                     Node.get_range(stmts),
                   );
                 }
@@ -117,7 +113,7 @@ let module_: type_module_parser_t =
 
 let decorator: type_module_parser_t =
   ctx =>
-    Util.define_statement(
+    Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.decorator),
       KTypeExpression.Plugin.parse
       |> Matchers.comma_sep
@@ -142,7 +138,7 @@ let decorator: type_module_parser_t =
 
         ctx.symbols |> SymbolTable.declare_value(fst(id), type_);
 
-        (id, args, target) |> TD.of_decorator;
+        (id, args, target) |> AST.TypeDefinition.of_decorator;
       },
     );
 

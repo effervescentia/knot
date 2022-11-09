@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 open Onyx;
 
 module Character = Constants.Character;

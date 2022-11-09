@@ -1,8 +1,7 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 
 module ParseContext = AST.ParseContext;
-module Matchers = Parse.Matchers;
 
 let identifier = (ctx: ParseContext.t) =>
   Matchers.identifier(

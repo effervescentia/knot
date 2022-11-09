@@ -1,8 +1,6 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
-
-module Matchers = Parse.Matchers;
 
 let boolean: primitive_parser_t =
   Matchers.keyword(Constants.Keyword.true_)

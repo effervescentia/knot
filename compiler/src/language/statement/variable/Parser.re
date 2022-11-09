@@ -1,9 +1,8 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
-module Matchers = Parse.Matchers;
 
 let variable =
     (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t)

@@ -5,7 +5,7 @@
  https://github.com/pyrocat101/opal
  https://github.com/lemaetech/reparse
  */
-open Kore;
+open Knot.Kore;
 
 /* primitives */
 

@@ -1,7 +1,6 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 
-module Matchers = Parse.Matchers;
 module Util = Parse.Util;
 
 let expo:

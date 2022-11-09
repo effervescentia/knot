@@ -1,8 +1,6 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
-
-module Matchers = Parse.Matchers;
 
 let closure = (parse_stmt: statement_parser_t): expression_parser_t =>
   parse_stmt

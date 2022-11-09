@@ -1,7 +1,5 @@
 open Knot.Kore;
-open Parse.Onyx;
-
-module Matchers = Parse.Matchers;
+open Parse.Kore;
 
 let dot_access = {
   let rec loop = expr =>

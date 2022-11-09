@@ -1,23 +1,23 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
+module Character = Constants.Character;
 module ParseContext = AST.ParseContext;
-module Matchers = Parse.Matchers;
 
 let arguments =
     (ctx: ParseContext.t, parse_expression: contextual_expression_parser_t) =>
   KIdentifier.Plugin.parse(ctx)
   >>= (
     id =>
-      Matchers.symbol(Constants.Character.colon)
+      Matchers.symbol(Character.colon)
       >> KTypeExpression.Plugin.parse
       >|= ((type_, default) => (id, Some(type_), default))
       |> option(default => (id, None, default))
   )
   >>= (
     f =>
-      Matchers.symbol(Constants.Character.equal_sign)
+      Matchers.symbol(Character.equal_sign)
       >> parse_expression(ctx)
       >|= Option.some
       >|= f
@@ -55,7 +55,7 @@ let _full_parser =
     args =>
       (
         mixins
-          ? Matchers.symbol(Constants.Character.tilde)
+          ? Matchers.symbol(Character.tilde)
             >> Matchers.identifier
             |> many1
             |> option([])

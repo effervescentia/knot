@@ -1,7 +1,6 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 
-module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
 
 type input_t = LazyStream.t(Input.t);

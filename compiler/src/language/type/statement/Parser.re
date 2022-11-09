@@ -1,12 +1,10 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
 module Type = AST.Type;
-module Matchers = Parse.Matchers;
-module TD = AST.TypeDefinition;
 module Util = Parse.Util;
 
 type type_module_statement_parser_t =
@@ -34,7 +32,7 @@ let declaration: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_value(id, type_);
 
-        TD.of_declaration(res);
+        AST.TypeDefinition.of_declaration(res);
       },
     );
 
@@ -76,7 +74,7 @@ let enumerated: type_module_statement_parser_t =
         ctx.symbols |> SymbolTable.declare_type(id, enum_type);
         ctx.symbols |> SymbolTable.declare_value(id, value_type);
 
-        TD.of_enum(res);
+        AST.TypeDefinition.of_enum(res);
       },
     );
 
@@ -91,7 +89,7 @@ let type_: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_type(id, type_);
 
-        TD.of_type(res);
+        AST.TypeDefinition.of_type(res);
       },
     );
 

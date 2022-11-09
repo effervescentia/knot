@@ -1,21 +1,22 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
+module Character = Constants.Character;
+module Glyph = Constants.Glyph;
 module ParseContext = AST.ParseContext;
-module Matchers = Parse.Matchers;
 
 module Tag = {
-  let open_ = Matchers.symbol(Constants.Character.open_chevron);
-  let close = Matchers.symbol(Constants.Character.close_chevron);
+  let open_ = Matchers.symbol(Character.open_chevron);
+  let close = Matchers.symbol(Character.close_chevron);
 
-  let self_close = Matchers.glyph(Constants.Glyph.self_close_tag);
-  let open_end = Matchers.glyph(Constants.Glyph.open_end_tag);
+  let self_close = Matchers.glyph(Glyph.self_close_tag);
+  let open_end = Matchers.glyph(Glyph.open_end_tag);
 };
 
 module Fragment = {
-  let open_ = Matchers.glyph(Constants.Glyph.open_fragment);
-  let close = Matchers.glyph(Constants.Glyph.close_fragment);
+  let open_ = Matchers.glyph(Glyph.open_fragment);
+  let close = Matchers.glyph(Glyph.close_fragment);
 };
 
 type expression_parsers_arg_t = (
@@ -126,7 +127,7 @@ and class_attribute =
   )
 
 and id_attribute: jsx_attribute_parser_t =
-  Matchers.identifier(~prefix=char(Constants.Character.octothorpe))
+  Matchers.identifier(~prefix=char(Character.octothorpe))
   >|= Node.map(String.drop_left(1))
   >|= Node.wrap(AST.Raw.of_jsx_id)
 
@@ -148,10 +149,9 @@ and children =
   |> many
 
 and text: jsx_child_parser_t =
-  none_of(Constants.Character.[open_brace, open_chevron])
+  none_of(. Character.[open_brace, open_chevron])
   <~> (
-    none_of(Constants.Character.[open_brace, open_chevron, close_chevron])
-    |> many
+    none_of(. Character.[open_brace, open_chevron, close_chevron]) |> many
   )
   >|= Input.join
   >|= Node.map(String.trim % AST.Raw.of_text)

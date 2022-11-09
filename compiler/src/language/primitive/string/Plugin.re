@@ -1,7 +1,5 @@
 open Knot.Kore;
 
-module Matchers = Parse.Matchers;
-
 let parse = Parser.string;
 
 let analyze = x => Node.add_type(AST.Type.Valid(`String), x);

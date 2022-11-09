@@ -1,10 +1,9 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
 module Scope = AST.Scope;
-module Matchers = Parse.Matchers;
 
 let style_rule =
     (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t) =>

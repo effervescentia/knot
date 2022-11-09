@@ -1,8 +1,7 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
-module Matchers = Parse.Matchers;
 module Util = Parse.Util;
 
 let negative: unary_op_parser_t =

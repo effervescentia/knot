@@ -1,21 +1,20 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
-module Matchers = Parse.Matchers;
-module TE = AST.TypeExpression;
+module Keyword = Constants.Keyword;
 
 type type_expression_parser_t = Parse.Parser.t(AST.TypeExpression.t);
 
 let primitive_types =
-  TE.[
-    (Matchers.keyword(Constants.Keyword.nil), Nil),
-    (Matchers.keyword(Constants.Keyword.boolean), Boolean),
-    (Matchers.keyword(Constants.Keyword.integer), Integer),
-    (Matchers.keyword(Constants.Keyword.float), Float),
-    (Matchers.keyword(Constants.Keyword.string), String),
-    (Matchers.keyword(Constants.Keyword.element), Element),
-    (Matchers.keyword(Constants.Keyword.style), Style),
+  AST.TypeExpression.[
+    (Matchers.keyword(Keyword.nil), Nil),
+    (Matchers.keyword(Keyword.boolean), Boolean),
+    (Matchers.keyword(Keyword.integer), Integer),
+    (Matchers.keyword(Keyword.float), Float),
+    (Matchers.keyword(Keyword.string), String),
+    (Matchers.keyword(Keyword.element), Element),
+    (Matchers.keyword(Keyword.style), Style),
   ];
 
 let primitive: type_expression_parser_t =
@@ -24,7 +23,9 @@ let primitive: type_expression_parser_t =
   );
 
 let group = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
-  parse_expr |> Matchers.between_parentheses >|= Node.map(TE.of_group);
+  parse_expr
+  |> Matchers.between_parentheses
+  >|= Node.map(AST.TypeExpression.of_group);
 
 let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   parse_expr
@@ -32,7 +33,10 @@ let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
        Matchers.glyph("[]")
        >|= (
          (suffix, expr) =>
-           Node.untyped(TE.of_list(expr), Node.join_ranges(expr, suffix))
+           Node.untyped(
+             AST.TypeExpression.of_list(expr),
+             Node.join_ranges(expr, suffix),
+           )
        ),
      );
 
@@ -41,7 +45,7 @@ let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =
   |> Matchers.comma_sep
   |> Matchers.between_braces
   /* TODO: sort the props here by property name */
-  >|= Node.map(props => TE.of_struct(props));
+  >|= Node.map(props => AST.TypeExpression.of_struct(props));
 
 let function_ =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
@@ -55,14 +59,14 @@ let function_ =
       >|= (
         res =>
           Node.untyped(
-            TE.of_function((fst(args), res)),
+            AST.TypeExpression.of_function((fst(args), res)),
             Node.join_ranges(args, res),
           )
       )
   );
 
 let identifier: type_expression_parser_t =
-  Matchers.identifier >|= Node.wrap(TE.of_id);
+  Matchers.identifier >|= Node.wrap(AST.TypeExpression.of_id);
 
 let dot_access = {
   let rec loop = expr =>
@@ -72,7 +76,7 @@ let dot_access = {
       prop =>
         loop(
           Node.untyped(
-            (expr, prop) |> TE.of_dot_access,
+            (expr, prop) |> AST.TypeExpression.of_dot_access,
             Node.get_range(prop),
           ),
         )

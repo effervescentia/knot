@@ -1,4 +1,4 @@
-open Kore;
+open Knot.Kore;
 open Onyx;
 
 let unary_op = (f, x) => Node.typed(f(x), (), Node.get_range(x));

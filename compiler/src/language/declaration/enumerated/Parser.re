@@ -1,8 +1,7 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
-module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
 module Type = AST.Type;

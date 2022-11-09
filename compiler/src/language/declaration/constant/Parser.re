@@ -1,11 +1,10 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
 
 module ParseContext = AST.ParseContext;
 module Scope = AST.Scope;
 module SymbolTable = AST.SymbolTable;
-module Matchers = Parse.Matchers;
 module Util = AST.Util;
 
 let constant = (ctx: ParseContext.t, f): declaration_parser_t =>

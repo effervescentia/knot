@@ -1,8 +1,6 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 open AST.ParserTypes;
-
-module Matchers = Parse.Matchers;
 
 let integer: number_parser_t =
   many1(Matchers.digit)

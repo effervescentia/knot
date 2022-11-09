@@ -1,9 +1,8 @@
 open Knot.Kore;
-open Parse.Onyx;
+open Parse.Kore;
 
 module Export = Reference.Export;
 module Keyword = Constants.Keyword;
-module Matchers = Parse.Matchers;
 module ParseContext = AST.ParseContext;
 
 let _import_keyword = Matchers.keyword(Keyword.import);

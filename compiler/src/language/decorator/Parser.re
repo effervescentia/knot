@@ -1,7 +1,5 @@
 open Knot.Kore;
-open Parse.Onyx;
-
-module Matchers = Parse.Matchers;
+open Parse.Kore;
 
 let decorator = parse_expr =>
   Matchers.identifier(~prefix=char(Constants.Character.at_sign))
