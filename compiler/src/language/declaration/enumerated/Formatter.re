@@ -2,7 +2,6 @@ open Knot.Kore;
 open AST;
 
 let pp_enumerated:
-  Fmt.t(TypeExpression.raw_t) =>
   Fmt.t(
     (
       string,
@@ -11,7 +10,7 @@ let pp_enumerated:
       ),
     ),
   ) =
-  (pp_type_expr, ppf) =>
+  ppf =>
     fun
     | (name, []) => Fmt.(pf(ppf, "enum %s = | ;", name))
     | (name, variants) =>
@@ -28,7 +27,8 @@ let pp_enumerated:
               arg_name,
               (ppf, args) =>
                 List.is_empty(args)
-                  ? () : pf(ppf, "(%a)", list(pp_type_expr), args),
+                  ? ()
+                  : pf(ppf, "(%a)", list(KTypeExpression.Plugin.pp), args),
               args |> List.map(fst),
             )
           ),

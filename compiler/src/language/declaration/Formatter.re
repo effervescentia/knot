@@ -6,8 +6,7 @@ let pp_declaration:
   (pp_type_expr, ppf, (name, decl)) =>
     switch (decl) {
     | Constant(expr) => (name, expr) |> KConstant.Plugin.pp(ppf)
-    | Enumerated(variants) =>
-      (name, variants) |> KEnumerated.Plugin.pp(pp_type_expr, ppf)
+    | Enumerated(variants) => (name, variants) |> KEnumerated.Plugin.pp(ppf)
     | Function(args, expr) =>
       (name, (args, expr)) |> KFunction.Plugin.pp(ppf)
     | View(props, mixins, expr) =>
