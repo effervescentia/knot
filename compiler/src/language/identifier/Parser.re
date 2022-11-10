@@ -1,7 +1,6 @@
 open Knot.Kore;
 open Parse.Kore;
-
-module ParseContext = AST.ParseContext;
+open AST;
 
 let identifier = (ctx: ParseContext.t) =>
   Matchers.identifier(

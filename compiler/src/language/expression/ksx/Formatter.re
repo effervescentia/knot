@@ -1,6 +1,7 @@
 open Knot.Kore;
+open AST;
 
-let rec pp_ksx: Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.jsx_t) =
+let rec pp_ksx: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
   (pp_expression, ppf) =>
     fun
     | Tag((name, _), attrs, [])
@@ -47,8 +48,7 @@ let rec pp_ksx: Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.jsx_t) =
            )
          )
 
-and pp_child:
-  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.raw_jsx_child_t) =
+and pp_child: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_child_t) =
   (pp_expression, ppf) =>
     fun
     | Node(jsx) => jsx |> Fmt.pf(ppf, "%a", pp_ksx(pp_expression))
@@ -56,8 +56,7 @@ and pp_child:
     | InlineExpression((expr, _)) => Fmt.pf(ppf, "{%a}", pp_expression, expr)
 
 and pp_attr_list:
-  Fmt.t(AST.Result.raw_expression_t) =>
-  Fmt.t(list(AST.Result.raw_jsx_attribute_t)) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.raw_jsx_attribute_t)) =
   (pp_expression, ppf) =>
     fun
     | [] => Fmt.nop(ppf, ())
@@ -72,30 +71,34 @@ and pp_attr_list:
          )
 
 and pp_attr:
-  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.raw_jsx_attribute_t) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_attribute_t) =
   (pp_expression, ppf, attr) =>
     Fmt.(
       pf(
         ppf,
         "%a%a",
         ppf =>
-          fun
-          | AST.Expression.Property((name, _), _) => Fmt.string(ppf, name)
-          | AST.Expression.Class((name, _), _) => pf(ppf, ".%s", name)
-          | AST.Expression.ID((name, _)) => pf(ppf, "#%s", name),
+          Expression.(
+            fun
+            | Property((name, _), _) => Fmt.string(ppf, name)
+            | Class((name, _), _) => pf(ppf, ".%s", name)
+            | ID((name, _)) => pf(ppf, "#%s", name)
+          ),
         attr,
         ppf =>
-          fun
-          | AST.Expression.Property(_, Some((expr, _)))
-          | AST.Expression.Class(_, Some((expr, _))) =>
-            pf(ppf, "=%a", pp_attr_expr(pp_expression), expr)
-          | _ => nop(ppf, ()),
+          Expression.(
+            fun
+            | Property(_, Some((expr, _)))
+            | Class(_, Some((expr, _))) =>
+              pf(ppf, "=%a", pp_attr_expr(pp_expression), expr)
+            | _ => nop(ppf, ())
+          ),
         attr,
       )
     )
 
 and pp_attr_expr:
-  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.raw_expression_t) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_expression_t) =
   (pp_expression, ppf) =>
     fun
     | (

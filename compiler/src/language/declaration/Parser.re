@@ -1,10 +1,11 @@
 open Knot.Kore;
 open Parse.Kore;
+open AST;
 
-let declaration = (ctx: AST.ParseContext.t) =>
-  AST.Result.of_main_export
+let declaration = (ctx: ParseContext.t) =>
+  Result.of_main_export
   <$ Matchers.keyword(Constants.Keyword.main)
-  |> option(AST.Result.of_named_export)
+  |> option(Result.of_named_export)
   >>= (
     f =>
       choice([
@@ -13,5 +14,5 @@ let declaration = (ctx: AST.ParseContext.t) =>
         KFunction.Plugin.parse(ctx, f),
         KView.Plugin.parse(ctx, f),
       ])
-      >|= Node.map(AST.Result.of_decl)
+      >|= Node.map(Result.of_decl)
   );

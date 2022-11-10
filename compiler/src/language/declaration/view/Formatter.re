@@ -1,13 +1,14 @@
 open Knot.Kore;
+open AST;
 
 let pp_view:
-  Fmt.t(AST.Result.raw_expression_t) =>
+  Fmt.t(Result.raw_expression_t) =>
   Fmt.t(
     (
       string,
-      list(AST.Result.argument_t),
-      list(AST.Result.node_t(string)),
-      AST.Result.expression_t,
+      list(Result.argument_t),
+      list(Result.node_t(string)),
+      Result.expression_t,
     ),
   ) =
   (pp_expression, ppf, (name, args, _, (expr, _))) =>

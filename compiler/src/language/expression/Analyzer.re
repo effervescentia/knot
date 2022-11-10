@@ -1,23 +1,21 @@
 open Knot.Kore;
+open AST;
 
-module Scope = AST.Scope;
-
-let rec analyze_expression:
-  (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t =
+let rec analyze_expression: (Scope.t, Raw.expression_t) => Result.expression_t =
   (scope, node) => {
     let node_range = Node.get_range(node);
 
     (
       switch (node) {
       | (Primitive(prim), _) => (
-          AST.Expression.Primitive(prim),
+          Expression.Primitive(prim),
           KPrimitive.Plugin.analyze(prim),
         )
 
       | (Identifier(id), _) =>
         let type_ = KIdentifier.Plugin.analyze(scope, id, node_range);
 
-        (AST.Expression.Identifier(id), type_);
+        (Expression.Identifier(id), type_);
 
       | (UnaryOp(op, expr), _) =>
         let (expr', type_) =
@@ -28,7 +26,7 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Expression.UnaryOp(op, expr'), type_);
+        (Expression.UnaryOp(op, expr'), type_);
 
       | (BinaryOp(op, lhs, rhs), _) =>
         let (lhs', rhs', type_) =
@@ -39,12 +37,12 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Expression.BinaryOp(op, lhs', rhs'), type_);
+        (Expression.BinaryOp(op, lhs', rhs'), type_);
 
       | (Group(expr), _) =>
         let expr' = expr |> KGroup.Plugin.analyze(scope, analyze_expression);
 
-        (AST.Expression.Group(expr'), Node.get_type(expr'));
+        (Expression.Group(expr'), Node.get_type(expr'));
 
       | (Closure(stmts), _) =>
         let (stmts', type_) =
@@ -55,7 +53,7 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Expression.Closure(stmts'), type_);
+        (Expression.Closure(stmts'), type_);
 
       | (DotAccess(expr, prop), _) =>
         let (expr', type_) =
@@ -66,7 +64,7 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Expression.DotAccess(expr', prop), type_);
+        (Expression.DotAccess(expr', prop), type_);
 
       | (FunctionCall(expr, args), _) =>
         let (expr', args', type_) =
@@ -77,19 +75,19 @@ let rec analyze_expression:
             node_range,
           );
 
-        (AST.Expression.FunctionCall(expr', args'), type_);
+        (Expression.FunctionCall(expr', args'), type_);
 
       | (Style(rules), _) =>
         let (rules', type_) =
           KStyle.Plugin.analyze(scope, analyze_expression, rules, node_range);
 
-        (AST.Expression.Style(rules'), type_);
+        (Expression.Style(rules'), type_);
 
       | (JSX(jsx), _) =>
         let (jsx', type_) =
           KSX.Plugin.analyze(scope, analyze_expression, jsx);
 
-        (AST.Expression.JSX(jsx'), type_);
+        (Expression.JSX(jsx'), type_);
       }
     )
     |> (((value, type_)) => Node.typed(value, type_, node_range));

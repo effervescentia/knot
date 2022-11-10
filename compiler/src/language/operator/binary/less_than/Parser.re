@@ -1,8 +1,7 @@
 open Knot.Kore;
 open Parse.Kore;
+open AST;
 
-module Util = Parse.Util;
-
-let less_than: AST.ParserTypes.binary_op_parser_t =
-  Util.binary_op(AST.Raw.of_lt_op)
+let less_than: ParserTypes.binary_op_parser_t =
+  Parse.Util.binary_op(Raw.of_lt_op)
   <$ Matchers.symbol(Constants.Character.open_chevron);

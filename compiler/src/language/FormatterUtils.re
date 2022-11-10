@@ -1,4 +1,5 @@
 open Knot.Kore;
+open AST;
 
 module Namespace = Reference.Namespace;
 
@@ -23,7 +24,7 @@ let _sort_imports =
         |> List.fold_left(
              ((m, n)) =>
                fst
-               % AST.Module.(
+               % Module.(
                    fun
                    | MainImport(id) => (Some(fst(id)), n)
                    | NamedImport(id, label) => (
@@ -43,11 +44,11 @@ let _sort_imports =
       (namespace, main_import, sorted_named_imports);
     });
 
-let extract_imports = (program: AST.Module.program_t) =>
+let extract_imports = (program: Module.program_t) =>
   program
   |> List.filter_map(
        fst
-       % AST.Module.(
+       % Module.(
            fun
            | Import(namespace, imports) => Some((namespace, imports))
            | _ => None
@@ -62,11 +63,11 @@ let extract_imports = (program: AST.Module.program_t) =>
      )
   |> Tuple.map2(_sort_imports);
 
-let extract_declarations = (program: AST.Module.program_t) =>
+let extract_declarations = (program: Module.program_t) =>
   program
   |> List.filter_map(
        fst
-       % AST.Module.(
+       % Module.(
            fun
            | Declaration(MainExport(name) | NamedExport(name), decl) =>
              Some((fst(name), fst(decl)))

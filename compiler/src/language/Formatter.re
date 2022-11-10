@@ -1,12 +1,13 @@
 open Knot.Kore;
 open FormatterUtils;
+open AST;
 
 let __default_margin = 120;
 
-let pp_declaration_list: Fmt.t(list((string, AST.Module.raw_declaration_t))) =
+let pp_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
   ppf => {
     let rec loop =
-      AST.Module.(
+      Module.(
         fun
         | [] => Fmt.nop(ppf, ())
 
@@ -64,7 +65,7 @@ let pp_all_imports:
            )
          );
 
-let format = (~margin=__default_margin): Fmt.t(AST.Module.program_t) =>
+let format = (~margin=__default_margin): Fmt.t(Module.program_t) =>
   (ppf, program) => {
     let orig_margin = Format.get_margin();
     Format.set_margin(margin);

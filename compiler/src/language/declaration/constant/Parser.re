@@ -1,13 +1,8 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
-module ParseContext = AST.ParseContext;
-module Scope = AST.Scope;
-module SymbolTable = AST.SymbolTable;
-module Util = AST.Util;
-
-let constant = (ctx: ParseContext.t, f): declaration_parser_t =>
+let constant = (ctx: ParseContext.t, f): ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.const)
   >>= (
     kwd =>

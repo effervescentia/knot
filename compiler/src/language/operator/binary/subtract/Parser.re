@@ -1,8 +1,7 @@
 open Knot.Kore;
 open Parse.Kore;
+open AST;
 
-module Util = Parse.Util;
-
-let subtract: AST.ParserTypes.binary_op_parser_t =
-  Util.binary_op(AST.Raw.of_sub_op)
+let subtract: ParserTypes.binary_op_parser_t =
+  Parse.Util.binary_op(Raw.of_sub_op)
   <$ Matchers.symbol(Constants.Character.minus_sign);

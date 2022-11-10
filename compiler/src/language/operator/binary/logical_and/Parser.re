@@ -1,7 +1,6 @@
 open Knot.Kore;
 open Parse.Kore;
+open AST;
 
-module Util = Parse.Util;
-
-let logical_and: AST.ParserTypes.binary_op_parser_t =
-  Util.binary_op(AST.Raw.of_and_op) <$ Matchers.glyph("&&");
+let logical_and: ParserTypes.binary_op_parser_t =
+  Parse.Util.binary_op(Raw.of_and_op) <$ Matchers.glyph("&&");

@@ -1,10 +1,8 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
-module Util = Parse.Util;
-
-let absolute: unary_op_parser_t =
-  AST.Raw.of_pos_op
-  |> Util.unary_op
+let absolute: ParserTypes.unary_op_parser_t =
+  Raw.of_pos_op
+  |> Parse.Util.unary_op
   <$ Matchers.symbol(Constants.Character.plus_sign);

@@ -1,7 +1,5 @@
 open Knot.Kore;
-
-module Scope = AST.Scope;
-module Type = AST.Type;
+open AST;
 
 let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
   fun
@@ -15,10 +13,10 @@ let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
 let analyze_view_body:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    AST.Raw.expression_t
+    (Scope.t, Raw.expression_t) => Result.expression_t,
+    Raw.expression_t
   ) =>
-  AST.Result.expression_t =
+  Result.expression_t =
   (scope, analyze_expression, body) => {
     let body' = body |> analyze_expression(scope);
     let type_ = Node.get_type(body');

@@ -1,10 +1,8 @@
 open Knot.Kore;
-
-module Scope = AST.Scope;
-module Type = AST.Type;
+open AST;
 
 let validate_unary_operation:
-  (AST.Operator.Unary.t, Type.t) => option(Type.error_t) =
+  (Operator.Unary.t, Type.t) => option(Type.error_t) =
   op =>
     fun
     /* assume this has been reported already and ignore */
@@ -21,11 +19,11 @@ let validate_unary_operation:
 let analyze_unary_operation:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    (AST.Operator.Unary.t, AST.Raw.expression_t),
+    (Scope.t, Raw.expression_t) => Result.expression_t,
+    (Operator.Unary.t, Raw.expression_t),
     Range.t
   ) =>
-  (AST.Result.expression_t, Type.t) =
+  (Result.expression_t, Type.t) =
   (scope, analyze_expression, (op, expr), range) => {
     let expr' = analyze_expression(scope, expr);
     let type_ = Node.get_type(expr');

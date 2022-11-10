@@ -1,10 +1,9 @@
 open Knot.Kore;
 open Parse.Kore;
-
-module ParseContext = AST.ParseContext;
+open AST;
 
 type input_t = LazyStream.t(Input.t);
-type output_t = option((AST.Module.program_t, input_t));
+type output_t = option((Module.program_t, input_t));
 type t = (ParseContext.t, input_t) => output_t;
 
 let _program = x => x << (eof() |> Matchers.lexeme);
@@ -22,11 +21,11 @@ let definition = (ctx: ParseContext.t) =>
   KTypeDefinition.Plugin.parse(ctx) |> many |> _program;
 
 let module_statement_to_xml:
-  (AST.Type.t => string, AST.Module.module_statement_t) => Fmt.xml_t(string) =
+  (Type.t => string, Module.module_statement_t) => Fmt.xml_t(string) =
   dump_type =>
     Dump.node_to_xml(
       ~unpack=
-        AST.Module.(
+        Module.(
           fun
           | StandardImport(names) =>
             Fmt.Node(
@@ -64,8 +63,7 @@ let module_statement_to_xml:
       "ModuleStatement",
     );
 
-let program_to_xml:
-  (AST.Type.t => string, AST.Module.program_t) => Fmt.xml_t(string) =
+let program_to_xml: (Type.t => string, Module.program_t) => Fmt.xml_t(string) =
   (dump_type, program) =>
     Node(
       "Program",

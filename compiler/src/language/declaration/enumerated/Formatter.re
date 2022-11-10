@@ -1,15 +1,13 @@
 open Knot.Kore;
+open AST;
 
 let pp_enumerated:
-  Fmt.t(AST.TypeExpression.raw_t) =>
+  Fmt.t(TypeExpression.raw_t) =>
   Fmt.t(
     (
       string,
       list(
-        (
-          AST.Result.identifier_t,
-          list(AST.Result.node_t(AST.TypeExpression.raw_t)),
-        ),
+        (Result.identifier_t, list(Result.node_t(TypeExpression.raw_t))),
       ),
     ),
   ) =

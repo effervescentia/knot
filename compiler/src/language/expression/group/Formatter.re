@@ -1,7 +1,7 @@
 open Knot.Kore;
+open AST;
 
-let pp_group:
-  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.expression_t) =
+let pp_group: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.expression_t) =
   (pp_expression, ppf, (expr, _)) =>
     switch (expr) {
     | BinaryOp(_) => Fmt.pf(ppf, "(%a)", pp_expression, expr)

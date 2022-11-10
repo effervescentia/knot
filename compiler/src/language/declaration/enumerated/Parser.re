@@ -1,13 +1,8 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
-module ParseContext = AST.ParseContext;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
-module Util = AST.Util;
-
-let enumerated = (ctx: ParseContext.t, f): declaration_parser_t =>
+let enumerated = (ctx: ParseContext.t, f): ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.enum)
   >|= Node.get_range
   >>= (

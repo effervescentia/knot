@@ -1,7 +1,5 @@
 open Knot.Kore;
-
-module Scope = AST.Scope;
-module Type = AST.Type;
+open AST;
 
 let analyze_identifier: (Scope.t, string, Range.t) => Type.t =
   (scope, id, range) => {

@@ -1,8 +1,9 @@
 open Knot.Kore;
+open AST;
 
-let pp_operator: Fmt.t(AST.Operator.Binary.t) =
+let pp_operator: Fmt.t(Operator.Binary.t) =
   ppf =>
-    AST.Operator.Binary.(
+    Operator.Binary.(
       fun
       | Equal => KEqual.Plugin.pp
       | Unequal => KUnequal.Plugin.pp
@@ -25,10 +26,8 @@ let pp_operator: Fmt.t(AST.Operator.Binary.t) =
     % (pp => pp(ppf, ()));
 
 let pp_binary_operation:
-  Fmt.t(AST.Result.raw_expression_t) =>
-  Fmt.t(
-    (AST.Operator.Binary.t, AST.Result.expression_t, AST.Result.expression_t),
-  ) =
+  Fmt.t(Result.raw_expression_t) =>
+  Fmt.t((Operator.Binary.t, Result.expression_t, Result.expression_t)) =
   (pp_expression, ppf, (op, (lhs, _), (rhs, _))) =>
     Fmt.pf(
       ppf,

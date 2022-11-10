@@ -1,10 +1,8 @@
 open Knot.Kore;
-
-module Scope = AST.Scope;
-module Type = AST.Type;
+open AST;
 
 let validate_jsx_render:
-  ((string, Type.t, list((string, AST.Result.untyped_t(Type.t))))) =>
+  ((string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
   list((Type.error_t, option(Range.t))) =
   fun
   /* assume this have been reported already and ignore */
@@ -26,26 +24,27 @@ let validate_jsx_render:
 
                switch (expected, actual) {
                | (Some(expected'), Some((actual_value, _) as actual')) =>
-                 switch (expected', actual_value) {
-                 | (Type.Invalid(_), _)
-                 | (_, Type.Invalid(_)) => acc
-                 | (Type.Valid(_), Type.Valid(_))
-                     when expected' == actual_value => acc
-                 | (Type.Valid(_), Type.Valid(_)) => (
-                     invalid
-                     @ [
-                       (
-                         Type.InvalidJSXAttribute(
-                           key,
-                           expected',
-                           actual_value,
+                 Type.(
+                   switch (expected', actual_value) {
+                   | (Invalid(_), _)
+                   | (_, Invalid(_)) => acc
+                   | (Valid(_), Valid(_)) when expected' == actual_value => acc
+                   | (Valid(_), Valid(_)) => (
+                       invalid
+                       @ [
+                         (
+                           Type.InvalidJSXAttribute(
+                             key,
+                             expected',
+                             actual_value,
+                           ),
+                           Some(Node.get_range(actual')),
                          ),
-                         Some(Node.get_range(actual')),
-                       ),
-                     ],
-                     missing,
-                   )
-                 }
+                       ],
+                       missing,
+                     )
+                   }
+                 )
 
                | (Some(expected'), None) => (
                    invalid,
@@ -104,12 +103,8 @@ let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
   | type_ => Some(InvalidJSXPrimitiveExpression(type_));
 
 let rec analyze_jsx:
-  (
-    Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    AST.Raw.jsx_t
-  ) =>
-  AST.Result.jsx_t =
+  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
+  Result.jsx_t =
   (scope, analyze_expression, jsx) => (
     switch (jsx) {
     | Tag(id, attrs, children) =>
@@ -126,7 +121,7 @@ let rec analyze_jsx:
           attrs'
           |> List.filter_map(
                fun
-               | (AST.Expression.Property((name, _), Some(expr)), range) =>
+               | (Expression.Property((name, _), Some(expr)), range) =>
                  Some((name, (Node.get_type(expr), range)))
                | _ => None,
              );
@@ -142,32 +137,32 @@ let rec analyze_jsx:
            );
 
         (id |> Node.add_type(id_type), attrs', children')
-        |> AST.Result.of_component;
+        |> Result.of_component;
       } else {
-        (id, attrs', children') |> AST.Result.of_tag;
+        (id, attrs', children') |> Result.of_tag;
       };
 
     | Fragment(children) =>
       children
       |> List.map(analyze_jsx_child(scope, analyze_expression))
-      |> AST.Result.of_frag
+      |> Result.of_frag
 
     | Component(_) => raise(SystemError)
-    }: AST.Result.jsx_t
+    }: Result.jsx_t
     /* this should never be called, component delegation is determined at this point */
   )
 
 and analyze_jsx_attribute:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    AST.Raw.jsx_attribute_t
+    (Scope.t, Raw.expression_t) => Result.expression_t,
+    Raw.jsx_attribute_t
   ) =>
-  AST.Result.jsx_attribute_t =
+  Result.jsx_attribute_t =
   (scope, analyze_expression, jsx_attr) => {
     let jsx_attr' =
       switch (fst(jsx_attr)) {
-      | ID(id) => AST.Result.of_jsx_id(id)
+      | ID(id) => Result.of_jsx_id(id)
 
       | Class(id, raw_expr) =>
         let expr_opt = raw_expr |?> analyze_expression(scope);
@@ -183,10 +178,10 @@ and analyze_jsx_attribute:
                 );
            });
 
-        (id, expr_opt) |> AST.Result.of_jsx_class;
+        (id, expr_opt) |> Result.of_jsx_class;
 
       | Property(id, expr) =>
-        (id, expr |?> analyze_expression(scope)) |> AST.Result.of_prop
+        (id, expr |?> analyze_expression(scope)) |> Result.of_prop
       };
 
     Node.untyped(jsx_attr', Node.get_range(jsx_attr));
@@ -195,17 +190,17 @@ and analyze_jsx_attribute:
 and analyze_jsx_child:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    AST.Raw.jsx_child_t
+    (Scope.t, Raw.expression_t) => Result.expression_t,
+    Raw.jsx_child_t
   ) =>
-  AST.Result.jsx_child_t =
+  Result.jsx_child_t =
   (scope, analyze_expression, jsx_child) => {
     let jsx_child' =
       switch (fst(jsx_child)) {
-      | Text(text) => AST.Result.of_text(text)
+      | Text(text) => Result.of_text(text)
 
       | Node(jsx) =>
-        jsx |> analyze_jsx(scope, analyze_expression) |> AST.Result.of_node
+        jsx |> analyze_jsx(scope, analyze_expression) |> Result.of_node
 
       | InlineExpression(raw_expr) =>
         let expr = raw_expr |> analyze_expression(scope);
@@ -217,19 +212,15 @@ and analyze_jsx_child:
              expr |> Node.get_range |> Scope.report_type_err(scope),
            );
 
-        AST.Result.of_inline_expr(expr);
+        Result.of_inline_expr(expr);
       };
 
     Node.untyped(jsx_child', Node.get_range(jsx_child));
   };
 
 let analyze_root:
-  (
-    Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    AST.Raw.jsx_t
-  ) =>
-  (AST.Result.jsx_t, Type.t) =
+  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
+  (Result.jsx_t, Type.t) =
   (scope, analyze_expression, jsx) => {
     let jsx' = analyze_jsx(scope, analyze_expression, jsx);
 

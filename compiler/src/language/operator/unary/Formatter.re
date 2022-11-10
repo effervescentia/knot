@@ -1,8 +1,9 @@
 open Knot.Kore;
+open AST;
 
-let pp_operator: Fmt.t(AST.Operator.Unary.t) =
+let pp_operator: Fmt.t(Operator.Unary.t) =
   ppf =>
-    AST.Operator.Unary.(
+    Operator.Unary.(
       fun
       | Not => KLogicalNot.Plugin.pp
       | Positive => KAbsolute.Plugin.pp
@@ -11,7 +12,7 @@ let pp_operator: Fmt.t(AST.Operator.Unary.t) =
     % (pp => pp(ppf, ()));
 
 let pp_unary_operation:
-  Fmt.t(AST.Result.raw_expression_t) =>
-  Fmt.t((AST.Operator.Unary.t, AST.Result.expression_t)) =
+  Fmt.t(Result.raw_expression_t) =>
+  Fmt.t((Operator.Unary.t, Result.expression_t)) =
   (pp_expression, ppf, (op, (expr, _))) =>
     Fmt.pf(ppf, "%a%a", pp_operator, op, pp_expression, expr);

@@ -1,4 +1,5 @@
 open Knot.Kore;
+open AST;
 
 let entry_to_xml = (key, (name, expr)) =>
   Fmt.Node(
@@ -38,7 +39,7 @@ let enumerated_to_xml = (name, variants) =>
     ],
   );
 
-let decorator_to_xml: AST.TypeDefinition.decorator_t('a) => Fmt.xml_t(string) =
+let decorator_to_xml: TypeDefinition.decorator_t('a) => Fmt.xml_t(string) =
   decorator =>
     Dump.node_to_xml(
       ~unpack=
@@ -57,53 +58,55 @@ let decorator_to_xml: AST.TypeDefinition.decorator_t('a) => Fmt.xml_t(string) =
       decorator,
     );
 
-let module_to_xml: AST.TypeDefinition.module_t => Fmt.xml_t(string) =
+let module_to_xml: TypeDefinition.module_t => Fmt.xml_t(string) =
   Dump.node_to_xml(
     ~unpack=
-      fun
-      | AST.TypeDefinition.Decorator(name, parameters, target) => [
-          Fmt.Node(
-            "Decorator",
-            [],
-            [
-              Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-              Node(
-                "Parameters",
-                [],
-                parameters |> List.map(KTypeExpression.Plugin.to_xml),
-              ),
-            ],
-          ),
-        ]
-      | AST.TypeDefinition.Module(name, statements, decorators) => [
-          Fmt.Node(
-            "Decorator",
-            [],
-            [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
-            @ (
-              statements
-              |> List.map(
-                   Dump.node_to_xml(
-                     ~unpack=
-                       (
-                         fun
-                         | AST.TypeDefinition.Declaration(name, expr) =>
-                           entry_to_xml("Declaration", (name, expr))
-                         | AST.TypeDefinition.Type(name, expr) =>
-                           entry_to_xml("Type", (name, expr))
-                         | AST.TypeDefinition.Enumerated(name, variants) =>
-                           enumerated_to_xml(name, variants)
-                       )
-                       % (x => [x]),
-                     "Statement",
-                   ),
-                 )
-            )
-            @ (decorators |> List.map(decorator_to_xml)),
-          ),
-        ],
+      TypeDefinition.(
+        fun
+        | Decorator(name, parameters, target) => [
+            Fmt.Node(
+              "Decorator",
+              [],
+              [
+                Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+                Node(
+                  "Parameters",
+                  [],
+                  parameters |> List.map(KTypeExpression.Plugin.to_xml),
+                ),
+              ],
+            ),
+          ]
+        | Module(name, statements, decorators) => [
+            Fmt.Node(
+              "Decorator",
+              [],
+              [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
+              @ (
+                statements
+                |> List.map(
+                     Dump.node_to_xml(
+                       ~unpack=
+                         (
+                           fun
+                           | Declaration(name, expr) =>
+                             entry_to_xml("Declaration", (name, expr))
+                           | Type(name, expr) =>
+                             entry_to_xml("Type", (name, expr))
+                           | Enumerated(name, variants) =>
+                             enumerated_to_xml(name, variants)
+                         )
+                         % (x => [x]),
+                       "Statement",
+                     ),
+                   )
+              )
+              @ (decorators |> List.map(decorator_to_xml)),
+            ),
+          ]
+      ),
     "Entry",
   );
 
-let to_xml: AST.TypeDefinition.t => Fmt.xml_t(string) =
+let to_xml: TypeDefinition.t => Fmt.xml_t(string) =
   entries => Node("TypeDefinition", [], entries |> List.map(module_to_xml));

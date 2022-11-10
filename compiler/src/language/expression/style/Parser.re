@@ -1,12 +1,12 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
-
-module ParseContext = AST.ParseContext;
-module Scope = AST.Scope;
+open AST;
 
 let style_rule =
-    (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t) =>
+    (
+      ctx: ParseContext.t,
+      parse_expr: ParserTypes.contextual_expression_parser_t,
+    ) =>
   Matchers.attribute(KIdentifier.Plugin.parse(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
@@ -18,8 +18,11 @@ let style_rule =
   );
 
 let style_expression =
-    (ctx: ParseContext.t, parse_expr: contextual_expression_parser_t)
-    : expression_parser_t => {
+    (
+      ctx: ParseContext.t,
+      parse_expr: ParserTypes.contextual_expression_parser_t,
+    )
+    : ParserTypes.expression_parser_t => {
   let rule_scope = Scope.create(ctx, Range.zero);
 
   Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);

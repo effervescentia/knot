@@ -1,14 +1,14 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
 module Float = KFloat.Plugin;
 module Integer = KInteger.Plugin;
 
-type t = AST.Primitive.number_t;
+type t = Primitive.number_t;
 
-let parse: primitive_parser_t =
-  choice([Float.parse, Integer.parse]) >|= Node.map(AST.Raw.of_num);
+let parse: ParserTypes.primitive_parser_t =
+  choice([Float.parse, Integer.parse]) >|= Node.map(Raw.of_num);
 
 let pp: Fmt.t(t) =
   ppf =>

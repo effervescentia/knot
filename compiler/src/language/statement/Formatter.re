@@ -1,7 +1,8 @@
 open Knot.Kore;
+open AST;
 
 let pp_statement:
-  Fmt.t(AST.Result.raw_expression_t) => Fmt.t(AST.Result.raw_statement_t) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_statement_t) =
   (pp_expression, ppf, stmt) =>
     switch (stmt) {
     | Variable(name, expr) =>

@@ -1,12 +1,10 @@
 open Knot.Kore;
-
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
+open AST;
 
 let rec analyze_type_expression:
-  (SymbolTable.t, AST.TypeExpression.raw_t) => Type.t =
+  (SymbolTable.t, TypeExpression.raw_t) => Type.t =
   (defs, type_expr) =>
-    AST.TypeExpression.(
+    TypeExpression.(
       switch (type_expr) {
       | Nil => Valid(`Nil)
       | Boolean => Valid(`Boolean)

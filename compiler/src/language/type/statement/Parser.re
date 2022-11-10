@@ -1,14 +1,9 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
-
-module ParseContext = AST.ParseContext;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
-module Util = Parse.Util;
+open AST;
 
 type type_module_statement_parser_t =
-  ParseContext.t => Parse.Parser.t(AST.TypeDefinition.module_statement_t);
+  ParseContext.t => Parse.Parser.t(TypeDefinition.module_statement_t);
 
 let type_variant = (ctx: ParseContext.t) =>
   KIdentifier.Plugin.parse(ctx)
@@ -23,7 +18,7 @@ let type_variant = (ctx: ParseContext.t) =>
 
 let declaration: type_module_statement_parser_t =
   ctx =>
-    Util.define_statement(
+    Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.declare),
       KTypeExpression.Plugin.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
@@ -32,13 +27,13 @@ let declaration: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_value(id, type_);
 
-        AST.TypeDefinition.of_declaration(res);
+        TypeDefinition.of_declaration(res);
       },
     );
 
 let enumerated: type_module_statement_parser_t =
   ctx =>
-    Util.define_statement(
+    Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.enum),
       type_variant(ctx)
       |> Matchers.vertical_bar_sep
@@ -74,13 +69,13 @@ let enumerated: type_module_statement_parser_t =
         ctx.symbols |> SymbolTable.declare_type(id, enum_type);
         ctx.symbols |> SymbolTable.declare_value(id, value_type);
 
-        AST.TypeDefinition.of_enum(res);
+        TypeDefinition.of_enum(res);
       },
     );
 
 let type_: type_module_statement_parser_t =
   ctx =>
-    Util.define_statement(
+    Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.type_),
       KTypeExpression.Plugin.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
@@ -89,7 +84,7 @@ let type_: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_type(id, type_);
 
-        AST.TypeDefinition.of_type(res);
+        TypeDefinition.of_type(res);
       },
     );
 

@@ -1,17 +1,18 @@
 open Knot.Kore;
+open AST;
 
 let argument_to_xml:
   (
-    AST.Result.expression_t => Fmt.xml_t(string),
-    AST.Type.t => string,
-    AST.Result.argument_t
+    Result.expression_t => Fmt.xml_t(string),
+    Type.t => string,
+    Result.argument_t
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, dump_type, parameter) =>
     Dump.node_to_xml(
       ~dump_type,
       ~unpack=
-        (AST.Expression.{name, default, type_}) =>
+        (Expression.{name, default, type_}) =>
           [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
           @ (
             default
@@ -39,9 +40,9 @@ let argument_to_xml:
 
 let argument_list_to_xml:
   (
-    AST.Result.expression_t => Fmt.xml_t(string),
-    AST.Type.t => string,
-    list(AST.Result.argument_t)
+    Result.expression_t => Fmt.xml_t(string),
+    Type.t => string,
+    list(Result.argument_t)
   ) =>
   list(Fmt.xml_t(string)) =
   (expr_to_xml, dump_type, parameters) =>

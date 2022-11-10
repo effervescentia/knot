@@ -1,8 +1,8 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
-let float: number_parser_t =
+let float: ParserTypes.number_parser_t =
   Matchers.binary_op(
     many1(Matchers.digit) >|= Input.join,
     Matchers.period,
@@ -26,7 +26,7 @@ let float: number_parser_t =
             );
           }
         )
-        |> AST.Raw.of_float;
+        |> Raw.of_float;
 
       Node.typed(components, (), Node.join_ranges(x, y));
     }

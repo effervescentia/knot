@@ -1,25 +1,22 @@
 open Knot.Kore;
-
-module Scope = AST.Scope;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
+open AST;
 
 let rec validate_default_arguments =
         (
           ~require_default=false,
           scope: Scope.t,
-          args: list(AST.Result.argument_t),
+          args: list(Result.argument_t),
         ) =>
   switch (args, require_default) {
   | ([], _) => ()
 
-  | ([(AST.{name: (name, _), default: None, _}, _) as arg, ...xs], true) =>
+  | ([({name: (name, _), default: None, _}, _) as arg, ...xs], true) =>
     Type.DefaultArgumentMissing(name)
     |> Scope.report_type_err(scope, Node.get_range(arg));
 
     validate_default_arguments(~require_default, scope, xs);
 
-  | ([(AST.{default: Some(_), _}, _), ...xs], _) =>
+  | ([({default: Some(_), _}, _), ...xs], _) =>
     validate_default_arguments(~require_default=true, scope, xs)
 
   | ([_, ...xs], _) =>
@@ -29,10 +26,10 @@ let rec validate_default_arguments =
 let analyze_argument:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    AST.Raw.argument_t
+    (Scope.t, Raw.expression_t) => Result.expression_t,
+    Raw.argument_t
   ) =>
-  AST.Result.argument_t =
+  Result.argument_t =
   (scope, analyze_expression, arg) => {
     let (arg', type_) =
       switch (fst(arg)) {
@@ -41,7 +38,7 @@ let analyze_argument:
         |> Scope.report_type_err(scope, Node.get_range(arg));
 
         (
-          AST.Expression.{name, default: None, type_: None},
+          Expression.{name, default: None, type_: None},
           Type.Invalid(NotInferrable),
         );
 
@@ -49,7 +46,7 @@ let analyze_argument:
         let expr' = expr |> analyze_expression(scope);
 
         (
-          AST.Expression.{name, default: Some(expr'), type_: None},
+          Expression.{name, default: Some(expr'), type_: None},
           Node.get_type(expr'),
         );
 
@@ -59,10 +56,7 @@ let analyze_argument:
           |> fst
           |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
-        (
-          AST.Expression.{name, default: None, type_: Some(type_expr)},
-          type_,
-        );
+        (Expression.{name, default: None, type_: Some(type_expr)}, type_);
 
       | {name, default: Some(expr), type_: Some(type_expr)} =>
         let expr' = expr |> analyze_expression(scope);
@@ -80,7 +74,7 @@ let analyze_argument:
         | _ => ()
         };
 
-        (AST.{name, default: Some(expr'), type_: Some(type_expr)}, type_);
+        ({name, default: Some(expr'), type_: Some(type_expr)}, type_);
       };
 
     Node.typed(arg', type_, Node.get_range(arg));
@@ -90,10 +84,10 @@ let analyze_argument:
 let analyze_argument_list:
   (
     Scope.t,
-    (Scope.t, AST.Raw.expression_t) => AST.Result.expression_t,
-    list(AST.Raw.argument_t)
+    (Scope.t, Raw.expression_t) => Result.expression_t,
+    list(Raw.argument_t)
   ) =>
-  list(AST.Result.argument_t) =
+  list(Result.argument_t) =
   (scope, analyze_expression, args) => {
     let args' =
       args |> List.map(analyze_argument(scope, analyze_expression));

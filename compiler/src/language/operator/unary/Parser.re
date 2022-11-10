@@ -1,7 +1,9 @@
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
-let unary_operation = (parse_expr: expression_parser_t): expression_parser_t =>
+let unary_operation =
+    (parse_expr: ParserTypes.expression_parser_t)
+    : ParserTypes.expression_parser_t =>
   Matchers.unary_op(
     parse_expr,
     choice([

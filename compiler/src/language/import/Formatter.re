@@ -1,22 +1,25 @@
 open Knot.Kore;
+open AST;
+
+module Namespace = Reference.Namespace;
 
 type import_spec_t = (
-  Reference.Namespace.t,
+  Namespace.t,
   option(string),
-  list((string, option(AST.Result.identifier_t))),
+  list((string, option(Result.identifier_t))),
 );
 
-let pp_namespace: Fmt.t(Reference.Namespace.t) =
-  ppf => ~@Reference.Namespace.pp % KString.Plugin.pp(ppf);
+let pp_namespace: Fmt.t(Namespace.t) =
+  ppf => ~@Namespace.pp % KString.Plugin.pp(ppf);
 
-let pp_named_import: Fmt.t((string, option(AST.Result.identifier_t))) =
+let pp_named_import: Fmt.t((string, option(Result.identifier_t))) =
   ppf =>
     fun
     | (id, Some((label, _))) => Fmt.pf(ppf, "%s as %s", id, label)
     | (id, None) => Fmt.string(ppf, id);
 
 let pp_named_import_list:
-  Fmt.t(list((string, option(AST.Result.identifier_t)))) =
+  Fmt.t(list((string, option(Result.identifier_t)))) =
   (ppf, imports) => Fmt.(destruct(pp_named_import, ppf, imports));
 
 let pp_main_import: Fmt.t(option(string)) =
@@ -25,8 +28,7 @@ let pp_main_import: Fmt.t(option(string)) =
     | Some(id) => Fmt.string(ppf, id)
     | None => Fmt.nop(ppf, ());
 
-let _pp_import_stmt =
-    (pp_targets: Fmt.t('a)): Fmt.t(('a, Reference.Namespace.t)) =>
+let _pp_import_stmt = (pp_targets: Fmt.t('a)): Fmt.t(('a, Namespace.t)) =>
   Fmt.(
     hvbox((ppf, (targets, namespace)) =>
       pf(

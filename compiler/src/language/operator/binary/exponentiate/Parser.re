@@ -1,11 +1,8 @@
 open Knot.Kore;
 open Parse.Kore;
-
-module Util = Parse.Util;
+open AST;
 
 let expo:
-  Parse.Parser.t(
-    (AST.Raw.expression_t, AST.Raw.expression_t) => AST.Raw.expression_t,
-  ) =
-  Tuple.fold2(Util.binary_op(AST.Raw.of_expo_op))
+  Parse.Parser.t((Raw.expression_t, Raw.expression_t) => Raw.expression_t) =
+  Tuple.fold2(Parse.Util.binary_op(Raw.of_expo_op))
   <$ Matchers.symbol(Constants.Character.caret);

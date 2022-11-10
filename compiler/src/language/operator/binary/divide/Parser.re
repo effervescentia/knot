@@ -1,8 +1,7 @@
 open Knot.Kore;
 open Parse.Kore;
+open AST;
 
-module Util = Parse.Util;
-
-let divide: AST.ParserTypes.binary_op_parser_t =
-  Util.binary_op(AST.Raw.of_div_op)
+let divide: ParserTypes.binary_op_parser_t =
+  Parse.Util.binary_op(Raw.of_div_op)
   <$ Matchers.symbol(Constants.Character.forward_slash);

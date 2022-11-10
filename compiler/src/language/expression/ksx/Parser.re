@@ -1,10 +1,9 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
 module Character = Constants.Character;
 module Glyph = Constants.Glyph;
-module ParseContext = AST.ParseContext;
 
 module Tag = {
   let open_ = Matchers.symbol(Character.open_chevron);
@@ -21,19 +20,18 @@ module Fragment = {
 
 type expression_parsers_arg_t = (
   /* parses a "term" */
-  contextual_expression_parser_t,
+  ParserTypes.contextual_expression_parser_t,
   /* parses an "expression" */
-  contextual_expression_parser_t,
+  ParserTypes.contextual_expression_parser_t,
 );
 
-type jsx_parser_t = Parse.Parser.t(Node.t(AST.Raw.jsx_t, unit));
+type jsx_parser_t = Parse.Parser.t(Node.t(Raw.jsx_t, unit));
 
-type jsx_attribute_parser_t = Parse.Parser.t(AST.Raw.jsx_attribute_t);
-type jsx_attribute_list_parser_t =
-  Parse.Parser.t(list(AST.Raw.jsx_attribute_t));
+type jsx_attribute_parser_t = Parse.Parser.t(Raw.jsx_attribute_t);
+type jsx_attribute_list_parser_t = Parse.Parser.t(list(Raw.jsx_attribute_t));
 
-type jsx_child_parser_t = Parse.Parser.t(AST.Raw.jsx_child_t);
-type jsx_child_list_parser_t = Parse.Parser.t(list(AST.Raw.jsx_child_t));
+type jsx_child_parser_t = Parse.Parser.t(Raw.jsx_child_t);
+type jsx_child_list_parser_t = Parse.Parser.t(list(Raw.jsx_child_t));
 
 let _attribute =
     (
@@ -72,7 +70,7 @@ and fragment =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
   children(ctx, parsers)
   |> Matchers.between(Fragment.open_, Fragment.close)
-  >|= Node.map(AST.Raw.of_frag)
+  >|= Node.map(Raw.of_frag)
 
 and tag =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
@@ -97,7 +95,7 @@ and tag =
           >|= (
             cs =>
               Node.untyped(
-                (id, attrs, fst(cs)) |> AST.Raw.of_tag,
+                (id, attrs, fst(cs)) |> Raw.of_tag,
                 Node.join_ranges(id, cs),
               )
           )
@@ -110,7 +108,7 @@ and property_attribute =
   _attribute(ctx, parsers)
   >|= (
     ((name, value, range)) =>
-      Node.untyped((name, value) |> AST.Raw.of_prop, range)
+      Node.untyped((name, value) |> Raw.of_prop, range)
   )
 
 and class_attribute =
@@ -120,8 +118,7 @@ and class_attribute =
   >|= (
     ((name, value, range)) =>
       Node.untyped(
-        (name |> Node.map(String.drop_left(1)), value)
-        |> AST.Raw.of_jsx_class,
+        (name |> Node.map(String.drop_left(1)), value) |> Raw.of_jsx_class,
         range,
       )
   )
@@ -129,7 +126,7 @@ and class_attribute =
 and id_attribute: jsx_attribute_parser_t =
   Matchers.identifier(~prefix=char(Character.octothorpe))
   >|= Node.map(String.drop_left(1))
-  >|= Node.wrap(AST.Raw.of_jsx_id)
+  >|= Node.wrap(Raw.of_jsx_id)
 
 and attributes =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
@@ -154,21 +151,19 @@ and text: jsx_child_parser_t =
     none_of(. Character.[open_brace, open_chevron, close_chevron]) |> many
   )
   >|= Input.join
-  >|= Node.map(String.trim % AST.Raw.of_text)
+  >|= Node.map(String.trim % Raw.of_text)
 
 and node =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_child_parser_t =>
-  _inner_ksx(ctx, parsers) >|= Node.map(AST.Raw.of_node)
+  _inner_ksx(ctx, parsers) >|= Node.map(Raw.of_node)
 
 and inline_expr =
     (ctx: ParseContext.t, (_, parse_expr): expression_parsers_arg_t)
     : jsx_child_parser_t =>
-  parse_expr(ctx)
-  |> Matchers.between_braces
-  >|= Node.map(AST.Raw.of_inline_expr);
+  parse_expr(ctx) |> Matchers.between_braces >|= Node.map(Raw.of_inline_expr);
 
 let ksx =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
-    : expression_parser_t =>
-  _inner_ksx(ctx, parsers) >|= Node.map(AST.Raw.of_jsx);
+    : ParserTypes.expression_parser_t =>
+  _inner_ksx(ctx, parsers) >|= Node.map(Raw.of_jsx);

@@ -1,16 +1,15 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
+open AST;
 
 module Boolean = KBoolean.Plugin;
 module Nil = KNil.Plugin;
 module Number = KNumber.Plugin;
 module String = KString.Plugin;
-module Type = AST.Type;
 
-type t = AST.Primitive.primitive_t;
+type t = Primitive.primitive_t;
 
-let parse: primitive_parser_t =
+let parse: ParserTypes.primitive_parser_t =
   choice([Nil.parse, Boolean.parse, Number.parse, String.parse]);
 
 let analyze: t => Type.t =

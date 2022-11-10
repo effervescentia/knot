@@ -1,5 +1,6 @@
 open Knot.Kore;
 open Parse.Kore;
+open AST;
 
 let dot_access = {
   let rec loop = expr =>
@@ -9,7 +10,7 @@ let dot_access = {
       prop =>
         loop(
           Node.typed(
-            (expr, prop) |> AST.Raw.of_dot_access,
+            (expr, prop) |> Raw.of_dot_access,
             (),
             Node.get_range(prop),
           ),

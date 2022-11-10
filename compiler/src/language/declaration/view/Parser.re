@@ -1,19 +1,10 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
-
-module ParseContext = AST.ParseContext;
-module Scope = AST.Scope;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
-module Util = AST.Util;
+open AST;
 
 let view =
-    (
-      ctx: ParseContext.t,
-      tag_export: AST.Raw.identifier_t => AST.Module.export_t,
-    )
-    : declaration_parser_t =>
+    (ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t)
+    : ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.view)
   >>= Node.get_range
   % (
@@ -39,7 +30,7 @@ let view =
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
-                        AST.Expression.(fst(arg).name) |> fst,
+                        Expression.(fst(arg).name) |> fst,
                         Node.get_type(arg),
                       )
                    |> Option.iter(
@@ -88,7 +79,7 @@ let view =
                 props'
                 |> List.map(
                      Tuple.split2(
-                       fst % AST.Expression.(prop => fst(prop.name)),
+                       fst % Expression.(prop => fst(prop.name)),
                        Node.get_type,
                      ),
                    );
@@ -105,7 +96,7 @@ let view =
 
               let view =
                 Node.typed(
-                  (props', mixins', res') |> AST.Result.of_view,
+                  (props', mixins', res') |> Result.of_view,
                   type_,
                   range,
                 );

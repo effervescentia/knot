@@ -1,5 +1,3 @@
-open Knot.Kore;
-
 let parse = Parser.lambda;
 let parse_with_mixins = Parser.lambda_with_mixins;
 

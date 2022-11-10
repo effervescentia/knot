@@ -1,19 +1,10 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST.ParserTypes;
-
-module ParseContext = AST.ParseContext;
-module Scope = AST.Scope;
-module SymbolTable = AST.SymbolTable;
-module Type = AST.Type;
-module Util = AST.Util;
+open AST;
 
 let function_ =
-    (
-      ctx: ParseContext.t,
-      tag_export: AST.Raw.identifier_t => AST.Module.export_t,
-    )
-    : declaration_parser_t =>
+    (ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t)
+    : ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.func)
   >>= Node.get_range
   % (
@@ -37,7 +28,7 @@ let function_ =
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
-                        AST.Expression.(fst(arg).name) |> fst,
+                        Expression.(fst(arg).name) |> fst,
                         Node.get_type(arg),
                       )
                    |> Option.iter(

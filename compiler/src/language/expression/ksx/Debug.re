@@ -1,4 +1,5 @@
 open Knot.Kore;
+open AST;
 
 let attribute_to_xml = (key, (name, value)) =>
   Fmt.Node(
@@ -17,13 +18,12 @@ let attribute_list_to_xml = attributes =>
   |> List.map(
        Dump.node_to_xml(
          ~unpack=
-           (
+           Expression.(
              fun
-             | AST.Expression.ID(name) =>
-               Dump.node_to_xml(~dump_value=Fun.id, "ID", name)
-             | AST.Expression.Class(name, value) =>
+             | ID(name) => Dump.node_to_xml(~dump_value=Fun.id, "ID", name)
+             | Class(name, value) =>
                attribute_to_xml("Class", (name, value))
-             | AST.Expression.Property(name, value) =>
+             | Property(name, value) =>
                attribute_to_xml("Property", (name, value))
            )
            % (x => [x]),
@@ -33,9 +33,9 @@ let attribute_list_to_xml = attributes =>
 
 let rec to_xml:
   (
-    AST.Expression.expression_t('a) => Fmt.xml_t(string),
+    Expression.expression_t('a) => Fmt.xml_t(string),
     'a => string,
-    AST.Expression.jsx_t('a)
+    Expression.jsx_t('a)
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, dump_type, ksx) =>
@@ -73,13 +73,12 @@ and children_to_xml = (expr_to_xml, dump_type) =>
   List.map(
     Dump.node_to_xml(
       ~unpack=
-        (
+        Expression.(
           fun
-          | AST.Expression.Text(text) =>
-            Fmt.Node("Text", [("value", text)], [])
-          | AST.Expression.Node(node) =>
+          | Text(text) => Fmt.Node("Text", [("value", text)], [])
+          | Node(node) =>
             Fmt.Node("Node", [], [to_xml(expr_to_xml, dump_type, node)])
-          | AST.Expression.InlineExpression(expr) =>
+          | InlineExpression(expr) =>
             Fmt.Node("InlineExpression", [], [expr_to_xml(expr)])
         )
         % (x => [x]),
