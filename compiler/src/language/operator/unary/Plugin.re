@@ -10,7 +10,7 @@ include Framework.Expression({
 
   let parse = Parser.unary_operation;
 
-  let pp = Formatter.pp_unary_operation;
+  let format = Formatter.pp_unary_operation;
 
   let to_xml = Debug.to_xml;
 });

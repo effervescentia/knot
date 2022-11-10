@@ -56,7 +56,7 @@ module type NoParseExpressionParams = {
   type value_t('a);
 
   // let analyze: (analyze_arg_t, value_t(unit)) => value_t(Type.t);
-  let pp: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
 
   let to_xml:
     (

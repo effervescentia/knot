@@ -10,7 +10,7 @@ include Framework.Expression({
 
   let parse = Parser.group;
 
-  let pp = Formatter.pp_group;
+  let format = Formatter.pp_group;
 
   let to_xml = ((expr_to_xml, _), expr) =>
     Fmt.Node("Group", [], [expr_to_xml(expr)]);

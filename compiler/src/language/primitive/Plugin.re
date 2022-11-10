@@ -11,6 +11,16 @@ let parse_primitive =
     choice([KNil.parse, KBoolean.parse, KNumber.parse, KString.parse])
   );
 
+let pp =
+  Primitive.(
+    ppf =>
+      fun
+      | Nil => KNil.pp(ppf, ())
+      | Boolean(x) => KBoolean.pp(ppf, x)
+      | Number(x) => KNumber.pp(ppf, x)
+      | String(x) => KString.pp(ppf, x)
+  );
+
 let analyze =
   Primitive.(
     Type.(
@@ -30,15 +40,7 @@ include Framework.Expression({
 
   let parse = () => Parse.Kore.(parse_primitive >|= Node.map(Raw.of_prim));
 
-  let pp =
-    Primitive.(
-      (_, ppf) =>
-        fun
-        | Nil => KNil.pp(ppf, ())
-        | Boolean(x) => KBoolean.pp(ppf, x)
-        | Number(x) => KNumber.pp(ppf, x)
-        | String(x) => KString.pp(ppf, x)
-    );
+  let format = _ => pp;
 
   let to_xml = _ =>
     Primitive.(

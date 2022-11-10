@@ -1,9 +1,8 @@
 open Knot.Kore;
 open AST;
 
-let pp_declaration:
-  Fmt.t(TypeExpression.raw_t) => Fmt.t((string, Module.raw_declaration_t)) =
-  (pp_type_expr, ppf, (name, decl)) =>
+let pp_declaration: Fmt.t((string, Module.raw_declaration_t)) =
+  (ppf, (name, decl)) =>
     switch (decl) {
     | Constant(expr) => (name, expr) |> KConstant.Plugin.pp(ppf)
     | Enumerated(variants) => (name, variants) |> KEnumerated.Plugin.pp(ppf)

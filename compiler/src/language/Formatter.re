@@ -12,12 +12,11 @@ let pp_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
         | [] => Fmt.nop(ppf, ())
 
         /* do not add newline after the last statement */
-        | [decl] =>
-          KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl)
+        | [decl] => KDeclaration.Plugin.pp(ppf, decl)
 
         /* handle constant clustering logic, separate with newlines */
         | [(_, Constant(_)) as decl, ...[(_, Constant(_)), ..._] as xs] => {
-            KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
+            KDeclaration.Plugin.pp(ppf, decl);
             Fmt.cut(ppf, ());
 
             loop(xs);
@@ -25,7 +24,7 @@ let pp_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
 
         /* followed by declarations that are not constants, add a full line break */
         | [decl, ...xs] => {
-            KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp, ppf, decl);
+            KDeclaration.Plugin.pp(ppf, decl);
             Fmt.cut(ppf, ());
             Fmt.cut(ppf, ());
 

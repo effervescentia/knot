@@ -12,7 +12,7 @@ include Framework.NoParseExpression({
     Expression.expression_t('a),
   );
 
-  let pp = Formatter.pp_binary_operation;
+  let format = Formatter.pp_binary_operation;
 
   let to_xml = Debug.to_xml;
 });

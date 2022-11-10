@@ -101,10 +101,7 @@ let __multiline_view = (
 );
 
 let _assert_declaration = (expected, actual) =>
-  Assert.string(
-    expected,
-    actual |> ~@Fmt.root(KDeclaration.Plugin.pp(KTypeExpression.Plugin.pp)),
-  );
+  Assert.string(expected, actual |> ~@Fmt.root(KDeclaration.Plugin.pp));
 let _assert_declaration_list = (expected, actual) =>
   Assert.string(
     expected,

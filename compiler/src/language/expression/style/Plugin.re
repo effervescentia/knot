@@ -13,7 +13,7 @@ include Framework.Expression({
 
   let parse = Parser.style_expression;
 
-  let pp = Formatter.pp_style_expression;
+  let format = Formatter.pp_style_expression;
 
   let to_xml = Debug.to_xml;
 });

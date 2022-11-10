@@ -16,7 +16,7 @@ include AST.Framework.Expression({
 
   let parse = Parser.function_call;
 
-  let pp = Formatter.pp_function_call;
+  let format = Formatter.pp_function_call;
 
   let to_xml = Debug.to_xml;
 });

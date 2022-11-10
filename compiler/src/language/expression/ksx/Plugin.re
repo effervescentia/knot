@@ -1,6 +1,8 @@
 open Knot.Kore;
 open AST;
 
+let pp = Formatter.pp_ksx;
+
 let analyze = Analyzer.analyze_root;
 
 include Framework.Expression({
@@ -10,7 +12,7 @@ include Framework.Expression({
 
   let parse = Parser.ksx;
 
-  let pp = Formatter.pp_ksx;
+  let format = Formatter.pp_ksx;
 
   let to_xml = Debug.to_xml;
 });
