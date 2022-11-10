@@ -8,7 +8,6 @@ include AST.Framework.Expression({
     AST.ParserTypes.expression_parser_t,
     AST.ParserTypes.expression_parser_t,
   );
-  type pp_arg_t = Fmt.t(AST.Result.raw_expression_t);
 
   type value_t('a) = (
     AST.Expression.expression_t('a),

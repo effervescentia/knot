@@ -13,7 +13,6 @@ include Framework.Expression({
     ParseContext.t,
     ParserTypes.contextual_expression_parser_t,
   );
-  type pp_arg_t = Fmt.t(Result.raw_statement_t);
 
   type value_t('a) = list(Expression.statement_t('a));
 

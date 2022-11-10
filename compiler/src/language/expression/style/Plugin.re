@@ -8,7 +8,6 @@ include Framework.Expression({
     ParseContext.t,
     ParserTypes.contextual_expression_parser_t,
   );
-  type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
   type value_t('a) = list(Expression.style_rule_t('a));
 

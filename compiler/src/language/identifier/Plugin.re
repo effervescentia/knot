@@ -7,7 +7,6 @@ let analyze = Analyzer.analyze_identifier;
 
 include Framework.Expression({
   type parse_arg_t = ParseContext.t;
-  type pp_arg_t = unit;
 
   type value_t('a) = string;
 

@@ -177,22 +177,38 @@ let suite =
       () =>
         Assert.string(
           "123",
-          123L |> A.of_int |> A.of_num |> ~@KPrimitive.Plugin.pp(),
+          123L
+          |> A.of_int
+          |> A.of_num
+          |> ~@KPrimitive.Plugin.pp(_ => raise(NotImplemented)),
         )
     ),
     "pp_prim() - boolean"
     >: (
       () =>
-        Assert.string("true", true |> A.of_bool |> ~@KPrimitive.Plugin.pp())
+        Assert.string(
+          "true",
+          true
+          |> A.of_bool
+          |> ~@KPrimitive.Plugin.pp(_ => raise(NotImplemented)),
+        )
     ),
     "pp_prim() - nil"
-    >: (() => Assert.string("nil", A.nil |> ~@KPrimitive.Plugin.pp())),
+    >: (
+      () =>
+        Assert.string(
+          "nil",
+          A.nil |> ~@KPrimitive.Plugin.pp(_ => raise(NotImplemented)),
+        )
+    ),
     "pp_prim() - string"
     >: (
       () =>
         Assert.string(
           "\"foo bar\"",
-          "foo bar" |> A.of_string |> ~@KPrimitive.Plugin.pp(),
+          "foo bar"
+          |> A.of_string
+          |> ~@KPrimitive.Plugin.pp(_ => raise(NotImplemented)),
         )
     ),
     "pp_statement() - expression"

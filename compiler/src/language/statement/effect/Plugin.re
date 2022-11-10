@@ -1,13 +1,15 @@
 open Knot.Kore;
+open AST;
 
-let parse = Parser.effect;
+include Framework.Statement({
+  type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
-let pp = Formatter.pp_effect;
+  type value_t('a) = Expression.expression_t('a);
 
-let to_xml:
-  (
-    AST.Expression.expression_t('a) => Fmt.xml_t(string),
-    AST.Expression.expression_t('a)
-  ) =>
-  Fmt.xml_t(string) =
-  (expr_to_xml, expr) => Node("Effect", [], [expr_to_xml(expr)]);
+  let parse = Parser.effect;
+
+  let pp = Formatter.pp_effect;
+
+  let to_xml = (expr_to_xml, expr) =>
+    Fmt.Node("Effect", [], [expr_to_xml(expr)]);
+});

@@ -25,7 +25,6 @@ let analyze =
 
 include Framework.Expression({
   type parse_arg_t = unit;
-  type pp_arg_t = unit;
 
   type value_t('a) = Primitive.primitive_t;
 
@@ -33,7 +32,7 @@ include Framework.Expression({
 
   let pp =
     Primitive.(
-      ((), ppf) =>
+      (_, ppf) =>
         fun
         | Nil => KNil.pp(ppf, ())
         | Boolean(x) => KBoolean.pp(ppf, x)

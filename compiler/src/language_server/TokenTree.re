@@ -213,7 +213,8 @@ let pp: Fmt.t(t) =
             | Join => ""
             | Skip => "[skip]"
             | Identifier(id) => id
-            | Primitive(prim) => prim |> ~@KPrimitive.Plugin.pp()
+            | Primitive(prim) =>
+              prim |> ~@KPrimitive.Plugin.pp((ppf, _) => ())
             }
           ),
           Range.create(start, end_) |> ~@Range.pp,

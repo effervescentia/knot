@@ -49,7 +49,13 @@ let decorator_to_xml: TypeDefinition.decorator_t('a) => Fmt.xml_t(string) =
             ...arguments
                |> List.map(
                     Dump.node_to_xml(
-                      ~dump_value=prim => prim |> ~@KPrimitive.Plugin.pp(),
+                      ~dump_value=
+                        prim =>
+                          prim
+                          |> ~@
+                               KPrimitive.Plugin.pp(_ =>
+                                 raise(NotImplemented)
+                               ),
                       "Argument",
                     ),
                   ),

@@ -4,8 +4,10 @@ open AST;
 
 let variable =
     (
-      ctx: ParseContext.t,
-      parse_expr: ParserTypes.contextual_expression_parser_t,
+      (
+        ctx: ParseContext.t,
+        parse_expr: ParserTypes.contextual_expression_parser_t,
+      ),
     )
     : ParserTypes.statement_parser_t =>
   Matchers.keyword(Constants.Keyword.let_)

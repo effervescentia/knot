@@ -30,14 +30,33 @@ module Primitive = (Params: PrimitiveParams) => {
   include Params;
 };
 
-module type NoParseExpressionParams = {
-  // type analyze_arg_t;
+module type StatementParams = {
   type pp_arg_t;
 
   type value_t('a);
 
+  let parse:
+    ((ParseContext.t, ParserTypes.contextual_expression_parser_t)) =>
+    Parser.t(Raw.statement_t);
+
+  let pp: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+
+  let to_xml:
+    (Expression.expression_t('a) => Fmt.xml_t(string), value_t('a)) =>
+    Fmt.xml_t(string);
+};
+
+module Statement = (Params: StatementParams) => {
+  include Params;
+};
+
+module type NoParseExpressionParams = {
+  // type analyze_arg_t;
+
+  type value_t('a);
+
   // let analyze: (analyze_arg_t, value_t(unit)) => value_t(Type.t);
-  let pp: pp_arg_t => Fmt.t(value_t(Type.t));
+  let pp: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
 
   let to_xml:
     (
