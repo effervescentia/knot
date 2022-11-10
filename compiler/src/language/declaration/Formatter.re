@@ -9,8 +9,7 @@ let pp_declaration:
     | Enumerated(variants) =>
       (name, variants) |> KEnumerated.Plugin.pp(pp_type_expr, ppf)
     | Function(args, expr) =>
-      (name, args, expr) |> KFunction.Plugin.pp(KExpression.Plugin.pp, ppf)
+      (name, (args, expr)) |> KFunction.Plugin.pp(ppf)
     | View(props, mixins, expr) =>
-      (name, props, mixins, expr)
-      |> KView.Plugin.pp(KExpression.Plugin.pp, ppf)
+      (name, (props, mixins, expr)) |> KView.Plugin.pp(ppf)
     };

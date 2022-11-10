@@ -31,7 +31,10 @@ let jsx = (expected, actual) =>
     check(
       testable(
         ppf =>
-          KSX.Plugin.to_xml(KExpression.Plugin.to_xml(~@Type.pp), ~@Type.pp)
+          KSX.Plugin.to_xml((
+            KExpression.Plugin.to_xml(~@Type.pp),
+            ~@Type.pp,
+          ))
           % Fmt.xml_string(ppf),
         (==),
       ),

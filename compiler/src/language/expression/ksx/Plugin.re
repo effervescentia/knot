@@ -1,7 +1,17 @@
-let parse = Parser.ksx;
+open Knot.Kore;
+open AST;
 
 let analyze = Analyzer.analyze_root;
 
-let pp = Formatter.pp_ksx;
+include Framework.Expression({
+  type parse_arg_t = (ParseContext.t, Parser.expression_parsers_arg_t);
+  type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
-let to_xml = Debug.to_xml;
+  type value_t('a) = AST.Expression.jsx_t('a);
+
+  let parse = Parser.ksx;
+
+  let pp = Formatter.pp_ksx;
+
+  let to_xml = Debug.to_xml;
+});

@@ -12,7 +12,8 @@ module Assert =
     type t = AR.expression_t;
 
     let parser = ctx =>
-      KStyle.Plugin.parse(ctx, KExpression.Plugin.parse)
+      (ctx, KExpression.Plugin.parse)
+      |> KStyle.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
 

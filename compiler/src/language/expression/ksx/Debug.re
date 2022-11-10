@@ -33,12 +33,11 @@ let attribute_list_to_xml = attributes =>
 
 let rec to_xml:
   (
-    Expression.expression_t('a) => Fmt.xml_t(string),
-    'a => string,
+    (Expression.expression_t('a) => Fmt.xml_t(string), 'a => string),
     Expression.jsx_t('a)
   ) =>
   Fmt.xml_t(string) =
-  (expr_to_xml, dump_type, ksx) =>
+  ((expr_to_xml, dump_type), ksx) =>
     Node(
       "KSX",
       [],
@@ -77,7 +76,7 @@ and children_to_xml = (expr_to_xml, dump_type) =>
           fun
           | Text(text) => Fmt.Node("Text", [("value", text)], [])
           | Node(node) =>
-            Fmt.Node("Node", [], [to_xml(expr_to_xml, dump_type, node)])
+            Fmt.Node("Node", [], [to_xml((expr_to_xml, dump_type), node)])
           | InlineExpression(expr) =>
             Fmt.Node("InlineExpression", [], [expr_to_xml(expr)])
         )

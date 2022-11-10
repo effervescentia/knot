@@ -8,7 +8,8 @@ module Assert = {
     type t = N.t((AM.export_t, AM.declaration_t), unit);
 
     let parser = ctx =>
-      KEnumerated.Plugin.parse(ctx, A.of_named_export)
+      (ctx, A.of_named_export)
+      |> KEnumerated.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
 

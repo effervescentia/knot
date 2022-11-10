@@ -1,7 +1,14 @@
 open Knot.Kore;
 
-let parse = Parser.nil;
+module Keyword = Constants.Keyword;
 
-let pp: Fmt.t(unit) = (ppf, ()) => Constants.Keyword.nil |> Fmt.string(ppf);
+include AST.Framework.Primitive({
+  type value_t = unit;
 
-let to_xml = (): Fmt.xml_t(string) => Node("Nil", [], []);
+  let parse =
+    Parse.Kore.(Matchers.keyword(Keyword.nil) >|= Node.map(_ => AST.Raw.nil));
+
+  let pp = (ppf, ()) => Keyword.nil |> Fmt.string(ppf);
+
+  let to_xml = () => Fmt.Node("Nil", [], []);
+});

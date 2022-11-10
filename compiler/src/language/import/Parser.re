@@ -49,14 +49,14 @@ let main_import =
   >|= (import => [import |> Node.wrap(AST.Result.of_main_import)]);
 
 let named_imports = (ctx: ParseContext.t) =>
-  KIdentifier.Plugin.parse(ctx)
+  KIdentifier.Plugin.parse_id(ctx)
   >>= (
     id =>
       Matchers.keyword(Keyword.as_)
-      >> KIdentifier.Plugin.parse(ctx)
+      >> KIdentifier.Plugin.parse_id(ctx)
       >|= (alias => (id, Some(alias)))
   )
-  <|> (KIdentifier.Plugin.parse(ctx) >|= (id => (id, None)))
+  <|> (KIdentifier.Plugin.parse_id(ctx) >|= (id => (id, None)))
   |> Matchers.comma_sep
   |> Matchers.between_braces
   >|= Node.map(

@@ -3,24 +3,16 @@ open AST;
 
 let analyze = Analyzer.analyze_binary_operation;
 
-let pp = Formatter.pp_binary_operation;
+include Framework.NoParseExpression({
+  type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
-let to_xml:
-  (
-    Expression.expression_t('a) => Fmt.xml_t(string),
-    (
-      Operator.Binary.t,
-      Expression.expression_t('a),
-      Expression.expression_t('a),
-    )
-  ) =>
-  Fmt.xml_t(string) =
-  (expr_to_xml, (op, lhs, rhs)) =>
-    Node(
-      Operator.Binary.to_string(op),
-      [],
-      [
-        Node("Left", [], [expr_to_xml(lhs)]),
-        Node("Right", [], [expr_to_xml(rhs)]),
-      ],
-    );
+  type value_t('a) = (
+    Operator.Binary.t,
+    Expression.expression_t('a),
+    Expression.expression_t('a),
+  );
+
+  let pp = Formatter.pp_binary_operation;
+
+  let to_xml = Debug.to_xml;
+});

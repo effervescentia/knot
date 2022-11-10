@@ -2,12 +2,12 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let constant = (ctx: ParseContext.t, f): ParserTypes.declaration_parser_t =>
+let constant = ((ctx: ParseContext.t, f)): ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.const)
   >>= (
     kwd =>
       Matchers.assign(
-        KIdentifier.Plugin.parse(ctx),
+        KIdentifier.Plugin.parse_id(ctx),
         KExpression.Plugin.parse(ctx),
       )
       >|= (

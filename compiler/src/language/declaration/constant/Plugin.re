@@ -1,5 +1,11 @@
-let parse = Parser.constant;
+open AST;
 
-let pp = Formatter.pp_constant;
+include Framework.Declaration({
+  type value_t = Result.expression_t;
 
-let to_xml = Debug.to_xml;
+  let parse = Parser.constant;
+
+  let pp = Formatter.pp_constant;
+
+  let to_xml = Debug.to_xml;
+});

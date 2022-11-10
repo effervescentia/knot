@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let enumerated = (ctx: ParseContext.t, f): ParserTypes.declaration_parser_t =>
+let enumerated = ((ctx: ParseContext.t, f)): ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.enum)
   >|= Node.get_range
   >>= (
@@ -10,7 +10,7 @@ let enumerated = (ctx: ParseContext.t, f): ParserTypes.declaration_parser_t =>
       Matchers.vertical_bar_sep(
         KTypeStatement.Plugin.parse_type_variant(ctx),
       )
-      |> Matchers.assign(KIdentifier.Plugin.parse(ctx))
+      |> Matchers.assign(KIdentifier.Plugin.parse_id(ctx))
       |> Matchers.terminated
       >|= (
         ((id, raw_variants)) => {

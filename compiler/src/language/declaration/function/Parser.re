@@ -3,13 +3,13 @@ open Parse.Kore;
 open AST;
 
 let function_ =
-    (ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t)
+    ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
     : ParserTypes.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.func)
   >>= Node.get_range
   % (
     start =>
-      KIdentifier.Plugin.parse(ctx)
+      KIdentifier.Plugin.parse_id(ctx)
       >>= (
         id =>
           KExpression.Plugin.parse

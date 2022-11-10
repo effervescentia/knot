@@ -7,7 +7,7 @@ let style_rule =
       ctx: ParseContext.t,
       parse_expr: ParserTypes.contextual_expression_parser_t,
     ) =>
-  Matchers.attribute(KIdentifier.Plugin.parse(ctx), parse_expr(ctx))
+  Matchers.attribute(KIdentifier.Plugin.parse_id(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
       Node.untyped(
@@ -19,8 +19,10 @@ let style_rule =
 
 let style_expression =
     (
-      ctx: ParseContext.t,
-      parse_expr: ParserTypes.contextual_expression_parser_t,
+      (
+        ctx: ParseContext.t,
+        parse_expr: ParserTypes.contextual_expression_parser_t,
+      ),
     )
     : ParserTypes.expression_parser_t => {
   let rule_scope = Scope.create(ctx, Range.zero);

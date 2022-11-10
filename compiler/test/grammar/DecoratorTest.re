@@ -10,7 +10,7 @@ module Assert =
     type t = TD.decorator_t(unit);
 
     let parser = _ =>
-      KPrimitive.Plugin.parse
+      KPrimitive.Plugin.parse_primitive
       |> KDecorator.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;

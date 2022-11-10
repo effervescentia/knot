@@ -468,7 +468,8 @@
     },
     "src/language/expression/closure": {
       "require": [
-        "knot.lang.ast"
+        "knot.lang.ast",
+        "knot.lang.statement"
       ],
       "name": "knot.lang.expression.closure",
       "namespace": "KClosure"

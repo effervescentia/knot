@@ -8,7 +8,7 @@ type type_module_parser_t =
 let _module_keyword = Matchers.keyword(Constants.Keyword.module_);
 
 let _module_decorator = (ctx: ParseContext.t) =>
-  KDecorator.Plugin.parse(KPrimitive.Plugin.parse)
+  KDecorator.Plugin.parse(KPrimitive.Plugin.parse_primitive)
   >|= Node.map(((id, args)) =>
         (
           id

@@ -1,17 +1,14 @@
 open Knot.Kore;
 open AST;
 
-let to_xml:
-  (
-    Result.expression_t => Fmt.xml_t(string),
-    Type.t => string,
-    (list(Result.argument_t), Result.expression_t)
-  ) =>
-  Fmt.xml_t(string) =
-  (expr_to_xml, dump_type, (parameters, result)) =>
-    Node(
-      "View",
-      [],
-      KLambda.Plugin.argument_list_to_xml(expr_to_xml, dump_type, parameters)
-      @ [Node("Body", [], [expr_to_xml(result)])],
-    );
+let to_xml = (dump_type, (parameters, mixins, result)) =>
+  Fmt.Node(
+    "View",
+    [],
+    KLambda.Plugin.argument_list_to_xml(
+      KExpression.Plugin.to_xml(dump_type),
+      dump_type,
+      parameters,
+    )
+    @ [Node("Body", [], [KExpression.Plugin.to_xml(dump_type, result)])],
+  );

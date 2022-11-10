@@ -140,6 +140,8 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
 
     let parser = _ => Params.parser;
 
-    let pp_value = ppf => KPrimitive.Plugin.to_xml % Fmt.xml_string(ppf);
+    let pp_value = ppf =>
+      KPrimitive.Plugin.to_xml((_ => raise(NotImplemented), _ => ""))
+      % Fmt.xml_string(ppf);
     let pp_type = (_, ()) => ();
   });

@@ -1,10 +1,14 @@
 open Knot.Kore;
 
-let parse = Parser.boolean;
+module Keyword = Constants.Keyword;
 
-let analyze = x => Node.add_type(AST.Type.Valid(`Boolean), x);
+include AST.Framework.Primitive({
+  type value_t = bool;
 
-let pp = Formatter.pp_boolean;
+  let parse = Parser.boolean;
 
-let to_xml: bool => Fmt.xml_t(string) =
-  x => Node("Boolean", [("value", x |> ~@pp)], []);
+  let pp = (ppf, x) =>
+    (x ? Keyword.true_ : Keyword.false_) |> Fmt.string(ppf);
+
+  let to_xml = x => Fmt.Node("Boolean", [("value", x |> ~@pp)], []);
+});

@@ -8,10 +8,10 @@ module Assert =
     type t = AR.expression_t;
 
     let parser = ctx =>
-      KSX.Plugin.parse(
+      KSX.Plugin.parse((
         ctx,
         (KExpression.Plugin.parse_jsx_term, KExpression.Plugin.parse),
-      )
+      ))
       |> Assert.parse_completely
       |> Parser.parse;
 

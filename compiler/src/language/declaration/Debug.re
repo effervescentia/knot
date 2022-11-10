@@ -24,17 +24,9 @@ let to_xml:
               | Enumerated(variants) =>
                 KEnumerated.Plugin.to_xml(dump_type, variants)
               | Function(parameters, body) =>
-                KFunction.Plugin.to_xml(
-                  KExpression.Plugin.to_xml(dump_type),
-                  dump_type,
-                  (parameters, body),
-                )
+                KFunction.Plugin.to_xml(dump_type, (parameters, body))
               | View(parameters, mixins, body) =>
-                KView.Plugin.to_xml(
-                  KExpression.Plugin.to_xml(dump_type),
-                  dump_type,
-                  (parameters, body),
-                )
+                KView.Plugin.to_xml(dump_type, (parameters, mixins, body))
             )
             % (x => [x]),
           "Entity",

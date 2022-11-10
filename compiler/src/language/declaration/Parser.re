@@ -6,13 +6,14 @@ let declaration = (ctx: ParseContext.t) =>
   Result.of_main_export
   <$ Matchers.keyword(Constants.Keyword.main)
   |> option(Result.of_named_export)
+  >|= Tuple.with_fst2(ctx)
   >>= (
-    f =>
+    arg =>
       choice([
-        KConstant.Plugin.parse(ctx, f),
-        KEnumerated.Plugin.parse(ctx, f),
-        KFunction.Plugin.parse(ctx, f),
-        KView.Plugin.parse(ctx, f),
+        KConstant.Plugin.parse(arg),
+        KEnumerated.Plugin.parse(arg),
+        KFunction.Plugin.parse(arg),
+        KView.Plugin.parse(arg),
       ])
       >|= Node.map(Result.of_decl)
   );

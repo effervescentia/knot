@@ -9,7 +9,7 @@ let arguments =
       ctx: ParseContext.t,
       parse_expression: ParserTypes.contextual_expression_parser_t,
     ) =>
-  KIdentifier.Plugin.parse(ctx)
+  KIdentifier.Plugin.parse_id(ctx)
   >>= (
     id =>
       Matchers.symbol(Character.colon)

@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let float: ParserTypes.number_parser_t =
+let float =
   Matchers.binary_op(
     many1(Matchers.digit) >|= Input.join,
     Matchers.period,

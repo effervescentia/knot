@@ -164,6 +164,6 @@ and inline_expr =
   parse_expr(ctx) |> Matchers.between_braces >|= Node.map(Raw.of_inline_expr);
 
 let ksx =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
+    ((ctx: ParseContext.t, parsers: expression_parsers_arg_t))
     : ParserTypes.expression_parser_t =>
   _inner_ksx(ctx, parsers) >|= Node.map(Raw.of_jsx);

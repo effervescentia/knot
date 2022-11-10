@@ -3,9 +3,14 @@ open Parse.Kore;
 open AST;
 
 let closure =
-    (parse_stmt: ParserTypes.statement_parser_t)
+    (
+      (
+        ctx: ParseContext.t,
+        parse_expr: ParserTypes.contextual_expression_parser_t,
+      ),
+    )
     : ParserTypes.expression_parser_t =>
-  parse_stmt
+  KStatement.Plugin.parse(ctx, parse_expr)
   |> many
   |> Matchers.between_braces
   >|= (

@@ -1,12 +1,6 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
-
-let primitive: ParserTypes.expression_parser_t =
-  KPrimitive.Plugin.parse >|= Node.map(Raw.of_prim);
-
-let identifier = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
-  KIdentifier.Plugin.parse(ctx) >|= Node.map(Raw.of_id);
 
 /*
   each expression has a precedence denoted by its suffix
@@ -52,16 +46,16 @@ and expr_6 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
 
 /* !, +, - */
 and expr_7 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
-  expr_8(ctx) |> KUnaryOperator.Plugin.parse
+  expr_8(ctx) |> KUnaryOperator.parse
 
 /* foo(bar) */
 and expr_8 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
-  input => (KFunctionCall.Plugin.parse(expr_9(ctx), expr_0(ctx)))(input)
+  input => ((expr_9(ctx), expr_0(ctx)) |> KFunctionCall.parse)(input)
 
 /* foo.bar */
 and expr_9 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
-  expr_10(ctx) >>= KDotAccess.Plugin.parse
+  expr_10(ctx) >>= KDotAccess.parse
 
 /* {}, () */
 and expr_10 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
@@ -69,8 +63,8 @@ and expr_10 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
   input =>
     choice(
       [
-        KStatement.Plugin.parse(ctx, expr_0) |> KClosure.Plugin.parse,
-        expr_0(ctx) |> KGroup.Plugin.parse,
+        (ctx, expr_0) |> KClosure.parse,
+        expr_0(ctx) |> KGroup.parse,
         term(ctx),
       ],
       input,
@@ -78,16 +72,15 @@ and expr_10 = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
 
 and jsx_term = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
   /* skip dot access to avoid conflict with class attribute syntax */
-  KFunctionCall.Plugin.parse(expr_10(ctx), expr_0(ctx))
-  |> KUnaryOperator.Plugin.parse
+  (expr_10(ctx), expr_0(ctx)) |> KFunctionCall.parse |> KUnaryOperator.parse
 
 /* 2, foo, <bar /> */
 and term = (ctx: ParseContext.t): ParserTypes.expression_parser_t =>
   choice([
-    primitive,
-    expr_0 |> KStyle.Plugin.parse(ctx),
-    identifier(ctx),
-    (jsx_term, expr_0) |> KSX.Plugin.parse(ctx),
+    () |> KPrimitive.parse,
+    (ctx, expr_0) |> KStyle.parse,
+    ctx |> KIdentifier.parse,
+    (ctx, (jsx_term, expr_0)) |> KSX.parse,
   ]);
 
 let expression = expr_0;

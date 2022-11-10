@@ -1,11 +1,11 @@
 open Knot.Kore;
 
-let parse = Parser.string;
+include AST.Framework.Primitive({
+  type value_t = string;
 
-let analyze = x => Node.add_type(AST.Type.Valid(`String), x);
+  let parse = Parse.Kore.(Matchers.string >|= Node.map(AST.Raw.of_string));
 
-let pp: Fmt.t(string) =
-  (ppf, x) => x |> String.escaped |> Fmt.pf(ppf, "\"%s\"");
+  let pp = (ppf, x) => x |> String.escaped |> Fmt.pf(ppf, "\"%s\"");
 
-let to_xml: string => Fmt.xml_t(string) =
-  x => Node("String", [("value", x |> ~@pp)], []);
+  let to_xml = x => Fmt.Node("String", [("value", x |> ~@pp)], []);
+});

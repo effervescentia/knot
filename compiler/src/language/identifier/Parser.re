@@ -22,3 +22,6 @@ let identifier = (ctx: ParseContext.t) =>
       Node.untyped(name_value, Node.get_range(name));
     }
   );
+
+let id_expression = (ctx: ParseContext.t) =>
+  identifier(ctx) >|= Node.map(Raw.of_id);

@@ -1,22 +1,29 @@
 open Knot.Kore;
-open Parse.Kore;
 open AST;
 
-module Float = KFloat.Plugin;
-module Integer = KInteger.Plugin;
+module KFloat = KFloat.Plugin;
+module KInteger = KInteger.Plugin;
 
-type t = Primitive.number_t;
+include Framework.Primitive({
+  type value_t = Primitive.number_t;
 
-let parse: ParserTypes.primitive_parser_t =
-  choice([Float.parse, Integer.parse]) >|= Node.map(Raw.of_num);
+  let parse =
+    Parse.Kore.(
+      choice([KFloat.parse, KInteger.parse]) >|= Node.map(Raw.of_num)
+    );
 
-let pp: Fmt.t(t) =
-  ppf =>
-    fun
-    | Integer(int) => int |> Integer.pp(ppf)
-    | Float(float, precision) => (float, precision) |> Float.pp(ppf);
+  let pp =
+    Primitive.(
+      ppf =>
+        fun
+        | Integer(int) => int |> KInteger.pp(ppf)
+        | Float(float, precision) => (float, precision) |> KFloat.pp(ppf)
+    );
 
-let to_xml: t => Fmt.xml_t(string) =
-  fun
-  | Integer(int) => Integer.to_xml(int)
-  | Float(float, precision) => (float, precision) |> Float.to_xml;
+  let to_xml =
+    Primitive.(
+      fun
+      | Integer(int) => int |> KInteger.to_xml
+      | Float(float, precision) => (float, precision) |> KFloat.to_xml
+    );
+});
