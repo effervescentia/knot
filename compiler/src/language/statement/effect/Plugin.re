@@ -1,6 +1,8 @@
 open Knot.Kore;
 open AST;
 
+let pp = Formatter.pp_effect;
+
 include Framework.Statement({
   type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
@@ -8,7 +10,7 @@ include Framework.Statement({
 
   let parse = Parser.effect;
 
-  let pp = Formatter.pp_effect;
+  let format = pp;
 
   let to_xml = (expr_to_xml, expr) =>
     Fmt.Node("Effect", [], [expr_to_xml(expr)]);

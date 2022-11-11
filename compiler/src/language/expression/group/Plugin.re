@@ -3,6 +3,8 @@ open AST;
 
 let analyze = Analyzer.analyze_group;
 
+let pp = Formatter.pp_group;
+
 include Framework.Expression({
   type parse_arg_t = ParserTypes.expression_parser_t;
 
@@ -10,7 +12,7 @@ include Framework.Expression({
 
   let parse = Parser.group;
 
-  let format = Formatter.pp_group;
+  let format = pp;
 
   let to_xml = ((expr_to_xml, _), expr) =>
     Fmt.Node("Group", [], [expr_to_xml(expr)]);

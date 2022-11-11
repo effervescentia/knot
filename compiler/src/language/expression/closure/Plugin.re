@@ -18,7 +18,7 @@ include Framework.Expression({
 
   let parse = Parser.closure;
 
-  let format = Formatter.pp_closure;
+  let format = pp;
 
   let to_xml = Debug.to_xml;
 });

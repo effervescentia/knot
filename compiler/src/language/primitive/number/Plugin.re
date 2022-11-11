@@ -4,6 +4,14 @@ open AST;
 module KFloat = KFloat.Plugin;
 module KInteger = KInteger.Plugin;
 
+let pp =
+  Primitive.(
+    ppf =>
+      fun
+      | Integer(int) => int |> KInteger.format(ppf)
+      | Float(float, precision) => (float, precision) |> KFloat.format(ppf)
+  );
+
 include Framework.Primitive({
   type value_t = Primitive.number_t;
 
@@ -12,13 +20,7 @@ include Framework.Primitive({
       choice([KFloat.parse, KInteger.parse]) >|= Node.map(Raw.of_num)
     );
 
-  let pp =
-    Primitive.(
-      ppf =>
-        fun
-        | Integer(int) => int |> KInteger.pp(ppf)
-        | Float(float, precision) => (float, precision) |> KFloat.pp(ppf)
-    );
+  let format = pp;
 
   let to_xml =
     Primitive.(

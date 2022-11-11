@@ -15,10 +15,10 @@ let pp =
   Primitive.(
     ppf =>
       fun
-      | Nil => KNil.pp(ppf, ())
-      | Boolean(x) => KBoolean.pp(ppf, x)
-      | Number(x) => KNumber.pp(ppf, x)
-      | String(x) => KString.pp(ppf, x)
+      | Nil => KNil.format(ppf, ())
+      | Boolean(x) => KBoolean.format(ppf, x)
+      | Number(x) => KNumber.format(ppf, x)
+      | String(x) => KString.format(ppf, x)
   );
 
 let analyze =

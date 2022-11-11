@@ -3,6 +3,8 @@ open AST;
 
 let analyze = Analyzer.analyze_binary_operation;
 
+let pp = Formatter.pp_binary_operation;
+
 include Framework.NoParseExpression({
   type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
@@ -12,7 +14,7 @@ include Framework.NoParseExpression({
     Expression.expression_t('a),
   );
 
-  let format = Formatter.pp_binary_operation;
+  let format = pp;
 
   let to_xml = Debug.to_xml;
 });

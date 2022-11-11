@@ -3,6 +3,8 @@ open AST;
 
 let analyze = Analyzer.analyze_dot_access;
 
+let pp = Formatter.pp_dot_access;
+
 include Framework.Expression({
   type parse_arg_t = Raw.expression_t;
 
@@ -13,7 +15,7 @@ include Framework.Expression({
 
   let parse = Parser.dot_access;
 
-  let format = Formatter.pp_dot_access;
+  let format = pp;
 
   let to_xml = Debug.to_xml;
 });

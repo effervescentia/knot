@@ -3,6 +3,8 @@ open AST;
 
 let analyze = Analyzer.analyze_style;
 
+let pp = Formatter.pp_style_expression;
+
 include Framework.Expression({
   type parse_arg_t = (
     ParseContext.t,
@@ -13,7 +15,7 @@ include Framework.Expression({
 
   let parse = Parser.style_expression;
 
-  let format = Formatter.pp_style_expression;
+  let format = pp;
 
   let to_xml = Debug.to_xml;
 });

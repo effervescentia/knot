@@ -1,6 +1,5 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
 let float =
   Matchers.binary_op(
@@ -26,7 +25,7 @@ let float =
             );
           }
         )
-        |> Raw.of_float;
+        |> AST.Raw.of_float;
 
       Node.typed(components, (), Node.join_ranges(x, y));
     }

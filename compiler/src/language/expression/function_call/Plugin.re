@@ -3,6 +3,8 @@ open AST;
 
 let analyze = Analyzer.analyze_function_call;
 
+let pp = Formatter.pp_function_call;
+
 include AST.Framework.Expression({
   type parse_arg_t = (
     AST.ParserTypes.expression_parser_t,
@@ -16,7 +18,7 @@ include AST.Framework.Expression({
 
   let parse = Parser.function_call;
 
-  let format = Formatter.pp_function_call;
+  let format = pp;
 
   let to_xml = Debug.to_xml;
 });

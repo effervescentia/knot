@@ -7,7 +7,7 @@ module type NumberParams = {
 
   let parse: Parser.t(Node.t(Raw.number_t, unit));
 
-  let pp: Fmt.t(value_t);
+  let format: Fmt.t(value_t);
 
   let to_xml: value_t => Fmt.xml_t(string);
 };
@@ -21,7 +21,7 @@ module type PrimitiveParams = {
 
   let parse: Parser.t(Node.t(Raw.primitive_t, unit));
 
-  let pp: Fmt.t(value_t);
+  let format: Fmt.t(value_t);
 
   let to_xml: value_t => Fmt.xml_t(string);
 };
@@ -39,7 +39,7 @@ module type StatementParams = {
     ((ParseContext.t, ParserTypes.contextual_expression_parser_t)) =>
     Parser.t(Raw.statement_t);
 
-  let pp: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
 
   let to_xml:
     (Expression.expression_t('a) => Fmt.xml_t(string), value_t('a)) =>
@@ -89,7 +89,7 @@ module type DeclarationParams = {
     ((ParseContext.t, Node.t(string, unit) => Module.export_t)) =>
     Parser.t(Node.t((Module.export_t, Module.declaration_t), unit));
 
-  let pp: Fmt.t((string, value_t));
+  let format: Fmt.t((string, value_t));
 
   let to_xml: (Type.t => string, value_t) => Fmt.xml_t(string);
 };
