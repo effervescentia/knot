@@ -32,7 +32,7 @@ let suite =
           (
             "buzz" |> A.of_external,
             None,
-            [("Foo", Some(U.as_untyped("foo"))), ("Bar", None)],
+            [("Foo", Some("foo")), ("Bar", None)],
           ),
         )
     ),
@@ -44,7 +44,7 @@ let suite =
           (
             "buzz" |> A.of_external,
             Some("Fizz"),
-            [("Foo", Some(U.as_untyped("foo"))), ("Bar", None)],
+            [("Foo", Some("foo")), ("Bar", None)],
           ),
         )
     ),
@@ -138,6 +138,17 @@ let suite =
           ),
         )
     ),
+    "pp_all_imports() - standard only"
+    >: (
+      () =>
+        Assert.string(
+          "import {
+  JSX,
+};",
+          ([("JSX", None)], [], [])
+          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+        )
+    ),
     "pp_all_imports() - external only"
     >: (
       () =>
@@ -145,6 +156,7 @@ let suite =
           "import Foo from \"foo\";
 import Bar from \"bar\";",
           (
+            [],
             [],
             [
               _main_import("foo", A.of_external),
@@ -161,6 +173,7 @@ import Bar from \"bar\";",
           "import Foo from \"@/foo\";
 import Bar from \"@/bar\";",
           (
+            [],
             [
               _main_import("foo", A.of_internal),
               _main_import("bar", A.of_internal),
@@ -178,8 +191,28 @@ import Bar from \"@/bar\";",
 
 import Foo from \"@/foo\";",
           (
-            [_main_import("foo", A.of_internal)],
+            [],
             [_main_import("bar", A.of_external)],
+            [_main_import("foo", A.of_internal)],
+          )
+          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+        )
+    ),
+    "pp_all_imports() - all types"
+    >: (
+      () =>
+        Assert.string(
+          "import {
+  JSX, JSX as Other,
+};
+
+import Bar from \"bar\";
+
+import Foo from \"@/foo\";",
+          (
+            [("JSX", None), ("JSX", Some("Other"))],
+            [_main_import("bar", A.of_external)],
+            [_main_import("foo", A.of_internal)],
           )
           |> ~@Fmt.root(Language.Formatter.pp_all_imports),
         )

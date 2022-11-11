@@ -87,9 +87,37 @@ module StyleExpression {
 
 @plugin("element_tag")
 module ElementTag {
-  type attributes: {
-    class: string,
-  };
+  type attributes: {};
 
+  declare address: view(attributes, element);
+  declare article: view(attributes, element);
+  declare aside: view(attributes, element);
+  declare footer: view(attributes, element);
+  declare header: view(attributes, element);
+  declare h1: view(attributes, element);
+  declare h2: view(attributes, element);
+  declare h3: view(attributes, element);
+  declare h4: view(attributes, element);
+  declare h5: view(attributes, element);
+  declare h6: view(attributes, element);
+  declare main: view(attributes, element);
+  declare nav: view(attributes, element);
+  declare section: view(attributes, element);
+
+  declare blockquote: view(attributes, element);
+  declare dd: view(attributes, element);
   declare div: view(attributes, element);
+  declare dl: view(attributes, element);
+  declare dt: view(attributes, element);
+  declare figcaption: view(attributes, element);
+  declare figure: view(attributes, element);
+  declare hr: view(attributes, element);
+  declare li: view(attributes, element);
+  declare menu: view(attributes, element);
+  declare ol: view(attributes, element);
+  declare p: view(attributes, element);
+  declare pre: view(attributes, element);
+  declare ul: view(attributes, element);
+
+  declare span: view(attributes, element);
 }

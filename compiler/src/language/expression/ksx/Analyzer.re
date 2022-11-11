@@ -33,11 +33,7 @@ let validate_jsx_render:
                        invalid
                        @ [
                          (
-                           Type.InvalidJSXAttribute(
-                             key,
-                             expected',
-                             actual_value,
-                           ),
+                           InvalidJSXAttribute(key, expected', actual_value),
                            Some(Node.get_range(actual')),
                          ),
                        ],
@@ -111,7 +107,7 @@ let rec analyze_jsx:
           |> Scope.lookup(fst(id))
           |> Option.map(Tuple.with_snd2(Result.of_tag))
         )
-        |?: (Type.Invalid(NotInferrable), Result.of_component);
+        |?: (Invalid(NotInferrable), Result.of_component);
 
       let id' = id |> Node.add_type(id_type);
       let attrs' =
@@ -125,7 +121,14 @@ let rec analyze_jsx:
              fun
              | (((name, _), Some(expr)), range) =>
                Some((name, (Node.get_type(expr), range)))
-             | _ => None,
+             | (((name, _), None), range) =>
+               Some((
+                 name,
+                 (
+                   scope |> Scope.lookup(name) |?: Invalid(NotInferrable),
+                   range,
+                 ),
+               )),
            );
 
       (fst(id), id_type, props)

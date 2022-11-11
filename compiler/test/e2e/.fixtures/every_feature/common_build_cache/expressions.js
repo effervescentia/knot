@@ -53,7 +53,7 @@ var empty_function_call_expr = no_args_function();
 exports.empty_function_call_expr = empty_function_call_expr;
 var function_call_with_args_expr = expression_function(333, 444);
 exports.function_call_with_args_expr = function_call_with_args_expr;
-var tag_with_expr_attributes = $knot.jsx.createTag("div",
+var tag_with_expr_attributes = $knot.jsx.createTag("complex",
                                                    {
                                                      closure_stmts_attr: (
                                                      function () {

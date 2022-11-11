@@ -1,6 +1,6 @@
 import { PropertiedView } from "@/views";
 
-const propertied_tag_variable = <div
+const propertied_tag_variable = <data_element
   data_nil=nil
   data_true=true
   data_false=false
@@ -26,7 +26,7 @@ const propertied_component_variable = <PropertiedView
 />;
 
 const punned_variable = "punned";
-const punned_property_tag_variable = <div punned_variable />;
+const punned_property_tag_variable = <span punned_variable />;
 
 const text_tag_variable = <div>abc 123 "def" %^&#!</div>
 const expression_tag_variable = <div>{123}</div>

@@ -20,5 +20,5 @@ const logicalAndConst = trueConst && falseConst;
 const logicalOrConst = trueConst || falseConst;
 const logicalNegationConst = !(true && false);
 
-const jsxTagConst = <div fizz=(123 + 456) />
+const jsxTagConst = <div />
 const jsxFragConst = <>hello</>

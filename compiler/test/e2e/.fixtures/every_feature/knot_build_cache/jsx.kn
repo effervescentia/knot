@@ -1,16 +1,16 @@
 import { PropertiedView } from "@/views";
 
-const propertied_tag_variable = <div
-                                    data_nil=nil
-                                    data_true=true
-                                    data_false=false
-                                    data_positive_integer=123
-                                    data_negative_integer=(-123)
-                                    data_positive_float=456.78000
-                                    data_negative_float=(-456.78000)
-                                    data_string="abc"
-                                    data_tag=<div />
-                                    data_fragment=<></> />;
+const propertied_tag_variable = <data_element
+                                             data_nil=nil
+                                             data_true=true
+                                             data_false=false
+                                             data_positive_integer=123
+                                             data_negative_integer=(-123)
+                                             data_positive_float=456.78000
+                                             data_negative_float=(-456.78000)
+                                             data_string="abc"
+                                             data_tag=<div />
+                                             data_fragment=<></> />;
 const propertied_component_variable = <PropertiedView
                                                      data_nil=nil
                                                      data_true=true
@@ -23,7 +23,7 @@ const propertied_component_variable = <PropertiedView
                                                      data_tag=<div />
                                                      data_fragment=<></> />;
 const punned_variable = "punned";
-const punned_property_tag_variable = <div punned_variable />;
+const punned_property_tag_variable = <span punned_variable />;
 const text_tag_variable = <div>
   abc 123 "def" %^&#!
 </div>;

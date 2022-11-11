@@ -39,30 +39,51 @@ let pp_import_list: Fmt.t(list(KImport.Formatter.import_spec_t)) =
   ppf =>
     Fmt.(list(~layout=Vertical, ~sep=Sep.newline, KImport.Plugin.pp, ppf));
 
+let pp_standard_import: Fmt.t(list((string, option(string)))) =
+  ppf => Fmt.(pf(ppf, "import %a;", KImport.Formatter.pp_named_import_list));
+
 let pp_all_imports:
   Fmt.t(
     (
+      list((string, option(string))),
       list(KImport.Formatter.import_spec_t),
       list(KImport.Formatter.import_spec_t),
     ),
   ) =
   ppf =>
     fun
-    | ([], []) => Fmt.nop(ppf, ())
+    | ([], [], []) => Fmt.nop(ppf, ())
 
-    | (only_imports, [])
-    | ([], only_imports) => pp_import_list(ppf, only_imports)
+    | (standard_import, [], []) => pp_standard_import(ppf, standard_import)
 
-    | (internal_imports, external_imports) =>
-      [external_imports, internal_imports]
-      |> Fmt.(
-           list(
-             ~layout=Vertical,
-             ~sep=Sep.double_newline,
-             pp_import_list,
-             ppf,
+    | ([], external_imports, internal_imports) =>
+      switch (external_imports, internal_imports) {
+      | (only_imports, [])
+      | ([], only_imports) => pp_import_list(ppf, only_imports)
+
+      | _ =>
+        [external_imports, internal_imports]
+        |> Fmt.(
+             list(
+               ~layout=Vertical,
+               ~sep=Sep.double_newline,
+               pp_import_list,
+               ppf,
+             )
            )
-         );
+      }
+
+    | (standard_import, external_imports, internal_imports) =>
+      Fmt.(
+        pf(
+          ppf,
+          "%a@,@,%a",
+          pp_standard_import,
+          standard_import,
+          list(~layout=Vertical, ~sep=Sep.double_newline, pp_import_list),
+          [external_imports, internal_imports],
+        )
+      );
 
 let format = (~margin=__default_margin): Fmt.t(Module.program_t) =>
   (ppf, program) => {
@@ -75,11 +96,11 @@ let format = (~margin=__default_margin): Fmt.t(Module.program_t) =>
          page(
            (ppf, (imports, declarations)) =>
              switch (imports, declarations) {
-             | (([], []), []) => Fmt.nop(ppf, ())
+             | (([], [], []), []) => Fmt.nop(ppf, ())
 
              | (_, []) => pp_all_imports(ppf, imports)
 
-             | (([], []), _) => pp_declaration_list(ppf, declarations)
+             | (([], [], []), _) => pp_declaration_list(ppf, declarations)
 
              | _ =>
                pf(

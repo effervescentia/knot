@@ -38,7 +38,7 @@ const dot_access_expr = JSX.render;
 const empty_function_call_expr = no_args_function();
 const function_call_with_args_expr = expression_function(333, 444);
 
-const tag_with_expr_attributes = <div
+const tag_with_expr_attributes = <complex
   id_attr=not_expr
   unary_op_attr=+-+-123
   binary_op_attr=(true && false)
