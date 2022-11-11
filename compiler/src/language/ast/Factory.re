@@ -82,6 +82,8 @@ module Make = (Params: ASTParams) => {
 
   let of_expo_op = ((l, r)) => (Exponent, l, r) |> of_binary_op;
 
+  let of_bind_style_op = ((l, r)) => (BindStyle, l, r) |> of_binary_op;
+
   let of_jsx = x => Expression.JSX(x);
   let of_frag = xs => Expression.Fragment(xs);
   let of_tag = ((name, attrs, children)) =>

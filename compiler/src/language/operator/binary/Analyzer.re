@@ -25,6 +25,8 @@ let validate_binary_operation:
 
       | (Equal | Unequal, _, _) when valid_lhs == valid_rhs => None
 
+      | (BindStyle, `View(_), `Style) when valid_lhs == valid_rhs => None
+
       | _ => Some(InvalidBinaryOperation(op, lhs, rhs))
       };
 
@@ -77,6 +79,8 @@ let analyze_binary_operation:
 
         | _ => Invalid(NotInferrable)
         }
+
+      | BindStyle => type_lhs
       },
     );
   };

@@ -19,7 +19,8 @@ module Binary = {
     | Subtract
     | Divide
     | Multiply
-    | Exponent;
+    | Exponent
+    | BindStyle;
 
   let to_string =
     fun
@@ -35,7 +36,8 @@ module Binary = {
     | GreaterThan => "Greater"
     | Equal => "Equal"
     | Unequal => "Unequal"
-    | Exponent => "Exponent";
+    | Exponent => "Exponent"
+    | BindStyle => "BindStyle";
 };
 
 module Unary = {

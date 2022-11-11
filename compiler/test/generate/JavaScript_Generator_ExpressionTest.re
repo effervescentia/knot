@@ -380,7 +380,10 @@ let suite =
     >: (
       () =>
         _assert_unary_op(
-          UnaryOp("+", Group(Number("123"))),
+          FunctionCall(
+            DotAccess(Identifier("Math"), "abs"),
+            [Number("123")],
+          ),
           (Positive, U.int_prim(123)),
         )
     ),

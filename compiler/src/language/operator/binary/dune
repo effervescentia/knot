@@ -7,5 +7,5 @@
    (name KBinaryOperator)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.operator.binary)
-   (libraries  knot.lang.operator.binary.equal knot.lang.operator.binary.unequal knot.lang.operator.binary.logical_and knot.lang.operator.binary.logical_or knot.lang.operator.binary.less_than knot.lang.operator.binary.less_or_equal knot.lang.operator.binary.greater_than knot.lang.operator.binary.greater_or_equal knot.lang.operator.binary.add knot.lang.operator.binary.subtract knot.lang.operator.binary.multiply knot.lang.operator.binary.divide knot.lang.operator.binary.exponentiate )
+   (libraries  knot.lang.operator.binary.equal knot.lang.operator.binary.unequal knot.lang.operator.binary.logical_and knot.lang.operator.binary.logical_or knot.lang.operator.binary.less_than knot.lang.operator.binary.less_or_equal knot.lang.operator.binary.greater_than knot.lang.operator.binary.greater_or_equal knot.lang.operator.binary.add knot.lang.operator.binary.subtract knot.lang.operator.binary.multiply knot.lang.operator.binary.divide knot.lang.operator.binary.exponentiate knot.lang.operator.binary.bind_style )
 )

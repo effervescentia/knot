@@ -22,6 +22,8 @@ let pp_operator: Fmt.t(Operator.Binary.t) =
       | Divide => KDivide.Plugin.pp
 
       | Exponent => KExponentiate.Plugin.pp
+
+      | BindStyle => KBindStyle.Plugin.pp
     )
     % (pp => pp(ppf, ()));
 

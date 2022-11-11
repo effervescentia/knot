@@ -282,6 +282,29 @@ let _extract_type_err =
         | Divide => ("DIVIDE (/)", __numeric_types) |> print_static_error
         | Multiply => ("MULTIPLY (*)", __numeric_types) |> print_static_error
         | Exponent => ("EXPONENT (^)", __numeric_types) |> print_static_error
+
+        | BindStyle =>
+          Fmt.(
+            (
+              ppf =>
+                pf(
+                  ppf,
+                  "the %a binary operator expects the left side to be a %a or built-in tag (%a, etc.) and the right side to be of type %a but received %a and %a",
+                  bold_str,
+                  "BIND STYLE (::)",
+                  good_str,
+                  Constants.Keyword.view,
+                  list(~sep=Sep.comma, good_str),
+                  ["div", "span", "input"],
+                  good(Type.pp),
+                  Valid(`Style),
+                  bad(Type.pp),
+                  lhs_type,
+                  bad(Type.pp),
+                  rhs_type,
+                )
+            )
+          )
         };
       },
       [],
@@ -323,24 +346,6 @@ let _extract_type_err =
           [],
         ),
       ],
-    )
-
-  | Type.InvalidJSXClassExpression(type_) => (
-      "Invalid JSX Class Expression",
-      Fmt.(
-        (
-          ppf =>
-            pf(
-              ppf,
-              "jsx classes can only be controlled with arguments of type %a but received %a",
-              good(Type.pp),
-              Type.Valid(`Boolean),
-              bad(Type.pp),
-              type_,
-            )
-        )
-      ),
-      [],
     )
 
   | Type.InvalidJSXTag(_, type_, props) => (

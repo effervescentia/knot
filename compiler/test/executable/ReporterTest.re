@@ -39,7 +39,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 23 error(s) and 0 warning(s)
+finished with 22 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -122,57 +122,51 @@ finished with 23 error(s) and 0 warning(s)
   \n    • convert the value to have a primitive type
         ie. nil, boolean, integer, float, string, element
 
-13) Invalid JSX Class Expression : bar/my_namespace.kn:0.0
-  (foo/bar/my_namespace.kn:0.0)
-
-  jsx classes can only be controlled with arguments of type boolean but received integer
-  \n  [code frame not available]
-
-14) Invalid JSX Tag : bar/my_namespace.kn:0.0
+13) Invalid JSX Tag : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   this jsx tag was expected to be of type view with props (my_attr: boolean) but received integer
   \n  [code frame not available]
 
-15) Invalid JSX Attribute : bar/my_namespace.kn:0.0
+14) Invalid JSX Attribute : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   this jsx tag expects the attribute my_attr to be of type integer but received boolean
   \n  [code frame not available]
 
-16) Unexpected JSX Attribute : bar/my_namespace.kn:0.0
+15) Unexpected JSX Attribute : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   found an unexpected attribute my_attr with type boolean
   \n  [code frame not available]
 
-17) Missing JSX Attributes : bar/my_namespace.kn:0.0
+16) Missing JSX Attributes : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   jsx tag MyTag is missing the attributes (my_bool: boolean, my_int: integer)
   \n  [code frame not available]
 
-18) Invalid Dot Access : bar/my_namespace.kn:0.0
+17) Invalid Dot Access : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   dot access can only be performed on values with struct types
   expected a value matching the type { my_prop: any } but received integer
   \n  [code frame not available]
 
-19) Invalid Function Call : bar/my_namespace.kn:0.0
+18) Invalid Function Call : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   function calls can only be performed on values with function types
   expected a value matching the type (string, nil) -> any but received integer
   \n  [code frame not available]
 
-20) Untyped Function Argument : bar/my_namespace.kn:0.0
+19) Untyped Function Argument : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a type
   \n  [code frame not available]
 
-21) Default Argument Missing : bar/my_namespace.kn:0.0
+20) Default Argument Missing : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   the function argument my_argument must define a default value
@@ -180,20 +174,20 @@ finished with 23 error(s) and 0 warning(s)
   \n  try one of the following to resolve this issue:
   \n    • remove default values from all preceding arguments
 
-22) Invalid Decorator Invocation : bar/my_namespace.kn:0.0
+21) Invalid Decorator Invocation : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   decorator invocations can only be performed on values with decorator types
   expected a value matching the type (string, nil) on target but received integer
   \n  [code frame not available]
 
-23) Decorator Target Mismatch : bar/my_namespace.kn:0.0
+22) Decorator Target Mismatch : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   this decorator can only target a module but found style
   \n  [code frame not available]
 
-finished with 23 error(s) and 0 warning(s)
+finished with 22 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -250,11 +244,6 @@ finished with 23 error(s) and 0 warning(s)
                   Type.Valid(`List(Valid(`String))),
                 ),
               ),
-              __namespace,
-              Range.zero,
-            ),
-            ParseError(
-              TypeError(InvalidJSXClassExpression(Type.Valid(`Integer))),
               __namespace,
               Range.zero,
             ),

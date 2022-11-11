@@ -2,4 +2,5 @@ open Knot.Kore;
 
 let parse = Parser.logical_or;
 
-let pp: Fmt.t(unit) = (ppf, ()) => Fmt.string(ppf, "||");
+let pp: Fmt.t(unit) =
+  (ppf, ()) => Fmt.string(ppf, Constants.Glyph.logical_or);

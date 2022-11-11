@@ -25,8 +25,6 @@ const invalid_multiply_variable = true ^ nil;
 
 const invalid_jsx_expr_variable = <div>{two_args_function}</div>;
 
-const invalid_jsx_class_variable = <div .invalid_class="string" />;
-
 const NotView = nil;
 const invalid_jsx_tag_variable = <NotView />;
 

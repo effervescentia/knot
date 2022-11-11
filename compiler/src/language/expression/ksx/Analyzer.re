@@ -84,15 +84,6 @@ let validate_jsx_render:
       ),
     ];
 
-let validate_jsx_class_expression: Type.t => option(Type.error_t) =
-  fun
-  /* assume this has been reported already and ignore */
-  | Invalid(_) => None
-
-  | Valid(`Boolean) => None
-
-  | type_ => Some(InvalidJSXClassExpression(type_));
-
 let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
   fun
   /* assume this has been reported already and ignore */

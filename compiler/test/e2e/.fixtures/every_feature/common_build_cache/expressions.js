@@ -8,7 +8,7 @@ var not_expr = !(true);
 exports.not_expr = not_expr;
 var negated_expr = -(-(123));
 exports.negated_expr = negated_expr;
-var absolute_expr = +(-(123));
+var absolute_expr = Math.abs(-(123));
 exports.absolute_expr = absolute_expr;
 var and_expr = (true && false);
 exports.and_expr = and_expr;
@@ -63,7 +63,8 @@ var tag_with_expr_attributes = $knot.jsx.createTag("div",
                                                      empty_closure_attr: null,
                                                      group_attr: ("abc"),
                                                      binary_op_attr: (true && false),
-                                                     unary_op_attr: +(-(+(-(123)))),
+                                                     unary_op_attr: Math.abs(
+                                                     -(Math.abs(-(123)))),
                                                      id_attr: not_expr
                                                    });
 exports.tag_with_expr_attributes = tag_with_expr_attributes;

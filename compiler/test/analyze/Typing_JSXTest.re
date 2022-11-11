@@ -23,30 +23,6 @@ let __id = "Foo";
 let suite =
   "Analyze.Typing | JSX"
   >::: [
-    "class expression with invalid type"
-    >: (
-      () =>
-        Assert.type_error(
-          None,
-          KSX.Analyzer.validate_jsx_class_expression(Invalid(NotInferrable)),
-        )
-    ),
-    "class expression with boolean type"
-    >: (
-      () =>
-        Assert.type_error(
-          None,
-          KSX.Analyzer.validate_jsx_class_expression(Valid(`Boolean)),
-        )
-    ),
-    "class expression with non-boolean type"
-    >: (
-      () =>
-        Assert.type_error(
-          Some(InvalidJSXClassExpression(Valid(`String))),
-          KSX.Analyzer.validate_jsx_class_expression(Valid(`String)),
-        )
-    ),
     "inline expression with invalid type"
     >: (
       () =>

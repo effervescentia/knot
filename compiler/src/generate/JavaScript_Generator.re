@@ -28,6 +28,7 @@ let __knot_style = _platform_util("style");
 let __jsx_create_tag = _jsx_util("createTag");
 let __jsx_create_fragment = _jsx_util("createFragment");
 let __style_classes = _style_util("classes");
+let __bind_style = _style_util("bindStyle");
 
 let _style_name = Fmt.str("$style_%s");
 let _class_name = Fmt.str("$class_%s");
@@ -98,15 +99,21 @@ and gen_statement = (~is_last=false) =>
       ]
   )
 
-and gen_unary_op = (op, (value, _)) =>
-  JS.UnaryOp(
-    switch (op) {
-    | Negative => "-"
-    | Positive => "+"
-    | Not => "!"
-    },
-    Group(gen_expression(value)),
-  )
+and gen_unary_op = {
+  let op = (symbol, (value, _)) =>
+    JS.UnaryOp(symbol, Group(gen_expression(value)));
+
+  fun
+  | Negative => op("-")
+  | Positive => (
+      ((value, _)) =>
+        JS.FunctionCall(
+          DotAccess(Identifier("Math"), "abs"),
+          [gen_expression(value)],
+        )
+    )
+  | Not => op("!");
+}
 
 and gen_binary_op = {
   let op = (symbol, (lhs, _), (rhs, _)) =>
@@ -130,6 +137,13 @@ and gen_binary_op = {
         ((lhs, _), (rhs, _)) =>
           JS.FunctionCall(
             DotAccess(Identifier("Math"), "pow"),
+            [gen_expression(lhs), gen_expression(rhs)],
+          )
+      )
+    | BindStyle => (
+        ((lhs, _), (rhs, _)) =>
+          JS.FunctionCall(
+            __bind_style,
             [gen_expression(lhs), gen_expression(rhs)],
           )
       )

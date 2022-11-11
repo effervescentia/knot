@@ -204,7 +204,6 @@ type error_t =
   | InvalidUnaryOperation(Operator.Unary.t, t)
   | InvalidBinaryOperation(Operator.Binary.t, t, t)
   | InvalidJSXPrimitiveExpression(t)
-  | InvalidJSXClassExpression(t)
   | InvalidJSXTag(string, t, list((string, t)))
   | UnexpectedJSXAttribute(string, t)
   | InvalidJSXAttribute(string, t, t)
