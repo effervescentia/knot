@@ -1,9 +1,5 @@
 open Knot.Kore;
 
-type number_parser_t = Parse.Parser.t(Node.t(Raw.number_t, unit));
-
-type primitive_parser_t = Parse.Parser.t(Node.t(Raw.primitive_t, unit));
-
 type unary_op_parser_t = Parse.Parser.t(Raw.expression_t => Raw.expression_t);
 
 type binary_op_parser_t =
