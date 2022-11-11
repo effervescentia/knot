@@ -6,20 +6,17 @@ module Keyword = Constants.Keyword;
 
 type type_expression_parser_t = Parse.Parser.t(TypeExpression.t);
 
-let primitive_types =
-  TypeExpression.[
-    (Matchers.keyword(Keyword.nil), Nil),
-    (Matchers.keyword(Keyword.boolean), Boolean),
-    (Matchers.keyword(Keyword.integer), Integer),
-    (Matchers.keyword(Keyword.float), Float),
-    (Matchers.keyword(Keyword.string), String),
-    (Matchers.keyword(Keyword.element), Element),
-    (Matchers.keyword(Keyword.style), Style),
-  ];
-
 let primitive: type_expression_parser_t =
   choice(
-    primitive_types |> List.map(((kwd, prim)) => kwd >|= Node.map(_ => prim)),
+    TypeExpression.[
+      Nil <$| Matchers.keyword(Keyword.nil),
+      Boolean <$| Matchers.keyword(Keyword.boolean),
+      Integer <$| Matchers.keyword(Keyword.integer),
+      Float <$| Matchers.keyword(Keyword.float),
+      String <$| Matchers.keyword(Keyword.string),
+      Element <$| Matchers.keyword(Keyword.element),
+      Style <$| Matchers.keyword(Keyword.style),
+    ],
   );
 
 let group = (parse_expr: type_expression_parser_t): type_expression_parser_t =>

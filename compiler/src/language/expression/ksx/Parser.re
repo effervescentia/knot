@@ -85,11 +85,13 @@ and tag =
           >> children(ctx, parsers)
           >>= (
             cs =>
-              id
-              |> fst
-              |> Matchers.keyword
-              |> Matchers.between(Tag.open_end, Tag.close)
-              >|= Node.map(_ => cs)
+              cs
+              <$| (
+                id
+                |> fst
+                |> Matchers.keyword
+                |> Matchers.between(Tag.open_end, Tag.close)
+              )
           )
           <|> _self_closing
           >|= (

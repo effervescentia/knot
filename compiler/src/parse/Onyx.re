@@ -118,6 +118,13 @@ let map4 = (f, w, x, y, z) => f <$> w <*> x <*> y <*> z;
 let (<$) = (v, x) => (_ => v) <$> x;
 
 /**
+ {b replace node value}
+
+ use [v] as the node value when applied to [x]
+ */
+let (<$|) = (v, x) => Node.map(_ => v) <$> x;
+
+/**
  {b discard_left}
 
  if parser [x] succeeds, drop the result and try to match parser [y]
