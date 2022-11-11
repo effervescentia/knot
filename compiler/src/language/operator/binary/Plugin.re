@@ -1,6 +1,11 @@
 open Knot.Kore;
 open AST;
 
+let parse_logical = Parser.logical;
+let parse_comparison = Parser.comparison;
+let parse_relational = Parser.relational;
+let parse_arithmetic = Parser.arithmetic;
+
 let analyze = Analyzer.analyze_binary_operation;
 
 let pp = Formatter.pp_binary_operation;
