@@ -28,14 +28,10 @@ and raw_jsx_child_t('a) =
 /**
    a JSX attribute AST node
    */
-and jsx_attribute_t('a) = untyped_t(raw_jsx_attribute_t('a))
-/**
-   supported JSX attributes
-   */
-and raw_jsx_attribute_t('a) =
-  | ID(identifier_t)
-  | Class(identifier_t, option(expression_t('a)))
-  | Property(identifier_t, option(expression_t('a)))
+and jsx_attribute_t('a) =
+  untyped_t((identifier_t, option(expression_t('a))))
+
+and raw_jsx_attribute_t('a) = (identifier_t, option(expression_t('a)))
 
 /**
    a style AST node

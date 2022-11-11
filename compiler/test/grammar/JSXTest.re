@@ -265,38 +265,6 @@ let suite =
           "<Foo fizz />",
         )
     ),
-    "parse property with static class name"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            [
-              (U.as_untyped("fizz"), None) |> AR.of_jsx_class |> U.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo .fizz />",
-        )
-    ),
-    "parse property with identifier"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            ["fizz" |> U.as_untyped |> AR.of_jsx_id |> U.as_untyped],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo #fizz />",
-        )
-    ),
     "parse single tag child"
     >: (
       () =>
@@ -411,29 +379,6 @@ let suite =
           |> AR.of_jsx
           |> U.as_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
-        )
-    ),
-    "parse complex - multiple attributes different types"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            [
-              (
-                U.as_untyped("bar"),
-                "fizz" |> AR.of_id |> U.as_node |> Option.some,
-              )
-              |> AR.of_prop
-              |> U.as_untyped,
-              (U.as_untyped("buzz"), None) |> AR.of_jsx_class |> U.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo bar=fizz .buzz />",
         )
     ),
   ];

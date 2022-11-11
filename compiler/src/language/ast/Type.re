@@ -295,9 +295,6 @@ let pp_error: Fmt.t(error_t) =
       | InvalidJSXPrimitiveExpression(type_) =>
         pf(ppf, "InvalidJSXPrimitiveExpression<%a>", pp, type_)
 
-      | InvalidJSXClassExpression(type_) =>
-        pf(ppf, "InvalidJSXClassExpression<%a>", pp, type_)
-
       | InvalidDotAccess(type_, prop) =>
         pf(ppf, "InvalidDotAccess<%a, %s>", pp, type_, prop)
 

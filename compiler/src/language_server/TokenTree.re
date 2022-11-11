@@ -117,11 +117,8 @@ and of_jsx_child =
 and of_jsx_attr =
   AST.Expression.(
     fun
-    | ID(id) => of_untyped_id(id)
-    | Class(id, None)
-    | Property(id, None) => of_untyped_id(id)
-    | Class(id, Some(expr))
-    | Property(id, Some(expr)) =>
+    | (id, None) => of_untyped_id(id)
+    | (id, Some(expr)) =>
       _join(
         of_untyped_id(id),
         expr |> of_expr |> _wrap(Node.get_range(expr)),

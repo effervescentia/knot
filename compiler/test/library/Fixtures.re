@@ -169,11 +169,7 @@ let complex_jsx_const = [
     "complex_jsx_const" |> U.as_untyped |> A.of_named_export,
     (
       U.as_untyped("Foo"),
-      [
-        "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
-        (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
-        (U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped,
-      ],
+      [(U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped],
       [
         (U.as_untyped("Bar"), [], []) |> A.of_tag |> A.of_node |> U.as_untyped,
         U.nil_prim |> A.of_inline_expr |> U.as_untyped,

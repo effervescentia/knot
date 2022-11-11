@@ -313,14 +313,6 @@ let suite =
               <Tag>
                 <Name range=0.0 value=Foo />
                 <Attribute range=0.0>
-                  <ID range=0.0 value=bar />
-                </Attribute>
-                <Attribute range=0.0>
-                  <Class>
-                    <Name range=0.0 value=fizz />
-                  </Class>
-                </Attribute>
-                <Attribute range=0.0>
                   <Property>
                     <Name range=0.0 value=buzz />
                   </Property>

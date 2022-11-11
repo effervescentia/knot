@@ -78,7 +78,8 @@ and tag =
   >> Matchers.identifier
   >>= (
     id =>
-      attributes(ctx, parsers)
+      property_attribute(ctx, parsers)
+      |> many
       >>= (
         attrs =>
           Tag.close
@@ -112,33 +113,6 @@ and property_attribute =
     ((name, value, range)) =>
       Node.untyped((name, value) |> Raw.of_prop, range)
   )
-
-and class_attribute =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
-    : jsx_attribute_parser_t =>
-  _attribute(~prefix=Matchers.period, ctx, parsers)
-  >|= (
-    ((name, value, range)) =>
-      Node.untyped(
-        (name |> Node.map(String.drop_left(1)), value) |> Raw.of_jsx_class,
-        range,
-      )
-  )
-
-and id_attribute: jsx_attribute_parser_t =
-  Matchers.identifier(~prefix=char(Character.octothorpe))
-  >|= Node.map(String.drop_left(1))
-  >|= Node.wrap(Raw.of_jsx_id)
-
-and attributes =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
-    : jsx_attribute_list_parser_t =>
-  choice([
-    property_attribute(ctx, parsers),
-    class_attribute(ctx, parsers),
-    id_attribute,
-  ])
-  |> many
 
 and children =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)

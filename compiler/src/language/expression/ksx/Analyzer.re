@@ -121,7 +121,7 @@ let rec analyze_jsx:
           attrs'
           |> List.filter_map(
                fun
-               | (Expression.Property((name, _), Some(expr)), range) =>
+               | (((name, _), Some(expr)), range) =>
                  Some((name, (Node.get_type(expr), range)))
                | _ => None,
              );
@@ -159,30 +159,9 @@ and analyze_jsx_attribute:
     Raw.jsx_attribute_t
   ) =>
   Result.jsx_attribute_t =
-  (scope, analyze_expression, jsx_attr) => {
+  (scope, analyze_expression, ((id, expr), _) as jsx_attr) => {
     let jsx_attr' =
-      switch (fst(jsx_attr)) {
-      | ID(id) => Result.of_jsx_id(id)
-
-      | Class(id, raw_expr) =>
-        let expr_opt = raw_expr |?> analyze_expression(scope);
-
-        expr_opt
-        |> Option.iter(expr => {
-             let type_ = Node.get_type(expr);
-
-             type_
-             |> validate_jsx_class_expression
-             |> Option.iter(
-                  expr |> Node.get_range |> Scope.report_type_err(scope),
-                );
-           });
-
-        (id, expr_opt) |> Result.of_jsx_class;
-
-      | Property(id, expr) =>
-        (id, expr |?> analyze_expression(scope)) |> Result.of_prop
-      };
+      (id, expr |?> analyze_expression(scope)) |> Result.of_prop;
 
     Node.untyped(jsx_attr', Node.get_range(jsx_attr));
   }

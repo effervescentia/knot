@@ -39,12 +39,13 @@ let suite =
     >: (
       () =>
         _assert_jsx(
-          "<Foo #bar .fizz buzz />",
+          "<Foo bar=123 buzz />",
           (
             U.as_untyped("Foo"),
             [
-              "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
-              (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
+              (U.as_untyped("bar"), 123 |> U.int_prim |> Option.some)
+              |> A.of_prop
+              |> U.as_untyped,
               (U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped,
             ],
             [],
@@ -286,23 +287,4 @@ let suite =
       () =>
         _assert_jsx_attr("buzz", (U.as_untyped("buzz"), None) |> A.of_prop)
     ),
-    "pp_jsx_attr() - dynamic class name"
-    >: (
-      () =>
-        _assert_jsx_attr(
-          ".fizz=true",
-          (U.as_untyped("fizz"), Some(true |> U.bool_prim))
-          |> A.of_jsx_class,
-        )
-    ),
-    "pp_jsx_attr() - static class name"
-    >: (
-      () =>
-        _assert_jsx_attr(
-          ".fizz",
-          (U.as_untyped("fizz"), None) |> A.of_jsx_class,
-        )
-    ),
-    "pp_jsx_attr() - identifier name"
-    >: (() => _assert_jsx_attr("#bar", "bar" |> U.as_untyped |> A.of_jsx_id)),
   ];

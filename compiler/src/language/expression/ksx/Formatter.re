@@ -77,19 +77,12 @@ and pp_attr:
       pf(
         ppf,
         "%a%a",
-        ppf =>
-          Expression.(
-            fun
-            | Property((name, _), _) => Fmt.string(ppf, name)
-            | Class((name, _), _) => pf(ppf, ".%s", name)
-            | ID((name, _)) => pf(ppf, "#%s", name)
-          ),
+        Expression.((ppf, ((name, _), _)) => Fmt.string(ppf, name)),
         attr,
         ppf =>
           Expression.(
             fun
-            | Property(_, Some((expr, _)))
-            | Class(_, Some((expr, _))) =>
+            | (_, Some((expr, _))) =>
               pf(ppf, "=%a", pp_attr_expr(pp_expression), expr)
             | _ => nop(ppf, ())
           ),

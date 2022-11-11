@@ -87,44 +87,11 @@ let suite =
         _assert_expression(
           FunctionCall(
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
-            [
-              String("foo"),
-              Object([
-                (
-                  "className",
-                  FunctionCall(
-                    DotAccess(
-                      DotAccess(Identifier("$knot"), "style"),
-                      "classes",
-                    ),
-                    [
-                      Group(
-                        Ternary(
-                          Boolean(true),
-                          Identifier("$class_buzz"),
-                          String(""),
-                        ),
-                      ),
-                      Identifier("$class_fizz"),
-                    ],
-                  ),
-                ),
-                ("zip", String("zap")),
-                ("id", String("bar")),
-              ]),
-            ],
+            [String("foo"), Object([("zip", String("zap"))])],
           ),
           (
             U.as_untyped("foo"),
             [
-              "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
-              (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
-              (
-                U.as_untyped("buzz"),
-                true |> A.of_bool |> A.of_prim |> U.as_bool |> Option.some,
-              )
-              |> A.of_jsx_class
-              |> U.as_untyped,
               (
                 U.as_untyped("zip"),
                 "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,

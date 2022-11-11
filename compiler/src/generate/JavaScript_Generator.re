@@ -186,7 +186,7 @@ and gen_jsx_attrs = (attrs: list(AST.Result.jsx_attribute_t)) =>
              fst
              % AST.Expression.(
                  fun
-                 | Property((name, _), expr) => (
+                 | ((name, _), expr) => (
                      c,
                      [
                        (
@@ -199,24 +199,6 @@ and gen_jsx_attrs = (attrs: list(AST.Result.jsx_attribute_t)) =>
                        ...p,
                      ],
                    )
-                 | Class((name, _), None) => (
-                     [JS.Identifier(_class_name(name)), ...c],
-                     p,
-                   )
-                 | Class((name, _), Some((expr, _))) => (
-                     [
-                       JS.Group(
-                         Ternary(
-                           gen_expression(expr),
-                           Identifier(_class_name(name)),
-                           String(""),
-                         ),
-                       ),
-                       ...c,
-                     ],
-                     p,
-                   )
-                 | ID((name, _)) => (c, [(__id_prop, String(name)), ...p])
                ),
            ([], []),
          );

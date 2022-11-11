@@ -17,16 +17,7 @@ let attribute_list_to_xml = attributes =>
   attributes
   |> List.map(
        Dump.node_to_xml(
-         ~unpack=
-           Expression.(
-             fun
-             | ID(name) => Dump.node_to_xml(~dump_value=Fun.id, "ID", name)
-             | Class(name, value) =>
-               attribute_to_xml("Class", (name, value))
-             | Property(name, value) =>
-               attribute_to_xml("Property", (name, value))
-           )
-           % (x => [x]),
+         ~unpack=attribute_to_xml("Property") % (x => [x]),
          "Attribute",
        ),
      );
