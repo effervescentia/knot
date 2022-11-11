@@ -44,9 +44,8 @@ let suite =
             U.as_untyped("Foo"),
             [
               (U.as_untyped("bar"), 123 |> U.int_prim |> Option.some)
-              |> A.of_prop
               |> U.as_untyped,
-              (U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped,
+              (U.as_untyped("buzz"), None) |> U.as_untyped,
             ],
             [],
           )
@@ -140,7 +139,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=123",
-          (U.as_untyped("fizz"), Some(123 |> U.int_prim)) |> A.of_prop,
+          (U.as_untyped("fizz"), Some(123 |> U.int_prim)),
         )
     ),
     "pp_jsx_attr() - property with identifier value"
@@ -148,8 +147,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=buzz",
-          (U.as_untyped("fizz"), Some("buzz" |> A.of_id |> U.as_int))
-          |> A.of_prop,
+          (U.as_untyped("fizz"), Some("buzz" |> A.of_id |> U.as_int)),
         )
     ),
     "pp_jsx_attr() - property with binary operation value"
@@ -162,8 +160,7 @@ let suite =
             Some(
               (1 |> U.int_prim, 2 |> U.int_prim) |> A.of_add_op |> U.as_int,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with grouped binary operation value"
@@ -180,8 +177,7 @@ let suite =
               |> A.of_group
               |> U.as_int,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with negative value"
@@ -192,8 +188,7 @@ let suite =
           (
             U.as_untyped("fizz"),
             Some(1 |> U.int_prim |> A.of_neg_op |> U.as_int),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with boolean value"
@@ -211,8 +206,7 @@ let suite =
               |> A.of_group
               |> U.as_bool,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with closure value"
@@ -233,8 +227,7 @@ let suite =
               |> A.of_closure
               |> U.as_bool,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with inline JSX value"
@@ -250,8 +243,7 @@ let suite =
               |> A.of_jsx
               |> U.as_element,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with multiline JSX value"
@@ -278,13 +270,9 @@ let suite =
               |> A.of_jsx
               |> U.as_element,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with punned value"
-    >: (
-      () =>
-        _assert_jsx_attr("buzz", (U.as_untyped("buzz"), None) |> A.of_prop)
-    ),
+    >: (() => _assert_jsx_attr("buzz", (U.as_untyped("buzz"), None))),
   ];

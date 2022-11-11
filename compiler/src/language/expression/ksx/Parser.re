@@ -109,10 +109,7 @@ and property_attribute =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_parser_t =>
   _attribute(ctx, parsers)
-  >|= (
-    ((name, value, range)) =>
-      Node.untyped((name, value) |> Raw.of_prop, range)
-  )
+  >|= (((name, value, range)) => Node.untyped((name, value), range))
 
 and children =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)

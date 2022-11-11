@@ -79,7 +79,6 @@ let suite =
                 U.as_untyped("fizz"),
                 "buzz" |> AR.of_id |> U.as_node |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -98,7 +97,6 @@ let suite =
             U.as_untyped("Foo"),
             [
               (U.as_untyped("fizz"), "buzz" |> U.string_prim |> Option.some)
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -123,7 +121,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -148,7 +145,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -173,7 +169,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -192,7 +187,6 @@ let suite =
             U.as_untyped("Foo"),
             [
               (U.as_untyped("fizz"), true |> U.bool_prim |> Option.some)
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -214,7 +208,6 @@ let suite =
                 U.as_untyped("fizz"),
                 3 |> U.int_prim |> AR.of_neg_op |> U.as_node |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -239,7 +232,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -256,7 +248,7 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
-            [(U.as_untyped("fizz"), None) |> AR.of_prop |> U.as_untyped],
+            [(U.as_untyped("fizz"), None) |> U.as_untyped],
             [],
           )
           |> AR.of_tag
@@ -345,7 +337,6 @@ let suite =
             U.as_untyped("Foo"),
             [
               (U.as_untyped("bar"), 4 |> U.int_prim |> Option.some)
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],

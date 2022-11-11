@@ -96,7 +96,6 @@ let suite =
                 U.as_untyped("zip"),
                 "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,
               )
-              |> A.of_prop
               |> U.as_untyped,
             ],
             [],

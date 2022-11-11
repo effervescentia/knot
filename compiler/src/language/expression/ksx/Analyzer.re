@@ -160,10 +160,9 @@ and analyze_jsx_attribute:
   ) =>
   Result.jsx_attribute_t =
   (scope, analyze_expression, ((id, expr), _) as jsx_attr) => {
-    let jsx_attr' =
-      (id, expr |?> analyze_expression(scope)) |> Result.of_prop;
+    let jsx_attr' = (id, expr |?> analyze_expression(scope));
 
-    Node.untyped(jsx_attr', Node.get_range(jsx_attr));
+    jsx_attr |> Node.map(_ => jsx_attr');
   }
 
 and analyze_jsx_child:

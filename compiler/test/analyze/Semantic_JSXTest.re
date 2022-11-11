@@ -134,7 +134,6 @@ let suite =
             URaw.as_untyped(__component_id),
             [
               (URaw.as_untyped("bar"), true |> URaw.bool_prim |> Option.some)
-              |> AR.of_prop
               |> URaw.as_untyped,
             ],
             [],
@@ -177,10 +176,8 @@ let suite =
               URaw.as_untyped("fizz"),
               "bar" |> URaw.string_prim |> Option.some,
             )
-            |> AR.of_prop
             |> URaw.as_untyped,
             (URaw.as_untyped("buzz"), true |> URaw.bool_prim |> Option.some)
-            |> AR.of_prop
             |> URaw.as_untyped,
           ],
           [],
@@ -238,13 +235,11 @@ let suite =
             __component_id |> URes.as_typed(view_type),
             [
               (URes.as_untyped("fizz"), true |> URes.bool_prim |> Option.some)
-              |> A.of_prop
               |> URes.as_untyped,
               (
                 URes.as_untyped("buzz"),
                 "bar" |> URes.string_prim |> Option.some,
               )
-              |> A.of_prop
               |> URes.as_untyped,
             ],
             [],
@@ -254,13 +249,11 @@ let suite =
             URaw.as_untyped(__component_id),
             [
               (URaw.as_untyped("fizz"), true |> URaw.bool_prim |> Option.some)
-              |> AR.of_prop
               |> URaw.as_untyped,
               (
                 URaw.as_untyped("buzz"),
                 "bar" |> URaw.string_prim |> Option.some,
               )
-              |> AR.of_prop
               |> URaw.as_untyped,
             ],
             [],
