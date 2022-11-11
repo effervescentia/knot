@@ -4,7 +4,7 @@ open AST;
 
 let view =
     ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
-    : ParserTypes.declaration_parser_t =>
+    : Framework.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.view)
   >>= Node.get_range
   % (

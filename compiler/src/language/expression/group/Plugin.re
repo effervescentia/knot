@@ -6,7 +6,7 @@ let analyze = Analyzer.analyze_group;
 let pp = Formatter.pp_group;
 
 include Framework.Expression({
-  type parse_arg_t = ParserTypes.expression_parser_t;
+  type parse_arg_t = Framework.expression_parser_t;
 
   type value_t('a) = Expression.expression_t('a);
 

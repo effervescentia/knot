@@ -5,7 +5,7 @@ open AST;
 let style_rule =
     (
       ctx: ParseContext.t,
-      parse_expr: ParserTypes.contextual_expression_parser_t,
+      parse_expr: Framework.contextual_expression_parser_t,
     ) =>
   Matchers.attribute(KIdentifier.Plugin.parse_id(ctx), parse_expr(ctx))
   >|= (
@@ -21,10 +21,10 @@ let style_expression =
     (
       (
         ctx: ParseContext.t,
-        parse_expr: ParserTypes.contextual_expression_parser_t,
+        parse_expr: Framework.contextual_expression_parser_t,
       ),
     )
-    : ParserTypes.expression_parser_t => {
+    : Framework.expression_parser_t => {
   let rule_scope = Scope.create(ctx, Range.zero);
 
   Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);

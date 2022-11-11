@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let enumerated = ((ctx: ParseContext.t, f)): ParserTypes.declaration_parser_t =>
+let enumerated = ((ctx: ParseContext.t, f)): Framework.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.enum)
   >|= Node.get_range
   >>= (

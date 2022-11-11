@@ -24,7 +24,7 @@ and expr_3 = ctx => expr_4(ctx) |> KBinaryOperator.parse_arithmetic
 and expr_4 = ctx => expr_5(ctx) |> KUnaryOperator.parse
 
 /* foo(bar) */
-and expr_5 = (ctx): ParserTypes.expression_parser_t =>
+and expr_5 = (ctx): Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input => ((expr_6(ctx), expr_0(ctx)) |> KFunctionCall.parse)(input)
 
@@ -32,7 +32,7 @@ and expr_5 = (ctx): ParserTypes.expression_parser_t =>
 and expr_6 = ctx => expr_7(ctx) >>= KDotAccess.parse
 
 /* {}, () */
-and expr_7 = (ctx): ParserTypes.expression_parser_t =>
+and expr_7 = (ctx): Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice(

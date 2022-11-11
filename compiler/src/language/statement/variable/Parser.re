@@ -6,10 +6,10 @@ let variable =
     (
       (
         ctx: ParseContext.t,
-        parse_expr: ParserTypes.contextual_expression_parser_t,
+        parse_expr: Framework.contextual_expression_parser_t,
       ),
     )
-    : ParserTypes.statement_parser_t =>
+    : Framework.statement_parser_t =>
   Matchers.keyword(Constants.Keyword.let_)
   >>= (
     kwd =>

@@ -6,10 +6,10 @@ let closure =
     (
       (
         ctx: ParseContext.t,
-        parse_expr: ParserTypes.contextual_expression_parser_t,
+        parse_expr: Framework.contextual_expression_parser_t,
       ),
     )
-    : ParserTypes.expression_parser_t =>
+    : Framework.expression_parser_t =>
   KStatement.Plugin.parse(ctx, parse_expr)
   |> many
   |> Matchers.between_braces

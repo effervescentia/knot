@@ -20,9 +20,9 @@ module Fragment = {
 
 type expression_parsers_arg_t = (
   /* parses a "term" */
-  ParserTypes.contextual_expression_parser_t,
+  Framework.contextual_expression_parser_t,
   /* parses an "expression" */
-  ParserTypes.contextual_expression_parser_t,
+  Framework.contextual_expression_parser_t,
 );
 
 type jsx_parser_t = Parse.Parser.t(Node.t(Raw.jsx_t, unit));
@@ -167,5 +167,5 @@ and inline_expr =
 
 let ksx =
     ((ctx: ParseContext.t, parsers: expression_parsers_arg_t))
-    : ParserTypes.expression_parser_t =>
+    : Framework.expression_parser_t =>
   _inner_ksx(ctx, parsers) >|= Node.map(Raw.of_jsx);

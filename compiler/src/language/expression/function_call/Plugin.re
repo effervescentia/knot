@@ -5,15 +5,15 @@ let analyze = Analyzer.analyze_function_call;
 
 let pp = Formatter.pp_function_call;
 
-include AST.Framework.Expression({
+include Framework.Expression({
   type parse_arg_t = (
-    AST.ParserTypes.expression_parser_t,
-    AST.ParserTypes.expression_parser_t,
+    Framework.expression_parser_t,
+    Framework.expression_parser_t,
   );
 
   type value_t('a) = (
-    AST.Expression.expression_t('a),
-    list(AST.Expression.expression_t('a)),
+    Expression.expression_t('a),
+    list(Expression.expression_t('a)),
   );
 
   let parse = Parser.function_call;

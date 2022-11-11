@@ -2,6 +2,19 @@ open Knot.Kore;
 
 module Parser = Parse.Parser;
 
+type unary_op_parser_t = Parser.t(Raw.expression_t => Raw.expression_t);
+
+type binary_op_parser_t =
+  Parser.t(((Raw.expression_t, Raw.expression_t)) => Raw.expression_t);
+
+type expression_parser_t = Parser.t(Raw.expression_t);
+type contextual_expression_parser_t = ParseContext.t => expression_parser_t;
+
+type statement_parser_t = Parser.t(Raw.statement_t);
+
+type declaration_parser_t =
+  Parser.t(Node.t((Module.export_t, Module.declaration_t), unit));
+
 module type NumberParams = {
   type value_t;
 
@@ -36,7 +49,7 @@ module type StatementParams = {
   type value_t('a);
 
   let parse:
-    ((ParseContext.t, ParserTypes.contextual_expression_parser_t)) =>
+    ((ParseContext.t, contextual_expression_parser_t)) =>
     Parser.t(Raw.statement_t);
 
   let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
