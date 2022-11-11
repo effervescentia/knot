@@ -83,6 +83,28 @@ let dot_access = {
   loop;
 };
 
+let view = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
+  Matchers.keyword(Keyword.view)
+  >>= (
+    start =>
+      parse_expr
+      >>= (
+        props =>
+          Matchers.symbol(Constants.Character.comma)
+          >> parse_expr
+          >|= Tuple.with_fst2(props)
+      )
+      |> Matchers.between_parentheses
+      >|= fst
+      >|= (
+        ((props, res)) =>
+          Node.untyped(
+            TypeExpression.of_view((props, res)),
+            Node.join_ranges(start, res),
+          )
+      )
+  );
+
 /*
   each type expression has a precedence denoted by its suffix
 
@@ -100,6 +122,7 @@ and expr_2: type_expression_parser_t =
   input =>
     choice(
       [
+        view(expr_0),
         function_(expr_0),
         group(expr_0),
         struct_(expr_0),

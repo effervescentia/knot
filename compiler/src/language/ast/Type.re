@@ -209,6 +209,7 @@ type error_t =
   | InvalidJSXAttribute(string, t, t)
   | MissingJSXAttributes(string, list((string, t)))
   | InvalidDotAccess(t, string)
+  | InvalidStyleBinding(t, t)
   | InvalidFunctionCall(t, list(t))
   /* FIXME: not reported */
   | UntypedFunctionArgument(string)
@@ -296,6 +297,9 @@ let pp_error: Fmt.t(error_t) =
 
       | InvalidDotAccess(type_, prop) =>
         pf(ppf, "InvalidDotAccess<%a, %s>", pp, type_, prop)
+
+      | InvalidStyleBinding(view, style) =>
+        pf(ppf, "InvalidStyleBinding<%a, %a>", pp, view, pp, style)
 
       | InvalidFunctionCall(type_, expected_args) =>
         pf(

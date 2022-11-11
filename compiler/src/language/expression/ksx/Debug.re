@@ -38,7 +38,7 @@ let rec to_xml:
           Fmt.Node(
             "Tag",
             [],
-            [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
+            [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", name)]
             @ attribute_list_to_xml(attributes)
             @ (children |> children_to_xml(expr_to_xml, dump_type)),
           )

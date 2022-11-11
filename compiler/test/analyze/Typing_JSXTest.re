@@ -65,11 +65,11 @@ let suite =
           ),
         )
     ),
-    "ignore render with invalid type"
+    "throw NotFound error on render with invalid type"
     >: (
       () =>
         _assert_errors_with_ranges(
-          [],
+          [(T.NotFound(__id), None)],
           (__id, T.Invalid(NotInferrable), [])
           |> KSX.Analyzer.validate_jsx_render,
         )

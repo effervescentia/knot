@@ -7,5 +7,5 @@
    (name KExpression)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.expression)
-   (libraries  knot.lang.primitive knot.lang.identifier knot.lang.statement knot.lang.operator.unary knot.lang.operator.binary knot.lang.expression.group knot.lang.expression.closure knot.lang.expression.dot_access knot.lang.expression.function_call knot.lang.expression.style knot.lang.expression.ksx )
+   (libraries  knot.lang.primitive knot.lang.identifier knot.lang.statement knot.lang.operator.unary knot.lang.operator.binary knot.lang.expression.group knot.lang.expression.closure knot.lang.expression.dot_access knot.lang.expression.bind_style knot.lang.expression.function_call knot.lang.expression.style knot.lang.expression.ksx )
 )

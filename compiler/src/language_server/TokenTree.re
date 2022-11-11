@@ -68,6 +68,11 @@ let rec of_expr =
     | (Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
     | (DotAccess(expr, _), _) =>
       expr |> of_expr |> _wrap(Node.get_range(expr))
+    | (BindStyle(view, style), _) =>
+      _join(
+        view |> of_expr |> _wrap(Node.get_range(view)),
+        style |> of_expr |> _wrap(Node.get_range(style)),
+      )
     | (FunctionCall(expr, args), _) =>
       _join(
         expr |> of_expr |> _wrap(Node.get_range(expr)),

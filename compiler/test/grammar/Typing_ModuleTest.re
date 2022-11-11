@@ -171,6 +171,36 @@ module Foo {}",
 }",
         )
     ),
+    "parse module with view type"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_untyped(
+            TD.Module(
+              U.as_untyped("Foo"),
+              [
+                (
+                  U.as_untyped("bar"),
+                  (
+                    [(U.as_untyped("foo"), U.as_untyped(TE.Integer))]
+                    |> TE.of_struct
+                    |> U.as_untyped,
+                    U.as_untyped(TE.Element),
+                  )
+                  |> TE.of_view
+                  |> U.as_untyped,
+                )
+                |> TD.of_type
+                |> U.as_untyped,
+              ],
+              [],
+            ),
+          ),
+          "module Foo {
+  type bar: view({ foo: integer }, element);
+}",
+        )
+    ),
     "parse module with dependent types"
     >: (
       () =>

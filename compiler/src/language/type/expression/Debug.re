@@ -15,7 +15,8 @@ let _get_tag_name: TypeExpression.raw_t => string =
   | List(_) => "List"
   | Struct(_) => "Struct"
   | Function(_) => "Function"
-  | DotAccess(_) => "DotAccess";
+  | DotAccess(_) => "DotAccess"
+  | View(_) => "View";
 
 let rec to_xml_raw: TypeExpression.raw_t => Fmt.xml_t(string) =
   expr => Node(_get_tag_name(expr), [], _get_children(expr))
@@ -33,6 +34,7 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
   | Identifier(name) => [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
   | Group(expr) => [to_xml(expr)]
   | List(expr) => [to_xml(expr)]
+
   | Struct(properties) =>
     properties
     |> List.map(((name, value)) =>
@@ -45,12 +47,20 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
            ],
          )
        )
+
   | Function(parameters, result) => [
       Node("Parameters", [], parameters |> List.map(to_xml)),
       Node("Result", [], [to_xml(result)]),
     ]
+
   | DotAccess(root, property) => [
       Node("Root", [], [to_xml(root)]),
       Dump.node_to_xml(~dump_value=Fun.id, "Property", property),
     ]
+
+  | View(properties, result) => [
+      Node("Properties", [], [to_xml(properties)]),
+      Node("Result", [], [to_xml(result)]),
+    ]
+
   | _ => [];

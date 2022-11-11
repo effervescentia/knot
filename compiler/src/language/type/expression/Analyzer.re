@@ -54,5 +54,19 @@ let rec analyze_type_expression:
           |?: Invalid(NotInferrable)
         | _ => Invalid(NotInferrable)
         }
+
+      | View((props, _), (res, _)) =>
+        switch (
+          props |> analyze_type_expression(defs),
+          res |> analyze_type_expression(defs),
+        ) {
+        | (
+            Valid(`Struct(props')),
+            Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) as res',
+          ) =>
+          Valid(`View((props', res')))
+
+        | _ => Invalid(NotInferrable)
+        }
       }
     );

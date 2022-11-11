@@ -420,6 +420,21 @@ let suite =
           "a.b.c.d",
         )
     ),
+    "parse left-associative - style binding"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            ("a" |> AR.of_id |> U.as_node, "b" |> AR.of_id |> U.as_node)
+            |> AR.of_bind_style
+            |> U.as_node,
+            "c" |> AR.of_id |> U.as_node,
+          )
+          |> AR.of_bind_style
+          |> U.as_node,
+          "a::b::c",
+        )
+    ),
     "parse right-associative - exponent"
     >: (
       () =>

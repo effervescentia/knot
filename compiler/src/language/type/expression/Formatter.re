@@ -13,6 +13,7 @@ let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
     | Identifier((name, _)) => Fmt.string(ppf, name)
     | Group((expr, _)) => Fmt.pf(ppf, "(%a)", pp_type_expr, expr)
     | List((expr, _)) => Fmt.pf(ppf, "[%a]", pp_type_expr, expr)
+
     | Struct(props) =>
       Fmt.(
         record(
@@ -22,6 +23,7 @@ let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
           props |> List.map(Tuple.map_each2(fst, fst)),
         )
       )
+
     | Function(args, (res, _)) =>
       Fmt.(
         pf(
@@ -33,5 +35,19 @@ let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
           res,
         )
       )
+
     | DotAccess((root, _), (prop, _)) =>
-      Fmt.pf(ppf, "%a.%s", pp_type_expr, root, prop);
+      Fmt.pf(ppf, "%a.%s", pp_type_expr, root, prop)
+
+    | View((prop, _), (res, _)) =>
+      Fmt.(
+        pf(
+          ppf,
+          "%s(%a, %a)",
+          Constants.Keyword.view,
+          pp_type_expr,
+          prop,
+          pp_type_expr,
+          res,
+        )
+      );

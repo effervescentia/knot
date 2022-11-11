@@ -14,6 +14,8 @@ let rec pp_expression: Fmt.t(AST.Result.raw_expression_t) =
     | Closure(stmts) => stmts |> KClosure.format(pp_expression, ppf)
     | DotAccess(expr, prop) =>
       (expr, prop) |> KDotAccess.format(pp_expression, ppf)
+    | BindStyle(view, style) =>
+      (view, style) |> KBindStyle.format(pp_expression, ppf)
     | FunctionCall(expr, args) =>
       (expr, args) |> KFunctionCall.format(pp_expression, ppf)
     | Style(rules) => rules |> KStyle.format(pp_expression, ppf);

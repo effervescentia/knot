@@ -4,6 +4,7 @@ module Style {
     | Named(string);
 
   declare mockColor: (MockColor) -> nil;
+  declare mockBackgroundColor: (MockColor) -> nil;
 }
 
 @plugin("style_expression")

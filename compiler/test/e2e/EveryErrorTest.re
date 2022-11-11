@@ -244,23 +244,30 @@ let suite =
             ),
             ParseError(
               TypeError(
+                InvalidStyleBinding(Valid(`Boolean), Valid(`String)),
+              ),
+              __semantic_namespace,
+              Range.create((41, 40), (41, 51)),
+            ),
+            ParseError(
+              TypeError(
                 InvalidFunctionCall(
                   Valid(`String),
                   [Valid(`Integer), Valid(`Float)],
                 ),
               ),
               __semantic_namespace,
-              Range.create((41, 46), (41, 58)),
+              Range.create((43, 46), (43, 58)),
             ),
             ParseError(
               TypeError(UntypedFunctionArgument("second_arg")),
               __semantic_namespace,
-              Range.create((43, 47), (43, 56)),
+              Range.create((45, 47), (45, 56)),
             ),
             ParseError(
               TypeError(UnknownStyleRule("foo")),
               __semantic_namespace,
-              Range.create((46, 3), (46, 5)),
+              Range.create((48, 3), (48, 5)),
             ),
             ParseError(
               TypeError(
@@ -271,7 +278,7 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((49, 28), (51, 1)),
+              Range.create((51, 28), (53, 1)),
             ),
             ParseError(
               TypeError(

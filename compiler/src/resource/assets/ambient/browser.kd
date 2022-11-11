@@ -84,3 +84,12 @@ module StyleExpression {
   declare white: Style.Color;
   declare yellow: Style.Color;
 }
+
+@plugin("element_tag")
+module ElementTag {
+  type attributes: {
+    class: string,
+  };
+
+  declare div: view(attributes, element);
+}

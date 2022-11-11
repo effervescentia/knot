@@ -1,7 +1,12 @@
 const emptyStyle = style { };
-const colorStyle = style {
-                     mockColor: $mockRed,
-                   };
-const rawColorStyle = style {
-                        mockColor: "#dac33d",
-                      };
+const redStyle = style {
+                   mockColor: $mockRed,
+                 };
+const yellowStyle = style {
+                      mockBackgroundColor: "#dac33d",
+                    };
+
+view Component -> nil;
+
+const EmptyComponent = Component::emptyStyle;
+const RedAndYellowComponent = Component::redStyle::yellowStyle;

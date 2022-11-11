@@ -100,6 +100,18 @@ let suite =
           (true |> U.bool_prim, false |> U.bool_prim) |> A.of_or_op,
         )
     ),
+    "bind styling"
+    >: (
+      () =>
+        _assert_expression(
+          "foo::bar",
+          (
+            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            "bar" |> A.of_id |> U.as_style,
+          )
+          |> A.of_bind_style,
+        )
+    ),
     "JSX"
     >: (
       () =>
@@ -107,7 +119,11 @@ let suite =
           "<Foo>
   bar
 </Foo>",
-          (U.as_untyped("Foo"), [], ["bar" |> A.of_text |> U.as_untyped])
+          (
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
+            ["bar" |> A.of_text |> U.as_untyped],
+          )
           |> A.of_tag
           |> A.of_jsx,
         )

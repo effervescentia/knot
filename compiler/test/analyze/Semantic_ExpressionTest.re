@@ -62,18 +62,25 @@ let suite =
     ),
     "always resolve JSX as element type"
     >: (
-      () =>
+      () => {
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__scope,
+          types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
+        };
+
         Assert.expression(
-          (URes.as_untyped(__id), [], [])
-          |> A.of_tag
+          (__id |> URes.as_typed(type_), [], [])
+          |> A.of_component
           |> A.of_jsx
           |> URes.as_element,
           (URaw.as_untyped(__id), [], [])
           |> AR.of_tag
           |> AR.of_jsx
           |> URaw.as_node
-          |> KExpression.Plugin.analyze(__scope),
-        )
+          |> KExpression.Plugin.analyze(scope),
+        );
+      }
     ),
     "resolve NotInferrable type on unrecognized identifier"
     >: (
@@ -136,6 +143,39 @@ let suite =
           |> URes.as_bool,
           (__id |> AR.of_id |> URaw.as_node, URaw.as_untyped("foo"))
           |> AR.of_dot_access
+          |> URaw.as_node
+          |> KExpression.Plugin.analyze(scope),
+        );
+      }
+    ),
+    "resolve style binding"
+    >: (
+      () => {
+        let view_id = "my_view";
+        let style_id = "my_style";
+        let scope = {
+          ...__throw_scope,
+          types:
+            [
+              (view_id, T.Valid(`View(([], Valid(`Element))))),
+              (style_id, T.Valid(`Style)),
+            ]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        Assert.expression(
+          (
+            view_id |> A.of_id |> URes.as_view([], Valid(`Element)),
+            style_id |> A.of_id |> URes.as_style,
+          )
+          |> A.of_bind_style
+          |> URes.as_view([], Valid(`Element)),
+          (
+            view_id |> AR.of_id |> URaw.as_node,
+            style_id |> AR.of_id |> URaw.as_node,
+          )
+          |> AR.of_bind_style
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );

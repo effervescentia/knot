@@ -55,6 +55,7 @@ module Make = (Params: ASTParams) => {
   let of_group = x => Expression.Group(x);
   let of_closure = xs => Expression.Closure(xs);
   let of_dot_access = ((expr, prop)) => Expression.DotAccess(expr, prop);
+  let of_bind_style = ((view, style)) => Expression.BindStyle(view, style);
   let of_func_call = ((expr, args)) => Expression.FunctionCall(expr, args);
   let of_style = rules => Expression.Style(rules);
 
@@ -81,8 +82,6 @@ module Make = (Params: ASTParams) => {
   let of_ineq_op = ((l, r)) => (Unequal, l, r) |> of_binary_op;
 
   let of_expo_op = ((l, r)) => (Exponent, l, r) |> of_binary_op;
-
-  let of_bind_style_op = ((l, r)) => (BindStyle, l, r) |> of_binary_op;
 
   let of_jsx = x => Expression.JSX(x);
   let of_frag = xs => Expression.Fragment(xs);

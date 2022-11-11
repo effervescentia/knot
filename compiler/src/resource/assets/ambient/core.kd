@@ -1,5 +1,8 @@
-@plugin("style")
+@plugin("style_rule")
 module Style { }
 
 @plugin("style_expression")
 module StyleExpression { }
+
+@plugin("element")
+module Element { }

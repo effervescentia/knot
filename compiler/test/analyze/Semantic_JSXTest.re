@@ -18,10 +18,52 @@ let suite =
   >::: [
     "resolve jsx with valid inline expression"
     >: (
-      () =>
+      () => {
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__throw_scope,
+          types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
+        };
+
         Assert.jsx(
           (
-            URes.as_untyped(__id),
+            __id |> URes.as_typed(type_),
+            [],
+            [
+              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
+            ],
+          )
+          |> A.of_component,
+          (
+            URaw.as_untyped(__id),
+            [],
+            [
+              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
+            ],
+          )
+          |> AR.of_tag
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+        );
+      }
+    ),
+    "resolve jsx as tag if found in plugin scope"
+    >: (
+      () => {
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__throw_scope,
+          context: {
+            ...__throw_scope.context,
+            modules: {
+              ...__throw_scope.context.modules,
+              plugins: [(ElementTag, [(__id, Value(type_))])],
+            },
+          },
+        };
+
+        Assert.jsx(
+          (
+            __id |> URes.as_typed(type_),
             [],
             [
               "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
@@ -36,11 +78,24 @@ let suite =
             ],
           )
           |> AR.of_tag
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+        );
+      }
+    ),
+    "report NotFound error with unrecognized tag identifier"
+    >: (
+      () => {
+        Assert.throws_compile_errors(
+          [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
+          () =>
+          (URaw.as_untyped(__id), [], [])
+          |> AR.of_tag
           |> KSX.Analyzer.analyze_jsx(
                __throw_scope,
                KExpression.Plugin.analyze,
-             ),
-        )
+             )
+        );
+      }
     ),
     "report InvalidJSXPrimitiveExpression error with invalid inline expression"
     >: (

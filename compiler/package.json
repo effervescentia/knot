@@ -440,13 +440,6 @@
       "name": "knot.lang.operator.binary.exponentiate",
       "namespace": "KExponentiate"
     },
-    "src/language/operator/binary/bind_style": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.bind_style",
-      "namespace": "KBindStyle"
-    },
     "src/language/operator/binary": {
       "require": [
         "knot.lang.operator.binary.equal",
@@ -461,8 +454,7 @@
         "knot.lang.operator.binary.subtract",
         "knot.lang.operator.binary.multiply",
         "knot.lang.operator.binary.divide",
-        "knot.lang.operator.binary.exponentiate",
-        "knot.lang.operator.binary.bind_style"
+        "knot.lang.operator.binary.exponentiate"
       ],
       "name": "knot.lang.operator.binary",
       "namespace": "KBinaryOperator"
@@ -488,6 +480,13 @@
       ],
       "name": "knot.lang.expression.dot_access",
       "namespace": "KDotAccess"
+    },
+    "src/language/expression/bind_style": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.expression.bind_style",
+      "namespace": "KBindStyle"
     },
     "src/language/expression/function_call": {
       "require": [
@@ -520,6 +519,7 @@
         "knot.lang.expression.group",
         "knot.lang.expression.closure",
         "knot.lang.expression.dot_access",
+        "knot.lang.expression.bind_style",
         "knot.lang.expression.function_call",
         "knot.lang.expression.style",
         "knot.lang.expression.ksx"

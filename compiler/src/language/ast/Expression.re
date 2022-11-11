@@ -5,7 +5,11 @@ open Common;
    a JSX AST node
    */
 type jsx_t('a) =
-  | Tag(identifier_t, list(jsx_attribute_t('a)), list(jsx_child_t('a)))
+  | Tag(
+      Node.t(string, 'a),
+      list(jsx_attribute_t('a)),
+      list(jsx_child_t('a)),
+    )
   | Component(
       Node.t(string, 'a),
       list(jsx_attribute_t('a)),
@@ -58,6 +62,7 @@ and raw_expression_t('a) =
   | UnaryOp(Unary.t, expression_t('a))
   | Closure(list(statement_t('a)))
   | DotAccess(expression_t('a), untyped_t(string))
+  | BindStyle(expression_t('a), expression_t('a))
   | FunctionCall(expression_t('a), list(expression_t('a)))
   | Style(list(style_rule_t('a)))
 

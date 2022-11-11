@@ -78,6 +78,11 @@ let rec gen_expression =
     | JSX(value) => gen_jsx(value)
     | DotAccess((expr, _), (prop, _)) =>
       JS.DotAccess(gen_expression(expr), prop)
+    | BindStyle((view, _), (style, _)) =>
+      JS.FunctionCall(
+        __bind_style,
+        [gen_expression(view), gen_expression(style)],
+      )
     | FunctionCall((expr, _), args) =>
       JS.FunctionCall(
         gen_expression(expr),
@@ -137,13 +142,6 @@ and gen_binary_op = {
         ((lhs, _), (rhs, _)) =>
           JS.FunctionCall(
             DotAccess(Identifier("Math"), "pow"),
-            [gen_expression(lhs), gen_expression(rhs)],
-          )
-      )
-    | BindStyle => (
-        ((lhs, _), (rhs, _)) =>
-          JS.FunctionCall(
-            __bind_style,
             [gen_expression(lhs), gen_expression(rhs)],
           )
       )

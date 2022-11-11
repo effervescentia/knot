@@ -78,7 +78,9 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          (U.as_untyped("foo"), [], []) |> A.of_tag |> A.of_jsx,
+          ("foo" |> U.as_view([], Valid(`Nil)), [], [])
+          |> A.of_tag
+          |> A.of_jsx,
         )
     ),
     "jsx - render tag with attributes"
@@ -90,7 +92,7 @@ let suite =
             [String("foo"), Object([("zip", String("zap"))])],
           ),
           (
-            U.as_untyped("foo"),
+            "foo" |> U.as_view([], Valid(`Nil)),
             [
               (
                 U.as_untyped("zip"),
@@ -112,7 +114,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [Identifier("Foo")],
           ),
-          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], Valid(`Element)), [], [])
           |> A.of_component
           |> A.of_jsx,
         )
@@ -146,14 +148,14 @@ let suite =
             ],
           ),
           (
-            U.as_untyped("foo"),
+            "foo" |> U.as_view([], Valid(`Nil)),
             [],
             [
               (
-                "Bar" |> U.as_view([], T.Valid(`Element)),
+                "Bar" |> U.as_view([], Valid(`Element)),
                 [],
                 [
-                  (U.as_untyped("fizz"), [], [])
+                  ("fizz" |> U.as_view([], Valid(`Nil)), [], [])
                   |> A.of_tag
                   |> A.of_node
                   |> U.as_untyped,
@@ -241,10 +243,25 @@ let suite =
         _assert_expression(
           DotAccess(Identifier("foo"), "bar"),
           (
-            "foo" |> A.of_id |> U.as_struct([("bar", T.Valid(`String))]),
+            "foo" |> A.of_id |> U.as_struct([("bar", Valid(`String))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,
+        )
+    ),
+    "style binding"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "style"), "bindStyle"),
+            [Identifier("foo"), Identifier("bar")],
+          ),
+          (
+            "foo" |> A.of_id |> U.as_view([], Valid(`Element)),
+            "bar" |> A.of_id |> U.as_style,
+          )
+          |> A.of_bind_style,
         )
     ),
     "function call"
@@ -255,7 +272,7 @@ let suite =
           (
             "foo"
             |> A.of_id
-            |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
+            |> U.as_function([Valid(`String)], Valid(`Boolean)),
             ["bar" |> A.of_id |> U.as_string],
           )
           |> A.of_func_call,
@@ -446,14 +463,12 @@ let suite =
           ),
           [
             (
-              "height"
-              |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+              "height" |> U.as_function([Valid(`Integer)], Valid(`String)),
               U.int_prim(2),
             )
             |> U.as_untyped,
             (
-              "width"
-              |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
+              "width" |> U.as_function([Valid(`Integer)], Valid(`String)),
               U.int_prim(10),
             )
             |> U.as_untyped,

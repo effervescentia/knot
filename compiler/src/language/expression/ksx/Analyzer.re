@@ -6,7 +6,7 @@ let validate_jsx_render:
   list((Type.error_t, option(Range.t))) =
   fun
   /* assume this have been reported already and ignore */
-  | (_, Invalid(_), _) => []
+  | (id, Invalid(_), _) => [(NotFound(id), None)]
 
   | (id, Valid(`View(attrs, _)), actual_attrs) => {
       let keys =
@@ -96,52 +96,58 @@ let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
 let rec analyze_jsx:
   (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
   Result.jsx_t =
-  (scope, analyze_expression, jsx) => (
+  (scope, analyze_expression, jsx) =>
     switch (jsx) {
     | Tag(id, attrs, children) =>
+      let tag_scope = Scope.create(scope.context, Node.get_range(id));
+      tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
+
+      let (id_type, tag_ast) =
+        scope
+        |> Scope.lookup(fst(id))
+        |> Option.map(Tuple.with_snd2(Result.of_component))
+        |?| (
+          tag_scope
+          |> Scope.lookup(fst(id))
+          |> Option.map(Tuple.with_snd2(Result.of_tag))
+        )
+        |?: (Type.Invalid(NotInferrable), Result.of_component);
+
+      let id' = id |> Node.add_type(id_type);
       let attrs' =
         attrs |> List.map(analyze_jsx_attribute(scope, analyze_expression));
       let children' =
         children |> List.map(analyze_jsx_child(scope, analyze_expression));
-      let is_tag_capitalized = id |> fst |> String.is_capitalized;
 
-      if (is_tag_capitalized) {
-        let id_type =
-          scope |> Scope.lookup(fst(id)) |?: Type.Invalid(NotInferrable);
-        let props =
-          attrs'
-          |> List.filter_map(
-               fun
-               | (((name, _), Some(expr)), range) =>
-                 Some((name, (Node.get_type(expr), range)))
-               | _ => None,
-             );
-
-        (fst(id), id_type, props)
-        |> validate_jsx_render
-        |> List.iter(((err, err_range)) =>
-             Scope.report_type_err(
-               scope,
-               err_range |?: Node.get_range(id),
-               err,
-             )
+      let props =
+        attrs'
+        |> List.filter_map(
+             fun
+             | (((name, _), Some(expr)), range) =>
+               Some((name, (Node.get_type(expr), range)))
+             | _ => None,
            );
 
-        (id |> Node.add_type(id_type), attrs', children')
-        |> Result.of_component;
-      } else {
-        (id, attrs', children') |> Result.of_tag;
-      };
+      (fst(id), id_type, props)
+      |> validate_jsx_render
+      |> List.iter(((err, err_range)) =>
+           Scope.report_type_err(
+             scope,
+             err_range |?: Node.get_range(id),
+             err,
+           )
+         );
+
+      (id', attrs', children') |> tag_ast;
 
     | Fragment(children) =>
       children
       |> List.map(analyze_jsx_child(scope, analyze_expression))
       |> Result.of_frag
 
-    | Component(_) => raise(SystemError)
-    }: Result.jsx_t
     /* this should never be called, component delegation is determined at this point */
-  )
+    | Component(_) => raise(SystemError)
+    }
 
 and analyze_jsx_attribute:
   (

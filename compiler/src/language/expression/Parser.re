@@ -28,11 +28,14 @@ and expr_5 = (ctx): Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input => ((expr_6(ctx), expr_0(ctx)) |> KFunctionCall.parse)(input)
 
+/* foo::bar */
+and expr_6 = ctx => expr_7(ctx) |> KBindStyle.parse
+
 /* foo.bar */
-and expr_6 = ctx => expr_7(ctx) >>= KDotAccess.parse
+and expr_7 = ctx => expr_8(ctx) >>= KDotAccess.parse
 
 /* {}, () */
-and expr_7 = (ctx): Framework.expression_parser_t =>
+and expr_8 = (ctx): Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice(
@@ -46,7 +49,7 @@ and expr_7 = (ctx): Framework.expression_parser_t =>
 
 /* skip dot access to avoid conflict with class attribute syntax */
 and jsx_term = ctx =>
-  (expr_7(ctx), expr_0(ctx)) |> KFunctionCall.parse |> KUnaryOperator.parse
+  (expr_8(ctx), expr_0(ctx)) |> KFunctionCall.parse |> KUnaryOperator.parse
 
 /* 2, foo, <bar /> */
 and term = ctx =>

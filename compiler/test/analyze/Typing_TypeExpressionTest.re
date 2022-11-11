@@ -132,4 +132,55 @@ let suite =
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
+    "view type"
+    >: (
+      () =>
+        Assert.type_(
+          Valid(
+            `View((
+              [("foo", Valid(`Boolean)), ("bar", Valid(`String))],
+              Valid(`Element),
+            )),
+          ),
+          (
+            [
+              (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
+              (U.as_untyped("bar"), U.as_untyped(TE.String)),
+            ]
+            |> TE.of_struct
+            |> U.as_untyped,
+            U.as_untyped(TE.Element),
+          )
+          |> TE.of_view
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
+        )
+    ),
+    "invalid view properties type"
+    >: (
+      () =>
+        Assert.type_(
+          Invalid(NotInferrable),
+          (U.as_untyped(TE.Boolean), U.as_untyped(TE.Element))
+          |> TE.of_view
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
+        )
+    ),
+    "invalid view result type"
+    >: (
+      () =>
+        Assert.type_(
+          Invalid(NotInferrable),
+          (
+            [
+              (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
+              (U.as_untyped("bar"), U.as_untyped(TE.String)),
+            ]
+            |> TE.of_struct
+            |> U.as_untyped,
+            U.as_untyped(TE.Style),
+          )
+          |> TE.of_view
+          |> KTypeExpression.Plugin.analyze(__empty_defs),
+        )
+    ),
   ];

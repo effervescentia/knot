@@ -66,6 +66,17 @@ let rec analyze_expression: (Scope.t, Raw.expression_t) => Result.expression_t =
 
         (Expression.DotAccess(expr', prop), type_);
 
+      | (BindStyle(view, style), _) =>
+        let (view', style') =
+          KBindStyle.analyze(
+            scope,
+            analyze_expression,
+            (view, style),
+            node_range,
+          );
+
+        (Expression.BindStyle(view', style'), Node.get_type(view'));
+
       | (FunctionCall(expr, args), _) =>
         let (expr', args', type_) =
           KFunctionCall.analyze(

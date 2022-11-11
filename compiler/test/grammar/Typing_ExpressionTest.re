@@ -239,4 +239,29 @@ let suite =
           "{ foo: nil[], bar: ((float[]) -> integer[])[] }[]",
         )
     ),
+    "parse nil view type"
+    >: (
+      () =>
+        Assert.parse(
+          ([] |> TE.of_struct |> U.as_untyped, U.as_untyped(TE.Nil))
+          |> TE.of_view
+          |> U.as_untyped,
+          "view({}, nil)",
+        )
+    ),
+    "parse complex function type"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            [(U.as_untyped("foo"), U.as_untyped(TE.Nil))]
+            |> TE.of_struct
+            |> U.as_untyped,
+            U.as_untyped(TE.Boolean),
+          )
+          |> TE.of_view
+          |> U.as_untyped,
+          "view({ foo: nil }, boolean)",
+        )
+    ),
   ];

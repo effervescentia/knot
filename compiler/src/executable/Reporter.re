@@ -282,29 +282,6 @@ let _extract_type_err =
         | Divide => ("DIVIDE (/)", __numeric_types) |> print_static_error
         | Multiply => ("MULTIPLY (*)", __numeric_types) |> print_static_error
         | Exponent => ("EXPONENT (^)", __numeric_types) |> print_static_error
-
-        | BindStyle =>
-          Fmt.(
-            (
-              ppf =>
-                pf(
-                  ppf,
-                  "the %a binary operator expects the left side to be a %a or built-in tag (%a, etc.) and the right side to be of type %a but received %a and %a",
-                  bold_str,
-                  "BIND STYLE (::)",
-                  good_str,
-                  Constants.Keyword.view,
-                  list(~sep=Sep.comma, good_str),
-                  ["div", "span", "input"],
-                  good(Type.pp),
-                  Valid(`Style),
-                  bad(Type.pp),
-                  lhs_type,
-                  bad(Type.pp),
-                  rhs_type,
-                )
-            )
-          )
         };
       },
       [],
@@ -449,6 +426,28 @@ let _extract_type_err =
               Fmt.str("{ %s: any }", prop),
               bad(Type.pp),
               type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidStyleBinding(view, style) => (
+      "Invalid Style Binding",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>style binding expects the left-side value to be a %a@,and the right-side value to be %a but received %a and %a@]",
+              good_str,
+              Constants.Keyword.view,
+              good(Type.pp),
+              Valid(`Style),
+              bad(Type.pp),
+              view,
+              bad(Type.pp),
+              style,
             )
         )
       ),

@@ -64,20 +64,24 @@ module Plugin = {
 
   let style_expression_key = "style_expression";
   let style_rule_key = "style_rule";
-  let known = [style_expression_key, style_rule_key];
+  let element_tag_key = "element_tag";
+  let known = [style_expression_key, style_rule_key, element_tag_key];
 
   type t =
     | StyleExpression
-    | StyleRule;
+    | StyleRule
+    | ElementTag;
 
   let of_string =
     fun
     | x when x == style_expression_key => StyleExpression
     | x when x == style_rule_key => StyleRule
+    | x when x == element_tag_key => ElementTag
     | name => raise(InvalidPlugin(name));
 
   let to_string =
     fun
     | StyleExpression => style_expression_key
-    | StyleRule => style_rule_key;
+    | StyleRule => style_rule_key
+    | ElementTag => element_tag_key;
 };

@@ -6,6 +6,6 @@
    ; The namespace that other packages/libraries will access this library through
    (name KBindStyle)
    ; Other libraries list this name in their package.json 'require' field to use this library.
-   (public_name knot.lang.operator.binary.bind_style)
+   (public_name knot.lang.expression.bind_style)
    (libraries  knot.lang.ast )
 )
