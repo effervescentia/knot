@@ -38,7 +38,8 @@ let analyze_dot_access:
       expr',
       (
         switch (type_) {
-        | Valid(`Struct(props)) => props |> List.assoc_opt(prop_name)
+        | Valid(`Struct(props)) =>
+          props |> List.assoc_opt(prop_name) |> Option.map(fst)
 
         | Valid(`Module(entries)) =>
           entries

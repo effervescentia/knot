@@ -214,7 +214,7 @@ let suite =
                 __component_id,
                 T.Valid(
                   `View((
-                    [("fizz", T.Valid(`Boolean))],
+                    [("fizz", (T.Valid(`Boolean), true))],
                     T.Valid(`Element),
                   )),
                 ),
@@ -271,7 +271,11 @@ let suite =
         let view_type =
           T.Valid(
             `View((
-              [("fizz", T.Valid(`Boolean)), ("buzz", T.Valid(`String))],
+              [
+                ("fizz", (T.Valid(`Boolean), true)),
+                ("buzz", (T.Valid(`String), true)),
+                ("foobar", (T.Valid(`Element), false)),
+              ],
               T.Valid(`Element),
             )),
           );

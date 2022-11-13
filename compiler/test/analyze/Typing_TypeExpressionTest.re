@@ -104,7 +104,10 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `Struct([("foo", Valid(`Boolean)), ("bar", Valid(`String))]),
+            `Struct([
+              ("foo", (Valid(`Boolean), true)),
+              ("bar", (Valid(`String), true)),
+            ]),
           ),
           [
             (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
@@ -138,7 +141,10 @@ let suite =
         Assert.type_(
           Valid(
             `View((
-              [("foo", Valid(`Boolean)), ("bar", Valid(`String))],
+              [
+                ("foo", (Valid(`Boolean), true)),
+                ("bar", (Valid(`String), true)),
+              ],
               Valid(`Element),
             )),
           ),

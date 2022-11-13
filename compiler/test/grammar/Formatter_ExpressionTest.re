@@ -29,7 +29,9 @@ let suite =
         _assert_expression(
           "foo.bar",
           (
-            "foo" |> A.of_id |> U.as_struct([("bar", T.Valid(`Boolean))]),
+            "foo"
+            |> A.of_id
+            |> U.as_struct([("bar", (T.Valid(`Boolean), true))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,

@@ -60,7 +60,7 @@ let enumerated: type_module_statement_parser_t =
               variants
               |> List.map(
                    Tuple.map_snd2(args =>
-                     Type.Valid(`Function((args, enum_type)))
+                     (Type.Valid(`Function((args, enum_type))), true)
                    ),
                  ),
             ),

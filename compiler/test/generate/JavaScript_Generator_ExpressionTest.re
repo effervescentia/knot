@@ -243,7 +243,9 @@ let suite =
         _assert_expression(
           DotAccess(Identifier("foo"), "bar"),
           (
-            "foo" |> A.of_id |> U.as_struct([("bar", Valid(`String))]),
+            "foo"
+            |> A.of_id
+            |> U.as_struct([("bar", (Valid(`String), true))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,

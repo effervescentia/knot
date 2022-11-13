@@ -55,7 +55,7 @@ module Container = {
 
   type value_t('a) = [
     | `List('a)
-    | `Struct(list((string, 'a)))
+    | `Struct(list((string, ('a, bool))))
     | `Enumerated(list((string, list('a))))
     | `Function(list('a), 'a)
   ];
@@ -63,7 +63,7 @@ module Container = {
   type decorator_t('a) = [ | `Decorator(list('a), DecoratorTarget.t)];
 
   type entity_t('a) = [
-    | `View(list((string, 'a)), 'a)
+    | `View(list((string, ('a, bool))), 'a)
     | `Module(list((string, module_entry_t('a))))
   ];
 
@@ -78,10 +78,11 @@ module Container = {
   let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
     Fmt.(ppf => pf(ppf, "%a[]", pp_type));
 
-  let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, 'a)) =>
-    (ppf, (key, type_)) => Fmt.pf(ppf, "%s: %a", key, pp_type, type_);
+  let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, ('a, bool))) =>
+    (ppf, (key, (type_, required))) =>
+      Fmt.pf(ppf, "%s%s %a", key, required ? ":" : "?:", pp_type, type_);
 
-  let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, 'a))) =>
+  let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, ('a, bool)))) =>
     Fmt.(
       (ppf, props) =>
         List.is_empty(props)
@@ -139,7 +140,8 @@ module Container = {
         )
     );
 
-  let pp_view = (pp_type: Fmt.t('a)): Fmt.t((list((string, 'a)), 'a)) =>
+  let pp_view =
+      (pp_type: Fmt.t('a)): Fmt.t((list((string, ('a, bool))), 'a)) =>
     Fmt.(
       (ppf, (props, res)) =>
         pf(

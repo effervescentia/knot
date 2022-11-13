@@ -129,14 +129,21 @@ let suite =
         let scope = {
           ...__throw_scope,
           types:
-            [(__id, T.Valid(`Struct([("foo", Valid(`Boolean))])))]
+            [
+              (
+                __id,
+                T.Valid(`Struct([("foo", (Valid(`Boolean), true))])),
+              ),
+            ]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
 
         Assert.expression(
           (
-            __id |> A.of_id |> URes.as_struct([("foo", T.Valid(`Boolean))]),
+            __id
+            |> A.of_id
+            |> URes.as_struct([("foo", (T.Valid(`Boolean), true))]),
             URes.as_untyped("foo"),
           )
           |> A.of_dot_access

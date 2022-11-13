@@ -28,7 +28,12 @@ let rec analyze_type_expression:
           `Struct(
             xs
             |> List.map(
-                 Tuple.map_each2(fst, fst % analyze_type_expression(defs)),
+                 Tuple.map_each2(
+                   fst,
+                   fst
+                   % analyze_type_expression(defs)
+                   % Tuple.with_snd2(true),
+                 ),
                ),
           ),
         )

@@ -10,9 +10,8 @@ let validate_jsx_render:
 
   | (id, Valid(`View(attrs, _)), actual_attrs) => {
       let keys =
-        attrs
-        @ (actual_attrs |> List.map(Tuple.map_snd2(fst)))
-        |> List.map(fst)
+        (attrs |> List.map(fst))
+        @ (actual_attrs |> List.map(fst))
         |> List.uniq_by((==));
 
       let (invalid, missing) =
@@ -23,7 +22,7 @@ let validate_jsx_render:
                let actual = actual_attrs |> List.assoc_opt(key);
 
                switch (expected, actual) {
-               | (Some(expected'), Some((actual_value, _) as actual')) =>
+               | (Some((expected', _)), Some((actual_value, _) as actual')) =>
                  Type.(
                    switch (expected', actual_value) {
                    | (Invalid(_), _)
@@ -42,7 +41,7 @@ let validate_jsx_render:
                    }
                  )
 
-               | (Some(expected'), None) => (
+               | (Some((expected', true)), None) => (
                    invalid,
                    missing @ [(key, expected')],
                  )
@@ -58,6 +57,7 @@ let validate_jsx_render:
                    missing,
                  )
 
+               | (Some((_, false)), None)
                | (None, None) => acc
                };
              },

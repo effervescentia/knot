@@ -124,7 +124,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`String))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("bar", (T.Valid(`String), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -183,7 +186,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`String))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("bar", (T.Valid(`String), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -217,7 +223,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("fizz", T.Valid(`Float))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("fizz", (T.Valid(`Float), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -239,7 +248,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`Float))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("bar", (T.Valid(`Float), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -247,6 +259,27 @@ let suite =
               ("foo", T.Valid(`Boolean) |> U.as_untyped),
               ("bar", T.Valid(`Float) |> U.as_untyped),
             ],
+          )
+          |> KSX.Analyzer.validate_jsx_render,
+        )
+    ),
+    "jsx render with optional attributes"
+    >: (
+      () =>
+        _assert_errors_with_ranges(
+          [],
+          (
+            __id,
+            T.Valid(
+              `View((
+                [
+                  ("foo", (T.Valid(`Boolean), false)),
+                  ("bar", (T.Valid(`Float), false)),
+                ],
+                T.Valid(`Element),
+              )),
+            ),
+            [("foo", T.Valid(`Boolean) |> U.as_untyped)],
           )
           |> KSX.Analyzer.validate_jsx_render,
         )

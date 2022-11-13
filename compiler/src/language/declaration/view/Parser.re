@@ -77,11 +77,13 @@ let view =
 
               let prop_types =
                 props'
-                |> List.map(
-                     Tuple.split2(
-                       fst % Expression.(prop => fst(prop.name)),
-                       Node.get_type,
-                     ),
+                |> List.map(((prop, _) as node) =>
+                     (
+                       fst(Expression.(prop.name)),
+                       node
+                       |> Node.get_type
+                       |> Tuple.with_snd2(Option.is_none(prop.default)),
+                     )
                    );
               let type_ =
                 Type.Valid(`View((prop_types, Node.get_type(res'))));

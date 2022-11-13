@@ -3,7 +3,10 @@ open Kore;
 module T = AST.Type;
 
 let __args = [T.Valid(`Nil), T.Valid(`String)];
-let __props = [("foo", T.Valid(`Nil)), ("bar", T.Valid(`String))];
+let __props = [
+  ("foo", (T.Valid(`Nil), true)),
+  ("bar", (T.Valid(`String), false)),
+];
 let __raw_args = [`Nil, `String];
 let __raw_props = [("foo", `Nil), ("bar", `String)];
 
@@ -21,7 +24,7 @@ let suite =
     >: (
       () =>
         Assert.string(
-          "{ foo: nil, bar: string }",
+          "{ foo: nil, bar?: string }",
           `Struct(__props) |> ~@T.pp_valid,
         )
     ),

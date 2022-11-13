@@ -10,7 +10,7 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          T.Valid(`Struct([("foo", Valid(`Boolean))]))
+          T.Valid(`Struct([("foo", (Valid(`Boolean), true))]))
           |> KDotAccess.Analyzer.validate_dot_access("foo"),
         )
     ),
