@@ -16,11 +16,10 @@ let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
 
     | Struct(props) =>
       Fmt.(
-        record(
-          string,
-          pp_type_expr,
+        closure(
+          optional_attribute(string, pp_type_expr),
           ppf,
-          props |> List.map(Tuple.map_each2(fst, fst)),
+          props |> List.map(Tuple.map_each2(fst, Tuple.map_fst2(fst))),
         )
       )
 

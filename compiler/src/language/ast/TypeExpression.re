@@ -16,7 +16,7 @@ and raw_t =
   | Identifier(untyped_t(string))
   | Group(t)
   | List(t)
-  | Struct(list((untyped_t(string), t)))
+  | Struct(list((untyped_t(string), (t, bool))))
   | Function(list(t), t)
   | DotAccess(t, untyped_t(string))
   | View(t, t);

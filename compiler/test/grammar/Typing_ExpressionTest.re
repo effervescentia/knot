@@ -64,7 +64,8 @@ let suite =
               |> TE.of_list
               |> U.as_untyped
               |> TE.of_group
-              |> U.as_untyped,
+              |> U.as_untyped
+              |> Tuple.with_snd2(true),
             ),
             (
               U.as_untyped("bar"),
@@ -75,7 +76,8 @@ let suite =
               |> TE.of_function
               |> U.as_untyped
               |> TE.of_group
-              |> U.as_untyped,
+              |> U.as_untyped
+              |> Tuple.with_snd2(true),
             ),
           ]
           |> TE.of_struct
@@ -91,10 +93,23 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          [(U.as_untyped("foo"), U.as_untyped(TE.Boolean))]
+          [(U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true))]
           |> TE.of_struct
           |> U.as_untyped,
           ["{foo:boolean}", "{ foo : boolean }", "{ foo: boolean, }"],
+        )
+    ),
+    "parse optional property struct type"
+    >: (
+      () =>
+        Assert.parse(
+          [
+            (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
+            (U.as_untyped("bar"), (U.as_untyped(TE.String), false)),
+          ]
+          |> TE.of_struct
+          |> U.as_untyped,
+          "{ foo: boolean, bar?: string }",
         )
     ),
     "parse complex struct type"
@@ -102,26 +117,31 @@ let suite =
       () =>
         Assert.parse(
           [
-            (U.as_untyped("nil"), U.as_untyped(TE.Nil)),
-            (U.as_untyped("boolean"), U.as_untyped(TE.Boolean)),
-            (U.as_untyped("integer"), U.as_untyped(TE.Integer)),
-            (U.as_untyped("float"), U.as_untyped(TE.Float)),
-            (U.as_untyped("string"), U.as_untyped(TE.String)),
-            (U.as_untyped("element"), U.as_untyped(TE.Element)),
+            (U.as_untyped("nil"), (U.as_untyped(TE.Nil), true)),
+            (U.as_untyped("boolean"), (U.as_untyped(TE.Boolean), true)),
+            (U.as_untyped("integer"), (U.as_untyped(TE.Integer), true)),
+            (U.as_untyped("float"), (U.as_untyped(TE.Float), true)),
+            (U.as_untyped("string"), (U.as_untyped(TE.String), true)),
+            (U.as_untyped("element"), (U.as_untyped(TE.Element), true)),
             (
               U.as_untyped("struct"),
               [
-                (U.as_untyped("foo"), U.as_untyped(TE.Nil)),
-                (U.as_untyped("bar"), U.as_untyped(TE.Struct([]))),
+                (U.as_untyped("foo"), (U.as_untyped(TE.Nil), true)),
+                (
+                  U.as_untyped("bar"),
+                  (U.as_untyped(TE.Struct([])), true),
+                ),
               ]
               |> TE.of_struct
-              |> U.as_untyped,
+              |> U.as_untyped
+              |> Tuple.with_snd2(true),
             ),
             (
               U.as_untyped("function"),
               ([U.as_untyped(TE.Boolean)], U.as_untyped(TE.Integer))
               |> TE.of_function
-              |> U.as_untyped,
+              |> U.as_untyped
+              |> Tuple.with_snd2(true),
             ),
           ]
           |> TE.of_struct
@@ -172,7 +192,7 @@ let suite =
         Assert.parse(
           (
             [
-              [(U.as_untyped("foo"), U.as_untyped(TE.Nil))]
+              [(U.as_untyped("foo"), (U.as_untyped(TE.Nil), true))]
               |> TE.of_struct
               |> U.as_untyped,
               ([], U.as_untyped(TE.Nil)) |> TE.of_function |> U.as_untyped,
@@ -216,7 +236,11 @@ let suite =
           [
             (
               U.as_untyped("foo"),
-              TE.Nil |> U.as_untyped |> TE.of_list |> U.as_untyped,
+              TE.Nil
+              |> U.as_untyped
+              |> TE.of_list
+              |> U.as_untyped
+              |> Tuple.with_snd2(true),
             ),
             (
               U.as_untyped("bar"),
@@ -229,7 +253,8 @@ let suite =
               |> TE.of_group
               |> U.as_untyped
               |> TE.of_list
-              |> U.as_untyped,
+              |> U.as_untyped
+              |> Tuple.with_snd2(true),
             ),
           ]
           |> TE.of_struct
@@ -249,12 +274,12 @@ let suite =
           "view({}, nil)",
         )
     ),
-    "parse complex function type"
+    "parse complex view type"
     >: (
       () =>
         Assert.parse(
           (
-            [(U.as_untyped("foo"), U.as_untyped(TE.Nil))]
+            [(U.as_untyped("foo"), (U.as_untyped(TE.Nil), true))]
             |> TE.of_struct
             |> U.as_untyped,
             U.as_untyped(TE.Boolean),

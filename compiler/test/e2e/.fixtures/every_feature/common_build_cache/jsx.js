@@ -1,5 +1,6 @@
 var $knot = require("@knot/runtime");
 var $import$_$views = require("./views");
+var PartialView = $import$_$views.PartialView;
 var PropertiedView = $import$_$views.PropertiedView;
 $import$_$views = null;
 var propertied_tag_variable = $knot.jsx.createTag("data_element",
@@ -33,6 +34,17 @@ var propertied_component_variable = $knot.jsx.createTag(PropertiedView,
                                                           data_nil: null
                                                         });
 exports.propertied_component_variable = propertied_component_variable;
+var optional_properties_excluded = $knot.jsx.createTag(PartialView,
+                                                       {
+                                                         first: 100
+                                                       });
+exports.optional_properties_excluded = optional_properties_excluded;
+var optional_properties_included = $knot.jsx.createTag(PartialView,
+                                                       {
+                                                         second: true,
+                                                         first: 100
+                                                       });
+exports.optional_properties_included = optional_properties_included;
 var punned_variable = "punned";
 exports.punned_variable = punned_variable;
 var punned_property_tag_variable = $knot.jsx.createTag("span",

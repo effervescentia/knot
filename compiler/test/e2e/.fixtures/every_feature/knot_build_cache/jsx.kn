@@ -1,4 +1,4 @@
-import { PropertiedView } from "@/views";
+import { PartialView, PropertiedView } from "@/views";
 
 const propertied_tag_variable = <data_element
                                              data_nil=nil
@@ -22,6 +22,8 @@ const propertied_component_variable = <PropertiedView
                                                      data_string="abc"
                                                      data_tag=<div />
                                                      data_fragment=<></> />;
+const optional_properties_excluded = <PartialView first=100 />;
+const optional_properties_included = <PartialView first=100 second=true />;
 const punned_variable = "punned";
 const punned_property_tag_variable = <span punned_variable />;
 const text_tag_variable = <div>

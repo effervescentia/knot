@@ -37,10 +37,10 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
 
   | Struct(properties) =>
     properties
-    |> List.map(((name, value)) =>
+    |> List.map(((name, (value, required))) =>
          Fmt.Node(
            "Property",
-           [],
+           [("required", string_of_bool(required))],
            [
              Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
              Node("Value", [], [to_xml(value)]),

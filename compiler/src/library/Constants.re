@@ -73,6 +73,8 @@ module Glyph = {
   let list_type_suffix = "[]";
 
   let style_binding = "::";
+
+  let conditional = "?:";
 };
 
 /**

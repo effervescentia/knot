@@ -106,12 +106,12 @@ let suite =
           Valid(
             `Struct([
               ("foo", (Valid(`Boolean), true)),
-              ("bar", (Valid(`String), true)),
+              ("bar", (Valid(`String), false)),
             ]),
           ),
           [
-            (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
-            (U.as_untyped("bar"), U.as_untyped(TE.String)),
+            (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
+            (U.as_untyped("bar"), (U.as_untyped(TE.String), false)),
           ]
           |> TE.of_struct
           |> KTypeExpression.Plugin.analyze(__empty_defs),
@@ -150,8 +150,8 @@ let suite =
           ),
           (
             [
-              (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
-              (U.as_untyped("bar"), U.as_untyped(TE.String)),
+              (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
+              (U.as_untyped("bar"), (U.as_untyped(TE.String), true)),
             ]
             |> TE.of_struct
             |> U.as_untyped,
@@ -178,8 +178,8 @@ let suite =
           Invalid(NotInferrable),
           (
             [
-              (U.as_untyped("foo"), U.as_untyped(TE.Boolean)),
-              (U.as_untyped("bar"), U.as_untyped(TE.String)),
+              (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
+              (U.as_untyped("bar"), (U.as_untyped(TE.String), true)),
             ]
             |> TE.of_struct
             |> U.as_untyped,

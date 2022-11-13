@@ -182,7 +182,12 @@ module Foo {}",
                 (
                   U.as_untyped("bar"),
                   (
-                    [(U.as_untyped("foo"), U.as_untyped(TE.Integer))]
+                    [
+                      (
+                        U.as_untyped("foo"),
+                        (U.as_untyped(TE.Integer), true),
+                      ),
+                    ]
                     |> TE.of_struct
                     |> U.as_untyped,
                     U.as_untyped(TE.Element),

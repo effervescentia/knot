@@ -22,6 +22,11 @@ let indented = (pp_value: t('a)): t('a) =>
 let attribute = (pp_key: t('a), pp_value: t('b)): t(('a, 'b)) =>
   (ppf, (key, value)) => pf(ppf, "%a: %a", pp_key, key, pp_value, value);
 
+let optional_attribute =
+    (pp_key: t('a), pp_value: t('b)): t(('a, ('b, bool))) =>
+  (ppf, (key, (value, required))) =>
+    pf(ppf, "%a%s %a", pp_key, key, required ? ":" : "?:", pp_value, value);
+
 /* container formatters */
 
 let _list_box =

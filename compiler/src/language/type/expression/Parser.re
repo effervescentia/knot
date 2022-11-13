@@ -37,8 +37,18 @@ let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
        ),
      );
 
+let _struct_key = Matchers.identifier(~prefix=Matchers.alpha);
+let _required_property = parse_expr =>
+  Matchers.attribute(_struct_key, parse_expr >|= (x => (x, true)));
+let _optional_property = parse_expr =>
+  Matchers.binary_op(
+    _struct_key,
+    Matchers.glyph(Constants.Glyph.conditional),
+    parse_expr >|= (x => (x, false)),
+  );
 let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
-  Matchers.attribute(Matchers.identifier(~prefix=Matchers.alpha), parse_expr)
+  _optional_property(parse_expr)
+  <|> _required_property(parse_expr)
   |> Matchers.comma_sep
   |> Matchers.between_braces
   /* TODO: sort the props here by property name */
