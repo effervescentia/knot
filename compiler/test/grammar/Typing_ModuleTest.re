@@ -183,10 +183,9 @@ module Foo {}",
                   U.as_untyped("bar"),
                   (
                     [
-                      (
-                        U.as_untyped("foo"),
-                        (U.as_untyped(TE.Integer), true),
-                      ),
+                      (U.as_untyped("foo"), U.as_untyped(TE.Integer))
+                      |> TE.of_required
+                      |> U.as_untyped,
                     ]
                     |> TE.of_struct
                     |> U.as_untyped,

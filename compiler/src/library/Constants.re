@@ -75,6 +75,8 @@ module Glyph = {
   let style_binding = "::";
 
   let conditional = "?:";
+
+  let spread = "...";
 };
 
 /**

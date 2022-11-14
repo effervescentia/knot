@@ -38,17 +38,51 @@ let list = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
      );
 
 let _struct_key = Matchers.identifier(~prefix=Matchers.alpha);
-let _required_property = parse_expr =>
-  Matchers.attribute(_struct_key, parse_expr >|= (x => (x, true)));
-let _optional_property = parse_expr =>
+
+let required_struct_property = parse_expr =>
+  Matchers.attribute(_struct_key, parse_expr)
+  >|= (
+    ((key, value)) =>
+      Node.untyped(
+        (key, value) |> TypeExpression.of_required,
+        Node.join_ranges(key, value),
+      )
+  );
+
+let optional_struct_property = parse_expr =>
   Matchers.binary_op(
     _struct_key,
     Matchers.glyph(Constants.Glyph.conditional),
-    parse_expr >|= (x => (x, false)),
+    parse_expr,
+  )
+  >|= (
+    ((key, value)) =>
+      Node.untyped(
+        (key, value) |> TypeExpression.of_optional,
+        Node.join_ranges(key, value),
+      )
   );
+
+let spread_properties = parse_expr =>
+  Matchers.glyph(Constants.Glyph.spread)
+  >>= (
+    keyword =>
+      parse_expr
+      >|= (
+        expr =>
+          Node.untyped(
+            TypeExpression.of_spread(expr),
+            Node.join_ranges(keyword, expr),
+          )
+      )
+  );
+
 let struct_ = (parse_expr: type_expression_parser_t): type_expression_parser_t =>
-  _optional_property(parse_expr)
-  <|> _required_property(parse_expr)
+  choice([
+    spread_properties(parse_expr),
+    optional_struct_property(parse_expr),
+    required_struct_property(parse_expr),
+  ])
   |> Matchers.comma_sep
   |> Matchers.between_braces
   /* TODO: sort the props here by property name */

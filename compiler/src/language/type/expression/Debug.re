@@ -37,15 +37,35 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
 
   | Struct(properties) =>
     properties
-    |> List.map(((name, (value, required))) =>
-         Fmt.Node(
-           "Property",
-           [("required", string_of_bool(required))],
-           [
-             Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-             Node("Value", [], [to_xml(value)]),
-           ],
-         )
+    |> List.map(
+         fst
+         % TypeExpression.(
+             fun
+             | Required(key, value) =>
+               Fmt.Node(
+                 "Required",
+                 [],
+                 [
+                   Dump.node_to_xml(~dump_value=Fun.id, "Key", key),
+                   Node("Value", [], [to_xml(value)]),
+                 ],
+               )
+             | Optional(key, value) =>
+               Fmt.Node(
+                 "Optional",
+                 [],
+                 [
+                   Dump.node_to_xml(~dump_value=Fun.id, "Key", key),
+                   Node("Value", [], [to_xml(value)]),
+                 ],
+               )
+             | Spread(value) =>
+               Fmt.Node(
+                 "Spread",
+                 [],
+                 [Node("Value", [], [to_xml(value)])],
+               )
+           ),
        )
 
   | Function(parameters, result) => [

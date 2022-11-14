@@ -1,6 +1,7 @@
 open Knot.Kore;
+open AST;
 
-let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
+let rec pp_type_expr: Fmt.t(TypeExpression.raw_t) =
   ppf =>
     fun
     | Nil => Fmt.string(ppf, Constants.Keyword.nil)
@@ -15,13 +16,7 @@ let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
     | List((expr, _)) => Fmt.pf(ppf, "[%a]", pp_type_expr, expr)
 
     | Struct(props) =>
-      Fmt.(
-        closure(
-          optional_attribute(string, pp_type_expr),
-          ppf,
-          props |> List.map(Tuple.map_each2(fst, Tuple.map_fst2(fst))),
-        )
-      )
+      Fmt.(closure(pp_struct_property(string), ppf, props |> List.map(fst)))
 
     | Function(args, (res, _)) =>
       Fmt.(
@@ -49,4 +44,14 @@ let rec pp_type_expr: Fmt.t(AST.TypeExpression.raw_t) =
           pp_type_expr,
           res,
         )
-      );
+      )
+
+and pp_struct_property =
+    (pp_key: Fmt.t(string)): Fmt.t(TypeExpression.raw_struct_entry_t) =>
+  ppf =>
+    fun
+    | Required((key, _), (value, _)) =>
+      Fmt.(pf(ppf, "%s: %a", key, pp_type_expr, value))
+    | Optional((key, _), (value, _)) =>
+      Fmt.(pf(ppf, "%s?: %a", key, pp_type_expr, value))
+    | Spread((value, _)) => Fmt.(pf(ppf, "...%a", pp_type_expr, value));

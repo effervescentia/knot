@@ -110,12 +110,81 @@ let suite =
             ]),
           ),
           [
-            (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
-            (U.as_untyped("bar"), (U.as_untyped(TE.String), false)),
+            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("bar"), U.as_untyped(TE.String))
+            |> TE.of_optional
+            |> U.as_untyped,
           ]
           |> TE.of_struct
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
+    ),
+    "struct type with spread and overrides"
+    >: (
+      () => {
+        let symbols = AST.SymbolTable.create();
+
+        symbols.declared.types =
+          symbols.declared.types
+          @ [
+            (
+              "var1",
+              Valid(
+                `Struct([
+                  ("foo", (Valid(`Element), false)),
+                  ("fizz", (Valid(`Boolean), false)),
+                ]),
+              ),
+            ),
+            (
+              "var2",
+              Valid(
+                `Struct([
+                  ("buzz", (Valid(`Integer), true)),
+                  ("bar", (Valid(`Boolean), true)),
+                ]),
+              ),
+            ),
+          ];
+
+        Assert.type_(
+          Valid(
+            `Struct([
+              ("foo", (Valid(`Element), false)),
+              ("fizz", (Valid(`Boolean), false)),
+              ("buzz", (Valid(`Integer), true)),
+              ("bar", (Valid(`String), false)),
+            ]),
+          ),
+          [
+            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
+            |> TE.of_required
+            |> U.as_untyped,
+            U.as_untyped(TE.Identifier(U.as_untyped("var1")))
+            |> TE.of_spread
+            |> U.as_untyped,
+            U.as_untyped(
+              TE.Struct([
+                (U.as_untyped("buzz"), U.as_untyped(TE.Float))
+                |> TE.of_optional
+                |> U.as_untyped,
+                U.as_untyped(TE.Identifier(U.as_untyped("var2")))
+                |> TE.of_spread
+                |> U.as_untyped,
+              ]),
+            )
+            |> TE.of_spread
+            |> U.as_untyped,
+            (U.as_untyped("bar"), U.as_untyped(TE.String))
+            |> TE.of_optional
+            |> U.as_untyped,
+          ]
+          |> TE.of_struct
+          |> KTypeExpression.Plugin.analyze(symbols),
+        );
+      }
     ),
     "function type"
     >: (
@@ -150,8 +219,12 @@ let suite =
           ),
           (
             [
-              (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
-              (U.as_untyped("bar"), (U.as_untyped(TE.String), true)),
+              (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
+              |> TE.of_required
+              |> U.as_untyped,
+              (U.as_untyped("bar"), U.as_untyped(TE.String))
+              |> TE.of_required
+              |> U.as_untyped,
             ]
             |> TE.of_struct
             |> U.as_untyped,
@@ -178,8 +251,12 @@ let suite =
           Invalid(NotInferrable),
           (
             [
-              (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
-              (U.as_untyped("bar"), (U.as_untyped(TE.String), true)),
+              (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
+              |> TE.of_required
+              |> U.as_untyped,
+              (U.as_untyped("bar"), U.as_untyped(TE.String))
+              |> TE.of_required
+              |> U.as_untyped,
             ]
             |> TE.of_struct
             |> U.as_untyped,

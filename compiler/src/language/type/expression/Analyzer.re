@@ -23,18 +23,7 @@ let rec analyze_type_expression:
       /* use the type of the inner expression to determine type of list items */
       | List((x, _)) => Valid(`List(analyze_type_expression(defs, x)))
 
-      | Struct(xs) =>
-        Valid(
-          `Struct(
-            xs
-            |> List.map(
-                 Tuple.map_each2(
-                   fst,
-                   Tuple.map_fst2(fst % analyze_type_expression(defs)),
-                 ),
-               ),
-          ),
-        )
+      | Struct(xs) => Valid(`Struct(analyze_struct_properties(defs, xs)))
 
       | Function(args, (res, _)) =>
         Valid(
@@ -72,4 +61,35 @@ let rec analyze_type_expression:
         | _ => Invalid(NotInferrable)
         }
       }
-    );
+    )
+
+and analyze_struct_properties = (defs, properties) =>
+  properties
+  |> List.fold_left(
+       acc =>
+         fst
+         % TypeExpression.(
+             fun
+             | Required((key, _), (value, _)) =>
+               [(key, (value |> analyze_type_expression(defs), true))]
+               |> List.merge_assoc(acc)
+
+             | Optional((key, _), (value, _)) =>
+               [(key, (value |> analyze_type_expression(defs), false))]
+               |> List.merge_assoc(acc)
+
+             | Spread((value, _)) => {
+                 let type_ = value |> analyze_type_expression(defs);
+
+                 switch (type_) {
+                 | Invalid(_) => acc
+
+                 | Valid(`Struct(xs)) => xs |> List.merge_assoc(acc)
+
+                 // TODO: need to add error handling here to report spreading a non-struct type
+                 | Valid(_) => acc
+                 };
+               }
+           ),
+       [],
+     );

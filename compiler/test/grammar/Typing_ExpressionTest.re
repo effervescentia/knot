@@ -64,9 +64,10 @@ let suite =
               |> TE.of_list
               |> U.as_untyped
               |> TE.of_group
-              |> U.as_untyped
-              |> Tuple.with_snd2(true),
-            ),
+              |> U.as_untyped,
+            )
+            |> TE.of_required
+            |> U.as_untyped,
             (
               U.as_untyped("bar"),
               (
@@ -76,9 +77,10 @@ let suite =
               |> TE.of_function
               |> U.as_untyped
               |> TE.of_group
-              |> U.as_untyped
-              |> Tuple.with_snd2(true),
-            ),
+              |> U.as_untyped,
+            )
+            |> TE.of_required
+            |> U.as_untyped,
           ]
           |> TE.of_struct
           |> U.as_untyped
@@ -93,7 +95,11 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          [(U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true))]
+          [
+            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
+            |> TE.of_required
+            |> U.as_untyped,
+          ]
           |> TE.of_struct
           |> U.as_untyped,
           ["{foo:boolean}", "{ foo : boolean }", "{ foo: boolean, }"],
@@ -104,8 +110,12 @@ let suite =
       () =>
         Assert.parse(
           [
-            (U.as_untyped("foo"), (U.as_untyped(TE.Boolean), true)),
-            (U.as_untyped("bar"), (U.as_untyped(TE.String), false)),
+            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("bar"), U.as_untyped(TE.String))
+            |> TE.of_optional
+            |> U.as_untyped,
           ]
           |> TE.of_struct
           |> U.as_untyped,
@@ -117,32 +127,47 @@ let suite =
       () =>
         Assert.parse(
           [
-            (U.as_untyped("nil"), (U.as_untyped(TE.Nil), true)),
-            (U.as_untyped("boolean"), (U.as_untyped(TE.Boolean), true)),
-            (U.as_untyped("integer"), (U.as_untyped(TE.Integer), true)),
-            (U.as_untyped("float"), (U.as_untyped(TE.Float), true)),
-            (U.as_untyped("string"), (U.as_untyped(TE.String), true)),
-            (U.as_untyped("element"), (U.as_untyped(TE.Element), true)),
+            (U.as_untyped("nil"), U.as_untyped(TE.Nil))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("boolean"), U.as_untyped(TE.Boolean))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("integer"), U.as_untyped(TE.Integer))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("float"), U.as_untyped(TE.Float))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("string"), U.as_untyped(TE.String))
+            |> TE.of_required
+            |> U.as_untyped,
+            (U.as_untyped("element"), U.as_untyped(TE.Element))
+            |> TE.of_required
+            |> U.as_untyped,
             (
               U.as_untyped("struct"),
               [
-                (U.as_untyped("foo"), (U.as_untyped(TE.Nil), true)),
-                (
-                  U.as_untyped("bar"),
-                  (U.as_untyped(TE.Struct([])), true),
-                ),
+                (U.as_untyped("foo"), U.as_untyped(TE.Nil))
+                |> TE.of_required
+                |> U.as_untyped,
+                (U.as_untyped("bar"), U.as_untyped(TE.Struct([])))
+                |> TE.of_required
+                |> U.as_untyped,
               ]
               |> TE.of_struct
-              |> U.as_untyped
-              |> Tuple.with_snd2(true),
-            ),
+              |> U.as_untyped,
+            )
+            |> TE.of_required
+            |> U.as_untyped,
             (
               U.as_untyped("function"),
               ([U.as_untyped(TE.Boolean)], U.as_untyped(TE.Integer))
               |> TE.of_function
-              |> U.as_untyped
-              |> Tuple.with_snd2(true),
-            ),
+              |> U.as_untyped,
+            )
+            |> TE.of_required
+            |> U.as_untyped,
           ]
           |> TE.of_struct
           |> U.as_untyped,
@@ -192,7 +217,11 @@ let suite =
         Assert.parse(
           (
             [
-              [(U.as_untyped("foo"), (U.as_untyped(TE.Nil), true))]
+              [
+                (U.as_untyped("foo"), U.as_untyped(TE.Nil))
+                |> TE.of_required
+                |> U.as_untyped,
+              ]
               |> TE.of_struct
               |> U.as_untyped,
               ([], U.as_untyped(TE.Nil)) |> TE.of_function |> U.as_untyped,
@@ -236,12 +265,10 @@ let suite =
           [
             (
               U.as_untyped("foo"),
-              TE.Nil
-              |> U.as_untyped
-              |> TE.of_list
-              |> U.as_untyped
-              |> Tuple.with_snd2(true),
-            ),
+              TE.Nil |> U.as_untyped |> TE.of_list |> U.as_untyped,
+            )
+            |> TE.of_required
+            |> U.as_untyped,
             (
               U.as_untyped("bar"),
               (
@@ -253,9 +280,10 @@ let suite =
               |> TE.of_group
               |> U.as_untyped
               |> TE.of_list
-              |> U.as_untyped
-              |> Tuple.with_snd2(true),
-            ),
+              |> U.as_untyped,
+            )
+            |> TE.of_required
+            |> U.as_untyped,
           ]
           |> TE.of_struct
           |> U.as_untyped
@@ -279,7 +307,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            [(U.as_untyped("foo"), (U.as_untyped(TE.Nil), true))]
+            [
+              (U.as_untyped("foo"), U.as_untyped(TE.Nil))
+              |> TE.of_required
+              |> U.as_untyped,
+            ]
             |> TE.of_struct
             |> U.as_untyped,
             U.as_untyped(TE.Boolean),

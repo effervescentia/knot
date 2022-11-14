@@ -87,37 +87,414 @@ module StyleExpression {
 
 @plugin("element_tag")
 module ElementTag {
-  type attributes: {};
+  type global_attributes: {
+    accesskey?: string,
+    autocapitalize?: string,
+    autofocus?: boolean,
+    class?: string,
+    contenteditable?: boolean,
+    dir?: string,
+    draggable?: boolean,
+    enterkeyhint?: string,
+    hidden?: boolean,
+    id?: string,
+    inputmode?: string,
+    is?: string,
+    itemid?: string,
+    itemprop?: string,
+    itemref?: string,
+    itemscope?: boolean,
+    itemtype?: string,
+    lang?: string,
+    nonce?: string,
+    part?: string,
+    role?: string,
+    slot?: string,
+    spellcheck?: boolean,
+    style?: string,
+    tabindex?: integer,
+    title?: string,
+    translate?: boolean,
+  };
 
-  declare address: view(attributes, element);
-  declare article: view(attributes, element);
-  declare aside: view(attributes, element);
-  declare footer: view(attributes, element);
-  declare header: view(attributes, element);
-  declare h1: view(attributes, element);
-  declare h2: view(attributes, element);
-  declare h3: view(attributes, element);
-  declare h4: view(attributes, element);
-  declare h5: view(attributes, element);
-  declare h6: view(attributes, element);
-  declare main: view(attributes, element);
-  declare nav: view(attributes, element);
-  declare section: view(attributes, element);
+  declare html: view({
+    ...global_attributes,
+    xmlns?: string,
+  }, element);
 
-  declare blockquote: view(attributes, element);
-  declare dd: view(attributes, element);
-  declare div: view(attributes, element);
-  declare dl: view(attributes, element);
-  declare dt: view(attributes, element);
-  declare figcaption: view(attributes, element);
-  declare figure: view(attributes, element);
-  declare hr: view(attributes, element);
-  declare li: view(attributes, element);
-  declare menu: view(attributes, element);
-  declare ol: view(attributes, element);
-  declare p: view(attributes, element);
-  declare pre: view(attributes, element);
-  declare ul: view(attributes, element);
+  declare head: view(global_attributes, element);
+  declare title: view(global_attributes, element);
 
-  declare span: view(attributes, element);
+  declare body: view(global_attributes, element);
+
+  declare address: view(global_attributes, element);
+  declare article: view(global_attributes, element);
+  declare aside: view(global_attributes, element);
+  declare footer: view(global_attributes, element);
+  declare header: view(global_attributes, element);
+  declare h1: view(global_attributes, element);
+  declare h2: view(global_attributes, element);
+  declare h3: view(global_attributes, element);
+  declare h4: view(global_attributes, element);
+  declare h5: view(global_attributes, element);
+  declare h6: view(global_attributes, element);
+  declare main: view(global_attributes, element);
+  declare nav: view(global_attributes, element);
+  declare section: view(global_attributes, element);
+
+  declare blockquote: view({
+    ...global_attributes,
+    cite?: string,
+  }, element);
+  declare dd: view(global_attributes, element);
+  declare div: view(global_attributes, element);
+  declare dl: view(global_attributes, element);
+  declare dt: view(global_attributes, element);
+  declare figcaption: view(global_attributes, element);
+  declare figure: view(global_attributes, element);
+  declare hr: view(global_attributes, element);
+  declare li: view({
+    ...global_attributes,
+    value?: integer,
+  }, element);
+  declare menu: view(global_attributes, element);
+  declare ol: view({
+    ...global_attributes,
+    reversed?: boolean,
+    start?: integer,
+    type?: string,
+  }, element);
+  declare p: view(global_attributes, element);
+  declare pre: view(global_attributes, element);
+  declare ul: view(global_attributes, element);
+
+  declare a: view({
+    ...global_attributes,
+    download?: string,
+    href?: string,
+    hreflang?: string,
+    ping?: string,
+    referrerpolicy?: string,
+    rel?: string,
+    target?: string,
+    type?: string,
+  }, element);
+  declare abbr: view(global_attributes, element);
+  declare b: view(global_attributes, element);
+  declare bdi: view(global_attributes, element);
+  declare bdo: view({
+    ...global_attributes,
+    dir?: string,
+  }, element);
+  declare cite: view(global_attributes, element);
+  declare code: view(global_attributes, element);
+  declare data: view({
+    ...global_attributes,
+    value?: string,
+  }, element);
+  declare dfn: view(global_attributes, element);
+  declare em: view(global_attributes, element);
+  declare i: view(global_attributes, element);
+  declare kbd: view(global_attributes, element);
+  declare mark: view(global_attributes, element);
+  declare q: view({
+    ...global_attributes,
+    cite?: string,
+  }, element);
+  declare rp: view(global_attributes, element);
+  declare rt: view(global_attributes, element);
+  declare ruby: view(global_attributes, element);
+  declare s: view(global_attributes, element);
+  declare samp: view(global_attributes, element);
+  declare small: view(global_attributes, element);
+  declare span: view(global_attributes, element);
+  declare strong: view(global_attributes, element);
+  declare sub: view(global_attributes, element);
+  declare sup: view(global_attributes, element);
+  declare time: view({
+    ...global_attributes,
+    datetime?: string,
+  }, element);
+  declare u: view(global_attributes, element);
+  declare var: view(global_attributes, element);
+  declare wbr: view(global_attributes, element);
+
+  declare area: view({
+    ...global_attributes,
+    alt?: string,
+    coords?: string,
+    download?: boolean,
+    href?: string,
+    ping?: string,
+    referrerpolicy?: string,
+    rel?: string,
+    shape?: string,
+    target?: string,
+  }, element);
+  declare audio: view({
+    ...global_attributes,
+    autoplay?: boolean,
+    controls?: boolean,
+    crossorigin?: string,
+    loop?: boolean,
+    muted?: boolean,
+    preload?: string,
+    src?: string,
+  }, element);
+  declare img: view({
+    ...global_attributes,
+    alt?: string,
+    crossorigin?: string,
+    decoding?: string,
+    height?: integer,
+    ismap?: boolean,
+    loading?: string,
+    referrerpolicy?: string,
+    sizes?: string,
+    src?: string,
+    srcset?: string,
+    width?: integer,
+    usemap?: string,
+  }, element);
+  declare map: view({
+    ...global_attributes,
+    name?: string,
+  }, element);
+  declare track: view({
+    ...global_attributes,
+    default?: boolean,
+    kind?: string,
+    label?: string,
+    src?: string,
+    srclang?: string,
+  }, element);
+  declare video: view({
+    ...global_attributes,
+    autoplay?: boolean,
+    controls?: boolean,
+    crossorigin?: string,
+    height?: integer,
+    loop?: boolean,
+    muted?: boolean,
+    playsinline?: boolean,
+    poster?: string,
+    preload?: string,
+    src?: string,
+    width?: integer,
+  }, element);
+
+  declare embed: view({
+    ...global_attributes,
+    height?: integer,
+    src?: string,
+    type?: string,
+    width?: integer,
+  }, element);
+  declare iframe: view({
+    ...global_attributes,
+    allow?: string,
+    allowfullscreen?: boolean,
+    height?: integer,
+    name?: string,
+    referrerpolicy?: string,
+    sandbox?: string,
+    src?: string,
+    srcdoc?: string,
+    width?: integer,
+  }, element);
+  declare object: view({
+    ...global_attributes,
+    data?: string,
+    form?: string,
+    height?: integer,
+    name?: string,
+    type?: string,
+    usemap?: string,
+    width?: integer,
+  }, element);
+  declare picture: view(global_attributes, element);
+  declare portal: view({
+    ...global_attributes,
+    referrerpolicy?: string,
+    src?: string,
+  }, element);
+  declare source: view({
+    ...global_attributes,
+    type?: string,
+    src?: string,
+    srcset?: string,
+    sizes?: string,
+    media?: string,
+    height?: integer,
+    width?: integer,
+  }, element);
+
+  declare canvas: view({
+    ...global_attributes,
+    height?: integer,
+    width?: integer,
+  }, element);
+  declare noscript: view(global_attributes, element);
+  declare script: view({
+    ...global_attributes,
+    async?: boolean,
+    crossorigin?: string,
+    defer?: boolean,
+    integrity?: string,
+    nomodule?: boolean,
+    nonce?: string,
+    referrerpolicy?: string,
+    src?: string,
+    type?: string,
+  }, element);
+
+  declare del: view({
+    ...global_attributes,
+    cite?: string,
+    datetime?: string,
+  }, element);
+  declare ins: view({
+    ...global_attributes,
+    cite?: string,
+    datetime?: string,
+  }, element);
+
+  declare caption: view(global_attributes, element);
+  declare col: view({
+    ...global_attributes,
+    span?: integer,
+  }, element);
+  declare colgroup: view({
+    ...global_attributes,
+    span?: integer,
+  }, element);
+  declare table: view(global_attributes, element);
+  declare tbody: view(global_attributes, element);
+  declare td: view({
+    ...global_attributes,
+    colspan?: integer,
+    headers?: string,
+    rowspan?: integer,
+  }, element);
+  declare tfoot: view(global_attributes, element);
+  declare th: view({
+    ...global_attributes,
+    abbr?: string,
+    colspan?: integer,
+    headers?: string,
+    rowspan?: integer,
+    scope?: string,
+  }, element);
+  declare thead: view(global_attributes, element);
+  declare tr: view(global_attributes, element);
+
+  declare caption: view({
+    ...global_attributes,
+    autofocus?: boolean,
+    disabled?: boolean,
+    form?: string,
+    formaction?: string,
+    formenctype?: string,
+    formmethod?: string,
+    formnovalidate?: boolean,
+    formtarget?: string,
+    name?: string,
+    type?: string,
+    value?: string,
+  }, element);
+  declare datalist: view(global_attributes, element);
+  declare fieldset: view({
+    ...global_attributes,
+    disabled?: boolean,
+    form?: string,
+    name?: string,
+  }, element);
+  declare form: view({
+    ...global_attributes,
+    acceptCharset?: string,
+    action?: string,
+    autocomplete?: boolean,
+    enctype?: string,
+    name?: string,
+    method?: string,
+    novalidate?: string,
+    target?: string,
+    rel?: string,
+  }, element);
+  declare input: view(global_attributes, element);
+  declare label: view({
+    ...global_attributes,
+    for?: string,
+  }, element);
+  declare legend: view(global_attributes, element);
+  declare meter: view({
+    ...global_attributes,
+    value?: float,
+    min?: float,
+    max?: float,
+    low?: float,
+    high?: float,
+    optimum?: float,
+  }, element);
+  declare optgroup: view({
+    ...global_attributes,
+    disabled?: boolean,
+    label?: string,
+  }, element);
+  declare option: view({
+    ...global_attributes,
+    disabled?: boolean,
+    label?: string,
+    selected?: boolean,
+    value?: string,
+  }, element);
+  declare output: view({
+    ...global_attributes,
+    for?: string,
+    form?: string,
+    name?: string,
+  }, element);
+  declare progress: view({
+    ...global_attributes,
+    max?: float,
+    value?: float,
+  }, element);
+  declare select: view({
+    ...global_attributes,
+    autocomplete?: string,
+    autofocus?: boolean,
+    disabled?: boolean,
+    form?: string,
+    multiple?: boolean,
+    name?: string,
+    required?: boolean,
+    size?: integer,
+  }, element);
+  declare textarea: view({
+    ...global_attributes,
+    autocomplete?: boolean,
+    autofocus?: boolean,
+    cols?: integer,
+    disabled?: boolean,
+    form?: string,
+    maxlength?: integer,
+    minlength?: integer,
+    name?: string,
+    placeholder?: string,
+    readonly?: boolean,
+    required?: boolean,
+    rows?: integer,
+    spellcheck?: string,
+    wrap?: string,
+  }, element);
+
+  declare details: view({
+    ...global_attributes,
+    open?: boolean,
+  }, element);
+  declare dialog: view({
+    ...global_attributes,
+    open?: boolean,
+  }, element);
+  declare summary: view(global_attributes, element);
 }
