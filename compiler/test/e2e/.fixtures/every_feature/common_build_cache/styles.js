@@ -33,3 +33,13 @@ var RedAndYellowComponent = $knot.style.bindStyle($knot.style.bindStyle(
                                                   redStyle),
                                                   yellowStyle);
 exports.RedAndYellowComponent = RedAndYellowComponent;
+var StyleLiteralComponent = $knot.style.bindStyle(Component,
+                                                  (function () {
+                                                     var $ = $knot.style.styleExpressionPlugin;
+                                                     var $rules$ = $knot.style.styleRulePlugin;
+                                                     return {
+                                                       mockColor: $rules$.mockColor(
+                                                       "#adec22")
+                                                     };
+                                                   })());
+exports.StyleLiteralComponent = StyleLiteralComponent;
