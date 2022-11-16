@@ -29,7 +29,7 @@ and expr_5 = (ctx): Framework.expression_parser_t =>
   input => ((expr_6(ctx), expr_0(ctx)) |> KFunctionCall.parse)(input)
 
 /* foo::bar */
-and expr_6 = ctx => expr_7(ctx) |> KBindStyle.parse
+and expr_6 = ctx => (ctx, expr_7) |> KBindStyle.parse
 
 /* foo.bar */
 and expr_7 = ctx => expr_8(ctx) >>= KDotAccess.parse

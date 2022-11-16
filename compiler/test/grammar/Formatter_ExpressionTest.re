@@ -102,7 +102,7 @@ let suite =
           (true |> U.bool_prim, false |> U.bool_prim) |> A.of_or_op,
         )
     ),
-    "bind styling"
+    "style binding"
     >: (
       () =>
         _assert_expression(
@@ -110,6 +110,28 @@ let suite =
           (
             "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
             "bar" |> A.of_id |> U.as_style,
+          )
+          |> A.of_bind_style,
+        )
+    ),
+    "style literal binding"
+    >: (
+      () =>
+        _assert_expression(
+          "foo::{
+  color: $red,
+}",
+          (
+            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            [
+              (
+                "color" |> U.as_function([], T.Valid(`Nil)),
+                "$red" |> A.of_id |> U.as_string,
+              )
+              |> U.as_untyped,
+            ]
+            |> A.of_style
+            |> U.as_style,
           )
           |> A.of_bind_style,
         )

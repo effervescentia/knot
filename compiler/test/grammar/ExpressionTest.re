@@ -149,6 +149,55 @@ let suite =
           "{ foo; }.bar",
         )
     ),
+    "parse style expression"
+    >: (
+      () =>
+        Assert.parse(
+          [
+            ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
+            |> U.as_node,
+            ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
+          ]
+          |> AR.of_style
+          |> U.as_node,
+          "style {
+  color: $pink,
+  height: \"20px\",
+}",
+        )
+    ),
+    "parse style binding - identifier root"
+    >: (
+      () =>
+        Assert.parse(
+          ("foo" |> AR.of_id |> U.as_node, "bar" |> AR.of_id |> U.as_node)
+          |> AR.of_bind_style
+          |> U.as_node,
+          "foo::bar",
+        )
+    ),
+    "parse style binding - literal"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> AR.of_id |> U.as_node,
+            [
+              ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
+              |> U.as_node,
+              ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
+            ]
+            |> AR.of_style
+            |> U.as_node,
+          )
+          |> AR.of_bind_style
+          |> U.as_node,
+          "foo::{
+  color: $pink,
+  height: \"20px\",
+}",
+        )
+    ),
     "parse function call - identifier root"
     >: (
       () =>

@@ -17,7 +17,7 @@ let style_rule =
     }
   );
 
-let style_expression =
+let style_literal =
     (
       (
         ctx: ParseContext.t,
@@ -29,19 +29,23 @@ let style_expression =
 
   Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
 
+  style_rule(ctx, parse_expr)
+  |> Matchers.comma_sep
+  |> Matchers.between_braces
+  >|= Node.map(Raw.of_style);
+};
+
+let style_expression =
+    (
+      (
+        ctx: ParseContext.t,
+        parse_expr: Framework.contextual_expression_parser_t,
+      ),
+    )
+    : Framework.expression_parser_t =>
   Matchers.keyword(Constants.Keyword.style)
   >>= (
     start =>
-      style_rule(ctx, parse_expr)
-      |> Matchers.comma_sep
-      |> Matchers.between_braces
-      >|= (
-        raw_rules =>
-          Node.typed(
-            AST.Raw.of_style(raw_rules |> fst),
-            (),
-            Node.join_ranges(start, raw_rules),
-          )
-      )
+      style_literal((ctx, parse_expr))
+      >|= Node.map_range(Range.join(Node.get_range(start)))
   );
-};

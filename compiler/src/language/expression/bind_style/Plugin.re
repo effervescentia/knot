@@ -6,7 +6,10 @@ let analyze = Analyzer.analyze_bind_style;
 let pp = Formatter.pp_bind_style;
 
 include Framework.Expression({
-  type parse_arg_t = Framework.expression_parser_t;
+  type parse_arg_t = (
+    ParseContext.t,
+    Framework.contextual_expression_parser_t,
+  );
 
   type value_t('a) = (
     Expression.expression_t('a),

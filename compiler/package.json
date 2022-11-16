@@ -483,7 +483,7 @@
     },
     "src/language/expression/bind_style": {
       "require": [
-        "knot.lang.ast"
+        "knot.lang.expression.style"
       ],
       "name": "knot.lang.expression.bind_style",
       "namespace": "KBindStyle"

@@ -1,9 +1,12 @@
 open Knot.Kore;
 open AST;
 
+let parse_style_literal = Parser.style_literal;
+
 let analyze = Analyzer.analyze_style;
 
 let pp = Formatter.pp_style_expression;
+let pp_style_rules = Formatter.pp_style_rules;
 
 include Framework.Expression({
   type parse_arg_t = (
