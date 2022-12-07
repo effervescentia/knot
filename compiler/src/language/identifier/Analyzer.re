@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let analyze_identifier: (Scope.t, string, Range.t) => Type.t =
+let analyze: (Scope.t, string, Range.t) => Type.t =
   (scope, id, range) => {
     let type_opt = scope |> Scope.lookup(id);
 

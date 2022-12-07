@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let analyze_closure:
+let analyze:
   (
     Scope.t,
     (Scope.t, Raw.statement_t) => Result.statement_t,

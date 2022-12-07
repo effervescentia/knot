@@ -2,24 +2,24 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let function_ =
+let parse =
     ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
     : Framework.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.func)
   >>= Node.get_range
   % (
     start =>
-      KIdentifier.Plugin.parse_id(ctx)
+      KIdentifier.Parser.parse_identifier(ctx)
       >>= (
         id =>
           KExpression.Plugin.parse
-          |> KLambda.Plugin.parse(ctx)
+          |> KLambda.Parser.parse_lambda(ctx)
           >|= (
             ((args, res, range)) => {
               let scope = ctx |> Scope.of_parse_context(range);
               let args' =
                 args
-                |> KLambda.Plugin.analyze_argument_list(
+                |> KLambda.Analyzer.analyze_argument_list(
                      scope,
                      KExpression.Plugin.analyze,
                    );

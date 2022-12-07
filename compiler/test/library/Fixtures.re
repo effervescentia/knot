@@ -82,7 +82,7 @@ let identifier_const = [
 let jsx_const = [
   (
     "jsx_const" |> U.as_untyped |> A.of_named_export,
-    ("Foo" |> U.as_view([], Valid(`Nil)), [], [])
+    ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
     |> U.jsx_tag
     |> U.as_element
     |> A.of_const
@@ -169,9 +169,10 @@ let complex_jsx_const = [
     "complex_jsx_const" |> U.as_untyped |> A.of_named_export,
     (
       "Foo" |> U.as_view([], Valid(`Nil)),
+      [],
       [(U.as_untyped("buzz"), None) |> U.as_untyped],
       [
-        ("Bar" |> U.as_view([], Valid(`Nil)), [], [])
+        ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
         |> A.of_tag
         |> A.of_node
         |> U.as_untyped,

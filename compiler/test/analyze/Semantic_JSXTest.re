@@ -29,6 +29,7 @@ let suite =
           (
             __id |> URes.as_typed(type_),
             [],
+            [],
             [
               "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
             ],
@@ -36,6 +37,7 @@ let suite =
           |> A.of_component,
           (
             URaw.as_untyped(__id),
+            [],
             [],
             [
               "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
@@ -65,6 +67,7 @@ let suite =
           (
             __id |> URes.as_typed(type_),
             [],
+            [],
             [
               "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
             ],
@@ -72,6 +75,7 @@ let suite =
           |> A.of_tag,
           (
             URaw.as_untyped(__id),
+            [],
             [],
             [
               "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
@@ -88,7 +92,7 @@ let suite =
         Assert.throws_compile_errors(
           [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
           () =>
-          (URaw.as_untyped(__id), [], [])
+          (URaw.as_untyped(__id), [], [], [])
           |> AR.of_tag
           |> KSX.Analyzer.analyze_jsx(
                __throw_scope,
@@ -117,6 +121,7 @@ let suite =
           () =>
           (
             URaw.as_untyped(__id),
+            [],
             [],
             [
               __id
@@ -187,6 +192,7 @@ let suite =
           () =>
           (
             URaw.as_untyped(__component_id),
+            [],
             [
               (URaw.as_untyped("bar"), true |> URaw.bool_prim |> Option.some)
               |> URaw.as_untyped,
@@ -226,6 +232,7 @@ let suite =
 
         (
           URaw.as_untyped(__component_id),
+          [],
           [
             (
               URaw.as_untyped("fizz"),
@@ -292,6 +299,7 @@ let suite =
         Assert.jsx(
           (
             __component_id |> URes.as_typed(view_type),
+            [],
             [
               (URes.as_untyped("fizz"), true |> URes.bool_prim |> Option.some)
               |> URes.as_untyped,
@@ -306,6 +314,7 @@ let suite =
           |> A.of_component,
           (
             URaw.as_untyped(__component_id),
+            [],
             [
               (URaw.as_untyped("fizz"), true |> URaw.bool_prim |> Option.some)
               |> URaw.as_untyped,

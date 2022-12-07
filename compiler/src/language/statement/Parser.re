@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let statement =
+let parse =
     (
       ctx: ParseContext.t,
       parse_expr: Framework.contextual_expression_parser_t,

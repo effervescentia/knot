@@ -11,7 +11,7 @@ let suite =
         Assert.type_error(
           None,
           T.Valid(`Struct([("foo", (Valid(`Boolean), true))]))
-          |> KDotAccess.Analyzer.validate_dot_access("foo"),
+          |> KDotAccess.Validator.validate("foo"),
         )
     ),
     "dot access on type without specified property"
@@ -19,7 +19,7 @@ let suite =
       () =>
         Assert.type_error(
           Some(InvalidDotAccess(Valid(`Integer), "foo")),
-          T.Valid(`Integer) |> KDotAccess.Analyzer.validate_dot_access("foo"),
+          T.Valid(`Integer) |> KDotAccess.Validator.validate("foo"),
         )
     ),
     "function call on type with matching arguments"
@@ -33,7 +33,7 @@ let suite =
             ),
             [T.Valid(`Boolean), T.Valid(`String)],
           )
-          |> KFunctionCall.Analyzer.validate_function_call,
+          |> KFunctionCall.Validator.validate,
         )
     ),
     "function call on type with invalid argument"
@@ -47,7 +47,7 @@ let suite =
             ),
             [T.Valid(`Boolean), T.Invalid(NotInferrable)],
           )
-          |> KFunctionCall.Analyzer.validate_function_call,
+          |> KFunctionCall.Validator.validate,
         )
     ),
     "function call on type without matching arguments"
@@ -71,7 +71,7 @@ let suite =
             ),
             [T.Valid(`Boolean)],
           )
-          |> KFunctionCall.Analyzer.validate_function_call,
+          |> KFunctionCall.Validator.validate,
         )
     ),
   ];

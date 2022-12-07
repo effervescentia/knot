@@ -1,8 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let rec analyze_type_expression:
-  (SymbolTable.t, TypeExpression.raw_t) => Type.t =
+let rec analyze: (SymbolTable.t, TypeExpression.raw_t) => Type.t =
   (defs, type_expr) =>
     TypeExpression.(
       switch (type_expr) {
@@ -18,23 +17,23 @@ let rec analyze_type_expression:
         defs |> SymbolTable.resolve_type(id) |?: Invalid(NotInferrable)
 
       /* use the type of the inner expression to determine type */
-      | Group((x, _)) => analyze_type_expression(defs, x)
+      | Group((x, _)) => analyze(defs, x)
 
       /* use the type of the inner expression to determine type of list items */
-      | List((x, _)) => Valid(`List(analyze_type_expression(defs, x)))
+      | List((x, _)) => Valid(`List(analyze(defs, x)))
 
       | Struct(xs) => Valid(`Struct(analyze_struct_properties(defs, xs)))
 
       | Function(args, (res, _)) =>
         Valid(
           `Function((
-            args |> List.map(fst % analyze_type_expression(defs)),
-            analyze_type_expression(defs, res),
+            args |> List.map(fst % analyze(defs)),
+            analyze(defs, res),
           )),
         )
 
       | DotAccess((root, _), (prop, _)) =>
-        switch (root |> analyze_type_expression(defs)) {
+        switch (root |> analyze(defs)) {
         | Valid(`Module(entries)) =>
           entries
           |> List.find_map(
@@ -48,10 +47,7 @@ let rec analyze_type_expression:
         }
 
       | View((props, _), (res, _)) =>
-        switch (
-          props |> analyze_type_expression(defs),
-          res |> analyze_type_expression(defs),
-        ) {
+        switch (props |> analyze(defs), res |> analyze(defs)) {
         | (
             Valid(`Struct(props')),
             Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) as res',
@@ -71,15 +67,15 @@ and analyze_struct_properties = (defs, properties) =>
          % TypeExpression.(
              fun
              | Required((key, _), (value, _)) =>
-               [(key, (value |> analyze_type_expression(defs), true))]
+               [(key, (value |> analyze(defs), true))]
                |> List.merge_assoc(acc)
 
              | Optional((key, _), (value, _)) =>
-               [(key, (value |> analyze_type_expression(defs), false))]
+               [(key, (value |> analyze(defs), false))]
                |> List.merge_assoc(acc)
 
              | Spread((value, _)) => {
-                 let type_ = value |> analyze_type_expression(defs);
+                 let type_ = value |> analyze(defs);
 
                  switch (type_) {
                  | Invalid(_) => acc

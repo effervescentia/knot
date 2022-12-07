@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-let pp_function_call = (pp_expression, ppf, ((expr, _), args)) =>
+let format = (pp_expression, ppf, ((expr, _), args)) =>
   Fmt.(
     pf(
       ppf,

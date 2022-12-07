@@ -1,8 +1,6 @@
 open AST;
 
-let analyze = Analyzer.analyze_closure;
-
-let pp = Formatter.pp_closure;
+let analyze = Analyzer.analyze;
 
 include Framework.Expression({
   type parse_arg_t = (
@@ -12,9 +10,9 @@ include Framework.Expression({
 
   type value_t('a) = list(Expression.statement_t('a));
 
-  let parse = Parser.closure;
+  let parse = Parser.parse;
 
-  let format = pp;
+  let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });

@@ -1,8 +1,7 @@
-let parse = Parser.expression;
-let parse_jsx_term = Parser.jsx_term;
+let parse = Parser.parse;
 
-let analyze = Analyzer.analyze_expression;
+let analyze = Analyzer.analyze;
 
-let pp = Formatter.pp_expression;
+let format = Formatter.format;
 
 let to_xml = Debug.to_xml;

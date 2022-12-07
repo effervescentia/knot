@@ -1,100 +1,12 @@
 open Knot.Kore;
 open AST;
 
-let validate_jsx_render:
-  ((string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
-  list((Type.error_t, option(Range.t))) =
-  fun
-  /* assume this have been reported already and ignore */
-  | (id, Invalid(_), _) => [(NotFound(id), None)]
-
-  | (id, Valid(`View(attrs, _)), actual_attrs) => {
-      let keys =
-        (attrs |> List.map(fst))
-        @ (actual_attrs |> List.map(fst))
-        |> List.uniq_by((==));
-
-      let (invalid, missing) =
-        keys
-        |> List.fold_left(
-             ((invalid, missing) as acc, key) => {
-               let expected = attrs |> List.assoc_opt(key);
-               let actual = actual_attrs |> List.assoc_opt(key);
-
-               switch (expected, actual) {
-               | (Some((expected', _)), Some((actual_value, _) as actual')) =>
-                 Type.(
-                   switch (expected', actual_value) {
-                   | (Invalid(_), _)
-                   | (_, Invalid(_)) => acc
-                   | (Valid(_), Valid(_)) when expected' == actual_value => acc
-                   | (Valid(_), Valid(_)) => (
-                       invalid
-                       @ [
-                         (
-                           InvalidJSXAttribute(key, expected', actual_value),
-                           Some(Node.get_range(actual')),
-                         ),
-                       ],
-                       missing,
-                     )
-                   }
-                 )
-
-               | (Some((expected', true)), None) => (
-                   invalid,
-                   missing @ [(key, expected')],
-                 )
-
-               | (None, Some(actual')) => (
-                   invalid
-                   @ [
-                     (
-                       Type.UnexpectedJSXAttribute(key, fst(actual')),
-                       Some(Node.get_range(actual')),
-                     ),
-                   ],
-                   missing,
-                 )
-
-               | (Some((_, false)), None)
-               | (None, None) => acc
-               };
-             },
-             ([], []),
-           );
-
-      if (!List.is_empty(invalid)) {
-        invalid;
-      } else if (!List.is_empty(missing)) {
-        [(Type.MissingJSXAttributes(id, missing), None)];
-      } else {
-        [];
-      };
-    }
-
-  | (id, expr_type, attrs) => [
-      (
-        InvalidJSXTag(id, expr_type, attrs |> List.map(Tuple.map_snd2(fst))),
-        None,
-      ),
-    ];
-
-let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
-  fun
-  /* assume this has been reported already and ignore */
-  | Invalid(_) => None
-
-  | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
-
-  | type_ => Some(InvalidJSXPrimitiveExpression(type_));
-
 let rec analyze_jsx:
   (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
   Result.jsx_t =
   (scope, analyze_expression, jsx) =>
     switch (jsx) {
-    | Tag(id, attrs, children) =>
+    | Tag(id, styles, attrs, children) =>
       let tag_scope = Scope.create(scope.context, Node.get_range(id));
       tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
@@ -110,6 +22,7 @@ let rec analyze_jsx:
         |?: (Invalid(NotInferrable), Result.of_component);
 
       let id' = id |> Node.add_type(id_type);
+      let styles' = styles |> List.map(analyze_expression(scope));
       let attrs' =
         attrs |> List.map(analyze_jsx_attribute(scope, analyze_expression));
       let children' =
@@ -131,8 +44,8 @@ let rec analyze_jsx:
                )),
            );
 
-      (fst(id), id_type, props)
-      |> validate_jsx_render
+      ((fst(id), id_type, props) |> Validator.validate_jsx_render)
+      @ Validator.validate_style_binding(styles')
       |> List.iter(((err, err_range)) =>
            Scope.report_type_err(
              scope,
@@ -141,7 +54,7 @@ let rec analyze_jsx:
            )
          );
 
-      (id', attrs', children') |> tag_ast;
+      (id', styles', attrs', children') |> tag_ast;
 
     | Fragment(children) =>
       children
@@ -185,7 +98,7 @@ and analyze_jsx_child:
         let type_ = Node.get_type(expr);
 
         type_
-        |> validate_jsx_primitive_expression
+        |> Validator.validate_jsx_primitive_expression
         |> Option.iter(
              expr |> Node.get_range |> Scope.report_type_err(scope),
            );
@@ -196,7 +109,7 @@ and analyze_jsx_child:
     Node.untyped(jsx_child', Node.get_range(jsx_child));
   };
 
-let analyze_root:
+let analyze:
   (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
   (Result.jsx_t, Type.t) =
   (scope, analyze_expression, jsx) => {

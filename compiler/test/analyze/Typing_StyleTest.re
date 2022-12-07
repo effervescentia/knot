@@ -13,7 +13,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Invalid(NotInferrable), T.Invalid(NotInferrable))
-          |> KStyle.Analyzer.validate_style_rule(__rule_name),
+          |> KStyle.Validator.validate_style_rule(__rule_name),
         )
     ),
     "with invalid rule type"
@@ -22,7 +22,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Invalid(NotInferrable), T.Valid(`Integer))
-          |> KStyle.Analyzer.validate_style_rule(__rule_name),
+          |> KStyle.Validator.validate_style_rule(__rule_name),
         )
     ),
     "with invalid rule expression type"
@@ -31,7 +31,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Valid(`Integer), T.Invalid(NotInferrable))
-          |> KStyle.Analyzer.validate_style_rule(__rule_name),
+          |> KStyle.Validator.validate_style_rule(__rule_name),
         )
     ),
     "with both types valid"
@@ -40,7 +40,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Valid(`Integer), T.Valid(`Integer))
-          |> KStyle.Analyzer.validate_style_rule(__rule_name),
+          |> KStyle.Validator.validate_style_rule(__rule_name),
         )
     ),
     "with raw string expression"
@@ -52,7 +52,7 @@ let suite =
             T.Valid(`Function(([T.Valid(`Integer)], T.Valid(`Nil)))),
             T.Valid(`String),
           )
-          |> KStyle.Analyzer.validate_style_rule(__rule_name),
+          |> KStyle.Validator.validate_style_rule(__rule_name),
         )
     ),
     "throws InvalidStyleRule"
@@ -67,7 +67,7 @@ let suite =
             ),
           ),
           (T.Valid(`Integer), T.Valid(`Boolean))
-          |> KStyle.Analyzer.validate_style_rule(__rule_name),
+          |> KStyle.Validator.validate_style_rule(__rule_name),
         )
     ),
   ];

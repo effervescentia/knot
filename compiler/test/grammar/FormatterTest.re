@@ -134,7 +134,7 @@ let suite =
         Assert.string(
           "\"@/fooBar\"",
           Reference.Namespace.Internal("fooBar")
-          |> ~@KImport.Formatter.pp_namespace,
+          |> ~@KImport.Formatter.format_namespace,
         )
     ),
     "pp_ns() - external"
@@ -143,17 +143,19 @@ let suite =
         Assert.string(
           "\"fooBar\"",
           Reference.Namespace.External("fooBar")
-          |> ~@KImport.Formatter.pp_namespace,
+          |> ~@KImport.Formatter.format_namespace,
         )
     ),
     "pp_num() - integer"
-    >: (() => Assert.string("123", 123L |> A.of_int |> ~@KNumber.Plugin.pp)),
+    >: (
+      () => Assert.string("123", 123L |> A.of_int |> ~@KNumber.Plugin.format)
+    ),
     "pp_num() - maximum integer"
     >: (
       () =>
         Assert.string(
           "9223372036854775807",
-          Int64.max_int |> A.of_int |> ~@KNumber.Plugin.pp,
+          Int64.max_int |> A.of_int |> ~@KNumber.Plugin.format,
         )
     ),
     "pp_num() - minimum integer"
@@ -161,7 +163,7 @@ let suite =
       () =>
         Assert.string(
           "-9223372036854775808",
-          Int64.min_int |> A.of_int |> ~@KNumber.Plugin.pp,
+          Int64.min_int |> A.of_int |> ~@KNumber.Plugin.format,
         )
     ),
     "pp_num() - float"
@@ -169,7 +171,7 @@ let suite =
       () =>
         Assert.string(
           "123.456",
-          (123.456, 3) |> A.of_float |> ~@KNumber.Plugin.pp,
+          (123.456, 3) |> A.of_float |> ~@KNumber.Plugin.format,
         )
     ),
     "pp_prim() - number"
@@ -201,7 +203,7 @@ let suite =
           "nil;",
           U.nil_prim
           |> A.of_expr
-          |> ~@KStatement.Plugin.pp(KExpression.Plugin.pp),
+          |> ~@KStatement.Plugin.format(KExpression.Plugin.format),
         )
     ),
     "pp_statement() - variable declaration"
@@ -211,7 +213,7 @@ let suite =
           "let foo = nil;",
           (U.as_untyped("foo"), U.nil_prim)
           |> A.of_var
-          |> ~@KStatement.Plugin.pp(KExpression.Plugin.pp),
+          |> ~@KStatement.Plugin.format(KExpression.Plugin.format),
         )
     ),
   ];

@@ -85,10 +85,10 @@ module Make = (Params: ASTParams) => {
 
   let of_jsx = x => Expression.JSX(x);
   let of_frag = xs => Expression.Fragment(xs);
-  let of_tag = ((name, attrs, children)) =>
-    Expression.Tag(name, attrs, children);
-  let of_component = ((id, attrs, children)) =>
-    Expression.Component(id, attrs, children);
+  let of_tag = ((name, styles, attrs, children)) =>
+    Expression.Tag(name, styles, attrs, children);
+  let of_component = ((id, styles, attrs, children)) =>
+    Expression.Component(id, styles, attrs, children);
   let of_text = x => Expression.Text(x);
   let of_node = x => Expression.Node(x);
   let of_inline_expr = x => Expression.InlineExpression(x);

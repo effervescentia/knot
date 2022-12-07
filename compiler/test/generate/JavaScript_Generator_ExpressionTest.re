@@ -78,7 +78,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          ("foo" |> U.as_view([], Valid(`Nil)), [], [])
+          ("foo" |> U.as_view([], Valid(`Nil)), [], [], [])
           |> A.of_tag
           |> A.of_jsx,
         )
@@ -93,6 +93,7 @@ let suite =
           ),
           (
             "foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [
               (
                 U.as_untyped("zip"),
@@ -114,7 +115,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [Identifier("Foo")],
           ),
-          ("Foo" |> U.as_view([], Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], Valid(`Element)), [], [], [])
           |> A.of_component
           |> A.of_jsx,
         )
@@ -150,12 +151,14 @@ let suite =
           (
             "foo" |> U.as_view([], Valid(`Nil)),
             [],
+            [],
             [
               (
                 "Bar" |> U.as_view([], Valid(`Element)),
                 [],
+                [],
                 [
-                  ("fizz" |> U.as_view([], Valid(`Nil)), [], [])
+                  ("fizz" |> U.as_view([], Valid(`Nil)), [], [], [])
                   |> A.of_tag
                   |> A.of_node
                   |> U.as_untyped,

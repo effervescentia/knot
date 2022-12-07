@@ -1,6 +1,6 @@
 open AST;
 
-let pp = Formatter.pp_view;
+let pp = Formatter.format;
 
 include Framework.Declaration({
   type value_t = (
@@ -9,7 +9,7 @@ include Framework.Declaration({
     Result.expression_t,
   );
 
-  let parse = Parser.view;
+  let parse = Parser.parse;
 
   let format = pp;
 

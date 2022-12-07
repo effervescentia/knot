@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let closure =
+let parse =
     (
       (
         ctx: ParseContext.t,

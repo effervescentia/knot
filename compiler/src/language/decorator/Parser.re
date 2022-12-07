@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Kore;
 
-let decorator = parse_expr =>
+let parse = parse_expr =>
   Matchers.identifier(~prefix=char(Constants.Character.at_sign))
   >|= Node.map(String.drop_prefix("@"))
   >>= (

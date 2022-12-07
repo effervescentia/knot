@@ -1,5 +1,5 @@
-let parse = Parser.import;
+let parse = Parser.parse;
 
-let pp = Formatter.pp_import;
+let format = Formatter.format;
 
 let to_xml = Debug.to_xml;

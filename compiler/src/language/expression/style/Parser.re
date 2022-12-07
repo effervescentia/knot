@@ -2,12 +2,15 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let style_rule =
+let parse_style_rule =
     (
       ctx: ParseContext.t,
       parse_expr: Framework.contextual_expression_parser_t,
     ) =>
-  Matchers.attribute(KIdentifier.Plugin.parse_id(ctx), parse_expr(ctx))
+  Matchers.attribute(
+    KIdentifier.Parser.parse_identifier(ctx),
+    parse_expr(ctx),
+  )
   >|= (
     ((rule, expr)) => {
       Node.untyped(
@@ -17,7 +20,7 @@ let style_rule =
     }
   );
 
-let style_literal =
+let parse_style_literal =
     (
       (
         ctx: ParseContext.t,
@@ -29,13 +32,13 @@ let style_literal =
 
   Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
 
-  style_rule(ctx, parse_expr)
+  parse_style_rule(ctx, parse_expr)
   |> Matchers.comma_sep
   |> Matchers.between_braces
   >|= Node.map(Raw.of_style);
 };
 
-let style_expression =
+let parse =
     (
       (
         ctx: ParseContext.t,
@@ -46,6 +49,6 @@ let style_expression =
   Matchers.keyword(Constants.Keyword.style)
   >>= (
     start =>
-      style_literal((ctx, parse_expr))
+      parse_style_literal((ctx, parse_expr))
       >|= Node.map_range(Range.join(Node.get_range(start)))
   );

@@ -8,7 +8,7 @@ let to_xml:
     Node(
       "Function",
       [],
-      KLambda.Plugin.argument_list_to_xml(
+      KLambda.Debug.argument_list_to_xml(
         KExpression.Plugin.to_xml(dump_type),
         dump_type,
         parameters,

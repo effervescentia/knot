@@ -34,7 +34,7 @@ let suite =
             type_: None,
           }
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
              ),
@@ -56,7 +56,7 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
              ),
@@ -78,7 +78,7 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
              ),
@@ -100,7 +100,7 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
              ),
@@ -124,7 +124,7 @@ let suite =
             type_: Some(URaw.as_untyped(TE.Boolean)),
           }
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __throw_scope,
                KExpression.Plugin.analyze,
              )
@@ -144,7 +144,7 @@ let suite =
           () =>
           AE.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __throw_scope,
                KExpression.Plugin.analyze,
              )
@@ -158,7 +158,7 @@ let suite =
           |> URes.as_invalid(NotInferrable),
           AE.{name: URaw.as_untyped(__id), default: None, type_: None}
           |> URaw.as_node
-          |> KLambda.Plugin.analyze_argument(
+          |> KLambda.Analyzer.analyze_argument(
                __scope,
                KExpression.Plugin.analyze,
              ),
@@ -196,7 +196,7 @@ let suite =
             }
             |> URaw.as_node,
           ]
-          |> KLambda.Plugin.analyze_argument_list(
+          |> KLambda.Analyzer.analyze_argument_list(
                __throw_scope,
                KExpression.Plugin.analyze,
              )

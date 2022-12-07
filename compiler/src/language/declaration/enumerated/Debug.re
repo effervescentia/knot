@@ -24,7 +24,7 @@ let to_xml:
                          ~dump_type,
                          ~unpack=
                            parameter =>
-                             [KTypeExpression.Plugin.to_xml_raw(parameter)],
+                             [KTypeExpression.Debug.to_xml_raw(parameter)],
                          "Parameter",
                        ),
                      ),

@@ -8,12 +8,13 @@ module U = Util.ResultUtil;
 let _assert_jsx = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(KSX.Plugin.pp(KExpression.Plugin.pp)),
+    actual |> ~@Fmt.root(KSX.Plugin.format(KExpression.Plugin.format)),
   );
 let _assert_jsx_attr = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(KSX.Formatter.pp_attr(KExpression.Plugin.pp)),
+    actual
+    |> ~@Fmt.root(KSX.Formatter.format_attribute(KExpression.Plugin.format)),
   );
 
 let suite =
@@ -24,7 +25,7 @@ let suite =
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> U.as_view([], Valid(`Nil)), [], []) |> A.of_tag,
+          ("Foo" |> U.as_view([], Valid(`Nil)), [], [], []) |> A.of_tag,
         )
     ),
     "pp_jsx() - empty component"
@@ -32,7 +33,7 @@ let suite =
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [], [])
           |> A.of_component,
         )
     ),
@@ -45,6 +46,7 @@ let suite =
           "<Foo bar=123 buzz />",
           (
             "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [
               (U.as_untyped("bar"), 123 |> U.int_prim |> Option.some)
               |> U.as_untyped,
@@ -65,6 +67,7 @@ let suite =
           (
             "Foo" |> U.as_view([], Valid(`Nil)),
             [],
+            [],
             ["bar" |> A.of_text |> U.as_untyped],
           )
           |> A.of_tag,
@@ -79,6 +82,7 @@ let suite =
 </Foo>",
           (
             "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [],
             [
               (1 |> U.int_prim, 5 |> U.int_prim)
@@ -103,9 +107,11 @@ let suite =
           (
             "Foo" |> U.as_view([], Valid(`Nil)),
             [],
+            [],
             [
               (
                 "Bar" |> U.as_view([], Valid(`Nil)),
+                [],
                 [],
                 ["fizzbuzz" |> A.of_text |> U.as_untyped],
               )
@@ -129,8 +135,9 @@ let suite =
           (
             "Foo" |> U.as_view([], Valid(`Nil)),
             [],
+            [],
             [
-              ("Bar" |> U.as_view([], Valid(`Nil)), [], [])
+              ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
               |> A.of_tag
               |> A.of_node
               |> U.as_untyped,
@@ -245,7 +252,7 @@ let suite =
           (
             U.as_untyped("fizz"),
             Some(
-              ("Buzz" |> U.as_view([], Valid(`Nil)), [], [])
+              ("Buzz" |> U.as_view([], Valid(`Nil)), [], [], [])
               |> A.of_tag
               |> A.of_jsx
               |> U.as_element,
@@ -266,8 +273,9 @@ let suite =
               (
                 "Buzz" |> U.as_view([], Valid(`Nil)),
                 [],
+                [],
                 [
-                  ("Foo" |> U.as_view([], Valid(`Nil)), [], [])
+                  ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
                   |> A.of_tag
                   |> A.of_node
                   |> U.as_untyped,

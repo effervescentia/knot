@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let pp_enumerated:
+let format:
   Fmt.t(
     (
       string,
@@ -28,7 +28,12 @@ let pp_enumerated:
               (ppf, args) =>
                 List.is_empty(args)
                   ? ()
-                  : pf(ppf, "(%a)", list(KTypeExpression.Plugin.pp), args),
+                  : pf(
+                      ppf,
+                      "(%a)",
+                      list(KTypeExpression.Plugin.format),
+                      args,
+                    ),
               args |> List.map(fst),
             )
           ),

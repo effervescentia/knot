@@ -1,21 +1,6 @@
 open Knot.Kore;
 open AST;
 
-let validate_style_rule =
-    (name): (((Type.t, Type.t)) => option(Type.error_t)) =>
-  fun
-  /* assume this has been reported already and ignore */
-  | (_, Invalid(_))
-  | (Invalid(_), _) => None
-
-  | (arg_type, value_type) when arg_type == value_type => None
-
-  /* special override for raw string styles */
-  | (_, Valid(`String)) => None
-
-  | (expected_type, actual_type) =>
-    Some(InvalidStyleRule(name, expected_type, actual_type));
-
 let analyze_style_rule = (scope: Scope.t, raw_rule: Node.t(string, unit)) => {
   let key = fst(raw_rule);
   let type_ =
@@ -36,7 +21,7 @@ let analyze_style_rule = (scope: Scope.t, raw_rule: Node.t(string, unit)) => {
   raw_rule |> Node.add_type(type_);
 };
 
-let analyze_style:
+let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
@@ -66,7 +51,7 @@ let analyze_style:
          fst
          % (
            ((key, value)) =>
-             validate_style_rule(
+             Validator.validate_style_rule(
                fst(key),
                (Node.get_type(key), Node.get_type(value)),
              )

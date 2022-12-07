@@ -28,7 +28,7 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          KSX.Analyzer.validate_jsx_primitive_expression(
+          KSX.Validator.validate_jsx_primitive_expression(
             Invalid(NotInferrable),
           ),
         )
@@ -47,7 +47,7 @@ let suite =
         |> List.iter(type_ =>
              Assert.type_error(
                None,
-               KSX.Analyzer.validate_jsx_primitive_expression(type_),
+               KSX.Validator.validate_jsx_primitive_expression(type_),
              )
            )
     ),
@@ -60,18 +60,9 @@ let suite =
               Valid(`Function(([], Valid(`Nil)))),
             ),
           ),
-          KSX.Analyzer.validate_jsx_primitive_expression(
+          KSX.Validator.validate_jsx_primitive_expression(
             Valid(`Function(([], Valid(`Nil)))),
           ),
-        )
-    ),
-    "throw NotFound error on render with invalid type"
-    >: (
-      () =>
-        _assert_errors_with_ranges(
-          [(T.NotFound(__id), None)],
-          (__id, T.Invalid(NotInferrable), [])
-          |> KSX.Analyzer.validate_jsx_render,
         )
     ),
     "jsx render with non-view type"
@@ -96,7 +87,7 @@ let suite =
               ("bar", T.Valid(`String) |> U.as_untyped),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         )
     ),
     "jsx render with invalid attributes"
@@ -136,7 +127,7 @@ let suite =
               ("foo", N.untyped(T.Valid(`Integer), foo_range)),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         );
       }
     ),
@@ -165,7 +156,7 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         );
       }
     ),
@@ -195,7 +186,7 @@ let suite =
             ),
             [],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         )
     ),
     "jsx render with invalid, unexpected and missing attributes"
@@ -235,7 +226,7 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         );
       }
     ),
@@ -260,7 +251,7 @@ let suite =
               ("bar", T.Valid(`Float) |> U.as_untyped),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         )
     ),
     "jsx render with optional attributes"
@@ -281,7 +272,7 @@ let suite =
             ),
             [("foo", T.Valid(`Boolean) |> U.as_untyped)],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render,
         )
     ),
   ];

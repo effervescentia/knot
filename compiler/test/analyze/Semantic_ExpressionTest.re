@@ -70,11 +70,11 @@ let suite =
         };
 
         Assert.expression(
-          (__id |> URes.as_typed(type_), [], [])
+          (__id |> URes.as_typed(type_), [], [], [])
           |> A.of_component
           |> A.of_jsx
           |> URes.as_element,
-          (URaw.as_untyped(__id), [], [])
+          (URaw.as_untyped(__id), [], [], [])
           |> AR.of_tag
           |> AR.of_jsx
           |> URaw.as_node

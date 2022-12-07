@@ -148,15 +148,17 @@ and gen_binary_op = {
   );
 }
 
-and gen_jsx_element = (expr, attrs, values) =>
+and gen_jsx_element = (expr, styles, attrs, values) =>
   JS.FunctionCall(
     __jsx_create_tag,
     [
       expr,
-      ...List.is_empty(attrs) && List.is_empty(values)
+      ...List.is_empty(attrs)
+         && List.is_empty(styles)
+         && List.is_empty(values)
            ? []
            : [
-             gen_jsx_attrs(attrs),
+             gen_jsx_attrs(attrs, styles),
              ...values |> List.map(fst % gen_jsx_child),
            ],
     ],
@@ -165,11 +167,11 @@ and gen_jsx_element = (expr, attrs, values) =>
 and gen_jsx =
   AST.Expression.(
     fun
-    | Tag((name, _), attrs, values) =>
-      gen_jsx_element(String(name), attrs, values)
+    | Tag((name, _), styles, attrs, values) =>
+      gen_jsx_element(String(name), styles, attrs, values)
 
-    | Component((id, _), attrs, values) =>
-      gen_jsx_element(Identifier(id), attrs, values)
+    | Component((id, _), styles, attrs, values) =>
+      gen_jsx_element(Identifier(id), styles, attrs, values)
 
     | Fragment(values) =>
       JS.FunctionCall(
@@ -186,8 +188,12 @@ and gen_jsx_child =
     | InlineExpression((value, _)) => gen_expression(value)
   )
 
-and gen_jsx_attrs = (attrs: list(AST.Result.jsx_attribute_t)) =>
-  if (List.is_empty(attrs)) {
+and gen_jsx_attrs =
+    (
+      attrs: list(AST.Result.jsx_attribute_t),
+      styles: list(AST.Result.expression_t),
+    ) =>
+  if (List.is_empty(attrs) && List.is_empty(styles)) {
     JS.Null;
   } else {
     /* assumes that ID and unique class names / prop names only appear once at most  */

@@ -101,11 +101,11 @@ let __multiline_view = (
 );
 
 let _assert_declaration = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KDeclaration.Plugin.pp));
+  Assert.string(expected, actual |> ~@Fmt.root(KDeclaration.Plugin.format));
 let _assert_declaration_list = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(Language.Formatter.pp_declaration_list),
+    actual |> ~@Fmt.root(Language.Formatter.format_declaration_list),
   );
 
 let suite =

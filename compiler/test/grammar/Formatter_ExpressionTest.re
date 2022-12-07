@@ -6,7 +6,7 @@ module T = AST.Type;
 module U = Util.ResultUtil;
 
 let _assert_expression = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KExpression.Plugin.pp));
+  Assert.string(expected, actual |> ~@Fmt.root(KExpression.Plugin.format));
 
 let suite =
   "Grammar.Formatter | Expression"
@@ -145,6 +145,7 @@ let suite =
 </Foo>",
           (
             "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [],
             ["bar" |> A.of_text |> U.as_untyped],
           )

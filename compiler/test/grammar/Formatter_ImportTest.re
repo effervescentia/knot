@@ -11,7 +11,7 @@ let _main_import = (name, f) => (
 );
 
 let _assert_import = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KImport.Plugin.pp));
+  Assert.string(expected, actual |> ~@Fmt.root(KImport.Plugin.format));
 
 let suite =
   "Grammar.Formatter | Import"
@@ -146,7 +146,7 @@ let suite =
   JSX,
 };",
           ([("JSX", None)], [], [])
-          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )
     ),
     "pp_all_imports() - external only"
@@ -163,7 +163,7 @@ import Bar from \"bar\";",
               _main_import("bar", A.of_external),
             ],
           )
-          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )
     ),
     "pp_all_imports() - internal only"
@@ -180,7 +180,7 @@ import Bar from \"@/bar\";",
             ],
             [],
           )
-          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )
     ),
     "pp_all_imports() - external and internal"
@@ -195,7 +195,7 @@ import Foo from \"@/foo\";",
             [_main_import("bar", A.of_external)],
             [_main_import("foo", A.of_internal)],
           )
-          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )
     ),
     "pp_all_imports() - all types"
@@ -214,7 +214,7 @@ import Foo from \"@/foo\";",
             [_main_import("bar", A.of_external)],
             [_main_import("foo", A.of_internal)],
           )
-          |> ~@Fmt.root(Language.Formatter.pp_all_imports),
+          |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )
     ),
   ];

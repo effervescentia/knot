@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let effect =
+let parse =
     (
       (
         ctx: ParseContext.t,

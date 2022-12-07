@@ -22,6 +22,10 @@ let attribute_list_to_xml = attributes =>
        ),
      );
 
+let style_list_to_xml = (expr_to_xml, styles) =>
+  List.is_empty(styles)
+    ? [] : [Fmt.Node("Styles", [], styles |> List.map(expr_to_xml))];
+
 let rec to_xml:
   (
     (Expression.expression_t('a) => Fmt.xml_t(string), 'a => string),
@@ -34,19 +38,21 @@ let rec to_xml:
       [],
       [
         switch (ksx) {
-        | Tag(name, attributes, children) =>
+        | Tag(name, styles, attributes, children) =>
           Fmt.Node(
             "Tag",
             [],
             [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", name)]
+            @ (styles |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)
             @ (children |> children_to_xml(expr_to_xml, dump_type)),
           )
-        | Component(name, attributes, children) =>
+        | Component(name, styles, attributes, children) =>
           Fmt.Node(
             "Component",
             [],
             [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", name)]
+            @ (styles |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)
             @ (children |> children_to_xml(expr_to_xml, dump_type)),
           )

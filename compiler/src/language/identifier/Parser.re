@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let identifier = (ctx: ParseContext.t) =>
+let parse_identifier = (ctx: ParseContext.t) =>
   Matchers.identifier(
     ~prefix=
       Matchers.alpha
@@ -23,5 +23,5 @@ let identifier = (ctx: ParseContext.t) =>
     }
   );
 
-let id_expression = (ctx: ParseContext.t) =>
-  identifier(ctx) >|= Node.map(Raw.of_id);
+let parse = (ctx: ParseContext.t) =>
+  parse_identifier(ctx) >|= Node.map(Raw.of_id);

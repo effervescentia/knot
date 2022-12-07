@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let pp_declaration: Fmt.t((string, Module.raw_declaration_t)) =
+let format: Fmt.t((string, Module.raw_declaration_t)) =
   (ppf, (name, decl)) =>
     switch (decl) {
     | Constant(expr) => (name, expr) |> KConstant.Plugin.format(ppf)

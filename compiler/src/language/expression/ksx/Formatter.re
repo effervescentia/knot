@@ -1,32 +1,36 @@
 open Knot.Kore;
 open AST;
 
-let rec pp_ksx: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
+let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
   (pp_expression, ppf) =>
     fun
-    | Tag((name, _), attrs, [])
-    | Component((name, _), attrs, []) =>
+    | Tag((name, _), styles, attrs, [])
+    | Component((name, _), styles, attrs, []) =>
       Fmt.pf(
         ppf,
-        "@[<h><%s%a@ />@]",
+        "@[<h><%s%a%a@ />@]",
         name,
-        pp_attr_list(pp_expression),
+        format_style_binding_list(pp_expression),
+        styles |> List.map(fst),
+        format_attribute_list(pp_expression),
         attrs |> List.map(fst),
       )
 
-    | Tag((name, _), attrs, children)
-    | Component((name, _), attrs, children) =>
+    | Tag((name, _), styles, attrs, children)
+    | Component((name, _), styles, attrs, children) =>
       Fmt.(
         pf(
           ppf,
-          "@[<h><%s%a>@]%a</%s>",
+          "@[<h><%s%a%a>@]%a</%s>",
           name,
-          pp_attr_list(pp_expression),
+          format_style_binding_list(pp_expression),
+          styles |> List.map(fst),
+          format_attribute_list(pp_expression),
           attrs |> List.map(fst),
           block(
             ~layout=Vertical,
             ~sep=Sep.trailing_newline,
-            pp_child(pp_expression),
+            format_child(pp_expression),
           ),
           children |> List.map(fst),
           name,
@@ -43,19 +47,26 @@ let rec pp_ksx: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
              ~sep=Sep.trailing_newline,
              any("<>"),
              any("</>"),
-             pp_child(pp_expression),
+             format_child(pp_expression),
              ppf,
            )
          )
 
-and pp_child: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_child_t) =
+and format_style_binding_list = pp_expression =>
+  Fmt.(list(~sep=Sep.nop, format_style_binding(pp_expression)))
+
+and format_style_binding = (pp_expression, ppf, style) =>
+  Fmt.(pf(ppf, "::%a", pp_expression, style))
+
+and format_child:
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_child_t) =
   (pp_expression, ppf) =>
     fun
-    | Node(jsx) => jsx |> Fmt.pf(ppf, "%a", pp_ksx(pp_expression))
+    | Node(jsx) => jsx |> Fmt.pf(ppf, "%a", format(pp_expression))
     | Text(text) => text |> Fmt.string(ppf)
     | InlineExpression((expr, _)) => Fmt.pf(ppf, "{%a}", pp_expression, expr)
 
-and pp_attr_list:
+and format_attribute_list:
   Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.raw_jsx_attribute_t)) =
   (pp_expression, ppf) =>
     fun
@@ -65,12 +76,12 @@ and pp_attr_list:
       |> Fmt.(
            list(
              ~sep=Sep.nop,
-             ppf => pf(ppf, "@ %a", pp_attr(pp_expression)),
+             ppf => pf(ppf, "@ %a", format_attribute(pp_expression)),
              ppf,
            )
          )
 
-and pp_attr:
+and format_attribute:
   Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_attribute_t) =
   (pp_expression, ppf, attr) =>
     Fmt.(
@@ -84,20 +95,20 @@ and pp_attr:
         ppf =>
           fun
           | (_, Some((expr, _))) =>
-            pf(ppf, "=%a", pp_attr_expr(pp_expression), expr)
+            pf(ppf, "=%a", format_attribute_expression(pp_expression), expr)
           | _ => nop(ppf, ()),
         attr,
       )
     )
 
-and pp_attr_expr:
+and format_attribute_expression:
   Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_expression_t) =
   (pp_expression, ppf) =>
     fun
     | (
         Primitive(_) | Identifier(_) | Group(_) | Closure(_) |
         /* show tags or fragments with no children */
-        JSX(Tag(_, _, []) | Fragment([]))
+        JSX(Tag(_, _, _, []) | Fragment([]))
       ) as expr =>
       pp_expression(ppf, expr)
     | expr => Fmt.pf(ppf, "(%a)", pp_expression, expr);

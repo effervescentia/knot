@@ -7,11 +7,13 @@ open Common;
 type jsx_t('a) =
   | Tag(
       Node.t(string, 'a),
+      list(expression_t('a)),
       list(jsx_attribute_t('a)),
       list(jsx_child_t('a)),
     )
   | Component(
       Node.t(string, 'a),
+      list(expression_t('a)),
       list(jsx_attribute_t('a)),
       list(jsx_child_t('a)),
     )

@@ -91,9 +91,10 @@ and of_jsx =
          )
       |> of_list
 
-    | Tag((id, (_, range)), attrs, children)
-    | Component((id, (_, range)), attrs, children) =>
+    | Tag((id, (_, range)), styles, attrs, children)
+    | Component((id, (_, range)), styles, attrs, children) =>
       [Node.untyped(id, range) |> of_untyped_id]
+      @ (styles |> List.map(of_expr))
       @ (
         attrs
         |> List.map(attr =>

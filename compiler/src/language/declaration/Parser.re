@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let declaration = (ctx: ParseContext.t) =>
+let parse = (ctx: ParseContext.t) =>
   Result.of_main_export
   <$ Matchers.keyword(Constants.Keyword.main)
   |> option(Result.of_named_export)

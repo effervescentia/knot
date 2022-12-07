@@ -4,12 +4,12 @@ open AST;
 
 module Character = Constants.Character;
 
-let arguments =
+let parse_arguments =
     (
       ctx: ParseContext.t,
       parse_expression: Framework.contextual_expression_parser_t,
     ) =>
-  KIdentifier.Plugin.parse_id(ctx)
+  KIdentifier.Parser.parse_identifier(ctx)
   >>= (
     id =>
       Matchers.symbol(Character.colon)
@@ -44,13 +44,13 @@ let arguments =
   |> Matchers.comma_sep
   |> Matchers.between_parentheses;
 
-let _full_parser =
+let _parse_configurable_lambda =
     (
       ~mixins,
       ctx: ParseContext.t,
       parse_expression: Framework.contextual_expression_parser_t,
     ) =>
-  arguments(ctx, parse_expression)
+  parse_arguments(ctx, parse_expression)
   >|= fst
   |> option([])
   >>= (
@@ -76,13 +76,13 @@ let _full_parser =
       )
   );
 
-let lambda_with_mixins = (ctx: ParseContext.t) =>
-  _full_parser(~mixins=true, ctx);
+let parse_lambda_with_mixins = (ctx: ParseContext.t) =>
+  _parse_configurable_lambda(~mixins=true, ctx);
 
-let lambda =
+let parse_lambda =
     (
       ctx: ParseContext.t,
       parse_expression: Framework.contextual_expression_parser_t,
     ) =>
-  _full_parser(~mixins=false, ctx, parse_expression)
+  _parse_configurable_lambda(~mixins=false, ctx, parse_expression)
   >|= (((args, _, expr, range)) => (args, expr, range));

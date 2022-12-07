@@ -1,5 +1,5 @@
-let parse = Parser.declaration;
+let parse = Parser.parse;
 
-let pp = Formatter.pp_declaration;
+let format = Formatter.format;
 
 let to_xml = Debug.to_xml;
