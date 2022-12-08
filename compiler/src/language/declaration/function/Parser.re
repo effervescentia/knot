@@ -9,7 +9,7 @@ let parse =
   >>= Node.get_range
   % (
     start =>
-      KIdentifier.Parser.parse_identifier(ctx)
+      KIdentifier.Parser.parse_raw(ctx)
       >>= (
         id =>
           KExpression.Plugin.parse

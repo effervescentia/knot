@@ -8,9 +8,7 @@ module Assert =
     type t = AR.identifier_t;
 
     let parser =
-      KIdentifier.Parser.parse_identifier
-      % Assert.parse_completely
-      % Parser.parse;
+      KIdentifier.Parser.parse_raw % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

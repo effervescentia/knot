@@ -10,7 +10,7 @@ let parse = ((ctx: ParseContext.t, f)): Framework.declaration_parser_t =>
       Matchers.vertical_bar_sep(
         KTypeStatement.Parser.parse_type_variant(ctx),
       )
-      |> Matchers.assign(KIdentifier.Parser.parse_identifier(ctx))
+      |> Matchers.assign(KIdentifier.Parser.parse_raw(ctx))
       |> Matchers.terminated
       >|= (
         ((id, raw_variants)) => {

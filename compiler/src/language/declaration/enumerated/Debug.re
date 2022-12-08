@@ -1,6 +1,23 @@
 open Knot.Kore;
 open AST;
 
+let variant_parameter_to_xml = dump_type =>
+  Dump.node_to_xml(
+    ~dump_type,
+    ~unpack=parameter => [KTypeExpression.Debug.to_xml_raw(parameter)],
+    "Parameter",
+  );
+
+let variant_to_xml = (dump_type, (name, parameters)) =>
+  Fmt.Node(
+    "Variant",
+    [],
+    [
+      Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+      ...parameters |> List.map(variant_parameter_to_xml(dump_type)),
+    ],
+  );
+
 let to_xml:
   (
     Type.t => string,
@@ -8,27 +25,4 @@ let to_xml:
   ) =>
   Fmt.xml_t(string) =
   (dump_type, variants) =>
-    Node(
-      "Enumerated",
-      [],
-      variants
-      |> List.map(((name, parameters)) =>
-           Fmt.Node(
-             "Variant",
-             [],
-             [
-               Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-               ...parameters
-                  |> List.map(
-                       Dump.node_to_xml(
-                         ~dump_type,
-                         ~unpack=
-                           parameter =>
-                             [KTypeExpression.Debug.to_xml_raw(parameter)],
-                         "Parameter",
-                       ),
-                     ),
-             ],
-           )
-         ),
-    );
+    Node("Enumerated", [], variants |> List.map(variant_to_xml(dump_type)));

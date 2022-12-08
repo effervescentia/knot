@@ -49,14 +49,14 @@ let parse_main_import =
   >|= (import => [import |> Node.wrap(AST.Result.of_main_import)]);
 
 let parse_named_imports = (ctx: ParseContext.t) =>
-  KIdentifier.Parser.parse_identifier(ctx)
+  KIdentifier.Parser.parse_raw(ctx)
   >>= (
     id =>
       Matchers.keyword(Keyword.as_)
-      >> KIdentifier.Parser.parse_identifier(ctx)
+      >> KIdentifier.Parser.parse_raw(ctx)
       >|= (alias => (id, Some(alias)))
   )
-  <|> (KIdentifier.Parser.parse_identifier(ctx) >|= (id => (id, None)))
+  <|> (KIdentifier.Parser.parse_raw(ctx) >|= (id => (id, None)))
   |> Matchers.comma_sep
   |> Matchers.between_braces
   >|= Node.map(

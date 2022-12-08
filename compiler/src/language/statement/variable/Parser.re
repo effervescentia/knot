@@ -13,10 +13,7 @@ let parse =
   Matchers.keyword(Constants.Keyword.let_)
   >>= (
     kwd =>
-      Matchers.assign(
-        KIdentifier.Parser.parse_identifier(ctx),
-        parse_expr(ctx),
-      )
+      Matchers.assign(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
       >|= (
         ((_, expr) as var) =>
           Node.typed(Raw.of_var(var), (), Node.join_ranges(kwd, expr))

@@ -6,7 +6,7 @@ type type_module_statement_parser_t =
   ParseContext.t => Parse.Parser.t(TypeDefinition.module_statement_t);
 
 let parse_type_variant = (ctx: ParseContext.t) =>
-  KIdentifier.Parser.parse_identifier(ctx)
+  KIdentifier.Parser.parse_raw(ctx)
   >>= (
     id =>
       KTypeExpression.Plugin.parse

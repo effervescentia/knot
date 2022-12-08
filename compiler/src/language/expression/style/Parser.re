@@ -7,10 +7,7 @@ let parse_style_rule =
       ctx: ParseContext.t,
       parse_expr: Framework.contextual_expression_parser_t,
     ) =>
-  Matchers.attribute(
-    KIdentifier.Parser.parse_identifier(ctx),
-    parse_expr(ctx),
-  )
+  Matchers.attribute(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
       Node.untyped(

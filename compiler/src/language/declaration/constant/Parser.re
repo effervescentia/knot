@@ -7,7 +7,7 @@ let parse = ((ctx: ParseContext.t, f)): Framework.declaration_parser_t =>
   >>= (
     kwd =>
       Matchers.assign(
-        KIdentifier.Parser.parse_identifier(ctx),
+        KIdentifier.Parser.parse_raw(ctx),
         KExpression.Plugin.parse(ctx),
       )
       >|= (
@@ -16,9 +16,11 @@ let parse = ((ctx: ParseContext.t, f)): Framework.declaration_parser_t =>
             ctx |> Scope.of_parse_context(Node.get_range(raw_expr));
           let expr = raw_expr |> KExpression.Plugin.analyze(scope);
           let type_ = Node.get_type(expr);
-          let const = expr |> Node.wrap(AST.Result.of_const);
+          let const = expr |> Node.wrap(Result.of_const);
           let range = Node.join_ranges(kwd, raw_expr);
           let export_id = f(id);
+
+          // TODO: throw error if name already used in scope
 
           ctx.symbols
           |> SymbolTable.declare_value(

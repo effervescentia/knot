@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let analyze:
@@ -12,18 +12,9 @@ let analyze:
     (
       switch (node) {
       | (Variable(id, expr), _) =>
-        let expr' = analyze_expression(scope, expr);
-
-        scope
-        |> Scope.define(fst(id), Node.get_type(expr'))
-        |> Option.iter(Scope.report_type_err(scope, Node.get_range(id)));
-
-        ((id, expr') |> Result.of_var, Type.Valid(`Nil));
-
+        KVariable.analyze(scope, analyze_expression, (id, expr))
       | (Expression(expr), _) =>
-        let expr' = analyze_expression(scope, expr);
-
-        (Result.of_expr(expr'), Node.get_type(expr'));
+        KEffect.analyze(scope, analyze_expression, expr)
       }
     )
     |> (((value, type_)) => Node.typed(value, type_, Node.get_range(node)));

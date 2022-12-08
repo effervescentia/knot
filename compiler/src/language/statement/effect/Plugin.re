@@ -1,6 +1,8 @@
 open Knot.Kore;
 open AST;
 
+let analyze = Analyzer.analyze;
+
 include Framework.Statement({
   type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
