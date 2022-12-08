@@ -1,6 +1,17 @@
 open Knot.Kore;
 open AST;
 
+let analyze_arithmetic = type_ =>
+  Type.(
+    switch (type_) {
+    | Valid(`Integer | `Float)
+    /* forward invalid types */
+    | Invalid(_) => type_
+
+    | _ => Invalid(NotInferrable)
+    }
+  );
+
 let analyze:
   (
     Scope.t,
@@ -21,15 +32,7 @@ let analyze:
       expr',
       switch (op) {
       | Negative
-      | Positive =>
-        switch (type_) {
-        | Valid(`Integer | `Float)
-        /* forward invalid types */
-        | Invalid(_) => type_
-
-        | _ => Invalid(NotInferrable)
-        }
-
+      | Positive => analyze_arithmetic(type_)
       | Not => Valid(`Boolean)
       },
     );

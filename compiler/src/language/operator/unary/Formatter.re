@@ -1,13 +1,13 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let format_operator: Fmt.t(Operator.Unary.t) =
   ppf =>
     Operator.Unary.(
       fun
-      | Not => KLogicalNot.Plugin.format
-      | Positive => KAbsolute.Plugin.format
-      | Negative => KNegative.Plugin.format
+      | Not => KLogicalNot.format
+      | Positive => KAbsolute.format
+      | Negative => KNegative.format
     )
     % (pp => pp(ppf, ()));
 

@@ -1,27 +1,27 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let format_operator: Fmt.t(Operator.Binary.t) =
   ppf =>
     Operator.Binary.(
       fun
-      | Equal => KEqual.Plugin.format
-      | Unequal => KUnequal.Plugin.format
+      | Equal => KEqual.format
+      | Unequal => KUnequal.format
 
-      | LogicalAnd => KLogicalAnd.Plugin.format
-      | LogicalOr => KLogicalOr.Plugin.format
+      | LogicalAnd => KLogicalAnd.format
+      | LogicalOr => KLogicalOr.format
 
-      | LessOrEqual => KLessOrEqual.Plugin.format
-      | LessThan => KLessThan.Plugin.format
-      | GreaterOrEqual => KGreaterOrEqual.Plugin.format
-      | GreaterThan => KGreaterThan.Plugin.format
+      | LessOrEqual => KLessOrEqual.format
+      | LessThan => KLessThan.format
+      | GreaterOrEqual => KGreaterOrEqual.format
+      | GreaterThan => KGreaterThan.format
 
-      | Add => KAdd.Plugin.format
-      | Subtract => KSubtract.Plugin.format
-      | Multiply => KMultiply.Plugin.format
-      | Divide => KDivide.Plugin.format
+      | Add => KAdd.format
+      | Subtract => KSubtract.format
+      | Multiply => KMultiply.format
+      | Divide => KDivide.format
 
-      | Exponent => KExponentiate.Plugin.format
+      | Exponent => KExponentiate.format
     )
     % (pp => pp(ppf, ()));
 

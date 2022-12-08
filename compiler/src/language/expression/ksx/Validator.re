@@ -5,8 +5,7 @@ let validate_jsx_render:
   ((string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
   list((Type.error_t, option(Range.t))) =
   fun
-  /* assume this has been reported already and ignore */
-  | (id, Invalid(_), _) => []
+  | (id, Invalid(_), _) => [(NotFound(id), None)]
 
   | (id, Valid(`View(attrs, _)), actual_attrs) => {
       let keys =

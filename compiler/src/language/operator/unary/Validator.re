@@ -10,6 +10,7 @@ let validate: (Operator.Unary.t, Type.t) => option(Type.error_t) =
     | Valid(valid_type) as type_ =>
       switch (op, valid_type) {
       | (Negative | Positive, `Integer | `Float) => None
+
       | (Not, `Boolean) => None
 
       | _ => Some(InvalidUnaryOperation(op, type_))
