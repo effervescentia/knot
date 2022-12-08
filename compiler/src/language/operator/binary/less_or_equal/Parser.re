@@ -2,5 +2,5 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let less_or_equal: Framework.binary_op_parser_t =
+let parse: Framework.binary_op_parser_t =
   Parse.Util.binary_op(Raw.of_lte_op) <$ Matchers.glyph("<=");

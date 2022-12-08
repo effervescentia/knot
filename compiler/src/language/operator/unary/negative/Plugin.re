@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-let parse = Parser.negative;
+let parse = Parser.parse;
 
-let pp: Fmt.t(unit) =
+let format: Fmt.t(unit) =
   (ppf, ()) => Fmt.char(ppf, Constants.Character.minus_sign);

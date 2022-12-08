@@ -9,20 +9,21 @@ open Parse.Kore;
 
 /* logical */
 
-let rec logical_0 = next => chainl1(logical_1(next), KLogicalOr.Plugin.parse)
+let rec parse_logical_0 = next =>
+  chainl1(parse_logical_1(next), KLogicalOr.Plugin.parse)
 
-and logical_1 = next => chainl1(next, KLogicalAnd.Plugin.parse);
+and parse_logical_1 = next => chainl1(next, KLogicalAnd.Plugin.parse);
 
-let logical = logical_0;
+let parse_logical = parse_logical_0;
 
 /* comparison */
 
-let comparison = next =>
+let parse_comparison = next =>
   chainl1(next, KEqual.Plugin.parse <|> KUnequal.Plugin.parse);
 
 /* relational */
 
-let relational = next =>
+let parse_relational = next =>
   chainl1(
     next,
     choice([
@@ -35,15 +36,18 @@ let relational = next =>
 
 /* arithmetic */
 
-let rec arithmetic_0 = next =>
-  chainl1(arithmetic_1(next), KAdd.Plugin.parse <|> KSubtract.Plugin.parse)
-
-and arithmetic_1 = next =>
+let rec parse_arithmetic_0 = next =>
   chainl1(
-    arithmetic_2(next),
+    parse_arithmetic_1(next),
+    KAdd.Plugin.parse <|> KSubtract.Plugin.parse,
+  )
+
+and parse_arithmetic_1 = next =>
+  chainl1(
+    parse_arithmetic_2(next),
     KMultiply.Plugin.parse <|> KDivide.Plugin.parse,
   )
 
-and arithmetic_2 = next => chainr1(next, KExponentiate.Plugin.parse);
+and parse_arithmetic_2 = next => chainr1(next, KExponentiate.Plugin.parse);
 
-let arithmetic = arithmetic_0;
+let parse_arithmetic = parse_arithmetic_0;

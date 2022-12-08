@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let to_xml:
@@ -20,13 +20,13 @@ let to_xml:
           ~unpack=
             Module.(
               fun
-              | Constant(expr) => KConstant.Plugin.to_xml(dump_type, expr)
+              | Constant(expr) => KConstant.to_xml(dump_type, expr)
               | Enumerated(variants) =>
-                KEnumerated.Plugin.to_xml(dump_type, variants)
+                KEnumerated.to_xml(dump_type, variants)
               | Function(parameters, body) =>
-                KFunction.Plugin.to_xml(dump_type, (parameters, body))
+                KFunction.to_xml(dump_type, (parameters, body))
               | View(parameters, mixins, body) =>
-                KView.Plugin.to_xml(dump_type, (parameters, mixins, body))
+                KView.to_xml(dump_type, (parameters, mixins, body))
             )
             % (x => [x]),
           "Entity",

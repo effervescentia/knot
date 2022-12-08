@@ -1,5 +1,5 @@
 open Knot.Kore;
 
-let parse = Parser.add;
+let parse = Parser.parse;
 
-let pp: Fmt.t(unit) = (ppf, ()) => Fmt.string(ppf, "+");
+let format: Fmt.t(unit) = (ppf, ()) => Fmt.string(ppf, "+");

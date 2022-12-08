@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-let parse = Parser.unequal;
+let parse = Parser.parse;
 
-let pp: Fmt.t(unit) =
+let format: Fmt.t(unit) =
   (ppf, ()) => Fmt.string(ppf, Constants.Glyph.inequality);

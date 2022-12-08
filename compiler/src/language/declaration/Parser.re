@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -10,10 +10,10 @@ let parse = (ctx: ParseContext.t) =>
   >>= (
     arg =>
       choice([
-        KConstant.Plugin.parse(arg),
-        KEnumerated.Plugin.parse(arg),
-        KFunction.Plugin.parse(arg),
-        KView.Plugin.parse(arg),
+        KConstant.parse(arg),
+        KEnumerated.parse(arg),
+        KFunction.parse(arg),
+        KView.parse(arg),
       ])
       >|= Node.map(Result.of_decl)
   );
