@@ -1,13 +1,8 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
 let parse_primitive =
-  choice([
-    KNil.Plugin.parse,
-    KBoolean.Plugin.parse,
-    KNumber.Plugin.parse,
-    KString.Plugin.parse,
-  ]);
+  choice([KNil.parse, KBoolean.parse, KNumber.parse, KString.parse]);
 
 let parse = () => parse_primitive >|= Node.map(Raw.of_prim);

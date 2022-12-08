@@ -1,12 +1,12 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let format =
   Primitive.(
     ppf =>
       fun
-      | Nil => KNil.Plugin.format(ppf, ())
-      | Boolean(x) => KBoolean.Plugin.format(ppf, x)
-      | Number(x) => KNumber.Plugin.format(ppf, x)
-      | String(x) => KString.Plugin.format(ppf, x)
+      | Nil => KNil.format(ppf, ())
+      | Boolean(x) => KBoolean.format(ppf, x)
+      | Number(x) => KNumber.format(ppf, x)
+      | String(x) => KString.format(ppf, x)
   );

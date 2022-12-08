@@ -1,11 +1,11 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let to_xml =
   Primitive.(
     fun
-    | Nil => KNil.Plugin.to_xml()
-    | Boolean(x) => KBoolean.Plugin.to_xml(x)
-    | Number(x) => KNumber.Plugin.to_xml(x)
-    | String(x) => KString.Plugin.to_xml(x)
+    | Nil => KNil.to_xml()
+    | Boolean(x) => KBoolean.to_xml(x)
+    | Number(x) => KNumber.to_xml(x)
+    | String(x) => KString.to_xml(x)
   );
