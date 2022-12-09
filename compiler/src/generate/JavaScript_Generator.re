@@ -249,16 +249,29 @@ and gen_style = (rules: list(AST.Result.style_rule_t)) =>
           [
             Object(
               rules
-              |> List.map(
+              |> List.filter_map(
                    fst
                    % (
-                     (((key, _), (value, _))) => (
-                       key,
-                       FunctionCall(
-                         DotAccess(Identifier(__style_rules), key),
-                         [gen_expression(value)],
-                       ),
-                     )
+                     ((key, value)) => {
+                       let key_type = Node.get_type(key);
+                       let value_type = Node.get_type(value);
+
+                       if (key_type == value_type) {
+                         (
+                           fst(key),
+                           FunctionCall(
+                             DotAccess(Identifier(__style_rules), fst(key)),
+                             [gen_expression(fst(value))],
+                           ),
+                         )
+                         |> Option.some;
+                       } else if (value_type == AST.Type.Valid(`String)) {
+                         (fst(key), gen_expression(fst(value)))
+                         |> Option.some;
+                       } else {
+                         None;
+                       };
+                     }
                    ),
                  ),
             ),

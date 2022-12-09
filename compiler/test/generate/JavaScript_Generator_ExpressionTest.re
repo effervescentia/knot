@@ -197,12 +197,7 @@ let suite =
             [
               "bar" |> A.of_id |> U.as_style,
               [
-                (
-                  "color"
-                  |> U.as_function([T.Valid(`String)], T.Valid(`Nil)),
-                  U.string_prim("red"),
-                )
-                |> U.as_untyped,
+                (U.as_string("color"), U.string_prim("red")) |> U.as_untyped,
               ]
               |> A.of_style
               |> U.as_style,
@@ -569,16 +564,8 @@ let suite =
             [],
           ),
           [
-            (
-              "height" |> U.as_function([Valid(`Integer)], Valid(`String)),
-              U.int_prim(2),
-            )
-            |> U.as_untyped,
-            (
-              "width" |> U.as_function([Valid(`Integer)], Valid(`String)),
-              U.int_prim(10),
-            )
-            |> U.as_untyped,
+            (U.as_int("height"), U.int_prim(2)) |> U.as_untyped,
+            (U.as_int("width"), U.int_prim(10)) |> U.as_untyped,
           ],
         )
     ),

@@ -6,7 +6,7 @@ const rootStyle = style {
 const topStyle = style {
   height: $px(100.0),
   width: $px(200.0),
-  backgroundColor: $pink,
+  backgroundColor: "#ec6810",
 };
 
 const bottomStyle = style {

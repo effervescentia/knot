@@ -6,18 +6,15 @@ import * as styleRulePlugin from './styleRulePlugin';
 
 JSS.setup(jssPreset());
 
-const styleSheet = JSS.createStyleSheet({});
+const styleSheet = JSS.createStyleSheet<string>({});
 let styleSheetAttached = false;
+let classID = 0;
 
 export default {
-  resolve(styles: Styles): Record<string, string> {
-    const attached = JSS.createStyleSheet(styles).attach();
-
-    return attached.classes;
-  },
-
   createStyle(styles: Styles): { getClass: () => string } {
-    const rule = styleSheet.addRule(styles);
+    const id = `k${++classID}`;
+
+    styleSheet.addRule(id, styles);
 
     return {
       getClass: () => {
@@ -26,10 +23,12 @@ export default {
           styleSheetAttached = true;
         }
 
-        return rule.className;
+        return styleSheet.classes[id];
       },
     };
   },
+
+  // bindStyle(styles: Styles): JSX.Element {},
 
   classes(...classNames: string[]): string {
     return classNames.join(' ');

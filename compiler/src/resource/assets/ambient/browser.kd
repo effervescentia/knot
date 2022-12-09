@@ -66,6 +66,7 @@ module StyleExpression {
   declare aqua: Style.Color;
   declare black: Style.Color;
   declare blue: Style.Color;
+  declare cornflowerblue: Style.Color;
   declare cyan: Style.Color;
   declare fuchsia: Style.Color;
   declare gold: Style.Color;
