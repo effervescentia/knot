@@ -18,8 +18,8 @@ var yellowStyle = (function () {
                      var $ = $knot.style.styleExpressionPlugin;
                      var $rules$ = $knot.style.styleRulePlugin;
                      return $knot.style.createStyle({
-                                                      mockBackgroundColor: $rules$.mockBackgroundColor(
-                                                      "#dac33d")
+                                                      mockBackgroundColor: 
+                                                      "#dac33d"
                                                     });
                    })();
 exports.yellowStyle = yellowStyle;
@@ -27,29 +27,27 @@ function Component($props$) {
   return null;
 };
 exports.Component = Component;
-var EmptyComponent = $knot.style.bindStyle(Component, emptyStyle);
+var EmptyComponent = $knot.jsx.bindStyle(Component, emptyStyle);
 exports.EmptyComponent = EmptyComponent;
-var RedAndYellowComponent = $knot.style.bindStyle($knot.style.bindStyle(
-                                                  Component,
-                                                  redStyle),
-                                                  yellowStyle);
+var RedAndYellowComponent = $knot.jsx.bindStyle($knot.jsx.bindStyle(Component,
+                                                                    redStyle),
+                                                yellowStyle);
 exports.RedAndYellowComponent = RedAndYellowComponent;
-var StyleLiteralComponent = $knot.style.bindStyle(Component,
-                                                  (function () {
-                                                     var $ = $knot.style.styleExpressionPlugin;
-                                                     var $rules$ = $knot.style.styleRulePlugin;
-                                                     return $knot.style.createStyle(
-                                                     {
-                                                       mockColor: $rules$.mockColor(
-                                                       "#adec22")
-                                                     });
-                                                   })());
+var StyleLiteralComponent = $knot.jsx.bindStyle(Component,
+                                                (function () {
+                                                   var $ = $knot.style.styleExpressionPlugin;
+                                                   var $rules$ = $knot.style.styleRulePlugin;
+                                                   return $knot.style.createStyle(
+                                                   {
+                                                     mockColor: "#adec22"
+                                                   });
+                                                 })());
 exports.StyleLiteralComponent = StyleLiteralComponent;
+var redDiv = $knot.jsx.bindStyle("div", redStyle);
+exports.redDiv = redDiv;
 function DynamicStyling($props$) {
-  return $knot.jsx.createTag("div",
-                             {
-                               className: $knot.style.classes(redStyle.getClass())
-                             },
+  return $knot.jsx.createTag(redDiv,
+                             null,
                              $knot.jsx.createTag("div",
                                                  {
                                                    className: $knot.style.classes(
@@ -63,8 +61,7 @@ function DynamicStyling($props$) {
                                                       var $rules$ = $knot.style.styleRulePlugin;
                                                       return $knot.style.createStyle(
                                                       {
-                                                        mockColor: $rules$.mockColor(
-                                                        "#adec22")
+                                                        mockColor: "#adec22"
                                                       });
                                                     })().getClass())
                                                  }));

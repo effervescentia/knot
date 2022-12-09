@@ -59,8 +59,13 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
       | (BindStyle(view, style), _) =>
         let (view', style') =
           KBindStyle.analyze(scope, analyze, (view, style), node_range);
+        let type_ =
+          switch (view') {
+          | BuiltIn(expr)
+          | Local(expr) => Node.get_type(expr)
+          };
 
-        (Expression.BindStyle(view', style'), Node.get_type(view'));
+        (Expression.BindStyle(view', style'), type_);
 
       | (FunctionCall(expr, args), _) =>
         let (expr', args', type_) =

@@ -3,6 +3,8 @@ const rootStyle = style {
   backgroundColor: $navy,
 };
 
+const Container = div::rootStyle;
+
 const topStyle = style {
   height: $px(100.0),
   width: $px(200.0),

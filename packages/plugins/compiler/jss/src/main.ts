@@ -1,3 +1,4 @@
+import { Style } from '@knot/plugin-utils';
 import JSS, { Styles } from 'jss';
 import jssPreset from 'jss-preset-default';
 
@@ -11,7 +12,7 @@ let styleSheetAttached = false;
 let classID = 0;
 
 export default {
-  createStyle(styles: Styles): { getClass: () => string } {
+  createStyle(styles: Styles): Style {
     const id = `k${++classID}`;
 
     styleSheet.addRule(id, styles);
@@ -27,8 +28,6 @@ export default {
       },
     };
   },
-
-  // bindStyle(styles: Styles): JSX.Element {},
 
   classes(...classNames: string[]): string {
     return classNames.join(' ');

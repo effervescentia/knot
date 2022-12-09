@@ -1,5 +1,5 @@
 // import { JSXPlugin, PropsType, STATE_MAP_KEY } from '@knot/plugin-utils';
-import { JSXPlugin } from '@knot/plugin-utils';
+import { JSXPlugin, PropsType, Style } from '@knot/plugin-utils';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
@@ -11,10 +11,25 @@ const Plugin: JSXPlugin<React.ComponentType, JSX.Element> = {
   // createElement: React.createElement,
   createTag: React.createElement,
 
-  createFragment: (...children) =>
-    React.createElement(React.Fragment, null, ...children),
+  createFragment(...children) {
+    return React.createElement(React.Fragment, null, ...children);
+  },
 
-  render: (app, id) => ReactDOM.render(app, document.getElementById(id)),
+  render(app, id) {
+    return ReactDOM.render(app, document.getElementById(id));
+  },
+
+  bindStyle<P extends PropsType>(
+    component: React.Component<P> | keyof React.ReactHTML,
+    style: Style
+  ): React.FC<P> {
+    return (props: P) =>
+      React.createElement(component as any, {
+        ...props,
+        className:
+          (props.className ? `${props.className} ` : '') + style.getClass(),
+      });
+  },
 
   // withState: (createState, component) => {
   //   class State<P extends PropsType> extends React.Component<P> {

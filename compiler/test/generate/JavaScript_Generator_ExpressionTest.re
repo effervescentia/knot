@@ -348,14 +348,14 @@ let suite =
       () =>
         _assert_expression(
           FunctionCall(
-            DotAccess(DotAccess(Identifier("$knot"), "style"), "bindStyle"),
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "bindStyle"),
             [Identifier("foo"), Identifier("bar")],
           ),
           (
             "foo" |> A.of_id |> U.as_view([], Valid(`Element)),
             "bar" |> A.of_id |> U.as_style,
           )
-          |> A.of_bind_style,
+          |> A.of_local_bind_style,
         )
     ),
     "function call"

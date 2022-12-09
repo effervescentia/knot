@@ -483,6 +483,7 @@
     },
     "src/language/expression/bind_style": {
       "require": [
+        "knot.lang.identifier",
         "knot.lang.expression.style"
       ],
       "name": "knot.lang.expression.bind_style",

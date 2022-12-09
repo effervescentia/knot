@@ -171,7 +171,7 @@ let suite =
       () =>
         Assert.parse(
           ("foo" |> AR.of_id |> U.as_node, "bar" |> AR.of_id |> U.as_node)
-          |> AR.of_bind_style
+          |> AR.of_local_bind_style
           |> U.as_node,
           "foo::bar",
         )
@@ -190,7 +190,7 @@ let suite =
             |> AR.of_style
             |> U.as_node,
           )
-          |> AR.of_bind_style
+          |> AR.of_local_bind_style
           |> U.as_node,
           "foo::{
   color: $pink,
@@ -475,11 +475,11 @@ let suite =
         Assert.parse(
           (
             ("a" |> AR.of_id |> U.as_node, "b" |> AR.of_id |> U.as_node)
-            |> AR.of_bind_style
+            |> AR.of_local_bind_style
             |> U.as_node,
             "c" |> AR.of_id |> U.as_node,
           )
-          |> AR.of_bind_style
+          |> AR.of_local_bind_style
           |> U.as_node,
           "a::b::c",
         )

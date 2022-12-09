@@ -176,13 +176,13 @@ let suite =
             view_id |> A.of_id |> URes.as_view([], Valid(`Element)),
             style_id |> A.of_id |> URes.as_style,
           )
-          |> A.of_bind_style
+          |> A.of_local_bind_style
           |> URes.as_view([], Valid(`Element)),
           (
             view_id |> AR.of_id |> URaw.as_node,
             style_id |> AR.of_id |> URaw.as_node,
           )
-          |> AR.of_bind_style
+          |> AR.of_local_bind_style
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );

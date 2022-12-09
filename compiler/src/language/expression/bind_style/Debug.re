@@ -6,7 +6,16 @@ let to_xml = ((expr_to_xml, _), (view, style)) =>
     "BindStyle",
     [],
     [
-      Node("View", [], [expr_to_xml(view)]),
+      Node(
+        "View",
+        [],
+        [
+          switch (view) {
+          | Expression.BuiltIn(view')
+          | Expression.Local(view') => expr_to_xml(view')
+          },
+        ],
+      ),
       Node("Style", [], [expr_to_xml(style)]),
     ],
   );

@@ -48,6 +48,10 @@ and style_rule_t('a) = untyped_t(raw_style_rule_t('a))
    */
 and raw_style_rule_t('a) = (Node.t(string, 'a), expression_t('a))
 
+and bind_style_target_t('a) =
+  | BuiltIn(expression_t('a))
+  | Local(expression_t('a))
+
 /**
    an expression AST node
    */
@@ -64,7 +68,7 @@ and raw_expression_t('a) =
   | UnaryOp(Unary.t, expression_t('a))
   | Closure(list(statement_t('a)))
   | DotAccess(expression_t('a), untyped_t(string))
-  | BindStyle(expression_t('a), expression_t('a))
+  | BindStyle(bind_style_target_t('a), expression_t('a))
   | FunctionCall(expression_t('a), list(expression_t('a)))
   | Style(list(style_rule_t('a)))
 

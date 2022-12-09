@@ -17,9 +17,11 @@ const StyleLiteralComponent = Component::{
   mockColor: "#adec22",
 };
 
+const redDiv = div::redStyle;
+
 view DynamicStyling ->
-  <div::redStyle>
+  <redDiv>
     <div::yellowStyle />
     <div::{ mockColor: "#adec22" } />
-  </div>
+  </redDiv>
 ;

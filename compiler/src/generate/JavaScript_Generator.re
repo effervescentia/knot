@@ -27,9 +27,9 @@ let __knot_prop = _platform_util("prop");
 let __knot_style = _platform_util("style");
 let __jsx_create_tag = _jsx_util("createTag");
 let __jsx_create_fragment = _jsx_util("createFragment");
+let __bind_style = _jsx_util("bindStyle");
 let __style_classes = _style_util("classes");
 let __create_style = _style_util("createStyle");
-let __bind_style = _style_util("bindStyle");
 
 let _style_name = Fmt.str("$style_%s");
 let _class_name = Fmt.str("$class_%s");
@@ -79,7 +79,9 @@ let rec gen_expression =
     | JSX(value) => gen_jsx(value)
     | DotAccess((expr, _), (prop, _)) =>
       JS.DotAccess(gen_expression(expr), prop)
-    | BindStyle((view, _), (style, _)) =>
+    | BindStyle(BuiltIn((Identifier(id), _)), (style, _)) =>
+      JS.FunctionCall(__bind_style, [String(id), gen_expression(style)])
+    | BindStyle(BuiltIn((view, _)) | Local((view, _)), (style, _)) =>
       JS.FunctionCall(
         __bind_style,
         [gen_expression(view), gen_expression(style)],

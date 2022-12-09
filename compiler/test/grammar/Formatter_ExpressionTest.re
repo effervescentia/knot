@@ -111,7 +111,7 @@ let suite =
             "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
             "bar" |> A.of_id |> U.as_style,
           )
-          |> A.of_bind_style,
+          |> A.of_local_bind_style,
         )
     ),
     "style literal binding"
@@ -133,7 +133,7 @@ let suite =
             |> A.of_style
             |> U.as_style,
           )
-          |> A.of_bind_style,
+          |> A.of_local_bind_style,
         )
     ),
     "JSX"

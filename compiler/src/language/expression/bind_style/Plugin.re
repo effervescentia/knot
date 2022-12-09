@@ -10,7 +10,7 @@ include Framework.Expression({
   );
 
   type value_t('a) = (
-    Expression.expression_t('a),
+    Expression.bind_style_target_t('a),
     Expression.expression_t('a),
   );
 
