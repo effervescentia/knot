@@ -120,6 +120,100 @@ let suite =
           |> A.of_jsx,
         )
     ),
+    "jsx - render component with styles"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
+            [
+              Identifier("Foo"),
+              Object([
+                (
+                  "className",
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "style"),
+                      "classes",
+                    ),
+                    [
+                      FunctionCall(
+                        DotAccess(Identifier("bar"), "getClass"),
+                        [],
+                      ),
+                      FunctionCall(
+                        DotAccess(
+                          iife([
+                            Variable(
+                              "$",
+                              DotAccess(
+                                DotAccess(Identifier("$knot"), "style"),
+                                "styleExpressionPlugin",
+                              ),
+                            ),
+                            Variable(
+                              "$rules$",
+                              DotAccess(
+                                DotAccess(Identifier("$knot"), "style"),
+                                "styleRulePlugin",
+                              ),
+                            ),
+                            Return(
+                              FunctionCall(
+                                DotAccess(
+                                  DotAccess(Identifier("$knot"), "style"),
+                                  "createStyle",
+                                ),
+                                [
+                                  Object([
+                                    (
+                                      "color",
+                                      FunctionCall(
+                                        DotAccess(
+                                          Identifier("$rules$"),
+                                          "color",
+                                        ),
+                                        [String("red")],
+                                      ),
+                                    ),
+                                  ]),
+                                ],
+                              )
+                              |> Option.some,
+                            ),
+                          ]),
+                          "getClass",
+                        ),
+                        [],
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+            ],
+          ),
+          (
+            "Foo" |> U.as_view([], Valid(`Element)),
+            [
+              "bar" |> A.of_id |> U.as_style,
+              [
+                (
+                  "color"
+                  |> U.as_function([T.Valid(`String)], T.Valid(`Nil)),
+                  U.string_prim("red"),
+                )
+                |> U.as_untyped,
+              ]
+              |> A.of_style
+              |> U.as_style,
+            ],
+            [],
+            [],
+          )
+          |> A.of_component
+          |> A.of_jsx,
+        )
+    ),
     "jsx - deeply nested tags"
     >: (
       () =>
@@ -417,7 +511,7 @@ let suite =
           (Negative, U.int_prim(123)),
         )
     ),
-    "style - property with default value"
+    "style rules"
     >: (
       () =>
         _assert_style(
@@ -443,22 +537,30 @@ let suite =
                   ),
                   Return(
                     Some(
-                      Object([
-                        (
-                          "height",
-                          FunctionCall(
-                            DotAccess(Identifier("$rules$"), "height"),
-                            [Number("2")],
-                          ),
+                      FunctionCall(
+                        DotAccess(
+                          DotAccess(Identifier("$knot"), "style"),
+                          "createStyle",
                         ),
-                        (
-                          "width",
-                          FunctionCall(
-                            DotAccess(Identifier("$rules$"), "width"),
-                            [Number("10")],
-                          ),
-                        ),
-                      ]),
+                        [
+                          Object([
+                            (
+                              "height",
+                              FunctionCall(
+                                DotAccess(Identifier("$rules$"), "height"),
+                                [Number("2")],
+                              ),
+                            ),
+                            (
+                              "width",
+                              FunctionCall(
+                                DotAccess(Identifier("$rules$"), "width"),
+                                [Number("10")],
+                              ),
+                            ),
+                          ]),
+                        ],
+                      ),
                     ),
                   ),
                 ],

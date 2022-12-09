@@ -86,6 +86,38 @@ let suite =
         );
       }
     ),
+    "resolve jsx with valid style binding"
+    >: (
+      () => {
+        let style_id = "bar";
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__throw_scope,
+          types:
+            [(__id, type_), (style_id, T.Valid(`Style))]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        Assert.jsx(
+          (
+            __id |> URes.as_typed(type_),
+            [style_id |> A.of_id |> URes.as_style],
+            [],
+            [],
+          )
+          |> A.of_component,
+          (
+            URaw.as_untyped(__id),
+            [style_id |> AR.of_id |> URaw.as_untyped],
+            [],
+            [],
+          )
+          |> AR.of_tag
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+        );
+      }
+    ),
     "report NotFound error with unrecognized tag identifier"
     >: (
       () => {

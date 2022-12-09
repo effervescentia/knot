@@ -13,3 +13,10 @@ const RedAndYellowComponent = Component::redStyle::yellowStyle;
 const StyleLiteralComponent = Component::{
   mockColor: "#adec22",
 };
+
+view DynamicStyling -> <div::redStyle>
+  <div::yellowStyle />
+  <div::style {
+          mockColor: "#adec22",
+        } />
+</div>;

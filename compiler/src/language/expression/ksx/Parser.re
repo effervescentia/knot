@@ -81,31 +81,47 @@ and parse_tag =
   >> Matchers.identifier
   >>= (
     id =>
-      parse_property_attribute(ctx, parsers)
+      parse_style_binding(ctx, fst(parsers))
       |> many
       >>= (
-        attrs =>
-          Tag.close
-          >> parse_children(ctx, parsers)
+        styles =>
+          parse_property_attribute(ctx, parsers)
+          |> many
           >>= (
-            cs =>
-              cs
-              <$| (
-                id
-                |> fst
-                |> Matchers.keyword
-                |> Matchers.between(Tag.open_end, Tag.close)
+            attrs =>
+              Tag.close
+              >> parse_children(ctx, parsers)
+              >>= (
+                cs =>
+                  cs
+                  <$| (
+                    id
+                    |> fst
+                    |> Matchers.keyword
+                    |> Matchers.between(Tag.open_end, Tag.close)
+                  )
               )
-          )
-          <|> _parse_self_closing
-          >|= (
-            cs =>
-              Node.untyped(
-                (id, [], attrs, fst(cs)) |> Raw.of_tag,
-                Node.join_ranges(id, cs),
+              <|> _parse_self_closing
+              >|= (
+                cs =>
+                  Node.untyped(
+                    (id, styles, attrs, fst(cs)) |> Raw.of_tag,
+                    Node.join_ranges(id, cs),
+                  )
               )
           )
       )
+  )
+
+and parse_style_binding =
+    (
+      ctx: ParseContext.t,
+      parse_expression: Framework.contextual_expression_parser_t,
+    ) =>
+  Matchers.glyph(Glyph.style_binding)
+  >> (
+    KStyle.Parser.parse_style_literal((ctx, parse_expression))
+    <|> parse_expression(ctx)
   )
 
 and parse_property_attribute =

@@ -504,7 +504,7 @@
     },
     "src/language/expression/ksx": {
       "require": [
-        "knot.lang.ast"
+        "knot.lang.expression.style"
       ],
       "name": "knot.lang.expression.ksx",
       "namespace": "KSX"

@@ -255,6 +255,11 @@ let suite =
               Range.create((43, 40), (43, 51)),
             ),
             ParseError(
+              TypeError(TypeMismatch(Valid(`Style), Valid(`String))),
+              __semantic_namespace,
+              Range.create((45, 41), (45, 46)),
+            ),
+            ParseError(
               TypeError(
                 InvalidFunctionCall(
                   Valid(`String),
@@ -262,17 +267,17 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((45, 46), (45, 58)),
+              Range.create((47, 46), (47, 58)),
             ),
             ParseError(
               TypeError(UntypedFunctionArgument("second_arg")),
               __semantic_namespace,
-              Range.create((47, 47), (47, 56)),
+              Range.create((49, 47), (49, 56)),
             ),
             ParseError(
               TypeError(UnknownStyleRule("foo")),
               __semantic_namespace,
-              Range.create((50, 3), (50, 5)),
+              Range.create((52, 3), (52, 5)),
             ),
             ParseError(
               TypeError(
@@ -283,7 +288,7 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((53, 28), (55, 1)),
+              Range.create((55, 28), (57, 1)),
             ),
             ParseError(
               TypeError(

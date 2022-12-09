@@ -53,6 +53,39 @@ let suite =
           ["<Foo/>", " < Foo / > "],
         )
     ),
+    "parse style expression binding"
+    >: (
+      () =>
+        Assert.parse(
+          (U.as_untyped("Foo"), ["bar" |> AR.of_id |> U.as_untyped], [], [])
+          |> AR.of_tag
+          |> AR.of_jsx
+          |> U.as_node,
+          "<Foo::bar />",
+        )
+    ),
+    "parse style literal binding"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            U.as_untyped("Foo"),
+            [
+              [
+                (U.as_untyped("color"), U.string_prim("red")) |> U.as_untyped,
+              ]
+              |> AR.of_style
+              |> U.as_untyped,
+            ],
+            [],
+            [],
+          )
+          |> AR.of_tag
+          |> AR.of_jsx
+          |> U.as_node,
+          "<Foo::{ color: \"red\" } />",
+        )
+    ),
     "parse empty fragment"
     >: (
       () => Assert.parse([] |> AR.of_frag |> AR.of_jsx |> U.as_node, "<></>")
