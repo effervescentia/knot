@@ -2,20 +2,20 @@ open Knot.Kore;
 open AST;
 
 let analyze_style_rule = (scope: Scope.t, raw_rule: Node.t(string, unit)) => {
+  let resolve_err = err => {
+    err |> Scope.report_type_err(scope, Node.get_range(raw_rule));
+    Type.Invalid(NotInferrable);
+  };
+
   let key = fst(raw_rule);
   let type_ =
     scope
     |> Scope.lookup(key)
     |> (
       fun
-      | Some(Valid(`Function([Valid(_) as t], Valid(`Nil)))) => t
-      | _ => {
-          let err = Type.UnknownStyleRule(key);
-
-          err |> Scope.report_type_err(scope, Node.get_range(raw_rule));
-
-          Type.Invalid(NotInferrable);
-        }
+      | Some(Ok(Valid(`Function([Valid(_) as t], Valid(`Nil))))) => t
+      | Some(Error(err)) => resolve_err(err)
+      | _ => Type.UnknownStyleRule(key) |> resolve_err
     );
 
   raw_rule |> Node.add_type(type_);

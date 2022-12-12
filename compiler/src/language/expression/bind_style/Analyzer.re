@@ -22,13 +22,25 @@ let analyze:
           let (type_, tag_ast) =
             scope
             |> Scope.lookup(id)
-            |> Option.map(Tuple.with_snd2(Result.of_local))
+            |> Option.map(
+                 Stdlib.Result.map(Tuple.with_snd2(Result.of_local)),
+               )
             |?| (
               tag_scope
               |> Scope.lookup(id)
-              |> Option.map(Tuple.with_snd2(Result.of_builtin))
+              |> Option.map(
+                   Stdlib.Result.map(Tuple.with_snd2(Result.of_builtin)),
+                 )
             )
-            |?: (Invalid(NotInferrable), Result.of_local);
+            |> (
+              fun
+              | Some(Ok(x)) => x
+              | Some(Error(err)) => {
+                  err |> Scope.report_type_err(scope, Node.get_range(expr));
+                  (Invalid(NotInferrable), Result.of_local);
+                }
+              | None => (Invalid(NotInferrable), Result.of_local)
+            );
 
           (
             Node.typed(

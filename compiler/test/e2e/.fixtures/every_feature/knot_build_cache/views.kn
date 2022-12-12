@@ -35,3 +35,15 @@ view ClosureView(lhs, rhs) -> {
   let rhs_float = rhs / 13;
   lhs_int <= rhs_float;
 }
+
+view ImplicitChildren -> <div>
+  <div>
+    {$children}
+  </div>
+</div>;
+
+view ExplicitChildren(children) -> <div>
+  <div>
+    {children}
+  </div>
+</div>;

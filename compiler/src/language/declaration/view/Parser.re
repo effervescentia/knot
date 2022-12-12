@@ -2,6 +2,9 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
+let __children_key = "children";
+let __implicit_children_key = "$children";
+
 let parse =
     ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
     : Framework.declaration_parser_t =>
@@ -26,6 +29,10 @@ let parse =
                      ),
                    );
 
+              scope
+              |> Scope.define(__implicit_children_key, Valid(`Element))
+              |> ignore;
+
               props'
               |> List.iter(arg =>
                    scope
@@ -37,6 +44,27 @@ let parse =
                         Scope.report_type_err(scope, Node.get_range(arg)),
                       )
                  );
+
+              if (props'
+                  |> List.exists(((Expression.{name}, _)) =>
+                       fst(name) == __children_key
+                     )) {
+                let children_type =
+                  scope
+                  |> Scope.lookup(__children_key)
+                  |> Option.value(~default=Ok(Type.Invalid(NotInferrable)))
+                  |> Stdlib.Result.value(
+                       ~default=Type.Invalid(NotInferrable),
+                     );
+
+                scope
+                |> Scope.(
+                     add_handler(__implicit_children_key, Lookup, () =>
+                       Type.MustUseExplicitChildren(children_type)
+                       |> Option.some
+                     )
+                   );
+              };
 
               let mixins' =
                 mixins

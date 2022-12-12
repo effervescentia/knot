@@ -39,14 +39,24 @@ var StyleLiteralComponent = $knot.jsx.bindStyle(Component,
                                                    var $rules$ = $knot.style.styleRulePlugin;
                                                    return $knot.style.createStyle(
                                                    {
-                                                     mockColor: "#adec22"
+                                                     mockColor: "#afacee"
                                                    });
                                                  })());
 export { StyleLiteralComponent };
-var redDiv = $knot.jsx.bindStyle("div", redStyle);
-export { redDiv };
+var RedDiv = $knot.jsx.bindStyle("div", redStyle);
+export { RedDiv };
+var StyleLiteralDiv = $knot.jsx.bindStyle("div",
+                                          (function () {
+                                             var $ = $knot.style.styleExpressionPlugin;
+                                             var $rules$ = $knot.style.styleRulePlugin;
+                                             return $knot.style.createStyle(
+                                             {
+                                               mockColor: "#257ffa"
+                                             });
+                                           })());
+export { StyleLiteralDiv };
 function DynamicStyling($props$) {
-  return $knot.jsx.createTag(redDiv,
+  return $knot.jsx.createTag(RedDiv,
                              null,
                              $knot.jsx.createTag("div",
                                                  {

@@ -39,7 +39,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 23 error(s) and 0 warning(s)
+finished with 24 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -194,7 +194,13 @@ finished with 23 error(s) and 0 warning(s)
   this decorator can only target a module but found style
   \n  [code frame not available]
 
-finished with 23 error(s) and 0 warning(s)
+24) Must Use Explicit Children : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  the explicitly defined children attribute of type string must be used over the implicit $children
+  \n  [code frame not available]
+
+finished with 24 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -348,6 +354,11 @@ finished with 23 error(s) and 0 warning(s)
                   Type.DecoratorTarget.Style,
                 ),
               ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(MustUseExplicitChildren(Type.Valid(`String))),
               __namespace,
               Range.zero,
             ),

@@ -221,7 +221,8 @@ type error_t =
   | DecoratorTargetMismatch(DecoratorTarget.t, DecoratorTarget.t)
   | UnknownStyleRule(string)
   | InvalidStyleRule(string, t, t)
-  | InvalidViewMixin(t);
+  | InvalidViewMixin(t)
+  | MustUseExplicitChildren(t);
 
 /* pretty printing */
 
@@ -384,4 +385,7 @@ let pp_error: Fmt.t(error_t) =
         )
 
       | InvalidViewMixin(type_) => pf(ppf, "InvalidViewMixin<%a>", pp, type_)
+
+      | MustUseExplicitChildren(type_) =>
+        pf(ppf, "MustUseExplicitChildren<%a>", pp, type_)
   );

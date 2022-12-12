@@ -32,6 +32,8 @@ const invalid_jsx_tag_variable = <NotView />;
 
 view TwoAttrsView(first_attr: string, second_attr: boolean) -> nil;
 
+view DuplicateChildren(children: element) -> <div>{$children}</div>;
+
 const unexpected_attr_variable = <TwoAttrsView unexpected_attr=true />;
 
 const invalid_attr_variable = <TwoAttrsView first_attr=true />;

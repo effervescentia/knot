@@ -87,7 +87,7 @@ let suite =
               ("bar", T.Valid(`String) |> U.as_untyped),
             ],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
     "jsx render with invalid attributes"
@@ -127,7 +127,7 @@ let suite =
               ("foo", N.untyped(T.Valid(`Integer), foo_range)),
             ],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         );
       }
     ),
@@ -156,7 +156,7 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         );
       }
     ),
@@ -186,7 +186,7 @@ let suite =
             ),
             [],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
     "jsx render with invalid, unexpected and missing attributes"
@@ -226,7 +226,7 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         );
       }
     ),
@@ -251,7 +251,7 @@ let suite =
               ("bar", T.Valid(`Float) |> U.as_untyped),
             ],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
     "jsx render with optional attributes"
@@ -272,7 +272,7 @@ let suite =
             ),
             [("foo", T.Valid(`Boolean) |> U.as_untyped)],
           )
-          |> KSX.Validator.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
   ];

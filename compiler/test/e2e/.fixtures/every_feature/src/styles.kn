@@ -14,14 +14,17 @@ const EmptyComponent = Component::emptyStyle;
 const RedAndYellowComponent = Component::redStyle::yellowStyle;
 
 const StyleLiteralComponent = Component::{
-  mockColor: "#adec22",
+  mockColor: "#afacee",
 };
 
-const redDiv = div::redStyle;
+const RedDiv = div::redStyle;
+const StyleLiteralDiv = div::{
+  mockColor: "#257ffa",
+};
 
 view DynamicStyling ->
-  <redDiv>
+  <RedDiv>
     <div::yellowStyle />
     <div::{ mockColor: "#adec22" } />
-  </redDiv>
+  </RedDiv>
 ;

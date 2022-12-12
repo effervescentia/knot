@@ -1,0 +1,12 @@
+const containerStyle = style {
+  height: $px(20.0),
+};
+const Container = div::containerStyle;
+
+const buttonStyle = style {};
+const Button = button::buttonStyle;
+
+view Modal ->
+  <Container>
+    {$children}
+  </Container>

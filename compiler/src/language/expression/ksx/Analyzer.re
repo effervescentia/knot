@@ -13,13 +13,23 @@ let rec analyze_jsx:
       let (id_type, tag_ast) =
         scope
         |> Scope.lookup(fst(id))
-        |> Option.map(Tuple.with_snd2(Result.of_component))
+        |> Option.map(
+             Stdlib.Result.map(Tuple.with_snd2(Result.of_component)),
+           )
         |?| (
           tag_scope
           |> Scope.lookup(fst(id))
-          |> Option.map(Tuple.with_snd2(Result.of_tag))
+          |> Option.map(Stdlib.Result.map(Tuple.with_snd2(Result.of_tag)))
         )
-        |?: (Invalid(NotInferrable), Result.of_component);
+        |> (
+          fun
+          | Some(Ok(x)) => x
+          | Some(Error(err)) => {
+              err |> Scope.report_type_err(scope, Node.get_range(id));
+              (Invalid(NotInferrable), Result.of_component);
+            }
+          | None => (Invalid(NotInferrable), Result.of_component)
+        );
 
       let id' = id |> Node.add_type(id_type);
       let styles' = styles |> List.map(analyze_expression(scope));
@@ -32,19 +42,32 @@ let rec analyze_jsx:
         attrs'
         |> List.filter_map(
              fun
-             | (((name, _), Some(expr)), range) =>
-               Some((name, (Node.get_type(expr), range)))
-             | (((name, _), None), range) =>
+             | (((name, _), Some(expr)), meta) =>
+               Some((name, (Node.get_type(expr), meta)))
+             | (((name, _), None), meta) =>
                Some((
                  name,
                  (
-                   scope |> Scope.lookup(name) |?: Invalid(NotInferrable),
-                   range,
+                   scope
+                   |> Scope.lookup(name)
+                   |> (
+                     fun
+                     | Some(Ok(x)) => x
+                     | Some(Error(err)) => {
+                         err |> Scope.report_type_err(scope, snd(meta));
+                         Invalid(NotInferrable);
+                       }
+                     | None => Invalid(NotInferrable)
+                   ),
+                   meta,
                  ),
                )),
            );
 
-      ((fst(id), id_type, props) |> Validator.validate_jsx_render)
+      (
+        (fst(id), id_type, props)
+        |> Validator.validate_jsx_render(!List.is_empty(children))
+      )
       @ Validator.validate_style_binding(styles')
       |> List.iter(((err, err_range)) =>
            Scope.report_type_err(

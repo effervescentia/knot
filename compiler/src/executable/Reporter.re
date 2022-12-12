@@ -614,6 +614,26 @@ let _extract_type_err =
         )
       ),
       [],
+    )
+
+  | Type.MustUseExplicitChildren(type_) => (
+      "Must Use Explicit Children",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>the explicitly defined %a attribute of type %a must be used over the implicit %a@]",
+              good_str,
+              "children",
+              good(Type.pp),
+              type_,
+              bad_str,
+              "$children",
+            )
+        )
+      ),
+      [],
     );
 
 let _extract_parse_err =

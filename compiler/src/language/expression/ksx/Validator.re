@@ -2,82 +2,91 @@ open Knot.Kore;
 open AST;
 
 let validate_jsx_render:
-  ((string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
+  (bool, (string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
   list((Type.error_t, option(Range.t))) =
-  fun
-  | (id, Invalid(_), _) => [(NotFound(id), None)]
+  has_children =>
+    fun
+    | (id, Invalid(_), _) => [(NotFound(id), None)]
 
-  | (id, Valid(`View(attrs, _)), actual_attrs) => {
-      let keys =
-        (attrs |> List.map(fst))
-        @ (actual_attrs |> List.map(fst))
-        |> List.uniq_by((==));
+    | (id, Valid(`View(attrs, _)), actual_attrs) => {
+        let keys =
+          (attrs |> List.map(fst))
+          @ (actual_attrs |> List.map(fst))
+          |> List.uniq_by((==));
 
-      let (invalid, missing) =
-        keys
-        |> List.fold_left(
-             ((invalid, missing) as acc, key) => {
-               let expected = attrs |> List.assoc_opt(key);
-               let actual = actual_attrs |> List.assoc_opt(key);
+        let (invalid, missing) =
+          keys
+          |> List.fold_left(
+               ((invalid, missing) as acc, key) => {
+                 let expected = attrs |> List.assoc_opt(key);
+                 let actual = actual_attrs |> List.assoc_opt(key);
 
-               switch (expected, actual) {
-               | (Some((expected', _)), Some((actual_value, _) as actual')) =>
-                 Type.(
-                   switch (expected', actual_value) {
-                   | (Invalid(_), _)
-                   | (_, Invalid(_)) => acc
-                   | (Valid(_), Valid(_)) when expected' == actual_value => acc
-                   | (Valid(_), Valid(_)) => (
-                       invalid
-                       @ [
-                         (
-                           InvalidJSXAttribute(key, expected', actual_value),
-                           Some(Node.get_range(actual')),
-                         ),
-                       ],
-                       missing,
-                     )
-                   }
-                 )
+                 switch (expected, actual) {
+                 | _ when key == "children" && has_children => acc
+                 | (
+                     Some((expected', _)),
+                     Some((actual_value, _) as actual'),
+                   ) =>
+                   Type.(
+                     switch (expected', actual_value) {
+                     | (Invalid(_), _)
+                     | (_, Invalid(_)) => acc
+                     | (Valid(_), Valid(_)) when expected' == actual_value => acc
+                     | (Valid(_), Valid(_)) => (
+                         invalid
+                         @ [
+                           (
+                             InvalidJSXAttribute(key, expected', actual_value),
+                             Some(Node.get_range(actual')),
+                           ),
+                         ],
+                         missing,
+                       )
+                     }
+                   )
 
-               | (Some((expected', true)), None) => (
-                   invalid,
-                   missing @ [(key, expected')],
-                 )
+                 | (Some((expected', true)), None) => (
+                     invalid,
+                     missing @ [(key, expected')],
+                   )
 
-               | (None, Some(actual')) => (
-                   invalid
-                   @ [
-                     (
-                       Type.UnexpectedJSXAttribute(key, fst(actual')),
-                       Some(Node.get_range(actual')),
-                     ),
-                   ],
-                   missing,
-                 )
+                 | (None, Some(actual')) => (
+                     invalid
+                     @ [
+                       (
+                         Type.UnexpectedJSXAttribute(key, fst(actual')),
+                         Some(Node.get_range(actual')),
+                       ),
+                     ],
+                     missing,
+                   )
 
-               | (Some((_, false)), None)
-               | (None, None) => acc
-               };
-             },
-             ([], []),
-           );
+                 | (Some((_, false)), None)
+                 | (None, None) => acc
+                 };
+               },
+               ([], []),
+             );
 
-      if (!List.is_empty(invalid)) {
-        invalid;
-      } else if (!List.is_empty(missing)) {
-        [(Type.MissingJSXAttributes(id, missing), None)];
-      } else {
-        [];
-      };
-    }
+        if (!List.is_empty(invalid)) {
+          invalid;
+        } else if (!List.is_empty(missing)) {
+          [(Type.MissingJSXAttributes(id, missing), None)];
+        } else {
+          [];
+        };
+      }
 
-  | (id, expr_type, attrs) => [
-      (
-        InvalidJSXTag(id, expr_type, attrs |> List.map(Tuple.map_snd2(fst))),
-        None,
-      ),
-    ];
+    | (id, expr_type, attrs) => [
+        (
+          InvalidJSXTag(
+            id,
+            expr_type,
+            attrs |> List.map(Tuple.map_snd2(fst)),
+          ),
+          None,
+        ),
+      ];
 
 let validate_style_binding =
     (styles: list(Result.expression_t))

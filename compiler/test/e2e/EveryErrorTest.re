@@ -212,11 +212,16 @@ let suite =
               Range.create((31, 35), (31, 41)),
             ),
             ParseError(
+              TypeError(MustUseExplicitChildren(Valid(`Element))),
+              __semantic_namespace,
+              Range.create((35, 52), (35, 60)),
+            ),
+            ParseError(
               TypeError(
                 UnexpectedJSXAttribute("unexpected_attr", Valid(`Boolean)),
               ),
               __semantic_namespace,
-              Range.create((35, 48), (35, 67)),
+              Range.create((37, 48), (37, 67)),
             ),
             ParseError(
               TypeError(
@@ -227,7 +232,7 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((37, 45), (37, 59)),
+              Range.create((39, 45), (39, 59)),
             ),
             ParseError(
               TypeError(
@@ -240,24 +245,24 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((39, 33), (39, 44)),
+              Range.create((41, 33), (41, 44)),
             ),
             ParseError(
               TypeError(InvalidDotAccess(Valid(`Boolean), "property")),
               __semantic_namespace,
-              Range.create((41, 44), (41, 51)),
+              Range.create((43, 44), (43, 51)),
             ),
             ParseError(
               TypeError(
                 InvalidStyleBinding(Valid(`Boolean), Valid(`String)),
               ),
               __semantic_namespace,
-              Range.create((43, 40), (43, 51)),
+              Range.create((45, 40), (45, 51)),
             ),
             ParseError(
               TypeError(TypeMismatch(Valid(`Style), Valid(`String))),
               __semantic_namespace,
-              Range.create((45, 41), (45, 46)),
+              Range.create((47, 41), (47, 46)),
             ),
             ParseError(
               TypeError(
@@ -267,17 +272,17 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((47, 46), (47, 58)),
+              Range.create((49, 46), (49, 58)),
             ),
             ParseError(
               TypeError(UntypedFunctionArgument("second_arg")),
               __semantic_namespace,
-              Range.create((49, 47), (49, 56)),
+              Range.create((51, 47), (51, 56)),
             ),
             ParseError(
               TypeError(UnknownStyleRule("foo")),
               __semantic_namespace,
-              Range.create((52, 3), (52, 5)),
+              Range.create((54, 3), (54, 5)),
             ),
             ParseError(
               TypeError(
@@ -288,7 +293,7 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((55, 28), (57, 1)),
+              Range.create((57, 28), (59, 1)),
             ),
             ParseError(
               TypeError(

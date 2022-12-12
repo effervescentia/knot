@@ -2,4 +2,11 @@ import {} from "@/utils/constants";
 import {} from "@/utils/jsx";
 import {} from "@/utils/functions";
 import Greet from "@/components/Greet";
+import { Modal } from "@/components/UIKit";
 import globalStyle from "@/styles/Global";
+
+const modal =
+  <Modal>
+    <Greet name="my friend" />
+  </Modal>
+;
