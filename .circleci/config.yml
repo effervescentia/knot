@@ -664,6 +664,7 @@ workflows:
       - test_jss_plugin:
           requires:
             - test_common
+            - test_plugin_utils
       - test_compiler:
           requires:
             - test_common
