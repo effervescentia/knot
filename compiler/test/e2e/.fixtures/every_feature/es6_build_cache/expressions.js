@@ -5,7 +5,7 @@ var not_expr = !(true);
 export { not_expr };
 var negated_expr = -(-(123));
 export { negated_expr };
-var absolute_expr = +(-(123));
+var absolute_expr = Math.abs(-(123));
 export { absolute_expr };
 var and_expr = (true && false);
 export { and_expr };
@@ -50,7 +50,7 @@ var empty_function_call_expr = no_args_function();
 export { empty_function_call_expr };
 var function_call_with_args_expr = expression_function(333, 444);
 export { function_call_with_args_expr };
-var tag_with_expr_attributes = $knot.jsx.createTag("div",
+var tag_with_expr_attributes = $knot.jsx.createTag("complex",
                                                    {
                                                      closure_stmts_attr: (
                                                      function () {
@@ -60,7 +60,8 @@ var tag_with_expr_attributes = $knot.jsx.createTag("div",
                                                      empty_closure_attr: null,
                                                      group_attr: ("abc"),
                                                      binary_op_attr: (true && false),
-                                                     unary_op_attr: +(-(+(-(123)))),
+                                                     unary_op_attr: Math.abs(
+                                                     -(Math.abs(-(123)))),
                                                      id_attr: not_expr
                                                    });
 export { tag_with_expr_attributes };

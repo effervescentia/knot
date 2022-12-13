@@ -1,3 +1,4 @@
+import { Style } from '@knot/plugin-utils';
 import JSS, { Styles } from 'jss';
 import jssPreset from 'jss-preset-default';
 
@@ -6,11 +7,26 @@ import * as styleRulePlugin from './styleRulePlugin';
 
 JSS.setup(jssPreset());
 
-export default {
-  resolve(styles: Styles): Record<any, string> {
-    const attached = JSS.createStyleSheet(styles).attach();
+const styleSheet = JSS.createStyleSheet<string>({});
+let styleSheetAttached = false;
+let classID = 0;
 
-    return attached.classes;
+export default {
+  createStyle(styles: Styles): Style {
+    const id = `k${++classID}`;
+
+    styleSheet.addRule(id, styles);
+
+    return {
+      getClass: () => {
+        if (!styleSheetAttached) {
+          styleSheet.attach();
+          styleSheetAttached = true;
+        }
+
+        return styleSheet.classes[id];
+      },
+    };
   },
 
   classes(...classNames: string[]): string {

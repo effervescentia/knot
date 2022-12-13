@@ -27,7 +27,9 @@ let __knot_prop = _platform_util("prop");
 let __knot_style = _platform_util("style");
 let __jsx_create_tag = _jsx_util("createTag");
 let __jsx_create_fragment = _jsx_util("createFragment");
+let __bind_style = _jsx_util("bindStyle");
 let __style_classes = _style_util("classes");
+let __create_style = _style_util("createStyle");
 
 let _style_name = Fmt.str("$style_%s");
 let _class_name = Fmt.str("$class_%s");
@@ -77,6 +79,13 @@ let rec gen_expression =
     | JSX(value) => gen_jsx(value)
     | DotAccess((expr, _), (prop, _)) =>
       JS.DotAccess(gen_expression(expr), prop)
+    | BindStyle(BuiltIn((Identifier(id), _)), (style, _)) =>
+      JS.FunctionCall(__bind_style, [String(id), gen_expression(style)])
+    | BindStyle(BuiltIn((view, _)) | Local((view, _)), (style, _)) =>
+      JS.FunctionCall(
+        __bind_style,
+        [gen_expression(view), gen_expression(style)],
+      )
     | FunctionCall((expr, _), args) =>
       JS.FunctionCall(
         gen_expression(expr),
@@ -98,15 +107,21 @@ and gen_statement = (~is_last=false) =>
       ]
   )
 
-and gen_unary_op = (op, (value, _)) =>
-  JS.UnaryOp(
-    switch (op) {
-    | Negative => "-"
-    | Positive => "+"
-    | Not => "!"
-    },
-    Group(gen_expression(value)),
-  )
+and gen_unary_op = {
+  let op = (symbol, (value, _)) =>
+    JS.UnaryOp(symbol, Group(gen_expression(value)));
+
+  fun
+  | Negative => op("-")
+  | Positive => (
+      ((value, _)) =>
+        JS.FunctionCall(
+          DotAccess(Identifier("Math"), "abs"),
+          [gen_expression(value)],
+        )
+    )
+  | Not => op("!");
+}
 
 and gen_binary_op = {
   let op = (symbol, (lhs, _), (rhs, _)) =>
@@ -136,15 +151,17 @@ and gen_binary_op = {
   );
 }
 
-and gen_jsx_element = (expr, attrs, values) =>
+and gen_jsx_element = (expr, styles, attrs, values) =>
   JS.FunctionCall(
     __jsx_create_tag,
     [
       expr,
-      ...List.is_empty(attrs) && List.is_empty(values)
+      ...List.is_empty(attrs)
+         && List.is_empty(styles)
+         && List.is_empty(values)
            ? []
            : [
-             gen_jsx_attrs(attrs),
+             gen_jsx_attrs(attrs, styles),
              ...values |> List.map(fst % gen_jsx_child),
            ],
     ],
@@ -153,11 +170,11 @@ and gen_jsx_element = (expr, attrs, values) =>
 and gen_jsx =
   AST.Expression.(
     fun
-    | Tag((name, _), attrs, values) =>
-      gen_jsx_element(String(name), attrs, values)
+    | Tag((name, _), styles, attrs, values) =>
+      gen_jsx_element(String(name), styles, attrs, values)
 
-    | Component((id, _), attrs, values) =>
-      gen_jsx_element(Identifier(id), attrs, values)
+    | Component((id, _), styles, attrs, values) =>
+      gen_jsx_element(Identifier(id), styles, attrs, values)
 
     | Fragment(values) =>
       JS.FunctionCall(
@@ -174,54 +191,45 @@ and gen_jsx_child =
     | InlineExpression((value, _)) => gen_expression(value)
   )
 
-and gen_jsx_attrs = (attrs: list(AST.Result.jsx_attribute_t)) =>
-  if (List.is_empty(attrs)) {
+and gen_jsx_attrs =
+    (
+      attrs: list(AST.Result.jsx_attribute_t),
+      styles: list(AST.Result.expression_t),
+    ) =>
+  if (List.is_empty(attrs) && List.is_empty(styles)) {
     JS.Null;
   } else {
-    /* assumes that ID and unique class names / prop names only appear once at most  */
-    let (classes, props) =
+    /* assumes prop names appear once at most  */
+    let props =
       attrs
       |> List.fold_left(
-           ((c, p)) =>
+           p =>
              fst
              % AST.Expression.(
                  fun
-                 | Property((name, _), expr) => (
-                     c,
-                     [
-                       (
-                         name,
-                         switch (expr) {
-                         | Some((expr, _)) => gen_expression(expr)
-                         | None => JS.Identifier(name)
-                         },
-                       ),
-                       ...p,
-                     ],
-                   )
-                 | Class((name, _), None) => (
-                     [JS.Identifier(_class_name(name)), ...c],
-                     p,
-                   )
-                 | Class((name, _), Some((expr, _))) => (
-                     [
-                       JS.Group(
-                         Ternary(
-                           gen_expression(expr),
-                           Identifier(_class_name(name)),
-                           String(""),
-                         ),
-                       ),
-                       ...c,
-                     ],
-                     p,
-                   )
-                 | ID((name, _)) => (c, [(__id_prop, String(name)), ...p])
+                 | ((name, _), expr) => [
+                     (
+                       name,
+                       switch (expr) {
+                       | Some((expr, _)) => gen_expression(expr)
+                       | None => JS.Identifier(name)
+                       },
+                     ),
+                     ...p,
+                   ]
                ),
-           ([], []),
+           [],
          );
 
-    let props =
+    let classes =
+      styles
+      |> List.map(((style, _)) =>
+           JS.(
+             FunctionCall(DotAccess(gen_expression(style), "getClass"), [])
+           )
+         );
+
+    let props' =
       List.is_empty(classes)
         ? props
         : [
@@ -229,7 +237,7 @@ and gen_jsx_attrs = (attrs: list(AST.Result.jsx_attribute_t)) =>
           ...props,
         ];
 
-    JS.Object(props);
+    JS.Object(props');
   }
 
 and gen_style = (rules: list(AST.Result.style_rule_t)) =>
@@ -238,20 +246,38 @@ and gen_style = (rules: list(AST.Result.style_rule_t)) =>
       Variable(__self, _style_util("styleExpressionPlugin")),
       Variable(__style_rules, _style_util("styleRulePlugin")),
       Return(
-        Object(
-          rules
-          |> List.map(
-               fst
-               % (
-                 (((key, _), (value, _))) => (
-                   key,
-                   FunctionCall(
-                     DotAccess(Identifier(__style_rules), key),
-                     [gen_expression(value)],
+        FunctionCall(
+          __create_style,
+          [
+            Object(
+              rules
+              |> List.filter_map(
+                   fst
+                   % (
+                     ((key, value)) => {
+                       let key_type = Node.get_type(key);
+                       let value_type = Node.get_type(value);
+
+                       if (key_type == value_type) {
+                         (
+                           fst(key),
+                           FunctionCall(
+                             DotAccess(Identifier(__style_rules), fst(key)),
+                             [gen_expression(fst(value))],
+                           ),
+                         )
+                         |> Option.some;
+                       } else if (value_type == AST.Type.Valid(`String)) {
+                         (fst(key), gen_expression(fst(value)))
+                         |> Option.some;
+                       } else {
+                         None;
+                       };
+                     }
                    ),
-                 )
-               ),
-             ),
+                 ),
+            ),
+          ],
         )
         |> Option.some,
       ),

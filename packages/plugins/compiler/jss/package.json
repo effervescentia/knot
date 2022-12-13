@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@knot/common": "1.0.0",
+    "@knot/plugin-utils": "1.0.0",
     "@types/jss": "^9.5.8",
     "jss": "^9.8.7",
     "jss-preset-default": "^4.5.0"

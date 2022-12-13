@@ -9,7 +9,7 @@ let __compiler_config =
     debug: false,
     color: false,
     working_dir: ".",
-    stdlib: empty_library_file,
+    stdlib: empty_stdlib_file,
   };
 
 let suite =
@@ -65,7 +65,7 @@ exports.ABC = ABC;
             entry: __entry,
             fail_fast: true,
             log_imports: false,
-            ambient: empty_library_file,
+            ambient: basic_library_file,
           },
         );
 

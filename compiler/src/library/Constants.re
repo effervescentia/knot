@@ -71,6 +71,12 @@ module Glyph = {
   let lambda = "->";
 
   let list_type_suffix = "[]";
+
+  let style_binding = "::";
+
+  let conditional = "?:";
+
+  let spread = "...";
 };
 
 /**

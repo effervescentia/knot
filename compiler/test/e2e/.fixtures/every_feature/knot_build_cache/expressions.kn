@@ -1,3 +1,9 @@
+import {
+  JSX,
+};
+
+
+
 import { expression_function, no_args_function } from "@/functions";
 
 const not_expr = !true;
@@ -26,13 +32,13 @@ const closure_stmts_expr = {
 const dot_access_expr = JSX.render;
 const empty_function_call_expr = no_args_function();
 const function_call_with_args_expr = expression_function(333, 444);
-const tag_with_expr_attributes = <div
-                                     id_attr=not_expr
-                                     unary_op_attr=(+-+-123)
-                                     binary_op_attr=(true && false)
-                                     group_attr="abc"
-                                     empty_closure_attr={}
-                                     closure_stmts_attr={
-                                       let y = true && false;
-                                       y || false;
-                                     } />;
+const tag_with_expr_attributes = <complex
+                                         id_attr=not_expr
+                                         unary_op_attr=(+-+-123)
+                                         binary_op_attr=(true && false)
+                                         group_attr="abc"
+                                         empty_closure_attr={}
+                                         closure_stmts_attr={
+                                           let y = true && false;
+                                           y || false;
+                                         } />;

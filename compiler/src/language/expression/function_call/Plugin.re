@@ -1,9 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let analyze = Analyzer.analyze_function_call;
-
-let pp = Formatter.pp_function_call;
+let analyze = Analyzer.analyze;
 
 include Framework.Expression({
   type parse_arg_t = (
@@ -16,9 +14,9 @@ include Framework.Expression({
     list(Expression.expression_t('a)),
   );
 
-  let parse = Parser.function_call;
+  let parse = Parser.parse;
 
-  let format = pp;
+  let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });

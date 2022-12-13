@@ -1,14 +1,12 @@
 open Knot.Kore;
 open AST;
 
-let parse_logical = Parser.logical;
-let parse_comparison = Parser.comparison;
-let parse_relational = Parser.relational;
-let parse_arithmetic = Parser.arithmetic;
+let parse_logical = Parser.parse_logical;
+let parse_comparison = Parser.parse_comparison;
+let parse_relational = Parser.parse_relational;
+let parse_arithmetic = Parser.parse_arithmetic;
 
-let analyze = Analyzer.analyze_binary_operation;
-
-let pp = Formatter.pp_binary_operation;
+let analyze = Analyzer.analyze;
 
 include Framework.NoParseExpression({
   type pp_arg_t = Fmt.t(Result.raw_expression_t);
@@ -19,7 +17,7 @@ include Framework.NoParseExpression({
     Expression.expression_t('a),
   );
 
-  let format = pp;
+  let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });

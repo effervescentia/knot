@@ -1,0 +1,17 @@
+const containerStyle = style {
+  height: $px(100.0),
+  width: $px(200.0),
+};
+const Container = div::containerStyle;
+
+const Button = button::{
+  height: $px(50.0),
+  backgroundColor: $blue,
+};
+
+view Modal ->
+  <Container>
+    <Button>Click me!</Button>
+    {$children}
+  </Container>
+;

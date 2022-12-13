@@ -5,9 +5,15 @@ open Common;
    a JSX AST node
    */
 type jsx_t('a) =
-  | Tag(identifier_t, list(jsx_attribute_t('a)), list(jsx_child_t('a)))
+  | Tag(
+      Node.t(string, 'a),
+      list(expression_t('a)),
+      list(jsx_attribute_t('a)),
+      list(jsx_child_t('a)),
+    )
   | Component(
       Node.t(string, 'a),
+      list(expression_t('a)),
       list(jsx_attribute_t('a)),
       list(jsx_child_t('a)),
     )
@@ -28,14 +34,10 @@ and raw_jsx_child_t('a) =
 /**
    a JSX attribute AST node
    */
-and jsx_attribute_t('a) = untyped_t(raw_jsx_attribute_t('a))
-/**
-   supported JSX attributes
-   */
-and raw_jsx_attribute_t('a) =
-  | ID(identifier_t)
-  | Class(identifier_t, option(expression_t('a)))
-  | Property(identifier_t, option(expression_t('a)))
+and jsx_attribute_t('a) =
+  untyped_t((identifier_t, option(expression_t('a))))
+
+and raw_jsx_attribute_t('a) = (identifier_t, option(expression_t('a)))
 
 /**
    a style AST node
@@ -45,6 +47,10 @@ and style_rule_t('a) = untyped_t(raw_style_rule_t('a))
    string key and style expression pair
    */
 and raw_style_rule_t('a) = (Node.t(string, 'a), expression_t('a))
+
+and bind_style_target_t('a) =
+  | BuiltIn(expression_t('a))
+  | Local(expression_t('a))
 
 /**
    an expression AST node
@@ -62,6 +68,7 @@ and raw_expression_t('a) =
   | UnaryOp(Unary.t, expression_t('a))
   | Closure(list(statement_t('a)))
   | DotAccess(expression_t('a), untyped_t(string))
+  | BindStyle(bind_style_target_t('a), expression_t('a))
   | FunctionCall(expression_t('a), list(expression_t('a)))
   | Style(list(style_rule_t('a)))
 

@@ -1,3 +1,5 @@
+include Infix;
+
 /**
  Extension of the standard List module with additional functionality.
  */
@@ -106,3 +108,11 @@ let divide = (xs: list('a)) =>
  returns [true] if the list is empty
  */
 let is_empty = (xs: list('a)): bool => length(xs) == 0;
+
+/**
+ returns a list containing all of the elements from [rhs] and
+ the elements from [lhs] that do not have associations in [rhs]
+ */
+let merge_assoc =
+    (lhs: list(('a, 'b)), rhs: list(('a, 'b))): list(('a, 'b)) =>
+  (lhs |> filter(((key, _)) => !mem_assoc(key, rhs))) @ rhs;

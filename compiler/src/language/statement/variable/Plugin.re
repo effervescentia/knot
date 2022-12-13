@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let pp = Formatter.pp_variable;
+let analyze = Analyzer.analyze;
 
 include Framework.Statement({
   type pp_arg_t = Fmt.t(Result.raw_expression_t);
@@ -11,9 +11,9 @@ include Framework.Statement({
     Expression.expression_t('a),
   );
 
-  let parse = Parser.variable;
+  let parse = Parser.parse;
 
-  let format = pp;
+  let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });

@@ -26,3 +26,5 @@ let invalid_format_config_file = _fixture("invalid_format_config.yml");
 let cannot_parse_config_file = _fixture("cannot_parse_config.yml");
 
 let empty_library_file = _fixture("empty_library.kd");
+let basic_library_file = _fixture("basic_library.kd");
+let empty_stdlib_file = _fixture("basic_stdlib.kd");

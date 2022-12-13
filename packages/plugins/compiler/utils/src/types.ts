@@ -5,6 +5,10 @@ export interface PropsType {
   $$_state?: any;
 }
 
+export interface Style {
+  getClass: () => string;
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 export interface StateFactory<S extends object = {}> {
   prop<K extends keyof S>(name: K, property: S[K]): S[K];
@@ -30,4 +34,9 @@ export interface JSXPlugin<T, R> {
   createFragment(...children: R[]): R;
 
   render(app: R, id: string): void;
+
+  bindStyle<P extends PropsType>(
+    component: ((props: P) => R) | string,
+    styles: Style
+  ): (props: P) => R;
 }

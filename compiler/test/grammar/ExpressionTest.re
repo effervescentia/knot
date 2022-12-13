@@ -149,6 +149,63 @@ let suite =
           "{ foo; }.bar",
         )
     ),
+    "parse style expression"
+    >: (
+      () =>
+        Assert.parse(
+          [
+            ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
+            |> U.as_node,
+            ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
+          ]
+          |> AR.of_style
+          |> U.as_node,
+          "style {
+  color: $pink,
+  height: \"20px\",
+}",
+        )
+    ),
+    "parse style binding - identifier root"
+    >: (
+      () =>
+        Assert.parse(
+          ("foo" |> AR.of_id |> U.as_node, "bar" |> AR.of_id |> U.as_node)
+          |> AR.of_local_bind_style
+          |> U.as_node,
+          "foo::bar",
+        )
+    ),
+    "parse style binding - literal"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> AR.of_id |> U.as_node,
+            [
+              ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
+              |> U.as_node,
+              ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
+              (
+                "width" |> U.as_node,
+                ("$px" |> AR.of_id |> U.as_node, [U.float_prim((22.5, 3))])
+                |> AR.of_func_call
+                |> U.as_node,
+              )
+              |> U.as_node,
+            ]
+            |> AR.of_style
+            |> U.as_node,
+          )
+          |> AR.of_local_bind_style
+          |> U.as_node,
+          "foo::{
+  color: $pink,
+  height: \"20px\",
+  width: $px(22.5),
+}",
+        )
+    ),
     "parse function call - identifier root"
     >: (
       () =>
@@ -418,6 +475,21 @@ let suite =
           |> AR.of_dot_access
           |> U.as_node,
           "a.b.c.d",
+        )
+    ),
+    "parse left-associative - style binding"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            ("a" |> AR.of_id |> U.as_node, "b" |> AR.of_id |> U.as_node)
+            |> AR.of_local_bind_style
+            |> U.as_node,
+            "c" |> AR.of_id |> U.as_node,
+          )
+          |> AR.of_local_bind_style
+          |> U.as_node,
+          "a::b::c",
         )
     ),
     "parse right-associative - exponent"

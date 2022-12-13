@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let pp_view:
+let format:
   Fmt.t(
     (
       string,
@@ -18,9 +18,9 @@ let pp_view:
         ppf,
         "@[<v>view @[<h>%s%a@] %a@]",
         name,
-        KLambda.Plugin.pp_argument_list(KExpression.Plugin.pp),
+        KLambda.Formatter.format_argument_list(KExpression.Plugin.format),
         args,
-        KLambda.Plugin.pp_body(KExpression.Plugin.pp),
+        KLambda.Formatter.format_body(KExpression.Plugin.format),
         expr,
       )
     );

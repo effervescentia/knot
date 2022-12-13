@@ -1,7 +1,7 @@
-let parse = Parser.statement;
+let parse = Parser.parse;
 
-let analyze = Analyzer.analyze_statement;
+let analyze = Analyzer.analyze;
 
-let pp = Formatter.pp_statement;
+let format = Formatter.format;
 
 let to_xml = Debug.to_xml;

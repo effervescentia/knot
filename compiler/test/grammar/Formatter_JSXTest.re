@@ -8,12 +8,13 @@ module U = Util.ResultUtil;
 let _assert_jsx = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(KSX.Plugin.pp(KExpression.Plugin.pp)),
+    actual |> ~@Fmt.root(KSX.Plugin.format(KExpression.Plugin.format)),
   );
 let _assert_jsx_attr = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(KSX.Formatter.pp_attr(KExpression.Plugin.pp)),
+    actual
+    |> ~@Fmt.root(KSX.Formatter.format_attribute(KExpression.Plugin.format)),
   );
 
 let suite =
@@ -22,14 +23,17 @@ let suite =
     "pp_jsx() - empty tag"
     >: (
       () =>
-        _assert_jsx("<Foo />", (U.as_untyped("Foo"), [], []) |> A.of_tag)
+        _assert_jsx(
+          "<Foo />",
+          ("Foo" |> U.as_view([], Valid(`Nil)), [], [], []) |> A.of_tag,
+        )
     ),
     "pp_jsx() - empty component"
     >: (
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [], [])
           |> A.of_component,
         )
     ),
@@ -39,13 +43,14 @@ let suite =
     >: (
       () =>
         _assert_jsx(
-          "<Foo #bar .fizz buzz />",
+          "<Foo bar=123 buzz />",
           (
-            U.as_untyped("Foo"),
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [
-              "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
-              (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
-              (U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped,
+              (U.as_untyped("bar"), 123 |> U.int_prim |> Option.some)
+              |> U.as_untyped,
+              (U.as_untyped("buzz"), None) |> U.as_untyped,
             ],
             [],
           )
@@ -59,7 +64,12 @@ let suite =
           "<Foo>
   bar
 </Foo>",
-          (U.as_untyped("Foo"), [], ["bar" |> A.of_text |> U.as_untyped])
+          (
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
+            [],
+            ["bar" |> A.of_text |> U.as_untyped],
+          )
           |> A.of_tag,
         )
     ),
@@ -71,7 +81,8 @@ let suite =
   {1 + 5}
 </Foo>",
           (
-            U.as_untyped("Foo"),
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [],
             [
               (1 |> U.int_prim, 5 |> U.int_prim)
@@ -94,11 +105,13 @@ let suite =
   </Bar>
 </Foo>",
           (
-            U.as_untyped("Foo"),
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [],
             [
               (
-                U.as_untyped("Bar"),
+                "Bar" |> U.as_view([], Valid(`Nil)),
+                [],
                 [],
                 ["fizzbuzz" |> A.of_text |> U.as_untyped],
               )
@@ -120,10 +133,11 @@ let suite =
   Hello, World!
 </Foo>",
           (
-            U.as_untyped("Foo"),
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [],
             [
-              (U.as_untyped("Bar"), [], [])
+              ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
               |> A.of_tag
               |> A.of_node
               |> U.as_untyped,
@@ -139,7 +153,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=123",
-          (U.as_untyped("fizz"), Some(123 |> U.int_prim)) |> A.of_prop,
+          (U.as_untyped("fizz"), Some(123 |> U.int_prim)),
         )
     ),
     "pp_jsx_attr() - property with identifier value"
@@ -147,8 +161,7 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=buzz",
-          (U.as_untyped("fizz"), Some("buzz" |> A.of_id |> U.as_int))
-          |> A.of_prop,
+          (U.as_untyped("fizz"), Some("buzz" |> A.of_id |> U.as_int)),
         )
     ),
     "pp_jsx_attr() - property with binary operation value"
@@ -161,8 +174,7 @@ let suite =
             Some(
               (1 |> U.int_prim, 2 |> U.int_prim) |> A.of_add_op |> U.as_int,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with grouped binary operation value"
@@ -179,8 +191,7 @@ let suite =
               |> A.of_group
               |> U.as_int,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with negative value"
@@ -191,8 +202,7 @@ let suite =
           (
             U.as_untyped("fizz"),
             Some(1 |> U.int_prim |> A.of_neg_op |> U.as_int),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with boolean value"
@@ -210,8 +220,7 @@ let suite =
               |> A.of_group
               |> U.as_bool,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with closure value"
@@ -232,8 +241,7 @@ let suite =
               |> A.of_closure
               |> U.as_bool,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with inline JSX value"
@@ -244,13 +252,12 @@ let suite =
           (
             U.as_untyped("fizz"),
             Some(
-              (U.as_untyped("Buzz"), [], [])
+              ("Buzz" |> U.as_view([], Valid(`Nil)), [], [], [])
               |> A.of_tag
               |> A.of_jsx
               |> U.as_element,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with multiline JSX value"
@@ -264,10 +271,11 @@ let suite =
             U.as_untyped("fizz"),
             Some(
               (
-                U.as_untyped("Buzz"),
+                "Buzz" |> U.as_view([], Valid(`Nil)),
+                [],
                 [],
                 [
-                  (U.as_untyped("Foo"), [], [])
+                  ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
                   |> A.of_tag
                   |> A.of_node
                   |> U.as_untyped,
@@ -277,32 +285,9 @@ let suite =
               |> A.of_jsx
               |> U.as_element,
             ),
-          )
-          |> A.of_prop,
+          ),
         )
     ),
     "pp_jsx_attr() - property with punned value"
-    >: (
-      () =>
-        _assert_jsx_attr("buzz", (U.as_untyped("buzz"), None) |> A.of_prop)
-    ),
-    "pp_jsx_attr() - dynamic class name"
-    >: (
-      () =>
-        _assert_jsx_attr(
-          ".fizz=true",
-          (U.as_untyped("fizz"), Some(true |> U.bool_prim))
-          |> A.of_jsx_class,
-        )
-    ),
-    "pp_jsx_attr() - static class name"
-    >: (
-      () =>
-        _assert_jsx_attr(
-          ".fizz",
-          (U.as_untyped("fizz"), None) |> A.of_jsx_class,
-        )
-    ),
-    "pp_jsx_attr() - identifier name"
-    >: (() => _assert_jsx_attr("#bar", "bar" |> U.as_untyped |> A.of_jsx_id)),
+    >: (() => _assert_jsx_attr("buzz", (U.as_untyped("buzz"), None))),
   ];

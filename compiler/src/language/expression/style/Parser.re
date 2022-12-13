@@ -2,12 +2,12 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let style_rule =
+let parse_style_rule =
     (
       ctx: ParseContext.t,
       parse_expr: Framework.contextual_expression_parser_t,
     ) =>
-  Matchers.attribute(KIdentifier.Plugin.parse_id(ctx), parse_expr(ctx))
+  Matchers.attribute(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
       Node.untyped(
@@ -17,31 +17,30 @@ let style_rule =
     }
   );
 
-let style_expression =
+let parse_style_literal =
     (
       (
         ctx: ParseContext.t,
         parse_expr: Framework.contextual_expression_parser_t,
       ),
     )
-    : Framework.expression_parser_t => {
-  let rule_scope = Scope.create(ctx, Range.zero);
+    : Framework.expression_parser_t =>
+  parse_style_rule(ctx, parse_expr)
+  |> Matchers.comma_sep
+  |> Matchers.between_braces
+  >|= Node.map(Raw.of_style);
 
-  Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
-
+let parse =
+    (
+      (
+        ctx: ParseContext.t,
+        parse_expr: Framework.contextual_expression_parser_t,
+      ),
+    )
+    : Framework.expression_parser_t =>
   Matchers.keyword(Constants.Keyword.style)
   >>= (
     start =>
-      style_rule(ctx, parse_expr)
-      |> Matchers.comma_sep
-      |> Matchers.between_braces
-      >|= (
-        raw_rules =>
-          Node.typed(
-            AST.Raw.of_style(raw_rules |> fst),
-            (),
-            Node.join_ranges(start, raw_rules),
-          )
-      )
+      parse_style_literal((ctx, parse_expr))
+      >|= Node.map_range(Range.join(Node.get_range(start)))
   );
-};

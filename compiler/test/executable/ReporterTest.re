@@ -39,7 +39,7 @@ finished with 0 error(s) and 0 warning(s)
 ║                    FAILED                    ║
 ╚══════════════════════════════════════════════╝
 
-finished with 23 error(s) and 0 warning(s)
+finished with 24 error(s) and 0 warning(s)
 
 1) Import Cycle Found
 
@@ -122,41 +122,42 @@ finished with 23 error(s) and 0 warning(s)
   \n    • convert the value to have a primitive type
         ie. nil, boolean, integer, float, string, element
 
-13) Invalid JSX Class Expression : bar/my_namespace.kn:0.0
-  (foo/bar/my_namespace.kn:0.0)
-
-  jsx classes can only be controlled with arguments of type boolean but received integer
-  \n  [code frame not available]
-
-14) Invalid JSX Tag : bar/my_namespace.kn:0.0
+13) Invalid JSX Tag : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   this jsx tag was expected to be of type view with props (my_attr: boolean) but received integer
   \n  [code frame not available]
 
-15) Invalid JSX Attribute : bar/my_namespace.kn:0.0
+14) Invalid JSX Attribute : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   this jsx tag expects the attribute my_attr to be of type integer but received boolean
   \n  [code frame not available]
 
-16) Unexpected JSX Attribute : bar/my_namespace.kn:0.0
+15) Unexpected JSX Attribute : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   found an unexpected attribute my_attr with type boolean
   \n  [code frame not available]
 
-17) Missing JSX Attributes : bar/my_namespace.kn:0.0
+16) Missing JSX Attributes : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   jsx tag MyTag is missing the attributes (my_bool: boolean, my_int: integer)
   \n  [code frame not available]
 
-18) Invalid Dot Access : bar/my_namespace.kn:0.0
+17) Invalid Dot Access : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   dot access can only be performed on values with struct types
   expected a value matching the type { my_prop: any } but received integer
+  \n  [code frame not available]
+
+18) Invalid Style Binding : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  style binding expects the left-side value to be a view
+  and the right-side value to be style but received integer and string
   \n  [code frame not available]
 
 19) Invalid Function Call : bar/my_namespace.kn:0.0
@@ -193,7 +194,13 @@ finished with 23 error(s) and 0 warning(s)
   this decorator can only target a module but found style
   \n  [code frame not available]
 
-finished with 23 error(s) and 0 warning(s)
+24) Must Use Explicit Children : bar/my_namespace.kn:0.0
+  (foo/bar/my_namespace.kn:0.0)
+
+  the explicitly defined children attribute of type string must be used over the implicit $children
+  \n  [code frame not available]
+
+finished with 24 error(s) and 0 warning(s)
 ",
           [
             ImportCycle(["a", "b", "c", "d"]),
@@ -254,11 +261,6 @@ finished with 23 error(s) and 0 warning(s)
               Range.zero,
             ),
             ParseError(
-              TypeError(InvalidJSXClassExpression(Type.Valid(`Integer))),
-              __namespace,
-              Range.zero,
-            ),
-            ParseError(
               TypeError(
                 InvalidJSXTag(
                   "MyTag",
@@ -307,6 +309,16 @@ finished with 23 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
+                InvalidStyleBinding(
+                  Type.Valid(`Integer),
+                  Type.Valid(`String),
+                ),
+              ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(
                 InvalidFunctionCall(
                   Type.Valid(`Integer),
                   [Type.Valid(`String), Type.Valid(`Nil)],
@@ -342,6 +354,11 @@ finished with 23 error(s) and 0 warning(s)
                   Type.DecoratorTarget.Style,
                 ),
               ),
+              __namespace,
+              Range.zero,
+            ),
+            ParseError(
+              TypeError(MustUseExplicitChildren(Type.Valid(`String))),
               __namespace,
               Range.zero,
             ),

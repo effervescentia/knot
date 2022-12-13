@@ -1,34 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let validate_binary_operation:
-  (Operator.Binary.t, (Type.t, Type.t)) => option(Type.error_t) =
-  op =>
-    fun
-    /* assume they have been reported already and ignore */
-    | (Invalid(_), _)
-    | (_, Invalid(_)) => None
-
-    | (Valid(valid_lhs) as lhs, Valid(valid_rhs) as rhs) =>
-      switch (op, valid_lhs, valid_rhs) {
-      | (LogicalAnd | LogicalOr, `Boolean, `Boolean) => None
-
-      | (
-          LessOrEqual | LessThan | GreaterOrEqual | GreaterThan | Add | Subtract |
-          Divide |
-          Multiply |
-          Exponent,
-          `Integer | `Float,
-          `Integer | `Float,
-        ) =>
-        None
-
-      | (Equal | Unequal, _, _) when valid_lhs == valid_rhs => None
-
-      | _ => Some(InvalidBinaryOperation(op, lhs, rhs))
-      };
-
-let analyze_binary_operation:
+let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
@@ -43,7 +16,7 @@ let analyze_binary_operation:
     let type_rhs = Node.get_type(rhs');
 
     (type_lhs, type_rhs)
-    |> validate_binary_operation(op)
+    |> Validator.validate(op)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (

@@ -1,31 +1,31 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
-let pp_operator: Fmt.t(Operator.Binary.t) =
+let format_operator: Fmt.t(Operator.Binary.t) =
   ppf =>
     Operator.Binary.(
       fun
-      | Equal => KEqual.Plugin.pp
-      | Unequal => KUnequal.Plugin.pp
+      | Equal => KEqual.format
+      | Unequal => KUnequal.format
 
-      | LogicalAnd => KLogicalAnd.Plugin.pp
-      | LogicalOr => KLogicalOr.Plugin.pp
+      | LogicalAnd => KLogicalAnd.format
+      | LogicalOr => KLogicalOr.format
 
-      | LessOrEqual => KLessOrEqual.Plugin.pp
-      | LessThan => KLessThan.Plugin.pp
-      | GreaterOrEqual => KGreaterOrEqual.Plugin.pp
-      | GreaterThan => KGreaterThan.Plugin.pp
+      | LessOrEqual => KLessOrEqual.format
+      | LessThan => KLessThan.format
+      | GreaterOrEqual => KGreaterOrEqual.format
+      | GreaterThan => KGreaterThan.format
 
-      | Add => KAdd.Plugin.pp
-      | Subtract => KSubtract.Plugin.pp
-      | Multiply => KMultiply.Plugin.pp
-      | Divide => KDivide.Plugin.pp
+      | Add => KAdd.format
+      | Subtract => KSubtract.format
+      | Multiply => KMultiply.format
+      | Divide => KDivide.format
 
-      | Exponent => KExponentiate.Plugin.pp
+      | Exponent => KExponentiate.format
     )
     % (pp => pp(ppf, ()));
 
-let pp_binary_operation:
+let format:
   Fmt.t(Result.raw_expression_t) =>
   Fmt.t((Operator.Binary.t, Result.expression_t, Result.expression_t)) =
   (pp_expression, ppf, (op, (lhs, _), (rhs, _))) =>
@@ -34,7 +34,7 @@ let pp_binary_operation:
       "%a %a %a",
       pp_expression,
       lhs,
-      pp_operator,
+      format_operator,
       op,
       pp_expression,
       rhs,

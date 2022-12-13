@@ -18,10 +18,55 @@ let suite =
   >::: [
     "resolve jsx with valid inline expression"
     >: (
-      () =>
+      () => {
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__throw_scope,
+          types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
+        };
+
         Assert.jsx(
           (
-            URes.as_untyped(__id),
+            __id |> URes.as_typed(type_),
+            [],
+            [],
+            [
+              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
+            ],
+          )
+          |> A.of_component,
+          (
+            URaw.as_untyped(__id),
+            [],
+            [],
+            [
+              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
+            ],
+          )
+          |> AR.of_tag
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+        );
+      }
+    ),
+    "resolve jsx as tag if found in plugin scope"
+    >: (
+      () => {
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__throw_scope,
+          context: {
+            ...__throw_scope.context,
+            modules: {
+              ...__throw_scope.context.modules,
+              plugins: [(ElementTag, [(__id, Value(type_))])],
+            },
+          },
+        };
+
+        Assert.jsx(
+          (
+            __id |> URes.as_typed(type_),
+            [],
             [],
             [
               "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
@@ -31,16 +76,62 @@ let suite =
           (
             URaw.as_untyped(__id),
             [],
+            [],
             [
               "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
             ],
           )
           |> AR.of_tag
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+        );
+      }
+    ),
+    "resolve jsx with valid style binding"
+    >: (
+      () => {
+        let style_id = "bar";
+        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let scope = {
+          ...__throw_scope,
+          types:
+            [(__id, type_), (style_id, T.Valid(`Style))]
+            |> List.to_seq
+            |> Hashtbl.of_seq,
+        };
+
+        Assert.jsx(
+          (
+            __id |> URes.as_typed(type_),
+            [style_id |> A.of_id |> URes.as_style],
+            [],
+            [],
+          )
+          |> A.of_component,
+          (
+            URaw.as_untyped(__id),
+            [style_id |> AR.of_id |> URaw.as_untyped],
+            [],
+            [],
+          )
+          |> AR.of_tag
+          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+        );
+      }
+    ),
+    "report NotFound error with unrecognized tag identifier"
+    >: (
+      () => {
+        Assert.throws_compile_errors(
+          [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
+          () =>
+          (URaw.as_untyped(__id), [], [], [])
+          |> AR.of_tag
           |> KSX.Analyzer.analyze_jsx(
                __throw_scope,
                KExpression.Plugin.analyze,
-             ),
-        )
+             )
+        );
+      }
     ),
     "report InvalidJSXPrimitiveExpression error with invalid inline expression"
     >: (
@@ -62,6 +153,7 @@ let suite =
           () =>
           (
             URaw.as_untyped(__id),
+            [],
             [],
             [
               __id
@@ -104,94 +196,6 @@ let suite =
         );
       }
     ),
-    "resolve jsx with empty class expression"
-    >: (
-      () =>
-        Assert.jsx(
-          (
-            URes.as_untyped(__id),
-            [
-              (URes.as_untyped(__id), None)
-              |> A.of_jsx_class
-              |> URes.as_untyped,
-            ],
-            [],
-          )
-          |> A.of_tag,
-          (
-            URaw.as_untyped(__id),
-            [
-              (URaw.as_untyped(__id), None)
-              |> AR.of_jsx_class
-              |> URaw.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(
-               __throw_scope,
-               KExpression.Plugin.analyze,
-             ),
-        )
-    ),
-    "resolve jsx with valid class expression"
-    >: (
-      () =>
-        Assert.jsx(
-          (
-            URes.as_untyped(__id),
-            [
-              (URes.as_untyped(__id), Some(URes.bool_prim(true)))
-              |> A.of_jsx_class
-              |> URes.as_untyped,
-            ],
-            [],
-          )
-          |> A.of_tag,
-          (
-            URaw.as_untyped(__id),
-            [
-              (URaw.as_untyped(__id), Some(URaw.bool_prim(true)))
-              |> AR.of_jsx_class
-              |> URaw.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(
-               __throw_scope,
-               KExpression.Plugin.analyze,
-             ),
-        )
-    ),
-    "throw InvalidJSXClassExpression error on jsx with invalid class expression"
-    >: (
-      () =>
-        Assert.throws_compile_errors(
-          [
-            ParseError(
-              TypeError(InvalidJSXClassExpression(Valid(`String))),
-              __namespace,
-              Range.zero,
-            ),
-          ],
-          () =>
-          (
-            URaw.as_untyped(__id),
-            [
-              (URaw.as_untyped(__id), Some(URaw.string_prim("foo")))
-              |> AR.of_jsx_class
-              |> URaw.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(
-               __throw_scope,
-               KExpression.Plugin.analyze,
-             )
-        )
-    ),
     "throw InvalidJSXTag error on jsx with incorrect type"
     >: (
       () => {
@@ -220,9 +224,9 @@ let suite =
           () =>
           (
             URaw.as_untyped(__component_id),
+            [],
             [
               (URaw.as_untyped("bar"), true |> URaw.bool_prim |> Option.some)
-              |> AR.of_prop
               |> URaw.as_untyped,
             ],
             [],
@@ -248,7 +252,7 @@ let suite =
                 __component_id,
                 T.Valid(
                   `View((
-                    [("fizz", T.Valid(`Boolean))],
+                    [("fizz", (T.Valid(`Boolean), true))],
                     T.Valid(`Element),
                   )),
                 ),
@@ -260,15 +264,14 @@ let suite =
 
         (
           URaw.as_untyped(__component_id),
+          [],
           [
             (
               URaw.as_untyped("fizz"),
               "bar" |> URaw.string_prim |> Option.some,
             )
-            |> AR.of_prop
             |> URaw.as_untyped,
             (URaw.as_untyped("buzz"), true |> URaw.bool_prim |> Option.some)
-            |> AR.of_prop
             |> URaw.as_untyped,
           ],
           [],
@@ -307,7 +310,11 @@ let suite =
         let view_type =
           T.Valid(
             `View((
-              [("fizz", T.Valid(`Boolean)), ("buzz", T.Valid(`String))],
+              [
+                ("fizz", (T.Valid(`Boolean), true)),
+                ("buzz", (T.Valid(`String), true)),
+                ("foobar", (T.Valid(`Element), false)),
+              ],
               T.Valid(`Element),
             )),
           );
@@ -324,15 +331,14 @@ let suite =
         Assert.jsx(
           (
             __component_id |> URes.as_typed(view_type),
+            [],
             [
               (URes.as_untyped("fizz"), true |> URes.bool_prim |> Option.some)
-              |> A.of_prop
               |> URes.as_untyped,
               (
                 URes.as_untyped("buzz"),
                 "bar" |> URes.string_prim |> Option.some,
               )
-              |> A.of_prop
               |> URes.as_untyped,
             ],
             [],
@@ -340,15 +346,14 @@ let suite =
           |> A.of_component,
           (
             URaw.as_untyped(__component_id),
+            [],
             [
               (URaw.as_untyped("fizz"), true |> URaw.bool_prim |> Option.some)
-              |> AR.of_prop
               |> URaw.as_untyped,
               (
                 URaw.as_untyped("buzz"),
                 "bar" |> URaw.string_prim |> Option.some,
               )
-              |> AR.of_prop
               |> URaw.as_untyped,
             ],
             [],

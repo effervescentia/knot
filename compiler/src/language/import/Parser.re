@@ -5,10 +5,10 @@ module Export = Reference.Export;
 module Keyword = Constants.Keyword;
 module ParseContext = AST.ParseContext;
 
-let _import_keyword = Matchers.keyword(Keyword.import);
-let _from_keyword = Matchers.keyword(Keyword.from);
+let __import_keyword = Matchers.keyword(Keyword.import);
+let __from_keyword = Matchers.keyword(Keyword.from);
 
-let _import_named = (ctx: ParseContext.t, import) =>
+let _parse_import_named = (ctx: ParseContext.t, import) =>
   fun
   | (((id, _), None), _) as no_alias =>
     ctx
@@ -20,7 +20,7 @@ let _import_named = (ctx: ParseContext.t, import) =>
     |> import(Export.Named(id), alias)
     |> Result.map_error(Tuple.with_snd2(Node.get_range(with_alias)));
 
-let _import_module = (ctx, imports, import) =>
+let _parse_import_module = (ctx, imports, import) =>
   imports
   |> List.map(
        AST.Module.(
@@ -31,7 +31,7 @@ let _import_module = (ctx, imports, import) =>
            |> Result.map_error(Tuple.with_snd2(Node.get_range(main_import)))
 
          | (NamedImport(id, alias), _) as named_import =>
-           _import_named(
+           _parse_import_named(
              ctx,
              import,
              Node.untyped((id, alias), Node.get_range(named_import)),
@@ -39,24 +39,24 @@ let _import_module = (ctx, imports, import) =>
        ),
      );
 
-let namespace = imports =>
+let parse_namespace = imports =>
   Matchers.string
   >|= Node.map(Reference.Namespace.of_string)
   >|= (namespace => (namespace, imports));
 
-let main_import =
+let parse_main_import =
   Matchers.identifier
   >|= (import => [import |> Node.wrap(AST.Result.of_main_import)]);
 
-let named_imports = (ctx: ParseContext.t) =>
-  KIdentifier.Plugin.parse_id(ctx)
+let parse_named_imports = (ctx: ParseContext.t) =>
+  KIdentifier.Parser.parse_raw(ctx)
   >>= (
     id =>
       Matchers.keyword(Keyword.as_)
-      >> KIdentifier.Plugin.parse_id(ctx)
+      >> KIdentifier.Parser.parse_raw(ctx)
       >|= (alias => (id, Some(alias)))
   )
-  <|> (KIdentifier.Plugin.parse_id(ctx) >|= (id => (id, None)))
+  <|> (KIdentifier.Parser.parse_raw(ctx) >|= (id => (id, None)))
   |> Matchers.comma_sep
   |> Matchers.between_braces
   >|= Node.map(
@@ -65,25 +65,25 @@ let named_imports = (ctx: ParseContext.t) =>
         ),
       );
 
-let module_import = (ctx: ParseContext.t) =>
-  _import_keyword
+let parse_module_import = (ctx: ParseContext.t) =>
+  __import_keyword
   >>= (
     kwd =>
       choice([
-        main_import,
-        named_imports(ctx)
+        parse_main_import,
+        parse_named_imports(ctx)
         >|= fst
         >|= List.map(Node.map(AST.Result.of_named_import)),
       ])
       |> Matchers.comma_sep
       >|= List.flatten
-      << _from_keyword
-      >>= namespace
+      << __from_keyword
+      >>= parse_namespace
       >@= (
         (((namespace, _), imports)) =>
           namespace
           |> ParseContext.import
-          |> _import_module(ctx, imports)
+          |> _parse_import_module(ctx, imports)
           |> List.iter(
                Result.iter_error(((err, range)) =>
                  ctx |> ParseContext.report(TypeError(err), range)
@@ -99,14 +99,14 @@ let module_import = (ctx: ParseContext.t) =>
       )
   );
 
-let standard_import = (ctx: ParseContext.t) =>
-  _import_keyword
+let parse_standard_import = (ctx: ParseContext.t) =>
+  __import_keyword
   >>= (
     kwd =>
-      named_imports(ctx)
+      parse_named_imports(ctx)
       >@= fst
       % List.iter(
-          _import_named(ctx, ParseContext.import(Stdlib))
+          _parse_import_named(ctx, ParseContext.import(Stdlib))
           % Result.iter_error(_ => ()),
         )
       >|= (
@@ -118,5 +118,6 @@ let standard_import = (ctx: ParseContext.t) =>
       )
   );
 
-let import = (ctx: ParseContext.t) =>
-  choice([module_import(ctx), standard_import(ctx)]) |> Matchers.terminated;
+let parse = (ctx: ParseContext.t) =>
+  choice([parse_module_import(ctx), parse_standard_import(ctx)])
+  |> Matchers.terminated;

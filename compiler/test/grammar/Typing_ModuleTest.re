@@ -38,7 +38,7 @@ module Assert =
       Alcotest.(
         check(
           testable(
-            ppf => KTypeDefinition.Plugin.module_to_xml % Fmt.xml_string(ppf),
+            ppf => KTypeDefinition.Debug.module_to_xml % Fmt.xml_string(ppf),
             (==),
           ),
           "type definition matches",
@@ -168,6 +168,40 @@ module Foo {}",
           ),
           "module Foo {
   type bar: float;
+}",
+        )
+    ),
+    "parse module with view type"
+    >: (
+      () =>
+        Assert.parse(
+          U.as_untyped(
+            TD.Module(
+              U.as_untyped("Foo"),
+              [
+                (
+                  U.as_untyped("bar"),
+                  (
+                    [
+                      (U.as_untyped("foo"), U.as_untyped(TE.Integer))
+                      |> TE.of_required
+                      |> U.as_untyped,
+                    ]
+                    |> TE.of_struct
+                    |> U.as_untyped,
+                    U.as_untyped(TE.Element),
+                  )
+                  |> TE.of_view
+                  |> U.as_untyped,
+                )
+                |> TD.of_type
+                |> U.as_untyped,
+              ],
+              [],
+            ),
+          ),
+          "module Foo {
+  type bar: view({ foo: integer }, element);
 }",
         )
     ),

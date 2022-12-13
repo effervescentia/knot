@@ -11,7 +11,7 @@ let suite =
       () =>
         Assert.string(
           "&&",
-          OB.LogicalAnd |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LogicalAnd |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - logical or"
@@ -19,20 +19,23 @@ let suite =
       () =>
         Assert.string(
           "||",
-          OB.LogicalOr |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LogicalOr |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - add"
     >: (
       () =>
-        Assert.string("+", OB.Add |> ~@KBinaryOperator.Formatter.pp_operator)
+        Assert.string(
+          "+",
+          OB.Add |> ~@KBinaryOperator.Formatter.format_operator,
+        )
     ),
     "pp_binary_op() - subtract"
     >: (
       () =>
         Assert.string(
           "-",
-          OB.Subtract |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Subtract |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - divide"
@@ -40,7 +43,7 @@ let suite =
       () =>
         Assert.string(
           "/",
-          OB.Divide |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Divide |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - multiply"
@@ -48,7 +51,7 @@ let suite =
       () =>
         Assert.string(
           "*",
-          OB.Multiply |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Multiply |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - less than or equal"
@@ -56,7 +59,7 @@ let suite =
       () =>
         Assert.string(
           "<=",
-          OB.LessOrEqual |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LessOrEqual |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - less than"
@@ -64,7 +67,7 @@ let suite =
       () =>
         Assert.string(
           "<",
-          OB.LessThan |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.LessThan |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - greater than or equal"
@@ -72,7 +75,7 @@ let suite =
       () =>
         Assert.string(
           ">=",
-          OB.GreaterOrEqual |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.GreaterOrEqual |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - greater than"
@@ -80,7 +83,7 @@ let suite =
       () =>
         Assert.string(
           ">",
-          OB.GreaterThan |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.GreaterThan |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - equal"
@@ -88,7 +91,7 @@ let suite =
       () =>
         Assert.string(
           "==",
-          OB.Equal |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Equal |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - unequal"
@@ -96,7 +99,7 @@ let suite =
       () =>
         Assert.string(
           "!=",
-          OB.Unequal |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Unequal |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_binary_op() - exponent"
@@ -104,20 +107,23 @@ let suite =
       () =>
         Assert.string(
           "^",
-          OB.Exponent |> ~@KBinaryOperator.Formatter.pp_operator,
+          OB.Exponent |> ~@KBinaryOperator.Formatter.format_operator,
         )
     ),
     "pp_unary_op() - not"
     >: (
       () =>
-        Assert.string("!", OU.Not |> ~@KUnaryOperator.Formatter.pp_operator)
+        Assert.string(
+          "!",
+          OU.Not |> ~@KUnaryOperator.Formatter.format_operator,
+        )
     ),
     "pp_unary_op() - positive"
     >: (
       () =>
         Assert.string(
           "+",
-          OU.Positive |> ~@KUnaryOperator.Formatter.pp_operator,
+          OU.Positive |> ~@KUnaryOperator.Formatter.format_operator,
         )
     ),
     "pp_unary_op() - negative"
@@ -125,7 +131,7 @@ let suite =
       () =>
         Assert.string(
           "-",
-          OU.Negative |> ~@KUnaryOperator.Formatter.pp_operator,
+          OU.Negative |> ~@KUnaryOperator.Formatter.format_operator,
         )
     ),
     "pp_ns() - internal"
@@ -134,7 +140,7 @@ let suite =
         Assert.string(
           "\"@/fooBar\"",
           Reference.Namespace.Internal("fooBar")
-          |> ~@KImport.Formatter.pp_namespace,
+          |> ~@KImport.Formatter.format_namespace,
         )
     ),
     "pp_ns() - external"
@@ -143,17 +149,19 @@ let suite =
         Assert.string(
           "\"fooBar\"",
           Reference.Namespace.External("fooBar")
-          |> ~@KImport.Formatter.pp_namespace,
+          |> ~@KImport.Formatter.format_namespace,
         )
     ),
     "pp_num() - integer"
-    >: (() => Assert.string("123", 123L |> A.of_int |> ~@KNumber.Plugin.pp)),
+    >: (
+      () => Assert.string("123", 123L |> A.of_int |> ~@KNumber.Plugin.format)
+    ),
     "pp_num() - maximum integer"
     >: (
       () =>
         Assert.string(
           "9223372036854775807",
-          Int64.max_int |> A.of_int |> ~@KNumber.Plugin.pp,
+          Int64.max_int |> A.of_int |> ~@KNumber.Plugin.format,
         )
     ),
     "pp_num() - minimum integer"
@@ -161,7 +169,7 @@ let suite =
       () =>
         Assert.string(
           "-9223372036854775808",
-          Int64.min_int |> A.of_int |> ~@KNumber.Plugin.pp,
+          Int64.min_int |> A.of_int |> ~@KNumber.Plugin.format,
         )
     ),
     "pp_num() - float"
@@ -169,7 +177,7 @@ let suite =
       () =>
         Assert.string(
           "123.456",
-          (123.456, 3) |> A.of_float |> ~@KNumber.Plugin.pp,
+          (123.456, 3) |> A.of_float |> ~@KNumber.Plugin.format,
         )
     ),
     "pp_prim() - number"
@@ -201,7 +209,7 @@ let suite =
           "nil;",
           U.nil_prim
           |> A.of_expr
-          |> ~@KStatement.Plugin.pp(KExpression.Plugin.pp),
+          |> ~@KStatement.Plugin.format(KExpression.Plugin.format),
         )
     ),
     "pp_statement() - variable declaration"
@@ -211,7 +219,7 @@ let suite =
           "let foo = nil;",
           (U.as_untyped("foo"), U.nil_prim)
           |> A.of_var
-          |> ~@KStatement.Plugin.pp(KExpression.Plugin.pp),
+          |> ~@KStatement.Plugin.format(KExpression.Plugin.format),
         )
     ),
   ];

@@ -481,6 +481,14 @@
       "name": "knot.lang.expression.dot_access",
       "namespace": "KDotAccess"
     },
+    "src/language/expression/bind_style": {
+      "require": [
+        "knot.lang.identifier",
+        "knot.lang.expression.style"
+      ],
+      "name": "knot.lang.expression.bind_style",
+      "namespace": "KBindStyle"
+    },
     "src/language/expression/function_call": {
       "require": [
         "knot.lang.ast"
@@ -497,7 +505,7 @@
     },
     "src/language/expression/ksx": {
       "require": [
-        "knot.lang.ast"
+        "knot.lang.expression.style"
       ],
       "name": "knot.lang.expression.ksx",
       "namespace": "KSX"
@@ -512,6 +520,7 @@
         "knot.lang.expression.group",
         "knot.lang.expression.closure",
         "knot.lang.expression.dot_access",
+        "knot.lang.expression.bind_style",
         "knot.lang.expression.function_call",
         "knot.lang.expression.style",
         "knot.lang.expression.ksx"

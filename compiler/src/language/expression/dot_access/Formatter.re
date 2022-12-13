@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let pp_dot_access:
+let format:
   Fmt.t(Result.raw_expression_t) =>
   Fmt.t((Result.expression_t, Result.untyped_t(string))) =
   (pp_expression, ppf, ((expr, _), (prop, _))) =>

@@ -1,22 +1,18 @@
 open Knot.Kore;
 open AST;
 
-let validate_unary_operation:
-  (Operator.Unary.t, Type.t) => option(Type.error_t) =
-  op =>
-    fun
-    /* assume this has been reported already and ignore */
-    | Invalid(_) => None
+let analyze_arithmetic = type_ =>
+  Type.(
+    switch (type_) {
+    | Valid(`Integer | `Float)
+    /* forward invalid types */
+    | Invalid(_) => type_
 
-    | Valid(valid_type) as type_ =>
-      switch (op, valid_type) {
-      | (Negative | Positive, `Integer | `Float) => None
-      | (Not, `Boolean) => None
+    | _ => Invalid(NotInferrable)
+    }
+  );
 
-      | _ => Some(InvalidUnaryOperation(op, type_))
-      };
-
-let analyze_unary_operation:
+let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
@@ -29,22 +25,14 @@ let analyze_unary_operation:
     let type_ = Node.get_type(expr');
 
     type_
-    |> validate_unary_operation(op)
+    |> Validator.validate(op)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
       expr',
       switch (op) {
       | Negative
-      | Positive =>
-        switch (type_) {
-        | Valid(`Integer | `Float)
-        /* forward invalid types */
-        | Invalid(_) => type_
-
-        | _ => Invalid(NotInferrable)
-        }
-
+      | Positive => analyze_arithmetic(type_)
       | Not => Valid(`Boolean)
       },
     );

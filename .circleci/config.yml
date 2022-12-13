@@ -435,6 +435,9 @@ jobs:
       - restore_pkg:
           from: common
           to: plugins/common
+      - restore_pkg:
+          from: plugin-utils
+          to: plugins/compiler/utils
       - build_pkg:
           pkg: jss-plugin
           path: packages/plugins/compiler/jss
@@ -664,6 +667,7 @@ workflows:
       - test_jss_plugin:
           requires:
             - test_common
+            - test_plugin_utils
       - test_compiler:
           requires:
             - test_common

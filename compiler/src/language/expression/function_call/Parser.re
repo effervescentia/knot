@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Parse.Kore;
 
-let function_call = ((parse_term, parse_expr)) => {
+let parse = ((parse_term, parse_expr)) => {
   let rec loop = expr =>
     parse_expr
     |> Matchers.comma_sep

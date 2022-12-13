@@ -82,7 +82,7 @@ let identifier_const = [
 let jsx_const = [
   (
     "jsx_const" |> U.as_untyped |> A.of_named_export,
-    (U.as_untyped("Foo"), [], [])
+    ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
     |> U.jsx_tag
     |> U.as_element
     |> A.of_const
@@ -168,14 +168,14 @@ let complex_jsx_const = [
   (
     "complex_jsx_const" |> U.as_untyped |> A.of_named_export,
     (
-      U.as_untyped("Foo"),
+      "Foo" |> U.as_view([], Valid(`Nil)),
+      [],
+      [(U.as_untyped("buzz"), None) |> U.as_untyped],
       [
-        "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
-        (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
-        (U.as_untyped("buzz"), None) |> A.of_prop |> U.as_untyped,
-      ],
-      [
-        (U.as_untyped("Bar"), [], []) |> A.of_tag |> A.of_node |> U.as_untyped,
+        ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
+        |> A.of_tag
+        |> A.of_node
+        |> U.as_untyped,
         U.nil_prim |> A.of_inline_expr |> U.as_untyped,
         "fizzbuzz" |> A.of_text |> U.as_untyped,
         [] |> A.of_frag |> A.of_node |> U.as_untyped,

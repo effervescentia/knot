@@ -1,1 +1,1 @@
-let parse = Parser.decorator;
+let parse = Parser.parse;

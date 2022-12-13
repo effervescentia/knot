@@ -9,52 +9,69 @@ open AST;
  */
 
 /* &&, || */
-let rec expr_0 = ctx => expr_1(ctx) |> KBinaryOperator.parse_logical
+let rec parse_expression_0 = ctx =>
+  parse_expression_1(ctx) |> KBinaryOperator.parse_logical
 
 /* ==, != */
-and expr_1 = ctx => expr_2(ctx) |> KBinaryOperator.parse_comparison
+and parse_expression_1 = ctx =>
+  parse_expression_2(ctx) |> KBinaryOperator.parse_comparison
 
 /* <=, <, >=, > */
-and expr_2 = ctx => expr_3(ctx) |> KBinaryOperator.parse_relational
+and parse_expression_2 = ctx =>
+  parse_expression_3(ctx) |> KBinaryOperator.parse_relational
 
 /* ^, *, /, +, - */
-and expr_3 = ctx => expr_4(ctx) |> KBinaryOperator.parse_arithmetic
+and parse_expression_3 = ctx =>
+  parse_expression_4(ctx) |> KBinaryOperator.parse_arithmetic
 
 /* !, +, - */
-and expr_4 = ctx => expr_5(ctx) |> KUnaryOperator.parse
+and parse_expression_4 = ctx =>
+  parse_expression_5(ctx) |> KUnaryOperator.parse
 
 /* foo(bar) */
-and expr_5 = (ctx): Framework.expression_parser_t =>
+and parse_expression_5 = (ctx): Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
-  input => ((expr_6(ctx), expr_0(ctx)) |> KFunctionCall.parse)(input)
+  input =>
+    (
+      (parse_expression_6(ctx), parse_expression_0(ctx))
+      |> KFunctionCall.parse
+    )(
+      input,
+    )
+
+/* foo::bar */
+and parse_expression_6 = ctx =>
+  (ctx, (parse_expression_7, parse_expression_0)) |> KBindStyle.parse
 
 /* foo.bar */
-and expr_6 = ctx => expr_7(ctx) >>= KDotAccess.parse
+and parse_expression_7 = ctx => parse_expression_8(ctx) >>= KDotAccess.parse
 
 /* {}, () */
-and expr_7 = (ctx): Framework.expression_parser_t =>
+and parse_expression_8 = (ctx): Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice(
       [
-        (ctx, expr_0) |> KClosure.parse,
-        expr_0(ctx) |> KGroup.parse,
-        term(ctx),
+        (ctx, parse_expression_0) |> KClosure.parse,
+        parse_expression_0(ctx) |> KGroup.parse,
+        parse_term(ctx),
       ],
       input,
     )
 
 /* skip dot access to avoid conflict with class attribute syntax */
-and jsx_term = ctx =>
-  (expr_7(ctx), expr_0(ctx)) |> KFunctionCall.parse |> KUnaryOperator.parse
+and parse_jsx_term = ctx =>
+  (parse_expression_8(ctx), parse_expression_0(ctx))
+  |> KFunctionCall.parse
+  |> KUnaryOperator.parse
 
 /* 2, foo, <bar /> */
-and term = ctx =>
+and parse_term = ctx =>
   choice([
     () |> KPrimitive.parse,
-    (ctx, expr_0) |> KStyle.parse,
+    (ctx, parse_expression_0) |> KStyle.parse,
     ctx |> KIdentifier.parse,
-    (ctx, (jsx_term, expr_0)) |> KSX.parse,
+    (ctx, (parse_jsx_term, parse_expression_0)) |> KSX.parse,
   ]);
 
-let expression = expr_0;
+let parse = parse_expression_0;

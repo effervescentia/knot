@@ -67,7 +67,7 @@ let argument = (expected, actual) =>
     check(
       testable(
         ppf =>
-          KLambda.Plugin.argument_to_xml(
+          KLambda.Debug.argument_to_xml(
             KExpression.Plugin.to_xml(~@AST.Type.pp),
             ~@AST.Type.pp,
           )

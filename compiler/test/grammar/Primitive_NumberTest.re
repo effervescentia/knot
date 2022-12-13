@@ -5,7 +5,7 @@ module U = Util.RawUtil;
 
 module Assert =
   Assert.MakePrimitive({
-    let parser = KPrimitive.Plugin.parse_primitive;
+    let parser = KPrimitive.Parser.parse_primitive;
   });
 let suite =
   "Grammar.Number"

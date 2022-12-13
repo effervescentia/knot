@@ -78,7 +78,9 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          (U.as_untyped("foo"), [], []) |> A.of_tag |> A.of_jsx,
+          ("foo" |> U.as_view([], Valid(`Nil)), [], [], [])
+          |> A.of_tag
+          |> A.of_jsx,
         )
     ),
     "jsx - render tag with attributes"
@@ -87,49 +89,16 @@ let suite =
         _assert_expression(
           FunctionCall(
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
-            [
-              String("foo"),
-              Object([
-                (
-                  "className",
-                  FunctionCall(
-                    DotAccess(
-                      DotAccess(Identifier("$knot"), "style"),
-                      "classes",
-                    ),
-                    [
-                      Group(
-                        Ternary(
-                          Boolean(true),
-                          Identifier("$class_buzz"),
-                          String(""),
-                        ),
-                      ),
-                      Identifier("$class_fizz"),
-                    ],
-                  ),
-                ),
-                ("zip", String("zap")),
-                ("id", String("bar")),
-              ]),
-            ],
+            [String("foo"), Object([("zip", String("zap"))])],
           ),
           (
-            U.as_untyped("foo"),
+            "foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [
-              "bar" |> U.as_untyped |> A.of_jsx_id |> U.as_untyped,
-              (U.as_untyped("fizz"), None) |> A.of_jsx_class |> U.as_untyped,
-              (
-                U.as_untyped("buzz"),
-                true |> A.of_bool |> A.of_prim |> U.as_bool |> Option.some,
-              )
-              |> A.of_jsx_class
-              |> U.as_untyped,
               (
                 U.as_untyped("zip"),
                 "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,
               )
-              |> A.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -146,7 +115,96 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [Identifier("Foo")],
           ),
-          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [])
+          ("Foo" |> U.as_view([], Valid(`Element)), [], [], [])
+          |> A.of_component
+          |> A.of_jsx,
+        )
+    ),
+    "jsx - render component with styles"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
+            [
+              Identifier("Foo"),
+              Object([
+                (
+                  "className",
+                  FunctionCall(
+                    DotAccess(
+                      DotAccess(Identifier("$knot"), "style"),
+                      "classes",
+                    ),
+                    [
+                      FunctionCall(
+                        DotAccess(Identifier("bar"), "getClass"),
+                        [],
+                      ),
+                      FunctionCall(
+                        DotAccess(
+                          iife([
+                            Variable(
+                              "$",
+                              DotAccess(
+                                DotAccess(Identifier("$knot"), "style"),
+                                "styleExpressionPlugin",
+                              ),
+                            ),
+                            Variable(
+                              "$rules$",
+                              DotAccess(
+                                DotAccess(Identifier("$knot"), "style"),
+                                "styleRulePlugin",
+                              ),
+                            ),
+                            Return(
+                              FunctionCall(
+                                DotAccess(
+                                  DotAccess(Identifier("$knot"), "style"),
+                                  "createStyle",
+                                ),
+                                [
+                                  Object([
+                                    (
+                                      "color",
+                                      FunctionCall(
+                                        DotAccess(
+                                          Identifier("$rules$"),
+                                          "color",
+                                        ),
+                                        [String("red")],
+                                      ),
+                                    ),
+                                  ]),
+                                ],
+                              )
+                              |> Option.some,
+                            ),
+                          ]),
+                          "getClass",
+                        ),
+                        [],
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+            ],
+          ),
+          (
+            "Foo" |> U.as_view([], Valid(`Element)),
+            [
+              "bar" |> A.of_id |> U.as_style,
+              [
+                (U.as_string("color"), U.string_prim("red")) |> U.as_untyped,
+              ]
+              |> A.of_style
+              |> U.as_style,
+            ],
+            [],
+            [],
+          )
           |> A.of_component
           |> A.of_jsx,
         )
@@ -180,14 +238,16 @@ let suite =
             ],
           ),
           (
-            U.as_untyped("foo"),
+            "foo" |> U.as_view([], Valid(`Nil)),
+            [],
             [],
             [
               (
-                "Bar" |> U.as_view([], T.Valid(`Element)),
+                "Bar" |> U.as_view([], Valid(`Element)),
+                [],
                 [],
                 [
-                  (U.as_untyped("fizz"), [], [])
+                  ("fizz" |> U.as_view([], Valid(`Nil)), [], [], [])
                   |> A.of_tag
                   |> A.of_node
                   |> U.as_untyped,
@@ -275,10 +335,27 @@ let suite =
         _assert_expression(
           DotAccess(Identifier("foo"), "bar"),
           (
-            "foo" |> A.of_id |> U.as_struct([("bar", T.Valid(`String))]),
+            "foo"
+            |> A.of_id
+            |> U.as_struct([("bar", (Valid(`String), true))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,
+        )
+    ),
+    "style binding"
+    >: (
+      () =>
+        _assert_expression(
+          FunctionCall(
+            DotAccess(DotAccess(Identifier("$knot"), "jsx"), "bindStyle"),
+            [Identifier("foo"), Identifier("bar")],
+          ),
+          (
+            "foo" |> A.of_id |> U.as_view([], Valid(`Element)),
+            "bar" |> A.of_id |> U.as_style,
+          )
+          |> A.of_local_bind_style,
         )
     ),
     "function call"
@@ -289,7 +366,7 @@ let suite =
           (
             "foo"
             |> A.of_id
-            |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
+            |> U.as_function([Valid(`String)], Valid(`Boolean)),
             ["bar" |> A.of_id |> U.as_string],
           )
           |> A.of_func_call,
@@ -414,7 +491,10 @@ let suite =
     >: (
       () =>
         _assert_unary_op(
-          UnaryOp("+", Group(Number("123"))),
+          FunctionCall(
+            DotAccess(Identifier("Math"), "abs"),
+            [Number("123")],
+          ),
           (Positive, U.int_prim(123)),
         )
     ),
@@ -426,7 +506,7 @@ let suite =
           (Negative, U.int_prim(123)),
         )
     ),
-    "style - property with default value"
+    "style rules"
     >: (
       () =>
         _assert_style(
@@ -452,22 +532,30 @@ let suite =
                   ),
                   Return(
                     Some(
-                      Object([
-                        (
-                          "height",
-                          FunctionCall(
-                            DotAccess(Identifier("$rules$"), "height"),
-                            [Number("2")],
-                          ),
+                      FunctionCall(
+                        DotAccess(
+                          DotAccess(Identifier("$knot"), "style"),
+                          "createStyle",
                         ),
-                        (
-                          "width",
-                          FunctionCall(
-                            DotAccess(Identifier("$rules$"), "width"),
-                            [Number("10")],
-                          ),
-                        ),
-                      ]),
+                        [
+                          Object([
+                            (
+                              "height",
+                              FunctionCall(
+                                DotAccess(Identifier("$rules$"), "height"),
+                                [Number("2")],
+                              ),
+                            ),
+                            (
+                              "width",
+                              FunctionCall(
+                                DotAccess(Identifier("$rules$"), "width"),
+                                [Number("10")],
+                              ),
+                            ),
+                          ]),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -476,18 +564,8 @@ let suite =
             [],
           ),
           [
-            (
-              "height"
-              |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
-              U.int_prim(2),
-            )
-            |> U.as_untyped,
-            (
-              "width"
-              |> U.as_function([T.Valid(`Integer)], T.Valid(`String)),
-              U.int_prim(10),
-            )
-            |> U.as_untyped,
+            (U.as_int("height"), U.int_prim(2)) |> U.as_untyped,
+            (U.as_int("width"), U.int_prim(10)) |> U.as_untyped,
           ],
         )
     ),

@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let variable =
+let parse =
     (
       (
         ctx: ParseContext.t,
@@ -13,7 +13,7 @@ let variable =
   Matchers.keyword(Constants.Keyword.let_)
   >>= (
     kwd =>
-      Matchers.assign(KIdentifier.Plugin.parse_id(ctx), parse_expr(ctx))
+      Matchers.assign(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
       >|= (
         ((_, expr) as var) =>
           Node.typed(Raw.of_var(var), (), Node.join_ranges(kwd, expr))

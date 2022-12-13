@@ -35,6 +35,8 @@ module Make = (Params: ASTParams) => {
   type style_rule_t = Expression.style_rule_t(type_t);
   type raw_style_rule_t = Expression.raw_style_rule_t(type_t);
 
+  type bind_style_target_t = Expression.bind_style_target_t(type_t);
+
   type expression_t = Expression.expression_t(type_t);
   type raw_expression_t = Expression.raw_expression_t(type_t);
 
@@ -55,6 +57,10 @@ module Make = (Params: ASTParams) => {
   let of_group = x => Expression.Group(x);
   let of_closure = xs => Expression.Closure(xs);
   let of_dot_access = ((expr, prop)) => Expression.DotAccess(expr, prop);
+  let of_builtin_bind_style = ((view, style)) =>
+    Expression.BindStyle(BuiltIn(view), style);
+  let of_local_bind_style = ((view, style)) =>
+    Expression.BindStyle(Local(view), style);
   let of_func_call = ((expr, args)) => Expression.FunctionCall(expr, args);
   let of_style = rules => Expression.Style(rules);
 
@@ -84,13 +90,12 @@ module Make = (Params: ASTParams) => {
 
   let of_jsx = x => Expression.JSX(x);
   let of_frag = xs => Expression.Fragment(xs);
-  let of_tag = ((name, attrs, children)) =>
-    Expression.Tag(name, attrs, children);
-  let of_component = ((id, attrs, children)) =>
-    Expression.Component(id, attrs, children);
-  let of_prop = ((name, value)) => Expression.Property(name, value);
-  let of_jsx_class = ((name, value)) => Expression.Class(name, value);
-  let of_jsx_id = name => Expression.ID(name);
+  let of_tag = ((name, styles, attrs, children)) =>
+    Expression.Tag(name, styles, attrs, children);
+  let of_component = ((id, styles, attrs, children)) =>
+    Expression.Component(id, styles, attrs, children);
+  let of_builtin = expr => Expression.BuiltIn(expr);
+  let of_local = expr => Expression.Local(expr);
   let of_text = x => Expression.Text(x);
   let of_node = x => Expression.Node(x);
   let of_inline_expr = x => Expression.InlineExpression(x);

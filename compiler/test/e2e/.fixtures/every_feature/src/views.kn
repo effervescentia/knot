@@ -39,3 +39,15 @@ view ClosureView(lhs: integer, rhs: integer) -> {
 
   lhs_int <= rhs_float;
 };
+
+view ImplicitChildren ->
+  <div>
+    <div>{$children}</div>
+  </div>
+;
+
+view ExplicitChildren(children: string) ->
+  <div>
+    <div>{children}</div>
+  </div>
+;

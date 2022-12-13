@@ -68,6 +68,11 @@ let rec of_expr =
     | (Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
     | (DotAccess(expr, _), _) =>
       expr |> of_expr |> _wrap(Node.get_range(expr))
+    | (BindStyle(BuiltIn(view) | Local(view), style), _) =>
+      _join(
+        view |> of_expr |> _wrap(Node.get_range(view)),
+        style |> of_expr |> _wrap(Node.get_range(style)),
+      )
     | (FunctionCall(expr, args), _) =>
       _join(
         expr |> of_expr |> _wrap(Node.get_range(expr)),
@@ -86,9 +91,10 @@ and of_jsx =
          )
       |> of_list
 
-    | Tag((id, (_, range)), attrs, children)
-    | Component((id, (_, range)), attrs, children) =>
+    | Tag((id, (_, range)), styles, attrs, children)
+    | Component((id, (_, range)), styles, attrs, children) =>
       [Node.untyped(id, range) |> of_untyped_id]
+      @ (styles |> List.map(of_expr))
       @ (
         attrs
         |> List.map(attr =>
@@ -117,11 +123,8 @@ and of_jsx_child =
 and of_jsx_attr =
   AST.Expression.(
     fun
-    | ID(id) => of_untyped_id(id)
-    | Class(id, None)
-    | Property(id, None) => of_untyped_id(id)
-    | Class(id, Some(expr))
-    | Property(id, Some(expr)) =>
+    | (id, None) => of_untyped_id(id)
+    | (id, Some(expr)) =>
       _join(
         of_untyped_id(id),
         expr |> of_expr |> _wrap(Node.get_range(expr)),

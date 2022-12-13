@@ -1,13 +1,11 @@
 open Knot.Kore;
 
-let pp = Fmt.int64;
-
 include AST.Framework.Number({
   type value_t = int64;
 
-  let parse = Parser.integer;
+  let parse = Parser.parse;
 
-  let format = pp;
+  let format = Fmt.int64;
 
-  let to_xml = x => Fmt.Node("Integer", [("value", x |> ~@pp)], []);
+  let to_xml = x => Fmt.Node("Integer", [("value", x |> ~@format)], []);
 });

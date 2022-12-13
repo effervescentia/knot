@@ -126,7 +126,10 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view([("fizz", Valid(`Integer))], Valid(`Nil)),
+            |> U.as_view(
+                 [("fizz", (Valid(`Integer), true))],
+                 Valid(`Nil),
+               ),
           )
           |> U.as_untyped,
           "view foo (fizz: integer) -> {}",
@@ -151,7 +154,10 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view([("fizz", Valid(`String))], Valid(`Nil)),
+            |> U.as_view(
+                 [("fizz", (Valid(`String), false))],
+                 Valid(`Nil),
+               ),
           )
           |> U.as_untyped,
           "view foo (fizz = \"bar\") -> {}",
@@ -176,7 +182,10 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view([("fizz", Valid(`Boolean))], Valid(`Nil)),
+            |> U.as_view(
+                 [("fizz", (Valid(`Boolean), false))],
+                 Valid(`Nil),
+               ),
           )
           |> U.as_untyped,
           "view foo (fizz: boolean = true) -> {}",

@@ -10,7 +10,7 @@ module Assert =
     type t = TD.decorator_t(unit);
 
     let parser = _ =>
-      KPrimitive.Plugin.parse_primitive
+      KPrimitive.Parser.parse_primitive
       |> KDecorator.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -20,7 +20,7 @@ module Assert =
         check(
           testable(
             ppf =>
-              KTypeDefinition.Plugin.decorator_to_xml % Fmt.xml_string(ppf),
+              KTypeDefinition.Debug.decorator_to_xml % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

@@ -10,7 +10,7 @@ module Assert =
     let parser = ctx =>
       KSX.Plugin.parse((
         ctx,
-        (KExpression.Plugin.parse_jsx_term, KExpression.Plugin.parse),
+        (KExpression.Parser.parse_jsx_term, KExpression.Plugin.parse),
       ))
       |> Assert.parse_completely
       |> Parser.parse;
@@ -35,7 +35,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          (U.as_untyped("Foo"), [], [])
+          (U.as_untyped("Foo"), [], [], [])
           |> AR.of_tag
           |> AR.of_jsx
           |> U.as_node,
@@ -46,11 +46,44 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          (U.as_untyped("Foo"), [], [])
+          (U.as_untyped("Foo"), [], [], [])
           |> AR.of_tag
           |> AR.of_jsx
           |> U.as_node,
           ["<Foo/>", " < Foo / > "],
+        )
+    ),
+    "parse style expression binding"
+    >: (
+      () =>
+        Assert.parse(
+          (U.as_untyped("Foo"), ["bar" |> AR.of_id |> U.as_untyped], [], [])
+          |> AR.of_tag
+          |> AR.of_jsx
+          |> U.as_node,
+          "<Foo::bar />",
+        )
+    ),
+    "parse style literal binding"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            U.as_untyped("Foo"),
+            [
+              [
+                (U.as_untyped("color"), U.string_prim("red")) |> U.as_untyped,
+              ]
+              |> AR.of_style
+              |> U.as_untyped,
+            ],
+            [],
+            [],
+          )
+          |> AR.of_tag
+          |> AR.of_jsx
+          |> U.as_node,
+          "<Foo::{ color: \"red\" } />",
         )
     ),
     "parse empty fragment"
@@ -61,7 +94,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped]
+          [(U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped]
           |> AR.of_frag
           |> AR.of_jsx
           |> U.as_node,
@@ -74,12 +107,12 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (
                 U.as_untyped("fizz"),
                 "buzz" |> AR.of_id |> U.as_node |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -96,9 +129,9 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (U.as_untyped("fizz"), "buzz" |> U.string_prim |> Option.some)
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -115,6 +148,7 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (
                 U.as_untyped("fizz"),
@@ -123,7 +157,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -140,6 +173,7 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (
                 U.as_untyped("fizz"),
@@ -148,7 +182,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -165,6 +198,7 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (
                 U.as_untyped("fizz"),
@@ -173,7 +207,6 @@ let suite =
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -190,9 +223,9 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (U.as_untyped("fizz"), true |> U.bool_prim |> Option.some)
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -209,12 +242,12 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (
                 U.as_untyped("fizz"),
                 3 |> U.int_prim |> AR.of_neg_op |> U.as_node |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -231,15 +264,15 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (
                 U.as_untyped("fizz"),
-                (U.as_untyped("buzz"), [], [])
+                (U.as_untyped("buzz"), [], [], [])
                 |> U.jsx_tag
                 |> U.as_node
                 |> Option.some,
               )
-              |> AR.of_prop
               |> U.as_untyped,
             ],
             [],
@@ -256,45 +289,14 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
-            [(U.as_untyped("fizz"), None) |> AR.of_prop |> U.as_untyped],
+            [],
+            [(U.as_untyped("fizz"), None) |> U.as_untyped],
             [],
           )
           |> AR.of_tag
           |> AR.of_jsx
           |> U.as_node,
           "<Foo fizz />",
-        )
-    ),
-    "parse property with static class name"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            [
-              (U.as_untyped("fizz"), None) |> AR.of_jsx_class |> U.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo .fizz />",
-        )
-    ),
-    "parse property with identifier"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            ["fizz" |> U.as_untyped |> AR.of_jsx_id |> U.as_untyped],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo #fizz />",
         )
     ),
     "parse single tag child"
@@ -304,7 +306,10 @@ let suite =
           (
             U.as_untyped("Foo"),
             [],
-            [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],
+            [],
+            [
+              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+            ],
           )
           |> AR.of_tag
           |> AR.of_jsx
@@ -318,6 +323,7 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [],
             [
               (U.int_prim(1), U.int_prim(2))
@@ -340,8 +346,9 @@ let suite =
           (
             U.as_untyped("Foo"),
             [],
+            [],
             [
-              (U.as_untyped("Bar"), [], [])
+              (U.as_untyped("Bar"), [], [], [])
               |> U.jsx_tag
               |> U.as_node
               |> AR.of_inline_expr
@@ -361,6 +368,7 @@ let suite =
           (
             U.as_untyped("Foo"),
             [],
+            [],
             ["bar \"or\" 123" |> AR.of_text |> U.as_untyped],
           )
           |> AR.of_tag
@@ -375,12 +383,14 @@ let suite =
         Assert.parse(
           (
             U.as_untyped("Foo"),
+            [],
             [
               (U.as_untyped("bar"), 4 |> U.int_prim |> Option.some)
-              |> AR.of_prop
               |> U.as_untyped,
             ],
-            [(U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped],
+            [
+              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+            ],
           )
           |> AR.of_tag
           |> AR.of_jsx
@@ -395,6 +405,7 @@ let suite =
           (
             U.as_untyped("Foo"),
             [],
+            [],
             [
               "bar" |> AR.of_text |> U.as_untyped,
               (U.int_prim(1), U.int_prim(2))
@@ -402,7 +413,7 @@ let suite =
               |> U.as_node
               |> AR.of_inline_expr
               |> U.as_untyped,
-              (U.as_untyped("Bar"), [], []) |> U.jsx_node |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
               "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_untyped,
               "buzz" |> AR.of_text |> U.as_untyped,
             ],
@@ -411,29 +422,6 @@ let suite =
           |> AR.of_jsx
           |> U.as_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
-        )
-    ),
-    "parse complex - multiple attributes different types"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            [
-              (
-                U.as_untyped("bar"),
-                "fizz" |> AR.of_id |> U.as_node |> Option.some,
-              )
-              |> AR.of_prop
-              |> U.as_untyped,
-              (U.as_untyped("buzz"), None) |> AR.of_jsx_class |> U.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo bar=fizz .buzz />",
         )
     ),
   ];

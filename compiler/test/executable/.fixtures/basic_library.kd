@@ -1,0 +1,6 @@
+@plugin("element_tag")
+module ElementTag {
+  type attributes: {};
+
+  declare div: view(attributes, element);
+}

@@ -23,36 +23,12 @@ let __id = "Foo";
 let suite =
   "Analyze.Typing | JSX"
   >::: [
-    "class expression with invalid type"
-    >: (
-      () =>
-        Assert.type_error(
-          None,
-          KSX.Analyzer.validate_jsx_class_expression(Invalid(NotInferrable)),
-        )
-    ),
-    "class expression with boolean type"
-    >: (
-      () =>
-        Assert.type_error(
-          None,
-          KSX.Analyzer.validate_jsx_class_expression(Valid(`Boolean)),
-        )
-    ),
-    "class expression with non-boolean type"
-    >: (
-      () =>
-        Assert.type_error(
-          Some(InvalidJSXClassExpression(Valid(`String))),
-          KSX.Analyzer.validate_jsx_class_expression(Valid(`String)),
-        )
-    ),
     "inline expression with invalid type"
     >: (
       () =>
         Assert.type_error(
           None,
-          KSX.Analyzer.validate_jsx_primitive_expression(
+          KSX.Validator.validate_jsx_primitive_expression(
             Invalid(NotInferrable),
           ),
         )
@@ -71,7 +47,7 @@ let suite =
         |> List.iter(type_ =>
              Assert.type_error(
                None,
-               KSX.Analyzer.validate_jsx_primitive_expression(type_),
+               KSX.Validator.validate_jsx_primitive_expression(type_),
              )
            )
     ),
@@ -84,18 +60,9 @@ let suite =
               Valid(`Function(([], Valid(`Nil)))),
             ),
           ),
-          KSX.Analyzer.validate_jsx_primitive_expression(
+          KSX.Validator.validate_jsx_primitive_expression(
             Valid(`Function(([], Valid(`Nil)))),
           ),
-        )
-    ),
-    "ignore render with invalid type"
-    >: (
-      () =>
-        _assert_errors_with_ranges(
-          [],
-          (__id, T.Invalid(NotInferrable), [])
-          |> KSX.Analyzer.validate_jsx_render,
         )
     ),
     "jsx render with non-view type"
@@ -120,7 +87,7 @@ let suite =
               ("bar", T.Valid(`String) |> U.as_untyped),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
     "jsx render with invalid attributes"
@@ -148,7 +115,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`String))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("bar", (T.Valid(`String), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -157,7 +127,7 @@ let suite =
               ("foo", N.untyped(T.Valid(`Integer), foo_range)),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         );
       }
     ),
@@ -186,7 +156,7 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         );
       }
     ),
@@ -207,13 +177,16 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`String))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("bar", (T.Valid(`String), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
             [],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
     "jsx render with invalid, unexpected and missing attributes"
@@ -241,7 +214,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("fizz", T.Valid(`Float))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("fizz", (T.Valid(`Float), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -250,7 +226,7 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
         );
       }
     ),
@@ -263,7 +239,10 @@ let suite =
             __id,
             T.Valid(
               `View((
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`Float))],
+                [
+                  ("foo", (T.Valid(`Boolean), true)),
+                  ("bar", (T.Valid(`Float), true)),
+                ],
                 T.Valid(`Element),
               )),
             ),
@@ -272,7 +251,28 @@ let suite =
               ("bar", T.Valid(`Float) |> U.as_untyped),
             ],
           )
-          |> KSX.Analyzer.validate_jsx_render,
+          |> KSX.Validator.validate_jsx_render(false),
+        )
+    ),
+    "jsx render with optional attributes"
+    >: (
+      () =>
+        _assert_errors_with_ranges(
+          [],
+          (
+            __id,
+            T.Valid(
+              `View((
+                [
+                  ("foo", (T.Valid(`Boolean), false)),
+                  ("bar", (T.Valid(`Float), false)),
+                ],
+                T.Valid(`Element),
+              )),
+            ),
+            [("foo", T.Valid(`Boolean) |> U.as_untyped)],
+          )
+          |> KSX.Validator.validate_jsx_render(false),
         )
     ),
   ];

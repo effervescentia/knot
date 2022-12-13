@@ -1,7 +1,27 @@
 open Knot.Kore;
 open AST;
 
-let pp_enumerated:
+let format_argument_list =
+  Fmt.(
+    (ppf, args) =>
+      List.is_empty(args)
+        ? () : pf(ppf, "(%a)", list(KTypeExpression.Plugin.format), args)
+  );
+
+let format_variant_list =
+  Fmt.(
+    block(~layout=Vertical, ~sep=Sep.space, (ppf, ((arg_name, _), args)) =>
+      pf(
+        ppf,
+        "@[<h>| %s%a@]",
+        arg_name,
+        format_argument_list,
+        args |> List.map(fst),
+      )
+    )
+  );
+
+let format:
   Fmt.t(
     (
       string,
@@ -15,23 +35,5 @@ let pp_enumerated:
     | (name, []) => Fmt.(pf(ppf, "enum %s = | ;", name))
     | (name, variants) =>
       Fmt.(
-        pf(
-          ppf,
-          "@[<v>enum %s =%a;@]",
-          name,
-          block(
-            ~layout=Vertical, ~sep=Sep.space, (ppf, ((arg_name, _), args)) =>
-            pf(
-              ppf,
-              "@[<h>| %s%a@]",
-              arg_name,
-              (ppf, args) =>
-                List.is_empty(args)
-                  ? ()
-                  : pf(ppf, "(%a)", list(KTypeExpression.Plugin.pp), args),
-              args |> List.map(fst),
-            )
-          ),
-          variants,
-        )
+        pf(ppf, "@[<v>enum %s =%a;@]", name, format_variant_list, variants)
       );

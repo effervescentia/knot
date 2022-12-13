@@ -5,8 +5,8 @@ open AST;
 type type_module_statement_parser_t =
   ParseContext.t => Parse.Parser.t(TypeDefinition.module_statement_t);
 
-let type_variant = (ctx: ParseContext.t) =>
-  KIdentifier.Plugin.parse_id(ctx)
+let parse_type_variant = (ctx: ParseContext.t) =>
+  KIdentifier.Parser.parse_raw(ctx)
   >>= (
     id =>
       KTypeExpression.Plugin.parse
@@ -16,7 +16,7 @@ let type_variant = (ctx: ParseContext.t) =>
       >|= Node.map(Tuple.with_fst2(id))
   );
 
-let declaration: type_module_statement_parser_t =
+let parse_declaration: type_module_statement_parser_t =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.declare),
@@ -31,11 +31,11 @@ let declaration: type_module_statement_parser_t =
       },
     );
 
-let enumerated: type_module_statement_parser_t =
+let parse_enumerated: type_module_statement_parser_t =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.enum),
-      type_variant(ctx)
+      parse_type_variant(ctx)
       |> Matchers.vertical_bar_sep
       >|= (
         variants => {
@@ -60,7 +60,7 @@ let enumerated: type_module_statement_parser_t =
               variants
               |> List.map(
                    Tuple.map_snd2(args =>
-                     Type.Valid(`Function((args, enum_type)))
+                     (Type.Valid(`Function((args, enum_type))), true)
                    ),
                  ),
             ),
@@ -73,7 +73,7 @@ let enumerated: type_module_statement_parser_t =
       },
     );
 
-let type_: type_module_statement_parser_t =
+let parse_type: type_module_statement_parser_t =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.type_),
@@ -88,7 +88,11 @@ let type_: type_module_statement_parser_t =
       },
     );
 
-let statement: type_module_statement_parser_t =
+let parse: type_module_statement_parser_t =
   ctx =>
-    choice([declaration(ctx), enumerated(ctx), type_(ctx)])
+    choice([
+      parse_declaration(ctx),
+      parse_enumerated(ctx),
+      parse_type(ctx),
+    ])
     |> Matchers.terminated;

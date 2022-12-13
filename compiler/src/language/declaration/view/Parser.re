@@ -2,29 +2,36 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let view =
+let __children_key = "children";
+let __implicit_children_key = "$children";
+
+let parse =
     ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
     : Framework.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.view)
   >>= Node.get_range
   % (
     start =>
-      KIdentifier.Plugin.parse_id(ctx)
+      KIdentifier.Parser.parse_raw(ctx)
       >>= (
         id =>
           KExpression.Plugin.parse
-          |> KLambda.Plugin.parse_with_mixins(ctx)
+          |> KLambda.Parser.parse_lambda_with_mixins(ctx)
           >|= (
             ((props, mixins, res, range)) => {
               let scope = ctx |> Scope.of_parse_context(range);
               let props' =
                 props
                 |> List.map(
-                     KLambda.Plugin.analyze_argument(
+                     KLambda.Analyzer.analyze_argument(
                        scope,
                        KExpression.Plugin.analyze,
                      ),
                    );
+
+              scope
+              |> Scope.define(__implicit_children_key, Valid(`Element))
+              |> ignore;
 
               props'
               |> List.iter(arg =>
@@ -37,6 +44,27 @@ let view =
                         Scope.report_type_err(scope, Node.get_range(arg)),
                       )
                  );
+
+              if (props'
+                  |> List.exists(((Expression.{name}, _)) =>
+                       fst(name) == __children_key
+                     )) {
+                let children_type =
+                  scope
+                  |> Scope.lookup(__children_key)
+                  |> Option.value(~default=Ok(Type.Invalid(NotInferrable)))
+                  |> Stdlib.Result.value(
+                       ~default=Type.Invalid(NotInferrable),
+                     );
+
+                scope
+                |> Scope.(
+                     add_handler(__implicit_children_key, Lookup, () =>
+                       Type.MustUseExplicitChildren(children_type)
+                       |> Option.some
+                     )
+                   );
+              };
 
               let mixins' =
                 mixins
@@ -77,11 +105,13 @@ let view =
 
               let prop_types =
                 props'
-                |> List.map(
-                     Tuple.split2(
-                       fst % Expression.(prop => fst(prop.name)),
-                       Node.get_type,
-                     ),
+                |> List.map(((prop, _) as node) =>
+                     (
+                       fst(Expression.(prop.name)),
+                       node
+                       |> Node.get_type
+                       |> Tuple.with_snd2(Option.is_none(prop.default)),
+                     )
                    );
               let type_ =
                 Type.Valid(`View((prop_types, Node.get_type(res'))));

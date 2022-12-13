@@ -325,24 +325,6 @@ let _extract_type_err =
       ],
     )
 
-  | Type.InvalidJSXClassExpression(type_) => (
-      "Invalid JSX Class Expression",
-      Fmt.(
-        (
-          ppf =>
-            pf(
-              ppf,
-              "jsx classes can only be controlled with arguments of type %a but received %a",
-              good(Type.pp),
-              Type.Valid(`Boolean),
-              bad(Type.pp),
-              type_,
-            )
-        )
-      ),
-      [],
-    )
-
   | Type.InvalidJSXTag(_, type_, props) => (
       "Invalid JSX Tag",
       Fmt.(
@@ -444,6 +426,28 @@ let _extract_type_err =
               Fmt.str("{ %s: any }", prop),
               bad(Type.pp),
               type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.InvalidStyleBinding(view, style) => (
+      "Invalid Style Binding",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>style binding expects the left-side value to be a %a@,and the right-side value to be %a but received %a and %a@]",
+              good_str,
+              Constants.Keyword.view,
+              good(Type.pp),
+              Valid(`Style),
+              bad(Type.pp),
+              view,
+              bad(Type.pp),
+              style,
             )
         )
       ),
@@ -606,6 +610,26 @@ let _extract_type_err =
               "style",
               bad(Type.pp),
               type_,
+            )
+        )
+      ),
+      [],
+    )
+
+  | Type.MustUseExplicitChildren(type_) => (
+      "Must Use Explicit Children",
+      Fmt.(
+        (
+          ppf =>
+            pf(
+              ppf,
+              "@[<hv>the explicitly defined %a attribute of type %a must be used over the implicit %a@]",
+              good_str,
+              "children",
+              good(Type.pp),
+              type_,
+              bad_str,
+              "$children",
             )
         )
       ),

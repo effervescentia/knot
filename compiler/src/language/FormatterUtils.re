@@ -29,7 +29,7 @@ let _sort_imports =
                    | MainImport(id) => (Some(fst(id)), n)
                    | NamedImport(id, label) => (
                        m,
-                       [(fst(id), label), ...n],
+                       [(fst(id), label |> Option.map(fst)), ...n],
                      )
                  ),
              (None, []),
@@ -46,22 +46,29 @@ let _sort_imports =
 
 let extract_imports = (program: Module.program_t) =>
   program
-  |> List.filter_map(
-       fst
-       % Module.(
-           fun
-           | Import(namespace, imports) => Some((namespace, imports))
-           | _ => None
-         ),
+  |> List.fold_left(
+       acc =>
+         fst
+         % Module.(
+             fun
+             | StandardImport(imports) =>
+               acc
+               |> Tuple.map_fst3(
+                    imports
+                    |> List.map(
+                         fst % Tuple.map_each2(fst, Option.map(fst)),
+                       )
+                    |> List.incl_all,
+                  )
+             | Import(External(_) as namespace, imports) =>
+               acc |> Tuple.map_snd3(List.cons((namespace, imports)))
+             | Import(Internal(_) as namespace, imports) =>
+               acc |> Tuple.map_thd3(List.cons((namespace, imports)))
+             | _ => acc
+           ),
+       ([], [], []),
      )
-  |> List.partition(
-       Namespace.(
-         fun
-         | (Internal(_), _) => true
-         | _ => false
-       ),
-     )
-  |> Tuple.map2(_sort_imports);
+  |> Tuple.map_each3(Fun.id, _sort_imports, _sort_imports);
 
 let extract_declarations = (program: Module.program_t) =>
   program

@@ -25,6 +25,7 @@ export const pt = Length.Pt;
 export const aqua = Color.Named('aqua');
 export const black = Color.Named('black');
 export const blue = Color.Named('blue');
+export const cornflowerblue = Color.Named('cornflowerblue');
 export const cyan = Color.Named('cyan');
 export const fuchsia = Color.Named('fuchsia');
 export const gold = Color.Named('gold');

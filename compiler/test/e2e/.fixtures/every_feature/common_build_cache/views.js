@@ -73,3 +73,16 @@ function ClosureView($props$) {
   return (lhs_int <= rhs_float);
 };
 exports.ClosureView = ClosureView;
+function ImplicitChildren($props$) {
+  return $knot.jsx.createTag("div",
+                             null,
+                             $knot.jsx.createTag("div", null, $.children));
+};
+exports.ImplicitChildren = ImplicitChildren;
+function ExplicitChildren($props$) {
+  var children = $knot.platform.prop($props$, "children");
+  return $knot.jsx.createTag("div",
+                             null,
+                             $knot.jsx.createTag("div", null, children));
+};
+exports.ExplicitChildren = ExplicitChildren;

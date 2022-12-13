@@ -1,6 +1,7 @@
 include Knot.Kore;
 
 module KBinaryOperator = KBinaryOperator.Plugin;
+module KBindStyle = KBindStyle.Plugin;
 module KClosure = KClosure.Plugin;
 module KDotAccess = KDotAccess.Plugin;
 module KFunctionCall = KFunctionCall.Plugin;

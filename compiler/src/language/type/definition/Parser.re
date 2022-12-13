@@ -5,10 +5,10 @@ open AST;
 type type_module_parser_t =
   ParseContext.t => Parse.Parser.t(TypeDefinition.module_t);
 
-let _module_keyword = Matchers.keyword(Constants.Keyword.module_);
+let __module_keyword = Matchers.keyword(Constants.Keyword.module_);
 
-let _module_decorator = (ctx: ParseContext.t) =>
-  KDecorator.Plugin.parse(KPrimitive.Plugin.parse_primitive)
+let _parse_module_decorator = (ctx: ParseContext.t) =>
+  KDecorator.Plugin.parse(KPrimitive.Parser.parse_primitive)
   >|= Node.map(((id, args)) =>
         (
           id
@@ -22,13 +22,13 @@ let _module_decorator = (ctx: ParseContext.t) =>
         )
       );
 
-let module_: type_module_parser_t =
+let parse_module: type_module_parser_t =
   ctx =>
-    _module_decorator(ctx)
+    _parse_module_decorator(ctx)
     |> many
     >>= (
       decorators =>
-        _module_keyword
+        __module_keyword
         >> (
           Matchers.identifier(~prefix=Matchers.alpha)
           >>= (
@@ -107,7 +107,7 @@ let module_: type_module_parser_t =
         )
     );
 
-let decorator: type_module_parser_t =
+let parse_decorator: type_module_parser_t =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.decorator),
@@ -117,7 +117,7 @@ let decorator: type_module_parser_t =
       >>= (
         args =>
           Matchers.keyword(Constants.Keyword.on)
-          >> _module_keyword
+          >> __module_keyword
           >|= Node.get_range
           % (
             range => (
@@ -138,5 +138,5 @@ let decorator: type_module_parser_t =
       },
     );
 
-let type_definition: type_module_parser_t =
-  ctx => choice([decorator(ctx), module_(ctx)]);
+let parse: type_module_parser_t =
+  ctx => choice([parse_decorator(ctx), parse_module(ctx)]);

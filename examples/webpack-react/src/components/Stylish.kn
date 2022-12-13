@@ -1,25 +1,25 @@
-style FancyStyle -> {
-  .root {
-    height: $px(200.0);
-    backgroundColor: $navy;
-  }
+const rootStyle = style {
+  height: $px(200.0),
+  backgroundColor: $navy,
+};
 
-  .child {
-    height: $px(100.0);
-    width: $px(200.0);
-  }
+const Container = div::rootStyle;
 
-  .lhs {
-    backgroundColor: $pink;
-  }
-  .rhs {
-    backgroundColor: $violet;
-  }
-}
+const TopComponent = div::{
+  height: $px(100.0),
+  width: $px(200.0),
+  backgroundColor: "#ec6810",
+};
 
-main view StyledView ~ FancyStyle ->
-  <div .root id="stylish">
-    <div .child .lhs id="stylish__child--top" />
-    <div .child .rhs id="stylish__child--bottom" />
-  </div>
+const bottomStyle = style {
+  height: $px(175.0),
+  width: $px(150.0),
+  backgroundColor: $violet,
+};
+
+main view Stylish ->
+  <Container id="stylish">
+    <TopComponent id="stylish__child--top" />
+    <div::bottomStyle id="stylish__child--bottom" />
+  </Container>
 ;

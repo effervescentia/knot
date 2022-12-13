@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let dot_access = {
+let parse = {
   let rec loop = expr =>
     Matchers.period
     >> Matchers.identifier

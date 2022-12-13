@@ -1,7 +1,5 @@
 open AST;
 
-let pp = Formatter.pp_view;
-
 include Framework.Declaration({
   type value_t = (
     list(Result.argument_t),
@@ -9,9 +7,9 @@ include Framework.Declaration({
     Result.expression_t,
   );
 
-  let parse = Parser.view;
+  let parse = Parser.parse;
 
-  let format = pp;
+  let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });

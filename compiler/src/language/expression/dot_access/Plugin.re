@@ -1,9 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let analyze = Analyzer.analyze_dot_access;
-
-let pp = Formatter.pp_dot_access;
+let analyze = Analyzer.analyze;
 
 include Framework.Expression({
   type parse_arg_t = Raw.expression_t;
@@ -13,9 +11,9 @@ include Framework.Expression({
     Common.untyped_t(string),
   );
 
-  let parse = Parser.dot_access;
+  let parse = Parser.parse;
 
-  let format = pp;
+  let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });

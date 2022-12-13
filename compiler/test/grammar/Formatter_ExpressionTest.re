@@ -6,7 +6,7 @@ module T = AST.Type;
 module U = Util.ResultUtil;
 
 let _assert_expression = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KExpression.Plugin.pp));
+  Assert.string(expected, actual |> ~@Fmt.root(KExpression.Plugin.format));
 
 let suite =
   "Grammar.Formatter | Expression"
@@ -29,7 +29,9 @@ let suite =
         _assert_expression(
           "foo.bar",
           (
-            "foo" |> A.of_id |> U.as_struct([("bar", T.Valid(`Boolean))]),
+            "foo"
+            |> A.of_id
+            |> U.as_struct([("bar", (T.Valid(`Boolean), true))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,
@@ -100,6 +102,40 @@ let suite =
           (true |> U.bool_prim, false |> U.bool_prim) |> A.of_or_op,
         )
     ),
+    "style binding"
+    >: (
+      () =>
+        _assert_expression(
+          "foo::bar",
+          (
+            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            "bar" |> A.of_id |> U.as_style,
+          )
+          |> A.of_local_bind_style,
+        )
+    ),
+    "style literal binding"
+    >: (
+      () =>
+        _assert_expression(
+          "foo::{
+  color: $red,
+}",
+          (
+            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            [
+              (
+                "color" |> U.as_function([], T.Valid(`Nil)),
+                "$red" |> A.of_id |> U.as_string,
+              )
+              |> U.as_untyped,
+            ]
+            |> A.of_style
+            |> U.as_style,
+          )
+          |> A.of_local_bind_style,
+        )
+    ),
     "JSX"
     >: (
       () =>
@@ -107,7 +143,12 @@ let suite =
           "<Foo>
   bar
 </Foo>",
-          (U.as_untyped("Foo"), [], ["bar" |> A.of_text |> U.as_untyped])
+          (
+            "Foo" |> U.as_view([], Valid(`Nil)),
+            [],
+            [],
+            ["bar" |> A.of_text |> U.as_untyped],
+          )
           |> A.of_tag
           |> A.of_jsx,
         )
