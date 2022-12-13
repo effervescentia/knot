@@ -23,6 +23,7 @@ test('includes keys', (t) =>
     'createTag',
     'createFragment',
     'render',
+    'bindStyle',
     // 'withState',
   ]));
 

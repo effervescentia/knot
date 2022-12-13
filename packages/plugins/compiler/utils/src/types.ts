@@ -36,7 +36,7 @@ export interface JSXPlugin<T, R> {
   render(app: R, id: string): void;
 
   bindStyle<P extends PropsType>(
-    component: React.Component<P>,
+    component: ((props: P) => R) | string,
     styles: Style
-  ): React.FC<P>;
+  ): (props: P) => R;
 }

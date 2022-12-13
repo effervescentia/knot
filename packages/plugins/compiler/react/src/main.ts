@@ -20,9 +20,9 @@ const Plugin: JSXPlugin<React.ComponentType, JSX.Element> = {
   },
 
   bindStyle<P extends PropsType>(
-    component: React.Component<P> | keyof React.ReactHTML,
+    component: ((props: P) => JSX.Element) | string,
     style: Style
-  ): React.FC<P> {
+  ): (props: P) => JSX.Element {
     return (props: P) =>
       React.createElement(component as any, {
         ...props,

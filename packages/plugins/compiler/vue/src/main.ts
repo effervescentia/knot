@@ -1,4 +1,4 @@
-import { JSXPlugin, PluginError } from '@knot/plugin-utils';
+import { JSXPlugin, PluginError, PropsType, Style } from '@knot/plugin-utils';
 import Vue from 'vue';
 
 import { VueComponent, VueElement } from './types';
@@ -14,6 +14,13 @@ const Plugin: JSXPlugin<VueElement, VueComponent> = {
     new Vue({
       el: `#${id}`,
     }),
+
+  bindStyle<P extends PropsType>(
+    component: ((props: P) => VueComponent) | string,
+    _style: Style
+  ): (props: P) => VueComponent {
+    return component as any;
+  },
 };
 
 export default Plugin;

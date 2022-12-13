@@ -7,7 +7,10 @@ test('includes keys', (t) => {
 
   t.plan(keys.length);
 
-  ['resolve', 'classes', 'styleExpressionPlugin', 'styleRulePlugin'].forEach(
-    (key) => t.true(keys.includes(key))
-  );
+  [
+    'createStyle',
+    'classes',
+    'styleExpressionPlugin',
+    'styleRulePlugin',
+  ].forEach((key) => t.true(keys.includes(key)));
 });
