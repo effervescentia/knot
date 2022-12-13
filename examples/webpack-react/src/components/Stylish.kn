@@ -5,7 +5,7 @@ const rootStyle = style {
 
 const Container = div::rootStyle;
 
-const topStyle = style {
+const TopComponent = div::{
   height: $px(100.0),
   width: $px(200.0),
   backgroundColor: "#ec6810",
@@ -18,8 +18,8 @@ const bottomStyle = style {
 };
 
 main view Stylish ->
-  <div::rootStyle id="stylish">
-    <div::topStyle id="stylish__child--top" />
+  <Container id="stylish">
+    <TopComponent id="stylish__child--top" />
     <div::bottomStyle id="stylish__child--bottom" />
-  </div>
+  </Container>
 ;

@@ -40,7 +40,8 @@ and parse_expression_5 = (ctx): Framework.expression_parser_t =>
     )
 
 /* foo::bar */
-and parse_expression_6 = ctx => (ctx, parse_expression_7) |> KBindStyle.parse
+and parse_expression_6 = ctx =>
+  (ctx, (parse_expression_7, parse_expression_0)) |> KBindStyle.parse
 
 /* foo.bar */
 and parse_expression_7 = ctx => parse_expression_8(ctx) >>= KDotAccess.parse

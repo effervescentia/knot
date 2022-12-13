@@ -8,6 +8,7 @@ const nestedJSXConst =
       <span />
     </div>
     <footer />
-  </main>;
+  </main>
+;
 const nestedExprJSXConst = <section>{numericConst + 20}<article />hello</section>;
 const fragmentJSXConst = <><div /><span /></>;

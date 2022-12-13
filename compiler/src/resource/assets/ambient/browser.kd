@@ -123,7 +123,40 @@ module ElementTag {
     xmlns?: string,
   }, element);
 
+  declare base: view({
+    ...global_attributes,
+    href?: string,
+    target?: string,
+  }, element);
   declare head: view(global_attributes, element);
+  declare link: view({
+    ...global_attributes,
+    as?: string,
+    crossorigin?: string,
+    href?: string,
+    hreflang?: string,
+    integrity?: string,
+    media?: string,
+    referrerpolicy?: string,
+    rel?: string,
+    title?: string,
+    type?: string,
+    blocking?: string,
+  }, element);
+  declare meta: view({
+    ...global_attributes,
+    charset?: string,
+    content?: string,
+    httpEquiv?: string,
+    name?: string,
+  }, element);
+  declare style: view({
+    ...global_attributes,
+    media?: string,
+    nonce?: string,
+    title?: string,
+    blocking?: string,
+  }, element);
   declare title: view(global_attributes, element);
 
   declare body: view(global_attributes, element);
@@ -187,6 +220,7 @@ module ElementTag {
     ...global_attributes,
     dir?: string,
   }, element);
+  declare br: view(global_attributes, element);
   declare cite: view(global_attributes, element);
   declare code: view(global_attributes, element);
   declare data: view({
@@ -330,6 +364,9 @@ module ElementTag {
     width?: integer,
   }, element);
 
+  declare svg: view(global_attributes, element);
+  declare math: view(global_attributes, element);
+
   declare canvas: view({
     ...global_attributes,
     height?: integer,
@@ -403,6 +440,17 @@ module ElementTag {
     type?: string,
     value?: string,
   }, element);
+  declare col: view(global_attributes, element);
+  declare colgroup: view(global_attributes, element);
+  declare table: view(global_attributes, element);
+  declare tbody: view(global_attributes, element);
+  declare td: view(global_attributes, element);
+  declare tfoot: view(global_attributes, element);
+  declare th: view(global_attributes, element);
+  declare thead: view(global_attributes, element);
+  declare tr: view(global_attributes, element);
+
+  declare button: view(global_attributes, element);
   declare datalist: view(global_attributes, element);
   declare fieldset: view({
     ...global_attributes,

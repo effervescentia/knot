@@ -186,6 +186,13 @@ let suite =
               ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
               |> U.as_node,
               ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
+              (
+                "width" |> U.as_node,
+                ("$px" |> AR.of_id |> U.as_node, [U.float_prim((22.5, 3))])
+                |> AR.of_func_call
+                |> U.as_node,
+              )
+              |> U.as_node,
             ]
             |> AR.of_style
             |> U.as_node,
@@ -195,6 +202,7 @@ let suite =
           "foo::{
   color: $pink,
   height: \"20px\",
+  width: $px(22.5),
 }",
         )
     ),

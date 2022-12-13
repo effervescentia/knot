@@ -24,16 +24,11 @@ let parse_style_literal =
         parse_expr: Framework.contextual_expression_parser_t,
       ),
     )
-    : Framework.expression_parser_t => {
-  let rule_scope = Scope.create(ctx, Range.zero);
-
-  Scope.inject_plugin_types(~prefix="", StyleRule, rule_scope);
-
+    : Framework.expression_parser_t =>
   parse_style_rule(ctx, parse_expr)
   |> Matchers.comma_sep
   |> Matchers.between_braces
   >|= Node.map(Raw.of_style);
-};
 
 let parse =
     (
