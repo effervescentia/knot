@@ -28,7 +28,7 @@ type named_import_t = untyped_t((identifier_t, option(identifier_t)));
 /**
  supported export types
  */
-type export_t =
+type export_kind_t =
   | Main
   | Named;
 
@@ -46,7 +46,7 @@ and raw_module_statement_t =
       option(identifier_t),
       list(named_import_t),
     )
-  | Export(export_t, identifier_t, declaration_t);
+  | Export(export_kind_t, identifier_t, declaration_t);
 
 /**
  the AST of an entire module

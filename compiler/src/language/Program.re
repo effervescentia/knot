@@ -56,8 +56,8 @@ let module_statement_to_xml:
             )
           | Import(namespace, main_import, named_imports) =>
             (namespace, main_import, named_imports) |> KImport.Plugin.to_xml
-          | Export(export, name, declaration) =>
-            (export, name, declaration)
+          | Export(kind, name, declaration) =>
+            (kind, name, declaration)
             |> KDeclaration.Plugin.to_xml(dump_type)
         )
         % (x => [x]),

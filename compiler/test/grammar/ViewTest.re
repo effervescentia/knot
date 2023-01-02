@@ -1,41 +1,12 @@
 open Kore;
 
-module Assert = {
-  include Assert;
-  include Assert.Make({
-    type t = N.t((A.identifier_t, AM.declaration_t), unit);
-
-    let parser = ctx =>
-      (ctx, AST.Module.Named)
-      |> KView.Plugin.parse
-      |> Assert.parse_completely
-      |> Parser.parse;
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            (ppf, ((name, declaration), _)) =>
-              KDeclaration.Plugin.to_xml(
-                ~@T.pp,
-                (AST.Module.Named, name, declaration),
-              )
-              |> Fmt.xml_string(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
-  });
-};
-
 let suite =
   "Grammar.Declaration | View"
   >::: [
     "no parse"
     >: (
       () =>
-        Assert.parse_none([
+        Assert.Declaration.parse_none([
           "gibberish",
           "view",
           "view foo",
@@ -49,11 +20,13 @@ let suite =
     "parse - inline with no arguments"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo -> nil",
         )
@@ -61,9 +34,10 @@ let suite =
     "parse - with body and no arguments"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             (
               [],
               [],
@@ -74,6 +48,7 @@ let suite =
             |> A.of_view
             |> U.as_view([], Valid(`Nil)),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo -> { nil }",
         )
@@ -81,11 +56,13 @@ let suite =
     "parse - inline with empty arguments"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo () -> nil",
         )
@@ -93,9 +70,10 @@ let suite =
     "parse - with body and empty arguments"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             (
               [],
               [],
@@ -106,6 +84,7 @@ let suite =
             |> A.of_view
             |> U.as_view([], Valid(`Nil)),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo () -> { nil }",
         )
@@ -113,9 +92,10 @@ let suite =
     "parse - with typed argument"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             (
               [
                 (U.as_untyped("fizz"), Some(U.as_untyped(TE.Integer)), None)
@@ -130,6 +110,7 @@ let suite =
                  Valid(`Nil),
                ),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo (fizz: integer) -> {}",
         )
@@ -137,9 +118,10 @@ let suite =
     "parse - with argument with default"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             (
               [
                 (U.as_untyped("fizz"), None, Some(U.string_prim("bar")))
@@ -154,6 +136,7 @@ let suite =
                  Valid(`Nil),
                ),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo (fizz = \"bar\") -> {}",
         )
@@ -161,9 +144,10 @@ let suite =
     "parse - with typed argument with default"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped,
+            AM.Named,
+            U.as_untyped("foo"),
             (
               [
                 (
@@ -182,6 +166,7 @@ let suite =
                  Valid(`Nil),
                ),
           )
+          |> A.of_export
           |> U.as_untyped,
           "view foo (fizz: boolean = true) -> {}",
         )

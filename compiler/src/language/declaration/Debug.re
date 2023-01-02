@@ -21,17 +21,17 @@ let entity_to_xml = dump_type =>
 let to_xml:
   (
     Type.t => string,
-    (Module.export_t, Common.identifier_t, Module.declaration_t)
+    (Module.export_kind_t, Common.identifier_t, Module.declaration_t)
   ) =>
   Fmt.xml_t(string) =
-  (dump_type, (export, name, decl)) =>
+  (dump_type, (kind, name, decl)) =>
     Node(
       "Declaration",
       [],
       [
         Dump.node_to_xml(
           ~dump_value=Fun.id,
-          switch (export) {
+          switch (kind) {
           | Named => "Named"
           | Main => "Main"
           },

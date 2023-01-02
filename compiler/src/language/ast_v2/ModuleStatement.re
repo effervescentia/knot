@@ -7,12 +7,12 @@ module NamedImport = {
   type node_t = raw_t(t);
 };
 
-type export_t =
+type export_kind_t =
   | Main
   | Named;
 
 type t('typ) =
-  | Export(export_t, identifier_t, Declaration.node_t('typ))
+  | Export(export_kind_t, identifier_t, Declaration.node_t('typ))
   | StdlibImport(list(NamedImport.node_t))
   | Import(
       raw_t(Reference.Namespace.t),

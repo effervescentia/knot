@@ -4,48 +4,29 @@ module Export = Reference.Export;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
 
-module Assert = {
-  include Assert;
-  include Assert.Make({
-    type t = N.t((AST.Common.identifier_t, AM.declaration_t), unit);
-
-    let parser = ctx =>
-      (ctx, AST.Module.Named)
-      |> KConstant.Plugin.parse
-      |> Assert.parse_completely
-      |> Parser.parse;
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            (ppf, ((name, declaration), _)) =>
-              KDeclaration.Plugin.to_xml(
-                ~@AST.Type.pp,
-                (AM.Named, name, declaration),
-              )
-              |> Fmt.xml_string(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
-  });
-};
-
 let suite =
   "Grammar.Constant"
   >::: [
     "no parse"
     >: (
       () =>
-        Assert.parse_none(["gibberish", "const", "const foo", "const foo ="])
+        Assert.Declaration.parse_none([
+          "gibberish",
+          "const",
+          "const foo",
+          "const foo =",
+        ])
     ),
     "parse"
     >: (
       () =>
-        Assert.parse(
-          ("foo" |> U.as_untyped, U.nil_prim |> A.of_const |> U.as_nil)
+        Assert.Declaration.parse(
+          (
+            AM.Named,
+            U.as_untyped("foo"),
+            U.nil_prim |> A.of_const |> U.as_nil,
+          )
+          |> A.of_export
           |> U.as_untyped,
           "const foo = nil",
         )
@@ -65,13 +46,14 @@ let suite =
           },
         };
 
-        Assert.parse(
+        Assert.Declaration.parse(
           ~context=
             ParseContext.create(
               ~symbols,
               Reference.Namespace.Internal("foo"),
             ),
           (
+            AM.Named,
             "foo" |> U.as_untyped,
             [
               (U.as_untyped("x"), "bar" |> A.of_id |> U.as_float)
@@ -116,6 +98,7 @@ let suite =
             |> A.of_const
             |> U.as_bool,
           )
+          |> A.of_export
           |> U.as_untyped,
           "const foo = {
             let x = bar;

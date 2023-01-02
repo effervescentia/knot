@@ -2,9 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse =
-    ((ctx: ParseContext.t, export: Module.export_t))
-    : Framework.declaration_parser_t =>
+let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
   Matchers.keyword(Constants.Keyword.const)
   >>= (
     kwd =>
@@ -18,7 +16,7 @@ let parse =
             ctx |> Scope.of_parse_context(Node.get_range(raw_expr));
           let expr = raw_expr |> KExpression.Plugin.analyze(scope);
           let type_ = Node.get_type(expr);
-          let const = expr |> Node.wrap(Result.of_const);
+          let const = expr |> Node.wrap(Fun.id);
           let range = Node.join_ranges(kwd, raw_expr);
 
           // TODO: throw error if name already used in scope

@@ -5,9 +5,7 @@ open AST;
 let __children_key = "children";
 let __implicit_children_key = "$children";
 
-let parse =
-    ((ctx: ParseContext.t, export: Module.export_t))
-    : Framework.declaration_parser_t =>
+let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
   Matchers.keyword(Constants.Keyword.view)
   >>= Node.get_range
   % (
@@ -123,12 +121,7 @@ let parse =
                    type_,
                  );
 
-              let view =
-                Node.typed(
-                  (props', mixins', res') |> Result.of_view,
-                  type_,
-                  range,
-                );
+              let view = Node.typed((props', mixins', res'), type_, range);
 
               Node.untyped((id, view), Range.join(start, range));
             }

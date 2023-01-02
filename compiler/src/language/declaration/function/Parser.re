@@ -2,9 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse =
-    ((ctx: ParseContext.t, export: Module.export_t))
-    : Framework.declaration_parser_t =>
+let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
   Matchers.keyword(Constants.Keyword.func)
   >>= Node.get_range
   % (
@@ -55,12 +53,7 @@ let parse =
                    type_,
                  );
 
-              let func =
-                Node.typed(
-                  (args', res') |> AST.Result.of_func,
-                  type_,
-                  range,
-                );
+              let func = Node.typed((args', res'), type_, range);
 
               Node.untyped((id, func), Range.join(start, range));
             }

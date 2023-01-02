@@ -1,6 +1,6 @@
 open AST;
 
-include Framework.Declaration({
+include Framework.DeclarationV2({
   type value_t = (
     list(Result.argument_t),
     list(Result.node_t(string)),

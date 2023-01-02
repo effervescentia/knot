@@ -2,9 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse =
-    ((ctx: ParseContext.t, export: Module.export_t))
-    : Framework.declaration_parser_t =>
+let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
   Matchers.keyword(Constants.Keyword.enum)
   >|= Node.get_range
   >>= (
@@ -45,7 +43,7 @@ let parse =
               start,
               raw_variants |> List.last |?> Node.get_range |?: start,
             );
-          let enum = Node.typed(AST.Result.of_enum(variants), type_, range);
+          let enum = Node.typed(variants, type_, range);
 
           ctx.symbols
           |> SymbolTable.declare_value(

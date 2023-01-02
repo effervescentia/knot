@@ -145,3 +145,22 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
       % Fmt.xml_string(ppf);
     let pp_type = (_, ()) => ();
   });
+
+module Declaration =
+  Make({
+    type t = AST.Module.module_statement_t;
+
+    let parser = KDeclaration.Plugin.parse % parse_completely % Parser.parse;
+
+    let test =
+      Alcotest.(
+        check(
+          testable(
+            ppf =>
+              Language.Debug.module_statement_to_xml % Fmt.xml_string(ppf),
+            (==),
+          ),
+          "parsed result matches",
+        )
+      );
+  });
