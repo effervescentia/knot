@@ -11,7 +11,7 @@ let _assert_number = (expected, actual) =>
       Assert.Compare.expression(Target.Common),
       "javascript number matches",
       expected,
-      Generator.gen_number(actual),
+      Generator.gen_expression(Primitive(actual)),
     )
   );
 

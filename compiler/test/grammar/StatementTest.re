@@ -40,7 +40,7 @@ let suite =
           ("foo" |> AR.of_id |> U.as_node, U.int_prim(3))
           |> AR.of_add_op
           |> U.as_node
-          |> AR.of_expr
+          |> AR.of_effect
           |> U.as_node,
           ["foo + 3", "foo + 3;"],
         )

@@ -5,29 +5,29 @@ let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Raw.bind_style_target_t, Raw.expression_t),
+    (Expression.view_source_t, Raw.expression_t, Raw.expression_t),
     Range.t
   ) =>
-  (Result.bind_style_target_t, Result.expression_t) =
-  (scope, analyze_expression, (BuiltIn(lhs) | Local(lhs), rhs), range) => {
+  (Expression.view_source_t, Result.expression_t, Result.expression_t) =
+  (scope, analyze_expression, (source, lhs, rhs), range) => {
     let lhs_range = Node.get_range(lhs);
     let tag_scope = Scope.create(scope.context, lhs_range);
     tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-    let (lhs', lhs_type) =
+    let (source', lhs', lhs_type) =
       switch (fst(lhs)) {
       | Identifier(id) =>
-        let (lhs_type, tag_lhs) =
+        let (lhs_type, source') =
           scope
           |> Scope.lookup(id)
           |> Option.map(
-               Stdlib.Result.map(Tuple.with_snd2(Result.of_local)),
+               Stdlib.Result.map(Tuple.with_snd2(Expression.Component)),
              )
           |?| (
             tag_scope
             |> Scope.lookup(id)
             |> Option.map(
-                 Stdlib.Result.map(Tuple.with_snd2(Result.of_builtin)),
+                 Stdlib.Result.map(Tuple.with_snd2(Expression.Element)),
                )
           )
           |> (
@@ -39,17 +39,17 @@ let analyze:
               }
             | None => None
           )
-          |?: (Invalid(NotInferrable), Result.of_local);
+          |?: (Invalid(NotInferrable), Expression.Component);
 
         (
-          Node.typed(Expression.Identifier(id), lhs_type, lhs_range)
-          |> tag_lhs,
+          source',
+          Node.typed(Expression.Identifier(id), lhs_type, lhs_range),
           lhs_type,
         );
 
       | _ =>
         analyze_expression(scope, lhs)
-        |> Tuple.split2(Result.of_local, Node.get_type)
+        |> Tuple.split3(_ => Expression.Component, Fun.id, Node.get_type)
       };
 
     let rhs' = analyze_expression(scope, rhs);
@@ -59,5 +59,5 @@ let analyze:
     |> Validator.validate
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    (lhs', rhs');
+    (source', lhs', rhs');
   };

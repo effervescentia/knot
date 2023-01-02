@@ -79,7 +79,7 @@ let suite =
             [String("foo")],
           ),
           ("foo" |> U.as_view([], Valid(`Nil)), [], [], [])
-          |> A.of_tag
+          |> A.of_element_tag
           |> A.of_jsx,
         )
     ),
@@ -103,7 +103,7 @@ let suite =
             ],
             [],
           )
-          |> A.of_tag
+          |> A.of_element_tag
           |> A.of_jsx,
         )
     ),
@@ -116,7 +116,7 @@ let suite =
             [Identifier("Foo")],
           ),
           ("Foo" |> U.as_view([], Valid(`Element)), [], [], [])
-          |> A.of_component
+          |> A.of_component_tag
           |> A.of_jsx,
         )
     ),
@@ -205,7 +205,7 @@ let suite =
             [],
             [],
           )
-          |> A.of_component
+          |> A.of_component_tag
           |> A.of_jsx,
         )
     ),
@@ -248,17 +248,17 @@ let suite =
                 [],
                 [
                   ("fizz" |> U.as_view([], Valid(`Nil)), [], [], [])
-                  |> A.of_tag
+                  |> A.of_element_tag
                   |> A.of_node
                   |> U.as_untyped,
                 ],
               )
-              |> A.of_component
+              |> A.of_component_tag
               |> A.of_node
               |> U.as_untyped,
             ],
           )
-          |> A.of_tag
+          |> A.of_element_tag
           |> A.of_jsx,
         )
     ),
@@ -300,12 +300,12 @@ let suite =
             (U.int_prim(123), U.int_prim(456))
             |> A.of_eq_op
             |> U.as_int
-            |> A.of_expr
+            |> A.of_effect
             |> U.as_int,
             (U.int_prim(678), U.int_prim(910))
             |> A.of_add_op
             |> U.as_int
-            |> A.of_expr
+            |> A.of_effect
             |> U.as_int,
           ]
           |> A.of_closure,
@@ -355,7 +355,7 @@ let suite =
             "foo" |> A.of_id |> U.as_view([], Valid(`Element)),
             "bar" |> A.of_id |> U.as_style,
           )
-          |> A.of_local_bind_style,
+          |> A.of_component_bind_style,
         )
     ),
     "function call"

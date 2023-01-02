@@ -40,10 +40,10 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          [123 |> URes.int_prim |> A.of_expr |> URes.as_int]
+          [123 |> URes.int_prim |> A.of_effect |> URes.as_int]
           |> A.of_closure
           |> URes.as_int,
-          [123 |> URaw.int_prim |> AR.of_expr |> URaw.as_node]
+          [123 |> URaw.int_prim |> AR.of_effect |> URaw.as_node]
           |> AR.of_closure
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
@@ -71,11 +71,11 @@ let suite =
 
         Assert.expression(
           (__id |> URes.as_typed(type_), [], [], [])
-          |> A.of_component
+          |> A.of_component_tag
           |> A.of_jsx
           |> URes.as_element,
           (URaw.as_untyped(__id), [], [], [])
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> AR.of_jsx
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
@@ -176,13 +176,13 @@ let suite =
             view_id |> A.of_id |> URes.as_view([], Valid(`Element)),
             style_id |> A.of_id |> URes.as_style,
           )
-          |> A.of_local_bind_style
+          |> A.of_component_bind_style
           |> URes.as_view([], Valid(`Element)),
           (
             view_id |> AR.of_id |> URaw.as_node,
             style_id |> AR.of_id |> URaw.as_node,
           )
-          |> AR.of_local_bind_style
+          |> AR.of_component_bind_style
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
@@ -252,7 +252,7 @@ let suite =
             |> A.of_style
             |> URes.as_style,
           )
-          |> A.of_local_bind_style
+          |> A.of_component_bind_style
           |> URes.as_view([], Valid(`Element)),
           (
             view_id |> AR.of_id |> URaw.as_node,
@@ -268,7 +268,7 @@ let suite =
             |> AR.of_style
             |> URaw.as_node,
           )
-          |> AR.of_local_bind_style
+          |> AR.of_component_bind_style
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
@@ -302,13 +302,13 @@ let suite =
             tag_id |> A.of_id |> URes.as_view([], Valid(`Element)),
             style_id |> A.of_id |> URes.as_style,
           )
-          |> A.of_builtin_bind_style
+          |> A.of_element_bind_style
           |> URes.as_view([], Valid(`Element)),
           (
             tag_id |> AR.of_id |> URaw.as_node,
             style_id |> AR.of_id |> URaw.as_node,
           )
-          |> AR.of_builtin_bind_style
+          |> AR.of_element_bind_style
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );
@@ -378,7 +378,7 @@ let suite =
             |> A.of_style
             |> URes.as_style,
           )
-          |> A.of_builtin_bind_style
+          |> A.of_element_bind_style
           |> URes.as_view([], Valid(`Element)),
           (
             tag_id |> AR.of_id |> URaw.as_node,
@@ -394,7 +394,7 @@ let suite =
             |> AR.of_style
             |> URaw.as_node,
           )
-          |> AR.of_builtin_bind_style
+          |> AR.of_element_bind_style
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );

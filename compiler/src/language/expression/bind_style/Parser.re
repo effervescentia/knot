@@ -5,7 +5,7 @@ open AST;
 module Glyph = Constants.Glyph;
 
 let parse_bind_style_expression: Framework.binary_op_parser_t =
-  Parse.Util.binary_op(Raw.of_local_bind_style)
+  Parse.Util.binary_op(Raw.of_component_bind_style)
   <$ Matchers.glyph(Glyph.style_binding);
 
 let parse_bind_style_literal = ((ctx, parse_expr), expr) =>
@@ -14,7 +14,7 @@ let parse_bind_style_literal = ((ctx, parse_expr), expr) =>
   >|= (
     literal =>
       Node.untyped(
-        (expr, literal) |> Raw.of_local_bind_style,
+        (expr, literal) |> Raw.of_component_bind_style,
         Node.join_ranges(expr, literal),
       )
   );

@@ -49,7 +49,7 @@ let rec of_list = (xs: list(t)): t =>
     }
   };
 
-let rec of_expr =
+let rec of_effect =
   AST.Expression.(
     fun
     | (Primitive(prim), (_, range)) =>
@@ -57,28 +57,29 @@ let rec of_expr =
     | (Identifier(id), (_, range)) =>
       Node.untyped(id, range) |> of_untyped_id
     | (JSX(jsx), (_, range)) => jsx |> of_jsx |> _wrap(range)
-    | (Group(expr), _) => expr |> of_expr |> _wrap(Node.get_range(expr))
+    | (Group(expr), _) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | (BinaryOp(_, lhs, rhs), _) =>
       _join(
-        lhs |> of_expr |> _wrap(Node.get_range(lhs)),
-        rhs |> of_expr |> _wrap(Node.get_range(rhs)),
+        lhs |> of_effect |> _wrap(Node.get_range(lhs)),
+        rhs |> of_effect |> _wrap(Node.get_range(rhs)),
       )
     | (UnaryOp(_, expr), _) =>
-      expr |> of_expr |> _wrap(Node.get_range(expr))
+      expr |> of_effect |> _wrap(Node.get_range(expr))
     | (Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
     | (DotAccess(expr, _), _) =>
-      expr |> of_expr |> _wrap(Node.get_range(expr))
-    | (BindStyle(BuiltIn(view) | Local(view), style), _) =>
+      expr |> of_effect |> _wrap(Node.get_range(expr))
+    | (BindStyle(_, view, style), _) =>
       _join(
-        view |> of_expr |> _wrap(Node.get_range(view)),
-        style |> of_expr |> _wrap(Node.get_range(style)),
+        view |> of_effect |> _wrap(Node.get_range(view)),
+        style |> of_effect |> _wrap(Node.get_range(style)),
       )
     | (FunctionCall(expr, args), _) =>
       _join(
-        expr |> of_expr |> _wrap(Node.get_range(expr)),
-        args |> List.map(of_expr) |> of_list,
+        expr |> of_effect |> _wrap(Node.get_range(expr)),
+        args |> List.map(of_effect) |> of_list,
       )
-    | (Style(rules), _) => rules |> List.map(fst % snd % of_expr) |> of_list
+    | (Style(rules), _) =>
+      rules |> List.map(fst % snd % of_effect) |> of_list
   )
 
 and of_jsx =
@@ -91,10 +92,9 @@ and of_jsx =
          )
       |> of_list
 
-    | Tag((id, (_, range)), styles, attrs, children)
-    | Component((id, (_, range)), styles, attrs, children) =>
+    | Tag(_, (id, (_, range)), styles, attrs, children) =>
       [Node.untyped(id, range) |> of_untyped_id]
-      @ (styles |> List.map(of_expr))
+      @ (styles |> List.map(of_effect))
       @ (
         attrs
         |> List.map(attr =>
@@ -115,7 +115,7 @@ and of_jsx_child =
     fun
     | (Node(tag), (_, range)) => tag |> of_jsx |> _wrap(range)
     | (InlineExpression(expr), _) =>
-      expr |> of_expr |> _wrap(Node.get_range(expr))
+      expr |> of_effect |> _wrap(Node.get_range(expr))
     | (Text(text), (_, range)) =>
       BinaryTree.create((range, Token.Primitive(String(text))))
   )
@@ -127,7 +127,7 @@ and of_jsx_attr =
     | (id, Some(expr)) =>
       _join(
         of_untyped_id(id),
-        expr |> of_expr |> _wrap(Node.get_range(expr)),
+        expr |> of_effect |> _wrap(Node.get_range(expr)),
       )
   )
 
@@ -137,9 +137,9 @@ and of_stmt =
     | Variable(name, expr) =>
       _join(
         of_untyped_id(name),
-        expr |> of_expr |> _wrap(Node.get_range(expr)),
+        expr |> of_effect |> _wrap(Node.get_range(expr)),
       )
-    | Expression(expr) => expr |> of_expr |> _wrap(Node.get_range(expr))
+    | Effect(expr) => expr |> of_effect |> _wrap(Node.get_range(expr))
   );
 
 let of_args = args =>
@@ -149,7 +149,7 @@ let of_args = args =>
        % (
          (AST.Expression.{name, default, _}) => {
            ...of_untyped_id(name),
-           right: default |?> of_expr,
+           right: default |?> of_effect,
          }
        ),
      );
@@ -157,16 +157,22 @@ let of_args = args =>
 let of_decl =
   AST.Module.(
     fun
-    | Constant(expr) => expr |> of_expr |> _wrap(Node.get_range(expr))
+    | Constant(expr) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | Enumerated(variants) =>
       variants
       |> List.map(((name, _)) => [of_untyped_id(name)])
       |> List.flatten
       |> of_list
     | Function(args, expr) =>
-      _join(of_args(args), expr |> of_expr |> _wrap(Node.get_range(expr)))
+      _join(
+        of_args(args),
+        expr |> of_effect |> _wrap(Node.get_range(expr)),
+      )
     | View(props, _, expr) =>
-      _join(of_args(props), expr |> of_expr |> _wrap(Node.get_range(expr)))
+      _join(
+        of_args(props),
+        expr |> of_effect |> _wrap(Node.get_range(expr)),
+      )
   );
 
 let of_import =

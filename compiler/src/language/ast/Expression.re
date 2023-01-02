@@ -1,17 +1,16 @@
 open Knot.Kore;
 open Common;
 
+type view_source_t =
+  | Component
+  | Element;
+
 /**
    a JSX AST node
    */
 type jsx_t('a) =
   | Tag(
-      Node.t(string, 'a),
-      list(expression_t('a)),
-      list(jsx_attribute_t('a)),
-      list(jsx_child_t('a)),
-    )
-  | Component(
+      view_source_t,
       Node.t(string, 'a),
       list(expression_t('a)),
       list(jsx_attribute_t('a)),
@@ -48,10 +47,6 @@ and style_rule_t('a) = untyped_t(raw_style_rule_t('a))
    */
 and raw_style_rule_t('a) = (Node.t(string, 'a), expression_t('a))
 
-and bind_style_target_t('a) =
-  | BuiltIn(expression_t('a))
-  | Local(expression_t('a))
-
 /**
    an expression AST node
    */
@@ -67,8 +62,8 @@ and raw_expression_t('a) =
   | BinaryOp(Binary.t, expression_t('a), expression_t('a))
   | UnaryOp(Unary.t, expression_t('a))
   | Closure(list(statement_t('a)))
-  | DotAccess(expression_t('a), untyped_t(string))
-  | BindStyle(bind_style_target_t('a), expression_t('a))
+  | DotAccess(expression_t('a), identifier_t)
+  | BindStyle(view_source_t, expression_t('a), expression_t('a))
   | FunctionCall(expression_t('a), list(expression_t('a)))
   | Style(list(style_rule_t('a)))
 
@@ -81,7 +76,7 @@ and statement_t('a) = Node.t(raw_statement_t('a), 'a)
    */
 and raw_statement_t('a) =
   | Variable(identifier_t, expression_t('a))
-  | Expression(expression_t('a));
+  | Effect(expression_t('a));
 
 /**
    an AST node of an argument for a functional closure

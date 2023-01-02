@@ -15,17 +15,14 @@ let parse =
       let fraction_precision = String.length(fraction);
 
       let components =
-        (
-          if (fraction == "") {
-            (Float.of_string(integer), integer_precision);
-          } else {
-            (
-              Fmt.str("%s.%s", integer, fraction) |> Float.of_string,
-              integer_precision + fraction_precision,
-            );
-          }
-        )
-        |> AST.Raw.of_float;
+        if (fraction == "") {
+          (Float.of_string(integer), integer_precision);
+        } else {
+          (
+            Fmt.str("%s.%s", integer, fraction) |> Float.of_string,
+            integer_precision + fraction_precision,
+          );
+        };
 
       Node.typed(components, (), Node.join_ranges(x, y));
     }

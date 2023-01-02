@@ -117,7 +117,7 @@ let closure_const = [
     [
       (U.as_untyped("foo"), 123 |> U.int_prim) |> A.of_var |> U.as_nil,
       (U.as_untyped("bar"), U.nil_prim) |> A.of_var |> U.as_nil,
-      false |> U.bool_prim |> A.of_expr |> U.as_bool,
+      false |> U.bool_prim |> A.of_effect |> U.as_bool,
     ]
     |> A.of_closure
     |> U.as_bool
@@ -173,7 +173,7 @@ let complex_jsx_const = [
       [(U.as_untyped("buzz"), None) |> U.as_untyped],
       [
         ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
-        |> A.of_tag
+        |> A.of_element_tag
         |> A.of_node
         |> U.as_untyped,
         U.nil_prim |> A.of_inline_expr |> U.as_untyped,
@@ -235,7 +235,7 @@ let multiline_function = [
         ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
         |> A.of_mult_op
         |> U.as_int
-        |> A.of_expr
+        |> A.of_effect
         |> U.as_int,
       ]
       |> A.of_closure

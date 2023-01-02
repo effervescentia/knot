@@ -34,7 +34,7 @@ let suite =
               "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
             ],
           )
-          |> A.of_component,
+          |> A.of_component_tag,
           (
             URaw.as_untyped(__id),
             [],
@@ -43,7 +43,7 @@ let suite =
               "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
             ],
           )
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
         );
       }
@@ -72,7 +72,7 @@ let suite =
               "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> A.of_element_tag,
           (
             URaw.as_untyped(__id),
             [],
@@ -81,7 +81,7 @@ let suite =
               "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
             ],
           )
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
         );
       }
@@ -106,14 +106,14 @@ let suite =
             [],
             [],
           )
-          |> A.of_component,
+          |> A.of_component_tag,
           (
             URaw.as_untyped(__id),
             [style_id |> AR.of_id |> URaw.as_untyped],
             [],
             [],
           )
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
         );
       }
@@ -125,7 +125,7 @@ let suite =
           [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
           () =>
           (URaw.as_untyped(__id), [], [], [])
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(
                __throw_scope,
                KExpression.Plugin.analyze,
@@ -163,7 +163,7 @@ let suite =
               |> URaw.as_untyped,
             ],
           )
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
         );
       }
@@ -231,7 +231,7 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
         );
       }
@@ -276,7 +276,7 @@ let suite =
           ],
           [],
         )
-        |> AR.of_tag
+        |> AR.of_element_tag
         |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
         |> ignore;
 
@@ -343,7 +343,7 @@ let suite =
             ],
             [],
           )
-          |> A.of_component,
+          |> A.of_component_tag,
           (
             URaw.as_untyped(__component_id),
             [],
@@ -358,7 +358,7 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
+          |> AR.of_element_tag
           |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
         );
       }

@@ -13,8 +13,8 @@ let rec format: Fmt.t(AST.Result.raw_expression_t) =
     | Closure(stmts) => stmts |> KClosure.format(format, ppf)
     | DotAccess(expr, prop) =>
       (expr, prop) |> KDotAccess.format(format, ppf)
-    | BindStyle(view, style) =>
-      (view, style) |> KBindStyle.format(format, ppf)
+    | BindStyle(source, view, style) =>
+      (source, view, style) |> KBindStyle.format(format, ppf)
     | FunctionCall(expr, args) =>
       (expr, args) |> KFunctionCall.format(format, ppf)
     | Style(rules) => rules |> KStyle.format(format, ppf);

@@ -25,7 +25,8 @@ let suite =
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> U.as_view([], Valid(`Nil)), [], [], []) |> A.of_tag,
+          ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
+          |> A.of_element_tag,
         )
     ),
     "pp_jsx() - empty component"
@@ -34,7 +35,7 @@ let suite =
         _assert_jsx(
           "<Foo />",
           ("Foo" |> U.as_view([], T.Valid(`Element)), [], [], [])
-          |> A.of_component,
+          |> A.of_component_tag,
         )
     ),
     "pp_jsx() - empty fragment"
@@ -54,7 +55,7 @@ let suite =
             ],
             [],
           )
-          |> A.of_tag,
+          |> A.of_element_tag,
         )
     ),
     "pp_jsx() - tag with nested text"
@@ -70,7 +71,7 @@ let suite =
             [],
             ["bar" |> A.of_text |> U.as_untyped],
           )
-          |> A.of_tag,
+          |> A.of_element_tag,
         )
     ),
     "pp_jsx() - tag with nested expression"
@@ -92,7 +93,7 @@ let suite =
               |> U.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> A.of_element_tag,
         )
     ),
     "pp_jsx() - tag with nested tag"
@@ -115,12 +116,12 @@ let suite =
                 [],
                 ["fizzbuzz" |> A.of_text |> U.as_untyped],
               )
-              |> A.of_tag
+              |> A.of_element_tag
               |> A.of_node
               |> U.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> A.of_element_tag,
         )
     ),
     "pp_jsx() - tag with multiple children"
@@ -138,14 +139,14 @@ let suite =
             [],
             [
               ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
-              |> A.of_tag
+              |> A.of_element_tag
               |> A.of_node
               |> U.as_untyped,
               U.nil_prim |> A.of_inline_expr |> U.as_untyped,
               "Hello, World!" |> A.of_text |> U.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> A.of_element_tag,
         )
     ),
     "pp_jsx_attr() - property with primitive value"
@@ -235,8 +236,8 @@ let suite =
             U.as_untyped("fizz"),
             Some(
               [
-                true |> U.bool_prim |> A.of_expr |> U.as_bool,
-                false |> U.bool_prim |> A.of_expr |> U.as_bool,
+                true |> U.bool_prim |> A.of_effect |> U.as_bool,
+                false |> U.bool_prim |> A.of_effect |> U.as_bool,
               ]
               |> A.of_closure
               |> U.as_bool,
@@ -253,7 +254,7 @@ let suite =
             U.as_untyped("fizz"),
             Some(
               ("Buzz" |> U.as_view([], Valid(`Nil)), [], [], [])
-              |> A.of_tag
+              |> A.of_element_tag
               |> A.of_jsx
               |> U.as_element,
             ),
@@ -276,12 +277,12 @@ let suite =
                 [],
                 [
                   ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
-                  |> A.of_tag
+                  |> A.of_element_tag
                   |> A.of_node
                   |> U.as_untyped,
                 ],
               )
-              |> A.of_tag
+              |> A.of_element_tag
               |> A.of_jsx
               |> U.as_element,
             ),

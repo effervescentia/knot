@@ -85,9 +85,9 @@ let suite =
   nil;
 }",
           [
-            true |> U.bool_prim |> A.of_expr |> U.as_bool,
-            false |> U.bool_prim |> A.of_expr |> U.as_bool,
-            U.nil_prim |> A.of_expr |> U.as_nil,
+            true |> U.bool_prim |> A.of_effect |> U.as_bool,
+            false |> U.bool_prim |> A.of_effect |> U.as_bool,
+            U.nil_prim |> A.of_effect |> U.as_nil,
           ]
           |> A.of_closure,
         )
@@ -111,7 +111,7 @@ let suite =
             "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
             "bar" |> A.of_id |> U.as_style,
           )
-          |> A.of_local_bind_style,
+          |> A.of_component_bind_style,
         )
     ),
     "style literal binding"
@@ -133,7 +133,7 @@ let suite =
             |> A.of_style
             |> U.as_style,
           )
-          |> A.of_local_bind_style,
+          |> A.of_component_bind_style,
         )
     ),
     "JSX"
@@ -149,7 +149,7 @@ let suite =
             [],
             ["bar" |> A.of_text |> U.as_untyped],
           )
-          |> A.of_tag
+          |> A.of_element_tag
           |> A.of_jsx,
         )
     ),

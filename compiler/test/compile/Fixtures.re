@@ -66,7 +66,6 @@ module Program = {
       |> A.of_named_export,
       123L
       |> A.of_int
-      |> A.of_num
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
@@ -133,7 +132,6 @@ module Program = {
       |> A.of_named_export,
       123L
       |> A.of_int
-      |> A.of_num
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),

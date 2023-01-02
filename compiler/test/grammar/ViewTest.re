@@ -64,7 +64,7 @@ let suite =
             (
               [],
               [],
-              [U.nil_prim |> A.of_expr |> U.as_nil]
+              [U.nil_prim |> A.of_effect |> U.as_nil]
               |> A.of_closure
               |> U.as_nil,
             )
@@ -96,7 +96,7 @@ let suite =
             (
               [],
               [],
-              [U.nil_prim |> A.of_expr |> U.as_nil]
+              [U.nil_prim |> A.of_effect |> U.as_nil]
               |> A.of_closure
               |> U.as_nil,
             )

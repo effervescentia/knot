@@ -10,4 +10,4 @@ let parse =
       ),
     )
     : Framework.statement_parser_t =>
-  parse_expr(ctx) >|= Node.wrap(Raw.of_expr);
+  parse_expr(ctx) >|= Node.wrap(Raw.of_effect);

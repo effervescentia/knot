@@ -45,7 +45,7 @@ let suite =
           (
             U.as_node("foo"),
             [
-              123L |> AR.of_int |> AR.of_num |> U.as_node,
+              123L |> AR.of_int |> U.as_node,
               true |> AR.of_bool |> U.as_node,
               "bar" |> AR.of_string |> U.as_node,
             ],

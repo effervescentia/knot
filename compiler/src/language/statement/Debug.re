@@ -14,7 +14,7 @@ let to_xml:
       ~unpack=
         AST.Expression.(
           fun
-          | Expression(expr) => KEffect.to_xml(expr_to_xml, expr)
+          | Effect(expr) => KEffect.to_xml(expr_to_xml, expr)
           | Variable(name, expr) =>
             KVariable.to_xml(expr_to_xml, (name, expr))
         )

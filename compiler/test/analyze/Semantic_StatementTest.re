@@ -19,10 +19,10 @@ let suite =
     >: (
       () =>
         Assert.statement(
-          "foo" |> URes.string_prim |> A.of_expr |> URes.as_string,
+          "foo" |> URes.string_prim |> A.of_effect |> URes.as_string,
           "foo"
           |> URaw.string_prim
-          |> AR.of_expr
+          |> AR.of_effect
           |> URaw.as_node
           |> KStatement.Plugin.analyze(__scope, KExpression.Plugin.analyze),
         )
@@ -31,10 +31,10 @@ let suite =
     >: (
       () =>
         Assert.statement(
-          "foo" |> URes.string_prim |> A.of_expr |> URes.as_string,
+          "foo" |> URes.string_prim |> A.of_effect |> URes.as_string,
           "foo"
           |> URaw.string_prim
-          |> AR.of_expr
+          |> AR.of_effect
           |> URaw.as_node
           |> KStatement.Plugin.analyze(__scope, KExpression.Plugin.analyze),
         )

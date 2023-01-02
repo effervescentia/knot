@@ -13,7 +13,7 @@ let analyze:
       switch (node) {
       | (Variable(id, expr), _) =>
         KVariable.analyze(scope, analyze_expression, (id, expr))
-      | (Expression(expr), _) =>
+      | (Effect(expr), _) =>
         KEffect.analyze(scope, analyze_expression, expr)
       }
     )

@@ -2,7 +2,7 @@ open Knot.Kore;
 
 module Keyword = Constants.Keyword;
 
-include AST.Framework.Primitive({
+include AST.Framework.PrimitiveV2({
   type value_t = bool;
 
   let parse = Parser.parse;

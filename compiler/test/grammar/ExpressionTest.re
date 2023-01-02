@@ -84,7 +84,7 @@ let suite =
       () =>
         Assert.parse(
           [
-            "foo" |> AR.of_id |> U.as_node |> AR.of_expr |> U.as_node,
+            "foo" |> AR.of_id |> U.as_node |> AR.of_effect |> U.as_node,
             (U.as_untyped("x"), U.bool_prim(false))
             |> AR.of_var
             |> U.as_node,
@@ -97,7 +97,7 @@ let suite =
             (U.int_prim(1), U.int_prim(2))
             |> AR.of_add_op
             |> U.as_node
-            |> AR.of_expr
+            |> AR.of_effect
             |> U.as_node,
           ]
           |> AR.of_closure
@@ -139,7 +139,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            ["foo" |> AR.of_id |> U.as_node |> AR.of_expr |> U.as_node]
+            ["foo" |> AR.of_id |> U.as_node |> AR.of_effect |> U.as_node]
             |> AR.of_closure
             |> U.as_node,
             U.as_untyped("bar"),
@@ -171,7 +171,7 @@ let suite =
       () =>
         Assert.parse(
           ("foo" |> AR.of_id |> U.as_node, "bar" |> AR.of_id |> U.as_node)
-          |> AR.of_local_bind_style
+          |> AR.of_component_bind_style
           |> U.as_node,
           "foo::bar",
         )
@@ -197,7 +197,7 @@ let suite =
             |> AR.of_style
             |> U.as_node,
           )
-          |> AR.of_local_bind_style
+          |> AR.of_component_bind_style
           |> U.as_node,
           "foo::{
   color: $pink,
@@ -234,7 +234,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            ["foo" |> AR.of_id |> U.as_node |> AR.of_expr |> U.as_node]
+            ["foo" |> AR.of_id |> U.as_node |> AR.of_effect |> U.as_node]
             |> AR.of_closure
             |> U.as_node,
             ["bar" |> AR.of_id |> U.as_node],
@@ -483,11 +483,11 @@ let suite =
         Assert.parse(
           (
             ("a" |> AR.of_id |> U.as_node, "b" |> AR.of_id |> U.as_node)
-            |> AR.of_local_bind_style
+            |> AR.of_component_bind_style
             |> U.as_node,
             "c" |> AR.of_id |> U.as_node,
           )
-          |> AR.of_local_bind_style
+          |> AR.of_component_bind_style
           |> U.as_node,
           "a::b::c",
         )

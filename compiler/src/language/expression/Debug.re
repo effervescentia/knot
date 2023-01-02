@@ -17,8 +17,8 @@ let rec to_xml:
           | Group(expr) => expr |> KGroup.to_xml(arg)
           | Closure(stmts) => stmts |> KClosure.to_xml(arg)
           | DotAccess(root, prop) => (root, prop) |> KDotAccess.to_xml(arg)
-          | BindStyle(view, style) =>
-            (view, style) |> KBindStyle.to_xml(arg)
+          | BindStyle(source, view, style) =>
+            (source, view, style) |> KBindStyle.to_xml(arg)
           | FunctionCall(name, args) =>
             (name, args) |> KFunctionCall.to_xml(arg)
           | Style(rules) => rules |> KStyle.to_xml(arg)

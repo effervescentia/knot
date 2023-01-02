@@ -198,6 +198,14 @@
       "name": "knot.lang.ast",
       "namespace": "AST"
     },
+    "src/language/ast_v2": {
+      "require": [
+        "knot.lib",
+        "knot.parse"
+      ],
+      "name": "knot.lang.ast_v2",
+      "namespace": "ASTV2"
+    },
     "src/language/identifier": {
       "require": [
         "knot.lang.ast"
@@ -226,27 +234,19 @@
       "name": "knot.lang.primitive.boolean",
       "namespace": "KBoolean"
     },
-    "src/language/primitive/number/integer": {
+    "src/language/primitive/integer": {
       "require": [
         "knot.lang.ast"
       ],
-      "name": "knot.lang.primitive.number.integer",
+      "name": "knot.lang.primitive.integer",
       "namespace": "KInteger"
     },
-    "src/language/primitive/number/float": {
+    "src/language/primitive/float": {
       "require": [
         "knot.lang.ast"
       ],
-      "name": "knot.lang.primitive.number.float",
+      "name": "knot.lang.primitive.float",
       "namespace": "KFloat"
-    },
-    "src/language/primitive/number": {
-      "require": [
-        "knot.lang.primitive.number.integer",
-        "knot.lang.primitive.number.float"
-      ],
-      "name": "knot.lang.primitive.number",
-      "namespace": "KNumber"
     },
     "src/language/primitive/string": {
       "require": [
@@ -259,7 +259,8 @@
       "require": [
         "knot.lang.primitive.nil",
         "knot.lang.primitive.boolean",
-        "knot.lang.primitive.number",
+        "knot.lang.primitive.integer",
+        "knot.lang.primitive.float",
         "knot.lang.primitive.string"
       ],
       "name": "knot.lang.primitive",

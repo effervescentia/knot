@@ -4,8 +4,7 @@ open AST;
 let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
   (pp_expression, ppf) =>
     fun
-    | Tag((name, _), styles, attrs, [])
-    | Component((name, _), styles, attrs, []) =>
+    | Tag(_, (name, _), styles, attrs, []) =>
       Fmt.pf(
         ppf,
         "@[<h><%s%a%a@ />@]",
@@ -16,8 +15,7 @@ let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
         attrs |> List.map(fst),
       )
 
-    | Tag((name, _), styles, attrs, children)
-    | Component((name, _), styles, attrs, children) =>
+    | Tag(_, (name, _), styles, attrs, children) =>
       Fmt.(
         pf(
           ppf,
@@ -108,7 +106,7 @@ and format_attribute_expression:
     | (
         Primitive(_) | Identifier(_) | Group(_) | Closure(_) |
         /* show tags or fragments with no children */
-        JSX(Tag(_, _, _, []) | Fragment([]))
+        JSX(Tag(_, _, _, _, []) | Fragment([]))
       ) as expr =>
       pp_expression(ppf, expr)
     | expr => Fmt.pf(ppf, "(%a)", pp_expression, expr);

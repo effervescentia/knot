@@ -33,14 +33,14 @@ module RawUtil = {
 
   let nil_prim = AR.nil |> AR.of_prim |> as_node;
   let bool_prim = AR.of_bool % AR.of_prim % as_node;
-  let int_prim = Int64.of_int % AR.of_int % AR.of_num % AR.of_prim % as_node;
-  let float_prim = AR.of_float % AR.of_num % AR.of_prim % as_node;
+  let int_prim = Int64.of_int % AR.of_int % AR.of_prim % as_node;
+  let float_prim = AR.of_float % AR.of_prim % as_node;
   let string_prim = AR.of_string % AR.of_prim % as_node;
 
   /* jsx factories */
 
-  let jsx_node = x => x |> AR.of_tag |> AR.of_node;
-  let jsx_tag = x => x |> AR.of_tag |> AR.of_jsx;
+  let jsx_node = x => x |> AR.of_element_tag |> AR.of_node;
+  let jsx_tag = x => x |> AR.of_element_tag |> AR.of_jsx;
 };
 
 module ResultUtil = {
@@ -70,12 +70,12 @@ module ResultUtil = {
 
   let nil_prim = A.nil |> A.of_prim |> as_nil;
   let bool_prim = A.of_bool % A.of_prim % as_bool;
-  let int_prim = Int64.of_int % A.of_int % A.of_num % A.of_prim % as_int;
-  let float_prim = A.of_float % A.of_num % A.of_prim % as_float;
+  let int_prim = Int64.of_int % A.of_int % A.of_prim % as_int;
+  let float_prim = A.of_float % A.of_prim % as_float;
   let string_prim = A.of_string % A.of_prim % as_string;
 
   /* jsx factories */
 
-  let jsx_node = x => x |> A.of_tag |> A.of_node;
-  let jsx_tag = x => x |> A.of_tag |> A.of_jsx;
+  let jsx_node = x => x |> A.of_element_tag |> A.of_node;
+  let jsx_tag = x => x |> A.of_element_tag |> A.of_jsx;
 };

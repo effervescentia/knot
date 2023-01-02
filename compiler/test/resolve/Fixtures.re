@@ -28,7 +28,7 @@ module Program = {
     AST.Result.[
       (
         "ABC" |> U.as_untyped |> of_named_export,
-        123L |> of_int |> of_num |> of_prim |> U.as_int |> of_const |> U.as_int,
+        123 |> U.int_prim |> of_const |> U.as_int,
       )
       |> of_decl
       |> U.as_untyped,

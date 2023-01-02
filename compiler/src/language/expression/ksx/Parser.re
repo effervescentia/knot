@@ -105,7 +105,7 @@ and parse_tag =
               >|= (
                 cs =>
                   Node.untyped(
-                    (id, styles, attrs, fst(cs)) |> Raw.of_tag,
+                    (id, styles, attrs, fst(cs)) |> Raw.of_element_tag,
                     Node.join_ranges(id, cs),
                   )
               )

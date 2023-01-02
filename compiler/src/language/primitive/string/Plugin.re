@@ -1,9 +1,9 @@
 open Knot.Kore;
 
-include AST.Framework.Primitive({
+include AST.Framework.PrimitiveV2({
   type value_t = string;
 
-  let parse = Parse.Kore.(Matchers.string >|= Node.map(AST.Raw.of_string));
+  let parse = Parse.Kore.Matchers.string;
 
   let format = (ppf, x) => x |> String.escaped |> Fmt.pf(ppf, "\"%s\"");
 

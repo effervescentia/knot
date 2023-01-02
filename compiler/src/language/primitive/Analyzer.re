@@ -7,8 +7,8 @@ let analyze =
       fun
       | Nil => Valid(`Nil)
       | Boolean(_) => Valid(`Boolean)
-      | Number(Integer(_)) => Valid(`Integer)
-      | Number(Float(_)) => Valid(`Float)
+      | Integer(_) => Valid(`Integer)
+      | Float(_) => Valid(`Float)
       | String(_) => Valid(`String)
     )
   );

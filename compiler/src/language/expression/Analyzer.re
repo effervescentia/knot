@@ -56,16 +56,12 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
 
         (Expression.DotAccess(expr', prop), type_);
 
-      | (BindStyle(lhs, rhs), _) =>
-        let (lhs', rhs') =
-          KBindStyle.analyze(scope, analyze, (lhs, rhs), node_range);
-        let lhs_type =
-          switch (lhs') {
-          | BuiltIn(expr)
-          | Local(expr) => Node.get_type(expr)
-          };
+      | (BindStyle(source, lhs, rhs), _) =>
+        let (source', lhs', rhs') =
+          KBindStyle.analyze(scope, analyze, (source, lhs, rhs), node_range);
+        let lhs_type = Node.get_type(lhs');
 
-        (Expression.BindStyle(lhs', rhs'), lhs_type);
+        (Expression.BindStyle(source', lhs', rhs'), lhs_type);
 
       | (FunctionCall(expr, args), _) =>
         let (expr', args', type_) =

@@ -3,16 +3,13 @@ open AST;
 
 let format:
   Fmt.t(Result.raw_expression_t) =>
-  Fmt.t((Result.bind_style_target_t, Result.expression_t)) =
-  (pp_expression, ppf, (view, (style, _))) =>
+  Fmt.t((Expression.view_source_t, Result.expression_t, Result.expression_t)) =
+  (pp_expression, ppf, (_, (view, _), (style, _))) =>
     Fmt.pf(
       ppf,
       "%a::%a",
       pp_expression,
-      switch (view) {
-      | BuiltIn((view', _))
-      | Local((view', _)) => view'
-      },
+      view,
       ppf =>
         Expression.(
           fun

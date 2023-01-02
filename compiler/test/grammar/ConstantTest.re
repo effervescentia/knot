@@ -108,7 +108,7 @@ let suite =
               )
               |> A.of_or_op
               |> U.as_bool
-              |> A.of_expr
+              |> A.of_effect
               |> U.as_bool,
             ]
             |> A.of_closure

@@ -11,5 +11,5 @@ let analyze:
   (scope, analyze_expression, expr) => {
     let expr' = analyze_expression(scope, expr);
 
-    (Result.of_expr(expr'), Node.get_type(expr'));
+    (Result.of_effect(expr'), Node.get_type(expr'));
   };

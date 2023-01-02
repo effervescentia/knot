@@ -37,7 +37,7 @@ let __multiline_function = (
       ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
       |> A.of_mult_op
       |> U.as_int
-      |> A.of_expr
+      |> A.of_effect
       |> U.as_int,
     ]
     |> A.of_closure
@@ -91,7 +91,7 @@ let __multiline_view = (
       |> A.of_frag
       |> A.of_jsx
       |> U.as_element
-      |> A.of_expr
+      |> A.of_effect
       |> U.as_element,
     ]
     |> A.of_closure

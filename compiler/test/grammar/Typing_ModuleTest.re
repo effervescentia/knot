@@ -89,7 +89,7 @@ module Foo {}",
                        Module,
                      ),
                   [
-                    123L |> A.of_int |> A.of_num |> U.as_int,
+                    123L |> A.of_int |> U.as_int,
                     false |> A.of_bool |> U.as_bool,
                   ],
                 )
@@ -118,7 +118,7 @@ module Foo {}",
                        Module,
                      ),
                   [
-                    123L |> A.of_int |> A.of_num |> U.as_int,
+                    123L |> A.of_int |> U.as_int,
                     false |> A.of_bool |> U.as_bool,
                   ],
                 )

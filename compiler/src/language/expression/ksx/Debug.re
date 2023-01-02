@@ -38,21 +38,15 @@ let rec to_xml:
       [],
       [
         switch (ksx) {
-        | Tag(name, styles, attributes, children) =>
+        | Tag(source, view, style, attributes, children) =>
           Fmt.Node(
-            "Tag",
+            switch (source) {
+            | Component => "Component"
+            | Element => "Element"
+            },
             [],
-            [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", name)]
-            @ (styles |> style_list_to_xml(expr_to_xml))
-            @ attribute_list_to_xml(attributes)
-            @ (children |> children_to_xml(expr_to_xml, dump_type)),
-          )
-        | Component(name, styles, attributes, children) =>
-          Fmt.Node(
-            "Component",
-            [],
-            [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", name)]
-            @ (styles |> style_list_to_xml(expr_to_xml))
+            [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", view)]
+            @ (style |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)
             @ (children |> children_to_xml(expr_to_xml, dump_type)),
           )

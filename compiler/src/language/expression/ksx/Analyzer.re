@@ -6,32 +6,34 @@ let rec analyze_jsx:
   Result.jsx_t =
   (scope, analyze_expression, jsx) =>
     switch (jsx) {
-    | Tag(id, styles, attrs, children) =>
-      let tag_scope = Scope.create(scope.context, Node.get_range(id));
+    | Tag(_, view, styles, attrs, children) =>
+      let tag_scope = Scope.create(scope.context, Node.get_range(view));
       tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-      let (id_type, tag_ast) =
+      let (name_type, tag_ast) =
         scope
-        |> Scope.lookup(fst(id))
+        |> Scope.lookup(fst(view))
         |> Option.map(
-             Stdlib.Result.map(Tuple.with_snd2(Result.of_component)),
+             Stdlib.Result.map(Tuple.with_snd2(Result.of_component_tag)),
            )
         |?| (
           tag_scope
-          |> Scope.lookup(fst(id))
-          |> Option.map(Stdlib.Result.map(Tuple.with_snd2(Result.of_tag)))
+          |> Scope.lookup(fst(view))
+          |> Option.map(
+               Stdlib.Result.map(Tuple.with_snd2(Result.of_element_tag)),
+             )
         )
         |> (
           fun
           | Some(Ok(x)) => x
           | Some(Error(err)) => {
-              err |> Scope.report_type_err(scope, Node.get_range(id));
-              (Invalid(NotInferrable), Result.of_component);
+              err |> Scope.report_type_err(scope, Node.get_range(view));
+              (Invalid(NotInferrable), Result.of_component_tag);
             }
-          | None => (Invalid(NotInferrable), Result.of_component)
+          | None => (Invalid(NotInferrable), Result.of_component_tag)
         );
 
-      let id' = id |> Node.add_type(id_type);
+      let id' = view |> Node.add_type(name_type);
       let styles' = styles |> List.map(analyze_expression(scope));
       let attrs' =
         attrs |> List.map(analyze_jsx_attribute(scope, analyze_expression));
@@ -65,14 +67,14 @@ let rec analyze_jsx:
            );
 
       (
-        (fst(id), id_type, props)
+        (fst(view), name_type, props)
         |> Validator.validate_jsx_render(!List.is_empty(children))
       )
       @ Validator.validate_style_binding(styles')
       |> List.iter(((err, err_range)) =>
            Scope.report_type_err(
              scope,
-             err_range |?: Node.get_range(id),
+             err_range |?: Node.get_range(view),
              err,
            )
          );
@@ -83,9 +85,6 @@ let rec analyze_jsx:
       children
       |> List.map(analyze_jsx_child(scope, analyze_expression))
       |> Result.of_frag
-
-    /* this should never be called, component delegation is determined at this point */
-    | Component(_) => raise(SystemError)
     }
 
 and analyze_jsx_attribute:

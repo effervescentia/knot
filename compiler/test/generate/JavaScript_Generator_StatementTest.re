@@ -56,7 +56,10 @@ let __variable_declaration =
   (U.as_untyped("fooBar"), U.int_prim(123)) |> A.of_var;
 
 let __expression =
-  (U.int_prim(123), U.int_prim(456)) |> A.of_eq_op |> U.as_int |> A.of_expr;
+  (U.int_prim(123), U.int_prim(456))
+  |> A.of_eq_op
+  |> U.as_int
+  |> A.of_effect;
 
 let suite =
   "Generate.JavaScript_Generator | Statement"
@@ -255,7 +258,7 @@ let suite =
               ("buzz" |> A.of_id |> U.as_int, "buzz" |> A.of_id |> U.as_int)
               |> A.of_div_op
               |> U.as_float
-              |> A.of_expr
+              |> A.of_effect
               |> U.as_float,
             ]
             |> A.of_closure

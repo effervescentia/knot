@@ -35,21 +35,13 @@ let _style_name = Fmt.str("$style_%s");
 let _class_name = Fmt.str("$class_%s");
 let _id_name = Fmt.str("$id_%s");
 
-let gen_number = x =>
-  JS.Number(
-    AST.Result.(
-      switch (x) {
-      | Integer(value) => Int64.to_string(value)
-      | Float(value, precision) => value |> Fmt.str("%.*g", precision)
-      }
-    ),
-  );
-
 let rec gen_expression =
   AST.Expression.(
     fun
     | Primitive(Boolean(x)) => JS.Boolean(x)
-    | Primitive(Number(x)) => gen_number(x)
+    | Primitive(Integer(value)) => JS.Number(Int64.to_string(value))
+    | Primitive(Float(value, precision)) =>
+      JS.Number(value |> Fmt.str("%.*g", precision))
     | Primitive(String(x)) => JS.String(x)
     | Primitive(Nil) => JS.Null
     | Identifier(value) =>
@@ -79,9 +71,9 @@ let rec gen_expression =
     | JSX(value) => gen_jsx(value)
     | DotAccess((expr, _), (prop, _)) =>
       JS.DotAccess(gen_expression(expr), prop)
-    | BindStyle(BuiltIn((Identifier(id), _)), (style, _)) =>
+    | BindStyle(Element, (Identifier(id), _), (style, _)) =>
       JS.FunctionCall(__bind_style, [String(id), gen_expression(style)])
-    | BindStyle(BuiltIn((view, _)) | Local((view, _)), (style, _)) =>
+    | BindStyle(_, (view, _), (style, _)) =>
       JS.FunctionCall(
         __bind_style,
         [gen_expression(view), gen_expression(style)],
@@ -100,7 +92,7 @@ and gen_statement = (~is_last=false) =>
     | Variable((name, _), (value, _)) =>
       [JS.Variable(name, gen_expression(value))]
       @ (is_last ? [JS.Return(Some(Null))] : [])
-    | Expression((value, _)) => [
+    | Effect((value, _)) => [
         is_last
           ? JS.Return(Some(gen_expression(value)))
           : JS.Expression(gen_expression(value)),
@@ -170,10 +162,10 @@ and gen_jsx_element = (expr, styles, attrs, values) =>
 and gen_jsx =
   AST.Expression.(
     fun
-    | Tag((name, _), styles, attrs, values) =>
+    | Tag(Element, (name, _), styles, attrs, values) =>
       gen_jsx_element(String(name), styles, attrs, values)
 
-    | Component((id, _), styles, attrs, values) =>
+    | Tag(Component, (id, _), styles, attrs, values) =>
       gen_jsx_element(Identifier(id), styles, attrs, values)
 
     | Fragment(values) =>
