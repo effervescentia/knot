@@ -1,14 +1,14 @@
 open Kore;
-open AST;
 
-let format: Fmt.t((string, Module.raw_declaration_t)) =
-  (ppf, (name, decl)) => {
-    let (&>) = (args, format) => (name, args) |> format(ppf);
+let format: Fmt.t((string, AST.Module.raw_declaration_t)) =
+  (ppf, (name, declaration)) => {
+    let bind = format => Tuple.with_fst2(name) % format(ppf);
 
-    switch (decl) {
-    | Constant(expr) => expr &> KConstant.format
-    | Enumerated(variants) => variants &> KEnumerated.format
-    | Function(args, expr) => (args, expr) &> KFunction.format
-    | View(props, mixins, expr) => (props, mixins, expr) &> KView.format
-    };
+    declaration
+    |> Util.fold(
+         ~constant=bind(KConstant.format),
+         ~enumerated=bind(KEnumerated.format),
+         ~function_=bind(KFunction.format),
+         ~view=bind(KView.format),
+       );
   };

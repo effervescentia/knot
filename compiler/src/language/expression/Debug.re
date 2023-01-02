@@ -1,36 +1,24 @@
 open Kore;
-open AST;
 
 let rec to_xml:
-  ('a => string, Expression.expression_t('a)) => Fmt.xml_t(string) =
+  ('a => string, AST.Expression.expression_t('a)) => Fmt.xml_t(string) =
   (dump_type, expr) => {
     let expr_to_xml = to_xml(dump_type);
-    let (&>) = (args, to_xml) =>
-      args |> to_xml((expr_to_xml, dump_type)) |> List.single;
+    let bind = to_xml => to_xml((expr_to_xml, dump_type)) % List.single;
+    let unpack =
+      Util.fold(
+        ~primitive=bind(KPrimitive.to_xml),
+        ~identifier=bind(KIdentifier.to_xml),
+        ~group=bind(KGroup.to_xml),
+        ~closure=bind(KClosure.to_xml),
+        ~dot_access=bind(KDotAccess.to_xml),
+        ~bind_style=bind(KBindStyle.to_xml),
+        ~function_call=bind(KFunctionCall.to_xml),
+        ~style=bind(KStyle.to_xml),
+        ~binary_op=bind(KBinaryOperator.to_xml),
+        ~unary_op=bind(KUnaryOperator.to_xml),
+        ~ksx=bind(KSX.to_xml),
+      );
 
-    Dump.node_to_xml(
-      ~dump_type,
-      ~unpack=
-        Expression.(
-          fun
-          | Primitive(primitive) => primitive &> KPrimitive.to_xml
-          | Identifier(name) => name &> KIdentifier.to_xml
-          | Group(expression) => expression &> KGroup.to_xml
-          | Closure(statements) => statements &> KClosure.to_xml
-          | DotAccess(object_, property) =>
-            (object_, property) &> KDotAccess.to_xml
-          | BindStyle(kind, view, style) =>
-            (kind, view, style) &> KBindStyle.to_xml
-          | FunctionCall(function_, arguments) =>
-            (function_, arguments) &> KFunctionCall.to_xml
-          | Style(rules) => rules &> KStyle.to_xml
-          | BinaryOp(operator, lhs, rhs) =>
-            (operator, lhs, rhs) &> KBinaryOperator.to_xml
-          | UnaryOp(operator, expression) =>
-            (operator, expression) &> KUnaryOperator.to_xml
-          | KSX(ksx) => ksx &> KSX.to_xml
-        ),
-      "Expression",
-      expr,
-    );
+    Dump.node_to_xml(~dump_type, ~unpack, "Expression", expr);
   };
