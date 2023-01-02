@@ -15,7 +15,7 @@ let rec format: Fmt.t(TypeExpression.raw_t) =
     | Group((expr, _)) => Fmt.pf(ppf, "(%a)", format, expr)
     | List((expr, _)) => Fmt.pf(ppf, "[%a]", format, expr)
 
-    | Struct(props) =>
+    | Object(props) =>
       Fmt.(
         closure(format_struct_property(string), ppf, props |> List.map(fst))
       )
@@ -49,7 +49,7 @@ let rec format: Fmt.t(TypeExpression.raw_t) =
       )
 
 and format_struct_property =
-    (pp_key: Fmt.t(string)): Fmt.t(TypeExpression.raw_struct_entry_t) =>
+    (pp_key: Fmt.t(string)): Fmt.t(TypeExpression.raw_object_entry_t) =>
   ppf =>
     fun
     | Required((key, _), (value, _)) =>

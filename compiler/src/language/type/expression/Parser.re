@@ -89,7 +89,7 @@ let parse_struct =
   |> Matchers.comma_sep
   |> Matchers.between_braces
   /* TODO: sort the props here by property name */
-  >|= Node.map(props => TypeExpression.of_struct(props));
+  >|= Node.map(props => TypeExpression.of_object(props));
 
 let parse_function =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>

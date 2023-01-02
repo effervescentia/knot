@@ -13,7 +13,7 @@ let _get_tag_name: TypeExpression.raw_t => string =
   | Identifier(_) => "Identifier"
   | Group(_) => "Group"
   | List(_) => "List"
-  | Struct(_) => "Struct"
+  | Object(_) => "Object"
   | Function(_) => "Function"
   | DotAccess(_) => "DotAccess"
   | View(_) => "View";
@@ -35,7 +35,7 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
   | Group(expr) => [to_xml(expr)]
   | List(expr) => [to_xml(expr)]
 
-  | Struct(properties) =>
+  | Object(properties) =>
     properties
     |> List.map(
          fst

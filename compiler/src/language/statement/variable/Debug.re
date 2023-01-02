@@ -4,7 +4,7 @@ open AST;
 let to_xml:
   (
     Expression.expression_t('a) => Fmt.xml_t(string),
-    (Common.untyped_t(string), Expression.expression_t('a))
+    (Common.identifier_t, Expression.expression_t('a))
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, (name, expr)) =>

@@ -22,7 +22,7 @@ let analyze:
       object',
       (
         switch (object_type) {
-        | Valid(`Struct(props)) =>
+        | Valid(`Object(props)) =>
           props |> List.assoc_opt(property_name) |> Option.map(fst)
 
         | Valid(`Module(entries)) =>

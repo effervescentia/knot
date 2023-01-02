@@ -3,7 +3,7 @@
  */
 open Common;
 
-type t = untyped_t(raw_t)
+type t = Common.raw_t(raw_t)
 
 and raw_t =
   | Nil
@@ -13,19 +13,19 @@ and raw_t =
   | String
   | Element
   | Style
-  | Identifier(untyped_t(string))
+  | Identifier(identifier_t)
   | Group(t)
   | List(t)
-  | Struct(list(struct_entry_t))
+  | Object(list(object_entry_t))
   | Function(list(t), t)
-  | DotAccess(t, untyped_t(string))
+  | DotAccess(t, identifier_t)
   | View(t, t)
 
-and struct_entry_t = untyped_t(raw_struct_entry_t)
+and object_entry_t = Common.raw_t(raw_object_entry_t)
 
-and raw_struct_entry_t =
-  | Required(untyped_t(string), t)
-  | Optional(untyped_t(string), t)
+and raw_object_entry_t =
+  | Required(identifier_t, t)
+  | Optional(identifier_t, t)
   | Spread(t);
 
 /* tag helpers */
@@ -33,7 +33,7 @@ and raw_struct_entry_t =
 let of_id = x => Identifier(x);
 let of_group = x => Group(x);
 let of_list = x => List(x);
-let of_struct = props => Struct(props);
+let of_object = props => Object(props);
 let of_function = ((args, res)) => Function(args, res);
 let of_dot_access = ((id, prop)) => DotAccess(id, prop);
 let of_view = ((props, res)) => View(props, res);

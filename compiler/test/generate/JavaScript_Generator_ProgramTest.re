@@ -4,18 +4,19 @@ open Generate.JavaScript_AST;
 module A = AST.Result;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module Namespace = Reference.Namespace;
 module U = Util.ResultUtil;
 
 let __resolved = "../foo/bar";
 let __program =
   [
-    ("foo/bar" |> A.of_internal, "Foo" |> U.as_untyped |> Option.some, [])
+    (Namespace.Internal("foo/bar"), "Foo" |> U.as_untyped |> Option.some, [])
     |> A.of_import,
     [
       (U.as_untyped("Fizz"), "Buzz" |> U.as_untyped |> Option.some)
       |> U.as_untyped,
     ]
-    |> A.of_standard_import,
+    |> A.of_stdlib_import,
     (
       AST.Module.Named,
       "ABC" |> U.as_untyped,
@@ -73,7 +74,7 @@ let suite =
           ],
           (
             path => {
-              Assert.namespace("foo/bar" |> A.of_internal, path);
+              Assert.namespace(Namespace.Internal("foo/bar"), path);
               __resolved;
             },
             __program,

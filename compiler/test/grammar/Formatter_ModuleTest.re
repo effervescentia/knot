@@ -2,6 +2,7 @@ open Kore;
 
 module A = AST.Result;
 module Formatter = Language.Formatter;
+module Namespace = Reference.Namespace;
 module U = Util.ResultUtil;
 
 let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
@@ -15,7 +16,7 @@ let __int_const_stmt =
   |> A.of_export;
 
 let __import_stmt =
-  ("bar" |> A.of_external, "Foo" |> U.as_untyped |> Option.some, [])
+  (Namespace.External("bar"), "Foo" |> U.as_untyped |> Option.some, [])
   |> A.of_import;
 
 let suite =
@@ -75,10 +76,10 @@ import Foo from \"foo\";
 import Buzz from \"@/buzz\";
 import Fizz from \"@/fizz\";\n",
           [
-            _main_import("buzz", A.of_internal),
-            _main_import("bar", A.of_external),
-            _main_import("fizz", A.of_internal),
-            _main_import("foo", A.of_external),
+            _main_import("buzz", Namespace.of_internal),
+            _main_import("bar", Namespace.of_external),
+            _main_import("fizz", Namespace.of_internal),
+            _main_import("foo", Namespace.of_external),
           ]
           |> List.map(U.as_untyped)
           |> ~@Formatter.format,
@@ -92,7 +93,7 @@ import Fizz from \"@/fizz\";\n",
           "import { a, b, c, d } from \"foo\";\n",
           [
             (
-              "foo" |> A.of_external,
+              Namespace.External("foo"),
               None,
               [
                 (U.as_untyped("d"), None) |> U.as_untyped,

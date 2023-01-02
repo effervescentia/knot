@@ -30,13 +30,13 @@ let __const_decl = "const foo = nil";
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __main_import_ast =
-  ("bar" |> A.of_internal, "foo" |> U.as_untyped |> Option.some, [])
+  (Namespace.Internal("bar"), "foo" |> U.as_untyped |> Option.some, [])
   |> A.of_import
   |> U.as_untyped;
 let __const_decl_ast =
   (
     AST.Module.Named,
-    "foo" |> U.as_untyped,
+    U.as_untyped("foo"),
     U.nil_prim |> A.of_const |> U.as_nil,
   )
   |> A.of_export
@@ -60,7 +60,7 @@ let __context =
     ~modules=
       [
         (
-          "bar" |> A.of_internal,
+          Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
             _create_module([(Export.Main, T.Valid(`String))]),
@@ -117,7 +117,7 @@ let suite =
               ~modules=
                 [
                   (
-                    "bar" |> A.of_internal,
+                    Namespace.Internal("bar"),
                     ModuleTable.Valid(
                       "foo",
                       _create_module([(Export.Main, T.Valid(`Boolean))]),

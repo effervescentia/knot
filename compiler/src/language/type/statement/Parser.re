@@ -56,7 +56,7 @@ let parse_enumerated: type_module_statement_parser_t =
         let enum_type = Type.Valid(`Enumerated(variants));
         let value_type =
           Type.Valid(
-            `Struct(
+            `Object(
               variants
               |> List.map(
                    Tuple.map_snd2(args =>

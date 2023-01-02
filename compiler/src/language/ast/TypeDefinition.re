@@ -6,28 +6,24 @@ open Common;
 
 module TypeExpression = TypeExpression;
 
-type variant_t = (untyped_t(string), list(TypeExpression.t));
+type variant_t = (identifier_t, list(TypeExpression.t));
 
 type decorator_t('a) =
-  untyped_t((Node.t(string, 'a), list(Node.t(primitive_t, 'a))));
+  raw_t((Node.t(string, 'a), list(Node.t(primitive_t, 'a))));
 
-type module_statement_t = untyped_t(raw_module_statement_t)
+type module_statement_t = raw_t(raw_module_statement_t)
 
 and raw_module_statement_t =
-  | Declaration(untyped_t(string), TypeExpression.t)
-  | Type(untyped_t(string), TypeExpression.t)
-  | Enumerated(untyped_t(string), list(variant_t));
+  | Declaration(identifier_t, TypeExpression.t)
+  | Type(identifier_t, TypeExpression.t)
+  | Enumerated(identifier_t, list(variant_t));
 
-type module_t = untyped_t(raw_module_t)
+type module_t = raw_t(raw_module_t)
 
 and raw_module_t =
-  | Decorator(
-      untyped_t(string),
-      list(TypeExpression.t),
-      Type.DecoratorTarget.t,
-    )
+  | Decorator(identifier_t, list(TypeExpression.t), Type.DecoratorTarget.t)
   | Module(
-      untyped_t(string),
+      identifier_t,
       list(module_statement_t),
       list(decorator_t(Type.t)),
     );

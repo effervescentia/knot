@@ -6,10 +6,7 @@ let analyze = Analyzer.analyze;
 include Framework.Expression({
   type parse_arg_t = Raw.expression_t;
 
-  type value_t('a) = (
-    Expression.expression_t('a),
-    Common.untyped_t(string),
-  );
+  type value_t('a) = (Expression.expression_t('a), Common.identifier_t);
 
   let parse = Parser.parse;
 

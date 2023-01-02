@@ -5,9 +5,9 @@ let analyze_argument:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.argument_t
+    Raw.parameter_t
   ) =>
-  Result.argument_t =
+  Result.parameter_t =
   (scope, analyze_expression, arg) => {
     let (arg', type_) =
       switch (fst(arg)) {
@@ -57,9 +57,9 @@ let analyze_argument_list:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    list(Raw.argument_t)
+    list(Raw.parameter_t)
   ) =>
-  list(Result.argument_t) =
+  list(Result.parameter_t) =
   (scope, analyze_expression, args) => {
     let args' =
       args |> List.map(analyze_argument(scope, analyze_expression));

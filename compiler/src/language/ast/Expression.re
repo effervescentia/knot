@@ -1,16 +1,23 @@
 open Knot.Kore;
 open Common;
 
-type view_kind_t =
-  | Component
-  | Element;
+module ViewKind = {
+  type t =
+    | Component
+    | Element;
+
+  let to_string =
+    fun
+    | Component => "Component"
+    | Element => "Element";
+};
 
 /**
    a JSX AST node
    */
 type ksx_t('a) =
   | Tag(
-      view_kind_t,
+      ViewKind.t,
       Node.t(string, 'a),
       list(expression_t('a)),
       list(ksx_attribute_t('a)),
@@ -21,7 +28,7 @@ type ksx_t('a) =
 /**
    a JSX child AST node
    */
-and ksx_child_t('a) = untyped_t(raw_ksx_child_t('a))
+and ksx_child_t('a) = raw_t(raw_ksx_child_t('a))
 /**
    supported JSX children
    */
@@ -33,15 +40,14 @@ and raw_ksx_child_t('a) =
 /**
    a JSX attribute AST node
    */
-and ksx_attribute_t('a) =
-  untyped_t((identifier_t, option(expression_t('a))))
+and ksx_attribute_t('a) = raw_t((identifier_t, option(expression_t('a))))
 
 and raw_ksx_attribute_t('a) = (identifier_t, option(expression_t('a)))
 
 /**
    a style AST node
    */
-and style_rule_t('a) = untyped_t(raw_style_rule_t('a))
+and style_rule_t('a) = raw_t(raw_style_rule_t('a))
 /**
    string key and style expression pair
    */
@@ -63,7 +69,7 @@ and raw_expression_t('a) =
   | UnaryOp(Unary.t, expression_t('a))
   | Closure(list(statement_t('a)))
   | DotAccess(expression_t('a), identifier_t)
-  | BindStyle(view_kind_t, expression_t('a), expression_t('a))
+  | BindStyle(ViewKind.t, expression_t('a), expression_t('a))
   | FunctionCall(expression_t('a), list(expression_t('a)))
   | Style(list(style_rule_t('a)))
 
@@ -81,11 +87,11 @@ and raw_statement_t('a) =
 /**
    an AST node of an argument for a functional closure
    */
-type argument_t('a) = Node.t(raw_argument_t('a), 'a)
+type parameter_t('a) = Node.t(raw_parameter_t('a), 'a)
 /**
    a node of an argument for a functional closure
    */
-and raw_argument_t('a) = (
+and raw_parameter_t('a) = (
   identifier_t,
   option(TypeExpression.t),
   option(expression_t('a)),

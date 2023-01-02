@@ -187,7 +187,7 @@ module Foo {}",
                       |> TE.of_required
                       |> U.as_untyped,
                     ]
-                    |> TE.of_struct
+                    |> TE.of_object
                     |> U.as_untyped,
                     U.as_untyped(TE.Element),
                   )

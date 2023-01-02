@@ -250,7 +250,7 @@ let suite =
       <Declaration range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
-            <And>
+            <LogicalAnd>
               <Left>
                 <Expression range=0.0 type=boolean>
                   <Boolean value=true />
@@ -261,7 +261,7 @@ let suite =
                   <Boolean value=false />
                 </Expression>
               </Right>
-            </And>
+            </LogicalAnd>
           </Expression>
         </Constant>
       </Declaration>
@@ -433,7 +433,7 @@ let suite =
                 <Statement range=0.0 type=integer>
                   <Effect>
                     <Expression range=0.0 type=integer>
-                      <Mult>
+                      <Multiply>
                         <Left>
                           <Expression range=0.0 type=integer>
                             <Identifier name=zip />
@@ -444,7 +444,7 @@ let suite =
                             <Identifier name=zap />
                           </Expression>
                         </Right>
-                      </Mult>
+                      </Multiply>
                     </Expression>
                   </Effect>
                 </Statement>

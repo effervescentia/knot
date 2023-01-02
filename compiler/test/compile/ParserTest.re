@@ -60,7 +60,7 @@ let suite =
     >: (
       () =>
         Assert.list_namespace(
-          [A.of_external("bar"), A.of_external("buzz")],
+          [Namespace.External("bar"), Namespace.External("buzz")],
           Rx.multiple_import |> _to_stream |> Parser.imports(Nx.foo),
         )
     ),

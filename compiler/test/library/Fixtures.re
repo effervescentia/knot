@@ -261,7 +261,11 @@ let multiline_function = [
  `import Foo from "main_import"`
  */
 let main_import = [
-  ("main_import" |> A.of_external, "Foo" |> U.as_untyped |> Option.some, [])
+  (
+    Reference.Namespace.External("main_import"),
+    "Foo" |> U.as_untyped |> Option.some,
+    [],
+  )
   |> A.of_import
   |> U.as_untyped,
 ];
@@ -271,7 +275,7 @@ let main_import = [
  */
 let named_import = [
   (
-    "named_import" |> A.of_external,
+    Reference.Namespace.External("named_import"),
     None,
     [(U.as_untyped("foo"), None) |> U.as_untyped],
   )

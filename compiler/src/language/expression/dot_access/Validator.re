@@ -7,7 +7,7 @@ let validate: (string, Type.t) => option(Type.error_t) =
     /* assume this has been reported already and ignore */
     | Invalid(_) => None
 
-    | Valid(`Struct(props))
+    | Valid(`Object(props))
         when props |> List.exists(((name, _)) => name == prop) =>
       None
 

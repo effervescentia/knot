@@ -1,7 +1,8 @@
 open Knot.Kore;
 open AST;
 
-let format: Fmt.t((string, (list(Result.argument_t), Result.expression_t))) =
+let format:
+  Fmt.t((string, (list(Result.parameter_t), Result.expression_t))) =
   (ppf, (name, (args, (expr, _)))) =>
     Fmt.(
       pf(

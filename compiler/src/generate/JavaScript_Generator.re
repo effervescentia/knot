@@ -329,7 +329,7 @@ let gen_enumerated =
 let gen_function =
     (
       (name, _): AST.Result.identifier_t,
-      args: list(AST.Result.argument_t),
+      args: list(AST.Result.parameter_t),
       (expr, _): AST.Result.expression_t,
     ) =>
   JS.(
@@ -380,7 +380,7 @@ let gen_function =
 let gen_view =
     (
       (name, _): AST.Result.identifier_t,
-      props: list(AST.Result.argument_t),
+      props: list(AST.Result.parameter_t),
       mixins: list(Node.t(string, AST.Type.t)),
       (expr, _): AST.Result.expression_t,
     ) =>

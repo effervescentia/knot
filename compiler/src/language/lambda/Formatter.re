@@ -9,7 +9,7 @@ let format_body:
     | expr => Fmt.pf(ppf, "-> %a;", pp_expression, expr);
 
 let format_argument:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_argument_t) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_parameter_t) =
   (pp_expression, ppf, ((name, _), _, default)) =>
     Fmt.pf(
       ppf,
@@ -23,7 +23,7 @@ let format_argument:
     );
 
 let format_argument_list:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.argument_t)) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.parameter_t)) =
   (pp_expression, ppf) =>
     fun
     | [] => Fmt.nop(ppf, ())

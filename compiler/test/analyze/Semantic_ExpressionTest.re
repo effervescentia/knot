@@ -132,7 +132,7 @@ let suite =
             [
               (
                 __id,
-                T.Valid(`Struct([("foo", (Valid(`Boolean), true))])),
+                T.Valid(`Object([("foo", (Valid(`Boolean), true))])),
               ),
             ]
             |> List.to_seq

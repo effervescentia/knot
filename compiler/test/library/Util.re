@@ -24,7 +24,7 @@ module RawUtil = {
   let as_string = x => as_typed(`String, x);
   let as_element = x => as_typed(`Element, x);
   let as_style = x => as_typed(`Style, x);
-  let as_struct = (props, x) => as_typed(`Struct(props), x);
+  let as_struct = (props, x) => as_typed(`Object(props), x);
   let as_function = (args, res, x) => as_typed(`Function((args, res)), x);
   let as_decorator = (args, target, x) =>
     as_typed(`Decorator((args, target)), x);
@@ -58,7 +58,7 @@ module ResultUtil = {
   let as_style = x => as_typed(T.Valid(`Style), x);
   let as_enum = (variants, x) =>
     as_typed(T.Valid(`Enumerated(variants)), x);
-  let as_struct = (props, x) => as_typed(T.Valid(`Struct(props)), x);
+  let as_struct = (props, x) => as_typed(T.Valid(`Object(props)), x);
   let as_function = (args, res, x) =>
     as_typed(T.Valid(`Function((args, res))), x);
   let as_view = (props, res, x) =>

@@ -104,7 +104,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `Struct([
+            `Object([
               ("foo", (Valid(`Boolean), true)),
               ("bar", (Valid(`String), false)),
             ]),
@@ -117,7 +117,7 @@ let suite =
             |> TE.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -132,7 +132,7 @@ let suite =
             (
               "var1",
               Valid(
-                `Struct([
+                `Object([
                   ("foo", (Valid(`Element), false)),
                   ("fizz", (Valid(`Boolean), false)),
                 ]),
@@ -141,7 +141,7 @@ let suite =
             (
               "var2",
               Valid(
-                `Struct([
+                `Object([
                   ("buzz", (Valid(`Integer), true)),
                   ("bar", (Valid(`Boolean), true)),
                 ]),
@@ -151,7 +151,7 @@ let suite =
 
         Assert.type_(
           Valid(
-            `Struct([
+            `Object([
               ("foo", (Valid(`Element), false)),
               ("fizz", (Valid(`Boolean), false)),
               ("buzz", (Valid(`Integer), true)),
@@ -166,7 +166,7 @@ let suite =
             |> TE.of_spread
             |> U.as_untyped,
             U.as_untyped(
-              TE.Struct([
+              TE.Object([
                 (U.as_untyped("buzz"), U.as_untyped(TE.Float))
                 |> TE.of_optional
                 |> U.as_untyped,
@@ -181,7 +181,7 @@ let suite =
             |> TE.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> KTypeExpression.Plugin.analyze(symbols),
         );
       }
@@ -226,7 +226,7 @@ let suite =
               |> TE.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_struct
+            |> TE.of_object
             |> U.as_untyped,
             U.as_untyped(TE.Element),
           )
@@ -258,7 +258,7 @@ let suite =
               |> TE.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_struct
+            |> TE.of_object
             |> U.as_untyped,
             U.as_untyped(TE.Style),
           )

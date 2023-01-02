@@ -3,11 +3,8 @@ open AST;
 
 let analyze = Analyzer.analyze;
 
-include Framework.StatementV2({
-  type value_t('a) = (
-    Common.untyped_t(string),
-    Expression.expression_t('a),
-  );
+include Framework.Statement({
+  type value_t('a) = (Common.identifier_t, Expression.expression_t('a));
 
   let parse = Parser.parse;
 

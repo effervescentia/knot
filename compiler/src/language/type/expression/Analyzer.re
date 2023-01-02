@@ -22,7 +22,7 @@ let rec analyze: (SymbolTable.t, TypeExpression.raw_t) => Type.t =
       /* use the type of the inner expression to determine type of list items */
       | List((x, _)) => Valid(`List(analyze(defs, x)))
 
-      | Struct(xs) => Valid(`Struct(analyze_struct_properties(defs, xs)))
+      | Object(xs) => Valid(`Object(analyze_struct_properties(defs, xs)))
 
       | Function(args, (res, _)) =>
         Valid(
@@ -49,7 +49,7 @@ let rec analyze: (SymbolTable.t, TypeExpression.raw_t) => Type.t =
       | View((props, _), (res, _)) =>
         switch (props |> analyze(defs), res |> analyze(defs)) {
         | (
-            Valid(`Struct(props')),
+            Valid(`Object(props')),
             Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) as res',
           ) =>
           Valid(`View((props', res')))
@@ -80,7 +80,7 @@ and analyze_struct_properties = (defs, properties) =>
                  switch (type_) {
                  | Invalid(_) => acc
 
-                 | Valid(`Struct(xs)) => xs |> List.merge_assoc(acc)
+                 | Valid(`Object(xs)) => xs |> List.merge_assoc(acc)
 
                  // TODO: need to add error handling here to report spreading a non-struct type
                  | Valid(_) => acc

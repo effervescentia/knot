@@ -17,13 +17,13 @@ type declaration_t = node_t(raw_declaration_t)
 and raw_declaration_t =
   | Constant(expression_t)
   | Enumerated(list((identifier_t, list(node_t(TypeExpression.raw_t)))))
-  | Function(list(argument_t), expression_t)
-  | View(list(argument_t), list(Node.t(string, Type.t)), expression_t);
+  | Function(list(parameter_t), expression_t)
+  | View(list(parameter_t), list(Node.t(string, Type.t)), expression_t);
 
 /**
  a stdlib import AST node
  */
-type named_import_t = untyped_t((identifier_t, option(identifier_t)));
+type named_import_t = raw_t((identifier_t, option(identifier_t)));
 
 /**
  supported export types
@@ -35,7 +35,7 @@ type export_kind_t =
 /**
  module statement AST node
  */
-type module_statement_t = untyped_t(raw_module_statement_t)
+type module_statement_t = raw_t(raw_module_statement_t)
 /**
  supported top-level module statements
  */

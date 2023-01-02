@@ -2,6 +2,7 @@ open Kore;
 
 module A = AST.Result;
 module Formatter = Language.Formatter;
+module Namespace = Reference.Namespace;
 module U = Util.ResultUtil;
 
 let _main_import = (name, f) => (
@@ -21,7 +22,7 @@ let suite =
       () =>
         _assert_import(
           "import Fizz from \"buzz\";",
-          ("buzz" |> A.of_external, Some("Fizz"), []),
+          (Namespace.External("buzz"), Some("Fizz"), []),
         )
     ),
     "pp_import() - named imports"
@@ -30,7 +31,7 @@ let suite =
         _assert_import(
           "import { Foo as foo, Bar } from \"buzz\";",
           (
-            "buzz" |> A.of_external,
+            Namespace.External("buzz"),
             None,
             [("Foo", Some("foo")), ("Bar", None)],
           ),
@@ -42,7 +43,7 @@ let suite =
         _assert_import(
           "import Fizz, { Foo as foo, Bar } from \"buzz\";",
           (
-            "buzz" |> A.of_external,
+            Namespace.External("buzz"),
             Some("Fizz"),
             [("Foo", Some("foo")), ("Bar", None)],
           ),
@@ -70,7 +71,7 @@ let suite =
   magna,
 } from \"buzz\";",
           (
-            "buzz" |> A.of_external,
+            Namespace.External("buzz"),
             None,
             [
               "Sit",
@@ -115,7 +116,7 @@ let suite =
   magna,
 } from \"buzz\";",
           (
-            "buzz" |> A.of_external,
+            Namespace.External("buzz"),
             Some("Foo"),
             [
               "Sit",
@@ -159,8 +160,8 @@ import Bar from \"bar\";",
             [],
             [],
             [
-              _main_import("foo", A.of_external),
-              _main_import("bar", A.of_external),
+              _main_import("foo", Namespace.of_external),
+              _main_import("bar", Namespace.of_external),
             ],
           )
           |> ~@Fmt.root(Language.Formatter.format_all_imports),
@@ -175,8 +176,8 @@ import Bar from \"@/bar\";",
           (
             [],
             [
-              _main_import("foo", A.of_internal),
-              _main_import("bar", A.of_internal),
+              _main_import("foo", Namespace.of_internal),
+              _main_import("bar", Namespace.of_internal),
             ],
             [],
           )
@@ -192,8 +193,8 @@ import Bar from \"@/bar\";",
 import Foo from \"@/foo\";",
           (
             [],
-            [_main_import("bar", A.of_external)],
-            [_main_import("foo", A.of_internal)],
+            [_main_import("bar", Namespace.of_external)],
+            [_main_import("foo", Namespace.of_internal)],
           )
           |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )
@@ -211,8 +212,8 @@ import Bar from \"bar\";
 import Foo from \"@/foo\";",
           (
             [("JSX", None), ("JSX", Some("Other"))],
-            [_main_import("bar", A.of_external)],
-            [_main_import("foo", A.of_internal)],
+            [_main_import("bar", Namespace.of_external)],
+            [_main_import("foo", Namespace.of_internal)],
           )
           |> ~@Fmt.root(Language.Formatter.format_all_imports),
         )

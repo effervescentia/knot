@@ -2,7 +2,7 @@ open Knot.Kore;
 open AST;
 
 let validate_ksx_render:
-  (bool, (string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
+  (bool, (string, Type.t, list((string, Common.raw_t(Type.t))))) =>
   list((Type.error_t, option(Range.t))) =
   has_children =>
     fun

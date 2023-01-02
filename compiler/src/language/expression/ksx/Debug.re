@@ -39,17 +39,7 @@ let rec to_xml:
         | Tag(kind, view, style, attributes, children) =>
           Fmt.Node(
             "Tag",
-            [
-              (
-                "kind",
-                AST.Expression.(
-                  switch (kind) {
-                  | Component => "Component"
-                  | Element => "Element"
-                  }
-                ),
-              ),
-            ],
+            [("kind", Expression.ViewKind.to_string(kind))],
             [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", view)]
             @ (style |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)

@@ -41,13 +41,10 @@ module Make = (Params: ASTParams) => {
   type statement_t = Expression.statement_t(type_t);
   type raw_statement_t = Expression.raw_statement_t(type_t);
 
-  type argument_t = Expression.argument_t(type_t);
-  type raw_argument_t = Expression.raw_argument_t(type_t);
+  type parameter_t = Expression.parameter_t(type_t);
+  type raw_parameter_t = Expression.raw_parameter_t(type_t);
 
   /* tag helpers */
-
-  let of_internal = namespace => Reference.Namespace.Internal(namespace);
-  let of_external = namespace => Reference.Namespace.External(namespace);
 
   let of_var = ((name, x)) => Expression.Variable(name, x);
   let of_effect = x => Expression.Effect(x);

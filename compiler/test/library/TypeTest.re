@@ -25,7 +25,7 @@ let suite =
       () =>
         Assert.string(
           "{ foo: nil, bar?: string }",
-          `Struct(__props) |> ~@T.pp_valid,
+          `Object(__props) |> ~@T.pp_valid,
         )
     ),
     "pp_valid() - function"

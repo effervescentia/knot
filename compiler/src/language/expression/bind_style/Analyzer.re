@@ -5,10 +5,10 @@ let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Expression.view_kind_t, Raw.expression_t, Raw.expression_t),
+    (Expression.ViewKind.t, Raw.expression_t, Raw.expression_t),
     Range.t
   ) =>
-  (Expression.view_kind_t, Result.expression_t, Result.expression_t) =
+  (Expression.ViewKind.t, Result.expression_t, Result.expression_t) =
   (scope, analyze_expression, (kind, lhs, rhs), range) => {
     let lhs_range = Node.get_range(lhs);
     let tag_scope = Scope.create(scope.context, lhs_range);
@@ -21,13 +21,17 @@ let analyze:
           scope
           |> Scope.lookup(id)
           |> Option.map(
-               Stdlib.Result.map(Tuple.with_snd2(Expression.Component)),
+               Stdlib.Result.map(
+                 Tuple.with_snd2(Expression.ViewKind.Component),
+               ),
              )
           |?| (
             tag_scope
             |> Scope.lookup(id)
             |> Option.map(
-                 Stdlib.Result.map(Tuple.with_snd2(Expression.Element)),
+                 Stdlib.Result.map(
+                   Tuple.with_snd2(Expression.ViewKind.Element),
+                 ),
                )
           )
           |> (
@@ -39,7 +43,7 @@ let analyze:
               }
             | None => None
           )
-          |?: (Invalid(NotInferrable), Expression.Component);
+          |?: (Invalid(NotInferrable), Expression.ViewKind.Component);
 
         (
           kind',
@@ -49,7 +53,11 @@ let analyze:
 
       | _ =>
         analyze_expression(scope, lhs)
-        |> Tuple.split3(_ => Expression.Component, Fun.id, Node.get_type)
+        |> Tuple.split3(
+             _ => Expression.ViewKind.Component,
+             Fun.id,
+             Node.get_type,
+           )
       };
 
     let rhs' = analyze_expression(scope, rhs);

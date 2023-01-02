@@ -5,7 +5,7 @@ let argument_to_xml:
   (
     Result.expression_t => Fmt.xml_t(string),
     Type.t => string,
-    Result.argument_t
+    Result.parameter_t
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, dump_type, parameter) =>
@@ -42,7 +42,7 @@ let argument_list_to_xml:
   (
     Result.expression_t => Fmt.xml_t(string),
     Type.t => string,
-    list(Result.argument_t)
+    list(Result.parameter_t)
   ) =>
   list(Fmt.xml_t(string)) =
   (expr_to_xml, dump_type, parameters) =>

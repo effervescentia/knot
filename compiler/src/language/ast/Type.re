@@ -55,7 +55,7 @@ module Container = {
 
   type value_t('a) = [
     | `List('a)
-    | `Struct(list((string, ('a, bool))))
+    | `Object(list((string, ('a, bool))))
     | `Enumerated(list((string, list('a))))
     | `Function(list('a), 'a)
   ];
@@ -238,7 +238,7 @@ and pp_valid: Fmt.t(valid_t) =
     | (`Nil | `Boolean | `Integer | `Float | `String | `Element | `Style) as t =>
       Primitive.pp(ppf, t)
     | `List(t) => Container.pp_list(pp, ppf, t)
-    | `Struct(props) => Container.pp_struct(pp, ppf, props)
+    | `Object(props) => Container.pp_struct(pp, ppf, props)
     | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
     | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
     | `Decorator(args, target) =>

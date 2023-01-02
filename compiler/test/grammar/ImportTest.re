@@ -1,6 +1,7 @@
 open Kore;
 
 module Export = Reference.Export;
+module Namespace = Reference.Namespace;
 module ModuleTable = AST.ModuleTable;
 module ParseContext = AST.ParseContext;
 module U = Util.CommonUtil;
@@ -44,7 +45,7 @@ let __context_with_named_exports =
     ~modules=
       [
         (
-          A.of_internal("bar"),
+          Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
             _create_module([
@@ -64,7 +65,7 @@ let __context_with_main_export =
     ~modules=
       [
         (
-          A.of_internal("bar"),
+          Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
             _create_module([(Export.Main, T.Valid(`Nil))]),
@@ -93,7 +94,11 @@ let suite =
       () =>
         Assert.parse(
           ~context=__context_with_named_exports,
-          (A.of_internal("bar"), "foo" |> U.as_untyped |> Option.some, [])
+          (
+            Namespace.Internal("bar"),
+            "foo" |> U.as_untyped |> Option.some,
+            [],
+          )
           |> A.of_import
           |> U.as_untyped,
           "import foo from \"@/bar\"",
@@ -104,7 +109,9 @@ let suite =
       () =>
         Assert.parse(
           ~context=__context_with_named_exports,
-          (A.of_internal("bar"), None, []) |> A.of_import |> U.as_untyped,
+          (Namespace.Internal("bar"), None, [])
+          |> A.of_import
+          |> U.as_untyped,
           "import {} from \"@/bar\"",
         )
     ),
@@ -114,7 +121,7 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            A.of_internal("bar"),
+            Namespace.Internal("bar"),
             None,
             [(U.as_untyped("foo"), None) |> U.as_untyped],
           )
@@ -129,7 +136,7 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
+            Namespace.Internal("bar"),
             None,
             [
               (U.as_untyped("foo"), Some(U.as_untyped("bar")))
@@ -147,7 +154,7 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
+            Namespace.Internal("bar"),
             "fizz" |> U.as_untyped |> Option.some,
             [
               (U.as_untyped("foo"), None) |> U.as_untyped,
@@ -166,7 +173,7 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
+            Namespace.Internal("bar"),
             None,
             [
               (U.as_untyped("foo"), None) |> U.as_untyped,
@@ -183,7 +190,11 @@ let suite =
       () =>
         Assert.parse_all(
           ~context=__context_with_main_export,
-          ("bar" |> A.of_internal, "foo" |> U.as_untyped |> Option.some, [])
+          (
+            Namespace.Internal("bar"),
+            "foo" |> U.as_untyped |> Option.some,
+            [],
+          )
           |> A.of_import
           |> U.as_untyped,
           [
@@ -198,7 +209,7 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           [(U.as_untyped("foo"), None) |> U.as_untyped]
-          |> A.of_standard_import
+          |> A.of_stdlib_import
           |> U.as_untyped,
           "import { foo }",
         )
@@ -211,7 +222,7 @@ let suite =
           [
             (U.as_untyped("foo"), Some(U.as_untyped("bar"))) |> U.as_untyped,
           ]
-          |> A.of_standard_import
+          |> A.of_stdlib_import
           |> U.as_untyped,
           "import { foo as bar }",
         )

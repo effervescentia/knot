@@ -82,7 +82,7 @@ let suite =
             |> TE.of_required
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> U.as_untyped
           |> TE.of_group
           |> U.as_untyped,
@@ -90,7 +90,7 @@ let suite =
         )
     ),
     "parse empty struct type"
-    >: (() => Assert.parse(U.as_untyped(TE.of_struct([])), "{}")),
+    >: (() => Assert.parse(U.as_untyped(TE.of_object([])), "{}")),
     "parse simple struct type"
     >: (
       () =>
@@ -100,7 +100,7 @@ let suite =
             |> TE.of_required
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> U.as_untyped,
           ["{foo:boolean}", "{ foo : boolean }", "{ foo: boolean, }"],
         )
@@ -117,7 +117,7 @@ let suite =
             |> TE.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> U.as_untyped,
           "{ foo: boolean, bar?: string }",
         )
@@ -151,11 +151,11 @@ let suite =
                 (U.as_untyped("foo"), U.as_untyped(TE.Nil))
                 |> TE.of_required
                 |> U.as_untyped,
-                (U.as_untyped("bar"), U.as_untyped(TE.Struct([])))
+                (U.as_untyped("bar"), U.as_untyped(TE.Object([])))
                 |> TE.of_required
                 |> U.as_untyped,
               ]
-              |> TE.of_struct
+              |> TE.of_object
               |> U.as_untyped,
             )
             |> TE.of_required
@@ -169,7 +169,7 @@ let suite =
             |> TE.of_required
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> U.as_untyped,
           "{
             nil: nil,
@@ -222,7 +222,7 @@ let suite =
                 |> TE.of_required
                 |> U.as_untyped,
               ]
-              |> TE.of_struct
+              |> TE.of_object
               |> U.as_untyped,
               ([], U.as_untyped(TE.Nil)) |> TE.of_function |> U.as_untyped,
             ],
@@ -285,7 +285,7 @@ let suite =
             |> TE.of_required
             |> U.as_untyped,
           ]
-          |> TE.of_struct
+          |> TE.of_object
           |> U.as_untyped
           |> TE.of_list
           |> U.as_untyped,
@@ -296,7 +296,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ([] |> TE.of_struct |> U.as_untyped, U.as_untyped(TE.Nil))
+          ([] |> TE.of_object |> U.as_untyped, U.as_untyped(TE.Nil))
           |> TE.of_view
           |> U.as_untyped,
           "view({}, nil)",
@@ -312,7 +312,7 @@ let suite =
               |> TE.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_struct
+            |> TE.of_object
             |> U.as_untyped,
             U.as_untyped(TE.Boolean),
           )

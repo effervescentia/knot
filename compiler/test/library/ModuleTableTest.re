@@ -13,7 +13,7 @@ let __types: list((Export.t, Type.t)) = [
   (Named("bar"), Valid(`Element)),
 ];
 let __program = [
-  ("foo" |> A.of_internal, "bar" |> U.as_untyped |> Option.some, [])
+  (__id, "bar" |> U.as_untyped |> Option.some, [])
   |> A.of_import
   |> U.as_untyped,
 ];

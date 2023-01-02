@@ -110,7 +110,7 @@ let parse_standard_import = (ctx: ParseContext.t) =>
       >|= (
         imports =>
           Node.raw(
-            AST.Result.of_standard_import(fst(imports)),
+            AST.Result.of_stdlib_import(fst(imports)),
             Node.join_ranges(kwd, imports),
           )
       )

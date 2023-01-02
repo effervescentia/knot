@@ -2,7 +2,7 @@ open Knot.Kore;
 open AST;
 
 let to_xml:
-  (Type.t => string, (list(Result.argument_t), Result.expression_t)) =>
+  (Type.t => string, (list(Result.parameter_t), Result.expression_t)) =>
   Fmt.xml_t(string) =
   (dump_type, (parameters, result)) =>
     Node(

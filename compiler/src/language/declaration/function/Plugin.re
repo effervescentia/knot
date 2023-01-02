@@ -1,7 +1,7 @@
 open AST;
 
 include Framework.Declaration({
-  type value_t = (list(Result.argument_t), Result.expression_t);
+  type value_t = (list(Result.parameter_t), Result.expression_t);
 
   let parse = Parser.parse;
 

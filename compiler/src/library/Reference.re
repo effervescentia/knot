@@ -12,6 +12,7 @@ module Namespace = {
   /* static */
 
   let of_internal = value => Internal(value);
+  let of_external = value => External(value);
 
   let of_string = value =>
     value |> String.starts_with(Constants.root_dir)

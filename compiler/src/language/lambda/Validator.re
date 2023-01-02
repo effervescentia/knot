@@ -5,7 +5,7 @@ let rec validate_default_arguments =
         (
           ~require_default=false,
           scope: Scope.t,
-          args: list(Result.argument_t),
+          args: list(Result.parameter_t),
         ) =>
   switch (args, require_default) {
   | ([], _) => ()
