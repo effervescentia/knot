@@ -20,9 +20,10 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          (OU.Not, URes.bool_prim(true)) |> A.of_unary_op |> URes.as_bool,
-          (OU.Not, URaw.bool_prim(true))
-          |> AR.of_unary_op
+          true |> URes.bool_prim |> A.of_not_op |> URes.as_bool,
+          true
+          |> URaw.bool_prim
+          |> AR.of_not_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
@@ -31,11 +32,15 @@ let suite =
     >: (
       () =>
         Assert.expression(
-          (OU.Not, __id |> A.of_id |> URes.as_invalid(NotInferrable))
-          |> A.of_unary_op
+          __id
+          |> A.of_id
+          |> URes.as_invalid(NotInferrable)
+          |> A.of_not_op
           |> URes.as_bool,
-          (OU.Not, __id |> AR.of_id |> URaw.as_node)
-          |> AR.of_unary_op
+          __id
+          |> AR.of_id
+          |> URaw.as_node
+          |> AR.of_not_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__scope),
         )
@@ -46,9 +51,10 @@ let suite =
         [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.int_prim(123)) |> A.of_unary_op |> URes.as_int,
-               (op, URaw.int_prim(123))
-               |> AR.of_unary_op
+               123 |> URes.int_prim |> A.of_unary_op(op) |> URes.as_int,
+               123
+               |> URaw.int_prim
+               |> AR.of_unary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -60,11 +66,13 @@ let suite =
         [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
-               (op, (123.456, 3) |> URes.float_prim)
-               |> A.of_unary_op
+               (123.456, 3)
+               |> URes.float_prim
+               |> A.of_unary_op(op)
                |> URes.as_float,
-               (op, (123.456, 3) |> URaw.float_prim)
-               |> AR.of_unary_op
+               (123.456, 3)
+               |> URaw.float_prim
+               |> AR.of_unary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -76,11 +84,15 @@ let suite =
         [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
-               (op, __id |> A.of_id |> URes.as_invalid(NotInferrable))
-               |> A.of_unary_op
+               __id
+               |> A.of_id
+               |> URes.as_invalid(NotInferrable)
+               |> A.of_unary_op(op)
                |> URes.as_invalid(NotInferrable),
-               (op, __id |> AR.of_id |> URaw.as_node)
-               |> AR.of_unary_op
+               __id
+               |> AR.of_id
+               |> URaw.as_node
+               |> AR.of_unary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -92,11 +104,13 @@ let suite =
         [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"))
-               |> A.of_unary_op
+               "foo"
+               |> URes.string_prim
+               |> A.of_unary_op(op)
                |> URes.as_invalid(NotInferrable),
-               (op, URaw.string_prim("foo"))
-               |> AR.of_unary_op
+               "foo"
+               |> URaw.string_prim
+               |> AR.of_unary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -114,8 +128,9 @@ let suite =
             ),
           ],
           () =>
-          (OU.Not, URaw.string_prim("foo"))
-          |> AR.of_unary_op
+          "foo"
+          |> URaw.string_prim
+          |> AR.of_not_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)
         )

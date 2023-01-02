@@ -22,11 +22,11 @@ let suite =
         [OB.LogicalAnd, OB.LogicalOr]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.bool_prim(true), URes.bool_prim(false))
-               |> A.of_binary_op
+               (URes.bool_prim(true), URes.bool_prim(false))
+               |> A.of_binary_op(op)
                |> URes.as_bool,
-               (op, URaw.bool_prim(true), URaw.bool_prim(false))
-               |> AR.of_binary_op
+               (URaw.bool_prim(true), URaw.bool_prim(false))
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -38,11 +38,11 @@ let suite =
         [OB.LogicalAnd, OB.LogicalOr]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"), URes.nil_prim)
-               |> A.of_binary_op
+               (URes.string_prim("foo"), URes.nil_prim)
+               |> A.of_binary_op(op)
                |> URes.as_bool,
-               (op, URaw.string_prim("foo"), URaw.nil_prim)
-               |> AR.of_binary_op
+               (URaw.string_prim("foo"), URaw.nil_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -54,11 +54,11 @@ let suite =
         [OB.LessThan, OB.LessOrEqual, OB.GreaterThan, OB.GreaterOrEqual]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.int_prim(123), URes.int_prim(456))
-               |> A.of_binary_op
+               (URes.int_prim(123), URes.int_prim(456))
+               |> A.of_binary_op(op)
                |> URes.as_bool,
-               (op, URaw.int_prim(123), URaw.int_prim(456))
-               |> AR.of_binary_op
+               (URaw.int_prim(123), URaw.int_prim(456))
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -70,11 +70,11 @@ let suite =
         [OB.LessThan, OB.LessOrEqual, OB.GreaterThan, OB.GreaterOrEqual]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"), URes.nil_prim)
-               |> A.of_binary_op
+               (URes.string_prim("foo"), URes.nil_prim)
+               |> A.of_binary_op(op)
                |> URes.as_bool,
-               (op, URaw.string_prim("foo"), URaw.nil_prim)
-               |> AR.of_binary_op
+               (URaw.string_prim("foo"), URaw.nil_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -86,11 +86,11 @@ let suite =
         [OB.Equal, OB.Unequal]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"), URes.string_prim("bar"))
-               |> A.of_binary_op
+               (URes.string_prim("foo"), URes.string_prim("bar"))
+               |> A.of_binary_op(op)
                |> URes.as_bool,
-               (op, URaw.string_prim("foo"), URaw.string_prim("bar"))
-               |> AR.of_binary_op
+               (URaw.string_prim("foo"), URaw.string_prim("bar"))
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -102,11 +102,11 @@ let suite =
         [OB.Equal, OB.Unequal]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"), URes.nil_prim)
-               |> A.of_binary_op
+               (URes.string_prim("foo"), URes.nil_prim)
+               |> A.of_binary_op(op)
                |> URes.as_bool,
-               (op, URaw.string_prim("foo"), URaw.nil_prim)
-               |> AR.of_binary_op
+               (URaw.string_prim("foo"), URaw.nil_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -118,11 +118,11 @@ let suite =
         [OB.Divide, OB.Exponent]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.int_prim(123), (45.6, 7) |> URes.float_prim)
-               |> A.of_binary_op
+               (URes.int_prim(123), (45.6, 7) |> URes.float_prim)
+               |> A.of_binary_op(op)
                |> URes.as_float,
-               (op, URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
-               |> AR.of_binary_op
+               (URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -134,11 +134,11 @@ let suite =
         [OB.Divide, OB.Exponent]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"), URes.nil_prim)
-               |> A.of_binary_op
+               (URes.string_prim("foo"), URes.nil_prim)
+               |> A.of_binary_op(op)
                |> URes.as_float,
-               (op, URaw.string_prim("foo"), URaw.nil_prim)
-               |> AR.of_binary_op
+               (URaw.string_prim("foo"), URaw.nil_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -150,11 +150,11 @@ let suite =
         [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.int_prim(123), URes.int_prim(456))
-               |> A.of_binary_op
+               (URes.int_prim(123), URes.int_prim(456))
+               |> A.of_binary_op(op)
                |> URes.as_int,
-               (op, URaw.int_prim(123), URaw.int_prim(456))
-               |> AR.of_binary_op
+               (URaw.int_prim(123), URaw.int_prim(456))
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -166,11 +166,11 @@ let suite =
         [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.int_prim(123), (45.6, 7) |> URes.float_prim)
-               |> A.of_binary_op
+               (URes.int_prim(123), (45.6, 7) |> URes.float_prim)
+               |> A.of_binary_op(op)
                |> URes.as_float,
-               (op, URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
-               |> AR.of_binary_op
+               (URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -183,18 +183,16 @@ let suite =
         |> List.iter(op =>
              Assert.expression(
                (
-                 op,
                  __id |> A.of_id |> URes.as_invalid(NotInferrable),
                  (45.6, 7) |> URes.float_prim,
                )
-               |> A.of_binary_op
+               |> A.of_binary_op(op)
                |> URes.as_float,
                (
-                 op,
                  __id |> AR.of_id |> URaw.as_node,
                  (45.6, 7) |> URaw.float_prim,
                )
-               |> AR.of_binary_op
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -207,14 +205,13 @@ let suite =
         |> List.iter(op =>
              Assert.expression(
                (
-                 op,
                  __id |> A.of_id |> URes.as_invalid(NotInferrable),
                  URes.int_prim(456),
                )
-               |> A.of_binary_op
+               |> A.of_binary_op(op)
                |> URes.as_invalid(NotInferrable),
-               (op, __id |> AR.of_id |> URaw.as_node, URaw.int_prim(456))
-               |> AR.of_binary_op
+               (__id |> AR.of_id |> URaw.as_node, URaw.int_prim(456))
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -227,14 +224,13 @@ let suite =
         |> List.iter(op =>
              Assert.expression(
                (
-                 op,
                  URes.int_prim(456),
                  __id |> A.of_id |> URes.as_invalid(NotInferrable),
                )
-               |> A.of_binary_op
+               |> A.of_binary_op(op)
                |> URes.as_invalid(NotInferrable),
-               (op, URaw.int_prim(456), __id |> AR.of_id |> URaw.as_node)
-               |> AR.of_binary_op
+               (URaw.int_prim(456), __id |> AR.of_id |> URaw.as_node)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -246,11 +242,11 @@ let suite =
         [OB.Add, OB.Subtract, OB.Multiply]
         |> List.iter(op =>
              Assert.expression(
-               (op, URes.string_prim("foo"), URes.nil_prim)
-               |> A.of_binary_op
+               (URes.string_prim("foo"), URes.nil_prim)
+               |> A.of_binary_op(op)
                |> URes.as_invalid(NotInferrable),
-               (op, URaw.string_prim("foo"), URaw.nil_prim)
-               |> AR.of_binary_op
+               (URaw.string_prim("foo"), URaw.nil_prim)
+               |> AR.of_binary_op(op)
                |> URaw.as_node
                |> KExpression.Plugin.analyze(__scope),
              )
@@ -274,8 +270,8 @@ let suite =
             ),
           ],
           () =>
-          (OB.LogicalAnd, URaw.string_prim("foo"), URaw.nil_prim)
-          |> AR.of_binary_op
+          (URaw.string_prim("foo"), URaw.nil_prim)
+          |> AR.of_and_op
           |> URaw.as_node
           |> KExpression.Plugin.analyze(__throw_scope)
         )

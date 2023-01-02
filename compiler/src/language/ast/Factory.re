@@ -46,42 +46,45 @@ module Make = (Params: ASTParams) => {
 
   /* tag helpers */
 
-  let of_var = ((name, x)) => Expression.Variable(name, x);
-  let of_effect = x => Expression.Effect(x);
-  let of_id = x => Expression.Identifier(x);
-  let of_group = x => Expression.Group(x);
-  let of_closure = xs => Expression.Closure(xs);
+  let of_var = ((name, expression)) =>
+    Expression.Variable(name, expression);
+  let of_effect = expression => Expression.Effect(expression);
+  let of_id = name => Expression.Identifier(name);
+  let of_group = expression => Expression.Group(expression);
+  let of_closure = statements => Expression.Closure(statements);
   let of_dot_access = ((expr, prop)) => Expression.DotAccess(expr, prop);
   let of_element_bind_style = ((view, style)) =>
     Expression.BindStyle(Element, view, style);
   let of_component_bind_style = ((view, style)) =>
     Expression.BindStyle(Component, view, style);
-  let of_func_call = ((expr, args)) => Expression.FunctionCall(expr, args);
+  let of_func_call = ((function_, arguments)) =>
+    Expression.FunctionCall(function_, arguments);
   let of_style = rules => Expression.Style(rules);
 
-  let of_unary_op = ((op, x)) => Expression.UnaryOp(op, x);
-  let of_not_op = x => (Not, x) |> of_unary_op;
-  let of_neg_op = x => (Negative, x) |> of_unary_op;
-  let of_pos_op = x => (Positive, x) |> of_unary_op;
+  let of_unary_op = (operator, expression) =>
+    Expression.UnaryOp(operator, expression);
+  let of_not_op = x => of_unary_op(Not, x);
+  let of_neg_op = x => of_unary_op(Negative, x);
+  let of_pos_op = x => of_unary_op(Positive, x);
 
-  let of_binary_op = ((op, l, r)) => Expression.BinaryOp(op, l, r);
-  let of_and_op = ((l, r)) => (LogicalAnd, l, r) |> of_binary_op;
-  let of_or_op = ((l, r)) => (LogicalOr, l, r) |> of_binary_op;
+  let of_binary_op = (op, (lhs, rhs)) => Expression.BinaryOp(op, lhs, rhs);
+  let of_and_op = x => of_binary_op(LogicalAnd, x);
+  let of_or_op = x => of_binary_op(LogicalOr, x);
 
-  let of_mult_op = ((l, r)) => (Multiply, l, r) |> of_binary_op;
-  let of_div_op = ((l, r)) => (Divide, l, r) |> of_binary_op;
-  let of_add_op = ((l, r)) => (Add, l, r) |> of_binary_op;
-  let of_sub_op = ((l, r)) => (Subtract, l, r) |> of_binary_op;
+  let of_mult_op = x => of_binary_op(Multiply, x);
+  let of_div_op = x => of_binary_op(Divide, x);
+  let of_add_op = x => of_binary_op(Add, x);
+  let of_sub_op = x => of_binary_op(Subtract, x);
 
-  let of_lt_op = ((l, r)) => (LessThan, l, r) |> of_binary_op;
-  let of_lte_op = ((l, r)) => (LessOrEqual, l, r) |> of_binary_op;
-  let of_gt_op = ((l, r)) => (GreaterThan, l, r) |> of_binary_op;
-  let of_gte_op = ((l, r)) => (GreaterOrEqual, l, r) |> of_binary_op;
+  let of_lt_op = x => of_binary_op(LessThan, x);
+  let of_lte_op = x => of_binary_op(LessOrEqual, x);
+  let of_gt_op = x => of_binary_op(GreaterThan, x);
+  let of_gte_op = x => of_binary_op(GreaterOrEqual, x);
 
-  let of_eq_op = ((l, r)) => (Equal, l, r) |> of_binary_op;
-  let of_ineq_op = ((l, r)) => (Unequal, l, r) |> of_binary_op;
+  let of_eq_op = x => of_binary_op(Equal, x);
+  let of_ineq_op = x => of_binary_op(Unequal, x);
 
-  let of_expo_op = ((l, r)) => (Exponent, l, r) |> of_binary_op;
+  let of_expo_op = x => of_binary_op(Exponent, x);
 
   let of_ksx = x => Expression.KSX(x);
   let of_frag = xs => Expression.Fragment(xs);
