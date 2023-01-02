@@ -6,11 +6,11 @@ let rec analyze_ksx:
   Result.ksx_t =
   (scope, analyze_expression, ksx) =>
     switch (ksx) {
-    | Tag(_, view, styles, attrs, children) =>
+    | Tag(_, view, styles, attributes, children) =>
       let tag_scope = Scope.create(scope.context, Node.get_range(view));
       tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-      let (name_type, tag_ast) =
+      let (view_type, to_tag) =
         scope
         |> Scope.lookup(fst(view))
         |> Option.map(
@@ -33,21 +33,23 @@ let rec analyze_ksx:
           | None => (Invalid(NotInferrable), Result.of_component_tag)
         );
 
-      let id' = view |> Node.add_type(name_type);
+      let view' = view |> Node.add_type(view_type);
       let styles' = styles |> List.map(analyze_expression(scope));
-      let attrs' =
-        attrs |> List.map(analyze_ksx_attribute(scope, analyze_expression));
+      let attributes' =
+        attributes
+        |> List.map(analyze_ksx_attribute(scope, analyze_expression));
       let children' =
         children |> List.map(analyze_ksx_child(scope, analyze_expression));
 
-      let props =
-        attrs'
-        |> List.filter_map(
+      let punned_attributes =
+        attributes'
+        |> List.map(
              fun
-             | (((name, _), Some(expr)), meta) =>
-               Some((name, (Node.get_type(expr), meta)))
-             | (((name, _), None), meta) =>
-               Some((
+             | (((name, _), Some(expr)), meta) => (
+                 name,
+                 (Node.get_type(expr), meta),
+               )
+             | (((name, _), None), meta) => (
                  name,
                  (
                    scope
@@ -63,11 +65,11 @@ let rec analyze_ksx:
                    ),
                    meta,
                  ),
-               )),
+               ),
            );
 
       (
-        (fst(view), name_type, props)
+        (fst(view), view_type, punned_attributes)
         |> Validator.validate_ksx_render(!List.is_empty(children))
       )
       @ Validator.validate_style_binding(styles')
@@ -79,7 +81,7 @@ let rec analyze_ksx:
            )
          );
 
-      (id', styles', attrs', children') |> tag_ast;
+      (view', styles', attributes', children') |> to_tag;
 
     | Fragment(children) =>
       children
@@ -94,10 +96,10 @@ and analyze_ksx_attribute:
     Raw.ksx_attribute_t
   ) =>
   Result.ksx_attribute_t =
-  (scope, analyze_expression, ((id, expr), _) as ksx_attr) => {
-    let ksx_attr' = (id, expr |?> analyze_expression(scope));
+  (scope, analyze_expression, ((id, expr), _) as attribute) => {
+    let attribute' = (id, expr |?> analyze_expression(scope));
 
-    ksx_attr |> Node.map(_ => ksx_attr');
+    attribute |> Node.map(_ => attribute');
   }
 
 and analyze_ksx_child:
@@ -107,9 +109,9 @@ and analyze_ksx_child:
     Raw.ksx_child_t
   ) =>
   Result.ksx_child_t =
-  (scope, analyze_expression, ksx_child) => {
-    let ksx_child' =
-      switch (fst(ksx_child)) {
+  (scope, analyze_expression, child) => {
+    let child' =
+      switch (fst(child)) {
       | Text(text) => Result.of_text(text)
 
       | Node(ksx) =>
@@ -128,7 +130,7 @@ and analyze_ksx_child:
         Result.of_inline_expr(expr);
       };
 
-    ksx_child |> Node.map(_ => ksx_child');
+    child |> Node.map(_ => child');
   };
 
 let analyze:

@@ -4,7 +4,7 @@ open AST;
 let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.ksx_t) =
   (pp_expression, ppf) =>
     fun
-    | Tag(_, (name, _), styles, attrs, []) =>
+    | Tag(_, (name, _), styles, attributes, []) =>
       Fmt.pf(
         ppf,
         "@[<h><%s%a%a@ />@]",
@@ -12,10 +12,10 @@ let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.ksx_t) =
         format_style_binding_list(pp_expression),
         styles |> List.map(fst),
         format_attribute_list(pp_expression),
-        attrs |> List.map(fst),
+        attributes |> List.map(fst),
       )
 
-    | Tag(_, (name, _), styles, attrs, children) =>
+    | Tag(_, (name, _), styles, attributes, children) =>
       Fmt.(
         pf(
           ppf,
@@ -24,7 +24,7 @@ let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.ksx_t) =
           format_style_binding_list(pp_expression),
           styles |> List.map(fst),
           format_attribute_list(pp_expression),
-          attrs |> List.map(fst),
+          attributes |> List.map(fst),
           block(
             ~layout=Vertical,
             ~sep=Sep.trailing_newline,
@@ -81,22 +81,25 @@ and format_attribute_list:
 
 and format_attribute:
   Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_ksx_attribute_t) =
-  (pp_expression, ppf, attr) =>
-    Fmt.(
-      pf(
-        ppf,
-        "%a%a",
-        ppf =>
-          fun
-          | ((name, _), _) => Fmt.string(ppf, name),
-        attr,
-        ppf =>
-          fun
-          | (_, Some((expr, _))) =>
-            pf(ppf, "=%a", format_attribute_expression(pp_expression), expr)
-          | _ => nop(ppf, ()),
-        attr,
-      )
+  (pp_expression, ppf, attribute) =>
+    Fmt.pf(
+      ppf,
+      "%a%a",
+      ppf =>
+        fun
+        | ((name, _), _) => Fmt.string(ppf, name),
+      attribute,
+      ppf =>
+        fun
+        | (_, Some((expr, _))) =>
+          Fmt.pf(
+            ppf,
+            "=%a",
+            format_attribute_expression(pp_expression),
+            expr,
+          )
+        | _ => Fmt.nop(ppf, ()),
+      attribute,
     )
 
 and format_attribute_expression:
@@ -107,6 +110,6 @@ and format_attribute_expression:
         Primitive(_) | Identifier(_) | Group(_) | Closure(_) |
         /* show tags or fragments with no children */
         KSX(Tag(_, _, _, _, []) | Fragment([]))
-      ) as expr =>
-      pp_expression(ppf, expr)
+      ) as expression =>
+      pp_expression(ppf, expression)
     | expr => Fmt.pf(ppf, "(%a)", pp_expression, expr);

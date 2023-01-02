@@ -15,8 +15,7 @@ module Assert =
         check(
           testable(
             ppf =>
-              Dump.node_to_xml(~dump_value=Fun.id, "Identifier")
-              % Fmt.xml_string(ppf),
+              Dump.identifier_to_xml("Identifier") % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

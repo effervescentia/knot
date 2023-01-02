@@ -8,7 +8,7 @@ let format_body:
     | Closure(_) as expr => Fmt.pf(ppf, "-> %a", pp_expression, expr)
     | expr => Fmt.pf(ppf, "-> %a;", pp_expression, expr);
 
-let format_argument:
+let format_parameter:
   Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_parameter_t) =
   (pp_expression, ppf, ((name, _), _, default)) =>
     Fmt.pf(
@@ -22,7 +22,7 @@ let format_argument:
       default,
     );
 
-let format_argument_list:
+let format_parameter_list:
   Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.parameter_t)) =
   (pp_expression, ppf) =>
     fun
@@ -32,7 +32,7 @@ let format_argument_list:
         pf(
           ppf,
           "(%a)",
-          list(~sep=Sep.trailing_comma, format_argument(pp_expression)),
+          list(~sep=Sep.trailing_comma, format_parameter(pp_expression)),
           args |> List.map(fst),
         )
       );

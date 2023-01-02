@@ -2,18 +2,16 @@ open Knot.Kore;
 
 module Namespace = Reference.Namespace;
 
-let main_import_to_xml = Dump.node_to_xml(~dump_value=Fun.id, "MainImport");
+let main_import_to_xml = Dump.identifier_to_xml("MainImport");
 
 let named_import_to_xml =
   Dump.node_to_xml(
     ~unpack=
       ((name, alias)) =>
         [
-          Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+          Dump.identifier_to_xml("Name", name),
           ...alias
-             |> Option.map(
-                  Dump.node_to_xml(~dump_value=Fun.id, "Alias") % List.single,
-                )
+             |> Option.map(Dump.identifier_to_xml("Alias") % List.single)
              |?: [],
         ],
     "NamedImport",

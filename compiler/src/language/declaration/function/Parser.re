@@ -17,7 +17,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
               let scope = ctx |> Scope.of_parse_context(lambda_range);
               let parameters' =
                 parameters
-                |> KLambda.Analyzer.analyze_argument_list(
+                |> KLambda.Analyzer.analyze_parameter_list(
                      scope,
                      KExpression.Plugin.analyze,
                    );

@@ -2,7 +2,7 @@ open Knot.Kore;
 open AST;
 
 let analyze: (Scope.t, string, Range.t) => Type.t =
-  (scope, id, range) => {
+  (scope, name, range) => {
     let resolve_error = err => {
       err |> Scope.report_type_err(scope, range);
       Type.Invalid(NotInferrable);
@@ -10,7 +10,7 @@ let analyze: (Scope.t, string, Range.t) => Type.t =
 
     let type_ =
       scope
-      |> Scope.lookup(id)
+      |> Scope.lookup(name)
       |> Option.fold(
            ~some=
              Stdlib.Result.fold(
@@ -19,7 +19,7 @@ let analyze: (Scope.t, string, Range.t) => Type.t =
              ),
            ~none=None,
          )
-      |!: (() => Type.NotFound(id) |> resolve_error);
+      |!: (() => Type.NotFound(name) |> resolve_error);
 
     type_;
   };

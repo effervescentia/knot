@@ -31,7 +31,7 @@ and to_xml: TypeExpression.t => Fmt.xml_t(string) =
 
 and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
   fun
-  | Identifier(name) => [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
+  | Identifier(name) => [Dump.identifier_to_xml("Name", name)]
   | Group(expr) => [to_xml(expr)]
   | List(expr) => [to_xml(expr)]
 
@@ -46,7 +46,7 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
                  "Required",
                  [],
                  [
-                   Dump.node_to_xml(~dump_value=Fun.id, "Key", key),
+                   Dump.identifier_to_xml("Key", key),
                    Node("Value", [], [to_xml(value)]),
                  ],
                )
@@ -55,7 +55,7 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
                  "Optional",
                  [],
                  [
-                   Dump.node_to_xml(~dump_value=Fun.id, "Key", key),
+                   Dump.identifier_to_xml("Key", key),
                    Node("Value", [], [to_xml(value)]),
                  ],
                )
@@ -75,7 +75,7 @@ and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
 
   | DotAccess(root, property) => [
       Node("Root", [], [to_xml(root)]),
-      Dump.node_to_xml(~dump_value=Fun.id, "Property", property),
+      Dump.identifier_to_xml("Property", property),
     ]
 
   | View(properties, result) => [

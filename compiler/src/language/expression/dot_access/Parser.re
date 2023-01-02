@@ -3,15 +3,18 @@ open Parse.Kore;
 open AST;
 
 let parse = {
-  let rec loop = expr =>
+  let rec loop = object_ =>
     Matchers.period
     >> Matchers.identifier
     >>= (
-      prop =>
-        Node.raw((expr, prop) |> Raw.of_dot_access, Node.get_range(prop))
+      property =>
+        Node.raw(
+          (object_, property) |> Raw.of_dot_access,
+          Node.get_range(property),
+        )
         |> loop
     )
-    |> option(expr);
+    |> option(object_);
 
   loop;
 };

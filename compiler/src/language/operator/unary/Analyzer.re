@@ -20,17 +20,17 @@ let analyze:
     Range.t
   ) =>
   (Result.expression_t, Type.t) =
-  (scope, analyze_expression, (op, expr), range) => {
-    let expr' = analyze_expression(scope, expr);
-    let type_ = Node.get_type(expr');
+  (scope, analyze_expression, (operator, expression), range) => {
+    let expression' = analyze_expression(scope, expression);
+    let type_ = Node.get_type(expression');
 
     type_
-    |> Validator.validate(op)
+    |> Validator.validate(operator)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
-      expr',
-      switch (op) {
+      expression',
+      switch (operator) {
       | Negative
       | Positive => analyze_arithmetic(type_)
       | Not => Valid(Boolean)

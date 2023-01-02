@@ -10,6 +10,6 @@ include Framework.Statement({
 
   let format = Formatter.format;
 
-  let to_xml = (expr_to_xml, expr) =>
-    Fmt.Node("Effect", [], [expr_to_xml(expr)]);
+  let to_xml = (expr_to_xml, expression) =>
+    Fmt.Node("Effect", [], [expr_to_xml(expression)]);
 });

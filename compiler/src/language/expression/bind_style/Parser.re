@@ -8,14 +8,14 @@ let parse_bind_style_expression: Framework.binary_op_parser_t =
   Parse.Util.binary_op(Raw.of_component_bind_style)
   <$ Matchers.glyph(Glyph.style_binding);
 
-let parse_bind_style_literal = ((ctx, parse_expr), expr) =>
+let parse_bind_style_literal = ((ctx, parse_expr), view) =>
   Matchers.glyph(Glyph.style_binding)
   >> KStyle.Parser.parse_style_literal((ctx, parse_expr))
   >|= (
-    literal =>
+    style =>
       Node.raw(
-        (expr, literal) |> Raw.of_component_bind_style,
-        Node.join_ranges(expr, literal),
+        (view, style) |> Raw.of_component_bind_style,
+        Node.join_ranges(view, style),
       )
   );
 

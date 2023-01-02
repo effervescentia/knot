@@ -1,11 +1,11 @@
 open Knot.Kore;
 
-let to_xml = ((expr_to_xml, _), (name, args)) =>
+let to_xml = ((expr_to_xml, _), (function_, arguments)) =>
   Fmt.Node(
     "FunctionCall",
     [],
     [
-      Node("Name", [], [expr_to_xml(name)]),
-      Node("Arguments", [], args |> List.map(expr_to_xml)),
+      Node("Function", [], [expr_to_xml(function_)]),
+      Node("Arguments", [], arguments |> List.map(expr_to_xml)),
     ],
   );

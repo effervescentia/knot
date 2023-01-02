@@ -2,14 +2,14 @@ open Knot.Kore;
 open AST;
 
 let validate: (Operator.Binary.t, (Type.t, Type.t)) => option(Type.error_t) =
-  op =>
+  operator =>
     fun
     /* assume they have been reported already and ignore */
     | (Invalid(_), _)
     | (_, Invalid(_)) => None
 
-    | (Valid(valid_lhs) as lhs, Valid(valid_rhs) as rhs) =>
-      switch (op, valid_lhs, valid_rhs) {
+    | (Valid(lhs') as lhs, Valid(rhs') as rhs) =>
+      switch (operator, lhs', rhs') {
       | (LogicalAnd | LogicalOr, Boolean, Boolean) => None
 
       | (
@@ -22,7 +22,7 @@ let validate: (Operator.Binary.t, (Type.t, Type.t)) => option(Type.error_t) =
         ) =>
         None
 
-      | (Equal | Unequal, _, _) when valid_lhs == valid_rhs => None
+      | (Equal | Unequal, _, _) when lhs' == rhs' => None
 
-      | _ => Some(InvalidBinaryOperation(op, lhs, rhs))
+      | _ => Some(InvalidBinaryOperation(operator, lhs, rhs))
       };

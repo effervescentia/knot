@@ -9,15 +9,15 @@ let analyze:
     Range.t
   ) =>
   (Expression.ViewKind.t, Result.expression_t, Result.expression_t) =
-  (scope, analyze_expression, (kind, lhs, rhs), range) => {
-    let lhs_range = Node.get_range(lhs);
+  (scope, analyze_expression, (kind, view, style), range) => {
+    let lhs_range = Node.get_range(view);
     let tag_scope = Scope.create(scope.context, lhs_range);
     tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-    let (kind', lhs', lhs_type) =
-      switch (fst(lhs)) {
+    let (kind', view', view_type) =
+      switch (fst(view)) {
       | Identifier(id) =>
-        let (lhs_type, kind') =
+        let (view_type, kind') =
           scope
           |> Scope.lookup(id)
           |> Option.map(
@@ -47,12 +47,12 @@ let analyze:
 
         (
           kind',
-          Node.typed(Expression.Identifier(id), lhs_type, lhs_range),
-          lhs_type,
+          Node.typed(Expression.Identifier(id), view_type, lhs_range),
+          view_type,
         );
 
       | _ =>
-        analyze_expression(scope, lhs)
+        analyze_expression(scope, view)
         |> Tuple.split3(
              _ => Expression.ViewKind.Component,
              Fun.id,
@@ -60,12 +60,12 @@ let analyze:
            )
       };
 
-    let rhs' = analyze_expression(scope, rhs);
-    let rhs_type = Node.get_type(rhs');
+    let style' = analyze_expression(scope, style);
+    let style_type = Node.get_type(style');
 
-    (lhs_type, rhs_type)
+    (view_type, style_type)
     |> Validator.validate
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    (kind', lhs', rhs');
+    (kind', view', style');
   };

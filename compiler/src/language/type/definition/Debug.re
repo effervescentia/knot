@@ -6,7 +6,7 @@ let entry_to_xml = (key, (name, expr)) =>
     key,
     [],
     [
-      Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+      Dump.identifier_to_xml("Name", name),
       Node("Value", [], [KTypeExpression.Plugin.to_xml(expr)]),
     ],
   );
@@ -16,7 +16,7 @@ let enumerated_to_xml = (name, variants) =>
     "Enumerated",
     [],
     [
-      Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+      Dump.identifier_to_xml("Name", name),
       Node(
         "Value",
         [],
@@ -26,7 +26,7 @@ let enumerated_to_xml = (name, variants) =>
                "Variant",
                [],
                [
-                 Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+                 Dump.identifier_to_xml("Name", name),
                  Node(
                    "Parameters",
                    [],
@@ -45,7 +45,7 @@ let decorator_to_xml: TypeDefinition.decorator_t('a) => Fmt.xml_t(string) =
       ~unpack=
         ((name, arguments)) =>
           [
-            Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+            Dump.identifier_to_xml("Name", name),
             ...arguments
                |> List.map(
                     Dump.node_to_xml(
@@ -68,7 +68,7 @@ let module_to_xml: TypeDefinition.module_t => Fmt.xml_t(string) =
               "Decorator",
               [],
               [
-                Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+                Dump.identifier_to_xml("Name", name),
                 Node(
                   "Parameters",
                   [],
@@ -81,7 +81,7 @@ let module_to_xml: TypeDefinition.module_t => Fmt.xml_t(string) =
             Fmt.Node(
               "Decorator",
               [],
-              [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
+              [Dump.identifier_to_xml("Name", name)]
               @ (
                 statements
                 |> List.map(
@@ -96,7 +96,7 @@ let module_to_xml: TypeDefinition.module_t => Fmt.xml_t(string) =
                            | Enumerated(name, variants) =>
                              enumerated_to_xml(name, variants)
                          )
-                         % (x => [x]),
+                         % List.single,
                        "Statement",
                      ),
                    )

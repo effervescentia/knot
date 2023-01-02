@@ -11,15 +11,15 @@ let analyze:
   (Result.expression_t, Type.t) =
   (scope, analyze_expression, (object_, property), range) => {
     let property_name = fst(property);
-    let object' = analyze_expression(scope, object_);
-    let object_type = Node.get_type(object');
+    let object_' = analyze_expression(scope, object_);
+    let object_type = Node.get_type(object_');
 
     object_type
     |> Validator.validate(property_name)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
-      object',
+      object_',
       (
         switch (object_type) {
         | Valid(Object(props)) =>

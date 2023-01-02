@@ -9,5 +9,5 @@ type node_t('expr, 'typ) = Node.t(t('expr), 'typ);
 
 /* helpers */
 
-let variable = ((name, x)) => Variable(name, x);
-let effect = x => Effect(x);
+let variable = ((name, expression)) => Variable(name, expression);
+let effect = expression => Effect(expression);

@@ -44,16 +44,21 @@ let _parse_attribute =
     parse_expr(ctx)
     |> Matchers.between_parentheses
     >|= (
-      ((expr, _) as expr_group) =>
-        Node.map_range(_ => Node.get_range(expr_group), expr)
+      ((expression, _) as expr_group) =>
+        Node.map_range(_ => Node.get_range(expr_group), expression)
     )
     <|> parse_term(ctx),
   )
   >|= (
-    ((name, value)) => (name, Some(value), Node.join_ranges(name, value))
+    ((name, expression)) => (
+      name,
+      Some(expression),
+      Node.join_ranges(name, expression),
+    )
   )
   <|> (
-    Matchers.identifier(~prefix) >|= (id => (id, None, Node.get_range(id)))
+    Matchers.identifier(~prefix)
+    >|= (name => (name, None, Node.get_range(name)))
   );
 
 let _parse_self_closing = Tag.self_close >|= Node.map(() => []);
@@ -88,12 +93,12 @@ and parse_tag =
           parse_property_attribute(ctx, parsers)
           |> many
           >>= (
-            attrs =>
+            attributes =>
               Tag.close
               >> parse_children(ctx, parsers)
               >>= (
-                cs =>
-                  cs
+                children =>
+                  children
                   <$| (
                     id
                     |> fst
@@ -103,10 +108,11 @@ and parse_tag =
               )
               <|> _parse_self_closing
               >|= (
-                cs =>
+                children =>
                   Node.raw(
-                    (id, styles, attrs, fst(cs)) |> Raw.of_element_tag,
-                    Node.join_ranges(id, cs),
+                    (id, styles, attributes, fst(children))
+                    |> Raw.of_element_tag,
+                    Node.join_ranges(id, children),
                   )
               )
           )

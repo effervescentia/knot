@@ -8,20 +8,20 @@ let validate_ksx_render:
     fun
     | (id, Invalid(_), _) => [(NotFound(id), None)]
 
-    | (id, Valid(View(attrs, _)), actual_attrs) => {
+    | (id, Valid(View(parameters, _)), attributes) => {
         let keys =
-          (attrs |> List.map(fst))
-          @ (actual_attrs |> List.map(fst))
+          (parameters |> List.map(fst))
+          @ (attributes |> List.map(fst))
           |> List.uniq_by((==));
 
         let (invalid, missing) =
           keys
           |> List.fold_left(
                ((invalid, missing) as acc, key) => {
-                 let expected = attrs |> List.assoc_opt(key);
-                 let actual = actual_attrs |> List.assoc_opt(key);
+                 let parameter = parameters |> List.assoc_opt(key);
+                 let attribute = attributes |> List.assoc_opt(key);
 
-                 switch (expected, actual) {
+                 switch (parameter, attribute) {
                  | _ when key == "children" && has_children => acc
                  | (
                      Some((expected', _)),
@@ -77,12 +77,12 @@ let validate_ksx_render:
         };
       }
 
-    | (id, expr_type, attrs) => [
+    | (id, view_type, attributes) => [
         (
           InvalidKSXTag(
             id,
-            expr_type,
-            attrs |> List.map(Tuple.map_snd2(fst)),
+            view_type,
+            attributes |> List.map(Tuple.map_snd2(fst)),
           ),
           None,
         ),

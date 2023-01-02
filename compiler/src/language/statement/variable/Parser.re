@@ -14,6 +14,7 @@ let parse =
     kwd =>
       Matchers.assign(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
       >|= (
-        ((_, expr) as var) => Node.raw(var, Node.join_ranges(kwd, expr))
+        ((_, expression) as node) =>
+          Node.raw(node, Node.join_ranges(kwd, expression))
       )
   );

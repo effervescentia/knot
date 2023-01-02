@@ -12,6 +12,6 @@ include Framework.Expression({
 
   let format = Formatter.format;
 
-  let to_xml = ((expr_to_xml, _), expr) =>
-    Fmt.Node("Group", [], [expr_to_xml(expr)]);
+  let to_xml = ((expr_to_xml, _), expression) =>
+    Fmt.Node("Group", [], [expr_to_xml(expression)]);
 });

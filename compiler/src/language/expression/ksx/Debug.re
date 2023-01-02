@@ -6,7 +6,7 @@ let attribute_to_xml = (key, (name, value)) =>
     key,
     [],
     [
-      Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+      Dump.identifier_to_xml("Name", name),
       ...value |> Option.map(Dump.node_to_xml("Value") % List.single) |?: [],
     ],
   );
@@ -63,8 +63,8 @@ and children_to_xml = (expr_to_xml, dump_type) =>
           | Text(text) => Fmt.Node("Text", [("value", text)], [])
           | Node(node) =>
             Fmt.Node("Node", [], [to_xml((expr_to_xml, dump_type), node)])
-          | InlineExpression(expr) =>
-            Fmt.Node("InlineExpression", [], [expr_to_xml(expr)])
+          | InlineExpression(expression) =>
+            Fmt.Node("InlineExpression", [], [expr_to_xml(expression)])
         )
         % List.single,
       "Child",

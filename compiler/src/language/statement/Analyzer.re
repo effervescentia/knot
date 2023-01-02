@@ -17,7 +17,8 @@ let analyze:
       );
 
     switch (node) {
-    | (Variable(id, expr), _) => (id, expr) &> KVariable.analyze
-    | (Effect(expr), _) => expr &> KEffect.analyze
+    | (Variable(name, expression), _) =>
+      (name, expression) &> KVariable.analyze
+    | (Effect(expression), _) => expression &> KEffect.analyze
     };
   };

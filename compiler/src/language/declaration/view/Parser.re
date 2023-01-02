@@ -21,7 +21,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
               let parameters' =
                 parameters
                 |> List.map(
-                     KLambda.Analyzer.analyze_argument(
+                     KLambda.Analyzer.analyze_parameter(
                        scope,
                        KExpression.Plugin.analyze,
                      ),

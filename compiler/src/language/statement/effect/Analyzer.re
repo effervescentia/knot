@@ -8,8 +8,8 @@ let analyze:
     Expression.expression_t(unit)
   ) =>
   (Result.raw_statement_t, Type.t) =
-  (scope, analyze_expression, expr) => {
-    let expr' = analyze_expression(scope, expr);
+  (scope, analyze_expression, expression) => {
+    let expression' = analyze_expression(scope, expression);
 
-    (Result.of_effect(expr'), Node.get_type(expr'));
+    (Result.of_effect(expression'), Node.get_type(expression'));
   };

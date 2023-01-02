@@ -1,22 +1,26 @@
 open Knot.Kore;
 open AST;
 
-let format_argument_list =
+let format_parameter_list =
   Fmt.(
-    (ppf, args) =>
-      List.is_empty(args)
-        ? () : pf(ppf, "(%a)", list(KTypeExpression.Plugin.format), args)
+    (ppf, parameters) =>
+      List.is_empty(parameters)
+        ? ()
+        : pf(ppf, "(%a)", list(KTypeExpression.Plugin.format), parameters)
   );
 
 let format_variant_list =
   Fmt.(
-    block(~layout=Vertical, ~sep=Sep.space, (ppf, ((arg_name, _), args)) =>
+    block(
+      ~layout=Vertical,
+      ~sep=Sep.space,
+      (ppf, ((variant_name, _), parameters)) =>
       pf(
         ppf,
         "@[<h>| %s%a@]",
-        arg_name,
-        format_argument_list,
-        args |> List.map(fst),
+        variant_name,
+        format_parameter_list,
+        parameters |> List.map(fst),
       )
     )
   );

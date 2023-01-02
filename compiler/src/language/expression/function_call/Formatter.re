@@ -1,13 +1,13 @@
 open Knot.Kore;
 
-let format = (pp_expression, ppf, ((expr, _), args)) =>
+let format = (pp_expression, ppf, ((function_, _), arguments)) =>
   Fmt.(
     pf(
       ppf,
       "%a@[<hv>(%a)@]",
       pp_expression,
-      expr,
+      function_,
       list(~sep=Sep.trailing_comma, pp_expression),
-      args |> List.map(fst),
+      arguments |> List.map(fst),
     )
   );

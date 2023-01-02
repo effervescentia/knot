@@ -16,8 +16,9 @@ let to_xml:
       ~unpack=
         AST.Expression.(
           fun
-          | Effect(expr) => expr &> KEffect.to_xml
-          | Variable(name, expr) => (name, expr) &> KVariable.to_xml
+          | Effect(expression) => expression &> KEffect.to_xml
+          | Variable(name, expression) =>
+            (name, expression) &> KVariable.to_xml
         ),
       "Statement",
       stmt,

@@ -9,20 +9,20 @@ let analyze:
     Range.t
   ) =>
   (Result.expression_t, Result.expression_t, Type.t) =
-  (scope, analyze_expression, (op, lhs, rhs), range) => {
+  (scope, analyze_expression, (operator, lhs, rhs), range) => {
     let lhs' = analyze_expression(scope, lhs);
     let rhs' = analyze_expression(scope, rhs);
     let type_lhs = Node.get_type(lhs');
     let type_rhs = Node.get_type(rhs');
 
     (type_lhs, type_rhs)
-    |> Validator.validate(op)
+    |> Validator.validate(operator)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
       lhs',
       rhs',
-      switch (op) {
+      switch (operator) {
       | LogicalAnd
       | LogicalOr
       | LessOrEqual

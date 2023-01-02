@@ -7,12 +7,12 @@ let to_xml:
     (Common.identifier_t, Expression.expression_t('a))
   ) =>
   Fmt.xml_t(string) =
-  (expr_to_xml, (name, expr)) =>
+  (expr_to_xml, (name, expression)) =>
     Node(
       "Variable",
       [],
       [
-        Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-        Node("Value", [], [expr_to_xml(expr)]),
+        Dump.identifier_to_xml("Name", name),
+        Node("Value", [], [expr_to_xml(expression)]),
       ],
     );

@@ -24,12 +24,12 @@ let module_statement_to_xml = module_statement =>
               ),
             ],
             [
-              Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+              Dump.identifier_to_xml("Name", name),
               KDeclaration.Plugin.to_xml(~@AST.Type.pp, declaration),
             ],
           )
       )
-      % (x => [x]),
+      % List.single,
     "ModuleStatement",
     module_statement,
   );

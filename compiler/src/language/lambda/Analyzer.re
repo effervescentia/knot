@@ -1,70 +1,70 @@
 open Knot.Kore;
 open AST;
 
-let analyze_argument:
+let analyze_parameter:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
     Raw.parameter_t
   ) =>
   Result.parameter_t =
-  (scope, analyze_expression, arg) => {
-    let (arg', type_) =
-      switch (fst(arg)) {
+  (scope, analyze_expression, parameter) => {
+    let (parameter', type_) =
+      switch (fst(parameter)) {
       | (name, None, None) =>
         Type.UntypedFunctionArgument(fst(name))
-        |> Scope.report_type_err(scope, Node.get_range(arg));
+        |> Scope.report_type_err(scope, Node.get_range(parameter));
 
         ((name, None, None), Type.Invalid(NotInferrable));
 
-      | (name, None, Some(expr)) =>
-        let expr' = expr |> analyze_expression(scope);
+      | (name, None, Some(expression)) =>
+        let expression' = expression |> analyze_expression(scope);
 
-        ((name, None, Some(expr')), Node.get_type(expr'));
+        ((name, None, Some(expression')), Node.get_type(expression'));
 
-      | (name, Some(type_expr), None) =>
+      | (name, Some(type_expression), None) =>
         let type_ =
-          type_expr
+          type_expression
           |> fst
           |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
-        ((name, Some(type_expr), None), type_);
+        ((name, Some(type_expression), None), type_);
 
-      | (name, Some(type_expr), Some(expr)) =>
-        let expr' = expr |> analyze_expression(scope);
-        let expr_type = Node.get_type(expr');
+      | (name, Some(type_expression), Some(expression)) =>
+        let expression' = expression |> analyze_expression(scope);
+        let expression_type = Node.get_type(expression');
         let type_ =
-          type_expr
+          type_expression
           |> fst
           |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
-        switch (expr_type, type_) {
-        | (Valid(_), Valid(_)) when expr_type != type_ =>
-          Type.TypeMismatch(type_, expr_type)
-          |> Scope.report_type_err(scope, Node.get_range(expr))
+        switch (expression_type, type_) {
+        | (Valid(_), Valid(_)) when expression_type != type_ =>
+          Type.TypeMismatch(type_, expression_type)
+          |> Scope.report_type_err(scope, Node.get_range(expression))
 
         | _ => ()
         };
 
-        ((name, Some(type_expr), Some(expr')), type_);
+        ((name, Some(type_expression), Some(expression')), type_);
       };
 
-    Node.typed(arg', type_, Node.get_range(arg));
+    Node.typed(parameter', type_, Node.get_range(parameter));
     /* ignore cases where either type is invalid or when types are equal */
   };
 
-let analyze_argument_list:
+let analyze_parameter_list:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
     list(Raw.parameter_t)
   ) =>
   list(Result.parameter_t) =
-  (scope, analyze_expression, args) => {
-    let args' =
-      args |> List.map(analyze_argument(scope, analyze_expression));
+  (scope, analyze_expression, parameters) => {
+    let parameters' =
+      parameters |> List.map(analyze_parameter(scope, analyze_expression));
 
-    Validator.validate_default_arguments(scope, args');
+    Validator.validate_default_arguments(scope, parameters');
 
-    args';
+    parameters';
   };

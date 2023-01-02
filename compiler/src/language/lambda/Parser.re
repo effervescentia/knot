@@ -4,7 +4,7 @@ open AST;
 
 module Character = Constants.Character;
 
-let parse_arguments =
+let parse_parameters =
     (
       ctx: ParseContext.t,
       parse_expression: Framework.contextual_expression_parser_t,
@@ -49,11 +49,11 @@ let _parse_configurable_lambda =
       ctx: ParseContext.t,
       parse_expression: Framework.contextual_expression_parser_t,
     ) =>
-  parse_arguments(ctx, parse_expression)
+  parse_parameters(ctx, parse_expression)
   >|= fst
   |> option([])
   >>= (
-    args =>
+    parameters =>
       (
         mixins
           ? Matchers.symbol(Character.tilde)
@@ -69,7 +69,12 @@ let _parse_configurable_lambda =
             lambda =>
               parse_expression(ctx)
               >|= (
-                expr => (args, mixins, expr, Node.join_ranges(lambda, expr))
+                body => (
+                  parameters,
+                  mixins,
+                  body,
+                  Node.join_ranges(lambda, body),
+                )
               )
           )
       )
@@ -84,4 +89,4 @@ let parse_lambda =
       parse_expression: Framework.contextual_expression_parser_t,
     ) =>
   _parse_configurable_lambda(~mixins=false, ctx, parse_expression)
-  >|= (((args, _, expr, range)) => (args, expr, range));
+  >|= (((parameters, _, body, range)) => (parameters, body, range));

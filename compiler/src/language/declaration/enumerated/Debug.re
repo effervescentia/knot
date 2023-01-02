@@ -13,7 +13,7 @@ let variant_to_xml = (dump_type, (name, parameters)) =>
     "Variant",
     [],
     [
-      Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
+      Dump.identifier_to_xml("Name", name),
       ...parameters |> List.map(variant_parameter_to_xml(dump_type)),
     ],
   );
