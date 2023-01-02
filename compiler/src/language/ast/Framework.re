@@ -18,20 +18,6 @@ type declaration_parser_t =
 module type PrimitiveParams = {
   type value_t;
 
-  let parse: Parser.t(Node.t(Raw.primitive_t, unit));
-
-  let format: Fmt.t(value_t);
-
-  let to_xml: value_t => Fmt.xml_t(string);
-};
-
-module Primitive = (Params: PrimitiveParams) => {
-  include Params;
-};
-
-module type PrimitiveParamsV2 = {
-  type value_t;
-
   let parse: Parser.t(Node.t(value_t, unit));
 
   let format: Fmt.t(value_t);
@@ -39,7 +25,7 @@ module type PrimitiveParamsV2 = {
   let to_xml: value_t => Fmt.xml_t(string);
 };
 
-module PrimitiveV2 = (Params: PrimitiveParamsV2) => {
+module Primitive = (Params: PrimitiveParams) => {
   include Params;
 };
 

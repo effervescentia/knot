@@ -75,10 +75,10 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
 
         (Expression.Style(rules'), type_);
 
-      | (JSX(jsx), _) =>
-        let (jsx', type_) = KSX.analyze(scope, analyze, jsx);
+      | (KSX(ksx), _) =>
+        let (ksx', type_) = KSX.analyze(scope, analyze, ksx);
 
-        (Expression.JSX(jsx'), type_);
+        (Expression.KSX(ksx'), type_);
       }
     )
     |> (((value, type_)) => Node.typed(value, type_, node_range));

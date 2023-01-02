@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.jsx_t) =
+let rec format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.ksx_t) =
   (pp_expression, ppf) =>
     fun
     | Tag(_, (name, _), styles, attrs, []) =>
@@ -57,7 +57,7 @@ and format_style_binding = (pp_expression, ppf, style) =>
   Fmt.(pf(ppf, "::%a", pp_expression, style))
 
 and format_child:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_child_t) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_ksx_child_t) =
   (pp_expression, ppf) =>
     fun
     | Node(jsx) => jsx |> Fmt.pf(ppf, "%a", format(pp_expression))
@@ -65,7 +65,7 @@ and format_child:
     | InlineExpression((expr, _)) => Fmt.pf(ppf, "{%a}", pp_expression, expr)
 
 and format_attribute_list:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.raw_jsx_attribute_t)) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.raw_ksx_attribute_t)) =
   (pp_expression, ppf) =>
     fun
     | [] => Fmt.nop(ppf, ())
@@ -80,7 +80,7 @@ and format_attribute_list:
          )
 
 and format_attribute:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_jsx_attribute_t) =
+  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_ksx_attribute_t) =
   (pp_expression, ppf, attr) =>
     Fmt.(
       pf(
@@ -106,7 +106,7 @@ and format_attribute_expression:
     | (
         Primitive(_) | Identifier(_) | Group(_) | Closure(_) |
         /* show tags or fragments with no children */
-        JSX(Tag(_, _, _, _, []) | Fragment([]))
+        KSX(Tag(_, _, _, _, []) | Fragment([]))
       ) as expr =>
       pp_expression(ppf, expr)
     | expr => Fmt.pf(ppf, "(%a)", pp_expression, expr);

@@ -6,7 +6,7 @@ let analyze = Analyzer.analyze;
 include Framework.Expression({
   type parse_arg_t = (ParseContext.t, Parser.expression_parsers_arg_t);
 
-  type value_t('a) = AST.Expression.jsx_t('a);
+  type value_t('a) = AST.Expression.ksx_t('a);
 
   let parse = Parser.parse;
 

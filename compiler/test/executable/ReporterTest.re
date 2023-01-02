@@ -113,37 +113,37 @@ finished with 24 error(s) and 0 warning(s)
   the AND (&&) binary operator expects both arguments to be of type boolean but received string and integer
   \n  [code frame not available]
 
-12) Invalid JSX Primitive Expression : bar/my_namespace.kn:0.0
+12) Invalid KSX Primitive Expression : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
-  jsx only supports rendering primitive values inline but received string[]
+  ksx only supports rendering primitive values inline but received string[]
   \n  [code frame not available]
   \n  try one of the following to resolve this issue:
   \n    • convert the value to have a primitive type
         ie. nil, boolean, integer, float, string, element
 
-13) Invalid JSX Tag : bar/my_namespace.kn:0.0
+13) Invalid KSX Tag : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
-  this jsx tag was expected to be of type view with props (my_attr: boolean) but received integer
+  this ksx tag was expected to be of type view with props (my_attr: boolean) but received integer
   \n  [code frame not available]
 
-14) Invalid JSX Attribute : bar/my_namespace.kn:0.0
+14) Invalid KSX Attribute : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
-  this jsx tag expects the attribute my_attr to be of type integer but received boolean
+  this ksx tag expects the attribute my_attr to be of type integer but received boolean
   \n  [code frame not available]
 
-15) Unexpected JSX Attribute : bar/my_namespace.kn:0.0
+15) Unexpected KSX Attribute : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
   found an unexpected attribute my_attr with type boolean
   \n  [code frame not available]
 
-16) Missing JSX Attributes : bar/my_namespace.kn:0.0
+16) Missing KSX Attributes : bar/my_namespace.kn:0.0
   (foo/bar/my_namespace.kn:0.0)
 
-  jsx tag MyTag is missing the attributes (my_bool: boolean, my_int: integer)
+  ksx tag MyTag is missing the attributes (my_bool: boolean, my_int: integer)
   \n  [code frame not available]
 
 17) Invalid Dot Access : bar/my_namespace.kn:0.0
@@ -253,7 +253,7 @@ finished with 24 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
-                InvalidJSXPrimitiveExpression(
+                InvalidKSXPrimitiveExpression(
                   Type.Valid(`List(Valid(`String))),
                 ),
               ),
@@ -262,7 +262,7 @@ finished with 24 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
-                InvalidJSXTag(
+                InvalidKSXTag(
                   "MyTag",
                   Type.Valid(`Integer),
                   [("my_attr", Type.Valid(`Boolean))],
@@ -273,7 +273,7 @@ finished with 24 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
-                InvalidJSXAttribute(
+                InvalidKSXAttribute(
                   "my_attr",
                   Type.Valid(`Integer),
                   Type.Valid(`Boolean),
@@ -284,14 +284,14 @@ finished with 24 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
-                UnexpectedJSXAttribute("my_attr", Type.Valid(`Boolean)),
+                UnexpectedKSXAttribute("my_attr", Type.Valid(`Boolean)),
               ),
               __namespace,
               Range.zero,
             ),
             ParseError(
               TypeError(
-                MissingJSXAttributes(
+                MissingKSXAttributes(
                   "MyTag",
                   [
                     ("my_bool", Type.Valid(`Boolean)),

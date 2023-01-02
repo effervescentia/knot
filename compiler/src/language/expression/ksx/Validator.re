@@ -1,7 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let validate_jsx_render:
+let validate_ksx_render:
   (bool, (string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
   list((Type.error_t, option(Range.t))) =
   has_children =>
@@ -36,7 +36,7 @@ let validate_jsx_render:
                          invalid
                          @ [
                            (
-                             InvalidJSXAttribute(key, expected', actual_value),
+                             InvalidKSXAttribute(key, expected', actual_value),
                              Some(Node.get_range(actual')),
                            ),
                          ],
@@ -54,7 +54,7 @@ let validate_jsx_render:
                      invalid
                      @ [
                        (
-                         Type.UnexpectedJSXAttribute(key, fst(actual')),
+                         Type.UnexpectedKSXAttribute(key, fst(actual')),
                          Some(Node.get_range(actual')),
                        ),
                      ],
@@ -71,7 +71,7 @@ let validate_jsx_render:
         if (!List.is_empty(invalid)) {
           invalid;
         } else if (!List.is_empty(missing)) {
-          [(Type.MissingJSXAttributes(id, missing), None)];
+          [(Type.MissingKSXAttributes(id, missing), None)];
         } else {
           [];
         };
@@ -79,7 +79,7 @@ let validate_jsx_render:
 
     | (id, expr_type, attrs) => [
         (
-          InvalidJSXTag(
+          InvalidKSXTag(
             id,
             expr_type,
             attrs |> List.map(Tuple.map_snd2(fst)),
@@ -111,11 +111,11 @@ let validate_style_binding =
      );
 };
 
-let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
+let validate_ksx_primitive_expression: Type.t => option(Type.error_t) =
   fun
   /* assume this has been reported already and ignore */
   | Invalid(_) => None
 
   | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
 
-  | type_ => Some(InvalidJSXPrimitiveExpression(type_));
+  | type_ => Some(InvalidKSXPrimitiveExpression(type_));

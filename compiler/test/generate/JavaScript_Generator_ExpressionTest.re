@@ -80,7 +80,7 @@ let suite =
           ),
           ("foo" |> U.as_view([], Valid(`Nil)), [], [], [])
           |> A.of_element_tag
-          |> A.of_jsx,
+          |> A.of_ksx,
         )
     ),
     "jsx - render tag with attributes"
@@ -104,7 +104,7 @@ let suite =
             [],
           )
           |> A.of_element_tag
-          |> A.of_jsx,
+          |> A.of_ksx,
         )
     ),
     "jsx - render component"
@@ -117,7 +117,7 @@ let suite =
           ),
           ("Foo" |> U.as_view([], Valid(`Element)), [], [], [])
           |> A.of_component_tag
-          |> A.of_jsx,
+          |> A.of_ksx,
         )
     ),
     "jsx - render component with styles"
@@ -206,7 +206,7 @@ let suite =
             [],
           )
           |> A.of_component_tag
-          |> A.of_jsx,
+          |> A.of_ksx,
         )
     ),
     "jsx - deeply nested tags"
@@ -259,7 +259,7 @@ let suite =
             ],
           )
           |> A.of_element_tag
-          |> A.of_jsx,
+          |> A.of_ksx,
         )
     ),
     "null" >: (() => _assert_expression(Null, A.nil |> A.of_prim)),

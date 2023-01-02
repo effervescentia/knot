@@ -60,7 +60,7 @@ and parse_expression_8 = (ctx): Framework.expression_parser_t =>
     )
 
 /* skip dot access to avoid conflict with class attribute syntax */
-and parse_jsx_term = ctx =>
+and parse_ksx_term = ctx =>
   (parse_expression_8(ctx), parse_expression_0(ctx))
   |> KFunctionCall.parse
   |> KUnaryOperator.parse
@@ -71,7 +71,7 @@ and parse_term = ctx =>
     () |> KPrimitive.parse,
     (ctx, parse_expression_0) |> KStyle.parse,
     ctx |> KIdentifier.parse,
-    (ctx, (parse_jsx_term, parse_expression_0)) |> KSX.parse,
+    (ctx, (parse_ksx_term, parse_expression_0)) |> KSX.parse,
   ]);
 
 let parse = parse_expression_0;

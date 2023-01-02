@@ -24,13 +24,13 @@ module Make = (Params: ASTParams) => {
    */
   type node_t('a) = Node.t('a, type_t);
 
-  type jsx_t = Expression.jsx_t(type_t);
+  type ksx_t = Expression.ksx_t(type_t);
 
-  type jsx_child_t = Expression.jsx_child_t(type_t);
-  type raw_jsx_child_t = Expression.raw_jsx_child_t(type_t);
+  type ksx_child_t = Expression.ksx_child_t(type_t);
+  type raw_ksx_child_t = Expression.raw_ksx_child_t(type_t);
 
-  type jsx_attribute_t = Expression.jsx_attribute_t(type_t);
-  type raw_jsx_attribute_t = Expression.raw_jsx_attribute_t(type_t);
+  type ksx_attribute_t = Expression.ksx_attribute_t(type_t);
+  type raw_ksx_attribute_t = Expression.raw_ksx_attribute_t(type_t);
 
   type style_rule_t = Expression.style_rule_t(type_t);
   type raw_style_rule_t = Expression.raw_style_rule_t(type_t);
@@ -86,7 +86,7 @@ module Make = (Params: ASTParams) => {
 
   let of_expo_op = ((l, r)) => (Exponent, l, r) |> of_binary_op;
 
-  let of_jsx = x => Expression.JSX(x);
+  let of_ksx = x => Expression.KSX(x);
   let of_frag = xs => Expression.Fragment(xs);
   let of_element_tag = ((name, styles, attrs, children)) =>
     Expression.Tag(Element, name, styles, attrs, children);

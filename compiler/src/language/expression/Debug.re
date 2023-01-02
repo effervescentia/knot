@@ -25,7 +25,7 @@ let rec to_xml:
           | BinaryOp(op, lhs, rhs) =>
             (op, lhs, rhs) |> KBinaryOperator.to_xml(arg)
           | UnaryOp(op, expr) => (op, expr) |> KUnaryOperator.to_xml(arg)
-          | JSX(jsx) => KSX.to_xml(arg, jsx)
+          | KSX(ksx) => KSX.to_xml(arg, ksx)
         )
         % (x => [x]),
       "Expression",

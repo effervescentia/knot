@@ -29,7 +29,7 @@ let style_list_to_xml = (expr_to_xml, styles) =>
 let rec to_xml:
   (
     (Expression.expression_t('a) => Fmt.xml_t(string), 'a => string),
-    Expression.jsx_t('a)
+    Expression.ksx_t('a)
   ) =>
   Fmt.xml_t(string) =
   ((expr_to_xml, dump_type), ksx) =>

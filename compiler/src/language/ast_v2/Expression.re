@@ -4,8 +4,8 @@ open Common;
 type t('typ) =
   | Primitive(Primitive.t)
   | Identifier(string)
-  | Style(list(raw_t((identifier_t, node_t('typ)))))
   | KSX(KSX.node_t(t('typ), 'typ))
+  | Style(list(raw_t((identifier_t, node_t('typ)))))
   | Group(node_t('typ))
   | Closure(list(Statement.node_t(t('typ), 'typ)))
   | UnaryOperation(Operator.Unary.t, node_t('typ))

@@ -255,7 +255,7 @@ let suite =
             Some(
               ("Buzz" |> U.as_view([], Valid(`Nil)), [], [], [])
               |> A.of_element_tag
-              |> A.of_jsx
+              |> A.of_ksx
               |> U.as_element,
             ),
           ),
@@ -283,7 +283,7 @@ let suite =
                 ],
               )
               |> A.of_element_tag
-              |> A.of_jsx
+              |> A.of_ksx
               |> U.as_element,
             ),
           ),

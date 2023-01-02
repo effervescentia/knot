@@ -56,7 +56,7 @@ let rec of_effect =
       BinaryTree.create((range, Token.Primitive(prim)))
     | (Identifier(id), (_, range)) =>
       Node.untyped(id, range) |> of_untyped_id
-    | (JSX(jsx), (_, range)) => jsx |> of_jsx |> _wrap(range)
+    | (KSX(ksx), (_, range)) => ksx |> of_ksx |> _wrap(range)
     | (Group(expr), _) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | (BinaryOp(_, lhs, rhs), _) =>
       _join(
@@ -82,7 +82,7 @@ let rec of_effect =
       rules |> List.map(fst % snd % of_effect) |> of_list
   )
 
-and of_jsx =
+and of_ksx =
   AST.Expression.(
     fun
     | Fragment(children) =>
@@ -113,7 +113,7 @@ and of_jsx =
 and of_jsx_child =
   AST.Expression.(
     fun
-    | (Node(tag), (_, range)) => tag |> of_jsx |> _wrap(range)
+    | (Node(tag), (_, range)) => tag |> of_ksx |> _wrap(range)
     | (InlineExpression(expr), _) =>
       expr |> of_effect |> _wrap(Node.get_range(expr))
     | (Text(text), (_, range)) =>

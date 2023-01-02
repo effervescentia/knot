@@ -10,7 +10,7 @@ module Assert =
     let parser = ctx =>
       KSX.Plugin.parse((
         ctx,
-        (KExpression.Parser.parse_jsx_term, KExpression.Plugin.parse),
+        (KExpression.Parser.parse_ksx_term, KExpression.Plugin.parse),
       ))
       |> Assert.parse_completely
       |> Parser.parse;
@@ -37,7 +37,7 @@ let suite =
         Assert.parse_all(
           (U.as_untyped("Foo"), [], [], [])
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
@@ -48,7 +48,7 @@ let suite =
         Assert.parse_all(
           (U.as_untyped("Foo"), [], [], [])
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           ["<Foo/>", " < Foo / > "],
         )
@@ -59,7 +59,7 @@ let suite =
         Assert.parse(
           (U.as_untyped("Foo"), ["bar" |> AR.of_id |> U.as_untyped], [], [])
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo::bar />",
         )
@@ -81,22 +81,22 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo::{ color: \"red\" } />",
         )
     ),
     "parse empty fragment"
     >: (
-      () => Assert.parse([] |> AR.of_frag |> AR.of_jsx |> U.as_node, "<></>")
+      () => Assert.parse([] |> AR.of_frag |> AR.of_ksx |> U.as_node, "<></>")
     ),
     "parse fragment with children"
     >: (
       () =>
         Assert.parse(
-          [(U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped]
+          [(U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped]
           |> AR.of_frag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<><Bar /></>",
         )
@@ -118,7 +118,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=buzz />",
         )
@@ -137,7 +137,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=\"buzz\" />",
         )
@@ -162,7 +162,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz={ buzz; } />",
         )
@@ -187,7 +187,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=buzz() />",
         )
@@ -212,7 +212,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=(1 > 2) />",
         )
@@ -231,7 +231,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=(true) />",
         )
@@ -253,7 +253,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=-3 />",
         )
@@ -269,7 +269,7 @@ let suite =
               (
                 U.as_untyped("fizz"),
                 (U.as_untyped("buzz"), [], [], [])
-                |> U.jsx_tag
+                |> U.ksx_tag
                 |> U.as_node
                 |> Option.some,
               )
@@ -278,7 +278,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz=<buzz /> />",
         )
@@ -294,7 +294,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo fizz />",
         )
@@ -308,11 +308,11 @@ let suite =
             [],
             [],
             [
-              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped,
             ],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo><Bar /></Foo>",
         )
@@ -334,7 +334,7 @@ let suite =
             ],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo>{1 + 2}</Foo>",
         )
@@ -349,14 +349,14 @@ let suite =
             [],
             [
               (U.as_untyped("Bar"), [], [], [])
-              |> U.jsx_tag
+              |> U.ksx_tag
               |> U.as_node
               |> AR.of_inline_expr
               |> U.as_untyped,
             ],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo>{<Bar />}</Foo>",
         )
@@ -372,7 +372,7 @@ let suite =
             ["bar \"or\" 123" |> AR.of_text |> U.as_untyped],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo> bar \"or\" 123 </Foo>",
         )
@@ -389,11 +389,11 @@ let suite =
               |> U.as_untyped,
             ],
             [
-              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped,
             ],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo bar=4><Bar /></Foo>",
         )
@@ -413,13 +413,13 @@ let suite =
               |> U.as_node
               |> AR.of_inline_expr
               |> U.as_untyped,
-              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped,
               "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_untyped,
               "buzz" |> AR.of_text |> U.as_untyped,
             ],
           )
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> U.as_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
         )

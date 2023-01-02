@@ -1,11 +1,11 @@
 open Knot.Kore;
 open AST;
 
-let rec analyze_jsx:
-  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
-  Result.jsx_t =
-  (scope, analyze_expression, jsx) =>
-    switch (jsx) {
+let rec analyze_ksx:
+  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.ksx_t) =>
+  Result.ksx_t =
+  (scope, analyze_expression, ksx) =>
+    switch (ksx) {
     | Tag(_, view, styles, attrs, children) =>
       let tag_scope = Scope.create(scope.context, Node.get_range(view));
       tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
@@ -36,9 +36,9 @@ let rec analyze_jsx:
       let id' = view |> Node.add_type(name_type);
       let styles' = styles |> List.map(analyze_expression(scope));
       let attrs' =
-        attrs |> List.map(analyze_jsx_attribute(scope, analyze_expression));
+        attrs |> List.map(analyze_ksx_attribute(scope, analyze_expression));
       let children' =
-        children |> List.map(analyze_jsx_child(scope, analyze_expression));
+        children |> List.map(analyze_ksx_child(scope, analyze_expression));
 
       let props =
         attrs'
@@ -68,7 +68,7 @@ let rec analyze_jsx:
 
       (
         (fst(view), name_type, props)
-        |> Validator.validate_jsx_render(!List.is_empty(children))
+        |> Validator.validate_ksx_render(!List.is_empty(children))
       )
       @ Validator.validate_style_binding(styles')
       |> List.iter(((err, err_range)) =>
@@ -83,44 +83,44 @@ let rec analyze_jsx:
 
     | Fragment(children) =>
       children
-      |> List.map(analyze_jsx_child(scope, analyze_expression))
+      |> List.map(analyze_ksx_child(scope, analyze_expression))
       |> Result.of_frag
     }
 
-and analyze_jsx_attribute:
+and analyze_ksx_attribute:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.jsx_attribute_t
+    Raw.ksx_attribute_t
   ) =>
-  Result.jsx_attribute_t =
-  (scope, analyze_expression, ((id, expr), _) as jsx_attr) => {
-    let jsx_attr' = (id, expr |?> analyze_expression(scope));
+  Result.ksx_attribute_t =
+  (scope, analyze_expression, ((id, expr), _) as ksx_attr) => {
+    let ksx_attr' = (id, expr |?> analyze_expression(scope));
 
-    jsx_attr |> Node.map(_ => jsx_attr');
+    ksx_attr |> Node.map(_ => ksx_attr');
   }
 
-and analyze_jsx_child:
+and analyze_ksx_child:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.jsx_child_t
+    Raw.ksx_child_t
   ) =>
-  Result.jsx_child_t =
-  (scope, analyze_expression, jsx_child) => {
-    let jsx_child' =
-      switch (fst(jsx_child)) {
+  Result.ksx_child_t =
+  (scope, analyze_expression, ksx_child) => {
+    let ksx_child' =
+      switch (fst(ksx_child)) {
       | Text(text) => Result.of_text(text)
 
-      | Node(jsx) =>
-        jsx |> analyze_jsx(scope, analyze_expression) |> Result.of_node
+      | Node(ksx) =>
+        ksx |> analyze_ksx(scope, analyze_expression) |> Result.of_node
 
       | InlineExpression(raw_expr) =>
         let expr = raw_expr |> analyze_expression(scope);
         let type_ = Node.get_type(expr);
 
         type_
-        |> Validator.validate_jsx_primitive_expression
+        |> Validator.validate_ksx_primitive_expression
         |> Option.iter(
              expr |> Node.get_range |> Scope.report_type_err(scope),
            );
@@ -128,14 +128,14 @@ and analyze_jsx_child:
         Result.of_inline_expr(expr);
       };
 
-    Node.untyped(jsx_child', Node.get_range(jsx_child));
+    Node.untyped(ksx_child', Node.get_range(ksx_child));
   };
 
 let analyze:
-  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.jsx_t) =>
-  (Result.jsx_t, Type.t) =
-  (scope, analyze_expression, jsx) => {
-    let jsx' = analyze_jsx(scope, analyze_expression, jsx);
+  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.ksx_t) =>
+  (Result.ksx_t, Type.t) =
+  (scope, analyze_expression, ksx) => {
+    let ksx' = analyze_ksx(scope, analyze_expression, ksx);
 
-    (jsx', Type.Valid(`Element));
+    (ksx', Type.Valid(`Element));
   };

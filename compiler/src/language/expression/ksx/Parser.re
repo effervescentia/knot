@@ -25,13 +25,13 @@ type expression_parsers_arg_t = (
   Framework.contextual_expression_parser_t,
 );
 
-type jsx_parser_t = Parse.Parser.t(Node.t(Raw.jsx_t, unit));
+type jsx_parser_t = Parse.Parser.t(Node.t(Raw.ksx_t, unit));
 
-type jsx_attribute_parser_t = Parse.Parser.t(Raw.jsx_attribute_t);
-type jsx_attribute_list_parser_t = Parse.Parser.t(list(Raw.jsx_attribute_t));
+type jsx_attribute_parser_t = Parse.Parser.t(Raw.ksx_attribute_t);
+type jsx_attribute_list_parser_t = Parse.Parser.t(list(Raw.ksx_attribute_t));
 
-type jsx_child_parser_t = Parse.Parser.t(Raw.jsx_child_t);
-type jsx_child_list_parser_t = Parse.Parser.t(list(Raw.jsx_child_t));
+type jsx_child_parser_t = Parse.Parser.t(Raw.ksx_child_t);
+type jsx_child_list_parser_t = Parse.Parser.t(list(Raw.ksx_child_t));
 
 let _parse_attribute =
     (
@@ -162,4 +162,4 @@ and parse_inline_expr =
 let parse =
     ((ctx: ParseContext.t, parsers: expression_parsers_arg_t))
     : Framework.expression_parser_t =>
-  _parse_inner_ksx(ctx, parsers) >|= Node.map(Raw.of_jsx);
+  _parse_inner_ksx(ctx, parsers) >|= Node.map(Raw.of_ksx);

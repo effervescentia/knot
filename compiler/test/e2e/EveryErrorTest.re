@@ -189,7 +189,7 @@ let suite =
             ),
             ParseError(
               TypeError(
-                InvalidJSXPrimitiveExpression(
+                InvalidKSXPrimitiveExpression(
                   Valid(
                     `Function((
                       [Valid(`String), Valid(`Boolean)],
@@ -207,7 +207,7 @@ let suite =
               Range.create((28, 25), (28, 27)),
             ),
             ParseError(
-              TypeError(InvalidJSXTag("NotView", Valid(`Nil), [])),
+              TypeError(InvalidKSXTag("NotView", Valid(`Nil), [])),
               __semantic_namespace,
               Range.create((31, 35), (31, 41)),
             ),
@@ -218,14 +218,14 @@ let suite =
             ),
             ParseError(
               TypeError(
-                UnexpectedJSXAttribute("unexpected_attr", Valid(`Boolean)),
+                UnexpectedKSXAttribute("unexpected_attr", Valid(`Boolean)),
               ),
               __semantic_namespace,
               Range.create((37, 48), (37, 67)),
             ),
             ParseError(
               TypeError(
-                InvalidJSXAttribute(
+                InvalidKSXAttribute(
                   "first_attr",
                   Valid(`String),
                   Valid(`Boolean),
@@ -236,7 +236,7 @@ let suite =
             ),
             ParseError(
               TypeError(
-                MissingJSXAttributes(
+                MissingKSXAttributes(
                   "TwoAttrsView",
                   [
                     ("second_attr", Valid(`Boolean)),

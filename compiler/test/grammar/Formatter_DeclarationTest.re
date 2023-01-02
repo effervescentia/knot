@@ -67,7 +67,7 @@ let __inline_view = (
       |> U.as_untyped,
     ]
     |> A.of_frag
-    |> A.of_jsx
+    |> A.of_ksx
     |> U.as_element,
   )
   |> A.of_view,
@@ -89,7 +89,7 @@ let __multiline_view = (
         |> U.as_untyped,
       ]
       |> A.of_frag
-      |> A.of_jsx
+      |> A.of_ksx
       |> U.as_element
       |> A.of_effect
       |> U.as_element,

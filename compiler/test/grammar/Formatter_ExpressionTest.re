@@ -150,7 +150,7 @@ let suite =
             ["bar" |> A.of_text |> U.as_untyped],
           )
           |> A.of_element_tag
-          |> A.of_jsx,
+          |> A.of_ksx,
         )
     ),
     "style"

@@ -83,7 +83,7 @@ let jsx_const = [
   (
     "jsx_const" |> U.as_untyped |> A.of_named_export,
     ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
-    |> U.jsx_tag
+    |> U.ksx_tag
     |> U.as_element
     |> A.of_const
     |> U.as_element,
@@ -181,7 +181,7 @@ let complex_jsx_const = [
         [] |> A.of_frag |> A.of_node |> U.as_untyped,
       ],
     )
-    |> U.jsx_tag
+    |> U.ksx_tag
     |> U.as_element
     |> A.of_const
     |> U.as_element,

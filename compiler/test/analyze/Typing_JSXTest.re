@@ -28,7 +28,7 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          KSX.Validator.validate_jsx_primitive_expression(
+          KSX.Validator.validate_ksx_primitive_expression(
             Invalid(NotInferrable),
           ),
         )
@@ -47,7 +47,7 @@ let suite =
         |> List.iter(type_ =>
              Assert.type_error(
                None,
-               KSX.Validator.validate_jsx_primitive_expression(type_),
+               KSX.Validator.validate_ksx_primitive_expression(type_),
              )
            )
     ),
@@ -56,22 +56,22 @@ let suite =
       () =>
         Assert.type_error(
           Some(
-            InvalidJSXPrimitiveExpression(
+            InvalidKSXPrimitiveExpression(
               Valid(`Function(([], Valid(`Nil)))),
             ),
           ),
-          KSX.Validator.validate_jsx_primitive_expression(
+          KSX.Validator.validate_ksx_primitive_expression(
             Valid(`Function(([], Valid(`Nil)))),
           ),
         )
     ),
-    "jsx render with non-view type"
+    "ksx render with non-view type"
     >: (
       () =>
         _assert_errors_with_ranges(
           [
             (
-              T.InvalidJSXTag(
+              T.InvalidKSXTag(
                 __id,
                 T.Valid(`Integer),
                 [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`String))],
@@ -87,10 +87,10 @@ let suite =
               ("bar", T.Valid(`String) |> U.as_untyped),
             ],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         )
     ),
-    "jsx render with invalid attributes"
+    "ksx render with invalid attributes"
     >: (
       () => {
         let foo_range = Range.create((10, 2), (12, 3));
@@ -99,11 +99,11 @@ let suite =
         _assert_errors_with_ranges(
           [
             (
-              T.InvalidJSXAttribute("bar", T.Valid(`String), T.Valid(`Nil)),
+              T.InvalidKSXAttribute("bar", T.Valid(`String), T.Valid(`Nil)),
               Some(bar_range),
             ),
             (
-              T.InvalidJSXAttribute(
+              T.InvalidKSXAttribute(
                 "foo",
                 T.Valid(`Boolean),
                 T.Valid(`Integer),
@@ -127,11 +127,11 @@ let suite =
               ("foo", N.untyped(T.Valid(`Integer), foo_range)),
             ],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         );
       }
     ),
-    "jsx render with unexpected attributes"
+    "ksx render with unexpected attributes"
     >: (
       () => {
         let foo_range = Range.create((10, 2), (12, 3));
@@ -140,11 +140,11 @@ let suite =
         _assert_errors_with_ranges(
           [
             (
-              T.UnexpectedJSXAttribute("bar", T.Valid(`Nil)),
+              T.UnexpectedKSXAttribute("bar", T.Valid(`Nil)),
               Some(bar_range),
             ),
             (
-              T.UnexpectedJSXAttribute("foo", T.Valid(`Integer)),
+              T.UnexpectedKSXAttribute("foo", T.Valid(`Integer)),
               Some(foo_range),
             ),
           ],
@@ -156,17 +156,17 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         );
       }
     ),
-    "jsx render with missing attributes"
+    "ksx render with missing attributes"
     >: (
       () =>
         _assert_errors_with_ranges(
           [
             (
-              T.MissingJSXAttributes(
+              T.MissingKSXAttributes(
                 __id,
                 [("bar", T.Valid(`String)), ("foo", T.Valid(`Boolean))],
               ),
@@ -186,10 +186,10 @@ let suite =
             ),
             [],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         )
     ),
-    "jsx render with invalid, unexpected and missing attributes"
+    "ksx render with invalid, unexpected and missing attributes"
     >: (
       () => {
         let foo_range = Range.create((10, 2), (12, 3));
@@ -198,11 +198,11 @@ let suite =
         _assert_errors_with_ranges(
           [
             (
-              T.UnexpectedJSXAttribute("bar", T.Valid(`Nil)),
+              T.UnexpectedKSXAttribute("bar", T.Valid(`Nil)),
               Some(bar_range),
             ),
             (
-              T.InvalidJSXAttribute(
+              T.InvalidKSXAttribute(
                 "foo",
                 T.Valid(`Boolean),
                 T.Valid(`Integer),
@@ -226,11 +226,11 @@ let suite =
               ("bar", N.untyped(T.Valid(`Nil), bar_range)),
             ],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         );
       }
     ),
-    "jsx render with valid attributes"
+    "ksx render with valid attributes"
     >: (
       () =>
         _assert_errors_with_ranges(
@@ -251,10 +251,10 @@ let suite =
               ("bar", T.Valid(`Float) |> U.as_untyped),
             ],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         )
     ),
-    "jsx render with optional attributes"
+    "ksx render with optional attributes"
     >: (
       () =>
         _assert_errors_with_ranges(
@@ -272,7 +272,7 @@ let suite =
             ),
             [("foo", T.Valid(`Boolean) |> U.as_untyped)],
           )
-          |> KSX.Validator.validate_jsx_render(false),
+          |> KSX.Validator.validate_ksx_render(false),
         )
     ),
   ];

@@ -17,7 +17,7 @@ let __style_rules = "$rules$";
 
 let _knot_util = (util, property) =>
   JS.DotAccess(DotAccess(Identifier(__util_lib), util), property);
-let _jsx_util = _knot_util("jsx");
+let _ksx_util = _knot_util("jsx");
 let _style_util = _knot_util("style");
 let _platform_util = _knot_util("platform");
 let _stdlib_util = _knot_util("stdlib");
@@ -25,9 +25,9 @@ let _stdlib_util = _knot_util("stdlib");
 let __knot_arg = _platform_util("arg");
 let __knot_prop = _platform_util("prop");
 let __knot_style = _platform_util("style");
-let __jsx_create_tag = _jsx_util("createTag");
-let __jsx_create_fragment = _jsx_util("createFragment");
-let __bind_style = _jsx_util("bindStyle");
+let __ksx_create_tag = _ksx_util("createTag");
+let __ksx_create_fragment = _ksx_util("createFragment");
+let __bind_style = _ksx_util("bindStyle");
 let __style_classes = _style_util("classes");
 let __create_style = _style_util("createStyle");
 
@@ -68,7 +68,7 @@ let rec gen_expression =
 
     | UnaryOp(op, value) => value |> gen_unary_op(op)
     | BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
-    | JSX(value) => gen_jsx(value)
+    | KSX(value) => gen_ksx(value)
     | DotAccess((expr, _), (prop, _)) =>
       JS.DotAccess(gen_expression(expr), prop)
     | BindStyle(Element, (Identifier(id), _), (style, _)) =>
@@ -143,9 +143,9 @@ and gen_binary_op = {
   );
 }
 
-and gen_jsx_element = (expr, styles, attrs, values) =>
+and gen_ksx_element = (expr, styles, attrs, values) =>
   JS.FunctionCall(
-    __jsx_create_tag,
+    __ksx_create_tag,
     [
       expr,
       ...List.is_empty(attrs)
@@ -153,39 +153,39 @@ and gen_jsx_element = (expr, styles, attrs, values) =>
          && List.is_empty(values)
            ? []
            : [
-             gen_jsx_attrs(attrs, styles),
-             ...values |> List.map(fst % gen_jsx_child),
+             gen_ksx_attrs(attrs, styles),
+             ...values |> List.map(fst % gen_ksx_child),
            ],
     ],
   )
 
-and gen_jsx =
+and gen_ksx =
   AST.Expression.(
     fun
     | Tag(Element, (name, _), styles, attrs, values) =>
-      gen_jsx_element(String(name), styles, attrs, values)
+      gen_ksx_element(String(name), styles, attrs, values)
 
     | Tag(Component, (id, _), styles, attrs, values) =>
-      gen_jsx_element(Identifier(id), styles, attrs, values)
+      gen_ksx_element(Identifier(id), styles, attrs, values)
 
     | Fragment(values) =>
       JS.FunctionCall(
-        __jsx_create_fragment,
-        values |> List.map(fst % gen_jsx_child),
+        __ksx_create_fragment,
+        values |> List.map(fst % gen_ksx_child),
       )
   )
 
-and gen_jsx_child =
+and gen_ksx_child =
   AST.Expression.(
     fun
-    | Node(value) => gen_jsx(value)
+    | Node(value) => gen_ksx(value)
     | Text(value) => JS.String(value)
     | InlineExpression((value, _)) => gen_expression(value)
   )
 
-and gen_jsx_attrs =
+and gen_ksx_attrs =
     (
-      attrs: list(AST.Result.jsx_attribute_t),
+      attrs: list(AST.Result.ksx_attribute_t),
       styles: list(AST.Result.expression_t),
     ) =>
   if (List.is_empty(attrs) && List.is_empty(styles)) {

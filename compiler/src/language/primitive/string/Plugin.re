@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-include AST.Framework.PrimitiveV2({
+include AST.Framework.Primitive({
   type value_t = string;
 
   let parse = Parse.Kore.Matchers.string;

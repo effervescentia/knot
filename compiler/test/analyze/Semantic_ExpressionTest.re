@@ -72,11 +72,11 @@ let suite =
         Assert.expression(
           (__id |> URes.as_typed(type_), [], [], [])
           |> A.of_component_tag
-          |> A.of_jsx
+          |> A.of_ksx
           |> URes.as_element,
           (URaw.as_untyped(__id), [], [], [])
           |> AR.of_element_tag
-          |> AR.of_jsx
+          |> AR.of_ksx
           |> URaw.as_node
           |> KExpression.Plugin.analyze(scope),
         );

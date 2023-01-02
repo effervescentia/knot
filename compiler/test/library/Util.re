@@ -39,8 +39,8 @@ module RawUtil = {
 
   /* jsx factories */
 
-  let jsx_node = x => x |> AR.of_element_tag |> AR.of_node;
-  let jsx_tag = x => x |> AR.of_element_tag |> AR.of_jsx;
+  let ksx_node = x => x |> AR.of_element_tag |> AR.of_node;
+  let ksx_tag = x => x |> AR.of_element_tag |> AR.of_ksx;
 };
 
 module ResultUtil = {
@@ -76,6 +76,6 @@ module ResultUtil = {
 
   /* jsx factories */
 
-  let jsx_node = x => x |> A.of_element_tag |> A.of_node;
-  let jsx_tag = x => x |> A.of_element_tag |> A.of_jsx;
+  let ksx_node = x => x |> A.of_element_tag |> A.of_node;
+  let ksx_tag = x => x |> A.of_element_tag |> A.of_ksx;
 };

@@ -8,35 +8,35 @@ type view_source_t =
 /**
    a JSX AST node
    */
-type jsx_t('a) =
+type ksx_t('a) =
   | Tag(
       view_source_t,
       Node.t(string, 'a),
       list(expression_t('a)),
-      list(jsx_attribute_t('a)),
-      list(jsx_child_t('a)),
+      list(ksx_attribute_t('a)),
+      list(ksx_child_t('a)),
     )
-  | Fragment(list(jsx_child_t('a)))
+  | Fragment(list(ksx_child_t('a)))
 
 /**
    a JSX child AST node
    */
-and jsx_child_t('a) = untyped_t(raw_jsx_child_t('a))
+and ksx_child_t('a) = untyped_t(raw_ksx_child_t('a))
 /**
    supported JSX children
    */
-and raw_jsx_child_t('a) =
+and raw_ksx_child_t('a) =
   | Text(string)
-  | Node(jsx_t('a))
+  | Node(ksx_t('a))
   | InlineExpression(expression_t('a))
 
 /**
    a JSX attribute AST node
    */
-and jsx_attribute_t('a) =
+and ksx_attribute_t('a) =
   untyped_t((identifier_t, option(expression_t('a))))
 
-and raw_jsx_attribute_t('a) = (identifier_t, option(expression_t('a)))
+and raw_ksx_attribute_t('a) = (identifier_t, option(expression_t('a)))
 
 /**
    a style AST node
@@ -57,7 +57,7 @@ and expression_t('a) = Node.t(raw_expression_t('a), 'a)
 and raw_expression_t('a) =
   | Primitive(primitive_t)
   | Identifier(string)
-  | JSX(jsx_t('a))
+  | KSX(ksx_t('a))
   | Group(expression_t('a))
   | BinaryOp(Binary.t, expression_t('a), expression_t('a))
   | UnaryOp(Unary.t, expression_t('a))

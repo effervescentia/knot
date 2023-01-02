@@ -44,7 +44,7 @@ let suite =
             ],
           )
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
         );
       }
     ),
@@ -82,7 +82,7 @@ let suite =
             ],
           )
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
         );
       }
     ),
@@ -114,7 +114,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
         );
       }
     ),
@@ -126,14 +126,14 @@ let suite =
           () =>
           (URaw.as_untyped(__id), [], [], [])
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(
+          |> KSX.Analyzer.analyze_ksx(
                __throw_scope,
                KExpression.Plugin.analyze,
              )
         );
       }
     ),
-    "report InvalidJSXPrimitiveExpression error with invalid inline expression"
+    "report InvalidKSXPrimitiveExpression error with invalid inline expression"
     >: (
       () => {
         let type_ = T.Valid(`Function(([], Valid(`Boolean))));
@@ -145,7 +145,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(InvalidJSXPrimitiveExpression(type_)),
+              TypeError(InvalidKSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
@@ -164,11 +164,11 @@ let suite =
             ],
           )
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
+          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze)
         );
       }
     ),
-    "report InvalidJSXPrimitiveExpression error with invalid view body"
+    "report InvalidKSXPrimitiveExpression error with invalid view body"
     >: (
       () => {
         let type_ = T.Valid(`Function(([], Valid(`Boolean))));
@@ -180,7 +180,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(InvalidJSXPrimitiveExpression(type_)),
+              TypeError(InvalidKSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
@@ -196,7 +196,7 @@ let suite =
         );
       }
     ),
-    "throw InvalidJSXTag error on jsx with incorrect type"
+    "throw InvalidKSXTag error on jsx with incorrect type"
     >: (
       () => {
         let scope = {
@@ -211,7 +211,7 @@ let suite =
           [
             ParseError(
               TypeError(
-                InvalidJSXTag(
+                InvalidKSXTag(
                   __component_id,
                   Valid(`Integer),
                   [("bar", Valid(`Boolean))],
@@ -232,11 +232,11 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
+          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze)
         );
       }
     ),
-    "throw InvalidJSXAttribute and UnexpectedJSXAttribute errors on jsx with incorrect attributes"
+    "throw InvalidKSXAttribute and UnexpectedKSXAttribute errors on jsx with incorrect attributes"
     >: (
       () => {
         let errors = ref([]);
@@ -277,19 +277,19 @@ let suite =
           [],
         )
         |> AR.of_element_tag
-        |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
+        |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze)
         |> ignore;
 
         Assert.compile_errors(
           [
             ParseError(
-              TypeError(UnexpectedJSXAttribute("buzz", Valid(`Boolean))),
+              TypeError(UnexpectedKSXAttribute("buzz", Valid(`Boolean))),
               __namespace,
               Range.zero,
             ),
             ParseError(
               TypeError(
-                InvalidJSXAttribute(
+                InvalidKSXAttribute(
                   "fizz",
                   Valid(`Boolean),
                   Valid(`String),
@@ -359,7 +359,7 @@ let suite =
             [],
           )
           |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
         );
       }
     ),

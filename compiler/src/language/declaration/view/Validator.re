@@ -8,4 +8,4 @@ let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
 
   | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
 
-  | type_ => Some(InvalidJSXPrimitiveExpression(type_));
+  | type_ => Some(InvalidKSXPrimitiveExpression(type_));

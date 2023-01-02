@@ -287,14 +287,14 @@ let _extract_type_err =
       [],
     )
 
-  | Type.InvalidJSXPrimitiveExpression(type_) => (
-      "Invalid JSX Primitive Expression",
+  | Type.InvalidKSXPrimitiveExpression(type_) => (
+      "Invalid KSX Primitive Expression",
       Fmt.(
         (
           ppf =>
             pf(
               ppf,
-              "jsx only supports rendering primitive values inline but received %a",
+              "ksx only supports rendering primitive values inline but received %a",
               bad(Type.pp),
               type_,
             )
@@ -325,14 +325,14 @@ let _extract_type_err =
       ],
     )
 
-  | Type.InvalidJSXTag(_, type_, props) => (
-      "Invalid JSX Tag",
+  | Type.InvalidKSXTag(_, type_, props) => (
+      "Invalid KSX Tag",
       Fmt.(
         (
           ppf =>
             pf(
               ppf,
-              "this jsx tag was expected to be of type %a with props %a but received %a",
+              "this ksx tag was expected to be of type %a with props %a but received %a",
               good_str,
               Constants.Keyword.view,
               good(ppf =>
@@ -351,14 +351,14 @@ let _extract_type_err =
       [],
     )
 
-  | Type.InvalidJSXAttribute(key, expected, actual) => (
-      "Invalid JSX Attribute",
+  | Type.InvalidKSXAttribute(key, expected, actual) => (
+      "Invalid KSX Attribute",
       Fmt.(
         (
           ppf =>
             pf(
               ppf,
-              "this jsx tag expects the attribute %a to be of type %a but received %a",
+              "this ksx tag expects the attribute %a to be of type %a but received %a",
               bad_str,
               key,
               good(Type.pp),
@@ -371,8 +371,8 @@ let _extract_type_err =
       [],
     )
 
-  | Type.UnexpectedJSXAttribute(key, type_) => (
-      "Unexpected JSX Attribute",
+  | Type.UnexpectedKSXAttribute(key, type_) => (
+      "Unexpected KSX Attribute",
       Fmt.(
         (
           ppf =>
@@ -389,13 +389,13 @@ let _extract_type_err =
       [],
     )
 
-  | Type.MissingJSXAttributes(id, missing) => (
-      "Missing JSX Attributes",
+  | Type.MissingKSXAttributes(id, missing) => (
+      "Missing KSX Attributes",
       (
         ppf =>
           Fmt.pf(
             ppf,
-            "jsx tag %s is missing the attributes %a",
+            "ksx tag %s is missing the attributes %a",
             id,
             Fmt.(
               bad(ppf =>

@@ -5,7 +5,7 @@ let rec format: Fmt.t(AST.Result.raw_expression_t) =
     fun
     | Primitive(prim) => prim |> KPrimitive.format(format, ppf)
     | Identifier(name) => name |> KIdentifier.format(format, ppf)
-    | JSX(jsx) => jsx |> KSX.format(format, ppf)
+    | KSX(ksx) => ksx |> KSX.format(format, ppf)
     | Group(expr) => expr |> KGroup.format(format, ppf)
     | BinaryOp(op, lhs, rhs) =>
       (op, lhs, rhs) |> KBinaryOperator.format(format, ppf)
