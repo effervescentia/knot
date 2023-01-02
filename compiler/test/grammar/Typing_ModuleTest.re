@@ -17,15 +17,12 @@ module Assert =
              AST.SymbolTable.of_export_list([
                (
                  Reference.Export.Named("fizz"),
-                 T.Valid(`Decorator(([], Module))),
+                 T.Valid(Decorator([], Module)),
                ),
                (
                  Reference.Export.Named("buzz"),
                  T.Valid(
-                   `Decorator((
-                     [Valid(`Integer), Valid(`Boolean)],
-                     Module,
-                   )),
+                   Decorator([Valid(Integer), Valid(Boolean)], Module),
                  ),
                ),
              ]),
@@ -85,7 +82,7 @@ module Foo {}",
                 (
                   "buzz"
                   |> U.as_decorator(
-                       [Valid(`Integer), Valid(`Boolean)],
+                       [Valid(Integer), Valid(Boolean)],
                        Module,
                      ),
                   [
@@ -114,7 +111,7 @@ module Foo {}",
                 (
                   "buzz"
                   |> U.as_decorator(
-                       [Valid(`Integer), Valid(`Boolean)],
+                       [Valid(Integer), Valid(Boolean)],
                        Module,
                      ),
                   [

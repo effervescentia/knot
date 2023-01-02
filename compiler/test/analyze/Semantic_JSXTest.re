@@ -19,7 +19,7 @@ let suite =
     "resolve jsx with valid inline expression"
     >: (
       () => {
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__throw_scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -51,14 +51,14 @@ let suite =
     "resolve jsx as tag if found in plugin scope"
     >: (
       () => {
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__throw_scope,
           context: {
             ...__throw_scope.context,
             modules: {
               ...__throw_scope.context.modules,
-              plugins: [(ElementTag, [(__id, Value(type_))])],
+              plugins: [(ElementTag, [(Value, __id, type_)])],
             },
           },
         };
@@ -90,11 +90,11 @@ let suite =
     >: (
       () => {
         let style_id = "bar";
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__throw_scope,
           types:
-            [(__id, type_), (style_id, T.Valid(`Style))]
+            [(__id, type_), (style_id, T.Valid(Style))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -136,7 +136,7 @@ let suite =
     "report InvalidKSXPrimitiveExpression error with invalid inline expression"
     >: (
       () => {
-        let type_ = T.Valid(`Function(([], Valid(`Boolean))));
+        let type_ = T.Valid(Function([], Valid(Boolean)));
         let scope = {
           ...__throw_scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -171,7 +171,7 @@ let suite =
     "report InvalidKSXPrimitiveExpression error with invalid view body"
     >: (
       () => {
-        let type_ = T.Valid(`Function(([], Valid(`Boolean))));
+        let type_ = T.Valid(Function([], Valid(Boolean)));
         let scope = {
           ...__throw_scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -202,7 +202,7 @@ let suite =
         let scope = {
           ...__throw_scope,
           types:
-            [(__component_id, T.Valid(`Integer))]
+            [(__component_id, T.Valid(Integer))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -213,8 +213,8 @@ let suite =
               TypeError(
                 InvalidKSXTag(
                   __component_id,
-                  Valid(`Integer),
-                  [("bar", Valid(`Boolean))],
+                  Valid(Integer),
+                  [("bar", Valid(Boolean))],
                 ),
               ),
               __namespace,
@@ -251,10 +251,10 @@ let suite =
               (
                 __component_id,
                 T.Valid(
-                  `View((
-                    [("fizz", (T.Valid(`Boolean), true))],
-                    T.Valid(`Element),
-                  )),
+                  View(
+                    [("fizz", (T.Valid(Boolean), true))],
+                    T.Valid(Element),
+                  ),
                 ),
               ),
             ]
@@ -283,17 +283,13 @@ let suite =
         Assert.compile_errors(
           [
             ParseError(
-              TypeError(UnexpectedKSXAttribute("buzz", Valid(`Boolean))),
+              TypeError(UnexpectedKSXAttribute("buzz", Valid(Boolean))),
               __namespace,
               Range.zero,
             ),
             ParseError(
               TypeError(
-                InvalidKSXAttribute(
-                  "fizz",
-                  Valid(`Boolean),
-                  Valid(`String),
-                ),
+                InvalidKSXAttribute("fizz", Valid(Boolean), Valid(String)),
               ),
               __namespace,
               Range.zero,
@@ -309,14 +305,14 @@ let suite =
         let errors = ref([]);
         let view_type =
           T.Valid(
-            `View((
+            View(
               [
-                ("fizz", (T.Valid(`Boolean), true)),
-                ("buzz", (T.Valid(`String), true)),
-                ("foobar", (T.Valid(`Element), false)),
+                ("fizz", (T.Valid(Boolean), true)),
+                ("buzz", (T.Valid(String), true)),
+                ("foobar", (T.Valid(Element), false)),
               ],
-              T.Valid(`Element),
-            )),
+              T.Valid(Element),
+            ),
           );
         let scope = {
           ...__throw_scope,

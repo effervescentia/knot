@@ -89,7 +89,7 @@ let jsx_const = [
   (
     AST.Module.Named,
     "jsx_const" |> U.as_untyped,
-    ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
+    ("Foo" |> U.as_view([], Valid(Nil)), [], [], [])
     |> U.ksx_tag
     |> U.as_element
     |> A.of_const
@@ -180,11 +180,11 @@ let complex_jsx_const = [
     AST.Module.Named,
     "complex_jsx_const" |> U.as_untyped,
     (
-      "Foo" |> U.as_view([], Valid(`Nil)),
+      "Foo" |> U.as_view([], Valid(Nil)),
       [],
       [(U.as_untyped("buzz"), None) |> U.as_untyped],
       [
-        ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
+        ("Bar" |> U.as_view([], Valid(Nil)), [], [], [])
         |> A.of_element_tag
         |> A.of_node
         |> U.as_untyped,
@@ -219,7 +219,7 @@ let inline_function = [
       |> U.as_int,
     )
     |> A.of_func
-    |> U.as_function([Valid(`Integer), Valid(`Integer)], Valid(`Integer)),
+    |> U.as_function([Valid(Integer), Valid(Integer)], Valid(Integer)),
   )
   |> A.of_export
   |> U.as_untyped,
@@ -251,7 +251,7 @@ let multiline_function = [
       |> U.as_int,
     )
     |> A.of_func
-    |> U.as_function([Valid(`Integer), Valid(`Integer)], Valid(`Integer)),
+    |> U.as_function([Valid(Integer), Valid(Integer)], Valid(Integer)),
   )
   |> A.of_export
   |> U.as_untyped,

@@ -28,7 +28,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
                    );
 
               scope
-              |> Scope.define(__implicit_children_key, Valid(`Element))
+              |> Scope.define(__implicit_children_key, Valid(Element))
               |> ignore;
 
               parameters'
@@ -112,7 +112,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
                      )
                    );
               let type_ =
-                Type.Valid(`View((parameter_types, Node.get_type(body'))));
+                Type.Valid(View(parameter_types, Node.get_type(body')));
 
               ctx.symbols
               |> SymbolTable.declare_value(

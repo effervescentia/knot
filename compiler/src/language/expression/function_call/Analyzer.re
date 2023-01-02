@@ -23,7 +23,7 @@ let analyze:
       function_',
       arguments',
       switch (function_type) {
-      | Valid(`Function(_, result)) => result
+      | Valid(Function(_, result)) => result
       | _ => Invalid(NotInferrable)
       },
     );

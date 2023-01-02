@@ -4,7 +4,7 @@ open AST;
 let analyze_arithmetic = type_ =>
   Type.(
     switch (type_) {
-    | Valid(`Integer | `Float)
+    | Valid(Integer | Float)
     /* forward invalid types */
     | Invalid(_) => type_
 
@@ -33,7 +33,7 @@ let analyze:
       switch (op) {
       | Negative
       | Positive => analyze_arithmetic(type_)
-      | Not => Valid(`Boolean)
+      | Not => Valid(Boolean)
       },
     );
   };

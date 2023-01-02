@@ -31,7 +31,7 @@ let suite =
           (
             "foo"
             |> A.of_id
-            |> U.as_struct([("bar", (T.Valid(`Boolean), true))]),
+            |> U.as_struct([("bar", (T.Valid(Boolean), true))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,
@@ -45,7 +45,7 @@ let suite =
           (
             "foo"
             |> A.of_id
-            |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
+            |> U.as_function([T.Valid(String)], T.Valid(Boolean)),
             ["bar" |> A.of_id |> U.as_string],
           )
           |> A.of_func_call,
@@ -108,7 +108,7 @@ let suite =
         _assert_expression(
           "foo::bar",
           (
-            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            "foo" |> A.of_id |> U.as_view([], Valid(Nil)),
             "bar" |> A.of_id |> U.as_style,
           )
           |> A.of_component_bind_style,
@@ -122,10 +122,10 @@ let suite =
   color: $red,
 }",
           (
-            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            "foo" |> A.of_id |> U.as_view([], Valid(Nil)),
             [
               (
-                "color" |> U.as_function([], T.Valid(`Nil)),
+                "color" |> U.as_function([], T.Valid(Nil)),
                 "$red" |> A.of_id |> U.as_string,
               )
               |> U.as_untyped,
@@ -144,7 +144,7 @@ let suite =
   bar
 </Foo>",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
             ["bar" |> A.of_text |> U.as_untyped],
@@ -163,14 +163,14 @@ let suite =
 }",
           [
             (
-              "height" |> U.as_function([], T.Valid(`Nil)),
+              "height" |> U.as_function([], T.Valid(Nil)),
               ("$px" |> A.of_id |> U.as_string, [20 |> U.int_prim])
               |> A.of_func_call
               |> U.as_string,
             )
             |> U.as_untyped,
             (
-              "color" |> U.as_function([], T.Valid(`Nil)),
+              "color" |> U.as_function([], T.Valid(Nil)),
               "$red" |> A.of_id |> U.as_string,
             )
             |> U.as_untyped,

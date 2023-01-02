@@ -9,9 +9,7 @@ module SymbolTable = AST.SymbolTable;
 module Type = AST.Type;
 
 let __id = Namespace.Internal("foo");
-let __types: list((Export.t, Type.t)) = [
-  (Named("bar"), Valid(`Element)),
-];
+let __types: list((Export.t, Type.t)) = [(Named("bar"), Valid(Element))];
 let __program = [
   (__id, "bar" |> U.as_untyped |> Option.some, [])
   |> A.of_import
@@ -50,7 +48,7 @@ let suite =
               ModuleTable.Valid(
                 "foo",
                 _create_module([
-                  (Export.Named("bar"), Type.Valid(`Element)),
+                  (Export.Named("bar"), Type.Valid(Element)),
                 ]),
               ),
             ),

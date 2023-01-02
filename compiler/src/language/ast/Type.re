@@ -17,171 +17,15 @@ module DecoratorTarget = {
       % Fmt.string(ppf);
 };
 
-module Primitive = {
-  type t = [
-    | `Nil
-    | `Boolean
-    | `Integer
-    | `Float
-    | `String
-    | `Element
-    | `Style
-  ];
+module ModuleEntryKind = {
+  type t =
+    | Type
+    | Value;
 
-  /* pretty printing */
-
-  let pp: Fmt.t(t) =
-    Fmt.(
-      (ppf, type_) =>
-        Constants.(
-          switch (type_) {
-          | `Nil => Keyword.nil
-          | `Boolean => Keyword.boolean
-          | `Integer => Keyword.integer
-          | `Float => Keyword.float
-          | `String => Keyword.string
-          | `Element => Keyword.element
-          | `Style => Keyword.style
-          }
-        )
-        |> string(ppf)
-    );
-};
-
-module Container = {
-  type module_entry_t('a) =
-    | Type('a)
-    | Value('a);
-
-  type value_t('a) = [
-    | `List('a)
-    | `Object(list((string, ('a, bool))))
-    | `Enumerated(list((string, list('a))))
-    | `Function(list('a), 'a)
-  ];
-
-  type decorator_t('a) = [ | `Decorator(list('a), DecoratorTarget.t)];
-
-  type entity_t('a) = [
-    | `View(list((string, ('a, bool))), 'a)
-    | `Module(list((string, module_entry_t('a))))
-  ];
-
-  type t('a) = [ value_t('a) | decorator_t('a) | entity_t('a)];
-
-  let pp_module_entry = (pp_type: Fmt.t('a)): Fmt.t(module_entry_t('a)) =>
-    ppf =>
-      fun
-      | Type(t) => Fmt.pf(ppf, "type %a", pp_type, t)
-      | Value(t) => pp_type(ppf, t);
-
-  let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
-    Fmt.(ppf => pf(ppf, "%a[]", pp_type));
-
-  let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, ('a, bool))) =>
-    (ppf, (key, (type_, required))) =>
-      Fmt.pf(ppf, "%s%s %a", key, required ? ":" : "?:", pp_type, type_);
-
-  let pp_struct = (pp_type: Fmt.t('a)): Fmt.t(list((string, ('a, bool)))) =>
-    Fmt.(
-      (ppf, props) =>
-        List.is_empty(props)
-          ? string(ppf, "{}")
-          : pf(
-              ppf,
-              "@[<h>{ %a }@]",
-              list(~sep=Sep.comma, pp_props(pp_type)),
-              props,
-            )
-    );
-
-  let pp_enumerated =
-      (pp_type: Fmt.t('a)): Fmt.t(list((string, list('a)))) =>
-    Fmt.(
-      (ppf, variants) =>
-        List.is_empty(variants)
-          ? string(ppf, "|")
-          : pf(
-              ppf,
-              "@[<h>%a@]",
-              list(~sep=Sep.newline, (ppf, (id, args)) =>
-                List.is_empty(args)
-                  ? string(ppf, id)
-                  : pf(ppf, "| %s(%a)", id, list(pp_type), args)
-              ),
-              variants,
-            )
-    );
-
-  let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list('a), 'a)) =>
-    Fmt.(
-      (ppf, (args, res)) =>
-        pf(
-          ppf,
-          "@[<h>(%a) -> %a@]",
-          list(~sep=Sep.comma, pp_type),
-          args,
-          pp_type,
-          res,
-        )
-    );
-
-  let pp_decorator =
-      (pp_type: Fmt.t('a)): Fmt.t((list('a), DecoratorTarget.t)) =>
-    Fmt.(
-      (ppf, (args, target)) =>
-        pf(
-          ppf,
-          "@[<h>(%a) on %a@]",
-          list(~sep=Sep.comma, pp_type),
-          args,
-          DecoratorTarget.pp,
-          target,
-        )
-    );
-
-  let pp_view =
-      (pp_type: Fmt.t('a)): Fmt.t((list((string, ('a, bool))), 'a)) =>
-    Fmt.(
-      (ppf, (props, res)) =>
-        pf(
-          ppf,
-          "@[<h>View<(%a), %a>@]",
-          list(~sep=Sep.comma, pp_props(pp_type)),
-          props,
-          pp_type,
-          res,
-        )
-    );
-
-  let pp_style =
-      (pp_type: Fmt.t('a))
-      : Fmt.t((list('a), list(string), list(string))) =>
-    Fmt.(
-      (ppf, (args, ids, classes)) =>
-        pf(
-          ppf,
-          "@[<h>Style<(%a), %a, %a>@]",
-          list(~sep=Sep.comma, pp_type),
-          args,
-          list(string),
-          ids,
-          list(string),
-          classes,
-        )
-    );
-
-  let pp_module =
-      (pp_type: Fmt.t('a)): Fmt.t(list((string, module_entry_t('a)))) =>
-    Fmt.(
-      (ppf, entries) =>
-        pf(
-          ppf,
-          "@[<h>Module<%a>@]",
-          record(string, pp_module_entry(pp_type)),
-          entries,
-        )
-    );
+  let to_string =
+    fun
+    | Type => "Type"
+    | Value => "Value";
 };
 
 /**
@@ -191,7 +35,21 @@ type t =
   | Valid(valid_t)
   | Invalid(invalid_t)
 
-and valid_t = [ Primitive.t | Container.t(t)]
+and valid_t =
+  | Nil
+  | Boolean
+  | Integer
+  | Float
+  | String
+  | Element
+  | Style
+  | List(t)
+  | Object(list((string, (t, bool))))
+  | Enumerated(list((string, list(t))))
+  | Function(list(t), t)
+  | Decorator(list(t), DecoratorTarget.t)
+  | View(list((string, (t, bool))), t)
+  | Module(list((ModuleEntryKind.t, string, t)))
 
 and invalid_t =
   | NotInferrable;
@@ -226,6 +84,121 @@ type error_t =
 
 /* pretty printing */
 
+let pp_list = (pp_type: Fmt.t('a)): Fmt.t('a) =>
+  Fmt.(ppf => pf(ppf, "%a[]", pp_type));
+
+let pp_props = (pp_type: Fmt.t('a)): Fmt.t((string, ('a, bool))) =>
+  (ppf, (key, (type_, required))) =>
+    Fmt.pf(ppf, "%s%s %a", key, required ? ":" : "?:", pp_type, type_);
+
+let pp_object = (pp_type: Fmt.t('a)): Fmt.t(list((string, ('a, bool)))) =>
+  Fmt.(
+    (ppf, props) =>
+      List.is_empty(props)
+        ? string(ppf, "{}")
+        : pf(
+            ppf,
+            "@[<h>{ %a }@]",
+            list(~sep=Sep.comma, pp_props(pp_type)),
+            props,
+          )
+  );
+
+let pp_enumerated = (pp_type: Fmt.t('a)): Fmt.t(list((string, list('a)))) =>
+  Fmt.(
+    (ppf, variants) =>
+      List.is_empty(variants)
+        ? string(ppf, "|")
+        : pf(
+            ppf,
+            "@[<h>%a@]",
+            list(~sep=Sep.newline, (ppf, (id, args)) =>
+              List.is_empty(args)
+                ? string(ppf, id)
+                : pf(ppf, "| %s(%a)", id, list(pp_type), args)
+            ),
+            variants,
+          )
+  );
+
+let pp_function = (pp_type: Fmt.t('a)): Fmt.t((list('a), 'a)) =>
+  Fmt.(
+    (ppf, (args, res)) =>
+      pf(
+        ppf,
+        "@[<h>(%a) -> %a@]",
+        list(~sep=Sep.comma, pp_type),
+        args,
+        pp_type,
+        res,
+      )
+  );
+
+let pp_decorator =
+    (pp_type: Fmt.t('a)): Fmt.t((list('a), DecoratorTarget.t)) =>
+  Fmt.(
+    (ppf, (args, target)) =>
+      pf(
+        ppf,
+        "@[<h>(%a) on %a@]",
+        list(~sep=Sep.comma, pp_type),
+        args,
+        DecoratorTarget.pp,
+        target,
+      )
+  );
+
+let pp_view =
+    (pp_type: Fmt.t('a)): Fmt.t((list((string, ('a, bool))), 'a)) =>
+  Fmt.(
+    (ppf, (props, res)) =>
+      pf(
+        ppf,
+        "@[<h>View<(%a), %a>@]",
+        list(~sep=Sep.comma, pp_props(pp_type)),
+        props,
+        pp_type,
+        res,
+      )
+  );
+
+let pp_style =
+    (pp_type: Fmt.t('a)): Fmt.t((list('a), list(string), list(string))) =>
+  Fmt.(
+    (ppf, (args, ids, classes)) =>
+      pf(
+        ppf,
+        "@[<h>Style<(%a), %a, %a>@]",
+        list(~sep=Sep.comma, pp_type),
+        args,
+        list(string),
+        ids,
+        list(string),
+        classes,
+      )
+  );
+
+let pp_module =
+    (pp_type: Fmt.t('a)): Fmt.t(list((ModuleEntryKind.t, string, 'a))) =>
+  Fmt.(
+    (ppf, entries) =>
+      pf(
+        ppf,
+        "@[<h>Module<%a>@]",
+        closure((ppf, (kind, name, value)) =>
+          pf(
+            ppf,
+            "%s(%s: %a)",
+            ModuleEntryKind.to_string(kind),
+            name,
+            pp_type,
+            value,
+          )
+        ),
+        entries,
+      )
+  );
+
 let rec pp: Fmt.t(t) =
   ppf =>
     fun
@@ -234,17 +207,25 @@ let rec pp: Fmt.t(t) =
 
 and pp_valid: Fmt.t(valid_t) =
   ppf =>
-    fun
-    | (`Nil | `Boolean | `Integer | `Float | `String | `Element | `Style) as t =>
-      Primitive.pp(ppf, t)
-    | `List(t) => Container.pp_list(pp, ppf, t)
-    | `Object(props) => Container.pp_struct(pp, ppf, props)
-    | `Enumerated(variants) => Container.pp_enumerated(pp, ppf, variants)
-    | `Function(args, res) => Container.pp_function(pp, ppf, (args, res))
-    | `Decorator(args, target) =>
-      Container.pp_decorator(pp, ppf, (args, target))
-    | `View(args, res) => Container.pp_view(pp, ppf, (args, res))
-    | `Module(entries) => Container.pp_module(pp, ppf, entries)
+    Constants.(
+      fun
+      | Nil => Keyword.nil |> Fmt.string(ppf)
+      | Boolean => Keyword.boolean |> Fmt.string(ppf)
+      | Integer => Keyword.integer |> Fmt.string(ppf)
+      | Float => Keyword.float |> Fmt.string(ppf)
+      | String => Keyword.string |> Fmt.string(ppf)
+      | Element => Keyword.element |> Fmt.string(ppf)
+      | Style => Keyword.style |> Fmt.string(ppf)
+      | List(t) => t |> pp_list(pp, ppf)
+      | Object(properties) => properties |> pp_object(pp, ppf)
+      | Enumerated(variants) => variants |> pp_enumerated(pp, ppf)
+      | Function(parameters, result) =>
+        (parameters, result) |> pp_function(pp, ppf)
+      | Decorator(parameters, target) =>
+        (parameters, target) |> pp_decorator(pp, ppf)
+      | View(parameters, result) => (parameters, result) |> pp_view(pp, ppf)
+      | Module(entries) => entries |> pp_module(pp, ppf)
+    )
 
 and pp_invalid: Fmt.t(invalid_t) =
   ppf =>

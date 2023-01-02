@@ -5,7 +5,7 @@ module Resolver = Resolve.Resolver;
 module Source = Resolve.Source;
 module Type = AST.Type;
 
-let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
+let __numeric_types = [Type.Valid(Float), Type.Valid(Integer)];
 
 let _example_sep =
   Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@,// or@,")));
@@ -187,7 +187,7 @@ let _extract_type_err =
       "Invalid Unary Operation",
       (
         switch (operator) {
-        | Not => ("NOT (!)", [Type.Valid(`Boolean)])
+        | Not => ("NOT (!)", [Type.Valid(Boolean)])
 
         | Positive => ("ABSOLUTE (+)", __numeric_types)
 
@@ -261,9 +261,9 @@ let _extract_type_err =
 
         switch (operator) {
         | LogicalAnd =>
-          ("AND (&&)", [Type.Valid(`Boolean)]) |> print_static_error
+          ("AND (&&)", [Type.Valid(Boolean)]) |> print_static_error
         | LogicalOr =>
-          ("OR (||)", [Type.Valid(`Boolean)]) |> print_static_error
+          ("OR (||)", [Type.Valid(Boolean)]) |> print_static_error
 
         | LessOrEqual =>
           ("LESS THAN OR EQUAL (<=)", __numeric_types) |> print_static_error
@@ -310,12 +310,12 @@ let _extract_type_err =
                   "@[<hv>convert the value to have a primitive type@,@[<h>ie. %a@]@]",
                   list(~layout=Horizontal, Type.pp),
                   [
-                    Type.Valid(`Nil),
-                    Type.Valid(`Boolean),
-                    Type.Valid(`Integer),
-                    Type.Valid(`Float),
-                    Type.Valid(`String),
-                    Type.Valid(`Element),
+                    Type.Valid(Nil),
+                    Type.Valid(Boolean),
+                    Type.Valid(Integer),
+                    Type.Valid(Float),
+                    Type.Valid(String),
+                    Type.Valid(Element),
                   ],
                 )
             )
@@ -443,7 +443,7 @@ let _extract_type_err =
               good_str,
               Constants.Keyword.view,
               good(Type.pp),
-              Valid(`Style),
+              Valid(Style),
               bad(Type.pp),
               view,
               bad(Type.pp),

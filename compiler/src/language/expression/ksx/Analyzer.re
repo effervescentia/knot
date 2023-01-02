@@ -137,5 +137,5 @@ let analyze:
   (scope, analyze_expression, ksx) => {
     let ksx' = analyze_ksx(scope, analyze_expression, ksx);
 
-    (ksx', Type.Valid(`Element));
+    (ksx', Type.Valid(Element));
   };

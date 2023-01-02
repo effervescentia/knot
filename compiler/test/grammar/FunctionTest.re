@@ -24,7 +24,7 @@ let suite =
           (
             AM.Named,
             U.as_untyped("foo"),
-            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(`Nil)),
+            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -45,7 +45,7 @@ let suite =
               |> U.as_nil,
             )
             |> A.of_func
-            |> U.as_function([], Valid(`Nil)),
+            |> U.as_function([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -59,7 +59,7 @@ let suite =
           (
             AM.Named,
             U.as_untyped("foo"),
-            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(`Nil)),
+            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -80,7 +80,7 @@ let suite =
               |> U.as_nil,
             )
             |> A.of_func
-            |> U.as_function([], Valid(`Nil)),
+            |> U.as_function([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -102,7 +102,7 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_func
-            |> U.as_function([Valid(`Integer)], Valid(`Nil)),
+            |> U.as_function([Valid(Integer)], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -124,7 +124,7 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_func
-            |> U.as_function([Valid(`String)], Valid(`Nil)),
+            |> U.as_function([Valid(String)], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -150,7 +150,7 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_func
-            |> U.as_function([Valid(`Boolean)], Valid(`Nil)),
+            |> U.as_function([Valid(Boolean)], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,

@@ -30,19 +30,19 @@ let analyze:
       | GreaterOrEqual
       | GreaterThan
       | Equal
-      | Unequal => Valid(`Boolean)
+      | Unequal => Valid(Boolean)
 
       | Divide
-      | Exponent => Valid(`Float)
+      | Exponent => Valid(Float)
 
       | Add
       | Subtract
       | Multiply =>
         switch (type_lhs, type_rhs) {
-        | (Valid(`Integer), Valid(`Integer)) => Valid(`Integer)
+        | (Valid(Integer), Valid(Integer)) => Valid(Integer)
 
-        | (_, Valid(`Float))
-        | (Valid(`Float), _) => Valid(`Float)
+        | (_, Valid(Float))
+        | (Valid(Float), _) => Valid(Float)
 
         /* forward invalid types */
         | (Invalid(_), _) => type_lhs

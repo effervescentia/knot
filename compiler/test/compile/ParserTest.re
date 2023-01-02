@@ -37,7 +37,7 @@ let __context =
           Nx.bar,
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, Type.Valid(`Boolean))]),
+            _create_module([(Export.Main, Type.Valid(Boolean))]),
           ),
         ),
       ]

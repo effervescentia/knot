@@ -44,13 +44,13 @@ let parse_module: type_module_parser_t =
                     module_ctx.symbols.declared;
                   let module_types =
                     types
-                    |> List.map(
-                         Tuple.map_snd2(type_ => Type.Container.Type(type_)),
+                    |> List.map(((name, value)) =>
+                         (Type.ModuleEntryKind.Type, name, value)
                        );
                   let module_values =
                     values
-                    |> List.map(
-                         Tuple.map_snd2(type_ => Type.Container.Value(type_)),
+                    |> List.map(((name, value)) =>
+                         (Type.ModuleEntryKind.Value, name, value)
                        );
                   let has_types = !List.is_empty(module_types);
                   let has_values = !List.is_empty(module_values);
@@ -71,7 +71,7 @@ let parse_module: type_module_parser_t =
                     ctx.symbols
                     |> SymbolTable.declare_type(
                          fst(id),
-                         Valid(`Module(module_types)),
+                         Valid(Module(module_types)),
                        );
                   };
 
@@ -79,12 +79,12 @@ let parse_module: type_module_parser_t =
                     ctx.symbols
                     |> SymbolTable.declare_value(
                          fst(id),
-                         Valid(`Module(module_values)),
+                         Valid(Module(module_values)),
                        );
                   };
 
                   let decorated_type =
-                    Type.Valid(`Module(module_types @ module_values));
+                    Type.Valid(Module(module_types @ module_values));
                   valid_decorators
                   |> List.iter(((id, args)) =>
                        ctx.symbols
@@ -130,7 +130,7 @@ let parse_decorator: type_module_parser_t =
       ((id, (args, target))) => {
         let arg_types =
           args |> List.map(fst % KTypeExpression.Plugin.analyze(ctx.symbols));
-        let type_ = Type.Valid(`Decorator((arg_types, target)));
+        let type_ = Type.Valid(Decorator(arg_types, target));
 
         ctx.symbols |> SymbolTable.declare_value(fst(id), type_);
 

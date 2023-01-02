@@ -49,9 +49,9 @@ let __context_with_named_exports =
           ModuleTable.Valid(
             "foo",
             _create_module([
-              (Export.Main, T.Valid(`Nil)),
-              (Export.Named("bar"), T.Valid(`Boolean)),
-              (Export.Named("foo"), T.Valid(`String)),
+              (Export.Main, T.Valid(Nil)),
+              (Export.Named("bar"), T.Valid(Boolean)),
+              (Export.Named("foo"), T.Valid(String)),
             ]),
           ),
         ),
@@ -68,7 +68,7 @@ let __context_with_main_export =
           Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, T.Valid(`Nil))]),
+            _create_module([(Export.Main, T.Valid(Nil))]),
           ),
         ),
       ]

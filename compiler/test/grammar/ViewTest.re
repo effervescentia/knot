@@ -24,7 +24,7 @@ let suite =
           (
             AM.Named,
             U.as_untyped("foo"),
-            ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
+            ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -46,7 +46,7 @@ let suite =
               |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view([], Valid(`Nil)),
+            |> U.as_view([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -60,7 +60,7 @@ let suite =
           (
             AM.Named,
             U.as_untyped("foo"),
-            ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(`Nil)),
+            ([], [], U.nil_prim) |> A.of_view |> U.as_view([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -82,7 +82,7 @@ let suite =
               |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view([], Valid(`Nil)),
+            |> U.as_view([], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -105,10 +105,7 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view(
-                 [("fizz", (Valid(`Integer), true))],
-                 Valid(`Nil),
-               ),
+            |> U.as_view([("fizz", (Valid(Integer), true))], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -131,10 +128,7 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view(
-                 [("fizz", (Valid(`String), false))],
-                 Valid(`Nil),
-               ),
+            |> U.as_view([("fizz", (Valid(String), false))], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,
@@ -161,10 +155,7 @@ let suite =
               [] |> A.of_closure |> U.as_nil,
             )
             |> A.of_view
-            |> U.as_view(
-                 [("fizz", (Valid(`Boolean), false))],
-                 Valid(`Nil),
-               ),
+            |> U.as_view([("fizz", (Valid(Boolean), false))], Valid(Nil)),
           )
           |> A.of_export
           |> U.as_untyped,

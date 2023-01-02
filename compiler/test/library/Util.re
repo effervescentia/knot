@@ -17,17 +17,17 @@ module RawUtil = {
 
   let as_node = x => as_typed((), x);
   let as_unknown = x => as_typed(`Unknown, x);
-  let as_nil = x => as_typed(`Nil, x);
-  let as_bool = x => as_typed(`Boolean, x);
-  let as_int = x => as_typed(`Integer, x);
-  let as_float = x => as_typed(`Float, x);
-  let as_string = x => as_typed(`String, x);
-  let as_element = x => as_typed(`Element, x);
-  let as_style = x => as_typed(`Style, x);
-  let as_struct = (props, x) => as_typed(`Object(props), x);
-  let as_function = (args, res, x) => as_typed(`Function((args, res)), x);
+  let as_nil = x => as_typed(T.Nil, x);
+  let as_bool = x => as_typed(T.Boolean, x);
+  let as_int = x => as_typed(T.Integer, x);
+  let as_float = x => as_typed(T.Float, x);
+  let as_string = x => as_typed(T.String, x);
+  let as_element = x => as_typed(T.Element, x);
+  let as_style = x => as_typed(T.Style, x);
+  let as_struct = (props, x) => as_typed(T.Object(props), x);
+  let as_function = (args, res, x) => as_typed(T.Function(args, res), x);
   let as_decorator = (args, target, x) =>
-    as_typed(`Decorator((args, target)), x);
+    as_typed(T.Decorator(args, target), x);
 
   /* primitive factories */
 
@@ -49,22 +49,21 @@ module ResultUtil = {
   /* typecasting utilities */
 
   let as_invalid = (inv, x) => as_typed(T.Invalid(inv), x);
-  let as_nil = x => as_typed(T.Valid(`Nil), x);
-  let as_bool = x => as_typed(T.Valid(`Boolean), x);
-  let as_int = x => as_typed(T.Valid(`Integer), x);
-  let as_float = x => as_typed(T.Valid(`Float), x);
-  let as_string = x => as_typed(T.Valid(`String), x);
-  let as_element = x => as_typed(T.Valid(`Element), x);
-  let as_style = x => as_typed(T.Valid(`Style), x);
+  let as_nil = x => as_typed(T.Valid(Nil), x);
+  let as_bool = x => as_typed(T.Valid(Boolean), x);
+  let as_int = x => as_typed(T.Valid(Integer), x);
+  let as_float = x => as_typed(T.Valid(Float), x);
+  let as_string = x => as_typed(T.Valid(String), x);
+  let as_element = x => as_typed(T.Valid(Element), x);
+  let as_style = x => as_typed(T.Valid(Style), x);
   let as_enum = (variants, x) =>
-    as_typed(T.Valid(`Enumerated(variants)), x);
-  let as_struct = (props, x) => as_typed(T.Valid(`Object(props)), x);
+    as_typed(T.Valid(Enumerated(variants)), x);
+  let as_struct = (props, x) => as_typed(T.Valid(Object(props)), x);
   let as_function = (args, res, x) =>
-    as_typed(T.Valid(`Function((args, res))), x);
-  let as_view = (props, res, x) =>
-    as_typed(T.Valid(`View((props, res))), x);
+    as_typed(T.Valid(Function(args, res)), x);
+  let as_view = (props, res, x) => as_typed(T.Valid(View(props, res)), x);
   let as_decorator = (args, target, x) =>
-    as_typed(T.Valid(`Decorator((args, target))), x);
+    as_typed(T.Valid(Decorator(args, target)), x);
 
   /* primitive factories */
 

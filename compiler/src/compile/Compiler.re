@@ -529,8 +529,8 @@ let add_standard_library = (~flush=true, compiler: t) => {
              symbols.declared.values
              |> List.filter_map(
                   fun
-                  | (id, Type.Valid(`Decorator(_)) as type_) =>
-                    Some((id, Type.Container.Value(type_)))
+                  | (id, Type.Valid(Decorator(_)) as type_) =>
+                    Some((Type.ModuleEntryKind.Value, id, type_))
                   | _ => None,
                 ),
            );
@@ -567,7 +567,7 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
            | (
                _,
                [AST.Primitive.String(name)],
-               Type.Valid(`Module(entries)),
+               Type.Valid(Module(entries)),
              ) =>
              if (Plugin.known |> List.mem(name)) {
                compiler.modules

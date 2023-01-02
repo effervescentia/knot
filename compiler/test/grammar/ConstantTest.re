@@ -38,9 +38,9 @@ let suite =
           ...SymbolTable.create(),
           declared: {
             values: [
-              ("bar", T.Valid(`Float)),
-              ("fizz", T.Valid(`Integer)),
-              ("buzz", T.Valid(`Float)),
+              ("bar", T.Valid(Float)),
+              ("fizz", T.Valid(Integer)),
+              ("buzz", T.Valid(Float)),
             ],
             types: [],
           },
@@ -109,10 +109,10 @@ let suite =
 
         Assert.symbol_assoc_list(
           [
-            ("bar", T.Valid(`Float)),
-            ("fizz", T.Valid(`Integer)),
-            ("buzz", T.Valid(`Float)),
-            ("foo", T.Valid(`Boolean)),
+            ("bar", T.Valid(Float)),
+            ("fizz", T.Valid(Integer)),
+            ("buzz", T.Valid(Float)),
+            ("foo", T.Valid(Boolean)),
           ],
           symbols.declared.values,
         );

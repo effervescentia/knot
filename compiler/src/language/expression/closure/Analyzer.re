@@ -16,6 +16,6 @@ let analyze:
 
     (
       statements',
-      List.last(statements') |> Option.map(Node.get_type) |?: Valid(`Nil),
+      List.last(statements') |> Option.map(Node.get_type) |?: Valid(Nil),
     );
   };

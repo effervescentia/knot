@@ -63,7 +63,7 @@ let suite =
     "always resolve JSX as element type"
     >: (
       () => {
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -111,7 +111,7 @@ let suite =
         let scope = {
           ...__throw_scope,
           types:
-            [(__id, T.Valid(`Boolean))] |> List.to_seq |> Hashtbl.of_seq,
+            [(__id, T.Valid(Boolean))] |> List.to_seq |> Hashtbl.of_seq,
         };
 
         Assert.expression(
@@ -129,12 +129,7 @@ let suite =
         let scope = {
           ...__throw_scope,
           types:
-            [
-              (
-                __id,
-                T.Valid(`Object([("foo", (Valid(`Boolean), true))])),
-              ),
-            ]
+            [(__id, T.Valid(Object([("foo", (Valid(Boolean), true))])))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -143,7 +138,7 @@ let suite =
           (
             __id
             |> A.of_id
-            |> URes.as_struct([("foo", (T.Valid(`Boolean), true))]),
+            |> URes.as_struct([("foo", (T.Valid(Boolean), true))]),
             URes.as_untyped("foo"),
           )
           |> A.of_dot_access
@@ -164,8 +159,8 @@ let suite =
           ...__throw_scope,
           types:
             [
-              (view_id, T.Valid(`View(([], Valid(`Element))))),
-              (style_id, T.Valid(`Style)),
+              (view_id, T.Valid(View([], Valid(Element)))),
+              (style_id, T.Valid(Style)),
             ]
             |> List.to_seq
             |> Hashtbl.of_seq,
@@ -173,11 +168,11 @@ let suite =
 
         Assert.expression(
           (
-            view_id |> A.of_id |> URes.as_view([], Valid(`Element)),
+            view_id |> A.of_id |> URes.as_view([], Valid(Element)),
             style_id |> A.of_id |> URes.as_style,
           )
           |> A.of_component_bind_style
-          |> URes.as_view([], Valid(`Element)),
+          |> URes.as_view([], Valid(Element)),
           (
             view_id |> AR.of_id |> URaw.as_node,
             style_id |> AR.of_id |> URaw.as_node,
@@ -203,10 +198,9 @@ let suite =
                   Reference.Plugin.StyleRule,
                   [
                     (
+                      Value,
                       "width",
-                      Value(
-                        Valid(`Function(([Valid(`String)], Valid(`Nil)))),
-                      ),
+                      Valid(Function([Valid(String)], Valid(Nil))),
                     ),
                   ],
                 ),
@@ -214,12 +208,9 @@ let suite =
                   Reference.Plugin.StyleExpression,
                   [
                     (
+                      Value,
                       "px",
-                      Value(
-                        Valid(
-                          `Function(([Valid(`Integer)], Valid(`String))),
-                        ),
-                      ),
+                      Valid(Function([Valid(Integer)], Valid(String))),
                     ),
                   ],
                 ),
@@ -227,21 +218,21 @@ let suite =
             },
           },
           types:
-            [(view_id, T.Valid(`View(([], Valid(`Element)))))]
+            [(view_id, T.Valid(View([], Valid(Element))))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
 
         Assert.expression(
           (
-            view_id |> A.of_id |> URes.as_view([], Valid(`Element)),
+            view_id |> A.of_id |> URes.as_view([], Valid(Element)),
             [
               (
                 "width" |> URes.as_string,
                 (
                   "$px"
                   |> A.of_id
-                  |> URes.as_function([Valid(`Integer)], Valid(`String)),
+                  |> URes.as_function([Valid(Integer)], Valid(String)),
                   [URes.int_prim(12)],
                 )
                 |> A.of_func_call
@@ -253,7 +244,7 @@ let suite =
             |> URes.as_style,
           )
           |> A.of_component_bind_style
-          |> URes.as_view([], Valid(`Element)),
+          |> URes.as_view([], Valid(Element)),
           (
             view_id |> AR.of_id |> URaw.as_node,
             [
@@ -288,22 +279,22 @@ let suite =
               plugins: [
                 (
                   Reference.Plugin.ElementTag,
-                  [(tag_id, Value(Valid(`View(([], Valid(`Element))))))],
+                  [(Value, tag_id, Valid(View([], Valid(Element))))],
                 ),
               ],
             },
           },
           types:
-            [(style_id, T.Valid(`Style))] |> List.to_seq |> Hashtbl.of_seq,
+            [(style_id, T.Valid(Style))] |> List.to_seq |> Hashtbl.of_seq,
         };
 
         Assert.expression(
           (
-            tag_id |> A.of_id |> URes.as_view([], Valid(`Element)),
+            tag_id |> A.of_id |> URes.as_view([], Valid(Element)),
             style_id |> A.of_id |> URes.as_style,
           )
           |> A.of_element_bind_style
-          |> URes.as_view([], Valid(`Element)),
+          |> URes.as_view([], Valid(Element)),
           (
             tag_id |> AR.of_id |> URaw.as_node,
             style_id |> AR.of_id |> URaw.as_node,
@@ -327,16 +318,15 @@ let suite =
               plugins: [
                 (
                   Reference.Plugin.ElementTag,
-                  [(tag_id, Value(Valid(`View(([], Valid(`Element))))))],
+                  [(Value, tag_id, Valid(View([], Valid(Element))))],
                 ),
                 (
                   Reference.Plugin.StyleRule,
                   [
                     (
+                      Value,
                       "width",
-                      Value(
-                        Valid(`Function(([Valid(`String)], Valid(`Nil)))),
-                      ),
+                      Valid(Function([Valid(String)], Valid(Nil))),
                     ),
                   ],
                 ),
@@ -344,12 +334,9 @@ let suite =
                   Reference.Plugin.StyleExpression,
                   [
                     (
+                      Value,
                       "px",
-                      Value(
-                        Valid(
-                          `Function(([Valid(`Integer)], Valid(`String))),
-                        ),
-                      ),
+                      Valid(Function([Valid(Integer)], Valid(String))),
                     ),
                   ],
                 ),
@@ -360,14 +347,14 @@ let suite =
 
         Assert.expression(
           (
-            tag_id |> A.of_id |> URes.as_view([], Valid(`Element)),
+            tag_id |> A.of_id |> URes.as_view([], Valid(Element)),
             [
               (
                 "width" |> URes.as_string,
                 (
                   "$px"
                   |> A.of_id
-                  |> URes.as_function([Valid(`Integer)], Valid(`String)),
+                  |> URes.as_function([Valid(Integer)], Valid(String)),
                   [URes.int_prim(12)],
                 )
                 |> A.of_func_call
@@ -379,7 +366,7 @@ let suite =
             |> URes.as_style,
           )
           |> A.of_element_bind_style
-          |> URes.as_view([], Valid(`Element)),
+          |> URes.as_view([], Valid(Element)),
           (
             tag_id |> AR.of_id |> URaw.as_node,
             [
@@ -406,12 +393,7 @@ let suite =
         let scope = {
           ...__throw_scope,
           types:
-            [
-              (
-                __id,
-                T.Valid(`Function(([Valid(`Integer)], Valid(`String)))),
-              ),
-            ]
+            [(__id, T.Valid(Function([Valid(Integer)], Valid(String))))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -420,7 +402,7 @@ let suite =
           (
             __id
             |> A.of_id
-            |> URes.as_function([T.Valid(`Integer)], T.Valid(`String)),
+            |> URes.as_function([T.Valid(Integer)], T.Valid(String)),
             [URes.int_prim(123)],
           )
           |> A.of_func_call
@@ -436,7 +418,7 @@ let suite =
     >: (
       () => {
         let fizz_type =
-          T.Valid(`Function(([Valid(`Integer)], Valid(`Boolean))));
+          T.Valid(Function([Valid(Integer)], Valid(Boolean)));
         let scope = {
           ...__throw_scope,
           context: {
@@ -447,28 +429,22 @@ let suite =
                 (
                   StyleExpression,
                   [
-                    ("fizz", Value(fizz_type)),
-                    ("buzz", Value(Valid(`String))),
+                    (Value, "fizz", fizz_type),
+                    (Value, "buzz", Valid(String)),
                   ],
                 ),
                 (
                   StyleRule,
                   [
                     (
+                      Value,
                       "foo",
-                      Value(
-                        Valid(
-                          `Function(([Valid(`Boolean)], Valid(`Nil))),
-                        ),
-                      ),
+                      Valid(Function([Valid(Boolean)], Valid(Nil))),
                     ),
                     (
+                      Value,
                       "bar",
-                      Value(
-                        Valid(
-                          `Function(([Valid(`Integer)], Valid(`Nil))),
-                        ),
-                      ),
+                      Valid(Function([Valid(Integer)], Valid(Nil))),
                     ),
                   ],
                 ),

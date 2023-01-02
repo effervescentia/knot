@@ -15,5 +15,5 @@ let analyze:
     |> Scope.define(fst(id), Node.get_type(expr'))
     |> Option.iter(Scope.report_type_err(scope, Node.get_range(id)));
 
-    ((id, expr') |> Result.of_var, Type.Valid(`Nil));
+    ((id, expr') |> Result.of_var, Type.Valid(Nil));
   };

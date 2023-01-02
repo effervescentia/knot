@@ -61,8 +61,8 @@ let suite =
             ]
             |> A.of_enum
             |> U.as_enum([
-                 ("Verified", [T.Valid(`Integer), T.Valid(`String)]),
-                 ("Unverified", [T.Valid(`String)]),
+                 ("Verified", [T.Valid(Integer), T.Valid(String)]),
+                 ("Unverified", [T.Valid(String)]),
                ]),
           )
           |> A.of_export

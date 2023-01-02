@@ -13,7 +13,7 @@ let analyze_style_rule = (scope: Scope.t, raw_rule: Node.t(string, unit)) => {
     |> Scope.lookup(key)
     |> (
       fun
-      | Some(Ok(Valid(`Function([Valid(_) as t], Valid(`Nil))))) => t
+      | Some(Ok(Valid(Function([Valid(_) as t], Valid(Nil))))) => t
       | Some(Error(err)) => resolve_err(err)
       | _ => Type.UnknownStyleRule(key) |> resolve_err
     );
@@ -61,5 +61,5 @@ let analyze:
          Option.iter(Scope.report_type_err(expression_scope, range)),
        );
 
-    (rules', Type.Valid(`Style));
+    (rules', Type.Valid(Style));
   };

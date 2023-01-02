@@ -37,12 +37,12 @@ let suite =
     >: (
       () =>
         [
-          T.Valid(`Nil),
-          T.Valid(`Boolean),
-          T.Valid(`Integer),
-          T.Valid(`Float),
-          T.Valid(`String),
-          T.Valid(`Element),
+          T.Valid(Nil),
+          T.Valid(Boolean),
+          T.Valid(Integer),
+          T.Valid(Float),
+          T.Valid(String),
+          T.Valid(Element),
         ]
         |> List.iter(type_ =>
              Assert.type_error(
@@ -56,12 +56,10 @@ let suite =
       () =>
         Assert.type_error(
           Some(
-            InvalidKSXPrimitiveExpression(
-              Valid(`Function(([], Valid(`Nil)))),
-            ),
+            InvalidKSXPrimitiveExpression(Valid(Function([], Valid(Nil)))),
           ),
           KSX.Validator.validate_ksx_primitive_expression(
-            Valid(`Function(([], Valid(`Nil)))),
+            Valid(Function([], Valid(Nil))),
           ),
         )
     ),
@@ -73,18 +71,18 @@ let suite =
             (
               T.InvalidKSXTag(
                 __id,
-                T.Valid(`Integer),
-                [("foo", T.Valid(`Boolean)), ("bar", T.Valid(`String))],
+                T.Valid(Integer),
+                [("foo", T.Valid(Boolean)), ("bar", T.Valid(String))],
               ),
               None,
             ),
           ],
           (
             __id,
-            T.Valid(`Integer),
+            T.Valid(Integer),
             [
-              ("foo", T.Valid(`Boolean) |> U.as_untyped),
-              ("bar", T.Valid(`String) |> U.as_untyped),
+              ("foo", T.Valid(Boolean) |> U.as_untyped),
+              ("bar", T.Valid(String) |> U.as_untyped),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -99,14 +97,14 @@ let suite =
         _assert_errors_with_ranges(
           [
             (
-              T.InvalidKSXAttribute("bar", T.Valid(`String), T.Valid(`Nil)),
+              T.InvalidKSXAttribute("bar", T.Valid(String), T.Valid(Nil)),
               Some(bar_range),
             ),
             (
               T.InvalidKSXAttribute(
                 "foo",
-                T.Valid(`Boolean),
-                T.Valid(`Integer),
+                T.Valid(Boolean),
+                T.Valid(Integer),
               ),
               Some(foo_range),
             ),
@@ -114,17 +112,17 @@ let suite =
           (
             __id,
             T.Valid(
-              `View((
+              View(
                 [
-                  ("foo", (T.Valid(`Boolean), true)),
-                  ("bar", (T.Valid(`String), true)),
+                  ("foo", (T.Valid(Boolean), true)),
+                  ("bar", (T.Valid(String), true)),
                 ],
-                T.Valid(`Element),
-              )),
+                T.Valid(Element),
+              ),
             ),
             [
-              ("bar", N.raw(T.Valid(`Nil), bar_range)),
-              ("foo", N.raw(T.Valid(`Integer), foo_range)),
+              ("bar", N.raw(T.Valid(Nil), bar_range)),
+              ("foo", N.raw(T.Valid(Integer), foo_range)),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -140,20 +138,20 @@ let suite =
         _assert_errors_with_ranges(
           [
             (
-              T.UnexpectedKSXAttribute("bar", T.Valid(`Nil)),
+              T.UnexpectedKSXAttribute("bar", T.Valid(Nil)),
               Some(bar_range),
             ),
             (
-              T.UnexpectedKSXAttribute("foo", T.Valid(`Integer)),
+              T.UnexpectedKSXAttribute("foo", T.Valid(Integer)),
               Some(foo_range),
             ),
           ],
           (
             __id,
-            T.Valid(`View(([], T.Valid(`Element)))),
+            T.Valid(View([], T.Valid(Element))),
             [
-              ("foo", N.raw(T.Valid(`Integer), foo_range)),
-              ("bar", N.raw(T.Valid(`Nil), bar_range)),
+              ("foo", N.raw(T.Valid(Integer), foo_range)),
+              ("bar", N.raw(T.Valid(Nil), bar_range)),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -168,7 +166,7 @@ let suite =
             (
               T.MissingKSXAttributes(
                 __id,
-                [("bar", T.Valid(`String)), ("foo", T.Valid(`Boolean))],
+                [("bar", T.Valid(String)), ("foo", T.Valid(Boolean))],
               ),
               None,
             ),
@@ -176,13 +174,13 @@ let suite =
           (
             __id,
             T.Valid(
-              `View((
+              View(
                 [
-                  ("foo", (T.Valid(`Boolean), true)),
-                  ("bar", (T.Valid(`String), true)),
+                  ("foo", (T.Valid(Boolean), true)),
+                  ("bar", (T.Valid(String), true)),
                 ],
-                T.Valid(`Element),
-              )),
+                T.Valid(Element),
+              ),
             ),
             [],
           )
@@ -198,14 +196,14 @@ let suite =
         _assert_errors_with_ranges(
           [
             (
-              T.UnexpectedKSXAttribute("bar", T.Valid(`Nil)),
+              T.UnexpectedKSXAttribute("bar", T.Valid(Nil)),
               Some(bar_range),
             ),
             (
               T.InvalidKSXAttribute(
                 "foo",
-                T.Valid(`Boolean),
-                T.Valid(`Integer),
+                T.Valid(Boolean),
+                T.Valid(Integer),
               ),
               Some(foo_range),
             ),
@@ -213,17 +211,17 @@ let suite =
           (
             __id,
             T.Valid(
-              `View((
+              View(
                 [
-                  ("foo", (T.Valid(`Boolean), true)),
-                  ("fizz", (T.Valid(`Float), true)),
+                  ("foo", (T.Valid(Boolean), true)),
+                  ("fizz", (T.Valid(Float), true)),
                 ],
-                T.Valid(`Element),
-              )),
+                T.Valid(Element),
+              ),
             ),
             [
-              ("foo", N.raw(T.Valid(`Integer), foo_range)),
-              ("bar", N.raw(T.Valid(`Nil), bar_range)),
+              ("foo", N.raw(T.Valid(Integer), foo_range)),
+              ("bar", N.raw(T.Valid(Nil), bar_range)),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -238,17 +236,17 @@ let suite =
           (
             __id,
             T.Valid(
-              `View((
+              View(
                 [
-                  ("foo", (T.Valid(`Boolean), true)),
-                  ("bar", (T.Valid(`Float), true)),
+                  ("foo", (T.Valid(Boolean), true)),
+                  ("bar", (T.Valid(Float), true)),
                 ],
-                T.Valid(`Element),
-              )),
+                T.Valid(Element),
+              ),
             ),
             [
-              ("foo", T.Valid(`Boolean) |> U.as_untyped),
-              ("bar", T.Valid(`Float) |> U.as_untyped),
+              ("foo", T.Valid(Boolean) |> U.as_untyped),
+              ("bar", T.Valid(Float) |> U.as_untyped),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -262,15 +260,15 @@ let suite =
           (
             __id,
             T.Valid(
-              `View((
+              View(
                 [
-                  ("foo", (T.Valid(`Boolean), false)),
-                  ("bar", (T.Valid(`Float), false)),
+                  ("foo", (T.Valid(Boolean), false)),
+                  ("bar", (T.Valid(Float), false)),
                 ],
-                T.Valid(`Element),
-              )),
+                T.Valid(Element),
+              ),
             ),
-            [("foo", T.Valid(`Boolean) |> U.as_untyped)],
+            [("foo", T.Valid(Boolean) |> U.as_untyped)],
           )
           |> KSX.Validator.validate_ksx_render(false),
         )

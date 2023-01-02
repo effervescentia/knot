@@ -7,12 +7,12 @@ let validate: (string, Type.t) => option(Type.error_t) =
     /* assume this has been reported already and ignore */
     | Invalid(_) => None
 
-    | Valid(`Object(props))
+    | Valid(Object(props))
         when props |> List.exists(((name, _)) => name == prop) =>
       None
 
-    | Valid(`Module(entries))
-        when entries |> List.exists(((name, _)) => name == prop) =>
+    | Valid(Module(entries))
+        when entries |> List.exists(((_, name, _)) => name == prop) =>
       None
 
     | type_ => Some(InvalidDotAccess(type_, prop));

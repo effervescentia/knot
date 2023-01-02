@@ -261,8 +261,8 @@ let suite =
               TypeError(
                 InvalidBinaryOperation(
                   LogicalAnd,
-                  Valid(`String),
-                  Valid(`Nil),
+                  Valid(String),
+                  Valid(Nil),
                 ),
               ),
               __namespace,

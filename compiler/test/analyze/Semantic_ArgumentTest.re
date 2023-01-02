@@ -96,7 +96,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(TypeMismatch(T.Valid(`Boolean), T.Valid(`String))),
+              TypeError(TypeMismatch(T.Valid(Boolean), T.Valid(String))),
               __namespace,
               Range.zero,
             ),

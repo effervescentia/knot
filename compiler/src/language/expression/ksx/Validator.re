@@ -8,7 +8,7 @@ let validate_ksx_render:
     fun
     | (id, Invalid(_), _) => [(NotFound(id), None)]
 
-    | (id, Valid(`View(attrs, _)), actual_attrs) => {
+    | (id, Valid(View(attrs, _)), actual_attrs) => {
         let keys =
           (attrs |> List.map(fst))
           @ (actual_attrs |> List.map(fst))
@@ -100,11 +100,11 @@ let validate_style_binding =
          /* assume this has been reported already and ignore */
          | Type.Invalid(_) => None
 
-         | Type.Valid(`Style) => None
+         | Type.Valid(Style) => None
 
          | type_ =>
            Some((
-             Type.TypeMismatch(Valid(`Style), type_),
+             Type.TypeMismatch(Valid(Style), type_),
              Some(Node.get_range(node)),
            ))
        )
@@ -116,6 +116,6 @@ let validate_ksx_primitive_expression: Type.t => option(Type.error_t) =
   /* assume this has been reported already and ignore */
   | Invalid(_) => None
 
-  | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
+  | Valid(Nil | Boolean | Integer | Float | String | Element) => None
 
   | type_ => Some(InvalidKSXPrimitiveExpression(type_));

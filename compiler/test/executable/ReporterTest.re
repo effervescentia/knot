@@ -214,7 +214,7 @@ finished with 24 error(s) and 0 warning(s)
               Range.zero,
             ),
             ParseError(
-              TypeError(TypeMismatch(Valid(`String), Valid(`Integer))),
+              TypeError(TypeMismatch(Valid(String), Valid(Integer))),
               __namespace,
               Range.zero,
             ),
@@ -235,7 +235,7 @@ finished with 24 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
-                InvalidUnaryOperation(Negative, Type.Valid(`String)),
+                InvalidUnaryOperation(Negative, Type.Valid(String)),
               ),
               __namespace,
               Range.zero,
@@ -244,8 +244,8 @@ finished with 24 error(s) and 0 warning(s)
               TypeError(
                 InvalidBinaryOperation(
                   LogicalAnd,
-                  Type.Valid(`String),
-                  Type.Valid(`Integer),
+                  Type.Valid(String),
+                  Type.Valid(Integer),
                 ),
               ),
               __namespace,
@@ -254,7 +254,7 @@ finished with 24 error(s) and 0 warning(s)
             ParseError(
               TypeError(
                 InvalidKSXPrimitiveExpression(
-                  Type.Valid(`List(Valid(`String))),
+                  Type.Valid(List(Valid(String))),
                 ),
               ),
               __namespace,
@@ -264,8 +264,8 @@ finished with 24 error(s) and 0 warning(s)
               TypeError(
                 InvalidKSXTag(
                   "MyTag",
-                  Type.Valid(`Integer),
-                  [("my_attr", Type.Valid(`Boolean))],
+                  Type.Valid(Integer),
+                  [("my_attr", Type.Valid(Boolean))],
                 ),
               ),
               __namespace,
@@ -275,8 +275,8 @@ finished with 24 error(s) and 0 warning(s)
               TypeError(
                 InvalidKSXAttribute(
                   "my_attr",
-                  Type.Valid(`Integer),
-                  Type.Valid(`Boolean),
+                  Type.Valid(Integer),
+                  Type.Valid(Boolean),
                 ),
               ),
               __namespace,
@@ -284,7 +284,7 @@ finished with 24 error(s) and 0 warning(s)
             ),
             ParseError(
               TypeError(
-                UnexpectedKSXAttribute("my_attr", Type.Valid(`Boolean)),
+                UnexpectedKSXAttribute("my_attr", Type.Valid(Boolean)),
               ),
               __namespace,
               Range.zero,
@@ -294,8 +294,8 @@ finished with 24 error(s) and 0 warning(s)
                 MissingKSXAttributes(
                   "MyTag",
                   [
-                    ("my_bool", Type.Valid(`Boolean)),
-                    ("my_int", Type.Valid(`Integer)),
+                    ("my_bool", Type.Valid(Boolean)),
+                    ("my_int", Type.Valid(Integer)),
                   ],
                 ),
               ),
@@ -303,15 +303,15 @@ finished with 24 error(s) and 0 warning(s)
               Range.zero,
             ),
             ParseError(
-              TypeError(InvalidDotAccess(Type.Valid(`Integer), "my_prop")),
+              TypeError(InvalidDotAccess(Type.Valid(Integer), "my_prop")),
               __namespace,
               Range.zero,
             ),
             ParseError(
               TypeError(
                 InvalidStyleBinding(
-                  Type.Valid(`Integer),
-                  Type.Valid(`String),
+                  Type.Valid(Integer),
+                  Type.Valid(String),
                 ),
               ),
               __namespace,
@@ -320,8 +320,8 @@ finished with 24 error(s) and 0 warning(s)
             ParseError(
               TypeError(
                 InvalidFunctionCall(
-                  Type.Valid(`Integer),
-                  [Type.Valid(`String), Type.Valid(`Nil)],
+                  Type.Valid(Integer),
+                  [Type.Valid(String), Type.Valid(Nil)],
                 ),
               ),
               __namespace,
@@ -340,8 +340,8 @@ finished with 24 error(s) and 0 warning(s)
             ParseError(
               TypeError(
                 InvalidDecoratorInvocation(
-                  Type.Valid(`Integer),
-                  [Type.Valid(`String), Type.Valid(`Nil)],
+                  Type.Valid(Integer),
+                  [Type.Valid(String), Type.Valid(Nil)],
                 ),
               ),
               __namespace,
@@ -358,7 +358,7 @@ finished with 24 error(s) and 0 warning(s)
               Range.zero,
             ),
             ParseError(
-              TypeError(MustUseExplicitChildren(Type.Valid(`String))),
+              TypeError(MustUseExplicitChildren(Type.Valid(String))),
               __namespace,
               Range.zero,
             ),

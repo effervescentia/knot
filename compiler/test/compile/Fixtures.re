@@ -69,12 +69,12 @@ module Program = {
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
-           T.Valid(`Integer),
+           T.Valid(Integer),
          )
       |> A.of_const
       |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
-           T.Valid(`Integer),
+           T.Valid(Integer),
          ),
     )
     |> A.of_export
@@ -103,12 +103,12 @@ module Program = {
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((3, 13), (3, 17)),
-           T.Valid(`String),
+           T.Valid(String),
          )
       |> A.of_const
       |> U.as_typed(
            ~range=Range.create((3, 13), (3, 17)),
-           T.Valid(`String),
+           T.Valid(String),
          ),
     )
     |> A.of_export
@@ -133,12 +133,12 @@ module Program = {
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
-           T.Valid(`Integer),
+           T.Valid(Integer),
          )
       |> A.of_const
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
-           T.Valid(`Integer),
+           T.Valid(Integer),
          ),
     )
     |> A.of_export
@@ -167,12 +167,12 @@ module Program = {
       |> A.of_prim
       |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
-           T.Valid(`String),
+           T.Valid(String),
          )
       |> A.of_const
       |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
-           T.Valid(`String),
+           T.Valid(String),
          ),
     )
     |> A.of_export

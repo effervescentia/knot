@@ -22,14 +22,15 @@ let analyze:
       object',
       (
         switch (object_type) {
-        | Valid(`Object(props)) =>
+        | Valid(Object(props)) =>
           props |> List.assoc_opt(property_name) |> Option.map(fst)
 
-        | Valid(`Module(entries)) =>
+        | Valid(Module(entries)) =>
           entries
           |> List.find_map(
                fun
-               | (name, Type.Container.Value(t)) when name == property_name =>
+               | (Type.ModuleEntryKind.Value, name, t)
+                   when name == property_name =>
                  Some(t)
                | _ => None,
              )

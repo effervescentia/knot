@@ -120,7 +120,7 @@ let inject_plugin_types = (~prefix="$", plugin: Reference.Plugin.t, scope: t) =>
   |> Option.iter(
        List.iter(
          fun
-         | (id, Type.Container.Value(type_)) =>
+         | (Type.ModuleEntryKind.Value, id, type_) =>
            scope |> define(id |> Fmt.str("%s%s", prefix), type_) |> ignore
          | _ => (),
        ),

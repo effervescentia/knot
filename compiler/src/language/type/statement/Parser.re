@@ -53,14 +53,14 @@ let parse_enumerated: type_module_statement_parser_t =
                  List.map(fst % KTypeExpression.Plugin.analyze(ctx.symbols)),
                ),
              );
-        let enum_type = Type.Valid(`Enumerated(variants));
+        let enum_type = Type.Valid(Enumerated(variants));
         let value_type =
           Type.Valid(
-            `Object(
+            Object(
               variants
               |> List.map(
                    Tuple.map_snd2(args =>
-                     (Type.Valid(`Function((args, enum_type))), true)
+                     (Type.Valid(Function(args, enum_type)), true)
                    ),
                  ),
             ),

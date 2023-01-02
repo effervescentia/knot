@@ -10,15 +10,15 @@ let validate: (Operator.Binary.t, (Type.t, Type.t)) => option(Type.error_t) =
 
     | (Valid(valid_lhs) as lhs, Valid(valid_rhs) as rhs) =>
       switch (op, valid_lhs, valid_rhs) {
-      | (LogicalAnd | LogicalOr, `Boolean, `Boolean) => None
+      | (LogicalAnd | LogicalOr, Boolean, Boolean) => None
 
       | (
           LessOrEqual | LessThan | GreaterOrEqual | GreaterThan | Add | Subtract |
           Divide |
           Multiply |
           Exponent,
-          `Integer | `Float,
-          `Integer | `Float,
+          Integer | Float,
+          Integer | Float,
         ) =>
         None
 

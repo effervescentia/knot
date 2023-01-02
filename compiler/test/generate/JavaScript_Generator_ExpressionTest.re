@@ -78,7 +78,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          ("foo" |> U.as_view([], Valid(`Nil)), [], [], [])
+          ("foo" |> U.as_view([], Valid(Nil)), [], [], [])
           |> A.of_element_tag
           |> A.of_ksx,
         )
@@ -92,7 +92,7 @@ let suite =
             [String("foo"), Object([("zip", String("zap"))])],
           ),
           (
-            "foo" |> U.as_view([], Valid(`Nil)),
+            "foo" |> U.as_view([], Valid(Nil)),
             [],
             [
               (
@@ -115,7 +115,7 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [Identifier("Foo")],
           ),
-          ("Foo" |> U.as_view([], Valid(`Element)), [], [], [])
+          ("Foo" |> U.as_view([], Valid(Element)), [], [], [])
           |> A.of_component_tag
           |> A.of_ksx,
         )
@@ -193,7 +193,7 @@ let suite =
             ],
           ),
           (
-            "Foo" |> U.as_view([], Valid(`Element)),
+            "Foo" |> U.as_view([], Valid(Element)),
             [
               "bar" |> A.of_id |> U.as_style,
               [
@@ -238,16 +238,16 @@ let suite =
             ],
           ),
           (
-            "foo" |> U.as_view([], Valid(`Nil)),
+            "foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
             [
               (
-                "Bar" |> U.as_view([], Valid(`Element)),
+                "Bar" |> U.as_view([], Valid(Element)),
                 [],
                 [],
                 [
-                  ("fizz" |> U.as_view([], Valid(`Nil)), [], [], [])
+                  ("fizz" |> U.as_view([], Valid(Nil)), [], [], [])
                   |> A.of_element_tag
                   |> A.of_node
                   |> U.as_untyped,
@@ -337,7 +337,7 @@ let suite =
           (
             "foo"
             |> A.of_id
-            |> U.as_struct([("bar", (Valid(`String), true))]),
+            |> U.as_struct([("bar", (Valid(String), true))]),
             U.as_untyped("bar"),
           )
           |> A.of_dot_access,
@@ -352,7 +352,7 @@ let suite =
             [Identifier("foo"), Identifier("bar")],
           ),
           (
-            "foo" |> A.of_id |> U.as_view([], Valid(`Element)),
+            "foo" |> A.of_id |> U.as_view([], Valid(Element)),
             "bar" |> A.of_id |> U.as_style,
           )
           |> A.of_component_bind_style,
@@ -366,7 +366,7 @@ let suite =
           (
             "foo"
             |> A.of_id
-            |> U.as_function([Valid(`String)], Valid(`Boolean)),
+            |> U.as_function([Valid(String)], Valid(Boolean)),
             ["bar" |> A.of_id |> U.as_string],
           )
           |> A.of_func_call,

@@ -6,7 +6,7 @@ let validate: ((Type.t, list(Type.t))) => option(Type.error_t) =
   /* assume this have been reported already and ignore */
   | (Invalid(_), _) => None
 
-  | (Valid(`Function(args, _)) as func_type, actual_args) =>
+  | (Valid(Function(args, _)) as func_type, actual_args) =>
     if (List.length(args) != List.length(actual_args)) {
       Some(InvalidFunctionCall(func_type, actual_args));
     } else {

@@ -11,7 +11,7 @@ let validate_style_rule =
   | (arg_type, value_type) when arg_type == value_type => None
 
   /* special override for raw string styles */
-  | (_, Valid(`String)) => None
+  | (_, Valid(String)) => None
 
   | (expected_type, actual_type) =>
     Some(InvalidStyleRule(name, expected_type, actual_type));

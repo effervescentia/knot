@@ -63,7 +63,7 @@ let __context =
           Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, T.Valid(`String))]),
+            _create_module([(Export.Main, T.Valid(String))]),
           ),
         ),
       ]
@@ -120,7 +120,7 @@ let suite =
                     Namespace.Internal("bar"),
                     ModuleTable.Valid(
                       "foo",
-                      _create_module([(Export.Main, T.Valid(`Boolean))]),
+                      _create_module([(Export.Main, T.Valid(Boolean))]),
                     ),
                   ),
                 ]

@@ -259,7 +259,7 @@ and gen_style = (rules: list(AST.Result.style_rule_t)) =>
                            ),
                          )
                          |> Option.some;
-                       } else if (value_type == AST.Type.Valid(`String)) {
+                       } else if (value_type == AST.Type.Valid(String)) {
                          (fst(key), gen_expression(fst(value)))
                          |> Option.some;
                        } else {

@@ -34,7 +34,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
                );
           let type_ =
             Type.Valid(
-              `Enumerated(
+              Enumerated(
                 variants'
                 |> List.map(Tuple.map_each2(fst, List.map(Node.get_type))),
               ),

@@ -6,8 +6,7 @@ module Plugin = Reference.Plugin;
 
 type exports_t = list((Reference.Export.t, Type.t));
 type scope_tree_t = RangeTree.t(option(exports_t));
-type module_entries_t =
-  list((string, Type.Container.module_entry_t(Type.t)));
+type module_entries_t = list((Type.ModuleEntryKind.t, string, Type.t));
 
 type library_t = {symbols: SymbolTable.t};
 
@@ -110,7 +109,7 @@ let get_global_values = ({globals, _}: t) =>
   globals
   |> List.filter_map(
        fun
-       | (id, Type.Container.Value(type_)) => Some((id, type_))
+       | (Type.ModuleEntryKind.Value, id, type_) => Some((id, type_))
        | _ => None,
      );
 
@@ -118,7 +117,7 @@ let get_global_types = ({globals, _}: t) =>
   globals
   |> List.filter_map(
        fun
-       | (id, Type.Container.Type(type_)) => Some((id, type_))
+       | (Type.ModuleEntryKind.Type, id, type_) => Some((id, type_))
        | _ => None,
      );
 
@@ -221,14 +220,7 @@ let pp: Fmt.t(Module.program_t) => Fmt.t(t) =
         "ModuleTable",
         [
           ("plugins", ""),
-          (
-            "globals",
-            table.globals
-            |> ~@
-                 Fmt.(
-                   record(string, Type.Container.pp_module_entry(Type.pp))
-                 ),
-          ),
+          ("globals", table.globals |> ~@Type.pp_module(Type.pp)),
           (
             "modules",
             table.modules

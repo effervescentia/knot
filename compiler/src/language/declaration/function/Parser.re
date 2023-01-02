@@ -43,10 +43,10 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
 
               let type_ =
                 Type.Valid(
-                  `Function((
+                  Function(
                     parameters' |> List.map(Node.get_type),
                     Node.get_type(body'),
-                  )),
+                  ),
                 );
 
               ctx.symbols

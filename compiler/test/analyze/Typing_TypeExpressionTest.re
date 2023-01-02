@@ -12,7 +12,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`Nil),
+          Valid(Nil),
           KTypeExpression.Plugin.analyze(__empty_defs, Nil),
         )
     ),
@@ -20,7 +20,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`Boolean),
+          Valid(Boolean),
           KTypeExpression.Plugin.analyze(__empty_defs, Boolean),
         )
     ),
@@ -28,7 +28,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`Integer),
+          Valid(Integer),
           KTypeExpression.Plugin.analyze(__empty_defs, Integer),
         )
     ),
@@ -36,7 +36,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`Float),
+          Valid(Float),
           KTypeExpression.Plugin.analyze(__empty_defs, Float),
         )
     ),
@@ -44,7 +44,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`String),
+          Valid(String),
           KTypeExpression.Plugin.analyze(__empty_defs, String),
         )
     ),
@@ -52,7 +52,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`Element),
+          Valid(Element),
           KTypeExpression.Plugin.analyze(__empty_defs, Element),
         )
     ),
@@ -62,10 +62,10 @@ let suite =
         let symbols = AST.SymbolTable.create();
 
         symbols.declared.types =
-          symbols.declared.types @ [("foo", Valid(`Boolean))];
+          symbols.declared.types @ [("foo", Valid(Boolean))];
 
         Assert.type_(
-          Valid(`Boolean),
+          Valid(Boolean),
           KTypeExpression.Plugin.analyze(
             symbols,
             Identifier(U.as_untyped("foo")),
@@ -77,7 +77,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`String),
+          Valid(String),
           TE.String
           |> U.as_untyped
           |> TE.of_group
@@ -92,7 +92,7 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`List(Valid(`Boolean))),
+          Valid(List(Valid(Boolean))),
           TE.Boolean
           |> U.as_untyped
           |> TE.of_list
@@ -104,9 +104,9 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `Object([
-              ("foo", (Valid(`Boolean), true)),
-              ("bar", (Valid(`String), false)),
+            Object([
+              ("foo", (Valid(Boolean), true)),
+              ("bar", (Valid(String), false)),
             ]),
           ),
           [
@@ -132,18 +132,18 @@ let suite =
             (
               "var1",
               Valid(
-                `Object([
-                  ("foo", (Valid(`Element), false)),
-                  ("fizz", (Valid(`Boolean), false)),
+                Object([
+                  ("foo", (Valid(Element), false)),
+                  ("fizz", (Valid(Boolean), false)),
                 ]),
               ),
             ),
             (
               "var2",
               Valid(
-                `Object([
-                  ("buzz", (Valid(`Integer), true)),
-                  ("bar", (Valid(`Boolean), true)),
+                Object([
+                  ("buzz", (Valid(Integer), true)),
+                  ("bar", (Valid(Boolean), true)),
                 ]),
               ),
             ),
@@ -151,11 +151,11 @@ let suite =
 
         Assert.type_(
           Valid(
-            `Object([
-              ("foo", (Valid(`Element), false)),
-              ("fizz", (Valid(`Boolean), false)),
-              ("buzz", (Valid(`Integer), true)),
-              ("bar", (Valid(`String), false)),
+            Object([
+              ("foo", (Valid(Element), false)),
+              ("fizz", (Valid(Boolean), false)),
+              ("buzz", (Valid(Integer), true)),
+              ("bar", (Valid(String), false)),
             ]),
           ),
           [
@@ -191,10 +191,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `Function((
-              [Valid(`Boolean), Valid(`String)],
-              Valid(`Element),
-            )),
+            Function([Valid(Boolean), Valid(String)], Valid(Element)),
           ),
           (
             [U.as_untyped(TE.Boolean), U.as_untyped(TE.String)],
@@ -209,13 +206,13 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `View((
+            View(
               [
-                ("foo", (Valid(`Boolean), true)),
-                ("bar", (Valid(`String), true)),
+                ("foo", (Valid(Boolean), true)),
+                ("bar", (Valid(String), true)),
               ],
-              Valid(`Element),
-            )),
+              Valid(Element),
+            ),
           ),
           (
             [
