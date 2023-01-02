@@ -1,10 +1,10 @@
 open Knot.Kore;
 open Onyx;
 
-let unary_op = (f, x) => Node.typed(f(x), (), Node.get_range(x));
+let unary_op = (f, x) => Node.wrap(f, x);
 
 let binary_op = (f, (l, r)) =>
-  Node.typed((l, r) |> f, (), Node.join_ranges(l, r));
+  Node.raw((l, r) |> f, Node.join_ranges(l, r));
 
 let define_statement = (kwd, parser, f) =>
   kwd
@@ -14,6 +14,6 @@ let define_statement = (kwd, parser, f) =>
       Matchers.attribute(Matchers.identifier(~prefix=Matchers.alpha), parser)
       >|= (
         ((id, (res, range))) =>
-          Node.untyped((id, res) |> f, Range.join(start, range |?: start))
+          Node.raw((id, res) |> f, Range.join(start, range |?: start))
       )
   );

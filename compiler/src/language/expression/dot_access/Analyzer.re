@@ -9,27 +9,27 @@ let analyze:
     Range.t
   ) =>
   (Result.expression_t, Type.t) =
-  (scope, analyze_expression, (expr, prop), range) => {
-    let prop_name = fst(prop);
-    let expr' = analyze_expression(scope, expr);
-    let type_ = Node.get_type(expr');
+  (scope, analyze_expression, (object_, property), range) => {
+    let property_name = fst(property);
+    let object' = analyze_expression(scope, object_);
+    let object_type = Node.get_type(object');
 
-    type_
-    |> Validator.validate(prop_name)
+    object_type
+    |> Validator.validate(property_name)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
-      expr',
+      object',
       (
-        switch (type_) {
+        switch (object_type) {
         | Valid(`Struct(props)) =>
-          props |> List.assoc_opt(prop_name) |> Option.map(fst)
+          props |> List.assoc_opt(property_name) |> Option.map(fst)
 
         | Valid(`Module(entries)) =>
           entries
           |> List.find_map(
                fun
-               | (name, Type.Container.Value(t)) when name == prop_name =>
+               | (name, Type.Container.Value(t)) when name == property_name =>
                  Some(t)
                | _ => None,
              )

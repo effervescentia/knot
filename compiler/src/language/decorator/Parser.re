@@ -9,8 +9,6 @@ let parse = parse_expr =>
       parse_expr
       |> Matchers.comma_sep
       |> Matchers.between_parentheses
-      |> option(Node.untyped([], Node.get_range(id)))
-      >|= (
-        args => Node.untyped((id, fst(args)), Node.join_ranges(id, args))
-      )
+      |> option(Node.raw([], Node.get_range(id)))
+      >|= (args => Node.raw((id, fst(args)), Node.join_ranges(id, args)))
   );

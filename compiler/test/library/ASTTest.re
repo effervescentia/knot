@@ -152,9 +152,9 @@ let suite =
         <Constant>
           <Expression range=0.0 type=element>
             <KSX>
-              <Element>
+              <Tag kind=Element>
                 <Name range=0.0 type=View<(), nil> value=Foo />
-              </Element>
+              </Tag>
             </KSX>
           </Expression>
         </Constant>
@@ -308,7 +308,7 @@ let suite =
         <Constant>
           <Expression range=0.0 type=element>
             <KSX>
-              <Element>
+              <Tag kind=Element>
                 <Name range=0.0 type=View<(), nil> value=Foo />
                 <Attribute range=0.0>
                   <Property>
@@ -318,9 +318,9 @@ let suite =
                 <Child range=0.0>
                   <Node>
                     <KSX>
-                      <Element>
+                      <Tag kind=Element>
                         <Name range=0.0 type=View<(), nil> value=Bar />
-                      </Element>
+                      </Tag>
                     </KSX>
                   </Node>
                 </Child>
@@ -341,7 +341,7 @@ let suite =
                     </KSX>
                   </Node>
                 </Child>
-              </Element>
+              </Tag>
             </KSX>
           </Expression>
         </Constant>

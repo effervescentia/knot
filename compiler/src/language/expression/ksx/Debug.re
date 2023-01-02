@@ -7,9 +7,7 @@ let attribute_to_xml = (key, (name, value)) =>
     [],
     [
       Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-      ...value
-         |> Option.map(value' => [Dump.node_to_xml("Value", value')])
-         |?: [],
+      ...value |> Option.map(Dump.node_to_xml("Value") % List.single) |?: [],
     ],
   );
 
@@ -17,7 +15,7 @@ let attribute_list_to_xml = attributes =>
   attributes
   |> List.map(
        Dump.node_to_xml(
-         ~unpack=attribute_to_xml("Property") % (x => [x]),
+         ~unpack=attribute_to_xml("Property") % List.single,
          "Attribute",
        ),
      );
@@ -40,11 +38,18 @@ let rec to_xml:
         switch (ksx) {
         | Tag(kind, view, style, attributes, children) =>
           Fmt.Node(
-            switch (kind) {
-            | Component => "Component"
-            | Element => "Element"
-            },
-            [],
+            "Tag",
+            [
+              (
+                "kind",
+                AST.Expression.(
+                  switch (kind) {
+                  | Component => "Component"
+                  | Element => "Element"
+                  }
+                ),
+              ),
+            ],
             [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", view)]
             @ (style |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)
@@ -71,7 +76,7 @@ and children_to_xml = (expr_to_xml, dump_type) =>
           | InlineExpression(expr) =>
             Fmt.Node("InlineExpression", [], [expr_to_xml(expr)])
         )
-        % (x => [x]),
+        % List.single,
       "Child",
     ),
   );

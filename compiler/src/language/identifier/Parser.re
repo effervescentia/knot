@@ -19,7 +19,7 @@ let parse_raw = (ctx: ParseContext.t) =>
            );
       };
 
-      Node.untyped(name_value, Node.get_range(name));
+      name |> Node.map(_ => name_value);
     }
   );
 

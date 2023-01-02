@@ -9,7 +9,7 @@ type t =
 
 /* helpers */
 let nil = Nil;
-let boolean = x => Boolean(x);
-let integer = x => Integer(x);
-let float = ((x, precision)) => Float(x, precision);
-let string = x => String(x);
+let boolean = boolean => Boolean(boolean);
+let integer = integer => Integer(integer);
+let float = ((float, precision)) => Float(float, precision);
+let string = string => String(string);

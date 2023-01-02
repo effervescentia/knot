@@ -9,17 +9,18 @@ let parse = (ctx: ParseContext.t) =>
   >|= Tuple.with_fst2(ctx)
   >>= (
     ((_, export) as arg) => {
-      let bind = (parse, tag) =>
-        parse(arg) >|= Node.map(Tuple.map_snd2(Node.map(tag)));
+      let (&>) = (parse, to_declaration) =>
+        parse(arg)
+        >|= Node.map(((name, declaration)) =>
+              (export, name, declaration |> Node.map(to_declaration))
+              |> Result.of_export
+            );
 
       choice([
-        bind(KConstant.parse, Result.of_const),
-        bind(KEnumerated.parse, Result.of_enum),
-        bind(KFunction.parse, Result.of_func),
-        bind(KView.parse, Result.of_view),
-      ])
-      >|= Node.map(((name, declaration)) =>
-            (export, name, declaration) |> Result.of_export
-          );
+        KConstant.parse &> Result.of_const,
+        KEnumerated.parse &> Result.of_enum,
+        KFunction.parse &> Result.of_func,
+        KView.parse &> Result.of_view,
+      ]);
     }
   );

@@ -21,12 +21,7 @@ let alpha_num = digit <|> alpha;
 let lexeme = x => spaces >> x;
 
 let between = (l, r, x) =>
-  map3(
-    (l', x', r') => Node.untyped(x', Node.join_ranges(l', r')),
-    l,
-    x,
-    r,
-  );
+  map3((l', x', r') => Node.raw(x', Node.join_ranges(l', r')), l, x, r);
 
 let binary_op = (lx, op, rx) => map3((l, _, r) => (l, r), lx, op, rx);
 
@@ -85,7 +80,7 @@ let glyph = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.get_point
-          >|= (end_ => Node.untyped((), Range.create(start, end_)))
+          >|= (end_ => Node.raw((), Range.create(start, end_)))
           |> lexeme
         | [c, ...cs] => char(c) |> lexeme >> loop(cs);
 
@@ -107,7 +102,7 @@ let keyword = (s: string) =>
         | [c] =>
           char(c)
           >|= Input.get_point
-          >|= (end_ => Node.untyped(s, Range.create(start, end_)))
+          >|= (end_ => Node.raw(s, Range.create(start, end_)))
         | [c, ...cs] => char(c) >> loop(cs);
 
       loop(s |> String.to_seq |> List.of_seq) <<! (alpha_num <|> underscore);
@@ -140,10 +135,7 @@ let string =
           >|= Input.get_point
           >|= (
             end_ =>
-              Node.untyped(
-                f([]) |> String.of_uchars,
-                Range.create(start, end_),
-              )
+              Node.raw(f([]) |> String.of_uchars, Range.create(start, end_))
           ),
           /* capture escaped characters */
           char(Character.back_slash)

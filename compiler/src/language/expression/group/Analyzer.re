@@ -8,4 +8,5 @@ let analyze:
     Raw.expression_t
   ) =>
   Result.expression_t =
-  (scope, analyze_expression, node) => analyze_expression(scope, node);
+  (scope, analyze_expression, expression) =>
+    analyze_expression(scope, expression);

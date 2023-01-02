@@ -12,14 +12,14 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
     start =>
       KIdentifier.Parser.parse_raw(ctx)
       >>= (
-        id =>
+        name =>
           KExpression.Plugin.parse
           |> KLambda.Parser.parse_lambda_with_mixins(ctx)
           >|= (
-            ((props, mixins, res, range)) => {
-              let scope = ctx |> Scope.of_parse_context(range);
-              let props' =
-                props
+            ((parameters, mixins, body, lambda_range)) => {
+              let scope = ctx |> Scope.of_parse_context(lambda_range);
+              let parameters' =
+                parameters
                 |> List.map(
                      KLambda.Analyzer.analyze_argument(
                        scope,
@@ -31,7 +31,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
               |> Scope.define(__implicit_children_key, Valid(`Element))
               |> ignore;
 
-              props'
+              parameters'
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
@@ -43,7 +43,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
                       )
                  );
 
-              if (props'
+              if (parameters'
                   |> List.exists((((name, _, _), _)) =>
                        fst(name) == __children_key
                      )) {
@@ -92,17 +92,17 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
                      |> Node.add_type(mixin_type |?: Invalid(NotInferrable));
                    });
 
-              let res_scope =
-                scope |> Scope.create_child(Node.get_range(res));
-              let res' =
-                res
+              let expression_scope =
+                scope |> Scope.create_child(Node.get_range(body));
+              let body' =
+                body
                 |> Analyzer.analyze_view_body(
-                     res_scope,
+                     expression_scope,
                      KExpression.Plugin.analyze,
                    );
 
-              let prop_types =
-                props'
+              let parameter_types =
+                parameters'
                 |> List.map(((((name, _), _, default), _) as node) =>
                      (
                        name,
@@ -112,18 +112,24 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
                      )
                    );
               let type_ =
-                Type.Valid(`View((prop_types, Node.get_type(res'))));
+                Type.Valid(`View((parameter_types, Node.get_type(body'))));
 
               ctx.symbols
               |> SymbolTable.declare_value(
                    ~main=Util.is_main(export),
-                   fst(id),
+                   fst(name),
                    type_,
                  );
 
-              let view = Node.typed((props', mixins', res'), type_, range);
+              let result =
+                Node.typed(
+                  (parameters', mixins', body'),
+                  type_,
+                  lambda_range,
+                );
+              let range = Range.join(start, lambda_range);
 
-              Node.untyped((id, view), Range.join(start, range));
+              Node.raw((name, result), range);
             }
           )
       )

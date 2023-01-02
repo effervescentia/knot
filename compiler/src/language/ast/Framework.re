@@ -30,8 +30,6 @@ module Primitive = (Params: PrimitiveParams) => {
 };
 
 module type StatementParams = {
-  type pp_arg_t;
-
   type value_t('a);
 
   let parse:
@@ -46,6 +44,24 @@ module type StatementParams = {
 };
 
 module Statement = (Params: StatementParams) => {
+  include Params;
+};
+
+module type StatementParamsV2 = {
+  type value_t('a);
+
+  let parse:
+    ((ParseContext.t, contextual_expression_parser_t)) =>
+    Parser.t(Common.raw_t(value_t(unit)));
+
+  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+
+  let to_xml:
+    (Expression.expression_t('a) => Fmt.xml_t(string), value_t('a)) =>
+    Fmt.xml_t(string);
+};
+
+module StatementV2 = (Params: StatementParamsV2) => {
   include Params;
 };
 

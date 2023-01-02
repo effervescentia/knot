@@ -10,10 +10,7 @@ let parse_style_rule =
   Matchers.attribute(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
-      Node.untyped(
-        (Node.typed(fst(rule), (), Node.get_range(rule)), expr),
-        Node.join_ranges(rule, expr),
-      );
+      Node.raw((rule, expr), Node.join_ranges(rule, expr));
     }
   );
 

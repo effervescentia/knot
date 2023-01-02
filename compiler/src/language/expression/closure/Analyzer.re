@@ -9,12 +9,13 @@ let analyze:
     Range.t
   ) =>
   (list(Result.statement_t), Type.t) =
-  (scope, analyze_statement, stmts, range) => {
+  (scope, analyze_statement, statements, range) => {
     let closure_scope = scope |> Scope.create_child(range);
-    let stmts' = stmts |> List.map(analyze_statement(closure_scope));
+    let statements' =
+      statements |> List.map(analyze_statement(closure_scope));
 
     (
-      stmts',
-      List.last(stmts') |> Option.map(Node.get_type) |?: Valid(`Nil),
+      statements',
+      List.last(statements') |> Option.map(Node.get_type) |?: Valid(`Nil),
     );
   };

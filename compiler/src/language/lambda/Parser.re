@@ -29,9 +29,8 @@ let parse_arguments =
     ((name, type_, default)) => {
       let name_range = Node.get_range(name);
 
-      Node.typed(
+      Node.raw(
         (name, type_, default),
-        (),
         Range.join(
           name_range,
           default

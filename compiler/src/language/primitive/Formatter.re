@@ -3,11 +3,14 @@ open AST;
 
 let format =
   Primitive.(
-    ppf =>
+    ppf => {
+      let (&>) = (args, format) => args |> format(ppf);
+
       fun
-      | Nil => KNil.format(ppf, ())
-      | Boolean(x) => KBoolean.format(ppf, x)
-      | Float(float, precision) => KFloat.format(ppf, (float, precision))
-      | Integer(x) => KInteger.format(ppf, x)
-      | String(x) => KString.format(ppf, x)
+      | Nil => () &> KNil.format
+      | Boolean(boolean) => boolean &> KBoolean.format
+      | Integer(integer) => integer &> KInteger.format
+      | Float(float, precision) => (float, precision) &> KFloat.format
+      | String(string) => string &> KString.format;
+    }
   );

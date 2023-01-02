@@ -8,13 +8,8 @@ let parse = {
     >> Matchers.identifier
     >>= (
       prop =>
-        loop(
-          Node.typed(
-            (expr, prop) |> Raw.of_dot_access,
-            (),
-            Node.get_range(prop),
-          ),
-        )
+        Node.raw((expr, prop) |> Raw.of_dot_access, Node.get_range(prop))
+        |> loop
     )
     |> option(expr);
 

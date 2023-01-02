@@ -8,17 +8,18 @@ let to_xml:
     Expression.statement_t('a)
   ) =>
   Fmt.xml_t(string) =
-  (expr_to_xml, dump_type, stmt) =>
+  (expr_to_xml, dump_type, stmt) => {
+    let (&>) = (args, to_xml) => args |> to_xml(expr_to_xml) |> List.single;
+
     Dump.node_to_xml(
       ~dump_type,
       ~unpack=
         AST.Expression.(
           fun
-          | Effect(expr) => KEffect.to_xml(expr_to_xml, expr)
-          | Variable(name, expr) =>
-            KVariable.to_xml(expr_to_xml, (name, expr))
-        )
-        % (x => [x]),
+          | Effect(expr) => expr &> KEffect.to_xml
+          | Variable(name, expr) => (name, expr) &> KVariable.to_xml
+        ),
       "Statement",
       stmt,
     );
+  };

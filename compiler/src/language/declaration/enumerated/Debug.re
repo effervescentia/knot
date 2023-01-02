@@ -4,7 +4,7 @@ open AST;
 let variant_parameter_to_xml = dump_type =>
   Dump.node_to_xml(
     ~dump_type,
-    ~unpack=parameter => [KTypeExpression.Debug.to_xml_raw(parameter)],
+    ~unpack=KTypeExpression.Debug.to_xml_raw % List.single,
     "Parameter",
   );
 

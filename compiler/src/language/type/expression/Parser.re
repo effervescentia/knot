@@ -32,7 +32,7 @@ let parse_list =
        Matchers.glyph("[]")
        >|= (
          (suffix, expr) =>
-           Node.untyped(
+           Node.raw(
              TypeExpression.of_list(expr),
              Node.join_ranges(expr, suffix),
            )
@@ -45,7 +45,7 @@ let parse_required_struct_property = parse_expr =>
   Matchers.attribute(__struct_key, parse_expr)
   >|= (
     ((key, value)) =>
-      Node.untyped(
+      Node.raw(
         (key, value) |> TypeExpression.of_required,
         Node.join_ranges(key, value),
       )
@@ -59,7 +59,7 @@ let parse_optional_struct_property = parse_expr =>
   )
   >|= (
     ((key, value)) =>
-      Node.untyped(
+      Node.raw(
         (key, value) |> TypeExpression.of_optional,
         Node.join_ranges(key, value),
       )
@@ -72,7 +72,7 @@ let parse_spread_properties = parse_expr =>
       parse_expr
       >|= (
         expr =>
-          Node.untyped(
+          Node.raw(
             TypeExpression.of_spread(expr),
             Node.join_ranges(keyword, expr),
           )
@@ -102,7 +102,7 @@ let parse_function =
       >> parse_expr
       >|= (
         res =>
-          Node.untyped(
+          Node.raw(
             TypeExpression.of_function((fst(args), res)),
             Node.join_ranges(args, res),
           )
@@ -119,7 +119,7 @@ let parse_dot_access = {
     >>= (
       prop =>
         loop(
-          Node.untyped(
+          Node.raw(
             (expr, prop) |> TypeExpression.of_dot_access,
             Node.get_range(prop),
           ),
@@ -146,7 +146,7 @@ let parse_view =
       >|= fst
       >|= (
         ((props, res)) =>
-          Node.untyped(
+          Node.raw(
             TypeExpression.of_view((props, res)),
             Node.join_ranges(start, res),
           )

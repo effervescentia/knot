@@ -104,7 +104,7 @@ and parse_tag =
               <|> _parse_self_closing
               >|= (
                 cs =>
-                  Node.untyped(
+                  Node.raw(
                     (id, styles, attrs, fst(cs)) |> Raw.of_element_tag,
                     Node.join_ranges(id, cs),
                   )
@@ -128,7 +128,7 @@ and parse_property_attribute =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
     : jsx_attribute_parser_t =>
   _parse_attribute(ctx, parsers)
-  >|= (((name, value, range)) => Node.untyped((name, value), range))
+  >|= (((name, value, range)) => Node.raw((name, value), range))
 
 and parse_children =
     (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
@@ -142,10 +142,8 @@ and parse_children =
   |> many
 
 and parse_text: jsx_child_parser_t =
-  none_of(. Character.[open_brace, open_chevron])
-  <~> (
-    none_of(. Character.[open_brace, open_chevron, close_chevron]) |> many
-  )
+  none_of(Character.[open_brace, open_chevron])
+  <~> (none_of(Character.[open_brace, open_chevron, close_chevron]) |> many)
   >|= Input.join
   >|= Node.map(String.trim % Raw.of_text)
 

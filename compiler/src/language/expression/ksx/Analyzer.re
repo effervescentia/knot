@@ -128,7 +128,7 @@ and analyze_ksx_child:
         Result.of_inline_expr(expr);
       };
 
-    Node.untyped(ksx_child', Node.get_range(ksx_child));
+    ksx_child |> Node.map(_ => ksx_child');
   };
 
 let analyze:

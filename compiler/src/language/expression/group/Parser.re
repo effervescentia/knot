@@ -2,7 +2,7 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse = parse_expr =>
-  parse_expr
+let parse = parse_expression =>
+  parse_expression
   |> Matchers.between_parentheses
-  >|= (node => Node.untyped(Raw.of_group(fst(node)), Node.get_range(node)));
+  >|= Node.wrap(fst % Raw.of_group);

@@ -123,8 +123,8 @@ let suite =
               )),
             ),
             [
-              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
-              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
+              ("bar", N.raw(T.Valid(`Nil), bar_range)),
+              ("foo", N.raw(T.Valid(`Integer), foo_range)),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -152,8 +152,8 @@ let suite =
             __id,
             T.Valid(`View(([], T.Valid(`Element)))),
             [
-              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
-              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
+              ("foo", N.raw(T.Valid(`Integer), foo_range)),
+              ("bar", N.raw(T.Valid(`Nil), bar_range)),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),
@@ -222,8 +222,8 @@ let suite =
               )),
             ),
             [
-              ("foo", N.untyped(T.Valid(`Integer), foo_range)),
-              ("bar", N.untyped(T.Valid(`Nil), bar_range)),
+              ("foo", N.raw(T.Valid(`Integer), foo_range)),
+              ("bar", N.raw(T.Valid(`Nil), bar_range)),
             ],
           )
           |> KSX.Validator.validate_ksx_render(false),

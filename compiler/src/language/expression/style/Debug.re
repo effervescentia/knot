@@ -11,7 +11,7 @@ let to_xml = ((expr_to_xml, _), rules) =>
            ~unpack=
              ((prop, expr)) =>
                [
-                 Dump.node_to_xml(~dump_value=Fun.id, "RuleProperty", prop),
+                 Dump.identifier_to_xml("RuleProperty", prop),
                  Node("RuleExpression", [], [expr_to_xml(expr)]),
                ],
            "Rule",

@@ -54,8 +54,7 @@ let rec of_effect =
     fun
     | (Primitive(prim), (_, range)) =>
       BinaryTree.create((range, Token.Primitive(prim)))
-    | (Identifier(id), (_, range)) =>
-      Node.untyped(id, range) |> of_untyped_id
+    | (Identifier(id), (_, range)) => Node.raw(id, range) |> of_untyped_id
     | (KSX(ksx), (_, range)) => ksx |> of_ksx |> _wrap(range)
     | (Group(expr), _) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | (BinaryOp(_, lhs, rhs), _) =>
@@ -93,7 +92,7 @@ and of_ksx =
       |> of_list
 
     | Tag(_, (id, (_, range)), styles, attrs, children) =>
-      [Node.untyped(id, range) |> of_untyped_id]
+      [Node.raw(id, range) |> of_untyped_id]
       @ (styles |> List.map(of_effect))
       @ (
         attrs

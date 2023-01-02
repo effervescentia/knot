@@ -13,7 +13,7 @@ let parse_bind_style_literal = ((ctx, parse_expr), expr) =>
   >> KStyle.Parser.parse_style_literal((ctx, parse_expr))
   >|= (
     literal =>
-      Node.untyped(
+      Node.raw(
         (expr, literal) |> Raw.of_component_bind_style,
         Node.join_ranges(expr, literal),
       )

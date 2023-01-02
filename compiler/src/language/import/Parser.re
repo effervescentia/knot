@@ -45,7 +45,7 @@ let parse_named_imports = (ctx: ParseContext.t) =>
   |> Matchers.between_braces
   >|= Node.map(
         List.map(((name, alias) as import) =>
-          Node.untyped(import, Node.join_ranges(name, alias |?: name))
+          Node.raw(import, Node.join_ranges(name, alias |?: name))
         ),
       );
 
@@ -89,7 +89,7 @@ let parse_module_import = (ctx: ParseContext.t) =>
       )
       >|= (
         ((namespace, main_import, named_imports)) =>
-          Node.untyped(
+          Node.raw(
             (fst(namespace), main_import, named_imports)
             |> AST.Result.of_import,
             Node.join_ranges(kwd, namespace),
@@ -109,7 +109,7 @@ let parse_standard_import = (ctx: ParseContext.t) =>
         )
       >|= (
         imports =>
-          Node.untyped(
+          Node.raw(
             AST.Result.of_standard_import(fst(imports)),
             Node.join_ranges(kwd, imports),
           )

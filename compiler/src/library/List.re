@@ -10,6 +10,11 @@ module TList = Tablecloth.List;
 exception NoListMembers;
 
 /**
+ create a list with a single entry
+ */
+let single = (x: 'a) => [x];
+
+/**
  check if a list is empty
  */
 let is_empty = (xs: list('a)): bool => length(xs) |> (==)(0);

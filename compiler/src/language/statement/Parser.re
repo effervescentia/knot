@@ -8,7 +8,12 @@ let parse =
       parse_expr: Framework.contextual_expression_parser_t,
     )
     : Framework.statement_parser_t => {
-  let arg = (ctx, parse_expr);
+  let (&>) = (parse, to_statement) =>
+    (ctx, parse_expr) |> parse >|= Node.map(to_statement);
 
-  choice([KVariable.parse(arg), KEffect.parse(arg)]) |> Matchers.terminated;
+  choice([
+    KVariable.parse &> AST.Raw.of_var,
+    KEffect.parse &> AST.Raw.of_effect,
+  ])
+  |> Matchers.terminated;
 };

@@ -13,7 +13,4 @@ let parse =
   KStatement.Plugin.parse(ctx, parse_expr)
   |> many
   |> Matchers.between_braces
-  >|= (
-    ((stmts, _) as stmts_node) =>
-      Node.typed(Raw.of_closure(stmts), (), Node.get_range(stmts_node))
-  );
+  >|= Node.map(Raw.of_closure);

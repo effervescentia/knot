@@ -11,24 +11,25 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
         KExpression.Plugin.parse(ctx),
       )
       >|= (
-        ((id, raw_expr)) => {
+        ((name, expression)) => {
           let scope =
-            ctx |> Scope.of_parse_context(Node.get_range(raw_expr));
-          let expr = raw_expr |> KExpression.Plugin.analyze(scope);
-          let type_ = Node.get_type(expr);
-          let const = expr |> Node.wrap(Fun.id);
-          let range = Node.join_ranges(kwd, raw_expr);
+            ctx |> Scope.of_parse_context(Node.get_range(expression));
+          let expression' = expression |> KExpression.Plugin.analyze(scope);
+          let type_ = Node.get_type(expression');
 
           // TODO: throw error if name already used in scope
 
           ctx.symbols
           |> SymbolTable.declare_value(
                ~main=Util.is_main(export),
-               fst(id),
+               fst(name),
                type_,
              );
 
-          Node.untyped((id, const), range);
+          let result = expression' |> Node.wrap(Fun.id);
+          let range = Node.join_ranges(kwd, expression);
+
+          Node.raw((name, result), range);
         }
       )
       |> Matchers.terminated

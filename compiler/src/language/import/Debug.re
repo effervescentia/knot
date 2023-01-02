@@ -11,8 +11,8 @@ let named_import_to_xml =
         [
           Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
           ...alias
-             |> Option.map(alias' =>
-                  [Dump.node_to_xml(~dump_value=Fun.id, "Alias", alias')]
+             |> Option.map(
+                  Dump.node_to_xml(~dump_value=Fun.id, "Alias") % List.single,
                 )
              |?: [],
         ],
@@ -39,10 +39,6 @@ let to_xml:
     Node(
       "Import",
       [("namespace", namespace |> ~@Namespace.pp)],
-      (
-        main_import
-        |> Option.map(main_import' => [main_import_to_xml(main_import')])
-        |?: []
-      )
+      (main_import |> Option.map(main_import_to_xml % List.single) |?: [])
       @ (named_imports |> List.map(named_import_to_xml)),
     );

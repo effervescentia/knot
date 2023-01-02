@@ -35,3 +35,6 @@ let node_to_xml =
         node |> fst |> unpack,
       )
   );
+
+let identifier_to_xml = (name: string) =>
+  node_to_xml(~dump_value=Fun.id, name);

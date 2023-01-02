@@ -56,7 +56,7 @@ let scan = (predicate: Node.t(string, unit) => bool, contents: string) => {
           loop(cursor, cursor);
         } else {
           let token = buffer |> Buffer.contents;
-          let node = Node.untyped(token, Range.create(start, end_));
+          let node = Node.raw(token, Range.create(start, end_));
 
           buffer |> Buffer.clear;
 

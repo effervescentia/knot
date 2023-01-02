@@ -8,6 +8,5 @@ let parse =
         ctx: ParseContext.t,
         parse_expr: Framework.contextual_expression_parser_t,
       ),
-    )
-    : Framework.statement_parser_t =>
-  parse_expr(ctx) >|= Node.wrap(Raw.of_effect);
+    ) =>
+  parse_expr(ctx) >|= Node.wrap(Fun.id);

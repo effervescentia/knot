@@ -5,7 +5,7 @@ module AR = AST.Raw;
 module T = AST.Type;
 
 module CommonUtil = {
-  let as_untyped = (~range=Range.zero, x) => Node.untyped(x, range);
+  let as_untyped = (~range=Range.zero, x) => Node.raw(x, range);
   let as_typed = (~range=Range.zero, type_, x) =>
     Node.typed(x, type_, range);
 };

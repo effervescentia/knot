@@ -3,9 +3,7 @@ open AST;
 
 let analyze = Analyzer.analyze;
 
-include Framework.Statement({
-  type pp_arg_t = Fmt.t(Result.raw_expression_t);
-
+include Framework.StatementV2({
   type value_t('a) = (
     Common.untyped_t(string),
     Expression.expression_t('a),

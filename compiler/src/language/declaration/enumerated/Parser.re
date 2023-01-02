@@ -10,12 +10,13 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
       Matchers.vertical_bar_sep(
         KTypeStatement.Parser.parse_type_variant(ctx),
       )
+      // TODO: should return the range from Matchers.vertical_bar_sep or Matchers.assign
       |> Matchers.assign(KIdentifier.Parser.parse_raw(ctx))
       |> Matchers.terminated
       >|= (
-        ((id, raw_variants)) => {
-          let variants =
-            raw_variants
+        ((name, variants)) => {
+          let variants' =
+            variants
             |> List.map(
                  fst
                  % Tuple.map_snd2(
@@ -34,25 +35,24 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
           let type_ =
             Type.Valid(
               `Enumerated(
-                variants
+                variants'
                 |> List.map(Tuple.map_each2(fst, List.map(Node.get_type))),
               ),
             );
-          let range =
-            Range.join(
-              start,
-              raw_variants |> List.last |?> Node.get_range |?: start,
-            );
-          let enum = Node.typed(variants, type_, range);
+          let variants_range =
+            variants |> List.last |?> Node.get_range |?: Node.get_range(name);
 
           ctx.symbols
           |> SymbolTable.declare_value(
                ~main=Util.is_main(export),
-               fst(id),
+               fst(name),
                type_,
              );
 
-          Node.untyped((id, enum), range);
+          let result = Node.typed(variants', type_, variants_range);
+          let range = Range.join(start, variants_range);
+
+          Node.raw((name, result), range);
         }
       )
       |> Matchers.terminated

@@ -8,13 +8,16 @@ let analyze:
     Raw.statement_t
   ) =>
   Result.statement_t =
-  (scope, analyze_expression, node) =>
-    (
-      switch (node) {
-      | (Variable(id, expr), _) =>
-        KVariable.analyze(scope, analyze_expression, (id, expr))
-      | (Effect(expr), _) =>
-        KEffect.analyze(scope, analyze_expression, expr)
-      }
-    )
-    |> (((value, type_)) => Node.typed(value, type_, Node.get_range(node)));
+  (scope, analyze_expression, node) => {
+    let (&>) = (args, analyze) =>
+      args
+      |> analyze(scope, analyze_expression)
+      |> (
+        ((value, type_)) => Node.typed(value, type_, Node.get_range(node))
+      );
+
+    switch (node) {
+    | (Variable(id, expr), _) => (id, expr) &> KVariable.analyze
+    | (Effect(expr), _) => expr &> KEffect.analyze
+    };
+  };

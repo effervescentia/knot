@@ -7,10 +7,7 @@ let typed = (value: 'a, type_: 'b, range: Range.t): t('a, 'b) => (
   (type_, range),
 );
 
-let untyped = (value: 'a, range: Range.t): t('a, unit) => (
-  value,
-  ((), range),
-);
+let raw = (value: 'a, range: Range.t): t('a, unit) => (value, ((), range));
 
 /* methods */
 

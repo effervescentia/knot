@@ -95,7 +95,7 @@ let parse_module: type_module_parser_t =
                           )
                      );
 
-                  Node.untyped(
+                  Node.raw(
                     (id, fst(stmts), decorators' |> List.map(fst))
                     |> TypeDefinition.of_module,
                     Node.get_range(stmts),
