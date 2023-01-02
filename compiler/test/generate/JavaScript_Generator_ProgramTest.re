@@ -9,10 +9,7 @@ module U = Util.ResultUtil;
 let __resolved = "../foo/bar";
 let __program =
   [
-    (
-      "foo/bar" |> A.of_internal,
-      ["Foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-    )
+    ("foo/bar" |> A.of_internal, "Foo" |> U.as_untyped |> Option.some, [])
     |> A.of_import,
     [
       (U.as_untyped("Fizz"), "Buzz" |> U.as_untyped |> Option.some)
@@ -20,10 +17,11 @@ let __program =
     ]
     |> A.of_standard_import,
     (
-      "ABC" |> U.as_untyped |> A.of_named_export,
+      AST.Module.Named,
+      "ABC" |> U.as_untyped,
       123 |> U.int_prim |> A.of_const |> U.as_int,
     )
-    |> A.of_decl,
+    |> A.of_export,
   ]
   |> List.map(U.as_untyped);
 

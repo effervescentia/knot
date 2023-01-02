@@ -179,10 +179,7 @@ let suite =
           ),
           (
             U.as_untyped("foo"),
-            [
-              AE.{name: U.as_untyped("bar"), default: None, type_: None}
-              |> U.as_nil,
-            ],
+            [(U.as_untyped("bar"), None, None) |> U.as_nil],
             U.int_prim(123),
           ),
         )
@@ -217,12 +214,7 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              AE.{
-                name: U.as_untyped("bar"),
-                default: Some(U.int_prim(123)),
-                type_: None,
-              }
-              |> U.as_nil,
+              (U.as_untyped("bar"), None, Some(U.int_prim(123))) |> U.as_nil,
             ],
             ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
             |> A.of_add_op
@@ -296,12 +288,7 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              AE.{
-                name: U.as_untyped("bar"),
-                default: Some(U.int_prim(123)),
-                type_: None,
-              }
-              |> U.as_nil,
+              (U.as_untyped("bar"), None, Some(U.int_prim(123))) |> U.as_nil,
             ],
             [],
             ("bar" |> A.of_id |> U.as_int, U.int_prim(5))

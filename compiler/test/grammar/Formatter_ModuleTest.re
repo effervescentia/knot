@@ -8,16 +8,14 @@ let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
 
 let __int_const_stmt =
   (
-    "ABC" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "ABC" |> U.as_untyped,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
-  |> A.of_decl;
+  |> A.of_export;
 
 let __import_stmt =
-  (
-    "bar" |> A.of_external,
-    ["Foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-  )
+  ("bar" |> A.of_external, "Foo" |> U.as_untyped |> Option.some, [])
   |> A.of_import;
 
 let suite =
@@ -65,13 +63,8 @@ const ABC = 123;\n",
         let _main_import = (name, f) =>
           (
             name |> f,
-            [
-              name
-              |> String.capitalize_ascii
-              |> U.as_untyped
-              |> A.of_main_import
-              |> U.as_untyped,
-            ],
+            name |> String.capitalize_ascii |> U.as_untyped |> Option.some,
+            [],
           )
           |> A.of_import;
 
@@ -100,17 +93,12 @@ import Fizz from \"@/fizz\";\n",
           [
             (
               "foo" |> A.of_external,
+              None,
               [
-                (U.as_untyped("d"), None) |> A.of_named_import |> U.as_untyped,
-                (U.as_untyped("c"), None)
-                |> A.of_named_import
-                |> U.as_untyped,
-                (U.as_untyped("b"), None)
-                |> A.of_named_import
-                |> U.as_untyped,
-                (U.as_untyped("a"), None)
-                |> A.of_named_import
-                |> U.as_untyped,
+                (U.as_untyped("d"), None) |> U.as_untyped,
+                (U.as_untyped("c"), None) |> U.as_untyped,
+                (U.as_untyped("b"), None) |> U.as_untyped,
+                (U.as_untyped("a"), None) |> U.as_untyped,
               ],
             )
             |> A.of_import,

@@ -11,32 +11,26 @@ let analyze_argument:
   (scope, analyze_expression, arg) => {
     let (arg', type_) =
       switch (fst(arg)) {
-      | {name, default: None, type_: None} =>
+      | (name, None, None) =>
         Type.UntypedFunctionArgument(fst(name))
         |> Scope.report_type_err(scope, Node.get_range(arg));
 
-        (
-          Expression.{name, default: None, type_: None},
-          Type.Invalid(NotInferrable),
-        );
+        ((name, None, None), Type.Invalid(NotInferrable));
 
-      | {name, default: Some(expr), type_: None} =>
+      | (name, None, Some(expr)) =>
         let expr' = expr |> analyze_expression(scope);
 
-        (
-          Expression.{name, default: Some(expr'), type_: None},
-          Node.get_type(expr'),
-        );
+        ((name, None, Some(expr')), Node.get_type(expr'));
 
-      | {name, default: None, type_: Some(type_expr)} =>
+      | (name, Some(type_expr), None) =>
         let type_ =
           type_expr
           |> fst
           |> KTypeExpression.Plugin.analyze(SymbolTable.create());
 
-        (Expression.{name, default: None, type_: Some(type_expr)}, type_);
+        ((name, Some(type_expr), None), type_);
 
-      | {name, default: Some(expr), type_: Some(type_expr)} =>
+      | (name, Some(type_expr), Some(expr)) =>
         let expr' = expr |> analyze_expression(scope);
         let expr_type = Node.get_type(expr');
         let type_ =
@@ -52,7 +46,7 @@ let analyze_argument:
         | _ => ()
         };
 
-        ({name, default: Some(expr'), type_: Some(type_expr)}, type_);
+        ((name, Some(type_expr), Some(expr')), type_);
       };
 
     Node.typed(arg', type_, Node.get_range(arg));

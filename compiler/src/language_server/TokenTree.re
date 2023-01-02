@@ -147,14 +147,14 @@ let of_args = args =>
   |> _fold(
        fst
        % (
-         (AST.Expression.{name, default, _}) => {
+         ((name, _, default)) => {
            ...of_untyped_id(name),
            right: default |?> of_effect,
          }
        ),
      );
 
-let of_decl =
+let of_export =
   AST.Module.(
     fun
     | Constant(expr) => expr |> of_effect |> _wrap(Node.get_range(expr))
@@ -175,19 +175,18 @@ let of_decl =
       )
   );
 
-let of_import =
+let of_named_import =
   AST.Module.(
     fun
-    | MainImport(id)
-    | NamedImport(id, None) => of_untyped_id(id)
-    | NamedImport(id, Some(alias)) =>
+    | (id, None) => of_untyped_id(id)
+    | (id, Some(alias)) =>
       (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join)
   );
 
 let of_mod_stmt =
   AST.Module.(
     fun
-    | StandardImport(imports) =>
+    | StdlibImport(imports) =>
       imports
       |> _fold(
            fst
@@ -200,9 +199,16 @@ let of_mod_stmt =
                |> Tuple.join2(_join)
            ),
          )
-    | Import(_, imports) => imports |> _fold(fst % of_import)
-    | Declaration(MainExport(id) | NamedExport(id), (decl, _)) =>
-      _join(of_untyped_id(id), of_decl(decl))
+    | Import(_, main_import, named_imports) =>
+      (
+        main_import
+        |> Option.map(main_import' => [of_untyped_id(main_import')])
+        |?: []
+      )
+      @ (named_imports |> List.map(fst % of_named_import))
+      |> of_list
+    | Export(_, id, (decl, _)) =>
+      _join(of_untyped_id(id), of_export(decl))
   );
 
 let of_ast = (program: AST.Module.program_t) =>

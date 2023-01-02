@@ -26,7 +26,7 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
            fst
            % AST.Module.(
                fun
-               | Import(namespace, _) => Some(namespace)
+               | Import(namespace, _, _) => Some(namespace)
                | _ => None
              ),
          )

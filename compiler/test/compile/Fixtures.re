@@ -62,8 +62,8 @@ module Program = {
 
   let const_int = [
     (
-      U.as_untyped(~range=Range.create((1, 7), (1, 9)), "ABC")
-      |> A.of_named_export,
+      AST.Module.Named,
+      U.as_untyped(~range=Range.create((1, 7), (1, 9)), "ABC"),
       123L
       |> A.of_int
       |> A.of_prim
@@ -77,27 +77,27 @@ module Program = {
            T.Valid(`Integer),
          ),
     )
-    |> A.of_decl
+    |> A.of_export
     |> U.as_untyped(~range=Range.create((1, 1), (1, 15))),
   ];
 
   let import_and_const = [
     (
       N.entry,
+      None,
       [
         (
           "ABC" |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
           None,
         )
-        |> A.of_named_import
         |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
       ],
     )
     |> A.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 29))),
     (
-      U.as_untyped(~range=Range.create((3, 7), (3, 9)), "BAR")
-      |> A.of_named_export,
+      AST.Module.Named,
+      U.as_untyped(~range=Range.create((3, 7), (3, 9)), "BAR"),
       "bar"
       |> A.of_string
       |> A.of_prim
@@ -111,25 +111,23 @@ module Program = {
            T.Valid(`String),
          ),
     )
-    |> A.of_decl
+    |> A.of_export
     |> U.as_untyped(~range=Range.create((3, 1), (3, 17))),
   ];
 
   let single_import = [
     (
       N.bar,
-      [
-        "foo"
-        |> U.as_untyped(~range=Range.create((2, 10), (2, 12)))
-        |> A.of_main_import
-        |> U.as_untyped(~range=Range.create((2, 10), (2, 12))),
-      ],
+      "foo"
+      |> U.as_untyped(~range=Range.create((2, 10), (2, 12)))
+      |> Option.some,
+      [],
     )
     |> A.of_import
     |> U.as_untyped(~range=Range.create((2, 3), (2, 25))),
     (
-      U.as_untyped(~range=Range.create((4, 9), (4, 11)), "ABC")
-      |> A.of_named_export,
+      AST.Module.Named,
+      U.as_untyped(~range=Range.create((4, 9), (4, 11)), "ABC"),
       123L
       |> A.of_int
       |> A.of_prim
@@ -143,27 +141,27 @@ module Program = {
            T.Valid(`Integer),
          ),
     )
-    |> A.of_decl
+    |> A.of_export
     |> U.as_untyped(~range=Range.create((4, 3), (4, 17))),
   ];
 
   let invalid_foo = [
     (
       N.bar,
+      None,
       [
         (
           "BAR" |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
           None,
         )
-        |> A.of_named_import
         |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
       ],
     )
     |> A.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 27))),
     (
-      U.as_untyped(~range=Range.create((3, 7), (3, 11)), "const")
-      |> A.of_named_export,
+      AST.Module.Named,
+      U.as_untyped(~range=Range.create((3, 7), (3, 11)), "const"),
       "foo"
       |> A.of_string
       |> A.of_prim
@@ -177,7 +175,7 @@ module Program = {
            T.Valid(`String),
          ),
     )
-    |> A.of_decl
+    |> A.of_export
     |> U.as_untyped(~range=Range.create((3, 1), (3, 19))),
   ];
 };

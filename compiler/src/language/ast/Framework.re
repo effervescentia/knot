@@ -13,7 +13,7 @@ type contextual_expression_parser_t = ParseContext.t => expression_parser_t;
 type statement_parser_t = Parser.t(Raw.statement_t);
 
 type declaration_parser_t =
-  Parser.t(Node.t((Module.export_t, Module.declaration_t), unit));
+  Parser.t(Node.t((Common.identifier_t, Module.declaration_t), unit));
 
 module type PrimitiveParams = {
   type value_t;
@@ -84,9 +84,7 @@ module Expression = (Params: ExpressionParams) => {
 module type DeclarationParams = {
   type value_t;
 
-  let parse:
-    ((ParseContext.t, Node.t(string, unit) => Module.export_t)) =>
-    Parser.t(Node.t((Module.export_t, Module.declaration_t), unit));
+  let parse: ((ParseContext.t, Module.export_t)) => declaration_parser_t;
 
   let format: Fmt.t((string, value_t));
 

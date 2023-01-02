@@ -10,7 +10,7 @@ let format_body:
 
 let format_argument:
   Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_argument_t) =
-  (pp_expression, ppf, {name: (name, _), default, _}) =>
+  (pp_expression, ppf, ((name, _), _, default)) =>
     Fmt.pf(
       ppf,
       "%s%a",

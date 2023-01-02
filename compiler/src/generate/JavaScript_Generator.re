@@ -336,21 +336,13 @@ let gen_function =
     Expression(
       Function(
         Some(name),
-        args
-        |> List.map(fst % ((AST.Expression.{name: (name, _), _}) => name)),
+        args |> List.map(fst % ((((name, _), _, _)) => name)),
         (
           args
           |> List.mapi((i, (x, _)) => (x, i))
           |> List.filter_map(
                fun
-               | (
-                   AST.Expression.{
-                     name: (name, _),
-                     default: Some(default),
-                     _,
-                   },
-                   index,
-                 ) =>
+               | (((name, _), _, Some(default)), index) =>
                  Some(
                    Assignment(
                      Identifier(name),
@@ -400,7 +392,7 @@ let gen_view =
         (
           props
           |> List.map(fst)
-          |> List.map((AST.Expression.{name: (name, _), default, _}) => {
+          |> List.map((((name, _), _, default)) => {
                Variable(
                  name,
                  FunctionCall(
@@ -483,32 +475,37 @@ let generate = (resolve: resolve_t, ast: AST.Module.program_t) => {
            fst
            % AST.Module.(
                fun
-               | Import(namespace, imports) => (
+               | Import(namespace, main_import, named_imports) => (
                    i
                    @ [
                      JS.Import(
                        resolve(namespace),
-                       imports
-                       |> List.map(
-                            fst
-                            % (
-                              fun
-                              | MainImport((id, _)) => (
-                                  __main_export,
-                                  Some(id),
-                                )
-                              | NamedImport((id, _), Some((alias, _))) => (
-                                  id,
-                                  Some(alias),
-                                )
-                              | NamedImport((id, _), None) => (id, None)
-                            ),
-                          ),
+                       (
+                         main_import
+                         |> Option.map(((alias, _)) =>
+                              [(__main_export, Some(alias))]
+                            )
+                         |?: []
+                       )
+                       @ (
+                         named_imports
+                         |> List.map(
+                              fst
+                              % (
+                                fun
+                                | ((id, _), Some((alias, _))) => (
+                                    id,
+                                    Some(alias),
+                                  )
+                                | ((id, _), None) => (id, None)
+                              ),
+                            )
+                       ),
                      ),
                    ],
                    d,
                  )
-               | StandardImport(imports) => (
+               | StdlibImport(imports) => (
                    i
                    @ (
                      imports
@@ -525,11 +522,11 @@ let generate = (resolve: resolve_t, ast: AST.Module.program_t) => {
                    ),
                    d,
                  )
-               | Declaration(NamedExport(name), decl) => (
+               | Export(Named, name, decl) => (
                    i,
                    d @ gen_declaration(name, decl),
                  )
-               | Declaration(MainExport(name), decl) => (
+               | Export(Main, name, decl) => (
                    i,
                    d
                    @ gen_declaration(name, decl)

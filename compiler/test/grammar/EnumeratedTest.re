@@ -5,10 +5,10 @@ module Export = Reference.Export;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N.t((AM.export_t, AM.declaration_t), unit);
+    type t = N.t((AST.Common.identifier_t, AM.declaration_t), unit);
 
     let parser = ctx =>
-      (ctx, A.of_named_export)
+      (ctx, AM.Named)
       |> KEnumerated.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -17,8 +17,11 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            (ppf, stmt) =>
-              KDeclaration.Plugin.to_xml(~@Type.pp, fst(stmt))
+            (ppf, ((name, declaration), _)) =>
+              KDeclaration.Plugin.to_xml(
+                ~@Type.pp,
+                (AM.Named, name, declaration),
+              )
               |> Fmt.xml_string(ppf),
             (==),
           ),
@@ -36,10 +39,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          (
-            "foo" |> U.as_untyped |> A.of_named_export,
-            [] |> A.of_enum |> U.as_enum([]),
-          )
+          ("foo" |> U.as_untyped, [] |> A.of_enum |> U.as_enum([]))
           |> U.as_untyped,
           "enum foo =",
         )
@@ -48,10 +48,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          (
-            "foo" |> U.as_untyped |> A.of_named_export,
-            [] |> A.of_enum |> U.as_enum([]),
-          )
+          ("foo" |> U.as_untyped, [] |> A.of_enum |> U.as_enum([]))
           |> U.as_untyped,
           "enum foo = |",
         )
@@ -61,7 +58,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             [(U.as_untyped("OnlyOption"), [])]
             |> A.of_enum
             |> U.as_enum([("OnlyOption", [])]),
@@ -75,7 +72,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "Account" |> U.as_untyped |> A.of_named_export,
+            "Account" |> U.as_untyped,
             [
               (
                 U.as_untyped("Verified"),

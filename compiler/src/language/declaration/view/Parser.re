@@ -6,7 +6,7 @@ let __children_key = "children";
 let __implicit_children_key = "$children";
 
 let parse =
-    ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
+    ((ctx: ParseContext.t, export: Module.export_t))
     : Framework.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.view)
   >>= Node.get_range
@@ -37,7 +37,7 @@ let parse =
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
-                        Expression.(fst(arg).name) |> fst,
+                        arg |> fst |> Tuple.fst3 |> fst,
                         Node.get_type(arg),
                       )
                    |> Option.iter(
@@ -46,7 +46,7 @@ let parse =
                  );
 
               if (props'
-                  |> List.exists(((Expression.{name}, _)) =>
+                  |> List.exists((((name, _, _), _)) =>
                        fst(name) == __children_key
                      )) {
                 let children_type =
@@ -105,21 +105,20 @@ let parse =
 
               let prop_types =
                 props'
-                |> List.map(((prop, _) as node) =>
+                |> List.map(((((name, _), _, default), _) as node) =>
                      (
-                       fst(Expression.(prop.name)),
+                       name,
                        node
                        |> Node.get_type
-                       |> Tuple.with_snd2(Option.is_none(prop.default)),
+                       |> Tuple.with_snd2(Option.is_none(default)),
                      )
                    );
               let type_ =
                 Type.Valid(`View((prop_types, Node.get_type(res'))));
-              let export_id = tag_export(id);
 
               ctx.symbols
               |> SymbolTable.declare_value(
-                   ~main=Util.is_main(export_id),
+                   ~main=Util.is_main(export),
                    fst(id),
                    type_,
                  );
@@ -131,7 +130,7 @@ let parse =
                   range,
                 );
 
-              Node.untyped((export_id, view), Range.join(start, range));
+              Node.untyped((id, view), Range.join(start, range));
             }
           )
       )

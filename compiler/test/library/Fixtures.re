@@ -9,10 +9,11 @@ module U = Util.ResultUtil;
  */
 let nil_const = [
   (
-    "nil_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "nil_const" |> U.as_untyped,
     U.nil_prim |> A.of_const |> U.as_nil,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -21,10 +22,11 @@ let nil_const = [
  */
 let int_const = [
   (
-    "int_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "int_const" |> U.as_untyped,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -33,10 +35,11 @@ let int_const = [
  */
 let float_const = [
   (
-    "float_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "float_const" |> U.as_untyped,
     (123.0, 3) |> U.float_prim |> A.of_const |> U.as_float,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -45,10 +48,11 @@ let float_const = [
  */
 let bool_const = [
   (
-    "bool_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "bool_const" |> U.as_untyped,
     true |> U.bool_prim |> A.of_const |> U.as_bool,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -57,10 +61,11 @@ let bool_const = [
  */
 let string_const = [
   (
-    "string_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "string_const" |> U.as_untyped,
     "foo" |> U.string_prim |> A.of_const |> U.as_string,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -69,10 +74,11 @@ let string_const = [
  */
 let identifier_const = [
   (
-    "identifier_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "identifier_const" |> U.as_untyped,
     "foo" |> A.of_id |> U.as_int |> A.of_const |> U.as_int,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -81,14 +87,15 @@ let identifier_const = [
  */
 let jsx_const = [
   (
-    "jsx_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "jsx_const" |> U.as_untyped,
     ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
     |> U.ksx_tag
     |> U.as_element
     |> A.of_const
     |> U.as_element,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -97,10 +104,11 @@ let jsx_const = [
  */
 let group_const = [
   (
-    "group_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "group_const" |> U.as_untyped,
     123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_const |> U.as_int,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -113,7 +121,8 @@ let group_const = [
  */
 let closure_const = [
   (
-    "closure_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "closure_const" |> U.as_untyped,
     [
       (U.as_untyped("foo"), 123 |> U.int_prim) |> A.of_var |> U.as_nil,
       (U.as_untyped("bar"), U.nil_prim) |> A.of_var |> U.as_nil,
@@ -124,7 +133,7 @@ let closure_const = [
     |> A.of_const
     |> U.as_bool,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -133,14 +142,15 @@ let closure_const = [
  */
 let and_bool_const = [
   (
-    "and_bool_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "and_bool_const" |> U.as_untyped,
     (true |> U.bool_prim, false |> U.bool_prim)
     |> A.of_and_op
     |> U.as_bool
     |> A.of_const
     |> U.as_bool,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -149,10 +159,11 @@ let and_bool_const = [
  */
 let negative_int_const = [
   (
-    "negative_int_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "negative_int_const" |> U.as_untyped,
     123 |> U.int_prim |> A.of_neg_op |> U.as_int |> A.of_const |> U.as_int,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -166,7 +177,8 @@ let negative_int_const = [
  */
 let complex_jsx_const = [
   (
-    "complex_jsx_const" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "complex_jsx_const" |> U.as_untyped,
     (
       "Foo" |> U.as_view([], Valid(`Nil)),
       [],
@@ -186,7 +198,7 @@ let complex_jsx_const = [
     |> A.of_const
     |> U.as_element,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -195,16 +207,12 @@ let complex_jsx_const = [
  */
 let inline_function = [
   (
-    "inline_function" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "inline_function" |> U.as_untyped,
     (
       [
-        AE.{name: U.as_untyped("foo"), default: None, type_: None} |> U.as_int,
-        AE.{
-          name: U.as_untyped("bar"),
-          default: Some(3 |> U.int_prim),
-          type_: None,
-        }
-        |> U.as_int,
+        (U.as_untyped("foo"), None, None) |> U.as_int,
+        (U.as_untyped("bar"), None, Some(3 |> U.int_prim)) |> U.as_int,
       ],
       ("foo" |> A.of_id |> U.as_int, "bar" |> A.of_id |> U.as_int)
       |> A.of_add_op
@@ -213,7 +221,7 @@ let inline_function = [
     |> A.of_func
     |> U.as_function([Valid(`Integer), Valid(`Integer)], Valid(`Integer)),
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -226,7 +234,8 @@ let inline_function = [
  */
 let multiline_function = [
   (
-    "multiline_function" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "multiline_function" |> U.as_untyped,
     (
       [],
       [
@@ -244,7 +253,7 @@ let multiline_function = [
     |> A.of_func
     |> U.as_function([Valid(`Integer), Valid(`Integer)], Valid(`Integer)),
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 
@@ -252,10 +261,7 @@ let multiline_function = [
  `import Foo from "main_import"`
  */
 let main_import = [
-  (
-    "main_import" |> A.of_external,
-    ["Foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-  )
+  ("main_import" |> A.of_external, "Foo" |> U.as_untyped |> Option.some, [])
   |> A.of_import
   |> U.as_untyped,
 ];
@@ -266,7 +272,8 @@ let main_import = [
 let named_import = [
   (
     "named_import" |> A.of_external,
-    [(U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped],
+    None,
+    [(U.as_untyped("foo"), None) |> U.as_untyped],
   )
   |> A.of_import
   |> U.as_untyped,

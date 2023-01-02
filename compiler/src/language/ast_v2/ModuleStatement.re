@@ -8,8 +8,8 @@ module NamedImport = {
 };
 
 type export_t =
-  | MainExport
-  | NamedExport;
+  | Main
+  | Named;
 
 type t('typ) =
   | Export(export_t, identifier_t, Declaration.node_t('typ))

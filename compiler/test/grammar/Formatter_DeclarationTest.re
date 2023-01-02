@@ -12,13 +12,8 @@ let __inline_function = (
   "foo",
   (
     [
-      AE.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
-      AE.{
-        name: U.as_untyped("fizz"),
-        default: Some(3 |> U.int_prim),
-        type_: None,
-      }
-      |> U.as_int,
+      (U.as_untyped("bar"), None, None) |> U.as_int,
+      (U.as_untyped("fizz"), None, Some(3 |> U.int_prim)) |> U.as_int,
     ],
     ("bar" |> A.of_id |> U.as_int, "fizz" |> A.of_id |> U.as_int)
     |> A.of_add_op
@@ -50,13 +45,8 @@ let __inline_view = (
   "foo",
   (
     [
-      AE.{name: U.as_untyped("bar"), default: None, type_: None} |> U.as_int,
-      AE.{
-        name: U.as_untyped("fizz"),
-        default: Some(3 |> U.int_prim),
-        type_: None,
-      }
-      |> U.as_int,
+      (U.as_untyped("bar"), None, None) |> U.as_int,
+      (U.as_untyped("fizz"), None, Some(3 |> U.int_prim)) |> U.as_int,
     ],
     [],
     [

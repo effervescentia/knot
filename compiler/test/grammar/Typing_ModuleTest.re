@@ -140,7 +140,7 @@ module Foo {}",
               U.as_untyped("Foo"),
               [
                 (U.as_untyped("bar"), U.as_untyped(TE.String))
-                |> TD.of_declaration
+                |> TD.of_exportaration
                 |> U.as_untyped,
               ],
               [],
@@ -286,7 +286,7 @@ module Foo {}",
                 |> TD.of_type
                 |> U.as_untyped,
                 (U.as_untyped("fizz"), U.as_untyped(TE.Float))
-                |> TD.of_declaration
+                |> TD.of_exportaration
                 |> U.as_untyped,
                 (
                   U.as_untyped("buzz"),
@@ -297,7 +297,7 @@ module Foo {}",
                     ),
                   ),
                 )
-                |> TD.of_declaration
+                |> TD.of_exportaration
                 |> U.as_untyped,
               ],
               [],

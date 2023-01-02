@@ -3,7 +3,7 @@ open Parse.Kore;
 open AST;
 
 let parse =
-    ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
+    ((ctx: ParseContext.t, export: Module.export_t))
     : Framework.declaration_parser_t =>
   Matchers.keyword(Constants.Keyword.func)
   >>= Node.get_range
@@ -28,7 +28,7 @@ let parse =
               |> List.iter(arg =>
                    scope
                    |> Scope.define(
-                        Expression.(fst(arg).name) |> fst,
+                        arg |> fst |> Tuple.fst3 |> fst,
                         Node.get_type(arg),
                       )
                    |> Option.iter(
@@ -47,11 +47,10 @@ let parse =
                     Node.get_type(res'),
                   )),
                 );
-              let export_id = tag_export(id);
 
               ctx.symbols
               |> SymbolTable.declare_value(
-                   ~main=Util.is_main(export_id),
+                   ~main=Util.is_main(export),
                    fst(id),
                    type_,
                  );
@@ -63,7 +62,7 @@ let parse =
                   range,
                 );
 
-              Node.untyped((export_id, func), Range.join(start, range));
+              Node.untyped((id, func), Range.join(start, range));
             }
           )
       )

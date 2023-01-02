@@ -10,17 +10,12 @@ include Factory.Make({
 
 /* tag helpers */
 
-let of_main_import = x => MainImport(x);
-let of_named_import = ((x, y)) => NamedImport(x, y);
-
-let of_main_export = x => MainExport(x);
-let of_named_export = x => NamedExport(x);
-
 let of_const = x => Constant(x);
 let of_enum = variants => Enumerated(variants);
 let of_func = ((args, expr)) => Function(args, expr);
 let of_view = ((props, mixins, expr)) => View(props, mixins, expr);
 
-let of_standard_import = imports => StandardImport(imports);
-let of_import = ((namespace, imports)) => Import(namespace, imports);
-let of_decl = ((name, x)) => Declaration(name, x);
+let of_standard_import = imports => StdlibImport(imports);
+let of_import = ((namespace, main_import, named_imports)) =>
+  Import(namespace, main_import, named_imports);
+let of_export = ((export, name, x)) => Export(export, name, x);

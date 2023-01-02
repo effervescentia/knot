@@ -23,25 +23,14 @@ and raw_declaration_t =
 /**
  a stdlib import AST node
  */
-type standard_import_t = untyped_t((identifier_t, option(identifier_t)));
-
-/**
- an import AST node
- */
-type import_t = untyped_t(raw_import_t)
-/**
- supported import types
- */
-and raw_import_t =
-  | MainImport(identifier_t)
-  | NamedImport(identifier_t, option(identifier_t));
+type named_import_t = untyped_t((identifier_t, option(identifier_t)));
 
 /**
  supported export types
  */
 type export_t =
-  | MainExport(identifier_t)
-  | NamedExport(identifier_t);
+  | Main
+  | Named;
 
 /**
  module statement AST node
@@ -51,9 +40,13 @@ type module_statement_t = untyped_t(raw_module_statement_t)
  supported top-level module statements
  */
 and raw_module_statement_t =
-  | StandardImport(list(standard_import_t))
-  | Import(Reference.Namespace.t, list(import_t))
-  | Declaration(export_t, declaration_t);
+  | StdlibImport(list(named_import_t))
+  | Import(
+      Reference.Namespace.t,
+      option(identifier_t),
+      list(named_import_t),
+    )
+  | Export(export_t, identifier_t, declaration_t);
 
 /**
  the AST of an entire module

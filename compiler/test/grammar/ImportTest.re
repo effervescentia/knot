@@ -45,7 +45,7 @@ let __context_with_named_exports =
     ~modules=
       [
         (
-          "bar" |> A.of_internal,
+          A.of_internal("bar"),
           ModuleTable.Valid(
             "foo",
             _create_module([
@@ -65,7 +65,7 @@ let __context_with_main_export =
     ~modules=
       [
         (
-          "bar" |> A.of_internal,
+          A.of_internal("bar"),
           ModuleTable.Valid(
             "foo",
             _create_module([(Export.Main, T.Valid(`Nil))]),
@@ -94,10 +94,7 @@ let suite =
       () =>
         Assert.parse(
           ~context=__context_with_named_exports,
-          (
-            "bar" |> A.of_internal,
-            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-          )
+          (A.of_internal("bar"), "foo" |> U.as_untyped |> Option.some, [])
           |> A.of_import
           |> U.as_untyped,
           "import foo from \"@/bar\"",
@@ -108,7 +105,7 @@ let suite =
       () =>
         Assert.parse(
           ~context=__context_with_named_exports,
-          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_untyped,
+          (A.of_internal("bar"), None, []) |> A.of_import |> U.as_untyped,
           "import {} from \"@/bar\"",
         )
     ),
@@ -118,10 +115,9 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
-            [
-              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
-            ],
+            A.of_internal("bar"),
+            None,
+            [(U.as_untyped("foo"), None) |> U.as_untyped],
           )
           |> A.of_import
           |> U.as_untyped,
@@ -135,9 +131,9 @@ let suite =
           ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
+            None,
             [
               (U.as_untyped("foo"), Some(U.as_untyped("bar")))
-              |> A.of_named_import
               |> U.as_untyped,
             ],
           )
@@ -153,13 +149,10 @@ let suite =
           ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
+            "fizz" |> U.as_untyped |> Option.some,
             [
-              "fizz" |> U.as_untyped |> A.of_main_import |> U.as_untyped,
-              (U.as_untyped("foo"), None)
-              |> A.of_named_import
-              |> U.as_untyped,
+              (U.as_untyped("foo"), None) |> U.as_untyped,
               (U.as_untyped("bar"), Some(U.as_untyped("Bar")))
-              |> A.of_named_import
               |> U.as_untyped,
             ],
           )
@@ -175,11 +168,10 @@ let suite =
           ~context=__context_with_named_exports,
           (
             "bar" |> A.of_internal,
+            None,
             [
-              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
-              (U.as_untyped("bar"), None)
-              |> A.of_named_import
-              |> U.as_untyped,
+              (U.as_untyped("foo"), None) |> U.as_untyped,
+              (U.as_untyped("bar"), None) |> U.as_untyped,
             ],
           )
           |> A.of_import
@@ -192,10 +184,7 @@ let suite =
       () =>
         Assert.parse_all(
           ~context=__context_with_main_export,
-          (
-            "bar" |> A.of_internal,
-            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-          )
+          ("bar" |> A.of_internal, "foo" |> U.as_untyped |> Option.some, [])
           |> A.of_import
           |> U.as_untyped,
           [

@@ -31,10 +31,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            AST.Module.Named,
+            "foo" |> U.as_untyped,
             U.nil_prim |> A.of_const |> U.as_nil,
           )
-          |> A.of_decl
+          |> A.of_export
           |> U.as_untyped,
           "const foo = nil",
         )
@@ -44,10 +45,11 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_main_export,
+            AST.Module.Main,
+            "foo" |> U.as_untyped,
             U.nil_prim |> A.of_const |> U.as_nil,
           )
-          |> A.of_decl
+          |> A.of_export
           |> U.as_untyped,
           "main const foo = nil",
         )

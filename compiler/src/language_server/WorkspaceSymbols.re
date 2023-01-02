@@ -64,10 +64,7 @@ let handler: Runtime.request_handler_t(params_t) =
                          fst
                          % AST.Module.(
                              fun
-                             | Declaration(
-                                 MainExport(name) | NamedExport(name),
-                                 decl,
-                               ) => {
+                             | Export(_, name, decl) => {
                                  let uri =
                                    Filename.concat(
                                      uri,

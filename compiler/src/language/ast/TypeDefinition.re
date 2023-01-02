@@ -37,7 +37,7 @@ type t = list(module_t);
 /* tag helpers */
 
 let of_decorator = ((id, args, target)) => Decorator(id, args, target);
-let of_declaration = ((id, type_)) => Declaration(id, type_);
+let of_exportaration = ((id, type_)) => Declaration(id, type_);
 let of_type = ((id, type_)) => Type(id, type_);
 let of_enum = ((id, variants)) => Enumerated(id, variants);
 let of_module = ((id, stmts, decorators)) => Module(id, stmts, decorators);

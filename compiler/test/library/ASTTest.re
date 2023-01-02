@@ -23,7 +23,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=nil_const />
+      <Named range=0.0 value=nil_const />
       <Entity range=0.0 type=nil>
         <Constant>
           <Expression range=0.0 type=nil>
@@ -44,7 +44,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=int_const />
+      <Named range=0.0 value=int_const />
       <Entity range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
@@ -65,7 +65,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=float_const />
+      <Named range=0.0 value=float_const />
       <Entity range=0.0 type=float>
         <Constant>
           <Expression range=0.0 type=float>
@@ -86,7 +86,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=bool_const />
+      <Named range=0.0 value=bool_const />
       <Entity range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
@@ -107,7 +107,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=string_const />
+      <Named range=0.0 value=string_const />
       <Entity range=0.0 type=string>
         <Constant>
           <Expression range=0.0 type=string>
@@ -128,7 +128,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=identifier_const />
+      <Named range=0.0 value=identifier_const />
       <Entity range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
@@ -149,7 +149,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=jsx_const />
+      <Named range=0.0 value=jsx_const />
       <Entity range=0.0 type=element>
         <Constant>
           <Expression range=0.0 type=element>
@@ -174,7 +174,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=group_const />
+      <Named range=0.0 value=group_const />
       <Entity range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
@@ -199,7 +199,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=closure_const />
+      <Named range=0.0 value=closure_const />
       <Entity range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
@@ -248,7 +248,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=and_bool_const />
+      <Named range=0.0 value=and_bool_const />
       <Entity range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
@@ -280,7 +280,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=negative_int_const />
+      <Named range=0.0 value=negative_int_const />
       <Entity range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
@@ -305,7 +305,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=complex_jsx_const />
+      <Named range=0.0 value=complex_jsx_const />
       <Entity range=0.0 type=element>
         <Constant>
           <Expression range=0.0 type=element>
@@ -361,7 +361,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=inline_function />
+      <Named range=0.0 value=inline_function />
       <Entity range=0.0 type=(integer, integer) -> integer>
         <Function>
           <Parameter range=0.0 type=integer>
@@ -406,7 +406,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Declaration>
-      <NamedExport range=0.0 value=multiline_function />
+      <Named range=0.0 value=multiline_function />
       <Entity range=0.0 type=(integer, integer) -> integer>
         <Function>
           <Body>
@@ -468,11 +468,7 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Import namespace=main_import>
-      <ImportTarget range=0.0>
-        <MainImport>
-          <Name range=0.0 value=Foo />
-        </MainImport>
-      </ImportTarget>
+      <MainImport range=0.0 value=Foo />
     </Import>
   </ModuleStatement>
 </Program>",
@@ -486,11 +482,9 @@ let suite =
           "<Program>
   <ModuleStatement range=0.0>
     <Import namespace=named_import>
-      <ImportTarget range=0.0>
-        <NamedImport>
-          <Name range=0.0 value=foo />
-        </NamedImport>
-      </ImportTarget>
+      <NamedImport range=0.0>
+        <Name range=0.0 value=foo />
+      </NamedImport>
     </Import>
   </ModuleStatement>
 </Program>",

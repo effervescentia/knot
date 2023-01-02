@@ -27,10 +27,11 @@ module Program = {
   let const_int =
     AST.Result.[
       (
-        "ABC" |> U.as_untyped |> of_named_export,
+        AST.Module.Named,
+        "ABC" |> U.as_untyped,
         123 |> U.int_prim |> of_const |> U.as_int,
       )
-      |> of_decl
+      |> of_export
       |> U.as_untyped,
     ];
 };

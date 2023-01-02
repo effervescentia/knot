@@ -27,7 +27,7 @@ let parse_declaration: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_value(id, type_);
 
-        TypeDefinition.of_declaration(res);
+        TypeDefinition.of_exportaration(res);
       },
     );
 

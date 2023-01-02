@@ -22,17 +22,9 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          AE.{
-            name: URes.as_untyped(__id),
-            default: Some(URes.string_prim("bar")),
-            type_: None,
-          }
+          (URes.as_untyped(__id), None, Some(URes.string_prim("bar")))
           |> URes.as_string,
-          AE.{
-            name: URaw.as_untyped(__id),
-            default: Some(URaw.string_prim("bar")),
-            type_: None,
-          }
+          (URaw.as_untyped(__id), None, Some(URaw.string_prim("bar")))
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __scope,
@@ -44,17 +36,9 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          AE.{
-            name: URes.as_untyped(__id),
-            default: None,
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (URes.as_untyped(__id), Some(URaw.as_untyped(TE.Boolean)), None)
           |> URes.as_bool,
-          AE.{
-            name: URaw.as_untyped(__id),
-            default: None,
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (URaw.as_untyped(__id), Some(URaw.as_untyped(TE.Boolean)), None)
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __scope,
@@ -66,17 +50,17 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          AE.{
-            name: URes.as_untyped(__id),
-            default: Some(URes.bool_prim(true)),
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (
+            URes.as_untyped(__id),
+            Some(URaw.as_untyped(TE.Boolean)),
+            Some(URes.bool_prim(true)),
+          )
           |> URes.as_bool,
-          AE.{
-            name: URaw.as_untyped(__id),
-            default: Some(URaw.bool_prim(true)),
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (
+            URaw.as_untyped(__id),
+            Some(URaw.as_untyped(TE.Boolean)),
+            Some(URaw.bool_prim(true)),
+          )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __scope,
@@ -88,17 +72,17 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          AE.{
-            name: URes.as_untyped(__id),
-            default: Some(__id |> A.of_id |> URes.as_invalid(NotInferrable)),
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (
+            URes.as_untyped(__id),
+            Some(URaw.as_untyped(TE.Boolean)),
+            Some(__id |> A.of_id |> URes.as_invalid(NotInferrable)),
+          )
           |> URes.as_bool,
-          AE.{
-            name: URaw.as_untyped(__id),
-            default: Some(__id |> AR.of_id |> URaw.as_node),
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (
+            URaw.as_untyped(__id),
+            Some(URaw.as_untyped(TE.Boolean)),
+            Some(__id |> AR.of_id |> URaw.as_node),
+          )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __scope,
@@ -118,11 +102,11 @@ let suite =
             ),
           ],
           () =>
-          AE.{
-            name: URaw.as_untyped(__id),
-            default: Some(URaw.string_prim("bar")),
-            type_: Some(URaw.as_untyped(TE.Boolean)),
-          }
+          (
+            URaw.as_untyped(__id),
+            Some(URaw.as_untyped(TE.Boolean)),
+            Some(URaw.string_prim("bar")),
+          )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __throw_scope,
@@ -142,7 +126,7 @@ let suite =
             ),
           ],
           () =>
-          AE.{name: URaw.as_untyped(__id), default: None, type_: None}
+          (URaw.as_untyped(__id), None, None)
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __throw_scope,
@@ -154,9 +138,9 @@ let suite =
     >: (
       () =>
         Assert.argument(
-          AE.{name: URes.as_untyped(__id), default: None, type_: None}
+          (URes.as_untyped(__id), None, None)
           |> URes.as_invalid(NotInferrable),
-          AE.{name: URaw.as_untyped(__id), default: None, type_: None}
+          (URaw.as_untyped(__id), None, None)
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_argument(
                __scope,
@@ -177,23 +161,19 @@ let suite =
           ],
           () =>
           [
-            AE.{
-              name: URaw.as_untyped("fizz"),
-              default: None,
-              type_: Some(URaw.as_untyped(TE.Boolean)),
-            }
+            (
+              URaw.as_untyped("fizz"),
+              Some(URaw.as_untyped(TE.Boolean)),
+              None,
+            )
             |> URaw.as_node,
-            AE.{
-              name: URaw.as_untyped("buzz"),
-              default: Some(URaw.bool_prim(true)),
-              type_: None,
-            }
+            (URaw.as_untyped("buzz"), None, Some(URaw.bool_prim(true)))
             |> URaw.as_node,
-            AE.{
-              name: URaw.as_untyped("bar"),
-              default: None,
-              type_: Some(URaw.as_untyped(TE.Boolean)),
-            }
+            (
+              URaw.as_untyped("bar"),
+              Some(URaw.as_untyped(TE.Boolean)),
+              None,
+            )
             |> URaw.as_node,
           ]
           |> KLambda.Analyzer.analyze_argument_list(

@@ -85,8 +85,8 @@ type argument_t('a) = Node.t(raw_argument_t('a), 'a)
 /**
    a node of an argument for a functional closure
    */
-and raw_argument_t('a) = {
-  name: identifier_t,
-  default: option(expression_t('a)),
-  type_: option(TypeExpression.t),
-};
+and raw_argument_t('a) = (
+  identifier_t,
+  option(TypeExpression.t),
+  option(expression_t('a)),
+);

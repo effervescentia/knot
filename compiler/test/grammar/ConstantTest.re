@@ -7,10 +7,10 @@ module SymbolTable = AST.SymbolTable;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N.t((AM.export_t, AM.declaration_t), unit);
+    type t = N.t((AST.Common.identifier_t, AM.declaration_t), unit);
 
     let parser = ctx =>
-      (ctx, A.of_named_export)
+      (ctx, AST.Module.Named)
       |> KConstant.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -19,8 +19,11 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            (ppf, stmt) =>
-              KDeclaration.Plugin.to_xml(~@AST.Type.pp, fst(stmt))
+            (ppf, ((name, declaration), _)) =>
+              KDeclaration.Plugin.to_xml(
+                ~@AST.Type.pp,
+                (AM.Named, name, declaration),
+              )
               |> Fmt.xml_string(ppf),
             (==),
           ),
@@ -42,10 +45,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          (
-            "foo" |> U.as_untyped |> A.of_named_export,
-            U.nil_prim |> A.of_const |> U.as_nil,
-          )
+          ("foo" |> U.as_untyped, U.nil_prim |> A.of_const |> U.as_nil)
           |> U.as_untyped,
           "const foo = nil",
         )
@@ -72,7 +72,7 @@ let suite =
               Reference.Namespace.Internal("foo"),
             ),
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             [
               (U.as_untyped("x"), "bar" |> A.of_id |> U.as_float)
               |> A.of_var

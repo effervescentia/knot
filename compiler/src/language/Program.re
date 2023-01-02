@@ -27,11 +27,11 @@ let module_statement_to_xml:
       ~unpack=
         Module.(
           fun
-          | StandardImport(names) =>
+          | StdlibImport(named_imports) =>
             Fmt.Node(
-              "StandardImport",
+              "StdlibImport",
               [],
-              names
+              named_imports
               |> List.map(
                    Dump.node_to_xml(
                      ~unpack=
@@ -54,10 +54,11 @@ let module_statement_to_xml:
                    ),
                  ),
             )
-          | Import(namespace, imports) =>
-            KImport.Plugin.to_xml((namespace, imports))
-          | Declaration(name, decl) =>
-            KDeclaration.Plugin.to_xml(dump_type, (name, decl))
+          | Import(namespace, main_import, named_imports) =>
+            (namespace, main_import, named_imports) |> KImport.Plugin.to_xml
+          | Export(export, name, declaration) =>
+            (export, name, declaration)
+            |> KDeclaration.Plugin.to_xml(dump_type)
         )
         % (x => [x]),
       "ModuleStatement",

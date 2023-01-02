@@ -6,10 +6,11 @@ module U = Util.ResultUtil;
 
 let __program = [
   (
-    "ABC" |> U.as_untyped |> A.of_named_export,
+    AM.Named,
+    "ABC" |> U.as_untyped,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped,
 ];
 

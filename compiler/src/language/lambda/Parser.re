@@ -30,7 +30,7 @@ let parse_arguments =
       let name_range = Node.get_range(name);
 
       Node.typed(
-        Expression.{name, default, type_},
+        (name, type_, default),
         (),
         Range.join(
           name_range,

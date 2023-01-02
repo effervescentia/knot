@@ -30,18 +30,16 @@ let __const_decl = "const foo = nil";
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __main_import_ast =
-  (
-    "bar" |> A.of_internal,
-    ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-  )
+  ("bar" |> A.of_internal, "foo" |> U.as_untyped |> Option.some, [])
   |> A.of_import
   |> U.as_untyped;
 let __const_decl_ast =
   (
-    "foo" |> U.as_untyped |> A.of_named_export,
+    AST.Module.Named,
+    "foo" |> U.as_untyped,
     U.nil_prim |> A.of_const |> U.as_nil,
   )
-  |> A.of_decl
+  |> A.of_export
   |> U.as_untyped;
 
 let _create_module = (exports: list((Export.t, T.t))): ModuleTable.module_t => {
@@ -91,10 +89,11 @@ let suite =
           [
             __const_decl_ast,
             (
-              "bar" |> U.as_untyped |> A.of_named_export,
+              AST.Module.Named,
+              "bar" |> U.as_untyped,
               "foo" |> A.of_id |> U.as_nil |> A.of_const |> U.as_nil,
             )
-            |> A.of_decl
+            |> A.of_export
             |> U.as_untyped,
           ],
           __const_decl ++ "; const bar = foo",
@@ -131,10 +130,11 @@ let suite =
           [
             __main_import_ast,
             (
-              "bar" |> U.as_untyped |> A.of_named_export,
+              AST.Module.Named,
+              "bar" |> U.as_untyped,
               "foo" |> A.of_id |> U.as_bool |> A.of_const |> U.as_bool,
             )
-            |> A.of_decl
+            |> A.of_export
             |> U.as_untyped,
           ],
           __main_import ++ "; const bar = foo",

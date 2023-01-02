@@ -3,10 +3,10 @@ open Kore;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = N.t((AM.export_t, AM.declaration_t), unit);
+    type t = N.t((AST.Common.identifier_t, AM.declaration_t), unit);
 
     let parser = ctx =>
-      (ctx, A.of_named_export)
+      (ctx, AST.Module.Named)
       |> KFunction.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -15,8 +15,11 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            (ppf, stmt) =>
-              KDeclaration.Plugin.to_xml(~@AST.Type.pp, fst(stmt))
+            (ppf, ((name, declaration), _)) =>
+              KDeclaration.Plugin.to_xml(
+                ~@AST.Type.pp,
+                (AST.Module.Named, name, declaration),
+              )
               |> Fmt.xml_string(ppf),
             (==),
           ),
@@ -48,7 +51,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(`Nil)),
           )
           |> U.as_untyped,
@@ -60,7 +63,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             (
               [],
               [U.nil_prim |> A.of_effect |> U.as_nil]
@@ -79,7 +82,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(`Nil)),
           )
           |> U.as_untyped,
@@ -91,7 +94,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             (
               [],
               [U.nil_prim |> A.of_effect |> U.as_nil]
@@ -110,14 +113,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             (
               [
-                AE.{
-                  name: U.as_untyped("fizz"),
-                  type_: Some(U.as_untyped(TE.Integer)),
-                  default: None,
-                }
+                (U.as_untyped("fizz"), Some(U.as_untyped(TE.Integer)), None)
                 |> U.as_int,
               ],
               [] |> A.of_closure |> U.as_nil,
@@ -134,14 +133,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             (
               [
-                AE.{
-                  name: U.as_untyped("fizz"),
-                  type_: None,
-                  default: Some(U.string_prim("bar")),
-                }
+                (U.as_untyped("fizz"), None, Some(U.string_prim("bar")))
                 |> U.as_string,
               ],
               [] |> A.of_closure |> U.as_nil,
@@ -158,14 +153,14 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            "foo" |> U.as_untyped,
             (
               [
-                AE.{
-                  name: U.as_untyped("fizz"),
-                  type_: Some(U.as_untyped(TE.Boolean)),
-                  default: Some(U.bool_prim(true)),
-                }
+                (
+                  U.as_untyped("fizz"),
+                  Some(U.as_untyped(TE.Boolean)),
+                  Some(U.bool_prim(true)),
+                )
                 |> U.as_bool,
               ],
               [] |> A.of_closure |> U.as_nil,

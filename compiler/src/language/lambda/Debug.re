@@ -12,7 +12,7 @@ let argument_to_xml:
     Dump.node_to_xml(
       ~dump_type,
       ~unpack=
-        (Expression.{name, default, type_}) =>
+        ((name, type_, default)) =>
           [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
           @ (
             default
