@@ -5,19 +5,19 @@ let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Expression.view_source_t, Raw.expression_t, Raw.expression_t),
+    (Expression.view_kind_t, Raw.expression_t, Raw.expression_t),
     Range.t
   ) =>
-  (Expression.view_source_t, Result.expression_t, Result.expression_t) =
-  (scope, analyze_expression, (source, lhs, rhs), range) => {
+  (Expression.view_kind_t, Result.expression_t, Result.expression_t) =
+  (scope, analyze_expression, (kind, lhs, rhs), range) => {
     let lhs_range = Node.get_range(lhs);
     let tag_scope = Scope.create(scope.context, lhs_range);
     tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-    let (source', lhs', lhs_type) =
+    let (kind', lhs', lhs_type) =
       switch (fst(lhs)) {
       | Identifier(id) =>
-        let (lhs_type, source') =
+        let (lhs_type, kind') =
           scope
           |> Scope.lookup(id)
           |> Option.map(
@@ -42,7 +42,7 @@ let analyze:
           |?: (Invalid(NotInferrable), Expression.Component);
 
         (
-          source',
+          kind',
           Node.typed(Expression.Identifier(id), lhs_type, lhs_range),
           lhs_type,
         );
@@ -59,5 +59,5 @@ let analyze:
     |> Validator.validate
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    (source', lhs', rhs');
+    (kind', lhs', rhs');
   };

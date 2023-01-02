@@ -13,7 +13,7 @@ include Framework.Expression({
   );
 
   type value_t('a) = (
-    Expression.view_source_t,
+    Expression.view_kind_t,
     Expression.expression_t('a),
     Expression.expression_t('a),
   );

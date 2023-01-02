@@ -3,9 +3,7 @@ open Kore;
 module A = AST.Result;
 module U = Util.ResultUtil;
 
-let dump =
-  Language.Program.program_to_xml(~@AST.Type.pp)
-  % ~@Pretty.XML.xml(Fmt.string);
+let dump = Language.Debug.program_to_xml % ~@Pretty.XML.xml(Fmt.string);
 
 let rec get_xml_depth =
   fun
@@ -22,16 +20,16 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=nil_const />
-      <Entity range=0.0 type=nil>
+    <Export kind=Named>
+      <Name range=0.0 value=nil_const />
+      <Declaration range=0.0 type=nil>
         <Constant>
           <Expression range=0.0 type=nil>
             <Nil />
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.nil_const),
@@ -43,16 +41,16 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=int_const />
-      <Entity range=0.0 type=integer>
+    <Export kind=Named>
+      <Name range=0.0 value=int_const />
+      <Declaration range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
             <Integer value=123 />
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.int_const),
@@ -64,16 +62,16 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=float_const />
-      <Entity range=0.0 type=float>
+    <Export kind=Named>
+      <Name range=0.0 value=float_const />
+      <Declaration range=0.0 type=float>
         <Constant>
           <Expression range=0.0 type=float>
             <Float value=123.000 />
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.float_const),
@@ -85,16 +83,16 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=bool_const />
-      <Entity range=0.0 type=boolean>
+    <Export kind=Named>
+      <Name range=0.0 value=bool_const />
+      <Declaration range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
             <Boolean value=true />
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.bool_const),
@@ -106,16 +104,16 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=string_const />
-      <Entity range=0.0 type=string>
+    <Export kind=Named>
+      <Name range=0.0 value=string_const />
+      <Declaration range=0.0 type=string>
         <Constant>
           <Expression range=0.0 type=string>
             <String value=\"foo\" />
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.string_const),
@@ -127,16 +125,16 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=identifier_const />
-      <Entity range=0.0 type=integer>
+    <Export kind=Named>
+      <Name range=0.0 value=identifier_const />
+      <Declaration range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
             <Identifier name=foo />
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.identifier_const),
@@ -148,9 +146,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=jsx_const />
-      <Entity range=0.0 type=element>
+    <Export kind=Named>
+      <Name range=0.0 value=jsx_const />
+      <Declaration range=0.0 type=element>
         <Constant>
           <Expression range=0.0 type=element>
             <KSX>
@@ -160,8 +158,8 @@ let suite =
             </KSX>
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.jsx_const),
@@ -173,9 +171,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=group_const />
-      <Entity range=0.0 type=integer>
+    <Export kind=Named>
+      <Name range=0.0 value=group_const />
+      <Declaration range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
             <Group>
@@ -185,8 +183,8 @@ let suite =
             </Group>
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.group_const),
@@ -198,9 +196,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=closure_const />
-      <Entity range=0.0 type=boolean>
+    <Export kind=Named>
+      <Name range=0.0 value=closure_const />
+      <Declaration range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
             <Closure>
@@ -234,8 +232,8 @@ let suite =
             </Closure>
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.closure_const),
@@ -247,9 +245,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=and_bool_const />
-      <Entity range=0.0 type=boolean>
+    <Export kind=Named>
+      <Name range=0.0 value=and_bool_const />
+      <Declaration range=0.0 type=boolean>
         <Constant>
           <Expression range=0.0 type=boolean>
             <And>
@@ -266,8 +264,8 @@ let suite =
             </And>
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.and_bool_const),
@@ -279,9 +277,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=negative_int_const />
-      <Entity range=0.0 type=integer>
+    <Export kind=Named>
+      <Name range=0.0 value=negative_int_const />
+      <Declaration range=0.0 type=integer>
         <Constant>
           <Expression range=0.0 type=integer>
             <Negative>
@@ -291,8 +289,8 @@ let suite =
             </Negative>
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.negative_int_const),
@@ -304,9 +302,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=complex_jsx_const />
-      <Entity range=0.0 type=element>
+    <Export kind=Named>
+      <Name range=0.0 value=complex_jsx_const />
+      <Declaration range=0.0 type=element>
         <Constant>
           <Expression range=0.0 type=element>
             <KSX>
@@ -347,8 +345,8 @@ let suite =
             </KSX>
           </Expression>
         </Constant>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.complex_jsx_const),
@@ -360,9 +358,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=inline_function />
-      <Entity range=0.0 type=(integer, integer) -> integer>
+    <Export kind=Named>
+      <Name range=0.0 value=inline_function />
+      <Declaration range=0.0 type=(integer, integer) -> integer>
         <Function>
           <Parameter range=0.0 type=integer>
             <Name range=0.0 value=foo />
@@ -392,8 +390,8 @@ let suite =
             </Expression>
           </Body>
         </Function>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.inline_function),
@@ -405,9 +403,9 @@ let suite =
         Assert.string(
           "<Program>
   <ModuleStatement range=0.0>
-    <Declaration>
-      <Named range=0.0 value=multiline_function />
-      <Entity range=0.0 type=(integer, integer) -> integer>
+    <Export kind=Named>
+      <Name range=0.0 value=multiline_function />
+      <Declaration range=0.0 type=(integer, integer) -> integer>
         <Function>
           <Body>
             <Expression range=0.0 type=integer>
@@ -454,8 +452,8 @@ let suite =
             </Expression>
           </Body>
         </Function>
-      </Entity>
-    </Declaration>
+      </Declaration>
+    </Export>
   </ModuleStatement>
 </Program>",
           dump(Fixtures.multiline_function),

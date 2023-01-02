@@ -6,7 +6,7 @@ module ParseContext = AST.ParseContext;
 module Program = Language.Program;
 
 let dump_program = ppf =>
-  Language.Program.program_to_xml(~@T.pp) % Pretty.XML.xml(Fmt.string, ppf);
+  Language.Debug.program_to_xml % Pretty.XML.xml(Fmt.string, ppf);
 
 module Target = {
   type t = AM.program_t;

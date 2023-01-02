@@ -1,6 +1,6 @@
 open AST;
 
-include Framework.DeclarationV2({
+include Framework.Declaration({
   type value_t = Result.expression_t;
 
   let parse = Parser.parse;

@@ -1,7 +1,7 @@
 open Knot.Kore;
 open Common;
 
-type view_source_t =
+type view_kind_t =
   | Component
   | Element;
 
@@ -10,7 +10,7 @@ type view_source_t =
    */
 type ksx_t('a) =
   | Tag(
-      view_source_t,
+      view_kind_t,
       Node.t(string, 'a),
       list(expression_t('a)),
       list(ksx_attribute_t('a)),
@@ -63,7 +63,7 @@ and raw_expression_t('a) =
   | UnaryOp(Unary.t, expression_t('a))
   | Closure(list(statement_t('a)))
   | DotAccess(expression_t('a), identifier_t)
-  | BindStyle(view_source_t, expression_t('a), expression_t('a))
+  | BindStyle(view_kind_t, expression_t('a), expression_t('a))
   | FunctionCall(expression_t('a), list(expression_t('a)))
   | Style(list(style_rule_t('a)))
 

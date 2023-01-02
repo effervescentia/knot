@@ -84,20 +84,6 @@ module Expression = (Params: ExpressionParams) => {
 module type DeclarationParams = {
   type value_t;
 
-  let parse: ((ParseContext.t, Module.export_kind_t)) => declaration_parser_t;
-
-  let format: Fmt.t((string, value_t));
-
-  let to_xml: (Type.t => string, value_t) => Fmt.xml_t(string);
-};
-
-module Declaration = (Params: DeclarationParams) => {
-  include Params;
-};
-
-module type DeclarationParamsV2 = {
-  type value_t;
-
   let parse:
     ((ParseContext.t, Module.export_kind_t)) =>
     Parser.t(Node.t((Common.identifier_t, Result.node_t(value_t)), unit));
@@ -107,6 +93,6 @@ module type DeclarationParamsV2 = {
   let to_xml: (Type.t => string, value_t) => Fmt.xml_t(string);
 };
 
-module DeclarationV2 = (Params: DeclarationParamsV2) => {
+module Declaration = (Params: DeclarationParams) => {
   include Params;
 };

@@ -38,9 +38,9 @@ let rec to_xml:
       [],
       [
         switch (ksx) {
-        | Tag(source, view, style, attributes, children) =>
+        | Tag(kind, view, style, attributes, children) =>
           Fmt.Node(
-            switch (source) {
+            switch (kind) {
             | Component => "Component"
             | Element => "Element"
             },

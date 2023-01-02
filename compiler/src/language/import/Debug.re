@@ -19,6 +19,13 @@ let named_import_to_xml =
     "NamedImport",
   );
 
+let stdlib_import_to_xml = named_imports =>
+  Fmt.Node(
+    "StdlibImport",
+    [],
+    named_imports |> List.map(named_import_to_xml),
+  );
+
 let to_xml:
   (
     (
