@@ -5,7 +5,7 @@ let analyze:
   (
     Scope.t,
     (Scope.t, Raw.expression_t) => Result.expression_t,
-    Expression.expression_t(unit)
+    Raw.expression_t
   ) =>
   (Result.raw_statement_t, Type.t) =
   (scope, analyze_expression, expression) => {

@@ -1,7 +1,7 @@
 open Kore;
 
 let fold = (~constant, ~enumerated, ~function_, ~view) =>
-  AST.Module.(
+  AST.Declaration.(
     fun
     | Constant(expr) => expr |> constant
     | Enumerated(variants) => variants |> enumerated

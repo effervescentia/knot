@@ -154,7 +154,7 @@ let of_args = args =>
      );
 
 let of_export =
-  AST.Module.(
+  AST.Declaration.(
     fun
     | Constant(expr) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | Enumerated(variants) =>

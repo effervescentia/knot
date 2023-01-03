@@ -4,10 +4,10 @@ open AST;
 
 let __default_margin = 120;
 
-let format_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
+let format_declaration_list: Fmt.t(list((string, Result.raw_declaration_t))) =
   ppf => {
     let rec loop =
-      Module.(
+      Declaration.(
         fun
         | [] => Fmt.nop(ppf, ())
 

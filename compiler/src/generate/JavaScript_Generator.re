@@ -447,7 +447,7 @@ let gen_view =
   );
 
 let gen_declaration =
-    (name: AST.Result.identifier_t, (decl, _): AST.Module.declaration_t) =>
+    (name: AST.Result.identifier_t, (decl, _): AST.Result.declaration_t) =>
   (
     switch (decl) {
     | Constant(value) => [gen_constant(name, value)]

@@ -1,7 +1,7 @@
 open Kore;
 
 let rec to_xml:
-  ('a => string, AST.Expression.expression_t('a)) => Fmt.xml_t(string) =
+  ('a => string, AST.Expression.node_t('a)) => Fmt.xml_t(string) =
   (dump_type, expr) => {
     let expr_to_xml = to_xml(dump_type);
     let bind = to_xml => to_xml((expr_to_xml, dump_type)) % List.single;

@@ -8,19 +8,6 @@ open Factory.Make({
      });
 
 /**
- a declaration AST node
- */
-type declaration_t = node_t(raw_declaration_t)
-/**
- supported module declarations
- */
-and raw_declaration_t =
-  | Constant(expression_t)
-  | Enumerated(list((identifier_t, list(node_t(TypeExpression.raw_t)))))
-  | Function(list(parameter_t), expression_t)
-  | View(list(parameter_t), list(Node.t(string, Type.t)), expression_t);
-
-/**
  a stdlib import AST node
  */
 type named_import_t = raw_t((identifier_t, option(identifier_t)));
@@ -46,7 +33,11 @@ and raw_module_statement_t =
       option(identifier_t),
       list(named_import_t),
     )
-  | Export(export_kind_t, identifier_t, declaration_t);
+  | Export(
+      export_kind_t,
+      identifier_t,
+      Declaration.node_t(Expression.t(Type.t), Type.t),
+    );
 
 /**
  the AST of an entire module

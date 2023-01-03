@@ -7,35 +7,27 @@ module StyleRule = {
   type node_t('expr, 'typ) = raw_t(t('expr, 'typ));
 };
 
-/**
-   an expression AST node
-   */
-type expression_t('a) = Node.t(raw_expression_t('a), 'a)
-/**
-   supported expressions and type containers
-   */
-and raw_expression_t('a) =
+module Parameter = {
+  type t('expr, 'typ) = (
+    identifier_t,
+    option(TypeExpression.t),
+    option(Node.t('expr, 'typ)),
+  );
+
+  type node_t('expr, 'typ) = Node.t(t('expr, 'typ), 'typ);
+};
+
+type t('typ) =
   | Primitive(Primitive.t)
   | Identifier(string)
-  | KSX(KSX.t(raw_expression_t('a), 'a))
-  | Group(expression_t('a))
-  | BinaryOp(Operator.Binary.t, expression_t('a), expression_t('a))
-  | UnaryOp(Operator.Unary.t, expression_t('a))
-  | Closure(list(Statement.node_t(raw_expression_t('a), 'a)))
-  | DotAccess(expression_t('a), identifier_t)
-  | BindStyle(KSX.ViewKind.t, expression_t('a), expression_t('a))
-  | FunctionCall(expression_t('a), list(expression_t('a)))
-  | Style(list(StyleRule.node_t(raw_expression_t('a), 'a)));
+  | KSX(KSX.t(t('typ), 'typ))
+  | Group(node_t('typ))
+  | BinaryOp(Operator.Binary.t, node_t('typ), node_t('typ))
+  | UnaryOp(Operator.Unary.t, node_t('typ))
+  | Closure(list(Statement.node_t(t('typ), 'typ)))
+  | DotAccess(node_t('typ), identifier_t)
+  | BindStyle(KSX.ViewKind.t, node_t('typ), node_t('typ))
+  | FunctionCall(node_t('typ), list(node_t('typ)))
+  | Style(list(StyleRule.node_t(t('typ), 'typ)))
 
-/**
-   an AST parameter node of a functional closure
-   */
-type parameter_t('a) = Node.t(raw_parameter_t('a), 'a)
-/**
-   a parameter node of a functional closure
-   */
-and raw_parameter_t('a) = (
-  identifier_t,
-  option(TypeExpression.t),
-  option(expression_t('a)),
-);
+and node_t('typ) = Node.t(t('typ), 'typ);

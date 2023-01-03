@@ -24,8 +24,11 @@ module Make = (Params: ASTParams) => {
    */
   type node_t('a) = Node.t('a, type_t);
 
-  type expression_t = Expression.expression_t(type_t);
-  type raw_expression_t = Expression.raw_expression_t(type_t);
+  type expression_t = Expression.node_t(type_t);
+  type raw_expression_t = Expression.t(type_t);
+
+  type declaration_t = Declaration.node_t(raw_expression_t, type_t);
+  type raw_declaration_t = Declaration.t(raw_expression_t, type_t);
 
   type style_rule_t = Expression.StyleRule.node_t(raw_expression_t, type_t);
   type raw_style_rule_t = Expression.StyleRule.t(raw_expression_t, type_t);
@@ -41,10 +44,17 @@ module Make = (Params: ASTParams) => {
   type statement_t = Statement.node_t(raw_expression_t, type_t);
   type raw_statement_t = Statement.t(raw_expression_t, type_t);
 
-  type parameter_t = Expression.parameter_t(type_t);
-  type raw_parameter_t = Expression.raw_parameter_t(type_t);
+  type parameter_t = Expression.Parameter.node_t(raw_expression_t, type_t);
+  type raw_parameter_t = Expression.Parameter.t(raw_expression_t, type_t);
 
   /* tag helpers */
+
+  let of_const = expression => Declaration.Constant(expression);
+  let of_enum = variants => Declaration.Enumerated(variants);
+  let of_func = ((parameters, body)) =>
+    Declaration.Function(parameters, body);
+  let of_view = ((parameters, mixins, body)) =>
+    Declaration.View(parameters, mixins, body);
 
   let of_var = ((name, expression)) => Statement.Variable(name, expression);
   let of_effect = expression => Statement.Effect(expression);

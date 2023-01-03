@@ -1,7 +1,7 @@
 open Kore;
 
 let to_xml:
-  (AST.Type.t => string, AST.Module.declaration_t) => Fmt.xml_t(string) =
+  (AST.Type.t => string, AST.Result.declaration_t) => Fmt.xml_t(string) =
   dump_type => {
     let bind = to_xml => to_xml(dump_type) % List.single;
     let unpack =

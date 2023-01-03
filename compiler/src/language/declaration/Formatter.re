@@ -1,6 +1,6 @@
 open Kore;
 
-let format: Fmt.t((string, AST.Module.raw_declaration_t)) =
+let format: Fmt.t((string, AST.Result.raw_declaration_t)) =
   (ppf, (name, declaration)) => {
     let bind = format => Tuple.with_fst2(name) % format(ppf);
 
