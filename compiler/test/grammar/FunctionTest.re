@@ -1,5 +1,7 @@
 open Kore;
 
+module ExportKind = AST.ModuleStatement.ExportKind;
+
 let suite =
   "Grammar.Function"
   >::: [
@@ -22,7 +24,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(Nil)),
           )
@@ -36,7 +38,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [],
@@ -57,7 +59,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(Nil)),
           )
@@ -71,7 +73,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [],
@@ -92,7 +94,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [
@@ -114,7 +116,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [
@@ -136,7 +138,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [

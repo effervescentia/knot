@@ -8,7 +8,7 @@ module U = Util.CommonUtil;
 
 module Assert =
   Assert.Make({
-    type t = AM.module_statement_t;
+    type t = A.module_statement_t;
 
     let parser = KImport.Plugin.parse % Assert.parse_completely % Parser.parse;
 

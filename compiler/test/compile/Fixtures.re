@@ -3,6 +3,7 @@ open Kore;
 module U = Util.ResultUtil;
 module A = AST.Result;
 module T = AST.Type;
+module ExportKind = AST.ModuleStatement.ExportKind;
 
 let _fixture = Filename.concat("./test/compile/.fixtures");
 
@@ -62,7 +63,7 @@ module Program = {
 
   let const_int = [
     (
-      AST.Module.Named,
+      ExportKind.Named,
       U.as_untyped(~range=Range.create((1, 7), (1, 9)), "ABC"),
       123L
       |> A.of_int
@@ -96,7 +97,7 @@ module Program = {
     |> A.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 29))),
     (
-      AST.Module.Named,
+      ExportKind.Named,
       U.as_untyped(~range=Range.create((3, 7), (3, 9)), "BAR"),
       "bar"
       |> A.of_string
@@ -126,7 +127,7 @@ module Program = {
     |> A.of_import
     |> U.as_untyped(~range=Range.create((2, 3), (2, 25))),
     (
-      AST.Module.Named,
+      ExportKind.Named,
       U.as_untyped(~range=Range.create((4, 9), (4, 11)), "ABC"),
       123L
       |> A.of_int
@@ -160,7 +161,7 @@ module Program = {
     |> A.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 27))),
     (
-      AST.Module.Named,
+      ExportKind.Named,
       U.as_untyped(~range=Range.create((3, 7), (3, 11)), "const"),
       "foo"
       |> A.of_string

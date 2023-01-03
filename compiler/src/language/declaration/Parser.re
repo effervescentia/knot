@@ -2,10 +2,12 @@ open Kore;
 open Parse.Kore;
 open AST;
 
+module ExportKind = ModuleStatement.ExportKind;
+
 let parse = (ctx: ParseContext.t) =>
-  Module.Main
+  ExportKind.Main
   <$ Matchers.keyword(Constants.Keyword.main)
-  |> option(Module.Named)
+  |> option(ExportKind.Named)
   >|= Tuple.with_fst2(ctx)
   >>= (
     ((_, export) as arg) => {

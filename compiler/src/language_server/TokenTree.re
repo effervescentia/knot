@@ -175,15 +175,13 @@ let of_export =
   );
 
 let of_named_import =
-  AST.Module.(
-    fun
-    | (id, None) => of_untyped_id(id)
-    | (id, Some(alias)) =>
-      (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join)
-  );
+  fun
+  | (id, None) => of_untyped_id(id)
+  | (id, Some(alias)) =>
+    (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join);
 
 let of_mod_stmt =
-  AST.Module.(
+  AST.ModuleStatement.(
     fun
     | StdlibImport(imports) =>
       imports

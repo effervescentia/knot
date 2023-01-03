@@ -3,13 +3,14 @@ open Kore;
 module A = AST.Result;
 module AE = AST.Expression;
 module U = Util.ResultUtil;
+module ExportKind = AST.ModuleStatement.ExportKind;
 
 /**
  `const nil_const = nil;`
  */
 let nil_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "nil_const" |> U.as_untyped,
     U.nil_prim |> A.of_const |> U.as_nil,
   )
@@ -22,7 +23,7 @@ let nil_const = [
  */
 let int_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "int_const" |> U.as_untyped,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )
@@ -35,7 +36,7 @@ let int_const = [
  */
 let float_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "float_const" |> U.as_untyped,
     (123.0, 3) |> U.float_prim |> A.of_const |> U.as_float,
   )
@@ -48,7 +49,7 @@ let float_const = [
  */
 let bool_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "bool_const" |> U.as_untyped,
     true |> U.bool_prim |> A.of_const |> U.as_bool,
   )
@@ -61,7 +62,7 @@ let bool_const = [
  */
 let string_const = [
   (
-    AST.Module.Named,
+    AST.ModuleStatement.ExportKind.Named,
     "string_const" |> U.as_untyped,
     "foo" |> U.string_prim |> A.of_const |> U.as_string,
   )
@@ -74,7 +75,7 @@ let string_const = [
  */
 let identifier_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "identifier_const" |> U.as_untyped,
     "foo" |> A.of_id |> U.as_int |> A.of_const |> U.as_int,
   )
@@ -87,7 +88,7 @@ let identifier_const = [
  */
 let jsx_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "jsx_const" |> U.as_untyped,
     ("Foo" |> U.as_view([], Valid(Nil)), [], [], [])
     |> U.ksx_tag
@@ -104,7 +105,7 @@ let jsx_const = [
  */
 let group_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "group_const" |> U.as_untyped,
     123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_const |> U.as_int,
   )
@@ -121,7 +122,7 @@ let group_const = [
  */
 let closure_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "closure_const" |> U.as_untyped,
     [
       (U.as_untyped("foo"), 123 |> U.int_prim) |> A.of_var |> U.as_nil,
@@ -142,7 +143,7 @@ let closure_const = [
  */
 let and_bool_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "and_bool_const" |> U.as_untyped,
     (true |> U.bool_prim, false |> U.bool_prim)
     |> A.of_and_op
@@ -159,7 +160,7 @@ let and_bool_const = [
  */
 let negative_int_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "negative_int_const" |> U.as_untyped,
     123 |> U.int_prim |> A.of_neg_op |> U.as_int |> A.of_const |> U.as_int,
   )
@@ -177,7 +178,7 @@ let negative_int_const = [
  */
 let complex_jsx_const = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "complex_jsx_const" |> U.as_untyped,
     (
       "Foo" |> U.as_view([], Valid(Nil)),
@@ -207,7 +208,7 @@ let complex_jsx_const = [
  */
 let inline_function = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "inline_function" |> U.as_untyped,
     (
       [
@@ -234,7 +235,7 @@ let inline_function = [
  */
 let multiline_function = [
   (
-    AST.Module.Named,
+    ExportKind.Named,
     "multiline_function" |> U.as_untyped,
     (
       [],

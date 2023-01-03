@@ -6,7 +6,7 @@ module U = Util.ResultUtil;
 
 let __program = [
   (
-    AM.Named,
+    AST.ModuleStatement.ExportKind.Named,
     "ABC" |> U.as_untyped,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )

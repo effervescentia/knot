@@ -62,7 +62,7 @@ let handler: Runtime.request_handler_t(params_t) =
                     ast
                     |> List.filter_map(
                          fst
-                         % AST.Module.(
+                         % AST.ModuleStatement.(
                              fun
                              | Export(_, name, decl) => {
                                  let uri =

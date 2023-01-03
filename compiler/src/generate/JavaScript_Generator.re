@@ -473,7 +473,7 @@ let generate = (resolve: resolve_t, ast: AST.Module.program_t) => {
     |> List.fold_left(
          ((i, d)) =>
            fst
-           % AST.Module.(
+           % AST.ModuleStatement.(
                fun
                | Import(namespace, main_import, named_imports) => (
                    i

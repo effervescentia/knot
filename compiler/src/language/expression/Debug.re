@@ -6,7 +6,7 @@ let rec to_xml:
     let expr_to_xml = to_xml(dump_type);
     let bind = to_xml => to_xml((expr_to_xml, dump_type)) % List.single;
     let unpack =
-      Util.fold(
+      AST.Expression.fold(
         ~primitive=bind(KPrimitive.to_xml),
         ~identifier=bind(KIdentifier.to_xml),
         ~group=bind(KGroup.to_xml),

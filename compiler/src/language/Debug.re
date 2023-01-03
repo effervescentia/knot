@@ -3,7 +3,7 @@ open Kore;
 let module_statement_to_xml = module_statement =>
   Dump.node_to_xml(
     ~unpack=
-      AST.Module.(
+      AST.ModuleStatement.(
         fun
         | StdlibImport(named_imports) =>
           KImport.Debug.stdlib_import_to_xml(named_imports)

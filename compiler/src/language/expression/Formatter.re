@@ -4,7 +4,7 @@ let rec format: Fmt.t(AST.Result.raw_expression_t) =
   ppf => {
     let bind = formatter => formatter(format, ppf);
 
-    Util.fold(
+    AST.Expression.fold(
       ~primitive=bind(KPrimitive.format),
       ~identifier=bind(KIdentifier.format),
       ~ksx=bind(KSX.format),

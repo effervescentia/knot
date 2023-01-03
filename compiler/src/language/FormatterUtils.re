@@ -40,7 +40,7 @@ let extract_imports = (program: Module.program_t) =>
   |> List.fold_left(
        acc =>
          fst
-         % Module.(
+         % ModuleStatement.(
              fun
              | StdlibImport(named_imports) =>
                acc
@@ -71,7 +71,7 @@ let extract_declarations = (program: Module.program_t) =>
   program
   |> List.filter_map(
        fst
-       % Module.(
+       % ModuleStatement.(
            fun
            | Export(_, name, decl) => Some((fst(name), fst(decl)))
            | _ => None

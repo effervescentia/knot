@@ -24,7 +24,7 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
       stmts
       |> List.filter_map(
            fst
-           % AST.Module.(
+           % AST.ModuleStatement.(
                fun
                | Import(namespace, _, _) => Some(namespace)
                | _ => None

@@ -5,7 +5,7 @@ open AST;
 let __children_key = "children";
 let __implicit_children_key = "$children";
 
-let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
+let parse = ((ctx: ParseContext.t, export: ModuleStatement.ExportKind.t)) =>
   Matchers.keyword(Constants.Keyword.view)
   >>= Node.get_range
   % (
@@ -116,7 +116,7 @@ let parse = ((ctx: ParseContext.t, export: Module.export_kind_t)) =>
 
               ctx.symbols
               |> SymbolTable.declare_value(
-                   ~main=Util.is_main(export),
+                   ~main=ModuleStatement.ExportKind.is_main(export),
                    fst(name),
                    type_,
                  );

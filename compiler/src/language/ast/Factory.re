@@ -30,6 +30,9 @@ module Make = (Params: ASTParams) => {
   type declaration_t = Declaration.node_t(raw_expression_t, type_t);
   type raw_declaration_t = Declaration.t(raw_expression_t, type_t);
 
+  type module_statement_t = ModuleStatement.node_t;
+  type raw_module_statement_t = ModuleStatement.t;
+
   type style_rule_t = Expression.StyleRule.node_t(raw_expression_t, type_t);
   type raw_style_rule_t = Expression.StyleRule.t(raw_expression_t, type_t);
 
@@ -48,6 +51,13 @@ module Make = (Params: ASTParams) => {
   type raw_parameter_t = Expression.Parameter.t(raw_expression_t, type_t);
 
   /* tag helpers */
+
+  let of_stdlib_import = named_imports =>
+    ModuleStatement.StdlibImport(named_imports);
+  let of_import = ((namespace, main_import, named_imports)) =>
+    ModuleStatement.Import(namespace, main_import, named_imports);
+  let of_export = ((kind, name, declaration)) =>
+    ModuleStatement.Export(kind, name, declaration);
 
   let of_const = expression => Declaration.Constant(expression);
   let of_enum = variants => Declaration.Enumerated(variants);

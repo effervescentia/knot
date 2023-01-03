@@ -83,7 +83,7 @@ module type DeclarationParams = {
   type value_t;
 
   let parse:
-    ((ParseContext.t, Module.export_kind_t)) =>
+    ((ParseContext.t, ModuleStatement.ExportKind.t)) =>
     Parser.t(Node.t((Common.identifier_t, Result.node_t(value_t)), unit));
 
   let format: Fmt.t((string, value_t));

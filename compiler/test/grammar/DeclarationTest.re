@@ -3,7 +3,7 @@ open Kore;
 module Assert = {
   include Assert;
   include Assert.Make({
-    type t = AM.module_statement_t;
+    type t = A.module_statement_t;
 
     let parser =
       KDeclaration.Plugin.parse % Assert.parse_completely % Parser.parse;
@@ -30,7 +30,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            AST.Module.Named,
+            AST.ModuleStatement.ExportKind.Named,
             "foo" |> U.as_untyped,
             U.nil_prim |> A.of_const |> U.as_nil,
           )
@@ -44,7 +44,7 @@ let suite =
       () =>
         Assert.parse(
           (
-            AST.Module.Main,
+            AST.ModuleStatement.ExportKind.Main,
             "foo" |> U.as_untyped,
             U.nil_prim |> A.of_const |> U.as_nil,
           )

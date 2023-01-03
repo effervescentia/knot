@@ -1,6 +1,7 @@
 open Kore;
 
 module Export = Reference.Export;
+module ExportKind = AST.ModuleStatement.ExportKind;
 
 let suite =
   "Grammar.Enumerated"
@@ -13,7 +14,11 @@ let suite =
     >: (
       () =>
         Assert.Declaration.parse(
-          (AM.Named, U.as_untyped("foo"), [] |> A.of_enum |> U.as_enum([]))
+          (
+            ExportKind.Named,
+            U.as_untyped("foo"),
+            [] |> A.of_enum |> U.as_enum([]),
+          )
           |> A.of_export
           |> U.as_untyped,
           "enum foo =",
@@ -23,7 +28,11 @@ let suite =
     >: (
       () =>
         Assert.Declaration.parse(
-          (AM.Named, U.as_untyped("foo"), [] |> A.of_enum |> U.as_enum([]))
+          (
+            ExportKind.Named,
+            U.as_untyped("foo"),
+            [] |> A.of_enum |> U.as_enum([]),
+          )
           |> A.of_export
           |> U.as_untyped,
           "enum foo = |",
@@ -34,7 +43,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             [(U.as_untyped("OnlyOption"), [])]
             |> A.of_enum
@@ -50,7 +59,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("Account"),
             [
               (

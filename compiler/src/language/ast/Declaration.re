@@ -20,3 +20,10 @@ type t('expr, 'typ) =
     );
 
 type node_t('expr, 'typ) = Node.t(t('expr, 'typ), 'typ);
+
+let fold = (~constant, ~enumerated, ~function_, ~view) =>
+  fun
+  | Constant(expr) => expr |> constant
+  | Enumerated(variants) => variants |> enumerated
+  | Function(args, expr) => (args, expr) |> function_
+  | View(props, mixins, expr) => (props, mixins, expr) |> view;

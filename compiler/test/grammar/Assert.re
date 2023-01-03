@@ -148,7 +148,7 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
 
 module Declaration =
   Make({
-    type t = AST.Module.module_statement_t;
+    type t = AST.Result.module_statement_t;
 
     let parser = KDeclaration.Plugin.parse % parse_completely % Parser.parse;
 

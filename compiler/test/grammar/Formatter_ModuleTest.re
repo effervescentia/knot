@@ -9,7 +9,7 @@ let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
 
 let __int_const_stmt =
   (
-    AST.Module.Named,
+    AST.ModuleStatement.ExportKind.Named,
     "ABC" |> U.as_untyped,
     123 |> U.int_prim |> A.of_const |> U.as_int,
   )

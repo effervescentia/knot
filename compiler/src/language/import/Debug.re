@@ -29,7 +29,7 @@ let to_xml:
     (
       Namespace.t,
       option(AST.Common.identifier_t),
-      list(AST.Module.named_import_t),
+      list(AST.ModuleStatement.NamedImport.node_t),
     )
   ) =>
   Fmt.xml_t(string) =

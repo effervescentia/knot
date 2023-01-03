@@ -18,7 +18,7 @@ let __program =
     ]
     |> A.of_stdlib_import,
     (
-      AST.Module.Named,
+      AST.ModuleStatement.ExportKind.Named,
       "ABC" |> U.as_untyped,
       123 |> U.int_prim |> A.of_const |> U.as_int,
     )

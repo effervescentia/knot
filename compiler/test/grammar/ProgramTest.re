@@ -4,6 +4,7 @@ open Reference;
 module ModuleTable = AST.ModuleTable;
 module ParseContext = AST.ParseContext;
 module Program = Language.Program;
+module ExportKind = AST.ModuleStatement.ExportKind;
 
 let dump_program = ppf =>
   Language.Debug.program_to_xml % Pretty.XML.xml(Fmt.string, ppf);
@@ -35,7 +36,7 @@ let __main_import_ast =
   |> U.as_untyped;
 let __const_decl_ast =
   (
-    AST.Module.Named,
+    ExportKind.Named,
     U.as_untyped("foo"),
     U.nil_prim |> A.of_const |> U.as_nil,
   )
@@ -89,7 +90,7 @@ let suite =
           [
             __const_decl_ast,
             (
-              AST.Module.Named,
+              ExportKind.Named,
               "bar" |> U.as_untyped,
               "foo" |> A.of_id |> U.as_nil |> A.of_const |> U.as_nil,
             )
@@ -130,7 +131,7 @@ let suite =
           [
             __main_import_ast,
             (
-              AST.Module.Named,
+              ExportKind.Named,
               "bar" |> U.as_untyped,
               "foo" |> A.of_id |> U.as_bool |> A.of_const |> U.as_bool,
             )

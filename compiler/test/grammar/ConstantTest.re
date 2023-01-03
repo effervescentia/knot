@@ -3,6 +3,7 @@ open Kore;
 module Export = Reference.Export;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
+module ExportKind = AST.ModuleStatement.ExportKind;
 
 let suite =
   "Grammar.Constant"
@@ -22,7 +23,7 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            AM.Named,
+            ExportKind.Named,
             U.as_untyped("foo"),
             U.nil_prim |> A.of_const |> U.as_nil,
           )
@@ -53,7 +54,7 @@ let suite =
               Reference.Namespace.Internal("foo"),
             ),
           (
-            AM.Named,
+            ExportKind.Named,
             "foo" |> U.as_untyped,
             [
               (U.as_untyped("x"), "bar" |> A.of_id |> U.as_float)
