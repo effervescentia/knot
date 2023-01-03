@@ -9,7 +9,7 @@ module TypeExpression = TypeExpression;
 type variant_t = (identifier_t, list(TypeExpression.t));
 
 type decorator_t('a) =
-  raw_t((Node.t(string, 'a), list(Node.t(primitive_t, 'a))));
+  raw_t((Node.t(string, 'a), list(Node.t(Primitive.t, 'a))));
 
 type module_statement_t = raw_t(raw_module_statement_t)
 

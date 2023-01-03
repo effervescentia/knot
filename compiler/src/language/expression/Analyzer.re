@@ -1,21 +1,20 @@
 open Kore;
-open AST;
 
-let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
+let rec analyze: (AST.Scope.t, AST.Raw.expression_t) => AST.Result.expression_t =
   (scope, node) => {
     let node_range = Node.get_range(node);
 
     (
       switch (node) {
       | (Primitive(primitive), _) => (
-          Expression.Primitive(primitive),
+          AST.Expression.Primitive(primitive),
           KPrimitive.analyze(primitive),
         )
 
       | (Identifier(name), _) =>
         let type_ = KIdentifier.analyze(scope, name, node_range);
 
-        (Expression.Identifier(name), type_);
+        (AST.Result.of_id(name), type_);
 
       | (UnaryOp(op, expression), _) =>
         let (expression', type_) =
@@ -26,7 +25,7 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
             node_range,
           );
 
-        (Expression.UnaryOp(op, expression'), type_);
+        (expression' |> AST.Result.of_unary_op(op), type_);
 
       | (BinaryOp(op, lhs, rhs), _) =>
         let (lhs', rhs', type_) =
@@ -37,12 +36,12 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
             node_range,
           );
 
-        (Expression.BinaryOp(op, lhs', rhs'), type_);
+        ((lhs', rhs') |> AST.Result.of_binary_op(op), type_);
 
       | (Group(expression), _) =>
         let expression' = expression |> KGroup.analyze(scope, analyze);
 
-        (Expression.Group(expression'), Node.get_type(expression'));
+        (AST.Result.of_group(expression'), Node.get_type(expression'));
 
       | (Closure(statements), _) =>
         let (statements', type_) =
@@ -53,7 +52,7 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
             node_range,
           );
 
-        (Expression.Closure(statements'), type_);
+        (AST.Result.of_closure(statements'), type_);
 
       | (DotAccess(object_, property), _) =>
         let (object_', type_) =
@@ -64,7 +63,7 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
             node_range,
           );
 
-        (Expression.DotAccess(object_', property), type_);
+        ((object_', property) |> AST.Result.of_dot_access, type_);
 
       | (BindStyle(kind, view, style), _) =>
         let (kind', view', style') =
@@ -76,7 +75,7 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
           );
         let lhs_type = Node.get_type(view');
 
-        (Expression.BindStyle(kind', view', style'), lhs_type);
+        ((view', style') |> AST.Result.of_bind_style(kind'), lhs_type);
 
       | (FunctionCall(function_, arguments), _) =>
         let (function_', arguments', type_) =
@@ -87,18 +86,18 @@ let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
             node_range,
           );
 
-        (Expression.FunctionCall(function_', arguments'), type_);
+        ((function_', arguments') |> AST.Result.of_func_call, type_);
 
       | (Style(rules), _) =>
         let (rules', type_) =
           KStyle.analyze(scope, analyze, rules, node_range);
 
-        (Expression.Style(rules'), type_);
+        (AST.Result.of_style(rules'), type_);
 
       | (KSX(ksx), _) =>
         let (ksx', type_) = KSX.analyze(scope, analyze, ksx);
 
-        (Expression.KSX(ksx'), type_);
+        (AST.Result.of_ksx(ksx'), type_);
       }
     )
     |> (((value, type_)) => Node.typed(value, type_, node_range));

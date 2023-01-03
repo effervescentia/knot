@@ -1,7 +1,7 @@
 /**
  a primitive AST node
   */
-type primitive_t =
+type t =
   | Nil
   | Boolean(bool)
   | Integer(Int64.t)

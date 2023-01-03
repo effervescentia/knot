@@ -2,9 +2,9 @@ open Kore;
 
 let to_xml:
   (
-    AST.Expression.expression_t('a) => Fmt.xml_t(string),
-    'a => string,
-    AST.Expression.statement_t('a)
+    Node.t('expr, 'typ) => Fmt.xml_t(string),
+    'typ => string,
+    AST.Statement.node_t('expr, 'typ)
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, dump_type, statement) => {

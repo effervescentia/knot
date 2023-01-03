@@ -2,10 +2,7 @@ open Knot.Kore;
 open AST;
 
 let to_xml:
-  (
-    Expression.expression_t('a) => Fmt.xml_t(string),
-    (Common.identifier_t, Expression.expression_t('a))
-  ) =>
+  ('expr => Fmt.xml_t(string), (Common.identifier_t, 'expr)) =>
   Fmt.xml_t(string) =
   (expr_to_xml, (name, expression)) =>
     Node(

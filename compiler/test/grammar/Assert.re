@@ -130,12 +130,12 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Parse.Parser.t(N.t(AR.primitive_t, unit));
+  let parser: Parse.Parser.t(N.t(AST.Primitive.t, unit));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>
   MakeTyped({
-    type value_t = AR.primitive_t;
+    type value_t = AST.Primitive.t;
     type type_t = unit;
 
     let parser = _ => Params.parser;

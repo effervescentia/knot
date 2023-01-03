@@ -9,9 +9,9 @@ include Framework.Expression({
     Framework.expression_parser_t,
   );
 
-  type value_t('a) = (
-    Expression.expression_t('a),
-    list(Expression.expression_t('a)),
+  type value_t('expr, 'typ) = (
+    Node.t('expr, 'typ),
+    list(Node.t('expr, 'typ)),
   );
 
   let parse = Parser.parse;

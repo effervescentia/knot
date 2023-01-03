@@ -12,10 +12,10 @@ include Framework.Expression({
     ),
   );
 
-  type value_t('a) = (
-    Expression.ViewKind.t,
-    Expression.expression_t('a),
-    Expression.expression_t('a),
+  type value_t('expr, 'typ) = (
+    KSX.ViewKind.t,
+    Node.t('expr, 'typ),
+    Node.t('expr, 'typ),
   );
 
   let parse = Parser.parse;

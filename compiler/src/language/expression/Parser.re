@@ -1,6 +1,5 @@
 open Kore;
 open Parse.Kore;
-open AST;
 
 /*
   each expression has a precedence denoted by its suffix
@@ -29,7 +28,7 @@ and parse_expression_4 = ctx =>
   parse_expression_5(ctx) |> KUnaryOperator.parse
 
 /* foo(bar) */
-and parse_expression_5 = (ctx): Framework.expression_parser_t =>
+and parse_expression_5 = (ctx): AST.Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     (
@@ -47,7 +46,7 @@ and parse_expression_6 = ctx =>
 and parse_expression_7 = ctx => parse_expression_8(ctx) >>= KDotAccess.parse
 
 /* {}, () */
-and parse_expression_8 = (ctx): Framework.expression_parser_t =>
+and parse_expression_8 = (ctx): AST.Framework.expression_parser_t =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice(

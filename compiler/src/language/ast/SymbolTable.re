@@ -43,7 +43,7 @@ module Symbols = {
 type t = {
   imported: Symbols.t,
   declared: Symbols.t,
-  mutable decorated: list((string, list(Result.primitive_t), Type.t)),
+  mutable decorated: list((string, list(Primitive.t), Type.t)),
   mutable main: option(Type.t),
 };
 
@@ -101,7 +101,7 @@ let declare_value = (~main=false, id: string, type_: Type.t, table: t) => {
 };
 
 let declare_decorated =
-    (id: string, args: list(Result.primitive_t), type_: Type.t, table: t) =>
+    (id: string, args: list(Primitive.t), type_: Type.t, table: t) =>
   table.decorated = table.decorated @ [(id, args, type_)];
 
 let resolve_type = (~no_imports=false, id: string, table: t): option(Type.t) =>

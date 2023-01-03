@@ -8,7 +8,7 @@ let analyze = Analyzer.analyze;
 include Framework.Expression({
   type parse_arg_t = unit;
 
-  type value_t('a) = Primitive.primitive_t;
+  type value_t('expr, 'typ) = Primitive.t;
 
   let parse = Parser.parse;
 

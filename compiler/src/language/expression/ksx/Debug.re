@@ -26,8 +26,8 @@ let style_list_to_xml = (expr_to_xml, styles) =>
 
 let rec to_xml:
   (
-    (Expression.expression_t('a) => Fmt.xml_t(string), 'a => string),
-    Expression.ksx_t('a)
+    (Node.t('expr, 'typ) => Fmt.xml_t(string), 'typ => string),
+    AST.KSX.t('expr, 'typ)
   ) =>
   Fmt.xml_t(string) =
   ((expr_to_xml, dump_type), ksx) =>
@@ -36,15 +36,16 @@ let rec to_xml:
       [],
       [
         switch (ksx) {
-        | Tag(kind, view, style, attributes, children) =>
+        | Tag(kind, view, styles, attributes, children) =>
           Fmt.Node(
             "Tag",
-            [("kind", Expression.ViewKind.to_string(kind))],
+            [("kind", AST.KSX.ViewKind.to_string(kind))],
             [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", view)]
-            @ (style |> style_list_to_xml(expr_to_xml))
+            @ (styles |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)
             @ (children |> children_to_xml(expr_to_xml, dump_type)),
           )
+
         | Fragment(children) =>
           Fmt.Node(
             "Fragment",
@@ -58,7 +59,7 @@ and children_to_xml = (expr_to_xml, dump_type) =>
   List.map(
     Dump.node_to_xml(
       ~unpack=
-        Expression.(
+        AST.KSX.Child.(
           fun
           | Text(text) => Fmt.Node("Text", [("value", text)], [])
           | Node(node) =>

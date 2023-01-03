@@ -8,7 +8,7 @@ let pp = Fmt.string;
 include Framework.Expression({
   type parse_arg_t = ParseContext.t;
 
-  type value_t('a) = string;
+  type value_t('expr, 'typ) = string;
 
   let parse = Parser.parse;
 

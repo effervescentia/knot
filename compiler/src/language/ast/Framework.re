@@ -30,17 +30,18 @@ module Primitive = (Params: PrimitiveParams) => {
 };
 
 module type StatementParams = {
-  type value_t('a);
+  type value_t('expr, 'typ);
 
   let parse:
     ((ParseContext.t, contextual_expression_parser_t)) =>
-    Parser.t(Common.raw_t(value_t(unit)));
+    Parser.t(Common.raw_t(value_t(Raw.expression_t, unit)));
 
-  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+  let format:
+    Fmt.t(Result.raw_expression_t) =>
+    Fmt.t(value_t(Result.expression_t, Type.t));
 
   let to_xml:
-    (Expression.expression_t('a) => Fmt.xml_t(string), value_t('a)) =>
-    Fmt.xml_t(string);
+    ('expr => Fmt.xml_t(string), value_t('expr, 'typ)) => Fmt.xml_t(string);
 };
 
 module Statement = (Params: StatementParams) => {
@@ -48,14 +49,16 @@ module Statement = (Params: StatementParams) => {
 };
 
 module type NoParseExpressionParams = {
-  type value_t('a);
+  type value_t('expr, 'typ);
 
-  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+  let format:
+    Fmt.t(Result.raw_expression_t) =>
+    Fmt.t(value_t(Expression.raw_expression_t(Type.t), Type.t));
 
   let to_xml:
     (
-      (Expression.expression_t('a) => Fmt.xml_t(string), 'a => string),
-      value_t('a)
+      (Node.t('expr, 'typ) => Fmt.xml_t(string), 'typ => string),
+      value_t('expr, 'typ)
     ) =>
     Fmt.xml_t(string);
 };

@@ -24,39 +24,38 @@ module Make = (Params: ASTParams) => {
    */
   type node_t('a) = Node.t('a, type_t);
 
-  type ksx_t = Expression.ksx_t(type_t);
-
-  type ksx_child_t = Expression.ksx_child_t(type_t);
-  type raw_ksx_child_t = Expression.raw_ksx_child_t(type_t);
-
-  type ksx_attribute_t = Expression.ksx_attribute_t(type_t);
-  type raw_ksx_attribute_t = Expression.raw_ksx_attribute_t(type_t);
-
-  type style_rule_t = Expression.style_rule_t(type_t);
-  type raw_style_rule_t = Expression.raw_style_rule_t(type_t);
-
   type expression_t = Expression.expression_t(type_t);
   type raw_expression_t = Expression.raw_expression_t(type_t);
 
-  type statement_t = Expression.statement_t(type_t);
-  type raw_statement_t = Expression.raw_statement_t(type_t);
+  type style_rule_t = Expression.StyleRule.node_t(raw_expression_t, type_t);
+  type raw_style_rule_t = Expression.StyleRule.t(raw_expression_t, type_t);
+
+  type ksx_t = KSX.t(raw_expression_t, type_t);
+
+  type ksx_child_t = KSX.Child.node_t(raw_expression_t, ksx_t, type_t);
+  type raw_ksx_child_t = KSX.Child.t(raw_expression_t, ksx_t, type_t);
+
+  type ksx_attribute_t = KSX.Attribute.node_t(raw_expression_t, type_t);
+  type raw_ksx_attribute_t = KSX.Attribute.t(raw_expression_t, type_t);
+
+  type statement_t = Statement.node_t(raw_expression_t, type_t);
+  type raw_statement_t = Statement.t(raw_expression_t, type_t);
 
   type parameter_t = Expression.parameter_t(type_t);
   type raw_parameter_t = Expression.raw_parameter_t(type_t);
 
   /* tag helpers */
 
-  let of_var = ((name, expression)) =>
-    Expression.Variable(name, expression);
-  let of_effect = expression => Expression.Effect(expression);
+  let of_var = ((name, expression)) => Statement.Variable(name, expression);
+  let of_effect = expression => Statement.Effect(expression);
   let of_id = name => Expression.Identifier(name);
   let of_group = expression => Expression.Group(expression);
   let of_closure = statements => Expression.Closure(statements);
   let of_dot_access = ((expr, prop)) => Expression.DotAccess(expr, prop);
-  let of_element_bind_style = ((view, style)) =>
-    Expression.BindStyle(Element, view, style);
-  let of_component_bind_style = ((view, style)) =>
-    Expression.BindStyle(Component, view, style);
+  let of_bind_style = (kind, (view, style)) =>
+    Expression.BindStyle(kind, view, style);
+  let of_element_bind_style = x => of_bind_style(Element, x);
+  let of_component_bind_style = x => of_bind_style(Component, x);
   let of_func_call = ((function_, arguments)) =>
     Expression.FunctionCall(function_, arguments);
   let of_style = rules => Expression.Style(rules);
@@ -87,19 +86,19 @@ module Make = (Params: ASTParams) => {
   let of_expo_op = x => of_binary_op(Exponent, x);
 
   let of_ksx = x => Expression.KSX(x);
-  let of_frag = xs => Expression.Fragment(xs);
+  let of_frag = xs => KSX.Fragment(xs);
   let of_element_tag = ((name, styles, attrs, children)) =>
-    Expression.Tag(Element, name, styles, attrs, children);
+    KSX.Tag(Element, name, styles, attrs, children);
   let of_component_tag = ((name, styles, attrs, children)) =>
-    Expression.Tag(Component, name, styles, attrs, children);
-  let of_text = x => Expression.Text(x);
-  let of_node = x => Expression.Node(x);
-  let of_inline_expr = x => Expression.InlineExpression(x);
+    KSX.Tag(Component, name, styles, attrs, children);
+  let of_text = x => KSX.Child.Text(x);
+  let of_node = x => KSX.Child.Node(x);
+  let of_inline_expr = x => KSX.Child.InlineExpression(x);
 
   let of_prim = x => Expression.Primitive(x);
-  let of_bool = x => Boolean(x);
-  let of_int = x => Integer(x);
-  let of_float = ((x, precision)) => Float(x, precision);
-  let of_string = x => String(x);
-  let nil = Nil;
+  let of_bool = x => Primitive.Boolean(x);
+  let of_int = x => Primitive.Integer(x);
+  let of_float = ((x, precision)) => Primitive.Float(x, precision);
+  let of_string = x => Primitive.String(x);
+  let nil = Primitive.Nil;
 };

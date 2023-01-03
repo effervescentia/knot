@@ -3,9 +3,6 @@
  */
 open Knot.Kore;
 
-include Primitive;
-include Operator;
-
 type raw_t('a) = Node.t('a, unit);
 
 /**

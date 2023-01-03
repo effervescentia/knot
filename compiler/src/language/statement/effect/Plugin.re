@@ -4,7 +4,7 @@ open AST;
 let analyze = Analyzer.analyze;
 
 include Framework.Statement({
-  type value_t('a) = Expression.expression_t('a);
+  type value_t('expr, 'typ) = 'expr;
 
   let parse = Parser.parse;
 

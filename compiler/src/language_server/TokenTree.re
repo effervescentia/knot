@@ -5,7 +5,7 @@ module Token = {
     | Skip
     | Join
     | Identifier(string)
-    | Primitive(AST.Result.primitive_t);
+    | Primitive(AST.Primitive.t);
 };
 
 type t = RangeTree.t(Token.t);

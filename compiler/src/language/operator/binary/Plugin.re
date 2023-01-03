@@ -11,10 +11,10 @@ let analyze = Analyzer.analyze;
 include Framework.NoParseExpression({
   type pp_arg_t = Fmt.t(Result.raw_expression_t);
 
-  type value_t('a) = (
+  type value_t('expr, 'typ) = (
     Operator.Binary.t,
-    Expression.expression_t('a),
-    Expression.expression_t('a),
+    Node.t('expr, 'typ),
+    Node.t('expr, 'typ),
   );
 
   let format = Formatter.format;
