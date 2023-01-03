@@ -54,36 +54,38 @@ let handler: Runtime.request_handler_t(params_t) =
                       let type_ = Node.get_type(decl);
 
                       Some(
-                        switch (fst(decl)) {
-                        | Constant(_) => {
-                            name,
-                            detail: type_ |> ~@AST.Type.pp,
-                            range,
-                            full_range,
-                            kind: Capabilities.Variable,
+                        AST.Declaration.(
+                          switch (fst(decl)) {
+                          | Constant(_) => {
+                              name,
+                              detail: type_ |> ~@AST.Type.pp,
+                              range,
+                              full_range,
+                              kind: Capabilities.Variable,
+                            }
+                          | Enumerated(_) => {
+                              name,
+                              detail: type_ |> ~@AST.Type.pp,
+                              range,
+                              full_range,
+                              kind: Capabilities.Enum,
+                            }
+                          | Function(_) => {
+                              name,
+                              detail: type_ |> ~@AST.Type.pp,
+                              range,
+                              full_range,
+                              kind: Capabilities.Function,
+                            }
+                          | View(_) => {
+                              name,
+                              detail: type_ |> ~@AST.Type.pp,
+                              range,
+                              full_range,
+                              kind: Capabilities.Function,
+                            }
                           }
-                        | Enumerated(_) => {
-                            name,
-                            detail: type_ |> ~@AST.Type.pp,
-                            range,
-                            full_range,
-                            kind: Capabilities.Enum,
-                          }
-                        | Function(_) => {
-                            name,
-                            detail: type_ |> ~@AST.Type.pp,
-                            range,
-                            full_range,
-                            kind: Capabilities.Function,
-                          }
-                        | View(_) => {
-                            name,
-                            detail: type_ |> ~@AST.Type.pp,
-                            range,
-                            full_range,
-                            kind: Capabilities.Function,
-                          }
-                        },
+                        ),
                       );
                     }
                   | _ => None

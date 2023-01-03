@@ -30,8 +30,8 @@ module Make = (Params: ASTParams) => {
   type declaration_t = Declaration.node_t(raw_expression_t, type_t);
   type raw_declaration_t = Declaration.t(raw_expression_t, type_t);
 
-  type module_statement_t = ModuleStatement.node_t;
-  type raw_module_statement_t = ModuleStatement.t;
+  type module_statement_t = ModuleStatement.node_t(declaration_t);
+  type raw_module_statement_t = ModuleStatement.t(declaration_t);
 
   type style_rule_t = Expression.StyleRule.node_t(raw_expression_t, type_t);
   type raw_style_rule_t = Expression.StyleRule.t(raw_expression_t, type_t);

@@ -1,4 +1,5 @@
 open Knot.Kore;
+open Common;
 
 module Parser = Parse.Parser;
 
@@ -13,12 +14,12 @@ type contextual_expression_parser_t = ParseContext.t => expression_parser_t;
 type statement_parser_t = Parser.t(Raw.statement_t);
 
 type declaration_parser_t =
-  Parser.t(Node.t((Common.identifier_t, Result.declaration_t), unit));
+  Parser.t(raw_t((Common.identifier_t, Result.declaration_t)));
 
 module type PrimitiveParams = {
   type value_t;
 
-  let parse: Parser.t(Node.t(value_t, unit));
+  let parse: Parser.t(raw_t(value_t));
 
   let format: Fmt.t(value_t);
 
@@ -84,7 +85,7 @@ module type DeclarationParams = {
 
   let parse:
     ((ParseContext.t, ModuleStatement.ExportKind.t)) =>
-    Parser.t(Node.t((Common.identifier_t, Result.node_t(value_t)), unit));
+    Parser.t(raw_t((Common.identifier_t, Result.node_t(value_t))));
 
   let format: Fmt.t((string, value_t));
 

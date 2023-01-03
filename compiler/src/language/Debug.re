@@ -14,15 +14,7 @@ let module_statement_to_xml = module_statement =>
         | Export(kind, name, declaration) =>
           Fmt.Node(
             "Export",
-            [
-              (
-                "kind",
-                switch (kind) {
-                | Main => "Main"
-                | Named => "Named"
-                },
-              ),
-            ],
+            [("kind", ExportKind.to_string(kind))],
             [
               Dump.identifier_to_xml("Name", name),
               KDeclaration.Plugin.to_xml(~@AST.Type.pp, declaration),

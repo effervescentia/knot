@@ -26,17 +26,13 @@ module NamedImport = {
   type node_t = raw_t(t);
 };
 
-type t =
+type t('decl) =
   | StdlibImport(list(NamedImport.node_t))
   | Import(
       Reference.Namespace.t,
       option(identifier_t),
       list(NamedImport.node_t),
     )
-  | Export(
-      ExportKind.t,
-      identifier_t,
-      Declaration.node_t(Expression.t(Type.t), Type.t),
-    );
+  | Export(ExportKind.t, identifier_t, 'decl);
 
-type node_t = raw_t(t);
+type node_t('decl) = raw_t(t('decl));
