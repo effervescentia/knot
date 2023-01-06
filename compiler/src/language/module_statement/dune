@@ -4,8 +4,8 @@
 ; !!!! If you want to stop using pesy and manage this file by hand, change package.json's 'esy.build' command to: refmterr dune build -p  knot
 (library
    ; The namespace that other packages/libraries will access this library through
-   (name ASTV2)
+   (name KModuleStatement)
    ; Other libraries list this name in their package.json 'require' field to use this library.
-   (public_name knot.lang.ast_v2)
-   (libraries  knot.lib knot.parse )
+   (public_name knot.lang.module_statement)
+   (libraries  knot.lang.declaration knot.lang.import )
 )

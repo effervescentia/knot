@@ -1,13 +1,13 @@
 open Knot.Kore;
 open AST.Common;
 
-type t('expr) =
-  | Variable(identifier_t, 'expr)
-  | Effect('expr);
+type t('expr, 'typ) =
+  | Variable(identifier_t, Node.t('expr, 'typ))
+  | Effect(Node.t('expr, 'typ));
 
-type node_t('expr, 'typ) = Node.t(t('expr), 'typ);
+type node_t('expr, 'typ) = Node.t(t('expr, 'typ), 'typ);
 
-/* helpers */
-
-let variable = ((name, expression)) => Variable(name, expression);
-let effect = expression => Effect(expression);
+let fold = (~variable, ~effect) =>
+  fun
+  | Variable(name, expression) => (name, expression) |> variable
+  | Effect(expression) => expression |> effect;

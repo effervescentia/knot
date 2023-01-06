@@ -12,8 +12,7 @@ module Assert = {
       Alcotest.(
         check(
           testable(
-            ppf =>
-              Language.Debug.module_statement_to_xml % Fmt.xml_string(ppf),
+            ppf => KModuleStatement.Debug.to_xml % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

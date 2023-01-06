@@ -198,14 +198,6 @@
       "name": "knot.lang.ast",
       "namespace": "AST"
     },
-    "src/language/ast_v2": {
-      "require": [
-        "knot.lib",
-        "knot.parse"
-      ],
-      "name": "knot.lang.ast_v2",
-      "namespace": "ASTV2"
-    },
     "src/language/identifier": {
       "require": [
         "knot.lang.ast"
@@ -570,6 +562,14 @@
       "name": "knot.lang.declaration",
       "namespace": "KDeclaration"
     },
+    "src/language/module_statement": {
+      "require": [
+        "knot.lang.declaration",
+        "knot.lang.import"
+      ],
+      "name": "knot.lang.module_statement",
+      "namespace": "KModuleStatement"
+    },
     "src/language/import": {
       "require": [
         "knot.lang.identifier",
@@ -581,8 +581,7 @@
     "src/language": {
       "require": [
         "knot.lang.decorator",
-        "knot.lang.import",
-        "knot.lang.declaration",
+        "knot.lang.module_statement",
         "knot.lang.type.definition"
       ],
       "name": "knot.lang",

@@ -11,11 +11,7 @@ let _program = x => x << (eof() |> Matchers.lexeme);
 let imports: t =
   ctx => choice([KImport.Plugin.parse(ctx), any >> none]) |> many;
 
-let main: t =
-  ctx =>
-    choice([KImport.Plugin.parse(ctx), KDeclaration.Plugin.parse(ctx)])
-    |> many
-    |> _program;
+let main: t = ctx => KModuleStatement.Plugin.parse(ctx) |> many |> _program;
 
 let definition = (ctx: ParseContext.t) =>
   KTypeDefinition.Plugin.parse(ctx) |> many |> _program;
