@@ -1,9 +1,8 @@
 open Kore;
-open AST;
 
-let format_operator: Fmt.t(Operator.Unary.t) =
+let format_operator: Fmt.t(AST.Operator.Unary.t) =
   ppf =>
-    Operator.Unary.(
+    AST.Operator.Unary.(
       fun
       | Not => KLogicalNot.format
       | Positive => KAbsolute.format
@@ -11,8 +10,6 @@ let format_operator: Fmt.t(Operator.Unary.t) =
     )
     % (pp => pp(ppf, ()));
 
-let format:
-  Fmt.t(Result.raw_expression_t) =>
-  Fmt.t((Operator.Unary.t, Result.expression_t)) =
-  (pp_expression, ppf, (operator, (expression, _))) =>
+let format: Interface.Plugin.format_t('expr, 'typ) =
+  (_, pp_expression, ppf, (operator, (expression, _))) =>
     Fmt.pf(ppf, "%a%a", format_operator, operator, pp_expression, expression);

@@ -1,10 +1,18 @@
 open Knot.Kore;
-open AST;
 
-let analyze: Primitive.t => Type.t =
-  fun
-  | Nil => Valid(Nil)
-  | Boolean(_) => Valid(Boolean)
-  | Integer(_) => Valid(Integer)
-  | Float(_) => Valid(Float)
-  | String(_) => Valid(String);
+let analyze: Interface.Plugin.analyze_t('ast, 'expr, 'result_expr) =
+  (_, _, (primitive, _)) => {
+    let bind = (type_, _) => AST.Type.Valid(type_);
+
+    (
+      primitive,
+      primitive
+      |> Interface.fold(
+           ~nil=bind(Nil),
+           ~boolean=bind(Boolean),
+           ~integer=bind(Integer),
+           ~float=bind(Float),
+           ~string=bind(String),
+         ),
+    );
+  };

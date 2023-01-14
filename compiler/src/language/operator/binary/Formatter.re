@@ -25,10 +25,8 @@ let format_operator: Fmt.t(Operator.Binary.t) =
     )
     % (pp => pp(ppf, ()));
 
-let format:
-  Fmt.t(Result.raw_expression_t) =>
-  Fmt.t((Operator.Binary.t, Result.expression_t, Result.expression_t)) =
-  (pp_expression, ppf, (operator, (lhs, _), (rhs, _))) =>
+let format: Interface.Plugin.format_t('expr, 'typ) =
+  (_, pp_expression, ppf, (operator, (lhs, _), (rhs, _))) =>
     Fmt.pf(
       ppf,
       "%a %a %a",

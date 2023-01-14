@@ -1,12 +1,9 @@
-open Knot.Kore;
-open AST;
-
-let analyze = Analyzer.analyze;
-
-include Framework.Statement({
-  type value_t('expr, 'typ) = (Common.identifier_t, 'expr);
+include AST.Framework.Statement.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
+
+  let analyze = Analyzer.analyze;
 
   let format = Formatter.format;
 

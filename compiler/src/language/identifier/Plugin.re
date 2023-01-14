@@ -1,19 +1,14 @@
 open Knot.Kore;
-open AST;
 
-let analyze = Analyzer.analyze;
-
-let pp = Fmt.string;
-
-include Framework.Expression({
-  type parse_arg_t = ParseContext.t;
-
-  type value_t('expr, 'typ) = string;
+include AST.Framework.Expression.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 
-  let format = _ => pp;
+  let analyze = Analyzer.analyze;
+
+  let format = (_, _, ppf) => Fmt.string(ppf);
 
   let to_xml = (_, name) =>
-    Fmt.Node("Identifier", [("name", name |> ~@pp)], []);
+    Fmt.Node("Identifier", [("name", name |> ~@Fmt.string)], []);
 });

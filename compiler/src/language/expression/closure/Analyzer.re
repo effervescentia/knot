@@ -1,21 +1,18 @@
 open Knot.Kore;
 open AST;
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.statement_t) => Result.statement_t,
-    list(Raw.statement_t),
-    Range.t
-  ) =>
-  (list(Result.statement_t), Type.t) =
-  (scope, analyze_statement, statements, range) => {
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, (statements, _) as node) => {
+    let range = Node.get_range(node);
     let closure_scope = scope |> Scope.create_child(range);
-    let statements' =
-      statements |> List.map(analyze_statement(closure_scope));
+    let (statements', statement_types) =
+      statements
+      |> List.map(
+           Node.analyzer(
+             KStatement.Analyzer.analyze(analyze_expression, closure_scope),
+           ),
+         )
+      |> List.split;
 
-    (
-      statements',
-      List.last(statements') |> Option.map(Node.get_type) |?: Valid(Nil),
-    );
+    (statements', List.last(statement_types) |?: Type.Valid(Nil));
   };

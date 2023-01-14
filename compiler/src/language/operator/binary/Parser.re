@@ -9,38 +9,45 @@ open Parse.Kore;
 
 /* logical */
 
-let rec parse_logical_0 = next =>
-  chainl1(parse_logical_1(next), KLogicalOr.parse)
+let rec parse_logical_0 = (f, next) =>
+  chainl1(parse_logical_1(f, next), KLogicalOr.parse(f))
 
-and parse_logical_1 = next => chainl1(next, KLogicalAnd.parse);
+and parse_logical_1 = (f, next) => chainl1(next, KLogicalAnd.parse(f));
 
 let parse_logical = parse_logical_0;
 
 /* comparison */
 
-let parse_comparison = next => chainl1(next, KEqual.parse <|> KUnequal.parse);
+let parse_comparison = (f, next) =>
+  chainl1(next, KEqual.parse(f) <|> KUnequal.parse(f));
 
 /* relational */
 
-let parse_relational = next =>
+let parse_relational = (f, next) =>
   chainl1(
     next,
     choice([
-      KLessOrEqual.parse,
-      KLessThan.parse,
-      KGreaterOrEqual.parse,
-      KGreaterThan.parse,
+      KLessOrEqual.parse(f),
+      KLessThan.parse(f),
+      KGreaterOrEqual.parse(f),
+      KGreaterThan.parse(f),
     ]),
   );
 
 /* arithmetic */
 
-let rec parse_arithmetic_0 = next =>
-  chainl1(parse_arithmetic_1(next), KAdd.parse <|> KSubtract.parse)
+let rec parse_arithmetic_0 = (f, next) =>
+  chainl1(
+    parse_arithmetic_1(f, next),
+    KAdd.parse(f) <|> KSubtract.parse(f),
+  )
 
-and parse_arithmetic_1 = next =>
-  chainl1(parse_arithmetic_2(next), KMultiply.parse <|> KDivide.parse)
+and parse_arithmetic_1 = (f, next) =>
+  chainl1(
+    parse_arithmetic_2(f, next),
+    KMultiply.parse(f) <|> KDivide.parse(f),
+  )
 
-and parse_arithmetic_2 = next => chainr1(next, KExponentiate.parse);
+and parse_arithmetic_2 = (f, next) => chainr1(next, KExponentiate.parse(f));
 
 let parse_arithmetic = parse_arithmetic_0;

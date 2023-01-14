@@ -1,12 +1,11 @@
 open Kore;
-open AST;
 
-let to_xml =
-  Primitive.(
-    fun
-    | Nil => () |> KNil.to_xml
-    | Boolean(boolean) => boolean |> KBoolean.to_xml
-    | Integer(integer) => integer |> KInteger.to_xml
-    | Float(float, precision) => (float, precision) |> KFloat.to_xml
-    | String(string) => string |> KString.to_xml
-  );
+let to_xml: Interface.Plugin.debug_t('expr, 'typ) =
+  _ =>
+    Interface.fold(
+      ~nil=(@@)(KNil.to_xml),
+      ~boolean=(@@)(KBoolean.to_xml),
+      ~integer=(@@)(KInteger.to_xml),
+      ~float=(@@)(KFloat.to_xml),
+      ~string=(@@)(KString.to_xml),
+    );

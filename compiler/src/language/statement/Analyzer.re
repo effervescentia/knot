@@ -1,25 +1,16 @@
 open Kore;
-open AST;
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.statement_t
-  ) =>
-  Result.statement_t =
-  (scope, analyze_expression, statement) => {
-    let bind = analyze =>
-      analyze(scope, analyze_expression)
-      % (
-        ((value, type_)) =>
-          Node.typed(value, type_, Node.get_range(statement))
-      );
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, (statement, _) as node) => {
+    let bind = (analyze, to_stmt, value) =>
+      node
+      |> Node.map(_ => value)
+      |> analyze(analyze_expression, scope)
+      |> Tuple.map_fst2(to_stmt);
 
     statement
-    |> fst
-    |> Statement.fold(
-         ~variable=bind(KVariable.analyze),
-         ~effect=bind(KEffect.analyze),
+    |> Interface.fold(
+         ~variable=bind(KVariable.analyze, Interface.of_variable),
+         ~effect=bind(KEffect.analyze, Interface.of_effect),
        );
   };

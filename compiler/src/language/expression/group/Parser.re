@@ -1,8 +1,6 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
-let parse = parse_expression =>
-  parse_expression
-  |> Matchers.between_parentheses
-  >|= Node.wrap(fst % Raw.of_group);
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  (f, parse_expression) =>
+    parse_expression |> Matchers.between_parentheses >|= Node.wrap(fst % f);

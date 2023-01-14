@@ -1,12 +1,8 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
 let parse_style_rule =
-    (
-      ctx: ParseContext.t,
-      parse_expr: Framework.contextual_expression_parser_t,
-    ) =>
+    ((ctx, parse_expr): Interface.Plugin.parse_arg_t('ast, 'expr)) =>
   Matchers.attribute(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
@@ -15,29 +11,17 @@ let parse_style_rule =
   );
 
 let parse_style_literal =
-    (
-      (
-        ctx: ParseContext.t,
-        parse_expr: Framework.contextual_expression_parser_t,
-      ),
-    )
-    : Framework.expression_parser_t =>
-  parse_style_rule(ctx, parse_expr)
+    (f, (ctx, parse_expr): Interface.Plugin.parse_arg_t('ast, 'expr)) =>
+  parse_style_rule((ctx, parse_expr))
   |> Matchers.comma_sep
   |> Matchers.between_braces
-  >|= Node.map(Raw.of_style);
+  >|= Node.map(f);
 
-let parse =
-    (
-      (
-        ctx: ParseContext.t,
-        parse_expr: Framework.contextual_expression_parser_t,
-      ),
-    )
-    : Framework.expression_parser_t =>
-  Matchers.keyword(Constants.Keyword.style)
-  >>= (
-    start =>
-      parse_style_literal((ctx, parse_expr))
-      >|= Node.map_range(Range.join(Node.get_range(start)))
-  );
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  (f, (ctx, parse_expr)) =>
+    Matchers.keyword(Constants.Keyword.style)
+    >>= (
+      start =>
+        parse_style_literal(f, (ctx, parse_expr))
+        >|= Node.map_range(Range.join(Node.get_range(start)))
+    );

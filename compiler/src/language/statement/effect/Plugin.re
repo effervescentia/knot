@@ -1,15 +1,11 @@
-open Knot.Kore;
-open AST;
-
-let analyze = Analyzer.analyze;
-
-include Framework.Statement({
-  type value_t('expr, 'typ) = 'expr;
+include AST.Framework.Statement.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 
+  let analyze = Analyzer.analyze;
+
   let format = Formatter.format;
 
-  let to_xml = (expr_to_xml, expression) =>
-    Fmt.Node("Effect", [], [expr_to_xml(expression)]);
+  let to_xml = Debug.to_xml;
 });

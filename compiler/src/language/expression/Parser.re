@@ -1,5 +1,6 @@
 open Kore;
 open Parse.Kore;
+open Interface;
 
 /*
   each expression has a precedence denoted by its suffix
@@ -9,50 +10,54 @@ open Parse.Kore;
 
 /* &&, || */
 let rec parse_expression_0 = ctx =>
-  parse_expression_1(ctx) |> KBinaryOperator.parse_logical
+  parse_expression_1(ctx) |> KBinaryOperator.parse_logical(of_binary_op)
 
 /* ==, != */
 and parse_expression_1 = ctx =>
-  parse_expression_2(ctx) |> KBinaryOperator.parse_comparison
+  parse_expression_2(ctx) |> KBinaryOperator.parse_comparison(of_binary_op)
 
 /* <=, <, >=, > */
 and parse_expression_2 = ctx =>
-  parse_expression_3(ctx) |> KBinaryOperator.parse_relational
+  parse_expression_3(ctx) |> KBinaryOperator.parse_relational(of_binary_op)
 
 /* ^, *, /, +, - */
 and parse_expression_3 = ctx =>
-  parse_expression_4(ctx) |> KBinaryOperator.parse_arithmetic
+  parse_expression_4(ctx) |> KBinaryOperator.parse_arithmetic(of_binary_op)
 
 /* !, +, - */
 and parse_expression_4 = ctx =>
-  parse_expression_5(ctx) |> KUnaryOperator.parse
+  parse_expression_5(ctx) |> KUnaryOperator.parse(of_unary_op)
 
 /* foo(bar) */
-and parse_expression_5 = (ctx): AST.Framework.expression_parser_t =>
+and parse_expression_5 =
+    (ctx): AST.Framework.expression_parser_t('expr, unit) =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     (
       (parse_expression_6(ctx), parse_expression_0(ctx))
-      |> KFunctionCall.parse
+      |> KFunctionCall.parse(of_function_call)
     )(
       input,
     )
 
 /* foo::bar */
 and parse_expression_6 = ctx =>
-  (ctx, (parse_expression_7, parse_expression_0)) |> KBindStyle.parse
+  (ctx, (parse_expression_7, parse_style_literal))
+  |> KBindStyle.parse(of_bind_style)
 
 /* foo.bar */
-and parse_expression_7 = ctx => parse_expression_8(ctx) >>= KDotAccess.parse
+and parse_expression_7 = ctx =>
+  parse_expression_8(ctx) |> KDotAccess.parse(of_dot_access)
 
 /* {}, () */
-and parse_expression_8 = (ctx): AST.Framework.expression_parser_t =>
+and parse_expression_8 =
+    (ctx): AST.Framework.expression_parser_t('expr, 'typ) =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice(
       [
-        (ctx, parse_expression_0) |> KClosure.parse,
-        parse_expression_0(ctx) |> KGroup.parse,
+        (ctx, parse_expression_0) |> KClosure.parse(of_closure),
+        parse_expression_0(ctx) |> KGroup.parse(of_group),
         parse_term(ctx),
       ],
       input,
@@ -61,16 +66,21 @@ and parse_expression_8 = (ctx): AST.Framework.expression_parser_t =>
 /* skip dot access to avoid conflict with class attribute syntax */
 and parse_ksx_term = ctx =>
   (parse_expression_8(ctx), parse_expression_0(ctx))
-  |> KFunctionCall.parse
-  |> KUnaryOperator.parse
+  |> KFunctionCall.parse(of_function_call)
+  |> KUnaryOperator.parse(of_unary_op)
+
+/* { color: $red } */
+and parse_style_literal = ctx =>
+  (ctx, parse_expression_0) |> KStyle.parse(of_style)
 
 /* 2, foo, <bar /> */
 and parse_term = ctx =>
   choice([
-    () |> KPrimitive.parse,
-    (ctx, parse_expression_0) |> KStyle.parse,
-    ctx |> KIdentifier.parse,
-    (ctx, (parse_ksx_term, parse_expression_0)) |> KSX.parse,
+    () |> KPrimitive.parse(of_primitive),
+    ctx |> parse_style_literal,
+    ctx |> KIdentifier.parse(of_identifier),
+    (ctx, (parse_ksx_term, parse_expression_0, parse_style_literal))
+    |> KSX.parse(of_ksx),
   ]);
 
 let parse = parse_expression_0;

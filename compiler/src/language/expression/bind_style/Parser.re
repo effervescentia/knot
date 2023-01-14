@@ -1,34 +1,32 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
 module Glyph = Constants.Glyph;
+module ViewKind = KSX.Interface.ViewKind;
 
-let parse_bind_style_expression: Framework.binary_op_parser_t =
-  Parse.Util.binary_op(Raw.of_component_bind_style)
+let parse_bind_style_expression =
+    (f): AST.Framework.binary_op_parser_t('expr) =>
+  Parse.Util.binary_op(((lhs, rhs)) => (ViewKind.Element, lhs, rhs) |> f)
   <$ Matchers.glyph(Glyph.style_binding);
 
-let parse_bind_style_literal = ((ctx, parse_expr), view) =>
+let parse_bind_style_literal =
+    (
+      f: Interface.Plugin.value_t('expr, 'typ) => 'expr,
+      (ctx, (_, parse_style)): Interface.Plugin.parse_arg_t('ast, 'expr),
+      view: Node.t('expr, unit),
+    ) =>
   Matchers.glyph(Glyph.style_binding)
-  >> KStyle.Parser.parse_style_literal((ctx, parse_expr))
+  >> parse_style(ctx)
   >|= (
     style =>
       Node.raw(
-        (view, style) |> Raw.of_component_bind_style,
+        (ViewKind.Element, view, style) |> f,
         Node.join_ranges(view, style),
       )
   );
 
-let parse =
-    (
-      (
-        ctx: ParseContext.t,
-        (parse_lhs, parse_expr): (
-          Framework.contextual_expression_parser_t,
-          Framework.contextual_expression_parser_t,
-        ),
-      ),
-    ) =>
-  parse_lhs(ctx)
-  >>= parse_bind_style_literal((ctx, parse_expr))
-  <|> chainl1(parse_lhs(ctx), parse_bind_style_expression);
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  (f, (ctx, (parse_view, _)) as arg) =>
+    parse_view(ctx)
+    >>= parse_bind_style_literal(f, arg)
+    <|> chainl1(parse_view(ctx), parse_bind_style_expression(f));

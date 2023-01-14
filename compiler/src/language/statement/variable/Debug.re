@@ -1,9 +1,6 @@
 open Knot.Kore;
-open AST;
 
-let to_xml:
-  ('expr => Fmt.xml_t(string), (Common.identifier_t, 'expr)) =>
-  Fmt.xml_t(string) =
+let to_xml: Interface.Plugin.debug_t('expr, 'typ) =
   (expr_to_xml, (name, expression)) =>
     Node(
       "Variable",

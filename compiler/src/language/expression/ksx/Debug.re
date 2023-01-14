@@ -1,5 +1,4 @@
 open Knot.Kore;
-open AST;
 
 let attribute_to_xml = (key, (name, value)) =>
   Fmt.Node(
@@ -24,13 +23,8 @@ let style_list_to_xml = (expr_to_xml, styles) =>
   List.is_empty(styles)
     ? [] : [Fmt.Node("Styles", [], styles |> List.map(expr_to_xml))];
 
-let rec to_xml:
-  (
-    (Node.t('expr, 'typ) => Fmt.xml_t(string), 'typ => string),
-    AST.KSX.t('expr, 'typ)
-  ) =>
-  Fmt.xml_t(string) =
-  ((expr_to_xml, dump_type), ksx) =>
+let rec to_xml: Interface.Plugin.debug_t('expr, 'typ) =
+  ((expr_to_xml, dump_type) as arg, ksx) =>
     Node(
       "KSX",
       [],
@@ -39,31 +33,26 @@ let rec to_xml:
         | Tag(kind, view, styles, attributes, children) =>
           Fmt.Node(
             "Tag",
-            [("kind", AST.KSX.ViewKind.to_string(kind))],
+            [("kind", Interface.ViewKind.to_string(kind))],
             [Dump.node_to_xml(~dump_type, ~dump_value=Fun.id, "Name", view)]
             @ (styles |> style_list_to_xml(expr_to_xml))
             @ attribute_list_to_xml(attributes)
-            @ (children |> children_to_xml(expr_to_xml, dump_type)),
+            @ (children |> children_to_xml(arg)),
           )
 
         | Fragment(children) =>
-          Fmt.Node(
-            "Fragment",
-            [],
-            children |> children_to_xml(expr_to_xml, dump_type),
-          )
+          Fmt.Node("Fragment", [], children |> children_to_xml(arg))
         },
       ],
     )
-and children_to_xml = (expr_to_xml, dump_type) =>
+and children_to_xml = ((expr_to_xml, dump_type) as arg) =>
   List.map(
     Dump.node_to_xml(
       ~unpack=
-        AST.KSX.Child.(
+        Interface.Child.(
           fun
           | Text(text) => Fmt.Node("Text", [("value", text)], [])
-          | Node(node) =>
-            Fmt.Node("Node", [], [to_xml((expr_to_xml, dump_type), node)])
+          | Node(node) => Fmt.Node("Node", [], [to_xml(arg, node)])
           | InlineExpression(expression) =>
             Fmt.Node("InlineExpression", [], [expr_to_xml(expression)])
         )

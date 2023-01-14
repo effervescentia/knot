@@ -1,12 +1,10 @@
 open Knot.Kore;
-open AST;
 
-let format:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.statement_t)) =
-  (pp_expression, ppf) =>
+let format: Interface.Plugin.format_t('expr, 'typ) =
+  (_, pp_expression, ppf) =>
     fun
     | [] => Fmt.string(ppf, "{}")
     | statements =>
       statements
       |> List.map(fst)
-      |> Fmt.(closure(KStatement.Plugin.format(pp_expression), ppf));
+      |> Fmt.(closure(KStatement.Plugin.format((), pp_expression), ppf));

@@ -1,19 +1,14 @@
 open Knot.Kore;
 open AST;
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Common.identifier_t, Raw.expression_t)
-  ) =>
-  (Result.raw_statement_t, Type.t) =
-  (scope, analyze_expression, (name, expression)) => {
-    let expression' = analyze_expression(scope, expression);
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, ((name, expression), _)) => {
+    let (expression', expression_type) =
+      expression |> Node.analyzer(analyze_expression(scope));
 
     scope
-    |> Scope.define(fst(name), Node.get_type(expression'))
+    |> Scope.define(fst(name), expression_type)
     |> Option.iter(Scope.report_type_err(scope, Node.get_range(name)));
 
-    ((name, expression') |> Result.of_var, Type.Valid(Nil));
+    ((name, expression'), Type.Valid(Nil));
   };

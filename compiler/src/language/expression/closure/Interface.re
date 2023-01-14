@@ -1,11 +1,4 @@
 open Knot.Kore;
-open AST.Common;
-
-module StyleRule = {
-  type t('expr, 'typ) = (Node.t(string, 'typ), Node.t('expr, 'typ));
-
-  type node_t('expr, 'typ) = raw_t(t('expr, 'typ));
-};
 
 module Plugin =
   AST.Framework.Expression.MakeTypes({
@@ -16,6 +9,10 @@ module Plugin =
     type analyze_arg_t('ast, 'raw_expr, 'result_expr) =
       AST.Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr);
     type format_arg_t('expr, 'typ) = unit;
-    type debug_arg_t('expr, 'typ) = AST.Framework.debug_node_t('expr, 'typ);
-    type value_t('expr, 'typ) = list(StyleRule.node_t('expr, 'typ));
+    type debug_arg_t('expr, 'typ) = (
+      AST.Framework.debug_node_t('expr, 'typ),
+      'typ => string,
+    );
+    type value_t('expr, 'typ) =
+      list(KStatement.Interface.node_t('expr, 'typ));
   });

@@ -1,14 +1,9 @@
-open Knot.Kore;
-open AST;
-
-let analyze = Analyzer.analyze;
-
-include Framework.Expression({
-  type parse_arg_t = (ParseContext.t, Parser.expression_parsers_arg_t);
-
-  type value_t('expr, 'typ) = AST.KSX.t('expr, 'typ);
+include AST.Framework.Expression.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
+
+  let analyze = Analyzer.analyze;
 
   let format = Formatter.format;
 

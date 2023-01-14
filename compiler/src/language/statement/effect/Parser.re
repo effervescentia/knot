@@ -1,12 +1,5 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
-let parse =
-    (
-      (
-        ctx: ParseContext.t,
-        parse_expr: Framework.contextual_expression_parser_t,
-      ),
-    ) =>
-  parse_expr(ctx) >|= Node.wrap(Fun.id);
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  ((ctx, parse_expr)) => parse_expr(ctx) >|= Node.wrap(Fun.id);

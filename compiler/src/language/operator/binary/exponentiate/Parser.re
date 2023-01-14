@@ -2,7 +2,20 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse:
-  Parse.Parser.t((Raw.expression_t, Raw.expression_t) => Raw.expression_t) =
-  Tuple.fold2(Parse.Util.binary_op(Raw.of_expo_op))
-  <$ Matchers.symbol(Constants.Character.caret);
+type parse_t('expr) =
+  (
+    ((AST.Operator.Binary.t, Common.raw_t('expr), Common.raw_t('expr))) =>
+    'expr
+  ) =>
+  Parse.Parser.t(
+    (Common.raw_t('expr), Common.raw_t('expr)) => Common.raw_t('expr),
+  );
+
+let parse: parse_t('expr) =
+  f =>
+    Tuple.fold2(
+      Parse.Util.binary_op(((lhs, rhs)) =>
+        (Operator.Binary.Exponent, lhs, rhs) |> f
+      ),
+    )
+    <$ Matchers.symbol(Constants.Character.caret);

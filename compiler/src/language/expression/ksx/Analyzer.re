@@ -2,9 +2,13 @@ open Knot.Kore;
 open AST;
 
 let rec analyze_ksx:
-  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.ksx_t) =>
-  Result.ksx_t =
-  (scope, analyze_expression, ksx) =>
+  (
+    Interface.Plugin.analyze_arg_t('ast, 'raw_expr, 'result_expr),
+    Scope.t('ast),
+    Interface.t('raw_expr, unit)
+  ) =>
+  Interface.t('result_expr, Type.t) =
+  (analyze_expression, scope, ksx) =>
     switch (ksx) {
     | Tag(_, view, styles, attributes, children) =>
       let tag_scope = Scope.create(scope.context, Node.get_range(view));
@@ -14,13 +18,13 @@ let rec analyze_ksx:
         scope
         |> Scope.lookup(fst(view))
         |> Option.map(
-             Stdlib.Result.map(Tuple.with_snd2(Result.of_component_tag)),
+             Stdlib.Result.map(Tuple.with_snd2(Interface.of_component_tag)),
            )
         |?| (
           tag_scope
           |> Scope.lookup(fst(view))
           |> Option.map(
-               Stdlib.Result.map(Tuple.with_snd2(Result.of_element_tag)),
+               Stdlib.Result.map(Tuple.with_snd2(Interface.of_element_tag)),
              )
         )
         |> (
@@ -28,18 +32,20 @@ let rec analyze_ksx:
           | Some(Ok(x)) => x
           | Some(Error(err)) => {
               err |> Scope.report_type_err(scope, Node.get_range(view));
-              (Invalid(NotInferrable), Result.of_component_tag);
+              (Invalid(NotInferrable), Interface.of_component_tag);
             }
-          | None => (Invalid(NotInferrable), Result.of_component_tag)
+          | None => (Invalid(NotInferrable), Interface.of_component_tag)
         );
 
       let view' = view |> Node.add_type(view_type);
-      let styles' = styles |> List.map(analyze_expression(scope));
+      let styles' =
+        styles |> List.map(Node.analyzer(analyze_expression(scope)) % fst);
+
       let attributes' =
         attributes
-        |> List.map(analyze_ksx_attribute(scope, analyze_expression));
+        |> List.map(analyze_ksx_attribute(analyze_expression, scope));
       let children' =
-        children |> List.map(analyze_ksx_child(scope, analyze_expression));
+        children |> List.map(analyze_ksx_child(analyze_expression, scope));
 
       let punned_attributes =
         attributes'
@@ -85,59 +91,62 @@ let rec analyze_ksx:
 
     | Fragment(children) =>
       children
-      |> List.map(analyze_ksx_child(scope, analyze_expression))
-      |> Result.of_frag
+      |> List.map(analyze_ksx_child(analyze_expression, scope))
+      |> Interface.of_fragment
     }
 
 and analyze_ksx_attribute:
   (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.ksx_attribute_t
+    Interface.Plugin.analyze_arg_t('ast, 'raw_expr, 'result_expr),
+    Scope.t('ast),
+    Interface.Attribute.node_t('raw_expr, unit)
   ) =>
-  Result.ksx_attribute_t =
-  (scope, analyze_expression, ((id, expr), _) as attribute) => {
-    let attribute' = (id, expr |?> analyze_expression(scope));
+  Interface.Attribute.node_t('result_expr, Type.t) =
+  (analyze_expression, scope, ((id, expr), _) as attribute) => {
+    let attribute' = (
+      id,
+      expr |?> Node.analyzer(analyze_expression(scope)) % fst,
+    );
 
     attribute |> Node.map(_ => attribute');
   }
 
 and analyze_ksx_child:
   (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.ksx_child_t
+    Interface.Plugin.analyze_arg_t('ast, 'raw_expr, 'result_expr),
+    Scope.t('ast),
+    Interface.Child.node_t('raw_expr, 'raw_ksx, unit)
   ) =>
-  Result.ksx_child_t =
-  (scope, analyze_expression, child) => {
+  Interface.Child.node_t('result_expr, 'result_ksx, Type.t) =
+  (analyze_expression, scope, child) => {
     let child' =
       switch (fst(child)) {
-      | Text(text) => Result.of_text(text)
+      | Text(text) => Interface.Child.of_text(text)
 
       | Node(ksx) =>
-        ksx |> analyze_ksx(scope, analyze_expression) |> Result.of_node
+        ksx
+        |> analyze_ksx(analyze_expression, scope)
+        |> Interface.Child.of_node
 
-      | InlineExpression(raw_expr) =>
-        let expr = raw_expr |> analyze_expression(scope);
-        let type_ = Node.get_type(expr);
+      | InlineExpression(expression) =>
+        let (expression', expression_type) =
+          expression |> Node.analyzer(analyze_expression(scope));
 
-        type_
+        expression_type
         |> Validator.validate_ksx_primitive_expression
         |> Option.iter(
-             expr |> Node.get_range |> Scope.report_type_err(scope),
+             Scope.report_type_err(scope, Node.get_range(expression')),
            );
 
-        Result.of_inline_expr(expr);
+        Interface.Child.of_inline(expression');
       };
 
     child |> Node.map(_ => child');
   };
 
-let analyze:
-  (Scope.t, (Scope.t, Raw.expression_t) => Result.expression_t, Raw.ksx_t) =>
-  (Result.ksx_t, Type.t) =
-  (scope, analyze_expression, ksx) => {
-    let ksx' = analyze_ksx(scope, analyze_expression, ksx);
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, (ksx, _)) => {
+    let ksx' = analyze_ksx(analyze_expression, scope, ksx);
 
     (ksx', Type.Valid(Element));
   };

@@ -1,10 +1,11 @@
 open Knot.Kore;
-open AST.Common;
 
 module ViewKind = {
   type t =
     | Component
     | Element;
+
+  /* methods */
 
   let to_string =
     fun
@@ -13,23 +14,30 @@ module ViewKind = {
 };
 
 module Attribute = {
-  type t('expr, 'typ) = (identifier_t, option(Node.t('expr, 'typ)));
+  type t('expr, 'typ) = (
+    AST.Common.identifier_t,
+    option(Node.t('expr, 'typ)),
+  );
 
-  type node_t('expr, 'typ) = raw_t(t('expr, 'typ));
+  type node_t('expr, 'typ) = AST.Common.raw_t(t('expr, 'typ));
 };
 
 module Child = {
   type t('expr, 'ksx, 'typ) =
     | Text(string)
+    // TODO: change name to KSX
     | Node('ksx)
     | InlineExpression(Node.t('expr, 'typ));
 
-  type node_t('expr, 'ksx, 'typ) = raw_t(t('expr, 'ksx, 'typ));
+  type node_t('expr, 'ksx, 'typ) = AST.Common.raw_t(t('expr, 'ksx, 'typ));
+
+  /* static */
+
+  let of_text = text => Text(text);
+  let of_node = ksx => Node(ksx);
+  let of_inline = expression => InlineExpression(expression);
 };
 
-/**
-   a JSX AST node
-   */
 type t('expr, 'typ) =
   | Tag(
       ViewKind.t,
@@ -39,3 +47,38 @@ type t('expr, 'typ) =
       list(Child.node_t('expr, t('expr, 'typ), 'typ)),
     )
   | Fragment(list(Child.node_t('expr, t('expr, 'typ), 'typ)));
+
+/* plugin types */
+
+module Plugin =
+  AST.Framework.Expression.MakeTypes({
+    type parse_arg_t('ast, 'expr) = (
+      AST.ParseContext.t('ast),
+      (
+        /* parses a "term" */
+        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        /* parses an "expression" */
+        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        /* parses a style literal */
+        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+      ),
+    );
+    type analyze_arg_t('ast, 'raw_expr, 'result_expr) =
+      AST.Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr);
+    type format_arg_t('expr, 'typ) = 'expr => bool;
+    type debug_arg_t('expr, 'typ) = (
+      AST.Framework.debug_node_t('expr, 'typ),
+      'typ => string,
+    );
+    type value_t('expr, 'typ) = t('expr, 'typ);
+  });
+
+/* static */
+
+let of_tag = ((kind, view, styles, attributes, children)) =>
+  Tag(kind, view, styles, attributes, children);
+let of_element_tag = ((view, styles, attributes, children)) =>
+  (Element, view, styles, attributes, children) |> of_tag;
+let of_component_tag = ((view, styles, attributes, children)) =>
+  (Component, view, styles, attributes, children) |> of_tag;
+let of_fragment = children => Fragment(children);

@@ -1,15 +1,14 @@
 open Knot.Kore;
-open AST;
 
 let format_style_rule:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_style_rule_t) =
+  Fmt.t('expr) => Fmt.t(Interface.StyleRule.t('expr, 'typ)) =
   (format_expression, ppf, ((key, _), (value, _))) =>
     Fmt.(
       pf(ppf, "%a,", attribute(string, format_expression), (key, value))
     );
 
-let format_style_rules:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.style_rule_t)) =
+let format_style_rule_list:
+  Fmt.t('expr) => Fmt.t(list(Interface.StyleRule.node_t('expr, 'typ))) =
   (format_expression, ppf, rules) =>
     Fmt.(
       closure(
@@ -19,14 +18,13 @@ let format_style_rules:
       )
     );
 
-let format:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.style_rule_t)) =
-  (format_expression, ppf, rules) =>
+let format: Interface.Plugin.format_t('expr, 'typ) =
+  (_, format_expression, ppf, rules) =>
     Fmt.(
       pf(
         ppf,
         "@[<v>style %a@]",
-        format_style_rules(format_expression),
+        format_style_rule_list(format_expression),
         rules,
       )
     );

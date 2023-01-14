@@ -1,27 +1,18 @@
 open Knot.Kore;
 open AST;
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Operator.Binary.t, Raw.expression_t, Raw.expression_t),
-    Range.t
-  ) =>
-  (Result.expression_t, Result.expression_t, Type.t) =
-  (scope, analyze_expression, (operator, lhs, rhs), range) => {
-    let lhs' = analyze_expression(scope, lhs);
-    let rhs' = analyze_expression(scope, rhs);
-    let type_lhs = Node.get_type(lhs');
-    let type_rhs = Node.get_type(rhs');
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, ((operator, lhs, rhs), _) as node) => {
+    let range = Node.get_range(node);
+    let (lhs', lhs_type) = lhs |> Node.analyzer(analyze_expression(scope));
+    let (rhs', rhs_type) = rhs |> Node.analyzer(analyze_expression(scope));
 
-    (type_lhs, type_rhs)
+    (lhs_type, rhs_type)
     |> Validator.validate(operator)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
-      lhs',
-      rhs',
+      (operator, lhs', rhs'),
       switch (operator) {
       | LogicalAnd
       | LogicalOr
@@ -38,15 +29,15 @@ let analyze:
       | Add
       | Subtract
       | Multiply =>
-        switch (type_lhs, type_rhs) {
+        switch (lhs_type, rhs_type) {
         | (Valid(Integer), Valid(Integer)) => Valid(Integer)
 
         | (_, Valid(Float))
         | (Valid(Float), _) => Valid(Float)
 
         /* forward invalid types */
-        | (Invalid(_), _) => type_lhs
-        | (_, Invalid(_)) => type_rhs
+        | (Invalid(_), _) => lhs_type
+        | (_, Invalid(_)) => rhs_type
 
         | _ => Invalid(NotInferrable)
         }

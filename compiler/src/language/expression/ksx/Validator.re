@@ -89,7 +89,7 @@ let validate_ksx_render:
       ];
 
 let validate_style_binding =
-    (styles: list(Result.expression_t))
+    (styles: list(Node.t('expr, Type.t)))
     : list((Type.error_t, option(Range.t))) => {
   styles
   |> List.filter_map(node =>

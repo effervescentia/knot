@@ -12,28 +12,22 @@ let analyze_arithmetic = type_ =>
     }
   );
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Operator.Unary.t, Raw.expression_t),
-    Range.t
-  ) =>
-  (Result.expression_t, Type.t) =
-  (scope, analyze_expression, (operator, expression), range) => {
-    let expression' = analyze_expression(scope, expression);
-    let type_ = Node.get_type(expression');
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, ((operator, expression), _) as node) => {
+    let range = Node.get_range(node);
+    let (expression', expression_type) =
+      expression |> Node.analyzer(analyze_expression(scope));
 
-    type_
+    expression_type
     |> Validator.validate(operator)
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    (
-      expression',
+    let type_ =
       switch (operator) {
       | Negative
-      | Positive => analyze_arithmetic(type_)
+      | Positive => analyze_arithmetic(expression_type)
       | Not => Valid(Boolean)
-      },
-    );
+      };
+
+    ((operator, expression'), type_);
   };

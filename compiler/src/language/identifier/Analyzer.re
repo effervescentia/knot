@@ -1,10 +1,10 @@
 open Knot.Kore;
 open AST;
 
-let analyze: (Scope.t, string, Range.t) => Type.t =
-  (scope, name, range) => {
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (_, scope, (name, _) as node) => {
     let resolve_error = err => {
-      err |> Scope.report_type_err(scope, range);
+      err |> Scope.report_type_err(scope, Node.get_range(node));
       Type.Invalid(NotInferrable);
     };
 
@@ -21,5 +21,5 @@ let analyze: (Scope.t, string, Range.t) => Type.t =
          )
       |!: (() => Type.NotFound(name) |> resolve_error);
 
-    type_;
+    (name, type_);
   };

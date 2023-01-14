@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-include AST.Framework.Primitive({
+include AST.Framework.Primitive.Make({
   type value_t = (float, int);
 
   let parse = Parser.parse;

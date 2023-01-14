@@ -312,119 +312,12 @@
       "name": "knot.lang.statement",
       "namespace": "KStatement"
     },
-    "src/language/operator/unary/logical_not": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.unary.logical_not",
-      "namespace": "KLogicalNot"
-    },
-    "src/language/operator/unary/absolute": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.unary.absolute",
-      "namespace": "KAbsolute"
-    },
-    "src/language/operator/unary/negative": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.unary.negative",
-      "namespace": "KNegative"
-    },
     "src/language/operator/unary": {
       "require": [
-        "knot.lang.operator.unary.logical_not",
-        "knot.lang.operator.unary.absolute",
-        "knot.lang.operator.unary.negative"
+        "knot.lang.ast"
       ],
       "name": "knot.lang.operator.unary",
       "namespace": "KUnaryOperator"
-    },
-    "src/language/operator/binary/equal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.equal",
-      "namespace": "KEqual"
-    },
-    "src/language/operator/binary/unequal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.unequal",
-      "namespace": "KUnequal"
-    },
-    "src/language/operator/binary/logical_and": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.logical_and",
-      "namespace": "KLogicalAnd"
-    },
-    "src/language/operator/binary/logical_or": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.logical_or",
-      "namespace": "KLogicalOr"
-    },
-    "src/language/operator/binary/less_than": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.less_than",
-      "namespace": "KLessThan"
-    },
-    "src/language/operator/binary/less_or_equal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.less_or_equal",
-      "namespace": "KLessOrEqual"
-    },
-    "src/language/operator/binary/greater_than": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.greater_than",
-      "namespace": "KGreaterThan"
-    },
-    "src/language/operator/binary/greater_or_equal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.greater_or_equal",
-      "namespace": "KGreaterOrEqual"
-    },
-    "src/language/operator/binary/add": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.add",
-      "namespace": "KAdd"
-    },
-    "src/language/operator/binary/subtract": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.subtract",
-      "namespace": "KSubtract"
-    },
-    "src/language/operator/binary/multiply": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.multiply",
-      "namespace": "KMultiply"
-    },
-    "src/language/operator/binary/divide": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.divide",
-      "namespace": "KDivide"
     },
     "src/language/operator/binary/exponentiate": {
       "require": [
@@ -435,18 +328,6 @@
     },
     "src/language/operator/binary": {
       "require": [
-        "knot.lang.operator.binary.equal",
-        "knot.lang.operator.binary.unequal",
-        "knot.lang.operator.binary.logical_and",
-        "knot.lang.operator.binary.logical_or",
-        "knot.lang.operator.binary.less_than",
-        "knot.lang.operator.binary.less_or_equal",
-        "knot.lang.operator.binary.greater_than",
-        "knot.lang.operator.binary.greater_or_equal",
-        "knot.lang.operator.binary.add",
-        "knot.lang.operator.binary.subtract",
-        "knot.lang.operator.binary.multiply",
-        "knot.lang.operator.binary.divide",
         "knot.lang.operator.binary.exponentiate"
       ],
       "name": "knot.lang.operator.binary",
@@ -477,6 +358,7 @@
     "src/language/expression/bind_style": {
       "require": [
         "knot.lang.identifier",
+        "knot.lang.expression.ksx",
         "knot.lang.expression.style"
       ],
       "name": "knot.lang.expression.bind_style",
