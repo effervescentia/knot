@@ -3,7 +3,7 @@ open Knot.Kore;
 module Keyword = Constants.Keyword;
 
 include AST.Framework.Primitive.Make({
-  type value_t = bool;
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 

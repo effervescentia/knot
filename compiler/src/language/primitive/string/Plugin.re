@@ -1,7 +1,9 @@
 open Knot.Kore;
 
 include AST.Framework.Primitive.Make({
-  type value_t = string;
+  include AST.Framework.Primitive.MakeTypes({
+    type value_t = string;
+  });
 
   let parse = Parse.Kore.Matchers.string;
 

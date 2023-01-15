@@ -1,7 +1,7 @@
 open Knot.Kore;
 
 let to_xml: Interface.Plugin.debug_t('expr, 'typ) =
-  (expr_to_xml, rules) =>
+  ((expr_to_xml, _), rules) =>
     Fmt.Node(
       "Style",
       [],

@@ -8,9 +8,9 @@ module Plugin =
       AST.ParseContext.t('ast),
       (
         /* parses a view expression */
-        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        AST.Framework.Interface.contextual_parse_t('ast, 'expr),
         /* parses a style literal */
-        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        AST.Framework.Interface.contextual_parse_t('ast, 'expr),
       ),
     );
 
@@ -21,8 +21,6 @@ module Plugin =
 
     type format_arg_t('expr, 'typ) =
       'expr => option(list(KStyle.Interface.StyleRule.node_t('expr, 'typ)));
-
-    type debug_arg_t('expr, 'typ) = AST.Framework.debug_node_t('expr, 'typ);
 
     type value_t('expr, 'typ) = (
       KSX.Interface.ViewKind.t,

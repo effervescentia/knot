@@ -56,20 +56,16 @@ module Plugin =
       AST.ParseContext.t('ast),
       (
         /* parses a "term" */
-        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        AST.Framework.Interface.contextual_parse_t('ast, 'expr),
         /* parses an "expression" */
-        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        AST.Framework.Interface.contextual_parse_t('ast, 'expr),
         /* parses a style literal */
-        AST.Framework.contextual_expression_parser_t('ast, 'expr, unit),
+        AST.Framework.Interface.contextual_parse_t('ast, 'expr),
       ),
     );
     type analyze_arg_t('ast, 'raw_expr, 'result_expr) =
       AST.Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr);
     type format_arg_t('expr, 'typ) = 'expr => bool;
-    type debug_arg_t('expr, 'typ) = (
-      AST.Framework.debug_node_t('expr, 'typ),
-      'typ => string,
-    );
     type value_t('expr, 'typ) = t('expr, 'typ);
   });
 

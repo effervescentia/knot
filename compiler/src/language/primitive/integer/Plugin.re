@@ -1,7 +1,7 @@
 open Knot.Kore;
 
 include AST.Framework.Primitive.Make({
-  type value_t = int64;
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 

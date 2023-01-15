@@ -29,8 +29,7 @@ and parse_expression_4 = ctx =>
   parse_expression_5(ctx) |> KUnaryOperator.parse(of_unary_op)
 
 /* foo(bar) */
-and parse_expression_5 =
-    (ctx): AST.Framework.expression_parser_t('expr, unit) =>
+and parse_expression_5 = (ctx): AST.Framework.Interface.parse_t('expr) =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     (
@@ -50,8 +49,7 @@ and parse_expression_7 = ctx =>
   parse_expression_8(ctx) |> KDotAccess.parse(of_dot_access)
 
 /* {}, () */
-and parse_expression_8 =
-    (ctx): AST.Framework.expression_parser_t('expr, 'typ) =>
+and parse_expression_8 = (ctx): AST.Framework.Interface.parse_t('expr) =>
   /* do not attempt to simplify this `input` argument away or expression parsing will loop forever */
   input =>
     choice(

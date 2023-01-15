@@ -9,6 +9,6 @@ include AST.Framework.Expression.Make({
 
   let format = Formatter.format;
 
-  let to_xml = (expr_to_xml, expression) =>
+  let to_xml = ((expr_to_xml, _), expression) =>
     Fmt.Node("Group", [], [expr_to_xml(expression)]);
 });

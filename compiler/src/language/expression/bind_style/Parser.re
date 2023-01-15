@@ -4,8 +4,7 @@ open Parse.Kore;
 module Glyph = Constants.Glyph;
 module ViewKind = KSX.Interface.ViewKind;
 
-let parse_bind_style_expression =
-    (f): AST.Framework.binary_op_parser_t('expr) =>
+let parse_bind_style_expression = f =>
   Parse.Util.binary_op(((lhs, rhs)) => (ViewKind.Element, lhs, rhs) |> f)
   <$ Matchers.glyph(Glyph.style_binding);
 

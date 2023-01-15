@@ -1,7 +1,7 @@
 open Kore;
 
 let format: Interface.Plugin.format_t('expr, 'typ) =
-  (_, _, ppf) => {
+  ((), _, ppf) => {
     let bind = format => format(ppf);
 
     Interface.fold(

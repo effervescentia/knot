@@ -6,14 +6,14 @@ type t('typ) =
   | Primitive(KPrimitive.Interface.t)
   | Identifier(string)
   | KSX(KSX.Interface.t(t('typ), 'typ))
-  | Group(node_t('typ))
+  | Group(KGroup.Interface.Plugin.value_t(t('typ), 'typ))
   | BinaryOp(Binary.t, node_t('typ), node_t('typ))
   | UnaryOp(Unary.t, node_t('typ))
   | Closure(list(KStatement.Interface.node_t(t('typ), 'typ)))
   | DotAccess(node_t('typ), identifier_t)
   | BindStyle(KSX.Interface.ViewKind.t, node_t('typ), node_t('typ))
   | FunctionCall(node_t('typ), list(node_t('typ)))
-  | Style(list(KStyle.Interface.StyleRule.node_t(t('typ), 'typ)))
+  | Style(KStyle.Interface.Plugin.value_t(t('typ), 'typ))
 
 and node_t('typ) = Node.t(t('typ), 'typ);
 
