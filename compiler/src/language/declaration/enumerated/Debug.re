@@ -20,8 +20,8 @@ let variant_to_xml = (dump_type, (name, parameters)) =>
 
 let to_xml:
   (
-    Type.t => string,
-    list((Result.identifier_t, list(Result.node_t(TypeExpression.raw_t))))
+    'typ => string,
+    list((Common.identifier_t, list(Node.t(TypeExpression.raw_t, 'typ))))
   ) =>
   Fmt.xml_t(string) =
   (dump_type, variants) =>

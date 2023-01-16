@@ -1,7 +1,7 @@
 open Knot.Kore;
 
 let to_xml:
-  (AST.Type.t => string, AST.Result.expression_t) => Fmt.xml_t(string) =
+  ('typ => string, KExpression.Interface.node_t('typ)) => Fmt.xml_t(string) =
   (type_to_string, expression) =>
     Node(
       "Constant",

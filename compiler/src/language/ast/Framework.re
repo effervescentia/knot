@@ -271,11 +271,15 @@ module Expression = {
 };
 
 module Statement = {
-  module type TypeParams = {include AnalyzePlugin.Params;};
+  module type TypeParams = {include BaseParams;};
 
   module MakeTypes = (Params: TypeParams) => {
     include Params;
-    include AnalyzePlugin.Make(Params);
+    include AnalyzePlugin.Make({
+      include Params;
+      type analyze_arg_t('ast, 'raw_expr, 'result_expr) =
+        Interface.analyze_t('ast, 'raw_expr, 'result_expr);
+    });
     include DebugPlugin.Make({
       include Params;
       type debug_arg_t('expr, 'typ) =
@@ -308,6 +312,25 @@ module Statement = {
     let analyze: analyze_t('ast, 'raw_expr, 'result_expr);
     let format: format_t('expr, 'typ);
     let to_xml: debug_t('expr, 'typ);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+  };
+};
+
+module Declaration = {
+  module type TypeParams = {type value_t('typ);};
+
+  module MakeTypes = (Params: TypeParams) => {
+    include Params;
+  };
+
+  module type Params = {
+    include (module type of
+      MakeTypes({
+        type value_t('typ);
+      }));
   };
 
   module Make = (Params: Params) => {

@@ -30,7 +30,7 @@ let format:
     (
       string,
       list(
-        (Result.identifier_t, list(Result.node_t(TypeExpression.raw_t))),
+        (Common.identifier_t, list(Node.t(TypeExpression.raw_t, 'typ))),
       ),
     ),
   ) =

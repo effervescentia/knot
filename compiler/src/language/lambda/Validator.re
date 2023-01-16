@@ -4,8 +4,8 @@ open AST;
 let rec validate_default_arguments =
         (
           ~require_default=false,
-          scope: Scope.t,
-          args: list(Result.parameter_t),
+          scope: Scope.t('ast),
+          args: list(Interface.Parameter.node_t('expr, Type.t)),
         ) =>
   switch (args, require_default) {
   | ([], _) => ()

@@ -3,8 +3,8 @@ open AST;
 
 let analyze_parameter:
   (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
+    Scope.t('ast),
+    (Scope.t('ast), Raw.expression_t) => Result.expression_t,
     Raw.parameter_t
   ) =>
   Result.parameter_t =
@@ -55,14 +55,18 @@ let analyze_parameter:
 
 let analyze_parameter_list:
   (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    list(Raw.parameter_t)
+    Scope.t('ast),
+    (Scope.t('ast), Node.t('raw_expr, unit)) => Node.t('result_expr, Type.t),
+    list(Interface.Parameter.node_t('raw_expr, unit))
   ) =>
-  list(Result.parameter_t) =
+  list(Interface.Parameter.node_t('raw_expr, Type.t)) =
   (scope, analyze_expression, parameters) => {
     let parameters' =
-      parameters |> List.map(analyze_parameter(scope, analyze_expression));
+      parameters
+      |> List.map(
+           Node.analyzer(analyze_parameter(scope, analyze_expression)),
+         )
+      |> List.split;
 
     Validator.validate_default_arguments(scope, parameters');
 

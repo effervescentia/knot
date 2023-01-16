@@ -2,10 +2,10 @@ open Knot.Kore;
 
 type t =
   | Nil
-  | Boolean(bool)
-  | Integer(Int64.t)
-  | Float(float, int)
-  | String(string);
+  | Boolean(KBoolean.Plugin.value_t)
+  | Integer(KInteger.Plugin.value_t)
+  | Float(KFloat.Plugin.value_t)
+  | String(KString.Plugin.value_t);
 
 module Plugin =
   AST.Framework.Expression.MakeTypes({
@@ -18,17 +18,17 @@ module Plugin =
 /* static */
 
 let nil = Nil;
-let of_boolean = value => Boolean(value);
-let of_integer = value => Integer(value);
-let of_float = ((value, precision)) => Float(value, precision);
-let of_string = value => String(value);
+let of_boolean = x => Boolean(x);
+let of_integer = x => Integer(x);
+let of_float = x => Float(x);
+let of_string = x => String(x);
 
 /* methods */
 
 let fold = (~nil, ~boolean, ~integer, ~float, ~string) =>
   fun
-  | Nil => () |> nil
-  | Boolean(value) => value |> boolean
-  | Integer(value) => value |> integer
-  | Float(value, precision) => (value, precision) |> float
-  | String(value) => value |> string;
+  | Nil => nil()
+  | Boolean(x) => boolean(x)
+  | Integer(x) => integer(x)
+  | Float(x) => float(x)
+  | String(x) => string(x);

@@ -3,9 +3,9 @@ open AST;
 
 let parameter_to_xml:
   (
-    Result.expression_t => Fmt.xml_t(string),
-    Type.t => string,
-    Result.parameter_t
+    Node.t('expr, 'typ) => Fmt.xml_t(string),
+    'typ => string,
+    Interface.Parameter.node_t('expr, 'typ)
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, dump_type, parameter) =>
@@ -40,9 +40,9 @@ let parameter_to_xml:
 
 let parameter_list_to_xml:
   (
-    Result.expression_t => Fmt.xml_t(string),
-    Type.t => string,
-    list(Result.parameter_t)
+    Node.t('expr, 'typ) => Fmt.xml_t(string),
+    'typ => string,
+    list(Interface.Parameter.node_t('expr, 'typ))
   ) =>
   list(Fmt.xml_t(string)) =
   (expr_to_xml, dump_type, parameters) =>

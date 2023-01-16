@@ -2,8 +2,8 @@ open Knot.Kore;
 open AST.Common;
 
 type t('expr, 'typ) =
-  | Variable(identifier_t, Node.t('expr, 'typ))
-  | Effect(Node.t('expr, 'typ));
+  | Variable(KVariable.Plugin.value_t('expr, 'typ))
+  | Effect(KEffect.Plugin.value_t('expr, 'typ));
 
 type node_t('expr, 'typ) = Node.t(t('expr, 'typ), 'typ);
 
@@ -30,12 +30,12 @@ module Plugin = {
 
 /* static */
 
-let of_variable = ((name, expression)) => Variable(name, expression);
-let of_effect = expression => Effect(expression);
+let of_variable = x => Variable(x);
+let of_effect = x => Effect(x);
 
 /* methods */
 
 let fold = (~variable, ~effect) =>
   fun
-  | Variable(name, expression) => (name, expression) |> variable
-  | Effect(expression) => expression |> effect;
+  | Variable(x) => variable(x)
+  | Effect(x) => effect(x);

@@ -4,6 +4,6 @@
 type t =
   | Nil
   | Boolean(bool)
-  | Integer(Int64.t)
+  | Integer(int64)
   | Float(float, int)
   | String(string);

@@ -2,7 +2,12 @@ open Knot.Kore;
 open AST;
 
 let format:
-  Fmt.t((string, (list(Result.parameter_t), Result.expression_t))) =
+  Fmt.t(
+    (
+      string,
+      (list(Result.parameter_t), KExpression.Interface.node_t('typ)),
+    ),
+  ) =
   (ppf, (name, (parameters, (body, _)))) =>
     Fmt.(
       pf(

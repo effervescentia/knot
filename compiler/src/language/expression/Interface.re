@@ -3,17 +3,17 @@ open AST.Common;
 open AST.Operator;
 
 type t('typ) =
-  | Primitive(KPrimitive.Interface.t)
-  | Identifier(string)
-  | KSX(KSX.Interface.t(t('typ), 'typ))
-  | Group(KGroup.Interface.Plugin.value_t(t('typ), 'typ))
-  | BinaryOp(Binary.t, node_t('typ), node_t('typ))
-  | UnaryOp(Unary.t, node_t('typ))
-  | Closure(list(KStatement.Interface.node_t(t('typ), 'typ)))
-  | DotAccess(node_t('typ), identifier_t)
-  | BindStyle(KSX.Interface.ViewKind.t, node_t('typ), node_t('typ))
-  | FunctionCall(node_t('typ), list(node_t('typ)))
-  | Style(KStyle.Interface.Plugin.value_t(t('typ), 'typ))
+  | Primitive(KPrimitive.Plugin.value_t(t('typ), 'typ))
+  | Identifier(KIdentifier.Plugin.value_t(t('typ), 'typ))
+  | KSX(KSX.Plugin.value_t(t('typ), 'typ))
+  | Group(KGroup.Plugin.value_t(t('typ), 'typ))
+  | BinaryOp(KBinaryOperator.Plugin.value_t(t('typ), 'typ))
+  | UnaryOp(KUnaryOperator.Plugin.value_t(t('typ), 'typ))
+  | Closure(KClosure.Plugin.value_t(t('typ), 'typ))
+  | DotAccess(KDotAccess.Plugin.value_t(t('typ), 'typ))
+  | BindStyle(KBindStyle.Plugin.value_t(t('typ), 'typ))
+  | FunctionCall(KFunctionCall.Plugin.value_t(t('typ), 'typ))
+  | Style(KStyle.Plugin.value_t(t('typ), 'typ))
 
 and node_t('typ) = Node.t(t('typ), 'typ);
 
@@ -28,18 +28,20 @@ module Plugin = {
 
 /* static */
 
-let of_primitive = primitive => Primitive(primitive);
-let of_identifier = name => Identifier(name);
-let of_ksx = ksx => KSX(ksx);
-let of_group = expression => Group(expression);
-let of_closure = statements => Closure(statements);
-let of_dot_access = ((object_, property)) => DotAccess(object_, property);
-let of_bind_style = ((kind, view, style)) => BindStyle(kind, view, style);
-let of_function_call = ((function_, arguments)) =>
-  FunctionCall(function_, arguments);
-let of_style = rules => Style(rules);
+let of_primitive = x => Primitive(x);
+let of_identifier = x => Identifier(x);
+let of_ksx = x => KSX(x);
+let of_group = x => Group(x);
+let of_closure = x => Closure(x);
+let of_dot_access = x => DotAccess(x);
+let of_bind_style = x => BindStyle(x);
+let of_function_call = x => FunctionCall(x);
+let of_style = x => Style(x);
+let of_binary_op = x => BinaryOp(x);
+let of_unary_op = x => UnaryOp(x);
 
-let of_binary_op = ((op, lhs, rhs)) => BinaryOp(op, lhs, rhs);
+/* binary operations */
+
 let of_or_op = ((lhs, rhs)) => (Binary.LogicalOr, lhs, rhs) |> of_binary_op;
 let of_and_op = ((lhs, rhs)) =>
   (Binary.LogicalAnd, lhs, rhs) |> of_binary_op;
@@ -63,7 +65,8 @@ let of_divide_op = ((lhs, rhs)) =>
 let of_exponent_op = ((lhs, rhs)) =>
   (Binary.Exponent, lhs, rhs) |> of_binary_op;
 
-let of_unary_op = ((op, expression)) => UnaryOp(op, expression);
+/* unary operations */
+
 let of_absolute_op = expression =>
   (Unary.Positive, expression) |> of_unary_op;
 let of_negative_op = expression =>
@@ -87,15 +90,14 @@ let fold =
       ~style,
     ) =>
   fun
-  | Primitive(value) => value |> primitive
-  | Identifier(name) => name |> identifier
-  | KSX(value) => value |> ksx
-  | Group(expression) => expression |> group
-  | BinaryOp(operator, lhs, rhs) => (operator, lhs, rhs) |> binary_op
-  | UnaryOp(operator, expr) => (operator, expr) |> unary_op
-  | Closure(statements) => statements |> closure
-  | DotAccess(object_, property) => (object_, property) |> dot_access
-  | BindStyle(kind, view, style) => (kind, view, style) |> bind_style
-  | FunctionCall(expression, arguments) =>
-    (expression, arguments) |> function_call
-  | Style(rules) => rules |> style;
+  | Primitive(x) => primitive(x)
+  | Identifier(x) => identifier(x)
+  | KSX(x) => ksx(x)
+  | Group(x) => group(x)
+  | BinaryOp(x) => binary_op(x)
+  | UnaryOp(x) => unary_op(x)
+  | Closure(x) => closure(x)
+  | DotAccess(x) => dot_access(x)
+  | BindStyle(x) => bind_style(x)
+  | FunctionCall(x) => function_call(x)
+  | Style(x) => style(x);

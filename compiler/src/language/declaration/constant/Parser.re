@@ -2,7 +2,8 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse = ((ctx: ParseContext.t, export: ModuleStatement.ExportKind.t)) =>
+let parse =
+    ((ctx: ParseContext.t('ast), export: ModuleStatement.ExportKind.t)) =>
   Matchers.keyword(Constants.Keyword.const)
   >>= (
     kwd =>
