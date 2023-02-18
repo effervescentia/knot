@@ -35,12 +35,12 @@ let _sort_imports =
       (namespace, main_import', sorted_named_imports);
     });
 
-let extract_imports = (program: Module.program_t) =>
+let extract_imports = (program: Interface.program_t('typ)) =>
   program
   |> List.fold_left(
        acc =>
          fst
-         % ModuleStatement.(
+         % KModuleStatement.Interface.(
              fun
              | StdlibImport(named_imports) =>
                acc
@@ -51,12 +51,12 @@ let extract_imports = (program: Module.program_t) =>
                        )
                     |> List.incl_all,
                   )
-             | Import(External(_) as namespace, main_import, named_imports) =>
+             | Import((External(_) as namespace, main_import, named_imports)) =>
                acc
                |> Tuple.map_snd3(
                     List.cons((namespace, main_import, named_imports)),
                   )
-             | Import(Internal(_) as namespace, main_import, named_imports) =>
+             | Import((Internal(_) as namespace, main_import, named_imports)) =>
                acc
                |> Tuple.map_thd3(
                     List.cons((namespace, main_import, named_imports)),
@@ -67,13 +67,13 @@ let extract_imports = (program: Module.program_t) =>
      )
   |> Tuple.map_each3(Fun.id, _sort_imports, _sort_imports);
 
-let extract_declarations = (program: Module.program_t) =>
+let extract_declarations = (program: Interface.program_t('typ)) =>
   program
   |> List.filter_map(
        fst
-       % ModuleStatement.(
+       % KModuleStatement.Interface.(
            fun
-           | Export(_, name, decl) => Some((fst(name), fst(decl)))
+           | Export((_, name, decl)) => Some((fst(name), fst(decl)))
            | _ => None
          ),
      );

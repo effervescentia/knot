@@ -4,7 +4,10 @@ open AST;
 let to_xml:
   (
     'typ => string,
-    (list(Result.parameter_t), KExpression.Interface.node_t('typ))
+    (
+      list(KLambda.Interface.Parameter.node_t('expr, 'typ)),
+      KExpression.Interface.node_t('typ),
+    )
   ) =>
   Fmt.xml_t(string) =
   (dump_type, (parameters, body)) =>

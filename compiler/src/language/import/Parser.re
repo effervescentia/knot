@@ -8,7 +8,7 @@ module ParseContext = AST.ParseContext;
 let __import_keyword = Matchers.keyword(Keyword.import);
 let __from_keyword = Matchers.keyword(Keyword.from);
 
-let _import_named = (ctx: ParseContext.t, import) =>
+let _import_named = (ctx: ParseContext.t('ast), import) =>
   fun
   | (((id, _), None), _) as no_alias =>
     ctx
@@ -20,7 +20,7 @@ let _import_named = (ctx: ParseContext.t, import) =>
     |> import(Export.Named(id), alias)
     |> Result.map_error(Tuple.with_snd2(Node.get_range(with_alias)));
 
-let _import_main = (ctx: ParseContext.t, import, alias) =>
+let _import_main = (ctx: ParseContext.t('ast), import, alias) =>
   ctx
   |> import(Export.Main, fst(alias))
   |> Result.map_error(Tuple.with_snd2(Node.get_range(alias)));
@@ -32,7 +32,7 @@ let parse_namespace = ((main_import, named_imports)) =>
 
 let parse_main_import = Matchers.identifier;
 
-let parse_named_imports = (ctx: ParseContext.t) =>
+let parse_named_imports = (ctx: ParseContext.t('ast)) =>
   KIdentifier.Parser.parse_raw(ctx)
   >>= (
     id =>
@@ -49,7 +49,7 @@ let parse_named_imports = (ctx: ParseContext.t) =>
         ),
       );
 
-let parse_main_and_named_import = (ctx: ParseContext.t) =>
+let parse_main_and_named_import = (ctx: ParseContext.t('ast)) =>
   option(None, parse_main_import >|= Option.some)
   << Matchers.symbol(Constants.Character.comma)
   >>= (
@@ -57,7 +57,7 @@ let parse_main_and_named_import = (ctx: ParseContext.t) =>
       parse_named_imports(ctx) >|= fst >|= Tuple.with_fst2(main_import)
   );
 
-let parse_module_import = (ctx: ParseContext.t) =>
+let parse_module_import = (f, ctx: ParseContext.t('ast)) =>
   __import_keyword
   >>= (
     kwd =>
@@ -90,14 +90,13 @@ let parse_module_import = (ctx: ParseContext.t) =>
       >|= (
         ((namespace, main_import, named_imports)) =>
           Node.raw(
-            (fst(namespace), main_import, named_imports)
-            |> AST.Result.of_import,
+            (fst(namespace), main_import, named_imports) |> f,
             Node.join_ranges(kwd, namespace),
           )
       )
   );
 
-let parse_standard_import = (ctx: ParseContext.t) =>
+let parse_standard_import = (f, ctx: ParseContext.t('ast)) =>
   __import_keyword
   >>= (
     kwd =>
@@ -109,13 +108,13 @@ let parse_standard_import = (ctx: ParseContext.t) =>
         )
       >|= (
         imports =>
-          Node.raw(
-            AST.Result.of_stdlib_import(fst(imports)),
-            Node.join_ranges(kwd, imports),
-          )
+          Node.raw(f(fst(imports)), Node.join_ranges(kwd, imports))
       )
   );
 
-let parse = (ctx: ParseContext.t) =>
-  choice([parse_module_import(ctx), parse_standard_import(ctx)])
+let parse = ((to_import, to_stdlib_import), ctx: ParseContext.t('ast)) =>
+  choice([
+    parse_module_import(to_import, ctx),
+    parse_standard_import(to_stdlib_import, ctx),
+  ])
   |> Matchers.terminated;

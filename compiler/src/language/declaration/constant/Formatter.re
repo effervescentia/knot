@@ -1,6 +1,6 @@
 open Knot.Kore;
 
-let format: Fmt.t((string, KExpression.Interface.node_t('typ))) =
+let format: Interface.Plugin.format_t('typ) =
   (ppf, (name, (expression, _))) =>
     Fmt.pf(
       ppf,

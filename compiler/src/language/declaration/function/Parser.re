@@ -2,67 +2,66 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-let parse = ((ctx: ParseContext.t, export: ModuleStatement.ExportKind.t)) =>
-  Matchers.keyword(Constants.Keyword.func)
-  >>= Node.get_range
-  % (
-    start =>
-      KIdentifier.Parser.parse_raw(ctx)
-      >>= (
-        name =>
-          KExpression.Plugin.parse
-          |> KLambda.Parser.parse_lambda(ctx)
-          >|= (
-            ((parameters, body, lambda_range)) => {
-              let scope = ctx |> Scope.of_parse_context(lambda_range);
-              let parameters' =
-                parameters
-                |> KLambda.Analyzer.analyze_parameter_list(
-                     scope,
-                     KExpression.Plugin.analyze,
+let parse: Interface.Plugin.parse_t('ast) =
+  (is_main, ctx) =>
+    Matchers.keyword(Constants.Keyword.func)
+    >>= Node.get_range
+    % (
+      start =>
+        KIdentifier.Parser.parse_raw(ctx)
+        >>= (
+          name =>
+            KExpression.Plugin.parse
+            |> KLambda.Parser.parse_lambda(ctx)
+            >|= (
+              ((parameters, body, lambda_range)) => {
+                let scope = ctx |> Scope.of_parse_context(lambda_range);
+                let parameters' =
+                  parameters
+                  |> KLambda.Analyzer.analyze_parameter_list(
+                       KExpression.Plugin.analyze,
+                       scope,
+                     );
+
+                parameters'
+                |> List.iter(parameter =>
+                     scope
+                     |> Scope.define(
+                          parameter |> fst |> Tuple.fst3 |> fst,
+                          Node.get_type(parameter),
+                        )
+                     |> Option.iter(
+                          Scope.report_type_err(
+                            scope,
+                            Node.get_range(parameter),
+                          ),
+                        )
                    );
 
-              parameters'
-              |> List.iter(parameter =>
-                   scope
-                   |> Scope.define(
-                        parameter |> fst |> Tuple.fst3 |> fst,
-                        Node.get_type(parameter),
-                      )
-                   |> Option.iter(
-                        Scope.report_type_err(
-                          scope,
-                          Node.get_range(parameter),
-                        ),
-                      )
-                 );
+                let body_scope =
+                  scope |> Scope.create_child(Node.get_range(body));
+                let (body', body_type) =
+                  body
+                  |> Node.analyzer(KExpression.Plugin.analyze(body_scope));
 
-              let body_scope =
-                scope |> Scope.create_child(Node.get_range(body));
-              let body' = body |> KExpression.Plugin.analyze(body_scope);
+                let type_ =
+                  Type.Valid(
+                    Function(
+                      parameters' |> List.map(Node.get_type),
+                      body_type,
+                    ),
+                  );
 
-              let type_ =
-                Type.Valid(
-                  Function(
-                    parameters' |> List.map(Node.get_type),
-                    Node.get_type(body'),
-                  ),
-                );
+                ctx.symbols
+                |> SymbolTable.declare_value(~main=is_main, fst(name), type_);
 
-              ctx.symbols
-              |> SymbolTable.declare_value(
-                   ~main=ModuleStatement.ExportKind.is_main(export),
-                   fst(name),
-                   type_,
-                 );
+                let result =
+                  Node.typed((parameters', body'), type_, lambda_range);
+                let range = Range.join(start, lambda_range);
 
-              let result =
-                Node.typed((parameters', body'), type_, lambda_range);
-              let range = Range.join(start, lambda_range);
-
-              Node.raw((name, result), range);
-            }
-          )
-      )
-      |> Matchers.terminated
-  );
+                Node.raw((name, result), range);
+              }
+            )
+        )
+        |> Matchers.terminated
+    );

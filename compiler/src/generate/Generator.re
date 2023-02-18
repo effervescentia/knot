@@ -3,7 +3,9 @@
  */
 open Kore;
 
-let pp = (target: Target.t, resolve: resolve_t): Fmt.t(AST.Module.program_t) =>
+let pp =
+    (target: Target.t, resolve: resolve_t)
+    : Fmt.t(Language.Interface.program_t('typ)) =>
   (ppf, program) =>
     switch (target) {
     | JavaScript(module_type) =>

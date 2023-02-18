@@ -21,7 +21,12 @@ let variant_to_xml = (dump_type, (name, parameters)) =>
 let to_xml:
   (
     'typ => string,
-    list((Common.identifier_t, list(Node.t(TypeExpression.raw_t, 'typ))))
+    list(
+      (
+        Common.identifier_t,
+        list(Node.t(KTypeExpression.Interface.t, 'typ)),
+      ),
+    )
   ) =>
   Fmt.xml_t(string) =
   (dump_type, variants) =>

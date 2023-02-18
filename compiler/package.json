@@ -405,7 +405,8 @@
     },
     "src/language/declaration/constant": {
       "require": [
-        "knot.lang.expression"
+        "knot.lang.expression",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.constant",
       "namespace": "KConstant"
@@ -413,7 +414,8 @@
     "src/language/declaration/enumerated": {
       "require": [
         "knot.lang.type.statement",
-        "knot.lang.expression"
+        "knot.lang.expression",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.enumerated",
       "namespace": "KEnumerated"
@@ -421,7 +423,8 @@
     "src/language/declaration/function": {
       "require": [
         "knot.lang.expression",
-        "knot.lang.lambda"
+        "knot.lang.lambda",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.function",
       "namespace": "KFunction"
@@ -429,7 +432,8 @@
     "src/language/declaration/view": {
       "require": [
         "knot.lang.expression",
-        "knot.lang.lambda"
+        "knot.lang.lambda",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.view",
       "namespace": "KView"
@@ -446,7 +450,6 @@
     },
     "src/language/module_statement": {
       "require": [
-        "knot.lang.declaration",
         "knot.lang.import"
       ],
       "name": "knot.lang.module_statement",
@@ -463,7 +466,7 @@
     "src/language": {
       "require": [
         "knot.lang.decorator",
-        "knot.lang.module_statement",
+        "knot.lang.declaration",
         "knot.lang.type.definition"
       ],
       "name": "knot.lang",

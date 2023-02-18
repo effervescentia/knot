@@ -2,13 +2,13 @@ open Knot.Kore;
 open AST;
 
 let analyze_parameter:
-  (
-    Scope.t('ast),
-    (Scope.t('ast), Raw.expression_t) => Result.expression_t,
-    Raw.parameter_t
-  ) =>
-  Result.parameter_t =
-  (scope, analyze_expression, parameter) => {
+  Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr) =>
+  Framework.Interface.analyze_t(
+    'ast,
+    Interface.Parameter.t('raw_expr, unit),
+    Interface.Parameter.t('result_expr, Type.t),
+  ) =
+  (analyze_expression, scope, parameter) => {
     let (parameter', type_) =
       switch (fst(parameter)) {
       | (name, None, None) =>
@@ -18,9 +18,10 @@ let analyze_parameter:
         ((name, None, None), Type.Invalid(NotInferrable));
 
       | (name, None, Some(expression)) =>
-        let expression' = expression |> analyze_expression(scope);
+        let (expression', expression_type) =
+          expression |> Node.analyzer(analyze_expression(scope));
 
-        ((name, None, Some(expression')), Node.get_type(expression'));
+        ((name, None, Some(expression')), expression_type);
 
       | (name, Some(type_expression), None) =>
         let type_ =
@@ -31,8 +32,8 @@ let analyze_parameter:
         ((name, Some(type_expression), None), type_);
 
       | (name, Some(type_expression), Some(expression)) =>
-        let expression' = expression |> analyze_expression(scope);
-        let expression_type = Node.get_type(expression');
+        let (expression', expression_type) =
+          expression |> Node.analyzer(analyze_expression(scope));
         let type_ =
           type_expression
           |> fst
@@ -43,30 +44,29 @@ let analyze_parameter:
           Type.TypeMismatch(type_, expression_type)
           |> Scope.report_type_err(scope, Node.get_range(expression))
 
+        /* ignore cases where either type is invalid or when types are equal */
         | _ => ()
         };
 
         ((name, Some(type_expression), Some(expression')), type_);
       };
 
-    Node.typed(parameter', type_, Node.get_range(parameter));
-    /* ignore cases where either type is invalid or when types are equal */
+    (parameter', type_);
   };
 
 let analyze_parameter_list:
   (
+    Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr),
     Scope.t('ast),
-    (Scope.t('ast), Node.t('raw_expr, unit)) => Node.t('result_expr, Type.t),
     list(Interface.Parameter.node_t('raw_expr, unit))
   ) =>
-  list(Interface.Parameter.node_t('raw_expr, Type.t)) =
-  (scope, analyze_expression, parameters) => {
+  list(Interface.Parameter.node_t('result_expr, Type.t)) =
+  (analyze_expression, scope, parameters) => {
     let parameters' =
       parameters
       |> List.map(
-           Node.analyzer(analyze_parameter(scope, analyze_expression)),
-         )
-      |> List.split;
+           Node.analyzer(analyze_parameter(analyze_expression, scope)) % fst,
+         );
 
     Validator.validate_default_arguments(scope, parameters');
 

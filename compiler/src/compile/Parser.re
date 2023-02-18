@@ -24,9 +24,9 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
       stmts
       |> List.filter_map(
            fst
-           % AST.ModuleStatement.(
+           % KModuleStatement.Interface.(
                fun
-               | Import(namespace, _, _) => Some(namespace)
+               | Import((namespace, _, _)) => Some(namespace)
                | _ => None
              ),
          )
@@ -36,7 +36,7 @@ let imports = (namespace: Reference.Namespace.t, input: Program.input_t) =>
 /**
  parses entire document to extract imports, declarations and type information
  */
-let ast = (ctx: ParseContext.t, input: Program.input_t) =>
+let ast = (ctx: ParseContext.t('ast), input: Program.input_t) =>
   input
   |> _parse(Program.main(ctx))
   |> (
@@ -48,7 +48,7 @@ let ast = (ctx: ParseContext.t, input: Program.input_t) =>
 /**
  parses entire document to extract type modules and definitions
  */
-let definition = (ctx: ParseContext.t, input: Program.input_t) =>
+let definition = (ctx: ParseContext.t('ast), input: Program.input_t) =>
   input
   |> _parse(Program.definition(ctx))
   |> (

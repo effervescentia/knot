@@ -2,10 +2,10 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-type type_module_statement_parser_t =
-  ParseContext.t => Parse.Parser.t(TypeDefinition.module_statement_t);
+type type_module_statement_parser_t('ast) =
+  ParseContext.t('ast) => Parse.Parser.t(Interface.node_t);
 
-let parse_type_variant = (ctx: ParseContext.t) =>
+let parse_type_variant = (ctx: ParseContext.t('ast)) =>
   KIdentifier.Parser.parse_raw(ctx)
   >>= (
     id =>
@@ -16,7 +16,7 @@ let parse_type_variant = (ctx: ParseContext.t) =>
       >|= Node.map(Tuple.with_fst2(id))
   );
 
-let parse_declaration: type_module_statement_parser_t =
+let parse_declaration: type_module_statement_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.declare),
@@ -27,11 +27,11 @@ let parse_declaration: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_value(id, type_);
 
-        TypeDefinition.of_exportaration(res);
+        Interface.of_declaration(res);
       },
     );
 
-let parse_enumerated: type_module_statement_parser_t =
+let parse_enumerated: type_module_statement_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.enum),
@@ -69,11 +69,11 @@ let parse_enumerated: type_module_statement_parser_t =
         ctx.symbols |> SymbolTable.declare_type(id, enum_type);
         ctx.symbols |> SymbolTable.declare_value(id, value_type);
 
-        TypeDefinition.of_enum(res);
+        Interface.of_enumerated(res);
       },
     );
 
-let parse_type: type_module_statement_parser_t =
+let parse_type: type_module_statement_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.type_),
@@ -84,11 +84,11 @@ let parse_type: type_module_statement_parser_t =
 
         ctx.symbols |> SymbolTable.declare_type(id, type_);
 
-        TypeDefinition.of_type(res);
+        Interface.of_type(res);
       },
     );
 
-let parse: type_module_statement_parser_t =
+let parse: type_module_statement_parser_t('ast) =
   ctx =>
     choice([
       parse_declaration(ctx),

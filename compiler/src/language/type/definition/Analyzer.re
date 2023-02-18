@@ -2,7 +2,7 @@ open Knot.Kore;
 open AST;
 
 let analyze_decorator =
-    (ctx: ParseContext.t, target: Type.DecoratorTarget.t, decorator) => {
+    (ctx: ParseContext.t('ast), target: Type.DecoratorTarget.t, decorator) => {
   let decorator' =
     decorator
     |> Node.map(

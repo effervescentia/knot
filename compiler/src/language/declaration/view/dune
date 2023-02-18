@@ -7,5 +7,5 @@
    (name KView)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.declaration.view)
-   (libraries  knot.lang.expression knot.lang.lambda )
+   (libraries  knot.lang.expression knot.lang.lambda knot.lang.module_statement )
 )

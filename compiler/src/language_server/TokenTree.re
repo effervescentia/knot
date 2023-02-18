@@ -50,29 +50,29 @@ let rec of_list = (xs: list(t)): t =>
   };
 
 let rec of_effect =
-  AST.Expression.(
+  KExpression.Interface.(
     fun
     | (Primitive(prim), (_, range)) =>
       BinaryTree.create((range, Token.Primitive(prim)))
     | (Identifier(id), (_, range)) => Node.raw(id, range) |> of_untyped_id
     | (KSX(ksx), (_, range)) => ksx |> of_ksx |> _wrap(range)
     | (Group(expr), _) => expr |> of_effect |> _wrap(Node.get_range(expr))
-    | (BinaryOp(_, lhs, rhs), _) =>
+    | (BinaryOp((_, lhs, rhs)), _) =>
       _join(
         lhs |> of_effect |> _wrap(Node.get_range(lhs)),
         rhs |> of_effect |> _wrap(Node.get_range(rhs)),
       )
-    | (UnaryOp(_, expr), _) =>
+    | (UnaryOp((_, expr)), _) =>
       expr |> of_effect |> _wrap(Node.get_range(expr))
     | (Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
-    | (DotAccess(expr, _), _) =>
+    | (DotAccess((expr, _)), _) =>
       expr |> of_effect |> _wrap(Node.get_range(expr))
-    | (BindStyle(_, view, style), _) =>
+    | (BindStyle((_, view, style)), _) =>
       _join(
         view |> of_effect |> _wrap(Node.get_range(view)),
         style |> of_effect |> _wrap(Node.get_range(style)),
       )
-    | (FunctionCall(expr, args), _) =>
+    | (FunctionCall((expr, args)), _) =>
       _join(
         expr |> of_effect |> _wrap(Node.get_range(expr)),
         args |> List.map(of_effect) |> of_list,
@@ -82,7 +82,7 @@ let rec of_effect =
   )
 
 and of_ksx =
-  AST.Expression.(
+  KSX.Interface.(
     fun
     | Fragment(children) =>
       children
@@ -110,7 +110,7 @@ and of_ksx =
   )
 
 and of_jsx_child =
-  AST.Expression.(
+  KSX.Interface.Child.(
     fun
     | (Node(tag), (_, range)) => tag |> of_ksx |> _wrap(range)
     | (InlineExpression(expr), _) =>
@@ -120,7 +120,7 @@ and of_jsx_child =
   )
 
 and of_jsx_attr =
-  AST.Expression.(
+  KExpression.Interface.(
     fun
     | (id, None) => of_untyped_id(id)
     | (id, Some(expr)) =>
@@ -131,9 +131,9 @@ and of_jsx_attr =
   )
 
 and of_stmt =
-  AST.Expression.(
+  KExpression.Interface.(
     fun
-    | Variable(name, expr) =>
+    | Variable((name, expr)) =>
       _join(
         of_untyped_id(name),
         expr |> of_effect |> _wrap(Node.get_range(expr)),
@@ -154,7 +154,7 @@ let of_args = args =>
      );
 
 let of_export =
-  AST.Declaration.(
+  KDeclaration.Interface.(
     fun
     | Constant(expr) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | Enumerated(variants) =>
@@ -162,12 +162,12 @@ let of_export =
       |> List.map(((name, _)) => [of_untyped_id(name)])
       |> List.flatten
       |> of_list
-    | Function(args, expr) =>
+    | Function((args, expr)) =>
       _join(
         of_args(args),
         expr |> of_effect |> _wrap(Node.get_range(expr)),
       )
-    | View(props, _, expr) =>
+    | View((props, _, expr)) =>
       _join(
         of_args(props),
         expr |> of_effect |> _wrap(Node.get_range(expr)),
@@ -181,7 +181,7 @@ let of_named_import =
     (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join);
 
 let of_mod_stmt =
-  AST.ModuleStatement.(
+  KModuleStatement.Interface.(
     fun
     | StdlibImport(imports) =>
       imports
@@ -196,7 +196,7 @@ let of_mod_stmt =
                |> Tuple.join2(_join)
            ),
          )
-    | Import(_, main_import, named_imports) =>
+    | Import((_, main_import, named_imports)) =>
       (
         main_import
         |> Option.map(main_import' => [of_untyped_id(main_import')])
@@ -204,11 +204,11 @@ let of_mod_stmt =
       )
       @ (named_imports |> List.map(fst % of_named_import))
       |> of_list
-    | Export(_, id, (decl, _)) =>
+    | Export((_, id, (decl, _))) =>
       _join(of_untyped_id(id), of_export(decl))
   );
 
-let of_ast = (program: AST.Module.program_t) =>
+let of_ast = (program: Language.Interface.program_t(AST.Type.t)) =>
   program |> _fold(fst % of_mod_stmt);
 
 /* pretty printing */

@@ -1,13 +1,7 @@
 open Knot.Kore;
 open AST;
 
-let format:
-  Fmt.t(
-    (
-      string,
-      (list(Result.parameter_t), KExpression.Interface.node_t('typ)),
-    ),
-  ) =
+let format: Interface.Plugin.format_t('typ) =
   (ppf, (name, (parameters, (body, _)))) =>
     Fmt.(
       pf(
@@ -16,7 +10,14 @@ let format:
         name,
         KLambda.Formatter.format_parameter_list(KExpression.Plugin.format),
         parameters,
-        KLambda.Formatter.format_body(KExpression.Plugin.format),
+        KLambda.Formatter.format_body(
+          KExpression.Interface.(
+            fun
+            | Closure(_) => false
+            | _ => true
+          ),
+          KExpression.Plugin.format,
+        ),
         body,
       )
     );

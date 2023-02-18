@@ -1,27 +1,28 @@
 open Knot.Kore;
 
-let to_xml = module_statement =>
-  Dump.node_to_xml(
-    ~unpack=
-      AST.ModuleStatement.(
-        fun
-        | StdlibImport(named_imports) =>
-          KImport.Debug.stdlib_import_to_xml(named_imports)
-
-        | Import(namespace, main_import, named_imports) =>
-          (namespace, main_import, named_imports) |> KImport.Plugin.to_xml
-
-        | Export(kind, name, declaration) =>
+let to_xml:
+  (
+    'decl => Pretty.XML.xml_t(string),
+    AST.Common.raw_t(Interface.t('decl))
+  ) =>
+  Fmt.xml_t(string) =
+  (decl_to_xml, module_statement) =>
+    Dump.node_to_xml(
+      ~unpack=
+        Interface.fold(
+          ~stdlib_import=KImport.Debug.stdlib_import_to_xml,
+          ~import=KImport.Plugin.to_xml,
+          ~export=((kind, name, declaration)) =>
           Fmt.Node(
             "Export",
-            [("kind", ExportKind.to_string(kind))],
+            [("kind", Interface.ExportKind.to_string(kind))],
             [
               Dump.identifier_to_xml("Name", name),
-              KDeclaration.Plugin.to_xml(~@AST.Type.pp, declaration),
+              decl_to_xml(declaration),
             ],
           )
-      )
-      % List.single,
-    "ModuleStatement",
-    module_statement,
-  );
+        )
+        % List.single,
+      "ModuleStatement",
+      module_statement,
+    );

@@ -4,10 +4,11 @@ open AST;
 
 let __default_margin = 120;
 
-let format_declaration_list: Fmt.t(list((string, Result.raw_declaration_t))) =
+let format_declaration_list:
+  Fmt.t(list((string, KDeclaration.Interface.t('typ)))) =
   ppf => {
     let rec loop =
-      Declaration.(
+      KDeclaration.Interface.(
         fun
         | [] => Fmt.nop(ppf, ())
 
@@ -89,7 +90,7 @@ let format_all_imports:
         )
       );
 
-let format = (~margin=__default_margin): Fmt.t(Module.program_t) =>
+let format = (~margin=__default_margin): Fmt.t(Interface.program_t('typ)) =>
   (ppf, program) => {
     let orig_margin = Format.get_margin();
     Format.set_margin(margin);

@@ -36,11 +36,11 @@ let _class_name = Fmt.str("$class_%s");
 let _id_name = Fmt.str("$id_%s");
 
 let rec gen_expression =
-  AST.Expression.(
+  KExpression.Interface.(
     fun
     | Primitive(Boolean(x)) => JS.Boolean(x)
     | Primitive(Integer(value)) => JS.Number(Int64.to_string(value))
-    | Primitive(Float(value, precision)) =>
+    | Primitive(Float((value, precision))) =>
       JS.Number(value |> Fmt.str("%.*g", precision))
     | Primitive(String(x)) => JS.String(x)
     | Primitive(Nil) => JS.Null
@@ -66,19 +66,19 @@ let rec gen_expression =
         values |> loop |> JS.iife;
       }
 
-    | UnaryOp(op, value) => value |> gen_unary_op(op)
-    | BinaryOp(op, lhs, rhs) => gen_binary_op(op, lhs, rhs)
+    | UnaryOp((op, value)) => value |> gen_unary_op(op)
+    | BinaryOp((op, lhs, rhs)) => gen_binary_op(op, lhs, rhs)
     | KSX(value) => gen_ksx(value)
-    | DotAccess((expr, _), (prop, _)) =>
+    | DotAccess(((expr, _), (prop, _))) =>
       JS.DotAccess(gen_expression(expr), prop)
-    | BindStyle(Element, (Identifier(id), _), (style, _)) =>
+    | BindStyle((Element, (Identifier(id), _), (style, _))) =>
       JS.FunctionCall(__bind_style, [String(id), gen_expression(style)])
-    | BindStyle(_, (view, _), (style, _)) =>
+    | BindStyle((_, (view, _), (style, _))) =>
       JS.FunctionCall(
         __bind_style,
         [gen_expression(view), gen_expression(style)],
       )
-    | FunctionCall((expr, _), args) =>
+    | FunctionCall(((expr, _), args)) =>
       JS.FunctionCall(
         gen_expression(expr),
         args |> List.map(fst % gen_expression),
@@ -87,9 +87,9 @@ let rec gen_expression =
   )
 
 and gen_statement = (~is_last=false) =>
-  AST.Expression.(
+  KStatement.Interface.(
     fun
-    | Variable((name, _), (value, _)) =>
+    | Variable(((name, _), (value, _))) =>
       [JS.Variable(name, gen_expression(value))]
       @ (is_last ? [JS.Return(Some(Null))] : [])
     | Effect((value, _)) => [
@@ -160,7 +160,7 @@ and gen_ksx_element = (expr, styles, attrs, values) =>
   )
 
 and gen_ksx =
-  AST.Expression.(
+  KSX.Interface.(
     fun
     | Tag(Element, (name, _), styles, attrs, values) =>
       gen_ksx_element(String(name), styles, attrs, values)
@@ -176,7 +176,7 @@ and gen_ksx =
   )
 
 and gen_ksx_child =
-  AST.Expression.(
+  KSX.Interface.(
     fun
     | Node(value) => gen_ksx(value)
     | Text(value) => JS.String(value)
@@ -185,8 +185,14 @@ and gen_ksx_child =
 
 and gen_ksx_attrs =
     (
-      attrs: list(AST.Result.ksx_attribute_t),
-      styles: list(AST.Result.expression_t),
+      attrs:
+        list(
+          KSX.Interface.Attribute.node_t(
+            KExpression.Interface.t('typ),
+            'typ,
+          ),
+        ),
+      styles: list(KExpression.Interface.node_t('typ)),
     ) =>
   if (List.is_empty(attrs) && List.is_empty(styles)) {
     JS.Null;
@@ -197,19 +203,18 @@ and gen_ksx_attrs =
       |> List.fold_left(
            p =>
              fst
-             % AST.Expression.(
-                 fun
-                 | ((name, _), expr) => [
-                     (
-                       name,
-                       switch (expr) {
-                       | Some((expr, _)) => gen_expression(expr)
-                       | None => JS.Identifier(name)
-                       },
-                     ),
-                     ...p,
-                   ]
-               ),
+             % (
+               (((name, _), expr)) => [
+                 (
+                   name,
+                   switch (expr) {
+                   | Some((expr, _)) => gen_expression(expr)
+                   | None => JS.Identifier(name)
+                   },
+                 ),
+                 ...p,
+               ]
+             ),
            [],
          );
 
@@ -232,7 +237,16 @@ and gen_ksx_attrs =
     JS.Object(props');
   }
 
-and gen_style = (rules: list(AST.Result.style_rule_t)) =>
+and gen_style =
+    (
+      rules:
+        list(
+          KStyle.Interface.StyleRule.node_t(
+            KExpression.Interface.t('typ),
+            'typ,
+          ),
+        ),
+    ) =>
   JS.(
     iife([
       Variable(__self, _style_util("styleExpressionPlugin")),
@@ -277,17 +291,20 @@ and gen_style = (rules: list(AST.Result.style_rule_t)) =>
   );
 
 let gen_constant =
-    (name: AST.Result.identifier_t, value: AST.Result.expression_t) =>
+    (
+      name: AST.Common.identifier_t,
+      value: KExpression.Interface.node_t('typ),
+    ) =>
   JS.Variable(fst(name), value |> fst |> gen_expression);
 
 let gen_enumerated =
     (
-      name: AST.Result.identifier_t,
+      name: AST.Common.identifier_t,
       variants:
         list(
           (
-            AST.Result.identifier_t,
-            list(AST.Result.node_t(AST.TypeExpression.raw_t)),
+            AST.Common.identifier_t,
+            list(Node.t(KTypeExpression.Interface.t, 'typ)),
           ),
         ),
     ) => {
@@ -328,9 +345,15 @@ let gen_enumerated =
 
 let gen_function =
     (
-      (name, _): AST.Result.identifier_t,
-      args: list(AST.Result.parameter_t),
-      (expr, _): AST.Result.expression_t,
+      (name, _): AST.Common.identifier_t,
+      args:
+        list(
+          KLambda.Interface.Parameter.node_t(
+            KExpression.Interface.t('typ),
+            'typ,
+          ),
+        ),
+      (expr, _): KExpression.Interface.node_t('typ),
     ) =>
   JS.(
     Expression(
@@ -379,10 +402,16 @@ let gen_function =
 
 let gen_view =
     (
-      (name, _): AST.Result.identifier_t,
-      props: list(AST.Result.parameter_t),
+      (name, _): AST.Common.identifier_t,
+      props:
+        list(
+          KLambda.Interface.Parameter.node_t(
+            KExpression.Interface.t('typ),
+            'typ,
+          ),
+        ),
       mixins: list(Node.t(string, AST.Type.t)),
-      (expr, _): AST.Result.expression_t,
+      (expr, _): KExpression.Interface.node_t('typ),
     ) =>
   JS.(
     Expression(
@@ -428,37 +457,40 @@ let gen_view =
                ];
              })
         )
-        @ (
-          switch (expr) {
-          | Closure(stmts) =>
-            let rec loop = (
-              fun
-              | [] => []
-              | [(x, _)] => x |> gen_statement(~is_last=true)
-              | [(x, _), ...xs] => gen_statement(x) @ loop(xs)
-            );
+        @ KExpression.Interface.(
+            switch (expr) {
+            | Closure(stmts) =>
+              let rec loop = (
+                fun
+                | [] => []
+                | [(x, _)] => x |> gen_statement(~is_last=true)
+                | [(x, _), ...xs] => gen_statement(x) @ loop(xs)
+              );
 
-            loop(stmts);
-          | raw_expr => [Return(Some(gen_expression(raw_expr)))]
-          }
-        ),
+              loop(stmts);
+            | raw_expr => [Return(Some(gen_expression(raw_expr)))]
+            }
+          ),
       ),
     )
   );
 
 let gen_declaration =
-    (name: AST.Result.identifier_t, (decl, _): AST.Result.declaration_t) =>
+    (
+      name: AST.Common.identifier_t,
+      (decl, _): KDeclaration.Interface.node_t('typ),
+    ) =>
   (
     switch (decl) {
     | Constant(value) => [gen_constant(name, value)]
     | Enumerated(variants) => [gen_enumerated(name, variants)]
-    | Function(args, expr) => [gen_function(name, args, expr)]
-    | View(props, mixins, expr) => [gen_view(name, props, mixins, expr)]
+    | Function((args, expr)) => [gen_function(name, args, expr)]
+    | View((props, mixins, expr)) => [gen_view(name, props, mixins, expr)]
     }
   )
   @ [JS.Export(fst(name), None)];
 
-let generate = (resolve: resolve_t, ast: AST.Module.program_t) => {
+let generate = (resolve: resolve_t, ast: Language.Interface.program_t('typ)) => {
   let resolve =
     resolve
     % (
@@ -473,9 +505,9 @@ let generate = (resolve: resolve_t, ast: AST.Module.program_t) => {
     |> List.fold_left(
          ((i, d)) =>
            fst
-           % AST.ModuleStatement.(
+           % KModuleStatement.Interface.(
                fun
-               | Import(namespace, main_import, named_imports) => (
+               | Import((namespace, main_import, named_imports)) => (
                    i
                    @ [
                      JS.Import(
@@ -522,11 +554,11 @@ let generate = (resolve: resolve_t, ast: AST.Module.program_t) => {
                    ),
                    d,
                  )
-               | Export(Named, name, decl) => (
+               | Export((Named, name, decl)) => (
                    i,
                    d @ gen_declaration(name, decl),
                  )
-               | Export(Main, name, decl) => (
+               | Export((Main, name, decl)) => (
                    i,
                    d
                    @ gen_declaration(name, decl)

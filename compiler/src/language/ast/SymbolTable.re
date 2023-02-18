@@ -4,6 +4,15 @@ module Export = Reference.Export;
 
 type types_t = list((string, Type.t));
 
+module Primitive = {
+  type t =
+    | Nil
+    | Boolean(bool)
+    | Integer(int64)
+    | Float(float, int)
+    | String(string);
+};
+
 module Symbols = {
   type t = {
     mutable types: types_t,

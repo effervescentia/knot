@@ -5,14 +5,11 @@ module Parser = Parse.Parser;
 
 type debug_node_t('value, 'typ) = Node.t('value, 'typ) => Fmt.xml_t(string);
 
-// type declaration_parser_t =
-//   Parser.t(raw_t((identifier_t, Result.declaration_t)));
-
 module Interface = {
   type parse_t('value) = Parser.t(raw_t('value));
 
-  type contextual_parse_t('ast, 'expr) =
-    ParseContext.t('ast) => parse_t('expr);
+  type contextual_parse_t('ast, 'value) =
+    ParseContext.t('ast) => parse_t('value);
 
   type analyze_t('ast, 'raw, 'result) =
     (Scope.t('ast), raw_t('raw)) => ('result, Type.t);
@@ -195,6 +192,10 @@ module NoParseExpression = {
         'typ => string,
       );
     });
+
+    type tokenize_t('expr, 'prim, 'typ) =
+      (Node.t('expr, 'typ) => TokenTree2.t('prim), value_t('expr, 'typ)) =>
+      TokenTree2.t('prim);
   };
 
   module type Params = {
@@ -324,6 +325,18 @@ module Declaration = {
 
   module MakeTypes = (Params: TypeParams) => {
     include Params;
+
+    type parse_t('ast) =
+      bool =>
+      Interface.contextual_parse_t(
+        'ast,
+        (identifier_t, Node.t(value_t(Type.t), Type.t)),
+      );
+
+    type format_t('typ) = Fmt.t((string, value_t('typ)));
+
+    type debug_t('typ) =
+      ('typ => string, value_t('typ)) => Fmt.xml_t(string);
   };
 
   module type Params = {
@@ -331,6 +344,12 @@ module Declaration = {
       MakeTypes({
         type value_t('typ);
       }));
+
+    let parse: parse_t('ast);
+
+    let format: format_t('typ);
+
+    let to_xml: debug_t('typ);
   };
 
   module Make = (Params: Params) => {

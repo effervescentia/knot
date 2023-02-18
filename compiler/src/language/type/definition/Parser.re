@@ -2,12 +2,12 @@ open Knot.Kore;
 open Parse.Kore;
 open AST;
 
-type type_module_parser_t =
-  ParseContext.t => Parse.Parser.t(TypeDefinition.module_t);
+type type_module_parser_t('ast) =
+  ParseContext.t('ast) => Parse.Parser.t(Interface.node_t);
 
 let __module_keyword = Matchers.keyword(Constants.Keyword.module_);
 
-let _parse_module_decorator = (ctx: ParseContext.t) =>
+let _parse_module_decorator = (ctx: ParseContext.t('ast)) =>
   KDecorator.Plugin.parse(KPrimitive.Parser.parse_primitive)
   >|= Node.map(((id, args)) =>
         (
@@ -17,12 +17,14 @@ let _parse_module_decorator = (ctx: ParseContext.t) =>
              ),
           args
           |> List.map(arg =>
-               arg |> Node.add_type(arg |> fst |> KPrimitive.Plugin.analyze)
+               arg
+               |> Node.analyzer(KPrimitive.Analyzer.analyze_primitive)
+               % fst
              ),
         )
       );
 
-let parse_module: type_module_parser_t =
+let parse_module: type_module_parser_t('ast) =
   ctx =>
     _parse_module_decorator(ctx)
     |> many
@@ -39,7 +41,7 @@ let parse_module: type_module_parser_t =
               |> many
               |> Matchers.between_braces
               >|= (
-                stmts => {
+                statements => {
                   let SymbolTable.Symbols.{types, values} =
                     module_ctx.symbols.declared;
                   let module_types =
@@ -90,15 +92,28 @@ let parse_module: type_module_parser_t =
                        ctx.symbols
                        |> SymbolTable.declare_decorated(
                             id,
-                            args,
+                            args
+                            |> List.map(
+                                 SymbolTable.Primitive.(
+                                   KPrimitive.Interface.fold(
+                                     ~nil=() => Nil,
+                                     ~boolean=value => Boolean(value),
+                                     ~integer=value => Integer(value),
+                                     ~float=
+                                       ((value, precision)) =>
+                                         Float(value, precision),
+                                     ~string=value => String(value),
+                                   )
+                                 ),
+                               ),
                             decorated_type,
                           )
                      );
 
                   Node.raw(
-                    (id, fst(stmts), decorators' |> List.map(fst))
-                    |> TypeDefinition.of_module,
-                    Node.get_range(stmts),
+                    (id, fst(statements), decorators' |> List.map(fst))
+                    |> Interface.of_module,
+                    Node.get_range(statements),
                   );
                 }
               );
@@ -107,7 +122,7 @@ let parse_module: type_module_parser_t =
         )
     );
 
-let parse_decorator: type_module_parser_t =
+let parse_decorator: type_module_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.decorator),
@@ -134,9 +149,9 @@ let parse_decorator: type_module_parser_t =
 
         ctx.symbols |> SymbolTable.declare_value(fst(id), type_);
 
-        (id, args, target) |> TypeDefinition.of_decorator;
+        (id, args, target) |> Interface.of_decorator;
       },
     );
 
-let parse: type_module_parser_t =
+let parse: type_module_parser_t('ast) =
   ctx => choice([parse_decorator(ctx), parse_module(ctx)]);
