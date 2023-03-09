@@ -62,9 +62,9 @@ let handler: Runtime.request_handler_t(params_t) =
                     ast
                     |> List.filter_map(
                          fst
-                         % AST.ModuleStatement.(
+                         % KModuleStatement.Interface.(
                              fun
-                             | Export(_, name, decl) => {
+                             | Export((_, name, decl)) => {
                                  let uri =
                                    Filename.concat(
                                      uri,
@@ -80,7 +80,7 @@ let handler: Runtime.request_handler_t(params_t) =
                                  let name = fst(name);
 
                                  Some(
-                                   AST.Declaration.(
+                                   KDeclaration.Interface.(
                                      switch (fst(decl)) {
                                      | Constant(_) => {
                                          uri,

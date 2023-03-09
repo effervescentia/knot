@@ -1,7 +1,5 @@
 open Kore;
 
-module A = AST.Result;
-module AR = AST.Raw;
 module T = AST.Type;
 
 module CommonUtil = {
@@ -31,16 +29,32 @@ module RawUtil = {
 
   /* primitive factories */
 
-  let nil_prim = AR.nil |> AR.of_prim |> as_node;
-  let bool_prim = AR.of_bool % AR.of_prim % as_node;
-  let int_prim = Int64.of_int % AR.of_int % AR.of_prim % as_node;
-  let float_prim = AR.of_float % AR.of_prim % as_node;
-  let string_prim = AR.of_string % AR.of_prim % as_node;
+  let nil_prim =
+    KPrimitive.Interface.nil |> KExpression.Interface.of_primitive |> as_node;
+  let bool_prim =
+    KPrimitive.Interface.of_boolean
+    % KExpression.Interface.of_primitive
+    % as_node;
+  let int_prim =
+    Int64.of_int
+    % KPrimitive.Interface.of_integer
+    % KExpression.Interface.of_primitive
+    % as_node;
+  let float_prim =
+    KPrimitive.Interface.of_float
+    % KExpression.Interface.of_primitive
+    % as_node;
+  let string_prim =
+    KPrimitive.Interface.of_string
+    % KExpression.Interface.of_primitive
+    % as_node;
 
   /* jsx factories */
 
-  let ksx_node = x => x |> AR.of_element_tag |> AR.of_node;
-  let ksx_tag = x => x |> AR.of_element_tag |> AR.of_ksx;
+  let ksx_node = x =>
+    x |> KSX.Interface.of_element_tag |> KSX.Interface.Child.of_node;
+  let ksx_tag = x =>
+    x |> KSX.Interface.of_element_tag |> KExpression.Interface.of_ksx;
 };
 
 module ResultUtil = {
@@ -67,14 +81,30 @@ module ResultUtil = {
 
   /* primitive factories */
 
-  let nil_prim = A.nil |> A.of_prim |> as_nil;
-  let bool_prim = A.of_bool % A.of_prim % as_bool;
-  let int_prim = Int64.of_int % A.of_int % A.of_prim % as_int;
-  let float_prim = A.of_float % A.of_prim % as_float;
-  let string_prim = A.of_string % A.of_prim % as_string;
+  let nil_prim =
+    KPrimitive.Interface.nil |> KExpression.Interface.of_primitive |> as_nil;
+  let bool_prim =
+    KPrimitive.Interface.of_boolean
+    % KExpression.Interface.of_primitive
+    % as_bool;
+  let int_prim =
+    Int64.of_int
+    % KPrimitive.Interface.of_integer
+    % KExpression.Interface.of_primitive
+    % as_int;
+  let float_prim =
+    KPrimitive.Interface.of_float
+    % KExpression.Interface.of_primitive
+    % as_float;
+  let string_prim =
+    KPrimitive.Interface.of_string
+    % KExpression.Interface.of_primitive
+    % as_string;
 
   /* jsx factories */
 
-  let ksx_node = x => x |> A.of_element_tag |> A.of_node;
-  let ksx_tag = x => x |> A.of_element_tag |> A.of_ksx;
+  let ksx_node = x =>
+    x |> KSX.Interface.of_element_tag |> KSX.Interface.Child.of_node;
+  let ksx_tag = x =>
+    x |> KSX.Interface.of_element_tag |> KExpression.Interface.of_ksx;
 };

@@ -67,7 +67,8 @@ module Compare = {
   let module_table =
     testable(
       AST.ModuleTable.pp(ppf =>
-        Language.Debug.program_to_xml % Pretty.XML.xml(Fmt.string, ppf)
+        Language.Debug.program_to_xml(~@AST.Type.pp)
+        % Pretty.XML.xml(Fmt.string, ppf)
       ),
       AST.ModuleTable.compare,
     );

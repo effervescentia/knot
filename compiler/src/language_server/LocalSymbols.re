@@ -45,16 +45,16 @@ let handler: Runtime.request_handler_t(params_t) =
         |?< ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
         |?> List.filter_map(
               fst
-              % AST.ModuleStatement.(
+              % KModuleStatement.Interface.(
                   fun
-                  | Export(_, name, decl) => {
+                  | Export((_, name, decl)) => {
                       let range = Node.get_range(name);
                       let full_range = Node.join_ranges(name, decl);
                       let name = fst(name);
                       let type_ = Node.get_type(decl);
 
                       Some(
-                        AST.Declaration.(
+                        KDeclaration.Interface.(
                           switch (fst(decl)) {
                           | Constant(_) => {
                               name,

@@ -5,7 +5,7 @@ module Token = {
     | Skip
     | Join
     | Identifier(string)
-    | Primitive(AST.Primitive.t);
+    | Primitive(KPrimitive.Interface.t);
 };
 
 type t = RangeTree.t(Token.t);
@@ -49,37 +49,34 @@ let rec of_list = (xs: list(t)): t =>
     }
   };
 
-let rec of_effect =
-  KExpression.Interface.(
-    fun
-    | (Primitive(prim), (_, range)) =>
-      BinaryTree.create((range, Token.Primitive(prim)))
-    | (Identifier(id), (_, range)) => Node.raw(id, range) |> of_untyped_id
-    | (KSX(ksx), (_, range)) => ksx |> of_ksx |> _wrap(range)
-    | (Group(expr), _) => expr |> of_effect |> _wrap(Node.get_range(expr))
-    | (BinaryOp((_, lhs, rhs)), _) =>
-      _join(
-        lhs |> of_effect |> _wrap(Node.get_range(lhs)),
-        rhs |> of_effect |> _wrap(Node.get_range(rhs)),
-      )
-    | (UnaryOp((_, expr)), _) =>
-      expr |> of_effect |> _wrap(Node.get_range(expr))
-    | (Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
-    | (DotAccess((expr, _)), _) =>
-      expr |> of_effect |> _wrap(Node.get_range(expr))
-    | (BindStyle((_, view, style)), _) =>
-      _join(
-        view |> of_effect |> _wrap(Node.get_range(view)),
-        style |> of_effect |> _wrap(Node.get_range(style)),
-      )
-    | (FunctionCall((expr, args)), _) =>
-      _join(
-        expr |> of_effect |> _wrap(Node.get_range(expr)),
-        args |> List.map(of_effect) |> of_list,
-      )
-    | (Style(rules), _) =>
-      rules |> List.map(fst % snd % of_effect) |> of_list
-  )
+let rec of_effect: KExpression.Interface.node_t('typ) => t =
+  fun
+  | (Primitive(prim), (_, range)) =>
+    BinaryTree.create((range, Token.Primitive(prim)))
+  | (Identifier(id), (_, range)) => Node.raw(id, range) |> of_untyped_id
+  | (KSX(ksx), (_, range)) => ksx |> of_ksx |> _wrap(range)
+  | (Group(expr), _) => expr |> of_effect |> _wrap(Node.get_range(expr))
+  | (BinaryOp((_, lhs, rhs)), _) =>
+    _join(
+      lhs |> of_effect |> _wrap(Node.get_range(lhs)),
+      rhs |> of_effect |> _wrap(Node.get_range(rhs)),
+    )
+  | (UnaryOp((_, expr)), _) =>
+    expr |> of_effect |> _wrap(Node.get_range(expr))
+  | (Closure(stmts), _) => stmts |> List.map(fst % of_stmt) |> of_list
+  | (DotAccess((expr, _)), _) =>
+    expr |> of_effect |> _wrap(Node.get_range(expr))
+  | (BindStyle((_, view, style)), _) =>
+    _join(
+      view |> of_effect |> _wrap(Node.get_range(view)),
+      style |> of_effect |> _wrap(Node.get_range(style)),
+    )
+  | (FunctionCall((expr, args)), _) =>
+    _join(
+      expr |> of_effect |> _wrap(Node.get_range(expr)),
+      args |> List.map(of_effect) |> of_list,
+    )
+  | (Style(rules), _) => rules |> List.map(fst % snd % of_effect) |> of_list
 
 and of_ksx =
   KSX.Interface.(
@@ -180,33 +177,30 @@ let of_named_import =
   | (id, Some(alias)) =>
     (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join);
 
-let of_mod_stmt =
-  KModuleStatement.Interface.(
-    fun
-    | StdlibImport(imports) =>
-      imports
-      |> _fold(
-           fst
-           % (
-             fun
-             | (id, None) => of_untyped_id(id)
-             | (id, Some(alias)) =>
-               (id, alias)
-               |> Tuple.map2(of_untyped_id)
-               |> Tuple.join2(_join)
-           ),
-         )
-    | Import((_, main_import, named_imports)) =>
-      (
-        main_import
-        |> Option.map(main_import' => [of_untyped_id(main_import')])
-        |?: []
-      )
-      @ (named_imports |> List.map(fst % of_named_import))
-      |> of_list
-    | Export((_, id, (decl, _))) =>
-      _join(of_untyped_id(id), of_export(decl))
-  );
+let of_mod_stmt:
+  KModuleStatement.Interface.t(KDeclaration.Interface.node_t('typ)) => t =
+  fun
+  | StdlibImport(imports) =>
+    imports
+    |> _fold(
+         fst
+         % (
+           fun
+           | (id, None) => of_untyped_id(id)
+           | (id, Some(alias)) =>
+             (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join)
+         ),
+       )
+  | Import((_, main_import, named_imports)) =>
+    (
+      main_import
+      |> Option.map(main_import' => [of_untyped_id(main_import')])
+      |?: []
+    )
+    @ (named_imports |> List.map(fst % of_named_import))
+    |> of_list
+  | Export((_, id, (decl, _))) =>
+    _join(of_untyped_id(id), of_export(decl));
 
 let of_ast = (program: Language.Interface.program_t(AST.Type.t)) =>
   program |> _fold(fst % of_mod_stmt);
@@ -225,7 +219,8 @@ let pp: Fmt.t(t) =
             | Join => ""
             | Skip => "[skip]"
             | Identifier(id) => id
-            | Primitive(prim) => prim |> ~@KPrimitive.Plugin.pp
+            | Primitive(prim) =>
+              prim |> ~@KPrimitive.Formatter.format_primitive
             }
           ),
           Range.create(start, end_) |> ~@Range.pp,
