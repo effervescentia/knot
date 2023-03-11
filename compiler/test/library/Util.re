@@ -29,25 +29,25 @@ module RawUtil = {
 
   /* primitive factories */
 
-  let nil_prim =
+  let nil_prim: Node.t(KExpression.Interface.t(unit), unit) =
     KPrimitive.Interface.nil |> KExpression.Interface.of_primitive |> as_node;
-  let bool_prim =
-    KPrimitive.Interface.of_boolean
-    % KExpression.Interface.of_primitive
-    % as_node;
-  let int_prim =
-    Int64.of_int
-    % KPrimitive.Interface.of_integer
-    % KExpression.Interface.of_primitive
-    % as_node;
-  let float_prim =
-    KPrimitive.Interface.of_float
-    % KExpression.Interface.of_primitive
-    % as_node;
-  let string_prim =
-    KPrimitive.Interface.of_string
-    % KExpression.Interface.of_primitive
-    % as_node;
+  let bool_prim = x =>
+    KPrimitive.Interface.of_boolean(x)
+    |> KExpression.Interface.of_primitive
+    |> as_node;
+  let int_prim = x =>
+    Int64.of_int(x)
+    |> KPrimitive.Interface.of_integer
+    |> KExpression.Interface.of_primitive
+    |> as_node;
+  let float_prim = x =>
+    KPrimitive.Interface.of_float(x)
+    |> KExpression.Interface.of_primitive
+    |> as_node;
+  let string_prim = x =>
+    KPrimitive.Interface.of_string(x)
+    |> KExpression.Interface.of_primitive
+    |> as_node;
 
   /* jsx factories */
 
@@ -81,25 +81,25 @@ module ResultUtil = {
 
   /* primitive factories */
 
-  let nil_prim =
+  let nil_prim: Node.t(KExpression.Interface.t(T.t), T.t) =
     KPrimitive.Interface.nil |> KExpression.Interface.of_primitive |> as_nil;
-  let bool_prim =
-    KPrimitive.Interface.of_boolean
-    % KExpression.Interface.of_primitive
-    % as_bool;
-  let int_prim =
-    Int64.of_int
-    % KPrimitive.Interface.of_integer
-    % KExpression.Interface.of_primitive
-    % as_int;
-  let float_prim =
-    KPrimitive.Interface.of_float
-    % KExpression.Interface.of_primitive
-    % as_float;
-  let string_prim =
-    KPrimitive.Interface.of_string
-    % KExpression.Interface.of_primitive
-    % as_string;
+  let bool_prim = x =>
+    KPrimitive.Interface.of_boolean(x)
+    |> KExpression.Interface.of_primitive
+    |> as_bool;
+  let int_prim = x =>
+    Int64.of_int(x)
+    |> KPrimitive.Interface.of_integer
+    |> KExpression.Interface.of_primitive
+    |> as_int;
+  let float_prim = x =>
+    KPrimitive.Interface.of_float(x)
+    |> KExpression.Interface.of_primitive
+    |> as_float;
+  let string_prim = x =>
+    KPrimitive.Interface.of_string(x)
+    |> KExpression.Interface.of_primitive
+    |> as_string;
 
   /* jsx factories */
 
