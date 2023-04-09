@@ -1,6 +1,5 @@
 open Kore;
 
-module A = AST.Result;
 module OB = AST.Operator.Binary;
 module T = AST.Type;
 

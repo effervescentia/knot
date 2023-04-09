@@ -9,12 +9,12 @@ type event_t =
 type handler_t = unit => option(Type.error_t);
 type handler_lookup_t = Hashtbl.t(string, list((event_t, handler_t)));
 
-type t('a) = {
+type t('ast) = {
   range: Range.t,
-  parent: option(t('a)),
-  mutable children: list(t('a)),
+  parent: option(t('ast)),
+  mutable children: list(t('ast)),
   types: type_lookup_t,
-  context: ParseContext.t('a),
+  context: ParseContext.t('ast),
   handlers: handler_lookup_t,
 };
 

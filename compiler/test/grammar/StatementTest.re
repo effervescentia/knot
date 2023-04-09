@@ -1,14 +1,13 @@
 open Kore;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = AR.statement_t;
+    type t = Statement.node_t(Expression.t(unit), unit);
 
     let parser = ctx =>
-      KStatement.Plugin.parse(ctx, KExpression.Plugin.parse)
+      Statement.parse(ctx, Expression.parse)
       |> Assert.parse_completely
       |> Parser.parse;
 
@@ -17,10 +16,10 @@ module Assert =
         check(
           testable(
             ppf =>
-              KStatement.Plugin.to_xml(
-                KExpression.Plugin.to_xml(_ => "Unknown"), _ =>
-                "Unknown"
-              )
+              Statement.to_xml((
+                Expression.to_xml(_ => "Unknown"),
+                _ => "Unknown",
+              ))
               % Fmt.xml_string(ppf),
             (==),
           ),
@@ -37,10 +36,10 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          ("foo" |> AR.of_id |> U.as_node, U.int_prim(3))
-          |> AR.of_add_op
+          ("foo" |> Expression.of_identifier |> U.as_node, U.int_prim(3))
+          |> Expression.of_add_op
           |> U.as_node
-          |> AR.of_effect
+          |> Statement.of_effect
           |> U.as_node,
           ["foo + 3", "foo + 3;"],
         )
@@ -51,11 +50,11 @@ let suite =
         Assert.parse_all(
           (
             U.as_untyped("foo"),
-            ("bar" |> AR.of_id |> U.as_node, U.int_prim(3))
-            |> AR.of_add_op
+            ("bar" |> Expression.of_identifier |> U.as_node, U.int_prim(3))
+            |> Expression.of_add_op
             |> U.as_node,
           )
-          |> AR.of_var
+          |> Statement.of_variable
           |> U.as_node,
           ["let foo = bar + 3", "let foo = bar + 3;"],
         )

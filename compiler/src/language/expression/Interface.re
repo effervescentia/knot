@@ -37,41 +37,30 @@ let of_dot_access = x => DotAccess(x);
 let of_bind_style = x => BindStyle(x);
 let of_function_call = x => FunctionCall(x);
 let of_style = x => Style(x);
-let of_binary_op = x => BinaryOp(x);
-let of_unary_op = x => UnaryOp(x);
+let of_binary_op = (op, (lhs, rhs)) => BinaryOp((op, lhs, rhs));
+let of_unary_op = (op, x) => UnaryOp((op, x));
 
 /* binary operations */
 
-let of_or_op = ((lhs, rhs)) => (Binary.LogicalOr, lhs, rhs) |> of_binary_op;
-let of_and_op = ((lhs, rhs)) =>
-  (Binary.LogicalAnd, lhs, rhs) |> of_binary_op;
-let of_lt_op = ((lhs, rhs)) => (Binary.LessThan, lhs, rhs) |> of_binary_op;
-let of_lte_op = ((lhs, rhs)) =>
-  (Binary.LessOrEqual, lhs, rhs) |> of_binary_op;
-let of_gt_op = ((lhs, rhs)) =>
-  (Binary.GreaterThan, lhs, rhs) |> of_binary_op;
-let of_gte_op = ((lhs, rhs)) =>
-  (Binary.GreaterOrEqual, lhs, rhs) |> of_binary_op;
-let of_equal_op = ((lhs, rhs)) => (Binary.Equal, lhs, rhs) |> of_binary_op;
-let of_unequal_op = ((lhs, rhs)) =>
-  (Binary.Unequal, lhs, rhs) |> of_binary_op;
-let of_add_op = ((lhs, rhs)) => (Binary.Add, lhs, rhs) |> of_binary_op;
-let of_subtract_op = ((lhs, rhs)) =>
-  (Binary.Subtract, lhs, rhs) |> of_binary_op;
-let of_multiply_op = ((lhs, rhs)) =>
-  (Binary.Multiply, lhs, rhs) |> of_binary_op;
-let of_divide_op = ((lhs, rhs)) =>
-  (Binary.Divide, lhs, rhs) |> of_binary_op;
-let of_exponent_op = ((lhs, rhs)) =>
-  (Binary.Exponent, lhs, rhs) |> of_binary_op;
+let of_or_op = x => of_binary_op(Binary.LogicalOr, x);
+let of_and_op = x => of_binary_op(Binary.LogicalAnd, x);
+let of_lt_op = x => of_binary_op(Binary.LessThan, x);
+let of_lte_op = x => of_binary_op(Binary.LessOrEqual, x);
+let of_gt_op = x => of_binary_op(Binary.GreaterThan, x);
+let of_gte_op = x => of_binary_op(Binary.GreaterOrEqual, x);
+let of_equal_op = x => of_binary_op(Binary.Equal, x);
+let of_unequal_op = x => of_binary_op(Binary.Unequal, x);
+let of_add_op = x => of_binary_op(Binary.Add, x);
+let of_subtract_op = x => of_binary_op(Binary.Subtract, x);
+let of_multiply_op = x => of_binary_op(Binary.Multiply, x);
+let of_divide_op = x => of_binary_op(Binary.Divide, x);
+let of_exponent_op = x => of_binary_op(Binary.Exponent, x);
 
 /* unary operations */
 
-let of_absolute_op = expression =>
-  (Unary.Positive, expression) |> of_unary_op;
-let of_negative_op = expression =>
-  (Unary.Negative, expression) |> of_unary_op;
-let of_not_op = expression => (Unary.Not, expression) |> of_unary_op;
+let of_absolute_op = x => x |> of_unary_op(Unary.Positive);
+let of_negative_op = x => x |> of_unary_op(Unary.Negative);
+let of_not_op = x => x |> of_unary_op(Unary.Not);
 
 /* methods */
 

@@ -4,7 +4,8 @@ open Resolve;
 include TestLibrary.Assert;
 
 let dump_program = ppf =>
-  Language.Debug.program_to_xml % Pretty.XML.xml(Fmt.string, ppf);
+  Language.Debug.program_to_xml(~@AST.Type.pp)
+  % Pretty.XML.xml(Fmt.string, ppf);
 
 let import_graph =
   Alcotest.(

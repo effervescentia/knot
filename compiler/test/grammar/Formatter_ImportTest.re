@@ -1,8 +1,6 @@
 open Kore;
 
-module A = AST.Result;
 module Formatter = Language.Formatter;
-module Namespace = Reference.Namespace;
 module U = Util.ResultUtil;
 
 let _main_import = (name, f) => (
@@ -12,7 +10,7 @@ let _main_import = (name, f) => (
 );
 
 let _assert_import = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KImport.Plugin.format));
+  Assert.string(expected, actual |> ~@Fmt.root(Import.format));
 
 let suite =
   "Grammar.Formatter | Import"

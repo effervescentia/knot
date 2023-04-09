@@ -1,9 +1,12 @@
 open Kore;
 
-module A = AST.Result;
-module AE = AST.Expression;
+module ModuleStatement = KModuleStatement.Interface;
+module Declaration = KDeclaration.Interface;
+module Expression = KExpression.Interface;
+module Statement = KStatement.Interface;
+module KSX = KSX.Interface;
+module ExportKind = ModuleStatement.ExportKind;
 module U = Util.ResultUtil;
-module ExportKind = AST.ModuleStatement.ExportKind;
 
 /**
  `const nil_const = nil;`
@@ -12,9 +15,9 @@ let nil_const = [
   (
     ExportKind.Named,
     "nil_const" |> U.as_untyped,
-    U.nil_prim |> A.of_const |> U.as_nil,
+    U.nil_prim |> Declaration.of_constant |> U.as_nil,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -25,9 +28,9 @@ let int_const = [
   (
     ExportKind.Named,
     "int_const" |> U.as_untyped,
-    123 |> U.int_prim |> A.of_const |> U.as_int,
+    123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -38,9 +41,9 @@ let float_const = [
   (
     ExportKind.Named,
     "float_const" |> U.as_untyped,
-    (123.0, 3) |> U.float_prim |> A.of_const |> U.as_float,
+    (123.0, 3) |> U.float_prim |> Declaration.of_constant |> U.as_float,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -51,9 +54,9 @@ let bool_const = [
   (
     ExportKind.Named,
     "bool_const" |> U.as_untyped,
-    true |> U.bool_prim |> A.of_const |> U.as_bool,
+    true |> U.bool_prim |> Declaration.of_constant |> U.as_bool,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -62,11 +65,11 @@ let bool_const = [
  */
 let string_const = [
   (
-    AST.ModuleStatement.ExportKind.Named,
+    ExportKind.Named,
     "string_const" |> U.as_untyped,
-    "foo" |> U.string_prim |> A.of_const |> U.as_string,
+    "foo" |> U.string_prim |> Declaration.of_constant |> U.as_string,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -77,9 +80,13 @@ let identifier_const = [
   (
     ExportKind.Named,
     "identifier_const" |> U.as_untyped,
-    "foo" |> A.of_id |> U.as_int |> A.of_const |> U.as_int,
+    "foo"
+    |> Expression.of_identifier
+    |> U.as_int
+    |> Declaration.of_constant
+    |> U.as_int,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -93,10 +100,10 @@ let jsx_const = [
     ("Foo" |> U.as_view([], Valid(Nil)), [], [], [])
     |> U.ksx_tag
     |> U.as_element
-    |> A.of_const
+    |> Declaration.of_constant
     |> U.as_element,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -107,9 +114,14 @@ let group_const = [
   (
     ExportKind.Named,
     "group_const" |> U.as_untyped,
-    123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_const |> U.as_int,
+    123
+    |> U.int_prim
+    |> Expression.of_group
+    |> U.as_int
+    |> Declaration.of_constant
+    |> U.as_int,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -125,16 +137,18 @@ let closure_const = [
     ExportKind.Named,
     "closure_const" |> U.as_untyped,
     [
-      (U.as_untyped("foo"), 123 |> U.int_prim) |> A.of_var |> U.as_nil,
-      (U.as_untyped("bar"), U.nil_prim) |> A.of_var |> U.as_nil,
-      false |> U.bool_prim |> A.of_effect |> U.as_bool,
+      (U.as_untyped("foo"), 123 |> U.int_prim)
+      |> Statement.of_variable
+      |> U.as_nil,
+      (U.as_untyped("bar"), U.nil_prim) |> Statement.of_variable |> U.as_nil,
+      false |> U.bool_prim |> Statement.of_effect |> U.as_bool,
     ]
-    |> A.of_closure
+    |> Expression.of_closure
     |> U.as_bool
-    |> A.of_const
+    |> Declaration.of_constant
     |> U.as_bool,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -146,12 +160,12 @@ let and_bool_const = [
     ExportKind.Named,
     "and_bool_const" |> U.as_untyped,
     (true |> U.bool_prim, false |> U.bool_prim)
-    |> A.of_and_op
+    |> Expression.of_and_op
     |> U.as_bool
-    |> A.of_const
+    |> Declaration.of_constant
     |> U.as_bool,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -162,9 +176,14 @@ let negative_int_const = [
   (
     ExportKind.Named,
     "negative_int_const" |> U.as_untyped,
-    123 |> U.int_prim |> A.of_neg_op |> U.as_int |> A.of_const |> U.as_int,
+    123
+    |> U.int_prim
+    |> Expression.of_negative_op
+    |> U.as_int
+    |> Declaration.of_constant
+    |> U.as_int,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -186,20 +205,20 @@ let complex_jsx_const = [
       [(U.as_untyped("buzz"), None) |> U.as_untyped],
       [
         ("Bar" |> U.as_view([], Valid(Nil)), [], [], [])
-        |> A.of_element_tag
-        |> A.of_node
+        |> KSX.of_element_tag
+        |> KSX.Child.of_node
         |> U.as_untyped,
-        U.nil_prim |> A.of_inline_expr |> U.as_untyped,
-        "fizzbuzz" |> A.of_text |> U.as_untyped,
-        [] |> A.of_frag |> A.of_node |> U.as_untyped,
+        U.nil_prim |> KSX.Child.of_inline |> U.as_untyped,
+        "fizzbuzz" |> KSX.Child.of_text |> U.as_untyped,
+        [] |> KSX.of_fragment |> KSX.Child.of_node |> U.as_untyped,
       ],
     )
     |> U.ksx_tag
     |> U.as_element
-    |> A.of_const
+    |> Declaration.of_constant
     |> U.as_element,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -215,14 +234,17 @@ let inline_function = [
         (U.as_untyped("foo"), None, None) |> U.as_int,
         (U.as_untyped("bar"), None, Some(3 |> U.int_prim)) |> U.as_int,
       ],
-      ("foo" |> A.of_id |> U.as_int, "bar" |> A.of_id |> U.as_int)
-      |> A.of_add_op
+      (
+        "foo" |> Expression.of_identifier |> U.as_int,
+        "bar" |> Expression.of_identifier |> U.as_int,
+      )
+      |> Expression.of_add_op
       |> U.as_int,
     )
-    |> A.of_func
+    |> Declaration.of_function
     |> U.as_function([Valid(Integer), Valid(Integer)], Valid(Integer)),
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -240,21 +262,28 @@ let multiline_function = [
     (
       [],
       [
-        ("zip" |> U.as_untyped, 3 |> U.int_prim) |> A.of_var |> U.as_nil,
-        ("zap" |> U.as_untyped, 4 |> U.int_prim) |> A.of_var |> U.as_nil,
-        ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
-        |> A.of_mult_op
+        ("zip" |> U.as_untyped, 3 |> U.int_prim)
+        |> Statement.of_variable
+        |> U.as_nil,
+        ("zap" |> U.as_untyped, 4 |> U.int_prim)
+        |> Statement.of_variable
+        |> U.as_nil,
+        (
+          "zip" |> Expression.of_identifier |> U.as_int,
+          "zap" |> Expression.of_identifier |> U.as_int,
+        )
+        |> Expression.of_multiply_op
         |> U.as_int
-        |> A.of_effect
+        |> Statement.of_effect
         |> U.as_int,
       ]
-      |> A.of_closure
+      |> Expression.of_closure
       |> U.as_int,
     )
-    |> A.of_func
+    |> Declaration.of_function
     |> U.as_function([Valid(Integer), Valid(Integer)], Valid(Integer)),
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped,
 ];
 
@@ -267,7 +296,7 @@ let main_import = [
     "Foo" |> U.as_untyped |> Option.some,
     [],
   )
-  |> A.of_import
+  |> ModuleStatement.of_import
   |> U.as_untyped,
 ];
 
@@ -280,6 +309,6 @@ let named_import = [
     None,
     [(U.as_untyped("foo"), None) |> U.as_untyped],
   )
-  |> A.of_import
+  |> ModuleStatement.of_import
   |> U.as_untyped,
 ];

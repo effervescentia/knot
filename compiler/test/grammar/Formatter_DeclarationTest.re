@@ -1,12 +1,10 @@
 open Kore;
 
-module A = AST.Result;
-module AE = AST.Expression;
 module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
-let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
-let __bool_const = ("DEF", true |> U.bool_prim |> A.of_const);
+let __int_const = ("ABC", 123 |> U.int_prim |> Declaration.of_constant);
+let __bool_const = ("DEF", true |> U.bool_prim |> Declaration.of_constant);
 
 let __inline_function = (
   "foo",
@@ -15,11 +13,14 @@ let __inline_function = (
       (U.as_untyped("bar"), None, None) |> U.as_int,
       (U.as_untyped("fizz"), None, Some(3 |> U.int_prim)) |> U.as_int,
     ],
-    ("bar" |> A.of_id |> U.as_int, "fizz" |> A.of_id |> U.as_int)
-    |> A.of_add_op
+    (
+      "bar" |> Expression.of_identifier |> U.as_int,
+      "fizz" |> Expression.of_identifier |> U.as_int,
+    )
+    |> Expression.of_add_op
     |> U.as_int,
   )
-  |> A.of_func,
+  |> Declaration.of_function,
 );
 
 let __multiline_function = (
@@ -27,18 +28,25 @@ let __multiline_function = (
   (
     [],
     [
-      (U.as_untyped("zip"), 3 |> U.int_prim) |> A.of_var |> U.as_nil,
-      (U.as_untyped("zap"), 4 |> U.int_prim) |> A.of_var |> U.as_nil,
-      ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
-      |> A.of_mult_op
+      (U.as_untyped("zip"), 3 |> U.int_prim)
+      |> Statement.of_variable
+      |> U.as_nil,
+      (U.as_untyped("zap"), 4 |> U.int_prim)
+      |> Statement.of_variable
+      |> U.as_nil,
+      (
+        "zip" |> Expression.of_identifier |> U.as_int,
+        "zap" |> Expression.of_identifier |> U.as_int,
+      )
+      |> Expression.of_multiply_op
       |> U.as_int
-      |> A.of_effect
+      |> Statement.of_effect
       |> U.as_int,
     ]
-    |> A.of_closure
+    |> Expression.of_closure
     |> U.as_int,
   )
-  |> A.of_func,
+  |> Declaration.of_function,
 );
 
 let __inline_view = (
@@ -50,17 +58,20 @@ let __inline_view = (
     ],
     [],
     [
-      ("bar" |> A.of_id |> U.as_int, "fizz" |> A.of_id |> U.as_int)
-      |> A.of_add_op
+      (
+        "bar" |> Expression.of_identifier |> U.as_int,
+        "fizz" |> Expression.of_identifier |> U.as_int,
+      )
+      |> Expression.of_add_op
       |> U.as_int
-      |> A.of_inline_expr
+      |> KSX.Child.of_inline
       |> U.as_untyped,
     ]
-    |> A.of_frag
-    |> A.of_ksx
+    |> KSX.of_fragment
+    |> Expression.of_ksx
     |> U.as_element,
   )
-  |> A.of_view,
+  |> Declaration.of_view,
 );
 
 let __multiline_view = (
@@ -69,25 +80,32 @@ let __multiline_view = (
     [],
     [],
     [
-      (U.as_untyped("zip"), 3 |> U.int_prim) |> A.of_var |> U.as_nil,
-      (U.as_untyped("zap"), 4 |> U.int_prim) |> A.of_var |> U.as_nil,
+      (U.as_untyped("zip"), 3 |> U.int_prim)
+      |> Statement.of_variable
+      |> U.as_nil,
+      (U.as_untyped("zap"), 4 |> U.int_prim)
+      |> Statement.of_variable
+      |> U.as_nil,
       [
-        ("zip" |> A.of_id |> U.as_int, "zap" |> A.of_id |> U.as_int)
-        |> A.of_mult_op
+        (
+          "zip" |> Expression.of_identifier |> U.as_int,
+          "zap" |> Expression.of_identifier |> U.as_int,
+        )
+        |> Expression.of_multiply_op
         |> U.as_int
-        |> A.of_inline_expr
+        |> KSX.Child.of_inline
         |> U.as_untyped,
       ]
-      |> A.of_frag
-      |> A.of_ksx
+      |> KSX.of_fragment
+      |> Expression.of_ksx
       |> U.as_element
-      |> A.of_effect
+      |> Statement.of_effect
       |> U.as_element,
     ]
-    |> A.of_closure
+    |> Expression.of_closure
     |> U.as_int,
   )
-  |> A.of_view,
+  |> Declaration.of_view,
 );
 
 let _assert_declaration = (expected, actual) =>
@@ -106,7 +124,7 @@ let suite =
       () =>
         _assert_declaration(
           "const foo = nil;",
-          ("foo", A.of_const(U.nil_prim)),
+          ("foo", Declaration.of_constant(U.nil_prim)),
         )
     ),
     "pp_declaration() - empty enumerated"
@@ -114,7 +132,7 @@ let suite =
       () =>
         _assert_declaration(
           "enum Account = | ;",
-          ("Account", A.of_enum([])),
+          ("Account", Declaration.of_enumerated([])),
         )
     ),
     "pp_declaration() - multiline enumerated"
@@ -134,7 +152,7 @@ let suite =
   | Nine;",
           (
             "Digits",
-            A.of_enum([
+            Declaration.of_enumerated([
               (U.as_untyped("Zero"), []),
               (U.as_untyped("One"), []),
               (U.as_untyped("Two"), []),

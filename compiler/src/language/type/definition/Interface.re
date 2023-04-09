@@ -1,8 +1,8 @@
 open Knot.Kore;
 open AST.Common;
 
-type decorator_t('a) =
-  raw_t((Node.t(string, 'a), list(Node.t(KPrimitive.Interface.t, 'a))));
+type decorator_t =
+  raw_t(KDecorator.Interface.t(KPrimitive.Interface.t, AST.Type.t));
 
 type t =
   | Decorator(
@@ -16,13 +16,11 @@ type t =
       (
         identifier_t,
         list(KTypeStatement.Interface.node_t),
-        list(decorator_t(AST.Type.t)),
+        list(decorator_t),
       ),
     );
 
 type node_t = raw_t(t);
-
-// type t = list(module_t);
 
 /* static */
 

@@ -1,6 +1,5 @@
 let tests = [
   ConstantTest.suite,
-  DeclarationTest.suite,
   DecoratorTest.suite,
   EnumeratedTest.suite,
   ExpressionTest.suite,
@@ -14,6 +13,7 @@ let tests = [
   IdentifierTest.suite,
   ImportTest.suite,
   JSXTest.suite,
+  ModuleStatementTest.suite,
   Primitive_BooleanTest.suite,
   Primitive_NilTest.suite,
   Primitive_NumberTest.suite,

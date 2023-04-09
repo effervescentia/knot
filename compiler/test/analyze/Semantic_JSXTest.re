@@ -1,7 +1,5 @@
 open Kore;
 
-module A = AST.Result;
-module AR = AST.Raw;
 module T = AST.Type;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
@@ -9,7 +7,8 @@ module URes = Util.ResultUtil;
 let __id = "foo";
 let __component_id = "Foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __context = AST.ParseContext.create(~report=ignore, __namespace);
+let __context: AST.ParseContext.t(Language.Interface.program_t(AST.Type.t)) =
+  AST.ParseContext.create(~report=ignore, __namespace);
 let __throw_scope =
   AST.Scope.create({...__context, report: AST.Error.throw}, Range.zero);
 
@@ -31,20 +30,26 @@ let suite =
             [],
             [],
             [
-              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
+              "foo"
+              |> URes.string_prim
+              |> KSX.Child.of_inline
+              |> URes.as_untyped,
             ],
           )
-          |> A.of_component_tag,
+          |> KSX.of_component_tag,
           (
             URaw.as_untyped(__id),
             [],
             [],
             [
-              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
+              "foo"
+              |> URaw.string_prim
+              |> KSX.Child.of_inline
+              |> URaw.as_untyped,
             ],
           )
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -69,20 +74,26 @@ let suite =
             [],
             [],
             [
-              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
+              "foo"
+              |> URes.string_prim
+              |> KSX.Child.of_inline
+              |> URes.as_untyped,
             ],
           )
-          |> A.of_element_tag,
+          |> KSX.of_element_tag,
           (
             URaw.as_untyped(__id),
             [],
             [],
             [
-              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
+              "foo"
+              |> URaw.string_prim
+              |> KSX.Child.of_inline
+              |> URaw.as_untyped,
             ],
           )
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -102,19 +113,19 @@ let suite =
         Assert.jsx(
           (
             __id |> URes.as_typed(type_),
-            [style_id |> A.of_id |> URes.as_style],
+            [style_id |> Expression.of_identifier |> URes.as_style],
             [],
             [],
           )
-          |> A.of_component_tag,
+          |> KSX.of_component_tag,
           (
             URaw.as_untyped(__id),
-            [style_id |> AR.of_id |> URaw.as_untyped],
+            [style_id |> Expression.of_identifier |> URaw.as_untyped],
             [],
             [],
           )
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -125,11 +136,8 @@ let suite =
           [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
           () =>
           (URaw.as_untyped(__id), [], [], [])
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(
-               __throw_scope,
-               KExpression.Plugin.analyze,
-             )
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, __throw_scope)
         );
       }
     ),
@@ -157,14 +165,14 @@ let suite =
             [],
             [
               __id
-              |> AR.of_id
+              |> Expression.of_identifier
               |> URaw.as_node
-              |> AR.of_inline_expr
+              |> KSX.Child.of_inline
               |> URaw.as_untyped,
             ],
           )
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze)
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope)
         );
       }
     ),
@@ -187,12 +195,9 @@ let suite =
           ],
           () =>
           __id
-          |> AR.of_id
+          |> Expression.of_identifier
           |> URaw.as_node
-          |> KView.Analyzer.analyze_view_body(
-               scope,
-               KExpression.Plugin.analyze,
-             )
+          |> KView.Analyzer.analyze_view_body(scope)
         );
       }
     ),
@@ -231,8 +236,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze)
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope)
         );
       }
     ),
@@ -276,8 +281,8 @@ let suite =
           ],
           [],
         )
-        |> AR.of_element_tag
-        |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze)
+        |> KSX.of_element_tag
+        |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope)
         |> ignore;
 
         Assert.compile_errors(
@@ -339,7 +344,7 @@ let suite =
             ],
             [],
           )
-          |> A.of_component_tag,
+          |> KSX.of_component_tag,
           (
             URaw.as_untyped(__component_id),
             [],
@@ -354,8 +359,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),

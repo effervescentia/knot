@@ -1,11 +1,10 @@
 open Kore;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = AR.identifier_t;
+    type t = AST.Common.identifier_t;
 
     let parser =
       KIdentifier.Parser.parse_raw % Assert.parse_completely % Parser.parse;

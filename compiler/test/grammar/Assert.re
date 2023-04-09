@@ -2,11 +2,6 @@ open Kore;
 
 include Test.Assert;
 
-module A = AST.Result;
-module AR = AST.Raw;
-module ParseContext = AST.ParseContext;
-module Type = AST.Type;
-
 module Compare = {
   include Compare;
 
@@ -25,7 +20,12 @@ let parse_completely = x => Parse.Onyx.(x << (eof() |> Parse.Matchers.lexeme));
 module type AssertParams = {
   include Test.Assert.Target;
 
-  let parser: (ParseContext.t, Language.Program.input_t) => option(t);
+  let parser:
+    (
+      ParseContext.t(Language.Interface.program_t(Type.t)),
+      Language.Program.input_t
+    ) =>
+    option(t);
 };
 
 module Make = (Params: AssertParams) => {
@@ -98,7 +98,9 @@ module type TypedParserParams = {
   type value_t;
   type type_t;
 
-  let parser: ParseContext.t => Parse.Parser.t(N.t(value_t, type_t));
+  let parser:
+    ParseContext.t(Language.Interface.program_t(Type.t)) =>
+    Parse.Parser.t(N.t(value_t, type_t));
 
   let pp_value: Fmt.t(value_t);
   let pp_type: Fmt.t(type_t);
@@ -130,33 +132,65 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Parse.Parser.t(N.t(AST.Primitive.t, unit));
+  let parser: Parse.Parser.t(N.t(Primitive.t, unit));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>
   MakeTyped({
-    type value_t = AST.Primitive.t;
+    type value_t = Primitive.t;
     type type_t = unit;
 
     let parser = _ => Params.parser;
 
     let pp_value = ppf =>
-      KPrimitive.Plugin.to_xml((_ => raise(NotImplemented), _ => ""))
+      Primitive.to_xml((_ => raise(NotImplemented), _ => ""))
       % Fmt.xml_string(ppf);
     let pp_type = (_, ()) => ();
   });
 
-module Declaration =
+module Expression =
   Make({
-    type t = AST.Result.module_statement_t;
+    type t = KExpression.Interface.node_t(unit);
 
-    let parser = KDeclaration.Plugin.parse % parse_completely % Parser.parse;
+    let parser = KExpression.Plugin.parse % parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
-            ppf => KModuleStatement.Plugin.to_xml % Fmt.xml_string(ppf),
+            ppf =>
+              KExpression.Plugin.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
+            (==),
+          ),
+          "program matches",
+        )
+      );
+  });
+
+module Declaration =
+  Make({
+    type t =
+      AST.Common.raw_t(
+        (AST.Common.identifier_t, Declaration.node_t(Type.t)),
+      );
+
+    let parser = Declaration.parse(true) % parse_completely % Parser.parse;
+
+    let test =
+      Alcotest.(
+        check(
+          testable(
+            ppf =>
+              Dump.node_to_xml(
+                ~unpack=
+                  ((name, declaration)) =>
+                    [
+                      Dump.identifier_to_xml("Name", name),
+                      Declaration.to_xml(~@Type.pp, declaration),
+                    ],
+                "NamedDeclaration",
+              )
+              % Fmt.xml_string(ppf),
             (==),
           ),
           "parsed result matches",

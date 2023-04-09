@@ -1,7 +1,6 @@
 open Kore;
 
-module Export = Reference.Export;
-module ExportKind = AST.ModuleStatement.ExportKind;
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Enumerated"
@@ -15,11 +14,9 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
-            [] |> A.of_enum |> U.as_enum([]),
+            [] |> Declaration.of_enumerated |> U.as_enum([]),
           )
-          |> A.of_export
           |> U.as_untyped,
           "enum foo =",
         )
@@ -29,11 +26,9 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
-            [] |> A.of_enum |> U.as_enum([]),
+            [] |> Declaration.of_enumerated |> U.as_enum([]),
           )
-          |> A.of_export
           |> U.as_untyped,
           "enum foo = |",
         )
@@ -43,13 +38,11 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
             [(U.as_untyped("OnlyOption"), [])]
-            |> A.of_enum
+            |> Declaration.of_enumerated
             |> U.as_enum([("OnlyOption", [])]),
           )
-          |> A.of_export
           |> U.as_untyped,
           "enum foo = OnlyOption",
         )
@@ -59,22 +52,26 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("Account"),
             [
               (
                 U.as_untyped("Verified"),
-                [U.as_int(TE.Integer), U.as_string(TE.String)],
+                [
+                  U.as_int(TypeExpression.Integer),
+                  U.as_string(TypeExpression.String),
+                ],
               ),
-              (U.as_untyped("Unverified"), [TE.String |> U.as_string]),
+              (
+                U.as_untyped("Unverified"),
+                [TypeExpression.String |> U.as_string],
+              ),
             ]
-            |> A.of_enum
+            |> Declaration.of_enumerated
             |> U.as_enum([
-                 ("Verified", [T.Valid(Integer), T.Valid(String)]),
-                 ("Unverified", [T.Valid(String)]),
+                 ("Verified", [Valid(Integer), Valid(String)]),
+                 ("Unverified", [Valid(String)]),
                ]),
           )
-          |> A.of_export
           |> U.as_untyped,
           "enum Account =
   | Verified(integer, string)

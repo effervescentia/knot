@@ -1,6 +1,5 @@
 open Kore;
 
-module A = AST.Result;
 module OU = AST.Operator.Unary;
 module T = AST.Type;
 

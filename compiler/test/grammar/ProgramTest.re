@@ -2,15 +2,14 @@ open Kore;
 open Reference;
 
 module ModuleTable = AST.ModuleTable;
-module ParseContext = AST.ParseContext;
 module Program = Language.Program;
-module ExportKind = AST.ModuleStatement.ExportKind;
+module U = Util.ResultUtil;
 
 let dump_program = ppf =>
-  Language.Debug.program_to_xml % Pretty.XML.xml(Fmt.string, ppf);
+  Language.Debug.program_to_xml(~@Type.pp) % Pretty.XML.xml(Fmt.string, ppf);
 
 module Target = {
-  type t = AM.program_t;
+  type t = Language.Interface.program_t(Type.t);
 
   let parser = Program.main % Parser.parse;
 
@@ -32,18 +31,20 @@ let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let __main_import_ast =
   (Namespace.Internal("bar"), "foo" |> U.as_untyped |> Option.some, [])
-  |> A.of_import
+  |> ModuleStatement.of_import
   |> U.as_untyped;
 let __const_decl_ast =
   (
     ExportKind.Named,
     U.as_untyped("foo"),
-    U.nil_prim |> A.of_const |> U.as_nil,
+    U.nil_prim |> Declaration.of_constant |> U.as_nil,
   )
-  |> A.of_export
+  |> ModuleStatement.of_export
   |> U.as_untyped;
 
-let _create_module = (exports: list((Export.t, T.t))): ModuleTable.module_t => {
+let _create_module =
+    (exports: list((Export.t, Type.t)))
+    : ModuleTable.module_t(Language.Interface.program_t(Type.t)) => {
   ast: [],
   scopes: __scope_tree,
   symbols: AST.SymbolTable.of_export_list(exports),
@@ -64,7 +65,7 @@ let __context =
           Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, T.Valid(String))]),
+            _create_module([(Export.Main, Type.Valid(String))]),
           ),
         ),
       ]
@@ -92,9 +93,13 @@ let suite =
             (
               ExportKind.Named,
               "bar" |> U.as_untyped,
-              "foo" |> A.of_id |> U.as_nil |> A.of_const |> U.as_nil,
+              "foo"
+              |> Expression.of_identifier
+              |> U.as_nil
+              |> Declaration.of_constant
+              |> U.as_nil,
             )
-            |> A.of_export
+            |> ModuleStatement.of_export
             |> U.as_untyped,
           ],
           __const_decl ++ "; const bar = foo",
@@ -121,7 +126,7 @@ let suite =
                     Namespace.Internal("bar"),
                     ModuleTable.Valid(
                       "foo",
-                      _create_module([(Export.Main, T.Valid(Boolean))]),
+                      _create_module([(Export.Main, Type.Valid(Boolean))]),
                     ),
                   ),
                 ]
@@ -132,10 +137,14 @@ let suite =
             __main_import_ast,
             (
               ExportKind.Named,
-              "bar" |> U.as_untyped,
-              "foo" |> A.of_id |> U.as_bool |> A.of_const |> U.as_bool,
+              U.as_untyped("bar"),
+              "foo"
+              |> Expression.of_identifier
+              |> U.as_bool
+              |> Declaration.of_constant
+              |> U.as_bool,
             )
-            |> A.of_export
+            |> ModuleStatement.of_export
             |> U.as_untyped,
           ],
           __main_import ++ "; const bar = foo",

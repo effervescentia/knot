@@ -25,11 +25,11 @@ module Program = {
   module U = Util.ResultUtil;
 
   let const_int =
-    AST.Result.[
+    KModuleStatement.Interface.[
       (
-        AST.ModuleStatement.ExportKind.Named,
+        ExportKind.Named,
         "ABC" |> U.as_untyped,
-        123 |> U.int_prim |> of_const |> U.as_int,
+        123 |> U.int_prim |> KDeclaration.Interface.of_constant |> U.as_int,
       )
       |> of_export
       |> U.as_untyped,

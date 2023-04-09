@@ -1,23 +1,21 @@
 open Kore;
 
-module A = AST.Result;
 module Formatter = Language.Formatter;
-module Namespace = Reference.Namespace;
 module U = Util.ResultUtil;
 
-let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
+let __int_const = ("ABC", 123 |> U.int_prim |> Declaration.of_constant);
 
 let __int_const_stmt =
   (
-    AST.ModuleStatement.ExportKind.Named,
+    ExportKind.Named,
     "ABC" |> U.as_untyped,
-    123 |> U.int_prim |> A.of_const |> U.as_int,
+    123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
   )
-  |> A.of_export;
+  |> ModuleStatement.of_export;
 
 let __import_stmt =
   (Namespace.External("bar"), "Foo" |> U.as_untyped |> Option.some, [])
-  |> A.of_import;
+  |> ModuleStatement.of_import;
 
 let suite =
   "Grammar.Formatter | Module"
@@ -67,7 +65,7 @@ const ABC = 123;\n",
             name |> String.capitalize_ascii |> U.as_untyped |> Option.some,
             [],
           )
-          |> A.of_import;
+          |> ModuleStatement.of_import;
 
         Assert.string(
           "import Bar from \"bar\";
@@ -102,7 +100,7 @@ import Fizz from \"@/fizz\";\n",
                 (U.as_untyped("a"), None) |> U.as_untyped,
               ],
             )
-            |> A.of_import,
+            |> ModuleStatement.of_import,
           ]
           |> List.map(U.as_untyped)
           |> ~@Formatter.format,

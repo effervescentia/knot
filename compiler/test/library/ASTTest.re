@@ -1,9 +1,7 @@
 open Kore;
 
-module A = AST.Result;
-module U = Util.ResultUtil;
-
-let dump = Language.Debug.program_to_xml % ~@Pretty.XML.xml(Fmt.string);
+let dump =
+  Language.Debug.program_to_xml(~@AST.Type.pp) % ~@Pretty.XML.xml(Fmt.string);
 
 let rec get_xml_depth =
   fun

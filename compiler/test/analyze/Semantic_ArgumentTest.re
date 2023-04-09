@@ -1,16 +1,12 @@
 open Kore;
 
-module A = AST.Result;
-module AE = AST.Expression;
-module AR = AST.Raw;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
-module T = AST.Type;
-module TE = AST.TypeExpression;
 
 let __id = "foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __context = AST.ParseContext.create(~report=ignore, __namespace);
+let __context: AST.ParseContext.t(Language.Interface.program_t(AST.Type.t)) =
+  AST.ParseContext.create(~report=ignore, __namespace);
 let __scope = AST.Scope.create(__context, Range.zero);
 let __throw_scope =
   AST.Scope.create({...__context, report: AST.Error.throw}, Range.zero);
@@ -27,23 +23,33 @@ let suite =
           (URaw.as_untyped(__id), None, Some(URaw.string_prim("bar")))
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __scope,
                KExpression.Plugin.analyze,
-             ),
+               __scope,
+             )
+          |> fst,
         )
     ),
     "extract type expression type"
     >: (
       () =>
         Assert.argument(
-          (URes.as_untyped(__id), Some(URaw.as_untyped(TE.Boolean)), None)
+          (
+            URes.as_untyped(__id),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
+            None,
+          )
           |> URes.as_bool,
-          (URaw.as_untyped(__id), Some(URaw.as_untyped(TE.Boolean)), None)
+          (
+            URaw.as_untyped(__id),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
+            None,
+          )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __scope,
                KExpression.Plugin.analyze,
-             ),
+               __scope,
+             )
+          |> fst,
         )
     ),
     "resolve on matched valid types"
@@ -52,20 +58,21 @@ let suite =
         Assert.argument(
           (
             URes.as_untyped(__id),
-            Some(URaw.as_untyped(TE.Boolean)),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
             Some(URes.bool_prim(true)),
           )
           |> URes.as_bool,
           (
             URaw.as_untyped(__id),
-            Some(URaw.as_untyped(TE.Boolean)),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
             Some(URaw.bool_prim(true)),
           )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __scope,
                KExpression.Plugin.analyze,
-             ),
+               __scope,
+             )
+          |> fst,
         )
     ),
     "resolve on invalid default expression type"
@@ -74,20 +81,25 @@ let suite =
         Assert.argument(
           (
             URes.as_untyped(__id),
-            Some(URaw.as_untyped(TE.Boolean)),
-            Some(__id |> A.of_id |> URes.as_invalid(NotInferrable)),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
+            Some(
+              __id
+              |> Expression.of_identifier
+              |> URes.as_invalid(NotInferrable),
+            ),
           )
           |> URes.as_bool,
           (
             URaw.as_untyped(__id),
-            Some(URaw.as_untyped(TE.Boolean)),
-            Some(__id |> AR.of_id |> URaw.as_node),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
+            Some(__id |> Expression.of_identifier |> URaw.as_node),
           )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __scope,
                KExpression.Plugin.analyze,
-             ),
+               __scope,
+             )
+          |> fst,
         )
     ),
     "report TypeMismatch on unmatched types"
@@ -96,7 +108,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(TypeMismatch(T.Valid(Boolean), T.Valid(String))),
+              TypeError(TypeMismatch(Valid(Boolean), Valid(String))),
               __namespace,
               Range.zero,
             ),
@@ -104,14 +116,15 @@ let suite =
           () =>
           (
             URaw.as_untyped(__id),
-            Some(URaw.as_untyped(TE.Boolean)),
+            Some(URaw.as_untyped(TypeExpression.Boolean)),
             Some(URaw.string_prim("bar")),
           )
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __throw_scope,
                KExpression.Plugin.analyze,
+               __throw_scope,
              )
+          |> fst
         )
     ),
     "report UntypedFunctionArgument when no type information available"
@@ -129,9 +142,10 @@ let suite =
           (URaw.as_untyped(__id), None, None)
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __throw_scope,
                KExpression.Plugin.analyze,
+               __throw_scope,
              )
+          |> fst
         )
     ),
     "resolve NotInferrable when no type information available"
@@ -143,9 +157,10 @@ let suite =
           (URaw.as_untyped(__id), None, None)
           |> URaw.as_node
           |> KLambda.Analyzer.analyze_parameter(
-               __scope,
                KExpression.Plugin.analyze,
-             ),
+               __scope,
+             )
+          |> fst,
         )
     ),
     "report DefaultArgumentMissing on gaps in default arguments"
@@ -163,7 +178,7 @@ let suite =
           [
             (
               URaw.as_untyped("fizz"),
-              Some(URaw.as_untyped(TE.Boolean)),
+              Some(URaw.as_untyped(TypeExpression.Boolean)),
               None,
             )
             |> URaw.as_node,
@@ -171,14 +186,14 @@ let suite =
             |> URaw.as_node,
             (
               URaw.as_untyped("bar"),
-              Some(URaw.as_untyped(TE.Boolean)),
+              Some(URaw.as_untyped(TypeExpression.Boolean)),
               None,
             )
             |> URaw.as_node,
           ]
           |> KLambda.Analyzer.analyze_parameter_list(
-               __throw_scope,
                KExpression.Plugin.analyze,
+               __throw_scope,
              )
         )
     ),

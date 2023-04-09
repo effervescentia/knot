@@ -1,9 +1,6 @@
 open Kore;
 
-module Export = Reference.Export;
-module ParseContext = AST.ParseContext;
-module SymbolTable = AST.SymbolTable;
-module ExportKind = AST.ModuleStatement.ExportKind;
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Constant"
@@ -23,11 +20,9 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
-            U.nil_prim |> A.of_const |> U.as_nil,
+            U.nil_prim |> Declaration.of_constant |> U.as_nil,
           )
-          |> A.of_export
           |> U.as_untyped,
           "const foo = nil",
         )
@@ -39,9 +34,9 @@ let suite =
           ...SymbolTable.create(),
           declared: {
             values: [
-              ("bar", T.Valid(Float)),
-              ("fizz", T.Valid(Integer)),
-              ("buzz", T.Valid(Float)),
+              ("bar", Valid(Float)),
+              ("fizz", Valid(Integer)),
+              ("buzz", Valid(Float)),
             ],
             types: [],
           },
@@ -54,52 +49,59 @@ let suite =
               Reference.Namespace.Internal("foo"),
             ),
           (
-            ExportKind.Named,
-            "foo" |> U.as_untyped,
+            U.as_untyped("foo"),
             [
-              (U.as_untyped("x"), "bar" |> A.of_id |> U.as_float)
-              |> A.of_var
+              (
+                U.as_untyped("x"),
+                "bar" |> Expression.of_identifier |> U.as_float,
+              )
+              |> Statement.of_variable
               |> U.as_nil,
               (
                 U.as_untyped("y"),
                 (
-                  ("x" |> A.of_id |> U.as_float, "fizz" |> A.of_id |> U.as_int)
-                  |> A.of_gt_op
+                  (
+                    "x" |> Expression.of_identifier |> U.as_float,
+                    "fizz" |> Expression.of_identifier |> U.as_int,
+                  )
+                  |> Expression.of_gt_op
                   |> U.as_bool,
                   (
-                    "x" |> A.of_id |> U.as_float,
-                    "buzz" |> A.of_id |> U.as_float,
+                    "x" |> Expression.of_identifier |> U.as_float,
+                    "buzz" |> Expression.of_identifier |> U.as_float,
                   )
-                  |> A.of_ineq_op
+                  |> Expression.of_unequal_op
                   |> U.as_bool,
                 )
-                |> A.of_and_op
+                |> Expression.of_and_op
                 |> U.as_bool,
               )
-              |> A.of_var
+              |> Statement.of_variable
               |> U.as_nil,
               (
-                "y" |> A.of_id |> U.as_bool,
+                "y" |> Expression.of_identifier |> U.as_bool,
                 (
-                  ("x" |> A.of_id |> U.as_float, 1 |> U.int_prim)
-                  |> A.of_add_op
+                  (
+                    "x" |> Expression.of_identifier |> U.as_float,
+                    1 |> U.int_prim,
+                  )
+                  |> Expression.of_add_op
                   |> U.as_float,
                   5 |> U.int_prim,
                 )
-                |> A.of_lte_op
+                |> Expression.of_lte_op
                 |> U.as_bool,
               )
-              |> A.of_or_op
+              |> Expression.of_or_op
               |> U.as_bool
-              |> A.of_effect
+              |> Statement.of_effect
               |> U.as_bool,
             ]
-            |> A.of_closure
+            |> Expression.of_closure
             |> U.as_bool
-            |> A.of_const
+            |> Declaration.of_constant
             |> U.as_bool,
           )
-          |> A.of_export
           |> U.as_untyped,
           "const foo = {
             let x = bar;
@@ -110,10 +112,10 @@ let suite =
 
         Assert.symbol_assoc_list(
           [
-            ("bar", T.Valid(Float)),
-            ("fizz", T.Valid(Integer)),
-            ("buzz", T.Valid(Float)),
-            ("foo", T.Valid(Boolean)),
+            ("bar", Valid(Float)),
+            ("fizz", Valid(Integer)),
+            ("buzz", Valid(Float)),
+            ("foo", Valid(Boolean)),
           ],
           symbols.declared.values,
         );

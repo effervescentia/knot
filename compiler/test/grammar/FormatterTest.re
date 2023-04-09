@@ -2,6 +2,7 @@ open Kore;
 
 module OB = AST.Operator.Binary;
 module OU = AST.Operator.Unary;
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Formatter"
@@ -154,14 +155,22 @@ let suite =
     ),
     "pp_num() - integer"
     >: (
-      () => Assert.string("123", 123L |> A.of_int |> ~@KPrimitive.Plugin.pp)
+      () =>
+        Assert.string(
+          "123",
+          123L
+          |> Primitive.of_integer
+          |> ~@Primitive.Formatter.format_primitive,
+        )
     ),
     "pp_num() - maximum integer"
     >: (
       () =>
         Assert.string(
           "9223372036854775807",
-          Int64.max_int |> A.of_int |> ~@KPrimitive.Plugin.pp,
+          Int64.max_int
+          |> Primitive.of_integer
+          |> ~@Primitive.Formatter.format_primitive,
         )
     ),
     "pp_num() - minimum integer"
@@ -169,7 +178,9 @@ let suite =
       () =>
         Assert.string(
           "-9223372036854775808",
-          Int64.min_int |> A.of_int |> ~@KPrimitive.Plugin.pp,
+          Int64.min_int
+          |> Primitive.of_integer
+          |> ~@Primitive.Formatter.format_primitive,
         )
     ),
     "pp_num() - float"
@@ -177,25 +188,47 @@ let suite =
       () =>
         Assert.string(
           "123.456",
-          (123.456, 3) |> A.of_float |> ~@KPrimitive.Plugin.pp,
+          (123.456, 3)
+          |> Primitive.of_float
+          |> ~@Primitive.Formatter.format_primitive,
         )
     ),
     "pp_prim() - number"
     >: (
-      () => Assert.string("123", 123L |> A.of_int |> ~@KPrimitive.Plugin.pp)
+      () =>
+        Assert.string(
+          "123",
+          123L
+          |> Primitive.of_integer
+          |> ~@Primitive.Formatter.format_primitive,
+        )
     ),
     "pp_prim() - boolean"
     >: (
-      () => Assert.string("true", true |> A.of_bool |> ~@KPrimitive.Plugin.pp)
+      () =>
+        Assert.string(
+          "true",
+          true
+          |> Primitive.of_boolean
+          |> ~@Primitive.Formatter.format_primitive,
+        )
     ),
     "pp_prim() - nil"
-    >: (() => Assert.string("nil", A.nil |> ~@KPrimitive.Plugin.pp)),
+    >: (
+      () =>
+        Assert.string(
+          "nil",
+          Primitive.nil |> ~@Primitive.Formatter.format_primitive,
+        )
+    ),
     "pp_prim() - string"
     >: (
       () =>
         Assert.string(
           "\"foo bar\"",
-          "foo bar" |> A.of_string |> ~@KPrimitive.Plugin.pp,
+          "foo bar"
+          |> Primitive.of_string
+          |> ~@Primitive.Formatter.format_primitive,
         )
     ),
     "pp_statement() - expression"
@@ -204,8 +237,8 @@ let suite =
         Assert.string(
           "nil;",
           U.nil_prim
-          |> A.of_effect
-          |> ~@KStatement.Plugin.format(KExpression.Plugin.format),
+          |> Statement.of_effect
+          |> ~@Statement.format((), Expression.format),
         )
     ),
     "pp_statement() - variable declaration"
@@ -214,8 +247,8 @@ let suite =
         Assert.string(
           "let foo = nil;",
           (U.as_untyped("foo"), U.nil_prim)
-          |> A.of_var
-          |> ~@KStatement.Plugin.format(KExpression.Plugin.format),
+          |> Statement.of_variable
+          |> ~@Statement.format((), Expression.format),
         )
     ),
   ];

@@ -44,9 +44,9 @@ let _create_module =
     (
       ~imported=SymbolTable.Symbols.{values: [], types: []},
       ~exports=__types,
-      ast: AST.Module.program_t,
+      ast: Language.Interface.program_t(AST.Type.t),
     )
-    : ModuleTable.module_t => {
+    : ModuleTable.module_t(Language.Interface.program_t(AST.Type.t)) => {
   ast,
   scopes: __scope_tree,
   symbols: {

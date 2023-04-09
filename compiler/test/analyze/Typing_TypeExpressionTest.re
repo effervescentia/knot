@@ -1,7 +1,7 @@
 open Kore;
 
-module TE = AST.TypeExpression;
 module U = Util.RawUtil;
+module ObjectEntry = TypeExpression.ObjectEntry;
 
 let __empty_defs = AST.SymbolTable.create();
 
@@ -78,13 +78,13 @@ let suite =
       () =>
         Assert.type_(
           Valid(String),
-          TE.String
+          TypeExpression.String
           |> U.as_untyped
-          |> TE.of_group
+          |> TypeExpression.of_group
           |> U.as_untyped
-          |> TE.of_group
+          |> TypeExpression.of_group
           |> U.as_untyped
-          |> TE.of_group
+          |> TypeExpression.of_group
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -93,9 +93,9 @@ let suite =
       () =>
         Assert.type_(
           Valid(List(Valid(Boolean))),
-          TE.Boolean
+          TypeExpression.Boolean
           |> U.as_untyped
-          |> TE.of_list
+          |> TypeExpression.of_list
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -110,14 +110,14 @@ let suite =
             ]),
           ),
           [
-            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-            |> TE.of_required
+            (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+            |> ObjectEntry.of_required
             |> U.as_untyped,
-            (U.as_untyped("bar"), U.as_untyped(TE.String))
-            |> TE.of_optional
+            (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+            |> ObjectEntry.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_object
+          |> TypeExpression.of_object
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -159,29 +159,31 @@ let suite =
             ]),
           ),
           [
-            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-            |> TE.of_required
+            (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+            |> ObjectEntry.of_required
             |> U.as_untyped,
-            U.as_untyped(TE.Identifier(U.as_untyped("var1")))
-            |> TE.of_spread
+            U.as_untyped(TypeExpression.Identifier(U.as_untyped("var1")))
+            |> ObjectEntry.of_spread
             |> U.as_untyped,
             U.as_untyped(
-              TE.Object([
-                (U.as_untyped("buzz"), U.as_untyped(TE.Float))
-                |> TE.of_optional
+              TypeExpression.Object([
+                (U.as_untyped("buzz"), U.as_untyped(TypeExpression.Float))
+                |> ObjectEntry.of_optional
                 |> U.as_untyped,
-                U.as_untyped(TE.Identifier(U.as_untyped("var2")))
-                |> TE.of_spread
+                U.as_untyped(
+                  TypeExpression.Identifier(U.as_untyped("var2")),
+                )
+                |> ObjectEntry.of_spread
                 |> U.as_untyped,
               ]),
             )
-            |> TE.of_spread
+            |> ObjectEntry.of_spread
             |> U.as_untyped,
-            (U.as_untyped("bar"), U.as_untyped(TE.String))
-            |> TE.of_optional
+            (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+            |> ObjectEntry.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_object
+          |> TypeExpression.of_object
           |> KTypeExpression.Plugin.analyze(symbols),
         );
       }
@@ -194,10 +196,13 @@ let suite =
             Function([Valid(Boolean), Valid(String)], Valid(Element)),
           ),
           (
-            [U.as_untyped(TE.Boolean), U.as_untyped(TE.String)],
-            U.as_untyped(TE.Element),
+            [
+              U.as_untyped(TypeExpression.Boolean),
+              U.as_untyped(TypeExpression.String),
+            ],
+            U.as_untyped(TypeExpression.Element),
           )
-          |> TE.of_function
+          |> TypeExpression.of_function
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -216,18 +221,18 @@ let suite =
           ),
           (
             [
-              (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-              |> TE.of_required
+              (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
-              (U.as_untyped("bar"), U.as_untyped(TE.String))
-              |> TE.of_required
+              (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_object
+            |> TypeExpression.of_object
             |> U.as_untyped,
-            U.as_untyped(TE.Element),
+            U.as_untyped(TypeExpression.Element),
           )
-          |> TE.of_view
+          |> TypeExpression.of_view
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -236,8 +241,11 @@ let suite =
       () =>
         Assert.type_(
           Invalid(NotInferrable),
-          (U.as_untyped(TE.Boolean), U.as_untyped(TE.Element))
-          |> TE.of_view
+          (
+            U.as_untyped(TypeExpression.Boolean),
+            U.as_untyped(TypeExpression.Element),
+          )
+          |> TypeExpression.of_view
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),
@@ -248,18 +256,18 @@ let suite =
           Invalid(NotInferrable),
           (
             [
-              (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-              |> TE.of_required
+              (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
-              (U.as_untyped("bar"), U.as_untyped(TE.String))
-              |> TE.of_required
+              (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_object
+            |> TypeExpression.of_object
             |> U.as_untyped,
-            U.as_untyped(TE.Style),
+            U.as_untyped(TypeExpression.Style),
           )
-          |> TE.of_view
+          |> TypeExpression.of_view
           |> KTypeExpression.Plugin.analyze(__empty_defs),
         )
     ),

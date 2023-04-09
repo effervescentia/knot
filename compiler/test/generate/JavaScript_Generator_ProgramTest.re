@@ -1,7 +1,6 @@
 open Kore;
 open Generate.JavaScript_AST;
 
-module A = AST.Result;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
 module Namespace = Reference.Namespace;
@@ -9,20 +8,20 @@ module U = Util.ResultUtil;
 
 let __resolved = "../foo/bar";
 let __program =
-  [
+  KModuleStatement.Interface.[
     (Namespace.Internal("foo/bar"), "Foo" |> U.as_untyped |> Option.some, [])
-    |> A.of_import,
+    |> of_import,
     [
       (U.as_untyped("Fizz"), "Buzz" |> U.as_untyped |> Option.some)
       |> U.as_untyped,
     ]
-    |> A.of_stdlib_import,
+    |> of_stdlib_import,
     (
-      AST.ModuleStatement.ExportKind.Named,
+      ExportKind.Named,
       "ABC" |> U.as_untyped,
-      123 |> U.int_prim |> A.of_const |> U.as_int,
+      123 |> U.int_prim |> KDeclaration.Interface.of_constant |> U.as_int,
     )
-    |> A.of_export,
+    |> of_export,
   ]
   |> List.map(U.as_untyped);
 
@@ -53,7 +52,10 @@ let suite =
       () =>
         _assert_declaration(
           [Variable("foo", Number("123")), Export("foo", None)],
-          (U.as_untyped("foo"), 123 |> U.int_prim |> A.of_const |> U.as_int),
+          (
+            U.as_untyped("foo"),
+            123 |> U.int_prim |> KDeclaration.Interface.of_constant |> U.as_int,
+          ),
         )
     ),
     "generate() - empty module"

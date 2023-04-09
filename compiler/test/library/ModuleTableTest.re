@@ -3,16 +3,16 @@ open Reference;
 open ModuleAliases;
 
 module U = Util.RawUtil;
-module A = AST.Result;
 module ModuleTable = AST.ModuleTable;
 module SymbolTable = AST.SymbolTable;
+module ModuleStatement = KModuleStatement.Interface;
 module Type = AST.Type;
 
 let __id = Namespace.Internal("foo");
 let __types: list((Export.t, Type.t)) = [(Named("bar"), Valid(Element))];
 let __program = [
   (__id, "bar" |> U.as_untyped |> Option.some, [])
-  |> A.of_import
+  |> ModuleStatement.of_import
   |> U.as_untyped,
 ];
 let __table = ModuleTable.create(1);
@@ -26,7 +26,8 @@ let _create_table = items =>
   };
 
 let _create_module =
-    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+    (exports: list((Export.t, Type.t)))
+    : ModuleTable.module_t(Language.Interface.program_t(Type.t)) => {
   ast: __program,
   scopes: __scope_tree,
   symbols: SymbolTable.of_export_list(exports),

@@ -4,7 +4,7 @@ open AST;
 
 type parse_t('expr) =
   (
-    ((AST.Operator.Binary.t, Common.raw_t('expr), Common.raw_t('expr))) =>
+    (AST.Operator.Binary.t, (Common.raw_t('expr), Common.raw_t('expr))) =>
     'expr
   ) =>
   Parse.Parser.t(
@@ -15,7 +15,7 @@ let parse: parse_t('expr) =
   f =>
     Tuple.fold2(
       Parse.Util.binary_op(((lhs, rhs)) =>
-        (Operator.Binary.Exponent, lhs, rhs) |> f
+        (lhs, rhs) |> f(Operator.Binary.Exponent)
       ),
     )
     <$ Matchers.symbol(Constants.Character.caret);

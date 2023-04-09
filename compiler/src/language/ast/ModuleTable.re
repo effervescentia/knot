@@ -10,25 +10,25 @@ type module_entries_t = list((Type.ModuleEntryKind.t, string, Type.t));
 
 type library_t = {symbols: SymbolTable.t};
 
-type module_t('a) = {
+type module_t('ast) = {
   symbols: SymbolTable.t,
-  ast: 'a,
+  ast: 'ast,
   scopes: scope_tree_t,
 };
 
-type entry_t('a) =
+type entry_t('ast) =
   | Pending
   | Purged
   | Library(string, library_t)
-  | Valid(string, module_t('a))
-  | Partial(string, module_t('a), list(Error.compile_err))
+  | Valid(string, module_t('ast))
+  | Partial(string, module_t('ast), list(Error.compile_err))
   | Invalid(string, list(Error.compile_err));
 
 /**
  table for storing module ASTs
  */
-type t('a) = {
-  modules: Hashtbl.t(Namespace.t, entry_t('a)),
+type t('ast) = {
+  modules: Hashtbl.t(Namespace.t, entry_t('ast)),
   mutable plugins: list((Plugin.t, module_entries_t)),
   mutable globals: module_entries_t,
 };

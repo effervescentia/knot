@@ -1,16 +1,15 @@
 open Kore;
 
-module A = AST.Result;
 module Generator = Generate.Generator;
 module U = Util.ResultUtil;
 
 let __program = [
   (
-    AST.ModuleStatement.ExportKind.Named,
+    KModuleStatement.Interface.ExportKind.Named,
     "ABC" |> U.as_untyped,
-    123 |> U.int_prim |> A.of_const |> U.as_int,
+    123 |> U.int_prim |> KDeclaration.Interface.of_constant |> U.as_int,
   )
-  |> A.of_export
+  |> KModuleStatement.Interface.of_export
   |> U.as_untyped,
 ];
 

@@ -3,13 +3,13 @@ open Knot.Kore;
 module Namespace = Reference.Namespace;
 module Symbols = SymbolTable.Symbols;
 
-type t('a) = {
+type t('ast) = {
   /* unique identifier for this namespace */
   namespace: Namespace.t,
   /* error reporting callback */
   report: Error.compile_err => unit,
   /* the active module table for the compiler instance */
-  modules: ModuleTable.t('a),
+  modules: ModuleTable.t('ast),
   /* the symbols in context for this module */
   symbols: SymbolTable.t,
 };

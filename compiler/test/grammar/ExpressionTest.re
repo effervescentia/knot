@@ -1,11 +1,10 @@
 open Kore;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = AR.expression_t;
+    type t = Expression.node_t(unit);
 
     let parser =
       KExpression.Plugin.parse % Assert.parse_completely % Parser.parse;
@@ -27,8 +26,12 @@ let _generate_spaced_identifier_ops =
   List.map(((tag, op)) =>
     (
       (
-        ("a" |> AR.of_id |> U.as_node, "b" |> AR.of_id |> U.as_node) |> tag,
-        "c" |> AR.of_id |> U.as_node,
+        (
+          "a" |> Expression.of_identifier |> U.as_node,
+          "b" |> Expression.of_identifier |> U.as_node,
+        )
+        |> tag,
+        "c" |> Expression.of_identifier |> U.as_node,
       )
       |> tag,
       Fmt.str("a %s b %s c", op, op),
@@ -70,12 +73,19 @@ let suite =
     "no parse" >: (() => Assert.no_parse("~gibberish")),
     "parse primitive" >: (() => Assert.parse(U.int_prim(123), "123")),
     "parse identifier"
-    >: (() => Assert.parse("foo" |> AR.of_id |> U.as_node, "foo")),
+    >: (
+      () =>
+        Assert.parse("foo" |> Expression.of_identifier |> U.as_node, "foo")
+    ),
     "parse group"
     >: (
       () =>
         Assert.parse(
-          "foo" |> AR.of_id |> U.as_node |> AR.of_group |> U.as_node,
+          "foo"
+          |> Expression.of_identifier
+          |> U.as_node
+          |> Expression.of_group
+          |> U.as_node,
           "(foo)",
         )
     ),
@@ -84,23 +94,30 @@ let suite =
       () =>
         Assert.parse(
           [
-            "foo" |> AR.of_id |> U.as_node |> AR.of_effect |> U.as_node,
+            "foo"
+            |> Expression.of_identifier
+            |> U.as_node
+            |> Statement.of_effect
+            |> U.as_node,
             (U.as_untyped("x"), U.bool_prim(false))
-            |> AR.of_var
+            |> Statement.of_variable
             |> U.as_node,
-            (U.as_untyped("y"), "foo" |> AR.of_id |> U.as_node)
-            |> AR.of_var
+            (
+              U.as_untyped("y"),
+              "foo" |> Expression.of_identifier |> U.as_node,
+            )
+            |> Statement.of_variable
             |> U.as_node,
-            (U.as_untyped("z"), "y" |> AR.of_id |> U.as_node)
-            |> AR.of_var
+            (U.as_untyped("z"), "y" |> Expression.of_identifier |> U.as_node)
+            |> Statement.of_variable
             |> U.as_node,
             (U.int_prim(1), U.int_prim(2))
-            |> AR.of_add_op
+            |> Expression.of_add_op
             |> U.as_node
-            |> AR.of_effect
+            |> Statement.of_effect
             |> U.as_node,
           ]
-          |> AR.of_closure
+          |> Expression.of_closure
           |> U.as_node,
           "{
             foo;
@@ -115,8 +132,11 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ("foo" |> AR.of_id |> U.as_node, U.as_untyped("bar"))
-          |> AR.of_dot_access
+          (
+            "foo" |> Expression.of_identifier |> U.as_node,
+            U.as_untyped("bar"),
+          )
+          |> Expression.of_dot_access
           |> U.as_node,
           "foo.bar",
         )
@@ -126,10 +146,14 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> AR.of_id |> U.as_node |> AR.of_group |> U.as_node,
+            "foo"
+            |> Expression.of_identifier
+            |> U.as_node
+            |> Expression.of_group
+            |> U.as_node,
             U.as_untyped("bar"),
           )
-          |> AR.of_dot_access
+          |> Expression.of_dot_access
           |> U.as_node,
           "(foo).bar",
         )
@@ -139,12 +163,18 @@ let suite =
       () =>
         Assert.parse(
           (
-            ["foo" |> AR.of_id |> U.as_node |> AR.of_effect |> U.as_node]
-            |> AR.of_closure
+            [
+              "foo"
+              |> Expression.of_identifier
+              |> U.as_node
+              |> Statement.of_effect
+              |> U.as_node,
+            ]
+            |> Expression.of_closure
             |> U.as_node,
             U.as_untyped("bar"),
           )
-          |> AR.of_dot_access
+          |> Expression.of_dot_access
           |> U.as_node,
           "{ foo; }.bar",
         )
@@ -154,11 +184,14 @@ let suite =
       () =>
         Assert.parse(
           [
-            ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
+            (
+              "color" |> U.as_node,
+              "$pink" |> Expression.of_identifier |> U.as_node,
+            )
             |> U.as_node,
             ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
           ]
-          |> AR.of_style
+          |> Expression.of_style
           |> U.as_node,
           "style {
   color: $pink,
@@ -170,8 +203,12 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ("foo" |> AR.of_id |> U.as_node, "bar" |> AR.of_id |> U.as_node)
-          |> AR.of_component_bind_style
+          (
+            KSX.ViewKind.Component,
+            "foo" |> Expression.of_identifier |> U.as_node,
+            "bar" |> Expression.of_identifier |> U.as_node,
+          )
+          |> Expression.of_bind_style
           |> U.as_node,
           "foo::bar",
         )
@@ -181,23 +218,30 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> AR.of_id |> U.as_node,
+            KSX.ViewKind.Component,
+            "foo" |> Expression.of_identifier |> U.as_node,
             [
-              ("color" |> U.as_node, "$pink" |> AR.of_id |> U.as_node)
+              (
+                "color" |> U.as_node,
+                "$pink" |> Expression.of_identifier |> U.as_node,
+              )
               |> U.as_node,
               ("height" |> U.as_node, U.string_prim("20px")) |> U.as_node,
               (
                 "width" |> U.as_node,
-                ("$px" |> AR.of_id |> U.as_node, [U.float_prim((22.5, 3))])
-                |> AR.of_func_call
+                (
+                  "$px" |> Expression.of_identifier |> U.as_node,
+                  [U.float_prim((22.5, 3))],
+                )
+                |> Expression.of_function_call
                 |> U.as_node,
               )
               |> U.as_node,
             ]
-            |> AR.of_style
+            |> Expression.of_style
             |> U.as_node,
           )
-          |> AR.of_component_bind_style
+          |> Expression.of_bind_style
           |> U.as_node,
           "foo::{
   color: $pink,
@@ -210,8 +254,11 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          ("foo" |> AR.of_id |> U.as_node, ["bar" |> AR.of_id |> U.as_node])
-          |> AR.of_func_call
+          (
+            "foo" |> Expression.of_identifier |> U.as_node,
+            ["bar" |> Expression.of_identifier |> U.as_node],
+          )
+          |> Expression.of_function_call
           |> U.as_node,
           "foo(bar)",
         )
@@ -221,10 +268,14 @@ let suite =
       () =>
         Assert.parse(
           (
-            "foo" |> AR.of_id |> U.as_node |> AR.of_group |> U.as_node,
-            ["bar" |> AR.of_id |> U.as_node],
+            "foo"
+            |> Expression.of_identifier
+            |> U.as_node
+            |> Expression.of_group
+            |> U.as_node,
+            ["bar" |> Expression.of_identifier |> U.as_node],
           )
-          |> AR.of_func_call
+          |> Expression.of_function_call
           |> U.as_node,
           "(foo)(bar)",
         )
@@ -234,12 +285,18 @@ let suite =
       () =>
         Assert.parse(
           (
-            ["foo" |> AR.of_id |> U.as_node |> AR.of_effect |> U.as_node]
-            |> AR.of_closure
+            [
+              "foo"
+              |> Expression.of_identifier
+              |> U.as_node
+              |> Statement.of_effect
+              |> U.as_node,
+            ]
+            |> Expression.of_closure
             |> U.as_node,
-            ["bar" |> AR.of_id |> U.as_node],
+            ["bar" |> Expression.of_identifier |> U.as_node],
           )
-          |> AR.of_func_call
+          |> Expression.of_function_call
           |> U.as_node,
           "{ foo; }(bar)",
         )
@@ -249,12 +306,15 @@ let suite =
       () =>
         Assert.parse(
           (
-            ("foo" |> AR.of_id |> U.as_node, U.as_untyped("bar"))
-            |> AR.of_dot_access
+            (
+              "foo" |> Expression.of_identifier |> U.as_node,
+              U.as_untyped("bar"),
+            )
+            |> Expression.of_dot_access
             |> U.as_node,
-            ["fizz" |> AR.of_id |> U.as_node],
+            ["fizz" |> Expression.of_identifier |> U.as_node],
           )
-          |> AR.of_func_call
+          |> Expression.of_function_call
           |> U.as_node,
           "foo.bar(fizz)",
         )
@@ -262,13 +322,16 @@ let suite =
     "parse unary - negative"
     >: (
       () =>
-        Assert.parse(123 |> U.int_prim |> AR.of_neg_op |> U.as_node, "-123")
+        Assert.parse(
+          123 |> U.int_prim |> Expression.of_negative_op |> U.as_node,
+          "-123",
+        )
     ),
     "parse unary - logical not"
     >: (
       () =>
         Assert.parse(
-          true |> U.bool_prim |> AR.of_not_op |> U.as_node,
+          true |> U.bool_prim |> Expression.of_not_op |> U.as_node,
           "!true",
         )
     ),
@@ -276,7 +339,7 @@ let suite =
     >: (
       () =>
         _assert_parse_many(
-          [(AR.of_and_op, "&&"), (AR.of_or_op, "||")]
+          [(Expression.of_and_op, "&&"), (Expression.of_or_op, "||")]
           |> _generate_spaced_bool_ops
           |> List.flatten,
         )
@@ -286,10 +349,10 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (AR.of_add_op % U.as_node, "+"),
-            (AR.of_sub_op % U.as_node, "-"),
-            (AR.of_mult_op % U.as_node, "*"),
-            (AR.of_div_op % U.as_node, "/"),
+            (Expression.of_add_op % U.as_node, "+"),
+            (Expression.of_subtract_op % U.as_node, "-"),
+            (Expression.of_multiply_op % U.as_node, "*"),
+            (Expression.of_divide_op % U.as_node, "/"),
           ]
           |> _generate_spaced_int_ops
           |> List.flatten,
@@ -300,10 +363,10 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (AR.of_lte_op % U.as_node, "<="),
-            (AR.of_lt_op % U.as_node, "<"),
-            (AR.of_gte_op % U.as_node, ">="),
-            (AR.of_gt_op % U.as_node, ">"),
+            (Expression.of_lte_op % U.as_node, "<="),
+            (Expression.of_lt_op % U.as_node, "<"),
+            (Expression.of_gte_op % U.as_node, ">="),
+            (Expression.of_gt_op % U.as_node, ">"),
           ]
           |> _generate_spaced_int_ops
           |> List.flatten,
@@ -320,83 +383,95 @@ let suite =
                 (
                   U.int_prim(3),
                   (U.int_prim(4), U.int_prim(5))
-                  |> AR.of_expo_op
+                  |> Expression.of_exponent_op
                   |> U.as_node,
                 )
-                |> AR.of_mult_op
+                |> Expression.of_multiply_op
                 |> U.as_node,
               )
-              |> AR.of_add_op
+              |> Expression.of_add_op
               |> U.as_node,
-              (6 |> U.int_prim |> AR.of_neg_op |> U.as_node, U.int_prim(7))
-              |> AR.of_div_op
+              (
+                6 |> U.int_prim |> Expression.of_negative_op |> U.as_node,
+                U.int_prim(7),
+              )
+              |> Expression.of_divide_op
               |> U.as_node,
             )
-            |> AR.of_sub_op
+            |> Expression.of_subtract_op
             |> U.as_node,
             "2 + 3 * 4 ^ 5 - -6 / 7",
           ),
           (
             (
               (U.int_prim(2), U.int_prim(3))
-              |> AR.of_add_op
+              |> Expression.of_add_op
               |> U.as_node
-              |> AR.of_group
+              |> Expression.of_group
               |> U.as_node,
               (
                 U.int_prim(4),
                 (
                   U.int_prim(5),
                   (U.int_prim(6), U.int_prim(7))
-                  |> AR.of_div_op
+                  |> Expression.of_divide_op
                   |> U.as_node
-                  |> AR.of_group
+                  |> Expression.of_group
                   |> U.as_node
-                  |> AR.of_neg_op
+                  |> Expression.of_negative_op
                   |> U.as_node,
                 )
-                |> AR.of_sub_op
+                |> Expression.of_subtract_op
                 |> U.as_node
-                |> AR.of_group
+                |> Expression.of_group
                 |> U.as_node,
               )
-              |> AR.of_expo_op
+              |> Expression.of_exponent_op
               |> U.as_node,
             )
-            |> AR.of_mult_op
+            |> Expression.of_multiply_op
             |> U.as_node,
             "(2 + 3) * 4 ^ (5 - -(6 / 7))",
           ),
           (
             (
               (
-                "a" |> AR.of_id |> U.as_node,
+                "a" |> Expression.of_identifier |> U.as_node,
                 (
-                  ("b" |> AR.of_id |> U.as_node, "c" |> AR.of_id |> U.as_node)
-                  |> AR.of_gt_op
+                  (
+                    "b" |> Expression.of_identifier |> U.as_node,
+                    "c" |> Expression.of_identifier |> U.as_node,
+                  )
+                  |> Expression.of_gt_op
                   |> U.as_node,
-                  ("e" |> AR.of_id |> U.as_node, "f" |> AR.of_id |> U.as_node)
-                  |> AR.of_lte_op
+                  (
+                    "e" |> Expression.of_identifier |> U.as_node,
+                    "f" |> Expression.of_identifier |> U.as_node,
+                  )
+                  |> Expression.of_lte_op
                   |> U.as_node,
                 )
-                |> AR.of_or_op
+                |> Expression.of_or_op
                 |> U.as_node
-                |> AR.of_group
+                |> Expression.of_group
                 |> U.as_node,
               )
-              |> AR.of_and_op
+              |> Expression.of_and_op
               |> U.as_node,
-              ("g" |> AR.of_id |> U.as_node, "h" |> AR.of_id |> U.as_node)
-              |> AR.of_or_op
+              (
+                "g" |> Expression.of_identifier |> U.as_node,
+                "h" |> Expression.of_identifier |> U.as_node,
+              )
+              |> Expression.of_or_op
               |> U.as_node
-              |> AR.of_group
+              |> Expression.of_group
               |> U.as_node
-              |> AR.of_not_op
+              |> Expression.of_not_op
               |> U.as_node
-              |> AR.of_group
+              |> Expression.of_group
               |> U.as_node,
             )
-            |> AR.of_and_op
+            |> Expression.of_and_op
             |> U.as_node,
             "a && (b > c || e <= f) && (!(g || h))",
           ),
@@ -407,9 +482,9 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (AR.of_add_op % U.as_node, "+"),
-            (AR.of_sub_op % U.as_node, "-"),
-            (AR.of_mult_op % U.as_node, "*"),
+            (Expression.of_add_op % U.as_node, "+"),
+            (Expression.of_subtract_op % U.as_node, "-"),
+            (Expression.of_multiply_op % U.as_node, "*"),
           ]
           |> _generate_spaced_identifier_ops,
         )
@@ -418,7 +493,7 @@ let suite =
     >: (
       () =>
         _assert_parse_many(
-          [(AR.of_div_op % U.as_node, "/")]
+          [(Expression.of_divide_op % U.as_node, "/")]
           |> _generate_spaced_identifier_ops,
         )
     ),
@@ -427,8 +502,8 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (AR.of_and_op % U.as_node, "&&"),
-            (AR.of_or_op % U.as_node, "||"),
+            (Expression.of_and_op % U.as_node, "&&"),
+            (Expression.of_or_op % U.as_node, "||"),
           ]
           |> _generate_spaced_identifier_ops,
         )
@@ -438,10 +513,10 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (AR.of_lte_op % U.as_node, "<="),
-            (AR.of_lt_op % U.as_node, "<"),
-            (AR.of_gte_op % U.as_node, ">="),
-            (AR.of_gt_op % U.as_node, ">"),
+            (Expression.of_lte_op % U.as_node, "<="),
+            (Expression.of_lt_op % U.as_node, "<"),
+            (Expression.of_gte_op % U.as_node, ">="),
+            (Expression.of_gt_op % U.as_node, ">"),
           ]
           |> _generate_spaced_identifier_ops,
         )
@@ -451,8 +526,8 @@ let suite =
       () =>
         _assert_parse_many(
           [
-            (AR.of_eq_op % U.as_node, "=="),
-            (AR.of_ineq_op % U.as_node, "!="),
+            (Expression.of_equal_op % U.as_node, "=="),
+            (Expression.of_unequal_op % U.as_node, "!="),
           ]
           |> _generate_spaced_identifier_ops,
         )
@@ -463,16 +538,19 @@ let suite =
         Assert.parse(
           (
             (
-              ("a" |> AR.of_id |> U.as_node, U.as_untyped("b"))
-              |> AR.of_dot_access
+              (
+                "a" |> Expression.of_identifier |> U.as_node,
+                U.as_untyped("b"),
+              )
+              |> Expression.of_dot_access
               |> U.as_node,
               U.as_untyped("c"),
             )
-            |> AR.of_dot_access
+            |> Expression.of_dot_access
             |> U.as_node,
             U.as_untyped("d"),
           )
-          |> AR.of_dot_access
+          |> Expression.of_dot_access
           |> U.as_node,
           "a.b.c.d",
         )
@@ -482,12 +560,17 @@ let suite =
       () =>
         Assert.parse(
           (
-            ("a" |> AR.of_id |> U.as_node, "b" |> AR.of_id |> U.as_node)
-            |> AR.of_component_bind_style
+            KSX.ViewKind.Component,
+            (
+              KSX.ViewKind.Component,
+              "a" |> Expression.of_identifier |> U.as_node,
+              "b" |> Expression.of_identifier |> U.as_node,
+            )
+            |> Expression.of_bind_style
             |> U.as_node,
-            "c" |> AR.of_id |> U.as_node,
+            "c" |> Expression.of_identifier |> U.as_node,
           )
-          |> AR.of_component_bind_style
+          |> Expression.of_bind_style
           |> U.as_node,
           "a::b::c",
         )
@@ -497,12 +580,15 @@ let suite =
       () =>
         Assert.parse(
           (
-            "a" |> AR.of_id |> U.as_node,
-            ("b" |> AR.of_id |> U.as_node, "c" |> AR.of_id |> U.as_node)
-            |> AR.of_expo_op
+            "a" |> Expression.of_identifier |> U.as_node,
+            (
+              "b" |> Expression.of_identifier |> U.as_node,
+              "c" |> Expression.of_identifier |> U.as_node,
+            )
+            |> Expression.of_exponent_op
             |> U.as_node,
           )
-          |> AR.of_expo_op
+          |> Expression.of_exponent_op
           |> U.as_node,
           "a ^ b ^ c",
         )
@@ -512,13 +598,13 @@ let suite =
       () =>
         Assert.parse(
           "a"
-          |> AR.of_id
+          |> Expression.of_identifier
           |> U.as_node
-          |> AR.of_neg_op
+          |> Expression.of_negative_op
           |> U.as_node
-          |> AR.of_neg_op
+          |> Expression.of_negative_op
           |> U.as_node
-          |> AR.of_neg_op
+          |> Expression.of_negative_op
           |> U.as_node,
           "- - - a",
         )
@@ -528,13 +614,13 @@ let suite =
       () =>
         Assert.parse(
           "a"
-          |> AR.of_id
+          |> Expression.of_identifier
           |> U.as_node
-          |> AR.of_not_op
+          |> Expression.of_not_op
           |> U.as_node
-          |> AR.of_not_op
+          |> Expression.of_not_op
           |> U.as_node
-          |> AR.of_not_op
+          |> Expression.of_not_op
           |> U.as_node,
           "! ! ! a",
         )

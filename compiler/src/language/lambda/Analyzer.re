@@ -1,14 +1,13 @@
 open Knot.Kore;
 open AST;
 
-let analyze_parameter:
-  Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr) =>
-  Framework.Interface.analyze_t(
-    'ast,
-    Interface.Parameter.t('raw_expr, unit),
-    Interface.Parameter.t('result_expr, Type.t),
-  ) =
-  (analyze_expression, scope, parameter) => {
+let analyze_parameter =
+    (
+      analyze_expression:
+        Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr),
+      scope: Scope.t('ast),
+    ) =>
+  Node.analyzer(parameter => {
     let (parameter', type_) =
       switch (fst(parameter)) {
       | (name, None, None) =>
@@ -52,7 +51,7 @@ let analyze_parameter:
       };
 
     (parameter', type_);
-  };
+  });
 
 let analyze_parameter_list:
   (
@@ -64,9 +63,7 @@ let analyze_parameter_list:
   (analyze_expression, scope, parameters) => {
     let parameters' =
       parameters
-      |> List.map(
-           Node.analyzer(analyze_parameter(analyze_expression, scope)) % fst,
-         );
+      |> List.map(analyze_parameter(analyze_expression, scope) % fst);
 
     Validator.validate_default_arguments(scope, parameters');
 

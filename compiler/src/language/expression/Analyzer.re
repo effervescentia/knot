@@ -25,9 +25,17 @@ let rec analyze:
          ~primitive=bind(KPrimitive.analyze, Interface.of_primitive, ()),
          ~identifier=bind(KIdentifier.analyze, Interface.of_identifier, ()),
          ~unary_op=
-           bind(KUnaryOperator.analyze, Interface.of_unary_op, analyze),
+           bind(
+             KUnaryOperator.analyze,
+             ((op, expr)) => Interface.of_unary_op(op, expr),
+             analyze,
+           ),
          ~binary_op=
-           bind(KBinaryOperator.analyze, Interface.of_binary_op, analyze),
+           bind(
+             KBinaryOperator.analyze,
+             ((op, lhs, rhs)) => (lhs, rhs) |> Interface.of_binary_op(op),
+             analyze,
+           ),
          ~group=bind(KGroup.analyze, Interface.of_group, analyze),
          ~closure=bind(KClosure.analyze, Interface.of_closure, analyze),
          ~dot_access=

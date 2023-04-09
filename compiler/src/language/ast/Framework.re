@@ -148,14 +148,14 @@ module BinaryOperator = {
 
   module Make = (Params: Params) => {
     type parse_t('expr) =
-      (((Operator.Binary.t, raw_t('expr), raw_t('expr))) => 'expr) =>
+      ((Operator.Binary.t, (raw_t('expr), raw_t('expr))) => 'expr) =>
       Parse.Parser.t(((raw_t('expr), raw_t('expr))) => raw_t('expr));
 
     let parse: parse_t('expr) =
       f =>
         Parse.Kore.(
           Parse.Util.binary_op(((lhs, rhs)) =>
-            (fst(Params.operator), lhs, rhs) |> f
+            (lhs, rhs) |> f(fst(Params.operator))
           )
           <$ (
             switch (snd(Params.operator)) {

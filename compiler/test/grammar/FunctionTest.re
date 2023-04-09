@@ -1,6 +1,6 @@
 open Kore;
 
-module ExportKind = AST.ModuleStatement.ExportKind;
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Function"
@@ -24,11 +24,11 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
-            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(Nil)),
+            ([], U.nil_prim)
+            |> Declaration.of_function
+            |> U.as_function([], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo -> nil",
         )
@@ -38,18 +38,16 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [],
-              [U.nil_prim |> A.of_effect |> U.as_nil]
-              |> A.of_closure
+              [U.nil_prim |> Statement.of_effect |> U.as_nil]
+              |> Expression.of_closure
               |> U.as_nil,
             )
-            |> A.of_func
+            |> Declaration.of_function
             |> U.as_function([], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo -> { nil }",
         )
@@ -59,11 +57,11 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
-            ([], U.nil_prim) |> A.of_func |> U.as_function([], Valid(Nil)),
+            ([], U.nil_prim)
+            |> Declaration.of_function
+            |> U.as_function([], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo () -> nil",
         )
@@ -73,18 +71,16 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [],
-              [U.nil_prim |> A.of_effect |> U.as_nil]
-              |> A.of_closure
+              [U.nil_prim |> Statement.of_effect |> U.as_nil]
+              |> Expression.of_closure
               |> U.as_nil,
             )
-            |> A.of_func
+            |> Declaration.of_function
             |> U.as_function([], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo () -> { nil }",
         )
@@ -94,19 +90,21 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [
-                (U.as_untyped("fizz"), Some(U.as_untyped(TE.Integer)), None)
+                (
+                  U.as_untyped("fizz"),
+                  Some(U.as_untyped(TypeExpression.Integer)),
+                  None,
+                )
                 |> U.as_int,
               ],
-              [] |> A.of_closure |> U.as_nil,
+              [] |> Expression.of_closure |> U.as_nil,
             )
-            |> A.of_func
+            |> Declaration.of_function
             |> U.as_function([Valid(Integer)], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo (fizz: integer) -> {}",
         )
@@ -116,19 +114,17 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [
                 (U.as_untyped("fizz"), None, Some(U.string_prim("bar")))
                 |> U.as_string,
               ],
-              [] |> A.of_closure |> U.as_nil,
+              [] |> Expression.of_closure |> U.as_nil,
             )
-            |> A.of_func
+            |> Declaration.of_function
             |> U.as_function([Valid(String)], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo (fizz = \"bar\") -> {}",
         )
@@ -138,23 +134,21 @@ let suite =
       () =>
         Assert.Declaration.parse(
           (
-            ExportKind.Named,
             U.as_untyped("foo"),
             (
               [
                 (
                   U.as_untyped("fizz"),
-                  Some(U.as_untyped(TE.Boolean)),
+                  Some(U.as_untyped(TypeExpression.Boolean)),
                   Some(U.bool_prim(true)),
                 )
                 |> U.as_bool,
               ],
-              [] |> A.of_closure |> U.as_nil,
+              [] |> Expression.of_closure |> U.as_nil,
             )
-            |> A.of_func
+            |> Declaration.of_function
             |> U.as_function([Valid(Boolean)], Valid(Nil)),
           )
-          |> A.of_export
           |> U.as_untyped,
           "func foo (fizz: boolean = true) -> {}",
         )

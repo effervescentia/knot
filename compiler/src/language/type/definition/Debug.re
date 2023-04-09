@@ -1,26 +1,14 @@
 open Knot.Kore;
 open AST;
 
-let decoration_to_xml: Interface.decorator_t('a) => Fmt.xml_t(string) =
-  decorator =>
+let decoration_to_xml: Interface.decorator_t => Fmt.xml_t(string) =
+  KDecorator.Plugin.to_xml((
     Dump.node_to_xml(
-      ~unpack=
-        ((name, arguments)) =>
-          [
-            Dump.identifier_to_xml("Name", name),
-            ...arguments
-               |> List.map(
-                    Dump.node_to_xml(
-                      ~dump_value=
-                        prim =>
-                          prim |> ~@KPrimitive.Formatter.format_primitive,
-                      "Argument",
-                    ),
-                  ),
-          ],
-      "Decoration",
-      decorator,
-    );
+      ~unpack=KPrimitive.Debug.primitive_to_xml % List.single,
+      "Value",
+    ),
+    ~@Type.pp,
+  ));
 
 let decorator_to_xml = ((name, parameters, target)) =>
   Fmt.Node(
@@ -52,6 +40,3 @@ let to_xml: Interface.node_t => Fmt.xml_t(string) =
       % List.single,
     "Entry",
   );
-
-// let to_xml: TypeDefinition.t => Fmt.xml_t(string) =
-//   entries => Node("TypeDefinition", [], entries |> List.map(module_to_xml));

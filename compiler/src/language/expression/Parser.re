@@ -26,7 +26,8 @@ and parse_expression_3 = ctx =>
 
 /* !, +, - */
 and parse_expression_4 = ctx =>
-  parse_expression_5(ctx) |> KUnaryOperator.parse(of_unary_op)
+  parse_expression_5(ctx)
+  |> KUnaryOperator.parse(((op, expression)) => of_unary_op(op, expression))
 
 /* foo(bar) */
 and parse_expression_5 = (ctx): AST.Framework.Interface.parse_t('expr) =>
@@ -65,7 +66,7 @@ and parse_expression_8 = (ctx): AST.Framework.Interface.parse_t('expr) =>
 and parse_ksx_term = ctx =>
   (parse_expression_8(ctx), parse_expression_0(ctx))
   |> KFunctionCall.parse(of_function_call)
-  |> KUnaryOperator.parse(of_unary_op)
+  |> KUnaryOperator.parse(((op, expression)) => of_unary_op(op, expression))
 
 /* { color: $red } */
 and parse_style_literal = ctx =>
