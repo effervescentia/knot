@@ -236,7 +236,7 @@ let suite =
             ParseError(
               TypeError(InvalidDotAccess(Valid(Boolean), "property")),
               __semantic_namespace,
-              Range.create((43, 44), (43, 51)),
+              Range.create((43, 37), (43, 51)),
             ),
             ParseError(
               TypeError(
@@ -258,7 +258,7 @@ let suite =
                 ),
               ),
               __semantic_namespace,
-              Range.create((49, 46), (49, 58)),
+              Range.create((49, 36), (49, 58)),
             ),
             ParseError(
               TypeError(UntypedFunctionArgument("second_arg")),
