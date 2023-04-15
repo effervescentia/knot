@@ -6,7 +6,14 @@ module U = Util.ResultUtil;
 let _assert_jsx = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(KSX.format(_ => false, Expression.format)),
+    actual
+    |> ~@
+         Fmt.root(
+           KSX.format(
+             Expression.Formatter.attribute_needs_wrapper,
+             Expression.format,
+           ),
+         ),
   );
 let _assert_jsx_attr = (expected, actual) =>
   Assert.string(
@@ -14,7 +21,10 @@ let _assert_jsx_attr = (expected, actual) =>
     actual
     |> ~@
          Fmt.root(
-           KSX.Formatter.format_attribute(_ => false, Expression.format),
+           KSX.Formatter.format_attribute(
+             Expression.Formatter.attribute_needs_wrapper,
+             Expression.format,
+           ),
          ),
   );
 

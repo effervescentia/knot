@@ -204,11 +204,10 @@ let suite =
       () =>
         Assert.parse(
           (
-            KSX.ViewKind.Component,
             "foo" |> Expression.of_identifier |> U.as_node,
             "bar" |> Expression.of_identifier |> U.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_component_style
           |> U.as_node,
           "foo::bar",
         )
@@ -218,7 +217,6 @@ let suite =
       () =>
         Assert.parse(
           (
-            KSX.ViewKind.Component,
             "foo" |> Expression.of_identifier |> U.as_node,
             [
               (
@@ -241,7 +239,7 @@ let suite =
             |> Expression.of_style
             |> U.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_component_style
           |> U.as_node,
           "foo::{
   color: $pink,
@@ -560,17 +558,15 @@ let suite =
       () =>
         Assert.parse(
           (
-            KSX.ViewKind.Component,
             (
-              KSX.ViewKind.Component,
               "a" |> Expression.of_identifier |> U.as_node,
               "b" |> Expression.of_identifier |> U.as_node,
             )
-            |> Expression.of_bind_style
+            |> Expression.of_bind_component_style
             |> U.as_node,
             "c" |> Expression.of_identifier |> U.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_component_style
           |> U.as_node,
           "a::b::c",
         )

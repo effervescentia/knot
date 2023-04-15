@@ -8,6 +8,9 @@ open Interface;
   the parser with the highest precedence should be matched first
  */
 
+let parse_unary =
+  KUnaryOperator.parse(((op, expression)) => of_unary_op(op, expression));
+
 /* &&, || */
 let rec parse_expression_0 = ctx =>
   parse_expression_1(ctx) |> KBinaryOperator.parse_logical(of_binary_op)
@@ -25,9 +28,7 @@ and parse_expression_3 = ctx =>
   parse_expression_4(ctx) |> KBinaryOperator.parse_arithmetic(of_binary_op)
 
 /* !, +, - */
-and parse_expression_4 = ctx =>
-  parse_expression_5(ctx)
-  |> KUnaryOperator.parse(((op, expression)) => of_unary_op(op, expression))
+and parse_expression_4 = ctx => parse_expression_5(ctx) |> parse_unary
 
 /* foo(bar) */
 and parse_expression_5 = (ctx): AST.Framework.Interface.parse_t('expr) =>
@@ -43,7 +44,9 @@ and parse_expression_5 = (ctx): AST.Framework.Interface.parse_t('expr) =>
 /* foo::bar */
 and parse_expression_6 = ctx =>
   (ctx, (parse_expression_7, parse_style_literal))
-  |> KBindStyle.parse(of_bind_style)
+  |> KBindStyle.parse(((view_kind, lhs, rhs)) =>
+       of_bind_style(view_kind, (lhs, rhs))
+     )
 
 /* foo.bar */
 and parse_expression_7 = ctx =>
@@ -66,7 +69,7 @@ and parse_expression_8 = (ctx): AST.Framework.Interface.parse_t('expr) =>
 and parse_ksx_term = ctx =>
   (parse_expression_8(ctx), parse_expression_0(ctx))
   |> KFunctionCall.parse(of_function_call)
-  |> KUnaryOperator.parse(((op, expression)) => of_unary_op(op, expression))
+  |> parse_unary
 
 /* { color: $red } */
 and parse_style_literal = ctx =>

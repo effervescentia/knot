@@ -14,7 +14,7 @@ let _get_style_rules =
     | _ => None
   );
 
-let _attribute_needs_wrapper =
+let attribute_needs_wrapper =
   Interface.(
     fun
     | Primitive(_)
@@ -33,7 +33,7 @@ let rec format: Fmt.t(Interface.t('typ)) =
     Interface.fold(
       ~primitive=bind(KPrimitive.format()),
       ~identifier=bind(KIdentifier.format()),
-      ~ksx=bind(KSX.format(_attribute_needs_wrapper)),
+      ~ksx=bind(KSX.format(attribute_needs_wrapper)),
       ~group=bind(KGroup.format(_is_binary_op)),
       ~binary_op=bind(KBinaryOperator.format()),
       ~unary_op=bind(KUnaryOperator.format()),

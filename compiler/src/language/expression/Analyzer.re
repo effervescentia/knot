@@ -43,7 +43,8 @@ let rec analyze:
          ~bind_style=
            bind(
              KBindStyle.analyze,
-             Interface.of_bind_style,
+             ((view_kind, lhs, rhs)) =>
+               Interface.of_bind_style(view_kind, (lhs, rhs)),
              (analyze, (_get_identifier, Interface.of_identifier)),
            ),
          ~function_call=

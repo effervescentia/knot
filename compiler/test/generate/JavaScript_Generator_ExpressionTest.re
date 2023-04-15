@@ -388,13 +388,12 @@ let suite =
             [Identifier("foo"), Identifier("bar")],
           ),
           (
-            KSX.Interface.ViewKind.Component,
             "foo"
             |> KExpression.Interface.of_identifier
             |> U.as_view([], Valid(Element)),
             "bar" |> KExpression.Interface.of_identifier |> U.as_style,
           )
-          |> KExpression.Interface.of_bind_style,
+          |> KExpression.Interface.of_bind_component_style,
         )
     ),
     "function call"

@@ -183,21 +183,19 @@ let suite =
         Assert.expression(
           (
             (
-              KSX.ViewKind.Component,
               view_id
               |> Expression.of_identifier
               |> URes.as_view([], Valid(Element)),
               style_id |> Expression.of_identifier |> URes.as_style,
             )
-            |> Expression.of_bind_style,
+            |> Expression.of_bind_component_style,
             Valid(View([], Valid(Element))),
           ),
           (
-            KSX.ViewKind.Component,
             view_id |> Expression.of_identifier |> URaw.as_node,
             style_id |> Expression.of_identifier |> URaw.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_component_style
           |> URaw.as_node
           |> Expression.analyze(scope),
         );
@@ -246,7 +244,6 @@ let suite =
         Assert.expression(
           (
             (
-              KSX.ViewKind.Component,
               view_id
               |> Expression.of_identifier
               |> URes.as_view([], Valid(Element)),
@@ -267,11 +264,10 @@ let suite =
               |> Expression.of_style
               |> URes.as_style,
             )
-            |> Expression.of_bind_style,
+            |> Expression.of_bind_component_style,
             Valid(View([], Valid(Element))),
           ),
           (
-            KSX.ViewKind.Component,
             view_id |> Expression.of_identifier |> URaw.as_node,
             [
               (
@@ -288,7 +284,7 @@ let suite =
             |> Expression.of_style
             |> URaw.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_component_style
           |> URaw.as_node
           |> Expression.analyze(scope),
         );
@@ -320,21 +316,19 @@ let suite =
         Assert.expression(
           (
             (
-              KSX.ViewKind.Element,
               tag_id
               |> Expression.of_identifier
               |> URes.as_view([], Valid(Element)),
               style_id |> Expression.of_identifier |> URes.as_style,
             )
-            |> Expression.of_bind_style,
+            |> Expression.of_bind_element_style,
             Valid(View([], Valid(Element))),
           ),
           (
-            KSX.ViewKind.Element,
             tag_id |> Expression.of_identifier |> URaw.as_node,
             style_id |> Expression.of_identifier |> URaw.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_element_style
           |> URaw.as_node
           |> Expression.analyze(scope),
         );
@@ -383,7 +377,6 @@ let suite =
         Assert.expression(
           (
             (
-              KSX.ViewKind.Element,
               tag_id
               |> Expression.of_identifier
               |> URes.as_view([], Valid(Element)),
@@ -404,11 +397,10 @@ let suite =
               |> Expression.of_style
               |> URes.as_style,
             )
-            |> Expression.of_bind_style,
+            |> Expression.of_bind_element_style,
             Valid(View([], Valid(Element))),
           ),
           (
-            KSX.ViewKind.Element,
             tag_id |> Expression.of_identifier |> URaw.as_node,
             [
               (
@@ -425,7 +417,7 @@ let suite =
             |> Expression.of_style
             |> URaw.as_node,
           )
-          |> Expression.of_bind_style
+          |> Expression.of_bind_element_style
           |> URaw.as_node
           |> Expression.analyze(scope),
         );

@@ -125,11 +125,10 @@ let suite =
         _assert_expression(
           "foo::bar",
           (
-            KSX.ViewKind.Component,
             "foo" |> Expression.of_identifier |> U.as_view([], Valid(Nil)),
             "bar" |> Expression.of_identifier |> U.as_style,
           )
-          |> Expression.of_bind_style,
+          |> Expression.of_bind_component_style,
         )
     ),
     "style literal binding"
@@ -140,7 +139,6 @@ let suite =
   color: $red,
 }",
           (
-            KSX.ViewKind.Component,
             "foo" |> Expression.of_identifier |> U.as_view([], Valid(Nil)),
             [
               (
@@ -152,7 +150,7 @@ let suite =
             |> Expression.of_style
             |> U.as_style,
           )
-          |> Expression.of_bind_style,
+          |> Expression.of_bind_component_style,
         )
     ),
     "JSX"

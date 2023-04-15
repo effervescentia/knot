@@ -1,8 +1,13 @@
 open Kore;
 
 let rec to_xml: Interface.Plugin.debug_t('expr, 'typ) =
-  dump_type =>
-    Dump.node_to_xml(~dump_type, ~unpack=unpack(dump_type), "Expression")
+  (dump_type, node) =>
+    Dump.node_to_xml(
+      ~dump_type,
+      ~unpack=unpack(dump_type),
+      "Expression",
+      node,
+    )
 
 and unpack = dump_type => {
   let arg = (to_xml(dump_type), dump_type);

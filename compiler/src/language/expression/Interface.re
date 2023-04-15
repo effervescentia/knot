@@ -34,11 +34,19 @@ let of_ksx = x => KSX(x);
 let of_group = x => Group(x);
 let of_closure = x => Closure(x);
 let of_dot_access = x => DotAccess(x);
-let of_bind_style = x => BindStyle(x);
+let of_bind_style = (view_kind, (lhs, rhs)) =>
+  BindStyle((view_kind, lhs, rhs));
 let of_function_call = x => FunctionCall(x);
 let of_style = x => Style(x);
 let of_binary_op = (op, (lhs, rhs)) => BinaryOp((op, lhs, rhs));
 let of_unary_op = (op, x) => UnaryOp((op, x));
+
+/* style bindings */
+
+let of_bind_element_style = ((lhs, rhs)) =>
+  (lhs, rhs) |> of_bind_style(KSX.Interface.ViewKind.Element);
+let of_bind_component_style = ((lhs, rhs)) =>
+  (lhs, rhs) |> of_bind_style(KSX.Interface.ViewKind.Component);
 
 /* binary operations */
 
