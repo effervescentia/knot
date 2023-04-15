@@ -80,7 +80,12 @@ class Client {
       console.error(`ERROR ${error.type}: ${chalk.red(error.message)}`)
     );
 
-    this.proc.stderr.on('data', (data) => console.error(data.toString()));
+    this.proc.on('spawn', () => {
+      this.proc.stderr.on('data', (data) => console.error(data.toString()));
+    });
+    this.proc.on('error', (err) => {
+      throw new Error(`unable to start knotc process: ${err.message}`);
+    });
   }
 
   public async fetchModule(

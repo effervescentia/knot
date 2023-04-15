@@ -5,6 +5,7 @@ import {
   isJSONRPCRequest,
   isJSONRPCResponse,
   JSONRPCClient,
+  JSONRPCParams,
 } from 'json-rpc-2.0';
 
 import { NotificationMap } from '../protocol';
@@ -21,7 +22,10 @@ export interface RPCOptions {
   debug?: boolean;
 }
 
-class RPCClient extends Emittery<NotificationMap> {
+class RPCClient
+  extends Emittery<NotificationMap>
+  implements Pick<JSONRPCClient, 'request' | 'notify'>
+{
   private rpc = new JSONRPCClient(async (rpcRequest) => {
     const json = JSON.stringify(rpcRequest);
 
@@ -41,21 +45,20 @@ class RPCClient extends Emittery<NotificationMap> {
     });
   });
 
-  request = this.rpc.request.bind(this.rpc);
-  notify = this.rpc.notify.bind(this.rpc);
-
   constructor(
     private proc: execa.ExecaChildProcess,
     private options: RPCOptions = {}
   ) {
     super();
 
-    proc.stdin.setDefaultEncoding('utf8');
+    proc.on('spawn', () => {
+      proc.stdin.setDefaultEncoding('utf8');
 
-    proc.stdout.on('data', (data) => {
-      const dataStr = Buffer.from(data).toString();
+      proc.stdout.on('data', (data) => {
+        const dataStr = Buffer.from(data).toString();
 
-      this.read(dataStr);
+        this.read(dataStr);
+      });
     });
   }
 
@@ -93,6 +96,26 @@ class RPCClient extends Emittery<NotificationMap> {
     if (rest?.length > contentLength) {
       this.read(rest.slice(contentLength));
     }
+  }
+
+  private assertConnected() {
+    if (!this.proc.connected) {
+      throw new Error('failed to establish connection with knotc process');
+    }
+  }
+
+  request(
+    method: string,
+    params?: JSONRPCParams,
+    clientParams?: void
+  ): PromiseLike<any> {
+    this.assertConnected();
+    return this.rpc.request(method, params, clientParams);
+  }
+
+  notify(method: string, params?: JSONRPCParams, clientParams?: void): void {
+    this.assertConnected();
+    return this.rpc.notify(method, params, clientParams);
   }
 
   terminate() {
