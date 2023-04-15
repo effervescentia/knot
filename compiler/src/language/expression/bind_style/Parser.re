@@ -11,11 +11,12 @@ let parse_bind_style_expression = f =>
 let parse_bind_style_literal =
     (
       f: Interface.Plugin.value_t('expr, 'typ) => 'expr,
-      (ctx, (_, parse_style)): Interface.Plugin.parse_arg_t('ast, 'expr),
+      (ctx, (_, parse_style_literal)):
+        Interface.Plugin.parse_arg_t('ast, 'expr),
       view: Node.t('expr, unit),
     ) =>
   Matchers.glyph(Glyph.style_binding)
-  >> parse_style(ctx)
+  >> parse_style_literal(ctx)
   >|= (
     style =>
       Node.raw(

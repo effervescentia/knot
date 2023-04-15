@@ -207,9 +207,22 @@ let suite =
             "foo" |> Expression.of_identifier |> U.as_node,
             "bar" |> Expression.of_identifier |> U.as_node,
           )
-          |> Expression.of_bind_component_style
+          |> Expression.of_bind_element_style
           |> U.as_node,
           "foo::bar",
+        )
+    ),
+    "parse style binding - empty"
+    >: (
+      () =>
+        Assert.parse(
+          (
+            "foo" |> Expression.of_identifier |> U.as_node,
+            [] |> Expression.of_style |> U.as_node,
+          )
+          |> Expression.of_bind_element_style
+          |> U.as_node,
+          "foo::{}",
         )
     ),
     "parse style binding - literal"
@@ -239,7 +252,7 @@ let suite =
             |> Expression.of_style
             |> U.as_node,
           )
-          |> Expression.of_bind_component_style
+          |> Expression.of_bind_element_style
           |> U.as_node,
           "foo::{
   color: $pink,
@@ -562,11 +575,11 @@ let suite =
               "a" |> Expression.of_identifier |> U.as_node,
               "b" |> Expression.of_identifier |> U.as_node,
             )
-            |> Expression.of_bind_component_style
+            |> Expression.of_bind_element_style
             |> U.as_node,
             "c" |> Expression.of_identifier |> U.as_node,
           )
-          |> Expression.of_bind_component_style
+          |> Expression.of_bind_element_style
           |> U.as_node,
           "a::b::c",
         )

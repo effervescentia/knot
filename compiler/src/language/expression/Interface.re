@@ -1,19 +1,19 @@
-open Knot.Kore;
+open Kore;
 open AST.Common;
 open AST.Operator;
 
 type t('typ) =
-  | Primitive(KPrimitive.Plugin.value_t(t('typ), 'typ))
-  | Identifier(KIdentifier.Plugin.value_t(t('typ), 'typ))
-  | KSX(KSX.Plugin.value_t(t('typ), 'typ))
-  | Group(KGroup.Plugin.value_t(t('typ), 'typ))
-  | BinaryOp(KBinaryOperator.Plugin.value_t(t('typ), 'typ))
-  | UnaryOp(KUnaryOperator.Plugin.value_t(t('typ), 'typ))
-  | Closure(KClosure.Plugin.value_t(t('typ), 'typ))
-  | DotAccess(KDotAccess.Plugin.value_t(t('typ), 'typ))
-  | BindStyle(KBindStyle.Plugin.value_t(t('typ), 'typ))
-  | FunctionCall(KFunctionCall.Plugin.value_t(t('typ), 'typ))
-  | Style(KStyle.Plugin.value_t(t('typ), 'typ))
+  | Primitive(Primitive.value_t(t('typ), 'typ))
+  | Identifier(Identifier.value_t(t('typ), 'typ))
+  | KSX(KSX.value_t(t('typ), 'typ))
+  | Group(Group.value_t(t('typ), 'typ))
+  | BinaryOp(BinaryOperator.value_t(t('typ), 'typ))
+  | UnaryOp(UnaryOperator.value_t(t('typ), 'typ))
+  | Closure(Closure.value_t(t('typ), 'typ))
+  | DotAccess(DotAccess.value_t(t('typ), 'typ))
+  | BindStyle(BindStyle.value_t(t('typ), 'typ))
+  | FunctionCall(FunctionCall.value_t(t('typ), 'typ))
+  | Style(Style.value_t(t('typ), 'typ))
 
 and node_t('typ) = Node.t(t('typ), 'typ);
 
@@ -34,8 +34,7 @@ let of_ksx = x => KSX(x);
 let of_group = x => Group(x);
 let of_closure = x => Closure(x);
 let of_dot_access = x => DotAccess(x);
-let of_bind_style = (view_kind, (lhs, rhs)) =>
-  BindStyle((view_kind, lhs, rhs));
+let of_bind_style = (kind, (lhs, rhs)) => BindStyle((kind, lhs, rhs));
 let of_function_call = x => FunctionCall(x);
 let of_style = x => Style(x);
 let of_binary_op = (op, (lhs, rhs)) => BinaryOp((op, lhs, rhs));
@@ -44,9 +43,9 @@ let of_unary_op = (op, x) => UnaryOp((op, x));
 /* style bindings */
 
 let of_bind_element_style = ((lhs, rhs)) =>
-  (lhs, rhs) |> of_bind_style(KSX.Interface.ViewKind.Element);
+  (lhs, rhs) |> of_bind_style(KSX.ViewKind.Element);
 let of_bind_component_style = ((lhs, rhs)) =>
-  (lhs, rhs) |> of_bind_style(KSX.Interface.ViewKind.Component);
+  (lhs, rhs) |> of_bind_style(KSX.ViewKind.Component);
 
 /* binary operations */
 

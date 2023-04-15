@@ -7,17 +7,17 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
   (
     (analyze_expression, (from_id, to_id)),
     scope,
-    ((kind, view, style), _) as node,
+    ((_, view, style), _) as node,
   ) => {
     let range = Node.get_range(node);
     let lhs_range = Node.get_range(view);
     let tag_scope = Scope.create(scope.context, lhs_range);
     tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-    let (kind', view', view_type) =
+    let (kind, view', view_type) =
       switch (from_id(fst(view))) {
       | Some(id) =>
-        let (view_type, kind') =
+        let (view_type, kind) =
           scope
           |> Scope.lookup(id)
           |> Option.map(
@@ -41,7 +41,7 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
           )
           |?: (Invalid(NotInferrable), ViewKind.Component);
 
-        (kind', Node.typed(to_id(id), view_type, lhs_range), view_type);
+        (kind, Node.typed(to_id(id), view_type, lhs_range), view_type);
 
       | None =>
         view
@@ -56,5 +56,5 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
     |> Validator.validate
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    ((kind', view', style'), view_type);
+    ((kind, view', style'), view_type);
   };

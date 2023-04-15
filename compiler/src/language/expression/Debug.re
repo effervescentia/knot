@@ -14,16 +14,16 @@ and unpack = dump_type => {
   let bind = f => f(arg) % List.single;
 
   Interface.fold(
-    ~primitive=bind(KPrimitive.to_xml),
-    ~identifier=bind(KIdentifier.to_xml),
-    ~group=bind(KGroup.to_xml),
-    ~closure=bind(KClosure.to_xml),
-    ~dot_access=bind(KDotAccess.to_xml),
-    ~bind_style=bind(KBindStyle.to_xml),
-    ~function_call=bind(KFunctionCall.to_xml),
-    ~style=bind(KStyle.to_xml),
-    ~binary_op=bind(KBinaryOperator.to_xml),
-    ~unary_op=bind(KUnaryOperator.to_xml),
+    ~primitive=bind(Primitive.to_xml),
+    ~identifier=bind(Identifier.to_xml),
+    ~group=bind(Group.to_xml),
+    ~closure=bind(Closure.to_xml),
+    ~dot_access=bind(DotAccess.to_xml),
+    ~bind_style=bind(BindStyle.to_xml),
+    ~function_call=bind(FunctionCall.to_xml),
+    ~style=bind(Style.to_xml),
+    ~binary_op=bind(BinaryOperator.to_xml),
+    ~unary_op=bind(UnaryOperator.to_xml),
     ~ksx=bind(KSX.to_xml),
   );
 };

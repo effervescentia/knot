@@ -22,34 +22,34 @@ let rec analyze:
 
     statement
     |> Interface.fold(
-         ~primitive=bind(KPrimitive.analyze, Interface.of_primitive, ()),
-         ~identifier=bind(KIdentifier.analyze, Interface.of_identifier, ()),
+         ~primitive=bind(Primitive.analyze, Interface.of_primitive, ()),
+         ~identifier=bind(Identifier.analyze, Interface.of_identifier, ()),
          ~unary_op=
            bind(
-             KUnaryOperator.analyze,
+             UnaryOperator.analyze,
              ((op, expr)) => Interface.of_unary_op(op, expr),
              analyze,
            ),
          ~binary_op=
            bind(
-             KBinaryOperator.analyze,
+             BinaryOperator.analyze,
              ((op, lhs, rhs)) => (lhs, rhs) |> Interface.of_binary_op(op),
              analyze,
            ),
-         ~group=bind(KGroup.analyze, Interface.of_group, analyze),
-         ~closure=bind(KClosure.analyze, Interface.of_closure, analyze),
+         ~group=bind(Group.analyze, Interface.of_group, analyze),
+         ~closure=bind(Closure.analyze, Interface.of_closure, analyze),
          ~dot_access=
-           bind(KDotAccess.analyze, Interface.of_dot_access, analyze),
+           bind(DotAccess.analyze, Interface.of_dot_access, analyze),
          ~bind_style=
            bind(
-             KBindStyle.analyze,
-             ((view_kind, lhs, rhs)) =>
-               Interface.of_bind_style(view_kind, (lhs, rhs)),
+             BindStyle.analyze,
+             ((kind, lhs, rhs)) =>
+               Interface.of_bind_style(kind, (lhs, rhs)),
              (analyze, (_get_identifier, Interface.of_identifier)),
            ),
          ~function_call=
-           bind(KFunctionCall.analyze, Interface.of_function_call, analyze),
-         ~style=bind(KStyle.analyze, Interface.of_style, analyze),
+           bind(FunctionCall.analyze, Interface.of_function_call, analyze),
+         ~style=bind(Style.analyze, Interface.of_style, analyze),
          ~ksx=bind(KSX.analyze, Interface.of_ksx, analyze),
        );
   };

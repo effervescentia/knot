@@ -1,3 +1,5 @@
+module ViewKind = Interface.ViewKind;
+
 include AST.Framework.Expression.Make({
   include Interface.Plugin;
 

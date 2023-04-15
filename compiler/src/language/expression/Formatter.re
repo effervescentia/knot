@@ -31,16 +31,16 @@ let rec format: Fmt.t(Interface.t('typ)) =
     let bind = formatter => formatter(format, ppf);
 
     Interface.fold(
-      ~primitive=bind(KPrimitive.format()),
-      ~identifier=bind(KIdentifier.format()),
+      ~primitive=bind(Primitive.format()),
+      ~identifier=bind(Identifier.format()),
       ~ksx=bind(KSX.format(attribute_needs_wrapper)),
-      ~group=bind(KGroup.format(_is_binary_op)),
-      ~binary_op=bind(KBinaryOperator.format()),
-      ~unary_op=bind(KUnaryOperator.format()),
-      ~closure=bind(KClosure.format()),
-      ~dot_access=bind(KDotAccess.format()),
-      ~bind_style=bind(KBindStyle.format(_get_style_rules)),
-      ~function_call=bind(KFunctionCall.format()),
-      ~style=bind(KStyle.format()),
+      ~group=bind(Group.format(_is_binary_op)),
+      ~binary_op=bind(BinaryOperator.format()),
+      ~unary_op=bind(UnaryOperator.format()),
+      ~closure=bind(Closure.format()),
+      ~dot_access=bind(DotAccess.format()),
+      ~bind_style=bind(BindStyle.format(_get_style_rules)),
+      ~function_call=bind(FunctionCall.format()),
+      ~style=bind(Style.format()),
     );
   };
