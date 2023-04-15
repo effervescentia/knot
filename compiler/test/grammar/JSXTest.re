@@ -5,7 +5,7 @@ module U = Util.RawUtil;
 let suite =
   "Grammar.JSX"
   >::: [
-    "no parse" >: (() => Assert.Expression.no_parse("gibberish")),
+    "no parse" >: (() => Assert.Expression.no_parse("<gibberish")),
     "parse tag"
     >: (
       () =>

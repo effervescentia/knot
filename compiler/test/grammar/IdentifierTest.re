@@ -33,15 +33,14 @@ let suite =
       () =>
         Constants.Keyword.reserved
         |> List.iter(keyword =>
-             Assert.parse_throws(
-               AST.Error.CompileError([
+             Assert.parse_throws_compiler_errs(
+               [
                  ParseError(
                    ReservedKeyword(keyword),
                    Internal("mock"),
                    Range.zero,
                  ),
-               ]),
-               "should throw ReservedKeyword error",
+               ],
                keyword,
              )
            )

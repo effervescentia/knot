@@ -92,6 +92,42 @@ module Make = (Params: AssertParams) => {
       |> LazyStream.of_stream
       |> Params.parser(context)
     );
+
+  let parse_throws_compiler_errs =
+      (
+        ~report=AST.Error.throw,
+        ~context=_mock_context(report),
+        ~cursor=false,
+        errs,
+        source,
+      ) =>
+    try(
+      InputStream.of_string(~cursor, source)
+      |> LazyStream.of_stream
+      |> Params.parser(context)
+      |> ignore
+    ) {
+    | AST.Error.CompileError(actual_errs) when actual_errs == errs => ()
+    | AST.Error.CompileError(actual_errs) =>
+      fail(
+        Fmt.str(
+          "%s: expected %a, got %a.",
+          "should throw compilation errors",
+          AST.Error.pp_dump_err_list,
+          errs,
+          AST.Error.pp_dump_err_list,
+          actual_errs,
+        ),
+      )
+    | exn =>
+      fail(
+        Fmt.str(
+          "%s: expected CompileError(...), got %s.",
+          "should throw exception of type CompileError",
+          Printexc.to_string(exn),
+        ),
+      )
+    };
 };
 
 module type TypedParserParams = {

@@ -9,7 +9,19 @@ let suite =
   "Grammar.Style"
   >::: [
     "no parse"
-    >: (() => Assert.Expression.parse_none(["gibberish", "style", "style {"])),
+    >: (
+      () =>
+        Assert.Expression.parse_throws_compiler_errs(
+          [
+            ParseError(
+              ReservedKeyword("style"),
+              Internal("mock"),
+              Range.zero,
+            ),
+          ],
+          "style {",
+        )
+    ),
     "parse - with no arguments"
     >: (
       () =>

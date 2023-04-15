@@ -7,10 +7,7 @@ module Assert =
     type t = ModuleStatement.node_t(Declaration.node_t(Type.t));
 
     let parser =
-      KImport.Plugin.parse((
-        ModuleStatement.Interface.of_import,
-        ModuleStatement.Interface.of_stdlib_import,
-      ))
+      ModuleStatement.parse(Declaration.parse)
       % Assert.parse_completely
       % Parser.parse;
 
@@ -29,7 +26,7 @@ module Assert =
   });
 
 let suite =
-  "Grammar.Declaration"
+  "Grammar.ModuleStatement"
   >::: [
     "parse"
     >: (
