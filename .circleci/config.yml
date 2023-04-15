@@ -33,12 +33,12 @@ defaults:
 executors:
   node:
     docker:
-      - image: cimg/node:17.8.0
+      - image: cimg/node:18.16.0
         environment:
           NODE_OPTIONS: --max_old_space_size=4096
   node-browser:
     docker:
-      - image: cimg/node:17.8.0-browsers
+      - image: cimg/node:18.16.0-browsers
         environment:
           KNOTC_BINARY: /tmp/workspace/knotc_install/default/bin/knotc.exe
           NODE_OPTIONS: --max_old_space_size=4096 --openssl-legacy-provider

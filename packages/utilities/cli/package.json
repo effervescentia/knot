@@ -40,8 +40,5 @@
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "execa": "6.1.0"
   }
 }
