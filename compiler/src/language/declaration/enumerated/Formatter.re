@@ -1,12 +1,11 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let format_parameter_list =
   Fmt.(
     (ppf, parameters) =>
       List.is_empty(parameters)
-        ? ()
-        : pf(ppf, "(%a)", list(KTypeExpression.Plugin.format), parameters)
+        ? () : pf(ppf, "(%a)", list(TypeExpression.format), parameters)
   );
 
 let format_variant_list = variants =>

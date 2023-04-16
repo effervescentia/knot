@@ -1,6 +1,6 @@
-open Knot.Kore;
+open Kore;
 
 module Plugin =
   AST.Framework.Declaration.MakeTypes({
-    type value_t('typ) = KExpression.Interface.node_t('typ);
+    type value_t('typ) = Expression.node_t('typ);
   });

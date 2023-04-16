@@ -11,8 +11,8 @@ let parse =
     (ctx, parse_expr) |> parse >|= Node.map(to_statement);
 
   choice([
-    KVariable.parse &> Interface.of_variable,
-    KEffect.parse &> Interface.of_effect,
+    Variable.parse &> Interface.of_variable,
+    Effect.parse &> Interface.of_effect,
   ])
   |> Matchers.terminated;
 };

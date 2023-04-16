@@ -1,6 +1,6 @@
-open Knot.Kore;
-open Parse.Kore;
 open AST;
+open Kore;
+open Parse.Kore;
 
 type type_module_parser_t('ast) =
   ParseContext.t('ast) => Parse.Parser.t(Interface.node_t);
@@ -8,7 +8,7 @@ type type_module_parser_t('ast) =
 let __module_keyword = Matchers.keyword(Constants.Keyword.module_);
 
 let _parse_module_decorator = (ctx: ParseContext.t('ast)) =>
-  KDecorator.Plugin.parse(KPrimitive.Parser.parse_primitive)
+  KDecorator.Plugin.parse(Primitive.parse_primitive)
   >|= Node.map(((id, args)) =>
         (
           id
@@ -17,9 +17,7 @@ let _parse_module_decorator = (ctx: ParseContext.t('ast)) =>
              ),
           args
           |> List.map(arg =>
-               arg
-               |> Node.analyzer(KPrimitive.Analyzer.analyze_primitive)
-               % fst
+               arg |> Node.analyzer(Primitive.analyze_primitive) % fst
              ),
         )
       );
@@ -37,7 +35,7 @@ let parse_module: type_module_parser_t('ast) =
             id => {
               let module_ctx = ParseContext.create_module(ctx);
 
-              KTypeStatement.Plugin.parse(module_ctx)
+              TypeStatement.parse(module_ctx)
               |> many
               |> Matchers.between_braces
               >|= (
@@ -95,7 +93,7 @@ let parse_module: type_module_parser_t('ast) =
                             args
                             |> List.map(
                                  SymbolTable.Primitive.(
-                                   KPrimitive.Interface.fold(
+                                   Primitive.fold(
                                      ~nil=() => Nil,
                                      ~boolean=value => Boolean(value),
                                      ~integer=value => Integer(value),
@@ -126,7 +124,7 @@ let parse_decorator: type_module_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.decorator),
-      KTypeExpression.Plugin.parse
+      TypeExpression.parse
       |> Matchers.comma_sep
       |> Matchers.between_parentheses
       >>= (
@@ -144,7 +142,7 @@ let parse_decorator: type_module_parser_t('ast) =
       |> Matchers.terminated,
       ((id, (args, target))) => {
         let arg_types =
-          args |> List.map(fst % KTypeExpression.Plugin.analyze(ctx.symbols));
+          args |> List.map(fst % TypeExpression.analyze(ctx.symbols));
         let type_ = Type.Valid(Decorator(arg_types, target));
 
         ctx.symbols |> SymbolTable.declare_value(fst(id), type_);

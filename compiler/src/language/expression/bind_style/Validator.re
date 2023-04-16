@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let validate: ((Type.t, Type.t)) => option(Type.error_t) =

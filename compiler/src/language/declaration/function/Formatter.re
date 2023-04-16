@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let format: Interface.Plugin.format_t('typ) =
@@ -8,15 +8,15 @@ let format: Interface.Plugin.format_t('typ) =
         ppf,
         "@[<v>func @[<h>%s%a@] %a@]",
         name,
-        KLambda.Formatter.format_parameter_list(KExpression.Plugin.format),
+        Lambda.format_parameter_list(Expression.format),
         parameters,
-        KLambda.Formatter.format_body(
-          KExpression.Interface.(
+        Lambda.format_body(
+          Expression.(
             fun
             | Closure(_) => false
             | _ => true
           ),
-          KExpression.Plugin.format,
+          Expression.format,
         ),
         body,
       )

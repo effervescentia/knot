@@ -5,7 +5,7 @@ let format: Interface.Plugin.format_t('expr, 'typ) =
     let bind = format => format(pp_expression, ppf);
 
     Interface.fold(
-      ~variable=bind(KVariable.format),
-      ~effect=bind(KEffect.format),
+      ~variable=bind(Variable.format),
+      ~effect=bind(Effect.format),
     );
   };

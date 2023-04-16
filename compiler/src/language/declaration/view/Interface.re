@@ -1,15 +1,10 @@
-open Knot.Kore;
+open Kore;
 
 module Plugin =
   AST.Framework.Declaration.MakeTypes({
     type value_t('typ) = (
-      list(
-        KLambda.Interface.Parameter.node_t(
-          KExpression.Interface.t('typ),
-          'typ,
-        ),
-      ),
+      list(Lambda.Parameter.node_t(Expression.t('typ), 'typ)),
       list(Node.t(string, 'typ)),
-      Node.t(KExpression.Interface.t('typ), 'typ),
+      Node.t(Expression.t('typ), 'typ),
     );
   });

@@ -10,7 +10,7 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
 
     statement
     |> Interface.fold(
-         ~variable=bind(KVariable.analyze, Interface.of_variable),
-         ~effect=bind(KEffect.analyze, Interface.of_effect),
+         ~variable=bind(Variable.analyze, Interface.of_variable),
+         ~effect=bind(Effect.analyze, Interface.of_effect),
        );
   };

@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -8,15 +8,15 @@ let parse: Interface.Plugin.parse_t('ast) =
     >>= (
       kwd =>
         Matchers.assign(
-          KIdentifier.Parser.parse_raw(ctx),
-          KExpression.Plugin.parse(ctx),
+          KIdentifier.Plugin.parse_raw(ctx),
+          Expression.parse(ctx),
         )
         >|= (
           ((name, expression)) => {
             let scope =
               ctx |> Scope.of_parse_context(Node.get_range(expression));
             let (expression', expression_type) =
-              expression |> Node.analyzer(KExpression.Plugin.analyze(scope));
+              expression |> Node.analyzer(Expression.analyze(scope));
 
             // TODO: throw error if name already used in scope
 

@@ -7,7 +7,7 @@ module Assert =
     type t = AST.Common.raw_t(KDecorator.Interface.t(Primitive.t, unit));
 
     let parser = _ =>
-      Primitive.Parser.parse_primitive
+      Primitive.parse_primitive
       |> KDecorator.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -19,7 +19,7 @@ module Assert =
             ppf =>
               KDecorator.Plugin.to_xml((
                 Dump.node_to_xml(
-                  ~unpack=Primitive.Debug.primitive_to_xml % List.single,
+                  ~unpack=Primitive.primitive_to_xml % List.single,
                   "Value",
                 ),
                 _ => "Unknown",

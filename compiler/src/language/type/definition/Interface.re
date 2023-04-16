@@ -1,14 +1,13 @@
-open Knot.Kore;
+open Kore;
 open AST.Common;
 
-type decorator_t =
-  raw_t(KDecorator.Interface.t(KPrimitive.Interface.t, AST.Type.t));
+type decorator_t = raw_t(KDecorator.Interface.t(Primitive.t, AST.Type.t));
 
 type t =
   | Decorator(
       (
         identifier_t,
-        list(KTypeExpression.Interface.node_t),
+        list(TypeExpression.node_t),
         AST.Type.DecoratorTarget.t,
       ),
     )

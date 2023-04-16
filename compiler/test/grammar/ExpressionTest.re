@@ -6,15 +6,13 @@ module Assert =
   Assert.Make({
     type t = Expression.node_t(unit);
 
-    let parser =
-      KExpression.Plugin.parse % Assert.parse_completely % Parser.parse;
+    let parser = Expression.parse % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
-            ppf =>
-              KExpression.Plugin.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
+            ppf => Expression.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

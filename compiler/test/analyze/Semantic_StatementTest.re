@@ -23,7 +23,7 @@ let suite =
           |> URaw.string_prim
           |> Statement.of_effect
           |> URaw.as_node
-          |> KStatement.Plugin.analyze(KExpression.Plugin.analyze, __scope),
+          |> Statement.analyze(Expression.analyze, __scope),
         )
     ),
     "resolve nil for variable declaration"
@@ -35,7 +35,7 @@ let suite =
           |> URaw.string_prim
           |> Statement.of_effect
           |> URaw.as_node
-          |> KStatement.Plugin.analyze(KExpression.Plugin.analyze, __scope),
+          |> Statement.analyze(Expression.analyze, __scope),
         )
     ),
   ];

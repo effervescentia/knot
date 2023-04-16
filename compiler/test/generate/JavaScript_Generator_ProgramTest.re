@@ -8,7 +8,7 @@ module U = Util.ResultUtil;
 
 let __resolved = "../foo/bar";
 let __program =
-  KModuleStatement.Interface.[
+  ModuleStatement.[
     (Namespace.Internal("foo/bar"), "Foo" |> U.as_untyped |> Option.some, [])
     |> of_import,
     [
@@ -19,7 +19,7 @@ let __program =
     (
       ExportKind.Named,
       "ABC" |> U.as_untyped,
-      123 |> U.int_prim |> KDeclaration.Interface.of_constant |> U.as_int,
+      123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
     )
     |> of_export,
   ]
@@ -54,7 +54,7 @@ let suite =
           [Variable("foo", Number("123")), Export("foo", None)],
           (
             U.as_untyped("foo"),
-            123 |> U.int_prim |> KDeclaration.Interface.of_constant |> U.as_int,
+            123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
           ),
         )
     ),

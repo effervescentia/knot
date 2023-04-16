@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let entry_to_xml = (key, (name, expr)) =>
@@ -7,7 +7,7 @@ let entry_to_xml = (key, (name, expr)) =>
     [],
     [
       Dump.identifier_to_xml("Name", name),
-      Node("Value", [], [KTypeExpression.Plugin.to_xml(expr)]),
+      Node("Value", [], [TypeExpression.to_xml(expr)]),
     ],
   );
 
@@ -30,7 +30,7 @@ let enumerated_to_xml = ((name, variants)) =>
                  Node(
                    "Parameters",
                    [],
-                   parameters |> List.map(KTypeExpression.Plugin.to_xml),
+                   parameters |> List.map(TypeExpression.to_xml),
                  ),
                ],
              )

@@ -4,8 +4,8 @@ let unpack = ((expr_to_xml, dump_type)) => {
   let bind = to_xml => to_xml(expr_to_xml) % List.single;
 
   Interface.fold(
-    ~variable=bind(KVariable.to_xml),
-    ~effect=bind(KEffect.to_xml),
+    ~variable=bind(Variable.to_xml),
+    ~effect=bind(Effect.to_xml),
   );
 };
 

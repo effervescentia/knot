@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
@@ -9,7 +9,7 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
       statements
       |> List.map(
            Node.analyzer(
-             KStatement.Analyzer.analyze(analyze_expression, closure_scope),
+             Statement.analyze(analyze_expression, closure_scope),
            ),
          )
       |> List.split;

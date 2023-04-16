@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 
 let format: Interface.Plugin.format_t('expr, 'typ) =
   (_, pp_expression, ppf) =>
@@ -7,4 +7,4 @@ let format: Interface.Plugin.format_t('expr, 'typ) =
     | statements =>
       statements
       |> List.map(fst)
-      |> Fmt.(closure(KStatement.Plugin.format((), pp_expression), ppf));
+      |> Fmt.(closure(Statement.format((), pp_expression), ppf));

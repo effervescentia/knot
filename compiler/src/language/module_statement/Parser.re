@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -21,9 +21,6 @@ let parse =
     : Framework.Interface.contextual_parse_t('ast, Interface.t('decl)) =>
   ctx =>
     choice([
-      KImport.Plugin.parse(
-        (Interface.of_import, Interface.of_stdlib_import),
-        ctx,
-      ),
+      Import.parse((Interface.of_import, Interface.of_stdlib_import), ctx),
       parse_export(parse_decl, ctx),
     ]);

@@ -1,9 +1,9 @@
-open Knot.Kore;
+open Kore;
 open AST.Common;
 
 type t('expr, 'typ) =
-  | Variable(KVariable.Plugin.value_t('expr, 'typ))
-  | Effect(KEffect.Plugin.value_t('expr, 'typ));
+  | Variable(Variable.value_t('expr, 'typ))
+  | Effect(Effect.value_t('expr, 'typ));
 
 type node_t('expr, 'typ) = Node.t(t('expr, 'typ), 'typ);
 

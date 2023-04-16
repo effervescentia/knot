@@ -1,3 +1,6 @@
+let format_operator = Formatter.format_operator;
+let validate = Validator.validate;
+
 include AST.Framework.Expression.Make({
   include Interface.Plugin;
 

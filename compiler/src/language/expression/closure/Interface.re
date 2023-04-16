@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 
 module Plugin =
   AST.Framework.Expression.MakeTypes({
@@ -9,6 +9,5 @@ module Plugin =
     type analyze_arg_t('ast, 'raw_expr, 'result_expr) =
       AST.Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr);
     type format_arg_t('expr, 'typ) = unit;
-    type value_t('expr, 'typ) =
-      list(KStatement.Interface.node_t('expr, 'typ));
+    type value_t('expr, 'typ) = list(Statement.node_t('expr, 'typ));
   });

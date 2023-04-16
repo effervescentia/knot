@@ -1,7 +1,5 @@
-open Knot.Kore;
+open Kore;
 open AST.Common;
-
-module NamedImport = KImport.Interface.NamedImport;
 
 module ExportKind = {
   type t =
@@ -27,12 +25,12 @@ module ExportKind = {
 };
 
 type t('decl) =
-  | StdlibImport(list(NamedImport.node_t))
+  | StdlibImport(list(Import.NamedImport.node_t))
   | Import(
       (
         Reference.Namespace.t,
         option(identifier_t),
-        list(NamedImport.node_t),
+        list(Import.NamedImport.node_t),
       ),
     )
   | Export((ExportKind.t, identifier_t, 'decl));

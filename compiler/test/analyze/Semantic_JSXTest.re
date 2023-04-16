@@ -197,7 +197,7 @@ let suite =
           __id
           |> Expression.of_identifier
           |> URaw.as_node
-          |> KView.Analyzer.analyze_view_body(scope)
+          |> View.analyze_view_body(scope)
         );
       }
     ),

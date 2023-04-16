@@ -4,6 +4,7 @@
 open Kore;
 
 module JS = JavaScript_AST;
+module Expression = KExpression.Plugin;
 
 let __util_lib = "$knot";
 let __runtime_namespace = "@knot/runtime";
@@ -36,7 +37,7 @@ let _class_name = Fmt.str("$class_%s");
 let _id_name = Fmt.str("$id_%s");
 
 let rec gen_expression =
-  KExpression.Interface.(
+  Expression.(
     fun
     | Primitive(Boolean(x)) => JS.Boolean(x)
     | Primitive(Integer(value)) => JS.Number(Int64.to_string(value))
@@ -185,14 +186,8 @@ and gen_ksx_child =
 
 and gen_ksx_attrs =
     (
-      attrs:
-        list(
-          KSX.Interface.Attribute.node_t(
-            KExpression.Interface.t('typ),
-            'typ,
-          ),
-        ),
-      styles: list(KExpression.Interface.node_t('typ)),
+      attrs: list(KSX.Interface.Attribute.node_t(Expression.t('typ), 'typ)),
+      styles: list(Expression.node_t('typ)),
     ) =>
   if (List.is_empty(attrs) && List.is_empty(styles)) {
     JS.Null;
@@ -240,12 +235,7 @@ and gen_ksx_attrs =
 and gen_style =
     (
       rules:
-        list(
-          KStyle.Interface.StyleRule.node_t(
-            KExpression.Interface.t('typ),
-            'typ,
-          ),
-        ),
+        list(KStyle.Interface.StyleRule.node_t(Expression.t('typ), 'typ)),
     ) =>
   JS.(
     iife([
@@ -291,10 +281,7 @@ and gen_style =
   );
 
 let gen_constant =
-    (
-      name: AST.Common.identifier_t,
-      value: KExpression.Interface.node_t('typ),
-    ) =>
+    (name: AST.Common.identifier_t, value: Expression.node_t('typ)) =>
   JS.Variable(fst(name), value |> fst |> gen_expression);
 
 let gen_enumerated =
@@ -347,13 +334,8 @@ let gen_function =
     (
       (name, _): AST.Common.identifier_t,
       args:
-        list(
-          KLambda.Interface.Parameter.node_t(
-            KExpression.Interface.t('typ),
-            'typ,
-          ),
-        ),
-      (expr, _): KExpression.Interface.node_t('typ),
+        list(KLambda.Interface.Parameter.node_t(Expression.t('typ), 'typ)),
+      (expr, _): Expression.node_t('typ),
     ) =>
   JS.(
     Expression(
@@ -404,14 +386,9 @@ let gen_view =
     (
       (name, _): AST.Common.identifier_t,
       props:
-        list(
-          KLambda.Interface.Parameter.node_t(
-            KExpression.Interface.t('typ),
-            'typ,
-          ),
-        ),
+        list(KLambda.Interface.Parameter.node_t(Expression.t('typ), 'typ)),
       mixins: list(Node.t(string, AST.Type.t)),
-      (expr, _): KExpression.Interface.node_t('typ),
+      (expr, _): Expression.node_t('typ),
     ) =>
   JS.(
     Expression(
@@ -457,7 +434,7 @@ let gen_view =
                ];
              })
         )
-        @ KExpression.Interface.(
+        @ Expression.(
             switch (expr) {
             | Closure(stmts) =>
               let rec loop = (

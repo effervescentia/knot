@@ -1,11 +1,12 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 
 module Glyph = Constants.Glyph;
-module ViewKind = KSX.Interface.ViewKind;
 
 let parse_bind_style_expression = f =>
-  Parse.Util.binary_op(((lhs, rhs)) => (ViewKind.Element, lhs, rhs) |> f)
+  Parse.Util.binary_op(((lhs, rhs)) =>
+    (KSX.ViewKind.Element, lhs, rhs) |> f
+  )
   <$ Matchers.glyph(Glyph.style_binding);
 
 let parse_bind_style_literal =
@@ -20,7 +21,7 @@ let parse_bind_style_literal =
   >|= (
     style =>
       Node.raw(
-        (ViewKind.Element, view, style) |> f,
+        (KSX.ViewKind.Element, view, style) |> f,
         Node.join_ranges(view, style),
       )
   );

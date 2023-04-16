@@ -1,11 +1,14 @@
 open Kore;
 
+module Primitive = KPrimitive.Plugin;
+module Expression = KExpression.Plugin;
+
 module Token = {
   type t =
     | Skip
     | Join
     | Identifier(string)
-    | Primitive(KPrimitive.Interface.t);
+    | Primitive(Primitive.t);
 };
 
 type t = RangeTree.t(Token.t);
@@ -49,7 +52,7 @@ let rec of_list = (xs: list(t)): t =>
     }
   };
 
-let rec of_effect: KExpression.Interface.node_t('typ) => t =
+let rec of_effect: Expression.node_t('typ) => t =
   fun
   | (Primitive(prim), (_, range)) =>
     BinaryTree.create((range, Token.Primitive(prim)))
@@ -117,7 +120,7 @@ and of_jsx_child =
   )
 
 and of_jsx_attr =
-  KExpression.Interface.(
+  Expression.(
     fun
     | (id, None) => of_untyped_id(id)
     | (id, Some(expr)) =>
@@ -128,7 +131,7 @@ and of_jsx_attr =
   )
 
 and of_stmt =
-  KExpression.Interface.(
+  Expression.(
     fun
     | Variable((name, expr)) =>
       _join(
@@ -151,7 +154,7 @@ let of_args = args =>
      );
 
 let of_export =
-  KDeclaration.Interface.(
+  Declaration.(
     fun
     | Constant(expr) => expr |> of_effect |> _wrap(Node.get_range(expr))
     | Enumerated(variants) =>
@@ -177,8 +180,7 @@ let of_named_import =
   | (id, Some(alias)) =>
     (id, alias) |> Tuple.map2(of_untyped_id) |> Tuple.join2(_join);
 
-let of_mod_stmt:
-  KModuleStatement.Interface.t(KDeclaration.Interface.node_t('typ)) => t =
+let of_mod_stmt: ModuleStatement.t(Declaration.node_t('typ)) => t =
   fun
   | StdlibImport(imports) =>
     imports
@@ -219,8 +221,7 @@ let pp: Fmt.t(t) =
             | Join => ""
             | Skip => "[skip]"
             | Identifier(id) => id
-            | Primitive(prim) =>
-              prim |> ~@KPrimitive.Formatter.format_primitive
+            | Primitive(prim) => prim |> ~@Primitive.format_primitive
             }
           ),
           Range.create(start, end_) |> ~@Range.pp,

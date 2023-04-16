@@ -6,7 +6,7 @@ let parse: Interface.Plugin.parse_t('ast, 'expr) =
     Matchers.keyword(Constants.Keyword.let_)
     >>= (
       kwd =>
-        Matchers.assign(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
+        Matchers.assign(KIdentifier.Plugin.parse_raw(ctx), parse_expr(ctx))
         >|= (
           ((_, expression) as node) =>
             Node.raw(node, Node.join_ranges(kwd, expression))

@@ -9,10 +9,7 @@ let _assert_jsx = (expected, actual) =>
     actual
     |> ~@
          Fmt.root(
-           KSX.format(
-             Expression.Formatter.attribute_needs_wrapper,
-             Expression.format,
-           ),
+           KSX.format(Expression.attribute_needs_wrapper, Expression.format),
          ),
   );
 let _assert_jsx_attr = (expected, actual) =>
@@ -22,7 +19,7 @@ let _assert_jsx_attr = (expected, actual) =>
     |> ~@
          Fmt.root(
            KSX.Formatter.format_attribute(
-             Expression.Formatter.attribute_needs_wrapper,
+             Expression.attribute_needs_wrapper,
              Expression.format,
            ),
          ),

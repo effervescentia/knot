@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let analyze_parameter =
@@ -26,7 +26,7 @@ let analyze_parameter =
         let type_ =
           type_expression
           |> fst
-          |> KTypeExpression.Plugin.analyze(SymbolTable.create());
+          |> TypeExpression.analyze(SymbolTable.create());
 
         ((name, Some(type_expression), None), type_);
 
@@ -36,7 +36,7 @@ let analyze_parameter =
         let type_ =
           type_expression
           |> fst
-          |> KTypeExpression.Plugin.analyze(SymbolTable.create());
+          |> TypeExpression.analyze(SymbolTable.create());
 
         switch (expression_type, type_) {
         | (Valid(_), Valid(_)) when expression_type != type_ =>

@@ -50,9 +50,7 @@ let suite =
       () =>
         _assert_expression(
           Boolean(true),
-          true
-          |> KPrimitive.Interface.of_boolean
-          |> KExpression.Interface.of_primitive,
+          true |> Primitive.of_boolean |> Expression.of_primitive,
         )
     ),
     "boolean - false"
@@ -60,9 +58,7 @@ let suite =
       () =>
         _assert_expression(
           Boolean(false),
-          false
-          |> KPrimitive.Interface.of_boolean
-          |> KExpression.Interface.of_primitive,
+          false |> Primitive.of_boolean |> Expression.of_primitive,
         )
     ),
     "string - no special characters"
@@ -70,9 +66,7 @@ let suite =
       () =>
         _assert_expression(
           String("hello world"),
-          "hello world"
-          |> KPrimitive.Interface.of_string
-          |> KExpression.Interface.of_primitive,
+          "hello world" |> Primitive.of_string |> Expression.of_primitive,
         )
     ),
     "string - escaped quotation marks"
@@ -81,8 +75,8 @@ let suite =
         _assert_expression(
           String("escaped quotes (\")"),
           "escaped quotes (\")"
-          |> KPrimitive.Interface.of_string
-          |> KExpression.Interface.of_primitive,
+          |> Primitive.of_string
+          |> Expression.of_primitive,
         )
     ),
     "jsx - render empty tag"
@@ -95,7 +89,7 @@ let suite =
           ),
           ("foo" |> U.as_view([], Valid(Nil)), [], [], [])
           |> KSX.Interface.of_element_tag
-          |> KExpression.Interface.of_ksx,
+          |> Expression.of_ksx,
         )
     ),
     "jsx - render tag with attributes"
@@ -113,8 +107,8 @@ let suite =
               (
                 U.as_untyped("zip"),
                 "zap"
-                |> KPrimitive.Interface.of_string
-                |> KExpression.Interface.of_primitive
+                |> Primitive.of_string
+                |> Expression.of_primitive
                 |> U.as_string
                 |> Option.some,
               )
@@ -123,7 +117,7 @@ let suite =
             [],
           )
           |> KSX.Interface.of_element_tag
-          |> KExpression.Interface.of_ksx,
+          |> Expression.of_ksx,
         )
     ),
     "jsx - render component"
@@ -136,7 +130,7 @@ let suite =
           ),
           ("Foo" |> U.as_view([], Valid(Element)), [], [], [])
           |> KSX.Interface.of_component_tag
-          |> KExpression.Interface.of_ksx,
+          |> Expression.of_ksx,
         )
     ),
     "jsx - render component with styles"
@@ -214,18 +208,18 @@ let suite =
           (
             "Foo" |> U.as_view([], Valid(Element)),
             [
-              "bar" |> KExpression.Interface.of_identifier |> U.as_style,
+              "bar" |> Expression.of_identifier |> U.as_style,
               [
                 (U.as_string("color"), U.string_prim("red")) |> U.as_untyped,
               ]
-              |> KExpression.Interface.of_style
+              |> Expression.of_style
               |> U.as_style,
             ],
             [],
             [],
           )
           |> KSX.Interface.of_component_tag
-          |> KExpression.Interface.of_ksx,
+          |> Expression.of_ksx,
         )
     ),
     "jsx - deeply nested tags"
@@ -278,23 +272,19 @@ let suite =
             ],
           )
           |> KSX.Interface.of_element_tag
-          |> KExpression.Interface.of_ksx,
+          |> Expression.of_ksx,
         )
     ),
     "null"
     >: (
-      () =>
-        _assert_expression(
-          Null,
-          KPrimitive.Interface.nil |> KExpression.Interface.of_primitive,
-        )
+      () => _assert_expression(Null, Primitive.nil |> Expression.of_primitive)
     ),
     "identifier"
     >: (
       () =>
         _assert_expression(
           Identifier("fooBar"),
-          KExpression.Interface.of_identifier("fooBar"),
+          Expression.of_identifier("fooBar"),
         )
     ),
     "group"
@@ -302,7 +292,7 @@ let suite =
       () =>
         _assert_expression(
           Group(Number("123")),
-          123 |> U.int_prim |> KExpression.Interface.of_group,
+          123 |> U.int_prim |> Expression.of_group,
         )
     ),
     "iife - iife with return value"
@@ -330,17 +320,17 @@ let suite =
           ),
           [
             (U.int_prim(123), U.int_prim(456))
-            |> KExpression.Interface.of_equal_op
+            |> Expression.of_equal_op
             |> U.as_int
-            |> KStatement.Interface.of_effect
+            |> Statement.of_effect
             |> U.as_int,
             (U.int_prim(678), U.int_prim(910))
-            |> KExpression.Interface.of_add_op
+            |> Expression.of_add_op
             |> U.as_int
-            |> KStatement.Interface.of_effect
+            |> Statement.of_effect
             |> U.as_int,
           ]
-          |> KExpression.Interface.of_closure,
+          |> Expression.of_closure,
         )
     ),
     "iife - variable declaration"
@@ -359,10 +349,10 @@ let suite =
           ),
           [
             (U.as_untyped("foo"), U.int_prim(456))
-            |> KStatement.Interface.of_variable
+            |> Statement.of_variable
             |> U.as_nil,
           ]
-          |> KExpression.Interface.of_closure,
+          |> Expression.of_closure,
         )
     ),
     "dot access"
@@ -372,11 +362,11 @@ let suite =
           DotAccess(Identifier("foo"), "bar"),
           (
             "foo"
-            |> KExpression.Interface.of_identifier
+            |> Expression.of_identifier
             |> U.as_struct([("bar", (Valid(String), true))]),
             U.as_untyped("bar"),
           )
-          |> KExpression.Interface.of_dot_access,
+          |> Expression.of_dot_access,
         )
     ),
     "style binding"
@@ -388,12 +378,10 @@ let suite =
             [Identifier("foo"), Identifier("bar")],
           ),
           (
-            "foo"
-            |> KExpression.Interface.of_identifier
-            |> U.as_view([], Valid(Element)),
-            "bar" |> KExpression.Interface.of_identifier |> U.as_style,
+            "foo" |> Expression.of_identifier |> U.as_view([], Valid(Element)),
+            "bar" |> Expression.of_identifier |> U.as_style,
           )
-          |> KExpression.Interface.of_bind_component_style,
+          |> Expression.of_bind_component_style,
         )
     ),
     "function call"
@@ -403,11 +391,11 @@ let suite =
           FunctionCall(Identifier("foo"), [Identifier("bar")]),
           (
             "foo"
-            |> KExpression.Interface.of_identifier
+            |> Expression.of_identifier
             |> U.as_function([Valid(String)], Valid(Boolean)),
-            ["bar" |> KExpression.Interface.of_identifier |> U.as_string],
+            ["bar" |> Expression.of_identifier |> U.as_string],
           )
-          |> KExpression.Interface.of_function_call,
+          |> Expression.of_function_call,
         )
     ),
     "binary operation - logical and"

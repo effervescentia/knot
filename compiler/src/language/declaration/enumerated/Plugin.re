@@ -1,3 +1,4 @@
+include Interface;
 include AST.Framework.Declaration.Make({
   include Interface.Plugin;
 

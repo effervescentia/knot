@@ -1,11 +1,11 @@
-open Knot.Kore;
+open Kore;
 open AST.Common;
 
 type t('typ) =
-  | Constant(KConstant.Interface.Plugin.value_t('typ))
-  | Enumerated(KEnumerated.Interface.Plugin.value_t('typ))
-  | Function(KFunction.Interface.Plugin.value_t('typ))
-  | View(KView.Interface.Plugin.value_t('typ));
+  | Constant(Constant.value_t('typ))
+  | Enumerated(Enumerated.value_t('typ))
+  | Function(Function.value_t('typ))
+  | View(View.value_t('typ));
 
 type node_t('typ) = Node.t(t('typ), 'typ);
 

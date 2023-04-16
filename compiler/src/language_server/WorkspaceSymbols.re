@@ -62,7 +62,7 @@ let handler: Runtime.request_handler_t(params_t) =
                     ast
                     |> List.filter_map(
                          fst
-                         % KModuleStatement.Interface.(
+                         % ModuleStatement.(
                              fun
                              | Export((_, name, decl)) => {
                                  let uri =
@@ -80,7 +80,7 @@ let handler: Runtime.request_handler_t(params_t) =
                                  let name = fst(name);
 
                                  Some(
-                                   KDeclaration.Interface.(
+                                   Declaration.(
                                      switch (fst(decl)) {
                                      | Constant(_) => {
                                          uri,

@@ -50,14 +50,13 @@ let _assert_view = (expected, actual) =>
   );
 
 let __variable_declaration =
-  (U.as_untyped("fooBar"), U.int_prim(123))
-  |> KStatement.Interface.of_variable;
+  (U.as_untyped("fooBar"), U.int_prim(123)) |> Statement.of_variable;
 
 let __expression =
   (U.int_prim(123), U.int_prim(456))
-  |> KExpression.Interface.of_equal_op
+  |> Expression.of_equal_op
   |> U.as_int
-  |> KStatement.Interface.of_effect;
+  |> Statement.of_effect;
 
 let suite =
   "Generate.JavaScript_Generator | Statement"
@@ -158,13 +157,13 @@ let suite =
               (
                 U.as_untyped("Verified"),
                 [
-                  U.as_int(KTypeExpression.Interface.Integer),
-                  U.as_string(KTypeExpression.Interface.String),
+                  U.as_int(TypeExpression.Integer),
+                  U.as_string(TypeExpression.String),
                 ],
               ),
               (
                 U.as_untyped("Unverified"),
-                [U.as_string(KTypeExpression.Interface.String)],
+                [U.as_string(TypeExpression.String)],
               ),
             ],
           ),
@@ -220,11 +219,8 @@ let suite =
             [
               (U.as_untyped("bar"), None, Some(U.int_prim(123))) |> U.as_nil,
             ],
-            (
-              "bar" |> KExpression.Interface.of_identifier |> U.as_int,
-              U.int_prim(5),
-            )
-            |> KExpression.Interface.of_add_op
+            ("bar" |> Expression.of_identifier |> U.as_int, U.int_prim(5))
+            |> Expression.of_add_op
             |> U.as_int,
           ),
         )
@@ -254,18 +250,18 @@ let suite =
             [],
             [
               (U.as_untyped("buzz"), U.int_prim(2))
-              |> KStatement.Interface.of_variable
+              |> Statement.of_variable
               |> U.as_nil,
               (
-                "buzz" |> KExpression.Interface.of_identifier |> U.as_int,
-                "buzz" |> KExpression.Interface.of_identifier |> U.as_int,
+                "buzz" |> Expression.of_identifier |> U.as_int,
+                "buzz" |> Expression.of_identifier |> U.as_int,
               )
-              |> KExpression.Interface.of_divide_op
+              |> Expression.of_divide_op
               |> U.as_float
-              |> KStatement.Interface.of_effect
+              |> Statement.of_effect
               |> U.as_float,
             ]
-            |> KExpression.Interface.of_closure
+            |> Expression.of_closure
             |> U.as_float,
           ),
         )
@@ -303,11 +299,8 @@ let suite =
               (U.as_untyped("bar"), None, Some(U.int_prim(123))) |> U.as_nil,
             ],
             [],
-            (
-              "bar" |> KExpression.Interface.of_identifier |> U.as_int,
-              U.int_prim(5),
-            )
-            |> KExpression.Interface.of_add_op
+            ("bar" |> Expression.of_identifier |> U.as_int, U.int_prim(5))
+            |> Expression.of_add_op
             |> U.as_int,
           ),
         )

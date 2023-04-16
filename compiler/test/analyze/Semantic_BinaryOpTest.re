@@ -29,7 +29,7 @@ let suite =
                (URaw.bool_prim(true), URaw.bool_prim(false))
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -47,7 +47,7 @@ let suite =
                (URaw.string_prim("foo"), URaw.nil_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -65,7 +65,7 @@ let suite =
                (URaw.int_prim(123), URaw.int_prim(456))
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -83,7 +83,7 @@ let suite =
                (URaw.string_prim("foo"), URaw.nil_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -101,7 +101,7 @@ let suite =
                (URaw.string_prim("foo"), URaw.string_prim("bar"))
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -119,7 +119,7 @@ let suite =
                (URaw.string_prim("foo"), URaw.nil_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -137,7 +137,7 @@ let suite =
                (URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -155,7 +155,7 @@ let suite =
                (URaw.string_prim("foo"), URaw.nil_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -173,7 +173,7 @@ let suite =
                (URaw.int_prim(123), URaw.int_prim(456))
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -191,7 +191,7 @@ let suite =
                (URaw.int_prim(123), (45.6, 7) |> URaw.float_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -217,7 +217,7 @@ let suite =
                )
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -243,7 +243,7 @@ let suite =
                )
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -269,7 +269,7 @@ let suite =
                )
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -287,7 +287,7 @@ let suite =
                (URaw.string_prim("foo"), URaw.nil_prim)
                |> Expression.of_binary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -312,7 +312,7 @@ let suite =
           (URaw.string_prim("foo"), URaw.nil_prim)
           |> Expression.of_and_op
           |> URaw.as_node
-          |> KExpression.Plugin.analyze(__throw_scope)
+          |> Expression.analyze(__throw_scope)
         )
     ),
   ];

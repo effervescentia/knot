@@ -11,17 +11,14 @@ let suite =
     "nil"
     >: (
       () =>
-        Assert.type_(
-          Valid(Nil),
-          KTypeExpression.Plugin.analyze(__empty_defs, Nil),
-        )
+        Assert.type_(Valid(Nil), TypeExpression.analyze(__empty_defs, Nil))
     ),
     "boolean"
     >: (
       () =>
         Assert.type_(
           Valid(Boolean),
-          KTypeExpression.Plugin.analyze(__empty_defs, Boolean),
+          TypeExpression.analyze(__empty_defs, Boolean),
         )
     ),
     "integer"
@@ -29,7 +26,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(Integer),
-          KTypeExpression.Plugin.analyze(__empty_defs, Integer),
+          TypeExpression.analyze(__empty_defs, Integer),
         )
     ),
     "float"
@@ -37,7 +34,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(Float),
-          KTypeExpression.Plugin.analyze(__empty_defs, Float),
+          TypeExpression.analyze(__empty_defs, Float),
         )
     ),
     "string"
@@ -45,7 +42,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(String),
-          KTypeExpression.Plugin.analyze(__empty_defs, String),
+          TypeExpression.analyze(__empty_defs, String),
         )
     ),
     "element"
@@ -53,7 +50,7 @@ let suite =
       () =>
         Assert.type_(
           Valid(Element),
-          KTypeExpression.Plugin.analyze(__empty_defs, Element),
+          TypeExpression.analyze(__empty_defs, Element),
         )
     ),
     "identifier"
@@ -66,10 +63,7 @@ let suite =
 
         Assert.type_(
           Valid(Boolean),
-          KTypeExpression.Plugin.analyze(
-            symbols,
-            Identifier(U.as_untyped("foo")),
-          ),
+          TypeExpression.analyze(symbols, Identifier(U.as_untyped("foo"))),
         );
       }
     ),
@@ -85,7 +79,7 @@ let suite =
           |> TypeExpression.of_group
           |> U.as_untyped
           |> TypeExpression.of_group
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "list type"
@@ -96,7 +90,7 @@ let suite =
           TypeExpression.Boolean
           |> U.as_untyped
           |> TypeExpression.of_list
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "struct type"
@@ -118,7 +112,7 @@ let suite =
             |> U.as_untyped,
           ]
           |> TypeExpression.of_object
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "struct type with spread and overrides"
@@ -184,7 +178,7 @@ let suite =
             |> U.as_untyped,
           ]
           |> TypeExpression.of_object
-          |> KTypeExpression.Plugin.analyze(symbols),
+          |> TypeExpression.analyze(symbols),
         );
       }
     ),
@@ -203,7 +197,7 @@ let suite =
             U.as_untyped(TypeExpression.Element),
           )
           |> TypeExpression.of_function
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "view type"
@@ -233,7 +227,7 @@ let suite =
             U.as_untyped(TypeExpression.Element),
           )
           |> TypeExpression.of_view
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "invalid view properties type"
@@ -246,7 +240,7 @@ let suite =
             U.as_untyped(TypeExpression.Element),
           )
           |> TypeExpression.of_view
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "invalid view result type"
@@ -268,7 +262,7 @@ let suite =
             U.as_untyped(TypeExpression.Style),
           )
           |> TypeExpression.of_view
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
   ];

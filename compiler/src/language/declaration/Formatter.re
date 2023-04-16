@@ -7,9 +7,9 @@ let format: Fmt.t((string, Interface.t('typ))) =
 
     declaration
     |> Interface.fold(
-         ~constant=bind(KConstant.format),
-         ~enumerated=bind(KEnumerated.format),
-         ~function_=bind(KFunction.format),
-         ~view=bind(KView.format),
+         ~constant=bind(Constant.format),
+         ~enumerated=bind(Enumerated.format),
+         ~function_=bind(Function.format),
+         ~view=bind(View.format),
        );
   };

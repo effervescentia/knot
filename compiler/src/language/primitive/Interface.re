@@ -1,11 +1,11 @@
-open Knot.Kore;
+open Kore;
 
 type t =
   | Nil
-  | Boolean(KBoolean.Plugin.value_t)
-  | Integer(KInteger.Plugin.value_t)
-  | Float(KFloat.Plugin.value_t)
-  | String(KString.Plugin.value_t);
+  | Boolean(KBoolean.value_t)
+  | Integer(KInteger.value_t)
+  | Float(KFloat.value_t)
+  | String(KString.value_t);
 
 module Plugin =
   AST.Framework.Expression.MakeTypes({

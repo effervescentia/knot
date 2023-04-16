@@ -3,7 +3,7 @@ open Parse.Kore;
 
 let parse_style_rule =
     ((ctx, parse_expr): Interface.Plugin.parse_arg_t('ast, 'expr)) =>
-  Matchers.attribute(KIdentifier.Parser.parse_raw(ctx), parse_expr(ctx))
+  Matchers.attribute(KIdentifier.Plugin.parse_raw(ctx), parse_expr(ctx))
   >|= (
     ((rule, expr)) => {
       Node.raw((rule, expr), Node.join_ranges(rule, expr));

@@ -1,7 +1,5 @@
-open Knot.Kore;
+open Kore;
 open AST;
-
-module ViewKind = KSX.Interface.ViewKind;
 
 let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
   (
@@ -21,13 +19,13 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
           scope
           |> Scope.lookup(id)
           |> Option.map(
-               Stdlib.Result.map(Tuple.with_snd2(ViewKind.Component)),
+               Stdlib.Result.map(Tuple.with_snd2(KSX.ViewKind.Component)),
              )
           |?| (
             tag_scope
             |> Scope.lookup(id)
             |> Option.map(
-                 Stdlib.Result.map(Tuple.with_snd2(ViewKind.Element)),
+                 Stdlib.Result.map(Tuple.with_snd2(KSX.ViewKind.Element)),
                )
           )
           |> (
@@ -39,14 +37,14 @@ let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
               }
             | None => None
           )
-          |?: (Invalid(NotInferrable), ViewKind.Component);
+          |?: (Invalid(NotInferrable), KSX.ViewKind.Component);
 
         (kind, Node.typed(to_id(id), view_type, lhs_range), view_type);
 
       | None =>
         view
         |> Node.analyzer(analyze_expression(scope))
-        |> Tuple.split3(_ => ViewKind.Component, fst, snd)
+        |> Tuple.split3(_ => KSX.ViewKind.Component, fst, snd)
       };
 
     let (style', style_type) =

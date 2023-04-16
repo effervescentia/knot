@@ -1,19 +1,18 @@
 /* expressions */
 module KSX = KSX.Interface;
-module Style = KStyle.Interface;
-module Lambda = KLambda.Interface;
-module Primitive = KPrimitive.Interface;
-module Statement = KStatement.Interface;
-module Expression = KExpression.Interface;
-module Declaration = KDeclaration.Interface;
-module ModuleStatement = KModuleStatement.Interface;
+module Style = KStyle.Plugin;
+module Import = KImport.Plugin;
+module Lambda = KLambda.Plugin;
+module Primitive = KPrimitive.Plugin;
+module Statement = KStatement.Plugin;
+module Expression = KExpression.Plugin;
+module Declaration = KDeclaration.Plugin;
+module ModuleStatement = KModuleStatement.Plugin;
 
 /* types */
-module TypeStatement = KTypeStatement.Interface;
-module TypeExpression = KTypeExpression.Interface;
-module TypeDefinition = KTypeDefinition.Interface;
+module TypeStatement = KTypeStatement.Plugin;
+module TypeExpression = KTypeExpression.Plugin;
+module TypeDefinition = KTypeDefinition.Plugin;
 
 type program_t('typ) =
-  list(
-    KModuleStatement.Interface.node_t(KDeclaration.Interface.node_t('typ)),
-  );
+  list(ModuleStatement.node_t(Declaration.node_t('typ)));

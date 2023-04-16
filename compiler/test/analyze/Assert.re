@@ -37,7 +37,7 @@ let jsx = (expected, actual) =>
     check(
       testable(
         ppf =>
-          KSX.to_xml((KExpression.Plugin.to_xml(~@Type.pp), ~@Type.pp))
+          KSX.to_xml((Expression.to_xml(~@Type.pp), ~@Type.pp))
           % Fmt.xml_string(ppf),
         (==),
       ),
@@ -56,7 +56,7 @@ let statement = (expected, actual) =>
             "Statement",
             [("type", type_ |> ~@Type.pp)],
             KStatement.Debug.unpack(
-              (KExpression.Plugin.to_xml(~@Type.pp), ~@Type.pp),
+              (Expression.to_xml(~@Type.pp), ~@Type.pp),
               statement,
             ),
           )
@@ -74,8 +74,8 @@ let argument = (expected, actual) =>
     check(
       testable(
         ppf =>
-          KLambda.Debug.parameter_to_xml(
-            KExpression.Plugin.to_xml(~@AST.Type.pp),
+          Lambda.parameter_to_xml(
+            Expression.to_xml(~@AST.Type.pp),
             ~@AST.Type.pp,
           )
           % Fmt.xml_string(ppf),

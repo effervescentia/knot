@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 
 /* plugin types */
 
@@ -20,10 +20,10 @@ module Plugin =
     );
 
     type format_arg_t('expr, 'typ) =
-      'expr => option(list(KStyle.Interface.StyleRule.node_t('expr, 'typ)));
+      'expr => option(list(Style.StyleRule.node_t('expr, 'typ)));
 
     type value_t('expr, 'typ) = (
-      KSX.Interface.ViewKind.t,
+      KSX.ViewKind.t,
       Node.t('expr, 'typ),
       Node.t('expr, 'typ),
     );

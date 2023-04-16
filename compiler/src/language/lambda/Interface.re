@@ -1,9 +1,9 @@
-open Knot.Kore;
+open Kore;
 
 module Parameter = {
   type t('expr, 'typ) = (
     AST.Common.identifier_t,
-    option(KTypeExpression.Interface.node_t),
+    option(TypeExpression.node_t),
     option(Node.t('expr, 'typ)),
   );
 

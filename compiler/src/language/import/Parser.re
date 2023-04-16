@@ -4,6 +4,7 @@ open Parse.Kore;
 module Export = Reference.Export;
 module Keyword = Constants.Keyword;
 module ParseContext = AST.ParseContext;
+module Identifier = KIdentifier.Plugin;
 
 let __import_keyword = Matchers.keyword(Keyword.import);
 let __from_keyword = Matchers.keyword(Keyword.from);
@@ -33,14 +34,14 @@ let parse_namespace = ((main_import, named_imports)) =>
 let parse_main_import = Matchers.identifier;
 
 let parse_named_imports = (ctx: ParseContext.t('ast)) =>
-  KIdentifier.Parser.parse_raw(ctx)
+  Identifier.parse_raw(ctx)
   >>= (
     id =>
       Matchers.keyword(Keyword.as_)
-      >> KIdentifier.Parser.parse_raw(ctx)
+      >> Identifier.parse_raw(ctx)
       >|= (alias => (id, Some(alias)))
   )
-  <|> (KIdentifier.Parser.parse_raw(ctx) >|= (id => (id, None)))
+  <|> (Identifier.parse_raw(ctx) >|= (id => (id, None)))
   |> Matchers.comma_sep
   |> Matchers.between_braces
   >|= Node.map(

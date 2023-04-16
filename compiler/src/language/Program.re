@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -11,11 +11,8 @@ let _program = x => x << (eof() |> Matchers.lexeme);
 let imports: t =
   ctx =>
     choice([
-      KImport.Plugin.parse(
-        (
-          KModuleStatement.Interface.of_import,
-          KModuleStatement.Interface.of_stdlib_import,
-        ),
+      Import.parse(
+        (ModuleStatement.of_import, ModuleStatement.of_stdlib_import),
         ctx,
       ),
       any >> none,
@@ -23,9 +20,7 @@ let imports: t =
     |> many;
 
 let main = ctx =>
-  KModuleStatement.Plugin.parse(KDeclaration.Plugin.parse, ctx)
-  |> many
-  |> _program;
+  ModuleStatement.parse(Declaration.parse, ctx) |> many |> _program;
 
 let definition = (ctx: ParseContext.t(Interface.program_t(Type.t))) =>
-  KTypeDefinition.Plugin.parse(ctx) |> many |> _program;
+  TypeDefinition.parse(ctx) |> many |> _program;

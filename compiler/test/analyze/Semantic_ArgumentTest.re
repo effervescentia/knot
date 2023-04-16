@@ -22,10 +22,7 @@ let suite =
           |> URes.as_string,
           (URaw.as_untyped(__id), None, Some(URaw.string_prim("bar")))
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __scope)
           |> fst,
         )
     ),
@@ -45,10 +42,7 @@ let suite =
             None,
           )
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __scope)
           |> fst,
         )
     ),
@@ -68,10 +62,7 @@ let suite =
             Some(URaw.bool_prim(true)),
           )
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __scope)
           |> fst,
         )
     ),
@@ -95,10 +86,7 @@ let suite =
             Some(__id |> Expression.of_identifier |> URaw.as_node),
           )
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __scope)
           |> fst,
         )
     ),
@@ -120,10 +108,7 @@ let suite =
             Some(URaw.string_prim("bar")),
           )
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __throw_scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __throw_scope)
           |> fst
         )
     ),
@@ -141,10 +126,7 @@ let suite =
           () =>
           (URaw.as_untyped(__id), None, None)
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __throw_scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __throw_scope)
           |> fst
         )
     ),
@@ -156,10 +138,7 @@ let suite =
           |> URes.as_invalid(NotInferrable),
           (URaw.as_untyped(__id), None, None)
           |> URaw.as_node
-          |> KLambda.Analyzer.analyze_parameter(
-               KExpression.Plugin.analyze,
-               __scope,
-             )
+          |> Lambda.analyze_parameter(Expression.analyze, __scope)
           |> fst,
         )
     ),
@@ -191,10 +170,7 @@ let suite =
             )
             |> URaw.as_node,
           ]
-          |> KLambda.Analyzer.analyze_parameter_list(
-               KExpression.Plugin.analyze,
-               __throw_scope,
-             )
+          |> Lambda.analyze_parameter_list(Expression.analyze, __throw_scope)
         )
     ),
   ];

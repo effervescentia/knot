@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -6,10 +6,10 @@ type type_module_statement_parser_t('ast) =
   ParseContext.t('ast) => Parse.Parser.t(Interface.node_t);
 
 let parse_type_variant = (ctx: ParseContext.t('ast)) =>
-  KIdentifier.Parser.parse_raw(ctx)
+  KIdentifier.Plugin.parse_raw(ctx)
   >>= (
     id =>
-      KTypeExpression.Plugin.parse
+      TypeExpression.parse
       |> Matchers.comma_sep
       |> Matchers.between_parentheses
       |> option(id |> Node.map(_ => []))
@@ -20,10 +20,10 @@ let parse_declaration: type_module_statement_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.declare),
-      KTypeExpression.Plugin.parse
+      TypeExpression.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {
-        let type_ = raw_expr |> KTypeExpression.Plugin.analyze(ctx.symbols);
+        let type_ = raw_expr |> TypeExpression.analyze(ctx.symbols);
 
         ctx.symbols |> SymbolTable.declare_value(id, type_);
 
@@ -50,7 +50,7 @@ let parse_enumerated: type_module_statement_parser_t('ast) =
           |> List.map(
                Tuple.map_each2(
                  fst,
-                 List.map(fst % KTypeExpression.Plugin.analyze(ctx.symbols)),
+                 List.map(fst % TypeExpression.analyze(ctx.symbols)),
                ),
              );
         let enum_type = Type.Valid(Enumerated(variants));
@@ -77,10 +77,10 @@ let parse_type: type_module_statement_parser_t('ast) =
   ctx =>
     Parse.Util.define_statement(
       Matchers.keyword(Constants.Keyword.type_),
-      KTypeExpression.Plugin.parse
+      TypeExpression.parse
       >|= (expr => (expr, expr |> Node.get_range |> Option.some)),
       (((id, _), (raw_expr, _)) as res) => {
-        let type_ = raw_expr |> KTypeExpression.Plugin.analyze(ctx.symbols);
+        let type_ = raw_expr |> TypeExpression.analyze(ctx.symbols);
 
         ctx.symbols |> SymbolTable.declare_type(id, type_);
 

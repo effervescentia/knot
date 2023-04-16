@@ -4,7 +4,7 @@ module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
 let _assert_expression = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KExpression.Plugin.format));
+  Assert.string(expected, actual |> ~@Fmt.root(Expression.format));
 
 let suite =
   "Grammar.Formatter | Expression"

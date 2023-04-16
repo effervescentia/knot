@@ -12,7 +12,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Invalid(NotInferrable), T.Valid(Boolean))
-          |> KBinaryOperator.Validator.validate(LogicalAnd),
+          |> BinaryOperator.validate(LogicalAnd),
         )
     ),
     "with invalid rhs type"
@@ -21,7 +21,7 @@ let suite =
         Assert.type_error(
           None,
           (T.Valid(Boolean), T.Invalid(NotInferrable))
-          |> KBinaryOperator.Validator.validate(LogicalAnd),
+          |> BinaryOperator.validate(LogicalAnd),
         )
     ),
     "'and' (&&) and 'or' (||) operations with boolean types"
@@ -32,7 +32,7 @@ let suite =
              Assert.type_error(
                None,
                (T.Valid(Boolean), T.Valid(Boolean))
-               |> KBinaryOperator.Validator.validate(op),
+               |> BinaryOperator.validate(op),
              )
            )
     ),
@@ -46,7 +46,7 @@ let suite =
                  InvalidBinaryOperation(op, Valid(String), Valid(Integer)),
                ),
                (T.Valid(String), T.Valid(Integer))
-               |> KBinaryOperator.Validator.validate(op),
+               |> BinaryOperator.validate(op),
              )
            )
     ),
@@ -64,7 +64,7 @@ let suite =
              |> List.iter(types =>
                   Assert.type_error(
                     None,
-                    types |> KBinaryOperator.Validator.validate(op),
+                    types |> BinaryOperator.validate(op),
                   )
                 )
            )
@@ -79,7 +79,7 @@ let suite =
                  InvalidBinaryOperation(op, Valid(String), Valid(Boolean)),
                ),
                (T.Valid(String), T.Valid(Boolean))
-               |> KBinaryOperator.Validator.validate(op),
+               |> BinaryOperator.validate(op),
              )
            )
     ),
@@ -97,7 +97,7 @@ let suite =
              |> List.iter(types =>
                   Assert.type_error(
                     None,
-                    types |> KBinaryOperator.Validator.validate(op),
+                    types |> BinaryOperator.validate(op),
                   )
                 )
            )
@@ -112,7 +112,7 @@ let suite =
                  InvalidBinaryOperation(op, Valid(String), Valid(Boolean)),
                ),
                (T.Valid(String), T.Valid(Boolean))
-               |> KBinaryOperator.Validator.validate(op),
+               |> BinaryOperator.validate(op),
              )
            )
     ),
@@ -124,7 +124,7 @@ let suite =
              Assert.type_error(
                None,
                (T.Valid(String), T.Valid(String))
-               |> KBinaryOperator.Validator.validate(op),
+               |> BinaryOperator.validate(op),
              )
            )
     ),
@@ -138,7 +138,7 @@ let suite =
                  InvalidBinaryOperation(op, Valid(String), Valid(Integer)),
                ),
                (T.Valid(String), T.Valid(Integer))
-               |> KBinaryOperator.Validator.validate(op),
+               |> BinaryOperator.validate(op),
              )
            )
     ),

@@ -1,5 +1,8 @@
+let validate = Validator.validate;
+
+include Interface;
 include AST.Framework.Expression.Make({
-  include Interface.Plugin;
+  include Plugin;
 
   let parse = Parser.parse;
 
@@ -10,7 +13,7 @@ include AST.Framework.Expression.Make({
   let to_xml = Debug.to_xml;
 });
 
-let tokenize: Interface.Plugin.tokenize_t('expr, 'prim, 'typ) =
+let tokenize: Plugin.tokenize_t('expr, 'prim, 'typ) =
   (tokenize_expr, (expression, arguments)) =>
     AST.TokenTree2.(
       join(

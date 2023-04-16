@@ -7,9 +7,5 @@ let program_to_xml:
       "Program",
       [],
       program
-      |> List.map(
-           KModuleStatement.Plugin.to_xml(
-             KDeclaration.Plugin.to_xml(dump_type),
-           ),
-         ),
+      |> List.map(ModuleStatement.to_xml(Declaration.to_xml(dump_type))),
     );

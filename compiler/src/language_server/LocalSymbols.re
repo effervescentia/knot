@@ -45,7 +45,7 @@ let handler: Runtime.request_handler_t(params_t) =
         |?< ModuleTable.(get_entry_data % Option.map(({ast, _}) => ast))
         |?> List.filter_map(
               fst
-              % KModuleStatement.Interface.(
+              % ModuleStatement.(
                   fun
                   | Export((_, name, decl)) => {
                       let range = Node.get_range(name);
@@ -54,7 +54,7 @@ let handler: Runtime.request_handler_t(params_t) =
                       let type_ = Node.get_type(decl);
 
                       Some(
-                        KDeclaration.Interface.(
+                        Declaration.(
                           switch (fst(decl)) {
                           | Constant(_) => {
                               name,

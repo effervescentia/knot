@@ -7,7 +7,7 @@ module Assert =
     type t = AST.Common.identifier_t;
 
     let parser =
-      KIdentifier.Parser.parse_raw % Assert.parse_completely % Parser.parse;
+      KIdentifier.Plugin.parse_raw % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(

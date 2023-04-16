@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 
 let format: Interface.Plugin.format_t('expr, 'typ) =
   (get_style_rules, pp_expression, ppf, (_, (view, _), (style, _))) =>
@@ -10,7 +10,7 @@ let format: Interface.Plugin.format_t('expr, 'typ) =
       (ppf, expr) =>
         switch (get_style_rules(expr)) {
         | Some(rules) =>
-          KStyle.Formatter.format_style_rule_list(pp_expression, ppf, rules)
+          Style.format_style_rule_list(pp_expression, ppf, rules)
         | None => pp_expression(ppf, expr)
         },
       style,

@@ -1,7 +1,8 @@
 open Knot.Kore;
 
+include Interface;
 include AST.Framework.Expression.Make({
-  include Interface.Plugin;
+  include Plugin;
 
   let parse = Parser.parse;
 
@@ -13,7 +14,7 @@ include AST.Framework.Expression.Make({
     Fmt.Node("Group", [], [expr_to_xml(expression)]);
 });
 
-let tokenize: Interface.Plugin.tokenize_t('expr, 'prim, 'typ) =
+let tokenize: Plugin.tokenize_t('expr, 'prim, 'typ) =
   (tokenize_expr, expression) =>
     expression
     |> tokenize_expr

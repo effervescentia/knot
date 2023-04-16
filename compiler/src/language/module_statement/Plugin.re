@@ -1,4 +1,4 @@
-open Knot.Kore;
+include Interface;
 
 let parse = Parser.parse;
 

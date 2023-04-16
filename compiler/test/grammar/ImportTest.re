@@ -8,9 +8,9 @@ module Assert =
     type t = ModuleStatement.node_t(Declaration.node_t(Type.t));
 
     let parser =
-      KImport.Plugin.parse((
-        ModuleStatement.Interface.of_import,
-        ModuleStatement.Interface.of_stdlib_import,
+      Import.parse((
+        ModuleStatement.of_import,
+        ModuleStatement.of_stdlib_import,
       ))
       % Assert.parse_completely
       % Parser.parse;

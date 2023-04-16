@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 let parameter_to_xml:
@@ -24,13 +24,7 @@ let parameter_to_xml:
           @ (
             type_
             |> Option.map(type_' =>
-                 [
-                   Fmt.Node(
-                     "Type",
-                     [],
-                     [KTypeExpression.Plugin.to_xml(type_')],
-                   ),
-                 ]
+                 [Fmt.Node("Type", [], [TypeExpression.to_xml(type_')])]
                )
             |?: []
           ),

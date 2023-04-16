@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -13,20 +13,17 @@ let parse: Interface.Plugin.parse_t('ast) =
     >>= Node.get_range
     % (
       start =>
-        KIdentifier.Parser.parse_raw(ctx)
+        KIdentifier.Plugin.parse_raw(ctx)
         >>= (
           name =>
-            KExpression.Plugin.parse
-            |> KLambda.Parser.parse_lambda_with_mixins(ctx)
+            Expression.parse
+            |> Lambda.parse_lambda_with_mixins(ctx)
             >|= (
               ((parameters, mixins, body, lambda_range)) => {
                 let scope = ctx |> Scope.of_parse_context(lambda_range);
                 let parameters' =
                   parameters
-                  |> KLambda.Analyzer.analyze_parameter_list(
-                       KExpression.Plugin.analyze,
-                       scope,
-                     );
+                  |> Lambda.analyze_parameter_list(Expression.analyze, scope);
 
                 scope
                 |> Scope.define(__implicit_children_key, Valid(Element))

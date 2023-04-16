@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -8,11 +8,9 @@ let parse: Interface.Plugin.parse_t('ast) =
     >|= Node.get_range
     >>= (
       start =>
-        Matchers.vertical_bar_sep(
-          KTypeStatement.Parser.parse_type_variant(ctx),
-        )
+        Matchers.vertical_bar_sep(TypeStatement.parse_type_variant(ctx))
         // TODO: should return the range from Matchers.vertical_bar_sep or Matchers.assign
-        |> Matchers.assign(KIdentifier.Parser.parse_raw(ctx))
+        |> Matchers.assign(KIdentifier.Plugin.parse_raw(ctx))
         |> Matchers.terminated
         >|= (
           ((name, variants)) => {
@@ -26,9 +24,7 @@ let parse: Interface.Plugin.parse_t('ast) =
                          |> Node.add_type(
                               type_expr
                               |> fst
-                              |> KTypeExpression.Plugin.analyze(
-                                   SymbolTable.create(),
-                                 ),
+                              |> TypeExpression.analyze(SymbolTable.create()),
                             )
                        ),
                      ),

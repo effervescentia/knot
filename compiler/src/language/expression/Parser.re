@@ -71,7 +71,7 @@ and parse_ksx_term = ctx =>
 
 /* { color: $red } */
 and parse_style_literal = ctx =>
-  (ctx, parse_expression_0) |> KStyle.Parser.parse_style_literal(of_style)
+  (ctx, parse_expression_0) |> Style.parse_style_literal(of_style)
 
 /* 2, foo, <bar /> */
 and parse_term = ctx =>

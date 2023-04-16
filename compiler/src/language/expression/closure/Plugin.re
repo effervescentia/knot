@@ -1,5 +1,6 @@
+include Interface;
 include AST.Framework.Expression.Make({
-  include Interface.Plugin;
+  include Plugin;
 
   let parse = Parser.parse;
 

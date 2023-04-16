@@ -186,16 +186,15 @@ module MakePrimitive = (Params: PrimitiveParserParams) =>
 
 module Expression =
   Make({
-    type t = KExpression.Interface.node_t(unit);
+    type t = Expression.node_t(unit);
 
-    let parser = KExpression.Plugin.parse % parse_completely % Parser.parse;
+    let parser = Expression.parse % parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
-            ppf =>
-              KExpression.Plugin.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
+            ppf => Expression.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",

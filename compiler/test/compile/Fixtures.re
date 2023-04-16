@@ -2,7 +2,10 @@ open Kore;
 
 module U = Util.ResultUtil;
 module T = AST.Type;
-module ExportKind = KModuleStatement.Interface.ExportKind;
+module Primitive = KPrimitive.Plugin;
+module Expression = KExpression.Plugin;
+module Declaration = KDeclaration.Plugin;
+module ModuleStatement = KModuleStatement.Plugin;
 
 let _fixture = Filename.concat("./test/compile/.fixtures");
 
@@ -62,22 +65,22 @@ module Program = {
 
   let const_int = [
     (
-      ExportKind.Named,
+      ModuleStatement.ExportKind.Named,
       U.as_untyped(~range=Range.create((1, 7), (1, 9)), "ABC"),
       123L
-      |> KPrimitive.Interface.of_integer
-      |> KExpression.Interface.of_primitive
+      |> Primitive.of_integer
+      |> Expression.of_primitive
       |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
            T.Valid(Integer),
          )
-      |> KDeclaration.Interface.of_constant
+      |> Declaration.of_constant
       |> U.as_typed(
            ~range=Range.create((1, 13), (1, 15)),
            T.Valid(Integer),
          ),
     )
-    |> KModuleStatement.Interface.of_export
+    |> ModuleStatement.of_export
     |> U.as_untyped(~range=Range.create((1, 1), (1, 15))),
   ];
 
@@ -93,25 +96,25 @@ module Program = {
         |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
       ],
     )
-    |> KModuleStatement.Interface.of_import
+    |> ModuleStatement.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 29))),
     (
-      ExportKind.Named,
+      ModuleStatement.ExportKind.Named,
       U.as_untyped(~range=Range.create((3, 7), (3, 9)), "BAR"),
       "bar"
-      |> KPrimitive.Interface.of_string
-      |> KExpression.Interface.of_primitive
+      |> Primitive.of_string
+      |> Expression.of_primitive
       |> U.as_typed(
            ~range=Range.create((3, 13), (3, 17)),
            T.Valid(String),
          )
-      |> KDeclaration.Interface.of_constant
+      |> Declaration.of_constant
       |> U.as_typed(
            ~range=Range.create((3, 13), (3, 17)),
            T.Valid(String),
          ),
     )
-    |> KModuleStatement.Interface.of_export
+    |> ModuleStatement.of_export
     |> U.as_untyped(~range=Range.create((3, 1), (3, 17))),
   ];
 
@@ -123,25 +126,25 @@ module Program = {
       |> Option.some,
       [],
     )
-    |> KModuleStatement.Interface.of_import
+    |> ModuleStatement.of_import
     |> U.as_untyped(~range=Range.create((2, 3), (2, 25))),
     (
-      ExportKind.Named,
+      ModuleStatement.ExportKind.Named,
       U.as_untyped(~range=Range.create((4, 9), (4, 11)), "ABC"),
       123L
-      |> KPrimitive.Interface.of_integer
-      |> KExpression.Interface.of_primitive
+      |> Primitive.of_integer
+      |> Expression.of_primitive
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
            T.Valid(Integer),
          )
-      |> KDeclaration.Interface.of_constant
+      |> Declaration.of_constant
       |> U.as_typed(
            ~range=Range.create((4, 15), (4, 17)),
            T.Valid(Integer),
          ),
     )
-    |> KModuleStatement.Interface.of_export
+    |> ModuleStatement.of_export
     |> U.as_untyped(~range=Range.create((4, 3), (4, 17))),
   ];
 
@@ -157,25 +160,25 @@ module Program = {
         |> U.as_untyped(~range=Range.create((1, 10), (1, 12))),
       ],
     )
-    |> KModuleStatement.Interface.of_import
+    |> ModuleStatement.of_import
     |> U.as_untyped(~range=Range.create((1, 1), (1, 27))),
     (
-      ExportKind.Named,
+      ModuleStatement.ExportKind.Named,
       U.as_untyped(~range=Range.create((3, 7), (3, 11)), "const"),
       "foo"
-      |> KPrimitive.Interface.of_string
-      |> KExpression.Interface.of_primitive
+      |> Primitive.of_string
+      |> Expression.of_primitive
       |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
            T.Valid(String),
          )
-      |> KDeclaration.Interface.of_constant
+      |> Declaration.of_constant
       |> U.as_typed(
            ~range=Range.create((3, 15), (3, 19)),
            T.Valid(String),
          ),
     )
-    |> KModuleStatement.Interface.of_export
+    |> ModuleStatement.of_export
     |> U.as_untyped(~range=Range.create((3, 1), (3, 19))),
   ];
 };

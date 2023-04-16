@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 module Namespace = Reference.Namespace;
@@ -40,7 +40,7 @@ let extract_imports = (program: Interface.program_t('typ)) =>
   |> List.fold_left(
        acc =>
          fst
-         % KModuleStatement.Interface.(
+         % ModuleStatement.(
              fun
              | StdlibImport(named_imports) =>
                acc
@@ -71,7 +71,7 @@ let extract_declarations = (program: Interface.program_t('typ)) =>
   program
   |> List.filter_map(
        fst
-       % KModuleStatement.Interface.(
+       % ModuleStatement.(
            fun
            | Export((_, name, decl)) => Some((fst(name), fst(decl)))
            | _ => None

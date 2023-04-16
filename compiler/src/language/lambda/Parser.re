@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
@@ -9,11 +9,11 @@ let parse_parameters =
       ctx: ParseContext.t('ast),
       parse_expression: Framework.Interface.contextual_parse_t('ast, 'expr),
     ) =>
-  KIdentifier.Parser.parse_raw(ctx)
+  KIdentifier.Plugin.parse_raw(ctx)
   >>= (
     id =>
       Matchers.symbol(Character.colon)
-      >> KTypeExpression.Plugin.parse
+      >> TypeExpression.parse
       >|= ((type_, default) => (id, Some(type_), default))
       |> option(default => (id, None, default))
   )

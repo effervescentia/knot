@@ -24,7 +24,7 @@ let suite =
           |> URaw.bool_prim
           |> Expression.of_not_op
           |> URaw.as_node
-          |> KExpression.Plugin.analyze(__scope),
+          |> Expression.analyze(__scope),
         )
     ),
     "resolve invalid 'not' (!) operation as boolean type"
@@ -43,7 +43,7 @@ let suite =
           |> URaw.as_node
           |> Expression.of_not_op
           |> URaw.as_node
-          |> KExpression.Plugin.analyze(__scope),
+          |> Expression.analyze(__scope),
         )
     ),
     "resolve valid 'positive' (+) and 'negative' (-) operations as integer type"
@@ -60,7 +60,7 @@ let suite =
                |> URaw.int_prim
                |> Expression.of_unary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -78,7 +78,7 @@ let suite =
                |> URaw.float_prim
                |> Expression.of_unary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -100,7 +100,7 @@ let suite =
                |> URaw.as_node
                |> Expression.of_unary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -118,7 +118,7 @@ let suite =
                |> URaw.string_prim
                |> Expression.of_unary_op(op)
                |> URaw.as_node
-               |> KExpression.Plugin.analyze(__scope),
+               |> Expression.analyze(__scope),
              )
            )
     ),
@@ -138,7 +138,7 @@ let suite =
           |> URaw.string_prim
           |> Expression.of_not_op
           |> URaw.as_node
-          |> KExpression.Plugin.analyze(__throw_scope)
+          |> Expression.analyze(__throw_scope)
         )
     ),
   ];

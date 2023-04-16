@@ -2,53 +2,25 @@ include Knot.Kore;
 include Test.Infix;
 include ModuleAliases;
 
-module ModuleStatement = {
-  include KModuleStatement;
-  include KModuleStatement.Plugin;
-  include KModuleStatement.Interface;
-};
-module Import = {
-  include KImport;
-  include KImport.Plugin;
-  include KImport.Interface;
-};
-module Declaration = {
-  include KDeclaration;
-  include KDeclaration.Plugin;
-  include KDeclaration.Interface;
-};
-module Expression = {
-  include KExpression;
-  include KExpression.Plugin;
-  include KExpression.Interface;
-};
-module Statement = {
-  include KStatement;
-  include KStatement.Plugin;
-  include KStatement.Interface;
-};
+module BinaryOperator = KBinaryOperator.Plugin;
+module DotAccess = KDotAccess.Plugin;
+module FunctionCall = KFunctionCall.Plugin;
+module Style = KStyle.Plugin;
+module UnaryOperator = KUnaryOperator.Plugin;
+module View = KView.Plugin;
+module Lambda = KLambda.Plugin;
+module Import = KImport.Plugin;
+module Primitive = KPrimitive.Plugin;
+module Statement = KStatement.Plugin;
+module Expression = KExpression.Plugin;
+module Declaration = KDeclaration.Plugin;
+module TypeExpression = KTypeExpression.Plugin;
+module TypeStatement = KTypeStatement.Plugin;
+module TypeDefinition = KTypeDefinition.Plugin;
+module ModuleStatement = KModuleStatement.Plugin;
+
 module KSX = {
   include KSX;
   include KSX.Plugin;
   include KSX.Interface;
-};
-module Primitive = {
-  include KPrimitive;
-  include KPrimitive.Plugin;
-  include KPrimitive.Interface;
-};
-module TypeDefinition = {
-  include KTypeDefinition;
-  include KTypeDefinition.Plugin;
-  include KTypeDefinition.Interface;
-};
-module TypeExpression = {
-  include KTypeExpression;
-  include KTypeExpression.Plugin;
-  include KTypeExpression.Interface;
-};
-module TypeStatement = {
-  include KTypeStatement;
-  include KTypeStatement.Plugin;
-  include KTypeStatement.Interface;
 };

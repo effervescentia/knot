@@ -20,17 +20,14 @@ module Assert =
                ),
              ]),
          )
-      |> KTypeDefinition.Plugin.parse
+      |> TypeDefinition.parse
       |> Assert.parse_completely
       |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(
-            ppf => KTypeDefinition.Debug.to_xml % Fmt.xml_string(ppf),
-            (==),
-          ),
+          testable(ppf => TypeDefinition.to_xml % Fmt.xml_string(ppf), (==)),
           "type definition matches",
         )
       );
