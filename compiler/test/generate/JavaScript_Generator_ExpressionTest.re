@@ -3,6 +3,7 @@ open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module KSX = KSX.Plugin;
 
 let _assert_expression = (expected, actual) =>
   Alcotest.(
@@ -88,7 +89,7 @@ let suite =
             [String("foo")],
           ),
           ("foo" |> U.as_view([], Valid(Nil)), [], [], [])
-          |> KSX.Interface.of_element_tag
+          |> KSX.of_element_tag
           |> Expression.of_ksx,
         )
     ),
@@ -116,7 +117,7 @@ let suite =
             ],
             [],
           )
-          |> KSX.Interface.of_element_tag
+          |> KSX.of_element_tag
           |> Expression.of_ksx,
         )
     ),
@@ -129,7 +130,7 @@ let suite =
             [Identifier("Foo")],
           ),
           ("Foo" |> U.as_view([], Valid(Element)), [], [], [])
-          |> KSX.Interface.of_component_tag
+          |> KSX.of_component_tag
           |> Expression.of_ksx,
         )
     ),
@@ -218,7 +219,7 @@ let suite =
             [],
             [],
           )
-          |> KSX.Interface.of_component_tag
+          |> KSX.of_component_tag
           |> Expression.of_ksx,
         )
     ),
@@ -261,17 +262,17 @@ let suite =
                 [],
                 [
                   ("fizz" |> U.as_view([], Valid(Nil)), [], [], [])
-                  |> KSX.Interface.of_element_tag
-                  |> KSX.Interface.Child.of_node
+                  |> KSX.of_element_tag
+                  |> KSX.Child.of_node
                   |> U.as_untyped,
                 ],
               )
-              |> KSX.Interface.of_component_tag
-              |> KSX.Interface.Child.of_node
+              |> KSX.of_component_tag
+              |> KSX.Child.of_node
               |> U.as_untyped,
             ],
           )
-          |> KSX.Interface.of_element_tag
+          |> KSX.of_element_tag
           |> Expression.of_ksx,
         )
     ),

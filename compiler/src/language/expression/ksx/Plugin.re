@@ -1,7 +1,9 @@
+let analyze_ksx = Analyzer.analyze_ksx;
+
 let validate_ksx_primitive_expression = Validator.validate_ksx_primitive_expression;
 let validate_ksx_render = Validator.validate_ksx_render;
 
-let analyze_ksx = Analyzer.analyze_ksx;
+let format_attribute = Formatter.format_attribute;
 
 include Interface;
 include AST.Framework.Expression.Make({

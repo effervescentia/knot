@@ -2,12 +2,7 @@ include Knot.Kore;
 include Test.Infix;
 include ModuleAliases;
 
-module KSX = {
-  include KSX;
-  include KSX.Plugin;
-  include KSX.Interface;
-};
-
+module KSX = KSX.Plugin;
 module BinaryOperator = KBinaryOperator.Plugin;
 module UnaryOperator = KUnaryOperator.Plugin;
 module ParseContext = AST.ParseContext;

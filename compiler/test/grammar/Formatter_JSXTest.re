@@ -18,7 +18,7 @@ let _assert_jsx_attr = (expected, actual) =>
     actual
     |> ~@
          Fmt.root(
-           KSX.Formatter.format_attribute(
+           KSX.format_attribute(
              Expression.attribute_needs_wrapper,
              Expression.format,
            ),
