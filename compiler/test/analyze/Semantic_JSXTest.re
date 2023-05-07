@@ -49,7 +49,7 @@ let suite =
             ],
           )
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -93,7 +93,7 @@ let suite =
             ],
           )
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -125,7 +125,7 @@ let suite =
             [],
           )
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -137,7 +137,7 @@ let suite =
           () =>
           (URaw.as_untyped(__id), [], [], [])
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, __throw_scope)
+          |> KSX.analyze_ksx(Expression.analyze, __throw_scope)
         );
       }
     ),
@@ -172,7 +172,7 @@ let suite =
             ],
           )
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope)
+          |> KSX.analyze_ksx(Expression.analyze, scope)
         );
       }
     ),
@@ -237,7 +237,7 @@ let suite =
             [],
           )
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope)
+          |> KSX.analyze_ksx(Expression.analyze, scope)
         );
       }
     ),
@@ -282,7 +282,7 @@ let suite =
           [],
         )
         |> KSX.of_element_tag
-        |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope)
+        |> KSX.analyze_ksx(Expression.analyze, scope)
         |> ignore;
 
         Assert.compile_errors(
@@ -360,7 +360,7 @@ let suite =
             [],
           )
           |> KSX.of_element_tag
-          |> KSX.Analyzer.analyze_ksx(Expression.analyze, scope),
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),

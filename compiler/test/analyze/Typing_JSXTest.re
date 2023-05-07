@@ -28,9 +28,7 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          KSX.Validator.validate_ksx_primitive_expression(
-            Invalid(NotInferrable),
-          ),
+          KSX.validate_ksx_primitive_expression(Invalid(NotInferrable)),
         )
     ),
     "inline expression with non-function types"
@@ -47,7 +45,7 @@ let suite =
         |> List.iter(type_ =>
              Assert.type_error(
                None,
-               KSX.Validator.validate_ksx_primitive_expression(type_),
+               KSX.validate_ksx_primitive_expression(type_),
              )
            )
     ),
@@ -58,7 +56,7 @@ let suite =
           Some(
             InvalidKSXPrimitiveExpression(Valid(Function([], Valid(Nil)))),
           ),
-          KSX.Validator.validate_ksx_primitive_expression(
+          KSX.validate_ksx_primitive_expression(
             Valid(Function([], Valid(Nil))),
           ),
         )
@@ -85,7 +83,7 @@ let suite =
               ("bar", T.Valid(String) |> U.as_untyped),
             ],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         )
     ),
     "ksx render with invalid attributes"
@@ -125,7 +123,7 @@ let suite =
               ("foo", N.raw(T.Valid(Integer), foo_range)),
             ],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         );
       }
     ),
@@ -154,7 +152,7 @@ let suite =
               ("bar", N.raw(T.Valid(Nil), bar_range)),
             ],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         );
       }
     ),
@@ -184,7 +182,7 @@ let suite =
             ),
             [],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         )
     ),
     "ksx render with invalid, unexpected and missing attributes"
@@ -224,7 +222,7 @@ let suite =
               ("bar", N.raw(T.Valid(Nil), bar_range)),
             ],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         );
       }
     ),
@@ -249,7 +247,7 @@ let suite =
               ("bar", T.Valid(Float) |> U.as_untyped),
             ],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         )
     ),
     "ksx render with optional attributes"
@@ -270,7 +268,7 @@ let suite =
             ),
             [("foo", T.Valid(Boolean) |> U.as_untyped)],
           )
-          |> KSX.Validator.validate_ksx_render(false),
+          |> KSX.validate_ksx_render(false),
         )
     ),
   ];

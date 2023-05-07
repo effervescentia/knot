@@ -1,5 +1,5 @@
 /* expressions */
-module KSX = KSX.Interface;
+module KSX = KSX.Plugin;
 module Style = KStyle.Plugin;
 module Import = KImport.Plugin;
 module Lambda = KLambda.Plugin;

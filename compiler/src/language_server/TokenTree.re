@@ -82,7 +82,7 @@ let rec of_effect: Expression.node_t('typ) => t =
   | (Style(rules), _) => rules |> List.map(fst % snd % of_effect) |> of_list
 
 and of_ksx =
-  KSX.Interface.(
+  KSX.(
     fun
     | Fragment(children) =>
       children

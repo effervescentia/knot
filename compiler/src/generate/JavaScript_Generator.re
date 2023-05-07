@@ -5,6 +5,7 @@ open Kore;
 
 module JS = JavaScript_AST;
 module Expression = KExpression.Plugin;
+module KSX = KSX.Plugin;
 
 let __util_lib = "$knot";
 let __runtime_namespace = "@knot/runtime";
@@ -161,7 +162,7 @@ and gen_ksx_element = (expr, styles, attrs, values) =>
   )
 
 and gen_ksx =
-  KSX.Interface.(
+  KSX.(
     fun
     | Tag(Element, (name, _), styles, attrs, values) =>
       gen_ksx_element(String(name), styles, attrs, values)
@@ -177,7 +178,7 @@ and gen_ksx =
   )
 
 and gen_ksx_child =
-  KSX.Interface.(
+  KSX.(
     fun
     | Node(value) => gen_ksx(value)
     | Text(value) => JS.String(value)
@@ -186,7 +187,7 @@ and gen_ksx_child =
 
 and gen_ksx_attrs =
     (
-      attrs: list(KSX.Interface.Attribute.node_t(Expression.t('typ), 'typ)),
+      attrs: list(KSX.Attribute.node_t(Expression.t('typ), 'typ)),
       styles: list(Expression.node_t('typ)),
     ) =>
   if (List.is_empty(attrs) && List.is_empty(styles)) {

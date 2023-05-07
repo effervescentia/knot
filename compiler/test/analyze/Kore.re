@@ -18,9 +18,4 @@ module TypeExpression = KTypeExpression.Plugin;
 module TypeStatement = KTypeStatement.Plugin;
 module TypeDefinition = KTypeDefinition.Plugin;
 module ModuleStatement = KModuleStatement.Plugin;
-
-module KSX = {
-  include KSX;
-  include KSX.Plugin;
-  include KSX.Interface;
-};
+module KSX = KSX.Plugin;

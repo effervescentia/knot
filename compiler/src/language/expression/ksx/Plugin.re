@@ -1,9 +1,11 @@
-module ViewKind = Interface.ViewKind;
-module Attribute = Interface.Attribute;
-module Child = Interface.Child;
+let validate_ksx_primitive_expression = Validator.validate_ksx_primitive_expression;
+let validate_ksx_render = Validator.validate_ksx_render;
 
+let analyze_ksx = Analyzer.analyze_ksx;
+
+include Interface;
 include AST.Framework.Expression.Make({
-  include Interface.Plugin;
+  include Plugin;
 
   let parse = Parser.parse;
 
