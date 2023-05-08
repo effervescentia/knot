@@ -1,11 +1,8 @@
-open AST;
+let analyze_view_body = Analyzer.analyze_view_body;
 
-include Framework.Declaration({
-  type value_t = (
-    list(Result.argument_t),
-    list(Result.node_t(string)),
-    Result.expression_t,
-  );
+include Interface;
+include AST.Framework.Declaration.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 

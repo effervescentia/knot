@@ -1,34 +1,6 @@
 open Kore;
 
-module Export = Reference.Export;
-module ParseContext = AST.ParseContext;
-module SymbolTable = AST.SymbolTable;
-
-module Assert = {
-  include Assert;
-  include Assert.Make({
-    type t = N.t((AM.export_t, AM.declaration_t), unit);
-
-    let parser = ctx =>
-      (ctx, A.of_named_export)
-      |> KConstant.Plugin.parse
-      |> Assert.parse_completely
-      |> Parser.parse;
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            (ppf, stmt) =>
-              KDeclaration.Plugin.to_xml(~@AST.Type.pp, fst(stmt))
-              |> Fmt.xml_string(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
-  });
-};
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Constant"
@@ -36,15 +8,20 @@ let suite =
     "no parse"
     >: (
       () =>
-        Assert.parse_none(["gibberish", "const", "const foo", "const foo ="])
+        Assert.Declaration.parse_none([
+          "gibberish",
+          "const",
+          "const foo",
+          "const foo =",
+        ])
     ),
     "parse"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
-            U.nil_prim |> A.of_const |> U.as_nil,
+            U.as_untyped("foo"),
+            U.nil_prim |> Declaration.of_constant |> U.as_nil,
           )
           |> U.as_untyped,
           "const foo = nil",
@@ -57,63 +34,72 @@ let suite =
           ...SymbolTable.create(),
           declared: {
             values: [
-              ("bar", T.Valid(`Float)),
-              ("fizz", T.Valid(`Integer)),
-              ("buzz", T.Valid(`Float)),
+              ("bar", Valid(Float)),
+              ("fizz", Valid(Integer)),
+              ("buzz", Valid(Float)),
             ],
             types: [],
           },
         };
 
-        Assert.parse(
+        Assert.Declaration.parse(
           ~context=
             ParseContext.create(
               ~symbols,
               Reference.Namespace.Internal("foo"),
             ),
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            U.as_untyped("foo"),
             [
-              (U.as_untyped("x"), "bar" |> A.of_id |> U.as_float)
-              |> A.of_var
+              (
+                U.as_untyped("x"),
+                "bar" |> Expression.of_identifier |> U.as_float,
+              )
+              |> Statement.of_variable
               |> U.as_nil,
               (
                 U.as_untyped("y"),
                 (
-                  ("x" |> A.of_id |> U.as_float, "fizz" |> A.of_id |> U.as_int)
-                  |> A.of_gt_op
+                  (
+                    "x" |> Expression.of_identifier |> U.as_float,
+                    "fizz" |> Expression.of_identifier |> U.as_int,
+                  )
+                  |> Expression.of_gt_op
                   |> U.as_bool,
                   (
-                    "x" |> A.of_id |> U.as_float,
-                    "buzz" |> A.of_id |> U.as_float,
+                    "x" |> Expression.of_identifier |> U.as_float,
+                    "buzz" |> Expression.of_identifier |> U.as_float,
                   )
-                  |> A.of_ineq_op
+                  |> Expression.of_unequal_op
                   |> U.as_bool,
                 )
-                |> A.of_and_op
+                |> Expression.of_and_op
                 |> U.as_bool,
               )
-              |> A.of_var
+              |> Statement.of_variable
               |> U.as_nil,
               (
-                "y" |> A.of_id |> U.as_bool,
+                "y" |> Expression.of_identifier |> U.as_bool,
                 (
-                  ("x" |> A.of_id |> U.as_float, 1 |> U.int_prim)
-                  |> A.of_add_op
+                  (
+                    "x" |> Expression.of_identifier |> U.as_float,
+                    1 |> U.int_prim,
+                  )
+                  |> Expression.of_add_op
                   |> U.as_float,
                   5 |> U.int_prim,
                 )
-                |> A.of_lte_op
+                |> Expression.of_lte_op
                 |> U.as_bool,
               )
-              |> A.of_or_op
+              |> Expression.of_or_op
               |> U.as_bool
-              |> A.of_expr
+              |> Statement.of_effect
               |> U.as_bool,
             ]
-            |> A.of_closure
+            |> Expression.of_closure
             |> U.as_bool
-            |> A.of_const
+            |> Declaration.of_constant
             |> U.as_bool,
           )
           |> U.as_untyped,
@@ -126,10 +112,10 @@ let suite =
 
         Assert.symbol_assoc_list(
           [
-            ("bar", T.Valid(`Float)),
-            ("fizz", T.Valid(`Integer)),
-            ("buzz", T.Valid(`Float)),
-            ("foo", T.Valid(`Boolean)),
+            ("bar", Valid(Float)),
+            ("fizz", Valid(Integer)),
+            ("buzz", Valid(Float)),
+            ("foo", Valid(Boolean)),
           ],
           symbols.declared.values,
         );

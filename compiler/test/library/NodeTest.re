@@ -2,7 +2,7 @@ open Kore;
 
 let __value = "foo";
 let __range = Range.create((1, 8), (3, 4));
-let __type = AST.Type.Valid(`Nil);
+let __type = AST.Type.Valid(Nil);
 let __raw_node = (__value, __range);
 let __node = Node.typed(__value, __type, __range);
 

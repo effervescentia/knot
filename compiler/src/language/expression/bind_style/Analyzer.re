@@ -1,33 +1,31 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
-let analyze:
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
   (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Raw.bind_style_target_t, Raw.expression_t),
-    Range.t
-  ) =>
-  (Result.bind_style_target_t, Result.expression_t) =
-  (scope, analyze_expression, (BuiltIn(lhs) | Local(lhs), rhs), range) => {
-    let lhs_range = Node.get_range(lhs);
+    (analyze_expression, (from_id, to_id)),
+    scope,
+    ((_, view, style), _) as node,
+  ) => {
+    let range = Node.get_range(node);
+    let lhs_range = Node.get_range(view);
     let tag_scope = Scope.create(scope.context, lhs_range);
     tag_scope |> Scope.inject_plugin_types(~prefix="", ElementTag);
 
-    let (lhs', lhs_type) =
-      switch (fst(lhs)) {
-      | Identifier(id) =>
-        let (lhs_type, tag_lhs) =
+    let (kind, view', view_type) =
+      switch (from_id(fst(view))) {
+      | Some(id) =>
+        let (view_type, kind) =
           scope
           |> Scope.lookup(id)
           |> Option.map(
-               Stdlib.Result.map(Tuple.with_snd2(Result.of_local)),
+               Stdlib.Result.map(Tuple.with_snd2(KSX.ViewKind.Component)),
              )
           |?| (
             tag_scope
             |> Scope.lookup(id)
             |> Option.map(
-                 Stdlib.Result.map(Tuple.with_snd2(Result.of_builtin)),
+                 Stdlib.Result.map(Tuple.with_snd2(KSX.ViewKind.Element)),
                )
           )
           |> (
@@ -39,25 +37,22 @@ let analyze:
               }
             | None => None
           )
-          |?: (Invalid(NotInferrable), Result.of_local);
+          |?: (Invalid(NotInferrable), KSX.ViewKind.Component);
 
-        (
-          Node.typed(Expression.Identifier(id), lhs_type, lhs_range)
-          |> tag_lhs,
-          lhs_type,
-        );
+        (kind, Node.typed(to_id(id), view_type, lhs_range), view_type);
 
-      | _ =>
-        analyze_expression(scope, lhs)
-        |> Tuple.split2(Result.of_local, Node.get_type)
+      | None =>
+        view
+        |> Node.analyzer(analyze_expression(scope))
+        |> Tuple.split3(_ => KSX.ViewKind.Component, fst, snd)
       };
 
-    let rhs' = analyze_expression(scope, rhs);
-    let rhs_type = Node.get_type(rhs');
+    let (style', style_type) =
+      style |> Node.analyzer(analyze_expression(scope));
 
-    (lhs_type, rhs_type)
+    (view_type, style_type)
     |> Validator.validate
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    (lhs', rhs');
+    ((kind, view', style'), view_type);
   };

@@ -19,7 +19,7 @@ let __entry_filename = "entry.kn";
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
-let __types = [(Export.Named("ABC"), T.Valid(`Integer))];
+let __types = [(Export.Named("ABC"), T.Valid(Integer))];
 
 let _create_source = (root_dir, namespace) =>
   Source.File({
@@ -44,9 +44,9 @@ let _create_module =
     (
       ~imported=SymbolTable.Symbols.{values: [], types: []},
       ~exports=__types,
-      ast: AST.Module.program_t,
+      ast: Language.Interface.program_t(AST.Type.t),
     )
-    : ModuleTable.module_t => {
+    : ModuleTable.module_t(Language.Interface.program_t(AST.Type.t)) => {
   ast,
   scopes: __scope_tree,
   symbols: {
@@ -233,7 +233,7 @@ const const = \"foo\";
                     values: [("BAR", T.Invalid(NotInferrable))],
                     types: [("BAR", T.Invalid(NotInferrable))],
                   },
-                  ~exports=[(Export.Named("const"), T.Valid(`String))],
+                  ~exports=[(Export.Named("const"), T.Valid(String))],
                   Px.invalid_foo,
                 ),
                 expected,
@@ -280,10 +280,10 @@ const BAR = \"bar\";
 ",
                 _create_module(
                   ~imported={
-                    values: [("ABC", T.Valid(`Integer))],
+                    values: [("ABC", T.Valid(Integer))],
                     types: [],
                   },
-                  ~exports=[(Export.Named("BAR"), T.Valid(`String))],
+                  ~exports=[(Export.Named("BAR"), T.Valid(String))],
                   Px.import_and_const,
                 ),
               ),

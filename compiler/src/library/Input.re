@@ -24,14 +24,14 @@ let join = (cs: list(t)): Node.t(string, unit) => {
   let (start, end_) = List.ends(cs) |> Tuple.map2(get_point);
   let value = cs |> List.map(get_value) |> String.of_uchars;
 
-  Node.untyped(value, Range.create(start, end_));
+  Node.raw(value, Range.create(start, end_));
 };
 
 /**
  convert input into a node
  */
 let to_node = (x: t): Node.t(Uchar.t, unit) =>
-  Node.untyped(get_value(x), Range.create(get_point(x), get_point(x)));
+  Node.raw(get_value(x), Range.create(get_point(x), get_point(x)));
 
 /* pretty printing */
 

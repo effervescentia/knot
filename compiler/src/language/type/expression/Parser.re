@@ -4,11 +4,11 @@ open AST;
 
 module Keyword = Constants.Keyword;
 
-type type_expression_parser_t = Parse.Parser.t(TypeExpression.t);
+type type_expression_parser_t = Parse.Parser.t(Interface.node_t);
 
 let parse_primitive: type_expression_parser_t =
   choice(
-    TypeExpression.[
+    Interface.[
       Nil <$| Matchers.keyword(Keyword.nil),
       Boolean <$| Matchers.keyword(Keyword.boolean),
       Integer <$| Matchers.keyword(Keyword.integer),
@@ -21,9 +21,7 @@ let parse_primitive: type_expression_parser_t =
 
 let parse_group =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
-  parse_expr
-  |> Matchers.between_parentheses
-  >|= Node.map(TypeExpression.of_group);
+  parse_expr |> Matchers.between_parentheses >|= Node.map(Interface.of_group);
 
 let parse_list =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
@@ -32,35 +30,32 @@ let parse_list =
        Matchers.glyph("[]")
        >|= (
          (suffix, expr) =>
-           Node.untyped(
-             TypeExpression.of_list(expr),
-             Node.join_ranges(expr, suffix),
-           )
+           Node.raw(Interface.of_list(expr), Node.join_ranges(expr, suffix))
        ),
      );
 
-let __struct_key = Matchers.identifier(~prefix=Matchers.alpha);
+let __object_key = Matchers.identifier(~prefix=Matchers.alpha);
 
-let parse_required_struct_property = parse_expr =>
-  Matchers.attribute(__struct_key, parse_expr)
+let parse_required_object_property = parse_expr =>
+  Matchers.attribute(__object_key, parse_expr)
   >|= (
     ((key, value)) =>
-      Node.untyped(
-        (key, value) |> TypeExpression.of_required,
+      Node.raw(
+        (key, value) |> Interface.ObjectEntry.of_required,
         Node.join_ranges(key, value),
       )
   );
 
-let parse_optional_struct_property = parse_expr =>
+let parse_optional_object_property = parse_expr =>
   Matchers.binary_op(
-    __struct_key,
+    __object_key,
     Matchers.glyph(Constants.Glyph.conditional),
     parse_expr,
   )
   >|= (
     ((key, value)) =>
-      Node.untyped(
-        (key, value) |> TypeExpression.of_optional,
+      Node.raw(
+        (key, value) |> Interface.ObjectEntry.of_optional,
         Node.join_ranges(key, value),
       )
   );
@@ -72,24 +67,24 @@ let parse_spread_properties = parse_expr =>
       parse_expr
       >|= (
         expr =>
-          Node.untyped(
-            TypeExpression.of_spread(expr),
+          Node.raw(
+            Interface.ObjectEntry.of_spread(expr),
             Node.join_ranges(keyword, expr),
           )
       )
   );
 
-let parse_struct =
+let parse_object =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
   choice([
     parse_spread_properties(parse_expr),
-    parse_optional_struct_property(parse_expr),
-    parse_required_struct_property(parse_expr),
+    parse_optional_object_property(parse_expr),
+    parse_required_object_property(parse_expr),
   ])
   |> Matchers.comma_sep
   |> Matchers.between_braces
   /* TODO: sort the props here by property name */
-  >|= Node.map(props => TypeExpression.of_struct(props));
+  >|= Node.map(Interface.of_object);
 
 let parse_function =
     (parse_expr: type_expression_parser_t): type_expression_parser_t =>
@@ -102,15 +97,15 @@ let parse_function =
       >> parse_expr
       >|= (
         res =>
-          Node.untyped(
-            TypeExpression.of_function((fst(args), res)),
+          Node.raw(
+            Interface.of_function((fst(args), res)),
             Node.join_ranges(args, res),
           )
       )
   );
 
 let parse_identifier: type_expression_parser_t =
-  Matchers.identifier >|= Node.wrap(TypeExpression.of_id);
+  Matchers.identifier >|= Node.wrap(Interface.of_identifier);
 
 let parse_dot_access = {
   let rec loop = expr =>
@@ -119,8 +114,8 @@ let parse_dot_access = {
     >>= (
       prop =>
         loop(
-          Node.untyped(
-            (expr, prop) |> TypeExpression.of_dot_access,
+          Node.raw(
+            (expr, prop) |> Interface.of_dot_access,
             Node.get_range(prop),
           ),
         )
@@ -146,8 +141,8 @@ let parse_view =
       >|= fst
       >|= (
         ((props, res)) =>
-          Node.untyped(
-            TypeExpression.of_view((props, res)),
+          Node.raw(
+            (props, res) |> Interface.of_view,
             Node.join_ranges(start, res),
           )
       )
@@ -175,7 +170,7 @@ and parse_expression_2: type_expression_parser_t =
         parse_view(parse_expression_0),
         parse_function(parse_expression_0),
         parse_group(parse_expression_0),
-        parse_struct(parse_expression_0),
+        parse_object(parse_expression_0),
         parse_primitive,
         parse_identifier,
       ],

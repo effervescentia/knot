@@ -1,16 +1,13 @@
 open Kore;
 
-module AR = AST.Raw;
-module TE = AST.TypeExpression;
-module TD = AST.TypeDefinition;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = TD.decorator_t(unit);
+    type t = AST.Common.raw_t(KDecorator.Interface.t(Primitive.t, unit));
 
     let parser = _ =>
-      KPrimitive.Parser.parse_primitive
+      Primitive.parse_primitive
       |> KDecorator.Plugin.parse
       |> Assert.parse_completely
       |> Parser.parse;
@@ -20,7 +17,14 @@ module Assert =
         check(
           testable(
             ppf =>
-              KTypeDefinition.Debug.decorator_to_xml % Fmt.xml_string(ppf),
+              KDecorator.Plugin.to_xml((
+                Dump.node_to_xml(
+                  ~unpack=Primitive.primitive_to_xml % List.single,
+                  "Value",
+                ),
+                _ => "Unknown",
+              ))
+              % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",
@@ -45,9 +49,9 @@ let suite =
           (
             U.as_node("foo"),
             [
-              123L |> AR.of_int |> AR.of_num |> U.as_node,
-              true |> AR.of_bool |> U.as_node,
-              "bar" |> AR.of_string |> U.as_node,
+              123L |> Primitive.of_integer |> U.as_node,
+              true |> Primitive.of_boolean |> U.as_node,
+              "bar" |> Primitive.of_string |> U.as_node,
             ],
           )
           |> U.as_untyped,

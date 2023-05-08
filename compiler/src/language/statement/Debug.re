@@ -1,24 +1,20 @@
 open Kore;
-open AST;
 
-let to_xml:
-  (
-    Expression.expression_t('a) => Fmt.xml_t(string),
-    'a => string,
-    Expression.statement_t('a)
-  ) =>
-  Fmt.xml_t(string) =
-  (expr_to_xml, dump_type, stmt) =>
+let unpack = ((expr_to_xml, dump_type)) => {
+  let bind = to_xml => to_xml(expr_to_xml) % List.single;
+
+  Interface.fold(
+    ~variable=bind(Variable.to_xml),
+    ~effect=bind(Effect.to_xml),
+  );
+};
+
+let to_xml: Interface.Plugin.debug_t('expr, 'typ) =
+  ((expr_to_xml, dump_type) as arg, statement) => {
     Dump.node_to_xml(
       ~dump_type,
-      ~unpack=
-        AST.Expression.(
-          fun
-          | Expression(expr) => KEffect.to_xml(expr_to_xml, expr)
-          | Variable(name, expr) =>
-            KVariable.to_xml(expr_to_xml, (name, expr))
-        )
-        % (x => [x]),
+      ~unpack=unpack(arg),
       "Statement",
-      stmt,
+      statement,
     );
+  };

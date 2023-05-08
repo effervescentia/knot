@@ -1,18 +1,18 @@
-open Knot.Kore;
-open AST;
+include Interface;
 
-let pp = Formatter.format;
+let parse_primitive = Parser.parse_primitive;
+let analyze_primitive = Analyzer.analyze_primitive;
+let format_primitive = Formatter.format_primitive;
+let primitive_to_xml = Debug.primitive_to_xml;
 
-let analyze = Analyzer.analyze;
-
-include Framework.Expression({
-  type parse_arg_t = unit;
-
-  type value_t('a) = Primitive.primitive_t;
+include AST.Framework.Expression.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 
-  let format = _ => pp;
+  let analyze = Analyzer.analyze;
 
-  let to_xml = _ => Debug.to_xml;
+  let format = Formatter.format;
+
+  let to_xml = Debug.to_xml;
 });

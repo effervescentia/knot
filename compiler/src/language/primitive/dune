@@ -7,5 +7,5 @@
    (name KPrimitive)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.primitive)
-   (libraries  knot.lang.primitive.nil knot.lang.primitive.boolean knot.lang.primitive.number knot.lang.primitive.string )
+   (libraries  knot.lang.primitive.nil knot.lang.primitive.boolean knot.lang.primitive.integer knot.lang.primitive.float knot.lang.primitive.string )
 )

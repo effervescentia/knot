@@ -1,11 +1,8 @@
 open Kore;
 open Generate.JavaScript_AST;
 
-module A = AST.Result;
-module AE = AST.Expression;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
-module TE = AST.TypeExpression;
 module U = Util.ResultUtil;
 
 let _assert_statement_list =
@@ -53,10 +50,13 @@ let _assert_view = (expected, actual) =>
   );
 
 let __variable_declaration =
-  (U.as_untyped("fooBar"), U.int_prim(123)) |> A.of_var;
+  (U.as_untyped("fooBar"), U.int_prim(123)) |> Statement.of_variable;
 
 let __expression =
-  (U.int_prim(123), U.int_prim(456)) |> A.of_eq_op |> U.as_int |> A.of_expr;
+  (U.int_prim(123), U.int_prim(456))
+  |> Expression.of_equal_op
+  |> U.as_int
+  |> Statement.of_effect;
 
 let suite =
   "Generate.JavaScript_Generator | Statement"
@@ -156,9 +156,15 @@ let suite =
             [
               (
                 U.as_untyped("Verified"),
-                [U.as_int(TE.Integer), U.as_string(TE.String)],
+                [
+                  U.as_int(TypeExpression.Integer),
+                  U.as_string(TypeExpression.String),
+                ],
               ),
-              (U.as_untyped("Unverified"), [U.as_string(TE.String)]),
+              (
+                U.as_untyped("Unverified"),
+                [U.as_string(TypeExpression.String)],
+              ),
             ],
           ),
         )
@@ -176,10 +182,7 @@ let suite =
           ),
           (
             U.as_untyped("foo"),
-            [
-              AE.{name: U.as_untyped("bar"), default: None, type_: None}
-              |> U.as_nil,
-            ],
+            [(U.as_untyped("bar"), None, None) |> U.as_nil],
             U.int_prim(123),
           ),
         )
@@ -214,15 +217,10 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              AE.{
-                name: U.as_untyped("bar"),
-                default: Some(U.int_prim(123)),
-                type_: None,
-              }
-              |> U.as_nil,
+              (U.as_untyped("bar"), None, Some(U.int_prim(123))) |> U.as_nil,
             ],
-            ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
-            |> A.of_add_op
+            ("bar" |> Expression.of_identifier |> U.as_int, U.int_prim(5))
+            |> Expression.of_add_op
             |> U.as_int,
           ),
         )
@@ -251,14 +249,19 @@ let suite =
             U.as_untyped("foo"),
             [],
             [
-              (U.as_untyped("buzz"), U.int_prim(2)) |> A.of_var |> U.as_nil,
-              ("buzz" |> A.of_id |> U.as_int, "buzz" |> A.of_id |> U.as_int)
-              |> A.of_div_op
+              (U.as_untyped("buzz"), U.int_prim(2))
+              |> Statement.of_variable
+              |> U.as_nil,
+              (
+                "buzz" |> Expression.of_identifier |> U.as_int,
+                "buzz" |> Expression.of_identifier |> U.as_int,
+              )
+              |> Expression.of_divide_op
               |> U.as_float
-              |> A.of_expr
+              |> Statement.of_effect
               |> U.as_float,
             ]
-            |> A.of_closure
+            |> Expression.of_closure
             |> U.as_float,
           ),
         )
@@ -293,16 +296,11 @@ let suite =
           (
             U.as_untyped("foo"),
             [
-              AE.{
-                name: U.as_untyped("bar"),
-                default: Some(U.int_prim(123)),
-                type_: None,
-              }
-              |> U.as_nil,
+              (U.as_untyped("bar"), None, Some(U.int_prim(123))) |> U.as_nil,
             ],
             [],
-            ("bar" |> A.of_id |> U.as_int, U.int_prim(5))
-            |> A.of_add_op
+            ("bar" |> Expression.of_identifier |> U.as_int, U.int_prim(5))
+            |> Expression.of_add_op
             |> U.as_int,
           ),
         )

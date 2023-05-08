@@ -10,16 +10,16 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          T.Valid(`Struct([("foo", (Valid(`Boolean), true))]))
-          |> KDotAccess.Validator.validate("foo"),
+          T.Valid(Object([("foo", (Valid(Boolean), true))]))
+          |> DotAccess.validate("foo"),
         )
     ),
     "dot access on type without specified property"
     >: (
       () =>
         Assert.type_error(
-          Some(InvalidDotAccess(Valid(`Integer), "foo")),
-          T.Valid(`Integer) |> KDotAccess.Validator.validate("foo"),
+          Some(InvalidDotAccess(Valid(Integer), "foo")),
+          T.Valid(Integer) |> DotAccess.validate("foo"),
         )
     ),
     "function call on type with matching arguments"
@@ -29,11 +29,11 @@ let suite =
           None,
           (
             T.Valid(
-              `Function(([Valid(`Boolean), Valid(`String)], Valid(`Nil))),
+              Function([Valid(Boolean), Valid(String)], Valid(Nil)),
             ),
-            [T.Valid(`Boolean), T.Valid(`String)],
+            [T.Valid(Boolean), T.Valid(String)],
           )
-          |> KFunctionCall.Validator.validate,
+          |> FunctionCall.validate,
         )
     ),
     "function call on type with invalid argument"
@@ -43,11 +43,11 @@ let suite =
           None,
           (
             T.Valid(
-              `Function(([Valid(`Boolean), Valid(`String)], Valid(`Nil))),
+              Function([Valid(Boolean), Valid(String)], Valid(Nil)),
             ),
-            [T.Valid(`Boolean), T.Invalid(NotInferrable)],
+            [T.Valid(Boolean), T.Invalid(NotInferrable)],
           )
-          |> KFunctionCall.Validator.validate,
+          |> FunctionCall.validate,
         )
     ),
     "function call on type without matching arguments"
@@ -57,21 +57,18 @@ let suite =
           Some(
             InvalidFunctionCall(
               Valid(
-                `Function((
-                  [Valid(`Boolean), Valid(`String)],
-                  Valid(`Nil),
-                )),
+                Function([Valid(Boolean), Valid(String)], Valid(Nil)),
               ),
-              [T.Valid(`Boolean)],
+              [T.Valid(Boolean)],
             ),
           ),
           (
             T.Valid(
-              `Function(([Valid(`Boolean), Valid(`String)], Valid(`Nil))),
+              Function([Valid(Boolean), Valid(String)], Valid(Nil)),
             ),
-            [T.Valid(`Boolean)],
+            [T.Valid(Boolean)],
           )
-          |> KFunctionCall.Validator.validate,
+          |> FunctionCall.validate,
         )
     ),
   ];

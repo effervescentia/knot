@@ -1,29 +1,27 @@
 open Kore;
 open Generate.JavaScript_AST;
 
-module A = AST.Result;
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module Namespace = Reference.Namespace;
 module U = Util.ResultUtil;
 
 let __resolved = "../foo/bar";
 let __program =
-  [
-    (
-      "foo/bar" |> A.of_internal,
-      ["Foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-    )
-    |> A.of_import,
+  ModuleStatement.[
+    (Namespace.Internal("foo/bar"), "Foo" |> U.as_untyped |> Option.some, [])
+    |> of_import,
     [
       (U.as_untyped("Fizz"), "Buzz" |> U.as_untyped |> Option.some)
       |> U.as_untyped,
     ]
-    |> A.of_standard_import,
+    |> of_stdlib_import,
     (
-      "ABC" |> U.as_untyped |> A.of_named_export,
-      123 |> U.int_prim |> A.of_const |> U.as_int,
+      ExportKind.Named,
+      "ABC" |> U.as_untyped,
+      123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
     )
-    |> A.of_decl,
+    |> of_export,
   ]
   |> List.map(U.as_untyped);
 
@@ -54,7 +52,10 @@ let suite =
       () =>
         _assert_declaration(
           [Variable("foo", Number("123")), Export("foo", None)],
-          (U.as_untyped("foo"), 123 |> U.int_prim |> A.of_const |> U.as_int),
+          (
+            U.as_untyped("foo"),
+            123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
+          ),
         )
     ),
     "generate() - empty module"
@@ -75,7 +76,7 @@ let suite =
           ],
           (
             path => {
-              Assert.namespace("foo/bar" |> A.of_internal, path);
+              Assert.namespace(Namespace.Internal("foo/bar"), path);
               __resolved;
             },
             __program,

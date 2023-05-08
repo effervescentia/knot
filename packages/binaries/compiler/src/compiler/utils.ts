@@ -12,10 +12,11 @@ export function pollingPromise(
   let attempts = 0;
 
   function handler(resolve: () => void, reject: (err: any) => void): void {
-    function retry(): void {
+    function retry(err: unknown): void {
       if (maxAttempts !== 0 && attempts === maxAttempts) {
-        reject(`failed after ${attempts} attempts`);
+        reject(`failed after ${attempts} attempts: ${err}`);
       } else {
+        console.warn(`promise failed, retrying in ${timeout}ms: ${err}`);
         setTimeout(() => handler(resolve, reject), timeout);
       }
     }

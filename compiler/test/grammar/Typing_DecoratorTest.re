@@ -1,27 +1,22 @@
 open Kore;
 
-module TE = AST.TypeExpression;
-module TD = AST.TypeDefinition;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = TD.module_t;
+    type t = TypeDefinition.node_t;
 
     let parser = _ =>
       Reference.Namespace.of_string("test_namespace")
       |> AST.ParseContext.create
-      |> KTypeDefinition.Plugin.parse
+      |> TypeDefinition.parse
       |> Assert.parse_completely
       |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(
-            ppf => KTypeDefinition.Debug.module_to_xml % Fmt.xml_string(ppf),
-            (==),
-          ),
+          testable(ppf => TypeDefinition.to_xml % Fmt.xml_string(ppf), (==)),
           "type definition matches",
         )
       );
@@ -35,7 +30,9 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_untyped(TD.Decorator(U.as_untyped("foo"), [], Module)),
+          (U.as_untyped("foo"), [], Module)
+          |> TypeDefinition.of_decorator
+          |> U.as_untyped,
           "decorator foo: () on module;",
         )
     ),
@@ -43,17 +40,17 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_untyped(
-            TD.Decorator(
-              U.as_untyped("foo"),
-              [
-                U.as_untyped(TE.String),
-                U.as_untyped(TE.Boolean),
-                U.as_untyped(TE.Integer),
-              ],
-              Module,
-            ),
-          ),
+          (
+            U.as_untyped("foo"),
+            [
+              U.as_untyped(TypeExpression.String),
+              U.as_untyped(TypeExpression.Boolean),
+              U.as_untyped(TypeExpression.Integer),
+            ],
+            Module,
+          )
+          |> TypeDefinition.of_decorator
+          |> U.as_untyped,
           "decorator foo: (string, boolean, integer) on module;",
         )
     ),

@@ -1,20 +1,28 @@
 open Kore;
 
-module A = AST.Result;
 module Formatter = Language.Formatter;
-module T = AST.Type;
 module U = Util.ResultUtil;
 
 let _assert_jsx = (expected, actual) =>
   Assert.string(
     expected,
-    actual |> ~@Fmt.root(KSX.Plugin.format(KExpression.Plugin.format)),
+    actual
+    |> ~@
+         Fmt.root(
+           KSX.format(Expression.attribute_needs_wrapper, Expression.format),
+         ),
   );
 let _assert_jsx_attr = (expected, actual) =>
   Assert.string(
     expected,
     actual
-    |> ~@Fmt.root(KSX.Formatter.format_attribute(KExpression.Plugin.format)),
+    |> ~@
+         Fmt.root(
+           KSX.format_attribute(
+             Expression.attribute_needs_wrapper,
+             Expression.format,
+           ),
+         ),
   );
 
 let suite =
@@ -25,7 +33,8 @@ let suite =
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> U.as_view([], Valid(`Nil)), [], [], []) |> A.of_tag,
+          ("Foo" |> U.as_view([], Valid(Nil)), [], [], [])
+          |> KSX.of_element_tag,
         )
     ),
     "pp_jsx() - empty component"
@@ -33,19 +42,19 @@ let suite =
       () =>
         _assert_jsx(
           "<Foo />",
-          ("Foo" |> U.as_view([], T.Valid(`Element)), [], [], [])
-          |> A.of_component,
+          ("Foo" |> U.as_view([], Valid(Element)), [], [], [])
+          |> KSX.of_component_tag,
         )
     ),
     "pp_jsx() - empty fragment"
-    >: (() => _assert_jsx("<></>", [] |> A.of_frag)),
+    >: (() => _assert_jsx("<></>", [] |> KSX.of_fragment)),
     "pp_jsx() - tag with attributes"
     >: (
       () =>
         _assert_jsx(
           "<Foo bar=123 buzz />",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [
               (U.as_untyped("bar"), 123 |> U.int_prim |> Option.some)
@@ -54,7 +63,7 @@ let suite =
             ],
             [],
           )
-          |> A.of_tag,
+          |> KSX.of_element_tag,
         )
     ),
     "pp_jsx() - tag with nested text"
@@ -65,12 +74,12 @@ let suite =
   bar
 </Foo>",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
-            ["bar" |> A.of_text |> U.as_untyped],
+            ["bar" |> KSX.Child.of_text |> U.as_untyped],
           )
-          |> A.of_tag,
+          |> KSX.of_element_tag,
         )
     ),
     "pp_jsx() - tag with nested expression"
@@ -81,18 +90,18 @@ let suite =
   {1 + 5}
 </Foo>",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
             [
               (1 |> U.int_prim, 5 |> U.int_prim)
-              |> A.of_add_op
+              |> Expression.of_add_op
               |> U.as_int
-              |> A.of_inline_expr
+              |> KSX.Child.of_inline
               |> U.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> KSX.of_element_tag,
         )
     ),
     "pp_jsx() - tag with nested tag"
@@ -105,22 +114,22 @@ let suite =
   </Bar>
 </Foo>",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
             [
               (
-                "Bar" |> U.as_view([], Valid(`Nil)),
+                "Bar" |> U.as_view([], Valid(Nil)),
                 [],
                 [],
-                ["fizzbuzz" |> A.of_text |> U.as_untyped],
+                ["fizzbuzz" |> KSX.Child.of_text |> U.as_untyped],
               )
-              |> A.of_tag
-              |> A.of_node
+              |> KSX.of_element_tag
+              |> KSX.Child.of_node
               |> U.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> KSX.of_element_tag,
         )
     ),
     "pp_jsx() - tag with multiple children"
@@ -133,19 +142,19 @@ let suite =
   Hello, World!
 </Foo>",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
             [
-              ("Bar" |> U.as_view([], Valid(`Nil)), [], [], [])
-              |> A.of_tag
-              |> A.of_node
+              ("Bar" |> U.as_view([], Valid(Nil)), [], [], [])
+              |> KSX.of_element_tag
+              |> KSX.Child.of_node
               |> U.as_untyped,
-              U.nil_prim |> A.of_inline_expr |> U.as_untyped,
-              "Hello, World!" |> A.of_text |> U.as_untyped,
+              U.nil_prim |> KSX.Child.of_inline |> U.as_untyped,
+              "Hello, World!" |> KSX.Child.of_text |> U.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> KSX.of_element_tag,
         )
     ),
     "pp_jsx_attr() - property with primitive value"
@@ -161,7 +170,10 @@ let suite =
       () =>
         _assert_jsx_attr(
           "fizz=buzz",
-          (U.as_untyped("fizz"), Some("buzz" |> A.of_id |> U.as_int)),
+          (
+            U.as_untyped("fizz"),
+            Some("buzz" |> Expression.of_identifier |> U.as_int),
+          ),
         )
     ),
     "pp_jsx_attr() - property with binary operation value"
@@ -172,7 +184,9 @@ let suite =
           (
             U.as_untyped("fizz"),
             Some(
-              (1 |> U.int_prim, 2 |> U.int_prim) |> A.of_add_op |> U.as_int,
+              (1 |> U.int_prim, 2 |> U.int_prim)
+              |> Expression.of_add_op
+              |> U.as_int,
             ),
           ),
         )
@@ -186,9 +200,9 @@ let suite =
             U.as_untyped("fizz"),
             Some(
               (1 |> U.int_prim, 2 |> U.int_prim)
-              |> A.of_add_op
+              |> Expression.of_add_op
               |> U.as_int
-              |> A.of_group
+              |> Expression.of_group
               |> U.as_int,
             ),
           ),
@@ -201,7 +215,7 @@ let suite =
           "fizz=(-1)",
           (
             U.as_untyped("fizz"),
-            Some(1 |> U.int_prim |> A.of_neg_op |> U.as_int),
+            Some(1 |> U.int_prim |> Expression.of_negative_op |> U.as_int),
           ),
         )
     ),
@@ -215,9 +229,9 @@ let suite =
             Some(
               true
               |> U.bool_prim
-              |> A.of_group
+              |> Expression.of_group
               |> U.as_bool
-              |> A.of_group
+              |> Expression.of_group
               |> U.as_bool,
             ),
           ),
@@ -235,10 +249,10 @@ let suite =
             U.as_untyped("fizz"),
             Some(
               [
-                true |> U.bool_prim |> A.of_expr |> U.as_bool,
-                false |> U.bool_prim |> A.of_expr |> U.as_bool,
+                true |> U.bool_prim |> Statement.of_effect |> U.as_bool,
+                false |> U.bool_prim |> Statement.of_effect |> U.as_bool,
               ]
-              |> A.of_closure
+              |> Expression.of_closure
               |> U.as_bool,
             ),
           ),
@@ -252,9 +266,9 @@ let suite =
           (
             U.as_untyped("fizz"),
             Some(
-              ("Buzz" |> U.as_view([], Valid(`Nil)), [], [], [])
-              |> A.of_tag
-              |> A.of_jsx
+              ("Buzz" |> U.as_view([], Valid(Nil)), [], [], [])
+              |> KSX.of_element_tag
+              |> Expression.of_ksx
               |> U.as_element,
             ),
           ),
@@ -271,18 +285,18 @@ let suite =
             U.as_untyped("fizz"),
             Some(
               (
-                "Buzz" |> U.as_view([], Valid(`Nil)),
+                "Buzz" |> U.as_view([], Valid(Nil)),
                 [],
                 [],
                 [
-                  ("Foo" |> U.as_view([], Valid(`Nil)), [], [], [])
-                  |> A.of_tag
-                  |> A.of_node
+                  ("Foo" |> U.as_view([], Valid(Nil)), [], [], [])
+                  |> KSX.of_element_tag
+                  |> KSX.Child.of_node
                   |> U.as_untyped,
                 ],
               )
-              |> A.of_tag
-              |> A.of_jsx
+              |> KSX.of_element_tag
+              |> Expression.of_ksx
               |> U.as_element,
             ),
           ),

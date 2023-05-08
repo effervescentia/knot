@@ -2,16 +2,16 @@ open Knot.Kore;
 open AST;
 
 let validate: (Operator.Unary.t, Type.t) => option(Type.error_t) =
-  op =>
+  operator =>
     fun
     /* assume this has been reported already and ignore */
     | Invalid(_) => None
 
-    | Valid(valid_type) as type_ =>
-      switch (op, valid_type) {
-      | (Negative | Positive, `Integer | `Float) => None
+    | Valid(type_') as type_ =>
+      switch (operator, type_') {
+      | (Negative | Positive, Integer | Float) => None
 
-      | (Not, `Boolean) => None
+      | (Not, Boolean) => None
 
-      | _ => Some(InvalidUnaryOperation(op, type_))
+      | _ => Some(InvalidUnaryOperation(operator, type_))
       };

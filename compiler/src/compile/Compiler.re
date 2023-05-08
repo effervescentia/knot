@@ -33,7 +33,7 @@ type action_t =
 type t = {
   config: config_t,
   graph: ImportGraph.t,
-  modules: ModuleTable.t,
+  modules: ModuleTable.t(Language.Interface.program_t(Type.t)),
   resolver: Resolver.t,
   dispatch: action_t => unit,
 };
@@ -325,13 +325,15 @@ let emit_one = (target: Target.t, output_dir: string, namespace: Namespace.t) =>
             File.Writer.write(out, ppf =>
               Generate.Generator.pp(
                 target,
-                fun
-                | Internal(path) =>
-                  Filename.concat(output_dir, path)
-                  |> Filename.relative_to(parent_dir)
-                | External(_)
-                | Ambient
-                | Stdlib => raise(NotImplemented),
+                Reference.Namespace.(
+                  fun
+                  | Internal(path) =>
+                    Filename.concat(output_dir, path)
+                    |> Filename.relative_to(parent_dir)
+                  | External(_)
+                  | Ambient
+                  | Stdlib => raise(NotImplemented)
+                ),
                 ppf,
                 ast,
               )
@@ -529,8 +531,8 @@ let add_standard_library = (~flush=true, compiler: t) => {
              symbols.declared.values
              |> List.filter_map(
                   fun
-                  | (id, Type.Valid(`Decorator(_)) as type_) =>
-                    Some((id, Type.Container.Value(type_)))
+                  | (id, Type.Valid(Decorator(_)) as type_) =>
+                    Some((Type.ModuleEntryKind.Value, id, type_))
                   | _ => None,
                 ),
            );
@@ -566,8 +568,8 @@ let scan_ambient_library_for_plugins = (~flush=true, compiler: t) => {
 
            | (
                _,
-               [AST.Primitive.String(name)],
-               Type.Valid(`Module(entries)),
+               [AST.SymbolTable.Primitive.String(name)],
+               Type.Valid(Module(entries)),
              ) =>
              if (Plugin.known |> List.mem(name)) {
                compiler.modules

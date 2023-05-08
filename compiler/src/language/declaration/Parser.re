@@ -2,18 +2,15 @@ open Kore;
 open Parse.Kore;
 open AST;
 
-let parse = (ctx: ParseContext.t) =>
-  Result.of_main_export
-  <$ Matchers.keyword(Constants.Keyword.main)
-  |> option(Result.of_named_export)
-  >|= Tuple.with_fst2(ctx)
-  >>= (
-    arg =>
-      choice([
-        KConstant.parse(arg),
-        KEnumerated.parse(arg),
-        KFunction.parse(arg),
-        KView.parse(arg),
-      ])
-      >|= Node.map(Result.of_decl)
-  );
+let parse = (is_main, ctx: ParseContext.t('ast)) => {
+  let (&>) = (parse, to_declaration) =>
+    parse(is_main, ctx)
+    >|= Node.map(Tuple.map_snd2(Node.map(to_declaration)));
+
+  choice([
+    Constant.parse &> Interface.of_constant,
+    Enumerated.parse &> Interface.of_enumerated,
+    Function.parse &> Interface.of_function,
+    View.parse &> Interface.of_view,
+  ]);
+};

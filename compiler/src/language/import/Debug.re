@@ -2,43 +2,41 @@ open Knot.Kore;
 
 module Namespace = Reference.Namespace;
 
-let main_import_to_xml = name =>
-  Fmt.Node(
-    "MainImport",
-    [],
-    [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)],
-  );
+let main_import_to_xml = Dump.identifier_to_xml("MainImport");
 
-let named_import_to_xml = (name, alias) =>
-  Fmt.Node(
-    "NamedImport",
-    [],
-    [
-      Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-      ...alias
-         |> Option.map(alias' =>
-              [Dump.node_to_xml(~dump_value=Fun.id, "Alias", alias')]
-            )
-         |?: [],
-    ],
-  );
-
-let import_to_xml =
+let named_import_to_xml =
   Dump.node_to_xml(
     ~unpack=
-      AST.Module.(
-        fun
-        | MainImport(name) => main_import_to_xml(name)
-        | NamedImport(name, alias) => named_import_to_xml(name, alias)
-      )
-      % (x => [x]),
-    "ImportTarget",
+      ((name, alias)) =>
+        [
+          Dump.identifier_to_xml("Name", name),
+          ...alias
+             |> Option.map(Dump.identifier_to_xml("Alias") % List.single)
+             |?: [],
+        ],
+    "NamedImport",
   );
 
-let to_xml: ((Namespace.t, list(AST.Module.import_t))) => Fmt.xml_t(string) =
-  ((namespace, imports)) =>
+let stdlib_import_to_xml = named_imports =>
+  Fmt.Node(
+    "StdlibImport",
+    [],
+    named_imports |> List.map(named_import_to_xml),
+  );
+
+let to_xml:
+  (
+    (
+      Namespace.t,
+      option(AST.Common.identifier_t),
+      list(Interface.NamedImport.node_t),
+    )
+  ) =>
+  Fmt.xml_t(string) =
+  ((namespace, main_import, named_imports)) =>
     Node(
       "Import",
       [("namespace", namespace |> ~@Namespace.pp)],
-      imports |> List.map(import_to_xml),
+      (main_import |> Option.map(main_import_to_xml % List.single) |?: [])
+      @ (named_imports |> List.map(named_import_to_xml)),
     );

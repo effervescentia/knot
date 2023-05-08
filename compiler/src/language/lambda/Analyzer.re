@@ -1,76 +1,71 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
-let analyze_argument:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    Raw.argument_t
-  ) =>
-  Result.argument_t =
-  (scope, analyze_expression, arg) => {
-    let (arg', type_) =
-      switch (fst(arg)) {
-      | {name, default: None, type_: None} =>
+let analyze_parameter =
+    (
+      analyze_expression:
+        Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr),
+      scope: Scope.t('ast),
+    ) =>
+  Node.analyzer(parameter => {
+    let (parameter', type_) =
+      switch (fst(parameter)) {
+      | (name, None, None) =>
         Type.UntypedFunctionArgument(fst(name))
-        |> Scope.report_type_err(scope, Node.get_range(arg));
+        |> Scope.report_type_err(scope, Node.get_range(parameter));
 
-        (
-          Expression.{name, default: None, type_: None},
-          Type.Invalid(NotInferrable),
-        );
+        ((name, None, None), Type.Invalid(NotInferrable));
 
-      | {name, default: Some(expr), type_: None} =>
-        let expr' = expr |> analyze_expression(scope);
+      | (name, None, Some(expression)) =>
+        let (expression', expression_type) =
+          expression |> Node.analyzer(analyze_expression(scope));
 
-        (
-          Expression.{name, default: Some(expr'), type_: None},
-          Node.get_type(expr'),
-        );
+        ((name, None, Some(expression')), expression_type);
 
-      | {name, default: None, type_: Some(type_expr)} =>
+      | (name, Some(type_expression), None) =>
         let type_ =
-          type_expr
+          type_expression
           |> fst
-          |> KTypeExpression.Plugin.analyze(SymbolTable.create());
+          |> TypeExpression.analyze(SymbolTable.create());
 
-        (Expression.{name, default: None, type_: Some(type_expr)}, type_);
+        ((name, Some(type_expression), None), type_);
 
-      | {name, default: Some(expr), type_: Some(type_expr)} =>
-        let expr' = expr |> analyze_expression(scope);
-        let expr_type = Node.get_type(expr');
+      | (name, Some(type_expression), Some(expression)) =>
+        let (expression', expression_type) =
+          expression |> Node.analyzer(analyze_expression(scope));
         let type_ =
-          type_expr
+          type_expression
           |> fst
-          |> KTypeExpression.Plugin.analyze(SymbolTable.create());
+          |> TypeExpression.analyze(SymbolTable.create());
 
-        switch (expr_type, type_) {
-        | (Valid(_), Valid(_)) when expr_type != type_ =>
-          Type.TypeMismatch(type_, expr_type)
-          |> Scope.report_type_err(scope, Node.get_range(expr))
+        switch (expression_type, type_) {
+        | (Valid(_), Valid(_)) when expression_type != type_ =>
+          Type.TypeMismatch(type_, expression_type)
+          |> Scope.report_type_err(scope, Node.get_range(expression))
 
+        /* ignore cases where either type is invalid or when types are equal */
         | _ => ()
         };
 
-        ({name, default: Some(expr'), type_: Some(type_expr)}, type_);
+        ((name, Some(type_expression), Some(expression')), type_);
       };
 
-    Node.typed(arg', type_, Node.get_range(arg));
-    /* ignore cases where either type is invalid or when types are equal */
-  };
+    (parameter', type_);
+  });
 
-let analyze_argument_list:
+let analyze_parameter_list:
   (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    list(Raw.argument_t)
+    Framework.Interface.analyze_t('ast, 'raw_expr, 'result_expr),
+    Scope.t('ast),
+    list(Interface.Parameter.node_t('raw_expr, unit))
   ) =>
-  list(Result.argument_t) =
-  (scope, analyze_expression, args) => {
-    let args' =
-      args |> List.map(analyze_argument(scope, analyze_expression));
+  list(Interface.Parameter.node_t('result_expr, Type.t)) =
+  (analyze_expression, scope, parameters) => {
+    let parameters' =
+      parameters
+      |> List.map(analyze_parameter(analyze_expression, scope) % fst);
 
-    Validator.validate_default_arguments(scope, args');
+    Validator.validate_default_arguments(scope, parameters');
 
-    args';
+    parameters';
   };

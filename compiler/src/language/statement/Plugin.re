@@ -1,3 +1,5 @@
+include Interface;
+
 let parse = Parser.parse;
 
 let analyze = Analyzer.analyze;

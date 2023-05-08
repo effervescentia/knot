@@ -99,6 +99,11 @@ class Compiler {
   public async update(path: string): Promise<void> {
     return this.client.updateModule({ path });
   }
+
+  public async start() {
+    await this.client.start();
+    await this.awaitReady();
+  }
 }
 
 export default Compiler;

@@ -1,22 +1,20 @@
 open Kore;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.Make({
-    type t = AR.identifier_t;
+    type t = AST.Common.identifier_t;
 
     let parser =
-      KIdentifier.Parser.parse_raw % Assert.parse_completely % Parser.parse;
+      KIdentifier.Plugin.parse_raw % Assert.parse_completely % Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
             ppf =>
-              Dump.node_to_xml(~dump_value=Fun.id, "Identifier")
-              % Fmt.xml_string(ppf),
+              Dump.identifier_to_xml("Identifier") % Fmt.xml_string(ppf),
             (==),
           ),
           "program matches",
@@ -35,15 +33,14 @@ let suite =
       () =>
         Constants.Keyword.reserved
         |> List.iter(keyword =>
-             Assert.parse_throws(
-               AST.Error.CompileError([
+             Assert.parse_throws_compiler_errs(
+               [
                  ParseError(
                    ReservedKeyword(keyword),
                    Internal("mock"),
                    Range.zero,
                  ),
-               ]),
-               "should throw ReservedKeyword error",
+               ],
                keyword,
              )
            )

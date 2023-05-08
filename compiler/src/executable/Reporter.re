@@ -5,7 +5,7 @@ module Resolver = Resolve.Resolver;
 module Source = Resolve.Source;
 module Type = AST.Type;
 
-let __numeric_types = [Type.Valid(`Float), Type.Valid(`Integer)];
+let __numeric_types = [Type.Valid(Float), Type.Valid(Integer)];
 
 let _example_sep =
   Fmt.Sep.(create(~trail=Trail.nop, (ppf, ()) => Fmt.pf(ppf, "@,// or@,")));
@@ -187,7 +187,7 @@ let _extract_type_err =
       "Invalid Unary Operation",
       (
         switch (operator) {
-        | Not => ("NOT (!)", [Type.Valid(`Boolean)])
+        | Not => ("NOT (!)", [Type.Valid(Boolean)])
 
         | Positive => ("ABSOLUTE (+)", __numeric_types)
 
@@ -261,9 +261,9 @@ let _extract_type_err =
 
         switch (operator) {
         | LogicalAnd =>
-          ("AND (&&)", [Type.Valid(`Boolean)]) |> print_static_error
+          ("AND (&&)", [Type.Valid(Boolean)]) |> print_static_error
         | LogicalOr =>
-          ("OR (||)", [Type.Valid(`Boolean)]) |> print_static_error
+          ("OR (||)", [Type.Valid(Boolean)]) |> print_static_error
 
         | LessOrEqual =>
           ("LESS THAN OR EQUAL (<=)", __numeric_types) |> print_static_error
@@ -287,14 +287,14 @@ let _extract_type_err =
       [],
     )
 
-  | Type.InvalidJSXPrimitiveExpression(type_) => (
-      "Invalid JSX Primitive Expression",
+  | Type.InvalidKSXPrimitiveExpression(type_) => (
+      "Invalid KSX Primitive Expression",
       Fmt.(
         (
           ppf =>
             pf(
               ppf,
-              "jsx only supports rendering primitive values inline but received %a",
+              "ksx only supports rendering primitive values inline but received %a",
               bad(Type.pp),
               type_,
             )
@@ -310,12 +310,12 @@ let _extract_type_err =
                   "@[<hv>convert the value to have a primitive type@,@[<h>ie. %a@]@]",
                   list(~layout=Horizontal, Type.pp),
                   [
-                    Type.Valid(`Nil),
-                    Type.Valid(`Boolean),
-                    Type.Valid(`Integer),
-                    Type.Valid(`Float),
-                    Type.Valid(`String),
-                    Type.Valid(`Element),
+                    Type.Valid(Nil),
+                    Type.Valid(Boolean),
+                    Type.Valid(Integer),
+                    Type.Valid(Float),
+                    Type.Valid(String),
+                    Type.Valid(Element),
                   ],
                 )
             )
@@ -325,14 +325,14 @@ let _extract_type_err =
       ],
     )
 
-  | Type.InvalidJSXTag(_, type_, props) => (
-      "Invalid JSX Tag",
+  | Type.InvalidKSXTag(_, type_, props) => (
+      "Invalid KSX Tag",
       Fmt.(
         (
           ppf =>
             pf(
               ppf,
-              "this jsx tag was expected to be of type %a with props %a but received %a",
+              "this ksx tag was expected to be of type %a with props %a but received %a",
               good_str,
               Constants.Keyword.view,
               good(ppf =>
@@ -351,14 +351,14 @@ let _extract_type_err =
       [],
     )
 
-  | Type.InvalidJSXAttribute(key, expected, actual) => (
-      "Invalid JSX Attribute",
+  | Type.InvalidKSXAttribute(key, expected, actual) => (
+      "Invalid KSX Attribute",
       Fmt.(
         (
           ppf =>
             pf(
               ppf,
-              "this jsx tag expects the attribute %a to be of type %a but received %a",
+              "this ksx tag expects the attribute %a to be of type %a but received %a",
               bad_str,
               key,
               good(Type.pp),
@@ -371,8 +371,8 @@ let _extract_type_err =
       [],
     )
 
-  | Type.UnexpectedJSXAttribute(key, type_) => (
-      "Unexpected JSX Attribute",
+  | Type.UnexpectedKSXAttribute(key, type_) => (
+      "Unexpected KSX Attribute",
       Fmt.(
         (
           ppf =>
@@ -389,13 +389,13 @@ let _extract_type_err =
       [],
     )
 
-  | Type.MissingJSXAttributes(id, missing) => (
-      "Missing JSX Attributes",
+  | Type.MissingKSXAttributes(id, missing) => (
+      "Missing KSX Attributes",
       (
         ppf =>
           Fmt.pf(
             ppf,
-            "jsx tag %s is missing the attributes %a",
+            "ksx tag %s is missing the attributes %a",
             id,
             Fmt.(
               bad(ppf =>
@@ -443,7 +443,7 @@ let _extract_type_err =
               good_str,
               Constants.Keyword.view,
               good(Type.pp),
-              Valid(`Style),
+              Valid(Style),
               bad(Type.pp),
               view,
               bad(Type.pp),

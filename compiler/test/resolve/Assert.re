@@ -4,7 +4,7 @@ open Resolve;
 include TestLibrary.Assert;
 
 let dump_program = ppf =>
-  Language.Program.program_to_xml(~@AST.Type.pp)
+  Language.Debug.program_to_xml(~@AST.Type.pp)
   % Pretty.XML.xml(Fmt.string, ppf);
 
 let import_graph =

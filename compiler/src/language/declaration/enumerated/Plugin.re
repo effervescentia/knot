@@ -1,8 +1,6 @@
-open AST;
-
-include Framework.Declaration({
-  type value_t =
-    list((Result.identifier_t, list(Result.node_t(TypeExpression.raw_t))));
+include Interface;
+include AST.Framework.Declaration.Make({
+  include Interface.Plugin;
 
   let parse = Parser.parse;
 

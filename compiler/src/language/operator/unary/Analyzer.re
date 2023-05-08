@@ -4,7 +4,7 @@ open AST;
 let analyze_arithmetic = type_ =>
   Type.(
     switch (type_) {
-    | Valid(`Integer | `Float)
+    | Valid(Integer | Float)
     /* forward invalid types */
     | Invalid(_) => type_
 
@@ -12,28 +12,22 @@ let analyze_arithmetic = type_ =>
     }
   );
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Operator.Unary.t, Raw.expression_t),
-    Range.t
-  ) =>
-  (Result.expression_t, Type.t) =
-  (scope, analyze_expression, (op, expr), range) => {
-    let expr' = analyze_expression(scope, expr);
-    let type_ = Node.get_type(expr');
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, ((operator, expression), _) as node) => {
+    let range = Node.get_range(node);
+    let (expression', expression_type) =
+      expression |> Node.analyzer(analyze_expression(scope));
 
-    type_
-    |> Validator.validate(op)
+    expression_type
+    |> Validator.validate(operator)
     |> Option.iter(Scope.report_type_err(scope, range));
 
-    (
-      expr',
-      switch (op) {
+    let type_ =
+      switch (operator) {
       | Negative
-      | Positive => analyze_arithmetic(type_)
-      | Not => Valid(`Boolean)
-      },
-    );
+      | Positive => analyze_arithmetic(expression_type)
+      | Not => Valid(Boolean)
+      };
+
+    ((operator, expression'), type_);
   };

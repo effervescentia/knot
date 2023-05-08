@@ -53,8 +53,8 @@ let handler: Runtime.request_handler_t(params_t) =
               | Nil => "nil"
               | Boolean(_) => "bool"
               | String(_) => "string"
-              | Number(Float(_)) => "float"
-              | Number(Integer(_)) => "int"
+              | Float(_) => "float"
+              | Integer(_) => "int"
               },
             ),
           )

@@ -3,13 +3,13 @@ open Knot.Kore;
 module Namespace = Reference.Namespace;
 module Symbols = SymbolTable.Symbols;
 
-type t = {
+type t('ast) = {
   /* unique identifier for this namespace */
   namespace: Namespace.t,
   /* error reporting callback */
   report: Error.compile_err => unit,
   /* the active module table for the compiler instance */
-  modules: ModuleTable.t,
+  modules: ModuleTable.t('ast),
   /* the symbols in context for this module */
   symbols: SymbolTable.t,
 };
@@ -29,7 +29,7 @@ let create =
   symbols,
 };
 
-let create_module = (parent: t): t =>
+let create_module = (parent: t('a)): t('a) =>
   create(
     ~modules=parent.modules,
     ~symbols={
@@ -46,14 +46,19 @@ let create_module = (parent: t): t =>
 /**
  report a compile error
  */
-let report = (err: Error.parse_err, range: Range.t, ctx: t) =>
+let report = (err: Error.parse_err, range: Range.t, ctx: t('a)) =>
   ctx.report(ParseError(err, ctx.namespace, range));
 
 /**
  find the type of an export from a different module and import it into the symbol table
  */
 let import =
-    (namespace: Namespace.t, id: Reference.Export.t, alias: string, ctx: t) => {
+    (
+      namespace: Namespace.t,
+      id: Reference.Export.t,
+      alias: string,
+      ctx: t('a),
+    ) => {
   let module_ = ctx.modules |> ModuleTable.find(namespace);
   let symbols =
     module_

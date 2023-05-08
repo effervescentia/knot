@@ -1,24 +1,17 @@
-open Knot.Kore;
-open AST;
+open Kore;
 
-let format:
-  Fmt.t(Result.raw_expression_t) =>
-  Fmt.t((Result.bind_style_target_t, Result.expression_t)) =
-  (pp_expression, ppf, (view, (style, _))) =>
+let format: Interface.Plugin.format_t('expr, 'typ) =
+  (get_style_rules, pp_expression, ppf, (_, (view, _), (style, _))) =>
     Fmt.pf(
       ppf,
       "%a::%a",
       pp_expression,
-      switch (view) {
-      | BuiltIn((view', _))
-      | Local((view', _)) => view'
-      },
-      ppf =>
-        Expression.(
-          fun
-          | Style(rules) =>
-            KStyle.Formatter.format_style_rules(pp_expression, ppf, rules)
-          | expr => pp_expression(ppf, expr)
-        ),
+      view,
+      (ppf, expr) =>
+        switch (get_style_rules(expr)) {
+        | Some(rules) =>
+          Style.format_style_rule_list(pp_expression, ppf, rules)
+        | None => pp_expression(ppf, expr)
+        },
       style,
     );

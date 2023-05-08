@@ -7,5 +7,5 @@
    (name KUnaryOperator)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.operator.unary)
-   (libraries  knot.lang.operator.unary.logical_not knot.lang.operator.unary.absolute knot.lang.operator.unary.negative )
+   (libraries  knot.lang.ast )
 )

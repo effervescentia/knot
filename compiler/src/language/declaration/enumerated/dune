@@ -7,5 +7,5 @@
    (name KEnumerated)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang.declaration.enumerated)
-   (libraries  knot.lang.type.statement knot.lang.expression )
+   (libraries  knot.lang.type.statement knot.lang.expression knot.lang.module_statement )
 )

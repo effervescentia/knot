@@ -1,46 +1,33 @@
 open Kore;
 
-module A = AST.Result;
-module T = AST.Type;
-module TE = AST.TypeExpression;
-module TD = AST.TypeDefinition;
 module U = Util.ResultUtil;
 
 module Assert =
   Assert.Make({
-    type t = TD.module_t;
+    type t = TypeDefinition.node_t;
 
     let parser = _ =>
       Reference.Namespace.of_string("test_namespace")
       |> AST.ParseContext.create(
            ~symbols=
              AST.SymbolTable.of_export_list([
+               (Export.Named("fizz"), Type.Valid(Decorator([], Module))),
                (
-                 Reference.Export.Named("fizz"),
-                 T.Valid(`Decorator(([], Module))),
-               ),
-               (
-                 Reference.Export.Named("buzz"),
-                 T.Valid(
-                   `Decorator((
-                     [Valid(`Integer), Valid(`Boolean)],
-                     Module,
-                   )),
+                 Export.Named("buzz"),
+                 Type.Valid(
+                   Decorator([Valid(Integer), Valid(Boolean)], Module),
                  ),
                ),
              ]),
          )
-      |> KTypeDefinition.Plugin.parse
+      |> TypeDefinition.parse
       |> Assert.parse_completely
       |> Parser.parse;
 
     let test =
       Alcotest.(
         check(
-          testable(
-            ppf => KTypeDefinition.Debug.module_to_xml % Fmt.xml_string(ppf),
-            (==),
-          ),
+          testable(ppf => TypeDefinition.to_xml % Fmt.xml_string(ppf), (==)),
           "type definition matches",
         )
       );
@@ -54,7 +41,9 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          U.as_untyped(TD.Module(U.as_untyped("Foo"), [], [])),
+          U.as_untyped(
+            (U.as_untyped("Foo"), [], []) |> TypeDefinition.of_module,
+          ),
           "module Foo {}",
         )
     ),
@@ -63,11 +52,12 @@ let suite =
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [],
               [("fizz" |> U.as_decorator([], Module), []) |> U.as_untyped],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "@fizz
 module Foo {}",
@@ -78,24 +68,25 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [],
               [
                 (
                   "buzz"
                   |> U.as_decorator(
-                       [Valid(`Integer), Valid(`Boolean)],
+                       [Valid(Integer), Valid(Boolean)],
                        Module,
                      ),
                   [
-                    123L |> A.of_int |> A.of_num |> U.as_int,
-                    false |> A.of_bool |> U.as_bool,
+                    123L |> Primitive.of_integer |> U.as_int,
+                    false |> Primitive.of_boolean |> U.as_bool,
                   ],
                 )
                 |> U.as_untyped,
               ],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "@buzz(123, false)
 module Foo {}",
@@ -106,7 +97,7 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [],
               [
@@ -114,17 +105,18 @@ module Foo {}",
                 (
                   "buzz"
                   |> U.as_decorator(
-                       [Valid(`Integer), Valid(`Boolean)],
+                       [Valid(Integer), Valid(Boolean)],
                        Module,
                      ),
                   [
-                    123L |> A.of_int |> A.of_num |> U.as_int,
-                    false |> A.of_bool |> U.as_bool,
+                    123L |> Primitive.of_integer |> U.as_int,
+                    false |> Primitive.of_boolean |> U.as_bool,
                   ],
                 )
                 |> U.as_untyped,
               ],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "@fizz
 @buzz(123, false)
@@ -136,15 +128,16 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [
-                (U.as_untyped("bar"), U.as_untyped(TE.String))
-                |> TD.of_declaration
+                (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+                |> TypeStatement.of_declaration
                 |> U.as_untyped,
               ],
               [],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "module Foo {
   declare bar: string;
@@ -156,15 +149,16 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [
-                (U.as_untyped("bar"), U.as_untyped(TE.Float))
-                |> TD.of_type
+                (U.as_untyped("bar"), U.as_untyped(TypeExpression.Float))
+                |> TypeStatement.of_type
                 |> U.as_untyped,
               ],
               [],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "module Foo {
   type bar: float;
@@ -176,29 +170,33 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [
                 (
                   U.as_untyped("bar"),
                   (
                     [
-                      (U.as_untyped("foo"), U.as_untyped(TE.Integer))
-                      |> TE.of_required
+                      (
+                        U.as_untyped("foo"),
+                        U.as_untyped(TypeExpression.Integer),
+                      )
+                      |> TypeExpression.ObjectEntry.of_required
                       |> U.as_untyped,
                     ]
-                    |> TE.of_struct
+                    |> TypeExpression.of_object
                     |> U.as_untyped,
-                    U.as_untyped(TE.Element),
+                    U.as_untyped(TypeExpression.Element),
                   )
-                  |> TE.of_view
+                  |> TypeExpression.of_view
                   |> U.as_untyped,
                 )
-                |> TD.of_type
+                |> TypeStatement.of_type
                 |> U.as_untyped,
               ],
               [],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "module Foo {
   type bar: view({ foo: integer }, element);
@@ -210,26 +208,27 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [
-                (U.as_untyped("bar"), U.as_untyped(TE.Float))
-                |> TD.of_type
+                (U.as_untyped("bar"), U.as_untyped(TypeExpression.Float))
+                |> TypeStatement.of_type
                 |> U.as_untyped,
                 (
                   U.as_untyped("foo"),
                   "bar"
                   |> U.as_untyped
-                  |> TE.of_id
+                  |> TypeExpression.of_identifier
                   |> U.as_untyped
-                  |> TE.of_list
+                  |> TypeExpression.of_list
                   |> U.as_untyped,
                 )
-                |> TD.of_type
+                |> TypeStatement.of_type
                 |> U.as_untyped,
               ],
               [],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "module Foo {
   type bar: float;
@@ -242,7 +241,7 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [
                 (
@@ -250,19 +249,23 @@ module Foo {}",
                   [
                     (
                       U.as_untyped("Verified"),
-                      [U.as_untyped(TE.Integer), U.as_untyped(TE.String)],
+                      [
+                        U.as_untyped(TypeExpression.Integer),
+                        U.as_untyped(TypeExpression.String),
+                      ],
                     ),
                     (
                       U.as_untyped("Unverified"),
-                      [U.as_untyped(TE.String)],
+                      [U.as_untyped(TypeExpression.String)],
                     ),
                   ],
                 )
-                |> TD.of_enum
+                |> TypeStatement.of_enumerated
                 |> U.as_untyped,
               ],
               [],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "module Foo {
   enum bar:
@@ -276,32 +279,34 @@ module Foo {}",
       () =>
         Assert.parse(
           U.as_untyped(
-            TD.Module(
+            (
               U.as_untyped("Foo"),
               [
-                (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-                |> TD.of_type
+                (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+                |> TypeStatement.of_type
                 |> U.as_untyped,
-                (U.as_untyped("bar"), U.as_untyped(TE.Integer))
-                |> TD.of_type
+                (U.as_untyped("bar"), U.as_untyped(TypeExpression.Integer))
+                |> TypeStatement.of_type
                 |> U.as_untyped,
-                (U.as_untyped("fizz"), U.as_untyped(TE.Float))
-                |> TD.of_declaration
+                (U.as_untyped("fizz"), U.as_untyped(TypeExpression.Float))
+                |> TypeStatement.of_declaration
                 |> U.as_untyped,
                 (
                   U.as_untyped("buzz"),
                   U.as_untyped(
-                    TE.Function(
-                      [U.as_untyped(TE.Element)],
-                      U.as_untyped(TE.String),
-                    ),
+                    (
+                      [U.as_untyped(TypeExpression.Element)],
+                      U.as_untyped(TypeExpression.String),
+                    )
+                    |> TypeExpression.of_function,
                   ),
                 )
-                |> TD.of_declaration
+                |> TypeStatement.of_declaration
                 |> U.as_untyped,
               ],
               [],
-            ),
+            )
+            |> TypeDefinition.of_module,
           ),
           "module Foo {
   type foo: boolean;

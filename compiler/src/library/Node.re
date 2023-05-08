@@ -7,10 +7,7 @@ let typed = (value: 'a, type_: 'b, range: Range.t): t('a, 'b) => (
   (type_, range),
 );
 
-let untyped = (value: 'a, range: Range.t): t('a, unit) => (
-  value,
-  ((), range),
-);
+let raw = (value: 'a, range: Range.t): t('a, unit) => (value, ((), range));
 
 /* methods */
 
@@ -38,6 +35,14 @@ let wrap = (f: t('a, 'b) => 'c, (_, meta) as node: t('a, 'b)): t('c, 'b) => (
   f(node),
   meta,
 );
+
+let analyzer =
+    (analyze: t('raw, unit) => ('result, 'typ), node: t('raw, unit))
+    : (t('result, 'typ), 'typ) => {
+  let (node', type_) = analyze(node);
+
+  (typed(node', type_, get_range(node)), type_);
+};
 
 /* pretty printing */
 

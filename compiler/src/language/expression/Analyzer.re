@@ -1,89 +1,55 @@
 open Kore;
-open AST;
 
-let rec analyze: (Scope.t, Raw.expression_t) => Result.expression_t =
-  (scope, node) => {
-    let node_range = Node.get_range(node);
+let _get_identifier =
+  Interface.(
+    fun
+    | Identifier(id) => Some(id)
+    | _ => None
+  );
 
-    (
-      switch (node) {
-      | (Primitive(prim), _) => (
-          Expression.Primitive(prim),
-          KPrimitive.analyze(prim),
-        )
+let rec analyze:
+  AST.Framework.Interface.analyze_t(
+    'ast,
+    Interface.t(unit),
+    Interface.t(AST.Type.t),
+  ) =
+  (scope, (statement, _) as node) => {
+    let bind = (analyze, to_expr, arg, value) =>
+      node
+      |> Node.map(_ => value)
+      |> analyze(arg, scope)
+      |> Tuple.map_fst2(to_expr);
 
-      | (Identifier(id), _) =>
-        let type_ = KIdentifier.analyze(scope, id, node_range);
-
-        (Expression.Identifier(id), type_);
-
-      | (UnaryOp(op, expr), _) =>
-        let (expr', type_) =
-          KUnaryOperator.analyze(scope, analyze, (op, expr), node_range);
-
-        (Expression.UnaryOp(op, expr'), type_);
-
-      | (BinaryOp(op, lhs, rhs), _) =>
-        let (lhs', rhs', type_) =
-          KBinaryOperator.analyze(
-            scope,
-            analyze,
-            (op, lhs, rhs),
-            node_range,
-          );
-
-        (Expression.BinaryOp(op, lhs', rhs'), type_);
-
-      | (Group(expr), _) =>
-        let expr' = expr |> KGroup.analyze(scope, analyze);
-
-        (Expression.Group(expr'), Node.get_type(expr'));
-
-      | (Closure(stmts), _) =>
-        let (stmts', type_) =
-          KClosure.analyze(
-            scope,
-            s => KStatement.Plugin.analyze(s, analyze),
-            stmts,
-            node_range,
-          );
-
-        (Expression.Closure(stmts'), type_);
-
-      | (DotAccess(expr, prop), _) =>
-        let (expr', type_) =
-          KDotAccess.analyze(scope, analyze, (expr, prop), node_range);
-
-        (Expression.DotAccess(expr', prop), type_);
-
-      | (BindStyle(lhs, rhs), _) =>
-        let (lhs', rhs') =
-          KBindStyle.analyze(scope, analyze, (lhs, rhs), node_range);
-        let lhs_type =
-          switch (lhs') {
-          | BuiltIn(expr)
-          | Local(expr) => Node.get_type(expr)
-          };
-
-        (Expression.BindStyle(lhs', rhs'), lhs_type);
-
-      | (FunctionCall(expr, args), _) =>
-        let (expr', args', type_) =
-          KFunctionCall.analyze(scope, analyze, (expr, args), node_range);
-
-        (Expression.FunctionCall(expr', args'), type_);
-
-      | (Style(rules), _) =>
-        let (rules', type_) =
-          KStyle.analyze(scope, analyze, rules, node_range);
-
-        (Expression.Style(rules'), type_);
-
-      | (JSX(jsx), _) =>
-        let (jsx', type_) = KSX.analyze(scope, analyze, jsx);
-
-        (Expression.JSX(jsx'), type_);
-      }
-    )
-    |> (((value, type_)) => Node.typed(value, type_, node_range));
+    statement
+    |> Interface.fold(
+         ~primitive=bind(Primitive.analyze, Interface.of_primitive, ()),
+         ~identifier=bind(Identifier.analyze, Interface.of_identifier, ()),
+         ~unary_op=
+           bind(
+             UnaryOperator.analyze,
+             ((op, expr)) => Interface.of_unary_op(op, expr),
+             analyze,
+           ),
+         ~binary_op=
+           bind(
+             BinaryOperator.analyze,
+             ((op, lhs, rhs)) => (lhs, rhs) |> Interface.of_binary_op(op),
+             analyze,
+           ),
+         ~group=bind(Group.analyze, Interface.of_group, analyze),
+         ~closure=bind(Closure.analyze, Interface.of_closure, analyze),
+         ~dot_access=
+           bind(DotAccess.analyze, Interface.of_dot_access, analyze),
+         ~bind_style=
+           bind(
+             BindStyle.analyze,
+             ((kind, lhs, rhs)) =>
+               Interface.of_bind_style(kind, (lhs, rhs)),
+             (analyze, (_get_identifier, Interface.of_identifier)),
+           ),
+         ~function_call=
+           bind(FunctionCall.analyze, Interface.of_function_call, analyze),
+         ~style=bind(Style.analyze, Interface.of_style, analyze),
+         ~ksx=bind(KSX.analyze, Interface.of_ksx, analyze),
+       );
   };

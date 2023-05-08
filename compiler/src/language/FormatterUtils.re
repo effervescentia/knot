@@ -1,4 +1,4 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
 module Namespace = Reference.Namespace;
@@ -7,7 +7,7 @@ let _sort_imports =
   List.sort((l, r) =>
     (l, r)
     |> Tuple.map2(
-         fst
+         Tuple.fst3
          % Namespace.(
              fun
              | Internal(name)
@@ -18,66 +18,62 @@ let _sort_imports =
        )
     |> Tuple.join2(String.compare)
   )
-  % List.map(((namespace, imports)) => {
-      let (main_import, named_imports) =
-        imports
-        |> List.fold_left(
-             ((m, n)) =>
-               fst
-               % Module.(
-                   fun
-                   | MainImport(id) => (Some(fst(id)), n)
-                   | NamedImport(id, label) => (
-                       m,
-                       [(fst(id), label |> Option.map(fst)), ...n],
-                     )
-                 ),
-             (None, []),
+  % List.map(((namespace, main_import, named_imports)) => {
+      let main_import' = main_import |> Option.map(id => fst(id));
+      let named_imports' =
+        named_imports
+        |> List.map((((id, alias), _)) =>
+             (fst(id), alias |> Option.map(fst))
            );
 
       let sorted_named_imports =
-        named_imports
+        named_imports'
         |> List.sort((l, r) =>
              (l, r) |> Tuple.map2(fst) |> Tuple.join2(String.compare)
            );
 
-      (namespace, main_import, sorted_named_imports);
+      (namespace, main_import', sorted_named_imports);
     });
 
-let extract_imports = (program: Module.program_t) =>
+let extract_imports = (program: Interface.program_t('typ)) =>
   program
   |> List.fold_left(
        acc =>
          fst
-         % Module.(
+         % ModuleStatement.(
              fun
-             | StandardImport(imports) =>
+             | StdlibImport(named_imports) =>
                acc
                |> Tuple.map_fst3(
-                    imports
+                    named_imports
                     |> List.map(
                          fst % Tuple.map_each2(fst, Option.map(fst)),
                        )
                     |> List.incl_all,
                   )
-             | Import(External(_) as namespace, imports) =>
-               acc |> Tuple.map_snd3(List.cons((namespace, imports)))
-             | Import(Internal(_) as namespace, imports) =>
-               acc |> Tuple.map_thd3(List.cons((namespace, imports)))
+             | Import((External(_) as namespace, main_import, named_imports)) =>
+               acc
+               |> Tuple.map_snd3(
+                    List.cons((namespace, main_import, named_imports)),
+                  )
+             | Import((Internal(_) as namespace, main_import, named_imports)) =>
+               acc
+               |> Tuple.map_thd3(
+                    List.cons((namespace, main_import, named_imports)),
+                  )
              | _ => acc
            ),
        ([], [], []),
      )
   |> Tuple.map_each3(Fun.id, _sort_imports, _sort_imports);
 
-let extract_declarations = (program: Module.program_t) =>
+let extract_declarations = (program: Interface.program_t('typ)) =>
   program
   |> List.filter_map(
        fst
-       % Module.(
+       % ModuleStatement.(
            fun
-           | Declaration(MainExport(name) | NamedExport(name), decl) =>
-             Some((fst(name), fst(decl)))
+           | Export((_, name, decl)) => Some((fst(name), fst(decl)))
            | _ => None
          ),
      );

@@ -5,8 +5,10 @@ import {
   isJSONRPCRequest,
   isJSONRPCResponse,
   JSONRPCClient,
+  JSONRPCParams,
 } from 'json-rpc-2.0';
 
+import { CONNECTION_TIMEOUT } from '../constants';
 import { NotificationMap } from '../protocol';
 
 const NEWLINE = '\r\n';
@@ -21,7 +23,10 @@ export interface RPCOptions {
   debug?: boolean;
 }
 
-class RPCClient extends Emittery<NotificationMap> {
+class RPCClient
+  extends Emittery<NotificationMap>
+  implements Pick<JSONRPCClient, 'request' | 'notify'>
+{
   private rpc = new JSONRPCClient(async (rpcRequest) => {
     const json = JSON.stringify(rpcRequest);
 
@@ -41,22 +46,13 @@ class RPCClient extends Emittery<NotificationMap> {
     });
   });
 
-  request = this.rpc.request.bind(this.rpc);
-  notify = this.rpc.notify.bind(this.rpc);
+  private connection: Promise<void> | null;
 
   constructor(
-    private proc: execa.ExecaChildProcess,
-    private options: RPCOptions = {}
+    private readonly proc: execa.ExecaChildProcess,
+    private readonly options: RPCOptions = {}
   ) {
     super();
-
-    proc.stdin.setDefaultEncoding('utf8');
-
-    proc.stdout.on('data', (data) => {
-      const dataStr = Buffer.from(data).toString();
-
-      this.read(dataStr);
-    });
   }
 
   private read(data: string) {
@@ -93,6 +89,57 @@ class RPCClient extends Emittery<NotificationMap> {
     if (rest?.length > contentLength) {
       this.read(rest.slice(contentLength));
     }
+  }
+
+  request(
+    method: string,
+    params?: JSONRPCParams,
+    clientParams?: void
+  ): PromiseLike<any> {
+    if (this.options.debug) {
+      console.log(`sending '${method}' request`, params);
+    }
+
+    return this.rpc.request(method, params, clientParams);
+  }
+
+  notify(method: string, params?: JSONRPCParams, clientParams?: void): void {
+    if (this.options.debug) {
+      console.log(`sending '${method}' notification`, params);
+    }
+
+    return this.rpc.notify(method, params, clientParams);
+  }
+
+  start() {
+    if (this.connection) {
+      throw new Error('compiler client has already been started');
+    }
+
+    let isConnected = false;
+    this.connection = new Promise((resolve, reject) => {
+      this.proc.once('spawn', () => {
+        isConnected = true;
+
+        this.proc.stdin.setDefaultEncoding('utf8');
+
+        resolve();
+
+        this.proc.stdout.on('data', (data) => {
+          const dataStr = Buffer.from(data).toString();
+
+          this.read(dataStr);
+        });
+      });
+
+      setTimeout(() => {
+        if (!isConnected) {
+          reject();
+        }
+      }, CONNECTION_TIMEOUT);
+    });
+
+    return this.connection;
   }
 
   terminate() {

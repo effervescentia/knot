@@ -1,43 +1,18 @@
 open Kore;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
-
-module Assert =
-  Assert.Make({
-    type t = AR.expression_t;
-
-    let parser = ctx =>
-      KSX.Plugin.parse((
-        ctx,
-        (KExpression.Parser.parse_jsx_term, KExpression.Plugin.parse),
-      ))
-      |> Assert.parse_completely
-      |> Parser.parse;
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            ppf => KExpression.Plugin.to_xml(_ => "") % Fmt.xml_string(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
-  });
 
 let suite =
   "Grammar.JSX"
   >::: [
-    "no parse" >: (() => Assert.no_parse("gibberish")),
+    "no parse" >: (() => Assert.Expression.no_parse("<gibberish")),
     "parse tag"
     >: (
       () =>
-        Assert.parse_all(
+        Assert.Expression.parse_all(
           (U.as_untyped("Foo"), [], [], [])
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           ["<Foo></Foo>", " < Foo > < / Foo > "],
         )
@@ -45,10 +20,10 @@ let suite =
     "parse self-closing tag"
     >: (
       () =>
-        Assert.parse_all(
+        Assert.Expression.parse_all(
           (U.as_untyped("Foo"), [], [], [])
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           ["<Foo/>", " < Foo / > "],
         )
@@ -56,10 +31,15 @@ let suite =
     "parse style expression binding"
     >: (
       () =>
-        Assert.parse(
-          (U.as_untyped("Foo"), ["bar" |> AR.of_id |> U.as_untyped], [], [])
-          |> AR.of_tag
-          |> AR.of_jsx
+        Assert.Expression.parse(
+          (
+            U.as_untyped("Foo"),
+            ["bar" |> Expression.of_identifier |> U.as_untyped],
+            [],
+            [],
+          )
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo::bar />",
         )
@@ -67,36 +47,40 @@ let suite =
     "parse style literal binding"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [
               [
                 (U.as_untyped("color"), U.string_prim("red")) |> U.as_untyped,
               ]
-              |> AR.of_style
+              |> Expression.of_style
               |> U.as_untyped,
             ],
             [],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo::{ color: \"red\" } />",
         )
     ),
     "parse empty fragment"
     >: (
-      () => Assert.parse([] |> AR.of_frag |> AR.of_jsx |> U.as_node, "<></>")
+      () =>
+        Assert.Expression.parse(
+          [] |> KSX.of_fragment |> Expression.of_ksx |> U.as_node,
+          "<></>",
+        )
     ),
     "parse fragment with children"
     >: (
       () =>
-        Assert.parse(
-          [(U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped]
-          |> AR.of_frag
-          |> AR.of_jsx
+        Assert.Expression.parse(
+          [(U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped]
+          |> KSX.of_fragment
+          |> Expression.of_ksx
           |> U.as_node,
           "<><Bar /></>",
         )
@@ -104,21 +88,21 @@ let suite =
     "parse property with identifier value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [
               (
                 U.as_untyped("fizz"),
-                "buzz" |> AR.of_id |> U.as_node |> Option.some,
+                "buzz" |> Expression.of_identifier |> U.as_node |> Option.some,
               )
               |> U.as_untyped,
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz=buzz />",
         )
@@ -126,7 +110,7 @@ let suite =
     "parse property with string value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
@@ -136,8 +120,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz=\"buzz\" />",
         )
@@ -145,15 +129,21 @@ let suite =
     "parse property with closure value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [
               (
                 U.as_untyped("fizz"),
-                ["buzz" |> AR.of_id |> U.as_node |> AR.of_expr |> U.as_node]
-                |> AR.of_closure
+                [
+                  "buzz"
+                  |> Expression.of_identifier
+                  |> U.as_node
+                  |> Statement.of_effect
+                  |> U.as_node,
+                ]
+                |> Expression.of_closure
                 |> U.as_node
                 |> Option.some,
               )
@@ -161,8 +151,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz={ buzz; } />",
         )
@@ -170,15 +160,15 @@ let suite =
     "parse property with expression value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [
               (
                 U.as_untyped("fizz"),
-                ("buzz" |> AR.of_id |> U.as_node, [])
-                |> AR.of_func_call
+                ("buzz" |> Expression.of_identifier |> U.as_node, [])
+                |> Expression.of_function_call
                 |> U.as_node
                 |> Option.some,
               )
@@ -186,8 +176,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz=buzz() />",
         )
@@ -195,7 +185,7 @@ let suite =
     "parse property with grouped expression value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
@@ -203,7 +193,7 @@ let suite =
               (
                 U.as_untyped("fizz"),
                 (U.int_prim(1), U.int_prim(2))
-                |> AR.of_gt_op
+                |> Expression.of_gt_op
                 |> U.as_node
                 |> Option.some,
               )
@@ -211,8 +201,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz=(1 > 2) />",
         )
@@ -220,7 +210,7 @@ let suite =
     "parse property with grouped boolean value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
@@ -230,8 +220,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz=(true) />",
         )
@@ -239,37 +229,16 @@ let suite =
     "parse property with negative integer value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [
               (
                 U.as_untyped("fizz"),
-                3 |> U.int_prim |> AR.of_neg_op |> U.as_node |> Option.some,
-              )
-              |> U.as_untyped,
-            ],
-            [],
-          )
-          |> AR.of_tag
-          |> AR.of_jsx
-          |> U.as_node,
-          "<Foo fizz=-3 />",
-        )
-    ),
-    "parse property with JSX value"
-    >: (
-      () =>
-        Assert.parse(
-          (
-            U.as_untyped("Foo"),
-            [],
-            [
-              (
-                U.as_untyped("fizz"),
-                (U.as_untyped("buzz"), [], [], [])
-                |> U.jsx_tag
+                3
+                |> U.int_prim
+                |> Expression.of_negative_op
                 |> U.as_node
                 |> Option.some,
               )
@@ -277,8 +246,33 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
+          |> U.as_node,
+          "<Foo fizz=-3 />",
+        )
+    ),
+    "parse property with JSX value"
+    >: (
+      () =>
+        Assert.Expression.parse(
+          (
+            U.as_untyped("Foo"),
+            [],
+            [
+              (
+                U.as_untyped("fizz"),
+                (U.as_untyped("buzz"), [], [], [])
+                |> U.ksx_tag
+                |> U.as_node
+                |> Option.some,
+              )
+              |> U.as_untyped,
+            ],
+            [],
+          )
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz=<buzz /> />",
         )
@@ -286,15 +280,15 @@ let suite =
     "parse property with punned value"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [(U.as_untyped("fizz"), None) |> U.as_untyped],
             [],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo fizz />",
         )
@@ -302,17 +296,17 @@ let suite =
     "parse single tag child"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [],
             [
-              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo><Bar /></Foo>",
         )
@@ -320,21 +314,21 @@ let suite =
     "parse single inline expression child"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [],
             [
               (U.int_prim(1), U.int_prim(2))
-              |> AR.of_add_op
+              |> Expression.of_add_op
               |> U.as_node
-              |> AR.of_inline_expr
+              |> KSX.Child.of_inline
               |> U.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo>{1 + 2}</Foo>",
         )
@@ -342,21 +336,21 @@ let suite =
     "parse single JSX inline expression child"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [],
             [
               (U.as_untyped("Bar"), [], [], [])
-              |> U.jsx_tag
+              |> U.ksx_tag
               |> U.as_node
-              |> AR.of_inline_expr
+              |> KSX.Child.of_inline
               |> U.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo>{<Bar />}</Foo>",
         )
@@ -364,15 +358,15 @@ let suite =
     "parse single text child"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [],
-            ["bar \"or\" 123" |> AR.of_text |> U.as_untyped],
+            ["bar \"or\" 123" |> KSX.Child.of_text |> U.as_untyped],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo> bar \"or\" 123 </Foo>",
         )
@@ -380,7 +374,7 @@ let suite =
     "parse complex - nested with attributes"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
@@ -389,11 +383,11 @@ let suite =
               |> U.as_untyped,
             ],
             [
-              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo bar=4><Bar /></Foo>",
         )
@@ -401,25 +395,25 @@ let suite =
     "parse complex - multiple inline children of different types"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           (
             U.as_untyped("Foo"),
             [],
             [],
             [
-              "bar" |> AR.of_text |> U.as_untyped,
+              "bar" |> KSX.Child.of_text |> U.as_untyped,
               (U.int_prim(1), U.int_prim(2))
-              |> AR.of_add_op
+              |> Expression.of_add_op
               |> U.as_node
-              |> AR.of_inline_expr
+              |> KSX.Child.of_inline
               |> U.as_untyped,
-              (U.as_untyped("Bar"), [], [], []) |> U.jsx_node |> U.as_untyped,
-              "fizz" |> U.string_prim |> AR.of_inline_expr |> U.as_untyped,
-              "buzz" |> AR.of_text |> U.as_untyped,
+              (U.as_untyped("Bar"), [], [], []) |> U.ksx_node |> U.as_untyped,
+              "fizz" |> U.string_prim |> KSX.Child.of_inline |> U.as_untyped,
+              "buzz" |> KSX.Child.of_text |> U.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> AR.of_jsx
+          |> KSX.of_element_tag
+          |> Expression.of_ksx
           |> U.as_node,
           "<Foo>bar{1 + 2}<Bar />{\"fizz\"}buzz</Foo>",
         )

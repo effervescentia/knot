@@ -1,11 +1,11 @@
 open Kore;
 
-module A = AST.Result;
-module AR = AST.Raw;
 module T = AST.Type;
+module Primitive = KPrimitive.Plugin;
+module Expression = KExpression.Plugin;
 
 module CommonUtil = {
-  let as_untyped = (~range=Range.zero, x) => Node.untyped(x, range);
+  let as_untyped = (~range=Range.zero, x) => Node.raw(x, range);
   let as_typed = (~range=Range.zero, type_, x) =>
     Node.typed(x, type_, range);
 };
@@ -17,30 +17,39 @@ module RawUtil = {
 
   let as_node = x => as_typed((), x);
   let as_unknown = x => as_typed(`Unknown, x);
-  let as_nil = x => as_typed(`Nil, x);
-  let as_bool = x => as_typed(`Boolean, x);
-  let as_int = x => as_typed(`Integer, x);
-  let as_float = x => as_typed(`Float, x);
-  let as_string = x => as_typed(`String, x);
-  let as_element = x => as_typed(`Element, x);
-  let as_style = x => as_typed(`Style, x);
-  let as_struct = (props, x) => as_typed(`Struct(props), x);
-  let as_function = (args, res, x) => as_typed(`Function((args, res)), x);
+  let as_nil = x => as_typed(T.Nil, x);
+  let as_bool = x => as_typed(T.Boolean, x);
+  let as_int = x => as_typed(T.Integer, x);
+  let as_float = x => as_typed(T.Float, x);
+  let as_string = x => as_typed(T.String, x);
+  let as_element = x => as_typed(T.Element, x);
+  let as_style = x => as_typed(T.Style, x);
+  let as_struct = (props, x) => as_typed(T.Object(props), x);
+  let as_function = (args, res, x) => as_typed(T.Function(args, res), x);
   let as_decorator = (args, target, x) =>
-    as_typed(`Decorator((args, target)), x);
+    as_typed(T.Decorator(args, target), x);
 
   /* primitive factories */
 
-  let nil_prim = AR.nil |> AR.of_prim |> as_node;
-  let bool_prim = AR.of_bool % AR.of_prim % as_node;
-  let int_prim = Int64.of_int % AR.of_int % AR.of_num % AR.of_prim % as_node;
-  let float_prim = AR.of_float % AR.of_num % AR.of_prim % as_node;
-  let string_prim = AR.of_string % AR.of_prim % as_node;
+  let nil_prim: Node.t(Expression.t(unit), unit) =
+    Primitive.nil |> Expression.of_primitive |> as_node;
+  let bool_prim = x =>
+    Primitive.of_boolean(x) |> Expression.of_primitive |> as_node;
+  let int_prim = x =>
+    Int64.of_int(x)
+    |> Primitive.of_integer
+    |> Expression.of_primitive
+    |> as_node;
+  let float_prim = x =>
+    Primitive.of_float(x) |> Expression.of_primitive |> as_node;
+  let string_prim = x =>
+    Primitive.of_string(x) |> Expression.of_primitive |> as_node;
 
   /* jsx factories */
 
-  let jsx_node = x => x |> AR.of_tag |> AR.of_node;
-  let jsx_tag = x => x |> AR.of_tag |> AR.of_jsx;
+  let ksx_node = x =>
+    x |> KSX.Interface.of_element_tag |> KSX.Interface.Child.of_node;
+  let ksx_tag = x => x |> KSX.Interface.of_element_tag |> Expression.of_ksx;
 };
 
 module ResultUtil = {
@@ -49,33 +58,41 @@ module ResultUtil = {
   /* typecasting utilities */
 
   let as_invalid = (inv, x) => as_typed(T.Invalid(inv), x);
-  let as_nil = x => as_typed(T.Valid(`Nil), x);
-  let as_bool = x => as_typed(T.Valid(`Boolean), x);
-  let as_int = x => as_typed(T.Valid(`Integer), x);
-  let as_float = x => as_typed(T.Valid(`Float), x);
-  let as_string = x => as_typed(T.Valid(`String), x);
-  let as_element = x => as_typed(T.Valid(`Element), x);
-  let as_style = x => as_typed(T.Valid(`Style), x);
+  let as_nil = x => as_typed(T.Valid(Nil), x);
+  let as_bool = x => as_typed(T.Valid(Boolean), x);
+  let as_int = x => as_typed(T.Valid(Integer), x);
+  let as_float = x => as_typed(T.Valid(Float), x);
+  let as_string = x => as_typed(T.Valid(String), x);
+  let as_element = x => as_typed(T.Valid(Element), x);
+  let as_style = x => as_typed(T.Valid(Style), x);
   let as_enum = (variants, x) =>
-    as_typed(T.Valid(`Enumerated(variants)), x);
-  let as_struct = (props, x) => as_typed(T.Valid(`Struct(props)), x);
+    as_typed(T.Valid(Enumerated(variants)), x);
+  let as_struct = (props, x) => as_typed(T.Valid(Object(props)), x);
   let as_function = (args, res, x) =>
-    as_typed(T.Valid(`Function((args, res))), x);
-  let as_view = (props, res, x) =>
-    as_typed(T.Valid(`View((props, res))), x);
+    as_typed(T.Valid(Function(args, res)), x);
+  let as_view = (props, res, x) => as_typed(T.Valid(View(props, res)), x);
   let as_decorator = (args, target, x) =>
-    as_typed(T.Valid(`Decorator((args, target))), x);
+    as_typed(T.Valid(Decorator(args, target)), x);
 
   /* primitive factories */
 
-  let nil_prim = A.nil |> A.of_prim |> as_nil;
-  let bool_prim = A.of_bool % A.of_prim % as_bool;
-  let int_prim = Int64.of_int % A.of_int % A.of_num % A.of_prim % as_int;
-  let float_prim = A.of_float % A.of_num % A.of_prim % as_float;
-  let string_prim = A.of_string % A.of_prim % as_string;
+  let nil_prim: Node.t(Expression.t(T.t), T.t) =
+    Primitive.nil |> Expression.of_primitive |> as_nil;
+  let bool_prim = x =>
+    Primitive.of_boolean(x) |> Expression.of_primitive |> as_bool;
+  let int_prim = x =>
+    Int64.of_int(x)
+    |> Primitive.of_integer
+    |> Expression.of_primitive
+    |> as_int;
+  let float_prim = x =>
+    Primitive.of_float(x) |> Expression.of_primitive |> as_float;
+  let string_prim = x =>
+    Primitive.of_string(x) |> Expression.of_primitive |> as_string;
 
   /* jsx factories */
 
-  let jsx_node = x => x |> A.of_tag |> A.of_node;
-  let jsx_tag = x => x |> A.of_tag |> A.of_jsx;
+  let ksx_node = x =>
+    x |> KSX.Interface.of_element_tag |> KSX.Interface.Child.of_node;
+  let ksx_tag = x => x |> KSX.Interface.of_element_tag |> Expression.of_ksx;
 };

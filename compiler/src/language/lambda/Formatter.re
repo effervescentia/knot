@@ -1,16 +1,17 @@
 open Knot.Kore;
 open AST;
 
-let format_body:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_expression_t) =
-  (pp_expression, ppf) =>
-    fun
-    | Closure(_) as expr => Fmt.pf(ppf, "-> %a", pp_expression, expr)
-    | expr => Fmt.pf(ppf, "-> %a;", pp_expression, expr);
+let format_body: ('expr => bool, Fmt.t('expr)) => Fmt.t('expr) =
+  (add_terminator, pp_expression, ppf, expr) =>
+    if (add_terminator(expr)) {
+      Fmt.pf(ppf, "-> %a;", pp_expression, expr);
+    } else {
+      Fmt.pf(ppf, "-> %a", pp_expression, expr);
+    };
 
-let format_argument:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_argument_t) =
-  (pp_expression, ppf, {name: (name, _), default, _}) =>
+let format_parameter:
+  Fmt.t('expr) => Fmt.t(Interface.Parameter.t('expr, 'typ)) =
+  (pp_expression, ppf, ((name, _), _, default)) =>
     Fmt.pf(
       ppf,
       "%s%a",
@@ -22,8 +23,8 @@ let format_argument:
       default,
     );
 
-let format_argument_list:
-  Fmt.t(Result.raw_expression_t) => Fmt.t(list(Result.argument_t)) =
+let format_parameter_list:
+  Fmt.t('expr) => Fmt.t(list(Interface.Parameter.node_t('expr, 'typ))) =
   (pp_expression, ppf) =>
     fun
     | [] => Fmt.nop(ppf, ())
@@ -32,7 +33,7 @@ let format_argument_list:
         pf(
           ppf,
           "(%a)",
-          list(~sep=Sep.trailing_comma, format_argument(pp_expression)),
+          list(~sep=Sep.trailing_comma, format_parameter(pp_expression)),
           args |> List.map(fst),
         )
       );

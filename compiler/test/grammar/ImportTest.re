@@ -1,22 +1,26 @@
 open Kore;
 
-module Export = Reference.Export;
 module ModuleTable = AST.ModuleTable;
-module ParseContext = AST.ParseContext;
 module U = Util.CommonUtil;
 
 module Assert =
   Assert.Make({
-    type t = AM.module_statement_t;
+    type t = ModuleStatement.node_t(Declaration.node_t(Type.t));
 
-    let parser = KImport.Plugin.parse % Assert.parse_completely % Parser.parse;
+    let parser =
+      Import.parse((
+        ModuleStatement.of_import,
+        ModuleStatement.of_stdlib_import,
+      ))
+      % Assert.parse_completely
+      % Parser.parse;
 
     let test =
       Alcotest.(
         check(
           testable(
             ppf =>
-              Language.Program.module_statement_to_xml(~@T.pp)
+              ModuleStatement.to_xml(Declaration.to_xml(~@Type.pp))
               % Fmt.xml_string(ppf),
             (==),
           ),
@@ -27,7 +31,9 @@ module Assert =
 
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
-let _create_module = (exports: list((Export.t, T.t))): ModuleTable.module_t => {
+let _create_module =
+    (exports: list((Export.t, Type.t)))
+    : ModuleTable.module_t(Language.Interface.program_t(Type.t)) => {
   ast: [],
   scopes: __scope_tree,
   symbols: AST.SymbolTable.of_export_list(exports),
@@ -45,13 +51,13 @@ let __context_with_named_exports =
     ~modules=
       [
         (
-          "bar" |> A.of_internal,
+          Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
             _create_module([
-              (Export.Main, T.Valid(`Nil)),
-              (Export.Named("bar"), T.Valid(`Boolean)),
-              (Export.Named("foo"), T.Valid(`String)),
+              (Export.Main, Type.Valid(Nil)),
+              (Export.Named("bar"), Type.Valid(Boolean)),
+              (Export.Named("foo"), Type.Valid(String)),
             ]),
           ),
         ),
@@ -65,10 +71,10 @@ let __context_with_main_export =
     ~modules=
       [
         (
-          "bar" |> A.of_internal,
+          Namespace.Internal("bar"),
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, T.Valid(`Nil))]),
+            _create_module([(Export.Main, Type.Valid(Nil))]),
           ),
         ),
       ]
@@ -95,10 +101,11 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
-            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
+            Namespace.Internal("bar"),
+            "foo" |> U.as_untyped |> Option.some,
+            [],
           )
-          |> A.of_import
+          |> ModuleStatement.of_import
           |> U.as_untyped,
           "import foo from \"@/bar\"",
         )
@@ -108,7 +115,9 @@ let suite =
       () =>
         Assert.parse(
           ~context=__context_with_named_exports,
-          ("bar" |> A.of_internal, []) |> A.of_import |> U.as_untyped,
+          (Namespace.Internal("bar"), None, [])
+          |> ModuleStatement.of_import
+          |> U.as_untyped,
           "import {} from \"@/bar\"",
         )
     ),
@@ -118,12 +127,11 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
-            [
-              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
-            ],
+            Namespace.Internal("bar"),
+            None,
+            [(U.as_untyped("foo"), None) |> U.as_untyped],
           )
-          |> A.of_import
+          |> ModuleStatement.of_import
           |> U.as_untyped,
           "import { foo } from \"@/bar\"",
         )
@@ -134,14 +142,14 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
+            Namespace.Internal("bar"),
+            None,
             [
               (U.as_untyped("foo"), Some(U.as_untyped("bar")))
-              |> A.of_named_import
               |> U.as_untyped,
             ],
           )
-          |> A.of_import
+          |> ModuleStatement.of_import
           |> U.as_untyped,
           "import { foo as bar } from \"@/bar\"",
         )
@@ -152,18 +160,15 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
+            Namespace.Internal("bar"),
+            "fizz" |> U.as_untyped |> Option.some,
             [
-              "fizz" |> U.as_untyped |> A.of_main_import |> U.as_untyped,
-              (U.as_untyped("foo"), None)
-              |> A.of_named_import
-              |> U.as_untyped,
+              (U.as_untyped("foo"), None) |> U.as_untyped,
               (U.as_untyped("bar"), Some(U.as_untyped("Bar")))
-              |> A.of_named_import
               |> U.as_untyped,
             ],
           )
-          |> A.of_import
+          |> ModuleStatement.of_import
           |> U.as_untyped,
           "import fizz, { foo, bar as Bar } from \"@/bar\"",
         )
@@ -174,15 +179,14 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           (
-            "bar" |> A.of_internal,
+            Namespace.Internal("bar"),
+            None,
             [
-              (U.as_untyped("foo"), None) |> A.of_named_import |> U.as_untyped,
-              (U.as_untyped("bar"), None)
-              |> A.of_named_import
-              |> U.as_untyped,
+              (U.as_untyped("foo"), None) |> U.as_untyped,
+              (U.as_untyped("bar"), None) |> U.as_untyped,
             ],
           )
-          |> A.of_import
+          |> ModuleStatement.of_import
           |> U.as_untyped,
           "import { foo, bar, } from \"@/bar\"",
         )
@@ -193,10 +197,11 @@ let suite =
         Assert.parse_all(
           ~context=__context_with_main_export,
           (
-            "bar" |> A.of_internal,
-            ["foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
+            Namespace.Internal("bar"),
+            "foo" |> U.as_untyped |> Option.some,
+            [],
           )
-          |> A.of_import
+          |> ModuleStatement.of_import
           |> U.as_untyped,
           [
             "import foo from \"@/bar\";",
@@ -210,7 +215,7 @@ let suite =
         Assert.parse(
           ~context=__context_with_named_exports,
           [(U.as_untyped("foo"), None) |> U.as_untyped]
-          |> A.of_standard_import
+          |> ModuleStatement.of_stdlib_import
           |> U.as_untyped,
           "import { foo }",
         )
@@ -223,7 +228,7 @@ let suite =
           [
             (U.as_untyped("foo"), Some(U.as_untyped("bar"))) |> U.as_untyped,
           ]
-          |> A.of_standard_import
+          |> ModuleStatement.of_stdlib_import
           |> U.as_untyped,
           "import { foo as bar }",
         )

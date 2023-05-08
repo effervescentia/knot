@@ -1,3 +1,5 @@
+include Interface;
+
 let parse = Parser.parse;
 
 let analyze = Analyzer.analyze;
@@ -5,3 +7,4 @@ let analyze = Analyzer.analyze;
 let format = Formatter.format;
 
 let to_xml = Debug.to_xml;
+let to_xml_raw = Debug.to_xml_raw;

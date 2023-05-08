@@ -1,3 +1,5 @@
+include Interface;
+
 let parse = Parser.parse;
 
 let format = Formatter.format;

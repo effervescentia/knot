@@ -1,7 +1,7 @@
 open Kore;
 
-module TE = AST.TypeExpression;
 module U = Util.RawUtil;
+module ObjectEntry = TypeExpression.ObjectEntry;
 
 let __empty_defs = AST.SymbolTable.create();
 
@@ -11,49 +11,46 @@ let suite =
     "nil"
     >: (
       () =>
-        Assert.type_(
-          Valid(`Nil),
-          KTypeExpression.Plugin.analyze(__empty_defs, Nil),
-        )
+        Assert.type_(Valid(Nil), TypeExpression.analyze(__empty_defs, Nil))
     ),
     "boolean"
     >: (
       () =>
         Assert.type_(
-          Valid(`Boolean),
-          KTypeExpression.Plugin.analyze(__empty_defs, Boolean),
+          Valid(Boolean),
+          TypeExpression.analyze(__empty_defs, Boolean),
         )
     ),
     "integer"
     >: (
       () =>
         Assert.type_(
-          Valid(`Integer),
-          KTypeExpression.Plugin.analyze(__empty_defs, Integer),
+          Valid(Integer),
+          TypeExpression.analyze(__empty_defs, Integer),
         )
     ),
     "float"
     >: (
       () =>
         Assert.type_(
-          Valid(`Float),
-          KTypeExpression.Plugin.analyze(__empty_defs, Float),
+          Valid(Float),
+          TypeExpression.analyze(__empty_defs, Float),
         )
     ),
     "string"
     >: (
       () =>
         Assert.type_(
-          Valid(`String),
-          KTypeExpression.Plugin.analyze(__empty_defs, String),
+          Valid(String),
+          TypeExpression.analyze(__empty_defs, String),
         )
     ),
     "element"
     >: (
       () =>
         Assert.type_(
-          Valid(`Element),
-          KTypeExpression.Plugin.analyze(__empty_defs, Element),
+          Valid(Element),
+          TypeExpression.analyze(__empty_defs, Element),
         )
     ),
     "identifier"
@@ -62,14 +59,11 @@ let suite =
         let symbols = AST.SymbolTable.create();
 
         symbols.declared.types =
-          symbols.declared.types @ [("foo", Valid(`Boolean))];
+          symbols.declared.types @ [("foo", Valid(Boolean))];
 
         Assert.type_(
-          Valid(`Boolean),
-          KTypeExpression.Plugin.analyze(
-            symbols,
-            Identifier(U.as_untyped("foo")),
-          ),
+          Valid(Boolean),
+          TypeExpression.analyze(symbols, Identifier(U.as_untyped("foo"))),
         );
       }
     ),
@@ -77,26 +71,26 @@ let suite =
     >: (
       () =>
         Assert.type_(
-          Valid(`String),
-          TE.String
+          Valid(String),
+          TypeExpression.String
           |> U.as_untyped
-          |> TE.of_group
+          |> TypeExpression.of_group
           |> U.as_untyped
-          |> TE.of_group
+          |> TypeExpression.of_group
           |> U.as_untyped
-          |> TE.of_group
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.of_group
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "list type"
     >: (
       () =>
         Assert.type_(
-          Valid(`List(Valid(`Boolean))),
-          TE.Boolean
+          Valid(List(Valid(Boolean))),
+          TypeExpression.Boolean
           |> U.as_untyped
-          |> TE.of_list
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.of_list
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "struct type"
@@ -104,21 +98,21 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `Struct([
-              ("foo", (Valid(`Boolean), true)),
-              ("bar", (Valid(`String), false)),
+            Object([
+              ("foo", (Valid(Boolean), true)),
+              ("bar", (Valid(String), false)),
             ]),
           ),
           [
-            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-            |> TE.of_required
+            (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+            |> ObjectEntry.of_required
             |> U.as_untyped,
-            (U.as_untyped("bar"), U.as_untyped(TE.String))
-            |> TE.of_optional
+            (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+            |> ObjectEntry.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_struct
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.of_object
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "struct type with spread and overrides"
@@ -132,18 +126,18 @@ let suite =
             (
               "var1",
               Valid(
-                `Struct([
-                  ("foo", (Valid(`Element), false)),
-                  ("fizz", (Valid(`Boolean), false)),
+                Object([
+                  ("foo", (Valid(Element), false)),
+                  ("fizz", (Valid(Boolean), false)),
                 ]),
               ),
             ),
             (
               "var2",
               Valid(
-                `Struct([
-                  ("buzz", (Valid(`Integer), true)),
-                  ("bar", (Valid(`Boolean), true)),
+                Object([
+                  ("buzz", (Valid(Integer), true)),
+                  ("bar", (Valid(Boolean), true)),
                 ]),
               ),
             ),
@@ -151,38 +145,40 @@ let suite =
 
         Assert.type_(
           Valid(
-            `Struct([
-              ("foo", (Valid(`Element), false)),
-              ("fizz", (Valid(`Boolean), false)),
-              ("buzz", (Valid(`Integer), true)),
-              ("bar", (Valid(`String), false)),
+            Object([
+              ("foo", (Valid(Element), false)),
+              ("fizz", (Valid(Boolean), false)),
+              ("buzz", (Valid(Integer), true)),
+              ("bar", (Valid(String), false)),
             ]),
           ),
           [
-            (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-            |> TE.of_required
+            (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+            |> ObjectEntry.of_required
             |> U.as_untyped,
-            U.as_untyped(TE.Identifier(U.as_untyped("var1")))
-            |> TE.of_spread
+            U.as_untyped(TypeExpression.Identifier(U.as_untyped("var1")))
+            |> ObjectEntry.of_spread
             |> U.as_untyped,
             U.as_untyped(
-              TE.Struct([
-                (U.as_untyped("buzz"), U.as_untyped(TE.Float))
-                |> TE.of_optional
+              TypeExpression.Object([
+                (U.as_untyped("buzz"), U.as_untyped(TypeExpression.Float))
+                |> ObjectEntry.of_optional
                 |> U.as_untyped,
-                U.as_untyped(TE.Identifier(U.as_untyped("var2")))
-                |> TE.of_spread
+                U.as_untyped(
+                  TypeExpression.Identifier(U.as_untyped("var2")),
+                )
+                |> ObjectEntry.of_spread
                 |> U.as_untyped,
               ]),
             )
-            |> TE.of_spread
+            |> ObjectEntry.of_spread
             |> U.as_untyped,
-            (U.as_untyped("bar"), U.as_untyped(TE.String))
-            |> TE.of_optional
+            (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+            |> ObjectEntry.of_optional
             |> U.as_untyped,
           ]
-          |> TE.of_struct
-          |> KTypeExpression.Plugin.analyze(symbols),
+          |> TypeExpression.of_object
+          |> TypeExpression.analyze(symbols),
         );
       }
     ),
@@ -191,17 +187,17 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `Function((
-              [Valid(`Boolean), Valid(`String)],
-              Valid(`Element),
-            )),
+            Function([Valid(Boolean), Valid(String)], Valid(Element)),
           ),
           (
-            [U.as_untyped(TE.Boolean), U.as_untyped(TE.String)],
-            U.as_untyped(TE.Element),
+            [
+              U.as_untyped(TypeExpression.Boolean),
+              U.as_untyped(TypeExpression.String),
+            ],
+            U.as_untyped(TypeExpression.Element),
           )
-          |> TE.of_function
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.of_function
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "view type"
@@ -209,29 +205,29 @@ let suite =
       () =>
         Assert.type_(
           Valid(
-            `View((
+            View(
               [
-                ("foo", (Valid(`Boolean), true)),
-                ("bar", (Valid(`String), true)),
+                ("foo", (Valid(Boolean), true)),
+                ("bar", (Valid(String), true)),
               ],
-              Valid(`Element),
-            )),
+              Valid(Element),
+            ),
           ),
           (
             [
-              (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-              |> TE.of_required
+              (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
-              (U.as_untyped("bar"), U.as_untyped(TE.String))
-              |> TE.of_required
+              (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_struct
+            |> TypeExpression.of_object
             |> U.as_untyped,
-            U.as_untyped(TE.Element),
+            U.as_untyped(TypeExpression.Element),
           )
-          |> TE.of_view
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.of_view
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "invalid view properties type"
@@ -239,9 +235,12 @@ let suite =
       () =>
         Assert.type_(
           Invalid(NotInferrable),
-          (U.as_untyped(TE.Boolean), U.as_untyped(TE.Element))
-          |> TE.of_view
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          (
+            U.as_untyped(TypeExpression.Boolean),
+            U.as_untyped(TypeExpression.Element),
+          )
+          |> TypeExpression.of_view
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
     "invalid view result type"
@@ -251,19 +250,19 @@ let suite =
           Invalid(NotInferrable),
           (
             [
-              (U.as_untyped("foo"), U.as_untyped(TE.Boolean))
-              |> TE.of_required
+              (U.as_untyped("foo"), U.as_untyped(TypeExpression.Boolean))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
-              (U.as_untyped("bar"), U.as_untyped(TE.String))
-              |> TE.of_required
+              (U.as_untyped("bar"), U.as_untyped(TypeExpression.String))
+              |> ObjectEntry.of_required
               |> U.as_untyped,
             ]
-            |> TE.of_struct
+            |> TypeExpression.of_object
             |> U.as_untyped,
-            U.as_untyped(TE.Style),
+            U.as_untyped(TypeExpression.Style),
           )
-          |> TE.of_view
-          |> KTypeExpression.Plugin.analyze(__empty_defs),
+          |> TypeExpression.of_view
+          |> TypeExpression.analyze(__empty_defs),
         )
     ),
   ];

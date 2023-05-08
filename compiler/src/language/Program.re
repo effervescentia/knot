@@ -1,72 +1,26 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
 type input_t = LazyStream.t(Input.t);
-type output_t = option((Module.program_t, input_t));
-type t = (ParseContext.t, input_t) => output_t;
+type output_t = option((Interface.program_t(Type.t), input_t));
+type t = (ParseContext.t(Interface.program_t(Type.t)), input_t) => output_t;
 
 let _program = x => x << (eof() |> Matchers.lexeme);
 
 let imports: t =
-  ctx => choice([KImport.Plugin.parse(ctx), any >> none]) |> many;
-
-let main: t =
   ctx =>
-    choice([KImport.Plugin.parse(ctx), KDeclaration.Plugin.parse(ctx)])
-    |> many
-    |> _program;
+    choice([
+      Import.parse(
+        (ModuleStatement.of_import, ModuleStatement.of_stdlib_import),
+        ctx,
+      ),
+      any >> none,
+    ])
+    |> many;
 
-let definition = (ctx: ParseContext.t) =>
-  KTypeDefinition.Plugin.parse(ctx) |> many |> _program;
+let main = ctx =>
+  ModuleStatement.parse(Declaration.parse, ctx) |> many |> _program;
 
-let module_statement_to_xml:
-  (Type.t => string, Module.module_statement_t) => Fmt.xml_t(string) =
-  dump_type =>
-    Dump.node_to_xml(
-      ~unpack=
-        Module.(
-          fun
-          | StandardImport(names) =>
-            Fmt.Node(
-              "StandardImport",
-              [],
-              names
-              |> List.map(
-                   Dump.node_to_xml(
-                     ~unpack=
-                       ((name, alias)) =>
-                         [
-                           Dump.node_to_xml(~dump_value=Fun.id, "Name", name),
-                           ...alias
-                              |> Option.map(alias' =>
-                                   [
-                                     Dump.node_to_xml(
-                                       ~dump_value=Fun.id,
-                                       "Alias",
-                                       alias',
-                                     ),
-                                   ]
-                                 )
-                              |?: [],
-                         ],
-                     "Import",
-                   ),
-                 ),
-            )
-          | Import(namespace, imports) =>
-            KImport.Plugin.to_xml((namespace, imports))
-          | Declaration(name, decl) =>
-            KDeclaration.Plugin.to_xml(dump_type, (name, decl))
-        )
-        % (x => [x]),
-      "ModuleStatement",
-    );
-
-let program_to_xml: (Type.t => string, Module.program_t) => Fmt.xml_t(string) =
-  (dump_type, program) =>
-    Node(
-      "Program",
-      [],
-      program |> List.map(module_statement_to_xml(dump_type)),
-    );
+let definition = (ctx: ParseContext.t(Interface.program_t(Type.t))) =>
+  TypeDefinition.parse(ctx) |> many |> _program;

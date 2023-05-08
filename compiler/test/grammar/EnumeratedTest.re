@@ -1,44 +1,21 @@
 open Kore;
 
-module Export = Reference.Export;
-
-module Assert = {
-  include Assert;
-  include Assert.Make({
-    type t = N.t((AM.export_t, AM.declaration_t), unit);
-
-    let parser = ctx =>
-      (ctx, A.of_named_export)
-      |> KEnumerated.Plugin.parse
-      |> Assert.parse_completely
-      |> Parser.parse;
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            (ppf, stmt) =>
-              KDeclaration.Plugin.to_xml(~@Type.pp, fst(stmt))
-              |> Fmt.xml_string(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
-  });
-};
+module U = Util.ResultUtil;
 
 let suite =
   "Grammar.Enumerated"
   >::: [
-    "no parse" >: (() => Assert.parse_none(["gibberish", "enum", "enum foo"])),
+    "no parse"
+    >: (
+      () => Assert.Declaration.parse_none(["gibberish", "enum", "enum foo"])
+    ),
     "parse empty"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
-            [] |> A.of_enum |> U.as_enum([]),
+            U.as_untyped("foo"),
+            [] |> Declaration.of_enumerated |> U.as_enum([]),
           )
           |> U.as_untyped,
           "enum foo =",
@@ -47,10 +24,10 @@ let suite =
     "parse vertical bar"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
-            [] |> A.of_enum |> U.as_enum([]),
+            U.as_untyped("foo"),
+            [] |> Declaration.of_enumerated |> U.as_enum([]),
           )
           |> U.as_untyped,
           "enum foo = |",
@@ -59,11 +36,11 @@ let suite =
     "parse inline with no type parameters"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "foo" |> U.as_untyped |> A.of_named_export,
+            U.as_untyped("foo"),
             [(U.as_untyped("OnlyOption"), [])]
-            |> A.of_enum
+            |> Declaration.of_enumerated
             |> U.as_enum([("OnlyOption", [])]),
           )
           |> U.as_untyped,
@@ -73,20 +50,26 @@ let suite =
     "parse multiline with type parameters"
     >: (
       () =>
-        Assert.parse(
+        Assert.Declaration.parse(
           (
-            "Account" |> U.as_untyped |> A.of_named_export,
+            U.as_untyped("Account"),
             [
               (
                 U.as_untyped("Verified"),
-                [U.as_int(TE.Integer), U.as_string(TE.String)],
+                [
+                  U.as_int(TypeExpression.Integer),
+                  U.as_string(TypeExpression.String),
+                ],
               ),
-              (U.as_untyped("Unverified"), [TE.String |> U.as_string]),
+              (
+                U.as_untyped("Unverified"),
+                [TypeExpression.String |> U.as_string],
+              ),
             ]
-            |> A.of_enum
+            |> Declaration.of_enumerated
             |> U.as_enum([
-                 ("Verified", [T.Valid(`Integer), T.Valid(`String)]),
-                 ("Unverified", [T.Valid(`String)]),
+                 ("Verified", [Valid(Integer), Valid(String)]),
+                 ("Unverified", [Valid(String)]),
                ]),
           )
           |> U.as_untyped,

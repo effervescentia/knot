@@ -1,14 +1,17 @@
-open Knot.Kore;
-open AST;
+let analyze_ksx = Analyzer.analyze_ksx;
 
-let analyze = Analyzer.analyze;
+let validate_ksx_primitive_expression = Validator.validate_ksx_primitive_expression;
+let validate_ksx_render = Validator.validate_ksx_render;
 
-include Framework.Expression({
-  type parse_arg_t = (ParseContext.t, Parser.expression_parsers_arg_t);
+let format_attribute = Formatter.format_attribute;
 
-  type value_t('a) = AST.Expression.jsx_t('a);
+include Interface;
+include AST.Framework.Expression.Make({
+  include Plugin;
 
   let parse = Parser.parse;
+
+  let analyze = Analyzer.analyze;
 
   let format = Formatter.format;
 

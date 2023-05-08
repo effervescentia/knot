@@ -6,25 +6,25 @@ let validate: ((Type.t, list(Type.t))) => option(Type.error_t) =
   /* assume this have been reported already and ignore */
   | (Invalid(_), _) => None
 
-  | (Valid(`Function(args, _)) as func_type, actual_args) =>
-    if (List.length(args) != List.length(actual_args)) {
-      Some(InvalidFunctionCall(func_type, actual_args));
+  | (Valid(Function(parameters, _)) as func_type, arguments) =>
+    if (List.length(parameters) != List.length(arguments)) {
+      Some(InvalidFunctionCall(func_type, arguments));
     } else {
-      List.combine(args, actual_args)
+      List.combine(parameters, arguments)
       |> List.fold_left(
-           (err, args) =>
+           (err, pair) =>
              Option.(
-               switch (err, args) {
+               switch (err, pair) {
                | (Some(_), _) => err
 
-               | (_, (Type.Valid(_), Type.Valid(_)))
-                   when fst(args) == snd(args) =>
+               | (_, (Type.Valid(_) as expected, Type.Valid(_) as actual))
+                   when expected == actual =>
                  None
 
                /* ignore it if the actual arg type is invalid */
                | (_, (Type.Valid(_), Type.Invalid(_))) => None
 
-               | _ => Some(Type.InvalidFunctionCall(func_type, actual_args))
+               | _ => Some(Type.InvalidFunctionCall(func_type, arguments))
                }
              ),
            None,

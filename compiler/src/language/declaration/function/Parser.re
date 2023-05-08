@@ -1,71 +1,63 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
-let parse =
-    ((ctx: ParseContext.t, tag_export: Raw.identifier_t => Module.export_t))
-    : Framework.declaration_parser_t =>
-  Matchers.keyword(Constants.Keyword.func)
-  >>= Node.get_range
-  % (
-    start =>
-      KIdentifier.Parser.parse_raw(ctx)
-      >>= (
-        id =>
-          KExpression.Plugin.parse
-          |> KLambda.Parser.parse_lambda(ctx)
-          >|= (
-            ((args, res, range)) => {
-              let scope = ctx |> Scope.of_parse_context(range);
-              let args' =
-                args
-                |> KLambda.Analyzer.analyze_argument_list(
-                     scope,
-                     KExpression.Plugin.analyze,
+let parse: Interface.Plugin.parse_t('ast) =
+  (is_main, ctx) =>
+    Matchers.keyword(Constants.Keyword.func)
+    >>= Node.get_range
+    % (
+      start =>
+        KIdentifier.Plugin.parse_raw(ctx)
+        >>= (
+          name =>
+            Expression.parse
+            |> Lambda.parse_lambda(ctx)
+            >|= (
+              ((parameters, body, lambda_range)) => {
+                let scope = ctx |> Scope.of_parse_context(lambda_range);
+                let parameters' =
+                  parameters
+                  |> Lambda.analyze_parameter_list(Expression.analyze, scope);
+
+                parameters'
+                |> List.iter(parameter =>
+                     scope
+                     |> Scope.define(
+                          parameter |> fst |> Tuple.fst3 |> fst,
+                          Node.get_type(parameter),
+                        )
+                     |> Option.iter(
+                          Scope.report_type_err(
+                            scope,
+                            Node.get_range(parameter),
+                          ),
+                        )
                    );
 
-              args'
-              |> List.iter(arg =>
-                   scope
-                   |> Scope.define(
-                        Expression.(fst(arg).name) |> fst,
-                        Node.get_type(arg),
-                      )
-                   |> Option.iter(
-                        Scope.report_type_err(scope, Node.get_range(arg)),
-                      )
-                 );
+                let body_scope =
+                  scope |> Scope.create_child(Node.get_range(body));
+                let (body', body_type) =
+                  body |> Node.analyzer(Expression.analyze(body_scope));
 
-              let res_scope =
-                scope |> Scope.create_child(Node.get_range(res));
-              let res' = res |> KExpression.Plugin.analyze(res_scope);
+                let type_ =
+                  Type.Valid(
+                    Function(
+                      parameters' |> List.map(Node.get_type),
+                      body_type,
+                    ),
+                  );
 
-              let type_ =
-                Type.Valid(
-                  `Function((
-                    args' |> List.map(Node.get_type),
-                    Node.get_type(res'),
-                  )),
-                );
-              let export_id = tag_export(id);
+                ctx.symbols
+                |> SymbolTable.declare_value(~main=is_main, fst(name), type_);
 
-              ctx.symbols
-              |> SymbolTable.declare_value(
-                   ~main=Util.is_main(export_id),
-                   fst(id),
-                   type_,
-                 );
+                let result =
+                  Node.typed((parameters', body'), type_, lambda_range);
+                let range = Range.join(start, lambda_range);
 
-              let func =
-                Node.typed(
-                  (args', res') |> AST.Result.of_func,
-                  type_,
-                  range,
-                );
-
-              Node.untyped((export_id, func), Range.join(start, range));
-            }
-          )
-      )
-      |> Matchers.terminated
-  );
+                Node.raw((name, result), range);
+              }
+            )
+        )
+        |> Matchers.terminated
+    );

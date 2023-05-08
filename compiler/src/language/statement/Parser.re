@@ -4,11 +4,15 @@ open AST;
 
 let parse =
     (
-      ctx: ParseContext.t,
-      parse_expr: Framework.contextual_expression_parser_t,
-    )
-    : Framework.statement_parser_t => {
-  let arg = (ctx, parse_expr);
+      ctx: ParseContext.t('ast),
+      parse_expr: Framework.Interface.contextual_parse_t('ast, 'expr),
+    ) => {
+  let (&>) = (parse, to_statement) =>
+    (ctx, parse_expr) |> parse >|= Node.map(to_statement);
 
-  choice([KVariable.parse(arg), KEffect.parse(arg)]) |> Matchers.terminated;
+  choice([
+    Variable.parse &> Interface.of_variable,
+    Effect.parse &> Interface.of_effect,
+  ])
+  |> Matchers.terminated;
 };

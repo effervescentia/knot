@@ -1,6 +1,5 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
 module Character = Constants.Character;
 module Glyph = Constants.Glyph;
@@ -18,82 +17,104 @@ module Fragment = {
   let close = Matchers.glyph(Glyph.close_fragment);
 };
 
-type expression_parsers_arg_t = (
-  /* parses a "term" */
-  Framework.contextual_expression_parser_t,
-  /* parses an "expression" */
-  Framework.contextual_expression_parser_t,
-);
+type parse_ksx_t('expr) =
+  Parse.Parser.t(Node.t(Interface.t('expr, unit), unit));
 
-type jsx_parser_t = Parse.Parser.t(Node.t(Raw.jsx_t, unit));
+type parse_ksx_attribute_t('expr) =
+  Parse.Parser.t(Interface.Attribute.node_t('expr, unit));
+type parse_ksx_attribute_list_t('expr) =
+  Parse.Parser.t(list(Interface.Attribute.node_t('expr, unit)));
 
-type jsx_attribute_parser_t = Parse.Parser.t(Raw.jsx_attribute_t);
-type jsx_attribute_list_parser_t = Parse.Parser.t(list(Raw.jsx_attribute_t));
-
-type jsx_child_parser_t = Parse.Parser.t(Raw.jsx_child_t);
-type jsx_child_list_parser_t = Parse.Parser.t(list(Raw.jsx_child_t));
-
-let _parse_attribute =
-    (
-      ~prefix=Matchers.alpha <|> Matchers.underscore,
-      ctx: ParseContext.t,
-      (parse_term, parse_expr): expression_parsers_arg_t,
-    ) =>
-  Matchers.assign(
-    Matchers.identifier(~prefix),
-    parse_expr(ctx)
-    |> Matchers.between_parentheses
-    >|= (
-      ((expr, _) as expr_group) =>
-        Node.map_range(_ => Node.get_range(expr_group), expr)
-    )
-    <|> parse_term(ctx),
-  )
-  >|= (
-    ((name, value)) => (name, Some(value), Node.join_ranges(name, value))
-  )
-  <|> (
-    Matchers.identifier(~prefix) >|= (id => (id, None, Node.get_range(id)))
+type parse_ksx_child_t('expr) =
+  Parse.Parser.t(
+    Interface.Child.node_t('expr, Interface.t('expr, unit), unit),
+  );
+type parse_ksx_child_list_t('expr) =
+  Parse.Parser.t(
+    list(Interface.Child.node_t('expr, Interface.t('expr, unit), unit)),
   );
 
 let _parse_self_closing = Tag.self_close >|= Node.map(() => []);
 
-let rec _parse_inner_ksx =
-        (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
+let _parse_style_binding =
+    (
+      (ctx, (parse_term, _, parse_style)):
+        Interface.Plugin.parse_arg_t('ast, 'expr),
+    ) =>
+  Matchers.glyph(Glyph.style_binding)
+  >> (parse_style(ctx) <|> parse_term(ctx));
+
+let _parse_attribute =
+    (
+      ~prefix=Matchers.alpha <|> Matchers.underscore,
+      (ctx, (parse_term, parse_expression, parse_style)):
+        Interface.Plugin.parse_arg_t('ast, 'expr),
+    )
+    : parse_ksx_attribute_t('expr) =>
+  Matchers.assign(
+    Matchers.identifier(~prefix),
+    parse_expression(ctx)
+    |> Matchers.between_parentheses
+    >|= (
+      ((expression, _) as expr_group) =>
+        Node.map_range(_ => Node.get_range(expr_group), expression)
+    )
+    <|> parse_term(ctx),
+  )
+  >|= (
+    ((name, expression)) =>
+      Node.raw(
+        (name, Some(expression)),
+        Node.join_ranges(name, expression),
+      )
+  )
+  <|> (
+    Matchers.identifier(~prefix)
+    >|= (name => Node.raw((name, None), Node.get_range(name)))
+  );
+
+let parse_inline =
+    ((ctx, (_, parse_expression, _))): parse_ksx_child_t('expr) =>
+  parse_expression(ctx)
+  |> Matchers.between_braces
+  >|= Node.map(Interface.Child.of_inline);
+
+let parse_text: parse_ksx_child_t('expr) =
+  none_of(Character.[open_brace, open_chevron])
+  <~> (none_of(Character.[open_brace, open_chevron, close_chevron]) |> many)
+  >|= Input.join
+  >|= Node.map(String.trim % Interface.Child.of_text);
+
+let rec _parse_inner_ksx = (arg): parse_ksx_t('expr) =>
   /* do not attempt to simplify this `input` argument away or JSX parsing will loop forever */
   input =>
-    (
-      choice([parse_fragment(ctx, parsers), parse_tag(ctx, parsers)])
-      |> Matchers.lexeme
-    )(
+    (choice([parse_fragment(arg), parse_tag(arg)]) |> Matchers.lexeme)(
       input,
     )
 
-and parse_fragment =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
-  parse_children(ctx, parsers)
+and parse_fragment = (arg): parse_ksx_t('expr) =>
+  parse_children(arg)
   |> Matchers.between(Fragment.open_, Fragment.close)
-  >|= Node.map(Raw.of_frag)
+  >|= Node.map(Interface.of_fragment)
 
-and parse_tag =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t): jsx_parser_t =>
+and parse_tag = (arg): parse_ksx_t('expr) =>
   Tag.open_
   >> Matchers.identifier
   >>= (
     id =>
-      parse_style_binding(ctx, fst(parsers))
+      _parse_style_binding(arg)
       |> many
       >>= (
         styles =>
-          parse_property_attribute(ctx, parsers)
+          _parse_attribute(arg)
           |> many
           >>= (
-            attrs =>
+            attributes =>
               Tag.close
-              >> parse_children(ctx, parsers)
+              >> parse_children(arg)
               >>= (
-                cs =>
-                  cs
+                children =>
+                  children
                   <$| (
                     id
                     |> fst
@@ -103,63 +124,24 @@ and parse_tag =
               )
               <|> _parse_self_closing
               >|= (
-                cs =>
-                  Node.untyped(
-                    (id, styles, attrs, fst(cs)) |> Raw.of_tag,
-                    Node.join_ranges(id, cs),
+                children =>
+                  Node.raw(
+                    (id, styles, attributes, fst(children))
+                    |> Interface.of_element_tag,
+                    Node.join_ranges(id, children),
                   )
               )
           )
       )
   )
 
-and parse_style_binding =
-    (
-      ctx: ParseContext.t,
-      parse_expression: Framework.contextual_expression_parser_t,
-    ) =>
-  Matchers.glyph(Glyph.style_binding)
-  >> (
-    KStyle.Parser.parse_style_literal((ctx, parse_expression))
-    <|> parse_expression(ctx)
-  )
-
-and parse_property_attribute =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
-    : jsx_attribute_parser_t =>
-  _parse_attribute(ctx, parsers)
-  >|= (((name, value, range)) => Node.untyped((name, value), range))
-
-and parse_children =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
-    : jsx_child_list_parser_t =>
-  choice([
-    parse_node(ctx, parsers),
-    parse_inline_expr(ctx, parsers),
-    parse_text,
-  ])
+and parse_children = (arg): parse_ksx_child_list_t('expr) =>
+  choice([parse_node(arg), parse_inline(arg), parse_text])
   |> Matchers.lexeme
   |> many
 
-and parse_text: jsx_child_parser_t =
-  none_of(. Character.[open_brace, open_chevron])
-  <~> (
-    none_of(. Character.[open_brace, open_chevron, close_chevron]) |> many
-  )
-  >|= Input.join
-  >|= Node.map(String.trim % Raw.of_text)
+and parse_node = (arg): parse_ksx_child_t('expr) =>
+  _parse_inner_ksx(arg) >|= Node.map(Interface.Child.of_node);
 
-and parse_node =
-    (ctx: ParseContext.t, parsers: expression_parsers_arg_t)
-    : jsx_child_parser_t =>
-  _parse_inner_ksx(ctx, parsers) >|= Node.map(Raw.of_node)
-
-and parse_inline_expr =
-    (ctx: ParseContext.t, (_, parse_expr): expression_parsers_arg_t)
-    : jsx_child_parser_t =>
-  parse_expr(ctx) |> Matchers.between_braces >|= Node.map(Raw.of_inline_expr);
-
-let parse =
-    ((ctx: ParseContext.t, parsers: expression_parsers_arg_t))
-    : Framework.expression_parser_t =>
-  _parse_inner_ksx(ctx, parsers) >|= Node.map(Raw.of_jsx);
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  (f, arg) => _parse_inner_ksx(arg) >|= Node.map(f);

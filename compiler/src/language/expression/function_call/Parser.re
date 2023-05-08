@@ -1,22 +1,22 @@
 open Knot.Kore;
 open Parse.Kore;
 
-let parse = ((parse_term, parse_expr)) => {
-  let rec loop = expr =>
-    parse_expr
-    |> Matchers.comma_sep
-    |> Matchers.between_parentheses
-    >>= (
-      args =>
-        loop(
-          Node.typed(
-            (expr, fst(args)) |> AST.Raw.of_func_call,
-            (),
-            Node.get_range(args),
-          ),
-        )
-    )
-    |> option(expr);
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  (f, (parse_term, parse_expression)) => {
+    let rec loop = expression =>
+      parse_expression
+      |> Matchers.comma_sep
+      |> Matchers.between_parentheses
+      >>= (
+        arguments =>
+          loop(
+            Node.raw(
+              (expression, fst(arguments)) |> f,
+              Node.join_ranges(expression, arguments),
+            ),
+          )
+      )
+      |> option(expression);
 
-  parse_term >>= loop;
-};
+    parse_term >>= loop;
+  };

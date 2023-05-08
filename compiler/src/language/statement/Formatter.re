@@ -1,10 +1,11 @@
 open Kore;
-open AST;
 
-let format: Fmt.t(Result.raw_expression_t) => Fmt.t(Result.raw_statement_t) =
-  (pp_expression, ppf, stmt) =>
-    switch (stmt) {
-    | Variable(name, expr) =>
-      (name, expr) |> KVariable.format(pp_expression, ppf)
-    | Expression(expr) => expr |> KEffect.format(pp_expression, ppf)
-    };
+let format: Interface.Plugin.format_t('expr, 'typ) =
+  ((), pp_expression, ppf) => {
+    let bind = format => format(pp_expression, ppf);
+
+    Interface.fold(
+      ~variable=bind(Variable.format),
+      ~effect=bind(Effect.format),
+    );
+  };

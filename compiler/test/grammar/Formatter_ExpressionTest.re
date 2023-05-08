@@ -1,26 +1,37 @@
 open Kore;
 
-module A = AST.Result;
 module Formatter = Language.Formatter;
-module T = AST.Type;
 module U = Util.ResultUtil;
 
 let _assert_expression = (expected, actual) =>
-  Assert.string(expected, actual |> ~@Fmt.root(KExpression.Plugin.format));
+  Assert.string(expected, actual |> ~@Fmt.root(Expression.format));
 
 let suite =
   "Grammar.Formatter | Expression"
   >::: [
-    "primitive" >: (() => _assert_expression("nil", A.of_prim(A.nil))),
-    "identifier" >: (() => _assert_expression("fooBar", A.of_id("fooBar"))),
+    "primitive"
+    >: (
+      () => _assert_expression("nil", Expression.of_primitive(Primitive.nil))
+    ),
+    "identifier"
+    >: (
+      () => _assert_expression("fooBar", Expression.of_identifier("fooBar"))
+    ),
     "group"
-    >: (() => _assert_expression("123", 123 |> U.int_prim |> A.of_group)),
+    >: (
+      () =>
+        _assert_expression("123", 123 |> U.int_prim |> Expression.of_group)
+    ),
     "nested group"
     >: (
       () =>
         _assert_expression(
           "123",
-          123 |> U.int_prim |> A.of_group |> U.as_int |> A.of_group,
+          123
+          |> U.int_prim
+          |> Expression.of_group
+          |> U.as_int
+          |> Expression.of_group,
         )
     ),
     "dot access"
@@ -30,11 +41,11 @@ let suite =
           "foo.bar",
           (
             "foo"
-            |> A.of_id
-            |> U.as_struct([("bar", (T.Valid(`Boolean), true))]),
+            |> Expression.of_identifier
+            |> U.as_struct([("bar", (Valid(Boolean), true))]),
             U.as_untyped("bar"),
           )
-          |> A.of_dot_access,
+          |> Expression.of_dot_access,
         )
     ),
     "function call"
@@ -44,11 +55,11 @@ let suite =
           "foo(bar)",
           (
             "foo"
-            |> A.of_id
-            |> U.as_function([T.Valid(`String)], T.Valid(`Boolean)),
-            ["bar" |> A.of_id |> U.as_string],
+            |> Expression.of_identifier
+            |> U.as_function([Valid(String)], Valid(Boolean)),
+            ["bar" |> Expression.of_identifier |> U.as_string],
           )
-          |> A.of_func_call,
+          |> Expression.of_function_call,
         )
     ),
     "grouped binary operation"
@@ -57,9 +68,9 @@ let suite =
         _assert_expression(
           "(123 + 456)",
           (123 |> U.int_prim, 456 |> U.int_prim)
-          |> A.of_add_op
+          |> Expression.of_add_op
           |> U.as_int
-          |> A.of_group,
+          |> Expression.of_group,
         )
     ),
     "nested grouped binary operation"
@@ -68,11 +79,11 @@ let suite =
         _assert_expression(
           "(123 + 456)",
           (123 |> U.int_prim, 456 |> U.int_prim)
-          |> A.of_add_op
+          |> Expression.of_add_op
           |> U.as_int
-          |> A.of_group
+          |> Expression.of_group
           |> U.as_int
-          |> A.of_group,
+          |> Expression.of_group,
         )
     ),
     "closure"
@@ -85,21 +96,27 @@ let suite =
   nil;
 }",
           [
-            true |> U.bool_prim |> A.of_expr |> U.as_bool,
-            false |> U.bool_prim |> A.of_expr |> U.as_bool,
-            U.nil_prim |> A.of_expr |> U.as_nil,
+            true |> U.bool_prim |> Statement.of_effect |> U.as_bool,
+            false |> U.bool_prim |> Statement.of_effect |> U.as_bool,
+            U.nil_prim |> Statement.of_effect |> U.as_nil,
           ]
-          |> A.of_closure,
+          |> Expression.of_closure,
         )
     ),
     "unary operation"
-    >: (() => _assert_expression("!true", true |> U.bool_prim |> A.of_not_op)),
+    >: (
+      () =>
+        _assert_expression(
+          "!true",
+          true |> U.bool_prim |> Expression.of_not_op,
+        )
+    ),
     "binary operation"
     >: (
       () =>
         _assert_expression(
           "true || false",
-          (true |> U.bool_prim, false |> U.bool_prim) |> A.of_or_op,
+          (true |> U.bool_prim, false |> U.bool_prim) |> Expression.of_or_op,
         )
     ),
     "style binding"
@@ -108,10 +125,10 @@ let suite =
         _assert_expression(
           "foo::bar",
           (
-            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
-            "bar" |> A.of_id |> U.as_style,
+            "foo" |> Expression.of_identifier |> U.as_view([], Valid(Nil)),
+            "bar" |> Expression.of_identifier |> U.as_style,
           )
-          |> A.of_local_bind_style,
+          |> Expression.of_bind_component_style,
         )
     ),
     "style literal binding"
@@ -122,18 +139,18 @@ let suite =
   color: $red,
 }",
           (
-            "foo" |> A.of_id |> U.as_view([], Valid(`Nil)),
+            "foo" |> Expression.of_identifier |> U.as_view([], Valid(Nil)),
             [
               (
-                "color" |> U.as_function([], T.Valid(`Nil)),
-                "$red" |> A.of_id |> U.as_string,
+                "color" |> U.as_function([], Valid(Nil)),
+                "$red" |> Expression.of_identifier |> U.as_string,
               )
               |> U.as_untyped,
             ]
-            |> A.of_style
+            |> Expression.of_style
             |> U.as_style,
           )
-          |> A.of_local_bind_style,
+          |> Expression.of_bind_component_style,
         )
     ),
     "JSX"
@@ -144,13 +161,13 @@ let suite =
   bar
 </Foo>",
           (
-            "Foo" |> U.as_view([], Valid(`Nil)),
+            "Foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
-            ["bar" |> A.of_text |> U.as_untyped],
+            ["bar" |> KSX.Child.of_text |> U.as_untyped],
           )
-          |> A.of_tag
-          |> A.of_jsx,
+          |> KSX.of_element_tag
+          |> Expression.of_ksx,
         )
     ),
     "style"
@@ -163,19 +180,22 @@ let suite =
 }",
           [
             (
-              "height" |> U.as_function([], T.Valid(`Nil)),
-              ("$px" |> A.of_id |> U.as_string, [20 |> U.int_prim])
-              |> A.of_func_call
+              "height" |> U.as_function([], Valid(Nil)),
+              (
+                "$px" |> Expression.of_identifier |> U.as_string,
+                [20 |> U.int_prim],
+              )
+              |> Expression.of_function_call
               |> U.as_string,
             )
             |> U.as_untyped,
             (
-              "color" |> U.as_function([], T.Valid(`Nil)),
-              "$red" |> A.of_id |> U.as_string,
+              "color" |> U.as_function([], Valid(Nil)),
+              "$red" |> Expression.of_identifier |> U.as_string,
             )
             |> U.as_untyped,
           ]
-          |> A.of_style,
+          |> Expression.of_style,
         )
     ),
   ];

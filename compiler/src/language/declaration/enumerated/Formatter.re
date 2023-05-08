@@ -1,35 +1,31 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
-let format_argument_list =
+let format_parameter_list =
   Fmt.(
-    (ppf, args) =>
-      List.is_empty(args)
-        ? () : pf(ppf, "(%a)", list(KTypeExpression.Plugin.format), args)
+    (ppf, parameters) =>
+      List.is_empty(parameters)
+        ? () : pf(ppf, "(%a)", list(TypeExpression.format), parameters)
   );
 
-let format_variant_list =
+let format_variant_list = variants =>
   Fmt.(
-    block(~layout=Vertical, ~sep=Sep.space, (ppf, ((arg_name, _), args)) =>
-      pf(
-        ppf,
-        "@[<h>| %s%a@]",
-        arg_name,
-        format_argument_list,
-        args |> List.map(fst),
-      )
+    block(
+      ~layout=Vertical,
+      ~sep=Sep.space,
+      (ppf, ((variant_name, _), parameters)) =>
+        pf(
+          ppf,
+          "@[<h>| %s%a@]",
+          variant_name,
+          format_parameter_list,
+          parameters |> List.map(fst),
+        ),
+      variants,
     )
   );
 
-let format:
-  Fmt.t(
-    (
-      string,
-      list(
-        (Result.identifier_t, list(Result.node_t(TypeExpression.raw_t))),
-      ),
-    ),
-  ) =
+let format: Interface.Plugin.format_t('typ) =
   ppf =>
     fun
     | (name, []) => Fmt.(pf(ppf, "enum %s = | ;", name))

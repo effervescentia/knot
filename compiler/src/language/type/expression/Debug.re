@@ -1,27 +1,28 @@
 open Knot.Kore;
 open AST;
 
-let _get_tag_name: TypeExpression.raw_t => string =
-  fun
-  | Nil => "Nil"
-  | Boolean => "Boolean"
-  | Integer => "Integer"
-  | Float => "Float"
-  | String => "String"
-  | Element => "Element"
-  | Style => "Style"
-  | Identifier(_) => "Identifier"
-  | Group(_) => "Group"
-  | List(_) => "List"
-  | Struct(_) => "Struct"
-  | Function(_) => "Function"
-  | DotAccess(_) => "DotAccess"
-  | View(_) => "View";
+let _get_tag_name =
+  Interface.fold(
+    ~nil=() => "Nil",
+    ~boolean=() => "Boolean",
+    ~integer=() => "Integer",
+    ~float=() => "Float",
+    ~string=() => "String",
+    ~element=() => "Element",
+    ~style=() => "Style",
+    ~identifier=_ => "Identifier",
+    ~group=_ => "Group",
+    ~list=_ => "List",
+    ~object_=_ => "Object",
+    ~function_=_ => "Function",
+    ~dot_access=_ => "DotAccess",
+    ~view=_ => "View",
+  );
 
-let rec to_xml_raw: TypeExpression.raw_t => Fmt.xml_t(string) =
+let rec to_xml_raw: Interface.t => Fmt.xml_t(string) =
   expr => Node(_get_tag_name(expr), [], _get_children(expr))
 
-and to_xml: TypeExpression.t => Fmt.xml_t(string) =
+and to_xml: Interface.node_t => Fmt.xml_t(string) =
   expr =>
     Node(
       expr |> fst |> _get_tag_name,
@@ -29,56 +30,57 @@ and to_xml: TypeExpression.t => Fmt.xml_t(string) =
       expr |> fst |> _get_children,
     )
 
-and _get_children: TypeExpression.raw_t => list(Fmt.xml_t(string)) =
+and required_to_xml = ((key, value)) =>
+  Fmt.Node(
+    "Required",
+    [],
+    [
+      Dump.identifier_to_xml("Key", key),
+      Node("Value", [], [to_xml(value)]),
+    ],
+  )
+
+and optional_to_xml = ((key, value)) =>
+  Fmt.Node(
+    "Optional",
+    [],
+    [
+      Dump.identifier_to_xml("Key", key),
+      Node("Value", [], [to_xml(value)]),
+    ],
+  )
+
+and spread_to_xml = value =>
+  Fmt.Node("Spread", [], [Node("Value", [], [to_xml(value)])])
+
+and object_entry_to_xml = entry =>
+  entry
+  |> Interface.ObjectEntry.fold(
+       ~required=required_to_xml,
+       ~optional=optional_to_xml,
+       ~spread=spread_to_xml,
+     )
+
+and _get_children: Interface.t => list(Fmt.xml_t(string)) =
   fun
-  | Identifier(name) => [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
-  | Group(expr) => [to_xml(expr)]
+  | Identifier(name) => [Dump.identifier_to_xml("Name", name)]
+
+  | Group(expr)
   | List(expr) => [to_xml(expr)]
 
-  | Struct(properties) =>
-    properties
-    |> List.map(
-         fst
-         % TypeExpression.(
-             fun
-             | Required(key, value) =>
-               Fmt.Node(
-                 "Required",
-                 [],
-                 [
-                   Dump.node_to_xml(~dump_value=Fun.id, "Key", key),
-                   Node("Value", [], [to_xml(value)]),
-                 ],
-               )
-             | Optional(key, value) =>
-               Fmt.Node(
-                 "Optional",
-                 [],
-                 [
-                   Dump.node_to_xml(~dump_value=Fun.id, "Key", key),
-                   Node("Value", [], [to_xml(value)]),
-                 ],
-               )
-             | Spread(value) =>
-               Fmt.Node(
-                 "Spread",
-                 [],
-                 [Node("Value", [], [to_xml(value)])],
-               )
-           ),
-       )
+  | Object(properties) => properties |> List.map(fst % object_entry_to_xml)
 
-  | Function(parameters, result) => [
+  | Function((parameters, result)) => [
       Node("Parameters", [], parameters |> List.map(to_xml)),
       Node("Result", [], [to_xml(result)]),
     ]
 
-  | DotAccess(root, property) => [
+  | DotAccess((root, property)) => [
       Node("Root", [], [to_xml(root)]),
-      Dump.node_to_xml(~dump_value=Fun.id, "Property", property),
+      Dump.identifier_to_xml("Property", property),
     ]
 
-  | View(properties, result) => [
+  | View((properties, result)) => [
       Node("Properties", [], [to_xml(properties)]),
       Node("Result", [], [to_xml(result)]),
     ]

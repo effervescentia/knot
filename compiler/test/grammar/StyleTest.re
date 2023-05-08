@@ -1,51 +1,48 @@
 open Kore;
 open Reference;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
-module TE = AST.TypeExpression;
 
-let __context = AST.ParseContext.create(Namespace.Internal("foo"));
-
-module Assert =
-  Assert.Make({
-    type t = AR.expression_t;
-
-    let parser = ctx =>
-      (ctx, KExpression.Plugin.parse)
-      |> KStyle.Plugin.parse
-      |> Assert.parse_completely
-      |> Parser.parse;
-
-    let test =
-      Alcotest.(
-        check(
-          testable(
-            ppf =>
-              KExpression.Plugin.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
-            (==),
-          ),
-          "program matches",
-        )
-      );
-  });
+let __context = ParseContext.create(Namespace.Internal("foo"));
 
 let suite =
   "Grammar.Style"
   >::: [
-    "no parse" >: (() => Assert.parse_none(["gibberish", "style", "style {"])),
+    "no parse"
+    >: (
+      () =>
+        Assert.Expression.parse_throws_compiler_errs(
+          [
+            ParseError(
+              ReservedKeyword("style"),
+              Internal("mock"),
+              Range.zero,
+            ),
+          ],
+          "style {",
+        )
+    ),
     "parse - with no arguments"
-    >: (() => Assert.parse([] |> AR.of_style |> U.as_node, "style { }")),
+    >: (
+      () =>
+        Assert.Expression.parse(
+          [] |> Expression.of_style |> U.as_node,
+          "style { }",
+        )
+    ),
     "parse - with one rule"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           ~context=__context,
           [
-            ("color" |> U.as_node, "$red" |> AR.of_id |> U.as_node)
+            (
+              "color" |> U.as_node,
+              "$red" |> Expression.of_identifier |> U.as_node,
+            )
             |> U.as_untyped,
           ]
-          |> AR.of_style
+          |> Expression.of_style
           |> U.as_node,
           "style {
             color: $red
@@ -55,13 +52,16 @@ let suite =
     "parse - with trailing comma"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           ~context=__context,
           [
-            ("color" |> U.as_node, "$red" |> AR.of_id |> U.as_node)
+            (
+              "color" |> U.as_node,
+              "$red" |> Expression.of_identifier |> U.as_node,
+            )
             |> U.as_untyped,
           ]
-          |> AR.of_style
+          |> Expression.of_style
           |> U.as_node,
           "style {
             color: $red,
@@ -71,20 +71,26 @@ let suite =
     "parse - with multiple rules"
     >: (
       () =>
-        Assert.parse(
+        Assert.Expression.parse(
           ~context=__context,
           [
             (
               "height" |> U.as_node,
-              ("$px" |> AR.of_id |> U.as_node, [(20.0, 2) |> U.float_prim])
-              |> AR.of_func_call
+              (
+                "$px" |> Expression.of_identifier |> U.as_node,
+                [(20.0, 2) |> U.float_prim],
+              )
+              |> Expression.of_function_call
               |> U.as_node,
             )
             |> U.as_untyped,
-            ("color" |> U.as_node, "$red" |> AR.of_id |> U.as_node)
+            (
+              "color" |> U.as_node,
+              "$red" |> Expression.of_identifier |> U.as_node,
+            )
             |> U.as_untyped,
           ]
-          |> AR.of_style
+          |> Expression.of_style
           |> U.as_node,
           "style {
             height: $px(20.0),

@@ -1,7 +1,6 @@
-open AST;
-
-include Framework.Declaration({
-  type value_t = (list(Result.argument_t), Result.expression_t);
+include Interface;
+include AST.Framework.Declaration.Make({
+  include Plugin;
 
   let parse = Parser.parse;
 

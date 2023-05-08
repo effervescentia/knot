@@ -1,17 +1,10 @@
-open Knot.Kore;
-open AST;
-
-let analyze = Analyzer.analyze;
-
-include Framework.Statement({
-  type pp_arg_t = Fmt.t(Result.raw_expression_t);
-
-  type value_t('a) = (
-    Common.untyped_t(string),
-    Expression.expression_t('a),
-  );
+include Interface;
+include AST.Framework.Statement.Make({
+  include Plugin;
 
   let parse = Parser.parse;
+
+  let analyze = Analyzer.analyze;
 
   let format = Formatter.format;
 

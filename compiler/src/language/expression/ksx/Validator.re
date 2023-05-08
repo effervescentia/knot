@@ -1,27 +1,27 @@
 open Knot.Kore;
 open AST;
 
-let validate_jsx_render:
-  (bool, (string, Type.t, list((string, Result.untyped_t(Type.t))))) =>
+let validate_ksx_render:
+  (bool, (string, Type.t, list((string, Common.raw_t(Type.t))))) =>
   list((Type.error_t, option(Range.t))) =
   has_children =>
     fun
     | (id, Invalid(_), _) => [(NotFound(id), None)]
 
-    | (id, Valid(`View(attrs, _)), actual_attrs) => {
+    | (id, Valid(View(parameters, _)), attributes) => {
         let keys =
-          (attrs |> List.map(fst))
-          @ (actual_attrs |> List.map(fst))
+          (parameters |> List.map(fst))
+          @ (attributes |> List.map(fst))
           |> List.uniq_by((==));
 
         let (invalid, missing) =
           keys
           |> List.fold_left(
                ((invalid, missing) as acc, key) => {
-                 let expected = attrs |> List.assoc_opt(key);
-                 let actual = actual_attrs |> List.assoc_opt(key);
+                 let parameter = parameters |> List.assoc_opt(key);
+                 let attribute = attributes |> List.assoc_opt(key);
 
-                 switch (expected, actual) {
+                 switch (parameter, attribute) {
                  | _ when key == "children" && has_children => acc
                  | (
                      Some((expected', _)),
@@ -36,7 +36,7 @@ let validate_jsx_render:
                          invalid
                          @ [
                            (
-                             InvalidJSXAttribute(key, expected', actual_value),
+                             InvalidKSXAttribute(key, expected', actual_value),
                              Some(Node.get_range(actual')),
                            ),
                          ],
@@ -54,7 +54,7 @@ let validate_jsx_render:
                      invalid
                      @ [
                        (
-                         Type.UnexpectedJSXAttribute(key, fst(actual')),
+                         Type.UnexpectedKSXAttribute(key, fst(actual')),
                          Some(Node.get_range(actual')),
                        ),
                      ],
@@ -71,25 +71,25 @@ let validate_jsx_render:
         if (!List.is_empty(invalid)) {
           invalid;
         } else if (!List.is_empty(missing)) {
-          [(Type.MissingJSXAttributes(id, missing), None)];
+          [(Type.MissingKSXAttributes(id, missing), None)];
         } else {
           [];
         };
       }
 
-    | (id, expr_type, attrs) => [
+    | (id, view_type, attributes) => [
         (
-          InvalidJSXTag(
+          InvalidKSXTag(
             id,
-            expr_type,
-            attrs |> List.map(Tuple.map_snd2(fst)),
+            view_type,
+            attributes |> List.map(Tuple.map_snd2(fst)),
           ),
           None,
         ),
       ];
 
 let validate_style_binding =
-    (styles: list(Result.expression_t))
+    (styles: list(Node.t('expr, Type.t)))
     : list((Type.error_t, option(Range.t))) => {
   styles
   |> List.filter_map(node =>
@@ -100,22 +100,22 @@ let validate_style_binding =
          /* assume this has been reported already and ignore */
          | Type.Invalid(_) => None
 
-         | Type.Valid(`Style) => None
+         | Type.Valid(Style) => None
 
          | type_ =>
            Some((
-             Type.TypeMismatch(Valid(`Style), type_),
+             Type.TypeMismatch(Valid(Style), type_),
              Some(Node.get_range(node)),
            ))
        )
      );
 };
 
-let validate_jsx_primitive_expression: Type.t => option(Type.error_t) =
+let validate_ksx_primitive_expression: Type.t => option(Type.error_t) =
   fun
   /* assume this has been reported already and ignore */
   | Invalid(_) => None
 
-  | Valid(`Nil | `Boolean | `Integer | `Float | `String | `Element) => None
+  | Valid(Nil | Boolean | Integer | Float | String | Element) => None
 
-  | type_ => Some(InvalidJSXPrimitiveExpression(type_));
+  | type_ => Some(InvalidKSXPrimitiveExpression(type_));

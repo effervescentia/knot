@@ -1,24 +1,21 @@
 open Kore;
 
-module A = AST.Result;
 module Formatter = Language.Formatter;
 module U = Util.ResultUtil;
 
-let __int_const = ("ABC", 123 |> U.int_prim |> A.of_const);
+let __int_const = ("ABC", 123 |> U.int_prim |> Declaration.of_constant);
 
 let __int_const_stmt =
   (
-    "ABC" |> U.as_untyped |> A.of_named_export,
-    123 |> U.int_prim |> A.of_const |> U.as_int,
+    ExportKind.Named,
+    "ABC" |> U.as_untyped,
+    123 |> U.int_prim |> Declaration.of_constant |> U.as_int,
   )
-  |> A.of_decl;
+  |> ModuleStatement.of_export;
 
 let __import_stmt =
-  (
-    "bar" |> A.of_external,
-    ["Foo" |> U.as_untyped |> A.of_main_import |> U.as_untyped],
-  )
-  |> A.of_import;
+  (Namespace.External("bar"), "Foo" |> U.as_untyped |> Option.some, [])
+  |> ModuleStatement.of_import;
 
 let suite =
   "Grammar.Formatter | Module"
@@ -65,15 +62,10 @@ const ABC = 123;\n",
         let _main_import = (name, f) =>
           (
             name |> f,
-            [
-              name
-              |> String.capitalize_ascii
-              |> U.as_untyped
-              |> A.of_main_import
-              |> U.as_untyped,
-            ],
+            name |> String.capitalize_ascii |> U.as_untyped |> Option.some,
+            [],
           )
-          |> A.of_import;
+          |> ModuleStatement.of_import;
 
         Assert.string(
           "import Bar from \"bar\";
@@ -82,10 +74,10 @@ import Foo from \"foo\";
 import Buzz from \"@/buzz\";
 import Fizz from \"@/fizz\";\n",
           [
-            _main_import("buzz", A.of_internal),
-            _main_import("bar", A.of_external),
-            _main_import("fizz", A.of_internal),
-            _main_import("foo", A.of_external),
+            _main_import("buzz", Namespace.of_internal),
+            _main_import("bar", Namespace.of_external),
+            _main_import("fizz", Namespace.of_internal),
+            _main_import("foo", Namespace.of_external),
           ]
           |> List.map(U.as_untyped)
           |> ~@Formatter.format,
@@ -99,21 +91,16 @@ import Fizz from \"@/fizz\";\n",
           "import { a, b, c, d } from \"foo\";\n",
           [
             (
-              "foo" |> A.of_external,
+              Namespace.External("foo"),
+              None,
               [
-                (U.as_untyped("d"), None) |> A.of_named_import |> U.as_untyped,
-                (U.as_untyped("c"), None)
-                |> A.of_named_import
-                |> U.as_untyped,
-                (U.as_untyped("b"), None)
-                |> A.of_named_import
-                |> U.as_untyped,
-                (U.as_untyped("a"), None)
-                |> A.of_named_import
-                |> U.as_untyped,
+                (U.as_untyped("d"), None) |> U.as_untyped,
+                (U.as_untyped("c"), None) |> U.as_untyped,
+                (U.as_untyped("b"), None) |> U.as_untyped,
+                (U.as_untyped("a"), None) |> U.as_untyped,
               ],
             )
-            |> A.of_import,
+            |> ModuleStatement.of_import,
           ]
           |> List.map(U.as_untyped)
           |> ~@Formatter.format,

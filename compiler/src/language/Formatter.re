@@ -1,22 +1,22 @@
-open Knot.Kore;
+open Kore;
 open FormatterUtils;
 open AST;
 
 let __default_margin = 120;
 
-let format_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
+let format_declaration_list: Fmt.t(list((string, Declaration.t('typ)))) =
   ppf => {
     let rec loop =
-      Module.(
+      Declaration.(
         fun
         | [] => Fmt.nop(ppf, ())
 
         /* do not add newline after the last statement */
-        | [decl] => KDeclaration.Plugin.format(ppf, decl)
+        | [decl] => Declaration.format(ppf, decl)
 
         /* handle constant clustering logic, separate with newlines */
         | [(_, Constant(_)) as decl, ...[(_, Constant(_)), ..._] as xs] => {
-            KDeclaration.Plugin.format(ppf, decl);
+            Declaration.format(ppf, decl);
             Fmt.cut(ppf, ());
 
             loop(xs);
@@ -24,7 +24,7 @@ let format_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
 
         /* followed by declarations that are not constants, add a full line break */
         | [decl, ...xs] => {
-            KDeclaration.Plugin.format(ppf, decl);
+            Declaration.format(ppf, decl);
             Fmt.cut(ppf, ());
             Fmt.cut(ppf, ());
 
@@ -35,22 +35,18 @@ let format_declaration_list: Fmt.t(list((string, Module.raw_declaration_t))) =
     loop;
   };
 
-let format_import_list: Fmt.t(list(KImport.Formatter.import_spec_t)) =
-  ppf =>
-    Fmt.(
-      list(~layout=Vertical, ~sep=Sep.newline, KImport.Plugin.format, ppf)
-    );
+let format_import_list: Fmt.t(list(Import.import_spec_t)) =
+  ppf => Fmt.(list(~layout=Vertical, ~sep=Sep.newline, Import.format, ppf));
 
 let format_standard_import: Fmt.t(list((string, option(string)))) =
-  ppf =>
-    Fmt.(pf(ppf, "import %a;", KImport.Formatter.format_named_import_list));
+  ppf => Fmt.(pf(ppf, "import %a;", Import.format_named_import_list));
 
 let format_all_imports:
   Fmt.t(
     (
       list((string, option(string))),
-      list(KImport.Formatter.import_spec_t),
-      list(KImport.Formatter.import_spec_t),
+      list(Import.import_spec_t),
+      list(Import.import_spec_t),
     ),
   ) =
   ppf =>
@@ -89,7 +85,7 @@ let format_all_imports:
         )
       );
 
-let format = (~margin=__default_margin): Fmt.t(Module.program_t) =>
+let format = (~margin=__default_margin): Fmt.t(Interface.program_t('typ)) =>
   (ppf, program) => {
     let orig_margin = Format.get_margin();
     Format.set_margin(margin);

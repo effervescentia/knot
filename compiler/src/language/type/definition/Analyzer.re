@@ -2,7 +2,7 @@ open Knot.Kore;
 open AST;
 
 let analyze_decorator =
-    (ctx: ParseContext.t, target: Type.DecoratorTarget.t, decorator) => {
+    (ctx: ParseContext.t('ast), target: Type.DecoratorTarget.t, decorator) => {
   let decorator' =
     decorator
     |> Node.map(
@@ -18,7 +18,7 @@ let analyze_decorator =
         let args_types = args |> List.map(Node.get_type);
 
         switch (Node.get_type(id)) {
-        | Some(Type.Valid(`Decorator(_, expected_target)))
+        | Some(Type.Valid(Decorator(_, expected_target)))
             when expected_target != target =>
           ctx
           |> ParseContext.report(
@@ -28,7 +28,7 @@ let analyze_decorator =
 
           false;
 
-        | Some(Type.Valid(`Decorator(expected_args, _)))
+        | Some(Type.Valid(Decorator(expected_args, _)))
             when
               List.length(expected_args) == List.length(args_types)
               && List.for_all2((==), expected_args, args_types) =>

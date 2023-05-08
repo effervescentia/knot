@@ -1,19 +1,9 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
-open AST;
 
-let parse =
-    (
-      (
-        ctx: ParseContext.t,
-        parse_expr: Framework.contextual_expression_parser_t,
-      ),
-    )
-    : Framework.expression_parser_t =>
-  KStatement.Plugin.parse(ctx, parse_expr)
-  |> many
-  |> Matchers.between_braces
-  >|= (
-    ((stmts, _) as stmts_node) =>
-      Node.typed(Raw.of_closure(stmts), (), Node.get_range(stmts_node))
-  );
+let parse: Interface.Plugin.parse_t('ast, 'result) =
+  (f, (ctx, parse_expr)) =>
+    Statement.parse(ctx, parse_expr)
+    |> many
+    |> Matchers.between_braces
+    >|= Node.map(f);

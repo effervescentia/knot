@@ -7,5 +7,5 @@
    (name Language)
    ; Other libraries list this name in their package.json 'require' field to use this library.
    (public_name knot.lang)
-   (libraries  knot.lang.decorator knot.lang.import knot.lang.declaration knot.lang.type.definition )
+   (libraries  knot.lang.decorator knot.lang.declaration knot.lang.type.definition )
 )

@@ -1,19 +1,20 @@
-open Knot.Kore;
-open AST;
+let validate = Validator.validate;
 
-let analyze = Analyzer.analyze;
-
-include Framework.Expression({
-  type parse_arg_t = Raw.expression_t;
-
-  type value_t('a) = (
-    Expression.expression_t('a),
-    Common.untyped_t(string),
-  );
+include Interface;
+include AST.Framework.Expression.Make({
+  include Plugin;
 
   let parse = Parser.parse;
+
+  let analyze = Analyzer.analyze;
 
   let format = Formatter.format;
 
   let to_xml = Debug.to_xml;
 });
+
+let tokenize: Plugin.tokenize_t('expr, 'prim, 'typ) =
+  (tokenize_expr, (expression, _)) =>
+    expression
+    |> tokenize_expr
+    |> AST.TokenTree2.wrap(Knot.Node.get_range(expression));

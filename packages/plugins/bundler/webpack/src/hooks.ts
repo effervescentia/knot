@@ -22,12 +22,13 @@ export function watchCompilationHook(
   context: Context,
   kill: Kill
 ): void {
-  compiler.hooks.watchRun.tapPromise(context.name, () =>
-    (context.successiveRun
-      ? Promise.resolve()
-      : ((context.watching = true), context.knotCompiler.awaitReady())
-    ).catch(kill)
-  );
+  compiler.hooks.watchRun.tapPromise(context.name, async () => {
+    if (context.successiveRun) return Promise.resolve();
+
+    context.watching = true;
+
+    await context.knotCompiler.start().catch(kill);
+  });
 }
 
 export function awaitCompilerHook(

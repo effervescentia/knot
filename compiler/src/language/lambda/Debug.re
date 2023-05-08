@@ -1,19 +1,19 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
-let argument_to_xml:
+let parameter_to_xml:
   (
-    Result.expression_t => Fmt.xml_t(string),
-    Type.t => string,
-    Result.argument_t
+    Node.t('expr, 'typ) => Fmt.xml_t(string),
+    'typ => string,
+    Interface.Parameter.node_t('expr, 'typ)
   ) =>
   Fmt.xml_t(string) =
   (expr_to_xml, dump_type, parameter) =>
     Dump.node_to_xml(
       ~dump_type,
       ~unpack=
-        (Expression.{name, default, type_}) =>
-          [Dump.node_to_xml(~dump_value=Fun.id, "Name", name)]
+        ((name, type_, default)) =>
+          [Dump.identifier_to_xml("Name", name)]
           @ (
             default
             |> Option.map(default' =>
@@ -24,13 +24,7 @@ let argument_to_xml:
           @ (
             type_
             |> Option.map(type_' =>
-                 [
-                   Fmt.Node(
-                     "Type",
-                     [],
-                     [KTypeExpression.Plugin.to_xml(type_')],
-                   ),
-                 ]
+                 [Fmt.Node("Type", [], [TypeExpression.to_xml(type_')])]
                )
             |?: []
           ),
@@ -38,12 +32,12 @@ let argument_to_xml:
       parameter,
     );
 
-let argument_list_to_xml:
+let parameter_list_to_xml:
   (
-    Result.expression_t => Fmt.xml_t(string),
-    Type.t => string,
-    list(Result.argument_t)
+    Node.t('expr, 'typ) => Fmt.xml_t(string),
+    'typ => string,
+    list(Interface.Parameter.node_t('expr, 'typ))
   ) =>
   list(Fmt.xml_t(string)) =
   (expr_to_xml, dump_type, parameters) =>
-    parameters |> List.map(argument_to_xml(expr_to_xml, dump_type));
+    parameters |> List.map(parameter_to_xml(expr_to_xml, dump_type));

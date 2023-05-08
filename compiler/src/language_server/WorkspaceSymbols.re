@@ -62,12 +62,9 @@ let handler: Runtime.request_handler_t(params_t) =
                     ast
                     |> List.filter_map(
                          fst
-                         % AST.Module.(
+                         % ModuleStatement.(
                              fun
-                             | Declaration(
-                                 MainExport(name) | NamedExport(name),
-                                 decl,
-                               ) => {
+                             | Export((_, name, decl)) => {
                                  let uri =
                                    Filename.concat(
                                      uri,
@@ -83,32 +80,34 @@ let handler: Runtime.request_handler_t(params_t) =
                                  let name = fst(name);
 
                                  Some(
-                                   switch (fst(decl)) {
-                                   | Constant(_) => {
-                                       uri,
-                                       name,
-                                       range,
-                                       kind: Capabilities.Variable,
+                                   Declaration.(
+                                     switch (fst(decl)) {
+                                     | Constant(_) => {
+                                         uri,
+                                         name,
+                                         range,
+                                         kind: Capabilities.Variable,
+                                       }
+                                     | Enumerated(_) => {
+                                         uri,
+                                         name,
+                                         range,
+                                         kind: Capabilities.Enum,
+                                       }
+                                     | Function(_) => {
+                                         uri,
+                                         name,
+                                         range,
+                                         kind: Capabilities.Function,
+                                       }
+                                     | View(_) => {
+                                         uri,
+                                         name,
+                                         range,
+                                         kind: Capabilities.Function,
+                                       }
                                      }
-                                   | Enumerated(_) => {
-                                       uri,
-                                       name,
-                                       range,
-                                       kind: Capabilities.Enum,
-                                     }
-                                   | Function(_) => {
-                                       uri,
-                                       name,
-                                       range,
-                                       kind: Capabilities.Function,
-                                     }
-                                   | View(_) => {
-                                       uri,
-                                       name,
-                                       range,
-                                       kind: Capabilities.Function,
-                                     }
-                                   },
+                                   ),
                                  );
                                }
                              | _ => None

@@ -4,7 +4,6 @@ module Namespace = Reference.Namespace;
 module Export = Reference.Export;
 module Parser = Compile.Parser;
 module U = Util.ResultUtil;
-module A = AST.Result;
 module ModuleTable = AST.ModuleTable;
 module ParseContext = AST.ParseContext;
 module SymbolTable = AST.SymbolTable;
@@ -16,7 +15,8 @@ module Px = Fixtures.Program;
 let __scope_tree = BinaryTree.create((Range.zero, None));
 
 let _create_module =
-    (exports: list((Export.t, Type.t))): ModuleTable.module_t => {
+    (exports: list((Export.t, Type.t)))
+    : ModuleTable.module_t(Language.Interface.program_t(AST.Type.t)) => {
   ast: [],
   scopes: __scope_tree,
   symbols: SymbolTable.of_export_list(exports),
@@ -37,7 +37,7 @@ let __context =
           Nx.bar,
           ModuleTable.Valid(
             "foo",
-            _create_module([(Export.Main, Type.Valid(`Boolean))]),
+            _create_module([(Export.Main, Type.Valid(Boolean))]),
           ),
         ),
       ]
@@ -60,7 +60,7 @@ let suite =
     >: (
       () =>
         Assert.list_namespace(
-          [A.of_external("bar"), A.of_external("buzz")],
+          [Namespace.External("bar"), Namespace.External("buzz")],
           Rx.multiple_import |> _to_stream |> Parser.imports(Nx.foo),
         )
     ),

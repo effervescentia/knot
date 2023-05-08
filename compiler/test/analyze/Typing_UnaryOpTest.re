@@ -1,6 +1,5 @@
 open Kore;
 
-module A = AST.Result;
 module OU = AST.Operator.Unary;
 module T = AST.Type;
 
@@ -12,7 +11,7 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          T.Invalid(NotInferrable) |> KUnaryOperator.Validator.validate(Not),
+          T.Invalid(NotInferrable) |> UnaryOperator.validate(Not),
         )
     ),
     "'not' (!) operation with boolean type"
@@ -20,15 +19,15 @@ let suite =
       () =>
         Assert.type_error(
           None,
-          T.Valid(`Boolean) |> KUnaryOperator.Validator.validate(Not),
+          T.Valid(Boolean) |> UnaryOperator.validate(Not),
         )
     ),
     "'not' (!) operation with non-boolean type"
     >: (
       () =>
         Assert.type_error(
-          Some(InvalidUnaryOperation(Not, Valid(`String))),
-          T.Valid(`String) |> KUnaryOperator.Validator.validate(Not),
+          Some(InvalidUnaryOperation(Not, Valid(String))),
+          T.Valid(String) |> UnaryOperator.validate(Not),
         )
     ),
     "'positive' (+) and 'negative' (-) operations with integer type"
@@ -38,7 +37,7 @@ let suite =
         |> List.iter(op =>
              Assert.type_error(
                None,
-               T.Valid(`Integer) |> KUnaryOperator.Validator.validate(op),
+               T.Valid(Integer) |> UnaryOperator.validate(op),
              )
            )
     ),
@@ -49,7 +48,7 @@ let suite =
         |> List.iter(op =>
              Assert.type_error(
                None,
-               T.Valid(`Float) |> KUnaryOperator.Validator.validate(op),
+               T.Valid(Float) |> UnaryOperator.validate(op),
              )
            )
     ),
@@ -59,8 +58,8 @@ let suite =
         [OU.Positive, OU.Negative]
         |> List.iter(op =>
              Assert.type_error(
-               Some(InvalidUnaryOperation(op, Valid(`String))),
-               T.Valid(`String) |> KUnaryOperator.Validator.validate(op),
+               Some(InvalidUnaryOperation(op, Valid(String))),
+               T.Valid(String) |> UnaryOperator.validate(op),
              )
            )
     ),

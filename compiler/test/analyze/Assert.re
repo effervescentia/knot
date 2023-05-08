@@ -17,7 +17,13 @@ let expression = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        ppf => KExpression.Plugin.to_xml(~@Type.pp) % Fmt.xml_string(ppf),
+        (ppf, (expression, type_)) =>
+          Fmt.Node(
+            "Expression",
+            [("type", type_ |> ~@Type.pp)],
+            KExpression.Debug.unpack(~@Type.pp, expression),
+          )
+          |> Fmt.xml_string(ppf),
         (==),
       ),
       "expression matches",
@@ -31,10 +37,7 @@ let jsx = (expected, actual) =>
     check(
       testable(
         ppf =>
-          KSX.Plugin.to_xml((
-            KExpression.Plugin.to_xml(~@Type.pp),
-            ~@Type.pp,
-          ))
+          KSX.to_xml((Expression.to_xml(~@Type.pp), ~@Type.pp))
           % Fmt.xml_string(ppf),
         (==),
       ),
@@ -48,12 +51,16 @@ let statement = (expected, actual) =>
   Alcotest.(
     check(
       testable(
-        ppf =>
-          KStatement.Plugin.to_xml(
-            KExpression.Plugin.to_xml(~@Type.pp),
-            ~@Type.pp,
+        (ppf, (statement, type_)) =>
+          Fmt.Node(
+            "Statement",
+            [("type", type_ |> ~@Type.pp)],
+            KStatement.Debug.unpack(
+              (Expression.to_xml(~@Type.pp), ~@Type.pp),
+              statement,
+            ),
           )
-          % Fmt.xml_string(ppf),
+          |> Fmt.xml_string(ppf),
         (==),
       ),
       "statement matches",
@@ -67,8 +74,8 @@ let argument = (expected, actual) =>
     check(
       testable(
         ppf =>
-          KLambda.Debug.argument_to_xml(
-            KExpression.Plugin.to_xml(~@AST.Type.pp),
+          Lambda.parameter_to_xml(
+            Expression.to_xml(~@AST.Type.pp),
             ~@AST.Type.pp,
           )
           % Fmt.xml_string(ppf),

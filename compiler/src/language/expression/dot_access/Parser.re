@@ -1,22 +1,20 @@
 open Knot.Kore;
 open Parse.Kore;
-open AST;
 
-let parse = {
-  let rec loop = expr =>
-    Matchers.period
-    >> Matchers.identifier
-    >>= (
-      prop =>
-        loop(
-          Node.typed(
-            (expr, prop) |> Raw.of_dot_access,
-            (),
-            Node.get_range(prop),
-          ),
-        )
-    )
-    |> option(expr);
+let parse: Interface.Plugin.parse_t('ast, 'expr) =
+  (f, parse_expression) => {
+    let rec loop = object_ =>
+      Matchers.period
+      >> Matchers.identifier
+      >>= (
+        property =>
+          Node.raw(
+            (object_, property) |> f,
+            Node.join_ranges(object_, property),
+          )
+          |> loop
+      )
+      |> option(object_);
 
-  loop;
-};
+    parse_expression >>= loop;
+  };

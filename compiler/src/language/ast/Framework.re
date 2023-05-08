@@ -1,112 +1,358 @@
 open Knot.Kore;
+open Common;
 
 module Parser = Parse.Parser;
 
-type unary_op_parser_t = Parser.t(Raw.expression_t => Raw.expression_t);
+type debug_node_t('value, 'typ) = Node.t('value, 'typ) => Fmt.xml_t(string);
 
-type binary_op_parser_t =
-  Parser.t(((Raw.expression_t, Raw.expression_t)) => Raw.expression_t);
+module Interface = {
+  type parse_t('value) = Parser.t(raw_t('value));
 
-type expression_parser_t = Parser.t(Raw.expression_t);
-type contextual_expression_parser_t = ParseContext.t => expression_parser_t;
+  type contextual_parse_t('ast, 'value) =
+    ParseContext.t('ast) => parse_t('value);
 
-type statement_parser_t = Parser.t(Raw.statement_t);
+  type analyze_t('ast, 'raw, 'result) =
+    (Scope.t('ast), raw_t('raw)) => ('result, Type.t);
 
-type declaration_parser_t =
-  Parser.t(Node.t((Module.export_t, Module.declaration_t), unit));
+  type format_t('inner, 'outer) = Fmt.t('inner) => Fmt.t('outer);
 
-module type NumberParams = {
-  type value_t;
-
-  let parse: Parser.t(Node.t(Raw.number_t, unit));
-
-  let format: Fmt.t(value_t);
-
-  let to_xml: value_t => Fmt.xml_t(string);
+  type debug_t('value) = 'value => Fmt.xml_t(string);
 };
 
-module Number = (Params: NumberParams) => {
-  include Params;
+module type BaseParams = {type value_t('expr, 'typ);};
+
+module ParsePlugin = {
+  module type Params = {
+    include BaseParams;
+
+    type parse_arg_t('ast, 'expr);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+
+    type parse_t('ast, 'expr) =
+      parse_arg_t('ast, 'expr) => Interface.parse_t(value_t('expr, unit));
+  };
 };
 
-module type PrimitiveParams = {
-  type value_t;
+module AnalyzePlugin = {
+  module type Params = {
+    include BaseParams;
 
-  let parse: Parser.t(Node.t(Raw.primitive_t, unit));
+    type analyze_arg_t('ast, 'raw_expr, 'result_expr);
+  };
 
-  let format: Fmt.t(value_t);
+  module Make = (Params: Params) => {
+    include Params;
 
-  let to_xml: value_t => Fmt.xml_t(string);
+    type analyze_t('ast, 'raw, 'result) =
+      analyze_arg_t('ast, 'raw, 'result) =>
+      Interface.analyze_t(
+        'ast,
+        value_t('raw, unit),
+        value_t('result, Type.t),
+      );
+  };
 };
 
-module Primitive = (Params: PrimitiveParams) => {
-  include Params;
+module FormatPlugin = {
+  module type Params = {
+    include BaseParams;
+
+    type format_arg_t('expr, 'typ);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+
+    type format_t('expr, 'typ) =
+      format_arg_t('expr, 'typ) =>
+      Interface.format_t('expr, value_t('expr, 'typ));
+  };
 };
 
-module type StatementParams = {
-  type pp_arg_t;
+module DebugPlugin = {
+  module type Params = {
+    include BaseParams;
 
-  type value_t('a);
+    type debug_arg_t('expr, 'typ);
+  };
 
-  let parse:
-    ((ParseContext.t, contextual_expression_parser_t)) =>
-    Parser.t(Raw.statement_t);
+  module Make = (Params: Params) => {
+    include Params;
 
-  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
-
-  let to_xml:
-    (Expression.expression_t('a) => Fmt.xml_t(string), value_t('a)) =>
-    Fmt.xml_t(string);
+    type debug_t('expr, 'typ) =
+      debug_arg_t('expr, 'typ) => Interface.debug_t(value_t('expr, 'typ));
+  };
+  module type MakeExtension = (Params: Params) => {let to_xml: string;};
 };
 
-module Statement = (Params: StatementParams) => {
-  include Params;
+module Primitive = {
+  module type TypeParams = {type value_t;};
+
+  module MakeTypes = (Params: TypeParams) => {
+    include Params;
+
+    type parse_t = Interface.parse_t(value_t);
+
+    type format_t = Fmt.t(value_t);
+
+    type debug_t = Interface.debug_t(value_t);
+  };
+
+  module type Params = {
+    include (module type of
+      MakeTypes({
+        type value_t;
+      }));
+
+    let parse: parse_t;
+    let format: format_t;
+    let to_xml: debug_t;
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+  };
 };
 
-module type NoParseExpressionParams = {
-  // type analyze_arg_t;
+module UnaryOperator = {
+  module type Params = {let operator: (Operator.Unary.t, char);};
 
-  type value_t('a);
+  module Make = (Params: Params) => {
+    type parse_t('expr) =
+      (((Operator.Unary.t, raw_t('expr))) => 'expr) =>
+      Parse.Parser.t(raw_t('expr) => raw_t('expr));
 
-  // let analyze: (analyze_arg_t, value_t(unit)) => value_t(Type.t);
-  let format: Fmt.t(Result.raw_expression_t) => Fmt.t(value_t(Type.t));
+    let parse: parse_t('expr) =
+      f =>
+        Parse.Kore.(
+          Parse.Util.unary_op(expression =>
+            (fst(Params.operator), expression) |> f
+          )
+          <$ (Params.operator |> snd |> Matchers.symbol >|= Node.map(_ => ()))
+        );
 
-  let to_xml:
-    (
-      (Expression.expression_t('a) => Fmt.xml_t(string), 'a => string),
-      value_t('a)
-    ) =>
-    Fmt.xml_t(string);
+    let format: Fmt.t(unit) =
+      (ppf, ()) => Params.operator |> snd |> Fmt.char(ppf);
+  };
 };
 
-module NoParseExpression = (Params: NoParseExpressionParams) => {
-  include Params;
+module BinaryOperator = {
+  type t =
+    | Glyph(string)
+    | Character(char);
+
+  module type Params = {let operator: (Operator.Binary.t, t);};
+
+  module Make = (Params: Params) => {
+    type parse_t('expr) =
+      ((Operator.Binary.t, (raw_t('expr), raw_t('expr))) => 'expr) =>
+      Parse.Parser.t(((raw_t('expr), raw_t('expr))) => raw_t('expr));
+
+    let parse: parse_t('expr) =
+      f =>
+        Parse.Kore.(
+          Parse.Util.binary_op(((lhs, rhs)) =>
+            (lhs, rhs) |> f(fst(Params.operator))
+          )
+          <$ (
+            switch (snd(Params.operator)) {
+            | Glyph(glyph) => Matchers.glyph(glyph)
+            | Character(char) => Matchers.symbol(char) >|= Node.map(_ => ())
+            }
+          )
+        );
+
+    let format: Fmt.t(unit) =
+      (ppf, ()) =>
+        switch (snd(Params.operator)) {
+        | Character(char) => Fmt.char(ppf, char)
+        | Glyph(glyph) => Fmt.string(ppf, glyph)
+        };
+  };
 };
 
-module type ExpressionParams = {
-  include NoParseExpressionParams;
+module NoParseExpression = {
+  module type TypeParams = {
+    include AnalyzePlugin.Params;
+    include FormatPlugin.Params;
+    // include DebugPlugin.Params;
+  };
 
-  type parse_arg_t;
+  module MakeTypes = (Params: TypeParams) => {
+    include Params;
+    include AnalyzePlugin.Make(Params);
+    include FormatPlugin.Make(Params);
+    include DebugPlugin.Make({
+      include Params;
+      type debug_arg_t('expr, 'typ) = (
+        debug_node_t('expr, 'typ),
+        'typ => string,
+      );
+    });
 
-  let parse: parse_arg_t => Parser.t(Expression.expression_t(unit));
+    type tokenize_t('expr, 'prim, 'typ) =
+      (Node.t('expr, 'typ) => TokenTree2.t('prim), value_t('expr, 'typ)) =>
+      TokenTree2.t('prim);
+  };
+
+  module type Params = {
+    include TypeParams;
+    include (module type of
+      AnalyzePlugin.Make({
+        type value_t('expr, 'typ);
+        type analyze_arg_t('ast, 'raw_expr, 'result_expr);
+      }));
+    // include (module type of
+    //   FormatPlugin.Make({
+    //     type value_t('expr, 'typ);
+    //     type format_arg_t('expr, 'typ);
+    //   }));
+    include (module type of
+      DebugPlugin.Make({
+        type value_t('expr, 'typ);
+        type debug_arg_t('expr, 'typ);
+      }));
+
+    let analyze: analyze_t('ast, 'raw_expr, 'result_expr);
+
+    let format:
+      format_arg_t('expr, 'typ) =>
+      Interface.format_t('expr, value_t('expr, 'typ));
+
+    let to_xml: debug_t('expr, 'typ);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+  };
 };
 
-module Expression = (Params: ExpressionParams) => {
-  include Params;
+module Expression = {
+  module type TypeParams = {
+    include NoParseExpression.TypeParams;
+    include ParsePlugin.Params;
+  };
+
+  module MakeParsePlugin = (Params: ParsePlugin.Params) =>
+    ParsePlugin.Make({
+      include Params;
+      type value_t('expr, 'typ) = 'expr;
+    });
+
+  module ParseExtension = (Params: ParsePlugin.Params) => {
+    type parse_t('ast, 'expr) =
+      (Params.value_t('expr, unit) => 'expr) =>
+      MakeParsePlugin(Params).parse_t('ast, 'expr);
+  };
+
+  module MakeTypes = (Params: TypeParams) => {
+    include Params;
+    include NoParseExpression.MakeTypes(Params);
+    include ParseExtension(Params);
+  };
+
+  module type Params = {
+    include TypeParams;
+    include NoParseExpression.Params;
+    include (module type of
+      ParseExtension({
+        type value_t('expr, 'typ);
+        type parse_arg_t('ast, 'expr);
+      }));
+
+    let parse: parse_t('ast, 'expr);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+  };
 };
 
-module type DeclarationParams = {
-  type value_t;
+module Statement = {
+  module type TypeParams = {include BaseParams;};
 
-  let parse:
-    ((ParseContext.t, Node.t(string, unit) => Module.export_t)) =>
-    Parser.t(Node.t((Module.export_t, Module.declaration_t), unit));
+  module MakeTypes = (Params: TypeParams) => {
+    include Params;
+    include AnalyzePlugin.Make({
+      include Params;
+      type analyze_arg_t('ast, 'raw_expr, 'result_expr) =
+        Interface.analyze_t('ast, 'raw_expr, 'result_expr);
+    });
+    include DebugPlugin.Make({
+      include Params;
+      type debug_arg_t('expr, 'typ) =
+        Node.t('expr, 'typ) => Fmt.xml_t(string);
+    });
 
-  let format: Fmt.t((string, value_t));
+    module ParseParams = {
+      include Params;
+      type parse_arg_t('ast, 'expr) = (
+        ParseContext.t('ast),
+        Interface.contextual_parse_t('ast, 'expr),
+      );
+    };
 
-  let to_xml: (Type.t => string, value_t) => Fmt.xml_t(string);
+    type parse_t('ast, 'expr) =
+      ParsePlugin.Make(ParseParams).parse_t('ast, 'expr);
+
+    type format_t('expr, 'typ) =
+      Interface.format_t('expr, value_t('expr, 'typ));
+  };
+
+  module type Params = {
+    include (module type of
+      MakeTypes({
+        type value_t('expr, 'typ);
+        type analyze_arg_t('ast, 'raw_expr, 'result_expr);
+      }));
+
+    let parse: parse_t('ast, 'expr);
+    let analyze: analyze_t('ast, 'raw_expr, 'result_expr);
+    let format: format_t('expr, 'typ);
+    let to_xml: debug_t('expr, 'typ);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+  };
 };
 
-module Declaration = (Params: DeclarationParams) => {
-  include Params;
+module Declaration = {
+  module type TypeParams = {type value_t('typ);};
+
+  module MakeTypes = (Params: TypeParams) => {
+    include Params;
+
+    type parse_t('ast) =
+      bool =>
+      Interface.contextual_parse_t(
+        'ast,
+        (identifier_t, Node.t(value_t(Type.t), Type.t)),
+      );
+
+    type format_t('typ) = Fmt.t((string, value_t('typ)));
+
+    type debug_t('typ) =
+      ('typ => string, value_t('typ)) => Fmt.xml_t(string);
+  };
+
+  module type Params = {
+    include (module type of
+      MakeTypes({
+        type value_t('typ);
+      }));
+
+    let parse: parse_t('ast);
+
+    let format: format_t('typ);
+
+    let to_xml: debug_t('typ);
+  };
+
+  module Make = (Params: Params) => {
+    include Params;
+  };
 };

@@ -1,7 +1,5 @@
 open Kore;
 
-module A = AST.Result;
-module AR = AST.Raw;
 module T = AST.Type;
 module URaw = Util.RawUtil;
 module URes = Util.ResultUtil;
@@ -9,7 +7,8 @@ module URes = Util.ResultUtil;
 let __id = "foo";
 let __component_id = "Foo";
 let __namespace = Reference.Namespace.of_string("foo");
-let __context = AST.ParseContext.create(~report=ignore, __namespace);
+let __context: AST.ParseContext.t(Language.Interface.program_t(AST.Type.t)) =
+  AST.ParseContext.create(~report=ignore, __namespace);
 let __throw_scope =
   AST.Scope.create({...__context, report: AST.Error.throw}, Range.zero);
 
@@ -19,7 +18,7 @@ let suite =
     "resolve jsx with valid inline expression"
     >: (
       () => {
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__throw_scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -31,34 +30,40 @@ let suite =
             [],
             [],
             [
-              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
+              "foo"
+              |> URes.string_prim
+              |> KSX.Child.of_inline
+              |> URes.as_untyped,
             ],
           )
-          |> A.of_component,
+          |> KSX.of_component_tag,
           (
             URaw.as_untyped(__id),
             [],
             [],
             [
-              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
+              "foo"
+              |> URaw.string_prim
+              |> KSX.Child.of_inline
+              |> URaw.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
     "resolve jsx as tag if found in plugin scope"
     >: (
       () => {
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__throw_scope,
           context: {
             ...__throw_scope.context,
             modules: {
               ...__throw_scope.context.modules,
-              plugins: [(ElementTag, [(__id, Value(type_))])],
+              plugins: [(ElementTag, [(Value, __id, type_)])],
             },
           },
         };
@@ -69,20 +74,26 @@ let suite =
             [],
             [],
             [
-              "foo" |> URes.string_prim |> A.of_inline_expr |> URes.as_untyped,
+              "foo"
+              |> URes.string_prim
+              |> KSX.Child.of_inline
+              |> URes.as_untyped,
             ],
           )
-          |> A.of_tag,
+          |> KSX.of_element_tag,
           (
             URaw.as_untyped(__id),
             [],
             [],
             [
-              "foo" |> URaw.string_prim |> AR.of_inline_expr |> URaw.as_untyped,
+              "foo"
+              |> URaw.string_prim
+              |> KSX.Child.of_inline
+              |> URaw.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -90,11 +101,11 @@ let suite =
     >: (
       () => {
         let style_id = "bar";
-        let type_ = T.Valid(`View(([], Valid(`Nil))));
+        let type_ = T.Valid(View([], Valid(Nil)));
         let scope = {
           ...__throw_scope,
           types:
-            [(__id, type_), (style_id, T.Valid(`Style))]
+            [(__id, type_), (style_id, T.Valid(Style))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -102,19 +113,19 @@ let suite =
         Assert.jsx(
           (
             __id |> URes.as_typed(type_),
-            [style_id |> A.of_id |> URes.as_style],
+            [style_id |> Expression.of_identifier |> URes.as_style],
             [],
             [],
           )
-          |> A.of_component,
+          |> KSX.of_component_tag,
           (
             URaw.as_untyped(__id),
-            [style_id |> AR.of_id |> URaw.as_untyped],
+            [style_id |> Expression.of_identifier |> URaw.as_untyped],
             [],
             [],
           )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),
@@ -125,18 +136,15 @@ let suite =
           [ParseError(TypeError(NotFound(__id)), __namespace, Range.zero)],
           () =>
           (URaw.as_untyped(__id), [], [], [])
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(
-               __throw_scope,
-               KExpression.Plugin.analyze,
-             )
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, __throw_scope)
         );
       }
     ),
-    "report InvalidJSXPrimitiveExpression error with invalid inline expression"
+    "report InvalidKSXPrimitiveExpression error with invalid inline expression"
     >: (
       () => {
-        let type_ = T.Valid(`Function(([], Valid(`Boolean))));
+        let type_ = T.Valid(Function([], Valid(Boolean)));
         let scope = {
           ...__throw_scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -145,7 +153,7 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(InvalidJSXPrimitiveExpression(type_)),
+              TypeError(InvalidKSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
@@ -157,21 +165,21 @@ let suite =
             [],
             [
               __id
-              |> AR.of_id
+              |> Expression.of_identifier
               |> URaw.as_node
-              |> AR.of_inline_expr
+              |> KSX.Child.of_inline
               |> URaw.as_untyped,
             ],
           )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, scope)
         );
       }
     ),
-    "report InvalidJSXPrimitiveExpression error with invalid view body"
+    "report InvalidKSXPrimitiveExpression error with invalid view body"
     >: (
       () => {
-        let type_ = T.Valid(`Function(([], Valid(`Boolean))));
+        let type_ = T.Valid(Function([], Valid(Boolean)));
         let scope = {
           ...__throw_scope,
           types: [(__id, type_)] |> List.to_seq |> Hashtbl.of_seq,
@@ -180,29 +188,26 @@ let suite =
         Assert.throws_compile_errors(
           [
             ParseError(
-              TypeError(InvalidJSXPrimitiveExpression(type_)),
+              TypeError(InvalidKSXPrimitiveExpression(type_)),
               __namespace,
               Range.zero,
             ),
           ],
           () =>
           __id
-          |> AR.of_id
+          |> Expression.of_identifier
           |> URaw.as_node
-          |> KView.Analyzer.analyze_view_body(
-               scope,
-               KExpression.Plugin.analyze,
-             )
+          |> View.analyze_view_body(scope)
         );
       }
     ),
-    "throw InvalidJSXTag error on jsx with incorrect type"
+    "throw InvalidKSXTag error on jsx with incorrect type"
     >: (
       () => {
         let scope = {
           ...__throw_scope,
           types:
-            [(__component_id, T.Valid(`Integer))]
+            [(__component_id, T.Valid(Integer))]
             |> List.to_seq
             |> Hashtbl.of_seq,
         };
@@ -211,10 +216,10 @@ let suite =
           [
             ParseError(
               TypeError(
-                InvalidJSXTag(
+                InvalidKSXTag(
                   __component_id,
-                  Valid(`Integer),
-                  [("bar", Valid(`Boolean))],
+                  Valid(Integer),
+                  [("bar", Valid(Boolean))],
                 ),
               ),
               __namespace,
@@ -231,12 +236,12 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, scope)
         );
       }
     ),
-    "throw InvalidJSXAttribute and UnexpectedJSXAttribute errors on jsx with incorrect attributes"
+    "throw InvalidKSXAttribute and UnexpectedKSXAttribute errors on jsx with incorrect attributes"
     >: (
       () => {
         let errors = ref([]);
@@ -251,10 +256,10 @@ let suite =
               (
                 __component_id,
                 T.Valid(
-                  `View((
-                    [("fizz", (T.Valid(`Boolean), true))],
-                    T.Valid(`Element),
-                  )),
+                  View(
+                    [("fizz", (T.Valid(Boolean), true))],
+                    T.Valid(Element),
+                  ),
                 ),
               ),
             ]
@@ -276,24 +281,20 @@ let suite =
           ],
           [],
         )
-        |> AR.of_tag
-        |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze)
+        |> KSX.of_element_tag
+        |> KSX.analyze_ksx(Expression.analyze, scope)
         |> ignore;
 
         Assert.compile_errors(
           [
             ParseError(
-              TypeError(UnexpectedJSXAttribute("buzz", Valid(`Boolean))),
+              TypeError(UnexpectedKSXAttribute("buzz", Valid(Boolean))),
               __namespace,
               Range.zero,
             ),
             ParseError(
               TypeError(
-                InvalidJSXAttribute(
-                  "fizz",
-                  Valid(`Boolean),
-                  Valid(`String),
-                ),
+                InvalidKSXAttribute("fizz", Valid(Boolean), Valid(String)),
               ),
               __namespace,
               Range.zero,
@@ -309,14 +310,14 @@ let suite =
         let errors = ref([]);
         let view_type =
           T.Valid(
-            `View((
+            View(
               [
-                ("fizz", (T.Valid(`Boolean), true)),
-                ("buzz", (T.Valid(`String), true)),
-                ("foobar", (T.Valid(`Element), false)),
+                ("fizz", (T.Valid(Boolean), true)),
+                ("buzz", (T.Valid(String), true)),
+                ("foobar", (T.Valid(Element), false)),
               ],
-              T.Valid(`Element),
-            )),
+              T.Valid(Element),
+            ),
           );
         let scope = {
           ...__throw_scope,
@@ -343,7 +344,7 @@ let suite =
             ],
             [],
           )
-          |> A.of_component,
+          |> KSX.of_component_tag,
           (
             URaw.as_untyped(__component_id),
             [],
@@ -358,8 +359,8 @@ let suite =
             ],
             [],
           )
-          |> AR.of_tag
-          |> KSX.Analyzer.analyze_jsx(scope, KExpression.Plugin.analyze),
+          |> KSX.of_element_tag
+          |> KSX.analyze_ksx(Expression.analyze, scope),
         );
       }
     ),

@@ -1,19 +1,19 @@
-open Knot.Kore;
+open Kore;
 open Parse.Kore;
 open AST;
 
 module Character = Constants.Character;
 
-let parse_arguments =
+let parse_parameters =
     (
-      ctx: ParseContext.t,
-      parse_expression: Framework.contextual_expression_parser_t,
+      ctx: ParseContext.t('ast),
+      parse_expression: Framework.Interface.contextual_parse_t('ast, 'expr),
     ) =>
-  KIdentifier.Parser.parse_raw(ctx)
+  KIdentifier.Plugin.parse_raw(ctx)
   >>= (
     id =>
       Matchers.symbol(Character.colon)
-      >> KTypeExpression.Plugin.parse
+      >> TypeExpression.parse
       >|= ((type_, default) => (id, Some(type_), default))
       |> option(default => (id, None, default))
   )
@@ -29,9 +29,8 @@ let parse_arguments =
     ((name, type_, default)) => {
       let name_range = Node.get_range(name);
 
-      Node.typed(
-        Expression.{name, default, type_},
-        (),
+      Node.raw(
+        (name, type_, default),
         Range.join(
           name_range,
           default
@@ -47,14 +46,14 @@ let parse_arguments =
 let _parse_configurable_lambda =
     (
       ~mixins,
-      ctx: ParseContext.t,
-      parse_expression: Framework.contextual_expression_parser_t,
+      ctx: ParseContext.t('ast),
+      parse_expression: Framework.Interface.contextual_parse_t('ast, 'expr),
     ) =>
-  parse_arguments(ctx, parse_expression)
+  parse_parameters(ctx, parse_expression)
   >|= fst
   |> option([])
   >>= (
-    args =>
+    parameters =>
       (
         mixins
           ? Matchers.symbol(Character.tilde)
@@ -70,19 +69,24 @@ let _parse_configurable_lambda =
             lambda =>
               parse_expression(ctx)
               >|= (
-                expr => (args, mixins, expr, Node.join_ranges(lambda, expr))
+                body => (
+                  parameters,
+                  mixins,
+                  body,
+                  Node.join_ranges(lambda, body),
+                )
               )
           )
       )
   );
 
-let parse_lambda_with_mixins = (ctx: ParseContext.t) =>
+let parse_lambda_with_mixins = (ctx: ParseContext.t('ast)) =>
   _parse_configurable_lambda(~mixins=true, ctx);
 
 let parse_lambda =
     (
-      ctx: ParseContext.t,
-      parse_expression: Framework.contextual_expression_parser_t,
+      ctx: ParseContext.t('ast),
+      parse_expression: Framework.Interface.contextual_parse_t('ast, 'expr),
     ) =>
   _parse_configurable_lambda(~mixins=false, ctx, parse_expression)
-  >|= (((args, _, expr, range)) => (args, expr, range));
+  >|= (((parameters, _, body, range)) => (parameters, body, range));

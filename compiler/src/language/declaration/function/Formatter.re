@@ -1,16 +1,23 @@
-open Knot.Kore;
+open Kore;
 open AST;
 
-let format: Fmt.t((string, (list(Result.argument_t), Result.expression_t))) =
-  (ppf, (name, (args, (expr, _)))) =>
+let format: Interface.Plugin.format_t('typ) =
+  (ppf, (name, (parameters, (body, _)))) =>
     Fmt.(
       pf(
         ppf,
         "@[<v>func @[<h>%s%a@] %a@]",
         name,
-        KLambda.Formatter.format_argument_list(KExpression.Plugin.format),
-        args,
-        KLambda.Formatter.format_body(KExpression.Plugin.format),
-        expr,
+        Lambda.format_parameter_list(Expression.format),
+        parameters,
+        Lambda.format_body(
+          Expression.(
+            fun
+            | Closure(_) => false
+            | _ => true
+          ),
+          Expression.format,
+        ),
+        body,
       )
     );

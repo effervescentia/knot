@@ -4,6 +4,15 @@ module Export = Reference.Export;
 
 type types_t = list((string, Type.t));
 
+module Primitive = {
+  type t =
+    | Nil
+    | Boolean(bool)
+    | Integer(int64)
+    | Float(float, int)
+    | String(string);
+};
+
 module Symbols = {
   type t = {
     mutable types: types_t,
@@ -43,7 +52,7 @@ module Symbols = {
 type t = {
   imported: Symbols.t,
   declared: Symbols.t,
-  mutable decorated: list((string, list(Result.primitive_t), Type.t)),
+  mutable decorated: list((string, list(Primitive.t), Type.t)),
   mutable main: option(Type.t),
 };
 
@@ -101,7 +110,7 @@ let declare_value = (~main=false, id: string, type_: Type.t, table: t) => {
 };
 
 let declare_decorated =
-    (id: string, args: list(Result.primitive_t), type_: Type.t, table: t) =>
+    (id: string, args: list(Primitive.t), type_: Type.t, table: t) =>
   table.decorated = table.decorated @ [(id, args, type_)];
 
 let resolve_type = (~no_imports=false, id: string, table: t): option(Type.t) =>
@@ -117,14 +126,18 @@ let resolve_value = (~no_imports=false, id: string, table: t): option(Type.t) =>
 let to_module_type = (table: t): Type.t =>
   Type.(
     Valid(
-      `Module(
+      Module(
         (
           table.declared.types
-          |> List.map(Tuple.map_snd2(t => Container.Type(t)))
+          |> List.map(((name, value)) =>
+               (ModuleEntryKind.Type, name, value)
+             )
         )
         @ (
           table.declared.values
-          |> List.map(Tuple.map_snd2(t => Container.Value(t)))
+          |> List.map(((name, value)) =>
+               (ModuleEntryKind.Value, name, value)
+             )
         ),
       ),
     )

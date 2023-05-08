@@ -23,16 +23,16 @@ module Binary = {
 
   let to_string =
     fun
-    | LogicalAnd => "And"
-    | LogicalOr => "Or"
+    | LogicalAnd => "LogicalAnd"
+    | LogicalOr => "LogicalOr"
     | Add => "Add"
-    | Subtract => "Sub"
-    | Divide => "Div"
-    | Multiply => "Mult"
-    | LessOrEqual => "LessOrEq"
-    | LessThan => "Less"
-    | GreaterOrEqual => "GreaterOrEq"
-    | GreaterThan => "Greater"
+    | Subtract => "Subtract"
+    | Divide => "Divide"
+    | Multiply => "Multiply"
+    | LessOrEqual => "LessOrEqual"
+    | LessThan => "LessThan"
+    | GreaterOrEqual => "GreaterOrEqual"
+    | GreaterThan => "GreaterThan"
     | Equal => "Equal"
     | Unequal => "Unequal"
     | Exponent => "Exponent";

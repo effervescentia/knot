@@ -1,11 +1,10 @@
 open Kore;
 
-module AR = AST.Raw;
 module U = Util.RawUtil;
 
 module Assert =
   Assert.MakePrimitive({
-    let parser = KPrimitive.Parser.parse_primitive;
+    let parser = Primitive.parse_primitive;
   });
 
 let suite =
@@ -16,7 +15,7 @@ let suite =
     >: (
       () =>
         Assert.parse_all(
-          "foo" |> AR.of_string |> U.as_node,
+          "foo" |> Primitive.of_string |> U.as_node,
           ["\"foo\"", " \"foo\" "],
         )
     ),
@@ -24,7 +23,7 @@ let suite =
     >: (
       () =>
         Assert.parse(
-          "foo\\\"bar" |> AR.of_string |> U.as_node,
+          "foo\\\"bar" |> Primitive.of_string |> U.as_node,
           "\"foo\\\"bar\"",
         )
     ),

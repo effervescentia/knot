@@ -2,11 +2,6 @@ open Kore;
 
 include Test.Assert;
 
-module A = AST.Result;
-module AR = AST.Raw;
-module ParseContext = AST.ParseContext;
-module Type = AST.Type;
-
 module Compare = {
   include Compare;
 
@@ -25,7 +20,12 @@ let parse_completely = x => Parse.Onyx.(x << (eof() |> Parse.Matchers.lexeme));
 module type AssertParams = {
   include Test.Assert.Target;
 
-  let parser: (ParseContext.t, Language.Program.input_t) => option(t);
+  let parser:
+    (
+      ParseContext.t(Language.Interface.program_t(Type.t)),
+      Language.Program.input_t
+    ) =>
+    option(t);
 };
 
 module Make = (Params: AssertParams) => {
@@ -92,13 +92,51 @@ module Make = (Params: AssertParams) => {
       |> LazyStream.of_stream
       |> Params.parser(context)
     );
+
+  let parse_throws_compiler_errs =
+      (
+        ~report=AST.Error.throw,
+        ~context=_mock_context(report),
+        ~cursor=false,
+        errs,
+        source,
+      ) =>
+    try(
+      InputStream.of_string(~cursor, source)
+      |> LazyStream.of_stream
+      |> Params.parser(context)
+      |> ignore
+    ) {
+    | AST.Error.CompileError(actual_errs) when actual_errs == errs => ()
+    | AST.Error.CompileError(actual_errs) =>
+      fail(
+        Fmt.str(
+          "%s: expected %a, got %a.",
+          "should throw compilation errors",
+          AST.Error.pp_dump_err_list,
+          errs,
+          AST.Error.pp_dump_err_list,
+          actual_errs,
+        ),
+      )
+    | exn =>
+      fail(
+        Fmt.str(
+          "%s: expected CompileError(...), got %s.",
+          "should throw exception of type CompileError",
+          Printexc.to_string(exn),
+        ),
+      )
+    };
 };
 
 module type TypedParserParams = {
   type value_t;
   type type_t;
 
-  let parser: ParseContext.t => Parse.Parser.t(N.t(value_t, type_t));
+  let parser:
+    ParseContext.t(Language.Interface.program_t(Type.t)) =>
+    Parse.Parser.t(N.t(value_t, type_t));
 
   let pp_value: Fmt.t(value_t);
   let pp_type: Fmt.t(type_t);
@@ -130,18 +168,67 @@ module MakeTyped = (Params: TypedParserParams) =>
   });
 
 module type PrimitiveParserParams = {
-  let parser: Parse.Parser.t(N.t(AR.primitive_t, unit));
+  let parser: Parse.Parser.t(N.t(Primitive.t, unit));
 };
 
 module MakePrimitive = (Params: PrimitiveParserParams) =>
   MakeTyped({
-    type value_t = AR.primitive_t;
+    type value_t = Primitive.t;
     type type_t = unit;
 
     let parser = _ => Params.parser;
 
     let pp_value = ppf =>
-      KPrimitive.Plugin.to_xml((_ => raise(NotImplemented), _ => ""))
+      Primitive.to_xml((_ => raise(NotImplemented), _ => ""))
       % Fmt.xml_string(ppf);
     let pp_type = (_, ()) => ();
+  });
+
+module Expression =
+  Make({
+    type t = Expression.node_t(unit);
+
+    let parser = Expression.parse % parse_completely % Parser.parse;
+
+    let test =
+      Alcotest.(
+        check(
+          testable(
+            ppf => Expression.to_xml(_ => "Unknown") % Fmt.xml_string(ppf),
+            (==),
+          ),
+          "program matches",
+        )
+      );
+  });
+
+module Declaration =
+  Make({
+    type t =
+      AST.Common.raw_t(
+        (AST.Common.identifier_t, Declaration.node_t(Type.t)),
+      );
+
+    let parser = Declaration.parse(true) % parse_completely % Parser.parse;
+
+    let test =
+      Alcotest.(
+        check(
+          testable(
+            ppf =>
+              Dump.node_to_xml(
+                ~unpack=
+                  ((name, declaration)) =>
+                    [
+                      Dump.identifier_to_xml("Name", name),
+                      Declaration.to_xml(~@Type.pp, declaration),
+                    ],
+                "NamedDeclaration",
+              )
+              % Fmt.xml_string(ppf),
+            (==),
+          ),
+          "parsed result matches",
+        )
+      );
   });

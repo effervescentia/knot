@@ -3,6 +3,7 @@ open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
+module KSX = KSX.Plugin;
 
 let _assert_expression = (expected, actual) =>
   Alcotest.(
@@ -47,19 +48,26 @@ let suite =
   >::: [
     "boolean - true"
     >: (
-      () => _assert_expression(Boolean(true), true |> A.of_bool |> A.of_prim)
+      () =>
+        _assert_expression(
+          Boolean(true),
+          true |> Primitive.of_boolean |> Expression.of_primitive,
+        )
     ),
     "boolean - false"
     >: (
       () =>
-        _assert_expression(Boolean(false), false |> A.of_bool |> A.of_prim)
+        _assert_expression(
+          Boolean(false),
+          false |> Primitive.of_boolean |> Expression.of_primitive,
+        )
     ),
     "string - no special characters"
     >: (
       () =>
         _assert_expression(
           String("hello world"),
-          "hello world" |> A.of_string |> A.of_prim,
+          "hello world" |> Primitive.of_string |> Expression.of_primitive,
         )
     ),
     "string - escaped quotation marks"
@@ -67,7 +75,9 @@ let suite =
       () =>
         _assert_expression(
           String("escaped quotes (\")"),
-          "escaped quotes (\")" |> A.of_string |> A.of_prim,
+          "escaped quotes (\")"
+          |> Primitive.of_string
+          |> Expression.of_primitive,
         )
     ),
     "jsx - render empty tag"
@@ -78,9 +88,9 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [String("foo")],
           ),
-          ("foo" |> U.as_view([], Valid(`Nil)), [], [], [])
-          |> A.of_tag
-          |> A.of_jsx,
+          ("foo" |> U.as_view([], Valid(Nil)), [], [], [])
+          |> KSX.of_element_tag
+          |> Expression.of_ksx,
         )
     ),
     "jsx - render tag with attributes"
@@ -92,19 +102,23 @@ let suite =
             [String("foo"), Object([("zip", String("zap"))])],
           ),
           (
-            "foo" |> U.as_view([], Valid(`Nil)),
+            "foo" |> U.as_view([], Valid(Nil)),
             [],
             [
               (
                 U.as_untyped("zip"),
-                "zap" |> A.of_string |> A.of_prim |> U.as_string |> Option.some,
+                "zap"
+                |> Primitive.of_string
+                |> Expression.of_primitive
+                |> U.as_string
+                |> Option.some,
               )
               |> U.as_untyped,
             ],
             [],
           )
-          |> A.of_tag
-          |> A.of_jsx,
+          |> KSX.of_element_tag
+          |> Expression.of_ksx,
         )
     ),
     "jsx - render component"
@@ -115,9 +129,9 @@ let suite =
             DotAccess(DotAccess(Identifier("$knot"), "jsx"), "createTag"),
             [Identifier("Foo")],
           ),
-          ("Foo" |> U.as_view([], Valid(`Element)), [], [], [])
-          |> A.of_component
-          |> A.of_jsx,
+          ("Foo" |> U.as_view([], Valid(Element)), [], [], [])
+          |> KSX.of_component_tag
+          |> Expression.of_ksx,
         )
     ),
     "jsx - render component with styles"
@@ -193,20 +207,20 @@ let suite =
             ],
           ),
           (
-            "Foo" |> U.as_view([], Valid(`Element)),
+            "Foo" |> U.as_view([], Valid(Element)),
             [
-              "bar" |> A.of_id |> U.as_style,
+              "bar" |> Expression.of_identifier |> U.as_style,
               [
                 (U.as_string("color"), U.string_prim("red")) |> U.as_untyped,
               ]
-              |> A.of_style
+              |> Expression.of_style
               |> U.as_style,
             ],
             [],
             [],
           )
-          |> A.of_component
-          |> A.of_jsx,
+          |> KSX.of_component_tag
+          |> Expression.of_ksx,
         )
     ),
     "jsx - deeply nested tags"
@@ -238,39 +252,48 @@ let suite =
             ],
           ),
           (
-            "foo" |> U.as_view([], Valid(`Nil)),
+            "foo" |> U.as_view([], Valid(Nil)),
             [],
             [],
             [
               (
-                "Bar" |> U.as_view([], Valid(`Element)),
+                "Bar" |> U.as_view([], Valid(Element)),
                 [],
                 [],
                 [
-                  ("fizz" |> U.as_view([], Valid(`Nil)), [], [], [])
-                  |> A.of_tag
-                  |> A.of_node
+                  ("fizz" |> U.as_view([], Valid(Nil)), [], [], [])
+                  |> KSX.of_element_tag
+                  |> KSX.Child.of_node
                   |> U.as_untyped,
                 ],
               )
-              |> A.of_component
-              |> A.of_node
+              |> KSX.of_component_tag
+              |> KSX.Child.of_node
               |> U.as_untyped,
             ],
           )
-          |> A.of_tag
-          |> A.of_jsx,
+          |> KSX.of_element_tag
+          |> Expression.of_ksx,
         )
     ),
-    "null" >: (() => _assert_expression(Null, A.nil |> A.of_prim)),
+    "null"
+    >: (
+      () => _assert_expression(Null, Primitive.nil |> Expression.of_primitive)
+    ),
     "identifier"
-    >: (() => _assert_expression(Identifier("fooBar"), A.of_id("fooBar"))),
+    >: (
+      () =>
+        _assert_expression(
+          Identifier("fooBar"),
+          Expression.of_identifier("fooBar"),
+        )
+    ),
     "group"
     >: (
       () =>
         _assert_expression(
           Group(Number("123")),
-          123 |> U.int_prim |> A.of_group,
+          123 |> U.int_prim |> Expression.of_group,
         )
     ),
     "iife - iife with return value"
@@ -298,17 +321,17 @@ let suite =
           ),
           [
             (U.int_prim(123), U.int_prim(456))
-            |> A.of_eq_op
+            |> Expression.of_equal_op
             |> U.as_int
-            |> A.of_expr
+            |> Statement.of_effect
             |> U.as_int,
             (U.int_prim(678), U.int_prim(910))
-            |> A.of_add_op
+            |> Expression.of_add_op
             |> U.as_int
-            |> A.of_expr
+            |> Statement.of_effect
             |> U.as_int,
           ]
-          |> A.of_closure,
+          |> Expression.of_closure,
         )
     ),
     "iife - variable declaration"
@@ -325,8 +348,12 @@ let suite =
             ),
             [],
           ),
-          [(U.as_untyped("foo"), U.int_prim(456)) |> A.of_var |> U.as_nil]
-          |> A.of_closure,
+          [
+            (U.as_untyped("foo"), U.int_prim(456))
+            |> Statement.of_variable
+            |> U.as_nil,
+          ]
+          |> Expression.of_closure,
         )
     ),
     "dot access"
@@ -336,11 +363,11 @@ let suite =
           DotAccess(Identifier("foo"), "bar"),
           (
             "foo"
-            |> A.of_id
-            |> U.as_struct([("bar", (Valid(`String), true))]),
+            |> Expression.of_identifier
+            |> U.as_struct([("bar", (Valid(String), true))]),
             U.as_untyped("bar"),
           )
-          |> A.of_dot_access,
+          |> Expression.of_dot_access,
         )
     ),
     "style binding"
@@ -352,10 +379,10 @@ let suite =
             [Identifier("foo"), Identifier("bar")],
           ),
           (
-            "foo" |> A.of_id |> U.as_view([], Valid(`Element)),
-            "bar" |> A.of_id |> U.as_style,
+            "foo" |> Expression.of_identifier |> U.as_view([], Valid(Element)),
+            "bar" |> Expression.of_identifier |> U.as_style,
           )
-          |> A.of_local_bind_style,
+          |> Expression.of_bind_component_style,
         )
     ),
     "function call"
@@ -365,11 +392,11 @@ let suite =
           FunctionCall(Identifier("foo"), [Identifier("bar")]),
           (
             "foo"
-            |> A.of_id
-            |> U.as_function([Valid(`String)], Valid(`Boolean)),
-            ["bar" |> A.of_id |> U.as_string],
+            |> Expression.of_identifier
+            |> U.as_function([Valid(String)], Valid(Boolean)),
+            ["bar" |> Expression.of_identifier |> U.as_string],
           )
-          |> A.of_func_call,
+          |> Expression.of_function_call,
         )
     ),
     "binary operation - logical and"

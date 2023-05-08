@@ -1,35 +1,30 @@
 open Knot.Kore;
 open AST;
 
-let analyze:
-  (
-    Scope.t,
-    (Scope.t, Raw.expression_t) => Result.expression_t,
-    (Raw.expression_t, Node.t(string, unit)),
-    Range.t
-  ) =>
-  (Result.expression_t, Type.t) =
-  (scope, analyze_expression, (expr, prop), range) => {
-    let prop_name = fst(prop);
-    let expr' = analyze_expression(scope, expr);
-    let type_ = Node.get_type(expr');
+let analyze: Interface.Plugin.analyze_t('ast, 'raw_expr, 'result_expr) =
+  (analyze_expression, scope, ((object_, property), _) as node) => {
+    let range = Node.get_range(node);
+    let property_name = fst(property);
+    let (object_', object_type) =
+      object_ |> Node.analyzer(analyze_expression(scope));
 
-    type_
-    |> Validator.validate(prop_name)
+    object_type
+    |> Validator.validate(property_name)
     |> Option.iter(Scope.report_type_err(scope, range));
 
     (
-      expr',
+      (object_', property),
       (
-        switch (type_) {
-        | Valid(`Struct(props)) =>
-          props |> List.assoc_opt(prop_name) |> Option.map(fst)
+        switch (object_type) {
+        | Valid(Object(props)) =>
+          props |> List.assoc_opt(property_name) |> Option.map(fst)
 
-        | Valid(`Module(entries)) =>
+        | Valid(Module(entries)) =>
           entries
           |> List.find_map(
                fun
-               | (name, Type.Container.Value(t)) when name == prop_name =>
+               | (Type.ModuleEntryKind.Value, name, t)
+                   when name == property_name =>
                  Some(t)
                | _ => None,
              )

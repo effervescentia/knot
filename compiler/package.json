@@ -125,15 +125,6 @@
       "name": "knot.language_server_test",
       "namespace": "TestLanguageServer"
     },
-    "test/build_server": {
-      "require": [
-        "knot.test",
-        "knot.resolve_test",
-        "knot.build_server"
-      ],
-      "name": "knot.build_server_test",
-      "namespace": "TestBuildServer"
-    },
     "test/unit": {
       "require": [
         "knot.pretty_test",
@@ -226,27 +217,19 @@
       "name": "knot.lang.primitive.boolean",
       "namespace": "KBoolean"
     },
-    "src/language/primitive/number/integer": {
+    "src/language/primitive/integer": {
       "require": [
         "knot.lang.ast"
       ],
-      "name": "knot.lang.primitive.number.integer",
+      "name": "knot.lang.primitive.integer",
       "namespace": "KInteger"
     },
-    "src/language/primitive/number/float": {
+    "src/language/primitive/float": {
       "require": [
         "knot.lang.ast"
       ],
-      "name": "knot.lang.primitive.number.float",
+      "name": "knot.lang.primitive.float",
       "namespace": "KFloat"
-    },
-    "src/language/primitive/number": {
-      "require": [
-        "knot.lang.primitive.number.integer",
-        "knot.lang.primitive.number.float"
-      ],
-      "name": "knot.lang.primitive.number",
-      "namespace": "KNumber"
     },
     "src/language/primitive/string": {
       "require": [
@@ -259,7 +242,8 @@
       "require": [
         "knot.lang.primitive.nil",
         "knot.lang.primitive.boolean",
-        "knot.lang.primitive.number",
+        "knot.lang.primitive.integer",
+        "knot.lang.primitive.float",
         "knot.lang.primitive.string"
       ],
       "name": "knot.lang.primitive",
@@ -319,119 +303,12 @@
       "name": "knot.lang.statement",
       "namespace": "KStatement"
     },
-    "src/language/operator/unary/logical_not": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.unary.logical_not",
-      "namespace": "KLogicalNot"
-    },
-    "src/language/operator/unary/absolute": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.unary.absolute",
-      "namespace": "KAbsolute"
-    },
-    "src/language/operator/unary/negative": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.unary.negative",
-      "namespace": "KNegative"
-    },
     "src/language/operator/unary": {
       "require": [
-        "knot.lang.operator.unary.logical_not",
-        "knot.lang.operator.unary.absolute",
-        "knot.lang.operator.unary.negative"
+        "knot.lang.ast"
       ],
       "name": "knot.lang.operator.unary",
       "namespace": "KUnaryOperator"
-    },
-    "src/language/operator/binary/equal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.equal",
-      "namespace": "KEqual"
-    },
-    "src/language/operator/binary/unequal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.unequal",
-      "namespace": "KUnequal"
-    },
-    "src/language/operator/binary/logical_and": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.logical_and",
-      "namespace": "KLogicalAnd"
-    },
-    "src/language/operator/binary/logical_or": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.logical_or",
-      "namespace": "KLogicalOr"
-    },
-    "src/language/operator/binary/less_than": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.less_than",
-      "namespace": "KLessThan"
-    },
-    "src/language/operator/binary/less_or_equal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.less_or_equal",
-      "namespace": "KLessOrEqual"
-    },
-    "src/language/operator/binary/greater_than": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.greater_than",
-      "namespace": "KGreaterThan"
-    },
-    "src/language/operator/binary/greater_or_equal": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.greater_or_equal",
-      "namespace": "KGreaterOrEqual"
-    },
-    "src/language/operator/binary/add": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.add",
-      "namespace": "KAdd"
-    },
-    "src/language/operator/binary/subtract": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.subtract",
-      "namespace": "KSubtract"
-    },
-    "src/language/operator/binary/multiply": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.multiply",
-      "namespace": "KMultiply"
-    },
-    "src/language/operator/binary/divide": {
-      "require": [
-        "knot.lang.ast"
-      ],
-      "name": "knot.lang.operator.binary.divide",
-      "namespace": "KDivide"
     },
     "src/language/operator/binary/exponentiate": {
       "require": [
@@ -442,18 +319,6 @@
     },
     "src/language/operator/binary": {
       "require": [
-        "knot.lang.operator.binary.equal",
-        "knot.lang.operator.binary.unequal",
-        "knot.lang.operator.binary.logical_and",
-        "knot.lang.operator.binary.logical_or",
-        "knot.lang.operator.binary.less_than",
-        "knot.lang.operator.binary.less_or_equal",
-        "knot.lang.operator.binary.greater_than",
-        "knot.lang.operator.binary.greater_or_equal",
-        "knot.lang.operator.binary.add",
-        "knot.lang.operator.binary.subtract",
-        "knot.lang.operator.binary.multiply",
-        "knot.lang.operator.binary.divide",
         "knot.lang.operator.binary.exponentiate"
       ],
       "name": "knot.lang.operator.binary",
@@ -484,6 +349,7 @@
     "src/language/expression/bind_style": {
       "require": [
         "knot.lang.identifier",
+        "knot.lang.expression.ksx",
         "knot.lang.expression.style"
       ],
       "name": "knot.lang.expression.bind_style",
@@ -530,7 +396,8 @@
     },
     "src/language/declaration/constant": {
       "require": [
-        "knot.lang.expression"
+        "knot.lang.expression",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.constant",
       "namespace": "KConstant"
@@ -538,7 +405,8 @@
     "src/language/declaration/enumerated": {
       "require": [
         "knot.lang.type.statement",
-        "knot.lang.expression"
+        "knot.lang.expression",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.enumerated",
       "namespace": "KEnumerated"
@@ -546,7 +414,8 @@
     "src/language/declaration/function": {
       "require": [
         "knot.lang.expression",
-        "knot.lang.lambda"
+        "knot.lang.lambda",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.function",
       "namespace": "KFunction"
@@ -554,7 +423,8 @@
     "src/language/declaration/view": {
       "require": [
         "knot.lang.expression",
-        "knot.lang.lambda"
+        "knot.lang.lambda",
+        "knot.lang.module_statement"
       ],
       "name": "knot.lang.declaration.view",
       "namespace": "KView"
@@ -569,6 +439,13 @@
       "name": "knot.lang.declaration",
       "namespace": "KDeclaration"
     },
+    "src/language/module_statement": {
+      "require": [
+        "knot.lang.import"
+      ],
+      "name": "knot.lang.module_statement",
+      "namespace": "KModuleStatement"
+    },
     "src/language/import": {
       "require": [
         "knot.lang.identifier",
@@ -580,7 +457,6 @@
     "src/language": {
       "require": [
         "knot.lang.decorator",
-        "knot.lang.import",
         "knot.lang.declaration",
         "knot.lang.type.definition"
       ],
@@ -701,25 +577,25 @@
   },
   "dependencies": {
     "@opam/ANSITerminal": "0.8.2",
-    "@opam/alcotest": "1.5.0",
-    "@opam/alcotest-lwt": "1.5.0",
+    "@opam/alcotest": "1.7.0",
+    "@opam/alcotest-lwt": "1.7.0",
     "@opam/camlp-streams": "5.0.1",
     "@opam/dolog": "6.0.0",
-    "@opam/dune": "3.4.1",
-    "@opam/dune-site": "3.4.1",
+    "@opam/dune": "3.5.0",
+    "@opam/dune-site": "3.5.0",
     "@opam/fileutils": "0.6.3",
     "@opam/fmt": "0.8.9",
     "@opam/fswatch": "11-0.1.0",
     "@opam/fswatch_lwt": "11-0.1.0",
     "@opam/lwt": "5.4.0",
-    "@opam/reason": "3.8.1",
+    "@opam/reason": "3.8.2",
     "@opam/tablecloth-native": "0.0.7",
     "@opam/uutf": "1.0.2",
     "@opam/yaml": "2.1.0",
     "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@opam/ocaml-lsp-server": "1.13.1",
+    "@opam/ocaml-lsp-server": "1.15.1-4.14",
     "@opam/ocamlformat-rpc": "0.21.0",
     "ocaml": "4.14.0",
     "pesy": "0.4.4"

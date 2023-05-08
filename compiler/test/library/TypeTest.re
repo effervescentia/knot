@@ -2,30 +2,29 @@ open Kore;
 
 module T = AST.Type;
 
-let __args = [T.Valid(`Nil), T.Valid(`String)];
+let __args = [T.Valid(Nil), T.Valid(String)];
 let __props = [
-  ("foo", (T.Valid(`Nil), true)),
-  ("bar", (T.Valid(`String), false)),
+  ("foo", (T.Valid(Nil), true)),
+  ("bar", (T.Valid(String), false)),
 ];
-let __raw_args = [`Nil, `String];
-let __raw_props = [("foo", `Nil), ("bar", `String)];
+let __raw_args = T.[Nil, String];
+let __raw_props = T.[("foo", Nil), ("bar", String)];
 
 let suite =
   "Library.Type"
   >::: [
     "pp_valid() - primitive"
-    >: (() => Assert.string("boolean", `Boolean |> ~@T.pp_valid)),
+    >: (() => Assert.string("boolean", Boolean |> ~@T.pp_valid)),
     "pp_valid() - list"
     >: (
-      () =>
-        Assert.string("string[]", `List(T.Valid(`String)) |> ~@T.pp_valid)
+      () => Assert.string("string[]", List(T.Valid(String)) |> ~@T.pp_valid)
     ),
     "pp_valid() - struct"
     >: (
       () =>
         Assert.string(
           "{ foo: nil, bar?: string }",
-          `Struct(__props) |> ~@T.pp_valid,
+          Object(__props) |> ~@T.pp_valid,
         )
     ),
     "pp_valid() - function"
@@ -33,7 +32,7 @@ let suite =
       () =>
         Assert.string(
           "(nil, string) -> boolean",
-          `Function((__args, T.Valid(`Boolean))) |> ~@T.pp_valid,
+          T.Function(__args, Valid(Boolean)) |> ~@T.pp_valid,
         )
     ),
     "pp_invalid() - not inferrable"
@@ -73,9 +72,9 @@ let suite =
       () =>
         Assert.string(
           "TypeMismatch<nil, string>",
-          T.TypeMismatch(Valid(`Nil), Valid(`String)) |> ~@T.pp_error,
+          T.TypeMismatch(Valid(Nil), Valid(String)) |> ~@T.pp_error,
         )
     ),
     "pp() - valid"
-    >: (() => Assert.string("boolean", T.Valid(`Boolean) |> ~@T.pp)),
+    >: (() => Assert.string("boolean", T.Valid(Boolean) |> ~@T.pp)),
   ];

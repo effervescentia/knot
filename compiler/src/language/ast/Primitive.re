@@ -1,15 +1,9 @@
 /**
- supported numeric types
-  */
-type number_t =
-  | Integer(Int64.t)
-  | Float(float, int);
-
-/**
  a primitive AST node
   */
-type primitive_t =
+type t =
   | Nil
   | Boolean(bool)
-  | Number(number_t)
+  | Integer(int64)
+  | Float(float, int)
   | String(string);
