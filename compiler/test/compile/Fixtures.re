@@ -1,11 +1,8 @@
 open Kore;
+open Language.ModuleAliases;
 
 module U = Util.ResultUtil;
 module T = AST.Type;
-module Primitive = KPrimitive.Plugin;
-module Expression = KExpression.Plugin;
-module Declaration = KDeclaration.Plugin;
-module ModuleStatement = KModuleStatement.Plugin;
 
 let _fixture = Filename.concat("./test/compile/.fixtures");
 

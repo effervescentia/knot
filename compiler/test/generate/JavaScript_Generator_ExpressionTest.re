@@ -3,7 +3,6 @@ open Generate.JavaScript_AST;
 
 module Generator = Generate.JavaScript_Generator;
 module Formatter = Generate.JavaScript_Formatter;
-module KSX = KSX.Plugin;
 
 let _assert_expression = (expected, actual) =>
   Alcotest.(
