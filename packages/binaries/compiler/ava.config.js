@@ -1,3 +1,1 @@
-import CONFIG from '../../../ava.config';
-
-export default CONFIG;
+export { default } from '../../../ava.config';

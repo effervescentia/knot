@@ -1,0 +1,41 @@
+func explicit_nil_function -> nil;
+func implicit_nil_function -> {};
+
+func no_args_function() -> nil;
+
+func many_args_function(
+  data_nil: nil,
+  data_true: boolean,
+  data_false: boolean,
+  data_positive_integer: integer,
+  data_negative_integer: integer,
+  data_positive_float: float,
+  data_negative_float: float,
+  data_string: string,
+  data_tag: element,
+  data_fragment: element,
+) -> nil;
+
+func defaulted_function(
+  data_nil = nil,
+  data_true = true,
+  data_false = false,
+  data_positive_integer = 123,
+  data_negative_integer = -123,
+  data_positive_float = 456.78,
+  data_negative_float = -456.78,
+  data_string = "abc",
+  data_tag = <div />,
+  data_fragment = <></>,
+) -> nil;
+
+func partial_function(first: integer, second = false) -> nil;
+
+func expression_function(lhs: integer, rhs: integer) -> lhs + rhs;
+
+func closure_function(lhs: integer, rhs: integer) -> {
+  let lhs_int = lhs * 10;
+  let rhs_float = rhs / 13;
+
+  lhs_int <= rhs_float;
+};

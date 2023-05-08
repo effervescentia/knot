@@ -1,0 +1,15 @@
+flowchart LR
+  X{{"#quot;@/myModule#quot;"}}
+
+  X --> |input| Resolver
+
+  Grammar -.-> Parser
+
+  %% compile
+  subgraph Compiler
+    Resolver --> Source --> InputStream --> Parser
+  end
+  Parser --> Generator --> Writer --> Y([**compiled code**])
+
+  Analyzer --> Parser
+

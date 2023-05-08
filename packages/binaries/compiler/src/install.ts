@@ -20,7 +20,7 @@ export default async function installPlatformArtifacts(
 
   const copyArtifacts = (platform: string): Promise<void> =>
     fs.copy(path.join(platformsDir, platform), rootDir, {
-      filter: src => !IGNORED_ARTIFACTS.includes(path.basename(src))
+      filter: (src) => !IGNORED_ARTIFACTS.includes(path.basename(src)),
     });
 
   switch (process.platform) {
@@ -42,8 +42,8 @@ export default async function installPlatformArtifacts(
 
   const { stdout } = await execa('node', [entrypoint], {
     env: {
-      ESY_RELEASE_REWRITE_PREFIX: 'true'
-    }
+      ESY_RELEASE_REWRITE_PREFIX: 'true',
+    },
   });
   console.log(stdout);
 }

@@ -1,25 +1,14 @@
 import { DeepPartial } from 'utility-types';
 
-export enum ServerStatus {
-  IDLE = 'idle',
-  COMPLETE = 'complete'
+import { ClientOptions } from './compiler/client';
+
+export enum Target {
+  JAVASCRIPT_ES6 = 'javascript-es6',
+  JAVASCRIPT_COMMON = 'javascript-common',
 }
 
-export enum ModuleStatus {
-  PENDING = 'pending',
-  COMPLETE = 'complete',
-  FAILED = 'failed'
-}
-
-export interface Options {
-  readonly port: number;
-  readonly debug: boolean;
-  readonly knot: string;
-  readonly config: string;
+export interface Options extends ClientOptions {
   readonly plugins: Plugins;
-  readonly compiler: {
-    readonly module: 'es6' | 'common';
-  };
 }
 
 export type OptionOverrides = DeepPartial<Options>;

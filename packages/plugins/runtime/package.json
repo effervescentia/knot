@@ -1,0 +1,30 @@
+{
+  "name": "@knot/runtime",
+  "description": "A runtime plugin for the knot language.",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=8.9"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/effervescentia/knot.git",
+  "main": "build/main/index.js",
+  "module": "build/module/index.js",
+  "typings": "build/main/index.d.ts",
+  "scripts": {
+    "x": "nps",
+    "build": "nps build",
+    "test": "nps test",
+    "cov": "nps cov",
+    "usage": "nps help"
+  },
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/mock-require": "^2.0.1",
+    "mock-require": "^3.0.3"
+  }
+}

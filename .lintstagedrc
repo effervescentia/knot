@@ -1,8 +1,4 @@
 {
   "**/(!esy.lock)/**/package.json": ["fixpack", "git add"],
-  "package.json": ["fixpack", "git add"],
-  "compiler/{library,lexer,parser,resolver,analyzer,generator,compiler,executable,test}/**/*.re": [
-    "refmt --in-place",
-    "git add"
-  ]
+  "package.json": ["fixpack", "git add"]
 }

@@ -1,0 +1,5 @@
+decorator plugin: (string) on module;
+
+module JSX {
+  declare render: (element, string) -> nil;
+}

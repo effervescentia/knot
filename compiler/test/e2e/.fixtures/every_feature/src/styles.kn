@@ -1,0 +1,30 @@
+const emptyStyle = style {};
+
+const redStyle = style {
+  mockColor: $mockRed,
+};
+
+const yellowStyle = style {
+  mockBackgroundColor: "#dac33d",
+};
+
+view Component -> nil;
+
+const EmptyComponent = Component::emptyStyle;
+const RedAndYellowComponent = Component::redStyle::yellowStyle;
+
+const StyleLiteralComponent = Component::{
+  mockColor: "#afacee",
+};
+
+const RedDiv = div::redStyle;
+const StyleLiteralDiv = div::{
+  mockColor: "#257ffa",
+};
+
+view DynamicStyling ->
+  <RedDiv>
+    <div::yellowStyle />
+    <div::{ mockColor: "#adec22" } />
+  </RedDiv>
+;

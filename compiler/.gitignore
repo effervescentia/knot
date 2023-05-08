@@ -1,9 +1,12 @@
 npm-debug.log
 .merlin
 yarn-error.log
-node_modules
-_build
-_release
-_esy/
+/node_modules
+/_build
+/_release
+/_esy
+/_archived
+/_export
 .DS_Store
 *.install
+.scratch/

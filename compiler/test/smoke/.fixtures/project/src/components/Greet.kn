@@ -1,0 +1,3 @@
+const greetStyle = style {};
+
+main view Greet(name: string) -> <div>{name}</div>;

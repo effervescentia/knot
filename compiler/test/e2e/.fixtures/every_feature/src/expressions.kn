@@ -1,0 +1,52 @@
+import { JSX };
+import { no_args_function, expression_function } from "@/functions";
+
+const not_expr = !true;
+
+const negated_expr = --123;
+const absolute_expr = +-123;
+
+const and_expr = true && false;
+const or_expr = false || true;
+
+const add_expr = 123 + 456.78;
+const subtract_expr = 123 - 456.78;
+const multiply_expr = 123 + 456.78;
+const divide_expr = 123 / 456.78;
+const exponent_expr = 123 ^ 456.78;
+
+const less_than_expr = 123 < 456.78;
+const less_than_or_equal_expr = 123 <= 456.78;
+const greater_than_expr = 123 < 456.78;
+const greater_than_or_equal_expr = 123 >= 456.78;
+
+const equality_expr = "abc" == "def";
+const inequality_expr = "abc" != "abc";
+
+const identifier_expr = add_expr * subtract_expr;
+const group_expr = 10 - (2 + 100);
+
+const empty_closure_expr = {};
+const closure_stmts_expr = {
+  let x = 100 / 200;
+
+  x + 5;
+};
+
+const dot_access_expr = JSX.render;
+
+const empty_function_call_expr = no_args_function();
+const function_call_with_args_expr = expression_function(333, 444);
+
+const tag_with_expr_attributes = <complex
+  id_attr=not_expr
+  unary_op_attr=+-+-123
+  binary_op_attr=(true && false)
+  group_attr=(("abc"))
+  empty_closure_attr={}
+  closure_stmts_attr={
+    let y = true && false;
+
+    y || false;
+  }
+/>;

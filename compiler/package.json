@@ -13,133 +13,591 @@
     }
   },
   "buildDirs": {
-    "library": {
+    "test/util": {
       "require": [
-        "opal",
+        "alcotest",
+        "alcotest-lwt",
+        "lwt",
+        "lwt.unix"
+      ],
+      "name": "knot.test",
+      "namespace": "Test"
+    },
+    "test/pretty": {
+      "require": [
+        "knot.test",
+        "knot.lib"
+      ],
+      "name": "knot.pretty_test",
+      "namespace": "TestPretty"
+    },
+    "test/library": {
+      "require": [
+        "knot.test",
+        "knot.lang"
+      ],
+      "name": "knot.lib_test",
+      "namespace": "TestLibrary"
+    },
+    "test/analyze": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.lang"
+      ],
+      "name": "knot.analyze_test",
+      "namespace": "TestAnalyze"
+    },
+    "test/file": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.file"
+      ],
+      "name": "knot.file_test",
+      "namespace": "TestFile"
+    },
+    "test/language": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.lang",
+        "knot.parse",
+        "knot.file"
+      ],
+      "name": "knot.language_test",
+      "namespace": "TestLanguage"
+    },
+    "test/resolve": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.file_test",
+        "knot.language_test",
+        "knot.resolve",
+        "knot.parse"
+      ],
+      "name": "knot.resolve_test",
+      "namespace": "TestResolve"
+    },
+    "test/parse": {
+      "require": [
+        "knot.test",
+        "knot.parse"
+      ],
+      "name": "knot.parse_test",
+      "namespace": "TestParse"
+    },
+    "test/generate": {
+      "require": [
+        "knot.test",
+        "knot.lib_test",
+        "knot.language_test",
+        "knot.generate"
+      ],
+      "name": "knot.generate_test",
+      "namespace": "TestGenerate"
+    },
+    "test/compile": {
+      "require": [
+        "knot.test",
+        "knot.resolve_test",
+        "knot.compile"
+      ],
+      "name": "knot.compile_test",
+      "namespace": "TestCompile"
+    },
+    "test/executable": {
+      "require": [
+        "knot.test",
+        "knot.file_test",
+        "knot.exec"
+      ],
+      "name": "knot.exec_test",
+      "namespace": "TestExecutable"
+    },
+    "test/language_server": {
+      "require": [
+        "knot.test",
+        "knot.resolve_test",
+        "knot.language_server"
+      ],
+      "name": "knot.language_server_test",
+      "namespace": "TestLanguageServer"
+    },
+    "test/unit": {
+      "require": [
+        "knot.pretty_test",
+        "knot.lib_test",
+        "knot.analyze_test",
+        "knot.file_test",
+        "knot.language_test",
+        "knot.resolve_test",
+        "knot.parse_test",
+        "knot.generate_test",
+        "knot.compile_test",
+        "knot.language_server_test",
+        "knot.exec_test"
+      ],
+      "main": "TestSuite",
+      "name": "UnitTests.exe"
+    },
+    "test/e2e": {
+      "require": [
+        "knot.file_test",
+        "knot.exec_test",
+        "knot.resource"
+      ],
+      "main": "TestSuite",
+      "name": "E2ETests.exe"
+    },
+    "src/pretty": {
+      "require": [
+        "ANSITerminal",
+        "fmt"
+      ],
+      "name": "knot.pretty",
+      "namespace": "Pretty"
+    },
+    "src/library": {
+      "require": [
+        "ANSITerminal",
+        "camlp-streams",
         "dolog",
-        "emoji",
-        "uutf",
-        "ANSITerminal"
+        "fmt",
+        "lwt",
+        "lwt.unix",
+        "tablecloth-native",
+        "knot.pretty"
       ],
       "name": "knot.lib",
       "namespace": "Knot"
     },
-    "lexer": {
+    "src/jsonrpc": {
       "require": [
-        "knot.lib"
+        "knot.lib",
+        "yojson"
       ],
-      "name": "knot.lex",
-      "namespace": "KnotLex"
+      "name": "knot.jsonrpc",
+      "namespace": "JSONRPC"
     },
-    "parser": {
+    "src/language/ast": {
+      "require": [
+        "knot.lib",
+        "knot.parse"
+      ],
+      "name": "knot.lang.ast",
+      "namespace": "AST"
+    },
+    "src/language/identifier": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.identifier",
+      "namespace": "KIdentifier"
+    },
+    "src/language/decorator": {
+      "require": [
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.decorator",
+      "namespace": "KDecorator"
+    },
+    "src/language/primitive/nil": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.primitive.nil",
+      "namespace": "KNil"
+    },
+    "src/language/primitive/boolean": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.primitive.boolean",
+      "namespace": "KBoolean"
+    },
+    "src/language/primitive/integer": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.primitive.integer",
+      "namespace": "KInteger"
+    },
+    "src/language/primitive/float": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.primitive.float",
+      "namespace": "KFloat"
+    },
+    "src/language/primitive/string": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.primitive.string",
+      "namespace": "KString"
+    },
+    "src/language/primitive": {
+      "require": [
+        "knot.lang.primitive.nil",
+        "knot.lang.primitive.boolean",
+        "knot.lang.primitive.integer",
+        "knot.lang.primitive.float",
+        "knot.lang.primitive.string"
+      ],
+      "name": "knot.lang.primitive",
+      "namespace": "KPrimitive"
+    },
+    "src/language/type/expression": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.type.expression",
+      "namespace": "KTypeExpression"
+    },
+    "src/language/type/statement": {
+      "require": [
+        "knot.lang.type.expression",
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.type.statement",
+      "namespace": "KTypeStatement"
+    },
+    "src/language/type/definition": {
+      "require": [
+        "knot.lang.type.statement",
+        "knot.lang.decorator",
+        "knot.lang.primitive"
+      ],
+      "name": "knot.lang.type.definition",
+      "namespace": "KTypeDefinition"
+    },
+    "src/language/lambda": {
+      "require": [
+        "knot.lang.type.expression",
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.lambda",
+      "namespace": "KLambda"
+    },
+    "src/language/statement/effect": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.statement.effect",
+      "namespace": "KEffect"
+    },
+    "src/language/statement/variable": {
+      "require": [
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.statement.variable",
+      "namespace": "KVariable"
+    },
+    "src/language/statement": {
+      "require": [
+        "knot.lang.statement.effect",
+        "knot.lang.statement.variable"
+      ],
+      "name": "knot.lang.statement",
+      "namespace": "KStatement"
+    },
+    "src/language/operator/unary": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.operator.unary",
+      "namespace": "KUnaryOperator"
+    },
+    "src/language/operator/binary/exponentiate": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.operator.binary.exponentiate",
+      "namespace": "KExponentiate"
+    },
+    "src/language/operator/binary": {
+      "require": [
+        "knot.lang.operator.binary.exponentiate"
+      ],
+      "name": "knot.lang.operator.binary",
+      "namespace": "KBinaryOperator"
+    },
+    "src/language/expression/group": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.expression.group",
+      "namespace": "KGroup"
+    },
+    "src/language/expression/closure": {
+      "require": [
+        "knot.lang.ast",
+        "knot.lang.statement"
+      ],
+      "name": "knot.lang.expression.closure",
+      "namespace": "KClosure"
+    },
+    "src/language/expression/dot_access": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.expression.dot_access",
+      "namespace": "KDotAccess"
+    },
+    "src/language/expression/bind_style": {
+      "require": [
+        "knot.lang.identifier",
+        "knot.lang.expression.ksx",
+        "knot.lang.expression.style"
+      ],
+      "name": "knot.lang.expression.bind_style",
+      "namespace": "KBindStyle"
+    },
+    "src/language/expression/function_call": {
+      "require": [
+        "knot.lang.ast"
+      ],
+      "name": "knot.lang.expression.function_call",
+      "namespace": "KFunctionCall"
+    },
+    "src/language/expression/style": {
+      "require": [
+        "knot.lang.identifier"
+      ],
+      "name": "knot.lang.expression.style",
+      "namespace": "KStyle"
+    },
+    "src/language/expression/ksx": {
+      "require": [
+        "knot.lang.expression.style"
+      ],
+      "name": "knot.lang.expression.ksx",
+      "namespace": "KSX"
+    },
+    "src/language/expression": {
+      "require": [
+        "knot.lang.primitive",
+        "knot.lang.identifier",
+        "knot.lang.statement",
+        "knot.lang.operator.unary",
+        "knot.lang.operator.binary",
+        "knot.lang.expression.group",
+        "knot.lang.expression.closure",
+        "knot.lang.expression.dot_access",
+        "knot.lang.expression.bind_style",
+        "knot.lang.expression.function_call",
+        "knot.lang.expression.style",
+        "knot.lang.expression.ksx"
+      ],
+      "name": "knot.lang.expression",
+      "namespace": "KExpression"
+    },
+    "src/language/declaration/constant": {
+      "require": [
+        "knot.lang.expression",
+        "knot.lang.module_statement"
+      ],
+      "name": "knot.lang.declaration.constant",
+      "namespace": "KConstant"
+    },
+    "src/language/declaration/enumerated": {
+      "require": [
+        "knot.lang.type.statement",
+        "knot.lang.expression",
+        "knot.lang.module_statement"
+      ],
+      "name": "knot.lang.declaration.enumerated",
+      "namespace": "KEnumerated"
+    },
+    "src/language/declaration/function": {
+      "require": [
+        "knot.lang.expression",
+        "knot.lang.lambda",
+        "knot.lang.module_statement"
+      ],
+      "name": "knot.lang.declaration.function",
+      "namespace": "KFunction"
+    },
+    "src/language/declaration/view": {
+      "require": [
+        "knot.lang.expression",
+        "knot.lang.lambda",
+        "knot.lang.module_statement"
+      ],
+      "name": "knot.lang.declaration.view",
+      "namespace": "KView"
+    },
+    "src/language/declaration": {
+      "require": [
+        "knot.lang.declaration.constant",
+        "knot.lang.declaration.enumerated",
+        "knot.lang.declaration.function",
+        "knot.lang.declaration.view"
+      ],
+      "name": "knot.lang.declaration",
+      "namespace": "KDeclaration"
+    },
+    "src/language/module_statement": {
+      "require": [
+        "knot.lang.import"
+      ],
+      "name": "knot.lang.module_statement",
+      "namespace": "KModuleStatement"
+    },
+    "src/language/import": {
+      "require": [
+        "knot.lang.identifier",
+        "knot.lang.primitive.string"
+      ],
+      "name": "knot.lang.import",
+      "namespace": "KImport"
+    },
+    "src/language": {
+      "require": [
+        "knot.lang.decorator",
+        "knot.lang.declaration",
+        "knot.lang.type.definition"
+      ],
+      "name": "knot.lang",
+      "namespace": "Language"
+    },
+    "src/file": {
+      "require": [
+        "knot.lib",
+        "fileutils",
+        "uutf",
+        "fswatch",
+        "fswatch_lwt"
+      ],
+      "name": "knot.file",
+      "namespace": "File"
+    },
+    "src/resolve": {
+      "require": [
+        "knot.file"
+      ],
+      "name": "knot.resolve",
+      "namespace": "Resolve"
+    },
+    "src/parse": {
       "require": [
         "knot.lib"
       ],
       "name": "knot.parse",
-      "namespace": "KnotParse"
+      "namespace": "Parse"
     },
-    "resolver": {
+    "src/generate": {
       "require": [
-        "knot.lib"
-      ],
-      "name": "knot.resolve",
-      "namespace": "KnotResolve"
-    },
-    "analyzer": {
-      "require": [
-        "knot.lib",
-        "knot.resolve"
-      ],
-      "name": "knot.analyze",
-      "namespace": "KnotAnalyze"
-    },
-    "generator": {
-      "require": [
-        "knot.lib",
-        "str"
+        "knot.lang"
       ],
       "name": "knot.generate",
-      "namespace": "KnotGenerate"
+      "namespace": "Generate"
     },
-    "compiler": {
+    "src/compile": {
       "require": [
-        "knot.lib",
-        "knot.lex",
-        "knot.parse",
-        "knot.analyze"
+        "knot.file",
+        "knot.resolve",
+        "knot.generate"
       ],
       "name": "knot.compile",
-      "namespace": "KnotCompile"
+      "namespace": "Compile"
     },
-    "executable": {
+    "src/language_server": {
+      "require": [
+        "knot.compile",
+        "knot.jsonrpc"
+      ],
+      "name": "knot.language_server",
+      "namespace": "LanguageServer"
+    },
+    "src/build_server": {
+      "require": [
+        "knot.compile",
+        "knot.jsonrpc"
+      ],
+      "name": "knot.build_server",
+      "namespace": "BuildServer"
+    },
+    "src/executable": {
+      "require": [
+        "knot.build_server",
+        "knot.language_server",
+        "knot.resource",
+        "yaml"
+      ],
+      "name": "knot.exec",
+      "namespace": "Executable"
+    },
+    "src/resource": {
       "require": [
         "knot.lib",
-        "knot.generate",
-        "knot.compile",
-        "unix",
-        "core",
-        "httpaf",
-        "lwt",
-        "lwt.unix",
-        "faraday-lwt-unix",
-        "uri"
+        "dune-site"
       ],
-      "main": "Main",
-      "name": "knotc.exe",
+      "name": "knot.resource",
+      "namespace": "Resource",
       "rawBuildConfigFooter": [
         "(install",
-        "  (section share_root)",
-        "  (files",
-        "    (definitions/jsx.kd as knot/definitions/jsx.kd)",
-        "    (definitions/style.kd as knot/definitions/style.kd)",
+        "  (package knot)",
+        "  (section (site (knot assets)))",
+        "  (files ",
+        "    (assets/stdlib.kd as stdlib.kd)",
+        "    (assets/ambient/core.kd as ambient/core.kd)",
+        "    (assets/ambient/browser.kd as ambient/browser.kd)",
         "  )",
+        ")",
+        "(generate_sites_module",
+        "  (module Injected)",
+        "  (sites knot)",
+        "  (sourceroot)",
         ")"
       ]
     },
-    "test": {
+    "src/cli": {
       "require": [
-        "knot.lib",
-        "knot.lex",
-        "knot.parse",
-        "knot.analyze",
-        "knot.generate",
-        "oUnit",
-        "ANSITerminal"
+        "knot.exec",
+        "knot.resource",
+        "dune-site"
       ],
-      "main": "TestSuite",
-      "name": "TestSuite.exe"
+      "main": "Main",
+      "name": "knotc.exe"
     }
   },
   "scripts": {
     "build_test": "esy build && esy test",
-    "dev": "sane 'esy build' --glob='(library|lexer|parser|analyzer|resolver|generator|compiler|executable)/**/*.re'",
+    "dev": "sane 'esy build' --glob='src/**/*.re'",
     "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "server": "esy x knotc.exe -server -config ./test/resources/project",
-    "test": "npm run test:unit && npm run test:e2e 1> /dev/null",
-    "test:unit": "esy x TestSuite.exe",
-    "test:e2e": "esy x knotc.exe ./test/resources/project/src/index.kn",
-    "test:e2e:debug": "npm run test:e2e -- -debug",
-    "tdd": "sane 'esy build && npm run test' --glob='(library|lexer|parser|resolver|analyzer|generator|compiler|executable|test)/**/*.re'"
+    "test": "npm run test.unit && npm run test.e2e && npm run test.smoke 1> /dev/null",
+    "test.unit": "esy x UnitTests.exe --show-errors",
+    "test.e2e": "esy x E2ETests.exe --show-errors",
+    "test.smoke": "esy x knotc.exe build --cwd ./test/smoke/.fixtures/project",
+    "test.smoke.debug": "npm run test:smoke -- -debug"
   },
   "dependencies": {
-    "@esy-ocaml/reason": "*",
-    "@opam/ANSITerminal": "0.8.1",
-    "@opam/core": "v0.12.3",
-    "@opam/dolog": "3.0",
-    "@opam/dune": ">=1.6.0",
-    "@opam/emoji": "1.1.0",
-    "@opam/faraday-lwt-unix": "0.7.0",
-    "@opam/httpaf": "0.6.0",
-    "@opam/lwt": "4.3.0",
-    "@opam/opal": "0.1.1",
-    "@opam/ounit": "2.0.8",
-    "@opam/uri": "3.0.0",
-    "@opam/uutf": "1.0.2"
+    "@opam/ANSITerminal": "0.8.2",
+    "@opam/alcotest": "1.7.0",
+    "@opam/alcotest-lwt": "1.7.0",
+    "@opam/camlp-streams": "5.0.1",
+    "@opam/dolog": "6.0.0",
+    "@opam/dune": "3.5.0",
+    "@opam/dune-site": "3.5.0",
+    "@opam/fileutils": "0.6.3",
+    "@opam/fmt": "0.8.9",
+    "@opam/fswatch": "11-0.1.0",
+    "@opam/fswatch_lwt": "11-0.1.0",
+    "@opam/lwt": "5.4.0",
+    "@opam/reason": "3.8.2",
+    "@opam/tablecloth-native": "0.0.7",
+    "@opam/uutf": "1.0.2",
+    "@opam/yaml": "2.1.0",
+    "@opam/yojson": "2.0.2"
   },
   "devDependencies": {
-    "@opam/merlin": "*",
-    "ocaml": "4.7.1004",
-    "pesy": "*",
-    "refmterr": "*"
+    "@opam/ocaml-lsp-server": "1.15.1-4.14",
+    "@opam/ocamlformat-rpc": "0.21.0",
+    "ocaml": "4.14.0",
+    "pesy": "0.4.4"
   }
 }

@@ -1,0 +1,25 @@
+# knot.language_server
+
+![architecture](https://mermaid.ink/img/eyJjb2RlIjoiZmxvd2NoYXJ0IExSXG4gIGluKCggKSlcblxuICBzdWJncmFwaCBrbm90Lmxhbmdfc2VydmVyXG4gICAgUHJvdG9jb2xcbiAgICBTZXJ2ZXJcbiAgICBFdmVudFxuICAgIFJ1bnRpbWVcblxuICAgIFByb3RvY29sIC0tPiBFdmVudFxuICAgIEV2ZW50IC0tPiBTZXJ2ZXJcbiAgICBSdW50aW1lIDwtLi0-IFNlcnZlclxuXG4gICAgU2VydmVyIC0tPiB8aW5pdGlhbGl6ZXwgSW5pdGlhbGl6ZVxuXG4gICAgU2VydmVyIC0tPiB8dGV4dERvY3VtZW50L2RpZE9wZW58IEZpbGVPcGVuXG4gICAgU2VydmVyIC0tPiB8dGV4dERvY3VtZW50L2RpZENsb3NlfCBGaWxlQ2xvc2VcbiAgICBTZXJ2ZXIgLS0-IHx0ZXh0RG9jdW1lbnQvZGlkQ2hhbmdlfCBGaWxlQ2hhbmdlXG5cbiAgICBTZXJ2ZXIgLS0-IHx0ZXh0RG9jdW1lbnQvaG92ZXJ8IEhvdmVyXG5cbiAgICBTZXJ2ZXIgLS0-IHx0ZXh0RG9jdW1lbnQvZGVmaW5pdGlvbnwgR29Ub0RlZmluaXRpb25cblxuICAgIFNlcnZlciAtLT4gfHRleHREb2N1bWVudC9jb21wbGV0aW9ufCBDb2RlQ29tcGxldGlvblxuXG4gICAgU2VydmVyIC0tPiB8dGV4dERvY3VtZW50L2RvY3VtZW50U3ltYm9sfCBMb2NhbFN5bWJvbHNcblxuICAgIFNlcnZlciAtLT4gfHdvcmtzcGFjZS9zeW1ib2x8IFdvcmtzcGFjZVN5bWJvbHNcblxuICAgIFNlcnZlciAtLT4gfHRleHREb2N1bWVudC9mb3JtYXR0aW5nfCBGb3JtYXRcbiAgZW5kXG5cbiAgaW4gLS0-IHxzdGRpbnwgc3RyZWFte3tTdHJlYW0udH19IC0tPiBQcm90b2NvbFxuIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifSwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
+
+## LSP Protocol Implementation
+
+### GoToDefinition (`textDocument/definition`)
+
+> Not Implemented
+
+### Hover (`textDocument/hover`)
+
+To resolve this request we lookup the token at the provided point in a document and return the type information for that token.
+
+### CodeCompletion (`textDocument/completion`)
+
+To resolve this request we lookup the scope that contains the provided point in a document and return values defined in that scope.
+
+### LocalSymbols (`textDocument/documentSymbol`)
+
+To resolve this request we shallowly walk the AST to find and return exported entities and their types.
+
+### WorkspaceSymbols (`workspace/symbol`)
+
+To resolve this request we shallowly walk the ASTs of each module in the project to find and return exported entities and their types.

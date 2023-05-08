@@ -1,22 +1,32 @@
 /// <reference path="./scripts/nps-utils.d.ts" />
 
 import { concurrent, series } from 'nps-utils';
+import path from 'path';
+
 import { DEFAULT_OPTIONS } from './scripts';
 
 const PKG_FILTER = '--ignore=@knot/*-example';
 const EXAMPLE_FILTER = '--scope=@knot/*-example';
+const LOCAL_BINARY = path.join(
+  __dirname,
+  'compiler/_esy/default/build/install/default/bin/knotc.exe'
+);
 
 const run = (args: string, filter?: string) =>
   `lerna run ${filter ? `--scope=${filter} ` : ''}${args}`;
 const pkgRun = (task: string) => run(`${PKG_FILTER} ${task}`);
 const exampleRun = (task: string) => run(`${EXAMPLE_FILTER} ${task}`);
 
-const webpackExample = (framework: string) => ({
+const webpackScript = (script: string, framework: string) => ({
   description: `run the "webpack + ${framework}" example`,
   script: run(
-    "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+    `${script} -- --env.knotc='${LOCAL_BINARY}'`,
     `@knot/webpack-${framework}-example`
   )
+});
+const webpackExample = (framework: string) => ({
+  default: webpackScript('start', framework),
+  debug: webpackScript('start:debug', framework)
 });
 
 const browserifyExample = (framework: string) => ({
@@ -31,7 +41,7 @@ const browserifyExample = (framework: string) => ({
   build: {
     description: `build the "browserify + ${framework}" example`,
     script: run(
-      "build -- --knotc='esy x -P ../../compiler knotc.exe'",
+      `build -- --knotc='${LOCAL_BINARY}'`,
       `@knot/browserify-${framework}-example`
     )
   },
@@ -53,7 +63,7 @@ const rollupExample = (framework: string) => ({
   build: {
     description: `build the "rollup + ${framework}" example`,
     script: run(
-      "build -- --configKnotc='esy x -P ../../compiler knotc.exe'",
+      `build -- --configKnotc='${LOCAL_BINARY}'`,
       `@knot/rollup-${framework}-example`
     )
   },
@@ -111,7 +121,7 @@ export default {
         todo: {
           description: 'run the "todo" example',
           script: run(
-            "start -- --env.knotc='esy x -P ../../compiler knotc.exe'",
+            `start -- --env.knotc='${LOCAL_BINARY}'`,
             '@knot/todomvc-example'
           )
         }

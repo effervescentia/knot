@@ -1,0 +1,40 @@
+@plugin("style_rule")
+module Style {
+  enum MockColor:
+    | Named(string);
+
+  declare mockColor: (MockColor) -> nil;
+  declare mockBackgroundColor: (MockColor) -> nil;
+}
+
+@plugin("style_expression")
+module StyleExpression {
+  declare mockRed: Style.MockColor;
+}
+
+@plugin("element_tag")
+module ElementTag {
+  declare app: view({}, element);
+  declare div: view({}, element);
+  declare span: view({ punned_variable: string }, element);
+  declare complex: view({
+    id_attr: boolean,
+    unary_op_attr: integer,
+    binary_op_attr: boolean,
+    group_attr: string,
+    empty_closure_attr: nil,
+    closure_stmts_attr: boolean
+  }, element);
+  declare data_element: view({
+    data_nil: nil,
+    data_true: boolean,
+    data_false: boolean,
+    data_positive_integer: integer,
+    data_negative_integer: integer,
+    data_positive_float: float,
+    data_negative_float: float,
+    data_string: string,
+    data_tag: element,
+    data_fragment: element
+  }, element);
+}

@@ -1,4 +1,4 @@
-import KnotCompiler, { OptionOverrides } from '@knot/compiler';
+import KnotCompiler, { OptionOverrides, Target } from '@knot/compiler';
 import { BrowserifyObject } from 'browserify';
 
 import setupPipeline from './setup';
@@ -10,10 +10,7 @@ function browserifyKnot(
 ): void {
   const configuredOptions: OptionOverrides = {
     ...options,
-    compiler: {
-      ...options.compiler,
-      module: 'common'
-    }
+    target: Target.JAVASCRIPT_COMMON,
   };
 
   const compiler = new KnotCompiler(configuredOptions);
@@ -22,7 +19,7 @@ function browserifyKnot(
 
   browser.transform(transformFile(compiler));
 
-  browser.on('bundle', bundle => bundle.on('end', () => compiler.close()));
+  browser.on('bundle', (bundle) => bundle.on('end', () => compiler.close()));
 
   browser.on('reset', () => setupPipeline(browser, compiler.options));
 }

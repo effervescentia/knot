@@ -1,0 +1,12 @@
+name: foobar_prototype
+root_dir: code
+source_dir: lib
+out_dir: output
+entry: index.kn
+target: javascript-common
+color: true
+fix: true
+fail_fast: true
+log_imports: true
+debug: true
+port: 1338

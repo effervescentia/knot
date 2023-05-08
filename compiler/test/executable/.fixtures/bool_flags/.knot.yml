@@ -1,0 +1,5 @@
+target: javascript-common
+fail_fast: false
+log_imports: false
+fix: false
+debug: false

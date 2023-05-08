@@ -1,19 +1,16 @@
-import { Options } from '../types';
+import { Options, Target } from '../types';
 
 export const MAX_ATTEMPTS = 10;
 export const INFINITE_ATTEMPTS = 100;
-export const ATTEMPT_TIMEOUT = 1000;
+export const ATTEMPT_TIMEOUT = 500;
+export const CONNECTION_TIMEOUT = 10000;
 
-export const DEFAULT_OPTIONS = {
-  compiler: {
-    module: 'es6'
-  },
-  config: process.cwd(),
-  debug: false,
+export const DEFAULT_OPTIONS: Options = {
+  cwd: process.cwd(),
+  target: Target.JAVASCRIPT_ES6,
   plugins: {
     jsx: '@knot/react-plugin',
     platform: '@knot/browser-plugin',
-    style: '@knot/jss-plugin'
+    style: '@knot/jss-plugin',
   },
-  port: 1338
-} as Options;
+};

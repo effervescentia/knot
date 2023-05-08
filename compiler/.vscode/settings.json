@@ -1,0 +1,32 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/*.log": true
+  },
+  "cSpell.enabled": true,
+  "cSpell.enableFiletypes": [
+    "reason"
+  ],
+  "cSpell.ignoreWords": [
+    "Alcotest",
+    "Dolog",
+    "Hashtbl",
+    "Hashtbls",
+    "Kore",
+    "Stdlib",
+    "Uchar",
+    "Uutf",
+    "Yojson",
+    "concat",
+    "getcwd",
+    "knotc"
+  ],
+  "ocaml.sandbox": {
+    "kind": "esy",
+    "root": "${workspaceFolder:compiler}"
+  }
+}

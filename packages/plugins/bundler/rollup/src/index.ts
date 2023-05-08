@@ -1,7 +1,7 @@
 import KnotCompiler, {
   isKnot,
   OptionOverrides,
-  resolveLibrary
+  resolveLibrary,
 } from '@knot/compiler';
 import nodeResolve from 'resolve';
 import { Plugin, ResolveIdResult } from 'rollup';
@@ -20,7 +20,7 @@ function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
       const resolved = resolveLibrary(id, compiler.options);
       if (resolved) {
         return this.resolve(resolved, importer, { skipSelf: true }).then(
-          result => {
+          (result) => {
             if (!result) {
               return { id: resolved };
             }
@@ -35,7 +35,7 @@ function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
           nodeResolve(
             id,
             {
-              extensions: ['.kn']
+              extensions: ['.kn'],
             },
             (err, result) => (err ? reject(err) : resolve(result))
           )
@@ -50,11 +50,11 @@ function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
         await compiler.add(id);
         await compiler.awaitModule(id);
 
-        const compiled = await compiler.generate(id);
+        const compiled = await compiler.fetch(id);
         if (compiled) {
           return {
             code: compiled,
-            map: null
+            map: null,
           };
         }
       }
@@ -62,9 +62,9 @@ function knotRollupPlugin(options: OptionOverrides = {}): Plugin {
       return null;
     },
 
-    async buildEnd() {
-      await compiler.close();
-    }
+    buildEnd() {
+      compiler.close();
+    },
   };
 }
 

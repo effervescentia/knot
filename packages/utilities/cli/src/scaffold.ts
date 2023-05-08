@@ -19,7 +19,7 @@ export const scaffoldProject = async ({
   projectName,
   frameworkType,
   bundlerType,
-  targetDir
+  targetDir,
 }: ScaffoldOptions) => {
   const templatesDir = path.resolve(__dirname, '../..', 'templates');
   const commonDir = path.resolve(templatesDir, 'common');
@@ -32,23 +32,23 @@ export const scaffoldProject = async ({
     vuePluginVersion,
     webpackPluginVersion,
     rollupPluginVersion,
-    browserifyPluginVersion
+    browserifyPluginVersion,
   ] = await Promise.all([
     '@knot/react-plugin',
     '@knot/vue-plugin',
     '@knot/webpack-plugin',
     '@knot/rollup-plugin',
-    '@knot/browserify-plugin'
+    '@knot/browserify-plugin',
   ]);
 
   gulp
     .src(
       [commonDir, frameworkDir, bundlerDir, ...(isHTTPS ? [httpsDir] : [])].map(
-        dir => `${dir}/**`
+        (dir) => `${dir}/**`
       )
     )
     .pipe(
-      rename(file => {
+      rename((file) => {
         if (file.basename.startsWith('_')) {
           file.basename = file.basename.slice(1);
         }
@@ -66,8 +66,8 @@ export const scaffoldProject = async ({
             vue: vuePluginVersion,
             browserify: browserifyPluginVersion,
             webpack: webpackPluginVersion,
-            rollup: rollupPluginVersion
-          }
+            rollup: rollupPluginVersion,
+          },
         },
         { interpolate: INTERPOLATION_PATTERN }
       )

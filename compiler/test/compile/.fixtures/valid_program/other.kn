@@ -1,0 +1,3 @@
+import { ABC } from "@/entry";
+
+const BAR = "bar";

@@ -1,0 +1,53 @@
+view ExplicitNilView -> nil;
+view ImplicitNilView -> {};
+
+view NoPropertiesView() -> nil;
+
+view PropertiedView(
+  data_nil: nil,
+  data_true: boolean,
+  data_false: boolean,
+  data_positive_integer: integer,
+  data_negative_integer: integer,
+  data_positive_float: float,
+  data_negative_float: float,
+  data_string: string,
+  data_tag: element,
+  data_fragment: element,
+) -> nil;
+
+view DefaultedView(
+  data_nil = nil,
+  data_true = true,
+  data_false = false,
+  data_positive_integer = 123,
+  data_negative_integer = -123,
+  data_positive_float = 456.78,
+  data_negative_float = -456.78,
+  data_string = "abc",
+  data_tag = <div />,
+  data_fragment = <></>,
+) -> nil;
+
+view PartialView(first: integer, second = false) -> nil;
+
+view ExpressionView(lhs: integer, rhs: integer) -> lhs + rhs;
+
+view ClosureView(lhs: integer, rhs: integer) -> {
+  let lhs_int = lhs * 10;
+  let rhs_float = rhs / 13;
+
+  lhs_int <= rhs_float;
+};
+
+view ImplicitChildren ->
+  <div>
+    <div>{$children}</div>
+  </div>
+;
+
+view ExplicitChildren(children: string) ->
+  <div>
+    <div>{children}</div>
+  </div>
+;

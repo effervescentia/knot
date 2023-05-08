@@ -1,0 +1,68 @@
+flowchart TD
+  %% lib
+  subgraph knot.lib
+    AST
+  end
+  AST --> Analyzer
+  AST --> knot.grammar
+
+  %% analyze
+  subgraph knot.analyze
+    Analyzer
+  end
+  Analyzer --> Declaration
+
+  %% file
+  subgraph knot.file
+    InputStream
+    Cache
+    IO
+    Writer
+
+    InputStream --> IO
+  end
+  Cache --> Resolver
+  Writer --> Compiler
+  IO --> Source
+
+  %% compile
+  subgraph knot.compile
+    Compiler
+    Parser
+  end
+
+  %% resolve
+  subgraph knot.resolve
+    Resolver
+    Source
+
+    Source --> Resolver
+  end
+  Parser --> Compiler
+  Resolver --> Compiler
+
+  %% parse
+  subgraph knot.parse
+    Onyx
+  end
+  Onyx --> parsers
+
+  %% grammar
+  subgraph knot.grammar
+    subgraph parsers
+      Program
+      Declaration
+
+      Declaration --> Program
+    end
+
+    Formatter
+  end
+  Formatter --> Generator
+  Program --> Parser
+
+  %% generate
+  subgraph knot.generate
+    Generator
+  end
+  Generator --> Compiler

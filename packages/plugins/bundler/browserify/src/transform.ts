@@ -3,12 +3,12 @@ import stream from 'stream';
 import through, { FlushCallback, TransformCallback } from 'through2';
 
 function flushTransformed(compiler: KnotCompiler, file: string): FlushCallback {
-  return async function(next: TransformCallback): Promise<void> {
+  return async function (next: TransformCallback): Promise<void> {
     try {
       await compiler.add(file);
       await compiler.awaitModule(file);
 
-      const compiled = await compiler.generate(file);
+      const compiled = await compiler.fetch(file);
 
       if (compiled) {
         this.push(compiled);
@@ -25,7 +25,7 @@ function flushTransformed(compiler: KnotCompiler, file: string): FlushCallback {
 function transformFile(
   compiler: KnotCompiler
 ): (file: string) => stream.Transform {
-  return file => {
+  return (file) => {
     if (isKnot(file)) {
       return through((_, __, next) => next(), flushTransformed(compiler, file));
     }

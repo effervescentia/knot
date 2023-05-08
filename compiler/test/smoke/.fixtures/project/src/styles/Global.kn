@@ -1,0 +1,4 @@
+main const globalStyle = style {
+  height: $px(20.0),
+  color: "#ddd"
+};

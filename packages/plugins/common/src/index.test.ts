@@ -16,7 +16,7 @@ function hasKeys<T extends object>(
   );
 }
 
-test('includes keys', t =>
+test('includes keys', (t) =>
   hasKeys(t, Common, [
     'noop',
     'isMultisetEqual',
@@ -30,5 +30,7 @@ test('includes keys', t =>
     'filterValues',
     'groupReduce',
     'groupValues',
-    'groupEntries'
+    'groupEntries',
+    'createEnumerated',
+    'IS_CI',
   ]));

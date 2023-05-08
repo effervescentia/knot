@@ -1,0 +1,28 @@
+flowchart LR
+  in(( ))
+  out(( ))
+  namespace{{Namespace.t}}
+  result{{Source.t}}
+
+  subgraph knot.resolve
+    ImportGraph
+    Resolver
+  end
+
+  ImportGraph <-.-> Compiler
+
+  subgraph knot.lib
+    ModuleTable
+  end
+
+  ModuleTable <-.-> Compiler
+
+  subgraph knot.compile
+    Compiler
+    Parser
+
+    Compiler --> Parser
+  end
+
+  in --> |input| namespace --> Compiler
+  Resolver --> result --> |output| read{"read()"} --> out

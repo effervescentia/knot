@@ -1,1 +1,0 @@
-main func greet(name: string) -> "Hello, " + name + "!";

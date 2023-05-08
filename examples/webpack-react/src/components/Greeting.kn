@@ -1,3 +1,4 @@
 func greet(name: string) -> "Hello, " + name + "!";
 
-main view Greeting(name: string) -> <div>{greet(name)}</div>;
+main view Greeting(name: string) ->
+  <div>{greet(name)}</div>

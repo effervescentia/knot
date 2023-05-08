@@ -1,0 +1,40 @@
+open Kore;
+
+type params_t = {
+  text_document: Protocol.text_document_t,
+  changes: list(string),
+};
+
+let method_key = "textDocument/didChange";
+
+let deserialize =
+  JSON.Util.(
+    json => {
+      let text_document = Deserialize.text_document(json);
+      let changes =
+        json
+        |> member("contentChanges")
+        |> to_list
+        |> List.filter_map(
+             fun
+             | `Assoc([("text", `String(text))]) => Some(text)
+             | _ => None,
+           );
+
+      {text_document, changes};
+    }
+  );
+
+let handler: Runtime.notification_handler_t(params_t) =
+  (runtime, {text_document: {uri, _}, changes, _}) =>
+    switch (List.last(changes), runtime |> Runtime.resolve(uri)) {
+    | (Some(contents), Some((namespace, {compiler, _} as ctx))) =>
+      let silent_compiler = {...compiler, dispatch: ignore};
+
+      silent_compiler |> Compiler.inject_raw(namespace, contents);
+      Runtime.analyze_module(namespace, {...ctx, compiler: silent_compiler})
+      |> ignore;
+
+    | _
+    | exception _ => ()
+    };

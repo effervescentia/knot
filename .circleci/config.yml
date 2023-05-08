@@ -16,12 +16,12 @@ defaults:
       - macos_node_cache-v1-{{ checksum "yarn.lock" }}
       - macos_node_cache-v1
   linux_compiler_cache: &linux_compiler_cache
-    key: linux_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
+    key: linux_compiler_cache-v3-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
   linux_compiler_cache_keys: &linux_compiler_cache_keys
     keys:
-      - linux_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
-      - linux_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}
-      - linux_compiler_cache-v1
+      - linux_compiler_cache-v3-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
+      - linux_compiler_cache-v3-{{ checksum "compiler/esy.lock/index.json" }}
+      - linux_compiler_cache-v3
   macos_compiler_cache: &macos_compiler_cache
     key: macos_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}-{{ .Branch }}
   macos_compiler_cache_keys: &macos_compiler_cache_keys
@@ -30,18 +30,18 @@ defaults:
       - macos_compiler_cache-v1-{{ checksum "compiler/esy.lock/index.json" }}
       - macos_compiler_cache-v1
 
-orbs:
-  node: circleci/node@0.0.6
-
 executors:
-  node-cypress:
+  node:
     docker:
-      - image: cypress/base:10
+      - image: cimg/node:18.16.0
         environment:
-          ## this enables colors in the output
-          TERM: xterm
-          KNOT_BINARY: /tmp/workspace/knot/bin/knotc.exe
           NODE_OPTIONS: --max_old_space_size=4096
+  node-browser:
+    docker:
+      - image: cimg/node:18.16.0-browsers
+        environment:
+          KNOTC_BINARY: /tmp/workspace/knotc_install/default/bin/knotc.exe
+          NODE_OPTIONS: --max_old_space_size=4096 --openssl-legacy-provider
 
 commands:
   restore_linux_node_cache:
@@ -72,6 +72,19 @@ commands:
       - run:
           name: Setup Lerna
           command: yarn global add lerna
+  setup_fswatch:
+    description: install fswatch
+    steps:
+      - run:
+          name: Setup fswatch
+          command: |
+            sudo bash \<<"EOF"
+              apt update
+              apt install -y fswatch
+              ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so /usr/lib/libfswatch.so
+              ln -s /usr/lib/x86_64-linux-gnu/libfswatch/libfswatch.so.11 /usr/lib/libfswatch.so.11
+              ldconfig
+            EOF
   persist:
     description: persist a directory to the workspace
     parameters:
@@ -128,9 +141,16 @@ commands:
     description: use esy to install Compiler OCaml dependencies
     steps:
       - run:
+          name: Import Dependencies
+          working_directory: ./compiler
+          command: |
+            if [ -d ./_export ]; then
+              esy import-build ./_export/*.tar.gz
+            fi
+      - run:
           name: Install Compiler Dependencies
           working_directory: ./compiler
-          command: esy install && esy pesy
+          command: esy install --cache-tarballs-path=./_esyinstall && esy pesy
   node_install:
     description: use yarn to install Node project dependencies
     steps:
@@ -168,8 +188,6 @@ commands:
       bundler:
         type: string
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
       - run:
           name: Restore Compiler
           working_directory: ./packages
@@ -194,6 +212,23 @@ commands:
       - attach_workspace:
           at: /tmp/workspace
       - setup_esy
+      - setup_fswatch
+      - run:
+          name: Install Cypress Dependencies
+          command: |
+            sudo apt-get install \
+              libgtk2.0-0 \
+              libgtk-3-0 \
+              libgbm-dev \
+              libnotify-dev \
+              libgconf-2-4 \
+              libnss3 \
+              libxss1 \
+              libasound2 \
+              libxtst6 \
+              xauth \
+              xvfb
+            yarn cypress install
       - restore_pkg:
           from: compiler
           to: binaries/compiler
@@ -206,6 +241,9 @@ commands:
       - restore_pkg:
           from: common
           to: plugins/common
+      - restore_pkg:
+          from: runtime
+          to: plugins/runtime
       - restore_pkg:
           from: plugin-utils
           to: plugins/compiler/utils
@@ -228,9 +266,7 @@ commands:
 
 jobs:
   install_node:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_node_cache
@@ -250,6 +286,7 @@ jobs:
             - packages/plugins/bundler/rollup/node_modules
             - packages/plugins/bundler/browserify/node_modules
             - packages/plugins/common/node_modules
+            - packages/plugins/runtime/node_modules
             - packages/plugins/compiler/browser/node_modules
             - packages/plugins/compiler/jss/node_modules
             - packages/plugins/compiler/react/node_modules
@@ -263,25 +300,19 @@ jobs:
             - packages/examples/webpack-vue/node_modules
 
   test_compiler_binary:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_compiler_cache
       - restore_linux_node_cache
       - setup_yarn
       - setup_esy
+      - setup_fswatch
       - compiler_install
       - run:
           name: Build
           working_directory: ./compiler
-          command: |
-            if [ -e ./_export ]; then
-              esy import-build ./_export/*.tar.gz
-            fi
-
-            esy build
+          command: esy build --release
       - run:
           name: Test
           working_directory: ./compiler
@@ -293,25 +324,38 @@ jobs:
       - save_cache:
           <<: *linux_compiler_cache
           paths:
+            - ~/project/compiler/_esyinstall
             - ~/project/compiler/_export
       - persist:
-          from: compiler/_esy/default/store/i/knot-*
-          to: knot
+          from: compiler/_esy/default/build-release/install
+          to: knotc_install
+      - store_artifacts:
+          path: ~/project/compiler/_build/_tests
 
   test_compiler:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
+      - setup_fswatch
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: runtime
+          to: plugins/runtime
+      - restore_pkg:
+          from: common
+          to: plugins/common
+      - run:
+          name: Restore knotc.exe from Workspace
+          command: |
+            mkdir -p compiler/_esy/default/build
+            cp -R /tmp/workspace/knotc_install/ compiler/_esy/default/build/install
       - build_pkg:
           pkg: compiler
           path: packages/binaries/compiler
 
   test_cli:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -319,19 +363,23 @@ jobs:
           path: packages/utilities/cli
 
   test_common:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
           pkg: common
           path: packages/plugins/common
 
+  test_runtime:
+    executor: node
+    steps:
+      - checkout
+      - build_pkg:
+          pkg: runtime
+          path: packages/plugins/runtime
+
   test_plugin_utils:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -339,9 +387,7 @@ jobs:
           path: packages/plugins/compiler/utils
 
   test_browser_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - build_pkg:
@@ -349,9 +395,7 @@ jobs:
           path: packages/plugins/compiler/browser
 
   test_react_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -367,9 +411,7 @@ jobs:
           path: packages/plugins/compiler/react
 
   test_vue_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - attach_workspace:
@@ -385,45 +427,59 @@ jobs:
           path: packages/plugins/compiler/vue
 
   test_jss_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
+      - restore_pkg:
+          from: plugin-utils
+          to: plugins/compiler/utils
       - build_pkg:
           pkg: jss-plugin
           path: packages/plugins/compiler/jss
 
   test_webpack_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
       - test_bundler_plugin:
           bundler: webpack
 
   test_browserify_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
       - test_bundler_plugin:
           bundler: browserify
 
   test_rollup_plugin:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_pkg:
+          from: common
+          to: plugins/common
       - test_bundler_plugin:
           bundler: rollup
 
   test_webpack_react:
-    executor: node-cypress
-    working_directory: ~/app
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -436,8 +492,7 @@ jobs:
           example: webpack-react
 
   test_browserify_react:
-    executor: node-cypress
-    working_directory: ~/app
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -453,8 +508,7 @@ jobs:
           example: browserify-react
 
   test_rollup_react:
-    executor: node-cypress
-    working_directory: ~/app
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -470,8 +524,7 @@ jobs:
           example: rollup-react
 
   test_webpack_vue:
-    executor: node-cypress
-    working_directory: ~/app
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -484,8 +537,7 @@ jobs:
           example: webpack-vue
 
   test_browserify_vue:
-    executor: node-cypress
-    working_directory: ~/app
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -501,8 +553,7 @@ jobs:
           example: browserify-vue
 
   test_rollup_vue:
-    executor: node-cypress
-    working_directory: ~/app
+    executor: node-browser
     steps:
       - checkout
       - setup_test_example:
@@ -519,7 +570,7 @@ jobs:
 
   compile_macos:
     macos:
-      xcode: '11.0.0'
+      xcode: "11.0.0"
     environment:
       NODE_OPTIONS: --max_old_space_size=4096
     steps:
@@ -547,9 +598,7 @@ jobs:
             - ~/.cache
 
   compile_linux:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_compiler_cache
@@ -566,9 +615,7 @@ jobs:
           to: compiler_linux
 
   release:
-    executor: node/node
-    environment:
-      NODE_OPTIONS: --max_old_space_size=4096
+    executor: node
     steps:
       - checkout
       - restore_linux_node_cache
@@ -594,7 +641,7 @@ workflows:
     jobs:
       - install_node
       - test_compiler_binary
-      - test_compiler:
+      - test_runtime:
           requires:
             - install_node
       - test_cli:
@@ -619,7 +666,13 @@ workflows:
             - test_plugin_utils
       - test_jss_plugin:
           requires:
-            - install_node
+            - test_common
+            - test_plugin_utils
+      - test_compiler:
+          requires:
+            - test_common
+            - test_runtime
+            - test_compiler_binary
       - test_webpack_plugin:
           requires:
             - test_compiler

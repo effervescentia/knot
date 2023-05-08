@@ -1,0 +1,14 @@
+import { numericConst, stringConst } from "@/utils/constants";
+
+const jsxConst = <blockquote />;
+const punnedVariable = "something";
+const nestedJSXConst =
+  <main>
+    <div>
+      <span />
+    </div>
+    <footer />
+  </main>
+;
+const nestedExprJSXConst = <section>{numericConst + 20}<article />hello</section>;
+const fragmentJSXConst = <><div /><span /></>;

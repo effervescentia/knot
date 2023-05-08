@@ -2,7 +2,7 @@ import { FILE_EXTENSIONS, Options, resolveLibrary } from '@knot/compiler';
 import { BrowserifyObject } from 'browserify';
 
 export function addExtension(bundle: BrowserifyObject): void {
-  FILE_EXTENSIONS.forEach(extension => {
+  FILE_EXTENSIONS.forEach((extension) => {
     if (!bundle._extensions.includes(extension)) {
       bundle._extensions.unshift(extension);
     }
