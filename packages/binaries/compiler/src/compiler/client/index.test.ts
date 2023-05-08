@@ -45,6 +45,7 @@ const runWithClient =
     const client = new Client(options);
 
     try {
+      await client.start();
       await test(client, (file) => path.join(options.cwd, 'src', file));
     } finally {
       client.terminate();

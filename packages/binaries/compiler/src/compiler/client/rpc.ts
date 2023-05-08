@@ -46,7 +46,7 @@ class RPCClient
     });
   });
 
-  private connection: Promise<void> | null;
+  private connecting: Promise<void> | null;
 
   constructor(
     private readonly proc: execa.ExecaChildProcess,
@@ -112,18 +112,17 @@ class RPCClient
   }
 
   start() {
-    if (this.connection) {
+    if (this.connecting) {
       throw new Error('compiler client has already been started');
     }
 
     let isConnected = false;
-    this.connection = new Promise((resolve, reject) => {
+    this.connecting = new Promise((resolve, reject) => {
       this.proc.once('spawn', () => {
         isConnected = true;
+        resolve();
 
         this.proc.stdin.setDefaultEncoding('utf8');
-
-        resolve();
 
         this.proc.stdout.on('data', (data) => {
           const dataStr = Buffer.from(data).toString();
@@ -134,12 +133,14 @@ class RPCClient
 
       setTimeout(() => {
         if (!isConnected) {
-          reject();
+          reject(
+            new Error('failed to establish connection with compiler process')
+          );
         }
       }, CONNECTION_TIMEOUT);
     });
 
-    return this.connection;
+    return this.connecting;
   }
 
   terminate() {
