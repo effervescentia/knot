@@ -74,17 +74,18 @@ class Client {
     this.proc = execa(cmd, allArgs);
     this.rpc = new RPCClient(this.proc, { debug: options.debug });
 
+    this.proc.once('error', (err) => {
+      throw new Error(`unable to start knotc process: ${err.message}`);
+    });
+
     if (!options.debug) return;
 
     this.replaceErrorHandler((error) =>
       console.error(`ERROR ${error.type}: ${chalk.red(error.message)}`)
     );
 
-    this.proc.on('spawn', () => {
-      this.proc.stderr.on('data', (data) => console.error(data.toString()));
-    });
-    this.proc.on('error', (err) => {
-      throw new Error(`unable to start knotc process: ${err.message}`);
+    this.proc.once('spawn', () => {
+      this.proc.stderr.on('data', (data) => console.log(data.toString()));
     });
   }
 
@@ -125,18 +126,22 @@ class Client {
     return this.rpc.request(Method.STATUS);
   }
 
-  public removeErrorHandler() {
+  public removeErrorHandler(): void {
     this.unsubscribeErrorHandler();
     this.unsubscribeErrorHandler = noop;
   }
 
-  public replaceErrorHandler(listener: (error: AnyError) => void) {
+  public replaceErrorHandler(listener: (error: AnyError) => void): void {
     this.removeErrorHandler();
 
     this.unsubscribeErrorHandler = this.unsubscribeErrorHandler = this.rpc.on(
       Method.ERROR,
       ({ errors }) => errors.forEach(listener)
     );
+  }
+
+  public async start(): Promise<void> {
+    await this.rpc.start();
   }
 
   public terminate(): void {

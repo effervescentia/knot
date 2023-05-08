@@ -2,7 +2,8 @@ import { Options, Target } from '../types';
 
 export const MAX_ATTEMPTS = 10;
 export const INFINITE_ATTEMPTS = 100;
-export const ATTEMPT_TIMEOUT = 1000;
+export const ATTEMPT_TIMEOUT = 500;
+export const CONNECTION_TIMEOUT = 10000;
 
 export const DEFAULT_OPTIONS: Options = {
   cwd: process.cwd(),

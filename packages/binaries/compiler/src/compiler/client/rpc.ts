@@ -8,6 +8,7 @@ import {
   JSONRPCParams,
 } from 'json-rpc-2.0';
 
+import { CONNECTION_TIMEOUT } from '../constants';
 import { NotificationMap } from '../protocol';
 
 const NEWLINE = '\r\n';
@@ -45,21 +46,13 @@ class RPCClient
     });
   });
 
+  private connection: Promise<void> | null;
+
   constructor(
-    private proc: execa.ExecaChildProcess,
-    private options: RPCOptions = {}
+    private readonly proc: execa.ExecaChildProcess,
+    private readonly options: RPCOptions = {}
   ) {
     super();
-
-    proc.on('spawn', () => {
-      proc.stdin.setDefaultEncoding('utf8');
-
-      proc.stdout.on('data', (data) => {
-        const dataStr = Buffer.from(data).toString();
-
-        this.read(dataStr);
-      });
-    });
   }
 
   private read(data: string) {
@@ -98,24 +91,55 @@ class RPCClient
     }
   }
 
-  private assertConnected() {
-    if (!this.proc.connected) {
-      throw new Error('failed to establish connection with knotc process');
-    }
-  }
-
   request(
     method: string,
     params?: JSONRPCParams,
     clientParams?: void
   ): PromiseLike<any> {
-    this.assertConnected();
+    if (this.options.debug) {
+      console.log(`sending '${method}' request`, params);
+    }
+
     return this.rpc.request(method, params, clientParams);
   }
 
   notify(method: string, params?: JSONRPCParams, clientParams?: void): void {
-    this.assertConnected();
+    if (this.options.debug) {
+      console.log(`sending '${method}' notification`, params);
+    }
+
     return this.rpc.notify(method, params, clientParams);
+  }
+
+  start() {
+    if (this.connection) {
+      throw new Error('compiler client has already been started');
+    }
+
+    let isConnected = false;
+    this.connection = new Promise((resolve, reject) => {
+      this.proc.once('spawn', () => {
+        isConnected = true;
+
+        this.proc.stdin.setDefaultEncoding('utf8');
+
+        resolve();
+
+        this.proc.stdout.on('data', (data) => {
+          const dataStr = Buffer.from(data).toString();
+
+          this.read(dataStr);
+        });
+      });
+
+      setTimeout(() => {
+        if (!isConnected) {
+          reject();
+        }
+      }, CONNECTION_TIMEOUT);
+    });
+
+    return this.connection;
   }
 
   terminate() {
