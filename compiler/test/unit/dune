@@ -7,5 +7,5 @@
    (name TestSuite)  ;  From package.json main field
    ; The name of the executable (runnable via esy x UnitTests.exe) 
    (public_name UnitTests.exe)  ;  From package.json name field
-   (libraries  knot.pretty_test knot.lib_test knot.analyze_test knot.file_test knot.grammar_test knot.resolve_test knot.parse_test knot.generate_test knot.compile_test knot.language_server_test knot.exec_test ) ;  From package.json require field (array of strings)
+   (libraries  knot.pretty_test knot.lib_test knot.analyze_test knot.file_test knot.language_test knot.resolve_test knot.parse_test knot.generate_test knot.compile_test knot.language_server_test knot.exec_test ) ;  From package.json require field (array of strings)
 )

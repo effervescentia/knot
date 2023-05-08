@@ -57,7 +57,7 @@
       "name": "knot.file_test",
       "namespace": "TestFile"
     },
-    "test/grammar": {
+    "test/language": {
       "require": [
         "knot.test",
         "knot.lib_test",
@@ -65,15 +65,15 @@
         "knot.parse",
         "knot.file"
       ],
-      "name": "knot.grammar_test",
-      "namespace": "TestGrammar"
+      "name": "knot.language_test",
+      "namespace": "TestLanguage"
     },
     "test/resolve": {
       "require": [
         "knot.test",
         "knot.lib_test",
         "knot.file_test",
-        "knot.grammar_test",
+        "knot.language_test",
         "knot.resolve",
         "knot.parse"
       ],
@@ -92,7 +92,7 @@
       "require": [
         "knot.test",
         "knot.lib_test",
-        "knot.grammar_test",
+        "knot.language_test",
         "knot.generate"
       ],
       "name": "knot.generate_test",
@@ -131,7 +131,7 @@
         "knot.lib_test",
         "knot.analyze_test",
         "knot.file_test",
-        "knot.grammar_test",
+        "knot.language_test",
         "knot.resolve_test",
         "knot.parse_test",
         "knot.generate_test",

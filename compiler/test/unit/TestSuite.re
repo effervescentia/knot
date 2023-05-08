@@ -7,7 +7,7 @@ let () =
   @ TestFile.TestSuite.unit_tests
   @ TestParse.TestSuite.tests
   @ TestResolve.TestSuite.tests
-  @ TestGrammar.TestSuite.tests
+  @ TestLanguage.TestSuite.tests
   @ TestAnalyze.TestSuite.tests
   @ TestGenerate.TestSuite.tests
   @ TestCompile.TestSuite.tests
