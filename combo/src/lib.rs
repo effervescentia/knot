@@ -1,6 +1,9 @@
+pub mod scratch;
+
+pub mod stream;
+
 pub mod lazy;
 pub use lazy::Lazy;
-pub use lazy::Lazy3;
 
 mod lazy_stream;
 

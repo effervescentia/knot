@@ -1,13 +1,94 @@
 use std::cell::OnceCell;
 
-// use crate::Lazy3;
+use core::slice;
 
-// pub enum List<'a, T> {
-//     Cons((T, Box<Lazy3<'a, List<'a, T>>>)),
-//     Nil,
+use crate::Lazy;
+
+// fn memoize<'a, F, R>(mut f: F) -> impl FnMut() -> &'a R
+// where
+//     F: FnMut() -> R,
+//     R: 'a,
+// {
+//     let mut cache: Option<&'a R> = None;
+//     move || -> &'a R {
+//         if let Some(result) = cache {
+//             return result;
+//         }
+//         let result = Box::leak(Box::new(f()));
+//         cache = Some(result);
+//         result
+//     }
 // }
 
-// impl<'a, T> List<'a, T> {}
+pub enum List<'a, T> {
+    Cons((T, &'a mut dyn FnMut() -> List<'a, T>)),
+    Nil,
+}
+
+impl<'a, T> List<'a, T> {
+    // pub fn from_fn(
+    //     mut f: impl FnMut() -> &'static T + 'static,
+    // ) -> impl FnMut() -> List<&'static T> {
+    //     let next = f();
+
+    //     // let factory = || List::from_fn(f);
+
+    //     let factory = || List::Cons((&next, Box::new(List::from_fn(f))));
+
+    //     factory
+    // }
+    // pub fn from_fn(mut f: impl FnMut() -> T) -> List<'a, T> {
+    //     let next = f();
+    //     let factory = || List::from_fn(f);
+
+    //     List::Cons((next, Box::new(Lazy::new(&mut factory))))
+    // }
+
+    // pub fn from_iter<I: Iterator<Item = T>>(mut iter: &'a mut I) -> List<'a, T> {
+    //     let advance = || List::from_iter(iter);
+    //     // fn advance<'b, U, J: Iterator<Item = U>>(iter: &'b J) -> impl FnMut() -> List<'b, U> {
+    //     //     || List::from_iter(iter)
+    //     // }
+
+    //     let next = iter.next();
+    //     // let binding = advance(iter);
+    //     let result = match next {
+    //         Some(value) => List::Cons((value, Box::new(Lazy::new(&mut advance)))),
+    //         None => List::Nil,
+    //     };
+
+    //     List::Nil
+    // }
+    // pub fn from_iter(mut iter: impl Iterator<Item = T> + 'a) -> List<'a, T> {
+    //     let next = iter.next();
+    //     let mut factory: Box<dyn FnMut() -> List<'a, T>> = Box::new(|| List::from_iter(iter));
+
+    //     match next {
+    //         Some(value) => List::Cons((value, Box::new(Lazy::new(&mut factory)))),
+    //         None => List::Nil,
+    //     }
+    // }
+
+    // pub fn from_vec(vec: &Vec<T>) -> List<'a, T> {
+    //     // fn next<'b, U>(mut iter: slice::Iter<'b, U>) -> List<'b, U> {
+    //     //     List::Nil
+    //     // }
+
+    //     let iter = vec.iter();
+
+    //     // let mut factory = || iter.next();
+    //     // next(iter)
+
+    //     // fn next<'b, U>(read: impl FnMut() -> Option<U>) -> List<'b, U> {
+    //     //     List::Nil
+    //     // }
+
+    //     // let mut iter = vec.iter();
+
+    //     // let mut factory = || iter.next();
+    //     // next(&mut factory)
+    // }
+}
 
 // impl<'a, T> List<'a, T> {
 //     pub fn from_vec(mut vec: Vec<T>) {
