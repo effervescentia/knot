@@ -1,11 +1,6 @@
-pub mod scratch;
-
 pub mod stream;
-
-pub mod lazy;
-pub use lazy::Lazy;
-
-mod lazy_stream;
+pub use stream::Cursor;
+pub use stream::Stream;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right

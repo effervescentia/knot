@@ -1,50 +1,181 @@
-use std::cell::RefCell;
+use std::{
+    cell::{Cell, OnceCell, Ref, RefCell},
+    collections::VecDeque,
+    rc::{Rc, Weak},
+};
 
-use crate::Lazy;
-
-pub enum Stream<'a, T> {
-    Next(T, Box<dyn FnOnce() -> Stream<'a, T> + 'a>),
-    Nil,
+pub struct StreamState<T> {
+    offset: Cell<usize>,
+    buffer: VecDeque<T>,
+    iterator: OnceCell<Box<dyn Iterator<Item = T>>>,
 }
 
-impl<'a, T: 'a> Stream<'a, T> {
-    fn from_iter_internal<I>(iter: RefCell<I>) -> Stream<'a, T>
-    where
-        I: Iterator<Item = T> + 'a,
-    {
-        let next = iter.borrow_mut().next();
-        match next {
-            Some(value) => Stream::Next(value, Box::new(|| Self::from_iter_internal(iter))),
+impl<T> StreamState<T> {
+    fn advance(&mut self, cursor: &Cursor) {
+        let target_position = cursor.get_position() + 1;
+        let mut position = self.get_position();
+        let mut done = false;
 
-            None => Stream::Nil,
+        if position > target_position {
+            return;
+        }
+
+        while !done && position < target_position {
+            self.iterator.take().map(|mut iterator| {
+                match iterator.next() {
+                    Some(value) => {
+                        position += 1;
+                        self.buffer.push_back(value);
+                    }
+                    None => {
+                        done = true;
+                    }
+                }
+
+                self.iterator.set(iterator).ok();
+            });
+        }
+
+        cursor.set_position(position);
+    }
+
+    pub fn new(iterator: Box<dyn Iterator<Item = T>>) -> Self {
+        let state = StreamState {
+            offset: Cell::new(0 as usize),
+            buffer: VecDeque::new(),
+            iterator: OnceCell::new(),
+        };
+
+        state.iterator.set(iterator).ok();
+
+        state
+    }
+
+    pub fn get_offset(&self) -> usize {
+        self.offset.get()
+    }
+
+    pub fn get_position(&self) -> usize {
+        self.get_offset() + self.buffer.len()
+    }
+
+    pub fn get(&self, target: usize) -> Option<&T> {
+        let position = self.get_position();
+
+        if target > position {
+            None
+        } else {
+            self.buffer.get(target - self.get_offset() - 1)
+        }
+    }
+}
+
+pub struct Stream<T> {
+    state: StreamState<T>,
+    cursors: RefCell<Vec<Weak<RefCell<CursorState>>>>,
+}
+
+impl<T> Stream<T> {
+    fn trim_buffer(&mut self) {
+        let offset = self.state.get_offset();
+        let min_position = self
+            .cursors
+            .borrow()
+            .iter()
+            .filter_map(|cursor| cursor.upgrade().map(|cursor| cursor.borrow().position))
+            .min()
+            .unwrap_or(offset);
+
+        if min_position == offset {
+            return;
+        }
+
+        for _ in offset..min_position {
+            self.state.buffer.pop_front();
+        }
+
+        self.state.offset.set(min_position);
+    }
+
+    fn register_cursor(&self, cursor: &Cursor) {
+        self.cursors.borrow_mut().push(cursor.get_weak());
+    }
+
+    pub fn new(iterator: Box<dyn Iterator<Item = T>>) -> Self {
+        Stream {
+            state: StreamState::new(iterator),
+            cursors: RefCell::new(vec![]),
         }
     }
 
-    pub fn from_vec(vec: &'a [T]) -> Stream<'a, &T> {
-        let cell = RefCell::new(vec.into_iter());
-        Stream::from_iter_internal(cell)
-    }
+    pub fn next<'a>(&'a mut self, cursor: &Cursor) -> Option<&'a T> {
+        let next_position = cursor.borrow().position + 1;
 
-    pub fn from_string(string: &'a str) -> Stream<'a, char> {
-        let cell = RefCell::new(string.chars());
-        Stream::from_iter_internal(cell)
+        self.trim_buffer();
+        self.state.advance(cursor);
+        self.state.get(next_position).map(|next: &T| {
+            cursor.set_position(next_position);
+            next
+        })
     }
 }
 
-pub enum LazyStream<'a, T> {
-    Next(T, Box<Lazy<'a, LazyStream<'a, T>>>),
-    Nil,
+#[derive(Clone, Copy)]
+pub struct CursorState {
+    position: usize,
 }
 
-impl<'a, T: 'a> LazyStream<'a, T> {
-    fn from_stream(stream: Stream<'a, T>) -> LazyStream<'a, T> {
-        match stream {
-            Stream::Next(value, next) => {
-                let mut advance = || LazyStream::from_stream(next());
-                LazyStream::Next(value, Box::new(Lazy::new(&mut advance)))
+impl CursorState {
+    fn new(position: usize) -> Self {
+        CursorState { position }
+    }
+}
+
+pub struct Cursor(Rc<RefCell<CursorState>>);
+
+impl Cursor {
+    fn get_weak(&self) -> Weak<RefCell<CursorState>> {
+        match self {
+            Self(cursor) => Rc::downgrade(&cursor),
+        }
+    }
+
+    pub fn new<T>(stream: &Stream<T>) -> Self {
+        let cursor = Self(Rc::new(RefCell::new(CursorState::new(
+            stream.state.get_offset(),
+        ))));
+
+        stream.register_cursor(&cursor);
+
+        cursor
+    }
+
+    pub fn get_position(&self) -> usize {
+        match self {
+            Self(cursor) => cursor.borrow().position,
+        }
+    }
+
+    pub fn set_position(&self, next_position: usize) {
+        match self {
+            Self(cursor) => {
+                cursor.replace(CursorState::new(next_position));
             }
-            Stream::Nil => LazyStream::Nil,
         }
+    }
+
+    pub fn borrow(&self) -> Ref<'_, CursorState> {
+        match self {
+            Self(cursor) => cursor.borrow(),
+        }
+    }
+
+    pub fn duplicate<T>(&self, stream: &Stream<T>) -> Self {
+        let cursor = Self(Rc::new(RefCell::new(self.0.borrow().clone())));
+
+        stream.register_cursor(&cursor);
+
+        cursor
     }
 }
 
@@ -53,23 +184,157 @@ mod tests {
     use super::*;
 
     #[test]
-    fn create_from_vec() {
-        let vec = vec![1, 2, 3];
-        let stream = Stream::from_vec(&vec);
+    fn advances_stream() {
+        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let cursor = Cursor::new(&stream);
 
-        match stream {
-            Stream::Next(first, next) => {
-                assert_eq!(*first, 1);
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor.borrow().position, 0);
 
-                match next() {
-                    Stream::Next(second, _) => {
-                        assert_eq!(*second, 2)
-                    }
+        assert_eq!(stream.next(&cursor), Some(&1));
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor.borrow().position, 1);
 
-                    Stream::Nil => panic!("Stream should not be empty"),
-                }
-            }
-            Stream::Nil => panic!("Stream should not be empty"),
+        assert_eq!(stream.next(&cursor), Some(&2));
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor.borrow().position, 2);
+
+        assert_eq!(stream.next(&cursor), Some(&3));
+        assert_eq!(stream.state.offset.get(), 2);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor.borrow().position, 3);
+
+        assert_eq!(stream.next(&cursor), None);
+        assert_eq!(stream.state.offset.get(), 3);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor.borrow().position, 3);
+    }
+
+    #[test]
+    fn supports_multiple_cursors() {
+        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let cursor1 = Cursor::new(&stream);
+
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor1.borrow().position, 0);
+
+        assert_eq!(stream.next(&cursor1), Some(&1));
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 1);
+
+        let cursor2 = cursor1.duplicate(&stream);
+
+        assert_eq!(stream.next(&cursor1), Some(&2));
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 2);
+
+        assert_eq!(stream.next(&cursor1), Some(&3));
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 2);
+        assert_eq!(cursor1.borrow().position, 3);
+
+        assert_eq!(stream.next(&cursor1), None);
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 2);
+        assert_eq!(cursor1.borrow().position, 3);
+
+        assert_eq!(stream.next(&cursor2), Some(&2));
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 2);
+        assert_eq!(cursor2.borrow().position, 2);
+
+        assert_eq!(stream.next(&cursor2), Some(&3));
+        assert_eq!(stream.state.offset.get(), 2);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor2.borrow().position, 3);
+
+        assert_eq!(stream.next(&cursor2), None);
+        assert_eq!(stream.state.offset.get(), 3);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor2.borrow().position, 3);
+    }
+
+    #[test]
+    fn duplicate_cursor_has_weak_reference() {
+        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let cursor1 = Cursor::new(&stream);
+
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor1.borrow().position, 0);
+
+        assert_eq!(stream.next(&cursor1), Some(&1));
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 1);
+
+        {
+            let cursor2 = cursor1.duplicate(&stream);
+
+            assert_eq!(stream.next(&cursor2), Some(&2));
+            assert_eq!(stream.state.offset.get(), 1);
+            assert_eq!(stream.state.buffer.len(), 1);
+            assert_eq!(cursor2.borrow().position, 2);
         }
+
+        assert_eq!(stream.next(&cursor1), Some(&2));
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 2);
+
+        assert_eq!(stream.next(&cursor1), Some(&3));
+        assert_eq!(stream.state.offset.get(), 2);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 3);
+
+        assert_eq!(stream.next(&cursor1), None);
+        assert_eq!(stream.state.offset.get(), 3);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor1.borrow().position, 3);
+    }
+
+    #[test]
+    fn cursor_starts_at_stream_offset() {
+        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let cursor1 = Cursor::new(&stream);
+
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor1.borrow().position, 0);
+
+        assert_eq!(stream.next(&cursor1), Some(&1));
+        assert_eq!(stream.state.offset.get(), 0);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 1);
+
+        {
+            let cursor2 = Cursor::new(&stream);
+
+            assert_eq!(stream.next(&cursor2), Some(&1));
+            assert_eq!(stream.state.offset.get(), 0);
+            assert_eq!(stream.state.buffer.len(), 1);
+            assert_eq!(cursor2.borrow().position, 1);
+        }
+
+        assert_eq!(stream.next(&cursor1), Some(&2));
+        assert_eq!(stream.state.offset.get(), 1);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 2);
+
+        assert_eq!(stream.next(&cursor1), Some(&3));
+        assert_eq!(stream.state.offset.get(), 2);
+        assert_eq!(stream.state.buffer.len(), 1);
+        assert_eq!(cursor1.borrow().position, 3);
+
+        assert_eq!(stream.next(&cursor1), None);
+        assert_eq!(stream.state.offset.get(), 3);
+        assert_eq!(stream.state.buffer.len(), 0);
+        assert_eq!(cursor1.borrow().position, 3);
     }
 }
