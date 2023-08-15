@@ -15,14 +15,14 @@ mod primitive {
 
     use super::Primitive;
 
-    pub fn parse<I>() -> impl Parser<I, Output = Primitive>
-    where
-        I: Stream<Token = char>,
-    {
-        let integer = many1(letter());
+    // pub fn parse<I>() -> impl Parser<I, Output = Primitive>
+    // where
+    //     I: Stream<Token = char>,
+    // {
+    //     let integer = many1(letter());
 
-        println!("primitive::parse()");
+    //     println!("primitive::parse()");
 
-        integer
-    }
+    //     integer
+    // }
 }

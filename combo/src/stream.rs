@@ -1,5 +1,5 @@
 use std::{
-    cell::{Cell, OnceCell, Ref, RefCell},
+    cell::{Cell, OnceCell, RefCell},
     collections::VecDeque,
     rc::{Rc, Weak},
 };
@@ -40,7 +40,7 @@ impl<T> StreamState<T> {
     }
 
     pub fn new(iterator: Box<dyn Iterator<Item = T>>) -> Self {
-        let state = StreamState {
+        let state = Self {
             offset: Cell::new(0 as usize),
             buffer: VecDeque::new(),
             iterator: OnceCell::new(),
@@ -72,7 +72,7 @@ impl<T> StreamState<T> {
 
 pub struct Stream<T> {
     state: StreamState<T>,
-    cursors: RefCell<Vec<Weak<RefCell<CursorState>>>>,
+    cursors: RefCell<Vec<Weak<Cell<CursorState>>>>,
 }
 
 impl<T> Stream<T> {
@@ -82,7 +82,7 @@ impl<T> Stream<T> {
             .cursors
             .borrow()
             .iter()
-            .filter_map(|cursor| cursor.upgrade().map(|cursor| cursor.borrow().position))
+            .filter_map(|cursor| cursor.upgrade().map(|cursor| cursor.get().position))
             .min()
             .unwrap_or(offset);
 
@@ -102,17 +102,29 @@ impl<T> Stream<T> {
     }
 
     pub fn new(iterator: Box<dyn Iterator<Item = T>>) -> Self {
-        Stream {
+        Self {
             state: StreamState::new(iterator),
             cursors: RefCell::new(vec![]),
         }
+    }
+
+    pub fn from_iter<I: Iterator<Item = T> + 'static>(iter: I) -> Self {
+        Self::new(Box::new(iter))
+    }
+
+    pub fn from_vec<R: 'static>(vec: Vec<R>) -> Stream<R> {
+        Stream::from_iter(vec.into_iter())
+    }
+
+    pub fn from_str(str: &'static str) -> Stream<char> {
+        Stream::from_iter(str.chars())
     }
 
     pub fn next<'a>(&'a mut self, cursor: &Cursor) -> Option<&'a T> {
         let next_position = cursor.borrow().position + 1;
 
         self.trim_buffer();
-        self.state.advance(cursor);
+        self.state.advance(&cursor);
         self.state.get(next_position).map(|next: &T| {
             cursor.set_position(next_position);
             next
@@ -120,28 +132,29 @@ impl<T> Stream<T> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CursorState {
     position: usize,
 }
 
 impl CursorState {
     fn new(position: usize) -> Self {
-        CursorState { position }
+        Self { position }
     }
 }
 
-pub struct Cursor(Rc<RefCell<CursorState>>);
+#[derive(Debug, PartialEq)]
+pub struct Cursor(Rc<Cell<CursorState>>);
 
 impl Cursor {
-    fn get_weak(&self) -> Weak<RefCell<CursorState>> {
+    fn get_weak(&self) -> Weak<Cell<CursorState>> {
         match self {
             Self(cursor) => Rc::downgrade(&cursor),
         }
     }
 
     pub fn new<T>(stream: &Stream<T>) -> Self {
-        let cursor = Self(Rc::new(RefCell::new(CursorState::new(
+        let cursor = Self(Rc::new(Cell::new(CursorState::new(
             stream.state.get_offset(),
         ))));
 
@@ -152,7 +165,7 @@ impl Cursor {
 
     pub fn get_position(&self) -> usize {
         match self {
-            Self(cursor) => cursor.borrow().position,
+            Self(cursor) => cursor.get().position,
         }
     }
 
@@ -164,14 +177,14 @@ impl Cursor {
         }
     }
 
-    pub fn borrow(&self) -> Ref<'_, CursorState> {
+    pub fn borrow(&self) -> CursorState {
         match self {
-            Self(cursor) => cursor.borrow(),
+            Self(cursor) => cursor.get(),
         }
     }
 
     pub fn duplicate<T>(&self, stream: &Stream<T>) -> Self {
-        let cursor = Self(Rc::new(RefCell::new(self.0.borrow().clone())));
+        let cursor = Self(Rc::new(Cell::new(self.0.get().clone())));
 
         stream.register_cursor(&cursor);
 
@@ -185,7 +198,7 @@ mod tests {
 
     #[test]
     fn advances_stream() {
-        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let mut stream = Stream::<i32>::from_vec(vec![1, 2, 3]);
         let cursor = Cursor::new(&stream);
 
         assert_eq!(stream.state.offset.get(), 0);
@@ -262,7 +275,7 @@ mod tests {
 
     #[test]
     fn duplicate_cursor_has_weak_reference() {
-        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let mut stream = Stream::<i32>::from_vec(vec![1, 2, 3]);
         let cursor1 = Cursor::new(&stream);
 
         assert_eq!(stream.state.offset.get(), 0);
@@ -301,7 +314,7 @@ mod tests {
 
     #[test]
     fn cursor_starts_at_stream_offset() {
-        let mut stream = Stream::new(Box::new(vec![1, 2, 3].into_iter()));
+        let mut stream = Stream::<i32>::from_vec(vec![1, 2, 3]);
         let cursor1 = Cursor::new(&stream);
 
         assert_eq!(stream.state.offset.get(), 0);

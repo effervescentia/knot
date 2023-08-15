@@ -1,6 +1,8 @@
 pub mod stream;
-pub use stream::Cursor;
-pub use stream::Stream;
+pub use stream::{Cursor, Stream};
+
+pub mod core2;
+pub use core2::matcher;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
