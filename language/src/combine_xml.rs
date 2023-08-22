@@ -1,7 +1,7 @@
 extern crate combine;
 use combine::parser::char::{alpha_num, char, string};
 use combine::{attempt, parser};
-use combine::{between, choice, many, many1, none_of, parser::combinator::lazy, Parser, Stream};
+use combine::{between, choice, many, many1, none_of, Parser, Stream};
 
 #[derive(Debug, PartialEq)]
 pub enum HTML {
@@ -131,10 +131,7 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::HTML;
-    use crate::combine_knot::expression::{BinaryOperator, UnaryOperator};
-    use crate::combine_knot::matcher;
-    use combine::error::StringStreamError;
-    use combine::{parser, Parser, Stream};
+    use combine::Parser;
 
     // #[test]
     // fn ksx_child_text() {
