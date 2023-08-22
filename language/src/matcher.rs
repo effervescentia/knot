@@ -62,7 +62,7 @@ pub fn keyword<T>(keyword: &'static str) -> impl Parser<T, Output = ()>
 where
     T: Stream<Token = char>,
 {
-    lexeme(p::string(keyword)).with(value(()))
+    attempt(lexeme(p::string(keyword))).with(value(()))
 }
 
 pub fn identifier<T>(prefix: impl Parser<T, Output = char>) -> impl Parser<T, Output = String>

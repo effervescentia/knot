@@ -2,7 +2,9 @@ use super::statement::{self, Statement};
 use crate::ksx::{self, KSX};
 use crate::matcher as m;
 use crate::primitive::{self, Primitive};
-use combine::{attempt, between, chainl1, chainr1, choice, many, parser, sep_by, Parser, Stream};
+use combine::{
+    attempt, between, chainl1, chainr1, choice, many, parser, sep_end_by, Parser, Stream,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BinaryOperator {
@@ -209,7 +211,7 @@ where
         between(
             m::symbol('('),
             m::symbol(')'),
-            sep_by::<Vec<_>, _, _, _>(rhs, m::symbol(',')),
+            sep_end_by::<Vec<_>, _, _, _>(rhs, m::symbol(',')),
         ),
         |acc, args| Expression::FunctionCall(Box::new(acc), args),
     )
@@ -226,7 +228,7 @@ where
     between(
         m::symbol('{'),
         m::symbol('}'),
-        sep_by(style_rule(), m::symbol(',')),
+        sep_end_by(style_rule(), m::symbol(',')),
     )
     .map(Expression::Style)
 }
@@ -327,15 +329,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::expression::{self, Expression};
-    use crate::expression::{BinaryOperator, UnaryOperator};
+    use crate::expression::{expression, BinaryOperator, Expression, UnaryOperator};
     use crate::primitive::Primitive;
     use crate::statement::Statement;
     use combine::Parser;
 
     #[test]
     fn expression_primitive() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("nil").unwrap().0,
@@ -365,7 +366,7 @@ mod tests {
 
     #[test]
     fn expression_identifier() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("foo").unwrap().0,
@@ -375,7 +376,7 @@ mod tests {
 
     #[test]
     fn expression_group() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("(nil)").unwrap().0,
@@ -385,7 +386,7 @@ mod tests {
 
     #[test]
     fn expression_closure() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("{ nil; nil }").unwrap().0,
@@ -399,7 +400,7 @@ mod tests {
 
     #[test]
     fn expression_unary_operation() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("!nil").unwrap().0,
@@ -426,7 +427,7 @@ mod tests {
 
     #[test]
     fn expression_binary_operation() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("nil + nil").unwrap().0,
@@ -536,7 +537,7 @@ mod tests {
 
     #[test]
     fn expression_dot_access() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("nil.foo").unwrap().0,
@@ -549,7 +550,7 @@ mod tests {
 
     #[test]
     fn expression_function_call() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("nil(nil, nil)").unwrap().0,
@@ -563,13 +564,13 @@ mod tests {
         );
         assert_eq!(
             parse("nil()").unwrap().0,
-            Expression::FunctionCall(Box::new(Expression::Primitive(Primitive::Nil)), Vec::new())
+            Expression::FunctionCall(Box::new(Expression::Primitive(Primitive::Nil)), vec![])
         );
     }
 
     #[test]
     fn expression_style() {
-        let parse = |s| expression::expression().parse(s);
+        let parse = |s| expression().parse(s);
 
         assert_eq!(
             parse("style { foo: nil }").unwrap().0,

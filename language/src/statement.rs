@@ -40,7 +40,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::matcher;
-    use crate::statement::{self, Statement};
+    use crate::statement::{statement, Statement};
     use combine::{Parser, Stream};
 
     const MOCK_TOKEN: &str = "__mock__";
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn statement_effect() {
-        let parse = |s| statement::statement(mock).parse(s);
+        let parse = |s| statement(mock).parse(s);
 
         let input = format!("{};", MOCK_TOKEN);
         assert_eq!(
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn statement_variable() {
-        let parse = |s| statement::statement(mock).parse(s);
+        let parse = |s| statement(mock).parse(s);
 
         let input = format!("let foo = {};", MOCK_TOKEN);
         assert_eq!(

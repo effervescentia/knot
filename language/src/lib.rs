@@ -1,10 +1,11 @@
 extern crate combine;
 
-mod combine_xml;
 mod declaration;
 mod expression;
+mod import;
 mod ksx;
 mod matcher;
+mod module;
 mod primitive;
 mod statement;
-mod r#type;
+mod types;

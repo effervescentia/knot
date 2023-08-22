@@ -95,68 +95,60 @@ parser! {
 #[cfg(test)]
 mod tests {
     use crate::expression::Expression;
-    use crate::ksx::{self, KSX};
+    use crate::ksx::{ksx, KSX};
     use crate::primitive::Primitive;
     use combine::Parser;
 
     #[test]
     fn ksx_fragment() {
-        let parse = |s| ksx::ksx().parse(s);
+        let parse = |s| ksx().parse(s);
 
-        assert_eq!(parse("<></>").unwrap().0, KSX::Fragment(Vec::new()));
+        assert_eq!(parse("<></>").unwrap().0, KSX::Fragment(vec![]));
     }
 
     #[test]
     fn ksx_element() {
-        let parse = |s| ksx::ksx().parse(s);
+        let parse = |s| ksx().parse(s);
 
         assert_eq!(
             parse("<foo />").unwrap().0,
-            KSX::Element(String::from("foo"), Vec::new(), Vec::new())
+            KSX::Element(String::from("foo"), vec![], vec![])
         );
         assert_eq!(
             parse("<foo></foo>").unwrap().0,
-            KSX::Element(String::from("foo"), Vec::new(), Vec::new())
+            KSX::Element(String::from("foo"), vec![], vec![])
         );
     }
 
     #[test]
     fn ksx_nested() {
-        let parse = |s| ksx::ksx().parse(s);
+        let parse = |s| ksx().parse(s);
 
         assert_eq!(
             parse("<><></></>").unwrap().0,
-            KSX::Fragment(vec![KSX::Fragment(Vec::new())])
+            KSX::Fragment(vec![KSX::Fragment(vec![])])
         );
         assert_eq!(
             parse("<><foo /></>").unwrap().0,
-            KSX::Fragment(vec![KSX::Element(
-                String::from("foo"),
-                Vec::new(),
-                Vec::new()
-            )])
+            KSX::Fragment(vec![KSX::Element(String::from("foo"), vec![], vec![])])
         );
         assert_eq!(
             parse("<foo><></></foo>").unwrap().0,
-            KSX::Element(
-                String::from("foo"),
-                Vec::new(),
-                vec![KSX::Fragment(Vec::new())]
-            )
+            KSX::Element(String::from("foo"), vec![], vec![KSX::Fragment(vec![])])
         );
         assert_eq!(
             parse("<foo><bar /></foo>").unwrap().0,
             KSX::Element(
                 String::from("foo"),
-                Vec::new(),
-                vec![KSX::Element(String::from("bar"), Vec::new(), Vec::new())]
+                vec![],
+                vec![KSX::Element(String::from("bar"), vec![], vec![])]
             )
         );
     }
 
     #[test]
     fn ksx_inline() {
-        let parse = |s| ksx::ksx().parse(s);
+        let parse = |s| ksx().parse(s);
 
         assert_eq!(
             parse("<>{nil}</>").unwrap().0,
@@ -166,7 +158,7 @@ mod tests {
             parse("<foo>{nil}</foo>").unwrap().0,
             KSX::Element(
                 String::from("foo"),
-                Vec::new(),
+                vec![],
                 vec![KSX::Inline(Expression::Primitive(Primitive::Nil))]
             )
         );
@@ -174,7 +166,7 @@ mod tests {
 
     #[test]
     fn ksx_text() {
-        let parse = |s| ksx::ksx().parse(s);
+        let parse = |s| ksx().parse(s);
 
         assert_eq!(
             parse("<>foo</>").unwrap().0,
@@ -184,7 +176,7 @@ mod tests {
             parse("<foo>bar</foo>").unwrap().0,
             KSX::Element(
                 String::from("foo"),
-                Vec::new(),
+                vec![],
                 vec![KSX::Text(String::from("bar"))]
             )
         );
@@ -192,14 +184,14 @@ mod tests {
 
     #[test]
     fn ksx_attribute() {
-        let parse = |s| ksx::ksx().parse(s);
+        let parse = |s| ksx().parse(s);
 
         assert_eq!(
             parse("<foo bar />").unwrap().0,
             KSX::Element(
                 String::from("foo"),
                 vec![(String::from("bar"), None)],
-                Vec::new()
+                vec![]
             )
         );
         assert_eq!(
@@ -210,7 +202,7 @@ mod tests {
                     String::from("bar"),
                     Some(Expression::Primitive(Primitive::Nil))
                 )],
-                Vec::new()
+                vec![]
             )
         );
         assert_eq!(
@@ -221,7 +213,7 @@ mod tests {
                     String::from("bar"),
                     Some(Expression::Primitive(Primitive::Nil))
                 )],
-                Vec::new()
+                vec![]
             )
         );
     }
