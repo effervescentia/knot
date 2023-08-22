@@ -1,9 +1,8 @@
+use crate::{Cursor, Stream};
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
 };
-
-use crate::{Cursor, Stream};
 
 // pub struct Parser<'a, T: 'a> {
 //     parse: Box<dyn Fn(&'a mut Stream<char>, Rc<Cursor>) -> Option<(T, Rc<Cursor>)> + 'a>,
