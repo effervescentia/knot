@@ -1,6 +1,6 @@
 extern crate combine;
-use super::ksx::KSX;
 use super::statement::{self, Statement};
+use crate::ksx::{self, KSX};
 use crate::matcher as m;
 use crate::primitive::{self, Primitive};
 use combine::{attempt, between, chainl1, chainr1, choice, many, parser, sep_by, Parser, Stream};
@@ -43,7 +43,7 @@ pub enum Expression {
     DotAccess(Box<Expression>, String),
     FunctionCall(Box<Expression>, Vec<Expression>),
     Style(Vec<(String, Expression)>),
-    KSX(KSX<Expression>),
+    KSX(Box<KSX>),
 }
 
 fn primitive<T>() -> impl Parser<T, Output = Expression>
@@ -94,6 +94,7 @@ where
         operation('-', UnaryOperator::Negate),
     ))
     .map(|(op, r)| Expression::UnaryOperation(op, Box::new(r)))
+    .or(parser())
 }
 
 fn binary_operation(
@@ -239,11 +240,18 @@ where
     attempt(m::keyword("style").with(style_literal(parser)))
 }
 
+fn ksx<T>() -> impl Parser<T, Output = Expression>
+where
+    T: Stream<Token = char>,
+{
+    ksx::ksx().map(|ksx| Expression::KSX(Box::new(ksx)))
+}
+
 fn expression_8<T>() -> impl Parser<T, Output = Expression>
 where
     T: Stream<Token = char>,
 {
-    choice((attempt(primitive()), style(expression), identifier()))
+    choice((attempt(primitive()), style(expression), ksx(), identifier()))
 }
 
 fn expression_7<T>() -> impl Parser<T, Output = Expression>
@@ -271,7 +279,7 @@ fn expression_4<T>() -> impl Parser<T, Output = Expression>
 where
     T: Stream<Token = char>,
 {
-    unary_operation(expression_5).or(expression_5())
+    unary_operation(expression_5)
 }
 
 fn expression_3<T>() -> impl Parser<T, Output = Expression>
@@ -311,26 +319,20 @@ parser! {
     }
 }
 
+pub fn ksx_term<T>() -> impl Parser<T, Output = Expression>
+where
+    T: Stream<Token = char>,
+{
+    unary_operation(|| function_call(expression_8(), expression()))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::expression::{self, Expression};
     use crate::expression::{BinaryOperator, UnaryOperator};
-    use crate::matcher;
     use crate::primitive::Primitive;
     use crate::statement::Statement;
-    use combine::{Parser, Stream};
-
-    const MOCK_TOKEN: &str = "__mock__";
-
-    #[derive(Debug, PartialEq)]
-    struct MockResult;
-
-    fn mock<T>() -> impl Parser<T, Output = MockResult>
-    where
-        T: Stream<Token = char>,
-    {
-        matcher::keyword(MOCK_TOKEN).map(|_| MockResult)
-    }
+    use combine::Parser;
 
     #[test]
     fn expression_primitive() {
