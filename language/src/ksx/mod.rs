@@ -2,12 +2,14 @@ extern crate combine;
 use crate::matcher as m;
 mod child;
 use combine::parser::combinator::lazy;
-use combine::{between, choice, many, optional, parser, Parser, Stream};
+use combine::{between, choice, many, many1, none_of, optional, parser, Parser, Stream};
 
 #[derive(Debug, PartialEq)]
 pub enum KSX<T> {
-    Fragment(Vec<child::Child<T>>),
-    Element(String, Vec<(String, Option<T>)>, Vec<child::Child<T>>),
+    Fragment(Vec<KSX<T>>),
+    Element(String, Vec<(String, Option<T>)>, Vec<KSX<T>>),
+    Inline(T),
+    Text(String),
 }
 
 pub fn fragment<T, R, P>(expression: impl Fn() -> P) -> impl Parser<T, Output = KSX<R>>
@@ -44,6 +46,21 @@ where
         )),
     )
         .map(|(name, attributes, children)| KSX::Element(name, attributes, children))
+}
+
+pub fn inline<T, R, P>(parser: P) -> impl Parser<T, Output = KSX<R>>
+where
+    T: Stream<Token = char>,
+    P: Parser<T, Output = R>,
+{
+    between(m::symbol('{'), m::symbol('}'), parser).map(KSX::Inline)
+}
+
+pub fn text<T, R>() -> impl Parser<T, Output = KSX<R>>
+where
+    T: Stream<Token = char>,
+{
+    m::lexeme(many1(none_of(vec!['<', '{']))).map(KSX::Text)
 }
 
 parser! {
