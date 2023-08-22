@@ -1,4 +1,3 @@
-extern crate combine;
 use super::statement::{self, Statement};
 use crate::ksx::{self, KSX};
 use crate::matcher as m;

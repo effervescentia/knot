@@ -1,4 +1,3 @@
-extern crate combine;
 use crate::expression::{self, Expression};
 use crate::matcher as m;
 use combine::{attempt, between, choice, many, many1, none_of, optional, parser, Parser, Stream};

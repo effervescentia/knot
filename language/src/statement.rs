@@ -1,4 +1,3 @@
-extern crate combine;
 use crate::matcher as m;
 use combine::{choice, Parser, Stream};
 

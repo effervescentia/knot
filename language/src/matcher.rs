@@ -1,4 +1,3 @@
-extern crate combine;
 use combine::parser::char as p;
 use combine::{attempt, many, optional, satisfy, unexpected_any, value, Parser, Stream};
 

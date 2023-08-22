@@ -1,4 +1,3 @@
-extern crate combine;
 use combine::parser::char::{alpha_num, char, string};
 use combine::{attempt, parser};
 use combine::{between, choice, many, many1, none_of, Parser, Stream};
