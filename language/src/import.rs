@@ -19,9 +19,9 @@ pub enum Target {
 
 #[derive(Debug, PartialEq)]
 pub struct Import {
-    source: Source,
-    path: Vec<String>,
-    aliases: Option<Vec<(Target, Option<String>)>>,
+    pub source: Source,
+    pub path: Vec<String>,
+    pub aliases: Option<Vec<(Target, Option<String>)>>,
 }
 
 impl Import {

@@ -1,21 +1,8 @@
 use crate::expression::{self, Expression};
-use crate::module::Module;
+use crate::matcher as m;
+use crate::module::{self, Module};
 use crate::types::type_expression::{self, TypeExpression};
-use crate::{matcher as m, module};
 use combine::{between, choice, many1, optional, parser, sep_end_by, value, Parser, Stream};
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum ImportSource {
-    Root,
-    Local,
-    External(String),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum ImportTarget {
-    Named(String),
-    Module,
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Visibility {
@@ -24,19 +11,13 @@ pub enum Visibility {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Storage(Visibility, String);
-
-impl Storage {
-    pub fn new(visibility: Visibility, name: String) -> Storage {
-        Storage(visibility, name)
-    }
-}
+pub struct Storage(pub Visibility, pub String);
 
 #[derive(Debug, PartialEq)]
 pub struct Parameter {
-    name: String,
-    value_type: Option<TypeExpression>,
-    default_value: Option<Expression>,
+    pub name: String,
+    pub value_type: Option<TypeExpression>,
+    pub default_value: Option<Expression>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -62,7 +43,7 @@ pub enum Declaration {
     },
     View {
         name: Storage,
-        attributes: Vec<Parameter>,
+        parameters: Vec<Parameter>,
         body: Expression,
     },
     Module {
@@ -217,7 +198,7 @@ where
     ))
     .map(|(name, attributes, _, body)| Declaration::View {
         name,
-        attributes: attributes.unwrap_or(vec![]),
+        parameters: attributes.unwrap_or(vec![]),
         body,
     })
 }
@@ -360,7 +341,7 @@ mod tests {
             parse("view foo -> nil;").unwrap().0,
             Declaration::View {
                 name: Storage(Visibility::Public, String::from("foo")),
-                attributes: vec![],
+                parameters: vec![],
                 body: Expression::Primitive(Primitive::Nil)
             }
         );
@@ -368,7 +349,7 @@ mod tests {
             parse("view foo() -> nil;").unwrap().0,
             Declaration::View {
                 name: Storage(Visibility::Public, String::from("foo")),
-                attributes: vec![],
+                parameters: vec![],
                 body: Expression::Primitive(Primitive::Nil)
             }
         );

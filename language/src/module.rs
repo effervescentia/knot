@@ -10,8 +10,8 @@ enum Entry {
 
 #[derive(Debug, PartialEq)]
 pub struct Module {
-    imports: Vec<Import>,
-    declarations: Vec<Declaration>,
+    pub imports: Vec<Import>,
+    pub declarations: Vec<Declaration>,
 }
 
 impl Module {
@@ -32,12 +32,9 @@ where
         declaration::declaration().map(Entry::Declaration),
     )))
     .map(|entries| {
-        entries.into_iter().fold(
-            Module {
-                imports: vec![],
-                declarations: vec![],
-            },
-            |mut acc, el| {
+        entries
+            .into_iter()
+            .fold(Module::new(vec![], vec![]), |mut acc, el| {
                 match el {
                     Entry::Import(import) => {
                         acc.imports.push(import);
@@ -48,8 +45,7 @@ where
                 }
 
                 acc
-            },
-        )
+            })
     })
 }
 
@@ -85,7 +81,7 @@ mod tests {
             Module::new(
                 vec![],
                 vec![Declaration::Constant {
-                    name: Storage::new(Visibility::Public, String::from("foo")),
+                    name: Storage(Visibility::Public, String::from("foo")),
                     value_type: None,
                     value: Expression::Primitive(Primitive::Nil)
                 }]

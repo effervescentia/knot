@@ -1,5 +1,6 @@
 extern crate combine;
 
+mod analyzer;
 mod declaration;
 mod expression;
 mod import;
