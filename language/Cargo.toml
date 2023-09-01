@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 combine = "4.6.6"
-nom = "7.1.3"

@@ -1,0 +1,28 @@
+use super::{storage, Declaration, DeclarationRaw};
+use crate::{expression, matcher as m, types::typedef};
+use combine::{Parser, Stream};
+use std::fmt::Debug;
+
+pub fn constant<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug,
+{
+    m::terminated((
+        storage::storage("const"),
+        typedef::typedef(),
+        m::symbol('='),
+        expression::expression(),
+    ))
+    .map(|((name, start), value_type, _, value)| {
+        let range = start.concat(value.get_range());
+        DeclarationRaw(
+            Declaration::Constant {
+                name,
+                value_type,
+                value,
+            },
+            range,
+        )
+    })
+}

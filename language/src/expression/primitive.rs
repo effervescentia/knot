@@ -1,5 +1,6 @@
-use combine::parser::char as p;
-use combine::{attempt, between, choice, many, many1, none_of, token, value, Parser, Stream};
+use combine::{
+    attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Primitive {
@@ -72,7 +73,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::primitive::{primitive, Primitive};
+    use super::{primitive, Primitive};
     use combine::Parser;
 
     #[test]

@@ -1,15 +1,17 @@
 use crate::matcher as m;
 use combine::{choice, Parser, Stream};
+use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
-pub enum Statement<T> {
-    Effect(T),
-    Variable(String, T),
+pub enum Statement<E> {
+    Effect(E),
+    Variable(String, E),
 }
 
 fn effect<T, R, P>(parser: P) -> impl Parser<T, Output = Statement<R>>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
     P: Parser<T, Output = R>,
 {
     m::terminated(parser).map(|inner| Statement::Effect(inner))
@@ -18,6 +20,7 @@ where
 fn variable<T, R, P>(parser: P) -> impl Parser<T, Output = Statement<R>>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
     P: Parser<T, Output = R>,
 {
     m::terminated((
@@ -26,12 +29,13 @@ where
         m::symbol('='),
         parser,
     ))
-    .map(|(_, name, _, value)| Statement::Variable(name, value))
+    .map(|(_, (name, _), _, value)| Statement::Variable(name, value))
 }
 
 pub fn statement<T, R, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = Statement<R>>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
     P: Parser<T, Output = R>,
 {
     choice((effect(parser()), variable(parser())))
@@ -39,21 +43,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::matcher;
-    use crate::statement::{statement, Statement};
-    use combine::{Parser, Stream};
-
-    const MOCK_TOKEN: &str = "__mock__";
-
-    #[derive(Debug, PartialEq)]
-    struct MockResult;
-
-    fn mock<T>() -> impl Parser<T, Output = MockResult>
-    where
-        T: Stream<Token = char>,
-    {
-        matcher::keyword(MOCK_TOKEN).map(|_| MockResult)
-    }
+    use crate::{
+        mock::{mock, MockResult, MOCK_TOKEN},
+        statement::{statement, Statement},
+    };
+    use combine::Parser;
 
     #[test]
     fn statement_effect() {

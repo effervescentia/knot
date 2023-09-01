@@ -1,8 +1,9 @@
-use crate::combine::parser::char as p;
 use crate::matcher as m;
 use combine::{
-    between, choice, many1, not_followed_by, optional, sep_end_by, value, Parser, Stream,
+    between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
+    Parser, Stream,
 };
+use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Source {
@@ -50,6 +51,7 @@ impl Import {
 pub fn import<T>() -> impl Parser<T, Output = Import>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
 {
     let source = || {
         choice((
@@ -57,17 +59,26 @@ where
                 .skip(not_followed_by(p::alpha_num().or(p::char('_'))))
                 .with(value(Source::Root)),
             m::symbol('.').with(value(Source::Local)),
-            choice((m::identifier(p::char('@')), m::standard_identifier())).map(Source::External),
+            choice((m::identifier(p::char('@')), m::standard_identifier()))
+                .map(|(x, _)| Source::External(x)),
         ))
     };
-    let path = || m::symbol('/').with(m::standard_identifier());
+    let path = || {
+        m::symbol('/')
+            .with(m::standard_identifier())
+            .map(|(x, _)| x)
+    };
     let alias = || {
         (
             choice((
                 m::symbol('*').with(value(Target::Module)),
-                m::standard_identifier().map(Target::Named),
+                m::standard_identifier().map(|(x, _)| Target::Named(x)),
             )),
-            optional(m::keyword("as").with(m::standard_identifier())),
+            optional(
+                m::keyword("as")
+                    .with(m::standard_identifier())
+                    .map(|(x, _)| x),
+            ),
         )
     };
 

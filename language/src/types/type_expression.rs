@@ -1,5 +1,6 @@
 use crate::matcher as m;
 use combine::{attempt, between, choice, parser, sep_end_by, value, Parser, Stream};
+use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TypeExpression {
@@ -20,6 +21,7 @@ pub enum TypeExpression {
 fn primitive<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
 {
     choice((
         m::keyword("nil").with(value(TypeExpression::Nil)),
@@ -35,13 +37,15 @@ where
 fn identifier<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
 {
-    m::standard_identifier().map(TypeExpression::Identifier)
+    m::standard_identifier().map(|(x, _)| TypeExpression::Identifier(x))
 }
 
 fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
     P: Parser<T, Output = TypeExpression>,
 {
     between(m::symbol('('), m::symbol(')'), parser)
@@ -51,18 +55,20 @@ where
 fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
     P: Parser<T, Output = TypeExpression>,
 {
     m::folding(
         parser,
         m::symbol('.').with(m::standard_identifier()),
-        |lhs, rhs| TypeExpression::DotAccess(Box::new(lhs), rhs),
+        |lhs, (rhs, _)| TypeExpression::DotAccess(Box::new(lhs), rhs),
     )
 }
 
 fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
     P: Parser<T, Output = TypeExpression>,
 {
     (
@@ -83,6 +89,7 @@ where
 fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
 {
     type_expression_1()
 }
@@ -90,6 +97,7 @@ where
 fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
 {
     dot_access(type_expression_2())
 }
@@ -97,6 +105,7 @@ where
 fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
+    T::Position: Copy + Debug,
 {
     choice((
         function(type_expression),
@@ -109,7 +118,7 @@ where
 parser! {
     pub fn type_expression[T]()(T) -> TypeExpression
     where
-        [T: Stream<Token = char>]
+        [T: Stream<Token = char>, T::Position: Copy+Debug]
     {
         type_expression_0()
     }
