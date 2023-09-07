@@ -7,8 +7,11 @@ pub mod storage;
 mod type_alias;
 mod view;
 use crate::{
-    expression::ExpressionRaw, module::ModuleRaw, position::Decrement, range::Range,
-    types::type_expression::TypeExpression,
+    expression::ExpressionRaw,
+    module::ModuleRaw,
+    position::Decrement,
+    range::{Range, Ranged},
+    types::type_expression::TypeExpressionRaw,
 };
 use combine::{choice, parser, Parser, Stream};
 use parameter::Parameter;
@@ -16,29 +19,29 @@ use std::fmt::Debug;
 use storage::Storage;
 
 #[derive(Debug, PartialEq)]
-pub enum Declaration<E, M> {
+pub enum Declaration<E, M, T> {
     TypeAlias {
         name: Storage,
-        value: TypeExpression,
+        value: T,
     },
     Constant {
         name: Storage,
-        value_type: Option<TypeExpression>,
+        value_type: Option<T>,
         value: E,
     },
     Enumerated {
         name: Storage,
-        variants: Vec<(String, Vec<TypeExpression>)>,
+        variants: Vec<(String, Vec<T>)>,
     },
     Function {
         name: Storage,
-        parameters: Vec<Parameter<E>>,
-        body_type: Option<TypeExpression>,
+        parameters: Vec<Parameter<E, T>>,
+        body_type: Option<T>,
         body: E,
     },
     View {
         name: Storage,
-        parameters: Vec<Parameter<E>>,
+        parameters: Vec<Parameter<E, T>>,
         body: E,
     },
     Module {
@@ -47,24 +50,25 @@ pub enum Declaration<E, M> {
     },
 }
 
+type RawValue<T> = Declaration<ExpressionRaw<T>, ModuleRaw<T>, TypeExpressionRaw<T>>;
+
 #[derive(Debug, PartialEq)]
-pub struct DeclarationRaw<T>(
-    pub Declaration<ExpressionRaw<T>, ModuleRaw<T>>,
-    pub Range<T>,
-)
+pub struct DeclarationRaw<T>(pub RawValue<T>, pub Range<T>)
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement + Decrement;
+    T::Position: Copy + Debug + Decrement;
 
-impl<T> DeclarationRaw<T>
+impl<T> Ranged<RawValue<T>, T> for DeclarationRaw<T>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn get_range(&self) -> &Range<T> {
-        match self {
-            DeclarationRaw(_, range) => range,
-        }
+    fn value(self) -> RawValue<T> {
+        self.0
+    }
+
+    fn range(&self) -> &Range<T> {
+        &self.1
     }
 }
 
@@ -96,9 +100,9 @@ parser! {
 mod tests {
     use crate::{
         declaration::{declaration, storage::Visibility, Declaration, DeclarationRaw, Storage},
-        expression::{primitive::Primitive, Expression, ExpressionRaw},
-        module::{Module, ModuleRaw},
-        range::Range,
+        expression::{primitive::Primitive, Expression},
+        module::Module,
+        test::fixture as f,
         types::type_expression::TypeExpression,
         CharStream, ParseResult,
     };
@@ -112,12 +116,12 @@ mod tests {
     fn type_alias() {
         assert_eq!(
             parse("type foo = nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::TypeAlias {
                     name: Storage(Visibility::Public, String::from("foo")),
-                    value: TypeExpression::Nil
+                    value: f::txr(TypeExpression::Nil, ((1, 12), (1, 14)))
                 },
-                Range::chars((1, 1), (1, 15))
+                ((1, 1), (1, 14))
             )
         );
     }
@@ -126,16 +130,13 @@ mod tests {
     fn constant() {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Constant {
                     name: Storage(Visibility::Public, String::from("foo")),
                     value_type: None,
-                    value: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 13), (1, 15))
-                    )
+                    value: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
                 },
-                Range::chars((1, 1), (1, 15))
+                ((1, 1), (1, 15))
             )
         );
     }
@@ -143,16 +144,44 @@ mod tests {
     #[test]
     fn enumerated() {
         assert_eq!(
-            parse("enum foo = | Fizz | Buzz(nil);").unwrap().0,
-            DeclarationRaw(
+            parse("enum foo = | Fizz(nil);").unwrap().0,
+            f::dr(
                 Declaration::Enumerated {
                     name: Storage(Visibility::Public, String::from("foo")),
-                    variants: vec![
-                        (String::from("Fizz"), vec![]),
-                        (String::from("Buzz"), vec![TypeExpression::Nil])
-                    ]
+                    variants: vec![(
+                        String::from("Fizz"),
+                        vec![f::txr(TypeExpression::Nil, ((1, 19), (1, 21)))]
+                    )]
                 },
-                Range::chars((1, 1), (1, 15))
+                ((1, 1), (1, 22))
+            )
+        );
+    }
+
+    #[test]
+    fn enumerated_empty_parameters() {
+        assert_eq!(
+            parse("enum foo = | Fizz();").unwrap().0,
+            f::dr(
+                Declaration::Enumerated {
+                    name: Storage(Visibility::Public, String::from("foo")),
+                    variants: vec![(String::from("Fizz"), vec![]),]
+                },
+                ((1, 1), (1, 19))
+            )
+        );
+    }
+
+    #[test]
+    fn enumerated_no_parameters() {
+        assert_eq!(
+            parse("enum foo = | Fizz;").unwrap().0,
+            f::dr(
+                Declaration::Enumerated {
+                    name: Storage(Visibility::Public, String::from("foo")),
+                    variants: vec![(String::from("Fizz"), vec![]),]
+                },
+                ((1, 1), (1, 17))
             )
         );
     }
@@ -161,17 +190,14 @@ mod tests {
     fn function() {
         assert_eq!(
             parse("func foo -> nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("foo")),
                     parameters: vec![],
                     body_type: None,
-                    body: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 13), (1, 15))
-                    )
+                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
                 },
-                Range::chars((1, 1), (1, 15))
+                ((1, 1), (1, 15))
             )
         );
     }
@@ -180,17 +206,14 @@ mod tests {
     fn function_result_typedef() {
         assert_eq!(
             parse("func foo: nil -> nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("foo")),
                     parameters: vec![],
-                    body_type: Some(TypeExpression::Nil),
-                    body: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 18), (1, 20))
-                    )
+                    body_type: Some(f::txr(TypeExpression::Nil, ((1, 11), (1, 13)))),
+                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 18), (1, 20)))
                 },
-                Range::chars((1, 1), (1, 20))
+                ((1, 1), (1, 20))
             )
         );
     }
@@ -199,17 +222,14 @@ mod tests {
     fn function_empty_parameters() {
         assert_eq!(
             parse("func foo() -> nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("foo")),
                     parameters: vec![],
                     body_type: None,
-                    body: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 15), (1, 17))
-                    )
+                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 15), (1, 17)))
                 },
-                Range::chars((1, 1), (1, 17))
+                ((1, 1), (1, 17))
             )
         );
     }
@@ -218,17 +238,14 @@ mod tests {
     fn function_empty_parameters_result_typedef() {
         assert_eq!(
             parse("func foo(): nil -> nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("foo")),
                     parameters: vec![],
-                    body_type: Some(TypeExpression::Nil),
-                    body: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 20), (1, 22))
-                    )
+                    body_type: Some(f::txr(TypeExpression::Nil, ((1, 13), (1, 15)))),
+                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 20), (1, 22)))
                 },
-                Range::chars((1, 1), (1, 22))
+                ((1, 1), (1, 22))
             )
         );
     }
@@ -237,16 +254,13 @@ mod tests {
     fn view() {
         assert_eq!(
             parse("view foo -> nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::View {
                     name: Storage(Visibility::Public, String::from("foo")),
                     parameters: vec![],
-                    body: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 13), (1, 15))
-                    )
+                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
                 },
-                Range::chars((1, 1), (1, 15))
+                ((1, 1), (1, 15))
             )
         );
     }
@@ -255,16 +269,13 @@ mod tests {
     fn view_empty_arguments() {
         assert_eq!(
             parse("view foo() -> nil;").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::View {
                     name: Storage(Visibility::Public, String::from("foo")),
                     parameters: vec![],
-                    body: ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 15), (1, 17))
-                    )
+                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 15), (1, 17)))
                 },
-                Range::chars((1, 1), (1, 17))
+                ((1, 1), (1, 17))
             )
         );
     }
@@ -273,12 +284,12 @@ mod tests {
     fn module_empty() {
         assert_eq!(
             parse("module foo {}").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("foo")),
-                    value: ModuleRaw(Module::new(vec![], vec![]))
+                    value: f::mr(Module::new(vec![], vec![]))
                 },
-                Range::chars((1, 1), (1, 13))
+                ((1, 1), (1, 13))
             )
         );
     }
@@ -287,25 +298,25 @@ mod tests {
     fn module() {
         assert_eq!(
             parse("module foo { const bar = nil; }").unwrap().0,
-            DeclarationRaw(
+            f::dr(
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("foo")),
-                    value: ModuleRaw(Module::new(
+                    value: f::mr(Module::new(
                         vec![],
-                        vec![DeclarationRaw(
+                        vec![f::dr(
                             Declaration::Constant {
                                 name: Storage(Visibility::Public, String::from("bar")),
                                 value_type: None,
-                                value: ExpressionRaw(
+                                value: f::xr(
                                     Expression::Primitive(Primitive::Nil),
-                                    Range::chars((1, 26), (1, 28))
+                                    ((1, 26), (1, 28))
                                 )
                             },
-                            Range::chars((1, 14), (1, 28))
+                            ((1, 14), (1, 28))
                         )]
                     ),)
                 },
-                Range::chars((1, 1), (1, 31))
+                ((1, 1), (1, 31))
             )
         );
     }

@@ -43,9 +43,9 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::{statement, Statement};
     use crate::{
-        mock::{mock, MockResult, MOCK_TOKEN},
-        statement::{statement, Statement},
+        test::mock::{mock, MockResult, MOCK_TOKEN},
         ParseResult,
     };
     use combine::{stream::position::Stream, EasyParser};

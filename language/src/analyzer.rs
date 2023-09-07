@@ -1,11 +1,13 @@
 use crate::{
     declaration::{parameter::Parameter, storage::Storage, Declaration},
     expression::{
-        binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, Expression, UnaryOperator,
+        binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
+        Expression, UnaryOperator,
     },
-    import::{Import, Target},
-    module::Module,
-    statement::Statement,
+    module::{
+        import::{Import, Target},
+        Module,
+    },
     types::type_expression::TypeExpression,
 };
 use std::{

@@ -12,11 +12,9 @@ pub type ParseResult<'a, T> =
 mod analyzer;
 mod declaration;
 mod expression;
-mod import;
 mod matcher;
-mod mock;
 mod module;
 mod position;
 mod range;
-mod statement;
+mod test;
 mod types;

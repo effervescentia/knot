@@ -13,6 +13,6 @@ where
         m::between(m::symbol('{'), m::symbol('}'), module::module()),
     )
         .map(|((name, start), (value, end))| {
-            DeclarationRaw(Declaration::Module { name, value }, start.concat(&end))
+            DeclarationRaw(Declaration::Module { name, value }, &start + &end)
         })
 }

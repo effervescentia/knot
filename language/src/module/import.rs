@@ -101,25 +101,19 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        import::{self, Import, Source, Target},
-        ParseResult,
-    };
+    use super::{Import, Source, Target};
+    use crate::ParseResult;
     use combine::{stream::position::Stream, EasyParser};
 
     fn parse(s: &str) -> ParseResult<Import> {
-        import::import().easy_parse(Stream::new(s))
+        super::import().easy_parse(Stream::new(s))
     }
 
     #[test]
     fn import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            Import {
-                source: Source::Root,
-                path: vec![String::from("foo")],
-                aliases: None
-            }
+            Import::new(Source::Root, vec![String::from("foo")], None)
         );
     }
 
@@ -127,15 +121,15 @@ mod tests {
     fn import_nested() {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
-            Import {
-                source: Source::Root,
-                path: vec![
+            Import::new(
+                Source::Root,
+                vec![
                     String::from("foo"),
                     String::from("bar"),
                     String::from("fizz")
                 ],
-                aliases: None
-            }
+                None
+            )
         );
     }
 
@@ -143,11 +137,7 @@ mod tests {
     fn import_named_empty() {
         assert_eq!(
             parse("use @/foo.{};").unwrap().0,
-            Import {
-                source: Source::Root,
-                path: vec![String::from("foo")],
-                aliases: Some(vec![])
-            }
+            Import::new(Source::Root, vec![String::from("foo")], Some(vec![]))
         );
     }
 
@@ -155,14 +145,14 @@ mod tests {
     fn import_named() {
         assert_eq!(
             parse("use @/foo.{*, bar};").unwrap().0,
-            Import {
-                source: Source::Root,
-                path: vec![String::from("foo")],
-                aliases: Some(vec![
+            Import::new(
+                Source::Root,
+                vec![String::from("foo")],
+                Some(vec![
                     (Target::Module, None),
                     (Target::Named(String::from("bar")), None)
                 ])
-            }
+            )
         );
     }
 
@@ -170,17 +160,17 @@ mod tests {
     fn import_named_with_alias() {
         assert_eq!(
             parse("use @/foo.{* as foo, fizz as buzz};").unwrap().0,
-            Import {
-                source: Source::Root,
-                path: vec![String::from("foo")],
-                aliases: Some(vec![
+            Import::new(
+                Source::Root,
+                vec![String::from("foo")],
+                Some(vec![
                     (Target::Module, Some(String::from("foo"))),
                     (
                         Target::Named(String::from("fizz")),
                         Some(String::from("buzz"))
                     )
                 ])
-            }
+            )
         );
     }
 }

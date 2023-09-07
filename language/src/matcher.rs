@@ -36,7 +36,7 @@ where
     P2: Parser<T, Output = (R2, Range<T>)>,
     P3: Parser<T, Output = R3>,
 {
-    (open, parser, close).map(|((_, start), x, (_, end))| (x, start.concat(&end)))
+    (open, parser, close).map(|((_, start), x, (_, end))| (x, &start + &end))
 }
 
 pub fn folding<T, R1, R2, P1, P2>(
@@ -124,8 +124,8 @@ where
 mod tests {
     use crate::{
         matcher,
-        mock::{mock, MockResult, MOCK_TOKEN},
         range::Range,
+        test::mock::{mock, MockResult, MOCK_TOKEN},
     };
     use combine::{
         easy::{Error, Errors, Info},
@@ -196,7 +196,7 @@ mod tests {
             matcher::folding(
                 matcher::lexeme(mock()).map(|(x, range)| (Stack::new(x), range)),
                 matcher::symbol(',').with(matcher::lexeme(mock())),
-                |(lhs, start), (rhs, end)| (lhs.push(rhs), start.concat(&end)),
+                |(lhs, start), (rhs, end)| (lhs.push(rhs), &start + &end),
             )
             .easy_parse(Stream::new(s))
         };

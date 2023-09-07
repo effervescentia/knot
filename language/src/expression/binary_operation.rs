@@ -1,5 +1,5 @@
 use super::{Expression, ExpressionRaw};
-use crate::{matcher as m, position::Decrement};
+use crate::{matcher as m, position::Decrement, range::Ranged};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
 use std::fmt::Debug;
 
@@ -32,7 +32,7 @@ where
 {
     move |_| {
         Box::new(move |lhs, rhs| {
-            let range = lhs.get_range().concat(rhs.get_range());
+            let range = lhs.range() + rhs.range();
             ExpressionRaw(
                 Expression::BinaryOperation(o, Box::new(lhs), Box::new(rhs)),
                 range,

@@ -2,19 +2,19 @@ use crate::{
     expression::{self, ExpressionRaw},
     matcher as m,
     position::Decrement,
-    types::{type_expression::TypeExpression, typedef},
+    types::{type_expression::TypeExpressionRaw, typedef},
 };
 use combine::{optional, Parser, Stream};
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
-pub struct Parameter<E> {
+pub struct Parameter<E, T> {
     pub name: String,
-    pub value_type: Option<TypeExpression>,
+    pub value_type: Option<T>,
     pub default_value: Option<E>,
 }
 
-pub type ParameterRaw<T> = Parameter<ExpressionRaw<T>>;
+pub type ParameterRaw<T> = Parameter<ExpressionRaw<T>, TypeExpressionRaw<T>>;
 
 pub fn parameter<T>() -> impl Parser<T, Output = ParameterRaw<T>>
 where

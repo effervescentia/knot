@@ -1,5 +1,5 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{expression, matcher as m, position::Decrement, types::typedef};
+use crate::{expression, matcher as m, position::Decrement, range::Ranged, types::typedef};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
@@ -15,7 +15,7 @@ where
         expression::expression(),
     ))
     .map(|((name, start), value_type, _, value)| {
-        let range = start.concat(value.get_range());
+        let range = &start + value.range();
         DeclarationRaw(
             Declaration::Constant {
                 name,

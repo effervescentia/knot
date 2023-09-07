@@ -1,9 +1,16 @@
 use crate::{position::Decrement, CharStream};
-use combine::{
-    stream::{position::SourcePosition, PointerOffset},
-    Stream, StreamOnce,
-};
-use std::fmt::Debug;
+use combine::{stream::position::SourcePosition, Stream, StreamOnce};
+use std::{fmt::Debug, ops::Add};
+
+pub trait Ranged<T, S>
+where
+    S: StreamOnce,
+    S::Position: Copy + Debug + Decrement,
+{
+    fn value(self) -> T;
+
+    fn range(&self) -> &Range<S>;
+}
 
 #[derive(Copy, Debug, PartialEq)]
 pub struct Range<T>(pub T::Position, pub T::Position)
@@ -25,9 +32,17 @@ where
             self.clone()
         }
     }
+}
 
-    pub fn concat(&self, range: &Self) -> Self {
-        Self(self.0.min(range.0), self.1.max(range.1))
+impl<T> Add for &Range<T>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    type Output = Range<T>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Range(self.0.min(rhs.0), self.1.max(rhs.1))
     }
 }
 

@@ -1,5 +1,5 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{matcher as m, position::Decrement, types::type_expression};
+use crate::{matcher as m, position::Decrement, range::Ranged, types::type_expression};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
@@ -13,6 +13,8 @@ where
         m::symbol('='),
         type_expression::type_expression(),
     ))
-    // TODO: concat range from type expression
-    .map(|((name, start), _, value)| DeclarationRaw(Declaration::TypeAlias { name, value }, start))
+    .map(|((name, start), _, value)| {
+        let range = &start + value.range();
+        DeclarationRaw(Declaration::TypeAlias { name, value }, range)
+    })
 }

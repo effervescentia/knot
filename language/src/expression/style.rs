@@ -28,5 +28,5 @@ where
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     attempt((m::keyword("style"), style_literal(parser)))
-        .map(|((_, start), ExpressionRaw(x, end))| ExpressionRaw(x, start.concat(&end)))
+        .map(|((_, start), ExpressionRaw(x, end))| ExpressionRaw(x, &start + &end))
 }

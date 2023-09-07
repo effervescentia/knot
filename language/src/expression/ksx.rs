@@ -2,7 +2,7 @@ use crate::{
     expression::{self, ExpressionRaw},
     matcher as m,
     position::Decrement,
-    range::Range,
+    range::{Range, Ranged},
 };
 use combine::{attempt, between, choice, many, many1, none_of, optional, parser, Parser, Stream};
 use std::fmt::Debug;
@@ -29,11 +29,19 @@ where
     pub fn bind((x, range): (KSX<ExpressionRaw<T>, KSXRaw<T>>, Range<T>)) -> Self {
         Self(x, range)
     }
+}
 
-    pub fn get_range(&self) -> &Range<T> {
-        match self {
-            KSXRaw(_, range) => range,
-        }
+impl<T> Ranged<KSX<ExpressionRaw<T>, KSXRaw<T>>, T> for KSXRaw<T>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn value(self) -> KSX<ExpressionRaw<T>, KSXRaw<T>> {
+        self.0
+    }
+
+    fn range(&self) -> &Range<T> {
+        &self.1
     }
 }
 
@@ -121,8 +129,8 @@ parser! {
 mod tests {
     use super::{ksx, KSXRaw, KSX};
     use crate::{
-        expression::{primitive::Primitive, Expression, ExpressionRaw},
-        range::Range,
+        expression::{primitive::Primitive, Expression},
+        test::fixture as f,
         CharStream, ParseResult,
     };
     use combine::{stream::position::Stream, EasyParser};
@@ -135,7 +143,7 @@ mod tests {
     fn fragment() {
         assert_eq!(
             parse("<></>").unwrap().0,
-            KSXRaw(KSX::Fragment(vec![]), Range::chars((1, 1), (1, 5)))
+            f::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 5)))
         );
     }
 
@@ -143,9 +151,9 @@ mod tests {
     fn element() {
         assert_eq!(
             parse("<foo></foo>").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(String::from("foo"), vec![], vec![]),
-                Range::chars((1, 1), (1, 11))
+                ((1, 1), (1, 11))
             )
         );
     }
@@ -154,9 +162,9 @@ mod tests {
     fn element_self_closing() {
         assert_eq!(
             parse("<foo />").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(String::from("foo"), vec![], vec![]),
-                Range::chars((1, 1), (1, 7))
+                ((1, 1), (1, 7))
             )
         );
     }
@@ -165,12 +173,9 @@ mod tests {
     fn fragment_in_fragment() {
         assert_eq!(
             parse("<><></></>").unwrap().0,
-            KSXRaw(
-                KSX::Fragment(vec![KSXRaw(
-                    KSX::Fragment(vec![]),
-                    Range::chars((1, 1), (1, 1))
-                )]),
-                Range::chars((1, 1), (1, 1))
+            f::kxr(
+                KSX::Fragment(vec![f::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 1)))]),
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -179,12 +184,12 @@ mod tests {
     fn element_in_fragment() {
         assert_eq!(
             parse("<><foo /></>").unwrap().0,
-            KSXRaw(
-                KSX::Fragment(vec![KSXRaw(
+            f::kxr(
+                KSX::Fragment(vec![f::kxr(
                     KSX::Element(String::from("foo"), vec![], vec![]),
-                    Range::chars((1, 1), (1, 1))
+                    ((1, 1), (1, 1))
                 )]),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -193,13 +198,13 @@ mod tests {
     fn fragment_in_element() {
         assert_eq!(
             parse("<foo><></></foo>").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![],
-                    vec![KSXRaw(KSX::Fragment(vec![]), Range::chars((1, 1), (1, 1)))]
+                    vec![f::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 1)))]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -208,16 +213,16 @@ mod tests {
     fn element_in_element() {
         assert_eq!(
             parse("<foo><bar /></foo>").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![],
-                    vec![KSXRaw(
+                    vec![f::kxr(
                         KSX::Element(String::from("bar"), vec![], vec![]),
-                        Range::chars((1, 1), (1, 1))
+                        ((1, 1), (1, 1))
                     )]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -226,15 +231,15 @@ mod tests {
     fn inline_in_fragment() {
         assert_eq!(
             parse("<>{nil}</>").unwrap().0,
-            KSXRaw(
-                KSX::Fragment(vec![KSXRaw(
-                    KSX::Inline(ExpressionRaw(
+            f::kxr(
+                KSX::Fragment(vec![f::kxr(
+                    KSX::Inline(f::xr(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 1))
+                        ((1, 1), (1, 1))
                     )),
-                    Range::chars((1, 1), (1, 1))
+                    ((1, 1), (1, 1))
                 )]),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -243,19 +248,19 @@ mod tests {
     fn inline_in_element() {
         assert_eq!(
             parse("<foo>{nil}</foo>").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![],
-                    vec![KSXRaw(
-                        KSX::Inline(ExpressionRaw(
+                    vec![f::kxr(
+                        KSX::Inline(f::xr(
                             Expression::Primitive(Primitive::Nil),
-                            Range::chars((1, 1), (1, 1))
+                            ((1, 1), (1, 1))
                         )),
-                        Range::chars((1, 1), (1, 1))
+                        ((1, 1), (1, 1))
                     )]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -264,12 +269,12 @@ mod tests {
     fn text_in_fragment() {
         assert_eq!(
             parse("<>foo</>").unwrap().0,
-            KSXRaw(
-                KSX::Fragment(vec![KSXRaw(
+            f::kxr(
+                KSX::Fragment(vec![f::kxr(
                     KSX::Text(String::from("foo")),
-                    Range::chars((1, 1), (1, 1))
+                    ((1, 1), (1, 1))
                 )]),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -278,16 +283,13 @@ mod tests {
     fn text_in_element() {
         assert_eq!(
             parse("<foo>bar</foo>").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![],
-                    vec![KSXRaw(
-                        KSX::Text(String::from("bar")),
-                        Range::chars((1, 1), (1, 1))
-                    )]
+                    vec![f::kxr(KSX::Text(String::from("bar")), ((1, 1), (1, 1)))]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -296,19 +298,19 @@ mod tests {
     fn attribute_on_element() {
         assert_eq!(
             parse("<foo bar=nil></foo>").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![(
                         String::from("bar"),
-                        Some(ExpressionRaw(
+                        Some(f::xr(
                             Expression::Primitive(Primitive::Nil),
-                            Range::chars((1, 1), (1, 1))
+                            ((1, 1), (1, 1))
                         ))
                     )],
                     vec![]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -317,19 +319,19 @@ mod tests {
     fn attribute_on_self_closing_element() {
         assert_eq!(
             parse("<foo bar=nil />").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![(
                         String::from("bar"),
-                        Some(ExpressionRaw(
+                        Some(f::xr(
                             Expression::Primitive(Primitive::Nil),
-                            Range::chars((1, 1), (1, 1))
+                            ((1, 1), (1, 1))
                         ))
                     )],
                     vec![]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -338,13 +340,13 @@ mod tests {
     fn attribute_punned() {
         assert_eq!(
             parse("<foo bar />").unwrap().0,
-            KSXRaw(
+            f::kxr(
                 KSX::Element(
                     String::from("foo"),
                     vec![(String::from("bar"), None)],
                     vec![]
                 ),
-                Range::chars((1, 1), (1, 1))
+                ((1, 1), (1, 1))
             )
         );
     }
