@@ -31,12 +31,6 @@ where
     }
 }
 
-impl Range<&str> {
-    pub fn str(start: usize, end: usize) -> Self {
-        Range(PointerOffset::new(start), PointerOffset::new(end))
-    }
-}
-
 impl<'a> Range<CharStream<'a>> {
     pub fn chars(
         (start_line, start_column): (i32, i32),

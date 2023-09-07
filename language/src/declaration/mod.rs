@@ -168,7 +168,7 @@ mod tests {
                     body_type: None,
                     body: ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 15))
+                        Range::chars((1, 13), (1, 15))
                     )
                 },
                 Range::chars((1, 1), (1, 15))
@@ -187,10 +187,10 @@ mod tests {
                     body_type: Some(TypeExpression::Nil),
                     body: ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 15))
+                        Range::chars((1, 18), (1, 20))
                     )
                 },
-                Range::chars((1, 1), (1, 15))
+                Range::chars((1, 1), (1, 20))
             )
         );
     }
@@ -206,10 +206,10 @@ mod tests {
                     body_type: None,
                     body: ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 15))
+                        Range::chars((1, 15), (1, 17))
                     )
                 },
-                Range::chars((1, 1), (1, 15))
+                Range::chars((1, 1), (1, 17))
             )
         );
     }
@@ -225,10 +225,10 @@ mod tests {
                     body_type: Some(TypeExpression::Nil),
                     body: ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 15))
+                        Range::chars((1, 20), (1, 22))
                     )
                 },
-                Range::chars((1, 1), (1, 15))
+                Range::chars((1, 1), (1, 22))
             )
         );
     }
@@ -243,10 +243,10 @@ mod tests {
                     parameters: vec![],
                     body: ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 1))
+                        Range::chars((1, 13), (1, 15))
                     )
                 },
-                Range::chars((1, 1), (1, 1))
+                Range::chars((1, 1), (1, 15))
             )
         );
     }
@@ -261,10 +261,10 @@ mod tests {
                     parameters: vec![],
                     body: ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::chars((1, 1), (1, 1))
+                        Range::chars((1, 15), (1, 17))
                     )
                 },
-                Range::chars((1, 1), (1, 1))
+                Range::chars((1, 1), (1, 17))
             )
         );
     }
