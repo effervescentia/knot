@@ -1,5 +1,5 @@
 use super::{parameter, storage, Declaration, DeclarationRaw};
-use crate::{expression, matcher as m};
+use crate::{expression, matcher as m, position::Decrement};
 use combine::{between, optional, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
 
@@ -15,7 +15,7 @@ use std::fmt::Debug;
 pub fn view<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::terminated((
         storage::storage("view"),

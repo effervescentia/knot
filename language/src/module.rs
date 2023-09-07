@@ -1,6 +1,7 @@
 use crate::{
     declaration::{self, DeclarationRaw},
     import::{self, Import},
+    position::Decrement,
 };
 use combine::{choice, many, Parser, Stream};
 use std::fmt::Debug;
@@ -30,19 +31,19 @@ impl<D> Module<D> {
 pub struct ModuleRaw<T>(pub Module<DeclarationRaw<T>>)
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug;
+    T::Position: Copy + Debug + Decrement;
 
 impl<T> ModuleRaw<T>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
 }
 
 pub fn module<T>() -> impl Parser<T, Output = ModuleRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     many::<Vec<_>, _, _>(choice((
         import::import().map(Entry::Import),
@@ -79,14 +80,21 @@ mod tests {
         import::{self, Import},
         module::{self, Module, ModuleRaw},
         range::Range,
+        CharStream, ParseResult,
     };
-    use combine::Parser;
+    use combine::{stream::position::Stream, EasyParser};
+
+    fn parse(s: &str) -> ParseResult<ModuleRaw<CharStream>> {
+        module::module().easy_parse(Stream::new(s))
+    }
 
     #[test]
-    fn module() {
-        let parse = |s| module::module().parse(s);
-
+    fn module_empty() {
         assert_eq!(parse("").unwrap().0, ModuleRaw(Module::new(vec![], vec![])));
+    }
+
+    #[test]
+    fn module_import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
             ModuleRaw(Module::new(
@@ -98,6 +106,10 @@ mod tests {
                 vec![]
             ))
         );
+    }
+
+    #[test]
+    fn module_declaration() {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
             ModuleRaw(Module::new(
@@ -108,10 +120,10 @@ mod tests {
                         value_type: None,
                         value: ExpressionRaw(
                             Expression::Primitive(Primitive::Nil),
-                            Range::str(1, 1)
+                            Range::chars((1, 13), (1, 15))
                         )
                     },
-                    Range::str(1, 1)
+                    Range::chars((1, 1), (1, 15))
                 )]
             ))
         );

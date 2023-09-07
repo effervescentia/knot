@@ -1,5 +1,5 @@
 use super::{Expression, ExpressionRaw};
-use crate::matcher as m;
+use crate::{matcher as m, position::Decrement};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
 use std::fmt::Debug;
 
@@ -28,7 +28,7 @@ fn binary_operation<T, U>(
 ) -> impl FnMut(U) -> Box<dyn Fn(ExpressionRaw<T>, ExpressionRaw<T>) -> ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     move |_| {
         Box::new(move |lhs, rhs| {
@@ -44,7 +44,7 @@ where
 pub fn logical<T, P>(parser: P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     let and = || {
@@ -66,7 +66,7 @@ where
 pub fn comparative<T, P>(parser: P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     chainl1(
@@ -81,7 +81,7 @@ where
 pub fn relational<T, P>(parser: P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     chainl1(
@@ -98,7 +98,7 @@ where
 pub fn arithmetic<T, P>(parser: P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     let exponent = || {

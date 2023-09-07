@@ -1,12 +1,12 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{matcher as m, types::type_expression};
+use crate::{matcher as m, position::Decrement, types::type_expression};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
 pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::terminated((
         storage::storage("type"),

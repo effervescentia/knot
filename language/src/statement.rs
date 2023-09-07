@@ -1,4 +1,4 @@
-use crate::matcher as m;
+use crate::{matcher as m, position::Decrement};
 use combine::{choice, Parser, Stream};
 use std::fmt::Debug;
 
@@ -11,7 +11,7 @@ pub enum Statement<E> {
 fn effect<T, R, P>(parser: P) -> impl Parser<T, Output = Statement<R>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
     m::terminated(parser).map(|inner| Statement::Effect(inner))
@@ -20,7 +20,7 @@ where
 fn variable<T, R, P>(parser: P) -> impl Parser<T, Output = Statement<R>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
     m::terminated((
@@ -35,7 +35,7 @@ where
 pub fn statement<T, R, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = Statement<R>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
     choice((effect(parser()), variable(parser())))
@@ -46,13 +46,16 @@ mod tests {
     use crate::{
         mock::{mock, MockResult, MOCK_TOKEN},
         statement::{statement, Statement},
+        ParseResult,
     };
-    use combine::Parser;
+    use combine::{stream::position::Stream, EasyParser};
+
+    fn parse(s: &str) -> ParseResult<Statement<MockResult>> {
+        statement(mock).easy_parse(Stream::new(s))
+    }
 
     #[test]
-    fn statement_effect() {
-        let parse = |s| statement(mock).parse(s);
-
+    fn effect() {
         let input = format!("{};", MOCK_TOKEN);
         assert_eq!(
             parse(input.as_str()).unwrap().0,
@@ -61,9 +64,7 @@ mod tests {
     }
 
     #[test]
-    fn statement_variable() {
-        let parse = |s| statement(mock).parse(s);
-
+    fn variable() {
         let input = format!("let foo = {};", MOCK_TOKEN);
         assert_eq!(
             parse(input.as_str()).unwrap().0,

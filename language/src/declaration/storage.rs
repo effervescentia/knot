@@ -1,4 +1,4 @@
-use crate::{matcher as m, range::Range};
+use crate::{matcher as m, position::Decrement, range::Range};
 use combine::{position, value, Parser, Stream};
 use std::fmt::Debug;
 
@@ -14,7 +14,7 @@ pub struct Storage(pub Visibility, pub String);
 pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (Storage, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     (
         position(),

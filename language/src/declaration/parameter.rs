@@ -1,6 +1,7 @@
 use crate::{
     expression::{self, ExpressionRaw},
     matcher as m,
+    position::Decrement,
     types::{type_expression::TypeExpression, typedef},
 };
 use combine::{optional, Parser, Stream};
@@ -18,7 +19,7 @@ pub type ParameterRaw<T> = Parameter<ExpressionRaw<T>>;
 pub fn parameter<T>() -> impl Parser<T, Output = ParameterRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     (
         m::standard_identifier(),

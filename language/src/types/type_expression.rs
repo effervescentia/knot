@@ -1,4 +1,4 @@
-use crate::matcher as m;
+use crate::{matcher as m, position::Decrement};
 use combine::{attempt, between, choice, parser, sep_end_by, value, Parser, Stream};
 use std::fmt::Debug;
 
@@ -21,7 +21,7 @@ pub enum TypeExpression {
 fn primitive<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     choice((
         m::keyword("nil").with(value(TypeExpression::Nil)),
@@ -37,7 +37,7 @@ where
 fn identifier<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::standard_identifier().map(|(x, _)| TypeExpression::Identifier(x))
 }
@@ -45,7 +45,7 @@ where
 fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = TypeExpression>,
 {
     between(m::symbol('('), m::symbol(')'), parser)
@@ -55,7 +55,7 @@ where
 fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = TypeExpression>,
 {
     m::folding(
@@ -68,7 +68,7 @@ where
 fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = TypeExpression>,
 {
     (
@@ -89,7 +89,7 @@ where
 fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     type_expression_1()
 }
@@ -97,7 +97,7 @@ where
 fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     dot_access(type_expression_2())
 }
@@ -105,7 +105,7 @@ where
 fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     choice((
         function(type_expression),
@@ -118,7 +118,7 @@ where
 parser! {
     pub fn type_expression[T]()(T) -> TypeExpression
     where
-        [T: Stream<Token = char>, T::Position: Copy+Debug]
+        [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
         type_expression_0()
     }
@@ -126,62 +126,53 @@ parser! {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::type_expression::{self, TypeExpression};
-    use combine::Parser;
+    use crate::{
+        types::type_expression::{self, TypeExpression},
+        ParseResult,
+    };
+    use combine::{stream::position::Stream, EasyParser, Parser};
+
+    fn parse(s: &str) -> ParseResult<TypeExpression> {
+        type_expression::type_expression().easy_parse(Stream::new(s))
+    }
 
     #[test]
     fn nil() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("nil").unwrap().0, TypeExpression::Nil);
     }
 
     #[test]
     fn boolean() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("boolean").unwrap().0, TypeExpression::Boolean);
     }
 
     #[test]
     fn integer() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("integer").unwrap().0, TypeExpression::Integer);
     }
 
     #[test]
     fn float() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("float").unwrap().0, TypeExpression::Float);
     }
 
     #[test]
     fn string() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("string").unwrap().0, TypeExpression::String);
     }
 
     #[test]
     fn style() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("style").unwrap().0, TypeExpression::Style);
     }
 
     #[test]
     fn element() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(parse("element").unwrap().0, TypeExpression::Element);
     }
 
     #[test]
     fn identifier() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(
             parse("foo").unwrap().0,
             TypeExpression::Identifier(String::from("foo"))
@@ -190,8 +181,6 @@ mod tests {
 
     #[test]
     fn group() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
         assert_eq!(
             parse("(nil)").unwrap().0,
             TypeExpression::Group(Box::new(TypeExpression::Nil))
@@ -200,19 +189,20 @@ mod tests {
 
     #[test]
     fn function() {
-        let parse = |s| type_expression::type_expression().parse(s);
-
-        assert_eq!(
-            parse("() -> nil").unwrap().0,
-            TypeExpression::Function(vec![], Box::new(TypeExpression::Nil))
-        );
-
         assert_eq!(
             parse("(nil, boolean) -> nil").unwrap().0,
             TypeExpression::Function(
                 vec![TypeExpression::Nil, TypeExpression::Boolean],
                 Box::new(TypeExpression::Nil)
             )
+        );
+    }
+
+    #[test]
+    fn function_empty_parameters() {
+        assert_eq!(
+            parse("() -> nil").unwrap().0,
+            TypeExpression::Function(vec![], Box::new(TypeExpression::Nil))
         );
     }
 

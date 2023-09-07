@@ -4,6 +4,7 @@ pub mod primitive;
 pub mod style;
 use crate::{
     matcher as m,
+    position::Decrement,
     range::Range,
     statement::{self, Statement},
 };
@@ -38,12 +39,12 @@ pub enum Expression<E, K> {
 pub struct ExpressionRaw<T>(pub Expression<ExpressionRaw<T>, KSXRaw<T>>, pub Range<T>)
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug;
+    T::Position: Copy + Debug + Decrement;
 
 impl<T> ExpressionRaw<T>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     pub fn get_range(&self) -> &Range<T> {
         match self {
@@ -55,7 +56,7 @@ where
 fn primitive<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::lexeme(primitive::primitive().map(Expression::Primitive))
         .map(|(x, range)| ExpressionRaw(x, range))
@@ -64,7 +65,7 @@ where
 fn group<T, P>(parser: P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     m::between(m::symbol('('), m::symbol(')'), parser)
@@ -74,7 +75,7 @@ where
 fn identifier<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::standard_identifier().map(|(x, range)| ExpressionRaw(Expression::Identifier(x), range))
 }
@@ -82,7 +83,7 @@ where
 fn closure<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     m::between(
@@ -96,7 +97,7 @@ where
 fn unary_operation<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     let operation = |c, op| {
@@ -117,7 +118,7 @@ where
 fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionRaw<T>>,
 {
     m::folding(
@@ -133,7 +134,7 @@ where
 fn function_call<T, P1, P2>(lhs: P1, rhs: P2) -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P1: Parser<T, Output = ExpressionRaw<T>>,
     P2: Parser<T, Output = ExpressionRaw<T>>,
 {
@@ -154,7 +155,7 @@ where
 fn ksx<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     ksx::ksx().map(|ksx| {
         let range = ksx.get_range().clone();
@@ -165,7 +166,7 @@ where
 fn expression_8<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     choice((
         attempt(primitive()),
@@ -178,7 +179,7 @@ where
 fn expression_7<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     choice((closure(expression), group(expression()), expression_8()))
 }
@@ -186,7 +187,7 @@ where
 fn expression_6<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     dot_access(expression_7())
 }
@@ -194,7 +195,7 @@ where
 fn expression_5<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     function_call(expression_6(), expression())
 }
@@ -202,7 +203,7 @@ where
 fn expression_4<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     unary_operation(expression_5)
 }
@@ -210,7 +211,7 @@ where
 fn expression_3<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     binary_operation::arithmetic(expression_4())
 }
@@ -218,7 +219,7 @@ where
 fn expression_2<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     binary_operation::relational(expression_3())
 }
@@ -226,7 +227,7 @@ where
 fn expression_1<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     binary_operation::comparative(expression_2())
 }
@@ -234,7 +235,7 @@ where
 fn expression_0<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     binary_operation::logical(expression_1())
 }
@@ -242,7 +243,7 @@ where
 parser! {
     pub fn expression[T]()(T) -> ExpressionRaw<T>
     where
-        [T: Stream<Token = char>, T::Position: Copy + Debug]
+        [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
         expression_0()
     }
@@ -251,7 +252,7 @@ parser! {
 pub fn ksx_term<T>() -> impl Parser<T, Output = ExpressionRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     unary_operation(|| function_call(expression_8(), expression()))
 }
@@ -260,118 +261,118 @@ where
 mod tests {
     use crate::{
         expression::{
-            expression, primitive::Primitive, BinaryOperator, Expression, ExpressionRaw,
-            UnaryOperator,
+            expression,
+            ksx::{KSXRaw, KSX},
+            primitive::Primitive,
+            BinaryOperator, Expression, ExpressionRaw, UnaryOperator,
         },
         range::Range,
         statement::Statement,
+        CharStream, ParseResult,
     };
-    use combine::Parser;
+    use combine::{stream::position::Stream, EasyParser};
+
+    fn parse(s: &str) -> ParseResult<ExpressionRaw<CharStream>> {
+        expression().easy_parse(Stream::new(s))
+    }
 
     #[test]
     fn primitive() {
-        let parse = |s| expression().parse(s);
-
         assert_eq!(
             parse("nil").unwrap().0,
-            ExpressionRaw(Expression::Primitive(Primitive::Nil), Range::str(1, 1))
+            ExpressionRaw(
+                Expression::Primitive(Primitive::Nil),
+                Range::chars((1, 1), (1, 3))
+            )
         );
         assert_eq!(
             parse("true").unwrap().0,
             ExpressionRaw(
                 Expression::Primitive(Primitive::Boolean(true)),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 4))
             )
         );
         assert_eq!(
             parse("false").unwrap().0,
             ExpressionRaw(
                 Expression::Primitive(Primitive::Boolean(false)),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 5))
             )
         );
         assert_eq!(
             parse("123").unwrap().0,
             ExpressionRaw(
                 Expression::Primitive(Primitive::Integer(123)),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 3))
             )
         );
         assert_eq!(
             parse("123.456").unwrap().0,
             ExpressionRaw(
                 Expression::Primitive(Primitive::Float(123.456, 6)),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 7))
             )
         );
         assert_eq!(
             parse("\"foo\"").unwrap().0,
             ExpressionRaw(
                 Expression::Primitive(Primitive::String(String::from("foo"))),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 5))
             )
         );
     }
 
     #[test]
     fn identifier() {
-        let parse = |s| expression().parse(s);
-
         assert_eq!(
             parse("foo").unwrap().0,
             ExpressionRaw(
                 Expression::Identifier(String::from("foo")),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 3))
             )
         );
     }
 
     #[test]
     fn group() {
-        let parse = |s| expression().parse(s);
-
         assert_eq!(
             parse("(nil)").unwrap().0,
             ExpressionRaw(
                 Expression::Group(Box::new(ExpressionRaw(
                     Expression::Primitive(Primitive::Nil),
-                    Range::str(1, 1)
+                    Range::chars((1, 2), (1, 4))
                 ))),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 5))
             )
         );
     }
 
     #[test]
     fn closure() {
-        let parse = |s| expression().parse(s);
-
         assert_eq!(
             parse("{ nil; nil }").unwrap().0,
             ExpressionRaw(
                 Expression::Closure(vec![
                     Statement::Effect(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 3), (1, 5))
                     )),
                     Statement::Effect(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     ))
                 ]),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 12))
             )
         );
         assert_eq!(
             parse("{}").unwrap().0,
-            ExpressionRaw(Expression::Closure(vec![]), Range::str(1, 1))
+            ExpressionRaw(Expression::Closure(vec![]), Range::chars((1, 1), (1, 2)))
         );
     }
 
     #[test]
-    fn unary_operation() {
-        let parse = |s| expression().parse(s);
-
+    fn unary_not_operation() {
         assert_eq!(
             parse("!nil").unwrap().0,
             ExpressionRaw(
@@ -379,12 +380,16 @@ mod tests {
                     UnaryOperator::Not,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 2), (1, 4))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 4))
             )
         );
+    }
+
+    #[test]
+    fn unary_absolute_operation() {
         assert_eq!(
             parse("+nil").unwrap().0,
             ExpressionRaw(
@@ -392,12 +397,16 @@ mod tests {
                     UnaryOperator::Absolute,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 2), (1, 4))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 4))
             )
         );
+    }
+
+    #[test]
+    fn unary_negative_operation() {
         assert_eq!(
             parse("-nil").unwrap().0,
             ExpressionRaw(
@@ -405,18 +414,16 @@ mod tests {
                     UnaryOperator::Negate,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 2), (1, 4))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 4))
             )
         );
     }
 
     #[test]
-    fn binary_operation() {
-        let parse = |s| expression().parse(s);
-
+    fn binary_add_operation() {
         assert_eq!(
             parse("nil + nil").unwrap().0,
             ExpressionRaw(
@@ -424,16 +431,20 @@ mod tests {
                     BinaryOperator::Add,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_subtract_operation() {
         assert_eq!(
             parse("nil - nil").unwrap().0,
             ExpressionRaw(
@@ -441,16 +452,20 @@ mod tests {
                     BinaryOperator::Subtract,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_multiply_operation() {
         assert_eq!(
             parse("nil * nil").unwrap().0,
             ExpressionRaw(
@@ -458,16 +473,20 @@ mod tests {
                     BinaryOperator::Multiply,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_divide_operation() {
         assert_eq!(
             parse("nil / nil").unwrap().0,
             ExpressionRaw(
@@ -475,16 +494,20 @@ mod tests {
                     BinaryOperator::Divide,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_exponent_operation() {
         assert_eq!(
             parse("nil ^ nil").unwrap().0,
             ExpressionRaw(
@@ -492,16 +515,20 @@ mod tests {
                     BinaryOperator::Exponent,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_less_than_operation() {
         assert_eq!(
             parse("nil < nil").unwrap().0,
             ExpressionRaw(
@@ -509,16 +536,20 @@ mod tests {
                     BinaryOperator::LessThan,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_less_than_or_equal_operation() {
         assert_eq!(
             parse("nil <= nil").unwrap().0,
             ExpressionRaw(
@@ -526,16 +557,20 @@ mod tests {
                     BinaryOperator::LessThanOrEqual,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 10))
             )
         );
+    }
+
+    #[test]
+    fn binary_greater_than_operation() {
         assert_eq!(
             parse("nil > nil").unwrap().0,
             ExpressionRaw(
@@ -543,16 +578,20 @@ mod tests {
                     BinaryOperator::GreaterThan,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 7), (1, 9))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 9))
             )
         );
+    }
+
+    #[test]
+    fn binary_greater_than_or_equal_operation() {
         assert_eq!(
             parse("nil >= nil").unwrap().0,
             ExpressionRaw(
@@ -560,16 +599,20 @@ mod tests {
                     BinaryOperator::GreaterThanOrEqual,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 10))
             )
         );
+    }
+
+    #[test]
+    fn binary_equal_operation() {
         assert_eq!(
             parse("nil == nil").unwrap().0,
             ExpressionRaw(
@@ -577,16 +620,20 @@ mod tests {
                     BinaryOperator::Equal,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 10))
             )
         );
+    }
+
+    #[test]
+    fn binary_unequal_operation() {
         assert_eq!(
             parse("nil != nil").unwrap().0,
             ExpressionRaw(
@@ -594,16 +641,20 @@ mod tests {
                     BinaryOperator::NotEqual,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 10))
             )
         );
+    }
+
+    #[test]
+    fn binary_and_operation() {
         assert_eq!(
             parse("nil && nil").unwrap().0,
             ExpressionRaw(
@@ -611,16 +662,20 @@ mod tests {
                     BinaryOperator::And,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 10))
             )
         );
+    }
+
+    #[test]
+    fn binary_or_operation() {
         assert_eq!(
             parse("nil || nil").unwrap().0,
             ExpressionRaw(
@@ -628,84 +683,113 @@ mod tests {
                     BinaryOperator::Or,
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 8), (1, 10))
                     )),
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 10))
             )
         );
     }
 
     #[test]
     fn dot_access() {
-        let parse = |s| expression().parse(s);
-
         assert_eq!(
             parse("nil.foo").unwrap().0,
             ExpressionRaw(
                 Expression::DotAccess(
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     String::from("foo")
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 7))
             )
         );
     }
 
     #[test]
-    fn function_call() {
-        let parse = |s| expression().parse(s);
-
-        assert_eq!(
-            parse("nil(nil, nil)").unwrap().0,
-            ExpressionRaw(
-                Expression::FunctionCall(
-                    Box::new(ExpressionRaw(
-                        Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
-                    )),
-                    vec![
-                        ExpressionRaw(Expression::Primitive(Primitive::Nil), Range::str(1, 1)),
-                        ExpressionRaw(Expression::Primitive(Primitive::Nil), Range::str(1, 1))
-                    ]
-                ),
-                Range::str(1, 1)
-            )
-        );
+    fn function_call_empty() {
         assert_eq!(
             parse("nil()").unwrap().0,
             ExpressionRaw(
                 Expression::FunctionCall(
                     Box::new(ExpressionRaw(
                         Expression::Primitive(Primitive::Nil),
-                        Range::str(1, 1)
+                        Range::chars((1, 1), (1, 3))
                     )),
                     vec![]
                 ),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 5))
             )
         );
     }
 
     #[test]
-    fn style() {
-        let parse = |s| expression().parse(s);
+    fn function_call() {
+        assert_eq!(
+            parse("nil(nil, nil)").unwrap().0,
+            ExpressionRaw(
+                Expression::FunctionCall(
+                    Box::new(ExpressionRaw(
+                        Expression::Primitive(Primitive::Nil),
+                        Range::chars((1, 1), (1, 3))
+                    )),
+                    vec![
+                        ExpressionRaw(
+                            Expression::Primitive(Primitive::Nil),
+                            Range::chars((1, 5), (1, 7))
+                        ),
+                        ExpressionRaw(
+                            Expression::Primitive(Primitive::Nil),
+                            Range::chars((1, 10), (1, 12))
+                        )
+                    ]
+                ),
+                Range::chars((1, 1), (1, 13))
+            )
+        );
+    }
 
+    #[test]
+    fn style_empty() {
+        assert_eq!(
+            parse("style {}").unwrap().0,
+            ExpressionRaw(Expression::Style(vec![]), Range::chars((1, 1), (1, 8)))
+        );
+    }
+
+    #[test]
+    fn style() {
         assert_eq!(
             parse("style { foo: nil }").unwrap().0,
             ExpressionRaw(
                 Expression::Style(vec![(
                     String::from("foo"),
-                    ExpressionRaw(Expression::Primitive(Primitive::Nil), Range::str(1, 1))
+                    ExpressionRaw(
+                        Expression::Primitive(Primitive::Nil),
+                        Range::chars((1, 14), (1, 16))
+                    )
                 )]),
-                Range::str(1, 1)
+                Range::chars((1, 1), (1, 18))
+            )
+        );
+    }
+
+    #[test]
+    fn ksx() {
+        assert_eq!(
+            parse("<foo />").unwrap().0,
+            ExpressionRaw(
+                Expression::KSX(Box::new(KSXRaw(
+                    KSX::Element(String::from("foo"), vec![], vec![]),
+                    Range::chars((1, 1), (1, 7))
+                ))),
+                Range::chars((1, 1), (1, 7))
             )
         );
     }

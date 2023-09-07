@@ -1,6 +1,7 @@
 use super::{storage, Declaration, DeclarationRaw};
 use crate::{
     matcher as m,
+    position::Decrement,
     range::Range,
     types::type_expression::{self, TypeExpression},
 };
@@ -10,7 +11,7 @@ use std::fmt::Debug;
 fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpression>, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::symbol('|').with(choice((
         (
@@ -29,7 +30,7 @@ where
 pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::terminated((
         storage::storage("enum"),

@@ -1,5 +1,5 @@
-use crate::matcher;
-use combine::{Parser, Stream};
+use crate::position::Decrement;
+use combine::{parser::char as p, Parser, Stream};
 use std::fmt::Debug;
 
 pub const MOCK_TOKEN: &str = "__mock__";
@@ -10,7 +10,7 @@ pub struct MockResult;
 pub fn mock<T>() -> impl Parser<T, Output = MockResult>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
-    matcher::keyword(MOCK_TOKEN).map(|_| MockResult)
+    p::string(MOCK_TOKEN).map(|_| MockResult)
 }

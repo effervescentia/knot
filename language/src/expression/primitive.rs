@@ -74,48 +74,40 @@ where
 #[cfg(test)]
 mod tests {
     use super::{primitive, Primitive};
-    use combine::Parser;
+    use combine::{error::StringStreamError, Parser};
+
+    fn parse(s: &str) -> Result<(Primitive, &str), StringStreamError> {
+        primitive().parse(s)
+    }
 
     #[test]
     fn nil() {
-        let parse = |s| primitive().parse(s);
-
         assert_eq!(parse("nil").unwrap().0, Primitive::Nil);
     }
 
     #[test]
     fn boolean_true() {
-        let parse = |s| primitive().parse(s);
-
         assert_eq!(parse("true").unwrap().0, Primitive::Boolean(true));
     }
 
     #[test]
     fn boolean_false() {
-        let parse = |s| primitive().parse(s);
-
         assert_eq!(parse("false").unwrap().0, Primitive::Boolean(false));
     }
 
     #[test]
     fn integer() {
-        let parse = |s| primitive().parse(s);
-
         assert_eq!(parse("0").unwrap().0, Primitive::Integer(0));
         assert_eq!(parse("123").unwrap().0, Primitive::Integer(123));
     }
 
     #[test]
     fn float() {
-        let parse = |s| primitive().parse(s);
-
         assert_eq!(parse("123.456").unwrap().0, Primitive::Float(123.456, 6));
     }
 
     #[test]
     fn string() {
-        let parse = |s| primitive().parse(s);
-
         assert_eq!(
             parse("\"foo\"").unwrap().0,
             Primitive::String(String::from("foo"))

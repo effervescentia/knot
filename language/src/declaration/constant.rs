@@ -1,12 +1,12 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{expression, matcher as m, types::typedef};
+use crate::{expression, matcher as m, position::Decrement, types::typedef};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
 pub fn constant<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     m::terminated((
         storage::storage("const"),

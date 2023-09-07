@@ -1,4 +1,4 @@
-use crate::matcher as m;
+use crate::{matcher as m, position::Decrement};
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
@@ -51,7 +51,7 @@ impl Import {
 pub fn import<T>() -> impl Parser<T, Output = Import>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     let source = || {
         choice((
@@ -101,13 +101,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::import::{self, Import, Source, Target};
-    use combine::Parser;
+    use crate::{
+        import::{self, Import, Source, Target},
+        ParseResult,
+    };
+    use combine::{stream::position::Stream, EasyParser};
+
+    fn parse(s: &str) -> ParseResult<Import> {
+        import::import().easy_parse(Stream::new(s))
+    }
 
     #[test]
     fn import() {
-        let parse = |s| import::import().parse(s);
-
         assert_eq!(
             parse("use @/foo;").unwrap().0,
             Import {
@@ -116,6 +121,10 @@ mod tests {
                 aliases: None
             }
         );
+    }
+
+    #[test]
+    fn import_nested() {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
             Import {
@@ -128,6 +137,10 @@ mod tests {
                 aliases: None
             }
         );
+    }
+
+    #[test]
+    fn import_named_empty() {
         assert_eq!(
             parse("use @/foo.{};").unwrap().0,
             Import {
@@ -136,6 +149,10 @@ mod tests {
                 aliases: Some(vec![])
             }
         );
+    }
+
+    #[test]
+    fn import_named() {
         assert_eq!(
             parse("use @/foo.{*, bar};").unwrap().0,
             Import {
@@ -147,6 +164,10 @@ mod tests {
                 ])
             }
         );
+    }
+
+    #[test]
+    fn import_named_with_alias() {
         assert_eq!(
             parse("use @/foo.{* as foo, fizz as buzz};").unwrap().0,
             Import {

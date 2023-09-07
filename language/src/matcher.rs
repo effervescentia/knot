@@ -1,4 +1,4 @@
-use crate::range::Range;
+use crate::{position::Decrement, range::Range};
 use combine::{
     attempt, many, optional, parser, parser::char as p, position, value, Parser, Stream,
 };
@@ -7,18 +7,18 @@ use std::fmt::Debug;
 pub fn lexeme<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
     (position(), parser, position())
         .skip(p::spaces())
-        .map(|(start, x, end)| (x, Range(start, end)))
+        .map(|(start, x, end)| (x, Range(start, end.decrement())))
 }
 
 pub fn terminated<T, R, P>(parser: P) -> impl Parser<T, Output = R>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
     parser.skip(optional(symbol(';')))
@@ -31,7 +31,7 @@ pub fn between<T, R1, R2, R3, P1, P2, P3>(
 ) -> impl Parser<T, Output = (R3, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
     P1: Parser<T, Output = (R1, Range<T>)>,
     P2: Parser<T, Output = (R2, Range<T>)>,
     P3: Parser<T, Output = R3>,
@@ -56,7 +56,7 @@ where
 pub fn symbol<T>(c: char) -> impl Parser<T, Output = (char, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     lexeme(p::char(c))
 }
@@ -64,7 +64,7 @@ where
 pub fn glyph<T>(glyph: &'static str) -> impl Parser<T, Output = (&'static str, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     parser! {
         pub fn recurse[T](chars: Vec<char>)(T) -> ()
@@ -91,7 +91,7 @@ where
 pub fn keyword<T>(keyword: &'static str) -> impl Parser<T, Output = (&'static str, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     attempt(lexeme(p::string(keyword)))
 }
@@ -101,7 +101,7 @@ pub fn identifier<T>(
 ) -> impl Parser<T, Output = (String, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     lexeme(prefix.then(|first| {
         many::<Vec<_>, _, _>(p::alpha_num().or(p::char('_'))).map(move |mut rest| {
@@ -115,7 +115,7 @@ where
 pub fn standard_identifier<T>() -> impl Parser<T, Output = (String, Range<T>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug,
+    T::Position: Copy + Debug + Decrement,
 {
     identifier(p::alpha_num().or(p::char('_')))
 }
@@ -127,24 +127,32 @@ mod tests {
         mock::{mock, MockResult, MOCK_TOKEN},
         range::Range,
     };
-    use combine::{error::StringStreamError, parser, Parser};
+    use combine::{
+        easy::{Error, Errors, Info},
+        parser,
+        stream::position::{SourcePosition, Stream},
+        EasyParser, Parser,
+    };
 
     #[test]
     fn lexeme() {
-        let parse = |s| matcher::lexeme(mock()).parse(s);
+        let parse = |s| matcher::lexeme(mock()).easy_parse(Stream::new(s));
 
-        assert_eq!(parse(MOCK_TOKEN).unwrap().0, (MockResult, Range::str(1, 1)));
+        assert_eq!(
+            parse(MOCK_TOKEN).unwrap().0,
+            (MockResult, Range::chars((1, 1), (1, 8)))
+        );
 
         let with_trailing_space = format!("{} ", MOCK_TOKEN);
         assert_eq!(
             parse(with_trailing_space.as_str()).unwrap().0,
-            (MockResult, Range::str(1, 1))
+            (MockResult, Range::chars((1, 1), (1, 8)))
         );
     }
 
     #[test]
     fn terminated() {
-        let parse = |s| matcher::terminated(mock()).parse(s);
+        let parse = |s| matcher::terminated(mock()).easy_parse(Stream::new(s));
 
         assert_eq!(parse(MOCK_TOKEN).unwrap().0, MockResult);
 
@@ -153,55 +161,154 @@ mod tests {
     }
 
     #[test]
-    fn symbol() {
-        let parse = |s| matcher::symbol('+').parse(s);
+    fn between() {
+        let parse = |s| {
+            matcher::between(matcher::symbol('>'), matcher::symbol('<'), mock())
+                .easy_parse(Stream::new(s))
+        };
 
-        assert_eq!(parse("+").unwrap().0, ('+', Range::str(1, 1)));
-        assert_eq!(parse("+ ").unwrap().0, ('+', Range::str(1, 1)));
-        assert_eq!(parse("-"), Err(StringStreamError::UnexpectedParse));
+        let input = format!(">{}<", MOCK_TOKEN);
+        assert_eq!(
+            parse(input.as_str()).unwrap().0,
+            (MockResult, Range::chars((1, 1), (1, 10)))
+        );
+    }
+
+    #[test]
+    fn folding() {
+        #[derive(Debug, PartialEq)]
+        enum Stack<T> {
+            Empty,
+            Next(T, Box<Stack<T>>),
+        }
+
+        impl<T> Stack<T> {
+            fn new(x: T) -> Self {
+                Self::Next(x, Box::new(Self::Empty))
+            }
+
+            fn push(self, x: T) -> Self {
+                Self::Next(x, Box::new(self))
+            }
+        }
+
+        let parse = |s| {
+            matcher::folding(
+                matcher::lexeme(mock()).map(|(x, range)| (Stack::new(x), range)),
+                matcher::symbol(',').with(matcher::lexeme(mock())),
+                |(lhs, start), (rhs, end)| (lhs.push(rhs), start.concat(&end)),
+            )
+            .easy_parse(Stream::new(s))
+        };
+
+        let input = format!("{}, {}", MOCK_TOKEN, MOCK_TOKEN);
+        assert_eq!(
+            parse(input.as_str()).unwrap().0,
+            (
+                Stack::Next(
+                    MockResult,
+                    Box::new(Stack::Next(MockResult, Box::new(Stack::Empty)))
+                ),
+                Range::chars((1, 1), (1, 18))
+            )
+        );
+    }
+
+    #[test]
+    fn symbol() {
+        let parse = |s| matcher::symbol('+').easy_parse(Stream::new(s));
+
+        assert_eq!(parse("+").unwrap().0, ('+', Range::chars((1, 1), (1, 1))));
+        assert_eq!(parse("+ ").unwrap().0, ('+', Range::chars((1, 1), (1, 1))));
+        assert_eq!(
+            parse("-"),
+            Err(Errors::from_errors(
+                SourcePosition { line: 1, column: 1 },
+                vec![
+                    Error::Unexpected(Info::Token('-')),
+                    Error::Expected(Info::Token('+'))
+                ]
+            ))
+        );
     }
 
     #[test]
     fn glyph() {
-        let parse = |s| matcher::glyph("&&").parse(s);
+        let parse = |s| matcher::glyph("&&").easy_parse(Stream::new(s));
 
-        assert_eq!(parse("&&").unwrap().0, ("&&", Range::str(1, 1)));
-        assert_eq!(parse("& & ").unwrap().0, ("&&", Range::str(1, 1)));
-        assert_eq!(parse("||"), Err(StringStreamError::UnexpectedParse));
+        assert_eq!(parse("&&").unwrap().0, ("&&", Range::chars((1, 1), (1, 2))));
+        assert_eq!(
+            parse("& & ").unwrap().0,
+            ("&&", Range::chars((1, 1), (1, 3)))
+        );
+        assert_eq!(
+            parse("||"),
+            Err(Errors::from_errors(
+                SourcePosition { line: 1, column: 1 },
+                vec![
+                    Error::Unexpected(Info::Token('|')),
+                    Error::Expected(Info::Token('&'))
+                ]
+            ))
+        );
     }
 
     #[test]
     fn keyword() {
-        let parse = |s| matcher::keyword("foo").parse(s);
+        let parse = |s| matcher::keyword("foo").easy_parse(Stream::new(s));
 
-        assert_eq!(parse("foo").unwrap().0, ("foo", Range::str(1, 1)));
-        assert_eq!(parse("foo ").unwrap().0, ("foo", Range::str(1, 1)));
-        assert_eq!(parse("bar"), Err(StringStreamError::UnexpectedParse));
+        assert_eq!(
+            parse("foo").unwrap().0,
+            ("foo", Range::chars((1, 1), (1, 3)))
+        );
+        assert_eq!(
+            parse("foo ").unwrap().0,
+            ("foo", Range::chars((1, 1), (1, 3)))
+        );
+        assert_eq!(
+            parse("bar"),
+            Err(Errors::from_errors(
+                SourcePosition { line: 1, column: 1 },
+                vec![
+                    Error::Unexpected(Info::Token('b')),
+                    Error::Expected(Info::Static("foo"))
+                ]
+            ))
+        );
     }
 
     #[test]
     fn identifier() {
-        let parse = |s| matcher::identifier(parser::char::char('$')).parse(s);
+        let parse = |s| matcher::identifier(parser::char::char('$')).easy_parse(Stream::new(s));
 
         assert_eq!(
             parse("$foo_").unwrap().0,
-            (String::from("$foo_"), Range::str(1, 1))
+            (String::from("$foo_"), Range::chars((1, 1), (1, 5)))
         );
-        assert_eq!(parse("$").unwrap().0, (String::from("$"), Range::str(1, 1)));
-        assert_eq!(parse(""), Err(StringStreamError::Eoi));
+        assert_eq!(
+            parse("$").unwrap().0,
+            (String::from("$"), Range::chars((1, 1), (1, 1)))
+        );
+        assert_eq!(
+            parse(""),
+            Err(Errors::from_errors(
+                SourcePosition { line: 1, column: 1 },
+                vec![Error::end_of_input(), Error::Expected(Info::Token('$'))]
+            ))
+        );
     }
 
     #[test]
     fn standard_identifier() {
-        let parse = |s| matcher::standard_identifier().parse(s);
+        let parse = |s| matcher::standard_identifier().easy_parse(Stream::new(s));
 
         assert_eq!(
             parse("foo").unwrap().0,
-            (String::from("foo"), Range::str(1, 1))
+            (String::from("foo"), Range::chars((1, 1), (1, 3)))
         );
         assert_eq!(
             parse("_foo").unwrap().0,
-            (String::from("_foo"), Range::str(1, 1))
+            (String::from("_foo"), Range::chars((1, 1), (1, 4)))
         );
     }
 }
