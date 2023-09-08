@@ -1,4 +1,4 @@
-use crate::{position::Decrement, range::Range};
+use crate::parser::{position::Decrement, range::Range};
 use combine::{
     attempt, many, optional, parser, parser::char as p, position, value, Parser, Stream,
 };
@@ -123,8 +123,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        matcher,
-        range::Range,
+        parser::{matcher, range::Range},
         test::mock::{mock, MockResult, MOCK_TOKEN},
     };
     use combine::{

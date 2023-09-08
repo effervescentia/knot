@@ -1,4 +1,4 @@
-use crate::{matcher as m, position::Decrement};
+use crate::{parser::matcher as m, parser::position::Decrement};
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
@@ -102,7 +102,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::{Import, Source, Target};
-    use crate::ParseResult;
+    use crate::parser::ParseResult;
     use combine::{stream::position::Stream, EasyParser};
 
     fn parse(s: &str) -> ParseResult<Import> {

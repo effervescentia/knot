@@ -1,5 +1,9 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{expression, matcher as m, position::Decrement, range::Ranged, types::typedef};
+use crate::parser::{
+    expression,
+    range::Ranged,
+    {matcher as m, position::Decrement, types::typedef},
+};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 

@@ -1,7 +1,7 @@
 pub mod import;
 use crate::{
-    declaration::{self, DeclarationRaw},
-    position::Decrement,
+    parser::declaration::{self, DeclarationRaw},
+    parser::position::Decrement,
 };
 use combine::{choice, many, Parser, Stream};
 use import::Import;
@@ -70,13 +70,15 @@ mod tests {
         Module, ModuleRaw,
     };
     use crate::{
-        declaration::{
-            storage::{Storage, Visibility},
-            Declaration,
+        parser::{
+            declaration::{
+                storage::{Storage, Visibility},
+                Declaration,
+            },
+            expression::{primitive::Primitive, Expression},
+            CharStream, ParseResult,
         },
-        expression::{primitive::Primitive, Expression},
         test::fixture as f,
-        CharStream, ParseResult,
     };
     use combine::{stream::position::Stream, EasyParser};
 

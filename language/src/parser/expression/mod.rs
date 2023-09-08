@@ -3,7 +3,7 @@ pub mod ksx;
 pub mod primitive;
 pub mod statement;
 pub mod style;
-use crate::{
+use crate::parser::{
     matcher as m,
     position::Decrement,
     range::{Range, Ranged},
@@ -263,7 +263,10 @@ mod tests {
         statement::Statement,
         BinaryOperator, Expression, ExpressionRaw, UnaryOperator,
     };
-    use crate::{range::Range, test::fixture as f, CharStream, ParseResult};
+    use crate::{
+        parser::{range::Range, CharStream, ParseResult},
+        test::fixture as f,
+    };
     use combine::{stream::position::Stream, EasyParser};
 
     fn parse(s: &str) -> ParseResult<ExpressionRaw<CharStream>> {

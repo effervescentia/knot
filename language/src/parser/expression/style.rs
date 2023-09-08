@@ -1,5 +1,5 @@
 use super::{Expression, ExpressionRaw};
-use crate::{matcher as m, position::Decrement};
+use crate::parser::{matcher as m, position::Decrement};
 use combine::{attempt, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
 

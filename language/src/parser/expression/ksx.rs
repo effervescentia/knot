@@ -1,10 +1,10 @@
-use crate::{
+use crate::parser::{
     expression::{self, ExpressionRaw},
     matcher as m,
     position::Decrement,
     range::{Range, Ranged},
 };
-use combine::{attempt, between, choice, many, many1, none_of, optional, parser, Parser, Stream};
+use combine::{attempt, choice, many, many1, none_of, optional, parser, Parser, Stream};
 use std::{fmt::Debug, vec};
 
 #[derive(Debug, PartialEq)]
@@ -168,9 +168,11 @@ parser! {
 mod tests {
     use super::{ksx, KSXRaw, KSX};
     use crate::{
-        expression::{primitive::Primitive, Expression},
+        parser::{
+            expression::{primitive::Primitive, Expression},
+            CharStream, ParseResult,
+        },
         test::fixture as f,
-        CharStream, ParseResult,
     };
     use combine::{stream::position::Stream, EasyParser};
 

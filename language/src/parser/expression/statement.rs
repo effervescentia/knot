@@ -1,4 +1,4 @@
-use crate::{matcher as m, position::Decrement};
+use crate::parser::{matcher as m, position::Decrement};
 use combine::{choice, Parser, Stream};
 use std::fmt::Debug;
 
@@ -45,8 +45,8 @@ where
 mod tests {
     use super::{statement, Statement};
     use crate::{
+        parser::ParseResult,
         test::mock::{mock, MockResult, MOCK_TOKEN},
-        ParseResult,
     };
     use combine::{stream::position::Stream, EasyParser};
 

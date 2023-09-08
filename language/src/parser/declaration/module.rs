@@ -1,5 +1,5 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{matcher as m, module, position::Decrement};
+use crate::parser::{matcher as m, module, position::Decrement};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 

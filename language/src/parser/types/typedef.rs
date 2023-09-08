@@ -1,5 +1,5 @@
 use super::type_expression::{self, TypeExpressionRaw};
-use crate::{matcher as m, position::Decrement};
+use crate::{parser::matcher as m, parser::position::Decrement};
 use combine::{optional, Parser, Stream};
 use std::fmt::Debug;
 

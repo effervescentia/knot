@@ -6,7 +6,7 @@ pub mod parameter;
 pub mod storage;
 mod type_alias;
 mod view;
-use crate::{
+use crate::parser::{
     expression::ExpressionRaw,
     module::ModuleRaw,
     position::Decrement,
@@ -91,12 +91,14 @@ parser! {
 #[cfg(test)]
 mod tests {
     use crate::{
-        declaration::{declaration, storage::Visibility, Declaration, DeclarationRaw, Storage},
-        expression::{primitive::Primitive, Expression},
-        module::Module,
+        parser::{
+            declaration::{declaration, storage::Visibility, Declaration, DeclarationRaw, Storage},
+            expression::{primitive::Primitive, Expression},
+            module::Module,
+            types::type_expression::TypeExpression,
+            CharStream, ParseResult,
+        },
         test::fixture as f,
-        types::type_expression::TypeExpression,
-        CharStream, ParseResult,
     };
     use combine::{stream::position::Stream, EasyParser};
 

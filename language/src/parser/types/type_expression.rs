@@ -1,7 +1,9 @@
 use crate::{
-    matcher as m,
-    position::Decrement,
-    range::{Range, Ranged},
+    parser::matcher as m,
+    parser::{
+        position::Decrement,
+        range::{Range, Ranged},
+    },
 };
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
@@ -172,7 +174,10 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::{TypeExpression, TypeExpressionRaw};
-    use crate::{test::fixture as f, CharStream, ParseResult};
+    use crate::{
+        parser::{CharStream, ParseResult},
+        test::fixture as f,
+    };
     use combine::{stream::position::Stream, EasyParser};
 
     fn parse(s: &str) -> ParseResult<TypeExpressionRaw<CharStream>> {

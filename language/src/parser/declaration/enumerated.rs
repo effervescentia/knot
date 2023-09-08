@@ -1,5 +1,5 @@
 use super::{storage, Declaration, DeclarationRaw};
-use crate::{
+use crate::parser::{
     matcher as m,
     position::Decrement,
     range::Range,

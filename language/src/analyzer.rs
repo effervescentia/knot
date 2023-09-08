@@ -1,4 +1,4 @@
-use crate::{
+use crate::parser::{
     declaration::{parameter::Parameter, storage::Storage, Declaration},
     expression::{
         binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
@@ -99,6 +99,10 @@ enum WeakType {
     Strong(Type<usize>),
     Reference(usize),
     NotFound(String),
+}
+
+pub trait Operator<I, O> {
+    fn apply(x: I) -> O;
 }
 
 // fn primitive(x: Primitive, ctx: Context) -> (usize, Context) {

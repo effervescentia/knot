@@ -1,38 +1,39 @@
 use super::{parameter, storage, Declaration, DeclarationRaw};
-use crate::{expression, matcher as m, position::Decrement, range::Ranged};
+use crate::parser::{expression, matcher as m, position::Decrement, range::Ranged, types::typedef};
 use combine::{between, optional, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
 
-// view foo -> nil;
-// view foo -> {};
-// view foo -> { nil; };
-// view foo: nil -> nil;
-// view foo() -> nil;
-// view foo(): nil -> nil;
-// view foo(props) -> nil;
-// view foo({a, b: nil, c = 123}) -> nil;
+// func foo -> nil;
+// func foo -> {};
+// func foo -> { nil; };
+// func foo: nil -> nil;
+// func foo() -> nil;
+// func foo(): nil -> nil;
+// func foo(a, b: nil, c = 123) -> nil;
 
-pub fn view<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
+pub fn function<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     m::terminated((
-        storage::storage("view"),
+        storage::storage("func"),
         optional(between(
             m::symbol('('),
             m::symbol(')'),
             sep_end_by(parameter::parameter(), m::symbol(',')),
         )),
+        typedef::typedef(),
         m::glyph("->"),
         expression::expression(),
     ))
-    .map(|((name, start), attributes, _, body)| {
+    .map(|((name, start), parameters, body_type, _, body)| {
         let range = &start + body.range();
         DeclarationRaw(
-            Declaration::View {
+            Declaration::Function {
                 name,
-                parameters: attributes.unwrap_or(vec![]),
+                parameters: parameters.unwrap_or(vec![]),
+                body_type,
                 body,
             },
             range,

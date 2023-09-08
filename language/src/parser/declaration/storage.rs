@@ -1,4 +1,4 @@
-use crate::{matcher as m, position::Decrement, range::Range};
+use crate::parser::{matcher as m, position::Decrement, range::Range};
 use combine::{position, value, Parser, Stream};
 use std::fmt::Debug;
 
