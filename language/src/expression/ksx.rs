@@ -5,7 +5,7 @@ use crate::{
     range::{Range, Ranged},
 };
 use combine::{attempt, between, choice, many, many1, none_of, optional, parser, Parser, Stream};
-use std::fmt::Debug;
+use std::{fmt::Debug, vec};
 
 #[derive(Debug, PartialEq)]
 pub enum KSX<E, K> {
@@ -58,32 +58,61 @@ where
     .map(KSXRaw::bind)
 }
 
+fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionRaw<T>>)>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    (
+        m::standard_identifier().map(|(x, _)| x),
+        optional(m::symbol('=').with(expression::ksx_term())),
+    )
+}
+
+pub fn closed_element<T>() -> impl Parser<T, Output = KSXRaw<T>>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    attempt(m::between(
+        m::symbol('<'),
+        m::glyph("/>"),
+        (
+            m::standard_identifier().map(|(x, _)| x),
+            many::<Vec<_>, _, _>(attribute()),
+        ),
+    ))
+    .map(|((name, attributes), range)| KSXRaw(KSX::Element(name, attributes, vec![]), range))
+}
+
+pub fn open_element<T>() -> impl Parser<T, Output = KSXRaw<T>>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    (
+        attempt(m::between(
+            m::symbol('<'),
+            m::symbol('>'),
+            (
+                m::standard_identifier().map(|(x, _)| x),
+                many::<Vec<_>, _, _>(attribute()),
+            ),
+        )),
+        many(child()),
+        m::between(m::glyph("</"), m::symbol('>'), m::standard_identifier()),
+    )
+        .map(|(((name, attributes), start), children, (_, end))| {
+            KSXRaw(KSX::Element(name, attributes, children), &start + &end)
+        })
+}
+
 pub fn element<T>() -> impl Parser<T, Output = KSXRaw<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    let attribute = (
-        m::standard_identifier().map(|(x, _)| x),
-        optional(m::symbol('=').with(expression::ksx_term())),
-    );
-
-    (
-        attempt(m::symbol('<').with(m::standard_identifier())),
-        many::<Vec<_>, _, _>(attribute),
-        choice((
-            m::glyph("/>").map(|_| Vec::new()),
-            between(
-                m::symbol('>'),
-                (m::glyph("</"), m::standard_identifier(), m::symbol('>')),
-                many(child()),
-            ),
-        )),
-    )
-        // TODO: combine with range from children
-        .map(|((name, start), attributes, children)| {
-            KSXRaw(KSX::Element(name, attributes, children), start)
-        })
+    choice((closed_element(), open_element()))
 }
 
 fn inline<T>() -> impl Parser<T, Output = KSXRaw<T>>
@@ -174,8 +203,8 @@ mod tests {
         assert_eq!(
             parse("<><></></>").unwrap().0,
             f::kxr(
-                KSX::Fragment(vec![f::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 1)))]),
-                ((1, 1), (1, 1))
+                KSX::Fragment(vec![f::kxr(KSX::Fragment(vec![]), ((1, 3), (1, 7)))]),
+                ((1, 1), (1, 10))
             )
         );
     }
@@ -187,9 +216,9 @@ mod tests {
             f::kxr(
                 KSX::Fragment(vec![f::kxr(
                     KSX::Element(String::from("foo"), vec![], vec![]),
-                    ((1, 1), (1, 1))
+                    ((1, 3), (1, 9))
                 )]),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 12))
             )
         );
     }
@@ -202,9 +231,9 @@ mod tests {
                 KSX::Element(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 1)))]
+                    vec![f::kxr(KSX::Fragment(vec![]), ((1, 6), (1, 10)))]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 16))
             )
         );
     }
@@ -219,10 +248,10 @@ mod tests {
                     vec![],
                     vec![f::kxr(
                         KSX::Element(String::from("bar"), vec![], vec![]),
-                        ((1, 1), (1, 1))
+                        ((1, 6), (1, 12))
                     )]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 18))
             )
         );
     }
@@ -235,11 +264,11 @@ mod tests {
                 KSX::Fragment(vec![f::kxr(
                     KSX::Inline(f::xr(
                         Expression::Primitive(Primitive::Nil),
-                        ((1, 1), (1, 1))
+                        ((1, 4), (1, 6))
                     )),
-                    ((1, 1), (1, 1))
+                    ((1, 3), (1, 7))
                 )]),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 10))
             )
         );
     }
@@ -255,12 +284,12 @@ mod tests {
                     vec![f::kxr(
                         KSX::Inline(f::xr(
                             Expression::Primitive(Primitive::Nil),
-                            ((1, 1), (1, 1))
+                            ((1, 7), (1, 9))
                         )),
-                        ((1, 1), (1, 1))
+                        ((1, 6), (1, 10))
                     )]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 16))
             )
         );
     }
@@ -272,9 +301,9 @@ mod tests {
             f::kxr(
                 KSX::Fragment(vec![f::kxr(
                     KSX::Text(String::from("foo")),
-                    ((1, 1), (1, 1))
+                    ((1, 3), (1, 5))
                 )]),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 8))
             )
         );
     }
@@ -287,9 +316,9 @@ mod tests {
                 KSX::Element(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(KSX::Text(String::from("bar")), ((1, 1), (1, 1)))]
+                    vec![f::kxr(KSX::Text(String::from("bar")), ((1, 6), (1, 8)))]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 14))
             )
         );
     }
@@ -305,12 +334,12 @@ mod tests {
                         String::from("bar"),
                         Some(f::xr(
                             Expression::Primitive(Primitive::Nil),
-                            ((1, 1), (1, 1))
+                            ((1, 10), (1, 12))
                         ))
                     )],
                     vec![]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 19))
             )
         );
     }
@@ -326,12 +355,12 @@ mod tests {
                         String::from("bar"),
                         Some(f::xr(
                             Expression::Primitive(Primitive::Nil),
-                            ((1, 1), (1, 1))
+                            ((1, 10), (1, 12))
                         ))
                     )],
                     vec![]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 15))
             )
         );
     }
@@ -346,7 +375,7 @@ mod tests {
                     vec![(String::from("bar"), None)],
                     vec![]
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 11))
             )
         );
     }

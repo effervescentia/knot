@@ -130,23 +130,6 @@ where
         })
 }
 
-// TODO: use this for lists ([], [][][])
-fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type_expression_1()
-}
-
-fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    dot_access(type_expression_2())
-}
-
 fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
 where
     T: Stream<Token = char>,
@@ -158,6 +141,23 @@ where
         primitive(),
         identifier(),
     ))
+}
+
+fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    dot_access(type_expression_2())
+}
+
+// TODO: use this for lists ([], [][][])
+fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    type_expression_1()
 }
 
 parser! {

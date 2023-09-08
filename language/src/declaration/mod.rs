@@ -13,7 +13,7 @@ use crate::{
     range::{Range, Ranged},
     types::type_expression::TypeExpressionRaw,
 };
-use combine::{choice, parser, Parser, Stream};
+use combine::{choice, parser, Stream};
 use parameter::Parameter;
 use std::fmt::Debug;
 use storage::Storage;
@@ -72,27 +72,19 @@ where
     }
 }
 
-fn declaration_<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    choice((
-        type_alias::type_alias(),
-        constant::constant(),
-        enumerated::enumerated(),
-        function::function(),
-        view::view(),
-        module::module(),
-    ))
-}
-
 parser! {
     pub fn declaration[T]()(T) -> DeclarationRaw<T>
     where
         [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
-        declaration_()
+        choice((
+            type_alias::type_alias(),
+            constant::constant(),
+            enumerated::enumerated(),
+            function::function(),
+            view::view(),
+            module::module(),
+        ))
     }
 }
 

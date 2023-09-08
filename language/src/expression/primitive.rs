@@ -44,7 +44,7 @@ where
     let integer = many1::<String, _, _>(p::digit());
     let fraction = many1::<String, _, _>(p::digit());
 
-    (integer, token('.'), fraction).map(|(integer, _, fraction)| {
+    attempt((integer, token('.'), fraction)).map(|(integer, _, fraction)| {
         if fraction.is_empty() {
             Primitive::Float(integer.parse::<f64>().unwrap(), integer.len() as i32)
         } else {
@@ -68,7 +68,7 @@ pub fn primitive<T>() -> impl Parser<T, Output = Primitive>
 where
     T: Stream<Token = char>,
 {
-    choice((nil(), boolean(), attempt(float()), integer(), string()))
+    choice((nil(), boolean(), float(), integer(), string()))
 }
 
 #[cfg(test)]

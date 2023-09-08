@@ -9,7 +9,7 @@ use crate::{
     range::{Range, Ranged},
 };
 use binary_operation::BinaryOperator;
-use combine::{attempt, choice, many, parser, position, sep_end_by, Parser, Stream};
+use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
 use ksx::KSXRaw;
 use primitive::Primitive;
 use statement::Statement;
@@ -171,12 +171,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    choice((
-        attempt(primitive()),
-        style::style(expression),
-        ksx(),
-        identifier(),
-    ))
+    choice((primitive(), style::style(expression), ksx(), identifier()))
 }
 
 fn expression_7<T>() -> impl Parser<T, Output = ExpressionRaw<T>>

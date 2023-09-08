@@ -10,7 +10,7 @@ where
     T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
-    (position(), parser, position())
+    attempt((position(), parser, position()))
         .skip(p::spaces())
         .map(|(start, x, end)| (x, Range(start, end.decrement())))
 }
@@ -93,7 +93,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    attempt(lexeme(p::string(keyword)))
+    lexeme(p::string(keyword))
 }
 
 pub fn identifier<T>(
