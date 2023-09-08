@@ -10,7 +10,8 @@ use std::{fmt::Debug, vec};
 #[derive(Debug, PartialEq)]
 pub enum KSX<E, K> {
     Fragment(Vec<K>),
-    Element(String, Vec<(String, Option<E>)>, Vec<K>),
+    OpenElement(String, Vec<(String, Option<E>)>, Vec<K>, String),
+    ClosedElement(String, Vec<(String, Option<E>)>),
     Inline(E),
     Text(String),
 }
@@ -82,7 +83,7 @@ where
             many::<Vec<_>, _, _>(attribute()),
         ),
     ))
-    .map(|((name, attributes), range)| KSXRaw(KSX::Element(name, attributes, vec![]), range))
+    .map(|((name, attributes), range)| KSXRaw(KSX::ClosedElement(name, attributes), range))
 }
 
 pub fn open_element<T>() -> impl Parser<T, Output = KSXRaw<T>>
@@ -100,11 +101,20 @@ where
             ),
         )),
         many(child()),
-        m::between(m::glyph("</"), m::symbol('>'), m::standard_identifier()),
+        m::between(
+            m::glyph("</"),
+            m::symbol('>'),
+            m::standard_identifier().map(|(x, _)| x),
+        ),
     )
-        .map(|(((name, attributes), start), children, (_, end))| {
-            KSXRaw(KSX::Element(name, attributes, children), &start + &end)
-        })
+        .map(
+            |(((start_tag, attributes), start), children, (end_tag, end))| {
+                KSXRaw(
+                    KSX::OpenElement(start_tag, attributes, children, end_tag),
+                    &start + &end,
+                )
+            },
+        )
 }
 
 pub fn element<T>() -> impl Parser<T, Output = KSXRaw<T>>
@@ -177,22 +187,22 @@ mod tests {
     }
 
     #[test]
-    fn element() {
+    fn open_element() {
         assert_eq!(
             parse("<foo></foo>").unwrap().0,
             f::kxr(
-                KSX::Element(String::from("foo"), vec![], vec![]),
+                KSX::OpenElement(String::from("foo"), vec![], vec![], String::from("foo")),
                 ((1, 1), (1, 11))
             )
         );
     }
 
     #[test]
-    fn element_self_closing() {
+    fn closed_element() {
         assert_eq!(
             parse("<foo />").unwrap().0,
             f::kxr(
-                KSX::Element(String::from("foo"), vec![], vec![]),
+                KSX::ClosedElement(String::from("foo"), vec![]),
                 ((1, 1), (1, 7))
             )
         );
@@ -215,7 +225,7 @@ mod tests {
             parse("<><foo /></>").unwrap().0,
             f::kxr(
                 KSX::Fragment(vec![f::kxr(
-                    KSX::Element(String::from("foo"), vec![], vec![]),
+                    KSX::ClosedElement(String::from("foo"), vec![]),
                     ((1, 3), (1, 9))
                 )]),
                 ((1, 1), (1, 12))
@@ -228,10 +238,11 @@ mod tests {
         assert_eq!(
             parse("<foo><></></foo>").unwrap().0,
             f::kxr(
-                KSX::Element(
+                KSX::OpenElement(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(KSX::Fragment(vec![]), ((1, 6), (1, 10)))]
+                    vec![f::kxr(KSX::Fragment(vec![]), ((1, 6), (1, 10)))],
+                    String::from("foo"),
                 ),
                 ((1, 1), (1, 16))
             )
@@ -243,13 +254,14 @@ mod tests {
         assert_eq!(
             parse("<foo><bar /></foo>").unwrap().0,
             f::kxr(
-                KSX::Element(
+                KSX::OpenElement(
                     String::from("foo"),
                     vec![],
                     vec![f::kxr(
-                        KSX::Element(String::from("bar"), vec![], vec![]),
+                        KSX::ClosedElement(String::from("bar"), vec![]),
                         ((1, 6), (1, 12))
-                    )]
+                    )],
+                    String::from("foo"),
                 ),
                 ((1, 1), (1, 18))
             )
@@ -278,7 +290,7 @@ mod tests {
         assert_eq!(
             parse("<foo>{nil}</foo>").unwrap().0,
             f::kxr(
-                KSX::Element(
+                KSX::OpenElement(
                     String::from("foo"),
                     vec![],
                     vec![f::kxr(
@@ -287,7 +299,8 @@ mod tests {
                             ((1, 7), (1, 9))
                         )),
                         ((1, 6), (1, 10))
-                    )]
+                    )],
+                    String::from("foo"),
                 ),
                 ((1, 1), (1, 16))
             )
@@ -313,10 +326,11 @@ mod tests {
         assert_eq!(
             parse("<foo>bar</foo>").unwrap().0,
             f::kxr(
-                KSX::Element(
+                KSX::OpenElement(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(KSX::Text(String::from("bar")), ((1, 6), (1, 8)))]
+                    vec![f::kxr(KSX::Text(String::from("bar")), ((1, 6), (1, 8)))],
+                    String::from("foo"),
                 ),
                 ((1, 1), (1, 14))
             )
@@ -328,7 +342,7 @@ mod tests {
         assert_eq!(
             parse("<foo bar=nil></foo>").unwrap().0,
             f::kxr(
-                KSX::Element(
+                KSX::OpenElement(
                     String::from("foo"),
                     vec![(
                         String::from("bar"),
@@ -337,7 +351,8 @@ mod tests {
                             ((1, 10), (1, 12))
                         ))
                     )],
-                    vec![]
+                    vec![],
+                    String::from("foo"),
                 ),
                 ((1, 1), (1, 19))
             )
@@ -349,7 +364,7 @@ mod tests {
         assert_eq!(
             parse("<foo bar=nil />").unwrap().0,
             f::kxr(
-                KSX::Element(
+                KSX::ClosedElement(
                     String::from("foo"),
                     vec![(
                         String::from("bar"),
@@ -358,7 +373,6 @@ mod tests {
                             ((1, 10), (1, 12))
                         ))
                     )],
-                    vec![]
                 ),
                 ((1, 1), (1, 15))
             )
@@ -370,11 +384,7 @@ mod tests {
         assert_eq!(
             parse("<foo bar />").unwrap().0,
             f::kxr(
-                KSX::Element(
-                    String::from("foo"),
-                    vec![(String::from("bar"), None)],
-                    vec![]
-                ),
+                KSX::ClosedElement(String::from("foo"), vec![(String::from("bar"), None)],),
                 ((1, 1), (1, 11))
             )
         );

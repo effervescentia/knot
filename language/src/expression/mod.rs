@@ -768,7 +768,7 @@ mod tests {
             parse("<foo />").unwrap().0,
             f::xr(
                 Expression::KSX(Box::new(KSXRaw(
-                    KSX::Element(String::from("foo"), vec![], vec![]),
+                    KSX::ClosedElement(String::from("foo"), vec![]),
                     Range::chars((1, 1), (1, 7))
                 ))),
                 ((1, 1), (1, 7))
