@@ -1,74 +1,37 @@
+pub mod transform;
+pub mod weak;
 use crate::parser::{
-    declaration::{parameter::Parameter, storage::Storage, Declaration},
+    declaration::{parameter::Parameter, storage::Storage, Declaration, DeclarationRaw},
     expression::{
         binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
-        Expression, UnaryOperator,
+        Expression, ExpressionRaw, UnaryOperator,
     },
     module::{
         import::{Import, Target},
-        Module,
+        Module, ModuleRaw,
     },
+    position::Decrement,
     types::type_expression::TypeExpression,
 };
+use combine::Stream;
+use std::fmt::Debug;
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap},
 };
+use weak::ExpressionWeak;
 
-struct Context<'a> {
-    types: &'a RefCell<BTreeMap<usize, WeakType>>,
-    scope: HashMap<String, usize>,
+use self::weak::WeakContext;
+
+pub trait Transform<C, O> {
+    fn transform(self, ctx: C) -> (O, C);
 }
 
-impl<'a> Context<'a> {
-    fn new(types: &'a RefCell<BTreeMap<usize, WeakType>>) -> Self {
-        Self {
-            types,
-            scope: HashMap::new(),
-        }
-    }
-
-    fn child(&self) -> Self {
-        Self {
-            types: self.types,
-            scope: self.scope.clone(),
-        }
-    }
-
-    pub fn add_type(self, typ: WeakType) -> (usize, Self) {
-        let id = self.types.borrow().len();
-        self.types.borrow_mut().insert(id, typ);
-        (id, self)
-    }
-
-    pub fn add_strong(self, typ: Type<usize>) -> (usize, Self) {
-        self.add_type(WeakType::Strong(typ))
-    }
-
-    pub fn any(self) -> (usize, Self) {
-        self.add_type(WeakType::Any)
-    }
-
-    pub fn get_id(self, name: &str) -> (Option<usize>, Self) {
-        (self.scope.get(name).copied(), self)
-    }
-
-    pub fn resolve(self, name: &str) -> (usize, Self) {
-        match self.get_id(&name) {
-            (Some(id), ctx) => ctx.add_type(WeakType::Reference(id)),
-            (None, ctx) => ctx.add_type(WeakType::NotFound(name.to_string())),
-        }
-    }
-
-    pub fn bind(name: &str, (id, mut ctx): (usize, Self)) -> (usize, Self) {
-        ctx.scope.insert(name.to_string(), id);
-        (id, ctx)
-    }
-
-    pub fn refer((id, ctx): (usize, Self)) -> (usize, Self) {
-        ctx.add_type(WeakType::Reference(id))
-    }
-}
+// pub trait Identify<'a, I, O>: Transform<WeakContext<'a>, I, O> {
+//     fn identify(x: I, ctx: WeakContext<'a>) -> (O, WeakContext<'a>) {
+//         Self::transform(x, ctx)
+//     }
+// }
 
 // enum AST<'a> {
 enum AST {
@@ -78,7 +41,7 @@ enum AST {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum Type<T> {
+pub enum Type<T> {
     Nil,
     Boolean,
     Integer,
@@ -92,17 +55,16 @@ enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
-enum WeakType {
-    Any,
-    Number,
-    Strong(Type<usize>),
-    Reference(usize),
-    NotFound(String),
-}
-
-pub trait Operator<I, O> {
-    fn apply(x: I) -> O;
+fn analyze<T>(x: ModuleRaw<T>)
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    let declarations =
+        x.0.declarations
+            .into_iter()
+            .map(|DeclarationRaw(x, range)| x)
+            .collect::<Vec<_>>();
 }
 
 // fn primitive(x: Primitive, ctx: Context) -> (usize, Context) {

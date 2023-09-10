@@ -24,18 +24,20 @@ pub enum TypeExpression<T> {
     // View(Vec<(String, TypeExpression)>),
 }
 
+type RawValue<T> = TypeExpression<TypeExpressionRaw<T>>;
+
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionRaw<T>(pub TypeExpression<TypeExpressionRaw<T>>, pub Range<T>)
+pub struct TypeExpressionRaw<T>(pub RawValue<T>, pub Range<T>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-impl<T> Ranged<TypeExpression<TypeExpressionRaw<T>>, T> for TypeExpressionRaw<T>
+impl<T> Ranged<RawValue<T>, T> for TypeExpressionRaw<T>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn value(self) -> TypeExpression<TypeExpressionRaw<T>> {
+    fn value(self) -> RawValue<T> {
         self.0
     }
 

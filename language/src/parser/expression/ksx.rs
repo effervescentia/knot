@@ -16,8 +16,10 @@ pub enum KSX<E, K> {
     Text(String),
 }
 
+type RawValue<T> = KSX<ExpressionRaw<T>, KSXRaw<T>>;
+
 #[derive(Debug, PartialEq)]
-pub struct KSXRaw<T>(pub KSX<ExpressionRaw<T>, KSXRaw<T>>, pub Range<T>)
+pub struct KSXRaw<T>(pub RawValue<T>, pub Range<T>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -27,17 +29,17 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn bind((x, range): (KSX<ExpressionRaw<T>, KSXRaw<T>>, Range<T>)) -> Self {
+    pub fn bind((x, range): (RawValue<T>, Range<T>)) -> Self {
         Self(x, range)
     }
 }
 
-impl<T> Ranged<KSX<ExpressionRaw<T>, KSXRaw<T>>, T> for KSXRaw<T>
+impl<T> Ranged<RawValue<T>, T> for KSXRaw<T>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn value(self) -> KSX<ExpressionRaw<T>, KSXRaw<T>> {
+    fn value(self) -> RawValue<T> {
         self.0
     }
 

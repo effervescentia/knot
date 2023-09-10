@@ -36,18 +36,20 @@ pub enum Expression<E, K> {
     KSX(Box<K>),
 }
 
+type RawValue<T> = Expression<ExpressionRaw<T>, KSXRaw<T>>;
+
 #[derive(Debug, PartialEq)]
-pub struct ExpressionRaw<T>(pub Expression<ExpressionRaw<T>, KSXRaw<T>>, pub Range<T>)
+pub struct ExpressionRaw<T>(pub RawValue<T>, pub Range<T>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-impl<T> Ranged<Expression<ExpressionRaw<T>, KSXRaw<T>>, T> for ExpressionRaw<T>
+impl<T> Ranged<RawValue<T>, T> for ExpressionRaw<T>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn value(self) -> Expression<ExpressionRaw<T>, KSXRaw<T>> {
+    fn value(self) -> RawValue<T> {
         self.0
     }
 
