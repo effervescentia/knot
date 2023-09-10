@@ -47,7 +47,7 @@ where
 }
 
 impl<'a> Range<CharStream<'a>> {
-    pub fn chars(
+    pub const fn chars(
         (start_line, start_column): (i32, i32),
         (end_line, end_column): (i32, i32),
     ) -> Self {

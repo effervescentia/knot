@@ -1,31 +1,15 @@
 // pub mod transform;
+mod declaration;
+mod expression;
+mod ksx;
+mod type_expression;
 pub mod weak;
 use crate::parser::{
-    declaration::{parameter::Parameter, storage::Storage, Declaration, DeclarationNode},
-    expression::{
-        binary_operation::BinaryOperator,
-        ksx::{KSXNode, KSX},
-        primitive::Primitive,
-        statement::Statement,
-        Expression, ExpressionNode, UnaryOperator,
-    },
-    module::{
-        import::{Import, Target},
-        Module, ModuleNode,
-    },
-    node::Node,
+    module::{Module, ModuleNode},
     position::Decrement,
-    range::Ranged,
-    types::type_expression::{TypeExpression, TypeExpressionNode},
 };
 use combine::Stream;
 use std::fmt::Debug;
-use std::{
-    cell::RefCell,
-    collections::{BTreeMap, HashMap},
-};
-// use weak::ExpressionWeak;
-// use self::weak::WeakContext;
 
 pub trait Transform<C, O> {
     fn transform(self, ctx: C) -> (O, C);
@@ -59,7 +43,7 @@ pub enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
-struct Context {
+pub struct Context {
     next_id: i32,
 }
 
@@ -75,14 +59,14 @@ impl Context {
     }
 }
 
-fn analyze<T>(x: ModuleNode<T, ()>)
+pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, i32>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     let mut ctx = Context::new();
 
-    let x = analyze_module(x, &mut ctx);
+    analyze_module(x, &mut ctx)
 }
 
 fn analyze_module<T>(x: ModuleNode<T, ()>, ctx: &mut Context) -> ModuleNode<T, i32>
@@ -93,7 +77,7 @@ where
     let declarations =
         x.0.declarations
             .into_iter()
-            .map(|x| analyze_declaration(x, ctx))
+            .map(|x| declaration::analyze_declaration(x, ctx))
             .collect::<Vec<_>>();
 
     ModuleNode(
@@ -105,228 +89,96 @@ where
     )
 }
 
-fn analyze_declaration<T>(x: DeclarationNode<T, ()>, ctx: &mut Context) -> DeclarationNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    let analyze_parameters =
-        |xs: Vec<Parameter<ExpressionNode<T, ()>, TypeExpressionNode<T, ()>>>,
-         ctx: &mut Context| {
-            xs.into_iter()
-                .map(
-                    |Parameter {
-                         name,
-                         value_type,
-                         default_value,
-                     }| Parameter {
-                        name,
-                        value_type: value_type.map(|x| analyze_type_expression(x, ctx)),
-                        default_value: default_value.map(|x| analyze_expression(x, ctx)),
-                    },
-                )
-                .collect::<Vec<_>>()
-        };
-
-    DeclarationNode(
-        x.0.map(|x| match x {
-            Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
-                name,
-                value: analyze_type_expression(value, ctx),
+#[cfg(test)]
+mod tests {
+    use super::Context;
+    use crate::{
+        analyzer::analyze_module,
+        parser::{
+            declaration::{
+                storage::{Storage, Visibility},
+                Declaration, DeclarationNode,
             },
-
-            Declaration::Enumerated { name, variants } => Declaration::Enumerated {
-                name,
-                variants: variants
-                    .into_iter()
-                    .map(|(name, xs)| {
-                        (
-                            name,
-                            xs.into_iter()
-                                .map(|x| analyze_type_expression(x, ctx))
-                                .collect::<Vec<_>>(),
-                        )
-                    })
-                    .collect::<Vec<_>>(),
+            expression::{primitive::Primitive, Expression, ExpressionNode},
+            module::{
+                import::{Import, Source, Target},
+                Module, ModuleNode,
             },
-
-            Declaration::Constant {
-                name,
-                value_type,
-                value,
-            } => Declaration::Constant {
-                name,
-                value_type: value_type.map(|x| analyze_type_expression(x, ctx)),
-                value: analyze_expression(value, ctx),
-            },
-
-            Declaration::Function {
-                name,
-                parameters,
-                body_type,
-                body,
-            } => Declaration::Function {
-                name,
-                parameters: analyze_parameters(parameters, ctx),
-                body_type: body_type.map(|x| analyze_type_expression(x, ctx)),
-                body: analyze_expression(body, ctx),
-            },
-
-            Declaration::View {
-                name,
-                parameters,
-                body,
-            } => Declaration::View {
-                name,
-                parameters: analyze_parameters(parameters, ctx),
-                body: analyze_expression(body, ctx),
-            },
-
-            Declaration::Module { name, value } => Declaration::Module {
-                name,
-                value: analyze_module(value, ctx),
-            },
-        })
-        .with_context(ctx.generate_id()),
-    )
-}
-
-fn analyze_expression<T>(x: ExpressionNode<T, ()>, ctx: &mut Context) -> ExpressionNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    ExpressionNode(
-        x.0.map(|x| match x {
-            Expression::Primitive(x) => Expression::Primitive(x),
-
-            Expression::Identifier(x) => Expression::Identifier(x),
-
-            Expression::Group(x) => Expression::Group(Box::new(analyze_expression(*x, ctx))),
-
-            Expression::Closure(xs) => Expression::Closure(
-                xs.into_iter()
-                    .map(|x| match x {
-                        Statement::Effect(x) => Statement::Effect(analyze_expression(x, ctx)),
-                        Statement::Variable(name, x) => {
-                            Statement::Variable(name, analyze_expression(x, ctx))
-                        }
-                    })
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::UnaryOperation(op, lhs) => {
-                Expression::UnaryOperation(op, Box::new(analyze_expression(*lhs, ctx)))
-            }
-
-            Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
-                op,
-                Box::new(analyze_expression(*lhs, ctx)),
-                Box::new(analyze_expression(*rhs, ctx)),
-            ),
-
-            Expression::DotAccess(lhs, rhs) => {
-                Expression::DotAccess(Box::new(analyze_expression(*lhs, ctx)), rhs)
-            }
-
-            Expression::FunctionCall(x, args) => Expression::FunctionCall(
-                Box::new(analyze_expression(*x, ctx)),
-                args.into_iter()
-                    .map(|x| analyze_expression(x, ctx))
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::Style(xs) => Expression::Style(
-                xs.into_iter()
-                    .map(|(key, value)| (key, analyze_expression(value, ctx)))
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::KSX(x) => Expression::KSX(Box::new(analyze_ksx(*x, ctx))),
-        })
-        .with_context(ctx.generate_id()),
-    )
-}
-
-fn analyze_ksx<T>(x: KSXNode<T, ()>, ctx: &mut Context) -> KSXNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    let analyze_attributes = |xs: Vec<(String, Option<ExpressionNode<T, ()>>)>,
-                              ctx: &mut Context| {
-        xs.into_iter()
-            .map(|(key, value)| (key, value.map(|x| analyze_expression(x, ctx))))
-            .collect::<Vec<_>>()
+            node::Node,
+            range::Range,
+            types::type_expression::{TypeExpression, TypeExpressionNode},
+            CharStream,
+        },
     };
 
-    let analyze_children = |xs: Vec<KSXNode<T, ()>>, ctx: &mut Context| {
-        xs.into_iter()
-            .map(|x| analyze_ksx(x, ctx))
-            .collect::<Vec<_>>()
-    };
+    const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
 
-    KSXNode(
-        x.0.map(|x| match x {
-            KSX::Text(x) => KSX::Text(x),
+    #[test]
+    fn module() {
+        let ctx = &mut Context::new();
 
-            KSX::Inline(x) => KSX::Inline(analyze_expression(x, ctx)),
-
-            KSX::Fragment(children) => KSX::Fragment(analyze_children(children, ctx)),
-
-            KSX::ClosedElement(tag, attributes) => {
-                KSX::ClosedElement(tag, analyze_attributes(attributes, ctx))
-            }
-
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
-                start_tag,
-                analyze_attributes(attributes, ctx),
-                analyze_children(children, ctx),
-                end_tag,
+        let result = analyze_module(
+            ModuleNode(
+                Module {
+                    imports: vec![Import {
+                        source: Source::Root,
+                        path: vec![String::from("bar"), String::from("fizz")],
+                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                    }],
+                    declarations: vec![DeclarationNode(Node(
+                        Declaration::Constant {
+                            name: Storage(Visibility::Public, String::from("BUZZ")),
+                            value_type: Some(TypeExpressionNode(Node(
+                                TypeExpression::Nil,
+                                RANGE,
+                                (),
+                            ))),
+                            value: ExpressionNode(Node(
+                                Expression::Primitive(Primitive::Nil),
+                                RANGE,
+                                (),
+                            )),
+                        },
+                        RANGE,
+                        (),
+                    ))],
+                },
+                (),
             ),
-        })
-        .with_context(ctx.generate_id()),
-    )
-}
+            ctx,
+        );
 
-fn analyze_type_expression<T>(
-    x: TypeExpressionNode<T, ()>,
-    ctx: &mut Context,
-) -> TypeExpressionNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    TypeExpressionNode(
-        x.0.map(|x| match x {
-            TypeExpression::Nil => TypeExpression::Nil,
-            TypeExpression::Boolean => TypeExpression::Boolean,
-            TypeExpression::Integer => TypeExpression::Integer,
-            TypeExpression::Float => TypeExpression::Float,
-            TypeExpression::String => TypeExpression::String,
-            TypeExpression::Style => TypeExpression::Style,
-            TypeExpression::Element => TypeExpression::Element,
-
-            TypeExpression::Identifier(x) => TypeExpression::Identifier(x),
-
-            TypeExpression::Group(x) => {
-                TypeExpression::Group(Box::new(analyze_type_expression(*x, ctx)))
-            }
-
-            TypeExpression::DotAccess(lhs, rhs) => {
-                TypeExpression::DotAccess(Box::new(analyze_type_expression(*lhs, ctx)), rhs)
-            }
-
-            TypeExpression::Function(params, body) => TypeExpression::Function(
-                params
-                    .into_iter()
-                    .map(|x| analyze_type_expression(x, ctx))
-                    .collect::<Vec<_>>(),
-                Box::new(analyze_type_expression(*body, ctx)),
-            ),
-        })
-        .with_context(ctx.generate_id()),
-    )
+        assert_eq!(
+            result,
+            ModuleNode(
+                Module {
+                    imports: vec![Import {
+                        source: Source::Root,
+                        path: vec![String::from("bar"), String::from("fizz")],
+                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                    }],
+                    declarations: vec![DeclarationNode(Node(
+                        Declaration::Constant {
+                            name: Storage(Visibility::Public, String::from("BUZZ")),
+                            value_type: Some(TypeExpressionNode(Node(
+                                TypeExpression::Nil,
+                                RANGE,
+                                0,
+                            ))),
+                            value: ExpressionNode(Node(
+                                Expression::Primitive(Primitive::Nil),
+                                RANGE,
+                                1,
+                            )),
+                        },
+                        RANGE,
+                        2,
+                    ))],
+                },
+                3,
+            )
+        )
+    }
 }
 
 // fn primitive(x: Primitive, ctx: Context) -> (usize, Context) {
