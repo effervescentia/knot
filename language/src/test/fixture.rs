@@ -1,27 +1,27 @@
 use crate::parser::{
-    declaration::{Declaration, DeclarationRaw},
+    declaration::{Declaration, DeclarationNode},
     expression::{
-        ksx::{KSXRaw, KSX},
-        Expression, ExpressionRaw,
+        ksx::{KSXNode, KSX},
+        Expression, ExpressionNode,
     },
-    module::{Module, ModuleRaw},
+    module::{Module, ModuleNode},
     range::Range,
     types::type_expression::{TypeExpression, TypeExpressionRaw},
     CharStream,
 };
 
 pub fn xr<'a>(
-    x: Expression<ExpressionRaw<CharStream<'a>>, KSXRaw<CharStream<'a>>>,
+    x: Expression<ExpressionNode<CharStream<'a>, ()>, KSXNode<CharStream<'a>, ()>>,
     (start, end): ((i32, i32), (i32, i32)),
-) -> ExpressionRaw<CharStream<'a>> {
-    ExpressionRaw(x, Range::chars(start, end))
+) -> ExpressionNode<CharStream<'a>, ()> {
+    ExpressionNode::raw(x, Range::chars(start, end))
 }
 
 pub fn kxr<'a>(
-    x: KSX<ExpressionRaw<CharStream<'a>>, KSXRaw<CharStream<'a>>>,
+    x: KSX<ExpressionNode<CharStream<'a>, ()>, KSXNode<CharStream<'a>, ()>>,
     (start, end): ((i32, i32), (i32, i32)),
-) -> KSXRaw<CharStream<'a>> {
-    KSXRaw(x, Range::chars(start, end))
+) -> KSXNode<CharStream<'a>, ()> {
+    KSXNode::raw(x, Range::chars(start, end))
 }
 
 pub fn txr<'a>(
@@ -33,15 +33,15 @@ pub fn txr<'a>(
 
 pub fn dr<'a>(
     x: Declaration<
-        ExpressionRaw<CharStream<'a>>,
-        ModuleRaw<CharStream<'a>>,
+        ExpressionNode<CharStream<'a>, ()>,
+        ModuleNode<CharStream<'a>>,
         TypeExpressionRaw<CharStream<'a>>,
     >,
     (start, end): ((i32, i32), (i32, i32)),
-) -> DeclarationRaw<CharStream<'a>> {
-    DeclarationRaw(x, Range::chars(start, end))
+) -> DeclarationNode<CharStream<'a>> {
+    DeclarationNode(x, Range::chars(start, end))
 }
 
-pub fn mr<'a>(x: Module<DeclarationRaw<CharStream<'a>>>) -> ModuleRaw<CharStream<'a>> {
-    ModuleRaw(x)
+pub fn mr<'a>(x: Module<DeclarationNode<CharStream<'a>>>) -> ModuleNode<CharStream<'a>> {
+    ModuleNode(x)
 }

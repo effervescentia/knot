@@ -1,6 +1,6 @@
 pub mod import;
 use crate::{
-    parser::declaration::{self, DeclarationRaw},
+    parser::declaration::{self, DeclarationNode},
     parser::position::Decrement,
 };
 use combine::{choice, many, Parser, Stream};
@@ -29,12 +29,12 @@ impl<D> Module<D> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ModuleRaw<T>(pub Module<DeclarationRaw<T>>)
+pub struct ModuleNode<T>(pub Module<DeclarationNode<T>>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-pub fn module<T>() -> impl Parser<T, Output = ModuleRaw<T>>
+pub fn module<T>() -> impl Parser<T, Output = ModuleNode<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -44,7 +44,7 @@ where
         declaration::declaration().map(Entry::Declaration),
     )))
     .map(|entries| {
-        ModuleRaw(
+        ModuleNode(
             entries
                 .into_iter()
                 .fold(Module::new(vec![], vec![]), |mut acc, el| {
@@ -67,7 +67,7 @@ where
 mod tests {
     use super::{
         import::{self, Import},
-        Module, ModuleRaw,
+        Module, ModuleNode,
     };
     use crate::{
         parser::{
@@ -82,7 +82,7 @@ mod tests {
     };
     use combine::{stream::position::Stream, EasyParser};
 
-    fn parse(s: &str) -> ParseResult<ModuleRaw<CharStream>> {
+    fn parse(s: &str) -> ParseResult<ModuleNode<CharStream>> {
         super::module().easy_parse(Stream::new(s))
     }
 

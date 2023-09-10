@@ -1,5 +1,5 @@
 use crate::parser::{
-    expression::{self, ExpressionRaw},
+    expression::{self, ExpressionNode},
     matcher as m,
     position::Decrement,
     types::{type_expression::TypeExpressionRaw, typedef},
@@ -14,7 +14,7 @@ pub struct Parameter<E, T> {
     pub default_value: Option<E>,
 }
 
-pub type ParameterRaw<T> = Parameter<ExpressionRaw<T>, TypeExpressionRaw<T>>;
+pub type ParameterRaw<T> = Parameter<ExpressionNode<T, ()>, TypeExpressionRaw<T>>;
 
 pub fn parameter<T>() -> impl Parser<T, Output = ParameterRaw<T>>
 where

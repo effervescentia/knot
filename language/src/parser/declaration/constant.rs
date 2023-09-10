@@ -1,4 +1,4 @@
-use super::{storage, Declaration, DeclarationRaw};
+use super::{storage, Declaration, DeclarationNode};
 use crate::parser::{
     expression,
     range::Ranged,
@@ -7,7 +7,7 @@ use crate::parser::{
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
-pub fn constant<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
+pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -20,7 +20,7 @@ where
     ))
     .map(|((name, start), value_type, _, value)| {
         let range = &start + value.range();
-        DeclarationRaw(
+        DeclarationNode(
             Declaration::Constant {
                 name,
                 value_type,

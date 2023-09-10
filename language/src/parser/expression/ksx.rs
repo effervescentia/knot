@@ -1,5 +1,5 @@
 use crate::parser::{
-    expression::{self, ExpressionRaw},
+    expression::{self, ExpressionNode},
     matcher as m,
     position::Decrement,
     range::{Range, Ranged},
@@ -16,25 +16,29 @@ pub enum KSX<E, K> {
     Text(String),
 }
 
-type RawValue<T> = KSX<ExpressionRaw<T>, KSXRaw<T>>;
+type RawValue<T> = KSX<ExpressionNode<T, ()>, KSXNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
-pub struct KSXRaw<T>(pub RawValue<T>, pub Range<T>)
+pub struct KSXNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-impl<T> KSXRaw<T>
+impl<T> KSXNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
+        Self(x, range, ())
+    }
+
     pub fn bind((x, range): (RawValue<T>, Range<T>)) -> Self {
-        Self(x, range)
+        Self::raw(x, range)
     }
 }
 
-impl<T> Ranged<RawValue<T>, T> for KSXRaw<T>
+impl<T> Ranged<RawValue<T>, T> for KSXNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -48,7 +52,7 @@ where
     }
 }
 
-fn fragment<T>() -> impl Parser<T, Output = KSXRaw<T>>
+fn fragment<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -58,10 +62,10 @@ where
         m::glyph("</>"),
         many::<Vec<_>, _, _>(child()).map(KSX::Fragment),
     )
-    .map(KSXRaw::bind)
+    .map(KSXNode::bind)
 }
 
-fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionRaw<T>>)>
+fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionNode<T, ()>>)>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -72,7 +76,7 @@ where
     )
 }
 
-pub fn closed_element<T>() -> impl Parser<T, Output = KSXRaw<T>>
+pub fn closed_element<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -85,10 +89,10 @@ where
             many::<Vec<_>, _, _>(attribute()),
         ),
     ))
-    .map(|((name, attributes), range)| KSXRaw(KSX::ClosedElement(name, attributes), range))
+    .map(|((name, attributes), range)| KSXNode::raw(KSX::ClosedElement(name, attributes), range))
 }
 
-pub fn open_element<T>() -> impl Parser<T, Output = KSXRaw<T>>
+pub fn open_element<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -111,7 +115,7 @@ where
     )
         .map(
             |(((start_tag, attributes), start), children, (end_tag, end))| {
-                KSXRaw(
+                KSXNode::raw(
                     KSX::OpenElement(start_tag, attributes, children, end_tag),
                     &start + &end,
                 )
@@ -119,7 +123,7 @@ where
         )
 }
 
-pub fn element<T>() -> impl Parser<T, Output = KSXRaw<T>>
+pub fn element<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -127,7 +131,7 @@ where
     choice((closed_element(), open_element()))
 }
 
-fn inline<T>() -> impl Parser<T, Output = KSXRaw<T>>
+fn inline<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -137,19 +141,19 @@ where
         m::symbol('}'),
         expression::expression().map(KSX::Inline),
     )
-    .map(KSXRaw::bind)
+    .map(KSXNode::bind)
 }
 
-fn text<T>() -> impl Parser<T, Output = KSXRaw<T>>
+fn text<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    m::lexeme(many1(none_of(vec!['<', '{'])).map(KSX::Text)).map(KSXRaw::bind)
+    m::lexeme(many1(none_of(vec!['<', '{'])).map(KSX::Text)).map(KSXNode::bind)
 }
 
 parser! {
-    fn child[T]()(T) -> KSXRaw<T>
+    fn child[T]()(T) -> KSXNode<T, ()>
     where
         [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
@@ -158,7 +162,7 @@ parser! {
 }
 
 parser! {
-    pub fn ksx[T]()(T) -> KSXRaw<T>
+    pub fn ksx[T]()(T) -> KSXNode<T, ()>
     where
         [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
@@ -168,7 +172,7 @@ parser! {
 
 #[cfg(test)]
 mod tests {
-    use super::{ksx, KSXRaw, KSX};
+    use super::{ksx, KSXNode, KSX};
     use crate::{
         parser::{
             expression::{primitive::Primitive, Expression},
@@ -178,7 +182,7 @@ mod tests {
     };
     use combine::{stream::position::Stream, EasyParser};
 
-    fn parse(s: &str) -> ParseResult<KSXRaw<CharStream>> {
+    fn parse(s: &str) -> ParseResult<KSXNode<CharStream, ()>> {
         ksx().easy_parse(Stream::new(s))
     }
 

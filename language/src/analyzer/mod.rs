@@ -1,14 +1,14 @@
-pub mod transform;
+// pub mod transform;
 pub mod weak;
 use crate::parser::{
-    declaration::{parameter::Parameter, storage::Storage, Declaration, DeclarationRaw},
+    declaration::{parameter::Parameter, storage::Storage, Declaration, DeclarationNode},
     expression::{
         binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
-        Expression, ExpressionRaw, UnaryOperator,
+        Expression, ExpressionNode, UnaryOperator,
     },
     module::{
         import::{Import, Target},
-        Module, ModuleRaw,
+        Module, ModuleNode,
     },
     position::Decrement,
     types::type_expression::TypeExpression,
@@ -19,9 +19,8 @@ use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap},
 };
-use weak::ExpressionWeak;
-
-use self::weak::WeakContext;
+// use weak::ExpressionWeak;
+// use self::weak::WeakContext;
 
 pub trait Transform<C, O> {
     fn transform(self, ctx: C) -> (O, C);
@@ -55,7 +54,7 @@ pub enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
-fn analyze<T>(x: ModuleRaw<T>)
+fn analyze<T>(x: ModuleNode<T>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -63,7 +62,7 @@ where
     let declarations =
         x.0.declarations
             .into_iter()
-            .map(|DeclarationRaw(x, range)| x)
+            .map(|DeclarationNode(x, range)| x)
             .collect::<Vec<_>>();
 }
 

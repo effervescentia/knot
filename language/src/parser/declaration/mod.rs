@@ -7,8 +7,8 @@ pub mod storage;
 mod type_alias;
 mod view;
 use crate::parser::{
-    expression::ExpressionRaw,
-    module::ModuleRaw,
+    expression::ExpressionNode,
+    module::ModuleNode,
     position::Decrement,
     range::{Range, Ranged},
     types::type_expression::TypeExpressionRaw,
@@ -50,15 +50,15 @@ pub enum Declaration<E, M, T> {
     },
 }
 
-type RawValue<T> = Declaration<ExpressionRaw<T>, ModuleRaw<T>, TypeExpressionRaw<T>>;
+type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T>, TypeExpressionRaw<T>>;
 
 #[derive(Debug, PartialEq)]
-pub struct DeclarationRaw<T>(pub RawValue<T>, pub Range<T>)
+pub struct DeclarationNode<T>(pub RawValue<T>, pub Range<T>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-impl<T> Ranged<RawValue<T>, T> for DeclarationRaw<T>
+impl<T> Ranged<RawValue<T>, T> for DeclarationNode<T>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -73,7 +73,7 @@ where
 }
 
 parser! {
-    pub fn declaration[T]()(T) -> DeclarationRaw<T>
+    pub fn declaration[T]()(T) -> DeclarationNode<T>
     where
         [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
@@ -92,7 +92,9 @@ parser! {
 mod tests {
     use crate::{
         parser::{
-            declaration::{declaration, storage::Visibility, Declaration, DeclarationRaw, Storage},
+            declaration::{
+                declaration, storage::Visibility, Declaration, DeclarationNode, Storage,
+            },
             expression::{primitive::Primitive, Expression},
             module::Module,
             types::type_expression::TypeExpression,
@@ -102,7 +104,7 @@ mod tests {
     };
     use combine::{stream::position::Stream, EasyParser};
 
-    fn parse(s: &str) -> ParseResult<DeclarationRaw<CharStream>> {
+    fn parse(s: &str) -> ParseResult<DeclarationNode<CharStream>> {
         declaration().easy_parse(Stream::new(s))
     }
 

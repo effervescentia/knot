@@ -1,4 +1,4 @@
-use super::{storage, Declaration, DeclarationRaw};
+use super::{storage, Declaration, DeclarationNode};
 use crate::parser::{
     matcher as m,
     position::Decrement,
@@ -27,7 +27,7 @@ where
     ))
 }
 
-pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
+pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -40,7 +40,7 @@ where
     .map(|((name, start), _, variants)| {
         let end = &variants.last().unwrap().2;
         let range = &start + &end;
-        DeclarationRaw(
+        DeclarationNode(
             Declaration::Enumerated {
                 name,
                 variants: variants

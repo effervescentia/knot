@@ -83,30 +83,3 @@ impl<'a> WeakContext<'a> {
         ctx.add_type(WeakType::Reference(id))
     }
 }
-
-#[derive(Debug, PartialEq)]
-pub struct ExpressionWeak<T>(pub Expression<usize, usize>, pub Range<T>)
-where
-    T: Stream,
-    T::Position: Copy + Debug + Decrement;
-
-#[derive(Debug, PartialEq)]
-pub struct KSXWeak<T>(pub KSX<usize, usize>, pub Range<T>)
-where
-    T: Stream,
-    T::Position: Copy + Debug + Decrement;
-
-#[derive(Debug, PartialEq)]
-pub struct TypeExpressionWeak<T>(pub TypeExpression<usize>, pub Range<T>)
-where
-    T: Stream,
-    T::Position: Copy + Debug + Decrement;
-
-#[derive(Debug, PartialEq)]
-pub struct DeclarationWeak<T>(pub Declaration<usize, usize, usize>, pub Range<T>)
-where
-    T: Stream,
-    T::Position: Copy + Debug + Decrement;
-
-#[derive(Debug, PartialEq)]
-pub struct ModuleWeak(pub Module<usize>);

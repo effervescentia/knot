@@ -1,9 +1,9 @@
-use super::{storage, Declaration, DeclarationRaw};
+use super::{storage, Declaration, DeclarationNode};
 use crate::parser::{matcher as m, position::Decrement, range::Ranged, types::type_expression};
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
-pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
+pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationNode<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -15,6 +15,6 @@ where
     ))
     .map(|((name, start), _, value)| {
         let range = &start + value.range();
-        DeclarationRaw(Declaration::TypeAlias { name, value }, range)
+        DeclarationNode(Declaration::TypeAlias { name, value }, range)
     })
 }

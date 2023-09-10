@@ -1,4 +1,4 @@
-use super::{parameter, storage, Declaration, DeclarationRaw};
+use super::{parameter, storage, Declaration, DeclarationNode};
 use crate::parser::{expression, matcher as m, position::Decrement, range::Ranged, types::typedef};
 use combine::{between, optional, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
@@ -11,7 +11,7 @@ use std::fmt::Debug;
 // func foo(): nil -> nil;
 // func foo(a, b: nil, c = 123) -> nil;
 
-pub fn function<T>() -> impl Parser<T, Output = DeclarationRaw<T>>
+pub fn function<T>() -> impl Parser<T, Output = DeclarationNode<T>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -29,7 +29,7 @@ where
     ))
     .map(|((name, start), parameters, body_type, _, body)| {
         let range = &start + body.range();
-        DeclarationRaw(
+        DeclarationNode(
             Declaration::Function {
                 name,
                 parameters: parameters.unwrap_or(vec![]),
