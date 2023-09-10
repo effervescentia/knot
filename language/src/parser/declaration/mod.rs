@@ -18,6 +18,8 @@ use parameter::Parameter;
 use std::fmt::Debug;
 use storage::Storage;
 
+use super::node::Node;
+
 #[derive(Debug, PartialEq)]
 pub enum Declaration<E, M, T> {
     TypeAlias {
@@ -53,7 +55,7 @@ pub enum Declaration<E, M, T> {
 type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)
+pub struct DeclarationNode<T, C>(pub Node<RawValue<T>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -64,21 +66,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
-        Self(x, range, ())
-    }
-}
-
-impl<T> Ranged<RawValue<T>, T> for DeclarationNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn value(self) -> RawValue<T> {
-        self.0
-    }
-
-    fn range(&self) -> &Range<T> {
-        &self.1
+        Self(Node::raw(x, range))
     }
 }
 

@@ -10,6 +10,7 @@ use crate::parser::{
         import::{Import, Target},
         Module, ModuleNode,
     },
+    node::Node,
     position::Decrement,
     types::type_expression::TypeExpression,
 };
@@ -59,10 +60,17 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    let mut next_id = 0;
+    let generate_id = || {
+        let id = next_id;
+        next_id += 1;
+        id
+    };
+
     let declarations =
         x.0.declarations
             .into_iter()
-            .map(|DeclarationNode(x, range, _)| x)
+            .map(|DeclarationNode(Node(x, range, _))| x)
             .collect::<Vec<_>>();
 }
 

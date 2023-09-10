@@ -49,6 +49,7 @@ where
             Primitive::Float(integer.parse::<f64>().unwrap(), integer.len() as i32)
         } else {
             let float = format!("{}.{}", integer, fraction);
+
             Primitive::Float(
                 float.parse::<f64>().unwrap(),
                 (integer.len() + fraction.len()) as i32,

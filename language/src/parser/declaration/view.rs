@@ -28,7 +28,7 @@ where
         expression::expression(),
     ))
     .map(|((name, start), attributes, _, body)| {
-        let range = &start + body.range();
+        let range = &start + body.0.range();
         DeclarationNode::raw(
             Declaration::View {
                 name,

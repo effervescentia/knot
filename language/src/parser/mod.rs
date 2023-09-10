@@ -2,6 +2,7 @@ pub mod declaration;
 pub mod expression;
 pub mod matcher;
 pub mod module;
+pub mod node;
 pub mod position;
 pub mod range;
 pub mod types;

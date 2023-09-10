@@ -14,7 +14,7 @@ where
         type_expression::type_expression(),
     ))
     .map(|((name, start), _, value)| {
-        let range = &start + value.range();
+        let range = &start + value.0.range();
         DeclarationNode::raw(Declaration::TypeAlias { name, value }, range)
     })
 }

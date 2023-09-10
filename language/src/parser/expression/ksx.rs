@@ -1,6 +1,7 @@
 use crate::parser::{
     expression::{self, ExpressionNode},
     matcher as m,
+    node::Node,
     position::Decrement,
     range::{Range, Ranged},
 };
@@ -19,7 +20,7 @@ pub enum KSX<E, K> {
 type RawValue<T> = KSX<ExpressionNode<T, ()>, KSXNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
-pub struct KSXNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)
+pub struct KSXNode<T, C>(pub Node<RawValue<T>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -30,25 +31,11 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
-        Self(x, range, ())
+        Self(Node::raw(x, range))
     }
 
     pub fn bind((x, range): (RawValue<T>, Range<T>)) -> Self {
         Self::raw(x, range)
-    }
-}
-
-impl<T> Ranged<RawValue<T>, T> for KSXNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn value(self) -> RawValue<T> {
-        self.0
-    }
-
-    fn range(&self) -> &Range<T> {
-        &self.1
     }
 }
 

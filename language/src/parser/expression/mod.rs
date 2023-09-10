@@ -3,6 +3,7 @@ pub mod ksx;
 pub mod primitive;
 pub mod statement;
 pub mod style;
+use super::node::Node;
 use crate::parser::{
     matcher as m,
     position::Decrement,
@@ -39,7 +40,7 @@ pub enum Expression<E, K> {
 type RawValue<T> = Expression<ExpressionNode<T, ()>, KSXNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ExpressionNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)
+pub struct ExpressionNode<T, C>(pub Node<RawValue<T>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -50,21 +51,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
-        ExpressionNode(x, range, ())
-    }
-}
-
-impl<T> Ranged<RawValue<T>, T> for ExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn value(self) -> RawValue<T> {
-        self.0
-    }
-
-    fn range(&self) -> &Range<T> {
-        &self.1
+        Self(Node::raw(x, range))
     }
 }
 
@@ -117,7 +104,8 @@ where
 {
     let operation = |c, op| {
         (position(), m::symbol(c), parser()).map(move |(start, _, x)| {
-            let range = x.range().include(start);
+            let range = x.0.range().include(start);
+
             ExpressionNode::raw(Expression::UnaryOperation(op, Box::new(x)), range)
         })
     };
@@ -140,7 +128,8 @@ where
         parser,
         m::symbol('.').with(m::standard_identifier()),
         |lhs, (rhs, end)| {
-            let range = lhs.range() + &end;
+            let range = lhs.0.range() + &end;
+
             ExpressionNode::raw(Expression::DotAccess(Box::new(lhs), rhs), range)
         },
     )
@@ -161,7 +150,8 @@ where
             sep_end_by::<Vec<_>, _, _, _>(rhs, m::symbol(',')),
         ),
         |acc, (args, end)| {
-            let range = acc.range() + &end;
+            let range = acc.0.range() + &end;
+
             ExpressionNode::raw(Expression::FunctionCall(Box::new(acc), args), range)
         },
     )
@@ -173,7 +163,8 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     ksx::ksx().map(|ksx| {
-        let range = ksx.range().clone();
+        let range = ksx.0.range().clone();
+
         ExpressionNode::raw(Expression::KSX(Box::new(ksx)), range)
     })
 }
