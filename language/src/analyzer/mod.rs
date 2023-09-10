@@ -54,7 +54,7 @@ pub enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
-fn analyze<T>(x: ModuleNode<T>)
+fn analyze<T>(x: ModuleNode<T, ()>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -62,7 +62,7 @@ where
     let declarations =
         x.0.declarations
             .into_iter()
-            .map(|DeclarationNode(x, range)| x)
+            .map(|DeclarationNode(x, range, _)| x)
             .collect::<Vec<_>>();
 }
 

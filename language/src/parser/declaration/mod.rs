@@ -50,15 +50,25 @@ pub enum Declaration<E, M, T> {
     },
 }
 
-type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T>, TypeExpressionRaw<T>>;
+type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionRaw<T>>;
 
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T>(pub RawValue<T>, pub Range<T>)
+pub struct DeclarationNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-impl<T> Ranged<RawValue<T>, T> for DeclarationNode<T>
+impl<T> DeclarationNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
+        Self(x, range, ())
+    }
+}
+
+impl<T> Ranged<RawValue<T>, T> for DeclarationNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -73,7 +83,7 @@ where
 }
 
 parser! {
-    pub fn declaration[T]()(T) -> DeclarationNode<T>
+    pub fn declaration[T]()(T) -> DeclarationNode<T, ()>
     where
         [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
@@ -104,7 +114,7 @@ mod tests {
     };
     use combine::{stream::position::Stream, EasyParser};
 
-    fn parse(s: &str) -> ParseResult<DeclarationNode<CharStream>> {
+    fn parse(s: &str) -> ParseResult<DeclarationNode<CharStream, ()>> {
         declaration().easy_parse(Stream::new(s))
     }
 

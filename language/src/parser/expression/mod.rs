@@ -270,13 +270,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::{
-        ksx::{KSXNode, KSX},
-        primitive::Primitive,
-        statement::Statement,
-        BinaryOperator, Expression, ExpressionNode, UnaryOperator,
+        ksx::KSX, primitive::Primitive, statement::Statement, BinaryOperator, Expression,
+        ExpressionNode, UnaryOperator,
     };
     use crate::{
-        parser::{range::Range, CharStream, ParseResult},
+        parser::{CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};

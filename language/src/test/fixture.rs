@@ -34,14 +34,14 @@ pub fn txr<'a>(
 pub fn dr<'a>(
     x: Declaration<
         ExpressionNode<CharStream<'a>, ()>,
-        ModuleNode<CharStream<'a>>,
+        ModuleNode<CharStream<'a>, ()>,
         TypeExpressionRaw<CharStream<'a>>,
     >,
     (start, end): ((i32, i32), (i32, i32)),
-) -> DeclarationNode<CharStream<'a>> {
-    DeclarationNode(x, Range::chars(start, end))
+) -> DeclarationNode<CharStream<'a>, ()> {
+    DeclarationNode::raw(x, Range::chars(start, end))
 }
 
-pub fn mr<'a>(x: Module<DeclarationNode<CharStream<'a>>>) -> ModuleNode<CharStream<'a>> {
-    ModuleNode(x)
+pub fn mr<'a>(x: Module<DeclarationNode<CharStream<'a>, ()>>) -> ModuleNode<CharStream<'a>, ()> {
+    ModuleNode::raw(x)
 }

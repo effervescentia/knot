@@ -27,7 +27,7 @@ where
     ))
 }
 
-pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<T>>
+pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -40,7 +40,8 @@ where
     .map(|((name, start), _, variants)| {
         let end = &variants.last().unwrap().2;
         let range = &start + &end;
-        DeclarationNode(
+
+        DeclarationNode::raw(
             Declaration::Enumerated {
                 name,
                 variants: variants

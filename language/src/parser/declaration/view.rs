@@ -12,7 +12,7 @@ use std::fmt::Debug;
 // view foo(props) -> nil;
 // view foo({a, b: nil, c = 123}) -> nil;
 
-pub fn view<T>() -> impl Parser<T, Output = DeclarationNode<T>>
+pub fn view<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -29,7 +29,7 @@ where
     ))
     .map(|((name, start), attributes, _, body)| {
         let range = &start + body.range();
-        DeclarationNode(
+        DeclarationNode::raw(
             Declaration::View {
                 name,
                 parameters: attributes.unwrap_or(vec![]),

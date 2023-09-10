@@ -3,7 +3,7 @@ use crate::parser::{matcher as m, position::Decrement, range::Ranged, types::typ
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
-pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationNode<T>>
+pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -15,6 +15,6 @@ where
     ))
     .map(|((name, start), _, value)| {
         let range = &start + value.range();
-        DeclarationNode(Declaration::TypeAlias { name, value }, range)
+        DeclarationNode::raw(Declaration::TypeAlias { name, value }, range)
     })
 }

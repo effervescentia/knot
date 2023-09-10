@@ -7,7 +7,7 @@ use crate::parser::{
 use combine::{Parser, Stream};
 use std::fmt::Debug;
 
-pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<T>>
+pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -20,7 +20,8 @@ where
     ))
     .map(|((name, start), value_type, _, value)| {
         let range = &start + value.range();
-        DeclarationNode(
+
+        DeclarationNode::raw(
             Declaration::Constant {
                 name,
                 value_type,
