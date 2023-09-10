@@ -4,17 +4,13 @@ pub mod primitive;
 pub mod statement;
 pub mod style;
 use super::node::Node;
-use crate::parser::{
-    matcher as m,
-    position::Decrement,
-    range::{Range, Ranged},
-};
+use crate::parser::{matcher as m, position::Decrement, range::Range};
 use binary_operation::BinaryOperator;
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
 use ksx::KSXNode;
 use primitive::Primitive;
 use statement::Statement;
-use std::{fmt::Debug, slice::RChunks};
+use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UnaryOperator {

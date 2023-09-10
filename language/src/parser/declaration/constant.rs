@@ -1,7 +1,6 @@
 use super::{storage, Declaration, DeclarationNode};
 use crate::parser::{
     expression,
-    range::Ranged,
     {matcher as m, position::Decrement, types::typedef},
 };
 use combine::{Parser, Stream};

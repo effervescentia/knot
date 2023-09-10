@@ -1,7 +1,4 @@
-use super::{
-    position::Decrement,
-    range::{Range, Ranged},
-};
+use super::{position::Decrement, range::Range};
 use combine::Stream;
 use std::fmt::Debug;
 
