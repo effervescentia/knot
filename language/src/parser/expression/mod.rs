@@ -49,52 +49,6 @@ where
     }
 }
 
-impl<T> ExpressionNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn to_ref(self) -> Expression<i32, i32> {
-        match self.0.value() {
-            Expression::Primitive(x) => Expression::Primitive(x),
-
-            Expression::Identifier(x) => Expression::Identifier(x),
-
-            Expression::Group(x) => Expression::Group(Box::new(x.0.id())),
-
-            Expression::Closure(xs) => Expression::Closure(
-                xs.into_iter()
-                    .map(|x| match x {
-                        Statement::Effect(x) => Statement::Effect(x.0.id()),
-                        Statement::Variable(name, x) => Statement::Variable(name, x.0.id()),
-                    })
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::UnaryOperation(op, x) => Expression::UnaryOperation(op, Box::new(x.0.id())),
-
-            Expression::BinaryOperation(op, lhs, rhs) => {
-                Expression::BinaryOperation(op, Box::new(lhs.0.id()), Box::new(rhs.0.id()))
-            }
-
-            Expression::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(lhs.0.id()), rhs),
-
-            Expression::FunctionCall(x, args) => Expression::FunctionCall(
-                Box::new(x.0.id()),
-                args.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
-            ),
-
-            Expression::Style(xs) => Expression::Style(
-                xs.into_iter()
-                    .map(|(key, value)| (key, value.0.id()))
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::KSX(x) => Expression::KSX(Box::new(x.0.id())),
-        }
-    }
-}
-
 fn primitive<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,

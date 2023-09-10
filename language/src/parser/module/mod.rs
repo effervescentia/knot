@@ -44,28 +44,6 @@ where
     }
 }
 
-impl<T> ModuleNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn id(self) -> i32 {
-        self.1
-    }
-
-    pub fn to_ref(self) -> Module<i32> {
-        Module {
-            imports: self.0.imports,
-            declarations: self
-                .0
-                .declarations
-                .into_iter()
-                .map(|x| x.0.id())
-                .collect::<Vec<_>>(),
-        }
-    }
-}
-
 pub fn module<T>() -> impl Parser<T, Output = ModuleNode<T, ()>>
 where
     T: Stream<Token = char>,

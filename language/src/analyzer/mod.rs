@@ -2,6 +2,7 @@
 mod declaration;
 mod expression;
 mod ksx;
+mod reference;
 mod type_expression;
 pub mod weak;
 use crate::parser::{

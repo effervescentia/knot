@@ -39,41 +39,6 @@ where
     }
 }
 
-impl<T> KSXNode<T, i32>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn to_ref(self) -> KSX<i32, i32> {
-        let attributes_to_refs = |xs: Vec<(String, Option<ExpressionNode<T, i32>>)>| {
-            xs.into_iter()
-                .map(|(key, value)| (key, value.map(|x| x.0.id())))
-                .collect::<Vec<_>>()
-        };
-
-        match self.0.value() {
-            KSX::Text(x) => KSX::Text(x),
-
-            KSX::Inline(x) => KSX::Inline(x.0.id()),
-
-            KSX::Fragment(xs) => {
-                KSX::Fragment(xs.into_iter().map(|x| x.0.id()).collect::<Vec<_>>())
-            }
-
-            KSX::ClosedElement(tag, attributes) => {
-                KSX::ClosedElement(tag, attributes_to_refs(attributes))
-            }
-
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
-                start_tag,
-                attributes_to_refs(attributes),
-                children.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
-                end_tag,
-            ),
-        }
-    }
-}
-
 fn fragment<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
     T: Stream<Token = char>,
