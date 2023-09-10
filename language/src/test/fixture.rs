@@ -6,7 +6,7 @@ use crate::parser::{
     },
     module::{Module, ModuleNode},
     range::Range,
-    types::type_expression::{TypeExpression, TypeExpressionRaw},
+    types::type_expression::{TypeExpression, TypeExpressionNode},
     CharStream,
 };
 
@@ -25,17 +25,17 @@ pub fn kxr<'a>(
 }
 
 pub fn txr<'a>(
-    x: TypeExpression<TypeExpressionRaw<CharStream<'a>>>,
+    x: TypeExpression<TypeExpressionNode<CharStream<'a>, ()>>,
     (start, end): ((i32, i32), (i32, i32)),
-) -> TypeExpressionRaw<CharStream<'a>> {
-    TypeExpressionRaw(x, Range::chars(start, end))
+) -> TypeExpressionNode<CharStream<'a>, ()> {
+    TypeExpressionNode::raw(x, Range::chars(start, end))
 }
 
 pub fn dr<'a>(
     x: Declaration<
         ExpressionNode<CharStream<'a>, ()>,
         ModuleNode<CharStream<'a>, ()>,
-        TypeExpressionRaw<CharStream<'a>>,
+        TypeExpressionNode<CharStream<'a>, ()>,
     >,
     (start, end): ((i32, i32), (i32, i32)),
 ) -> DeclarationNode<CharStream<'a>, ()> {

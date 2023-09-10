@@ -11,7 +11,7 @@ use crate::parser::{
     module::ModuleNode,
     position::Decrement,
     range::{Range, Ranged},
-    types::type_expression::TypeExpressionRaw,
+    types::type_expression::TypeExpressionNode,
 };
 use combine::{choice, parser, Stream};
 use parameter::Parameter;
@@ -50,7 +50,7 @@ pub enum Declaration<E, M, T> {
     },
 }
 
-type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionRaw<T>>;
+type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
 pub struct DeclarationNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)

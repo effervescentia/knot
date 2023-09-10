@@ -3,12 +3,12 @@ use crate::parser::{
     matcher as m,
     position::Decrement,
     range::Range,
-    types::type_expression::{self, TypeExpressionRaw},
+    types::type_expression::{self, TypeExpressionNode},
 };
 use combine::{attempt, choice, optional, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
 
-fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionRaw<T>>, Range<T>)>
+fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<T, ()>>, Range<T>)>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,

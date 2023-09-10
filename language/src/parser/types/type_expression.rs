@@ -24,15 +24,25 @@ pub enum TypeExpression<T> {
     // View(Vec<(String, TypeExpression)>),
 }
 
-type RawValue<T> = TypeExpression<TypeExpressionRaw<T>>;
+type RawValue<T> = TypeExpression<TypeExpressionNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionRaw<T>(pub RawValue<T>, pub Range<T>)
+pub struct TypeExpressionNode<T, C>(pub RawValue<T>, pub Range<T>, pub C)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
-impl<T> Ranged<RawValue<T>, T> for TypeExpressionRaw<T>
+impl<T> TypeExpressionNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
+        Self(x, range, ())
+    }
+}
+
+impl<T> Ranged<RawValue<T>, T> for TypeExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -46,20 +56,20 @@ where
     }
 }
 
-fn primitive<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn primitive<T>() -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     fn bind<U>(
         s: &'static str,
-        f: impl Fn() -> TypeExpression<TypeExpressionRaw<U>>,
-    ) -> impl Parser<U, Output = TypeExpressionRaw<U>>
+        f: impl Fn() -> TypeExpression<TypeExpressionNode<U, ()>>,
+    ) -> impl Parser<U, Output = TypeExpressionNode<U, ()>>
     where
         U: Stream<Token = char>,
         U::Position: Copy + Debug + Decrement,
     {
-        m::keyword(s).map(move |(_, range)| TypeExpressionRaw(f(), range))
+        m::keyword(s).map(move |(_, range)| TypeExpressionNode::raw(f(), range))
     }
 
     choice((
@@ -73,46 +83,47 @@ where
     ))
 }
 
-fn identifier<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn identifier<T>() -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     m::standard_identifier()
-        .map(|(x, range)| TypeExpressionRaw(TypeExpression::Identifier(x), range))
+        .map(|(x, range)| TypeExpressionNode::raw(TypeExpression::Identifier(x), range))
 }
 
-fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = TypeExpressionRaw<T>>,
+    P: Parser<T, Output = TypeExpressionNode<T, ()>>,
 {
-    m::between(m::symbol('('), m::symbol(')'), parser)
-        .map(|(inner, range)| TypeExpressionRaw(TypeExpression::Group(Box::new(inner)), range))
+    m::between(m::symbol('('), m::symbol(')'), parser).map(|(inner, range)| {
+        TypeExpressionNode::raw(TypeExpression::Group(Box::new(inner)), range)
+    })
 }
 
-fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = TypeExpressionRaw<T>>,
+    P: Parser<T, Output = TypeExpressionNode<T, ()>>,
 {
     m::folding(
         parser,
         m::symbol('.').with(m::standard_identifier()),
         |lhs, (rhs, end)| {
             let range = lhs.range() + &end;
-            TypeExpressionRaw(TypeExpression::DotAccess(Box::new(lhs), rhs), range)
+            TypeExpressionNode::raw(TypeExpression::DotAccess(Box::new(lhs), rhs), range)
         },
     )
 }
 
-fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = TypeExpressionRaw<T>>,
+    P: Parser<T, Output = TypeExpressionNode<T, ()>>,
 {
     (
         attempt(
@@ -127,14 +138,14 @@ where
     )
         .map(|((parameters, start), result)| {
             let range = &start + result.range();
-            TypeExpressionRaw(
+            TypeExpressionNode::raw(
                 TypeExpression::Function(parameters, Box::new(result)),
                 range,
             )
         })
 }
 
-fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -147,7 +158,7 @@ where
     ))
 }
 
-fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -156,7 +167,7 @@ where
 }
 
 // TODO: use this for lists ([], [][][])
-fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionRaw<T>>
+fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -165,7 +176,7 @@ where
 }
 
 parser! {
-    pub fn type_expression[T]()(T) -> TypeExpressionRaw<T>
+    pub fn type_expression[T]()(T) -> TypeExpressionNode<T, ()>
     where
         [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
     {
@@ -175,14 +186,14 @@ parser! {
 
 #[cfg(test)]
 mod tests {
-    use super::{TypeExpression, TypeExpressionRaw};
+    use super::{TypeExpression, TypeExpressionNode};
     use crate::{
         parser::{CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};
 
-    fn parse(s: &str) -> ParseResult<TypeExpressionRaw<CharStream>> {
+    fn parse(s: &str) -> ParseResult<TypeExpressionNode<CharStream, ()>> {
         super::type_expression().easy_parse(Stream::new(s))
     }
 
