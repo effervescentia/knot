@@ -29,7 +29,7 @@ impl<D> Module<D> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ModuleNode<T, C>(pub Module<DeclarationNode<T, ()>>, pub C)
+pub struct ModuleNode<T, C>(pub Module<DeclarationNode<T, C>>, pub C)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -41,6 +41,28 @@ where
 {
     pub fn raw(x: Module<DeclarationNode<T, ()>>) -> Self {
         Self(x, ())
+    }
+}
+
+impl<T> ModuleNode<T, i32>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn id(self) -> i32 {
+        self.1
+    }
+
+    pub fn to_ref(self) -> Module<i32> {
+        Module {
+            imports: self.0.imports,
+            declarations: self
+                .0
+                .declarations
+                .into_iter()
+                .map(|x| x.0.id())
+                .collect::<Vec<_>>(),
+        }
     }
 }
 

@@ -7,10 +7,7 @@ pub mod storage;
 mod type_alias;
 mod view;
 use crate::parser::{
-    expression::ExpressionNode,
-    module::ModuleNode,
-    position::Decrement,
-    range::{Range, Ranged},
+    expression::ExpressionNode, module::ModuleNode, position::Decrement, range::Range,
     types::type_expression::TypeExpressionNode,
 };
 use combine::{choice, parser, Stream};
@@ -52,10 +49,10 @@ pub enum Declaration<E, M, T> {
     },
 }
 
-type RawValue<T> = Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionNode<T, ()>>;
-
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T, C>(pub Node<RawValue<T>, T, C>)
+pub struct DeclarationNode<T, C>(
+    pub Node<Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>, T, C>,
+)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -65,8 +62,93 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
+    pub fn raw(
+        x: Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionNode<T, ()>>,
+        range: Range<T>,
+    ) -> Self {
         Self(Node::raw(x, range))
+    }
+}
+
+impl<T> DeclarationNode<T, i32>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn to_ref(self) -> Declaration<i32, i32, i32> {
+        let parameters_to_refs =
+            |xs: Vec<Parameter<ExpressionNode<T, i32>, TypeExpressionNode<T, i32>>>| {
+                xs.into_iter()
+                    .map(
+                        |Parameter {
+                             name,
+                             value_type,
+                             default_value,
+                         }| Parameter {
+                            name,
+                            value_type: value_type.map(|x| x.0.id()),
+                            default_value: default_value.map(|x| x.0.id()),
+                        },
+                    )
+                    .collect::<Vec<_>>()
+            };
+
+        match self.0.value() {
+            Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
+                name,
+                value: value.0.id(),
+            },
+
+            Declaration::Enumerated { name, variants } => Declaration::Enumerated {
+                name,
+                variants: variants
+                    .into_iter()
+                    .map(|(name, params)| {
+                        (
+                            name,
+                            params.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
+                        )
+                    })
+                    .collect::<Vec<_>>(),
+            },
+
+            Declaration::Constant {
+                name,
+                value_type,
+                value,
+            } => Declaration::Constant {
+                name,
+                value_type: value_type.map(|x| x.0.id()),
+                value: value.0.id(),
+            },
+
+            Declaration::Function {
+                name,
+                parameters,
+                body_type,
+                body,
+            } => Declaration::Function {
+                name,
+                parameters: parameters_to_refs(parameters),
+                body_type: body_type.map(|x| x.0.id()),
+                body: body.0.id(),
+            },
+
+            Declaration::View {
+                name,
+                parameters,
+                body,
+            } => Declaration::View {
+                name,
+                parameters: parameters_to_refs(parameters),
+                body: body.0.id(),
+            },
+
+            Declaration::Module { name, value } => Declaration::Module {
+                name,
+                value: value.id(),
+            },
+        }
     }
 }
 

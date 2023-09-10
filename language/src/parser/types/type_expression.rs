@@ -1,10 +1,6 @@
 use crate::{
     parser::matcher as m,
-    parser::{
-        node::Node,
-        position::Decrement,
-        range::{Range, Ranged},
-    },
+    parser::{node::Node, position::Decrement, range::Range},
 };
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
@@ -25,10 +21,8 @@ pub enum TypeExpression<T> {
     // View(Vec<(String, TypeExpression)>),
 }
 
-type RawValue<T> = TypeExpression<TypeExpressionNode<T, ()>>;
-
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionNode<T, C>(pub Node<RawValue<T>, T, C>)
+pub struct TypeExpressionNode<T, C>(pub Node<TypeExpression<TypeExpressionNode<T, C>>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -38,8 +32,39 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
+    pub fn raw(x: TypeExpression<TypeExpressionNode<T, ()>>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
+    }
+}
+
+impl<T> TypeExpressionNode<T, i32>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn to_ref(self) -> TypeExpression<i32> {
+        match self.0.value() {
+            TypeExpression::Nil => TypeExpression::Nil,
+            TypeExpression::Boolean => TypeExpression::Boolean,
+            TypeExpression::Integer => TypeExpression::Integer,
+            TypeExpression::Float => TypeExpression::Float,
+            TypeExpression::String => TypeExpression::String,
+            TypeExpression::Style => TypeExpression::Style,
+            TypeExpression::Element => TypeExpression::Element,
+
+            TypeExpression::Identifier(x) => TypeExpression::Identifier(x),
+
+            TypeExpression::Group(x) => TypeExpression::Group(Box::new((*x).0.id())),
+
+            TypeExpression::DotAccess(lhs, rhs) => {
+                TypeExpression::DotAccess(Box::new((*lhs).0.id()), rhs)
+            }
+
+            TypeExpression::Function(params, body) => TypeExpression::Function(
+                params.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
+                Box::new(body.0.id()),
+            ),
+        }
     }
 }
 

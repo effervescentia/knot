@@ -3,7 +3,7 @@ use crate::parser::{
     matcher as m,
     node::Node,
     position::Decrement,
-    range::{Range, Ranged},
+    range::Range,
 };
 use combine::{attempt, choice, many, many1, none_of, optional, parser, Parser, Stream};
 use std::{fmt::Debug, vec};
@@ -20,7 +20,7 @@ pub enum KSX<E, K> {
 type RawValue<T> = KSX<ExpressionNode<T, ()>, KSXNode<T, ()>>;
 
 #[derive(Debug, PartialEq)]
-pub struct KSXNode<T, C>(pub Node<RawValue<T>, T, C>)
+pub struct KSXNode<T, C>(pub Node<KSX<ExpressionNode<T, C>, KSXNode<T, C>>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -36,6 +36,41 @@ where
 
     pub fn bind((x, range): (RawValue<T>, Range<T>)) -> Self {
         Self::raw(x, range)
+    }
+}
+
+impl<T> KSXNode<T, i32>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn to_ref(self) -> KSX<i32, i32> {
+        let attributes_to_refs = |xs: Vec<(String, Option<ExpressionNode<T, i32>>)>| {
+            xs.into_iter()
+                .map(|(key, value)| (key, value.map(|x| x.0.id())))
+                .collect::<Vec<_>>()
+        };
+
+        match self.0.value() {
+            KSX::Text(x) => KSX::Text(x),
+
+            KSX::Inline(x) => KSX::Inline(x.0.id()),
+
+            KSX::Fragment(xs) => {
+                KSX::Fragment(xs.into_iter().map(|x| x.0.id()).collect::<Vec<_>>())
+            }
+
+            KSX::ClosedElement(tag, attributes) => {
+                KSX::ClosedElement(tag, attributes_to_refs(attributes))
+            }
+
+            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
+                start_tag,
+                attributes_to_refs(attributes),
+                children.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
+                end_tag,
+            ),
+        }
     }
 }
 
