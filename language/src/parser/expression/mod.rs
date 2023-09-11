@@ -39,6 +39,16 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
+impl<T, C> ExpressionNode<T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn node(&self) -> &Node<Expression<ExpressionNode<T, C>, KSXNode<T, C>>, T, C> {
+        &self.0
+    }
+}
+
 impl<T> ExpressionNode<T, ()>
 where
     T: Stream<Token = char>,

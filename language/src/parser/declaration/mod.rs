@@ -57,6 +57,19 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
+impl<T, C> DeclarationNode<T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn node(
+        &self,
+    ) -> &Node<Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>, T, C>
+    {
+        &self.0
+    }
+}
+
 impl<T> DeclarationNode<T, ()>
 where
     T: Stream<Token = char>,

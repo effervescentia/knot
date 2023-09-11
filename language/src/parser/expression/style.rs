@@ -1,5 +1,5 @@
 use super::{Expression, ExpressionNode};
-use crate::parser::{matcher as m, node::Node, position::Decrement};
+use crate::parser::{matcher as m, position::Decrement};
 use combine::{attempt, sep_end_by, Parser, Stream};
 use std::fmt::Debug;
 
@@ -27,6 +27,7 @@ where
     T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionNode<T, ()>>,
 {
-    attempt((m::keyword("style"), style_literal(parser)))
-        .map(|((_, start), ExpressionNode(Node(x, end, _)))| ExpressionNode::raw(x, &start + &end))
+    attempt((m::keyword("style"), style_literal(parser))).map(
+        |((_, start), ExpressionNode(node))| ExpressionNode(node.map_range(|end| &start + &end)),
+    )
 }

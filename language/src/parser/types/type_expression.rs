@@ -27,6 +27,16 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
+impl<T, C> TypeExpressionNode<T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn node(&self) -> &Node<TypeExpression<TypeExpressionNode<T, C>>, T, C> {
+        &self.0
+    }
+}
+
 impl<T> TypeExpressionNode<T, ()>
 where
     T: Stream<Token = char>,

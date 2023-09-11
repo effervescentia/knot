@@ -6,7 +6,10 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-pub fn analyze_expression<T>(x: ExpressionNode<T, ()>, ctx: &mut Context) -> ExpressionNode<T, i32>
+pub fn analyze_expression<T>(
+    x: ExpressionNode<T, ()>,
+    ctx: &mut Context,
+) -> ExpressionNode<T, usize>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -68,49 +71,32 @@ mod tests {
     use super::analyze_expression;
     use crate::{
         analyzer::Context,
-        parser::{
-            expression::{
-                binary_operation::BinaryOperator,
-                ksx::{KSXNode, KSX},
-                primitive::Primitive,
-                statement::Statement,
-                Expression, ExpressionNode, UnaryOperator,
-            },
-            node::Node,
-            range::Range,
-            CharStream,
+        parser::expression::{
+            binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
+            Expression, UnaryOperator,
         },
+        test::fixture as f,
     };
-
-    const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
 
     #[test]
     fn primitive() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
-            ctx,
-        );
+        let result = analyze_expression(f::xc(Expression::Primitive(Primitive::Nil), ()), ctx);
 
-        assert_eq!(
-            result,
-            ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 0))
-        )
+        assert_eq!(result, f::xc(Expression::Primitive(Primitive::Nil), 0))
     }
 
     #[test]
     fn identifier() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            ExpressionNode(Node(Expression::Identifier(String::from("foo")), RANGE, ())),
-            ctx,
-        );
+        let result =
+            analyze_expression(f::xc(Expression::Identifier(String::from("foo")), ()), ctx);
 
         assert_eq!(
             result,
-            ExpressionNode(Node(Expression::Identifier(String::from("foo")), RANGE, 0))
+            f::xc(Expression::Identifier(String::from("foo")), 0)
         )
     }
 
@@ -119,29 +105,19 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
-                Expression::Group(Box::new(ExpressionNode(Node(
-                    Expression::Primitive(Primitive::Nil),
-                    RANGE,
-                    (),
-                )))),
-                RANGE,
+            f::xc(
+                Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), ()))),
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
-                Expression::Group(Box::new(ExpressionNode(Node(
-                    Expression::Primitive(Primitive::Nil),
-                    RANGE,
-                    0,
-                )))),
-                RANGE,
+            f::xc(
+                Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0,))),
                 1,
-            ))
+            )
         )
     }
 
@@ -150,41 +126,31 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
+            f::xc(
                 Expression::Closure(vec![
                     Statement::Variable(
                         String::from("foo"),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                        f::xc(Expression::Primitive(Primitive::Nil), ()),
                     ),
-                    Statement::Effect(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        (),
-                    ))),
+                    Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), ())),
                 ]),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
+            f::xc(
                 Expression::Closure(vec![
                     Statement::Variable(
                         String::from("foo"),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 0)),
+                        f::xc(Expression::Primitive(Primitive::Nil), 0),
                     ),
-                    Statement::Effect(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        1,
-                    ))),
+                    Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), 1,)),
                 ]),
-                RANGE,
                 2,
-            ))
+            )
         )
     }
 
@@ -193,35 +159,25 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
+            f::xc(
                 Expression::UnaryOperation(
                     UnaryOperator::Not,
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        (),
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
                 ),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
+            f::xc(
                 Expression::UnaryOperation(
                     UnaryOperator::Not,
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        0,
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
                 ),
-                RANGE,
                 1,
-            ))
+            )
         )
     }
 
@@ -230,45 +186,27 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
+            f::xc(
                 Expression::BinaryOperation(
                     BinaryOperator::Equal,
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        (),
-                    ))),
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        (),
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
                 ),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
+            f::xc(
                 Expression::BinaryOperation(
                     BinaryOperator::Equal,
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        0,
-                    ))),
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        1,
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), 1,)),
                 ),
-                RANGE,
                 2,
-            ))
+            )
         )
     }
 
@@ -277,35 +215,25 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
+            f::xc(
                 Expression::DotAccess(
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        (),
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
                     String::from("foo"),
                 ),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
+            f::xc(
                 Expression::DotAccess(
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        0,
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
                     String::from("foo"),
                 ),
-                RANGE,
                 1,
-            ))
+            )
         )
     }
 
@@ -314,41 +242,31 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
+            f::xc(
                 Expression::FunctionCall(
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        (),
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
                     vec![
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                        f::xc(Expression::Primitive(Primitive::Nil), ()),
+                        f::xc(Expression::Primitive(Primitive::Nil), ()),
                     ],
                 ),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
+            f::xc(
                 Expression::FunctionCall(
-                    Box::new(ExpressionNode(Node(
-                        Expression::Primitive(Primitive::Nil),
-                        RANGE,
-                        0,
-                    ))),
+                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
                     vec![
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 1)),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 2)),
+                        f::xc(Expression::Primitive(Primitive::Nil), 1),
+                        f::xc(Expression::Primitive(Primitive::Nil), 2),
                     ],
                 ),
-                RANGE,
                 3,
-            ))
+            )
         )
     }
 
@@ -357,39 +275,37 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
+            f::xc(
                 Expression::Style(vec![
                     (
                         String::from("foo"),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                        f::xc(Expression::Primitive(Primitive::Nil), ()),
                     ),
                     (
                         String::from("bar"),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                        f::xc(Expression::Primitive(Primitive::Nil), ()),
                     ),
                 ]),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
+            f::xc(
                 Expression::Style(vec![
                     (
                         String::from("foo"),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 0)),
+                        f::xc(Expression::Primitive(Primitive::Nil), 0),
                     ),
                     (
                         String::from("bar"),
-                        ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 1)),
+                        f::xc(Expression::Primitive(Primitive::Nil), 1),
                     ),
                 ]),
-                RANGE,
                 2,
-            ))
+            )
         )
     }
 
@@ -398,29 +314,19 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_expression(
-            ExpressionNode(Node(
-                Expression::KSX(Box::new(KSXNode(Node(
-                    KSX::Text(String::from("foo")),
-                    RANGE,
-                    (),
-                )))),
-                RANGE,
+            f::xc(
+                Expression::KSX(Box::new(f::kxc(KSX::Text(String::from("foo")), ()))),
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            ExpressionNode(Node(
-                Expression::KSX(Box::new(KSXNode(Node(
-                    KSX::Text(String::from("foo")),
-                    RANGE,
-                    0,
-                )))),
-                RANGE,
+            f::xc(
+                Expression::KSX(Box::new(f::kxc(KSX::Text(String::from("foo")), 0,))),
                 1,
-            ))
+            )
         )
     }
 }

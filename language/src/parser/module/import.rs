@@ -18,7 +18,7 @@ pub enum Target {
     Module,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Import {
     pub source: Source,
     pub path: Vec<String>,

@@ -9,7 +9,7 @@ use std::fmt::Debug;
 pub fn analyze_type_expression<T>(
     x: TypeExpressionNode<T, ()>,
     ctx: &mut Context,
-) -> TypeExpressionNode<T, i32>
+) -> TypeExpressionNode<T, usize>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -50,30 +50,16 @@ where
 mod tests {
     use super::analyze_type_expression;
     use crate::{
-        analyzer::Context,
-        parser::{
-            node::Node,
-            range::Range,
-            types::type_expression::{TypeExpression, TypeExpressionNode},
-            CharStream,
-        },
+        analyzer::Context, parser::types::type_expression::TypeExpression, test::fixture as f,
     };
-
-    const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
 
     #[test]
     fn primitive() {
         let ctx = &mut Context::new();
 
-        let result = analyze_type_expression(
-            TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ())),
-            ctx,
-        );
+        let result = analyze_type_expression(f::txc(TypeExpression::Nil, ()), ctx);
 
-        assert_eq!(
-            result,
-            TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0))
-        )
+        assert_eq!(result, f::txc(TypeExpression::Nil, 0))
     }
 
     #[test]
@@ -81,21 +67,13 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_type_expression(
-            TypeExpressionNode(Node(
-                TypeExpression::Identifier(String::from("foo")),
-                RANGE,
-                (),
-            )),
+            f::txc(TypeExpression::Identifier(String::from("foo")), ()),
             ctx,
         );
 
         assert_eq!(
             result,
-            TypeExpressionNode(Node(
-                TypeExpression::Identifier(String::from("foo")),
-                RANGE,
-                0
-            ))
+            f::txc(TypeExpression::Identifier(String::from("foo")), 0)
         )
     }
 
@@ -104,29 +82,19 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_type_expression(
-            TypeExpressionNode(Node(
-                TypeExpression::Group(Box::new(TypeExpressionNode(Node(
-                    TypeExpression::Nil,
-                    RANGE,
-                    (),
-                )))),
-                RANGE,
+            f::txc(
+                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            TypeExpressionNode(Node(
-                TypeExpression::Group(Box::new(TypeExpressionNode(Node(
-                    TypeExpression::Nil,
-                    RANGE,
-                    0,
-                )))),
-                RANGE,
+            f::txc(
+                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, 0,))),
                 1,
-            ))
+            )
         )
     }
 
@@ -135,27 +103,25 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_type_expression(
-            TypeExpressionNode(Node(
+            f::txc(
                 TypeExpression::DotAccess(
-                    Box::new(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))),
+                    Box::new(f::txc(TypeExpression::Nil, ())),
                     String::from("foo"),
                 ),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            TypeExpressionNode(Node(
+            f::txc(
                 TypeExpression::DotAccess(
-                    Box::new(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0))),
+                    Box::new(f::txc(TypeExpression::Nil, 0)),
                     String::from("foo"),
                 ),
-                RANGE,
                 1,
-            ))
+            )
         )
     }
 
@@ -164,33 +130,31 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_type_expression(
-            TypeExpressionNode(Node(
+            f::txc(
                 TypeExpression::Function(
                     vec![
-                        TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ())),
-                        TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ())),
+                        f::txc(TypeExpression::Nil, ()),
+                        f::txc(TypeExpression::Nil, ()),
                     ],
-                    Box::new(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))),
+                    Box::new(f::txc(TypeExpression::Nil, ())),
                 ),
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            TypeExpressionNode(Node(
+            f::txc(
                 TypeExpression::Function(
                     vec![
-                        TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0)),
-                        TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 1)),
+                        f::txc(TypeExpression::Nil, 0),
+                        f::txc(TypeExpression::Nil, 1),
                     ],
-                    Box::new(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 2))),
+                    Box::new(f::txc(TypeExpression::Nil, 2)),
                 ),
-                RANGE,
                 3,
-            ))
+            )
         )
     }
 }

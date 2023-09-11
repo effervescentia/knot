@@ -11,7 +11,7 @@ use std::fmt::Debug;
 pub fn analyze_declaration<T>(
     x: DeclarationNode<T, ()>,
     ctx: &mut Context,
-) -> DeclarationNode<T, i32>
+) -> DeclarationNode<T, usize>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -108,48 +108,42 @@ mod tests {
             declaration::{
                 parameter::Parameter,
                 storage::{Storage, Visibility},
-                Declaration, DeclarationNode,
+                Declaration,
             },
-            expression::{primitive::Primitive, Expression, ExpressionNode},
+            expression::{primitive::Primitive, Expression},
             module::{
                 import::{Import, Source, Target},
                 Module, ModuleNode,
             },
-            node::Node,
-            range::Range,
-            types::type_expression::{TypeExpression, TypeExpressionNode},
-            CharStream,
+            types::type_expression::TypeExpression,
         },
+        test::fixture as f,
     };
-
-    const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
 
     #[test]
     fn type_alias() {
         let ctx = &mut Context::new();
 
         let result = analyze_declaration(
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::TypeAlias {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    value: TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ())),
+                    value: f::txc(TypeExpression::Nil, ()),
                 },
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::TypeAlias {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    value: TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0)),
+                    value: f::txc(TypeExpression::Nil, 0),
                 },
-                RANGE,
                 1,
-            ))
+            )
         )
     }
 
@@ -158,33 +152,25 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_declaration(
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Enumerated {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    variants: vec![(
-                        String::from("Bar"),
-                        vec![TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))],
-                    )],
+                    variants: vec![(String::from("Bar"), vec![f::txc(TypeExpression::Nil, ())])],
                 },
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Enumerated {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    variants: vec![(
-                        String::from("Bar"),
-                        vec![TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0))],
-                    )],
+                    variants: vec![(String::from("Bar"), vec![f::txc(TypeExpression::Nil, 0)],)],
                 },
-                RANGE,
                 1,
-            ))
+            )
         )
     }
 
@@ -193,29 +179,27 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_declaration(
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Constant {
                     name: Storage(Visibility::Public, String::from("FOO")),
-                    value_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))),
-                    value: ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                    value_type: Some(f::txc(TypeExpression::Nil, ())),
+                    value: f::xc(Expression::Primitive(Primitive::Nil), ()),
                 },
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Constant {
                     name: Storage(Visibility::Public, String::from("FOO")),
-                    value_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0))),
-                    value: ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 1)),
+                    value_type: Some(f::txc(TypeExpression::Nil, 0)),
+                    value: f::xc(Expression::Primitive(Primitive::Nil), 1),
                 },
-                RANGE,
                 2,
-            ))
+            )
         )
     }
 
@@ -224,47 +208,37 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_declaration(
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))),
-                        default_value: Some(ExpressionNode(Node(
-                            Expression::Primitive(Primitive::Nil),
-                            RANGE,
-                            (),
-                        ))),
+                        value_type: Some(f::txc(TypeExpression::Nil, ())),
+                        default_value: Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
                     }],
-                    body_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))),
-                    body: ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                    body_type: Some(f::txc(TypeExpression::Nil, ())),
+                    body: f::xc(Expression::Primitive(Primitive::Nil), ()),
                 },
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0))),
-                        default_value: Some(ExpressionNode(Node(
-                            Expression::Primitive(Primitive::Nil),
-                            RANGE,
-                            1
-                        ))),
+                        value_type: Some(f::txc(TypeExpression::Nil, 0)),
+                        default_value: Some(f::xc(Expression::Primitive(Primitive::Nil), 1)),
                     }],
-                    body_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 2))),
-                    body: ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 3)),
+                    body_type: Some(f::txc(TypeExpression::Nil, 2)),
+                    body: f::xc(Expression::Primitive(Primitive::Nil), 3),
                 },
-                RANGE,
                 4,
-            ))
+            )
         )
     }
 
@@ -273,45 +247,35 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_declaration(
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::View {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, ()))),
-                        default_value: Some(ExpressionNode(Node(
-                            Expression::Primitive(Primitive::Nil),
-                            RANGE,
-                            (),
-                        ))),
+                        value_type: Some(f::txc(TypeExpression::Nil, ())),
+                        default_value: Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
                     }],
-                    body: ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, ())),
+                    body: f::xc(Expression::Primitive(Primitive::Nil), ()),
                 },
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::View {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(TypeExpressionNode(Node(TypeExpression::Nil, RANGE, 0))),
-                        default_value: Some(ExpressionNode(Node(
-                            Expression::Primitive(Primitive::Nil),
-                            RANGE,
-                            1,
-                        ))),
+                        value_type: Some(f::txc(TypeExpression::Nil, 0)),
+                        default_value: Some(f::xc(Expression::Primitive(Primitive::Nil), 1,)),
                     }],
-                    body: ExpressionNode(Node(Expression::Primitive(Primitive::Nil), RANGE, 2)),
+                    body: f::xc(Expression::Primitive(Primitive::Nil), 2),
                 },
-                RANGE,
                 3,
-            ))
+            )
         )
     }
 
@@ -320,7 +284,7 @@ mod tests {
         let ctx = &mut Context::new();
 
         let result = analyze_declaration(
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     value: ModuleNode(
@@ -330,36 +294,26 @@ mod tests {
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                             }],
-                            declarations: vec![DeclarationNode(Node(
+                            declarations: vec![f::dc(
                                 Declaration::Constant {
                                     name: Storage(Visibility::Public, String::from("BUZZ")),
-                                    value_type: Some(TypeExpressionNode(Node(
-                                        TypeExpression::Nil,
-                                        RANGE,
-                                        (),
-                                    ))),
-                                    value: ExpressionNode(Node(
-                                        Expression::Primitive(Primitive::Nil),
-                                        RANGE,
-                                        (),
-                                    )),
+                                    value_type: Some(f::txc(TypeExpression::Nil, ())),
+                                    value: f::xc(Expression::Primitive(Primitive::Nil), ()),
                                 },
-                                RANGE,
                                 (),
-                            ))],
+                            )],
                         },
                         (),
                     ),
                 },
-                RANGE,
                 (),
-            )),
+            ),
             ctx,
         );
 
         assert_eq!(
             result,
-            DeclarationNode(Node(
+            f::dc(
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     value: ModuleNode(
@@ -369,30 +323,20 @@ mod tests {
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                             }],
-                            declarations: vec![DeclarationNode(Node(
+                            declarations: vec![f::dc(
                                 Declaration::Constant {
                                     name: Storage(Visibility::Public, String::from("BUZZ")),
-                                    value_type: Some(TypeExpressionNode(Node(
-                                        TypeExpression::Nil,
-                                        RANGE,
-                                        0,
-                                    ))),
-                                    value: ExpressionNode(Node(
-                                        Expression::Primitive(Primitive::Nil),
-                                        RANGE,
-                                        1,
-                                    )),
+                                    value_type: Some(f::txc(TypeExpression::Nil, 0,)),
+                                    value: f::xc(Expression::Primitive(Primitive::Nil), 1,),
                                 },
-                                RANGE,
                                 2,
-                            ))],
+                            )],
                         },
                         3,
                     ),
                 },
-                RANGE,
                 4,
-            ))
+            )
         )
     }
 }

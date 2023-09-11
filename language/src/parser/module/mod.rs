@@ -34,6 +34,20 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
+impl<T, C> ModuleNode<T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn imports(&self) -> &Vec<Import> {
+        &self.0.imports
+    }
+
+    pub fn declarations(&self) -> &Vec<DeclarationNode<T, C>> {
+        &self.0.declarations
+    }
+}
+
 impl<T> ModuleNode<T, ()>
 where
     T: Stream<Token = char>,

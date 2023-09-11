@@ -25,6 +25,16 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
 
+impl<T, C> KSXNode<T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn node(&self) -> &Node<KSX<ExpressionNode<T, C>, KSXNode<T, C>>, T, C> {
+        &self.0
+    }
+}
+
 impl<T> KSXNode<T, ()>
 where
     T: Stream<Token = char>,
