@@ -104,85 +104,95 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context},
+        analyzer::{Analyze, Context, Fragment},
         parser::expression::{ksx::KSX, primitive::Primitive, Expression},
         test::fixture as f,
     };
+    use std::collections::HashMap;
 
     #[test]
     fn text() {
         let ctx = &mut Context::new();
 
-        let result = f::kxc(KSX::Text(String::from("foo")), ()).register(ctx);
+        assert_eq!(
+            f::kxc(KSX::Text(String::from("foo")), ()).register(ctx),
+            f::kxc(KSX::Text(String::from("foo")), 0)
+        );
 
-        assert_eq!(result, f::kxc(KSX::Text(String::from("foo")), 0))
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![(0, Fragment::KSX(KSX::Text(String::from("foo"))))])
+        );
     }
 
     #[test]
     fn inline() {
         let ctx = &mut Context::new();
 
-        let result = f::kxc(
-            KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
+            f::kxc(
+                KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                (),
+            )
+            .register(ctx),
             f::kxc(
                 KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 0)),
                 1,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (
+                    0,
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                ),
+                (1, Fragment::KSX(KSX::Inline(0)))
+            ])
+        );
     }
 
     #[test]
     fn fragment() {
         let ctx = &mut Context::new();
 
-        let result = f::kxc(
-            KSX::Fragment(vec![f::kxc(
-                KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                (),
-            )]),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
             f::kxc(
                 KSX::Fragment(vec![f::kxc(
-                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
+                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                    (),
+                )]),
+                (),
+            )
+            .register(ctx),
+            f::kxc(
+                KSX::Fragment(vec![f::kxc(
+                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 0)),
                     1,
                 )]),
                 2,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (
+                    0,
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                ),
+                (1, Fragment::KSX(KSX::Inline(0))),
+                (2, Fragment::KSX(KSX::Fragment(vec![1])))
+            ])
+        );
     }
 
     #[test]
     fn closed_element() {
         let ctx = &mut Context::new();
 
-        let result = f::kxc(
-            KSX::ClosedElement(
-                String::from("Foo"),
-                vec![
-                    (String::from("bar"), None),
-                    (
-                        String::from("fizz"),
-                        Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    ),
-                ],
-            ),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
             f::kxc(
                 KSX::ClosedElement(
                     String::from("Foo"),
@@ -190,41 +200,54 @@ mod tests {
                         (String::from("bar"), None),
                         (
                             String::from("fizz"),
-                            Some(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
+                            Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                        ),
+                    ],
+                ),
+                (),
+            )
+            .register(ctx),
+            f::kxc(
+                KSX::ClosedElement(
+                    String::from("Foo"),
+                    vec![
+                        (String::from("bar"), None),
+                        (
+                            String::from("fizz"),
+                            Some(f::xc(Expression::Primitive(Primitive::Nil), 0)),
                         ),
                     ],
                 ),
                 1,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (
+                    0,
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                ),
+                (
+                    1,
+                    Fragment::KSX(KSX::ClosedElement(
+                        String::from("Foo"),
+                        vec![
+                            (String::from("bar"), None),
+                            (String::from("fizz"), Some(0),),
+                        ],
+                    ))
+                ),
+            ])
+        );
     }
 
     #[test]
     fn open_element() {
         let ctx = &mut Context::new();
 
-        let result = f::kxc(
-            KSX::OpenElement(
-                String::from("Foo"),
-                vec![
-                    (String::from("bar"), None),
-                    (
-                        String::from("fizz"),
-                        Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    ),
-                ],
-                vec![f::kxc(
-                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    (),
-                )],
-                String::from("Foo"),
-            ),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
             f::kxc(
                 KSX::OpenElement(
                     String::from("Foo"),
@@ -232,104 +255,63 @@ mod tests {
                         (String::from("bar"), None),
                         (
                             String::from("fizz"),
-                            Some(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
+                            Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
                         ),
                     ],
                     vec![f::kxc(
-                        KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 1,)),
+                        KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                        (),
+                    )],
+                    String::from("Foo"),
+                ),
+                (),
+            )
+            .register(ctx),
+            f::kxc(
+                KSX::OpenElement(
+                    String::from("Foo"),
+                    vec![
+                        (String::from("bar"), None),
+                        (
+                            String::from("fizz"),
+                            Some(f::xc(Expression::Primitive(Primitive::Nil), 0)),
+                        ),
+                    ],
+                    vec![f::kxc(
+                        KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 1)),
                         2,
                     )],
                     String::from("Foo"),
                 ),
                 3,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (
+                    0,
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                ),
+                (
+                    1,
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                ),
+                (2, Fragment::KSX(KSX::Inline(1))),
+                (
+                    3,
+                    Fragment::KSX(KSX::OpenElement(
+                        String::from("Foo"),
+                        vec![
+                            (String::from("bar"), None),
+                            (String::from("fizz"), Some(0),),
+                        ],
+                        vec![2],
+                        String::from("Foo"),
+                    ))
+                ),
+            ])
+        );
     }
-
-    // mod to_ref {
-
-    //     #[test]
-    //     fn ksx_text() {
-    //         let input = f::kxc(KSX::Text(String::from("foo")), 0);
-
-    //         assert_eq!(
-    //             input.node().value().to_ref(),
-    //             KSX::Text(String::from("foo"))
-    //         )
-    //     }
-
-    //     #[test]
-    //     fn ksx_inline() {
-    //         let input = f::kxc(
-    //             KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 0)),
-    //             1,
-    //         );
-
-    //         assert_eq!(input.node().value().to_ref(), KSX::Inline(0))
-    //     }
-
-    //     #[test]
-    //     fn ksx_fragment() {
-    //         let input = f::kxc(
-    //             KSX::Fragment(vec![f::kxc(KSX::Text(String::from("foo")), 0)]),
-    //             1,
-    //         );
-
-    //         assert_eq!(input.node().value().to_ref(), KSX::Fragment(vec![0]))
-    //     }
-
-    //     #[test]
-    //     fn ksx_closed_element() {
-    //         let input = f::kxc(
-    //             KSX::ClosedElement(
-    //                 String::from("Foo"),
-    //                 vec![
-    //                     (String::from("bar"), None),
-    //                     (
-    //                         String::from("fizz"),
-    //                         Some(f::xc(Expression::Primitive(Primitive::Nil), 0)),
-    //                     ),
-    //                 ],
-    //             ),
-    //             2,
-    //         );
-
-    //         assert_eq!(
-    //             input.node().value().to_ref(),
-    //             KSX::ClosedElement(
-    //                 String::from("Foo"),
-    //                 vec![(String::from("bar"), None), (String::from("fizz"), Some(0))],
-    //             )
-    //         )
-    //     }
-
-    //     #[test]
-    //     fn ksx_open_element() {
-    //         let input = f::kxc(
-    //             KSX::OpenElement(
-    //                 String::from("Foo"),
-    //                 vec![
-    //                     (String::from("bar"), None),
-    //                     (
-    //                         String::from("fizz"),
-    //                         Some(f::xc(Expression::Primitive(Primitive::Nil), 0)),
-    //                     ),
-    //                 ],
-    //                 vec![f::kxc(KSX::Text(String::from("buzz")), 1)],
-    //                 String::from("Foo"),
-    //             ),
-    //             2,
-    //         );
-
-    //         assert_eq!(
-    //             input.node().value().to_ref(),
-    //             KSX::OpenElement(
-    //                 String::from("Foo"),
-    //                 vec![(String::from("bar"), None), (String::from("fizz"), Some(0))],
-    //                 vec![1],
-    //                 String::from("Foo")
-    //             )
-    //         )
-    //     }
-    // }
 }

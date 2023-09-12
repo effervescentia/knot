@@ -39,6 +39,7 @@ pub enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Fragment {
     Expression(Expression<usize, usize>),
     KSX(KSX<usize, usize>),
@@ -80,26 +81,7 @@ where
 {
     let mut ctx = Context::new();
 
-    x.register(&mut ctx)
-}
+    let result = x.register(&mut ctx);
 
-#[cfg(test)]
-mod tests {
-    use super::Context;
-    use crate::{
-        analyzer::Analyze,
-        parser::{
-            declaration::{
-                storage::{Storage, Visibility},
-                Declaration,
-            },
-            expression::{primitive::Primitive, Expression},
-            module::{
-                import::{Import, Source, Target},
-                Module, ModuleNode,
-            },
-            types::type_expression::TypeExpression,
-        },
-        test::fixture as f,
-    };
+    result
 }

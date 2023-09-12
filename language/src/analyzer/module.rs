@@ -1,12 +1,10 @@
 use crate::parser::{
-    declaration::{Declaration, DeclarationNode},
-    expression::{ksx::KSX, Expression},
+    declaration::DeclarationNode,
     module::{Module, ModuleNode},
     position::Decrement,
-    types::type_expression::TypeExpression,
 };
 use combine::Stream;
-use std::{collections::HashMap, fmt::Debug};
+use std::fmt::Debug;
 
 use super::{Analyze, Context, Fragment};
 
@@ -63,7 +61,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context},
+        analyzer::{Analyze, Context, Fragment},
         parser::{
             declaration::{
                 storage::{Storage, Visibility},
@@ -78,33 +76,13 @@ mod tests {
         },
         test::fixture as f,
     };
+    use std::collections::HashMap;
 
     #[test]
     fn module() {
         let ctx = &mut Context::new();
 
-        let result = ModuleNode(
-            Module {
-                imports: vec![Import {
-                    source: Source::Root,
-                    path: vec![String::from("bar"), String::from("fizz")],
-                    aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
-                }],
-                declarations: vec![f::dc(
-                    Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("BUZZ")),
-                        value_type: Some(f::txc(TypeExpression::Nil, ())),
-                        value: f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    },
-                    (),
-                )],
-            },
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
             ModuleNode(
                 Module {
                     imports: vec![Import {
@@ -115,42 +93,63 @@ mod tests {
                     declarations: vec![f::dc(
                         Declaration::Constant {
                             name: Storage(Visibility::Public, String::from("BUZZ")),
-                            value_type: Some(f::txc(TypeExpression::Nil, 0,)),
-                            value: f::xc(Expression::Primitive(Primitive::Nil), 1,),
+                            value_type: Some(f::txc(TypeExpression::Nil, ())),
+                            value: f::xc(Expression::Primitive(Primitive::Nil), ()),
+                        },
+                        (),
+                    )],
+                },
+                (),
+            )
+            .register(ctx),
+            ModuleNode(
+                Module {
+                    imports: vec![Import {
+                        source: Source::Root,
+                        path: vec![String::from("bar"), String::from("fizz")],
+                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                    }],
+                    declarations: vec![f::dc(
+                        Declaration::Constant {
+                            name: Storage(Visibility::Public, String::from("BUZZ")),
+                            value_type: Some(f::txc(TypeExpression::Nil, 0)),
+                            value: f::xc(Expression::Primitive(Primitive::Nil), 1),
                         },
                         2,
                     )],
                 },
                 3,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    1,
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                ),
+                (
+                    2,
+                    Fragment::Declaration(Declaration::Constant {
+                        name: Storage(Visibility::Public, String::from("BUZZ")),
+                        value_type: Some(0),
+                        value: 1,
+                    })
+                ),
+                (
+                    3,
+                    Fragment::Module(Module {
+                        imports: vec![Import {
+                            source: Source::Root,
+                            path: vec![String::from("bar"), String::from("fizz")],
+                            aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                        }],
+                        declarations: vec![2],
+                    })
+                ),
+            ])
+        );
     }
-
-    // mod to_ref {
-    //     #[test]
-    //     fn module() {
-    //         let input = ModuleNode(
-    //             Module {
-    //                 imports: vec![Import::new(Source::Root, vec![String::from("foo")], None)],
-    //                 declarations: vec![f::dc(
-    //                     Declaration::Constant {
-    //                         name: Storage(Visibility::Public, String::from("FOO")),
-    //                         value_type: Some(f::txc(TypeExpression::Nil, 0)),
-    //                         value: f::xc(Expression::Primitive(Primitive::Nil), 1),
-    //                     },
-    //                     2,
-    //                 )],
-    //             },
-    //             3,
-    //         );
-
-    //         assert_eq!(
-    //             input.0.to_ref(),
-    //             Module {
-    //                 imports: vec![Import::new(Source::Root, vec![String::from("foo")], None)],
-    //                 declarations: vec![2],
-    //             }
-    //         )
-    //     }
-    // }
 }

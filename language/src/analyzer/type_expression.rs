@@ -80,66 +80,86 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context},
+        analyzer::{Analyze, Context, Fragment},
         parser::types::type_expression::TypeExpression,
         test::fixture as f,
     };
+    use std::collections::HashMap;
 
     #[test]
     fn primitive() {
         let ctx = &mut Context::new();
 
-        let result = f::txc(TypeExpression::Nil, ()).register(ctx);
+        assert_eq!(
+            f::txc(TypeExpression::Nil, ()).register(ctx),
+            f::txc(TypeExpression::Nil, 0)
+        );
 
-        assert_eq!(result, f::txc(TypeExpression::Nil, 0))
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![(0, Fragment::TypeExpression(TypeExpression::Nil))])
+        );
     }
 
     #[test]
     fn identifier() {
         let ctx = &mut Context::new();
 
-        let result = f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(ctx);
+        assert_eq!(
+            f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(ctx),
+            f::txc(TypeExpression::Identifier(String::from("foo")), 0)
+        );
 
         assert_eq!(
-            result,
-            f::txc(TypeExpression::Identifier(String::from("foo")), 0)
-        )
+            ctx.fragments,
+            HashMap::from_iter(vec![(
+                0,
+                Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
+            )])
+        );
     }
 
     #[test]
     fn group() {
         let ctx = &mut Context::new();
 
-        let result = f::txc(
-            TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
             f::txc(
-                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, 0,))),
+                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
+                (),
+            )
+            .register(ctx),
+            f::txc(
+                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, 0))),
                 1,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    1,
+                    Fragment::TypeExpression(TypeExpression::Group(Box::new(0)))
+                )
+            ])
+        );
     }
 
     #[test]
     fn dot_access() {
         let ctx = &mut Context::new();
 
-        let result = f::txc(
-            TypeExpression::DotAccess(
-                Box::new(f::txc(TypeExpression::Nil, ())),
-                String::from("foo"),
-            ),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
+            f::txc(
+                TypeExpression::DotAccess(
+                    Box::new(f::txc(TypeExpression::Nil, ())),
+                    String::from("foo"),
+                ),
+                (),
+            )
+            .register(ctx),
             f::txc(
                 TypeExpression::DotAccess(
                     Box::new(f::txc(TypeExpression::Nil, 0)),
@@ -147,27 +167,39 @@ mod tests {
                 ),
                 1,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    1,
+                    Fragment::TypeExpression(TypeExpression::DotAccess(
+                        Box::new(0),
+                        String::from("foo"),
+                    ))
+                )
+            ])
+        );
     }
 
     #[test]
     fn function() {
         let ctx = &mut Context::new();
 
-        let result = f::txc(
-            TypeExpression::Function(
-                vec![
-                    f::txc(TypeExpression::Nil, ()),
-                    f::txc(TypeExpression::Nil, ()),
-                ],
-                Box::new(f::txc(TypeExpression::Nil, ())),
-            ),
-            (),
-        )
-        .register(ctx);
-
         assert_eq!(
-            result,
+            f::txc(
+                TypeExpression::Function(
+                    vec![
+                        f::txc(TypeExpression::Nil, ()),
+                        f::txc(TypeExpression::Nil, ()),
+                    ],
+                    Box::new(f::txc(TypeExpression::Nil, ())),
+                ),
+                (),
+            )
+            .register(ctx),
             f::txc(
                 TypeExpression::Function(
                     vec![
@@ -178,6 +210,19 @@ mod tests {
                 ),
                 3,
             )
-        )
+        );
+
+        assert_eq!(
+            ctx.fragments,
+            HashMap::from_iter(vec![
+                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (1, Fragment::TypeExpression(TypeExpression::Nil)),
+                (2, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    3,
+                    Fragment::TypeExpression(TypeExpression::Function(vec![0, 1], Box::new(2)))
+                )
+            ])
+        );
     }
 }
