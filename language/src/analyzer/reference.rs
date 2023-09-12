@@ -1,6 +1,6 @@
 use super::Context;
 use crate::parser::{
-    declaration::{parameter::Parameter, Declaration},
+    declaration::{parameter::Parameter, Declaration, DeclarationNode},
     expression::{
         ksx::{KSXNode, KSX},
         statement::Statement,
@@ -234,21 +234,17 @@ where
     }
 }
 
-impl<'a, T> ToRef<'a, Module<usize>> for ModuleNode<T, usize>
+impl<'a, T> ToRef<'a, Module<usize>> for Module<DeclarationNode<T, usize>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     fn to_ref(&'a self) -> Module<usize> {
         Module {
-            imports: self
-                .imports()
-                .into_iter()
-                .map(|x| x.clone())
-                .collect::<Vec<_>>(),
+            imports: self.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
             declarations: self
-                .declarations()
-                .into_iter()
+                .declarations
+                .iter()
                 .map(|x| x.0.id())
                 .collect::<Vec<_>>(),
         }
@@ -684,7 +680,7 @@ mod tests {
         );
 
         assert_eq!(
-            input.to_ref(),
+            input.0.to_ref(),
             Module {
                 imports: vec![Import::new(Source::Root, vec![String::from("foo")], None)],
                 declarations: vec![2],

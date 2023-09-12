@@ -5,7 +5,7 @@ mod reference;
 mod type_expression;
 pub mod weak;
 use crate::parser::{
-    declaration::Declaration,
+    declaration::{Declaration, DeclarationNode},
     expression::{ksx::KSX, Expression},
     module::{Module, ModuleNode},
     position::Decrement,
@@ -13,6 +13,8 @@ use crate::parser::{
 };
 use combine::Stream;
 use std::{collections::HashMap, fmt::Debug};
+
+use self::reference::ToRef;
 
 pub trait Register<T>: Sized {
     fn register(self, ctx: &mut Context) -> T;
@@ -74,10 +76,10 @@ where
 {
     let mut ctx = Context::new();
 
-    analyze_module(x, &mut ctx)
+    x.register(&mut ctx)
 }
 
-fn analyze_module<T>(x: ModuleNode<T, ()>, ctx: &mut Context) -> ModuleNode<T, usize>
+fn identify_module<T>(x: ModuleNode<T, ()>, ctx: &mut Context) -> Module<DeclarationNode<T, usize>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -85,23 +87,34 @@ where
     let declarations =
         x.0.declarations
             .into_iter()
-            .map(|x| declaration::analyze_declaration(x, ctx))
+            .map(|x| x.register(ctx))
             .collect::<Vec<_>>();
 
-    ModuleNode(
-        Module {
-            imports: x.0.imports,
-            declarations,
-        },
-        ctx.generate_id(),
-    )
+    Module {
+        imports: x.0.imports,
+        declarations,
+    }
+}
+
+impl<T> Register<ModuleNode<T, usize>> for ModuleNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn register(self, ctx: &mut Context) -> ModuleNode<T, usize> {
+        let module = identify_module(self, ctx);
+        let fragment = Fragment::Module(module.to_ref());
+        let id = ctx.register(fragment);
+
+        ModuleNode(module, id)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Context;
     use crate::{
-        analyzer::analyze_module,
+        analyzer::Register,
         parser::{
             declaration::{
                 storage::{Storage, Visibility},
@@ -121,27 +134,25 @@ mod tests {
     fn module() {
         let ctx = &mut Context::new();
 
-        let result = analyze_module(
-            ModuleNode(
-                Module {
-                    imports: vec![Import {
-                        source: Source::Root,
-                        path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
-                    }],
-                    declarations: vec![f::dc(
-                        Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("BUZZ")),
-                            value_type: Some(f::txc(TypeExpression::Nil, ())),
-                            value: f::xc(Expression::Primitive(Primitive::Nil), ()),
-                        },
-                        (),
-                    )],
-                },
-                (),
-            ),
-            ctx,
-        );
+        let result = ModuleNode(
+            Module {
+                imports: vec![Import {
+                    source: Source::Root,
+                    path: vec![String::from("bar"), String::from("fizz")],
+                    aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                }],
+                declarations: vec![f::dc(
+                    Declaration::Constant {
+                        name: Storage(Visibility::Public, String::from("BUZZ")),
+                        value_type: Some(f::txc(TypeExpression::Nil, ())),
+                        value: f::xc(Expression::Primitive(Primitive::Nil), ()),
+                    },
+                    (),
+                )],
+            },
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,

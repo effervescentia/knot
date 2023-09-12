@@ -1,4 +1,4 @@
-use super::{expression, reference::ToRef, Context, Register};
+use super::{reference::ToRef, Context, Register};
 use crate::{
     analyzer::Fragment,
     parser::{
@@ -13,61 +13,6 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-pub fn analyze_ksx<T>(x: KSXNode<T, ()>, ctx: &mut Context) -> KSXNode<T, usize>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    let analyze_attributes = |xs: Vec<(String, Option<ExpressionNode<T, ()>>)>,
-                              ctx: &mut Context| {
-        xs.into_iter()
-            .map(|(key, value)| (key, value.map(|x| expression::analyze_expression(x, ctx))))
-            .collect::<Vec<_>>()
-    };
-
-    let analyze_children = |xs: Vec<KSXNode<T, ()>>, ctx: &mut Context| {
-        xs.into_iter()
-            .map(|x| analyze_ksx(x, ctx))
-            .collect::<Vec<_>>()
-    };
-
-    KSXNode(
-        x.0.map(|x| match x {
-            KSX::Text(x) => KSX::Text(x),
-
-            KSX::Inline(x) => KSX::Inline(expression::analyze_expression(x, ctx)),
-
-            KSX::Fragment(children) => KSX::Fragment(analyze_children(children, ctx)),
-
-            KSX::ClosedElement(tag, attributes) => {
-                KSX::ClosedElement(tag, analyze_attributes(attributes, ctx))
-            }
-
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
-                start_tag,
-                analyze_attributes(attributes, ctx),
-                analyze_children(children, ctx),
-                end_tag,
-            ),
-        })
-        .with_context(ctx.generate_id()),
-    )
-}
-
-impl<T> Register<KSXNode<T, usize>> for KSXNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn register(self, ctx: &mut Context) -> KSXNode<T, usize> {
-        let node = identify_ksx(self, ctx);
-        let fragment = Fragment::KSX(node.value().to_ref());
-        let id = ctx.register(fragment);
-
-        KSXNode(node.with_context(id))
-    }
-}
-
 fn identify_attributes<T>(
     xs: Vec<(String, Option<ExpressionNode<T, ()>>)>,
     ctx: &mut Context,
@@ -77,7 +22,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     xs.into_iter()
-        .map(|(key, value)| (key, value.map(|x| expression::analyze_expression(x, ctx))))
+        .map(|(key, value)| (key, value.map(|x| x.register(ctx))))
         .collect::<Vec<_>>()
 }
 
@@ -86,12 +31,10 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    xs.into_iter()
-        .map(|x| analyze_ksx(x, ctx))
-        .collect::<Vec<_>>()
+    xs.into_iter().map(|x| x.register(ctx)).collect::<Vec<_>>()
 }
 
-pub fn identify_ksx<T>(
+fn identify_ksx<T>(
     x: KSXNode<T, ()>,
     ctx: &mut Context,
 ) -> Node<KSX<ExpressionNode<T, usize>, KSXNode<T, usize>>, T, ()>
@@ -102,7 +45,7 @@ where
     x.0.map(|x| match x {
         KSX::Text(x) => KSX::Text(x),
 
-        KSX::Inline(x) => KSX::Inline(expression::analyze_expression(x, ctx)),
+        KSX::Inline(x) => KSX::Inline(x.register(ctx)),
 
         KSX::Fragment(children) => KSX::Fragment(identify_children(children, ctx)),
 
@@ -119,11 +62,25 @@ where
     })
 }
 
+impl<T> Register<KSXNode<T, usize>> for KSXNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn register(self, ctx: &mut Context) -> KSXNode<T, usize> {
+        let node = identify_ksx(self, ctx);
+        let fragment = Fragment::KSX(node.value().to_ref());
+        let id = ctx.register(fragment);
+
+        KSXNode(node.with_context(id))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::analyze_ksx;
+    // use super::analyze_ksx;
     use crate::{
-        analyzer::Context,
+        analyzer::{Context, Register},
         parser::expression::{ksx::KSX, primitive::Primitive, Expression},
         test::fixture as f,
     };
@@ -132,7 +89,7 @@ mod tests {
     fn text() {
         let ctx = &mut Context::new();
 
-        let result = analyze_ksx(f::kxc(KSX::Text(String::from("foo")), ()), ctx);
+        let result = f::kxc(KSX::Text(String::from("foo")), ()).register(ctx);
 
         assert_eq!(result, f::kxc(KSX::Text(String::from("foo")), 0))
     }
@@ -141,13 +98,11 @@ mod tests {
     fn inline() {
         let ctx = &mut Context::new();
 
-        let result = analyze_ksx(
-            f::kxc(
-                KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                (),
-            ),
-            ctx,
-        );
+        let result = f::kxc(
+            KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -162,16 +117,14 @@ mod tests {
     fn fragment() {
         let ctx = &mut Context::new();
 
-        let result = analyze_ksx(
-            f::kxc(
-                KSX::Fragment(vec![f::kxc(
-                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    (),
-                )]),
+        let result = f::kxc(
+            KSX::Fragment(vec![f::kxc(
+                KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
                 (),
-            ),
-            ctx,
-        );
+            )]),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -189,22 +142,20 @@ mod tests {
     fn closed_element() {
         let ctx = &mut Context::new();
 
-        let result = analyze_ksx(
-            f::kxc(
-                KSX::ClosedElement(
-                    String::from("Foo"),
-                    vec![
-                        (String::from("bar"), None),
-                        (
-                            String::from("fizz"),
-                            Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                        ),
-                    ],
-                ),
-                (),
+        let result = f::kxc(
+            KSX::ClosedElement(
+                String::from("Foo"),
+                vec![
+                    (String::from("bar"), None),
+                    (
+                        String::from("fizz"),
+                        Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                    ),
+                ],
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -228,27 +179,25 @@ mod tests {
     fn open_element() {
         let ctx = &mut Context::new();
 
-        let result = analyze_ksx(
-            f::kxc(
-                KSX::OpenElement(
-                    String::from("Foo"),
-                    vec![
-                        (String::from("bar"), None),
-                        (
-                            String::from("fizz"),
-                            Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                        ),
-                    ],
-                    vec![f::kxc(
-                        KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                        (),
-                    )],
-                    String::from("Foo"),
-                ),
-                (),
+        let result = f::kxc(
+            KSX::OpenElement(
+                String::from("Foo"),
+                vec![
+                    (String::from("bar"), None),
+                    (
+                        String::from("fizz"),
+                        Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                    ),
+                ],
+                vec![f::kxc(
+                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                    (),
+                )],
+                String::from("Foo"),
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,

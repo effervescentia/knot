@@ -1,76 +1,83 @@
-use super::{ksx, Context};
+use super::{reference::ToRef, Context, Fragment, Register};
 use crate::parser::{
-    expression::{statement::Statement, Expression, ExpressionNode},
+    expression::{ksx::KSXNode, statement::Statement, Expression, ExpressionNode},
+    node::Node,
     position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-pub fn analyze_expression<T>(
+fn identify_expression<T>(
     x: ExpressionNode<T, ()>,
     ctx: &mut Context,
-) -> ExpressionNode<T, usize>
+) -> Node<Expression<ExpressionNode<T, usize>, KSXNode<T, usize>>, T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    ExpressionNode(
-        x.0.map(|x| match x {
-            Expression::Primitive(x) => Expression::Primitive(x),
+    x.0.map(|x| match x {
+        Expression::Primitive(x) => Expression::Primitive(x),
 
-            Expression::Identifier(x) => Expression::Identifier(x),
+        Expression::Identifier(x) => Expression::Identifier(x),
 
-            Expression::Group(x) => Expression::Group(Box::new(analyze_expression(*x, ctx))),
+        Expression::Group(x) => Expression::Group(Box::new((*x).register(ctx))),
 
-            Expression::Closure(xs) => Expression::Closure(
-                xs.into_iter()
-                    .map(|x| match x {
-                        Statement::Effect(x) => Statement::Effect(analyze_expression(x, ctx)),
-                        Statement::Variable(name, x) => {
-                            Statement::Variable(name, analyze_expression(x, ctx))
-                        }
-                    })
-                    .collect::<Vec<_>>(),
-            ),
+        Expression::Closure(xs) => Expression::Closure(
+            xs.into_iter()
+                .map(|x| match x {
+                    Statement::Effect(x) => Statement::Effect(x.register(ctx)),
+                    Statement::Variable(name, x) => Statement::Variable(name, x.register(ctx)),
+                })
+                .collect::<Vec<_>>(),
+        ),
 
-            Expression::UnaryOperation(op, lhs) => {
-                Expression::UnaryOperation(op, Box::new(analyze_expression(*lhs, ctx)))
-            }
+        Expression::UnaryOperation(op, lhs) => {
+            Expression::UnaryOperation(op, Box::new(lhs.register(ctx)))
+        }
 
-            Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
-                op,
-                Box::new(analyze_expression(*lhs, ctx)),
-                Box::new(analyze_expression(*rhs, ctx)),
-            ),
+        Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
+            op,
+            Box::new(lhs.register(ctx)),
+            Box::new(rhs.register(ctx)),
+        ),
 
-            Expression::DotAccess(lhs, rhs) => {
-                Expression::DotAccess(Box::new(analyze_expression(*lhs, ctx)), rhs)
-            }
+        Expression::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(lhs.register(ctx)), rhs),
 
-            Expression::FunctionCall(x, args) => Expression::FunctionCall(
-                Box::new(analyze_expression(*x, ctx)),
-                args.into_iter()
-                    .map(|x| analyze_expression(x, ctx))
-                    .collect::<Vec<_>>(),
-            ),
+        Expression::FunctionCall(x, args) => Expression::FunctionCall(
+            Box::new((*x).register(ctx)),
+            args.into_iter()
+                .map(|x| x.register(ctx))
+                .collect::<Vec<_>>(),
+        ),
 
-            Expression::Style(xs) => Expression::Style(
-                xs.into_iter()
-                    .map(|(key, value)| (key, analyze_expression(value, ctx)))
-                    .collect::<Vec<_>>(),
-            ),
+        Expression::Style(xs) => Expression::Style(
+            xs.into_iter()
+                .map(|(key, value)| (key, value.register(ctx)))
+                .collect::<Vec<_>>(),
+        ),
 
-            Expression::KSX(x) => Expression::KSX(Box::new(ksx::analyze_ksx(*x, ctx))),
-        })
-        .with_context(ctx.generate_id()),
-    )
+        Expression::KSX(x) => Expression::KSX(Box::new((*x).register(ctx))),
+    })
+}
+
+impl<T> Register<ExpressionNode<T, usize>> for ExpressionNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn register(self, ctx: &mut Context) -> ExpressionNode<T, usize> {
+        let node = identify_expression(self, ctx);
+        let fragment = Fragment::Expression(node.value().to_ref());
+        let id = ctx.register(fragment);
+
+        ExpressionNode(node.with_context(id))
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::analyze_expression;
     use crate::{
-        analyzer::Context,
+        analyzer::{Context, Register},
         parser::expression::{
             binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
             Expression, UnaryOperator,
@@ -82,7 +89,7 @@ mod tests {
     fn primitive() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(f::xc(Expression::Primitive(Primitive::Nil), ()), ctx);
+        let result = f::xc(Expression::Primitive(Primitive::Nil), ()).register(ctx);
 
         assert_eq!(result, f::xc(Expression::Primitive(Primitive::Nil), 0))
     }
@@ -91,8 +98,7 @@ mod tests {
     fn identifier() {
         let ctx = &mut Context::new();
 
-        let result =
-            analyze_expression(f::xc(Expression::Identifier(String::from("foo")), ()), ctx);
+        let result = f::xc(Expression::Identifier(String::from("foo")), ()).register(ctx);
 
         assert_eq!(
             result,
@@ -104,13 +110,11 @@ mod tests {
     fn group() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), ()))),
-                (),
-            ),
-            ctx,
-        );
+        let result = f::xc(
+            Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), ()))),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -125,19 +129,17 @@ mod tests {
     fn closure() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::Closure(vec![
-                    Statement::Variable(
-                        String::from("foo"),
-                        f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    ),
-                    Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                ]),
-                (),
-            ),
-            ctx,
-        );
+        let result = f::xc(
+            Expression::Closure(vec![
+                Statement::Variable(
+                    String::from("foo"),
+                    f::xc(Expression::Primitive(Primitive::Nil), ()),
+                ),
+                Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), ())),
+            ]),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -158,16 +160,14 @@ mod tests {
     fn unary_operation() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::UnaryOperation(
-                    UnaryOperator::Not,
-                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                ),
-                (),
+        let result = f::xc(
+            Expression::UnaryOperation(
+                UnaryOperator::Not,
+                Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -185,17 +185,15 @@ mod tests {
     fn binary_operation() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::BinaryOperation(
-                    BinaryOperator::Equal,
-                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                ),
-                (),
+        let result = f::xc(
+            Expression::BinaryOperation(
+                BinaryOperator::Equal,
+                Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -214,16 +212,14 @@ mod tests {
     fn dot_access() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::DotAccess(
-                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    String::from("foo"),
-                ),
-                (),
+        let result = f::xc(
+            Expression::DotAccess(
+                Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                String::from("foo"),
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -241,19 +237,17 @@ mod tests {
     fn function_call() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::FunctionCall(
-                    Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    vec![
-                        f::xc(Expression::Primitive(Primitive::Nil), ()),
-                        f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    ],
-                ),
-                (),
+        let result = f::xc(
+            Expression::FunctionCall(
+                Box::new(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                vec![
+                    f::xc(Expression::Primitive(Primitive::Nil), ()),
+                    f::xc(Expression::Primitive(Primitive::Nil), ()),
+                ],
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -274,22 +268,20 @@ mod tests {
     fn style() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::Style(vec![
-                    (
-                        String::from("foo"),
-                        f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    ),
-                    (
-                        String::from("bar"),
-                        f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    ),
-                ]),
-                (),
-            ),
-            ctx,
-        );
+        let result = f::xc(
+            Expression::Style(vec![
+                (
+                    String::from("foo"),
+                    f::xc(Expression::Primitive(Primitive::Nil), ()),
+                ),
+                (
+                    String::from("bar"),
+                    f::xc(Expression::Primitive(Primitive::Nil), ()),
+                ),
+            ]),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -313,13 +305,11 @@ mod tests {
     fn ksx() {
         let ctx = &mut Context::new();
 
-        let result = analyze_expression(
-            f::xc(
-                Expression::KSX(Box::new(f::kxc(KSX::Text(String::from("foo")), ()))),
-                (),
-            ),
-            ctx,
-        );
+        let result = f::xc(
+            Expression::KSX(Box::new(f::kxc(KSX::Text(String::from("foo")), ()))),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,

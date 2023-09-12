@@ -1,5 +1,6 @@
-use super::Context;
+use super::{reference::ToRef, Context, Fragment, Register};
 use crate::parser::{
+    node::Node,
     position::Decrement,
     types::type_expression::{TypeExpression, TypeExpressionNode},
 };
@@ -44,6 +45,57 @@ where
         })
         .with_context(ctx.generate_id()),
     )
+}
+
+fn identify_type_expression<T>(
+    x: TypeExpressionNode<T, ()>,
+    ctx: &mut Context,
+) -> Node<TypeExpression<TypeExpressionNode<T, usize>>, T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    x.0.map(|x| match x {
+        TypeExpression::Nil => TypeExpression::Nil,
+        TypeExpression::Boolean => TypeExpression::Boolean,
+        TypeExpression::Integer => TypeExpression::Integer,
+        TypeExpression::Float => TypeExpression::Float,
+        TypeExpression::String => TypeExpression::String,
+        TypeExpression::Style => TypeExpression::Style,
+        TypeExpression::Element => TypeExpression::Element,
+
+        TypeExpression::Identifier(x) => TypeExpression::Identifier(x),
+
+        TypeExpression::Group(x) => {
+            TypeExpression::Group(Box::new(analyze_type_expression(*x, ctx)))
+        }
+
+        TypeExpression::DotAccess(lhs, rhs) => {
+            TypeExpression::DotAccess(Box::new(analyze_type_expression(*lhs, ctx)), rhs)
+        }
+
+        TypeExpression::Function(params, body) => TypeExpression::Function(
+            params
+                .into_iter()
+                .map(|x| analyze_type_expression(x, ctx))
+                .collect::<Vec<_>>(),
+            Box::new(analyze_type_expression(*body, ctx)),
+        ),
+    })
+}
+
+impl<T> Register<TypeExpressionNode<T, usize>> for TypeExpressionNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn register(self, ctx: &mut Context) -> TypeExpressionNode<T, usize> {
+        let node = identify_type_expression(self, ctx);
+        let fragment = Fragment::TypeExpression(node.value().to_ref());
+        let id = ctx.register(fragment);
+
+        TypeExpressionNode(node.with_context(id))
+    }
 }
 
 #[cfg(test)]
