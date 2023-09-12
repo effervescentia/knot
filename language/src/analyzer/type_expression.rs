@@ -1,4 +1,4 @@
-use super::{reference::ToRef, Context, Fragment, Register};
+use super::{Analyze, Context, Fragment};
 use crate::parser::{
     node::Node,
     position::Decrement,
@@ -7,16 +7,24 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-pub fn analyze_type_expression<T>(
-    x: TypeExpressionNode<T, ()>,
-    ctx: &mut Context,
-) -> TypeExpressionNode<T, usize>
+impl<T> Analyze<TypeExpressionNode<T, usize>, TypeExpression<usize>> for TypeExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    TypeExpressionNode(
-        x.0.map(|x| match x {
+    type Value<C> = TypeExpression<TypeExpressionNode<T, C>>;
+
+    fn register(self, ctx: &mut Context) -> TypeExpressionNode<T, usize> {
+        let node = self.0;
+        let value = Self::identify(node.0, ctx);
+        let fragment = Fragment::TypeExpression(Self::to_ref(&value));
+        let id = ctx.register(fragment);
+
+        TypeExpressionNode(Node(value, node.1, id))
+    }
+
+    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+        match value {
             TypeExpression::Nil => TypeExpression::Nil,
             TypeExpression::Boolean => TypeExpression::Boolean,
             TypeExpression::Integer => TypeExpression::Integer,
@@ -27,89 +35,61 @@ where
 
             TypeExpression::Identifier(x) => TypeExpression::Identifier(x),
 
-            TypeExpression::Group(x) => {
-                TypeExpression::Group(Box::new(analyze_type_expression(*x, ctx)))
-            }
+            TypeExpression::Group(x) => TypeExpression::Group(Box::new((*x).register(ctx))),
 
             TypeExpression::DotAccess(lhs, rhs) => {
-                TypeExpression::DotAccess(Box::new(analyze_type_expression(*lhs, ctx)), rhs)
+                TypeExpression::DotAccess(Box::new((*lhs).register(ctx)), rhs)
             }
 
             TypeExpression::Function(params, body) => TypeExpression::Function(
                 params
                     .into_iter()
-                    .map(|x| analyze_type_expression(x, ctx))
+                    .map(|x| x.register(ctx))
                     .collect::<Vec<_>>(),
-                Box::new(analyze_type_expression(*body, ctx)),
+                Box::new((*body).register(ctx)),
             ),
-        })
-        .with_context(ctx.generate_id()),
-    )
-}
-
-fn identify_type_expression<T>(
-    x: TypeExpressionNode<T, ()>,
-    ctx: &mut Context,
-) -> Node<TypeExpression<TypeExpressionNode<T, usize>>, T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    x.0.map(|x| match x {
-        TypeExpression::Nil => TypeExpression::Nil,
-        TypeExpression::Boolean => TypeExpression::Boolean,
-        TypeExpression::Integer => TypeExpression::Integer,
-        TypeExpression::Float => TypeExpression::Float,
-        TypeExpression::String => TypeExpression::String,
-        TypeExpression::Style => TypeExpression::Style,
-        TypeExpression::Element => TypeExpression::Element,
-
-        TypeExpression::Identifier(x) => TypeExpression::Identifier(x),
-
-        TypeExpression::Group(x) => {
-            TypeExpression::Group(Box::new(analyze_type_expression(*x, ctx)))
         }
+    }
 
-        TypeExpression::DotAccess(lhs, rhs) => {
-            TypeExpression::DotAccess(Box::new(analyze_type_expression(*lhs, ctx)), rhs)
+    fn to_ref<'a>(value: &'a Self::Value<usize>) -> TypeExpression<usize> {
+        match value {
+            TypeExpression::Nil => TypeExpression::Nil,
+            TypeExpression::Boolean => TypeExpression::Boolean,
+            TypeExpression::Integer => TypeExpression::Integer,
+            TypeExpression::Float => TypeExpression::Float,
+            TypeExpression::String => TypeExpression::String,
+            TypeExpression::Style => TypeExpression::Style,
+            TypeExpression::Element => TypeExpression::Element,
+
+            TypeExpression::Identifier(x) => TypeExpression::Identifier(x.clone()),
+
+            TypeExpression::Group(x) => TypeExpression::Group(Box::new((*x).0.id())),
+
+            TypeExpression::DotAccess(lhs, rhs) => {
+                TypeExpression::DotAccess(Box::new((*lhs).0.id()), rhs.clone())
+            }
+
+            TypeExpression::Function(params, body) => TypeExpression::Function(
+                params.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
+                Box::new(body.0.id()),
+            ),
         }
-
-        TypeExpression::Function(params, body) => TypeExpression::Function(
-            params
-                .into_iter()
-                .map(|x| analyze_type_expression(x, ctx))
-                .collect::<Vec<_>>(),
-            Box::new(analyze_type_expression(*body, ctx)),
-        ),
-    })
-}
-
-impl<T> Register<TypeExpressionNode<T, usize>> for TypeExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn register(self, ctx: &mut Context) -> TypeExpressionNode<T, usize> {
-        let node = identify_type_expression(self, ctx);
-        let fragment = Fragment::TypeExpression(node.value().to_ref());
-        let id = ctx.register(fragment);
-
-        TypeExpressionNode(node.with_context(id))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::analyze_type_expression;
     use crate::{
-        analyzer::Context, parser::types::type_expression::TypeExpression, test::fixture as f,
+        analyzer::{Analyze, Context},
+        parser::types::type_expression::TypeExpression,
+        test::fixture as f,
     };
 
     #[test]
     fn primitive() {
         let ctx = &mut Context::new();
 
-        let result = analyze_type_expression(f::txc(TypeExpression::Nil, ()), ctx);
+        let result = f::txc(TypeExpression::Nil, ()).register(ctx);
 
         assert_eq!(result, f::txc(TypeExpression::Nil, 0))
     }
@@ -118,10 +98,7 @@ mod tests {
     fn identifier() {
         let ctx = &mut Context::new();
 
-        let result = analyze_type_expression(
-            f::txc(TypeExpression::Identifier(String::from("foo")), ()),
-            ctx,
-        );
+        let result = f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(ctx);
 
         assert_eq!(
             result,
@@ -133,13 +110,11 @@ mod tests {
     fn group() {
         let ctx = &mut Context::new();
 
-        let result = analyze_type_expression(
-            f::txc(
-                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
-                (),
-            ),
-            ctx,
-        );
+        let result = f::txc(
+            TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -154,16 +129,14 @@ mod tests {
     fn dot_access() {
         let ctx = &mut Context::new();
 
-        let result = analyze_type_expression(
-            f::txc(
-                TypeExpression::DotAccess(
-                    Box::new(f::txc(TypeExpression::Nil, ())),
-                    String::from("foo"),
-                ),
-                (),
+        let result = f::txc(
+            TypeExpression::DotAccess(
+                Box::new(f::txc(TypeExpression::Nil, ())),
+                String::from("foo"),
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,
@@ -181,19 +154,17 @@ mod tests {
     fn function() {
         let ctx = &mut Context::new();
 
-        let result = analyze_type_expression(
-            f::txc(
-                TypeExpression::Function(
-                    vec![
-                        f::txc(TypeExpression::Nil, ()),
-                        f::txc(TypeExpression::Nil, ()),
-                    ],
-                    Box::new(f::txc(TypeExpression::Nil, ())),
-                ),
-                (),
+        let result = f::txc(
+            TypeExpression::Function(
+                vec![
+                    f::txc(TypeExpression::Nil, ()),
+                    f::txc(TypeExpression::Nil, ()),
+                ],
+                Box::new(f::txc(TypeExpression::Nil, ())),
             ),
-            ctx,
-        );
+            (),
+        )
+        .register(ctx);
 
         assert_eq!(
             result,

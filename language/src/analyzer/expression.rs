@@ -1,4 +1,4 @@
-use super::{reference::ToRef, Context, Fragment, Register};
+use super::{Analyze, Context, Fragment};
 use crate::parser::{
     expression::{ksx::KSXNode, statement::Statement, Expression, ExpressionNode},
     node::Node,
@@ -7,77 +7,119 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-fn identify_expression<T>(
-    x: ExpressionNode<T, ()>,
-    ctx: &mut Context,
-) -> Node<Expression<ExpressionNode<T, usize>, KSXNode<T, usize>>, T, ()>
+impl<T> Analyze<ExpressionNode<T, usize>, Expression<usize, usize>> for ExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    x.0.map(|x| match x {
-        Expression::Primitive(x) => Expression::Primitive(x),
+    type Value<C> = Expression<ExpressionNode<T, C>, KSXNode<T, C>>;
 
-        Expression::Identifier(x) => Expression::Identifier(x),
-
-        Expression::Group(x) => Expression::Group(Box::new((*x).register(ctx))),
-
-        Expression::Closure(xs) => Expression::Closure(
-            xs.into_iter()
-                .map(|x| match x {
-                    Statement::Effect(x) => Statement::Effect(x.register(ctx)),
-                    Statement::Variable(name, x) => Statement::Variable(name, x.register(ctx)),
-                })
-                .collect::<Vec<_>>(),
-        ),
-
-        Expression::UnaryOperation(op, lhs) => {
-            Expression::UnaryOperation(op, Box::new(lhs.register(ctx)))
-        }
-
-        Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
-            op,
-            Box::new(lhs.register(ctx)),
-            Box::new(rhs.register(ctx)),
-        ),
-
-        Expression::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(lhs.register(ctx)), rhs),
-
-        Expression::FunctionCall(x, args) => Expression::FunctionCall(
-            Box::new((*x).register(ctx)),
-            args.into_iter()
-                .map(|x| x.register(ctx))
-                .collect::<Vec<_>>(),
-        ),
-
-        Expression::Style(xs) => Expression::Style(
-            xs.into_iter()
-                .map(|(key, value)| (key, value.register(ctx)))
-                .collect::<Vec<_>>(),
-        ),
-
-        Expression::KSX(x) => Expression::KSX(Box::new((*x).register(ctx))),
-    })
-}
-
-impl<T> Register<ExpressionNode<T, usize>> for ExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
     fn register(self, ctx: &mut Context) -> ExpressionNode<T, usize> {
-        let node = identify_expression(self, ctx);
-        let fragment = Fragment::Expression(node.value().to_ref());
+        let node = self.0;
+        let value = Self::identify(node.0, ctx);
+        let fragment = Fragment::Expression(Self::to_ref(&value));
         let id = ctx.register(fragment);
 
-        ExpressionNode(node.with_context(id))
+        ExpressionNode(Node(value, node.1, id))
+    }
+
+    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+        match value {
+            Expression::Primitive(x) => Expression::Primitive(x),
+
+            Expression::Identifier(x) => Expression::Identifier(x),
+
+            Expression::Group(x) => Expression::Group(Box::new((*x).register(ctx))),
+
+            Expression::Closure(xs) => Expression::Closure(
+                xs.into_iter()
+                    .map(|x| match x {
+                        Statement::Effect(x) => Statement::Effect(x.register(ctx)),
+                        Statement::Variable(name, x) => Statement::Variable(name, x.register(ctx)),
+                    })
+                    .collect::<Vec<_>>(),
+            ),
+
+            Expression::UnaryOperation(op, lhs) => {
+                Expression::UnaryOperation(op, Box::new(lhs.register(ctx)))
+            }
+
+            Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
+                op,
+                Box::new(lhs.register(ctx)),
+                Box::new(rhs.register(ctx)),
+            ),
+
+            Expression::DotAccess(lhs, rhs) => {
+                Expression::DotAccess(Box::new(lhs.register(ctx)), rhs)
+            }
+
+            Expression::FunctionCall(x, args) => Expression::FunctionCall(
+                Box::new((*x).register(ctx)),
+                args.into_iter()
+                    .map(|x| x.register(ctx))
+                    .collect::<Vec<_>>(),
+            ),
+
+            Expression::Style(xs) => Expression::Style(
+                xs.into_iter()
+                    .map(|(key, value)| (key, value.register(ctx)))
+                    .collect::<Vec<_>>(),
+            ),
+
+            Expression::KSX(x) => Expression::KSX(Box::new((*x).register(ctx))),
+        }
+    }
+
+    fn to_ref<'a>(value: &'a Self::Value<usize>) -> Expression<usize, usize> {
+        match value {
+            Expression::Primitive(x) => Expression::Primitive(x.clone()),
+
+            Expression::Identifier(x) => Expression::Identifier(x.clone()),
+
+            Expression::Group(x) => Expression::Group(Box::new(x.node().id())),
+
+            Expression::Closure(xs) => Expression::Closure(
+                xs.into_iter()
+                    .map(|x| match x {
+                        Statement::Effect(x) => Statement::Effect(x.0.id()),
+                        Statement::Variable(name, x) => Statement::Variable(name.clone(), x.0.id()),
+                    })
+                    .collect::<Vec<_>>(),
+            ),
+
+            Expression::UnaryOperation(op, x) => {
+                Expression::UnaryOperation(op.clone(), Box::new(x.0.id()))
+            }
+
+            Expression::BinaryOperation(op, lhs, rhs) => {
+                Expression::BinaryOperation(op.clone(), Box::new(lhs.0.id()), Box::new(rhs.0.id()))
+            }
+
+            Expression::DotAccess(lhs, rhs) => {
+                Expression::DotAccess(Box::new(lhs.0.id()), rhs.clone())
+            }
+
+            Expression::FunctionCall(x, args) => Expression::FunctionCall(
+                Box::new(x.0.id()),
+                args.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
+            ),
+
+            Expression::Style(xs) => Expression::Style(
+                xs.into_iter()
+                    .map(|(key, value)| (key.clone(), value.0.id()))
+                    .collect::<Vec<_>>(),
+            ),
+
+            Expression::KSX(x) => Expression::KSX(Box::new(x.0.id())),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Context, Register},
+        analyzer::{Analyze, Context},
         parser::expression::{
             binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
             Expression, UnaryOperator,
@@ -319,4 +361,171 @@ mod tests {
             )
         )
     }
+
+    // mod to_ref {
+    //     use super::*;
+
+    //     #[test]
+    //     fn primitive() {
+    //         let input = f::xc(Expression::Primitive(Primitive::Nil), 0);
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::Primitive(Primitive::Nil)
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn identifier() {
+    //         let input = f::xc(Expression::Identifier(String::from("foo")), 0);
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::Identifier(String::from("foo"))
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn group() {
+    //         let input = f::xc(
+    //             Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0))),
+    //             1,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::Group(Box::new(0))
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn closure() {
+    //         let input = f::xc(
+    //             Expression::Closure(vec![
+    //                 Statement::Variable(
+    //                     String::from("foo"),
+    //                     f::xc(Expression::Primitive(Primitive::Nil), 0),
+    //                 ),
+    //                 Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), 1)),
+    //             ]),
+    //             2,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::Closure(vec![
+    //                 Statement::Variable(String::from("foo"), 0),
+    //                 Statement::Effect(1),
+    //             ])
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn unary_operation() {
+    //         let input = f::xc(
+    //             Expression::UnaryOperation(
+    //                 UnaryOperator::Not,
+    //                 Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0)),
+    //             ),
+    //             1,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::UnaryOperation(UnaryOperator::Not, Box::new(0))
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn binary_operation() {
+    //         let input: ExpressionNode<
+    //             combine::easy::Stream<
+    //                 combine::stream::position::Stream<
+    //                     &str,
+    //                     combine::stream::position::SourcePosition,
+    //                 >,
+    //             >,
+    //             usize,
+    //         > = f::xc(
+    //             Expression::BinaryOperation(
+    //                 BinaryOperator::Equal,
+    //                 Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0)),
+    //                 Box::new(f::xc(Expression::Primitive(Primitive::Nil), 1)),
+    //             ),
+    //             2,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::BinaryOperation(BinaryOperator::Equal, Box::new(0), Box::new(1))
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn dot_access() {
+    //         let input = f::xc(
+    //             Expression::DotAccess(
+    //                 Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0)),
+    //                 String::from("foo"),
+    //             ),
+    //             1,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::DotAccess(Box::new(0), String::from("foo"))
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn function_call() {
+    //         let input = f::xc(
+    //             Expression::FunctionCall(
+    //                 Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0)),
+    //                 vec![
+    //                     f::xc(Expression::Primitive(Primitive::Nil), 1),
+    //                     f::xc(Expression::Primitive(Primitive::Nil), 2),
+    //                 ],
+    //             ),
+    //             3,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::FunctionCall(Box::new(0), vec![1, 2])
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn style() {
+    //         let input = f::xc(
+    //             Expression::Style(vec![
+    //                 (
+    //                     String::from("foo"),
+    //                     f::xc(Expression::Primitive(Primitive::Nil), 0),
+    //                 ),
+    //                 (
+    //                     String::from("bar"),
+    //                     f::xc(Expression::Primitive(Primitive::Nil), 1),
+    //                 ),
+    //             ]),
+    //             2,
+    //         );
+
+    //         assert_eq!(
+    //             input.node().value().to_ref(),
+    //             Expression::Style(vec![(String::from("foo"), 0), (String::from("bar"), 1)])
+    //         )
+    //     }
+
+    //     #[test]
+    //     fn ksx() {
+    //         let input = f::xc(
+    //             Expression::KSX(Box::new(f::kxc(KSX::Fragment(vec![]), 0))),
+    //             1,
+    //         );
+
+    //         assert_eq!(input.node().value().to_ref(), Expression::KSX(Box::new(0)))
+    //     }
+    // }
 }

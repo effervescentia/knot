@@ -3,7 +3,7 @@ use combine::Stream;
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
-pub struct Node<T, S, C>(T, pub Range<S>, pub C)
+pub struct Node<T, S, C>(pub T, pub Range<S>, pub C)
 where
     S: Stream<Token = char>,
     S::Position: Copy + Debug + Decrement;
@@ -37,6 +37,10 @@ where
 
     pub fn map<R>(self, f: impl FnOnce(T) -> R) -> Node<R, S, C> {
         Node(f(self.0), self.1, self.2)
+    }
+
+    pub fn with_value<R>(self, x: R) -> Node<R, S, C> {
+        Node(x, self.1, self.2)
     }
 
     pub fn map_range(self, f: impl FnOnce(Range<S>) -> Range<S>) -> Node<T, S, C> {
