@@ -1,25 +1,23 @@
+pub mod context;
 mod declaration;
 mod expression;
+mod fragment;
 mod ksx;
 mod module;
 mod type_expression;
-pub mod weak;
-use crate::parser::{
-    declaration::Declaration,
-    expression::{ksx::KSX, Expression},
-    module::{Module, ModuleNode},
-    position::Decrement,
-    types::type_expression::TypeExpression,
-};
+use crate::parser::{module::ModuleNode, position::Decrement};
 use combine::Stream;
-use std::{collections::HashMap, fmt::Debug};
+use context::FileContext;
+use std::{cell::RefCell, fmt::Debug};
+
+use self::context::ScopeContext;
 
 pub trait Analyze<Result, Ref>: Sized {
     type Value<C>;
 
-    fn register(self, ctx: &mut Context) -> Result;
+    fn register(self, ctx: &mut ScopeContext) -> Result;
 
-    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize>;
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize>;
 
     fn to_ref<'a>(value: &'a Self::Value<usize>) -> Ref;
 }
@@ -39,39 +37,19 @@ pub enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Fragment {
-    Expression(Expression<usize, usize>),
-    KSX(KSX<usize, usize>),
-    TypeExpression(TypeExpression<usize>),
-    Declaration(Declaration<usize, usize, usize>),
-    Module(Module<usize>),
+#[derive(Debug, Clone, PartialEq)]
+pub enum WeakType {
+    Any,
+    Number,
+    Strong(Type<usize>),
+    Reference(usize),
+    NotFound(String),
 }
 
-pub struct Context {
-    next_id: usize,
-    fragments: HashMap<usize, Fragment>,
-}
-
-impl Context {
-    pub fn new() -> Self {
-        Self {
-            next_id: 0,
-            fragments: HashMap::new(),
-        }
-    }
-
-    pub fn generate_id(&mut self) -> usize {
-        let id = self.next_id;
-        self.next_id += 1;
-        id
-    }
-
-    pub fn register(&mut self, x: Fragment) -> usize {
-        let id = self.generate_id();
-        self.fragments.insert(id, x);
-        id
-    }
+#[derive(Debug, Clone, PartialEq)]
+pub enum WeakRef {
+    Type(WeakType),
+    Value(WeakType),
 }
 
 pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, usize>
@@ -79,9 +57,20 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    let mut ctx = Context::new();
+    let file_ctx = FileContext::new();
+    let cell = RefCell::new(file_ctx);
+    let mut scope_ctx = ScopeContext::new(&cell);
 
-    let result = x.register(&mut ctx);
+    let result = x.register(&mut scope_ctx);
+
+    let mut file_ctx = scope_ctx.file.borrow_mut();
+    let iter = file_ctx
+        .fragments
+        .iter()
+        .map(|(id, x)| (*id, x.weak()))
+        .collect::<Vec<_>>();
+
+    file_ctx.weak_refs.extend(iter);
 
     result
 }

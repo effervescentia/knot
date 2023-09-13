@@ -1,14 +1,19 @@
-use crate::parser::{
-    declaration::{Declaration, DeclarationNode},
-    expression::{
-        ksx::{KSXNode, KSX},
-        Expression, ExpressionNode,
+use std::cell::RefCell;
+
+use crate::{
+    analyzer::context::{FileContext, ScopeContext},
+    parser::{
+        declaration::{Declaration, DeclarationNode},
+        expression::{
+            ksx::{KSXNode, KSX},
+            Expression, ExpressionNode,
+        },
+        module::{Module, ModuleNode},
+        node::Node,
+        range::Range,
+        types::type_expression::{TypeExpression, TypeExpressionNode},
+        CharStream,
     },
-    module::{Module, ModuleNode},
-    node::Node,
-    range::Range,
-    types::type_expression::{TypeExpression, TypeExpressionNode},
-    CharStream,
 };
 
 const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
@@ -79,4 +84,12 @@ pub fn dc<T>(
 
 pub fn mr<'a>(x: Module<DeclarationNode<CharStream<'a>, ()>>) -> ModuleNode<CharStream<'a>, ()> {
     ModuleNode::raw(x)
+}
+
+pub fn f_ctx<'a>() -> RefCell<FileContext> {
+    RefCell::new(FileContext::new())
+}
+
+pub fn s_ctx<'a>(file_ctx: &'a RefCell<FileContext>) -> ScopeContext<'a> {
+    ScopeContext::new(file_ctx)
 }

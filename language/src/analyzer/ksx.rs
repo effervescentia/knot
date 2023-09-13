@@ -1,21 +1,18 @@
-use super::{Analyze, Context};
-use crate::{
-    analyzer::Fragment,
-    parser::{
-        expression::{
-            ksx::{KSXNode, KSX},
-            ExpressionNode,
-        },
-        node::Node,
-        position::Decrement,
+use super::{fragment::Fragment, Analyze, ScopeContext};
+use crate::parser::{
+    expression::{
+        ksx::{KSXNode, KSX},
+        ExpressionNode,
     },
+    node::Node,
+    position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
 fn identify_attributes<T>(
     xs: Vec<(String, Option<ExpressionNode<T, ()>>)>,
-    ctx: &mut Context,
+    ctx: &mut ScopeContext,
 ) -> Vec<(String, Option<ExpressionNode<T, usize>>)>
 where
     T: Stream<Token = char>,
@@ -26,7 +23,7 @@ where
         .collect::<Vec<_>>()
 }
 
-fn identify_children<T>(xs: Vec<KSXNode<T, ()>>, ctx: &mut Context) -> Vec<KSXNode<T, usize>>
+fn identify_children<T>(xs: Vec<KSXNode<T, ()>>, ctx: &mut ScopeContext) -> Vec<KSXNode<T, usize>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -41,16 +38,16 @@ where
 {
     type Value<C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
 
-    fn register(self, ctx: &mut Context) -> KSXNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> KSXNode<T, usize> {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::KSX(Self::to_ref(&value));
-        let id = ctx.register(fragment);
+        let id = ctx.add_fragment(fragment);
 
         KSXNode(Node(value, node.1, id))
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
         match value {
             KSX::Text(x) => KSX::Text(x),
 
@@ -104,7 +101,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context, Fragment},
+        analyzer::{fragment::Fragment, Analyze},
         parser::expression::{ksx::KSX, primitive::Primitive, Expression},
         test::fixture as f,
     };
@@ -112,29 +109,31 @@ mod tests {
 
     #[test]
     fn text() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::kxc(KSX::Text(String::from("foo")), ()).register(ctx),
+            f::kxc(KSX::Text(String::from("foo")), ()).register(scope),
             f::kxc(KSX::Text(String::from("foo")), 0)
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![(0, Fragment::KSX(KSX::Text(String::from("foo"))))])
         );
     }
 
     #[test]
     fn inline() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::kxc(
                 KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::kxc(
                 KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 0)),
                 1,
@@ -142,7 +141,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -155,7 +154,8 @@ mod tests {
 
     #[test]
     fn fragment() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::kxc(
@@ -165,7 +165,7 @@ mod tests {
                 )]),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::kxc(
                 KSX::Fragment(vec![f::kxc(
                     KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), 0)),
@@ -176,7 +176,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -190,7 +190,8 @@ mod tests {
 
     #[test]
     fn closed_element() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::kxc(
@@ -206,7 +207,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::kxc(
                 KSX::ClosedElement(
                     String::from("Foo"),
@@ -223,7 +224,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -245,7 +246,8 @@ mod tests {
 
     #[test]
     fn open_element() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::kxc(
@@ -266,7 +268,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::kxc(
                 KSX::OpenElement(
                     String::from("Foo"),
@@ -288,7 +290,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,

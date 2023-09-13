@@ -1,3 +1,4 @@
+use super::{fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     declaration::DeclarationNode,
     module::{Module, ModuleNode},
@@ -5,8 +6,6 @@ use crate::parser::{
 };
 use combine::Stream;
 use std::fmt::Debug;
-
-use super::{Analyze, Context, Fragment};
 
 impl<T> ModuleNode<T, usize>
 where
@@ -25,15 +24,15 @@ where
 {
     type Value<C> = Module<DeclarationNode<T, C>>;
 
-    fn register(self, ctx: &mut Context) -> ModuleNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, usize> {
         let value = Self::identify(self.0, ctx);
         let fragment = Fragment::Module(Self::to_ref(&value));
-        let id = ctx.register(fragment);
+        let id = ctx.add_fragment(fragment);
 
         ModuleNode(value, id)
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
         let declarations = value
             .declarations
             .into_iter()
@@ -61,7 +60,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context, Fragment},
+        analyzer::{fragment::Fragment, Analyze},
         parser::{
             declaration::{
                 storage::{Storage, Visibility},
@@ -80,7 +79,8 @@ mod tests {
 
     #[test]
     fn module() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             ModuleNode(
@@ -101,7 +101,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             ModuleNode(
                 Module {
                     imports: vec![Import {
@@ -123,7 +123,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (

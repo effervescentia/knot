@@ -1,4 +1,4 @@
-use super::{Analyze, Context, Fragment};
+use super::{fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     declaration::{parameter::Parameter, Declaration, DeclarationNode},
     expression::ExpressionNode,
@@ -12,7 +12,7 @@ use std::fmt::Debug;
 
 fn identify_parameters<T>(
     xs: Vec<Parameter<ExpressionNode<T, ()>, TypeExpressionNode<T, ()>>>,
-    ctx: &mut Context,
+    ctx: &mut ScopeContext,
 ) -> Vec<Parameter<ExpressionNode<T, usize>, TypeExpressionNode<T, usize>>>
 where
     T: Stream<Token = char>,
@@ -41,16 +41,16 @@ where
 {
     type Value<C> = Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>;
 
-    fn register(self, ctx: &mut Context) -> DeclarationNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> DeclarationNode<T, usize> {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::Declaration(Self::to_ref(&value));
-        let id = ctx.register(fragment);
+        let id = ctx.add_fragment(fragment);
 
         DeclarationNode(Node(value, node.1, id))
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
         match value {
             Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
                 name,
@@ -192,7 +192,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context, Fragment},
+        analyzer::{fragment::Fragment, Analyze},
         parser::{
             declaration::{
                 parameter::Parameter,
@@ -212,7 +212,8 @@ mod tests {
 
     #[test]
     fn type_alias() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::dc(
@@ -222,7 +223,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::dc(
                 Declaration::TypeAlias {
                     name: Storage(Visibility::Public, String::from("Foo")),
@@ -233,7 +234,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -249,7 +250,8 @@ mod tests {
 
     #[test]
     fn enumerated() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::dc(
@@ -259,7 +261,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::dc(
                 Declaration::Enumerated {
                     name: Storage(Visibility::Public, String::from("Foo")),
@@ -270,7 +272,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -286,7 +288,8 @@ mod tests {
 
     #[test]
     fn constant() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::dc(
@@ -297,7 +300,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::dc(
                 Declaration::Constant {
                     name: Storage(Visibility::Public, String::from("FOO")),
@@ -309,7 +312,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -330,7 +333,8 @@ mod tests {
 
     #[test]
     fn function() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::dc(
@@ -346,7 +350,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::dc(
                 Declaration::Function {
                     name: Storage(Visibility::Public, String::from("Foo")),
@@ -363,7 +367,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -394,7 +398,8 @@ mod tests {
 
     #[test]
     fn view() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::dc(
@@ -409,7 +414,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::dc(
                 Declaration::View {
                     name: Storage(Visibility::Public, String::from("Foo")),
@@ -425,7 +430,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -454,7 +459,8 @@ mod tests {
 
     #[test]
     fn module() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::dc(
@@ -481,7 +487,7 @@ mod tests {
                 },
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::dc(
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("Foo")),
@@ -509,7 +515,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (

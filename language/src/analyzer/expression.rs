@@ -1,4 +1,4 @@
-use super::{Analyze, Context, Fragment};
+use super::{fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     expression::{ksx::KSXNode, statement::Statement, Expression, ExpressionNode},
     node::Node,
@@ -14,16 +14,16 @@ where
 {
     type Value<C> = Expression<ExpressionNode<T, C>, KSXNode<T, C>>;
 
-    fn register(self, ctx: &mut Context) -> ExpressionNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> ExpressionNode<T, usize> {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::Expression(Self::to_ref(&value));
-        let id = ctx.register(fragment);
+        let id = ctx.add_fragment(fragment);
 
         ExpressionNode(Node(value, node.1, id))
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
         match value {
             Expression::Primitive(x) => Expression::Primitive(x),
 
@@ -119,7 +119,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context, Fragment},
+        analyzer::{fragment::Fragment, Analyze},
         parser::expression::{
             binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
             Expression, UnaryOperator,
@@ -130,15 +130,16 @@ mod tests {
 
     #[test]
     fn primitive() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::xc(Expression::Primitive(Primitive::Nil), ()).register(ctx),
+            f::xc(Expression::Primitive(Primitive::Nil), ()).register(scope),
             f::xc(Expression::Primitive(Primitive::Nil), 0)
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![(
                 0,
                 Fragment::Expression(Expression::Primitive(Primitive::Nil))
@@ -148,15 +149,16 @@ mod tests {
 
     #[test]
     fn identifier() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::xc(Expression::Identifier(String::from("foo")), ()).register(ctx),
+            f::xc(Expression::Identifier(String::from("foo")), ()).register(scope),
             f::xc(Expression::Identifier(String::from("foo")), 0)
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![(
                 0,
                 Fragment::Expression(Expression::Identifier(String::from("foo")))
@@ -166,14 +168,15 @@ mod tests {
 
     #[test]
     fn group() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
                 Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), ()))),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::Group(Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0))),
                 1,
@@ -181,7 +184,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -194,7 +197,8 @@ mod tests {
 
     #[test]
     fn closure() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
@@ -207,7 +211,7 @@ mod tests {
                 ]),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::Closure(vec![
                     Statement::Variable(
@@ -221,7 +225,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -244,7 +248,8 @@ mod tests {
 
     #[test]
     fn unary_operation() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
@@ -254,7 +259,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::UnaryOperation(
                     UnaryOperator::Not,
@@ -265,7 +270,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -284,7 +289,8 @@ mod tests {
 
     #[test]
     fn binary_operation() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
@@ -295,7 +301,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::BinaryOperation(
                     BinaryOperator::Equal,
@@ -307,7 +313,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -331,7 +337,8 @@ mod tests {
 
     #[test]
     fn dot_access() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
@@ -341,7 +348,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::DotAccess(
                     Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0)),
@@ -352,7 +359,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -368,7 +375,8 @@ mod tests {
 
     #[test]
     fn function_call() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
@@ -381,7 +389,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::FunctionCall(
                     Box::new(f::xc(Expression::Primitive(Primitive::Nil), 0,)),
@@ -395,7 +403,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -419,7 +427,8 @@ mod tests {
 
     #[test]
     fn style() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
@@ -435,7 +444,7 @@ mod tests {
                 ]),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::Style(vec![
                     (
@@ -452,7 +461,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (
                     0,
@@ -475,14 +484,15 @@ mod tests {
 
     #[test]
     fn ksx() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::xc(
                 Expression::KSX(Box::new(f::kxc(KSX::Text(String::from("foo")), ()))),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::xc(
                 Expression::KSX(Box::new(f::kxc(KSX::Text(String::from("foo")), 0))),
                 1,
@@ -490,7 +500,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::KSX(KSX::Text(String::from("foo")))),
                 (1, Fragment::Expression(Expression::KSX(Box::new(0)))),

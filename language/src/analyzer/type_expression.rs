@@ -1,4 +1,4 @@
-use super::{Analyze, Context, Fragment};
+use super::{fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     node::Node,
     position::Decrement,
@@ -14,16 +14,16 @@ where
 {
     type Value<C> = TypeExpression<TypeExpressionNode<T, C>>;
 
-    fn register(self, ctx: &mut Context) -> TypeExpressionNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> TypeExpressionNode<T, usize> {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::TypeExpression(Self::to_ref(&value));
-        let id = ctx.register(fragment);
+        let id = ctx.add_fragment(fragment);
 
         TypeExpressionNode(Node(value, node.1, id))
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut Context) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
         match value {
             TypeExpression::Nil => TypeExpression::Nil,
             TypeExpression::Boolean => TypeExpression::Boolean,
@@ -80,7 +80,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{Analyze, Context, Fragment},
+        analyzer::{fragment::Fragment, Analyze},
         parser::types::type_expression::TypeExpression,
         test::fixture as f,
     };
@@ -88,30 +88,32 @@ mod tests {
 
     #[test]
     fn primitive() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(TypeExpression::Nil, ()).register(ctx),
+            f::txc(TypeExpression::Nil, ()).register(scope),
             f::txc(TypeExpression::Nil, 0)
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![(0, Fragment::TypeExpression(TypeExpression::Nil))])
         );
     }
 
     #[test]
     fn identifier() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(ctx),
+            f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(scope),
             f::txc(TypeExpression::Identifier(String::from("foo")), 0)
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![(
                 0,
                 Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
@@ -121,14 +123,15 @@ mod tests {
 
     #[test]
     fn group() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::txc(
                 TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::txc(
                 TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, 0))),
                 1,
@@ -136,7 +139,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -149,7 +152,8 @@ mod tests {
 
     #[test]
     fn dot_access() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::txc(
@@ -159,7 +163,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::txc(
                 TypeExpression::DotAccess(
                     Box::new(f::txc(TypeExpression::Nil, 0)),
@@ -170,7 +174,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (
@@ -186,7 +190,8 @@ mod tests {
 
     #[test]
     fn function() {
-        let ctx = &mut Context::new();
+        let file = &f::f_ctx();
+        let scope = &mut f::s_ctx(file);
 
         assert_eq!(
             f::txc(
@@ -199,7 +204,7 @@ mod tests {
                 ),
                 (),
             )
-            .register(ctx),
+            .register(scope),
             f::txc(
                 TypeExpression::Function(
                     vec![
@@ -213,7 +218,7 @@ mod tests {
         );
 
         assert_eq!(
-            ctx.fragments,
+            scope.file.borrow().fragments,
             HashMap::from_iter(vec![
                 (0, Fragment::TypeExpression(TypeExpression::Nil)),
                 (1, Fragment::TypeExpression(TypeExpression::Nil)),
