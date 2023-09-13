@@ -135,8 +135,7 @@ impl Fragment {
                 Declaration::Module { .. } => WeakRef::Value(WeakType::Any),
             },
 
-            // Fragment::Module(_) => (),
-            _ => todo!(),
+            Fragment::Module(_) => WeakRef::Value(WeakType::Any),
         }
     }
 }

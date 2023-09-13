@@ -31,14 +31,20 @@ where
 
             Expression::Group(x) => Expression::Group(Box::new((*x).register(ctx))),
 
-            Expression::Closure(xs) => Expression::Closure(
-                xs.into_iter()
-                    .map(|x| match x {
-                        Statement::Effect(x) => Statement::Effect(x.register(ctx)),
-                        Statement::Variable(name, x) => Statement::Variable(name, x.register(ctx)),
-                    })
-                    .collect::<Vec<_>>(),
-            ),
+            Expression::Closure(xs) => {
+                let child_ctx = &mut ctx.child();
+
+                Expression::Closure(
+                    xs.into_iter()
+                        .map(|x| match x {
+                            Statement::Effect(x) => Statement::Effect(x.register(child_ctx)),
+                            Statement::Variable(name, x) => {
+                                Statement::Variable(name, x.register(child_ctx))
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            }
 
             Expression::UnaryOperation(op, lhs) => {
                 Expression::UnaryOperation(op, Box::new(lhs.register(ctx)))
@@ -149,7 +155,10 @@ mod tests {
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![(
                 0,
-                Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                (
+                    vec![0],
+                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                )
             )])
         );
     }
@@ -171,7 +180,10 @@ mod tests {
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![(
                 0,
-                Fragment::Expression(Expression::Identifier(String::from("foo")))
+                (
+                    vec![0],
+                    Fragment::Expression(Expression::Identifier(String::from("foo")))
+                )
             )])
         );
     }
@@ -201,9 +213,18 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
-                (1, Fragment::Expression(Expression::Group(Box::new(0)))),
+                (
+                    1,
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Group(Box::new(0)))
+                    )
+                ),
             ])
         );
     }
@@ -231,12 +252,12 @@ mod tests {
                         String::from("foo"),
                         f::xc(
                             Expression::Primitive(Primitive::Nil),
-                            NodeContext::new(0, vec![0])
+                            NodeContext::new(0, vec![0, 1])
                         ),
                     ),
                     Statement::Effect(f::xc(
                         Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(1, vec![0])
+                        NodeContext::new(1, vec![0, 1])
                     )),
                 ]),
                 NodeContext::new(2, vec![0]),
@@ -248,18 +269,27 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Expression(Expression::Closure(vec![
-                        Statement::Variable(String::from("foo"), 0),
-                        Statement::Effect(1),
-                    ]))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Closure(vec![
+                            Statement::Variable(String::from("foo"), 0),
+                            Statement::Effect(1),
+                        ]))
+                    )
                 ),
             ])
         );
@@ -296,14 +326,20 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::UnaryOperation(
-                        UnaryOperator::Not,
-                        Box::new(0)
-                    ))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::UnaryOperation(
+                            UnaryOperator::Not,
+                            Box::new(0)
+                        ))
+                    )
                 ),
             ])
         );
@@ -345,19 +381,28 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Expression(Expression::BinaryOperation(
-                        BinaryOperator::Equal,
-                        Box::new(0),
-                        Box::new(1),
-                    ))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::BinaryOperation(
+                            BinaryOperator::Equal,
+                            Box::new(0),
+                            Box::new(1),
+                        ))
+                    )
                 ),
             ])
         );
@@ -394,11 +439,20 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::DotAccess(Box::new(0), String::from("foo")))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::DotAccess(
+                            Box::new(0),
+                            String::from("foo")
+                        ))
+                    )
                 ),
             ])
         );
@@ -447,19 +501,31 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     3,
-                    Fragment::Expression(Expression::FunctionCall(Box::new(0), vec![1, 2]))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::FunctionCall(Box::new(0), vec![1, 2]))
+                    )
                 ),
             ])
         );
@@ -511,18 +577,27 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Expression(Expression::Style(vec![
-                        (String::from("foo"), 0),
-                        (String::from("bar"), 1),
-                    ]))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Style(vec![
+                            (String::from("foo"), 0),
+                            (String::from("bar"), 1),
+                        ]))
+                    )
                 ),
             ])
         );
@@ -551,8 +626,11 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::KSX(KSX::Text(String::from("foo")))),
-                (1, Fragment::Expression(Expression::KSX(Box::new(0)))),
+                (0, (vec![0], Fragment::KSX(KSX::Text(String::from("foo"))))),
+                (
+                    1,
+                    (vec![0], Fragment::Expression(Expression::KSX(Box::new(0))))
+                ),
             ])
         );
     }

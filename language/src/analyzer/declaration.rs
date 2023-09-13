@@ -43,7 +43,7 @@ where
 
     fn register(self, ctx: &mut ScopeContext) -> DeclarationNode<T, NodeContext> {
         let node = self.0;
-        let value = Self::identify(node.0, ctx);
+        let value = Self::identify(node.0, &mut ctx.child());
         let fragment = Fragment::Declaration(Self::to_ref(&value));
         let id = ctx.add_fragment(fragment);
 
@@ -228,7 +228,7 @@ mod tests {
             f::dc(
                 Declaration::TypeAlias {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    value: f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0])),
+                    value: f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0, 1])),
                 },
                 NodeContext::new(1, vec![0]),
             )
@@ -237,13 +237,19 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Declaration(Declaration::TypeAlias {
-                        name: Storage(Visibility::Public, String::from("Foo")),
-                        value: 0
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::TypeAlias {
+                            name: Storage(Visibility::Public, String::from("Foo")),
+                            value: 0
+                        })
+                    )
                 )
             ])
         );
@@ -268,7 +274,7 @@ mod tests {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     variants: vec![(
                         String::from("Bar"),
-                        vec![f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))]
+                        vec![f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0, 1]))]
                     )],
                 },
                 NodeContext::new(1, vec![0]),
@@ -278,13 +284,19 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Declaration(Declaration::Enumerated {
-                        name: Storage(Visibility::Public, String::from("Foo")),
-                        variants: vec![(String::from("Bar"), vec![0])],
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::Enumerated {
+                            name: Storage(Visibility::Public, String::from("Foo")),
+                            variants: vec![(String::from("Bar"), vec![0])],
+                        })
+                    )
                 )
             ])
         );
@@ -308,10 +320,10 @@ mod tests {
             f::dc(
                 Declaration::Constant {
                     name: Storage(Visibility::Public, String::from("FOO")),
-                    value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                    value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0, 1]))),
                     value: f::xc(
                         Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(1, vec![0])
+                        NodeContext::new(1, vec![0, 1])
                     ),
                 },
                 NodeContext::new(2, vec![0]),
@@ -321,18 +333,27 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Declaration(Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("FOO")),
-                        value_type: Some(0),
-                        value: 1,
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::Constant {
+                            name: Storage(Visibility::Public, String::from("FOO")),
+                            value_type: Some(0),
+                            value: 1,
+                        })
+                    )
                 )
             ])
         );
@@ -363,16 +384,19 @@ mod tests {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                        value_type: Some(f::txc(
+                            TypeExpression::Nil,
+                            NodeContext::new(0, vec![0, 1])
+                        )),
                         default_value: Some(f::xc(
                             Expression::Primitive(Primitive::Nil),
-                            NodeContext::new(1, vec![0])
+                            NodeContext::new(1, vec![0, 1])
                         )),
                     }],
-                    body_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(2, vec![0]))),
+                    body_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(2, vec![0, 1]))),
                     body: f::xc(
                         Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(3, vec![0])
+                        NodeContext::new(3, vec![0, 1])
                     ),
                 },
                 NodeContext::new(4, vec![0]),
@@ -382,28 +406,43 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
-                (2, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    2,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     3,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     4,
-                    Fragment::Declaration(Declaration::Function {
-                        name: Storage(Visibility::Public, String::from("Foo")),
-                        parameters: vec![Parameter {
-                            name: String::from("bar"),
-                            value_type: Some(0),
-                            default_value: Some(1),
-                        }],
-                        body_type: Some(2),
-                        body: 3,
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::Function {
+                            name: Storage(Visibility::Public, String::from("Foo")),
+                            parameters: vec![Parameter {
+                                name: String::from("bar"),
+                                value_type: Some(0),
+                                default_value: Some(1),
+                            }],
+                            body_type: Some(2),
+                            body: 3,
+                        })
+                    )
                 )
             ])
         );
@@ -433,15 +472,18 @@ mod tests {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                        value_type: Some(f::txc(
+                            TypeExpression::Nil,
+                            NodeContext::new(0, vec![0, 1])
+                        )),
                         default_value: Some(f::xc(
                             Expression::Primitive(Primitive::Nil),
-                            NodeContext::new(1, vec![0])
+                            NodeContext::new(1, vec![0, 1])
                         )),
                     }],
                     body: f::xc(
                         Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(2, vec![0])
+                        NodeContext::new(2, vec![0, 1])
                     ),
                 },
                 NodeContext::new(3, vec![0]),
@@ -451,26 +493,38 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     3,
-                    Fragment::Declaration(Declaration::View {
-                        name: Storage(Visibility::Public, String::from("Foo")),
-                        parameters: vec![Parameter {
-                            name: String::from("bar"),
-                            value_type: Some(0),
-                            default_value: Some(1),
-                        }],
-                        body: 2,
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::View {
+                            name: Storage(Visibility::Public, String::from("Foo")),
+                            parameters: vec![Parameter {
+                                name: String::from("bar"),
+                                value_type: Some(0),
+                                default_value: Some(1),
+                            }],
+                            body: 2,
+                        })
+                    )
                 )
             ])
         );
@@ -522,17 +576,17 @@ mod tests {
                                     name: Storage(Visibility::Public, String::from("BUZZ")),
                                     value_type: Some(f::txc(
                                         TypeExpression::Nil,
-                                        NodeContext::new(0, vec![0])
+                                        NodeContext::new(0, vec![0, 1, 2])
                                     )),
                                     value: f::xc(
                                         Expression::Primitive(Primitive::Nil),
-                                        NodeContext::new(1, vec![0])
+                                        NodeContext::new(1, vec![0, 1, 2])
                                     ),
                                 },
-                                NodeContext::new(2, vec![0]),
+                                NodeContext::new(2, vec![0, 1]),
                             )],
                         },
-                        NodeContext::new(3, vec![0]),
+                        NodeContext::new(3, vec![0, 1]),
                     ),
                 },
                 NodeContext::new(4, vec![0]),
@@ -542,36 +596,51 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1, 2], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1, 2],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Declaration(Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("BUZZ")),
-                        value_type: Some(0),
-                        value: 1,
-                    })
+                    (
+                        vec![0, 1],
+                        Fragment::Declaration(Declaration::Constant {
+                            name: Storage(Visibility::Public, String::from("BUZZ")),
+                            value_type: Some(0),
+                            value: 1,
+                        })
+                    )
                 ),
                 (
                     3,
-                    Fragment::Module(Module {
-                        imports: vec![Import {
-                            source: Source::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
-                        }],
-                        declarations: vec![2],
-                    })
+                    (
+                        vec![0, 1],
+                        Fragment::Module(Module {
+                            imports: vec![Import {
+                                source: Source::Root,
+                                path: vec![String::from("bar"), String::from("fizz")],
+                                aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                            }],
+                            declarations: vec![2],
+                        })
+                    )
                 ),
                 (
                     4,
-                    Fragment::Declaration(Declaration::Module {
-                        name: Storage(Visibility::Public, String::from("Foo")),
-                        value: 3,
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::Module {
+                            name: Storage(Visibility::Public, String::from("Foo")),
+                            value: 3,
+                        })
+                    )
                 )
             ])
         );

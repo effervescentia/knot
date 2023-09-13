@@ -99,7 +99,10 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![(0, Fragment::TypeExpression(TypeExpression::Nil))])
+            HashMap::from_iter(vec![(
+                0,
+                (vec![0], Fragment::TypeExpression(TypeExpression::Nil))
+            )])
         );
     }
 
@@ -120,7 +123,10 @@ mod tests {
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![(
                 0,
-                Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
+                (
+                    vec![0],
+                    Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
+                )
             )])
         );
     }
@@ -148,10 +154,13 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (
                     1,
-                    Fragment::TypeExpression(TypeExpression::Group(Box::new(0)))
+                    (
+                        vec![0],
+                        Fragment::TypeExpression(TypeExpression::Group(Box::new(0)))
+                    )
                 )
             ])
         );
@@ -183,13 +192,16 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (
                     1,
-                    Fragment::TypeExpression(TypeExpression::DotAccess(
-                        Box::new(0),
-                        String::from("foo"),
-                    ))
+                    (
+                        vec![0],
+                        Fragment::TypeExpression(TypeExpression::DotAccess(
+                            Box::new(0),
+                            String::from("foo"),
+                        ))
+                    )
                 )
             ])
         );
@@ -227,12 +239,15 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
-                (1, Fragment::TypeExpression(TypeExpression::Nil)),
-                (2, Fragment::TypeExpression(TypeExpression::Nil)),
+                (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
+                (1, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
+                (2, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (
                     3,
-                    Fragment::TypeExpression(TypeExpression::Function(vec![0, 1], Box::new(2)))
+                    (
+                        vec![0],
+                        Fragment::TypeExpression(TypeExpression::Function(vec![0, 1], Box::new(2)))
+                    )
                 )
             ])
         );

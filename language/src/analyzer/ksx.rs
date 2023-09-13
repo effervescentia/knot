@@ -122,7 +122,10 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![(0, Fragment::KSX(KSX::Text(String::from("foo"))))])
+            HashMap::from_iter(vec![(
+                0,
+                (vec![0], Fragment::KSX(KSX::Text(String::from("foo"))))
+            )])
         );
     }
 
@@ -151,9 +154,12 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
-                (1, Fragment::KSX(KSX::Inline(0)))
+                (1, (vec![0], Fragment::KSX(KSX::Inline(0))))
             ])
         );
     }
@@ -189,10 +195,13 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
-                (1, Fragment::KSX(KSX::Inline(0))),
-                (2, Fragment::KSX(KSX::Fragment(vec![1])))
+                (1, (vec![0], Fragment::KSX(KSX::Inline(0)))),
+                (2, (vec![0], Fragment::KSX(KSX::Fragment(vec![1]))))
             ])
         );
     }
@@ -240,14 +249,20 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::KSX(KSX::ClosedElement(
-                        String::from("Foo"),
-                        vec![(String::from("bar"), None), (String::from("fizz"), Some(0)),],
-                    ))
+                    (
+                        vec![0],
+                        Fragment::KSX(KSX::ClosedElement(
+                            String::from("Foo"),
+                            vec![(String::from("bar"), None), (String::from("fizz"), Some(0)),],
+                        ))
+                    )
                 ),
             ])
         );
@@ -309,21 +324,30 @@ mod tests {
             HashMap::from_iter(vec![
                 (
                     0,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
-                (2, Fragment::KSX(KSX::Inline(1))),
+                (2, (vec![0], Fragment::KSX(KSX::Inline(1)))),
                 (
                     3,
-                    Fragment::KSX(KSX::OpenElement(
-                        String::from("Foo"),
-                        vec![(String::from("bar"), None), (String::from("fizz"), Some(0)),],
-                        vec![2],
-                        String::from("Foo"),
-                    ))
+                    (
+                        vec![0],
+                        Fragment::KSX(KSX::OpenElement(
+                            String::from("Foo"),
+                            vec![(String::from("bar"), None), (String::from("fizz"), Some(0))],
+                            vec![2],
+                            String::from("Foo"),
+                        ))
+                    )
                 ),
             ])
         );

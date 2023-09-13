@@ -67,7 +67,7 @@ where
     let iter = file_ctx
         .fragments
         .iter()
-        .map(|(id, x)| (*id, x.weak()))
+        .map(|(id, x)| (*id, x.1.weak()))
         .collect::<Vec<_>>();
 
     file_ctx.weak_refs.extend(iter);

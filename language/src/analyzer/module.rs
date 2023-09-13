@@ -114,11 +114,11 @@ mod tests {
                             name: Storage(Visibility::Public, String::from("BUZZ")),
                             value_type: Some(f::txc(
                                 TypeExpression::Nil,
-                                NodeContext::new(0, vec![0])
+                                NodeContext::new(0, vec![0, 1])
                             )),
                             value: f::xc(
                                 Expression::Primitive(Primitive::Nil),
-                                NodeContext::new(1, vec![0])
+                                NodeContext::new(1, vec![0, 1])
                             ),
                         },
                         NodeContext::new(2, vec![0]),
@@ -131,29 +131,41 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             HashMap::from_iter(vec![
-                (0, Fragment::TypeExpression(TypeExpression::Nil)),
+                (
+                    0,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
                 (
                     1,
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
                 ),
                 (
                     2,
-                    Fragment::Declaration(Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("BUZZ")),
-                        value_type: Some(0),
-                        value: 1,
-                    })
+                    (
+                        vec![0],
+                        Fragment::Declaration(Declaration::Constant {
+                            name: Storage(Visibility::Public, String::from("BUZZ")),
+                            value_type: Some(0),
+                            value: 1,
+                        })
+                    )
                 ),
                 (
                     3,
-                    Fragment::Module(Module {
-                        imports: vec![Import {
-                            source: Source::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
-                        }],
-                        declarations: vec![2],
-                    })
+                    (
+                        vec![0],
+                        Fragment::Module(Module {
+                            imports: vec![Import {
+                                source: Source::Root,
+                                path: vec![String::from("bar"), String::from("fizz")],
+                                aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                            }],
+                            declarations: vec![2],
+                        })
+                    )
                 ),
             ])
         );

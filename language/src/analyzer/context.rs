@@ -5,7 +5,7 @@ pub struct FileContext {
     next_scope_id: usize,
     next_fragment_id: usize,
 
-    pub fragments: HashMap<usize, Fragment>,
+    pub fragments: HashMap<usize, (Vec<usize>, Fragment)>,
 
     pub weak_refs: HashMap<usize, WeakRef>,
 }
@@ -32,9 +32,9 @@ impl FileContext {
         id
     }
 
-    pub fn add_fragment(&mut self, x: Fragment) -> usize {
+    pub fn add_fragment(&mut self, scope: Vec<usize>, fragment: Fragment) -> usize {
         let id = self.fragment_id();
-        self.fragments.insert(id, x);
+        self.fragments.insert(id, (scope, fragment));
         id
     }
 }
@@ -49,8 +49,10 @@ pub struct ScopeContext<'a> {
 
 impl<'a> ScopeContext<'a> {
     pub fn new(file: &'a RefCell<FileContext>) -> Self {
+        let id = file.borrow_mut().scope_id();
+
         Self {
-            id: 0,
+            id,
             parent: None,
             file,
         }
@@ -74,7 +76,10 @@ impl<'a> ScopeContext<'a> {
     }
 
     pub fn add_fragment(&mut self, x: Fragment) -> NodeContext {
-        NodeContext::new(self.file.borrow_mut().add_fragment(x), self.path())
+        NodeContext::new(
+            self.file.borrow_mut().add_fragment(self.path(), x),
+            self.path(),
+        )
     }
 }
 
