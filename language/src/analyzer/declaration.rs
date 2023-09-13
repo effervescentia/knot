@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, Analyze, ScopeContext};
+use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     declaration::{parameter::Parameter, Declaration, DeclarationNode},
     expression::ExpressionNode,
@@ -13,7 +13,7 @@ use std::fmt::Debug;
 fn identify_parameters<T>(
     xs: Vec<Parameter<ExpressionNode<T, ()>, TypeExpressionNode<T, ()>>>,
     ctx: &mut ScopeContext,
-) -> Vec<Parameter<ExpressionNode<T, usize>, TypeExpressionNode<T, usize>>>
+) -> Vec<Parameter<ExpressionNode<T, NodeContext>, TypeExpressionNode<T, NodeContext>>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -33,7 +33,7 @@ where
         .collect::<Vec<_>>()
 }
 
-impl<T> Analyze<DeclarationNode<T, usize>, Declaration<usize, usize, usize>>
+impl<T> Analyze<DeclarationNode<T, NodeContext>, Declaration<usize, usize, usize>>
     for DeclarationNode<T, ()>
 where
     T: Stream<Token = char>,
@@ -41,7 +41,7 @@ where
 {
     type Value<C> = Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> DeclarationNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> DeclarationNode<T, NodeContext> {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::Declaration(Self::to_ref(&value));
@@ -50,7 +50,7 @@ where
         DeclarationNode(Node(value, node.1, id))
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
         match value {
             Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
                 name,
@@ -109,28 +109,29 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<usize>) -> Declaration<usize, usize, usize> {
-        let parameters_to_refs =
-            |xs: &Vec<Parameter<ExpressionNode<T, usize>, TypeExpressionNode<T, usize>>>| {
-                xs.into_iter()
-                    .map(
-                        |Parameter {
-                             name,
-                             value_type,
-                             default_value,
-                         }| Parameter {
-                            name: name.clone(),
-                            value_type: value_type.as_ref().map(|x| x.node().id()),
-                            default_value: default_value.as_ref().map(|x| x.node().id()),
-                        },
-                    )
-                    .collect::<Vec<_>>()
-            };
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Declaration<usize, usize, usize> {
+        let parameters_to_refs = |xs: &Vec<
+            Parameter<ExpressionNode<T, NodeContext>, TypeExpressionNode<T, NodeContext>>,
+        >| {
+            xs.into_iter()
+                .map(
+                    |Parameter {
+                         name,
+                         value_type,
+                         default_value,
+                     }| Parameter {
+                        name: name.clone(),
+                        value_type: value_type.as_ref().map(|x| *x.node().id()),
+                        default_value: default_value.as_ref().map(|x| *x.node().id()),
+                    },
+                )
+                .collect::<Vec<_>>()
+        };
 
         match value {
             Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
                 name: name.clone(),
-                value: value.0.id(),
+                value: *value.0.id(),
             },
 
             Declaration::Enumerated { name, variants } => Declaration::Enumerated {
@@ -142,7 +143,7 @@ where
                             name.clone(),
                             params
                                 .into_iter()
-                                .map(|x| x.node().id())
+                                .map(|x| *x.node().id())
                                 .collect::<Vec<_>>(),
                         )
                     })
@@ -155,8 +156,8 @@ where
                 value,
             } => Declaration::Constant {
                 name: name.clone(),
-                value_type: value_type.as_ref().map(|x| x.node().id()),
-                value: value.0.id(),
+                value_type: value_type.as_ref().map(|x| *x.node().id()),
+                value: *value.0.id(),
             },
 
             Declaration::Function {
@@ -167,8 +168,8 @@ where
             } => Declaration::Function {
                 name: name.clone(),
                 parameters: parameters_to_refs(parameters),
-                body_type: body_type.as_ref().map(|x| x.node().id()),
-                body: body.node().id(),
+                body_type: body_type.as_ref().map(|x| *x.node().id()),
+                body: *body.node().id(),
             },
 
             Declaration::View {
@@ -178,12 +179,12 @@ where
             } => Declaration::View {
                 name: name.clone(),
                 parameters: parameters_to_refs(parameters),
-                body: body.node().id(),
+                body: *body.node().id(),
             },
 
             Declaration::Module { name, value } => Declaration::Module {
                 name: name.clone(),
-                value: value.id(),
+                value: *value.id(),
             },
         }
     }
@@ -192,7 +193,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
         parser::{
             declaration::{
                 parameter::Parameter,
@@ -227,9 +228,9 @@ mod tests {
             f::dc(
                 Declaration::TypeAlias {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    value: f::txc(TypeExpression::Nil, 0),
+                    value: f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0])),
                 },
-                1,
+                NodeContext::new(1, vec![0]),
             )
         );
 
@@ -265,9 +266,12 @@ mod tests {
             f::dc(
                 Declaration::Enumerated {
                     name: Storage(Visibility::Public, String::from("Foo")),
-                    variants: vec![(String::from("Bar"), vec![f::txc(TypeExpression::Nil, 0)])],
+                    variants: vec![(
+                        String::from("Bar"),
+                        vec![f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))]
+                    )],
                 },
-                1,
+                NodeContext::new(1, vec![0]),
             )
         );
 
@@ -304,10 +308,13 @@ mod tests {
             f::dc(
                 Declaration::Constant {
                     name: Storage(Visibility::Public, String::from("FOO")),
-                    value_type: Some(f::txc(TypeExpression::Nil, 0)),
-                    value: f::xc(Expression::Primitive(Primitive::Nil), 1),
+                    value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                    value: f::xc(
+                        Expression::Primitive(Primitive::Nil),
+                        NodeContext::new(1, vec![0])
+                    ),
                 },
-                2,
+                NodeContext::new(2, vec![0]),
             )
         );
 
@@ -356,13 +363,19 @@ mod tests {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(f::txc(TypeExpression::Nil, 0)),
-                        default_value: Some(f::xc(Expression::Primitive(Primitive::Nil), 1)),
+                        value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                        default_value: Some(f::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(1, vec![0])
+                        )),
                     }],
-                    body_type: Some(f::txc(TypeExpression::Nil, 2)),
-                    body: f::xc(Expression::Primitive(Primitive::Nil), 3),
+                    body_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(2, vec![0]))),
+                    body: f::xc(
+                        Expression::Primitive(Primitive::Nil),
+                        NodeContext::new(3, vec![0])
+                    ),
                 },
-                4,
+                NodeContext::new(4, vec![0]),
             )
         );
 
@@ -420,12 +433,18 @@ mod tests {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     parameters: vec![Parameter {
                         name: String::from("bar"),
-                        value_type: Some(f::txc(TypeExpression::Nil, 0)),
-                        default_value: Some(f::xc(Expression::Primitive(Primitive::Nil), 1)),
+                        value_type: Some(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                        default_value: Some(f::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(1, vec![0])
+                        )),
                     }],
-                    body: f::xc(Expression::Primitive(Primitive::Nil), 2),
+                    body: f::xc(
+                        Expression::Primitive(Primitive::Nil),
+                        NodeContext::new(2, vec![0])
+                    ),
                 },
-                3,
+                NodeContext::new(3, vec![0]),
             )
         );
 
@@ -501,16 +520,22 @@ mod tests {
                             declarations: vec![f::dc(
                                 Declaration::Constant {
                                     name: Storage(Visibility::Public, String::from("BUZZ")),
-                                    value_type: Some(f::txc(TypeExpression::Nil, 0)),
-                                    value: f::xc(Expression::Primitive(Primitive::Nil), 1),
+                                    value_type: Some(f::txc(
+                                        TypeExpression::Nil,
+                                        NodeContext::new(0, vec![0])
+                                    )),
+                                    value: f::xc(
+                                        Expression::Primitive(Primitive::Nil),
+                                        NodeContext::new(1, vec![0])
+                                    ),
                                 },
-                                2,
+                                NodeContext::new(2, vec![0]),
                             )],
                         },
-                        3,
+                        NodeContext::new(3, vec![0]),
                     ),
                 },
-                4,
+                NodeContext::new(4, vec![0]),
             )
         );
 

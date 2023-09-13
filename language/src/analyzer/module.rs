@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, Analyze, ScopeContext};
+use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     declaration::DeclarationNode,
     module::{Module, ModuleNode},
@@ -7,24 +7,24 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> ModuleNode<T, usize>
+impl<T> ModuleNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn id(&self) -> usize {
-        self.1
+    pub fn id(&self) -> &usize {
+        self.1.id()
     }
 }
 
-impl<T> Analyze<ModuleNode<T, usize>, Module<usize>> for ModuleNode<T, ()>
+impl<T> Analyze<ModuleNode<T, NodeContext>, Module<usize>> for ModuleNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     type Value<C> = Module<DeclarationNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, NodeContext> {
         let value = Self::identify(self.0, ctx);
         let fragment = Fragment::Module(Self::to_ref(&value));
         let id = ctx.add_fragment(fragment);
@@ -32,7 +32,7 @@ where
         ModuleNode(value, id)
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
         let declarations = value
             .declarations
             .into_iter()
@@ -45,13 +45,13 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<usize>) -> Module<usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Module<usize> {
         Module {
             imports: value.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
             declarations: value
                 .declarations
                 .iter()
-                .map(|x| x.0.id())
+                .map(|x| *x.0.id())
                 .collect::<Vec<_>>(),
         }
     }
@@ -60,7 +60,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
         parser::{
             declaration::{
                 storage::{Storage, Visibility},
@@ -112,13 +112,19 @@ mod tests {
                     declarations: vec![f::dc(
                         Declaration::Constant {
                             name: Storage(Visibility::Public, String::from("BUZZ")),
-                            value_type: Some(f::txc(TypeExpression::Nil, 0)),
-                            value: f::xc(Expression::Primitive(Primitive::Nil), 1),
+                            value_type: Some(f::txc(
+                                TypeExpression::Nil,
+                                NodeContext::new(0, vec![0])
+                            )),
+                            value: f::xc(
+                                Expression::Primitive(Primitive::Nil),
+                                NodeContext::new(1, vec![0])
+                            ),
                         },
-                        2,
+                        NodeContext::new(2, vec![0]),
                     )],
                 },
-                3,
+                NodeContext::new(3, vec![0]),
             )
         );
 

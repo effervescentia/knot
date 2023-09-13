@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, Analyze, ScopeContext};
+use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     node::Node,
     position::Decrement,
@@ -7,14 +7,15 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze<TypeExpressionNode<T, usize>, TypeExpression<usize>> for TypeExpressionNode<T, ()>
+impl<T> Analyze<TypeExpressionNode<T, NodeContext>, TypeExpression<usize>>
+    for TypeExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
     type Value<C> = TypeExpression<TypeExpressionNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> TypeExpressionNode<T, usize> {
+    fn register(self, ctx: &mut ScopeContext) -> TypeExpressionNode<T, NodeContext> {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::TypeExpression(Self::to_ref(&value));
@@ -23,7 +24,7 @@ where
         TypeExpressionNode(Node(value, node.1, id))
     }
 
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize> {
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
         match value {
             TypeExpression::Nil => TypeExpression::Nil,
             TypeExpression::Boolean => TypeExpression::Boolean,
@@ -51,7 +52,7 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<usize>) -> TypeExpression<usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> TypeExpression<usize> {
         match value {
             TypeExpression::Nil => TypeExpression::Nil,
             TypeExpression::Boolean => TypeExpression::Boolean,
@@ -63,15 +64,15 @@ where
 
             TypeExpression::Identifier(x) => TypeExpression::Identifier(x.clone()),
 
-            TypeExpression::Group(x) => TypeExpression::Group(Box::new((*x).0.id())),
+            TypeExpression::Group(x) => TypeExpression::Group(Box::new(*(*x).0.id())),
 
             TypeExpression::DotAccess(lhs, rhs) => {
-                TypeExpression::DotAccess(Box::new((*lhs).0.id()), rhs.clone())
+                TypeExpression::DotAccess(Box::new(*(*lhs).0.id()), rhs.clone())
             }
 
             TypeExpression::Function(params, body) => TypeExpression::Function(
-                params.into_iter().map(|x| x.0.id()).collect::<Vec<_>>(),
-                Box::new(body.0.id()),
+                params.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>(),
+                Box::new(*body.0.id()),
             ),
         }
     }
@@ -80,7 +81,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
         parser::types::type_expression::TypeExpression,
         test::fixture as f,
     };
@@ -93,7 +94,7 @@ mod tests {
 
         assert_eq!(
             f::txc(TypeExpression::Nil, ()).register(scope),
-            f::txc(TypeExpression::Nil, 0)
+            f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))
         );
 
         assert_eq!(
@@ -109,7 +110,10 @@ mod tests {
 
         assert_eq!(
             f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(scope),
-            f::txc(TypeExpression::Identifier(String::from("foo")), 0)
+            f::txc(
+                TypeExpression::Identifier(String::from("foo")),
+                NodeContext::new(0, vec![0])
+            )
         );
 
         assert_eq!(
@@ -133,8 +137,11 @@ mod tests {
             )
             .register(scope),
             f::txc(
-                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, 0))),
-                1,
+                TypeExpression::Group(Box::new(f::txc(
+                    TypeExpression::Nil,
+                    NodeContext::new(0, vec![0])
+                ))),
+                NodeContext::new(1, vec![0]),
             )
         );
 
@@ -166,10 +173,10 @@ mod tests {
             .register(scope),
             f::txc(
                 TypeExpression::DotAccess(
-                    Box::new(f::txc(TypeExpression::Nil, 0)),
+                    Box::new(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                     String::from("foo"),
                 ),
-                1,
+                NodeContext::new(1, vec![0]),
             )
         );
 
@@ -208,12 +215,12 @@ mod tests {
             f::txc(
                 TypeExpression::Function(
                     vec![
-                        f::txc(TypeExpression::Nil, 0),
-                        f::txc(TypeExpression::Nil, 1),
+                        f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0])),
+                        f::txc(TypeExpression::Nil, NodeContext::new(1, vec![0])),
                     ],
-                    Box::new(f::txc(TypeExpression::Nil, 2)),
+                    Box::new(f::txc(TypeExpression::Nil, NodeContext::new(2, vec![0]))),
                 ),
-                3,
+                NodeContext::new(3, vec![0]),
             )
         );
 

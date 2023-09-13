@@ -1,3 +1,5 @@
+use crate::analyzer::context::NodeContext;
+
 use super::{position::Decrement, range::Range};
 use combine::Stream;
 use std::fmt::Debug;
@@ -58,13 +60,13 @@ where
     }
 }
 
-impl<T, S> Node<T, S, usize>
+impl<T, S> Node<T, S, NodeContext>
 where
     S: Stream<Token = char>,
     S::Position: Copy + Debug + Decrement,
 {
-    pub fn id(&self) -> usize {
-        self.2
+    pub fn id(&self) -> &usize {
+        self.2.id()
     }
 }
 

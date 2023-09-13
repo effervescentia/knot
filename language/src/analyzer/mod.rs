@@ -10,16 +10,16 @@ use combine::Stream;
 use context::FileContext;
 use std::{cell::RefCell, fmt::Debug};
 
-use self::context::ScopeContext;
+use self::context::{NodeContext, ScopeContext};
 
 pub trait Analyze<Result, Ref>: Sized {
     type Value<C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Result;
 
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<usize>;
+    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext>;
 
-    fn to_ref<'a>(value: &'a Self::Value<usize>) -> Ref;
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Ref;
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -52,7 +52,7 @@ pub enum WeakRef {
     Value(WeakType),
 }
 
-pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, usize>
+pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,

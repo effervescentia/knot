@@ -1,5 +1,5 @@
 use super::{fragment::Fragment, WeakRef};
-use std::{borrow::BorrowMut, cell::RefCell, collections::HashMap, fs::File};
+use std::{cell::RefCell, collections::HashMap};
 
 pub struct FileContext {
     next_scope_id: usize,
@@ -73,7 +73,27 @@ impl<'a> ScopeContext<'a> {
         }
     }
 
-    pub fn add_fragment(&mut self, x: Fragment) -> usize {
-        self.file.borrow_mut().add_fragment(x)
+    pub fn add_fragment(&mut self, x: Fragment) -> NodeContext {
+        NodeContext::new(self.file.borrow_mut().add_fragment(x), self.path())
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct NodeContext {
+    scope: Vec<usize>,
+    id: usize,
+}
+
+impl NodeContext {
+    pub fn new(id: usize, scope: Vec<usize>) -> Self {
+        Self { id, scope }
+    }
+
+    pub fn scope<'a>(&'a self) -> &'a Vec<usize> {
+        &self.scope
+    }
+
+    pub fn id<'a>(&'a self) -> &'a usize {
+        &self.id
     }
 }
