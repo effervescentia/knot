@@ -5,12 +5,18 @@ mod fragment;
 mod ksx;
 mod module;
 mod type_expression;
-use crate::parser::{module::ModuleNode, position::Decrement};
+use self::{
+    context::{NodeContext, ScopeContext},
+    fragment::Fragment,
+};
+use crate::parser::{
+    declaration::{storage::Storage, Declaration},
+    module::ModuleNode,
+    position::Decrement,
+};
 use combine::Stream;
 use context::FileContext;
 use std::{cell::RefCell, fmt::Debug};
-
-use self::context::{NodeContext, ScopeContext};
 
 pub trait Analyze<Result, Ref>: Sized {
     type Value<C>;
@@ -63,14 +69,50 @@ where
 
     let result = x.register(&mut scope_ctx);
 
-    let mut file_ctx = scope_ctx.file.borrow_mut();
-    let iter = file_ctx
+    scope_ctx
+        .file
+        .borrow()
         .fragments
         .iter()
-        .map(|(id, x)| (*id, x.1.weak()))
-        .collect::<Vec<_>>();
+        .for_each(|(id, (scope, x))| {
+            scope_ctx.file.borrow_mut().weak_refs.insert(*id, x.weak());
 
-    file_ctx.weak_refs.extend(iter);
+            match x {
+                Fragment::Declaration(
+                    Declaration::TypeAlias {
+                        name: Storage(_, name),
+                        ..
+                    }
+                    | Declaration::Enumerated {
+                        name: Storage(_, name),
+                        ..
+                    }
+                    | Declaration::Constant {
+                        name: Storage(_, name),
+                        ..
+                    }
+                    | Declaration::Function {
+                        name: Storage(_, name),
+                        ..
+                    }
+                    | Declaration::View {
+                        name: Storage(_, name),
+                        ..
+                    }
+                    | Declaration::Module {
+                        name: Storage(_, name),
+                        ..
+                    },
+                ) => {
+                    scope_ctx
+                        .file
+                        .borrow_mut()
+                        .bindings
+                        .insert((scope.clone(), name.clone()), *id);
+                }
+                _ => todo!(),
+            }
+        });
 
     result
 }

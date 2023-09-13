@@ -8,6 +8,8 @@ pub struct FileContext {
     pub fragments: HashMap<usize, (Vec<usize>, Fragment)>,
 
     pub weak_refs: HashMap<usize, WeakRef>,
+
+    pub bindings: HashMap<(Vec<usize>, String), usize>,
 }
 
 impl FileContext {
@@ -17,6 +19,7 @@ impl FileContext {
             next_fragment_id: 0,
             fragments: HashMap::new(),
             weak_refs: HashMap::new(),
+            bindings: HashMap::new(),
         }
     }
 
