@@ -12,7 +12,8 @@ use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
 pub enum Fragment {
-    Expression(Expression<usize, usize>),
+    Expression(Expression<usize, usize, usize>),
+    Statement(Statement<usize>),
     KSX(KSX<usize, usize>),
     TypeExpression(TypeExpression<usize>),
     Declaration(Declaration<usize, usize, usize>),
@@ -25,18 +26,18 @@ impl Fragment {
             Fragment::Expression(x) => match x {
                 Expression::Primitive(x) => WeakRef::Value(WeakType::Strong(match x {
                     Primitive::Nil => Type::Nil,
-                    Primitive::Boolean(_) => Type::Boolean,
-                    Primitive::Integer(_) => Type::Integer,
-                    Primitive::Float(_, _) => Type::Float,
-                    Primitive::String(_) => Type::String,
+                    Primitive::Boolean(..) => Type::Boolean,
+                    Primitive::Integer(..) => Type::Integer,
+                    Primitive::Float(..) => Type::Float,
+                    Primitive::String(..) => Type::String,
                 })),
 
-                Expression::Identifier(_) => WeakRef::Value(WeakType::Any),
+                Expression::Identifier(..) => WeakRef::Value(WeakType::Any),
 
                 Expression::Group(id) => WeakRef::Value(WeakType::Reference(**id)),
 
                 Expression::Closure(xs) => WeakRef::Value({
-                    if let Some(Statement::Effect(id) | Statement::Variable(_, id)) = xs.last() {
+                    if let Some(id) = xs.last() {
                         WeakType::Reference(*id)
                     } else {
                         WeakType::Strong(Type::Nil)
@@ -49,7 +50,7 @@ impl Fragment {
                     _ => WeakType::Reference(**id),
                 }),
 
-                Expression::BinaryOperation(op, _, _) => WeakRef::Value(match op {
+                Expression::BinaryOperation(op, ..) => WeakRef::Value(match op {
                     BinaryOperator::Equal
                     | BinaryOperator::NotEqual
                     | BinaryOperator::And
@@ -68,25 +69,31 @@ impl Fragment {
                     }
                 }),
 
-                Expression::DotAccess(_, _) => WeakRef::Value(WeakType::Any),
+                Expression::DotAccess(..) => WeakRef::Value(WeakType::Any),
 
-                Expression::FunctionCall(_, _) => WeakRef::Value(WeakType::Any),
+                Expression::FunctionCall(..) => WeakRef::Value(WeakType::Any),
 
-                Expression::Style(_) => WeakRef::Value(WeakType::Strong(Type::Style)),
+                Expression::Style(..) => WeakRef::Value(WeakType::Strong(Type::Style)),
 
-                Expression::KSX(_) => WeakRef::Value(WeakType::Strong(Type::Element)),
+                Expression::KSX(..) => WeakRef::Value(WeakType::Strong(Type::Element)),
+            },
+
+            Fragment::Statement(x) => match x {
+                Statement::Effect(id) => WeakRef::Value(WeakType::Any),
+
+                Statement::Variable(..) => WeakRef::Value(WeakType::Strong(Type::Nil)),
             },
 
             Fragment::KSX(x) => match x {
-                KSX::Text(_) => WeakRef::Value(WeakType::Strong(Type::String)),
+                KSX::Text(..) => WeakRef::Value(WeakType::Strong(Type::String)),
 
                 KSX::Inline(id) => WeakRef::Value(WeakType::Reference(*id)),
 
-                KSX::Fragment(_) => WeakRef::Value(WeakType::Strong(Type::Element)),
+                KSX::Fragment(..) => WeakRef::Value(WeakType::Strong(Type::Element)),
 
-                KSX::ClosedElement(_, _) => WeakRef::Value(WeakType::Strong(Type::Element)),
+                KSX::ClosedElement(..) => WeakRef::Value(WeakType::Strong(Type::Element)),
 
-                KSX::OpenElement(_, _, _, _) => WeakRef::Value(WeakType::Strong(Type::Element)),
+                KSX::OpenElement(..) => WeakRef::Value(WeakType::Strong(Type::Element)),
             },
 
             Fragment::TypeExpression(x) => WeakRef::Type(match x {
@@ -98,13 +105,13 @@ impl Fragment {
                 TypeExpression::Style => WeakType::Strong(Type::Style),
                 TypeExpression::Element => WeakType::Strong(Type::Element),
 
-                TypeExpression::Identifier(_) => WeakType::Any,
+                TypeExpression::Identifier(..) => WeakType::Any,
 
                 TypeExpression::Group(id) => WeakType::Reference(**id),
 
-                TypeExpression::DotAccess(_, _) => WeakType::Any,
+                TypeExpression::DotAccess(..) => WeakType::Any,
 
-                TypeExpression::Function(_, _) => WeakType::Any,
+                TypeExpression::Function(..) => WeakType::Any,
             }),
 
             Fragment::Declaration(x) => match x {
@@ -135,7 +142,7 @@ impl Fragment {
                 Declaration::Module { .. } => WeakRef::Value(WeakType::Any),
             },
 
-            Fragment::Module(_) => WeakRef::Value(WeakType::Any),
+            Fragment::Module(..) => WeakRef::Value(WeakType::Any),
         }
     }
 }

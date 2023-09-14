@@ -9,7 +9,7 @@ use binary_operation::BinaryOperator;
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
 use ksx::KSXNode;
 use primitive::Primitive;
-use statement::Statement;
+use statement::StatementNode;
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -20,11 +20,11 @@ pub enum UnaryOperator {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Expression<E, K> {
+pub enum Expression<E, S, K> {
     Primitive(Primitive),
     Identifier(String),
     Group(Box<E>),
-    Closure(Vec<Statement<E>>),
+    Closure(Vec<S>),
     UnaryOperation(UnaryOperator, Box<E>),
     BinaryOperation(BinaryOperator, Box<E>, Box<E>),
     DotAccess(Box<E>, String),
@@ -34,7 +34,9 @@ pub enum Expression<E, K> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ExpressionNode<T, C>(pub Node<Expression<ExpressionNode<T, C>, KSXNode<T, C>>, T, C>)
+pub struct ExpressionNode<T, C>(
+    pub Node<Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>, T, C>,
+)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -44,7 +46,9 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<Expression<ExpressionNode<T, C>, KSXNode<T, C>>, T, C> {
+    pub fn node(
+        &self,
+    ) -> &Node<Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>, T, C> {
         &self.0
     }
 }
@@ -54,7 +58,10 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: Expression<ExpressionNode<T, ()>, KSXNode<T, ()>>, range: Range<T>) -> Self {
+    pub fn raw(
+        x: Expression<ExpressionNode<T, ()>, StatementNode<T, ()>, KSXNode<T, ()>>,
+        range: Range<T>,
+    ) -> Self {
         Self(Node::raw(x, range))
     }
 }
@@ -352,14 +359,20 @@ mod tests {
             parse("{ nil; nil }").unwrap().0,
             f::xr(
                 Expression::Closure(vec![
-                    Statement::Effect(f::xr(
-                        Expression::Primitive(Primitive::Nil),
+                    f::sr(
+                        Statement::Effect(f::xr(
+                            Expression::Primitive(Primitive::Nil),
+                            ((1, 3), (1, 5))
+                        )),
                         ((1, 3), (1, 5))
-                    )),
-                    Statement::Effect(f::xr(
-                        Expression::Primitive(Primitive::Nil),
+                    ),
+                    f::sr(
+                        Statement::Effect(f::xr(
+                            Expression::Primitive(Primitive::Nil),
+                            ((1, 8), (1, 10))
+                        )),
                         ((1, 8), (1, 10))
-                    ))
+                    )
                 ]),
                 ((1, 1), (1, 12))
             )

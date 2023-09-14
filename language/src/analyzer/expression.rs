@@ -1,18 +1,23 @@
 use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
-    expression::{ksx::KSXNode, statement::Statement, Expression, ExpressionNode},
+    expression::{
+        ksx::KSXNode,
+        statement::{Statement, StatementNode},
+        Expression, ExpressionNode,
+    },
     node::Node,
     position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze<ExpressionNode<T, NodeContext>, Expression<usize, usize>> for ExpressionNode<T, ()>
+impl<T> Analyze<ExpressionNode<T, NodeContext>, Expression<usize, usize, usize>>
+    for ExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    type Value<C> = Expression<ExpressionNode<T, C>, KSXNode<T, C>>;
+    type Value<C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
 
     fn register(self, ctx: &mut ScopeContext) -> ExpressionNode<T, NodeContext> {
         let node = self.0;
@@ -36,12 +41,7 @@ where
 
                 Expression::Closure(
                     xs.into_iter()
-                        .map(|x| match x {
-                            Statement::Effect(x) => Statement::Effect(x.register(child_ctx)),
-                            Statement::Variable(name, x) => {
-                                Statement::Variable(name, x.register(child_ctx))
-                            }
-                        })
+                        .map(|x| x.register(child_ctx))
                         .collect::<Vec<_>>(),
                 )
             }
@@ -77,7 +77,7 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Expression<usize, usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Expression<usize, usize, usize> {
         match value {
             Expression::Primitive(x) => Expression::Primitive(x.clone()),
 
@@ -85,43 +85,36 @@ where
 
             Expression::Group(x) => Expression::Group(Box::new(*x.node().id())),
 
-            Expression::Closure(xs) => Expression::Closure(
-                xs.into_iter()
-                    .map(|x| match x {
-                        Statement::Effect(x) => Statement::Effect(*x.0.id()),
-                        Statement::Variable(name, x) => {
-                            Statement::Variable(name.clone(), *x.0.id())
-                        }
-                    })
-                    .collect::<Vec<_>>(),
-            ),
+            Expression::Closure(xs) => {
+                Expression::Closure(xs.into_iter().map(|x| *x.node().id()).collect::<Vec<_>>())
+            }
 
             Expression::UnaryOperation(op, x) => {
-                Expression::UnaryOperation(op.clone(), Box::new(*x.0.id()))
+                Expression::UnaryOperation(op.clone(), Box::new(*x.node().id()))
             }
 
             Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
                 op.clone(),
-                Box::new(*lhs.0.id()),
-                Box::new(*rhs.0.id()),
+                Box::new(*lhs.node().id()),
+                Box::new(*rhs.node().id()),
             ),
 
             Expression::DotAccess(lhs, rhs) => {
-                Expression::DotAccess(Box::new(*lhs.0.id()), rhs.clone())
+                Expression::DotAccess(Box::new(*lhs.node().id()), rhs.clone())
             }
 
             Expression::FunctionCall(x, args) => Expression::FunctionCall(
-                Box::new(*x.0.id()),
-                args.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>(),
+                Box::new(*x.node().id()),
+                args.into_iter().map(|x| *x.node().id()).collect::<Vec<_>>(),
             ),
 
             Expression::Style(xs) => Expression::Style(
                 xs.into_iter()
-                    .map(|(key, value)| (key.clone(), *value.0.id()))
+                    .map(|(key, value)| (key.clone(), *value.node().id()))
                     .collect::<Vec<_>>(),
             ),
 
-            Expression::KSX(x) => Expression::KSX(Box::new(*x.0.id())),
+            Expression::KSX(x) => Expression::KSX(Box::new(*x.node().id())),
         }
     }
 }
@@ -237,30 +230,42 @@ mod tests {
         assert_eq!(
             f::xc(
                 Expression::Closure(vec![
-                    Statement::Variable(
-                        String::from("foo"),
-                        f::xc(Expression::Primitive(Primitive::Nil), ()),
+                    f::sc(
+                        Statement::Variable(
+                            String::from("foo"),
+                            f::xc(Expression::Primitive(Primitive::Nil), ()),
+                        ),
+                        ()
                     ),
-                    Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                    f::sc(
+                        Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), ())),
+                        ()
+                    ),
                 ]),
                 (),
             )
             .register(scope),
             f::xc(
                 Expression::Closure(vec![
-                    Statement::Variable(
-                        String::from("foo"),
-                        f::xc(
-                            Expression::Primitive(Primitive::Nil),
-                            NodeContext::new(0, vec![0, 1])
+                    f::sc(
+                        Statement::Variable(
+                            String::from("foo"),
+                            f::xc(
+                                Expression::Primitive(Primitive::Nil),
+                                NodeContext::new(0, vec![0, 1])
+                            ),
                         ),
-                    ),
-                    Statement::Effect(f::xc(
-                        Expression::Primitive(Primitive::Nil),
                         NodeContext::new(1, vec![0, 1])
-                    )),
+                    ),
+                    f::sc(
+                        Statement::Effect(f::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(2, vec![0, 1])
+                        )),
+                        NodeContext::new(3, vec![0, 1])
+                    )
                 ]),
-                NodeContext::new(2, vec![0]),
+                NodeContext::new(4, vec![0]),
             )
         );
 
@@ -278,17 +283,22 @@ mod tests {
                     1,
                     (
                         vec![0, 1],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                        Fragment::Statement(Statement::Variable(String::from("foo"), 0))
                     )
                 ),
                 (
                     2,
                     (
+                        vec![0, 1],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
+                ),
+                (3, (vec![0, 1], Fragment::Statement(Statement::Effect(2)))),
+                (
+                    4,
+                    (
                         vec![0],
-                        Fragment::Expression(Expression::Closure(vec![
-                            Statement::Variable(String::from("foo"), 0),
-                            Statement::Effect(1),
-                        ]))
+                        Fragment::Expression(Expression::Closure(vec![1, 3]))
                     )
                 ),
             ])
