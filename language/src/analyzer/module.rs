@@ -41,21 +41,18 @@ where
             .map(|x| x.register(ctx))
             .collect::<Vec<_>>();
 
-        Module {
-            imports: value.imports,
-            declarations,
-        }
+        Module::new(value.imports, declarations)
     }
 
     fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Module<usize> {
-        Module {
-            imports: value.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
-            declarations: value
+        Module::new(
+            value.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
+            value
                 .declarations
                 .iter()
                 .map(|x| *x.0.id())
                 .collect::<Vec<_>>(),
-        }
+        )
     }
 }
 
@@ -86,13 +83,13 @@ mod tests {
 
         assert_eq!(
             ModuleNode(
-                Module {
-                    imports: vec![Import {
+                Module::new(
+                    vec![Import {
                         source: Source::Root,
                         path: vec![String::from("bar"), String::from("fizz")],
                         aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                     }],
-                    declarations: vec![f::dc(
+                    vec![f::dc(
                         Declaration::Constant {
                             name: Storage(Visibility::Public, String::from("BUZZ")),
                             value_type: Some(f::txc(TypeExpression::Nil, ())),
@@ -100,18 +97,18 @@ mod tests {
                         },
                         (),
                     )],
-                },
+                ),
                 (),
             )
             .register(scope),
             ModuleNode(
-                Module {
-                    imports: vec![Import {
+                Module::new(
+                    vec![Import {
                         source: Source::Root,
                         path: vec![String::from("bar"), String::from("fizz")],
                         aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                     }],
-                    declarations: vec![f::dc(
+                    vec![f::dc(
                         Declaration::Constant {
                             name: Storage(Visibility::Public, String::from("BUZZ")),
                             value_type: Some(f::txc(
@@ -125,7 +122,7 @@ mod tests {
                         },
                         NodeContext::new(2, vec![0]),
                     )],
-                },
+                ),
                 NodeContext::new(3, vec![0]),
             )
         );
@@ -159,14 +156,14 @@ mod tests {
                     3,
                     (
                         vec![0],
-                        Fragment::Module(Module {
-                            imports: vec![Import {
+                        Fragment::Module(Module::new(
+                            vec![Import {
                                 source: Source::Root,
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                             }],
-                            declarations: vec![2],
-                        })
+                            vec![2],
+                        ))
                     )
                 ),
             ])

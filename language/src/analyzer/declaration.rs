@@ -541,13 +541,13 @@ mod tests {
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     value: ModuleNode(
-                        Module {
-                            imports: vec![Import {
+                        Module::new(
+                            vec![Import {
                                 source: Source::Root,
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                             }],
-                            declarations: vec![f::dc(
+                            vec![f::dc(
                                 Declaration::Constant {
                                     name: Storage(Visibility::Public, String::from("BUZZ")),
                                     value_type: Some(f::txc(TypeExpression::Nil, ())),
@@ -555,7 +555,7 @@ mod tests {
                                 },
                                 (),
                             )],
-                        },
+                        ),
                         (),
                     ),
                 },
@@ -566,13 +566,13 @@ mod tests {
                 Declaration::Module {
                     name: Storage(Visibility::Public, String::from("Foo")),
                     value: ModuleNode(
-                        Module {
-                            imports: vec![Import {
+                        Module::new(
+                            vec![Import {
                                 source: Source::Root,
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                             }],
-                            declarations: vec![f::dc(
+                            vec![f::dc(
                                 Declaration::Constant {
                                     name: Storage(Visibility::Public, String::from("BUZZ")),
                                     value_type: Some(f::txc(
@@ -586,7 +586,7 @@ mod tests {
                                 },
                                 NodeContext::new(2, vec![0, 1]),
                             )],
-                        },
+                        ),
                         NodeContext::new(3, vec![0, 1]),
                     ),
                 },
@@ -623,14 +623,14 @@ mod tests {
                     3,
                     (
                         vec![0, 1],
-                        Fragment::Module(Module {
-                            imports: vec![Import {
+                        Fragment::Module(Module::new(
+                            vec![Import {
                                 source: Source::Root,
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                             }],
-                            declarations: vec![2],
-                        })
+                            vec![2],
+                        ))
                     )
                 ),
                 (
