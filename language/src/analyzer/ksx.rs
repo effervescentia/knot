@@ -34,14 +34,16 @@ where
     xs.into_iter().map(|x| x.register(ctx)).collect::<Vec<_>>()
 }
 
-impl<T> Analyze<KSXNode<T, NodeContext>, KSX<usize, usize>> for KSXNode<T, ()>
+impl<T> Analyze for KSXNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    type Ref = KSX<usize, usize>;
+    type Node = KSXNode<T, NodeContext>;
     type Value<C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> KSXNode<T, NodeContext> {
+    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::KSX(Self::to_ref(&value));
@@ -71,7 +73,7 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> KSX<usize, usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
         let attributes_to_refs = |xs: &Vec<(String, Option<ExpressionNode<T, NodeContext>>)>| {
             xs.into_iter()
                 .map(|(key, value)| (key.clone(), value.as_ref().map(|x| *x.node().id())))

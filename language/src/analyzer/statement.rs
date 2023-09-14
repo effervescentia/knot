@@ -1,9 +1,8 @@
 use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
     expression::{
-        ksx::KSXNode,
         statement::{Statement, StatementNode},
-        Expression, ExpressionNode,
+        ExpressionNode,
     },
     node::Node,
     position::Decrement,
@@ -11,14 +10,16 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze<StatementNode<T, NodeContext>, Statement<usize>> for StatementNode<T, ()>
+impl<T> Analyze for StatementNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    type Ref = Statement<usize>;
+    type Node = StatementNode<T, NodeContext>;
     type Value<C> = Statement<ExpressionNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> StatementNode<T, NodeContext> {
+    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::Statement(Self::to_ref(&value));
@@ -35,7 +36,7 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Statement<usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
         match value {
             Statement::Effect(x) => Statement::Effect(*x.node().id()),
 

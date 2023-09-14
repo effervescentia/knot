@@ -1,25 +1,22 @@
 use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
 use crate::parser::{
-    expression::{
-        ksx::KSXNode,
-        statement::{Statement, StatementNode},
-        Expression, ExpressionNode,
-    },
+    expression::{ksx::KSXNode, statement::StatementNode, Expression, ExpressionNode},
     node::Node,
     position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze<ExpressionNode<T, NodeContext>, Expression<usize, usize, usize>>
-    for ExpressionNode<T, ()>
+impl<T> Analyze for ExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    type Ref = Expression<usize, usize, usize>;
+    type Node = ExpressionNode<T, NodeContext>;
     type Value<C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> ExpressionNode<T, NodeContext> {
+    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::Expression(Self::to_ref(&value));
@@ -77,7 +74,7 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Expression<usize, usize, usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
         match value {
             Expression::Primitive(x) => Expression::Primitive(x.clone()),
 

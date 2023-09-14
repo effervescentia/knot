@@ -17,11 +17,13 @@ where
     }
 }
 
-impl<T> Analyze<ModuleNode<T, NodeContext>, Module<usize>> for ModuleNode<T, ()>
+impl<T> Analyze for ModuleNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    type Ref = Module<usize>;
+    type Node = ModuleNode<T, NodeContext>;
     type Value<C> = Module<DeclarationNode<T, C>>;
 
     fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, NodeContext> {

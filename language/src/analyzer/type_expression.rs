@@ -7,15 +7,16 @@ use crate::parser::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze<TypeExpressionNode<T, NodeContext>, TypeExpression<usize>>
-    for TypeExpressionNode<T, ()>
+impl<T> Analyze for TypeExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    type Ref = TypeExpression<usize>;
+    type Node = TypeExpressionNode<T, NodeContext>;
     type Value<C> = TypeExpression<TypeExpressionNode<T, C>>;
 
-    fn register(self, ctx: &mut ScopeContext) -> TypeExpressionNode<T, NodeContext> {
+    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
         let value = Self::identify(node.0, ctx);
         let fragment = Fragment::TypeExpression(Self::to_ref(&value));
@@ -52,7 +53,7 @@ where
         }
     }
 
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> TypeExpression<usize> {
+    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
         match value {
             TypeExpression::Nil => TypeExpression::Nil,
             TypeExpression::Boolean => TypeExpression::Boolean,

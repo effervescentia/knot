@@ -33,12 +33,13 @@ where
         .collect::<Vec<_>>()
 }
 
-impl<T> Analyze<DeclarationNode<T, NodeContext>, Declaration<usize, usize, usize>>
-    for DeclarationNode<T, ()>
+impl<T> Analyze for DeclarationNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
+    type Ref = Declaration<usize, usize, usize>;
+    type Node = DeclarationNode<T, NodeContext>;
     type Value<C> = Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>;
 
     fn register(self, ctx: &mut ScopeContext) -> DeclarationNode<T, NodeContext> {
