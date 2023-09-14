@@ -115,7 +115,7 @@ impl Fragment {
             }),
 
             Fragment::Declaration(x) => match x {
-                Declaration::TypeAlias { value, .. } => WeakRef::Value(WeakType::Reference(*value)),
+                Declaration::TypeAlias { value, .. } => WeakRef::Type(WeakType::Reference(*value)),
 
                 Declaration::Enumerated { variants, .. } => {
                     WeakRef::Value(WeakType::Strong(Type::Enumerated(

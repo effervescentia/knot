@@ -218,7 +218,7 @@ mod tests {
                 (
                     1,
                     (
-                        vec![0, 1],
+                        vec![0],
                         Fragment::Declaration(Declaration::TypeAlias {
                             name: Storage(Visibility::Public, String::from("MyType")),
                             value: 0,
@@ -228,7 +228,7 @@ mod tests {
                 (
                     2,
                     (
-                        vec![0, 1],
+                        vec![0],
                         Fragment::Declaration(Declaration::Enumerated {
                             name: Storage(Visibility::Public, String::from("MyEnum")),
                             variants: vec![],
@@ -238,14 +238,14 @@ mod tests {
                 (
                     3,
                     (
-                        vec![0, 1],
+                        vec![0, 3],
                         Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
                     4,
                     (
-                        vec![0, 1],
+                        vec![0],
                         Fragment::Declaration(Declaration::Constant {
                             name: Storage(Visibility::Public, String::from("MY_CONST")),
                             value_type: None,
@@ -256,14 +256,14 @@ mod tests {
                 (
                     5,
                     (
-                        vec![0, 1],
+                        vec![0, 4],
                         Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
                     6,
                     (
-                        vec![0, 1],
+                        vec![0],
                         Fragment::Declaration(Declaration::Function {
                             name: Storage(Visibility::Public, String::from("my_func")),
                             parameters: vec![],
@@ -275,14 +275,14 @@ mod tests {
                 (
                     7,
                     (
-                        vec![0, 1],
+                        vec![0, 5],
                         Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
                     8,
                     (
-                        vec![0, 1],
+                        vec![0],
                         Fragment::Declaration(Declaration::View {
                             name: Storage(Visibility::Public, String::from("MyView")),
                             parameters: vec![],
@@ -292,12 +292,12 @@ mod tests {
                 ),
                 (
                     9,
-                    (vec![0, 1], Fragment::Module(Module::new(vec![], vec![])))
+                    (vec![0, 6], Fragment::Module(Module::new(vec![], vec![])))
                 ),
                 (
                     10,
                     (
-                        vec![0, 1],
+                        vec![0],
                         Fragment::Declaration(Declaration::Module {
                             name: Storage(Visibility::Public, String::from("my_mod")),
                             value: 9,
@@ -306,7 +306,10 @@ mod tests {
                 ),
                 (
                     11,
-                    (vec![0, 1], Fragment::Module(Module::new(vec![], vec![])))
+                    (
+                        vec![0],
+                        Fragment::Module(Module::new(vec![], vec![1, 2, 4, 6, 8, 10]))
+                    )
                 ),
             ])
         );
