@@ -95,3 +95,177 @@ where
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
+        parser::{
+            declaration::parameter::Parameter,
+            expression::{primitive::Primitive, Expression},
+            module::{
+                import::{Import, Source, Target},
+                Module, ModuleNode,
+            },
+            types::type_expression::TypeExpression,
+        },
+        test::fixture as f,
+    };
+
+    #[test]
+    fn type_alias() {
+        assert_eq!(
+            f::a::type_(
+                "Foo",
+                f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0, 1]))
+            )
+            .to_fragment(),
+            Fragment::Declaration(f::a::type_("Foo", 0))
+        );
+    }
+
+    #[test]
+    fn enumerated() {
+        assert_eq!(
+            f::a::enum_(
+                "Foo",
+                vec![(
+                    String::from("Bar"),
+                    vec![f::n::txc(
+                        TypeExpression::Nil,
+                        NodeContext::new(0, vec![0, 1])
+                    )]
+                )]
+            )
+            .to_fragment(),
+            Fragment::Declaration(f::a::enum_("Foo", vec![(String::from("Bar"), vec![0])]))
+        );
+    }
+
+    #[test]
+    fn constant() {
+        assert_eq!(
+            f::a::const_(
+                "FOO",
+                Some(f::n::txc(
+                    TypeExpression::Nil,
+                    NodeContext::new(0, vec![0, 1])
+                )),
+                f::n::xc(
+                    Expression::Primitive(Primitive::Nil),
+                    NodeContext::new(1, vec![0, 1])
+                )
+            )
+            .to_fragment(),
+            Fragment::Declaration(f::a::const_("FOO", Some(0), 1))
+        );
+    }
+
+    #[test]
+    fn function() {
+        assert_eq!(
+            f::a::func_(
+                "foo",
+                vec![Parameter {
+                    name: String::from("bar"),
+                    value_type: Some(f::n::txc(
+                        TypeExpression::Nil,
+                        NodeContext::new(0, vec![0, 1])
+                    )),
+                    default_value: Some(f::n::xc(
+                        Expression::Primitive(Primitive::Nil),
+                        NodeContext::new(1, vec![0, 1])
+                    )),
+                }],
+                Some(f::n::txc(
+                    TypeExpression::Nil,
+                    NodeContext::new(2, vec![0, 1])
+                )),
+                f::n::xc(
+                    Expression::Primitive(Primitive::Nil),
+                    NodeContext::new(3, vec![0, 1])
+                )
+            )
+            .to_fragment(),
+            Fragment::Declaration(f::a::func_(
+                "foo",
+                vec![Parameter {
+                    name: String::from("bar"),
+                    value_type: Some(0),
+                    default_value: Some(1),
+                }],
+                Some(2),
+                3,
+            ))
+        );
+    }
+
+    #[test]
+    fn view() {
+        assert_eq!(
+            f::a::view(
+                "Foo",
+                vec![Parameter {
+                    name: String::from("bar"),
+                    value_type: Some(f::n::txc(
+                        TypeExpression::Nil,
+                        NodeContext::new(0, vec![0, 1])
+                    )),
+                    default_value: Some(f::n::xc(
+                        Expression::Primitive(Primitive::Nil),
+                        NodeContext::new(1, vec![0, 1])
+                    )),
+                }],
+                f::n::xc(
+                    Expression::Primitive(Primitive::Nil),
+                    NodeContext::new(2, vec![0, 1])
+                ),
+            )
+            .to_fragment(),
+            Fragment::Declaration(f::a::view(
+                "Foo",
+                vec![Parameter {
+                    name: String::from("bar"),
+                    value_type: Some(0),
+                    default_value: Some(1),
+                }],
+                2,
+            ))
+        );
+    }
+
+    #[test]
+    fn module() {
+        assert_eq!(
+            f::a::mod_(
+                "foo",
+                ModuleNode(
+                    Module::new(
+                        vec![Import {
+                            source: Source::Root,
+                            path: vec![String::from("bar"), String::from("fizz")],
+                            aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                        }],
+                        vec![f::n::dc(
+                            f::a::const_(
+                                "BUZZ",
+                                Some(f::n::txc(
+                                    TypeExpression::Nil,
+                                    NodeContext::new(0, vec![0, 1, 2])
+                                )),
+                                f::n::xc(
+                                    Expression::Primitive(Primitive::Nil),
+                                    NodeContext::new(1, vec![0, 1, 2])
+                                )
+                            ),
+                            NodeContext::new(2, vec![0, 1]),
+                        )],
+                    ),
+                    NodeContext::new(3, vec![0, 1]),
+                )
+            )
+            .to_fragment(),
+            Fragment::Declaration(f::a::mod_("foo", 3))
+        );
+    }
+}

@@ -44,41 +44,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     #[test]
-    fn effect() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
-
-        assert_eq!(
-            f::n::s(Statement::Effect(f::n::x(Expression::Primitive(
-                Primitive::Nil
-            ))))
-            .register(scope),
-            f::n::sc(
-                Statement::Effect(f::n::xc(
-                    Expression::Primitive(Primitive::Nil),
-                    NodeContext::new(0, vec![0])
-                )),
-                NodeContext::new(1, vec![0])
-            )
-        );
-
-        assert_eq!(
-            scope.file.borrow().fragments,
-            BTreeMap::from_iter(vec![
-                (
-                    0,
-                    (
-                        vec![0],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
-                ),
-                (1, (vec![0], Fragment::Statement(Statement::Effect(0))))
-            ])
-        );
-    }
-
-    #[test]
-    fn variable() {
+    fn register() {
         let file = &f::f_ctx();
         let scope = &mut f::s_ctx(file);
 

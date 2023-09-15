@@ -21,3 +21,42 @@ where
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
+        parser::{
+            expression::{primitive::Primitive, Expression},
+            statement::Statement,
+        },
+        test::fixture as f,
+    };
+
+    #[test]
+    fn effect() {
+        assert_eq!(
+            Statement::Effect(f::n::xc(
+                Expression::Primitive(Primitive::Nil),
+                NodeContext::new(0, vec![0])
+            ))
+            .to_fragment(),
+            Fragment::Statement(Statement::Effect(0))
+        );
+    }
+
+    #[test]
+    fn variable() {
+        assert_eq!(
+            Statement::Variable(
+                String::from("foo"),
+                f::n::xc(
+                    Expression::Primitive(Primitive::Nil),
+                    NodeContext::new(0, vec![0])
+                )
+            )
+            .to_fragment(),
+            Fragment::Statement(Statement::Variable(String::from("foo"), 0))
+        );
+    }
+}
