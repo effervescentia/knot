@@ -1,15 +1,15 @@
-use super::{fragment::Fragment, WeakRef};
-use std::{cell::RefCell, collections::HashMap};
+use super::{fragment::Fragment, StrongRef, WeakRef};
+use std::{
+    cell::RefCell,
+    collections::{BTreeMap, BTreeSet, HashMap},
+};
 
+#[derive(Debug, PartialEq)]
 pub struct FileContext {
     next_scope_id: usize,
     next_fragment_id: usize,
 
-    pub fragments: HashMap<usize, (Vec<usize>, Fragment)>,
-
-    pub weak_refs: HashMap<usize, WeakRef>,
-
-    pub bindings: HashMap<(Vec<usize>, String), usize>,
+    pub fragments: BTreeMap<usize, (Vec<usize>, Fragment)>,
 }
 
 impl FileContext {
@@ -17,9 +17,7 @@ impl FileContext {
         Self {
             next_scope_id: 0,
             next_fragment_id: 0,
-            fragments: HashMap::new(),
-            weak_refs: HashMap::new(),
-            bindings: HashMap::new(),
+            fragments: BTreeMap::new(),
         }
     }
 
@@ -103,5 +101,27 @@ impl NodeContext {
 
     pub fn id<'a>(&'a self) -> &'a usize {
         &self.id
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct AnalyzeContext<'a> {
+    pub file: &'a RefCell<FileContext>,
+
+    pub bindings: HashMap<(Vec<usize>, String), BTreeSet<usize>>,
+
+    pub weak_refs: HashMap<usize, WeakRef>,
+
+    pub strong_refs: HashMap<usize, StrongRef>,
+}
+
+impl<'a> AnalyzeContext<'a> {
+    pub fn new(file: &'a RefCell<FileContext>) -> Self {
+        Self {
+            file,
+            bindings: HashMap::new(),
+            weak_refs: HashMap::new(),
+            strong_refs: HashMap::new(),
+        }
     }
 }

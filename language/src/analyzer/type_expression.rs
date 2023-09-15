@@ -86,7 +86,7 @@ mod tests {
         parser::types::type_expression::TypeExpression,
         test::fixture as f,
     };
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[test]
     fn primitive() {
@@ -94,13 +94,13 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(TypeExpression::Nil, ()).register(scope),
-            f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))
+            f::n::tx(TypeExpression::Nil).register(scope),
+            f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))
         );
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![(
+            BTreeMap::from_iter(vec![(
                 0,
                 (vec![0], Fragment::TypeExpression(TypeExpression::Nil))
             )])
@@ -113,8 +113,8 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(TypeExpression::Identifier(String::from("foo")), ()).register(scope),
-            f::txc(
+            f::n::tx(TypeExpression::Identifier(String::from("foo"))).register(scope),
+            f::n::txc(
                 TypeExpression::Identifier(String::from("foo")),
                 NodeContext::new(0, vec![0])
             )
@@ -122,7 +122,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![(
+            BTreeMap::from_iter(vec![(
                 0,
                 (
                     vec![0],
@@ -138,13 +138,12 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(
-                TypeExpression::Group(Box::new(f::txc(TypeExpression::Nil, ()))),
-                (),
-            )
+            f::n::tx(TypeExpression::Group(Box::new(f::n::tx(
+                TypeExpression::Nil
+            ))),)
             .register(scope),
-            f::txc(
-                TypeExpression::Group(Box::new(f::txc(
+            f::n::txc(
+                TypeExpression::Group(Box::new(f::n::txc(
                     TypeExpression::Nil,
                     NodeContext::new(0, vec![0])
                 ))),
@@ -154,7 +153,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (
                     1,
@@ -173,17 +172,14 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(
-                TypeExpression::DotAccess(
-                    Box::new(f::txc(TypeExpression::Nil, ())),
-                    String::from("foo"),
-                ),
-                (),
-            )
+            f::n::tx(TypeExpression::DotAccess(
+                Box::new(f::n::tx(TypeExpression::Nil)),
+                String::from("foo"),
+            ))
             .register(scope),
-            f::txc(
+            f::n::txc(
                 TypeExpression::DotAccess(
-                    Box::new(f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                    Box::new(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                     String::from("foo"),
                 ),
                 NodeContext::new(1, vec![0]),
@@ -192,7 +188,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (
                     1,
@@ -214,24 +210,18 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::txc(
-                TypeExpression::Function(
-                    vec![
-                        f::txc(TypeExpression::Nil, ()),
-                        f::txc(TypeExpression::Nil, ()),
-                    ],
-                    Box::new(f::txc(TypeExpression::Nil, ())),
-                ),
-                (),
-            )
+            f::n::tx(TypeExpression::Function(
+                vec![f::n::tx(TypeExpression::Nil), f::n::tx(TypeExpression::Nil),],
+                Box::new(f::n::tx(TypeExpression::Nil)),
+            ))
             .register(scope),
-            f::txc(
+            f::n::txc(
                 TypeExpression::Function(
                     vec![
-                        f::txc(TypeExpression::Nil, NodeContext::new(0, vec![0])),
-                        f::txc(TypeExpression::Nil, NodeContext::new(1, vec![0])),
+                        f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0])),
+                        f::n::txc(TypeExpression::Nil, NodeContext::new(1, vec![0])),
                     ],
-                    Box::new(f::txc(TypeExpression::Nil, NodeContext::new(2, vec![0]))),
+                    Box::new(f::n::txc(TypeExpression::Nil, NodeContext::new(2, vec![0]))),
                 ),
                 NodeContext::new(3, vec![0]),
             )
@@ -239,7 +229,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (1, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (2, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),

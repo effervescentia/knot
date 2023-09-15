@@ -1,21 +1,15 @@
 pub mod context;
 mod declaration;
 mod expression;
-mod fragment;
+pub mod fragment;
+mod infer;
 mod ksx;
 mod module;
+mod register;
 mod statement;
 mod type_expression;
-use self::{
-    context::{NodeContext, ScopeContext},
-    fragment::Fragment,
-};
-use crate::parser::{
-    declaration::{storage::Storage, Declaration},
-    expression::statement::Statement,
-    module::ModuleNode,
-    position::Decrement,
-};
+use self::context::{AnalyzeContext, NodeContext, ScopeContext};
+use crate::parser::{module::ModuleNode, position::Decrement};
 use combine::Stream;
 use context::FileContext;
 use std::{cell::RefCell, fmt::Debug};
@@ -32,7 +26,7 @@ pub trait Analyze: Sized {
     fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref;
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Type<T> {
     Nil,
     Boolean,
@@ -47,84 +41,31 @@ pub enum Type<T> {
     Module(Vec<(String, T)>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum WeakType {
     Any,
-    Number,
     Strong(Type<usize>),
     Reference(usize),
-    NotFound(String),
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum WeakRef {
-    Type(WeakType),
-    Value(WeakType),
+#[derive(Clone, Debug, PartialEq)]
+pub enum RefKind {
+    Type,
+    Value,
 }
 
-fn fragment_to_binding(x: &Fragment) -> Option<String> {
-    match x {
-        Fragment::Statement(Statement::Variable(name, ..))
-        | Fragment::Declaration(
-            Declaration::TypeAlias {
-                name: Storage(_, name),
-                ..
-            }
-            | Declaration::Enumerated {
-                name: Storage(_, name),
-                ..
-            }
-            | Declaration::Constant {
-                name: Storage(_, name),
-                ..
-            }
-            | Declaration::Function {
-                name: Storage(_, name),
-                ..
-            }
-            | Declaration::View {
-                name: Storage(_, name),
-                ..
-            }
-            | Declaration::Module {
-                name: Storage(_, name),
-                ..
-            },
-        ) => Some(name.clone()),
+pub type WeakRef = (RefKind, WeakType);
+pub type StrongRef = (RefKind, Type<usize>);
 
-        _ => None,
-    }
-}
-
-fn unpack_module<'a, T>(x: ModuleNode<T, ()>) -> (ModuleNode<T, NodeContext>, RefCell<FileContext>)
+fn register_fragments<T>(
+    x: ModuleNode<T, ()>,
+    file_ctx: &RefCell<FileContext>,
+) -> ModuleNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    let file_ctx = FileContext::new();
-    let cell = RefCell::new(file_ctx);
-    let mut scope_ctx = ScopeContext::new(&cell);
-
-    let result = x.register(&mut scope_ctx);
-
-    let (refs, bindings) = scope_ctx.file.borrow().fragments.iter().fold(
-        (vec![], vec![]),
-        |(mut refs, mut bindings): (Vec<(usize, WeakRef)>, Vec<((Vec<usize>, String), usize)>),
-         (id, (scope, x))| {
-            refs.push((*id, x.weak()));
-
-            if let Some(name) = fragment_to_binding(x) {
-                bindings.push(((scope.clone(), name), *id));
-            }
-
-            (refs, bindings)
-        },
-    );
-
-    scope_ctx.file.borrow_mut().weak_refs.extend(refs);
-    scope_ctx.file.borrow_mut().bindings.extend(bindings);
-
-    (result, cell)
+    x.register(&mut ScopeContext::new(file_ctx))
 }
 
 pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, NodeContext>
@@ -132,289 +73,184 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    let (result, _) = unpack_module(x);
+    // register AST fragments depth-first with monotonically increasing IDs
+    let file_ctx = RefCell::new(FileContext::new());
+    let untyped = register_fragments(x, &file_ctx);
 
-    result
+    // apply weak type inference
+    let mut analyze_ctx = AnalyzeContext::new(&file_ctx);
+    infer::weak::infer_types(&mut analyze_ctx);
+
+    // apply strong type inference
+    infer::strong::infer_types(&mut analyze_ctx);
+
+    // let (result, mut ctx) = unpack_module(x, file_ctx);
+
+    // let mut strong_types = HashMap::new();
+    // infer_types(&mut ctx, &mut strong_types);
+
+    untyped
+    // todo!()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{fragment::Fragment, Type, WeakRef, WeakType};
+    use super::{fragment::Fragment, Type, WeakType};
     use crate::{
+        analyzer::{
+            context::{AnalyzeContext, FileContext},
+            RefKind,
+        },
         parser::{
-            declaration::{
-                storage::{Storage, Visibility},
-                Declaration,
-            },
-            expression::{primitive::Primitive, Expression},
+            expression::{primitive::Primitive, statement::Statement, Expression},
             module::Module,
             types::type_expression::TypeExpression,
         },
         test::fixture as f,
     };
-    use std::collections::HashMap;
+    use std::{
+        cell::RefCell,
+        collections::{BTreeMap, BTreeSet, HashMap},
+    };
 
     #[test]
-    pub fn unpack_module() {
-        let (_, cell) = super::unpack_module(f::mr(Module::new(
-            vec![],
-            vec![
-                f::dc(
-                    Declaration::TypeAlias {
-                        name: Storage(Visibility::Public, String::from("MyType")),
-                        value: f::txc(TypeExpression::Nil, ()),
-                    },
-                    (),
-                ),
-                f::dc(
-                    Declaration::Enumerated {
-                        name: Storage(Visibility::Public, String::from("MyEnum")),
-                        variants: vec![],
-                    },
-                    (),
-                ),
-                f::dc(
-                    Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("MY_CONST")),
-                        value_type: None,
-                        value: f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    },
-                    (),
-                ),
-                f::dc(
-                    Declaration::Function {
-                        name: Storage(Visibility::Public, String::from("my_func")),
-                        parameters: vec![],
-                        body_type: None,
-                        body: f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    },
-                    (),
-                ),
-                f::dc(
-                    Declaration::View {
-                        name: Storage(Visibility::Public, String::from("MyView")),
-                        parameters: vec![],
-                        body: f::xc(Expression::Primitive(Primitive::Nil), ()),
-                    },
-                    (),
-                ),
-                f::dc(
-                    Declaration::Module {
-                        name: Storage(Visibility::Public, String::from("my_mod")),
-                        value: f::mr(Module::new(vec![], vec![])),
-                    },
-                    (),
-                ),
-            ],
-        )));
+    fn register_declaration_fragments() {
+        let file_ctx = RefCell::new(FileContext::new());
+
+        super::register_fragments(
+            f::n::mr(Module::new(
+                vec![],
+                vec![
+                    f::n::d(f::a::type_("MyType", f::n::tx(TypeExpression::Nil))),
+                    f::n::d(f::a::const_(
+                        "MY_CONST",
+                        None,
+                        f::n::x(Expression::Primitive(Primitive::Nil)),
+                    )),
+                ],
+            )),
+            &file_ctx,
+        );
 
         assert_eq!(
-            cell.borrow().fragments,
-            HashMap::from_iter(vec![
+            file_ctx.borrow().fragments,
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
                 ),
                 (
                     1,
-                    (
-                        vec![0],
-                        Fragment::Declaration(Declaration::TypeAlias {
-                            name: Storage(Visibility::Public, String::from("MyType")),
-                            value: 0,
-                        })
-                    )
+                    (vec![0], Fragment::Declaration(f::a::type_("MyType", 0)))
                 ),
                 (
                     2,
                     (
-                        vec![0],
-                        Fragment::Declaration(Declaration::Enumerated {
-                            name: Storage(Visibility::Public, String::from("MyEnum")),
-                            variants: vec![],
-                        })
+                        vec![0, 2],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
                     3,
                     (
-                        vec![0, 3],
+                        vec![0],
+                        Fragment::Declaration(f::a::const_("MY_CONST", None, 2))
+                    )
+                ),
+                (
+                    4,
+                    (vec![0], Fragment::Module(Module::new(vec![], vec![1, 3])))
+                ),
+            ])
+        );
+    }
+
+    #[test]
+    fn register_closure_fragments() {
+        let file_ctx = RefCell::new(FileContext::new());
+
+        super::register_fragments(
+            f::n::mr(Module::new(
+                vec![],
+                vec![
+                    f::n::d(f::a::const_(
+                        "FOO",
+                        None,
+                        f::n::x(Expression::Primitive(Primitive::Nil)),
+                    )),
+                    f::n::d(f::a::const_(
+                        "BAR",
+                        None,
+                        f::n::x(Expression::Closure(vec![
+                            f::n::s(Statement::Variable(
+                                String::from("foo"),
+                                f::n::x(Expression::Identifier(String::from("FOO"))),
+                            )),
+                            f::n::s(Statement::Effect(f::n::x(Expression::Identifier(
+                                String::from("foo"),
+                            )))),
+                        ])),
+                    )),
+                ],
+            )),
+            &file_ctx,
+        );
+
+        assert_eq!(
+            file_ctx.borrow().fragments,
+            BTreeMap::from_iter(vec![
+                (
+                    0,
+                    (
+                        vec![0, 1],
                         Fragment::Expression(Expression::Primitive(Primitive::Nil))
+                    )
+                ),
+                (
+                    1,
+                    (vec![0], Fragment::Declaration(f::a::const_("FOO", None, 0)))
+                ),
+                (
+                    2,
+                    (
+                        vec![0, 2, 3],
+                        Fragment::Expression(Expression::Identifier(String::from("FOO")))
+                    )
+                ),
+                (
+                    3,
+                    (
+                        vec![0, 2, 3],
+                        Fragment::Statement(Statement::Variable(String::from("foo"), 2))
                     )
                 ),
                 (
                     4,
                     (
-                        vec![0],
-                        Fragment::Declaration(Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("MY_CONST")),
-                            value_type: None,
-                            value: 3,
-                        })
+                        vec![0, 2, 3],
+                        Fragment::Expression(Expression::Identifier(String::from("foo")))
                     )
                 ),
                 (
                     5,
-                    (
-                        vec![0, 4],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
+                    (vec![0, 2, 3], Fragment::Statement(Statement::Effect(4)))
                 ),
                 (
                     6,
                     (
-                        vec![0],
-                        Fragment::Declaration(Declaration::Function {
-                            name: Storage(Visibility::Public, String::from("my_func")),
-                            parameters: vec![],
-                            body_type: None,
-                            body: 5,
-                        })
+                        vec![0, 2],
+                        Fragment::Expression(Expression::Closure(vec![3, 5]))
                     )
                 ),
                 (
                     7,
-                    (
-                        vec![0, 5],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
+                    (vec![0], Fragment::Declaration(f::a::const_("BAR", None, 6)))
                 ),
                 (
                     8,
-                    (
-                        vec![0],
-                        Fragment::Declaration(Declaration::View {
-                            name: Storage(Visibility::Public, String::from("MyView")),
-                            parameters: vec![],
-                            body: 7,
-                        })
-                    )
-                ),
-                (
-                    9,
-                    (vec![0, 6], Fragment::Module(Module::new(vec![], vec![])))
-                ),
-                (
-                    10,
-                    (
-                        vec![0],
-                        Fragment::Declaration(Declaration::Module {
-                            name: Storage(Visibility::Public, String::from("my_mod")),
-                            value: 9,
-                        })
-                    )
-                ),
-                (
-                    11,
-                    (
-                        vec![0],
-                        Fragment::Module(Module::new(vec![], vec![1, 2, 4, 6, 8, 10]))
-                    )
+                    (vec![0], Fragment::Module(Module::new(vec![], vec![1, 7])))
                 ),
             ])
-        );
-
-        assert_eq!(
-            cell.borrow().weak_refs,
-            HashMap::from_iter(vec![
-                (0, WeakRef::Type(WeakType::Strong(Type::Nil))),
-                (1, WeakRef::Type(WeakType::Reference(0))),
-                (
-                    2,
-                    WeakRef::Value(WeakType::Strong(Type::Enumerated(vec![])))
-                ),
-                (3, WeakRef::Value(WeakType::Strong(Type::Nil))),
-                (4, WeakRef::Value(WeakType::Reference(3))),
-                (5, WeakRef::Value(WeakType::Strong(Type::Nil))),
-                (6, WeakRef::Value(WeakType::Any)),
-                (7, WeakRef::Value(WeakType::Strong(Type::Nil))),
-                (8, WeakRef::Value(WeakType::Any)),
-                (9, WeakRef::Value(WeakType::Any)),
-                (10, WeakRef::Value(WeakType::Any)),
-                (11, WeakRef::Value(WeakType::Any)),
-            ])
-        );
-
-        assert_eq!(
-            cell.borrow().bindings,
-            HashMap::from_iter(vec![
-                ((vec![0], String::from("MyType")), 1),
-                ((vec![0], String::from("MyEnum")), 2),
-                ((vec![0], String::from("MY_CONST")), 4),
-                ((vec![0], String::from("my_func")), 6),
-                ((vec![0], String::from("MyView")), 8),
-                ((vec![0], String::from("my_mod")), 10),
-            ])
-        );
-    }
-
-    #[test]
-    pub fn binding_type_alias() {
-        assert_eq!(
-            super::fragment_to_binding(&Fragment::Declaration(Declaration::TypeAlias {
-                name: Storage(Visibility::Public, String::from("Foo")),
-                value: 0
-            })),
-            Some(String::from("Foo"))
-        );
-    }
-
-    #[test]
-    pub fn binding_enumerated() {
-        assert_eq!(
-            super::fragment_to_binding(&Fragment::Declaration(Declaration::Enumerated {
-                name: Storage(Visibility::Public, String::from("Foo")),
-                variants: vec![]
-            })),
-            Some(String::from("Foo"))
-        );
-    }
-
-    #[test]
-    pub fn binding_constant() {
-        assert_eq!(
-            super::fragment_to_binding(&Fragment::Declaration(Declaration::Constant {
-                name: Storage(Visibility::Public, String::from("FOO")),
-                value_type: None,
-                value: 0
-            })),
-            Some(String::from("FOO"))
-        );
-    }
-
-    #[test]
-    pub fn binding_function() {
-        assert_eq!(
-            super::fragment_to_binding(&Fragment::Declaration(Declaration::Function {
-                name: Storage(Visibility::Public, String::from("foo")),
-                parameters: vec![],
-                body_type: None,
-                body: 0
-            })),
-            Some(String::from("foo"))
-        );
-    }
-
-    #[test]
-    pub fn binding_view() {
-        assert_eq!(
-            super::fragment_to_binding(&Fragment::Declaration(Declaration::View {
-                name: Storage(Visibility::Public, String::from("Foo")),
-                parameters: vec![],
-                body: 0
-            })),
-            Some(String::from("Foo"))
-        );
-    }
-
-    #[test]
-    pub fn binding_module() {
-        assert_eq!(
-            super::fragment_to_binding(&Fragment::Declaration(Declaration::Module {
-                name: Storage(Visibility::Public, String::from("foo")),
-                value: 0
-            })),
-            Some(String::from("foo"))
         );
     }
 }

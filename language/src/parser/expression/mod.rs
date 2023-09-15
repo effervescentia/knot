@@ -289,39 +289,39 @@ mod tests {
     fn primitive() {
         assert_eq!(
             parse("nil").unwrap().0,
-            f::xr(Expression::Primitive(Primitive::Nil), ((1, 1), (1, 3)))
+            f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 1), (1, 3)))
         );
         assert_eq!(
             parse("true").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Primitive(Primitive::Boolean(true)),
                 ((1, 1), (1, 4))
             )
         );
         assert_eq!(
             parse("false").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Primitive(Primitive::Boolean(false)),
                 ((1, 1), (1, 5))
             )
         );
         assert_eq!(
             parse("123").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Primitive(Primitive::Integer(123)),
                 ((1, 1), (1, 3))
             )
         );
         assert_eq!(
             parse("123.456").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Primitive(Primitive::Float(123.456, 6)),
                 ((1, 1), (1, 7))
             )
         );
         assert_eq!(
             parse("\"foo\"").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Primitive(Primitive::String(String::from("foo"))),
                 ((1, 1), (1, 5))
             )
@@ -332,7 +332,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Identifier(String::from("foo")),
                 ((1, 1), (1, 3))
             )
@@ -343,8 +343,8 @@ mod tests {
     fn group() {
         assert_eq!(
             parse("(nil)").unwrap().0,
-            f::xr(
-                Expression::Group(Box::new(f::xr(
+            f::n::xr(
+                Expression::Group(Box::new(f::n::xr(
                     Expression::Primitive(Primitive::Nil),
                     ((1, 2), (1, 4))
                 ))),
@@ -357,17 +357,17 @@ mod tests {
     fn closure() {
         assert_eq!(
             parse("{ nil; nil }").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Closure(vec![
-                    f::sr(
-                        Statement::Effect(f::xr(
+                    f::n::sr(
+                        Statement::Effect(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 3), (1, 5))
                         )),
                         ((1, 3), (1, 5))
                     ),
-                    f::sr(
-                        Statement::Effect(f::xr(
+                    f::n::sr(
+                        Statement::Effect(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 8), (1, 10))
                         )),
@@ -379,7 +379,7 @@ mod tests {
         );
         assert_eq!(
             parse("{}").unwrap().0,
-            f::xr(Expression::Closure(vec![]), ((1, 1), (1, 2)))
+            f::n::xr(Expression::Closure(vec![]), ((1, 1), (1, 2)))
         );
     }
 
@@ -387,10 +387,10 @@ mod tests {
     fn unary_not_operation() {
         assert_eq!(
             parse("!nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::UnaryOperation(
                     UnaryOperator::Not,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 2), (1, 4))
                     )),
@@ -404,10 +404,10 @@ mod tests {
     fn unary_absolute_operation() {
         assert_eq!(
             parse("+nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::UnaryOperation(
                     UnaryOperator::Absolute,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 2), (1, 4))
                     )),
@@ -421,10 +421,10 @@ mod tests {
     fn unary_negative_operation() {
         assert_eq!(
             parse("-nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::UnaryOperation(
                     UnaryOperator::Negate,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 2), (1, 4))
                     )),
@@ -438,14 +438,14 @@ mod tests {
     fn binary_add_operation() {
         assert_eq!(
             parse("nil + nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Add,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -459,14 +459,14 @@ mod tests {
     fn binary_subtract_operation() {
         assert_eq!(
             parse("nil - nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Subtract,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -480,14 +480,14 @@ mod tests {
     fn binary_multiply_operation() {
         assert_eq!(
             parse("nil * nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Multiply,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -501,14 +501,14 @@ mod tests {
     fn binary_divide_operation() {
         assert_eq!(
             parse("nil / nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Divide,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -522,14 +522,14 @@ mod tests {
     fn binary_exponent_operation() {
         assert_eq!(
             parse("nil ^ nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Exponent,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -543,14 +543,14 @@ mod tests {
     fn binary_less_than_operation() {
         assert_eq!(
             parse("nil < nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::LessThan,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -564,14 +564,14 @@ mod tests {
     fn binary_less_than_or_equal_operation() {
         assert_eq!(
             parse("nil <= nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::LessThanOrEqual,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 8), (1, 10))
                     )),
@@ -585,14 +585,14 @@ mod tests {
     fn binary_greater_than_operation() {
         assert_eq!(
             parse("nil > nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::GreaterThan,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 7), (1, 9))
                     )),
@@ -606,14 +606,14 @@ mod tests {
     fn binary_greater_than_or_equal_operation() {
         assert_eq!(
             parse("nil >= nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::GreaterThanOrEqual,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 8), (1, 10))
                     )),
@@ -627,14 +627,14 @@ mod tests {
     fn binary_equal_operation() {
         assert_eq!(
             parse("nil == nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Equal,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 8), (1, 10))
                     )),
@@ -648,14 +648,14 @@ mod tests {
     fn binary_unequal_operation() {
         assert_eq!(
             parse("nil != nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::NotEqual,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 8), (1, 10))
                     )),
@@ -669,14 +669,14 @@ mod tests {
     fn binary_and_operation() {
         assert_eq!(
             parse("nil && nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::And,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 8), (1, 10))
                     )),
@@ -690,14 +690,14 @@ mod tests {
     fn binary_or_operation() {
         assert_eq!(
             parse("nil || nil").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::BinaryOperation(
                     BinaryOperator::Or,
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 8), (1, 10))
                     )),
@@ -711,9 +711,9 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::DotAccess(
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
@@ -728,9 +728,9 @@ mod tests {
     fn function_call_empty() {
         assert_eq!(
             parse("nil()").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::FunctionCall(
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
@@ -745,15 +745,15 @@ mod tests {
     fn function_call() {
         assert_eq!(
             parse("nil(nil, nil)").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::FunctionCall(
-                    Box::new(f::xr(
+                    Box::new(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
                     vec![
-                        f::xr(Expression::Primitive(Primitive::Nil), ((1, 5), (1, 7))),
-                        f::xr(Expression::Primitive(Primitive::Nil), ((1, 10), (1, 12)))
+                        f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 5), (1, 7))),
+                        f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 10), (1, 12)))
                     ]
                 ),
                 ((1, 1), (1, 13))
@@ -765,7 +765,7 @@ mod tests {
     fn style_empty() {
         assert_eq!(
             parse("style {}").unwrap().0,
-            f::xr(Expression::Style(vec![]), ((1, 1), (1, 8)))
+            f::n::xr(Expression::Style(vec![]), ((1, 1), (1, 8)))
         );
     }
 
@@ -773,10 +773,10 @@ mod tests {
     fn style() {
         assert_eq!(
             parse("style { foo: nil }").unwrap().0,
-            f::xr(
+            f::n::xr(
                 Expression::Style(vec![(
                     String::from("foo"),
-                    f::xr(Expression::Primitive(Primitive::Nil), ((1, 14), (1, 16)))
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 14), (1, 16)))
                 )]),
                 ((1, 1), (1, 18))
             )
@@ -787,8 +787,8 @@ mod tests {
     fn ksx() {
         assert_eq!(
             parse("<foo />").unwrap().0,
-            f::xr(
-                Expression::KSX(Box::new(f::kxr(
+            f::n::xr(
+                Expression::KSX(Box::new(f::n::kxr(
                     KSX::ClosedElement(String::from("foo"), vec![]),
                     ((1, 1), (1, 7))
                 ))),

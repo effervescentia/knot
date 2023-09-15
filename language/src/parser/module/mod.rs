@@ -81,10 +81,6 @@ mod tests {
     };
     use crate::{
         parser::{
-            declaration::{
-                storage::{Storage, Visibility},
-                Declaration,
-            },
             expression::{primitive::Primitive, Expression},
             CharStream, ParseResult,
         },
@@ -98,14 +94,14 @@ mod tests {
 
     #[test]
     fn module_empty() {
-        assert_eq!(parse("").unwrap().0, f::mr(Module::new(vec![], vec![])));
+        assert_eq!(parse("").unwrap().0, f::n::mr(Module::new(vec![], vec![])));
     }
 
     #[test]
     fn module_import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            f::mr(Module::new(
+            f::n::mr(Module::new(
                 vec![Import::new(
                     import::Source::Root,
                     vec![String::from("foo")],
@@ -120,14 +116,14 @@ mod tests {
     fn module_declaration() {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
-            f::mr(Module::new(
+            f::n::mr(Module::new(
                 vec![],
-                vec![f::dr(
-                    Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("foo")),
-                        value_type: None,
-                        value: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
-                    },
+                vec![f::n::dr(
+                    f::a::const_(
+                        "foo",
+                        None,
+                        f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
+                    ),
                     ((1, 1), (1, 15))
                 )]
             ))

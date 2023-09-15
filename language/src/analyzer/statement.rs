@@ -52,7 +52,7 @@ mod tests {
         parser::expression::{primitive::Primitive, statement::Statement, Expression},
         test::fixture as f,
     };
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[test]
     fn effect() {
@@ -60,13 +60,12 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::sc(
-                Statement::Effect(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                ()
-            )
+            f::n::s(Statement::Effect(f::n::x(Expression::Primitive(
+                Primitive::Nil
+            ))))
             .register(scope),
-            f::sc(
-                Statement::Effect(f::xc(
+            f::n::sc(
+                Statement::Effect(f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
                 )),
@@ -76,7 +75,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (
@@ -95,18 +94,15 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::sc(
-                Statement::Variable(
-                    String::from("foo"),
-                    f::xc(Expression::Primitive(Primitive::Nil), ())
-                ),
-                ()
-            )
+            f::n::s(Statement::Variable(
+                String::from("foo"),
+                f::n::x(Expression::Primitive(Primitive::Nil))
+            ))
             .register(scope),
-            f::sc(
+            f::n::sc(
                 Statement::Variable(
                     String::from("foo"),
-                    f::xc(
+                    f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(0, vec![0])
                     )
@@ -117,7 +113,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (

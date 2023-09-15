@@ -192,7 +192,7 @@ mod tests {
     fn nil() {
         assert_eq!(
             parse("nil").unwrap().0,
-            f::txr(TypeExpression::Nil, ((1, 1), (1, 3)))
+            f::n::txr(TypeExpression::Nil, ((1, 1), (1, 3)))
         );
     }
 
@@ -200,7 +200,7 @@ mod tests {
     fn boolean() {
         assert_eq!(
             parse("boolean").unwrap().0,
-            f::txr(TypeExpression::Boolean, ((1, 1), (1, 7)))
+            f::n::txr(TypeExpression::Boolean, ((1, 1), (1, 7)))
         );
     }
 
@@ -208,7 +208,7 @@ mod tests {
     fn integer() {
         assert_eq!(
             parse("integer").unwrap().0,
-            f::txr(TypeExpression::Integer, ((1, 1), (1, 7)))
+            f::n::txr(TypeExpression::Integer, ((1, 1), (1, 7)))
         );
     }
 
@@ -216,7 +216,7 @@ mod tests {
     fn float() {
         assert_eq!(
             parse("float").unwrap().0,
-            f::txr(TypeExpression::Float, ((1, 1), (1, 5)))
+            f::n::txr(TypeExpression::Float, ((1, 1), (1, 5)))
         );
     }
 
@@ -224,7 +224,7 @@ mod tests {
     fn string() {
         assert_eq!(
             parse("string").unwrap().0,
-            f::txr(TypeExpression::String, ((1, 1), (1, 6)))
+            f::n::txr(TypeExpression::String, ((1, 1), (1, 6)))
         );
     }
 
@@ -232,7 +232,7 @@ mod tests {
     fn style() {
         assert_eq!(
             parse("style").unwrap().0,
-            f::txr(TypeExpression::Style, ((1, 1), (1, 5)))
+            f::n::txr(TypeExpression::Style, ((1, 1), (1, 5)))
         );
     }
 
@@ -240,7 +240,7 @@ mod tests {
     fn element() {
         assert_eq!(
             parse("element").unwrap().0,
-            f::txr(TypeExpression::Element, ((1, 1), (1, 7)))
+            f::n::txr(TypeExpression::Element, ((1, 1), (1, 7)))
         );
     }
 
@@ -248,7 +248,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            f::txr(
+            f::n::txr(
                 TypeExpression::Identifier(String::from("foo")),
                 ((1, 1), (1, 3))
             )
@@ -259,8 +259,8 @@ mod tests {
     fn group() {
         assert_eq!(
             parse("(nil)").unwrap().0,
-            f::txr(
-                TypeExpression::Group(Box::new(f::txr(TypeExpression::Nil, ((1, 2), (1, 4))))),
+            f::n::txr(
+                TypeExpression::Group(Box::new(f::n::txr(TypeExpression::Nil, ((1, 2), (1, 4))))),
                 ((1, 1), (1, 5))
             )
         );
@@ -270,13 +270,13 @@ mod tests {
     fn function() {
         assert_eq!(
             parse("(nil, boolean) -> nil").unwrap().0,
-            f::txr(
+            f::n::txr(
                 TypeExpression::Function(
                     vec![
-                        f::txr(TypeExpression::Nil, ((1, 2), (1, 4))),
-                        f::txr(TypeExpression::Boolean, ((1, 7), (1, 13)))
+                        f::n::txr(TypeExpression::Nil, ((1, 2), (1, 4))),
+                        f::n::txr(TypeExpression::Boolean, ((1, 7), (1, 13)))
                     ],
-                    Box::new(f::txr(TypeExpression::Nil, ((1, 19), (1, 21))))
+                    Box::new(f::n::txr(TypeExpression::Nil, ((1, 19), (1, 21))))
                 ),
                 ((1, 1), (1, 21))
             )
@@ -287,10 +287,10 @@ mod tests {
     fn function_empty_parameters() {
         assert_eq!(
             parse("() -> nil").unwrap().0,
-            f::txr(
+            f::n::txr(
                 TypeExpression::Function(
                     vec![],
-                    Box::new(f::txr(TypeExpression::Nil, ((1, 7), (1, 9))))
+                    Box::new(f::n::txr(TypeExpression::Nil, ((1, 7), (1, 9))))
                 ),
                 ((1, 1), (1, 9))
             )
@@ -301,9 +301,9 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
-            f::txr(
+            f::n::txr(
                 TypeExpression::DotAccess(
-                    Box::new(f::txr(TypeExpression::Nil, ((1, 1), (1, 3)))),
+                    Box::new(f::n::txr(TypeExpression::Nil, ((1, 1), (1, 3)))),
                     String::from("foo")
                 ),
                 ((1, 1), (1, 7))

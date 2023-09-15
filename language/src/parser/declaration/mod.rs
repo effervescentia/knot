@@ -103,9 +103,7 @@ parser! {
 mod tests {
     use crate::{
         parser::{
-            declaration::{
-                declaration, storage::Visibility, Declaration, DeclarationNode, Storage,
-            },
+            declaration::{declaration, DeclarationNode},
             expression::{primitive::Primitive, Expression},
             module::Module,
             types::type_expression::TypeExpression,
@@ -123,11 +121,8 @@ mod tests {
     fn type_alias() {
         assert_eq!(
             parse("type foo = nil;").unwrap().0,
-            f::dr(
-                Declaration::TypeAlias {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    value: f::txr(TypeExpression::Nil, ((1, 12), (1, 14)))
-                },
+            f::n::dr(
+                f::a::type_("foo", f::n::txr(TypeExpression::Nil, ((1, 12), (1, 14)))),
                 ((1, 1), (1, 14))
             )
         );
@@ -137,12 +132,12 @@ mod tests {
     fn constant() {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
-            f::dr(
-                Declaration::Constant {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    value_type: None,
-                    value: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
-                },
+            f::n::dr(
+                f::a::const_(
+                    "foo",
+                    None,
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
+                ),
                 ((1, 1), (1, 15))
             )
         );
@@ -152,14 +147,14 @@ mod tests {
     fn enumerated() {
         assert_eq!(
             parse("enum foo = | Fizz(nil);").unwrap().0,
-            f::dr(
-                Declaration::Enumerated {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    variants: vec![(
+            f::n::dr(
+                f::a::enum_(
+                    "foo",
+                    vec![(
                         String::from("Fizz"),
-                        vec![f::txr(TypeExpression::Nil, ((1, 19), (1, 21)))]
+                        vec![f::n::txr(TypeExpression::Nil, ((1, 19), (1, 21)))]
                     )]
-                },
+                ),
                 ((1, 1), (1, 22))
             )
         );
@@ -169,11 +164,8 @@ mod tests {
     fn enumerated_empty_parameters() {
         assert_eq!(
             parse("enum foo = | Fizz();").unwrap().0,
-            f::dr(
-                Declaration::Enumerated {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    variants: vec![(String::from("Fizz"), vec![]),]
-                },
+            f::n::dr(
+                f::a::enum_("foo", vec![(String::from("Fizz"), vec![])]),
                 ((1, 1), (1, 19))
             )
         );
@@ -183,11 +175,8 @@ mod tests {
     fn enumerated_no_parameters() {
         assert_eq!(
             parse("enum foo = | Fizz;").unwrap().0,
-            f::dr(
-                Declaration::Enumerated {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    variants: vec![(String::from("Fizz"), vec![]),]
-                },
+            f::n::dr(
+                f::a::enum_("foo", vec![(String::from("Fizz"), vec![])]),
                 ((1, 1), (1, 17))
             )
         );
@@ -197,13 +186,13 @@ mod tests {
     fn function() {
         assert_eq!(
             parse("func foo -> nil;").unwrap().0,
-            f::dr(
-                Declaration::Function {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    parameters: vec![],
-                    body_type: None,
-                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
-                },
+            f::n::dr(
+                f::a::func_(
+                    "foo",
+                    vec![],
+                    None,
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
+                ),
                 ((1, 1), (1, 15))
             )
         );
@@ -213,13 +202,13 @@ mod tests {
     fn function_result_typedef() {
         assert_eq!(
             parse("func foo: nil -> nil;").unwrap().0,
-            f::dr(
-                Declaration::Function {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    parameters: vec![],
-                    body_type: Some(f::txr(TypeExpression::Nil, ((1, 11), (1, 13)))),
-                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 18), (1, 20)))
-                },
+            f::n::dr(
+                f::a::func_(
+                    "foo",
+                    vec![],
+                    Some(f::n::txr(TypeExpression::Nil, ((1, 11), (1, 13)))),
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 18), (1, 20)))
+                ),
                 ((1, 1), (1, 20))
             )
         );
@@ -229,13 +218,13 @@ mod tests {
     fn function_empty_parameters() {
         assert_eq!(
             parse("func foo() -> nil;").unwrap().0,
-            f::dr(
-                Declaration::Function {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    parameters: vec![],
-                    body_type: None,
-                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 15), (1, 17)))
-                },
+            f::n::dr(
+                f::a::func_(
+                    "foo",
+                    vec![],
+                    None,
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 15), (1, 17)))
+                ),
                 ((1, 1), (1, 17))
             )
         );
@@ -245,13 +234,13 @@ mod tests {
     fn function_empty_parameters_result_typedef() {
         assert_eq!(
             parse("func foo(): nil -> nil;").unwrap().0,
-            f::dr(
-                Declaration::Function {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    parameters: vec![],
-                    body_type: Some(f::txr(TypeExpression::Nil, ((1, 13), (1, 15)))),
-                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 20), (1, 22)))
-                },
+            f::n::dr(
+                f::a::func_(
+                    "foo",
+                    vec![],
+                    Some(f::n::txr(TypeExpression::Nil, ((1, 13), (1, 15)))),
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 20), (1, 22)))
+                ),
                 ((1, 1), (1, 22))
             )
         );
@@ -261,12 +250,12 @@ mod tests {
     fn view() {
         assert_eq!(
             parse("view foo -> nil;").unwrap().0,
-            f::dr(
-                Declaration::View {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    parameters: vec![],
-                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
-                },
+            f::n::dr(
+                f::a::view(
+                    "foo",
+                    vec![],
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 13), (1, 15)))
+                ),
                 ((1, 1), (1, 15))
             )
         );
@@ -276,12 +265,12 @@ mod tests {
     fn view_empty_arguments() {
         assert_eq!(
             parse("view foo() -> nil;").unwrap().0,
-            f::dr(
-                Declaration::View {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    parameters: vec![],
-                    body: f::xr(Expression::Primitive(Primitive::Nil), ((1, 15), (1, 17)))
-                },
+            f::n::dr(
+                f::a::view(
+                    "foo",
+                    vec![],
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 15), (1, 17)))
+                ),
                 ((1, 1), (1, 17))
             )
         );
@@ -291,11 +280,8 @@ mod tests {
     fn module_empty() {
         assert_eq!(
             parse("module foo {}").unwrap().0,
-            f::dr(
-                Declaration::Module {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    value: f::mr(Module::new(vec![], vec![]))
-                },
+            f::n::dr(
+                f::a::mod_("foo", f::n::mr(Module::new(vec![], vec![]))),
                 ((1, 1), (1, 13))
             )
         );
@@ -305,24 +291,21 @@ mod tests {
     fn module() {
         assert_eq!(
             parse("module foo { const bar = nil; }").unwrap().0,
-            f::dr(
-                Declaration::Module {
-                    name: Storage(Visibility::Public, String::from("foo")),
-                    value: f::mr(Module::new(
+            f::n::dr(
+                f::a::mod_(
+                    "foo",
+                    f::n::mr(Module::new(
                         vec![],
-                        vec![f::dr(
-                            Declaration::Constant {
-                                name: Storage(Visibility::Public, String::from("bar")),
-                                value_type: None,
-                                value: f::xr(
-                                    Expression::Primitive(Primitive::Nil),
-                                    ((1, 26), (1, 28))
-                                )
-                            },
+                        vec![f::n::dr(
+                            f::a::const_(
+                                "bar",
+                                None,
+                                f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 26), (1, 28)))
+                            ),
                             ((1, 14), (1, 28))
                         )]
-                    ),)
-                },
+                    ))
+                ),
                 ((1, 1), (1, 31))
             )
         );

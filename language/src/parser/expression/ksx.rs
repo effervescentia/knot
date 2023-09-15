@@ -187,7 +187,7 @@ mod tests {
     fn fragment() {
         assert_eq!(
             parse("<></>").unwrap().0,
-            f::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 5)))
+            f::n::kxr(KSX::Fragment(vec![]), ((1, 1), (1, 5)))
         );
     }
 
@@ -195,7 +195,7 @@ mod tests {
     fn open_element() {
         assert_eq!(
             parse("<foo></foo>").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::OpenElement(String::from("foo"), vec![], vec![], String::from("foo")),
                 ((1, 1), (1, 11))
             )
@@ -206,7 +206,7 @@ mod tests {
     fn closed_element() {
         assert_eq!(
             parse("<foo />").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::ClosedElement(String::from("foo"), vec![]),
                 ((1, 1), (1, 7))
             )
@@ -217,8 +217,8 @@ mod tests {
     fn fragment_in_fragment() {
         assert_eq!(
             parse("<><></></>").unwrap().0,
-            f::kxr(
-                KSX::Fragment(vec![f::kxr(KSX::Fragment(vec![]), ((1, 3), (1, 7)))]),
+            f::n::kxr(
+                KSX::Fragment(vec![f::n::kxr(KSX::Fragment(vec![]), ((1, 3), (1, 7)))]),
                 ((1, 1), (1, 10))
             )
         );
@@ -228,8 +228,8 @@ mod tests {
     fn element_in_fragment() {
         assert_eq!(
             parse("<><foo /></>").unwrap().0,
-            f::kxr(
-                KSX::Fragment(vec![f::kxr(
+            f::n::kxr(
+                KSX::Fragment(vec![f::n::kxr(
                     KSX::ClosedElement(String::from("foo"), vec![]),
                     ((1, 3), (1, 9))
                 )]),
@@ -242,11 +242,11 @@ mod tests {
     fn fragment_in_element() {
         assert_eq!(
             parse("<foo><></></foo>").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::OpenElement(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(KSX::Fragment(vec![]), ((1, 6), (1, 10)))],
+                    vec![f::n::kxr(KSX::Fragment(vec![]), ((1, 6), (1, 10)))],
                     String::from("foo"),
                 ),
                 ((1, 1), (1, 16))
@@ -258,11 +258,11 @@ mod tests {
     fn element_in_element() {
         assert_eq!(
             parse("<foo><bar /></foo>").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::OpenElement(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(
+                    vec![f::n::kxr(
                         KSX::ClosedElement(String::from("bar"), vec![]),
                         ((1, 6), (1, 12))
                     )],
@@ -277,9 +277,9 @@ mod tests {
     fn inline_in_fragment() {
         assert_eq!(
             parse("<>{nil}</>").unwrap().0,
-            f::kxr(
-                KSX::Fragment(vec![f::kxr(
-                    KSX::Inline(f::xr(
+            f::n::kxr(
+                KSX::Fragment(vec![f::n::kxr(
+                    KSX::Inline(f::n::xr(
                         Expression::Primitive(Primitive::Nil),
                         ((1, 4), (1, 6))
                     )),
@@ -294,12 +294,12 @@ mod tests {
     fn inline_in_element() {
         assert_eq!(
             parse("<foo>{nil}</foo>").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::OpenElement(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(
-                        KSX::Inline(f::xr(
+                    vec![f::n::kxr(
+                        KSX::Inline(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 7), (1, 9))
                         )),
@@ -316,8 +316,8 @@ mod tests {
     fn text_in_fragment() {
         assert_eq!(
             parse("<>foo</>").unwrap().0,
-            f::kxr(
-                KSX::Fragment(vec![f::kxr(
+            f::n::kxr(
+                KSX::Fragment(vec![f::n::kxr(
                     KSX::Text(String::from("foo")),
                     ((1, 3), (1, 5))
                 )]),
@@ -330,11 +330,11 @@ mod tests {
     fn text_in_element() {
         assert_eq!(
             parse("<foo>bar</foo>").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::OpenElement(
                     String::from("foo"),
                     vec![],
-                    vec![f::kxr(KSX::Text(String::from("bar")), ((1, 6), (1, 8)))],
+                    vec![f::n::kxr(KSX::Text(String::from("bar")), ((1, 6), (1, 8)))],
                     String::from("foo"),
                 ),
                 ((1, 1), (1, 14))
@@ -346,12 +346,12 @@ mod tests {
     fn attribute_on_element() {
         assert_eq!(
             parse("<foo bar=nil></foo>").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::OpenElement(
                     String::from("foo"),
                     vec![(
                         String::from("bar"),
-                        Some(f::xr(
+                        Some(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 10), (1, 12))
                         ))
@@ -368,12 +368,12 @@ mod tests {
     fn attribute_on_self_closing_element() {
         assert_eq!(
             parse("<foo bar=nil />").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::ClosedElement(
                     String::from("foo"),
                     vec![(
                         String::from("bar"),
-                        Some(f::xr(
+                        Some(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 10), (1, 12))
                         ))
@@ -388,7 +388,7 @@ mod tests {
     fn attribute_punned() {
         assert_eq!(
             parse("<foo bar />").unwrap().0,
-            f::kxr(
+            f::n::kxr(
                 KSX::ClosedElement(String::from("foo"), vec![(String::from("bar"), None)],),
                 ((1, 1), (1, 11))
             )

@@ -61,10 +61,6 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, Analyze},
         parser::{
-            declaration::{
-                storage::{Storage, Visibility},
-                Declaration,
-            },
             expression::{primitive::Primitive, Expression},
             module::{
                 import::{Import, Source, Target},
@@ -74,7 +70,7 @@ mod tests {
         },
         test::fixture as f,
     };
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[test]
     fn module() {
@@ -82,24 +78,18 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            ModuleNode(
-                Module::new(
-                    vec![Import {
-                        source: Source::Root,
-                        path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
-                    }],
-                    vec![f::dc(
-                        Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("BUZZ")),
-                            value_type: Some(f::txc(TypeExpression::Nil, ())),
-                            value: f::xc(Expression::Primitive(Primitive::Nil), ()),
-                        },
-                        (),
-                    )],
-                ),
-                (),
-            )
+            f::n::mr(Module::new(
+                vec![Import {
+                    source: Source::Root,
+                    path: vec![String::from("bar"), String::from("fizz")],
+                    aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                }],
+                vec![f::n::d(f::a::const_(
+                    "BUZZ",
+                    Some(f::n::tx(TypeExpression::Nil)),
+                    f::n::x(Expression::Primitive(Primitive::Nil))
+                ))],
+            ))
             .register(scope),
             ModuleNode(
                 Module::new(
@@ -108,18 +98,18 @@ mod tests {
                         path: vec![String::from("bar"), String::from("fizz")],
                         aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
                     }],
-                    vec![f::dc(
-                        Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("BUZZ")),
-                            value_type: Some(f::txc(
+                    vec![f::n::dc(
+                        f::a::const_(
+                            "BUZZ",
+                            Some(f::n::txc(
                                 TypeExpression::Nil,
                                 NodeContext::new(0, vec![0, 1])
                             )),
-                            value: f::xc(
+                            f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
                                 NodeContext::new(1, vec![0, 1])
-                            ),
-                        },
+                            )
+                        ),
                         NodeContext::new(2, vec![0]),
                     )],
                 ),
@@ -129,7 +119,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
@@ -145,11 +135,7 @@ mod tests {
                     2,
                     (
                         vec![0],
-                        Fragment::Declaration(Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("BUZZ")),
-                            value_type: Some(0),
-                            value: 1,
-                        })
+                        Fragment::Declaration(f::a::const_("BUZZ", Some(0), 1))
                     )
                 ),
                 (

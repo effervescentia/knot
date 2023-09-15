@@ -97,8 +97,8 @@ mod tests {
     fn effect() {
         assert_eq!(
             parse("nil;").unwrap().0,
-            f::sr(
-                Statement::Effect(f::xr(
+            f::n::sr(
+                Statement::Effect(f::n::xr(
                     Expression::Primitive(Primitive::Nil),
                     ((1, 1), (1, 3))
                 )),
@@ -111,10 +111,10 @@ mod tests {
     fn variable() {
         assert_eq!(
             parse("let foo = nil;").unwrap().0,
-            f::sr(
+            f::n::sr(
                 Statement::Variable(
                     String::from("foo"),
-                    f::xr(Expression::Primitive(Primitive::Nil), ((1, 11), (1, 13)))
+                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 11), (1, 13)))
                 ),
                 ((1, 1), (1, 13))
             )

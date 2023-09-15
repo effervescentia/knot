@@ -110,7 +110,7 @@ mod tests {
         parser::expression::{ksx::KSX, primitive::Primitive, Expression},
         test::fixture as f,
     };
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[test]
     fn text() {
@@ -118,13 +118,13 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::kxc(KSX::Text(String::from("foo")), ()).register(scope),
-            f::kxc(KSX::Text(String::from("foo")), NodeContext::new(0, vec![0]))
+            f::n::kx(KSX::Text(String::from("foo"))).register(scope),
+            f::n::kxc(KSX::Text(String::from("foo")), NodeContext::new(0, vec![0]))
         );
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![(
+            BTreeMap::from_iter(vec![(
                 0,
                 (vec![0], Fragment::KSX(KSX::Text(String::from("foo"))))
             )])
@@ -137,13 +137,9 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::kxc(
-                KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                (),
-            )
-            .register(scope),
-            f::kxc(
-                KSX::Inline(f::xc(
+            f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(Primitive::Nil)))).register(scope),
+            f::n::kxc(
+                KSX::Inline(f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
                 )),
@@ -153,7 +149,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (
@@ -172,17 +168,13 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::kxc(
-                KSX::Fragment(vec![f::kxc(
-                    KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                    (),
-                )]),
-                (),
-            )
+            f::n::kx(KSX::Fragment(vec![f::n::kx(KSX::Inline(f::n::x(
+                Expression::Primitive(Primitive::Nil)
+            )))]))
             .register(scope),
-            f::kxc(
-                KSX::Fragment(vec![f::kxc(
-                    KSX::Inline(f::xc(
+            f::n::kxc(
+                KSX::Fragment(vec![f::n::kxc(
+                    KSX::Inline(f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(0, vec![0])
                     )),
@@ -194,7 +186,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (
@@ -214,28 +206,25 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::kxc(
-                KSX::ClosedElement(
-                    String::from("Foo"),
-                    vec![
-                        (String::from("bar"), None),
-                        (
-                            String::from("fizz"),
-                            Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                        ),
-                    ],
-                ),
-                (),
-            )
+            f::n::kx(KSX::ClosedElement(
+                String::from("Foo"),
+                vec![
+                    (String::from("bar"), None),
+                    (
+                        String::from("fizz"),
+                        Some(f::n::x(Expression::Primitive(Primitive::Nil))),
+                    ),
+                ],
+            ))
             .register(scope),
-            f::kxc(
+            f::n::kxc(
                 KSX::ClosedElement(
                     String::from("Foo"),
                     vec![
                         (String::from("bar"), None),
                         (
                             String::from("fizz"),
-                            Some(f::xc(
+                            Some(f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
                                 NodeContext::new(0, vec![0])
                             )),
@@ -248,7 +237,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (
@@ -276,40 +265,36 @@ mod tests {
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            f::kxc(
-                KSX::OpenElement(
-                    String::from("Foo"),
-                    vec![
-                        (String::from("bar"), None),
-                        (
-                            String::from("fizz"),
-                            Some(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                        ),
-                    ],
-                    vec![f::kxc(
-                        KSX::Inline(f::xc(Expression::Primitive(Primitive::Nil), ())),
-                        (),
-                    )],
-                    String::from("Foo"),
-                ),
-                (),
-            )
+            f::n::kx(KSX::OpenElement(
+                String::from("Foo"),
+                vec![
+                    (String::from("bar"), None),
+                    (
+                        String::from("fizz"),
+                        Some(f::n::x(Expression::Primitive(Primitive::Nil))),
+                    ),
+                ],
+                vec![f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(
+                    Primitive::Nil
+                ))))],
+                String::from("Foo"),
+            ))
             .register(scope),
-            f::kxc(
+            f::n::kxc(
                 KSX::OpenElement(
                     String::from("Foo"),
                     vec![
                         (String::from("bar"), None),
                         (
                             String::from("fizz"),
-                            Some(f::xc(
+                            Some(f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
                                 NodeContext::new(0, vec![0])
                             )),
                         ),
                     ],
-                    vec![f::kxc(
-                        KSX::Inline(f::xc(
+                    vec![f::n::kxc(
+                        KSX::Inline(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(1, vec![0])
                         )),
@@ -323,7 +308,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            HashMap::from_iter(vec![
+            BTreeMap::from_iter(vec![
                 (
                     0,
                     (
