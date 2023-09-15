@@ -77,9 +77,12 @@ impl ToWeak for Expression<usize, usize, usize> {
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::expression::{
-            binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
-            Expression, UnaryOperator,
+        parser::{
+            expression::{
+                binary_operation::BinaryOperator, primitive::Primitive, Expression, UnaryOperator,
+            },
+            ksx::KSX,
+            statement::Statement,
         },
         test::fixture as f,
     };

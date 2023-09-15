@@ -1,8 +1,10 @@
 use super::{infer::weak::ToWeak, WeakRef};
 use crate::parser::{
     declaration::{storage::Storage, Declaration},
-    expression::{ksx::KSX, statement::Statement, Expression},
+    expression::Expression,
+    ksx::KSX,
     module::Module,
+    statement::Statement,
     types::type_expression::TypeExpression,
 };
 use std::fmt::Debug;
@@ -69,7 +71,7 @@ impl ToWeak for Fragment {
 #[cfg(test)]
 mod tests {
     use super::Fragment;
-    use crate::{parser::expression::statement::Statement, test::fixture as f};
+    use crate::{parser::statement::Statement, test::fixture as f};
 
     #[test]
     fn binding_variable() {

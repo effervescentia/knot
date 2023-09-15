@@ -7,9 +7,9 @@ mod fragment;
 mod identity;
 mod weak;
 use crate::parser::{
-    expression::statement::{self, StatementNode},
     node::Node,
     position::Decrement,
+    statement::{self, StatementNode},
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -35,7 +35,10 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::expression::{primitive::Primitive, statement::Statement, Expression},
+        parser::{
+            expression::{primitive::Primitive, Expression},
+            statement::Statement,
+        },
         test::fixture as f,
     };
     use std::collections::BTreeMap;

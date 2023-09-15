@@ -1,15 +1,17 @@
 pub mod binary_operation;
-pub mod ksx;
 pub mod primitive;
-pub mod statement;
 pub mod style;
-use super::node::Node;
-use crate::parser::{matcher as m, position::Decrement, range::Range};
+use crate::parser::{
+    ksx::{self, KSXNode},
+    matcher as m,
+    node::Node,
+    position::Decrement,
+    range::Range,
+    statement::{self, StatementNode},
+};
 use binary_operation::BinaryOperator;
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
-use ksx::KSXNode;
 use primitive::Primitive;
-use statement::StatementNode;
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -267,11 +269,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::{
-        ksx::KSX, primitive::Primitive, statement::Statement, BinaryOperator, Expression,
-        ExpressionNode, UnaryOperator,
+        ksx::KSX, primitive::Primitive, BinaryOperator, Expression, ExpressionNode, UnaryOperator,
     };
     use crate::{
-        parser::{CharStream, ParseResult},
+        parser::{statement::Statement, CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};

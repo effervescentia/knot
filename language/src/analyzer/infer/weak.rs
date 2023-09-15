@@ -27,7 +27,10 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 mod tests {
     use crate::{
         analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Type, WeakType},
-        parser::expression::{primitive::Primitive, statement::Statement, Expression},
+        parser::{
+            expression::{primitive::Primitive, Expression},
+            statement::Statement,
+        },
         test::fixture as f,
     };
     use std::collections::{BTreeSet, HashMap};

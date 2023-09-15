@@ -1,7 +1,7 @@
 use super::{RefKind, Type, WeakType};
 use crate::{
     analyzer::{infer::weak::ToWeak, WeakRef},
-    parser::expression::ksx::KSX,
+    parser::ksx::KSX,
 };
 
 impl ToWeak for KSX<usize, usize> {

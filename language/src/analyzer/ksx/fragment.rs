@@ -1,10 +1,8 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     parser::{
-        expression::{
-            ksx::{self, KSX},
-            ExpressionNode,
-        },
+        expression::ExpressionNode,
+        ksx::{self, KSX},
         position::Decrement,
     },
 };

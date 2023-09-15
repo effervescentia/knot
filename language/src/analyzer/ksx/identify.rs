@@ -5,10 +5,8 @@ use crate::{
         register::{Identify, Register},
     },
     parser::{
-        expression::{
-            ksx::{self, KSXNode, KSX},
-            ExpressionNode,
-        },
+        expression::ExpressionNode,
+        ksx::{self, KSXNode, KSX},
         position::Decrement,
     },
 };

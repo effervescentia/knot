@@ -6,15 +6,13 @@ use crate::{
     },
     parser::{
         declaration::{Declaration, DeclarationNode},
-        expression::{
-            ksx::{KSXNode, KSX},
-            statement::{Statement, StatementNode},
-            Expression, ExpressionNode,
-        },
-        module::{Module, ModuleNode},
+        expression::ExpressionNode,
+        ksx::KSXNode,
+        module::ModuleNode,
         node::Node,
         range::Range,
-        types::type_expression::{TypeExpression, TypeExpressionNode},
+        statement::StatementNode,
+        types::type_expression::TypeExpressionNode,
         CharStream,
     },
 };
@@ -51,12 +49,7 @@ pub fn a_ctx_from<'a>(
 
 /// node factories
 pub mod n {
-    use crate::parser::{
-        declaration,
-        expression::{self, ksx, statement},
-        module,
-        types::type_expression,
-    };
+    use crate::parser::{declaration, expression, ksx, module, statement, types::type_expression};
 
     use super::*;
 

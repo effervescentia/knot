@@ -1,8 +1,8 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     parser::{
-        expression::statement::{self, Statement},
         position::Decrement,
+        statement::{self, Statement},
     },
 };
 use combine::Stream;

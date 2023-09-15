@@ -1,7 +1,7 @@
 use super::{RefKind, Type, WeakType};
 use crate::{
     analyzer::{infer::weak::ToWeak, WeakRef},
-    parser::expression::statement::Statement,
+    parser::statement::Statement,
 };
 
 impl ToWeak for Statement<usize> {

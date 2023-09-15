@@ -84,23 +84,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{fragment::Fragment, Type, WeakType};
+    use super::fragment::Fragment;
     use crate::{
-        analyzer::{
-            context::{AnalyzeContext, FileContext},
-            RefKind,
-        },
+        analyzer::context::FileContext,
         parser::{
-            expression::{primitive::Primitive, statement::Statement, Expression},
+            expression::{primitive::Primitive, Expression},
             module::Module,
+            statement::Statement,
             types::type_expression::TypeExpression,
         },
         test::fixture as f,
     };
-    use std::{
-        cell::RefCell,
-        collections::{BTreeMap, BTreeSet, HashMap},
-    };
+    use std::{cell::RefCell, collections::BTreeMap};
 
     #[test]
     fn register_declaration_fragments() {

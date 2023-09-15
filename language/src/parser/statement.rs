@@ -1,5 +1,6 @@
-use super::ExpressionNode;
-use crate::parser::{matcher as m, node::Node, position::Decrement, range::Range};
+use crate::parser::{
+    expression::ExpressionNode, matcher as m, node::Node, position::Decrement, range::Range,
+};
 use combine::{choice, Parser, Stream};
 use std::fmt::Debug;
 

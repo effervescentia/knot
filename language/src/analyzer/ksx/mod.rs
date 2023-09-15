@@ -7,7 +7,7 @@ use super::{
     RefKind, ScopeContext, Type, WeakType,
 };
 use crate::parser::{
-    expression::ksx::{self, KSXNode},
+    ksx::{self, KSXNode},
     node::Node,
     position::Decrement,
 };
@@ -35,7 +35,10 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::expression::{ksx::KSX, primitive::Primitive, Expression},
+        parser::{
+            expression::{primitive::Primitive, Expression},
+            ksx::KSX,
+        },
         test::fixture as f,
     };
     use std::collections::BTreeMap;

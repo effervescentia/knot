@@ -68,7 +68,8 @@ mod tests {
     use crate::{
         analyzer::{fragment::Fragment, RefKind, Type, WeakType},
         parser::{
-            expression::{primitive::Primitive, statement::Statement, Expression},
+            expression::{primitive::Primitive, Expression},
+            statement::Statement,
             types::type_expression::TypeExpression,
         },
         test::fixture as f,

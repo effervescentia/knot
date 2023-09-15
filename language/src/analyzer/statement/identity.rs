@@ -4,8 +4,8 @@ use crate::{
         register::{Identify, Register},
     },
     parser::{
-        expression::statement::{self, Statement},
         position::Decrement,
+        statement::{self, Statement},
     },
 };
 use combine::Stream;
