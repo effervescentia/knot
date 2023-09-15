@@ -73,13 +73,7 @@ where
     // apply strong type inference
     infer::strong::infer_types(&mut analyze_ctx);
 
-    // let (result, mut ctx) = unpack_module(x, file_ctx);
-
-    // let mut strong_types = HashMap::new();
-    // infer_types(&mut ctx, &mut strong_types);
-
     untyped
-    // todo!()
 }
 
 #[cfg(test)]

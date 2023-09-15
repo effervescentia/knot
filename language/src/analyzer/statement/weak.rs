@@ -13,3 +13,27 @@ impl ToWeak for Statement<usize> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        analyzer::{infer::weak::ToWeak, RefKind, Type, WeakType},
+        parser::statement::Statement,
+    };
+
+    #[test]
+    fn effect() {
+        assert_eq!(
+            Statement::Effect(0).to_weak(),
+            (RefKind::Value, WeakType::Reference(0))
+        );
+    }
+
+    #[test]
+    fn variable() {
+        assert_eq!(
+            Statement::Variable(String::from("foo"), 0).to_weak(),
+            (RefKind::Value, WeakType::Strong(Type::Nil))
+        );
+    }
+}
