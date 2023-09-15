@@ -21,8 +21,10 @@ pub enum TypeExpression<T> {
     // View(Vec<(String, TypeExpression)>),
 }
 
+pub type NodeValue<T, C> = TypeExpression<TypeExpressionNode<T, C>>;
+
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionNode<T, C>(pub Node<TypeExpression<TypeExpressionNode<T, C>>, T, C>)
+pub struct TypeExpressionNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -32,7 +34,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<TypeExpression<TypeExpressionNode<T, C>>, T, C> {
+    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
         &self.0
     }
 }
@@ -42,7 +44,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: TypeExpression<TypeExpressionNode<T, ()>>, range: Range<T>) -> Self {
+    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }
@@ -54,7 +56,7 @@ where
 {
     fn bind<U>(
         s: &'static str,
-        f: impl Fn() -> TypeExpression<TypeExpressionNode<U, ()>>,
+        f: impl Fn() -> NodeValue<U, ()>,
     ) -> impl Parser<U, Output = TypeExpressionNode<U, ()>>
     where
         U: Stream<Token = char>,

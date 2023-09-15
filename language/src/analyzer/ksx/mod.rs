@@ -1,112 +1,40 @@
-use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
+mod fragment;
+mod identify;
+mod weak;
+use super::{
+    context::NodeContext,
+    register::{Identify, Register},
+    RefKind, ScopeContext, Type, WeakType,
+};
 use crate::parser::{
-    expression::{
-        ksx::{KSXNode, KSX},
-        ExpressionNode,
-    },
+    expression::ksx::{self, KSXNode},
     node::Node,
     position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-fn identify_attributes<T>(
-    xs: Vec<(String, Option<ExpressionNode<T, ()>>)>,
-    ctx: &mut ScopeContext,
-) -> Vec<(String, Option<ExpressionNode<T, NodeContext>>)>
+impl<T> Register for KSXNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    xs.into_iter()
-        .map(|(key, value)| (key, value.map(|x| x.register(ctx))))
-        .collect::<Vec<_>>()
-}
-
-fn identify_children<T>(
-    xs: Vec<KSXNode<T, ()>>,
-    ctx: &mut ScopeContext,
-) -> Vec<KSXNode<T, NodeContext>>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    xs.into_iter().map(|x| x.register(ctx)).collect::<Vec<_>>()
-}
-
-impl<T> Analyze for KSXNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Ref = KSX<usize, usize>;
     type Node = KSXNode<T, NodeContext>;
-    type Value<C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
+    type Value<C> = ksx::NodeValue<T, C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
-        let value = Self::identify(node.0, ctx);
-        let fragment = Fragment::KSX(Self::to_ref(&value));
-        let id = ctx.add_fragment(fragment);
+        let value = node.0.identify(ctx);
+        let id = ctx.add_fragment(&value);
 
         KSXNode(Node(value, node.1, id))
-    }
-
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
-        match value {
-            KSX::Text(x) => KSX::Text(x),
-
-            KSX::Inline(x) => KSX::Inline(x.register(ctx)),
-
-            KSX::Fragment(children) => KSX::Fragment(identify_children(children, ctx)),
-
-            KSX::ClosedElement(tag, attributes) => {
-                KSX::ClosedElement(tag, identify_attributes(attributes, ctx))
-            }
-
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
-                start_tag,
-                identify_attributes(attributes, ctx),
-                identify_children(children, ctx),
-                end_tag,
-            ),
-        }
-    }
-
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
-        let attributes_to_refs = |xs: &Vec<(String, Option<ExpressionNode<T, NodeContext>>)>| {
-            xs.into_iter()
-                .map(|(key, value)| (key.clone(), value.as_ref().map(|x| *x.node().id())))
-                .collect::<Vec<_>>()
-        };
-
-        match value {
-            KSX::Text(x) => KSX::Text(x.clone()),
-
-            KSX::Inline(x) => KSX::Inline(*x.0.id()),
-
-            KSX::Fragment(xs) => {
-                KSX::Fragment(xs.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>())
-            }
-
-            KSX::ClosedElement(tag, attributes) => {
-                KSX::ClosedElement(tag.clone(), attributes_to_refs(attributes))
-            }
-
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
-                start_tag.clone(),
-                attributes_to_refs(attributes),
-                children.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>(),
-                end_tag.clone(),
-            ),
-        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
         parser::expression::{ksx::KSX, primitive::Primitive, Expression},
         test::fixture as f,
     };

@@ -1,88 +1,40 @@
-use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
+mod fragment;
+mod identify;
+mod weak;
+use super::{
+    context::NodeContext,
+    register::{Identify, Register},
+    ScopeContext,
+};
 use crate::parser::{
     node::Node,
     position::Decrement,
-    types::type_expression::{TypeExpression, TypeExpressionNode},
+    types::type_expression::{self, TypeExpressionNode},
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze for TypeExpressionNode<T, ()>
+impl<T> Register for TypeExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    type Ref = TypeExpression<usize>;
     type Node = TypeExpressionNode<T, NodeContext>;
-    type Value<C> = TypeExpression<TypeExpressionNode<T, C>>;
+    type Value<C> = type_expression::NodeValue<T, C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
-        let value = Self::identify(node.0, ctx);
-        let fragment = Fragment::TypeExpression(Self::to_ref(&value));
-        let id = ctx.add_fragment(fragment);
+        let value = node.0.identify(ctx);
+        let id = ctx.add_fragment(&value);
 
         TypeExpressionNode(Node(value, node.1, id))
-    }
-
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
-        match value {
-            TypeExpression::Nil => TypeExpression::Nil,
-            TypeExpression::Boolean => TypeExpression::Boolean,
-            TypeExpression::Integer => TypeExpression::Integer,
-            TypeExpression::Float => TypeExpression::Float,
-            TypeExpression::String => TypeExpression::String,
-            TypeExpression::Style => TypeExpression::Style,
-            TypeExpression::Element => TypeExpression::Element,
-
-            TypeExpression::Identifier(x) => TypeExpression::Identifier(x),
-
-            TypeExpression::Group(x) => TypeExpression::Group(Box::new((*x).register(ctx))),
-
-            TypeExpression::DotAccess(lhs, rhs) => {
-                TypeExpression::DotAccess(Box::new((*lhs).register(ctx)), rhs)
-            }
-
-            TypeExpression::Function(params, body) => TypeExpression::Function(
-                params
-                    .into_iter()
-                    .map(|x| x.register(ctx))
-                    .collect::<Vec<_>>(),
-                Box::new((*body).register(ctx)),
-            ),
-        }
-    }
-
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
-        match value {
-            TypeExpression::Nil => TypeExpression::Nil,
-            TypeExpression::Boolean => TypeExpression::Boolean,
-            TypeExpression::Integer => TypeExpression::Integer,
-            TypeExpression::Float => TypeExpression::Float,
-            TypeExpression::String => TypeExpression::String,
-            TypeExpression::Style => TypeExpression::Style,
-            TypeExpression::Element => TypeExpression::Element,
-
-            TypeExpression::Identifier(x) => TypeExpression::Identifier(x.clone()),
-
-            TypeExpression::Group(x) => TypeExpression::Group(Box::new(*(*x).0.id())),
-
-            TypeExpression::DotAccess(lhs, rhs) => {
-                TypeExpression::DotAccess(Box::new(*(*lhs).0.id()), rhs.clone())
-            }
-
-            TypeExpression::Function(params, body) => TypeExpression::Function(
-                params.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>(),
-                Box::new(*body.0.id()),
-            ),
-        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
         parser::types::type_expression::TypeExpression,
         test::fixture as f,
     };

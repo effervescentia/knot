@@ -1,17 +1,24 @@
-use super::context::{NodeContext, ScopeContext};
+use super::{
+    context::{NodeContext, ScopeContext},
+    fragment::Fragment,
+};
 
 pub trait Identify<R> {
     fn identify(self, ctx: &mut ScopeContext) -> R;
 }
 
-pub trait ToRef<R> {
-    fn to_ref<'a>(&'a self) -> R;
+pub trait ToFragment {
+    fn to_fragment<'a>(&'a self) -> Fragment;
 }
 
-pub trait Register: Sized {
-    type Ref;
+// TODO: try to remove `Sized`
+pub trait Register: Sized
+where
+    Self::Value<()>: Identify<Self::Value<NodeContext>>,
+    Self::Value<NodeContext>: ToFragment,
+{
     type Node;
-    type Value<C>: Identify<Self::Value<NodeContext>> + ToRef<Self::Ref>;
+    type Value<C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Self::Node;
 

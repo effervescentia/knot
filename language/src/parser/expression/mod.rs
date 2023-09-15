@@ -33,10 +33,10 @@ pub enum Expression<E, S, K> {
     KSX(Box<K>),
 }
 
+pub type NodeValue<T, C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
+
 #[derive(Debug, PartialEq)]
-pub struct ExpressionNode<T, C>(
-    pub Node<Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>, T, C>,
-)
+pub struct ExpressionNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -46,9 +46,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(
-        &self,
-    ) -> &Node<Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>, T, C> {
+    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
         &self.0
     }
 }
@@ -58,10 +56,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(
-        x: Expression<ExpressionNode<T, ()>, StatementNode<T, ()>, KSXNode<T, ()>>,
-        range: Range<T>,
-    ) -> Self {
+    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }

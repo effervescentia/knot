@@ -1,54 +1,40 @@
-use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
+use super::{
+    context::NodeContext,
+    register::{Identify, Register},
+    RefKind, ScopeContext, Type, WeakType,
+};
+mod fragment;
+mod identity;
+mod weak;
 use crate::parser::{
-    expression::{
-        statement::{Statement, StatementNode},
-        ExpressionNode,
-    },
+    expression::statement::{self, StatementNode},
     node::Node,
     position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze for StatementNode<T, ()>
+impl<T> Register for StatementNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    type Ref = Statement<usize>;
     type Node = StatementNode<T, NodeContext>;
-    type Value<C> = Statement<ExpressionNode<T, C>>;
+    type Value<C> = statement::NodeValue<T, C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
-        let value = Self::identify(node.0, ctx);
-        let fragment = Fragment::Statement(Self::to_ref(&value));
-        let id = ctx.add_fragment(fragment);
+        let value = node.0.identify(ctx);
+        let id = ctx.add_fragment(&value);
 
         StatementNode(Node(value, node.1, id))
-    }
-
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
-        match value {
-            Statement::Effect(x) => Statement::Effect(x.register(ctx)),
-
-            Statement::Variable(name, x) => Statement::Variable(name, x.register(ctx)),
-        }
-    }
-
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
-        match value {
-            Statement::Effect(x) => Statement::Effect(*x.node().id()),
-
-            Statement::Variable(name, x) => Statement::Variable(name.clone(), *x.node().id()),
-        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
         parser::expression::{primitive::Primitive, statement::Statement, Expression},
         test::fixture as f,
     };

@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, StrongRef, WeakRef};
+use super::{fragment::Fragment, register::ToFragment, StrongRef, WeakRef};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -76,9 +76,11 @@ impl<'a> ScopeContext<'a> {
         }
     }
 
-    pub fn add_fragment(&mut self, x: Fragment) -> NodeContext {
+    pub fn add_fragment(&mut self, x: &impl ToFragment) -> NodeContext {
         NodeContext::new(
-            self.file.borrow_mut().add_fragment(self.path(), x),
+            self.file
+                .borrow_mut()
+                .add_fragment(self.path(), x.to_fragment()),
             self.path(),
         )
     }

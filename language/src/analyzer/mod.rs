@@ -12,19 +12,8 @@ use self::context::{AnalyzeContext, NodeContext, ScopeContext};
 use crate::parser::{module::ModuleNode, position::Decrement};
 use combine::Stream;
 use context::FileContext;
+use register::Register;
 use std::{cell::RefCell, fmt::Debug};
-
-pub trait Analyze: Sized {
-    type Ref;
-    type Node;
-    type Value<C>;
-
-    fn register(self, ctx: &mut ScopeContext) -> Self::Node;
-
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext>;
-
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref;
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type<T> {

@@ -1,125 +1,41 @@
-use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
-use crate::parser::{
-    expression::{ksx::KSXNode, statement::StatementNode, Expression, ExpressionNode},
-    node::Node,
-    position::Decrement,
+mod fragment;
+mod identify;
+mod weak;
+use crate::{
+    analyzer::{
+        context::{NodeContext, ScopeContext},
+        register::{Identify, Register},
+    },
+    parser::{
+        expression::{self, ExpressionNode},
+        node::Node,
+        position::Decrement,
+    },
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Analyze for ExpressionNode<T, ()>
+impl<T> Register for ExpressionNode<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    type Ref = Expression<usize, usize, usize>;
     type Node = ExpressionNode<T, NodeContext>;
-    type Value<C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
+    type Value<C> = expression::NodeValue<T, C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Self::Node {
         let node = self.0;
-        let value = Self::identify(node.0, ctx);
-        let fragment = Fragment::Expression(Self::to_ref(&value));
-        let id = ctx.add_fragment(fragment);
+        let value = node.0.identify(ctx);
+        let id = ctx.add_fragment(&value);
 
         ExpressionNode(Node(value, node.1, id))
-    }
-
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
-        match value {
-            Expression::Primitive(x) => Expression::Primitive(x),
-
-            Expression::Identifier(x) => Expression::Identifier(x),
-
-            Expression::Group(x) => Expression::Group(Box::new((*x).register(ctx))),
-
-            Expression::Closure(xs) => {
-                let child_ctx = &mut ctx.child();
-
-                Expression::Closure(
-                    xs.into_iter()
-                        .map(|x| x.register(child_ctx))
-                        .collect::<Vec<_>>(),
-                )
-            }
-
-            Expression::UnaryOperation(op, lhs) => {
-                Expression::UnaryOperation(op, Box::new(lhs.register(ctx)))
-            }
-
-            Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
-                op,
-                Box::new(lhs.register(ctx)),
-                Box::new(rhs.register(ctx)),
-            ),
-
-            Expression::DotAccess(lhs, rhs) => {
-                Expression::DotAccess(Box::new(lhs.register(ctx)), rhs)
-            }
-
-            Expression::FunctionCall(x, args) => Expression::FunctionCall(
-                Box::new((*x).register(ctx)),
-                args.into_iter()
-                    .map(|x| x.register(ctx))
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::Style(xs) => Expression::Style(
-                xs.into_iter()
-                    .map(|(key, value)| (key, value.register(ctx)))
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::KSX(x) => Expression::KSX(Box::new((*x).register(ctx))),
-        }
-    }
-
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref {
-        match value {
-            Expression::Primitive(x) => Expression::Primitive(x.clone()),
-
-            Expression::Identifier(x) => Expression::Identifier(x.clone()),
-
-            Expression::Group(x) => Expression::Group(Box::new(*x.node().id())),
-
-            Expression::Closure(xs) => {
-                Expression::Closure(xs.into_iter().map(|x| *x.node().id()).collect::<Vec<_>>())
-            }
-
-            Expression::UnaryOperation(op, x) => {
-                Expression::UnaryOperation(op.clone(), Box::new(*x.node().id()))
-            }
-
-            Expression::BinaryOperation(op, lhs, rhs) => Expression::BinaryOperation(
-                op.clone(),
-                Box::new(*lhs.node().id()),
-                Box::new(*rhs.node().id()),
-            ),
-
-            Expression::DotAccess(lhs, rhs) => {
-                Expression::DotAccess(Box::new(*lhs.node().id()), rhs.clone())
-            }
-
-            Expression::FunctionCall(x, args) => Expression::FunctionCall(
-                Box::new(*x.node().id()),
-                args.into_iter().map(|x| *x.node().id()).collect::<Vec<_>>(),
-            ),
-
-            Expression::Style(xs) => Expression::Style(
-                xs.into_iter()
-                    .map(|(key, value)| (key.clone(), *value.node().id()))
-                    .collect::<Vec<_>>(),
-            ),
-
-            Expression::KSX(x) => Expression::KSX(Box::new(*x.node().id())),
-        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
         parser::expression::{
             binary_operation::BinaryOperator, ksx::KSX, primitive::Primitive, statement::Statement,
             Expression, UnaryOperator,

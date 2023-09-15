@@ -49,10 +49,11 @@ pub enum Declaration<E, M, T> {
     },
 }
 
+pub type NodeValue<T, C> =
+    Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>;
+
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T, C>(
-    pub Node<Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>, T, C>,
-)
+pub struct DeclarationNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -62,10 +63,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(
-        &self,
-    ) -> &Node<Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>, T, C>
-    {
+    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
         &self.0
     }
 }
@@ -75,10 +73,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(
-        x: Declaration<ExpressionNode<T, ()>, ModuleNode<T, ()>, TypeExpressionNode<T, ()>>,
-        range: Range<T>,
-    ) -> Self {
+    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }

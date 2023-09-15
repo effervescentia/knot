@@ -28,8 +28,10 @@ impl<D> Module<D> {
     }
 }
 
+pub type NodeValue<T, C> = Module<DeclarationNode<T, C>>;
+
 #[derive(Debug, PartialEq)]
-pub struct ModuleNode<T, C>(pub Module<DeclarationNode<T, C>>, pub C)
+pub struct ModuleNode<T, C>(pub NodeValue<T, C>, pub C)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -39,7 +41,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: Module<DeclarationNode<T, ()>>) -> Self {
+    pub fn raw(x: NodeValue<T, ()>) -> Self {
         Self(x, ())
     }
 }

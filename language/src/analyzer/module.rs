@@ -1,7 +1,12 @@
-use super::{context::NodeContext, fragment::Fragment, Analyze, ScopeContext};
+use super::{
+    context::NodeContext,
+    fragment::Fragment,
+    infer::weak::ToWeak,
+    register::{Identify, Register, ToFragment},
+    RefKind, ScopeContext, WeakType,
+};
 use crate::parser::{
-    declaration::DeclarationNode,
-    module::{Module, ModuleNode},
+    module::{self, Module, ModuleNode},
     position::Decrement,
 };
 use combine::Stream;
@@ -17,49 +22,64 @@ where
     }
 }
 
-impl<T> Analyze for ModuleNode<T, ()>
+impl<T> Identify<module::NodeValue<T, NodeContext>> for module::NodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    type Ref = Module<usize>;
-    type Node = ModuleNode<T, NodeContext>;
-    type Value<C> = Module<DeclarationNode<T, C>>;
-
-    fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, NodeContext> {
-        let value = Self::identify(self.0, ctx);
-        let fragment = Fragment::Module(Self::to_ref(&value));
-        let id = ctx.add_fragment(fragment);
-
-        ModuleNode(value, id)
-    }
-
-    fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext> {
-        let declarations = value
+    fn identify(self, ctx: &mut ScopeContext) -> module::NodeValue<T, NodeContext> {
+        let declarations = self
             .declarations
             .into_iter()
             .map(|x| x.register(ctx))
             .collect::<Vec<_>>();
 
-        Module::new(value.imports, declarations)
+        Module::new(self.imports, declarations)
     }
+}
 
-    fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Module<usize> {
-        Module::new(
-            value.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
-            value
-                .declarations
+impl<T> ToFragment for module::NodeValue<T, NodeContext>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn to_fragment<'a>(&'a self) -> Fragment {
+        Fragment::Module(Module::new(
+            self.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
+            self.declarations
                 .iter()
                 .map(|x| *x.0.id())
                 .collect::<Vec<_>>(),
-        )
+        ))
+    }
+}
+
+impl<T> Register for ModuleNode<T, ()>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    type Node = ModuleNode<T, NodeContext>;
+    type Value<C> = module::NodeValue<T, C>;
+
+    fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, NodeContext> {
+        let value = self.0.identify(ctx);
+        let id = ctx.add_fragment(&value);
+
+        ModuleNode(value, id)
+    }
+}
+
+impl ToWeak for Module<usize> {
+    fn to_weak(&self) -> super::WeakRef {
+        (RefKind::Value, WeakType::Any)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, Analyze},
+        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
         parser::{
             expression::{primitive::Primitive, Expression},
             module::{

@@ -9,8 +9,10 @@ pub enum Statement<E> {
     Variable(String, E),
 }
 
+pub type NodeValue<T, C> = Statement<ExpressionNode<T, C>>;
+
 #[derive(Debug, PartialEq)]
-pub struct StatementNode<T, C>(pub Node<Statement<ExpressionNode<T, C>>, T, C>)
+pub struct StatementNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -20,7 +22,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<Statement<ExpressionNode<T, C>>, T, C> {
+    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
         &self.0
     }
 }
@@ -30,7 +32,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: Statement<ExpressionNode<T, ()>>, range: Range<T>) -> Self {
+    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }

@@ -17,10 +17,10 @@ pub enum KSX<E, K> {
     Text(String),
 }
 
-type RawValue<T> = KSX<ExpressionNode<T, ()>, KSXNode<T, ()>>;
+pub type NodeValue<T, C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct KSXNode<T, C>(pub Node<KSX<ExpressionNode<T, C>, KSXNode<T, C>>, T, C>)
+pub struct KSXNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -30,7 +30,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<KSX<ExpressionNode<T, C>, KSXNode<T, C>>, T, C> {
+    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
         &self.0
     }
 }
@@ -40,11 +40,11 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: RawValue<T>, range: Range<T>) -> Self {
+    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 
-    pub fn bind((x, range): (RawValue<T>, Range<T>)) -> Self {
+    pub fn bind((x, range): (NodeValue<T, ()>, Range<T>)) -> Self {
         Self::raw(x, range)
     }
 }
