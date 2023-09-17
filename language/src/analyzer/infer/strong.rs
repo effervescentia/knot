@@ -27,7 +27,9 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
                     (k, WeakType::Strong(x)) => {
                         ctx.strong_refs.insert(*id, (k.clone(), x.clone()));
                     }
+
                     (k, WeakType::Reference(ref_id)) => inherit(ref_id, *id, k.clone()),
+
                     (RefKind::Type, WeakType::Any) => match fragment {
                         Fragment::Expression(Expression::Identifier(name)) => {
                             let bindings = &ctx.bindings;

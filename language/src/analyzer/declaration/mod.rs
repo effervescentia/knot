@@ -56,11 +56,11 @@ mod tests {
         assert_eq!(
             f::n::d(f::a::func_(
                 "foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::tx(TypeExpression::Nil)),
-                    default_value: Some(f::n::x(Expression::Primitive(Primitive::Nil))),
-                }],
+                vec![f::n::p(Parameter::new(
+                    String::from("bar"),
+                    Some(f::n::tx(TypeExpression::Nil)),
+                    Some(f::n::x(Expression::Primitive(Primitive::Nil))),
+                ),)],
                 Some(f::n::tx(TypeExpression::Nil)),
                 f::n::x(Expression::Primitive(Primitive::Nil)),
             ))
@@ -68,27 +68,30 @@ mod tests {
             f::n::dc(
                 f::a::func_(
                     "foo",
-                    vec![Parameter {
-                        name: String::from("bar"),
-                        value_type: Some(f::n::txc(
-                            TypeExpression::Nil,
-                            NodeContext::new(0, vec![0, 1])
-                        )),
-                        default_value: Some(f::n::xc(
-                            Expression::Primitive(Primitive::Nil),
-                            NodeContext::new(1, vec![0, 1])
-                        )),
-                    }],
+                    vec![f::n::pc(
+                        Parameter::new(
+                            String::from("bar"),
+                            Some(f::n::txc(
+                                TypeExpression::Nil,
+                                NodeContext::new(0, vec![0, 1])
+                            )),
+                            Some(f::n::xc(
+                                Expression::Primitive(Primitive::Nil),
+                                NodeContext::new(1, vec![0, 1])
+                            )),
+                        ),
+                        NodeContext::new(2, vec![0, 1])
+                    )],
                     Some(f::n::txc(
                         TypeExpression::Nil,
-                        NodeContext::new(2, vec![0, 1])
+                        NodeContext::new(3, vec![0, 1])
                     )),
                     f::n::xc(
                         Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(3, vec![0, 1])
+                        NodeContext::new(4, vec![0, 1])
                     )
                 ),
-                NodeContext::new(4, vec![0]),
+                NodeContext::new(5, vec![0]),
             )
         );
 
@@ -108,29 +111,27 @@ mod tests {
                 ),
                 (
                     2,
-                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                    (
+                        vec![0, 1],
+                        Fragment::Parameter(Parameter::new(String::from("bar"), Some(0), Some(1)))
+                    )
                 ),
                 (
                     3,
+                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                ),
+                (
+                    4,
                     (
                         vec![0, 1],
                         Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
-                    4,
+                    5,
                     (
                         vec![0],
-                        Fragment::Declaration(f::a::func_(
-                            "foo",
-                            vec![Parameter {
-                                name: String::from("bar"),
-                                value_type: Some(0),
-                                default_value: Some(1),
-                            }],
-                            Some(2),
-                            3,
-                        ))
+                        Fragment::Declaration(f::a::func_("foo", vec![2], Some(3), 4))
                     )
                 )
             ])

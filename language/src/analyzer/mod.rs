@@ -5,6 +5,7 @@ pub mod fragment;
 mod infer;
 mod ksx;
 mod module;
+mod parameter;
 mod register;
 mod statement;
 mod type_expression;

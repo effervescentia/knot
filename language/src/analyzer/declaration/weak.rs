@@ -3,7 +3,7 @@ use crate::{
     parser::declaration::Declaration,
 };
 
-impl ToWeak for Declaration<usize, usize, usize> {
+impl ToWeak for Declaration<usize, usize, usize, usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
             Declaration::TypeAlias { value, .. } => (RefKind::Type, WeakType::Reference(*value)),
@@ -20,7 +20,18 @@ impl ToWeak for Declaration<usize, usize, usize> {
                 WeakType::Reference(value_type.unwrap_or(*value)),
             ),
 
-            Declaration::Function { .. } => (RefKind::Value, WeakType::Any),
+            Declaration::Function {
+                parameters,
+                body_type,
+                body,
+                ..
+            } => (
+                RefKind::Value,
+                WeakType::Strong(Type::Function(
+                    parameters.clone(),
+                    body_type.unwrap_or(*body),
+                )),
+            ),
 
             Declaration::View { .. } => (RefKind::Value, WeakType::Any),
 
@@ -74,8 +85,22 @@ mod tests {
     #[test]
     fn function() {
         assert_eq!(
-            f::a::func_("foo", vec![], None, 0).to_weak(),
-            (RefKind::Value, WeakType::Any)
+            f::a::func_("foo", vec![0, 1], None, 2).to_weak(),
+            (
+                RefKind::Value,
+                WeakType::Strong(Type::Function(vec![0, 1], 2))
+            )
+        );
+    }
+
+    #[test]
+    fn function_with_typedef() {
+        assert_eq!(
+            f::a::func_("foo", vec![0, 1], Some(2), 3).to_weak(),
+            (
+                RefKind::Value,
+                WeakType::Strong(Type::Function(vec![0, 1], 2))
+            )
         );
     }
 

@@ -5,37 +5,12 @@ use crate::{
         register::{Identify, Register},
     },
     parser::{
-        declaration::{self, parameter::Parameter, Declaration},
-        expression::ExpressionNode,
+        declaration::{self, Declaration},
         position::Decrement,
-        types::type_expression::TypeExpressionNode,
     },
 };
 use combine::Stream;
 use std::fmt::Debug;
-
-fn identify_parameters<T>(
-    xs: Vec<Parameter<ExpressionNode<T, ()>, TypeExpressionNode<T, ()>>>,
-    ctx: &mut ScopeContext,
-) -> Vec<Parameter<ExpressionNode<T, NodeContext>, TypeExpressionNode<T, NodeContext>>>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    xs.into_iter()
-        .map(
-            |Parameter {
-                 name,
-                 value_type,
-                 default_value,
-             }| Parameter {
-                name,
-                value_type: value_type.map(|x| x.register(ctx)),
-                default_value: default_value.map(|x| x.register(ctx)),
-            },
-        )
-        .collect::<Vec<_>>()
-}
 
 impl<T> Identify<declaration::NodeValue<T, NodeContext>> for declaration::NodeValue<T, ()>
 where
@@ -79,7 +54,10 @@ where
                 body,
             } => Declaration::Function {
                 name,
-                parameters: identify_parameters(parameters, ctx),
+                parameters: parameters
+                    .into_iter()
+                    .map(|x| x.register(ctx))
+                    .collect::<Vec<_>>(),
                 body_type: body_type.map(|x| x.register(ctx)),
                 body: body.register(ctx),
             },
@@ -90,7 +68,10 @@ where
                 body,
             } => Declaration::View {
                 name,
-                parameters: identify_parameters(parameters, ctx),
+                parameters: parameters
+                    .into_iter()
+                    .map(|x| x.register(ctx))
+                    .collect::<Vec<_>>(),
                 body: body.register(ctx),
             },
 
@@ -184,29 +165,32 @@ mod tests {
         assert_eq!(
             f::a::func_(
                 "foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::tx(TypeExpression::Nil)),
-                    default_value: Some(f::n::x(Expression::Primitive(Primitive::Nil))),
-                }],
+                vec![f::n::p(Parameter::new(
+                    String::from("bar"),
+                    Some(f::n::tx(TypeExpression::Nil)),
+                    Some(f::n::x(Expression::Primitive(Primitive::Nil))),
+                ))],
                 Some(f::n::tx(TypeExpression::Nil)),
                 f::n::x(Expression::Primitive(Primitive::Nil)),
             )
             .identify(scope),
             f::a::func_(
                 "foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
-                    default_value: Some(f::n::xc(
-                        Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(1, vec![0])
-                    )),
-                }],
-                Some(f::n::txc(TypeExpression::Nil, NodeContext::new(2, vec![0]))),
+                vec![f::n::pc(
+                    Parameter::new(
+                        String::from("bar"),
+                        Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                        Some(f::n::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(1, vec![0])
+                        )),
+                    ),
+                    NodeContext::new(2, vec![0])
+                )],
+                Some(f::n::txc(TypeExpression::Nil, NodeContext::new(3, vec![0]))),
                 f::n::xc(
                     Expression::Primitive(Primitive::Nil),
-                    NodeContext::new(3, vec![0])
+                    NodeContext::new(4, vec![0])
                 )
             )
         );
@@ -220,27 +204,30 @@ mod tests {
         assert_eq!(
             f::a::view(
                 "Foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::tx(TypeExpression::Nil)),
-                    default_value: Some(f::n::x(Expression::Primitive(Primitive::Nil))),
-                }],
+                vec![f::n::p(Parameter::new(
+                    String::from("bar"),
+                    Some(f::n::tx(TypeExpression::Nil)),
+                    Some(f::n::x(Expression::Primitive(Primitive::Nil))),
+                ))],
                 f::n::x(Expression::Primitive(Primitive::Nil)),
             )
             .identify(scope),
             f::a::view(
                 "Foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
-                    default_value: Some(f::n::xc(
-                        Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(1, vec![0])
-                    )),
-                }],
+                vec![f::n::pc(
+                    Parameter::new(
+                        String::from("bar"),
+                        Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                        Some(f::n::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(1, vec![0])
+                        )),
+                    ),
+                    NodeContext::new(2, vec![0])
+                )],
                 f::n::xc(
                     Expression::Primitive(Primitive::Nil),
-                    NodeContext::new(2, vec![0])
+                    NodeContext::new(3, vec![0])
                 ),
             )
         );

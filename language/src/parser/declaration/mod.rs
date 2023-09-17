@@ -11,14 +11,15 @@ use crate::parser::{
     types::type_expression::TypeExpressionNode,
 };
 use combine::{choice, parser, Stream};
-use parameter::Parameter;
 use std::fmt::Debug;
 use storage::Storage;
+
+use self::parameter::ParameterNode;
 
 use super::node::Node;
 
 #[derive(Debug, PartialEq)]
-pub enum Declaration<E, M, T> {
+pub enum Declaration<E, P, M, T> {
     TypeAlias {
         name: Storage,
         value: T,
@@ -34,13 +35,13 @@ pub enum Declaration<E, M, T> {
     },
     Function {
         name: Storage,
-        parameters: Vec<Parameter<E, T>>,
+        parameters: Vec<P>,
         body_type: Option<T>,
         body: E,
     },
     View {
         name: Storage,
-        parameters: Vec<Parameter<E, T>>,
+        parameters: Vec<P>,
         body: E,
     },
     Module {
@@ -49,8 +50,12 @@ pub enum Declaration<E, M, T> {
     },
 }
 
-pub type NodeValue<T, C> =
-    Declaration<ExpressionNode<T, C>, ModuleNode<T, C>, TypeExpressionNode<T, C>>;
+pub type NodeValue<T, C> = Declaration<
+    ExpressionNode<T, C>,
+    ParameterNode<T, C>,
+    ModuleNode<T, C>,
+    TypeExpressionNode<T, C>,
+>;
 
 #[derive(Debug, PartialEq)]
 pub struct DeclarationNode<T, C>(pub Node<NodeValue<T, C>, T, C>)

@@ -1,10 +1,8 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     parser::{
-        declaration::{self, parameter::Parameter, Declaration},
-        expression::ExpressionNode,
+        declaration::{self, Declaration},
         position::Decrement,
-        types::type_expression::TypeExpressionNode,
     },
 };
 use combine::Stream;
@@ -16,24 +14,6 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        let parameters_to_refs = |xs: &Vec<
-            Parameter<ExpressionNode<T, NodeContext>, TypeExpressionNode<T, NodeContext>>,
-        >| {
-            xs.into_iter()
-                .map(
-                    |Parameter {
-                         name,
-                         value_type,
-                         default_value,
-                     }| Parameter {
-                        name: name.clone(),
-                        value_type: value_type.as_ref().map(|x| *x.node().id()),
-                        default_value: default_value.as_ref().map(|x| *x.node().id()),
-                    },
-                )
-                .collect::<Vec<_>>()
-        };
-
         Fragment::Declaration(match self {
             Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
                 name: name.clone(),
@@ -73,7 +53,10 @@ where
                 body,
             } => Declaration::Function {
                 name: name.clone(),
-                parameters: parameters_to_refs(parameters),
+                parameters: parameters
+                    .into_iter()
+                    .map(|x| *x.0.id())
+                    .collect::<Vec<_>>(),
                 body_type: body_type.as_ref().map(|x| *x.node().id()),
                 body: *body.node().id(),
             },
@@ -84,7 +67,10 @@ where
                 body,
             } => Declaration::View {
                 name: name.clone(),
-                parameters: parameters_to_refs(parameters),
+                parameters: parameters
+                    .into_iter()
+                    .map(|x| *x.0.id())
+                    .collect::<Vec<_>>(),
                 body: *body.node().id(),
             },
 
@@ -166,37 +152,31 @@ mod tests {
         assert_eq!(
             f::a::func_(
                 "foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::txc(
-                        TypeExpression::Nil,
-                        NodeContext::new(0, vec![0, 1])
-                    )),
-                    default_value: Some(f::n::xc(
-                        Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(1, vec![0, 1])
-                    )),
-                }],
+                vec![f::n::pc(
+                    Parameter::new(
+                        String::from("bar"),
+                        Some(f::n::txc(
+                            TypeExpression::Nil,
+                            NodeContext::new(0, vec![0, 1])
+                        )),
+                        Some(f::n::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(1, vec![0, 1])
+                        )),
+                    ),
+                    NodeContext::new(2, vec![0, 1])
+                )],
                 Some(f::n::txc(
                     TypeExpression::Nil,
-                    NodeContext::new(2, vec![0, 1])
+                    NodeContext::new(3, vec![0, 1])
                 )),
                 f::n::xc(
                     Expression::Primitive(Primitive::Nil),
-                    NodeContext::new(3, vec![0, 1])
+                    NodeContext::new(4, vec![0, 1])
                 )
             )
             .to_fragment(),
-            Fragment::Declaration(f::a::func_(
-                "foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(0),
-                    default_value: Some(1),
-                }],
-                Some(2),
-                3,
-            ))
+            Fragment::Declaration(f::a::func_("foo", vec![2], Some(3), 4))
         );
     }
 
@@ -205,32 +185,27 @@ mod tests {
         assert_eq!(
             f::a::view(
                 "Foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(f::n::txc(
-                        TypeExpression::Nil,
-                        NodeContext::new(0, vec![0, 1])
-                    )),
-                    default_value: Some(f::n::xc(
-                        Expression::Primitive(Primitive::Nil),
-                        NodeContext::new(1, vec![0, 1])
-                    )),
-                }],
+                vec![f::n::pc(
+                    Parameter::new(
+                        String::from("bar"),
+                        Some(f::n::txc(
+                            TypeExpression::Nil,
+                            NodeContext::new(0, vec![0, 1])
+                        )),
+                        Some(f::n::xc(
+                            Expression::Primitive(Primitive::Nil),
+                            NodeContext::new(1, vec![0, 1])
+                        )),
+                    ),
+                    NodeContext::new(3, vec![0, 1])
+                )],
                 f::n::xc(
                     Expression::Primitive(Primitive::Nil),
-                    NodeContext::new(2, vec![0, 1])
+                    NodeContext::new(4, vec![0, 1])
                 ),
             )
             .to_fragment(),
-            Fragment::Declaration(f::a::view(
-                "Foo",
-                vec![Parameter {
-                    name: String::from("bar"),
-                    value_type: Some(0),
-                    default_value: Some(1),
-                }],
-                2,
-            ))
+            Fragment::Declaration(f::a::view("Foo", vec![3], 4))
         );
     }
 

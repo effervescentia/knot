@@ -22,7 +22,9 @@ impl ToWeak for TypeExpression<usize> {
 
                 TypeExpression::DotAccess(..) => WeakType::Any,
 
-                TypeExpression::Function(..) => WeakType::Any,
+                TypeExpression::Function(params, x) => {
+                    WeakType::Strong(Type::Function(params.clone(), **x))
+                }
             },
         )
     }
@@ -95,7 +97,7 @@ mod tests {
     fn function() {
         assert_eq!(
             TypeExpression::Function(vec![0], Box::new(1)).to_weak(),
-            (RefKind::Type, WeakType::Any)
+            (RefKind::Type, WeakType::Strong(Type::Function(vec![0], 1)))
         );
     }
 }

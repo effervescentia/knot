@@ -1,6 +1,6 @@
 use super::{infer::weak::ToWeak, WeakRef};
 use crate::parser::{
-    declaration::{storage::Storage, Declaration},
+    declaration::{parameter::Parameter, storage::Storage, Declaration},
     expression::Expression,
     ksx::KSX,
     module::Module,
@@ -14,8 +14,9 @@ pub enum Fragment {
     Expression(Expression<usize, usize, usize>),
     Statement(Statement<usize>),
     KSX(KSX<usize, usize>),
+    Parameter(Parameter<usize, usize>),
     TypeExpression(TypeExpression<usize>),
-    Declaration(Declaration<usize, usize, usize>),
+    Declaration(Declaration<usize, usize, usize, usize>),
     Module(Module<usize>),
 }
 
@@ -61,6 +62,7 @@ impl ToWeak for Fragment {
             Fragment::Expression(x) => x.to_weak(),
             Fragment::Statement(x) => x.to_weak(),
             Fragment::KSX(x) => x.to_weak(),
+            Fragment::Parameter(x) => x.to_weak(),
             Fragment::TypeExpression(x) => x.to_weak(),
             Fragment::Declaration(x) => x.to_weak(),
             Fragment::Module(x) => x.to_weak(),

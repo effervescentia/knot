@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, register::ToFragment, StrongRef, WeakRef};
+use super::{fragment::Fragment, register::ToFragment, RefKind, StrongRef, WeakRef};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},

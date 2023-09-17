@@ -49,14 +49,21 @@ pub fn a_ctx_from<'a>(
 
 /// node factories
 pub mod n {
-    use crate::parser::{declaration, expression, ksx, module, statement, types::type_expression};
+    use crate::parser::{
+        declaration::{
+            self,
+            parameter::{self, ParameterNode},
+        },
+        expression, ksx, module, statement,
+        types::type_expression,
+    };
 
     use super::*;
 
     pub fn x(
         x: expression::NodeValue<CharStream<'static>, ()>,
     ) -> ExpressionNode<CharStream<'static>, ()> {
-        ExpressionNode(Node::new(x, RANGE, ()))
+        ExpressionNode::raw(x, RANGE)
     }
 
     pub fn xr<'a>(
@@ -76,7 +83,7 @@ pub mod n {
     pub fn s(
         x: statement::NodeValue<CharStream<'static>, ()>,
     ) -> StatementNode<CharStream<'static>, ()> {
-        StatementNode(Node::new(x, RANGE, ()))
+        StatementNode::raw(x, RANGE)
     }
 
     pub fn sr<'a>(
@@ -94,7 +101,7 @@ pub mod n {
     }
 
     pub fn kx(x: ksx::NodeValue<CharStream<'static>, ()>) -> KSXNode<CharStream<'static>, ()> {
-        KSXNode(Node::new(x, RANGE, ()))
+        KSXNode::raw(x, RANGE)
     }
 
     pub fn kxr<'a>(
@@ -111,10 +118,30 @@ pub mod n {
         KSXNode(Node::new(x, RANGE, ctx))
     }
 
+    pub fn p(
+        x: parameter::NodeValue<CharStream<'static>, ()>,
+    ) -> ParameterNode<CharStream<'static>, ()> {
+        ParameterNode::raw(x, RANGE)
+    }
+
+    pub fn pr<'a>(
+        x: parameter::NodeValue<CharStream<'a>, ()>,
+        (start, end): InitRange,
+    ) -> ParameterNode<CharStream<'a>, ()> {
+        ParameterNode::raw(x, Range::chars(start, end))
+    }
+
+    pub fn pc<T>(
+        x: parameter::NodeValue<CharStream<'static>, T>,
+        ctx: T,
+    ) -> ParameterNode<CharStream<'static>, T> {
+        ParameterNode(Node::new(x, RANGE, ctx))
+    }
+
     pub fn tx(
         x: type_expression::NodeValue<CharStream<'static>, ()>,
     ) -> TypeExpressionNode<CharStream<'static>, ()> {
-        TypeExpressionNode(Node::new(x, RANGE, ()))
+        TypeExpressionNode::raw(x, RANGE)
     }
 
     pub fn txr<'a>(
@@ -134,7 +161,7 @@ pub mod n {
     pub fn d(
         x: declaration::NodeValue<CharStream<'static>, ()>,
     ) -> DeclarationNode<CharStream<'static>, ()> {
-        DeclarationNode(Node::new(x, RANGE, ()))
+        DeclarationNode::raw(x, RANGE)
     }
 
     pub fn dr<'a>(
@@ -159,26 +186,30 @@ pub mod n {
 /// ast factories
 pub mod a {
     use super::*;
-    use crate::parser::declaration::{
-        parameter::Parameter,
-        storage::{Storage, Visibility},
-    };
+    use crate::parser::declaration::storage::{Storage, Visibility};
 
-    pub fn type_<E, M, T>(name: &str, value: T) -> Declaration<E, M, T> {
+    pub fn type_<E, P, M, T>(name: &str, value: T) -> Declaration<E, P, M, T> {
         Declaration::TypeAlias {
             name: Storage(Visibility::Public, name.to_string()),
             value,
         }
     }
 
-    pub fn enum_<E, M, T>(name: &str, variants: Vec<(String, Vec<T>)>) -> Declaration<E, M, T> {
+    pub fn enum_<E, P, M, T>(
+        name: &str,
+        variants: Vec<(String, Vec<T>)>,
+    ) -> Declaration<E, P, M, T> {
         Declaration::Enumerated {
             name: Storage(Visibility::Public, name.to_string()),
             variants,
         }
     }
 
-    pub fn const_<E, M, T>(name: &str, value_type: Option<T>, value: E) -> Declaration<E, M, T> {
+    pub fn const_<E, P, M, T>(
+        name: &str,
+        value_type: Option<T>,
+        value: E,
+    ) -> Declaration<E, P, M, T> {
         Declaration::Constant {
             name: Storage(Visibility::Public, name.to_string()),
             value_type,
@@ -186,12 +217,12 @@ pub mod a {
         }
     }
 
-    pub fn func_<E, M, T>(
+    pub fn func_<E, P, M, T>(
         name: &str,
-        parameters: Vec<Parameter<E, T>>,
+        parameters: Vec<P>,
         body_type: Option<T>,
         body: E,
-    ) -> Declaration<E, M, T> {
+    ) -> Declaration<E, P, M, T> {
         Declaration::Function {
             name: Storage(Visibility::Public, name.to_string()),
             parameters,
@@ -200,11 +231,7 @@ pub mod a {
         }
     }
 
-    pub fn view<E, M, T>(
-        name: &str,
-        parameters: Vec<Parameter<E, T>>,
-        body: E,
-    ) -> Declaration<E, M, T> {
+    pub fn view<E, P, M, T>(name: &str, parameters: Vec<P>, body: E) -> Declaration<E, P, M, T> {
         Declaration::View {
             name: Storage(Visibility::Public, name.to_string()),
             parameters,
@@ -212,7 +239,7 @@ pub mod a {
         }
     }
 
-    pub fn mod_<E, M, T>(name: &str, value: M) -> Declaration<E, M, T> {
+    pub fn mod_<E, P, M, T>(name: &str, value: M) -> Declaration<E, P, M, T> {
         Declaration::Module {
             name: Storage(Visibility::Public, name.to_string()),
             value,
