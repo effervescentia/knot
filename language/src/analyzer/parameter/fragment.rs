@@ -37,20 +37,16 @@ mod tests {
     #[test]
     fn parameter() {
         assert_eq!(
-            Parameter {
-                name: String::from("foo"),
-                value_type: Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
-                default_value: Some(f::n::xc(
+            Parameter::new(
+                String::from("foo"),
+                Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
+                Some(f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(1, vec![0])
                 ))
-            }
+            )
             .to_fragment(),
-            Fragment::Parameter(Parameter {
-                name: String::from("foo"),
-                value_type: Some(0),
-                default_value: Some(1)
-            })
+            Fragment::Parameter(Parameter::new(String::from("foo"), Some(0), Some(1)))
         );
     }
 }

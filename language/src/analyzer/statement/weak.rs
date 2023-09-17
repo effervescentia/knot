@@ -1,4 +1,4 @@
-use super::{RefKind, Type, WeakType};
+use super::{RefKind, Type, Weak};
 use crate::{
     analyzer::{infer::weak::ToWeak, WeakRef},
     parser::statement::Statement,
@@ -7,9 +7,9 @@ use crate::{
 impl ToWeak for Statement<usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Statement::Effect(id) => (RefKind::Value, WeakType::Reference(*id)),
+            Statement::Effect(id) => (RefKind::Value, Weak::Inherit(*id)),
 
-            Statement::Variable(..) => (RefKind::Value, WeakType::Strong(Type::Nil)),
+            Statement::Variable(..) => (RefKind::Value, Weak::Type(Type::Nil)),
         }
     }
 }
@@ -17,7 +17,7 @@ impl ToWeak for Statement<usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Type, WeakType},
+        analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
         parser::statement::Statement,
     };
 
@@ -25,7 +25,7 @@ mod tests {
     fn effect() {
         assert_eq!(
             Statement::Effect(0).to_weak(),
-            (RefKind::Value, WeakType::Reference(0))
+            (RefKind::Value, Weak::Inherit(0))
         );
     }
 
@@ -33,7 +33,7 @@ mod tests {
     fn variable() {
         assert_eq!(
             Statement::Variable(String::from("foo"), 0).to_weak(),
-            (RefKind::Value, WeakType::Strong(Type::Nil))
+            (RefKind::Value, Weak::Type(Type::Nil))
         );
     }
 }

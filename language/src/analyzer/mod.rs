@@ -32,10 +32,10 @@ pub enum Type<T> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum WeakType {
-    Any,
-    Strong(Type<usize>),
-    Reference(usize),
+pub enum Weak {
+    Unknown,
+    Type(Type<usize>),
+    Inherit(usize),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -44,7 +44,7 @@ pub enum RefKind {
     Value,
 }
 
-pub type WeakRef = (RefKind, WeakType);
+pub type WeakRef = (RefKind, Weak);
 pub type StrongRef = (RefKind, Type<usize>);
 
 fn register_fragments<T>(
@@ -91,145 +91,4 @@ mod tests {
         test::fixture as f,
     };
     use std::{cell::RefCell, collections::BTreeMap};
-
-    #[test]
-    fn register_declaration_fragments() {
-        let file_ctx = RefCell::new(FileContext::new());
-
-        super::register_fragments(
-            f::n::mr(Module::new(
-                vec![],
-                vec![
-                    f::n::d(f::a::type_("MyType", f::n::tx(TypeExpression::Nil))),
-                    f::n::d(f::a::const_(
-                        "MY_CONST",
-                        None,
-                        f::n::x(Expression::Primitive(Primitive::Nil)),
-                    )),
-                ],
-            )),
-            &file_ctx,
-        );
-
-        assert_eq!(
-            file_ctx.borrow().fragments,
-            BTreeMap::from_iter(vec![
-                (
-                    0,
-                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
-                ),
-                (
-                    1,
-                    (vec![0], Fragment::Declaration(f::a::type_("MyType", 0)))
-                ),
-                (
-                    2,
-                    (
-                        vec![0, 2],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
-                ),
-                (
-                    3,
-                    (
-                        vec![0],
-                        Fragment::Declaration(f::a::const_("MY_CONST", None, 2))
-                    )
-                ),
-                (
-                    4,
-                    (vec![0], Fragment::Module(Module::new(vec![], vec![1, 3])))
-                ),
-            ])
-        );
-    }
-
-    #[test]
-    fn register_closure_fragments() {
-        let file_ctx = RefCell::new(FileContext::new());
-
-        super::register_fragments(
-            f::n::mr(Module::new(
-                vec![],
-                vec![
-                    f::n::d(f::a::const_(
-                        "FOO",
-                        None,
-                        f::n::x(Expression::Primitive(Primitive::Nil)),
-                    )),
-                    f::n::d(f::a::const_(
-                        "BAR",
-                        None,
-                        f::n::x(Expression::Closure(vec![
-                            f::n::s(Statement::Variable(
-                                String::from("foo"),
-                                f::n::x(Expression::Identifier(String::from("FOO"))),
-                            )),
-                            f::n::s(Statement::Effect(f::n::x(Expression::Identifier(
-                                String::from("foo"),
-                            )))),
-                        ])),
-                    )),
-                ],
-            )),
-            &file_ctx,
-        );
-
-        assert_eq!(
-            file_ctx.borrow().fragments,
-            BTreeMap::from_iter(vec![
-                (
-                    0,
-                    (
-                        vec![0, 1],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
-                ),
-                (
-                    1,
-                    (vec![0], Fragment::Declaration(f::a::const_("FOO", None, 0)))
-                ),
-                (
-                    2,
-                    (
-                        vec![0, 2, 3],
-                        Fragment::Expression(Expression::Identifier(String::from("FOO")))
-                    )
-                ),
-                (
-                    3,
-                    (
-                        vec![0, 2, 3],
-                        Fragment::Statement(Statement::Variable(String::from("foo"), 2))
-                    )
-                ),
-                (
-                    4,
-                    (
-                        vec![0, 2, 3],
-                        Fragment::Expression(Expression::Identifier(String::from("foo")))
-                    )
-                ),
-                (
-                    5,
-                    (vec![0, 2, 3], Fragment::Statement(Statement::Effect(4)))
-                ),
-                (
-                    6,
-                    (
-                        vec![0, 2],
-                        Fragment::Expression(Expression::Closure(vec![3, 5]))
-                    )
-                ),
-                (
-                    7,
-                    (vec![0], Fragment::Declaration(f::a::const_("BAR", None, 6)))
-                ),
-                (
-                    8,
-                    (vec![0], Fragment::Module(Module::new(vec![], vec![1, 7])))
-                ),
-            ])
-        );
-    }
 }

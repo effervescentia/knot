@@ -21,8 +21,4 @@ where
     type Value<C>;
 
     fn register(self, ctx: &mut ScopeContext) -> Self::Node;
-
-    // fn identify(value: Self::Value<()>, ctx: &mut ScopeContext) -> Self::Value<NodeContext>;
-
-    // fn to_ref<'a>(value: &'a Self::Value<NodeContext>) -> Self::Ref;
 }

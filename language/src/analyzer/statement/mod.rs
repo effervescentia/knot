@@ -1,7 +1,7 @@
 use super::{
     context::NodeContext,
     register::{Identify, Register},
-    RefKind, ScopeContext, Type, WeakType,
+    RefKind, ScopeContext, Type, Weak,
 };
 mod fragment;
 mod identity;

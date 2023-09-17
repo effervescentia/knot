@@ -3,7 +3,7 @@ use super::{
     fragment::Fragment,
     infer::weak::ToWeak,
     register::{Identify, Register, ToFragment},
-    RefKind, ScopeContext, WeakType,
+    RefKind, ScopeContext, Weak,
 };
 use crate::parser::{
     module::{self, Module, ModuleNode},
@@ -72,7 +72,7 @@ where
 
 impl ToWeak for Module<usize> {
     fn to_weak(&self) -> super::WeakRef {
-        (RefKind::Value, WeakType::Any)
+        (RefKind::Value, Weak::Unknown)
     }
 }
 

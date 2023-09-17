@@ -1,5 +1,5 @@
 use crate::{
-    analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, WeakType},
+    analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Weak},
     parser::expression::Expression,
 };
 
@@ -24,13 +24,13 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
             let weak = ctx.weak_refs.get(id);
             if let Some(x) = weak {
                 match x {
-                    (k, WeakType::Strong(x)) => {
+                    (k, Weak::Type(x)) => {
                         ctx.strong_refs.insert(*id, (k.clone(), x.clone()));
                     }
 
-                    (k, WeakType::Reference(ref_id)) => inherit(ref_id, *id, k.clone()),
+                    (k, Weak::Inherit(ref_id)) => inherit(ref_id, *id, k.clone()),
 
-                    (RefKind::Type, WeakType::Any) => match fragment {
+                    (RefKind::Type, Weak::Unknown) => match fragment {
                         Fragment::Expression(Expression::Identifier(name)) => {
                             let bindings = &ctx.bindings;
                             let ids = bindings.get(&(scope.clone(), name.clone()));
@@ -68,7 +68,7 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{fragment::Fragment, RefKind, Type, WeakType},
+        analyzer::{fragment::Fragment, RefKind, Type, Weak},
         parser::{
             expression::{primitive::Primitive, Expression},
             statement::Statement,
@@ -93,8 +93,8 @@ mod tests {
         let mut analyze_ctx = f::a_ctx_from(
             &file_ctx,
             vec![
-                (0, (RefKind::Type, WeakType::Strong(Type::Nil))),
-                (1, (RefKind::Type, WeakType::Reference(0))),
+                (0, (RefKind::Type, Weak::Type(Type::Nil))),
+                (1, (RefKind::Type, Weak::Inherit(0))),
             ],
             vec![(
                 (vec![0], String::from("MyType")),
@@ -142,10 +142,10 @@ mod tests {
         let mut analyze_ctx = f::a_ctx_from(
             &file_ctx,
             vec![
-                (0, (RefKind::Value, WeakType::Strong(Type::Nil))),
-                (1, (RefKind::Value, WeakType::Reference(0))),
-                (2, (RefKind::Value, WeakType::Strong(Type::Nil))),
-                (3, (RefKind::Value, WeakType::Reference(2))),
+                (0, (RefKind::Value, Weak::Type(Type::Nil))),
+                (1, (RefKind::Value, Weak::Inherit(0))),
+                (2, (RefKind::Value, Weak::Type(Type::Nil))),
+                (3, (RefKind::Value, Weak::Inherit(2))),
             ],
             vec![
                 (
@@ -229,14 +229,14 @@ mod tests {
         let mut analyze_ctx = f::a_ctx_from(
             &file_ctx,
             vec![
-                (0, (RefKind::Value, WeakType::Strong(Type::Nil))),
-                (1, (RefKind::Value, WeakType::Reference(0))),
-                (2, (RefKind::Value, WeakType::Any)),
-                (3, (RefKind::Value, WeakType::Reference(2))),
-                (4, (RefKind::Value, WeakType::Any)),
-                (5, (RefKind::Value, WeakType::Reference(4))),
-                (6, (RefKind::Value, WeakType::Reference(5))),
-                (7, (RefKind::Value, WeakType::Reference(6))),
+                (0, (RefKind::Value, Weak::Type(Type::Nil))),
+                (1, (RefKind::Value, Weak::Inherit(0))),
+                (2, (RefKind::Value, Weak::Unknown)),
+                (3, (RefKind::Value, Weak::Inherit(2))),
+                (4, (RefKind::Value, Weak::Unknown)),
+                (5, (RefKind::Value, Weak::Inherit(4))),
+                (6, (RefKind::Value, Weak::Inherit(5))),
+                (7, (RefKind::Value, Weak::Inherit(6))),
             ],
             vec![
                 (

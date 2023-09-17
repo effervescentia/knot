@@ -17,11 +17,11 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn identify(self, ctx: &mut ScopeContext) -> parameter::NodeValue<T, NodeContext> {
-        Parameter {
-            name: self.name,
-            value_type: self.value_type.map(|x| x.register(ctx)),
-            default_value: self.default_value.map(|x| x.register(ctx)),
-        }
+        Parameter::new(
+            self.name,
+            self.value_type.map(|x| x.register(ctx)),
+            self.default_value.map(|x| x.register(ctx)),
+        )
     }
 }
 

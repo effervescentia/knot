@@ -26,7 +26,7 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Type, WeakType},
+        analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Type, Weak},
         parser::{
             expression::{primitive::Primitive, Expression},
             statement::Statement,
@@ -47,7 +47,7 @@ mod tests {
 
         assert_eq!(
             analyze_ctx.weak_refs,
-            HashMap::from_iter(vec![(1, (RefKind::Type, WeakType::Reference(0)))])
+            HashMap::from_iter(vec![(1, (RefKind::Type, Weak::Inherit(0)))])
         );
 
         assert_eq!(
@@ -131,16 +131,16 @@ mod tests {
         assert_eq!(
             analyze_ctx.weak_refs,
             HashMap::from_iter(vec![
-                (0, (RefKind::Value, WeakType::Strong(Type::Nil))),
-                (1, (RefKind::Value, WeakType::Reference(0))),
-                (2, (RefKind::Value, WeakType::Any)),
-                (3, (RefKind::Value, WeakType::Reference(2))),
-                (4, (RefKind::Value, WeakType::Any)),
-                (5, (RefKind::Value, WeakType::Strong(Type::Nil))),
-                (6, (RefKind::Value, WeakType::Any)),
-                (7, (RefKind::Value, WeakType::Reference(6))),
-                (8, (RefKind::Value, WeakType::Reference(7))),
-                (9, (RefKind::Value, WeakType::Reference(8))),
+                (0, (RefKind::Value, Weak::Type(Type::Nil))),
+                (1, (RefKind::Value, Weak::Inherit(0))),
+                (2, (RefKind::Value, Weak::Unknown)),
+                (3, (RefKind::Value, Weak::Inherit(2))),
+                (4, (RefKind::Value, Weak::Unknown)),
+                (5, (RefKind::Value, Weak::Type(Type::Nil))),
+                (6, (RefKind::Value, Weak::Unknown)),
+                (7, (RefKind::Value, Weak::Inherit(6))),
+                (8, (RefKind::Value, Weak::Inherit(7))),
+                (9, (RefKind::Value, Weak::Inherit(8))),
             ])
         );
 
@@ -186,8 +186,8 @@ mod tests {
         assert_eq!(
             analyze_ctx.weak_refs,
             HashMap::from_iter(vec![
-                (1, (RefKind::Type, WeakType::Reference(0))),
-                (3, (RefKind::Type, WeakType::Reference(2))),
+                (1, (RefKind::Type, Weak::Inherit(0))),
+                (3, (RefKind::Type, Weak::Inherit(2))),
             ])
         );
 

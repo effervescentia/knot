@@ -1,5 +1,5 @@
 use crate::{
-    analyzer::{infer::weak::ToWeak, RefKind, Type, WeakRef, WeakType},
+    analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
     parser::types::type_expression::TypeExpression,
 };
 
@@ -8,22 +8,22 @@ impl ToWeak for TypeExpression<usize> {
         (
             RefKind::Type,
             match self {
-                TypeExpression::Nil => WeakType::Strong(Type::Nil),
-                TypeExpression::Boolean => WeakType::Strong(Type::Boolean),
-                TypeExpression::Integer => WeakType::Strong(Type::Integer),
-                TypeExpression::Float => WeakType::Strong(Type::Float),
-                TypeExpression::String => WeakType::Strong(Type::String),
-                TypeExpression::Style => WeakType::Strong(Type::Style),
-                TypeExpression::Element => WeakType::Strong(Type::Element),
+                TypeExpression::Nil => Weak::Type(Type::Nil),
+                TypeExpression::Boolean => Weak::Type(Type::Boolean),
+                TypeExpression::Integer => Weak::Type(Type::Integer),
+                TypeExpression::Float => Weak::Type(Type::Float),
+                TypeExpression::String => Weak::Type(Type::String),
+                TypeExpression::Style => Weak::Type(Type::Style),
+                TypeExpression::Element => Weak::Type(Type::Element),
 
-                TypeExpression::Identifier(..) => WeakType::Any,
+                TypeExpression::Identifier(..) => Weak::Unknown,
 
-                TypeExpression::Group(id) => WeakType::Reference(**id),
+                TypeExpression::Group(id) => Weak::Inherit(**id),
 
-                TypeExpression::DotAccess(..) => WeakType::Any,
+                TypeExpression::DotAccess(..) => Weak::Unknown,
 
                 TypeExpression::Function(params, x) => {
-                    WeakType::Strong(Type::Function(params.clone(), **x))
+                    Weak::Type(Type::Function(params.clone(), **x))
                 }
             },
         )
@@ -33,7 +33,7 @@ impl ToWeak for TypeExpression<usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Type, WeakType},
+        analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
         parser::types::type_expression::TypeExpression,
     };
 
@@ -41,31 +41,31 @@ mod tests {
     fn primitive() {
         assert_eq!(
             TypeExpression::Nil.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Nil))
+            (RefKind::Type, Weak::Type(Type::Nil))
         );
         assert_eq!(
             TypeExpression::Boolean.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Boolean))
+            (RefKind::Type, Weak::Type(Type::Boolean))
         );
         assert_eq!(
             TypeExpression::Integer.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Integer))
+            (RefKind::Type, Weak::Type(Type::Integer))
         );
         assert_eq!(
             TypeExpression::Float.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Float))
+            (RefKind::Type, Weak::Type(Type::Float))
         );
         assert_eq!(
             TypeExpression::String.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::String))
+            (RefKind::Type, Weak::Type(Type::String))
         );
         assert_eq!(
             TypeExpression::Style.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Style))
+            (RefKind::Type, Weak::Type(Type::Style))
         );
         assert_eq!(
             TypeExpression::Element.to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Element))
+            (RefKind::Type, Weak::Type(Type::Element))
         );
     }
 
@@ -73,7 +73,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             TypeExpression::Identifier(String::from("foo")).to_weak(),
-            (RefKind::Type, WeakType::Any)
+            (RefKind::Type, Weak::Unknown)
         );
     }
 
@@ -81,7 +81,7 @@ mod tests {
     fn group() {
         assert_eq!(
             TypeExpression::Group(Box::new(0)).to_weak(),
-            (RefKind::Type, WeakType::Reference(0))
+            (RefKind::Type, Weak::Inherit(0))
         );
     }
 
@@ -89,7 +89,7 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             TypeExpression::DotAccess(Box::new(0), String::from("foo")).to_weak(),
-            (RefKind::Type, WeakType::Any)
+            (RefKind::Type, Weak::Unknown)
         );
     }
 
@@ -97,7 +97,7 @@ mod tests {
     fn function() {
         assert_eq!(
             TypeExpression::Function(vec![0], Box::new(1)).to_weak(),
-            (RefKind::Type, WeakType::Strong(Type::Function(vec![0], 1)))
+            (RefKind::Type, Weak::Type(Type::Function(vec![0], 1)))
         );
     }
 }

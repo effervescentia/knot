@@ -4,7 +4,7 @@ mod weak;
 use super::{
     context::NodeContext,
     register::{Identify, Register},
-    RefKind, ScopeContext, Type, WeakType,
+    RefKind, ScopeContext, Type, Weak,
 };
 use crate::parser::{
     ksx::{self, KSXNode},

@@ -1,4 +1,4 @@
-use super::{RefKind, Type, WeakType};
+use super::{RefKind, Type, Weak};
 use crate::{
     analyzer::{infer::weak::ToWeak, WeakRef},
     parser::ksx::KSX,
@@ -7,15 +7,15 @@ use crate::{
 impl ToWeak for KSX<usize, usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            KSX::Text(..) => (RefKind::Value, WeakType::Strong(Type::String)),
+            KSX::Text(..) => (RefKind::Value, Weak::Type(Type::String)),
 
-            KSX::Inline(id) => (RefKind::Value, WeakType::Reference(*id)),
+            KSX::Inline(id) => (RefKind::Value, Weak::Inherit(*id)),
 
-            KSX::Fragment(..) => (RefKind::Value, WeakType::Strong(Type::Element)),
+            KSX::Fragment(..) => (RefKind::Value, Weak::Type(Type::Element)),
 
-            KSX::ClosedElement(..) => (RefKind::Value, WeakType::Strong(Type::Element)),
+            KSX::ClosedElement(..) => (RefKind::Value, Weak::Type(Type::Element)),
 
-            KSX::OpenElement(..) => (RefKind::Value, WeakType::Strong(Type::Element)),
+            KSX::OpenElement(..) => (RefKind::Value, Weak::Type(Type::Element)),
         }
     }
 }
@@ -23,7 +23,7 @@ impl ToWeak for KSX<usize, usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Type, WeakType},
+        analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
         parser::ksx::KSX,
     };
 
@@ -31,23 +31,20 @@ mod tests {
     fn text() {
         assert_eq!(
             KSX::Text(String::from("foo")).to_weak(),
-            (RefKind::Value, WeakType::Strong(Type::String))
+            (RefKind::Value, Weak::Type(Type::String))
         );
     }
 
     #[test]
     fn inline() {
-        assert_eq!(
-            KSX::Inline(0).to_weak(),
-            (RefKind::Value, WeakType::Reference(0))
-        );
+        assert_eq!(KSX::Inline(0).to_weak(), (RefKind::Value, Weak::Inherit(0)));
     }
 
     #[test]
     fn fragment() {
         assert_eq!(
             KSX::Fragment(vec![0]).to_weak(),
-            (RefKind::Value, WeakType::Strong(Type::Element))
+            (RefKind::Value, Weak::Type(Type::Element))
         );
     }
 
@@ -59,7 +56,7 @@ mod tests {
                 vec![(String::from("bar"), None), (String::from("fizz"), Some(0))]
             )
             .to_weak(),
-            (RefKind::Value, WeakType::Strong(Type::Element))
+            (RefKind::Value, Weak::Type(Type::Element))
         );
     }
 
@@ -73,7 +70,7 @@ mod tests {
                 String::from("Foo"),
             )
             .to_weak(),
-            (RefKind::Value, WeakType::Strong(Type::Element))
+            (RefKind::Value, Weak::Type(Type::Element))
         );
     }
 }

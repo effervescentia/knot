@@ -24,6 +24,7 @@ impl Fragment {
     pub fn to_binding(&self) -> Option<String> {
         match self {
             Fragment::Statement(Statement::Variable(name, ..))
+            | Fragment::Parameter(Parameter { name, .. })
             | Fragment::Declaration(
                 Declaration::TypeAlias {
                     name: Storage(_, name),

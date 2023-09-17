@@ -1,24 +1,21 @@
 use crate::{
-    analyzer::{infer::weak::ToWeak, RefKind, Type, WeakRef, WeakType},
+    analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
     parser::declaration::Declaration,
 };
 
 impl ToWeak for Declaration<usize, usize, usize, usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Declaration::TypeAlias { value, .. } => (RefKind::Type, WeakType::Reference(*value)),
+            Declaration::TypeAlias { value, .. } => (RefKind::Type, Weak::Inherit(*value)),
 
             Declaration::Enumerated { variants, .. } => (
                 RefKind::Value,
-                WeakType::Strong(Type::Enumerated(variants.clone())),
+                Weak::Type(Type::Enumerated(variants.clone())),
             ),
 
             Declaration::Constant {
                 value_type, value, ..
-            } => (
-                RefKind::Value,
-                WeakType::Reference(value_type.unwrap_or(*value)),
-            ),
+            } => (RefKind::Value, Weak::Inherit(value_type.unwrap_or(*value))),
 
             Declaration::Function {
                 parameters,
@@ -27,15 +24,20 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
                 ..
             } => (
                 RefKind::Value,
-                WeakType::Strong(Type::Function(
+                Weak::Type(Type::Function(
                     parameters.clone(),
                     body_type.unwrap_or(*body),
                 )),
             ),
 
-            Declaration::View { .. } => (RefKind::Value, WeakType::Any),
+            Declaration::View {
+                parameters, body, ..
+            } => (
+                RefKind::Value,
+                Weak::Type(Type::View(parameters.clone(), *body)),
+            ),
 
-            Declaration::Module { .. } => (RefKind::Value, WeakType::Any),
+            Declaration::Module { .. } => (RefKind::Value, Weak::Unknown),
         }
     }
 }
@@ -43,7 +45,7 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Type, WeakType},
+        analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
         test::fixture as f,
     };
 
@@ -51,7 +53,7 @@ mod tests {
     fn type_alias() {
         assert_eq!(
             f::a::type_("Foo", 0).to_weak(),
-            (RefKind::Type, WeakType::Reference(0))
+            (RefKind::Type, Weak::Inherit(0))
         );
     }
 
@@ -61,7 +63,7 @@ mod tests {
             f::a::enum_("Foo", vec![(String::from("Bar"), vec![0, 1, 2])]).to_weak(),
             (
                 RefKind::Value,
-                WeakType::Strong(Type::Enumerated(vec![(String::from("Bar"), vec![0, 1, 2])]))
+                Weak::Type(Type::Enumerated(vec![(String::from("Bar"), vec![0, 1, 2])]))
             )
         );
     }
@@ -70,7 +72,7 @@ mod tests {
     fn constant() {
         assert_eq!(
             f::a::const_("FOO", None, 0).to_weak(),
-            (RefKind::Value, WeakType::Reference(0))
+            (RefKind::Value, Weak::Inherit(0))
         );
     }
 
@@ -78,7 +80,7 @@ mod tests {
     fn constant_with_type() {
         assert_eq!(
             f::a::const_("FOO", Some(0), 1).to_weak(),
-            (RefKind::Value, WeakType::Reference(0))
+            (RefKind::Value, Weak::Inherit(0))
         );
     }
 
@@ -86,10 +88,7 @@ mod tests {
     fn function() {
         assert_eq!(
             f::a::func_("foo", vec![0, 1], None, 2).to_weak(),
-            (
-                RefKind::Value,
-                WeakType::Strong(Type::Function(vec![0, 1], 2))
-            )
+            (RefKind::Value, Weak::Type(Type::Function(vec![0, 1], 2)))
         );
     }
 
@@ -97,18 +96,15 @@ mod tests {
     fn function_with_typedef() {
         assert_eq!(
             f::a::func_("foo", vec![0, 1], Some(2), 3).to_weak(),
-            (
-                RefKind::Value,
-                WeakType::Strong(Type::Function(vec![0, 1], 2))
-            )
+            (RefKind::Value, Weak::Type(Type::Function(vec![0, 1], 2)))
         );
     }
 
     #[test]
     fn view() {
         assert_eq!(
-            f::a::view("Foo", vec![], 0).to_weak(),
-            (RefKind::Value, WeakType::Any)
+            f::a::view("Foo", vec![0, 1], 2).to_weak(),
+            (RefKind::Value, Weak::Type(Type::View(vec![0, 1], 2)))
         );
     }
 
@@ -116,7 +112,7 @@ mod tests {
     fn module() {
         assert_eq!(
             f::a::mod_("foo", 0).to_weak(),
-            (RefKind::Value, WeakType::Any)
+            (RefKind::Value, Weak::Unknown)
         );
     }
 }
