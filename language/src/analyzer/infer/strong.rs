@@ -1,15 +1,14 @@
-use std::collections::HashMap;
-
 use crate::{
-    analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, StrongRef, Type, Weak},
+    analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Strong, StrongRef, Weak},
     parser::{expression::Expression, types::type_expression::TypeExpression},
 };
+use std::collections::HashMap;
 
 fn get_strong<'a>(
     strong_refs: &'a HashMap<usize, StrongRef>,
     id: &'a usize,
     kind: &'a RefKind,
-) -> Option<&'a Type<usize>> {
+) -> Option<&'a Strong> {
     strong_refs.get(id).and_then(|(from_kind, strong)| {
         if from_kind == kind {
             Some(strong)
@@ -30,45 +29,36 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
                     ctx.strong_refs
                         .insert(to_id, (to_kind.clone(), strong.clone()));
                 } else {
-                    panic!("NOT FOUND: cannot inherit from")
+                    panic!("NOT FOUND: cannot inherit from {} in scope {:?}", id, scope)
                 }
             };
 
-            let weak = ctx.weak_refs.get(id);
-            if let Some(x) = weak {
-                match x {
-                    (k, Weak::Type(x)) => {
-                        ctx.strong_refs.insert(*id, (k.clone(), x.clone()));
-                    }
-
-                    (k, Weak::Inherit(inherit_id)) => inherit(inherit_id, *id, k.clone()),
-
-                    (k @ RefKind::Value, Weak::Unknown) => match fragment {
-                        Fragment::Expression(Expression::Identifier(name)) => {
-                            if let Some(inherit_id) = ctx.bindings.resolve(scope, name, *id) {
-                                inherit(&inherit_id, *id, k.clone())
-                            } else {
-                                todo!("NOT FOUND: handle this with a unique StrongType");
-                            }
-                        }
-
-                        _ => unreachable!(),
-                    },
-
-                    (k @ RefKind::Type, Weak::Unknown) => match fragment {
-                        Fragment::TypeExpression(TypeExpression::Identifier(name)) => {
-                            if let Some(inherit_id) = ctx.bindings.resolve(scope, name, *id) {
-                                inherit(&inherit_id, *id, k.clone())
-                            } else {
-                                todo!("NOT FOUND: handle this with a unique StrongType");
-                            }
-                        }
-
-                        _ => unreachable!(),
-                    },
-
-                    _ => todo!("NOT HANDLED"),
+            match (ctx.weak_refs.get(id), fragment) {
+                (Some((k, Weak::Type(x))), _) => {
+                    ctx.strong_refs
+                        .insert(*id, (k.clone(), Strong::Type(x.clone())));
                 }
+
+                (Some((k, Weak::Inherit(inherit_id))), _) => inherit(inherit_id, *id, k.clone()),
+
+                (
+                    Some((k @ RefKind::Type, Weak::Unknown)),
+                    Fragment::TypeExpression(TypeExpression::Identifier(name)),
+                )
+                | (
+                    Some((k @ RefKind::Value, Weak::Unknown)),
+                    Fragment::Expression(Expression::Identifier(name)),
+                ) => match ctx.bindings.resolve(scope, name, *id) {
+                    Some(inherit_id) => inherit(&inherit_id, *id, k.clone()),
+
+                    None => {
+                        ctx.strong_refs
+                            .insert(*id, (k.clone(), Strong::NotFound(name.clone())));
+                    }
+                },
+
+                // (Some((k, Weak::Unknown)), Fragment::) => (),
+                (None, _) => unreachable!("all fragments should have a corresponding weak ref"),
             }
         });
 }
@@ -76,7 +66,7 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{fragment::Fragment, RefKind, Type, Weak},
+        analyzer::{fragment::Fragment, RefKind, Strong, Type, Weak},
         parser::{
             expression::{primitive::Primitive, Expression},
             statement::Statement,
@@ -115,8 +105,8 @@ mod tests {
         assert_eq!(
             analyze_ctx.strong_refs,
             HashMap::from_iter(vec![
-                (0, (RefKind::Type, Type::Nil)),
-                (1, (RefKind::Type, Type::Nil))
+                (0, (RefKind::Type, Strong::Type(Type::Nil))),
+                (1, (RefKind::Type, Strong::Type(Type::Nil)))
             ])
         );
     }
@@ -172,10 +162,10 @@ mod tests {
         assert_eq!(
             analyze_ctx.strong_refs,
             HashMap::from_iter(vec![
-                (0, (RefKind::Value, Type::Nil)),
-                (1, (RefKind::Value, Type::Nil)),
-                (2, (RefKind::Value, Type::Nil)),
-                (3, (RefKind::Value, Type::Nil)),
+                (0, (RefKind::Value, Strong::Type(Type::Nil))),
+                (1, (RefKind::Value, Strong::Type(Type::Nil))),
+                (2, (RefKind::Value, Strong::Type(Type::Nil))),
+                (3, (RefKind::Value, Strong::Type(Type::Nil))),
             ])
         );
     }
@@ -267,14 +257,14 @@ mod tests {
         assert_eq!(
             analyze_ctx.strong_refs,
             HashMap::from_iter(vec![
-                (0, (RefKind::Value, Type::Nil)),
-                (1, (RefKind::Value, Type::Nil)),
-                (2, (RefKind::Value, Type::Nil)),
-                (3, (RefKind::Value, Type::Nil)),
-                (4, (RefKind::Value, Type::Nil)),
-                (5, (RefKind::Value, Type::Nil)),
-                (6, (RefKind::Value, Type::Nil)),
-                (7, (RefKind::Value, Type::Nil)),
+                (0, (RefKind::Value, Strong::Type(Type::Nil))),
+                (1, (RefKind::Value, Strong::Type(Type::Nil))),
+                (2, (RefKind::Value, Strong::Type(Type::Nil))),
+                (3, (RefKind::Value, Strong::Type(Type::Nil))),
+                (4, (RefKind::Value, Strong::Type(Type::Nil))),
+                (5, (RefKind::Value, Strong::Type(Type::Nil))),
+                (6, (RefKind::Value, Strong::Type(Type::Nil))),
+                (7, (RefKind::Value, Strong::Type(Type::Nil))),
             ])
         );
     }

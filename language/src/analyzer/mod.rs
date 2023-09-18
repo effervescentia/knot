@@ -39,13 +39,19 @@ pub enum Weak {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum Strong {
+    NotFound(String),
+    Type(Type<usize>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum RefKind {
     Type,
     Value,
 }
 
 pub type WeakRef = (RefKind, Weak);
-pub type StrongRef = (RefKind, Type<usize>);
+pub type StrongRef = (RefKind, Strong);
 
 fn register_fragments<T>(
     x: ModuleNode<T, ()>,

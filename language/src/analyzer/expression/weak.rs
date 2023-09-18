@@ -24,10 +24,9 @@ impl ToWeak for Expression<usize, usize, usize> {
             Expression::Group(id) => (RefKind::Value, Weak::Inherit(**id)),
 
             Expression::Closure(xs) => (RefKind::Value, {
-                if let Some(id) = xs.last() {
-                    Weak::Inherit(*id)
-                } else {
-                    Weak::Type(Type::Nil)
+                match xs.last() {
+                    Some(id) => Weak::Inherit(*id),
+                    None => Weak::Type(Type::Nil),
                 }
             }),
 
