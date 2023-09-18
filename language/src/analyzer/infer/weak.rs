@@ -15,6 +15,7 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
             if let Some(name) = x.to_binding() {
                 let entry = ctx
                     .bindings
+                    .0
                     .entry((scope.clone(), name.clone()))
                     .or_default();
 
@@ -51,7 +52,7 @@ mod tests {
         );
 
         assert_eq!(
-            analyze_ctx.bindings,
+            analyze_ctx.bindings.0,
             HashMap::from_iter(vec![(
                 (vec![0], String::from("MyType")),
                 (BTreeSet::from_iter(vec![1]))
@@ -145,7 +146,7 @@ mod tests {
         );
 
         assert_eq!(
-            analyze_ctx.bindings,
+            analyze_ctx.bindings.0,
             HashMap::from_iter(vec![
                 (
                     (vec![0], String::from("FOO")),
@@ -192,7 +193,7 @@ mod tests {
         );
 
         assert_eq!(
-            analyze_ctx.bindings,
+            analyze_ctx.bindings.0,
             HashMap::from_iter(vec![(
                 (vec![0], String::from("MyType")),
                 BTreeSet::from_iter(vec![1, 3])

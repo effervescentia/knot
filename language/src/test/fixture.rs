@@ -43,7 +43,7 @@ pub fn a_ctx_from<'a>(
 ) -> AnalyzeContext<'a> {
     let mut ctx = AnalyzeContext::new(file);
     ctx.weak_refs.extend(weak_refs);
-    ctx.bindings.extend(bindings);
+    ctx.bindings.0.extend(bindings);
     ctx
 }
 

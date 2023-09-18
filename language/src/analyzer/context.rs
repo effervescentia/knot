@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, register::ToFragment, RefKind, StrongRef, WeakRef};
+use super::{fragment::Fragment, register::ToFragment, StrongRef, WeakRef};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -110,7 +110,7 @@ impl NodeContext {
 pub struct AnalyzeContext<'a> {
     pub file: &'a RefCell<FileContext>,
 
-    pub bindings: HashMap<(Vec<usize>, String), BTreeSet<usize>>,
+    pub bindings: Bindings,
 
     pub weak_refs: HashMap<usize, WeakRef>,
 
@@ -121,9 +121,106 @@ impl<'a> AnalyzeContext<'a> {
     pub fn new(file: &'a RefCell<FileContext>) -> Self {
         Self {
             file,
-            bindings: HashMap::new(),
+            bindings: Bindings(HashMap::new()),
             weak_refs: HashMap::new(),
             strong_refs: HashMap::new(),
         }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Bindings(pub HashMap<(Vec<usize>, String), BTreeSet<usize>>);
+
+impl Bindings {
+    fn from_iter<T: IntoIterator<Item = ((Vec<usize>, String), BTreeSet<usize>)>>(iter: T) -> Self {
+        Self(HashMap::from_iter(iter))
+    }
+
+    pub fn resolve(&self, scope: &Vec<usize>, name: &str, origin_id: usize) -> Option<usize> {
+        let source_ids = self.0.get(&(scope.clone(), name.to_string()));
+
+        if let Some(xs) = source_ids {
+            for x in xs.iter().rev() {
+                if *x < origin_id {
+                    return Some(*x);
+                }
+            }
+        }
+
+        if scope.len() <= 1 {
+            return None;
+        }
+
+        let mut parent_scope = scope.clone();
+        parent_scope.pop();
+
+        self.resolve(&parent_scope, name, origin_id)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::analyzer::context::Bindings;
+    use std::collections::BTreeSet;
+
+    #[test]
+    fn resolve_from_local_scope() {
+        let bindings = Bindings::from_iter(vec![
+            ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
+            ((vec![0], String::from("bar")), BTreeSet::from_iter(vec![1])),
+            (
+                (vec![0], String::from("fizz")),
+                BTreeSet::from_iter(vec![2]),
+            ),
+        ]);
+
+        assert_eq!(bindings.resolve(&vec![0], "foo", 3), Some(0))
+    }
+
+    #[test]
+    fn resolve_from_ancestor_scope() {
+        let bindings = Bindings::from_iter(vec![
+            ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
+            (
+                (vec![0, 1], String::from("bar")),
+                BTreeSet::from_iter(vec![1]),
+            ),
+            (
+                (vec![0, 1, 2], String::from("fizz")),
+                BTreeSet::from_iter(vec![2]),
+            ),
+        ]);
+
+        assert_eq!(bindings.resolve(&vec![0, 1, 2], "foo", 3), Some(0));
+        assert_eq!(bindings.resolve(&vec![0, 1, 2], "bar", 3), Some(1));
+        assert_eq!(bindings.resolve(&vec![0, 1, 2], "fizz", 3), Some(2));
+    }
+
+    #[test]
+    fn resolve_from_local_over_ancestor_scope() {
+        let bindings = Bindings::from_iter(vec![
+            ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
+            (
+                (vec![0, 1], String::from("foo")),
+                BTreeSet::from_iter(vec![2]),
+            ),
+            (
+                (vec![0, 1, 2, 3], String::from("foo")),
+                BTreeSet::from_iter(vec![3]),
+            ),
+        ]);
+
+        assert_eq!(bindings.resolve(&vec![0, 1, 2], "foo", 4), Some(2));
+    }
+
+    #[test]
+    fn resolve_bindings_with_respect_to_ordering() {
+        let bindings = Bindings::from_iter(vec![(
+            (vec![0], String::from("foo")),
+            BTreeSet::from_iter(vec![1, 3]),
+        )]);
+
+        assert_eq!(bindings.resolve(&vec![0], "foo", 2), Some(1));
+        assert_eq!(bindings.resolve(&vec![0], "foo", 0), None);
     }
 }

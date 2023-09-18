@@ -1,7 +1,23 @@
+use std::collections::HashMap;
+
 use crate::{
-    analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Weak},
-    parser::expression::Expression,
+    analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, StrongRef, Type, Weak},
+    parser::{expression::Expression, types::type_expression::TypeExpression},
 };
+
+fn get_strong<'a>(
+    strong_refs: &'a HashMap<usize, StrongRef>,
+    id: &'a usize,
+    kind: &'a RefKind,
+) -> Option<&'a Type<usize>> {
+    strong_refs.get(id).and_then(|(from_kind, strong)| {
+        if from_kind == kind {
+            Some(strong)
+        } else {
+            None
+        }
+    })
+}
 
 pub fn infer_types(ctx: &mut AnalyzeContext) {
     ctx.file
@@ -10,12 +26,9 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
         .iter()
         .for_each(|(id, (scope, fragment))| {
             let mut inherit = |from_id, to_id, to_kind| {
-                if let Some((from_kind, strong)) = ctx.strong_refs.get(from_id) {
-                    if *from_kind == to_kind {
-                        ctx.strong_refs.insert(to_id, (to_kind, strong.clone()));
-                    } else {
-                        todo!("RefType mismatch: handle this with a unique StrongType")
-                    }
+                if let Some(strong) = get_strong(&ctx.strong_refs, from_id, &to_kind) {
+                    ctx.strong_refs
+                        .insert(to_id, (to_kind.clone(), strong.clone()));
                 } else {
                     panic!("NOT FOUND: cannot inherit from")
                 }
@@ -28,29 +41,24 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
                         ctx.strong_refs.insert(*id, (k.clone(), x.clone()));
                     }
 
-                    (k, Weak::Inherit(ref_id)) => inherit(ref_id, *id, k.clone()),
+                    (k, Weak::Inherit(inherit_id)) => inherit(inherit_id, *id, k.clone()),
 
-                    (RefKind::Type, Weak::Unknown) => match fragment {
+                    (k @ RefKind::Value, Weak::Unknown) => match fragment {
                         Fragment::Expression(Expression::Identifier(name)) => {
-                            let bindings = &ctx.bindings;
-                            let ids = bindings.get(&(scope.clone(), name.clone()));
+                            if let Some(inherit_id) = ctx.bindings.resolve(scope, name, *id) {
+                                inherit(&inherit_id, *id, k.clone())
+                            } else {
+                                todo!("NOT FOUND: handle this with a unique StrongType");
+                            }
+                        }
 
-                            if let Some(xs) = ids {
-                                let mut valid_id = None;
+                        _ => unreachable!(),
+                    },
 
-                                for x in xs {
-                                    if x < id {
-                                        valid_id = Some(x);
-                                    } else {
-                                        break;
-                                    }
-                                }
-
-                                if let Some(x) = valid_id {
-                                    inherit(x, *id, RefKind::Type)
-                                } else {
-                                    todo!("NOT FOUND: handle this with a unique StrongType");
-                                }
+                    (k @ RefKind::Type, Weak::Unknown) => match fragment {
+                        Fragment::TypeExpression(TypeExpression::Identifier(name)) => {
+                            if let Some(inherit_id) = ctx.bindings.resolve(scope, name, *id) {
+                                inherit(&inherit_id, *id, k.clone())
                             } else {
                                 todo!("NOT FOUND: handle this with a unique StrongType");
                             }
@@ -263,6 +271,10 @@ mod tests {
                 (1, (RefKind::Value, Type::Nil)),
                 (2, (RefKind::Value, Type::Nil)),
                 (3, (RefKind::Value, Type::Nil)),
+                (4, (RefKind::Value, Type::Nil)),
+                (5, (RefKind::Value, Type::Nil)),
+                (6, (RefKind::Value, Type::Nil)),
+                (7, (RefKind::Value, Type::Nil)),
             ])
         );
     }
