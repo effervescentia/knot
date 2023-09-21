@@ -3,10 +3,8 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    parser::{
-        position::Decrement,
-        types::type_expression::{self, TypeExpression},
-    },
+    ast::type_expression::{self, TypeExpression},
+    common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -49,10 +47,8 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
-        parser::{
-            types::type_expression::{TypeExpression, TypeExpressionNode},
-            CharStream,
-        },
+        ast::type_expression::{TypeExpression, TypeExpressionNode},
+        parser::CharStream,
         test::fixture as f,
     };
 

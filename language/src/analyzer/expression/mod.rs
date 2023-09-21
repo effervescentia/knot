@@ -1,16 +1,15 @@
 mod fragment;
 mod identify;
+mod strong;
 mod weak;
+
 use crate::{
     analyzer::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    parser::{
-        expression::{self, ExpressionNode},
-        node::Node,
-        position::Decrement,
-    },
+    ast::expression::{self, ExpressionNode},
+    common::{node::Node, position::Decrement},
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -36,8 +35,8 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::{
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            expression::{Expression, Primitive},
             ksx::KSX,
             statement::Statement,
         },

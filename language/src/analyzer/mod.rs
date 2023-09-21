@@ -10,7 +10,7 @@ mod register;
 mod statement;
 mod type_expression;
 use self::context::{AnalyzeContext, NodeContext, ScopeContext};
-use crate::parser::{module::ModuleNode, position::Decrement};
+use crate::{ast::module::ModuleNode, common::position::Decrement};
 use combine::Stream;
 use context::FileContext;
 use register::Register;
@@ -80,21 +80,14 @@ where
     // apply strong type inference
     infer::strong::infer_types(&mut analyze_ctx);
 
+    if analyze_ctx.weak_refs.len() != analyze_ctx.strong_refs.len() {
+        panic!("analysis failed to determine all types")
+    }
+
     untyped
 }
 
 #[cfg(test)]
 mod tests {
-    use super::fragment::Fragment;
-    use crate::{
-        analyzer::context::FileContext,
-        parser::{
-            expression::{primitive::Primitive, Expression},
-            module::Module,
-            statement::Statement,
-            types::type_expression::TypeExpression,
-        },
-        test::fixture as f,
-    };
-    use std::{cell::RefCell, collections::BTreeMap};
+    // TODO
 }

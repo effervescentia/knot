@@ -1,15 +1,16 @@
+mod fragment;
+mod identity;
+mod strong;
+mod weak;
+
 use super::{
     context::NodeContext,
     register::{Identify, Register},
     RefKind, ScopeContext, Type, Weak,
 };
-mod fragment;
-mod identity;
-mod weak;
-use crate::parser::{
-    node::Node,
-    position::Decrement,
-    statement::{self, StatementNode},
+use crate::{
+    ast::statement::{self, StatementNode},
+    common::{node::Node, position::Decrement},
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -35,8 +36,8 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::{
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            expression::{Expression, Primitive},
             statement::Statement,
         },
         test::fixture as f,

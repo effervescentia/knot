@@ -1,67 +1,17 @@
 pub mod binary_operation;
 pub mod primitive;
 pub mod style;
-use crate::parser::{
-    ksx::{self, KSXNode},
-    matcher as m,
-    node::Node,
-    position::Decrement,
-    range::Range,
-    statement::{self, StatementNode},
+
+use crate::{
+    ast::{
+        expression::{Expression, ExpressionNode},
+        operator::UnaryOperator,
+    },
+    common::position::Decrement,
+    parser::{ksx, matcher as m, statement},
 };
-use binary_operation::BinaryOperator;
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
-use primitive::Primitive;
 use std::fmt::Debug;
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum UnaryOperator {
-    Not,
-    Absolute,
-    Negate,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Expression<E, S, K> {
-    Primitive(Primitive),
-    Identifier(String),
-    Group(Box<E>),
-    Closure(Vec<S>),
-    UnaryOperation(UnaryOperator, Box<E>),
-    BinaryOperation(BinaryOperator, Box<E>, Box<E>),
-    DotAccess(Box<E>, String),
-    FunctionCall(Box<E>, Vec<E>),
-    Style(Vec<(String, E)>),
-    KSX(Box<K>),
-}
-
-pub type NodeValue<T, C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
-
-#[derive(Debug, PartialEq)]
-pub struct ExpressionNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
-
-impl<T, C> ExpressionNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
-        &self.0
-    }
-}
-
-impl<T> ExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
-        Self(Node::raw(x, range))
-    }
-}
 
 fn primitive<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
 where
@@ -268,11 +218,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ksx::KSX, primitive::Primitive, BinaryOperator, Expression, ExpressionNode, UnaryOperator,
-    };
     use crate::{
-        parser::{statement::Statement, CharStream, ParseResult},
+        ast::{
+            expression::{Expression, ExpressionNode, Primitive},
+            ksx::KSX,
+            operator::{BinaryOperator, UnaryOperator},
+            statement::Statement,
+        },
+        parser::{CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};

@@ -1,9 +1,7 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    parser::{
-        expression::{self, Expression},
-        position::Decrement,
-    },
+    ast::expression::{self, Expression},
+    common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -59,15 +57,13 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-        parser::{
-            expression::{
-                binary_operation::BinaryOperator, primitive::Primitive, Expression, ExpressionNode,
-                UnaryOperator,
-            },
+        ast::{
+            expression::{Expression, ExpressionNode, Primitive},
             ksx::{KSXNode, KSX},
+            operator::{BinaryOperator, UnaryOperator},
             statement::{Statement, StatementNode},
-            CharStream,
         },
+        parser::CharStream,
         test::fixture as f,
     };
 

@@ -4,11 +4,11 @@ use crate::{
         context::NodeContext,
         register::{Identify, Register},
     },
-    parser::{
+    ast::{
         expression::ExpressionNode,
         ksx::{self, KSXNode, KSX},
-        position::Decrement,
     },
+    common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -68,11 +68,11 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
-        parser::{
-            expression::{primitive::Primitive, Expression, ExpressionNode},
+        ast::{
+            expression::{Expression, ExpressionNode, Primitive},
             ksx::{KSXNode, KSX},
-            CharStream,
         },
+        parser::CharStream,
         test::fixture as f,
     };
 

@@ -1,42 +1,13 @@
-use crate::parser::{
-    expression::ExpressionNode, matcher as m, node::Node, position::Decrement, range::Range,
+use crate::{
+    ast::{
+        expression::ExpressionNode,
+        statement::{Statement, StatementNode},
+    },
+    common::position::Decrement,
+    parser::matcher as m,
 };
 use combine::{choice, Parser, Stream};
 use std::fmt::Debug;
-
-#[derive(Debug, PartialEq)]
-pub enum Statement<E> {
-    Effect(E),
-    Variable(String, E),
-}
-
-pub type NodeValue<T, C> = Statement<ExpressionNode<T, C>>;
-
-#[derive(Debug, PartialEq)]
-pub struct StatementNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
-
-impl<T, C> StatementNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
-        &self.0
-    }
-}
-
-impl<T> StatementNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
-        Self(Node::raw(x, range))
-    }
-}
 
 fn effect<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<T, ()>>
 where
@@ -82,18 +53,18 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{statement, Statement, StatementNode};
     use crate::{
-        parser::{
-            expression::{self, primitive::Primitive, Expression},
-            CharStream, ParseResult,
+        ast::{
+            expression::{Expression, Primitive},
+            statement::{Statement, StatementNode},
         },
+        parser::{expression, CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};
 
     fn parse(s: &str) -> ParseResult<StatementNode<CharStream, ()>> {
-        statement(expression::expression).easy_parse(Stream::new(s))
+        super::statement(expression::expression).easy_parse(Stream::new(s))
     }
 
     #[test]

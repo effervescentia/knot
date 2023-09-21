@@ -2,10 +2,9 @@ use super::{
     context::{NodeContext, ScopeContext},
     register::{Identify, Register},
 };
-use crate::parser::{
-    declaration::parameter::{self, ParameterNode},
-    node::Node,
-    position::Decrement,
+use crate::{
+    ast::parameter::{self, ParameterNode},
+    common::{node::Node, position::Decrement},
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -35,8 +34,8 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::{
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            expression::{Expression, Primitive},
             statement::Statement,
         },
         test::fixture as f,

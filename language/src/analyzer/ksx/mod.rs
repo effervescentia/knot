@@ -1,15 +1,16 @@
 mod fragment;
 mod identify;
+mod strong;
 mod weak;
+
 use super::{
     context::NodeContext,
     register::{Identify, Register},
     RefKind, ScopeContext, Type, Weak,
 };
-use crate::parser::{
-    ksx::{self, KSXNode},
-    node::Node,
-    position::Decrement,
+use crate::{
+    ast::ksx::{self, KSXNode},
+    common::{node::Node, position::Decrement},
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -35,8 +36,8 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::{
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            expression::{Expression, Primitive},
             ksx::KSX,
         },
         test::fixture as f,

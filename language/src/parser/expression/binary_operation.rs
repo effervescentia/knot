@@ -1,27 +1,13 @@
-use super::{Expression, ExpressionNode};
-use crate::parser::{matcher as m, position::Decrement};
+use crate::{
+    ast::{
+        expression::{Expression, ExpressionNode},
+        operator::BinaryOperator,
+    },
+    common::position::Decrement,
+    parser::matcher as m,
+};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
 use std::fmt::Debug;
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum BinaryOperator {
-    And,
-    Or,
-
-    Equal,
-    NotEqual,
-
-    LessThan,
-    LessThanOrEqual,
-    GreaterThan,
-    GreaterThanOrEqual,
-
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Exponent,
-}
 
 fn binary_operation<T, U>(
     o: BinaryOperator,

@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
-    parser::types::type_expression::TypeExpression,
+    ast::type_expression::TypeExpression,
 };
 
 impl ToWeak for TypeExpression<usize> {
@@ -34,7 +34,7 @@ impl ToWeak for TypeExpression<usize> {
 mod tests {
     use crate::{
         analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
-        parser::types::type_expression::TypeExpression,
+        ast::type_expression::TypeExpression,
     };
 
     #[test]

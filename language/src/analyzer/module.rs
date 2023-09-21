@@ -5,9 +5,9 @@ use super::{
     register::{Identify, Register, ToFragment},
     RefKind, ScopeContext, Weak,
 };
-use crate::parser::{
-    module::{self, Module, ModuleNode},
-    position::Decrement,
+use crate::{
+    ast::module::{self, Module, ModuleNode},
+    common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -80,13 +80,11 @@ impl ToWeak for Module<usize> {
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::{
-            expression::{primitive::Primitive, Expression},
-            module::{
-                import::{Import, Source, Target},
-                Module, ModuleNode,
-            },
-            types::type_expression::TypeExpression,
+        ast::{
+            expression::{Expression, Primitive},
+            import::{Import, Source, Target},
+            module::{Module, ModuleNode},
+            type_expression::TypeExpression,
         },
         test::fixture as f,
     };

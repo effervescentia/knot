@@ -4,17 +4,16 @@ use crate::{
         fragment::Fragment,
         WeakRef,
     },
-    parser::{
+    ast::{
         declaration::{Declaration, DeclarationNode},
         expression::ExpressionNode,
         ksx::KSXNode,
         module::ModuleNode,
-        node::Node,
-        range::Range,
         statement::StatementNode,
-        types::type_expression::TypeExpressionNode,
-        CharStream,
+        type_expression::TypeExpressionNode,
     },
+    common::{node::Node, range::Range},
+    parser::CharStream,
 };
 use std::{cell::RefCell, collections::BTreeSet};
 
@@ -49,13 +48,10 @@ pub fn a_ctx_from<'a>(
 
 /// node factories
 pub mod n {
-    use crate::parser::{
-        declaration::{
-            self,
-            parameter::{self, ParameterNode},
-        },
-        expression, ksx, module, statement,
-        types::type_expression,
+    use crate::ast::{
+        declaration, expression, ksx, module,
+        parameter::{self, ParameterNode},
+        statement, type_expression,
     };
 
     use super::*;
@@ -186,7 +182,7 @@ pub mod n {
 /// ast factories
 pub mod a {
     use super::*;
-    use crate::parser::declaration::storage::{Storage, Visibility};
+    use crate::ast::storage::{Storage, Visibility};
 
     pub fn type_<E, P, M, T>(name: &str, value: T) -> Declaration<E, P, M, T> {
         Declaration::TypeAlias {

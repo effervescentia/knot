@@ -6,10 +6,9 @@ use super::{
     register::{Identify, Register},
     ScopeContext,
 };
-use crate::parser::{
-    node::Node,
-    position::Decrement,
-    types::type_expression::{self, TypeExpressionNode},
+use crate::{
+    ast::type_expression::{self, TypeExpressionNode},
+    common::{node::Node, position::Decrement},
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -35,7 +34,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::Register},
-        parser::types::type_expression::TypeExpression,
+        ast::type_expression::TypeExpression,
         test::fixture as f,
     };
     use std::collections::BTreeMap;

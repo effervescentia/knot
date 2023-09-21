@@ -28,8 +28,8 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 mod tests {
     use crate::{
         analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Type, Weak},
-        parser::{
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            expression::{Expression, Primitive},
             statement::Statement,
         },
         test::fixture as f,

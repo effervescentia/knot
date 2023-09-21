@@ -1,8 +1,12 @@
 use crate::{
     analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Strong, StrongRef, Weak},
-    parser::{expression::Expression, types::type_expression::TypeExpression},
+    ast::{expression::Expression, type_expression::TypeExpression},
 };
 use std::collections::HashMap;
+
+pub trait ToStrong<R> {
+    fn to_strong(&self) -> R;
+}
 
 fn get_strong<'a>(
     strong_refs: &'a HashMap<usize, StrongRef>,
@@ -59,6 +63,8 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 
                 // (Some((k, Weak::Unknown)), Fragment::) => (),
                 (None, _) => unreachable!("all fragments should have a corresponding weak ref"),
+
+                _ => todo!(),
             }
         });
 }
@@ -67,10 +73,10 @@ pub fn infer_types(ctx: &mut AnalyzeContext) {
 mod tests {
     use crate::{
         analyzer::{fragment::Fragment, RefKind, Strong, Type, Weak},
-        parser::{
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            expression::{Expression, Primitive},
             statement::Statement,
-            types::type_expression::TypeExpression,
+            type_expression::TypeExpression,
         },
         test::fixture as f,
     };

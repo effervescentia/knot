@@ -1,15 +1,10 @@
-use crate::parser::{matcher as m, position::Decrement, range::Range};
+use crate::{
+    ast::storage::{Storage, Visibility},
+    common::{position::Decrement, range::Range},
+    parser::matcher as m,
+};
 use combine::{position, value, Parser, Stream};
 use std::fmt::Debug;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Visibility {
-    Public,
-    Private,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Storage(pub Visibility, pub String);
 
 pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (Storage, Range<T>)>
 where

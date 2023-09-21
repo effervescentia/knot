@@ -1,7 +1,8 @@
 use crate::{
     analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
-    parser::expression::{
-        binary_operation::BinaryOperator, primitive::Primitive, Expression, UnaryOperator,
+    ast::{
+        expression::{Expression, Primitive},
+        operator::{BinaryOperator, UnaryOperator},
     },
 };
 
@@ -74,8 +75,9 @@ impl ToWeak for Expression<usize, usize, usize> {
 mod tests {
     use crate::{
         analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
-        parser::expression::{
-            binary_operation::BinaryOperator, primitive::Primitive, Expression, UnaryOperator,
+        ast::{
+            expression::{Expression, Primitive},
+            operator::{BinaryOperator, UnaryOperator},
         },
     };
 

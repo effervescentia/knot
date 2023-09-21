@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
-    parser::declaration::Declaration,
+    ast::declaration::Declaration,
 };
 
 impl ToWeak for Declaration<usize, usize, usize, usize> {

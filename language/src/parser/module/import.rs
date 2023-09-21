@@ -1,43 +1,13 @@
-use crate::{parser::matcher as m, parser::position::Decrement};
+use crate::{
+    ast::import::{Import, Source, Target},
+    common::position::Decrement,
+    parser::matcher as m,
+};
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
 use std::fmt::Debug;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Source {
-    Root,
-    Local,
-    External(String),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Target {
-    Named(String),
-    Module,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Import {
-    pub source: Source,
-    pub path: Vec<String>,
-    pub aliases: Option<Vec<(Target, Option<String>)>>,
-}
-
-impl Import {
-    pub fn new(
-        source: Source,
-        path: Vec<String>,
-        aliases: Option<Vec<(Target, Option<String>)>>,
-    ) -> Import {
-        Import {
-            source,
-            path,
-            aliases,
-        }
-    }
-}
 
 // use @/x;
 // use @/x.{a, b};

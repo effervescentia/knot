@@ -1,15 +1,7 @@
+use crate::ast::expression::Primitive;
 use combine::{
     attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
 };
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Primitive {
-    Nil,
-    Boolean(bool),
-    Integer(i64),
-    Float(f64, i32),
-    String(String),
-}
 
 fn nil<T>() -> impl Parser<T, Output = Primitive>
 where

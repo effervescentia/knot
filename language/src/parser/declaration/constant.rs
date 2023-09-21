@@ -1,7 +1,11 @@
-use super::{storage, Declaration, DeclarationNode};
-use crate::parser::{
-    expression,
-    {matcher as m, position::Decrement, types::typedef},
+use super::storage;
+use crate::{
+    ast::declaration::{Declaration, DeclarationNode},
+    common::position::Decrement,
+    parser::{
+        expression,
+        {matcher as m, types::typedef},
+    },
 };
 use combine::{Parser, Stream};
 use std::fmt::Debug;

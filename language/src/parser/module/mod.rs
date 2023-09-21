@@ -1,49 +1,20 @@
 pub mod import;
+
 use crate::{
-    parser::declaration::{self, DeclarationNode},
-    parser::position::Decrement,
+    ast::{
+        import::Import,
+        module::{Module, ModuleNode},
+    },
+    common::position::Decrement,
+    parser::declaration,
 };
 use combine::{choice, many, Parser, Stream};
-use import::Import;
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
 enum Entry<D> {
     Import(Import),
     Declaration(D),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Module<D> {
-    pub imports: Vec<Import>,
-    pub declarations: Vec<D>,
-}
-
-impl<D> Module<D> {
-    pub fn new(imports: Vec<Import>, declarations: Vec<D>) -> Self {
-        Self {
-            imports,
-            declarations,
-        }
-    }
-}
-
-pub type NodeValue<T, C> = Module<DeclarationNode<T, C>>;
-
-#[derive(Debug, PartialEq)]
-pub struct ModuleNode<T, C>(pub NodeValue<T, C>, pub C)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
-
-impl<T> ModuleNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: NodeValue<T, ()>) -> Self {
-        Self(x, ())
-    }
 }
 
 pub fn module<T>() -> impl Parser<T, Output = ModuleNode<T, ()>>
@@ -77,15 +48,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        import::{self, Import},
-        Module, ModuleNode,
-    };
     use crate::{
-        parser::{
-            expression::{primitive::Primitive, Expression},
-            CharStream, ParseResult,
+        ast::{
+            expression::{Expression, Primitive},
+            import::{Import, Source},
+            module::{Module, ModuleNode},
         },
+        parser::{CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};
@@ -104,11 +73,7 @@ mod tests {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
             f::n::mr(Module::new(
-                vec![Import::new(
-                    import::Source::Root,
-                    vec![String::from("foo")],
-                    None
-                )],
+                vec![Import::new(Source::Root, vec![String::from("foo")], None)],
                 vec![]
             ))
         );

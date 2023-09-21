@@ -1,53 +1,13 @@
-use crate::parser::{
-    expression::{self, ExpressionNode},
-    matcher as m,
-    node::Node,
-    position::Decrement,
-    range::Range,
+use crate::{
+    ast::{
+        expression::ExpressionNode,
+        ksx::{KSXNode, KSX},
+    },
+    common::position::Decrement,
+    parser::{expression, matcher as m},
 };
 use combine::{attempt, choice, many, many1, none_of, optional, parser, Parser, Stream};
 use std::{fmt::Debug, vec};
-
-#[derive(Debug, PartialEq)]
-pub enum KSX<E, K> {
-    Fragment(Vec<K>),
-    OpenElement(String, Vec<(String, Option<E>)>, Vec<K>, String),
-    ClosedElement(String, Vec<(String, Option<E>)>),
-    Inline(E),
-    Text(String),
-}
-
-pub type NodeValue<T, C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
-
-#[derive(Debug, PartialEq)]
-pub struct KSXNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
-
-impl<T, C> KSXNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
-        &self.0
-    }
-}
-
-impl<T> KSXNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
-        Self(Node::raw(x, range))
-    }
-
-    pub fn bind((x, range): (NodeValue<T, ()>, Range<T>)) -> Self {
-        Self::raw(x, range)
-    }
-}
 
 fn fragment<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
 where
@@ -171,10 +131,8 @@ parser! {
 mod tests {
     use super::{ksx, KSXNode, KSX};
     use crate::{
-        parser::{
-            expression::{primitive::Primitive, Expression},
-            CharStream, ParseResult,
-        },
+        ast::expression::{Expression, Primitive},
+        parser::{CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};

@@ -1,10 +1,10 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    parser::{
+    ast::{
         expression::ExpressionNode,
         ksx::{self, KSX},
-        position::Decrement,
     },
+    common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
@@ -48,11 +48,11 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-        parser::{
-            expression::{primitive::Primitive, Expression, ExpressionNode},
+        ast::{
+            expression::{Expression, ExpressionNode, Primitive},
             ksx::{KSXNode, KSX},
-            CharStream,
         },
+        parser::CharStream,
         test::fixture as f,
     };
 

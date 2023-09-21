@@ -6,82 +6,10 @@ pub mod parameter;
 pub mod storage;
 mod type_alias;
 mod view;
-use crate::parser::{
-    expression::ExpressionNode, module::ModuleNode, position::Decrement, range::Range,
-    types::type_expression::TypeExpressionNode,
-};
+
+use crate::{ast::declaration::DeclarationNode, common::position::Decrement};
 use combine::{choice, parser, Stream};
 use std::fmt::Debug;
-use storage::Storage;
-
-use self::parameter::ParameterNode;
-
-use super::node::Node;
-
-#[derive(Debug, PartialEq)]
-pub enum Declaration<E, P, M, T> {
-    TypeAlias {
-        name: Storage,
-        value: T,
-    },
-    Constant {
-        name: Storage,
-        value_type: Option<T>,
-        value: E,
-    },
-    Enumerated {
-        name: Storage,
-        variants: Vec<(String, Vec<T>)>,
-    },
-    Function {
-        name: Storage,
-        parameters: Vec<P>,
-        body_type: Option<T>,
-        body: E,
-    },
-    View {
-        name: Storage,
-        parameters: Vec<P>,
-        body: E,
-    },
-    Module {
-        name: Storage,
-        value: M,
-    },
-}
-
-pub type NodeValue<T, C> = Declaration<
-    ExpressionNode<T, C>,
-    ParameterNode<T, C>,
-    ModuleNode<T, C>,
-    TypeExpressionNode<T, C>,
->;
-
-#[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
-
-impl<T, C> DeclarationNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
-        &self.0
-    }
-}
-
-impl<T> DeclarationNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
-        Self(Node::raw(x, range))
-    }
-}
 
 parser! {
     pub fn declaration[T]()(T) -> DeclarationNode<T, ()>
@@ -102,19 +30,19 @@ parser! {
 #[cfg(test)]
 mod tests {
     use crate::{
-        parser::{
-            declaration::{declaration, DeclarationNode},
-            expression::{primitive::Primitive, Expression},
+        ast::{
+            declaration::DeclarationNode,
+            expression::{Expression, Primitive},
             module::Module,
-            types::type_expression::TypeExpression,
-            CharStream, ParseResult,
+            type_expression::TypeExpression,
         },
+        parser::{CharStream, ParseResult},
         test::fixture as f,
     };
     use combine::{stream::position::Stream, EasyParser};
 
     fn parse(s: &str) -> ParseResult<DeclarationNode<CharStream, ()>> {
-        declaration().easy_parse(Stream::new(s))
+        super::declaration().easy_parse(Stream::new(s))
     }
 
     #[test]

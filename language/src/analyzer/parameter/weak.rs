@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{infer::weak::ToWeak, RefKind, Weak, WeakRef},
-    parser::declaration::parameter::Parameter,
+    ast::parameter::Parameter,
 };
 
 impl ToWeak for Parameter<usize, usize> {
@@ -27,7 +27,7 @@ impl ToWeak for Parameter<usize, usize> {
 mod tests {
     use crate::{
         analyzer::{infer::weak::ToWeak, RefKind, Weak},
-        parser::declaration::parameter::Parameter,
+        ast::parameter::Parameter,
     };
 
     #[test]
