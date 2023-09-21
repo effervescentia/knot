@@ -4,23 +4,24 @@ use crate::{
         infer::strong::ToStrong,
         Strong, Type,
     },
-    ast::expression::ExpressionNode,
+    ast::declaration::DeclarationNode,
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<'a, T> ToStrong<'a, ExpressionNode<T, Strong>> for ExpressionNode<T, NodeContext>
+impl<'a, T> ToStrong<'a, DeclarationNode<T, Strong>> for DeclarationNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> ExpressionNode<T, Strong> {
-        ExpressionNode(Node(
+    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> DeclarationNode<T, Strong> {
+        DeclarationNode(Node(
             self.node().value().map(
-                &mut |x| x.to_strong(ctx),
-                &mut |x| x.to_strong(ctx),
-                &mut |x| x.to_strong(ctx),
+                &|x| x.to_strong(ctx),
+                &|x| x.to_strong(ctx),
+                &|x| x.to_strong(ctx),
+                &|x| x.to_strong(ctx),
             ),
             self.node().range().clone(),
             Strong::Type(Type::Nil),

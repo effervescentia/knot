@@ -9,10 +9,11 @@ mod parameter;
 mod register;
 mod statement;
 mod type_expression;
-use self::context::{AnalyzeContext, NodeContext, ScopeContext};
+
 use crate::{ast::module::ModuleNode, common::position::Decrement};
 use combine::Stream;
-use context::FileContext;
+use context::{AnalyzeContext, FileContext, NodeContext, ScopeContext};
+use infer::strong::ToStrong;
 use register::Register;
 use std::{cell::RefCell, fmt::Debug};
 
@@ -64,7 +65,7 @@ where
     x.register(&mut ScopeContext::new(file_ctx))
 }
 
-pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, NodeContext>
+pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, Strong>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -84,7 +85,7 @@ where
         panic!("analysis failed to determine all types")
     }
 
-    untyped
+    untyped.to_strong(&analyze_ctx)
 }
 
 #[cfg(test)]

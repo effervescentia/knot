@@ -4,8 +4,8 @@ use crate::{
 };
 use std::collections::HashMap;
 
-pub trait ToStrong<R> {
-    fn to_strong(&self) -> R;
+pub trait ToStrong<'a, R> {
+    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> R;
 }
 
 fn get_strong<'a>(

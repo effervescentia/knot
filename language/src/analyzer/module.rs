@@ -1,9 +1,9 @@
 use super::{
-    context::NodeContext,
+    context::{AnalyzeContext, NodeContext},
     fragment::Fragment,
-    infer::weak::ToWeak,
+    infer::{strong::ToStrong, weak::ToWeak},
     register::{Identify, Register, ToFragment},
-    RefKind, ScopeContext, Weak,
+    RefKind, ScopeContext, Strong, Type, Weak,
 };
 use crate::{
     ast::module::{self, Module, ModuleNode},
@@ -38,13 +38,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        Fragment::Module(Module::new(
-            self.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
-            self.declarations
-                .iter()
-                .map(|x| *x.node().id())
-                .collect::<Vec<_>>(),
-        ))
+        Fragment::Module(self.map(&|x| *x.node().id()))
     }
 }
 
@@ -67,6 +61,16 @@ where
 impl ToWeak for Module<usize> {
     fn to_weak(&self) -> super::WeakRef {
         (RefKind::Value, Weak::Unknown)
+    }
+}
+
+impl<'a, T> ToStrong<'a, ModuleNode<T, Strong>> for ModuleNode<T, NodeContext>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> ModuleNode<T, Strong> {
+        ModuleNode(self.0.map(&|x| x.to_strong(ctx)), Strong::Type(Type::Nil))
     }
 }
 
