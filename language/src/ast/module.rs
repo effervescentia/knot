@@ -17,9 +17,9 @@ impl<D> Module<D> {
         }
     }
 
-    pub fn map<D2>(self, fd: &impl Fn(&D) -> D2) -> Module<D2> {
+    pub fn map<D2>(&self, fd: &impl Fn(&D) -> D2) -> Module<D2> {
         Module {
-            imports: self.imports,
+            imports: self.imports.clone(),
             declarations: self.declarations.iter().map(fd).collect::<Vec<_>>(),
         }
     }

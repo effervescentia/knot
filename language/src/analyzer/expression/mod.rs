@@ -22,12 +22,11 @@ where
     type Node = ExpressionNode<T, NodeContext>;
     type Value<C> = expression::NodeValue<T, C>;
 
-    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
-        let node = self.0;
-        let value = node.0.identify(ctx);
+    fn register(&self, ctx: &ScopeContext) -> Self::Node {
+        let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        ExpressionNode(Node(value, node.1, id))
+        ExpressionNode(Node(value, self.node().range().clone(), id))
     }
 }
 

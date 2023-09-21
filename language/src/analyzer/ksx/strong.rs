@@ -15,7 +15,7 @@ where
         KSXNode(Node(
             self.node()
                 .value()
-                .map(&|x| x.to_strong(), &|x| x.to_strong()),
+                .map(&mut |x| x.to_strong(), &mut |x| x.to_strong()),
             self.node().range().clone(),
             Strong::Type(Type::Nil),
         ))

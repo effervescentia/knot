@@ -33,9 +33,9 @@ pub enum Expression<E, S, K> {
 impl<E, S, K> Expression<E, S, K> {
     pub fn map<E2, S2, K2>(
         &self,
-        fe: &impl Fn(&E) -> E2,
-        fs: &impl Fn(&S) -> S2,
-        fk: &impl Fn(&K) -> K2,
+        fe: &mut impl FnMut(&E) -> E2,
+        fs: &mut impl FnMut(&S) -> S2,
+        fk: &mut impl FnMut(&K) -> K2,
     ) -> Expression<E2, S2, K2> {
         match self {
             Self::Primitive(x) => Expression::Primitive(x.clone()),

@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::type_expression::{self, TypeExpression},
+    ast::type_expression,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -12,31 +12,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        Fragment::TypeExpression(match self {
-            TypeExpression::Nil => TypeExpression::Nil,
-            TypeExpression::Boolean => TypeExpression::Boolean,
-            TypeExpression::Integer => TypeExpression::Integer,
-            TypeExpression::Float => TypeExpression::Float,
-            TypeExpression::String => TypeExpression::String,
-            TypeExpression::Style => TypeExpression::Style,
-            TypeExpression::Element => TypeExpression::Element,
-
-            TypeExpression::Identifier(x) => TypeExpression::Identifier(x.clone()),
-
-            TypeExpression::Group(x) => TypeExpression::Group(Box::new(*x.node().id())),
-
-            TypeExpression::DotAccess(lhs, rhs) => {
-                TypeExpression::DotAccess(Box::new(*lhs.node().id()), rhs.clone())
-            }
-
-            TypeExpression::Function(params, body) => TypeExpression::Function(
-                params
-                    .into_iter()
-                    .map(|x| *x.node().id())
-                    .collect::<Vec<_>>(),
-                Box::new(*body.node().id()),
-            ),
-        })
+        Fragment::TypeExpression(self.map(&|x| *x.node().id()))
     }
 }
 

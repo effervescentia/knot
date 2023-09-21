@@ -23,12 +23,12 @@ where
     type Node = StatementNode<T, NodeContext>;
     type Value<C> = statement::NodeValue<T, C>;
 
-    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
-        let node = self.0;
-        let value = node.0.identify(ctx);
+    fn register(&self, ctx: &ScopeContext) -> Self::Node {
+        let node = &self.0;
+        let value = node.value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        StatementNode(Node(value, node.1, id))
+        StatementNode(Node(value, node.range().clone(), id))
     }
 }
 

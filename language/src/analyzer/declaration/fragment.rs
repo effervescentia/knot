@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::declaration::{self, Declaration},
+    ast::declaration,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -12,71 +12,12 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        Fragment::Declaration(match self {
-            Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
-                name: name.clone(),
-                value: *value.node().id(),
-            },
-
-            Declaration::Enumerated { name, variants } => Declaration::Enumerated {
-                name: name.clone(),
-                variants: variants
-                    .into_iter()
-                    .map(|(name, params)| {
-                        (
-                            name.clone(),
-                            params
-                                .into_iter()
-                                .map(|x| *x.node().id())
-                                .collect::<Vec<_>>(),
-                        )
-                    })
-                    .collect::<Vec<_>>(),
-            },
-
-            Declaration::Constant {
-                name,
-                value_type,
-                value,
-            } => Declaration::Constant {
-                name: name.clone(),
-                value_type: value_type.as_ref().map(|x| *x.node().id()),
-                value: *value.node().id(),
-            },
-
-            Declaration::Function {
-                name,
-                parameters,
-                body_type,
-                body,
-            } => Declaration::Function {
-                name: name.clone(),
-                parameters: parameters
-                    .into_iter()
-                    .map(|x| *x.node().id())
-                    .collect::<Vec<_>>(),
-                body_type: body_type.as_ref().map(|x| *x.node().id()),
-                body: *body.node().id(),
-            },
-
-            Declaration::View {
-                name,
-                parameters,
-                body,
-            } => Declaration::View {
-                name: name.clone(),
-                parameters: parameters
-                    .into_iter()
-                    .map(|x| *x.node().id())
-                    .collect::<Vec<_>>(),
-                body: *body.node().id(),
-            },
-
-            Declaration::Module { name, value } => Declaration::Module {
-                name: name.clone(),
-                value: *value.id(),
-            },
-        })
+        Fragment::Declaration(self.map(
+            &|x| *x.node().id(),
+            &|x| *x.node().id(),
+            &|x| *x.id(),
+            &|x| *x.node().id(),
+        ))
     }
 }
 

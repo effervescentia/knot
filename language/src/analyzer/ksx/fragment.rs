@@ -1,9 +1,6 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::{
-        expression::ExpressionNode,
-        ksx::{self, KSX},
-    },
+    ast::ksx,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -15,35 +12,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        let attributes_to_refs = |xs: &Vec<(String, Option<ExpressionNode<T, NodeContext>>)>| {
-            xs.into_iter()
-                .map(|(key, value)| (key.clone(), value.as_ref().map(|x| *x.node().id())))
-                .collect::<Vec<_>>()
-        };
-
-        Fragment::KSX(match self {
-            KSX::Text(x) => KSX::Text(x.clone()),
-
-            KSX::Inline(x) => KSX::Inline(*x.node().id()),
-
-            KSX::Fragment(xs) => {
-                KSX::Fragment(xs.into_iter().map(|x| *x.node().id()).collect::<Vec<_>>())
-            }
-
-            KSX::ClosedElement(tag, attributes) => {
-                KSX::ClosedElement(tag.clone(), attributes_to_refs(attributes))
-            }
-
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
-                start_tag.clone(),
-                attributes_to_refs(attributes),
-                children
-                    .into_iter()
-                    .map(|x| *x.node().id())
-                    .collect::<Vec<_>>(),
-                end_tag.clone(),
-            ),
-        })
+        Fragment::KSX(self.map(&mut |x| *x.node().id(), &mut |x| *x.node().id()))
     }
 }
 

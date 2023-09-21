@@ -4,7 +4,7 @@ use super::{
 };
 
 pub trait Identify<R> {
-    fn identify(self, ctx: &mut ScopeContext) -> R;
+    fn identify(&self, ctx: &ScopeContext) -> R;
 }
 
 pub trait ToFragment {
@@ -20,5 +20,5 @@ where
     type Node;
     type Value<C>;
 
-    fn register(self, ctx: &mut ScopeContext) -> Self::Node;
+    fn register(&self, ctx: &ScopeContext) -> Self::Node;
 }

@@ -1,6 +1,5 @@
 [workspace]
 
-members = [
-  "combo",
-  "language",
-]
+resolver = "2"
+
+members = ["combo", "language"]

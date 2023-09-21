@@ -3,7 +3,7 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::statement::{self, Statement},
+    ast::statement,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -14,12 +14,8 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(self, ctx: &mut ScopeContext) -> statement::NodeValue<T, NodeContext> {
-        match self {
-            Statement::Effect(x) => Statement::Effect(x.register(ctx)),
-
-            Statement::Variable(name, x) => Statement::Variable(name, x.register(ctx)),
-        }
+    fn identify(&self, ctx: &ScopeContext) -> statement::NodeValue<T, NodeContext> {
+        self.map(&|x| x.register(ctx))
     }
 }
 

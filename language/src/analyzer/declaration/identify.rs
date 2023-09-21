@@ -4,7 +4,7 @@ use crate::{
         context::NodeContext,
         register::{Identify, Register},
     },
-    ast::declaration::{self, Declaration},
+    ast::declaration,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -15,69 +15,13 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(self, ctx: &mut ScopeContext) -> declaration::NodeValue<T, NodeContext> {
-        match self {
-            Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
-                name,
-                value: value.register(ctx),
-            },
-
-            Declaration::Enumerated { name, variants } => Declaration::Enumerated {
-                name,
-                variants: variants
-                    .into_iter()
-                    .map(|(name, xs)| {
-                        (
-                            name,
-                            xs.into_iter().map(|x| x.register(ctx)).collect::<Vec<_>>(),
-                        )
-                    })
-                    .collect::<Vec<_>>(),
-            },
-
-            Declaration::Constant {
-                name,
-                value_type,
-                value,
-            } => Declaration::Constant {
-                name,
-                value_type: value_type.map(|x| x.register(ctx)),
-                value: value.register(ctx),
-            },
-
-            Declaration::Function {
-                name,
-                parameters,
-                body_type,
-                body,
-            } => Declaration::Function {
-                name,
-                parameters: parameters
-                    .into_iter()
-                    .map(|x| x.register(ctx))
-                    .collect::<Vec<_>>(),
-                body_type: body_type.map(|x| x.register(ctx)),
-                body: body.register(ctx),
-            },
-
-            Declaration::View {
-                name,
-                parameters,
-                body,
-            } => Declaration::View {
-                name,
-                parameters: parameters
-                    .into_iter()
-                    .map(|x| x.register(ctx))
-                    .collect::<Vec<_>>(),
-                body: body.register(ctx),
-            },
-
-            Declaration::Module { name, value } => Declaration::Module {
-                name,
-                value: value.register(ctx),
-            },
-        }
+    fn identify(&self, ctx: &ScopeContext) -> declaration::NodeValue<T, NodeContext> {
+        self.map(
+            &|x| x.register(ctx),
+            &|x| x.register(ctx),
+            &|x| x.register(ctx),
+            &|x| x.register(ctx),
+        )
     }
 }
 

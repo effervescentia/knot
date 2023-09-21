@@ -76,7 +76,7 @@ impl<'a> ScopeContext<'a> {
         }
     }
 
-    pub fn add_fragment(&mut self, x: &impl ToFragment) -> NodeContext {
+    pub fn add_fragment(&self, x: &impl ToFragment) -> NodeContext {
         NodeContext::new(
             self.file
                 .borrow_mut()

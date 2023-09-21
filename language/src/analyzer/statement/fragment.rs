@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::statement::{self, Statement},
+    ast::statement,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -12,11 +12,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        Fragment::Statement(match self {
-            Statement::Effect(x) => Statement::Effect(*x.node().id()),
-
-            Statement::Variable(name, x) => Statement::Variable(name.clone(), *x.node().id()),
-        })
+        Fragment::Statement(self.map(&|x| *x.node().id()))
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::parameter::{self, Parameter},
+    ast::parameter,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -12,11 +12,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        Fragment::Parameter(Parameter::new(
-            self.name.clone(),
-            self.value_type.as_ref().map(|x| *x.node().id()),
-            self.default_value.as_ref().map(|x| *x.node().id()),
-        ))
+        Fragment::Parameter(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
     }
 }
 

@@ -1,3 +1,7 @@
+mod fragment;
+mod identify;
+mod weak;
+
 use super::{
     context::{NodeContext, ScopeContext},
     register::{Identify, Register},
@@ -9,10 +13,6 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-mod fragment;
-mod identify;
-mod weak;
-
 impl<T> Register for ParameterNode<T, ()>
 where
     T: Stream<Token = char>,
@@ -21,12 +21,11 @@ where
     type Node = ParameterNode<T, NodeContext>;
     type Value<C> = parameter::NodeValue<T, C>;
 
-    fn register(self, ctx: &mut ScopeContext) -> Self::Node {
-        let node = self.0;
-        let value = node.0.identify(ctx);
+    fn register(&self, ctx: &ScopeContext) -> Self::Node {
+        let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        ParameterNode(Node(value, node.1, id))
+        ParameterNode(Node(value, self.node().range().clone(), id))
     }
 }
 

@@ -14,7 +14,11 @@ pub enum KSX<E, K> {
 }
 
 impl<E, K> KSX<E, K> {
-    pub fn map<E2, K2>(&self, fe: &impl Fn(&E) -> E2, fk: &impl Fn(&K) -> K2) -> KSX<E2, K2> {
+    pub fn map<E2, K2>(
+        &self,
+        fe: &mut impl FnMut(&E) -> E2,
+        fk: &mut impl FnMut(&K) -> K2,
+    ) -> KSX<E2, K2> {
         match self {
             Self::Text(x) => KSX::Text(x.clone()),
 
@@ -25,7 +29,7 @@ impl<E, K> KSX<E, K> {
             Self::ClosedElement(tag, xs) => KSX::ClosedElement(
                 tag.clone(),
                 xs.iter()
-                    .map(|(key, value)| (key.clone(), value.as_ref().map(fe)))
+                    .map(|(key, value)| (key.clone(), value.as_ref().map(|x| fe(x))))
                     .collect::<Vec<_>>(),
             ),
 
@@ -33,7 +37,7 @@ impl<E, K> KSX<E, K> {
                 start_tag.clone(),
                 attributes
                     .iter()
-                    .map(|(key, value)| (key.clone(), value.as_ref().map(fe)))
+                    .map(|(key, value)| (key.clone(), value.as_ref().map(|x| fe(x))))
                     .collect::<Vec<_>>(),
                 children.iter().map(fk).collect::<Vec<_>>(),
                 end_tag.clone(),

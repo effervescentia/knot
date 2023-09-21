@@ -3,7 +3,7 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::parameter::{self, Parameter},
+    ast::parameter,
     common::position::Decrement,
 };
 use combine::Stream;
@@ -14,12 +14,8 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(self, ctx: &mut ScopeContext) -> parameter::NodeValue<T, NodeContext> {
-        Parameter::new(
-            self.name,
-            self.value_type.map(|x| x.register(ctx)),
-            self.default_value.map(|x| x.register(ctx)),
-        )
+    fn identify(&self, ctx: &ScopeContext) -> parameter::NodeValue<T, NodeContext> {
+        self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }
 

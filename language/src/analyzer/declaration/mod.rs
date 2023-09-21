@@ -1,6 +1,7 @@
 mod fragment;
 mod identify;
 mod weak;
+
 use super::{
     context::NodeContext,
     register::{Identify, Register},
@@ -21,12 +22,11 @@ where
     type Node = DeclarationNode<T, NodeContext>;
     type Value<C> = declaration::NodeValue<T, C>;
 
-    fn register(self, ctx: &mut ScopeContext) -> DeclarationNode<T, NodeContext> {
-        let node = self.0;
-        let value = node.0.identify(&mut ctx.child());
+    fn register(&self, ctx: &ScopeContext) -> DeclarationNode<T, NodeContext> {
+        let value = self.node().value().identify(&mut ctx.child());
         let id = ctx.add_fragment(&value);
 
-        DeclarationNode(Node(value, node.1, id))
+        DeclarationNode(Node(value, self.node().range().clone(), id))
     }
 }
 

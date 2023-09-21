@@ -27,14 +27,8 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(self, ctx: &mut ScopeContext) -> module::NodeValue<T, NodeContext> {
-        let declarations = self
-            .declarations
-            .into_iter()
-            .map(|x| x.register(ctx))
-            .collect::<Vec<_>>();
-
-        Module::new(self.imports, declarations)
+    fn identify(&self, ctx: &ScopeContext) -> module::NodeValue<T, NodeContext> {
+        self.map(&|x| x.register(ctx))
     }
 }
 
@@ -62,7 +56,7 @@ where
     type Node = ModuleNode<T, NodeContext>;
     type Value<C> = module::NodeValue<T, C>;
 
-    fn register(self, ctx: &mut ScopeContext) -> ModuleNode<T, NodeContext> {
+    fn register(&self, ctx: &ScopeContext) -> ModuleNode<T, NodeContext> {
         let value = self.0.identify(ctx);
         let id = ctx.add_fragment(&value);
 
