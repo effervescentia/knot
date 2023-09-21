@@ -11,6 +11,16 @@ pub enum Statement<E> {
     Variable(String, E),
 }
 
+impl<E> Statement<E> {
+    pub fn map<E2>(&self, fe: &impl Fn(&E) -> E2) -> Statement<E2> {
+        match self {
+            Self::Effect(x) => Statement::Effect(fe(x)),
+
+            Self::Variable(name, x) => Statement::Variable(name.clone(), fe(x)),
+        }
+    }
+}
+
 pub type NodeValue<T, C> = Statement<ExpressionNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
@@ -33,9 +43,9 @@ where
         f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
     ) -> StatementNode<T, R> {
         let node = self.node();
-        let (value, ctx) = f(&node.0, &node.2);
+        let (value, ctx) = f(node.value(), node.context());
 
-        StatementNode(Node(value, node.1.clone(), ctx))
+        StatementNode(Node(value, node.range().clone(), ctx))
     }
 }
 

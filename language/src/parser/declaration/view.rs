@@ -32,7 +32,7 @@ where
         expression::expression(),
     ))
     .map(|((name, start), attributes, _, body)| {
-        let range = &start + body.0.range();
+        let range = &start + body.node().range();
         DeclarationNode::raw(
             Declaration::View {
                 name,

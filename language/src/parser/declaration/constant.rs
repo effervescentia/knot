@@ -22,7 +22,7 @@ where
         expression::expression(),
     ))
     .map(|((name, start), value_type, _, value)| {
-        let range = &start + value.0.range();
+        let range = &start + value.node().range();
 
         DeclarationNode::raw(
             Declaration::Constant {

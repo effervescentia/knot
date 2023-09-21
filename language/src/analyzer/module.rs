@@ -48,7 +48,7 @@ where
             self.imports.iter().map(|x| x.clone()).collect::<Vec<_>>(),
             self.declarations
                 .iter()
-                .map(|x| *x.0.id())
+                .map(|x| *x.node().id())
                 .collect::<Vec<_>>(),
         ))
     }

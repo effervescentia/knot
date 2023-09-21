@@ -15,6 +15,10 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn identify(self, ctx: &mut ScopeContext) -> expression::NodeValue<T, NodeContext> {
+        // self.map(&|x| x.register(ctx), &|x| x.register(ctx), &|x| {
+        //     x.register(ctx)
+        // });
+
         match self {
             Expression::Primitive(x) => Expression::Primitive(x),
 

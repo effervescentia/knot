@@ -13,6 +13,35 @@ pub enum KSX<E, K> {
     Text(String),
 }
 
+impl<E, K> KSX<E, K> {
+    pub fn map<E2, K2>(&self, fe: &impl Fn(&E) -> E2, fk: &impl Fn(&K) -> K2) -> KSX<E2, K2> {
+        match self {
+            Self::Text(x) => KSX::Text(x.clone()),
+
+            Self::Inline(x) => KSX::Inline(fe(x)),
+
+            Self::Fragment(xs) => KSX::Fragment(xs.iter().map(fk).collect::<Vec<_>>()),
+
+            Self::ClosedElement(tag, xs) => KSX::ClosedElement(
+                tag.clone(),
+                xs.iter()
+                    .map(|(key, value)| (key.clone(), value.as_ref().map(fe)))
+                    .collect::<Vec<_>>(),
+            ),
+
+            Self::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
+                start_tag.clone(),
+                attributes
+                    .iter()
+                    .map(|(key, value)| (key.clone(), value.as_ref().map(fe)))
+                    .collect::<Vec<_>>(),
+                children.iter().map(fk).collect::<Vec<_>>(),
+                end_tag.clone(),
+            ),
+        }
+    }
+}
+
 pub type NodeValue<T, C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
@@ -35,9 +64,9 @@ where
         f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
     ) -> KSXNode<T, R> {
         let node = self.node();
-        let (value, ctx) = f(&node.0, &node.2);
+        let (value, ctx) = f(node.value(), node.context());
 
-        KSXNode(Node(value, node.1.clone(), ctx))
+        KSXNode(Node(value, node.range().clone(), ctx))
     }
 }
 

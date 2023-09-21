@@ -38,6 +38,70 @@ pub enum Declaration<E, P, M, T> {
     },
 }
 
+impl<E, P, M, T> Declaration<E, P, M, T> {
+    pub fn map<E2, P2, M2, T2>(
+        &self,
+        fe: &impl Fn(&E) -> E2,
+        fp: &impl Fn(&P) -> P2,
+        fm: &impl Fn(&M) -> M2,
+        ft: &impl Fn(&T) -> T2,
+    ) -> Declaration<E2, P2, M2, T2> {
+        match self {
+            Self::TypeAlias { name, value } => Declaration::TypeAlias {
+                name: name.clone(),
+                value: ft(value),
+            },
+
+            Self::Enumerated { name, variants } => Declaration::Enumerated {
+                name: name.clone(),
+                variants: variants
+                    .iter()
+                    .map(|(name, parameters)| {
+                        (name.clone(), parameters.iter().map(ft).collect::<Vec<_>>())
+                    })
+                    .collect::<Vec<_>>(),
+            },
+
+            Self::Constant {
+                name,
+                value_type,
+                value,
+            } => Declaration::Constant {
+                name: name.clone(),
+                value_type: value_type.as_ref().map(ft),
+                value: fe(value),
+            },
+
+            Self::Function {
+                name,
+                parameters,
+                body_type,
+                body,
+            } => Declaration::Function {
+                name: name.clone(),
+                parameters: parameters.iter().map(fp).collect::<Vec<_>>(),
+                body_type: body_type.as_ref().map(ft),
+                body: fe(body),
+            },
+
+            Self::View {
+                name,
+                parameters,
+                body,
+            } => Declaration::View {
+                name: name.clone(),
+                parameters: parameters.iter().map(fp).collect::<Vec<_>>(),
+                body: fe(body),
+            },
+
+            Self::Module { name, value } => Declaration::Module {
+                name: name.clone(),
+                value: fm(value),
+            },
+        }
+    }
+}
+
 pub type NodeValue<T, C> = Declaration<
     ExpressionNode<T, C>,
     ParameterNode<T, C>,
@@ -65,9 +129,9 @@ where
         f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
     ) -> DeclarationNode<T, R> {
         let node = self.node();
-        let (value, ctx) = f(&node.0, &node.2);
+        let (value, ctx) = f(&node.value(), &node.context());
 
-        DeclarationNode(Node(value, node.1.clone(), ctx))
+        DeclarationNode(Node(value, node.range().clone(), ctx))
     }
 }
 

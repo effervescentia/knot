@@ -62,7 +62,7 @@ where
 {
     let operation = |c, op| {
         (position(), m::symbol(c), parser()).map(move |(start, _, x)| {
-            let range = x.0.range().include(start);
+            let range = x.node().range().include(start);
 
             ExpressionNode::raw(Expression::UnaryOperation(op, Box::new(x)), range)
         })
@@ -86,7 +86,7 @@ where
         parser,
         m::symbol('.').with(m::standard_identifier()),
         |lhs, (rhs, end)| {
-            let range = lhs.0.range() + &end;
+            let range = lhs.node().range() + &end;
 
             ExpressionNode::raw(Expression::DotAccess(Box::new(lhs), rhs), range)
         },
@@ -108,7 +108,7 @@ where
             sep_end_by::<Vec<_>, _, _, _>(rhs, m::symbol(',')),
         ),
         |acc, (args, end)| {
-            let range = acc.0.range() + &end;
+            let range = acc.node().range() + &end;
 
             ExpressionNode::raw(Expression::FunctionCall(Box::new(acc), args), range)
         },
@@ -121,7 +121,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     ksx::ksx().map(|ksx| {
-        let range = ksx.0.range().clone();
+        let range = ksx.node().range().clone();
 
         ExpressionNode::raw(Expression::KSX(Box::new(ksx)), range)
     })

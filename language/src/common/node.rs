@@ -19,16 +19,6 @@ where
         Self(x, range, context)
     }
 
-    pub fn with_context<R>(self, context: R) -> Node<T, S, R> {
-        Node(self.0, self.1, context)
-    }
-}
-
-impl<T, S, C> Node<T, S, C>
-where
-    S: Stream<Token = char>,
-    S::Position: Copy + Debug + Decrement,
-{
     pub fn value(&self) -> &T {
         &self.0
     }
@@ -37,12 +27,12 @@ where
         &self.1
     }
 
-    pub fn map<R>(self, f: impl FnOnce(T) -> R) -> Node<R, S, C> {
-        Node(f(self.0), self.1, self.2)
+    pub fn context(&self) -> &C {
+        &self.2
     }
 
-    pub fn with_value<R>(self, x: R) -> Node<R, S, C> {
-        Node(x, self.1, self.2)
+    pub fn with_context<R>(self, context: R) -> Node<T, S, R> {
+        Node(self.0, self.1, context)
     }
 
     pub fn map_range(self, f: impl FnOnce(Range<S>) -> Range<S>) -> Node<T, S, C> {

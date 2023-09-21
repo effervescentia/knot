@@ -18,6 +18,27 @@ pub enum TypeExpression<T> {
     // View(Vec<(String, TypeExpression)>),
 }
 
+impl<T> TypeExpression<T> {
+    pub fn map<T2>(&self, ft: &impl Fn(&T) -> T2) -> TypeExpression<T2> {
+        match self {
+            Self::Nil => TypeExpression::Nil,
+            Self::Boolean => TypeExpression::Boolean,
+            Self::Integer => TypeExpression::Integer,
+            Self::Float => TypeExpression::Float,
+            Self::String => TypeExpression::String,
+            Self::Style => TypeExpression::Style,
+            Self::Element => TypeExpression::Element,
+            Self::Identifier(x) => TypeExpression::Identifier(x.clone()),
+            Self::Group(x) => TypeExpression::Group(Box::new(ft(x))),
+            Self::DotAccess(lhs, rhs) => TypeExpression::DotAccess(Box::new(ft(lhs)), rhs.clone()),
+            Self::Function(parameters, x) => TypeExpression::Function(
+                parameters.iter().map(|x| ft(x)).collect::<Vec<_>>(),
+                Box::new(ft(x)),
+            ),
+        }
+    }
+}
+
 pub type NodeValue<T, C> = TypeExpression<TypeExpressionNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
@@ -33,6 +54,16 @@ where
 {
     pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
         &self.0
+    }
+
+    pub fn map<R>(
+        &self,
+        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+    ) -> TypeExpressionNode<T, R> {
+        let node = self.node();
+        let (value, ctx) = f(node.value(), node.context());
+
+        TypeExpressionNode(Node(value, node.range().clone(), ctx))
     }
 }
 

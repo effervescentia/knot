@@ -15,7 +15,7 @@ where
         Fragment::Declaration(match self {
             Declaration::TypeAlias { name, value } => Declaration::TypeAlias {
                 name: name.clone(),
-                value: *value.0.id(),
+                value: *value.node().id(),
             },
 
             Declaration::Enumerated { name, variants } => Declaration::Enumerated {
@@ -41,7 +41,7 @@ where
             } => Declaration::Constant {
                 name: name.clone(),
                 value_type: value_type.as_ref().map(|x| *x.node().id()),
-                value: *value.0.id(),
+                value: *value.node().id(),
             },
 
             Declaration::Function {
@@ -53,7 +53,7 @@ where
                 name: name.clone(),
                 parameters: parameters
                     .into_iter()
-                    .map(|x| *x.0.id())
+                    .map(|x| *x.node().id())
                     .collect::<Vec<_>>(),
                 body_type: body_type.as_ref().map(|x| *x.node().id()),
                 body: *body.node().id(),
@@ -67,7 +67,7 @@ where
                 name: name.clone(),
                 parameters: parameters
                     .into_iter()
-                    .map(|x| *x.0.id())
+                    .map(|x| *x.node().id())
                     .collect::<Vec<_>>(),
                 body: *body.node().id(),
             },

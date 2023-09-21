@@ -14,8 +14,8 @@ where
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Parameter(Parameter::new(
             self.name.clone(),
-            self.value_type.as_ref().map(|x| *x.0.id()),
-            self.default_value.as_ref().map(|x| *x.0.id()),
+            self.value_type.as_ref().map(|x| *x.node().id()),
+            self.default_value.as_ref().map(|x| *x.node().id()),
         ))
     }
 }

@@ -20,6 +20,14 @@ impl<E, T> Parameter<E, T> {
             default_value,
         }
     }
+
+    pub fn map<E2, T2>(&self, fe: &impl Fn(&E) -> E2, ft: &impl Fn(&T) -> T2) -> Parameter<E2, T2> {
+        Parameter {
+            name: self.name.clone(),
+            value_type: self.value_type.as_ref().map(ft),
+            default_value: self.default_value.as_ref().map(fe),
+        }
+    }
 }
 
 pub type NodeValue<T, C> = Parameter<ExpressionNode<T, C>, TypeExpressionNode<T, C>>;
@@ -29,6 +37,26 @@ pub struct ParameterNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
+
+impl<T, C> ParameterNode<T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
+        &self.0
+    }
+
+    pub fn map<R>(
+        &self,
+        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+    ) -> ParameterNode<T, R> {
+        let node = self.node();
+        let (value, ctx) = f(node.value(), node.context());
+
+        ParameterNode(Node(value, node.range().clone(), ctx))
+    }
+}
 
 impl<T> ParameterNode<T, ()>
 where

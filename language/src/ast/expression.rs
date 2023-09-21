@@ -30,6 +30,45 @@ pub enum Expression<E, S, K> {
     KSX(Box<K>),
 }
 
+impl<E, S, K> Expression<E, S, K> {
+    pub fn map<E2, S2, K2>(
+        &self,
+        fe: &impl Fn(&E) -> E2,
+        fs: &impl Fn(&S) -> S2,
+        fk: &impl Fn(&K) -> K2,
+    ) -> Expression<E2, S2, K2> {
+        match self {
+            Self::Primitive(x) => Expression::Primitive(x.clone()),
+
+            Self::Identifier(x) => Expression::Identifier(x.clone()),
+
+            Self::Group(x) => Expression::Group(Box::new(fe(x))),
+
+            Self::Closure(xs) => Expression::Closure(xs.iter().map(fs).collect::<Vec<_>>()),
+
+            Self::UnaryOperation(op, x) => Expression::UnaryOperation(op.clone(), Box::new(fe(x))),
+
+            Self::BinaryOperation(op, lhs, rhs) => {
+                Expression::BinaryOperation(op.clone(), Box::new(fe(lhs)), Box::new(fe(rhs)))
+            }
+
+            Self::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(fe(lhs)), rhs.clone()),
+
+            Self::FunctionCall(x, xs) => {
+                Expression::FunctionCall(Box::new(fe(x)), xs.iter().map(fe).collect::<Vec<_>>())
+            }
+
+            Self::Style(xs) => Expression::Style(
+                xs.iter()
+                    .map(|(key, value)| (key.clone(), fe(value)))
+                    .collect::<Vec<_>>(),
+            ),
+
+            Self::KSX(x) => Expression::KSX(Box::new(fk(x))),
+        }
+    }
+}
+
 pub type NodeValue<T, C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
@@ -52,9 +91,9 @@ where
         f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
     ) -> ExpressionNode<T, R> {
         let node = self.node();
-        let (value, ctx) = f(&node.0, &node.2);
+        let (value, ctx) = f(node.value(), node.context());
 
-        ExpressionNode(Node(value, node.1.clone(), ctx))
+        ExpressionNode(Node(value, node.range().clone(), ctx))
     }
 }
 

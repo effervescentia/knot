@@ -63,7 +63,7 @@ where
         parser,
         m::symbol('.').with(m::standard_identifier()),
         |lhs, (rhs, end)| {
-            let range = lhs.0.range() + &end;
+            let range = lhs.node().range() + &end;
             TypeExpressionNode::raw(TypeExpression::DotAccess(Box::new(lhs), rhs), range)
         },
     )
@@ -87,7 +87,7 @@ where
         parser(),
     )
         .map(|((parameters, start), result)| {
-            let range = &start + result.0.range();
+            let range = &start + result.node().range();
             TypeExpressionNode::raw(
                 TypeExpression::Function(parameters, Box::new(result)),
                 range,

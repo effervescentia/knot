@@ -16,6 +16,13 @@ impl<D> Module<D> {
             declarations,
         }
     }
+
+    pub fn map<D2>(self, fd: &impl Fn(&D) -> D2) -> Module<D2> {
+        Module {
+            imports: self.imports,
+            declarations: self.declarations.iter().map(fd).collect::<Vec<_>>(),
+        }
+    }
 }
 
 pub type NodeValue<T, C> = Module<DeclarationNode<T, C>>;

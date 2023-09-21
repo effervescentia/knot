@@ -24,10 +24,10 @@ where
         Fragment::KSX(match self {
             KSX::Text(x) => KSX::Text(x.clone()),
 
-            KSX::Inline(x) => KSX::Inline(*x.0.id()),
+            KSX::Inline(x) => KSX::Inline(*x.node().id()),
 
             KSX::Fragment(xs) => {
-                KSX::Fragment(xs.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>())
+                KSX::Fragment(xs.into_iter().map(|x| *x.node().id()).collect::<Vec<_>>())
             }
 
             KSX::ClosedElement(tag, attributes) => {
@@ -37,7 +37,10 @@ where
             KSX::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
                 start_tag.clone(),
                 attributes_to_refs(attributes),
-                children.into_iter().map(|x| *x.0.id()).collect::<Vec<_>>(),
+                children
+                    .into_iter()
+                    .map(|x| *x.node().id())
+                    .collect::<Vec<_>>(),
                 end_tag.clone(),
             ),
         })

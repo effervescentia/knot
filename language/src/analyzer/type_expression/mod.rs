@@ -1,6 +1,8 @@
 mod fragment;
 mod identify;
+mod strong;
 mod weak;
+
 use super::{
     context::NodeContext,
     register::{Identify, Register},

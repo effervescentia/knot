@@ -18,7 +18,7 @@ where
 {
     move |_| {
         Box::new(move |lhs, rhs| {
-            let range = lhs.0.range() + rhs.0.range();
+            let range = lhs.node().range() + rhs.node().range();
 
             ExpressionNode::raw(
                 Expression::BinaryOperation(o, Box::new(lhs), Box::new(rhs)),
