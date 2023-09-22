@@ -213,7 +213,7 @@ mod tests {
             ),
             (
                 5,
-                (vec![0, 2, 3], Fragment::Statement(Statement::Effect(4))),
+                (vec![0, 2, 3], Fragment::Statement(Statement::Expression(4))),
             ),
             (
                 6,

@@ -108,7 +108,7 @@ mod tests {
             ),
             (
                 7,
-                (vec![0, 3, 4], Fragment::Statement(Statement::Effect(6))),
+                (vec![0, 3, 4], Fragment::Statement(Statement::Expression(6))),
             ),
             (
                 8,

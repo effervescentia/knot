@@ -54,7 +54,7 @@ mod tests {
                     String::from("foo"),
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 )),
-                f::n::s(Statement::Effect(f::n::x(Expression::Primitive(
+                f::n::s(Statement::Expression(f::n::x(Expression::Primitive(
                     Primitive::Nil
                 )))),
             ]))
@@ -72,7 +72,7 @@ mod tests {
                         NodeContext::new(1, vec![0, 1])
                     ),
                     f::n::sc(
-                        Statement::Effect(f::n::xc(
+                        Statement::Expression(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(2, vec![0, 1])
                         )),
@@ -107,7 +107,10 @@ mod tests {
                         Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
-                (3, (vec![0, 1], Fragment::Statement(Statement::Effect(2)))),
+                (
+                    3,
+                    (vec![0, 1], Fragment::Statement(Statement::Expression(2)))
+                ),
                 (
                     4,
                     (

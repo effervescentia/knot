@@ -28,14 +28,14 @@ mod tests {
     };
 
     #[test]
-    fn effect() {
+    fn expression() {
         assert_eq!(
-            Statement::Effect(f::n::xc(
+            Statement::Expression(f::n::xc(
                 Expression::Primitive(Primitive::Nil),
                 NodeContext::new(0, vec![0])
             ))
             .to_fragment(),
-            Fragment::Statement(Statement::Effect(0))
+            Fragment::Statement(Statement::Expression(0))
         );
     }
 

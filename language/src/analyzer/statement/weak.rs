@@ -7,7 +7,7 @@ use crate::{
 impl ToWeak for Statement<usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Statement::Effect(id) => (RefKind::Value, Weak::Inherit(*id)),
+            Statement::Expression(id) => (RefKind::Value, Weak::Inherit(*id)),
 
             Statement::Variable(..) => (RefKind::Value, Weak::Type(Type::Nil)),
         }
@@ -22,9 +22,9 @@ mod tests {
     };
 
     #[test]
-    fn effect() {
+    fn expression() {
         assert_eq!(
-            Statement::Effect(0).to_weak(),
+            Statement::Expression(0).to_weak(),
             (RefKind::Value, Weak::Inherit(0))
         );
     }

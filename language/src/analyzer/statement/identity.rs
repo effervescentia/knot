@@ -31,13 +31,13 @@ mod tests {
     };
 
     #[test]
-    fn effect() {
+    fn expression() {
         let file = &f::f_ctx();
         let scope = &mut f::s_ctx(file);
 
         assert_eq!(
-            Statement::Effect(f::n::x(Expression::Primitive(Primitive::Nil))).identify(scope),
-            Statement::Effect(f::n::xc(
+            Statement::Expression(f::n::x(Expression::Primitive(Primitive::Nil))).identify(scope),
+            Statement::Expression(f::n::xc(
                 Expression::Primitive(Primitive::Nil),
                 NodeContext::new(0, vec![0])
             ))

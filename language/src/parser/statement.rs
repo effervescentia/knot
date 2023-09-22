@@ -9,7 +9,7 @@ use crate::{
 use combine::{choice, Parser, Stream};
 use std::fmt::Debug;
 
-fn effect<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<T, ()>>
+fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<T, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -18,7 +18,7 @@ where
     m::terminated(parser).map(|inner| {
         let range = inner.node().range().clone();
 
-        StatementNode::raw(Statement::Effect(inner), range)
+        StatementNode::raw(Statement::Expression(inner), range)
     })
 }
 
@@ -48,7 +48,7 @@ where
     T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = ExpressionNode<T, ()>>,
 {
-    choice((variable(parser()), effect(parser())))
+    choice((variable(parser()), expression(parser())))
 }
 
 #[cfg(test)]
@@ -68,11 +68,11 @@ mod tests {
     }
 
     #[test]
-    fn effect() {
+    fn expression() {
         assert_eq!(
             parse("nil;").unwrap().0,
             f::n::sr(
-                Statement::Effect(f::n::xr(
+                Statement::Expression(f::n::xr(
                     Expression::Primitive(Primitive::Nil),
                     ((1, 1), (1, 3))
                 )),

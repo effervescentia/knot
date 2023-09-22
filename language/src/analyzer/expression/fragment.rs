@@ -87,7 +87,7 @@ mod tests {
                     NodeContext::new(1, vec![0, 1])
                 ),
                 f::n::sc(
-                    Statement::Effect(f::n::xc(
+                    Statement::Expression(f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(2, vec![0, 1])
                     )),

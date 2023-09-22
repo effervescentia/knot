@@ -7,14 +7,14 @@ use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
 pub enum Statement<E> {
-    Effect(E),
+    Expression(E),
     Variable(String, E),
 }
 
 impl<E> Statement<E> {
     pub fn map<E2>(&self, fe: &impl Fn(&E) -> E2) -> Statement<E2> {
         match self {
-            Self::Effect(x) => Statement::Effect(fe(x)),
+            Self::Expression(x) => Statement::Expression(fe(x)),
 
             Self::Variable(name, x) => Statement::Variable(name.clone(), fe(x)),
         }
