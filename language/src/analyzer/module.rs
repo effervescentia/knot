@@ -70,7 +70,10 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> ModuleNode<T, Strong> {
-        ModuleNode(self.0.map(&|x| x.to_strong(ctx)), Strong::Type(Type::Nil))
+        ModuleNode(
+            self.0.map(&|x| x.to_strong(ctx)),
+            ctx.get_strong_or_fail(self.id()).clone(),
+        )
     }
 }
 

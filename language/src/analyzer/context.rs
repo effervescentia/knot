@@ -1,4 +1,4 @@
-use super::{fragment::Fragment, register::ToFragment, StrongRef, WeakRef};
+use super::{fragment::Fragment, register::ToFragment, RefKind, Strong, StrongRef, WeakRef};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -124,6 +124,13 @@ impl<'a> AnalyzeContext<'a> {
             bindings: Bindings(HashMap::new()),
             weak_refs: HashMap::new(),
             strong_refs: HashMap::new(),
+        }
+    }
+
+    pub fn get_strong_or_fail(&'a self, id: &usize) -> &Strong {
+        match self.strong_refs.get(id) {
+            Some((_, x)) => x,
+            None => unreachable!("all nodes should have a corresponding strong ref"),
         }
     }
 }

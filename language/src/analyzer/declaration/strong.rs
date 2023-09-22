@@ -2,7 +2,7 @@ use crate::{
     analyzer::{
         context::{AnalyzeContext, NodeContext},
         infer::strong::ToStrong,
-        Strong, Type,
+        Strong,
     },
     ast::declaration::DeclarationNode,
     common::{node::Node, position::Decrement},
@@ -24,7 +24,7 @@ where
                 &|x| x.to_strong(ctx),
             ),
             self.node().range().clone(),
-            Strong::Type(Type::Nil),
+            ctx.get_strong_or_fail(self.node().id()).clone(),
         ))
     }
 }
