@@ -1,33 +1,46 @@
-use crate::analyzer::{context::AnalyzeContext, WeakRef};
+use crate::analyzer::{
+    context::{FileContext, WeakContext},
+    RefKind, Type,
+};
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Weak {
+    Infer,
+    Type(Type<usize>),
+    Inherit(usize),
+}
+
+pub type WeakRef = (RefKind, Weak);
 
 pub trait ToWeak {
     fn to_weak(&self) -> WeakRef;
 }
 
-pub fn infer_types(ctx: &mut AnalyzeContext) {
-    ctx.file
-        .borrow()
-        .fragments
-        .iter()
-        .for_each(|(id, (scope, x))| {
-            ctx.weak_refs.insert(*id, x.to_weak());
+pub fn infer_types<'a>(file_ctx: FileContext) -> WeakContext {
+    let mut ctx = WeakContext::new(file_ctx.fragments);
 
-            if let Some(name) = x.to_binding() {
-                let entry = ctx
-                    .bindings
-                    .0
-                    .entry((scope.clone(), name.clone()))
-                    .or_default();
+    ctx.fragments.iter().for_each(|(id, (scope, x))| {
+        ctx.weak_refs.insert(*id, x.to_weak());
 
-                entry.insert(*id);
-            }
-        })
+        if let Some(name) = x.to_binding() {
+            let entry = ctx
+                .bindings
+                .0
+                .entry((scope.clone(), name.clone()))
+                .or_default();
+
+            entry.insert(*id);
+        }
+    });
+
+    ctx
 }
 
 #[cfg(test)]
 mod tests {
+    use super::Weak;
     use crate::{
-        analyzer::{context::AnalyzeContext, fragment::Fragment, RefKind, Type, Weak},
+        analyzer::{fragment::Fragment, RefKind, Type},
         ast::{
             expression::{Expression, Primitive},
             statement::Statement,
@@ -42,17 +55,16 @@ mod tests {
             1,
             (vec![0], Fragment::Declaration(f::a::type_("MyType", 0))),
         )]);
-        let mut analyze_ctx = AnalyzeContext::new(&file_ctx);
 
-        super::infer_types(&mut analyze_ctx);
+        let result = super::infer_types(file_ctx);
 
         assert_eq!(
-            analyze_ctx.weak_refs,
+            result.weak_refs,
             HashMap::from_iter(vec![(1, (RefKind::Type, Weak::Inherit(0)))])
         );
 
         assert_eq!(
-            analyze_ctx.bindings.0,
+            result.bindings.0,
             HashMap::from_iter(vec![(
                 (vec![0], String::from("MyType")),
                 (BTreeSet::from_iter(vec![1]))
@@ -125,20 +137,19 @@ mod tests {
                 ),
             ),
         ]);
-        let mut analyze_ctx = AnalyzeContext::new(&file_ctx);
 
-        super::infer_types(&mut analyze_ctx);
+        let result = super::infer_types(file_ctx);
 
         assert_eq!(
-            analyze_ctx.weak_refs,
+            result.weak_refs,
             HashMap::from_iter(vec![
                 (0, (RefKind::Value, Weak::Type(Type::Nil))),
                 (1, (RefKind::Value, Weak::Inherit(0))),
-                (2, (RefKind::Value, Weak::Unknown)),
+                (2, (RefKind::Value, Weak::Infer)),
                 (3, (RefKind::Value, Weak::Inherit(2))),
-                (4, (RefKind::Value, Weak::Unknown)),
+                (4, (RefKind::Value, Weak::Infer)),
                 (5, (RefKind::Value, Weak::Type(Type::Nil))),
-                (6, (RefKind::Value, Weak::Unknown)),
+                (6, (RefKind::Value, Weak::Infer)),
                 (7, (RefKind::Value, Weak::Inherit(6))),
                 (8, (RefKind::Value, Weak::Inherit(7))),
                 (9, (RefKind::Value, Weak::Inherit(8))),
@@ -146,7 +157,7 @@ mod tests {
         );
 
         assert_eq!(
-            analyze_ctx.bindings.0,
+            result.bindings.0,
             HashMap::from_iter(vec![
                 (
                     (vec![0], String::from("FOO")),
@@ -180,12 +191,11 @@ mod tests {
                 (vec![0], Fragment::Declaration(f::a::type_("MyType", 2))),
             ),
         ]);
-        let mut analyze_ctx = AnalyzeContext::new(&file_ctx);
 
-        super::infer_types(&mut analyze_ctx);
+        let mut result = super::infer_types(file_ctx);
 
         assert_eq!(
-            analyze_ctx.weak_refs,
+            result.weak_refs,
             HashMap::from_iter(vec![
                 (1, (RefKind::Type, Weak::Inherit(0))),
                 (3, (RefKind::Type, Weak::Inherit(2))),
@@ -193,7 +203,7 @@ mod tests {
         );
 
         assert_eq!(
-            analyze_ctx.bindings.0,
+            result.bindings.0,
             HashMap::from_iter(vec![(
                 (vec![0], String::from("MyType")),
                 BTreeSet::from_iter(vec![1, 3])

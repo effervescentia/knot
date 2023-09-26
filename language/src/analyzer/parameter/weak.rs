@@ -1,5 +1,8 @@
 use crate::{
-    analyzer::{infer::weak::ToWeak, RefKind, Weak, WeakRef},
+    analyzer::{
+        infer::weak::{ToWeak, Weak, WeakRef},
+        RefKind,
+    },
     ast::parameter::Parameter,
 };
 
@@ -17,7 +20,7 @@ impl ToWeak for Parameter<usize, usize> {
                     ..
                 } => Weak::Inherit(*x),
 
-                Parameter { .. } => Weak::Unknown,
+                Parameter { .. } => Weak::Infer,
             },
         )
     }
@@ -26,7 +29,10 @@ impl ToWeak for Parameter<usize, usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Weak},
+        analyzer::{
+            infer::weak::{ToWeak, Weak},
+            RefKind,
+        },
         ast::parameter::Parameter,
     };
 
@@ -34,7 +40,7 @@ mod tests {
     fn unknown_parameter() {
         assert_eq!(
             Parameter::new(String::from("foo"), None, None).to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 

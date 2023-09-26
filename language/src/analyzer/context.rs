@@ -1,15 +1,25 @@
-use super::{fragment::Fragment, register::ToFragment, RefKind, Strong, StrongRef, WeakRef};
+use super::{
+    fragment::Fragment,
+    infer::{
+        strong::{Strong, StrongRef},
+        weak::{Weak, WeakRef},
+    },
+    register::ToFragment,
+    RefKind,
+};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
 };
+
+pub type FragmentMap = BTreeMap<usize, (Vec<usize>, Fragment)>;
 
 #[derive(Debug, PartialEq)]
 pub struct FileContext {
     next_scope_id: usize,
     next_fragment_id: usize,
 
-    pub fragments: BTreeMap<usize, (Vec<usize>, Fragment)>,
+    pub fragments: FragmentMap,
 }
 
 impl FileContext {
@@ -107,22 +117,51 @@ impl NodeContext {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct AnalyzeContext<'a> {
-    pub file: &'a RefCell<FileContext>,
+pub struct WeakContext {
+    pub fragments: FragmentMap,
 
-    pub bindings: Bindings,
+    pub bindings: BindingMap,
 
     pub weak_refs: HashMap<usize, WeakRef>,
+}
+
+impl WeakContext {
+    pub fn new(fragments: FragmentMap) -> Self {
+        Self {
+            fragments,
+            bindings: BindingMap(HashMap::new()),
+            weak_refs: HashMap::new(),
+        }
+    }
+
+    pub fn to_descriptors<'a>(&'a self) -> Vec<NodeDescriptor<'a>> {
+        self.fragments
+            .iter()
+            .filter_map(|(id, (scope, fragment))| match self.weak_refs.get(id) {
+                Some((kind, weak)) => Some(NodeDescriptor {
+                    id,
+                    kind,
+                    scope,
+                    fragment,
+                    weak,
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct StrongContext<'a> {
+    pub weak: &'a WeakContext,
 
     pub strong_refs: HashMap<usize, StrongRef>,
 }
 
-impl<'a> AnalyzeContext<'a> {
-    pub fn new(file: &'a RefCell<FileContext>) -> Self {
+impl<'a> StrongContext<'a> {
+    pub fn new(weak: &'a WeakContext) -> Self {
         Self {
-            file,
-            bindings: Bindings(HashMap::new()),
-            weak_refs: HashMap::new(),
+            weak,
             strong_refs: HashMap::new(),
         }
     }
@@ -136,9 +175,9 @@ impl<'a> AnalyzeContext<'a> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Bindings(pub HashMap<(Vec<usize>, String), BTreeSet<usize>>);
+pub struct BindingMap(pub HashMap<(Vec<usize>, String), BTreeSet<usize>>);
 
-impl Bindings {
+impl BindingMap {
     fn from_iter<T: IntoIterator<Item = ((Vec<usize>, String), BTreeSet<usize>)>>(iter: T) -> Self {
         Self(HashMap::from_iter(iter))
     }
@@ -165,14 +204,23 @@ impl Bindings {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct NodeDescriptor<'a> {
+    pub id: &'a usize,
+    pub kind: &'a RefKind,
+    pub scope: &'a Vec<usize>,
+    pub fragment: &'a Fragment,
+    pub weak: &'a Weak,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::analyzer::context::Bindings;
+    use crate::analyzer::context::BindingMap;
     use std::collections::BTreeSet;
 
     #[test]
     fn resolve_from_local_scope() {
-        let bindings = Bindings::from_iter(vec![
+        let bindings = BindingMap::from_iter(vec![
             ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
             ((vec![0], String::from("bar")), BTreeSet::from_iter(vec![1])),
             (
@@ -186,7 +234,7 @@ mod tests {
 
     #[test]
     fn resolve_from_ancestor_scope() {
-        let bindings = Bindings::from_iter(vec![
+        let bindings = BindingMap::from_iter(vec![
             ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
             (
                 (vec![0, 1], String::from("bar")),
@@ -205,7 +253,7 @@ mod tests {
 
     #[test]
     fn resolve_from_local_over_ancestor_scope() {
-        let bindings = Bindings::from_iter(vec![
+        let bindings = BindingMap::from_iter(vec![
             ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
             (
                 (vec![0, 1], String::from("foo")),
@@ -222,7 +270,7 @@ mod tests {
 
     #[test]
     fn resolve_bindings_with_respect_to_ordering() {
-        let bindings = Bindings::from_iter(vec![(
+        let bindings = BindingMap::from_iter(vec![(
             (vec![0], String::from("foo")),
             BTreeSet::from_iter(vec![1, 3]),
         )]);

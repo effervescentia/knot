@@ -1,8 +1,7 @@
 use crate::{
     analyzer::{
-        context::{AnalyzeContext, NodeContext},
-        infer::strong::ToStrong,
-        Strong,
+        context::{NodeContext, StrongContext},
+        infer::strong::{Strong, ToStrong},
     },
     ast::expression::ExpressionNode,
     common::{node::Node, position::Decrement},
@@ -15,7 +14,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> ExpressionNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> ExpressionNode<T, Strong> {
         ExpressionNode(Node(
             self.node().value().map(
                 &mut |x| x.to_strong(ctx),

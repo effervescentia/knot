@@ -1,5 +1,8 @@
 use crate::{
-    analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
+    analyzer::{
+        infer::weak::{ToWeak, Weak, WeakRef},
+        RefKind, Type,
+    },
     ast::declaration::Declaration,
 };
 
@@ -9,7 +12,7 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
             Declaration::TypeAlias { value, .. } => (RefKind::Type, Weak::Inherit(*value)),
 
             Declaration::Enumerated { variants, .. } => (
-                RefKind::Value,
+                RefKind::Mixed,
                 Weak::Type(Type::Enumerated(variants.clone())),
             ),
 
@@ -37,7 +40,7 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
                 Weak::Type(Type::View(parameters.clone(), *body)),
             ),
 
-            Declaration::Module { .. } => (RefKind::Value, Weak::Unknown),
+            Declaration::Module { .. } => (RefKind::Mixed, Weak::Infer),
         }
     }
 }
@@ -45,7 +48,10 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
+        analyzer::{
+            infer::weak::{ToWeak, Weak},
+            RefKind, Type,
+        },
         test::fixture as f,
     };
 
@@ -112,7 +118,7 @@ mod tests {
     fn module() {
         assert_eq!(
             f::a::mod_("foo", 0).to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 }

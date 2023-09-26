@@ -1,5 +1,8 @@
 use crate::{
-    analyzer::{infer::weak::ToWeak, RefKind, Type, Weak, WeakRef},
+    analyzer::{
+        infer::weak::{ToWeak, Weak, WeakRef},
+        RefKind, Type,
+    },
     ast::{
         expression::{Expression, Primitive},
         operator::{BinaryOperator, UnaryOperator},
@@ -20,7 +23,7 @@ impl ToWeak for Expression<usize, usize, usize> {
                 }),
             ),
 
-            Expression::Identifier(..) => (RefKind::Value, Weak::Unknown),
+            Expression::Identifier(..) => (RefKind::Value, Weak::Infer),
 
             Expression::Group(id) => (RefKind::Value, Weak::Inherit(**id)),
 
@@ -55,14 +58,14 @@ impl ToWeak for Expression<usize, usize, usize> {
                     BinaryOperator::Divide | BinaryOperator::Exponent => Weak::Type(Type::Float),
 
                     BinaryOperator::Add | BinaryOperator::Subtract | BinaryOperator::Multiply => {
-                        Weak::Unknown
+                        Weak::Infer
                     }
                 },
             ),
 
-            Expression::DotAccess(..) => (RefKind::Value, Weak::Unknown),
+            Expression::DotAccess(..) => (RefKind::Value, Weak::Infer),
 
-            Expression::FunctionCall(..) => (RefKind::Value, Weak::Unknown),
+            Expression::FunctionCall(..) => (RefKind::Value, Weak::Infer),
 
             Expression::Style(..) => (RefKind::Value, Weak::Type(Type::Style)),
 
@@ -74,7 +77,10 @@ impl ToWeak for Expression<usize, usize, usize> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{infer::weak::ToWeak, RefKind, Type, Weak},
+        analyzer::{
+            infer::weak::{ToWeak, Weak},
+            RefKind, Type,
+        },
         ast::{
             expression::{Expression, Primitive},
             operator::{BinaryOperator, UnaryOperator},
@@ -109,7 +115,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             Expression::Identifier(String::from("foo")).to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 
@@ -255,7 +261,7 @@ mod tests {
     fn binary_add() {
         assert_eq!(
             Expression::BinaryOperation(BinaryOperator::Add, Box::new(0), Box::new(1)).to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 
@@ -264,7 +270,7 @@ mod tests {
         assert_eq!(
             Expression::BinaryOperation(BinaryOperator::Subtract, Box::new(0), Box::new(1))
                 .to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 
@@ -273,7 +279,7 @@ mod tests {
         assert_eq!(
             Expression::BinaryOperation(BinaryOperator::Multiply, Box::new(0), Box::new(1))
                 .to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 
@@ -281,7 +287,7 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             Expression::DotAccess(Box::new(0), String::from("foo")).to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 
@@ -289,7 +295,7 @@ mod tests {
     fn function_call() {
         assert_eq!(
             Expression::FunctionCall(Box::new(0), vec![1]).to_weak(),
-            (RefKind::Value, Weak::Unknown)
+            (RefKind::Value, Weak::Infer)
         );
     }
 

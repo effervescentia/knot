@@ -1,4 +1,4 @@
-use super::{infer::weak::ToWeak, WeakRef};
+use super::infer::weak::{ToWeak, WeakRef};
 use crate::ast::{
     declaration::Declaration, expression::Expression, ksx::KSX, module::Module,
     parameter::Parameter, statement::Statement, storage::Storage, type_expression::TypeExpression,

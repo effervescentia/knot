@@ -1,8 +1,7 @@
 use crate::{
     analyzer::{
-        context::{AnalyzeContext, NodeContext},
-        infer::strong::ToStrong,
-        Strong,
+        context::{NodeContext, StrongContext},
+        infer::strong::{Strong, ToStrong},
     },
     ast::ksx::KSXNode,
     common::{node::Node, position::Decrement},
@@ -15,7 +14,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> KSXNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> KSXNode<T, Strong> {
         KSXNode(Node(
             self.node()
                 .value()

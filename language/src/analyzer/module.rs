@@ -1,9 +1,12 @@
 use super::{
-    context::{AnalyzeContext, NodeContext},
+    context::{NodeContext, StrongContext},
     fragment::Fragment,
-    infer::{strong::ToStrong, weak::ToWeak},
+    infer::{
+        strong::ToStrong,
+        weak::{ToWeak, Weak, WeakRef},
+    },
     register::{Identify, Register, ToFragment},
-    RefKind, ScopeContext, Strong, Type, Weak,
+    RefKind, ScopeContext, Strong,
 };
 use crate::{
     ast::module::{self, Module, ModuleNode},
@@ -59,8 +62,8 @@ where
 }
 
 impl ToWeak for Module<usize> {
-    fn to_weak(&self) -> super::WeakRef {
-        (RefKind::Value, Weak::Unknown)
+    fn to_weak(&self) -> WeakRef {
+        (RefKind::Value, Weak::Infer)
     }
 }
 
@@ -69,7 +72,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a AnalyzeContext<'a>) -> ModuleNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> ModuleNode<T, Strong> {
         ModuleNode(
             self.0.map(&|x| x.to_strong(ctx)),
             ctx.get_strong_or_fail(self.id()).clone(),

@@ -1,8 +1,8 @@
 use crate::{
     analyzer::{
-        context::{AnalyzeContext, FileContext, ScopeContext},
+        context::{FileContext, ScopeContext, WeakContext},
         fragment::Fragment,
-        WeakRef,
+        infer::weak::WeakRef,
     },
     ast::{
         declaration::{Declaration, DeclarationNode},
@@ -25,22 +25,22 @@ pub fn f_ctx() -> RefCell<FileContext> {
     RefCell::new(FileContext::new())
 }
 
-pub fn f_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> RefCell<FileContext> {
+pub fn f_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> FileContext {
     let ctx = f_ctx();
     ctx.borrow_mut().fragments.extend(xs);
-    ctx
+    ctx.into_inner()
 }
 
 pub fn s_ctx<'a>(file_ctx: &'a RefCell<FileContext>) -> ScopeContext<'a> {
     ScopeContext::new(file_ctx)
 }
 
-pub fn a_ctx_from<'a>(
-    file: &'a RefCell<FileContext>,
+pub fn w_ctx_from(
+    file: FileContext,
     weak_refs: Vec<(usize, WeakRef)>,
     bindings: Vec<((Vec<usize>, String), BTreeSet<usize>)>,
-) -> AnalyzeContext<'a> {
-    let mut ctx = AnalyzeContext::new(file);
+) -> WeakContext {
+    let mut ctx = WeakContext::new(file.fragments);
     ctx.weak_refs.extend(weak_refs);
     ctx.bindings.0.extend(bindings);
     ctx

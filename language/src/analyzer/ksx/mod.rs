@@ -5,8 +5,9 @@ mod weak;
 
 use super::{
     context::NodeContext,
+    infer::weak::Weak,
     register::{Identify, Register},
-    RefKind, ScopeContext, Type, Weak,
+    RefKind, ScopeContext, Type,
 };
 use crate::{
     ast::ksx::{self, KSXNode},
