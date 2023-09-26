@@ -34,11 +34,14 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
+        analyzer::{
+            context::{FragmentMap, NodeContext},
+            fragment::Fragment,
+            register::Register,
+        },
         ast::type_expression::TypeExpression,
         test::fixture as f,
     };
-    use std::collections::BTreeMap;
 
     #[test]
     fn register() {
@@ -65,7 +68,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            BTreeMap::from_iter(vec![
+            FragmentMap::from_iter(vec![
                 (0, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (1, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),
                 (2, (vec![0], Fragment::TypeExpression(TypeExpression::Nil))),

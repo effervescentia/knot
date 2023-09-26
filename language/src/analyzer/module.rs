@@ -72,7 +72,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> ModuleNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext) -> ModuleNode<T, Strong> {
         ModuleNode(
             self.0.map(&|x| x.to_strong(ctx)),
             ctx.get_strong_or_fail(self.id()).clone(),
@@ -83,7 +83,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        analyzer::{context::NodeContext, fragment::Fragment, register::Register},
+        analyzer::{
+            context::{FragmentMap, NodeContext},
+            fragment::Fragment,
+            register::Register,
+        },
         ast::{
             expression::{Expression, Primitive},
             import::{Import, Source, Target},
@@ -92,7 +96,6 @@ mod tests {
         },
         test::fixture as f,
     };
-    use std::collections::BTreeMap;
 
     #[test]
     fn module() {
@@ -141,7 +144,7 @@ mod tests {
 
         assert_eq!(
             scope.file.borrow().fragments,
-            BTreeMap::from_iter(vec![
+            FragmentMap::from_iter(vec![
                 (
                     0,
                     (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))

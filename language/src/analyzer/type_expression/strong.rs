@@ -14,7 +14,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> TypeExpressionNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext) -> TypeExpressionNode<T, Strong> {
         TypeExpressionNode(Node(
             self.node().value().map(&|x| x.to_strong(ctx)),
             self.node().range().clone(),

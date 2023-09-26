@@ -12,8 +12,6 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
 };
 
-pub type FragmentMap = BTreeMap<usize, (Vec<usize>, Fragment)>;
-
 #[derive(Debug, PartialEq)]
 pub struct FileContext {
     next_scope_id: usize,
@@ -27,7 +25,7 @@ impl FileContext {
         Self {
             next_scope_id: 0,
             next_fragment_id: 0,
-            fragments: BTreeMap::new(),
+            fragments: FragmentMap::new(),
         }
     }
 
@@ -45,7 +43,7 @@ impl FileContext {
 
     pub fn add_fragment(&mut self, scope: Vec<usize>, fragment: Fragment) -> usize {
         let id = self.fragment_id();
-        self.fragments.insert(id, (scope, fragment));
+        self.fragments.0.insert(id, (scope, fragment));
         id
     }
 }
@@ -133,11 +131,50 @@ impl WeakContext {
             weak_refs: HashMap::new(),
         }
     }
+}
 
-    pub fn to_descriptors<'a>(&'a self) -> Vec<NodeDescriptor<'a>> {
-        self.fragments
-            .iter()
-            .filter_map(|(id, (scope, fragment))| match self.weak_refs.get(id) {
+#[derive(Clone, Debug, PartialEq)]
+pub struct StrongContext {
+    pub bindings: BindingMap,
+
+    pub strong_refs: HashMap<usize, StrongRef>,
+}
+
+impl StrongContext {
+    pub fn new(bindings: BindingMap) -> Self {
+        Self {
+            bindings,
+            strong_refs: HashMap::new(),
+        }
+    }
+
+    pub fn get_strong_or_fail(&self, id: &usize) -> &Strong {
+        match self.strong_refs.get(id) {
+            Some((_, x)) => x,
+            None => unreachable!("all nodes should have a corresponding strong ref"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct FragmentMap(pub BTreeMap<usize, (Vec<usize>, Fragment)>);
+
+impl FragmentMap {
+    pub fn new() -> Self {
+        Self(BTreeMap::new())
+    }
+
+    pub fn from_iter<T: IntoIterator<Item = (usize, (Vec<usize>, Fragment))>>(iter: T) -> Self {
+        Self(BTreeMap::from_iter(iter))
+    }
+
+    pub fn into_descriptors<'a>(
+        self,
+        mut weak_refs: HashMap<usize, WeakRef>,
+    ) -> Vec<NodeDescriptor> {
+        self.0
+            .into_iter()
+            .filter_map(|(id, (scope, fragment))| match weak_refs.remove(&id) {
                 Some((kind, weak)) => Some(NodeDescriptor {
                     id,
                     kind,
@@ -152,33 +189,12 @@ impl WeakContext {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct StrongContext<'a> {
-    pub weak: &'a WeakContext,
-
-    pub strong_refs: HashMap<usize, StrongRef>,
-}
-
-impl<'a> StrongContext<'a> {
-    pub fn new(weak: &'a WeakContext) -> Self {
-        Self {
-            weak,
-            strong_refs: HashMap::new(),
-        }
-    }
-
-    pub fn get_strong_or_fail(&'a self, id: &usize) -> &Strong {
-        match self.strong_refs.get(id) {
-            Some((_, x)) => x,
-            None => unreachable!("all nodes should have a corresponding strong ref"),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
 pub struct BindingMap(pub HashMap<(Vec<usize>, String), BTreeSet<usize>>);
 
 impl BindingMap {
-    fn from_iter<T: IntoIterator<Item = ((Vec<usize>, String), BTreeSet<usize>)>>(iter: T) -> Self {
+    pub fn from_iter<T: IntoIterator<Item = ((Vec<usize>, String), BTreeSet<usize>)>>(
+        iter: T,
+    ) -> Self {
         Self(HashMap::from_iter(iter))
     }
 
@@ -204,13 +220,13 @@ impl BindingMap {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct NodeDescriptor<'a> {
-    pub id: &'a usize,
-    pub kind: &'a RefKind,
-    pub scope: &'a Vec<usize>,
-    pub fragment: &'a Fragment,
-    pub weak: &'a Weak,
+#[derive(Debug, PartialEq)]
+pub struct NodeDescriptor {
+    pub id: usize,
+    pub kind: RefKind,
+    pub scope: Vec<usize>,
+    pub fragment: Fragment,
+    pub weak: Weak,
 }
 
 #[cfg(test)]

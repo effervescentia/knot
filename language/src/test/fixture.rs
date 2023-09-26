@@ -27,7 +27,7 @@ pub fn f_ctx() -> RefCell<FileContext> {
 
 pub fn f_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> FileContext {
     let ctx = f_ctx();
-    ctx.borrow_mut().fragments.extend(xs);
+    ctx.borrow_mut().fragments.0.extend(xs);
     ctx.into_inner()
 }
 

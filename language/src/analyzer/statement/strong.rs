@@ -14,7 +14,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> StatementNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext) -> StatementNode<T, Strong> {
         StatementNode(Node(
             self.node().value().map(&|x| x.to_strong(ctx)),
             self.node().range().clone(),

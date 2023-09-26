@@ -68,7 +68,7 @@ mod tests {
         assert_eq!(
             f::a::enum_("Foo", vec![(String::from("Bar"), vec![0, 1, 2])]).to_weak(),
             (
-                RefKind::Value,
+                RefKind::Mixed,
                 Weak::Type(Type::Enumerated(vec![(String::from("Bar"), vec![0, 1, 2])]))
             )
         );
@@ -118,7 +118,7 @@ mod tests {
     fn module() {
         assert_eq!(
             f::a::mod_("foo", 0).to_weak(),
-            (RefKind::Value, Weak::Infer)
+            (RefKind::Mixed, Weak::Infer)
         );
     }
 }

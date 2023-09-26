@@ -17,6 +17,8 @@ use infer::strong::{Strong, ToStrong};
 use register::Register;
 use std::{cell::RefCell, fmt::Debug};
 
+use self::context::WeakContext;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type<T> {
     Nil,
@@ -59,11 +61,15 @@ where
     let (untyped, file_ctx) = register_fragments(x);
 
     // apply weak type inference
-    let weak_ctx = infer::weak::infer_types(file_ctx);
+    let WeakContext {
+        bindings,
+        fragments,
+        weak_refs,
+    } = infer::weak::infer_types(file_ctx);
 
     // apply strong type inference
-    let nodes = weak_ctx.to_descriptors();
-    let strong_ctx = infer::strong::infer_types(&nodes, &weak_ctx);
+    let nodes = fragments.into_descriptors(weak_refs);
+    let strong_ctx = infer::strong::infer_types(&nodes, bindings);
 
     untyped.to_strong(&strong_ctx)
 }

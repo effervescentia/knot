@@ -19,7 +19,7 @@ pub trait ToWeak {
 pub fn infer_types<'a>(file_ctx: FileContext) -> WeakContext {
     let mut ctx = WeakContext::new(file_ctx.fragments);
 
-    ctx.fragments.iter().for_each(|(id, (scope, x))| {
+    ctx.fragments.0.iter().for_each(|(id, (scope, x))| {
         ctx.weak_refs.insert(*id, x.to_weak());
 
         if let Some(name) = x.to_binding() {

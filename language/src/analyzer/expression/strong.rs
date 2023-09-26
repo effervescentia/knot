@@ -14,7 +14,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext<'a>) -> ExpressionNode<T, Strong> {
+    fn to_strong(&self, ctx: &'a StrongContext) -> ExpressionNode<T, Strong> {
         ExpressionNode(Node(
             self.node().value().map(
                 &mut |x| x.to_strong(ctx),
