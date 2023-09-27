@@ -119,41 +119,89 @@ pub fn infer_function_call(
     arguments: Vec<usize>,
     ctx: &mut StrongContext,
 ) -> Option<Strong> {
+    let kind = RefKind::Value;
+
     let resolve_all_types = |xs: &Vec<usize>| {
         xs.iter()
-            .map(|id| match ctx.get_strong(id, &RefKind::Value) {
+            .map(|id| match ctx.get_strong(id, &kind) {
                 Some(Ok(x)) => Some((x.clone(), *id)),
+                // FIXME: may need to forward Some(Err(_)) state to determine NotInferrable
                 _ => None,
             })
             .collect::<Option<Vec<_>>>()
     };
 
-    match ctx.get_strong(&lhs, &RefKind::Value) {
+    let resolve_arguments =
+        |typ, parameters: Vec<(Type<usize>, usize)>, arguments: Vec<(Type<usize>, usize)>| {
+            if arguments.len() < parameters.len() {
+                Err(SemanticError::MissingArguments(
+                    (typ, lhs),
+                    parameters.split_at(arguments.len()).1.to_vec(),
+                ))
+            } else if arguments.len() > parameters.len() {
+                Err(SemanticError::UnexpectedArguments(
+                    (typ, lhs),
+                    arguments.split_at(parameters.len()).1.to_vec(),
+                ))
+            } else {
+                let mismatched = parameters
+                    .into_iter()
+                    .zip(arguments.into_iter())
+                    .filter(|((parameter_type, _), (argument_type, _))| {
+                        match (
+                            parameter_type.preview(&kind, ctx),
+                            argument_type.preview(&kind, ctx),
+                        ) {
+                            (Some(param), Some(arg)) if param == arg => true,
+                            _ => false,
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                Ok(mismatched)
+            }
+        };
+
+    match ctx.get_strong(&lhs, &kind) {
         Some(Ok(x @ Type::Function(parameters, result))) => {
+            match (
+                resolve_all_types(parameters),
+                resolve_all_types(&arguments),
+                ctx.get_strong(result, &kind),
+            ) {
+                (Some(typed_parameters), Some(typed_arguments), Some(Ok(typed_result))) => {
+                    match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
+                        Ok(mismatched) => {
+                            if mismatched.is_empty() {
+                                Some(Ok(typed_result.clone()))
+                            } else {
+                                Some(Err(SemanticError::InvalidArguments(mismatched)))
+                            }
+                        }
+
+                        Err(err) => Some(Err(err)),
+                    }
+                }
+
+                (_, _, Some(Err(_))) => Some(Err(SemanticError::NotInferrable(vec![lhs]))),
+
+                _ => None,
+            }
+        }
+
+        Some(Ok(x @ Type::EnumeratedVariant(parameters, result))) => {
             match (resolve_all_types(parameters), resolve_all_types(&arguments)) {
                 (Some(typed_parameters), Some(typed_arguments)) => {
-                    if typed_arguments.len() < typed_parameters.len() {
-                        Some(Err(SemanticError::MissingArguments(
-                            (x.clone(), lhs),
-                            typed_parameters.split_at(typed_arguments.len()).1.to_vec(),
-                        )))
-                    } else if typed_arguments.len() > typed_parameters.len() {
-                        Some(Err(SemanticError::UnexpectedArguments(
-                            (x.clone(), lhs),
-                            typed_arguments.split_at(typed_parameters.len()).1.to_vec(),
-                        )))
-                    } else {
-                        let mismatched = typed_parameters
-                            .iter()
-                            .zip(typed_arguments.iter())
-                            .filter(
-                                |((parameter_type, parameter_id), (argument_type, argument_id))| {
-                                    false
-                                },
-                            )
-                            .collect::<Vec<_>>();
+                    match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
+                        Ok(mismatched) => {
+                            if mismatched.is_empty() {
+                                Some(Ok(Type::EnumeratedInstance(*result)))
+                            } else {
+                                Some(Err(SemanticError::InvalidArguments(mismatched)))
+                            }
+                        }
 
-                        None
+                        Err(err) => Some(Err(err)),
                     }
                 }
 

@@ -1,7 +1,4 @@
-use super::{
-    infer::strong::{SemanticError, Strong},
-    FinalType, PreviewType, RefKind,
-};
+use super::{context::StrongContext, PreviewType, RefKind};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -72,13 +69,12 @@ impl<T> Type<T> {
     }
 }
 
-// impl Type<usize> {
-//     pub fn preview(&self, get_strong: &impl Fn(&usize) -> Option<&Strong>) -> Option<PreviewType> {
-//         self.opt_map(&|x| match get_strong(x) {
-//             Some(Ok(typ)) => typ.preview(get_strong).map(Box::new),
-
-//             _ => None,
-//         })
-//         .map(PreviewType)
-//     }
-// }
+impl Type<usize> {
+    pub fn preview(&self, kind: &RefKind, ctx: &StrongContext) -> Option<PreviewType> {
+        self.opt_map(&|x| match ctx.get_strong(x, kind) {
+            Some(Ok(typ)) => typ.preview(kind, ctx).map(Box::new),
+            _ => None,
+        })
+        .map(PreviewType)
+    }
+}

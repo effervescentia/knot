@@ -33,9 +33,10 @@ pub enum SemanticError {
 
     NotIndexable((Type<usize>, usize), String),
 
+    NotCallable(Type<usize>, usize),
     MissingArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
     UnexpectedArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
-    NotCallable(Type<usize>, usize),
+    InvalidArguments(Vec<((Type<usize>, usize), (Type<usize>, usize))>),
 }
 
 pub type Strong = Result<Type<usize>, SemanticError>;

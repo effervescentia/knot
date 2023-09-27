@@ -158,27 +158,10 @@ impl StrongContext {
         })
     }
 
-    // pub fn get_preview<'a>(
-    //     strong_refs: Cell<HashMap<usize, StrongRef>>,
-    //     id: &'a usize,
-    //     kind: &'a RefKind,
-    // ) -> Option<PreviewType> {
-    //     pub fn resolve(
-    //         id: &usize,
-    //         get_strong: &impl Fn(&usize) -> Option<&Strong>,
-    //     ) -> Option<PreviewType> {
-    //         match get_strong(id) {
-    //             Some(Ok(x)) => x.preview(&|id| get_strong(id)),
-    //             _ => None,
-    //         }
-    //     }
-
-    //     resolve(id, &|x| Self::get_strong(strong_refs, x, kind))
-    // }
-
     pub fn resolve(&self, id: &usize) -> &Strong {
         match self.refs.get(id) {
             Some((_, x)) => x,
+
             None => unreachable!("all nodes should have a corresponding strong ref"),
         }
     }
