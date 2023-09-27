@@ -61,8 +61,8 @@ where
     } = infer::weak::infer_types(file_ctx);
 
     // apply strong type inference
-    let nodes = fragments.into_descriptors(weak_refs);
-    let strong_ctx = infer::strong::infer_types(&nodes, bindings);
+    let nodes = fragments.to_descriptors(weak_refs);
+    let strong_ctx = infer::strong::infer_types(&nodes, fragments, bindings);
 
     untyped.to_strong(&strong_ctx)
 }

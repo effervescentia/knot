@@ -6,10 +6,14 @@ use super::{
         weak::{ToWeak, Weak, WeakRef},
     },
     register::{Identify, Register, ToFragment},
+    types::Type,
     RefKind, ScopeContext, Strong,
 };
 use crate::{
-    ast::module::{self, Module, ModuleNode},
+    ast::{
+        declaration::Declaration,
+        module::{self, Module, ModuleNode},
+    },
     common::position::Decrement,
 };
 use combine::Stream;
@@ -63,7 +67,7 @@ where
 
 impl ToWeak for Module<usize> {
     fn to_weak(&self) -> WeakRef {
-        (RefKind::Value, Weak::Infer)
+        (RefKind::Mixed, Weak::Infer)
     }
 }
 
@@ -78,6 +82,33 @@ where
             ctx.resolve(self.id()).clone(),
         )
     }
+}
+
+pub fn infer_module(declarations: &Vec<usize>, ctx: &mut StrongContext) -> Option<Strong> {
+    let typed_declarations = declarations
+        .iter()
+        .map(|x| match ctx.fragments.0.get(x)? {
+            (
+                _,
+                Fragment::Declaration(
+                    Declaration::TypeAlias { name, .. }
+                    | Declaration::Enumerated { name, .. }
+                    | Declaration::Constant { name, .. }
+                    | Declaration::Function { name, .. }
+                    | Declaration::View { name, .. }
+                    | Declaration::Module { name, .. },
+                ),
+            ) => {
+                let (kind, _) = ctx.refs.get(x)?;
+
+                Some((name.1.clone(), kind.clone(), *x))
+            }
+
+            _ => None,
+        })
+        .collect::<Option<Vec<_>>>()?;
+
+    Some(Ok(Type::Module(typed_declarations)))
 }
 
 #[cfg(test)]

@@ -33,11 +33,11 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
                 )),
             ),
 
-            Declaration::View {
-                parameters, body, ..
-            } => (RefKind::Value, Weak::Type(Type::View(parameters.clone()))),
+            Declaration::View { parameters, .. } => {
+                (RefKind::Value, Weak::Type(Type::View(parameters.clone())))
+            }
 
-            Declaration::Module { .. } => (RefKind::Mixed, Weak::Infer),
+            Declaration::Module { value, .. } => (RefKind::Mixed, Weak::Inherit(*value)),
         }
     }
 }
@@ -115,7 +115,7 @@ mod tests {
     fn module() {
         assert_eq!(
             f::a::mod_("foo", 0).to_weak(),
-            (RefKind::Mixed, Weak::Infer)
+            (RefKind::Mixed, Weak::Inherit(0))
         );
     }
 }

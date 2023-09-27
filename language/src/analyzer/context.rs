@@ -1,14 +1,14 @@
 use super::{
     fragment::Fragment,
     infer::{
-        strong::{SemanticError, Strong, StrongRef},
+        strong::{Strong, StrongRef},
         weak::{Weak, WeakRef},
     },
     register::ToFragment,
-    FinalType, PreviewType, RefKind,
+    RefKind,
 };
 use std::{
-    cell::{Cell, RefCell},
+    cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
 };
 
@@ -135,14 +135,17 @@ impl WeakContext {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct StrongContext {
+    pub fragments: FragmentMap,
+
     pub bindings: BindingMap,
 
     pub refs: HashMap<usize, StrongRef>,
 }
 
 impl StrongContext {
-    pub fn new(bindings: BindingMap) -> Self {
+    pub fn new(fragments: FragmentMap, bindings: BindingMap) -> Self {
         Self {
+            fragments,
             bindings,
             refs: HashMap::new(),
         }
@@ -177,7 +180,7 @@ impl StrongContext {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FragmentMap(pub BTreeMap<usize, (Vec<usize>, Fragment)>);
 
 impl FragmentMap {
@@ -189,18 +192,18 @@ impl FragmentMap {
         Self(BTreeMap::from_iter(iter))
     }
 
-    pub fn into_descriptors<'a>(
-        self,
+    pub fn to_descriptors<'a>(
+        &self,
         mut weak_refs: HashMap<usize, WeakRef>,
     ) -> Vec<NodeDescriptor> {
         self.0
-            .into_iter()
+            .iter()
             .filter_map(|(id, (scope, fragment))| match weak_refs.remove(&id) {
                 Some((kind, weak)) => Some(NodeDescriptor {
-                    id,
+                    id: *id,
                     kind,
-                    scope,
-                    fragment,
+                    scope: scope.clone(),
+                    fragment: fragment.clone(),
                     weak,
                 }),
                 _ => None,

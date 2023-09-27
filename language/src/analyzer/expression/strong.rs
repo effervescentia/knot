@@ -116,7 +116,7 @@ pub fn infer_dot_access(lhs: usize, rhs: String, ctx: &mut StrongContext) -> Opt
 
 pub fn infer_function_call(
     lhs: usize,
-    arguments: Vec<usize>,
+    arguments: &Vec<usize>,
     ctx: &mut StrongContext,
 ) -> Option<Strong> {
     let kind = RefKind::Value;
@@ -166,7 +166,7 @@ pub fn infer_function_call(
         Some(Ok(x @ Type::Function(parameters, result))) => {
             match (
                 resolve_all_types(parameters),
-                resolve_all_types(&arguments),
+                resolve_all_types(arguments),
                 ctx.get_strong(result, &kind),
             ) {
                 (Some(typed_parameters), Some(typed_arguments), Some(Ok(typed_result))) => {
@@ -190,7 +190,7 @@ pub fn infer_function_call(
         }
 
         Some(Ok(x @ Type::EnumeratedVariant(parameters, result))) => {
-            match (resolve_all_types(parameters), resolve_all_types(&arguments)) {
+            match (resolve_all_types(parameters), resolve_all_types(arguments)) {
                 (Some(typed_parameters), Some(typed_arguments)) => {
                     match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
                         Ok(mismatched) => {

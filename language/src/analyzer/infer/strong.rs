@@ -1,12 +1,13 @@
 use super::weak::Weak;
 use crate::{
     analyzer::{
-        context::{BindingMap, NodeDescriptor, StrongContext},
+        context::{BindingMap, FragmentMap, NodeDescriptor, StrongContext},
         expression::strong::{infer_binary_operation, infer_dot_access, infer_function_call},
         fragment::Fragment,
+        module::infer_module,
         RefKind, Type,
     },
-    ast::{expression::Expression, type_expression::TypeExpression},
+    ast::{expression::Expression, module::Module, type_expression::TypeExpression},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -121,13 +122,20 @@ fn partial_infer_types<'a>(
 
         NodeDescriptor {
             id,
-            kind: RefKind::Value,
+            kind: kind @ RefKind::Type,
+            fragment: Fragment::TypeExpression(TypeExpression::DotAccess(lhs, rhs)),
+            weak: Weak::Infer,
+            ..
+        }
+        | NodeDescriptor {
+            id,
+            kind: kind @ RefKind::Value,
             fragment: Fragment::Expression(Expression::DotAccess(lhs, rhs)),
             weak: Weak::Infer,
             ..
         } => match infer_dot_access(**lhs, rhs.clone(), &mut ctx) {
             Some(x) => {
-                ctx.refs.insert(*id, (RefKind::Value, x));
+                ctx.refs.insert(*id, (kind.clone(), x));
             }
 
             None => unhandled.push(node),
@@ -139,7 +147,7 @@ fn partial_infer_types<'a>(
             fragment: Fragment::Expression(Expression::FunctionCall(lhs, arguments)),
             weak: Weak::Infer,
             ..
-        } => match infer_function_call(**lhs, arguments.clone(), &mut ctx) {
+        } => match infer_function_call(**lhs, arguments, &mut ctx) {
             Some(x) => {
                 ctx.refs.insert(*id, (RefKind::Value, x));
             }
@@ -147,15 +155,41 @@ fn partial_infer_types<'a>(
             None => unhandled.push(node),
         },
 
-        _ => todo!(),
+        NodeDescriptor {
+            id,
+            kind: RefKind::Mixed,
+            fragment: Fragment::Module(Module { declarations, .. }),
+            weak: Weak::Infer,
+            ..
+        } => match infer_module(declarations, &mut ctx) {
+            Some(x) => {
+                ctx.refs.insert(*id, (RefKind::Value, x));
+            }
+
+            None => unhandled.push(node),
+        },
+
+        NodeDescriptor {
+            weak: Weak::Infer,
+            fragment: Fragment::Parameter(_),
+            ..
+        } => todo!(),
+
+        NodeDescriptor {
+            weak: Weak::Infer, ..
+        } => unreachable!("all other inference should be done already"),
     });
 
     (unhandled, warnings, ctx)
 }
 
-pub fn infer_types<'a>(nodes: &'a Vec<NodeDescriptor>, bindings: BindingMap) -> StrongContext {
+pub fn infer_types<'a>(
+    nodes: &'a Vec<NodeDescriptor>,
+    fragments: FragmentMap,
+    bindings: BindingMap,
+) -> StrongContext {
     let mut unhandled = nodes.iter().collect::<Vec<&NodeDescriptor>>();
-    let mut ctx = StrongContext::new(bindings);
+    let mut ctx = StrongContext::new(fragments, bindings);
 
     while !unhandled.is_empty() {
         let unhandled_length = unhandled.len();
@@ -176,10 +210,9 @@ pub fn infer_types<'a>(nodes: &'a Vec<NodeDescriptor>, bindings: BindingMap) -> 
 
 #[cfg(test)]
 mod tests {
-    use super::Strong;
     use crate::{
         analyzer::{
-            context::{BindingMap, NodeDescriptor, StrongContext},
+            context::{BindingMap, FragmentMap, NodeDescriptor, StrongContext},
             fragment::Fragment,
             infer::weak::Weak,
             RefKind, Type,
@@ -216,8 +249,10 @@ mod tests {
             (BTreeSet::from_iter(vec![1])),
         )]);
 
-        let (.., ctx) =
-            super::partial_infer_types(nodes.iter().collect(), StrongContext::new(bindings));
+        let (.., ctx) = super::partial_infer_types(
+            nodes.iter().collect(),
+            StrongContext::new(FragmentMap::new(), bindings),
+        );
 
         assert_eq!(
             ctx.refs,
@@ -271,8 +306,10 @@ mod tests {
             ),
         ]);
 
-        let (.., ctx) =
-            super::partial_infer_types(nodes.iter().collect(), StrongContext::new(bindings));
+        let (.., ctx) = super::partial_infer_types(
+            nodes.iter().collect(),
+            StrongContext::new(FragmentMap::new(), bindings),
+        );
 
         assert_eq!(
             ctx.refs,
@@ -360,8 +397,10 @@ mod tests {
             ),
         ]);
 
-        let (.., ctx) =
-            super::partial_infer_types(nodes.iter().collect(), StrongContext::new(bindings));
+        let (.., ctx) = super::partial_infer_types(
+            nodes.iter().collect(),
+            StrongContext::new(FragmentMap::new(), bindings),
+        );
 
         assert_eq!(
             ctx.refs,
