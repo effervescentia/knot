@@ -41,7 +41,7 @@ pub fn w_ctx_from(
     bindings: Vec<((Vec<usize>, String), BTreeSet<usize>)>,
 ) -> WeakContext {
     let mut ctx = WeakContext::new(file.fragments);
-    ctx.weak_refs.extend(weak_refs);
+    ctx.refs.extend(weak_refs);
     ctx.bindings.0.extend(bindings);
     ctx
 }

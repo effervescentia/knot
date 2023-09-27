@@ -85,7 +85,7 @@ where
         }
     }
 
-    lexeme(recurse(glyph.chars().collect::<Vec<char>>()).with(value(glyph)))
+    lexeme(recurse(glyph.chars().collect()).with(value(glyph)))
 }
 
 pub fn keyword<T>(keyword: &'static str) -> impl Parser<T, Output = (&'static str, Range<T>)>
@@ -107,7 +107,7 @@ where
         many::<Vec<_>, _, _>(p::alpha_num().or(p::char('_'))).map(move |mut rest| {
             let mut result = vec![first];
             result.append(&mut rest);
-            result.into_iter().collect::<String>()
+            result.into_iter().collect()
         })
     }))
 }

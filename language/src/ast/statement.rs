@@ -5,7 +5,7 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Statement<E> {
     Expression(E),
     Variable(String, E),

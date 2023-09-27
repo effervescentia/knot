@@ -20,7 +20,7 @@ pub fn infer_types<'a>(file_ctx: FileContext) -> WeakContext {
     let mut ctx = WeakContext::new(file_ctx.fragments);
 
     ctx.fragments.0.iter().for_each(|(id, (scope, x))| {
-        ctx.weak_refs.insert(*id, x.to_weak());
+        ctx.refs.insert(*id, x.to_weak());
 
         if let Some(name) = x.to_binding() {
             let entry = ctx
@@ -59,7 +59,7 @@ mod tests {
         let result = super::infer_types(file_ctx);
 
         assert_eq!(
-            result.weak_refs,
+            result.refs,
             HashMap::from_iter(vec![(1, (RefKind::Type, Weak::Inherit(0)))])
         );
 
@@ -141,7 +141,7 @@ mod tests {
         let result = super::infer_types(file_ctx);
 
         assert_eq!(
-            result.weak_refs,
+            result.refs,
             HashMap::from_iter(vec![
                 (0, (RefKind::Value, Weak::Type(Type::Nil))),
                 (1, (RefKind::Value, Weak::Inherit(0))),
@@ -192,10 +192,10 @@ mod tests {
             ),
         ]);
 
-        let mut result = super::infer_types(file_ctx);
+        let result = super::infer_types(file_ctx);
 
         assert_eq!(
-            result.weak_refs,
+            result.refs,
             HashMap::from_iter(vec![
                 (1, (RefKind::Type, Weak::Inherit(0))),
                 (3, (RefKind::Type, Weak::Inherit(2))),

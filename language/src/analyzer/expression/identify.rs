@@ -19,11 +19,7 @@ where
             Self::Closure(xs) => {
                 let child_ctx = ctx.child();
 
-                Expression::Closure(
-                    xs.iter()
-                        .map(|x| x.register(&child_ctx))
-                        .collect::<Vec<_>>(),
-                )
+                Expression::Closure(xs.iter().map(|x| x.register(&child_ctx)).collect())
             }
 
             _ => self.map(

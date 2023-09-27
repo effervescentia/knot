@@ -1,6 +1,6 @@
 mod fragment;
 mod identify;
-mod strong;
+pub mod strong;
 mod weak;
 
 use crate::{

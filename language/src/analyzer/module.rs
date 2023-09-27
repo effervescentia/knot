@@ -75,7 +75,7 @@ where
     fn to_strong(&self, ctx: &'a StrongContext) -> ModuleNode<T, Strong> {
         ModuleNode(
             self.0.map(&|x| x.to_strong(ctx)),
-            ctx.get_strong_or_fail(self.id()).clone(),
+            ctx.resolve(self.id()).clone(),
         )
     }
 }

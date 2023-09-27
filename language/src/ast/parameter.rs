@@ -5,7 +5,7 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Parameter<E, T> {
     pub name: String,
     pub value_type: Option<T>,

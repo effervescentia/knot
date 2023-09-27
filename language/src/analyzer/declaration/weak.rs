@@ -35,10 +35,7 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
 
             Declaration::View {
                 parameters, body, ..
-            } => (
-                RefKind::Value,
-                Weak::Type(Type::View(parameters.clone(), *body)),
-            ),
+            } => (RefKind::Value, Weak::Type(Type::View(parameters.clone()))),
 
             Declaration::Module { .. } => (RefKind::Mixed, Weak::Infer),
         }
@@ -110,7 +107,7 @@ mod tests {
     fn view() {
         assert_eq!(
             f::a::view("Foo", vec![0, 1], 2).to_weak(),
-            (RefKind::Value, Weak::Type(Type::View(vec![0, 1], 2)))
+            (RefKind::Value, Weak::Type(Type::View(vec![0, 1])))
         );
     }
 

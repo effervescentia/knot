@@ -32,7 +32,7 @@ impl<T> TypeExpression<T> {
             Self::Group(x) => TypeExpression::Group(Box::new(ft(x))),
             Self::DotAccess(lhs, rhs) => TypeExpression::DotAccess(Box::new(ft(lhs)), rhs.clone()),
             Self::Function(parameters, x) => TypeExpression::Function(
-                parameters.iter().map(|x| ft(x)).collect::<Vec<_>>(),
+                parameters.iter().map(|x| ft(x)).collect(),
                 Box::new(ft(x)),
             ),
         }

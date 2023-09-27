@@ -3,7 +3,7 @@ use crate::{ast::declaration::DeclarationNode, common::position::Decrement};
 use combine::Stream;
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Module<D> {
     pub imports: Vec<Import>,
     pub declarations: Vec<D>,
@@ -20,7 +20,7 @@ impl<D> Module<D> {
     pub fn map<D2>(&self, fd: &impl Fn(&D) -> D2) -> Module<D2> {
         Module {
             imports: self.imports.clone(),
-            declarations: self.declarations.iter().map(fd).collect::<Vec<_>>(),
+            declarations: self.declarations.iter().map(fd).collect(),
         }
     }
 }

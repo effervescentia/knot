@@ -1,14 +1,14 @@
 use super::{
     fragment::Fragment,
     infer::{
-        strong::{Strong, StrongRef},
+        strong::{SemanticError, Strong, StrongRef},
         weak::{Weak, WeakRef},
     },
     register::ToFragment,
-    RefKind,
+    FinalType, PreviewType, RefKind,
 };
 use std::{
-    cell::RefCell,
+    cell::{Cell, RefCell},
     collections::{BTreeMap, BTreeSet, HashMap},
 };
 
@@ -120,7 +120,7 @@ pub struct WeakContext {
 
     pub bindings: BindingMap,
 
-    pub weak_refs: HashMap<usize, WeakRef>,
+    pub refs: HashMap<usize, WeakRef>,
 }
 
 impl WeakContext {
@@ -128,7 +128,7 @@ impl WeakContext {
         Self {
             fragments,
             bindings: BindingMap(HashMap::new()),
-            weak_refs: HashMap::new(),
+            refs: HashMap::new(),
         }
     }
 }
@@ -137,21 +137,59 @@ impl WeakContext {
 pub struct StrongContext {
     pub bindings: BindingMap,
 
-    pub strong_refs: HashMap<usize, StrongRef>,
+    pub refs: HashMap<usize, StrongRef>,
 }
 
 impl StrongContext {
     pub fn new(bindings: BindingMap) -> Self {
         Self {
             bindings,
-            strong_refs: HashMap::new(),
+            refs: HashMap::new(),
         }
     }
 
-    pub fn get_strong_or_fail(&self, id: &usize) -> &Strong {
-        match self.strong_refs.get(id) {
+    pub fn get_strong<'a>(&'a self, id: &'a usize, kind: &'a RefKind) -> Option<&'a Strong> {
+        self.refs.get(id).and_then(|(found_kind, strong)| {
+            if found_kind == kind || found_kind == &RefKind::Mixed {
+                Some(strong)
+            } else {
+                None
+            }
+        })
+    }
+
+    // pub fn get_preview<'a>(
+    //     strong_refs: Cell<HashMap<usize, StrongRef>>,
+    //     id: &'a usize,
+    //     kind: &'a RefKind,
+    // ) -> Option<PreviewType> {
+    //     pub fn resolve(
+    //         id: &usize,
+    //         get_strong: &impl Fn(&usize) -> Option<&Strong>,
+    //     ) -> Option<PreviewType> {
+    //         match get_strong(id) {
+    //             Some(Ok(x)) => x.preview(&|id| get_strong(id)),
+    //             _ => None,
+    //         }
+    //     }
+
+    //     resolve(id, &|x| Self::get_strong(strong_refs, x, kind))
+    // }
+
+    pub fn resolve(&self, id: &usize) -> &Strong {
+        match self.refs.get(id) {
             Some((_, x)) => x,
             None => unreachable!("all nodes should have a corresponding strong ref"),
+        }
+    }
+
+    pub fn inherit(&mut self, node: &NodeDescriptor, from_id: usize) -> bool {
+        if let Some(strong) = self.get_strong(&from_id, &node.kind) {
+            self.refs
+                .insert(node.id, (node.kind.clone(), strong.clone()));
+            true
+        } else {
+            false
         }
     }
 }
@@ -184,7 +222,7 @@ impl FragmentMap {
                 }),
                 _ => None,
             })
-            .collect::<Vec<_>>()
+            .collect()
     }
 }
 
@@ -220,7 +258,7 @@ impl BindingMap {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct NodeDescriptor {
     pub id: usize,
     pub kind: RefKind,

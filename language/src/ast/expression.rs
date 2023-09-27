@@ -16,7 +16,7 @@ pub enum Primitive {
     String(String),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expression<E, S, K> {
     Primitive(Primitive),
     Identifier(String),
@@ -44,7 +44,7 @@ impl<E, S, K> Expression<E, S, K> {
 
             Self::Group(x) => Expression::Group(Box::new(fe(x))),
 
-            Self::Closure(xs) => Expression::Closure(xs.iter().map(fs).collect::<Vec<_>>()),
+            Self::Closure(xs) => Expression::Closure(xs.iter().map(fs).collect()),
 
             Self::UnaryOperation(op, x) => Expression::UnaryOperation(op.clone(), Box::new(fe(x))),
 
@@ -54,14 +54,14 @@ impl<E, S, K> Expression<E, S, K> {
 
             Self::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(fe(lhs)), rhs.clone()),
 
-            Self::FunctionCall(x, xs) => {
-                Expression::FunctionCall(Box::new(fe(x)), xs.iter().map(fe).collect::<Vec<_>>())
+            Self::FunctionCall(lhs, arguments) => {
+                Expression::FunctionCall(Box::new(fe(lhs)), arguments.iter().map(fe).collect())
             }
 
             Self::Style(xs) => Expression::Style(
                 xs.iter()
                     .map(|(key, value)| (key.clone(), fe(value)))
-                    .collect::<Vec<_>>(),
+                    .collect(),
             ),
 
             Self::KSX(x) => Expression::KSX(Box::new(fk(x))),

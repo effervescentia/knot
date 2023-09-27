@@ -4,7 +4,7 @@ use std::fmt::Debug;
 
 use super::expression::ExpressionNode;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum KSX<E, K> {
     Fragment(Vec<K>),
     OpenElement(String, Vec<(String, Option<E>)>, Vec<K>, String),
@@ -24,13 +24,13 @@ impl<E, K> KSX<E, K> {
 
             Self::Inline(x) => KSX::Inline(fe(x)),
 
-            Self::Fragment(xs) => KSX::Fragment(xs.iter().map(fk).collect::<Vec<_>>()),
+            Self::Fragment(xs) => KSX::Fragment(xs.iter().map(fk).collect()),
 
             Self::ClosedElement(tag, xs) => KSX::ClosedElement(
                 tag.clone(),
                 xs.iter()
                     .map(|(key, value)| (key.clone(), value.as_ref().map(|x| fe(x))))
-                    .collect::<Vec<_>>(),
+                    .collect(),
             ),
 
             Self::OpenElement(start_tag, attributes, children, end_tag) => KSX::OpenElement(
@@ -38,8 +38,8 @@ impl<E, K> KSX<E, K> {
                 attributes
                     .iter()
                     .map(|(key, value)| (key.clone(), value.as_ref().map(|x| fe(x))))
-                    .collect::<Vec<_>>(),
-                children.iter().map(fk).collect::<Vec<_>>(),
+                    .collect(),
+                children.iter().map(fk).collect(),
                 end_tag.clone(),
             ),
         }

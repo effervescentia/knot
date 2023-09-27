@@ -5,7 +5,7 @@ use crate::ast::{
 };
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Fragment {
     Expression(Expression<usize, usize, usize>),
     Statement(Statement<usize>),

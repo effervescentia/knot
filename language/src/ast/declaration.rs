@@ -6,7 +6,7 @@ use crate::common::{node::Node, position::Decrement, range::Range};
 use combine::Stream;
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Declaration<E, P, M, T> {
     TypeAlias {
         name: Storage,
@@ -56,10 +56,8 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
                 name: name.clone(),
                 variants: variants
                     .iter()
-                    .map(|(name, parameters)| {
-                        (name.clone(), parameters.iter().map(ft).collect::<Vec<_>>())
-                    })
-                    .collect::<Vec<_>>(),
+                    .map(|(name, parameters)| (name.clone(), parameters.iter().map(ft).collect()))
+                    .collect(),
             },
 
             Self::Constant {
@@ -79,7 +77,7 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
                 body,
             } => Declaration::Function {
                 name: name.clone(),
-                parameters: parameters.iter().map(fp).collect::<Vec<_>>(),
+                parameters: parameters.iter().map(fp).collect(),
                 body_type: body_type.as_ref().map(ft),
                 body: fe(body),
             },
@@ -90,7 +88,7 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
                 body,
             } => Declaration::View {
                 name: name.clone(),
-                parameters: parameters.iter().map(fp).collect::<Vec<_>>(),
+                parameters: parameters.iter().map(fp).collect(),
                 body: fe(body),
             },
 

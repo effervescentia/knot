@@ -9,30 +9,23 @@ mod parameter;
 mod register;
 mod statement;
 mod type_expression;
+mod types;
 
 use crate::{ast::module::ModuleNode, common::position::Decrement};
 use combine::Stream;
-use context::{FileContext, NodeContext, ScopeContext};
+use context::{FileContext, NodeContext, ScopeContext, WeakContext};
 use infer::strong::{Strong, ToStrong};
 use register::Register;
 use std::{cell::RefCell, fmt::Debug};
+use types::Type;
 
-use self::context::WeakContext;
+use self::infer::strong::SemanticError;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Type<T> {
-    Nil,
-    Boolean,
-    Integer,
-    Float,
-    String,
-    Style,
-    Element,
-    Enumerated(Vec<(String, Vec<T>)>),
-    Function(Vec<T>, T),
-    View(Vec<T>, T),
-    Module(Vec<(String, RefKind, T)>),
-}
+pub struct FinalType(Result<Type<Box<FinalType>>, SemanticError>);
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PreviewType(Type<Box<PreviewType>>);
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RefKind {
@@ -64,7 +57,7 @@ where
     let WeakContext {
         bindings,
         fragments,
-        weak_refs,
+        refs: weak_refs,
     } = infer::weak::infer_types(file_ctx);
 
     // apply strong type inference

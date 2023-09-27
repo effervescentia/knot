@@ -20,7 +20,7 @@ where
                 .value()
                 .map(&|x| x.to_strong(ctx), &|x| x.to_strong(ctx)),
             self.node().range().clone(),
-            ctx.get_strong_or_fail(self.node().id()).clone(),
+            ctx.resolve(self.node().id()).clone(),
         ))
     }
 }
