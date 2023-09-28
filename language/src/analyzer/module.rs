@@ -2,18 +2,14 @@ use super::{
     context::{NodeContext, StrongContext},
     fragment::Fragment,
     infer::{
-        strong::ToStrong,
+        strong::{Strong, ToStrong},
         weak::{ToWeak, Weak, WeakRef},
     },
     register::{Identify, Register, ToFragment},
-    types::Type,
-    RefKind, ScopeContext, Strong,
+    RefKind, ScopeContext,
 };
 use crate::{
-    ast::{
-        declaration::Declaration,
-        module::{self, Module, ModuleNode},
-    },
+    ast::module::{self, Module, ModuleNode},
     common::position::Decrement,
 };
 use combine::Stream;
@@ -84,33 +80,6 @@ where
     }
 }
 
-pub fn infer_module(declarations: &Vec<usize>, ctx: &mut StrongContext) -> Option<Strong> {
-    let typed_declarations = declarations
-        .iter()
-        .map(|x| match ctx.fragments.0.get(x)? {
-            (
-                _,
-                Fragment::Declaration(
-                    Declaration::TypeAlias { name, .. }
-                    | Declaration::Enumerated { name, .. }
-                    | Declaration::Constant { name, .. }
-                    | Declaration::Function { name, .. }
-                    | Declaration::View { name, .. }
-                    | Declaration::Module { name, .. },
-                ),
-            ) => {
-                let (kind, _) = ctx.refs.get(x)?;
-
-                Some((name.1.clone(), kind.clone(), *x))
-            }
-
-            _ => None,
-        })
-        .collect::<Option<Vec<_>>>()?;
-
-    Some(Ok(Type::Module(typed_declarations)))
-}
-
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -130,8 +99,8 @@ mod tests {
 
     #[test]
     fn module() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::mr(Module::new(

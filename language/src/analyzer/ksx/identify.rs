@@ -34,8 +34,8 @@ mod tests {
 
     #[test]
     fn text() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::<ExpressionNode<CharStream<'static>, ()>, KSXNode<CharStream<'static>, ()>>::Text(
@@ -48,8 +48,8 @@ mod tests {
 
     #[test]
     fn inline() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::Inline(f::n::x(Expression::Primitive(Primitive::Nil))).identify(scope),
@@ -62,8 +62,8 @@ mod tests {
 
     #[test]
     fn fragment() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::Fragment(vec![f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(
@@ -82,8 +82,8 @@ mod tests {
 
     #[test]
     fn closed_element() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::ClosedElement(
@@ -115,8 +115,8 @@ mod tests {
 
     #[test]
     fn open_element() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::OpenElement(

@@ -1,10 +1,14 @@
+mod binary_operation;
+mod dot_access;
+mod function_call;
+mod identifier;
+mod module;
+
 use super::weak::Weak;
 use crate::{
     analyzer::{
         context::{BindingMap, FragmentMap, NodeDescriptor, StrongContext},
-        expression::strong::{infer_binary_operation, infer_dot_access, infer_function_call},
         fragment::Fragment,
-        module::infer_module,
         RefKind, Type,
     },
     ast::{expression::Expression, module::Module, type_expression::TypeExpression},
@@ -37,7 +41,10 @@ pub enum SemanticError {
     NotCallable(Type<usize>, usize),
     MissingArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
     UnexpectedArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
-    InvalidArguments(Vec<((Type<usize>, usize), (Type<usize>, usize))>),
+    InvalidArguments(
+        (Type<usize>, usize),
+        Vec<((Type<usize>, usize), (Type<usize>, usize))>,
+    ),
 }
 
 pub type Strong = Result<Type<usize>, SemanticError>;
@@ -91,19 +98,12 @@ fn partial_infer_types<'a>(
             kind: kind @ RefKind::Value,
             fragment: Fragment::Expression(Expression::Identifier(name)),
             weak: Weak::Infer,
-        } => match ctx.bindings.resolve(scope, name, *id) {
-            Some(inherit_id) => {
-                if !ctx.inherit(&node, inherit_id) {
-                    unhandled.push(node)
-                }
+        } => match identifier::infer(scope, id, name, kind, &ctx) {
+            Some(x) => {
+                ctx.refs.insert(*id, (kind.clone(), x));
             }
 
-            None => {
-                ctx.refs.insert(
-                    *id,
-                    ((*kind).clone(), Err(SemanticError::NotFound(name.clone()))),
-                );
-            }
+            None => unhandled.push(node),
         },
 
         NodeDescriptor {
@@ -112,7 +112,7 @@ fn partial_infer_types<'a>(
             fragment: Fragment::Expression(Expression::BinaryOperation(op, lhs, rhs)),
             weak: Weak::Infer,
             ..
-        } => match infer_binary_operation(op, **lhs, **rhs, &mut ctx) {
+        } => match binary_operation::infer(op, **lhs, **rhs, &ctx) {
             Some(x) => {
                 ctx.refs.insert(*id, (RefKind::Value, x));
             }
@@ -133,7 +133,7 @@ fn partial_infer_types<'a>(
             fragment: Fragment::Expression(Expression::DotAccess(lhs, rhs)),
             weak: Weak::Infer,
             ..
-        } => match infer_dot_access(**lhs, rhs.clone(), &mut ctx) {
+        } => match dot_access::infer(**lhs, rhs.clone(), kind, &ctx) {
             Some(x) => {
                 ctx.refs.insert(*id, (kind.clone(), x));
             }
@@ -147,7 +147,7 @@ fn partial_infer_types<'a>(
             fragment: Fragment::Expression(Expression::FunctionCall(lhs, arguments)),
             weak: Weak::Infer,
             ..
-        } => match infer_function_call(**lhs, arguments, &mut ctx) {
+        } => match function_call::infer(**lhs, arguments, &ctx) {
             Some(x) => {
                 ctx.refs.insert(*id, (RefKind::Value, x));
             }
@@ -161,7 +161,7 @@ fn partial_infer_types<'a>(
             fragment: Fragment::Module(Module { declarations, .. }),
             weak: Weak::Infer,
             ..
-        } => match infer_module(declarations, &mut ctx) {
+        } => match module::infer(declarations, &ctx) {
             Some(x) => {
                 ctx.refs.insert(*id, (RefKind::Value, x));
             }

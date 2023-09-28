@@ -33,8 +33,8 @@ mod tests {
 
     #[test]
     fn parameter() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Parameter::new(

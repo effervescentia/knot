@@ -32,8 +32,8 @@ mod tests {
 
     #[test]
     fn expression() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Statement::Expression(f::n::x(Expression::Primitive(Primitive::Nil))).identify(scope),
@@ -46,8 +46,8 @@ mod tests {
 
     #[test]
     fn variable() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Statement::Variable(

@@ -51,8 +51,8 @@ mod tests {
 
     #[test]
     fn register_declaration() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::d(f::a::func_(
@@ -141,8 +141,8 @@ mod tests {
 
     #[test]
     fn register_module() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::d(f::a::mod_(

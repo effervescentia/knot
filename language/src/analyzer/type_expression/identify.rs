@@ -30,8 +30,8 @@ mod tests {
 
     #[test]
     fn primitive() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             TypeExpression::<TypeExpressionNode<CharStream<'static>, ()>>::Nil.identify(scope),
@@ -41,8 +41,8 @@ mod tests {
 
     #[test]
     fn identifier() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             TypeExpression::<TypeExpressionNode<CharStream<'static>, ()>>::Identifier(
@@ -55,8 +55,8 @@ mod tests {
 
     #[test]
     fn group() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             TypeExpression::Group(Box::new(f::n::tx(TypeExpression::Nil))).identify(scope),
@@ -69,8 +69,8 @@ mod tests {
 
     #[test]
     fn dot_access() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             TypeExpression::DotAccess(
@@ -87,8 +87,8 @@ mod tests {
 
     #[test]
     fn function() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             TypeExpression::Function(

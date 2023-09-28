@@ -51,7 +51,7 @@ mod tests {
 
     #[test]
     fn infer_types() {
-        let file_ctx = f::f_ctx_from(vec![(
+        let file_ctx = f::file_ctx_from(vec![(
             1,
             (vec![0], Fragment::Declaration(f::a::type_("MyType", 0))),
         )]);
@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn type_inheritance() {
-        let file_ctx = f::f_ctx_from(vec![
+        let file_ctx = f::file_ctx_from(vec![
             (
                 0,
                 (
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn duplicate_bindings() {
-        let file_ctx = f::f_ctx_from(vec![
+        let file_ctx = f::file_ctx_from(vec![
             (
                 1,
                 (vec![0], Fragment::Declaration(f::a::type_("MyType", 0))),

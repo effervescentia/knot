@@ -47,8 +47,8 @@ mod tests {
 
     #[test]
     fn primitive() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::<
@@ -63,8 +63,8 @@ mod tests {
 
     #[test]
     fn identifier() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::<
@@ -79,8 +79,8 @@ mod tests {
 
     #[test]
     fn group() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::Group(Box::new(f::n::x(Expression::Primitive(Primitive::Nil))))
@@ -94,8 +94,8 @@ mod tests {
 
     #[test]
     fn closure() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::Closure(vec![
@@ -132,8 +132,8 @@ mod tests {
 
     #[test]
     fn unary_operation() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::UnaryOperation(
@@ -153,8 +153,8 @@ mod tests {
 
     #[test]
     fn binary_operation() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::BinaryOperation(
@@ -179,8 +179,8 @@ mod tests {
 
     #[test]
     fn dot_access() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::DotAccess(
@@ -200,8 +200,8 @@ mod tests {
 
     #[test]
     fn function_call() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::FunctionCall(
@@ -233,8 +233,8 @@ mod tests {
 
     #[test]
     fn style() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::Style(vec![
@@ -269,8 +269,8 @@ mod tests {
 
     #[test]
     fn ksx() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::KSX(Box::new(f::n::kx(KSX::Text(String::from("foo"))))).identify(scope),

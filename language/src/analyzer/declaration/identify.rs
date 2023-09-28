@@ -41,8 +41,8 @@ mod tests {
 
     #[test]
     fn type_alias() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::a::type_("Foo", f::n::tx(TypeExpression::Nil)).identify(scope),
@@ -55,8 +55,8 @@ mod tests {
 
     #[test]
     fn enumerated() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::a::enum_(
@@ -76,8 +76,8 @@ mod tests {
 
     #[test]
     fn constant() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::a::const_(
@@ -99,8 +99,8 @@ mod tests {
 
     #[test]
     fn function() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::a::func_(
@@ -138,8 +138,8 @@ mod tests {
 
     #[test]
     fn view() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::a::view(
@@ -175,8 +175,8 @@ mod tests {
 
     #[test]
     fn module() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::a::mod_(

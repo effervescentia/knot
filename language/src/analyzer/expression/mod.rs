@@ -48,8 +48,8 @@ mod tests {
 
     #[test]
     fn register_closure() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::x(Expression::Closure(vec![
@@ -127,8 +127,8 @@ mod tests {
 
     #[test]
     fn register_ksx() {
-        let file = &f::f_ctx();
-        let scope = &mut f::s_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::x(Expression::KSX(Box::new(f::n::kx(KSX::Text(

@@ -1,8 +1,8 @@
 use crate::{
     analyzer::{
-        context::{FileContext, ScopeContext, WeakContext},
-        fragment::Fragment,
-        infer::weak::WeakRef,
+        context::{BindingMap, FileContext, FragmentMap, ScopeContext, StrongContext, WeakContext},
+        fragment::{self, Fragment},
+        infer::{strong::StrongRef, weak::WeakRef},
     },
     ast::{
         declaration::{Declaration, DeclarationNode},
@@ -15,34 +15,39 @@ use crate::{
     common::{node::Node, range::Range},
     parser::CharStream,
 };
-use std::{cell::RefCell, collections::BTreeSet};
+use std::{
+    cell::RefCell,
+    collections::{BTreeMap, BTreeSet, HashMap},
+};
 
 const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
 
 type InitRange = ((i32, i32), (i32, i32));
 
-pub fn f_ctx() -> RefCell<FileContext> {
+pub fn file_ctx() -> RefCell<FileContext> {
     RefCell::new(FileContext::new())
 }
 
-pub fn f_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> FileContext {
-    let ctx = f_ctx();
+pub fn file_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> FileContext {
+    let ctx = file_ctx();
     ctx.borrow_mut().fragments.0.extend(xs);
     ctx.into_inner()
 }
 
-pub fn s_ctx<'a>(file_ctx: &'a RefCell<FileContext>) -> ScopeContext<'a> {
+pub fn scope_ctx<'a>(file_ctx: &'a RefCell<FileContext>) -> ScopeContext<'a> {
     ScopeContext::new(file_ctx)
 }
 
-pub fn w_ctx_from(
-    file: FileContext,
-    weak_refs: Vec<(usize, WeakRef)>,
+pub fn strong_ctx_from(
+    fragments: Vec<(usize, (Vec<usize>, Fragment))>,
+    refs: Vec<(usize, StrongRef)>,
     bindings: Vec<((Vec<usize>, String), BTreeSet<usize>)>,
-) -> WeakContext {
-    let mut ctx = WeakContext::new(file.fragments);
-    ctx.refs.extend(weak_refs);
-    ctx.bindings.0.extend(bindings);
+) -> StrongContext {
+    let mut ctx = StrongContext::new(
+        FragmentMap(BTreeMap::from_iter(fragments)),
+        BindingMap(HashMap::from_iter(bindings)),
+    );
+    ctx.refs.extend(refs);
     ctx
 }
 
