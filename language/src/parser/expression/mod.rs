@@ -264,7 +264,7 @@ mod tests {
         assert_eq!(
             parse("123.456").unwrap().0,
             f::n::xr(
-                Expression::Primitive(Primitive::Float(123.456, 6)),
+                Expression::Primitive(Primitive::Float(123.456, 3)),
                 ((1, 1), (1, 7))
             )
         );

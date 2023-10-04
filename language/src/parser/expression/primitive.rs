@@ -42,10 +42,7 @@ where
         } else {
             let float = format!("{}.{}", integer, fraction);
 
-            Primitive::Float(
-                float.parse::<f64>().unwrap(),
-                (integer.len() + fraction.len()) as i32,
-            )
+            Primitive::Float(float.parse::<f64>().unwrap(), fraction.len() as i32)
         }
     })
 }
@@ -96,7 +93,7 @@ mod tests {
 
     #[test]
     fn float() {
-        assert_eq!(parse("123.456").unwrap().0, Primitive::Float(123.456, 6));
+        assert_eq!(parse("123.456").unwrap().0, Primitive::Float(123.456, 3));
     }
 
     #[test]
