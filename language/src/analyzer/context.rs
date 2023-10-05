@@ -169,14 +169,21 @@ impl StrongContext {
         }
     }
 
-    pub fn inherit(&mut self, node: &NodeDescriptor, from_id: usize) -> bool {
-        if let Some(strong) = self.get_strong(&from_id, &node.kind) {
-            self.refs
-                .insert(node.id, (node.kind.clone(), strong.clone()));
+    pub fn inherit_as(
+        &mut self,
+        (from_id, from_kind): (usize, &RefKind),
+        (to_id, to_kind): (usize, &RefKind),
+    ) -> bool {
+        if let Some(strong) = self.get_strong(&from_id, from_kind) {
+            self.refs.insert(to_id, (to_kind.clone(), strong.clone()));
             true
         } else {
             false
         }
+    }
+
+    pub fn inherit(&mut self, node: &NodeDescriptor, from_id: usize) -> bool {
+        self.inherit_as((from_id, &node.kind), (node.id, &node.kind))
     }
 }
 

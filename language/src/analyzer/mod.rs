@@ -481,10 +481,10 @@ mod tests {
                                 None,
                                 f::n::xc(Expression::Primitive(Primitive::Nil), Ok(Type::Nil))
                             ),
-                            Ok(Type::Function(vec![2, 3], 4))
+                            Ok(Type::Function(vec![2], 3))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
+                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 4)]))
                 )
             );
         }
@@ -861,10 +861,10 @@ mod tests {
                                 )],
                                 f::n::xc(Expression::Primitive(Primitive::Nil), Ok(Type::Nil))
                             ),
-                            Ok(Type::View(vec![2, 3]))
+                            Ok(Type::View(vec![2]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
+                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 4)]))
                 )
             );
         }
@@ -997,7 +997,6 @@ mod tests {
         use super::*;
         use crate::ast::{
             expression::{Expression, Primitive},
-            parameter::Parameter,
             type_expression::TypeExpression,
         };
 
@@ -1024,7 +1023,7 @@ mod tests {
                             Ok(Type::Module(vec![]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 0)]))
+                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 1)]))
                 )
             );
         }

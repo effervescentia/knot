@@ -11,7 +11,10 @@ use crate::{
         fragment::Fragment,
         RefKind, Type,
     },
-    ast::{expression::Expression, module::Module, type_expression::TypeExpression},
+    ast::{
+        declaration::Declaration, expression::Expression, module::Module, parameter::Parameter,
+        type_expression::TypeExpression,
+    },
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -74,6 +77,24 @@ fn partial_infer_types<'a>(
             ..
         } => {
             ctx.refs.insert(*id, ((*kind).clone(), Ok(x.clone())));
+        }
+
+        NodeDescriptor {
+            weak: Weak::Inherit(inherit_id),
+            fragment:
+                Fragment::Declaration(Declaration::Constant {
+                    value_type: Some(_),
+                    ..
+                })
+                | Fragment::Parameter(Parameter {
+                    value_type: Some(_),
+                    ..
+                }),
+            ..
+        } => {
+            if !ctx.inherit_as((*inherit_id, &RefKind::Type), (node.id, &node.kind)) {
+                unhandled.push(node);
+            }
         }
 
         NodeDescriptor {
@@ -157,13 +178,13 @@ fn partial_infer_types<'a>(
 
         NodeDescriptor {
             id,
-            kind: RefKind::Mixed,
+            kind: kind @ RefKind::Mixed,
             fragment: Fragment::Module(Module { declarations, .. }),
             weak: Weak::Infer,
             ..
         } => match module::infer(declarations, &ctx) {
             Some(x) => {
-                ctx.refs.insert(*id, (RefKind::Value, x));
+                ctx.refs.insert(*id, (kind.clone(), x));
             }
 
             None => unhandled.push(node),
@@ -198,7 +219,7 @@ pub fn infer_types<'a>(
         if next_unhandled.is_empty() {
             return next_ctx;
         } else if next_unhandled.len() == unhandled_length {
-            panic!("analysis failed to determine all types")
+            panic!("analysis failed to determine all types: {next_unhandled:?}");
         } else {
             unhandled = next_unhandled;
             ctx = next_ctx;
