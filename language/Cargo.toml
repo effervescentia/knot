@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 combine = "4.6.6"
+indenter = { version = "0.3.3", features = ["std"] }

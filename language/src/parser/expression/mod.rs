@@ -228,10 +228,10 @@ mod tests {
         parser::{CharStream, ParseResult},
         test::fixture as f,
     };
-    use combine::{stream::position::Stream, EasyParser};
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
     fn parse(s: &str) -> ParseResult<ExpressionNode<CharStream, ()>> {
-        super::expression().easy_parse(Stream::new(s))
+        super::expression().skip(eof()).easy_parse(Stream::new(s))
     }
 
     #[test]

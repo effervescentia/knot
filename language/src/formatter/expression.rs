@@ -1,10 +1,10 @@
-use super::{SeparatedBy, Statements};
+use super::{indented, Block, Indented, SeparateEach, TerminateEach};
 use crate::{
     ast::expression::{Expression, ExpressionNode, Primitive},
     common::position::Decrement,
 };
 use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, Write};
 
 impl<T, C> Display for ExpressionNode<T, C>
 where
@@ -32,7 +32,13 @@ where
 
             Expression::Group(x) => write!(f, "({x})"),
 
-            Expression::Closure(xs) => write!(f, "{{{statements}}}", statements = Statements(xs)),
+            Expression::Closure(xs) => {
+                write!(
+                    f,
+                    "{{{statements}}}",
+                    statements = Indented(Block(TerminateEach("\n", xs)))
+                )
+            }
 
             Expression::UnaryOperation(op, x) => write!(f, "{op}{x}"),
 
@@ -44,7 +50,7 @@ where
                 write!(
                     f,
                     "{lhs}({arguments})",
-                    arguments = SeparatedBy(", ", arguments)
+                    arguments = SeparateEach(", ", arguments)
                 )
             }
 
@@ -67,6 +73,8 @@ where
         if self.0.is_empty() {
             Ok(())
         } else {
+            let mut f = indented(f);
+
             self.0.iter().fold(write!(f, "\n"), |acc, (key, value)| {
                 acc.and_then(|_| write!(f, "{key}: {value},\n"))
             })
@@ -178,8 +186,8 @@ mod tests {
             ]))
             .to_string(),
             "{
-let x = nil;
-nil;
+  let x = nil;
+  nil;
 }"
         );
     }
@@ -396,8 +404,8 @@ nil;
             ]))
             .to_string(),
             "style {
-foo: nil,
-bar: nil,
+  foo: nil,
+  bar: nil,
 }"
         );
     }

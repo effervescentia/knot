@@ -39,10 +39,10 @@ mod tests {
         parser::{CharStream, ParseResult},
         test::fixture as f,
     };
-    use combine::{stream::position::Stream, EasyParser};
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
     fn parse(s: &str) -> ParseResult<DeclarationNode<CharStream, ()>> {
-        super::declaration().easy_parse(Stream::new(s))
+        super::declaration().skip(eof()).easy_parse(Stream::new(s))
     }
 
     #[test]
@@ -209,7 +209,7 @@ mod tests {
         assert_eq!(
             parse("module foo {}").unwrap().0,
             f::n::dr(
-                f::a::mod_("foo", f::n::mr(Module::new(vec![], vec![]))),
+                f::a::module("foo", f::n::mr(Module::new(vec![], vec![]))),
                 ((1, 1), (1, 13))
             )
         );
@@ -220,7 +220,7 @@ mod tests {
         assert_eq!(
             parse("module foo { const bar = nil; }").unwrap().0,
             f::n::dr(
-                f::a::mod_(
+                f::a::module(
                     "foo",
                     f::n::mr(Module::new(
                         vec![],

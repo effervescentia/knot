@@ -1,11 +1,11 @@
-use super::Statements;
+use super::TerminateEach;
 use crate::{
     ast::{
         import::{Import, Source},
         module::ModuleNode,
     },
     common::position::Decrement,
-    formatter::SeparatedBy,
+    formatter::SeparateEach,
 };
 use combine::Stream;
 use std::fmt::{Debug, Display, Formatter};
@@ -16,16 +16,12 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        write!(f, "{imports}", imports = Statements(&self.0.imports))?;
-
-        if !self.0.imports.is_empty() && !self.0.declarations.is_empty() {
-            write!(f, "\n\n")?;
-        }
-
         write!(
             f,
-            "{declarations}",
-            declarations = Statements(&self.0.declarations)
+            "{imports}{spacer}{declarations}",
+            imports = TerminateEach(";\n", &self.0.imports),
+            spacer = if self.0.is_empty() { "" } else { "\n" },
+            declarations = TerminateEach("\n", &self.0.declarations)
         )
     }
 }
@@ -40,7 +36,7 @@ impl Display for Import {
                 Source::Local => ".",
                 Source::External(x) => x,
             },
-            path = SeparatedBy("/", &self.path)
+            path = SeparateEach("/", &self.path)
         )
     }
 }
@@ -59,8 +55,8 @@ mod tests {
     #[test]
     fn empty() {
         assert_eq!(
-            f::n::d(f::a::mod_("foo", f::n::mr(Module::new(vec![], vec![])))).to_string(),
-            "mod foo {}"
+            f::n::d(f::a::module("foo", f::n::mr(Module::new(vec![], vec![])))).to_string(),
+            "module foo {}"
         );
     }
 
@@ -76,8 +72,7 @@ mod tests {
                 vec![]
             ))
             .to_string(),
-            "
-use @/bar/fizz;
+            "use @/bar/fizz;
 "
         );
     }
@@ -90,7 +85,25 @@ use @/bar/fizz;
                 vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
             ))
             .to_string(),
-            "
+            "type bar = nil;
+"
+        );
+    }
+
+    #[test]
+    fn imports_and_declarations() {
+        assert_eq!(
+            f::n::mr(Module::new(
+                vec![Import::new(
+                    Source::Root,
+                    vec![String::from("bar"), String::from("fizz")],
+                    None
+                )],
+                vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
+            ))
+            .to_string(),
+            "use @/bar/fizz;
+
 type bar = nil;
 "
         );

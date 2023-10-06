@@ -12,8 +12,8 @@ where
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
-            Statement::Expression(x) => write!(f, "{x}"),
-            Statement::Variable(name, x) => write!(f, "let {name} = {x}"),
+            Statement::Expression(x) => write!(f, "{x};"),
+            Statement::Variable(name, x) => write!(f, "let {name} = {x};"),
         }
     }
 }
@@ -35,7 +35,7 @@ mod tests {
                 Primitive::Nil
             ))))
             .to_string(),
-            "nil"
+            "nil;"
         );
     }
 
@@ -47,7 +47,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "let x = nil"
+            "let x = nil;"
         );
     }
 }

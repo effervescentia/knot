@@ -1,10 +1,10 @@
-use super::SeparatedBy;
+use super::indented;
 use crate::{
     ast::ksx::{KSXNode, KSX},
     common::position::Decrement,
 };
 use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, Write};
 
 impl<T, C> Display for KSXNode<T, C>
 where
@@ -63,19 +63,71 @@ where
     }
 }
 
-struct Children<'a, T>(&'a Vec<T>)
+impl<T, C> KSXNode<T, C>
 where
-    T: Display;
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    pub fn is_inline(&self) -> bool {
+        match self.node().value() {
+            KSX::Text(_) | KSX::Inline(_) => true,
+            _ => false,
+        }
+    }
+}
 
-impl<'a, T> Display for Children<'a, T>
+struct Children<'a, T, C>(&'a Vec<KSXNode<T, C>>)
 where
-    T: Display,
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement;
+
+impl<'a, T, C> Display for Children<'a, T, C>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        if self.0.is_empty() {
+        fn format<'a, T, C, F>(
+            xs: &'a Vec<KSXNode<T, C>>,
+            mut f: F,
+            all_inline: bool,
+        ) -> std::fmt::Result
+        where
+            T: Stream<Token = char>,
+            T::Position: Copy + Debug + Decrement,
+            F: Write,
+        {
+            if all_inline {
+                for x in xs {
+                    write!(f, "{x}")?;
+                }
+            } else {
+                let mut prev_inline = None;
+
+                for x in xs {
+                    let next_inline = x.is_inline();
+
+                    match (prev_inline, next_inline) {
+                        (_, false) | (Some(false), true) | (None, _) => {
+                            prev_inline = Some(next_inline);
+                            write!(f, "\n")?;
+                        }
+                        _ => (),
+                    }
+
+                    write!(f, "{x}")?;
+                }
+
+                write!(f, "\n")?;
+            }
+
             Ok(())
+        }
+
+        if self.0.iter().all(|x| x.is_inline()) {
+            format(self.0, f, true)
         } else {
-            write!(f, "\n{}\n", SeparatedBy("\n", self.0))
+            format(self.0, indented(f), false)
         }
     }
 }
@@ -115,9 +167,7 @@ mod tests {
                 "foo"
             )))]))
             .to_string(),
-            "<>
-foo
-</>"
+            "<>foo</>"
         );
     }
 
@@ -191,9 +241,37 @@ foo
                 String::from("foo"),
             ))
             .to_string(),
+            "<foo>bar</foo>"
+        );
+    }
+
+    #[test]
+    fn element_children() {
+        assert_eq!(
+            f::n::kx(KSX::OpenElement(
+                String::from("foo"),
+                vec![],
+                vec![f::n::kx(KSX::ClosedElement(String::from("bar"), vec![],))],
+                String::from("foo"),
+            ))
+            .to_string(),
             "<foo>
-bar
+  <bar />
 </foo>"
+        );
+    }
+
+    #[test]
+    fn mixed_children() {
+        assert_eq!(
+            f::n::kx(KSX::OpenElement(
+                String::from("foo"),
+                vec![],
+                vec![f::n::kx(KSX::Text(String::from("bar")))],
+                String::from("foo"),
+            ))
+            .to_string(),
+            "<foo>bar</foo>"
         );
     }
 }

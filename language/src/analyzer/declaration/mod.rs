@@ -145,7 +145,7 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            f::n::d(f::a::mod_(
+            f::n::d(f::a::module(
                 "foo",
                 f::n::mr(Module::new(
                     vec![Import {
@@ -162,7 +162,7 @@ mod tests {
             ))
             .register(scope),
             f::n::dc(
-                f::a::mod_(
+                f::a::module(
                     "foo",
                     ModuleNode(
                         Module::new(
@@ -228,7 +228,7 @@ mod tests {
                         ))
                     )
                 ),
-                (4, (vec![0], Fragment::Declaration(f::a::mod_("foo", 3))))
+                (4, (vec![0], Fragment::Declaration(f::a::module("foo", 3))))
             ])
         );
     }

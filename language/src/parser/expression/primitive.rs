@@ -64,10 +64,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::{primitive, Primitive};
-    use combine::{error::StringStreamError, Parser};
+    use combine::{eof, error::StringStreamError, Parser};
 
     fn parse(s: &str) -> Result<(Primitive, &str), StringStreamError> {
-        primitive().parse(s)
+        primitive().skip(eof()).parse(s)
     }
 
     #[test]

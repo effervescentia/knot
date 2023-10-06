@@ -1,4 +1,4 @@
-use super::{Parameters, Typedef};
+use super::{indented, Block, Indented, Parameters, Typedef};
 use crate::{
     ast::{
         declaration::{Declaration, DeclarationNode},
@@ -7,7 +7,7 @@ use crate::{
     common::position::Decrement,
 };
 use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, Write};
 
 impl<T, C> Display for DeclarationNode<T, C>
 where
@@ -17,13 +17,13 @@ where
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Declaration::TypeAlias { name, value } => {
-                write!(f, "{binding} = {value}", binding = Binding("type", name))
+                write!(f, "{binding} = {value};", binding = Binding("type", name))
             }
 
             Declaration::Enumerated { name, variants } => {
                 write!(
                     f,
-                    "{binding} ={variants}",
+                    "{binding} ={variants};",
                     binding = Binding("enum", name),
                     variants = Variants(variants)
                 )
@@ -36,7 +36,7 @@ where
             } => {
                 write!(
                     f,
-                    "{binding}{typedef} = {value}",
+                    "{binding}{typedef} = {value};",
                     binding = Binding("const", name),
                     typedef = Typedef(value_type)
                 )
@@ -50,7 +50,7 @@ where
             } => {
                 write!(
                     f,
-                    "{binding}{parameters}{typedef} -> {body}",
+                    "{binding}{parameters}{typedef} -> {body};",
                     parameters = Parameters(parameters),
                     binding = Binding("func", name),
                     typedef = Typedef(body_type)
@@ -64,14 +64,19 @@ where
             } => {
                 write!(
                     f,
-                    "{binding}{parameters} -> {body}",
+                    "{binding}{parameters} -> {body};",
                     binding = Binding("view", name),
                     parameters = Parameters(parameters)
                 )
             }
 
             Declaration::Module { name, value } => {
-                write!(f, "{binding} {{{value}}}", binding = Binding("mod", name))
+                write!(
+                    f,
+                    "{binding} {{{module}}}",
+                    binding = Binding("module", name),
+                    module = Indented(Block(value))
+                )
             }
         }
     }
@@ -107,8 +112,8 @@ where
         self.0.iter().fold(Ok(()), |acc, (name, parameters)| {
             acc.and_then(|_| {
                 write!(
-                    f,
-                    "\n  | {name}{parameters}",
+                    indented(f),
+                    "\n| {name}{parameters}",
                     parameters = Parameters(parameters)
                 )
             })
@@ -132,7 +137,7 @@ mod tests {
     fn type_alias() {
         assert_eq!(
             f::n::d(f::a::type_("foo", f::n::tx(TypeExpression::Nil))).to_string(),
-            "type foo = nil"
+            "type foo = nil;"
         );
     }
 
@@ -149,7 +154,7 @@ mod tests {
             .to_string(),
             "enum foo =
   | fizz
-  | buzz(nil)"
+  | buzz(nil);"
         );
     }
 
@@ -162,7 +167,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "const foo = nil"
+            "const foo = nil;"
         );
     }
 
@@ -175,7 +180,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "const foo: nil = nil"
+            "const foo: nil = nil;"
         );
     }
 
@@ -189,7 +194,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "func foo -> nil"
+            "func foo -> nil;"
         );
     }
 
@@ -203,7 +208,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "func foo(bar) -> nil"
+            "func foo(bar) -> nil;"
         );
     }
 
@@ -217,7 +222,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "func foo: nil -> nil"
+            "func foo: nil -> nil;"
         );
     }
 
@@ -230,7 +235,7 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "view foo -> nil"
+            "view foo -> nil;"
         );
     }
 
@@ -243,15 +248,32 @@ mod tests {
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),
-            "view foo(bar) -> nil"
+            "view foo(bar) -> nil;"
         );
     }
 
     #[test]
-    fn module() {
+    fn empty_module() {
         assert_eq!(
-            f::n::d(f::a::mod_("foo", f::n::mr(Module::new(vec![], vec![])))).to_string(),
-            "mod foo {}"
+            f::n::d(f::a::module("foo", f::n::mr(Module::new(vec![], vec![])))).to_string(),
+            "module foo {}"
+        );
+    }
+
+    #[test]
+    fn module_with_entries() {
+        assert_eq!(
+            f::n::d(f::a::module(
+                "foo",
+                f::n::mr(Module::new(
+                    vec![],
+                    vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
+                ))
+            ))
+            .to_string(),
+            "module foo {
+  type bar = nil;
+}"
         );
     }
 }

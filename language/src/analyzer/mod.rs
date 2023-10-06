@@ -1004,7 +1004,7 @@ mod tests {
         fn empty() {
             let ast = f::n::mr(Module::new(
                 vec![],
-                vec![f::n::d(f::a::mod_(
+                vec![f::n::d(f::a::module(
                     "foo",
                     f::n::mr(Module::new(vec![], vec![])),
                 ))],
@@ -1016,7 +1016,7 @@ mod tests {
                     Module::new(
                         vec![],
                         vec![f::n::dc(
-                            f::a::mod_(
+                            f::a::module(
                                 "foo",
                                 ModuleNode(Module::new(vec![], vec![]), Ok(Type::Module(vec![]))),
                             ),
@@ -1032,7 +1032,7 @@ mod tests {
         fn with_declarations() {
             let ast = f::n::mr(Module::new(
                 vec![],
-                vec![f::n::d(f::a::mod_(
+                vec![f::n::d(f::a::module(
                     "foo",
                     f::n::mr(Module::new(
                         vec![],
@@ -1054,7 +1054,7 @@ mod tests {
                     Module::new(
                         vec![],
                         vec![f::n::dc(
-                            f::a::mod_(
+                            f::a::module(
                                 "foo",
                                 ModuleNode(
                                     Module::new(

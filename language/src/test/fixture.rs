@@ -240,7 +240,7 @@ pub mod a {
         }
     }
 
-    pub fn mod_<E, P, M, T>(name: &str, value: M) -> Declaration<E, P, M, T> {
+    pub fn module<E, P, M, T>(name: &str, value: M) -> Declaration<E, P, M, T> {
         Declaration::Module {
             name: Storage(Visibility::Public, name.to_string()),
             value,

@@ -179,7 +179,7 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            f::a::mod_(
+            f::a::module(
                 "foo",
                 f::n::mr(Module::new(
                     vec![Import {
@@ -195,7 +195,7 @@ mod tests {
                 ))
             )
             .identify(scope),
-            f::a::mod_(
+            f::a::module(
                 "foo",
                 ModuleNode(
                     Module::new(

@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn module() {
         assert_eq!(
-            f::a::mod_("foo", 0).to_weak(),
+            f::a::module("foo", 0).to_weak(),
             (RefKind::Mixed, Weak::Inherit(0))
         );
     }

@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn binding_module() {
         assert_eq!(
-            Fragment::Declaration(f::a::mod_("foo", 0)).to_binding(),
+            Fragment::Declaration(f::a::module("foo", 0)).to_binding(),
             Some(String::from("foo"))
         );
     }

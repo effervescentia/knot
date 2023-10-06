@@ -1,6 +1,6 @@
-mod analyzer;
-mod ast;
+pub mod analyzer;
+pub mod ast;
 mod common;
-mod formatter;
-mod parser;
+pub mod formatter;
+pub mod parser;
 mod test;

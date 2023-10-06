@@ -23,6 +23,10 @@ impl<D> Module<D> {
             declarations: self.declarations.iter().map(fd).collect(),
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.imports.is_empty() || self.declarations.is_empty()
+    }
 }
 
 pub type NodeValue<T, C> = Module<DeclarationNode<T, C>>;

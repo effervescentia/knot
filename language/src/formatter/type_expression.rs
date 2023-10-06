@@ -1,4 +1,4 @@
-use super::SeparatedBy;
+use super::SeparateEach;
 use crate::{
     ast::type_expression::{TypeExpression, TypeExpressionNode},
     common::position::Decrement,
@@ -31,7 +31,7 @@ where
                 write!(
                     f,
                     "({parameters}) -> {result}",
-                    parameters = SeparatedBy(", ", parameters)
+                    parameters = SeparateEach(", ", parameters)
                 )
             }
         }

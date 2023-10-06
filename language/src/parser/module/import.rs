@@ -73,10 +73,10 @@ where
 mod tests {
     use super::{Import, Source, Target};
     use crate::parser::ParseResult;
-    use combine::{stream::position::Stream, EasyParser};
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
     fn parse(s: &str) -> ParseResult<Import> {
-        super::import().easy_parse(Stream::new(s))
+        super::import().skip(eof()).easy_parse(Stream::new(s))
     }
 
     #[test]

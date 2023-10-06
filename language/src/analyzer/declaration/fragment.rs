@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn module() {
         assert_eq!(
-            f::a::mod_(
+            f::a::module(
                 "foo",
                 ModuleNode(
                     Module::new(
@@ -177,7 +177,7 @@ mod tests {
                 )
             )
             .to_fragment(),
-            Fragment::Declaration(f::a::mod_("foo", 3))
+            Fragment::Declaration(f::a::module("foo", 3))
         );
     }
 }
