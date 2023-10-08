@@ -45,3 +45,19 @@ module inner {
 
     assert_eq!(ast.to_string(), source);
 }
+
+#[test]
+fn mixed_ksx() {
+    let source = "const MIXED = <div>
+  hello {name}, how are you doing?
+  <div />
+  {left} or {right}
+  <div />
+  that's all folks!
+</div>;
+";
+
+    let ast = parse(source).unwrap().0;
+
+    assert_eq!(ast.to_string(), source);
+}

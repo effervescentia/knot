@@ -6,7 +6,9 @@ use crate::{
     common::position::Decrement,
     parser::{expression, matcher as m},
 };
-use combine::{attempt, choice, many, many1, none_of, optional, parser, Parser, Stream};
+use combine::{
+    attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
+};
 use std::{fmt::Debug, vec};
 
 fn fragment<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
@@ -15,11 +17,66 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     m::between(
-        m::glyph("<>"),
-        m::glyph("</>"),
-        many::<Vec<_>, _, _>(child()).map(KSX::Fragment),
+        // avoid m::symbol to preserve trailing spaces
+        m::span(m::sequence("<>")),
+        // avoid m::symbol to preserve trailing spaces
+        m::span(m::sequence("</>")),
+        children().map(KSX::Fragment),
     )
     .map(KSXNode::bind)
+}
+
+fn children<T>() -> impl Parser<T, Output = Vec<KSXNode<T, ()>>>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    enum Layout {
+        Inline,
+        Block,
+    }
+
+    many::<Vec<_>, _, _>(child()).map(|xs| {
+        let layouts = xs
+            .iter()
+            .map(|x| match x.node().value() {
+                KSX::Text(_) | KSX::Inline(_) => Layout::Inline,
+                KSX::Fragment(_) | KSX::ClosedElement(..) | KSX::OpenElement(..) => Layout::Block,
+            })
+            .collect::<Vec<_>>();
+
+        xs.into_iter()
+            .enumerate()
+            .map(|(i, x)| {
+                KSXNode(x.0.map_value(|x| match &x {
+                    KSX::Text(s) => match (
+                        if i == 0 { None } else { layouts.get(i - 1) },
+                        layouts.get(i + 1),
+                    ) {
+                        (None | Some(Layout::Block), None | Some(Layout::Block)) => {
+                            KSX::Text((*s).trim().to_string())
+                        }
+
+                        (None | Some(Layout::Block), Some(Layout::Inline)) => {
+                            KSX::Text((*s).trim_start().to_string())
+                        }
+
+                        (Some(Layout::Inline), None | Some(Layout::Block)) => {
+                            KSX::Text((*s).trim_end().to_string())
+                        }
+
+                        (Some(Layout::Inline), Some(Layout::Inline)) => x,
+                    },
+
+                    _ => x,
+                }))
+            })
+            .filter(|x| match x.node().value() {
+                KSX::Text(s) if s.is_empty() => false,
+                _ => true,
+            })
+            .collect()
+    })
 }
 
 fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionNode<T, ()>>)>
@@ -40,7 +97,8 @@ where
 {
     attempt(m::between(
         m::symbol('<'),
-        m::glyph("/>"),
+        // avoid m::symbol to preserve trailing spaces
+        m::span(m::sequence("/>")),
         (
             m::standard_identifier().map(|(x, _)| x),
             many::<Vec<_>, _, _>(attribute()),
@@ -57,16 +115,18 @@ where
     (
         attempt(m::between(
             m::symbol('<'),
-            m::symbol('>'),
+            // avoid m::symbol to preserve trailing spaces
+            m::span(p::char('>')),
             (
                 m::standard_identifier().map(|(x, _)| x),
                 many::<Vec<_>, _, _>(attribute()),
             ),
         )),
-        many(child()),
+        children(),
         m::between(
             m::glyph("</"),
-            m::symbol('>'),
+            // avoid m::symbol to preserve trailing spaces
+            m::span(p::char('>')),
             m::standard_identifier().map(|(x, _)| x),
         ),
     )
@@ -95,7 +155,8 @@ where
 {
     m::between(
         m::symbol('{'),
-        m::symbol('}'),
+        // avoid m::symbol to preserve trailing spaces
+        m::span(p::char('}')),
         expression::expression().map(KSX::Inline),
     )
     .map(KSXNode::bind)
@@ -349,6 +410,104 @@ mod tests {
             f::n::kxr(
                 KSX::ClosedElement(String::from("foo"), vec![(String::from("bar"), None)],),
                 ((1, 1), (1, 11))
+            )
+        );
+    }
+
+    #[test]
+    fn trim_text() {
+        assert_eq!(
+            parse("<foo>  \n  \n  bar  \n  \n  </foo>").unwrap().0,
+            f::n::kxr(
+                KSX::OpenElement(
+                    String::from("foo"),
+                    vec![],
+                    vec![f::n::kxr(KSX::Text(String::from("bar")), ((1, 6), (5, 2)))],
+                    String::from("foo"),
+                ),
+                ((1, 1), (5, 8))
+            )
+        );
+    }
+
+    #[test]
+    fn trim_start_text() {
+        assert_eq!(
+            parse("<foo>  \n  \n  bar  {fizz}\n</foo>").unwrap().0,
+            f::n::kxr(
+                KSX::OpenElement(
+                    String::from("foo"),
+                    vec![],
+                    vec![
+                        f::n::kxr(KSX::Text(String::from("bar  ")), ((1, 6), (3, 7))),
+                        f::n::kxr(
+                            KSX::Inline(f::n::xr(
+                                Expression::Identifier(String::from("fizz")),
+                                ((3, 9), (3, 12))
+                            )),
+                            ((3, 8), (3, 13))
+                        )
+                    ],
+                    String::from("foo"),
+                ),
+                ((1, 1), (4, 6))
+            )
+        );
+    }
+
+    #[test]
+    fn trim_end_text() {
+        assert_eq!(
+            parse("<foo>\n{fizz}  bar  \n  \n  </foo>").unwrap().0,
+            f::n::kxr(
+                KSX::OpenElement(
+                    String::from("foo"),
+                    vec![],
+                    vec![
+                        f::n::kxr(
+                            KSX::Inline(f::n::xr(
+                                Expression::Identifier(String::from("fizz")),
+                                ((2, 2), (2, 5))
+                            )),
+                            ((2, 1), (2, 6))
+                        ),
+                        f::n::kxr(KSX::Text(String::from("  bar")), ((2, 7), (4, 2)))
+                    ],
+                    String::from("foo"),
+                ),
+                ((1, 1), (4, 8))
+            )
+        );
+    }
+
+    #[test]
+    fn drop_empty_text() {
+        assert_eq!(
+            parse(
+                "<foo>
+  <bar />
+  <fizz />
+</foo>"
+            )
+            .unwrap()
+            .0,
+            f::n::kxr(
+                KSX::OpenElement(
+                    String::from("foo"),
+                    vec![],
+                    vec![
+                        f::n::kxr(
+                            KSX::ClosedElement(String::from("bar"), vec![]),
+                            ((2, 3), (2, 9))
+                        ),
+                        f::n::kxr(
+                            KSX::ClosedElement(String::from("fizz"), vec![]),
+                            ((3, 3), (3, 10))
+                        )
+                    ],
+                    String::from("foo"),
+                ),
+                ((1, 1), (4, 6))
             )
         );
     }

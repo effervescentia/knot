@@ -4,15 +4,23 @@ use combine::{
 };
 use std::fmt::Debug;
 
-pub fn lexeme<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range<T>)>
+pub fn span<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range<T>)>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
     P: Parser<T, Output = R>,
 {
     attempt((position(), parser, position()))
-        .skip(p::spaces())
         .map(|(start, x, end)| (x, Range(start, end.decrement())))
+}
+
+pub fn lexeme<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range<T>)>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+    P: Parser<T, Output = R>,
+{
+    span(parser).skip(p::spaces())
 }
 
 pub fn terminated<T, R, P>(parser: P) -> impl Parser<T, Output = R>
@@ -61,7 +69,7 @@ where
     lexeme(p::char(c))
 }
 
-pub fn glyph<T>(glyph: &'static str) -> impl Parser<T, Output = (&'static str, Range<T>)>
+pub fn sequence<T>(sequence: &'static str) -> impl Parser<T, Output = &'static str>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -85,7 +93,15 @@ where
         }
     }
 
-    lexeme(recurse(glyph.chars().collect()).with(value(glyph)))
+    recurse(sequence.chars().collect()).with(value(sequence))
+}
+
+pub fn glyph<T>(glyph: &'static str) -> impl Parser<T, Output = (&'static str, Range<T>)>
+where
+    T: Stream<Token = char>,
+    T::Position: Copy + Debug + Decrement,
+{
+    lexeme(sequence(glyph))
 }
 
 pub fn keyword<T>(keyword: &'static str) -> impl Parser<T, Output = (&'static str, Range<T>)>

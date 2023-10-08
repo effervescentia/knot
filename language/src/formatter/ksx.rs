@@ -267,11 +267,33 @@ mod tests {
             f::n::kx(KSX::OpenElement(
                 String::from("foo"),
                 vec![],
-                vec![f::n::kx(KSX::Text(String::from("bar")))],
+                vec![
+                    f::n::kx(KSX::Text(String::from("hello "))),
+                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(String::from(
+                        "name"
+                    ))))),
+                    f::n::kx(KSX::Text(String::from(", how are you doing?"))),
+                    f::n::kx(KSX::ClosedElement(String::from("Overview"), vec![],)),
+                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(String::from(
+                        "left"
+                    ))))),
+                    f::n::kx(KSX::Text(String::from(" or "))),
+                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(String::from(
+                        "right"
+                    ))))),
+                    f::n::kx(KSX::ClosedElement(String::from("Summary"), vec![],)),
+                    f::n::kx(KSX::Text(String::from("that's all folks!"))),
+                ],
                 String::from("foo"),
             ))
             .to_string(),
-            "<foo>bar</foo>"
+            "<foo>
+  hello {name}, how are you doing?
+  <Overview />
+  {left} or {right}
+  <Summary />
+  that's all folks!
+</foo>"
         );
     }
 }

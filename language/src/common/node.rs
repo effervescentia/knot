@@ -35,6 +35,10 @@ where
         Node(self.0, self.1, context)
     }
 
+    pub fn map_value<R>(self, f: impl FnOnce(T) -> R) -> Node<R, S, C> {
+        Node(f(self.0), self.1, self.2)
+    }
+
     pub fn map_range(self, f: impl FnOnce(Range<S>) -> Range<S>) -> Node<T, S, C> {
         Node(self.0, f(self.1), self.2)
     }

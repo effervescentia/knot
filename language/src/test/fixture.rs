@@ -1,8 +1,8 @@
 use crate::{
     analyzer::{
-        context::{BindingMap, FileContext, FragmentMap, ScopeContext, StrongContext, WeakContext},
-        fragment::{self, Fragment},
-        infer::{strong::StrongRef, weak::WeakRef},
+        context::{BindingMap, FileContext, FragmentMap, ScopeContext, StrongContext},
+        fragment::Fragment,
+        infer::strong::StrongRef,
     },
     ast::{
         declaration::{Declaration, DeclarationNode},
