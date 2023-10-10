@@ -8,20 +8,6 @@ fn parameter_name(suffix: &String) -> String {
     format!("$param_{suffix}")
 }
 
-fn minified_parameter(x: usize) -> String {
-    const FIRST_CHAR: u32 = 97;
-
-    match x {
-        _ if x < 0 => String::from("a"),
-
-        _ => {
-            let c = char::from_u32((x as u32 % 25) + FIRST_CHAR).unwrap();
-
-            std::iter::repeat(c).take(x / 25).collect::<String>()
-        }
-    }
-}
-
 impl Statement {
     pub fn from_statement(value: &StatementShape, opts: &Options) -> Vec<Self> {
         match &value.0 {
@@ -173,5 +159,34 @@ impl Statement {
             .iter()
             .flat_map(|x| Self::from_declaration(x, opts))
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        javascript::{Expression, Statement},
+        Mode, Options,
+    };
+    use knot_language::ast;
+
+    const OPTIONS: Options = Options { mode: Mode::Prod };
+
+    mod statement {
+
+        use super::*;
+
+        #[test]
+        fn expression() {
+            assert_eq!(
+                Statement::from_statement(
+                    &ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                        ast::Expression::Primitive(ast::Primitive::Nil)
+                    ))),
+                    &OPTIONS
+                ),
+                vec![Statement::Expression(Expression::Null)]
+            );
+        }
     }
 }
