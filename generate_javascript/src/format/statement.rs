@@ -12,6 +12,8 @@ impl Display for Statement {
             Statement::Return(Some(x)) => write!(f, "return {x};"),
 
             Statement::Export(name) => write!(f, "export {{ {name} }};"),
+
+            Statement::Assignment(lhs, rhs) => write!(f, "{lhs} = {rhs};"),
         }
     }
 }
@@ -51,6 +53,14 @@ mod tests {
         assert_eq!(
             Statement::Export(String::from("foo")).to_string(),
             "export { foo };"
+        );
+    }
+
+    #[test]
+    fn assignment() {
+        assert_eq!(
+            Statement::Assignment(Expression::Null, Expression::Null).to_string(),
+            "null = null;"
         );
     }
 }

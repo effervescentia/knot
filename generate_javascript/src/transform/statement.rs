@@ -9,32 +9,28 @@ fn parameter_name(suffix: &String) -> String {
 }
 
 impl Statement {
-    pub fn from_statement(value: &StatementShape, opts: &Options) -> Vec<Self> {
+    pub fn from_statement(value: &StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
         match &value.0 {
             ast::Statement::Expression(x) => {
-                vec![Self::Expression(Expression::from_expression(x, opts))]
+                if is_last {
+                    vec![Self::Return(Some(Expression::from_expression(x, opts)))]
+                } else {
+                    vec![Self::Expression(Expression::from_expression(x, opts))]
+                }
             }
 
             ast::Statement::Variable(name, x) => {
-                vec![Self::Variable(
-                    name.clone(),
-                    Expression::from_expression(x, opts),
-                )]
-            }
-        }
-    }
-
-    pub fn from_last_statement(value: &StatementShape, opts: &Options) -> Vec<Self> {
-        match &value.0 {
-            ast::Statement::Expression(x) => {
-                vec![Self::Return(Some(Expression::from_expression(x, opts)))]
-            }
-
-            ast::Statement::Variable(name, x) => {
-                vec![
-                    Self::Variable(name.clone(), Expression::from_expression(x, opts)),
-                    Self::Return(None),
-                ]
+                if is_last {
+                    vec![
+                        Self::Variable(name.clone(), Expression::from_expression(x, opts)),
+                        Self::Return(None),
+                    ]
+                } else {
+                    vec![Self::Variable(
+                        name.clone(),
+                        Expression::from_expression(x, opts),
+                    )]
+                }
             }
         }
     }
@@ -108,11 +104,44 @@ impl Statement {
                 body,
                 ..
             } => {
-                let statements = match Expression::from_expression(body, opts) {
-                    Expression::Closure(xs) => xs,
+                let statements = vec![
+                    parameters
+                        .iter()
+                        .filter_map(|x| {
+                            if let Some(default) = &x.0.default_value {
+                                Some(Statement::Assignment(
+                                    Expression::Identifier(x.0.name.clone()),
+                                    Expression::FunctionCall(
+                                        Box::new(Expression::FunctionCall(
+                                            Box::new(Expression::Identifier(String::from(
+                                                "$knot.plugin.get",
+                                            ))),
+                                            vec![
+                                                Expression::String(String::from("core")),
+                                                Expression::String(String::from(
+                                                    "defaultParameter",
+                                                )),
+                                                Expression::String(String::from("1.0")),
+                                            ],
+                                        )),
+                                        vec![
+                                            Expression::Identifier(x.0.name.clone()),
+                                            Expression::from_expression(default, opts),
+                                        ],
+                                    ),
+                                ))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                    match Expression::from_expression(body, opts) {
+                        Expression::Closure(xs) => xs,
 
-                    x => vec![Self::Return(Some(x))],
-                };
+                        x => vec![Self::Return(Some(x))],
+                    },
+                ]
+                .concat();
 
                 vec![Self::Expression(Expression::Function(
                     Some(name.clone()),
@@ -125,24 +154,27 @@ impl Statement {
                 name: Storage(_, name),
                 value,
             } => {
-                let mut statements = Self::from_module(value, opts);
-                statements.push(Self::Return(Some(Expression::Object(
-                    value
-                        .0
-                        .declarations
-                        .iter()
-                        .filter_map(|x| {
-                            if x.0.is_public() {
-                                Some((
-                                    x.0.name().clone(),
-                                    Expression::Identifier(x.0.name().clone()),
-                                ))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect(),
-                ))));
+                let statements = vec![
+                    Self::from_module(value, opts),
+                    vec![Self::Return(Some(Expression::Object(
+                        value
+                            .0
+                            .declarations
+                            .iter()
+                            .filter_map(|x| {
+                                if x.0.is_public() {
+                                    Some((
+                                        x.0.name().clone(),
+                                        Expression::Identifier(x.0.name().clone()),
+                                    ))
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect(),
+                    )))],
+                ]
+                .concat();
 
                 vec![Self::Variable(
                     name.clone(),
@@ -173,7 +205,6 @@ mod tests {
     const OPTIONS: Options = Options { mode: Mode::Prod };
 
     mod statement {
-
         use super::*;
 
         #[test]
@@ -183,10 +214,322 @@ mod tests {
                     &ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
+                    false,
                     &OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Null)]
             );
+        }
+
+        #[test]
+        fn last_expression() {
+            assert_eq!(
+                Statement::from_statement(
+                    &ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                        ast::Expression::Primitive(ast::Primitive::Nil)
+                    ))),
+                    true,
+                    &OPTIONS
+                ),
+                vec![Statement::Return(Some(Expression::Null))]
+            );
+        }
+
+        #[test]
+        fn variable() {
+            assert_eq!(
+                Statement::from_statement(
+                    &ast::StatementShape(ast::Statement::Variable(
+                        String::from("foo"),
+                        ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                    )),
+                    false,
+                    &OPTIONS
+                ),
+                vec![Statement::Variable(String::from("foo"), Expression::Null)]
+            );
+        }
+
+        #[test]
+        fn last_variable() {
+            assert_eq!(
+                Statement::from_statement(
+                    &ast::StatementShape(ast::Statement::Variable(
+                        String::from("foo"),
+                        ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                    )),
+                    true,
+                    &OPTIONS
+                ),
+                vec![
+                    Statement::Variable(String::from("foo"), Expression::Null),
+                    Statement::Return(None)
+                ]
+            );
+        }
+    }
+
+    mod declaration {
+        use super::*;
+        use knot_language::ast::{
+            storage::{Storage, Visibility},
+            Module, Parameter,
+        };
+
+        #[test]
+        fn type_alias() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::TypeAlias {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        value: ast::TypeExpressionShape(ast::TypeExpression::Nil)
+                    }),
+                    &OPTIONS
+                ),
+                vec![]
+            )
+        }
+
+        #[test]
+        fn enumerated() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::Enumerated {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        variants: vec![
+                            (
+                                String::from("Bar"),
+                                vec![ast::TypeExpressionShape(ast::TypeExpression::Nil),]
+                            ),
+                            (String::from("Fizz"), vec![])
+                        ]
+                    }),
+                    &OPTIONS
+                ),
+                vec![Statement::Variable(
+                    String::from("foo"),
+                    Expression::Object(vec![
+                        (
+                            String::from("Bar"),
+                            Expression::Function(
+                                Some(String::from("Bar")),
+                                vec![String::from("$param_0")],
+                                vec![Statement::Return(Some(Expression::Array(vec![
+                                    Expression::DotAccess(
+                                        Box::new(Expression::Identifier(String::from("foo"))),
+                                        String::from("Bar")
+                                    ),
+                                    Expression::Identifier(String::from("$param_0"))
+                                ])))]
+                            )
+                        ),
+                        (
+                            String::from("Fizz"),
+                            Expression::Function(
+                                Some(String::from("Fizz")),
+                                vec![],
+                                vec![Statement::Return(Some(Expression::Array(vec![
+                                    Expression::DotAccess(
+                                        Box::new(Expression::Identifier(String::from("foo"))),
+                                        String::from("Fizz")
+                                    ),
+                                ])))]
+                            )
+                        )
+                    ])
+                )]
+            )
+        }
+
+        #[test]
+        fn constant() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::Constant {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        value_type: None,
+                        value: ast::ExpressionShape(ast::Expression::Primitive(
+                            ast::Primitive::Nil
+                        ))
+                    }),
+                    &OPTIONS
+                ),
+                vec![Statement::Variable(String::from("foo"), Expression::Null)]
+            )
+        }
+
+        #[test]
+        fn function() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::Function {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        parameters: vec![
+                            ast::ParameterShape(Parameter::new(String::from("bar"), None, None)),
+                            ast::ParameterShape(Parameter::new(
+                                String::from("fizz"),
+                                None,
+                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                    ast::Primitive::Boolean(true)
+                                )))
+                            )),
+                        ],
+                        body_type: None,
+                        body: ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                    }),
+                    &OPTIONS
+                ),
+                vec![Statement::Expression(Expression::Function(
+                    Some(String::from("foo")),
+                    vec![String::from("bar"), String::from("fizz")],
+                    vec![
+                        Statement::Assignment(
+                            Expression::Identifier(String::from("fizz")),
+                            Expression::FunctionCall(
+                                Box::new(Expression::FunctionCall(
+                                    Box::new(Expression::Identifier(String::from(
+                                        "$knot.plugin.get"
+                                    ))),
+                                    vec![
+                                        Expression::String(String::from("core")),
+                                        Expression::String(String::from("defaultParameter")),
+                                        Expression::String(String::from("1.0"))
+                                    ]
+                                )),
+                                vec![
+                                    Expression::Identifier(String::from("fizz")),
+                                    Expression::Boolean(true)
+                                ]
+                            )
+                        ),
+                        Statement::Return(Some(Expression::Null))
+                    ]
+                ))]
+            )
+        }
+
+        #[test]
+        fn function_closure_body() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::Function {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        parameters: vec![],
+                        body_type: None,
+                        body: ast::ExpressionShape(ast::Expression::Closure(vec![
+                            ast::StatementShape(ast::Statement::Variable(
+                                String::from("bar"),
+                                ast::ExpressionShape(ast::Expression::Primitive(
+                                    ast::Primitive::Nil
+                                ))
+                            )),
+                            ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                                ast::Expression::Identifier(String::from("bar"))
+                            )))
+                        ]))
+                    }),
+                    &OPTIONS
+                ),
+                vec![Statement::Expression(Expression::Function(
+                    Some(String::from("foo")),
+                    vec![],
+                    vec![
+                        Statement::Variable(String::from("bar"), Expression::Null),
+                        Statement::Return(Some(Expression::Identifier(String::from("bar"))))
+                    ]
+                ))]
+            )
+        }
+
+        #[test]
+        fn view() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::View {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        parameters: vec![
+                            ast::ParameterShape(Parameter::new(String::from("bar"), None, None)),
+                            ast::ParameterShape(Parameter::new(
+                                String::from("fizz"),
+                                None,
+                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                    ast::Primitive::Boolean(true)
+                                )))
+                            )),
+                        ],
+                        body: ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                    }),
+                    &OPTIONS
+                ),
+                vec![Statement::Expression(Expression::Function(
+                    Some(String::from("foo")),
+                    vec![String::from("bar"), String::from("fizz")],
+                    vec![
+                        Statement::Assignment(
+                            Expression::Identifier(String::from("fizz")),
+                            Expression::FunctionCall(
+                                Box::new(Expression::FunctionCall(
+                                    Box::new(Expression::Identifier(String::from(
+                                        "$knot.plugin.get"
+                                    ))),
+                                    vec![
+                                        Expression::String(String::from("core")),
+                                        Expression::String(String::from("defaultParameter")),
+                                        Expression::String(String::from("1.0"))
+                                    ]
+                                )),
+                                vec![
+                                    Expression::Identifier(String::from("fizz")),
+                                    Expression::Boolean(true)
+                                ]
+                            )
+                        ),
+                        Statement::Return(Some(Expression::Null))
+                    ]
+                ))]
+            )
+        }
+
+        #[test]
+        fn module() {
+            assert_eq!(
+                Statement::from_declaration(
+                    &ast::DeclarationShape(ast::Declaration::Module {
+                        name: Storage(Visibility::Public, String::from("foo")),
+                        value: ast::ModuleShape(Module {
+                            imports: vec![],
+                            declarations: vec![
+                                ast::DeclarationShape(ast::Declaration::Constant {
+                                    name: Storage(Visibility::Public, String::from("bar")),
+                                    value_type: None,
+                                    value: ast::ExpressionShape(ast::Expression::Primitive(
+                                        ast::Primitive::Nil
+                                    ))
+                                }),
+                                ast::DeclarationShape(ast::Declaration::Constant {
+                                    name: Storage(Visibility::Private, String::from("fizz")),
+                                    value_type: None,
+                                    value: ast::ExpressionShape(ast::Expression::Primitive(
+                                        ast::Primitive::Nil
+                                    ))
+                                })
+                            ]
+                        })
+                    }),
+                    &OPTIONS
+                ),
+                vec![Statement::Variable(
+                    String::from("foo"),
+                    Expression::Closure(vec![
+                        Statement::Variable(String::from("bar"), Expression::Null),
+                        Statement::Variable(String::from("fizz"), Expression::Null),
+                        Statement::Return(Some(Expression::Object(vec![(
+                            String::from("bar"),
+                            Expression::Identifier(String::from("bar"))
+                        )]))),
+                    ])
+                )]
+            )
         }
     }
 }

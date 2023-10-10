@@ -73,7 +73,7 @@ impl Expression {
 pub enum Statement {
     Expression(Expression),
     Variable(String, Expression),
-    // Assignment(Expression, Expression),
+    Assignment(Expression, Expression),
     Return(Option<Expression>),
     // DefaultImport(String, String),
     // Import(String, Vec<(String, Option<String>)>),

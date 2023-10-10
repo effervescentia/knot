@@ -31,11 +31,7 @@ impl Expression {
                     .iter()
                     .enumerate()
                     .flat_map(|(index, x)| {
-                        if index == xs.len() - 1 {
-                            Statement::from_last_statement(x, opts)
-                        } else {
-                            Statement::from_statement(x, opts)
-                        }
+                        Statement::from_statement(x, index == xs.len() - 1, opts)
                     })
                     .collect::<Vec<_>>();
 
