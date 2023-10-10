@@ -174,7 +174,7 @@ impl Expression {
         xs: &Vec<(String, Option<ast::ExpressionShape>)>,
         opts: &Options,
     ) -> Self {
-        if !xs.is_empty() {
+        if xs.is_empty() {
             return Self::Null;
         }
 
@@ -603,7 +603,7 @@ mod tests {
         }
 
         #[test]
-        fn empty_fragment() {
+        fn fragment() {
             assert_eq!(
                 Expression::from_ksx(
                     &ast::KSXShape(ast::KSX::Fragment(vec![
@@ -624,6 +624,211 @@ mod tests {
                     vec![
                         Expression::String(String::from("foo")),
                         Expression::String(String::from("bar")),
+                    ]
+                )
+            );
+        }
+
+        #[test]
+        fn empty_fragment() {
+            assert_eq!(
+                Expression::from_ksx(&ast::KSXShape(ast::KSX::Fragment(vec![])), &OPTIONS),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createFragment")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![]
+                )
+            );
+        }
+
+        #[test]
+        fn closed_element() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::ClosedElement(
+                        String::from("Foo"),
+                        vec![
+                            (String::from("bar"), None),
+                            (
+                                String::from("fizz"),
+                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                    ast::Primitive::Nil
+                                )))
+                            ),
+                        ]
+                    )),
+                    &OPTIONS
+                ),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createElement")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![
+                        Expression::Identifier(String::from("Foo")),
+                        Expression::Object(vec![
+                            (
+                                String::from("bar"),
+                                Expression::Identifier(String::from("bar"))
+                            ),
+                            (String::from("fizz"), Expression::Null)
+                        ])
+                    ]
+                )
+            );
+        }
+
+        #[test]
+        fn closed_element_no_attributes() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::ClosedElement(String::from("Foo"), vec![])),
+                    &OPTIONS
+                ),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createElement")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![Expression::Identifier(String::from("Foo"))]
+                )
+            );
+        }
+
+        #[test]
+        fn open_element() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::OpenElement(
+                        String::from("Foo"),
+                        vec![
+                            (String::from("bar"), None),
+                            (
+                                String::from("fizz"),
+                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                    ast::Primitive::Nil
+                                )))
+                            ),
+                        ],
+                        vec![
+                            ast::KSXShape(ast::KSX::Text(String::from("foo"))),
+                            ast::KSXShape(ast::KSX::Text(String::from("bar"))),
+                        ],
+                        String::from("Foo"),
+                    )),
+                    &OPTIONS
+                ),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createElement")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![
+                        Expression::Identifier(String::from("Foo")),
+                        Expression::Object(vec![
+                            (
+                                String::from("bar"),
+                                Expression::Identifier(String::from("bar"))
+                            ),
+                            (String::from("fizz"), Expression::Null)
+                        ]),
+                        Expression::String(String::from("foo")),
+                        Expression::String(String::from("bar")),
+                    ]
+                )
+            );
+        }
+
+        #[test]
+        fn open_element_no_attributes() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::OpenElement(
+                        String::from("Foo"),
+                        vec![],
+                        vec![
+                            ast::KSXShape(ast::KSX::Text(String::from("foo"))),
+                            ast::KSXShape(ast::KSX::Text(String::from("bar"))),
+                        ],
+                        String::from("Foo"),
+                    )),
+                    &OPTIONS
+                ),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createElement")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![
+                        Expression::Identifier(String::from("Foo")),
+                        Expression::Null,
+                        Expression::String(String::from("foo")),
+                        Expression::String(String::from("bar")),
+                    ]
+                )
+            );
+        }
+
+        #[test]
+        fn open_element_no_children() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::OpenElement(
+                        String::from("Foo"),
+                        vec![
+                            (String::from("bar"), None),
+                            (
+                                String::from("fizz"),
+                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                    ast::Primitive::Nil
+                                )))
+                            ),
+                        ],
+                        vec![],
+                        String::from("Foo"),
+                    )),
+                    &OPTIONS
+                ),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createElement")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![
+                        Expression::Identifier(String::from("Foo")),
+                        Expression::Object(vec![
+                            (
+                                String::from("bar"),
+                                Expression::Identifier(String::from("bar"))
+                            ),
+                            (String::from("fizz"), Expression::Null)
+                        ]),
                     ]
                 )
             );
