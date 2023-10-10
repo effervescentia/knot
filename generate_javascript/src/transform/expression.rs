@@ -574,4 +574,59 @@ mod tests {
             );
         }
     }
+
+    mod ksx {
+        use super::*;
+
+        #[test]
+        fn text() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::Text(String::from("foo"))),
+                    &OPTIONS
+                ),
+                Expression::String(String::from("foo"))
+            );
+        }
+
+        #[test]
+        fn inline() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::Inline(ast::ExpressionShape(
+                        ast::Expression::Primitive(ast::Primitive::Nil)
+                    ))),
+                    &OPTIONS
+                ),
+                Expression::Null
+            );
+        }
+
+        #[test]
+        fn empty_fragment() {
+            assert_eq!(
+                Expression::from_ksx(
+                    &ast::KSXShape(ast::KSX::Fragment(vec![
+                        ast::KSXShape(ast::KSX::Text(String::from("foo"))),
+                        ast::KSXShape(ast::KSX::Text(String::from("bar"))),
+                    ])),
+                    &OPTIONS
+                ),
+                Expression::FunctionCall(
+                    Box::new(Expression::FunctionCall(
+                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        vec![
+                            Expression::String(String::from("ksx")),
+                            Expression::String(String::from("createFragment")),
+                            Expression::String(String::from("1.0")),
+                        ]
+                    )),
+                    vec![
+                        Expression::String(String::from("foo")),
+                        Expression::String(String::from("bar")),
+                    ]
+                )
+            );
+        }
+    }
 }
