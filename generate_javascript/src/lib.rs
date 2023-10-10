@@ -1,4 +1,6 @@
+mod format;
 mod javascript;
+mod transform;
 
 // TODO: move these to a common library to be re-used across generators
 

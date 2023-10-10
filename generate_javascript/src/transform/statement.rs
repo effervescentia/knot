@@ -1,7 +1,8 @@
-use super::expression::Expression;
-use crate::{javascript::JavaScript, Options};
+use crate::{
+    javascript::{Expression, Statement},
+    Options,
+};
 use knot_language::ast::{self, storage::Storage, DeclarationShape, ModuleShape, StatementShape};
-use std::fmt::{Display, Formatter};
 
 fn parameter_name(suffix: &String) -> String {
     format!("$param_{suffix}")
@@ -21,42 +22,34 @@ fn minified_parameter(x: usize) -> String {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Statement {
-    Expression(Expression),
-    Variable(String, Expression),
-    // Assignment(Expression, Expression),
-    Return(Option<Expression>),
-    // DefaultImport(String, String),
-    // Import(String, Vec<(String, Option<String>)>),
-    Export(String),
-    // EmptyExport,
-}
-
 impl Statement {
-    pub fn internal_variable(name: &str, x: Expression) -> Self {
-        Self::Variable(name.to_string(), x)
-    }
-}
-
-impl Statement {
-    pub fn from_statement(value: &StatementShape, opts: &Options) -> Self {
+    pub fn from_statement(value: &StatementShape, opts: &Options) -> Vec<Self> {
         match &value.0 {
-            ast::Statement::Expression(x) => Self::Expression(Expression::from_expression(x, opts)),
+            ast::Statement::Expression(x) => {
+                vec![Self::Expression(Expression::from_expression(x, opts))]
+            }
 
             ast::Statement::Variable(name, x) => {
-                Self::Variable(name.clone(), Expression::from_expression(x, opts))
+                vec![Self::Variable(
+                    name.clone(),
+                    Expression::from_expression(x, opts),
+                )]
             }
         }
     }
 
-    pub fn from_last_statement(value: &StatementShape, opts: &Options) -> Self {
+    pub fn from_last_statement(value: &StatementShape, opts: &Options) -> Vec<Self> {
         match &value.0 {
             ast::Statement::Expression(x) => {
-                Self::Return(Some(Expression::from_expression(x, opts)))
+                vec![Self::Return(Some(Expression::from_expression(x, opts)))]
             }
 
-            ast::Statement::Variable(..) => Self::Return(Some(Expression::Null)),
+            ast::Statement::Variable(name, x) => {
+                vec![
+                    Self::Variable(name.clone(), Expression::from_expression(x, opts)),
+                    Self::Return(None),
+                ]
+            }
         }
     }
 
@@ -180,20 +173,5 @@ impl Statement {
             .iter()
             .flat_map(|x| Self::from_declaration(x, opts))
             .collect()
-    }
-}
-
-impl Display for Statement {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self {
-            Statement::Expression(x) => write!(f, "{x};"),
-
-            Statement::Variable(name, x) => write!(f, "var {name} = {x};"),
-
-            Statement::Return(None) => write!(f, "return;"),
-            Statement::Return(Some(x)) => write!(f, "return {x};"),
-
-            Statement::Export(name) => write!(f, "export {{ {name} }};"),
-        }
     }
 }

@@ -16,7 +16,6 @@ pub enum Primitive {
     String(String),
 }
 
-// TODO: see if we can remove some of these `Box`es
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expression<E, S, K> {
     Primitive(Primitive),

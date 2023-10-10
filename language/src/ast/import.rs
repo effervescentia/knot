@@ -1,6 +1,5 @@
 use std::fmt::Debug;
 
-// TODO: rename to ImportSource
 #[derive(Clone, Debug, PartialEq)]
 pub enum ImportSource {
     Root,
@@ -8,7 +7,6 @@ pub enum ImportSource {
     External(String),
 }
 
-// TODO: rename to ImportTarget
 #[derive(Clone, Debug, PartialEq)]
 pub enum ImportTarget {
     Named(String),
