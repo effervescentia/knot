@@ -1,10 +1,10 @@
 use crate::Options;
 use knot_language::ast::ModuleShape;
 
-pub struct JavaScript(Vec<Statement>);
+pub struct JavaScript(pub Vec<Statement>);
 
 impl JavaScript {
-    fn from_module(value: &ModuleShape, opts: &Options) -> Self {
+    pub fn from_module(value: &ModuleShape, opts: &Options) -> Self {
         let statements = vec![
             Statement::from_module(value, opts),
             value
