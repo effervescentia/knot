@@ -9,7 +9,7 @@ use super::{
     ScopeContext,
 };
 use crate::{
-    ast::type_expression::{self, TypeExpressionNode},
+    ast::{TypeExpressionNode, TypeExpressionNodeValue},
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;
@@ -21,7 +21,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     type Node = TypeExpressionNode<T, NodeContext>;
-    type Value<C> = type_expression::NodeValue<T, C>;
+    type Value<C> = TypeExpressionNodeValue<T, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -39,7 +39,7 @@ mod tests {
             fragment::Fragment,
             register::Register,
         },
-        ast::type_expression::TypeExpression,
+        ast::TypeExpression,
         test::fixture as f,
     };
 

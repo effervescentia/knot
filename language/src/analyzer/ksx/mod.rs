@@ -10,7 +10,7 @@ use super::{
     RefKind, ScopeContext, Type,
 };
 use crate::{
-    ast::ksx::{self, KSXNode},
+    ast::{KSXNode, KSXNodeValue},
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;
@@ -22,7 +22,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     type Node = KSXNode<T, NodeContext>;
-    type Value<C> = ksx::NodeValue<T, C>;
+    type Value<C> = KSXNodeValue<T, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -40,10 +40,7 @@ mod tests {
             fragment::Fragment,
             register::Register,
         },
-        ast::{
-            expression::{Expression, Primitive},
-            ksx::KSX,
-        },
+        ast::{Expression, Primitive, KSX},
         test::fixture as f,
     };
 

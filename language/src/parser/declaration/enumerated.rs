@@ -1,9 +1,6 @@
 use super::storage;
 use crate::{
-    ast::{
-        declaration::{Declaration, DeclarationNode},
-        type_expression::TypeExpressionNode,
-    },
+    ast::{Declaration, DeclarationNode, TypeExpressionNode},
     common::{position::Decrement, range::Range},
     parser::{matcher as m, types::type_expression},
 };

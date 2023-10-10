@@ -1,8 +1,5 @@
 use super::infer::weak::{ToWeak, WeakRef};
-use crate::ast::{
-    declaration::Declaration, expression::Expression, ksx::KSX, module::Module,
-    parameter::Parameter, statement::Statement, storage::Storage, type_expression::TypeExpression,
-};
+use crate::ast::{Declaration, Expression, Module, Parameter, Statement, TypeExpression, KSX};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -20,33 +17,9 @@ impl Fragment {
     pub fn to_binding(&self) -> Option<String> {
         match self {
             Fragment::Statement(Statement::Variable(name, ..))
-            | Fragment::Parameter(Parameter { name, .. })
-            | Fragment::Declaration(
-                Declaration::TypeAlias {
-                    name: Storage(_, name),
-                    ..
-                }
-                | Declaration::Enumerated {
-                    name: Storage(_, name),
-                    ..
-                }
-                | Declaration::Constant {
-                    name: Storage(_, name),
-                    ..
-                }
-                | Declaration::Function {
-                    name: Storage(_, name),
-                    ..
-                }
-                | Declaration::View {
-                    name: Storage(_, name),
-                    ..
-                }
-                | Declaration::Module {
-                    name: Storage(_, name),
-                    ..
-                },
-            ) => Some(name.clone()),
+            | Fragment::Parameter(Parameter { name, .. }) => Some(name.clone()),
+
+            Fragment::Declaration(x) => Some(x.name().clone()),
 
             _ => None,
         }
@@ -70,7 +43,7 @@ impl ToWeak for Fragment {
 #[cfg(test)]
 mod tests {
     use super::Fragment;
-    use crate::{ast::statement::Statement, test::fixture as f};
+    use crate::{ast::Statement, test::fixture as f};
 
     #[test]
     fn binding_variable() {

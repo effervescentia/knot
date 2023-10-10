@@ -11,10 +11,7 @@ use crate::{
         fragment::Fragment,
         RefKind, Type,
     },
-    ast::{
-        declaration::Declaration, expression::Expression, module::Module, parameter::Parameter,
-        type_expression::TypeExpression,
-    },
+    ast::{Declaration, Expression, Module, Parameter, TypeExpression},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -238,11 +235,7 @@ mod tests {
             infer::weak::Weak,
             RefKind, Type,
         },
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-            type_expression::TypeExpression,
-        },
+        ast::{Expression, Primitive, Statement, TypeExpression},
         test::fixture as f,
     };
     use std::collections::{BTreeSet, HashMap};

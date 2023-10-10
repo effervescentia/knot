@@ -1,8 +1,8 @@
 use super::{indented, Block, Indented, Parameters, Typedef};
 use crate::{
     ast::{
-        declaration::{Declaration, DeclarationNode},
         storage::{Storage, Visibility},
+        Declaration, DeclarationNode,
     },
     common::position::Decrement,
 };
@@ -124,12 +124,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            expression::{Expression, Primitive},
-            module::Module,
-            parameter::Parameter,
-            type_expression::TypeExpression,
-        },
+        ast::{Expression, Module, Parameter, Primitive, TypeExpression},
         test::fixture as f,
     };
 

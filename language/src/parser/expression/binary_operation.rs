@@ -1,8 +1,5 @@
 use crate::{
-    ast::{
-        expression::{Expression, ExpressionNode},
-        operator::BinaryOperator,
-    },
+    ast::{BinaryOperator, Expression, ExpressionNode},
     common::position::Decrement,
     parser::matcher as m,
 };

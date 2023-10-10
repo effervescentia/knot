@@ -1,6 +1,6 @@
 use super::SeparateEach;
 use crate::{
-    ast::type_expression::{TypeExpression, TypeExpressionNode},
+    ast::{TypeExpression, TypeExpressionNode},
     common::position::Decrement,
 };
 use combine::Stream;
@@ -40,7 +40,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast::type_expression::TypeExpression, test::fixture as f};
+    use crate::{ast::TypeExpression, test::fixture as f};
 
     #[test]
     fn nil() {

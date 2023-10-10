@@ -4,18 +4,18 @@ use crate::{
         context::NodeContext,
         register::{Identify, Register},
     },
-    ast::declaration,
+    ast::DeclarationNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Identify<declaration::NodeValue<T, NodeContext>> for declaration::NodeValue<T, ()>
+impl<T> Identify<DeclarationNodeValue<T, NodeContext>> for DeclarationNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> declaration::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> DeclarationNodeValue<T, NodeContext> {
         self.map(
             &|x| x.register(ctx),
             &|x| x.register(ctx),
@@ -30,11 +30,8 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
         ast::{
-            expression::{Expression, Primitive},
-            import::{Import, Source, Target},
-            module::{Module, ModuleNode},
-            parameter::Parameter,
-            type_expression::TypeExpression,
+            Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter,
+            Primitive, TypeExpression,
         },
         test::fixture as f,
     };
@@ -183,9 +180,9 @@ mod tests {
                 "foo",
                 f::n::mr(Module::new(
                     vec![Import {
-                        source: Source::Root,
+                        source: ImportSource::Root,
                         path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                        aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                     }],
                     vec![f::n::d(f::a::const_(
                         "BUZZ",
@@ -200,9 +197,9 @@ mod tests {
                 ModuleNode(
                     Module::new(
                         vec![Import {
-                            source: Source::Root,
+                            source: ImportSource::Root,
                             path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                         }],
                         vec![f::n::dc(
                             f::a::const_(

@@ -31,18 +31,17 @@ impl<T> TypeExpression<T> {
             Self::Identifier(x) => TypeExpression::Identifier(x.clone()),
             Self::Group(x) => TypeExpression::Group(Box::new(ft(x))),
             Self::DotAccess(lhs, rhs) => TypeExpression::DotAccess(Box::new(ft(lhs)), rhs.clone()),
-            Self::Function(parameters, x) => TypeExpression::Function(
-                parameters.iter().map(|x| ft(x)).collect(),
-                Box::new(ft(x)),
-            ),
+            Self::Function(parameters, x) => {
+                TypeExpression::Function(parameters.iter().map(ft).collect(), Box::new(ft(x)))
+            }
         }
     }
 }
 
-pub type NodeValue<T, C> = TypeExpression<TypeExpressionNode<T, C>>;
+pub type TypeExpressionNodeValue<T, C> = TypeExpression<TypeExpressionNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
+pub struct TypeExpressionNode<T, C>(pub Node<TypeExpressionNodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -52,13 +51,13 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
+    pub fn node(&self) -> &Node<TypeExpressionNodeValue<T, C>, T, C> {
         &self.0
     }
 
     pub fn map<R>(
         &self,
-        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+        f: impl Fn(&TypeExpressionNodeValue<T, C>, &C) -> (TypeExpressionNodeValue<T, R>, R),
     ) -> TypeExpressionNode<T, R> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
@@ -72,7 +71,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
+    pub fn raw(x: TypeExpressionNodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }

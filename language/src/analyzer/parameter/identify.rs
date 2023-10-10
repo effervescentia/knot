@@ -3,18 +3,18 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::parameter,
+    ast::ParameterNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Identify<parameter::NodeValue<T, NodeContext>> for parameter::NodeValue<T, ()>
+impl<T> Identify<ParameterNodeValue<T, NodeContext>> for ParameterNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> parameter::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> ParameterNodeValue<T, NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }
@@ -23,11 +23,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
-        ast::{
-            expression::{Expression, Primitive},
-            parameter::Parameter,
-            type_expression::TypeExpression,
-        },
+        ast::{Expression, Parameter, Primitive, TypeExpression},
         test::fixture as f,
     };
 

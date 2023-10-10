@@ -29,6 +29,13 @@ name = "knot_combo"
 version = "0.1.0"
 
 [[package]]
+name = "knot_generate_javascript"
+version = "0.1.0"
+dependencies = [
+ "knot_language",
+]
+
+[[package]]
 name = "knot_language"
 version = "0.1.0"
 dependencies = [

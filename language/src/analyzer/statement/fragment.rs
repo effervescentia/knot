@@ -1,12 +1,12 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::statement,
+    ast::StatementNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> ToFragment for statement::NodeValue<T, NodeContext>
+impl<T> ToFragment for StatementNodeValue<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -20,10 +20,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
 

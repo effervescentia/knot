@@ -4,18 +4,18 @@ use crate::{
         context::NodeContext,
         register::{Identify, Register},
     },
-    ast::ksx,
+    ast::KSXNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Identify<ksx::NodeValue<T, NodeContext>> for ksx::NodeValue<T, ()>
+impl<T> Identify<KSXNodeValue<T, NodeContext>> for KSXNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> ksx::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> KSXNodeValue<T, NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }
@@ -24,10 +24,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
-        ast::{
-            expression::{Expression, ExpressionNode, Primitive},
-            ksx::{KSXNode, KSX},
-        },
+        ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX},
         parser::CharStream,
         test::fixture as f,
     };

@@ -1,5 +1,5 @@
 use crate::{
-    ast::type_expression::{NodeValue, TypeExpression, TypeExpressionNode},
+    ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue},
     common::position::Decrement,
     parser::matcher as m,
 };
@@ -13,7 +13,7 @@ where
 {
     fn bind<U>(
         s: &'static str,
-        f: impl Fn() -> NodeValue<U, ()>,
+        f: impl Fn() -> TypeExpressionNodeValue<U, ()>,
     ) -> impl Parser<U, Output = TypeExpressionNode<U, ()>>
     where
         U: Stream<Token = char>,

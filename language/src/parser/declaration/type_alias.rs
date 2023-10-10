@@ -1,6 +1,6 @@
 use super::storage;
 use crate::{
-    ast::declaration::{Declaration, DeclarationNode},
+    ast::{Declaration, DeclarationNode},
     common::position::Decrement,
     parser::{matcher as m, types::type_expression},
 };

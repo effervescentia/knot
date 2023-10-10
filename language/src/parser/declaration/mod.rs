@@ -7,7 +7,7 @@ pub mod storage;
 mod type_alias;
 mod view;
 
-use crate::{ast::declaration::DeclarationNode, common::position::Decrement};
+use crate::{ast::DeclarationNode, common::position::Decrement};
 use combine::{choice, parser, Stream};
 use std::fmt::Debug;
 
@@ -30,12 +30,7 @@ parser! {
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            declaration::DeclarationNode,
-            expression::{Expression, Primitive},
-            module::Module,
-            type_expression::TypeExpression,
-        },
+        ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression},
         parser::{CharStream, ParseResult},
         test::fixture as f,
     };

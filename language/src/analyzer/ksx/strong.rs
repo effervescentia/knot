@@ -3,7 +3,7 @@ use crate::{
         context::{NodeContext, StrongContext},
         infer::strong::{Strong, ToStrong},
     },
-    ast::ksx::KSXNode,
+    ast::KSXNode,
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;

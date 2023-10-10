@@ -1,12 +1,12 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::type_expression,
+    ast::TypeExpressionNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> ToFragment for type_expression::NodeValue<T, NodeContext>
+impl<T> ToFragment for TypeExpressionNodeValue<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -20,7 +20,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-        ast::type_expression::{TypeExpression, TypeExpressionNode},
+        ast::{TypeExpression, TypeExpressionNode},
         parser::CharStream,
         test::fixture as f,
     };

@@ -30,10 +30,10 @@ impl<E, T> Parameter<E, T> {
     }
 }
 
-pub type NodeValue<T, C> = Parameter<ExpressionNode<T, C>, TypeExpressionNode<T, C>>;
+pub type ParameterNodeValue<T, C> = Parameter<ExpressionNode<T, C>, TypeExpressionNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ParameterNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
+pub struct ParameterNode<T, C>(pub Node<ParameterNodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -43,13 +43,13 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
+    pub fn node(&self) -> &Node<ParameterNodeValue<T, C>, T, C> {
         &self.0
     }
 
     pub fn map<R>(
         &self,
-        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+        f: impl Fn(&ParameterNodeValue<T, C>, &C) -> (ParameterNodeValue<T, R>, R),
     ) -> ParameterNode<T, R> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
@@ -63,7 +63,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
+    pub fn raw(x: ParameterNodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node(x, range, ()))
     }
 }

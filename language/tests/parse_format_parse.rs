@@ -1,7 +1,7 @@
 // validating the parse -> format -> parse cycle
 
 use knot_language::{
-    ast::module::ModuleNode,
+    ast::ModuleNode,
     parser::{self, CharStream, ParseResult},
 };
 

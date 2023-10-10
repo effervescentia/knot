@@ -70,10 +70,11 @@ impl<E, S, K> Expression<E, S, K> {
     }
 }
 
-pub type NodeValue<T, C> = Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
+pub type ExpressionNodeValue<T, C> =
+    Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ExpressionNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
+pub struct ExpressionNode<T, C>(pub Node<ExpressionNodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -83,13 +84,13 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
+    pub fn node(&self) -> &Node<ExpressionNodeValue<T, C>, T, C> {
         &self.0
     }
 
     pub fn map<R>(
         &self,
-        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+        f: impl Fn(&ExpressionNodeValue<T, C>, &C) -> (ExpressionNodeValue<T, R>, R),
     ) -> ExpressionNode<T, R> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
@@ -103,7 +104,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
+    pub fn raw(x: ExpressionNodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }

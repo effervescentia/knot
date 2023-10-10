@@ -3,18 +3,18 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::statement,
+    ast::StatementNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Identify<statement::NodeValue<T, NodeContext>> for statement::NodeValue<T, ()>
+impl<T> Identify<StatementNodeValue<T, NodeContext>> for StatementNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> statement::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> StatementNodeValue<T, NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
@@ -23,10 +23,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
 

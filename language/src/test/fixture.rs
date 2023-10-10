@@ -5,12 +5,8 @@ use crate::{
         infer::strong::StrongRef,
     },
     ast::{
-        declaration::{Declaration, DeclarationNode},
-        expression::ExpressionNode,
-        ksx::KSXNode,
-        module::ModuleNode,
-        statement::StatementNode,
-        type_expression::TypeExpressionNode,
+        Declaration, DeclarationNode, ExpressionNode, KSXNode, ModuleNode, StatementNode,
+        TypeExpressionNode,
     },
     common::{node::Node, range::Range},
     parser::CharStream,
@@ -53,133 +49,131 @@ pub fn strong_ctx_from(
 
 /// node factories
 pub mod n {
+    use super::*;
     use crate::ast::{
-        declaration, expression, ksx, module,
-        parameter::{self, ParameterNode},
-        statement, type_expression,
+        DeclarationNodeValue, ExpressionNodeValue, KSXNodeValue, ModuleNodeValue, ParameterNode,
+        ParameterNodeValue, StatementNodeValue, TypeExpressionNodeValue,
     };
 
-    use super::*;
-
     pub fn x(
-        x: expression::NodeValue<CharStream<'static>, ()>,
+        x: ExpressionNodeValue<CharStream<'static>, ()>,
     ) -> ExpressionNode<CharStream<'static>, ()> {
         ExpressionNode::raw(x, RANGE)
     }
 
     pub fn xr<'a>(
-        x: expression::NodeValue<CharStream<'a>, ()>,
+        x: ExpressionNodeValue<CharStream<'a>, ()>,
         (start, end): InitRange,
     ) -> ExpressionNode<CharStream<'a>, ()> {
         ExpressionNode::raw(x, Range::chars(start, end))
     }
 
     pub fn xc<T>(
-        x: expression::NodeValue<CharStream<'static>, T>,
+        x: ExpressionNodeValue<CharStream<'static>, T>,
         ctx: T,
     ) -> ExpressionNode<CharStream<'static>, T> {
         ExpressionNode(Node::new(x, RANGE, ctx))
     }
 
     pub fn s(
-        x: statement::NodeValue<CharStream<'static>, ()>,
+        x: StatementNodeValue<CharStream<'static>, ()>,
     ) -> StatementNode<CharStream<'static>, ()> {
         StatementNode::raw(x, RANGE)
     }
 
     pub fn sr<'a>(
-        x: statement::NodeValue<CharStream<'a>, ()>,
+        x: StatementNodeValue<CharStream<'a>, ()>,
         (start, end): InitRange,
     ) -> StatementNode<CharStream<'a>, ()> {
         StatementNode::raw(x, Range::chars(start, end))
     }
 
     pub fn sc<T>(
-        x: statement::NodeValue<CharStream<'static>, T>,
+        x: StatementNodeValue<CharStream<'static>, T>,
         ctx: T,
     ) -> StatementNode<CharStream<'static>, T> {
         StatementNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn kx(x: ksx::NodeValue<CharStream<'static>, ()>) -> KSXNode<CharStream<'static>, ()> {
+    pub fn kx(x: KSXNodeValue<CharStream<'static>, ()>) -> KSXNode<CharStream<'static>, ()> {
         KSXNode::raw(x, RANGE)
     }
 
     pub fn kxr<'a>(
-        x: ksx::NodeValue<CharStream<'a>, ()>,
+        x: KSXNodeValue<CharStream<'a>, ()>,
         (start, end): InitRange,
     ) -> KSXNode<CharStream<'a>, ()> {
         KSXNode::raw(x, Range::chars(start, end))
     }
 
     pub fn kxc<T>(
-        x: ksx::NodeValue<CharStream<'static>, T>,
+        x: KSXNodeValue<CharStream<'static>, T>,
         ctx: T,
     ) -> KSXNode<CharStream<'static>, T> {
         KSXNode(Node::new(x, RANGE, ctx))
     }
 
     pub fn p(
-        x: parameter::NodeValue<CharStream<'static>, ()>,
+        x: ParameterNodeValue<CharStream<'static>, ()>,
     ) -> ParameterNode<CharStream<'static>, ()> {
         ParameterNode::raw(x, RANGE)
     }
 
     pub fn pr<'a>(
-        x: parameter::NodeValue<CharStream<'a>, ()>,
+        x: ParameterNodeValue<CharStream<'a>, ()>,
         (start, end): InitRange,
     ) -> ParameterNode<CharStream<'a>, ()> {
         ParameterNode::raw(x, Range::chars(start, end))
     }
 
     pub fn pc<T>(
-        x: parameter::NodeValue<CharStream<'static>, T>,
+        x: ParameterNodeValue<CharStream<'static>, T>,
         ctx: T,
     ) -> ParameterNode<CharStream<'static>, T> {
         ParameterNode(Node::new(x, RANGE, ctx))
     }
 
     pub fn tx(
-        x: type_expression::NodeValue<CharStream<'static>, ()>,
+        x: TypeExpressionNodeValue<CharStream<'static>, ()>,
     ) -> TypeExpressionNode<CharStream<'static>, ()> {
         TypeExpressionNode::raw(x, RANGE)
     }
 
     pub fn txr<'a>(
-        x: type_expression::NodeValue<CharStream<'a>, ()>,
+        x: TypeExpressionNodeValue<CharStream<'a>, ()>,
         (start, end): InitRange,
     ) -> TypeExpressionNode<CharStream<'a>, ()> {
         TypeExpressionNode::raw(x, Range::chars(start, end))
     }
 
     pub fn txc<T>(
-        x: type_expression::NodeValue<CharStream<'static>, T>,
+        x: TypeExpressionNodeValue<CharStream<'static>, T>,
         ctx: T,
     ) -> TypeExpressionNode<CharStream<'static>, T> {
         TypeExpressionNode(Node::new(x, RANGE, ctx))
     }
 
     pub fn d(
-        x: declaration::NodeValue<CharStream<'static>, ()>,
+        x: DeclarationNodeValue<CharStream<'static>, ()>,
     ) -> DeclarationNode<CharStream<'static>, ()> {
         DeclarationNode::raw(x, RANGE)
     }
 
     pub fn dr<'a>(
-        x: declaration::NodeValue<CharStream<'a>, ()>,
+        x: DeclarationNodeValue<CharStream<'a>, ()>,
         (start, end): InitRange,
     ) -> DeclarationNode<CharStream<'a>, ()> {
         DeclarationNode::raw(x, Range::chars(start, end))
     }
 
     pub fn dc<T>(
-        x: declaration::NodeValue<CharStream<'static>, T>,
+        x: DeclarationNodeValue<CharStream<'static>, T>,
         ctx: T,
     ) -> DeclarationNode<CharStream<'static>, T> {
         DeclarationNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn mr<'a>(x: module::NodeValue<CharStream<'a>, ()>) -> ModuleNode<CharStream<'a>, ()> {
+    pub fn mr<'a>(x: ModuleNodeValue<CharStream<'a>, ()>) -> ModuleNode<CharStream<'a>, ()> {
         ModuleNode::raw(x)
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     analyzer::{context::StrongContext, fragment::Fragment, types::Type},
-    ast::declaration::Declaration,
+    ast::Declaration,
 };
 
 use super::Strong;
@@ -39,8 +39,8 @@ mod tests {
             context::StrongContext, fragment::Fragment, infer::strong::Strong, types::Type, RefKind,
         },
         ast::{
-            declaration::Declaration,
             storage::{Storage, Visibility},
+            Declaration,
         },
         test::fixture as f,
     };

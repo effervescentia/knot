@@ -9,7 +9,7 @@ use super::{
     RefKind, ScopeContext,
 };
 use crate::{
-    ast::module::{self, Module, ModuleNode},
+    ast::{Module, ModuleNode, ModuleNodeValue},
     common::position::Decrement,
 };
 use combine::Stream;
@@ -25,17 +25,17 @@ where
     }
 }
 
-impl<T> Identify<module::NodeValue<T, NodeContext>> for module::NodeValue<T, ()>
+impl<T> Identify<ModuleNodeValue<T, NodeContext>> for ModuleNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> module::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<T, NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
 
-impl<T> ToFragment for module::NodeValue<T, NodeContext>
+impl<T> ToFragment for ModuleNodeValue<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -51,7 +51,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     type Node = ModuleNode<T, NodeContext>;
-    type Value<C> = module::NodeValue<T, C>;
+    type Value<C> = ModuleNodeValue<T, C>;
 
     fn register(&self, ctx: &ScopeContext) -> ModuleNode<T, NodeContext> {
         let value = self.0.identify(ctx);
@@ -89,10 +89,8 @@ mod tests {
             register::Register,
         },
         ast::{
-            expression::{Expression, Primitive},
-            import::{Import, Source, Target},
-            module::{Module, ModuleNode},
-            type_expression::TypeExpression,
+            Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Primitive,
+            TypeExpression,
         },
         test::fixture as f,
     };
@@ -105,9 +103,9 @@ mod tests {
         assert_eq!(
             f::n::mr(Module::new(
                 vec![Import {
-                    source: Source::Root,
+                    source: ImportSource::Root,
                     path: vec![String::from("bar"), String::from("fizz")],
-                    aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                    aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                 }],
                 vec![f::n::d(f::a::const_(
                     "BUZZ",
@@ -119,9 +117,9 @@ mod tests {
             ModuleNode(
                 Module::new(
                     vec![Import {
-                        source: Source::Root,
+                        source: ImportSource::Root,
                         path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                        aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                     }],
                     vec![f::n::dc(
                         f::a::const_(
@@ -169,9 +167,12 @@ mod tests {
                         vec![0],
                         Fragment::Module(Module::new(
                             vec![Import {
-                                source: Source::Root,
+                                source: ImportSource::Root,
                                 path: vec![String::from("bar"), String::from("fizz")],
-                                aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                                aliases: Some(vec![(
+                                    ImportTarget::Module,
+                                    Some(String::from("Fizz"))
+                                )]),
                             }],
                             vec![2],
                         ))

@@ -10,7 +10,7 @@ use super::{
     RefKind, ScopeContext, Type,
 };
 use crate::{
-    ast::statement::{self, StatementNode},
+    ast::{StatementNode, StatementNodeValue},
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;
@@ -22,7 +22,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     type Node = StatementNode<T, NodeContext>;
-    type Value<C> = statement::NodeValue<T, C>;
+    type Value<C> = StatementNodeValue<T, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let node = &self.0;
@@ -41,10 +41,7 @@ mod tests {
             fragment::Fragment,
             register::Register,
         },
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
 

@@ -1,12 +1,12 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::declaration,
+    ast::DeclarationNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> ToFragment for declaration::NodeValue<T, NodeContext>
+impl<T> ToFragment for DeclarationNodeValue<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -26,11 +26,8 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
         ast::{
-            expression::{Expression, Primitive},
-            import::{Import, Source, Target},
-            module::{Module, ModuleNode},
-            parameter::Parameter,
-            type_expression::TypeExpression,
+            Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter,
+            Primitive, TypeExpression,
         },
         test::fixture as f,
     };
@@ -154,9 +151,9 @@ mod tests {
                 ModuleNode(
                     Module::new(
                         vec![Import {
-                            source: Source::Root,
+                            source: ImportSource::Root,
                             path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(Target::Module, Some(String::from("Fizz")))]),
+                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                         }],
                         vec![f::n::dc(
                             f::a::const_(

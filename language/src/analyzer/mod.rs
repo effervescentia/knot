@@ -11,7 +11,7 @@ mod statement;
 mod type_expression;
 mod types;
 
-use crate::{ast::module::ModuleNode, common::position::Decrement};
+use crate::{ast::ModuleNode, common::position::Decrement};
 use combine::Stream;
 use context::{FileContext, NodeContext, ScopeContext, WeakContext};
 use infer::strong::{Strong, ToStrong};
@@ -71,7 +71,7 @@ where
 mod tests {
     use crate::{
         analyzer::{types::Type, RefKind},
-        ast::module::{Module, ModuleNode},
+        ast::{Expression, Module, ModuleNode, Primitive, TypeExpression},
         test::fixture as f,
     };
 
@@ -87,7 +87,6 @@ mod tests {
 
     mod type_alias {
         use super::*;
-        use crate::ast::expression::{Expression, Primitive};
 
         #[test]
         fn primitive() {
@@ -122,7 +121,6 @@ mod tests {
 
     mod enumerated {
         use super::*;
-        use crate::ast::type_expression::TypeExpression;
 
         #[test]
         fn static_variant() {
@@ -192,10 +190,6 @@ mod tests {
 
     mod constant {
         use super::*;
-        use crate::ast::{
-            expression::{Expression, Primitive},
-            type_expression::TypeExpression,
-        };
 
         #[test]
         fn without_typedef() {
@@ -263,12 +257,7 @@ mod tests {
 
     mod function {
         use super::*;
-        use crate::ast::{
-            expression::{Expression, Primitive},
-            operator::BinaryOperator,
-            parameter::Parameter,
-            type_expression::TypeExpression,
-        };
+        use crate::ast::{BinaryOperator, Parameter};
 
         #[test]
         fn no_parameters() {
@@ -651,12 +640,7 @@ mod tests {
 
     mod view {
         use super::*;
-        use crate::ast::{
-            expression::{Expression, Primitive},
-            operator::BinaryOperator,
-            parameter::Parameter,
-            type_expression::TypeExpression,
-        };
+        use crate::ast::{BinaryOperator, Parameter};
 
         #[test]
         fn no_parameters() {
@@ -995,10 +979,6 @@ mod tests {
 
     mod module {
         use super::*;
-        use crate::ast::{
-            expression::{Expression, Primitive},
-            type_expression::TypeExpression,
-        };
 
         #[test]
         fn empty() {

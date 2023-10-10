@@ -3,10 +3,7 @@ use crate::{
         infer::weak::{ToWeak, Weak, WeakRef},
         RefKind, Type,
     },
-    ast::{
-        expression::{Expression, Primitive},
-        operator::{BinaryOperator, UnaryOperator},
-    },
+    ast::{BinaryOperator, Expression, Primitive, UnaryOperator},
 };
 
 impl ToWeak for Expression<usize, usize, usize> {
@@ -81,10 +78,7 @@ mod tests {
             infer::weak::{ToWeak, Weak},
             RefKind, Type,
         },
-        ast::{
-            expression::{Expression, Primitive},
-            operator::{BinaryOperator, UnaryOperator},
-        },
+        ast::{BinaryOperator, Expression, Primitive, UnaryOperator},
     };
 
     #[test]

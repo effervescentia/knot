@@ -8,7 +8,7 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::expression::{self, ExpressionNode},
+    ast::{ExpressionNode, ExpressionNodeValue},
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;
@@ -20,7 +20,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     type Node = ExpressionNode<T, NodeContext>;
-    type Value<C> = expression::NodeValue<T, C>;
+    type Value<C> = ExpressionNodeValue<T, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -38,11 +38,7 @@ mod tests {
             fragment::Fragment,
             register::Register,
         },
-        ast::{
-            expression::{Expression, Primitive},
-            ksx::KSX,
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement, KSX},
         test::fixture as f,
     };
 

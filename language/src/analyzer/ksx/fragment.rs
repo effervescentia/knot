@@ -1,12 +1,12 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::ksx,
+    ast::KSXNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> ToFragment for ksx::NodeValue<T, NodeContext>
+impl<T> ToFragment for KSXNodeValue<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -20,10 +20,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-        ast::{
-            expression::{Expression, ExpressionNode, Primitive},
-            ksx::{KSXNode, KSX},
-        },
+        ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX},
         parser::CharStream,
         test::fixture as f,
     };

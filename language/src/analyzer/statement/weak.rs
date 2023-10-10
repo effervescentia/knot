@@ -1,7 +1,7 @@
 use super::{RefKind, Type, Weak};
 use crate::{
     analyzer::infer::weak::{ToWeak, WeakRef},
-    ast::statement::Statement,
+    ast::Statement,
 };
 
 impl ToWeak for Statement<usize> {
@@ -21,7 +21,7 @@ mod tests {
             infer::weak::{ToWeak, Weak},
             RefKind, Type,
         },
-        ast::statement::Statement,
+        ast::Statement,
     };
 
     #[test]

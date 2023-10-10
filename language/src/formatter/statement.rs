@@ -1,5 +1,5 @@
 use crate::{
-    ast::statement::{Statement, StatementNode},
+    ast::{Statement, StatementNode},
     common::position::Decrement,
 };
 use combine::Stream;
@@ -21,10 +21,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
 

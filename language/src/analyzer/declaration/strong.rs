@@ -3,7 +3,7 @@ use crate::{
         context::{NodeContext, StrongContext},
         infer::strong::{Strong, ToStrong},
     },
-    ast::declaration::DeclarationNode,
+    ast::DeclarationNode,
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;

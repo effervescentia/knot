@@ -1,5 +1,8 @@
 use super::{
-    expression::ExpressionNode, module::ModuleNode, parameter::ParameterNode, storage::Storage,
+    expression::ExpressionNode,
+    module::ModuleNode,
+    parameter::ParameterNode,
+    storage::{Storage, Visibility},
     type_expression::TypeExpressionNode,
 };
 use crate::common::{node::Node, position::Decrement, range::Range};
@@ -39,6 +42,64 @@ pub enum Declaration<E, P, M, T> {
 }
 
 impl<E, P, M, T> Declaration<E, P, M, T> {
+    pub fn name(&self) -> &String {
+        match self {
+            Self::TypeAlias {
+                name: Storage(_, name),
+                ..
+            }
+            | Self::Enumerated {
+                name: Storage(_, name),
+                ..
+            }
+            | Self::Constant {
+                name: Storage(_, name),
+                ..
+            }
+            | Self::Function {
+                name: Storage(_, name),
+                ..
+            }
+            | Self::View {
+                name: Storage(_, name),
+                ..
+            }
+            | Self::Module {
+                name: Storage(_, name),
+                ..
+            } => name,
+        }
+    }
+
+    pub fn is_public(&self) -> bool {
+        match self {
+            Self::TypeAlias {
+                name: Storage(visibility, _),
+                ..
+            }
+            | Self::Enumerated {
+                name: Storage(visibility, _),
+                ..
+            }
+            | Self::Constant {
+                name: Storage(visibility, _),
+                ..
+            }
+            | Self::Function {
+                name: Storage(visibility, _),
+                ..
+            }
+            | Self::View {
+                name: Storage(visibility, _),
+                ..
+            }
+            | Self::Module {
+                name: Storage(visibility, _),
+                ..
+            } => *visibility == Visibility::Public,
+        }
+    }
+
     pub fn map<E2, P2, M2, T2>(
         &self,
         fe: &impl Fn(&E) -> E2,
@@ -100,7 +161,7 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
     }
 }
 
-pub type NodeValue<T, C> = Declaration<
+pub type DeclarationNodeValue<T, C> = Declaration<
     ExpressionNode<T, C>,
     ParameterNode<T, C>,
     ModuleNode<T, C>,
@@ -108,7 +169,7 @@ pub type NodeValue<T, C> = Declaration<
 >;
 
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
+pub struct DeclarationNode<T, C>(pub Node<DeclarationNodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -118,13 +179,13 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
+    pub fn node(&self) -> &Node<DeclarationNodeValue<T, C>, T, C> {
         &self.0
     }
 
     pub fn map<R>(
         &self,
-        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+        f: impl Fn(&DeclarationNodeValue<T, C>, &C) -> (DeclarationNodeValue<T, R>, R),
     ) -> DeclarationNode<T, R> {
         let node = self.node();
         let (value, ctx) = f(&node.value(), &node.context());
@@ -138,7 +199,7 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
+    pub fn raw(x: DeclarationNodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 }

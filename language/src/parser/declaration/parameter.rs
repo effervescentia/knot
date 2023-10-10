@@ -1,5 +1,5 @@
 use crate::{
-    ast::parameter::{Parameter, ParameterNode},
+    ast::{Parameter, ParameterNode},
     common::position::Decrement,
     parser::{expression, matcher as m, types::typedef},
 };

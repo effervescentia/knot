@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 // TODO: rename to ImportSource
 #[derive(Clone, Debug, PartialEq)]
-pub enum Source {
+pub enum ImportSource {
     Root,
     Local,
     External(String),
@@ -10,23 +10,23 @@ pub enum Source {
 
 // TODO: rename to ImportTarget
 #[derive(Clone, Debug, PartialEq)]
-pub enum Target {
+pub enum ImportTarget {
     Named(String),
     Module,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Import {
-    pub source: Source,
+    pub source: ImportSource,
     pub path: Vec<String>,
-    pub aliases: Option<Vec<(Target, Option<String>)>>,
+    pub aliases: Option<Vec<(ImportTarget, Option<String>)>>,
 }
 
 impl Import {
     pub fn new(
-        source: Source,
+        source: ImportSource,
         path: Vec<String>,
-        aliases: Option<Vec<(Target, Option<String>)>>,
+        aliases: Option<Vec<(ImportTarget, Option<String>)>>,
     ) -> Import {
         Import {
             source,

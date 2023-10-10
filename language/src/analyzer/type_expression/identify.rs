@@ -3,18 +3,18 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::type_expression,
+    ast::TypeExpressionNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Identify<type_expression::NodeValue<T, NodeContext>> for type_expression::NodeValue<T, ()>
+impl<T> Identify<TypeExpressionNodeValue<T, NodeContext>> for TypeExpressionNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> type_expression::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> TypeExpressionNodeValue<T, NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
@@ -23,7 +23,7 @@ where
 mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
-        ast::type_expression::{TypeExpression, TypeExpressionNode},
+        ast::{TypeExpression, TypeExpressionNode},
         parser::CharStream,
         test::fixture as f,
     };

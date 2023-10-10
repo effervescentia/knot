@@ -1,10 +1,7 @@
 pub mod import;
 
 use crate::{
-    ast::{
-        import::Import,
-        module::{Module, ModuleNode},
-    },
+    ast::{Import, Module, ModuleNode},
     common::position::Decrement,
     parser::declaration,
 };
@@ -50,14 +47,8 @@ where
 mod tests {
     use crate::{
         ast::{
-            expression::{Expression, Primitive},
-            import::{Import, Source},
-            ksx::KSX,
-            module::{Module, ModuleNode},
-            operator::BinaryOperator,
-            parameter::Parameter,
-            statement::Statement,
-            type_expression::TypeExpression,
+            BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter,
+            Primitive, Statement, TypeExpression, KSX,
         },
         parser::{CharStream, ParseResult},
         test::fixture as f,
@@ -78,7 +69,11 @@ mod tests {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
             f::n::mr(Module::new(
-                vec![Import::new(Source::Root, vec![String::from("foo")], None)],
+                vec![Import::new(
+                    ImportSource::Root,
+                    vec![String::from("foo")],
+                    None
+                )],
                 vec![]
             ))
         );

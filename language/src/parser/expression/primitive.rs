@@ -1,4 +1,4 @@
-use crate::ast::expression::Primitive;
+use crate::ast::Primitive;
 use combine::{
     attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
 };

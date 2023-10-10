@@ -3,18 +3,18 @@ use crate::{
         context::{NodeContext, ScopeContext},
         register::{Identify, Register},
     },
-    ast::expression::{self, Expression},
+    ast::{Expression, ExpressionNodeValue},
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> Identify<expression::NodeValue<T, NodeContext>> for expression::NodeValue<T, ()>
+impl<T> Identify<ExpressionNodeValue<T, NodeContext>> for ExpressionNodeValue<T, ()>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn identify(&self, ctx: &ScopeContext) -> expression::NodeValue<T, NodeContext> {
+    fn identify(&self, ctx: &ScopeContext) -> ExpressionNodeValue<T, NodeContext> {
         match self {
             Self::Closure(xs) => {
                 let child_ctx = ctx.child();
@@ -36,10 +36,8 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
         ast::{
-            expression::{Expression, ExpressionNode, Primitive},
-            ksx::{KSXNode, KSX},
-            operator::{BinaryOperator, UnaryOperator},
-            statement::{Statement, StatementNode},
+            BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement,
+            StatementNode, UnaryOperator, KSX,
         },
         parser::CharStream,
         test::fixture as f,

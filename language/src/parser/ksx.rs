@@ -1,8 +1,5 @@
 use crate::{
-    ast::{
-        expression::ExpressionNode,
-        ksx::{KSXNode, KSX},
-    },
+    ast::{ExpressionNode, KSXNode, KSX},
     common::position::Decrement,
     parser::{expression, matcher as m},
 };
@@ -192,7 +189,7 @@ parser! {
 mod tests {
     use super::{ksx, KSXNode, KSX};
     use crate::{
-        ast::expression::{Expression, Primitive},
+        ast::{Expression, Primitive},
         parser::{CharStream, ParseResult},
         test::fixture as f,
     };

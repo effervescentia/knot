@@ -1,6 +1,6 @@
 use super::Typedef;
 use crate::{
-    ast::parameter::{Parameter, ParameterNode},
+    ast::{Parameter, ParameterNode},
     common::position::Decrement,
 };
 use combine::Stream;
@@ -47,11 +47,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            expression::{Expression, Primitive},
-            parameter::Parameter,
-            type_expression::TypeExpression,
-        },
+        ast::{Expression, Parameter, Primitive, TypeExpression},
         test::fixture as f,
     };
 

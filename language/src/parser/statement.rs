@@ -1,8 +1,5 @@
 use crate::{
-    ast::{
-        expression::ExpressionNode,
-        statement::{Statement, StatementNode},
-    },
+    ast::{ExpressionNode, Statement, StatementNode},
     common::position::Decrement,
     parser::matcher as m,
 };
@@ -54,10 +51,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            expression::{Expression, Primitive},
-            statement::{Statement, StatementNode},
-        },
+        ast::{Expression, Primitive, Statement, StatementNode},
         parser::{expression, CharStream, ParseResult},
         test::fixture as f,
     };

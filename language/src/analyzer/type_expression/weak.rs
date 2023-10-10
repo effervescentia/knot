@@ -3,7 +3,7 @@ use crate::{
         infer::weak::{ToWeak, Weak, WeakRef},
         RefKind, Type,
     },
-    ast::type_expression::TypeExpression,
+    ast::TypeExpression,
 };
 
 impl ToWeak for TypeExpression<usize> {
@@ -40,7 +40,7 @@ mod tests {
             infer::weak::{ToWeak, Weak},
             RefKind, Type,
         },
-        ast::type_expression::TypeExpression,
+        ast::TypeExpression,
     };
 
     #[test]

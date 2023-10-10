@@ -8,7 +8,7 @@ use super::{
     register::{Identify, Register},
 };
 use crate::{
-    ast::parameter::{self, ParameterNode},
+    ast::{ParameterNode, ParameterNodeValue},
     common::{node::Node, position::Decrement},
 };
 use combine::Stream;
@@ -20,7 +20,7 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     type Node = ParameterNode<T, NodeContext>;
-    type Value<C> = parameter::NodeValue<T, C>;
+    type Value<C> = ParameterNodeValue<T, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -38,10 +38,7 @@ mod tests {
             fragment::Fragment,
             register::Register,
         },
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
 

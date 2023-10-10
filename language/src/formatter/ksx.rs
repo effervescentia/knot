@@ -1,6 +1,6 @@
 use super::indented;
 use crate::{
-    ast::ksx::{KSXNode, KSX},
+    ast::{KSXNode, KSX},
     common::position::Decrement,
 };
 use combine::Stream;
@@ -135,10 +135,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            expression::{Expression, Primitive},
-            ksx::KSX,
-        },
+        ast::{Expression, Primitive, KSX},
         test::fixture as f,
     };
 

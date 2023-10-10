@@ -1,7 +1,5 @@
 use super::type_expression;
-use crate::{
-    ast::type_expression::TypeExpressionNode, common::position::Decrement, parser::matcher as m,
-};
+use crate::{ast::TypeExpressionNode, common::position::Decrement, parser::matcher as m};
 use combine::{optional, Parser, Stream};
 use std::fmt::Debug;
 

@@ -1,5 +1,5 @@
 use crate::{
-    ast::import::{Import, Source, Target},
+    ast::{Import, ImportSource, ImportTarget},
     common::position::Decrement,
     parser::matcher as m,
 };
@@ -27,10 +27,10 @@ where
         choice((
             m::symbol('@')
                 .skip(not_followed_by(p::alpha_num().or(p::char('_'))))
-                .with(value(Source::Root)),
-            m::symbol('.').with(value(Source::Local)),
+                .with(value(ImportSource::Root)),
+            m::symbol('.').with(value(ImportSource::Local)),
             choice((m::identifier(p::char('@')), m::standard_identifier()))
-                .map(|(x, _)| Source::External(x)),
+                .map(|(x, _)| ImportSource::External(x)),
         ))
     };
     let path = || {
@@ -41,8 +41,8 @@ where
     let alias = || {
         (
             choice((
-                m::symbol('*').with(value(Target::Module)),
-                m::standard_identifier().map(|(x, _)| Target::Named(x)),
+                m::symbol('*').with(value(ImportTarget::Module)),
+                m::standard_identifier().map(|(x, _)| ImportTarget::Named(x)),
             )),
             optional(
                 m::keyword("as")
@@ -71,7 +71,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Import, Source, Target};
+    use super::{Import, ImportSource, ImportTarget};
     use crate::parser::ParseResult;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
@@ -83,7 +83,7 @@ mod tests {
     fn import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            Import::new(Source::Root, vec![String::from("foo")], None)
+            Import::new(ImportSource::Root, vec![String::from("foo")], None)
         );
     }
 
@@ -92,7 +92,7 @@ mod tests {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
             Import::new(
-                Source::Root,
+                ImportSource::Root,
                 vec![
                     String::from("foo"),
                     String::from("bar"),
@@ -107,7 +107,7 @@ mod tests {
     fn import_named_empty() {
         assert_eq!(
             parse("use @/foo.{};").unwrap().0,
-            Import::new(Source::Root, vec![String::from("foo")], Some(vec![]))
+            Import::new(ImportSource::Root, vec![String::from("foo")], Some(vec![]))
         );
     }
 
@@ -116,11 +116,11 @@ mod tests {
         assert_eq!(
             parse("use @/foo.{*, bar};").unwrap().0,
             Import::new(
-                Source::Root,
+                ImportSource::Root,
                 vec![String::from("foo")],
                 Some(vec![
-                    (Target::Module, None),
-                    (Target::Named(String::from("bar")), None)
+                    (ImportTarget::Module, None),
+                    (ImportTarget::Named(String::from("bar")), None)
                 ])
             )
         );
@@ -131,12 +131,12 @@ mod tests {
         assert_eq!(
             parse("use @/foo.{* as foo, fizz as buzz};").unwrap().0,
             Import::new(
-                Source::Root,
+                ImportSource::Root,
                 vec![String::from("foo")],
                 Some(vec![
-                    (Target::Module, Some(String::from("foo"))),
+                    (ImportTarget::Module, Some(String::from("foo"))),
                     (
-                        Target::Named(String::from("fizz")),
+                        ImportTarget::Named(String::from("fizz")),
                         Some(String::from("buzz"))
                     )
                 ])

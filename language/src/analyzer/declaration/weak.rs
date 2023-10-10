@@ -3,7 +3,7 @@ use crate::{
         infer::weak::{ToWeak, Weak, WeakRef},
         RefKind, Type,
     },
-    ast::declaration::Declaration,
+    ast::Declaration,
 };
 
 impl ToWeak for Declaration<usize, usize, usize, usize> {

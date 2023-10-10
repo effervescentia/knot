@@ -1,10 +1,18 @@
 use super::{indented, Block, Indented, SeparateEach, TerminateEach};
 use crate::{
-    ast::expression::{Expression, ExpressionNode, Primitive},
+    ast::{Expression, ExpressionNode, Primitive},
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::{Debug, Display, Formatter, Write};
+
+fn escape_string(s: &String) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\t", "\\t")
+        .replace("\r", "\\r")
+}
 
 impl<T, C> Display for ExpressionNode<T, C>
 where
@@ -25,7 +33,7 @@ where
             }
 
             Expression::Primitive(Primitive::String(x)) => {
-                write!(f, "\"{encoded}\"", encoded = x.replace("\"", "\\\""))
+                write!(f, "\"{escaped}\"", escaped = escape_string(x))
             }
 
             Expression::Identifier(x) => write!(f, "{x}"),
@@ -85,12 +93,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            expression::{Expression, Primitive},
-            ksx::KSX,
-            operator::{BinaryOperator, UnaryOperator},
-            statement::Statement,
-        },
+        ast::{BinaryOperator, Expression, Primitive, Statement, UnaryOperator, KSX},
         test::fixture as f,
     };
 

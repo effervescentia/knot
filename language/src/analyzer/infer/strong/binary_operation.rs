@@ -4,7 +4,7 @@ use crate::{
         infer::strong::{ExpectedType, SemanticError, Strong},
         RefKind, Type,
     },
-    ast::operator::BinaryOperator,
+    ast::BinaryOperator,
 };
 
 pub fn infer(op: &BinaryOperator, lhs: usize, rhs: usize, ctx: &StrongContext) -> Option<Strong> {
@@ -53,7 +53,7 @@ mod tests {
             types::Type,
             RefKind,
         },
-        ast::operator::BinaryOperator,
+        ast::BinaryOperator,
         test::fixture as f,
     };
 

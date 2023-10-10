@@ -41,10 +41,7 @@ mod tests {
     use super::Weak;
     use crate::{
         analyzer::{fragment::Fragment, RefKind, Type},
-        ast::{
-            expression::{Expression, Primitive},
-            statement::Statement,
-        },
+        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
     use std::collections::{BTreeSet, HashMap};

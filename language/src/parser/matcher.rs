@@ -120,11 +120,8 @@ where
     T::Position: Copy + Debug + Decrement,
 {
     lexeme(prefix.then(|first| {
-        many::<Vec<_>, _, _>(p::alpha_num().or(p::char('_'))).map(move |mut rest| {
-            let mut result = vec![first];
-            result.append(&mut rest);
-            result.into_iter().collect()
-        })
+        many::<Vec<_>, _, _>(p::alpha_num().or(p::char('_')))
+            .map(move |rest| vec![vec![first], rest].concat().into_iter().collect())
     }))
 }
 

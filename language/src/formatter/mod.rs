@@ -1,3 +1,5 @@
+extern crate indenter;
+
 mod declaration;
 mod expression;
 mod ksx;
@@ -6,7 +8,7 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::{ast::type_expression::TypeExpressionNode, common::position::Decrement};
+use crate::{ast::TypeExpressionNode, common::position::Decrement};
 use combine::Stream;
 use std::fmt::{Debug, Display, Formatter, Write};
 
@@ -53,7 +55,7 @@ where
     }
 }
 
-struct SeparateEach<'a, T>(&'a str, &'a Vec<T>)
+pub struct SeparateEach<'a, T>(pub &'a str, pub &'a Vec<T>)
 where
     T: Display;
 
@@ -77,7 +79,7 @@ where
     }
 }
 
-struct TerminateEach<'a, T>(&'a str, &'a Vec<T>)
+pub struct TerminateEach<'a, T>(pub &'a str, pub &'a Vec<T>)
 where
     T: Display;
 
@@ -92,7 +94,7 @@ where
     }
 }
 
-struct Indented<T>(T)
+pub struct Indented<T>(pub T)
 where
     T: Display;
 
@@ -105,7 +107,7 @@ where
     }
 }
 
-struct Block<T>(T)
+pub struct Block<T>(pub T)
 where
     T: Display;
 
@@ -144,7 +146,7 @@ where
 {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         match (self.has_written, s) {
-            (false, _) if s != "" => {
+            (false, _) if !s.is_empty() => {
                 self.has_written = true;
                 write!(self.inner, "\n{s}")
             }

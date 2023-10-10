@@ -1,9 +1,6 @@
 use super::TerminateEach;
 use crate::{
-    ast::{
-        import::{Import, Source},
-        module::ModuleNode,
-    },
+    ast::{Import, ImportSource, ModuleNode},
     common::position::Decrement,
     formatter::SeparateEach,
 };
@@ -32,9 +29,9 @@ impl Display for Import {
             f,
             "use {source}/{path}",
             source = match &self.source {
-                Source::Root => "@",
-                Source::Local => ".",
-                Source::External(x) => x,
+                ImportSource::Root => "@",
+                ImportSource::Local => ".",
+                ImportSource::External(x) => x,
             },
             path = SeparateEach("/", &self.path)
         )
@@ -44,11 +41,7 @@ impl Display for Import {
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            import::{Import, Source},
-            module::Module,
-            type_expression::TypeExpression,
-        },
+        ast::{Import, ImportSource, Module, TypeExpression},
         test::fixture as f,
     };
 
@@ -65,7 +58,7 @@ mod tests {
         assert_eq!(
             f::n::mr(Module::new(
                 vec![Import::new(
-                    Source::Root,
+                    ImportSource::Root,
                     vec![String::from("bar"), String::from("fizz")],
                     None
                 )],
@@ -95,7 +88,7 @@ mod tests {
         assert_eq!(
             f::n::mr(Module::new(
                 vec![Import::new(
-                    Source::Root,
+                    ImportSource::Root,
                     vec![String::from("bar"), String::from("fizz")],
                     None
                 )],

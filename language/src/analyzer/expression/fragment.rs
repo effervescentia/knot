@@ -1,12 +1,12 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
-    ast::expression,
+    ast::ExpressionNodeValue,
     common::position::Decrement,
 };
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<T> ToFragment for expression::NodeValue<T, NodeContext>
+impl<T> ToFragment for ExpressionNodeValue<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
@@ -25,10 +25,8 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
         ast::{
-            expression::{Expression, ExpressionNode, Primitive},
-            ksx::{KSXNode, KSX},
-            operator::{BinaryOperator, UnaryOperator},
-            statement::{Statement, StatementNode},
+            BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement,
+            StatementNode, UnaryOperator, KSX,
         },
         parser::CharStream,
         test::fixture as f,

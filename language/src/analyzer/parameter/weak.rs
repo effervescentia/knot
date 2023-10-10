@@ -3,7 +3,7 @@ use crate::{
         infer::weak::{ToWeak, Weak, WeakRef},
         RefKind,
     },
-    ast::parameter::Parameter,
+    ast::Parameter,
 };
 
 impl ToWeak for Parameter<usize, usize> {
@@ -33,7 +33,7 @@ mod tests {
             infer::weak::{ToWeak, Weak},
             RefKind,
         },
-        ast::parameter::Parameter,
+        ast::Parameter,
     };
 
     #[test]

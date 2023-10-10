@@ -8,7 +8,7 @@ pub mod module;
 pub mod statement;
 pub mod types;
 
-use crate::ast::module::ModuleNode;
+use crate::ast::ModuleNode;
 use combine::{
     easy::{self, Errors},
     eof,

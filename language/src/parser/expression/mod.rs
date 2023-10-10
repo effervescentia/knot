@@ -3,10 +3,7 @@ pub mod primitive;
 pub mod style;
 
 use crate::{
-    ast::{
-        expression::{Expression, ExpressionNode},
-        operator::UnaryOperator,
-    },
+    ast::{Expression, ExpressionNode, UnaryOperator},
     common::position::Decrement,
     parser::{ksx, matcher as m, statement},
 };
@@ -220,10 +217,7 @@ where
 mod tests {
     use crate::{
         ast::{
-            expression::{Expression, ExpressionNode, Primitive},
-            ksx::KSX,
-            operator::{BinaryOperator, UnaryOperator},
-            statement::Statement,
+            BinaryOperator, Expression, ExpressionNode, Primitive, Statement, UnaryOperator, KSX,
         },
         parser::{CharStream, ParseResult},
         test::fixture as f,

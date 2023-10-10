@@ -2,7 +2,7 @@ use crate::common::{node::Node, position::Decrement, range::Range};
 use combine::Stream;
 use std::fmt::Debug;
 
-use super::expression::ExpressionNode;
+use super::ExpressionNode;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum KSX<E, K> {
@@ -46,10 +46,10 @@ impl<E, K> KSX<E, K> {
     }
 }
 
-pub type NodeValue<T, C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
+pub type KSXNodeValue<T, C> = KSX<ExpressionNode<T, C>, KSXNode<T, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct KSXNode<T, C>(pub Node<NodeValue<T, C>, T, C>)
+pub struct KSXNode<T, C>(pub Node<KSXNodeValue<T, C>, T, C>)
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement;
@@ -59,13 +59,13 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn node(&self) -> &Node<NodeValue<T, C>, T, C> {
+    pub fn node(&self) -> &Node<KSXNodeValue<T, C>, T, C> {
         &self.0
     }
 
     pub fn map<R>(
         &self,
-        f: impl Fn(&NodeValue<T, C>, &C) -> (NodeValue<T, R>, R),
+        f: impl Fn(&KSXNodeValue<T, C>, &C) -> (KSXNodeValue<T, R>, R),
     ) -> KSXNode<T, R> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
@@ -79,11 +79,11 @@ where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    pub fn raw(x: NodeValue<T, ()>, range: Range<T>) -> Self {
+    pub fn raw(x: KSXNodeValue<T, ()>, range: Range<T>) -> Self {
         Self(Node::raw(x, range))
     }
 
-    pub fn bind((x, range): (NodeValue<T, ()>, Range<T>)) -> Self {
+    pub fn bind((x, range): (KSXNodeValue<T, ()>, Range<T>)) -> Self {
         Self::raw(x, range)
     }
 }
