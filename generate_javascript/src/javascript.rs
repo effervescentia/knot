@@ -53,7 +53,7 @@ pub enum Statement {
     Assignment(Expression, Expression),
     Return(Option<Expression>),
     // DefaultImport(String, String),
-    // Import(String, Vec<(String, Option<String>)>),
+    Import(String, Vec<(String, Option<String>)>),
     Export(String),
     // EmptyExport,
 }
@@ -63,16 +63,42 @@ impl Statement {
         Self::Variable(name.to_string(), x)
     }
 
-    pub fn export(name: &String, opts: &Options) -> Self {
+    pub fn import(
+        namespace: &str,
+        imports: Vec<(String, Option<String>)>,
+        opts: &Options,
+    ) -> Vec<Self> {
         match opts.module {
-            Module::ESM => Self::Export(name.clone()),
+            Module::CJS => imports
+                .iter()
+                .map(|x| match x {
+                    (name, Some(alias)) | (alias @ name, None) => Self::Variable(
+                        alias.clone(),
+                        Expression::DotAccess(
+                            Box::new(Expression::FunctionCall(
+                                Box::new(Expression::Identifier(String::from("require"))),
+                                vec![Expression::String(namespace.to_string())],
+                            )),
+                            name.clone(),
+                        ),
+                    ),
+                })
+                .collect(),
+
+            Module::ESM => vec![Statement::Import(namespace.to_string(), imports)],
+        }
+    }
+
+    pub fn export(name: &str, opts: &Options) -> Self {
+        match opts.module {
+            Module::ESM => Self::Export(name.to_string()),
 
             Module::CJS => Self::Assignment(
                 Expression::DotAccess(
                     Box::new(Expression::Identifier(String::from("exports"))),
-                    name.clone(),
+                    name.to_string(),
                 ),
-                Expression::Identifier(name.clone()),
+                Expression::Identifier(name.to_string()),
             ),
         }
     }

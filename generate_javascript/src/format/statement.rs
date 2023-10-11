@@ -1,3 +1,5 @@
+use knot_language::formatter::SeparateEach;
+
 use crate::javascript::{Expression, Statement};
 use std::fmt::{Display, Formatter};
 
@@ -18,6 +20,32 @@ impl Display for Statement {
             Statement::Export(name) => write!(f, "export {{ {name} }};"),
 
             Statement::Assignment(lhs, rhs) => write!(f, "{lhs} = {rhs};"),
+
+            Statement::Import(namespace, imports) => {
+                write!(
+                    f,
+                    "import {{ {imports} }} from \"{namespace}\";",
+                    imports = SeparateEach(
+                        ", ",
+                        &imports
+                            .iter()
+                            .map(|(name, alias)| Import(name, alias))
+                            .collect()
+                    )
+                )
+            }
+        }
+    }
+}
+
+struct Import<'a>(&'a str, &'a Option<String>);
+
+impl<'a> Display for Import<'a> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Self(name, Some(alias)) => write!(f, "{name} as {alias}"),
+
+            Self(name, None) => write!(f, "{name}"),
         }
     }
 }

@@ -10,7 +10,7 @@ use knot_language::ast;
 impl JavaScript {
     pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Self {
         let statements = vec![
-            vec![],
+            Statement::import("@knot/runtime", vec![(String::from("$knot"), None)], opts),
             Statement::from_module(value, opts),
             value
                 .0
