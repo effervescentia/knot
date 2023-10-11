@@ -2,4 +2,4 @@
 
 resolver = "2"
 
-members = ["combo", "language", "generate_javascript"]
+members = ["command", "language", "generate_javascript"]

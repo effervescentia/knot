@@ -13,10 +13,25 @@ pub enum Mode {
     Prod,
 }
 
+pub enum Module {
+    /// ECMAScript modules
+    ESM,
+
+    /// CommonJS modules
+    CJS,
+}
+
 pub struct Options {
-    mode: Mode,
+    pub mode: Mode,
+    pub module: Module,
 }
 
 pub fn generate(module: &ModuleShape) -> JavaScript {
-    JavaScript::from_module(module, &Options { mode: Mode::Prod })
+    JavaScript::from_module(
+        module,
+        &Options {
+            mode: Mode::Prod,
+            module: Module::ESM,
+        },
+    )
 }

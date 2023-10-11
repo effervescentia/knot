@@ -194,11 +194,14 @@ impl Expression {
 mod tests {
     use crate::{
         javascript::{Expression, Statement},
-        Mode, Options,
+        Mode, Module, Options,
     };
     use knot_language::ast;
 
-    const OPTIONS: Options = Options { mode: Mode::Prod };
+    const OPTIONS: Options = Options {
+        mode: Mode::Prod,
+        module: Module::ESM,
+    };
 
     mod expression {
         use super::*;

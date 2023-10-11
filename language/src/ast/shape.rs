@@ -1,9 +1,3 @@
-use std::fmt::Debug;
-
-use combine::Stream;
-
-use crate::common::position::Decrement;
-
 use super::{
     declaration::{Declaration, DeclarationNode},
     expression::{Expression, ExpressionNode},
@@ -13,6 +7,9 @@ use super::{
     statement::{Statement, StatementNode},
     type_expression::{TypeExpression, TypeExpressionNode},
 };
+use crate::common::position::Decrement;
+use combine::Stream;
+use std::fmt::Debug;
 
 pub trait ToShape<S> {
     fn to_shape(&self) -> S;

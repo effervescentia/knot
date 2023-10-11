@@ -1,30 +1,7 @@
-use crate::Options;
-use knot_language::ast::ModuleShape;
+use crate::{Module, Options};
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct JavaScript(pub Vec<Statement>);
-
-impl JavaScript {
-    pub fn from_module(value: &ModuleShape, opts: &Options) -> Self {
-        let statements = vec![
-            Statement::from_module(value, opts),
-            value
-                .0
-                .declarations
-                .iter()
-                .filter_map(|x| {
-                    if x.0.is_public() {
-                        Some(Statement::Export(x.0.name().clone()))
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        ]
-        .concat();
-
-        Self(Statement::from_module(value, opts))
-    }
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expression {
@@ -84,5 +61,19 @@ pub enum Statement {
 impl Statement {
     pub fn internal_variable(name: &str, x: Expression) -> Self {
         Self::Variable(name.to_string(), x)
+    }
+
+    pub fn export(name: &String, opts: &Options) -> Self {
+        match opts.module {
+            Module::ESM => Self::Export(name.clone()),
+
+            Module::CJS => Self::Assignment(
+                Expression::DotAccess(
+                    Box::new(Expression::Identifier(String::from("exports"))),
+                    name.clone(),
+                ),
+                Expression::Identifier(name.clone()),
+            ),
+        }
     }
 }

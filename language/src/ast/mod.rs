@@ -19,7 +19,7 @@ pub use operator::{BinaryOperator, UnaryOperator};
 pub use parameter::{Parameter, ParameterNode, ParameterNodeValue};
 pub use shape::{
     DeclarationShape, ExpressionShape, KSXShape, ModuleShape, ParameterShape, StatementShape,
-    TypeExpressionShape,
+    ToShape, TypeExpressionShape,
 };
 pub use statement::{Statement, StatementNode, StatementNodeValue};
 pub use type_expression::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue};

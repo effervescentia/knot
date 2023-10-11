@@ -1,5 +1,3 @@
-extern crate indenter;
-
 mod declaration;
 mod expression;
 mod ksx;

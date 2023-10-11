@@ -1,10 +1,14 @@
-use crate::javascript::Statement;
+use crate::javascript::{Expression, Statement};
 use std::fmt::{Display, Formatter};
 
 impl Display for Statement {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Statement::Expression(x) => write!(f, "{x};"),
+            Statement::Expression(x) => match x {
+                Expression::Function(..) => write!(f, "{x}"),
+
+                _ => write!(f, "{x};"),
+            },
 
             Statement::Variable(name, x) => write!(f, "var {name} = {x};"),
 
