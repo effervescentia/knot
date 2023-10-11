@@ -47,7 +47,8 @@ module my_module {
   };
 }
 ";
-    const OUTPUT: &str = "var MyEnum = {
+    const OUTPUT: &str = "import { $knot } from \"@knot/runtime\";
+var MyEnum = {
   First: function First($param_0, $param_1) {
     return [MyEnum.First, $param_0, $param_1];
   },

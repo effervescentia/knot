@@ -4,10 +4,6 @@ use crate::{
 };
 use knot_language::ast::{self, storage::Storage, DeclarationShape, ModuleShape, StatementShape};
 
-fn parameter_name(suffix: &String) -> String {
-    format!("$param_{suffix}")
-}
-
 impl Statement {
     pub fn from_statement(value: &StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
         match &value.0 {

@@ -77,6 +77,10 @@ mod tests {
                 &OPTIONS
             ),
             JavaScript(vec![
+                Statement::Import(
+                    String::from("@knot/runtime"),
+                    vec![(String::from("$knot"), None)]
+                ),
                 Statement::Variable(String::from("bar"), Expression::Null),
                 Statement::Variable(String::from("fizz"), Expression::Null),
                 Statement::Export(String::from("fizz")),
@@ -101,6 +105,10 @@ mod tests {
                 &OPTIONS
             ),
             JavaScript(vec![
+                Statement::Import(
+                    String::from("@knot/runtime"),
+                    vec![(String::from("$knot"), None)]
+                ),
                 Statement::Variable(String::from("bar"), Expression::Null),
                 Statement::Export(String::from("bar")),
             ])
@@ -127,6 +135,16 @@ mod tests {
                 }
             ),
             JavaScript(vec![
+                Statement::Variable(
+                    String::from("$knot"),
+                    Expression::DotAccess(
+                        Box::new(Expression::FunctionCall(
+                            Box::new(Expression::Identifier(String::from("require"))),
+                            vec![Expression::String(String::from("@knot/runtime"))]
+                        )),
+                        String::from("$knot")
+                    )
+                ),
                 Statement::Variable(String::from("bar"), Expression::Null),
                 Statement::Assignment(
                     Expression::DotAccess(

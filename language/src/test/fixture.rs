@@ -16,24 +16,30 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
 };
 
+#[allow(dead_code)]
 const RANGE: Range<CharStream> = Range::chars((1, 1), (1, 1));
 
+#[allow(dead_code)]
 type InitRange = ((i32, i32), (i32, i32));
 
+#[allow(dead_code)]
 pub fn file_ctx() -> RefCell<FileContext> {
     RefCell::new(FileContext::new())
 }
 
+#[allow(dead_code)]
 pub fn file_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> FileContext {
     let ctx = file_ctx();
     ctx.borrow_mut().fragments.0.extend(xs);
     ctx.into_inner()
 }
 
+#[allow(dead_code)]
 pub fn scope_ctx<'a>(file_ctx: &'a RefCell<FileContext>) -> ScopeContext<'a> {
     ScopeContext::new(file_ctx)
 }
 
+#[allow(dead_code)]
 pub fn strong_ctx_from(
     fragments: Vec<(usize, (Vec<usize>, Fragment))>,
     refs: Vec<(usize, StrongRef)>,
@@ -48,6 +54,7 @@ pub fn strong_ctx_from(
 }
 
 /// node factories
+#[allow(dead_code)]
 pub mod n {
     use super::*;
     use crate::ast::{
@@ -179,6 +186,7 @@ pub mod n {
 }
 
 /// ast factories
+#[allow(dead_code)]
 pub mod a {
     use super::*;
     use crate::ast::storage::{Storage, Visibility};

@@ -1,3 +1,4 @@
+pub mod format;
 pub mod transpile;
 
 pub enum JavaScriptModule {
