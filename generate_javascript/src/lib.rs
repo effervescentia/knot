@@ -21,6 +21,12 @@ pub enum Module {
     CJS,
 }
 
+impl Default for Module {
+    fn default() -> Self {
+        Self::ESM
+    }
+}
+
 pub struct Options {
     pub mode: Mode,
     pub module: Module,

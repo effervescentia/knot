@@ -3,8 +3,9 @@ mod common;
 use common::test_path;
 use knot_command::{
     transpile::{self, Options},
-    JavaScriptModule, TargetFormat,
+    TargetFormat,
 };
+use knot_generate_javascript::Module;
 use std::fs;
 
 pub fn transpile(name: &str, input: &str, target: TargetFormat) -> Option<String> {
@@ -83,7 +84,7 @@ export { my_module };
     let result = transpile(
         "transpile_to_javascript",
         INPUT,
-        TargetFormat::JavaScript(JavaScriptModule::Modern),
+        TargetFormat::JavaScript(Module::ESM),
     );
 
     assert_eq!(result.unwrap(), OUTPUT);
