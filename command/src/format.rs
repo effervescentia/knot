@@ -17,6 +17,9 @@ pub fn command(opts: &Options) {
     let mut output_path = opts.out_dir.to_path_buf();
     output_path.extend(opts.entry.file_name());
 
-    let mut writer = BufWriter::new(File::create(output_path).unwrap());
+    let out_file = File::create(output_path).unwrap();
+    let mut writer = BufWriter::new(out_file);
+
     write!(writer, "{result}").unwrap();
+    writer.flush().unwrap();
 }

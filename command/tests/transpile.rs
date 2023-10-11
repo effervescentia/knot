@@ -27,6 +27,7 @@ pub fn transpile(name: &str, input: &str, target: TargetFormat) -> Option<String
 
 #[test]
 fn to_javascript() {
+    const NAME: &str = "transpile_to_javascript";
     const INPUT: &str = "type MyType = boolean;
 
 enum MyEnum =
@@ -81,11 +82,7 @@ export { MyView };
 export { my_module };
 ";
 
-    let result = transpile(
-        "transpile_to_javascript",
-        INPUT,
-        TargetFormat::JavaScript(Module::ESM),
-    );
+    let result = transpile(NAME, INPUT, TargetFormat::JavaScript(Module::ESM));
 
     assert_eq!(result.unwrap(), OUTPUT);
 }

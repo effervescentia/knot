@@ -20,6 +20,7 @@ pub fn format(name: &str, input: &str) -> Option<String> {
 
 #[test]
 fn unchanged() {
+    const NAME: &str = "format_unchanged";
     const INPUT: &str = "type MyType = boolean;
 enum MyEnum =
   | First(boolean, integer)
@@ -37,13 +38,14 @@ module my_module {
 }
 ";
 
-    let result = format("format_module", INPUT);
+    let result = format(NAME, INPUT);
 
     assert_eq!(result.unwrap(), INPUT);
 }
 
 #[test]
 fn formatted() {
+    const NAME: &str = "format_module";
     const INPUT: &str = "type MyType=boolean;
 enum MyEnum=First(boolean,integer)|Second;
 const MY_CONST=100+20;
@@ -67,7 +69,7 @@ module my_module {
 }
 ";
 
-    let result = format("format_module", INPUT);
+    let result = format(NAME, INPUT);
 
     assert_eq!(result.unwrap(), OUTPUT);
 }

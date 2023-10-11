@@ -28,4 +28,5 @@ pub fn command(opts: &Options) {
 
     let mut writer = BufWriter::new(File::create(output_path).unwrap());
     write!(writer, "{result}").unwrap();
+    writer.flush().unwrap();
 }
