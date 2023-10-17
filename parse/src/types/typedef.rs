@@ -1,7 +1,7 @@
 use super::type_expression;
 use crate::matcher as m;
 use combine::{optional, Parser, Stream};
-use knot_language::{ast::TypeExpressionNode, Position};
+use lang::{ast::TypeExpressionNode, Position};
 
 pub fn typedef<T>() -> impl Parser<T, Output = Option<TypeExpressionNode<()>>>
 where

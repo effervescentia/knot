@@ -1,7 +1,7 @@
 use combine::{
     attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
 };
-use knot_language::ast::Primitive;
+use lang::ast::Primitive;
 
 fn nil<T>() -> impl Parser<T, Output = Primitive>
 where

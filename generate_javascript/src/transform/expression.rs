@@ -2,7 +2,7 @@ use crate::{
     javascript::{Expression, Statement},
     Options,
 };
-use knot_language::ast::{self, ExpressionShape, KSXShape, Primitive};
+use lang::ast::{self, ExpressionShape, KSXShape, Primitive};
 
 impl Expression {
     pub fn from_expression(value: &ExpressionShape, opts: &Options) -> Self {
@@ -196,7 +196,7 @@ mod tests {
         javascript::{Expression, Statement},
         Mode, Module, Options,
     };
-    use knot_language::ast;
+    use lang::ast;
 
     const OPTIONS: Options = Options {
         mode: Mode::Prod,

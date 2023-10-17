@@ -13,7 +13,7 @@ use combine::{
     stream::position::{SourcePosition, Stream},
     EasyParser, Parser,
 };
-use knot_language::{ast::ModuleNode, Position, Program};
+use lang::{ast::ModuleNode, Position, Program};
 
 pub type Result<'a, T> = std::result::Result<
     (T, Stream<&'a str, SourcePosition>),

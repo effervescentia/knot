@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 combine = "4.6.6"
-knot_language = { path = "../language" }
+lang = { package = "knot_language", path = "../language" }
 
 [dev-dependencies]
-knot_language = { path = "../language", features = ["test"] }
+lang = { package = "knot_language", path = "../language", features = ["test"] }

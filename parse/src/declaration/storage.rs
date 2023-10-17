@@ -1,6 +1,6 @@
 use crate::matcher as m;
 use combine::{position, value, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::storage::{Storage, Visibility},
     Position, Range,
 };

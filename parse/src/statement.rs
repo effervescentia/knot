@@ -1,6 +1,6 @@
 use crate::matcher as m;
 use combine::{choice, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{ExpressionNode, Statement, StatementNode},
     Position,
 };
@@ -51,7 +51,7 @@ where
 mod tests {
     use crate::expression;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use knot_language::{
+    use lang::{
         ast::{Expression, Primitive, Statement, StatementNode},
         test::fixture as f,
     };

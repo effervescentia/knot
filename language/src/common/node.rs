@@ -1,6 +1,5 @@
-use crate::analyzer::context::NodeContext;
-
 use super::range::Range;
+use crate::Identity;
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
@@ -42,7 +41,10 @@ impl<T> Node<T, ()> {
     }
 }
 
-impl<T> Node<T, NodeContext> {
+impl<T, C> Node<T, C>
+where
+    C: Identity<usize>,
+{
     pub fn id(&self) -> &usize {
         self.2.id()
     }

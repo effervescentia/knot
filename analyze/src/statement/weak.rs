@@ -1,0 +1,38 @@
+use super::{RefKind, Type, Weak};
+use crate::infer::weak::{ToWeak, WeakRef};
+use lang::ast::Statement;
+
+impl ToWeak for Statement<usize> {
+    fn to_weak(&self) -> WeakRef {
+        match self {
+            Statement::Expression(id) => (RefKind::Value, Weak::Inherit(*id)),
+
+            Statement::Variable(..) => (RefKind::Value, Weak::Type(Type::Nil)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        infer::weak::{ToWeak, Weak},
+        RefKind, Type,
+    };
+    use lang::ast::Statement;
+
+    #[test]
+    fn expression() {
+        assert_eq!(
+            Statement::Expression(0).to_weak(),
+            (RefKind::Value, Weak::Inherit(0))
+        );
+    }
+
+    #[test]
+    fn variable() {
+        assert_eq!(
+            Statement::Variable(String::from("foo"), 0).to_weak(),
+            (RefKind::Value, Weak::Type(Type::Nil))
+        );
+    }
+}

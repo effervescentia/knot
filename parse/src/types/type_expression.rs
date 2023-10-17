@@ -1,6 +1,6 @@
 use crate::matcher as m;
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue},
     Position,
 };
@@ -137,7 +137,7 @@ parser! {
 mod tests {
     use super::{TypeExpression, TypeExpressionNode};
     use combine::{stream::position::Stream, EasyParser};
-    use knot_language::test::fixture as f;
+    use lang::test::fixture as f;
 
     fn parse(s: &str) -> crate::Result<TypeExpressionNode<()>> {
         super::type_expression().easy_parse(Stream::new(s))

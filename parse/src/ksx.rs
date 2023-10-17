@@ -2,7 +2,7 @@ use crate::{expression, matcher as m};
 use combine::{
     attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
 };
-use knot_language::{
+use lang::{
     ast::{ExpressionNode, KSXNode, KSX},
     Position,
 };
@@ -188,7 +188,7 @@ parser! {
 mod tests {
     use super::{ksx, KSXNode, KSX};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use knot_language::{
+    use lang::{
         ast::{Expression, Primitive},
         test::fixture as f,
     };

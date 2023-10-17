@@ -1,5 +1,5 @@
 use super::TargetFormat;
-use knot_language::{analyzer, ast::ToShape, parser};
+use lang::ast::ToShape;
 use std::{
     fs::{self, File},
     io::{BufWriter, Write},
@@ -14,11 +14,11 @@ pub struct Options<'a> {
 
 pub fn command(opts: &Options) {
     let input = fs::read_to_string(&opts.entry).unwrap();
-    let (ast, _) = parser::parse(&input).unwrap();
-    let typed = analyzer::analyze(ast);
+    let (ast, _) = parse::parse(&input).unwrap();
+    let typed = analyze::analyze(ast);
 
     let shape = typed.to_shape();
-    let result = knot_generate_javascript::generate(&shape);
+    let result = gen_js::generate(&shape);
 
     let mut output_path = opts.out_dir.to_path_buf();
     output_path.extend(opts.entry.file_name().and_then(|x| {

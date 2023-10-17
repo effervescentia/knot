@@ -1,4 +1,3 @@
-use knot_language::parser;
 use std::{
     fs::{self, File},
     io::{BufWriter, Write},
@@ -12,7 +11,7 @@ pub struct Options<'a> {
 
 pub fn command(opts: &Options) {
     let input = fs::read_to_string(&opts.entry).unwrap();
-    let (result, _) = parser::parse(&input).unwrap();
+    let (result, _) = parse::parse(&input).unwrap();
 
     let mut output_path = opts.out_dir.to_path_buf();
     output_path.extend(opts.entry.file_name());

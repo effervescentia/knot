@@ -1,6 +1,6 @@
 use crate::{expression, matcher as m, types::typedef};
 use combine::{optional, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{Parameter, ParameterNode},
     Position,
 };

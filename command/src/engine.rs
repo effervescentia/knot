@@ -1,5 +1,5 @@
 use crate::resolve::Resolver;
-use knot_language::Program;
+use lang::Program;
 use std::{path::Path, rc::Rc};
 
 pub struct Engine<T, R>

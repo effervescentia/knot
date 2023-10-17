@@ -6,9 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-knot_language = { path = "../language" }
-knot_generate_javascript = { path = "../generate_javascript" }
+lang = { package = "knot_language", path = "../language" }
+gen_js = { package = "knot_generate_javascript", path = "../generate_javascript" }
 parse = { package = "knot_parse", path = "../parse" }
+analyze = { package = "knot_analyze", path = "../analyze" }
 
 [dev-dependencies]
 tempfile = "3.8.0"

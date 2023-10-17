@@ -1,7 +1,7 @@
 use super::storage;
 use crate::{matcher as m, types::type_expression};
 use combine::{attempt, choice, optional, sep_end_by, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{Declaration, DeclarationNode, TypeExpressionNode},
     Position, Range,
 };

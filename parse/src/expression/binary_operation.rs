@@ -1,6 +1,6 @@
 use crate::matcher as m;
 use combine::{chainl1, chainr1, choice, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{BinaryOperator, Expression, ExpressionNode},
     Position,
 };

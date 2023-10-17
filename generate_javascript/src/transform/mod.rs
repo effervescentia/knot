@@ -5,7 +5,7 @@ use crate::{
     javascript::{JavaScript, Statement},
     Options,
 };
-use knot_language::ast;
+use lang::ast;
 
 impl JavaScript {
     pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Self {
@@ -37,7 +37,7 @@ mod tests {
         javascript::{Expression, JavaScript, Statement},
         Mode, Module, Options,
     };
-    use knot_language::ast::{
+    use lang::ast::{
         self,
         storage::{Storage, Visibility},
     };

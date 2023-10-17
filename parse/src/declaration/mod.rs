@@ -8,7 +8,7 @@ mod type_alias;
 mod view;
 
 use combine::{choice, parser, Stream};
-use knot_language::{ast::DeclarationNode, Position};
+use lang::{ast::DeclarationNode, Position};
 
 parser! {
     pub fn declaration[T]()(T) -> DeclarationNode<()>
@@ -29,7 +29,7 @@ parser! {
 #[cfg(test)]
 mod tests {
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use knot_language::{
+    use lang::{
         ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression},
         test::fixture as f,
     };

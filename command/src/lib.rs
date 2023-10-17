@@ -4,7 +4,7 @@ pub mod format;
 mod resolve;
 
 pub enum TargetFormat {
-    JavaScript(knot_generate_javascript::Module),
+    JavaScript(gen_js::Module),
 }
 
 enum Command {

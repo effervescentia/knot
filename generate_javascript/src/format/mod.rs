@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use knot_language::formatter::TerminateEach;
+use lang::formatter::TerminateEach;
 
 use crate::javascript::JavaScript;
 

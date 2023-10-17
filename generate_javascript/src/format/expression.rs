@@ -1,5 +1,5 @@
 use crate::javascript::Expression;
-use knot_language::formatter::{Block, Indented, SeparateEach, TerminateEach};
+use lang::formatter::{Block, Indented, SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
 /// [JavaScript escape characters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#string_literals)

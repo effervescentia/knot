@@ -4,7 +4,7 @@ pub mod style;
 
 use crate::{ksx, matcher as m, statement};
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{Expression, ExpressionNode, UnaryOperator},
     Position,
 };
@@ -215,7 +215,7 @@ where
 #[cfg(test)]
 mod tests {
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use knot_language::{
+    use lang::{
         ast::{
             BinaryOperator, Expression, ExpressionNode, Primitive, Statement, UnaryOperator, KSX,
         },

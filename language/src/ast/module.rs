@@ -1,5 +1,5 @@
 use super::import::Import;
-use crate::ast::declaration::DeclarationNode;
+use crate::{ast::declaration::DeclarationNode, Identity};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -47,5 +47,14 @@ impl<C> ModuleNode<C> {
 impl ModuleNode<()> {
     pub fn raw(x: ModuleNodeValue<()>) -> Self {
         Self(x, ())
+    }
+}
+
+impl<T> ModuleNode<T>
+where
+    T: Identity<usize>,
+{
+    pub fn id(&self) -> &usize {
+        self.1.id()
     }
 }

@@ -3,7 +3,7 @@ use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
-use knot_language::{
+use lang::{
     ast::{Import, ImportSource, ImportTarget},
     Position,
 };

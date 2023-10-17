@@ -1,7 +1,7 @@
 use combine::{
     attempt, many, optional, parser, parser::char as p, position, value, Parser, Stream,
 };
-use knot_language::{Position, Range};
+use lang::{Position, Range};
 
 pub fn span<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
 where
@@ -141,7 +141,7 @@ mod tests {
         stream::position::{SourcePosition, Stream},
         EasyParser, Parser,
     };
-    use knot_language::{
+    use lang::{
         test::mock::{mock, MockResult, MOCK_TOKEN},
         Range,
     };

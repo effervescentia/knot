@@ -2,7 +2,7 @@ pub mod import;
 
 use crate::declaration;
 use combine::{choice, many, Parser, Stream};
-use knot_language::{
+use lang::{
     ast::{Import, Module, ModuleNode},
     Position,
 };
@@ -46,7 +46,7 @@ where
 #[cfg(test)]
 mod tests {
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use knot_language::{
+    use lang::{
         ast::{
             BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter,
             Primitive, Statement, TypeExpression, KSX,

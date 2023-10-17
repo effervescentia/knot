@@ -1,4 +1,4 @@
-use knot_language::formatter::SeparateEach;
+use lang::formatter::SeparateEach;
 
 use crate::javascript::{Expression, Statement};
 use std::fmt::{Display, Formatter};

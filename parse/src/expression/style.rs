@@ -1,7 +1,7 @@
 use super::{Expression, ExpressionNode};
 use crate::matcher as m;
 use combine::{attempt, sep_end_by, Parser, Stream};
-use knot_language::Position;
+use lang::Position;
 
 fn style_literal<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<()>>
 where

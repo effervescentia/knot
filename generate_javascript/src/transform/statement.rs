@@ -2,7 +2,7 @@ use crate::{
     javascript::{Expression, Statement},
     Options,
 };
-use knot_language::ast::{self, storage::Storage, DeclarationShape, ModuleShape, StatementShape};
+use lang::ast::{self, storage::Storage, DeclarationShape, ModuleShape, StatementShape};
 
 impl Statement {
     pub fn from_statement(value: &StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
@@ -196,7 +196,7 @@ mod tests {
         javascript::{Expression, Statement},
         Mode, Module, Options,
     };
-    use knot_language::ast;
+    use lang::ast;
 
     const OPTIONS: Options = Options {
         mode: Mode::Prod,
@@ -270,7 +270,7 @@ mod tests {
 
     mod declaration {
         use super::*;
-        use knot_language::ast::{
+        use lang::ast::{
             storage::{Storage, Visibility},
             Module, Parameter,
         };
