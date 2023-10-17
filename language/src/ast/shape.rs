@@ -7,7 +7,7 @@ use super::{
     statement::{Statement, StatementNode},
     type_expression::{TypeExpression, TypeExpressionNode},
 };
-use crate::parser::Program;
+use crate::Program;
 use std::fmt::Debug;
 
 pub trait ToShape<S> {

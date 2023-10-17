@@ -1,8 +1,8 @@
 // validating the parse -> format -> parse cycle
 
-use knot_language::parser::{self, ParseResult, Program};
+use knot_language::{parser, Program};
 
-fn parse(s: &str) -> ParseResult<Program<()>> {
+fn parse(s: &str) -> parser::Result<Program<()>> {
     parser::parse(s)
 }
 

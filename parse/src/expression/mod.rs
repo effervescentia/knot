@@ -2,12 +2,12 @@ pub mod binary_operation;
 pub mod primitive;
 pub mod style;
 
-use crate::{
-    ast::{Expression, ExpressionNode, UnaryOperator},
-    common::position::Position,
-    parser::{ksx, matcher as m, statement},
-};
+use crate::{ksx, matcher as m, statement};
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
+use knot_language::{
+    ast::{Expression, ExpressionNode, UnaryOperator},
+    Position,
+};
 
 fn primitive<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
@@ -214,16 +214,15 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use knot_language::{
         ast::{
             BinaryOperator, Expression, ExpressionNode, Primitive, Statement, UnaryOperator, KSX,
         },
-        parser,
         test::fixture as f,
     };
-    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> parser::Result<ExpressionNode<()>> {
+    fn parse(s: &str) -> crate::Result<ExpressionNode<()>> {
         super::expression().skip(eof()).easy_parse(Stream::new(s))
     }
 

@@ -8,3 +8,11 @@ edition = "2021"
 [dependencies]
 combine = "4.6.6"
 indenter = { version = "0.3.3", features = ["std"] }
+
+[dev-dependencies]
+# used to expose own test features from crate in test scopes
+# https://github.com/rust-lang/cargo/issues/2911#issuecomment-749580481
+knot_language = { path = ".", features = ["test"] }
+
+[features]
+test = []

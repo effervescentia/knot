@@ -11,7 +11,7 @@ mod statement;
 mod type_expression;
 mod types;
 
-use crate::parser::Program;
+use crate::Program;
 use context::{FileContext, NodeContext, ScopeContext, StrongContext, WeakContext};
 use infer::strong::{Strong, ToStrong};
 use register::Register;
@@ -69,8 +69,8 @@ mod tests {
     use crate::{
         analyzer::{types::Type, RefKind},
         ast::{Expression, Module, ModuleNode, Primitive, TypeExpression},
-        parser::Program,
         test::fixture as f,
+        Program,
     };
 
     #[test]

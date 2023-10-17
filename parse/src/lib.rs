@@ -6,7 +6,6 @@ pub mod module;
 pub mod statement;
 pub mod types;
 
-use crate::{ast::ModuleNode, common::position::Position, Program};
 use combine::{
     easy::Errors,
     eof,
@@ -14,6 +13,7 @@ use combine::{
     stream::position::{SourcePosition, Stream},
     EasyParser, Parser,
 };
+use knot_language::{ast::ModuleNode, Position, Program};
 
 pub type Result<'a, T> = std::result::Result<
     (T, Stream<&'a str, SourcePosition>),

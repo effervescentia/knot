@@ -1,11 +1,11 @@
-use crate::{
-    ast::{Import, ImportSource, ImportTarget},
-    common::position::Position,
-    parser::matcher as m,
-};
+use crate::matcher as m;
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
+};
+use knot_language::{
+    ast::{Import, ImportSource, ImportTarget},
+    Position,
 };
 
 // use @/x;
@@ -71,10 +71,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::{Import, ImportSource, ImportTarget};
-    use crate::parser;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> parser::Result<Import> {
+    fn parse(s: &str) -> crate::Result<Import> {
         super::import().skip(eof()).easy_parse(Stream::new(s))
     }
 

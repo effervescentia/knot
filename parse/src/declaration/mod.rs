@@ -7,8 +7,8 @@ pub mod storage;
 mod type_alias;
 mod view;
 
-use crate::{ast::DeclarationNode, common::position::Position};
 use combine::{choice, parser, Stream};
+use knot_language::{ast::DeclarationNode, Position};
 
 parser! {
     pub fn declaration[T]()(T) -> DeclarationNode<()>
@@ -28,14 +28,13 @@ parser! {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use knot_language::{
         ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression},
-        parser,
         test::fixture as f,
     };
-    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> parser::Result<DeclarationNode<()>> {
+    fn parse(s: &str) -> crate::Result<DeclarationNode<()>> {
         super::declaration().skip(eof()).easy_parse(Stream::new(s))
     }
 

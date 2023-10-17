@@ -64,6 +64,7 @@ version = "0.1.0"
 dependencies = [
  "knot_generate_javascript",
  "knot_language",
+ "knot_parse",
  "tempfile",
 ]
 
@@ -80,6 +81,15 @@ version = "0.1.0"
 dependencies = [
  "combine",
  "indenter",
+ "knot_language",
+]
+
+[[package]]
+name = "knot_parse"
+version = "0.1.0"
+dependencies = [
+ "combine",
+ "knot_language",
 ]
 
 [[package]]

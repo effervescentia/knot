@@ -1,9 +1,9 @@
-use crate::{
-    ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue},
-    common::position::Position,
-    parser::matcher as m,
-};
+use crate::matcher as m;
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
+use knot_language::{
+    ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue},
+    Position,
+};
 
 fn primitive<T>() -> impl Parser<T, Output = TypeExpressionNode<()>>
 where
@@ -136,10 +136,10 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::{TypeExpression, TypeExpressionNode};
-    use crate::{parser, test::fixture as f};
     use combine::{stream::position::Stream, EasyParser};
+    use knot_language::test::fixture as f;
 
-    fn parse(s: &str) -> parser::Result<TypeExpressionNode<()>> {
+    fn parse(s: &str) -> crate::Result<TypeExpressionNode<()>> {
         super::type_expression().easy_parse(Stream::new(s))
     }
 

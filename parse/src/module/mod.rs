@@ -1,11 +1,11 @@
 pub mod import;
 
-use crate::{
-    ast::{Import, Module, ModuleNode},
-    common::position::Position,
-    parser::declaration,
-};
+use crate::declaration;
 use combine::{choice, many, Parser, Stream};
+use knot_language::{
+    ast::{Import, Module, ModuleNode},
+    Position,
+};
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
@@ -45,17 +45,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use knot_language::{
         ast::{
             BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter,
             Primitive, Statement, TypeExpression, KSX,
         },
-        parser,
         test::fixture as f,
     };
-    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> parser::Result<ModuleNode<()>> {
+    fn parse(s: &str) -> crate::Result<ModuleNode<()>> {
         super::module().skip(eof()).easy_parse(Stream::new(s))
     }
 

@@ -1,6 +1,5 @@
-use knot_language::parser::{self, Program};
-// use resolve::Resolver;
 use crate::resolve::Resolver;
+use knot_language::Program;
 use std::{path::Path, rc::Rc};
 
 pub struct Engine<T, R>
@@ -24,7 +23,7 @@ where
 
     pub fn parse(mut self, entry: &Path) -> Engine<Vec<(&Path, Rc<String>, Program<()>)>, R> {
         let input = self.resolver.resolve(entry).unwrap();
-        let (ast, _) = parser::parse(&input).unwrap();
+        let (ast, _) = parse::parse(&input).unwrap();
 
         Engine {
             resolver: self.resolver,

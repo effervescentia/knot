@@ -6,7 +6,7 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::{ast::TypeExpressionNode, parser::Program};
+use crate::{ast::TypeExpressionNode, Program};
 use std::fmt::{Display, Formatter, Write};
 
 pub fn indented<T>(f: &mut T) -> indenter::Indented<T>

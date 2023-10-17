@@ -1,14 +1,13 @@
 [package]
-name = "knot_command"
+name = "knot_parse"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+combine = "4.6.6"
 knot_language = { path = "../language" }
-knot_generate_javascript = { path = "../generate_javascript" }
-parse = { package = "knot_parse", path = "../parse" }
 
 [dev-dependencies]
-tempfile = "3.8.0"
+knot_language = { path = "../language", features = ["test"] }

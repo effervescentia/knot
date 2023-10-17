@@ -1,9 +1,9 @@
-use crate::{
-    ast::{ExpressionNode, Statement, StatementNode},
-    common::position::Position,
-    parser::matcher as m,
-};
+use crate::matcher as m;
 use combine::{choice, Parser, Stream};
+use knot_language::{
+    ast::{ExpressionNode, Statement, StatementNode},
+    Position,
+};
 
 fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<()>>
 where
@@ -49,14 +49,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use crate::expression;
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use knot_language::{
         ast::{Expression, Primitive, Statement, StatementNode},
-        parser::{self, expression},
         test::fixture as f,
     };
-    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> parser::Result<StatementNode<()>> {
+    fn parse(s: &str) -> crate::Result<StatementNode<()>> {
         super::statement(expression::expression)
             .skip(eof())
             .easy_parse(Stream::new(s))

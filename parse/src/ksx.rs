@@ -1,10 +1,10 @@
-use crate::{
-    ast::{ExpressionNode, KSXNode, KSX},
-    common::position::Position,
-    parser::{expression, matcher as m},
-};
+use crate::{expression, matcher as m};
 use combine::{
     attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
+};
+use knot_language::{
+    ast::{ExpressionNode, KSXNode, KSX},
+    Position,
 };
 
 fn fragment<T>() -> impl Parser<T, Output = KSXNode<()>>
@@ -187,14 +187,13 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::{ksx, KSXNode, KSX};
-    use crate::{
+    use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use knot_language::{
         ast::{Expression, Primitive},
-        parser,
         test::fixture as f,
     };
-    use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> parser::Result<KSXNode<()>> {
+    fn parse(s: &str) -> crate::Result<KSXNode<()>> {
         ksx().skip(eof()).easy_parse(Stream::new(s))
     }
 
