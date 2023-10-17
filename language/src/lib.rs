@@ -1,6 +1,6 @@
 pub mod ast;
 mod common;
-pub mod formatter;
+pub mod format;
 #[cfg(feature = "test")]
 pub mod test;
 

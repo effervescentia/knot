@@ -1,8 +1,6 @@
-use std::fmt::{Display, Formatter};
-
-use lang::formatter::TerminateEach;
-
 use crate::javascript::JavaScript;
+use lang::format::TerminateEach;
+use std::fmt::{Display, Formatter};
 
 mod expression;
 mod statement;

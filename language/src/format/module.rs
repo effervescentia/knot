@@ -1,7 +1,7 @@
 use super::TerminateEach;
 use crate::{
     ast::{Import, ImportSource, ModuleNode},
-    formatter::SeparateEach,
+    format::SeparateEach,
 };
 use std::fmt::{Display, Formatter};
 
