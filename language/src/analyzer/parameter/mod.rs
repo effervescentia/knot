@@ -9,18 +9,12 @@ use super::{
 };
 use crate::{
     ast::{ParameterNode, ParameterNodeValue},
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Register for ParameterNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = ParameterNode<T, NodeContext>;
-    type Value<C> = ParameterNodeValue<T, C>;
+impl Register for ParameterNode<()> {
+    type Node = ParameterNode<NodeContext>;
+    type Value<C> = ParameterNodeValue<C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);

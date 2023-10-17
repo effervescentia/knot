@@ -1,4 +1,4 @@
-use crate::common::position::Decrement;
+use crate::common::position::Position;
 use combine::{parser::char as p, Parser, Stream};
 use std::fmt::Debug;
 
@@ -12,7 +12,7 @@ pub struct MockResult;
 pub fn mock<T>() -> impl Parser<T, Output = MockResult>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     p::string(MOCK_TOKEN).map(|_| MockResult)
 }

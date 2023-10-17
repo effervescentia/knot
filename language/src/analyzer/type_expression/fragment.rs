@@ -1,16 +1,9 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     ast::TypeExpressionNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToFragment for TypeExpressionNodeValue<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl ToFragment for TypeExpressionNodeValue<NodeContext> {
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::TypeExpression(self.map(&|x| *x.node().id()))
     }
@@ -21,15 +14,13 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
         ast::{TypeExpression, TypeExpressionNode},
-        parser::CharStream,
         test::fixture as f,
     };
 
     #[test]
     fn primitive() {
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<CharStream<'static>, NodeContext>>::Nil
-                .to_fragment(),
+            TypeExpression::<TypeExpressionNode<NodeContext>>::Nil.to_fragment(),
             Fragment::TypeExpression(TypeExpression::Nil)
         );
     }
@@ -37,10 +28,8 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<CharStream<'static>, NodeContext>>::Identifier(
-                String::from("foo")
-            )
-            .to_fragment(),
+            TypeExpression::<TypeExpressionNode<NodeContext>>::Identifier(String::from("foo"))
+                .to_fragment(),
             Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
         );
     }

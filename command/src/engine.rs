@@ -1,7 +1,7 @@
 use knot_language::parser::{self, Program};
 // use resolve::Resolver;
 use crate::resolve::Resolver;
-use std::{collections::HashMap, fs, marker::PhantomData, path::Path, rc::Rc};
+use std::{path::Path, rc::Rc};
 
 pub struct Engine<T, R>
 where
@@ -22,19 +22,27 @@ where
         }
     }
 
-    pub fn parse<'a>(
-        mut self,
-        entry: &'a Path,
-    ) -> Engine<Vec<(&'a Path, &String, Program<'a, ()>)>, R> {
+    pub fn parse(mut self, entry: &Path) -> Engine<Vec<(&Path, Rc<String>, Program<()>)>, R> {
         let input = self.resolver.resolve(entry).unwrap();
-        let input = Rc::new(input);
         let (ast, _) = parser::parse(&input).unwrap();
 
         Engine {
             resolver: self.resolver,
-            state: vec![(entry, &input, ast)],
+            state: vec![(entry, input, ast)],
         }
     }
+    // pub fn parse<'a>(
+    //     mut self,
+    //     entry: &'a Path,
+    // ) -> Engine<Vec<(&'a Path, Rc<String>, Program<'a, ()>)>, R> {
+    //     let input = self.resolver.resolve(entry).unwrap();
+    //     let (ast, _) = parser::parse(&input).unwrap();
+
+    //     Engine {
+    //         resolver: self.resolver,
+    //         state: vec![(entry, input.clone(), ast)],
+    //     }
+    // }
 }
 
 // pub struct Options<'a> {

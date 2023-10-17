@@ -1,15 +1,14 @@
 use crate::{
     ast::{Parameter, ParameterNode},
-    common::position::Decrement,
+    common::position::Position,
     parser::{expression, matcher as m, types::typedef},
 };
 use combine::{optional, Parser, Stream};
-use std::fmt::Debug;
 
-pub fn parameter<T>() -> impl Parser<T, Output = ParameterNode<T, ()>>
+pub fn parameter<T>() -> impl Parser<T, Output = ParameterNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     (
         m::standard_identifier(),

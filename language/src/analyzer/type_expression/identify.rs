@@ -4,17 +4,10 @@ use crate::{
         register::{Identify, Register},
     },
     ast::TypeExpressionNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Identify<TypeExpressionNodeValue<T, NodeContext>> for TypeExpressionNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> TypeExpressionNodeValue<T, NodeContext> {
+impl Identify<TypeExpressionNodeValue<NodeContext>> for TypeExpressionNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> TypeExpressionNodeValue<NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
@@ -24,7 +17,6 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
         ast::{TypeExpression, TypeExpressionNode},
-        parser::CharStream,
         test::fixture as f,
     };
 
@@ -34,7 +26,7 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<CharStream<'static>, ()>>::Nil.identify(scope),
+            TypeExpression::<TypeExpressionNode<()>>::Nil.identify(scope),
             TypeExpression::Nil
         );
     }
@@ -45,10 +37,8 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<CharStream<'static>, ()>>::Identifier(
-                String::from("foo")
-            )
-            .identify(scope),
+            TypeExpression::<TypeExpressionNode<()>>::Identifier(String::from("foo"))
+                .identify(scope),
             TypeExpression::Identifier(String::from("foo"))
         );
     }

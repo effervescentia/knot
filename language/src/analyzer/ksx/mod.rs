@@ -11,18 +11,12 @@ use super::{
 };
 use crate::{
     ast::{KSXNode, KSXNodeValue},
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Register for KSXNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = KSXNode<T, NodeContext>;
-    type Value<C> = KSXNodeValue<T, C>;
+impl Register for KSXNode<()> {
+    type Node = KSXNode<NodeContext>;
+    type Value<C> = KSXNodeValue<C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);

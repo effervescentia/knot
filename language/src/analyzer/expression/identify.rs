@@ -4,17 +4,10 @@ use crate::{
         register::{Identify, Register},
     },
     ast::{Expression, ExpressionNodeValue},
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Identify<ExpressionNodeValue<T, NodeContext>> for ExpressionNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> ExpressionNodeValue<T, NodeContext> {
+impl Identify<ExpressionNodeValue<NodeContext>> for ExpressionNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> ExpressionNodeValue<NodeContext> {
         match self {
             Self::Closure(xs) => {
                 let child_ctx = ctx.child();
@@ -39,7 +32,6 @@ mod tests {
             BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement,
             StatementNode, UnaryOperator, KSX,
         },
-        parser::CharStream,
         test::fixture as f,
     };
 
@@ -49,11 +41,9 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::<
-                ExpressionNode<CharStream<'static>, ()>,
-                StatementNode<CharStream<'static>, ()>,
-                KSXNode<CharStream<'static>, ()>,
-            >::Primitive(Primitive::Nil)
+            Expression::<ExpressionNode<()>, StatementNode<()>, KSXNode<()>>::Primitive(
+                Primitive::Nil
+            )
             .identify(scope),
             Expression::Primitive(Primitive::Nil)
         );
@@ -65,11 +55,9 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::<
-                ExpressionNode<CharStream<'static>, ()>,
-                StatementNode<CharStream<'static>, ()>,
-                KSXNode<CharStream<'static>, ()>,
-            >::Identifier(String::from("foo"))
+            Expression::<ExpressionNode<()>, StatementNode<()>, KSXNode<()>>::Identifier(
+                String::from("foo")
+            )
             .identify(scope),
             Expression::Identifier(String::from("foo"))
         );

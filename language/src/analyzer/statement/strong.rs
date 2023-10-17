@@ -4,17 +4,11 @@ use crate::{
         infer::strong::{Strong, ToStrong},
     },
     ast::StatementNode,
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToStrong<StatementNode<T, Strong>> for StatementNode<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn to_strong(&self, ctx: &StrongContext) -> StatementNode<T, Strong> {
+impl ToStrong<StatementNode<Strong>> for StatementNode<NodeContext> {
+    fn to_strong(&self, ctx: &StrongContext) -> StatementNode<Strong> {
         StatementNode(Node(
             self.node().value().map(&|x| x.to_strong(ctx)),
             self.node().range().clone(),

@@ -1,16 +1,8 @@
 use super::Typedef;
-use crate::{
-    ast::{Parameter, ParameterNode},
-    common::position::Decrement,
-};
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use crate::ast::{Parameter, ParameterNode};
+use std::fmt::{Display, Formatter};
 
-impl<T, C> Display for ParameterNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for ParameterNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         let Parameter {
             name,

@@ -1,17 +1,16 @@
 use crate::{
     ast::{ExpressionNode, KSXNode, KSX},
-    common::position::Decrement,
+    common::position::Position,
     parser::{expression, matcher as m},
 };
 use combine::{
     attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
 };
-use std::{fmt::Debug, vec};
 
-fn fragment<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
+fn fragment<T>() -> impl Parser<T, Output = KSXNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::between(
         // avoid m::symbol to preserve trailing spaces
@@ -23,10 +22,10 @@ where
     .map(KSXNode::bind)
 }
 
-fn children<T>() -> impl Parser<T, Output = Vec<KSXNode<T, ()>>>
+fn children<T>() -> impl Parser<T, Output = Vec<KSXNode<()>>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     enum Layout {
         Inline,
@@ -76,10 +75,10 @@ where
     })
 }
 
-fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionNode<T, ()>>)>
+fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionNode<()>>)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     (
         m::standard_identifier().map(|(x, _)| x),
@@ -87,10 +86,10 @@ where
     )
 }
 
-pub fn closed_element<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
+pub fn closed_element<T>() -> impl Parser<T, Output = KSXNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     attempt(m::between(
         m::symbol('<'),
@@ -104,10 +103,10 @@ where
     .map(|((name, attributes), range)| KSXNode::raw(KSX::ClosedElement(name, attributes), range))
 }
 
-pub fn open_element<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
+pub fn open_element<T>() -> impl Parser<T, Output = KSXNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     (
         attempt(m::between(
@@ -137,18 +136,18 @@ where
         )
 }
 
-pub fn element<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
+pub fn element<T>() -> impl Parser<T, Output = KSXNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     choice((closed_element(), open_element()))
 }
 
-fn inline<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
+fn inline<T>() -> impl Parser<T, Output = KSXNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::between(
         m::symbol('{'),
@@ -159,27 +158,27 @@ where
     .map(KSXNode::bind)
 }
 
-fn text<T>() -> impl Parser<T, Output = KSXNode<T, ()>>
+fn text<T>() -> impl Parser<T, Output = KSXNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::lexeme(many1(none_of(vec!['<', '{'])).map(KSX::Text)).map(KSXNode::bind)
 }
 
 parser! {
-    fn child[T]()(T) -> KSXNode<T, ()>
+    fn child[T]()(T) -> KSXNode< ()>
     where
-        [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
+        [T: Stream<Token = char>, T::Position: Position]
     {
         choice((ksx(), inline(), text()))
     }
 }
 
 parser! {
-    pub fn ksx[T]()(T) -> KSXNode<T, ()>
+    pub fn ksx[T]()(T) -> KSXNode< ()>
     where
-        [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
+        [T: Stream<Token = char>, T::Position: Position]
     {
         choice((fragment(), element()))
     }
@@ -190,12 +189,12 @@ mod tests {
     use super::{ksx, KSXNode, KSX};
     use crate::{
         ast::{Expression, Primitive},
-        parser::{CharStream, ParseResult},
+        parser::ParseResult,
         test::fixture as f,
     };
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> ParseResult<KSXNode<CharStream, ()>> {
+    fn parse(s: &str) -> ParseResult<KSXNode<()>> {
         ksx().skip(eof()).easy_parse(Stream::new(s))
     }
 

@@ -4,17 +4,11 @@ use crate::{
         infer::strong::{Strong, ToStrong},
     },
     ast::KSXNode,
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToStrong<KSXNode<T, Strong>> for KSXNode<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn to_strong(&self, ctx: &StrongContext) -> KSXNode<T, Strong> {
+impl ToStrong<KSXNode<Strong>> for KSXNode<NodeContext> {
+    fn to_strong(&self, ctx: &StrongContext) -> KSXNode<Strong> {
         KSXNode(Node(
             self.node()
                 .value()

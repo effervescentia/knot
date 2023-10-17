@@ -7,14 +7,13 @@ pub mod storage;
 mod type_alias;
 mod view;
 
-use crate::{ast::DeclarationNode, common::position::Decrement};
+use crate::{ast::DeclarationNode, common::position::Position};
 use combine::{choice, parser, Stream};
-use std::fmt::Debug;
 
 parser! {
-    pub fn declaration[T]()(T) -> DeclarationNode<T, ()>
+    pub fn declaration[T]()(T) -> DeclarationNode<()>
     where
-        [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
+        [T: Stream<Token = char>, T::Position: Position]
     {
         choice((
             type_alias::type_alias(),
@@ -31,12 +30,12 @@ parser! {
 mod tests {
     use crate::{
         ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression},
-        parser::{CharStream, ParseResult},
+        parser::ParseResult,
         test::fixture as f,
     };
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> ParseResult<DeclarationNode<CharStream, ()>> {
+    fn parse(s: &str) -> ParseResult<DeclarationNode<()>> {
         super::declaration().skip(eof()).easy_parse(Stream::new(s))
     }
 

@@ -1,16 +1,8 @@
 use super::indented;
-use crate::{
-    ast::{KSXNode, KSX},
-    common::position::Decrement,
-};
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter, Write};
+use crate::ast::{KSXNode, KSX};
+use std::fmt::{Display, Formatter, Write};
 
-impl<T, C> Display for KSXNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for KSXNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             KSX::Text(x) => write!(f, "{x}"),
@@ -63,11 +55,7 @@ where
     }
 }
 
-impl<T, C> KSXNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> KSXNode<C> {
     pub fn is_inline(&self) -> bool {
         match self.node().value() {
             KSX::Text(_) | KSX::Inline(_) => true,
@@ -76,25 +64,12 @@ where
     }
 }
 
-struct Children<'a, T, C>(&'a Vec<KSXNode<T, C>>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+struct Children<'a, C>(&'a Vec<KSXNode<C>>);
 
-impl<'a, T, C> Display for Children<'a, T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<'a, C> Display for Children<'a, C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        fn format<'a, T, C, F>(
-            xs: &'a Vec<KSXNode<T, C>>,
-            mut f: F,
-            all_inline: bool,
-        ) -> std::fmt::Result
+        fn format<'a, C, F>(xs: &'a Vec<KSXNode<C>>, mut f: F, all_inline: bool) -> std::fmt::Result
         where
-            T: Stream<Token = char>,
-            T::Position: Copy + Debug + Decrement,
             F: Write,
         {
             if all_inline {

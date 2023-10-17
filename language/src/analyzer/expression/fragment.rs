@@ -1,16 +1,9 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     ast::ExpressionNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToFragment for ExpressionNodeValue<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl ToFragment for ExpressionNodeValue<NodeContext> {
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Expression(
             self.map(&mut |x| *x.node().id(), &mut |x| *x.node().id(), &mut |x| {
@@ -28,7 +21,6 @@ mod tests {
             BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement,
             StatementNode, UnaryOperator, KSX,
         },
-        parser::CharStream,
         test::fixture as f,
     };
 
@@ -36,9 +28,9 @@ mod tests {
     fn primitive() {
         assert_eq!(
             Expression::<
-                ExpressionNode<CharStream<'static>, NodeContext>,
-                StatementNode<CharStream<'static>, NodeContext>,
-                KSXNode<CharStream<'static>, NodeContext>,
+                ExpressionNode<NodeContext>,
+                StatementNode<NodeContext>,
+                KSXNode<NodeContext>,
             >::Primitive(Primitive::Nil)
             .to_fragment(),
             Fragment::Expression(Expression::Primitive(Primitive::Nil))
@@ -49,9 +41,9 @@ mod tests {
     fn identifier() {
         assert_eq!(
             Expression::<
-                ExpressionNode<CharStream<'static>, NodeContext>,
-                StatementNode<CharStream<'static>, NodeContext>,
-                KSXNode<CharStream<'static>, NodeContext>,
+                ExpressionNode<NodeContext>,
+                StatementNode<NodeContext>,
+                KSXNode<NodeContext>,
             >::Identifier(String::from("foo"))
             .to_fragment(),
             Fragment::Expression(Expression::Identifier(String::from("foo")))

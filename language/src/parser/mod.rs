@@ -6,15 +6,12 @@ pub mod module;
 pub mod statement;
 pub mod types;
 
-use crate::{ast::ModuleNode, common::position::Decrement};
+use crate::{ast::ModuleNode, common::position::Position};
 use combine::{
     easy::{self, Errors},
     eof,
     parser::char::spaces,
-    stream::{
-        position::{SourcePosition, Stream},
-        IteratorStream,
-    },
+    stream::position::{SourcePosition, Stream},
     EasyParser, Parser,
 };
 use std::fmt::Debug;
@@ -26,19 +23,16 @@ pub type ParseResult<'a, T> =
     Result<(T, PositionStream<'a>), Errors<char, &'a str, SourcePosition>>;
 
 #[derive(Debug, PartialEq)]
-pub struct Program<'a, C>(pub ModuleNode<CharStream<'a>, C>);
+pub struct Program<C>(pub ModuleNode<C>);
 
-#[derive(Debug, PartialEq)]
-pub struct Program2<'a, C>(pub ModuleNode<easy::Stream<Stream<&'a str, SourcePosition>>, C>);
-
-fn parse_stream<'a, T>() -> impl Parser<T, Output = ModuleNode<T, ()>>
+fn parse_stream<'a, T>() -> impl Parser<T, Output = ModuleNode<()>>
 where
     T: combine::Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     spaces().with(module::module()).skip(eof())
 }
 
-pub fn parse<'a>(input: &'a str) -> ParseResult<'a, Program<'a, ()>> {
+pub fn parse<'a>(input: &'a str) -> ParseResult<'a, Program<()>> {
     parse_stream().map(Program).easy_parse(Stream::new(input))
 }

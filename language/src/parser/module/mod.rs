@@ -2,7 +2,7 @@ pub mod import;
 
 use crate::{
     ast::{Import, Module, ModuleNode},
-    common::position::Decrement,
+    common::position::Position,
     parser::declaration,
 };
 use combine::{choice, many, Parser, Stream};
@@ -14,10 +14,10 @@ enum Entry<D> {
     Declaration(D),
 }
 
-pub fn module<T>() -> impl Parser<T, Output = ModuleNode<T, ()>>
+pub fn module<T>() -> impl Parser<T, Output = ModuleNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     many::<Vec<_>, _, _>(choice((
         import::import().map(Entry::Import),
@@ -50,12 +50,12 @@ mod tests {
             BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter,
             Primitive, Statement, TypeExpression, KSX,
         },
-        parser::{CharStream, ParseResult},
+        parser::ParseResult,
         test::fixture as f,
     };
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> ParseResult<ModuleNode<CharStream, ()>> {
+    fn parse(s: &str) -> ParseResult<ModuleNode<()>> {
         super::module().skip(eof()).easy_parse(Stream::new(s))
     }
 

@@ -1,19 +1,18 @@
 use super::storage;
 use crate::{
     ast::{Declaration, DeclarationNode},
-    common::position::Decrement,
+    common::position::Position,
     parser::{
         expression,
         {matcher as m, types::typedef},
     },
 };
 use combine::{Parser, Stream};
-use std::fmt::Debug;
 
-pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
+pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::terminated((
         storage::storage("const"),

@@ -8,52 +8,31 @@ use super::{
     register::{Identify, Register, ToFragment},
     RefKind, ScopeContext,
 };
-use crate::{
-    ast::{Module, ModuleNode, ModuleNodeValue},
-    common::position::Decrement,
-};
-use combine::Stream;
-use std::fmt::Debug;
+use crate::ast::{Module, ModuleNode, ModuleNodeValue};
 
-impl<T> ModuleNode<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl ModuleNode<NodeContext> {
     pub fn id(&self) -> &usize {
         self.1.id()
     }
 }
 
-impl<T> Identify<ModuleNodeValue<T, NodeContext>> for ModuleNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<T, NodeContext> {
+impl Identify<ModuleNodeValue<NodeContext>> for ModuleNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
 
-impl<T> ToFragment for ModuleNodeValue<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl ToFragment for ModuleNodeValue<NodeContext> {
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Module(self.map(&|x| *x.node().id()))
     }
 }
 
-impl<T> Register for ModuleNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = ModuleNode<T, NodeContext>;
-    type Value<C> = ModuleNodeValue<T, C>;
+impl Register for ModuleNode<()> {
+    type Node = ModuleNode<NodeContext>;
+    type Value<C> = ModuleNodeValue<C>;
 
-    fn register(&self, ctx: &ScopeContext) -> ModuleNode<T, NodeContext> {
+    fn register(&self, ctx: &ScopeContext) -> ModuleNode<NodeContext> {
         let value = self.0.identify(ctx);
         let id = ctx.add_fragment(&value);
 
@@ -67,12 +46,8 @@ impl ToWeak for Module<usize> {
     }
 }
 
-impl<T> ToStrong<ModuleNode<T, Strong>> for ModuleNode<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<T, Strong> {
+impl ToStrong<ModuleNode<Strong>> for ModuleNode<NodeContext> {
+    fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<Strong> {
         ModuleNode(
             self.0.map(&|x| x.to_strong(ctx)),
             ctx.resolve(self.id()).clone(),

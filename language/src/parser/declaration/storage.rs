@@ -1,15 +1,14 @@
 use crate::{
     ast::storage::{Storage, Visibility},
-    common::{position::Decrement, range::Range},
+    common::{position::Position, range::Range},
     parser::matcher as m,
 };
 use combine::{position, value, Parser, Stream};
-use std::fmt::Debug;
 
-pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (Storage, Range<T>)>
+pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (Storage, Range)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     (
         position(),

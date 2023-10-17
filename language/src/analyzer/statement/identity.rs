@@ -4,17 +4,10 @@ use crate::{
         register::{Identify, Register},
     },
     ast::StatementNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Identify<StatementNodeValue<T, NodeContext>> for StatementNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> StatementNodeValue<T, NodeContext> {
+impl Identify<StatementNodeValue<NodeContext>> for StatementNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> StatementNodeValue<NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }

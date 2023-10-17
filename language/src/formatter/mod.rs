@@ -6,9 +6,8 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::{ast::TypeExpressionNode, common::position::Decrement, parser::Program};
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter, Write};
+use crate::{ast::TypeExpressionNode, parser::Program};
+use std::fmt::{Display, Formatter, Write};
 
 pub fn indented<T>(f: &mut T) -> indenter::Indented<T>
 where
@@ -17,22 +16,15 @@ where
     indenter::indented(f).with_str("  ")
 }
 
-impl<'a, C> Display for Program<'a, C> {
+impl<C> Display for Program<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "{program}", program = self.0)
     }
 }
 
-struct Typedef<'a, T, C>(&'a Option<TypeExpressionNode<T, C>>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+struct Typedef<'a, C>(&'a Option<TypeExpressionNode<C>>);
 
-impl<'a, T, C> Display for Typedef<'a, T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<'a, C> Display for Typedef<'a, C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         if let Some(typedef) = self.0 {
             write!(f, ": {}", typedef)

@@ -1,16 +1,15 @@
 use crate::{
     ast::{ExpressionNode, Statement, StatementNode},
-    common::position::Decrement,
+    common::position::Position,
     parser::matcher as m,
 };
 use combine::{choice, Parser, Stream};
-use std::fmt::Debug;
 
-fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<T, ()>>
+fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     m::terminated(parser).map(|inner| {
         let range = inner.node().range().clone();
@@ -19,11 +18,11 @@ where
     })
 }
 
-fn variable<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<T, ()>>
+fn variable<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     m::terminated((
         m::keyword("let"),
@@ -39,11 +38,11 @@ where
     })
 }
 
-pub fn statement<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = StatementNode<T, ()>>
+pub fn statement<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = StatementNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     choice((variable(parser()), expression(parser())))
 }
@@ -52,12 +51,12 @@ where
 mod tests {
     use crate::{
         ast::{Expression, Primitive, Statement, StatementNode},
-        parser::{expression, CharStream, ParseResult},
+        parser::{expression, ParseResult},
         test::fixture as f,
     };
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> ParseResult<StatementNode<CharStream, ()>> {
+    fn parse(s: &str) -> ParseResult<StatementNode<()>> {
         super::statement(expression::expression)
             .skip(eof())
             .easy_parse(Stream::new(s))

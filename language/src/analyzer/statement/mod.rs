@@ -11,18 +11,12 @@ use super::{
 };
 use crate::{
     ast::{StatementNode, StatementNodeValue},
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Register for StatementNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = StatementNode<T, NodeContext>;
-    type Value<C> = StatementNodeValue<T, C>;
+impl Register for StatementNode<()> {
+    type Node = StatementNode<NodeContext>;
+    type Value<C> = StatementNodeValue<C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let node = &self.0;

@@ -10,20 +10,14 @@ use super::{
 };
 use crate::{
     ast::{DeclarationNode, DeclarationNodeValue},
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Register for DeclarationNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = DeclarationNode<T, NodeContext>;
-    type Value<C> = DeclarationNodeValue<T, C>;
+impl Register for DeclarationNode<()> {
+    type Node = DeclarationNode<NodeContext>;
+    type Value<C> = DeclarationNodeValue<C>;
 
-    fn register(&self, ctx: &ScopeContext) -> DeclarationNode<T, NodeContext> {
+    fn register(&self, ctx: &ScopeContext) -> DeclarationNode<NodeContext> {
         let value = self.node().value().identify(&mut ctx.child());
         let id = ctx.add_fragment(&value);
 

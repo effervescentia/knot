@@ -1,11 +1,10 @@
 use super::{parameter, storage};
 use crate::{
     ast::{Declaration, DeclarationNode},
-    common::position::Decrement,
+    common::position::Position,
     parser::{expression, matcher as m, types::typedef},
 };
 use combine::{between, optional, sep_end_by, Parser, Stream};
-use std::fmt::Debug;
 
 // func foo -> nil;
 // func foo -> {};
@@ -15,10 +14,10 @@ use std::fmt::Debug;
 // func foo(): nil -> nil;
 // func foo(a, b: nil, c = 123) -> nil;
 
-pub fn function<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
+pub fn function<T>() -> impl Parser<T, Output = DeclarationNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::terminated((
         storage::storage("func"),

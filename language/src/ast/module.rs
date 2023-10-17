@@ -1,6 +1,5 @@
 use super::import::Import;
-use crate::{ast::declaration::DeclarationNode, common::position::Decrement};
-use combine::Stream;
+use crate::ast::declaration::DeclarationNode;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -29,35 +28,24 @@ impl<D> Module<D> {
     }
 }
 
-pub type ModuleNodeValue<T, C> = Module<DeclarationNode<T, C>>;
+pub type ModuleNodeValue<C> = Module<DeclarationNode<C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ModuleNode<T, C>(pub ModuleNodeValue<T, C>, pub C)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+pub struct ModuleNode<C>(pub ModuleNodeValue<C>, pub C);
 
-impl<T, C> ModuleNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn map<R>(
+impl<C> ModuleNode<C> {
+    pub fn map<C2>(
         &self,
-        f: impl Fn(&ModuleNodeValue<T, C>, &C) -> (ModuleNodeValue<T, R>, R),
-    ) -> ModuleNode<T, R> {
+        f: impl Fn(&ModuleNodeValue<C>, &C) -> (ModuleNodeValue<C2>, C2),
+    ) -> ModuleNode<C2> {
         let (value, ctx) = f(&self.0, &self.1);
 
         ModuleNode(value, ctx)
     }
 }
 
-impl<T> ModuleNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: ModuleNodeValue<T, ()>) -> Self {
+impl ModuleNode<()> {
+    pub fn raw(x: ModuleNodeValue<()>) -> Self {
         Self(x, ())
     }
 }

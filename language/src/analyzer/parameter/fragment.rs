@@ -1,16 +1,9 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     ast::ParameterNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToFragment for ParameterNodeValue<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl ToFragment for ParameterNodeValue<NodeContext> {
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Parameter(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
     }

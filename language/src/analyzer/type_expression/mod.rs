@@ -10,18 +10,12 @@ use super::{
 };
 use crate::{
     ast::{TypeExpressionNode, TypeExpressionNodeValue},
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Register for TypeExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = TypeExpressionNode<T, NodeContext>;
-    type Value<C> = TypeExpressionNodeValue<T, C>;
+impl Register for TypeExpressionNode<()> {
+    type Node = TypeExpressionNode<NodeContext>;
+    type Value<C> = TypeExpressionNodeValue<C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);

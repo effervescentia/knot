@@ -3,8 +3,7 @@ use super::{
     operator::{BinaryOperator, UnaryOperator},
     statement::StatementNode,
 };
-use crate::common::{node::Node, position::Decrement, range::Range};
-use combine::Stream;
+use crate::common::{node::Node, range::Range};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -69,28 +68,20 @@ impl<E, S, K> Expression<E, S, K> {
     }
 }
 
-pub type ExpressionNodeValue<T, C> =
-    Expression<ExpressionNode<T, C>, StatementNode<T, C>, KSXNode<T, C>>;
+pub type ExpressionNodeValue<C> = Expression<ExpressionNode<C>, StatementNode<C>, KSXNode<C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ExpressionNode<T, C>(pub Node<ExpressionNodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+pub struct ExpressionNode<C>(pub Node<ExpressionNodeValue<C>, C>);
 
-impl<T, C> ExpressionNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<ExpressionNodeValue<T, C>, T, C> {
+impl<C> ExpressionNode<C> {
+    pub fn node(&self) -> &Node<ExpressionNodeValue<C>, C> {
         &self.0
     }
 
-    pub fn map<R>(
+    pub fn map<C2>(
         &self,
-        f: impl Fn(&ExpressionNodeValue<T, C>, &C) -> (ExpressionNodeValue<T, R>, R),
-    ) -> ExpressionNode<T, R> {
+        f: impl Fn(&ExpressionNodeValue<C>, &C) -> (ExpressionNodeValue<C2>, C2),
+    ) -> ExpressionNode<C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -98,12 +89,8 @@ where
     }
 }
 
-impl<T> ExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: ExpressionNodeValue<T, ()>, range: Range<T>) -> Self {
+impl ExpressionNode<()> {
+    pub fn raw(x: ExpressionNodeValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 }

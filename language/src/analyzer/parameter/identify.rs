@@ -4,17 +4,10 @@ use crate::{
         register::{Identify, Register},
     },
     ast::ParameterNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Identify<ParameterNodeValue<T, NodeContext>> for ParameterNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> ParameterNodeValue<T, NodeContext> {
+impl Identify<ParameterNodeValue<NodeContext>> for ParameterNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> ParameterNodeValue<NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }

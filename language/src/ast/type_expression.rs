@@ -1,5 +1,4 @@
-use crate::common::{node::Node, position::Decrement, range::Range};
-use combine::Stream;
+use crate::common::{node::Node, range::Range};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -38,27 +37,20 @@ impl<T> TypeExpression<T> {
     }
 }
 
-pub type TypeExpressionNodeValue<T, C> = TypeExpression<TypeExpressionNode<T, C>>;
+pub type TypeExpressionNodeValue<C> = TypeExpression<TypeExpressionNode<C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionNode<T, C>(pub Node<TypeExpressionNodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+pub struct TypeExpressionNode<C>(pub Node<TypeExpressionNodeValue<C>, C>);
 
-impl<T, C> TypeExpressionNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<TypeExpressionNodeValue<T, C>, T, C> {
+impl<C> TypeExpressionNode<C> {
+    pub fn node(&self) -> &Node<TypeExpressionNodeValue<C>, C> {
         &self.0
     }
 
-    pub fn map<R>(
+    pub fn map<C2>(
         &self,
-        f: impl Fn(&TypeExpressionNodeValue<T, C>, &C) -> (TypeExpressionNodeValue<T, R>, R),
-    ) -> TypeExpressionNode<T, R> {
+        f: impl Fn(&TypeExpressionNodeValue<C>, &C) -> (TypeExpressionNodeValue<C2>, C2),
+    ) -> TypeExpressionNode<C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -66,12 +58,8 @@ where
     }
 }
 
-impl<T> TypeExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: TypeExpressionNodeValue<T, ()>, range: Range<T>) -> Self {
+impl TypeExpressionNode<()> {
+    pub fn raw(x: TypeExpressionNodeValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 }

@@ -5,17 +5,10 @@ use crate::{
         register::{Identify, Register},
     },
     ast::DeclarationNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Identify<DeclarationNodeValue<T, NodeContext>> for DeclarationNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> DeclarationNodeValue<T, NodeContext> {
+impl Identify<DeclarationNodeValue<NodeContext>> for DeclarationNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> DeclarationNodeValue<NodeContext> {
         self.map(
             &|x| x.register(ctx),
             &|x| x.register(ctx),

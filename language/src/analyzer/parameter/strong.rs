@@ -4,17 +4,11 @@ use crate::{
         infer::strong::{Strong, ToStrong},
     },
     ast::ParameterNode,
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToStrong<ParameterNode<T, Strong>> for ParameterNode<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn to_strong(&self, ctx: &StrongContext) -> ParameterNode<T, Strong> {
+impl ToStrong<ParameterNode<Strong>> for ParameterNode<NodeContext> {
+    fn to_strong(&self, ctx: &StrongContext) -> ParameterNode<Strong> {
         ParameterNode(Node(
             self.node()
                 .value()

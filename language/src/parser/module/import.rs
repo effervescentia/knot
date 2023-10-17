@@ -1,13 +1,12 @@
 use crate::{
     ast::{Import, ImportSource, ImportTarget},
-    common::position::Decrement,
+    common::position::Position,
     parser::matcher as m,
 };
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
-use std::fmt::Debug;
 
 // use @/x;
 // use @/x.{a, b};
@@ -21,7 +20,7 @@ use std::fmt::Debug;
 pub fn import<T>() -> impl Parser<T, Output = Import>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     let source = || {
         choice((

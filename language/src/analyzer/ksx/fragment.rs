@@ -1,16 +1,9 @@
 use crate::{
     analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
     ast::KSXNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> ToFragment for KSXNodeValue<T, NodeContext>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl ToFragment for KSXNodeValue<NodeContext> {
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::KSX(self.map(&mut |x| *x.node().id(), &mut |x| *x.node().id()))
     }
@@ -21,18 +14,14 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, fragment::Fragment, register::ToFragment},
         ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX},
-        parser::CharStream,
         test::fixture as f,
     };
 
     #[test]
     fn text() {
         assert_eq!(
-            KSX::<
-                ExpressionNode<CharStream<'static>, NodeContext>,
-                KSXNode<CharStream<'static>, NodeContext>,
-            >::Text(String::from("foo"))
-            .to_fragment(),
+            KSX::<ExpressionNode<NodeContext>, KSXNode<NodeContext>>::Text(String::from("foo"))
+                .to_fragment(),
             Fragment::KSX(KSX::Text(String::from("foo")))
         );
     }

@@ -1,10 +1,6 @@
 use super::{indented, Block, Indented, SeparateEach, TerminateEach};
-use crate::{
-    ast::{Expression, ExpressionNode, Primitive},
-    common::position::Decrement,
-};
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter, Write};
+use crate::ast::{Expression, ExpressionNode, Primitive};
+use std::fmt::{Display, Formatter, Write};
 
 fn escape_string(s: &String) -> String {
     s.replace("\\", "\\\\")
@@ -14,11 +10,7 @@ fn escape_string(s: &String) -> String {
         .replace("\r", "\\r")
 }
 
-impl<T, C> Display for ExpressionNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for ExpressionNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Expression::Primitive(Primitive::Nil) => write!(f, "nil"),

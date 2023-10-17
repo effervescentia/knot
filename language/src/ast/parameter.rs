@@ -1,8 +1,7 @@
 use crate::{
     ast::{expression::ExpressionNode, type_expression::TypeExpressionNode},
-    common::{node::Node, position::Decrement, range::Range},
+    common::{node::Node, range::Range},
 };
-use combine::Stream;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -30,27 +29,20 @@ impl<E, T> Parameter<E, T> {
     }
 }
 
-pub type ParameterNodeValue<T, C> = Parameter<ExpressionNode<T, C>, TypeExpressionNode<T, C>>;
+pub type ParameterNodeValue<C> = Parameter<ExpressionNode<C>, TypeExpressionNode<C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ParameterNode<T, C>(pub Node<ParameterNodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+pub struct ParameterNode<C>(pub Node<ParameterNodeValue<C>, C>);
 
-impl<T, C> ParameterNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<ParameterNodeValue<T, C>, T, C> {
+impl<C> ParameterNode<C> {
+    pub fn node(&self) -> &Node<ParameterNodeValue<C>, C> {
         &self.0
     }
 
-    pub fn map<R>(
+    pub fn map<C2>(
         &self,
-        f: impl Fn(&ParameterNodeValue<T, C>, &C) -> (ParameterNodeValue<T, R>, R),
-    ) -> ParameterNode<T, R> {
+        f: impl Fn(&ParameterNodeValue<C>, &C) -> (ParameterNodeValue<C2>, C2),
+    ) -> ParameterNode<C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -58,12 +50,8 @@ where
     }
 }
 
-impl<T> ParameterNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: ParameterNodeValue<T, ()>, range: Range<T>) -> Self {
+impl ParameterNode<()> {
+    pub fn raw(x: ParameterNodeValue<()>, range: Range) -> Self {
         Self(Node(x, range, ()))
     }
 }

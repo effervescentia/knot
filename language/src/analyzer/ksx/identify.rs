@@ -5,17 +5,10 @@ use crate::{
         register::{Identify, Register},
     },
     ast::KSXNodeValue,
-    common::position::Decrement,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Identify<KSXNodeValue<T, NodeContext>> for KSXNodeValue<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    fn identify(&self, ctx: &ScopeContext) -> KSXNodeValue<T, NodeContext> {
+impl Identify<KSXNodeValue<NodeContext>> for KSXNodeValue<()> {
+    fn identify(&self, ctx: &ScopeContext) -> KSXNodeValue<NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }
@@ -25,7 +18,6 @@ mod tests {
     use crate::{
         analyzer::{context::NodeContext, register::Identify},
         ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX},
-        parser::CharStream,
         test::fixture as f,
     };
 
@@ -35,10 +27,7 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            KSX::<ExpressionNode<CharStream<'static>, ()>, KSXNode<CharStream<'static>, ()>>::Text(
-                String::from("foo")
-            )
-            .identify(scope),
+            KSX::<ExpressionNode<()>, KSXNode<()>>::Text(String::from("foo")).identify(scope),
             KSX::Text(String::from("foo"))
         );
     }

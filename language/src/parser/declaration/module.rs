@@ -1,16 +1,15 @@
 use super::storage;
 use crate::{
     ast::{Declaration, DeclarationNode},
-    common::position::Decrement,
+    common::position::Position,
     parser::{matcher as m, module},
 };
 use combine::{Parser, Stream};
-use std::fmt::Debug;
 
-pub fn module<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
+pub fn module<T>() -> impl Parser<T, Output = DeclarationNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     (
         storage::storage("module"),

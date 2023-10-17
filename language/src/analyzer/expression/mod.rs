@@ -9,18 +9,12 @@ use crate::{
         register::{Identify, Register},
     },
     ast::{ExpressionNode, ExpressionNodeValue},
-    common::{node::Node, position::Decrement},
+    common::node::Node,
 };
-use combine::Stream;
-use std::fmt::Debug;
 
-impl<T> Register for ExpressionNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Node = ExpressionNode<T, NodeContext>;
-    type Value<C> = ExpressionNodeValue<T, C>;
+impl Register for ExpressionNode<()> {
+    type Node = ExpressionNode<NodeContext>;
+    type Value<C> = ExpressionNodeValue<C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);

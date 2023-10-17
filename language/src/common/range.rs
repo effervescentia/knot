@@ -1,74 +1,49 @@
-use crate::{common::position::Decrement, parser::CharStream};
-use combine::{stream::position::SourcePosition, Stream, StreamOnce};
 use std::{fmt::Debug, ops::Add};
 
-pub trait Ranged<T, S>
-where
-    S: StreamOnce,
-    S::Position: Copy + Debug + Decrement,
-{
+use super::position::{Point, Position};
+
+pub trait Ranged<T> {
     fn value(self) -> T;
 
-    fn range(&self) -> &Range<S>;
+    fn range(&self) -> &Range;
 }
 
 #[derive(Copy, Debug, PartialEq)]
-pub struct Range<T>(pub T::Position, pub T::Position)
-where
-    T: StreamOnce,
-    T::Position: Copy + Debug + Decrement;
+pub struct Range(pub Point, pub Point);
 
-impl<T> Range<T>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn include(&self, position: T::Position) -> Self {
-        if position < self.0 {
-            Self(position, self.1)
-        } else if position > self.1 {
-            Self(self.0, position)
+impl Range {
+    pub fn from<P>(start: P, end: P) -> Self
+    where
+        P: Position,
+    {
+        Range(start.point(), end.point())
+    }
+
+    pub fn include<P>(&self, position: P) -> Self
+    where
+        P: Position,
+    {
+        let point = position.point();
+
+        if point < self.0 {
+            Self(point, self.1)
+        } else if point > self.1 {
+            Self(self.0, point)
         } else {
             self.clone()
         }
     }
 }
 
-impl<T> Add for &Range<T>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    type Output = Range<T>;
+impl Add for &Range {
+    type Output = Range;
 
     fn add(self, rhs: Self) -> Self::Output {
         Range(self.0.min(rhs.0), self.1.max(rhs.1))
     }
 }
 
-impl<'a> Range<CharStream<'a>> {
-    pub const fn chars(
-        (start_line, start_column): (i32, i32),
-        (end_line, end_column): (i32, i32),
-    ) -> Self {
-        Range(
-            SourcePosition {
-                line: start_line,
-                column: start_column,
-            },
-            SourcePosition {
-                line: end_line,
-                column: end_column,
-            },
-        )
-    }
-}
-
-impl<T> Clone for Range<T>
-where
-    T: StreamOnce,
-    T::Position: Copy + Debug + Decrement,
-{
+impl Clone for Range {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1.clone())
     }

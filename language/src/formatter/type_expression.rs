@@ -1,16 +1,8 @@
 use super::SeparateEach;
-use crate::{
-    ast::{TypeExpression, TypeExpressionNode},
-    common::position::Decrement,
-};
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use crate::ast::{TypeExpression, TypeExpressionNode};
+use std::fmt::{Display, Formatter};
 
-impl<T, C> Display for TypeExpressionNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for TypeExpressionNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             TypeExpression::Nil => write!(f, "nil"),

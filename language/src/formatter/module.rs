@@ -1,17 +1,11 @@
 use super::TerminateEach;
 use crate::{
     ast::{Import, ImportSource, ModuleNode},
-    common::position::Decrement,
     formatter::SeparateEach,
 };
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Display, Formatter};
 
-impl<T, C> Display for ModuleNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for ModuleNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,

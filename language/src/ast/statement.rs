@@ -1,8 +1,7 @@
 use crate::{
     ast::expression::ExpressionNode,
-    common::{node::Node, position::Decrement, range::Range},
+    common::{node::Node, range::Range},
 };
-use combine::Stream;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -21,27 +20,20 @@ impl<E> Statement<E> {
     }
 }
 
-pub type StatementNodeValue<T, C> = Statement<ExpressionNode<T, C>>;
+pub type StatementNodeValue<C> = Statement<ExpressionNode<C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct StatementNode<T, C>(pub Node<StatementNodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+pub struct StatementNode<C>(pub Node<StatementNodeValue<C>, C>);
 
-impl<T, C> StatementNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<StatementNodeValue<T, C>, T, C> {
+impl<C> StatementNode<C> {
+    pub fn node(&self) -> &Node<StatementNodeValue<C>, C> {
         &self.0
     }
 
-    pub fn map<R>(
+    pub fn map<C2>(
         &self,
-        f: impl Fn(&StatementNodeValue<T, C>, &C) -> (StatementNodeValue<T, R>, R),
-    ) -> StatementNode<T, R> {
+        f: impl Fn(&StatementNodeValue<C>, &C) -> (StatementNodeValue<C2>, C2),
+    ) -> StatementNode<C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -49,12 +41,8 @@ where
     }
 }
 
-impl<T> StatementNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: StatementNodeValue<T, ()>, range: Range<T>) -> Self {
+impl StatementNode<()> {
+    pub fn raw(x: StatementNodeValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 }

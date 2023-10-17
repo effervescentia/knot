@@ -4,44 +4,43 @@ pub mod style;
 
 use crate::{
     ast::{Expression, ExpressionNode, UnaryOperator},
-    common::position::Decrement,
+    common::position::Position,
     parser::{ksx, matcher as m, statement},
 };
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
-use std::fmt::Debug;
 
-fn primitive<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn primitive<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::lexeme(primitive::primitive().map(Expression::Primitive))
         .map(|(x, range)| ExpressionNode::raw(x, range))
 }
 
-fn group<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn group<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     m::between(m::symbol('('), m::symbol(')'), parser)
         .map(|(x, range)| ExpressionNode::raw(Expression::Group(Box::new(x)), range))
 }
 
-fn identifier<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn identifier<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::standard_identifier().map(|(x, range)| ExpressionNode::raw(Expression::Identifier(x), range))
 }
 
-fn closure<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn closure<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     m::between(
         m::symbol('{'),
@@ -51,11 +50,11 @@ where
     .map(|(xs, range)| ExpressionNode::raw(Expression::Closure(xs), range))
 }
 
-fn unary_operation<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn unary_operation<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     let operation = |c, op| {
         (position(), m::symbol(c), parser()).map(move |(start, _, x)| {
@@ -73,11 +72,11 @@ where
     .or(parser())
 }
 
-fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P: Parser<T, Output = ExpressionNode<()>>,
 {
     m::folding(
         parser,
@@ -90,12 +89,12 @@ where
     )
 }
 
-fn function_call<T, P1, P2>(lhs: P1, rhs: P2) -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn function_call<T, P1, P2>(lhs: P1, rhs: P2) -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-    P1: Parser<T, Output = ExpressionNode<T, ()>>,
-    P2: Parser<T, Output = ExpressionNode<T, ()>>,
+    T::Position: Position,
+    P1: Parser<T, Output = ExpressionNode<()>>,
+    P2: Parser<T, Output = ExpressionNode<()>>,
 {
     m::folding(
         lhs,
@@ -112,10 +111,10 @@ where
     )
 }
 
-fn ksx<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn ksx<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     ksx::ksx().map(|ksx| {
         let range = ksx.node().range().clone();
@@ -124,91 +123,91 @@ where
     })
 }
 
-fn expression_8<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_8<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     choice((primitive(), style::style(expression), ksx(), identifier()))
 }
 
-fn expression_7<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_7<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     choice((closure(expression), group(expression()), expression_8()))
 }
 
-fn expression_6<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_6<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     dot_access(expression_7())
 }
 
-fn expression_5<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_5<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     function_call(expression_6(), expression())
 }
 
-fn expression_4<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_4<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     unary_operation(expression_5)
 }
 
-fn expression_3<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_3<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     binary_operation::arithmetic(expression_4())
 }
 
-fn expression_2<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_2<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     binary_operation::relational(expression_3())
 }
 
-fn expression_1<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_1<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     binary_operation::comparative(expression_2())
 }
 
-fn expression_0<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+fn expression_0<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     binary_operation::logical(expression_1())
 }
 
 parser! {
-    pub fn expression[T]()(T) -> ExpressionNode<T, ()>
+    pub fn expression[T]()(T) -> ExpressionNode< ()>
     where
-        [T: Stream<Token = char>, T::Position: Copy + Debug + Decrement]
+        [T: Stream<Token = char>, T::Position: Position]
     {
         expression_0()
     }
 }
 
-pub fn ksx_term<T>() -> impl Parser<T, Output = ExpressionNode<T, ()>>
+pub fn ksx_term<T>() -> impl Parser<T, Output = ExpressionNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     unary_operation(|| function_call(expression_8(), expression()))
 }
@@ -219,12 +218,12 @@ mod tests {
         ast::{
             BinaryOperator, Expression, ExpressionNode, Primitive, Statement, UnaryOperator, KSX,
         },
-        parser::{CharStream, ParseResult},
+        parser::ParseResult,
         test::fixture as f,
     };
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
 
-    fn parse(s: &str) -> ParseResult<ExpressionNode<CharStream, ()>> {
+    fn parse(s: &str) -> ParseResult<ExpressionNode<()>> {
         super::expression().skip(eof()).easy_parse(Stream::new(s))
     }
 

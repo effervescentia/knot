@@ -33,14 +33,14 @@ pub enum RefKind {
     Mixed,
 }
 
-fn register_fragments<'a>(x: Program<'a, ()>) -> (Program<'a, NodeContext>, FileContext) {
+fn register_fragments(x: Program<()>) -> (Program<NodeContext>, FileContext) {
     let file_ctx = RefCell::new(FileContext::new());
     let untyped = x.0.register(&mut ScopeContext::new(&file_ctx));
 
     (Program(untyped), file_ctx.into_inner())
 }
 
-pub fn analyze<'a>(x: Program<'a, ()>) -> Program<'a, Strong> {
+pub fn analyze(x: Program<()>) -> Program<Strong> {
     // register AST fragments depth-first with monotonically increasing IDs
     let (untyped, file_ctx) = register_fragments(x);
 
@@ -58,8 +58,8 @@ pub fn analyze<'a>(x: Program<'a, ()>) -> Program<'a, Strong> {
     untyped.to_strong(&strong_ctx)
 }
 
-impl<'a> ToStrong<Program<'a, Strong>> for Program<'a, NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> Program<'a, Strong> {
+impl ToStrong<Program<Strong>> for Program<NodeContext> {
+    fn to_strong(&self, ctx: &StrongContext) -> Program<Strong> {
         Program(self.0.to_strong(ctx))
     }
 }

@@ -7,6 +7,7 @@ pub use file_system::FileSystem;
 pub use memory_cache::MemoryCache;
 use std::{
     path::{Path, PathBuf},
+    rc::Rc,
     time::SystemTime,
 };
 
@@ -37,7 +38,7 @@ impl ModuleRef {
 }
 
 pub trait Resolver {
-    fn resolve<P>(&mut self, relative: P) -> Option<String>
+    fn resolve<P>(&mut self, relative: P) -> Option<Rc<String>>
     where
         P: AsRef<Path> + Copy;
 

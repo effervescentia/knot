@@ -5,8 +5,7 @@ use super::{
     storage::{Storage, Visibility},
     type_expression::TypeExpressionNode,
 };
-use crate::common::{node::Node, position::Decrement, range::Range};
-use combine::Stream;
+use crate::common::{node::Node, range::Range};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -161,32 +160,21 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
     }
 }
 
-pub type DeclarationNodeValue<T, C> = Declaration<
-    ExpressionNode<T, C>,
-    ParameterNode<T, C>,
-    ModuleNode<T, C>,
-    TypeExpressionNode<T, C>,
->;
+pub type DeclarationNodeValue<C> =
+    Declaration<ExpressionNode<C>, ParameterNode<C>, ModuleNode<C>, TypeExpressionNode<C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<T, C>(pub Node<DeclarationNodeValue<T, C>, T, C>)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement;
+pub struct DeclarationNode<C>(pub Node<DeclarationNodeValue<C>, C>);
 
-impl<T, C> DeclarationNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn node(&self) -> &Node<DeclarationNodeValue<T, C>, T, C> {
+impl<C> DeclarationNode<C> {
+    pub fn node(&self) -> &Node<DeclarationNodeValue<C>, C> {
         &self.0
     }
 
-    pub fn map<R>(
+    pub fn map<C2>(
         &self,
-        f: impl Fn(&DeclarationNodeValue<T, C>, &C) -> (DeclarationNodeValue<T, R>, R),
-    ) -> DeclarationNode<T, R> {
+        f: impl Fn(&DeclarationNodeValue<C>, &C) -> (DeclarationNodeValue<C2>, C2),
+    ) -> DeclarationNode<C2> {
         let node = self.node();
         let (value, ctx) = f(&node.value(), &node.context());
 
@@ -194,12 +182,8 @@ where
     }
 }
 
-impl<T> DeclarationNode<T, ()>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
-    pub fn raw(x: DeclarationNodeValue<T, ()>, range: Range<T>) -> Self {
+impl DeclarationNode<()> {
+    pub fn raw(x: DeclarationNodeValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 }

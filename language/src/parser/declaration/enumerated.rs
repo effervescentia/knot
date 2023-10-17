@@ -1,16 +1,15 @@
 use super::storage;
 use crate::{
     ast::{Declaration, DeclarationNode, TypeExpressionNode},
-    common::{position::Decrement, range::Range},
+    common::{position::Position, range::Range},
     parser::{matcher as m, types::type_expression},
 };
 use combine::{attempt, choice, optional, sep_end_by, Parser, Stream};
-use std::fmt::Debug;
 
-fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<T, ()>>, Range<T>)>
+fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<()>>, Range)>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     choice((
         attempt((
@@ -26,10 +25,10 @@ where
     ))
 }
 
-pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<T, ()>>
+pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<()>>
 where
     T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
+    T::Position: Position,
 {
     m::terminated((
         storage::storage("enum"),

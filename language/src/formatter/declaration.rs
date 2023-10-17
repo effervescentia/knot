@@ -1,19 +1,11 @@
 use super::{indented, Block, Indented, Parameters, Typedef};
-use crate::{
-    ast::{
-        storage::{Storage, Visibility},
-        Declaration, DeclarationNode,
-    },
-    common::position::Decrement,
+use crate::ast::{
+    storage::{Storage, Visibility},
+    Declaration, DeclarationNode,
 };
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter, Write};
+use std::fmt::{Display, Formatter, Write};
 
-impl<T, C> Display for DeclarationNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for DeclarationNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Declaration::TypeAlias { name, value } => {

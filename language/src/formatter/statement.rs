@@ -1,15 +1,7 @@
-use crate::{
-    ast::{Statement, StatementNode},
-    common::position::Decrement,
-};
-use combine::Stream;
-use std::fmt::{Debug, Display, Formatter};
+use crate::ast::{Statement, StatementNode};
+use std::fmt::{Display, Formatter};
 
-impl<T, C> Display for StatementNode<T, C>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+impl<C> Display for StatementNode<C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Statement::Expression(x) => write!(f, "{x};"),
