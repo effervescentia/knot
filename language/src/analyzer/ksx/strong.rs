@@ -9,12 +9,12 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<'a, T> ToStrong<'a, KSXNode<T, Strong>> for KSXNode<T, NodeContext>
+impl<T> ToStrong<KSXNode<T, Strong>> for KSXNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext) -> KSXNode<T, Strong> {
+    fn to_strong(&self, ctx: &StrongContext) -> KSXNode<T, Strong> {
         KSXNode(Node(
             self.node()
                 .value()

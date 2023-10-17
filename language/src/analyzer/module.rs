@@ -67,12 +67,12 @@ impl ToWeak for Module<usize> {
     }
 }
 
-impl<'a, T> ToStrong<'a, ModuleNode<T, Strong>> for ModuleNode<T, NodeContext>
+impl<T> ToStrong<ModuleNode<T, Strong>> for ModuleNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext) -> ModuleNode<T, Strong> {
+    fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<T, Strong> {
         ModuleNode(
             self.0.map(&|x| x.to_strong(ctx)),
             ctx.resolve(self.id()).clone(),

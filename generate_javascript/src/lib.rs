@@ -3,7 +3,7 @@ mod javascript;
 mod transform;
 
 use javascript::JavaScript;
-use knot_language::ast::ModuleShape;
+use knot_language::ast::ProgramShape;
 
 // TODO: move these to a common library to be re-used across generators
 
@@ -32,9 +32,9 @@ pub struct Options {
     pub module: Module,
 }
 
-pub fn generate(module: &ModuleShape) -> JavaScript {
+pub fn generate(program: &ProgramShape) -> JavaScript {
     JavaScript::from_module(
-        module,
+        &program.0,
         &Options {
             mode: Mode::Prod,
             module: Module::ESM,

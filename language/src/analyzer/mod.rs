@@ -11,9 +11,8 @@ mod statement;
 mod type_expression;
 mod types;
 
-use crate::{ast::ModuleNode, common::position::Decrement};
-use combine::Stream;
-use context::{FileContext, NodeContext, ScopeContext, WeakContext};
+use crate::parser::Program;
+use context::{FileContext, NodeContext, ScopeContext, StrongContext, WeakContext};
 use infer::strong::{Strong, ToStrong};
 use register::Register;
 use std::{cell::RefCell, fmt::Debug};
@@ -34,22 +33,14 @@ pub enum RefKind {
     Mixed,
 }
 
-fn register_fragments<T>(x: ModuleNode<T, ()>) -> (ModuleNode<T, NodeContext>, FileContext)
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+fn register_fragments<'a>(x: Program<'a, ()>) -> (Program<'a, NodeContext>, FileContext) {
     let file_ctx = RefCell::new(FileContext::new());
-    let untyped = x.register(&mut ScopeContext::new(&file_ctx));
+    let untyped = x.0.register(&mut ScopeContext::new(&file_ctx));
 
-    (untyped, file_ctx.into_inner())
+    (Program(untyped), file_ctx.into_inner())
 }
 
-pub fn analyze<T>(x: ModuleNode<T, ()>) -> ModuleNode<T, Strong>
-where
-    T: Stream<Token = char>,
-    T::Position: Copy + Debug + Decrement,
-{
+pub fn analyze<'a>(x: Program<'a, ()>) -> Program<'a, Strong> {
     // register AST fragments depth-first with monotonically increasing IDs
     let (untyped, file_ctx) = register_fragments(x);
 
@@ -67,21 +58,31 @@ where
     untyped.to_strong(&strong_ctx)
 }
 
+impl<'a> ToStrong<Program<'a, Strong>> for Program<'a, NodeContext> {
+    fn to_strong(&self, ctx: &StrongContext) -> Program<'a, Strong> {
+        Program(self.0.to_strong(ctx))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
         analyzer::{types::Type, RefKind},
         ast::{Expression, Module, ModuleNode, Primitive, TypeExpression},
+        parser::Program,
         test::fixture as f,
     };
 
     #[test]
     fn empty_module() {
-        let ast = f::n::mr(Module::new(vec![], vec![]));
+        let ast = Program(f::n::mr(Module::new(vec![], vec![])));
 
         assert_eq!(
             super::analyze(ast),
-            ModuleNode(Module::new(vec![], vec![]), Ok(Type::Module(vec![])))
+            Program(ModuleNode(
+                Module::new(vec![], vec![]),
+                Ok(Type::Module(vec![]))
+            ))
         );
     }
 
@@ -90,18 +91,18 @@ mod tests {
 
         #[test]
         fn primitive() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::const_(
                     "foo",
                     None,
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -114,7 +115,7 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
-                )
+                ))
             );
         }
     }
@@ -124,17 +125,17 @@ mod tests {
 
         #[test]
         fn static_variant() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::enum_(
                     "foo",
                     vec![(String::from("Bar"), vec![])],
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -143,13 +144,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 0)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameterized_variant() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::enum_(
                     "foo",
@@ -161,11 +162,11 @@ mod tests {
                         ],
                     )],
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -183,7 +184,7 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 2)]))
-                )
+                ))
             );
         }
     }
@@ -193,18 +194,18 @@ mod tests {
 
         #[test]
         fn without_typedef() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::const_(
                     "foo",
                     None,
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -217,24 +218,24 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn with_typedef() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::const_(
                     "foo",
                     Some(f::n::tx(TypeExpression::Nil)),
                     f::n::x(Expression::Primitive(Primitive::Boolean(true))),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -250,7 +251,7 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 2)]))
-                )
+                ))
             );
         }
     }
@@ -261,7 +262,7 @@ mod tests {
 
         #[test]
         fn no_parameters() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -269,11 +270,11 @@ mod tests {
                     None,
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -287,13 +288,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameters_with_defaults() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -316,11 +317,11 @@ mod tests {
                     None,
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -357,13 +358,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameters_with_typedefs() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -382,11 +383,11 @@ mod tests {
                     None,
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -423,13 +424,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameter_with_default_and_typedef() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -443,11 +444,11 @@ mod tests {
                     None,
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -474,13 +475,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 4)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn infer_return_type_from_parameter() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -492,11 +493,11 @@ mod tests {
                     None,
                     f::n::x(Expression::Identifier(String::from("bar"))),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -523,13 +524,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn with_return_type() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -537,11 +538,11 @@ mod tests {
                     Some(f::n::tx(TypeExpression::Boolean)),
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -555,14 +556,14 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 2)]))
-                )
+                ))
             );
         }
 
         #[test]
         #[ignore = "todo"]
         fn infer_parameters() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::func_(
                     "foo",
@@ -585,11 +586,11 @@ mod tests {
                         Box::new(f::n::x(Expression::Identifier(String::from("fizz")))),
                     )),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -633,7 +634,7 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
-                )
+                ))
             );
         }
     }
@@ -644,18 +645,18 @@ mod tests {
 
         #[test]
         fn no_parameters() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::view(
                     "foo",
                     vec![],
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -668,13 +669,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameters_with_defaults() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::view(
                     "foo",
@@ -696,11 +697,11 @@ mod tests {
                     ],
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -736,13 +737,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameters_with_typedefs() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::view(
                     "foo",
@@ -760,11 +761,11 @@ mod tests {
                     ],
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -800,13 +801,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn parameter_with_default_and_typedef() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::view(
                     "foo",
@@ -819,11 +820,11 @@ mod tests {
                     })],
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -849,13 +850,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 4)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn infer_return_type_from_parameter() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::view(
                     "foo",
@@ -866,11 +867,11 @@ mod tests {
                     })],
                     f::n::x(Expression::Identifier(String::from("bar"))),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -896,14 +897,14 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
-                )
+                ))
             );
         }
 
         #[test]
         #[ignore = "todo"]
         fn infer_parameters() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::view(
                     "foo",
@@ -925,11 +926,11 @@ mod tests {
                         Box::new(f::n::x(Expression::Identifier(String::from("fizz")))),
                     )),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -972,7 +973,7 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
-                )
+                ))
             );
         }
     }
@@ -982,17 +983,17 @@ mod tests {
 
         #[test]
         fn empty() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::module(
                     "foo",
                     f::n::mr(Module::new(vec![], vec![])),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -1004,13 +1005,13 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 1)]))
-                )
+                ))
             );
         }
 
         #[test]
         fn with_declarations() {
-            let ast = f::n::mr(Module::new(
+            let ast = Program(f::n::mr(Module::new(
                 vec![],
                 vec![f::n::d(f::a::module(
                     "foo",
@@ -1026,11 +1027,11 @@ mod tests {
                         ],
                     )),
                 ))],
-            ));
+            )));
 
             assert_eq!(
                 super::super::analyze(ast),
-                ModuleNode(
+                Program(ModuleNode(
                     Module::new(
                         vec![],
                         vec![f::n::dc(
@@ -1078,7 +1079,7 @@ mod tests {
                         )]
                     ),
                     Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 5)]))
-                )
+                ))
             );
         }
     }

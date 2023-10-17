@@ -9,12 +9,12 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<'a, T> ToStrong<'a, DeclarationNode<T, Strong>> for DeclarationNode<T, NodeContext>
+impl<T> ToStrong<DeclarationNode<T, Strong>> for DeclarationNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext) -> DeclarationNode<T, Strong> {
+    fn to_strong(&self, ctx: &StrongContext) -> DeclarationNode<T, Strong> {
         DeclarationNode(Node(
             self.node().value().map(
                 &|x| x.to_strong(ctx),

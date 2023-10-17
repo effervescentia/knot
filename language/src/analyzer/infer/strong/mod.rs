@@ -51,8 +51,8 @@ pub type Strong = Result<Type<usize>, SemanticError>;
 
 pub type StrongRef = (RefKind, Strong);
 
-pub trait ToStrong<'a, R> {
-    fn to_strong(&self, ctx: &'a StrongContext) -> R;
+pub trait ToStrong<R> {
+    fn to_strong(&self, ctx: &StrongContext) -> R;
 }
 
 fn partial_infer_types<'a>(

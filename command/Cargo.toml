@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 knot_language = { path = "../language" }
 knot_generate_javascript = { path = "../generate_javascript" }
+
+[dev-dependencies]
+tempfile = "3.8.0"

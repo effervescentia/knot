@@ -1,11 +1,8 @@
 // validating the parse -> format -> parse cycle
 
-use knot_language::{
-    ast::ModuleNode,
-    parser::{self, CharStream, ParseResult},
-};
+use knot_language::parser::{self, ParseResult, Program};
 
-fn parse(s: &str) -> ParseResult<ModuleNode<CharStream, ()>> {
+fn parse(s: &str) -> ParseResult<Program<()>> {
     parser::parse(s)
 }
 

@@ -7,7 +7,7 @@ use super::{
     statement::{Statement, StatementNode},
     type_expression::{TypeExpression, TypeExpressionNode},
 };
-use crate::common::position::Decrement;
+use crate::{common::position::Decrement, parser::Program};
 use combine::Stream;
 use std::fmt::Debug;
 
@@ -118,5 +118,14 @@ where
 {
     fn to_shape(&self) -> ModuleShape {
         ModuleShape(self.0.map(&|x| x.to_shape()))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ProgramShape(pub ModuleShape);
+
+impl<'a, C> ToShape<ProgramShape> for Program<'a, C> {
+    fn to_shape(&self) -> ProgramShape {
+        ProgramShape(self.0.to_shape())
     }
 }

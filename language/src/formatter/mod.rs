@@ -6,7 +6,7 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::{ast::TypeExpressionNode, common::position::Decrement};
+use crate::{ast::TypeExpressionNode, common::position::Decrement, parser::Program};
 use combine::Stream;
 use std::fmt::{Debug, Display, Formatter, Write};
 
@@ -15,6 +15,12 @@ where
     T: Sized,
 {
     indenter::indented(f).with_str("  ")
+}
+
+impl<'a, C> Display for Program<'a, C> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "{program}", program = self.0)
+    }
 }
 
 struct Typedef<'a, T, C>(&'a Option<TypeExpressionNode<T, C>>)

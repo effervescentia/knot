@@ -9,12 +9,12 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<'a, T> ToStrong<'a, ExpressionNode<T, Strong>> for ExpressionNode<T, NodeContext>
+impl<T> ToStrong<ExpressionNode<T, Strong>> for ExpressionNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext) -> ExpressionNode<T, Strong> {
+    fn to_strong(&self, ctx: &StrongContext) -> ExpressionNode<T, Strong> {
         ExpressionNode(Node(
             self.node().value().map(
                 &mut |x| x.to_strong(ctx),

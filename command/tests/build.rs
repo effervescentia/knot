@@ -2,19 +2,19 @@ mod common;
 
 use common::test_path;
 use knot_command::{
-    transpile::{self, Options},
+    build::{self, Options},
     TargetFormat,
 };
 use knot_generate_javascript::Module;
 use std::fs;
 
-pub fn transpile(name: &str, input: &str, target: TargetFormat) -> Option<String> {
+pub fn build(name: &str, input: &str, target: TargetFormat) -> Option<String> {
     let entry = test_path(&format!(".scratch/{name}.kn"));
     let out_dir = test_path(".scratch");
 
     fs::write(&entry, input).ok()?;
 
-    transpile::command(&Options {
+    build::command(&Options {
         target,
         entry: entry.as_path(),
         out_dir: out_dir.as_path(),
@@ -27,7 +27,7 @@ pub fn transpile(name: &str, input: &str, target: TargetFormat) -> Option<String
 
 #[test]
 fn to_javascript() {
-    const NAME: &str = "transpile_to_javascript";
+    const NAME: &str = "build_to_javascript";
     const INPUT: &str = "type MyType = boolean;
 
 enum MyEnum =
@@ -82,7 +82,7 @@ export { MyView };
 export { my_module };
 ";
 
-    let result = transpile(NAME, INPUT, TargetFormat::JavaScript(Module::ESM));
+    let result = build(NAME, INPUT, TargetFormat::JavaScript(Module::ESM));
 
     assert_eq!(result.unwrap(), OUTPUT);
 }

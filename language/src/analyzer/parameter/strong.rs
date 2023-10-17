@@ -9,12 +9,12 @@ use crate::{
 use combine::Stream;
 use std::fmt::Debug;
 
-impl<'a, T> ToStrong<'a, ParameterNode<T, Strong>> for ParameterNode<T, NodeContext>
+impl<T> ToStrong<ParameterNode<T, Strong>> for ParameterNode<T, NodeContext>
 where
     T: Stream<Token = char>,
     T::Position: Copy + Debug + Decrement,
 {
-    fn to_strong(&self, ctx: &'a StrongContext) -> ParameterNode<T, Strong> {
+    fn to_strong(&self, ctx: &StrongContext) -> ParameterNode<T, Strong> {
         ParameterNode(Node(
             self.node()
                 .value()
