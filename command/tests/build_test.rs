@@ -1,6 +1,6 @@
 mod common;
 
-use common::test_path;
+use common::scratch_path;
 use js::Module;
 use knot_command::{
     build::{self, Options},
@@ -9,10 +9,8 @@ use knot_command::{
 use std::fs;
 
 fn build(name: &str, input: &str, target: TargetFormat) -> Option<String> {
-    let out_dir = test_path(".scratch");
+    let out_dir = scratch_path();
     let entry = out_dir.join(name).with_extension("kn");
-
-    println!("WRITING TO {}", entry.display());
 
     fs::write(&entry, input).ok()?;
 

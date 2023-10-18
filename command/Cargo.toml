@@ -12,4 +12,5 @@ parse = { package = "knot_parse", path = "../parse" }
 analyze = { package = "knot_analyze", path = "../analyze" }
 
 [dev-dependencies]
+ctor = "0.2.5"
 tempfile = "3.8.0"

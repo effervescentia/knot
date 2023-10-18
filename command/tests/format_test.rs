@@ -1,17 +1,14 @@
 mod common;
 
-use common::test_path;
+use common::scratch_path;
 use knot_command::format::{self, Options};
 use std::fs;
 
-fn format(name: &str, input: &str) -> Option<String> {
-    let out_dir = test_path(".scratch");
+fn format(name: &str, input: &str) -> String {
+    let out_dir = scratch_path();
     let entry = out_dir.join(name).with_extension("kn");
-    // let entry = out_dir.join(&format!("{name}.kn"));
 
-    fs::write(&entry, input).ok()?;
-
-    print!("WRITING TO {}", entry.display());
+    fs::write(&entry, input).expect("failed to write input file to disk");
 
     format::command(&Options {
         entry: entry.as_path(),
@@ -19,7 +16,7 @@ fn format(name: &str, input: &str) -> Option<String> {
         out_dir: out_dir.as_path(),
     });
 
-    fs::read_to_string(entry).ok()
+    fs::read_to_string(entry).expect("failed to read output file from disk")
 }
 
 #[test]
@@ -42,9 +39,7 @@ module my_module {
 }
 ";
 
-    let result = format(NAME, INPUT);
-
-    assert_eq!(result.unwrap(), INPUT);
+    assert_eq!(format(NAME, INPUT), INPUT);
 }
 
 #[test]
@@ -73,7 +68,5 @@ module my_module {
 }
 ";
 
-    let result = format(NAME, INPUT);
-
-    assert_eq!(result.unwrap(), OUTPUT);
+    assert_eq!(format(NAME, INPUT), OUTPUT);
 }

@@ -22,7 +22,6 @@ pub struct ModuleRef(ModuleSource, Vec<String>);
 impl ModuleRef {
     pub fn to_path(&self) -> PathBuf {
         let Self(source, module_path) = self;
-        let mut file_path = PathBuf::new();
 
         match source {
             ModuleSource::External(_namespace) => todo!(),
@@ -30,9 +29,7 @@ impl ModuleRef {
             ModuleSource::Internal => (),
         }
 
-        file_path.extend(module_path.iter().map(Path::new).collect::<Vec<_>>());
-
-        file_path
+        PathBuf::from_iter(module_path)
     }
 }
 
