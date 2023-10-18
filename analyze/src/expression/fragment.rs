@@ -1,7 +1,10 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
 use lang::ast::ExpressionNodeValue;
 
-impl ToFragment for ExpressionNodeValue<NodeContext> {
+impl<R> ToFragment for ExpressionNodeValue<R, NodeContext>
+where
+    R: Clone,
+{
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Expression(
             self.map(&mut |x| *x.node().id(), &mut |x| *x.node().id(), &mut |x| {
@@ -13,22 +16,22 @@ impl ToFragment for ExpressionNodeValue<NodeContext> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-    use lang::{
-        ast::{
-            BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement,
-            StatementNode, UnaryOperator, KSX,
-        },
-        test::fixture as f,
+    use crate::{
+        context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use lang::ast::{
+        BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement, StatementNode,
+        UnaryOperator, KSX,
+    };
+    use parse::Range;
 
     #[test]
     fn primitive() {
         assert_eq!(
             Expression::<
-                ExpressionNode<NodeContext>,
-                StatementNode<NodeContext>,
-                KSXNode<NodeContext>,
+                ExpressionNode<Range, NodeContext>,
+                StatementNode<Range, NodeContext>,
+                KSXNode<Range, NodeContext>,
             >::Primitive(Primitive::Nil)
             .to_fragment(),
             Fragment::Expression(Expression::Primitive(Primitive::Nil))
@@ -39,9 +42,9 @@ mod tests {
     fn identifier() {
         assert_eq!(
             Expression::<
-                ExpressionNode<NodeContext>,
-                StatementNode<NodeContext>,
-                KSXNode<NodeContext>,
+                ExpressionNode<Range, NodeContext>,
+                StatementNode<Range, NodeContext>,
+                KSXNode<Range, NodeContext>,
             >::Identifier(String::from("foo"))
             .to_fragment(),
             Fragment::Expression(Expression::Identifier(String::from("foo")))

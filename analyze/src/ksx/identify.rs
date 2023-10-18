@@ -5,39 +5,37 @@ use crate::{
 };
 use lang::ast::KSXNodeValue;
 
-impl Identify<KSXNodeValue<NodeContext>> for KSXNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> KSXNodeValue<NodeContext> {
+impl<R> Identify<KSXNodeValue<R, NodeContext>> for KSXNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> KSXNodeValue<R, NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        context::NodeContext,
-        register::Identify,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX},
-        test::fixture as f,
-    };
+    use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use lang::ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX};
+    use parse::Range;
 
     #[test]
     fn text() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            KSX::<ExpressionNode<()>, KSXNode<()>>::Text(String::from("foo")).identify(scope),
+            KSX::<ExpressionNode<Range, ()>, KSXNode<Range, ()>>::Text(String::from("foo"))
+                .identify(scope),
             KSX::Text(String::from("foo"))
         );
     }
 
     #[test]
     fn inline() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::Inline(f::n::x(Expression::Primitive(Primitive::Nil))).identify(scope),
@@ -50,8 +48,8 @@ mod tests {
 
     #[test]
     fn fragment() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::Fragment(vec![f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(
@@ -70,8 +68,8 @@ mod tests {
 
     #[test]
     fn closed_element() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::ClosedElement(
@@ -103,8 +101,8 @@ mod tests {
 
     #[test]
     fn open_element() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             KSX::OpenElement(

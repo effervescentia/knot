@@ -5,8 +5,11 @@ use crate::{
 };
 use lang::ast::DeclarationNodeValue;
 
-impl Identify<DeclarationNodeValue<NodeContext>> for DeclarationNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> DeclarationNodeValue<NodeContext> {
+impl<R> Identify<DeclarationNodeValue<R, NodeContext>> for DeclarationNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> DeclarationNodeValue<R, NodeContext> {
         self.map(
             &|x| x.register(ctx),
             &|x| x.register(ctx),
@@ -21,14 +24,12 @@ mod tests {
     use crate::{
         context::NodeContext,
         register::Identify,
+        test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
-    use lang::{
-        ast::{
-            Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter,
-            Primitive, TypeExpression,
-        },
-        test::fixture as f,
+    use lang::ast::{
+        Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
+        TypeExpression,
     };
 
     #[test]

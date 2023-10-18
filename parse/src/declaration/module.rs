@@ -1,12 +1,9 @@
 use super::storage;
-use crate::{matcher as m, module};
+use crate::{matcher as m, module, Position, Range};
 use combine::{Parser, Stream};
-use lang::{
-    ast::{Declaration, DeclarationNode},
-    Position,
-};
+use lang::ast::{Declaration, DeclarationNode};
 
-pub fn module<T>() -> impl Parser<T, Output = DeclarationNode<()>>
+pub fn module<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,

@@ -1,6 +1,6 @@
 // validating the parse -> format -> parse cycle
 
-fn parse(s: &str) -> knot_parse::Result<lang::Program<()>> {
+fn parse(s: &str) -> knot_parse::Result<lang::Program<knot_parse::Range, ()>> {
     knot_parse::parse(s)
 }
 

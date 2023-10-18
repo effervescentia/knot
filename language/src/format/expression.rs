@@ -1,5 +1,5 @@
 use crate::ast::{Expression, ExpressionNode, Primitive};
-use format::{indented, Block, Indented, SeparateEach, TerminateEach};
+use kore::format::{indented, Block, Indented, SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter, Write};
 
 fn escape_string(s: &String) -> String {
@@ -10,7 +10,10 @@ fn escape_string(s: &String) -> String {
         .replace("\r", "\\r")
 }
 
-impl<C> Display for ExpressionNode<C> {
+impl<R, C> Display for ExpressionNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Expression::Primitive(Primitive::Nil) => write!(f, "nil"),

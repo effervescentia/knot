@@ -1,7 +1,7 @@
+use crate::{Position, Range};
 use combine::{
     attempt, many, optional, parser, parser::char as p, position, value, Parser, Stream,
 };
-use lang::{Position, Range};
 
 pub fn span<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
 where
@@ -134,16 +134,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::matcher;
+    use crate::{
+        matcher,
+        test::mock::{mock, MockResult, MOCK_TOKEN},
+        Range,
+    };
     use combine::{
         easy::{Error, Errors, Info},
         parser,
         stream::position::{SourcePosition, Stream},
         EasyParser, Parser,
-    };
-    use lang::{
-        test::mock::{mock, MockResult, MOCK_TOKEN},
-        Range,
     };
 
     #[test]

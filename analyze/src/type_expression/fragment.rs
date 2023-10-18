@@ -1,7 +1,10 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
 use lang::ast::TypeExpressionNodeValue;
 
-impl ToFragment for TypeExpressionNodeValue<NodeContext> {
+impl<R> ToFragment for TypeExpressionNodeValue<R, NodeContext>
+where
+    R: Clone,
+{
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::TypeExpression(self.map(&|x| *x.node().id()))
     }
@@ -9,16 +12,16 @@ impl ToFragment for TypeExpressionNodeValue<NodeContext> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-    use lang::{
-        ast::{TypeExpression, TypeExpressionNode},
-        test::fixture as f,
+    use crate::{
+        context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use lang::ast::{TypeExpression, TypeExpressionNode};
+    use parse::Range;
 
     #[test]
     fn primitive() {
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<NodeContext>>::Nil.to_fragment(),
+            TypeExpression::<TypeExpressionNode<Range, NodeContext>>::Nil.to_fragment(),
             Fragment::TypeExpression(TypeExpression::Nil)
         );
     }
@@ -26,8 +29,10 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<NodeContext>>::Identifier(String::from("foo"))
-                .to_fragment(),
+            TypeExpression::<TypeExpressionNode<Range, NodeContext>>::Identifier(String::from(
+                "foo"
+            ))
+            .to_fragment(),
             Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
         );
     }

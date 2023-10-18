@@ -1,12 +1,9 @@
 use super::storage;
-use crate::{matcher as m, types::type_expression};
+use crate::{matcher as m, types::type_expression, Position, Range};
 use combine::{Parser, Stream};
-use lang::{
-    ast::{Declaration, DeclarationNode},
-    Position,
-};
+use lang::ast::{Declaration, DeclarationNode};
 
-pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationNode<()>>
+pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,

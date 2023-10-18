@@ -1,12 +1,9 @@
 use super::storage;
-use crate::{matcher as m, types::type_expression};
+use crate::{matcher as m, types::type_expression, Position, Range};
 use combine::{attempt, choice, optional, sep_end_by, Parser, Stream};
-use lang::{
-    ast::{Declaration, DeclarationNode, TypeExpressionNode},
-    Position, Range,
-};
+use lang::ast::{Declaration, DeclarationNode, TypeExpressionNode};
 
-fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<()>>, Range)>
+fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<Range, ()>>, Range)>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -25,7 +22,7 @@ where
     ))
 }
 
-pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<()>>
+pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,

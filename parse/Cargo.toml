@@ -10,4 +10,10 @@ combine = "4.6.6"
 lang = { package = "knot_language", path = "../language" }
 
 [dev-dependencies]
-lang = { package = "knot_language", path = "../language", features = ["test"] }
+lang = { package = "knot_language", path = "../language", features = [
+  "test",
+  "format",
+] }
+
+[features]
+test = []

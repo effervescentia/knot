@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::{ast::ExpressionNode, Node};
 
-impl ToStrong<ExpressionNode<Strong>> for ExpressionNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> ExpressionNode<Strong> {
+impl<R> ToStrong<ExpressionNode<R, Strong>> for ExpressionNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> ExpressionNode<R, Strong> {
         ExpressionNode(Node(
             self.node().value().map(
                 &mut |x| x.to_strong(ctx),

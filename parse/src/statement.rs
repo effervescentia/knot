@@ -1,15 +1,12 @@
-use crate::matcher as m;
+use crate::{matcher as m, Position, Range};
 use combine::{choice, Parser, Stream};
-use lang::{
-    ast::{ExpressionNode, Statement, StatementNode},
-    Position,
-};
+use lang::ast::{ExpressionNode, Statement, StatementNode};
 
-fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<()>>
+fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     m::terminated(parser).map(|inner| {
         let range = inner.node().range().clone();
@@ -18,11 +15,11 @@ where
     })
 }
 
-fn variable<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<()>>
+fn variable<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     m::terminated((
         m::keyword("let"),
@@ -38,25 +35,22 @@ where
     })
 }
 
-pub fn statement<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = StatementNode<()>>
+pub fn statement<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = StatementNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     choice((variable(parser()), expression(parser())))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::expression;
+    use crate::{expression, test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use lang::{
-        ast::{Expression, Primitive, Statement, StatementNode},
-        test::fixture as f,
-    };
+    use lang::ast::{Expression, Primitive, Statement, StatementNode};
 
-    fn parse(s: &str) -> crate::Result<StatementNode<()>> {
+    fn parse(s: &str) -> crate::Result<StatementNode<Range, ()>> {
         super::statement(expression::expression)
             .skip(eof())
             .easy_parse(Stream::new(s))

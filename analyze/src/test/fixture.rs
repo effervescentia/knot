@@ -3,6 +3,7 @@ use crate::{
     fragment::Fragment,
     infer::strong::StrongRef,
 };
+pub use parse::test::fixture::{a, n};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},

@@ -1,5 +1,5 @@
 use crate::javascript::{Expression, Statement};
-use format::SeparateEach;
+use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 
 impl Display for Statement {

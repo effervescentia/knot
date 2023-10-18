@@ -14,9 +14,12 @@ use lang::{
     Node,
 };
 
-impl Register for KSXNode<()> {
-    type Node = KSXNode<NodeContext>;
-    type Value<C> = KSXNodeValue<C>;
+impl<R> Register for KSXNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = KSXNode<R, NodeContext>;
+    type Value<C> = KSXNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -32,17 +35,14 @@ mod tests {
         context::{FragmentMap, NodeContext},
         fragment::Fragment,
         register::Register,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, Primitive, KSX},
         test::fixture as f,
     };
+    use lang::ast::{Expression, Primitive, KSX};
 
     #[test]
     fn register() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::kx(KSX::OpenElement(

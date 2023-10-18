@@ -1,13 +1,12 @@
 use super::{Expression, ExpressionNode};
-use crate::matcher as m;
+use crate::{matcher as m, Position, Range};
 use combine::{attempt, sep_end_by, Parser, Stream};
-use lang::Position;
 
-fn style_literal<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<()>>
+fn style_literal<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     let style_rule = || {
         (m::standard_identifier(), m::symbol(':'), parser()).map(|((lhs, _), _, rhs)| (lhs, rhs))
@@ -21,11 +20,11 @@ where
     .map(|(xs, range)| ExpressionNode::raw(Expression::Style(xs), range))
 }
 
-pub fn style<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<()>>
+pub fn style<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     attempt((m::keyword("style"), style_literal(parser))).map(
         |((_, start), ExpressionNode(node))| ExpressionNode(node.map_range(|end| &start + &end)),

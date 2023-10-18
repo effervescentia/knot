@@ -12,9 +12,12 @@ use lang::{
     Node,
 };
 
-impl Register for ExpressionNode<()> {
-    type Node = ExpressionNode<NodeContext>;
-    type Value<C> = ExpressionNodeValue<C>;
+impl<R> Register for ExpressionNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = ExpressionNode<R, NodeContext>;
+    type Value<C> = ExpressionNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -30,17 +33,14 @@ mod tests {
         context::{FragmentMap, NodeContext},
         fragment::Fragment,
         register::Register,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, Primitive, Statement, KSX},
         test::fixture as f,
     };
+    use lang::ast::{Expression, Primitive, Statement, KSX};
 
     #[test]
     fn register_closure() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::x(Expression::Closure(vec![
@@ -118,8 +118,8 @@ mod tests {
 
     #[test]
     fn register_ksx() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::x(Expression::KSX(Box::new(f::n::kx(KSX::Text(

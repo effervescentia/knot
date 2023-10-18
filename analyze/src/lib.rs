@@ -8,6 +8,7 @@ mod module;
 mod parameter;
 mod register;
 mod statement;
+#[cfg(test)]
 mod test;
 mod type_expression;
 mod types;
@@ -34,14 +35,20 @@ pub enum RefKind {
     Mixed,
 }
 
-fn register_fragments(x: Program<()>) -> (Program<NodeContext>, FileContext) {
+fn register_fragments<R>(x: Program<R, ()>) -> (Program<R, NodeContext>, FileContext)
+where
+    R: Clone,
+{
     let file_ctx = RefCell::new(FileContext::new());
     let untyped = x.0.register(&mut ScopeContext::new(&file_ctx));
 
     (Program(untyped), file_ctx.into_inner())
 }
 
-pub fn analyze(x: Program<()>) -> Program<Strong> {
+pub fn analyze<R>(x: Program<R, ()>) -> Program<R, Strong>
+where
+    R: Clone,
+{
     // register AST fragments depth-first with monotonically increasing IDs
     let (untyped, file_ctx) = register_fragments(x);
 
@@ -59,24 +66,26 @@ pub fn analyze(x: Program<()>) -> Program<Strong> {
     untyped.to_strong(&strong_ctx)
 }
 
-impl ToStrong<Program<Strong>> for Program<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> Program<Strong> {
+impl<R> ToStrong<Program<R, Strong>> for Program<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> Program<R, Strong> {
         Program(self.0.to_strong(ctx))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{types::Type, RefKind};
+    use crate::{test::fixture as f, types::Type, RefKind};
     use lang::{
         ast::{Expression, Module, ModuleNode, Primitive, TypeExpression},
-        test::fixture as f,
         Program,
     };
 
     #[test]
     fn empty_module() {
-        let ast = Program(f::n::mr(Module::new(vec![], vec![])));
+        let ast = Program(f::n::m(Module::new(vec![], vec![])));
 
         assert_eq!(
             super::analyze(ast),

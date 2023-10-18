@@ -10,3 +10,6 @@ lang = { package = "knot_language", path = "../language" }
 
 [dev-dependencies]
 lang = { package = "knot_language", path = "../language", features = ["test"] }
+parse = { package = "knot_parse", path = "../parse", default-features = false, features = [
+  "test",
+] }

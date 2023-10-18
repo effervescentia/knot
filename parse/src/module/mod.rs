@@ -1,11 +1,8 @@
 pub mod import;
 
-use crate::declaration;
+use crate::{declaration, Position, Range};
 use combine::{choice, many, Parser, Stream};
-use lang::{
-    ast::{Import, Module, ModuleNode},
-    Position,
-};
+use lang::ast::{Import, Module, ModuleNode};
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
@@ -14,7 +11,7 @@ enum Entry<D> {
     Declaration(D),
 }
 
-pub fn module<T>() -> impl Parser<T, Output = ModuleNode<()>>
+pub fn module<T>() -> impl Parser<T, Output = ModuleNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -45,16 +42,14 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use lang::{
-        ast::{
-            BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter,
-            Primitive, Statement, TypeExpression, KSX,
-        },
-        test::fixture as f,
+    use lang::ast::{
+        BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter, Primitive,
+        Statement, TypeExpression, KSX,
     };
 
-    fn parse(s: &str) -> crate::Result<ModuleNode<()>> {
+    fn parse(s: &str) -> crate::Result<ModuleNode<Range, ()>> {
         super::module().skip(eof()).easy_parse(Stream::new(s))
     }
 

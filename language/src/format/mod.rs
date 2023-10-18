@@ -7,19 +7,15 @@ mod statement;
 mod type_expression;
 
 use crate::ast::TypeExpressionNode;
-use format::SeparateEach;
+use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 
-pub fn indented<T>(f: &mut T) -> indenter::Indented<T>
+struct Typedef<'a, R, C>(&'a Option<TypeExpressionNode<R, C>>);
+
+impl<'a, R, C> Display for Typedef<'a, R, C>
 where
-    T: Sized,
+    R: Clone,
 {
-    indenter::indented(f).with_str("  ")
-}
-
-struct Typedef<'a, C>(&'a Option<TypeExpressionNode<C>>);
-
-impl<'a, C> Display for Typedef<'a, C> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         if let Some(typedef) = self.0 {
             write!(f, ": {}", typedef)

@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::{ast::KSXNode, Node};
 
-impl ToStrong<KSXNode<Strong>> for KSXNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> KSXNode<Strong> {
+impl<R> ToStrong<KSXNode<R, Strong>> for KSXNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> KSXNode<R, Strong> {
         KSXNode(Node(
             self.node()
                 .value()

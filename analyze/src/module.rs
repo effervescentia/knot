@@ -10,23 +10,32 @@ use super::{
 };
 use lang::ast::{Module, ModuleNode, ModuleNodeValue};
 
-impl Identify<ModuleNodeValue<NodeContext>> for ModuleNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<NodeContext> {
+impl<R> Identify<ModuleNodeValue<R, NodeContext>> for ModuleNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<R, NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
 
-impl ToFragment for ModuleNodeValue<NodeContext> {
+impl<R> ToFragment for ModuleNodeValue<R, NodeContext>
+where
+    R: Clone,
+{
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Module(self.map(&|x| *x.node().id()))
     }
 }
 
-impl Register for ModuleNode<()> {
-    type Node = ModuleNode<NodeContext>;
-    type Value<C> = ModuleNodeValue<C>;
+impl<R> Register for ModuleNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = ModuleNode<R, NodeContext>;
+    type Value<C> = ModuleNodeValue<R, C>;
 
-    fn register(&self, ctx: &ScopeContext) -> ModuleNode<NodeContext> {
+    fn register(&self, ctx: &ScopeContext) -> ModuleNode<R, NodeContext> {
         let value = self.0.identify(ctx);
         let id = ctx.add_fragment(&value);
 
@@ -40,8 +49,11 @@ impl ToWeak for Module<usize> {
     }
 }
 
-impl ToStrong<ModuleNode<Strong>> for ModuleNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<Strong> {
+impl<R> ToStrong<ModuleNode<R, Strong>> for ModuleNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<R, Strong> {
         ModuleNode(
             self.0.map(&|x| x.to_strong(ctx)),
             ctx.resolve(self.id()).clone(),
@@ -55,14 +67,12 @@ mod tests {
         context::{FragmentMap, NodeContext},
         fragment::Fragment,
         register::Register,
+        test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
-    use lang::{
-        ast::{
-            Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Primitive,
-            TypeExpression,
-        },
-        test::fixture as f,
+    use lang::ast::{
+        Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Primitive,
+        TypeExpression,
     };
 
     #[test]

@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::{ast::DeclarationNode, Node};
 
-impl ToStrong<DeclarationNode<Strong>> for DeclarationNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> DeclarationNode<Strong> {
+impl<R> ToStrong<DeclarationNode<R, Strong>> for DeclarationNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> DeclarationNode<R, Strong> {
         DeclarationNode(Node(
             self.node().value().map(
                 &|x| x.to_strong(ctx),

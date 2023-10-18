@@ -12,9 +12,12 @@ use lang::{
     Node,
 };
 
-impl Register for ParameterNode<()> {
-    type Node = ParameterNode<NodeContext>;
-    type Value<C> = ParameterNodeValue<C>;
+impl<R> Register for ParameterNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = ParameterNode<R, NodeContext>;
+    type Value<C> = ParameterNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -30,17 +33,14 @@ mod tests {
         context::{FragmentMap, NodeContext},
         fragment::Fragment,
         register::Register,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
+    use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
     fn register() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::s(Statement::Variable(

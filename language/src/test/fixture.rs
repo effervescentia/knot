@@ -1,16 +1,10 @@
-use crate::{
-    ast::{
-        Declaration, DeclarationNode, ExpressionNode, KSXNode, ModuleNode, StatementNode,
-        TypeExpressionNode,
-    },
-    common::{node::Node, range::Range},
+use crate::ast::{
+    Declaration, DeclarationNode, ExpressionNode, KSXNode, ModuleNode, StatementNode,
+    TypeExpressionNode,
 };
 
-#[allow(dead_code)]
-const RANGE: Range = Range((1, 1), (1, 1));
-
-#[allow(dead_code)]
-type InitRange = ((i32, i32), (i32, i32));
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MockRange;
 
 /// node factories
 #[allow(dead_code)]
@@ -21,79 +15,31 @@ pub mod n {
         ParameterNodeValue, StatementNodeValue, TypeExpressionNodeValue,
     };
 
-    pub fn x(x: ExpressionNodeValue<()>) -> ExpressionNode<()> {
-        ExpressionNode::raw(x, RANGE)
+    pub fn x(x: ExpressionNodeValue<MockRange, ()>) -> ExpressionNode<MockRange, ()> {
+        ExpressionNode::raw(x, MockRange)
     }
 
-    pub fn xr(x: ExpressionNodeValue<()>, (start, end): InitRange) -> ExpressionNode<()> {
-        ExpressionNode::raw(x, Range(start, end))
+    pub fn s(x: StatementNodeValue<MockRange, ()>) -> StatementNode<MockRange, ()> {
+        StatementNode::raw(x, MockRange)
     }
 
-    pub fn xc<T>(x: ExpressionNodeValue<T>, ctx: T) -> ExpressionNode<T> {
-        ExpressionNode(Node::new(x, RANGE, ctx))
+    pub fn kx(x: KSXNodeValue<MockRange, ()>) -> KSXNode<MockRange, ()> {
+        KSXNode::raw(x, MockRange)
     }
 
-    pub fn s(x: StatementNodeValue<()>) -> StatementNode<()> {
-        StatementNode::raw(x, RANGE)
+    pub fn p(x: ParameterNodeValue<MockRange, ()>) -> ParameterNode<MockRange, ()> {
+        ParameterNode::raw(x, MockRange)
     }
 
-    pub fn sr(x: StatementNodeValue<()>, (start, end): InitRange) -> StatementNode<()> {
-        StatementNode::raw(x, Range(start, end))
+    pub fn tx(x: TypeExpressionNodeValue<MockRange, ()>) -> TypeExpressionNode<MockRange, ()> {
+        TypeExpressionNode::raw(x, MockRange)
     }
 
-    pub fn sc<T>(x: StatementNodeValue<T>, ctx: T) -> StatementNode<T> {
-        StatementNode(Node::new(x, RANGE, ctx))
+    pub fn d(x: DeclarationNodeValue<MockRange, ()>) -> DeclarationNode<MockRange, ()> {
+        DeclarationNode::raw(x, MockRange)
     }
 
-    pub fn kx(x: KSXNodeValue<()>) -> KSXNode<()> {
-        KSXNode::raw(x, RANGE)
-    }
-
-    pub fn kxr(x: KSXNodeValue<()>, (start, end): InitRange) -> KSXNode<()> {
-        KSXNode::raw(x, Range(start, end))
-    }
-
-    pub fn kxc<T>(x: KSXNodeValue<T>, ctx: T) -> KSXNode<T> {
-        KSXNode(Node::new(x, RANGE, ctx))
-    }
-
-    pub fn p(x: ParameterNodeValue<()>) -> ParameterNode<()> {
-        ParameterNode::raw(x, RANGE)
-    }
-
-    pub fn pr(x: ParameterNodeValue<()>, (start, end): InitRange) -> ParameterNode<()> {
-        ParameterNode::raw(x, Range(start, end))
-    }
-
-    pub fn pc<T>(x: ParameterNodeValue<T>, ctx: T) -> ParameterNode<T> {
-        ParameterNode(Node::new(x, RANGE, ctx))
-    }
-
-    pub fn tx(x: TypeExpressionNodeValue<()>) -> TypeExpressionNode<()> {
-        TypeExpressionNode::raw(x, RANGE)
-    }
-
-    pub fn txr(x: TypeExpressionNodeValue<()>, (start, end): InitRange) -> TypeExpressionNode<()> {
-        TypeExpressionNode::raw(x, Range(start, end))
-    }
-
-    pub fn txc<T>(x: TypeExpressionNodeValue<T>, ctx: T) -> TypeExpressionNode<T> {
-        TypeExpressionNode(Node::new(x, RANGE, ctx))
-    }
-
-    pub fn d(x: DeclarationNodeValue<()>) -> DeclarationNode<()> {
-        DeclarationNode::raw(x, RANGE)
-    }
-
-    pub fn dr(x: DeclarationNodeValue<()>, (start, end): InitRange) -> DeclarationNode<()> {
-        DeclarationNode::raw(x, Range(start, end))
-    }
-
-    pub fn dc<T>(x: DeclarationNodeValue<T>, ctx: T) -> DeclarationNode<T> {
-        DeclarationNode(Node::new(x, RANGE, ctx))
-    }
-
-    pub fn mr(x: ModuleNodeValue<()>) -> ModuleNode<()> {
+    pub fn m(x: ModuleNodeValue<MockRange, ()>) -> ModuleNode<MockRange, ()> {
         ModuleNode::raw(x)
     }
 }

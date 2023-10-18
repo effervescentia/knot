@@ -1,10 +1,7 @@
 use super::{parameter, storage};
-use crate::{expression, matcher as m, types::typedef};
+use crate::{expression, matcher as m, types::typedef, Position, Range};
 use combine::{between, optional, sep_end_by, Parser, Stream};
-use lang::{
-    ast::{Declaration, DeclarationNode},
-    Position,
-};
+use lang::ast::{Declaration, DeclarationNode};
 
 // func foo -> nil;
 // func foo -> {};
@@ -14,7 +11,7 @@ use lang::{
 // func foo(): nil -> nil;
 // func foo(a, b: nil, c = 123) -> nil;
 
-pub fn function<T>() -> impl Parser<T, Output = DeclarationNode<()>>
+pub fn function<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,

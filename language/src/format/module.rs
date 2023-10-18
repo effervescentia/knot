@@ -1,11 +1,11 @@
-use crate::{
-    ast::{Import, ImportSource, ModuleNode},
-    format::SeparateEach,
-};
-use format::TerminateEach;
+use crate::ast::{Import, ImportSource, ModuleNode};
+use kore::format::{SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
-impl<C> Display for ModuleNode<C> {
+impl<R, C> Display for ModuleNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn empty() {
         assert_eq!(
-            f::n::d(f::a::module("foo", f::n::mr(Module::new(vec![], vec![])))).to_string(),
+            f::n::d(f::a::module("foo", f::n::m(Module::new(vec![], vec![])))).to_string(),
             "module foo {}"
         );
     }
@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn imports() {
         assert_eq!(
-            f::n::mr(Module::new(
+            f::n::m(Module::new(
                 vec![Import::new(
                     ImportSource::Root,
                     vec![String::from("bar"), String::from("fizz")],
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn declarations() {
         assert_eq!(
-            f::n::mr(Module::new(
+            f::n::m(Module::new(
                 vec![],
                 vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
             ))
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn imports_and_declarations() {
         assert_eq!(
-            f::n::mr(Module::new(
+            f::n::m(Module::new(
                 vec![Import::new(
                     ImportSource::Root,
                     vec![String::from("bar"), String::from("fizz")],

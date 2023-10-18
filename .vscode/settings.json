@@ -2,4 +2,7 @@
   "rust-analyzer.showUnlinkedFileNotification": false,
   "testExplorer.useNativeTesting": true,
   "testExplorer.showOnRun": true,
+  "cSpell.words": [
+    "kore"
+  ],
 }

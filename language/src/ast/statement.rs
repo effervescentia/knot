@@ -1,7 +1,5 @@
-use crate::{
-    ast::expression::ExpressionNode,
-    common::{node::Node, range::Range},
-};
+use super::ExpressionNode;
+use crate::Node;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -20,20 +18,23 @@ impl<E> Statement<E> {
     }
 }
 
-pub type StatementNodeValue<C> = Statement<ExpressionNode<C>>;
+pub type StatementNodeValue<R, C> = Statement<ExpressionNode<R, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct StatementNode<C>(pub Node<StatementNodeValue<C>, C>);
+pub struct StatementNode<R, C>(pub Node<StatementNodeValue<R, C>, R, C>);
 
-impl<C> StatementNode<C> {
-    pub fn node(&self) -> &Node<StatementNodeValue<C>, C> {
+impl<R, C> StatementNode<R, C>
+where
+    R: Clone,
+{
+    pub fn node(&self) -> &Node<StatementNodeValue<R, C>, R, C> {
         &self.0
     }
 
     pub fn map<C2>(
         &self,
-        f: impl Fn(&StatementNodeValue<C>, &C) -> (StatementNodeValue<C2>, C2),
-    ) -> StatementNode<C2> {
+        f: impl Fn(&StatementNodeValue<R, C>, &C) -> (StatementNodeValue<R, C2>, C2),
+    ) -> StatementNode<R, C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -41,8 +42,8 @@ impl<C> StatementNode<C> {
     }
 }
 
-impl StatementNode<()> {
-    pub fn raw(x: StatementNodeValue<()>, range: Range) -> Self {
+impl<R> StatementNode<R, ()> {
+    pub fn raw(x: StatementNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

@@ -4,28 +4,24 @@ use crate::{
 };
 use lang::ast::StatementNodeValue;
 
-impl Identify<StatementNodeValue<NodeContext>> for StatementNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> StatementNodeValue<NodeContext> {
+impl<R> Identify<StatementNodeValue<R, NodeContext>> for StatementNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> StatementNodeValue<R, NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        context::NodeContext,
-        register::Identify,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, Primitive, Statement},
-        test::fixture as f,
-    };
+    use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
     fn expression() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Statement::Expression(f::n::x(Expression::Primitive(Primitive::Nil))).identify(scope),
@@ -38,8 +34,8 @@ mod tests {
 
     #[test]
     fn variable() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Statement::Variable(

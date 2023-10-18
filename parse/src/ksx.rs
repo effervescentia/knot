@@ -1,13 +1,10 @@
-use crate::{expression, matcher as m};
+use crate::{expression, matcher as m, Position, Range};
 use combine::{
     attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
 };
-use lang::{
-    ast::{ExpressionNode, KSXNode, KSX},
-    Position,
-};
+use lang::ast::{ExpressionNode, KSXNode, KSX};
 
-fn fragment<T>() -> impl Parser<T, Output = KSXNode<()>>
+fn fragment<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -22,7 +19,7 @@ where
     .map(KSXNode::bind)
 }
 
-fn children<T>() -> impl Parser<T, Output = Vec<KSXNode<()>>>
+fn children<T>() -> impl Parser<T, Output = Vec<KSXNode<Range, ()>>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -75,7 +72,7 @@ where
     })
 }
 
-fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionNode<()>>)>
+fn attribute<T>() -> impl Parser<T, Output = (String, Option<ExpressionNode<Range, ()>>)>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -86,7 +83,7 @@ where
     )
 }
 
-pub fn closed_element<T>() -> impl Parser<T, Output = KSXNode<()>>
+pub fn closed_element<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -103,7 +100,7 @@ where
     .map(|((name, attributes), range)| KSXNode::raw(KSX::ClosedElement(name, attributes), range))
 }
 
-pub fn open_element<T>() -> impl Parser<T, Output = KSXNode<()>>
+pub fn open_element<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -136,7 +133,7 @@ where
         )
 }
 
-pub fn element<T>() -> impl Parser<T, Output = KSXNode<()>>
+pub fn element<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -144,7 +141,7 @@ where
     choice((closed_element(), open_element()))
 }
 
-fn inline<T>() -> impl Parser<T, Output = KSXNode<()>>
+fn inline<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -158,7 +155,7 @@ where
     .map(KSXNode::bind)
 }
 
-fn text<T>() -> impl Parser<T, Output = KSXNode<()>>
+fn text<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -167,7 +164,7 @@ where
 }
 
 parser! {
-    fn child[T]()(T) -> KSXNode< ()>
+    fn child[T]()(T) -> KSXNode<Range, ()>
     where
         [T: Stream<Token = char>, T::Position: Position]
     {
@@ -176,7 +173,7 @@ parser! {
 }
 
 parser! {
-    pub fn ksx[T]()(T) -> KSXNode< ()>
+    pub fn ksx[T]()(T) -> KSXNode<Range, ()>
     where
         [T: Stream<Token = char>, T::Position: Position]
     {
@@ -187,13 +184,11 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::{ksx, KSXNode, KSX};
+    use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use lang::{
-        ast::{Expression, Primitive},
-        test::fixture as f,
-    };
+    use lang::ast::{Expression, Primitive};
 
-    fn parse(s: &str) -> crate::Result<KSXNode<()>> {
+    fn parse(s: &str) -> crate::Result<KSXNode<Range, ()>> {
         ksx().skip(eof()).easy_parse(Stream::new(s))
     }
 

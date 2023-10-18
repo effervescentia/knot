@@ -1,19 +1,16 @@
-use crate::matcher as m;
+use crate::{matcher as m, Position, Range};
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
-use lang::{
-    ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue},
-    Position,
-};
+use lang::ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue};
 
-fn primitive<T>() -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn primitive<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
 {
     fn bind<U>(
         s: &'static str,
-        f: impl Fn() -> TypeExpressionNodeValue<()>,
-    ) -> impl Parser<U, Output = TypeExpressionNode<()>>
+        f: impl Fn() -> TypeExpressionNodeValue<Range, ()>,
+    ) -> impl Parser<U, Output = TypeExpressionNode<Range, ()>>
     where
         U: Stream<Token = char>,
         U::Position: Position,
@@ -32,7 +29,7 @@ where
     ))
 }
 
-fn identifier<T>() -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn identifier<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -41,22 +38,22 @@ where
         .map(|(x, range)| TypeExpressionNode::raw(TypeExpression::Identifier(x), range))
 }
 
-fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = TypeExpressionNode<()>>,
+    P: Parser<T, Output = TypeExpressionNode<Range, ()>>,
 {
     m::between(m::symbol('('), m::symbol(')'), parser).map(|(inner, range)| {
         TypeExpressionNode::raw(TypeExpression::Group(Box::new(inner)), range)
     })
 }
 
-fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = TypeExpressionNode<()>>,
+    P: Parser<T, Output = TypeExpressionNode<Range, ()>>,
 {
     m::folding(
         parser,
@@ -68,11 +65,11 @@ where
     )
 }
 
-fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = TypeExpressionNode<()>>,
+    P: Parser<T, Output = TypeExpressionNode<Range, ()>>,
 {
     (
         attempt(
@@ -94,7 +91,7 @@ where
         })
 }
 
-fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -107,7 +104,7 @@ where
     ))
 }
 
-fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -116,7 +113,7 @@ where
 }
 
 // TODO: use this for lists ([], [][][])
-fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionNode<()>>
+fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -125,7 +122,7 @@ where
 }
 
 parser! {
-    pub fn type_expression[T]()(T) -> TypeExpressionNode< ()>
+    pub fn type_expression[T]()(T) -> TypeExpressionNode<Range, ()>
     where
         [T: Stream<Token = char>, T::Position: Position]
     {
@@ -136,10 +133,10 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::{TypeExpression, TypeExpressionNode};
+    use crate::{test::fixture as f, Range};
     use combine::{stream::position::Stream, EasyParser};
-    use lang::test::fixture as f;
 
-    fn parse(s: &str) -> crate::Result<TypeExpressionNode<()>> {
+    fn parse(s: &str) -> crate::Result<TypeExpressionNode<Range, ()>> {
         super::type_expression().easy_parse(Stream::new(s))
     }
 

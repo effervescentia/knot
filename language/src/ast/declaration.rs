@@ -1,11 +1,8 @@
 use super::{
-    expression::ExpressionNode,
-    module::ModuleNode,
-    parameter::ParameterNode,
     storage::{Storage, Visibility},
-    type_expression::TypeExpressionNode,
+    ExpressionNode, ModuleNode, ParameterNode, TypeExpressionNode,
 };
-use crate::common::{node::Node, range::Range};
+use crate::Node;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -160,21 +157,28 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
     }
 }
 
-pub type DeclarationNodeValue<C> =
-    Declaration<ExpressionNode<C>, ParameterNode<C>, ModuleNode<C>, TypeExpressionNode<C>>;
+pub type DeclarationNodeValue<R, C> = Declaration<
+    ExpressionNode<R, C>,
+    ParameterNode<R, C>,
+    ModuleNode<R, C>,
+    TypeExpressionNode<R, C>,
+>;
 
 #[derive(Debug, PartialEq)]
-pub struct DeclarationNode<C>(pub Node<DeclarationNodeValue<C>, C>);
+pub struct DeclarationNode<R, C>(pub Node<DeclarationNodeValue<R, C>, R, C>);
 
-impl<C> DeclarationNode<C> {
-    pub fn node(&self) -> &Node<DeclarationNodeValue<C>, C> {
+impl<R, C> DeclarationNode<R, C>
+where
+    R: Clone,
+{
+    pub fn node(&self) -> &Node<DeclarationNodeValue<R, C>, R, C> {
         &self.0
     }
 
     pub fn map<C2>(
         &self,
-        f: impl Fn(&DeclarationNodeValue<C>, &C) -> (DeclarationNodeValue<C2>, C2),
-    ) -> DeclarationNode<C2> {
+        f: impl Fn(&DeclarationNodeValue<R, C>, &C) -> (DeclarationNodeValue<R, C2>, C2),
+    ) -> DeclarationNode<R, C2> {
         let node = self.node();
         let (value, ctx) = f(&node.value(), &node.context());
 
@@ -182,8 +186,8 @@ impl<C> DeclarationNode<C> {
     }
 }
 
-impl DeclarationNode<()> {
-    pub fn raw(x: DeclarationNodeValue<()>, range: Range) -> Self {
+impl<R> DeclarationNode<R, ()> {
+    pub fn raw(x: DeclarationNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

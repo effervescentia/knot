@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::{ast::TypeExpressionNode, Node};
 
-impl ToStrong<TypeExpressionNode<Strong>> for TypeExpressionNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> TypeExpressionNode<Strong> {
+impl<R> ToStrong<TypeExpressionNode<R, Strong>> for TypeExpressionNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> TypeExpressionNode<R, Strong> {
         TypeExpressionNode(Node(
             self.node().value().map(&|x| x.to_strong(ctx)),
             self.node().range().clone(),

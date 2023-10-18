@@ -1,4 +1,4 @@
-use crate::common::{node::Node, range::Range};
+use crate::Node;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -37,20 +37,23 @@ impl<T> TypeExpression<T> {
     }
 }
 
-pub type TypeExpressionNodeValue<C> = TypeExpression<TypeExpressionNode<C>>;
+pub type TypeExpressionNodeValue<R, C> = TypeExpression<TypeExpressionNode<R, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct TypeExpressionNode<C>(pub Node<TypeExpressionNodeValue<C>, C>);
+pub struct TypeExpressionNode<R, C>(pub Node<TypeExpressionNodeValue<R, C>, R, C>);
 
-impl<C> TypeExpressionNode<C> {
-    pub fn node(&self) -> &Node<TypeExpressionNodeValue<C>, C> {
+impl<R, C> TypeExpressionNode<R, C>
+where
+    R: Clone,
+{
+    pub fn node(&self) -> &Node<TypeExpressionNodeValue<R, C>, R, C> {
         &self.0
     }
 
     pub fn map<C2>(
         &self,
-        f: impl Fn(&TypeExpressionNodeValue<C>, &C) -> (TypeExpressionNodeValue<C2>, C2),
-    ) -> TypeExpressionNode<C2> {
+        f: impl Fn(&TypeExpressionNodeValue<R, C>, &C) -> (TypeExpressionNodeValue<R, C2>, C2),
+    ) -> TypeExpressionNode<R, C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -58,8 +61,8 @@ impl<C> TypeExpressionNode<C> {
     }
 }
 
-impl TypeExpressionNode<()> {
-    pub fn raw(x: TypeExpressionNodeValue<()>, range: Range) -> Self {
+impl<R> TypeExpressionNode<R, ()> {
+    pub fn raw(x: TypeExpressionNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

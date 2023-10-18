@@ -1,5 +1,5 @@
-use super::import::Import;
-use crate::{ast::declaration::DeclarationNode, Identity};
+use super::{DeclarationNode, Import};
+use crate::Identity;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -28,29 +28,29 @@ impl<D> Module<D> {
     }
 }
 
-pub type ModuleNodeValue<C> = Module<DeclarationNode<C>>;
+pub type ModuleNodeValue<R, C> = Module<DeclarationNode<R, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct ModuleNode<C>(pub ModuleNodeValue<C>, pub C);
+pub struct ModuleNode<R, C>(pub ModuleNodeValue<R, C>, pub C);
 
-impl<C> ModuleNode<C> {
+impl<R, C> ModuleNode<R, C> {
     pub fn map<C2>(
         &self,
-        f: impl Fn(&ModuleNodeValue<C>, &C) -> (ModuleNodeValue<C2>, C2),
-    ) -> ModuleNode<C2> {
+        f: impl Fn(&ModuleNodeValue<R, C>, &C) -> (ModuleNodeValue<R, C2>, C2),
+    ) -> ModuleNode<R, C2> {
         let (value, ctx) = f(&self.0, &self.1);
 
         ModuleNode(value, ctx)
     }
 }
 
-impl ModuleNode<()> {
-    pub fn raw(x: ModuleNodeValue<()>) -> Self {
+impl<R> ModuleNode<R, ()> {
+    pub fn raw(x: ModuleNodeValue<R, ()>) -> Self {
         Self(x, ())
     }
 }
 
-impl<T> ModuleNode<T>
+impl<R, T> ModuleNode<R, T>
 where
     T: Identity<usize>,
 {

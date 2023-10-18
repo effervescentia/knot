@@ -7,11 +7,12 @@ pub mod storage;
 mod type_alias;
 mod view;
 
+use crate::{common::range::Range, Position};
 use combine::{choice, parser, Stream};
-use lang::{ast::DeclarationNode, Position};
+use lang::ast::DeclarationNode;
 
 parser! {
-    pub fn declaration[T]()(T) -> DeclarationNode<()>
+    pub fn declaration[T]()(T) -> DeclarationNode<Range, ()>
     where
         [T: Stream<Token = char>, T::Position: Position]
     {
@@ -28,13 +29,11 @@ parser! {
 
 #[cfg(test)]
 mod tests {
+    use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use lang::{
-        ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression},
-        test::fixture as f,
-    };
+    use lang::ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression};
 
-    fn parse(s: &str) -> crate::Result<DeclarationNode<()>> {
+    fn parse(s: &str) -> crate::Result<DeclarationNode<Range, ()>> {
         super::declaration().skip(eof()).easy_parse(Stream::new(s))
     }
 

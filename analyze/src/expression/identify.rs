@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::ast::{Expression, ExpressionNodeValue};
 
-impl Identify<ExpressionNodeValue<NodeContext>> for ExpressionNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> ExpressionNodeValue<NodeContext> {
+impl<R> Identify<ExpressionNodeValue<R, NodeContext>> for ExpressionNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> ExpressionNodeValue<R, NodeContext> {
         match self {
             Self::Closure(xs) => {
                 let child_ctx = ctx.child();
@@ -24,26 +27,20 @@ impl Identify<ExpressionNodeValue<NodeContext>> for ExpressionNodeValue<()> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        context::NodeContext,
-        register::Identify,
-        test::fixture::{file_ctx, scope_ctx},
+    use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use lang::ast::{
+        BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement, StatementNode,
+        UnaryOperator, KSX,
     };
-    use lang::{
-        ast::{
-            BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement,
-            StatementNode, UnaryOperator, KSX,
-        },
-        test::fixture as f,
-    };
+    use parse::Range;
 
     #[test]
     fn primitive() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::<ExpressionNode<()>, StatementNode<()>, KSXNode<()>>::Primitive(
+            Expression::<ExpressionNode<Range, ()>, StatementNode<Range, ()>, KSXNode<Range, ()>>::Primitive(
                 Primitive::Nil
             )
             .identify(scope),
@@ -53,11 +50,11 @@ mod tests {
 
     #[test]
     fn identifier() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::<ExpressionNode<()>, StatementNode<()>, KSXNode<()>>::Identifier(
+            Expression::<ExpressionNode<Range, ()>, StatementNode<Range, ()>, KSXNode<Range, ()>>::Identifier(
                 String::from("foo")
             )
             .identify(scope),
@@ -67,8 +64,8 @@ mod tests {
 
     #[test]
     fn group() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::Group(Box::new(f::n::x(Expression::Primitive(Primitive::Nil))))
@@ -82,8 +79,8 @@ mod tests {
 
     #[test]
     fn closure() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::Closure(vec![
@@ -120,8 +117,8 @@ mod tests {
 
     #[test]
     fn unary_operation() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::UnaryOperation(
@@ -141,8 +138,8 @@ mod tests {
 
     #[test]
     fn binary_operation() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::BinaryOperation(
@@ -167,8 +164,8 @@ mod tests {
 
     #[test]
     fn dot_access() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::DotAccess(
@@ -188,8 +185,8 @@ mod tests {
 
     #[test]
     fn function_call() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::FunctionCall(
@@ -221,8 +218,8 @@ mod tests {
 
     #[test]
     fn style() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::Style(vec![
@@ -257,8 +254,8 @@ mod tests {
 
     #[test]
     fn ksx() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Expression::KSX(Box::new(f::n::kx(KSX::Text(String::from("foo"))))).identify(scope),

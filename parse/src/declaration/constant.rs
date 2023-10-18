@@ -1,15 +1,12 @@
 use super::storage;
 use crate::{
-    expression,
+    expression, Position, Range,
     {matcher as m, types::typedef},
 };
 use combine::{Parser, Stream};
-use lang::{
-    ast::{Declaration, DeclarationNode},
-    Position,
-};
+use lang::ast::{Declaration, DeclarationNode};
 
-pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<()>>
+pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,

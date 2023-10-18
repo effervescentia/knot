@@ -4,28 +4,24 @@ use crate::{
 };
 use lang::ast::ParameterNodeValue;
 
-impl Identify<ParameterNodeValue<NodeContext>> for ParameterNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> ParameterNodeValue<NodeContext> {
+impl<R> Identify<ParameterNodeValue<R, NodeContext>> for ParameterNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> ParameterNodeValue<R, NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        context::NodeContext,
-        register::Identify,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, Parameter, Primitive, TypeExpression},
-        test::fixture as f,
-    };
+    use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use lang::ast::{Expression, Parameter, Primitive, TypeExpression};
 
     #[test]
     fn parameter() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             Parameter::new(

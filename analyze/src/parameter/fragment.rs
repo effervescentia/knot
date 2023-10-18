@@ -1,7 +1,10 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
 use lang::ast::ParameterNodeValue;
 
-impl ToFragment for ParameterNodeValue<NodeContext> {
+impl<R> ToFragment for ParameterNodeValue<R, NodeContext>
+where
+    R: Clone,
+{
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Parameter(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
     }
@@ -9,11 +12,10 @@ impl ToFragment for ParameterNodeValue<NodeContext> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-    use lang::{
-        ast::{Expression, Parameter, Primitive, TypeExpression},
-        test::fixture as f,
+    use crate::{
+        context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use lang::ast::{Expression, Parameter, Primitive, TypeExpression};
 
     #[test]
     fn parameter() {

@@ -13,9 +13,12 @@ use lang::{
     Node,
 };
 
-impl Register for TypeExpressionNode<()> {
-    type Node = TypeExpressionNode<NodeContext>;
-    type Value<C> = TypeExpressionNodeValue<C>;
+impl<R> Register for TypeExpressionNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = TypeExpressionNode<R, NodeContext>;
+    type Value<C> = TypeExpressionNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let value = self.node().value().identify(ctx);
@@ -33,7 +36,8 @@ mod tests {
         register::Register,
         test::fixture::{file_ctx, scope_ctx},
     };
-    use lang::{ast::TypeExpression, test::fixture as f};
+    use lang::ast::TypeExpression;
+    use parse::test::fixture as f;
 
     #[test]
     fn register() {

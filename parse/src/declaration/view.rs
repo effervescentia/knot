@@ -1,10 +1,7 @@
 use super::{parameter, storage};
-use crate::{expression, matcher as m};
+use crate::{expression, matcher as m, Position, Range};
 use combine::{between, optional, sep_end_by, Parser, Stream};
-use lang::{
-    ast::{Declaration, DeclarationNode},
-    Position,
-};
+use lang::ast::{Declaration, DeclarationNode};
 
 // view foo -> nil;
 // view foo -> {};
@@ -15,7 +12,7 @@ use lang::{
 // view foo(props) -> nil;
 // view foo({a, b: nil, c = 123}) -> nil;
 
-pub fn view<T>() -> impl Parser<T, Output = DeclarationNode<()>>
+pub fn view<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,

@@ -1,4 +1,4 @@
-use crate::common::position::Position;
+use crate::Position;
 use combine::{parser::char as p, Parser, Stream};
 use std::fmt::Debug;
 

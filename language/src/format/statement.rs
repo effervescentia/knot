@@ -1,7 +1,10 @@
 use crate::ast::{Statement, StatementNode};
 use std::fmt::{Display, Formatter};
 
-impl<C> Display for StatementNode<C> {
+impl<R, C> Display for StatementNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Statement::Expression(x) => write!(f, "{x};"),

@@ -63,6 +63,7 @@ name = "knot_analyze"
 version = "0.1.0"
 dependencies = [
  "knot_language",
+ "knot_parse",
 ]
 
 [[package]]
@@ -77,7 +78,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "knot_format"
+name = "knot_core"
 version = "0.1.0"
 dependencies = [
  "indenter",
@@ -87,10 +88,7 @@ dependencies = [
 name = "knot_language"
 version = "0.1.0"
 dependencies = [
- "combine",
- "indenter",
- "knot_format",
- "knot_language",
+ "knot_core",
 ]
 
 [[package]]
@@ -105,7 +103,7 @@ dependencies = [
 name = "knot_plugin_javascript"
 version = "0.1.0"
 dependencies = [
- "knot_format",
+ "knot_core",
  "knot_language",
 ]
 

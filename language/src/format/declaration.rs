@@ -3,10 +3,13 @@ use crate::ast::{
     storage::{Storage, Visibility},
     Declaration, DeclarationNode,
 };
-use format::{indented, Block, Indented};
+use kore::format::{indented, Block, Indented};
 use std::fmt::{Display, Formatter, Write};
 
-impl<C> Display for DeclarationNode<C> {
+impl<R, C> Display for DeclarationNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             Declaration::TypeAlias { name, value } => {
@@ -243,7 +246,7 @@ mod tests {
     #[test]
     fn empty_module() {
         assert_eq!(
-            f::n::d(f::a::module("foo", f::n::mr(Module::new(vec![], vec![])))).to_string(),
+            f::n::d(f::a::module("foo", f::n::m(Module::new(vec![], vec![])))).to_string(),
             "module foo {}"
         );
     }
@@ -253,7 +256,7 @@ mod tests {
         assert_eq!(
             f::n::d(f::a::module(
                 "foo",
-                f::n::mr(Module::new(
+                f::n::m(Module::new(
                     vec![],
                     vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
                 ))

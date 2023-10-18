@@ -1,11 +1,6 @@
 use super::{
-    declaration::{Declaration, DeclarationNode},
-    expression::{Expression, ExpressionNode},
-    ksx::{KSXNode, KSX},
-    module::{Module, ModuleNode},
-    parameter::{Parameter, ParameterNode},
-    statement::{Statement, StatementNode},
-    type_expression::{TypeExpression, TypeExpressionNode},
+    Declaration, DeclarationNode, Expression, ExpressionNode, KSXNode, Module, ModuleNode,
+    Parameter, ParameterNode, Statement, StatementNode, TypeExpression, TypeExpressionNode, KSX,
 };
 use crate::Program;
 use std::fmt::Debug;
@@ -17,7 +12,7 @@ pub trait ToShape<S> {
 #[derive(Clone, Debug)]
 pub struct ExpressionShape(pub Expression<ExpressionShape, StatementShape, KSXShape>);
 
-impl<C> ToShape<ExpressionShape> for ExpressionNode<C> {
+impl<R, C> ToShape<ExpressionShape> for ExpressionNode<R, C> {
     fn to_shape(&self) -> ExpressionShape {
         ExpressionShape(self.0.value().map(
             &mut |x| x.to_shape(),
@@ -30,7 +25,7 @@ impl<C> ToShape<ExpressionShape> for ExpressionNode<C> {
 #[derive(Clone, Debug)]
 pub struct StatementShape(pub Statement<ExpressionShape>);
 
-impl<C> ToShape<StatementShape> for StatementNode<C> {
+impl<R, C> ToShape<StatementShape> for StatementNode<R, C> {
     fn to_shape(&self) -> StatementShape {
         StatementShape(self.0.value().map(&|x| x.to_shape()))
     }
@@ -39,7 +34,7 @@ impl<C> ToShape<StatementShape> for StatementNode<C> {
 #[derive(Clone, Debug)]
 pub struct KSXShape(pub KSX<ExpressionShape, KSXShape>);
 
-impl<C> ToShape<KSXShape> for KSXNode<C> {
+impl<R, C> ToShape<KSXShape> for KSXNode<R, C> {
     fn to_shape(&self) -> KSXShape {
         KSXShape(
             self.0
@@ -52,7 +47,7 @@ impl<C> ToShape<KSXShape> for KSXNode<C> {
 #[derive(Clone, Debug)]
 pub struct TypeExpressionShape(pub TypeExpression<TypeExpressionShape>);
 
-impl<C> ToShape<TypeExpressionShape> for TypeExpressionNode<C> {
+impl<R, C> ToShape<TypeExpressionShape> for TypeExpressionNode<R, C> {
     fn to_shape(&self) -> TypeExpressionShape {
         TypeExpressionShape(self.0.value().map(&|x| x.to_shape()))
     }
@@ -61,7 +56,7 @@ impl<C> ToShape<TypeExpressionShape> for TypeExpressionNode<C> {
 #[derive(Clone, Debug)]
 pub struct ParameterShape(pub Parameter<ExpressionShape, TypeExpressionShape>);
 
-impl<C> ToShape<ParameterShape> for ParameterNode<C> {
+impl<R, C> ToShape<ParameterShape> for ParameterNode<R, C> {
     fn to_shape(&self) -> ParameterShape {
         ParameterShape(self.0.value().map(&|x| x.to_shape(), &|x| x.to_shape()))
     }
@@ -72,7 +67,7 @@ pub struct DeclarationShape(
     pub Declaration<ExpressionShape, ParameterShape, ModuleShape, TypeExpressionShape>,
 );
 
-impl<C> ToShape<DeclarationShape> for DeclarationNode<C> {
+impl<R, C> ToShape<DeclarationShape> for DeclarationNode<R, C> {
     fn to_shape(&self) -> DeclarationShape {
         DeclarationShape(self.0.value().map(
             &|x| x.to_shape(),
@@ -86,7 +81,7 @@ impl<C> ToShape<DeclarationShape> for DeclarationNode<C> {
 #[derive(Clone, Debug)]
 pub struct ModuleShape(pub Module<DeclarationShape>);
 
-impl<C> ToShape<ModuleShape> for ModuleNode<C> {
+impl<R, C> ToShape<ModuleShape> for ModuleNode<R, C> {
     fn to_shape(&self) -> ModuleShape {
         ModuleShape(self.0.map(&|x| x.to_shape()))
     }
@@ -95,7 +90,7 @@ impl<C> ToShape<ModuleShape> for ModuleNode<C> {
 #[derive(Clone, Debug)]
 pub struct ProgramShape(pub ModuleShape);
 
-impl<C> ToShape<ProgramShape> for Program<C> {
+impl<R, C> ToShape<ProgramShape> for Program<R, C> {
     fn to_shape(&self) -> ProgramShape {
         ProgramShape(self.0.to_shape())
     }

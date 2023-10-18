@@ -1,7 +1,10 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
 use lang::ast::KSXNodeValue;
 
-impl ToFragment for KSXNodeValue<NodeContext> {
+impl<R> ToFragment for KSXNodeValue<R, NodeContext>
+where
+    R: Clone,
+{
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::KSX(self.map(&mut |x| *x.node().id(), &mut |x| *x.node().id()))
     }
@@ -9,17 +12,19 @@ impl ToFragment for KSXNodeValue<NodeContext> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-    use lang::{
-        ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX},
-        test::fixture as f,
+    use crate::{
+        context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use lang::ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX};
+    use parse::Range;
 
     #[test]
     fn text() {
         assert_eq!(
-            KSX::<ExpressionNode<NodeContext>, KSXNode<NodeContext>>::Text(String::from("foo"))
-                .to_fragment(),
+            KSX::<ExpressionNode<Range, NodeContext>, KSXNode<Range, NodeContext>>::Text(
+                String::from("foo")
+            )
+            .to_fragment(),
             Fragment::KSX(KSX::Text(String::from("foo")))
         );
     }

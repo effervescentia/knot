@@ -1,12 +1,9 @@
-use crate::matcher as m;
+use crate::{matcher as m, Position};
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
-use lang::{
-    ast::{Import, ImportSource, ImportTarget},
-    Position,
-};
+use lang::ast::{Import, ImportSource, ImportTarget};
 
 // use @/x;
 // use @/x.{a, b};

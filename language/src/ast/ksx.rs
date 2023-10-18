@@ -1,7 +1,6 @@
-use crate::common::{node::Node, range::Range};
-use std::fmt::Debug;
-
 use super::ExpressionNode;
+use crate::Node;
+use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum KSX<E, K> {
@@ -45,20 +44,23 @@ impl<E, K> KSX<E, K> {
     }
 }
 
-pub type KSXNodeValue<C> = KSX<ExpressionNode<C>, KSXNode<C>>;
+pub type KSXNodeValue<R, C> = KSX<ExpressionNode<R, C>, KSXNode<R, C>>;
 
 #[derive(Debug, PartialEq)]
-pub struct KSXNode<C>(pub Node<KSXNodeValue<C>, C>);
+pub struct KSXNode<R, C>(pub Node<KSXNodeValue<R, C>, R, C>);
 
-impl<C> KSXNode<C> {
-    pub fn node(&self) -> &Node<KSXNodeValue<C>, C> {
+impl<R, C> KSXNode<R, C>
+where
+    R: Clone,
+{
+    pub fn node(&self) -> &Node<KSXNodeValue<R, C>, R, C> {
         &self.0
     }
 
     pub fn map<C2>(
         &self,
-        f: impl Fn(&KSXNodeValue<C>, &C) -> (KSXNodeValue<C2>, C2),
-    ) -> KSXNode<C2> {
+        f: impl Fn(&KSXNodeValue<R, C>, &C) -> (KSXNodeValue<R, C2>, C2),
+    ) -> KSXNode<R, C2> {
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
@@ -66,12 +68,12 @@ impl<C> KSXNode<C> {
     }
 }
 
-impl KSXNode<()> {
-    pub fn raw(x: KSXNodeValue<()>, range: Range) -> Self {
+impl<R> KSXNode<R, ()> {
+    pub fn raw(x: KSXNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 
-    pub fn bind((x, range): (KSXNodeValue<()>, Range)) -> Self {
+    pub fn bind((x, range): (KSXNodeValue<R, ()>, R)) -> Self {
         Self::raw(x, range)
     }
 }

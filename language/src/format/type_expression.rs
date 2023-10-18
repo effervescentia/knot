@@ -1,8 +1,11 @@
-use super::SeparateEach;
 use crate::ast::{TypeExpression, TypeExpressionNode};
+use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 
-impl<C> Display for TypeExpressionNode<C> {
+impl<R, C> Display for TypeExpressionNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             TypeExpression::Nil => write!(f, "nil"),

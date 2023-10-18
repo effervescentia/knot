@@ -1,9 +1,6 @@
-use crate::matcher as m;
+use crate::{matcher as m, Position, Range};
 use combine::{position, value, Parser, Stream};
-use lang::{
-    ast::storage::{Storage, Visibility},
-    Position, Range,
-};
+use lang::ast::storage::{Storage, Visibility};
 
 pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (Storage, Range)>
 where

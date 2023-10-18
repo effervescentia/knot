@@ -1,7 +1,10 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
 use lang::ast::StatementNodeValue;
 
-impl ToFragment for StatementNodeValue<NodeContext> {
+impl<R> ToFragment for StatementNodeValue<R, NodeContext>
+where
+    R: Clone,
+{
     fn to_fragment<'a>(&'a self) -> Fragment {
         Fragment::Statement(self.map(&|x| *x.node().id()))
     }
@@ -9,11 +12,10 @@ impl ToFragment for StatementNodeValue<NodeContext> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-    use lang::{
-        ast::{Expression, Primitive, Statement},
-        test::fixture as f,
+    use crate::{
+        context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
     fn expression() {

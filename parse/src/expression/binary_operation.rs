@@ -1,13 +1,14 @@
-use crate::matcher as m;
+use crate::{matcher as m, Position, Range};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
-use lang::{
-    ast::{BinaryOperator, Expression, ExpressionNode},
-    Position,
-};
+use lang::ast::{BinaryOperator, Expression, ExpressionNode};
 
 fn binary_operation<T, U>(
     o: BinaryOperator,
-) -> impl FnMut(U) -> Box<dyn Fn(ExpressionNode<()>, ExpressionNode<()>) -> ExpressionNode<()>>
+) -> impl FnMut(
+    U,
+) -> Box<
+    dyn Fn(ExpressionNode<Range, ()>, ExpressionNode<Range, ()>) -> ExpressionNode<Range, ()>,
+>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -24,11 +25,11 @@ where
     }
 }
 
-pub fn logical<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<()>>
+pub fn logical<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     let and = || {
         chainl1(
@@ -46,11 +47,11 @@ where
     or()
 }
 
-pub fn comparative<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<()>>
+pub fn comparative<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     chainl1(
         parser,
@@ -61,11 +62,11 @@ where
     )
 }
 
-pub fn relational<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<()>>
+pub fn relational<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     chainl1(
         parser,
@@ -78,11 +79,11 @@ where
     )
 }
 
-pub fn arithmetic<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<()>>
+pub fn arithmetic<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<()>>,
+    P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     let exponent = || {
         chainr1(

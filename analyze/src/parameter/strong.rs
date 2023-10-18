@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::{ast::ParameterNode, Node};
 
-impl ToStrong<ParameterNode<Strong>> for ParameterNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> ParameterNode<Strong> {
+impl<R> ToStrong<ParameterNode<R, Strong>> for ParameterNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> ParameterNode<R, Strong> {
         ParameterNode(Node(
             self.node()
                 .value()

@@ -6,5 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-format = { package = "knot_format", path = "../format" }
+kore = { package = "knot_core", path = "../kore", default-features = false }
 lang = { package = "knot_language", path = "../language" }
+
+[features]
+format = ["kore/format"]

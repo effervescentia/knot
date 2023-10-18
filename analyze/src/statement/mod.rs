@@ -14,9 +14,12 @@ use lang::{
     Node,
 };
 
-impl Register for StatementNode<()> {
-    type Node = StatementNode<NodeContext>;
-    type Value<C> = StatementNodeValue<C>;
+impl<R> Register for StatementNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = StatementNode<R, NodeContext>;
+    type Value<C> = StatementNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
         let node = &self.0;
@@ -33,17 +36,14 @@ mod tests {
         context::{FragmentMap, NodeContext},
         fragment::Fragment,
         register::Register,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
+    use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
     fn register() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::s(Statement::Variable(

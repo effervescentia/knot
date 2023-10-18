@@ -1,6 +1,7 @@
 use crate::resolve::Resolver;
 use analyze::infer::strong::Strong;
 use lang::{ast::ToShape, Program};
+use parse::Range;
 use std::{
     collections::HashMap,
     fmt::Display,
@@ -9,7 +10,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-type State<'a, T> = HashMap<&'a Path, (String, Program<T>)>;
+type State<'a, T> = HashMap<&'a Path, (String, Program<Range, T>)>;
 type ParsedState<'a> = State<'a, ()>;
 type AnalyzedState<'a> = State<'a, Strong>;
 
@@ -64,7 +65,7 @@ impl<'a, T, R> Engine<State<'a, T>, R>
 where
     R: Resolver,
 {
-    pub fn format(&self) -> Generated<&Program<T>> {
+    pub fn format(&self) -> Generated<&Program<Range, T>> {
         Generated(
             self.state
                 .iter()

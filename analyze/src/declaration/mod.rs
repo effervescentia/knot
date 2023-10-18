@@ -13,11 +13,14 @@ use lang::{
     Node,
 };
 
-impl Register for DeclarationNode<()> {
-    type Node = DeclarationNode<NodeContext>;
-    type Value<C> = DeclarationNodeValue<C>;
+impl<R> Register for DeclarationNode<R, ()>
+where
+    R: Clone,
+{
+    type Node = DeclarationNode<R, NodeContext>;
+    type Value<C> = DeclarationNodeValue<R, C>;
 
-    fn register(&self, ctx: &ScopeContext) -> DeclarationNode<NodeContext> {
+    fn register(&self, ctx: &ScopeContext) -> DeclarationNode<R, NodeContext> {
         let value = self.node().value().identify(&mut ctx.child());
         let id = ctx.add_fragment(&value);
 
@@ -31,20 +34,17 @@ mod tests {
         context::{FragmentMap, NodeContext},
         fragment::Fragment,
         register::Register,
-        test::fixture::{file_ctx, scope_ctx},
-    };
-    use lang::{
-        ast::{
-            Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter,
-            Primitive, TypeExpression,
-        },
         test::fixture as f,
+    };
+    use lang::ast::{
+        Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
+        TypeExpression,
     };
 
     #[test]
     fn register_declaration() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::d(f::a::func_(
@@ -133,8 +133,8 @@ mod tests {
 
     #[test]
     fn register_module() {
-        let file = &file_ctx();
-        let scope = &mut scope_ctx(file);
+        let file = &f::file_ctx();
+        let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
             f::n::d(f::a::module(

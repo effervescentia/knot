@@ -1,8 +1,11 @@
-use super::indented;
 use crate::ast::{KSXNode, KSX};
+use kore::format::indented;
 use std::fmt::{Display, Formatter, Write};
 
-impl<C> Display for KSXNode<C> {
+impl<R, C> Display for KSXNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
             KSX::Text(x) => write!(f, "{x}"),
@@ -55,7 +58,10 @@ where
     }
 }
 
-impl<C> KSXNode<C> {
+impl<R, C> KSXNode<R, C>
+where
+    R: Clone,
+{
     pub fn is_inline(&self) -> bool {
         match self.node().value() {
             KSX::Text(_) | KSX::Inline(_) => true,
@@ -64,13 +70,21 @@ impl<C> KSXNode<C> {
     }
 }
 
-struct Children<'a, C>(&'a Vec<KSXNode<C>>);
+struct Children<'a, R, C>(&'a Vec<KSXNode<R, C>>);
 
-impl<'a, C> Display for Children<'a, C> {
+impl<'a, R, C> Display for Children<'a, R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        fn format<'a, C, F>(xs: &'a Vec<KSXNode<C>>, mut f: F, all_inline: bool) -> std::fmt::Result
+        fn format<'a, R, C, F>(
+            xs: &'a Vec<KSXNode<R, C>>,
+            mut f: F,
+            all_inline: bool,
+        ) -> std::fmt::Result
         where
             F: Write,
+            R: Clone,
         {
             if all_inline {
                 for x in xs {

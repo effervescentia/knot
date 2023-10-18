@@ -2,7 +2,10 @@ use super::Typedef;
 use crate::ast::{Parameter, ParameterNode};
 use std::fmt::{Display, Formatter};
 
-impl<C> Display for ParameterNode<C> {
+impl<R, C> Display for ParameterNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         let Parameter {
             name,

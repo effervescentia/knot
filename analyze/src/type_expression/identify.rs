@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::ast::TypeExpressionNodeValue;
 
-impl Identify<TypeExpressionNodeValue<NodeContext>> for TypeExpressionNodeValue<()> {
-    fn identify(&self, ctx: &ScopeContext) -> TypeExpressionNodeValue<NodeContext> {
+impl<R> Identify<TypeExpressionNodeValue<R, NodeContext>> for TypeExpressionNodeValue<R, ()>
+where
+    R: Clone,
+{
+    fn identify(&self, ctx: &ScopeContext) -> TypeExpressionNodeValue<R, NodeContext> {
         self.map(&|x| x.register(ctx))
     }
 }
@@ -15,12 +18,11 @@ mod tests {
     use crate::{
         context::NodeContext,
         register::Identify,
+        test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
-    use lang::{
-        ast::{TypeExpression, TypeExpressionNode},
-        test::fixture as f,
-    };
+    use lang::ast::{TypeExpression, TypeExpressionNode};
+    use parse::Range;
 
     #[test]
     fn primitive() {
@@ -28,7 +30,7 @@ mod tests {
         let scope = &mut scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<()>>::Nil.identify(scope),
+            TypeExpression::<TypeExpressionNode<Range, ()>>::Nil.identify(scope),
             TypeExpression::Nil
         );
     }
@@ -39,7 +41,7 @@ mod tests {
         let scope = &mut scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<()>>::Identifier(String::from("foo"))
+            TypeExpression::<TypeExpressionNode<Range, ()>>::Identifier(String::from("foo"))
                 .identify(scope),
             TypeExpression::Identifier(String::from("foo"))
         );

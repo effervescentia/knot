@@ -4,8 +4,11 @@ use crate::{
 };
 use lang::{ast::StatementNode, Node};
 
-impl ToStrong<StatementNode<Strong>> for StatementNode<NodeContext> {
-    fn to_strong(&self, ctx: &StrongContext) -> StatementNode<Strong> {
+impl<R> ToStrong<StatementNode<R, Strong>> for StatementNode<R, NodeContext>
+where
+    R: Clone,
+{
+    fn to_strong(&self, ctx: &StrongContext) -> StatementNode<R, Strong> {
         StatementNode(Node(
             self.node().value().map(&|x| x.to_strong(ctx)),
             self.node().range().clone(),
