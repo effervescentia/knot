@@ -70,17 +70,10 @@ name = "knot_command"
 version = "0.1.0"
 dependencies = [
  "knot_analyze",
- "knot_generate_javascript",
  "knot_language",
  "knot_parse",
+ "knot_plugin_javascript",
  "tempfile",
-]
-
-[[package]]
-name = "knot_generate_javascript"
-version = "0.1.0"
-dependencies = [
- "knot_language",
 ]
 
 [[package]]
@@ -97,6 +90,13 @@ name = "knot_parse"
 version = "0.1.0"
 dependencies = [
  "combine",
+ "knot_language",
+]
+
+[[package]]
+name = "knot_plugin_javascript"
+version = "0.1.0"
+dependencies = [
  "knot_language",
 ]
 

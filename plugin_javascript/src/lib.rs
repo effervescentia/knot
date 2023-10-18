@@ -2,7 +2,7 @@ mod format;
 mod javascript;
 mod transform;
 
-use javascript::JavaScript;
+pub use javascript::JavaScript;
 use lang::ast::ProgramShape;
 
 // TODO: move these to a common library to be re-used across generators

@@ -4,7 +4,7 @@ pub mod format;
 mod resolve;
 
 pub enum TargetFormat {
-    JavaScript(gen_js::Module),
+    JavaScript(js::Module),
 }
 
 enum Command {

@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 lang = { package = "knot_language", path = "../language" }
-gen_js = { package = "knot_generate_javascript", path = "../generate_javascript" }
+js = { package = "knot_plugin_javascript", path = "../plugin_javascript" }
 parse = { package = "knot_parse", path = "../parse" }
 analyze = { package = "knot_analyze", path = "../analyze" }
 

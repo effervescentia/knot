@@ -2,7 +2,6 @@ use super::Resolver;
 use std::{
     fs,
     path::{Path, PathBuf},
-    rc::Rc,
     time::SystemTime,
 };
 
@@ -18,13 +17,13 @@ impl<'a> FileSystem<'a> {
 }
 
 impl<'a> Resolver for FileSystem<'a> {
-    fn resolve<P>(&mut self, relative: P) -> Option<Rc<String>>
+    fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
         P: AsRef<Path>,
     {
         let path = self.get_file_path(relative);
 
-        fs::read_to_string(path.as_path()).ok().map(Rc::new)
+        fs::read_to_string(path.as_path()).ok()
     }
 
     fn last_modified<P>(&self, relative: P) -> Option<SystemTime>
@@ -42,7 +41,7 @@ impl<'a> Resolver for FileSystem<'a> {
 mod tests {
     use super::FileSystem;
     use crate::resolve::Resolver;
-    use std::{fs::File, io::Write, path::Path, rc::Rc};
+    use std::{fs::File, io::Write, path::Path};
     use tempfile::tempdir;
 
     impl<'a> FileSystem<'a> {
@@ -73,7 +72,7 @@ mod tests {
 
         assert_eq!(
             file_system.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
     }
 

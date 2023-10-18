@@ -18,7 +18,7 @@ pub fn command(opts: &Options) {
     let typed = analyze::analyze(ast);
 
     let shape = typed.to_shape();
-    let result = gen_js::generate(&shape);
+    let result = js::generate(&shape);
 
     let mut output_path = opts.out_dir.to_path_buf();
     output_path.extend(opts.entry.file_name().and_then(|x| {

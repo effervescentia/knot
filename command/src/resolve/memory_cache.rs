@@ -1,7 +1,7 @@
 use super::Resolver;
-use std::{collections::HashMap, path::Path, rc::Rc, time::SystemTime};
+use std::{collections::HashMap, path::Path, time::SystemTime};
 
-pub struct MemoryCache<T>(HashMap<String, (Rc<String>, SystemTime)>, T)
+pub struct MemoryCache<T>(HashMap<String, (String, SystemTime)>, T)
 where
     T: Resolver;
 
@@ -9,7 +9,7 @@ impl<'a, T> Resolver for MemoryCache<T>
 where
     T: Resolver,
 {
-    fn resolve<P>(&mut self, relative: P) -> Option<Rc<String>>
+    fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
         P: AsRef<Path> + Copy,
     {
@@ -49,7 +49,7 @@ where
 mod tests {
     use super::MemoryCache;
     use crate::resolve::{file_system::FileSystem, Resolver};
-    use std::{collections::HashMap, path::Path, rc::Rc, time::SystemTime};
+    use std::{collections::HashMap, path::Path, time::SystemTime};
     use tempfile::tempdir;
 
     const TARGET_FILE: &str = "target_file.txt";
@@ -65,7 +65,7 @@ mod tests {
 
         assert_eq!(
             memory_cache.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
         println!("{:?}", memory_cache.0);
         assert_eq!(memory_cache.0.get(""), None);
@@ -80,14 +80,14 @@ mod tests {
         let mut cache = HashMap::new();
         cache.insert(
             TARGET_FILE.to_string(),
-            (Rc::new(FILE_CONTENTS.to_string()), SystemTime::now()),
+            (FILE_CONTENTS.to_string(), SystemTime::now()),
         );
 
         let mut memory_cache = MemoryCache(cache, FileSystem(source_dir.path()));
 
         assert_eq!(
             memory_cache.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
     }
 
@@ -96,7 +96,7 @@ mod tests {
         let mut cache = HashMap::new();
         cache.insert(
             TARGET_FILE.to_string(),
-            (Rc::new(FILE_CONTENTS.to_string()), SystemTime::now()),
+            (FILE_CONTENTS.to_string(), SystemTime::now()),
         );
 
         let source_dir = tempdir().unwrap();
@@ -107,11 +107,11 @@ mod tests {
 
         assert_eq!(
             memory_cache.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
         assert_eq!(
             memory_cache.0.get(TARGET_FILE).unwrap().0,
-            Rc::new(FILE_CONTENTS.to_string())
+            FILE_CONTENTS.to_string()
         );
     }
 

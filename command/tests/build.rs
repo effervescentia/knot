@@ -1,7 +1,7 @@
 mod common;
 
 use common::test_path;
-use gen_js::Module;
+use js::Module;
 use knot_command::{
     build::{self, Options},
     TargetFormat,

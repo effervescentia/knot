@@ -1,5 +1,5 @@
 use super::{file_system::FileSystem, Resolver};
-use std::{fs, path::Path, rc::Rc, time::SystemTime};
+use std::{fs, path::Path, time::SystemTime};
 
 pub struct FileCache<'a, T>(FileSystem<'a>, T)
 where
@@ -9,7 +9,7 @@ impl<'a, T> Resolver for FileCache<'a, T>
 where
     T: Resolver,
 {
-    fn resolve<P>(&mut self, relative: P) -> Option<Rc<String>>
+    fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
         P: AsRef<Path>,
     {
@@ -49,7 +49,7 @@ where
 mod tests {
     use super::FileCache;
     use crate::resolve::{file_system::FileSystem, Resolver};
-    use std::{fs, path::Path, rc::Rc};
+    use std::{fs, path::Path};
     use tempfile::tempdir;
 
     const TARGET_FILE: &str = "target_file.txt";
@@ -67,7 +67,7 @@ mod tests {
 
         assert_eq!(
             file_cache.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
         assert_eq!(
             fs::read_to_string(cache_dir.path().join(TARGET_FILE)).unwrap(),
@@ -89,7 +89,7 @@ mod tests {
 
         assert_eq!(
             file_cache.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
     }
 
@@ -107,7 +107,7 @@ mod tests {
 
         assert_eq!(
             file_cache.resolve(Path::new(TARGET_FILE)),
-            Some(Rc::new(FILE_CONTENTS.to_string()))
+            Some(FILE_CONTENTS.to_string())
         );
         assert_eq!(
             fs::read_to_string(cache_dir.path().join(TARGET_FILE)).unwrap(),
