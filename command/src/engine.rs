@@ -1,5 +1,5 @@
 use crate::resolve::Resolver;
-use analyze::infer::strong::Strong;
+use analyze::Strong;
 use lang::{ast::ToShape, Program};
 use parse::Range;
 use std::{

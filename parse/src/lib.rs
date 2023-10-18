@@ -1,13 +1,13 @@
 mod common;
-pub mod declaration;
-pub mod expression;
-pub mod ksx;
-pub mod matcher;
-pub mod module;
-pub mod statement;
+mod declaration;
+mod expression;
+mod ksx;
+mod matcher;
+mod module;
+mod statement;
 #[cfg(feature = "test")]
 pub mod test;
-pub mod types;
+mod types;
 
 use combine::{
     easy::Errors,
@@ -24,7 +24,7 @@ pub type Result<'a, T> = std::result::Result<
     Errors<char, &'a str, SourcePosition>,
 >;
 
-fn parse_stream<'a, T>() -> impl Parser<T, Output = ModuleNode<Range, ()>>
+fn program<'a, T>() -> impl Parser<T, Output = ModuleNode<Range, ()>>
 where
     T: combine::Stream<Token = char>,
     T::Position: Position,
@@ -33,5 +33,5 @@ where
 }
 
 pub fn parse<'a>(input: &'a str) -> Result<'a, Program<Range, ()>> {
-    parse_stream().map(Program).easy_parse(Stream::new(input))
+    program().map(Program).easy_parse(Stream::new(input))
 }

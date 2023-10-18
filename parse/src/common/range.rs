@@ -1,12 +1,5 @@
-use std::{fmt::Debug, ops::Add};
-
 use super::position::{Point, Position};
-
-pub trait Ranged<T> {
-    fn value(self) -> T;
-
-    fn range(&self) -> &Range;
-}
+use std::{fmt::Debug, ops::Add};
 
 #[derive(Copy, Debug, PartialEq)]
 pub struct Range(pub Point, pub Point);

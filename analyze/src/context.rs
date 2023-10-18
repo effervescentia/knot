@@ -106,14 +106,6 @@ impl NodeContext {
     pub fn new(id: usize, scope: Vec<usize>) -> Self {
         Self { id, scope }
     }
-
-    pub fn scope<'a>(&'a self) -> &'a Vec<usize> {
-        &self.scope
-    }
-
-    pub fn id<'a>(&'a self) -> &'a usize {
-        &self.id
-    }
 }
 
 impl Identity<usize> for NodeContext {

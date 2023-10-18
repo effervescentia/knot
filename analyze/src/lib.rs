@@ -1,8 +1,8 @@
-pub mod context;
+mod context;
 mod declaration;
 mod expression;
-pub mod fragment;
-pub mod infer;
+mod fragment;
+mod infer;
 mod ksx;
 mod module;
 mod parameter;
@@ -14,13 +14,12 @@ mod type_expression;
 mod types;
 
 use context::{FileContext, NodeContext, ScopeContext, StrongContext, WeakContext};
-use infer::strong::{Strong, ToStrong};
+pub use infer::strong::Strong;
+use infer::strong::{SemanticError, ToStrong};
 use lang::Program;
 use register::Register;
 use std::{cell::RefCell, fmt::Debug};
 use types::Type;
-
-use self::infer::strong::SemanticError;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct FinalType(Result<Type<Box<FinalType>>, SemanticError>);

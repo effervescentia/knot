@@ -30,29 +30,3 @@ impl Position for SourcePosition {
         }
     }
 }
-
-// #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-// pub struct Position(SourcePosition);
-
-// impl lang::Position for Position {
-//     fn line(&self) -> i32 {
-//         self.0.line
-//     }
-
-//     fn column(&self) -> i32 {
-//         self.0.column
-//     }
-
-//     fn decrement(&self) -> Self {
-//         Self(SourcePosition {
-//             line: self.line(),
-//             column: self.column() - 1,
-//         })
-//     }
-// }
-
-// impl Into<Position> for SourcePosition {
-//     fn into(self) -> Position {
-//         Position(self)
-//     }
-// }
