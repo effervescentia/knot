@@ -1,8 +1,8 @@
-use super::TerminateEach;
 use crate::{
     ast::{Import, ImportSource, ModuleNode},
     format::SeparateEach,
 };
+use format::TerminateEach;
 use std::fmt::{Display, Formatter};
 
 impl<C> Display for ModuleNode<C> {

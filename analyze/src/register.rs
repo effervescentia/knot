@@ -11,8 +11,7 @@ pub trait ToFragment {
     fn to_fragment<'a>(&'a self) -> Fragment;
 }
 
-// TODO: try to remove `Sized`
-pub trait Register: Sized
+pub trait Register
 where
     Self::Value<()>: Identify<Self::Value<NodeContext>>,
     Self::Value<NodeContext>: ToFragment,

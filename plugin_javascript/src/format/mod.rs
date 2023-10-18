@@ -1,5 +1,5 @@
 use crate::javascript::JavaScript;
-use lang::format::TerminateEach;
+use format::TerminateEach;
 use std::fmt::{Display, Formatter};
 
 mod expression;

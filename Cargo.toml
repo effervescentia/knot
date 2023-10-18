@@ -2,4 +2,11 @@
 
 resolver = "2"
 
-members = ["analyze", "command", "language", "parse", "plugin_javascript"]
+members = [
+  "analyze",
+  "command",
+  "format",
+  "language",
+  "parse",
+  "plugin_javascript",
+]
