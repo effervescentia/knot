@@ -9,8 +9,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-type ParsedState<'a> = HashMap<&'a Path, (String, Program<()>)>;
-type AnalyzedState<'a> = HashMap<&'a Path, (String, Program<Strong>)>;
+type State<'a, T> = HashMap<&'a Path, (String, Program<T>)>;
+type ParsedState<'a> = State<'a, ()>;
+type AnalyzedState<'a> = State<'a, Strong>;
 
 pub struct Generated<T>(Vec<(PathBuf, T)>)
 where
@@ -56,6 +57,20 @@ where
             resolver: self.resolver,
             state: HashMap::from_iter(vec![(entry, (input, ast))]),
         }
+    }
+}
+
+impl<'a, T, R> Engine<State<'a, T>, R>
+where
+    R: Resolver,
+{
+    pub fn format(&self) -> Generated<&Program<T>> {
+        Generated(
+            self.state
+                .iter()
+                .map(|(key, (_, ast))| (key.to_path_buf(), ast))
+                .collect::<Vec<_>>(),
+        )
     }
 }
 

@@ -17,6 +17,7 @@ pub fn build(name: &str, input: &str, target: TargetFormat) -> Option<String> {
     build::command(&Options {
         target,
         entry: entry.as_path(),
+        source_dir: entry.parent()?,
         out_dir: out_dir.as_path(),
     });
 

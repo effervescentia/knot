@@ -12,6 +12,7 @@ pub fn format(name: &str, input: &str) -> Option<String> {
 
     format::command(&Options {
         entry: entry.as_path(),
+        source_dir: entry.parent()?,
         out_dir: out_dir.as_path(),
     });
 
