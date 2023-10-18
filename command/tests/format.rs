@@ -4,19 +4,22 @@ use common::test_path;
 use knot_command::format::{self, Options};
 use std::fs;
 
-pub fn format(name: &str, input: &str) -> Option<String> {
-    let entry = test_path(&format!(".scratch/{name}.kn"));
+fn format(name: &str, input: &str) -> Option<String> {
     let out_dir = test_path(".scratch");
+    let entry = out_dir.join(name).with_extension("kn");
+    // let entry = out_dir.join(&format!("{name}.kn"));
 
     fs::write(&entry, input).ok()?;
 
+    print!("WRITING TO {}", entry.display());
+
     format::command(&Options {
         entry: entry.as_path(),
-        source_dir: entry.parent()?,
+        source_dir: out_dir.as_path(),
         out_dir: out_dir.as_path(),
     });
 
-    Some(fs::read_to_string(entry).ok()?)
+    fs::read_to_string(entry).ok()
 }
 
 #[test]

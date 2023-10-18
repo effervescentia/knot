@@ -109,7 +109,7 @@ where
                 let shape = ast.to_shape();
                 let result = js::generate(&shape);
 
-                (source_path.with_extension(".js"), result)
+                (source_path.with_extension("js"), result)
             })
             .collect::<Vec<_>>();
 

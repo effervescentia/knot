@@ -1,7 +1,10 @@
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
 };
+
+/// setup for all integration tests
+pub fn setup() {}
 
 pub fn test_path(relative: &str) -> PathBuf {
     let mut path = env::current_dir().unwrap();

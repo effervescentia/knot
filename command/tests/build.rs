@@ -8,22 +8,22 @@ use knot_command::{
 };
 use std::fs;
 
-pub fn build(name: &str, input: &str, target: TargetFormat) -> Option<String> {
-    let entry = test_path(&format!(".scratch/{name}.kn"));
+fn build(name: &str, input: &str, target: TargetFormat) -> Option<String> {
     let out_dir = test_path(".scratch");
+    let entry = out_dir.join(name).with_extension("kn");
+
+    println!("WRITING TO {}", entry.display());
 
     fs::write(&entry, input).ok()?;
 
     build::command(&Options {
         target,
         entry: entry.as_path(),
-        source_dir: entry.parent()?,
+        source_dir: out_dir.as_path(),
         out_dir: out_dir.as_path(),
     });
 
-    let out_file = test_path(&format!(".scratch/{name}.js"));
-
-    Some(fs::read_to_string(out_file).ok()?)
+    fs::read_to_string(entry.with_extension("js")).ok()
 }
 
 #[test]
