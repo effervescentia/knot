@@ -3,7 +3,9 @@ mod javascript;
 mod transform;
 
 pub use javascript::JavaScript;
+use kore::Generator;
 use lang::ast::ProgramShape;
+use std::path::{Path, PathBuf};
 
 // TODO: move these to a common library to be re-used across generators
 
@@ -13,6 +15,7 @@ pub enum Mode {
     Prod,
 }
 
+#[derive(Clone, Copy)]
 pub enum Module {
     /// ECMAScript modules
     ESM,
@@ -32,12 +35,29 @@ pub struct Options {
     pub module: Module,
 }
 
-pub fn generate(program: &ProgramShape) -> JavaScript {
-    JavaScript::from_module(
-        &program.0,
-        &Options {
-            mode: Mode::Prod,
-            module: Module::ESM,
-        },
-    )
+#[derive(Clone, Copy)]
+pub struct JavaScriptGenerator(Module);
+
+impl JavaScriptGenerator {
+    pub fn new(module: Module) -> Self {
+        Self(module)
+    }
+}
+
+impl Generator for JavaScriptGenerator {
+    type Input = ProgramShape;
+    type Output = JavaScript;
+
+    fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output) {
+        (
+            path.with_extension("js"),
+            JavaScript::from_module(
+                &input.0,
+                &Options {
+                    mode: Mode::Prod,
+                    module: self.0,
+                },
+            ),
+        )
+    }
 }

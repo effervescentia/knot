@@ -1,6 +1,10 @@
 use crate::resolve::Resolver;
 use analyze::Strong;
-use lang::{ast::ToShape, Program};
+use kore::Generator;
+use lang::{
+    ast::{ProgramShape, ToShape},
+    Program,
+};
 use parse::Range;
 use std::{
     collections::HashMap,
@@ -13,6 +17,13 @@ use std::{
 type State<'a, T> = HashMap<&'a Path, (String, Program<Range, T>)>;
 type ParsedState<'a> = State<'a, ()>;
 type AnalyzedState<'a> = State<'a, Strong>;
+
+mod state {
+    use super::*;
+
+    struct Parsed(String, Program<Range, ()>);
+    struct Parsed(String, Program<Range, ()>);
+}
 
 pub struct Generated<T>(Vec<(PathBuf, T)>)
 where
@@ -101,16 +112,14 @@ impl<'a, R> Engine<AnalyzedState<'a>, R>
 where
     R: Resolver,
 {
-    pub fn generate(&self) -> Generated<js::JavaScript> {
+    pub fn generate<T>(&self, generator: &T) -> Generated<T::Output>
+    where
+        T: Generator<Input = ProgramShape>,
+    {
         let generated = self
             .state
             .iter()
-            .map(|(source_path, (_, ast))| {
-                let shape = ast.to_shape();
-                let result = js::generate(&shape);
-
-                (source_path.with_extension("js"), result)
-            })
+            .map(|(source_path, (_, ast))| generator.generate(&source_path, ast.to_shape()))
             .collect::<Vec<_>>();
 
         Generated(generated)

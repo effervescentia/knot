@@ -82,6 +82,7 @@ version = "0.1.0"
 dependencies = [
  "ctor",
  "knot_analyze",
+ "knot_core",
  "knot_language",
  "knot_parse",
  "knot_plugin_javascript",
