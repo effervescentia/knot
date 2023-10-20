@@ -1,6 +1,6 @@
 use crate::{engine::Engine, resolve::FileSystem};
 use kore::Generator;
-use lang::ast::ProgramShape;
+use lang::ast;
 use std::path::Path;
 
 pub struct Options<'a, G>
@@ -15,7 +15,7 @@ where
 
 pub fn command<G>(opts: &Options<G>)
 where
-    G: Generator<Input = ProgramShape>,
+    G: Generator<Input = ast::ProgramShape>,
 {
     let resolver = FileSystem(opts.source_dir);
     let engine = Engine::new(resolver);

@@ -12,7 +12,7 @@ impl<'a> FileSystem<'a> {
     where
         P: AsRef<Path>,
     {
-        self.0.to_path_buf().join(relative)
+        self.0.join(relative)
     }
 }
 

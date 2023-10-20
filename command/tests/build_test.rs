@@ -40,7 +40,7 @@ where
 
     build::command(&Options {
         generator,
-        entry: entry.as_path(),
+        entry: entry.strip_prefix(&out_dir).unwrap(),
         source_dir: out_dir.as_path(),
         out_dir: out_dir.as_path(),
     });

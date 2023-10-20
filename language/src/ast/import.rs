@@ -1,19 +1,19 @@
 use std::fmt::Debug;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportSource {
     Root,
     Local,
     External(String),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportTarget {
     Named(String),
     Module,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Import {
     pub source: ImportSource,
     pub path: Vec<String>,

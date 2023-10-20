@@ -11,7 +11,7 @@ fn format(name: &str, input: &str) -> String {
     fs::write(&entry, input).expect("failed to write input file to disk");
 
     format::command(&Options {
-        entry: entry.as_path(),
+        entry: entry.strip_prefix(&out_dir).unwrap(),
         source_dir: out_dir.as_path(),
         out_dir: out_dir.as_path(),
     });
