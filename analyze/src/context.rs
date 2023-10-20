@@ -234,7 +234,7 @@ impl BindingMap {
 
         if let Some(xs) = source_ids {
             for x in xs.iter().rev() {
-                if *x < origin_id {
+                if x < &origin_id {
                     return Some(*x);
                 }
             }

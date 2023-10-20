@@ -87,7 +87,7 @@ impl<'a> Display for Binding<'a> {
         write!(
             f,
             "{visibility}{keyword} {name}",
-            visibility = if *visibility == Visibility::Private {
+            visibility = if visibility == &Visibility::Private {
                 "priv "
             } else {
                 ""

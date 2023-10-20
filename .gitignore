@@ -1,2 +1,6 @@
 /target
 **/.scratch/
+
+# coverage
+tarpaulin-report.html
+*.profraw

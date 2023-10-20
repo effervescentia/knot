@@ -7,7 +7,7 @@ use crate::{
 pub fn infer(lhs: usize, rhs: String, kind: &RefKind, ctx: &StrongContext) -> Option<Strong> {
     match ctx.get_strong(&lhs, kind)? {
         Ok(x @ Type::Module(declarations)) => {
-            match declarations.iter().find(|(name, ..)| *name == rhs) {
+            match declarations.iter().find(|(name, ..)| name == &rhs) {
                 Some((_, declaration_kind, declaration_id))
                     if declaration_kind == kind || declaration_kind == &RefKind::Mixed =>
                 {
@@ -27,7 +27,7 @@ pub fn infer(lhs: usize, rhs: String, kind: &RefKind, ctx: &StrongContext) -> Op
         }
 
         Ok(x @ Type::Enumerated(variants)) => {
-            match variants.iter().find(|(name, _)| *name == rhs) {
+            match variants.iter().find(|(name, _)| name == &rhs) {
                 Some((_, parameters)) => Some(Ok(Type::EnumeratedVariant(parameters.clone(), lhs))),
 
                 None => Some(Err(SemanticError::VariantNotFound(

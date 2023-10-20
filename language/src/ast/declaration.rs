@@ -92,7 +92,7 @@ impl<E, P, M, T> Declaration<E, P, M, T> {
             | Self::Module {
                 name: Storage(visibility, _),
                 ..
-            } => *visibility == Visibility::Public,
+            } => visibility == &Visibility::Public,
         }
     }
 
