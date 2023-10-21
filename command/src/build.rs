@@ -21,7 +21,8 @@ where
     let engine = Engine::new(resolver);
 
     engine
-        .parse(opts.entry)
+        .from_entry(opts.entry)
+        .parse_and_load()
         .analyze()
         .generate(&opts.generator)
         .write(opts.out_dir);

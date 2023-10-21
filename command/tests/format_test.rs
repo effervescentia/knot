@@ -5,15 +5,15 @@ use knot_command::format::{self, Options};
 use std::fs;
 
 fn format(name: &str, input: &str) -> String {
-    let out_dir = scratch_path();
+    let out_dir = scratch_path().join(name);
     let entry = out_dir.join(name).with_extension("kn");
 
+    fs::create_dir(&out_dir).expect("failed to create output directory");
     fs::write(&entry, input).expect("failed to write input file to disk");
 
     format::command(&Options {
-        entry: entry.strip_prefix(&out_dir).unwrap(),
         source_dir: out_dir.as_path(),
-        out_dir: out_dir.as_path(),
+        glob: "*.kn",
     });
 
     fs::read_to_string(entry).expect("failed to read output file from disk")

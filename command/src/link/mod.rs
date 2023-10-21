@@ -41,7 +41,10 @@ impl Link {
         PathBuf::from_iter(module_path).with_extension("kn")
     }
 
-    pub fn from_import(file_path: &Path, ast::Import { source, path, .. }: &ast::Import) -> Self {
+    pub fn from_import<P>(file_path: P, ast::Import { source, path, .. }: &ast::Import) -> Self
+    where
+        P: AsRef<Path>,
+    {
         match source {
             ast::ImportSource::External(ns) => Self(LinkSource::External(ns.clone()), path.clone()),
 
@@ -49,6 +52,7 @@ impl Link {
 
             ast::ImportSource::Local => {
                 let relative_path = file_path
+                    .as_ref()
                     .parent()
                     .unwrap()
                     .iter()
