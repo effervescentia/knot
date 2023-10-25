@@ -2,6 +2,7 @@ mod context;
 mod declaration;
 mod expression;
 mod fragment;
+mod import;
 mod infer;
 mod ksx;
 mod module;

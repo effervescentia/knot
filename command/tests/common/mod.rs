@@ -1,4 +1,12 @@
-use std::{env, fs, path::PathBuf};
+mod build;
+mod format;
+
+pub use build::build;
+pub use format::format;
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 
 /// setup for all integration tests
 #[ctor::ctor]
@@ -13,9 +21,23 @@ fn setup() {
 }
 
 pub fn test_path() -> PathBuf {
-    env::current_dir().unwrap().join("tests")
+    env::current_dir()
+        .expect("failed to get working directory")
+        .join("tests")
 }
 
 pub fn scratch_path() -> PathBuf {
     test_path().join(".scratch")
+}
+
+pub fn test_name(file: &str, suffix: &str) -> String {
+    let file_name = Path::new(file)
+        .with_extension("")
+        .file_name()
+        .expect("failed to get test file name")
+        .to_str()
+        .expect("failed to convert file name to string")
+        .to_string();
+
+    format!("{}_{suffix}", file_name)
 }

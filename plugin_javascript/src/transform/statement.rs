@@ -2,10 +2,10 @@ use crate::{
     javascript::{Expression, Statement},
     Options,
 };
-use lang::ast::{self, storage::Storage, DeclarationShape, ModuleShape, StatementShape};
+use lang::ast::{self, storage::Storage};
 
 impl Statement {
-    pub fn from_statement(value: &StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
+    pub fn from_statement(value: &ast::StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
         match &value.0 {
             ast::Statement::Expression(x) => {
                 if is_last {
@@ -31,7 +31,7 @@ impl Statement {
         }
     }
 
-    pub fn from_declaration(value: &DeclarationShape, opts: &Options) -> Vec<Self> {
+    pub fn from_declaration(value: &ast::DeclarationShape, opts: &Options) -> Vec<Self> {
         fn parameter_name(suffix: &String) -> String {
             format!("$param_{suffix}")
         }
@@ -180,13 +180,74 @@ impl Statement {
         }
     }
 
-    pub fn from_module(value: &ModuleShape, opts: &Options) -> Vec<Self> {
-        value
-            .0
-            .declarations
+    pub fn from_import(
+        ast::ImportShape(ast::Import {
+            source,
+            path,
+            aliases,
+        }): &ast::ImportShape,
+        opts: &Options,
+    ) -> Vec<Self> {
+        let base = match source {
+            ast::ImportSource::Local => String::from("."),
+            ast::ImportSource::Root => String::from("@"),
+            ast::ImportSource::External(external) => external.clone(),
+        };
+
+        let namespace = vec![vec![base], path.clone()].concat().join("/");
+        let module_name = path
+            .last()
+            .expect("failed to get the implicit module name from the last section of the path");
+
+        match aliases {
+            Some(xs) => {
+                let (mut imports, named) = xs.iter().fold(
+                    (vec![], vec![]),
+                    |(mut module_imports, mut named_imports), (target, alias)| {
+                        match target {
+                            ast::ImportTarget::Module => {
+                                module_imports.push(Statement::module_import(
+                                    &namespace,
+                                    alias.as_ref().unwrap_or(module_name),
+                                    opts,
+                                ))
+                            }
+
+                            ast::ImportTarget::Named(name) => {
+                                named_imports.push((name.clone(), alias.clone()))
+                            }
+                        }
+
+                        (module_imports, named_imports)
+                    },
+                );
+
+                if !named.is_empty() {
+                    imports.extend(Statement::import(&namespace, named, opts));
+                }
+
+                imports
+            }
+
+            None => {
+                vec![Statement::module_import(&namespace, module_name, opts)]
+            }
+        }
+    }
+
+    pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Vec<Self> {
+        let ast::Module {
+            ref imports,
+            ref declarations,
+        } = value.0;
+
+        let import_iter = imports.iter().flat_map(|x| Self::from_import(x, opts));
+
+        let declaration_iter = declarations
             .iter()
-            .flat_map(|x| Self::from_declaration(x, opts))
-            .collect()
+            .flat_map(|x| Self::from_declaration(x, opts));
+
+        import_iter.chain(declaration_iter).collect()
     }
 }
 

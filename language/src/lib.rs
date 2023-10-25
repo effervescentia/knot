@@ -5,7 +5,7 @@ mod node;
 #[cfg(feature = "test")]
 pub mod test;
 
-use ast::{Import, Module, ModuleNode};
+use ast::{ImportNode, Module, ModuleNode};
 pub use node::Node;
 
 pub trait Identity<T> {
@@ -16,7 +16,7 @@ pub trait Identity<T> {
 pub struct Program<R, C>(pub ast::ModuleNode<R, C>);
 
 impl<R, C> Program<R, C> {
-    pub fn imports(&self) -> &Vec<Import> {
+    pub fn imports(&self) -> &Vec<ImportNode<R, C>> {
         let Program(ModuleNode(Module { imports, .. }, ..)) = self;
 
         imports

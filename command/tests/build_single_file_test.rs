@@ -1,11 +1,7 @@
 mod common;
 
-use common::scratch_path;
 use js::{JavaScriptGenerator, Module};
-use knot_command::build::{self, Options};
-use kore::Generator;
-use lang::ast::ProgramShape;
-use std::fs;
+use std::collections::HashMap;
 
 const INPUT: &str = "type MyType = boolean;
 
@@ -29,29 +25,8 @@ module my_module {
 }
 ";
 
-fn build<G>(name: &str, input: &str, generator: G) -> Option<String>
-where
-    G: Generator<Input = ProgramShape>,
-{
-    let out_dir = scratch_path();
-    let entry = out_dir.join(name).with_extension("kn");
-
-    fs::write(&entry, input).ok()?;
-
-    build::command(&Options {
-        generator,
-        entry: entry.strip_prefix(&out_dir).unwrap(),
-        source_dir: out_dir.as_path(),
-        out_dir: out_dir.as_path(),
-    });
-
-    fs::read_to_string(entry.with_extension("js")).ok()
-}
-
 #[test]
 fn to_javascript_esm() {
-    const NAME: &str = "build_to_javascript_esm";
-
     const OUTPUT: &str = "import { $knot } from \"@knot/runtime\";
 var MyEnum = {
   First: function First($param_0, $param_1) {
@@ -85,15 +60,21 @@ export { MyView };
 export { my_module };
 ";
 
-    let result = build(NAME, INPUT, JavaScriptGenerator::new(Module::ESM));
+    let name = common::test_name(file!(), "esm");
+    let result = common::build(
+        &name,
+        vec![("main.kn", INPUT)],
+        JavaScriptGenerator::new(Module::ESM),
+    );
 
-    assert_eq!(result.unwrap(), OUTPUT);
+    assert_eq!(
+        result,
+        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_string())])
+    );
 }
 
 #[test]
 fn to_javascript_cjs() {
-    const NAME: &str = "build_to_javascript_cjs";
-
     const OUTPUT: &str = "var $knot = require(\"@knot/runtime\").$knot;
 var MyEnum = {
   First: function First($param_0, $param_1) {
@@ -127,7 +108,15 @@ exports.MyView = MyView;
 exports.my_module = my_module;
 ";
 
-    let result = build(NAME, INPUT, JavaScriptGenerator::new(Module::CJS));
+    let name = common::test_name(file!(), "cjs");
+    let result = common::build(
+        &name,
+        vec![("main.kn", INPUT)],
+        JavaScriptGenerator::new(Module::CJS),
+    );
 
-    assert_eq!(result.unwrap(), OUTPUT);
+    assert_eq!(
+        result,
+        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_string())])
+    );
 }

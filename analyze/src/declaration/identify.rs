@@ -31,6 +31,7 @@ mod tests {
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
         TypeExpression,
     };
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn type_alias() {
@@ -175,11 +176,11 @@ mod tests {
             f::a::module(
                 "foo",
                 f::n::mr(Module::new(
-                    vec![Import {
+                    vec![f::n::i(Import {
                         source: ImportSource::Root,
                         path: vec![String::from("bar"), String::from("fizz")],
                         aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
-                    }],
+                    })],
                     vec![f::n::d(f::a::const_(
                         "BUZZ",
                         Some(f::n::tx(TypeExpression::Nil)),
@@ -192,27 +193,33 @@ mod tests {
                 "foo",
                 ModuleNode(
                     Module::new(
-                        vec![Import {
-                            source: ImportSource::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
-                        }],
+                        vec![f::n::ic(
+                            Import {
+                                source: ImportSource::Root,
+                                path: vec![String::from("bar"), String::from("fizz")],
+                                aliases: Some(vec![(
+                                    ImportTarget::Module,
+                                    Some(String::from("Fizz"))
+                                )]),
+                            },
+                            NodeContext::new(0, vec![0])
+                        )],
                         vec![f::n::dc(
                             f::a::const_(
                                 "BUZZ",
                                 Some(f::n::txc(
                                     TypeExpression::Nil,
-                                    NodeContext::new(0, vec![0, 1])
+                                    NodeContext::new(1, vec![0, 2])
                                 )),
                                 f::n::xc(
                                     Expression::Primitive(Primitive::Nil),
-                                    NodeContext::new(1, vec![0, 1])
+                                    NodeContext::new(2, vec![0, 2])
                                 )
                             ),
-                            NodeContext::new(2, vec![0]),
+                            NodeContext::new(3, vec![0]),
                         )],
                     ),
-                    NodeContext::new(3, vec![0]),
+                    NodeContext::new(4, vec![0]),
                 )
             )
         );

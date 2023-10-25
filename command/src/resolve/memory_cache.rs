@@ -15,7 +15,13 @@ where
     {
         let Self(ref mut cache, inner) = self;
 
-        let key = || relative.as_ref().to_str().unwrap().to_string();
+        let key = || {
+            relative
+                .as_ref()
+                .to_str()
+                .expect("failed to turn relative path into a string")
+                .to_string()
+        };
 
         match (cache.get(&key()), inner.last_modified(relative)) {
             // cache is fresh

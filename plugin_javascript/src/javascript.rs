@@ -52,13 +52,20 @@ pub enum Statement {
     Variable(String, Expression),
     Assignment(Expression, Expression),
     Return(Option<Expression>),
-    // DefaultImport(String, String),
+    ModuleImport(String, String),
     Import(String, Vec<(String, Option<String>)>),
     Export(String),
     // EmptyExport,
 }
 
 impl Statement {
+    fn require(namespace: &str) -> Expression {
+        Expression::FunctionCall(
+            Box::new(Expression::Identifier(String::from("require"))),
+            vec![Expression::String(namespace.to_string())],
+        )
+    }
+
     pub fn internal_variable(name: &str, x: Expression) -> Self {
         Self::Variable(name.to_string(), x)
     }
@@ -74,18 +81,20 @@ impl Statement {
                 .map(|x| match x {
                     (name, Some(alias)) | (alias @ name, None) => Self::Variable(
                         alias.clone(),
-                        Expression::DotAccess(
-                            Box::new(Expression::FunctionCall(
-                                Box::new(Expression::Identifier(String::from("require"))),
-                                vec![Expression::String(namespace.to_string())],
-                            )),
-                            name.clone(),
-                        ),
+                        Expression::DotAccess(Box::new(Self::require(&namespace)), name.clone()),
                     ),
                 })
                 .collect(),
 
-            Module::ESM => vec![Statement::Import(namespace.to_string(), imports)],
+            Module::ESM => vec![Self::Import(namespace.to_string(), imports)],
+        }
+    }
+
+    pub fn module_import(namespace: &str, name: &str, opts: &Options) -> Self {
+        match opts.module {
+            Module::CJS => Self::Variable(name.to_string(), Self::require(namespace)),
+
+            Module::ESM => Self::ModuleImport(namespace.to_string(), name.to_string()),
         }
     }
 

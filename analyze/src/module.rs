@@ -15,7 +15,7 @@ where
     R: Clone,
 {
     fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<R, NodeContext> {
-        self.map(&|x| x.register(ctx))
+        self.map(&|x| x.register(ctx), &|x| x.register(ctx))
     }
 }
 
@@ -24,7 +24,7 @@ where
     R: Clone,
 {
     fn to_fragment<'a>(&'a self) -> Fragment {
-        Fragment::Module(self.map(&|x| *x.node().id()))
+        Fragment::Module(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
     }
 }
 
@@ -43,7 +43,7 @@ where
     }
 }
 
-impl ToWeak for Module<usize> {
+impl ToWeak for Module<usize, usize> {
     fn to_weak(&self) -> WeakRef {
         (RefKind::Mixed, Weak::Infer)
     }
@@ -55,7 +55,7 @@ where
 {
     fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<R, Strong> {
         ModuleNode(
-            self.0.map(&|x| x.to_strong(ctx)),
+            self.0.map(&|x| x.to_strong(ctx), &|x| x.to_strong(ctx)),
             ctx.resolve(self.id()).clone(),
         )
     }
@@ -74,6 +74,7 @@ mod tests {
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Primitive,
         TypeExpression,
     };
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn module() {
@@ -82,11 +83,11 @@ mod tests {
 
         assert_eq!(
             f::n::mr(Module::new(
-                vec![Import {
+                vec![f::n::i(Import {
                     source: ImportSource::Root,
                     path: vec![String::from("bar"), String::from("fizz")],
                     aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
-                }],
+                })],
                 vec![f::n::d(f::a::const_(
                     "BUZZ",
                     Some(f::n::tx(TypeExpression::Nil)),
@@ -96,27 +97,30 @@ mod tests {
             .register(scope),
             ModuleNode(
                 Module::new(
-                    vec![Import {
-                        source: ImportSource::Root,
-                        path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
-                    }],
+                    vec![f::n::ic(
+                        Import {
+                            source: ImportSource::Root,
+                            path: vec![String::from("bar"), String::from("fizz")],
+                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                        },
+                        NodeContext::new(0, vec![0])
+                    )],
                     vec![f::n::dc(
                         f::a::const_(
                             "BUZZ",
                             Some(f::n::txc(
                                 TypeExpression::Nil,
-                                NodeContext::new(0, vec![0, 1])
+                                NodeContext::new(1, vec![0, 2])
                             )),
                             f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
-                                NodeContext::new(1, vec![0, 1])
+                                NodeContext::new(2, vec![0, 2])
                             )
                         ),
-                        NodeContext::new(2, vec![0]),
+                        NodeContext::new(3, vec![0]),
                     )],
                 ),
-                NodeContext::new(3, vec![0]),
+                NodeContext::new(4, vec![0]),
             )
         );
 
@@ -125,38 +129,36 @@ mod tests {
             FragmentMap::from_iter(vec![
                 (
                     0,
-                    (vec![0, 1], Fragment::TypeExpression(TypeExpression::Nil))
+                    (
+                        vec![0],
+                        Fragment::Import(Import {
+                            source: ImportSource::Root,
+                            path: vec![String::from("bar"), String::from("fizz")],
+                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                        })
+                    )
                 ),
                 (
                     1,
-                    (
-                        vec![0, 1],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
+                    (vec![0, 2], Fragment::TypeExpression(TypeExpression::Nil))
                 ),
                 (
                     2,
                     (
-                        vec![0],
-                        Fragment::Declaration(f::a::const_("BUZZ", Some(0), 1))
+                        vec![0, 2],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
                     3,
                     (
                         vec![0],
-                        Fragment::Module(Module::new(
-                            vec![Import {
-                                source: ImportSource::Root,
-                                path: vec![String::from("bar"), String::from("fizz")],
-                                aliases: Some(vec![(
-                                    ImportTarget::Module,
-                                    Some(String::from("Fizz"))
-                                )]),
-                            }],
-                            vec![2],
-                        ))
+                        Fragment::Declaration(f::a::const_("BUZZ", Some(1), 2))
                     )
+                ),
+                (
+                    4,
+                    (vec![0], Fragment::Module(Module::new(vec![0], vec![3])))
                 ),
             ])
         );

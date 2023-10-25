@@ -17,6 +17,7 @@ impl JavaScript {
                 .declarations
                 .iter()
                 .filter_map(|x| match (&x.0, x.0.is_public()) {
+                    // type aliases are dropped in JavaScript
                     (ast::Declaration::TypeAlias { .. }, _) => None,
 
                     (_, true) => Some(Statement::export(x.0.name(), opts)),

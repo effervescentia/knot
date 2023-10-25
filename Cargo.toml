@@ -4,6 +4,7 @@ resolver = "2"
 
 members = [
   "analyze",
+  "bin",
   "command",
   "kore",
   "language",

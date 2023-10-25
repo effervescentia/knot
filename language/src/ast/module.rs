@@ -1,24 +1,24 @@
-use super::{DeclarationNode, Import};
+use super::{DeclarationNode, ImportNode};
 use crate::Identity;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Module<D> {
-    pub imports: Vec<Import>,
+pub struct Module<I, D> {
+    pub imports: Vec<I>,
     pub declarations: Vec<D>,
 }
 
-impl<D> Module<D> {
-    pub fn new(imports: Vec<Import>, declarations: Vec<D>) -> Self {
+impl<I, D> Module<I, D> {
+    pub fn new(imports: Vec<I>, declarations: Vec<D>) -> Self {
         Self {
             imports,
             declarations,
         }
     }
 
-    pub fn map<D2>(&self, fd: &impl Fn(&D) -> D2) -> Module<D2> {
+    pub fn map<I2, D2>(&self, fi: &impl Fn(&I) -> I2, fd: &impl Fn(&D) -> D2) -> Module<I2, D2> {
         Module {
-            imports: self.imports.clone(),
+            imports: self.imports.iter().map(fi).collect(),
             declarations: self.declarations.iter().map(fd).collect(),
         }
     }
@@ -28,7 +28,7 @@ impl<D> Module<D> {
     }
 }
 
-pub type ModuleNodeValue<R, C> = Module<DeclarationNode<R, C>>;
+pub type ModuleNodeValue<R, C> = Module<ImportNode<R, C>, DeclarationNode<R, C>>;
 
 #[derive(Debug, PartialEq)]
 pub struct ModuleNode<R, C>(pub ModuleNodeValue<R, C>, pub C);

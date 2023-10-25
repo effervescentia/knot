@@ -1,27 +1,7 @@
 mod common;
 
-use common::scratch_path;
-use knot_command::format::{self, Options};
-use std::fs;
-
-fn format(name: &str, input: &str) -> String {
-    let out_dir = scratch_path().join(name);
-    let entry = out_dir.join(name).with_extension("kn");
-
-    fs::create_dir(&out_dir).expect("failed to create output directory");
-    fs::write(&entry, input).expect("failed to write input file to disk");
-
-    format::command(&Options {
-        source_dir: out_dir.as_path(),
-        glob: "*.kn",
-    });
-
-    fs::read_to_string(entry).expect("failed to read output file from disk")
-}
-
 #[test]
 fn unchanged() {
-    const NAME: &str = "format_unchanged";
     const INPUT: &str = "type MyType = boolean;
 enum MyEnum =
   | First(boolean, integer)
@@ -39,12 +19,12 @@ module my_module {
 }
 ";
 
-    assert_eq!(format(NAME, INPUT), INPUT);
+    let name = common::test_name(file!(), "unchanged");
+    assert_eq!(common::format(&name, INPUT), INPUT);
 }
 
 #[test]
 fn formatted() {
-    const NAME: &str = "format_module";
     const INPUT: &str = "type MyType=boolean;
 enum MyEnum=First(boolean,integer)|Second;
 const MY_CONST=100+20;
@@ -68,5 +48,6 @@ module my_module {
 }
 ";
 
-    assert_eq!(format(NAME, INPUT), OUTPUT);
+    let name = common::test_name(file!(), "formatted");
+    assert_eq!(common::format(&name, INPUT), OUTPUT);
 }

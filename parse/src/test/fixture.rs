@@ -17,9 +17,10 @@ pub mod n {
     pub use lang::test::fixture::n::*;
     use lang::{
         ast::{
-            DeclarationNode, DeclarationNodeValue, ExpressionNode, ExpressionNodeValue, KSXNode,
-            KSXNodeValue, ModuleNode, ModuleNodeValue, ParameterNode, ParameterNodeValue,
-            StatementNode, StatementNodeValue, TypeExpressionNode, TypeExpressionNodeValue,
+            DeclarationNode, DeclarationNodeValue, ExpressionNode, ExpressionNodeValue, ImportNode,
+            ImportNodeValue, KSXNode, KSXNodeValue, ModuleNode, ModuleNodeValue, ParameterNode,
+            ParameterNodeValue, StatementNode, StatementNodeValue, TypeExpressionNode,
+            TypeExpressionNodeValue,
         },
         Node,
     };
@@ -109,6 +110,18 @@ pub mod n {
 
     pub fn dc<T>(x: DeclarationNodeValue<Range, T>, ctx: T) -> DeclarationNode<Range, T> {
         DeclarationNode(Node::new(x, RANGE, ctx))
+    }
+
+    pub fn i(x: ImportNodeValue) -> ImportNode<Range, ()> {
+        ImportNode::raw(x, RANGE)
+    }
+
+    pub fn ir(x: ImportNodeValue, (start, end): InitRange) -> ImportNode<Range, ()> {
+        ImportNode::raw(x, Range(start, end))
+    }
+
+    pub fn ic<T>(x: ImportNodeValue, ctx: T) -> ImportNode<Range, T> {
+        ImportNode(Node::new(x, RANGE, ctx))
     }
 
     pub fn m(x: ModuleNodeValue<Range, ()>) -> ModuleNode<Range, ()> {

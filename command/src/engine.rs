@@ -10,7 +10,7 @@ use parse::Range;
 use std::{
     collections::{HashMap, VecDeque},
     fmt::Display,
-    fs::File,
+    fs::{self, File},
     io::{BufWriter, Write},
     path::{Path, PathBuf},
 };
@@ -31,9 +31,18 @@ where
 {
     pub fn write(&self, dir: &Path) {
         self.0.iter().for_each(|(path, generated)| {
-            let mut writer = BufWriter::new(File::create(dir.join(path)).unwrap());
-            write!(writer, "{generated}").unwrap();
-            writer.flush().unwrap();
+            let path = dir.join(path);
+
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).ok();
+            }
+
+            let mut writer = BufWriter::new(File::create(&path).expect(&format!(
+                "failed to create file from path {}",
+                path.display()
+            )));
+            write!(writer, "{generated}").ok();
+            writer.flush().ok();
         })
     }
 }
@@ -55,15 +64,21 @@ where
 
         ast.imports()
             .iter()
-            .map(|x| Link::from_import(&path, x))
+            .map(|x| Link::from_import(&path, x.node().value()))
             .collect::<Vec<_>>()
     }
 
     fn parse_one(resolver: &mut R, link: &Link) -> (String, Program<Range, ()>) {
         let path = link.to_path();
 
-        let input = resolver.resolve(&path).unwrap();
-        let (ast, _) = parse::parse(&input).unwrap();
+        let input = resolver.resolve(&path).expect(&format!(
+            "failed to resolve file with path {}",
+            path.display()
+        ));
+        let (ast, _) = parse::parse(&input).expect(&format!(
+            "failed to parse file with path {}",
+            path.display()
+        ));
 
         (input, ast)
     }
@@ -110,9 +125,7 @@ where
         let mut queue = VecDeque::from_iter(vec![self.state]);
         let mut parsed = HashMap::new();
 
-        while !queue.is_empty() {
-            let next = queue.pop_front().unwrap();
-
+        while let Some(next) = queue.pop_front() {
             let (input, ast) = Self::parse_one(&mut self.resolver, &next);
             let links = Self::get_links(&next, &ast);
 
@@ -139,11 +152,22 @@ where
     fn glob(&self) -> Vec<PathBuf> {
         let (dir, pattern) = self.state;
 
-        glob::glob(vec![dir.to_str().unwrap(), pattern].join("/").as_str())
-            .unwrap()
-            .map(|x| x.unwrap())
-            .map(|x| x.strip_prefix(dir).unwrap().to_path_buf())
-            .collect::<Vec<_>>()
+        glob::glob(
+            vec![
+                dir.to_str().expect("failed to convert directory to string"),
+                pattern,
+            ]
+            .join("/")
+            .as_str(),
+        )
+        .expect("failed to compile glob")
+        .map(|x| x.expect("failed to apply glob"))
+        .map(|x| {
+            x.strip_prefix(dir)
+                .expect("failed to strip prefix from path")
+                .to_path_buf()
+        })
+        .collect::<Vec<_>>()
     }
 
     /// parse all modules that match the glob

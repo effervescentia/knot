@@ -1,6 +1,5 @@
-use std::path::{Path, PathBuf};
-
 use lang::ast;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum LinkSource {
@@ -51,12 +50,19 @@ impl Link {
             ast::ImportSource::Root => Self(LinkSource::Internal, path.clone()),
 
             ast::ImportSource::Local => {
+                let file_path = file_path.as_ref();
                 let relative_path = file_path
-                    .as_ref()
                     .parent()
-                    .unwrap()
+                    .expect(&format!(
+                        "failed to get parent from file path {}",
+                        file_path.display()
+                    ))
                     .iter()
-                    .map(|x| x.to_str().unwrap().to_string())
+                    .map(|x| {
+                        x.to_str()
+                            .expect("failed to convert file path to string")
+                            .to_string()
+                    })
                     .collect::<Vec<_>>();
 
                 Self(LinkSource::Internal, [relative_path, path.clone()].concat())

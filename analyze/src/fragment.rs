@@ -1,5 +1,8 @@
 use super::infer::weak::{ToWeak, WeakRef};
-use lang::ast::{Declaration, Expression, Module, Parameter, Statement, TypeExpression, KSX};
+use lang::ast::{
+    Declaration, Expression, Import, ImportTarget, Module, Parameter, Statement, TypeExpression,
+    KSX,
+};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -10,18 +13,45 @@ pub enum Fragment {
     Parameter(Parameter<usize, usize>),
     TypeExpression(TypeExpression<usize>),
     Declaration(Declaration<usize, usize, usize, usize>),
-    Module(Module<usize>),
+    Import(Import),
+    Module(Module<usize, usize>),
 }
 
 impl Fragment {
-    pub fn to_binding(&self) -> Option<String> {
+    pub fn to_binding(&self) -> Vec<String> {
         match self {
             Fragment::Statement(Statement::Variable(name, ..))
-            | Fragment::Parameter(Parameter { name, .. }) => Some(name.clone()),
+            | Fragment::Parameter(Parameter { name, .. }) => vec![name.clone()],
 
-            Fragment::Declaration(x) => Some(x.name().clone()),
+            Fragment::Declaration(x) => vec![x.name().clone()],
 
-            _ => None,
+            Fragment::Import(Import {
+                path,
+                aliases: None,
+                ..
+            }) => vec![path
+                .last()
+                .expect("failed to get last part of import path")
+                .clone()],
+
+            Fragment::Import(Import {
+                path,
+                aliases: Some(aliases),
+                ..
+            }) => aliases
+                .iter()
+                .map(|(target, alias)| match target {
+                    ImportTarget::Module => alias
+                        .as_ref()
+                        .or_else(|| path.last())
+                        .expect("failed to get last part of import path")
+                        .clone(),
+
+                    ImportTarget::Named(name) => alias.as_ref().unwrap_or(name).clone(),
+                })
+                .collect(),
+
+            _ => vec![],
         }
     }
 }
@@ -35,6 +65,7 @@ impl ToWeak for Fragment {
             Fragment::Parameter(x) => x.to_weak(),
             Fragment::TypeExpression(x) => x.to_weak(),
             Fragment::Declaration(x) => x.to_weak(),
+            Fragment::Import(x) => x.to_weak(),
             Fragment::Module(x) => x.to_weak(),
         }
     }
@@ -43,13 +74,17 @@ impl ToWeak for Fragment {
 #[cfg(test)]
 mod tests {
     use super::Fragment;
-    use lang::{ast::Statement, test::fixture as f};
+    use lang::{
+        ast::{Import, ImportSource, ImportTarget, Statement},
+        test::fixture as f,
+    };
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn binding_variable() {
         assert_eq!(
             Fragment::Statement(Statement::Variable(String::from("foo"), 0)).to_binding(),
-            Some(String::from("foo"))
+            vec![String::from("foo")]
         );
     }
 
@@ -57,7 +92,7 @@ mod tests {
     fn binding_type_alias() {
         assert_eq!(
             Fragment::Declaration(f::a::type_("Foo", 0)).to_binding(),
-            Some(String::from("Foo"))
+            vec![String::from("Foo")]
         );
     }
 
@@ -65,7 +100,7 @@ mod tests {
     fn binding_enumerated() {
         assert_eq!(
             Fragment::Declaration(f::a::enum_("Foo", vec![])).to_binding(),
-            Some(String::from("Foo"))
+            vec![String::from("Foo")]
         );
     }
 
@@ -73,7 +108,7 @@ mod tests {
     fn binding_constant() {
         assert_eq!(
             Fragment::Declaration(f::a::const_("FOO", None, 0)).to_binding(),
-            Some(String::from("FOO"))
+            vec![String::from("FOO")]
         );
     }
 
@@ -81,7 +116,7 @@ mod tests {
     fn binding_function() {
         assert_eq!(
             Fragment::Declaration(f::a::func_("foo", vec![], None, 0)).to_binding(),
-            Some(String::from("foo"))
+            vec![String::from("foo")]
         );
     }
 
@@ -89,7 +124,46 @@ mod tests {
     fn binding_view() {
         assert_eq!(
             Fragment::Declaration(f::a::view("Foo", vec![], 0)).to_binding(),
-            Some(String::from("Foo"))
+            vec![String::from("Foo")]
+        );
+    }
+
+    #[test]
+    fn binding_module_import() {
+        assert_eq!(
+            Fragment::Import(Import {
+                source: ImportSource::Local,
+                path: vec![String::from("foo"), String::from("bar")],
+                aliases: None
+            })
+            .to_binding(),
+            vec![String::from("bar")]
+        );
+    }
+
+    #[test]
+    fn binding_module_star_import() {
+        assert_eq!(
+            Fragment::Import(Import {
+                source: ImportSource::Local,
+                path: vec![String::from("foo"), String::from("bar")],
+                aliases: Some(vec![(ImportTarget::Module, None)])
+            })
+            .to_binding(),
+            vec![String::from("bar")]
+        );
+    }
+
+    #[test]
+    fn binding_module_import_with_alias() {
+        assert_eq!(
+            Fragment::Import(Import {
+                source: ImportSource::Local,
+                path: vec![String::from("foo"), String::from("bar")],
+                aliases: Some(vec![(ImportTarget::Module, Some(String::from("fizz")))])
+            })
+            .to_binding(),
+            vec![String::from("fizz")]
         );
     }
 
@@ -97,7 +171,7 @@ mod tests {
     fn binding_module() {
         assert_eq!(
             Fragment::Declaration(f::a::module("foo", 0)).to_binding(),
-            Some(String::from("foo"))
+            vec![String::from("foo")]
         );
     }
 }

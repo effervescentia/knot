@@ -11,8 +11,9 @@ pub struct MockRange;
 pub mod n {
     use super::*;
     use crate::ast::{
-        DeclarationNodeValue, ExpressionNodeValue, KSXNodeValue, ModuleNodeValue, ParameterNode,
-        ParameterNodeValue, StatementNodeValue, TypeExpressionNodeValue,
+        DeclarationNodeValue, ExpressionNodeValue, ImportNode, ImportNodeValue, KSXNodeValue,
+        ModuleNodeValue, ParameterNode, ParameterNodeValue, StatementNodeValue,
+        TypeExpressionNodeValue,
     };
 
     pub fn x(x: ExpressionNodeValue<MockRange, ()>) -> ExpressionNode<MockRange, ()> {
@@ -37,6 +38,10 @@ pub mod n {
 
     pub fn d(x: DeclarationNodeValue<MockRange, ()>) -> DeclarationNode<MockRange, ()> {
         DeclarationNode::raw(x, MockRange)
+    }
+
+    pub fn i(x: ImportNodeValue) -> ImportNode<MockRange, ()> {
+        ImportNode::raw(x, MockRange)
     }
 
     pub fn m(x: ModuleNodeValue<MockRange, ()>) -> ModuleNode<MockRange, ()> {

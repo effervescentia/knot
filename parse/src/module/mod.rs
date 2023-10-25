@@ -2,12 +2,12 @@ pub mod import;
 
 use crate::{declaration, Position, Range};
 use combine::{choice, many, Parser, Stream};
-use lang::ast::{Import, Module, ModuleNode};
+use lang::ast::{Module, ModuleNode};
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
-enum Entry<D> {
-    Import(Import),
+enum Entry<I, D> {
+    Import(I),
     Declaration(D),
 }
 
@@ -63,10 +63,9 @@ mod tests {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
             f::n::mr(Module::new(
-                vec![Import::new(
-                    ImportSource::Root,
-                    vec![String::from("foo")],
-                    None
+                vec![f::n::ir(
+                    Import::new(ImportSource::Root, vec![String::from("foo")], None),
+                    ((1, 1), (1, 1))
                 )],
                 vec![]
             ))

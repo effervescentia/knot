@@ -143,11 +143,17 @@ mod tests {
                 "foo",
                 ModuleNode(
                     Module::new(
-                        vec![Import {
-                            source: ImportSource::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
-                        }],
+                        vec![f::n::ic(
+                            Import {
+                                source: ImportSource::Root,
+                                path: vec![String::from("bar"), String::from("fizz")],
+                                aliases: Some(vec![(
+                                    ImportTarget::Module,
+                                    Some(String::from("Fizz"))
+                                )]),
+                            },
+                            NodeContext::new(1, vec![0])
+                        )],
                         vec![f::n::dc(
                             f::a::const_(
                                 "BUZZ",

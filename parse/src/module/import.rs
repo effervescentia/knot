@@ -1,9 +1,9 @@
-use crate::{matcher as m, Position};
+use crate::{matcher as m, Position, Range};
 use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
-use lang::ast::{Import, ImportSource, ImportTarget};
+use lang::ast::{Import, ImportNode, ImportSource, ImportTarget};
 
 // use @/x;
 // use @/x.{a, b};
@@ -14,7 +14,7 @@ use lang::ast::{Import, ImportSource, ImportTarget};
 // use @scope/external/z;
 // use @scope/external/z.{e, f};
 
-pub fn import<T>() -> impl Parser<T, Output = Import>
+pub fn import<T>() -> impl Parser<T, Output = ImportNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
@@ -58,19 +58,26 @@ where
             sep_end_by(alias(), m::symbol(',')),
         ))),
     ))
-    .map(|(_, source, path, aliases)| Import {
-        source,
-        path,
-        aliases,
+    .map(|((_, start), source, path, aliases)| {
+        ImportNode::raw(
+            Import {
+                source,
+                path,
+                aliases,
+            },
+            start,
+        )
     })
 }
 
 #[cfg(test)]
 mod tests {
     use super::{Import, ImportSource, ImportTarget};
+    use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use lang::ast::ImportNode;
 
-    fn parse(s: &str) -> crate::Result<Import> {
+    fn parse(s: &str) -> crate::Result<ImportNode<Range, ()>> {
         super::import().skip(eof()).easy_parse(Stream::new(s))
     }
 
@@ -78,7 +85,10 @@ mod tests {
     fn import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            Import::new(ImportSource::Root, vec![String::from("foo")], None)
+            f::n::ir(
+                Import::new(ImportSource::Root, vec![String::from("foo")], None),
+                ((1, 1), (1, 1))
+            )
         );
     }
 
@@ -86,14 +96,17 @@ mod tests {
     fn import_nested() {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
-            Import::new(
-                ImportSource::Root,
-                vec![
-                    String::from("foo"),
-                    String::from("bar"),
-                    String::from("fizz")
-                ],
-                None
+            f::n::ir(
+                Import::new(
+                    ImportSource::Root,
+                    vec![
+                        String::from("foo"),
+                        String::from("bar"),
+                        String::from("fizz")
+                    ],
+                    None
+                ),
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -102,7 +115,10 @@ mod tests {
     fn import_named_empty() {
         assert_eq!(
             parse("use @/foo.{};").unwrap().0,
-            Import::new(ImportSource::Root, vec![String::from("foo")], Some(vec![]))
+            f::n::ir(
+                Import::new(ImportSource::Root, vec![String::from("foo")], Some(vec![])),
+                ((1, 1), (1, 1))
+            )
         );
     }
 
@@ -110,13 +126,16 @@ mod tests {
     fn import_named() {
         assert_eq!(
             parse("use @/foo.{*, bar};").unwrap().0,
-            Import::new(
-                ImportSource::Root,
-                vec![String::from("foo")],
-                Some(vec![
-                    (ImportTarget::Module, None),
-                    (ImportTarget::Named(String::from("bar")), None)
-                ])
+            f::n::ir(
+                Import::new(
+                    ImportSource::Root,
+                    vec![String::from("foo")],
+                    Some(vec![
+                        (ImportTarget::Module, None),
+                        (ImportTarget::Named(String::from("bar")), None)
+                    ])
+                ),
+                ((1, 1), (1, 1))
             )
         );
     }
@@ -125,16 +144,19 @@ mod tests {
     fn import_named_with_alias() {
         assert_eq!(
             parse("use @/foo.{* as foo, fizz as buzz};").unwrap().0,
-            Import::new(
-                ImportSource::Root,
-                vec![String::from("foo")],
-                Some(vec![
-                    (ImportTarget::Module, Some(String::from("foo"))),
-                    (
-                        ImportTarget::Named(String::from("fizz")),
-                        Some(String::from("buzz"))
-                    )
-                ])
+            f::n::ir(
+                Import::new(
+                    ImportSource::Root,
+                    vec![String::from("foo")],
+                    Some(vec![
+                        (ImportTarget::Module, Some(String::from("foo"))),
+                        (
+                            ImportTarget::Named(String::from("fizz")),
+                            Some(String::from("buzz"))
+                        )
+                    ])
+                ),
+                ((1, 1), (1, 1))
             )
         );
     }

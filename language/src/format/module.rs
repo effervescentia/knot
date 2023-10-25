@@ -1,4 +1,4 @@
-use crate::ast::{Import, ImportSource, ModuleNode};
+use crate::ast::{ImportNode, ImportSource, ModuleNode};
 use kore::format::{SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
@@ -17,17 +17,20 @@ where
     }
 }
 
-impl Display for Import {
+impl<R, C> Display for ImportNode<R, C>
+where
+    R: Clone,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
             "use {source}/{path}",
-            source = match &self.source {
+            source = match &self.0.value().source {
                 ImportSource::Root => "@",
                 ImportSource::Local => ".",
                 ImportSource::External(x) => x,
             },
-            path = SeparateEach("/", &self.path)
+            path = SeparateEach("/", &self.0.value().path)
         )
     }
 }
@@ -51,11 +54,11 @@ mod tests {
     fn imports() {
         assert_eq!(
             f::n::m(Module::new(
-                vec![Import::new(
+                vec![f::n::i(Import::new(
                     ImportSource::Root,
                     vec![String::from("bar"), String::from("fizz")],
                     None
-                )],
+                ))],
                 vec![]
             ))
             .to_string(),
@@ -81,11 +84,11 @@ mod tests {
     fn imports_and_declarations() {
         assert_eq!(
             f::n::m(Module::new(
-                vec![Import::new(
+                vec![f::n::i(Import::new(
                     ImportSource::Root,
                     vec![String::from("bar"), String::from("fizz")],
                     None
-                )],
+                ))],
                 vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
             ))
             .to_string(),

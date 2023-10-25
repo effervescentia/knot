@@ -33,6 +33,10 @@ impl Display for Statement {
                     )
                 )
             }
+
+            Statement::ModuleImport(namespace, name) => {
+                write!(f, "import * as {name} from \"{namespace}\";")
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+use crate::Node;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -31,5 +32,35 @@ impl Import {
             path,
             aliases,
         }
+    }
+}
+
+pub type ImportNodeValue = Import;
+
+#[derive(Debug, PartialEq)]
+pub struct ImportNode<R, C>(pub Node<ImportNodeValue, R, C>);
+
+impl<R, C> ImportNode<R, C>
+where
+    R: Clone,
+{
+    pub fn node(&self) -> &Node<ImportNodeValue, R, C> {
+        &self.0
+    }
+
+    pub fn map<C2>(
+        &self,
+        f: impl Fn(&ImportNodeValue, &C) -> (ImportNodeValue, C2),
+    ) -> ImportNode<R, C2> {
+        let node = self.node();
+        let (value, ctx) = f(node.value(), node.context());
+
+        ImportNode(Node(value, node.range().clone(), ctx))
+    }
+}
+
+impl<R> ImportNode<R, ()> {
+    pub fn raw(x: ImportNodeValue, range: R) -> Self {
+        Self(Node::raw(x, range))
     }
 }
