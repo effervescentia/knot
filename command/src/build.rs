@@ -23,6 +23,7 @@ where
     engine
         .from_entry(opts.entry)
         .parse_and_load()
+        .link()
         .analyze()
         .generate(&opts.generator)
         .write(opts.out_dir);

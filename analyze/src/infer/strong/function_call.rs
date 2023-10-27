@@ -9,7 +9,7 @@ pub fn infer(lhs: usize, arguments: &Vec<usize>, ctx: &StrongContext) -> Option<
 
     let resolve_all_types = |xs: &Vec<usize>| {
         xs.iter()
-            .map(|id| match ctx.get_strong(id, &kind) {
+            .map(|id| match ctx.as_strong(id, &kind) {
                 Some(Ok(x)) => Some((x.clone(), *id)),
                 // FIXME: may need to forward Some(Err(_)) state to determine NotInferrable
                 _ => None,
@@ -48,12 +48,12 @@ pub fn infer(lhs: usize, arguments: &Vec<usize>, ctx: &StrongContext) -> Option<
             }
         };
 
-    match ctx.get_strong(&lhs, &kind)? {
+    match ctx.as_strong(&lhs, &kind)? {
         Ok(x @ Type::Function(parameters, result)) => {
             match (
                 resolve_all_types(parameters),
                 resolve_all_types(arguments),
-                ctx.get_strong(result, &kind),
+                ctx.as_strong(result, &kind),
             ) {
                 (Some(typed_parameters), Some(typed_arguments), Some(Ok(typed_result))) => {
                     match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {

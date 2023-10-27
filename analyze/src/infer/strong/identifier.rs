@@ -12,7 +12,7 @@ pub fn infer(
     ctx: &StrongContext,
 ) -> Option<Strong> {
     match ctx.bindings.resolve(scope, name, *id) {
-        Some(inherit_id) => ctx.get_strong(&inherit_id, kind).map(|x| x.clone()),
+        Some(inherit_id) => ctx.as_strong(&inherit_id, kind).map(|x| x.clone()),
 
         None => Some(Err(SemanticError::NotFound(name.clone()))),
     }

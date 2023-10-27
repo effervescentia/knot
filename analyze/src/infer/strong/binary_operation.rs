@@ -8,8 +8,8 @@ use lang::ast::BinaryOperator;
 pub fn infer(op: &BinaryOperator, lhs: usize, rhs: usize, ctx: &StrongContext) -> Option<Strong> {
     match op {
         BinaryOperator::Add | BinaryOperator::Subtract | BinaryOperator::Multiply => match (
-            ctx.get_strong(&lhs, &RefKind::Value),
-            ctx.get_strong(&rhs, &RefKind::Value),
+            ctx.as_strong(&lhs, &RefKind::Value),
+            ctx.as_strong(&rhs, &RefKind::Value),
         ) {
             (Some(Ok(Type::Integer)), Some(Ok(Type::Integer))) => Some(Ok(Type::Integer)),
 

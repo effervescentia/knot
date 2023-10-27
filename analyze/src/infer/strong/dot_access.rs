@@ -5,13 +5,13 @@ use crate::{
 };
 
 pub fn infer(lhs: usize, rhs: String, kind: &RefKind, ctx: &StrongContext) -> Option<Strong> {
-    match ctx.get_strong(&lhs, kind)? {
+    match ctx.as_strong(&lhs, kind)? {
         Ok(x @ Type::Module(declarations)) => {
             match declarations.iter().find(|(name, ..)| name == &rhs) {
                 Some((_, declaration_kind, declaration_id))
                     if declaration_kind == kind || declaration_kind == &RefKind::Mixed =>
                 {
-                    ctx.get_strong(&declaration_id, kind).map(|x| x.clone())
+                    ctx.as_strong(&declaration_id, kind).map(|x| x.clone())
                 }
 
                 Some(_) => Some(Err(SemanticError::IllegalTypeAccess(

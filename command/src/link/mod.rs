@@ -1,3 +1,6 @@
+mod import_graph;
+
+pub use import_graph::ImportGraph;
 use lang::ast;
 use std::path::{Path, PathBuf};
 

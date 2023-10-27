@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 glob = "0.3.1"
+petgraph = "0.6.4"
 kore = { package = "knot_core", path = "../kore" }
 lang = { package = "knot_language", path = "../language" }
 js = { package = "knot_plugin_javascript", path = "../plugin_javascript" }

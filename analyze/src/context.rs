@@ -151,7 +151,7 @@ impl StrongContext {
         }
     }
 
-    pub fn get_strong<'a>(&'a self, id: &'a usize, kind: &'a RefKind) -> Option<&'a Strong> {
+    pub fn as_strong<'a>(&'a self, id: &'a usize, kind: &'a RefKind) -> Option<&'a Strong> {
         self.refs.get(id).and_then(|(found_kind, strong)| {
             if found_kind == kind || found_kind == &RefKind::Mixed {
                 Some(strong)
@@ -174,7 +174,7 @@ impl StrongContext {
         (from_id, from_kind): (usize, &RefKind),
         (to_id, to_kind): (usize, &RefKind),
     ) -> bool {
-        if let Some(strong) = self.get_strong(&from_id, from_kind) {
+        if let Some(strong) = self.as_strong(&from_id, from_kind) {
             self.refs.insert(to_id, (to_kind.clone(), strong.clone()));
             true
         } else {

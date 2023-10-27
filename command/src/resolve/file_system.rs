@@ -8,7 +8,7 @@ use std::{
 pub struct FileSystem<'a>(pub &'a Path);
 
 impl<'a> FileSystem<'a> {
-    fn get_file_path<P>(&self, relative: P) -> PathBuf
+    fn make_absolute<P>(&self, relative: P) -> PathBuf
     where
         P: AsRef<Path>,
     {
@@ -21,7 +21,7 @@ impl<'a> Resolver for FileSystem<'a> {
     where
         P: AsRef<Path>,
     {
-        let path = self.get_file_path(relative);
+        let path = self.make_absolute(relative);
 
         fs::read_to_string(path.as_path()).ok()
     }
@@ -30,7 +30,7 @@ impl<'a> Resolver for FileSystem<'a> {
     where
         P: AsRef<Path>,
     {
-        let path = self.get_file_path(relative);
+        let path = self.make_absolute(relative);
         let metadata = fs::metadata(path).ok()?;
 
         metadata.modified().ok()
@@ -55,11 +55,11 @@ mod tests {
     const FILE_CONTENTS: &str = "what's in the box?!";
 
     #[test]
-    fn get_file_path() {
+    fn make_absolute() {
         let file_system = FileSystem(Path::new("foo/bar"));
 
         assert_eq!(
-            file_system.get_file_path(Path::new(TARGET_FILE)),
+            file_system.make_absolute(Path::new(TARGET_FILE)),
             Path::new(&format!("foo/bar/{}", TARGET_FILE))
         );
     }

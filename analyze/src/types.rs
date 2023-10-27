@@ -71,7 +71,7 @@ impl<T> Type<T> {
 
 impl Type<usize> {
     pub fn preview(&self, kind: &RefKind, ctx: &StrongContext) -> Option<PreviewType> {
-        self.opt_map(&|x| match ctx.get_strong(x, kind) {
+        self.opt_map(&|x| match ctx.as_strong(x, kind) {
             Some(Ok(typ)) => typ.preview(kind, ctx).map(Box::new),
             _ => None,
         })
