@@ -1,7 +1,4 @@
-use crate::{
-    engine::{self, Engine},
-    resolve::FileSystem,
-};
+use engine::{Engine, FileSystem};
 use std::path::Path;
 
 pub struct Options<'a> {

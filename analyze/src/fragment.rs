@@ -74,11 +74,11 @@ impl ToWeak for Fragment {
 #[cfg(test)]
 mod tests {
     use super::Fragment;
+    use kore::assert_eq;
     use lang::{
         ast::{Import, ImportSource, ImportTarget, Statement},
         test::fixture as f,
     };
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn binding_variable() {

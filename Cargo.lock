@@ -125,27 +125,21 @@ dependencies = [
 name = "knot_analyze"
 version = "0.1.0"
 dependencies = [
+ "knot_core",
  "knot_language",
  "knot_parse",
- "pretty_assertions",
 ]
 
 [[package]]
 name = "knot_command"
 version = "0.1.0"
 dependencies = [
- "bimap",
  "ctor",
  "glob",
- "knot_analyze",
- "knot_command",
  "knot_core",
+ "knot_engine",
  "knot_language",
- "knot_parse",
  "knot_plugin_javascript",
- "petgraph",
- "pretty_assertions",
- "tempfile",
 ]
 
 [[package]]
@@ -153,6 +147,22 @@ name = "knot_core"
 version = "0.1.0"
 dependencies = [
  "indenter",
+ "pretty_assertions",
+]
+
+[[package]]
+name = "knot_engine"
+version = "0.1.0"
+dependencies = [
+ "bimap",
+ "glob",
+ "knot_analyze",
+ "knot_core",
+ "knot_engine",
+ "knot_language",
+ "knot_parse",
+ "petgraph",
+ "tempfile",
 ]
 
 [[package]]

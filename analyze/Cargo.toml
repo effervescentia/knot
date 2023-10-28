@@ -9,7 +9,7 @@ edition = "2021"
 lang = { package = "knot_language", path = "../language" }
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+kore = { package = "knot_core", path = "../kore", features = ["test"] }
 lang = { package = "knot_language", path = "../language", features = ["test"] }
 parse = { package = "knot_parse", path = "../parse", default-features = false, features = [
   "test",

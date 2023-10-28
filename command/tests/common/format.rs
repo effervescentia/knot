@@ -1,8 +1,5 @@
 use super::scratch_path;
-use knot_command::{
-    engine,
-    format::{self, Options},
-};
+use knot_command::format::{self, Options};
 use std::fs;
 
 pub fn format(test_name: &str, input: &str) -> engine::Result<String> {

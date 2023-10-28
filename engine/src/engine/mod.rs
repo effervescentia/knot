@@ -3,6 +3,7 @@ mod state;
 use crate::{
     link::{ImportGraph, Link},
     resolve::Resolver,
+    Error,
 };
 use bimap::BiMap;
 use kore::Generator;
@@ -18,11 +19,6 @@ use std::{
     io::{BufWriter, Write},
     path::{Path, PathBuf},
 };
-
-#[derive(Clone, Eq, Debug, PartialEq)]
-pub enum Error {
-    ImportCycle(Vec<Link>),
-}
 
 pub type Result<T> = std::result::Result<T, Vec<Error>>;
 

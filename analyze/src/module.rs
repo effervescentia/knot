@@ -70,11 +70,11 @@ mod tests {
         test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
+    use kore::assert_eq;
     use lang::ast::{
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Primitive,
         TypeExpression,
     };
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn module() {

@@ -1,7 +1,7 @@
 mod common;
 
+use engine::Link;
 use js::{JavaScriptGenerator, Module};
-use knot_command::{engine, Link};
 
 #[test]
 fn cyclic() {

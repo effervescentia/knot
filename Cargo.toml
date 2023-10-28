@@ -6,6 +6,7 @@ members = [
   "analyze",
   "bin",
   "command",
+  "engine",
   "kore",
   "language",
   "parse",

@@ -1,5 +1,5 @@
 use super::scratch_path;
-use knot_command::{build, engine};
+use knot_command::build;
 use kore::Generator;
 use lang::ast::ProgramShape;
 use std::{collections::HashMap, fs, path::Path};

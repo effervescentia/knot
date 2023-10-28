@@ -194,7 +194,7 @@ impl From<&str> for Rows {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_str_eq;
+    use kore::assert_str_eq;
 
     use crate::link::ImportGraph;
 

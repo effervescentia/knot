@@ -36,11 +36,11 @@ mod tests {
         register::Register,
         test::fixture as f,
     };
+    use kore::assert_eq;
     use lang::ast::{
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
         TypeExpression,
     };
-    use pretty_assertions::assert_eq;
 
     #[test]
     fn register_declaration() {

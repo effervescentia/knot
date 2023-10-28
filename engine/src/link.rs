@@ -1,6 +1,4 @@
-mod import_graph;
-
-pub use import_graph::ImportGraph;
+pub use crate::import_graph::ImportGraph;
 use lang::ast;
 use std::{
     ffi::OsStr,
