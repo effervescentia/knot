@@ -65,7 +65,7 @@ mod tests {
             f::n::mr(Module::new(
                 vec![f::n::ir(
                     Import::new(ImportSource::Root, vec![String::from("foo")], None),
-                    ((1, 1), (1, 1))
+                    ((1, 1), (1, 3))
                 )],
                 vec![]
             ))

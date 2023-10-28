@@ -87,7 +87,7 @@ mod tests {
             parse("use @/foo;").unwrap().0,
             f::n::ir(
                 Import::new(ImportSource::Root, vec![String::from("foo")], None),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 3))
             )
         );
     }
@@ -106,7 +106,7 @@ mod tests {
                     ],
                     None
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 3))
             )
         );
     }
@@ -117,7 +117,7 @@ mod tests {
             parse("use @/foo.{};").unwrap().0,
             f::n::ir(
                 Import::new(ImportSource::Root, vec![String::from("foo")], Some(vec![])),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 3))
             )
         );
     }
@@ -135,7 +135,7 @@ mod tests {
                         (ImportTarget::Named(String::from("bar")), None)
                     ])
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 3))
             )
         );
     }
@@ -156,7 +156,7 @@ mod tests {
                         )
                     ])
                 ),
-                ((1, 1), (1, 1))
+                ((1, 1), (1, 3))
             )
         );
     }

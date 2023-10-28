@@ -1,12 +1,16 @@
 use crate::{link::Link, resolve::Resolver};
 use analyze::Strong;
-use kore::Generator;
+use bimap::BiMap;
+use kore::{graph::Graph, Generator};
 use lang::{
     ast::{self, ToShape},
     Program,
 };
 use parse::Range;
-use petgraph::{graph::Graph, Directed};
+// use petgraph::{
+//     stable_graph::{NodeIndex, StableGraph},
+//     Directed,
+// };
 use std::{
     collections::{HashMap, VecDeque},
     fmt::Display,
@@ -17,6 +21,13 @@ use std::{
 
 mod state {
     use super::*;
+
+    pub trait Modules<'a> {
+        type Context: 'a;
+        type Iter: Iterator<Item = (&'a Link, &'a Module<Self::Context>)>;
+
+        fn modules(&'a self) -> Self::Iter;
+    }
 
     pub struct Module<T> {
         pub id: usize,
@@ -30,12 +41,6 @@ mod state {
         }
     }
 
-    pub trait Modules<'a> {
-        type Context;
-
-        fn modules(&'a self) -> &'a HashMap<Link, Module<Self::Context>>;
-    }
-
     pub struct FromEntry(pub Link);
 
     pub struct FromGlob<'a> {
@@ -45,42 +50,45 @@ mod state {
 
     pub struct Parsed {
         pub modules: HashMap<Link, Module<()>>,
-        pub lookup: HashMap<usize, Link>,
+        pub lookup: BiMap<usize, Link>,
     }
 
     impl<'a> Modules<'a> for Parsed {
         type Context = ();
+        type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-        fn modules(&'a self) -> &'a HashMap<Link, Module<Self::Context>> {
-            &self.modules
+        fn modules(&'a self) -> Self::Iter {
+            self.modules.iter()
         }
     }
 
     pub struct Linked {
         pub modules: HashMap<Link, Module<()>>,
-        pub lookup: HashMap<usize, Link>,
-        pub graph: Graph<usize, (), Directed>,
+        pub lookup: BiMap<usize, Link>,
+        pub graph: Graph<usize>,
     }
 
     impl<'a> Modules<'a> for Linked {
         type Context = ();
+        type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-        fn modules(&'a self) -> &'a HashMap<Link, Module<Self::Context>> {
-            &self.modules
+        fn modules(&'a self) -> Self::Iter {
+            self.modules.iter()
         }
     }
 
     pub struct Analyzed {
         pub modules: HashMap<Link, Module<Strong>>,
-        pub lookup: HashMap<usize, Link>,
-        pub graph: Graph<usize, (), Directed>,
+        pub lookup: BiMap<usize, Link>,
+        pub graph: Graph<usize>,
     }
 
     impl<'a> Modules<'a> for Analyzed {
         type Context = Strong;
+        type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-        fn modules(&'a self) -> &'a HashMap<Link, Module<Self::Context>> {
-            &self.modules
+        fn modules(&'a self) -> Self::Iter {
+            self.modules.iter()
         }
     }
 }
@@ -123,7 +131,7 @@ impl<T, R> Engine<T, R>
 where
     R: Resolver,
 {
-    fn get_links<U>(link: &Link, ast: &Program<Range, U>) -> Vec<Link> {
+    fn to_links<U>(link: &Link, ast: &Program<Range, U>) -> Vec<Link> {
         let path = link.to_path();
 
         ast.imports()
@@ -189,11 +197,11 @@ where
         let mut next_id: usize = 0;
         let mut queue = VecDeque::from_iter(vec![self.state.0]);
         let mut parsed = HashMap::new();
-        let mut lookup = HashMap::new();
+        let mut lookup = BiMap::new();
 
         while let Some(link) = queue.pop_front() {
             let (input, ast) = Self::parse_one(&mut self.resolver, &link);
-            let links = Self::get_links(&link, &ast);
+            let links = Self::to_links(&link, &ast);
 
             links.into_iter().for_each(|x| {
                 if !parsed.contains_key(&x) && !queue.contains(&x) {
@@ -246,7 +254,7 @@ where
     pub fn parse(mut self) -> Engine<state::Parsed, R> {
         let mut next_id: usize = 0;
         let mut parsed = HashMap::new();
-        let mut lookup = HashMap::new();
+        let mut lookup = BiMap::new();
         let links = self
             .glob()
             .into_iter()
@@ -284,7 +292,6 @@ where
         Output(
             self.state
                 .modules()
-                .iter()
                 .map(|(link, state::Module { ast, .. })| (link.to_path(), ast))
                 .collect::<Vec<_>>(),
         )
@@ -295,8 +302,39 @@ impl<R> Engine<state::Parsed, R>
 where
     R: Resolver,
 {
+    fn populate_graph(&self) -> Graph<usize> {
+        self.state
+            .modules
+            .values()
+            .fold(Graph::new(), |mut graph, x| {
+                graph.add_node(x.id);
+                graph
+            })
+    }
+
     pub fn link(self) -> Engine<state::Linked, R> {
-        let linked = self.state.modules.values().fold(Graph::new(), |acc, x| acc);
+        let graph = self.populate_graph();
+        let linked = self
+            .state
+            .modules
+            .iter()
+            .fold(graph, |mut acc, (link, module)| {
+                let links = Self::to_links(link, &module.ast);
+
+                links
+                    .iter()
+                    .map(|x| {
+                        self.state
+                            .lookup
+                            .get_by_right(x)
+                            .expect(format!("did not find a module from link {x:?}").as_str())
+                    })
+                    .for_each(|x| {
+                        acc.add_edge(module.id, *x);
+                    });
+
+                acc
+            });
 
         Engine {
             resolver: self.resolver,

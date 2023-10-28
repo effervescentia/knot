@@ -5,6 +5,7 @@ use std::{
 
 #[cfg(feature = "format")]
 pub mod format;
+pub mod graph;
 
 pub trait Generator: Copy {
     type Input;
