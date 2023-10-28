@@ -54,7 +54,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::MemoryCache;
-    use crate::resolve::{file_system::FileSystem, Resolver};
+    use crate::{resolve::Resolver, FileSystem};
     use std::{collections::HashMap, path::Path, time::SystemTime};
     use tempfile::tempdir;
 

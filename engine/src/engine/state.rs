@@ -1,4 +1,4 @@
-use crate::link::{ImportGraph, Link};
+use crate::{link::ImportGraph, Link};
 use analyze::Strong;
 use bimap::BiMap;
 use lang::Program;

@@ -1,10 +1,6 @@
 mod state;
 
-use crate::{
-    link::{ImportGraph, Link},
-    resolve::Resolver,
-    Error,
-};
+use crate::{link::ImportGraph, resolve::Resolver, Error, Link};
 use bimap::BiMap;
 use kore::Generator;
 use lang::{
