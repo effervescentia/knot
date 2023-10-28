@@ -39,7 +39,7 @@ export { ROOT };
     );
 
     assert_eq!(
-        result,
+        result.unwrap(),
         HashMap::from_iter(vec![
             (String::from("a.js"), OUTPUT_A.to_string()),
             (String::from("deep/b.js"), OUTPUT_B.to_string()),
@@ -84,7 +84,7 @@ export { ROOT };
     );
 
     assert_eq!(
-        result,
+        result.unwrap(),
         HashMap::from_iter(vec![
             (String::from("main.js"), OUTPUT_ROOT.to_string()),
             (String::from("deep/b.js"), OUTPUT_B.to_string()),

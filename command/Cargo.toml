@@ -19,3 +19,7 @@ analyze = { package = "knot_analyze", path = "../analyze" }
 pretty_assertions = "1.4.0"
 ctor = "0.2.5"
 tempfile = "3.8.0"
+knot_command = { path = ".", features = ["test"] }
+
+[features]
+test = []

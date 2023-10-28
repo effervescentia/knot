@@ -2,7 +2,10 @@ mod import_graph;
 
 pub use import_graph::ImportGraph;
 use lang::ast;
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsStr,
+    path::{Path, PathBuf},
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum LinkSource {
@@ -14,23 +17,6 @@ pub enum LinkSource {
 pub struct Link(LinkSource, Vec<String>);
 
 impl Link {
-    pub fn from_path<P>(path: P) -> Self
-    where
-        P: AsRef<Path>,
-    {
-        if path.as_ref().is_absolute() {
-            panic!("must be a relative path");
-        }
-
-        Self(
-            LinkSource::Internal,
-            path.as_ref()
-                .iter()
-                .map(|x| x.to_string_lossy().to_string())
-                .collect(),
-        )
-    }
-
     pub fn to_path(&self) -> PathBuf {
         let Self(source, module_path) = self;
 
@@ -71,5 +57,25 @@ impl Link {
                 Self(LinkSource::Internal, [relative_path, path.clone()].concat())
             }
         }
+    }
+}
+
+impl<S> From<&S> for Link
+where
+    S: AsRef<OsStr> + ?Sized,
+{
+    fn from(value: &S) -> Self {
+        let path = Path::new(value);
+
+        if path.is_absolute() {
+            panic!("must be a relative value");
+        }
+
+        Self(
+            LinkSource::Internal,
+            path.iter()
+                .map(|x| x.to_string_lossy().to_string())
+                .collect(),
+        )
     }
 }

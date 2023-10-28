@@ -12,23 +12,38 @@ use std::{collections::HashSet, hash::Hash};
 pub struct Cycle(Vec<usize>);
 
 impl Cycle {
-    fn sorted(&self) -> Vec<usize> {
-        let mut sorted = self.0.clone();
-        sorted.sort();
+    fn canonical(&self) -> Vec<usize> {
+        if self.0.is_empty() {
+            return vec![];
+        }
 
-        sorted
+        let mut canonical = self.0.clone();
+        let first_index = canonical
+            .iter()
+            .enumerate()
+            .min_by(|(_, lhs), (_, rhs)| lhs.cmp(rhs))
+            .map(|(index, _)| index)
+            .unwrap();
+
+        canonical.rotate_left(first_index);
+
+        canonical
+    }
+
+    pub fn to_vec(&self) -> Vec<usize> {
+        self.canonical()
     }
 }
 
 impl PartialEq for Cycle {
     fn eq(&self, other: &Self) -> bool {
-        self.sorted() == other.sorted()
+        self.canonical() == other.canonical()
     }
 }
 
 impl Hash for Cycle {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.sorted().hash(state)
+        self.canonical().hash(state)
     }
 }
 

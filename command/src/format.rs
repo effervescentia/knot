@@ -1,13 +1,15 @@
+use crate::{
+    engine::{self, Engine},
+    resolve::FileSystem,
+};
 use std::path::Path;
-
-use crate::{engine::Engine, resolve::FileSystem};
 
 pub struct Options<'a> {
     pub source_dir: &'a Path,
     pub glob: &'a str,
 }
 
-pub fn command(opts: &Options) {
+pub fn command(opts: &Options) -> engine::Result<()> {
     let resolver = FileSystem(opts.source_dir);
     let engine = Engine::new(resolver);
 
@@ -15,5 +17,5 @@ pub fn command(opts: &Options) {
         .from_glob(opts.source_dir, opts.glob)
         .parse()
         .format()
-        .write(opts.source_dir);
+        .write(opts.source_dir)
 }

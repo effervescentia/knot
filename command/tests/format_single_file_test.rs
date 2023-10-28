@@ -20,7 +20,7 @@ module my_module {
 ";
 
     let name = common::test_name(file!(), "unchanged");
-    assert_eq!(common::format(&name, INPUT), INPUT);
+    assert_eq!(common::format(&name, INPUT).unwrap(), INPUT);
 }
 
 #[test]
@@ -49,5 +49,5 @@ module my_module {
 ";
 
     let name = common::test_name(file!(), "formatted");
-    assert_eq!(common::format(&name, INPUT), OUTPUT);
+    assert_eq!(common::format(&name, INPUT).unwrap(), OUTPUT);
 }

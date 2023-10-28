@@ -1,4 +1,7 @@
-use crate::{engine::Engine, resolve::FileSystem};
+use crate::{
+    engine::{self, Engine},
+    resolve::FileSystem,
+};
 use kore::Generator;
 use lang::ast;
 use std::path::Path;
@@ -13,7 +16,7 @@ where
     pub entry: &'a Path,
 }
 
-pub fn command<G>(opts: &Options<G>)
+pub fn command<G>(opts: &Options<G>) -> engine::Result<()>
 where
     G: Generator<Input = ast::ProgramShape>,
 {
@@ -26,5 +29,5 @@ where
         .link()
         .analyze()
         .generate(&opts.generator)
-        .write(opts.out_dir);
+        .write(opts.out_dir)
 }

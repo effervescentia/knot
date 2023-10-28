@@ -68,7 +68,7 @@ export { my_module };
     );
 
     assert_eq!(
-        result,
+        result.unwrap(),
         HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_string())])
     );
 }
@@ -116,7 +116,7 @@ exports.my_module = my_module;
     );
 
     assert_eq!(
-        result,
+        result.unwrap(),
         HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_string())])
     );
 }

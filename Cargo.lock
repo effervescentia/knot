@@ -138,6 +138,7 @@ dependencies = [
  "ctor",
  "glob",
  "knot_analyze",
+ "knot_command",
  "knot_core",
  "knot_language",
  "knot_parse",

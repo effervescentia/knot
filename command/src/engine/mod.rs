@@ -4,6 +4,7 @@ use crate::{
     link::{ImportGraph, Link},
     resolve::Resolver,
 };
+use bimap::BiMap;
 use kore::Generator;
 use lang::{
     ast::{self, ToShape},
@@ -18,7 +19,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub struct Output<T>(Vec<(PathBuf, T)>)
+#[derive(Clone, Eq, Debug, PartialEq)]
+pub enum Error {
+    ImportCycle(Vec<Link>),
+}
+
+pub type Result<T> = std::result::Result<T, Vec<Error>>;
+
+pub struct Output<T>(Result<Vec<(PathBuf, T)>>)
 where
     T: Display;
 
@@ -26,21 +34,29 @@ impl<T> Output<T>
 where
     T: Display,
 {
-    pub fn write(&self, dir: &Path) {
-        self.0.iter().for_each(|(path, generated)| {
-            let path = dir.join(path);
+    pub fn write(&self, dir: &Path) -> Result<()> {
+        match &self.0 {
+            Ok(xs) => {
+                xs.iter().for_each(|(path, generated)| {
+                    let path = dir.join(path);
 
-            if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).ok();
+                    if let Some(parent) = path.parent() {
+                        fs::create_dir_all(parent).ok();
+                    }
+
+                    let mut writer = BufWriter::new(File::create(&path).expect(&format!(
+                        "failed to create file from path {}",
+                        path.display()
+                    )));
+                    write!(writer, "{generated}").ok();
+                    writer.flush().ok();
+                });
+
+                Ok(())
             }
 
-            let mut writer = BufWriter::new(File::create(&path).expect(&format!(
-                "failed to create file from path {}",
-                path.display()
-            )));
-            write!(writer, "{generated}").ok();
-            writer.flush().ok();
-        })
+            Err(err) => Err(err.to_owned()),
+        }
     }
 }
 
@@ -81,6 +97,42 @@ where
     }
 }
 
+impl<T, R> Engine<Result<T>, R>
+where
+    R: Resolver,
+{
+    pub fn map<F, T2>(self, f: F) -> Engine<Result<T2>, R>
+    where
+        F: Fn(T) -> Result<T2>,
+    {
+        match self.state {
+            Ok(state) => Engine {
+                resolver: self.resolver,
+                state: f(state),
+            },
+
+            Err(err) => Engine {
+                resolver: self.resolver,
+                state: Err(err),
+            },
+        }
+    }
+
+    pub fn unwrap(self) -> Engine<T, R> {
+        Engine {
+            resolver: self.resolver,
+            state: self.state.unwrap(),
+        }
+    }
+
+    pub fn expect(self, message: &str) -> Engine<T, R> {
+        Engine {
+            resolver: self.resolver,
+            state: self.state.expect(message),
+        }
+    }
+}
+
 impl<R> Engine<(), R>
 where
     R: Resolver,
@@ -100,7 +152,7 @@ where
 
         Engine {
             resolver: self.resolver,
-            state: state::FromEntry(Link::from_path(entry)),
+            state: state::FromEntry(Link::from(&entry)),
         }
     }
 
@@ -118,11 +170,11 @@ where
     R: Resolver,
 {
     /// starting from the entry file recursively discover and parse modules
-    pub fn parse_and_load(mut self) -> Engine<state::Parsed, R> {
+    pub fn parse_and_load(mut self) -> Engine<Result<state::Parsed>, R> {
         let mut next_id: usize = 0;
         let mut queue = VecDeque::from_iter(vec![self.state.0]);
         let mut parsed = HashMap::new();
-        let mut lookup = HashMap::new();
+        let mut lookup = BiMap::new();
 
         while let Some(link) = queue.pop_front() {
             let (input, ast) = Self::parse_one(&mut self.resolver, &link);
@@ -142,10 +194,10 @@ where
 
         Engine {
             resolver: self.resolver,
-            state: state::Parsed {
+            state: Ok(state::Parsed {
                 modules: parsed,
                 lookup,
-            },
+            }),
         }
     }
 }
@@ -176,15 +228,11 @@ where
     }
 
     /// parse all modules that match the glob
-    pub fn parse(mut self) -> Engine<state::Parsed, R> {
+    pub fn parse(mut self) -> Engine<Result<state::Parsed>, R> {
         let mut next_id: usize = 0;
         let mut parsed = HashMap::new();
-        let mut lookup = HashMap::new();
-        let links = self
-            .glob()
-            .into_iter()
-            .map(Link::from_path)
-            .collect::<Vec<_>>();
+        let mut lookup = BiMap::new();
+        let links = self.glob().iter().map(Link::from).collect::<Vec<_>>();
 
         println!("found some {links:?}");
 
@@ -199,10 +247,10 @@ where
 
         Engine {
             resolver: self.resolver,
-            state: state::Parsed {
+            state: Ok(state::Parsed {
                 modules: parsed,
                 lookup,
-            },
+            }),
         }
     }
 }
@@ -214,44 +262,59 @@ where
 {
     /// generate output files by formatting the loaded modules
     pub fn format(&'a self) -> Output<&Program<Range, S::Context>> {
-        Output(
-            self.state
-                .modules()
+        Output(self.state.modules().map(|modules| {
+            modules
                 .map(|(link, state::Module { ast, .. })| (link.to_path(), ast))
-                .collect::<Vec<_>>(),
-        )
+                .collect::<Vec<_>>()
+        }))
     }
 }
 
-impl<R> Engine<state::Parsed, R>
+impl<R> Engine<Result<state::Parsed>, R>
 where
     R: Resolver,
 {
-    fn populate_graph(&self) -> ImportGraph {
-        self.state
-            .modules
-            .values()
-            .fold(ImportGraph::new(), |mut graph, x| {
-                graph.add_node(x.id);
-                graph
-            })
+    fn populate_graph(modules: &HashMap<Link, state::Module<()>>) -> ImportGraph {
+        modules.values().fold(ImportGraph::new(), |mut graph, x| {
+            graph.add_node(x.id);
+            graph
+        })
     }
 
-    pub fn link(self) -> Engine<state::Linked, R> {
-        let graph = self.populate_graph();
-        let linked = self
-            .state
-            .modules
-            .iter()
-            .fold(graph, |mut acc, (link, module)| {
+    fn find_import_cycles(state: &state::Parsed, graph: &ImportGraph) -> Vec<Error> {
+        let cycles = graph.cycles();
+
+        cycles
+            .into_iter()
+            .map(|x| {
+                Error::ImportCycle(
+                    x.to_vec()
+                        .iter()
+                        .map(|x| {
+                            state
+                                .lookup
+                                .get_by_right(x)
+                                .expect(format!("failed to map module id {x} to link").as_str())
+                                .clone()
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .collect()
+    }
+
+    pub fn link(self) -> Engine<Result<state::Linked>, R> {
+        self.map(|state| {
+            let graph = Self::populate_graph(&state.modules);
+            let linked = state.modules.iter().fold(graph, |mut acc, (link, module)| {
                 let links = Self::to_links(link, &module.ast);
 
                 links
                     .iter()
                     .map(|x| {
-                        self.state
+                        state
                             .lookup
-                            .get(x)
+                            .get_by_left(x)
                             .expect(format!("did not find a module from link {x:?}").as_str())
                     })
                     .for_each(|x| {
@@ -261,49 +324,47 @@ where
                 acc
             });
 
-        if linked.is_cyclic() {
-            panic!("uh oh, we found a cycle");
-        }
+            if linked.is_cyclic() {
+                let cycles = Self::find_import_cycles(&state, &linked);
 
-        Engine {
-            resolver: self.resolver,
-            state: state::Linked {
-                graph: linked,
-                lookup: self.state.lookup,
-                modules: self.state.modules,
-            },
-        }
+                Err(cycles)
+            } else {
+                Ok(state::Linked {
+                    graph: linked,
+                    lookup: state.lookup,
+                    modules: state.modules,
+                })
+            }
+        })
     }
 }
 
-impl<R> Engine<state::Linked, R>
+impl<R> Engine<Result<state::Linked>, R>
 where
     R: Resolver,
 {
-    pub fn analyze(self) -> Engine<state::Analyzed, R> {
-        let analyzed = self
-            .state
-            .modules
-            .into_iter()
-            .map(|(key, state::Module { id, text, ast })| {
-                let typed = analyze::analyze(ast);
+    pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
+        self.map(|state| {
+            let analyzed = state
+                .modules
+                .into_iter()
+                .map(|(key, state::Module { id, text, ast })| {
+                    let typed = analyze::analyze(ast);
 
-                (key, state::Module::new(id, text, typed))
-            })
-            .collect::<Vec<_>>();
+                    (key, state::Module::new(id, text, typed))
+                })
+                .collect::<Vec<_>>();
 
-        Engine {
-            resolver: self.resolver,
-            state: state::Analyzed {
-                graph: self.state.graph,
-                lookup: self.state.lookup,
+            Ok(state::Analyzed {
+                graph: state.graph,
+                lookup: state.lookup,
                 modules: HashMap::from_iter(analyzed),
-            },
-        }
+            })
+        })
     }
 }
 
-impl<R> Engine<state::Analyzed, R>
+impl<R> Engine<Result<state::Analyzed>, R>
 where
     R: Resolver,
 {
@@ -312,14 +373,16 @@ where
     where
         T: Generator<Input = ast::ProgramShape>,
     {
-        Output(
-            self.state
+        Output(match &self.state {
+            Ok(state) => Ok(state
                 .modules
                 .iter()
                 .map(|(key, state::Module { ast, .. })| {
                     generator.generate(&key.to_path(), ast.to_shape())
                 })
-                .collect(),
-        )
+                .collect()),
+
+            Err(err) => Err(err.to_owned()),
+        })
     }
 }

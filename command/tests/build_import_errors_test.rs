@@ -1,7 +1,7 @@
 mod common;
 
 use js::{JavaScriptGenerator, Module};
-use std::collections::HashMap;
+use knot_command::{engine, Link};
 
 #[test]
 fn cyclic() {
@@ -16,12 +16,12 @@ fn cyclic() {
         JavaScriptGenerator::new(Module::ESM),
     );
 
-    // assert_eq!(
-    //     result,
-    //     HashMap::from_iter(vec![
-    //         (String::from("a.js"), OUTPUT_A.to_string()),
-    //         (String::from("deep/b.js"), OUTPUT_B.to_string()),
-    //         (String::from("main.js"), INP.to_string())
-    //     ])
-    // );
+    assert_eq!(
+        result,
+        Err(vec![engine::Error::ImportCycle(vec![
+            Link::from("b"),
+            Link::from("a"),
+            Link::from("c"),
+        ])])
+    )
 }

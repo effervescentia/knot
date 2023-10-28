@@ -1,5 +1,5 @@
 use super::scratch_path;
-use knot_command::build;
+use knot_command::{build, engine};
 use kore::Generator;
 use lang::ast::ProgramShape;
 use std::{collections::HashMap, fs, path::Path};
@@ -47,7 +47,11 @@ fn collect_files(out_dir: &Path) -> HashMap<String, String> {
     HashMap::from_iter(iter)
 }
 
-pub fn build<G>(test_name: &str, files: Vec<(&str, &str)>, generator: G) -> HashMap<String, String>
+pub fn build<G>(
+    test_name: &str,
+    files: Vec<(&str, &str)>,
+    generator: G,
+) -> engine::Result<HashMap<String, String>>
 where
     G: Generator<Input = ProgramShape>,
 {
@@ -61,12 +65,12 @@ where
 
     let (entry, _) = files.first().expect("files list was empty");
 
-    build::command(&build::Options {
+    let result = build::command(&build::Options {
         generator,
         entry: Path::new(entry),
         source_dir: source_dir.as_path(),
         out_dir: out_dir.as_path(),
     });
 
-    collect_files(&out_dir)
+    result.map(|_| collect_files(&out_dir))
 }
