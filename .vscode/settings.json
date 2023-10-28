@@ -1,8 +1,8 @@
 {
   "editor.inlayHints.enabled": "offUnlessPressed",
   "rust-analyzer.showUnlinkedFileNotification": false,
-  "testExplorer.useNativeTesting": true,
-  "testExplorer.showOnRun": true,
+  "rust-analyzer.lens.run.enable": false,
+  "rust-analyzer.lens.debug.enable": false,
   "cSpell.words": [
     "kore"
   ],
