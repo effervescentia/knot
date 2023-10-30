@@ -22,10 +22,12 @@ pub fn infer_types(file_ctx: FileContext) -> WeakContext {
     ctx.fragments.0.iter().for_each(|(id, (scope, x))| {
         ctx.refs.insert(*id, x.to_weak());
 
-        for name in x.to_binding() {
-            let entry = ctx.bindings.0.entry((scope.clone(), name)).or_default();
+        if let Ok(bindings) = x.to_binding() {
+            for name in bindings {
+                let entry = ctx.bindings.0.entry((scope.clone(), name)).or_default();
 
-            entry.insert(*id);
+                entry.insert(*id);
+            }
         }
     });
 

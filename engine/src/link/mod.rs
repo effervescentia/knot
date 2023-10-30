@@ -61,9 +61,7 @@ where
     fn from(value: &S) -> Self {
         let path = Path::new(value);
 
-        if path.is_absolute() {
-            panic!("must be a relative value");
-        }
+        assert!(!path.is_absolute(), "must be a relative value");
 
         Self(
             LinkSource::Internal,

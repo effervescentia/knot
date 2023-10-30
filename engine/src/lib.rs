@@ -49,10 +49,10 @@ where
 
         let input = resolver
             .resolve(&path)
-            .ok_or(vec![Error::ModuleNotFound(link.to_owned())])?;
+            .ok_or(vec![Error::ModuleNotFound(link.clone())])?;
 
         let (ast, _) =
-            parse::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.to_owned())])?;
+            parse::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
 
         Ok((input, ast))
     }
@@ -89,6 +89,7 @@ where
     pub fn expect(self, message: &str) -> Engine<T, R> {
         Engine {
             resolver: self.resolver,
+            #[allow(clippy::expect_used)]
             state: self.state.expect(message),
         }
     }
@@ -98,7 +99,7 @@ impl<R> Engine<(), R>
 where
     R: Resolver,
 {
-    pub fn new(resolver: R) -> Self {
+    pub const fn new(resolver: R) -> Self {
         Self {
             resolver,
             state: (),
@@ -107,9 +108,10 @@ where
 
     /// load a module tree from a single entry point
     pub fn from_entry(self, entry: &Path) -> Engine<state::FromEntry, R> {
-        if entry.is_absolute() {
-            panic!("entry must be relative to the source directory");
-        }
+        assert!(
+            !entry.is_absolute(),
+            "entry must be relative to the source directory"
+        );
 
         Engine {
             resolver: self.resolver,
@@ -143,11 +145,11 @@ where
                 Ok((input, ast)) => {
                     let links = Self::to_links(&link, &ast);
 
-                    links.into_iter().for_each(|x| {
+                    for x in links {
                         if !parsed.contains_key(&x) && !queue.contains(&x) {
                             queue.push_back(x);
                         }
-                    });
+                    }
 
                     lookup.insert(link.clone(), next_id);
                     parsed.insert(link, state::Module::new(next_id, input, ast));

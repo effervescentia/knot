@@ -157,14 +157,12 @@ impl Statement {
                             .declarations
                             .iter()
                             .filter_map(|x| {
-                                if x.0.is_public() {
-                                    Some((
+                                x.0.is_public().then(|| {
+                                    (
                                         x.0.name().clone(),
                                         Expression::Identifier(x.0.name().clone()),
-                                    ))
-                                } else {
-                                    None
-                                }
+                                    )
+                                })
                             })
                             .collect(),
                     )))],
@@ -205,15 +203,15 @@ impl Statement {
                     |(mut module_imports, mut named_imports), (target, alias)| {
                         match target {
                             ast::ImportTarget::Module => {
-                                module_imports.push(Statement::module_import(
+                                module_imports.push(Self::module_import(
                                     &namespace,
                                     alias.as_ref().unwrap_or(module_name),
                                     opts,
-                                ))
+                                ));
                             }
 
                             ast::ImportTarget::Named(name) => {
-                                named_imports.push((name.clone(), alias.clone()))
+                                named_imports.push((name.clone(), alias.clone()));
                             }
                         }
 
@@ -222,14 +220,14 @@ impl Statement {
                 );
 
                 if !named.is_empty() {
-                    imports.extend(Statement::import(&namespace, named, opts));
+                    imports.extend(Self::import(&namespace, named, opts));
                 }
 
                 imports
             }
 
             None => {
-                vec![Statement::module_import(&namespace, module_name, opts)]
+                vec![Self::module_import(&namespace, module_name, opts)]
             }
         }
     }

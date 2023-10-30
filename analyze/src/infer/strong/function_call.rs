@@ -6,10 +6,10 @@ use crate::{
     RefKind, Type,
 };
 
-pub fn infer(lhs: usize, arguments: &Vec<usize>, ctx: &StrongContext) -> Option<Strong> {
+pub fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Strong> {
     let kind = RefKind::Value;
 
-    let resolve_all_types = |xs: &Vec<usize>| {
+    let resolve_all_types = |xs: &[usize]| {
         xs.iter()
             .map(|id| match ctx.as_strong(id, &kind) {
                 Some(Ok(x)) => Some((x.clone(), *id)),
@@ -118,15 +118,15 @@ mod tests {
         RefKind,
     };
 
-    fn infer(lhs: usize, arguments: Vec<usize>, ctx: &StrongContext) -> Option<Strong> {
-        super::infer(lhs, &arguments, ctx)
+    fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Strong> {
+        super::infer(lhs, arguments, ctx)
     }
 
     #[test]
     fn none_result() {
         let ctx = strong_ctx_from(vec![], vec![], vec![]);
 
-        assert_eq!(infer(0, vec![], &ctx), None);
+        assert_eq!(infer(0, &[], &ctx), None);
     }
 
     #[test]
@@ -142,7 +142,7 @@ mod tests {
             vec![],
         );
 
-        assert_eq!(infer(3, vec![0, 1], &ctx), Some(Ok(Type::Integer)));
+        assert_eq!(infer(3, &[0, 1], &ctx), Some(Ok(Type::Integer)));
     }
 
     #[test]
@@ -160,14 +160,14 @@ mod tests {
         );
 
         assert_eq!(
-            infer(3, vec![0, 2], &ctx),
+            infer(3, &[0, 2], &ctx),
             Some(Err(SemanticError::InvalidArguments(
                 (func_type(), 3),
                 vec![((Type::Boolean, 1), (Type::Integer, 2))]
             )))
         );
         assert_eq!(
-            infer(3, vec![2, 1], &ctx),
+            infer(3, &[2, 1], &ctx),
             Some(Err(SemanticError::InvalidArguments(
                 (func_type(), 3),
                 vec![((Type::Nil, 0), (Type::Integer, 2))]
@@ -190,7 +190,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(3, vec![], &ctx),
+            infer(3, &[], &ctx),
             Some(Err(SemanticError::MissingArguments(
                 (func_type(), 3),
                 vec![(Type::Nil, 0), (Type::Boolean, 1)]
@@ -213,7 +213,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(3, vec![0, 1], &ctx),
+            infer(3, &[0, 1], &ctx),
             Some(Err(SemanticError::UnexpectedArguments(
                 (func_type(), 3),
                 vec![(Type::Nil, 0), (Type::Boolean, 1)]
@@ -237,7 +237,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(2, vec![0, 1], &ctx),
+            infer(2, &[0, 1], &ctx),
             Some(Ok(Type::EnumeratedInstance(3)))
         );
     }
@@ -257,14 +257,14 @@ mod tests {
         );
 
         assert_eq!(
-            infer(3, vec![0, 2], &ctx),
+            infer(3, &[0, 2], &ctx),
             Some(Err(SemanticError::InvalidArguments(
                 (variant_type(), 3),
                 vec![((Type::Boolean, 1), (Type::Integer, 2))]
             )))
         );
         assert_eq!(
-            infer(3, vec![2, 1], &ctx),
+            infer(3, &[2, 1], &ctx),
             Some(Err(SemanticError::InvalidArguments(
                 (variant_type(), 3),
                 vec![((Type::Nil, 0), (Type::Integer, 2))]
@@ -287,7 +287,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(3, vec![], &ctx),
+            infer(3, &[], &ctx),
             Some(Err(SemanticError::MissingArguments(
                 (variant_type(), 3),
                 vec![(Type::Nil, 0), (Type::Boolean, 1)]
@@ -310,7 +310,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(3, vec![0, 1], &ctx),
+            infer(3, &[0, 1], &ctx),
             Some(Err(SemanticError::UnexpectedArguments(
                 (enum_type(), 3),
                 vec![(Type::Nil, 0), (Type::Boolean, 1)]
@@ -323,7 +323,7 @@ mod tests {
         let ctx = strong_ctx_from(vec![], vec![(0, (RefKind::Value, Ok(Type::Nil)))], vec![]);
 
         assert_eq!(
-            infer(0, vec![0, 1], &ctx),
+            infer(0, &[0, 1], &ctx),
             Some(Err(SemanticError::NotCallable(Type::Nil, 0)))
         );
     }
@@ -340,7 +340,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(0, vec![0, 1], &ctx),
+            infer(0, &[0, 1], &ctx),
             Some(Err(SemanticError::NotInferrable(vec![0])))
         );
     }
