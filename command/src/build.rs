@@ -1,4 +1,4 @@
-use engine::{Engine, FileSystem};
+use engine::{Engine, FileSystem, Reporter};
 use kore::Generator;
 use lang::ast;
 use std::path::Path;
@@ -18,7 +18,7 @@ where
     G: Generator<Input = ast::ProgramShape>,
 {
     let resolver = FileSystem(opts.source_dir);
-    let engine = Engine::new(resolver);
+    let engine = Engine::new(Reporter::new(false), resolver);
 
     engine
         .from_entry(opts.entry)

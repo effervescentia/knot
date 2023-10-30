@@ -1,4 +1,4 @@
-use engine::{Engine, FileSystem};
+use engine::{Engine, FileSystem, Reporter};
 use std::path::Path;
 
 pub struct Options<'a> {
@@ -8,7 +8,7 @@ pub struct Options<'a> {
 
 pub fn command(opts: &Options) -> engine::Result<()> {
     let resolver = FileSystem(opts.source_dir);
-    let engine = Engine::new(resolver);
+    let engine = Engine::new(Reporter::new(false), resolver);
 
     engine
         .from_glob(opts.source_dir, opts.glob)

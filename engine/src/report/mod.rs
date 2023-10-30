@@ -4,7 +4,7 @@ mod reporter;
 use crate::Link;
 pub use code_frame::CodeFrame;
 pub use reporter::Reporter;
-use std::{io, path::PathBuf};
+use std::{io, iter::once, path::PathBuf};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Error {
@@ -47,6 +47,15 @@ impl Error {
             Self::ModuleNotFound(..) => ErrorCode::MODULE_NOT_FOUND,
             Self::ImportCycle(..) => ErrorCode::IMPORT_CYCLE,
         }
+    }
+}
+
+impl IntoIterator for Error {
+    type Item = Self;
+    type IntoIter = std::iter::Once<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        once(self)
     }
 }
 

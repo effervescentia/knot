@@ -13,7 +13,7 @@ use lang::{
 use link::ImportGraph;
 pub use link::Link;
 use parse::Range;
-pub use report::{CodeFrame, Error};
+pub use report::{CodeFrame, Error, Reporter};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 use std::{
     collections::{HashMap, VecDeque},
@@ -27,6 +27,7 @@ pub struct Engine<T, R>
 where
     R: Resolver,
 {
+    reporter: Reporter,
     resolver: R,
     state: T,
 }
@@ -35,6 +36,25 @@ impl<T, R> Engine<T, R>
 where
     R: Resolver,
 {
+    pub fn map<F, T2>(self, f: F) -> Engine<T2, R>
+    where
+        F: Fn(T, Reporter) -> T2,
+    {
+        Engine {
+            reporter: self.reporter.clone(),
+            resolver: self.resolver,
+            state: f(self.state, self.reporter),
+        }
+    }
+
+    pub fn with_state<T2>(self, state: T2) -> Engine<T2, R> {
+        Engine {
+            reporter: self.reporter,
+            resolver: self.resolver,
+            state,
+        }
+    }
+
     fn to_links<U>(link: &Link, ast: &Program<Range, U>) -> Vec<Link> {
         let path = link.to_path();
 
@@ -62,36 +82,23 @@ impl<T, R> Engine<Result<T>, R>
 where
     R: Resolver,
 {
-    pub fn map<F, T2>(self, f: F) -> Engine<Result<T2>, R>
+    pub fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
     where
-        F: Fn(T) -> Result<T2>,
+        F: Fn(T, Reporter) -> Result<T2>,
     {
-        match self.state {
-            Ok(state) => Engine {
-                resolver: self.resolver,
-                state: f(state),
-            },
-
-            Err(err) => Engine {
-                resolver: self.resolver,
-                state: Err(err),
-            },
-        }
+        self.map(|state, reporter| match state {
+            Ok(state) => f(state, reporter),
+            Err(err) => Err(err),
+        })
     }
 
     pub fn unwrap(self) -> Engine<T, R> {
-        Engine {
-            resolver: self.resolver,
-            state: self.state.unwrap(),
-        }
+        self.map(|x, _| x.unwrap())
     }
 
     pub fn expect(self, message: &str) -> Engine<T, R> {
-        Engine {
-            resolver: self.resolver,
-            #[allow(clippy::expect_used)]
-            state: self.state.expect(message),
-        }
+        #[allow(clippy::expect_used)]
+        self.map(|state, _| state.expect(message))
     }
 }
 
@@ -99,8 +106,9 @@ impl<R> Engine<(), R>
 where
     R: Resolver,
 {
-    pub const fn new(resolver: R) -> Self {
+    pub const fn new(reporter: Reporter, resolver: R) -> Self {
         Self {
+            reporter,
             resolver,
             state: (),
         }
@@ -113,18 +121,12 @@ where
             "entry must be relative to the source directory"
         );
 
-        Engine {
-            resolver: self.resolver,
-            state: state::FromEntry(Link::from(&entry)),
-        }
+        self.map(|(), _| state::FromEntry(Link::from(&entry)))
     }
 
     /// load all modules that match a glob
     pub fn from_glob<'a>(self, dir: &'a Path, glob: &'a str) -> Engine<state::FromGlob<'a>, R> {
-        Engine {
-            resolver: self.resolver,
-            state: state::FromGlob { dir, glob },
-        }
+        self.map(|(), _| state::FromGlob { dir, glob })
     }
 }
 
@@ -162,6 +164,7 @@ where
         }
 
         Engine {
+            reporter: self.reporter,
             resolver: self.resolver,
             state: if all_errors.is_empty() {
                 Ok(state::Parsed {
@@ -207,8 +210,6 @@ where
         let mut errors = vec![];
         let links = self.glob().iter().map(Link::from).collect::<Vec<_>>();
 
-        println!("found some {links:?}");
-
         for link in links {
             match Self::parse_one(&mut self.resolver, &link) {
                 Ok((text, ast)) => {
@@ -223,6 +224,7 @@ where
         }
 
         Engine {
+            reporter: self.reporter,
             resolver: self.resolver,
             state: if errors.is_empty() {
                 Ok(state::Parsed {
@@ -285,8 +287,7 @@ where
     }
 
     pub fn link(self) -> Engine<Result<state::Linked>, R> {
-        self.map(|state| {
-            let mut errors = vec![];
+        self.then(|state, mut reporter| {
             let graph = Self::populate_graph(&state.modules);
             let linked = state.modules.iter().fold(graph, |mut acc, (link, module)| {
                 let links = Self::to_links(link, &module.ast);
@@ -295,28 +296,25 @@ where
                     if let Some(x) = state.lookup.get_by_left(x) {
                         acc.add_edge(&module.id, x).ok();
                     } else {
-                        errors.push(Error::UnregisteredModule(x.clone()));
+                        reporter.report(Error::UnregisteredModule(x.clone()));
                     }
                 }
 
                 acc
             });
 
-            if !errors.is_empty() {
-                return Err(errors);
-            }
+            reporter.catch()?;
 
             if linked.is_cyclic() {
                 let errors = Self::find_import_cycles(&state, &linked);
-
-                Err(errors)
-            } else {
-                Ok(state::Linked {
-                    graph: linked,
-                    lookup: state.lookup,
-                    modules: state.modules,
-                })
+                reporter.raise(errors)?;
             }
+
+            Ok(state::Linked {
+                graph: linked,
+                lookup: state.lookup,
+                modules: state.modules,
+            })
         })
     }
 }
@@ -326,7 +324,7 @@ where
     R: Resolver,
 {
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
-        self.map(|state| {
+        self.then(|state, _| {
             let analyzed = state
                 .modules
                 .into_iter()
