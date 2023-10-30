@@ -9,7 +9,7 @@ where
     P: Parser<T, Output = ExpressionNode<Range, ()>>,
 {
     m::terminated(parser).map(|inner| {
-        let range = inner.node().range().clone();
+        let range = *inner.node().range();
 
         StatementNode::raw(Statement::Expression(inner), range)
     })
@@ -28,18 +28,19 @@ where
         parser,
     ))
     .map(|((_, start), (name, _), _, value)| {
-        let end = value.node().range().clone();
-        let range = &start + &end;
+        let end = value.node().range();
+        let range = &start + end;
 
         StatementNode::raw(Statement::Variable(name, value), range)
     })
 }
 
-pub fn statement<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = StatementNode<Range, ()>>
+pub fn statement<T, P, F>(parser: F) -> impl Parser<T, Output = StatementNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
     P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    F: Fn() -> P,
 {
     choice((variable(parser()), expression(parser())))
 }

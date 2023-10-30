@@ -10,7 +10,7 @@ where
     P: Parser<T, Output = R>,
 {
     attempt((position(), parser, position()))
-        .map(|(start, x, end)| (x, Range::from(start, end.decrement())))
+        .map(|(start, x, end)| (x, Range::from(&start, &end.decrement())))
 }
 
 pub fn lexeme<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
@@ -46,18 +46,15 @@ where
     (open, parser, close).map(|((_, start), x, (_, end))| (x, &start + &end))
 }
 
-pub fn folding<T, R1, R2, P1, P2>(
-    lhs: P1,
-    rhs: P2,
-    fold: impl Fn(R1, R2) -> R1,
-) -> impl Parser<T, Output = R1>
+pub fn folding<T, R1, R2, P1, P2, F>(lhs: P1, rhs: P2, fold: F) -> impl Parser<T, Output = R1>
 where
     T: Stream<Token = char>,
     P1: Parser<T, Output = R1>,
     P2: Parser<T, Output = R2>,
+    F: Fn(R1, R2) -> R1,
 {
     lhs.and(many::<Vec<_>, _, _>(rhs))
-        .map(move |(lhs, args)| args.into_iter().fold(lhs, |acc, el| fold(acc, el)))
+        .map(move |(lhs, args)| args.into_iter().fold(lhs, &fold))
 }
 
 pub fn symbol<T>(c: char) -> impl Parser<T, Output = (char, Range)>
@@ -111,16 +108,15 @@ where
     lexeme(p::string(keyword))
 }
 
-pub fn identifier<T>(
-    prefix: impl Parser<T, Output = char>,
-) -> impl Parser<T, Output = (String, Range)>
+pub fn identifier<T, P>(prefix: P) -> impl Parser<T, Output = (String, Range)>
 where
     T: Stream<Token = char>,
     T::Position: Position,
+    P: Parser<T, Output = char>,
 {
     lexeme(prefix.then(|first| {
         many::<Vec<_>, _, _>(p::alpha_num().or(p::char('_')))
-            .map(move |rest| vec![vec![first], rest].concat().into_iter().collect())
+            .map(move |rest| [vec![first], rest].concat().into_iter().collect())
     }))
 }
 
@@ -157,7 +153,7 @@ mod tests {
 
         let with_trailing_space = format!("{} ", MOCK_TOKEN);
         assert_eq!(
-            parse(with_trailing_space.as_str()).unwrap().0,
+            parse(&with_trailing_space).unwrap().0,
             (MockResult, Range((1, 1), (1, 8)))
         );
     }
@@ -169,7 +165,7 @@ mod tests {
         assert_eq!(parse(MOCK_TOKEN).unwrap().0, MockResult);
 
         let with_semicolon = format!("{};", MOCK_TOKEN);
-        assert_eq!(parse(with_semicolon.as_str()).unwrap().0, MockResult);
+        assert_eq!(parse(&with_semicolon).unwrap().0, MockResult);
     }
 
     #[test]

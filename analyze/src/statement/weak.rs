@@ -5,9 +5,9 @@ use lang::ast::Statement;
 impl ToWeak for Statement<usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Statement::Expression(id) => (RefKind::Value, Weak::Inherit(*id)),
+            Self::Expression(id) => (RefKind::Value, Weak::Inherit(*id)),
 
-            Statement::Variable(..) => (RefKind::Value, Weak::Type(Type::Nil)),
+            Self::Variable(..) => (RefKind::Value, Weak::Type(Type::Nil)),
         }
     }
 }

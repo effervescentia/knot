@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::ast::{
     Declaration, DeclarationNode, ExpressionNode, KSXNode, ModuleNode, StatementNode,
     TypeExpressionNode,
@@ -7,7 +9,6 @@ use crate::ast::{
 pub struct MockRange;
 
 /// node factories
-#[allow(dead_code)]
 pub mod n {
     use super::*;
     use crate::ast::{
@@ -16,48 +17,49 @@ pub mod n {
         TypeExpressionNodeValue,
     };
 
-    pub fn x(x: ExpressionNodeValue<MockRange, ()>) -> ExpressionNode<MockRange, ()> {
+    pub const fn x(x: ExpressionNodeValue<MockRange, ()>) -> ExpressionNode<MockRange, ()> {
         ExpressionNode::raw(x, MockRange)
     }
 
-    pub fn s(x: StatementNodeValue<MockRange, ()>) -> StatementNode<MockRange, ()> {
+    pub const fn s(x: StatementNodeValue<MockRange, ()>) -> StatementNode<MockRange, ()> {
         StatementNode::raw(x, MockRange)
     }
 
-    pub fn kx(x: KSXNodeValue<MockRange, ()>) -> KSXNode<MockRange, ()> {
+    pub const fn kx(x: KSXNodeValue<MockRange, ()>) -> KSXNode<MockRange, ()> {
         KSXNode::raw(x, MockRange)
     }
 
-    pub fn p(x: ParameterNodeValue<MockRange, ()>) -> ParameterNode<MockRange, ()> {
+    pub const fn p(x: ParameterNodeValue<MockRange, ()>) -> ParameterNode<MockRange, ()> {
         ParameterNode::raw(x, MockRange)
     }
 
-    pub fn tx(x: TypeExpressionNodeValue<MockRange, ()>) -> TypeExpressionNode<MockRange, ()> {
+    pub const fn tx(
+        x: TypeExpressionNodeValue<MockRange, ()>,
+    ) -> TypeExpressionNode<MockRange, ()> {
         TypeExpressionNode::raw(x, MockRange)
     }
 
-    pub fn d(x: DeclarationNodeValue<MockRange, ()>) -> DeclarationNode<MockRange, ()> {
+    pub const fn d(x: DeclarationNodeValue<MockRange, ()>) -> DeclarationNode<MockRange, ()> {
         DeclarationNode::raw(x, MockRange)
     }
 
-    pub fn i(x: ImportNodeValue) -> ImportNode<MockRange, ()> {
+    pub const fn i(x: ImportNodeValue) -> ImportNode<MockRange, ()> {
         ImportNode::raw(x, MockRange)
     }
 
-    pub fn m(x: ModuleNodeValue<MockRange, ()>) -> ModuleNode<MockRange, ()> {
+    pub const fn m(x: ModuleNodeValue<MockRange, ()>) -> ModuleNode<MockRange, ()> {
         ModuleNode::raw(x)
     }
 }
 
 /// ast factories
-#[allow(dead_code)]
 pub mod a {
     use super::*;
     use crate::ast::storage::{Storage, Visibility};
 
     pub fn type_<E, P, M, T>(name: &str, value: T) -> Declaration<E, P, M, T> {
         Declaration::TypeAlias {
-            name: Storage(Visibility::Public, name.to_string()),
+            name: Storage(Visibility::Public, name.to_owned()),
             value,
         }
     }
@@ -67,7 +69,7 @@ pub mod a {
         variants: Vec<(String, Vec<T>)>,
     ) -> Declaration<E, P, M, T> {
         Declaration::Enumerated {
-            name: Storage(Visibility::Public, name.to_string()),
+            name: Storage(Visibility::Public, name.to_owned()),
             variants,
         }
     }
@@ -78,7 +80,7 @@ pub mod a {
         value: E,
     ) -> Declaration<E, P, M, T> {
         Declaration::Constant {
-            name: Storage(Visibility::Public, name.to_string()),
+            name: Storage(Visibility::Public, name.to_owned()),
             value_type,
             value,
         }
@@ -91,7 +93,7 @@ pub mod a {
         body: E,
     ) -> Declaration<E, P, M, T> {
         Declaration::Function {
-            name: Storage(Visibility::Public, name.to_string()),
+            name: Storage(Visibility::Public, name.to_owned()),
             parameters,
             body_type,
             body,
@@ -100,7 +102,7 @@ pub mod a {
 
     pub fn view<E, P, M, T>(name: &str, parameters: Vec<P>, body: E) -> Declaration<E, P, M, T> {
         Declaration::View {
-            name: Storage(Visibility::Public, name.to_string()),
+            name: Storage(Visibility::Public, name.to_owned()),
             parameters,
             body,
         }
@@ -108,7 +110,7 @@ pub mod a {
 
     pub fn module<E, P, M, T>(name: &str, value: M) -> Declaration<E, P, M, T> {
         Declaration::Module {
-            name: Storage(Visibility::Public, name.to_string()),
+            name: Storage(Visibility::Public, name.to_owned()),
             value,
         }
     }

@@ -16,7 +16,7 @@ use lang::{
 
 impl<R> Register for KSXNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = KSXNode<R, NodeContext>;
     type Value<C> = KSXNodeValue<R, C>;
@@ -25,7 +25,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        KSXNode(Node(value, self.node().range().clone(), id))
+        KSXNode(Node(value, *self.node().range(), id))
     }
 }
 

@@ -6,7 +6,7 @@ use lang::{ast::DeclarationNode, Node};
 
 impl<R> ToStrong<DeclarationNode<R, Strong>> for DeclarationNode<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> DeclarationNode<R, Strong> {
         DeclarationNode(Node(
@@ -16,7 +16,7 @@ where
                 &|x| x.to_strong(ctx),
                 &|x| x.to_strong(ctx),
             ),
-            self.node().range().clone(),
+            *self.node().range(),
             ctx.resolve(self.node().id()).clone(),
         ))
     }

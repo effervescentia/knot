@@ -4,23 +4,21 @@ use kore::Generator;
 use lang::ast::ProgramShape;
 use std::{collections::HashMap, fs, path::Path};
 
-fn write_files(source_dir: &Path, files: &Vec<(&str, &str)>) {
-    files.iter().for_each(|(name, data)| {
+fn write_files(source_dir: &Path, files: &[(&str, &str)]) {
+    for (name, data) in files {
         let path = source_dir.join(name);
 
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).ok();
         }
 
-        fs::write(&path, data).expect(&format!(
-            "failed to write file with path {}",
-            path.display()
-        ))
-    });
+        fs::write(&path, data)
+            .unwrap_or_else(|_| panic!("failed to write file with path {}", path.display()));
+    }
 }
 
 fn collect_files(out_dir: &Path) -> HashMap<String, String> {
-    let iter = glob::glob(&format!(
+    glob::glob(&format!(
         "{}/**/*",
         out_dir.to_str().expect("failed to convert path to string")
     ))
@@ -35,21 +33,21 @@ fn collect_files(out_dir: &Path) -> HashMap<String, String> {
     })
     .map(|x| {
         (
-            x.strip_prefix(&out_dir)
+            x.strip_prefix(out_dir)
                 .expect("failed to make path relative")
                 .to_str()
                 .expect("failed to convert path to string")
-                .to_string(),
-            fs::read_to_string(&x).expect(&format!("failed to read file {}", x.display())),
+                .to_owned(),
+            fs::read_to_string(&x)
+                .unwrap_or_else(|_| panic!("failed to read file {}", x.display())),
         )
-    });
-
-    HashMap::from_iter(iter)
+    })
+    .collect()
 }
 
 pub fn build<G>(
     test_name: &str,
-    files: Vec<(&str, &str)>,
+    files: &[(&str, &str)],
     generator: G,
 ) -> engine::Result<HashMap<String, String>>
 where
@@ -61,7 +59,7 @@ where
     fs::create_dir(&source_dir).expect("failed to create source directory");
     fs::create_dir(&out_dir).expect("failed to create output directory");
 
-    write_files(&source_dir, &files);
+    write_files(&source_dir, files);
 
     let (entry, _) = files.first().expect("files list was empty");
 

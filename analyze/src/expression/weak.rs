@@ -7,7 +7,7 @@ use lang::ast::{BinaryOperator, Expression, Primitive, UnaryOperator};
 impl ToWeak for Expression<usize, usize, usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Expression::Primitive(x) => (
+            Self::Primitive(x) => (
                 RefKind::Value,
                 Weak::Type(match x {
                     Primitive::Nil => Type::Nil,
@@ -18,18 +18,18 @@ impl ToWeak for Expression<usize, usize, usize> {
                 }),
             ),
 
-            Expression::Identifier(..) => (RefKind::Value, Weak::Infer),
+            Self::Identifier(..) => (RefKind::Value, Weak::Infer),
 
-            Expression::Group(id) => (RefKind::Value, Weak::Inherit(**id)),
+            Self::Group(id) => (RefKind::Value, Weak::Inherit(**id)),
 
-            Expression::Closure(xs) => (RefKind::Value, {
+            Self::Closure(xs) => (RefKind::Value, {
                 match xs.last() {
                     Some(id) => Weak::Inherit(*id),
                     None => Weak::Type(Type::Nil),
                 }
             }),
 
-            Expression::UnaryOperation(op, id) => (
+            Self::UnaryOperation(op, id) => (
                 RefKind::Value,
                 match op {
                     UnaryOperator::Not => Weak::Type(Type::Boolean),
@@ -38,7 +38,7 @@ impl ToWeak for Expression<usize, usize, usize> {
                 },
             ),
 
-            Expression::BinaryOperation(op, ..) => (
+            Self::BinaryOperation(op, ..) => (
                 RefKind::Value,
                 match op {
                     BinaryOperator::Equal
@@ -58,13 +58,13 @@ impl ToWeak for Expression<usize, usize, usize> {
                 },
             ),
 
-            Expression::DotAccess(..) => (RefKind::Value, Weak::Infer),
+            Self::DotAccess(..) => (RefKind::Value, Weak::Infer),
 
-            Expression::FunctionCall(..) => (RefKind::Value, Weak::Infer),
+            Self::FunctionCall(..) => (RefKind::Value, Weak::Infer),
 
-            Expression::Style(..) => (RefKind::Value, Weak::Type(Type::Style)),
+            Self::Style(..) => (RefKind::Value, Weak::Type(Type::Style)),
 
-            Expression::KSX(..) => (RefKind::Value, Weak::Type(Type::Element)),
+            Self::KSX(..) => (RefKind::Value, Weak::Type(Type::Element)),
         }
     }
 }

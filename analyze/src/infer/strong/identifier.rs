@@ -5,16 +5,16 @@ use crate::{
 };
 
 pub fn infer(
-    scope: &Vec<usize>,
+    scope: &[usize],
     id: &usize,
-    name: &String,
+    name: &str,
     kind: &RefKind,
     ctx: &StrongContext,
 ) -> Option<Strong> {
     match ctx.bindings.resolve(scope, name, *id) {
-        Some(inherit_id) => ctx.as_strong(&inherit_id, kind).map(|x| x.clone()),
+        Some(inherit_id) => ctx.as_strong(&inherit_id, kind).cloned(),
 
-        None => Some(Err(SemanticError::NotFound(name.clone()))),
+        None => Some(Err(SemanticError::NotFound(name.to_owned()))),
     }
 }
 
@@ -30,13 +30,13 @@ mod tests {
     use std::collections::BTreeSet;
 
     fn infer(
-        scope: Vec<usize>,
+        scope: &[usize],
         id: usize,
         name: &str,
         kind: RefKind,
         ctx: &StrongContext,
     ) -> Option<Strong> {
-        super::infer(&scope, &id, &name.to_string(), &kind, ctx)
+        super::infer(scope, &id, name, &kind, ctx)
     }
 
     #[test]
@@ -44,7 +44,7 @@ mod tests {
         let ctx = strong_ctx_from(vec![], vec![], vec![]);
 
         assert_eq!(
-            infer(vec![0], 0, "foo", RefKind::Value, &ctx),
+            infer(&[0], 0, "foo", RefKind::Value, &ctx),
             Some(Err(SemanticError::NotFound(String::from("foo"))))
         );
     }
@@ -64,11 +64,11 @@ mod tests {
         );
 
         assert_eq!(
-            infer(vec![0], 2, "foo", RefKind::Value, &ctx),
+            infer(&[0], 2, "foo", RefKind::Value, &ctx),
             Some(Ok(Type::Boolean))
         );
         assert_eq!(
-            infer(vec![0], 2, "bar", RefKind::Type, &ctx),
+            infer(&[0], 2, "bar", RefKind::Type, &ctx),
             Some(Ok(Type::Integer))
         );
     }

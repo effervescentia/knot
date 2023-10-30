@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 impl<R, C> Display for TypeExpressionNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {

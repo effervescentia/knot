@@ -14,7 +14,7 @@ struct Typedef<'a, R, C>(&'a Option<TypeExpressionNode<R, C>>);
 
 impl<'a, R, C> Display for Typedef<'a, R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         if let Some(typedef) = self.0 {

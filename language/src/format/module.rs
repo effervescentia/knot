@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 impl<R, C> Display for ModuleNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
@@ -19,7 +19,7 @@ where
 
 impl<R, C> Display for ImportNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(

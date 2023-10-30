@@ -16,8 +16,8 @@ pub trait Identity<T> {
 pub struct Program<R, C>(pub ast::ModuleNode<R, C>);
 
 impl<R, C> Program<R, C> {
-    pub fn imports(&self) -> &Vec<ImportNode<R, C>> {
-        let Program(ModuleNode(Module { imports, .. }, ..)) = self;
+    pub const fn imports(&self) -> &Vec<ImportNode<R, C>> {
+        let Self(ModuleNode(Module { imports, .. }, ..)) = self;
 
         imports
     }
@@ -26,7 +26,7 @@ impl<R, C> Program<R, C> {
 #[cfg(feature = "format")]
 impl<R, C> std::fmt::Display for Program<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{program}", program = self.0)

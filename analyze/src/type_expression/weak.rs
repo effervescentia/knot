@@ -9,23 +9,21 @@ impl ToWeak for TypeExpression<usize> {
         (
             RefKind::Type,
             match self {
-                TypeExpression::Nil => Weak::Type(Type::Nil),
-                TypeExpression::Boolean => Weak::Type(Type::Boolean),
-                TypeExpression::Integer => Weak::Type(Type::Integer),
-                TypeExpression::Float => Weak::Type(Type::Float),
-                TypeExpression::String => Weak::Type(Type::String),
-                TypeExpression::Style => Weak::Type(Type::Style),
-                TypeExpression::Element => Weak::Type(Type::Element),
+                Self::Nil => Weak::Type(Type::Nil),
+                Self::Boolean => Weak::Type(Type::Boolean),
+                Self::Integer => Weak::Type(Type::Integer),
+                Self::Float => Weak::Type(Type::Float),
+                Self::String => Weak::Type(Type::String),
+                Self::Style => Weak::Type(Type::Style),
+                Self::Element => Weak::Type(Type::Element),
 
-                TypeExpression::Identifier(..) => Weak::Infer,
+                Self::Identifier(..) => Weak::Infer,
 
-                TypeExpression::Group(id) => Weak::Inherit(**id),
+                Self::Group(id) => Weak::Inherit(**id),
 
-                TypeExpression::DotAccess(..) => Weak::Infer,
+                Self::DotAccess(..) => Weak::Infer,
 
-                TypeExpression::Function(params, x) => {
-                    Weak::Type(Type::Function(params.clone(), **x))
-                }
+                Self::Function(params, x) => Weak::Type(Type::Function(params.clone(), **x)),
             },
         )
     }

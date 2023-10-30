@@ -23,7 +23,7 @@ pub struct FileContext {
 }
 
 impl FileContext {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             next_scope_id: 0,
             next_fragment_id: 0,
@@ -81,7 +81,7 @@ impl<'a> ScopeContext<'a> {
 
     pub fn path(&self) -> Vec<usize> {
         match self.parent {
-            Some(x) => vec![x.path(), vec![self.id]].concat(),
+            Some(x) => [x.path(), vec![self.id]].concat(),
             None => vec![self.id],
         }
     }
@@ -153,11 +153,7 @@ impl StrongContext {
 
     pub fn as_strong<'a>(&'a self, id: &'a usize, kind: &'a RefKind) -> Option<&'a Strong> {
         self.refs.get(id).and_then(|(found_kind, strong)| {
-            if found_kind == kind || found_kind == &RefKind::Mixed {
-                Some(strong)
-            } else {
-                None
-            }
+            (found_kind == kind || found_kind == &RefKind::Mixed).then_some(strong)
         })
     }
 
@@ -175,7 +171,7 @@ impl StrongContext {
         (to_id, to_kind): (usize, &RefKind),
     ) -> bool {
         if let Some(strong) = self.as_strong(&from_id, from_kind) {
-            self.refs.insert(to_id, (to_kind.clone(), strong.clone()));
+            self.refs.insert(to_id, (*to_kind, strong.clone()));
             true
         } else {
             false
@@ -191,7 +187,7 @@ impl StrongContext {
 pub struct FragmentMap(pub BTreeMap<usize, (Vec<usize>, Fragment)>);
 
 impl FragmentMap {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(BTreeMap::new())
     }
 
@@ -199,13 +195,10 @@ impl FragmentMap {
         Self(BTreeMap::from_iter(iter))
     }
 
-    pub fn to_descriptors<'a>(
-        &self,
-        mut weak_refs: HashMap<usize, WeakRef>,
-    ) -> Vec<NodeDescriptor> {
+    pub fn to_descriptors(&self, mut weak_refs: HashMap<usize, WeakRef>) -> Vec<NodeDescriptor> {
         self.0
             .iter()
-            .filter_map(|(id, (scope, fragment))| match weak_refs.remove(&id) {
+            .filter_map(|(id, (scope, fragment))| match weak_refs.remove(id) {
                 Some((kind, weak)) => Some(NodeDescriptor {
                     id: *id,
                     kind,
@@ -219,6 +212,12 @@ impl FragmentMap {
     }
 }
 
+impl Default for FragmentMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct BindingMap(pub HashMap<(Vec<usize>, String), BTreeSet<usize>>);
 
@@ -229,8 +228,8 @@ impl BindingMap {
         Self(HashMap::from_iter(iter))
     }
 
-    pub fn resolve(&self, scope: &Vec<usize>, name: &str, origin_id: usize) -> Option<usize> {
-        let source_ids = self.0.get(&(scope.clone(), name.to_string()));
+    pub fn resolve(&self, scope: &[usize], name: &str, origin_id: usize) -> Option<usize> {
+        let source_ids = self.0.get(&(scope.to_vec(), name.to_owned()));
 
         if let Some(xs) = source_ids {
             for x in xs.iter().rev() {
@@ -240,14 +239,13 @@ impl BindingMap {
             }
         }
 
-        if scope.len() <= 1 {
-            return None;
+        if scope.len() > 1 {
+            let parent_scope = scope.get(..scope.len() - 1)?;
+
+            self.resolve(parent_scope, name, origin_id)
+        } else {
+            None
         }
-
-        let mut parent_scope = scope.clone();
-        parent_scope.pop();
-
-        self.resolve(&parent_scope, name, origin_id)
     }
 }
 
@@ -276,7 +274,7 @@ mod tests {
             ),
         ]);
 
-        assert_eq!(bindings.resolve(&vec![0], "foo", 3), Some(0))
+        assert_eq!(bindings.resolve(&[0], "foo", 3), Some(0));
     }
 
     #[test]
@@ -293,9 +291,9 @@ mod tests {
             ),
         ]);
 
-        assert_eq!(bindings.resolve(&vec![0, 1, 2], "foo", 3), Some(0));
-        assert_eq!(bindings.resolve(&vec![0, 1, 2], "bar", 3), Some(1));
-        assert_eq!(bindings.resolve(&vec![0, 1, 2], "fizz", 3), Some(2));
+        assert_eq!(bindings.resolve(&[0, 1, 2], "foo", 3), Some(0));
+        assert_eq!(bindings.resolve(&[0, 1, 2], "bar", 3), Some(1));
+        assert_eq!(bindings.resolve(&[0, 1, 2], "fizz", 3), Some(2));
     }
 
     #[test]
@@ -312,7 +310,7 @@ mod tests {
             ),
         ]);
 
-        assert_eq!(bindings.resolve(&vec![0, 1, 2], "foo", 4), Some(2));
+        assert_eq!(bindings.resolve(&[0, 1, 2], "foo", 4), Some(2));
     }
 
     #[test]
@@ -322,7 +320,7 @@ mod tests {
             BTreeSet::from_iter(vec![1, 3]),
         )]);
 
-        assert_eq!(bindings.resolve(&vec![0], "foo", 2), Some(1));
-        assert_eq!(bindings.resolve(&vec![0], "foo", 0), None);
+        assert_eq!(bindings.resolve(&[0], "foo", 2), Some(1));
+        assert_eq!(bindings.resolve(&[0], "foo", 0), None);
     }
 }

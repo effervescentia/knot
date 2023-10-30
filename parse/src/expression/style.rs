@@ -20,11 +20,12 @@ where
     .map(|(xs, range)| ExpressionNode::raw(Expression::Style(xs), range))
 }
 
-pub fn style<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
+pub fn style<T, P, F>(parser: F) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where
     T: Stream<Token = char>,
     T::Position: Position,
     P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    F: Fn() -> P,
 {
     attempt((m::keyword("style"), style_literal(parser))).map(
         |((_, start), ExpressionNode(node))| ExpressionNode(node.map_range(|end| &start + &end)),

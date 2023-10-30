@@ -57,7 +57,7 @@ where
 {
     let operation = |c, op| {
         (position(), m::symbol(c), parser()).map(move |(start, _, x)| {
-            let range = x.node().range().include(start);
+            let range = x.node().range().include(&start);
 
             ExpressionNode::raw(Expression::UnaryOperation(op, Box::new(x)), range)
         })
@@ -116,7 +116,7 @@ where
     T::Position: Position,
 {
     ksx::ksx().map(|ksx| {
-        let range = ksx.node().range().clone();
+        let range = *ksx.node().range();
 
         ExpressionNode::raw(Expression::KSX(Box::new(ksx)), range)
     })

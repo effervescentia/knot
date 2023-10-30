@@ -35,12 +35,11 @@ impl Display for ImportGraph {
             .unwrap_or_default();
 
         f.write_str(
-            Rows::merge(max_depth, &printed)
+            &Rows::merge(max_depth, &printed)
                 .iter()
                 .map(|x| x.trim_end())
                 .collect::<Vec<_>>()
-                .join("\n")
-                .as_str(),
+                .join("\n"),
         )
     }
 }
@@ -56,10 +55,10 @@ struct SubTree<'a> {
 }
 
 impl<'a> SubTree<'a> {
-    fn format_rows(rows: Vec<String>) -> Rows {
+    fn format_rows(rows: &[String]) -> Rows {
         let max_width = rows
             .iter()
-            .map(|x| x.len())
+            .map(String::len)
             .max()
             .map(|x| 2.max(x + 1))
             .unwrap();
@@ -70,13 +69,13 @@ impl<'a> SubTree<'a> {
         }
     }
 
-    fn format_dividers(subtrees: Vec<Rows>) -> Vec<String> {
+    fn format_dividers(subtrees: &[Rows]) -> Vec<String> {
         vec![subtrees
             .iter()
             .enumerate()
             .map(|(index, x)| {
                 if index < subtrees.len() - 1 {
-                    vec![
+                    [
                         String::from(if index == 0 { "|" } else { "," }),
                         String::from("-").repeat(x.width - 1),
                     ]
@@ -93,8 +92,8 @@ impl<'a> SubTree<'a> {
         children
             .into_iter()
             .map(|child| {
-                if self.ancestors.contains(&&child) {
-                    Self::format_rows(vec![format!("cycle({child})")])
+                if self.ancestors.contains(&child) {
+                    Self::format_rows(&[format!("cycle({child})")])
                 } else {
                     let mut ancestors = self.ancestors.clone();
                     ancestors.push(self.root);
@@ -116,7 +115,7 @@ impl<'a> SubTree<'a> {
         let subtrees = match (visited.contains(&self.root), children.is_empty()) {
             (true, true) => vec![],
 
-            (true, false) => vec![Rows::from("[…]")],
+            (true, false) => vec![Rows::from("[\u{2026}]")],
 
             (false, _) => {
                 visited.insert(self.root);
@@ -140,12 +139,12 @@ impl<'a> SubTree<'a> {
             .concat();
         let child_rows = Rows::merge(max_depth, &subtrees);
         let divider_rows = if has_multiple_subtrees {
-            Self::format_dividers(subtrees)
+            Self::format_dividers(&subtrees)
         } else {
             vec![]
         };
 
-        Self::format_rows(vec![vec![root_row], divider_rows, vec![pipe_row], child_rows].concat())
+        Self::format_rows(&[vec![root_row], divider_rows, vec![pipe_row], child_rows].concat())
     }
 }
 
@@ -155,16 +154,15 @@ struct Rows {
 }
 
 impl Rows {
-    fn empty() -> Self {
+    const fn empty() -> Self {
         Self {
             width: 0,
             rows: vec![],
         }
     }
 
-    fn merge(depth: usize, xs: &Vec<Self>) -> Vec<String> {
+    fn merge(depth: usize, xs: &[Self]) -> Vec<String> {
         (0..depth)
-            .into_iter()
             .map(|index| {
                 xs.iter()
                     .map(|x| {
@@ -187,7 +185,7 @@ impl From<&str> for Rows {
     fn from(value: &str) -> Self {
         Self {
             width: value.len(),
-            rows: vec![value.to_string()],
+            rows: vec![value.to_owned()],
         }
     }
 }
@@ -199,7 +197,7 @@ mod tests {
 
     #[test]
     fn roots() {
-        let graph = ImportGraph::from_nodes(vec![0, 1, 2]);
+        let graph = ImportGraph::from_nodes(&[0, 1, 2]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -210,7 +208,7 @@ mod tests {
 
     #[test]
     fn deep() {
-        let graph = ImportGraph::from_edges(vec![(0, 1), (1, 2), (2, 3)]);
+        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 3)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -227,7 +225,7 @@ mod tests {
 
     #[test]
     fn wide() {
-        let graph = ImportGraph::from_edges(vec![(0, 1), (0, 2), (0, 3)]);
+        let graph = ImportGraph::from_edges(&[(0, 1), (0, 2), (0, 3)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -241,7 +239,7 @@ mod tests {
 
     #[test]
     fn cyclic() {
-        let graph = ImportGraph::from_edges(vec![
+        let graph = ImportGraph::from_edges(&[
             (0, 1),
             (1, 2),
             (1, 6),

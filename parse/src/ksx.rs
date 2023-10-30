@@ -47,15 +47,15 @@ where
                         layouts.get(i + 1),
                     ) {
                         (None | Some(Layout::Block), None | Some(Layout::Block)) => {
-                            KSX::Text((*s).trim().to_string())
+                            KSX::Text((*s).trim().to_owned())
                         }
 
                         (None | Some(Layout::Block), Some(Layout::Inline)) => {
-                            KSX::Text((*s).trim_start().to_string())
+                            KSX::Text((*s).trim_start().to_owned())
                         }
 
                         (Some(Layout::Inline), None | Some(Layout::Block)) => {
-                            KSX::Text((*s).trim_end().to_string())
+                            KSX::Text((*s).trim_end().to_owned())
                         }
 
                         (Some(Layout::Inline), Some(Layout::Inline)) => x,
@@ -64,10 +64,7 @@ where
                     _ => x,
                 }))
             })
-            .filter(|x| match x.node().value() {
-                KSX::Text(s) if s.is_empty() => false,
-                _ => true,
-            })
+            .filter(|x| !matches!(x.node().value(), KSX::Text(s) if s.is_empty()))
             .collect()
     })
 }

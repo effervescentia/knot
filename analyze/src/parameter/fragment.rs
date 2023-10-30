@@ -3,9 +3,9 @@ use lang::ast::ParameterNodeValue;
 
 impl<R> ToFragment for ParameterNodeValue<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
-    fn to_fragment<'a>(&'a self) -> Fragment {
+    fn to_fragment(&self) -> Fragment {
         Fragment::Parameter(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
     }
 }

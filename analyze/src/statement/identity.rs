@@ -6,7 +6,7 @@ use lang::ast::StatementNodeValue;
 
 impl<R> Identify<StatementNodeValue<R, NodeContext>> for StatementNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> StatementNodeValue<R, NodeContext> {
         self.map(&|x| x.register(ctx))

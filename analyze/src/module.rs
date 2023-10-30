@@ -12,7 +12,7 @@ use lang::ast::{Module, ModuleNode, ModuleNodeValue};
 
 impl<R> Identify<ModuleNodeValue<R, NodeContext>> for ModuleNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<R, NodeContext> {
         self.map(&|x| x.register(ctx), &|x| x.register(ctx))
@@ -21,16 +21,16 @@ where
 
 impl<R> ToFragment for ModuleNodeValue<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
-    fn to_fragment<'a>(&'a self) -> Fragment {
+    fn to_fragment(&self) -> Fragment {
         Fragment::Module(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
     }
 }
 
 impl<R> Register for ModuleNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = ModuleNode<R, NodeContext>;
     type Value<C> = ModuleNodeValue<R, C>;
@@ -51,7 +51,7 @@ impl ToWeak for Module<usize, usize> {
 
 impl<R> ToStrong<ModuleNode<R, Strong>> for ModuleNode<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> ModuleNode<R, Strong> {
         ModuleNode(

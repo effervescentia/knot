@@ -6,10 +6,10 @@ use lang::ast::ParameterNodeValue;
 
 impl<R> Identify<ParameterNodeValue<R, NodeContext>> for ParameterNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> ParameterNodeValue<R, NodeContext> {
-        self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))
+        self.map(&|x| x.register(ctx), &|x| x.register(ctx))
     }
 }
 

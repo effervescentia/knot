@@ -1,3 +1,4 @@
+#![allow(dead_code, clippy::expect_used, clippy::create_dir)]
 mod build;
 mod format;
 
@@ -37,7 +38,7 @@ pub fn test_name(file: &str, suffix: &str) -> String {
         .expect("failed to get test file name")
         .to_str()
         .expect("failed to convert file name to string")
-        .to_string();
+        .to_owned();
 
     format!("{}_{suffix}", file_name)
 }

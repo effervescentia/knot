@@ -6,7 +6,7 @@ use lang::ast::{Expression, ExpressionNodeValue};
 
 impl<R> Identify<ExpressionNodeValue<R, NodeContext>> for ExpressionNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> ExpressionNodeValue<R, NodeContext> {
         match self {

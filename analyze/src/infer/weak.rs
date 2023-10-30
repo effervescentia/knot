@@ -16,18 +16,14 @@ pub trait ToWeak {
     fn to_weak(&self) -> WeakRef;
 }
 
-pub fn infer_types<'a>(file_ctx: FileContext) -> WeakContext {
+pub fn infer_types(file_ctx: FileContext) -> WeakContext {
     let mut ctx = WeakContext::new(file_ctx.fragments);
 
     ctx.fragments.0.iter().for_each(|(id, (scope, x))| {
         ctx.refs.insert(*id, x.to_weak());
 
         for name in x.to_binding() {
-            let entry = ctx
-                .bindings
-                .0
-                .entry((scope.clone(), name.clone()))
-                .or_default();
+            let entry = ctx.bindings.0.entry((scope.clone(), name)).or_default();
 
             entry.insert(*id);
         }

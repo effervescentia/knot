@@ -4,6 +4,7 @@ use crate::{
 };
 use lang::ast::{self, ExpressionShape, KSXShape, Primitive};
 
+#[allow(clippy::multiple_inherent_impl)]
 impl Expression {
     pub fn from_expression(value: &ExpressionShape, opts: &Options) -> Self {
         match &value.0 {
@@ -23,7 +24,7 @@ impl Expression {
 
             ast::Expression::Identifier(x) => Self::Identifier(x.clone()),
 
-            ast::Expression::Group(x) => Self::Group(Box::new(Self::from_expression(&x, opts))),
+            ast::Expression::Group(x) => Self::Group(Box::new(Self::from_expression(x, opts))),
 
             ast::Expression::Closure(xs) if xs.is_empty() => Self::Null,
             ast::Expression::Closure(xs) => {
@@ -35,20 +36,20 @@ impl Expression {
                     })
                     .collect::<Vec<_>>();
 
-                Expression::Closure(statements)
+                Self::Closure(statements)
             }
 
             ast::Expression::UnaryOperation(op, x) => match op {
                 ast::UnaryOperator::Not => {
-                    Self::UnaryOperation("!", Box::new(Self::from_expression(&x, opts)))
+                    Self::UnaryOperation("!", Box::new(Self::from_expression(x, opts)))
                 }
 
                 ast::UnaryOperator::Negate => {
-                    Self::UnaryOperation("-", Box::new(Self::from_expression(&x, opts)))
+                    Self::UnaryOperation("-", Box::new(Self::from_expression(x, opts)))
                 }
 
                 ast::UnaryOperator::Absolute => {
-                    Self::call_global("Math.abs", vec![Self::from_expression(&x, opts)])
+                    Self::call_global("Math.abs", vec![Self::from_expression(x, opts)])
                 }
             },
 
@@ -56,8 +57,8 @@ impl Expression {
                 let binary_op = |op| {
                     Self::BinaryOperation(
                         op,
-                        Box::new(Self::from_expression(&lhs, opts)),
-                        Box::new(Self::from_expression(&rhs, opts)),
+                        Box::new(Self::from_expression(lhs, opts)),
+                        Box::new(Self::from_expression(rhs, opts)),
                     )
                 };
 
@@ -81,19 +82,19 @@ impl Expression {
                     ast::BinaryOperator::Exponent => Self::call_global(
                         "Math.pow",
                         vec![
-                            Self::from_expression(&lhs, opts),
-                            Self::from_expression(&rhs, opts),
+                            Self::from_expression(lhs, opts),
+                            Self::from_expression(rhs, opts),
                         ],
                     ),
                 }
             }
 
             ast::Expression::DotAccess(lhs, rhs) => {
-                Self::DotAccess(Box::new(Self::from_expression(&lhs, opts)), rhs.clone())
+                Self::DotAccess(Box::new(Self::from_expression(lhs, opts)), rhs.clone())
             }
 
             ast::Expression::FunctionCall(x, arguments) => Self::FunctionCall(
-                Box::new(Self::from_expression(&x, opts)),
+                Box::new(Self::from_expression(x, opts)),
                 arguments
                     .iter()
                     .map(|x| Self::from_expression(x, opts))
@@ -109,7 +110,7 @@ impl Expression {
                 )],
             ),
 
-            ast::Expression::KSX(x) => Self::from_ksx(&x, opts),
+            ast::Expression::KSX(x) => Self::from_ksx(x, opts),
         }
     }
 
@@ -127,7 +128,7 @@ impl Expression {
         match &value.0 {
             ast::KSX::Text(x) => Self::String(x.clone()),
 
-            ast::KSX::Inline(x) => Self::from_expression(&x, opts),
+            ast::KSX::Inline(x) => Self::from_expression(x, opts),
 
             ast::KSX::Fragment(xs) => Self::FunctionCall(
                 Box::new(Self::plugin("ksx", "createFragment")),
@@ -155,7 +156,7 @@ impl Expression {
                     if attributes.is_empty() && children.is_empty() {
                         vec![name_arg]
                     } else {
-                        vec![
+                        [
                             vec![name_arg, Self::from_attributes(attributes, opts)],
                             children.iter().map(|x| Self::from_ksx(x, opts)).collect(),
                         ]

@@ -16,9 +16,9 @@ pub struct ExpressionShape(pub Expression<ExpressionShape, StatementShape, KSXSh
 impl<R, C> ToShape<ExpressionShape> for ExpressionNode<R, C> {
     fn to_shape(&self) -> ExpressionShape {
         ExpressionShape(self.0.value().map(
-            &mut |x| x.to_shape(),
-            &mut |x| x.to_shape(),
-            &mut |x| x.to_shape(),
+            &mut ToShape::to_shape,
+            &mut ToShape::to_shape,
+            &mut ToShape::to_shape,
         ))
     }
 }
@@ -28,7 +28,7 @@ pub struct StatementShape(pub Statement<ExpressionShape>);
 
 impl<R, C> ToShape<StatementShape> for StatementNode<R, C> {
     fn to_shape(&self) -> StatementShape {
-        StatementShape(self.0.value().map(&|x| x.to_shape()))
+        StatementShape(self.0.value().map(&ToShape::to_shape))
     }
 }
 
@@ -40,7 +40,7 @@ impl<R, C> ToShape<KSXShape> for KSXNode<R, C> {
         KSXShape(
             self.0
                 .value()
-                .map(&mut |x| x.to_shape(), &mut |x| x.to_shape()),
+                .map(&mut ToShape::to_shape, &mut ToShape::to_shape),
         )
     }
 }
@@ -50,7 +50,7 @@ pub struct TypeExpressionShape(pub TypeExpression<TypeExpressionShape>);
 
 impl<R, C> ToShape<TypeExpressionShape> for TypeExpressionNode<R, C> {
     fn to_shape(&self) -> TypeExpressionShape {
-        TypeExpressionShape(self.0.value().map(&|x| x.to_shape()))
+        TypeExpressionShape(self.0.value().map(&ToShape::to_shape))
     }
 }
 
@@ -59,7 +59,7 @@ pub struct ParameterShape(pub Parameter<ExpressionShape, TypeExpressionShape>);
 
 impl<R, C> ToShape<ParameterShape> for ParameterNode<R, C> {
     fn to_shape(&self) -> ParameterShape {
-        ParameterShape(self.0.value().map(&|x| x.to_shape(), &|x| x.to_shape()))
+        ParameterShape(self.0.value().map(&ToShape::to_shape, &ToShape::to_shape))
     }
 }
 
@@ -71,10 +71,10 @@ pub struct DeclarationShape(
 impl<R, C> ToShape<DeclarationShape> for DeclarationNode<R, C> {
     fn to_shape(&self) -> DeclarationShape {
         DeclarationShape(self.0.value().map(
-            &|x| x.to_shape(),
-            &|x| x.to_shape(),
-            &|x| x.to_shape(),
-            &|x| x.to_shape(),
+            &ToShape::to_shape,
+            &ToShape::to_shape,
+            &ToShape::to_shape,
+            &ToShape::to_shape,
         ))
     }
 }
@@ -93,7 +93,7 @@ pub struct ModuleShape(pub Module<ImportShape, DeclarationShape>);
 
 impl<R, C> ToShape<ModuleShape> for ModuleNode<R, C> {
     fn to_shape(&self) -> ModuleShape {
-        ModuleShape(self.0.map(&|x| x.to_shape(), &|x| x.to_shape()))
+        ModuleShape(self.0.map(&ToShape::to_shape, &ToShape::to_shape))
     }
 }
 

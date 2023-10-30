@@ -30,7 +30,7 @@ export { ROOT };
     let name = common::test_name(file!(), "absolute_imports");
     let result = common::build(
         &name,
-        vec![
+        &[
             ("main.kn", INPUT_ROOT),
             ("a.kn", INPUT_A),
             ("deep/b.kn", INPUT_B),
@@ -41,9 +41,9 @@ export { ROOT };
     assert_eq!(
         result.unwrap(),
         HashMap::from_iter(vec![
-            (String::from("a.js"), OUTPUT_A.to_string()),
-            (String::from("deep/b.js"), OUTPUT_B.to_string()),
-            (String::from("main.js"), OUTPUT_ROOT.to_string())
+            (String::from("a.js"), OUTPUT_A.to_owned()),
+            (String::from("deep/b.js"), OUTPUT_B.to_owned()),
+            (String::from("main.js"), OUTPUT_ROOT.to_owned())
         ])
     );
 }
@@ -75,7 +75,7 @@ export { ROOT };
     let name = common::test_name(file!(), "relative_imports");
     let result = common::build(
         &name,
-        vec![
+        &[
             ("main.kn", INPUT_ROOT),
             ("deep/b.kn", INPUT_B),
             ("deep/deeper/a.kn", INPUT_A),
@@ -86,9 +86,9 @@ export { ROOT };
     assert_eq!(
         result.unwrap(),
         HashMap::from_iter(vec![
-            (String::from("main.js"), OUTPUT_ROOT.to_string()),
-            (String::from("deep/b.js"), OUTPUT_B.to_string()),
-            (String::from("deep/deeper/a.js"), OUTPUT_A.to_string()),
+            (String::from("main.js"), OUTPUT_ROOT.to_owned()),
+            (String::from("deep/b.js"), OUTPUT_B.to_owned()),
+            (String::from("deep/deeper/a.js"), OUTPUT_A.to_owned()),
         ])
     );
 }

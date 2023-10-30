@@ -25,110 +25,113 @@ pub mod n {
         Node,
     };
 
-    pub fn x(x: ExpressionNodeValue<Range, ()>) -> ExpressionNode<Range, ()> {
+    pub const fn x(x: ExpressionNodeValue<Range, ()>) -> ExpressionNode<Range, ()> {
         ExpressionNode::raw(x, RANGE)
     }
 
-    pub fn xr(
+    pub const fn xr(
         x: ExpressionNodeValue<Range, ()>,
         (start, end): InitRange,
     ) -> ExpressionNode<Range, ()> {
         ExpressionNode::raw(x, Range(start, end))
     }
 
-    pub fn xc<T>(x: ExpressionNodeValue<Range, T>, ctx: T) -> ExpressionNode<Range, T> {
+    pub const fn xc<T>(x: ExpressionNodeValue<Range, T>, ctx: T) -> ExpressionNode<Range, T> {
         ExpressionNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn s(x: StatementNodeValue<Range, ()>) -> StatementNode<Range, ()> {
+    pub const fn s(x: StatementNodeValue<Range, ()>) -> StatementNode<Range, ()> {
         StatementNode::raw(x, RANGE)
     }
 
-    pub fn sr(
+    pub const fn sr(
         x: StatementNodeValue<Range, ()>,
         (start, end): InitRange,
     ) -> StatementNode<Range, ()> {
         StatementNode::raw(x, Range(start, end))
     }
 
-    pub fn sc<T>(x: StatementNodeValue<Range, T>, ctx: T) -> StatementNode<Range, T> {
+    pub const fn sc<T>(x: StatementNodeValue<Range, T>, ctx: T) -> StatementNode<Range, T> {
         StatementNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn kx(x: KSXNodeValue<Range, ()>) -> KSXNode<Range, ()> {
+    pub const fn kx(x: KSXNodeValue<Range, ()>) -> KSXNode<Range, ()> {
         KSXNode::raw(x, RANGE)
     }
 
-    pub fn kxr(x: KSXNodeValue<Range, ()>, (start, end): InitRange) -> KSXNode<Range, ()> {
+    pub const fn kxr(x: KSXNodeValue<Range, ()>, (start, end): InitRange) -> KSXNode<Range, ()> {
         KSXNode::raw(x, Range(start, end))
     }
 
-    pub fn kxc<T>(x: KSXNodeValue<Range, T>, ctx: T) -> KSXNode<Range, T> {
+    pub const fn kxc<T>(x: KSXNodeValue<Range, T>, ctx: T) -> KSXNode<Range, T> {
         KSXNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn p(x: ParameterNodeValue<Range, ()>) -> ParameterNode<Range, ()> {
+    pub const fn p(x: ParameterNodeValue<Range, ()>) -> ParameterNode<Range, ()> {
         ParameterNode::raw(x, RANGE)
     }
 
-    pub fn pr(
+    pub const fn pr(
         x: ParameterNodeValue<Range, ()>,
         (start, end): InitRange,
     ) -> ParameterNode<Range, ()> {
         ParameterNode::raw(x, Range(start, end))
     }
 
-    pub fn pc<T>(x: ParameterNodeValue<Range, T>, ctx: T) -> ParameterNode<Range, T> {
+    pub const fn pc<T>(x: ParameterNodeValue<Range, T>, ctx: T) -> ParameterNode<Range, T> {
         ParameterNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn tx(x: TypeExpressionNodeValue<Range, ()>) -> TypeExpressionNode<Range, ()> {
+    pub const fn tx(x: TypeExpressionNodeValue<Range, ()>) -> TypeExpressionNode<Range, ()> {
         TypeExpressionNode::raw(x, RANGE)
     }
 
-    pub fn txr(
+    pub const fn txr(
         x: TypeExpressionNodeValue<Range, ()>,
         (start, end): InitRange,
     ) -> TypeExpressionNode<Range, ()> {
         TypeExpressionNode::raw(x, Range(start, end))
     }
 
-    pub fn txc<T>(x: TypeExpressionNodeValue<Range, T>, ctx: T) -> TypeExpressionNode<Range, T> {
+    pub const fn txc<T>(
+        x: TypeExpressionNodeValue<Range, T>,
+        ctx: T,
+    ) -> TypeExpressionNode<Range, T> {
         TypeExpressionNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn d(x: DeclarationNodeValue<Range, ()>) -> DeclarationNode<Range, ()> {
+    pub const fn d(x: DeclarationNodeValue<Range, ()>) -> DeclarationNode<Range, ()> {
         DeclarationNode::raw(x, RANGE)
     }
 
-    pub fn dr(
+    pub const fn dr(
         x: DeclarationNodeValue<Range, ()>,
         (start, end): InitRange,
     ) -> DeclarationNode<Range, ()> {
         DeclarationNode::raw(x, Range(start, end))
     }
 
-    pub fn dc<T>(x: DeclarationNodeValue<Range, T>, ctx: T) -> DeclarationNode<Range, T> {
+    pub const fn dc<T>(x: DeclarationNodeValue<Range, T>, ctx: T) -> DeclarationNode<Range, T> {
         DeclarationNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn i(x: ImportNodeValue) -> ImportNode<Range, ()> {
+    pub const fn i(x: ImportNodeValue) -> ImportNode<Range, ()> {
         ImportNode::raw(x, RANGE)
     }
 
-    pub fn ir(x: ImportNodeValue, (start, end): InitRange) -> ImportNode<Range, ()> {
+    pub const fn ir(x: ImportNodeValue, (start, end): InitRange) -> ImportNode<Range, ()> {
         ImportNode::raw(x, Range(start, end))
     }
 
-    pub fn ic<T>(x: ImportNodeValue, ctx: T) -> ImportNode<Range, T> {
+    pub const fn ic<T>(x: ImportNodeValue, ctx: T) -> ImportNode<Range, T> {
         ImportNode(Node::new(x, RANGE, ctx))
     }
 
-    pub fn m(x: ModuleNodeValue<Range, ()>) -> ModuleNode<Range, ()> {
+    pub const fn m(x: ModuleNodeValue<Range, ()>) -> ModuleNode<Range, ()> {
         ModuleNode::raw(x)
     }
 
-    pub fn mr<R>(x: ModuleNodeValue<R, ()>) -> ModuleNode<R, ()> {
+    pub const fn mr<R>(x: ModuleNodeValue<R, ()>) -> ModuleNode<R, ()> {
         ModuleNode::raw(x)
     }
 }

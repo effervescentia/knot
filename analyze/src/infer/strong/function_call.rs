@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::{
     context::StrongContext,
     infer::strong::{SemanticError, Strong},
@@ -19,32 +21,31 @@ pub fn infer(lhs: usize, arguments: &Vec<usize>, ctx: &StrongContext) -> Option<
 
     let resolve_arguments =
         |typ, parameters: Vec<(Type<usize>, usize)>, arguments: Vec<(Type<usize>, usize)>| {
-            if arguments.len() < parameters.len() {
-                Err(SemanticError::MissingArguments(
+            match arguments.len().cmp(&parameters.len()) {
+                Ordering::Less => Err(SemanticError::MissingArguments(
                     (typ, lhs),
                     parameters.split_at(arguments.len()).1.to_vec(),
-                ))
-            } else if arguments.len() > parameters.len() {
-                Err(SemanticError::UnexpectedArguments(
+                )),
+
+                Ordering::Greater => Err(SemanticError::UnexpectedArguments(
                     (typ, lhs),
                     arguments.split_at(parameters.len()).1.to_vec(),
-                ))
-            } else {
-                let mismatched = parameters
-                    .into_iter()
-                    .zip(arguments.into_iter())
-                    .filter(|((parameter_type, _), (argument_type, _))| {
-                        match (
-                            parameter_type.preview(&kind, ctx),
-                            argument_type.preview(&kind, ctx),
-                        ) {
-                            (Some(param), Some(arg)) if param == arg => false,
-                            _ => true,
-                        }
-                    })
-                    .collect::<Vec<_>>();
+                )),
 
-                Ok(mismatched)
+                Ordering::Equal => {
+                    let mismatched = parameters
+                        .into_iter()
+                        .zip(arguments)
+                        .filter(|((parameter_type, _), (argument_type, _))| {
+                            !matches!((
+                                parameter_type.preview(&kind, ctx),
+                                argument_type.preview(&kind, ctx),
+                            ), (Some(param), Some(arg)) if param == arg)
+                        })
+                        .collect::<Vec<_>>();
+
+                    Ok(mismatched)
+                }
             }
         };
 

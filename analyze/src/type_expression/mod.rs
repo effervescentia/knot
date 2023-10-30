@@ -15,7 +15,7 @@ use lang::{
 
 impl<R> Register for TypeExpressionNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = TypeExpressionNode<R, NodeContext>;
     type Value<C> = TypeExpressionNodeValue<R, C>;
@@ -24,7 +24,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        TypeExpressionNode(Node(value, self.node().range().clone(), id))
+        TypeExpressionNode(Node(value, *self.node().range(), id))
     }
 }
 

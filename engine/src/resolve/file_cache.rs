@@ -30,7 +30,7 @@ where
             let data = inner.resolve(&relative)?;
             let path = cache.0.join(&relative);
 
-            fs::write(path.as_path(), data.as_str()).ok()?;
+            fs::write(path.as_path(), &data).ok()?;
 
             Some(data)
         }
@@ -67,11 +67,11 @@ mod tests {
 
         assert_eq!(
             file_cache.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
         assert_eq!(
             fs::read_to_string(cache_dir.path().join(TARGET_FILE)).unwrap(),
-            FILE_CONTENTS.to_string()
+            FILE_CONTENTS.to_owned()
         );
     }
 
@@ -89,7 +89,7 @@ mod tests {
 
         assert_eq!(
             file_cache.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
     }
 
@@ -107,11 +107,11 @@ mod tests {
 
         assert_eq!(
             file_cache.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
         assert_eq!(
             fs::read_to_string(cache_dir.path().join(TARGET_FILE)).unwrap(),
-            FILE_CONTENTS.to_string()
+            FILE_CONTENTS.to_owned()
         );
     }
 

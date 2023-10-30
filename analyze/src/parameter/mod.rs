@@ -14,7 +14,7 @@ use lang::{
 
 impl<R> Register for ParameterNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = ParameterNode<R, NodeContext>;
     type Value<C> = ParameterNodeValue<R, C>;
@@ -23,7 +23,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        ParameterNode(Node(value, self.node().range().clone(), id))
+        ParameterNode(Node(value, *self.node().range(), id))
     }
 }
 

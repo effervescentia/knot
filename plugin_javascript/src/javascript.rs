@@ -27,10 +27,10 @@ pub enum Expression {
 
 impl Expression {
     pub fn global(name: &str) -> Self {
-        Self::Identifier(name.to_string())
+        Self::Identifier(name.to_owned())
     }
 
-    pub fn call_global(name: &str, arguments: Vec<Expression>) -> Self {
+    pub fn call_global(name: &str, arguments: Vec<Self>) -> Self {
         Self::FunctionCall(Box::new(Self::global(name)), arguments)
     }
 
@@ -38,9 +38,9 @@ impl Expression {
         Self::call_global(
             "$knot.plugin.get",
             vec![
-                Expression::String(namespace.to_string()),
-                Expression::String(feature.to_string()),
-                Expression::String(String::from("1.0")),
+                Self::String(namespace.to_owned()),
+                Self::String(feature.to_owned()),
+                Self::String(String::from("1.0")),
             ],
         )
     }
@@ -62,12 +62,12 @@ impl Statement {
     fn require(namespace: &str) -> Expression {
         Expression::FunctionCall(
             Box::new(Expression::Identifier(String::from("require"))),
-            vec![Expression::String(namespace.to_string())],
+            vec![Expression::String(namespace.to_owned())],
         )
     }
 
     pub fn internal_variable(name: &str, x: Expression) -> Self {
-        Self::Variable(name.to_string(), x)
+        Self::Variable(name.to_owned(), x)
     }
 
     pub fn import(
@@ -81,33 +81,33 @@ impl Statement {
                 .map(|x| match x {
                     (name, Some(alias)) | (alias @ name, None) => Self::Variable(
                         alias.clone(),
-                        Expression::DotAccess(Box::new(Self::require(&namespace)), name.clone()),
+                        Expression::DotAccess(Box::new(Self::require(namespace)), name.clone()),
                     ),
                 })
                 .collect(),
 
-            Module::ESM => vec![Self::Import(namespace.to_string(), imports)],
+            Module::ESM => vec![Self::Import(namespace.to_owned(), imports)],
         }
     }
 
     pub fn module_import(namespace: &str, name: &str, opts: &Options) -> Self {
         match opts.module {
-            Module::CJS => Self::Variable(name.to_string(), Self::require(namespace)),
+            Module::CJS => Self::Variable(name.to_owned(), Self::require(namespace)),
 
-            Module::ESM => Self::ModuleImport(namespace.to_string(), name.to_string()),
+            Module::ESM => Self::ModuleImport(namespace.to_owned(), name.to_owned()),
         }
     }
 
     pub fn export(name: &str, opts: &Options) -> Self {
         match opts.module {
-            Module::ESM => Self::Export(name.to_string()),
+            Module::ESM => Self::Export(name.to_owned()),
 
             Module::CJS => Self::Assignment(
                 Expression::DotAccess(
                     Box::new(Expression::Identifier(String::from("exports"))),
-                    name.to_string(),
+                    name.to_owned(),
                 ),
-                Expression::Identifier(name.to_string()),
+                Expression::Identifier(name.to_owned()),
             ),
         }
     }

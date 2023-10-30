@@ -6,12 +6,12 @@ use lang::{ast::ImportNode, Node};
 
 impl<R> ToStrong<ImportNode<R, Strong>> for ImportNode<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> ImportNode<R, Strong> {
         ImportNode(Node(
             self.node().value().clone(),
-            self.node().range().clone(),
+            *self.node().range(),
             ctx.resolve(self.node().id()).clone(),
         ))
     }

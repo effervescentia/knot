@@ -16,7 +16,7 @@ use lang::{
 
 impl<R> Register for StatementNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = StatementNode<R, NodeContext>;
     type Value<C> = StatementNodeValue<R, C>;
@@ -26,7 +26,7 @@ where
         let value = node.value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        StatementNode(Node(value, node.range().clone(), id))
+        StatementNode(Node(value, *node.range(), id))
     }
 }
 

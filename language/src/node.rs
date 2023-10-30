@@ -5,19 +5,19 @@ use std::fmt::Debug;
 pub struct Node<T, R, C>(pub T, pub R, pub C);
 
 impl<T, R, C> Node<T, R, C> {
-    pub fn new(x: T, range: R, context: C) -> Self {
+    pub const fn new(x: T, range: R, context: C) -> Self {
         Self(x, range, context)
     }
 
-    pub fn value(&self) -> &T {
+    pub const fn value(&self) -> &T {
         &self.0
     }
 
-    pub fn range(&self) -> &R {
+    pub const fn range(&self) -> &R {
         &self.1
     }
 
-    pub fn context(&self) -> &C {
+    pub const fn context(&self) -> &C {
         &self.2
     }
 
@@ -30,12 +30,12 @@ impl<T, R, C> Node<T, R, C> {
     }
 
     pub fn map_range(self, f: impl FnOnce(R) -> R) -> Self {
-        Node(self.0, f(self.1), self.2)
+        Self(self.0, f(self.1), self.2)
     }
 }
 
 impl<T, R> Node<T, R, ()> {
-    pub fn raw(x: T, range: R) -> Self {
+    pub const fn raw(x: T, range: R) -> Self {
         Self(x, range, ())
     }
 }
@@ -52,10 +52,10 @@ where
 impl<T, R, C> Clone for Node<T, R, C>
 where
     T: Clone,
-    R: Clone,
+    R: Copy,
     C: Clone,
 {
     fn clone(&self) -> Self {
-        Self(self.0.clone(), self.1.clone(), self.2.clone())
+        Self(self.0.clone(), self.1, self.2.clone())
     }
 }

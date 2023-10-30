@@ -3,12 +3,12 @@ use kore::format::{Block, Indented, SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
 /// [JavaScript escape characters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#string_literals)
-fn escape_string(s: &String) -> String {
-    s.replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\t", "\\t")
-        .replace("\r", "\\r")
+fn escape_string(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+        .replace('\t', "\\t")
+        .replace('\r', "\\r")
         .replace('\u{007F}', "\\b")
         .replace('\u{000C}', "\\f")
         .replace('\u{000B}', "\\v")

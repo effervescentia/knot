@@ -7,18 +7,18 @@ use lang::ast::Declaration;
 impl ToWeak for Declaration<usize, usize, usize, usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Declaration::TypeAlias { value, .. } => (RefKind::Type, Weak::Inherit(*value)),
+            Self::TypeAlias { value, .. } => (RefKind::Type, Weak::Inherit(*value)),
 
-            Declaration::Enumerated { variants, .. } => (
+            Self::Enumerated { variants, .. } => (
                 RefKind::Mixed,
                 Weak::Type(Type::Enumerated(variants.clone())),
             ),
 
-            Declaration::Constant {
+            Self::Constant {
                 value_type, value, ..
             } => (RefKind::Value, Weak::Inherit(value_type.unwrap_or(*value))),
 
-            Declaration::Function {
+            Self::Function {
                 parameters,
                 body_type,
                 body,
@@ -31,11 +31,11 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
                 )),
             ),
 
-            Declaration::View { parameters, .. } => {
+            Self::View { parameters, .. } => {
                 (RefKind::Value, Weak::Type(Type::View(parameters.clone())))
             }
 
-            Declaration::Module { value, .. } => (RefKind::Mixed, Weak::Inherit(*value)),
+            Self::Module { value, .. } => (RefKind::Mixed, Weak::Inherit(*value)),
         }
     }
 }

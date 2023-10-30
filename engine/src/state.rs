@@ -1,4 +1,4 @@
-use crate::{link::ImportGraph, Link};
+use crate::{link::ImportGraph, Link, Result};
 use analyze::Strong;
 use bimap::BiMap;
 use lang::Program;
@@ -9,7 +9,7 @@ pub trait Modules<'a> {
     type Context: 'a;
     type Iter: Iterator<Item = (&'a Link, &'a Module<Self::Context>)>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter>;
+    fn modules(&'a self) -> Result<Self::Iter>;
 }
 
 pub struct Module<T> {
@@ -19,7 +19,7 @@ pub struct Module<T> {
 }
 
 impl<T> Module<T> {
-    pub fn new(id: usize, text: String, ast: Program<Range, T>) -> Self {
+    pub const fn new(id: usize, text: String, ast: Program<Range, T>) -> Self {
         Self { id, text, ast }
     }
 }
@@ -40,19 +40,19 @@ impl<'a> Modules<'a> for Parsed {
     type Context = ();
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter> {
+    fn modules(&'a self) -> Result<Self::Iter> {
         Ok(self.modules.iter())
     }
 }
 
-impl<'a> Modules<'a> for super::Result<Parsed> {
+impl<'a> Modules<'a> for Result<Parsed> {
     type Context = ();
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter> {
+    fn modules(&'a self) -> Result<Self::Iter> {
         match self {
             Ok(x) => Ok(x.modules.iter()),
-            Err(err) => Err(err.to_owned()),
+            Err(err) => Err(err.clone()),
         }
     }
 }
@@ -67,19 +67,19 @@ impl<'a> Modules<'a> for Linked {
     type Context = ();
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter> {
+    fn modules(&'a self) -> Result<Self::Iter> {
         Ok(self.modules.iter())
     }
 }
 
-impl<'a> Modules<'a> for super::Result<Linked> {
+impl<'a> Modules<'a> for Result<Linked> {
     type Context = ();
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter> {
+    fn modules(&'a self) -> Result<Self::Iter> {
         match self {
             Ok(x) => Ok(x.modules.iter()),
-            Err(err) => Err(err.to_owned()),
+            Err(err) => Err(err.clone()),
         }
     }
 }
@@ -94,19 +94,19 @@ impl<'a> Modules<'a> for Analyzed {
     type Context = Strong;
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter> {
+    fn modules(&'a self) -> Result<Self::Iter> {
         Ok(self.modules.iter())
     }
 }
 
-impl<'a> Modules<'a> for super::Result<Analyzed> {
+impl<'a> Modules<'a> for Result<Analyzed> {
     type Context = Strong;
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
-    fn modules(&'a self) -> super::Result<Self::Iter> {
+    fn modules(&'a self) -> Result<Self::Iter> {
         match self {
             Ok(x) => Ok(x.modules.iter()),
-            Err(err) => Err(err.to_owned()),
+            Err(err) => Err(err.clone()),
         }
     }
 }

@@ -4,6 +4,7 @@ use crate::{
 };
 use lang::ast::{self, storage::Storage};
 
+#[allow(clippy::multiple_inherent_impl)]
 impl Statement {
     pub fn from_statement(value: &ast::StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
         match &value.0 {
@@ -54,7 +55,7 @@ impl Statement {
                                 .map(|(index, _)| parameter_name(&index.to_string()))
                                 .collect::<Vec<_>>();
 
-                            let results = vec![
+                            let results = [
                                 vec![Expression::DotAccess(
                                     Box::new(Expression::Identifier(name.clone())),
                                     variant_name.clone(),
@@ -100,12 +101,12 @@ impl Statement {
                 body,
                 ..
             } => {
-                let statements = vec![
+                let statements = [
                     parameters
                         .iter()
                         .filter_map(|x| {
-                            if let Some(default) = &x.0.default_value {
-                                Some(Statement::Assignment(
+                            x.0.default_value.as_ref().map(|default| {
+                                Self::Assignment(
                                     Expression::Identifier(x.0.name.clone()),
                                     Expression::FunctionCall(
                                         Box::new(Expression::FunctionCall(
@@ -125,10 +126,8 @@ impl Statement {
                                             Expression::from_expression(default, opts),
                                         ],
                                     ),
-                                ))
-                            } else {
-                                None
-                            }
+                                )
+                            })
                         })
                         .collect::<Vec<_>>(),
                     match Expression::from_expression(body, opts) {
@@ -150,7 +149,7 @@ impl Statement {
                 name: Storage(_, name),
                 value,
             } => {
-                let statements = vec![
+                let statements = [
                     Self::from_module(value, opts),
                     vec![Self::Return(Some(Expression::Object(
                         value
@@ -194,7 +193,7 @@ impl Statement {
             ast::ImportSource::External(external) => external.clone(),
         };
 
-        let namespace = vec![vec![base], path.clone()].concat().join("/");
+        let namespace = [vec![base], path.clone()].concat().join("/");
         let module_name = path
             .last()
             .expect("failed to get the implicit module name from the last section of the path");
@@ -347,7 +346,7 @@ mod tests {
                     &OPTIONS
                 ),
                 vec![]
-            )
+            );
         }
 
         #[test]
@@ -398,7 +397,7 @@ mod tests {
                         )
                     ])
                 )]
-            )
+            );
         }
 
         #[test]
@@ -415,7 +414,7 @@ mod tests {
                     &OPTIONS
                 ),
                 vec![Statement::Variable(String::from("foo"), Expression::Null)]
-            )
+            );
         }
 
         #[test]
@@ -465,7 +464,7 @@ mod tests {
                         Statement::Return(Some(Expression::Null))
                     ]
                 ))]
-            )
+            );
         }
 
         #[test]
@@ -498,7 +497,7 @@ mod tests {
                         Statement::Return(Some(Expression::Identifier(String::from("bar"))))
                     ]
                 ))]
-            )
+            );
         }
 
         #[test]
@@ -547,7 +546,7 @@ mod tests {
                         Statement::Return(Some(Expression::Null))
                     ]
                 ))]
-            )
+            );
         }
 
         #[test]
@@ -589,7 +588,7 @@ mod tests {
                         )]))),
                     ])
                 )]
-            )
+            );
         }
     }
 }

@@ -41,7 +41,7 @@ pub enum SemanticError {
     UnexpectedArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
     InvalidArguments(
         (Type<usize>, usize),
-        Vec<((Type<usize>, usize), (Type<usize>, usize))>,
+        #[allow(clippy::type_complexity)] Vec<((Type<usize>, usize), (Type<usize>, usize))>,
     ),
 }
 
@@ -53,12 +53,12 @@ pub trait ToStrong<R> {
     fn to_strong(&self, ctx: &StrongContext) -> R;
 }
 
-fn partial_infer_types<'a>(
-    nodes: Vec<&'a NodeDescriptor>,
+fn partial_infer_types(
+    nodes: Vec<&NodeDescriptor>,
     mut ctx: StrongContext,
 ) -> (
-    Vec<&'a NodeDescriptor>,
-    Vec<(&'a NodeDescriptor, String)>,
+    Vec<&NodeDescriptor>,
+    Vec<(&NodeDescriptor, String)>,
     StrongContext,
 ) {
     let mut unhandled = vec![];
@@ -71,7 +71,7 @@ fn partial_infer_types<'a>(
             weak: Weak::Type(x),
             ..
         } => {
-            ctx.refs.insert(*id, ((*kind).clone(), Ok(x.clone())));
+            ctx.refs.insert(*id, (*kind, Ok(x.clone())));
         }
 
         NodeDescriptor {
@@ -96,7 +96,7 @@ fn partial_infer_types<'a>(
             weak: Weak::Inherit(inherit_id),
             ..
         } => {
-            if !ctx.inherit(&node, *inherit_id) {
+            if !ctx.inherit(node, *inherit_id) {
                 unhandled.push(node);
             }
         }
@@ -116,7 +116,7 @@ fn partial_infer_types<'a>(
             weak: Weak::Infer,
         } => match identifier::infer(scope, id, name, kind, &ctx) {
             Some(x) => {
-                ctx.refs.insert(*id, (kind.clone(), x));
+                ctx.refs.insert(*id, (*kind, x));
             }
 
             None => unhandled.push(node),
@@ -151,7 +151,7 @@ fn partial_infer_types<'a>(
             ..
         } => match dot_access::infer(**lhs, rhs.clone(), kind, &ctx) {
             Some(x) => {
-                ctx.refs.insert(*id, (kind.clone(), x));
+                ctx.refs.insert(*id, (*kind, x));
             }
 
             None => unhandled.push(node),
@@ -179,7 +179,7 @@ fn partial_infer_types<'a>(
             ..
         } => match module::infer(declarations, &ctx) {
             Some(x) => {
-                ctx.refs.insert(*id, (kind.clone(), x));
+                ctx.refs.insert(*id, (*kind, x));
             }
 
             None => unhandled.push(node),
@@ -189,7 +189,7 @@ fn partial_infer_types<'a>(
             weak: Weak::Infer,
             fragment: Fragment::Parameter(_),
             ..
-        } => todo!(),
+        } => unimplemented!(),
 
         NodeDescriptor {
             weak: Weak::Infer, ..
@@ -199,8 +199,8 @@ fn partial_infer_types<'a>(
     (unhandled, warnings, ctx)
 }
 
-pub fn infer_types<'a>(
-    nodes: &'a Vec<NodeDescriptor>,
+pub fn infer_types(
+    nodes: &[NodeDescriptor],
     fragments: FragmentMap,
     bindings: BindingMap,
 ) -> StrongContext {
@@ -221,7 +221,7 @@ pub fn infer_types<'a>(
         }
     }
 
-    return ctx;
+    ctx
 }
 
 #[cfg(test)]

@@ -45,7 +45,7 @@ impl<R, C> ModuleNode<R, C> {
 }
 
 impl<R> ModuleNode<R, ()> {
-    pub fn raw(x: ModuleNodeValue<R, ()>) -> Self {
+    pub const fn raw(x: ModuleNodeValue<R, ()>) -> Self {
         Self(x, ())
     }
 }

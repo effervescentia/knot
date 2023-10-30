@@ -6,7 +6,7 @@ use lang::{ast::ExpressionNode, Node};
 
 impl<R> ToStrong<ExpressionNode<R, Strong>> for ExpressionNode<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> ExpressionNode<R, Strong> {
         ExpressionNode(Node(
@@ -15,7 +15,7 @@ where
                 &mut |x| x.to_strong(ctx),
                 &mut |x| x.to_strong(ctx),
             ),
-            self.node().range().clone(),
+            *self.node().range(),
             ctx.resolve(self.node().id()).clone(),
         ))
     }

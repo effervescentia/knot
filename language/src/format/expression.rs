@@ -2,17 +2,17 @@ use crate::ast::{Expression, ExpressionNode, Primitive};
 use kore::format::{indented, Block, Indented, SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter, Write};
 
-fn escape_string(s: &String) -> String {
-    s.replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\t", "\\t")
-        .replace("\r", "\\r")
+fn escape_string(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+        .replace('\t', "\\t")
+        .replace('\r', "\\r")
 }
 
 impl<R, C> Display for ExpressionNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
@@ -78,8 +78,8 @@ where
         } else {
             let mut f = indented(f);
 
-            self.0.iter().fold(write!(f, "\n"), |acc, (key, value)| {
-                acc.and_then(|_| write!(f, "{key}: {value},\n"))
+            self.0.iter().fold(writeln!(f), |acc, (key, value)| {
+                acc.and_then(|_| writeln!(f, "{key}: {value},"))
             })
         }
     }

@@ -38,7 +38,7 @@ pub enum Declaration<E, P, M, T> {
 }
 
 impl<E, P, M, T> Declaration<E, P, M, T> {
-    pub fn name(&self) -> &String {
+    pub const fn name(&self) -> &String {
         match self {
             Self::TypeAlias {
                 name: Storage(_, name),
@@ -169,9 +169,9 @@ pub struct DeclarationNode<R, C>(pub Node<DeclarationNodeValue<R, C>, R, C>);
 
 impl<R, C> DeclarationNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<DeclarationNodeValue<R, C>, R, C> {
+    pub const fn node(&self) -> &Node<DeclarationNodeValue<R, C>, R, C> {
         &self.0
     }
 
@@ -180,14 +180,14 @@ where
         f: impl Fn(&DeclarationNodeValue<R, C>, &C) -> (DeclarationNodeValue<R, C2>, C2),
     ) -> DeclarationNode<R, C2> {
         let node = self.node();
-        let (value, ctx) = f(&node.value(), &node.context());
+        let (value, ctx) = f(node.value(), node.context());
 
-        DeclarationNode(Node(value, node.range().clone(), ctx))
+        DeclarationNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> DeclarationNode<R, ()> {
-    pub fn raw(x: DeclarationNodeValue<R, ()>, range: R) -> Self {
+    pub const fn raw(x: DeclarationNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

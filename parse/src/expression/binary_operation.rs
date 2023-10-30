@@ -2,17 +2,13 @@ use crate::{matcher as m, Position, Range};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
 use lang::ast::{BinaryOperator, Expression, ExpressionNode};
 
-fn binary_operation<T, U>(
+fn binary_operation<U>(
     o: BinaryOperator,
 ) -> impl FnMut(
     U,
 ) -> Box<
     dyn Fn(ExpressionNode<Range, ()>, ExpressionNode<Range, ()>) -> ExpressionNode<Range, ()>,
->
-where
-    T: Stream<Token = char>,
-    T::Position: Position,
-{
+> {
     move |_| {
         Box::new(move |lhs, rhs| {
             let range = lhs.node().range() + rhs.node().range();
@@ -34,13 +30,13 @@ where
     let and = || {
         chainl1(
             parser,
-            m::glyph("&&").map(binary_operation::<T, _>(BinaryOperator::And)),
+            m::glyph("&&").map(binary_operation(BinaryOperator::And)),
         )
     };
     let or = || {
         chainl1(
             and(),
-            m::glyph("||").map(binary_operation::<T, _>(BinaryOperator::Or)),
+            m::glyph("||").map(binary_operation(BinaryOperator::Or)),
         )
     };
 
@@ -56,8 +52,8 @@ where
     chainl1(
         parser,
         choice((
-            m::glyph("==").map(binary_operation::<T, _>(BinaryOperator::Equal)),
-            m::glyph("!=").map(binary_operation::<T, _>(BinaryOperator::NotEqual)),
+            m::glyph("==").map(binary_operation(BinaryOperator::Equal)),
+            m::glyph("!=").map(binary_operation(BinaryOperator::NotEqual)),
         )),
     )
 }
@@ -71,10 +67,10 @@ where
     chainl1(
         parser,
         choice((
-            m::glyph("<=").map(binary_operation::<T, _>(BinaryOperator::LessThanOrEqual)),
-            m::symbol('<').map(binary_operation::<T, _>(BinaryOperator::LessThan)),
-            m::glyph(">=").map(binary_operation::<T, _>(BinaryOperator::GreaterThanOrEqual)),
-            m::symbol('>').map(binary_operation::<T, _>(BinaryOperator::GreaterThan)),
+            m::glyph("<=").map(binary_operation(BinaryOperator::LessThanOrEqual)),
+            m::symbol('<').map(binary_operation(BinaryOperator::LessThan)),
+            m::glyph(">=").map(binary_operation(BinaryOperator::GreaterThanOrEqual)),
+            m::symbol('>').map(binary_operation(BinaryOperator::GreaterThan)),
         )),
     )
 }
@@ -88,15 +84,15 @@ where
     let exponent = || {
         chainr1(
             parser,
-            m::symbol('^').map(binary_operation::<T, _>(BinaryOperator::Exponent)),
+            m::symbol('^').map(binary_operation(BinaryOperator::Exponent)),
         )
     };
     let multiply_or_divide = || {
         chainl1(
             exponent(),
             choice((
-                m::symbol('*').map(binary_operation::<T, _>(BinaryOperator::Multiply)),
-                m::symbol('/').map(binary_operation::<T, _>(BinaryOperator::Divide)),
+                m::symbol('*').map(binary_operation(BinaryOperator::Multiply)),
+                m::symbol('/').map(binary_operation(BinaryOperator::Divide)),
             )),
         )
     };
@@ -104,8 +100,8 @@ where
         chainl1(
             multiply_or_divide(),
             choice((
-                m::symbol('+').map(binary_operation::<T, _>(BinaryOperator::Add)),
-                m::symbol('-').map(binary_operation::<T, _>(BinaryOperator::Subtract)),
+                m::symbol('+').map(binary_operation(BinaryOperator::Add)),
+                m::symbol('-').map(binary_operation(BinaryOperator::Subtract)),
             )),
         )
     };

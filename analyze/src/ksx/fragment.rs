@@ -3,9 +3,9 @@ use lang::ast::KSXNodeValue;
 
 impl<R> ToFragment for KSXNodeValue<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
-    fn to_fragment<'a>(&'a self) -> Fragment {
+    fn to_fragment(&self) -> Fragment {
         Fragment::KSX(self.map(&mut |x| *x.node().id(), &mut |x| *x.node().id()))
     }
 }

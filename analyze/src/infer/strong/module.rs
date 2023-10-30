@@ -3,7 +3,7 @@ use lang::ast::Declaration;
 
 use super::Strong;
 
-pub fn infer(declarations: &Vec<usize>, ctx: &StrongContext) -> Option<Strong> {
+pub fn infer(declarations: &[usize], ctx: &StrongContext) -> Option<Strong> {
     let typed_declarations = declarations
         .iter()
         .map(|x| match ctx.fragments.0.get(x)? {
@@ -20,7 +20,7 @@ pub fn infer(declarations: &Vec<usize>, ctx: &StrongContext) -> Option<Strong> {
             ) => {
                 let (kind, _) = ctx.refs.get(x)?;
 
-                Some((name.1.clone(), kind.clone(), *x))
+                Some((name.1.clone(), *kind, *x))
             }
 
             _ => None,
@@ -41,15 +41,15 @@ mod tests {
         Declaration,
     };
 
-    fn infer(declarations: Vec<usize>, ctx: &StrongContext) -> Option<Strong> {
-        super::infer(&declarations, ctx)
+    fn infer(declarations: &[usize], ctx: &StrongContext) -> Option<Strong> {
+        super::infer(declarations, ctx)
     }
 
     #[test]
     fn none_result() {
         let ctx = strong_ctx_from(vec![], vec![], vec![]);
 
-        assert_eq!(infer(vec![0], &ctx), None);
+        assert_eq!(infer(&[0], &ctx), None);
     }
 
     #[test]
@@ -86,7 +86,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(vec![0, 1], &ctx),
+            infer(&[0, 1], &ctx),
             Some(Ok(Type::Module(vec![
                 (String::from("foo"), RefKind::Value, 0),
                 (String::from("bar"), RefKind::Type, 1)

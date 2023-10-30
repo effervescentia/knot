@@ -11,7 +11,7 @@ pub fn infer(lhs: usize, rhs: String, kind: &RefKind, ctx: &StrongContext) -> Op
                 Some((_, declaration_kind, declaration_id))
                     if declaration_kind == kind || declaration_kind == &RefKind::Mixed =>
                 {
-                    ctx.as_strong(&declaration_id, kind).map(|x| x.clone())
+                    ctx.as_strong(declaration_id, kind).cloned()
                 }
 
                 Some(_) => Some(Err(SemanticError::IllegalTypeAccess(
@@ -30,10 +30,7 @@ pub fn infer(lhs: usize, rhs: String, kind: &RefKind, ctx: &StrongContext) -> Op
             match variants.iter().find(|(name, _)| name == &rhs) {
                 Some((_, parameters)) => Some(Ok(Type::EnumeratedVariant(parameters.clone(), lhs))),
 
-                None => Some(Err(SemanticError::VariantNotFound(
-                    (x.clone(), lhs),
-                    rhs.clone(),
-                ))),
+                None => Some(Err(SemanticError::VariantNotFound((x.clone(), lhs), rhs))),
             }
         }
 
@@ -57,7 +54,7 @@ mod tests {
     };
 
     fn infer(lhs: usize, rhs: &str, kind: RefKind, ctx: &StrongContext) -> Option<Strong> {
-        super::infer(lhs, rhs.to_string(), &kind, ctx)
+        super::infer(lhs, rhs.to_owned(), &kind, ctx)
     }
 
     #[test]

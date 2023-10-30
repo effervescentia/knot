@@ -15,16 +15,16 @@ use lang::{
 
 impl<R> Register for DeclarationNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = DeclarationNode<R, NodeContext>;
     type Value<C> = DeclarationNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> DeclarationNode<R, NodeContext> {
-        let value = self.node().value().identify(&mut ctx.child());
+        let value = self.node().value().identify(&ctx.child());
         let id = ctx.add_fragment(&value);
 
-        DeclarationNode(Node(value, self.node().range().clone(), id))
+        DeclarationNode(Node(value, *self.node().range(), id))
     }
 }
 

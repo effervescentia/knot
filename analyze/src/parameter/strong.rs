@@ -6,14 +6,14 @@ use lang::{ast::ParameterNode, Node};
 
 impl<R> ToStrong<ParameterNode<R, Strong>> for ParameterNode<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> ParameterNode<R, Strong> {
         ParameterNode(Node(
             self.node()
                 .value()
                 .map(&|x| x.to_strong(ctx), &|x| x.to_strong(ctx)),
-            self.node().range().clone(),
+            *self.node().range(),
             ctx.resolve(self.node().id()).clone(),
         ))
     }

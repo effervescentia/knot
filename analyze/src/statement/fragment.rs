@@ -3,9 +3,9 @@ use lang::ast::StatementNodeValue;
 
 impl<R> ToFragment for StatementNodeValue<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
-    fn to_fragment<'a>(&'a self) -> Fragment {
+    fn to_fragment(&self) -> Fragment {
         Fragment::Statement(self.map(&|x| *x.node().id()))
     }
 }

@@ -9,7 +9,7 @@ use lang::ast;
 
 impl JavaScript {
     pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Self {
-        let statements = vec![
+        let statements = [
             Statement::import("@knot/runtime", vec![(String::from("$knot"), None)], opts),
             Statement::from_module(value, opts),
             value
@@ -86,7 +86,7 @@ mod tests {
                 Statement::Variable(String::from("fizz"), Expression::Null),
                 Statement::Export(String::from("fizz")),
             ])
-        )
+        );
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod tests {
                 Statement::Variable(String::from("bar"), Expression::Null),
                 Statement::Export(String::from("bar")),
             ])
-        )
+        );
     }
 
     #[test]
@@ -155,6 +155,6 @@ mod tests {
                     Expression::Identifier(String::from("bar"))
                 ),
             ])
-        )
+        );
     }
 }

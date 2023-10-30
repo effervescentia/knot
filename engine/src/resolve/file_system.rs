@@ -72,7 +72,7 @@ mod tests {
 
         assert_eq!(
             file_system.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
     }
 

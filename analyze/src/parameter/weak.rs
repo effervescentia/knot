@@ -9,16 +9,16 @@ impl ToWeak for Parameter<usize, usize> {
         (
             RefKind::Value,
             match self {
-                Parameter {
+                Self {
                     value_type: Some(x),
                     ..
                 }
-                | Parameter {
+                | Self {
                     default_value: Some(x),
                     ..
                 } => Weak::Inherit(*x),
 
-                Parameter { .. } => Weak::Infer,
+                Self { .. } => Weak::Infer,
             },
         )
     }

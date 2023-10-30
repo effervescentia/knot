@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::{
     context::{BindingMap, FileContext, FragmentMap, ScopeContext, StrongContext},
     fragment::Fragment,
@@ -9,24 +11,20 @@ use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
 };
 
-#[allow(dead_code)]
-pub fn file_ctx() -> RefCell<FileContext> {
+pub const fn file_ctx() -> RefCell<FileContext> {
     RefCell::new(FileContext::new())
 }
 
-#[allow(dead_code)]
 pub fn file_ctx_from(xs: Vec<(usize, (Vec<usize>, Fragment))>) -> FileContext {
     let ctx = file_ctx();
     ctx.borrow_mut().fragments.0.extend(xs);
     ctx.into_inner()
 }
 
-#[allow(dead_code)]
-pub fn scope_ctx<'a>(file_ctx: &'a RefCell<FileContext>) -> ScopeContext<'a> {
+pub fn scope_ctx(file_ctx: &RefCell<FileContext>) -> ScopeContext {
     ScopeContext::new(file_ctx)
 }
 
-#[allow(dead_code)]
 pub fn strong_ctx_from(
     fragments: Vec<(usize, (Vec<usize>, Fragment))>,
     refs: Vec<(usize, StrongRef)>,

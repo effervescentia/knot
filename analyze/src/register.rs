@@ -8,7 +8,7 @@ pub trait Identify<R> {
 }
 
 pub trait ToFragment {
-    fn to_fragment<'a>(&'a self) -> Fragment;
+    fn to_fragment(&self) -> Fragment;
 }
 
 pub trait Register

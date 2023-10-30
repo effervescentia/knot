@@ -44,9 +44,9 @@ pub struct TypeExpressionNode<R, C>(pub Node<TypeExpressionNodeValue<R, C>, R, C
 
 impl<R, C> TypeExpressionNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<TypeExpressionNodeValue<R, C>, R, C> {
+    pub const fn node(&self) -> &Node<TypeExpressionNodeValue<R, C>, R, C> {
         &self.0
     }
 
@@ -57,12 +57,12 @@ where
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
-        TypeExpressionNode(Node(value, node.range().clone(), ctx))
+        TypeExpressionNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> TypeExpressionNode<R, ()> {
-    pub fn raw(x: TypeExpressionNodeValue<R, ()>, range: R) -> Self {
+    pub const fn raw(x: TypeExpressionNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

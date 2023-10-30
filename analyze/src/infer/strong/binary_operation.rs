@@ -54,7 +54,7 @@ mod tests {
     use lang::ast::BinaryOperator;
 
     fn infer(op: BinaryOperator, lhs: usize, rhs: usize, ctx: &StrongContext) -> Option<Strong> {
-        super::infer(&op, lhs, rhs, &ctx)
+        super::infer(&op, lhs, rhs, ctx)
     }
 
     #[test]

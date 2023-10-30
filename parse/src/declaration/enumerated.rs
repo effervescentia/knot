@@ -34,7 +34,7 @@ where
     ))
     .map(|((name, start), _, variants)| {
         let end = &variants.last().unwrap().2;
-        let range = &start + &end;
+        let range = &start + end;
 
         DeclarationNode::raw(
             Declaration::Enumerated {

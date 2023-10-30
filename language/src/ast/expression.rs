@@ -41,10 +41,10 @@ impl<E, S, K> Expression<E, S, K> {
 
             Self::Closure(xs) => Expression::Closure(xs.iter().map(fs).collect()),
 
-            Self::UnaryOperation(op, x) => Expression::UnaryOperation(op.clone(), Box::new(fe(x))),
+            Self::UnaryOperation(op, x) => Expression::UnaryOperation(*op, Box::new(fe(x))),
 
             Self::BinaryOperation(op, lhs, rhs) => {
-                Expression::BinaryOperation(op.clone(), Box::new(fe(lhs)), Box::new(fe(rhs)))
+                Expression::BinaryOperation(*op, Box::new(fe(lhs)), Box::new(fe(rhs)))
             }
 
             Self::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(fe(lhs)), rhs.clone()),
@@ -72,9 +72,9 @@ pub struct ExpressionNode<R, C>(pub Node<ExpressionNodeValue<R, C>, R, C>);
 
 impl<R, C> ExpressionNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<ExpressionNodeValue<R, C>, R, C> {
+    pub const fn node(&self) -> &Node<ExpressionNodeValue<R, C>, R, C> {
         &self.0
     }
 
@@ -85,12 +85,12 @@ where
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
-        ExpressionNode(Node(value, node.range().clone(), ctx))
+        ExpressionNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> ExpressionNode<R, ()> {
-    pub fn raw(x: ExpressionNodeValue<R, ()>, range: R) -> Self {
+    pub const fn raw(x: ExpressionNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

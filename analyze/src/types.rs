@@ -62,7 +62,7 @@ impl<T> Type<T> {
             Self::Module(entries) => Some(Type::Module(
                 entries
                     .iter()
-                    .map(|(name, kind, x)| Some((name.clone(), kind.clone(), f(x)?)))
+                    .map(|(name, kind, x)| Some((name.clone(), *kind, f(x)?)))
                     .collect::<Option<Vec<_>>>()?,
             )),
         }

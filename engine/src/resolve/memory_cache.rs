@@ -5,7 +5,7 @@ pub struct MemoryCache<T>(HashMap<String, (String, SystemTime)>, T)
 where
     T: Resolver;
 
-impl<'a, T> Resolver for MemoryCache<T>
+impl<T> Resolver for MemoryCache<T>
 where
     T: Resolver,
 {
@@ -15,13 +15,7 @@ where
     {
         let Self(ref mut cache, inner) = self;
 
-        let key = || {
-            relative
-                .as_ref()
-                .to_str()
-                .expect("failed to turn relative path into a string")
-                .to_string()
-        };
+        let key = || relative.as_ref().to_string_lossy().to_string();
 
         match (cache.get(&key()), inner.last_modified(relative)) {
             // cache is fresh
@@ -33,8 +27,8 @@ where
         }
 
         {
-            let data = inner.resolve(&relative)?;
-            let modified = inner.last_modified(&relative)?;
+            let data = inner.resolve(relative)?;
+            let modified = inner.last_modified(relative)?;
 
             cache.insert(key(), (data.clone(), modified));
 
@@ -71,7 +65,7 @@ mod tests {
 
         assert_eq!(
             memory_cache.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
         println!("{:?}", memory_cache.0);
         assert_eq!(memory_cache.0.get(""), None);
@@ -85,15 +79,15 @@ mod tests {
 
         let mut cache = HashMap::new();
         cache.insert(
-            TARGET_FILE.to_string(),
-            (FILE_CONTENTS.to_string(), SystemTime::now()),
+            TARGET_FILE.to_owned(),
+            (FILE_CONTENTS.to_owned(), SystemTime::now()),
         );
 
         let mut memory_cache = MemoryCache(cache, FileSystem(source_dir.path()));
 
         assert_eq!(
             memory_cache.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
     }
 
@@ -101,8 +95,8 @@ mod tests {
     fn resolve_from_stale_cache() {
         let mut cache = HashMap::new();
         cache.insert(
-            TARGET_FILE.to_string(),
-            (FILE_CONTENTS.to_string(), SystemTime::now()),
+            TARGET_FILE.to_owned(),
+            (FILE_CONTENTS.to_owned(), SystemTime::now()),
         );
 
         let source_dir = tempdir().unwrap();
@@ -113,11 +107,11 @@ mod tests {
 
         assert_eq!(
             memory_cache.resolve(Path::new(TARGET_FILE)),
-            Some(FILE_CONTENTS.to_string())
+            Some(FILE_CONTENTS.to_owned())
         );
         assert_eq!(
             memory_cache.0.get(TARGET_FILE).unwrap().0,
-            FILE_CONTENTS.to_string()
+            FILE_CONTENTS.to_owned()
         );
     }
 

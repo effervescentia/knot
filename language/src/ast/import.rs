@@ -26,8 +26,8 @@ impl Import {
         source: ImportSource,
         path: Vec<String>,
         aliases: Option<Vec<(ImportTarget, Option<String>)>>,
-    ) -> Import {
-        Import {
+    ) -> Self {
+        Self {
             source,
             path,
             aliases,
@@ -42,9 +42,9 @@ pub struct ImportNode<R, C>(pub Node<ImportNodeValue, R, C>);
 
 impl<R, C> ImportNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<ImportNodeValue, R, C> {
+    pub const fn node(&self) -> &Node<ImportNodeValue, R, C> {
         &self.0
     }
 
@@ -55,12 +55,12 @@ where
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
-        ImportNode(Node(value, node.range().clone(), ctx))
+        ImportNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> ImportNode<R, ()> {
-    pub fn raw(x: ImportNodeValue, range: R) -> Self {
+    pub const fn raw(x: ImportNodeValue, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

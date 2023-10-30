@@ -57,9 +57,9 @@ where
     T: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        self.1.iter().fold(Ok(()), |acc, x| {
-            acc.and_then(|_| write!(f, "{}{}", x, self.0))
-        })
+        self.1
+            .iter()
+            .try_fold((), |_, x| write!(f, "{}{}", x, self.0))
     }
 }
 

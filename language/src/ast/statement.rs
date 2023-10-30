@@ -25,9 +25,9 @@ pub struct StatementNode<R, C>(pub Node<StatementNodeValue<R, C>, R, C>);
 
 impl<R, C> StatementNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<StatementNodeValue<R, C>, R, C> {
+    pub const fn node(&self) -> &Node<StatementNodeValue<R, C>, R, C> {
         &self.0
     }
 
@@ -38,12 +38,12 @@ where
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
-        StatementNode(Node(value, node.range().clone(), ctx))
+        StatementNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> StatementNode<R, ()> {
-    pub fn raw(x: StatementNodeValue<R, ()>, range: R) -> Self {
+    pub const fn raw(x: StatementNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 }

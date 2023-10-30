@@ -21,7 +21,7 @@ impl Link {
         let Self(source, module_path) = self;
 
         match source {
-            LinkSource::External(_namespace) => todo!(),
+            LinkSource::External(_namespace) => unimplemented!(),
 
             LinkSource::Internal => (),
         }
@@ -40,21 +40,15 @@ impl Link {
 
             ast::ImportSource::Local => {
                 let file_path = file_path.as_ref();
-                let relative_path = file_path
+                let parts = file_path
                     .parent()
-                    .expect(&format!(
-                        "failed to get parent from file path {}",
-                        file_path.display()
-                    ))
+                    .map(Path::to_path_buf)
+                    .unwrap_or_default()
                     .iter()
-                    .map(|x| {
-                        x.to_str()
-                            .expect("failed to convert file path to string")
-                            .to_string()
-                    })
+                    .map(|x| x.to_string_lossy().to_string())
                     .collect::<Vec<_>>();
 
-                Self(LinkSource::Internal, [relative_path, path.clone()].concat())
+                Self(LinkSource::Internal, [parts, path.clone()].concat())
             }
         }
     }

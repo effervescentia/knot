@@ -6,6 +6,7 @@ use lang::ast::{
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Fragment {
     Expression(Expression<usize, usize, usize>),
     Statement(Statement<usize>),
@@ -20,12 +21,12 @@ pub enum Fragment {
 impl Fragment {
     pub fn to_binding(&self) -> Vec<String> {
         match self {
-            Fragment::Statement(Statement::Variable(name, ..))
-            | Fragment::Parameter(Parameter { name, .. }) => vec![name.clone()],
+            Self::Statement(Statement::Variable(name, ..))
+            | Self::Parameter(Parameter { name, .. }) => vec![name.clone()],
 
-            Fragment::Declaration(x) => vec![x.name().clone()],
+            Self::Declaration(x) => vec![x.name().clone()],
 
-            Fragment::Import(Import {
+            Self::Import(Import {
                 path,
                 aliases: None,
                 ..
@@ -34,7 +35,7 @@ impl Fragment {
                 .expect("failed to get last part of import path")
                 .clone()],
 
-            Fragment::Import(Import {
+            Self::Import(Import {
                 path,
                 aliases: Some(aliases),
                 ..
@@ -59,14 +60,14 @@ impl Fragment {
 impl ToWeak for Fragment {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Fragment::Expression(x) => x.to_weak(),
-            Fragment::Statement(x) => x.to_weak(),
-            Fragment::KSX(x) => x.to_weak(),
-            Fragment::Parameter(x) => x.to_weak(),
-            Fragment::TypeExpression(x) => x.to_weak(),
-            Fragment::Declaration(x) => x.to_weak(),
-            Fragment::Import(x) => x.to_weak(),
-            Fragment::Module(x) => x.to_weak(),
+            Self::Expression(x) => x.to_weak(),
+            Self::Statement(x) => x.to_weak(),
+            Self::KSX(x) => x.to_weak(),
+            Self::Parameter(x) => x.to_weak(),
+            Self::TypeExpression(x) => x.to_weak(),
+            Self::Declaration(x) => x.to_weak(),
+            Self::Import(x) => x.to_weak(),
+            Self::Module(x) => x.to_weak(),
         }
     }
 }

@@ -6,12 +6,12 @@ use lang::{ast::TypeExpressionNode, Node};
 
 impl<R> ToStrong<TypeExpressionNode<R, Strong>> for TypeExpressionNode<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> TypeExpressionNode<R, Strong> {
         TypeExpressionNode(Node(
             self.node().value().map(&|x| x.to_strong(ctx)),
-            self.node().range().clone(),
+            *self.node().range(),
             ctx.resolve(self.node().id()).clone(),
         ))
     }

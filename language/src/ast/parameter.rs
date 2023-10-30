@@ -10,7 +10,7 @@ pub struct Parameter<E, T> {
 }
 
 impl<E, T> Parameter<E, T> {
-    pub fn new(name: String, value_type: Option<T>, default_value: Option<E>) -> Self {
+    pub const fn new(name: String, value_type: Option<T>, default_value: Option<E>) -> Self {
         Self {
             name,
             value_type,
@@ -34,9 +34,9 @@ pub struct ParameterNode<R, C>(pub Node<ParameterNodeValue<R, C>, R, C>);
 
 impl<R, C> ParameterNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<ParameterNodeValue<R, C>, R, C> {
+    pub const fn node(&self) -> &Node<ParameterNodeValue<R, C>, R, C> {
         &self.0
     }
 
@@ -47,12 +47,12 @@ where
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
-        ParameterNode(Node(value, node.range().clone(), ctx))
+        ParameterNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> ParameterNode<R, ()> {
-    pub fn raw(x: ParameterNodeValue<R, ()>, range: R) -> Self {
+    pub const fn raw(x: ParameterNodeValue<R, ()>, range: R) -> Self {
         Self(Node(x, range, ()))
     }
 }

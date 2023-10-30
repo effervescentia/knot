@@ -5,22 +5,22 @@ use std::fmt::{Display, Formatter};
 impl Display for Statement {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Statement::Expression(x) => match x {
+            Self::Expression(x) => match x {
                 Expression::Function(..) => write!(f, "{x}"),
 
                 _ => write!(f, "{x};"),
             },
 
-            Statement::Variable(name, x) => write!(f, "var {name} = {x};"),
+            Self::Variable(name, x) => write!(f, "var {name} = {x};"),
 
-            Statement::Return(None) => write!(f, "return null;"),
-            Statement::Return(Some(x)) => write!(f, "return {x};"),
+            Self::Return(None) => write!(f, "return null;"),
+            Self::Return(Some(x)) => write!(f, "return {x};"),
 
-            Statement::Export(name) => write!(f, "export {{ {name} }};"),
+            Self::Export(name) => write!(f, "export {{ {name} }};"),
 
-            Statement::Assignment(lhs, rhs) => write!(f, "{lhs} = {rhs};"),
+            Self::Assignment(lhs, rhs) => write!(f, "{lhs} = {rhs};"),
 
-            Statement::Import(namespace, imports) => {
+            Self::Import(namespace, imports) => {
                 write!(
                     f,
                     "import {{ {imports} }} from \"{namespace}\";",
@@ -34,7 +34,7 @@ impl Display for Statement {
                 )
             }
 
-            Statement::ModuleImport(namespace, name) => {
+            Self::ModuleImport(namespace, name) => {
                 write!(f, "import * as {name} from \"{namespace}\";")
             }
         }

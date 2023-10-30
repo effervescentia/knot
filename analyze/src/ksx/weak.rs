@@ -5,15 +5,15 @@ use lang::ast::KSX;
 impl ToWeak for KSX<usize, usize> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            KSX::Text(..) => (RefKind::Value, Weak::Type(Type::String)),
+            Self::Text(..) => (RefKind::Value, Weak::Type(Type::String)),
 
-            KSX::Inline(id) => (RefKind::Value, Weak::Inherit(*id)),
+            Self::Inline(id) => (RefKind::Value, Weak::Inherit(*id)),
 
-            KSX::Fragment(..) => (RefKind::Value, Weak::Type(Type::Element)),
+            Self::Fragment(..) => (RefKind::Value, Weak::Type(Type::Element)),
 
-            KSX::ClosedElement(..) => (RefKind::Value, Weak::Type(Type::Element)),
+            Self::ClosedElement(..) => (RefKind::Value, Weak::Type(Type::Element)),
 
-            KSX::OpenElement(..) => (RefKind::Value, Weak::Type(Type::Element)),
+            Self::OpenElement(..) => (RefKind::Value, Weak::Type(Type::Element)),
         }
     }
 }

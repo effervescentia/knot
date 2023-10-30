@@ -3,9 +3,9 @@ use lang::ast::TypeExpressionNodeValue;
 
 impl<R> ToFragment for TypeExpressionNodeValue<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
-    fn to_fragment<'a>(&'a self) -> Fragment {
+    fn to_fragment(&self) -> Fragment {
         Fragment::TypeExpression(self.map(&|x| *x.node().id()))
     }
 }

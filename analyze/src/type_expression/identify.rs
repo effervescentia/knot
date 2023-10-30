@@ -6,7 +6,7 @@ use lang::ast::TypeExpressionNodeValue;
 
 impl<R> Identify<TypeExpressionNodeValue<R, NodeContext>> for TypeExpressionNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> TypeExpressionNodeValue<R, NodeContext> {
         self.map(&|x| x.register(ctx))

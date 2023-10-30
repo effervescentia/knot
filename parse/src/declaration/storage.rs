@@ -15,5 +15,5 @@ where
         m::keyword(keyword),
         m::standard_identifier(),
     )
-        .map(|(start, visibility, _, (name, end))| (Storage(visibility, name), end.include(start)))
+        .map(|(start, visibility, _, (name, end))| (Storage(visibility, name), end.include(&start)))
 }

@@ -14,7 +14,7 @@ pub enum KSX<E, K> {
 impl<E, K> KSX<E, K> {
     pub fn map<E2, K2>(
         &self,
-        fe: &mut impl FnMut(&E) -> E2,
+        mut fe: &mut impl FnMut(&E) -> E2,
         fk: &mut impl FnMut(&K) -> K2,
     ) -> KSX<E2, K2> {
         match self {
@@ -27,7 +27,7 @@ impl<E, K> KSX<E, K> {
             Self::ClosedElement(tag, xs) => KSX::ClosedElement(
                 tag.clone(),
                 xs.iter()
-                    .map(|(key, value)| (key.clone(), value.as_ref().map(|x| fe(x))))
+                    .map(|(key, value)| (key.clone(), value.as_ref().map(&mut fe)))
                     .collect(),
             ),
 
@@ -35,7 +35,7 @@ impl<E, K> KSX<E, K> {
                 start_tag.clone(),
                 attributes
                     .iter()
-                    .map(|(key, value)| (key.clone(), value.as_ref().map(|x| fe(x))))
+                    .map(|(key, value)| (key.clone(), value.as_ref().map(&mut fe)))
                     .collect(),
                 children.iter().map(fk).collect(),
                 end_tag.clone(),
@@ -51,9 +51,9 @@ pub struct KSXNode<R, C>(pub Node<KSXNodeValue<R, C>, R, C>);
 
 impl<R, C> KSXNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn node(&self) -> &Node<KSXNodeValue<R, C>, R, C> {
+    pub const fn node(&self) -> &Node<KSXNodeValue<R, C>, R, C> {
         &self.0
     }
 
@@ -64,12 +64,12 @@ where
         let node = self.node();
         let (value, ctx) = f(node.value(), node.context());
 
-        KSXNode(Node(value, node.range().clone(), ctx))
+        KSXNode(Node(value, *node.range(), ctx))
     }
 }
 
 impl<R> KSXNode<R, ()> {
-    pub fn raw(x: KSXNodeValue<R, ()>, range: R) -> Self {
+    pub const fn raw(x: KSXNodeValue<R, ()>, range: R) -> Self {
         Self(Node::raw(x, range))
     }
 

@@ -14,7 +14,7 @@ use lang::{
 
 impl<R> Register for ExpressionNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = ExpressionNode<R, NodeContext>;
     type Value<C> = ExpressionNodeValue<R, C>;
@@ -23,7 +23,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        ExpressionNode(Node(value, self.node().range().clone(), id))
+        ExpressionNode(Node(value, *self.node().range(), id))
     }
 }
 

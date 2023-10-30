@@ -24,7 +24,7 @@ pub type Result<'a, T> = std::result::Result<
     Errors<char, &'a str, SourcePosition>,
 >;
 
-fn program<'a, T>() -> impl Parser<T, Output = ModuleNode<Range, ()>>
+fn program<T>() -> impl Parser<T, Output = ModuleNode<Range, ()>>
 where
     T: combine::Stream<Token = char>,
     T::Position: Position,
@@ -32,6 +32,6 @@ where
     spaces().with(module::module()).skip(eof())
 }
 
-pub fn parse<'a>(input: &'a str) -> Result<'a, Program<Range, ()>> {
+pub fn parse(input: &str) -> Result<Program<Range, ()>> {
     program().map(Program).easy_parse(Stream::new(input))
 }

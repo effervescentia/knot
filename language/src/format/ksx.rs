@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter, Write};
 
 impl<R, C> Display for KSXNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
@@ -44,15 +44,13 @@ where
         if self.0.is_empty() {
             Ok(())
         } else {
-            self.0.iter().fold(Ok(()), |acc, (key, value)| {
-                acc.and_then(|_| {
-                    write!(f, " {key}")?;
-                    if let Some(value) = value {
-                        write!(f, "={value}")
-                    } else {
-                        Ok(())
-                    }
-                })
+            self.0.iter().try_fold((), |_, (key, value)| {
+                write!(f, " {key}")?;
+                if let Some(value) = value {
+                    write!(f, "={value}")
+                } else {
+                    Ok(())
+                }
             })
         }
     }
@@ -60,13 +58,10 @@ where
 
 impl<R, C> KSXNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
-    pub fn is_inline(&self) -> bool {
-        match self.node().value() {
-            KSX::Text(_) | KSX::Inline(_) => true,
-            _ => false,
-        }
+    pub const fn is_inline(&self) -> bool {
+        matches!(self.node().value(), KSX::Text(_) | KSX::Inline(_))
     }
 }
 
@@ -74,17 +69,13 @@ struct Children<'a, R, C>(&'a Vec<KSXNode<R, C>>);
 
 impl<'a, R, C> Display for Children<'a, R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        fn format<'a, R, C, F>(
-            xs: &'a Vec<KSXNode<R, C>>,
-            mut f: F,
-            all_inline: bool,
-        ) -> std::fmt::Result
+        fn format<R, C, F>(xs: &Vec<KSXNode<R, C>>, mut f: F, all_inline: bool) -> std::fmt::Result
         where
             F: Write,
-            R: Clone,
+            R: Copy,
         {
             if all_inline {
                 for x in xs {
@@ -99,7 +90,7 @@ where
                     match (prev_inline, next_inline) {
                         (_, false) | (Some(false), true) | (None, _) => {
                             prev_inline = Some(next_inline);
-                            write!(f, "\n")?;
+                            writeln!(f)?;
                         }
                         _ => (),
                     }
@@ -107,13 +98,13 @@ where
                     write!(f, "{x}")?;
                 }
 
-                write!(f, "\n")?;
+                writeln!(f)?;
             }
 
             Ok(())
         }
 
-        if self.0.iter().all(|x| x.is_inline()) {
+        if self.0.iter().all(KSXNode::is_inline) {
             format(self.0, f, true)
         } else {
             format(self.0, indented(f), false)

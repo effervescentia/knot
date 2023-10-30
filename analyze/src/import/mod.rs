@@ -14,15 +14,15 @@ use lang::{
 
 impl<R> Register for ImportNode<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     type Node = ImportNode<R, NodeContext>;
     type Value<C> = ImportNodeValue;
 
     fn register(&self, ctx: &ScopeContext) -> ImportNode<R, NodeContext> {
-        let value = self.node().value().identify(&mut ctx.child());
+        let value = self.node().value().identify(&ctx.child());
         let id = ctx.add_fragment(&value);
 
-        ImportNode(Node(value, self.node().range().clone(), id))
+        ImportNode(Node(value, *self.node().range(), id))
     }
 }

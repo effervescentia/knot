@@ -7,7 +7,7 @@ use lang::ast::KSXNodeValue;
 
 impl<R> Identify<KSXNodeValue<R, NodeContext>> for KSXNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> KSXNodeValue<R, NodeContext> {
         self.map(&mut |x| x.register(ctx), &mut |x| x.register(ctx))

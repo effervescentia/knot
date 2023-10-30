@@ -12,7 +12,7 @@ fn cyclic() {
     let name = common::test_name(file!(), "absolute_imports");
     let result = common::build(
         &name,
-        vec![("a.kn", INPUT_A), ("b.kn", INPUT_B), ("c.kn", INPUT_C)],
+        &[("a.kn", INPUT_A), ("b.kn", INPUT_B), ("c.kn", INPUT_C)],
         JavaScriptGenerator::new(Module::ESM),
     );
 
@@ -23,5 +23,5 @@ fn cyclic() {
             Link::from("a"),
             Link::from("c"),
         ])])
-    )
+    );
 }

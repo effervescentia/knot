@@ -7,7 +7,7 @@ use lang::ast::DeclarationNodeValue;
 
 impl<R> Identify<DeclarationNodeValue<R, NodeContext>> for DeclarationNodeValue<R, ()>
 where
-    R: Clone,
+    R: Copy,
 {
     fn identify(&self, ctx: &ScopeContext) -> DeclarationNodeValue<R, NodeContext> {
         self.map(

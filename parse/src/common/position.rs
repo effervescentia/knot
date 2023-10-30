@@ -24,7 +24,7 @@ impl Position for SourcePosition {
     }
 
     fn decrement(&self) -> Self {
-        SourcePosition {
+        Self {
             line: self.line,
             column: self.column - 1,
         }

@@ -8,7 +8,7 @@ use std::fmt::{Display, Formatter, Write};
 
 impl<R, C> Display for DeclarationNode<R, C>
 where
-    R: Clone,
+    R: Copy,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self.node().value() {
@@ -105,14 +105,12 @@ where
     T: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        self.0.iter().fold(Ok(()), |acc, (name, parameters)| {
-            acc.and_then(|_| {
-                write!(
-                    indented(f),
-                    "\n| {name}{parameters}",
-                    parameters = Parameters(parameters)
-                )
-            })
+        self.0.iter().try_fold((), |_, (name, parameters)| {
+            write!(
+                indented(f),
+                "\n| {name}{parameters}",
+                parameters = Parameters(parameters)
+            )
         })
     }
 }

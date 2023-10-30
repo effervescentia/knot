@@ -28,26 +28,26 @@ pub struct FinalType(Result<Type<Box<FinalType>>, SemanticError>);
 #[derive(Clone, Debug, PartialEq)]
 pub struct PreviewType(Type<Box<PreviewType>>);
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RefKind {
     Type,
     Value,
     Mixed,
 }
 
-fn register_fragments<R>(x: Program<R, ()>) -> (Program<R, NodeContext>, FileContext)
+fn register_fragments<R>(x: &Program<R, ()>) -> (Program<R, NodeContext>, FileContext)
 where
-    R: Clone,
+    R: Copy,
 {
     let file_ctx = RefCell::new(FileContext::new());
-    let untyped = x.0.register(&mut ScopeContext::new(&file_ctx));
+    let untyped = x.0.register(&ScopeContext::new(&file_ctx));
 
     (Program(untyped), file_ctx.into_inner())
 }
 
-pub fn analyze<R>(x: Program<R, ()>) -> Program<R, Strong>
+pub fn analyze<R>(x: &Program<R, ()>) -> Program<R, Strong>
 where
-    R: Clone,
+    R: Copy,
 {
     // register AST fragments depth-first with monotonically increasing IDs
     let (untyped, file_ctx) = register_fragments(x);
@@ -68,7 +68,7 @@ where
 
 impl<R> ToStrong<Program<R, Strong>> for Program<R, NodeContext>
 where
-    R: Clone,
+    R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> Program<R, Strong> {
         Program(self.0.to_strong(ctx))
@@ -88,7 +88,7 @@ mod tests {
         let ast = Program(f::n::m(Module::new(vec![], vec![])));
 
         assert_eq!(
-            super::analyze(ast),
+            super::analyze(&ast),
             Program(ModuleNode(
                 Module::new(vec![], vec![]),
                 Ok(Type::Module(vec![]))
@@ -111,7 +111,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -144,7 +144,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -175,7 +175,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -214,7 +214,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -244,7 +244,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -283,7 +283,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -330,7 +330,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -396,7 +396,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -457,7 +457,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -506,7 +506,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -551,7 +551,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -599,7 +599,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -665,7 +665,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -710,7 +710,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -774,7 +774,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -833,7 +833,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -880,7 +880,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -939,7 +939,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -1002,7 +1002,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -1040,7 +1040,7 @@ mod tests {
             )));
 
             assert_eq!(
-                super::super::analyze(ast),
+                super::super::analyze(&ast),
                 Program(ModuleNode(
                     Module::new(
                         vec![],

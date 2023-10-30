@@ -63,13 +63,13 @@ export { my_module };
     let name = common::test_name(file!(), "esm");
     let result = common::build(
         &name,
-        vec![("main.kn", INPUT)],
+        &[("main.kn", INPUT)],
         JavaScriptGenerator::new(Module::ESM),
     );
 
     assert_eq!(
         result.unwrap(),
-        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_string())])
+        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_owned())])
     );
 }
 
@@ -111,12 +111,12 @@ exports.my_module = my_module;
     let name = common::test_name(file!(), "cjs");
     let result = common::build(
         &name,
-        vec![("main.kn", INPUT)],
+        &[("main.kn", INPUT)],
         JavaScriptGenerator::new(Module::CJS),
     );
 
     assert_eq!(
         result.unwrap(),
-        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_string())])
+        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_owned())])
     );
 }

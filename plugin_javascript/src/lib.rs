@@ -39,7 +39,7 @@ pub struct Options {
 pub struct JavaScriptGenerator(Module);
 
 impl JavaScriptGenerator {
-    pub fn new(module: Module) -> Self {
+    pub const fn new(module: Module) -> Self {
         Self(module)
     }
 }
