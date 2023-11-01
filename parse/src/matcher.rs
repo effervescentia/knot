@@ -2,6 +2,7 @@ use crate::{Position, Range};
 use combine::{
     attempt, many, optional, parser, parser::char as p, position, value, Parser, Stream,
 };
+use kore::invariant;
 
 pub fn span<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
 where
@@ -76,7 +77,7 @@ where
             [T: Stream<Token = char>]
         {
             match &chars[..] {
-                [] | [_] => panic!("glyph must be at least 2 characters long"),
+                [] | [_] => invariant!("glyph must be at least 2 characters long"),
 
                 [lhs, rhs] => (p::char(*lhs), p::spaces(), p::char(*rhs))
                     .with(value(()))

@@ -4,6 +4,8 @@ use std::{
     rc::Rc,
 };
 
+use super::Errors;
+
 struct ReporterState {
     fail_fast: bool,
     errors: Vec<Error>,
@@ -41,27 +43,35 @@ impl Reporter {
         self.state_mut().errors.clone()
     }
 
-    pub fn report<I>(&mut self, errors: I)
-    where
-        I: IntoIterator<Item = Error>,
-    {
-        self.state_mut().errors.extend(errors);
-    }
-
-    pub fn raise<I>(&mut self, errors: I) -> Result<()>
-    where
-        I: IntoIterator<Item = Error>,
-    {
-        self.report(errors);
-        self.catch()
-    }
-
-    pub fn should_fail_early(&self) -> bool {
+    fn should_fail_early(&self) -> bool {
         self.state().fail_fast && self.should_fail()
     }
 
-    pub fn should_fail(&self) -> bool {
+    fn should_fail(&self) -> bool {
         !self.state().errors.is_empty()
+    }
+
+    pub fn report<T>(&mut self, x: T)
+    where
+        T: Errors,
+    {
+        self.state_mut().errors.extend(x.errors());
+    }
+
+    pub fn raise<I>(&mut self, x: I) -> Result<()>
+    where
+        I: Errors,
+    {
+        self.report(x);
+        self.catch_early()
+    }
+
+    pub fn catch_early(&self) -> Result<()> {
+        if self.should_fail_early() {
+            Err(self.errors())
+        } else {
+            Ok(())
+        }
     }
 
     pub fn catch(&self) -> Result<()> {

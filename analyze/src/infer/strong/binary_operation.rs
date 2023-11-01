@@ -3,6 +3,7 @@ use crate::{
     infer::strong::{ExpectedType, SemanticError, Strong},
     RefKind, Type,
 };
+use kore::invariant;
 use lang::ast::BinaryOperator;
 
 pub fn infer(op: &BinaryOperator, lhs: usize, rhs: usize, ctx: &StrongContext) -> Option<Strong> {
@@ -37,7 +38,7 @@ pub fn infer(op: &BinaryOperator, lhs: usize, rhs: usize, ctx: &StrongContext) -
         },
 
         _ => {
-            unreachable!("all other binary operation types should be inferred during weak analysis")
+            invariant!("all other binary operation types should be inferred during weak analysis")
         }
     }
 }

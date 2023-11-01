@@ -1,5 +1,3 @@
-use lang::Identity;
-
 use super::{
     fragment::Fragment,
     infer::{
@@ -9,6 +7,8 @@ use super::{
     register::ToFragment,
     RefKind,
 };
+use kore::invariant;
+use lang::Identity;
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -161,7 +161,7 @@ impl StrongContext {
         match self.refs.get(id) {
             Some((_, x)) => x,
 
-            None => unreachable!("all nodes should have a corresponding strong ref"),
+            None => invariant!("all nodes should have a corresponding strong ref"),
         }
     }
 

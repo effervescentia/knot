@@ -32,7 +32,7 @@ where
         DeclarationNode::raw(
             Declaration::View {
                 name,
-                parameters: attributes.unwrap_or(vec![]),
+                parameters: attributes.unwrap_or_default(),
                 body,
             },
             range,

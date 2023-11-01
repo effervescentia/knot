@@ -1,6 +1,7 @@
 use combine::{
     attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
 };
+use kore::invariant;
 use lang::ast::Primitive;
 
 fn nil<T>() -> impl Parser<T, Output = Primitive>
@@ -25,7 +26,11 @@ where
     T: Stream<Token = char>,
 {
     many1::<String, _, _>(p::digit())
-        .map(|chars| chars.parse::<i64>().unwrap())
+        .map(|chars| {
+            chars
+                .parse::<i64>()
+                .unwrap_or_else(|_| invariant!("should be able to parse as a valid 64-bit float"))
+        })
         .map(Primitive::Integer)
 }
 
@@ -38,11 +43,21 @@ where
 
     attempt((integer, token('.'), fraction)).map(|(integer, _, fraction)| {
         if fraction.is_empty() {
-            Primitive::Float(integer.parse::<f64>().unwrap(), integer.len() as i32)
+            Primitive::Float(
+                integer.parse::<f64>().unwrap_or_else(|_| {
+                    invariant!("should be able to parse as a valid 64-bit float")
+                }),
+                integer.len() as i32,
+            )
         } else {
             let float = format!("{}.{}", integer, fraction);
 
-            Primitive::Float(float.parse::<f64>().unwrap(), fraction.len() as i32)
+            Primitive::Float(
+                float.parse::<f64>().unwrap_or_else(|_| {
+                    invariant!("should be able to parse as a valid 64-bit float")
+                }),
+                fraction.len() as i32,
+            )
         }
     })
 }

@@ -15,9 +15,9 @@ impl Display for ImportGraph {
 
         let printed = roots
             .into_iter()
-            .map(|root| {
+            .filter_map(|root| {
                 if visited.contains(&root) {
-                    Rows::empty()
+                    Some(Rows::empty())
                 } else {
                     SubTree {
                         graph: self,
@@ -55,18 +55,13 @@ struct SubTree<'a> {
 }
 
 impl<'a> SubTree<'a> {
-    fn format_rows(rows: &[String]) -> Rows {
-        let max_width = rows
-            .iter()
-            .map(String::len)
-            .max()
-            .map(|x| 2.max(x + 1))
-            .unwrap();
+    fn format_rows(rows: &[String]) -> Option<Rows> {
+        let max_width = rows.iter().map(String::len).max().map(|x| 2.max(x + 1))?;
 
-        Rows {
+        Some(Rows {
             width: max_width,
             rows: rows.iter().map(|x| pad(x, max_width)).collect(),
-        }
+        })
     }
 
     fn format_dividers(subtrees: &[Rows]) -> Vec<String> {
@@ -91,7 +86,7 @@ impl<'a> SubTree<'a> {
     fn format_children(&self, children: Vec<usize>, visited: &'a mut HashSet<usize>) -> Vec<Rows> {
         children
             .into_iter()
-            .map(|child| {
+            .filter_map(|child| {
                 if self.ancestors.contains(&child) {
                     Self::format_rows(&[format!("cycle({child})")])
                 } else {
@@ -109,7 +104,7 @@ impl<'a> SubTree<'a> {
             .collect()
     }
 
-    fn format(self, visited: &'a mut HashSet<usize>) -> Rows {
+    fn format(self, visited: &'a mut HashSet<usize>) -> Option<Rows> {
         let children = self.graph.children(&self.root).collect::<Vec<_>>();
 
         let subtrees = match (visited.contains(&self.root), children.is_empty()) {
@@ -165,14 +160,10 @@ impl Rows {
         (0..depth)
             .map(|index| {
                 xs.iter()
-                    .map(|x| {
-                        let value = if x.rows.len() > index {
-                            x.rows.get(index).unwrap()
-                        } else {
-                            ""
-                        };
-
-                        pad(value, x.width)
+                    .map(|Self { rows, width }| {
+                        rows.get(index)
+                            .map(|value| pad(value, *width))
+                            .unwrap_or_default()
                     })
                     .collect::<Vec<_>>()
                     .concat()

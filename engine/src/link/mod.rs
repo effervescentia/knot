@@ -54,12 +54,12 @@ impl Link {
     }
 }
 
-impl<S> From<&S> for Link
+impl<S> From<S> for Link
 where
-    S: AsRef<OsStr> + ?Sized,
+    S: AsRef<OsStr> + Sized,
 {
-    fn from(value: &S) -> Self {
-        let path = Path::new(value);
+    fn from(value: S) -> Self {
+        let path = Path::new(&value);
 
         assert!(!path.is_absolute(), "must be a relative value");
 

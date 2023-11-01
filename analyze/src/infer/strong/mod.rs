@@ -10,6 +10,7 @@ use crate::{
     fragment::Fragment,
     RefKind, Type,
 };
+use kore::invariant;
 use lang::ast::{Declaration, Expression, Module, Parameter, TypeExpression};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -193,7 +194,7 @@ fn partial_infer_types(
 
         NodeDescriptor {
             weak: Weak::Infer, ..
-        } => unreachable!("all other inference should be done already"),
+        } => invariant!("all other inference should be done already"),
     });
 
     (unhandled, warnings, ctx)
@@ -214,7 +215,7 @@ pub fn infer_types(
         if next_unhandled.is_empty() {
             return next_ctx;
         } else if next_unhandled.len() == unhandled_length {
-            panic!("analysis failed to determine all types: {next_unhandled:?}");
+            invariant!("analysis failed to determine all types: {next_unhandled:?}");
         } else {
             unhandled = next_unhandled;
             ctx = next_ctx;

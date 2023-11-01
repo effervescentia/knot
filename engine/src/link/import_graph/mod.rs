@@ -1,6 +1,7 @@
 mod display;
 
 use bimap::BiMap;
+use kore::invariant;
 use petgraph::{
     algo::is_cyclic_directed,
     stable_graph::{EdgeIndex, NodeIndex, StableDiGraph},
@@ -13,21 +14,17 @@ pub struct Cycle(Vec<usize>);
 
 impl Cycle {
     fn canonical(&self) -> Vec<usize> {
-        if self.0.is_empty() {
-            return vec![];
-        }
-
-        let mut canonical = self.0.clone();
-        let first_index = canonical
+        self.0
             .iter()
             .enumerate()
             .min_by(|(_, lhs), (_, rhs)| lhs.cmp(rhs))
-            .map(|(index, _)| index)
-            .unwrap();
+            .map(|(index, _)| {
+                let mut canonical = self.0.clone();
+                canonical.rotate_left(index);
 
-        canonical.rotate_left(first_index);
-
-        canonical
+                canonical
+            })
+            .unwrap_or_default()
     }
 
     pub fn to_vec(&self) -> Vec<usize> {
@@ -68,7 +65,7 @@ impl ImportGraph {
         *self
             .lookup
             .get_by_right(index)
-            .unwrap_or_else(|| panic!("node with index {index:?} not found in the lookup"))
+            .unwrap_or_else(|| invariant!("node with index {index:?} not found in the lookup"))
     }
 
     pub fn add_node(&mut self, node: usize) -> NodeIndex {

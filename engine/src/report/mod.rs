@@ -1,10 +1,16 @@
 mod code_frame;
 mod reporter;
 
-use crate::Link;
+use crate::{Link, Result};
 pub use code_frame::CodeFrame;
 pub use reporter::Reporter;
 use std::{io, iter::once, path::PathBuf};
+
+pub trait Errors {
+    type Iter: Iterator<Item = Error>;
+
+    fn errors(self) -> Self::Iter;
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Error {
@@ -13,6 +19,7 @@ pub enum Error {
 
     // environment errors
     InvalidWriteTarget(PathBuf, io::ErrorKind),
+    InvalidGlob(Vec<String>),
 
     // parsing errors
     InvalidSyntax(Link),
@@ -39,6 +46,7 @@ impl Error {
                 ErrorCode::INVALID_WRITE_TARGET_PERMISSION_DENIED
             }
             Self::InvalidWriteTarget(..) => ErrorCode::INVALID_WRITE_TARGET,
+            Self::InvalidGlob(..) => ErrorCode::INVALID_GLOB,
 
             // parsing errors
             Self::InvalidSyntax(..) => ErrorCode::INVALID_SYNTAX,
@@ -50,12 +58,31 @@ impl Error {
     }
 }
 
-impl IntoIterator for Error {
-    type Item = Self;
-    type IntoIter = std::iter::Once<Self::Item>;
+impl Errors for Error {
+    type Iter = std::iter::Once<Self>;
 
-    fn into_iter(self) -> Self::IntoIter {
+    fn errors(self) -> Self::Iter {
         once(self)
+    }
+}
+
+impl Errors for Vec<Error> {
+    type Iter = std::vec::IntoIter<Error>;
+
+    fn errors(self) -> Self::Iter {
+        self.into_iter()
+    }
+}
+
+impl Errors for Result<()> {
+    type Iter = std::vec::IntoIter<Error>;
+
+    fn errors(self) -> Self::Iter {
+        match self {
+            Ok(()) => vec![],
+            Err(errs) => errs,
+        }
+        .errors()
     }
 }
 
@@ -69,6 +96,8 @@ impl ErrorCode {
     pub const INVALID_WRITE_TARGET: Self = Self(100);
     pub const INVALID_WRITE_TARGET_NOT_FOUND: Self = Self(101);
     pub const INVALID_WRITE_TARGET_PERMISSION_DENIED: Self = Self(102);
+    // [103..109] reserved space for addition writing errors
+    pub const INVALID_GLOB: Self = Self(110);
 
     // 2xx - parsing errors
 

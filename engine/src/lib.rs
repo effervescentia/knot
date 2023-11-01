@@ -2,6 +2,7 @@ mod link;
 mod report;
 mod resolve;
 mod state;
+mod validate;
 mod write;
 
 use bimap::BiMap;
@@ -17,18 +18,26 @@ pub use report::{CodeFrame, Error, Reporter};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 use std::{
     collections::{HashMap, VecDeque},
-    path::{Path, PathBuf},
+    path::Path,
 };
+use validate::Validator;
 use write::Writer;
 
 pub type Result<T> = std::result::Result<T, Vec<Error>>;
 
-pub struct Engine<T, R>
+pub struct Context<R>
 where
     R: Resolver,
 {
     reporter: Reporter,
     resolver: R,
+}
+
+pub struct Engine<T, R>
+where
+    R: Resolver,
+{
+    context: Context<R>,
     state: T,
 }
 
@@ -36,21 +45,14 @@ impl<T, R> Engine<T, R>
 where
     R: Resolver,
 {
-    pub fn map<F, T2>(self, f: F) -> Engine<T2, R>
+    pub fn map<F, T2>(mut self, f: F) -> Engine<T2, R>
     where
-        F: Fn(T, Reporter) -> T2,
+        F: Fn(T, &mut Context<R>) -> T2,
     {
-        Engine {
-            reporter: self.reporter.clone(),
-            resolver: self.resolver,
-            state: f(self.state, self.reporter),
-        }
-    }
+        let state = f(self.state, &mut self.context);
 
-    pub fn with_state<T2>(self, state: T2) -> Engine<T2, R> {
         Engine {
-            reporter: self.reporter,
-            resolver: self.resolver,
+            context: self.context,
             state,
         }
     }
@@ -84,21 +86,16 @@ where
 {
     pub fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
     where
-        F: Fn(T, Reporter) -> Result<T2>,
+        F: Fn(T, &mut Context<R>) -> Result<T2>,
     {
-        self.map(|state, reporter| match state {
-            Ok(state) => f(state, reporter),
+        self.map(|state, context| match state {
+            Ok(state) => {
+                context.reporter.catch()?;
+
+                f(state, context)
+            }
             Err(err) => Err(err),
         })
-    }
-
-    pub fn unwrap(self) -> Engine<T, R> {
-        self.map(|x, _| x.unwrap())
-    }
-
-    pub fn expect(self, message: &str) -> Engine<T, R> {
-        #[allow(clippy::expect_used)]
-        self.map(|state, _| state.expect(message))
     }
 }
 
@@ -108,8 +105,7 @@ where
 {
     pub const fn new(reporter: Reporter, resolver: R) -> Self {
         Self {
-            reporter,
-            resolver,
+            context: Context { reporter, resolver },
             state: (),
         }
     }
@@ -135,46 +131,41 @@ where
     R: Resolver,
 {
     /// starting from the entry file recursively discover and parse modules
-    pub fn parse_and_load(mut self) -> Engine<Result<state::Parsed>, R> {
-        let mut next_id: usize = 0;
-        let mut queue = VecDeque::from_iter(vec![self.state.0]);
-        let mut parsed = HashMap::new();
-        let mut lookup = BiMap::new();
-        let mut all_errors = vec![];
+    pub fn parse_and_load(self) -> Engine<Result<state::Parsed>, R> {
+        self.map(|state, context| {
+            let mut next_id: usize = 0;
+            let mut queue = VecDeque::from_iter(vec![state.0]);
+            let mut parsed = HashMap::new();
+            let mut lookup = BiMap::new();
 
-        while let Some(link) = queue.pop_front() {
-            match Self::parse_one(&mut self.resolver, &link) {
-                Ok((input, ast)) => {
-                    let links = Self::to_links(&link, &ast);
+            while let Some(link) = queue.pop_front() {
+                match Self::parse_one(&mut context.resolver, &link) {
+                    Ok((input, ast)) => {
+                        let links = Self::to_links(&link, &ast);
 
-                    for x in links {
-                        if !parsed.contains_key(&x) && !queue.contains(&x) {
-                            queue.push_back(x);
+                        for x in links {
+                            if !parsed.contains_key(&x) && !queue.contains(&x) {
+                                queue.push_back(x);
+                            }
                         }
+
+                        lookup.insert(link.clone(), next_id);
+                        parsed.insert(link, state::Module::new(next_id, input, ast));
+
+                        next_id += 1;
                     }
 
-                    lookup.insert(link.clone(), next_id);
-                    parsed.insert(link, state::Module::new(next_id, input, ast));
-
-                    next_id += 1;
+                    Err(errs) => context.reporter.raise(errs)?,
                 }
-
-                Err(errs) => all_errors.extend(errs),
             }
-        }
 
-        Engine {
-            reporter: self.reporter,
-            resolver: self.resolver,
-            state: if all_errors.is_empty() {
-                Ok(state::Parsed {
-                    modules: parsed,
-                    lookup,
-                })
-            } else {
-                Err(all_errors)
-            },
-        }
+            context.reporter.catch()?;
+
+            Ok(state::Parsed {
+                modules: parsed,
+                lookup,
+            })
+        })
     }
 }
 
@@ -182,59 +173,39 @@ impl<'a, R> Engine<state::FromGlob<'a>, R>
 where
     R: Resolver,
 {
-    fn glob(&self) -> Vec<PathBuf> {
-        let state::FromGlob { dir, glob } = self.state;
-
-        glob::glob(
-            &[
-                dir.to_str().expect("failed to convert directory to string"),
-                glob,
-            ]
-            .join("/"),
-        )
-        .expect("failed to compile glob")
-        .map(|x| x.expect("failed to apply glob"))
-        .map(|x| {
-            x.strip_prefix(dir)
-                .expect("failed to strip prefix from path")
-                .to_path_buf()
-        })
-        .collect::<Vec<_>>()
-    }
-
     /// parse all modules that match the glob
-    pub fn parse(mut self) -> Engine<Result<state::Parsed>, R> {
-        let mut next_id: usize = 0;
-        let mut parsed = HashMap::new();
-        let mut lookup = BiMap::new();
-        let mut errors = vec![];
-        let links = self.glob().iter().map(Link::from).collect::<Vec<_>>();
+    pub fn parse(self) -> Engine<Result<state::Parsed>, R> {
+        self.map(move |state, context| {
+            let links = state
+                .to_paths()
+                .map_err(|errs| vec![Error::InvalidGlob(errs)])?
+                .iter()
+                .map(Link::from)
+                .collect::<Vec<_>>();
+            let mut next_id: usize = 0;
+            let mut parsed = HashMap::new();
+            let mut lookup = BiMap::new();
 
-        for link in links {
-            match Self::parse_one(&mut self.resolver, &link) {
-                Ok((text, ast)) => {
-                    lookup.insert(link.clone(), next_id);
-                    parsed.insert(link, state::Module::new(next_id, text, ast));
+            for link in links {
+                match Self::parse_one(&mut context.resolver, &link) {
+                    Ok((text, ast)) => {
+                        lookup.insert(link.clone(), next_id);
+                        parsed.insert(link, state::Module::new(next_id, text, ast));
 
-                    next_id += 1;
+                        next_id += 1;
+                    }
+
+                    Err(errs) => context.reporter.raise(errs)?,
                 }
-
-                Err(errs) => errors.extend(errs),
             }
-        }
 
-        Engine {
-            reporter: self.reporter,
-            resolver: self.resolver,
-            state: if errors.is_empty() {
-                Ok(state::Parsed {
-                    modules: parsed,
-                    lookup,
-                })
-            } else {
-                Err(errors)
-            },
-        }
+            context.reporter.catch()?;
+
+            Ok(state::Parsed {
+                modules: parsed,
+                lookup,
+            })
+        })
     }
 }
 
@@ -264,30 +235,8 @@ where
         })
     }
 
-    fn find_import_cycles(state: &state::Parsed, graph: &ImportGraph) -> Vec<Error> {
-        let cycles = graph.cycles();
-
-        cycles
-            .into_iter()
-            .map(|x| {
-                Error::ImportCycle(
-                    x.to_vec()
-                        .iter()
-                        .map(|x| {
-                            state
-                                .lookup
-                                .get_by_right(x)
-                                .expect(&format!("failed to map module id {x} to link"))
-                                .clone()
-                        })
-                        .collect::<Vec<_>>(),
-                )
-            })
-            .collect()
-    }
-
     pub fn link(self) -> Engine<Result<state::Linked>, R> {
-        self.then(|state, mut reporter| {
+        self.then(|state, context| {
             let graph = Self::populate_graph(&state.modules);
             let linked = state.modules.iter().fold(graph, |mut acc, (link, module)| {
                 let links = Self::to_links(link, &module.ast);
@@ -296,19 +245,21 @@ where
                     if let Some(x) = state.lookup.get_by_left(x) {
                         acc.add_edge(&module.id, x).ok();
                     } else {
-                        reporter.report(Error::UnregisteredModule(x.clone()));
+                        context
+                            .reporter
+                            .report(Error::UnregisteredModule(x.clone()));
                     }
                 }
 
                 acc
             });
 
-            reporter.catch()?;
+            context.reporter.catch_early()?;
 
-            if linked.is_cyclic() {
-                let errors = Self::find_import_cycles(&state, &linked);
-                reporter.raise(errors)?;
-            }
+            let validator = Validator(&state);
+            context
+                .reporter
+                .raise(validator.assert_no_import_cycles(&linked))?;
 
             Ok(state::Linked {
                 graph: linked,

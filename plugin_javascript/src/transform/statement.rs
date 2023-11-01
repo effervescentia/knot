@@ -2,6 +2,7 @@ use crate::{
     javascript::{Expression, Statement},
     Options,
 };
+use kore::invariant;
 use lang::ast::{self, storage::Storage};
 
 #[allow(clippy::multiple_inherent_impl)]
@@ -192,9 +193,11 @@ impl Statement {
         };
 
         let namespace = [vec![base], path.clone()].concat().join("/");
-        let module_name = path
-            .last()
-            .expect("failed to get the implicit module name from the last section of the path");
+        let module_name = path.last().unwrap_or_else(|| {
+            invariant!(
+                "failed to get the implicit module name from the last section of the path {path:?}"
+            )
+        });
 
         match aliases {
             Some(xs) => {

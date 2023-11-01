@@ -1,6 +1,7 @@
 use super::storage;
 use crate::{matcher as m, types::type_expression, Position, Range};
-use combine::{attempt, choice, optional, sep_end_by, Parser, Stream};
+use combine::{attempt, choice, optional, sep_end_by, sep_end_by1, Parser, Stream};
+use kore::invariant;
 use lang::ast::{Declaration, DeclarationNode, TypeExpressionNode};
 
 fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<Range, ()>>, Range)>
@@ -30,10 +31,15 @@ where
     m::terminated((
         storage::storage("enum"),
         m::symbol('='),
-        optional(m::symbol('|')).with(sep_end_by::<Vec<_>, _, _, _>(variant(), m::symbol('|'))),
+        optional(m::symbol('|')).with(sep_end_by1::<Vec<_>, _, _, _>(variant(), m::symbol('|'))),
     ))
     .map(|((name, start), _, variants)| {
-        let end = &variants.last().unwrap().2;
+        let end = &variants
+            .last()
+            .unwrap_or_else(|| {
+                invariant!("enum should only parse successfully with at least one variant")
+            })
+            .2;
         let range = &start + end;
 
         DeclarationNode::raw(

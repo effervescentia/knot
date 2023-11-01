@@ -14,3 +14,14 @@ pub trait Generator: Copy {
 
     fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output);
 }
+
+/// represents a state that should not be possible based on the design of the system
+#[macro_export]
+macro_rules! invariant {
+    () => {
+        panicking::panic("invariant")
+    };
+    ($($arg:tt)+) => {
+        panic!("invariant: {}", format_args!($($arg)+))
+    };
+}

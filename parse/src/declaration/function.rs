@@ -33,7 +33,7 @@ where
         DeclarationNode::raw(
             Declaration::Function {
                 name,
-                parameters: parameters.unwrap_or(vec![]),
+                parameters: parameters.unwrap_or_default(),
                 body_type,
                 body,
             },

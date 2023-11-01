@@ -2,6 +2,7 @@ use crate::{
     javascript::{Expression, Statement},
     Options,
 };
+use kore::invariant;
 use lang::ast::{self, ExpressionShape, KSXShape, Primitive};
 
 #[allow(clippy::multiple_inherent_impl)]
@@ -116,7 +117,10 @@ impl Expression {
 
     pub fn from_ksx(value: &KSXShape, opts: &Options) -> Self {
         fn element_name(name: String) -> Expression {
-            let first_char = name.chars().next().unwrap();
+            let first_char = name
+                .chars()
+                .next()
+                .unwrap_or_else(|| invariant!("element names should be at least 1 character long"));
 
             if first_char.is_lowercase() {
                 Expression::String(name)

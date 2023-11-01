@@ -12,6 +12,7 @@ fn write_files(source_dir: &Path, files: &[(&str, &str)]) {
             fs::create_dir_all(parent).ok();
         }
 
+        #[allow(clippy::panic)]
         fs::write(&path, data)
             .unwrap_or_else(|_| panic!("failed to write file with path {}", path.display()));
     }
@@ -38,6 +39,7 @@ fn collect_files(out_dir: &Path) -> HashMap<String, String> {
                 .to_str()
                 .expect("failed to convert path to string")
                 .to_owned(),
+            #[allow(clippy::panic)]
             fs::read_to_string(&x)
                 .unwrap_or_else(|_| panic!("failed to read file {}", x.display())),
         )
