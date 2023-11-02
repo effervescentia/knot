@@ -84,7 +84,7 @@ mod tests {
         assert_eq!(
             f::n::mr(Module::new(
                 vec![f::n::i(Import {
-                    source: ImportSource::Root,
+                    source: f::n::i::s(ImportSource::Root),
                     path: vec![String::from("bar"), String::from("fizz")],
                     aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                 })],
@@ -99,66 +99,70 @@ mod tests {
                 Module::new(
                     vec![f::n::ic(
                         Import {
-                            source: ImportSource::Root,
+                            source: f::n::i::sc(
+                                ImportSource::Root,
+                                NodeContext::new(0, vec![0, 1])
+                            ),
                             path: vec![String::from("bar"), String::from("fizz")],
                             aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                         },
-                        NodeContext::new(0, vec![0])
+                        NodeContext::new(1, vec![0])
                     )],
                     vec![f::n::dc(
                         f::a::const_(
                             "BUZZ",
                             Some(f::n::txc(
                                 TypeExpression::Nil,
-                                NodeContext::new(1, vec![0, 2])
+                                NodeContext::new(2, vec![0, 3])
                             )),
                             f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
-                                NodeContext::new(2, vec![0, 2])
+                                NodeContext::new(3, vec![0, 3])
                             )
                         ),
-                        NodeContext::new(3, vec![0]),
+                        NodeContext::new(4, vec![0]),
                     )],
                 ),
-                NodeContext::new(4, vec![0]),
+                NodeContext::new(5, vec![0]),
             )
         );
 
         assert_eq!(
             scope.file.borrow().fragments,
             FragmentMap::from_iter(vec![
+                (0, (vec![0, 1], Fragment::ImportSource(ImportSource::Root))),
                 (
-                    0,
+                    1,
                     (
                         vec![0],
                         Fragment::Import(Import {
-                            source: ImportSource::Root,
+                            source: 0,
                             path: vec![String::from("bar"), String::from("fizz")],
                             aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                         })
                     )
                 ),
                 (
-                    1,
-                    (vec![0, 2], Fragment::TypeExpression(TypeExpression::Nil))
-                ),
-                (
                     2,
-                    (
-                        vec![0, 2],
-                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
-                    )
+                    (vec![0, 3], Fragment::TypeExpression(TypeExpression::Nil))
                 ),
                 (
                     3,
                     (
-                        vec![0],
-                        Fragment::Declaration(f::a::const_("BUZZ", Some(1), 2))
+                        vec![0, 3],
+                        Fragment::Expression(Expression::Primitive(Primitive::Nil))
                     )
                 ),
                 (
                     4,
-                    (vec![0], Fragment::Module(Module::new(vec![0], vec![3])))
+                    (
+                        vec![0],
+                        Fragment::Declaration(f::a::const_("BUZZ", Some(2), 3))
+                    )
+                ),
+                (
+                    5,
+                    (vec![0], Fragment::Module(Module::new(vec![1], vec![4])))
                 ),
             ])
         );

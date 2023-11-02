@@ -1,35 +1,6 @@
+use super::TypedNode;
 use crate::Node;
 use std::fmt::{Debug, Display, Formatter};
-
-use super::TypedNode;
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum Source {
-    Root,
-    Local,
-    Named(String),
-    Scoped { scope: String, name: String },
-}
-
-impl Display for Source {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self {
-            Self::Root => write!(f, "@"),
-
-            Self::Local => write!(f, "."),
-
-            Self::Named(name) => write!(f, "{name}"),
-
-            Self::Scoped { scope, name } => write!(f, "@{scope}/{name}"),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-enum Target<T> {
-    Module(String, Option<Box<T>>),
-    Destructure(Vec<(Export, Option<String>)>),
-}
 
 // pub type TargetNodeValue = Target;
 
@@ -74,18 +45,28 @@ enum Target<T> {
 // }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum Export {
-    Module,
-    Named(String),
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportSource {
     Root,
     Local,
     Named(String),
     Scoped { scope: String, name: String },
 }
+
+pub type ImportSourceNodeValue = ImportSource;
+
+pub type ImportSourceNode<R, C> = TypedNode<ImportSourceNodeValue, R, C>;
+
+// #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+// enum Target<T> {
+//     Module(String, Option<Box<T>>),
+//     Destructure(Vec<(Export, Option<String>)>),
+// }
+
+// #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+// pub enum Export {
+//     Module,
+//     Named(String),
+// }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportTarget {
@@ -94,8 +75,8 @@ pub enum ImportTarget {
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Import {
-    pub source: ImportSource,
+pub struct Import<S> {
+    pub source: S,
     pub path: Vec<String>,
     pub aliases: Option<Vec<(ImportTarget, Option<String>)>>,
 }
@@ -106,9 +87,9 @@ pub struct Import {
 //     pub target: Target,
 // }
 
-impl Import {
+impl<S> Import<S> {
     pub fn new(
-        source: ImportSource,
+        source: S,
         path: Vec<String>,
         aliases: Option<Vec<(ImportTarget, Option<String>)>>,
     ) -> Self {
@@ -116,6 +97,14 @@ impl Import {
             source,
             path,
             aliases,
+        }
+    }
+
+    pub fn map<S2>(&self, fs: &impl Fn(&S) -> S2) -> Import<S2> {
+        Import {
+            source: fs(&self.source),
+            path: self.path.clone(),
+            aliases: self.aliases.clone(),
         }
     }
 }
@@ -126,6 +115,6 @@ impl Import {
 //     }
 // }
 
-pub type ImportNodeValue = Import;
+pub type ImportNodeValue<R, C> = Import<ImportSourceNode<R, C>>;
 
-pub type ImportNode<R, C> = TypedNode<ImportNodeValue, R, C>;
+pub type ImportNode<R, C> = TypedNode<ImportNodeValue<R, C>, R, C>;

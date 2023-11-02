@@ -1,4 +1,4 @@
-use crate::ast::{AstNode, ImportNode, ImportSource, ModuleNode};
+use crate::ast::{AstNode, ImportNode, ImportSource, ImportSourceNode, ModuleNode};
 use kore::format::{SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
@@ -17,6 +17,20 @@ where
     }
 }
 
+impl<R, C> Display for ImportSourceNode<R, C>
+where
+    R: Copy,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self.node().value() {
+            ImportSource::Root => write!(f, "@"),
+            ImportSource::Local => write!(f, "."),
+            ImportSource::Named(name) => write!(f, "{name}"),
+            ImportSource::Scoped { scope, name } => write!(f, "@{scope}/{name}"),
+        }
+    }
+}
+
 impl<R, C> Display for ImportNode<R, C>
 where
     R: Copy,
@@ -25,12 +39,7 @@ where
         write!(
             f,
             "use {source}/{path}",
-            source = match &self.node().value().source {
-                ImportSource::Root => String::from("@"),
-                ImportSource::Local => String::from("."),
-                ImportSource::Named(name) => name.clone(),
-                ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
-            },
+            source = self.node().value().source,
             path = SeparateEach("/", &self.node().value().path)
         )
     }
@@ -40,7 +49,7 @@ where
 mod tests {
     use crate::{
         ast::{Import, ImportSource, Module, TypeExpression},
-        test::fixture as f,
+        test::fixture::{self as f},
     };
 
     #[test]
@@ -56,7 +65,7 @@ mod tests {
         assert_eq!(
             f::n::m(Module::new(
                 vec![f::n::i(Import::new(
-                    ImportSource::Root,
+                    f::n::i::s(ImportSource::Root),
                     vec![String::from("bar"), String::from("fizz")],
                     None
                 ))],
@@ -86,7 +95,7 @@ mod tests {
         assert_eq!(
             f::n::m(Module::new(
                 vec![f::n::i(Import::new(
-                    ImportSource::Root,
+                    f::n::i::s(ImportSource::Root),
                     vec![String::from("bar"), String::from("fizz")],
                     None
                 ))],

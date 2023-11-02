@@ -64,7 +64,11 @@ mod tests {
             parse("use @/foo;").unwrap().0,
             f::n::mr(Module::new(
                 vec![f::n::ir(
-                    Import::new(ImportSource::Root, vec![String::from("foo")], None),
+                    Import::new(
+                        f::n::i::sr(ImportSource::Root, ((1, 1), (1, 1))),
+                        vec![String::from("foo")],
+                        None
+                    ),
                     ((1, 1), (1, 3))
                 )],
                 vec![]

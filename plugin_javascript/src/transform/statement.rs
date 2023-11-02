@@ -178,6 +178,15 @@ impl Statement {
         }
     }
 
+    fn stringify_import_source(source: &ast::ImportSourceShape) -> String {
+        match &source.0 {
+            ast::ImportSource::Local => String::from("."),
+            ast::ImportSource::Root => String::from("@"),
+            ast::ImportSource::Named(name) => name.clone(),
+            ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
+        }
+    }
+
     pub fn from_import(
         ast::ImportShape(ast::Import {
             source,
@@ -186,13 +195,7 @@ impl Statement {
         }): &ast::ImportShape,
         opts: &Options,
     ) -> Vec<Self> {
-        let base = match source {
-            ast::ImportSource::Local => String::from("."),
-            ast::ImportSource::Root => String::from("@"),
-            ast::ImportSource::Named(name) => name.clone(),
-            ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
-        };
-
+        let base = Self::stringify_import_source(source);
         let namespace = [vec![base], path.clone()].concat().join("/");
         let module_name = path.last().unwrap_or_else(|| {
             invariant!(

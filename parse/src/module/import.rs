@@ -3,7 +3,8 @@ use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
-use lang::ast::{AstNode, Import, ImportNode, ImportSource, ImportTarget};
+use kore::invariant;
+use lang::ast::{AstNode, Import, ImportNode, ImportSource, ImportSourceNode, ImportTarget};
 
 // use @/x;
 // use @/x.{a, b};
@@ -23,11 +24,30 @@ where
         choice((
             m::symbol('@')
                 .skip(not_followed_by(p::alpha_num().or(p::char('_'))))
-                .with(value(ImportSource::Root)),
-            m::symbol('.').with(value(ImportSource::Local)),
-            choice((m::identifier(p::char('@')), m::standard_identifier()))
-                .map(|(x, _)| ImportSource::Named(x)),
+                .map(|(_, range)| (ImportSource::Root, range)),
+            m::symbol('.').map(|(_, range)| (ImportSource::Local, range)),
+            m::standard_identifier().map(|(x, range)| (ImportSource::Named(x), range)),
+            (
+                m::identifier(p::char('@')),
+                p::char('/'),
+                m::standard_identifier(),
+            )
+                .map(|((scope, start), _, (name, end))| {
+                    (
+                        ImportSource::Scoped {
+                            scope: scope
+                                .strip_prefix('@')
+                                .unwrap_or_else(|| {
+                                    invariant!("scope should always begin with '@' character")
+                                })
+                                .to_owned(),
+                            name,
+                        },
+                        &start + &end,
+                    )
+                }),
         ))
+        .map(|(x, range)| ImportSourceNode::<Range, ()>::raw(x, range))
     };
     let path = || {
         m::symbol('/')
@@ -86,7 +106,11 @@ mod tests {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
             f::n::ir(
-                Import::new(ImportSource::Root, vec![String::from("foo")], None),
+                Import::new(
+                    f::n::i::sr(ImportSource::Root, ((1, 1), (1, 1))),
+                    vec![String::from("foo")],
+                    None
+                ),
                 ((1, 1), (1, 3))
             )
         );
@@ -98,7 +122,7 @@ mod tests {
             parse("use @/foo/bar/fizz;").unwrap().0,
             f::n::ir(
                 Import::new(
-                    ImportSource::Root,
+                    f::n::i::sr(ImportSource::Root, ((1, 1), (1, 1))),
                     vec![
                         String::from("foo"),
                         String::from("bar"),
@@ -116,7 +140,11 @@ mod tests {
         assert_eq!(
             parse("use @/foo.{};").unwrap().0,
             f::n::ir(
-                Import::new(ImportSource::Root, vec![String::from("foo")], Some(vec![])),
+                Import::new(
+                    f::n::i::sr(ImportSource::Root, ((1, 1), (1, 1))),
+                    vec![String::from("foo")],
+                    Some(vec![])
+                ),
                 ((1, 1), (1, 3))
             )
         );
@@ -128,7 +156,7 @@ mod tests {
             parse("use @/foo.{*, bar};").unwrap().0,
             f::n::ir(
                 Import::new(
-                    ImportSource::Root,
+                    f::n::i::sr(ImportSource::Root, ((1, 1), (1, 1))),
                     vec![String::from("foo")],
                     Some(vec![
                         (ImportTarget::Module, None),
@@ -146,7 +174,7 @@ mod tests {
             parse("use @/foo.{* as foo, fizz as buzz};").unwrap().0,
             f::n::ir(
                 Import::new(
-                    ImportSource::Root,
+                    f::n::i::sr(ImportSource::Root, ((1, 1), (1, 1))),
                     vec![String::from("foo")],
                     Some(vec![
                         (ImportTarget::Module, Some(String::from("foo"))),

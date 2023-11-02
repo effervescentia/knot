@@ -177,7 +177,7 @@ mod tests {
                 "foo",
                 f::n::mr(Module::new(
                     vec![f::n::i(Import {
-                        source: ImportSource::Root,
+                        source: f::n::i::s(ImportSource::Root),
                         path: vec![String::from("bar"), String::from("fizz")],
                         aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
                     })],
@@ -195,31 +195,34 @@ mod tests {
                     Module::new(
                         vec![f::n::ic(
                             Import {
-                                source: ImportSource::Root,
+                                source: f::n::i::sc(
+                                    ImportSource::Root,
+                                    NodeContext::new(0, vec![0, 1])
+                                ),
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(
                                     ImportTarget::Module,
                                     Some(String::from("Fizz"))
                                 )]),
                             },
-                            NodeContext::new(0, vec![0])
+                            NodeContext::new(1, vec![0])
                         )],
                         vec![f::n::dc(
                             f::a::const_(
                                 "BUZZ",
                                 Some(f::n::txc(
                                     TypeExpression::Nil,
-                                    NodeContext::new(1, vec![0, 2])
+                                    NodeContext::new(2, vec![0, 3])
                                 )),
                                 f::n::xc(
                                     Expression::Primitive(Primitive::Nil),
-                                    NodeContext::new(2, vec![0, 2])
+                                    NodeContext::new(3, vec![0, 3])
                                 )
                             ),
-                            NodeContext::new(3, vec![0]),
+                            NodeContext::new(4, vec![0]),
                         )],
                     ),
-                    NodeContext::new(4, vec![0]),
+                    NodeContext::new(5, vec![0]),
                 )
             )
         );

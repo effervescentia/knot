@@ -109,16 +109,16 @@ pub mod n {
         DeclarationNode::new(x, RANGE, ctx)
     }
 
-    pub fn i(x: ImportNodeValue) -> ImportNode<Range, ()> {
-        ImportNode::<Range, ()>::raw(x, RANGE)
+    pub fn i(x: ImportNodeValue<Range, ()>) -> ImportNode<Range, ()> {
+        ImportNode::raw(x, RANGE)
     }
 
-    pub fn ir(x: ImportNodeValue, (start, end): InitRange) -> ImportNode<Range, ()> {
-        ImportNode::<Range, ()>::raw(x, Range(start, end))
+    pub fn ir(x: ImportNodeValue<Range, ()>, (start, end): InitRange) -> ImportNode<Range, ()> {
+        ImportNode::raw(x, Range(start, end))
     }
 
-    pub fn ic<T>(x: ImportNodeValue, ctx: T) -> ImportNode<Range, T> {
-        ImportNode::<Range, T>::new(x, RANGE, ctx)
+    pub fn ic<T>(x: ImportNodeValue<Range, T>, ctx: T) -> ImportNode<Range, T> {
+        ImportNode::new(x, RANGE, ctx)
     }
 
     pub const fn m(x: ModuleNodeValue<Range, ()>) -> ModuleNode<Range, ()> {
@@ -127,5 +127,26 @@ pub mod n {
 
     pub const fn mr<R>(x: ModuleNodeValue<R, ()>) -> ModuleNode<R, ()> {
         ModuleNode::raw(x)
+    }
+
+    /// import helpers
+    pub mod i {
+        use super::*;
+        use lang::ast::{ImportSourceNode, ImportSourceNodeValue};
+
+        pub fn s(x: ImportSourceNodeValue) -> ImportSourceNode<Range, ()> {
+            ImportSourceNode::<Range, ()>::raw(x, RANGE)
+        }
+
+        pub fn sr(
+            x: ImportSourceNodeValue,
+            (start, end): InitRange,
+        ) -> ImportSourceNode<Range, ()> {
+            ImportSourceNode::<Range, ()>::raw(x, Range(start, end))
+        }
+
+        pub fn sc<T>(x: ImportSourceNodeValue, ctx: T) -> ImportSourceNode<Range, T> {
+            ImportSourceNode::<Range, T>::new(x, RANGE, ctx)
+        }
     }
 }

@@ -1,7 +1,7 @@
 use super::{
-    Declaration, DeclarationNode, Expression, ExpressionNode, Import, ImportNode, KSXNode, Module,
-    ModuleNode, Parameter, ParameterNode, Statement, StatementNode, TypeExpression,
-    TypeExpressionNode, KSX,
+    Declaration, DeclarationNode, Expression, ExpressionNode, Import, ImportNode, ImportSource,
+    ImportSourceNode, KSXNode, Module, ModuleNode, Parameter, ParameterNode, Statement,
+    StatementNode, TypeExpression, TypeExpressionNode, KSX,
 };
 use crate::Program;
 use std::fmt::Debug;
@@ -80,11 +80,20 @@ impl<R, C> ToShape<DeclarationShape> for DeclarationNode<R, C> {
 }
 
 #[derive(Clone, Debug)]
-pub struct ImportShape(pub Import);
+pub struct ImportSourceShape(pub ImportSource);
+
+impl<R, C> ToShape<ImportSourceShape> for ImportSourceNode<R, C> {
+    fn to_shape(&self) -> ImportSourceShape {
+        ImportSourceShape(self.0.value().clone())
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ImportShape(pub Import<ImportSourceShape>);
 
 impl<R, C> ToShape<ImportShape> for ImportNode<R, C> {
     fn to_shape(&self) -> ImportShape {
-        ImportShape(self.0.value().clone())
+        ImportShape(self.0.value().map(&ToShape::to_shape))
     }
 }
 

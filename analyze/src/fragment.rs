@@ -1,7 +1,7 @@
 use super::infer::weak::{ToWeak, WeakRef};
 use lang::ast::{
-    Declaration, Expression, Import, ImportTarget, Module, Parameter, Statement, TypeExpression,
-    KSX,
+    Declaration, Expression, Import, ImportSource, ImportTarget, Module, Parameter, Statement,
+    TypeExpression, KSX,
 };
 use std::fmt::Debug;
 
@@ -14,7 +14,8 @@ pub enum Fragment {
     Parameter(Parameter<usize, usize>),
     TypeExpression(TypeExpression<usize>),
     Declaration(Declaration<usize, usize, usize, usize>),
-    Import(Import),
+    Import(Import<usize>),
+    ImportSource(ImportSource),
     Module(Module<usize, usize>),
 }
 
@@ -61,6 +62,7 @@ impl ToWeak for Fragment {
             Self::TypeExpression(x) => x.to_weak(),
             Self::Declaration(x) => x.to_weak(),
             Self::Import(x) => x.to_weak(),
+            Self::ImportSource(x) => x.to_weak(),
             Self::Module(x) => x.to_weak(),
         }
     }
@@ -71,7 +73,7 @@ mod tests {
     use super::Fragment;
     use kore::assert_eq;
     use lang::{
-        ast::{Import, ImportSource, ImportTarget, Statement},
+        ast::{Import, ImportTarget, Statement},
         test::fixture as f,
     };
 
@@ -139,7 +141,7 @@ mod tests {
     fn binding_module_import() {
         assert_eq!(
             Fragment::Import(Import {
-                source: ImportSource::Local,
+                source: 0,
                 path: vec![String::from("foo"), String::from("bar")],
                 aliases: None
             })
@@ -153,7 +155,7 @@ mod tests {
     fn binding_module_star_import() {
         assert_eq!(
             Fragment::Import(Import {
-                source: ImportSource::Local,
+                source: 0,
                 path: vec![String::from("foo"), String::from("bar")],
                 aliases: Some(vec![(ImportTarget::Module, None)])
             })
@@ -167,7 +169,7 @@ mod tests {
     fn binding_module_import_with_alias() {
         assert_eq!(
             Fragment::Import(Import {
-                source: ImportSource::Local,
+                source: 0,
                 path: vec![String::from("foo"), String::from("bar")],
                 aliases: Some(vec![(ImportTarget::Module, Some(String::from("fizz")))])
             })

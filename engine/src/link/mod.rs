@@ -1,7 +1,7 @@
 mod import_graph;
 
 pub use import_graph::ImportGraph;
-use lang::ast;
+use lang::ast::{self, AstNode, ImportSourceNode};
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},
@@ -29,11 +29,15 @@ impl Link {
         PathBuf::from_iter(module_path).with_extension("kn")
     }
 
-    pub fn from_import<P>(file_path: P, ast::Import { source, path, .. }: &ast::Import) -> Self
+    pub fn from_import<P, R, C>(
+        file_path: P,
+        ast::Import { source, path, .. }: &ast::Import<ImportSourceNode<R, C>>,
+    ) -> Self
     where
         P: AsRef<Path>,
+        R: Copy,
     {
-        match source {
+        match source.node().value() {
             ast::ImportSource::Named(name) => {
                 Self(LinkSource::External(name.clone()), path.clone())
             }

@@ -145,7 +145,10 @@ mod tests {
                     Module::new(
                         vec![f::n::ic(
                             Import {
-                                source: ImportSource::Root,
+                                source: f::n::i::sc(
+                                    ImportSource::Root,
+                                    NodeContext::new(0, vec![])
+                                ),
                                 path: vec![String::from("bar"), String::from("fizz")],
                                 aliases: Some(vec![(
                                     ImportTarget::Module,

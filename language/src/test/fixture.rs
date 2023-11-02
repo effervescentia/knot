@@ -41,12 +41,21 @@ pub mod n {
         DeclarationNode::raw(x, MockRange)
     }
 
-    pub fn i(x: ImportNodeValue) -> ImportNode<MockRange, ()> {
-        ImportNode::<MockRange, ()>::raw(x, MockRange)
+    pub fn i(x: ImportNodeValue<MockRange, ()>) -> ImportNode<MockRange, ()> {
+        ImportNode::raw(x, MockRange)
     }
 
     pub const fn m(x: ModuleNodeValue<MockRange, ()>) -> ModuleNode<MockRange, ()> {
         ModuleNode::raw(x)
+    }
+
+    pub mod i {
+        use super::*;
+        use crate::ast::{ImportSourceNode, ImportSourceNodeValue};
+
+        pub fn s(x: ImportSourceNodeValue) -> ImportSourceNode<MockRange, ()> {
+            ImportSourceNode::<MockRange, ()>::raw(x, MockRange)
+        }
     }
 }
 
