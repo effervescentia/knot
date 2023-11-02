@@ -8,10 +8,7 @@ use super::{
     register::{Identify, Register},
     ScopeContext,
 };
-use lang::{
-    ast::{DeclarationNode, DeclarationNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, DeclarationNode, DeclarationNodeValue};
 
 impl<R> Register for DeclarationNode<R, ()>
 where
@@ -24,7 +21,7 @@ where
         let value = self.node().value().identify(&ctx.child());
         let id = ctx.add_fragment(&value);
 
-        DeclarationNode(Node(value, *self.node().range(), id))
+        DeclarationNode::new(value, *self.node().range(), id)
     }
 }
 

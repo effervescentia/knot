@@ -5,10 +5,6 @@ use std::fmt::Debug;
 pub struct Node<T, R, C>(pub T, pub R, pub C);
 
 impl<T, R, C> Node<T, R, C> {
-    pub const fn new(x: T, range: R, context: C) -> Self {
-        Self(x, range, context)
-    }
-
     pub const fn value(&self) -> &T {
         &self.0
     }

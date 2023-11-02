@@ -1,4 +1,4 @@
-use crate::ast::{Expression, ExpressionNode, Primitive};
+use crate::ast::{AstNode, Expression, ExpressionNode, Primitive};
 use kore::format::{indented, Block, Indented, SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter, Write};
 

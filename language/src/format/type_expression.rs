@@ -1,4 +1,4 @@
-use crate::ast::{TypeExpression, TypeExpressionNode};
+use crate::ast::{AstNode, TypeExpression, TypeExpressionNode};
 use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 

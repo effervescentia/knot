@@ -1,6 +1,6 @@
 use crate::{matcher as m, Position, Range};
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
-use lang::ast::{TypeExpression, TypeExpressionNode, TypeExpressionNodeValue};
+use lang::ast::{AstNode, TypeExpression, TypeExpressionNode, TypeExpressionNodeValue};
 
 fn primitive<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
 where

@@ -1,7 +1,7 @@
 use super::{parameter, storage};
 use crate::{expression, matcher as m, Position, Range};
 use combine::{between, optional, sep_end_by, Parser, Stream};
-use lang::ast::{Declaration, DeclarationNode};
+use lang::ast::{AstNode, Declaration, DeclarationNode};
 
 // view foo -> nil;
 // view foo -> {};

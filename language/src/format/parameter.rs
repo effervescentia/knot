@@ -1,5 +1,5 @@
 use super::Typedef;
-use crate::ast::{Parameter, ParameterNode};
+use crate::ast::{AstNode, Parameter, ParameterNode};
 use std::fmt::{Display, Formatter};
 
 impl<R, C> Display for ParameterNode<R, C>

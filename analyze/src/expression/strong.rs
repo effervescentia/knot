@@ -2,14 +2,14 @@ use crate::{
     context::{NodeContext, StrongContext},
     infer::strong::{Strong, ToStrong},
 };
-use lang::{ast::ExpressionNode, Node};
+use lang::ast::{AstNode, ExpressionNode};
 
 impl<R> ToStrong<ExpressionNode<R, Strong>> for ExpressionNode<R, NodeContext>
 where
     R: Copy,
 {
     fn to_strong(&self, ctx: &StrongContext) -> ExpressionNode<R, Strong> {
-        ExpressionNode(Node(
+        ExpressionNode::new(
             self.node().value().map(
                 &mut |x| x.to_strong(ctx),
                 &mut |x| x.to_strong(ctx),
@@ -17,6 +17,6 @@ where
             ),
             *self.node().range(),
             ctx.resolve(self.node().id()).clone(),
-        ))
+        )
     }
 }

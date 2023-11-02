@@ -9,10 +9,7 @@ use super::{
     register::{Identify, Register},
     RefKind, ScopeContext, Type,
 };
-use lang::{
-    ast::{KSXNode, KSXNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, KSXNode, KSXNodeValue};
 
 impl<R> Register for KSXNode<R, ()>
 where
@@ -25,7 +22,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        KSXNode(Node(value, *self.node().range(), id))
+        KSXNode::new(value, *self.node().range(), id)
     }
 }
 

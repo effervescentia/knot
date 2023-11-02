@@ -7,10 +7,7 @@ use crate::{
     context::{NodeContext, ScopeContext},
     register::{Identify, Register},
 };
-use lang::{
-    ast::{ExpressionNode, ExpressionNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, ExpressionNode, ExpressionNodeValue};
 
 impl<R> Register for ExpressionNode<R, ()>
 where
@@ -23,7 +20,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        ExpressionNode(Node(value, *self.node().range(), id))
+        ExpressionNode::new(value, *self.node().range(), id)
     }
 }
 

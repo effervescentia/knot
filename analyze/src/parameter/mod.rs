@@ -7,10 +7,7 @@ use super::{
     context::{NodeContext, ScopeContext},
     register::{Identify, Register},
 };
-use lang::{
-    ast::{ParameterNode, ParameterNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, ParameterNode, ParameterNodeValue};
 
 impl<R> Register for ParameterNode<R, ()>
 where
@@ -23,7 +20,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        ParameterNode(Node(value, *self.node().range(), id))
+        ParameterNode::new(value, *self.node().range(), id)
     }
 }
 

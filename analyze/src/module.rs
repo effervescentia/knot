@@ -8,7 +8,7 @@ use super::{
     register::{Identify, Register, ToFragment},
     RefKind, ScopeContext,
 };
-use lang::ast::{Module, ModuleNode, ModuleNodeValue};
+use lang::ast::{AstNode, Module, ModuleNode, ModuleNodeValue};
 
 impl<R> Identify<ModuleNodeValue<R, NodeContext>> for ModuleNodeValue<R, ()>
 where

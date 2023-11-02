@@ -4,7 +4,7 @@ use crate::{
     {matcher as m, types::typedef},
 };
 use combine::{Parser, Stream};
-use lang::ast::{Declaration, DeclarationNode};
+use lang::ast::{AstNode, Declaration, DeclarationNode};
 
 pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where

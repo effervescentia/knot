@@ -1,6 +1,8 @@
 use crate::Node;
 use std::fmt::Debug;
 
+use super::AstNode;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum TypeExpression<T> {
     Nil,
@@ -42,27 +44,15 @@ pub type TypeExpressionNodeValue<R, C> = TypeExpression<TypeExpressionNode<R, C>
 #[derive(Debug, PartialEq)]
 pub struct TypeExpressionNode<R, C>(pub Node<TypeExpressionNodeValue<R, C>, R, C>);
 
-impl<R, C> TypeExpressionNode<R, C>
+impl<R, C> AstNode<TypeExpressionNodeValue<R, C>, R, C> for TypeExpressionNode<R, C>
 where
     R: Copy,
 {
-    pub const fn node(&self) -> &Node<TypeExpressionNodeValue<R, C>, R, C> {
+    fn new(value: TypeExpressionNodeValue<R, C>, range: R, ctx: C) -> Self {
+        Self(Node(value, range, ctx))
+    }
+
+    fn node(&self) -> &Node<TypeExpressionNodeValue<R, C>, R, C> {
         &self.0
-    }
-
-    pub fn map<C2>(
-        &self,
-        f: impl Fn(&TypeExpressionNodeValue<R, C>, &C) -> (TypeExpressionNodeValue<R, C2>, C2),
-    ) -> TypeExpressionNode<R, C2> {
-        let node = self.node();
-        let (value, ctx) = f(node.value(), node.context());
-
-        TypeExpressionNode(Node(value, *node.range(), ctx))
-    }
-}
-
-impl<R> TypeExpressionNode<R, ()> {
-    pub const fn raw(x: TypeExpressionNodeValue<R, ()>, range: R) -> Self {
-        Self(Node::raw(x, range))
     }
 }

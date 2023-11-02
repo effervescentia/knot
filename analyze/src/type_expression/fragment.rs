@@ -1,5 +1,5 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-use lang::ast::TypeExpressionNodeValue;
+use lang::ast::{AstNode, TypeExpressionNodeValue};
 
 impl<R> ToFragment for TypeExpressionNodeValue<R, NodeContext>
 where

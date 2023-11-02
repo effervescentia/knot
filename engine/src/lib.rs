@@ -8,7 +8,7 @@ mod write;
 use bimap::BiMap;
 use kore::Generator;
 use lang::{
-    ast::{self, ToShape},
+    ast::{self, AstNode, ToShape},
     Program,
 };
 use link::ImportGraph;

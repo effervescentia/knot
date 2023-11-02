@@ -1,4 +1,4 @@
-use crate::ast::{Statement, StatementNode};
+use crate::ast::{AstNode, Statement, StatementNode};
 use std::fmt::{Display, Formatter};
 
 impl<R, C> Display for StatementNode<R, C>

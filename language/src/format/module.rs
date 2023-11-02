@@ -1,4 +1,4 @@
-use crate::ast::{ImportNode, ImportSource, ModuleNode};
+use crate::ast::{AstNode, ImportNode, ImportSource, ModuleNode};
 use kore::format::{SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
@@ -25,13 +25,13 @@ where
         write!(
             f,
             "use {source}/{path}",
-            source = match &self.0.value().source {
+            source = match &self.node().value().source {
                 ImportSource::Root => String::from("@"),
                 ImportSource::Local => String::from("."),
                 ImportSource::Named(name) => name.clone(),
                 ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
             },
-            path = SeparateEach("/", &self.0.value().path)
+            path = SeparateEach("/", &self.node().value().path)
         )
     }
 }

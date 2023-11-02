@@ -1,4 +1,4 @@
-use crate::ast::{KSXNode, KSX};
+use crate::ast::{AstNode, KSXNode, KSX};
 use kore::format::indented;
 use std::fmt::{Display, Formatter, Write};
 
@@ -60,7 +60,7 @@ impl<R, C> KSXNode<R, C>
 where
     R: Copy,
 {
-    pub const fn is_inline(&self) -> bool {
+    pub fn is_inline(&self) -> bool {
         matches!(self.node().value(), KSX::Text(_) | KSX::Inline(_))
     }
 }

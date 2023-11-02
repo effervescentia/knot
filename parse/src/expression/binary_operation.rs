@@ -1,6 +1,6 @@
 use crate::{matcher as m, Position, Range};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
-use lang::ast::{BinaryOperator, Expression, ExpressionNode};
+use lang::ast::{AstNode, BinaryOperator, Expression, ExpressionNode};
 
 fn binary_operation<U>(
     o: BinaryOperator,

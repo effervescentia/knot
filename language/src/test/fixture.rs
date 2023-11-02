@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::ast::{
-    Declaration, DeclarationNode, ExpressionNode, KSXNode, ModuleNode, StatementNode,
+    AstNode, Declaration, DeclarationNode, ExpressionNode, KSXNode, ModuleNode, StatementNode,
     TypeExpressionNode,
 };
 
@@ -17,34 +17,32 @@ pub mod n {
         TypeExpressionNodeValue,
     };
 
-    pub const fn x(x: ExpressionNodeValue<MockRange, ()>) -> ExpressionNode<MockRange, ()> {
+    pub fn x(x: ExpressionNodeValue<MockRange, ()>) -> ExpressionNode<MockRange, ()> {
         ExpressionNode::raw(x, MockRange)
     }
 
-    pub const fn s(x: StatementNodeValue<MockRange, ()>) -> StatementNode<MockRange, ()> {
+    pub fn s(x: StatementNodeValue<MockRange, ()>) -> StatementNode<MockRange, ()> {
         StatementNode::raw(x, MockRange)
     }
 
-    pub const fn kx(x: KSXNodeValue<MockRange, ()>) -> KSXNode<MockRange, ()> {
+    pub fn kx(x: KSXNodeValue<MockRange, ()>) -> KSXNode<MockRange, ()> {
         KSXNode::raw(x, MockRange)
     }
 
-    pub const fn p(x: ParameterNodeValue<MockRange, ()>) -> ParameterNode<MockRange, ()> {
+    pub fn p(x: ParameterNodeValue<MockRange, ()>) -> ParameterNode<MockRange, ()> {
         ParameterNode::raw(x, MockRange)
     }
 
-    pub const fn tx(
-        x: TypeExpressionNodeValue<MockRange, ()>,
-    ) -> TypeExpressionNode<MockRange, ()> {
+    pub fn tx(x: TypeExpressionNodeValue<MockRange, ()>) -> TypeExpressionNode<MockRange, ()> {
         TypeExpressionNode::raw(x, MockRange)
     }
 
-    pub const fn d(x: DeclarationNodeValue<MockRange, ()>) -> DeclarationNode<MockRange, ()> {
+    pub fn d(x: DeclarationNodeValue<MockRange, ()>) -> DeclarationNode<MockRange, ()> {
         DeclarationNode::raw(x, MockRange)
     }
 
-    pub const fn i(x: ImportNodeValue) -> ImportNode<MockRange, ()> {
-        ImportNode::raw(x, MockRange)
+    pub fn i(x: ImportNodeValue) -> ImportNode<MockRange, ()> {
+        ImportNode::<MockRange, ()>::raw(x, MockRange)
     }
 
     pub const fn m(x: ModuleNodeValue<MockRange, ()>) -> ModuleNode<MockRange, ()> {

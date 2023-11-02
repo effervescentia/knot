@@ -1,4 +1,4 @@
-use super::{BinaryOperator, KSXNode, StatementNode, UnaryOperator};
+use super::{AstNode, BinaryOperator, KSXNode, StatementNode, UnaryOperator};
 use crate::Node;
 use std::fmt::Debug;
 
@@ -70,27 +70,15 @@ pub type ExpressionNodeValue<R, C> =
 #[derive(Debug, PartialEq)]
 pub struct ExpressionNode<R, C>(pub Node<ExpressionNodeValue<R, C>, R, C>);
 
-impl<R, C> ExpressionNode<R, C>
+impl<R, C> AstNode<ExpressionNodeValue<R, C>, R, C> for ExpressionNode<R, C>
 where
     R: Copy,
 {
-    pub const fn node(&self) -> &Node<ExpressionNodeValue<R, C>, R, C> {
+    fn new(value: ExpressionNodeValue<R, C>, range: R, ctx: C) -> Self {
+        Self(Node(value, range, ctx))
+    }
+
+    fn node(&self) -> &Node<ExpressionNodeValue<R, C>, R, C> {
         &self.0
-    }
-
-    pub fn map<C2>(
-        &self,
-        f: impl Fn(&ExpressionNodeValue<R, C>, &C) -> (ExpressionNodeValue<R, C2>, C2),
-    ) -> ExpressionNode<R, C2> {
-        let node = self.node();
-        let (value, ctx) = f(node.value(), node.context());
-
-        ExpressionNode(Node(value, *node.range(), ctx))
-    }
-}
-
-impl<R> ExpressionNode<R, ()> {
-    pub const fn raw(x: ExpressionNodeValue<R, ()>, range: R) -> Self {
-        Self(Node::raw(x, range))
     }
 }

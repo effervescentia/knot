@@ -2,7 +2,7 @@ use super::storage;
 use crate::{matcher as m, types::type_expression, Position, Range};
 use combine::{attempt, choice, optional, sep_end_by, sep_end_by1, Parser, Stream};
 use kore::invariant;
-use lang::ast::{Declaration, DeclarationNode, TypeExpressionNode};
+use lang::ast::{AstNode, Declaration, DeclarationNode, TypeExpressionNode};
 
 fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<Range, ()>>, Range)>
 where

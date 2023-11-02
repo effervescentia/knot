@@ -1,5 +1,4 @@
-use super::{ExpressionNode, TypeExpressionNode};
-use crate::Node;
+use super::{ExpressionNode, TypeExpressionNode, TypedNode};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -29,30 +28,4 @@ impl<E, T> Parameter<E, T> {
 
 pub type ParameterNodeValue<R, C> = Parameter<ExpressionNode<R, C>, TypeExpressionNode<R, C>>;
 
-#[derive(Debug, PartialEq)]
-pub struct ParameterNode<R, C>(pub Node<ParameterNodeValue<R, C>, R, C>);
-
-impl<R, C> ParameterNode<R, C>
-where
-    R: Copy,
-{
-    pub const fn node(&self) -> &Node<ParameterNodeValue<R, C>, R, C> {
-        &self.0
-    }
-
-    pub fn map<C2>(
-        &self,
-        f: impl Fn(&ParameterNodeValue<R, C>, &C) -> (ParameterNodeValue<R, C2>, C2),
-    ) -> ParameterNode<R, C2> {
-        let node = self.node();
-        let (value, ctx) = f(node.value(), node.context());
-
-        ParameterNode(Node(value, *node.range(), ctx))
-    }
-}
-
-impl<R> ParameterNode<R, ()> {
-    pub const fn raw(x: ParameterNodeValue<R, ()>, range: R) -> Self {
-        Self(Node(x, range, ()))
-    }
-}
+pub type ParameterNode<R, C> = TypedNode<ParameterNodeValue<R, C>, R, C>;

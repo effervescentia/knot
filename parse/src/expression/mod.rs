@@ -4,7 +4,7 @@ pub mod style;
 
 use crate::{ksx, matcher as m, statement, Position, Range};
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
-use lang::ast::{Expression, ExpressionNode, UnaryOperator};
+use lang::ast::{AstNode, Expression, ExpressionNode, UnaryOperator};
 
 fn primitive<T>() -> impl Parser<T, Output = ExpressionNode<Range, ()>>
 where

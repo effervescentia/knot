@@ -1,6 +1,6 @@
 use crate::{expression, matcher as m, types::typedef, Position, Range};
 use combine::{optional, Parser, Stream};
-use lang::ast::{Parameter, ParameterNode};
+use lang::ast::{AstNode, Parameter, ParameterNode};
 
 pub fn parameter<T>() -> impl Parser<T, Output = ParameterNode<Range, ()>>
 where

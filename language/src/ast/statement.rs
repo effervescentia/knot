@@ -1,5 +1,4 @@
-use super::ExpressionNode;
-use crate::Node;
+use super::{ExpressionNode, TypedNode};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -20,30 +19,4 @@ impl<E> Statement<E> {
 
 pub type StatementNodeValue<R, C> = Statement<ExpressionNode<R, C>>;
 
-#[derive(Debug, PartialEq)]
-pub struct StatementNode<R, C>(pub Node<StatementNodeValue<R, C>, R, C>);
-
-impl<R, C> StatementNode<R, C>
-where
-    R: Copy,
-{
-    pub const fn node(&self) -> &Node<StatementNodeValue<R, C>, R, C> {
-        &self.0
-    }
-
-    pub fn map<C2>(
-        &self,
-        f: impl Fn(&StatementNodeValue<R, C>, &C) -> (StatementNodeValue<R, C2>, C2),
-    ) -> StatementNode<R, C2> {
-        let node = self.node();
-        let (value, ctx) = f(node.value(), node.context());
-
-        StatementNode(Node(value, *node.range(), ctx))
-    }
-}
-
-impl<R> StatementNode<R, ()> {
-    pub const fn raw(x: StatementNodeValue<R, ()>, range: R) -> Self {
-        Self(Node::raw(x, range))
-    }
-}
+pub type StatementNode<R, C> = TypedNode<Statement<ExpressionNode<R, C>>, R, C>;

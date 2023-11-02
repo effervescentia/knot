@@ -9,10 +9,7 @@ use super::{
     register::{Identify, Register},
     RefKind, ScopeContext, Type,
 };
-use lang::{
-    ast::{StatementNode, StatementNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, StatementNode, StatementNodeValue};
 
 impl<R> Register for StatementNode<R, ()>
 where
@@ -22,11 +19,11 @@ where
     type Value<C> = StatementNodeValue<R, C>;
 
     fn register(&self, ctx: &ScopeContext) -> Self::Node {
-        let node = &self.0;
+        let node = self.node();
         let value = node.value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        StatementNode(Node(value, *node.range(), id))
+        StatementNode::new(value, *node.range(), id)
     }
 }
 

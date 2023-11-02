@@ -1,6 +1,6 @@
 use crate::{matcher as m, Position, Range};
 use combine::{choice, Parser, Stream};
-use lang::ast::{ExpressionNode, Statement, StatementNode};
+use lang::ast::{AstNode, ExpressionNode, Statement, StatementNode};
 
 fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<Range, ()>>
 where

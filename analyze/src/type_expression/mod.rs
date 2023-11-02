@@ -8,10 +8,7 @@ use super::{
     register::{Identify, Register},
     ScopeContext,
 };
-use lang::{
-    ast::{TypeExpressionNode, TypeExpressionNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, TypeExpressionNode, TypeExpressionNodeValue};
 
 impl<R> Register for TypeExpressionNode<R, ()>
 where
@@ -24,7 +21,7 @@ where
         let value = self.node().value().identify(ctx);
         let id = ctx.add_fragment(&value);
 
-        TypeExpressionNode(Node(value, *self.node().range(), id))
+        TypeExpressionNode::new(value, *self.node().range(), id)
     }
 }
 

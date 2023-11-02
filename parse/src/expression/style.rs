@@ -1,4 +1,4 @@
-use super::{Expression, ExpressionNode};
+use super::{AstNode, Expression, ExpressionNode};
 use crate::{matcher as m, Position, Range};
 use combine::{attempt, sep_end_by, Parser, Stream};
 

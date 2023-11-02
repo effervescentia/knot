@@ -3,7 +3,7 @@ use combine::{
     between, choice, many1, not_followed_by, optional, parser::char as p, sep_end_by, value,
     Parser, Stream,
 };
-use lang::ast::{Import, ImportNode, ImportSource, ImportTarget};
+use lang::ast::{AstNode, Import, ImportNode, ImportSource, ImportTarget};
 
 // use @/x;
 // use @/x.{a, b};
@@ -59,7 +59,7 @@ where
         ))),
     ))
     .map(|((_, start), source, path, aliases)| {
-        ImportNode::raw(
+        ImportNode::<Range, ()>::raw(
             Import {
                 source,
                 path,

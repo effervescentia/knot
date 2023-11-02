@@ -7,10 +7,7 @@ use super::{
     context::{NodeContext, ScopeContext},
     register::{Identify, Register},
 };
-use lang::{
-    ast::{ImportNode, ImportNodeValue},
-    Node,
-};
+use lang::ast::{AstNode, ImportNode, ImportNodeValue};
 
 impl<R> Register for ImportNode<R, ()>
 where
@@ -23,6 +20,6 @@ where
         let value = self.node().value().identify(&ctx.child());
         let id = ctx.add_fragment(&value);
 
-        ImportNode(Node(value, *self.node().range(), id))
+        ImportNode::new(value, *self.node().range(), id)
     }
 }

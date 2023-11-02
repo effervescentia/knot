@@ -1,5 +1,5 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-use lang::ast::KSXNodeValue;
+use lang::ast::{AstNode, KSXNodeValue};
 
 impl<R> ToFragment for KSXNodeValue<R, NodeContext>
 where

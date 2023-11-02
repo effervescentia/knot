@@ -1,8 +1,7 @@
 use super::{
     storage::{Storage, Visibility},
-    ExpressionNode, ModuleNode, ParameterNode, TypeExpressionNode,
+    ExpressionNode, ModuleNode, ParameterNode, TypeExpressionNode, TypedNode,
 };
-use crate::Node;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -164,30 +163,4 @@ pub type DeclarationNodeValue<R, C> = Declaration<
     TypeExpressionNode<R, C>,
 >;
 
-#[derive(Debug, PartialEq)]
-pub struct DeclarationNode<R, C>(pub Node<DeclarationNodeValue<R, C>, R, C>);
-
-impl<R, C> DeclarationNode<R, C>
-where
-    R: Copy,
-{
-    pub const fn node(&self) -> &Node<DeclarationNodeValue<R, C>, R, C> {
-        &self.0
-    }
-
-    pub fn map<C2>(
-        &self,
-        f: impl Fn(&DeclarationNodeValue<R, C>, &C) -> (DeclarationNodeValue<R, C2>, C2),
-    ) -> DeclarationNode<R, C2> {
-        let node = self.node();
-        let (value, ctx) = f(node.value(), node.context());
-
-        DeclarationNode(Node(value, *node.range(), ctx))
-    }
-}
-
-impl<R> DeclarationNode<R, ()> {
-    pub const fn raw(x: DeclarationNodeValue<R, ()>, range: R) -> Self {
-        Self(Node::raw(x, range))
-    }
-}
+pub type DeclarationNode<R, C> = TypedNode<DeclarationNodeValue<R, C>, R, C>;

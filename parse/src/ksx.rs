@@ -2,7 +2,7 @@ use crate::{expression, matcher as m, Position, Range};
 use combine::{
     attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
 };
-use lang::ast::{ExpressionNode, KSXNode, KSX};
+use lang::ast::{AstNode, ExpressionNode, KSXNode, KSX};
 
 fn fragment<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
 where
@@ -16,7 +16,7 @@ where
         m::span(m::sequence("</>")),
         children().map(KSX::Fragment),
     )
-    .map(KSXNode::bind)
+    .map(|(value, range)| KSXNode::raw(value, range))
 }
 
 fn children<T>() -> impl Parser<T, Output = Vec<KSXNode<Range, ()>>>
@@ -149,7 +149,7 @@ where
         m::span(p::char('}')),
         expression::expression().map(KSX::Inline),
     )
-    .map(KSXNode::bind)
+    .map(|(value, range)| KSXNode::raw(value, range))
 }
 
 fn text<T>() -> impl Parser<T, Output = KSXNode<Range, ()>>
@@ -157,7 +157,8 @@ where
     T: Stream<Token = char>,
     T::Position: Position,
 {
-    m::lexeme(many1(none_of(vec!['<', '{'])).map(KSX::Text)).map(KSXNode::bind)
+    m::lexeme(many1(none_of(vec!['<', '{'])).map(KSX::Text))
+        .map(|(value, range)| KSXNode::raw(value, range))
 }
 
 parser! {

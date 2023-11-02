@@ -1,7 +1,7 @@
 use super::storage;
 use crate::{matcher as m, types::type_expression, Position, Range};
 use combine::{Parser, Stream};
-use lang::ast::{Declaration, DeclarationNode};
+use lang::ast::{AstNode, Declaration, DeclarationNode};
 
 pub fn type_alias<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
 where

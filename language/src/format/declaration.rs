@@ -1,7 +1,7 @@
 use super::{Parameters, Typedef};
 use crate::ast::{
     storage::{Storage, Visibility},
-    Declaration, DeclarationNode,
+    AstNode, Declaration, DeclarationNode,
 };
 use kore::format::{indented, Block, Indented};
 use std::fmt::{Display, Formatter, Write};
