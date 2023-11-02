@@ -26,9 +26,10 @@ where
             f,
             "use {source}/{path}",
             source = match &self.0.value().source {
-                ImportSource::Root => "@",
-                ImportSource::Local => ".",
-                ImportSource::External(x) => x,
+                ImportSource::Root => String::from("@"),
+                ImportSource::Local => String::from("."),
+                ImportSource::Named(name) => name.clone(),
+                ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
             },
             path = SeparateEach("/", &self.0.value().path)
         )

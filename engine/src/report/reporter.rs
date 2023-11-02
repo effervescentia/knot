@@ -1,10 +1,9 @@
+use super::Errors;
 use crate::{Error, Result};
 use std::{
     cell::{Ref, RefCell, RefMut},
     rc::Rc,
 };
-
-use super::Errors;
 
 struct ReporterState {
     fail_fast: bool,

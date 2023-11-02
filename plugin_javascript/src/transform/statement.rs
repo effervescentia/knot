@@ -189,7 +189,8 @@ impl Statement {
         let base = match source {
             ast::ImportSource::Local => String::from("."),
             ast::ImportSource::Root => String::from("@"),
-            ast::ImportSource::External(external) => external.clone(),
+            ast::ImportSource::Named(name) => name.clone(),
+            ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
         };
 
         let namespace = [vec![base], path.clone()].concat().join("/");

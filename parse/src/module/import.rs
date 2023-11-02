@@ -26,7 +26,7 @@ where
                 .with(value(ImportSource::Root)),
             m::symbol('.').with(value(ImportSource::Local)),
             choice((m::identifier(p::char('@')), m::standard_identifier()))
-                .map(|(x, _)| ImportSource::External(x)),
+                .map(|(x, _)| ImportSource::Named(x)),
         ))
     };
     let path = || {

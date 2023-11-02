@@ -5,7 +5,8 @@ use std::fmt::Debug;
 pub enum ImportSource {
     Root,
     Local,
-    External(String),
+    Named(String),
+    Scoped { scope: String, name: String },
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

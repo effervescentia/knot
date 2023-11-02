@@ -9,7 +9,7 @@ use std::{
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum LinkSource {
-    Internal,
+    Local,
     External(String),
 }
 
@@ -23,7 +23,7 @@ impl Link {
         match source {
             LinkSource::External(_namespace) => unimplemented!(),
 
-            LinkSource::Internal => (),
+            LinkSource::Local => (),
         }
 
         PathBuf::from_iter(module_path).with_extension("kn")
@@ -34,9 +34,16 @@ impl Link {
         P: AsRef<Path>,
     {
         match source {
-            ast::ImportSource::External(ns) => Self(LinkSource::External(ns.clone()), path.clone()),
+            ast::ImportSource::Named(name) => {
+                Self(LinkSource::External(name.clone()), path.clone())
+            }
 
-            ast::ImportSource::Root => Self(LinkSource::Internal, path.clone()),
+            ast::ImportSource::Scoped { scope, name } => Self(
+                LinkSource::External(format!("@{scope}/{name}")),
+                path.clone(),
+            ),
+
+            ast::ImportSource::Root => Self(LinkSource::Local, path.clone()),
 
             ast::ImportSource::Local => {
                 let file_path = file_path.as_ref();
@@ -48,7 +55,7 @@ impl Link {
                     .map(|x| x.to_string_lossy().to_string())
                     .collect::<Vec<_>>();
 
-                Self(LinkSource::Internal, [parts, path.clone()].concat())
+                Self(LinkSource::Local, [parts, path.clone()].concat())
             }
         }
     }
@@ -64,7 +71,7 @@ where
         assert!(!path.is_absolute(), "must be a relative value");
 
         Self(
-            LinkSource::Internal,
+            LinkSource::Local,
             path.iter()
                 .map(|x| x.to_string_lossy().to_string())
                 .collect(),
