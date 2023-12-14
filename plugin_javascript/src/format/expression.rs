@@ -1,5 +1,5 @@
 use crate::javascript::Expression;
-use kore::format::{Block, Indented, SeparateEach, TerminateEach};
+use kore::format::{Block, Indented, SeparateEach, SuffixEach};
 use std::fmt::{Display, Formatter};
 
 /// [JavaScript escape characters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#string_literals)
@@ -52,7 +52,7 @@ impl Display for Expression {
                 write!(
                     f,
                     "{{{properties}}}",
-                    properties = Indented(Block(TerminateEach(
+                    properties = Indented(Block(SuffixEach(
                         ",\n",
                         &xs.iter().map(|(key, value)| Property(key, value)).collect()
                     )))
@@ -65,7 +65,7 @@ impl Display for Expression {
                     "function{name}({parameters}) {{{statements}}}",
                     name = name.as_ref().map(|x| format!(" {x}")).unwrap_or_default(),
                     parameters = SeparateEach(", ", parameters),
-                    statements = Indented(Block(TerminateEach("\n", statements))),
+                    statements = Indented(Block(SuffixEach("\n", statements))),
                 )
             }
 

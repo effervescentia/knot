@@ -1,5 +1,5 @@
 use crate::ast::{AstNode, ImportNode, ImportSource, ImportSourceNode, ModuleNode};
-use kore::format::{SeparateEach, TerminateEach};
+use kore::format::{PrefixEach, SuffixEach};
 use std::fmt::{Display, Formatter};
 
 impl<R, C> Display for ModuleNode<R, C>
@@ -10,9 +10,9 @@ where
         write!(
             f,
             "{imports}{spacer}{declarations}",
-            imports = TerminateEach(";\n", &self.0.imports),
+            imports = SuffixEach(";\n", &self.0.imports),
             spacer = if self.0.is_empty() { "" } else { "\n" },
-            declarations = TerminateEach("\n", &self.0.declarations)
+            declarations = SuffixEach("\n", &self.0.declarations)
         )
     }
 }
