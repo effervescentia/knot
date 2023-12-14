@@ -1,5 +1,5 @@
 use crate::ast::{AstNode, ImportNode, ImportSource, ImportSourceNode, ModuleNode};
-use kore::format::{PrefixEach, SuffixEach};
+use kore::format::{SeparateEach, SuffixEach};
 use std::fmt::{Display, Formatter};
 
 impl<R, C> Display for ModuleNode<R, C>
