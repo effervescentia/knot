@@ -205,7 +205,7 @@ pub fn infer_types(
     fragments: FragmentMap,
     bindings: BindingMap,
 ) -> StrongContext {
-    let mut unhandled = nodes.iter().collect::<Vec<&NodeDescriptor>>();
+    let mut unhandled = nodes.iter().collect::<Vec<_>>();
     let mut ctx = StrongContext::new(fragments, bindings);
 
     while !unhandled.is_empty() {

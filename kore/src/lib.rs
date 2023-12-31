@@ -1,5 +1,6 @@
 #[cfg(feature = "format")]
 pub mod format;
+mod string;
 
 #[cfg(feature = "test")]
 pub use pretty_assertions::{assert_eq, assert_ne, assert_str_eq};
