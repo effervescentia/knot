@@ -49,6 +49,7 @@ where
 mod tests {
     use crate::{expression, test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use kore::str;
     use lang::ast::{Expression, Primitive, Statement, StatementNode};
 
     fn parse(s: &str) -> crate::Result<StatementNode<Range, ()>> {
@@ -77,7 +78,7 @@ mod tests {
             parse("let foo = nil;").unwrap().0,
             f::n::sr(
                 Statement::Variable(
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 11), (1, 13)))
                 ),
                 ((1, 1), (1, 13))

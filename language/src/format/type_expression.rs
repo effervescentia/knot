@@ -36,6 +36,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{ast::TypeExpression, test::fixture as f};
+    use kore::str;
 
     #[test]
     fn nil() {
@@ -75,7 +76,7 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            f::n::tx(TypeExpression::Identifier(String::from("foo"))).to_string(),
+            f::n::tx(TypeExpression::Identifier(str!("foo"))).to_string(),
             "foo"
         );
     }
@@ -96,7 +97,7 @@ mod tests {
         assert_eq!(
             f::n::tx(TypeExpression::DotAccess(
                 Box::new(f::n::tx(TypeExpression::Nil)),
-                String::from("foo")
+                str!("foo")
             ))
             .to_string(),
             "nil.foo"

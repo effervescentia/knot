@@ -16,6 +16,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use kore::str;
     use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
@@ -38,13 +39,10 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
+            Statement::Variable(str!("foo"), f::n::x(Expression::Primitive(Primitive::Nil)))
+                .identify(scope),
             Statement::Variable(
-                String::from("foo"),
-                f::n::x(Expression::Primitive(Primitive::Nil))
-            )
-            .identify(scope),
-            Statement::Variable(
-                String::from("foo"),
+                str!("foo"),
                 f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])

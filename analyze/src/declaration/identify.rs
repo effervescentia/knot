@@ -27,7 +27,7 @@ mod tests {
         test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
-    use kore::assert_eq;
+    use kore::{assert_eq, str};
     use lang::ast::{
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
         TypeExpression,
@@ -55,13 +55,13 @@ mod tests {
         assert_eq!(
             f::a::enum_(
                 "Foo",
-                vec![(String::from("Bar"), vec![f::n::tx(TypeExpression::Nil)])]
+                vec![(str!("Bar"), vec![f::n::tx(TypeExpression::Nil)])]
             )
             .identify(scope),
             f::a::enum_(
                 "Foo",
                 vec![(
-                    String::from("Bar"),
+                    str!("Bar"),
                     vec![f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))]
                 )]
             )
@@ -100,7 +100,7 @@ mod tests {
             f::a::func_(
                 "foo",
                 vec![f::n::p(Parameter::new(
-                    String::from("bar"),
+                    str!("bar"),
                     Some(f::n::tx(TypeExpression::Nil)),
                     Some(f::n::x(Expression::Primitive(Primitive::Nil))),
                 ))],
@@ -112,7 +112,7 @@ mod tests {
                 "foo",
                 vec![f::n::pc(
                     Parameter::new(
-                        String::from("bar"),
+                        str!("bar"),
                         Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                         Some(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
@@ -139,7 +139,7 @@ mod tests {
             f::a::view(
                 "Foo",
                 vec![f::n::p(Parameter::new(
-                    String::from("bar"),
+                    str!("bar"),
                     Some(f::n::tx(TypeExpression::Nil)),
                     Some(f::n::x(Expression::Primitive(Primitive::Nil))),
                 ))],
@@ -150,7 +150,7 @@ mod tests {
                 "Foo",
                 vec![f::n::pc(
                     Parameter::new(
-                        String::from("bar"),
+                        str!("bar"),
                         Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                         Some(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
@@ -178,8 +178,8 @@ mod tests {
                 f::n::mr(Module::new(
                     vec![f::n::i(Import {
                         source: ImportSource::Root,
-                        path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                        path: vec![str!("bar"), str!("fizz")],
+                        aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                     })],
                     vec![f::n::d(f::a::const_(
                         "BUZZ",
@@ -196,11 +196,8 @@ mod tests {
                         vec![f::n::ic(
                             Import {
                                 source: ImportSource::Root,
-                                path: vec![String::from("bar"), String::from("fizz")],
-                                aliases: Some(vec![(
-                                    ImportTarget::Module,
-                                    Some(String::from("Fizz"))
-                                )]),
+                                path: vec![str!("bar"), str!("fizz")],
+                                aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                             },
                             NodeContext::new(0, vec![0])
                         )],

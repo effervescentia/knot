@@ -18,6 +18,7 @@ mod tests {
         infer::weak::{ToWeak, Weak},
         RefKind, Type,
     };
+    use kore::str;
     use lang::ast::Statement;
 
     #[test]
@@ -31,7 +32,7 @@ mod tests {
     #[test]
     fn variable() {
         assert_eq!(
-            Statement::Variable(String::from("foo"), 0).to_weak(),
+            Statement::Variable(str!("foo"), 0).to_weak(),
             (RefKind::Value, Weak::Type(Type::Nil))
         );
     }

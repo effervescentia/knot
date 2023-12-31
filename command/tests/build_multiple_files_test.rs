@@ -1,6 +1,7 @@
 mod common;
 
 use js::{JavaScriptGenerator, Module};
+use kore::str;
 use std::collections::HashMap;
 
 #[test]
@@ -41,9 +42,9 @@ export { ROOT };
     assert_eq!(
         result.unwrap(),
         HashMap::from_iter(vec![
-            (String::from("a.js"), OUTPUT_A.to_owned()),
-            (String::from("deep/b.js"), OUTPUT_B.to_owned()),
-            (String::from("main.js"), OUTPUT_ROOT.to_owned())
+            (str!("a.js"), OUTPUT_A.to_owned()),
+            (str!("deep/b.js"), OUTPUT_B.to_owned()),
+            (str!("main.js"), OUTPUT_ROOT.to_owned())
         ])
     );
 }
@@ -86,9 +87,9 @@ export { ROOT };
     assert_eq!(
         result.unwrap(),
         HashMap::from_iter(vec![
-            (String::from("main.js"), OUTPUT_ROOT.to_owned()),
-            (String::from("deep/b.js"), OUTPUT_B.to_owned()),
-            (String::from("deep/deeper/a.js"), OUTPUT_A.to_owned()),
+            (str!("main.js"), OUTPUT_ROOT.to_owned()),
+            (str!("deep/b.js"), OUTPUT_B.to_owned()),
+            (str!("deep/deeper/a.js"), OUTPUT_A.to_owned()),
         ])
     );
 }

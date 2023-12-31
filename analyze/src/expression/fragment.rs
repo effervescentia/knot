@@ -19,6 +19,7 @@ mod tests {
     use crate::{
         context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{
         BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement, StatementNode,
         UnaryOperator, KSX,
@@ -45,9 +46,9 @@ mod tests {
                 ExpressionNode<Range, NodeContext>,
                 StatementNode<Range, NodeContext>,
                 KSXNode<Range, NodeContext>,
-            >::Identifier(String::from("foo"))
+            >::Identifier(str!("foo"))
             .to_fragment(),
-            Fragment::Expression(Expression::Identifier(String::from("foo")))
+            Fragment::Expression(Expression::Identifier(str!("foo")))
         );
     }
 
@@ -69,7 +70,7 @@ mod tests {
             Expression::Closure(vec![
                 f::n::sc(
                     Statement::Variable(
-                        String::from("foo"),
+                        str!("foo"),
                         f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(0, vec![0, 1])
@@ -136,10 +137,10 @@ mod tests {
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
                 )),
-                String::from("foo"),
+                str!("foo"),
             )
             .to_fragment(),
-            Fragment::Expression(Expression::DotAccess(Box::new(0), String::from("foo")))
+            Fragment::Expression(Expression::DotAccess(Box::new(0), str!("foo")))
         );
     }
 
@@ -172,14 +173,14 @@ mod tests {
         assert_eq!(
             Expression::Style(vec![
                 (
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(0, vec![0])
                     ),
                 ),
                 (
-                    String::from("bar"),
+                    str!("bar"),
                     f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(1, vec![0])
@@ -187,10 +188,7 @@ mod tests {
                 ),
             ])
             .to_fragment(),
-            Fragment::Expression(Expression::Style(vec![
-                (String::from("foo"), 0),
-                (String::from("bar"), 1),
-            ]))
+            Fragment::Expression(Expression::Style(vec![(str!("foo"), 0), (str!("bar"), 1),]))
         );
     }
 
@@ -198,7 +196,7 @@ mod tests {
     fn ksx() {
         assert_eq!(
             Expression::KSX(Box::new(f::n::kxc(
-                KSX::Text(String::from("foo")),
+                KSX::Text(str!("foo")),
                 NodeContext::new(0, vec![0])
             )))
             .to_fragment(),

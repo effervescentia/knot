@@ -46,6 +46,7 @@ mod tests {
         infer::weak::{ToWeak, Weak},
         RefKind, Type,
     };
+    use kore::str;
     use lang::test::fixture as f;
 
     #[test]
@@ -59,10 +60,10 @@ mod tests {
     #[test]
     fn enumerated() {
         assert_eq!(
-            f::a::enum_("Foo", vec![(String::from("Bar"), vec![0, 1, 2])]).to_weak(),
+            f::a::enum_("Foo", vec![(str!("Bar"), vec![0, 1, 2])]).to_weak(),
             (
                 RefKind::Mixed,
-                Weak::Type(Type::Enumerated(vec![(String::from("Bar"), vec![0, 1, 2])]))
+                Weak::Type(Type::Enumerated(vec![(str!("Bar"), vec![0, 1, 2])]))
             )
         );
     }

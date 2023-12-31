@@ -44,6 +44,7 @@ where
 mod tests {
     use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use kore::str;
     use lang::ast::{
         BinaryOperator, Expression, Import, ImportSource, Module, ModuleNode, Parameter, Primitive,
         Statement, TypeExpression, KSX,
@@ -64,7 +65,7 @@ mod tests {
             parse("use @/foo;").unwrap().0,
             f::n::mr(Module::new(
                 vec![f::n::ir(
-                    Import::new(ImportSource::Root, vec![String::from("foo")], None),
+                    Import::new(ImportSource::Root, vec![str!("foo")], None),
                     ((1, 1), (1, 3))
                 )],
                 vec![]
@@ -134,9 +135,9 @@ module my_module {
                         f::a::enum_(
                             "MyEnum",
                             vec![
-                                (String::from("First"), vec![]),
+                                (str!("First"), vec![]),
                                 (
-                                    String::from("Second"),
+                                    str!("Second"),
                                     vec![
                                         f::n::txr(TypeExpression::Boolean, ((5, 12), (5, 18))),
                                         f::n::txr(TypeExpression::Style, ((5, 21), (5, 25))),
@@ -151,9 +152,7 @@ module my_module {
                             "MY_CONST",
                             Some(f::n::txr(TypeExpression::String, ((7, 17), (7, 22)))),
                             f::n::xr(
-                                Expression::Primitive(Primitive::String(String::from(
-                                    "hello, world!"
-                                ))),
+                                Expression::Primitive(Primitive::String(str!("hello, world!"))),
                                 ((7, 26), (7, 40))
                             )
                         ),
@@ -164,12 +163,12 @@ module my_module {
                             "my_func",
                             vec![
                                 f::n::pr(
-                                    Parameter::new(String::from("first"), None, None),
+                                    Parameter::new(str!("first"), None, None),
                                     ((9, 14), (9, 18))
                                 ),
                                 f::n::pr(
                                     Parameter::new(
-                                        String::from("second"),
+                                        str!("second"),
                                         Some(f::n::txr(
                                             TypeExpression::Integer,
                                             ((9, 29), (9, 35))
@@ -180,7 +179,7 @@ module my_module {
                                 ),
                                 f::n::pr(
                                     Parameter::new(
-                                        String::from("third"),
+                                        str!("third"),
                                         None,
                                         Some(f::n::xr(
                                             Expression::Primitive(Primitive::Boolean(true)),
@@ -198,18 +197,18 @@ module my_module {
                                         Expression::BinaryOperation(
                                             BinaryOperator::GreaterThan,
                                             Box::new(f::n::xr(
-                                                Expression::Identifier(String::from("first")),
+                                                Expression::Identifier(str!("first")),
                                                 ((9, 64), (9, 68))
                                             )),
                                             Box::new(f::n::xr(
-                                                Expression::Identifier(String::from("second")),
+                                                Expression::Identifier(str!("second")),
                                                 ((9, 72), (9, 77))
                                             ))
                                         ),
                                         ((9, 64), (9, 77))
                                     )),
                                     Box::new(f::n::xr(
-                                        Expression::Identifier(String::from("third")),
+                                        Expression::Identifier(str!("third")),
                                         ((9, 82), (9, 86))
                                     ))
                                 ),
@@ -223,11 +222,11 @@ module my_module {
                             "MyView",
                             vec![f::n::pr(
                                 Parameter::new(
-                                    String::from("inner"),
+                                    str!("inner"),
                                     Some(f::n::txr(TypeExpression::Element, ((11, 20), (11, 26)))),
                                     Some(f::n::xr(
                                         Expression::KSX(Box::new(f::n::kxr(
-                                            KSX::ClosedElement(String::from("div"), vec![]),
+                                            KSX::ClosedElement(str!("div"), vec![]),
                                             ((11, 30), (11, 36))
                                         ))),
                                         ((11, 30), (11, 36))
@@ -239,7 +238,7 @@ module my_module {
                                 Expression::Closure(vec![
                                     f::n::sr(
                                         Statement::Variable(
-                                            String::from("value"),
+                                            str!("value"),
                                             f::n::xr(
                                                 Expression::BinaryOperation(
                                                     BinaryOperator::Add,
@@ -267,45 +266,45 @@ module my_module {
                                                 KSX::Fragment(vec![
                                                     f::n::kxr(
                                                         KSX::OpenElement(
-                                                            String::from("h1"),
+                                                            str!("h1"),
                                                             vec![],
                                                             vec![f::n::kxr(
-                                                                KSX::Text(String::from("Welcome!")),
+                                                                KSX::Text(str!("Welcome!")),
                                                                 ((15, 9), (15, 16))
                                                             )],
-                                                            String::from("h1")
+                                                            str!("h1")
                                                         ),
                                                         ((15, 5), (15, 21))
                                                     ),
                                                     f::n::kxr(
                                                         KSX::OpenElement(
-                                                            String::from("main"),
+                                                            str!("main"),
                                                             vec![],
                                                             vec![
                                                                 f::n::kxr(
                                                                     KSX::Inline(f::n::xr(
                                                                         Expression::Identifier(
-                                                                            String::from("value")
+                                                                            str!("value")
                                                                         ),
                                                                         ((16, 12), (16, 16))
                                                                     )),
                                                                     ((16, 11), (16, 17))
                                                                 ),
                                                                 f::n::kxr(
-                                                                    KSX::Text(String::from(": ")),
+                                                                    KSX::Text(str!(": ")),
                                                                     ((16, 18), (16, 19))
                                                                 ),
                                                                 f::n::kxr(
                                                                     KSX::Inline(f::n::xr(
                                                                         Expression::Identifier(
-                                                                            String::from("inner")
+                                                                            str!("inner")
                                                                         ),
                                                                         ((16, 21), (16, 25))
                                                                     )),
                                                                     ((16, 20), (16, 26))
                                                                 )
                                                             ],
-                                                            String::from("main")
+                                                            str!("main")
                                                         ),
                                                         ((16, 5), (16, 33))
                                                     )
@@ -334,19 +333,19 @@ module my_module {
                                         f::n::xr(
                                             Expression::Style(vec![
                                                 (
-                                                    String::from("color"),
+                                                    str!("color"),
                                                     f::n::xr(
                                                         Expression::Primitive(Primitive::String(
-                                                            String::from("red")
+                                                            str!("red")
                                                         )),
                                                         ((22, 12), (22, 16))
                                                     )
                                                 ),
                                                 (
-                                                    String::from("display"),
+                                                    str!("display"),
                                                     f::n::xr(
                                                         Expression::Primitive(Primitive::String(
-                                                            String::from("block")
+                                                            str!("block")
                                                         )),
                                                         ((23, 14), (23, 20))
                                                     )

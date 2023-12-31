@@ -98,6 +98,7 @@ impl<'a> Display for Property<'a> {
 #[cfg(test)]
 mod tests {
     use crate::javascript::{Expression, Statement};
+    use kore::str;
 
     #[test]
     fn null() {
@@ -112,38 +113,27 @@ mod tests {
 
     #[test]
     fn number() {
-        assert_eq!(Expression::Number(String::from("123")).to_string(), "123");
-        assert_eq!(
-            Expression::Number(String::from("45.67")).to_string(),
-            "45.67"
-        );
+        assert_eq!(Expression::Number(str!("123")).to_string(), "123");
+        assert_eq!(Expression::Number(str!("45.67")).to_string(), "45.67");
     }
 
     #[test]
     fn string() {
-        assert_eq!(
-            Expression::String(String::from("foo")).to_string(),
-            "\"foo\""
-        );
+        assert_eq!(Expression::String(str!("foo")).to_string(), "\"foo\"");
     }
 
     #[test]
     fn escaped_string() {
         assert_eq!(
-            Expression::String(String::from(
-                "\\, \", \n, \t, \r, \u{007F}, \u{000C}, \u{000B}"
-            ))
-            .to_string(),
+            Expression::String(str!("\\, \", \n, \t, \r, \u{007F}, \u{000C}, \u{000B}"))
+                .to_string(),
             "\"\\\\, \\\", \\n, \\t, \\r, \\b, \\f, \\v\""
         );
     }
 
     #[test]
     fn identifier() {
-        assert_eq!(
-            Expression::Identifier(String::from("foo")).to_string(),
-            "foo"
-        );
+        assert_eq!(Expression::Identifier(str!("foo")).to_string(), "foo");
     }
 
     #[test]
@@ -178,7 +168,7 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            Expression::DotAccess(Box::new(Expression::Null), String::from("foo")).to_string(),
+            Expression::DotAccess(Box::new(Expression::Null), str!("foo")).to_string(),
             "null.foo"
         );
     }
@@ -204,8 +194,8 @@ mod tests {
     fn object() {
         assert_eq!(
             Expression::Object(vec![
-                (String::from("foo"), Expression::Null),
-                (String::from("bar"), Expression::Null)
+                (str!("foo"), Expression::Null),
+                (str!("bar"), Expression::Null)
             ])
             .to_string(),
             "{
@@ -218,12 +208,8 @@ mod tests {
     #[test]
     fn function() {
         assert_eq!(
-            Expression::Function(
-                Some(String::from("foo")),
-                vec![String::from("bar"), String::from("fizz")],
-                vec![]
-            )
-            .to_string(),
+            Expression::Function(Some(str!("foo")), vec![str!("bar"), str!("fizz")], vec![])
+                .to_string(),
             "function foo(bar, fizz) {}"
         );
     }
@@ -231,12 +217,7 @@ mod tests {
     #[test]
     fn anonymous_function() {
         assert_eq!(
-            Expression::Function(
-                None,
-                vec![String::from("bar"), String::from("fizz")],
-                vec![]
-            )
-            .to_string(),
+            Expression::Function(None, vec![str!("bar"), str!("fizz")], vec![]).to_string(),
             "function(bar, fizz) {}"
         );
     }

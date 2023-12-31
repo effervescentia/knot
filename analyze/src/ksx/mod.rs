@@ -34,6 +34,7 @@ mod tests {
         register::Register,
         test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{Expression, Primitive, KSX};
 
     #[test]
@@ -43,27 +44,27 @@ mod tests {
 
         assert_eq!(
             f::n::kx(KSX::OpenElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::x(Expression::Primitive(Primitive::Nil))),
                     ),
                 ],
                 vec![f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(
                     Primitive::Nil
                 ))))],
-                String::from("Foo"),
+                str!("Foo"),
             ))
             .register(scope),
             f::n::kxc(
                 KSX::OpenElement(
-                    String::from("Foo"),
+                    str!("Foo"),
                     vec![
-                        (String::from("bar"), None),
+                        (str!("bar"), None),
                         (
-                            String::from("fizz"),
+                            str!("fizz"),
                             Some(f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
                                 NodeContext::new(0, vec![0])
@@ -77,7 +78,7 @@ mod tests {
                         )),
                         NodeContext::new(2, vec![0]),
                     )],
-                    String::from("Foo"),
+                    str!("Foo"),
                 ),
                 NodeContext::new(3, vec![0]),
             )
@@ -106,10 +107,10 @@ mod tests {
                     (
                         vec![0],
                         Fragment::KSX(KSX::OpenElement(
-                            String::from("Foo"),
-                            vec![(String::from("bar"), None), (String::from("fizz"), Some(0))],
+                            str!("Foo"),
+                            vec![(str!("bar"), None), (str!("fizz"), Some(0))],
                             vec![2],
-                            String::from("Foo"),
+                            str!("Foo"),
                         ))
                     )
                 ),

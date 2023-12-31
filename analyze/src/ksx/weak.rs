@@ -24,12 +24,13 @@ mod tests {
         infer::weak::{ToWeak, Weak},
         RefKind, Type,
     };
+    use kore::str;
     use lang::ast::KSX;
 
     #[test]
     fn text() {
         assert_eq!(
-            KSX::Text(String::from("foo")).to_weak(),
+            KSX::Text(str!("foo")).to_weak(),
             (RefKind::Value, Weak::Type(Type::String))
         );
     }
@@ -51,8 +52,8 @@ mod tests {
     fn closed_element() {
         assert_eq!(
             KSX::ClosedElement(
-                String::from("Foo"),
-                vec![(String::from("bar"), None), (String::from("fizz"), Some(0))]
+                str!("Foo"),
+                vec![(str!("bar"), None), (str!("fizz"), Some(0))]
             )
             .to_weak(),
             (RefKind::Value, Weak::Type(Type::Element))
@@ -63,10 +64,10 @@ mod tests {
     fn open_element() {
         assert_eq!(
             KSX::OpenElement(
-                String::from("Foo"),
-                vec![(String::from("bar"), None), (String::from("fizz"), Some(0))],
+                str!("Foo"),
+                vec![(str!("bar"), None), (str!("fizz"), Some(0))],
                 vec![1],
-                String::from("Foo"),
+                str!("Foo"),
             )
             .to_weak(),
             (RefKind::Value, Weak::Type(Type::Element))

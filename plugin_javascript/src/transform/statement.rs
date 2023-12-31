@@ -2,7 +2,7 @@ use crate::{
     javascript::{Expression, Statement},
     Options,
 };
-use kore::invariant;
+use kore::{invariant, str};
 use lang::ast::{self, storage::Storage};
 
 #[allow(clippy::multiple_inherent_impl)]
@@ -111,15 +111,13 @@ impl Statement {
                                     Expression::Identifier(x.0.name.clone()),
                                     Expression::FunctionCall(
                                         Box::new(Expression::FunctionCall(
-                                            Box::new(Expression::Identifier(String::from(
-                                                "$knot.plugin.get",
+                                            Box::new(Expression::Identifier(str!(
+                                                "$knot.plugin.get"
                                             ))),
                                             vec![
-                                                Expression::String(String::from("core")),
-                                                Expression::String(String::from(
-                                                    "defaultParameter",
-                                                )),
-                                                Expression::String(String::from("1.0")),
+                                                Expression::String(str!("core")),
+                                                Expression::String(str!("defaultParameter")),
+                                                Expression::String(str!("1.0")),
                                             ],
                                         )),
                                         vec![
@@ -187,8 +185,8 @@ impl Statement {
         opts: &Options,
     ) -> Vec<Self> {
         let base = match source {
-            ast::ImportSource::Local => String::from("."),
-            ast::ImportSource::Root => String::from("@"),
+            ast::ImportSource::Local => str!("."),
+            ast::ImportSource::Root => str!("@"),
             ast::ImportSource::Named(name) => name.clone(),
             ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
         };
@@ -258,6 +256,7 @@ mod tests {
         javascript::{Expression, Statement},
         Mode, Module, Options,
     };
+    use kore::str;
     use lang::ast;
 
     const OPTIONS: Options = Options {
@@ -301,13 +300,13 @@ mod tests {
             assert_eq!(
                 Statement::from_statement(
                     &ast::StatementShape(ast::Statement::Variable(
-                        String::from("foo"),
+                        str!("foo"),
                         ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
                     false,
                     &OPTIONS
                 ),
-                vec![Statement::Variable(String::from("foo"), Expression::Null)]
+                vec![Statement::Variable(str!("foo"), Expression::Null)]
             );
         }
 
@@ -316,14 +315,14 @@ mod tests {
             assert_eq!(
                 Statement::from_statement(
                     &ast::StatementShape(ast::Statement::Variable(
-                        String::from("foo"),
+                        str!("foo"),
                         ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
                     true,
                     &OPTIONS
                 ),
                 vec![
-                    Statement::Variable(String::from("foo"), Expression::Null),
+                    Statement::Variable(str!("foo"), Expression::Null),
                     Statement::Return(None)
                 ]
             );
@@ -342,7 +341,7 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::TypeAlias {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         value: ast::TypeExpressionShape(ast::TypeExpression::Nil)
                     }),
                     &OPTIONS
@@ -356,43 +355,43 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::Enumerated {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         variants: vec![
                             (
-                                String::from("Bar"),
+                                str!("Bar"),
                                 vec![ast::TypeExpressionShape(ast::TypeExpression::Nil),]
                             ),
-                            (String::from("Fizz"), vec![])
+                            (str!("Fizz"), vec![])
                         ]
                     }),
                     &OPTIONS
                 ),
                 vec![Statement::Variable(
-                    String::from("foo"),
+                    str!("foo"),
                     Expression::Object(vec![
                         (
-                            String::from("Bar"),
+                            str!("Bar"),
                             Expression::Function(
-                                Some(String::from("Bar")),
-                                vec![String::from("$param_0")],
+                                Some(str!("Bar")),
+                                vec![str!("$param_0")],
                                 vec![Statement::Return(Some(Expression::Array(vec![
                                     Expression::DotAccess(
-                                        Box::new(Expression::Identifier(String::from("foo"))),
-                                        String::from("Bar")
+                                        Box::new(Expression::Identifier(str!("foo"))),
+                                        str!("Bar")
                                     ),
-                                    Expression::Identifier(String::from("$param_0"))
+                                    Expression::Identifier(str!("$param_0"))
                                 ])))]
                             )
                         ),
                         (
-                            String::from("Fizz"),
+                            str!("Fizz"),
                             Expression::Function(
-                                Some(String::from("Fizz")),
+                                Some(str!("Fizz")),
                                 vec![],
                                 vec![Statement::Return(Some(Expression::Array(vec![
                                     Expression::DotAccess(
-                                        Box::new(Expression::Identifier(String::from("foo"))),
-                                        String::from("Fizz")
+                                        Box::new(Expression::Identifier(str!("foo"))),
+                                        str!("Fizz")
                                     ),
                                 ])))]
                             )
@@ -407,7 +406,7 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         value_type: None,
                         value: ast::ExpressionShape(ast::Expression::Primitive(
                             ast::Primitive::Nil
@@ -415,7 +414,7 @@ mod tests {
                     }),
                     &OPTIONS
                 ),
-                vec![Statement::Variable(String::from("foo"), Expression::Null)]
+                vec![Statement::Variable(str!("foo"), Expression::Null)]
             );
         }
 
@@ -424,11 +423,11 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::Function {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         parameters: vec![
-                            ast::ParameterShape(Parameter::new(String::from("bar"), None, None)),
+                            ast::ParameterShape(Parameter::new(str!("bar"), None, None)),
                             ast::ParameterShape(Parameter::new(
-                                String::from("fizz"),
+                                str!("fizz"),
                                 None,
                                 Some(ast::ExpressionShape(ast::Expression::Primitive(
                                     ast::Primitive::Boolean(true)
@@ -441,24 +440,22 @@ mod tests {
                     &OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Function(
-                    Some(String::from("foo")),
-                    vec![String::from("bar"), String::from("fizz")],
+                    Some(str!("foo")),
+                    vec![str!("bar"), str!("fizz")],
                     vec![
                         Statement::Assignment(
-                            Expression::Identifier(String::from("fizz")),
+                            Expression::Identifier(str!("fizz")),
                             Expression::FunctionCall(
                                 Box::new(Expression::FunctionCall(
-                                    Box::new(Expression::Identifier(String::from(
-                                        "$knot.plugin.get"
-                                    ))),
+                                    Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                                     vec![
-                                        Expression::String(String::from("core")),
-                                        Expression::String(String::from("defaultParameter")),
-                                        Expression::String(String::from("1.0"))
+                                        Expression::String(str!("core")),
+                                        Expression::String(str!("defaultParameter")),
+                                        Expression::String(str!("1.0"))
                                     ]
                                 )),
                                 vec![
-                                    Expression::Identifier(String::from("fizz")),
+                                    Expression::Identifier(str!("fizz")),
                                     Expression::Boolean(true)
                                 ]
                             )
@@ -474,29 +471,29 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::Function {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         parameters: vec![],
                         body_type: None,
                         body: ast::ExpressionShape(ast::Expression::Closure(vec![
                             ast::StatementShape(ast::Statement::Variable(
-                                String::from("bar"),
+                                str!("bar"),
                                 ast::ExpressionShape(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 ))
                             )),
                             ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
-                                ast::Expression::Identifier(String::from("bar"))
+                                ast::Expression::Identifier(str!("bar"))
                             )))
                         ]))
                     }),
                     &OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Function(
-                    Some(String::from("foo")),
+                    Some(str!("foo")),
                     vec![],
                     vec![
-                        Statement::Variable(String::from("bar"), Expression::Null),
-                        Statement::Return(Some(Expression::Identifier(String::from("bar"))))
+                        Statement::Variable(str!("bar"), Expression::Null),
+                        Statement::Return(Some(Expression::Identifier(str!("bar"))))
                     ]
                 ))]
             );
@@ -507,11 +504,11 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::View {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         parameters: vec![
-                            ast::ParameterShape(Parameter::new(String::from("bar"), None, None)),
+                            ast::ParameterShape(Parameter::new(str!("bar"), None, None)),
                             ast::ParameterShape(Parameter::new(
-                                String::from("fizz"),
+                                str!("fizz"),
                                 None,
                                 Some(ast::ExpressionShape(ast::Expression::Primitive(
                                     ast::Primitive::Boolean(true)
@@ -523,24 +520,22 @@ mod tests {
                     &OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Function(
-                    Some(String::from("foo")),
-                    vec![String::from("bar"), String::from("fizz")],
+                    Some(str!("foo")),
+                    vec![str!("bar"), str!("fizz")],
                     vec![
                         Statement::Assignment(
-                            Expression::Identifier(String::from("fizz")),
+                            Expression::Identifier(str!("fizz")),
                             Expression::FunctionCall(
                                 Box::new(Expression::FunctionCall(
-                                    Box::new(Expression::Identifier(String::from(
-                                        "$knot.plugin.get"
-                                    ))),
+                                    Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                                     vec![
-                                        Expression::String(String::from("core")),
-                                        Expression::String(String::from("defaultParameter")),
-                                        Expression::String(String::from("1.0"))
+                                        Expression::String(str!("core")),
+                                        Expression::String(str!("defaultParameter")),
+                                        Expression::String(str!("1.0"))
                                     ]
                                 )),
                                 vec![
-                                    Expression::Identifier(String::from("fizz")),
+                                    Expression::Identifier(str!("fizz")),
                                     Expression::Boolean(true)
                                 ]
                             )
@@ -556,19 +551,19 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     &ast::DeclarationShape(ast::Declaration::Module {
-                        name: Storage(Visibility::Public, String::from("foo")),
+                        name: Storage(Visibility::Public, str!("foo")),
                         value: ast::ModuleShape(Module {
                             imports: vec![],
                             declarations: vec![
                                 ast::DeclarationShape(ast::Declaration::Constant {
-                                    name: Storage(Visibility::Public, String::from("bar")),
+                                    name: Storage(Visibility::Public, str!("bar")),
                                     value_type: None,
                                     value: ast::ExpressionShape(ast::Expression::Primitive(
                                         ast::Primitive::Nil
                                     ))
                                 }),
                                 ast::DeclarationShape(ast::Declaration::Constant {
-                                    name: Storage(Visibility::Private, String::from("fizz")),
+                                    name: Storage(Visibility::Private, str!("fizz")),
                                     value_type: None,
                                     value: ast::ExpressionShape(ast::Expression::Primitive(
                                         ast::Primitive::Nil
@@ -580,13 +575,13 @@ mod tests {
                     &OPTIONS
                 ),
                 vec![Statement::Variable(
-                    String::from("foo"),
+                    str!("foo"),
                     Expression::Closure(vec![
-                        Statement::Variable(String::from("bar"), Expression::Null),
-                        Statement::Variable(String::from("fizz"), Expression::Null),
+                        Statement::Variable(str!("bar"), Expression::Null),
+                        Statement::Variable(str!("fizz"), Expression::Null),
                         Statement::Return(Some(Expression::Object(vec![(
-                            String::from("bar"),
-                            Expression::Identifier(String::from("bar"))
+                            str!("bar"),
+                            Expression::Identifier(str!("bar"))
                         )]))),
                     ])
                 )]

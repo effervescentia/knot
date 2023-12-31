@@ -21,6 +21,7 @@ mod tests {
         test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
+    use kore::str;
     use lang::ast::{TypeExpression, TypeExpressionNode};
     use parse::Range;
 
@@ -41,9 +42,9 @@ mod tests {
         let scope = &mut scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<Range, ()>>::Identifier(String::from("foo"))
+            TypeExpression::<TypeExpressionNode<Range, ()>>::Identifier(str!("foo"))
                 .identify(scope),
-            TypeExpression::Identifier(String::from("foo"))
+            TypeExpression::Identifier(str!("foo"))
         );
     }
 
@@ -67,14 +68,11 @@ mod tests {
         let scope = &mut scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::DotAccess(
-                Box::new(f::n::tx(TypeExpression::Nil)),
-                String::from("foo"),
-            )
-            .identify(scope),
+            TypeExpression::DotAccess(Box::new(f::n::tx(TypeExpression::Nil)), str!("foo"),)
+                .identify(scope),
             TypeExpression::DotAccess(
                 Box::new(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
-                String::from("foo"),
+                str!("foo"),
             )
         );
     }

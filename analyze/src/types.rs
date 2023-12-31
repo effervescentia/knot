@@ -82,6 +82,7 @@ impl Type<usize> {
 #[cfg(test)]
 mod tests {
     use crate::{types::Type, RefKind};
+    use kore::str;
 
     #[test]
     fn opt_map_primitive() {
@@ -101,14 +102,11 @@ mod tests {
         let map = |_: &usize| Some(());
 
         assert_eq!(
-            Type::Enumerated::<usize>(vec![
-                (String::from("Foo"), vec![0, 1]),
-                (String::from("Bar"), vec![2])
-            ])
-            .opt_map(&map),
+            Type::Enumerated::<usize>(vec![(str!("Foo"), vec![0, 1]), (str!("Bar"), vec![2])])
+                .opt_map(&map),
             Some(Type::Enumerated(vec![
-                (String::from("Foo"), vec![(), ()]),
-                (String::from("Bar"), vec![()])
+                (str!("Foo"), vec![(), ()]),
+                (str!("Bar"), vec![()])
             ]))
         );
     }
@@ -118,11 +116,8 @@ mod tests {
         let map = |_: &usize| None::<()>;
 
         assert_eq!(
-            Type::Enumerated::<usize>(vec![
-                (String::from("Foo"), vec![0, 1]),
-                (String::from("Bar"), vec![2])
-            ])
-            .opt_map(&map),
+            Type::Enumerated::<usize>(vec![(str!("Foo"), vec![0, 1]), (str!("Bar"), vec![2])])
+                .opt_map(&map),
             None
         );
     }
@@ -225,15 +220,15 @@ mod tests {
 
         assert_eq!(
             Type::Module::<usize>(vec![
-                (String::from("foo"), RefKind::Value, 0),
-                (String::from("bar"), RefKind::Type, 1),
-                (String::from("fizz"), RefKind::Mixed, 2)
+                (str!("foo"), RefKind::Value, 0),
+                (str!("bar"), RefKind::Type, 1),
+                (str!("fizz"), RefKind::Mixed, 2)
             ])
             .opt_map(&map),
             Some(Type::Module(vec![
-                (String::from("foo"), RefKind::Value, ()),
-                (String::from("bar"), RefKind::Type, ()),
-                (String::from("fizz"), RefKind::Mixed, ())
+                (str!("foo"), RefKind::Value, ()),
+                (str!("bar"), RefKind::Type, ()),
+                (str!("fizz"), RefKind::Mixed, ())
             ]))
         );
     }
@@ -244,9 +239,9 @@ mod tests {
 
         assert_eq!(
             Type::Module::<usize>(vec![
-                (String::from("foo"), RefKind::Value, 0),
-                (String::from("bar"), RefKind::Type, 1),
-                (String::from("fizz"), RefKind::Mixed, 2)
+                (str!("foo"), RefKind::Value, 0),
+                (str!("bar"), RefKind::Type, 1),
+                (str!("fizz"), RefKind::Mixed, 2)
             ])
             .opt_map(&map),
             None

@@ -1,4 +1,5 @@
 use crate::{Module, Options};
+use kore::str;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct JavaScript(pub Vec<Statement>);
@@ -40,7 +41,7 @@ impl Expression {
             vec![
                 Self::String(namespace.to_owned()),
                 Self::String(feature.to_owned()),
-                Self::String(String::from("1.0")),
+                Self::String(str!("1.0")),
             ],
         )
     }
@@ -61,7 +62,7 @@ pub enum Statement {
 impl Statement {
     fn require(namespace: &str) -> Expression {
         Expression::FunctionCall(
-            Box::new(Expression::Identifier(String::from("require"))),
+            Box::new(Expression::Identifier(str!("require"))),
             vec![Expression::String(namespace.to_owned())],
         )
     }
@@ -104,7 +105,7 @@ impl Statement {
 
             Module::CJS => Self::Assignment(
                 Expression::DotAccess(
-                    Box::new(Expression::Identifier(String::from("exports"))),
+                    Box::new(Expression::Identifier(str!("exports"))),
                     name.to_owned(),
                 ),
                 Expression::Identifier(name.to_owned()),

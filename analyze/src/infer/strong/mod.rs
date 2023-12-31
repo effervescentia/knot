@@ -233,6 +233,7 @@ mod tests {
         infer::weak::Weak,
         RefKind, Type,
     };
+    use kore::str;
     use lang::{
         ast::{Expression, Primitive, Statement, TypeExpression},
         test::fixture as f,
@@ -258,7 +259,7 @@ mod tests {
             },
         ];
         let bindings = BindingMap::from_iter(vec![(
-            (vec![0], String::from("MyType")),
+            (vec![0], str!("MyType")),
             (BTreeSet::from_iter(vec![1])),
         )]);
 
@@ -297,7 +298,7 @@ mod tests {
                 id: 2,
                 kind: RefKind::Value,
                 scope: vec![0, 2],
-                fragment: Fragment::Expression(Expression::Identifier(String::from("FOO"))),
+                fragment: Fragment::Expression(Expression::Identifier(str!("FOO"))),
                 weak: Weak::Type(Type::Nil),
             },
             NodeDescriptor {
@@ -309,14 +310,8 @@ mod tests {
             },
         ];
         let bindings = BindingMap::from_iter(vec![
-            (
-                (vec![0], String::from("FOO")),
-                (BTreeSet::from_iter(vec![1])),
-            ),
-            (
-                (vec![0], String::from("BAR")),
-                (BTreeSet::from_iter(vec![3])),
-            ),
+            ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
+            ((vec![0], str!("BAR")), (BTreeSet::from_iter(vec![3]))),
         ]);
 
         let (.., ctx) = super::partial_infer_types(
@@ -356,21 +351,21 @@ mod tests {
                 id: 2,
                 kind: RefKind::Value,
                 scope: vec![0, 2, 3],
-                fragment: Fragment::Expression(Expression::Identifier(String::from("FOO"))),
+                fragment: Fragment::Expression(Expression::Identifier(str!("FOO"))),
                 weak: Weak::Infer,
             },
             NodeDescriptor {
                 id: 3,
                 kind: RefKind::Value,
                 scope: vec![0, 2, 3],
-                fragment: Fragment::Statement(Statement::Variable(String::from("bar"), 2)),
+                fragment: Fragment::Statement(Statement::Variable(str!("bar"), 2)),
                 weak: Weak::Inherit(2),
             },
             NodeDescriptor {
                 id: 4,
                 kind: RefKind::Value,
                 scope: vec![0, 2, 3],
-                fragment: Fragment::Expression(Expression::Identifier(String::from("bar"))),
+                fragment: Fragment::Expression(Expression::Identifier(str!("bar"))),
                 weak: Weak::Infer,
             },
             NodeDescriptor {
@@ -396,18 +391,9 @@ mod tests {
             },
         ];
         let bindings = BindingMap::from_iter(vec![
-            (
-                (vec![0], String::from("FOO")),
-                (BTreeSet::from_iter(vec![1])),
-            ),
-            (
-                (vec![0, 2, 3], String::from("bar")),
-                (BTreeSet::from_iter(vec![3])),
-            ),
-            (
-                (vec![0], String::from("FIZZ")),
-                (BTreeSet::from_iter(vec![7])),
-            ),
+            ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
+            ((vec![0, 2, 3], str!("bar")), (BTreeSet::from_iter(vec![3]))),
+            ((vec![0], str!("FIZZ")), (BTreeSet::from_iter(vec![7]))),
         ]);
 
         let (.., ctx) = super::partial_infer_types(

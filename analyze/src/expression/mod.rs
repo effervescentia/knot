@@ -32,6 +32,7 @@ mod tests {
         register::Register,
         test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{Expression, Primitive, Statement, KSX};
 
     #[test]
@@ -42,7 +43,7 @@ mod tests {
         assert_eq!(
             f::n::x(Expression::Closure(vec![
                 f::n::s(Statement::Variable(
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 )),
                 f::n::s(Statement::Expression(f::n::x(Expression::Primitive(
@@ -54,7 +55,7 @@ mod tests {
                 Expression::Closure(vec![
                     f::n::sc(
                         Statement::Variable(
-                            String::from("foo"),
+                            str!("foo"),
                             f::n::xc(
                                 Expression::Primitive(Primitive::Nil),
                                 NodeContext::new(0, vec![0, 1])
@@ -88,7 +89,7 @@ mod tests {
                     1,
                     (
                         vec![0, 1],
-                        Fragment::Statement(Statement::Variable(String::from("foo"), 0))
+                        Fragment::Statement(Statement::Variable(str!("foo"), 0))
                     )
                 ),
                 (
@@ -119,13 +120,10 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            f::n::x(Expression::KSX(Box::new(f::n::kx(KSX::Text(
-                String::from("foo")
-            )))))
-            .register(scope),
+            f::n::x(Expression::KSX(Box::new(f::n::kx(KSX::Text(str!("foo")))))).register(scope),
             f::n::xc(
                 Expression::KSX(Box::new(f::n::kxc(
-                    KSX::Text(String::from("foo")),
+                    KSX::Text(str!("foo")),
                     NodeContext::new(0, vec![0])
                 ))),
                 NodeContext::new(1, vec![0]),
@@ -135,7 +133,7 @@ mod tests {
         assert_eq!(
             scope.file.borrow().fragments,
             FragmentMap::from_iter(vec![
-                (0, (vec![0], Fragment::KSX(KSX::Text(String::from("foo"))))),
+                (0, (vec![0], Fragment::KSX(KSX::Text(str!("foo"))))),
                 (
                     1,
                     (vec![0], Fragment::Expression(Expression::KSX(Box::new(0))))

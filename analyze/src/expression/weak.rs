@@ -75,6 +75,7 @@ mod tests {
         infer::weak::{ToWeak, Weak},
         RefKind, Type,
     };
+    use kore::str;
     use lang::ast::{BinaryOperator, Expression, Primitive, UnaryOperator};
 
     #[test]
@@ -96,7 +97,7 @@ mod tests {
             (RefKind::Value, Weak::Type(Type::Float))
         );
         assert_eq!(
-            Expression::Primitive(Primitive::String(String::from("foo"))).to_weak(),
+            Expression::Primitive(Primitive::String(str!("foo"))).to_weak(),
             (RefKind::Value, Weak::Type(Type::String))
         );
     }
@@ -104,7 +105,7 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            Expression::Identifier(String::from("foo")).to_weak(),
+            Expression::Identifier(str!("foo")).to_weak(),
             (RefKind::Value, Weak::Infer)
         );
     }
@@ -276,7 +277,7 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            Expression::DotAccess(Box::new(0), String::from("foo")).to_weak(),
+            Expression::DotAccess(Box::new(0), str!("foo")).to_weak(),
             (RefKind::Value, Weak::Infer)
         );
     }
@@ -292,7 +293,7 @@ mod tests {
     #[test]
     fn style() {
         assert_eq!(
-            Expression::Style(vec![(String::from("foo"), 0)]).to_weak(),
+            Expression::Style(vec![(str!("foo"), 0)]).to_weak(),
             (RefKind::Value, Weak::Type(Type::Style))
         );
     }

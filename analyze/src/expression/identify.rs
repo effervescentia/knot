@@ -28,6 +28,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use kore::str;
     use lang::ast::{
         BinaryOperator, Expression, ExpressionNode, KSXNode, Primitive, Statement, StatementNode,
         UnaryOperator, KSX,
@@ -55,10 +56,10 @@ mod tests {
 
         assert_eq!(
             Expression::<ExpressionNode<Range, ()>, StatementNode<Range, ()>, KSXNode<Range, ()>>::Identifier(
-                String::from("foo")
+                str!("foo")
             )
             .identify(scope),
-            Expression::Identifier(String::from("foo"))
+            Expression::Identifier(str!("foo"))
         );
     }
 
@@ -85,7 +86,7 @@ mod tests {
         assert_eq!(
             Expression::Closure(vec![
                 f::n::s(Statement::Variable(
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 )),
                 f::n::s(Statement::Expression(f::n::x(Expression::Primitive(
@@ -96,7 +97,7 @@ mod tests {
             Expression::Closure(vec![
                 f::n::sc(
                     Statement::Variable(
-                        String::from("foo"),
+                        str!("foo"),
                         f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(0, vec![0, 1])
@@ -170,7 +171,7 @@ mod tests {
         assert_eq!(
             Expression::DotAccess(
                 Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                String::from("foo"),
+                str!("foo"),
             )
             .identify(scope),
             Expression::DotAccess(
@@ -178,7 +179,7 @@ mod tests {
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
                 )),
-                String::from("foo"),
+                str!("foo"),
             )
         );
     }
@@ -223,26 +224,20 @@ mod tests {
 
         assert_eq!(
             Expression::Style(vec![
-                (
-                    String::from("foo"),
-                    f::n::x(Expression::Primitive(Primitive::Nil)),
-                ),
-                (
-                    String::from("bar"),
-                    f::n::x(Expression::Primitive(Primitive::Nil)),
-                ),
+                (str!("foo"), f::n::x(Expression::Primitive(Primitive::Nil)),),
+                (str!("bar"), f::n::x(Expression::Primitive(Primitive::Nil)),),
             ])
             .identify(scope),
             Expression::Style(vec![
                 (
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(0, vec![0])
                     ),
                 ),
                 (
-                    String::from("bar"),
+                    str!("bar"),
                     f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(1, vec![0])
@@ -258,9 +253,9 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::KSX(Box::new(f::n::kx(KSX::Text(String::from("foo"))))).identify(scope),
+            Expression::KSX(Box::new(f::n::kx(KSX::Text(str!("foo"))))).identify(scope),
             Expression::KSX(Box::new(f::n::kxc(
-                KSX::Text(String::from("foo")),
+                KSX::Text(str!("foo")),
                 NodeContext::new(0, vec![0])
             )))
         );

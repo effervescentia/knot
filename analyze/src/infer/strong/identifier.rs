@@ -27,6 +27,7 @@ mod tests {
         types::Type,
         RefKind,
     };
+    use kore::str;
     use std::collections::BTreeSet;
 
     fn infer(
@@ -45,7 +46,7 @@ mod tests {
 
         assert_eq!(
             infer(&[0], 0, "foo", RefKind::Value, &ctx),
-            Some(Err(SemanticError::NotFound(String::from("foo"))))
+            Some(Err(SemanticError::NotFound(str!("foo"))))
         );
     }
 
@@ -58,8 +59,8 @@ mod tests {
                 (1, (RefKind::Type, Ok(Type::Integer))),
             ],
             vec![
-                ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
-                ((vec![0], String::from("bar")), BTreeSet::from_iter(vec![1])),
+                ((vec![0], str!("foo")), BTreeSet::from_iter(vec![0])),
+                ((vec![0], str!("bar")), BTreeSet::from_iter(vec![1])),
             ],
         );
 

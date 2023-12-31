@@ -36,6 +36,7 @@ mod tests {
         context::StrongContext, fragment::Fragment, infer::strong::Strong,
         test::fixture::strong_ctx_from, types::Type, RefKind,
     };
+    use kore::str;
     use lang::ast::{
         storage::{Storage, Visibility},
         Declaration,
@@ -61,7 +62,7 @@ mod tests {
                     (
                         vec![0],
                         Fragment::Declaration(Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("foo")),
+                            name: Storage(Visibility::Public, str!("foo")),
                             value_type: None,
                             value: 0,
                         }),
@@ -72,7 +73,7 @@ mod tests {
                     (
                         vec![0],
                         Fragment::Declaration(Declaration::TypeAlias {
-                            name: Storage(Visibility::Public, String::from("bar")),
+                            name: Storage(Visibility::Public, str!("bar")),
                             value: 2,
                         }),
                     ),
@@ -88,8 +89,8 @@ mod tests {
         assert_eq!(
             infer(&[0, 1], &ctx),
             Some(Ok(Type::Module(vec![
-                (String::from("foo"), RefKind::Value, 0),
-                (String::from("bar"), RefKind::Type, 1)
+                (str!("foo"), RefKind::Value, 0),
+                (str!("bar"), RefKind::Type, 1)
             ])))
         );
     }

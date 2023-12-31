@@ -15,13 +15,14 @@ mod tests {
     use crate::{
         context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{Expression, Parameter, Primitive, TypeExpression};
 
     #[test]
     fn parameter() {
         assert_eq!(
             Parameter::new(
-                String::from("foo"),
+                str!("foo"),
                 Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                 Some(f::n::xc(
                     Expression::Primitive(Primitive::Nil),
@@ -29,7 +30,7 @@ mod tests {
                 ))
             )
             .to_fragment(),
-            Fragment::Parameter(Parameter::new(String::from("foo"), Some(0), Some(1)))
+            Fragment::Parameter(Parameter::new(str!("foo"), Some(0), Some(1)))
         );
     }
 }

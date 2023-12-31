@@ -261,17 +261,15 @@ pub struct NodeDescriptor {
 #[cfg(test)]
 mod tests {
     use crate::context::BindingMap;
+    use kore::str;
     use std::collections::BTreeSet;
 
     #[test]
     fn resolve_from_local_scope() {
         let bindings = BindingMap::from_iter(vec![
-            ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
-            ((vec![0], String::from("bar")), BTreeSet::from_iter(vec![1])),
-            (
-                (vec![0], String::from("fizz")),
-                BTreeSet::from_iter(vec![2]),
-            ),
+            ((vec![0], str!("foo")), BTreeSet::from_iter(vec![0])),
+            ((vec![0], str!("bar")), BTreeSet::from_iter(vec![1])),
+            ((vec![0], str!("fizz")), BTreeSet::from_iter(vec![2])),
         ]);
 
         assert_eq!(bindings.resolve(&[0], "foo", 3), Some(0));
@@ -280,15 +278,9 @@ mod tests {
     #[test]
     fn resolve_from_ancestor_scope() {
         let bindings = BindingMap::from_iter(vec![
-            ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
-            (
-                (vec![0, 1], String::from("bar")),
-                BTreeSet::from_iter(vec![1]),
-            ),
-            (
-                (vec![0, 1, 2], String::from("fizz")),
-                BTreeSet::from_iter(vec![2]),
-            ),
+            ((vec![0], str!("foo")), BTreeSet::from_iter(vec![0])),
+            ((vec![0, 1], str!("bar")), BTreeSet::from_iter(vec![1])),
+            ((vec![0, 1, 2], str!("fizz")), BTreeSet::from_iter(vec![2])),
         ]);
 
         assert_eq!(bindings.resolve(&[0, 1, 2], "foo", 3), Some(0));
@@ -299,13 +291,10 @@ mod tests {
     #[test]
     fn resolve_from_local_over_ancestor_scope() {
         let bindings = BindingMap::from_iter(vec![
-            ((vec![0], String::from("foo")), BTreeSet::from_iter(vec![0])),
+            ((vec![0], str!("foo")), BTreeSet::from_iter(vec![0])),
+            ((vec![0, 1], str!("foo")), BTreeSet::from_iter(vec![2])),
             (
-                (vec![0, 1], String::from("foo")),
-                BTreeSet::from_iter(vec![2]),
-            ),
-            (
-                (vec![0, 1, 2, 3], String::from("foo")),
+                (vec![0, 1, 2, 3], str!("foo")),
                 BTreeSet::from_iter(vec![3]),
             ),
         ]);
@@ -316,7 +305,7 @@ mod tests {
     #[test]
     fn resolve_bindings_with_respect_to_ordering() {
         let bindings = BindingMap::from_iter(vec![(
-            (vec![0], String::from("foo")),
+            (vec![0], str!("foo")),
             BTreeSet::from_iter(vec![1, 3]),
         )]);
 

@@ -15,6 +15,7 @@ mod tests {
     use crate::{
         context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{TypeExpression, TypeExpressionNode};
     use parse::Range;
 
@@ -29,11 +30,9 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            TypeExpression::<TypeExpressionNode<Range, NodeContext>>::Identifier(String::from(
-                "foo"
-            ))
-            .to_fragment(),
-            Fragment::TypeExpression(TypeExpression::Identifier(String::from("foo")))
+            TypeExpression::<TypeExpressionNode<Range, NodeContext>>::Identifier(str!("foo"))
+                .to_fragment(),
+            Fragment::TypeExpression(TypeExpression::Identifier(str!("foo")))
         );
     }
 
@@ -54,10 +53,10 @@ mod tests {
         assert_eq!(
             TypeExpression::DotAccess(
                 Box::new(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
-                String::from("foo"),
+                str!("foo"),
             )
             .to_fragment(),
-            Fragment::TypeExpression(TypeExpression::DotAccess(Box::new(0), String::from("foo"),))
+            Fragment::TypeExpression(TypeExpression::DotAccess(Box::new(0), str!("foo"),))
         );
     }
 

@@ -15,17 +15,18 @@ mod tests {
     use crate::{
         context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX};
     use parse::Range;
 
     #[test]
     fn text() {
         assert_eq!(
-            KSX::<ExpressionNode<Range, NodeContext>, KSXNode<Range, NodeContext>>::Text(
-                String::from("foo")
-            )
+            KSX::<ExpressionNode<Range, NodeContext>, KSXNode<Range, NodeContext>>::Text(str!(
+                "foo"
+            ))
             .to_fragment(),
-            Fragment::KSX(KSX::Text(String::from("foo")))
+            Fragment::KSX(KSX::Text(str!("foo")))
         );
     }
 
@@ -60,11 +61,11 @@ mod tests {
     fn closed_element() {
         assert_eq!(
             KSX::ClosedElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(0, vec![0])
@@ -74,8 +75,8 @@ mod tests {
             )
             .to_fragment(),
             Fragment::KSX(KSX::ClosedElement(
-                String::from("Foo"),
-                vec![(String::from("bar"), None), (String::from("fizz"), Some(0)),],
+                str!("Foo"),
+                vec![(str!("bar"), None), (str!("fizz"), Some(0)),],
             ))
         );
     }
@@ -84,11 +85,11 @@ mod tests {
     fn open_element() {
         assert_eq!(
             KSX::OpenElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(0, vec![0])
@@ -102,14 +103,14 @@ mod tests {
                     )),
                     NodeContext::new(2, vec![0]),
                 )],
-                String::from("Foo"),
+                str!("Foo"),
             )
             .to_fragment(),
             Fragment::KSX(KSX::OpenElement(
-                String::from("Foo"),
-                vec![(String::from("bar"), None), (String::from("fizz"), Some(0))],
+                str!("Foo"),
+                vec![(str!("bar"), None), (str!("fizz"), Some(0))],
                 vec![2],
-                String::from("Foo"),
+                str!("Foo"),
             ))
         );
     }

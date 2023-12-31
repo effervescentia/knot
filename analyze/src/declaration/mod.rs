@@ -33,7 +33,7 @@ mod tests {
         register::Register,
         test::fixture as f,
     };
-    use kore::assert_eq;
+    use kore::{assert_eq, str};
     use lang::ast::{
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
         TypeExpression,
@@ -48,7 +48,7 @@ mod tests {
             f::n::d(f::a::func_(
                 "foo",
                 vec![f::n::p(Parameter::new(
-                    String::from("bar"),
+                    str!("bar"),
                     Some(f::n::tx(TypeExpression::Nil)),
                     Some(f::n::x(Expression::Primitive(Primitive::Nil))),
                 ),)],
@@ -61,7 +61,7 @@ mod tests {
                     "foo",
                     vec![f::n::pc(
                         Parameter::new(
-                            String::from("bar"),
+                            str!("bar"),
                             Some(f::n::txc(
                                 TypeExpression::Nil,
                                 NodeContext::new(0, vec![0, 1])
@@ -104,7 +104,7 @@ mod tests {
                     2,
                     (
                         vec![0, 1],
-                        Fragment::Parameter(Parameter::new(String::from("bar"), Some(0), Some(1)))
+                        Fragment::Parameter(Parameter::new(str!("bar"), Some(0), Some(1)))
                     )
                 ),
                 (
@@ -140,8 +140,8 @@ mod tests {
                 f::n::mr(Module::new(
                     vec![f::n::i(Import {
                         source: ImportSource::Root,
-                        path: vec![String::from("bar"), String::from("fizz")],
-                        aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                        path: vec![str!("bar"), str!("fizz")],
+                        aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                     })],
                     vec![f::n::d(f::a::const_(
                         "BUZZ",
@@ -159,11 +159,8 @@ mod tests {
                             vec![f::n::ic(
                                 Import {
                                     source: ImportSource::Root,
-                                    path: vec![String::from("bar"), String::from("fizz")],
-                                    aliases: Some(vec![(
-                                        ImportTarget::Module,
-                                        Some(String::from("Fizz"))
-                                    )]),
+                                    path: vec![str!("bar"), str!("fizz")],
+                                    aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                                 },
                                 NodeContext::new(0, vec![0, 1])
                             )],
@@ -198,8 +195,8 @@ mod tests {
                         vec![0, 1],
                         Fragment::Import(Import {
                             source: ImportSource::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                            path: vec![str!("bar"), str!("fizz")],
+                            aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                         })
                     )
                 ),

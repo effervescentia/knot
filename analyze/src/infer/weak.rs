@@ -38,6 +38,7 @@ pub fn infer_types(file_ctx: FileContext) -> WeakContext {
 mod tests {
     use super::Weak;
     use crate::{fragment::Fragment, test::fixture::file_ctx_from, RefKind, Type};
+    use kore::str;
     use lang::{
         ast::{Expression, Primitive, Statement},
         test::fixture as f,
@@ -61,7 +62,7 @@ mod tests {
         assert_eq!(
             result.bindings.0,
             HashMap::from_iter(vec![(
-                (vec![0], String::from("MyType")),
+                (vec![0], str!("MyType")),
                 (BTreeSet::from_iter(vec![1]))
             )])
         );
@@ -85,7 +86,7 @@ mod tests {
                 2,
                 (
                     vec![0, 2],
-                    Fragment::Expression(Expression::Identifier(String::from("FOO"))),
+                    Fragment::Expression(Expression::Identifier(str!("FOO"))),
                 ),
             ),
             (
@@ -96,21 +97,21 @@ mod tests {
                 4,
                 (
                     vec![0, 3, 4],
-                    Fragment::Expression(Expression::Identifier(String::from("BAR"))),
+                    Fragment::Expression(Expression::Identifier(str!("BAR"))),
                 ),
             ),
             (
                 5,
                 (
                     vec![0, 3, 4],
-                    Fragment::Statement(Statement::Variable(String::from("fizz"), 4)),
+                    Fragment::Statement(Statement::Variable(str!("fizz"), 4)),
                 ),
             ),
             (
                 6,
                 (
                     vec![0, 3, 4],
-                    Fragment::Expression(Expression::Identifier(String::from("fizz"))),
+                    Fragment::Expression(Expression::Identifier(str!("fizz"))),
                 ),
             ),
             (
@@ -154,22 +155,13 @@ mod tests {
         assert_eq!(
             result.bindings.0,
             HashMap::from_iter(vec![
+                ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
+                ((vec![0], str!("BAR")), (BTreeSet::from_iter(vec![3]))),
                 (
-                    (vec![0], String::from("FOO")),
-                    (BTreeSet::from_iter(vec![1]))
-                ),
-                (
-                    (vec![0], String::from("BAR")),
-                    (BTreeSet::from_iter(vec![3]))
-                ),
-                (
-                    (vec![0, 3, 4], String::from("fizz")),
+                    (vec![0, 3, 4], str!("fizz")),
                     (BTreeSet::from_iter(vec![5]))
                 ),
-                (
-                    (vec![0], String::from("BUZZ")),
-                    (BTreeSet::from_iter(vec![9]))
-                )
+                ((vec![0], str!("BUZZ")), (BTreeSet::from_iter(vec![9])))
             ])
         );
     }
@@ -200,7 +192,7 @@ mod tests {
         assert_eq!(
             result.bindings.0,
             HashMap::from_iter(vec![(
-                (vec![0], String::from("MyType")),
+                (vec![0], str!("MyType")),
                 BTreeSet::from_iter(vec![1, 3])
             )])
         );

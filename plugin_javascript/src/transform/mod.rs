@@ -5,12 +5,13 @@ use crate::{
     javascript::{JavaScript, Statement},
     Options,
 };
+use kore::str;
 use lang::ast;
 
 impl JavaScript {
     pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Self {
         let statements = [
-            Statement::import("@knot/runtime", vec![(String::from("$knot"), None)], opts),
+            Statement::import("@knot/runtime", vec![(str!("$knot"), None)], opts),
             Statement::from_module(value, opts),
             value
                 .0
@@ -38,6 +39,7 @@ mod tests {
         javascript::{Expression, JavaScript, Statement},
         Mode, Module, Options,
     };
+    use kore::str;
     use lang::ast::{
         self,
         storage::{Storage, Visibility},
@@ -56,18 +58,18 @@ mod tests {
                     vec![],
                     vec![
                         ast::DeclarationShape(ast::Declaration::TypeAlias {
-                            name: Storage(Visibility::Public, String::from("foo")),
+                            name: Storage(Visibility::Public, str!("foo")),
                             value: ast::TypeExpressionShape(ast::TypeExpression::Nil)
                         }),
                         ast::DeclarationShape(ast::Declaration::Constant {
-                            name: Storage(Visibility::Private, String::from("bar")),
+                            name: Storage(Visibility::Private, str!("bar")),
                             value_type: None,
                             value: ast::ExpressionShape(ast::Expression::Primitive(
                                 ast::Primitive::Nil
                             ))
                         }),
                         ast::DeclarationShape(ast::Declaration::Constant {
-                            name: Storage(Visibility::Public, String::from("fizz")),
+                            name: Storage(Visibility::Public, str!("fizz")),
                             value_type: None,
                             value: ast::ExpressionShape(ast::Expression::Primitive(
                                 ast::Primitive::Nil
@@ -78,13 +80,10 @@ mod tests {
                 &OPTIONS
             ),
             JavaScript(vec![
-                Statement::Import(
-                    String::from("@knot/runtime"),
-                    vec![(String::from("$knot"), None)]
-                ),
-                Statement::Variable(String::from("bar"), Expression::Null),
-                Statement::Variable(String::from("fizz"), Expression::Null),
-                Statement::Export(String::from("fizz")),
+                Statement::Import(str!("@knot/runtime"), vec![(str!("$knot"), None)]),
+                Statement::Variable(str!("bar"), Expression::Null),
+                Statement::Variable(str!("fizz"), Expression::Null),
+                Statement::Export(str!("fizz")),
             ])
         );
     }
@@ -96,7 +95,7 @@ mod tests {
                 &ast::ModuleShape(ast::Module::new(
                     vec![],
                     vec![ast::DeclarationShape(ast::Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("bar")),
+                        name: Storage(Visibility::Public, str!("bar")),
                         value_type: None,
                         value: ast::ExpressionShape(ast::Expression::Primitive(
                             ast::Primitive::Nil
@@ -106,12 +105,9 @@ mod tests {
                 &OPTIONS
             ),
             JavaScript(vec![
-                Statement::Import(
-                    String::from("@knot/runtime"),
-                    vec![(String::from("$knot"), None)]
-                ),
-                Statement::Variable(String::from("bar"), Expression::Null),
-                Statement::Export(String::from("bar")),
+                Statement::Import(str!("@knot/runtime"), vec![(str!("$knot"), None)]),
+                Statement::Variable(str!("bar"), Expression::Null),
+                Statement::Export(str!("bar")),
             ])
         );
     }
@@ -123,7 +119,7 @@ mod tests {
                 &ast::ModuleShape(ast::Module::new(
                     vec![],
                     vec![ast::DeclarationShape(ast::Declaration::Constant {
-                        name: Storage(Visibility::Public, String::from("bar")),
+                        name: Storage(Visibility::Public, str!("bar")),
                         value_type: None,
                         value: ast::ExpressionShape(ast::Expression::Primitive(
                             ast::Primitive::Nil
@@ -137,22 +133,22 @@ mod tests {
             ),
             JavaScript(vec![
                 Statement::Variable(
-                    String::from("$knot"),
+                    str!("$knot"),
                     Expression::DotAccess(
                         Box::new(Expression::FunctionCall(
-                            Box::new(Expression::Identifier(String::from("require"))),
-                            vec![Expression::String(String::from("@knot/runtime"))]
+                            Box::new(Expression::Identifier(str!("require"))),
+                            vec![Expression::String(str!("@knot/runtime"))]
                         )),
-                        String::from("$knot")
+                        str!("$knot")
                     )
                 ),
-                Statement::Variable(String::from("bar"), Expression::Null),
+                Statement::Variable(str!("bar"), Expression::Null),
                 Statement::Assignment(
                     Expression::DotAccess(
-                        Box::new(Expression::Identifier(String::from("exports")),),
-                        String::from("bar")
+                        Box::new(Expression::Identifier(str!("exports")),),
+                        str!("bar")
                     ),
-                    Expression::Identifier(String::from("bar"))
+                    Expression::Identifier(str!("bar"))
                 ),
             ])
         );

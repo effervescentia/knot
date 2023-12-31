@@ -16,6 +16,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use kore::str;
     use lang::ast::{Expression, Parameter, Primitive, TypeExpression};
 
     #[test]
@@ -25,13 +26,13 @@ mod tests {
 
         assert_eq!(
             Parameter::new(
-                String::from("foo"),
+                str!("foo"),
                 Some(f::n::tx(TypeExpression::Nil)),
                 Some(f::n::x(Expression::Primitive(Primitive::Nil)))
             )
             .identify(scope),
             Parameter::new(
-                String::from("foo"),
+                str!("foo"),
                 Some(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                 Some(f::n::xc(
                     Expression::Primitive(Primitive::Nil),

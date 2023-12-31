@@ -31,6 +31,7 @@ parser! {
 mod tests {
     use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use kore::str;
     use lang::ast::{DeclarationNode, Expression, Module, Primitive, TypeExpression};
 
     fn parse(s: &str) -> crate::Result<DeclarationNode<Range, ()>> {
@@ -71,7 +72,7 @@ mod tests {
                 f::a::enum_(
                     "foo",
                     vec![(
-                        String::from("Fizz"),
+                        str!("Fizz"),
                         vec![f::n::txr(TypeExpression::Nil, ((1, 19), (1, 21)))]
                     )]
                 ),
@@ -85,7 +86,7 @@ mod tests {
         assert_eq!(
             parse("enum foo = | Fizz();").unwrap().0,
             f::n::dr(
-                f::a::enum_("foo", vec![(String::from("Fizz"), vec![])]),
+                f::a::enum_("foo", vec![(str!("Fizz"), vec![])]),
                 ((1, 1), (1, 19))
             )
         );
@@ -96,7 +97,7 @@ mod tests {
         assert_eq!(
             parse("enum foo = | Fizz;").unwrap().0,
             f::n::dr(
-                f::a::enum_("foo", vec![(String::from("Fizz"), vec![])]),
+                f::a::enum_("foo", vec![(str!("Fizz"), vec![])]),
                 ((1, 1), (1, 17))
             )
         );

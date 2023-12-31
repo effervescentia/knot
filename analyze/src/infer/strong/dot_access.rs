@@ -52,6 +52,7 @@ mod tests {
         types::Type,
         RefKind,
     };
+    use kore::str;
 
     fn infer(lhs: usize, rhs: &str, kind: RefKind, ctx: &StrongContext) -> Option<Strong> {
         super::infer(lhs, rhs.to_owned(), &kind, ctx)
@@ -76,8 +77,8 @@ mod tests {
                     (
                         RefKind::Mixed,
                         Ok(Type::Module(vec![
-                            (String::from("foo"), RefKind::Value, 0),
-                            (String::from("bar"), RefKind::Type, 1),
+                            (str!("foo"), RefKind::Value, 0),
+                            (str!("bar"), RefKind::Type, 1),
                         ])),
                     ),
                 ),
@@ -93,8 +94,8 @@ mod tests {
     fn module_illegal_type_access() {
         let module_type = || {
             Type::Module(vec![
-                (String::from("foo"), RefKind::Value, 0),
-                (String::from("bar"), RefKind::Type, 1),
+                (str!("foo"), RefKind::Value, 0),
+                (str!("bar"), RefKind::Type, 1),
             ])
         };
         let ctx = strong_ctx_from(
@@ -111,21 +112,21 @@ mod tests {
             infer(2, "foo", RefKind::Type, &ctx),
             Some(Err(SemanticError::IllegalTypeAccess(
                 (module_type(), 2),
-                String::from("foo")
+                str!("foo")
             )))
         );
         assert_eq!(
             infer(2, "bar", RefKind::Value, &ctx),
             Some(Err(SemanticError::IllegalTypeAccess(
                 (module_type(), 2),
-                String::from("bar")
+                str!("bar")
             )))
         );
     }
 
     #[test]
     fn module_declaration_not_found() {
-        let module_type = || Type::Module(vec![(String::from("foo"), RefKind::Value, 0)]);
+        let module_type = || Type::Module(vec![(str!("foo"), RefKind::Value, 0)]);
         let ctx = strong_ctx_from(
             vec![],
             vec![
@@ -139,14 +140,14 @@ mod tests {
             infer(1, "bar", RefKind::Value, &ctx),
             Some(Err(SemanticError::DeclarationNotFound(
                 (module_type(), 1),
-                String::from("bar")
+                str!("bar")
             )))
         );
         assert_eq!(
             infer(1, "bar", RefKind::Type, &ctx),
             Some(Err(SemanticError::DeclarationNotFound(
                 (module_type(), 1),
-                String::from("bar")
+                str!("bar")
             )))
         );
     }
@@ -161,7 +162,7 @@ mod tests {
                     1,
                     (
                         RefKind::Mixed,
-                        Ok(Type::Enumerated(vec![(String::from("Foo"), vec![0])])),
+                        Ok(Type::Enumerated(vec![(str!("Foo"), vec![0])])),
                     ),
                 ),
             ],
@@ -176,14 +177,14 @@ mod tests {
 
     #[test]
     fn enumerated_variant_not_found() {
-        let enum_type = || Type::Enumerated(vec![(String::from("Foo"), vec![])]);
+        let enum_type = || Type::Enumerated(vec![(str!("Foo"), vec![])]);
         let ctx = strong_ctx_from(vec![], vec![(0, (RefKind::Mixed, Ok(enum_type())))], vec![]);
 
         assert_eq!(
             infer(0, "Bar", RefKind::Value, &ctx),
             Some(Err(SemanticError::VariantNotFound(
                 (enum_type(), 0),
-                String::from("Bar")
+                str!("Bar")
             )))
         );
     }
@@ -196,7 +197,7 @@ mod tests {
             infer(0, "foo", RefKind::Value, &ctx),
             Some(Err(SemanticError::NotIndexable(
                 (Type::Nil, 0),
-                String::from("foo")
+                str!("foo")
             )))
         );
     }

@@ -35,6 +35,7 @@ mod tests {
         infer::weak::{ToWeak, Weak},
         RefKind, Type,
     };
+    use kore::str;
     use lang::ast::TypeExpression;
 
     #[test]
@@ -72,7 +73,7 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            TypeExpression::Identifier(String::from("foo")).to_weak(),
+            TypeExpression::Identifier(str!("foo")).to_weak(),
             (RefKind::Type, Weak::Infer)
         );
     }
@@ -88,7 +89,7 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            TypeExpression::DotAccess(Box::new(0), String::from("foo")).to_weak(),
+            TypeExpression::DotAccess(Box::new(0), str!("foo")).to_weak(),
             (RefKind::Type, Weak::Infer)
         );
     }

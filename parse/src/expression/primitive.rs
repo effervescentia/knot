@@ -80,6 +80,7 @@ where
 mod tests {
     use super::{primitive, Primitive};
     use combine::{eof, error::StringStreamError, Parser};
+    use kore::str;
 
     fn parse(s: &str) -> Result<(Primitive, &str), StringStreamError> {
         primitive().skip(eof()).parse(s)
@@ -113,9 +114,6 @@ mod tests {
 
     #[test]
     fn string() {
-        assert_eq!(
-            parse("\"foo\"").unwrap().0,
-            Primitive::String(String::from("foo"))
-        );
+        assert_eq!(parse("\"foo\"").unwrap().0, Primitive::String(str!("foo")));
     }
 }

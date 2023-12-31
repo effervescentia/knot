@@ -142,6 +142,7 @@ mod tests {
         stream::position::{SourcePosition, Stream},
         EasyParser, Parser,
     };
+    use kore::str;
 
     #[test]
     fn lexeme() {
@@ -283,12 +284,9 @@ mod tests {
 
         assert_eq!(
             parse("$foo_").unwrap().0,
-            (String::from("$foo_"), Range((1, 1), (1, 5)))
+            (str!("$foo_"), Range((1, 1), (1, 5)))
         );
-        assert_eq!(
-            parse("$").unwrap().0,
-            (String::from("$"), Range((1, 1), (1, 1)))
-        );
+        assert_eq!(parse("$").unwrap().0, (str!("$"), Range((1, 1), (1, 1))));
         assert_eq!(
             parse(""),
             Err(Errors::from_errors(
@@ -304,11 +302,11 @@ mod tests {
 
         assert_eq!(
             parse("foo").unwrap().0,
-            (String::from("foo"), Range((1, 1), (1, 3)))
+            (str!("foo"), Range((1, 1), (1, 3)))
         );
         assert_eq!(
             parse("_foo").unwrap().0,
-            (String::from("_foo"), Range((1, 1), (1, 4)))
+            (str!("_foo"), Range((1, 1), (1, 4)))
         );
     }
 }

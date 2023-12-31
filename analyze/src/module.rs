@@ -70,7 +70,7 @@ mod tests {
         test::fixture as f,
         test::fixture::{file_ctx, scope_ctx},
     };
-    use kore::assert_eq;
+    use kore::{assert_eq, str};
     use lang::ast::{
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Primitive,
         TypeExpression,
@@ -85,8 +85,8 @@ mod tests {
             f::n::mr(Module::new(
                 vec![f::n::i(Import {
                     source: ImportSource::Root,
-                    path: vec![String::from("bar"), String::from("fizz")],
-                    aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                    path: vec![str!("bar"), str!("fizz")],
+                    aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                 })],
                 vec![f::n::d(f::a::const_(
                     "BUZZ",
@@ -100,8 +100,8 @@ mod tests {
                     vec![f::n::ic(
                         Import {
                             source: ImportSource::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                            path: vec![str!("bar"), str!("fizz")],
+                            aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                         },
                         NodeContext::new(0, vec![0])
                     )],
@@ -133,8 +133,8 @@ mod tests {
                         vec![0],
                         Fragment::Import(Import {
                             source: ImportSource::Root,
-                            path: vec![String::from("bar"), String::from("fizz")],
-                            aliases: Some(vec![(ImportTarget::Module, Some(String::from("Fizz")))]),
+                            path: vec![str!("bar"), str!("fizz")],
+                            aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                         })
                     )
                 ),

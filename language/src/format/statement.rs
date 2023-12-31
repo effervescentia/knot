@@ -19,6 +19,7 @@ mod tests {
         ast::{Expression, Primitive, Statement},
         test::fixture as f,
     };
+    use kore::str;
 
     #[test]
     fn expression() {
@@ -35,7 +36,7 @@ mod tests {
     fn variable() {
         assert_eq!(
             f::n::s(Statement::Variable(
-                String::from("x"),
+                str!("x"),
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),

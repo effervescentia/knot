@@ -17,6 +17,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{context::NodeContext, register::Identify, test::fixture as f};
+    use kore::str;
     use lang::ast::{Expression, ExpressionNode, KSXNode, Primitive, KSX};
     use parse::Range;
 
@@ -26,9 +27,8 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            KSX::<ExpressionNode<Range, ()>, KSXNode<Range, ()>>::Text(String::from("foo"))
-                .identify(scope),
-            KSX::Text(String::from("foo"))
+            KSX::<ExpressionNode<Range, ()>, KSXNode<Range, ()>>::Text(str!("foo")).identify(scope),
+            KSX::Text(str!("foo"))
         );
     }
 
@@ -73,22 +73,22 @@ mod tests {
 
         assert_eq!(
             KSX::ClosedElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::x(Expression::Primitive(Primitive::Nil))),
                     ),
                 ],
             )
             .identify(scope),
             KSX::ClosedElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(0, vec![0])
@@ -106,26 +106,26 @@ mod tests {
 
         assert_eq!(
             KSX::OpenElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::x(Expression::Primitive(Primitive::Nil))),
                     ),
                 ],
                 vec![f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(
                     Primitive::Nil
                 ))))],
-                String::from("Foo"),
+                str!("Foo"),
             )
             .identify(scope),
             KSX::OpenElement(
-                String::from("Foo"),
+                str!("Foo"),
                 vec![
-                    (String::from("bar"), None),
+                    (str!("bar"), None),
                     (
-                        String::from("fizz"),
+                        str!("fizz"),
                         Some(f::n::xc(
                             Expression::Primitive(Primitive::Nil),
                             NodeContext::new(0, vec![0])
@@ -139,7 +139,7 @@ mod tests {
                     )),
                     NodeContext::new(2, vec![0]),
                 )],
-                String::from("Foo"),
+                str!("Foo"),
             )
         );
     }

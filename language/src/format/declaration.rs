@@ -121,6 +121,7 @@ mod tests {
         ast::{Expression, Module, Parameter, Primitive, TypeExpression},
         test::fixture as f,
     };
+    use kore::str;
 
     #[test]
     fn type_alias() {
@@ -136,8 +137,8 @@ mod tests {
             f::n::d(f::a::enum_(
                 "foo",
                 vec![
-                    (String::from("fizz"), vec![]),
-                    (String::from("buzz"), vec![f::n::tx(TypeExpression::Nil)]),
+                    (str!("fizz"), vec![]),
+                    (str!("buzz"), vec![f::n::tx(TypeExpression::Nil)]),
                 ]
             ))
             .to_string(),
@@ -192,7 +193,7 @@ mod tests {
         assert_eq!(
             f::n::d(f::a::func_(
                 "foo",
-                vec![f::n::p(Parameter::new(String::from("bar"), None, None))],
+                vec![f::n::p(Parameter::new(str!("bar"), None, None))],
                 None,
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
@@ -233,7 +234,7 @@ mod tests {
         assert_eq!(
             f::n::d(f::a::view(
                 "foo",
-                vec![f::n::p(Parameter::new(String::from("bar"), None, None)),],
+                vec![f::n::p(Parameter::new(str!("bar"), None, None)),],
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .to_string(),

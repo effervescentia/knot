@@ -15,6 +15,7 @@ mod tests {
     use crate::{
         context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
@@ -33,14 +34,14 @@ mod tests {
     fn variable() {
         assert_eq!(
             Statement::Variable(
-                String::from("foo"),
+                str!("foo"),
                 f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
                 )
             )
             .to_fragment(),
-            Fragment::Statement(Statement::Variable(String::from("foo"), 0))
+            Fragment::Statement(Statement::Variable(str!("foo"), 0))
         );
     }
 }

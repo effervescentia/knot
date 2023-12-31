@@ -30,12 +30,13 @@ mod tests {
         infer::weak::{ToWeak, Weak},
         RefKind,
     };
+    use kore::str;
     use lang::ast::Parameter;
 
     #[test]
     fn unknown_parameter() {
         assert_eq!(
-            Parameter::new(String::from("foo"), None, None).to_weak(),
+            Parameter::new(str!("foo"), None, None).to_weak(),
             (RefKind::Value, Weak::Infer)
         );
     }
@@ -43,7 +44,7 @@ mod tests {
     #[test]
     fn typedef_parameter() {
         assert_eq!(
-            Parameter::new(String::from("foo"), Some(0), None).to_weak(),
+            Parameter::new(str!("foo"), Some(0), None).to_weak(),
             (RefKind::Value, Weak::Inherit(0))
         );
     }
@@ -51,7 +52,7 @@ mod tests {
     #[test]
     fn default_parameter() {
         assert_eq!(
-            Parameter::new(String::from("foo"), None, Some(0)).to_weak(),
+            Parameter::new(str!("foo"), None, Some(0)).to_weak(),
             (RefKind::Value, Weak::Inherit(0))
         );
     }
@@ -59,7 +60,7 @@ mod tests {
     #[test]
     fn typedef_and_default_parameter() {
         assert_eq!(
-            Parameter::new(String::from("foo"), Some(0), Some(1)).to_weak(),
+            Parameter::new(str!("foo"), Some(0), Some(1)).to_weak(),
             (RefKind::Value, Weak::Inherit(0))
         );
     }

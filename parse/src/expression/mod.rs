@@ -215,6 +215,7 @@ where
 mod tests {
     use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use kore::str;
     use lang::ast::{
         BinaryOperator, Expression, ExpressionNode, Primitive, Statement, UnaryOperator, KSX,
     };
@@ -260,7 +261,7 @@ mod tests {
         assert_eq!(
             parse("\"foo\"").unwrap().0,
             f::n::xr(
-                Expression::Primitive(Primitive::String(String::from("foo"))),
+                Expression::Primitive(Primitive::String(str!("foo"))),
                 ((1, 1), (1, 5))
             )
         );
@@ -270,10 +271,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            f::n::xr(
-                Expression::Identifier(String::from("foo")),
-                ((1, 1), (1, 3))
-            )
+            f::n::xr(Expression::Identifier(str!("foo")), ((1, 1), (1, 3)))
         );
     }
 
@@ -655,7 +653,7 @@ mod tests {
                         Expression::Primitive(Primitive::Nil),
                         ((1, 1), (1, 3))
                     )),
-                    String::from("foo")
+                    str!("foo")
                 ),
                 ((1, 1), (1, 7))
             )
@@ -713,7 +711,7 @@ mod tests {
             parse("style { foo: nil }").unwrap().0,
             f::n::xr(
                 Expression::Style(vec![(
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 14), (1, 16)))
                 )]),
                 ((1, 1), (1, 18))
@@ -727,7 +725,7 @@ mod tests {
             parse("<foo />").unwrap().0,
             f::n::xr(
                 Expression::KSX(Box::new(f::n::kxr(
-                    KSX::ClosedElement(String::from("foo"), vec![]),
+                    KSX::ClosedElement(str!("foo"), vec![]),
                     ((1, 1), (1, 7))
                 ))),
                 ((1, 1), (1, 7))

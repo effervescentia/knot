@@ -20,6 +20,7 @@ mod tests {
     use crate::{
         context::NodeContext, fragment::Fragment, register::ToFragment, test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{
         Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
         TypeExpression,
@@ -43,7 +44,7 @@ mod tests {
             f::a::enum_(
                 "Foo",
                 vec![(
-                    String::from("Bar"),
+                    str!("Bar"),
                     vec![f::n::txc(
                         TypeExpression::Nil,
                         NodeContext::new(0, vec![0, 1])
@@ -51,7 +52,7 @@ mod tests {
                 )]
             )
             .to_fragment(),
-            Fragment::Declaration(f::a::enum_("Foo", vec![(String::from("Bar"), vec![0])]))
+            Fragment::Declaration(f::a::enum_("Foo", vec![(str!("Bar"), vec![0])]))
         );
     }
 
@@ -81,7 +82,7 @@ mod tests {
                 "foo",
                 vec![f::n::pc(
                     Parameter::new(
-                        String::from("bar"),
+                        str!("bar"),
                         Some(f::n::txc(
                             TypeExpression::Nil,
                             NodeContext::new(0, vec![0, 1])
@@ -114,7 +115,7 @@ mod tests {
                 "Foo",
                 vec![f::n::pc(
                     Parameter::new(
-                        String::from("bar"),
+                        str!("bar"),
                         Some(f::n::txc(
                             TypeExpression::Nil,
                             NodeContext::new(0, vec![0, 1])
@@ -146,11 +147,8 @@ mod tests {
                         vec![f::n::ic(
                             Import {
                                 source: ImportSource::Root,
-                                path: vec![String::from("bar"), String::from("fizz")],
-                                aliases: Some(vec![(
-                                    ImportTarget::Module,
-                                    Some(String::from("Fizz"))
-                                )]),
+                                path: vec![str!("bar"), str!("fizz")],
+                                aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
                             },
                             NodeContext::new(1, vec![0])
                         )],

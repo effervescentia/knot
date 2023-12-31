@@ -91,6 +91,7 @@ mod tests {
         ast::{BinaryOperator, Expression, Primitive, Statement, UnaryOperator, KSX},
         test::fixture as f,
     };
+    use kore::str;
 
     #[test]
     fn nil() {
@@ -131,14 +132,11 @@ mod tests {
     #[test]
     fn string() {
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::String(String::from(
-                "foo"
-            ))))
-            .to_string(),
+            f::n::x(Expression::Primitive(Primitive::String(str!("foo")))).to_string(),
             "\"foo\""
         );
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::String(String::from(
+            f::n::x(Expression::Primitive(Primitive::String(str!(
                 "quotes (\")"
             ))))
             .to_string(),
@@ -149,7 +147,7 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            f::n::x(Expression::Identifier(String::from("foo"))).to_string(),
+            f::n::x(Expression::Identifier(str!("foo"))).to_string(),
             "foo"
         );
     }
@@ -175,7 +173,7 @@ mod tests {
         assert_eq!(
             f::n::x(Expression::Closure(vec![
                 f::n::s(Statement::Variable(
-                    String::from("x"),
+                    str!("x"),
                     f::n::x(Expression::Primitive(Primitive::Nil))
                 )),
                 f::n::s(Statement::Expression(f::n::x(Expression::Primitive(
@@ -348,7 +346,7 @@ mod tests {
         assert_eq!(
             f::n::x(Expression::DotAccess(
                 Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                String::from("foo")
+                str!("foo")
             ))
             .to_string(),
             "nil.foo"
@@ -391,14 +389,8 @@ mod tests {
     fn style_with_rules() {
         assert_eq!(
             f::n::x(Expression::Style(vec![
-                (
-                    String::from("foo"),
-                    f::n::x(Expression::Primitive(Primitive::Nil))
-                ),
-                (
-                    String::from("bar"),
-                    f::n::x(Expression::Primitive(Primitive::Nil))
-                ),
+                (str!("foo"), f::n::x(Expression::Primitive(Primitive::Nil))),
+                (str!("bar"), f::n::x(Expression::Primitive(Primitive::Nil))),
             ]))
             .to_string(),
             "style {
@@ -412,7 +404,7 @@ mod tests {
     fn ksx() {
         assert_eq!(
             f::n::x(Expression::KSX(Box::new(f::n::kx(KSX::ClosedElement(
-                String::from("foo"),
+                str!("foo"),
                 vec![]
             )))))
             .to_string(),

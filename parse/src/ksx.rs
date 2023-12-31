@@ -184,6 +184,7 @@ mod tests {
     use super::{ksx, KSXNode, KSX};
     use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
+    use kore::str;
     use lang::ast::{Expression, Primitive};
 
     fn parse(s: &str) -> crate::Result<KSXNode<Range, ()>> {
@@ -203,7 +204,7 @@ mod tests {
         assert_eq!(
             parse("<foo></foo>").unwrap().0,
             f::n::kxr(
-                KSX::OpenElement(String::from("foo"), vec![], vec![], String::from("foo")),
+                KSX::OpenElement(str!("foo"), vec![], vec![], str!("foo")),
                 ((1, 1), (1, 11))
             )
         );
@@ -213,10 +214,7 @@ mod tests {
     fn closed_element() {
         assert_eq!(
             parse("<foo />").unwrap().0,
-            f::n::kxr(
-                KSX::ClosedElement(String::from("foo"), vec![]),
-                ((1, 1), (1, 7))
-            )
+            f::n::kxr(KSX::ClosedElement(str!("foo"), vec![]), ((1, 1), (1, 7)))
         );
     }
 
@@ -237,7 +235,7 @@ mod tests {
             parse("<><foo /></>").unwrap().0,
             f::n::kxr(
                 KSX::Fragment(vec![f::n::kxr(
-                    KSX::ClosedElement(String::from("foo"), vec![]),
+                    KSX::ClosedElement(str!("foo"), vec![]),
                     ((1, 3), (1, 9))
                 )]),
                 ((1, 1), (1, 12))
@@ -251,10 +249,10 @@ mod tests {
             parse("<foo><></></foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
                     vec![f::n::kxr(KSX::Fragment(vec![]), ((1, 6), (1, 10)))],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (1, 16))
             )
@@ -267,13 +265,13 @@ mod tests {
             parse("<foo><bar /></foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
                     vec![f::n::kxr(
-                        KSX::ClosedElement(String::from("bar"), vec![]),
+                        KSX::ClosedElement(str!("bar"), vec![]),
                         ((1, 6), (1, 12))
                     )],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (1, 18))
             )
@@ -303,7 +301,7 @@ mod tests {
             parse("<foo>{nil}</foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
                     vec![f::n::kxr(
                         KSX::Inline(f::n::xr(
@@ -312,7 +310,7 @@ mod tests {
                         )),
                         ((1, 6), (1, 10))
                     )],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (1, 16))
             )
@@ -324,10 +322,7 @@ mod tests {
         assert_eq!(
             parse("<>foo</>").unwrap().0,
             f::n::kxr(
-                KSX::Fragment(vec![f::n::kxr(
-                    KSX::Text(String::from("foo")),
-                    ((1, 3), (1, 5))
-                )]),
+                KSX::Fragment(vec![f::n::kxr(KSX::Text(str!("foo")), ((1, 3), (1, 5)))]),
                 ((1, 1), (1, 8))
             )
         );
@@ -339,10 +334,10 @@ mod tests {
             parse("<foo>bar</foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
-                    vec![f::n::kxr(KSX::Text(String::from("bar")), ((1, 6), (1, 8)))],
-                    String::from("foo"),
+                    vec![f::n::kxr(KSX::Text(str!("bar")), ((1, 6), (1, 8)))],
+                    str!("foo"),
                 ),
                 ((1, 1), (1, 14))
             )
@@ -355,16 +350,16 @@ mod tests {
             parse("<foo bar=nil></foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![(
-                        String::from("bar"),
+                        str!("bar"),
                         Some(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 10), (1, 12))
                         ))
                     )],
                     vec![],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (1, 19))
             )
@@ -377,9 +372,9 @@ mod tests {
             parse("<foo bar=nil />").unwrap().0,
             f::n::kxr(
                 KSX::ClosedElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![(
-                        String::from("bar"),
+                        str!("bar"),
                         Some(f::n::xr(
                             Expression::Primitive(Primitive::Nil),
                             ((1, 10), (1, 12))
@@ -396,7 +391,7 @@ mod tests {
         assert_eq!(
             parse("<foo bar />").unwrap().0,
             f::n::kxr(
-                KSX::ClosedElement(String::from("foo"), vec![(String::from("bar"), None)],),
+                KSX::ClosedElement(str!("foo"), vec![(str!("bar"), None)],),
                 ((1, 1), (1, 11))
             )
         );
@@ -408,10 +403,10 @@ mod tests {
             parse("<foo>  \n  \n  bar  \n  \n  </foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
-                    vec![f::n::kxr(KSX::Text(String::from("bar")), ((1, 6), (5, 2)))],
-                    String::from("foo"),
+                    vec![f::n::kxr(KSX::Text(str!("bar")), ((1, 6), (5, 2)))],
+                    str!("foo"),
                 ),
                 ((1, 1), (5, 8))
             )
@@ -424,19 +419,19 @@ mod tests {
             parse("<foo>  \n  \n  bar  {fizz}\n</foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
                     vec![
-                        f::n::kxr(KSX::Text(String::from("bar  ")), ((1, 6), (3, 7))),
+                        f::n::kxr(KSX::Text(str!("bar  ")), ((1, 6), (3, 7))),
                         f::n::kxr(
                             KSX::Inline(f::n::xr(
-                                Expression::Identifier(String::from("fizz")),
+                                Expression::Identifier(str!("fizz")),
                                 ((3, 9), (3, 12))
                             )),
                             ((3, 8), (3, 13))
                         )
                     ],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (4, 6))
             )
@@ -449,19 +444,19 @@ mod tests {
             parse("<foo>\n{fizz}  bar  \n  \n  </foo>").unwrap().0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
                     vec![
                         f::n::kxr(
                             KSX::Inline(f::n::xr(
-                                Expression::Identifier(String::from("fizz")),
+                                Expression::Identifier(str!("fizz")),
                                 ((2, 2), (2, 5))
                             )),
                             ((2, 1), (2, 6))
                         ),
-                        f::n::kxr(KSX::Text(String::from("  bar")), ((2, 7), (4, 2)))
+                        f::n::kxr(KSX::Text(str!("  bar")), ((2, 7), (4, 2)))
                     ],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (4, 8))
             )
@@ -481,19 +476,13 @@ mod tests {
             .0,
             f::n::kxr(
                 KSX::OpenElement(
-                    String::from("foo"),
+                    str!("foo"),
                     vec![],
                     vec![
-                        f::n::kxr(
-                            KSX::ClosedElement(String::from("bar"), vec![]),
-                            ((2, 3), (2, 9))
-                        ),
-                        f::n::kxr(
-                            KSX::ClosedElement(String::from("fizz"), vec![]),
-                            ((3, 3), (3, 10))
-                        )
+                        f::n::kxr(KSX::ClosedElement(str!("bar"), vec![]), ((2, 3), (2, 9))),
+                        f::n::kxr(KSX::ClosedElement(str!("fizz"), vec![]), ((3, 3), (3, 10)))
                     ],
-                    String::from("foo"),
+                    str!("foo"),
                 ),
                 ((1, 1), (4, 6))
             )

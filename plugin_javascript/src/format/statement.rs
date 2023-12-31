@@ -56,6 +56,7 @@ impl<'a> Display for Import<'a> {
 #[cfg(test)]
 mod tests {
     use crate::javascript::{Expression, Statement};
+    use kore::str;
 
     #[test]
     fn expression() {
@@ -65,7 +66,7 @@ mod tests {
     #[test]
     fn variable() {
         assert_eq!(
-            Statement::Variable(String::from("foo"), Expression::Null).to_string(),
+            Statement::Variable(str!("foo"), Expression::Null).to_string(),
             "var foo = null;"
         );
     }
@@ -86,7 +87,7 @@ mod tests {
     #[test]
     fn export() {
         assert_eq!(
-            Statement::Export(String::from("foo")).to_string(),
+            Statement::Export(str!("foo")).to_string(),
             "export { foo };"
         );
     }

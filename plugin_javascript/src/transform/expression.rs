@@ -201,6 +201,7 @@ mod tests {
         javascript::{Expression, Statement},
         Mode, Module, Options,
     };
+    use kore::str;
     use lang::ast;
 
     const OPTIONS: Options = Options {
@@ -251,7 +252,7 @@ mod tests {
                     &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Integer(123))),
                     &OPTIONS
                 ),
-                Expression::Number(String::from("123"))
+                Expression::Number(str!("123"))
             );
         }
 
@@ -264,7 +265,7 @@ mod tests {
                     ))),
                     &OPTIONS
                 ),
-                Expression::Number(String::from("45.67"))
+                Expression::Number(str!("45.67"))
             );
         }
 
@@ -273,11 +274,11 @@ mod tests {
             assert_eq!(
                 Expression::from_expression(
                     &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::String(
-                        String::from("foo")
+                        str!("foo")
                     ))),
                     &OPTIONS
                 ),
-                Expression::String(String::from("foo"))
+                Expression::String(str!("foo"))
             );
         }
 
@@ -285,10 +286,10 @@ mod tests {
         fn identifier() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Identifier(String::from("foo"))),
+                    &ast::ExpressionShape(ast::Expression::Identifier(str!("foo"))),
                     &OPTIONS
                 ),
-                Expression::Identifier(String::from("foo"))
+                Expression::Identifier(str!("foo"))
             );
         }
 
@@ -322,7 +323,7 @@ mod tests {
                 Expression::from_expression(
                     &ast::ExpressionShape(ast::Expression::Closure(vec![
                         ast::StatementShape(ast::Statement::Variable(
-                            String::from("foo"),
+                            str!("foo"),
                             ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
                         )),
                         ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
@@ -332,7 +333,7 @@ mod tests {
                     &OPTIONS
                 ),
                 Expression::Closure(vec![
-                    Statement::Variable(String::from("foo"), Expression::Null),
+                    Statement::Variable(str!("foo"), Expression::Null),
                     Statement::Return(Some(Expression::Boolean(true)))
                 ])
             );
@@ -347,7 +348,7 @@ mod tests {
                             ast::Expression::Primitive(ast::Primitive::Boolean(true))
                         ))),
                         ast::StatementShape(ast::Statement::Variable(
-                            String::from("foo"),
+                            str!("foo"),
                             ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
                         ))
                     ])),
@@ -355,7 +356,7 @@ mod tests {
                 ),
                 Expression::Closure(vec![
                     Statement::Expression(Expression::Boolean(true)),
-                    Statement::Variable(String::from("foo"), Expression::Null),
+                    Statement::Variable(str!("foo"), Expression::Null),
                     Statement::Return(None)
                 ])
             );
@@ -398,7 +399,7 @@ mod tests {
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
-                    Box::new(Expression::Identifier(String::from("Math.abs"))),
+                    Box::new(Expression::Identifier(str!("Math.abs"))),
                     vec![Expression::Null]
                 ),
             );
@@ -410,12 +411,12 @@ mod tests {
                 Expression::from_expression(
                     &ast::ExpressionShape(ast::Expression::BinaryOperation(
                         op,
-                        Box::new(ast::ExpressionShape(ast::Expression::Identifier(
-                            String::from("lhs"),
-                        ))),
-                        Box::new(ast::ExpressionShape(ast::Expression::Identifier(
-                            String::from("rhs"),
-                        ))),
+                        Box::new(ast::ExpressionShape(ast::Expression::Identifier(str!(
+                            "lhs"
+                        )))),
+                        Box::new(ast::ExpressionShape(ast::Expression::Identifier(str!(
+                            "rhs"
+                        )))),
                     )),
                     &OPTIONS,
                 )
@@ -423,8 +424,8 @@ mod tests {
             let js_operation = |op| {
                 Expression::BinaryOperation(
                     op,
-                    Box::new(Expression::Identifier(String::from("lhs"))),
-                    Box::new(Expression::Identifier(String::from("rhs"))),
+                    Box::new(Expression::Identifier(str!("lhs"))),
+                    Box::new(Expression::Identifier(str!("rhs"))),
                 )
             };
 
@@ -488,7 +489,7 @@ mod tests {
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
-                    Box::new(Expression::Identifier(String::from("Math.pow"))),
+                    Box::new(Expression::Identifier(str!("Math.pow"))),
                     vec![Expression::Null, Expression::Null]
                 ),
             );
@@ -502,11 +503,11 @@ mod tests {
                         Box::new(ast::ExpressionShape(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         ))),
-                        String::from("foo")
+                        str!("foo")
                     )),
                     &OPTIONS
                 ),
-                Expression::DotAccess(Box::new(Expression::Null), String::from("foo")),
+                Expression::DotAccess(Box::new(Expression::Null), str!("foo")),
             );
         }
 
@@ -533,24 +534,21 @@ mod tests {
             assert_eq!(
                 Expression::from_expression(
                     &ast::ExpressionShape(ast::Expression::Style(vec![(
-                        String::from("foo"),
+                        str!("foo"),
                         ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
                     )])),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("style")),
-                            Expression::String(String::from("create")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("style")),
+                            Expression::String(str!("create")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
-                    vec![Expression::Object(vec![(
-                        String::from("foo"),
-                        Expression::Null
-                    )])]
+                    vec![Expression::Object(vec![(str!("foo"), Expression::Null)])]
                 ),
             );
         }
@@ -560,20 +558,20 @@ mod tests {
             assert_eq!(
                 Expression::from_expression(
                     &ast::ExpressionShape(ast::Expression::KSX(Box::new(ast::KSXShape(
-                        ast::KSX::ClosedElement(String::from("Foo"), vec![])
+                        ast::KSX::ClosedElement(str!("Foo"), vec![])
                     )))),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createElement")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createElement")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
-                    vec![Expression::Identifier(String::from("Foo"))]
+                    vec![Expression::Identifier(str!("Foo"))]
                 ),
             );
         }
@@ -585,11 +583,8 @@ mod tests {
         #[test]
         fn text() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::Text(String::from("foo"))),
-                    &OPTIONS
-                ),
-                Expression::String(String::from("foo"))
+                Expression::from_ksx(&ast::KSXShape(ast::KSX::Text(str!("foo"))), &OPTIONS),
+                Expression::String(str!("foo"))
             );
         }
 
@@ -611,23 +606,23 @@ mod tests {
             assert_eq!(
                 Expression::from_ksx(
                     &ast::KSXShape(ast::KSX::Fragment(vec![
-                        ast::KSXShape(ast::KSX::Text(String::from("foo"))),
-                        ast::KSXShape(ast::KSX::Text(String::from("bar"))),
+                        ast::KSXShape(ast::KSX::Text(str!("foo"))),
+                        ast::KSXShape(ast::KSX::Text(str!("bar"))),
                     ])),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createFragment")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createFragment")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
                     vec![
-                        Expression::String(String::from("foo")),
-                        Expression::String(String::from("bar")),
+                        Expression::String(str!("foo")),
+                        Expression::String(str!("bar")),
                     ]
                 )
             );
@@ -639,11 +634,11 @@ mod tests {
                 Expression::from_ksx(&ast::KSXShape(ast::KSX::Fragment(vec![])), &OPTIONS),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createFragment")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createFragment")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
                     vec![]
@@ -656,11 +651,11 @@ mod tests {
             assert_eq!(
                 Expression::from_ksx(
                     &ast::KSXShape(ast::KSX::ClosedElement(
-                        String::from("Foo"),
+                        str!("Foo"),
                         vec![
-                            (String::from("bar"), None),
+                            (str!("bar"), None),
                             (
-                                String::from("fizz"),
+                                str!("fizz"),
                                 Some(ast::ExpressionShape(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 )))
@@ -671,21 +666,18 @@ mod tests {
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createElement")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createElement")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
                     vec![
-                        Expression::Identifier(String::from("Foo")),
+                        Expression::Identifier(str!("Foo")),
                         Expression::Object(vec![
-                            (
-                                String::from("bar"),
-                                Expression::Identifier(String::from("bar"))
-                            ),
-                            (String::from("fizz"), Expression::Null)
+                            (str!("bar"), Expression::Identifier(str!("bar"))),
+                            (str!("fizz"), Expression::Null)
                         ])
                     ]
                 )
@@ -696,19 +688,19 @@ mod tests {
         fn closed_element_no_attributes() {
             assert_eq!(
                 Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::ClosedElement(String::from("Foo"), vec![])),
+                    &ast::KSXShape(ast::KSX::ClosedElement(str!("Foo"), vec![])),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createElement")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createElement")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
-                    vec![Expression::Identifier(String::from("Foo"))]
+                    vec![Expression::Identifier(str!("Foo"))]
                 )
             );
         }
@@ -718,44 +710,41 @@ mod tests {
             assert_eq!(
                 Expression::from_ksx(
                     &ast::KSXShape(ast::KSX::OpenElement(
-                        String::from("Foo"),
+                        str!("Foo"),
                         vec![
-                            (String::from("bar"), None),
+                            (str!("bar"), None),
                             (
-                                String::from("fizz"),
+                                str!("fizz"),
                                 Some(ast::ExpressionShape(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 )))
                             ),
                         ],
                         vec![
-                            ast::KSXShape(ast::KSX::Text(String::from("foo"))),
-                            ast::KSXShape(ast::KSX::Text(String::from("bar"))),
+                            ast::KSXShape(ast::KSX::Text(str!("foo"))),
+                            ast::KSXShape(ast::KSX::Text(str!("bar"))),
                         ],
-                        String::from("Foo"),
+                        str!("Foo"),
                     )),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createElement")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createElement")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
                     vec![
-                        Expression::Identifier(String::from("Foo")),
+                        Expression::Identifier(str!("Foo")),
                         Expression::Object(vec![
-                            (
-                                String::from("bar"),
-                                Expression::Identifier(String::from("bar"))
-                            ),
-                            (String::from("fizz"), Expression::Null)
+                            (str!("bar"), Expression::Identifier(str!("bar"))),
+                            (str!("fizz"), Expression::Null)
                         ]),
-                        Expression::String(String::from("foo")),
-                        Expression::String(String::from("bar")),
+                        Expression::String(str!("foo")),
+                        Expression::String(str!("bar")),
                     ]
                 )
             );
@@ -766,30 +755,30 @@ mod tests {
             assert_eq!(
                 Expression::from_ksx(
                     &ast::KSXShape(ast::KSX::OpenElement(
-                        String::from("Foo"),
+                        str!("Foo"),
                         vec![],
                         vec![
-                            ast::KSXShape(ast::KSX::Text(String::from("foo"))),
-                            ast::KSXShape(ast::KSX::Text(String::from("bar"))),
+                            ast::KSXShape(ast::KSX::Text(str!("foo"))),
+                            ast::KSXShape(ast::KSX::Text(str!("bar"))),
                         ],
-                        String::from("Foo"),
+                        str!("Foo"),
                     )),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createElement")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createElement")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
                     vec![
-                        Expression::Identifier(String::from("Foo")),
+                        Expression::Identifier(str!("Foo")),
                         Expression::Null,
-                        Expression::String(String::from("foo")),
-                        Expression::String(String::from("bar")),
+                        Expression::String(str!("foo")),
+                        Expression::String(str!("bar")),
                     ]
                 )
             );
@@ -800,38 +789,35 @@ mod tests {
             assert_eq!(
                 Expression::from_ksx(
                     &ast::KSXShape(ast::KSX::OpenElement(
-                        String::from("Foo"),
+                        str!("Foo"),
                         vec![
-                            (String::from("bar"), None),
+                            (str!("bar"), None),
                             (
-                                String::from("fizz"),
+                                str!("fizz"),
                                 Some(ast::ExpressionShape(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 )))
                             ),
                         ],
                         vec![],
-                        String::from("Foo"),
+                        str!("Foo"),
                     )),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(String::from("$knot.plugin.get"))),
+                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(String::from("ksx")),
-                            Expression::String(String::from("createElement")),
-                            Expression::String(String::from("1.0")),
+                            Expression::String(str!("ksx")),
+                            Expression::String(str!("createElement")),
+                            Expression::String(str!("1.0")),
                         ]
                     )),
                     vec![
-                        Expression::Identifier(String::from("Foo")),
+                        Expression::Identifier(str!("Foo")),
                         Expression::Object(vec![
-                            (
-                                String::from("bar"),
-                                Expression::Identifier(String::from("bar"))
-                            ),
-                            (String::from("fizz"), Expression::Null)
+                            (str!("bar"), Expression::Identifier(str!("bar"))),
+                            (str!("fizz"), Expression::Null)
                         ]),
                     ]
                 )

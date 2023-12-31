@@ -1,6 +1,7 @@
 mod common;
 
 use js::{JavaScriptGenerator, Module};
+use kore::str;
 use std::collections::HashMap;
 
 const INPUT: &str = "type MyType = boolean;
@@ -69,7 +70,7 @@ export { my_module };
 
     assert_eq!(
         result.unwrap(),
-        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_owned())])
+        HashMap::from_iter(vec![(str!("main.js"), OUTPUT.to_owned())])
     );
 }
 
@@ -117,6 +118,6 @@ exports.my_module = my_module;
 
     assert_eq!(
         result.unwrap(),
-        HashMap::from_iter(vec![(String::from("main.js"), OUTPUT.to_owned())])
+        HashMap::from_iter(vec![(str!("main.js"), OUTPUT.to_owned())])
     );
 }

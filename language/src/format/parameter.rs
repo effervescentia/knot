@@ -45,11 +45,12 @@ mod tests {
         ast::{Expression, Parameter, Primitive, TypeExpression},
         test::fixture as f,
     };
+    use kore::str;
 
     #[test]
     fn untyped() {
         assert_eq!(
-            f::n::p(Parameter::new(String::from("foo"), None, None)).to_string(),
+            f::n::p(Parameter::new(str!("foo"), None, None)).to_string(),
             "foo"
         );
     }
@@ -58,7 +59,7 @@ mod tests {
     fn with_typedef() {
         assert_eq!(
             f::n::p(Parameter::new(
-                String::from("foo"),
+                str!("foo"),
                 Some(f::n::tx(TypeExpression::Nil)),
                 None
             ))
@@ -71,7 +72,7 @@ mod tests {
     fn with_default() {
         assert_eq!(
             f::n::p(Parameter::new(
-                String::from("foo"),
+                str!("foo"),
                 None,
                 Some(f::n::x(Expression::Primitive(Primitive::Nil)))
             ))
@@ -84,7 +85,7 @@ mod tests {
     fn with_typedef_and_default() {
         assert_eq!(
             f::n::p(Parameter::new(
-                String::from("foo"),
+                str!("foo"),
                 Some(f::n::tx(TypeExpression::Nil)),
                 Some(f::n::x(Expression::Primitive(Primitive::Nil)))
             ))

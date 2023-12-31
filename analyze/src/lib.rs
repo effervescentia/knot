@@ -78,6 +78,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{test::fixture as f, types::Type, RefKind};
+    use kore::str;
     use lang::{
         ast::{Expression, Module, ModuleNode, Primitive, TypeExpression},
         Program,
@@ -124,7 +125,7 @@ mod tests {
                             Ok(Type::Nil)
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 1)]))
                 ))
             );
         }
@@ -137,10 +138,7 @@ mod tests {
         fn static_variant() {
             let ast = Program(f::n::mr(Module::new(
                 vec![],
-                vec![f::n::d(f::a::enum_(
-                    "foo",
-                    vec![(String::from("Bar"), vec![])],
-                ))],
+                vec![f::n::d(f::a::enum_("foo", vec![(str!("Bar"), vec![])]))],
             )));
 
             assert_eq!(
@@ -149,11 +147,11 @@ mod tests {
                     Module::new(
                         vec![],
                         vec![f::n::dc(
-                            f::a::enum_("foo", vec![(String::from("Bar"), vec![])]),
-                            Ok(Type::Enumerated(vec![(String::from("Bar"), vec![])]))
+                            f::a::enum_("foo", vec![(str!("Bar"), vec![])]),
+                            Ok(Type::Enumerated(vec![(str!("Bar"), vec![])]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 0)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Mixed, 0)]))
                 ))
             );
         }
@@ -165,7 +163,7 @@ mod tests {
                 vec![f::n::d(f::a::enum_(
                     "foo",
                     vec![(
-                        String::from("Bar"),
+                        str!("Bar"),
                         vec![
                             f::n::tx(TypeExpression::Nil),
                             f::n::tx(TypeExpression::Boolean),
@@ -183,17 +181,17 @@ mod tests {
                             f::a::enum_(
                                 "foo",
                                 vec![(
-                                    String::from("Bar"),
+                                    str!("Bar"),
                                     vec![
                                         f::n::txc(TypeExpression::Nil, Ok(Type::Nil)),
                                         f::n::txc(TypeExpression::Boolean, Ok(Type::Boolean))
                                     ]
                                 )]
                             ),
-                            Ok(Type::Enumerated(vec![(String::from("Bar"), vec![0, 1])]))
+                            Ok(Type::Enumerated(vec![(str!("Bar"), vec![0, 1])]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 2)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Mixed, 2)]))
                 ))
             );
         }
@@ -227,7 +225,7 @@ mod tests {
                             Ok(Type::Nil)
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 1)]))
                 ))
             );
         }
@@ -260,7 +258,7 @@ mod tests {
                             Ok(Type::Nil)
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 2)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 2)]))
                 ))
             );
         }
@@ -297,7 +295,7 @@ mod tests {
                             Ok(Type::Function(vec![], 0))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 1)]))
                 ))
             );
         }
@@ -310,14 +308,14 @@ mod tests {
                     "foo",
                     vec![
                         f::n::p(Parameter {
-                            name: String::from("bar"),
+                            name: str!("bar"),
                             value_type: None,
                             default_value: Some(f::n::x(Expression::Primitive(
                                 Primitive::Boolean(true),
                             ))),
                         }),
                         f::n::p(Parameter {
-                            name: String::from("fizz"),
+                            name: str!("fizz"),
                             value_type: None,
                             default_value: Some(f::n::x(Expression::Primitive(
                                 Primitive::Integer(123),
@@ -340,7 +338,7 @@ mod tests {
                                 vec![
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("bar"),
+                                            name: str!("bar"),
                                             value_type: None,
                                             default_value: Some(f::n::xc(
                                                 Expression::Primitive(Primitive::Boolean(true),),
@@ -351,7 +349,7 @@ mod tests {
                                     ),
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("fizz"),
+                                            name: str!("fizz"),
                                             value_type: None,
                                             default_value: Some(f::n::xc(
                                                 Expression::Primitive(Primitive::Integer(123)),
@@ -367,7 +365,7 @@ mod tests {
                             Ok(Type::Function(vec![1, 3], 4))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 5)]))
                 ))
             );
         }
@@ -380,12 +378,12 @@ mod tests {
                     "foo",
                     vec![
                         f::n::p(Parameter {
-                            name: String::from("bar"),
+                            name: str!("bar"),
                             value_type: Some(f::n::tx(TypeExpression::Boolean)),
                             default_value: None,
                         }),
                         f::n::p(Parameter {
-                            name: String::from("fizz"),
+                            name: str!("fizz"),
                             value_type: Some(f::n::tx(TypeExpression::Integer)),
                             default_value: None,
                         }),
@@ -406,7 +404,7 @@ mod tests {
                                 vec![
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("bar"),
+                                            name: str!("bar"),
                                             value_type: Some(f::n::txc(
                                                 TypeExpression::Boolean,
                                                 Ok(Type::Boolean)
@@ -417,7 +415,7 @@ mod tests {
                                     ),
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("fizz"),
+                                            name: str!("fizz"),
                                             value_type: Some(f::n::txc(
                                                 TypeExpression::Integer,
                                                 Ok(Type::Integer)
@@ -433,7 +431,7 @@ mod tests {
                             Ok(Type::Function(vec![1, 3], 4))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 5)]))
                 ))
             );
         }
@@ -445,7 +443,7 @@ mod tests {
                 vec![f::n::d(f::a::func_(
                     "foo",
                     vec![f::n::p(Parameter {
-                        name: String::from("bar"),
+                        name: str!("bar"),
                         value_type: Some(f::n::tx(TypeExpression::Boolean)),
                         default_value: Some(f::n::x(Expression::Primitive(Primitive::Integer(
                             123,
@@ -466,7 +464,7 @@ mod tests {
                                 "foo",
                                 vec![f::n::pc(
                                     Parameter {
-                                        name: String::from("bar"),
+                                        name: str!("bar"),
                                         value_type: Some(f::n::txc(
                                             TypeExpression::Boolean,
                                             Ok(Type::Boolean)
@@ -484,7 +482,7 @@ mod tests {
                             Ok(Type::Function(vec![2], 3))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 4)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 4)]))
                 ))
             );
         }
@@ -496,12 +494,12 @@ mod tests {
                 vec![f::n::d(f::a::func_(
                     "foo",
                     vec![f::n::p(Parameter {
-                        name: String::from("bar"),
+                        name: str!("bar"),
                         value_type: Some(f::n::tx(TypeExpression::Boolean)),
                         default_value: None,
                     })],
                     None,
-                    f::n::x(Expression::Identifier(String::from("bar"))),
+                    f::n::x(Expression::Identifier(str!("bar"))),
                 ))],
             )));
 
@@ -515,7 +513,7 @@ mod tests {
                                 "foo",
                                 vec![f::n::pc(
                                     Parameter {
-                                        name: String::from("bar"),
+                                        name: str!("bar"),
                                         value_type: Some(f::n::txc(
                                             TypeExpression::Boolean,
                                             Ok(Type::Boolean)
@@ -525,15 +523,12 @@ mod tests {
                                     Ok(Type::Boolean)
                                 )],
                                 None,
-                                f::n::xc(
-                                    Expression::Identifier(String::from("bar")),
-                                    Ok(Type::Boolean)
-                                )
+                                f::n::xc(Expression::Identifier(str!("bar")), Ok(Type::Boolean))
                             ),
                             Ok(Type::Function(vec![1], 2))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 3)]))
                 ))
             );
         }
@@ -565,7 +560,7 @@ mod tests {
                             Ok(Type::Function(vec![], 0))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 2)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 2)]))
                 ))
             );
         }
@@ -579,12 +574,12 @@ mod tests {
                     "foo",
                     vec![
                         f::n::p(Parameter {
-                            name: String::from("bar"),
+                            name: str!("bar"),
                             value_type: None,
                             default_value: None,
                         }),
                         f::n::p(Parameter {
-                            name: String::from("fizz"),
+                            name: str!("fizz"),
                             value_type: None,
                             default_value: None,
                         }),
@@ -592,8 +587,8 @@ mod tests {
                     None,
                     f::n::x(Expression::BinaryOperation(
                         BinaryOperator::And,
-                        Box::new(f::n::x(Expression::Identifier(String::from("bar")))),
-                        Box::new(f::n::x(Expression::Identifier(String::from("fizz")))),
+                        Box::new(f::n::x(Expression::Identifier(str!("bar")))),
+                        Box::new(f::n::x(Expression::Identifier(str!("fizz")))),
                     )),
                 ))],
             )));
@@ -609,7 +604,7 @@ mod tests {
                                 vec![
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("bar"),
+                                            name: str!("bar"),
                                             value_type: None,
                                             default_value: None,
                                         },
@@ -617,7 +612,7 @@ mod tests {
                                     ),
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("fizz"),
+                                            name: str!("fizz"),
                                             value_type: None,
                                             default_value: None,
                                         },
@@ -629,11 +624,11 @@ mod tests {
                                     Expression::BinaryOperation(
                                         BinaryOperator::And,
                                         Box::new(f::n::xc(
-                                            Expression::Identifier(String::from("bar")),
+                                            Expression::Identifier(str!("bar")),
                                             Ok(Type::Boolean)
                                         )),
                                         Box::new(f::n::xc(
-                                            Expression::Identifier(String::from("fizz")),
+                                            Expression::Identifier(str!("fizz")),
                                             Ok(Type::Boolean)
                                         )),
                                     ),
@@ -643,7 +638,7 @@ mod tests {
                             Ok(Type::Function(vec![0, 1], 2))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 3)]))
                 ))
             );
         }
@@ -678,7 +673,7 @@ mod tests {
                             Ok(Type::View(vec![]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 1)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 1)]))
                 ))
             );
         }
@@ -691,14 +686,14 @@ mod tests {
                     "foo",
                     vec![
                         f::n::p(Parameter {
-                            name: String::from("bar"),
+                            name: str!("bar"),
                             value_type: None,
                             default_value: Some(f::n::x(Expression::Primitive(
                                 Primitive::Boolean(true),
                             ))),
                         }),
                         f::n::p(Parameter {
-                            name: String::from("fizz"),
+                            name: str!("fizz"),
                             value_type: None,
                             default_value: Some(f::n::x(Expression::Primitive(
                                 Primitive::Integer(123),
@@ -720,7 +715,7 @@ mod tests {
                                 vec![
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("bar"),
+                                            name: str!("bar"),
                                             value_type: None,
                                             default_value: Some(f::n::xc(
                                                 Expression::Primitive(Primitive::Boolean(true),),
@@ -731,7 +726,7 @@ mod tests {
                                     ),
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("fizz"),
+                                            name: str!("fizz"),
                                             value_type: None,
                                             default_value: Some(f::n::xc(
                                                 Expression::Primitive(Primitive::Integer(123)),
@@ -746,7 +741,7 @@ mod tests {
                             Ok(Type::View(vec![1, 3]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 5)]))
                 ))
             );
         }
@@ -759,12 +754,12 @@ mod tests {
                     "foo",
                     vec![
                         f::n::p(Parameter {
-                            name: String::from("bar"),
+                            name: str!("bar"),
                             value_type: Some(f::n::tx(TypeExpression::Boolean)),
                             default_value: None,
                         }),
                         f::n::p(Parameter {
-                            name: String::from("fizz"),
+                            name: str!("fizz"),
                             value_type: Some(f::n::tx(TypeExpression::Integer)),
                             default_value: None,
                         }),
@@ -784,7 +779,7 @@ mod tests {
                                 vec![
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("bar"),
+                                            name: str!("bar"),
                                             value_type: Some(f::n::txc(
                                                 TypeExpression::Boolean,
                                                 Ok(Type::Boolean)
@@ -795,7 +790,7 @@ mod tests {
                                     ),
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("fizz"),
+                                            name: str!("fizz"),
                                             value_type: Some(f::n::txc(
                                                 TypeExpression::Integer,
                                                 Ok(Type::Integer)
@@ -810,7 +805,7 @@ mod tests {
                             Ok(Type::View(vec![1, 3]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 5)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 5)]))
                 ))
             );
         }
@@ -822,7 +817,7 @@ mod tests {
                 vec![f::n::d(f::a::view(
                     "foo",
                     vec![f::n::p(Parameter {
-                        name: String::from("bar"),
+                        name: str!("bar"),
                         value_type: Some(f::n::tx(TypeExpression::Boolean)),
                         default_value: Some(f::n::x(Expression::Primitive(Primitive::Integer(
                             123,
@@ -842,7 +837,7 @@ mod tests {
                                 "foo",
                                 vec![f::n::pc(
                                     Parameter {
-                                        name: String::from("bar"),
+                                        name: str!("bar"),
                                         value_type: Some(f::n::txc(
                                             TypeExpression::Boolean,
                                             Ok(Type::Boolean)
@@ -859,7 +854,7 @@ mod tests {
                             Ok(Type::View(vec![2]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 4)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 4)]))
                 ))
             );
         }
@@ -871,11 +866,11 @@ mod tests {
                 vec![f::n::d(f::a::view(
                     "foo",
                     vec![f::n::p(Parameter {
-                        name: String::from("bar"),
+                        name: str!("bar"),
                         value_type: Some(f::n::tx(TypeExpression::Boolean)),
                         default_value: None,
                     })],
-                    f::n::x(Expression::Identifier(String::from("bar"))),
+                    f::n::x(Expression::Identifier(str!("bar"))),
                 ))],
             )));
 
@@ -889,7 +884,7 @@ mod tests {
                                 "foo",
                                 vec![f::n::pc(
                                     Parameter {
-                                        name: String::from("bar"),
+                                        name: str!("bar"),
                                         value_type: Some(f::n::txc(
                                             TypeExpression::Boolean,
                                             Ok(Type::Boolean)
@@ -898,15 +893,12 @@ mod tests {
                                     },
                                     Ok(Type::Boolean)
                                 )],
-                                f::n::xc(
-                                    Expression::Identifier(String::from("bar")),
-                                    Ok(Type::Boolean)
-                                )
+                                f::n::xc(Expression::Identifier(str!("bar")), Ok(Type::Boolean))
                             ),
                             Ok(Type::View(vec![1]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 3)]))
                 ))
             );
         }
@@ -920,20 +912,20 @@ mod tests {
                     "foo",
                     vec![
                         f::n::p(Parameter {
-                            name: String::from("bar"),
+                            name: str!("bar"),
                             value_type: None,
                             default_value: None,
                         }),
                         f::n::p(Parameter {
-                            name: String::from("fizz"),
+                            name: str!("fizz"),
                             value_type: None,
                             default_value: None,
                         }),
                     ],
                     f::n::x(Expression::BinaryOperation(
                         BinaryOperator::And,
-                        Box::new(f::n::x(Expression::Identifier(String::from("bar")))),
-                        Box::new(f::n::x(Expression::Identifier(String::from("fizz")))),
+                        Box::new(f::n::x(Expression::Identifier(str!("bar")))),
+                        Box::new(f::n::x(Expression::Identifier(str!("fizz")))),
                     )),
                 ))],
             )));
@@ -949,7 +941,7 @@ mod tests {
                                 vec![
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("bar"),
+                                            name: str!("bar"),
                                             value_type: None,
                                             default_value: None,
                                         },
@@ -957,7 +949,7 @@ mod tests {
                                     ),
                                     f::n::pc(
                                         Parameter {
-                                            name: String::from("fizz"),
+                                            name: str!("fizz"),
                                             value_type: None,
                                             default_value: None,
                                         },
@@ -968,11 +960,11 @@ mod tests {
                                     Expression::BinaryOperation(
                                         BinaryOperator::And,
                                         Box::new(f::n::xc(
-                                            Expression::Identifier(String::from("bar")),
+                                            Expression::Identifier(str!("bar")),
                                             Ok(Type::Boolean)
                                         )),
                                         Box::new(f::n::xc(
-                                            Expression::Identifier(String::from("fizz")),
+                                            Expression::Identifier(str!("fizz")),
                                             Ok(Type::Boolean)
                                         )),
                                     ),
@@ -982,7 +974,7 @@ mod tests {
                             Ok(Type::View(vec![0, 1]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Value, 3)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Value, 3)]))
                 ))
             );
         }
@@ -1014,7 +1006,7 @@ mod tests {
                             Ok(Type::Module(vec![]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 1)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Mixed, 1)]))
                 ))
             );
         }
@@ -1077,18 +1069,18 @@ mod tests {
                                         ]
                                     ),
                                     Ok(Type::Module(vec![
-                                        (String::from("bar"), RefKind::Type, 1),
-                                        (String::from("fizz"), RefKind::Value, 3),
+                                        (str!("bar"), RefKind::Type, 1),
+                                        (str!("fizz"), RefKind::Value, 3),
                                     ]))
                                 ),
                             ),
                             Ok(Type::Module(vec![
-                                (String::from("bar"), RefKind::Type, 1),
-                                (String::from("fizz"), RefKind::Value, 3),
+                                (str!("bar"), RefKind::Type, 1),
+                                (str!("fizz"), RefKind::Value, 3),
                             ]))
                         )]
                     ),
-                    Ok(Type::Module(vec![(String::from("foo"), RefKind::Mixed, 5)]))
+                    Ok(Type::Module(vec![(str!("foo"), RefKind::Mixed, 5)]))
                 ))
             );
         }

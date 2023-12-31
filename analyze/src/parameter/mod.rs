@@ -32,6 +32,7 @@ mod tests {
         register::Register,
         test::fixture as f,
     };
+    use kore::str;
     use lang::ast::{Expression, Primitive, Statement};
 
     #[test]
@@ -41,13 +42,13 @@ mod tests {
 
         assert_eq!(
             f::n::s(Statement::Variable(
-                String::from("foo"),
+                str!("foo"),
                 f::n::x(Expression::Primitive(Primitive::Nil))
             ))
             .register(scope),
             f::n::sc(
                 Statement::Variable(
-                    String::from("foo"),
+                    str!("foo"),
                     f::n::xc(
                         Expression::Primitive(Primitive::Nil),
                         NodeContext::new(0, vec![0])
@@ -71,7 +72,7 @@ mod tests {
                     1,
                     (
                         vec![0],
-                        Fragment::Statement(Statement::Variable(String::from("foo"), 0))
+                        Fragment::Statement(Statement::Variable(str!("foo"), 0))
                     )
                 )
             ])

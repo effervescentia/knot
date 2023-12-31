@@ -135,6 +135,7 @@ mod tests {
     use super::{TypeExpression, TypeExpressionNode};
     use crate::{test::fixture as f, Range};
     use combine::{stream::position::Stream, EasyParser};
+    use kore::str;
 
     fn parse(s: &str) -> crate::Result<TypeExpressionNode<Range, ()>> {
         super::type_expression().easy_parse(Stream::new(s))
@@ -200,10 +201,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            f::n::txr(
-                TypeExpression::Identifier(String::from("foo")),
-                ((1, 1), (1, 3))
-            )
+            f::n::txr(TypeExpression::Identifier(str!("foo")), ((1, 1), (1, 3)))
         );
     }
 
@@ -256,7 +254,7 @@ mod tests {
             f::n::txr(
                 TypeExpression::DotAccess(
                     Box::new(f::n::txr(TypeExpression::Nil, ((1, 1), (1, 3)))),
-                    String::from("foo")
+                    str!("foo")
                 ),
                 ((1, 1), (1, 7))
             )

@@ -118,10 +118,11 @@ mod tests {
         ast::{Expression, Primitive, KSX},
         test::fixture as f,
     };
+    use kore::str;
 
     #[test]
     fn text() {
-        assert_eq!(f::n::kx(KSX::Text(String::from("foo"))).to_string(), "foo");
+        assert_eq!(f::n::kx(KSX::Text(str!("foo"))).to_string(), "foo");
     }
 
     #[test]
@@ -140,10 +141,7 @@ mod tests {
     #[test]
     fn fragment_with_children() {
         assert_eq!(
-            f::n::kx(KSX::Fragment(vec![f::n::kx(KSX::Text(String::from(
-                "foo"
-            )))]))
-            .to_string(),
+            f::n::kx(KSX::Fragment(vec![f::n::kx(KSX::Text(str!("foo")))])).to_string(),
             "<>foo</>"
         );
     }
@@ -151,7 +149,7 @@ mod tests {
     #[test]
     fn closed_element_no_attributes() {
         assert_eq!(
-            f::n::kx(KSX::ClosedElement(String::from("foo"), vec![])).to_string(),
+            f::n::kx(KSX::ClosedElement(str!("foo"), vec![])).to_string(),
             "<foo />"
         );
     }
@@ -160,11 +158,11 @@ mod tests {
     fn closed_element_with_attributes() {
         assert_eq!(
             f::n::kx(KSX::ClosedElement(
-                String::from("foo"),
+                str!("foo"),
                 vec![
-                    (String::from("fizz"), None),
+                    (str!("fizz"), None),
                     (
-                        String::from("buzz"),
+                        str!("buzz"),
                         Some(f::n::x(Expression::Primitive(Primitive::Nil)))
                     ),
                 ]
@@ -177,13 +175,7 @@ mod tests {
     #[test]
     fn empty_open_element() {
         assert_eq!(
-            f::n::kx(KSX::OpenElement(
-                String::from("foo"),
-                vec![],
-                vec![],
-                String::from("foo")
-            ))
-            .to_string(),
+            f::n::kx(KSX::OpenElement(str!("foo"), vec![], vec![], str!("foo"))).to_string(),
             "<foo></foo>"
         );
     }
@@ -192,16 +184,16 @@ mod tests {
     fn open_element_with_attributes() {
         assert_eq!(
             f::n::kx(KSX::OpenElement(
-                String::from("foo"),
+                str!("foo"),
                 vec![
-                    (String::from("fizz"), None),
+                    (str!("fizz"), None),
                     (
-                        String::from("buzz"),
+                        str!("buzz"),
                         Some(f::n::x(Expression::Primitive(Primitive::Nil)))
                     ),
                 ],
                 vec![],
-                String::from("foo"),
+                str!("foo"),
             ))
             .to_string(),
             "<foo fizz buzz=nil></foo>"
@@ -212,10 +204,10 @@ mod tests {
     fn open_element_with_children() {
         assert_eq!(
             f::n::kx(KSX::OpenElement(
-                String::from("foo"),
+                str!("foo"),
                 vec![],
-                vec![f::n::kx(KSX::Text(String::from("bar")))],
-                String::from("foo"),
+                vec![f::n::kx(KSX::Text(str!("bar")))],
+                str!("foo"),
             ))
             .to_string(),
             "<foo>bar</foo>"
@@ -226,10 +218,10 @@ mod tests {
     fn element_children() {
         assert_eq!(
             f::n::kx(KSX::OpenElement(
-                String::from("foo"),
+                str!("foo"),
                 vec![],
-                vec![f::n::kx(KSX::ClosedElement(String::from("bar"), vec![],))],
-                String::from("foo"),
+                vec![f::n::kx(KSX::ClosedElement(str!("bar"), vec![],))],
+                str!("foo"),
             ))
             .to_string(),
             "<foo>
@@ -242,26 +234,20 @@ mod tests {
     fn mixed_children() {
         assert_eq!(
             f::n::kx(KSX::OpenElement(
-                String::from("foo"),
+                str!("foo"),
                 vec![],
                 vec![
-                    f::n::kx(KSX::Text(String::from("hello "))),
-                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(String::from(
-                        "name"
-                    ))))),
-                    f::n::kx(KSX::Text(String::from(", how are you doing?"))),
-                    f::n::kx(KSX::ClosedElement(String::from("Overview"), vec![],)),
-                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(String::from(
-                        "left"
-                    ))))),
-                    f::n::kx(KSX::Text(String::from(" or "))),
-                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(String::from(
-                        "right"
-                    ))))),
-                    f::n::kx(KSX::ClosedElement(String::from("Summary"), vec![],)),
-                    f::n::kx(KSX::Text(String::from("that's all folks!"))),
+                    f::n::kx(KSX::Text(str!("hello "))),
+                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(str!("name"))))),
+                    f::n::kx(KSX::Text(str!(", how are you doing?"))),
+                    f::n::kx(KSX::ClosedElement(str!("Overview"), vec![],)),
+                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(str!("left"))))),
+                    f::n::kx(KSX::Text(str!(" or "))),
+                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(str!("right"))))),
+                    f::n::kx(KSX::ClosedElement(str!("Summary"), vec![],)),
+                    f::n::kx(KSX::Text(str!("that's all folks!"))),
                 ],
-                String::from("foo"),
+                str!("foo"),
             ))
             .to_string(),
             "<foo>
