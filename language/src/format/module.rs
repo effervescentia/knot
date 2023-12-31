@@ -45,6 +45,7 @@ mod tests {
         ast::{Import, ImportSource, Module, TypeExpression},
         test::fixture as f,
     };
+    use kore::str;
 
     #[test]
     fn empty() {
