@@ -1,7 +1,6 @@
 use super::infer::weak::{ToWeak, WeakRef};
 use lang::ast::{
-    Declaration, Expression, Import, ImportTarget, Module, Parameter, Statement, TypeExpression,
-    KSX,
+    Declaration, Expression, Import, Module, Parameter, Statement, TypeExpression, KSX,
 };
 use std::fmt::Debug;
 
@@ -27,24 +26,12 @@ impl Fragment {
             Self::Declaration(x) => Ok(vec![x.name().clone()]),
 
             Self::Import(Import {
-                path,
-                aliases: None,
-                ..
+                path, alias: None, ..
             }) => Ok(vec![path.last().ok_or(())?.clone()]),
 
             Self::Import(Import {
-                path,
-                aliases: Some(aliases),
-                ..
-            }) => Ok(aliases
-                .iter()
-                .map(|(target, alias)| match target {
-                    ImportTarget::Module => Some(alias.as_ref().or_else(|| path.last())?.clone()),
-
-                    ImportTarget::Named(name) => Some(alias.as_ref().unwrap_or(name).clone()),
-                })
-                .collect::<Option<Vec<_>>>()
-                .ok_or(())?),
+                alias: Some(alias), ..
+            }) => Ok(vec![alias.clone()]),
 
             _ => Ok(vec![]),
         }
@@ -71,7 +58,7 @@ mod tests {
     use super::Fragment;
     use kore::{assert_eq, str};
     use lang::{
-        ast::{Import, ImportSource, ImportTarget, Statement},
+        ast::{Import, ImportSource, Statement},
         test::fixture as f,
     };
 
@@ -141,21 +128,7 @@ mod tests {
             Fragment::Import(Import {
                 source: ImportSource::Local,
                 path: vec![str!("foo"), str!("bar")],
-                aliases: None
-            })
-            .to_binding()
-            .unwrap(),
-            vec![str!("bar")]
-        );
-    }
-
-    #[test]
-    fn binding_module_star_import() {
-        assert_eq!(
-            Fragment::Import(Import {
-                source: ImportSource::Local,
-                path: vec![str!("foo"), str!("bar")],
-                aliases: Some(vec![(ImportTarget::Module, None)])
+                alias: None
             })
             .to_binding()
             .unwrap(),
@@ -169,7 +142,7 @@ mod tests {
             Fragment::Import(Import {
                 source: ImportSource::Local,
                 path: vec![str!("foo"), str!("bar")],
-                aliases: Some(vec![(ImportTarget::Module, Some(str!("fizz")))])
+                alias: Some(str!("fizz"))
             })
             .to_binding()
             .unwrap(),

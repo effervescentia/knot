@@ -3,7 +3,7 @@ mod javascript;
 mod transform;
 
 pub use javascript::JavaScript;
-use kore::Generator;
+use kore::{str, Generator};
 use lang::ast::ProgramShape;
 use std::path::{Path, PathBuf};
 
@@ -49,9 +49,18 @@ impl Generator for JavaScriptGenerator {
     type Output = JavaScript;
 
     fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output) {
+        let mut path_to_root = path
+            .parent()
+            .map(|x| x.iter().map(|_| "..").collect::<Vec<_>>().join("/"))
+            .unwrap_or_default();
+        if path_to_root.is_empty() {
+            path_to_root = str!(".");
+        }
+
         (
             path.with_extension("js"),
             JavaScript::from_module(
+                &path_to_root,
                 &input.0,
                 &Options {
                     mode: Mode::Prod,

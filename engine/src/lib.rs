@@ -6,7 +6,7 @@ mod validate;
 mod write;
 
 use bimap::BiMap;
-use kore::Generator;
+use kore::{invariant, Generator};
 use lang::{
     ast::{self, AstNode, ToShape},
     Program,
@@ -274,22 +274,42 @@ impl<R> Engine<Result<state::Linked>, R>
 where
     R: Resolver,
 {
+    fn get_module<'a>(
+        state: &'a state::Linked,
+        id: &'a usize,
+    ) -> (&'a Link, &'a state::Module<()>) {
+        let link = state.lookup.get_by_right(id).unwrap_or_else(|| {
+            invariant!("did not find link for module with id {id} in state lookup")
+        });
+
+        (
+            link,
+            state
+                .modules
+                .get(link)
+                .unwrap_or_else(|| invariant!("did not find module at link {link}")),
+        )
+    }
+
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
         self.then(|state, _| {
-            let analyzed = state
-                .modules
-                .into_iter()
-                .map(|(key, state::Module { id, text, ast })| {
-                    let typed = analyze::analyze(&ast);
+            let mut analyzed = HashMap::new();
+            let mut module_types = HashMap::new();
 
-                    (key, state::Module::new(id, text, typed))
-                })
-                .collect::<Vec<_>>();
+            for id in state.graph.iter() {
+                let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
+                let module_reference = link.clone().to_module_reference();
+                let typed = analyze::analyze(&module_reference, ast, &module_types);
+                let module_type = typed.node().context().clone();
+
+                module_types.insert(module_reference, module_type);
+                analyzed.insert(link.clone(), state::Module::new(*id, text.clone(), typed));
+            }
 
             Ok(state::Analyzed {
                 graph: state.graph,
                 lookup: state.lookup,
-                modules: HashMap::from_iter(analyzed),
+                modules: analyzed,
             })
         })
     }

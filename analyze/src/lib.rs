@@ -17,10 +17,12 @@ mod types;
 use context::{FileContext, NodeContext, ScopeContext, StrongContext, WeakContext};
 pub use infer::strong::Strong;
 use infer::strong::{SemanticError, ToStrong};
-use lang::Program;
+use lang::{ModuleReference, Program};
 use register::Register;
-use std::{cell::RefCell, fmt::Debug};
+use std::{cell::RefCell, collections::HashMap, fmt::Debug};
 use types::Type;
+
+type ModuleTypeMap = HashMap<ModuleReference, Strong>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct FinalType(Result<Type<Box<FinalType>>, SemanticError>);
@@ -45,7 +47,11 @@ where
     (Program(untyped), file_ctx.into_inner())
 }
 
-pub fn analyze<R>(x: &Program<R, ()>) -> Program<R, Strong>
+pub fn analyze<R>(
+    module_reference: &ModuleReference,
+    x: &Program<R, ()>,
+    modules: &ModuleTypeMap,
+) -> Program<R, Strong>
 where
     R: Copy,
 {
@@ -61,7 +67,8 @@ where
 
     // apply strong type inference
     let nodes = fragments.to_descriptors(weak_refs);
-    let strong_ctx = infer::strong::infer_types(&nodes, fragments, bindings);
+    let strong_ctx =
+        infer::strong::infer_types(module_reference, &nodes, fragments, bindings, modules);
 
     untyped.to_strong(&strong_ctx)
 }
@@ -81,20 +88,99 @@ mod tests {
     use kore::str;
     use lang::{
         ast::{Expression, Module, ModuleNode, Primitive, TypeExpression},
-        Program,
+        ModuleReference, ModuleScope, Program,
     };
+    use std::collections::HashMap;
+
+    fn mock_reference(name: &str) -> ModuleReference {
+        ModuleReference(ModuleScope::Source, vec![name.to_owned()])
+    }
 
     #[test]
     fn empty_module() {
         let ast = Program(f::n::m(Module::new(vec![], vec![])));
+        let modules = HashMap::from_iter(vec![]);
 
         assert_eq!(
-            super::analyze(&ast),
+            super::analyze(&mock_reference("foo"), &ast, &modules),
             Program(ModuleNode(
                 Module::new(vec![], vec![]),
                 Ok(Type::Module(vec![]))
             ))
         );
+    }
+
+    mod import {
+        use super::*;
+        use lang::ast::{Import, ImportSource};
+
+        #[test]
+        fn module() {
+            let ast = Program(f::n::mr(Module::new(
+                vec![f::n::i(Import {
+                    source: ImportSource::Local,
+                    path: vec![str!("foo")],
+                    alias: None,
+                })],
+                vec![],
+            )));
+            let modules = HashMap::from_iter(vec![(
+                ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+                Ok(Type::Module(vec![(str!("bar"), RefKind::Value, 1)])),
+            )]);
+
+            assert_eq!(
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
+                Program(ModuleNode(
+                    Module::new(
+                        vec![f::n::ic(
+                            Import {
+                                source: ImportSource::Local,
+                                path: vec![str!("foo")],
+                                alias: None
+                            },
+                            Ok(Type::Module(vec![(str!("bar"), RefKind::Value, 1)]))
+                        )],
+                        vec![]
+                    ),
+                    Ok(Type::Module(vec![]))
+                ))
+            );
+        }
+
+        #[test]
+        fn aliased_module() {
+            let ast = Program(f::n::mr(Module::new(
+                vec![f::n::i(Import {
+                    source: ImportSource::Local,
+                    path: vec![str!("foo")],
+                    alias: Some(str!("bar")),
+                })],
+                vec![],
+            )));
+            let modules = HashMap::from_iter(vec![(
+                ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+                Ok(Type::Module(vec![(str!("bar"), RefKind::Value, 1)])),
+            )]);
+
+            assert_eq!(
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
+                Program(ModuleNode(
+                    Module::new(
+                        vec![f::n::ic(
+                            Import {
+                                source: ImportSource::Local,
+                                path: vec![str!("foo")],
+                                alias: Some(str!("bar"))
+                            },
+                            Ok(Type::Module(vec![(str!("bar"), RefKind::Value, 1)])),
+                        )],
+                        vec![]
+                    ),
+                    Ok(Type::Module(vec![]))
+                ))
+            );
+        }
     }
 
     mod type_alias {
@@ -110,9 +196,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -140,9 +227,10 @@ mod tests {
                 vec![],
                 vec![f::n::d(f::a::enum_("foo", vec![(str!("Bar"), vec![])]))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -171,9 +259,10 @@ mod tests {
                     )],
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -210,9 +299,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -240,9 +330,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Boolean(true))),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -279,9 +370,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -326,9 +418,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -392,9 +485,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -453,9 +547,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -502,9 +597,10 @@ mod tests {
                     f::n::x(Expression::Identifier(str!("bar"))),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -544,9 +640,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -592,9 +689,10 @@ mod tests {
                     )),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -658,9 +756,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -703,9 +802,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -767,9 +867,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -826,9 +927,10 @@ mod tests {
                     f::n::x(Expression::Primitive(Primitive::Nil)),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -873,9 +975,10 @@ mod tests {
                     f::n::x(Expression::Identifier(str!("bar"))),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -929,9 +1032,10 @@ mod tests {
                     )),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -992,9 +1096,10 @@ mod tests {
                     f::n::mr(Module::new(vec![], vec![])),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],
@@ -1030,9 +1135,10 @@ mod tests {
                     )),
                 ))],
             )));
+            let modules = HashMap::from_iter(vec![]);
 
             assert_eq!(
-                super::super::analyze(&ast),
+                super::super::analyze(&mock_reference("foo"), &ast, &modules),
                 Program(ModuleNode(
                     Module::new(
                         vec![],

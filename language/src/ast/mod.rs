@@ -13,7 +13,7 @@ mod type_expression;
 use crate::Node;
 pub use declaration::{Declaration, DeclarationNode, DeclarationNodeValue};
 pub use expression::{Expression, ExpressionNode, ExpressionNodeValue, Primitive};
-pub use import::{Import, ImportNode, ImportNodeValue, ImportSource, ImportTarget};
+pub use import::{Import, ImportNode, ImportNodeValue, ImportSource};
 pub use ksx::{KSXNode, KSXNodeValue, KSX};
 pub use module::{Module, ModuleNode, ModuleNodeValue};
 pub use operator::{BinaryOperator, UnaryOperator};

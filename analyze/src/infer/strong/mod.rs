@@ -8,10 +8,13 @@ use super::weak::Weak;
 use crate::{
     context::{BindingMap, FragmentMap, NodeDescriptor, StrongContext},
     fragment::Fragment,
-    RefKind, Type,
+    ModuleTypeMap, RefKind, Type,
 };
 use kore::invariant;
-use lang::ast::{Declaration, Expression, Module, Parameter, TypeExpression};
+use lang::{
+    ast::{Declaration, Expression, Module, Parameter, TypeExpression},
+    ModuleReference,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ExpectedType {
@@ -54,12 +57,14 @@ pub trait ToStrong<R> {
     fn to_strong(&self, ctx: &StrongContext) -> R;
 }
 
-fn partial_infer_types(
-    nodes: Vec<&NodeDescriptor>,
+fn partial_infer_types<'a>(
+    module_reference: &ModuleReference,
+    nodes: Vec<&'a NodeDescriptor>,
     mut ctx: StrongContext,
+    modules: &ModuleTypeMap,
 ) -> (
-    Vec<&NodeDescriptor>,
-    Vec<(&NodeDescriptor, String)>,
+    Vec<&'a NodeDescriptor>,
+    Vec<(&'a NodeDescriptor, String)>,
     StrongContext,
 ) {
     let mut unhandled = vec![];
@@ -187,6 +192,27 @@ fn partial_infer_types(
         },
 
         NodeDescriptor {
+            id,
+            kind: kind @ RefKind::Mixed,
+            fragment: Fragment::Import(import),
+            weak: Weak::Infer,
+            ..
+        } => {
+            let current_path = module_reference.to_path("kn");
+            let import_reference = ModuleReference::from_import(current_path, import);
+            let module = modules.get(&import_reference);
+
+            if let Some(x) = module {
+                ctx.refs.insert(*id, (*kind, x.clone()));
+            } else {
+                invariant!(
+                    "module could not be found with reference {}",
+                    import_reference.to_path("kn").display()
+                );
+            }
+        }
+
+        NodeDescriptor {
             weak: Weak::Infer,
             fragment: Fragment::Parameter(_),
             ..
@@ -201,16 +227,19 @@ fn partial_infer_types(
 }
 
 pub fn infer_types(
+    module_reference: &ModuleReference,
     nodes: &[NodeDescriptor],
     fragments: FragmentMap,
     bindings: BindingMap,
+    modules: &ModuleTypeMap,
 ) -> StrongContext {
     let mut unhandled = nodes.iter().collect::<Vec<_>>();
     let mut ctx = StrongContext::new(fragments, bindings);
 
     while !unhandled.is_empty() {
         let unhandled_length = unhandled.len();
-        let (next_unhandled, _, next_ctx) = partial_infer_types(unhandled, ctx);
+        let (next_unhandled, _, next_ctx) =
+            partial_infer_types(module_reference, unhandled, ctx, modules);
 
         if next_unhandled.is_empty() {
             return next_ctx;
@@ -237,8 +266,13 @@ mod tests {
     use lang::{
         ast::{Expression, Primitive, Statement, TypeExpression},
         test::fixture as f,
+        ModuleReference, ModuleScope,
     };
     use std::collections::{BTreeSet, HashMap};
+
+    fn mock_reference(name: &str) -> ModuleReference {
+        ModuleReference(ModuleScope::Source, vec![name.to_owned()])
+    }
 
     #[test]
     fn infer_types() {
@@ -262,10 +296,13 @@ mod tests {
             (vec![0], str!("MyType")),
             (BTreeSet::from_iter(vec![1])),
         )]);
+        let modules = HashMap::from_iter(vec![]);
 
         let (.., ctx) = super::partial_infer_types(
+            &mock_reference("foo"),
             nodes.iter().collect(),
             StrongContext::new(FragmentMap::new(), bindings),
+            &modules,
         );
 
         assert_eq!(
@@ -313,10 +350,13 @@ mod tests {
             ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
             ((vec![0], str!("BAR")), (BTreeSet::from_iter(vec![3]))),
         ]);
+        let modules = HashMap::from_iter(vec![]);
 
         let (.., ctx) = super::partial_infer_types(
+            &mock_reference("foo"),
             nodes.iter().collect(),
             StrongContext::new(FragmentMap::new(), bindings),
+            &modules,
         );
 
         assert_eq!(
@@ -395,10 +435,13 @@ mod tests {
             ((vec![0, 2, 3], str!("bar")), (BTreeSet::from_iter(vec![3]))),
             ((vec![0], str!("FIZZ")), (BTreeSet::from_iter(vec![7]))),
         ]);
+        let modules = HashMap::from_iter(vec![]);
 
         let (.., ctx) = super::partial_infer_types(
+            &mock_reference("foo"),
             nodes.iter().collect(),
             StrongContext::new(FragmentMap::new(), bindings),
+            &modules,
         );
 
         assert_eq!(

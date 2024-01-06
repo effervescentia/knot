@@ -9,10 +9,10 @@ use kore::str;
 use lang::ast;
 
 impl JavaScript {
-    pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Self {
+    pub fn from_module(path_to_root: &str, value: &ast::ModuleShape, opts: &Options) -> Self {
         let statements = [
             Statement::import("@knot/runtime", vec![(str!("$knot"), None)], opts),
-            Statement::from_module(value, opts),
+            Statement::from_module(path_to_root, value, opts),
             value
                 .0
                 .declarations
@@ -54,6 +54,7 @@ mod tests {
     fn export_public_values() {
         assert_eq!(
             JavaScript::from_module(
+                ".",
                 &ast::ModuleShape(ast::Module::new(
                     vec![],
                     vec![
@@ -92,6 +93,7 @@ mod tests {
     fn esm_export() {
         assert_eq!(
             JavaScript::from_module(
+                ".",
                 &ast::ModuleShape(ast::Module::new(
                     vec![],
                     vec![ast::DeclarationShape(ast::Declaration::Constant {
@@ -116,6 +118,7 @@ mod tests {
     fn cjs_export() {
         assert_eq!(
             JavaScript::from_module(
+                ".",
                 &ast::ModuleShape(ast::Module::new(
                     vec![],
                     vec![ast::DeclarationShape(ast::Declaration::Constant {

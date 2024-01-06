@@ -1,11 +1,13 @@
 pub mod ast;
 #[cfg(feature = "format")]
 pub mod format;
+mod interface;
 mod node;
 #[cfg(feature = "test")]
 pub mod test;
 
 use ast::{ImportNode, Module, ModuleNode};
+pub use interface::{ModuleReference, ModuleScope};
 pub use node::Node;
 
 pub trait Identity<T> {
@@ -20,6 +22,10 @@ impl<R, C> Program<R, C> {
         let Self(ModuleNode(Module { imports, .. }, ..)) = self;
 
         imports
+    }
+
+    pub const fn node(&self) -> &ast::ModuleNode<R, C> {
+        &self.0
     }
 }
 

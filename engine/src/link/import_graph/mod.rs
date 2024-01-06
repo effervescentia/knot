@@ -5,6 +5,7 @@ use kore::invariant;
 use petgraph::{
     algo::is_cyclic_directed,
     stable_graph::{EdgeIndex, NodeIndex, StableDiGraph},
+    visit::{Reversed, Topo, Walker},
     Direction,
 };
 use std::{collections::HashSet, hash::Hash, iter::empty};
@@ -165,6 +166,15 @@ impl ImportGraph {
             .node_weights()
             .flat_map(|x| self.unvisited_cycles_with(&mut visited, *x))
             .collect()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = usize> + '_ {
+        let graph = Reversed(&self.graph);
+        let reverse_topological_walker = Topo::new(graph);
+
+        reverse_topological_walker
+            .iter(graph)
+            .map(|x| self.get_node(&x))
     }
 }
 

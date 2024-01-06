@@ -33,7 +33,11 @@ impl Statement {
         }
     }
 
-    pub fn from_declaration(value: &ast::DeclarationShape, opts: &Options) -> Vec<Self> {
+    pub fn from_declaration(
+        path_to_root: &str,
+        value: &ast::DeclarationShape,
+        opts: &Options,
+    ) -> Vec<Self> {
         fn parameter_name(suffix: &String) -> String {
             format!("$param_{suffix}")
         }
@@ -149,7 +153,7 @@ impl Statement {
                 value,
             } => {
                 let statements = [
-                    Self::from_module(value, opts),
+                    Self::from_module(path_to_root, value, opts),
                     vec![Self::Return(Some(Expression::Object(
                         value
                             .0
@@ -176,75 +180,49 @@ impl Statement {
         }
     }
 
+    // TODO: make this return a single value instead of an array
     pub fn from_import(
+        path_to_root: &str,
         ast::ImportShape(ast::Import {
             source,
             path,
-            aliases,
+            alias,
         }): &ast::ImportShape,
         opts: &Options,
     ) -> Vec<Self> {
-        let base = match source {
-            ast::ImportSource::Local => str!("."),
-            ast::ImportSource::Root => str!("@"),
-            ast::ImportSource::Named(name) => name.clone(),
-            ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
-        };
-
-        let namespace = [vec![base], path.clone()].concat().join("/");
         let module_name = path.last().unwrap_or_else(|| {
             invariant!(
                 "failed to get the implicit module name from the last section of the path {path:?}"
             )
         });
+        let path = path.join("/");
+        let import_path = match source {
+            ast::ImportSource::Local => format!("./{path}.js"),
+            ast::ImportSource::Root => format!("{path_to_root}/{path}.js"),
+            ast::ImportSource::Named(name) => format!("{name}/{path}"),
+            ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}/{path}"),
+        };
 
-        match aliases {
-            Some(xs) => {
-                let (mut imports, named) = xs.iter().fold(
-                    (vec![], vec![]),
-                    |(mut module_imports, mut named_imports), (target, alias)| {
-                        match target {
-                            ast::ImportTarget::Module => {
-                                module_imports.push(Self::module_import(
-                                    &namespace,
-                                    alias.as_ref().unwrap_or(module_name),
-                                    opts,
-                                ));
-                            }
-
-                            ast::ImportTarget::Named(name) => {
-                                named_imports.push((name.clone(), alias.clone()));
-                            }
-                        }
-
-                        (module_imports, named_imports)
-                    },
-                );
-
-                if !named.is_empty() {
-                    imports.extend(Self::import(&namespace, named, opts));
-                }
-
-                imports
-            }
-
-            None => {
-                vec![Self::module_import(&namespace, module_name, opts)]
-            }
-        }
+        vec![Self::module_import(
+            &import_path,
+            alias.as_ref().unwrap_or(module_name),
+            opts,
+        )]
     }
 
-    pub fn from_module(value: &ast::ModuleShape, opts: &Options) -> Vec<Self> {
+    pub fn from_module(path_to_root: &str, value: &ast::ModuleShape, opts: &Options) -> Vec<Self> {
         let ast::Module {
             ref imports,
             ref declarations,
         } = value.0;
 
-        let import_iter = imports.iter().flat_map(|x| Self::from_import(x, opts));
+        let import_iter = imports
+            .iter()
+            .flat_map(|x| Self::from_import(path_to_root, x, opts));
 
         let declaration_iter = declarations
             .iter()
-            .flat_map(|x| Self::from_declaration(x, opts));
+            .flat_map(|x| Self::from_declaration(path_to_root, x, opts));
 
         import_iter.chain(declaration_iter).collect()
     }
@@ -340,6 +318,7 @@ mod tests {
         fn type_alias() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::TypeAlias {
                         name: Storage(Visibility::Public, str!("foo")),
                         value: ast::TypeExpressionShape(ast::TypeExpression::Nil)
@@ -354,6 +333,7 @@ mod tests {
         fn enumerated() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::Enumerated {
                         name: Storage(Visibility::Public, str!("foo")),
                         variants: vec![
@@ -405,6 +385,7 @@ mod tests {
         fn constant() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::Constant {
                         name: Storage(Visibility::Public, str!("foo")),
                         value_type: None,
@@ -422,6 +403,7 @@ mod tests {
         fn function() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::Function {
                         name: Storage(Visibility::Public, str!("foo")),
                         parameters: vec![
@@ -470,6 +452,7 @@ mod tests {
         fn function_closure_body() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::Function {
                         name: Storage(Visibility::Public, str!("foo")),
                         parameters: vec![],
@@ -503,6 +486,7 @@ mod tests {
         fn view() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::View {
                         name: Storage(Visibility::Public, str!("foo")),
                         parameters: vec![
@@ -550,6 +534,7 @@ mod tests {
         fn module() {
             assert_eq!(
                 Statement::from_declaration(
+                    ".",
                     &ast::DeclarationShape(ast::Declaration::Module {
                         name: Storage(Visibility::Public, str!("foo")),
                         value: ast::ModuleShape(Module {

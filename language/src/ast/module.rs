@@ -34,6 +34,10 @@ pub type ModuleNodeValue<R, C> = Module<ImportNode<R, C>, DeclarationNode<R, C>>
 pub struct ModuleNode<R, C>(pub ModuleNodeValue<R, C>, pub C);
 
 impl<R, C> ModuleNode<R, C> {
+    pub const fn context(&self) -> &C {
+        &self.1
+    }
+
     pub fn map<C2>(
         &self,
         f: impl Fn(&ModuleNodeValue<R, C>, &C) -> (ModuleNodeValue<R, C2>, C2),

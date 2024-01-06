@@ -5,7 +5,6 @@ use kore::str;
 use std::collections::HashMap;
 
 #[test]
-#[ignore = "skip for now"]
 fn with_absolute_imports() {
     const INPUT_A: &str = "const VALUE_A = 123;";
     const INPUT_B: &str = "const VALUE_B = 456;";
@@ -24,6 +23,8 @@ var VALUE_B = 456;
 export { VALUE_B };
 ";
     const OUTPUT_ROOT: &str = "import { $knot } from \"@knot/runtime\";
+import * as a from \"./a.js\";
+import * as b from \"./deep/b.js\";
 var ROOT = 789;
 export { ROOT };
 ";
@@ -50,7 +51,6 @@ export { ROOT };
 }
 
 #[test]
-#[ignore = "skip for now"]
 fn with_relative_imports() {
     const INPUT_A: &str = "const VALUE_A = 123;";
     const INPUT_B: &str = "use ./deeper/a;
@@ -65,10 +65,12 @@ var VALUE_A = 123;
 export { VALUE_A };
 ";
     const OUTPUT_B: &str = "import { $knot } from \"@knot/runtime\";
+import * as a from \"./deeper/a.js\";
 var VALUE_B = 456;
 export { VALUE_B };
 ";
     const OUTPUT_ROOT: &str = "import { $knot } from \"@knot/runtime\";
+import * as b from \"./deep/b.js\";
 var ROOT = 789;
 export { ROOT };
 ";

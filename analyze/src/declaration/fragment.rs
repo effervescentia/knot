@@ -22,8 +22,7 @@ mod tests {
     };
     use kore::str;
     use lang::ast::{
-        Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
-        TypeExpression,
+        Expression, Import, ImportSource, Module, ModuleNode, Parameter, Primitive, TypeExpression,
     };
 
     #[test]
@@ -148,7 +147,7 @@ mod tests {
                             Import {
                                 source: ImportSource::Root,
                                 path: vec![str!("bar"), str!("fizz")],
-                                aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
+                                alias: Some(str!("Fizz")),
                             },
                             NodeContext::new(1, vec![0])
                         )],

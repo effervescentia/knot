@@ -35,8 +35,7 @@ mod tests {
     };
     use kore::{assert_eq, str};
     use lang::ast::{
-        Expression, Import, ImportSource, ImportTarget, Module, ModuleNode, Parameter, Primitive,
-        TypeExpression,
+        Expression, Import, ImportSource, Module, ModuleNode, Parameter, Primitive, TypeExpression,
     };
 
     #[test]
@@ -141,7 +140,7 @@ mod tests {
                     vec![f::n::i(Import {
                         source: ImportSource::Root,
                         path: vec![str!("bar"), str!("fizz")],
-                        aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
+                        alias: Some(str!("Fizz")),
                     })],
                     vec![f::n::d(f::a::const_(
                         "BUZZ",
@@ -160,7 +159,7 @@ mod tests {
                                 Import {
                                     source: ImportSource::Root,
                                     path: vec![str!("bar"), str!("fizz")],
-                                    aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
+                                    alias: Some(str!("Fizz")),
                                 },
                                 NodeContext::new(0, vec![0, 1])
                             )],
@@ -196,7 +195,7 @@ mod tests {
                         Fragment::Import(Import {
                             source: ImportSource::Root,
                             path: vec![str!("bar"), str!("fizz")],
-                            aliases: Some(vec![(ImportTarget::Module, Some(str!("Fizz")))]),
+                            alias: Some(str!("Fizz")),
                         })
                     )
                 ),
