@@ -4,7 +4,6 @@ use engine::Link;
 use js::{JavaScriptGenerator, Module};
 
 #[test]
-#[ignore = "skip for now"]
 fn cyclic() {
     const INPUT_A: &str = "use @/b;";
     const INPUT_B: &str = "use @/c;";

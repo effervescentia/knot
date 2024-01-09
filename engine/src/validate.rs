@@ -9,9 +9,8 @@ impl<'a> Validator<'a> {
             return Ok(());
         }
 
-        let cycles = graph.cycles();
-
-        let errors = cycles
+        let errors = graph
+            .cycles()
             .into_iter()
             .map(|x| {
                 Error::ImportCycle(
@@ -32,9 +31,9 @@ impl<'a> Validator<'a> {
             .collect::<Vec<_>>();
 
         if errors.is_empty() {
-            Err(errors)
-        } else {
             Ok(())
+        } else {
+            Err(errors)
         }
     }
 }
