@@ -28,4 +28,4 @@ pub struct Import(pub Node<super::Import>);
 
 pub struct Module(pub Node<super::Module<Import, Declaration>>);
 
-pub struct Program(pub Node<super::Program<Module>>);
+pub struct Program(Module);

@@ -200,6 +200,3 @@ pub struct Module<Imp, Decl> {
     imports: Vec<Imp>,
     declarations: Vec<Decl>,
 }
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct Program<Module>(Module);

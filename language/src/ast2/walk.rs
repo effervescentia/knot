@@ -4,47 +4,59 @@ use super::{raw, Range};
 pub struct NodeId(pub usize);
 
 pub trait Visit {
-    type Expr;
-    type Stmt;
-    type Comp;
-    type TExpr;
-    type Param;
-    type Decl;
-    type Imp;
-    type Mod;
+    type Expression;
+    type Statement;
+    type Component;
+    type TypeExpression;
+    type Parameter;
+    type Declaration;
+    type Import;
+    type Module;
 
     fn expression(
         self,
-        x: super::Expression<Self::Expr, Self::Stmt, Self::Comp>,
+        x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
         r: Range,
-    ) -> (Self::Expr, Self);
+    ) -> (Self::Expression, Self);
 
-    fn statement(self, x: super::Statement<Self::Expr>, r: Range) -> (Self::Stmt, Self);
+    fn statement(self, x: super::Statement<Self::Expression>, r: Range) -> (Self::Statement, Self);
 
-    fn component(self, x: super::Component<Self::Expr, Self::Comp>, r: Range)
-        -> (Self::Comp, Self);
+    fn component(
+        self,
+        x: super::Component<Self::Expression, Self::Component>,
+        r: Range,
+    ) -> (Self::Component, Self);
 
     fn type_expression(
         self,
-        x: super::TypeExpression<Self::TExpr>,
+        x: super::TypeExpression<Self::TypeExpression>,
         r: Range,
-    ) -> (Self::TExpr, Self);
+    ) -> (Self::TypeExpression, Self);
 
     fn parameter(
         self,
-        x: super::Parameter<Self::Expr, Self::TExpr>,
+        x: super::Parameter<Self::Expression, Self::TypeExpression>,
         r: Range,
-    ) -> (Self::Param, Self);
+    ) -> (Self::Parameter, Self);
 
     fn declaration(
         self,
-        x: super::Declaration<Self::Expr, Self::Param, Self::Mod, Self::TExpr>,
+        x: super::Declaration<
+            Self::Expression,
+            Self::Parameter,
+            Self::Module,
+            Self::TypeExpression,
+        >,
         r: Range,
-    ) -> (Self::Decl, Self);
+    ) -> (Self::Declaration, Self);
 
-    fn import(self, x: super::Import, r: Range) -> (Self::Imp, Self);
+    fn import(self, x: super::Import, r: Range) -> (Self::Import, Self);
 
-    fn module(self, x: super::Module<Self::Imp, Self::Decl>, r: Range) -> (Self::Mod, Self);
+    fn module(
+        self,
+        x: super::Module<Self::Import, Self::Declaration>,
+        r: Range,
+    ) -> (Self::Module, Self);
 }
 
 pub trait Walk<Visitor>
@@ -108,7 +120,7 @@ impl<Visitor> Walk<Visitor> for raw::Expression
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Expr;
+    type Output = Visitor::Expression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node { value, range } = self.0;
@@ -186,7 +198,7 @@ impl<Visitor> Walk<Visitor> for raw::Statement
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Stmt;
+    type Output = Visitor::Statement;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node { value, range } = self.0;
@@ -211,7 +223,7 @@ impl<Visitor> Walk<Visitor> for raw::Component
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Comp;
+    type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor)
     where
@@ -257,7 +269,7 @@ impl<Visitor> Walk<Visitor> for raw::TypeExpression
 where
     Visitor: Visit,
 {
-    type Output = Visitor::TExpr;
+    type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor)
     where
@@ -306,7 +318,7 @@ impl<Visitor> Walk<Visitor> for raw::Parameter
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Param;
+    type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node {
@@ -336,7 +348,7 @@ impl<Visitor> Walk<Visitor> for raw::Declaration
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Decl;
+    type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node { value, range } = self.0;
@@ -424,7 +436,7 @@ impl<Visitor> Walk<Visitor> for raw::Import
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Imp;
+    type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node {
@@ -452,7 +464,7 @@ impl<Visitor> Walk<Visitor> for raw::Module
 where
     Visitor: Visit,
 {
-    type Output = Visitor::Mod;
+    type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node {

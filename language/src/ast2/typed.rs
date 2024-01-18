@@ -68,4 +68,4 @@ pub struct Import<Type>(pub Node<super::Import, Type>);
 
 pub struct Module<Type>(pub Node<super::Module<Import<Type>, Declaration<Type>>, Type>);
 
-pub struct Program<Type>(pub Node<super::Program<Module<Type>>, Type>);
+pub struct Program<Type>(pub Module<Type>);
